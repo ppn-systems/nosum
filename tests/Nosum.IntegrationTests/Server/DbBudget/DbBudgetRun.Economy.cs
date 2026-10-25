@@ -90,13 +90,17 @@ public sealed partial class DbBudgetRun
         int radishes = await this.SlotOfAsync(seller, ItemCatalog.Radish);
 
         _ = await _rig.ProbeAsync<ShipResult>(seller, "Market", MarketOpCode.ShipItems, "ShipItems", "ship a stack at the bin", () => new ShipItems { Slot = (byte)parsnips, ItemId = ItemCatalog.Parsnip, Quantity = 5 });
+        // Listing, buying and cancelling happen at the market counter in the Town (ADR-034).
+        await BudgetRig.TravelAsync(seller.AccountId, MapInstance.Shared(GameMaps.Town));
+        (double marketX, double marketY) = TileCentre(45, 71);
+        BudgetRig.Stand(seller.AccountId, marketX, marketY);
         _ = await _rig.ProbeAsync<MarketResult>(seller, "Market", MarketOpCode.CreateListing, "CreateListing", "first listing", () => new CreateListing { Slot = (byte)radishes, ItemId = ItemCatalog.Radish, Quantity = 5, Price = 200 });
         _ = await _rig.ProbeAsync<ListingsPage>(seller, "Market", MarketOpCode.GetMyListings, "GetMyListings", "one listing", () => new GetMyListings());
         ListingsPage page = await _rig.ProbeAsync<ListingsPage>(seller, "Market", MarketOpCode.BrowseListings, "BrowseListings", "one listing on the page", () => new BrowseListings { Page = 0 });
         _ = await _rig.ProbeAsync<MarketResult>(seller, "Market", MarketOpCode.CreateListing, "CreateListing", "second listing", () => new CreateListing { Slot = (byte)radishes, ItemId = ItemCatalog.Radish, Quantity = 1, Price = 50 });
         page = await ReadPageAsync(seller);
 
-        await using BudgetPlayer buyer = await this.FreshAsync(GameMaps.Town, 696, 920, 5_000, (ItemCatalog.Parsnip, 10));
+        await using BudgetPlayer buyer = await this.FreshAsync(GameMaps.Town, marketX, marketY, 5_000, (ItemCatalog.Parsnip, 10));
         if (page.Rows.Count >= 1)
         {
             Guid cheap = page.Rows.OrderBy(l => l.Price).First().ListingId;
