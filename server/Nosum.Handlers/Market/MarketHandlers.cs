@@ -149,7 +149,7 @@ public static partial class MarketHandlers
         long price = context.Packet.Price;
         PlayerIdentity player = context.Connection.GetPlayer();
 
-        MarketStatus status = await s_market.CreateListingAsync(player.PlayerId, slot, itemId, quantity, price, context.CancellationToken).ConfigureAwait(false);
+        MarketStatus status = await s_market.CreateListingAsync(context.Connection, player.PlayerId, slot, itemId, quantity, price, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<CreateListing, MarketResult>(context, sequence, r => r.Status = status).ConfigureAwait(false);
     }
 
@@ -168,7 +168,7 @@ public static partial class MarketHandlers
         Guid listingId = context.Packet.ListingId;
         PlayerIdentity player = context.Connection.GetPlayer();
 
-        MarketStatus status = await s_market.BuyAsync(player.PlayerId, listingId, context.CancellationToken).ConfigureAwait(false);
+        MarketStatus status = await s_market.BuyAsync(context.Connection, player.PlayerId, listingId, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<BuyListing, MarketResult>(context, sequence, r => r.Status = status).ConfigureAwait(false);
     }
 
@@ -187,7 +187,7 @@ public static partial class MarketHandlers
         Guid listingId = context.Packet.ListingId;
         PlayerIdentity player = context.Connection.GetPlayer();
 
-        MarketStatus status = await s_market.CancelAsync(player.PlayerId, listingId, context.CancellationToken).ConfigureAwait(false);
+        MarketStatus status = await s_market.CancelAsync(context.Connection, player.PlayerId, listingId, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<CancelListing, MarketResult>(context, sequence, r => r.Status = status).ConfigureAwait(false);
     }
 
