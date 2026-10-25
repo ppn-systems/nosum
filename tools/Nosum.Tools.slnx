@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Nosum.AssetInventory/Nosum.AssetInventory.csproj" />
   <Project Path="Nosum.AtlasPacker/Nosum.AtlasPacker.csproj" />
+  <Project Path="Nosum.MapReauthor/Nosum.MapReauthor.csproj" />
 </Solution>

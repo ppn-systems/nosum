@@ -120,6 +120,29 @@ layer and sheet, and the animated tiles.
   kept as the upper bound until the first map is converted.
 - The owner decides the budget: the PixelLab account is on a trial with 10 generations left, which is enough only for a farmer concept.
 
+## Implementation notes
+
+### Phase 1 — re-author tool, first own terrain set, Farm pilot
+
+- **Tool:** `tools/Nosum.MapReauthor` ([`tools/README.md`](../../tools/README.md)). `Back`, the ground layer, is classified tile by tile into a terrain kind (grass,
+  dirt, sand, water, path, cliff, other) through `tools/Nosum.MapReauthor/terrain-kinds.csv`, a table of (tilesheet, tile index) → kind that grows per map.
+  Each classified cell is redrawn from the own tileset; a tile that is not in the table, or whose walking traits the own tileset cannot carry, stays on
+  its placeholder sheet and is listed in `art/own/reports/<Map>.md`.
+- **How a cell is drawn.** The own tileset has an opaque fill per kind and walking trait (`Water`, `Diggable`, `Passable`) with four texture variants, and 47
+  rounded edge pieces for each of grass, dirt, sand and rock. A fill carries exactly the traits of the placeholder tile it replaced, so the walk, till and
+  water grids are unchanged. Kinds have a draw priority (water, path, rock, sand, dirt, grass): where a kind meets a lower one, its cell gets the fill of the
+  lower neighbour in `Back` and its own rounded edge piece on a new layer, `BackEdge`, which sits right above `Back`. `Other` neighbours and the map edge never
+  round a corner. Every other layer and every object group is copied character for character, and the placeholder tilesets stay in the file with their first ids.
+- **Source of the terrain art:** option 1 of the brief, a CC0 pack. Kenney "Tiny Town" was opened first and does not fit: it has grass and one dirt patch but
+  no water, sand or rock with edges. Kenney "Roguelike/RPG Pack" (CC0, 16 px) does: flat and rounded blocks of grass, dirt, sand, rock and water. The tileset is
+  composed from its spritesheet by the tool; provenance, hashes and the license copy are in `art/own/SOURCES.md` and `art/own/licenses/`. The pack is untrusted
+  data: it was only read as an image, and nothing in the archive was run.
+- **Pointing a map id at the own file.** The code is unchanged. The client and server projects link each map to the path the code loads; a map with an own file
+  is linked from `art/own/Maps/` instead of `assets/Maps/` (see `art/README.md`). Maps without an own file load the placeholder as before.
+- **Not done in this phase.** The `Buildings`, `Front` and `AlwaysFront` layers still draw placeholder tiles (collision must stay byte-identical, and
+  buildings, trees, fences and cliff faces belong to package 7). The inventory (`docs/art/inventory.md`) and the release check (D6) still count the placeholder
+  `Farm.tmx` and its sheets as present; teaching them that a map has an own file comes with the next map.
+
 ## Alternatives considered
 
 - **Replace everything in `assets/`** — 1,953 files are never loaded; replacing them is wasted work. The inventory lists only what is loaded; the
