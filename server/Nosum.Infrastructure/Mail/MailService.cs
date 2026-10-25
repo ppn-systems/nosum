@@ -13,6 +13,7 @@ using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Mail;
 using Nosum.Contracts.Mail.S2C;
 using Nosum.Domain.Mail;
+using Nosum.Infrastructure.Caching;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Mail;
@@ -34,13 +35,15 @@ public sealed class MailService : IMailService
     private readonly ITransferService _transfers;
     private readonly IPlayerNotifier _notifier;
     private readonly TimeProvider _time;
+    private readonly WriteBehind? _writeBehind;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="transfers">Hands over attachments atomically.</param>
     /// <param name="notifier">Pushes the unread count to online players.</param>
     /// <param name="time">The clock for sent and expiry times; tests pass a fake one.</param>
-    public MailService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IPlayerNotifier notifier, TimeProvider time)
+    /// <param name="writeBehind">Where the read flag of a mail waits for its write (docs/adr/ADR-035 D7); <see langword="null"/> writes it at once.</param>
+    public MailService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IPlayerNotifier notifier, TimeProvider time, WriteBehind? writeBehind = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(transfers);
@@ -51,6 +54,7 @@ public sealed class MailService : IMailService
         _transfers = transfers;
         _notifier = notifier;
         _time = time;
+        _writeBehind = writeBehind;
     }
 
     /// <inheritdoc/>
@@ -121,7 +125,7 @@ public sealed class MailService : IMailService
             foreach (MailMessage mail in mails)
             {
                 List<MailItem> lines = [.. items.Where(i => i.MailId == mail.Id).OrderBy(i => i.ItemId).Select(i => new MailItem(i.ItemId, i.Quantity))];
-                views.Add(new MailView(mail.Id, mail.Code, mail.Args, mail.SentAt, mail.ExpiresAt, mail.ReadAt is not null, mail.Coins, lines, mail.CollectedAt is not null));
+                views.Add(new MailView(mail.Id, mail.Code, mail.Args, mail.SentAt, mail.ExpiresAt, mail.ReadAt is not null || this.IsReadPending(playerId, mail.Id), mail.Coins, lines, mail.CollectedAt is not null));
             }
 
             return views;
@@ -135,6 +139,13 @@ public sealed class MailService : IMailService
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
+            if (_writeBehind is { } waiting && waiting.HasPending(playerId))
+            {
+                // Mails read a moment ago may not be written yet: they do not count.
+                List<MailMessage> unread = await unit.Repository<MailMessage>().ListAsync(m => m.RecipientId == playerId && m.ReadAt == null && m.ExpiresAt > now, cancellationToken).ConfigureAwait(false);
+                return unread.Count(m => !this.IsReadPending(playerId, m.Id));
+            }
+
             return await unit.Repository<MailMessage>().CountAsync(m => m.RecipientId == playerId && m.ReadAt == null && m.ExpiresAt > now, cancellationToken).ConfigureAwait(false);
         }
     }
@@ -157,19 +168,27 @@ public sealed class MailService : IMailService
                 return MailStatus.Expired;
             }
 
-            if (mail.ReadAt is not null)
+            if (mail.ReadAt is not null || this.IsReadPending(playerId, mailId))
             {
                 return MailStatus.Ok;
             }
 
-            mail.ReadAt = now;
-            try
+            if (_writeBehind is not null)
             {
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                // Remembered at once, written within the window or when the player leaves (docs/adr/ADR-035 D7): a crash shows the mail as unread again.
+                _writeBehind.Stage(playerId, ReadKey(mailId), now, WriteBehind.DefaultWindow, (staged, at) => staged.Repository<MailMessage>().Update(new MailMessage { Id = mailId, ReadAt = at }, nameof(MailMessage.ReadAt)));
             }
-            catch (Exception ex) when (unit.IsConcurrencyConflict(ex))
+            else
             {
-                return MailStatus.Conflict;
+                mail.ReadAt = now;
+                try
+                {
+                    _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (unit.IsConcurrencyConflict(ex))
+                {
+                    return MailStatus.Conflict;
+                }
             }
         }
 
@@ -243,6 +262,8 @@ public sealed class MailService : IMailService
 
         if (result == MailStatus.Ok)
         {
+            // Collecting stamps the mail as read in its own transaction.
+            _writeBehind?.Discard(playerId, ReadKey(mailId));
             await this.PushUnreadAsync(playerId, cancellationToken).ConfigureAwait(false);
         }
 
@@ -278,6 +299,7 @@ public sealed class MailService : IMailService
             }
         }
 
+        _writeBehind?.Discard(playerId, ReadKey(mailId));
         await this.PushUnreadAsync(playerId, cancellationToken).ConfigureAwait(false);
         return MailStatus.Ok;
     }
@@ -343,6 +365,10 @@ public sealed class MailService : IMailService
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031", Justification = "A failed push must not undo the committed mail; the player reads the mailbox when they next open it.")]
+    private static string ReadKey(Guid mailId) => "mail.read:" + mailId.ToString("N");
+
+    private bool IsReadPending(Guid playerId, Guid mailId) => _writeBehind is not null && _writeBehind.TryPeek(playerId, ReadKey(mailId), out DateTimeOffset _);
+
     private async Task PushUnreadAsync(Guid playerId, CancellationToken cancellationToken)
     {
         try

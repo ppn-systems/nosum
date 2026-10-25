@@ -68,6 +68,16 @@ public sealed partial class DbBudgetRun
         _ = await _rig.ProbeAsync<InventorySnapshot>(p, "Inventory", InventoryOpCode.GetInventory, "GetInventory", "starter kit", () => new GetInventory());
         _ = await _rig.ProbeAsync<InventorySnapshot>(p, "Inventory", InventoryOpCode.GetInventory, "GetInventory", "starter kit, asked again", () => new GetInventory());
         _ = await _rig.ProbeAsync<InventoryResult>(p, "Inventory", InventoryOpCode.SelectSlot, "SelectSlot", "hotbar slot 1", () => new SelectSlot { Slot = 1 });
+        using (SelectSlot choice = new() { Slot = 2 })
+        {
+            _ = await p.RequestAsync<InventoryResult>(choice);
+        }
+
+        _ = await _rig.MeasureAsync("Background", null, "WriteBehindFlush", "a hotbar choice waiting", async () =>
+        {
+            await BudgetRig.Service<Nosum.Infrastructure.Caching.WriteBehind>().FlushAllAsync(_rig.Timeout);
+            return true;
+        });
         _ = await _rig.ProbeAsync<InventoryResult>(p, "Inventory", InventoryOpCode.MoveSlot, "MoveSlot", "split a stack into a free slot", () => new MoveSlot { From = 2, To = 20, Quantity = 1 });
         _ = await _rig.ProbeAsync<FarmSnapshot>(p, "Farm", FarmOpCode.GetFarm, "GetFarm", "empty farm", () => new GetFarm());
         _ = await _rig.ProbeAsync<FarmSnapshot>(p, "Farm", FarmOpCode.GetFarm, "GetFarm", "empty farm, asked again", () => new GetFarm());

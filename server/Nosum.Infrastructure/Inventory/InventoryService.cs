@@ -13,6 +13,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.S2C;
+using Nosum.Infrastructure.Caching;
 using Nosum.Infrastructure.Concurrency;
 using Nosum.Domain.Inventory;
 using Nosum.Gameplay.Inventory;
@@ -38,11 +39,13 @@ public sealed class InventoryService : IInventoryService
 {
     private const string StarterReason = "starter";
     private const string StarterBackfillReason = "starter.backfill";
+    private const string SelectedSlotKey = "inventory.selected-slot";
 
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
     private readonly IPlayerNotifier? _notifier;
     private readonly StripedAsyncLock _locks = new();
+    private readonly WriteBehind? _writeBehind;
     private readonly ConcurrentDictionary<Guid, Entry> _cache = new();
     private int _operations;
 
@@ -50,7 +53,8 @@ public sealed class InventoryService : IInventoryService
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The clock for audit timestamps; tests pass a fake one.</param>
     /// <param name="notifier">Pushes changes to the player; <see langword="null"/> to push nothing.</param>
-    public InventoryService(IUnitOfWorkFactory unitOfWork, TimeProvider time, IPlayerNotifier? notifier = null)
+    /// <param name="writeBehind">Where the selected hotbar slot waits for its write (docs/adr/ADR-035 D7); <see langword="null"/> writes it at once.</param>
+    public InventoryService(IUnitOfWorkFactory unitOfWork, TimeProvider time, IPlayerNotifier? notifier = null, WriteBehind? writeBehind = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
@@ -58,6 +62,7 @@ public sealed class InventoryService : IInventoryService
         _unitOfWork = unitOfWork;
         _time = time;
         _notifier = notifier;
+        _writeBehind = writeBehind;
     }
 
     /// <inheritdoc/>
@@ -118,6 +123,25 @@ public sealed class InventoryService : IInventoryService
     /// <inheritdoc/>
     public async Task<(InventoryStatus Status, int SelectedSlot)> SelectSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default)
     {
+        if (_writeBehind is not null && (uint)slot < (uint)InventoryLimits.HotbarSlots && !ContainerIds.IsContainer(playerId))
+        {
+            // Loaded (and created for a new player) first, then the choice is kept in memory and its row is written within the window, or when the player leaves.
+            _ = await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+            using (await _locks.EnterAllAsync([playerId], cancellationToken).ConfigureAwait(false))
+            {
+                if (_cache.TryGetValue(playerId, out Entry? entry))
+                {
+                    if (entry.SelectedSlot != slot)
+                    {
+                        _cache[playerId] = entry.WithSelectedSlot(slot);
+                        _writeBehind.Stage(playerId, SelectedSlotKey, slot, WriteBehind.DefaultWindow, (unit, chosen) => unit.Repository<PlayerInventory>().Update(new PlayerInventory { PlayerId = playerId, SelectedSlot = chosen }, nameof(PlayerInventory.SelectedSlot)));
+                    }
+
+                    return (InventoryStatus.Ok, slot);
+                }
+            }
+        }
+
         Outcome outcome = await this.ExecuteAsync(
             playerId,
             (loaded, _) =>
@@ -460,7 +484,9 @@ public sealed class InventoryService : IInventoryService
             }
         }
 
-        return new Loaded(playerId, header.Capacity, header.SelectedSlot, header.CreatedAt, grid, header, bySlot, isNew: false, before: null);
+        // A choice that is still waiting for its write is the truth (the row is older).
+        int selected = _writeBehind is not null && _writeBehind.TryPeek(playerId, SelectedSlotKey, out int waiting) ? waiting : header.SelectedSlot;
+        return new Loaded(playerId, header.Capacity, selected, header.CreatedAt, grid, header, bySlot, isNew: false, before: null);
     }
 
     // Brings the slot rows in line with the grid for the changed slots and adds the audit entries.
@@ -800,6 +826,8 @@ public sealed class InventoryService : IInventoryService
         public ItemSlot[] Slots { get; }
 
         public long LastUsed => Volatile.Read(ref _lastUsed);
+
+        public Entry WithSelectedSlot(int slot) => new(this.Capacity, slot, this.CreatedAt, this.Slots);
 
         public bool HoldsItems => this.Slots.Any(s => !s.IsEmpty);
 

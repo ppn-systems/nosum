@@ -167,6 +167,10 @@ internal sealed class BudgetRig : IAsyncDisposable
 
         string? outcome = value?.GetType().GetProperty("Status")?.GetValue(value)?.ToString();
         this.Results.Add(new Measurement(group, opcode, name, variant, this.Counter.Since(mark)) { Outcome = outcome });
+
+        // A write-behind row (docs/adr/ADR-035 D7) would otherwise land inside a later row's window when its timer fires; it is flushed here, after this row's count was taken,
+        // and its own cost is measured in the WriteBehindFlush row.
+        await Service<Nosum.Infrastructure.Caching.WriteBehind>().FlushAllAsync(this.Timeout);
         return value;
     }
 
