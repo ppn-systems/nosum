@@ -1,6 +1,16 @@
-.shop-row {
+.shop-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+}
+
+.shop-list ::deep .shop-row {
     display: grid;
     grid-template-columns: auto 1fr auto auto;
     gap: calc(var(--u) * 3);
     align-items: center;
+}
+
+.shop-qty ::deep .game-input {
+    width: calc(var(--u) * 30);
 }

@@ -9,21 +9,23 @@
             <span>@Vm.CoinsText</span>
             <GameRow Class="center">
                 <span>@Vm.Text("Shop_Quantity")</span>
-                <GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" />
+                <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
             </GameRow>
         </GameRow>
         <TabBar Active="(int)Vm.Tab" OnSelect="@(id => Vm.SetTab((ShopTab)id))"
                 Tabs="@(new (int, string)[] { ((int)ShopTab.Seeds, Vm.Text("Shop_Tab_Seeds")), ((int)ShopTab.Furniture, Vm.Text("Shop_Tab_Furniture")), ((int)ShopTab.Clothing, Vm.Text("Shop_Tab_Clothing")) })" />
         <p>@Vm.Text("Shop_Hint")</p>
-        @foreach (ShopOfferDisplay offer in Vm.Offers)
-        {
-            int itemId = offer.ItemId;
-            <GameRow Class="center shop-row">
-                <ItemSlotButton Slot="offer.Item" />
-                <span>@offer.Item.Name</span>
-                <span>@offer.PriceText</span>
-                <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanAfford" OnClick="@(() => Vm.Buy(itemId))" />
-            </GameRow>
-        }
+        <div class="shop-list">
+            @foreach (ShopOfferDisplay offer in Vm.Offers)
+            {
+                int itemId = offer.ItemId;
+                <GameRow Class="center shop-row">
+                    <ItemSlotButton Slot="offer.Item" />
+                    <span>@offer.Item.Name</span>
+                    <span>@offer.PriceText</span>
+                    <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanAfford" OnClick="@(() => Vm.Buy(itemId))" />
+                </GameRow>
+            }
+        </div>
     </GameStack>
 </MenuPage>

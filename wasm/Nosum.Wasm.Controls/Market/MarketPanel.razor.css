@@ -7,7 +7,13 @@
     color: var(--nosum-ink-soft);
 }
 
-.listing-row {
+.listing-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+}
+
+.listing-list ::deep .listing-row {
     display: grid;
     grid-template-columns: auto 1fr auto auto;
     gap: calc(var(--u) * 3);

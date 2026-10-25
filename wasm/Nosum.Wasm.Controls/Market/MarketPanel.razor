@@ -18,7 +18,8 @@
             {
                 <p class="market-empty">@Vm.Text("Market_Empty")</p>
             }
-            @foreach (ListingDisplay listing in Vm.Browsed)
+            <div class="listing-list">
+@foreach (ListingDisplay listing in Vm.Browsed)
             {
                 Guid id = listing.Id;
                 <GameRow Class="listing-row">
@@ -36,6 +37,7 @@
                     }
                 </GameRow>
             }
+            </div>
             <Pager Page="Vm.Page" PageCount="Vm.PageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
                    PositionText="@Vm.Text("Pager_Position", Vm.Page + 1, Vm.PageCount)" OnPage="@(p => Vm.GoToPage(p))" />
         }
@@ -72,7 +74,8 @@
             {
                 <p class="market-empty">@Vm.Text("Market_NoneMine")</p>
             }
-            @foreach (ListingDisplay listing in Vm.Mine)
+            <div class="listing-list">
+@foreach (ListingDisplay listing in Vm.Mine)
             {
                 Guid id = listing.Id;
                 <GameRow Class="listing-row">
@@ -82,6 +85,7 @@
                     <GameButton Variant="danger" Text="@Vm.Text("Market_Cancel")" OnClick="@(() => Vm.Cancel(id))" />
                 </GameRow>
             }
+            </div>
         }
     </GameStack>
 </MenuPage>
