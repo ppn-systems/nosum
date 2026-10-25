@@ -120,6 +120,8 @@ public sealed class QuestTrackerViewModelTests
 
         public System.Threading.Tasks.Task<NicknameReply> SetNicknameAsync(string nickname, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
 
+        public System.Threading.Tasks.Task<AccountStatus> SetLanguageAsync(GameLanguage language, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
+
         public System.Threading.Tasks.Task LogoutAsync(System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
 
         public System.Threading.Tasks.Task<AccountReply> ResumeAsync(string sessionToken, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();

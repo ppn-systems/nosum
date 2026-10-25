@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Account;
+using Nosum.Contracts.Common;
 using Nosum.Gameplay.Players;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Player;
@@ -252,6 +253,57 @@ public sealed class AccountFormViewModel
                 _ => _client.LoginAsync(email, password, cancellationToken),
             },
             isUpgrade: this.Mode == AccountFormMode.Upgrade).ConfigureAwait(false);
+    }
+
+    /// <summary>Gets the language the UI is in now (the signed-in session's, which every switch updates; before sign-in the UI culture's).</summary>
+    public GameLanguage Language => GameLanguages.Resolve(this.CurrentSession?.Language ?? UiCulture.Current);
+
+    /// <summary>Gets the localized note under the language buttons when the server could not store the choice, or <see langword="null"/>.</summary>
+    public string? LanguageNote { get; private set; }
+
+    /// <summary>
+    /// Switches the UI language now, then stores it on the account so it applies at every later sign-in. The UI does not wait for the
+    /// server: if the request fails the language stays changed for this visit and <see cref="LanguageNote"/> says it was not saved.
+    /// </summary>
+    /// <param name="language">The wanted language.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the server has answered.</returns>
+    public async Task SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken)
+    {
+        language = GameLanguages.Resolve(language);
+        if (language == this.Language)
+        {
+            return;
+        }
+
+        UiCulture.Apply(language);
+        this.LanguageNote = null;
+        if (this.CurrentSession is { } session)
+        {
+            this.CurrentSession = session with { Language = language };
+        }
+
+        this.Changed?.Invoke();
+        if (this.CurrentSession is null)
+        {
+            return;
+        }
+
+        bool saved;
+        try
+        {
+            saved = await _client.SetLanguageAsync(language, cancellationToken).ConfigureAwait(false) == AccountStatus.Ok;
+        }
+        catch (AccountConnectionException)
+        {
+            saved = false;
+        }
+
+        if (!saved)
+        {
+            this.LanguageNote = _text["Settings_LanguageNotSaved"];
+            this.Changed?.Invoke();
+        }
     }
 
     /// <summary>Signs out: the server revokes the session, then <see cref="SignedOut"/> is raised.</summary>

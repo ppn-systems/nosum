@@ -7,6 +7,7 @@ using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Quest;
 using Nosum.Gameplay.Quests;
 using Nosum.Wasm.Socket.Quest;
+using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Quest;
@@ -42,6 +43,7 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
         _catalogue = catalogue;
         _text = text;
         channel.Changed += this.OnChanged;
+        UiCulture.Changed += this.OnChanged;
         this.Rebuild();
     }
 
@@ -70,7 +72,11 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
     public IReadOnlyList<ObjectiveLine> Objectives { get; private set; } = [];
 
     /// <inheritdoc/>
-    public void Dispose() => _channel.Changed -= this.OnChanged;
+    public void Dispose()
+    {
+        _channel.Changed -= this.OnChanged;
+        UiCulture.Changed -= this.OnChanged;
+    }
 
     private void OnChanged()
     {
