@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Coops;
+using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Shops;
@@ -91,6 +92,9 @@ public static class GameMaps
     // the right-hand sign, one tile west of the seed shop's doormat. The two are in reach of each other, so the nearest counter wins (ShopRules.TryFindShop).
     private static readonly (int X, int Y) s_townBoardTile = (42, 57);
 
+    // The market's trader (docs/adr/ADR-034) stands in front of the saloon: door tile (45,70), doormat (45,71) - the tavern is where traders meet. Far from every other counter, so nothing competes for it.
+    private static readonly (int X, int Y) s_townMarketTile = (45, 71);
+
     private static readonly MapSpec[] s_all =
     [
         new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true, isPrivate: true, placeable: true),
@@ -105,6 +109,7 @@ public static class GameMaps
             new ShopPoint(ShopCatalog.Blacksmith, s_townBlacksmithTile.X, s_townBlacksmithTile.Y),
             new ShopPoint(ShopCatalog.CarpenterShop, s_townCarpenterTile.X, s_townCarpenterTile.Y),
             new ShopPoint(CommunityGoalCatalog.BoardCounterId, s_townBoardTile.X, s_townBoardTile.Y),
+            new ShopPoint(MarketRules.MarketCounterId, s_townMarketTile.X, s_townMarketTile.Y),
         ],
         extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y)],
         dropFileWarps: [(94, 110)]),
