@@ -51,7 +51,8 @@ public sealed class GameMapsTests
     public void Resolve_TiledMapName_IgnoresCase()
     {
         GameMaps.Resolve("BusStop")!.Id.Should().Be(GameMaps.BusStop);
-        GameMaps.Resolve("Town").Should().BeNull();
+        GameMaps.Resolve("Town")!.Id.Should().Be(GameMaps.Town);
+        GameMaps.Resolve("Mountain").Should().BeNull("the world does not host it yet");
     }
 
     [Fact]
@@ -94,18 +95,41 @@ public sealed class GameMapsTests
 
         List<MapWarp> warps = farm!.ResolveWarps(map);
 
-        warps.Select(w => w.TargetMap).Distinct().Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.FarmHouse);
+        warps.Select(w => w.TargetMap).Distinct().Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.Backwoods, GameMaps.FarmHouse);
     }
 
     [Theory]
     [InlineData(GameMaps.FarmHouse)]
     [InlineData(GameMaps.BusStop)]
     [InlineData(GameMaps.Forest)]
+    [InlineData(GameMaps.Backwoods)]
     public void ResolveWarps_NeighbourOfTheFarm_HasWayBack(string neighbour)
     {
         _ = GameMaps.TryGet(neighbour, out MapSpec? spec);
 
         spec!.ResolveWarps(Load(spec)).Should().Contain(w => w.TargetMap == GameMaps.Farm);
+    }
+
+    [Theory]
+    [InlineData(GameMaps.BusStop, GameMaps.Town)]
+    [InlineData(GameMaps.Town, GameMaps.BusStop)]
+    [InlineData(GameMaps.Town, GameMaps.Forest)]
+    [InlineData(GameMaps.Forest, GameMaps.Town)]
+    [InlineData(GameMaps.Backwoods, GameMaps.BusStop)]
+    [InlineData(GameMaps.BusStop, GameMaps.Backwoods)]
+    public void ResolveWarps_NewPublicMaps_AreConnectedBothWays(string from, string to)
+    {
+        _ = GameMaps.TryGet(from, out MapSpec? spec);
+
+        spec!.ResolveWarps(Load(spec)).Should().Contain(w => w.TargetMap == to);
+    }
+
+    [Fact]
+    public void Catalogue_OnlyTheFarmAndTheFarmhouseArePrivate_AndOnlyTheFarmhouseTakesFurniture()
+    {
+        GameMaps.All.Where(m => m.IsPrivate).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.Farm, GameMaps.FarmHouse);
+        GameMaps.All.Where(m => m.Placeable).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.FarmHouse);
+        GameMaps.All.Where(m => !m.IsPrivate).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.Town, GameMaps.Backwoods);
     }
 
     [Fact]

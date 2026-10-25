@@ -21,6 +21,7 @@ using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
+using Nosum.Gameplay.Maps;
 using Nosum.Host;
 using Xunit;
 
@@ -60,7 +61,7 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
             float targetX = joined.SpawnX + 3;
             using MoveIntent move = new() { Sequence = 1, X = targetX, Y = joined.SpawnY, Facing = 1, Moving = false };
             await first.SendAsync(move, timeout.Token);
-            await WaitUntilAsync(() => PlayerAt(targetX), timeout.Token);
+            await WaitUntilAsync(() => PlayerAt(registered.PlayerId, targetX), timeout.Token);
 
             using WebSocketSession second = await ConnectAsync(port, timeout.Token);
             using Login login = new() { Email = email, Password = "password-1" };
@@ -138,11 +139,11 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
         }
     }
 
-    private static bool PlayerAt(float x)
+    private static bool PlayerAt(Guid accountId, float x)
     {
         IMapPresence presence = InstanceManager.Instance.GetExistingInstance<IMapPresence>()!;
         List<PlayerPresence> players = [];
-        presence.CopyPlayers(Program.FarmMapId, players);
+        presence.CopyPlayers(MapInstance.Of(Program.FarmMapId, accountId).Key, players);
         foreach (PlayerPresence player in players)
         {
             lock (player.Gate)

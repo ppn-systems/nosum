@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue and warps (Maps/), walking (Movement/), farm (Farm/)
+│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), placeable objects (Placeables/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -25,7 +25,7 @@ nosum/
 ├── wasm/                         # Nosum.Wasm.slnx — own Directory.Build.props (trimmed, no AOT)
 │   ├── Nosum.Wasm/               # Blazor host: canvas page + UI overlay
 │   ├── Nosum.Wasm.ViewModels/    # MVVM view models (no .razor)
-│   ├── Nosum.Wasm.Controls/      # reusable Razor controls: hotbar, inventory grid, quest tracker
+│   ├── Nosum.Wasm.Controls/      # reusable Razor controls: panel and button, hotbar, inventory grid, quest tracker, arrange panel
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
@@ -116,7 +116,7 @@ client SnapshotBuffer ◄── RemotePlayers ◄── MapSnapshot @10 Hz ◄�
 
 Socket callbacks write into the buffer, the frame reads from it: no await and no allocation in the frame.
 
-## Runtime path 3 — many maps
+## Runtime path 3 — many maps, private copies
 
 The world is a catalogue of maps, `GameMaps` in `Nosum.Gameplay/Maps` ([ADR-012](docs/adr/ADR-012-maps-and-warps.md)):
 id, Tiled file, spawn, buildings, doors. Tilesets and exits (the Tiled `Warp` property) come from the
@@ -134,10 +134,21 @@ A player is in one map group at a time, so snapshots, `PlayerLeft` and every fea
 `IMapPresence` reach only the players on that map. The server also picks the map at join (the saved
 one), so a returning player lands where they left.
 
+The farm and the farmhouse are private per player ([ADR-015](docs/adr/ADR-015-private-instances-and-placeables.md)): the place a player is in is a
+`MapInstance` (map id, plus the owner for a private map) and its `Key` names the presence group, the farm plots and the
+placed furniture. `PlayerService` always enters a player into their own copy of a private map (checked by `IInstanceAccessPolicy`, which a later
+visiting feature replaces); the busstop, town, forest and backwoods are one shared instance each, keyed by the map id.
+
+```text
+client E/R/F/Q in the farmhouse ──PlaceObject / MoveObject / PickUpObject──► PlaceableService (owner of the instance, reach, free footprint, item in the slot)
+                                                                              │ inventory change + placed_objects row: one transaction
+client PlaceableChannel ◄── PlacedChanged ◄── IMapPresence (the instance's group) ◄─┘      PlayerService validates movement on IInstanceWorld.GridFor(instance)
+```
+
 ## Organize by game domain
 
 Inside each area, code is grouped by game domain (`Farm`, `Inventory`, `Market`, `Social`,
-`Player`, `World`), the same axis in every area:
+`Player`, `World`, `Placeable`), the same axis in every area:
 
 - `contracts/Nosum.Contracts/{Domain}/{C2S,S2C}/`
 - `server/Nosum.Handlers/{Domain}/`

@@ -49,10 +49,12 @@ The world is made of many maps, not one: each player's farm, co-op land, the tow
 and other areas reached through exits. A player is on exactly one map at a time; the server
 sends each player only what happens on that map.
 
-Settled ([ADR-012](../adr/ADR-012-maps-and-warps.md)): exits are doors and map edges that the
+Settled ([ADR-012](../adr/ADR-012-maps-and-warps.md), [ADR-015](../adr/ADR-015-private-instances-and-placeables.md)): exits are doors and map edges that the
 player walks onto; the server decides when the player changes map, saves where they are, and puts
-them back there when they return. Every map is one shared place for now (the farm, farmhouse,
-bus stop and forest are all public, so everyone on the same map sees each other).
+them back there when they return. **A player's farm and farmhouse are private**: each player has their own copy and
+nobody else enters it (visits by invitation are a later feature). The bus stop, the town, the forest and the backwoods are public:
+everyone on the same map sees each other, and that is where players meet. Inside their farmhouse a player places furniture
+(chairs, tables, a couch ...) that is kept for them and travels in the inventory.
 
 ## What this asks of the architecture
 
@@ -61,7 +63,7 @@ bus stop and forest are all public, so everyone on the same map sees each other)
 | Co-ops | Co-op entity, membership, shared inventory with an audit trail | `server/Nosum.Domain`, `gameplay/Nosum.Gameplay` (rules), `contracts/` (`Coop` domain) |
 | Co-ops | Push to all online members | Nalix connection groups: `UseGroups()` on the host, `MulticastAsync` to the co-op's group |
 | Market | Consignment listings with escrow, expiry, fees; direct trade sessions with two-sided confirm | Server only; one database transaction per purchase or swap; `[PacketRateLimit]` on listing and trade handlers |
-| Many maps | Map definitions, player-to-map assignment, map transitions | One Nalix connection group per active map so updates reach only players on it; map data loaded per map, not per world |
+| Many maps | Map definitions, player-to-map assignment, map transitions, private copies of a map | One Nalix connection group per active map instance (`MapInstance`: the map, plus its owner for a private map) so updates reach only players in it; map data loaded per map, not per world |
 | Seasons | Calendar from server time, community goal progress | `gameplay/` computes the calendar from a passed-in time; server persists goal progress and broadcasts milestones |
 
 Every pillar is server-authoritative ([ADR-003](../adr/ADR-003-server-authoritative-websocket.md)):
@@ -69,7 +71,7 @@ the client never decides a contribution, a trade or a goal outcome.
 
 ## Settled so far (first farming slice, [ADR-011](../adr/ADR-011-inventory-farming-data-model.md))
 
-- Farming happens on the shared farm map: till with a hoe, plant a seed, water, wait, harvest into the inventory. Crops grow only while the soil is wet.
+- Farming happens on the player's own private farm: till with a hoe, plant a seed, water, wait, harvest into the inventory. Crops grow only while the soil is wet.
 - Every item change is one atomic, logged server transaction, the base the market, trades and the co-op warehouse will use.
 - The first quest (plant and harvest one crop) is the tutorial and invites a guest to register. Durations, starter items and inventory size (36) are defaults, not balance.
 
@@ -79,4 +81,5 @@ the client never decides a contribution, a trade or a goal outcome.
 - Market fee rate, listing duration, and limits that stop one player cornering a crop.
 - Season length in real time.
 - How many players share one instance of a public map (town) before it splits into copies.
-- Whether a player's farm and farmhouse are private to them (visitors by invitation) or open to everyone; today every map is shared.
+- How visiting works: who may enter another player's farm or farmhouse (an allow-list the owner edits), and what a visitor may touch.
+- Whether furniture may also go outdoors (on the farm) and what else is placeable (decorations, machines).

@@ -40,6 +40,9 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the tilled tiles of every map.</summary>
     public DbSet<FarmPlot> FarmPlots => this.Set<FarmPlot>();
 
+    /// <summary>Gets the objects players placed (furniture in their farmhouse).</summary>
+    public DbSet<PlacedObject> PlacedObjects => this.Set<PlacedObject>();
+
     /// <summary>Gets the players' quests.</summary>
     public DbSet<PlayerQuest> PlayerQuests => this.Set<PlayerQuest>();
 

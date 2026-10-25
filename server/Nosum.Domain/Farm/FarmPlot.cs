@@ -6,13 +6,16 @@ namespace Nosum.Domain.Farm;
 
 /// <summary>
 /// One tilled tile of a map. The row exists once the soil is tilled; an untilled tile has no row.
-/// The key is (map, x, y). Times are Unix milliseconds on the server clock, the same values
+/// The key is (map, owner, x, y): the farm is private per player (docs/adr/ADR-015), so the owner is part of the key. Times are Unix milliseconds on the server clock, the same values
 /// <c>Nosum.Gameplay.Farm.FarmTile</c> computes growth from.
 /// </summary>
 public sealed class FarmPlot
 {
     /// <summary>Gets or sets the map key, for example <c>farm</c>.</summary>
     public string MapId { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the owner of the instance the tile is in; <see cref="Guid.Empty"/> for a shared map.</summary>
+    public Guid OwnerId { get; set; }
 
     /// <summary>Gets or sets the tile x.</summary>
     public int X { get; set; }

@@ -25,6 +25,8 @@ public sealed class MapSpec
     /// <param name="openTiles">Tiles to make walkable again after the footprints block them (doorsteps in a building's footprint).</param>
     /// <param name="extraWarps">Exits the file does not list.</param>
     /// <param name="farmable">Whether diggable ground on this map can be tilled and planted.</param>
+    /// <param name="isPrivate">Whether every player has their own copy of the map and nobody else enters it (docs/adr/ADR-015).</param>
+    /// <param name="placeable">Whether players may place furniture on its free floor.</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -33,7 +35,9 @@ public sealed class MapSpec
         IReadOnlyList<PropPlacement>? props = null,
         IReadOnlyList<(int X, int Y)>? openTiles = null,
         IReadOnlyList<MapWarp>? extraWarps = null,
-        bool farmable = false)
+        bool farmable = false,
+        bool isPrivate = false,
+        bool placeable = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
@@ -50,6 +54,8 @@ public sealed class MapSpec
         this.OpenTiles = openTiles ?? [];
         this.ExtraWarps = extraWarps ?? [];
         this.Farmable = farmable;
+        this.IsPrivate = isPrivate;
+        this.Placeable = placeable;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -75,6 +81,12 @@ public sealed class MapSpec
 
     /// <summary>Gets whether diggable ground on this map can be farmed (tilled, planted, harvested).</summary>
     public bool Farmable { get; }
+
+    /// <summary>Gets whether every player has their own instance of this map (farm, farmhouse); see <see cref="MapInstance"/>.</summary>
+    public bool IsPrivate { get; }
+
+    /// <summary>Gets whether players may place furniture on this map.</summary>
+    public bool Placeable { get; }
 
     /// <summary>Builds the walk grid: the map's own rules, the prop footprints, then the opened tiles.</summary>
     /// <param name="map">The parsed map.</param>
