@@ -1,7 +1,6 @@
 @inherits ObservingComponent<Nosum.Wasm.ViewModels.Wallet.WalletViewModel>
 
-@* The coin counter in a corner of the screen. *@
-<div class="coin-badge" role="status" aria-label="@Vm.Caption" title="@Vm.Caption">
-    <span class="coin-amount">@Vm.Amount</span>
-    <span class="coin-caption">@Vm.Caption</span>
-</div>
+@* The coin counter at the top of the screen, in the shared panel frame. *@
+<GamePanel Dock="PanelDock.TopCenter" Title="">
+    <p class="coin-line" role="status" aria-label="@Vm.Caption"><strong class="coin-amount">@Vm.Amount</strong> @Vm.Caption</p>
+</GamePanel>

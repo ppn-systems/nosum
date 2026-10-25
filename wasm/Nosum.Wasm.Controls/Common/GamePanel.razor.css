@@ -18,7 +18,9 @@
 
 .game-panel--top-right,
 .game-panel--top-left,
-.game-panel--center {
+.game-panel--center,
+.game-panel--bottom-left,
+.game-panel--top-center {
     position: fixed;
 }
 
@@ -79,4 +81,15 @@
 
 .game-panel--center.wide {
     transform: translate(-50%, -55%);
+}
+
+.game-panel--bottom-left {
+    bottom: 0.75rem;
+    left: 0.75rem;
+}
+
+.game-panel--top-center {
+    top: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
 }

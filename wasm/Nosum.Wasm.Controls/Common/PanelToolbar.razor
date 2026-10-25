@@ -1,13 +1,13 @@
 @inherits ObservingComponent<Nosum.Wasm.ViewModels.ToolbarViewModel>
 
-@* The buttons that open the panels, with their keys. *@
-<div class="panel-toolbar" role="toolbar" aria-label="@Vm.Label">
+@* The buttons that open the panels, with their keys, in the shared panel frame. *@
+<GamePanel Dock="PanelDock.BottomLeft" Title="">
     @foreach (Nosum.Wasm.ViewModels.ToolbarItem item in Vm.Items)
     {
         Nosum.Wasm.ViewModels.PanelKind kind = item.Kind;
         <GameButton Variant="tab" Active="@(Vm.Active == kind)" Text="@(item.Label + " (" + item.Hotkey + ")")" OnClick="() => OnSelect.InvokeAsync(kind)" />
     }
-</div>
+</GamePanel>
 
 @code {
     /// <summary>Raised with the panel to open or close.</summary>
