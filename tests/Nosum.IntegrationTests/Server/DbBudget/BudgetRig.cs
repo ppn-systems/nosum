@@ -159,7 +159,8 @@ internal sealed class BudgetRig : IAsyncDisposable
         int mark = this.Counter.Mark;
         T value = await act();
         await this.Counter.SettleAsync(TimeSpan.FromMilliseconds(220), this.Timeout);
-        this.Results.Add(new Measurement(group, opcode, name, variant, this.Counter.Since(mark)));
+        string? outcome = value?.GetType().GetProperty("Status")?.GetValue(value)?.ToString();
+        this.Results.Add(new Measurement(group, opcode, name, variant, this.Counter.Since(mark)) { Outcome = outcome });
         return value;
     }
 
@@ -218,6 +219,9 @@ internal sealed class BudgetPlayer : IAsyncDisposable
     /// <summary>Gets the account id (the key of every table).</summary>
     public Guid AccountId { get; private set; }
 
+    /// <summary>Gets the display nickname the sign-in reported.</summary>
+    public string Nickname { get; private set; } = string.Empty;
+
     /// <summary>Gets the id on the map after <see cref="JoinAsync"/>.</summary>
     public uint MapPlayerId { get; private set; }
 
@@ -263,6 +267,7 @@ internal sealed class BudgetPlayer : IAsyncDisposable
         }
 
         this.AccountId = result.PlayerId;
+        this.Nickname = result.Nickname;
         this.SessionToken = token;
         return result;
     }
@@ -318,6 +323,9 @@ internal sealed class BudgetPlayer : IAsyncDisposable
 /// <param name="Counts">What it cost the database.</param>
 internal sealed record Measurement(string Group, ushort? Opcode, string Name, string Variant, DbCounts Counts)
 {
+    /// <summary>Gets the status the reply carried (a refusal costs less than the real thing, so the report shows which one was measured), or null.</summary>
+    public string? Outcome { get; init; }
+
     /// <summary>Gets why there is no number for this row, or null.</summary>
     public string? Skipped { get; init; }
 
