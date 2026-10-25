@@ -20,11 +20,13 @@ public sealed class ItemDefinition
     /// <param name="cropId">The crop a seed grows, for <see cref="ItemKind.Seed"/> items.</param>
     /// <param name="wear">Where the item is worn, for <see cref="ItemKind.Clothing"/> items.</param>
     /// <param name="treeVariant">The tree species a tree seed grows, for <see cref="ItemKind.TreeSeed"/> items.</param>
-    public ItemDefinition(int id, string key, ItemKind kind, int maxStack, ToolKind tool = ToolKind.None, int cropId = 0, WearSlot wear = WearSlot.None, byte treeVariant = 0)
+    /// <param name="foodEnergy">The energy eating one restores, for edible items (<see cref="ItemKind.Food"/> and raw produce); zero for items that cannot be eaten.</param>
+    public ItemDefinition(int id, string key, ItemKind kind, int maxStack, ToolKind tool = ToolKind.None, int cropId = 0, WearSlot wear = WearSlot.None, byte treeVariant = 0, int foodEnergy = 0)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxStack);
+        ArgumentOutOfRangeException.ThrowIfNegative(foodEnergy);
 
         this.Id = id;
         this.Key = key;
@@ -34,6 +36,7 @@ public sealed class ItemDefinition
         this.CropId = cropId;
         this.Wear = wear;
         this.TreeVariant = treeVariant;
+        this.FoodEnergy = foodEnergy;
     }
 
     /// <summary>Gets the stable numeric id.</summary>
@@ -65,6 +68,12 @@ public sealed class ItemDefinition
 
     /// <summary>Gets the tree species a tree seed grows (<c>Nosum.Gameplay.Nodes.TreeVariant</c>); zero for other items.</summary>
     public byte TreeVariant { get; }
+
+    /// <summary>Gets the energy eating one of the item restores (docs/adr/ADR-023 D2); zero for items that cannot be eaten.</summary>
+    public int FoodEnergy { get; }
+
+    /// <summary>Gets whether the item can be eaten.</summary>
+    public bool IsEdible => this.FoodEnergy > 0;
 
     /// <summary>
     /// Gets whether the item may be sold, traded or put in a co-op warehouse. Tools are bound to their owner so nobody can

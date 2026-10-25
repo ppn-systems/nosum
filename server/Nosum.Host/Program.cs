@@ -26,6 +26,7 @@ using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Trade;
@@ -64,6 +65,7 @@ using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
+using Nosum.Infrastructure.Progress;
 using Nosum.Infrastructure.Quests;
 using Nosum.Infrastructure.Shops;
 using Nosum.Infrastructure.Trade;
@@ -315,7 +317,10 @@ internal static class Program
         InstanceManager.Instance.Register<IToolState>(toolState);
         CalendarGameDayClock nodeDayClock = new(calendar, clock);
         InstanceManager.Instance.Register<IGameDayClock>(nodeDayClock);
-        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock);
+        // Energy and skills (docs/adr/ADR-023): every tool use is charged through this in the transaction of its effect.
+        PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier);
+        InstanceManager.Instance.Register<IPlayerProgress>(progress);
+        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, progress);
 
         // Trees grow and public places regrow debris once a game day (docs/adr/ADR-021 D4), on the one day clock every daily rule uses.
         // The day that starts after day N ended is node day N (node days count from 0); a new season starts every DaysPerSeason days.
@@ -333,7 +338,7 @@ internal static class Program
         PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
-        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, dayClock);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock);
         InstanceManager.Instance.Register<IFarmService>(farm);
 
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()

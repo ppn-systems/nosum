@@ -1,0 +1,36 @@
+.skill-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nosum-gap);
+}
+
+.skill-name {
+    min-width: calc(var(--u) * 28);
+}
+
+.skill-bar {
+    position: relative;
+    flex: 1 1 calc(var(--u) * 40);
+    height: calc(var(--u) * 4);
+    background: var(--nosum-ink);
+}
+
+.skill-fill {
+    display: block;
+    height: 100%;
+    background: var(--nosum-ok);
+}
+
+.skill-fill.low {
+    background: var(--nosum-danger);
+}
+
+.skill-caption {
+    min-width: calc(var(--u) * 24);
+    font-variant-numeric: tabular-nums;
+}
+
+.skill-hint {
+    color: var(--nosum-ink-soft);
+}

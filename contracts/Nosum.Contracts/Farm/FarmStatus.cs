@@ -67,6 +67,9 @@ public enum FarmStatus : byte
 
     /// <summary>Something is in the way: a node on the tile, or a tile a tree cannot grow on.</summary>
     Blocked = 20,
+
+    /// <summary>The player has too little energy for the tool; eat, or wait for the next game day (docs/adr/ADR-023 D1).</summary>
+    NoEnergy = 21,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>

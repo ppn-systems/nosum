@@ -18,6 +18,8 @@
 @using Nosum.Wasm.Controls.Market
 @using Nosum.Wasm.Controls.Placement
 @using Nosum.Wasm.Controls.Profile
+@using Nosum.Wasm.Controls.Progress
+@using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.Controls.Shop
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
@@ -62,6 +64,7 @@
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
 @inject HelpViewModel Help
+@inject ProgressViewModel Progress
 
 <PageTitle>Nosum</PageTitle>
 
@@ -129,6 +132,9 @@ else
                         case PanelKind.Shop:
                             <ShopPanel Vm="Shop" ShopId="_shopId" />
                             break;
+                        case PanelKind.Skills:
+                            <SkillsPanel Vm="Progress" />
+                            break;
                         case PanelKind.Settings:
                             <SettingsPanel Vm="Form" Help="Help" />
                             break;
@@ -140,7 +146,7 @@ else
             @if (_started && _panel == PanelKind.None)
             {
                 <GameMessage Vm="Messages" />
-                <Hotbar Vm="Inventory" />
+                <Hotbar Vm="Inventory" Progress="Progress" />
             }
         </BottomCenter>
         <Overlay>
