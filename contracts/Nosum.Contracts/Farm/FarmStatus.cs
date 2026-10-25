@@ -46,6 +46,9 @@ public enum FarmStatus : byte
 
     /// <summary>Another change to the same tile or inventory was applied at the same time; ask again.</summary>
     Conflict = 13,
+
+    /// <summary>A visitor may only water another player's crops; till, plant and harvest are the owner's (docs/adr/ADR-019 D3).</summary>
+    NotYourFarm = 14,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>
