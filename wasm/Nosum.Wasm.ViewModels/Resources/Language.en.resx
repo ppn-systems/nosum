@@ -486,6 +486,7 @@
   <data name="Friends_Map_town" xml:space="preserve"><value>the Town</value></data>
   <data name="Friends_Map_backwoods" xml:space="preserve"><value>the backwoods</value></data>
   <data name="Friends_Map_coopfarm" xml:space="preserve"><value>the co-op land</value></data>
+  <data name="Friends_Map_mine" xml:space="preserve"><value>the mine</value></data>
   <data name="Friends_Map_coop" xml:space="preserve"><value>the coop</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>the barn</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Remove</value></data>
@@ -648,6 +649,40 @@
   <data name="Furnace_Ready" xml:space="preserve"><value>The bar is done!</value></data>
   <data name="Furnace_Start" xml:space="preserve"><value>Smelt {0}</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Collect bar</value></data>
+  <data name="Farm_Status_InvalidArea" xml:space="preserve"><value>This tool cannot swing that wide.</value></data>
+  <data name="Shop_Title_blacksmith" xml:space="preserve"><value>Blacksmith</value></data>
+  <data name="Smith_Heading" xml:space="preserve"><value>Tool upgrades</value></data>
+  <data name="Smith_Hint" xml:space="preserve"><value>Hand in a tool with coins and bars; the smith keeps it for {0} game days and you take back a better one.</value></data>
+  <data name="Smith_Cost" xml:space="preserve"><value>{0} coins + {1} {2}</value></data>
+  <data name="Smith_Upgrade" xml:space="preserve"><value>Upgrade</value></data>
+  <data name="Smith_Collect" xml:space="preserve"><value>Collect</value></data>
+  <data name="Smith_NoTools" xml:space="preserve"><value>You carry no tool that can be upgraded.</value></data>
+  <data name="Smith_Holding" xml:space="preserve"><value>The smith is making your {0}.</value></data>
+  <data name="Smith_Ready" xml:space="preserve"><value>Ready! Take it back.</value></data>
+  <data name="Smith_ReadyTomorrow" xml:space="preserve"><value>Ready tomorrow (game day).</value></data>
+  <data name="Smith_ReadyIn" xml:space="preserve"><value>Ready in {0} game days.</value></data>
+  <data name="Smith_Upgraded" xml:space="preserve"><value>The smith has your tool.</value></data>
+  <data name="Smith_Collected" xml:space="preserve"><value>You took your tool back.</value></data>
+  <data name="Smith_Status_NotAtCounter" xml:space="preserve"><value>You are too far from the counter.</value></data>
+  <data name="Smith_Status_NotUpgradable" xml:space="preserve"><value>That tool cannot be upgraded.</value></data>
+  <data name="Smith_Status_Busy" xml:space="preserve"><value>The smith is already making a tool for you.</value></data>
+  <data name="Smith_Status_NoTool" xml:space="preserve"><value>You do not have that tool.</value></data>
+  <data name="Smith_Status_NotEnoughCoins" xml:space="preserve"><value>You do not have enough coins.</value></data>
+  <data name="Smith_Status_NotEnoughBars" xml:space="preserve"><value>You do not have enough bars.</value></data>
+  <data name="Smith_Status_NoSpace" xml:space="preserve"><value>Your inventory is full.</value></data>
+  <data name="Smith_Status_NothingToCollect" xml:space="preserve"><value>The smith holds nothing of yours.</value></data>
+  <data name="Smith_Status_NotReady" xml:space="preserve"><value>Not ready yet, come back later.</value></data>
+  <data name="Smith_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Elevator_Title" xml:space="preserve"><value>Mine elevator</value></data>
+  <data name="Elevator_Hint" xml:space="preserve"><value>Pick where to go. Every fifth floor has an elevator, and you can ride down to the deepest floor you reached.</value></data>
+  <data name="Elevator_Deepest" xml:space="preserve"><value>Deepest: floor {0}</value></data>
+  <data name="Elevator_Entrance" xml:space="preserve"><value>Mine entrance</value></data>
+  <data name="Elevator_Floor" xml:space="preserve"><value>Floor {0}</value></data>
+  <data name="Elevator_Here" xml:space="preserve"><value>(you are here)</value></data>
+  <data name="Elevator_Status_NotAtElevator" xml:space="preserve"><value>You are too far from the elevator.</value></data>
+  <data name="Elevator_Status_NotUnlocked" xml:space="preserve"><value>You have not been that deep.</value></data>
+  <data name="Elevator_Status_AlreadyThere" xml:space="preserve"><value>You are already there.</value></data>
+  <data name="Elevator_Status_Busy" xml:space="preserve"><value>Try again in a moment.</value></data>
   <data name="Market_History_Tip" xml:space="preserve"><value>Show the price history of this item</value></data>
   <data name="Place_Status_Fixed" xml:space="preserve"><value>A finished building cannot be moved or picked up.</value></data>
   <data name="Shop_Title_carpenter_shop" xml:space="preserve"><value>Carpenter</value></data>

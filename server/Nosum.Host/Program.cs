@@ -12,6 +12,7 @@ using Nalix.Runtime.Groups;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Blacksmith;
 using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Chat;
@@ -28,6 +29,7 @@ using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Market;
+using Nosum.Abstractions.Mines;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
@@ -40,6 +42,7 @@ using Nosum.Abstractions.Visits;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
+using Nosum.Handlers.Blacksmith;
 using Nosum.Handlers.Building;
 using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Chat;
@@ -53,6 +56,7 @@ using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
 using Nosum.Handlers.Mail;
 using Nosum.Handlers.Market;
+using Nosum.Handlers.Mine;
 using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
 using Nosum.Handlers.Player;
@@ -61,6 +65,7 @@ using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
 using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Blacksmith;
 using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Chat;
@@ -77,6 +82,7 @@ using Nosum.Infrastructure.Community;
 using Nosum.Infrastructure.Mail;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Market;
+using Nosum.Infrastructure.Mines;
 using Nosum.Infrastructure.Nodes;
 using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
@@ -282,6 +288,8 @@ internal static class Program
             .MapHandlers(typeof(NodeHandlers))
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
+            .MapHandlers(typeof(BlacksmithHandlers))
+            .MapHandlers(typeof(MineHandlers))
             .MapHandlers(typeof(GoalHandlers))
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers))
@@ -406,7 +414,6 @@ internal static class Program
         };
         InstanceManager.Instance.Register<IResourceNodeService>(nodes);
         FarmService farm = new(presence, presence, publisher, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock, placedTiles);
-        InstanceManager.Instance.Register<IFarmService>(farm);
 
         // Placing objects, chests and furnaces (docs/adr/ADR-024): a chest and a furnace refuse to be picked up while they hold something, so they attach to the placeables.
         PlaceableService placeables = new(presence, presence, publisher, maps, inventory, unitOfWork, clock, farm, nodes, coopMembership, placedTiles);
@@ -433,6 +440,12 @@ internal static class Program
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
 
+        // The mine (docs/adr/ADR-026): floors are per-player instances built in memory, dropped when the player leaves; a tool use that ends at a ladder takes the player down,
+        // so the farm service handlers see is the decorated one (the placeables and the co-ops keep the plain one they were built with).
+        MineService mine = new(presence, maps, players, unitOfWork, nodes, groundItems);
+        InstanceManager.Instance.Register<IMineService>(mine);
+        InstanceManager.Instance.Register<IFarmService>(new MineLadderFarmService(farm, mine));
+
         // Block lists and the mailbox (docs/adr/ADR-029): the trade, co-op and visit services drop requests between blocked players, the market and the
         // co-ops send mail, and community goals send rewards through IMailService.
         BlockList blocks = new(unitOfWork, nicknames, clock);
@@ -444,6 +457,7 @@ internal static class Program
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
         InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar, mail));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock));
+        InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock));
 
         // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.
         CommunityUnlocks communityUnlocks = new(unitOfWork);

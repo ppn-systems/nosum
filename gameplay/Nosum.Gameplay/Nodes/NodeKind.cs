@@ -31,6 +31,19 @@ public enum NodeKind : byte
 
     /// <summary>A foraged item lying in the open (docs/adr/ADR-025 D4); <see cref="ResourceNode.Variant"/> is its <see cref="ForageCatalog"/> entry; it never blocks walking and any hand picks it up.</summary>
     Forage = 8,
+
+    /// <summary>An iron ore node, found on the deeper floors of the mine (docs/adr/ADR-026 D3).</summary>
+    IronOre = 9,
+
+    /// <summary>A ladder down to the next mine floor, revealed when the stone that hid it breaks; used by facing it (docs/adr/ADR-026 D3).</summary>
+    Ladder = 10,
+}
+
+/// <summary>The values of <see cref="ResourceNode.Variant"/> for kinds that are not trees.</summary>
+public static class NodeVariants
+{
+    /// <summary>A stone on a mine floor that hides the ladder: when it breaks, a <see cref="NodeKind.Ladder"/> stands in its place.</summary>
+    public const byte LadderStone = 1;
 }
 
 /// <summary>Tree species, the values of <see cref="ResourceNode.Variant"/>. They are also the art: oak is <c>tree1</c>, maple <c>tree2</c>, pine <c>tree3</c> in the placeholder sheets.</summary>

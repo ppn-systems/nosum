@@ -85,6 +85,7 @@ internal sealed class NodeDecoratorProvider : IMapDecoratorProvider
 {
     private const string TreesUrl = "assets/TerrainFeatures/";
     private const string ObjectsUrl = "assets/Maps/springobjects.png";
+    private const string MineUrl = "assets/Maps/Mines/mine.png";
 
     private readonly NodeChannel _nodes;
     private NodeTextures? _textures;
@@ -100,8 +101,8 @@ internal sealed class NodeDecoratorProvider : IMapDecoratorProvider
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(textures);
 
-        // Maps without a Paths layer (a room) have no nodes.
-        if (spec.Placeable || map.FindLayer(Nosum.Gameplay.Nodes.NodeSites.LayerName) is null)
+        // Maps without a Paths layer (a room) have no nodes, except the floors of the mine, whose nodes the server builds (docs/adr/ADR-026 D3).
+        if (spec.Placeable || (map.FindLayer(Nosum.Gameplay.Nodes.NodeSites.LayerName) is null && !spec.IsMineFloor))
         {
             return null;
         }
@@ -112,7 +113,8 @@ internal sealed class NodeDecoratorProvider : IMapDecoratorProvider
             int maple = await textures.LoadAsync(TreesUrl + "tree2_spring.png").ConfigureAwait(false);
             int pine = await textures.LoadAsync(TreesUrl + "tree3_spring.png").ConfigureAwait(false);
             int objects = await textures.LoadAsync(ObjectsUrl).ConfigureAwait(false);
-            _textures = new NodeTextures(oak, maple, pine, objects);
+            int mine = await textures.LoadAsync(MineUrl).ConfigureAwait(false);
+            _textures = new NodeTextures(oak, maple, pine, objects, mine);
         }
 
         cancellationToken.ThrowIfCancellationRequested();

@@ -182,10 +182,15 @@ internal sealed class MapScene
             _ = ShopRules.TryFindShop(content.Spec, _farmer.X, _farmer.Y, map.TileWidth, out shopId);
         }
 
+        bool elevatorNear = content.Spec.Elevator is { } elevator
+            && ShopRules.InReach(new ShopPoint(0, elevator.TileX, elevator.TileY), _farmer.X, _farmer.Y, map.TileWidth);
+
         // Tools work wherever the ground can be farmed or nothing can be placed; in a room the action key places furniture instead.
+        // The rotate key turns a piece being carried and is not a wide swing then.
         bool placeableMap = content.Spec.Placeable;
+        InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~InputEdges.Rotate : liveEdges;
         BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
-        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, interior);
+        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear, interior);
         if (_actions is not null)
         {
             // The action key that opened a chest or a furnace is not also a placement.

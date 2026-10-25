@@ -77,6 +77,9 @@ public static class ShopCatalog
     /// <summary>Id of the carpenter's shop: hay and the milk pail (docs/adr/ADR-028). Buildings and animals are bought through their own requests at the same counter.</summary>
     public const int CarpenterShop = 4;
 
+    /// <summary>The blacksmith's counter in the town. It sells coal and ore at high prices; upgrading tools is its own flow (docs/adr/ADR-026 D2).</summary>
+    public const int Blacksmith = 5;
+
     private static readonly ShopDefinition[] s_all =
     [
         new(SeedShop, "seed_shop",
@@ -129,6 +132,13 @@ public static class ShopCatalog
         [
             new(ItemCatalog.Hay, 30),
             new(ItemCatalog.MilkPail, 300),
+        ]),
+        new(Blacksmith, "blacksmith",
+        [
+            // Several times what a player gets for the ore elsewhere: the counter is for the player who is a few ore short of a bar, not a way to skip the mine.
+            new(ItemCatalog.Coal, 150),
+            new(ItemCatalog.CopperOre, 75),
+            new(ItemCatalog.IronOre, 150),
         ]),
     ];
 

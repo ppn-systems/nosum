@@ -66,6 +66,20 @@ public sealed class ToolStateService : IToolState
     }
 
     /// <inheritdoc/>
+    public int CapacityOf(Guid playerId)
+    {
+        if (!_players.TryGetValue(playerId, out Entry? entry))
+        {
+            return NodeLimits.WateringCanCapacity;
+        }
+
+        lock (entry)
+        {
+            return entry.Capacity;
+        }
+    }
+
+    /// <inheritdoc/>
     public async ValueTask<int> UseWaterAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
         Entry entry = _players.GetOrAdd(playerId, static _ => new Entry());
@@ -85,16 +99,24 @@ public sealed class ToolStateService : IToolState
     }
 
     /// <inheritdoc/>
-    public async ValueTask<int> RefillAsync(Guid playerId, CancellationToken cancellationToken = default)
+    public ValueTask<int> RefillAsync(Guid playerId, CancellationToken cancellationToken = default)
+        => this.RefillAsync(playerId, NodeLimits.WateringCanCapacity, cancellationToken);
+
+    /// <inheritdoc/>
+    public async ValueTask<int> RefillAsync(Guid playerId, int capacity, CancellationToken cancellationToken = default)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(capacity, byte.MaxValue);
+
         Entry entry = _players.GetOrAdd(playerId, static _ => new Entry());
         lock (entry)
         {
-            entry.Water = NodeLimits.WateringCanCapacity;
+            entry.Capacity = capacity;
+            entry.Water = capacity;
         }
 
-        await this.PushAsync(playerId, NodeLimits.WateringCanCapacity, cancellationToken).ConfigureAwait(false);
-        return NodeLimits.WateringCanCapacity;
+        await this.PushAsync(playerId, capacity, cancellationToken).ConfigureAwait(false);
+        return capacity;
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "The change is made; a failed push only delays the display until the next one.")]
@@ -109,7 +131,7 @@ public sealed class ToolStateService : IToolState
         {
             using PacketScope<ToolState> lease = PacketFactory<ToolState>.Acquire();
             lease.Value.WaterLeft = (byte)left;
-            lease.Value.WaterCapacity = NodeLimits.WateringCanCapacity;
+            lease.Value.WaterCapacity = (byte)this.CapacityOf(playerId);
             _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -123,5 +145,7 @@ public sealed class ToolStateService : IToolState
         public long LastSwingMs = long.MinValue;
 
         public int Water = NodeLimits.WateringCanCapacity;
+
+        public int Capacity = NodeLimits.WateringCanCapacity;
     }
 }

@@ -1,0 +1,45 @@
+@using Nosum.Wasm.ViewModels.Blacksmith
+@inherits ObservingComponent<BlacksmithViewModel>
+
+@* The blacksmith's upgrades (docs/adr/ADR-026 D2): the tool the smith is making for the player, and the upgradable tools they carry with the price of the next tier.
+   Shown under the blacksmith's shop list; the server prices, times and checks everything. *@
+<GameSection Title="@Vm.Text("Smith_Heading")">
+    <GameStack>
+        <p>@Vm.HintText</p>
+        @if (Vm.Job is { } job)
+        {
+            <GameRow Class="center smith-row">
+                <ItemSlotButton Slot="job.Tool" />
+                <span>@Vm.Text("Smith_Holding", job.Tool.Name)</span>
+                <span>@job.StatusText</span>
+                <GameButton Text="@Vm.Text("Smith_Collect")" Disabled="!job.CanCollect" OnClick="@(() => Vm.Collect())" />
+            </GameRow>
+        }
+        @{
+            IReadOnlyList<UpgradeOfferDisplay> offers = Vm.Offers;
+        }
+        @if (offers.Count == 0)
+        {
+            <p>@Vm.Text("Smith_NoTools")</p>
+        }
+        else
+        {
+            <div class="smith-list">
+                @foreach (UpgradeOfferDisplay offer in offers)
+                {
+                    int toolItemId = offer.ToolItemId;
+                    <GameRow Class="center smith-row">
+                        <ItemSlotButton Slot="offer.From" />
+                        <span>@offer.From.Name → @offer.To.Name</span>
+                        <span>@offer.CostText</span>
+                        <GameButton Text="@Vm.Text("Smith_Upgrade")" Disabled="!offer.CanUpgrade" OnClick="@(() => Vm.Upgrade(toolItemId))" />
+                    </GameRow>
+                }
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(Vm.Status))
+        {
+            <p class="smith-status @(Vm.StatusIsGood ? "good" : null)" role="status">@Vm.Status</p>
+        }
+    </GameStack>
+</GameSection>
