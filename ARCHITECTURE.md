@@ -56,7 +56,7 @@ Nosum.Rendering         → Core
 Nosum.Rendering.Web     → Rendering
 Nosum.Contracts         → Nalix.Abstractions, Nalix.Codec
 Nosum.Gameplay          → Core
-Nosum.Domain            → Gameplay
+Nosum.Domain            → Gameplay, Contracts                 (Contracts for shared enums such as GameLanguage)
 Nosum.Abstractions      → Domain, Contracts
 Nosum.Infrastructure    → Abstractions, Nalix.Runtime          (groups, sending to connections)
 Nosum.Handlers          → Abstractions, Nalix.Runtime          (never Infrastructure)
