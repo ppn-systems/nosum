@@ -16,11 +16,13 @@ using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
+using Nosum.Contracts.Node.S2C;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
 using Nosum.Gameplay.Calendar;
@@ -31,6 +33,7 @@ using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Quests;
+using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Farm;
@@ -53,6 +56,8 @@ public sealed class FarmService : IFarmService
     private readonly IInventoryService _inventory;
     private readonly IQuestService _quests;
     private readonly ICoopMembership _coops;
+    private readonly IResourceNodeService _nodes;
+    private readonly IToolState _tools;
     private readonly IGroundItems _groundItems;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
@@ -66,6 +71,8 @@ public sealed class FarmService : IFarmService
     /// <param name="inventory">Seeds and harvests go through it.</param>
     /// <param name="quests">Told when a crop was planted or harvested.</param>
     /// <param name="coops">Who belongs to which co-op; asked for every action on co-op land.</param>
+    /// <param name="nodes">Trees, stones and weeds: it handles a tool aimed at one, water and tree seeds (docs/adr/ADR-021).</param>
+    /// <param name="tools">The swing cooldown and the watering can's water.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The server clock crops grow by; tests pass a fake one.</param>
     /// <param name="calendar">The server calendar: seeds are planted by season, crops wither when theirs ends (docs/adr/ADR-018) and grow by watered game days (docs/adr/ADR-021 D7).</param>
@@ -77,6 +84,8 @@ public sealed class FarmService : IFarmService
         IInventoryService inventory,
         IQuestService quests,
         ICoopMembership coops,
+        IResourceNodeService nodes,
+        IToolState tools,
         IUnitOfWorkFactory unitOfWork,
         TimeProvider time,
         GameCalendar calendar,
@@ -88,6 +97,8 @@ public sealed class FarmService : IFarmService
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(quests);
         ArgumentNullException.ThrowIfNull(coops);
+        ArgumentNullException.ThrowIfNull(nodes);
+        ArgumentNullException.ThrowIfNull(tools);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
         ArgumentNullException.ThrowIfNull(calendar);
@@ -98,6 +109,8 @@ public sealed class FarmService : IFarmService
         _inventory = inventory;
         _quests = quests;
         _coops = coops;
+        _nodes = nodes;
+        _tools = tools;
         _unitOfWork = unitOfWork;
         _time = time;
         _calendar = calendar;
@@ -120,12 +133,12 @@ public sealed class FarmService : IFarmService
 
         if (!_presence.TryGet(connection, out PlayerPresence? player)
             || !_maps.TryGet(player.MapId, out MapDefinition? map)
-            || map.Tillable is not { } tillable)
+            || (map.Tillable is null && !map.HasNodes))
         {
             return Refused(FarmStatus.NotOnFarm);
         }
 
-        if (!tillable.Contains(tileX, tileY))
+        if ((uint)tileX >= (uint)map.Grid.Width || (uint)tileY >= (uint)map.Grid.Height)
         {
             return Refused(FarmStatus.InvalidTile);
         }
@@ -144,10 +157,56 @@ public sealed class FarmService : IFarmService
         }
 
         Guid playerId = player.AccountId;
-        MapFarm farm = await this.FarmOfAsync(player.Instance, cancellationToken).ConfigureAwait(false);
+        InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
+        _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? heldItem);
+
+        // One swing per cooldown, whatever the tool does (docs/adr/ADR-021 D8).
+        if (heldItem is { Kind: ItemKind.Tool } && !_tools.TryBeginSwing(playerId))
+        {
+            return Refused(FarmStatus.Cooldown);
+        }
+
+        // Co-op land is for its members only, whoever swings what (the check is repeated under the lock for the farm layer).
+        if (map.IsCoop && (await _coops.FindAsync(playerId, cancellationToken).ConfigureAwait(false) is not { } coopMember || coopMember.CoopId != player.Instance.OwnerId))
+        {
+            return Refused(FarmStatus.NotOnFarm);
+        }
+
+        // A visitor may only water (docs/adr/ADR-019 D3): no chopping, breaking, tilling, planting or harvesting on somebody else's land.
+        if (VisitRules.IsVisitor(player.Instance, playerId) && !IsWateringCan(held))
+        {
+            return Refused(FarmStatus.NotYourFarm);
+        }
+
+        // Resource nodes, water and tree seeds belong to the node layer; it answers null when the farm layer decides.
+        MapFarm? farm = null;
+        bool worked = false;
+        if (map.Tillable is not null)
+        {
+            farm = await this.FarmOfAsync(player.Instance, cancellationToken).ConfigureAwait(false);
+            if (heldItem is { Kind: ItemKind.TreeSeed })
+            {
+                using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
+                {
+                    worked = farm.Tiles.ContainsKey((tileX, tileY));
+                }
+            }
+        }
+
+        if (await _nodes.TryUseAsync(new NodeUseRequest(player, map, hotbarSlot, held, tileX, tileY, worked), cancellationToken).ConfigureAwait(false) is { } handled)
+        {
+            return handled;
+        }
+
+        if (map.Tillable is not { } tillable || farm is null)
+        {
+            return Refused(FarmStatus.NotOnFarm);
+        }
+
         FarmTile changedTile;
         FarmAction action;
         QuestEvent? report;
+        bool cleared;
         PendingGroundDrop? pending;
 
         using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
@@ -165,12 +224,20 @@ public sealed class FarmService : IFarmService
 
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
             FarmTile? current = this.LiveTile(farm, player.Instance, tileX, tileY, nowMs);
-            InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
-
             Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs);
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 return Refused(ToStatus(plan.Verdict));
+            }
+
+            if (plan.Action == FarmAction.Watered && _tools.WaterLeft(playerId) <= 0)
+            {
+                return Refused(FarmStatus.CanEmpty);
+            }
+
+            if (!VisitRules.MayDo(player.Instance, playerId, RuleOf(plan.Action)))
+            {
+                return Refused(FarmStatus.NotYourFarm);
             }
 
             GroundDrop? drop = null;
@@ -188,10 +255,30 @@ public sealed class FarmService : IFarmService
                 return Refused(status);
             }
 
-            farm.Tiles[(tileX, tileY)] = plan.Next;
+            cleared = plan.Action == FarmAction.Cleared;
+            if (cleared)
+            {
+                _ = farm.Tiles.Remove((tileX, tileY));
+            }
+            else
+            {
+                farm.Tiles[(tileX, tileY)] = plan.Next;
+            }
+
             changedTile = plan.Next;
             action = plan.Action;
             report = plan.Report;
+        }
+
+        if (action == FarmAction.Watered)
+        {
+            _ = await _tools.UseWaterAsync(playerId, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (cleared)
+        {
+            await this.PushClearedAsync(player.Instance, tileX, tileY, cancellationToken).ConfigureAwait(false);
+            return new FarmUseOutcome(FarmStatus.Ok, action);
         }
 
         await this.PushTileAsync(player.Instance, tileX, tileY, changedTile, cancellationToken).ConfigureAwait(false);
@@ -260,6 +347,17 @@ public sealed class FarmService : IFarmService
 
     private static FarmUseOutcome Refused(FarmStatus status) => new(status, FarmAction.None);
 
+    private static bool IsWateringCan(InventorySlotView held)
+        => held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Tool && item.Tool == ToolKind.WateringCan;
+
+    private static PlaceAction RuleOf(FarmAction action) => action switch
+    {
+        FarmAction.Tilled => PlaceAction.Till,
+        FarmAction.Planted => PlaceAction.Plant,
+        FarmAction.Harvested => PlaceAction.Harvest,
+        _ => PlaceAction.Water,
+    };
+
     // Decides what the held item does on the tile and what changes; nothing is written here.
     private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs)
     {
@@ -293,6 +391,12 @@ public sealed class FarmService : IFarmService
                 {
                     FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered);
                     return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", null, item.Id, 0) : Plan.Refuse(water);
+                }
+
+            case ItemKind.Tool when item.Tool == ToolKind.Pickaxe:
+                {
+                    FarmVerdict clear = FarmRules.Clear(current);
+                    return clear == FarmVerdict.Ok ? new Plan(clear, FarmAction.Cleared, default, [], "farm.clear", null, item.Id, 0) : Plan.Refuse(clear);
                 }
 
             case ItemKind.Seed:
@@ -339,6 +443,25 @@ public sealed class FarmService : IFarmService
     // cannot reset the plot without leaving the produce.
     private async Task<(FarmStatus Status, PendingGroundDrop? Pending)> CommitAsync(Guid playerId, CoopMembershipInfo? member, MapInstance instance, int x, int y, Plan plan, GroundDrop? drop, CancellationToken cancellationToken)
     {
+        if (plan.Action == FarmAction.Cleared)
+        {
+            IUnitOfWork clearing = _unitOfWork.Create();
+            await using (clearing.ConfigureAwait(false))
+            {
+                IRepository<FarmPlot> plots = clearing.Repository<FarmPlot>();
+                FarmPlot? row = await plots.FirstOrDefaultAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId && p.X == x && p.Y == y, cancellationToken).ConfigureAwait(false);
+                if (row is not null)
+                {
+                    plots.Remove(row);
+                }
+
+                this.Audit(clearing, member, plan);
+                _ = await clearing.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return (FarmStatus.Ok, null);
+        }
+
         if (plan.Operations.Count > 0)
         {
             InventoryChange change = await _inventory.ApplyAsync(
@@ -453,6 +576,19 @@ public sealed class FarmService : IFarmService
         packet.ServerNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
         packet.Tiles.Clear();
         packet.Tiles.Add(ToRow(x, y, tile));
+        await _presence.MulticastAsync(instance.Key, packet, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task PushClearedAsync(MapInstance instance, int x, int y, CancellationToken cancellationToken)
+    {
+        using PacketScope<FarmTilesCleared> lease = PacketFactory<FarmTilesCleared>.Acquire();
+        FarmTilesCleared packet = lease.Value;
+        packet.MapId = instance.MapId;
+        packet.Tiles.Clear();
+        TileRow tile = TileRow.Create();
+        tile.X = (ushort)x;
+        tile.Y = (ushort)y;
+        packet.Tiles.Add(tile);
         await _presence.MulticastAsync(instance.Key, packet, null, cancellationToken).ConfigureAwait(false);
     }
 

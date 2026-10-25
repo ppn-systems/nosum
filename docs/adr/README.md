@@ -28,6 +28,7 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-018](ADR-018-seasons-and-server-calendar.md) | Seasons and the server calendar: two-week seasons, crops by season, clock computed on the client | Accepted |
 | [ADR-016](ADR-016-ui-theme-and-hud-layout.md) | One pixel-art UI theme (shared controls, 9-slice frames) and one HUD dock-region layout | Proposed (partly superseded by ADR-017) |
 | [ADR-017](ADR-017-game-menu-and-world-pixel-ui.md) | One game menu, a UI pixel equal to the world pixel, a pixel font (VT323), a near-empty HUD (amends ADR-016) | Accepted |
+| [ADR-019](ADR-019-visiting-private-instances.md) | Visiting private instances: allow-list, co-op setting, what a visitor may touch (amends ADR-015 D4) | Accepted |
 | [ADR-005](ADR-005-three-quarter-top-down-view.md) | 3/4 top-down view (layers, y-sorting, feet anchors) | Accepted |
 | [ADR-021](ADR-021-tools-resource-nodes-ground-items.md) | Farming basics: five tools, resource nodes, ground items with pickup, crop growth in game days (amends ADR-011) | Accepted |
 | [ADR-022](ADR-022-chunked-interest-management.md) | Chunks: 16×16 interest management for snapshots and world events, per-chunk state | Accepted |

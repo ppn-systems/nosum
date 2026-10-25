@@ -20,6 +20,7 @@ using Nosum.Contracts.GroundItem.S2C;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.World;
 using Nosum.Gameplay.GroundItems;
+using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
@@ -191,7 +192,7 @@ public sealed class GroundItemServiceTests : IClassFixture<PostgresFixture>
     {
         Guid player = await CreatePlayerAsync();
         MapInstance town = Unique();
-        _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, 31, "test.fill"); // 5 starter slots + 31 = 36
+        _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, InventoryLimits.DefaultCapacity - StarterKit.Items.Length, "test.fill"); // the starter kit plus this fills the bag
         _ = await _items.DropAsync(new GroundDrop(town, 100, 100, ItemCatalog.Parsnip, 1, null));
         PlayerPresence presence = Stand(player, town, 100, 100);
 

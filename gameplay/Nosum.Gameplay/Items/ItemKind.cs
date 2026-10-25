@@ -19,6 +19,12 @@ public enum ItemKind
 
     /// <summary>Clothing a player wears; its <see cref="WearSlot"/> says where (docs/adr/ADR-014).</summary>
     Clothing = 5,
+
+    /// <summary>A material from a resource node: wood, stone, fiber, coal, ore (docs/adr/ADR-021).</summary>
+    Resource = 6,
+
+    /// <summary>A tree seed; planted on free ground it grows into a tree over game days (<see cref="ItemDefinition.TreeVariant"/>).</summary>
+    TreeSeed = 7,
 }
 
 /// <summary>Where a clothing item is worn. The numbers are also the wire values of the wardrobe packets; append-only.</summary>
@@ -48,4 +54,13 @@ public enum ToolKind
 
     /// <summary>Waters tilled soil.</summary>
     WateringCan = 2,
+
+    /// <summary>Chops trees, stumps and twigs.</summary>
+    Axe = 3,
+
+    /// <summary>Breaks stones and ore nodes; clears empty tilled soil.</summary>
+    Pickaxe = 4,
+
+    /// <summary>Cuts weeds and grass; harvests a mature crop.</summary>
+    Scythe = 5,
 }

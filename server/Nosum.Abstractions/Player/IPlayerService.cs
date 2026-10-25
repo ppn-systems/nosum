@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nosum.Contracts.Player;
+using Nosum.Gameplay.Maps;
 
 namespace Nosum.Abstractions.Player;
 
@@ -38,6 +39,30 @@ public interface IPlayerService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Whether it was accepted and, when not, why and where the player is kept.</returns>
     ValueTask<MoveOutcome> MoveAsync(IConnection connection, float x, float y, byte facing, bool moving, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Moves a connected player to the spawn of another instance on the server's own initiative: a visit to somebody's farm, or being sent
+    /// out of it. The same steps as walking onto an exit (leave the old place, <c>MapChanged</c> push, enter the new one, save), but only when
+    /// <see cref="Presence.IInstanceAccessPolicy"/> admits the player. A client never names an instance (docs/adr/ADR-019 D4).
+    /// </summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="destination">The instance to enter; its map's spawn is the arrival point.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>Whether the player arrived, and when not why.</returns>
+    ValueTask<TravelStatus> TravelAsync(IConnection connection, MapInstance destination, CancellationToken cancellationToken = default);
+}
+
+/// <summary>How <see cref="IPlayerService.TravelAsync"/> ended.</summary>
+public enum TravelStatus
+{
+    /// <summary>The player is now in the destination.</summary>
+    Arrived = 0,
+
+    /// <summary>The connection is on no map, or is already being moved to another.</summary>
+    NotJoined = 1,
+
+    /// <summary>The access policy does not admit the player, or the map is not hosted.</summary>
+    NotAllowed = 2,
 }
 
 /// <summary>Outcome of <see cref="IPlayerService.JoinAsync"/>.</summary>

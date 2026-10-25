@@ -52,4 +52,26 @@
   <data name="Item_hat_straw_Description" xml:space="preserve"><value>Một chiếc mũ rơm che nắng.</value></data>
   <data name="Item_hat_cap_Name" xml:space="preserve"><value>Mũ lưỡi trai</value></data>
   <data name="Item_hat_cap_Description" xml:space="preserve"><value>Một chiếc mũ lưỡi trai.</value></data>
+  <data name="Item_axe_Name" xml:space="preserve"><value>Rìu</value></data>
+  <data name="Item_axe_Description" xml:space="preserve"><value>Chặt cây, gốc cây và cành khô. Một cây lớn cần khoảng mười nhát.</value></data>
+  <data name="Item_pickaxe_Name" xml:space="preserve"><value>Cuốc chim</value></data>
+  <data name="Item_pickaxe_Description" xml:space="preserve"><value>Đập đá và quặng đồng; cũng dọn đất đã xới nhưng chưa gieo.</value></data>
+  <data name="Item_scythe_Name" xml:space="preserve"><value>Liềm</value></data>
+  <data name="Item_scythe_Description" xml:space="preserve"><value>Cắt cỏ dại và cỏ cao; cũng dùng để thu hoạch cây chín.</value></data>
+  <data name="Item_oak_seed_Name" xml:space="preserve"><value>Hạt sồi</value></data>
+  <data name="Item_oak_seed_Description" xml:space="preserve"><value>Gieo xuống đất trống để trồng một cây sồi. Cây lớn dần theo từng ngày.</value></data>
+  <data name="Item_maple_seed_Name" xml:space="preserve"><value>Hạt phong</value></data>
+  <data name="Item_maple_seed_Description" xml:space="preserve"><value>Gieo xuống đất trống để trồng một cây phong. Cây lớn dần theo từng ngày.</value></data>
+  <data name="Item_pine_seed_Name" xml:space="preserve"><value>Hạt thông</value></data>
+  <data name="Item_pine_seed_Description" xml:space="preserve"><value>Gieo xuống đất trống để trồng một cây thông. Cây lớn dần theo từng ngày.</value></data>
+  <data name="Item_wood_Name" xml:space="preserve"><value>Gỗ</value></data>
+  <data name="Item_wood_Description" xml:space="preserve"><value>Gỗ chặt từ cây, gốc cây và cành khô.</value></data>
+  <data name="Item_stone_Name" xml:space="preserve"><value>Đá</value></data>
+  <data name="Item_stone_Description" xml:space="preserve"><value>Đá đập từ những tảng đá.</value></data>
+  <data name="Item_fiber_Name" xml:space="preserve"><value>Sợi</value></data>
+  <data name="Item_fiber_Description" xml:space="preserve"><value>Sợi cắt từ cỏ dại và cỏ cao.</value></data>
+  <data name="Item_coal_Name" xml:space="preserve"><value>Than đá</value></data>
+  <data name="Item_coal_Description" xml:space="preserve"><value>Một cục than hiếm, đôi khi lẫn trong đá.</value></data>
+  <data name="Item_copper_ore_Name" xml:space="preserve"><value>Quặng đồng</value></data>
+  <data name="Item_copper_ore_Description" xml:space="preserve"><value>Quặng đồng lấy từ mỏ quặng.</value></data>
 </root>

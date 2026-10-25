@@ -511,7 +511,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
 
     private sealed class FarmClient : IAsyncDisposable
     {
-        private static readonly TimeSpan s_useCooldown = TimeSpan.FromMilliseconds(140);
+        private static readonly TimeSpan s_useCooldown = TimeSpan.FromMilliseconds(330);
 
         private readonly WebSocketSession _session;
         private readonly IDisposable[] _subscriptions;

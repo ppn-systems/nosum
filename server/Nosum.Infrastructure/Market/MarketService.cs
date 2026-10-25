@@ -17,6 +17,7 @@ using Nosum.Contracts.Market;
 using Nosum.Domain.Market;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Market;
@@ -81,6 +82,12 @@ public sealed class MarketService : IMarketService
         if (!_presence.TryGet(connection, out PlayerPresence? player) || !_maps.TryGet(player.MapId, out MapDefinition? map) || map.Tillable is null)
         {
             return new ShipOutcome(MarketStatus.NotAtBin, 0);
+        }
+
+        // The bin is the owner's: a visitor on somebody's farm cannot sell through it (docs/adr/ADR-019 D3).
+        if (!VisitRules.MayDo(player.Instance, player.AccountId, PlaceAction.UseShippingBin))
+        {
+            return new ShipOutcome(MarketStatus.NotYourBin, 0);
         }
 
         double feetX;

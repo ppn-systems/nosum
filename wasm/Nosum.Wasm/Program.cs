@@ -13,10 +13,12 @@ using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Coop;
+using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Dev;
 using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Placeable;
@@ -28,6 +30,7 @@ using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Coop;
+using Nosum.Wasm.ViewModels.Visit;
 using Nosum.Wasm.ViewModels.Feedback;
 using Nosum.Wasm.ViewModels.Help;
 using Nosum.Wasm.ViewModels.Inventory;
@@ -73,6 +76,7 @@ internal static class Program
         builder.Services.AddSingleton<InventoryChannel>();
         builder.Services.AddSingleton<FarmChannel>();
         builder.Services.AddSingleton<PlaceableChannel>();
+        builder.Services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton<GroundItemChannel>();
         builder.Services.AddSingleton<QuestChannel>();
         builder.Services.AddSingleton<WalletChannel>();
@@ -80,6 +84,7 @@ internal static class Program
         builder.Services.AddSingleton<MarketChannel>();
         builder.Services.AddSingleton<TradeChannel>();
         builder.Services.AddSingleton<CoopChannel>();
+        builder.Services.AddSingleton<VisitChannel>();
         builder.Services.AddSingleton<ShopChannel>();
         builder.Services.AddSingleton<DevChannel>();
         builder.Services.AddSingleton<NearbyPlayers>();
@@ -105,6 +110,7 @@ internal static class Program
         builder.Services.AddSingleton<WardrobeViewModel>();
         builder.Services.AddSingleton<TradeViewModel>();
         builder.Services.AddSingleton<CoopViewModel>();
+        builder.Services.AddSingleton<VisitorsViewModel>();
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
         builder.Services.AddTransient<AccountFormViewModel>();
@@ -122,6 +128,8 @@ internal static class Program
         InventoryChannel inventory = host.Services.GetRequiredService<InventoryChannel>();
         FarmChannel farm = host.Services.GetRequiredService<FarmChannel>();
         PlaceableChannel placeable = host.Services.GetRequiredService<PlaceableChannel>();
+        NodeChannel nodes = host.Services.GetRequiredService<NodeChannel>();
+        GameLoop.UseNodes(nodes);
         GroundItemChannel groundItems = host.Services.GetRequiredService<GroundItemChannel>();
         QuestChannel quests = host.Services.GetRequiredService<QuestChannel>();
         GameLoop.UseNetwork(channel);
@@ -139,7 +147,7 @@ internal static class Program
         GameLoop.UsePlacement(placeable, host.Services.GetRequiredService<PlacementViewModel>());
 
         // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;
-        // the farm and the placed furniture are per place, so they load whenever a map was joined.
+        // the farm, the placed furniture and the resource nodes are per place, so they load whenever a map was joined.
         AccountSessionKeeper keeper = host.Services.GetRequiredService<AccountSessionKeeper>();
         keeper.Authenticated += channel.Join;
         keeper.Authenticated += inventory.Load;
@@ -151,6 +159,7 @@ internal static class Program
         {
             farm.Load();
             placeable.Load();
+            nodes.Load();
             groundItems.Load();
         };
         channel.Joined += _ => looks.Load();

@@ -19,7 +19,8 @@ public sealed class ItemDefinition
     /// <param name="tool">The tool, for <see cref="ItemKind.Tool"/> items.</param>
     /// <param name="cropId">The crop a seed grows, for <see cref="ItemKind.Seed"/> items.</param>
     /// <param name="wear">Where the item is worn, for <see cref="ItemKind.Clothing"/> items.</param>
-    public ItemDefinition(int id, string key, ItemKind kind, int maxStack, ToolKind tool = ToolKind.None, int cropId = 0, WearSlot wear = WearSlot.None)
+    /// <param name="treeVariant">The tree species a tree seed grows, for <see cref="ItemKind.TreeSeed"/> items.</param>
+    public ItemDefinition(int id, string key, ItemKind kind, int maxStack, ToolKind tool = ToolKind.None, int cropId = 0, WearSlot wear = WearSlot.None, byte treeVariant = 0)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
         ArgumentException.ThrowIfNullOrEmpty(key);
@@ -32,6 +33,7 @@ public sealed class ItemDefinition
         this.Tool = tool;
         this.CropId = cropId;
         this.Wear = wear;
+        this.TreeVariant = treeVariant;
     }
 
     /// <summary>Gets the stable numeric id.</summary>
@@ -54,6 +56,9 @@ public sealed class ItemDefinition
 
     /// <summary>Gets where the item is worn; <see cref="WearSlot.None"/> for items that are not clothing.</summary>
     public WearSlot Wear { get; }
+
+    /// <summary>Gets the tree species a tree seed grows (<c>Nosum.Gameplay.Nodes.TreeVariant</c>); zero for other items.</summary>
+    public byte TreeVariant { get; }
 
     /// <summary>
     /// Gets whether the item may be sold, traded or put in a co-op warehouse. Tools are bound to their owner so nobody can

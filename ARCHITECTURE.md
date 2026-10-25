@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), the server calendar and seasons (Calendar/), placeable objects (Placeables/), ground items (GroundItems/)
+│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), resource nodes and tools (Nodes/), the server calendar and seasons (Calendar/), placeable objects (Placeables/), ground items (GroundItems/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -136,13 +136,26 @@ one), so a returning player lands where they left.
 
 The farm and the farmhouse are private per player ([ADR-015](docs/adr/ADR-015-private-instances-and-placeables.md)): the place a player is in is a
 `MapInstance` (map id, plus the owner for a private map) and its `Key` names the presence group, the farm plots and the
-placed furniture. `PlayerService` always enters a player into their own copy of a private map (checked by `IInstanceAccessPolicy`, which a later
-visiting feature replaces); the busstop, town, forest and backwoods are one shared instance each, keyed by the map id.
+placed furniture. `PlayerService` enters a player into their own copy of a private map when they join or walk through a door from a public map; entry to anyone else's copy is checked by
+`IInstanceAccessPolicy` (`VisitAccess`: the owner's allow-list and co-op setting, [ADR-019](docs/adr/ADR-019-visiting-private-instances.md)); the busstop, town, forest and backwoods are one shared instance each, keyed by the map id.
 
 ```text
 client E/R/F/Q in the farmhouse ──PlaceObject / MoveObject / PickUpObject──► PlaceableService (owner of the instance, reach, free footprint, item in the slot)
                                                                               │ inventory change + placed_objects row: one transaction
 client PlaceableChannel ◄── PlacedChanged ◄── IMapPresence (the instance's group) ◄─┘      PlayerService validates movement on IInstanceWorld.GridFor(instance)
+```
+
+Resource nodes follow the same instance rule ([ADR-021](docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): the trees, stones, twigs, weeds and grass of an instance are server state
+(`ResourceNodeService`), the blocking ones are part of `IInstanceWorld.GridFor` (so prediction and validation agree), and a tool swing is the farm `UseItem` intent: the farm layer checks slot, reach and the 300 ms cooldown,
+then the node layer or the farm layer decides. What a broken node gives leaves through one seam, `INodeYieldSink`, in the same transaction as the node's change.
+
+A visit is a server-side move, not a client-chosen map ([ADR-019](docs/adr/ADR-019-visiting-private-instances.md)):
+
+```text
+client (on a public map) ──VisitPlayer(nickname)──► VisitService (nickname → owner, VisitAccess: listed, or same co-op and the setting on)
+                                                      │ IPlayerService.TravelAsync ─► MapChanged ─► visitor joins farm@<owner>'s presence group
+owner removes / kicks / turns the co-op setting off / leaves the co-op ──► sweep: every visitor no longer admitted is travelled to the Town
+FarmService · PlaceableService · MarketService.ShipAsync ──► VisitRules.MayDo: a visitor may walk and water, nothing else
 ```
 
 ## Runtime path 4 — items, coins and the social layer

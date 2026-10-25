@@ -46,4 +46,7 @@ public enum PlaceStatus : byte
 
     /// <summary>Another change to the same object or inventory was applied at the same time; ask again.</summary>
     Conflict = 13,
+
+    /// <summary>Only the owner changes what is placed in a place; a visitor cannot (docs/adr/ADR-019 D3).</summary>
+    NotYourPlace = 14,
 }
