@@ -1,6 +1,6 @@
 # ADR-015 — Private per-player farm and farmhouse, Town and Backwoods, player-placed furniture
 
-**Status:** Proposed. Amends [ADR-012](ADR-012-maps-and-warps.md) D8 and D10 (owner decision, 2026-10-25: the farm and the farmhouse are private per player).
+**Status:** Accepted (owner approval, 2026-10-25). Amends [ADR-012](ADR-012-maps-and-warps.md) D8 and D10 (owner decision, 2026-10-25: the farm and the farmhouse are private per player).
 ADR-013 and ADR-014 are reserved by the social work and are not used here.
 
 ## Context
