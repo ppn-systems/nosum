@@ -622,6 +622,86 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_appearances", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Mail.MailAttachmentItem", b =>
+                {
+                    b.Property<Guid>("MailId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mail_id");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("MailId", "ItemId")
+                        .HasName("pk_mail_attachment_items");
+
+                    b.ToTable("mail_attachment_items", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_mail_attachment_items_quantity", "quantity > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Mail.MailMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.PrimitiveCollection<string[]>("Args")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("args");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("code");
+
+                    b.Property<long>("Coins")
+                        .HasColumnType("bigint")
+                        .HasColumnName("coins");
+
+                    b.Property<DateTimeOffset?>("CollectedAt")
+                        .IsConcurrencyToken()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("collected_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipient_id");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_mail_messages");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_mail_messages_expires_at");
+
+                    b.HasIndex("RecipientId", "SentAt")
+                        .HasDatabaseName("ix_mail_messages_recipient_id_sent_at");
+
+                    b.ToTable("mail_messages", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_mail_messages_coins", "coins >= 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Market.MarketListing", b =>
                 {
                     b.Property<Guid>("Id")
@@ -814,6 +894,154 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_quests", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Social.BlockedPlayer", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid>("BlockedId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("blocked_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("OwnerId", "BlockedId")
+                        .HasName("pk_blocked_players");
+
+                    b.HasIndex("BlockedId")
+                        .HasDatabaseName("ix_blocked_players_blocked_id");
+
+                    b.ToTable("blocked_players", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_blocked_players_not_self", "owner_id <> blocked_id");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.ChatReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ReportedId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reported_id");
+
+                    b.Property<Guid>("ReporterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reporter_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_chat_reports");
+
+                    b.HasIndex("ReporterId")
+                        .HasDatabaseName("ix_chat_reports_reporter_id");
+
+                    b.HasIndex("ReportedId", "CreatedAt")
+                        .HasDatabaseName("ix_chat_reports_reported_id_created_at");
+
+                    b.ToTable("chat_reports", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.ChatReportLine", b =>
+                {
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("report_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<byte>("Channel")
+                        .HasColumnType("smallint")
+                        .HasColumnName("channel");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.Property<string>("SenderNickname")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("sender_nickname");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(640)
+                        .HasColumnType("character varying(640)")
+                        .HasColumnName("text");
+
+                    b.HasKey("ReportId", "Sequence")
+                        .HasName("pk_chat_report_lines");
+
+                    b.ToTable("chat_report_lines", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.FriendRequest", b =>
+                {
+                    b.Property<Guid>("FromId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_id");
+
+                    b.Property<Guid>("ToId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("FromId", "ToId")
+                        .HasName("pk_friend_requests");
+
+                    b.HasIndex("ToId")
+                        .HasDatabaseName("ix_friend_requests_to_id");
+
+                    b.ToTable("friend_requests", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_friend_requests_not_self", "from_id <> to_id");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.Friendship", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<Guid>("FriendId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("friend_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("PlayerId", "FriendId")
+                        .HasName("pk_friendships");
+
+                    b.HasIndex("FriendId")
+                        .HasDatabaseName("ix_friendships_friend_id");
+
+                    b.ToTable("friendships", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_friendships_not_self", "player_id <> friend_id");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Visits.VisitGrant", b =>
                 {
                     b.Property<Guid>("OwnerId")
@@ -849,6 +1077,11 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<bool>("CoopMembersMayVisit")
                         .HasColumnType("boolean")
                         .HasColumnName("coop_members_may_visit");
+
+                    b.Property<bool>("FriendsMayVisit")
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("friends_may_visit");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1054,6 +1287,26 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_player_appearances_players_player_id");
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Mail.MailAttachmentItem", b =>
+                {
+                    b.HasOne("Nosum.Domain.Mail.MailMessage", null)
+                        .WithMany()
+                        .HasForeignKey("MailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_mail_attachment_items_mail_messages_mail_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Mail.MailMessage", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_mail_messages_players_recipient_id");
+                });
+
             modelBuilder.Entity("Nosum.Domain.Market.MarketListing", b =>
                 {
                     b.HasOne("Nosum.Domain.Accounts.Player", null)
@@ -1072,6 +1325,84 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_quests_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.BlockedPlayer", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("BlockedId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_blocked_players_players_blocked_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_blocked_players_players_owner_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.ChatReport", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("ReportedId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_reports_players_reported_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_reports_players_reporter_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.ChatReportLine", b =>
+                {
+                    b.HasOne("Nosum.Domain.Social.ChatReport", null)
+                        .WithMany()
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_report_lines_chat_reports_report_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.FriendRequest", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("FromId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_friend_requests_players_from_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("ToId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_friend_requests_players_to_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Social.Friendship", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("FriendId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_friendships_players_friend_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_friendships_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Visits.VisitGrant", b =>

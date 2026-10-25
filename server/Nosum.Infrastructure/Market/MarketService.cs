@@ -11,12 +11,14 @@ using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Market;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Market;
 using Nosum.Domain.Market;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Mail;
 using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
@@ -40,6 +42,7 @@ public sealed class MarketService : IMarketService
     private readonly IMapCatalog _maps;
     private readonly IFeeSink _feeSink;
     private readonly INicknameDirectory _nicknames;
+    private readonly IMailService? _mail;
     private readonly TimeProvider _time;
     private readonly StripedAsyncLock _listingLocks = new(64);
 
@@ -52,7 +55,8 @@ public sealed class MarketService : IMarketService
     /// <param name="feeSink">Receives the market fee (a sink: the coins are destroyed).</param>
     /// <param name="nicknames">Resolves seller nicknames for listings.</param>
     /// <param name="time">The clock for expiry; tests pass a fake one.</param>
-    public MarketService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IFeeSink feeSink, INicknameDirectory nicknames, TimeProvider time)
+    /// <param name="mail">Receives a "your listing sold" notice for the seller (docs/adr/ADR-029 D5); <see langword="null"/> to send none.</param>
+    public MarketService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IFeeSink feeSink, INicknameDirectory nicknames, TimeProvider time, IMailService? mail = null)
     {
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -71,6 +75,7 @@ public sealed class MarketService : IMarketService
         _feeSink = feeSink;
         _nicknames = nicknames;
         _time = time;
+        _mail = mail;
     }
 
     /// <inheritdoc/>
@@ -231,7 +236,34 @@ public sealed class MarketService : IMarketService
                     return TransferStatus.Ok;
                 },
                 cancellationToken).ConfigureAwait(false);
+            if (status == TransferStatus.Ok)
+            {
+                await this.NotifySoldAsync(listing, proceeds).ConfigureAwait(false);
+            }
+
             return status == TransferStatus.Refused ? refusal : ToStatus(status);
+        }
+    }
+
+    // The sale is done and paid; a failing notice must not turn it into an error for the buyer (docs/adr/ADR-029 D5).
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031", Justification = "The sale is committed; the seller sees it in their wallet and the market even if the notice is lost.")]
+    private async Task NotifySoldAsync(MarketListing listing, long proceeds)
+    {
+        if (_mail is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _mail.SendAsync(
+                listing.SellerId,
+                MailRules.Codes.MarketSold,
+                [listing.ItemId.ToString(System.Globalization.CultureInfo.InvariantCulture), listing.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture), proceeds.ToString(System.Globalization.CultureInfo.InvariantCulture)]).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // See above.
         }
     }
 

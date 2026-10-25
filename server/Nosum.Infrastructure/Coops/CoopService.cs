@@ -9,16 +9,19 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Coop;
 using Nosum.Contracts.Coop.S2C;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
 using Nosum.Gameplay.Coops;
+using Nosum.Gameplay.Mail;
 using Nosum.Gameplay.Maps;
 
 namespace Nosum.Infrastructure.Coops;
@@ -38,6 +41,8 @@ public sealed class CoopService : ICoopService, IDisposable
     private readonly INicknameDirectory _nicknames;
     private readonly IFarmService _farm;
     private readonly ICoopLandEviction _eviction;
+    private readonly IMailService? _mail;
+    private readonly IBlockList? _blocks;
     private readonly TimeProvider _time;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -51,7 +56,9 @@ public sealed class CoopService : ICoopService, IDisposable
     /// <param name="farm">Told to forget the land of a dissolved co-op.</param>
     /// <param name="eviction">Takes a member off co-op land when they leave or are removed (docs/adr/ADR-020).</param>
     /// <param name="time">The clock; tests pass a fake one.</param>
-    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IFarmService farm, ICoopLandEviction eviction, TimeProvider time)
+    /// <param name="mail">Receives a mail for an invited player (docs/adr/ADR-029 D5); <see langword="null"/> to send none.</param>
+    /// <param name="blocks">The block lists: an invitation between players where either blocked the other is dropped (docs/adr/ADR-029 D3); <see langword="null"/> to check none.</param>
+    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IFarmService farm, ICoopLandEviction eviction, TimeProvider time, IMailService? mail = null, IBlockList? blocks = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(transfers);
@@ -72,6 +79,8 @@ public sealed class CoopService : ICoopService, IDisposable
         _farm = farm;
         _eviction = eviction;
         _time = time;
+        _mail = mail;
+        _blocks = blocks;
     }
 
     /// <inheritdoc/>
@@ -169,6 +178,27 @@ public sealed class CoopService : ICoopService, IDisposable
         }
     }
 
+    // The invitation is stored and pushed; the mail is the copy that waits for a player who is offline (docs/adr/ADR-029 D5).
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031", Justification = "The invitation is committed; a failing mail must not turn it into an error for the inviter.")]
+    private async Task MailInviteAsync(IUnitOfWork unit, Guid coopId, Guid inviterId, Guid inviteeId, CancellationToken cancellationToken)
+    {
+        if (_mail is null)
+        {
+            return;
+        }
+
+        try
+        {
+            Coop? coop = await unit.Repository<Coop>().FindAsync(coopId, cancellationToken).ConfigureAwait(false);
+            string inviter = await _nicknames.GetAsync(inviterId, cancellationToken).ConfigureAwait(false);
+            _ = await _mail.SendAsync(inviteeId, MailRules.Codes.CoopInvite, [coop?.Name ?? string.Empty, inviter], null, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // See above.
+        }
+    }
+
     /// <inheritdoc/>
     public async Task<CoopStatus> InviteAsync(IConnection connection, Guid playerId, uint targetMapPlayerId, CancellationToken cancellationToken = default)
     {
@@ -206,6 +236,11 @@ public sealed class CoopService : ICoopService, IDisposable
                 }
 
                 Guid invitee = target.AccountId;
+                if (_blocks is not null && await _blocks.IsBlockedEitherWayAsync(playerId, invitee, cancellationToken).ConfigureAwait(false))
+                {
+                    return CoopStatus.TargetNotFound;
+                }
+
                 if (await unit.Repository<CoopMember>().AnyAsync(m => m.PlayerId == invitee, cancellationToken).ConfigureAwait(false))
                 {
                     return CoopStatus.TargetInCoop;
@@ -234,6 +269,7 @@ public sealed class CoopService : ICoopService, IDisposable
                 }
 
                 await this.PushToAsync([invitee], cancellationToken).ConfigureAwait(false);
+                await this.MailInviteAsync(unit, member.CoopId, playerId, invitee, cancellationToken).ConfigureAwait(false);
                 return CoopStatus.Ok;
             }
         }

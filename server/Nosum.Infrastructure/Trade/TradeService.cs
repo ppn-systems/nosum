@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Codec.Pooling;
+using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Presence;
@@ -32,6 +33,7 @@ public sealed class TradeService : ITradeService, IDisposable
     private readonly IInventoryService _inventory;
     private readonly ITransferService _transfers;
     private readonly IPlayerNotifier _notifier;
+    private readonly IBlockList? _blocks;
     private readonly TimeProvider _time;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly Dictionary<Guid, Invite> _invitesByInvitee = [];
@@ -44,7 +46,8 @@ public sealed class TradeService : ITradeService, IDisposable
     /// <param name="transfers">Runs the swap.</param>
     /// <param name="notifier">Pushes invitations, state and the end to the parties.</param>
     /// <param name="time">The clock for invitation expiry; tests pass a fake one.</param>
-    public TradeService(IMapPresence presence, IInventoryService inventory, ITransferService transfers, IPlayerNotifier notifier, TimeProvider time)
+    /// <param name="blocks">The block lists: a trade request between players where either blocked the other is dropped (docs/adr/ADR-029 D3); <see langword="null"/> to check none.</param>
+    public TradeService(IMapPresence presence, IInventoryService inventory, ITransferService transfers, IPlayerNotifier notifier, TimeProvider time, IBlockList? blocks = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -57,6 +60,7 @@ public sealed class TradeService : ITradeService, IDisposable
         _transfers = transfers;
         _notifier = notifier;
         _time = time;
+        _blocks = blocks;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
     }
 
@@ -82,6 +86,12 @@ public sealed class TradeService : ITradeService, IDisposable
         if (target.AccountId == playerId)
         {
             return TradeStatus.SelfTrade;
+        }
+
+        // A block in either direction drops the request; it looks like the other player is not there (docs/adr/ADR-029 D3).
+        if (_blocks is not null && await _blocks.IsBlockedEitherWayAsync(playerId, target.AccountId, cancellationToken).ConfigureAwait(false))
+        {
+            return TradeStatus.TargetNotFound;
         }
 
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
