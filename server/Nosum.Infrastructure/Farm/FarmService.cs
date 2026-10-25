@@ -15,6 +15,7 @@ using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
+using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Farm;
@@ -45,7 +46,7 @@ namespace Nosum.Infrastructure.Farm;
 /// the first read and written through to PostgreSQL; the server is a single process (docs/adr/ADR-009).
 /// Crops are never simulated: growth is computed from the stored timestamps (docs/adr/ADR-003 D4).
 /// </summary>
-public sealed class FarmService : IFarmService
+public sealed class FarmService : IFarmService, IFarmTiles
 {
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
@@ -58,6 +59,7 @@ public sealed class FarmService : IFarmService
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
     private readonly GameCalendar _calendar;
+    private readonly IPlacedLookup? _placed;
     private readonly ConcurrentDictionary<string, Task<MapFarm>> _farms = new(StringComparer.Ordinal);
     private readonly StripedAsyncLock _mapLocks = new(16);
 
@@ -73,6 +75,7 @@ public sealed class FarmService : IFarmService
     /// <param name="time">The server clock crops grow by; tests pass a fake one.</param>
     /// <param name="calendar">The server calendar: seeds are planted by season and crops wither when theirs ends (docs/adr/ADR-018).</param>
     /// <param name="groundItems">A harvest pops its produce onto the ground through it (docs/adr/ADR-021 D5).</param>
+    /// <param name="placed">What players placed on the ground: soil under a piece cannot be worked (docs/adr/ADR-024 D3). <see langword="null"/> when nothing can be placed.</param>
     public FarmService(
         IMapPresence presence,
         IMapCatalog maps,
@@ -84,7 +87,8 @@ public sealed class FarmService : IFarmService
         IUnitOfWorkFactory unitOfWork,
         TimeProvider time,
         GameCalendar calendar,
-        IGroundItems groundItems)
+        IGroundItems groundItems,
+        IPlacedLookup? placed = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -109,6 +113,7 @@ public sealed class FarmService : IFarmService
         _time = time;
         _calendar = calendar;
         _groundItems = groundItems;
+        _placed = placed;
     }
 
     /// <inheritdoc/>
@@ -214,6 +219,11 @@ public sealed class FarmService : IFarmService
 
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
             FarmTile? current = farm.Tiles.TryGetValue((tileX, tileY), out FarmTile found) ? found : null;
+            if (current is null && _placed?.IsCovered(player.Instance, tileX, tileY) == true)
+            {
+                return Refused(FarmStatus.Blocked);
+            }
+
             Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs);
             if (plan.Verdict != FarmVerdict.Ok)
             {
@@ -310,6 +320,33 @@ public sealed class FarmService : IFarmService
 
     /// <inheritdoc/>
     public void Forget(MapInstance instance) => _ = _farms.TryRemove(instance.Key, out _);
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlySet<(int X, int Y)>> WorkedTilesAsync(MapInstance instance, int tileX, int tileY, int width, int height, CancellationToken cancellationToken = default)
+    {
+        HashSet<(int X, int Y)> found = [];
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || map.Tillable is null)
+        {
+            return found;
+        }
+
+        MapFarm farm = await this.FarmOfAsync(instance, cancellationToken).ConfigureAwait(false);
+        using (await _mapLocks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            for (int y = tileY; y < tileY + height; y++)
+            {
+                for (int x = tileX; x < tileX + width; x++)
+                {
+                    if (farm.Tiles.ContainsKey((x, y)))
+                    {
+                        _ = found.Add((x, y));
+                    }
+                }
+            }
+        }
+
+        return found;
+    }
 
     private static FarmTileRow ToRow(int x, int y, FarmTile tile)
     {

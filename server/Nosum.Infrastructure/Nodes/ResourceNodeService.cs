@@ -12,6 +12,7 @@ using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
+using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Inventory;
@@ -35,7 +36,7 @@ namespace Nosum.Infrastructure.Nodes;
 /// <see cref="INodeYieldSink"/> in the same transaction as the node's change. The nodes that block walking are part of the grid
 /// <see cref="GridFor"/> returns, so server validation and client prediction agree.
 /// </summary>
-public sealed class ResourceNodeService : IResourceNodeService
+public sealed class ResourceNodeService : IResourceNodeService, INodeTiles
 {
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
@@ -45,6 +46,7 @@ public sealed class ResourceNodeService : IResourceNodeService
     private readonly IGameDayClock _days;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
+    private readonly IPlacedLookup? _placed;
     private readonly ConcurrentDictionary<string, Task<InstanceNodes>> _instances = new(StringComparer.Ordinal);
     private readonly StripedAsyncLock _locks = new(32);
 
@@ -57,7 +59,8 @@ public sealed class ResourceNodeService : IResourceNodeService
     /// <param name="days">The game day count.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">Clock for the audit timestamps.</param>
-    public ResourceNodeService(IMapPresence presence, IMapCatalog maps, IInventoryService inventory, INodeYieldSink yields, IToolState tools, IGameDayClock days, IUnitOfWorkFactory unitOfWork, TimeProvider time)
+    /// <param name="placed">What players placed on the ground (docs/adr/ADR-024); a tree is never planted, and debris never regrows, under a placed piece. <see langword="null"/> when nothing can be placed.</param>
+    public ResourceNodeService(IMapPresence presence, IMapCatalog maps, IInventoryService inventory, INodeYieldSink yields, IToolState tools, IGameDayClock days, IUnitOfWorkFactory unitOfWork, TimeProvider time, IPlacedLookup? placed = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -76,6 +79,7 @@ public sealed class ResourceNodeService : IResourceNodeService
         _days = days;
         _unitOfWork = unitOfWork;
         _time = time;
+        _placed = placed;
     }
 
     /// <inheritdoc/>
@@ -292,6 +296,7 @@ public sealed class ResourceNodeService : IResourceNodeService
         if (request.TileWorked
             || grid.IsBlocked(request.TileX, request.TileY)
             || map.ReservedTiles.Contains((request.TileX, request.TileY))
+            || _placed?.IsCovered(player.Instance, request.TileX, request.TileY) == true
             || state.Field.Count >= NodeLimits.MaxPerInstance)
         {
             return Refused(FarmStatus.Blocked);
@@ -357,6 +362,11 @@ public sealed class ResourceNodeService : IResourceNodeService
             }
 
             HashSet<(int X, int Y)> occupied = this.OccupiedTiles(state);
+            if (_placed is not null)
+            {
+                occupied.UnionWith(_placed.CoveredTiles(state.Instance));
+            }
+
             List<NodePlacement> placements = NodePlacements.Regrowth(state.Map.NodeSites, state.Field, state.Map.Grid, state.Map.ReservedTiles, occupied, NodeRandom.Mix(state.Seed, day, 2), state.Instance.IsPrivate, seasonChanged);
             List<(NodePlacement Placement, WorldNode Row)> inserted = [];
 
@@ -409,6 +419,33 @@ public sealed class ResourceNodeService : IResourceNodeService
         {
             await this.PublishAsync(state.Instance, changed, [], cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlySet<(int X, int Y)>> NodeTilesAsync(MapInstance instance, int tileX, int tileY, int width, int height, CancellationToken cancellationToken = default)
+    {
+        HashSet<(int X, int Y)> found = [];
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || !map.HasNodes)
+        {
+            return found;
+        }
+
+        InstanceNodes state = await this.StateOfAsync(instance, map, cancellationToken).ConfigureAwait(false);
+        using (await _locks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            for (int y = tileY; y < tileY + height; y++)
+            {
+                for (int x = tileX; x < tileX + width; x++)
+                {
+                    if (state.Field.HasNodeAt(x, y))
+                    {
+                        _ = found.Add((x, y));
+                    }
+                }
+            }
+        }
+
+        return found;
     }
 
     private HashSet<(int X, int Y)> OccupiedTiles(InstanceNodes state)
