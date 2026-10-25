@@ -11,12 +11,15 @@ using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Market;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Market;
 using Nosum.Domain.Market;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Mail;
 using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
@@ -40,7 +43,9 @@ public sealed class MarketService : IMarketService
     private readonly IMapCatalog _maps;
     private readonly IFeeSink _feeSink;
     private readonly INicknameDirectory _nicknames;
+    private readonly IMailService? _mail;
     private readonly TimeProvider _time;
+    private readonly GameCalendar _calendar;
     private readonly StripedAsyncLock _listingLocks = new(64);
 
     /// <summary>Initializes the service.</summary>
@@ -52,7 +57,9 @@ public sealed class MarketService : IMarketService
     /// <param name="feeSink">Receives the market fee (a sink: the coins are destroyed).</param>
     /// <param name="nicknames">Resolves seller nicknames for listings.</param>
     /// <param name="time">The clock for expiry; tests pass a fake one.</param>
-    public MarketService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IFeeSink feeSink, INicknameDirectory nicknames, TimeProvider time)
+    /// <param name="calendar">The server calendar: sales are filed under the game day they happened (the price history); the default calendar when <see langword="null"/>.</param>
+    /// <param name="mail">Receives a "your listing sold" notice for the seller (docs/adr/ADR-029 D5); <see langword="null"/> to send none.</param>
+    public MarketService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IFeeSink feeSink, INicknameDirectory nicknames, TimeProvider time, GameCalendar? calendar = null, IMailService? mail = null)
     {
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -71,6 +78,8 @@ public sealed class MarketService : IMarketService
         _feeSink = feeSink;
         _nicknames = nicknames;
         _time = time;
+        _calendar = calendar ?? GameCalendar.Default;
+        _mail = mail;
     }
 
     /// <inheritdoc/>
@@ -158,7 +167,11 @@ public sealed class MarketService : IMarketService
                 DateTimeOffset now = _time.GetUtcNow();
                 IRepository<MarketListing> listings = unit.Repository<MarketListing>();
                 int active = await listings.CountAsync(l => l.SellerId == playerId && l.Status == ListingStatus.Active, token).ConfigureAwait(false);
-                if (MarketRules.ValidateListing(itemId, quantity, price, active) is { } found and not MarketVerdict.Ok)
+
+                // The seller's lock (the transfer holds it) orders two listings of one player, so the sum of units is exact (docs/adr/ADR-030 D4).
+                List<MarketListing> sameItem = await listings.ListAsync(l => l.SellerId == playerId && l.Status == ListingStatus.Active && l.ItemId == itemId, token).ConfigureAwait(false);
+                int listedUnits = sameItem.Sum(l => l.Quantity);
+                if (MarketRules.ValidateListing(itemId, quantity, price, active, listedUnits) is { } found and not MarketVerdict.Ok)
                 {
                     refusal = ToStatus(found);
                     return TransferStatus.Refused;
@@ -225,13 +238,52 @@ public sealed class MarketService : IMarketService
                         return TransferStatus.Refused;
                     }
 
+                    DateTimeOffset soldAt = _time.GetUtcNow();
                     tracked.Status = ListingStatus.Sold;
                     tracked.BuyerId = buyerId;
-                    tracked.ClosedAt = _time.GetUtcNow();
+                    tracked.ClosedAt = soldAt;
+
+                    // The sale joins the price history of its item in the same transaction (docs/adr/ADR-030 D4).
+                    unit.Repository<MarketSale>().Add(new MarketSale
+                    {
+                        ItemId = tracked.ItemId,
+                        Quantity = tracked.Quantity,
+                        Price = tracked.Price,
+                        UnitPrice = PriceHistoryRules.UnitPrice(tracked.Price, tracked.Quantity),
+                        Day = _calendar.DayNumberAt(soldAt.ToUnixTimeMilliseconds()),
+                        SoldAt = soldAt,
+                    });
                     return TransferStatus.Ok;
                 },
                 cancellationToken).ConfigureAwait(false);
+            if (status == TransferStatus.Ok)
+            {
+                await this.NotifySoldAsync(listing, proceeds).ConfigureAwait(false);
+            }
+
             return status == TransferStatus.Refused ? refusal : ToStatus(status);
+        }
+    }
+
+    // The sale is done and paid; a failing notice must not turn it into an error for the buyer (docs/adr/ADR-029 D5).
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031", Justification = "The sale is committed; the seller sees it in their wallet and the market even if the notice is lost.")]
+    private async Task NotifySoldAsync(MarketListing listing, long proceeds)
+    {
+        if (_mail is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _mail.SendAsync(
+                listing.SellerId,
+                MailRules.Codes.MarketSold,
+                [listing.ItemId.ToString(System.Globalization.CultureInfo.InvariantCulture), listing.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture), proceeds.ToString(System.Globalization.CultureInfo.InvariantCulture)]).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // See above.
         }
     }
 
@@ -293,6 +345,26 @@ public sealed class MarketService : IMarketService
                 MaxMine,
                 cancellationToken).ConfigureAwait(false);
             return new ListingsPageView(now, 0, rows.Count, await this.ViewsAsync(rows, cancellationToken).ConfigureAwait(false));
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<PriceHistoryView> GetPriceHistoryAsync(int itemId, CancellationToken cancellationToken = default)
+    {
+        int today = _calendar.DayNumberAt(_time.GetUtcNow().ToUnixTimeMilliseconds());
+        int first = today - PriceHistoryRules.HistoryDays + 1;
+        IUnitOfWork unit = _unitOfWork.Create();
+        await using (unit.ConfigureAwait(false))
+        {
+            List<MarketSale> sales = await unit.Repository<MarketSale>().ListAsync(s => s.ItemId == itemId && s.Day >= first, cancellationToken).ConfigureAwait(false);
+            List<PriceDayView> days = [];
+            foreach (IGrouping<int, MarketSale> day in sales.GroupBy(s => s.Day).OrderBy(g => g.Key))
+            {
+                PriceSummary summary = PriceHistoryRules.Summarize([.. day.Select(s => s.UnitPrice)]);
+                days.Add(new PriceDayView(day.Key, summary.Min, summary.Median, summary.Max, summary.Sales));
+            }
+
+            return new PriceHistoryView(itemId, today, days);
         }
     }
 
@@ -384,6 +456,7 @@ public sealed class MarketService : IMarketService
         MarketVerdict.NotTradable => MarketStatus.NotTradable,
         MarketVerdict.InvalidQuantity => MarketStatus.InvalidQuantity,
         MarketVerdict.InvalidPrice => MarketStatus.InvalidPrice,
+        MarketVerdict.TooManyOfItem => MarketStatus.TooManyOfItem,
         _ => MarketStatus.TooManyListings,
     };
 }

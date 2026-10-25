@@ -10,6 +10,8 @@
 Server tests that matter for money: `SocialServiceTests` (market, transfer and co-op services on a real PostgreSQL with real parallel races) and `CoopLandTests` (farming on co-op land: members, audit, non-member and removed member refused, two members racing for one plot, dissolution) and `WorldInstanceTests.CoopLand_*` (the Town gate, a refused stranger, a kicked member warped out), and `SocialWireTests` (real WebSocket clients: looks,
 market, shipping, trade, co-op; `SocialClient` spaces every request because all clients share one address and its rate limits).
 
+`ChatWireTests` and `FriendsMailWireTests` (chat, block list, reports, friends, mail, [ADR-029](../docs/adr/ADR-029-chat-friends-mail.md)) use `SocialLifeClient` and check above all who does not receive a message; `MailServiceTests` race twenty collects of one mail on PostgreSQL.
+
 xUnit + FluentAssertions. Folders mirror the area under test (`Engine/`, `Gameplay/`, `Server/`, `Tools/`).
 Rules: [`testing-style`](../.claude/skills/testing-style/SKILL.md).
 

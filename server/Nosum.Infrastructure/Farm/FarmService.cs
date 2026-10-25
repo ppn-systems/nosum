@@ -254,7 +254,7 @@ public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTil
                 return Refused(FarmStatus.Blocked);
             }
 
-            Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs);
+            Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs, player.Instance.IsOutdoors, _placed?.IsSprinklerWatered(player.Instance, tileX, tileY) == true);
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 return Refused(ToStatus(plan.Verdict));
@@ -459,16 +459,16 @@ public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTil
     };
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
-    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs)
+    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, bool sprinkled)
     {
         bool hasItem = held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out _);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item);
 
         // A mature crop is harvested whatever is held (bare hands included).
         bool withered = current is { HasCrop: true } standing && FarmRules.IsWithered(standing, nowMs, _calendar);
-        if (current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar))
+        if (current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinkled))
         {
-            FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested);
+            FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested, outdoors, sprinkled);
             return harvest != FarmVerdict.Ok
                 ? Plan.Refuse(harvest)
                 : new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested!.Id), harvested.HarvestItemId, harvested.HarvestQuantity, new PlannedDrop(harvested.HarvestItemId, harvested.HarvestQuantity));
@@ -489,7 +489,7 @@ public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTil
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
-                    FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered);
+                    FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinkled);
                     return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", null, item.Id, 0) : Plan.Refuse(water);
                 }
 
@@ -787,7 +787,7 @@ public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTil
     // A tile as the player sees it: null when it was never tilled or its bare soil has reverted. A reverted tile may still sit in memory and in
     // PostgreSQL until the next day sweep; whoever tills it again overwrites it.
     private FarmTile? LiveTile(MapFarm farm, MapInstance instance, int x, int y, long nowMs)
-        => farm.TryGet(x, y, out FarmTile found) && !FarmRules.IsReverted(found, instance.Key, x, y, nowMs, _calendar) ? found : null;
+        => farm.TryGet(x, y, out FarmTile found) && !FarmRules.IsReverted(found, instance.Key, x, y, nowMs, _calendar, instance.IsOutdoors, _placed?.IsSprinklerWatered(instance, x, y) == true) ? found : null;
 
     private void OnDayEnded(GameDayEnded ended)
     {
@@ -826,7 +826,7 @@ public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTil
             {
                 foreach (KeyValuePair<(int X, int Y), FarmTile> tile in chunk.Value)
                 {
-                    if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar))
+                    if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar, instance.IsOutdoors, _placed?.IsSprinklerWatered(instance, tile.Key.X, tile.Key.Y) == true))
                     {
                         gone.Add(tile.Key);
                     }

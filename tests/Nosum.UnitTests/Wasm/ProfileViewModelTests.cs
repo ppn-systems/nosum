@@ -21,6 +21,7 @@ using Xunit;
 namespace Nosum.UnitTests.Wasm;
 
 /// <summary>The profile panel's view model (docs/adr/ADR-009 amendments): guests cannot rename, registered players get early feedback on the rules.</summary>
+[Collection(SharedUiCulture.Name)]
 public sealed class ProfileViewModelTests
 {
     [Fact]

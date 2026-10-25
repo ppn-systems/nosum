@@ -56,7 +56,7 @@ internal sealed record CoopCopy(bool HasCoop, string Name, CoopRole Role, CoopMe
 /// A real Nalix WebSocket client for the social tests: signs in as a guest, joins the farm and speaks every social packet. All clients of
 /// a test run share one address, so the rate limits are shared: <see cref="Pace"/> spaces every request (and guest start) of every client.
 /// </summary>
-internal sealed class SocialClient : IAsyncDisposable
+internal sealed partial class SocialClient : IAsyncDisposable
 {
     private static readonly SemaphoreSlim s_pace = new(1, 1);
     private static long s_lastRequest;

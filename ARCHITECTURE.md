@@ -178,6 +178,7 @@ client (on a public map) ──VisitPlayer(nickname)──► VisitService (nick
                                                       │ IPlayerService.TravelAsync ─► MapChanged ─► visitor joins farm@<owner>'s presence group
 owner removes / kicks / turns the co-op setting off / leaves the co-op ──► sweep: every visitor no longer admitted is travelled to the Town
 FarmService · PlaceableService · MarketService.ShipAsync ──► VisitRules.MayDo: a visitor may walk and water, nothing else
+friends (ADR-029) are a third admission source next to the allow-list and the co-op; a block beats all three
 ```
 
 ## Runtime path 4 — items, coins and the social layer

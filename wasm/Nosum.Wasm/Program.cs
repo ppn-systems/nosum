@@ -13,14 +13,18 @@ using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Building;
+using Nosum.Wasm.Socket.Chat;
 using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Crafting;
+using Nosum.Wasm.Socket.Friends;
 using Nosum.Wasm.Socket.Furnace;
+using Nosum.Wasm.Socket.Mail;
 using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
+using Nosum.Wasm.Socket.Goals;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Dev;
@@ -34,16 +38,20 @@ using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Building;
+using Nosum.Wasm.ViewModels.Chat;
 using Nosum.Wasm.ViewModels.Chest;
 using Nosum.Wasm.ViewModels.Coop;
 using Nosum.Wasm.ViewModels.Crafting;
+using Nosum.Wasm.ViewModels.Friends;
 using Nosum.Wasm.ViewModels.Furnace;
+using Nosum.Wasm.ViewModels.Mail;
 using Nosum.Wasm.ViewModels.Visit;
 using Nosum.Wasm.ViewModels.Feedback;
 using Nosum.Wasm.ViewModels.Help;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Looks;
+using Nosum.Wasm.ViewModels.Goals;
 using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.ViewModels.Profile;
@@ -99,7 +107,11 @@ internal static class Program
         builder.Services.AddSingleton<TradeChannel>();
         builder.Services.AddSingleton<CoopChannel>();
         builder.Services.AddSingleton<VisitChannel>();
+        builder.Services.AddSingleton<ChatMessenger>();
+        builder.Services.AddSingleton<FriendsChannel>();
+        builder.Services.AddSingleton<MailChannel>();
         builder.Services.AddSingleton<ShopChannel>();
+        builder.Services.AddSingleton<GoalChannel>();
         builder.Services.AddSingleton<DevChannel>();
         builder.Services.AddSingleton<NearbyPlayers>();
         builder.Services.AddSingleton(sp =>
@@ -117,6 +129,7 @@ internal static class Program
         builder.Services.AddSingleton<NicknameFormatter>();
         builder.Services.AddSingleton<ProfileViewModel>();
         builder.Services.AddSingleton<ShopViewModel>();
+        builder.Services.AddSingleton<GoalsViewModel>();
         builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<ProgressViewModel>();
         builder.Services.AddSingleton<WalletViewModel>();
@@ -131,6 +144,18 @@ internal static class Program
         builder.Services.AddSingleton<CarpenterViewModel>();
         builder.Services.AddSingleton<AnimalCareViewModel>();
         builder.Services.AddSingleton<VisitorsViewModel>();
+        builder.Services.AddSingleton<FriendsViewModel>();
+        builder.Services.AddSingleton(sp => new ChatViewModel(
+            sp.GetRequiredService<ChatMessenger>(),
+            sp.GetRequiredService<NicknameFormatter>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>(),
+            () => sp.GetRequiredService<ProfileViewModel>().IsGuest));
+        builder.Services.AddSingleton(sp => new MailViewModel(
+            sp.GetRequiredService<MailChannel>(),
+            sp.GetRequiredService<ItemDescriber>(),
+            sp.GetRequiredService<NicknameFormatter>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>(),
+            sp.GetRequiredService<CalendarChannel>().ServerNowMs));
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
         builder.Services.AddTransient<AccountFormViewModel>();
@@ -180,6 +205,8 @@ internal static class Program
         keeper.Authenticated += wallet.Load;
         keeper.Authenticated += host.Services.GetRequiredService<CalendarChannel>().Load;
         keeper.Authenticated += coop.Load;
+        // The unread-mail badge on the gear is live from sign-in: read the mailbox once, then the server pushes every change.
+        keeper.Authenticated += host.Services.GetRequiredService<MailChannel>().Load;
         channel.Joined += _ =>
         {
             farm.Load();
@@ -218,8 +245,12 @@ internal static class Program
         _ = host.Services.GetRequiredService<ProgressViewModel>();
         _ = host.Services.GetRequiredService<WalletViewModel>();
         _ = host.Services.GetRequiredService<CalendarViewModel>();
+        _ = host.Services.GetRequiredService<GoalChannel>();
         _ = host.Services.GetRequiredService<TradeViewModel>();
         _ = host.Services.GetRequiredService<CoopViewModel>();
+        _ = host.Services.GetRequiredService<ChatViewModel>();
+        _ = host.Services.GetRequiredService<FriendsViewModel>();
+        _ = host.Services.GetRequiredService<MailViewModel>();
         _ = host.Services.GetRequiredService<ChestViewModel>();
         _ = host.Services.GetRequiredService<FurnaceViewModel>();
         _ = host.Services.GetRequiredService<CarpenterViewModel>();

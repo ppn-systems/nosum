@@ -1,5 +1,6 @@
 @* The one text or number field of the UI. Typing here never reaches the game: the canvas ignores keys while a field has focus. *@
-<input class="game-input @Class"
+<input @attributes="Extra"
+       class="game-input @Class"
        type="@Type"
        value="@Value"
        placeholder="@Placeholder"
@@ -13,6 +14,9 @@
        @onkeydown="OnKey" />
 
 @code {
+    /// <summary>Extra HTML attributes for the field, for example the <c>id</c> a script finds it by.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Extra { get; set; }
+
     /// <summary>Extra shared classes: <c>narrow</c> for a short number field.</summary>
     [Parameter] public string? Class { get; set; }
 

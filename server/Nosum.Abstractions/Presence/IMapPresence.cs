@@ -25,6 +25,16 @@ public interface IMapPresence
     /// <summary>Raised after a player left a map, through a leave request, a map change or a disconnect.</summary>
     event Func<PlayerPresence, ValueTask>? PlayerLeft;
 
+    /// <summary>
+    /// Raised after a player joined a map (a sign-in, a map change). The default does nothing, so a test double need not implement it; the server's
+    /// presence raises it (docs/adr/ADR-029 D4: friends see each other's public map).
+    /// </summary>
+    event Func<PlayerPresence, ValueTask>? PlayerJoined
+    {
+        add { }
+        remove { }
+    }
+
     /// <summary>Gets the number of players on all maps.</summary>
     int PlayerCount { get; }
 

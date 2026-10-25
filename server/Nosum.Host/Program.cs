@@ -14,14 +14,18 @@ using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Calendar;
+using Nosum.Abstractions.Chat;
+using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Crafting;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
+using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Market;
 using Nosum.Abstractions.Nodes;
@@ -38,12 +42,16 @@ using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
 using Nosum.Handlers.Building;
 using Nosum.Handlers.Calendar;
+using Nosum.Handlers.Chat;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
+using Nosum.Handlers.Friends;
+using Nosum.Handlers.Goals;
 using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
+using Nosum.Handlers.Mail;
 using Nosum.Handlers.Market;
 using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
@@ -55,14 +63,18 @@ using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Calendar;
+using Nosum.Infrastructure.Chat;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Crafting;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
+using Nosum.Infrastructure.Friends;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
+using Nosum.Infrastructure.Community;
+using Nosum.Infrastructure.Mail;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Market;
 using Nosum.Infrastructure.Nodes;
@@ -117,6 +129,19 @@ internal static class Program
 
         NetworkApplication app = BuildApplication(WebSocketPort, null, IsDevelopment());
 
+        // Goals of seasons that ended while the server was down expire now, and rewards a crash left unpaid are paid (docs/adr/ADR-030 D3).
+        ICommunityGoalService goals = InstanceManager.Instance.GetExistingInstance<ICommunityGoalService>()
+            ?? throw new InvalidOperationException("The community goal service is not registered.");
+        try
+        {
+            _ = await goals.CloseEndedSeasonsAsync(shutdown.Token).ConfigureAwait(false);
+            _ = await goals.SettlePendingAsync(shutdown.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            await Console.Error.WriteLineAsync("Community goal start-up sweep failed: " + ex.Message).ConfigureAwait(false);
+        }
+
         // Listings past their expiry give their items back to the sellers (docs/adr/ADR-013).
         IMarketService market = InstanceManager.Instance.GetExistingInstance<IMarketService>()
             ?? throw new InvalidOperationException("The market service is not registered.");
@@ -141,6 +166,14 @@ internal static class Program
             ex => Console.Error.WriteLine("Animal wander failed: " + ex.Message),
             shutdown.Token);
 
+        // Mail past its 30 days is removed with its attachment (docs/adr/ADR-029 D5).
+        IMailService mail = InstanceManager.Instance.GetExistingInstance<IMailService>()
+            ?? throw new InvalidOperationException("The mail service is not registered.");
+        Task mailExpiry = new MailExpiryService(mail, TimeProvider.System).RunAsync(
+            MailExpiryService.DefaultInterval,
+            ex => Console.Error.WriteLine("Mail expiry failed: " + ex.Message),
+            shutdown.Token);
+
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
@@ -151,6 +184,7 @@ internal static class Program
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
         await groundItemExpiry.ConfigureAwait(false);
+        await mailExpiry.ConfigureAwait(false);
 
         return 0;
     }
@@ -248,8 +282,12 @@ internal static class Program
             .MapHandlers(typeof(NodeHandlers))
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
+            .MapHandlers(typeof(GoalHandlers))
             .MapHandlers(typeof(CalendarHandlers))
-            .MapHandlers(typeof(GroundItemHandlers));
+            .MapHandlers(typeof(GroundItemHandlers))
+            .MapHandlers(typeof(ChatHandlers))
+            .MapHandlers(typeof(FriendHandlers))
+            .MapHandlers(typeof(MailHandlers));
 
         // Tester tools exist only in Development: no handler, no service, no opcode in Production.
         if (development)
@@ -395,20 +433,47 @@ internal static class Program
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
 
+        // Block lists and the mailbox (docs/adr/ADR-029): the trade, co-op and visit services drop requests between blocked players, the market and the
+        // co-ops send mail, and community goals send rewards through IMailService.
+        BlockList blocks = new(unitOfWork, nicknames, clock);
+        InstanceManager.Instance.Register<IBlockList>(blocks);
+        MailService mail = new(unitOfWork, transfers, notifier, clock);
+        InstanceManager.Instance.Register<IMailService>(mail);
+
         // The market fee is a coin sink (owner decision 2026-10-25); IFeeSink is the one place that would redirect it.
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
-        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock));
+        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar, mail));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock));
+
+        // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.
+        CommunityUnlocks communityUnlocks = new(unitOfWork);
+        InstanceManager.Instance.Register<ICommunityUnlocks>(communityUnlocks);
+        CommunityGoalService communityGoals = new(transfers, unitOfWork, presence, maps, calendar, clock, communityUnlocks, mail);
+        InstanceManager.Instance.Register<ICommunityGoalService>(communityGoals);
+        dayClock.DayEnded += ended =>
+        {
+            _ = ended;
+            _ = communityGoals.CloseEndedSeasonsAsync().ContinueWith(
+                static t => Console.Error.WriteLine("Community goal season sweep failed: " + t.Exception?.GetBaseException().Message),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
+        };
         if (development)
         {
             InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));
             InstanceManager.Instance.Register<IDevClockService>(new DevClockService(devClock!, calendar, dayClock));
         }
 
-        InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
-        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock);
+        InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock, blocks));
+        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock, mail, blocks);
         InstanceManager.Instance.Register<ICoopService>(coops);
-        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, buildingDirectory));
+
+        // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
+        FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock);
+        InstanceManager.Instance.Register<IFriendService>(friends);
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory));
+        InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence));
 
         // Armed last: every subscriber is in place before the first boundary.
         dayClock.Start();

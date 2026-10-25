@@ -7,7 +7,9 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Nosum.Contracts.Season.S2C;
+using System.Linq;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Weather;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.ViewModels.Calendar;
 using Nosum.Wasm.ViewModels.Resources;
@@ -92,5 +94,65 @@ public sealed class CalendarViewModelTests
         {
             CultureInfo.CurrentUICulture = previous;
         }
+    }
+
+    [Fact]
+    public void Forecast_ShowsTodayAndTomorrowFromTheSharedWeatherFunction()
+    {
+        CultureInfo previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = new CultureInfo("en");
+        try
+        {
+            GameCalendar calendar = GameCalendar.Default;
+            int day = Enumerable.Range(3, 200).First(d => WeatherRules.ForDay(calendar, d) != WeatherRules.ForDay(calendar, d + 1));
+            FakeGameSocket socket = new();
+            socket.ReplyWith(_ => new CalendarInfo { EpochMs = calendar.EpochMs, DayLengthMs = calendar.DayLengthMs, ServerNowMs = calendar.DayStartMs(day) + (calendar.DayLengthMs / 2) });
+            CalendarChannel channel = new(socket);
+            using CalendarViewModel vm = new(channel, Localizer<Language>());
+
+            channel.Load();
+
+            vm.Today.Should().Be(WeatherRules.ForDay(calendar, day));
+            vm.Tomorrow.Should().Be(WeatherRules.ForDay(calendar, day + 1));
+            vm.TodayKey.Should().Be(vm.Today.ToString().ToLowerInvariant());
+            vm.TomorrowKey.Should().Be(vm.Tomorrow.ToString().ToLowerInvariant());
+            vm.ForecastText.Should().StartWith("Today: ").And.Contain("Tomorrow: ").And.EndWith(".");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
+    [Fact]
+    public void Forecast_InVietnamese_IsLocalized()
+    {
+        CultureInfo previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = new CultureInfo("vi");
+        try
+        {
+            GameCalendar calendar = GameCalendar.Default;
+            FakeGameSocket socket = new();
+            socket.ReplyWith(_ => new CalendarInfo { EpochMs = calendar.EpochMs, DayLengthMs = calendar.DayLengthMs, ServerNowMs = calendar.EpochMs });
+            CalendarChannel channel = new(socket);
+            using CalendarViewModel vm = new(channel, Localizer<Language>());
+
+            channel.Load();
+
+            vm.ForecastText.Should().Be("Hôm nay: Nắng. Ngày mai: Nắng.", "the first two days of a season are always sunny");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
+    [Fact]
+    public void Forecast_BeforeTheCalendarIsKnown_IsSun()
+    {
+        FakeGameSocket socket = new();
+        using CalendarViewModel vm = new(new CalendarChannel(socket), Localizer<Language>());
+
+        (vm.Today, vm.Tomorrow).Should().Be((WeatherKind.Sun, WeatherKind.Sun));
     }
 }

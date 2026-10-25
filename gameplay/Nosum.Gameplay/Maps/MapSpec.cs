@@ -31,6 +31,7 @@ public sealed class MapSpec
     /// <param name="shops">Where shops are served on this map (docs/adr/ADR-013 amendments).</param>
     /// <param name="isCoop">Whether each co-op has its own copy of the map, owned by the co-op and open to its members only (docs/adr/ADR-020).</param>
     /// <param name="interiorOf">The kind of farm building this map is the inside of; there is one instance per building, keyed by the building's id (docs/adr/ADR-028 D2).</param>
+    /// <param name="indoors">Whether the map is a room or a cave: no weather falls on it, rain does not water its soil and it is lit (docs/adr/ADR-027).</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -44,7 +45,8 @@ public sealed class MapSpec
         bool placeable = false,
         IReadOnlyList<ShopPoint>? shops = null,
         bool isCoop = false,
-        BuildingKind interiorOf = BuildingKind.None)
+        BuildingKind interiorOf = BuildingKind.None,
+        bool indoors = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
@@ -66,6 +68,7 @@ public sealed class MapSpec
         this.Shops = shops ?? [];
         this.IsCoop = isCoop;
         this.InteriorOf = interiorOf;
+        this.Indoors = indoors;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -103,6 +106,9 @@ public sealed class MapSpec
 
     /// <summary>Gets whether this map is the inside of a farm building: its instance owner is the building's id, not a player (docs/adr/ADR-028 D2).</summary>
     public bool IsInterior => this.InteriorOf != BuildingKind.None;
+
+    /// <summary>Gets whether the map is indoors: no rain or snow, rain does not water soil there, and daylight does not tint it (docs/adr/ADR-027).</summary>
+    public bool Indoors { get; }
 
     /// <summary>Gets whether players may place objects on this map: the farmhouse, the farm and co-op land.</summary>
     public bool Placeable { get; }

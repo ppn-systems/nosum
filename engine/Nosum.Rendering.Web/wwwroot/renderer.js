@@ -13,6 +13,10 @@ const tinted = new Map();     // "id:rgba" -> canvas with the tint applied
 let canvas = null;
 let ctx = null;
 let keys = 0;
+const lights = new Int32Array(64 * 3); // light sources of this frame (x, y, radius), cut out of the ambient tint (command -5, docs/adr/ADR-027)
+let lightCount = 0;
+let ambientLayer = null;      // full-canvas offscreen layer the ambient tint is built on (command -4)
+let lightSprite = null;       // white-to-transparent radial gradient, scaled per light
 let edges = 0;  // one-shot keys pressed since the last frame, packed above the held bits (Nosum.Core.InputEdges)
 
 const KEY_BITS = {
@@ -137,6 +141,7 @@ export function submitFrame(view) {
     ctx.imageSmoothingEnabled = false;
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     placedCount = 0;
+    lightCount = 0;
 
     for (let i = 0, p = 2; i < count; i++, p += 9) {
         const id = data[p], sx = data[p + 1], sy = data[p + 2], w = data[p + 3], h = data[p + 4];
@@ -147,6 +152,27 @@ export function submitFrame(view) {
             ctx.fillStyle = "#000";
             ctx.fillRect(dx, dy, w, h);
             ctx.globalAlpha = 1;
+            continue;
+        }
+        if (id === -4) {
+            // Ambient tint: one full-canvas composite, with this frame's lights cut out of it. sx..h hold r, g, b and opacity.
+            applyAmbient(sx, sy, w, h, scale);
+            continue;
+        }
+        if (id === -5) {
+            // Light source for the ambient pass: (dx, dy) is the centre, w the radius, both in unscaled screen pixels.
+            if (lightCount < 64) {
+                const l = lightCount * 3;
+                lights[l] = dx; lights[l + 1] = dy; lights[l + 2] = w;
+                lightCount++;
+            }
+            continue;
+        }
+        if (id === -6) {
+            // Coloured rectangle (rain, snow): tint holds 0xRRGGBBAA.
+            const u = tint >>> 0;
+            ctx.fillStyle = `rgba(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255}, ${(u & 255) / 255})`;
+            ctx.fillRect(dx, dy, w, h);
             continue;
         }
         if (id === -3) {
@@ -213,4 +239,57 @@ function tintedTexture(id, tint) {
     c.drawImage(source, 0, 0);
     tinted.set(key, result);
     return result;
+}
+
+// Builds the night tint on an offscreen layer the size of the canvas, cuts a soft hole for every light, then composites the layer once.
+// A faint warm glow is added inside each hole so a lamp reads as a lamp. Runs once per frame, only when the tint is visible.
+function applyAmbient(r, g, b, a, scale) {
+    if (a <= 0) {
+        return;
+    }
+    if (!ambientLayer) {
+        ambientLayer = new OffscreenCanvas(canvas.width, canvas.height);
+        lightSprite = makeLightSprite();
+    }
+    if (ambientLayer.width !== canvas.width || ambientLayer.height !== canvas.height) {
+        ambientLayer.width = canvas.width;
+        ambientLayer.height = canvas.height;
+    }
+    const lc = ambientLayer.getContext("2d");
+    lc.setTransform(1, 0, 0, 1, 0, 0);
+    lc.globalCompositeOperation = "source-over";
+    lc.clearRect(0, 0, ambientLayer.width, ambientLayer.height);
+    lc.fillStyle = `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+    lc.fillRect(0, 0, ambientLayer.width, ambientLayer.height);
+    lc.globalCompositeOperation = "destination-out";
+    for (let i = 0; i < lightCount; i++) {
+        const radius = lights[i * 3 + 2] * scale;
+        lc.drawImage(lightSprite, lights[i * 3] * scale - radius, lights[i * 3 + 1] * scale - radius, radius * 2, radius * 2);
+    }
+
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(ambientLayer, 0, 0);
+    if (lightCount > 0) {
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = 0.16 * (a / 255);
+        for (let i = 0; i < lightCount; i++) {
+            const radius = lights[i * 3 + 2] * scale * 0.8;
+            ctx.drawImage(lightSprite, lights[i * 3] * scale - radius, lights[i * 3 + 1] * scale - radius, radius * 2, radius * 2);
+        }
+    }
+    ctx.restore();
+}
+
+function makeLightSprite() {
+    const size = 128;
+    const c = new OffscreenCanvas(size, size);
+    const cc = c.getContext("2d");
+    const grad = cc.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    grad.addColorStop(0, "rgba(255, 214, 140, 1)");
+    grad.addColorStop(0.45, "rgba(255, 200, 120, 0.8)");
+    grad.addColorStop(1, "rgba(255, 190, 100, 0)");
+    cc.fillStyle = grad;
+    cc.fillRect(0, 0, size, size);
+    return c;
 }

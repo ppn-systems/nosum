@@ -375,9 +375,156 @@
   <data name="Calendar_Day" xml:space="preserve"><value>Ngày {0}</value></data>
   <data name="Calendar_Year" xml:space="preserve"><value>Năm {0}</value></data>
   <data name="Calendar_Summary" xml:space="preserve"><value>{0}, {1}, {2} ({3})</value></data>
+  <data name="Weather_Sun" xml:space="preserve"><value>Nắng</value></data>
+  <data name="Weather_Rain" xml:space="preserve"><value>Mưa</value></data>
+  <data name="Weather_Storm" xml:space="preserve"><value>Bão</value></data>
+  <data name="Weather_Snow" xml:space="preserve"><value>Tuyết</value></data>
+  <data name="Calendar_Forecast" xml:space="preserve"><value>Hôm nay: {0}. Ngày mai: {1}.</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>Cây này không trồng được vào mùa này.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì hết mùa. Hãy gieo hạt mới lên trên.</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>Hạt giống này không bán vào mùa này.</value></data>
+  <data name="Toolbar_Friends" xml:space="preserve"><value>Bạn bè</value></data>
+  <data name="Toolbar_Mail" xml:space="preserve"><value>Thư</value></data>
+  <data name="Toolbar_MailUnread" xml:space="preserve"><value>Thư chưa đọc: {0}</value></data>
+  <data name="Chat_Channel_Local" xml:space="preserve"><value>Gần</value></data>
+  <data name="Chat_Channel_Map" xml:space="preserve"><value>Bản đồ</value></data>
+  <data name="Chat_Channel_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
+  <data name="Chat_Channel_Whisper" xml:space="preserve"><value>Thì thầm</value></data>
+  <data name="Chat_InputHint" xml:space="preserve"><value>Gõ để nói. Tab đổi kênh, /w tên để thì thầm</value></data>
+  <data name="Chat_GuestHint" xml:space="preserve"><value>Khách chỉ chat được ở kênh Gần. Hãy đăng ký để dùng thêm kênh</value></data>
+  <data name="Chat_InputLabel" xml:space="preserve"><value>Nhập tin nhắn</value></data>
+  <data name="Chat_WhisperFromTo" xml:space="preserve"><value>{0} → {1}</value></data>
+  <data name="Chat_Sys_Usage" xml:space="preserve"><value>Cách dùng: /w tên nội dung, /block tên, /unblock tên, /report tên.</value></data>
+  <data name="Chat_Sys_UnknownCommand" xml:space="preserve"><value>Lệnh không có. Dùng /w, /l, /m, /c, /block, /unblock hoặc /report.</value></data>
+  <data name="Chat_Sys_Blocked" xml:space="preserve"><value>Đã chặn {0}.</value></data>
+  <data name="Chat_Sys_Unblocked" xml:space="preserve"><value>Đã bỏ chặn {0}.</value></data>
+  <data name="Chat_Sys_Reported" xml:space="preserve"><value>Đã báo cáo {0}. Cảm ơn bạn.</value></data>
+  <data name="Chat_Status_Empty" xml:space="preserve"><value>Tin nhắn trống.</value></data>
+  <data name="Chat_Status_NotOnMap" xml:space="preserve"><value>Bạn chưa vào thế giới, hãy thử lại.</value></data>
+  <data name="Chat_Status_GuestLocalOnly" xml:space="preserve"><value>Khách chỉ chat được ở kênh Gần. Hãy đăng ký tài khoản.</value></data>
+  <data name="Chat_Status_NotInCoop" xml:space="preserve"><value>Bạn chưa ở trong hợp tác xã nào.</value></data>
+  <data name="Chat_Status_TargetOffline" xml:space="preserve"><value>Người đó không trực tuyến.</value></data>
+  <data name="Chat_Status_SelfWhisper" xml:space="preserve"><value>Bạn không thể thì thầm với chính mình.</value></data>
+  <data name="Chat_Status_InvalidNickname" xml:space="preserve"><value>Biệt danh không hợp lệ.</value></data>
+  <data name="Chat_Status_Blocked" xml:space="preserve"><value>Bạn đã chặn người đó. Hãy bỏ chặn trước.</value></data>
+  <data name="Chat_Status_RateLimited" xml:space="preserve"><value>Bạn nhắn quá nhanh, hãy chờ một chút.</value></data>
+  <data name="Chat_Status_UnknownPlayer" xml:space="preserve"><value>Không có người chơi nào có biệt danh đó.</value></data>
+  <data name="Chat_Status_AlreadyBlocked" xml:space="preserve"><value>Người đó đã bị chặn rồi.</value></data>
+  <data name="Chat_Status_NotBlocked" xml:space="preserve"><value>Người đó chưa bị chặn.</value></data>
+  <data name="Chat_Status_BlockListFull" xml:space="preserve"><value>Danh sách chặn đã đầy.</value></data>
+  <data name="Chat_Status_InvalidChannel" xml:space="preserve"><value>Kênh chat không hợp lệ.</value></data>
+  <data name="Chat_Status_NothingToReport" xml:space="preserve"><value>Chưa có tin nhắn gần đây của người đó để báo cáo.</value></data>
+  <data name="Chat_Status_SelfBlock" xml:space="preserve"><value>Bạn không thể chặn hay báo cáo chính mình.</value></data>
+  <data name="Friends_Add_Heading" xml:space="preserve"><value>Kết bạn</value></data>
+  <data name="Friends_NicknamePlaceholder" xml:space="preserve"><value>Biệt danh</value></data>
+  <data name="Friends_Request" xml:space="preserve"><value>Gửi lời mời</value></data>
+  <data name="Friends_Add_Hint" xml:space="preserve"><value>Gõ biệt danh của người bạn muốn kết bạn. Nếu họ cũng mời bạn, hai người thành bạn ngay.</value></data>
+  <data name="Friends_GuestNotice" xml:space="preserve"><value>Khách không có danh sách bạn bè. Hãy đăng ký để kết bạn.</value></data>
+  <data name="Friends_List_Heading" xml:space="preserve"><value>Bạn bè</value></data>
+  <data name="Friends_ListEmpty" xml:space="preserve"><value>Bạn chưa có người bạn nào.</value></data>
+  <data name="Friends_Online" xml:space="preserve"><value>Đang trực tuyến</value></data>
+  <data name="Friends_Offline" xml:space="preserve"><value>Ngoại tuyến</value></data>
+  <data name="Friends_OnMap" xml:space="preserve"><value>Ở {0}</value></data>
+  <data name="Friends_Map_farm" xml:space="preserve"><value>nông trại</value></data>
+  <data name="Friends_Map_farmhouse" xml:space="preserve"><value>nhà</value></data>
+  <data name="Friends_Map_busstop" xml:space="preserve"><value>trạm xe buýt</value></data>
+  <data name="Friends_Map_forest" xml:space="preserve"><value>khu rừng</value></data>
+  <data name="Friends_Map_town" xml:space="preserve"><value>thị trấn</value></data>
+  <data name="Friends_Map_backwoods" xml:space="preserve"><value>vùng rừng sâu</value></data>
+  <data name="Friends_Map_coopfarm" xml:space="preserve"><value>đất hợp tác xã</value></data>
+  <data name="Friends_Map_coop" xml:space="preserve"><value>chuồng gà</value></data>
+  <data name="Friends_Map_barn" xml:space="preserve"><value>chuồng gia súc</value></data>
+  <data name="Friends_Remove" xml:space="preserve"><value>Xóa bạn</value></data>
+  <data name="Friends_Incoming_Heading" xml:space="preserve"><value>Lời mời kết bạn</value></data>
+  <data name="Friends_Accept" xml:space="preserve"><value>Đồng ý</value></data>
+  <data name="Friends_Decline" xml:space="preserve"><value>Từ chối</value></data>
+  <data name="Friends_Outgoing_Heading" xml:space="preserve"><value>Lời mời đã gửi</value></data>
+  <data name="Friends_Withdraw" xml:space="preserve"><value>Rút lại</value></data>
+  <data name="Friends_Visit_On" xml:space="preserve"><value>Bạn bè được ghé thăm nông trại của tôi: BẬT</value></data>
+  <data name="Friends_Visit_Off" xml:space="preserve"><value>Bạn bè được ghé thăm nông trại của tôi: TẮT</value></data>
+  <data name="Friends_Visit_Hint" xml:space="preserve"><value>Khi bật, mọi người bạn đều vào được nông trại và nhà của bạn mà không cần mời riêng.</value></data>
+  <data name="Friends_Blocked_Heading" xml:space="preserve"><value>Danh sách chặn</value></data>
+  <data name="Friends_BlockedEmpty" xml:space="preserve"><value>Bạn chưa chặn ai.</value></data>
+  <data name="Friends_BlockPlaceholder" xml:space="preserve"><value>Biệt danh cần chặn</value></data>
+  <data name="Friends_Block" xml:space="preserve"><value>Chặn</value></data>
+  <data name="Friends_Unblock" xml:space="preserve"><value>Bỏ chặn</value></data>
+  <data name="Friends_Blocked_Hint" xml:space="preserve"><value>Người bị chặn không nhắn, mời giao dịch hay xin ghé thăm bạn được. Gõ /report tên trong khung chat để báo cáo.</value></data>
+  <data name="Friends_UnknownPlayer" xml:space="preserve"><value>(người chơi)</value></data>
+  <data name="Friend_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
+  <data name="Friend_Status_InvalidNickname" xml:space="preserve"><value>Biệt danh không hợp lệ.</value></data>
+  <data name="Friend_Status_UnknownPlayer" xml:space="preserve"><value>Không có người chơi nào có biệt danh đó.</value></data>
+  <data name="Friend_Status_Self" xml:space="preserve"><value>Đó là bạn.</value></data>
+  <data name="Friend_Status_GuestNotAllowed" xml:space="preserve"><value>Hãy đăng ký tài khoản để kết bạn.</value></data>
+  <data name="Friend_Status_AlreadyFriends" xml:space="preserve"><value>Hai bạn đã là bạn bè.</value></data>
+  <data name="Friend_Status_AlreadyRequested" xml:space="preserve"><value>Bạn đã gửi lời mời cho người đó rồi.</value></data>
+  <data name="Friend_Status_ListFull" xml:space="preserve"><value>Danh sách bạn bè đã đầy.</value></data>
+  <data name="Friend_Status_NoRequest" xml:space="preserve"><value>Không có lời mời nào để trả lời.</value></data>
+  <data name="Friend_Status_NotFriends" xml:space="preserve"><value>Hai bạn chưa là bạn bè.</value></data>
+  <data name="Friend_Status_PendingFull" xml:space="preserve"><value>Có quá nhiều lời mời đang chờ.</value></data>
+  <data name="Friend_Status_Conflict" xml:space="preserve"><value>Hãy thử lại.</value></data>
+  <data name="Mail_Empty" xml:space="preserve"><value>Hộp thư trống.</value></data>
+  <data name="Mail_Unread" xml:space="preserve"><value>Chưa đọc</value></data>
+  <data name="Mail_Collect" xml:space="preserve"><value>Nhận quà</value></data>
+  <data name="Mail_Collected" xml:space="preserve"><value>Đã nhận quà.</value></data>
+  <data name="Mail_CollectedTag" xml:space="preserve"><value>Đã nhận</value></data>
+  <data name="Mail_Delete" xml:space="preserve"><value>Xóa thư</value></data>
+  <data name="Mail_Attachments" xml:space="preserve"><value>Đính kèm</value></data>
+  <data name="Mail_Coins" xml:space="preserve"><value>{0} xu</value></data>
+  <data name="Mail_Expiry" xml:space="preserve"><value>Còn {0} ngày</value></data>
+  <data name="Mail_Expiry_One" xml:space="preserve"><value>Còn 1 ngày</value></data>
+  <data name="Mail_Expired" xml:space="preserve"><value>Đã hết hạn</value></data>
+  <data name="Mail_Hint" xml:space="preserve"><value>Thư tự xóa sau 30 ngày. Thư có quà phải nhận quà trước khi xóa.</value></data>
+  <data name="Mail_UnknownItem" xml:space="preserve"><value>vật phẩm</value></data>
+  <data name="Mail_Title_MarketSold" xml:space="preserve"><value>Hàng đã bán</value></data>
+  <data name="Mail_Body_MarketSold" xml:space="preserve"><value>{0} x{1} đã bán được. Bạn nhận {2} xu sau phí.</value></data>
+  <data name="Mail_Title_CoopInvite" xml:space="preserve"><value>Lời mời hợp tác xã</value></data>
+  <data name="Mail_Body_CoopInvite" xml:space="preserve"><value>Bạn được mời vào hợp tác xã {0}. Mở trang Hợp tác xã để trả lời.</value></data>
+  <data name="Mail_Body_CoopInviteFrom" xml:space="preserve"><value>{1} mời bạn vào hợp tác xã {0}. Mở trang Hợp tác xã để trả lời.</value></data>
+  <data name="Mail_Title_GoalReward" xml:space="preserve"><value>Phần thưởng cộng đồng</value></data>
+  <data name="Mail_Body_GoalReward" xml:space="preserve"><value>Cảm ơn bạn đã góp sức cho mục tiêu chung. Bạn đã nhận {0} xu.</value></data>
+  <data name="Mail_Title_Unknown" xml:space="preserve"><value>Thông báo</value></data>
+  <data name="Mail_Body_Unknown" xml:space="preserve"><value>Bạn có một thông báo mới từ trò chơi.</value></data>
+  <data name="Mail_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
+  <data name="Mail_Status_NotFound" xml:space="preserve"><value>Không tìm thấy thư này.</value></data>
+  <data name="Mail_Status_NothingToCollect" xml:space="preserve"><value>Thư này không có quà.</value></data>
+  <data name="Mail_Status_AlreadyCollected" xml:space="preserve"><value>Bạn đã nhận quà của thư này.</value></data>
+  <data name="Mail_Status_Expired" xml:space="preserve"><value>Thư đã hết hạn.</value></data>
+  <data name="Mail_Status_NoSpace" xml:space="preserve"><value>Túi đồ không đủ chỗ.</value></data>
+  <data name="Mail_Status_TooRich" xml:space="preserve"><value>Nhận xu này sẽ vượt giới hạn số xu.</value></data>
+  <data name="Mail_Status_HasAttachments" xml:space="preserve"><value>Hãy nhận quà trước khi xóa thư.</value></data>
+  <data name="Mail_Status_Conflict" xml:space="preserve"><value>Hãy thử lại.</value></data>
+  <data name="Mail_Status_Failed" xml:space="preserve"><value>Không nhận được quà, hãy thử lại.</value></data>
+  <data name="Toolbar_Goals" xml:space="preserve"><value>Bảng tin</value></data>
+  <data name="Goals_Title" xml:space="preserve"><value>Bảng mục tiêu của thị trấn</value></data>
+  <data name="Goals_Hint" xml:space="preserve"><value>Cả máy chủ cùng nộp nông sản để mở khóa phần thưởng chung. Mỗi người nhận xu theo tỷ lệ đóng góp.</value></data>
+  <data name="Goals_Loading" xml:space="preserve"><value>Đang tải mục tiêu</value></data>
+  <data name="Goals_None" xml:space="preserve"><value>Mùa này chưa có mục tiêu nào.</value></data>
+  <data name="Goals_SeasonEnds" xml:space="preserve"><value>Mùa còn {0} ngày trong game.</value></data>
+  <data name="Goals_Amount" xml:space="preserve"><value>Số lượng nộp</value></data>
+  <data name="Goals_Deliver" xml:space="preserve"><value>Nộp</value></data>
+  <data name="Goals_Held" xml:space="preserve"><value>Bạn có {0}</value></data>
+  <data name="Goals_Progress" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Goals_Mine" xml:space="preserve"><value>Bạn đã nộp {0}</value></data>
+  <data name="Goals_Contributors" xml:space="preserve"><value>{0} người tham gia</value></data>
+  <data name="Goals_Done" xml:space="preserve"><value>Đã nộp {0}. Cảm ơn bạn!</value></data>
+  <data name="Goals_State_Active" xml:space="preserve"><value>Đang mở</value></data>
+  <data name="Goals_State_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
+  <data name="Goals_State_Expired" xml:space="preserve"><value>Đã hết hạn</value></data>
+  <data name="Goals_Status_UnknownGoal" xml:space="preserve"><value>Không có mục tiêu này.</value></data>
+  <data name="Goals_Status_InvalidQuantity" xml:space="preserve"><value>Số lượng không hợp lệ.</value></data>
+  <data name="Goals_Status_NotThisSeason" xml:space="preserve"><value>Mục tiêu này không thuộc mùa hiện tại.</value></data>
+  <data name="Goals_Status_Closed" xml:space="preserve"><value>Mục tiêu này đã đóng.</value></data>
+  <data name="Goals_Status_NotAtBoard" xml:space="preserve"><value>Bạn đứng quá xa bảng tin.</value></data>
+  <data name="Goals_Status_NotEnough" xml:space="preserve"><value>Bạn không có đủ vật phẩm.</value></data>
+  <data name="Goals_Status_Conflict" xml:space="preserve"><value>Hãy thử lại.</value></data>
+  <data name="Market_History" xml:space="preserve"><value>Giá</value></data>
+  <data name="Market_History_Title" xml:space="preserve"><value>Lịch sử giá: {0}</value></data>
+  <data name="Market_History_Chart" xml:space="preserve"><value>Giá trung vị mỗi ngày trong game</value></data>
+  <data name="Market_History_Latest" xml:space="preserve"><value>Ngày gần nhất: thấp nhất {0}, trung vị {1}, cao nhất {2} xu mỗi món; số giao dịch: {3}</value></data>
+  <data name="Market_History_Range" xml:space="preserve"><value>{0} ngày qua: từ {1} đến {2} xu mỗi món</value></data>
+  <data name="Market_History_None" xml:space="preserve"><value>Chưa có giao dịch nào trong {0} ngày qua.</value></data>
+  <data name="Market_History_Hide" xml:space="preserve"><value>Ẩn</value></data>
+  <data name="Market_Status_TooManyOfItem" xml:space="preserve"><value>Bạn đang bán tối đa 500 món loại này cùng lúc.</value></data>
   <data name="Farm_Status_NoEnergy" xml:space="preserve"><value>Bạn hết sức rồi. Hãy ăn nông sản hoặc đợi sang ngày mới.</value></data>
   <data name="Eat_Status_InvalidSlot" xml:space="preserve"><value>Ô này không có trên thanh nhanh.</value></data>
   <data name="Eat_Status_NotEdible" xml:space="preserve"><value>Món này không ăn được.</value></data>
@@ -447,6 +594,7 @@
   <data name="Furnace_Ready" xml:space="preserve"><value>Thỏi đã nung xong!</value></data>
   <data name="Furnace_Start" xml:space="preserve"><value>Nung {0}</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Lấy thỏi</value></data>
+  <data name="Market_History_Tip" xml:space="preserve"><value>Xem lịch sử giá của vật phẩm này</value></data>
   <data name="Place_Status_Fixed" xml:space="preserve"><value>Công trình đã xây xong thì không dời hay cất đi được.</value></data>
   <data name="Shop_Title_carpenter_shop" xml:space="preserve"><value>Thợ mộc</value></data>
   <data name="Carpenter_Buildings" xml:space="preserve"><value>Xây chuồng</value></data>

@@ -74,6 +74,12 @@ Visiting ([ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): `VisitC
 (`Controls/Visit`, shared controls only) are the "Visitors" panel: visit a friend by nickname, edit who may enter my farm, send a visitor out, switch co-op visits. It has a toolbar button and no hotkey yet (the toolbar hides an empty key). The server's refusals
 (`Visit_Status_*`, `Farm_Status_NotYourFarm`, `Place_Status_NotYourPlace`, `Market_Status_NotYourBin`) are shown through the existing message lines. A guest is typed as "Khách 1234" / "Guest 1234" and sent as `guest-1234`.
 
+Chat, friends and mail ([ADR-029](../docs/adr/ADR-029-chat-friends-mail.md)): `ChatMessenger`, `FriendsChannel` and `MailChannel` (`Nosum.Wasm.Socket/{Chat,Friends,Mail}`) mirror the server; `ChatViewModel`, `FriendsViewModel` and `MailViewModel`
+(`ViewModels/{Chat,Friends,Mail}`) localize them (status enums and mail codes by `.resx` key; player text stays a plain string). `Controls/Chat/ChatLine` is the chat at the bottom-left of the HUD (`GameHud` `BottomLeft`): closed it shows the last 3 lines
+that have not faded (8 s); `Enter` opens the input box (when no menu, dialog or form field has the keyboard), `Enter` sends and closes it, `Esc` closes it, `Tab` cycles Local, Map, Co-op; `/w nick text`, `/l` `/m` `/c`, `/block`, `/unblock`, `/report nick`.
+`wwwroot/chat-input.js` does the key handling (per key press, not per frame): it stops `Esc` so closing the box does not open the menu, and a focused field already keeps WASD and the hotkeys from the game (`renderer.js` `isTyping`). Friends and Mail are menu tabs
+(`FriendsPanel` with the block list, `MailPanel`, no hotkey); the gear shows `MailViewModel.Unread`, which is read once after sign-in and then follows the `MailUnread` push.
+
 Furniture ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `PlaceableChannel` (in `Nosum.Wasm.Socket/Placeable`) mirrors the pieces of the player's current place (loaded with the farm after every join or map change)
 and sends place, move and pick-up requests. `Game/PlacedObjectsDecorator` draws them (and the ghost of the piece being placed) as `WorldSpriteBatch` sprites; `MapScene` adds their footprints to the grid the farmer
 walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, active only on a `MapSpec.Placeable` map: `E` places the held piece (or sets down a carried one), `R` rotates, `F` picks up the piece in front to
@@ -97,6 +103,8 @@ on the last tab, `I M C T G N` open a tab, `H` / `?` and the gear open settings 
 state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
 
 Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `CalendarChannel` (Socket) reads the epoch and game day length once per sign-in and estimates the server clock; `CalendarViewModel` builds the shared `GameCalendar` and
+The Town board ([ADR-030](../docs/adr/ADR-030-community-goals-and-market-limits.md)): the action key at the board counter opens `Controls/Goals/GoalsPanel` as a shop-style menu tab (`PanelKind.Goals`, `ToolbarViewModel.GoalsItem`; not a toolbar button). `GoalChannel` reads the goals and applies the `GoalProgress` pushes every player in the Town gets; `GoalsViewModel` shows a `GameProgress` bar per goal, the player's part and an amount to deliver. The market panel's `PriceHistoryCard` shows a `GameSparkline` of an item's daily median unit price with the latest day's lowest, median and highest. `GameProgress` and `GameSparkline` are shared controls in `Controls/Common`.
+
 `Controls/Calendar/CalendarClock` shows season, day and time in the top-right region (the time moves in ten game-minute steps, a 5 s timer re-renders only when the text changes). The farm decorator computes each crop stage and wet soil with `FarmRules` and that calendar (growth counts watered game days, [ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D7; nothing is drawn until the calendar has loaded) and does not draw crops that withered at a season change. `FarmChannel` drops tiles the server pushes as removed (bare soil that reverted). `DevChannel.AdvanceClock` asks a Development server to skip game days.
 The season icon is a flat colour swatch until the icon sheet has season art; the world is not tinted by the time of day yet.
 
