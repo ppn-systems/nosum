@@ -9,7 +9,8 @@ namespace Nosum.Wasm.ViewModels.Inventory;
 /// <param name="Size">Side of the square, pixels.</param>
 /// <param name="SheetWidth">Width of the whole sheet, pixels.</param>
 /// <param name="SheetHeight">Height of the whole sheet, pixels.</param>
-public sealed record ItemIcon(string SheetUrl, int X, int Y, int Size, int SheetWidth, int SheetHeight);
+/// <param name="ThemeImage">Name of a 16 x 16 picture the UI theme draws itself (<c>--nosum-img-&lt;name&gt;</c>, made by <c>nosum-theme.js</c>); when set the sheet fields are not used.</param>
+public sealed record ItemIcon(string SheetUrl, int X, int Y, int Size, int SheetWidth, int SheetHeight, string? ThemeImage = null);
 
 /// <summary>Finds the picture of an item. The app provides it, so art can be replaced without touching view models.</summary>
 public interface IItemIconSource

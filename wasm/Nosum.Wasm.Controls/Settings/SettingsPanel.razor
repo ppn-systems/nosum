@@ -1,4 +1,5 @@
 @using System.Threading
+@using Nosum.Contracts.Common
 @using Nosum.Wasm.ViewModels.Account
 @using Nosum.Wasm.ViewModels.Help
 @implements IDisposable
@@ -28,7 +29,14 @@
         </GameSection>
         <GameSection Title="@Help.Text("Settings_Language")">
             <div class="set-account">
-                <p class="set-who">@Help.Text("Settings_LanguageName")</p>
+                <div class="set-lang">
+                    <GameButton Variant="tab" Active="@(Vm.Language == GameLanguage.Vietnamese)" Text="@Help.Text("Settings_LanguageVi")" OnClick="@(() => SetLanguageAsync(GameLanguage.Vietnamese))" />
+                    <GameButton Variant="tab" Active="@(Vm.Language == GameLanguage.English)" Text="@Help.Text("Settings_LanguageEn")" OnClick="@(() => SetLanguageAsync(GameLanguage.English))" />
+                </div>
+                @if (Vm.LanguageNote is not null)
+                {
+                    <p class="set-note">@Vm.LanguageNote</p>
+                }
             </div>
         </GameSection>
     </div>
@@ -79,6 +87,8 @@
             _subscribed = null;
         }
     }
+
+    private Task SetLanguageAsync(GameLanguage language) => Vm.SetLanguageAsync(language, CancellationToken.None);
 
     private Task LogoutAsync() => Vm.LogoutAsync(CancellationToken.None);
 

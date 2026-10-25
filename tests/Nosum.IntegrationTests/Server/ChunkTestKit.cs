@@ -538,3 +538,16 @@ internal sealed class NoChunks : IChunkMap, IChunkPublisher
 
     public ValueTask PublishInstanceAsync(MapInstance instance, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
 }
+
+/// <summary>
+/// A publisher that sends every chunk or instance publish to the whole instance through a presence, for tests that build a service by hand over a
+/// fake presence and assert on what it published, without chunk interest.
+/// </summary>
+internal sealed class InstanceWidePublisher(IMapPresence presence) : IChunkPublisher
+{
+    public ValueTask PublishAsync(MapInstance instance, ChunkCoord chunk, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default)
+        => presence.MulticastAsync(instance.Key, packet, except, cancellationToken);
+
+    public ValueTask PublishInstanceAsync(MapInstance instance, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default)
+        => presence.MulticastAsync(instance.Key, packet, except, cancellationToken);
+}

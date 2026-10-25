@@ -5,7 +5,7 @@ using Nosum.Core;
 
 namespace Nosum.Domain.Accounts;
 
-/// <summary>Where a player was last: what the server restores when the player signs in again.</summary>
+/// <summary>Where a player was last (what the server restores when the player signs in again) plus the player's energy and skill experience (docs/adr/ADR-023). A row made by the progress service before the first place was saved has an empty <see cref="MapName"/>, which counts as no saved place.</summary>
 public sealed class PlayerState
 {
     /// <summary>Gets or sets the owning player; also this row's primary key (one state per player).</summary>
@@ -22,6 +22,21 @@ public sealed class PlayerState
 
     /// <summary>Gets or sets the direction the player faces.</summary>
     public Facing Facing { get; set; }
+
+    /// <summary>Gets or sets the energy left; meaningful once <see cref="EnergyRefilledDay"/> is set (docs/adr/ADR-023 D4).</summary>
+    public int Energy { get; set; }
+
+    /// <summary>Gets or sets the game day the energy was last refilled on; <c>-1</c> means never, so the first read fills it.</summary>
+    public long EnergyRefilledDay { get; set; } = -1;
+
+    /// <summary>Gets or sets the cumulative farming experience; the level is derived from it and never stored.</summary>
+    public int FarmingXp { get; set; }
+
+    /// <summary>Gets or sets the cumulative foraging experience.</summary>
+    public int ForagingXp { get; set; }
+
+    /// <summary>Gets or sets the cumulative mining experience.</summary>
+    public int MiningXp { get; set; }
 
     /// <summary>Gets or sets when the state was last saved.</summary>
     public DateTimeOffset UpdatedAt { get; set; }

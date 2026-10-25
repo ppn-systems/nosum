@@ -12,7 +12,9 @@ using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
+using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Progress;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Node.S2C;
@@ -24,6 +26,7 @@ using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
+using Nosum.Gameplay.Skills;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Nodes;
@@ -37,7 +40,7 @@ namespace Nosum.Infrastructure.Nodes;
 /// <see cref="GridFor"/> returns, so server validation and client prediction agree.
 /// A change is published to the subscribers of the chunk it happened in, and a chunk's nodes are sent once when it joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
-public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContributor
+public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContributor, INodeTiles
 {
     private readonly IMapPresence _presence;
     private readonly IChunkMap _chunks;
@@ -46,9 +49,11 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
     private readonly IInventoryService _inventory;
     private readonly INodeYieldSink _yields;
     private readonly IToolState _tools;
+    private readonly IPlayerProgress _progress;
     private readonly IGameDayClock _days;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
+    private readonly IPlacedLookup? _placed;
     private readonly ConcurrentDictionary<string, Task<InstanceNodes>> _instances = new(StringComparer.Ordinal);
     private readonly StripedAsyncLock _locks = new(32);
 
@@ -63,7 +68,9 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
     /// <param name="days">The game day count.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">Clock for the audit timestamps.</param>
-    public ResourceNodeService(IMapPresence presence, IChunkMap chunks, IChunkPublisher publisher, IMapCatalog maps, IInventoryService inventory, INodeYieldSink yields, IToolState tools, IGameDayClock days, IUnitOfWorkFactory unitOfWork, TimeProvider time)
+    /// <param name="progress">Every swing at a node spends energy and earns experience through it (docs/adr/ADR-023).</param>
+    /// <param name="placed">What players placed on the ground (docs/adr/ADR-024); a tree is never planted, and debris never regrows, under a placed piece. <see langword="null"/> when nothing can be placed.</param>
+    public ResourceNodeService(IMapPresence presence, IChunkMap chunks, IChunkPublisher publisher, IMapCatalog maps, IInventoryService inventory, INodeYieldSink yields, IToolState tools, IGameDayClock days, IUnitOfWorkFactory unitOfWork, TimeProvider time, IPlayerProgress progress, IPlacedLookup? placed = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
@@ -75,6 +82,7 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         ArgumentNullException.ThrowIfNull(days);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
+        ArgumentNullException.ThrowIfNull(progress);
 
         _presence = presence;
         _chunks = chunks;
@@ -86,6 +94,8 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         _days = days;
         _unitOfWork = unitOfWork;
         _time = time;
+        _progress = progress;
+        _placed = placed;
     }
 
     /// <inheritdoc/>
@@ -267,6 +277,12 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
 
             case NodeHitOutcome.Damaged:
                 {
+                    ChargeStatus charged = await _progress.TryChargeAsync(player.AccountId, tool, SkillRules.SkillOf(node.Kind), SkillRules.HitXp, cancellationToken).ConfigureAwait(false);
+                    if (charged != ChargeStatus.Ok)
+                    {
+                        return Refused(charged == ChargeStatus.NoEnergy ? FarmStatus.NoEnergy : FarmStatus.Conflict);
+                    }
+
                     ResourceNode damaged = hit.Next!.Value;
                     _ = state.Field.Replace(damaged);
                     await this.PublishAsync(player.Instance, [damaged], [], cancellationToken).ConfigureAwait(false);
@@ -276,32 +292,58 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
 
         ResourceNode? next = hit.Next;
         List<ItemSlot> items = NodeRules.RollYield(node, NodeRandom.Mix(state.Seed, node.Id, (long)node.Kind));
-        NodeYieldStatus delivered = await _yields.DeliverAsync(
-            new NodeYieldRequest(player.AccountId, player.Instance, node.X, node.Y, items, "node." + NodeKeyOf(node.Kind)),
-            async (unit, ct) =>
+        IProgressCharge? charge = null;
+        NodeYieldStatus delivered;
+        try
+        {
+            delivered = await _yields.DeliverAsync(
+                new NodeYieldRequest(player.AccountId, player.Instance, node.X, node.Y, items, "node." + NodeKeyOf(node.Kind)),
+                async (unit, ct) =>
+                {
+                    // Energy and experience commit with the break; a player without the energy breaks nothing.
+                    charge?.Dispose();
+                    charge = await _progress.ChargeAsync(unit, player.AccountId, tool, SkillRules.SkillOf(node.Kind), SkillRules.BreakXp(node.Kind), ct).ConfigureAwait(false);
+                    if (!charge.Allowed)
+                    {
+                        return false;
+                    }
+
+                    IRepository<WorldNode> rows = unit.Repository<WorldNode>();
+                    WorldNode? row = await rows.FindAsync(node.Id, ct).ConfigureAwait(false);
+                    if (row is null)
+                    {
+                        return false;
+                    }
+
+                    if (next is { } kept)
+                    {
+                        Fill(row, kept);
+                    }
+                    else
+                    {
+                        rows.Remove(row);
+                    }
+
+                    return true;
+                },
+                cancellationToken).ConfigureAwait(false);
+            if (delivered == NodeYieldStatus.Ok && charge is not null)
             {
-                IRepository<WorldNode> rows = unit.Repository<WorldNode>();
-                WorldNode? row = await rows.FindAsync(node.Id, ct).ConfigureAwait(false);
-                if (row is null)
-                {
-                    return false;
-                }
-
-                if (next is { } kept)
-                {
-                    Fill(row, kept);
-                }
-                else
-                {
-                    rows.Remove(row);
-                }
-
-                return true;
-            },
-            cancellationToken).ConfigureAwait(false);
+                await charge.PublishAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            charge?.Dispose();
+        }
 
         if (delivered != NodeYieldStatus.Ok)
         {
+            if (charge is { Allowed: false })
+            {
+                return Refused(FarmStatus.NoEnergy);
+            }
+
             return Refused(delivered switch
             {
                 NodeYieldStatus.NoSpace => FarmStatus.InventoryFull,
@@ -335,6 +377,7 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         if (request.TileWorked
             || grid.IsBlocked(request.TileX, request.TileY)
             || map.ReservedTiles.Contains((request.TileX, request.TileY))
+            || _placed?.IsCovered(player.Instance, request.TileX, request.TileY) == true
             || state.Field.Count >= NodeLimits.MaxPerInstance)
         {
             return Refused(FarmStatus.Blocked);
@@ -400,6 +443,11 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
             }
 
             HashSet<(int X, int Y)> occupied = this.OccupiedTiles(state);
+            if (_placed is not null)
+            {
+                occupied.UnionWith(_placed.CoveredTiles(state.Instance));
+            }
+
             List<NodePlacement> placements = NodePlacements.Regrowth(state.Map.NodeSites, state.Field, state.Map.Grid, state.Map.ReservedTiles, occupied, NodeRandom.Mix(state.Seed, day, 2), state.Instance.IsPrivate, seasonChanged);
             List<(NodePlacement Placement, WorldNode Row)> inserted = [];
 
@@ -452,6 +500,33 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         {
             await this.PublishAsync(state.Instance, changed, [], cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlySet<(int X, int Y)>> NodeTilesAsync(MapInstance instance, int tileX, int tileY, int width, int height, CancellationToken cancellationToken = default)
+    {
+        HashSet<(int X, int Y)> found = [];
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || !map.HasNodes)
+        {
+            return found;
+        }
+
+        InstanceNodes state = await this.StateOfAsync(instance, map, cancellationToken).ConfigureAwait(false);
+        using (await _locks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            for (int y = tileY; y < tileY + height; y++)
+            {
+                for (int x = tileX; x < tileX + width; x++)
+                {
+                    if (state.Field.HasNodeAt(x, y))
+                    {
+                        _ = found.Add((x, y));
+                    }
+                }
+            }
+        }
+
+        return found;
     }
 
     private HashSet<(int X, int Y)> OccupiedTiles(InstanceNodes state)

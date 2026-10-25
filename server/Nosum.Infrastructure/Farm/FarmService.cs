@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Calendar;
@@ -17,7 +18,9 @@ using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
+using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.S2C;
@@ -34,6 +37,7 @@ using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Quests;
+using Nosum.Gameplay.Skills;
 using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
@@ -51,7 +55,7 @@ namespace Nosum.Infrastructure.Farm;
 /// only tidies up: it drops reverted tiles from memory and PostgreSQL and tells the players who can see them.
 /// The tiles of an instance are kept in per-chunk buckets; a change is published to the subscribers of the chunk it happened in and a chunk's tiles are sent once when it joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
-public sealed class FarmService : IFarmService, IChunkStateContributor
+public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTiles
 {
     private readonly IMapPresence _presence;
     private readonly IChunkMap _chunks;
@@ -63,9 +67,11 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
     private readonly IResourceNodeService _nodes;
     private readonly IToolState _tools;
     private readonly IGroundItems _groundItems;
+    private readonly IPlayerProgress _progress;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
     private readonly GameCalendar _calendar;
+    private readonly IPlacedLookup? _placed;
     private readonly ConcurrentDictionary<string, Task<MapFarm>> _farms = new(StringComparer.Ordinal);
     private readonly StripedAsyncLock _mapLocks = new(16);
 
@@ -83,7 +89,9 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
     /// <param name="time">The server clock crops grow by; tests pass a fake one.</param>
     /// <param name="calendar">The server calendar: seeds are planted by season, crops wither when theirs ends (docs/adr/ADR-018) and grow by watered game days (docs/adr/ADR-021 D7).</param>
     /// <param name="groundItems">A harvest pops its produce onto the ground through it (docs/adr/ADR-021 D5).</param>
+    /// <param name="progress">Every successful tool use spends energy and earns experience through it, in the transaction of its effect (docs/adr/ADR-023).</param>
     /// <param name="dayClock">Told when a game day ends, to sweep tiles whose bare soil reverted; <see langword="null"/> leaves the lazy rule alone.</param>
+    /// <param name="placed">What players placed on the ground: soil under a piece cannot be worked (docs/adr/ADR-024 D3). <see langword="null"/> when nothing can be placed.</param>
     public FarmService(
         IMapPresence presence,
         IChunkMap chunks,
@@ -98,7 +106,9 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         TimeProvider time,
         GameCalendar calendar,
         IGroundItems groundItems,
-        IDayClock? dayClock = null)
+        IPlayerProgress progress,
+        IDayClock? dayClock = null,
+        IPlacedLookup? placed = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
@@ -113,6 +123,7 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         ArgumentNullException.ThrowIfNull(time);
         ArgumentNullException.ThrowIfNull(calendar);
         ArgumentNullException.ThrowIfNull(groundItems);
+        ArgumentNullException.ThrowIfNull(progress);
 
         _presence = presence;
         _chunks = chunks;
@@ -127,6 +138,8 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         _time = time;
         _calendar = calendar;
         _groundItems = groundItems;
+        _progress = progress;
+        _placed = placed;
         if (dayClock is not null)
         {
             dayClock.DayEnded += this.OnDayEnded;
@@ -236,6 +249,11 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
 
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
             FarmTile? current = this.LiveTile(farm, player.Instance, tileX, tileY, nowMs);
+            if (current is null && _placed?.IsCovered(player.Instance, tileX, tileY) == true)
+            {
+                return Refused(FarmStatus.Blocked);
+            }
+
             Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs);
             if (plan.Verdict != FarmVerdict.Ok)
             {
@@ -377,6 +395,35 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
     /// <inheritdoc/>
     public void Forget(MapInstance instance) => _ = _farms.TryRemove(instance.Key, out _);
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlySet<(int X, int Y)>> WorkedTilesAsync(MapInstance instance, int tileX, int tileY, int width, int height, CancellationToken cancellationToken = default)
+    {
+        HashSet<(int X, int Y)> found = [];
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || map.Tillable is null)
+        {
+            return found;
+        }
+
+        MapFarm farm = await this.FarmOfAsync(instance, cancellationToken).ConfigureAwait(false);
+        long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+        using (await _mapLocks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            for (int y = tileY; y < tileY + height; y++)
+            {
+                for (int x = tileX; x < tileX + width; x++)
+                {
+                    // Bare soil that has reverted is no longer worked, so a piece may stand there.
+                    if (this.LiveTile(farm, instance, x, y, nowMs) is not null)
+                    {
+                        _ = found.Add((x, y));
+                    }
+                }
+            }
+        }
+
+        return found;
+    }
+
     private static FarmTileRow ToRow(int x, int y, FarmTile tile)
     {
         FarmTileRow row = FarmTileRow.Create();
@@ -496,49 +543,123 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
     // cannot reset the plot without leaving the produce.
     private async Task<(FarmStatus Status, PendingGroundDrop? Pending)> CommitAsync(Guid playerId, CoopMembershipInfo? member, MapInstance instance, int x, int y, Plan plan, GroundDrop? drop, CancellationToken cancellationToken)
     {
-        if (plan.Action == FarmAction.Cleared)
+        // Energy and experience are charged in the same transaction as the effect; a refused charge changes nothing (docs/adr/ADR-023 D1).
+        (ToolKind Tool, SkillKind Skill, int Xp)? spend = ChargeOf(plan.Action);
+        IProgressCharge? charge = null;
+        bool noEnergy = false;
+        try
         {
-            IUnitOfWork clearing = _unitOfWork.Create();
-            await using (clearing.ConfigureAwait(false))
+            if (plan.Action == FarmAction.Cleared)
             {
-                IRepository<FarmPlot> plots = clearing.Repository<FarmPlot>();
-                FarmPlot? row = await plots.FirstOrDefaultAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId && p.X == x && p.Y == y, cancellationToken).ConfigureAwait(false);
-                if (row is not null)
+                IUnitOfWork clearing = _unitOfWork.Create();
+                await using (clearing.ConfigureAwait(false))
                 {
-                    plots.Remove(row);
+                    IRepository<FarmPlot> plots = clearing.Repository<FarmPlot>();
+                    FarmPlot? row = await plots.FirstOrDefaultAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId && p.X == x && p.Y == y, cancellationToken).ConfigureAwait(false);
+                    if (row is not null)
+                    {
+                        plots.Remove(row);
+                    }
+
+                    this.Audit(clearing, member, plan);
+                    charge = await this.ChargeAsync(clearing, playerId, spend, cancellationToken).ConfigureAwait(false);
+                    if (charge is { Allowed: false })
+                    {
+                        return (FarmStatus.NoEnergy, null);
+                    }
+
+                    if (!await SaveAsync(clearing, cancellationToken).ConfigureAwait(false))
+                    {
+                        return (FarmStatus.Conflict, null);
+                    }
                 }
 
-                this.Audit(clearing, member, plan);
-                _ = await clearing.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                await PublishAsync(charge, cancellationToken).ConfigureAwait(false);
+                return (FarmStatus.Ok, null);
             }
 
-            return (FarmStatus.Ok, null);
-        }
-
-        if (plan.Operations.Count > 0)
-        {
-            InventoryChange change = await _inventory.ApplyAsync(
-                playerId,
-                plan.Operations,
-                plan.Reason,
-                async (unit, ct) =>
+            if (plan.Operations.Count > 0)
+            {
+                InventoryChange change = await _inventory.ApplyAsync(
+                    playerId,
+                    plan.Operations,
+                    plan.Reason,
+                    async (unit, ct) =>
+                    {
+                        await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, ct).ConfigureAwait(false);
+                        this.Audit(unit, member, plan);
+                        charge = await this.ChargeAsync(unit, playerId, spend, ct).ConfigureAwait(false);
+                        noEnergy = charge is { Allowed: false };
+                        return !noEnergy;
+                    },
+                    cancellationToken).ConfigureAwait(false);
+                if (noEnergy)
                 {
-                    await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, ct).ConfigureAwait(false);
-                    this.Audit(unit, member, plan);
-                    return true;
-                },
-                cancellationToken).ConfigureAwait(false);
-            return (ToStatus(change.Status), null);
-        }
+                    return (FarmStatus.NoEnergy, null);
+                }
 
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
+                if (change.IsOk)
+                {
+                    await PublishAsync(charge, cancellationToken).ConfigureAwait(false);
+                }
+
+                return (ToStatus(change.Status), null);
+            }
+
+            IUnitOfWork unit = _unitOfWork.Create();
+            await using (unit.ConfigureAwait(false))
+            {
+                await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, cancellationToken).ConfigureAwait(false);
+                this.Audit(unit, member, plan);
+                PendingGroundDrop? pending = drop is { } staged ? _groundItems.Stage(unit, staged) : null;
+                charge = await this.ChargeAsync(unit, playerId, spend, cancellationToken).ConfigureAwait(false);
+                if (charge is { Allowed: false })
+                {
+                    return (FarmStatus.NoEnergy, null);
+                }
+
+                if (!await SaveAsync(unit, cancellationToken).ConfigureAwait(false))
+                {
+                    return (FarmStatus.Conflict, null);
+                }
+
+                await PublishAsync(charge, cancellationToken).ConfigureAwait(false);
+                return (FarmStatus.Ok, pending);
+            }
+        }
+        finally
         {
-            await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, cancellationToken).ConfigureAwait(false);
-            this.Audit(unit, member, plan);
-            PendingGroundDrop? pending = drop is { } staged ? _groundItems.Stage(unit, staged) : null;
+            charge?.Dispose();
+        }
+    }
+
+    // What a farm action costs and earns: planting is free, the scythe's harvest costs nothing but earns farming experience.
+    private static (ToolKind Tool, SkillKind Skill, int Xp)? ChargeOf(FarmAction action) => action switch
+    {
+        FarmAction.Tilled => (ToolKind.Hoe, SkillKind.Farming, SkillRules.TillXp),
+        FarmAction.Watered => (ToolKind.WateringCan, SkillKind.Farming, SkillRules.WaterXp),
+        FarmAction.Cleared => (ToolKind.Pickaxe, SkillKind.Mining, SkillRules.ClearXp),
+        FarmAction.Harvested => (ToolKind.Scythe, SkillKind.Farming, SkillRules.HarvestXp),
+        _ => null,
+    };
+
+    private async Task<IProgressCharge?> ChargeAsync(IUnitOfWork unit, Guid playerId, (ToolKind Tool, SkillKind Skill, int Xp)? spend, CancellationToken cancellationToken)
+        => spend is { } s ? await _progress.ChargeAsync(unit, playerId, s.Tool, s.Skill, s.Xp, cancellationToken).ConfigureAwait(false) : null;
+
+    private static ValueTask PublishAsync(IProgressCharge? charge, CancellationToken cancellationToken)
+        => charge is null ? ValueTask.CompletedTask : charge.PublishAsync(cancellationToken);
+
+    // Saves a unit that carries a charge; a concurrent first write of the player's progress row is a conflict, not a crash.
+    private static async Task<bool> SaveAsync(IUnitOfWork unit, CancellationToken cancellationToken)
+    {
+        try
+        {
             _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            return (FarmStatus.Ok, pending);
+            return true;
+        }
+        catch (DbUpdateException ex) when (unit.IsUniqueViolation(ex) || unit.IsConcurrencyConflict(ex))
+        {
+            return false;
         }
     }
 

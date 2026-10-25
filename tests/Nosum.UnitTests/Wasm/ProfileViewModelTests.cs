@@ -132,6 +132,8 @@ public sealed class ProfileViewModelTests
 
         public Task<AccountReply> UpgradeGuestAsync(string email, string password, string nickname, CancellationToken cancellationToken) => throw new NotSupportedException();
 
+        public Task<AccountStatus> SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken) => throw new NotSupportedException();
+
         public Task LogoutAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
 
         public Task<AccountReply> ResumeAsync(string sessionToken, CancellationToken cancellationToken) => throw new NotSupportedException();

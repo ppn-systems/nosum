@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 using Nosum.Core;
 using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Calendar;
+using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Farm;
+using Nosum.Wasm.Socket.Furnace;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Node;
@@ -48,7 +50,10 @@ internal static partial class GameLoop
     private static NodeChannel? s_nodes;
     private static GroundItemChannel? s_groundItems;
     private static PlacementViewModel? s_placement;
+    private static ChestChannel? s_chests;
+    private static FurnaceChannel? s_furnaces;
     private static MarketChannel? s_market;
+    private static ProgressChannel? s_progress;
     private static LookChannel? s_looks;
     private static NicknameFormatter? s_names;
     private static double s_lastTime = -1;
@@ -67,6 +72,10 @@ internal static partial class GameLoop
         s_inventory = inventory;
         s_market = market;
     }
+
+    /// <summary>Connects energy and skills to the game: with it the action key eats the food in hand while the player is not full of energy (docs/adr/ADR-023). Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="progress">The energy mirror and eat sender.</param>
+    public static void UseProgress(ProgressChannel progress) => s_progress = progress;
 
     /// <summary>Connects the resource nodes to the game: the mirror that is drawn and that blocks walking. Call before <see cref="StartAsync"/>.</summary>
     /// <param name="nodes">The mirror of the nodes of the player's place.</param>
@@ -94,6 +103,15 @@ internal static partial class GameLoop
         s_placement = placement;
     }
 
+    /// <summary>Connects chests and furnaces to the game: the action key facing one opens it, and a working furnace is drawn lit. Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="chests">The open chest's mirror and request sender.</param>
+    /// <param name="furnaces">The furnaces' mirror.</param>
+    public static void UseContainers(ChestChannel chests, FurnaceChannel furnaces)
+    {
+        s_chests = chests;
+        s_furnaces = furnaces;
+    }
+
     /// <summary>Connects the items lying on the ground to the game: they are drawn as world sprites. Call before <see cref="StartAsync"/>.</summary>
     /// <param name="groundItems">The ground items mirror.</param>
     public static void UseGroundItems(GroundItemChannel groundItems) => s_groundItems = groundItems;
@@ -103,6 +121,10 @@ internal static partial class GameLoop
 
     /// <summary>Raised from the frame when the player pressed the action key next to a shop: the shop's id.</summary>
     public static event Action<int>? ShopRequested;
+
+    /// <summary>Raised from the frame when the player pressed the action key facing a furnace: the furnace's object id.</summary>
+    public static event Action<int>? FurnaceRequested;
+
     /// <summary>Raised from the frame when the player pressed the close key (Escape).</summary>
     public static event Action? PanelCloseRequested;
 
@@ -119,9 +141,10 @@ internal static partial class GameLoop
         ArgumentNullException.ThrowIfNull(http);
 
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
-        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market) : null;
+        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
+        actions?.FurnaceRequested += objectId => FurnaceRequested?.Invoke(objectId);
         actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider()];
         if (actions is not null && s_farm is not null)
@@ -138,7 +161,7 @@ internal static partial class GameLoop
         if (s_placeable is not null && s_placement is not null && s_inventory is not null)
         {
             placement = new PlacementActions(s_placeable, s_inventory, s_placement);
-            providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement));
+            providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement, s_furnaces));
         }
 
         if (s_groundItems is not null)

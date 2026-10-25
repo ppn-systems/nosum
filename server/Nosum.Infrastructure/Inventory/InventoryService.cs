@@ -14,6 +14,8 @@ using Nosum.Contracts.Inventory.S2C;
 using Nosum.Infrastructure.Concurrency;
 using Nosum.Domain.Inventory;
 using Nosum.Gameplay.Inventory;
+using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Placeables;
 
 namespace Nosum.Infrastructure.Inventory;
 
@@ -28,6 +30,7 @@ namespace Nosum.Infrastructure.Inventory;
 public sealed class InventoryService : IInventoryService
 {
     private const string StarterReason = "starter";
+    private const string StarterBackfillReason = "starter.backfill";
 
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
@@ -121,6 +124,31 @@ public sealed class InventoryService : IInventoryService
     }
 
     /// <inheritdoc/>
+    public async Task<InventoryChange> BackfillStarterToolsAsync(Guid playerId, CancellationToken cancellationToken = default)
+    {
+        Outcome outcome = await this.ExecuteAsync(
+            playerId,
+            static (loaded, deltas) =>
+            {
+                foreach (ItemSlot starter in StarterKit.Items)
+                {
+                    // A tool with no room is skipped; the next join tries again.
+                    if (ItemCatalog.TryGet(starter.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Tool && loaded.Grid.CountOf(item.Id) == 0 && loaded.Grid.Add(item.Id, 1) == InventoryVerdict.Ok)
+                    {
+                        deltas.Add((item.Id, 1));
+                    }
+                }
+
+                return InventoryStatus.Ok;
+            },
+            StarterBackfillReason,
+            null,
+            push: true,
+            cancellationToken).ConfigureAwait(false);
+        return new InventoryChange(outcome.Status, outcome.Changed);
+    }
+
+    /// <inheritdoc/>
     public async Task<InventorySlotView> PeekSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default)
     {
         Outcome outcome = await this.ExecuteAsync(playerId, static (_, _) => InventoryStatus.Ok, string.Empty, null, push: false, cancellationToken).ConfigureAwait(false);
@@ -144,6 +172,7 @@ public sealed class InventoryService : IInventoryService
                 InventoryOperationKind.Add => grid.Add(operation.ItemId, operation.Quantity),
                 InventoryOperationKind.Remove => grid.Remove(operation.ItemId, operation.Quantity),
                 InventoryOperationKind.RemoveFromSlot => grid.RemoveFromSlot(operation.Slot, operation.ItemId, operation.Quantity),
+                InventoryOperationKind.AddToSlot => grid.AddToSlot(operation.Slot, operation.ItemId, operation.Quantity),
                 _ => InventoryVerdict.InvalidQuantity,
             };
             if (verdict != InventoryVerdict.Ok)
@@ -151,7 +180,7 @@ public sealed class InventoryService : IInventoryService
                 return ToStatus(verdict);
             }
 
-            deltas.Add((operation.ItemId, operation.Kind == InventoryOperationKind.Add ? operation.Quantity : -operation.Quantity));
+            deltas.Add((operation.ItemId, operation.Kind is InventoryOperationKind.Add or InventoryOperationKind.AddToSlot ? operation.Quantity : -operation.Quantity));
         }
 
         return InventoryStatus.Ok;
@@ -338,13 +367,15 @@ public sealed class InventoryService : IInventoryService
         PlayerInventory? header = await headers.FirstOrDefaultAsync(i => i.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
         if (header is null)
         {
-            header = new PlayerInventory { PlayerId = playerId, Capacity = InventoryLimits.DefaultCapacity, SelectedSlot = 0, CreatedAt = _time.GetUtcNow() };
+            // A container (a chest) starts empty and has its own size; only a player gets the starter kit.
+            bool container = ContainerIds.IsContainer(playerId);
+            header = new PlayerInventory { PlayerId = playerId, Capacity = container ? ChestRules.Capacity : InventoryLimits.DefaultCapacity, SelectedSlot = 0, CreatedAt = _time.GetUtcNow() };
             headers.Add(header);
             InventoryGrid fresh = new(header.Capacity);
             Dictionary<int, InventorySlot> starterRows = [];
             IRepository<InventorySlot> slotRows = unit.Repository<InventorySlot>();
             IRepository<InventoryLogEntry> log = unit.Repository<InventoryLogEntry>();
-            foreach (ItemSlot item in StarterKit.Items)
+            foreach (ItemSlot item in container ? [] : StarterKit.Items)
             {
                 if (fresh.Add(item.ItemId, item.Quantity) == InventoryVerdict.Ok)
                 {
@@ -409,9 +440,12 @@ public sealed class InventoryService : IInventoryService
             changed.Add(new InventorySlotView(slot, stack.ItemId, stack.Quantity));
         }
 
-        // One audit entry per item for the change itself.
+        // One audit entry per item for the change itself. A container has no player to log against: its movements are logged by the feature that made them (chest_log).
         List<(int ItemId, int Delta, string Reason)> entries = [];
-        AddMerged(entries, deltas, reason);
+        if (!ContainerIds.IsContainer(loaded.Header.PlayerId))
+        {
+            AddMerged(entries, deltas, reason);
+        }
 
         DateTimeOffset now = _time.GetUtcNow();
         IRepository<InventoryLogEntry> log = unit.Repository<InventoryLogEntry>();
@@ -442,7 +476,7 @@ public sealed class InventoryService : IInventoryService
 
     private async Task PushAsync(Guid playerId, IReadOnlyList<InventorySlotView> changed, CancellationToken cancellationToken)
     {
-        if (_notifier is null)
+        if (_notifier is null || ContainerIds.IsContainer(playerId))
         {
             return;
         }

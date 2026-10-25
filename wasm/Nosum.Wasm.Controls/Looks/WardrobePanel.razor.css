@@ -2,7 +2,11 @@
     display: grid;
     grid-template-columns: auto 1fr;
     gap: var(--nosum-gap-group);
-    align-items: start;
+    align-items: stretch;
+}
+
+.ward > ::deep .game-section:first-child {
+    justify-content: center;
 }
 
 .ward-preview {

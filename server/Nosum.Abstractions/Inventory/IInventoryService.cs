@@ -97,6 +97,15 @@ public interface IInventoryService
     /// <returns>The status and the slot held afterwards.</returns>
     Task<(InventoryStatus Status, int SelectedSlot)> SelectSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Grants the starter tools a player lacks, once each, with the audit reason <c>starter.backfill</c>. Accounts made before a tool joined the starter kit
+    /// (axe, pickaxe, scythe) get it on their next join; a player who has every tool, or has no room, changes nothing, so calling it again is harmless.
+    /// </summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status and the slots that changed (none when nothing was missing).</returns>
+    Task<InventoryChange> BackfillStarterToolsAsync(Guid playerId, CancellationToken cancellationToken = default);
+
     /// <summary>Reads one slot.</summary>
     /// <param name="playerId">The player.</param>
     /// <param name="slot">Slot number.</param>
@@ -142,6 +151,9 @@ public enum InventoryOperationKind
 
     /// <summary>Removes items from one named slot, which must hold that item.</summary>
     RemoveFromSlot = 3,
+
+    /// <summary>Adds items to one named slot, which must be empty or hold the same item with room for them.</summary>
+    AddToSlot = 4,
 }
 
 /// <summary>One step of an atomic inventory change.</summary>
@@ -169,4 +181,11 @@ public readonly record struct InventoryOperation(InventoryOperationKind Kind, in
     /// <param name="quantity">How many.</param>
     /// <returns>The step.</returns>
     public static InventoryOperation RemoveFromSlot(int slot, int itemId, int quantity) => new(InventoryOperationKind.RemoveFromSlot, itemId, quantity, slot);
+
+    /// <summary>Creates a step that adds items to one slot.</summary>
+    /// <param name="slot">The slot.</param>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="quantity">How many.</param>
+    /// <returns>The step.</returns>
+    public static InventoryOperation AddToSlot(int slot, int itemId, int quantity) => new(InventoryOperationKind.AddToSlot, itemId, quantity, slot);
 }

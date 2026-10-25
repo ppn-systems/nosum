@@ -61,6 +61,40 @@ public sealed class RenderingTests
     }
 
     [Fact]
+    public void Follow_SmallWorldWithBottomInset_IsCentredAboveTheStrip()
+    {
+        Camera2D camera = default;
+
+        camera.Follow(96, 96, 426, 240, 192, 192, 40);
+
+        camera.Top.Should().Be(-4); // (192 - (240 - 40)) / 2: 4 world pixels free above and below
+        camera.Left.Should().Be(-117);
+    }
+
+    [Fact]
+    public void Follow_WorldTallerThanTheFreeArea_IgnoresTheInset()
+    {
+        Camera2D camera = default;
+
+        camera.Follow(200, 150, 100, 50, 400, 300, 10);
+
+        camera.Top.Should().Be(125);
+    }
+
+    [Theory]
+    [InlineData(1280, 720, 120, 3)] // a 12 x 12 tile room, hotbar strip 40 u at u = 3
+    [InlineData(1920, 1080, 200, 4)] // at 5 the room (960 px) would sit under the hotbar strip (200 px)
+    [InlineData(1600, 900, 160, 3)]
+    public void ViewZoom_Room_FitsWholeAboveTheStrip(int width, int height, int inset, int expected)
+        => ViewZoom.Pick(192, 192, 16, width, height, inset, 26, 6).Should().Be(expected);
+
+    [Theory]
+    [InlineData(1280, 720, 3)] // the farm: 80 x 65 tiles, the open-map zoom
+    [InlineData(1920, 1080, 5)]
+    public void ViewZoom_OpenMap_UsesTheOpenMapZoom(int width, int height, int expected)
+        => ViewZoom.Pick(80 * 16, 65 * 16, 16, width, height, 40 * expected, 26, 6).Should().Be(expected);
+
+    [Fact]
     public void TileLayerRenderer_Draw_SkipsEmptyAndOffscreenTiles()
     {
         TileMap map = new(4, 1, 16, 16, [new TileSet(1, "t", "t", 2, 4)], [new TileLayer("Back", [1, 0, 2, 3])]);

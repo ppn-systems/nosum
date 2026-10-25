@@ -30,6 +30,7 @@ internal sealed class MapScene
     private const double WalkFrameSeconds = 0.15;
     private const int TargetTilesAcross = 26;
     private const int MaxScale = 6;
+    private const int MenuUnitsTall = 204;
 
     /// <summary>Seconds the screen takes to go black when the server changes the map.</summary>
     public const double FadeOutSeconds = 0.2;
@@ -60,6 +61,9 @@ internal sealed class MapScene
     private WalkGrid? _nodeGrid;
     private MapContent? _nodeGridContent;
     private int _nodeGridVersion = -1;
+    private WalkGrid? _joinedGrid;
+    private WalkGrid? _joinedNodes;
+    private WalkGrid? _joinedPlaced;
     private WalkGrid? _placedGrid;
     private MapContent? _placedGridContent;
     private int _placedGridVersion = -1;
@@ -172,10 +176,14 @@ internal sealed class MapScene
             _ = ShopRules.TryFindShop(content.Spec, _farmer.X, _farmer.Y, map.TileWidth, out shopId);
         }
 
-        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, !content.Spec.Placeable, _clockSeconds, shopId);
+        // Tools work wherever the ground can be farmed or nothing can be placed; in a room the action key places furniture instead.
+        bool placeableMap = content.Spec.Placeable;
+        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null);
         if (_actions is not null)
         {
-            _placement?.Update(content.Spec.Placeable && _phase == Phase.Playing, liveEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds);
+            // The action key that opened a chest or a furnace is not also a placement.
+            InputEdges placementEdges = _actions.ActionConsumed ? liveEdges & ~InputEdges.Action : liveEdges;
+            _placement?.Update(placeableMap && _phase == Phase.Playing, placementEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds, !content.Spec.Farmable);
         }
 
         int scale = ScaleFor(map, canvasWidth, canvasHeight);
@@ -185,7 +193,8 @@ internal sealed class MapScene
             (canvasWidth + scale - 1) / scale,
             (canvasHeight + scale - 1) / scale,
             map.Width * map.TileWidth,
-            map.Height * map.TileHeight);
+            map.Height * map.TileHeight,
+            HudBottomInset(canvasWidth, canvasHeight) / scale);
 
         _commands.Begin(scale);
         foreach (TileLayer layer in content.Layers.Ground)
@@ -245,18 +254,31 @@ internal sealed class MapScene
     {
         ArgumentNullException.ThrowIfNull(map);
 
-        int scale = Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * map.TileWidth)), 2, MaxScale);
-        int fitsWhole = (int)Math.Min(canvasWidth / (double)(map.Width * map.TileWidth), canvasHeight / (double)(map.Height * map.TileHeight));
-        return Math.Clamp(Math.Max(scale, fitsWhole), 2, MaxScale);
+        return ViewZoom.Pick(map.Width * map.TileWidth, map.Height * map.TileHeight, map.TileWidth, canvasWidth, canvasHeight, HudBottomInset(canvasWidth, canvasHeight), TargetTilesAcross, MaxScale);
+    }
+
+    /// <summary>
+    /// The strip at the bottom of the canvas the hotbar covers: 40 UI pixels (the hotbar and the screen gutter). The UI pixel is the one
+    /// <c>nosum-theme.js</c> picks (<c>unitFor</c>: the open-map zoom, lowered so the menu fits the height).
+    /// </summary>
+    /// <param name="canvasWidth">Canvas width, CSS pixels.</param>
+    /// <param name="canvasHeight">Canvas height, CSS pixels.</param>
+    /// <returns>The strip's height, CSS pixels.</returns>
+    internal static int HudBottomInset(int canvasWidth, int canvasHeight)
+    {
+        int world = Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * 16)), 2, MaxScale);
+        int fits = Math.Max(2, canvasHeight / MenuUnitsTall);
+        return 40 * Math.Min(world, fits);
     }
 
     // The grid the farmer walks on: the map's own, plus the footprints of the pieces the server says are placed here. Rebuilt only
     // when the mirror or the map changed (never per frame), with the same PlacedSet rule the server uses.
     private WalkGrid GridOf(MapContent content)
     {
+        WalkGrid nodes = this.NodeGridOf(content);
         if (_placed is null || !content.Spec.Placeable)
         {
-            return this.NodeGridOf(content);
+            return nodes;
         }
 
         int version = _placed.Version;
@@ -280,7 +302,22 @@ internal sealed class MapScene
             _placedGridVersion = version;
         }
 
-        return _placedGrid;
+        // The farm has both layers: the grid is the nodes' joined with the placed footprints (the server's InstanceWorld does the same). Built again only when either layer replaced its grid.
+        if (ReferenceEquals(nodes, content.Grid))
+        {
+            return _placedGrid;
+        }
+
+        if (_joinedGrid is null || !ReferenceEquals(_joinedNodes, nodes) || !ReferenceEquals(_joinedPlaced, _placedGrid))
+        {
+            WalkGrid joined = nodes.Clone();
+            joined.BlockWhereBlocked(_placedGrid);
+            _joinedGrid = joined;
+            _joinedNodes = nodes;
+            _joinedPlaced = _placedGrid;
+        }
+
+        return _joinedGrid;
     }
 
     // The map's own grid plus the tiles of the nodes that block walking (docs/adr/ADR-021 D3), the same rule the server builds with NodeField.

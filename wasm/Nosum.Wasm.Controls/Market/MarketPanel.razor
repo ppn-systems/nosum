@@ -3,7 +3,7 @@
 @inherits ObservingComponent<MarketViewModel>
 
 @* The consignment market: browse and buy, list a stack, and the player's own listings. Every price and fee is the server's rule; this panel only asks and shows. *@
-<MenuPage Status="@Vm.Status">
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
         <TabBar Active="(int)Vm.Tab" OnSelect="@(id => Vm.SetTab((MarketTab)id))"
                 Tabs="@(new (int, string)[] { ((int)MarketTab.Browse, Vm.Text("Market_Tab_Browse")), ((int)MarketTab.Sell, Vm.Text("Market_Tab_Sell")), ((int)MarketTab.Mine, Vm.Text("Market_Tab_Mine")) })" />
@@ -24,9 +24,11 @@
                 Guid id = listing.Id;
                 <GameRow Class="listing-row">
                     <ItemSlotButton Slot="listing.Item" />
-                    <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
+                    <span class="listing-main">
+                        <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
+                        <span class="listing-seller">@listing.SellerText</span>
+                    </span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
-                    <span>@listing.SellerText</span>
                     @if (listing.IsMine)
                     {
                         <span>@Vm.Text("Market_YourListing")</span>
@@ -43,25 +45,26 @@
         }
         else if (Vm.Tab == MarketTab.Sell)
         {
-            <GameSection Title="@Vm.Text("Market_SellPick")">
+            <GameSection>
                 <ItemGrid Slots="Vm.InventorySlots" Columns="9" Picked="@(Vm.SellItem?.Index ?? -1)" OnSlotClick="@(i => Vm.PickSellSlot(i))" />
             </GameSection>
             @if (Vm.SellItem is { } item)
             {
-                <GameRow Class="center">
-                    <span>@item.Name</span>
-                    <GameInput Type="number" Value="@Vm.SellQuantityText" ValueChanged="@(v => { Vm.SellQuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Market_Quantity")" MaxLength="4" />
+                @* Two lines: what and how many; then the price, what the player gets, and the button. *@
+                <div class="sell-form">
+                    <span class="sell-name">@item.Name</span>
                     <span>@Vm.Text("Market_Quantity")</span>
-                </GameRow>
-                <GameRow Class="center">
-                    <PriceInput Value="@Vm.SellPriceText" ValueChanged="@(v => { Vm.SellPriceText = v; Vm.Touch(); })" OnEnter="@(() => Vm.Sell())"
-                                Label="@Vm.Text("Market_PriceLabel")" Unit="@Vm.Text("Market_PriceLabel")" />
-                </GameRow>
-                @if (Vm.FeeSummary.Length > 0)
-                {
-                    <p class="market-fee">@Vm.FeeSummary</p>
-                }
-                <GameButton Text="@Vm.Text("Market_List")" OnClick="@(() => Vm.Sell())" />
+                    <GameInput Class="narrow" Type="number" Value="@Vm.SellQuantityText" ValueChanged="@(v => { Vm.SellQuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Market_Quantity")" MaxLength="4" />
+                    <span class="sell-price">
+                        <PriceInput Class="narrow" Value="@Vm.SellPriceText" ValueChanged="@(v => { Vm.SellPriceText = v; Vm.Touch(); })" OnEnter="@(() => Vm.Sell())"
+                                    Label="@Vm.Text("Market_PriceLabel")" Unit="@Vm.Text("Market_PriceLabel")" />
+                    </span>
+                    <GameButton Text="@Vm.Text("Market_List")" OnClick="@(() => Vm.Sell())" />
+                    @if (Vm.FeeSummary.Length > 0)
+                    {
+                        <span class="market-fee sell-fee">@Vm.FeeSummary</span>
+                    }
+                </div>
             }
             else
             {
@@ -80,7 +83,7 @@
                 Guid id = listing.Id;
                 <GameRow Class="listing-row">
                     <ItemSlotButton Slot="listing.Item" />
-                    <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
+                    <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span></span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
                     <GameButton Variant="danger" Text="@Vm.Text("Market_Cancel")" OnClick="@(() => Vm.Cancel(id))" />
                 </GameRow>

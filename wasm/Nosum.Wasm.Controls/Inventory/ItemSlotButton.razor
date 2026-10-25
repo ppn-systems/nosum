@@ -6,7 +6,7 @@
         aria-label="@(Slot.IsEmpty ? null : Slot.Name)"
         tabindex="-1"
         @onmousedown:preventDefault
-        @onclick="OnClick">
+        @onclick="Clicked">
     @if (Hotkey is not null)
     {
         <span class="hotkey">@Hotkey</span>
@@ -52,7 +52,15 @@
     /// <summary>Raised when the slot is clicked.</summary>
     [Parameter] public EventCallback OnClick { get; set; }
 
+    /// <summary>Raised instead of <see cref="OnClick"/> when the slot is clicked with Shift held (a quick move); ignored when nobody listens.</summary>
+    [Parameter] public EventCallback OnShiftClick { get; set; }
+
+    private Task Clicked(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+        => e.ShiftKey && OnShiftClick.HasDelegate ? OnShiftClick.InvokeAsync() : OnClick.InvokeAsync();
+
     // The picture is a window onto the item sheet; every length is a whole number of UI pixels (--u), set in the CSS.
     private static string IconStyle(ItemIcon icon)
-        => FormattableString.Invariant($"background-image:url('{icon.SheetUrl}');--is:{icon.Size};--sw:{icon.SheetWidth};--sh:{icon.SheetHeight};--ix:{icon.X};--iy:{icon.Y}");
+        => icon.ThemeImage is { } name
+            ? FormattableString.Invariant($"background-image:var(--nosum-img-{name});--is:16;--sw:16;--sh:16;--ix:0;--iy:0")
+            : FormattableString.Invariant($"background-image:url('{icon.SheetUrl}');--is:{icon.Size};--sw:{icon.SheetWidth};--sh:{icon.SheetHeight};--ix:{icon.X};--iy:{icon.Y}");
 }

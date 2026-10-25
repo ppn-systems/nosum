@@ -4,7 +4,7 @@
 
 @* One shop, chosen by ShopId (seed, clothing or furniture shop): pick what to buy for coins. The title and the list come from the shared shop catalogue,
    and the server prices and checks every purchase. Self-contained: it opens the shop on its view model by itself, so a host only sets ShopId and Vm. *@
-<MenuPage Status="@Vm.Status">
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
         <GameRow Class="spread">
             <span>@Vm.CoinsText</span>

@@ -11,7 +11,7 @@
     min-height: 0;
     padding: calc(var(--u) * 2) calc(var(--u) * 3);
     border: var(--panel-edge) solid var(--nosum-edge);
-    border-image: var(--nosum-img-panel) 16 fill / var(--panel-edge) stretch;
+    border-image: var(--nosum-img-panel) 16 / var(--panel-edge) stretch;
     background: var(--nosum-parchment) padding-box;
     color: var(--nosum-ink);
     font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);

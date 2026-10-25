@@ -178,7 +178,7 @@
   <data name="Trade_NotConfirmed" xml:space="preserve"><value>Not confirmed</value></data>
   <data name="Trade_AddCoins" xml:space="preserve"><value>Coins to offer</value></data>
   <data name="Trade_SetCoins" xml:space="preserve"><value>Set coins</value></data>
-  <data name="Trade_PickItems" xml:space="preserve"><value>Click items in your inventory to offer them (click an offered item to take it back)</value></data>
+  <data name="Trade_PickItems" xml:space="preserve"><value>Click an item in your bag to offer it; click an offered item to take it back.</value></data>
   <data name="Trade_Confirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="Trade_Cancel" xml:space="preserve"><value>Cancel trade</value></data>
   <data name="Trade_InviteTitle" xml:space="preserve"><value>Trade invitation</value></data>
@@ -323,7 +323,9 @@
   <data name="Toolbar_Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Settings_Account" xml:space="preserve"><value>Account</value></data>
   <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
-  <data name="Settings_LanguageName" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_LanguageVi" xml:space="preserve"><value>Tiếng Việt</value></data>
+  <data name="Settings_LanguageEn" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_LanguageNotSaved" xml:space="preserve"><value>Could not save this choice to your account.</value></data>
   <data name="Settings_Keys" xml:space="preserve"><value>Keys</value></data>
   <data name="Placement_Strip_Place" xml:space="preserve"><value>Place</value></data>
   <data name="Placement_Strip_Rotate" xml:space="preserve"><value>Rotate</value></data>
@@ -376,4 +378,73 @@
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered when its season ended. Plant a new seed over it.</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>That seed is not sold in this season.</value></data>
+  <data name="Farm_Status_NoEnergy" xml:space="preserve"><value>You are out of energy. Eat some produce, or wait for the next day.</value></data>
+  <data name="Eat_Status_InvalidSlot" xml:space="preserve"><value>That slot is not on the hotbar.</value></data>
+  <data name="Eat_Status_NotEdible" xml:space="preserve"><value>You cannot eat that.</value></data>
+  <data name="Eat_Status_ItemMissing" xml:space="preserve"><value>The food is no longer in that slot.</value></data>
+  <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>You are full of energy already.</value></data>
+  <data name="Eat_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Energy_Label" xml:space="preserve"><value>Energy {0} / {1}</value></data>
+  <data name="Energy_Heading" xml:space="preserve"><value>Energy</value></data>
+  <data name="Energy_Hint" xml:space="preserve"><value>Every tool use costs energy (the scythe is free). It refills at the start of each game day; eat produce to restore some.</value></data>
+  <data name="Skills_Heading" xml:space="preserve"><value>Skills</value></data>
+  <data name="Skills_Hint" xml:space="preserve"><value>Work to level up. Every 4 levels take 1 energy off each use of that skill's tool.</value></data>
+  <data name="Skill_Farming" xml:space="preserve"><value>Farming</value></data>
+  <data name="Skill_Foraging" xml:space="preserve"><value>Foraging</value></data>
+  <data name="Skill_Mining" xml:space="preserve"><value>Mining</value></data>
+  <data name="Skill_Level" xml:space="preserve"><value>Level {0}</value></data>
+  <data name="Skill_MaxLevel" xml:space="preserve"><value>Max level</value></data>
+  <data name="Skill_LevelUp" xml:space="preserve"><value>{0} reached level {1}!</value></data>
+  <data name="Toolbar_Skills" xml:space="preserve"><value>Skills</value></data>
+  <data name="Place_Status_Tilled" xml:space="preserve"><value>You cannot place that on tilled soil.</value></data>
+  <data name="Place_Status_NodeInTheWay" xml:space="preserve"><value>A tree, a stone or a weed is in the way.</value></data>
+  <data name="Place_Status_NotEmpty" xml:space="preserve"><value>The chest still holds items. Empty it first.</value></data>
+  <data name="Place_Status_InUse" xml:space="preserve"><value>The furnace is smelting or holds a bar. Collect it first.</value></data>
+  <data name="Craft_Status_UnknownRecipe" xml:space="preserve"><value>There is no such recipe.</value></data>
+  <data name="Craft_Status_InvalidQuantity" xml:space="preserve"><value>That is not a valid amount to craft.</value></data>
+  <data name="Craft_Status_Locked" xml:space="preserve"><value>You have not unlocked this recipe yet.</value></data>
+  <data name="Craft_Status_NotEnough" xml:space="preserve"><value>You do not have enough materials.</value></data>
+  <data name="Craft_Status_NoSpace" xml:space="preserve"><value>Your bag has no room for the result.</value></data>
+  <data name="Craft_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Chest_Status_UnknownObject" xml:space="preserve"><value>That chest cannot be found.</value></data>
+  <data name="Chest_Status_NotYours" xml:space="preserve"><value>This chest is not yours.</value></data>
+  <data name="Chest_Status_OutOfReach" xml:space="preserve"><value>You stand too far from the chest.</value></data>
+  <data name="Chest_Status_NotOpen" xml:space="preserve"><value>Open the chest first.</value></data>
+  <data name="Chest_Status_InvalidSlot" xml:space="preserve"><value>That slot is not valid.</value></data>
+  <data name="Chest_Status_EmptySlot" xml:space="preserve"><value>That slot is empty.</value></data>
+  <data name="Chest_Status_InvalidQuantity" xml:space="preserve"><value>That amount is not valid.</value></data>
+  <data name="Chest_Status_Blocked" xml:space="preserve"><value>The target slot holds another item; move the whole stack.</value></data>
+  <data name="Chest_Status_NoSpace" xml:space="preserve"><value>There is no room.</value></data>
+  <data name="Chest_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Chest_Status_NotAllowed" xml:space="preserve"><value>Tools cannot be stored in a chest.</value></data>
+  <data name="Furnace_Status_UnknownObject" xml:space="preserve"><value>That furnace cannot be found.</value></data>
+  <data name="Furnace_Status_NotYours" xml:space="preserve"><value>This furnace is not yours.</value></data>
+  <data name="Furnace_Status_OutOfReach" xml:space="preserve"><value>You stand too far from the furnace.</value></data>
+  <data name="Furnace_Status_Busy" xml:space="preserve"><value>The furnace already has a batch.</value></data>
+  <data name="Furnace_Status_NotSmeltable" xml:space="preserve"><value>That cannot be smelted.</value></data>
+  <data name="Furnace_Status_NotEnough" xml:space="preserve"><value>You need 5 ore and 1 coal.</value></data>
+  <data name="Furnace_Status_NothingToCollect" xml:space="preserve"><value>The furnace has nothing to collect.</value></data>
+  <data name="Furnace_Status_NotReady" xml:space="preserve"><value>The bar is not done yet.</value></data>
+  <data name="Furnace_Status_NoSpace" xml:space="preserve"><value>Your bag has no room for the bar.</value></data>
+  <data name="Furnace_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Toolbar_Crafting" xml:space="preserve"><value>Crafting</value></data>
+  <data name="Craft_Heading" xml:space="preserve"><value>Recipes</value></data>
+  <data name="Craft_Materials" xml:space="preserve"><value>Materials</value></data>
+  <data name="Craft_Makes" xml:space="preserve"><value>Makes: {0} x{1}</value></data>
+  <data name="Craft_Button" xml:space="preserve"><value>Craft</value></data>
+  <data name="Craft_ButtonMany" xml:space="preserve"><value>Craft x{0}</value></data>
+  <data name="Craft_Unlock" xml:space="preserve"><value>Requires {0} level {1}</value></data>
+  <data name="Craft_Locked" xml:space="preserve"><value>Locked</value></data>
+  <data name="Craft_Skill_Farming" xml:space="preserve"><value>Farming</value></data>
+  <data name="Craft_Skill_Foraging" xml:space="preserve"><value>Foraging</value></data>
+  <data name="Craft_Skill_Mining" xml:space="preserve"><value>Mining</value></data>
+  <data name="Chest_Title" xml:space="preserve"><value>Chest</value></data>
+  <data name="Chest_YourBag" xml:space="preserve"><value>Your bag</value></data>
+  <data name="Chest_Hint" xml:space="preserve"><value>Click a stack, then a slot. Shift+click sends it to the other side.</value></data>
+  <data name="Furnace_Title" xml:space="preserve"><value>Furnace</value></data>
+  <data name="Furnace_Idle" xml:space="preserve"><value>The furnace is empty. Each batch takes {0} ore and {1} coal and smelts for {2} game minutes.</value></data>
+  <data name="Furnace_Working" xml:space="preserve"><value>Smelting {0}, {1} left.</value></data>
+  <data name="Furnace_Ready" xml:space="preserve"><value>The bar is done!</value></data>
+  <data name="Furnace_Start" xml:space="preserve"><value>Smelt {0}</value></data>
+  <data name="Furnace_Collect" xml:space="preserve"><value>Collect bar</value></data>
 </root>

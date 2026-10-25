@@ -7,17 +7,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
+using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.S2C;
+using Nosum.Domain.Coops;
 using Nosum.Contracts.World.S2C;
 using Nosum.Domain.Farm;
-using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Placeables;
@@ -27,14 +31,14 @@ using Nosum.Infrastructure.Concurrency;
 namespace Nosum.Infrastructure.Placeables;
 
 /// <summary>
-/// <see cref="IPlaceableService"/> and <see cref="IInstanceWorld"/>: the objects players placed in their own place.
+/// <see cref="IPlaceableService"/> and <see cref="IInstanceWorld"/>: the objects players placed in their own place (furniture in the farmhouse, crafted objects on the farm and co-op land).
 /// Every rule is <see cref="PlacedSet.Check"/> plus the server's own record of the player (position, instance, inventory slot);
 /// the placed set of an instance is loaded once, kept in memory and written through to PostgreSQL in the same transaction as the
 /// inventory change, so an item is never both in the inventory and in the room (docs/adr/ADR-015). One lock per instance serializes changes.
 /// An object belongs to the chunk of its first (top-left) tile: the instance keeps them in per-chunk buckets, a change is published to that chunk's subscribers and
 /// the chunk's objects are sent once when the chunk joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
-public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunkStateContributor
+public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunkStateContributor, IInstanceLock
 {
     private readonly IMapPresence _presence;
     private readonly IChunkMap _chunks;
@@ -43,8 +47,13 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
     private readonly IInventoryService _inventory;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
+    private readonly IFarmTiles? _farm;
+    private readonly INodeTiles? _nodes;
+    private readonly ICoopMembership? _coops;
+    private readonly PlacedTiles? _tiles;
+    private readonly List<IPlacedBehaviour> _behaviours = [];
     private readonly ConcurrentDictionary<string, Task<InstanceState>> _instances = new(StringComparer.Ordinal);
-    private readonly StripedAsyncLock _locks = new(32);
+    private readonly StripedAsyncLock _locks;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands where; every action uses the server's own record of the player.</param>
@@ -54,7 +63,22 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
     /// <param name="inventory">Items are taken and returned through it.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">Clock for the audit timestamps.</param>
-    public PlaceableService(IMapPresence presence, IChunkMap chunks, IChunkPublisher publisher, IMapCatalog maps, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, TimeProvider time)
+    /// <param name="farm">Which tiles are tilled: nothing is placed on worked soil (docs/adr/ADR-024 D3). <see langword="null"/> to skip the check.</param>
+    /// <param name="nodes">Which tiles hold a node: nothing is placed on a tree or a weed. <see langword="null"/> to skip the check.</param>
+    /// <param name="coops">Co-op membership, asked for every change on co-op land. <see langword="null"/> when there is no co-op land.</param>
+    /// <param name="tiles">Where the pieces of every loaded instance are published for the farm layer and the growth rule.</param>
+    public PlaceableService(
+        IMapPresence presence,
+        IChunkMap chunks,
+        IChunkPublisher publisher,
+        IMapCatalog maps,
+        IInventoryService inventory,
+        IUnitOfWorkFactory unitOfWork,
+        TimeProvider time,
+        IFarmTiles? farm = null,
+        INodeTiles? nodes = null,
+        ICoopMembership? coops = null,
+        PlacedTiles? tiles = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
@@ -71,6 +95,38 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         _inventory = inventory;
         _unitOfWork = unitOfWork;
         _time = time;
+        _farm = farm;
+        _nodes = nodes;
+        _coops = coops;
+        _tiles = tiles;
+        _locks = new StripedAsyncLock(32);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask<IDisposable> EnterAsync(MapInstance instance, CancellationToken cancellationToken = default)
+        => await _locks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false);
+
+    /// <summary>Adds what a kind of object does beyond standing there (a chest's contents, a furnace's job); call once per behaviour while building the host.</summary>
+    /// <param name="behaviour">The behaviour.</param>
+    public void Attach(IPlacedBehaviour behaviour)
+    {
+        ArgumentNullException.ThrowIfNull(behaviour);
+        _behaviours.Add(behaviour);
+    }
+
+    /// <inheritdoc/>
+    public async Task<PlacedItem?> FindAsync(MapInstance instance, int objectId, CancellationToken cancellationToken = default)
+    {
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || !map.Placeable)
+        {
+            return null;
+        }
+
+        InstanceState state = await this.StateOfAsync(instance, map, cancellationToken).ConfigureAwait(false);
+        using (await _locks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            return state.Set.TryGet(objectId, out PlacedItem found) ? found : null;
+        }
     }
 
     /// <inheritdoc/>
@@ -153,11 +209,19 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             return Refused(editable);
         }
 
+        CoopMembershipInfo? member = await this.MemberOnCoopLandAsync(player, map, cancellationToken).ConfigureAwait(false);
+        if (map.IsCoop && member is null)
+        {
+            return Refused(PlaceStatus.NotYourPlace);
+        }
+
         InventorySlotView held = await _inventory.PeekSlotAsync(player.AccountId, slot, cancellationToken).ConfigureAwait(false);
         if (held.ItemId == 0 || held.Quantity < 1 || !PlaceableCatalog.TryGet(held.ItemId, out PlaceableDefinition? definition))
         {
             return Refused(PlaceStatus.NoItem);
         }
+
+        IGroundLayers? layers = await this.LayersAsync(player.Instance, definition, rotation, tileX, tileY, cancellationToken).ConfigureAwait(false);
 
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
         PlacedObject row;
@@ -169,7 +233,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
                 return Refused(PlaceStatus.LimitReached);
             }
 
-            PlaceStatus status = Validate(state, map, player, definition, rotation, tileX, tileY, ignoreId: 0);
+            PlaceStatus status = Validate(state, map, player, definition, rotation, tileX, tileY, ignoreId: 0, layers);
             if (status != PlaceStatus.Ok)
             {
                 return Refused(status);
@@ -184,6 +248,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
                 (unit, _) =>
                 {
                     unit.Repository<PlacedObject>().Add(row);
+                    this.Audit(unit, member, held.ItemId, -1, CoopLand.PlaceReason);
                     return Task.FromResult(true);
                 },
                 cancellationToken).ConfigureAwait(false);
@@ -194,7 +259,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
 
             placed = new PlacedItem(row.Id, row.ItemId, tileX, tileY, rotation);
             state.Set.Add(placed);
-            state.Rebuild(map);
+            this.Rebuild(state, player.Instance, map);
         }
 
         await this.PushAsync(player.Instance, ChunkOf(placed), [placed], [], cancellationToken).ConfigureAwait(false);
@@ -212,6 +277,11 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             return Refused(editable);
         }
 
+        if (map.IsCoop && await this.MemberOnCoopLandAsync(player, map, cancellationToken).ConfigureAwait(false) is null)
+        {
+            return Refused(PlaceStatus.NotYourPlace);
+        }
+
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
         PlacedItem moved;
         PlacedItem current;
@@ -222,7 +292,8 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
                 return Refused(PlaceStatus.UnknownObject);
             }
 
-            PlaceStatus status = Validate(state, map, player, definition, rotation, tileX, tileY, ignoreId: objectId);
+            IGroundLayers? layers = await this.LayersAsync(player.Instance, definition, rotation, tileX, tileY, cancellationToken).ConfigureAwait(false);
+            PlaceStatus status = Validate(state, map, player, definition, rotation, tileX, tileY, ignoreId: objectId, layers);
             if (status != PlaceStatus.Ok)
             {
                 return Refused(status);
@@ -246,7 +317,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
 
             moved = current with { TileX = tileX, TileY = tileY, Rotation = rotation };
             _ = state.Set.Replace(moved);
-            state.Rebuild(map);
+            this.Rebuild(state, player.Instance, map);
         }
 
         // A move across a chunk border is a removal for the old chunk's subscribers and an upsert for the new one's (each sees only the half it holds). Removal first.
@@ -270,8 +341,15 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             return Refused(editable);
         }
 
+        CoopMembershipInfo? member = await this.MemberOnCoopLandAsync(player, map, cancellationToken).ConfigureAwait(false);
+        if (map.IsCoop && member is null)
+        {
+            return Refused(PlaceStatus.NotYourPlace);
+        }
+
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
         PlacedItem current;
+        IPlacedBehaviour? behaviour;
         using (await _locks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
             if (!state.Set.TryGet(objectId, out current) || !PlaceableCatalog.TryGet(current.ItemId, out PlaceableDefinition? definition))
@@ -285,29 +363,56 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
                 return Refused(PlaceStatus.OutOfReach);
             }
 
-            InventoryChange change = await _inventory.ApplyAsync(
-                player.AccountId,
-                [InventoryOperation.Add(current.ItemId, 1)],
+            // A chest and a furnace join the transaction: they refuse while they hold something, and the chest's own inventory is locked with the player's.
+            behaviour = _behaviours.Find(b => b.Kind == definition.Kind);
+            List<PlayerInventoryChange> changes = [new PlayerInventoryChange(player.AccountId, [InventoryOperation.Add(current.ItemId, 1)])];
+            if (behaviour is not null)
+            {
+                foreach (Guid owner in behaviour.OwnersOf(current))
+                {
+                    changes.Add(new PlayerInventoryChange(owner, []));
+                }
+            }
+
+            PlaceStatus refusal = PlaceStatus.Ok;
+            InventoryStatus status = await _inventory.ApplyManyAsync(
+                changes,
                 "placed.pickup",
                 async (unit, ct) =>
                 {
                     PlacedObject? row = await unit.Repository<PlacedObject>().FindAsync(objectId, ct).ConfigureAwait(false);
                     if (row is null)
                     {
+                        refusal = PlaceStatus.UnknownObject;
                         return false;
                     }
 
+                    if (behaviour is not null)
+                    {
+                        refusal = await behaviour.JoinPickUpAsync(current, unit, ct).ConfigureAwait(false);
+                        if (refusal != PlaceStatus.Ok)
+                        {
+                            return false;
+                        }
+                    }
+
                     unit.Repository<PlacedObject>().Remove(row);
+                    this.Audit(unit, member, current.ItemId, 1, CoopLand.PickUpReason);
                     return true;
                 },
                 cancellationToken).ConfigureAwait(false);
-            if (!change.IsOk)
+            if (status != InventoryStatus.Ok)
             {
-                return Refused(ToStatus(change.Status));
+                return Refused(refusal != PlaceStatus.Ok ? refusal : ToStatus(status));
             }
 
             _ = state.Set.Remove(objectId);
-            state.Rebuild(map);
+            this.Rebuild(state, player.Instance, map);
+        }
+
+        if (behaviour is not null)
+        {
+            await behaviour.PickedUpAsync(player.Instance, current, cancellationToken).ConfigureAwait(false);
         }
 
         await this.PushAsync(player.Instance, ChunkOf(current), [], [objectId], cancellationToken).ConfigureAwait(false);
@@ -331,13 +436,15 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         PlacementVerdict.OutsideRoom => PlaceStatus.OutsideRoom,
         PlacementVerdict.Blocked => PlaceStatus.Blocked,
         PlacementVerdict.Reserved => PlaceStatus.Reserved,
+        PlacementVerdict.Tilled => PlaceStatus.Tilled,
+        PlacementVerdict.Node => PlaceStatus.NodeInTheWay,
         _ => PlaceStatus.Overlaps,
     };
 
     // The footprint must be free, within the player's reach, and not on the player's own feet.
-    private static PlaceStatus Validate(InstanceState state, MapDefinition map, PlayerPresence player, PlaceableDefinition definition, int rotation, int tileX, int tileY, int ignoreId)
+    private static PlaceStatus Validate(InstanceState state, MapDefinition map, PlayerPresence player, PlaceableDefinition definition, int rotation, int tileX, int tileY, int ignoreId, IGroundLayers? layers)
     {
-        PlacementVerdict verdict = state.Set.Check(definition, rotation, tileX, tileY, map.Grid, map.ReservedTiles, ignoreId);
+        PlacementVerdict verdict = state.Set.Check(definition, rotation, tileX, tileY, map.Grid, map.ReservedTiles, ignoreId, layers);
         if (verdict != PlacementVerdict.Ok)
         {
             return ToStatus(verdict);
@@ -371,18 +478,55 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             feetY = player.Motion.Y;
         }
 
-        for (int y = tileY; y < tileY + view.FootprintHeight; y++)
+        return PlacedAccess.Reaches(view, tileX, tileY, feetX, feetY, map.Grid.TileSize);
+    }
+
+    // The tilled soil and the nodes under a footprint, looked up before the instance lock (they are other services' state); the verdict uses them as plain sets.
+    private async Task<IGroundLayers?> LayersAsync(MapInstance instance, PlaceableDefinition definition, int rotation, int tileX, int tileY, CancellationToken cancellationToken)
+    {
+        if ((uint)rotation >= (uint)definition.Rotations)
         {
-            for (int x = tileX; x < tileX + view.FootprintWidth; x++)
-            {
-                if (FarmRules.InReach(feetX, feetY, x, y, map.Grid.TileSize))
-                {
-                    return true;
-                }
-            }
+            return null;
         }
 
-        return false;
+        PlaceableView view = definition.View(rotation);
+        IReadOnlySet<(int X, int Y)> tilled = _farm is null
+            ? new HashSet<(int X, int Y)>()
+            : await _farm.WorkedTilesAsync(instance, tileX, tileY, view.FootprintWidth, view.FootprintHeight, cancellationToken).ConfigureAwait(false);
+        IReadOnlySet<(int X, int Y)> nodes = _nodes is null
+            ? new HashSet<(int X, int Y)>()
+            : await _nodes.NodeTilesAsync(instance, tileX, tileY, view.FootprintWidth, view.FootprintHeight, cancellationToken).ConfigureAwait(false);
+        return new GroundLayers(tilled, nodes);
+    }
+
+    // The co-op membership of a player standing on co-op land, read now so that leaving or being removed takes effect at once; null elsewhere.
+    private async Task<CoopMembershipInfo?> MemberOnCoopLandAsync(PlayerPresence player, MapDefinition map, CancellationToken cancellationToken)
+    {
+        if (!map.IsCoop || _coops is null)
+        {
+            return null;
+        }
+
+        CoopMembershipInfo? member = await _coops.FindAsync(player.AccountId, cancellationToken).ConfigureAwait(false);
+        return member is not null && member.CoopId == player.Instance.OwnerId ? member : null;
+    }
+
+    // Co-op land keeps an audit line for every change of what the members hold (docs/adr/ADR-020).
+    private void Audit(IUnitOfWork unit, CoopMembershipInfo? member, int itemId, int delta, string reason)
+    {
+        if (member is null)
+        {
+            return;
+        }
+
+        unit.Repository<CoopLogEntry>().Add(new CoopLogEntry { CoopId = member.CoopId, MemberId = member.MemberId, ItemId = itemId, Delta = delta, Reason = reason, OccurredAt = _time.GetUtcNow() });
+    }
+
+    // Rebuilds the walk grid and tells the farm layer and the growth rule what stands where.
+    private void Rebuild(InstanceState state, MapInstance instance, MapDefinition map)
+    {
+        state.Rebuild(map);
+        _tiles?.Publish(instance, state.Set.Items);
     }
 
     // Objects are changed only by the owner standing in their own place on a map that allows it; a visitor in somebody's place is refused (docs/adr/ADR-019 D3).
@@ -438,6 +582,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         }
 
         state.Rebuild(map);
+        _tiles?.Publish(instance, state.Set.Items);
         return state;
     }
 
@@ -473,6 +618,22 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         row.TileY = (ushort)item.TileY;
         row.Rotation = (byte)item.Rotation;
         return row;
+    }
+
+    private sealed class GroundLayers : IGroundLayers
+    {
+        private readonly IReadOnlySet<(int X, int Y)> _tilled;
+        private readonly IReadOnlySet<(int X, int Y)> _nodes;
+
+        public GroundLayers(IReadOnlySet<(int X, int Y)> tilled, IReadOnlySet<(int X, int Y)> nodes)
+        {
+            _tilled = tilled;
+            _nodes = nodes;
+        }
+
+        public bool IsTilled(int x, int y) => _tilled.Contains((x, y));
+
+        public bool HasNode(int x, int y) => _nodes.Contains((x, y));
     }
 
     private sealed class InstanceState
