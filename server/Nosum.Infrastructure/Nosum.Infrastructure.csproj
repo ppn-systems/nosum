@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nosum.Abstractions\Nosum.Abstractions.csproj" />
+    <PackageReference Include="Nalix.Runtime" />
   </ItemGroup>
 
 </Project>

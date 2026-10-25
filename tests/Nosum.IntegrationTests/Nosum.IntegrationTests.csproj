@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Nalix.SDK" />
+    <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
     <ProjectReference Include="..\..\server\Nosum.Host\Nosum.Host.csproj" />
     <ProjectReference Include="..\..\tools\Nosum.AtlasPacker\Nosum.AtlasPacker.csproj" />
   </ItemGroup>

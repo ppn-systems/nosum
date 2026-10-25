@@ -11,6 +11,11 @@
     <PackageReference Include="Nalix.Hosting" />
   </ItemGroup>
 
+  <!-- Map files the server loads (placeholder content, docs/adr/ADR-007); linked so assets/ stays the single copy. -->
+  <ItemGroup>
+    <Content Include="..\..\assets\Maps\Farm.tmx" Link="maps\Farm.tmx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Nosum.IntegrationTests" />
   </ItemGroup>
