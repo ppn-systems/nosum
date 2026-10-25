@@ -17,6 +17,7 @@ using Nosum.Domain.Mines;
 using Nosum.Domain.Nodes;
 using Nosum.Domain.Placeables;
 using Nosum.Domain.Quests;
+using Nosum.Domain.Requests;
 using Nosum.Domain.Social;
 using Nosum.Domain.Visits;
 using Nosum.Domain.World;
@@ -104,6 +105,12 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the unlock flags set by completed goals.</summary>
     public DbSet<CommunityUnlockRecord> CommunityUnlocks => this.Set<CommunityUnlockRecord>();
+
+    /// <summary>Gets the requests of each game day on the Town board (docs/adr/ADR-036).</summary>
+    public DbSet<DailyRequest> DailyRequests => this.Set<DailyRequest>();
+
+    /// <summary>Gets which player filled which request of which day.</summary>
+    public DbSet<RequestFill> RequestFills => this.Set<RequestFill>();
 
     /// <summary>Gets the co-ops.</summary>
     public DbSet<Coop> Coops => this.Set<Coop>();
