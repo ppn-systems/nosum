@@ -81,10 +81,29 @@ public static class ShopCatalog
     [
         new(SeedShop, "seed_shop",
         [
-            // Seeds cost a little under half of what the crop sells for at the bin (20 / 30 / 60).
+            // The shop lists every seed; the server sells only the seeds of crops that grow in the current season (ShopRules.IsInSeason, docs/adr/ADR-018 and ADR-025 D5).
+            // A single-harvest seed costs about half of what its crop sells for at the bin; a regrowing crop's seed costs more.
             new(ItemCatalog.ParsnipSeeds, 10),
             new(ItemCatalog.RadishSeeds, 15),
             new(ItemCatalog.CauliflowerSeeds, 30),
+            new(ItemCatalog.PotatoSeeds, 18),
+            new(ItemCatalog.GreenBeanSeeds, 30),
+            new(ItemCatalog.KaleSeeds, 22),
+            new(ItemCatalog.GarlicSeeds, 12),
+            new(ItemCatalog.StrawberrySeeds, 70),
+            new(ItemCatalog.TomatoSeeds, 40),
+            new(ItemCatalog.BlueberrySeeds, 50),
+            new(ItemCatalog.MelonSeeds, 55),
+            new(ItemCatalog.HotPepperSeeds, 35),
+            new(ItemCatalog.CornSeeds, 60),
+            new(ItemCatalog.WheatSeeds, 10),
+            new(ItemCatalog.SunflowerSeeds, 20),
+            new(ItemCatalog.PumpkinSeeds, 75),
+            new(ItemCatalog.CranberriesSeeds, 90),
+            new(ItemCatalog.EggplantSeeds, 30),
+            new(ItemCatalog.YamSeeds, 30),
+            new(ItemCatalog.BokChoySeeds, 20),
+            new(ItemCatalog.GrapeSeeds, 60),
         ]),
         new(ClothingShop, "clothing_shop",
         [
