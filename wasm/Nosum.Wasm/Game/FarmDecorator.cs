@@ -35,6 +35,7 @@ internal sealed class FarmDecorator : IMapDecorator
     private readonly int _cursorTexture;
     private readonly int _tileSize;
     private readonly CalendarChannel? _calendar;
+    private readonly bool _outdoors;
     private GameCalendar? _rules;
     private Camera2D _camera;
     private long _nowMs;
@@ -48,8 +49,10 @@ internal sealed class FarmDecorator : IMapDecorator
     /// <param name="cursorTexture">Texture id of the 16 x 16 target cursor.</param>
     /// <param name="tileSize">Map tile size, pixels.</param>
     /// <param name="calendar">The server calendar: it tells the game day, which decides growth, wet soil and withering (docs/adr/ADR-018, ADR-021 D7). Without it nothing grows on screen.</param>
-    public FarmDecorator(string mapId, FarmChannel farm, PlayerActions actions, int soilTexture, int cropsTexture, int cursorTexture, int tileSize, CalendarChannel? calendar = null)
+    /// <param name="outdoors">Whether the map is outdoors, where rain waters the soil and the crops (docs/adr/ADR-027 D2).</param>
+    public FarmDecorator(string mapId, FarmChannel farm, PlayerActions actions, int soilTexture, int cropsTexture, int cursorTexture, int tileSize, CalendarChannel? calendar = null, bool outdoors = true)
     {
+        _outdoors = outdoors;
         _calendar = calendar;
         _mapId = mapId;
         _farm = farm;
@@ -91,7 +94,7 @@ internal sealed class FarmDecorator : IMapDecorator
                     | (_farm.TryGetTile(tile.X, tile.Y + 1, out _) ? 4 : 0)
                     | (_farm.TryGetTile(tile.X - 1, tile.Y, out _) ? 8 : 0);
                 int cell = s_soilCell[mask];
-                int sourceX = ((cell & 3) * 16) + (rules is not null && FarmRules.IsWet(new FarmTile(tile.CropId, tile.PlantedAtMs, tile.GrowthDays, tile.WateredDay, 0), _nowMs, rules) ? WetSheetOffset : 0);
+                int sourceX = ((cell & 3) * 16) + (rules is not null && FarmRules.IsWet(new FarmTile(tile.CropId, tile.PlantedAtMs, tile.GrowthDays, tile.WateredDay, 0), _nowMs, rules, _outdoors) ? WetSheetOffset : 0);
                 int sourceY = (cell >> 2) * 16;
                 commands.Draw(_soilTexture, sourceX, sourceY, 16, 16, worldX - camera.Left, worldY - camera.Top);
             }
@@ -140,7 +143,7 @@ internal sealed class FarmDecorator : IMapDecorator
                     continue;
                 }
 
-                if (CropSprites.TryGetFrame(info.CropId, FarmRules.StageAt(tile, _nowMs, rules), out int sourceX, out int sourceY))
+                if (CropSprites.TryGetFrame(info.CropId, FarmRules.StageAt(tile, _nowMs, rules, _outdoors), out int sourceX, out int sourceY))
                 {
                     // Anchored at the tile's centre so a farmer walking over it is ordered by which half they stand on.
                     world.Add(_cropsTexture, sourceX, sourceY, CropSprites.FrameWidth, CropSprites.FrameHeight, worldX, worldY, (info.Y * _tileSize) + (_tileSize / 2), worldX);
@@ -204,6 +207,6 @@ internal sealed class FarmDecoratorProvider : IMapDecoratorProvider
             textures.LoadAsync(TileSheetsUrl + "crops.png"),
             textures.LoadAsync(TargetCursor.DataUrl)).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        return new FarmDecorator(spec.Id, _farm, _actions, ids[0], ids[1], ids[2], map.TileWidth, _calendar);
+        return new FarmDecorator(spec.Id, _farm, _actions, ids[0], ids[1], ids[2], map.TileWidth, _calendar, !spec.Indoors);
     }
 }

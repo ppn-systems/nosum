@@ -9,6 +9,10 @@
             <strong class="calendar-season">@Vm.SeasonName</strong>
             <span class="calendar-day">@Vm.DayText</span>
             <span class="calendar-time">@Vm.TimeText</span>
+            <span class="calendar-forecast" title="@Vm.ForecastText" aria-label="@Vm.ForecastText">
+                <WeatherIcon Kind="@Vm.TodayKey" />
+                <span class="calendar-forecast-next"><WeatherIcon Kind="@Vm.TomorrowKey" /></span>
+            </span>
         </p>
     </GamePanel>
 }
