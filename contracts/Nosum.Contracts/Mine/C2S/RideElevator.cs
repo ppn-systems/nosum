@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Mine.C2S;
 
@@ -15,6 +16,7 @@ public sealed partial class RideElevator : PacketBase<RideElevator>, IPacketStat
     /// <inheritdoc/>
     public static ushort StaticOpCode => MineOpCode.RideElevator;
 
-    /// <summary>The stop: 0 for the entrance cave, or 5, 10, 15 ... 40.</summary>
+    /// <summary>The stop: 0 for the entrance cave, or 5, 10, 15 ... 40. The wire bound is far above the deepest floor; the server checks the stop itself.</summary>
+    [WireRange(0, 255)]
     [SerializeOrder(0)] public int Floor { get; set; }
 }
