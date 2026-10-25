@@ -9,10 +9,11 @@ only area allowed to use an image-processing package
 | :--- | :--- |
 | `Nosum.AssetInventory` | Lists every placeholder file the game loads and the cells it draws, and writes [`docs/art/inventory.md`](../docs/art/inventory.md) ([ADR-040](../docs/adr/ADR-040-own-art-plan.md)). Reads the maps, the catalogues and the sprite tables in `wasm/`. |
 | `Nosum.AtlasPacker` | Packs each `<category>/` folder of Nosum's own art into `<category>.png` + `<category>.json` (SkiaSharp). Not used on the placeholder content in `assets/` (ADR-007). |
-
+| `art_repack/` | Python 3 standard library only: rebuilds the replaced art under `assets/` from CC0 packs and pictures drawn in code, and writes [`docs/art/provenance.md`](../docs/art/provenance.md) ([sourcing](../docs/art/sourcing.md)). Deterministic; `--check` fails when a file on disk differs. |
 | `synth_sounds.py` | Python 3 standard library only (no .NET project): synthesises Nosum's placeholder sound effects and the rain loop as 16-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
 
 ```bash
+python3 tools/art_repack/repack_cc0_art.py --sources <dir with the unzipped packs> [--check] [--docs]   # packs and pins: docs/art/provenance.md
 dotnet run --project tools/Nosum.AtlasPacker -- --assets <art dir> --out <atlas dir>
 dotnet run --project tools/Nosum.AtlasPacker -- --assets <art dir> --out <atlas dir> --check
 ```
@@ -28,5 +29,6 @@ dotnet run --project tools/Nosum.AssetInventory -- --release         # gate: 1 w
 dotnet run --project tools/Nosum.AssetInventory -- --write-fingerprints   # once: record hashes in docs/art/placeholders.sha256
 ```
 
+The report has an *Art* column and replaced-cell counts per package: a file is `replaced` once it differs from its recorded placeholder hash and keeps its size; regenerate the report after replacing a file.
 Run the report command after a change that adds a map, a sheet or a sprite table entry; `AssetInventoryTests` names what is out of date.
 Never run `--write-fingerprints` after a file was replaced: it would record the replacement as the placeholder.

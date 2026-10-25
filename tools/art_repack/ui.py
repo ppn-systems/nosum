@@ -245,7 +245,7 @@ def sky(size):
         cy = 30 + seed % 270
         scale = 0.6 + (cy / 300) * 0.9
         for dx, dy, rx, ry in ((0, 0, 46, 17), (-34, 6, 28, 12), (36, 7, 30, 12), (8, -10, 26, 14), (-12, -6, 22, 12)):
-            blob(cloud, cx + dx * scale, cy + dy * scale, rx * scale, ry * scale, tones)
+            blob(cloud, cx + dx * scale, cy + dy * scale, rx * scale, ry * scale, tones, texture=False)
     img.paste(cloud, 0, 0)
     for k in range(260):                      # wave glints on the sea, denser and wider toward the viewer
         seed = (seed * 1103515245 + 12345) % 2 ** 31

@@ -17,13 +17,13 @@ def _noise(x, y):
     return (x * 73856093 ^ y * 19349663) % 11
 
 
-def blob(c, cx, cy, rx, ry, tones):
+def blob(c, cx, cy, rx, ry, tones, texture=True):
     dark, base, light = tones
     for y in range(c.height):
         for x in range(c.width):
             if ((x - cx + 0.5) / rx) ** 2 + ((y - cy + 0.5) / ry) ** 2 <= 1:
                 t = -0.7 * (x - cx) / rx - 0.7 * (y - cy) / ry     # light from the top left
-                n = _noise(x, y)
+                n = _noise(x, y) if texture else 9
                 col = light if t > 0.42 else dark if t < -0.42 else base
                 if n == 0:
                     col = dark if col != dark else base
