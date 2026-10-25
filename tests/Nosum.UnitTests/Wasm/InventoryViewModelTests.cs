@@ -179,6 +179,7 @@ public sealed class InventoryViewModelTests
         {
             needed.Add($"Quest_{quest.Key}_Title");
             needed.Add($"Quest_{quest.Key}_Hint");
+            needed.Add($"Quest_{quest.Key}_Tip");
             for (int i = 0; i < quest.ObjectiveCount; i++)
             {
                 needed.Add($"Quest_{quest.Key}_Objective_{i}");

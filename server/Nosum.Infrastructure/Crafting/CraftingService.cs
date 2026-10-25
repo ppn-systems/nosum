@@ -8,10 +8,13 @@ using Nalix.Abstractions.Networking;
 using Nosum.Abstractions.Crafting;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Skills;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Placeable;
 using Nosum.Gameplay.Crafting;
+using Nosum.Gameplay.Quests;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Crafting;
 
@@ -25,12 +28,14 @@ public sealed class CraftingService : ICraftingService
     private readonly IMapPresence _presence;
     private readonly IInventoryService _inventory;
     private readonly ISkillLevels _skills;
+    private readonly IQuestService? _quests;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who is signed in on which connection; the account id comes from it, never from the client.</param>
     /// <param name="inventory">Moves the items.</param>
     /// <param name="skills">The players' skill levels.</param>
-    public CraftingService(IMapPresence presence, IInventoryService inventory, ISkillLevels skills)
+    /// <param name="quests">Told what the player crafted (docs/adr/ADR-036 D3); <see langword="null"/> to tell nobody.</param>
+    public CraftingService(IMapPresence presence, IInventoryService inventory, ISkillLevels skills, IQuestService? quests = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -39,6 +44,7 @@ public sealed class CraftingService : ICraftingService
         _presence = presence;
         _inventory = inventory;
         _skills = skills;
+        _quests = quests;
     }
 
     /// <inheritdoc/>
@@ -77,7 +83,13 @@ public sealed class CraftingService : ICraftingService
 
         operations.Add(InventoryOperation.Add(recipe.OutputItemId, recipe.OutputQuantity * times));
         InventoryChange change = await _inventory.ApplyAsync(player.AccountId, operations, "craft." + recipe.Key, null, cancellationToken).ConfigureAwait(false);
-        return change.IsOk ? new CraftOutcome(CraftStatus.Ok, times) : new CraftOutcome(ToStatus(change.Status), 0);
+        if (!change.IsOk)
+        {
+            return new CraftOutcome(ToStatus(change.Status), 0);
+        }
+
+        await _quests.TryReportAsync(player.AccountId, new QuestEvent(QuestEventKind.ItemCrafted, recipe.OutputItemId, recipe.OutputQuantity * times), cancellationToken).ConfigureAwait(false);
+        return new CraftOutcome(CraftStatus.Ok, times);
     }
 
     /// <inheritdoc/>

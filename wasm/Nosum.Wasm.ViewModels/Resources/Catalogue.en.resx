@@ -21,7 +21,7 @@
   <data name="Item_cauliflower_Name" xml:space="preserve"><value>Cauliflower</value></data>
   <data name="Item_cauliflower_Description" xml:space="preserve"><value>A freshly harvested cauliflower.</value></data>
   <data name="Quest_first_harvest_Title" xml:space="preserve"><value>Your first harvest</value></data>
-  <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Select the hoe (key 1) and press E to till the ground in front of you. Plant a seed, water it with the can and wait for it to grow.</value></data>
+  <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Select a seed and press E on tilled soil, then water it. Wait for the crop to grow and harvest it with the scythe.</value></data>
   <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Plant a seed</value></data>
   <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Harvest a crop</value></data>
   <data name="Item_oak_chair_Name" xml:space="preserve"><value>Oak chair</value></data>
@@ -228,6 +228,18 @@
   <data name="Item_crystal_fruit_Description" xml:space="preserve"><value>Foraged in the winter.</value></data>
   <data name="Item_snow_yam_Name" xml:space="preserve"><value>Snow yam</value></data>
   <data name="Item_snow_yam_Description" xml:space="preserve"><value>Foraged in the winter.</value></data>
+  <data name="Item_clam_Name" xml:space="preserve"><value>Clam</value></data>
+  <data name="Item_clam_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_cockle_Name" xml:space="preserve"><value>Cockle</value></data>
+  <data name="Item_cockle_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_coral_Name" xml:space="preserve"><value>Coral</value></data>
+  <data name="Item_coral_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_sea_urchin_Name" xml:space="preserve"><value>Sea urchin</value></data>
+  <data name="Item_sea_urchin_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_nautilus_shell_Name" xml:space="preserve"><value>Nautilus shell</value></data>
+  <data name="Item_nautilus_shell_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_rainbow_shell_Name" xml:space="preserve"><value>Rainbow shell</value></data>
+  <data name="Item_rainbow_shell_Description" xml:space="preserve"><value>A rare shell, picked up on the beach.</value></data>
   <data name="Goal_spring_bridge_Name" xml:space="preserve"><value>The bridge to the Beach</value></data>
   <data name="Goal_spring_bridge_Reward" xml:space="preserve"><value>Opens the bridge to the Beach and shares coins among the contributors.</value></data>
   <data name="Goal_summer_festival_Name" xml:space="preserve"><value>The summer festival stall</value></data>
@@ -236,4 +248,29 @@
   <data name="Goal_fall_harvest_Reward" xml:space="preserve"><value>Opens the harvest stall in town and shares coins among the contributors.</value></data>
   <data name="Goal_winter_lanterns_Name" xml:space="preserve"><value>Lanterns for the town square</value></data>
   <data name="Goal_winter_lanterns_Reward" xml:space="preserve"><value>Lights the lanterns of the town square for winter and shares coins among the contributors.</value></data>
+  <data name="Quest_till_soil_Title" xml:space="preserve"><value>Till the soil</value></data>
+  <data name="Quest_till_soil_Hint" xml:space="preserve"><value>Select the hoe (key 1) and press E to till the ground in front of you. Soil can be tilled on the farm only.</value></data>
+  <data name="Quest_till_soil_Tip" xml:space="preserve"><value>Select the hoe and press the use key to till a patch of soil.</value></data>
+  <data name="Quest_till_soil_Objective_0" xml:space="preserve"><value>Till a patch of soil</value></data>
+  <data name="Quest_water_crop_Title" xml:space="preserve"><value>Water the soil</value></data>
+  <data name="Quest_water_crop_Hint" xml:space="preserve"><value>Select the watering can and press E on tilled soil. Fill the can where there is water.</value></data>
+  <data name="Quest_water_crop_Tip" xml:space="preserve"><value>Select the watering can and water a tilled tile.</value></data>
+  <data name="Quest_water_crop_Objective_0" xml:space="preserve"><value>Water a patch of soil</value></data>
+  <data name="Quest_first_harvest_Tip" xml:space="preserve"><value>Plant a seed on tilled soil, water it, wait for it to grow and harvest it.</value></data>
+  <data name="Quest_ship_produce_Title" xml:space="preserve"><value>Sell your produce</value></data>
+  <data name="Quest_ship_produce_Hint" xml:space="preserve"><value>Stand at the shipping bin on the farm, select a crop and press E to sell it.</value></data>
+  <data name="Quest_ship_produce_Tip" xml:space="preserve"><value>Put a crop into the shipping bin by the house to earn coins.</value></data>
+  <data name="Quest_ship_produce_Objective_0" xml:space="preserve"><value>Sell produce at the shipping bin</value></data>
+  <data name="Quest_buy_seeds_Title" xml:space="preserve"><value>Buy seeds</value></data>
+  <data name="Quest_buy_seeds_Hint" xml:space="preserve"><value>Leave the farm for Town, stand at the seed shop counter and press the use key to buy.</value></data>
+  <data name="Quest_buy_seeds_Tip" xml:space="preserve"><value>Go to the seed shop in Town and buy seeds.</value></data>
+  <data name="Quest_buy_seeds_Objective_0" xml:space="preserve"><value>Buy seeds at a shop</value></data>
+  <data name="Quest_chop_tree_Title" xml:space="preserve"><value>Chop a tree</value></data>
+  <data name="Quest_chop_tree_Hint" xml:space="preserve"><value>Select the axe and press E on a tree until it falls. The wood drops on the ground, so pick it up.</value></data>
+  <data name="Quest_chop_tree_Tip" xml:space="preserve"><value>Chop a tree down with the axe to get wood.</value></data>
+  <data name="Quest_chop_tree_Objective_0" xml:space="preserve"><value>Fell a tree</value></data>
+  <data name="Quest_craft_chest_Title" xml:space="preserve"><value>Craft a chest</value></data>
+  <data name="Quest_craft_chest_Hint" xml:space="preserve"><value>Open the crafting page in the menu and make a chest from 50 wood. Place the chest to store things.</value></data>
+  <data name="Quest_craft_chest_Tip" xml:space="preserve"><value>Open the menu, go to crafting and make a chest from wood.</value></data>
+  <data name="Quest_craft_chest_Objective_0" xml:space="preserve"><value>Craft a chest</value></data>
 </root>

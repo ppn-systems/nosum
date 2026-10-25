@@ -64,4 +64,7 @@ public enum PlaceStatus : byte
 
     /// <summary>A farm building cannot be moved or picked up (docs/adr/ADR-028 D1).</summary>
     Fixed = 19,
+
+    /// <summary>Part of the footprint is on co-op land that the co-op has not unlocked yet (docs/adr/ADR-038).</summary>
+    LockedLand = 20,
 }

@@ -3,6 +3,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
+using Nosum.Domain.Admin;
 using Nosum.Domain.Blacksmith;
 using Nosum.Domain.Buildings;
 using Nosum.Domain.Community;
@@ -17,6 +18,7 @@ using Nosum.Domain.Mines;
 using Nosum.Domain.Nodes;
 using Nosum.Domain.Placeables;
 using Nosum.Domain.Quests;
+using Nosum.Domain.Requests;
 using Nosum.Domain.Social;
 using Nosum.Domain.Visits;
 using Nosum.Domain.World;
@@ -41,6 +43,9 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the issued session tokens.</summary>
     public DbSet<PlayerSessionToken> PlayerSessionTokens => this.Set<PlayerSessionToken>();
+
+    /// <summary>Gets the one-time password recovery codes (docs/adr/ADR-032 D4).</summary>
+    public DbSet<PasswordResetCode> PasswordResetCodes => this.Set<PasswordResetCode>();
 
     /// <summary>Gets the inventory headers.</summary>
     public DbSet<PlayerInventory> PlayerInventories => this.Set<PlayerInventory>();
@@ -105,6 +110,12 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the unlock flags set by completed goals.</summary>
     public DbSet<CommunityUnlockRecord> CommunityUnlocks => this.Set<CommunityUnlockRecord>();
 
+    /// <summary>Gets the requests of each game day on the Town board (docs/adr/ADR-036).</summary>
+    public DbSet<DailyRequest> DailyRequests => this.Set<DailyRequest>();
+
+    /// <summary>Gets which player filled which request of which day.</summary>
+    public DbSet<RequestFill> RequestFills => this.Set<RequestFill>();
+
     /// <summary>Gets the co-ops.</summary>
     public DbSet<Coop> Coops => this.Set<Coop>();
 
@@ -151,6 +162,9 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the items attached to mails.</summary>
     public DbSet<MailAttachmentItem> MailAttachmentItems => this.Set<MailAttachmentItem>();
+
+    /// <summary>Gets the audit trail of admin actions (docs/adr/ADR-031 D7).</summary>
+    public DbSet<AdminAuditEntry> AdminAudit => this.Set<AdminAuditEntry>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -73,7 +73,8 @@ public interface IFarmTiles
 /// <summary>Outcome of <see cref="IFarmService.UseAsync"/>.</summary>
 /// <param name="Status">Ok, or why nothing happened.</param>
 /// <param name="Action">What was done; <see cref="FarmAction.None"/> on a refusal.</param>
-public readonly record struct FarmUseOutcome(FarmStatus Status, FarmAction Action);
+/// <param name="Subject">What the action was done to when that matters to others: for <see cref="FarmAction.Broke"/> the <c>NodeKind</c> of the node that broke (docs/adr/ADR-036 D3); otherwise zero.</param>
+public readonly record struct FarmUseOutcome(FarmStatus Status, FarmAction Action, int Subject = 0);
 
 /// <summary>One worked tile with its position.</summary>
 /// <param name="X">Tile x.</param>

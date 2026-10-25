@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\server\Nosum.Infrastructure\Nosum.Infrastructure.csproj" />
     <ProjectReference Include="..\..\tools\Nosum.AtlasPacker\Nosum.AtlasPacker.csproj" />
     <ProjectReference Include="..\..\tools\Nosum.AssetInventory\Nosum.AssetInventory.csproj" />
+    <ProjectReference Include="..\..\bench\Nosum.Bench.Load\Nosum.Bench.Load.csproj" />
   </ItemGroup>
 
 </Project>

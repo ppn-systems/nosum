@@ -9,7 +9,7 @@ using Nosum.Domain.Coops;
 
 namespace Nosum.Infrastructure.Coops;
 
-/// <summary><see cref="ICoopMembership"/> on PostgreSQL: one indexed lookup per call, never cached, so a leave or a kick is felt at once.</summary>
+/// <summary><see cref="ICoopMembership"/> on PostgreSQL: two indexed lookups per call (membership, then the co-op row for its land level), never cached, so a leave or a kick is felt at once.</summary>
 public sealed class CoopMembership : ICoopMembership
 {
     private readonly IUnitOfWorkFactory _unitOfWork;
@@ -29,7 +29,13 @@ public sealed class CoopMembership : ICoopMembership
         await using (unit.ConfigureAwait(false))
         {
             CoopMember? member = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
-            return member is null ? null : new CoopMembershipInfo(member.CoopId, member.Id, member.Role);
+            if (member is null)
+            {
+                return null;
+            }
+
+            Coop? coop = await unit.Repository<Coop>().FindAsync(member.CoopId, cancellationToken).ConfigureAwait(false);
+            return new CoopMembershipInfo(member.CoopId, member.Id, member.Role, coop?.LandLevel ?? 0);
         }
     }
 }

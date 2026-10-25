@@ -83,6 +83,10 @@ memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Loo
 (`Coops/`: membership, invitations, the shared warehouse with its audit trail). New entities: wallets and coin log, market listings, appearances, co-ops, members, invites, stock and log
 (migration `SocialLayer`). Handlers: `Nosum.Handlers/{Market,Look,Trade,Coop}`; everything that moves coins or items is `[PacketEncryption(true)]`.
 
+Co-op upgrades ([ADR-038](../docs/adr/ADR-038-coop-upgrades.md)): `ICoopService.UpgradeAsync` (founder only) buys the next level of `CoopTrack.Warehouse` (capacity in item kinds, checked on deposit) or `CoopTrack.Land` (the tiles of `Farm_Foraging.tmx`
+that may be tilled and built on, read with `CoopMembershipInfo.LandLevel` by `FarmService` and `PlaceableService`). The price is items taken from the warehouse stock through `ITransferService` (a no-op player leg for the buyer, the stock legs go to nobody), with the new level
+(`coops.warehouse_level`, `land_level`, migration `CoopUpgrades`) and the log lines in the same transaction; the request names the level, under the co-op gate, so a repeat pays once. The rules and the cost table are `CoopUpgrades` in `Nosum.Gameplay`.
+
 Co-op land ([ADR-020](../docs/adr/ADR-020-coop-land.md)): the map `coopfarm` is an instance owned by a co-op (`MapInstance.OfCoop`). `PlayerService` finds the instance from `ICoopMembership`
 (`Coops/CoopMembership`, a database lookup per call, never cached), `FarmService` re-checks membership on every action and writes a `coop.farm.*` `CoopLogEntry` in the action's transaction, and
 `CoopService` calls `ICoopLandEviction` (implemented by `PlayerService`) after a leave or kick and wipes the plots when a co-op dissolves. No new table, migration or packet.
@@ -125,6 +129,7 @@ through; only `MapSpec.Farmable` maps (the farm) accept it. `IQuestService` coun
 `RegistrationPromptOnQuestCompleted` unlocks the guest registration invitation. `IPlayerNotifier` pushes to a player's active connection. Handlers:
 `InventoryHandlers`, `FarmHandlers`, `QuestHandlers` (`USER`, rate limited per address). `Program.BuildApplication(port, clock)` takes the clock crops grow by, so tests move time.
 Tables: `player_inventories`, `inventory_slots`, `inventory_log`, `farm_plots`, `player_quests` (migration `InventoryFarmQuests`).
+Quest chain and requests board ([ADR-036](../docs/adr/ADR-036-quest-chain-and-requests-board.md)): a quest that pays coins is completed by one `ITransferService` call (`quest.reward`) whose enlistment marks the `player_quests` row completed, so there is no completed-but-unpaid state; `QuestService` takes the transfer service as an optional argument. The shop (`SeedBought`), the shipping bin (`ItemShipped`) and crafting (`ItemCrafted`) report after their own success through the optional `IQuestService` argument and `QuestReporting.TryReportAsync`; the farm service reports tilling, watering and, from `FarmUseOutcome.Subject`, broken nodes. `IRequestService` (`Requests/RequestService`) keeps the Town board's daily requests in `daily_requests` (written once per game day from `RequestRules.Roll`, by the day clock and lazily on read; older than 14 days are deleted with their fills) and the fills in `request_fills`; a delivery is one transfer (`request.deliver`) whose enlistment adds the fill row, serialized per player. Handlers: `Nosum.Handlers/Requests`. Migration `QuestChainAndRequests`.
 
 Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `Program` builds one `GameCalendar` (default epoch and 12 h game day, epoch override `NOSUM_CALENDAR_EPOCH`) and gives it to `FarmService` (planting by season, withered crops) and
 `ShopService` (seeds only in season, `ShopStatus.OutOfSeason`); `ICalendarService` / `CalendarService` and `CalendarHandlers` (`0xD000`, USER) answer `GetCalendar` with the epoch, the day length and the server clock. No new table.
@@ -146,3 +151,30 @@ and the calendar. `IDayClock` (`Calendar/DayClockService`) is the day-ended seam
 (`FarmService` sweeps reverted tiles). In Development `Program` wraps the clock in `DevTimeProvider`, and `DevHandlers` / `IDevClockService` (`DevAdvanceClock`, `0xF001`) skip 1 to 60 game days; Production has neither.
 
 Chat, friends and mail ([ADR-029](../docs/adr/ADR-029-chat-friends-mail.md)): `IChatService` (`Chat/ChatService`) cleans and masks text with `ChatRules.Prepare`, applies the exact rate rule (`ChatRateLimiter`, 5 per 10 s, burst 3; `[PacketRateLimit]` is only the coarse transport guard), skips recipients who blocked the sender and keeps a 20-line ring per player that a report copies into `chat_reports`/`chat_report_lines`. Local chat goes to the sender's map instance (`ChatService.CollectLocal` is the one place to switch to the chunk interest set of ADR-022). `IBlockList` (`Chat/BlockList`, `blocked_players`) is cached per owner; `TradeService`, `CoopService.InviteAsync` and `VisitAccess` consult it. `IFriendService` (`Friends/FriendService`, `friendships` two rows per friendship, `friend_requests`, `visit_settings.friends_may_visit`) pushes `FriendStatusChanged` from `IMapPresence.PlayerJoined`/`PlayerLeft` (750 ms grace so a map change is not "offline") and raises `FriendVisitsRevoked`, which `VisitService` answers with a sweep. `IMailService` (`Mail/MailService`, `mail_messages`, `mail_attachment_items`; migration `ChatFriendsMail`) is what other features call (`SendAsync(playerId, code, args, attachments)`); an attachment is collected by one `ITransferService` call whose enlistment stamps `collected_at` (a concurrency token); `MailExpiryService` purges mail after 30 days. First producers: market sale (`MarketService`) and co-op invitation (`CoopService`). Handlers: `Nosum.Handlers/{Chat,Friends,Mail}`.
+
+Operations ([ADR-031](../docs/adr/ADR-031-deployment-and-operations.md); runbook: [`docs/ops/`](../docs/ops/README.md)): `Program.Main` with arguments is a command line, not a server:
+`admin grant|revoke|list <nickname>` (`Ops/HostCommands`) is the only way the `Admin` role (`players.role`) changes - never a packet - and `healthcheck` asks the running
+server's `/readyz` (the container health check). Without arguments the host starts `Ops/OpsEndpoint` first, an `HttpListener` on `NOSUM_OPS_PORT` (default 57301, bound to
+`NOSUM_OPS_HOST`, default `localhost`; the container sets `+`): `/healthz` (process up), `/readyz` (`NosumDatabase.IsReadyAsync`: database answers, no migration pending) and
+`/metrics` (`Ops/PrometheusExporter`, a `MeterListener` over the `Nosum` meter, `NosumMetrics` in `Nosum.Abstractions/Observability`: players online and per map, snapshot tick duration
+and bytes, handler latency per opcode via `Ops/MetricsMiddleware`, database save duration, rejected intents by area and status). Logs are JSON lines through `OpsLog` (the same
+folder): fields named like a secret are redacted, e-mail addresses and token-shaped strings are masked, and `Console.Error` is routed into it. Migrations run under a PostgreSQL advisory
+lock (`NosumDatabase.MigrateAsync`). Admin intents (`AdminHandlers`, `0x1100` slice, `SYSTEM_ADMINISTRATOR`, encrypted, rate limited) call `IAdminService` (`Admin/AdminService`),
+which re-reads the caller's role on every call, refuses self and other admins as targets, changes the row and writes an `admin_audit` row in one transaction, then acts on the live state
+(`ISessionRegistry.EndAsync` for kick and ban, the in-memory `MuteList` that `ChatService` asks, which `Program` loads from `players.muted_until` at start). `AccountService` refuses a banned
+account at login and resume (`AccountStatus.Banned`, after the password check). `NOSUM_LOAD_TEST=1` (only with `DOTNET_ENVIRONMENT` Staging or Development, otherwise the host
+refuses to start) leaves out `RateLimitMiddleware` so `bench/Nosum.Bench.Load` is not throttled as one address. Migration `AdminRoleBanMuteAudit`.
+
+## Security configuration ([ADR-032](../docs/adr/ADR-032-security-hardening.md))
+
+| Variable | Effect |
+| :--- | :--- |
+| `NOSUM_SERVER_KEY_PATH` | File holding the server's private identity key (created on first start). Default `~/.local/share/Nalix/config/certificate.private`. Mount it on a volume: a new key makes every pinned client refuse the server. The host prints the matching public key at start-up. |
+| `NOSUM_SMTP_HOST`, `NOSUM_SMTP_PORT` (587), `NOSUM_SMTP_USER`, `NOSUM_SMTP_PASSWORD`, `NOSUM_SMTP_FROM`, `NOSUM_SMTP_SSL` (true) | Mail provider for password recovery codes. Without `NOSUM_SMTP_HOST` nothing is sent and the host warns at start-up. |
+| `NOSUM_MAX_CONNECTIONS_PER_IP` (20), `NOSUM_MAX_CONNECTIONS_PER_WINDOW` (20 per 5 s), `NOSUM_MAX_CONNECTIONS_PER_SUBNET` (200), `NOSUM_MAX_SUBNET_CONNECTIONS_PER_WINDOW` (200) | Per-address connection limits of the Nalix connection guard. |
+| `NOSUM_NEW_ACCOUNTS_PER_IP_PER_DAY` (30) | New accounts (registered or guest) one address may create per day. |
+| `NOSUM_ABUSE_ENFORCE_LOOPBACK` (false) | Also limit loopback addresses; set it when a reverse proxy on the same host fronts the server and the real client address is not forwarded. |
+
+Handlers: every `[PacketOpcode]` method declares `[PacketPermission]` and `[PacketRateLimit]`, and every client packet member declares its bounds
+(`Nosum.Contracts.Validation`); `HandlerAuditTests` and `PacketBoundsTests` fail the build otherwise. Bounds are enforced by `InputBoundsMiddleware`
+before the handler. Session tokens rotate on every resume and an account keeps at most 10 live ones.

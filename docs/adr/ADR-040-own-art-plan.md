@@ -1,6 +1,6 @@
 # ADR-040 — Own art plan: what to replace, in what order, and how to prove it
 
-**Status:** Proposed. Roadmap M6, phase 0. Builds on ADR-007 (placeholder content, D5), ADR-004 (own-art provenance), ADR-005 (3/4 view),
+**Status:** Accepted (coordinator, 2026-10-25, under the authority the owner delegated; see "Coordinator review" below). Roadmap M6, phase 0. Builds on ADR-007 (placeholder content, D5), ADR-004 (own-art provenance), ADR-005 (3/4 view),
 ADR-006 (layered characters), ADR-031 D9 (placeholder content gate) and ADR-039 (audio).
 
 ## Context
@@ -107,6 +107,18 @@ layer and sheet, and the animated tiles.
 - **D9 — Map layouts.** The `.tmx` files are replaced like the sheets (D2), so the level layouts stay. Stardew's map designs are creative work too.
   Whether to redraw the layouts before release (warps, shop counters, node sites and tile coordinates in `Nosum.Gameplay` would change with them) is
   an owner decision; it is not in these estimates. See Consequences.
+
+### Coordinator review (acceptance notes)
+
+- **Core terrain and remaining maps (packages 2 and 11) are re-authored, not redrawn one for one.** Redrawing 4,086 Stardew cells to match their
+  indices costs most of the budget and copies their layout too closely. Instead, a script fills the drawn tile layers of each hosted map with tiles
+  from a small set of own terrain sets (PixelLab top-down Wang tilesets: grass, dirt, sand, water, path, cliff), choosing the set by classifying
+  each placeholder tile into a terrain kind. Collision, warps, spawn tiles, counters, doors and every gameplay layer stay unchanged, so no code
+  changes (the D1 rule still holds: gameplay coordinates are the contract, not tile indices). Buildings and props stay map objects drawn from
+  package 7.
+- This cuts packages 2 and 11 from about 257 generations to about 20–40 (one Wang set per terrain pair plus hand fixes). The estimate in D5 is
+  kept as the upper bound until the first map is converted.
+- The owner decides the budget: the PixelLab account is on a trial with 10 generations left, which is enough only for a farmer concept.
 
 ## Alternatives considered
 

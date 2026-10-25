@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Building.C2S;
 
@@ -16,8 +17,10 @@ public sealed partial class FeedAnimals : PacketBase<FeedAnimals>, IPacketStatic
     public static ushort StaticOpCode => BuildingOpCode.FeedAnimals;
 
     /// <summary>Inventory slot holding the feed.</summary>
+    [WireRange(-1, 255)]
     [SerializeOrder(0)] public int Slot { get; set; }
 
     /// <summary>How many to put in.</summary>
+    [WireRange(0, WireLimits.MaxQuantity)]
     [SerializeOrder(1)] public int Quantity { get; set; }
 }

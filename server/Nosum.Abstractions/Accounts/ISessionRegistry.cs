@@ -25,6 +25,16 @@ public interface ISessionRegistry
     /// <param name="connection">The connection that signed out.</param>
     void Release(IConnection connection);
 
+    /// <summary>
+    /// Ends the player's active connection, if any: the player leaves the map (position saved), is told why (<c>SessionEnded</c>) and the connection
+    /// is closed. Used when a password is reset (docs/adr/ADR-032) and when an admin kicks or bans (docs/adr/ADR-031 D7).
+    /// </summary>
+    /// <param name="playerId">The player whose sessions all ended.</param>
+    /// <param name="reason">Sent to the connection as the reason.</param>
+    /// <param name="cancellationToken">Cancels the wait for the connection to be cleaned up.</param>
+    /// <returns><see langword="true"/> when the player was connected, once the connection has been ended and its state saved.</returns>
+    ValueTask<bool> EndAsync(Guid playerId, Nosum.Contracts.Account.AccountStatus reason, CancellationToken cancellationToken = default);
+
     /// <summary>Gets the player's active connection, or null.</summary>
     /// <param name="playerId">The player.</param>
     /// <returns>The active connection, or null when the player is not connected.</returns>

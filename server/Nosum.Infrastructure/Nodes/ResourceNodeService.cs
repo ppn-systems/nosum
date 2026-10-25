@@ -401,7 +401,7 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
             await this.PublishAsync(player.Instance, [], [node], cancellationToken).ConfigureAwait(false);
         }
 
-        return new FarmUseOutcome(FarmStatus.Ok, FarmAction.Broke);
+        return new FarmUseOutcome(FarmStatus.Ok, FarmAction.Broke, (int)node.Kind);
     }
 
     // Picking forage up, under the instance lock: the item drops where the node stands like any node yield, and the node is gone.

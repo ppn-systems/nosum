@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Coop.C2S;
 
@@ -16,8 +17,10 @@ public sealed partial class WithdrawItem : PacketBase<WithdrawItem>, IPacketStat
     public static ushort StaticOpCode => CoopOpCode.WithdrawItem;
 
     /// <summary>Item id.</summary>
+    [WireRange(0, WireLimits.MaxId)]
     [SerializeOrder(0)] public int ItemId { get; set; }
 
     /// <summary>How many.</summary>
+    [WireRange(0, WireLimits.MaxQuantity)]
     [SerializeOrder(1)] public int Quantity { get; set; }
 }

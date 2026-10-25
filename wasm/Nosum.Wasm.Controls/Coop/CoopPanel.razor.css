@@ -32,3 +32,26 @@
 .stock-name {
     min-width: calc(var(--u) * 48);
 }
+
+.upgrade-row {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+    padding-bottom: calc(var(--u) * 4);
+}
+
+.upgrade-title {
+    font-weight: bold;
+}
+
+.upgrade-level {
+    color: var(--nosum-ink-soft);
+}
+
+.upgrade-cost.enough {
+    color: var(--nosum-ok);
+}
+
+.upgrade-cost.short {
+    color: var(--nosum-ink-soft);
+}

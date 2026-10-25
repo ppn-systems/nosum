@@ -70,6 +70,30 @@ internal sealed class SkyLayer
         commands.SetAmbient(tint.R, tint.G, tint.B, tint.A);
     }
 
+    /// <summary>Reads the season, the game minute and the weather the sky is computed from, for the music and the rain loop (docs/adr/ADR-039).</summary>
+    /// <param name="season">The server season.</param>
+    /// <param name="minuteOfDay">The game minute of the day.</param>
+    /// <param name="weather">Today's weather.</param>
+    /// <returns><see langword="false"/> before the server calendar is known (offline).</returns>
+    public bool TryGetState(out Season season, out int minuteOfDay, out WeatherKind weather)
+    {
+        GameCalendar? rules = this.Rules();
+        if (rules is null)
+        {
+            season = default;
+            minuteOfDay = 0;
+            weather = WeatherKind.Sun;
+            return false;
+        }
+
+        long now = _calendar!.ServerNowMs();
+        GameDate date = rules.At(now);
+        season = date.Season;
+        minuteOfDay = date.MinuteOfDay;
+        weather = WeatherRules.At(rules, now);
+        return true;
+    }
+
     /// <summary>Records the rain or snow of this frame.</summary>
     /// <param name="commands">Where the rectangles are recorded.</param>
     public void DrawPrecipitation(RenderCommandBuffer commands) => _precipitation.Draw(_falling, commands);

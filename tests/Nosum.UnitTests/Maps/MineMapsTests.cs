@@ -24,23 +24,18 @@ public sealed class MineMapsTests
     }
 
     [Fact]
-    public void TownGate_FiveEdgeTilesOnTheNorthRoad_AreWalkableAndReachableFromTheSpawn_AndLeadToTheCave()
+    public void MountainGate_TheCaveMouthOnTheNorthPath_IsWalkableAndReachableFromTheTownRoad_AndLeadsToTheCave()
     {
-        (MapSpec town, TileMap map, WalkGrid grid) = Load(GameMaps.Town);
-        bool[] reachable = MineRulesTests.Reachable(grid, town.SpawnTileX, town.SpawnTileY);
+        (MapSpec mountain, TileMap map, WalkGrid grid) = Load(GameMaps.Mountain);
+        bool[] reachable = MineRulesTests.Reachable(grid, 15, 38);
 
-        List<MapWarp> toMine = [.. town.ResolveWarps(map).Where(w => w.TargetMap == GameMaps.Mine)];
+        List<MapWarp> toMine = [.. mountain.ResolveWarps(map).Where(w => w.TargetMap == GameMaps.Mine)];
 
-        toMine.Select(w => w.FromX).Should().Equal(Enumerable.Range(MineWorld.TownGateFromX, 5));
-        toMine.Should().OnlyContain(w => w.FromY == -1 && w.TargetX == MineWorld.CaveArrival.X && w.TargetY == MineWorld.CaveArrival.Y);
-        foreach (MapWarp warp in toMine)
-        {
-            grid.IsBlocked(warp.FromX, 0).Should().BeFalse($"the edge tile of the gate at x = {warp.FromX}");
-            reachable[warp.FromX].Should().BeTrue($"the gate at x = {warp.FromX} can be walked to");
-        }
-
-        grid.IsBlocked(MineWorld.TownArrival.X, MineWorld.TownArrival.Y).Should().BeFalse();
-        town.ResolveWarps(map).Any(w => w.FromX == MineWorld.TownArrival.X && w.FromY == MineWorld.TownArrival.Y).Should().BeFalse("the arrival tile is not an exit, so nobody bounces back");
+        toMine.Should().ContainSingle("the file's own second exit to the mine is dropped").Which.Should().Be(new MapWarp(MineWorld.MountainGate.X, MineWorld.MountainGate.Y, GameMaps.Mine, MineWorld.CaveArrival.X, MineWorld.CaveArrival.Y));
+        grid.IsBlocked(MineWorld.MountainGate.X, MineWorld.MountainGate.Y).Should().BeFalse();
+        reachable[(MineWorld.MountainGate.Y * grid.Width) + MineWorld.MountainGate.X].Should().BeTrue("the gate can be walked to from where Town's road arrives");
+        grid.IsBlocked(MineWorld.MountainArrival.X, MineWorld.MountainArrival.Y).Should().BeFalse();
+        mountain.ResolveWarps(map).Any(w => w.FromX == MineWorld.MountainArrival.X && w.FromY == MineWorld.MountainArrival.Y).Should().BeFalse("the arrival tile is not an exit, so nobody bounces back");
     }
 
     [Fact]
@@ -53,7 +48,7 @@ public sealed class MineMapsTests
         grid.IsBlocked(MineWorld.CaveShaft.X, MineWorld.CaveShaft.Y).Should().BeFalse("the shaft tile is opened so a farmer can step into it");
         reachable[(MineWorld.CaveShaft.Y * grid.Width) + MineWorld.CaveShaft.X].Should().BeTrue();
         reachable[(MineWorld.CaveShaftFront.Y * grid.Width) + MineWorld.CaveShaftFront.X].Should().BeTrue();
-        reachable[(MineWorld.CaveTownExit.Y * grid.Width) + MineWorld.CaveTownExit.X].Should().BeTrue();
+        reachable[(MineWorld.CaveMountainExit.Y * grid.Width) + MineWorld.CaveMountainExit.X].Should().BeTrue();
         reachable[(MineWorld.CaveArrival.Y * grid.Width) + MineWorld.CaveArrival.X].Should().BeTrue();
 
         // The elevator's own tile is part of the wall; the farmer stands in front of it.
@@ -63,8 +58,8 @@ public sealed class MineMapsTests
 
         List<MapWarp> warps = cave.ResolveWarps(map);
         warps.Should().Contain(new MapWarp(MineWorld.CaveShaft.X, MineWorld.CaveShaft.Y, "mine1", MineLayouts.For(1).SpawnX, MineLayouts.For(1).SpawnY));
-        warps.Should().Contain(w => w.TargetMap == GameMaps.Town && w.FromX == MineWorld.CaveTownExit.X && w.FromY == MineWorld.CaveTownExit.Y);
-        warps.Should().NotContain(w => w.TargetMap.Equals("Mountain", System.StringComparison.OrdinalIgnoreCase), "the Mountain is not hosted yet");
+        warps.Should().Contain(w => w.TargetMap == GameMaps.Mountain && w.TargetX == MineWorld.MountainArrival.X && w.TargetY == MineWorld.MountainArrival.Y && w.FromX == MineWorld.CaveMountainExit.X && w.FromY == MineWorld.CaveMountainExit.Y);
+        warps.Where(w => w.TargetMap == GameMaps.Mountain).Should().ContainSingle("the file's own two exits to the Mountain are replaced by one of ours");
     }
 
     [Fact]

@@ -11,7 +11,8 @@ namespace Nosum.Abstractions.Coop;
 /// <param name="CoopId">The co-op's id; it is also the owner of the co-op's land (docs/adr/ADR-020).</param>
 /// <param name="MemberId">The membership id; changes if the player leaves and rejoins.</param>
 /// <param name="Role">Founder or member.</param>
-public sealed record CoopMembershipInfo(Guid CoopId, Guid MemberId, CoopRole Role);
+/// <param name="LandLevel">The co-op's land upgrade level, read with the membership: it decides which tiles of the land may be tilled and built on (docs/adr/ADR-038).</param>
+public sealed record CoopMembershipInfo(Guid CoopId, Guid MemberId, CoopRole Role, int LandLevel = 0);
 
 /// <summary>
 /// Who belongs to which co-op, read straight from the database on every call so that leaving or being removed takes effect at once.

@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Observability;
 
 namespace Nosum.Infrastructure.Persistence;
 
@@ -32,8 +34,18 @@ internal sealed class EfUnitOfWork : IUnitOfWork
         return (IRepository<TEntity>)repository;
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
-        => _context.SaveChangesAsync(cancellationToken);
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        long started = Stopwatch.GetTimestamp();
+        try
+        {
+            return await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            NosumMetrics.RecordDbTransaction(started);
+        }
+    }
 
     public bool IsUniqueViolation(Exception exception)
         => exception is DbUpdateException { InnerException: PostgresException { SqlState: UniqueViolationSqlState } };

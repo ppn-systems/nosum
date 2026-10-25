@@ -12,6 +12,7 @@ namespace Nosum.Gameplay.Movement;
 public sealed class WalkGrid
 {
     private readonly bool[] _blocked;
+    private WalkGate[] _gates = [];
 
     /// <summary>Initializes a grid.</summary>
     /// <param name="width">Width in tiles.</param>
@@ -31,7 +32,7 @@ public sealed class WalkGrid
 
     /// <summary>Returns an independent copy, to which a per-instance layer (placed furniture) can add blocked tiles without touching the map's shared grid.</summary>
     /// <returns>The copy.</returns>
-    public WalkGrid Clone() => new(this.Width, this.Height, this.TileSize, (bool[])_blocked.Clone());
+    public WalkGrid Clone() => new(this.Width, this.Height, this.TileSize, (bool[])_blocked.Clone()) { _gates = _gates };
 
     /// <summary>Gets the width in tiles.</summary>
     public int Width { get; }
@@ -142,6 +143,15 @@ public sealed class WalkGrid
         }
     }
 
+    /// <summary>Attaches a gate: its tiles stay blocked in the flags and are released while its unlock is set (docs/adr/ADR-037 D4). Copies made with <see cref="Clone"/> share it.</summary>
+    /// <param name="gate">The gate.</param>
+    public void AddGate(WalkGate gate)
+    {
+        ArgumentNullException.ThrowIfNull(gate);
+
+        _gates = [.. _gates, gate];
+    }
+
     /// <summary>Blocks the collision footprint of every prop (docs/adr/ADR-005 D6).</summary>
     /// <param name="props">Placed buildings and props.</param>
     public void BlockFootprints(IReadOnlyList<PropPlacement> props)
@@ -159,7 +169,29 @@ public sealed class WalkGrid
     /// <param name="y">Tile y.</param>
     /// <returns><see langword="true"/> when the tile cannot be entered.</returns>
     public bool IsBlocked(int x, int y)
-        => x < 0 || y < 0 || x >= this.Width || y >= this.Height || _blocked[(y * this.Width) + x];
+    {
+        if (x < 0 || y < 0 || x >= this.Width || y >= this.Height)
+        {
+            return true;
+        }
+
+        int index = (y * this.Width) + x;
+        return _blocked[index] && !this.IsReleased(index);
+    }
+
+    private bool IsReleased(int index)
+    {
+        WalkGate[] gates = _gates;
+        for (int i = 0; i < gates.Length; i++)
+        {
+            if (gates[i].Releases(index))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Returns whether an axis-aligned box in world pixels overlaps any blocking tile.

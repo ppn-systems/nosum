@@ -46,7 +46,9 @@ public readonly record struct CoopInviteInfo(Guid InviteId, string CoopName, str
 /// <param name="Stock">The warehouse.</param>
 /// <param name="Log">The latest log lines, newest first.</param>
 /// <param name="Invites">Open invitations.</param>
-public sealed record CoopInfo(bool HasCoop, string Name, CoopRole Role, IReadOnlyList<CoopMemberInfo> Members, IReadOnlyList<CoopStockInfo> Stock, IReadOnlyList<CoopLogInfo> Log, IReadOnlyList<CoopInviteInfo> Invites)
+/// <param name="WarehouseLevel">The warehouse upgrade level (docs/adr/ADR-038).</param>
+/// <param name="LandLevel">The land upgrade level (docs/adr/ADR-038).</param>
+public sealed record CoopInfo(bool HasCoop, string Name, CoopRole Role, IReadOnlyList<CoopMemberInfo> Members, IReadOnlyList<CoopStockInfo> Stock, IReadOnlyList<CoopLogInfo> Log, IReadOnlyList<CoopInviteInfo> Invites, int WarehouseLevel = 0, int LandLevel = 0)
 {
     /// <summary>Gets the state before the first read.</summary>
     public static readonly CoopInfo None = new(false, string.Empty, CoopRole.None, [], [], [], []);
@@ -126,6 +128,15 @@ public sealed class CoopChannel : IDisposable
         r.Quantity = quantity;
     });
 
+    /// <summary>Asks to buy the next level of an upgrade (the founder only; the server decides).</summary>
+    /// <param name="track">The upgrade track.</param>
+    /// <param name="targetLevel">The level to buy: one above the level shown.</param>
+    public void Upgrade(CoopUpgradeTrack track, int targetLevel) => _ = this.SendAsync<UpgradeCoop>(r =>
+    {
+        r.Track = track;
+        r.TargetLevel = (byte)targetLevel;
+    });
+
     /// <inheritdoc/>
     public void Dispose() => _pushes.Dispose();
 
@@ -155,7 +166,7 @@ public sealed class CoopChannel : IDisposable
             invites.Add(new CoopInviteInfo(row.InviteId, row.CoopName, row.InviterNickname));
         }
 
-        this.Current = new CoopInfo(snapshot.HasCoop, snapshot.Name, snapshot.Role, members, stock, log, invites);
+        this.Current = new CoopInfo(snapshot.HasCoop, snapshot.Name, snapshot.Role, members, stock, log, invites, snapshot.WarehouseLevel, snapshot.LandLevel);
         this.Changed?.Invoke();
     }
 

@@ -61,4 +61,13 @@ public enum CoopStatus : byte
 
     /// <summary>The player already has an invitation from this co-op.</summary>
     AlreadyInvited = 18,
+
+    /// <summary>The warehouse holds as many item kinds as its level allows; deposit a kind it already holds, or upgrade it (docs/adr/ADR-038).</summary>
+    WarehouseFull = 19,
+
+    /// <summary>The upgrade track is already at its highest level.</summary>
+    MaxLevel = 20,
+
+    /// <summary>The requested level is not the next one: it was already bought, or the track is unknown.</summary>
+    AlreadyUpgraded = 21,
 }

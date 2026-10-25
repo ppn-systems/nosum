@@ -51,6 +51,15 @@ public sealed class Player : Entity
     /// </summary>
     public DateTimeOffset LastActiveAt { get; set; }
 
+    /// <summary>Gets or sets the account's role; <see cref="PlayerRole.Player"/> unless the host's <c>admin grant</c> command promoted it (docs/adr/ADR-031 D7).</summary>
+    public PlayerRole Role { get; set; } = PlayerRole.Player;
+
+    /// <summary>Gets or sets when the account was banned; null while it is not. A banned account cannot sign in or resume.</summary>
+    public DateTimeOffset? BannedAt { get; set; }
+
+    /// <summary>Gets or sets until when the player may not chat; null or a past time means they may.</summary>
+    public DateTimeOffset? MutedUntil { get; set; }
+
     /// <summary>Gets or sets the state needed to put the player back where they were.</summary>
     public PlayerState? State { get; set; }
 }

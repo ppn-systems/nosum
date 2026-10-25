@@ -5,10 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Codec.Pooling;
+using Nosum.Contracts.Goals.S2C;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Contracts.World.S2C;
+using Nosum.Gameplay.Community;
 
 namespace Nosum.Wasm.Socket.Player;
 
@@ -42,6 +44,7 @@ public sealed class PlayerChannel : IDisposable
     private float _y;
     private byte _facing;
     private bool _moving;
+    private byte _unlocks;
 
     /// <summary>Initializes the channel and starts its report timer.</summary>
     /// <param name="socket">The game connection.</param>
@@ -57,10 +60,19 @@ public sealed class PlayerChannel : IDisposable
         [
             socket.Subscribe<MoveCorrection>(this.OnCorrection),
             socket.Subscribe<MapChanged>(this.OnMapChanged),
+            socket.Subscribe<UnlocksChanged>(p => Volatile.Write(ref _unlocks, p.Unlocks)),
         ];
         socket.Ready += this.OnSocketReady;
         _ = Task.Run(() => this.ReportLoopAsync(_stop.Token));
     }
+
+    /// <summary>
+    /// Tells whether the server said a community unlock is set, as far as it changes what the player may walk on (docs/adr/ADR-037 D4). It is learnt with a join or a map
+    /// change and when an unlock is set while the player is in Town or on the Beach; the walk grid asks it at every step, so a gated tile opens the moment it is known.
+    /// </summary>
+    /// <param name="key">An unlock key (<c>CommunityUnlockKeys</c>).</param>
+    /// <returns><see langword="true"/> when the unlock is set.</returns>
+    public bool IsUnlocked(string key) => CommunityUnlockWire.IsSet(Volatile.Read(ref _unlocks), key);
 
     /// <summary>Raised when the server refuses to put the player on the map. May run on any thread.</summary>
     public event Action<JoinStatus>? JoinRejected;
@@ -166,7 +178,11 @@ public sealed class PlayerChannel : IDisposable
     }
 
     // The server moved the player: it keeps the id, names the new map and the place to stand on.
-    private void OnMapChanged(MapChanged packet) => this.SetEntry(new MapEntry(packet.MapId, packet.X, packet.Y, packet.Facing), packet.PlayerId);
+    private void OnMapChanged(MapChanged packet)
+    {
+        Volatile.Write(ref _unlocks, packet.Unlocks);
+        this.SetEntry(new MapEntry(packet.MapId, packet.X, packet.Y, packet.Facing), packet.PlayerId);
+    }
 
     private void SetEntry(MapEntry entry, uint playerId)
     {
@@ -216,6 +232,7 @@ public sealed class PlayerChannel : IDisposable
                 return;
             }
 
+            Volatile.Write(ref _unlocks, result.Unlocks);
             this.SetEntry(new MapEntry(result.MapId, result.SpawnX, result.SpawnY, result.Facing), result.PlayerId);
         }
         catch (Exception)

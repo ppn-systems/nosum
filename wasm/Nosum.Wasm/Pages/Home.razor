@@ -289,7 +289,7 @@ else
         string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
         if (query.StartsWith("?ended=", StringComparison.Ordinal)
             && Enum.TryParse(query["?ended=".Length..], out AccountStatus reason)
-            && reason == AccountStatus.SessionReplaced)
+            && reason is AccountStatus.SessionReplaced or AccountStatus.SessionKicked or AccountStatus.Banned)
         {
             Form.ShowSessionEnded(reason);
         }

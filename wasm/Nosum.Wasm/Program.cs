@@ -11,6 +11,7 @@ using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Maps;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
+using Nosum.Wasm.Security;
 using Nosum.Wasm.Settings;
 using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Building;
@@ -26,6 +27,7 @@ using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Goals;
+using Nosum.Wasm.Socket.Requests;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Dev;
@@ -53,6 +55,7 @@ using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Looks;
 using Nosum.Wasm.ViewModels.Goals;
+using Nosum.Wasm.ViewModels.Requests;
 using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.ViewModels.Profile;
@@ -92,7 +95,9 @@ internal static class Program
         builder.Services.AddClientSettings();
 
         // One server connection for the app's lifetime (docs/adr/ADR-003 D5).
-        builder.Services.AddSingleton(_ => GameSocketOptions.ForPageHost(new Uri(builder.HostEnvironment.BaseAddress)));
+        // The deploy pins the server's public key in wwwroot/appsettings.json; without it a development build trusts the server on first use (docs/adr/ADR-032 D1).
+        builder.Services.AddSingleton(sp => GameSocketOptions.ForPageHost(new Uri(builder.HostEnvironment.BaseAddress))
+            .ApplyBootConfiguration(key => builder.Configuration[key], () => new BrowserServerKeyStore(sp.GetRequiredService<Microsoft.JSInterop.IJSRuntime>())));
         builder.Services.AddSingleton<GameSocket>();
         builder.Services.AddSingleton<IGameSocket>(sp => sp.GetRequiredService<GameSocket>());
         builder.Services.AddSingleton(sp => new PlayerChannel(sp.GetRequiredService<IGameSocket>(), GameMaps.DefaultId));
@@ -120,6 +125,7 @@ internal static class Program
         builder.Services.AddSingleton<BlacksmithChannel>();
         builder.Services.AddSingleton<MineChannel>();
         builder.Services.AddSingleton<GoalChannel>();
+        builder.Services.AddSingleton<RequestChannel>();
         builder.Services.AddSingleton<DevChannel>();
         builder.Services.AddSingleton<NearbyPlayers>();
         builder.Services.AddSingleton(sp =>
@@ -139,6 +145,7 @@ internal static class Program
         builder.Services.AddSingleton<ShopViewModel>();
         builder.Services.AddSingleton<BlacksmithViewModel>();
         builder.Services.AddSingleton<ElevatorViewModel>();
+        builder.Services.AddSingleton<RequestsViewModel>();
         builder.Services.AddSingleton<GoalsViewModel>();
         builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<ProgressViewModel>();
@@ -169,6 +176,9 @@ internal static class Program
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
         builder.Services.AddTransient<AccountFormViewModel>();
+        // Account recovery (docs/adr/ADR-032 D4).
+        builder.Services.AddSingleton<IRecoveryClient, GameSocketRecoveryClient>();
+        builder.Services.AddSingleton<PasswordRecoveryViewModel>();
         builder.Services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());
@@ -194,6 +204,7 @@ internal static class Program
         CoopChannel coop = host.Services.GetRequiredService<CoopChannel>();
         LookChannel looks = host.Services.GetRequiredService<LookChannel>();
         GameLoop.UseFarming(farm, inventory, market);
+        GameLoop.UseCoop(coop);
         GameLoop.UseProgress(host.Services.GetRequiredService<ProgressChannel>());
         GameLoop.UseCalendar(host.Services.GetRequiredService<CalendarChannel>());
         GameLoop.UseLooks(looks, host.Services.GetRequiredService<NicknameFormatter>());
@@ -210,6 +221,7 @@ internal static class Program
         // the farm, the placed furniture and the resource nodes are per place, so they load whenever a map was joined.
         AccountSessionKeeper keeper = host.Services.GetRequiredService<AccountSessionKeeper>();
         SettingsWiring.Connect(host.Services);
+        AudioWiring.Connect(new GameAudio(), host.Services);
         keeper.Authenticated += channel.Join;
         keeper.Authenticated += inventory.Load;
         keeper.Authenticated += quests.Load;

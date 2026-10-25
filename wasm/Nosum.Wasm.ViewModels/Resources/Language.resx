@@ -259,6 +259,22 @@
   <data name="Coop_Status_SelfKick" xml:space="preserve"><value>Bạn không thể tự mời mình ra.</value></data>
   <data name="Coop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>Người đó đã được mời rồi.</value></data>
+  <data name="Coop_Upgrades_Heading" xml:space="preserve"><value>Nâng cấp</value></data>
+  <data name="Coop_Upgrade_Warehouse" xml:space="preserve"><value>Kho rộng hơn</value></data>
+  <data name="Coop_Upgrade_Land" xml:space="preserve"><value>Thêm đất</value></data>
+  <data name="Coop_Upgrade_Level" xml:space="preserve"><value>Cấp {0} / {1}</value></data>
+  <data name="Coop_Upgrade_Warehouse_Now" xml:space="preserve"><value>Chứa tối đa {0} loại vật phẩm (đang dùng {1}).</value></data>
+  <data name="Coop_Upgrade_Land_Now" xml:space="preserve"><value>{0} trên {1} khu đất hợp tác xã đã mở để xới đất và xây dựng.</value></data>
+  <data name="Coop_Upgrade_Next" xml:space="preserve"><value>Cấp tiếp theo lấy từ kho:</value></data>
+  <data name="Coop_Upgrade_Cost" xml:space="preserve"><value>{0} x{1} (kho có {2})</value></data>
+  <data name="Coop_Upgrade_Buy" xml:space="preserve"><value>Mua cấp tiếp theo</value></data>
+  <data name="Coop_Upgrade_Max" xml:space="preserve"><value>Đã nâng cấp tối đa.</value></data>
+  <data name="Coop_Upgrade_FounderOnly" xml:space="preserve"><value>Chỉ người sáng lập mới mua được nâng cấp.</value></data>
+  <data name="Coop_Status_WarehouseFull" xml:space="preserve"><value>Kho đã chứa đủ số loại vật phẩm. Hãy nâng cấp kho, hoặc gửi loại vật phẩm kho đã có.</value></data>
+  <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>Nâng cấp này đã ở cấp cao nhất.</value></data>
+  <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>Nâng cấp này đã được mua rồi.</value></data>
+  <data name="Farm_Status_LockedLand" xml:space="preserve"><value>Khu đất này của hợp tác xã chưa được mở.</value></data>
+  <data name="Place_Status_LockedLand" xml:space="preserve"><value>Khu đất này của hợp tác xã chưa được mở.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Khách {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Biệt danh</value></data>
   <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} ký tự: chữ cái không dấu (a-z) và chữ số, giữa các từ là một dấu cách hoặc gạch dưới. Không dùng từ tục tĩu.</value></data>
@@ -268,6 +284,8 @@
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>Biệt danh này không được phép dùng.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>Biệt danh này đã có người dùng.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>Bạn vừa đổi biệt danh. Hãy thử lại sau.</value></data>
+  <data name="Account_Status_Banned" xml:space="preserve"><value>Tài khoản này đã bị khóa. Hãy liên hệ quản trị viên nếu bạn cho rằng đây là nhầm lẫn.</value></data>
+  <data name="Account_Status_SessionKicked" xml:space="preserve"><value>Quản trị viên đã đưa bạn ra khỏi trò chơi. Bạn có thể đăng nhập lại.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Hồ sơ</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Hồ sơ</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Biệt danh hiện tại: {0}</value></data>
@@ -470,6 +488,7 @@
   <data name="Chat_Status_InvalidChannel" xml:space="preserve"><value>Kênh chat không hợp lệ.</value></data>
   <data name="Chat_Status_NothingToReport" xml:space="preserve"><value>Chưa có tin nhắn gần đây của người đó để báo cáo.</value></data>
   <data name="Chat_Status_SelfBlock" xml:space="preserve"><value>Bạn không thể chặn hay báo cáo chính mình.</value></data>
+  <data name="Chat_Status_Muted" xml:space="preserve"><value>Bạn đang bị cấm chat. Hãy thử lại sau.</value></data>
   <data name="Friends_Add_Heading" xml:space="preserve"><value>Kết bạn</value></data>
   <data name="Friends_NicknamePlaceholder" xml:space="preserve"><value>Biệt danh</value></data>
   <data name="Friends_Request" xml:space="preserve"><value>Gửi lời mời</value></data>
@@ -488,6 +507,9 @@
   <data name="Friends_Map_backwoods" xml:space="preserve"><value>vùng rừng sâu</value></data>
   <data name="Friends_Map_coopfarm" xml:space="preserve"><value>đất hợp tác xã</value></data>
   <data name="Friends_Map_mine" xml:space="preserve"><value>hang mỏ</value></data>
+  <data name="Friends_Map_mountain" xml:space="preserve"><value>núi</value></data>
+  <data name="Friends_Map_beach" xml:space="preserve"><value>bãi biển</value></data>
+  <data name="Friends_Map_woods" xml:space="preserve"><value>rừng bí mật</value></data>
   <data name="Friends_Map_coop" xml:space="preserve"><value>chuồng gà</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>chuồng gia súc</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Xóa bạn</value></data>
@@ -725,4 +747,43 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Cần cầm xô vắt sữa trên tay.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>Máng đã đầy.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>Khu đất đã có tối đa số công trình.</value></data>
+  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>Mã khôi phục không đúng, đã hết hạn hoặc đã được dùng.</value></data>
+  <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Quá nhiều yêu cầu. Hãy thử lại sau.</value></data>
+  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì mật khẩu tài khoản đã được đặt lại.</value></data>
+  <data name="Connection_KeyMismatch" xml:space="preserve"><value>Danh tính máy chủ đã thay đổi. Có thể đây là máy chủ giả mạo nên trò chơi từ chối kết nối. Hãy chờ thông báo chính thức hoặc xóa dữ liệu trang web nếu bạn đang chạy bản phát triển.</value></data>
+  <data name="Recovery_Link" xml:space="preserve"><value>Quên mật khẩu?</value></data>
+  <data name="Recovery_Title_Request" xml:space="preserve"><value>Khôi phục tài khoản</value></data>
+  <data name="Recovery_Title_Confirm" xml:space="preserve"><value>Nhập mã khôi phục</value></data>
+  <data name="Recovery_Title_Done" xml:space="preserve"><value>Đã đổi mật khẩu</value></data>
+  <data name="Recovery_RequestHint" xml:space="preserve"><value>Chúng tôi sẽ gửi một mã đến địa chỉ e-mail của tài khoản.</value></data>
+  <data name="Recovery_CodeSent" xml:space="preserve"><value>Nếu địa chỉ này có tài khoản, một mã đã được gửi. Mã có hiệu lực trong 15 phút.</value></data>
+  <data name="Recovery_Code" xml:space="preserve"><value>Mã khôi phục</value></data>
+  <data name="Recovery_CodeHint" xml:space="preserve"><value>8 chữ số trong thư</value></data>
+  <data name="Recovery_NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
+  <data name="Recovery_Submit_Request" xml:space="preserve"><value>Gửi mã</value></data>
+  <data name="Recovery_Submit_Confirm" xml:space="preserve"><value>Đổi mật khẩu</value></data>
+  <data name="Recovery_Done" xml:space="preserve"><value>Mật khẩu đã được đổi và mọi thiết bị đã bị đăng xuất. Hãy đăng nhập bằng mật khẩu mới.</value></data>
+  <data name="Recovery_Back" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
+  <data name="Recovery_Error_Code" xml:space="preserve"><value>Hãy nhập 8 chữ số trong thư.</value></data>
+  <data name="Board_Tab_Goals" xml:space="preserve"><value>Mục tiêu</value></data>
+  <data name="Board_Tab_Requests" xml:space="preserve"><value>Yêu cầu</value></data>
+  <data name="Requests_Hint" xml:space="preserve"><value>Mỗi ngày trong game bảng tin có ba yêu cầu giao hàng. Mỗi người chỉ làm mỗi yêu cầu một lần trong ngày và được trả cao hơn giá thùng bán hàng.</value></data>
+  <data name="Requests_Loading" xml:space="preserve"><value>Đang tải yêu cầu</value></data>
+  <data name="Requests_None" xml:space="preserve"><value>Hôm nay chưa có yêu cầu nào.</value></data>
+  <data name="Requests_NewIn" xml:space="preserve"><value>Yêu cầu mới sau {0} giờ {1} phút.</value></data>
+  <data name="Requests_Ask" xml:space="preserve"><value>Giao {0} × {1}</value></data>
+  <data name="Requests_Reward" xml:space="preserve"><value>Thưởng: {0} xu</value></data>
+  <data name="Requests_Held" xml:space="preserve"><value>Bạn có {0}</value></data>
+  <data name="Requests_Deliver" xml:space="preserve"><value>Giao hàng</value></data>
+  <data name="Requests_Filled" xml:space="preserve"><value>Đã xong hôm nay</value></data>
+  <data name="Requests_Done" xml:space="preserve"><value>Đã giao! Bạn nhận được {0} xu.</value></data>
+  <data name="Requests_Status_UnknownRequest" xml:space="preserve"><value>Không có yêu cầu này.</value></data>
+  <data name="Requests_Status_NotToday" xml:space="preserve"><value>Yêu cầu đã đổi sang ngày mới. Đã tải lại bảng.</value></data>
+  <data name="Requests_Status_AlreadyFilled" xml:space="preserve"><value>Hôm nay bạn đã làm yêu cầu này rồi.</value></data>
+  <data name="Requests_Status_NotAtBoard" xml:space="preserve"><value>Bạn đứng quá xa bảng tin.</value></data>
+  <data name="Requests_Status_NotEnough" xml:space="preserve"><value>Bạn không có đủ vật phẩm.</value></data>
+  <data name="Requests_Status_PurseFull" xml:space="preserve"><value>Ví của bạn không chứa thêm được số xu này.</value></data>
+  <data name="Requests_Status_Conflict" xml:space="preserve"><value>Hãy thử lại.</value></data>
+  <data name="Quest_Reward" xml:space="preserve"><value>Thưởng: {0} xu</value></data>
+  <data name="Hint_Quest" xml:space="preserve"><value>{0} Thưởng: {1} xu.</value></data>
 </root>

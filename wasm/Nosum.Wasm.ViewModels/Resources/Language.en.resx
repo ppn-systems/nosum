@@ -259,6 +259,22 @@
   <data name="Coop_Status_SelfKick" xml:space="preserve"><value>You cannot remove yourself; leave instead.</value></data>
   <data name="Coop_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>That player was already invited.</value></data>
+  <data name="Coop_Upgrades_Heading" xml:space="preserve"><value>Upgrades</value></data>
+  <data name="Coop_Upgrade_Warehouse" xml:space="preserve"><value>Bigger warehouse</value></data>
+  <data name="Coop_Upgrade_Land" xml:space="preserve"><value>More land</value></data>
+  <data name="Coop_Upgrade_Level" xml:space="preserve"><value>Level {0} / {1}</value></data>
+  <data name="Coop_Upgrade_Warehouse_Now" xml:space="preserve"><value>Holds up to {0} kinds of item ({1} in use).</value></data>
+  <data name="Coop_Upgrade_Land_Now" xml:space="preserve"><value>{0} of {1} blocks of the co-op land are open for tilling and building.</value></data>
+  <data name="Coop_Upgrade_Next" xml:space="preserve"><value>The next level takes from the warehouse:</value></data>
+  <data name="Coop_Upgrade_Cost" xml:space="preserve"><value>{0} x{1} (warehouse has {2})</value></data>
+  <data name="Coop_Upgrade_Buy" xml:space="preserve"><value>Buy next level</value></data>
+  <data name="Coop_Upgrade_Max" xml:space="preserve"><value>Fully upgraded.</value></data>
+  <data name="Coop_Upgrade_FounderOnly" xml:space="preserve"><value>Only the founder can buy upgrades.</value></data>
+  <data name="Coop_Status_WarehouseFull" xml:space="preserve"><value>The warehouse holds as many kinds of item as it can. Upgrade it, or deposit a kind it already has.</value></data>
+  <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>That upgrade is already at its highest level.</value></data>
+  <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>That upgrade was already bought.</value></data>
+  <data name="Farm_Status_LockedLand" xml:space="preserve"><value>This part of the co-op land is not unlocked yet.</value></data>
+  <data name="Place_Status_LockedLand" xml:space="preserve"><value>This part of the co-op land is not unlocked yet.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Guest {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Nickname</value></data>
   <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} characters: letters without accents (a-z) and digits, with a single space or underscore between words. No profanity.</value></data>
@@ -268,6 +284,8 @@
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>That nickname is not allowed.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>That nickname is already taken.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>You changed your nickname recently. Try again later.</value></data>
+  <data name="Account_Status_Banned" xml:space="preserve"><value>This account is banned. Contact an administrator if you think this is a mistake.</value></data>
+  <data name="Account_Status_SessionKicked" xml:space="preserve"><value>An administrator removed you from the game. You can sign in again.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Profile</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Profile</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Current nickname: {0}</value></data>
@@ -470,6 +488,7 @@
   <data name="Chat_Status_InvalidChannel" xml:space="preserve"><value>That chat channel does not exist.</value></data>
   <data name="Chat_Status_NothingToReport" xml:space="preserve"><value>There is no recent message from that player to report.</value></data>
   <data name="Chat_Status_SelfBlock" xml:space="preserve"><value>You cannot block or report yourself.</value></data>
+  <data name="Chat_Status_Muted" xml:space="preserve"><value>You are muted and cannot chat right now.</value></data>
   <data name="Friends_Add_Heading" xml:space="preserve"><value>Add a friend</value></data>
   <data name="Friends_NicknamePlaceholder" xml:space="preserve"><value>Nickname</value></data>
   <data name="Friends_Request" xml:space="preserve"><value>Ask</value></data>
@@ -488,6 +507,9 @@
   <data name="Friends_Map_backwoods" xml:space="preserve"><value>the backwoods</value></data>
   <data name="Friends_Map_coopfarm" xml:space="preserve"><value>the co-op land</value></data>
   <data name="Friends_Map_mine" xml:space="preserve"><value>the mine</value></data>
+  <data name="Friends_Map_mountain" xml:space="preserve"><value>the mountain</value></data>
+  <data name="Friends_Map_beach" xml:space="preserve"><value>the beach</value></data>
+  <data name="Friends_Map_woods" xml:space="preserve"><value>the Secret Woods</value></data>
   <data name="Friends_Map_coop" xml:space="preserve"><value>the coop</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>the barn</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Remove</value></data>
@@ -725,4 +747,43 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Hold the milk pail to milk a cow.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>The bench is full.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>The land already has as many buildings as it can hold.</value></data>
+  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>The recovery code is wrong, expired or already used.</value></data>
+  <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Too many requests. Please try again later.</value></data>
+  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Your session ended because the account password was reset.</value></data>
+  <data name="Connection_KeyMismatch" xml:space="preserve"><value>The server identity has changed. It may be an impostor, so the game refuses to connect. Wait for an official announcement, or clear this site's data if you are running a development build.</value></data>
+  <data name="Recovery_Link" xml:space="preserve"><value>Forgot your password?</value></data>
+  <data name="Recovery_Title_Request" xml:space="preserve"><value>Recover your account</value></data>
+  <data name="Recovery_Title_Confirm" xml:space="preserve"><value>Enter the recovery code</value></data>
+  <data name="Recovery_Title_Done" xml:space="preserve"><value>Password changed</value></data>
+  <data name="Recovery_RequestHint" xml:space="preserve"><value>We will e-mail a code to the address of your account.</value></data>
+  <data name="Recovery_CodeSent" xml:space="preserve"><value>If this address has an account, a code was sent. It is valid for 15 minutes.</value></data>
+  <data name="Recovery_Code" xml:space="preserve"><value>Recovery code</value></data>
+  <data name="Recovery_CodeHint" xml:space="preserve"><value>8 digits from the e-mail</value></data>
+  <data name="Recovery_NewPassword" xml:space="preserve"><value>New password</value></data>
+  <data name="Recovery_Submit_Request" xml:space="preserve"><value>Send code</value></data>
+  <data name="Recovery_Submit_Confirm" xml:space="preserve"><value>Change password</value></data>
+  <data name="Recovery_Done" xml:space="preserve"><value>Your password was changed and every device was signed out. Sign in with the new password.</value></data>
+  <data name="Recovery_Back" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="Recovery_Error_Code" xml:space="preserve"><value>Enter the 8 digits from the e-mail.</value></data>
+  <data name="Board_Tab_Goals" xml:space="preserve"><value>Goals</value></data>
+  <data name="Board_Tab_Requests" xml:space="preserve"><value>Requests</value></data>
+  <data name="Requests_Hint" xml:space="preserve"><value>The board posts three delivery requests every game day. You can fill each one once a day, and they pay more than the shipping bin.</value></data>
+  <data name="Requests_Loading" xml:space="preserve"><value>Loading requests</value></data>
+  <data name="Requests_None" xml:space="preserve"><value>There are no requests today.</value></data>
+  <data name="Requests_NewIn" xml:space="preserve"><value>New requests in {0} h {1} min.</value></data>
+  <data name="Requests_Ask" xml:space="preserve"><value>Deliver {0} × {1}</value></data>
+  <data name="Requests_Reward" xml:space="preserve"><value>Reward: {0} coins</value></data>
+  <data name="Requests_Held" xml:space="preserve"><value>You carry {0}</value></data>
+  <data name="Requests_Deliver" xml:space="preserve"><value>Deliver</value></data>
+  <data name="Requests_Filled" xml:space="preserve"><value>Done for today</value></data>
+  <data name="Requests_Done" xml:space="preserve"><value>Delivered! You received {0} coins.</value></data>
+  <data name="Requests_Status_UnknownRequest" xml:space="preserve"><value>There is no such request.</value></data>
+  <data name="Requests_Status_NotToday" xml:space="preserve"><value>The requests changed with the new day. The board was reloaded.</value></data>
+  <data name="Requests_Status_AlreadyFilled" xml:space="preserve"><value>You already filled this request today.</value></data>
+  <data name="Requests_Status_NotAtBoard" xml:space="preserve"><value>You are too far from the board.</value></data>
+  <data name="Requests_Status_NotEnough" xml:space="preserve"><value>You do not carry enough of the item.</value></data>
+  <data name="Requests_Status_PurseFull" xml:space="preserve"><value>Your purse cannot hold that many coins.</value></data>
+  <data name="Requests_Status_Conflict" xml:space="preserve"><value>Please try again.</value></data>
+  <data name="Quest_Reward" xml:space="preserve"><value>Reward: {0} coins</value></data>
+  <data name="Hint_Quest" xml:space="preserve"><value>{0} Reward: {1} coins.</value></data>
 </root>

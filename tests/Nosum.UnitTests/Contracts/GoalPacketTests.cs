@@ -9,6 +9,9 @@ using Nosum.Contracts.Goals.S2C;
 using Nosum.Contracts.Market;
 using Nosum.Contracts.Market.C2S;
 using Nosum.Contracts.Market.S2C;
+using Nosum.Contracts.Player;
+using Nosum.Contracts.Player.S2C;
+using Nosum.Contracts.World.S2C;
 using Xunit;
 
 namespace Nosum.UnitTests.Contracts;
@@ -24,6 +27,7 @@ public sealed class GoalPacketTests
         GoalOpCode.GoalsSnapshot.Should().Be(0x4140);
         GoalOpCode.DeliverResult.Should().Be(0x4141);
         GoalOpCode.GoalProgress.Should().Be(0x4142);
+        GoalOpCode.UnlocksChanged.Should().Be(0x4143);
 
         ushort[] values = [.. typeof(GoalOpCode).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => (ushort)f.GetRawConstantValue()!)];
         values.Should().OnlyHaveUniqueItems().And.OnlyContain(v => v >= 0x4100 && v <= 0x41FF);
@@ -111,6 +115,28 @@ public sealed class GoalPacketTests
         copy.Total.Should().Be(999);
         copy.State.Should().Be(GoalState.Expired);
         copy.Contributors.Should().Be(3);
+    }
+
+    [Fact]
+    public void Unlocks_TravelWithTheJoinTheMapChangeAndThePush_AppendedAfterTheOldFields()
+    {
+        UnlocksChanged.StaticOpCode.Should().Be(GoalOpCode.UnlocksChanged);
+        using UnlocksChanged push = new() { Unlocks = 1 };
+        UnlocksChanged.Deserialize(push.Serialize()).Unlocks.Should().Be(1);
+
+        using JoinMapResult join = new() { Status = JoinStatus.Ok, PlayerId = 4, SpawnX = 1.5f, SpawnY = 2.5f, MapId = "beach", Facing = 2, Unlocks = 1 };
+        JoinMapResult joined = JoinMapResult.Deserialize(join.Serialize());
+        joined.MapId.Should().Be("beach");
+        joined.Facing.Should().Be(2);
+        joined.Unlocks.Should().Be(1);
+
+        using MapChanged change = new() { PlayerId = 4, MapId = "beach", X = 3, Y = 4, Facing = 1, Unlocks = 1 };
+        MapChanged changed = MapChanged.Deserialize(change.Serialize());
+        changed.Facing.Should().Be(1);
+        changed.Unlocks.Should().Be(1);
+
+        typeof(JoinMapResult).GetProperty(nameof(JoinMapResult.Unlocks))!.GetCustomAttribute<Nalix.Abstractions.Serialization.SerializeOrderAttribute>()!.Order.Should().Be(6);
+        typeof(MapChanged).GetProperty(nameof(MapChanged.Unlocks))!.GetCustomAttribute<Nalix.Abstractions.Serialization.SerializeOrderAttribute>()!.Order.Should().Be(5);
     }
 
     [Fact]
