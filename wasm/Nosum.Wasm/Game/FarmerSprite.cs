@@ -27,16 +27,17 @@ internal static class FarmerSprite
     private static readonly int[] s_walkColumns = [0, 1, 0, 2];
 
     /// <summary>
-    /// Records the farmer's layers.
+    /// Adds the farmer's layers to the world batch, sorted by the feet.
     /// </summary>
-    /// <param name="commands">Where draws go.</param>
+    /// <param name="batch">The world sprite batch.</param>
     /// <param name="textures">Texture ids of the farmer sheets.</param>
     /// <param name="look">What the farmer wears.</param>
     /// <param name="facing">Facing.</param>
     /// <param name="walkFrame">Walk cycle step (any integer; 0 when standing).</param>
-    /// <param name="feetX">Feet x on screen, unscaled pixels.</param>
-    /// <param name="feetY">Feet y on screen, unscaled pixels.</param>
-    public static void Draw(RenderCommandBuffer commands, in FarmerTextures textures, in FarmerLook look, Facing facing, int walkFrame, int feetX, int feetY)
+    /// <param name="feetX">Feet x, world pixels.</param>
+    /// <param name="feetY">Feet y, world pixels.</param>
+    /// <param name="id">Stable sort id of this character.</param>
+    public static void Draw(WorldSpriteBatch batch, in FarmerTextures textures, in FarmerLook look, Facing facing, int walkFrame, int feetX, int feetY, int id = 0)
     {
         // Sheet rows: 0 down, 1 right, 2 up; left is right mirrored.
         int row = facing switch { Facing.Down => 0, Facing.Up => 2, _ => 1 };
@@ -46,15 +47,16 @@ internal static class FarmerSprite
         int y = feetY - Height;
         int frameX = column * Width;
         int frameY = row * Height;
+        int sortY = feetY;
 
-        commands.Draw(textures.Body, frameX, frameY, Width, Height, x, y, flags);
-        commands.Draw(textures.Pants, (look.Pants % 10 * PantsStyleWidth) + frameX, (look.Pants / 10 * 672) + frameY, Width, Height, x, y, flags, look.PantsTint);
+        batch.Add(textures.Body, frameX, frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
+        batch.Add(textures.Pants, (look.Pants % 10 * PantsStyleWidth) + frameX, (look.Pants / 10 * 672) + frameY, Width, Height, x, y, sortY, feetX, id, flags, look.PantsTint);
 
         int shirtRow = facing == Facing.Up ? 24 : facing == Facing.Down ? 0 : 8;
-        commands.Draw(textures.Shirts, look.Shirt % 16 * ShirtSize, (look.Shirt / 16 * 32) + shirtRow, ShirtSize, ShirtSize, x + ShirtOffsetX, y + ShirtOffsetY + (column == 0 ? 0 : 1), flags);
+        batch.Add(textures.Shirts, look.Shirt % 16 * ShirtSize, (look.Shirt / 16 * 32) + shirtRow, ShirtSize, ShirtSize, x + ShirtOffsetX, y + ShirtOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
 
-        commands.Draw(textures.Body, frameX + (ArmsColumnOffset * Width), frameY, Width, Height, x, y, flags);
-        commands.Draw(textures.Hair, look.Hairstyle % 8 * Width, (look.Hairstyle / 8 * 96) + (row * Height), Width, Height, x, y + HairOffsetY + (column == 0 ? 0 : 1), flags, look.HairTint);
+        batch.Add(textures.Body, frameX + (ArmsColumnOffset * Width), frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
+        batch.Add(textures.Hair, look.Hairstyle % 8 * Width, (look.Hairstyle / 8 * 96) + (row * Height), Width, Height, x, y + HairOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, flags, look.HairTint);
     }
 }
 

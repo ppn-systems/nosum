@@ -10,7 +10,8 @@ namespace Nosum.Core;
 
 /// <summary>
 /// Reads Tiled <c>.tmx</c> maps: orthogonal, embedded tilesets, CSV-encoded tile layers.
-/// Tile flip bits are cleared; object groups and properties are not read.
+/// Tile flip bits are cleared. Read besides tiles: map and layer properties, and per-tileset tile
+/// properties and animations. Object groups (including Tiled-style <c>TileData</c> objects) are not read.
 /// </summary>
 public static class TmxReader
 {
@@ -34,9 +35,36 @@ public static class TmxReader
         List<TileLayer> layers = [];
         TileSetBuilder? pendingSet = null;
         string? layerName = null;
+        Dictionary<string, string> mapProps = [];
+        Dictionary<string, string>? layerProps = null;
+        int tileId = -1;
+        List<int> frameTiles = [];
+        List<int> frameDurations = [];
 
         while (reader.Read())
         {
+            if (reader.NodeType == XmlNodeType.EndElement)
+            {
+                if (pendingSet is not null && reader.Depth == 1 && reader.Name == "tileset")
+                {
+                    tileSets.Add(pendingSet.Build());
+                    pendingSet = null;
+                }
+                else if (pendingSet is not null && tileId >= 0 && reader.Depth == 2 && reader.Name == "tile")
+                {
+                    if (frameTiles.Count > 0)
+                    {
+                        pendingSet.Animations[tileId] = new TileAnimation([.. frameTiles], [.. frameDurations]);
+                        frameTiles.Clear();
+                        frameDurations.Clear();
+                    }
+
+                    tileId = -1;
+                }
+
+                continue;
+            }
+
             if (reader.NodeType != XmlNodeType.Element)
             {
                 continue;
@@ -70,17 +98,44 @@ public static class TmxReader
                     break;
 
                 case "image" when pendingSet is not null && reader.Depth == 2:
-                    tileSets.Add(new TileSet(
-                        pendingSet.FirstGid,
-                        pendingSet.Name,
-                        reader.GetAttribute("source") ?? throw new InvalidDataException($"Tileset '{pendingSet.Name}' has no image."),
-                        pendingSet.Columns,
-                        pendingSet.TileCount));
-                    pendingSet = null;
+                    pendingSet.ImageSource = reader.GetAttribute("source") ?? throw new InvalidDataException($"Tileset '{pendingSet.Name}' has no image.");
+                    break;
+
+                case "tile" when pendingSet is not null && reader.Depth == 2:
+                    tileId = Int(reader, "id");
+                    break;
+
+                case "frame" when pendingSet is not null && tileId >= 0 && reader.Depth == 4:
+                    frameTiles.Add(Int(reader, "tileid"));
+                    frameDurations.Add(Int(reader, "duration"));
+                    break;
+
+                case "property":
+                    string? key = reader.GetAttribute("name");
+                    string propValue = reader.GetAttribute("value") ?? string.Empty;
+                    if (key is null)
+                    {
+                        break;
+                    }
+
+                    if (pendingSet is not null && tileId >= 0 && reader.Depth == 4)
+                    {
+                        pendingSet.AddProperty(tileId, key, propValue);
+                    }
+                    else if (layerProps is not null && reader.Depth == 3)
+                    {
+                        layerProps[key] = propValue;
+                    }
+                    else if (pendingSet is null && layerName is null && reader.Depth == 2)
+                    {
+                        mapProps[key] = propValue;
+                    }
+
                     break;
 
                 case "layer":
                     layerName = reader.GetAttribute("name") ?? string.Empty;
+                    layerProps = [];
                     break;
 
                 case "data" when layerName is not null:
@@ -89,8 +144,9 @@ public static class TmxReader
                         throw new InvalidDataException($"Layer '{layerName}': only uncompressed CSV data is supported.");
                     }
 
-                    layers.Add(new TileLayer(layerName, ParseCsv(reader.ReadElementContentAsString(), width * height, layerName)));
+                    layers.Add(new TileLayer(layerName, ParseCsv(reader.ReadElementContentAsString(), width * height, layerName), layerProps is { Count: > 0 } ? layerProps : null));
                     layerName = null;
+                    layerProps = null;
                     break;
             }
         }
@@ -101,7 +157,7 @@ public static class TmxReader
         }
 
         tileSets.Sort(static (a, b) => a.FirstGid.CompareTo(b.FirstGid));
-        return new TileMap(width, height, tileWidth, tileHeight, tileSets, layers);
+        return new TileMap(width, height, tileWidth, tileHeight, tileSets, layers, mapProps.Count > 0 ? mapProps : null);
     }
 
     private static int[] ParseCsv(string csv, int expected, string layer)
@@ -141,5 +197,38 @@ public static class TmxReader
             NumberStyles.Integer,
             CultureInfo.InvariantCulture);
 
-    private sealed record TileSetBuilder(int FirstGid, string Name, int Columns, int TileCount);
+    private sealed class TileSetBuilder(int firstGid, string name, int columns, int tileCount)
+    {
+        private readonly Dictionary<int, List<KeyValuePair<string, string>>> _properties = [];
+
+        public int FirstGid { get; } = firstGid;
+
+        public string Name { get; } = name;
+
+        public string? ImageSource { get; set; }
+
+        public Dictionary<int, TileAnimation> Animations { get; } = [];
+
+        public void AddProperty(int tile, string key, string value)
+        {
+            if (!_properties.TryGetValue(tile, out List<KeyValuePair<string, string>>? list))
+            {
+                _properties[tile] = list = [];
+            }
+
+            list.Add(new KeyValuePair<string, string>(key, value));
+        }
+
+        public TileSet Build()
+        {
+            Dictionary<int, KeyValuePair<string, string>[]> properties = [];
+            foreach ((int id, List<KeyValuePair<string, string>> list) in _properties)
+            {
+                properties[id] = [.. list];
+            }
+
+            TileProperties? tiles = properties.Count > 0 || this.Animations.Count > 0 ? new TileProperties(tileCount, properties, this.Animations) : null;
+            return new TileSet(this.FirstGid, this.Name, this.ImageSource ?? throw new InvalidDataException($"Tileset '{this.Name}' has no image."), columns, tileCount, tiles);
+        }
+    }
 }

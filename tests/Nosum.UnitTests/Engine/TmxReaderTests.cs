@@ -79,4 +79,69 @@ public sealed class TmxReaderTests
 
         act.Should().Throw<InvalidDataException>();
     }
+
+    private const string AnimatedMap = """
+        <?xml version="1.0"?>
+        <map version="1.4" orientation="orthogonal" width="2" height="1" tilewidth="16" tileheight="16">
+          <properties><property name="Outdoors" type="string" value="T" /></properties>
+          <tileset firstgid="1" name="ground" tilewidth="16" tileheight="16" tilecount="6" columns="3">
+            <image source="ground" width="48" height="32" />
+            <tile id="1">
+              <properties>
+                <property name="Water" type="string" value="T" />
+                <property name="Type" type="string" value="Pond" />
+              </properties>
+              <animation><frame tileid="1" duration="1000" /><frame tileid="4" duration="500" /></animation>
+            </tile>
+            <tile id="2"><properties><property name="Passable" type="string" value="F" /></properties></tile>
+            <tile id="3"><properties><property name="Passable" type="string" value="T" /></properties></tile>
+          </tileset>
+          <layer id="1" name="Back" width="2" height="1">
+            <properties><property name="Draw" type="string" value="AlwaysFront" /></properties>
+            <data encoding="csv">2,3</data>
+          </layer>
+          <objectgroup id="2" name="Back"><object id="1" name="TileData" x="0" y="0"><properties><property name="NoSpawn" value="All" /></properties></object></objectgroup>
+        </map>
+        """;
+
+    [Fact]
+    public void Parse_TileAnimation_ReadsFramesAndLoops()
+    {
+        TileAnimation animation = TmxReader.Parse(AnimatedMap).TileSets[0].Tiles!.GetAnimation(1)!;
+
+        animation.FrameCount.Should().Be(2);
+        animation.TotalMilliseconds.Should().Be(1500);
+        animation.FrameAt(0).Should().Be(1);
+        animation.FrameAt(999).Should().Be(1);
+        animation.FrameAt(1000).Should().Be(4);
+        animation.FrameAt(1499).Should().Be(4);
+        animation.FrameAt(1500).Should().Be(1);
+        animation.FrameAt(3000 + 1200).Should().Be(4);
+    }
+
+    [Fact]
+    public void Parse_TileProperties_ReadsFlagsAndNamedValues()
+    {
+        TileMap map = TmxReader.Parse(AnimatedMap);
+
+        map.GetTraits(2).Should().Be(TileTraits.Water);
+        map.GetTraits(3).Should().Be(TileTraits.Impassable);
+        map.GetTraits(4).Should().Be(TileTraits.Passable);
+        map.GetTraits(1).Should().Be(TileTraits.None);
+        map.GetTraits(0).Should().Be(TileTraits.None);
+        map.TileSets[0].Tiles!.TryGetProperty(1, "Type", out string type).Should().BeTrue();
+        type.Should().Be("Pond");
+        map.TileSets[0].Tiles!.TryGetProperty(1, "Nope", out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_MapAndLayerProperties_AreRead()
+    {
+        TileMap map = TmxReader.Parse(AnimatedMap);
+
+        map.Properties["Outdoors"].Should().Be("T");
+        map.FindLayer("Back")!.GetProperty("Draw").Should().Be("AlwaysFront");
+        map.FindLayer("Back")!.GetProperty("Other").Should().BeNull();
+        map.Properties.Should().HaveCount(1);
+    }
 }

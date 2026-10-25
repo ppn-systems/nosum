@@ -11,12 +11,20 @@ namespace Nosum.Core;
 /// <param name="ImageSource">Image file name as written in the map (no folder; may lack an extension).</param>
 /// <param name="Columns">Tiles per sheet row.</param>
 /// <param name="TileCount">Number of tiles in the sheet.</param>
-public sealed record TileSet(int FirstGid, string Name, string ImageSource, int Columns, int TileCount);
+/// <param name="Tiles">Per-tile flags, animations and properties; <see langword="null"/> when the sheet has none.</param>
+public sealed record TileSet(int FirstGid, string Name, string ImageSource, int Columns, int TileCount, TileProperties? Tiles = null);
 
 /// <summary>One tile layer: a row-major grid of global tile ids, 0 meaning empty.</summary>
 /// <param name="Name">Layer name (e.g. <c>Back</c>, <c>Buildings</c>, <c>Front</c>).</param>
 /// <param name="Gids">Global tile ids, <c>width × height</c> entries, row-major.</param>
-public sealed record TileLayer(string Name, int[] Gids);
+/// <param name="Properties">Layer properties (for example <c>Draw</c>); <see langword="null"/> when none.</param>
+public sealed record TileLayer(string Name, int[] Gids, IReadOnlyDictionary<string, string>? Properties = null)
+{
+    /// <summary>Returns a layer property, or <see langword="null"/>.</summary>
+    /// <param name="name">Property name.</param>
+    /// <returns>The value as written in the map, or <see langword="null"/>.</returns>
+    public string? GetProperty(string name) => this.Properties is not null && this.Properties.TryGetValue(name, out string? value) ? value : null;
+}
 
 /// <summary>
 /// An orthogonal tile map: size, tile size, tilesets and tile layers in draw order.
@@ -30,7 +38,8 @@ public sealed class TileMap
     /// <param name="tileHeight">Tile height in pixels.</param>
     /// <param name="tileSets">Tilesets ordered by <see cref="TileSet.FirstGid"/>.</param>
     /// <param name="layers">Tile layers in draw order.</param>
-    public TileMap(int width, int height, int tileWidth, int tileHeight, IReadOnlyList<TileSet> tileSets, IReadOnlyList<TileLayer> layers)
+    /// <param name="properties">Map-level properties; <see langword="null"/> when none.</param>
+    public TileMap(int width, int height, int tileWidth, int tileHeight, IReadOnlyList<TileSet> tileSets, IReadOnlyList<TileLayer> layers, IReadOnlyDictionary<string, string>? properties = null)
     {
         ArgumentNullException.ThrowIfNull(tileSets);
         ArgumentNullException.ThrowIfNull(layers);
@@ -41,6 +50,7 @@ public sealed class TileMap
         this.TileHeight = tileHeight;
         this.TileSets = tileSets;
         this.Layers = layers;
+        this.Properties = properties ?? new Dictionary<string, string>();
     }
 
     /// <summary>Gets the width in tiles.</summary>
@@ -60,6 +70,9 @@ public sealed class TileMap
 
     /// <summary>Gets the tile layers in draw order.</summary>
     public IReadOnlyList<TileLayer> Layers { get; }
+
+    /// <summary>Gets the map-level properties.</summary>
+    public IReadOnlyDictionary<string, string> Properties { get; }
 
     /// <summary>Returns the layer with the given name, or <see langword="null"/>.</summary>
     /// <param name="name">Layer name, compared ordinally.</param>
@@ -94,5 +107,19 @@ public sealed class TileMap
         }
 
         return -1;
+    }
+
+    /// <summary>Returns the flags of a global tile id.</summary>
+    /// <param name="gid">Global tile id; 0 (empty) or unknown ids have no flags.</param>
+    /// <returns>The flags.</returns>
+    public TileTraits GetTraits(int gid)
+    {
+        if (gid <= 0)
+        {
+            return TileTraits.None;
+        }
+
+        int index = this.FindTileSet(gid);
+        return index < 0 ? TileTraits.None : this.TileSets[index].Tiles?.GetTraits(gid - this.TileSets[index].FirstGid) ?? TileTraits.None;
     }
 }
