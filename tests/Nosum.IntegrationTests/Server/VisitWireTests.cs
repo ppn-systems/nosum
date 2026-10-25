@@ -17,7 +17,9 @@ using Nalix.Hosting;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Visits;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
@@ -35,11 +37,14 @@ using Nosum.Core;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
+using Nosum.Domain.Nodes;
 using Nosum.Domain.Visits;
+using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Nodes;
 using Nosum.Host;
 using Nosum.Infrastructure.Persistence;
 using Xunit;
@@ -168,6 +173,79 @@ public sealed class VisitWireTests : IClassFixture<PostgresFixture>
         (await a.GetFarmAsync(host.Timeout)).Tiles.Should().Contain(t => t.X == tiles[0].X && t.CropId == CropCatalog.Parsnip);
         (await b.GetInventoryAsync(host.Timeout)).Slots.Should().NotContain(s => s.ItemId == ItemCatalog.Parsnip, "nothing was harvested into the visitor's bag");
         (await a.UseAsync(8, tiles[0].X, tiles[0].Y, host.Timeout)).Action.Should().Be(FarmAction.Harvested);
+    }
+
+    [Fact]
+    public async Task Visitor_OnTheOwnersFarm_CannotChopBreakOrCutTheirNodes_AndPaysNoEnergy()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        Account alice = await RegisterAsync();
+        Account bob = await RegisterAsync();
+        await PutOnAsync(bob, GameMaps.Town);
+        IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
+        _ = maps.TryGet(GameMaps.Farm, out MapDefinition? farm);
+        (int X, int Y)[] free = [.. Enumerable.Range(-2, 5)
+            .SelectMany(dx => Enumerable.Range(-2, 5).Select(dy => (X: (int)(farm!.SpawnX / 16) + dx, Y: (int)(farm.SpawnY / 16) + dy)))
+            .Where(t => !farm!.Grid.IsBlocked(t.X, t.Y) && !farm.ReservedTiles.Contains(t) && FarmRules.InReach(farm.SpawnX, farm.SpawnY, t.X, t.Y, 16))
+            .OrderBy(t => Math.Abs(t.X - (int)(farm!.SpawnX / 16)) + Math.Abs(t.Y - (int)(farm.SpawnY / 16)))
+            .Skip(1)
+            .Take(3)];
+
+        // Alice's farm holds a grown tree, a stone and a weed; the instance is marked seeded so the map's random first fill never happens.
+        await using (NosumDbContext db = new(_database.Options))
+        {
+            (NodeKind Kind, short Stage)[] kinds = [(NodeKind.Tree, TreeStage.Grown), (NodeKind.Stone, 0), (NodeKind.Weed, 0)];
+            for (int i = 0; i < kinds.Length; i++)
+            {
+                _ = db.WorldNodes.Add(new WorldNode
+                {
+                    MapId = GameMaps.Farm,
+                    OwnerId = alice.Id,
+                    TileX = free[i].X,
+                    TileY = free[i].Y,
+                    Kind = (short)kinds[i].Kind,
+                    Stage = kinds[i].Stage,
+                    Hits = NodeCatalog.HitsFor(kinds[i].Kind, (byte)kinds[i].Stage),
+                    SpawnedAt = s_start,
+                });
+            }
+
+            _ = db.NodeInstances.Add(new NodeInstanceState { MapId = GameMaps.Farm, OwnerId = alice.Id, SeededAt = s_start, LastDay = InstanceManager.Instance.GetExistingInstance<IGameDayClock>()!.Today });
+            _ = await db.SaveChangesAsync();
+        }
+
+        await using VisitClient a = await host.ConnectAsync(alice);
+        await using VisitClient b = await host.ConnectAsync(bob);
+        _ = await a.JoinAsync(host.Timeout);
+        _ = await b.JoinAsync(host.Timeout);
+        (await a.AddVisitorAsync(bob.Nickname, host.Timeout)).Should().Be(VisitStatus.Ok);
+        (await b.VisitAsync(alice.Nickname, host.Timeout)).Should().Be(VisitStatus.Ok);
+        MapChanged entered = await b.MapChanges.WaitAsync(m => m.MapId == GameMaps.Farm, host.Timeout);
+        Math.Abs(entered.X - farm!.SpawnX).Should().BeLessThan(1f, "the visitor stands where the nodes are in reach");
+
+        // The axe on the tree, the pickaxe on the stone and the scythe on the weed are all the owner's to use (the swing cooldown is 300 ms).
+        int axe = Array.FindIndex(StarterKit.Items, i => i.ItemId == ItemCatalog.Axe);
+        int pickaxe = Array.FindIndex(StarterKit.Items, i => i.ItemId == ItemCatalog.Pickaxe);
+        int scythe = Array.FindIndex(StarterKit.Items, i => i.ItemId == ItemCatalog.Scythe);
+        foreach ((int slot, (int x, int y)) in new[] { (axe, free[0]), (pickaxe, free[1]), (scythe, free[2]) })
+        {
+            await Task.Delay(350, host.Timeout);
+            (await b.UseAsync(slot, x, y, host.Timeout)).Status.Should().Be(FarmStatus.NotYourFarm);
+        }
+
+        await using (NosumDbContext db = new(_database.Options))
+        {
+            (await db.WorldNodes.CountAsync(n => n.OwnerId == alice.Id)).Should().Be(3, "nothing was chopped, broken or cut");
+            (await db.WorldNodes.SingleAsync(n => n.Kind == (short)NodeKind.Tree && n.OwnerId == alice.Id)).Hits.Should().Be(NodeCatalog.HitsFor(NodeKind.Tree, TreeStage.Grown));
+        }
+
+        (await b.GetInventoryAsync(host.Timeout)).Slots.Should().NotContain(s => s.ItemId == ItemCatalog.Wood || s.ItemId == ItemCatalog.Stone || s.ItemId == ItemCatalog.Fiber);
+        PlayerProgressView progress = await InstanceManager.Instance.GetExistingInstance<IPlayerProgress>()!.GetAsync(bob.Id);
+        progress.Should().Be(new PlayerProgressView(EnergyRules.MaxEnergy, EnergyRules.MaxEnergy, 0, 0, 0), "a refused use costs no energy and earns no experience");
+
+        // The owner can: the same weed falls to Alice's scythe.
+        await Task.Delay(350, host.Timeout);
+        (await a.UseAsync(scythe, free[2].X, free[2].Y, host.Timeout)).Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Broke });
     }
 
     [Fact]

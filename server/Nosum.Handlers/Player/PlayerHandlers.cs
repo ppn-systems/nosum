@@ -8,7 +8,9 @@ using Nalix.Abstractions.Security;
 using Nalix.Codec.Extensions;
 using Nalix.Codec.Pooling;
 using Nalix.Runtime.Extensions;
+using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Player;
+using Nosum.Abstractions.Progress;
 using Nosum.Handlers.Session;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
@@ -21,6 +23,8 @@ namespace Nosum.Handlers.Player;
 public static partial class PlayerHandlers
 {
     [Inject] private static IPlayerService s_players = null!;
+    [Inject] private static IPlayerProgress s_progress = null!;
+    [Inject] private static IInventoryService s_inventory = null!;
 
     /// <summary>Puts the player on the map the server chooses and replies with their id, that map and their spawn.</summary>
     /// <param name="context">The request.</param>
@@ -48,6 +52,45 @@ public static partial class PlayerHandlers
             lease.Value.SpawnY = outcome.SpawnY;
             lease.Value.MapId = outcome.MapId;
             lease.Value.Facing = outcome.Facing;
+            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
+        }
+        catch
+        {
+            lease.Dispose();
+            throw;
+        }
+
+        if (outcome.Status != JoinStatus.Ok)
+        {
+            return;
+        }
+
+        // Accounts made before the axe, pickaxe and scythe existed get them once (docs/adr/ADR-023), then the player learns their energy and skills.
+        _ = await s_inventory.BackfillStarterToolsAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
+        await s_progress.PushAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Eats the food in a hotbar slot; the server removes one and restores its energy (docs/adr/ADR-023 D2).</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(PlayerOpCode.Eat)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(8, 3, PolicyId = "player-eat")]
+    public static async ValueTask HandleEatAsync(IPacketContext<Eat> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        int slot = context.Packet.Slot;
+        PlayerIdentity player = context.Connection.GetPlayer();
+
+        EatOutcome outcome = await s_progress.EatAsync(player.PlayerId, slot, context.CancellationToken).ConfigureAwait(false);
+
+        PacketScope<EatResult> lease = PacketFactory<EatResult>.Acquire();
+        try
+        {
+            lease.Value.SequenceId = sequence;
+            lease.Value.Status = outcome.Status;
             await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
         }
         catch

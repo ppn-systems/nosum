@@ -26,6 +26,7 @@ using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Trade;
@@ -64,6 +65,7 @@ using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
+using Nosum.Infrastructure.Progress;
 using Nosum.Infrastructure.Quests;
 using Nosum.Infrastructure.Shops;
 using Nosum.Infrastructure.Trade;
@@ -303,12 +305,15 @@ internal static class Program
         InstanceManager.Instance.Register<IToolState>(toolState);
         CalendarGameDayClock dayClock = new(calendar, clock);
         InstanceManager.Instance.Register<IGameDayClock>(dayClock);
-        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, dayClock, unitOfWork, clock);
+        // Energy and skills (docs/adr/ADR-023): every tool use is charged through this in the transaction of its effect.
+        PlayerProgressService progress = new(unitOfWork, dayClock, inventory, clock, notifier);
+        InstanceManager.Instance.Register<IPlayerProgress>(progress);
+        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, dayClock, unitOfWork, clock, progress);
         InstanceManager.Instance.Register<IResourceNodeService>(nodes);
         PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
-        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress);
         InstanceManager.Instance.Register<IFarmService>(farm);
 
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
