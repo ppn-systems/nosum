@@ -3,7 +3,7 @@
     @foreach (SlotDisplay slot in Slots)
     {
         int index = slot.Index;
-        <ItemSlotButton Slot="slot" Picked="@(Picked == index)" OnClick="() => OnSlotClick.InvokeAsync(index)" />
+        <ItemSlotButton Slot="slot" Picked="@(Picked == index)" OnClick="() => OnSlotClick.InvokeAsync(index)" OnShiftClick="@(OnSlotShiftClick.HasDelegate ? EventCallback.Factory.Create(this, () => OnSlotShiftClick.InvokeAsync(index)) : default)" />
     }
 </div>
 
@@ -22,4 +22,7 @@
 
     /// <summary>Raised with the clicked slot's index.</summary>
     [Parameter] public EventCallback<int> OnSlotClick { get; set; }
+
+    /// <summary>Raised with the clicked slot's index when it was clicked with Shift held; nothing happens when nobody listens (a plain click is raised instead).</summary>
+    [Parameter] public EventCallback<int> OnSlotShiftClick { get; set; }
 }

@@ -1,0 +1,11 @@
+.chest-grid {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 4);
+    padding: calc(var(--u) * 1) calc(var(--u) * 3);
+}
+
+.chest-hint {
+    margin: 0;
+    color: var(--nosum-ink-soft);
+}
