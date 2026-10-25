@@ -69,4 +69,7 @@ public enum ToolKind
 
     /// <summary>Cuts weeds and grass; harvests a mature crop.</summary>
     Scythe = 5,
+
+    /// <summary>Collects milk from a cow (docs/adr/ADR-028); costs no energy.</summary>
+    MilkPail = 6,
 }

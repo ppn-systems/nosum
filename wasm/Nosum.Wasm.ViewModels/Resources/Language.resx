@@ -487,6 +487,8 @@
   <data name="Friends_Map_town" xml:space="preserve"><value>thị trấn</value></data>
   <data name="Friends_Map_backwoods" xml:space="preserve"><value>vùng rừng sâu</value></data>
   <data name="Friends_Map_coopfarm" xml:space="preserve"><value>đất hợp tác xã</value></data>
+  <data name="Friends_Map_coop" xml:space="preserve"><value>chuồng gà</value></data>
+  <data name="Friends_Map_barn" xml:space="preserve"><value>chuồng gia súc</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Xóa bạn</value></data>
   <data name="Friends_Incoming_Heading" xml:space="preserve"><value>Lời mời kết bạn</value></data>
   <data name="Friends_Accept" xml:space="preserve"><value>Đồng ý</value></data>
@@ -648,4 +650,44 @@
   <data name="Furnace_Start" xml:space="preserve"><value>Nung {0}</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Lấy thỏi</value></data>
   <data name="Market_History_Tip" xml:space="preserve"><value>Xem lịch sử giá của vật phẩm này</value></data>
+  <data name="Place_Status_Fixed" xml:space="preserve"><value>Công trình đã xây xong thì không dời hay cất đi được.</value></data>
+  <data name="Shop_Title_carpenter_shop" xml:space="preserve"><value>Thợ mộc</value></data>
+  <data name="Carpenter_Buildings" xml:space="preserve"><value>Xây chuồng</value></data>
+  <data name="Carpenter_Animals" xml:space="preserve"><value>Mua vật nuôi</value></data>
+  <data name="Carpenter_Hint" xml:space="preserve"><value>Mua bản vẽ rồi đặt xuống nông trại hoặc đất của hợp tác xã. Xây mất hai ngày trong game.</value></data>
+  <data name="Carpenter_Cost" xml:space="preserve"><value>{0} xu · {1} gỗ · {2} đá</value></data>
+  <data name="Carpenter_Order" xml:space="preserve"><value>Mua bản vẽ</value></data>
+  <data name="Carpenter_Name" xml:space="preserve"><value>Tên vật nuôi</value></data>
+  <data name="Carpenter_NameHint" xml:space="preserve"><value>3 đến 16 ký tự, chữ không dấu và số.</value></data>
+  <data name="Carpenter_NoHome" xml:space="preserve"><value>Chưa có chuồng nào xây xong còn chỗ trống.</value></data>
+  <data name="Carpenter_Home" xml:space="preserve"><value>{0} ({1}/{2})</value></data>
+  <data name="Carpenter_BuyAnimal" xml:space="preserve"><value>Mua {0} · {1} xu</value></data>
+  <data name="Building_coop_Name" xml:space="preserve"><value>Chuồng gà</value></data>
+  <data name="Building_barn_Name" xml:space="preserve"><value>Chuồng bò</value></data>
+  <data name="Animal_chicken_Name" xml:space="preserve"><value>Gà</value></data>
+  <data name="Animal_cow_Name" xml:space="preserve"><value>Bò</value></data>
+  <data name="Building_Done_Commission" xml:space="preserve"><value>Đã có bản vẽ trong túi. Hãy đặt nó xuống đất.</value></data>
+  <data name="Building_Done_BuyAnimal" xml:space="preserve"><value>Đã mua vật nuôi và đưa về chuồng.</value></data>
+  <data name="Building_Done_Feed" xml:space="preserve"><value>Đã đổ thức ăn vào máng.</value></data>
+  <data name="Building_Done_Pet" xml:space="preserve"><value>Bạn vuốt ve {0}. Độ thân thiết: {1}.</value></data>
+  <data name="Building_Done_Collect" xml:space="preserve"><value>Nhận được {0}.</value></data>
+  <data name="Building_Status_NotAtShop" xml:space="preserve"><value>Hãy đứng gần quầy thợ mộc ở thị trấn.</value></data>
+  <data name="Building_Status_Unknown" xml:space="preserve"><value>Không tìm thấy công trình hoặc vật nuôi này.</value></data>
+  <data name="Building_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
+  <data name="Building_Status_NotEnoughItems" xml:space="preserve"><value>Bạn không đủ gỗ, đá hoặc thức ăn.</value></data>
+  <data name="Building_Status_NoSpace" xml:space="preserve"><value>Túi đồ của bạn đã đầy.</value></data>
+  <data name="Building_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Building_Status_NotYours" xml:space="preserve"><value>Chuồng này không phải của bạn. Khách chỉ được ngắm.</value></data>
+  <data name="Building_Status_NotFinished" xml:space="preserve"><value>Chuồng chưa xây xong.</value></data>
+  <data name="Building_Status_Full" xml:space="preserve"><value>Chuồng đã đủ vật nuôi.</value></data>
+  <data name="Building_Status_WrongResident" xml:space="preserve"><value>Loài này không sống trong chuồng đó.</value></data>
+  <data name="Building_Status_BadName" xml:space="preserve"><value>Tên không hợp lệ: 3 đến 16 ký tự, không tục tĩu.</value></data>
+  <data name="Building_Status_NotInside" xml:space="preserve"><value>Bạn phải ở trong chuồng.</value></data>
+  <data name="Building_Status_NotFeed" xml:space="preserve"><value>Chỉ cỏ khô hoặc sợi bẹ mới cho ăn được.</value></data>
+  <data name="Building_Status_OutOfReach" xml:space="preserve"><value>Xa quá, hãy lại gần hơn.</value></data>
+  <data name="Building_Status_AlreadyPetted" xml:space="preserve"><value>Hôm nay bạn đã vuốt ve rồi.</value></data>
+  <data name="Building_Status_NoProduce" xml:space="preserve"><value>Hôm nay chưa có gì để lấy.</value></data>
+  <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Cần cầm xô vắt sữa trên tay.</value></data>
+  <data name="Building_Status_BenchFull" xml:space="preserve"><value>Máng đã đầy.</value></data>
+  <data name="Building_Status_LimitReached" xml:space="preserve"><value>Khu đất đã có tối đa số công trình.</value></data>
 </root>

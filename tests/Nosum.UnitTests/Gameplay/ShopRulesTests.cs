@@ -21,9 +21,9 @@ namespace Nosum.UnitTests.Gameplay;
 public sealed class ShopRulesTests
 {
     [Fact]
-    public void Shops_AreThreeWithStableIdsAndKeys()
+    public void Shops_AreFourWithStableIdsAndKeys()
     {
-        ShopCatalog.All.Select(s => (s.Id, s.Key)).Should().Equal((1, "seed_shop"), (2, "clothing_shop"), (3, "furniture_shop"));
+        ShopCatalog.All.Select(s => (s.Id, s.Key)).Should().Equal((1, "seed_shop"), (2, "clothing_shop"), (3, "furniture_shop"), (4, "carpenter_shop"));
         ShopCatalog.SeedShop.Should().Be(1, "the town's only shop before the split keeps its id");
     }
 
@@ -56,7 +56,8 @@ public sealed class ShopRulesTests
             sold.Should().Contain(item.Id, $"{item.Key} is bought at a shop");
         }
 
-        foreach (int tool in ItemCatalog.All.Where(i => i.Kind is ItemKind.Tool or ItemKind.Produce).Select(i => i.Id))
+        // The carpenter sells the milk pail, a tool that is not in the starter kit (docs/adr/ADR-028); every other tool and all produce stay unsold.
+        foreach (int tool in ItemCatalog.All.Where(i => i.Kind is ItemKind.Tool or ItemKind.Produce && i.Id != ItemCatalog.MilkPail).Select(i => i.Id))
         {
             sold.Should().NotContain(tool, "tools and produce are never sold");
         }
@@ -140,6 +141,7 @@ public sealed class ShopRulesTests
             (ShopCatalog.SeedShop, 43, 57),
             (ShopCatalog.ClothingShop, 20, 89),
             (ShopCatalog.FurnitureShop, 95, 51),
+            (ShopCatalog.CarpenterShop, 10, 86),
             (CommunityGoalCatalog.BoardCounterId, 42, 57));
         foreach (ShopDefinition shop in ShopCatalog.All)
         {

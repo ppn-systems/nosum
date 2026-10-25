@@ -21,7 +21,7 @@ hosted maps (`MapSpec`: id, `.tmx` file name, spawn tile, building props, opened
 dropped); `WarpRule.TryFind` says when a player standing at a position uses an exit (on the tile; an edge
 exit needs walking outwards) and `WarpRule.Arrival` where they appear. `MapSpec.BuildWalkGrid` is the one
 grid both sides use. Adding a map: add a `MapSpec` to `GameMaps`, link its `.tmx` and tilesheets in
-`wasm/Nosum.Wasm/Nosum.Wasm.csproj` and `server/Nosum.Host/Nosum.Host.csproj` (`GameMapsTests` checks). Hosted maps: `farm`, `farmhouse`, `busstop`, `forest`, `town`, `backwoods`.
+`wasm/Nosum.Wasm/Nosum.Wasm.csproj` and `server/Nosum.Host/Nosum.Host.csproj` (`GameMapsTests` checks). Hosted maps: `farm`, `farmhouse`, `busstop`, `forest`, `town`, `backwoods`, `coopfarm`, and the building interiors `coop` and `barn` (ADR-028).
 
 Chunks ([ADR-022](../docs/adr/ADR-022-chunked-interest-management.md)): `Maps/ChunkCoord` (16 × 16 tiles; tile or pixel to chunk, distance), `ChunkBounds` (the chunks a map has) and `ChunkInterest` (the set of chunks a player is
 interested in: their chunk and its 8 neighbours, with one chunk of hysteresis; `MoveTo` says which chunks entered and left). The server decides who sees what with them, the client uses the same math to file mirrors by chunk.
@@ -36,6 +36,12 @@ tiles; a pure function of the placed set, for the growth rule), `FurnaceRules` (
 
 Visiting ([ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): `Visits/VisitRules` is the pure rule set for private places: `MayDo(instance, player, action)` (the owner does everything; a visitor only walks and waters; a shared map has no owner),
 `IsVisitor`, `MayEnter` (the owner, a listed player, or a co-op member while the owner's setting is on; never a guest's place) and the limits (`MaxListed` = 50, co-op members may visit by default). The server asks it in `FarmService`, `PlaceableService`, `MarketService` and `VisitAccess`.
+
+Farm buildings and animals ([ADR-028](../docs/adr/ADR-028-farm-buildings-and-animals.md)): `Buildings/BuildingCatalog` is the data of the coop and the barn (cost, capacity, residents, sprite rectangle, footprint, door tile, interior arrival, the rectangle the animals walk in
+and the feeding bench; `PlaceableCatalog` turns each into a `PlaceableKind.Building` placeable whose item is the blueprint, ids 610-611), `BuildingRules` (construction = two game days from the placement time, `CompletesAtMs`/`StateOf`, the interior `MapInstance` keyed by the building id,
+`CanHouse`) and, for the door, `PlaceableDefinition.Door` (`PlacedSet.BuildGrid` opens that one footprint tile; `Check` keeps the tile in front of every door free). `Animals/AnimalCatalog` (chicken 800 coins, cow 1 500; produce, pail, sheet, walking speed) and `AnimalRules`
+(`Settle` the overnight feeding lazily per game day, `HasProduce`, once-a-day `CanPet`, friendship 0-1000 in steps of 40, the large-produce chance `5 + friendship / 20` percent decided by a seed of animal and day only, `IsValidName` = the nickname rules). `MapSpec.InteriorOf` marks the private interior maps `coop` and `barn`
+(`Coop.tmx`, `Barn.tmx`). Items: milk pail (tool 6, sold at the carpenter), blueprints 610-611, egg, large egg, milk, large milk (900-903), hay (508); `ShopCatalog.CarpenterShop` is the Town counter (door tile (10, 85), doormat (10, 86)).
 
 Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D5-D6, `GroundItems/`): `GroundItemRules` holds the numbers and rules of an item lying in the world (pickup radius 1.5 tiles, `CanPickUp`: the cause's
 5 s priority on shared maps, owner-and-cause only on a private farm; `Timing`: 10 minute expiry on shared maps, never on a private one; `PopPosition`: where a harvest lands so the harvester can take it at once; `ChunkOf`:
