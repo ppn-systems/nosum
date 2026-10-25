@@ -383,13 +383,13 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
     }
 
     // A connection nobody talks to: presence only stores it.
-    private class ConnectionStub : DispatchProxy
+    internal class ConnectionStub : DispatchProxy
     {
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
             => targetMethod is { ReturnType: { IsValueType: true } type } && type != typeof(void) ? Activator.CreateInstance(type) : null;
     }
 
-    private sealed class RecordingEviction : ICoopLandEviction
+    internal sealed class RecordingEviction : ICoopLandEviction
     {
         private readonly List<Guid> _evicted = [];
 
@@ -415,12 +415,12 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         }
     }
 
-    private sealed class NoNotifier : IPlayerNotifier
+    internal sealed class NoNotifier : IPlayerNotifier
     {
         public ValueTask<bool> TrySendAsync(Guid playerId, IPacket packet, CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
     }
 
-    private sealed class NoSessions : ISessionRegistry
+    internal sealed class NoSessions : ISessionRegistry
     {
         public ValueTask ActivateAsync(Guid playerId, IConnection connection, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
 
@@ -432,7 +432,7 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
     }
 
     // Reports each registered player at a chosen place of a chosen instance; everything else is empty.
-    private sealed class Standing : IMapPresence
+    internal sealed class Standing : IMapPresence
     {
         private readonly Dictionary<Guid, (IConnection Connection, PlayerPresence Presence)> _byPlayer = [];
         private readonly Dictionary<IConnection, PlayerPresence> _byConnection = [];

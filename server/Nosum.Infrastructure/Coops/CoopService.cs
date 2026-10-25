@@ -599,9 +599,12 @@ public sealed class CoopService : ICoopService, IDisposable
 
             string reason = CoopUpgrades.ReasonOf(rulesTrack);
             List<TransferLeg> legs = [.. CoopUpgrades.Cost(rulesTrack, targetLevel).Select(c => new TransferLeg(TransferParty.Coop(coopId), c.ItemId, -c.Quantity))];
+
+            // A transfer needs a player party to run in; the buyer takes part with a leg that moves nothing, and the price goes to nobody.
+            List<TransferLeg> transfer = [new TransferLeg(TransferParty.Player(playerId), 0, 0), .. legs];
             bool stale = false;
             TransferStatus status = await _transfers.ExecuteAsync(
-                legs,
+                transfer,
                 reason,
                 async (unit, token) =>
                 {

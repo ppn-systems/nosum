@@ -12,6 +12,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Chest;
+using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Furnace;
 using Nosum.Wasm.Socket.Inventory;
@@ -54,6 +55,7 @@ internal static partial class GameLoop
     private static ChestChannel? s_chests;
     private static FurnaceChannel? s_furnaces;
     private static BuildingChannel? s_buildings;
+    private static CoopChannel? s_coop;
     private static MarketChannel? s_market;
     private static ProgressChannel? s_progress;
     private static LookChannel? s_looks;
@@ -120,6 +122,10 @@ internal static partial class GameLoop
     /// <param name="groundItems">The ground items mirror.</param>
     public static void UseGroundItems(GroundItemChannel groundItems) => s_groundItems = groundItems;
 
+    /// <summary>Gives the loop the co-op state, so co-op land the co-op has not unlocked is shaded (docs/adr/ADR-038). Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="coop">The co-op channel.</param>
+    public static void UseCoop(CoopChannel coop) => s_coop = coop;
+
     /// <summary>Gives the loop the farm buildings and their animals (docs/adr/ADR-028): buildings under construction are drawn dull, animals inside a building are drawn and tended with the action key.</summary>
     /// <param name="buildings">The building channel.</param>
     public static void UseBuildings(BuildingChannel buildings) => s_buildings = buildings;
@@ -167,6 +173,11 @@ internal static partial class GameLoop
         if (actions is not null && s_farm is not null)
         {
             providers.Add(new FarmDecoratorProvider(s_farm, actions, s_calendar, s_placeable));
+        }
+
+        if (s_coop is not null)
+        {
+            providers.Add(new LockedLandDecoratorProvider(s_coop));
         }
 
         if (s_nodes is not null)

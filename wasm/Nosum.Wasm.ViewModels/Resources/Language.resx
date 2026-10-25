@@ -258,6 +258,22 @@
   <data name="Coop_Status_SelfKick" xml:space="preserve"><value>Bạn không thể tự mời mình ra.</value></data>
   <data name="Coop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>Người đó đã được mời rồi.</value></data>
+  <data name="Coop_Upgrades_Heading" xml:space="preserve"><value>Nâng cấp</value></data>
+  <data name="Coop_Upgrade_Warehouse" xml:space="preserve"><value>Kho rộng hơn</value></data>
+  <data name="Coop_Upgrade_Land" xml:space="preserve"><value>Thêm đất</value></data>
+  <data name="Coop_Upgrade_Level" xml:space="preserve"><value>Cấp {0} / {1}</value></data>
+  <data name="Coop_Upgrade_Warehouse_Now" xml:space="preserve"><value>Chứa tối đa {0} loại vật phẩm (đang dùng {1}).</value></data>
+  <data name="Coop_Upgrade_Land_Now" xml:space="preserve"><value>{0} trên {1} khu đất hợp tác xã đã mở để xới đất và xây dựng.</value></data>
+  <data name="Coop_Upgrade_Next" xml:space="preserve"><value>Cấp tiếp theo lấy từ kho:</value></data>
+  <data name="Coop_Upgrade_Cost" xml:space="preserve"><value>{0} x{1} (kho có {2})</value></data>
+  <data name="Coop_Upgrade_Buy" xml:space="preserve"><value>Mua cấp tiếp theo</value></data>
+  <data name="Coop_Upgrade_Max" xml:space="preserve"><value>Đã nâng cấp tối đa.</value></data>
+  <data name="Coop_Upgrade_FounderOnly" xml:space="preserve"><value>Chỉ người sáng lập mới mua được nâng cấp.</value></data>
+  <data name="Coop_Status_WarehouseFull" xml:space="preserve"><value>Kho đã chứa đủ số loại vật phẩm. Hãy nâng cấp kho, hoặc gửi loại vật phẩm kho đã có.</value></data>
+  <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>Nâng cấp này đã ở cấp cao nhất.</value></data>
+  <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>Nâng cấp này đã được mua rồi.</value></data>
+  <data name="Farm_Status_LockedLand" xml:space="preserve"><value>Khu đất này của hợp tác xã chưa được mở.</value></data>
+  <data name="Place_Status_LockedLand" xml:space="preserve"><value>Khu đất này của hợp tác xã chưa được mở.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Khách {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Biệt danh</value></data>
   <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} ký tự: chữ cái không dấu (a-z) và chữ số, giữa các từ là một dấu cách hoặc gạch dưới. Không dùng từ tục tĩu.</value></data>
