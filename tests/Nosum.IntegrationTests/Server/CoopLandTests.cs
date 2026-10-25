@@ -25,9 +25,11 @@ using Nosum.Contracts.Farm;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
+using Nosum.Domain.Placeables;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
@@ -256,6 +258,45 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         (await after.FarmPlots.AnyAsync(p => p.OwnerId == coop)).Should().BeFalse("the land goes with the co-op");
         (await after.CoopLog.AnyAsync(e => e.CoopId == coop)).Should().BeFalse();
         _eviction.Evicted.Should().Contain(founder);
+    }
+
+    [Fact]
+    public async Task Dissolve_ARefusedWhileAChestOrFurnaceOnTheLandHoldsSomething_ThenThePlacedObjectsAreWiped()
+    {
+        Guid founder = await CreatePlayerAsync();
+        (await _coops.CreateAsync(founder, "Short lived")).Should().Be(CoopStatus.Ok);
+        Guid coop = (await _membership.FindAsync(founder))!.CoopId;
+        int chest;
+        int furnace;
+        await using (NosumDbContext context = new(_database.Options))
+        {
+            PlacedObject chestRow = new() { MapId = GameMaps.CoopFarm, OwnerId = coop, ItemId = ItemCatalog.Chest, TileX = 40, TileY = 20, PlacedAt = s_start, UpdatedAt = s_start };
+            PlacedObject furnaceRow = new() { MapId = GameMaps.CoopFarm, OwnerId = coop, ItemId = ItemCatalog.Furnace, TileX = 42, TileY = 20, PlacedAt = s_start, UpdatedAt = s_start };
+            context.PlacedObjects.AddRange(chestRow, furnaceRow);
+            _ = await context.SaveChangesAsync();
+            (chest, furnace) = (chestRow.Id, furnaceRow.Id);
+            context.FurnaceJobs.Add(new FurnaceJob { ObjectId = furnace, OreItemId = ItemCatalog.CopperOre, StartedAtMs = 1 });
+            _ = await context.SaveChangesAsync();
+        }
+
+        Guid chestOwner = ContainerIds.ForChest(chest);
+        _ = await _inventory.AddAsync(chestOwner, ItemCatalog.Wood, 5, "test.setup");
+
+        (await _coops.LeaveAsync(founder)).Should().Be(CoopStatus.CannotLeave, "the chest holds wood");
+        _ = await _inventory.RemoveAsync(chestOwner, ItemCatalog.Wood, 5, "test.setup");
+        (await _coops.LeaveAsync(founder)).Should().Be(CoopStatus.CannotLeave, "the furnace holds a job");
+        await using (NosumDbContext context = new(_database.Options))
+        {
+            context.FurnaceJobs.RemoveRange(await context.FurnaceJobs.Where(j => j.ObjectId == furnace).ToListAsync());
+            _ = await context.SaveChangesAsync();
+        }
+
+        (await _coops.LeaveAsync(founder)).Should().Be(CoopStatus.Ok);
+
+        await using NosumDbContext after = new(_database.Options);
+        (await after.Coops.AnyAsync(c => c.Id == coop)).Should().BeFalse();
+        (await after.PlacedObjects.AnyAsync(p => p.OwnerId == coop)).Should().BeFalse("the land's objects go with the co-op");
+        (await after.PlayerInventories.AnyAsync(i => i.PlayerId == chestOwner)).Should().BeFalse("and so does the empty chest's inventory");
     }
 
     private enum FarmItem
