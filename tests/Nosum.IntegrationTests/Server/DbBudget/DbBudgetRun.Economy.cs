@@ -32,8 +32,24 @@ public sealed partial class DbBudgetRun
 {
     // A signed-in guest standing on a tile of a map, holding some coins and items. Nothing of the set-up is measured.
     private async Task<BudgetPlayer> FreshAsync(string mapId, double feetX, double feetY, long coins = 0, params (int ItemId, int Quantity)[] items)
+        => await this.FreshAsync(mapId, feetX, feetY, registered: false, coins, items);
+
+    // The same for a registered player (guests may not chat, befriend, visit or found a co-op).
+    private async Task<BudgetPlayer> FreshAsync(string mapId, double feetX, double feetY, bool registered, long coins, params (int ItemId, int Quantity)[] items)
     {
-        BudgetPlayer p = await _rig.SignedInGuestAsync();
+        BudgetPlayer p;
+        if (registered)
+        {
+            string nick = this.NextNickname();
+            string token = await _rig.RegisteredAccountAsync(nick, "budget." + nick + "@gmail.com");
+            p = await _rig.ConnectAsync();
+            _ = await p.ResumeAsync(token);
+        }
+        else
+        {
+            p = await _rig.SignedInGuestAsync();
+        }
+
         await BudgetRig.Service<IPlayerStateService>().SaveAsync(p.AccountId, new PlayerStateRow(mapId, feetX, feetY, Facing.Down), _rig.Timeout);
         _ = await p.JoinAsync(mapId);
         IDevGrantService grants = BudgetRig.Service<IDevGrantService>();

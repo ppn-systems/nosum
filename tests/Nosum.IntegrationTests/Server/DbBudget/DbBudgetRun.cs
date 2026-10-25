@@ -42,6 +42,7 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         await this.GuardAsync("world", this.WorldAsync);
         await this.GuardAsync("farm", this.FarmAsync);
         await this.GuardAsync("economy", this.EconomyAsync);
+        await this.GuardAsync("social", this.SocialAsync);
     }
 
     /// <inheritdoc/>
