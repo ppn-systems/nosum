@@ -12,7 +12,7 @@ using Nosum.Contracts.Player.S2C;
 namespace Nosum.Wasm.Socket.Player;
 
 /// <summary>
-/// The player's side of the connection: joins a map whenever the socket is ready, publishes the
+/// The player's side of the connection: joins a map once the connection is signed in, publishes the
 /// local farmer's position to the server about 10 times per second, and hands the server's
 /// answers to the frame loop. The frame loop only calls <see cref="Report"/> and the
 /// <c>TryTake…</c> methods, which never allocate or await; sending runs on a timer here.
@@ -59,10 +59,6 @@ public sealed class PlayerChannel : IDisposable
         ];
         socket.Ready += this.OnSocketReady;
         _ = Task.Run(() => this.ReportLoopAsync(_stop.Token));
-        if (socket.State == GameSocketState.Ready)
-        {
-            this.OnSocketReady();
-        }
     }
 
     /// <summary>Raised when the server refuses to put the player on the map. May run on any thread.</summary>
@@ -161,12 +157,14 @@ public sealed class PlayerChannel : IDisposable
         }
     }
 
-    private void OnSocketReady()
-    {
-        // The old player id died with the old connection.
-        Volatile.Write(ref _playerId, 0);
-        _ = this.JoinAsync(_stop.Token);
-    }
+    /// <summary>
+    /// Joins the map. Call it whenever the connection is signed in: after the first sign-in and again
+    /// after every reconnect and resume. A join needs a signed-in player (the server refuses it otherwise).
+    /// </summary>
+    public void Join() => _ = this.JoinAsync(_stop.Token);
+
+    // The old player id died with the old connection; the caller signs in again and calls Join.
+    private void OnSocketReady() => Volatile.Write(ref _playerId, 0);
 
     [SuppressMessage("Design", "CA1031", Justification = "A failed join is retried by the next ready event; there is no caller to report to.")]
     private async Task JoinAsync(CancellationToken ct)

@@ -26,6 +26,7 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
     [SuppressMessage("Usage", "CA2213", Justification = "Borrowed: the run loop owns the session and disposes it when the connection ends.")]
     private WebSocketSession? _session;
     private Task _loop = Task.CompletedTask;
+    private TaskCompletionSource _ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private int _started;
     private int _state;
 
@@ -52,6 +53,15 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
         if (Interlocked.Exchange(ref _started, 1) == 0)
         {
             _loop = Task.Run(() => this.RunAsync(_stop.Token));
+        }
+    }
+
+    /// <inheritdoc/>
+    public Task WaitReadyAsync(CancellationToken cancellationToken = default)
+    {
+        lock (_gate)
+        {
+            return _session is not null ? Task.CompletedTask : _ready.Task.WaitAsync(cancellationToken);
         }
     }
 
@@ -142,6 +152,7 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
                 lock (_gate)
                 {
                     _session = session;
+                    _ready.TrySetResult();
                     foreach (ISubscription subscription in _subscriptions)
                     {
                         subscription.Attach(session);
@@ -166,6 +177,10 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
                 lock (_gate)
                 {
                     _session = null;
+                    if (_ready.Task.IsCompleted)
+                    {
+                        _ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    }
                     foreach (ISubscription subscription in _subscriptions)
                     {
                         subscription.Detach();

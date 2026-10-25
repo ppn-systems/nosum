@@ -121,3 +121,12 @@ code {
 .connection-ready { border-left-color: #3fb950; }
 .connection-connecting, .connection-reconnecting { border-left-color: #d29922; }
 .connection-offline { border-left-color: #f85149; }
+
+.account-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(20, 24, 18, 0.85);
+}

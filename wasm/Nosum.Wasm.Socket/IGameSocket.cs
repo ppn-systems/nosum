@@ -29,6 +29,11 @@ public interface IGameSocket
     /// <summary>Starts connecting in the background and keeps the connection alive. Calling it again does nothing.</summary>
     void Start();
 
+    /// <summary>Completes when the socket is ready, immediately if it already is.</summary>
+    /// <param name="cancellationToken">Cancels the wait.</param>
+    /// <returns>A task that completes when <see cref="State"/> is <see cref="GameSocketState.Ready"/>.</returns>
+    Task WaitReadyAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Sends a request and waits for the reply that carries its sequence id.</summary>
     /// <typeparam name="TResponse">Reply packet type.</typeparam>
     /// <param name="request">The request; the caller keeps ownership.</param>
