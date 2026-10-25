@@ -315,7 +315,7 @@ public sealed class MailService : IMailService
         }
     }
 
-    // Keeps one mailbox bounded: past StoredLimit the oldest mails that are read and carry nothing to collect are dropped to make room.
+    // Keeps one mailbox bounded: past StoredLimit the oldest mails that carry nothing left to collect (or have expired) are dropped to make room.
     private async Task MakeRoomAsync(IUnitOfWork unit, Guid recipientId, DateTimeOffset now, CancellationToken cancellationToken)
     {
         IRepository<MailMessage> mails = unit.Repository<MailMessage>();
@@ -327,7 +327,7 @@ public sealed class MailService : IMailService
 
         int excess = stored - StoredLimit + 1;
         List<MailMessage> candidates = await mails.ListAsync(
-            m => m.RecipientId == recipientId && (m.ExpiresAt <= now || (m.ReadAt != null && (m.Coins == 0 || m.CollectedAt != null))),
+            m => m.RecipientId == recipientId && (m.ExpiresAt <= now || m.Coins == 0 || m.CollectedAt != null),
             cancellationToken).ConfigureAwait(false);
 
         foreach (MailMessage old in candidates.OrderBy(m => m.SentAt).Take(excess))
