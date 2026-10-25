@@ -12,6 +12,7 @@ using Nalix.Runtime.Groups;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
@@ -26,8 +27,10 @@ using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Trade;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
+using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
@@ -40,6 +43,7 @@ using Nosum.Handlers.Quest;
 using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
@@ -129,6 +133,28 @@ internal static class Program
     }
 
     /// <summary>
+    /// Builds the server calendar: the default (docs/adr/ADR-018), with the epoch replaced by <c>NOSUM_CALENDAR_EPOCH</c> (an ISO 8601 UTC
+    /// instant, for example <c>2026-11-02T00:00:00Z</c>) when that variable is set. An unreadable value stops the process rather than
+    /// silently starting a different calendar.
+    /// </summary>
+    /// <returns>The calendar every player shares.</returns>
+    private static GameCalendar ConfiguredCalendar()
+    {
+        string? text = Environment.GetEnvironmentVariable("NOSUM_CALENDAR_EPOCH");
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return GameCalendar.Default;
+        }
+
+        if (!DateTimeOffset.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out DateTimeOffset epoch))
+        {
+            throw new InvalidOperationException("NOSUM_CALENDAR_EPOCH is not a valid ISO 8601 instant.");
+        }
+
+        return new GameCalendar(epoch.ToUnixTimeMilliseconds(), GameCalendar.DefaultDayLengthMs);
+    }
+
+    /// <summary>
     /// Reads <c>ConnectionStrings__Default</c>; outside Production a missing value selects the local
     /// development database, in Production it stops the process.
     /// </summary>
@@ -169,7 +195,8 @@ internal static class Program
             .MapHandlers(typeof(TradeHandlers))
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
-            .MapHandlers(typeof(ShopHandlers));
+            .MapHandlers(typeof(ShopHandlers))
+            .MapHandlers(typeof(CalendarHandlers));
 
         // Tester tools exist only in Development: no handler, no service, no opcode in Production.
         if (development)
@@ -207,6 +234,10 @@ internal static class Program
         SessionRegistry sessions = new(presence);
         InstanceManager.Instance.Register<ISessionRegistry>(sessions);
 
+        // The server calendar every player shares (docs/adr/ADR-018).
+        GameCalendar calendar = ConfiguredCalendar();
+        InstanceManager.Instance.Register<ICalendarService>(new CalendarService(calendar, clock));
+
         // Items, quests and farming (docs/adr/ADR-011). One notifier pushes to a player's active connection.
         IUnitOfWorkFactory unitOfWork = InstanceManager.Instance.GetExistingInstance<IUnitOfWorkFactory>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
@@ -224,9 +255,14 @@ internal static class Program
         // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
         PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
-        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval);
+        // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
+        CoopMembership coopMembership = new(unitOfWork);
+        InstanceManager.Instance.Register<ICoopMembership>(coopMembership);
+        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), coopMembership, TimeProvider.System, SnapshotInterval);
         InstanceManager.Instance.Register<IPlayerService>(players);
-        InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock));
+        InstanceManager.Instance.Register<ICoopLandEviction>(players);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, unitOfWork, clock, calendar);
+        InstanceManager.Instance.Register<IFarmService>(farm);
 
         // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
@@ -237,7 +273,7 @@ internal static class Program
         // The market fee is a coin sink (owner decision 2026-10-25); IFeeSink is the one place that would redirect it.
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
         InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock));
-        InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps));
+        InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock));
         if (development)
         {
             InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));
@@ -245,6 +281,6 @@ internal static class Program
 
         InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, nicknames, clock));
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
-        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, clock));
+        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock));
     }
 }

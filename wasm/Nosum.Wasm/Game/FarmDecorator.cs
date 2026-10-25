@@ -4,9 +4,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Core;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Maps;
 using Nosum.Rendering;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Farm;
 
 namespace Nosum.Wasm.Game;
@@ -32,6 +34,8 @@ internal sealed class FarmDecorator : IMapDecorator
     private readonly int _cropsTexture;
     private readonly int _cursorTexture;
     private readonly int _tileSize;
+    private readonly CalendarChannel? _calendar;
+    private GameCalendar? _rules;
     private Camera2D _camera;
     private long _nowMs;
 
@@ -43,8 +47,10 @@ internal sealed class FarmDecorator : IMapDecorator
     /// <param name="cropsTexture">Texture id of <c>crops.png</c>.</param>
     /// <param name="cursorTexture">Texture id of the 16 x 16 target cursor.</param>
     /// <param name="tileSize">Map tile size, pixels.</param>
-    public FarmDecorator(string mapId, FarmChannel farm, PlayerActions actions, int soilTexture, int cropsTexture, int cursorTexture, int tileSize)
+    /// <param name="calendar">The server calendar; crops that withered are not drawn. <see langword="null"/> draws every crop.</param>
+    public FarmDecorator(string mapId, FarmChannel farm, PlayerActions actions, int soilTexture, int cropsTexture, int cursorTexture, int tileSize, CalendarChannel? calendar = null)
     {
+        _calendar = calendar;
         _mapId = mapId;
         _farm = farm;
         _actions = actions;
@@ -96,6 +102,7 @@ internal sealed class FarmDecorator : IMapDecorator
     /// <inheritdoc/>
     public void AddToWorld(WorldSpriteBatch world)
     {
+        GameCalendar? rules = this.Rules();
         using (_farm.Read())
         {
             if (!string.Equals(_farm.MapId, _mapId, StringComparison.Ordinal))
@@ -119,6 +126,13 @@ internal sealed class FarmDecorator : IMapDecorator
                 }
 
                 FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthMs, info.SettledAtMs, info.WetUntilMs);
+
+                // A crop that withered at the season change is gone from the picture; the soil stays and can be planted over (docs/adr/ADR-018).
+                if (rules is not null && FarmRules.IsWithered(tile, _nowMs, rules))
+                {
+                    continue;
+                }
+
                 if (CropSprites.TryGetFrame(info.CropId, FarmRules.StageAt(tile, _nowMs), out int sourceX, out int sourceY))
                 {
                     // Anchored at the tile's centre so a farmer walking over it is ordered by which half they stand on.
@@ -126,6 +140,22 @@ internal sealed class FarmDecorator : IMapDecorator
                 }
             }
         }
+    }
+
+    // The calendar the server sent, rebuilt only when its numbers change (once, at sign-in); null until it is known.
+    private GameCalendar? Rules()
+    {
+        if (_calendar is not { IsLoaded: true })
+        {
+            return null;
+        }
+
+        if (_rules is null || _rules.EpochMs != _calendar.EpochMs || _rules.DayLengthMs != _calendar.DayLengthMs)
+        {
+            _rules = new GameCalendar(_calendar.EpochMs, _calendar.DayLengthMs);
+        }
+
+        return _rules;
     }
 }
 
@@ -137,12 +167,15 @@ internal sealed class FarmDecoratorProvider : IMapDecoratorProvider
 
     private readonly FarmChannel _farm;
     private readonly PlayerActions _actions;
+    private readonly CalendarChannel? _calendar;
 
     /// <summary>Initializes the provider.</summary>
     /// <param name="farm">The mirrored tiles.</param>
     /// <param name="actions">Where the cursor goes.</param>
-    public FarmDecoratorProvider(FarmChannel farm, PlayerActions actions)
+    /// <param name="calendar">The server calendar, so withered crops are not drawn.</param>
+    public FarmDecoratorProvider(FarmChannel farm, PlayerActions actions, CalendarChannel? calendar = null)
     {
+        _calendar = calendar;
         _farm = farm;
         _actions = actions;
     }
@@ -164,6 +197,6 @@ internal sealed class FarmDecoratorProvider : IMapDecoratorProvider
             textures.LoadAsync(TileSheetsUrl + "crops.png"),
             textures.LoadAsync(TargetCursor.DataUrl)).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        return new FarmDecorator(spec.Id, _farm, _actions, ids[0], ids[1], ids[2], map.TileWidth);
+        return new FarmDecorator(spec.Id, _farm, _actions, ids[0], ids[1], ids[2], map.TileWidth, _calendar);
     }
 }

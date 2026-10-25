@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nosum.Gameplay.Calendar;
 
 namespace Nosum.Gameplay.Farm;
 
@@ -16,13 +17,15 @@ public sealed class CropDefinition
     /// <summary>Initializes a crop.</summary>
     /// <param name="id">Stable numeric id, greater than zero.</param>
     /// <param name="key">Stable key, for example <c>parsnip</c>.</param>
+    /// <param name="seasons">The seasons the crop grows in; planting is refused in any other season and the crop withers when one begins (docs/adr/ADR-018).</param>
     /// <param name="harvestItemId">Item the crop yields.</param>
     /// <param name="harvestQuantity">How many items one harvest yields.</param>
     /// <param name="stageSeconds">Seconds of watered growth each stage lasts, in order; the crop is mature after the last one.</param>
-    public CropDefinition(int id, string key, int harvestItemId, int harvestQuantity, params int[] stageSeconds)
+    public CropDefinition(int id, string key, SeasonSet seasons, int harvestItemId, int harvestQuantity, params int[] stageSeconds)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
         ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentOutOfRangeException.ThrowIfEqual((int)seasons, (int)SeasonSet.None);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(harvestItemId);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(harvestQuantity);
         ArgumentNullException.ThrowIfNull(stageSeconds);
@@ -30,6 +33,7 @@ public sealed class CropDefinition
 
         this.Id = id;
         this.Key = key;
+        this.Seasons = seasons;
         this.HarvestItemId = harvestItemId;
         this.HarvestQuantity = harvestQuantity;
         _stageEndsMs = new long[stageSeconds.Length];
@@ -50,6 +54,9 @@ public sealed class CropDefinition
     /// <summary>Gets the stable key.</summary>
     public string Key { get; }
 
+    /// <summary>Gets the seasons the crop grows in.</summary>
+    public SeasonSet Seasons { get; }
+
     /// <summary>Gets the item one harvest yields.</summary>
     public int HarvestItemId { get; }
 
@@ -61,6 +68,11 @@ public sealed class CropDefinition
 
     /// <summary>Gets the watered growth time the crop needs to mature, milliseconds.</summary>
     public long TotalGrowthMs { get; }
+
+    /// <summary>Returns whether the crop can be planted, and grows, in a season.</summary>
+    /// <param name="season">The season.</param>
+    /// <returns><see langword="true"/> when the crop grows in the season.</returns>
+    public bool GrowsIn(Season season) => this.Seasons.Contains(season);
 
     /// <summary>Returns the stage reached after some watered growth time.</summary>
     /// <param name="growthMs">Watered growth so far, milliseconds.</param>

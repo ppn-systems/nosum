@@ -16,6 +16,7 @@ using Nalix.Abstractions.Networking.Packets;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Market;
@@ -66,7 +67,7 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
         _inventory = new InventoryService(_units, _clock);
         _transfers = new TransferService(_inventory, _clock);
         _market = new MarketService(_transfers, _inventory, _units, new NoPresence(), new NoMaps(), new CoinSink(), _nicknames, _clock);
-        _coops = new CoopService(_units, _transfers, new NoPresence(), new NoSessions(), new NoNotifier(), _nicknames, _clock);
+        _coops = new CoopService(_units, _transfers, new NoPresence(), new NoSessions(), new NoNotifier(), _nicknames, new NoFarm(), new NoEviction(), _clock);
     }
 
     public void Dispose() => _coops.Dispose();
@@ -507,6 +508,22 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
         context.Players.Add(player);
         _ = await context.SaveChangesAsync();
         return player.Id;
+    }
+
+    private sealed class NoEviction : ICoopLandEviction
+    {
+        public ValueTask EvictAsync(Guid accountId, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+    }
+
+    private sealed class NoFarm : IFarmService
+    {
+        public Task<FarmUseOutcome> UseAsync(IConnection connection, int hotbarSlot, int tileX, int tileY, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<FarmSnapshotView> GetFarmAsync(IConnection connection, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public void Forget(MapInstance instance)
+        {
+        }
     }
 
     private sealed class NoNotifier : IPlayerNotifier

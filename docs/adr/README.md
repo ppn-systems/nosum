@@ -23,6 +23,9 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-013](ADR-013-economy-coins-escrow-market-trade.md) | Economy: coins, one atomic transfer, shipping bin, consignment market, direct trade | Accepted |
 | [ADR-014](ADR-014-coops-and-looks.md) | Co-operatives (membership, shared warehouse) and player looks | Accepted |
 | [ADR-015](ADR-015-private-instances-and-placeables.md) | Private per-player farm and farmhouse, Town and Backwoods, player-placed furniture (amends ADR-012) | Accepted |
+| [ADR-020](ADR-020-coop-land.md) | Co-op land: a shared farm instance per co-op, entered from Town by membership | Accepted |
+| [ADR-016](ADR-016-ui-theme-and-hud-layout.md) | One pixel-art UI theme (shared controls, 9-slice frames) and one HUD dock-region layout | Proposed |
+| [ADR-018](ADR-018-seasons-and-server-calendar.md) | Seasons and the server calendar: two-week seasons, crops by season, clock computed on the client | Accepted |
 | [ADR-016](ADR-016-ui-theme-and-hud-layout.md) | One pixel-art UI theme (shared controls, 9-slice frames) and one HUD dock-region layout | Proposed (partly superseded by ADR-017) |
 | [ADR-017](ADR-017-game-menu-and-world-pixel-ui.md) | One game menu, a UI pixel equal to the world pixel, a pixel font (VT323), a near-empty HUD (amends ADR-016) | Accepted |
 | [ADR-005](ADR-005-three-quarter-top-down-view.md) | 3/4 top-down view (layers, y-sorting, feet anchors) | Accepted |

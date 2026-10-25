@@ -329,4 +329,14 @@
   <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Nhấn để cởi ra</value></data>
   <data name="Toolbar_Shop" xml:space="preserve"><value>Cửa hàng</value></data>
   <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Season_Spring" xml:space="preserve"><value>Xuân</value></data>
+  <data name="Season_Summer" xml:space="preserve"><value>Hè</value></data>
+  <data name="Season_Fall" xml:space="preserve"><value>Thu</value></data>
+  <data name="Season_Winter" xml:space="preserve"><value>Đông</value></data>
+  <data name="Calendar_Day" xml:space="preserve"><value>Ngày {0}</value></data>
+  <data name="Calendar_Year" xml:space="preserve"><value>Năm {0}</value></data>
+  <data name="Calendar_Summary" xml:space="preserve"><value>{0}, {1}, {2} ({3})</value></data>
+  <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>Cây này không trồng được vào mùa này.</value></data>
+  <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì hết mùa. Hãy gieo hạt mới lên trên.</value></data>
+  <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>Hạt giống này không bán vào mùa này.</value></data>
 </root>

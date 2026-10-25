@@ -80,6 +80,11 @@ top-right coins and the gear, center = the game menu, bottom-center hotbar with 
 on the last tab, `I M C T G N` open a tab, `H` / `?` and the gear open settings (account, sign out, language, key help: `Controls/Settings/SettingsPanel`, `HelpViewModel`). The start screen (`Components/Account/StartScreen`) wraps the account form; the loading
 state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
 
+Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `CalendarChannel` (Socket) reads the epoch and game day length once per sign-in and estimates the server clock; `CalendarViewModel` builds the shared `GameCalendar` and
+`Controls/Calendar/CalendarClock` shows season, day and time in the top-right region (the time moves in ten game-minute steps, a 5 s timer re-renders only when the text changes). The farm decorator does not draw crops that withered at a season change.
+The season icon is a flat colour swatch until the icon sheet has season art; the world is not tinted by the time of day yet.
+
+
 Shops, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): next to one of the Town's three shop counters (seed, clothing, furniture) the action key (`E`) opens the menu's shop page `ShopPanel`
 (takes a `ShopId`; `ShopViewModel`, `ShopChannel`; catalogue and prices are the shared `ShopCatalog`, the server prices and checks every purchase). `N` opens the profile page `ProfilePanel` (`ProfileViewModel`: show and change the nickname once a day; a guest sees a note that registering unlocks it);
 the registration and upgrade form asks for a nickname (`GameField`). `NicknameFormatter` shows a nickname (a guest's `guest-1234` as "Khách 1234" / "Guest 1234"); `LookChannel` caches nicknames by map player id and
