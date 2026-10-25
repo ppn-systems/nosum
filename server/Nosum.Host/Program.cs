@@ -12,17 +12,27 @@ using Nalix.Runtime.Groups;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Quests;
 using Nosum.Gameplay.Farm;
 using Nosum.Handlers.Account;
+using Nosum.Handlers.Farm;
+using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Player;
+using Nosum.Handlers.Quest;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Farm;
+using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Host;
 
@@ -93,10 +103,11 @@ internal static class Program
     /// listener. Account services (<see cref="HostServices.Register"/>) must be registered first.
     /// </summary>
     /// <param name="webSocketPort">Port the WebSocket listener binds to.</param>
+    /// <param name="clock">The clock crops grow by and quests and audit entries are stamped with; tests pass a fake one. Defaults to the system clock.</param>
     /// <returns>The built, not yet activated, application.</returns>
-    internal static NetworkApplication BuildApplication(ushort webSocketPort)
+    internal static NetworkApplication BuildApplication(ushort webSocketPort, TimeProvider? clock = null)
     {
-        RegisterServices();
+        RegisterServices(clock ?? TimeProvider.System);
 
         return NetworkApplication.CreateBuilder()
             .UseGroups()
@@ -105,6 +116,9 @@ internal static class Program
             .UseSecureConnections()
             .MapHandlers(typeof(PlayerHandlers))
             .MapHandlers(typeof(AccountHandlers))
+            .MapHandlers(typeof(InventoryHandlers))
+            .MapHandlers(typeof(FarmHandlers))
+            .MapHandlers(typeof(QuestHandlers))
             .ConfigureDispatchOptions(o =>
             {
                 // Fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
@@ -120,13 +134,13 @@ internal static class Program
 
     // Services are registered before the builder so [Inject] fields of the handlers resolve them.
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player service lives as long as the process; its snapshot loop ends by itself when the last player leaves.")]
-    private static void RegisterServices()
+    private static void RegisterServices(TimeProvider clock)
     {
         IConnectionGroupRegistry groups = new InMemoryGroupStore();
         InstanceManager.Instance.Register(groups);
 
         MapPresence presence = new(groups);
-        TmxMapCatalog maps = new([new TmxMapSource(FarmMapId, Path.Combine(AppContext.BaseDirectory, "maps", "Farm.tmx"), FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.BuildWalkGrid)]);
+        TmxMapCatalog maps = new([new TmxMapSource(FarmMapId, Path.Combine(AppContext.BaseDirectory, "maps", "Farm.tmx"), FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.BuildWalkGrid, (tmx, walk) => TillGrid.FromMap(tmx, walk))]);
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
         PlayerService players = new(presence, maps, states, TimeProvider.System, SnapshotInterval);
@@ -134,6 +148,22 @@ internal static class Program
         InstanceManager.Instance.Register<IMapPresence>(presence);
         InstanceManager.Instance.Register<IMapCatalog>(maps);
         InstanceManager.Instance.Register<IPlayerService>(players);
-        InstanceManager.Instance.Register<ISessionRegistry>(new SessionRegistry(presence));
+        SessionRegistry sessions = new(presence);
+        InstanceManager.Instance.Register<ISessionRegistry>(sessions);
+
+        // Items, quests and farming (docs/adr/ADR-011). One notifier pushes to a player's active connection.
+        IUnitOfWorkFactory unitOfWork = InstanceManager.Instance.GetExistingInstance<IUnitOfWorkFactory>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
+        IRegistrationPromptService prompts = InstanceManager.Instance.GetExistingInstance<IRegistrationPromptService>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
+        PlayerNotifier notifier = new(sessions);
+        InstanceManager.Instance.Register<IPlayerNotifier>(notifier);
+        InventoryService inventory = new(unitOfWork, clock, notifier);
+        QuestService quests = new(unitOfWork, clock, notifier);
+        // The first finished quest invites a guest to register.
+        InstanceManager.Instance.Register(new RegistrationPromptOnQuestCompleted(quests, prompts, notifier));
+        InstanceManager.Instance.Register<IInventoryService>(inventory);
+        InstanceManager.Instance.Register<IQuestService>(quests);
+        InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock));
     }
 }

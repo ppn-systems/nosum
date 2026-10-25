@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Nosum.Abstractions.Maps;
 using Nosum.Core;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Movement;
 
 namespace Nosum.Infrastructure.Maps;
@@ -30,7 +31,7 @@ public sealed class TmxMapCatalog : IMapCatalog
             TileMap map = TmxReader.Parse(File.ReadAllText(source.Path));
             WalkGrid grid = source.BuildGrid(map);
             (double x, double y) = SpawnPoint.Find(grid, source.SpawnTileX, source.SpawnTileY);
-            _maps.Add(source.Id, new MapDefinition(source.Id, grid, x, y));
+            _maps.Add(source.Id, new MapDefinition(source.Id, grid, x, y, source.BuildTillGrid?.Invoke(map, grid)));
         }
     }
 
@@ -53,4 +54,5 @@ public sealed class TmxMapCatalog : IMapCatalog
 /// <param name="SpawnTileX">Preferred spawn tile x.</param>
 /// <param name="SpawnTileY">Preferred spawn tile y.</param>
 /// <param name="BuildGrid">Builds the walk grid; must be the same rule the client predicts with.</param>
-public readonly record struct TmxMapSource(string Id, string Path, int SpawnTileX, int SpawnTileY, Func<TileMap, WalkGrid> BuildGrid);
+/// <param name="BuildTillGrid">Builds the grid of tillable tiles from the map and its walk grid; <see langword="null"/> for a map that cannot be farmed.</param>
+public readonly record struct TmxMapSource(string Id, string Path, int SpawnTileX, int SpawnTileY, Func<TileMap, WalkGrid> BuildGrid, Func<TileMap, WalkGrid, TillGrid>? BuildTillGrid = null);

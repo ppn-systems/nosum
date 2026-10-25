@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,12 @@ public interface IRepository<TEntity>
     /// <param name="cancellationToken">Cancels the lookup.</param>
     /// <returns>The entity, or null when none matches.</returns>
     Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken);
+
+    /// <summary>Loads every entity that matches a condition; the entities are tracked, so changes to them are saved with the unit of work.</summary>
+    /// <param name="predicate">The condition, translated to the database.</param>
+    /// <param name="cancellationToken">Cancels the query.</param>
+    /// <returns>The matching entities, in no particular order; empty when none match.</returns>
+    Task<List<TEntity>> ListAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken);
 
     /// <summary>Checks whether any entity matches a condition.</summary>
     /// <param name="predicate">The condition, translated to the database.</param>

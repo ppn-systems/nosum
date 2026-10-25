@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Movement;
 
 namespace Nosum.Abstractions.Maps;
@@ -13,7 +14,8 @@ public sealed class MapDefinition
     /// <param name="grid">Walkable tiles.</param>
     /// <param name="spawnX">Spawn feet x, world pixels.</param>
     /// <param name="spawnY">Spawn feet y, world pixels.</param>
-    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY)
+    /// <param name="tillable">Tiles a hoe works on; <see langword="null"/> for a map that cannot be farmed.</param>
+    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, TillGrid? tillable = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(grid);
@@ -22,6 +24,7 @@ public sealed class MapDefinition
         this.Grid = grid;
         this.SpawnX = spawnX;
         this.SpawnY = spawnY;
+        this.Tillable = tillable;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -35,4 +38,7 @@ public sealed class MapDefinition
 
     /// <summary>Gets the spawn feet y, world pixels.</summary>
     public double SpawnY { get; }
+
+    /// <summary>Gets the tiles a hoe works on; <see langword="null"/> when the map cannot be farmed.</summary>
+    public TillGrid? Tillable { get; }
 }
