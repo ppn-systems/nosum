@@ -1,0 +1,22 @@
+@* A labelled on/off switch: a real checkbox (keyboard: Tab and Space), drawn as a pixel box with a cross when on, so the state never relies on colour alone. *@
+<label class="game-toggle">
+    <input type="checkbox" checked="@Value" disabled="@Disabled" @onchange="Changed" />
+    <span class="game-toggle-box" aria-hidden="true"></span>
+    <span class="game-toggle-text">@Label</span>
+</label>
+
+@code {
+    /// <summary>Whether the switch is on.</summary>
+    [Parameter] public bool Value { get; set; }
+
+    /// <summary>Raised with the new state.</summary>
+    [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+
+    /// <summary>The label (already localized).</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    /// <summary>Whether the switch cannot be used.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    private Task Changed(ChangeEventArgs e) => ValueChanged.InvokeAsync(e.Value is true);
+}

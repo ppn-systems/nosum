@@ -1,0 +1,66 @@
+/* Hidden unless the main pointer is coarse. The layer itself takes no touches; only the stick and the button do, so the rest of the screen still reaches the world. */
+.touch-controls {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+}
+
+@media (pointer: coarse) {
+    .touch-controls {
+        display: block;
+    }
+}
+
+.touch-stick,
+.touch-use {
+    position: absolute;
+    bottom: calc(var(--u) * 8);
+    box-sizing: border-box;
+    border: calc(var(--u) * 2) solid var(--nosum-edge);
+    border-radius: 50%;
+    background: rgba(253, 188, 110, 0.55);
+    color: var(--nosum-ink);
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.touch-stick {
+    left: calc(var(--u) * 8);
+    width: calc(var(--u) * 40);
+    height: calc(var(--u) * 40);
+}
+
+.touch-knob {
+    position: absolute;
+    inset: calc(var(--u) * 11);
+    border: calc(var(--u) * 2) solid var(--nosum-edge);
+    border-radius: 50%;
+    background: var(--nosum-wood-light);
+    pointer-events: none;
+}
+
+.touch-use {
+    right: calc(var(--u) * 8);
+    width: calc(var(--u) * 28);
+    height: calc(var(--u) * 28);
+    padding: 0;
+    background: var(--nosum-wood-light);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
+}
+
+.touch-use.down {
+    filter: brightness(0.8);
+}
+
+/* Narrow screens: the hotbar takes two rows at the bottom, so the stick and the button stand above it. */
+@media (pointer: coarse) and (max-width: 640px) {
+    .touch-stick,
+    .touch-use {
+        bottom: calc(var(--u) * 76);
+    }
+}

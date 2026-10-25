@@ -33,6 +33,7 @@ internal sealed class MapScene
     private const int TargetTilesAcross = 26;
     private const int MaxScale = 6;
     private const int MenuUnitsTall = 204;
+    private const int NarrowCanvasWidth = 640;
 
     /// <summary>Seconds the screen takes to go black when the server changes the map.</summary>
     public const double FadeOutSeconds = 0.2;
@@ -246,7 +247,10 @@ internal sealed class MapScene
         // The sky: the night tint with the lamps cut out of it over the whole world, then the rain or snow, then the names and the fade.
         _sky.DrawAmbient(_commands, content.Spec, _camera, map.TileWidth);
         _sky.Update(content.Spec, frameSeconds, (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
-        _sky.DrawPrecipitation(_commands);
+        if (!ViewOptions.ReduceMotion)
+        {
+            _sky.DrawPrecipitation(_commands);
+        }
         this.DrawLabels();
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
         backend.Submit(_commands.Encode());
@@ -264,7 +268,15 @@ internal sealed class MapScene
     {
         ArgumentNullException.ThrowIfNull(map);
 
-        return ViewZoom.Pick(map.Width * map.TileWidth, map.Height * map.TileHeight, map.TileWidth, canvasWidth, canvasHeight, HudBottomInset(canvasWidth, canvasHeight), TargetTilesAcross, MaxScale);
+        int auto = ViewZoom.Pick(map.Width * map.TileWidth, map.Height * map.TileHeight, map.TileWidth, canvasWidth, canvasHeight, HudBottomInset(canvasWidth, canvasHeight), TargetTilesAcross, MaxScale);
+        int chosen = ViewOptions.Scale;
+        if (chosen < 2)
+        {
+            return auto;
+        }
+
+        // The zoom the player picked (docs/adr/ADR-033 D1); a room is still shown whole, so it never goes past what fits.
+        return map.Width * map.TileWidth > TargetTilesAcross * map.TileWidth ? chosen : Math.Min(chosen, auto);
     }
 
     /// <summary>
@@ -276,9 +288,12 @@ internal sealed class MapScene
     /// <returns>The strip's height, CSS pixels.</returns>
     internal static int HudBottomInset(int canvasWidth, int canvasHeight)
     {
-        int world = Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * 16)), 2, MaxScale);
+        int chosen = ViewOptions.Scale;
+        int world = chosen >= 2 ? chosen : Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * 16)), 2, MaxScale);
         int fits = Math.Max(2, canvasHeight / MenuUnitsTall);
-        return 40 * Math.Min(world, fits);
+
+        // Narrow screens show the hotbar in two rows (Hotbar.razor.css, max-width 640px), so the strip is taller.
+        return (canvasWidth <= NarrowCanvasWidth ? 64 : 40) * Math.Min(world, fits);
     }
 
     // The grid the farmer walks on: the map's own, plus the footprints of the pieces the server says are placed here. Rebuilt only
@@ -490,6 +505,11 @@ internal sealed class MapScene
     // Remembers where a nickname goes; the labels are recorded after everything else so no sprite or roof covers them.
     private void AddLabel(string? nickname, int feetX, int feetY)
     {
+        if (!ViewOptions.ShowNames)
+        {
+            return;
+        }
+
         int id = _labels?.IdOf(nickname) ?? 0;
         if (id > 0 && _labelCount < _labelIds.Length)
         {
