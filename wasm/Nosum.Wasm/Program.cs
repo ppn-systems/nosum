@@ -157,6 +157,9 @@ internal static class Program
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
         builder.Services.AddTransient<AccountFormViewModel>();
+        // Account recovery (docs/adr/ADR-032 D4).
+        builder.Services.AddSingleton<IRecoveryClient, GameSocketRecoveryClient>();
+        builder.Services.AddSingleton<PasswordRecoveryViewModel>();
         builder.Services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());

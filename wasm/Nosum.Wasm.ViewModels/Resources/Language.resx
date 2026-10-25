@@ -597,4 +597,18 @@
   <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Quá nhiều yêu cầu. Hãy thử lại sau.</value></data>
   <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì mật khẩu tài khoản đã được đặt lại.</value></data>
   <data name="Connection_KeyMismatch" xml:space="preserve"><value>Danh tính máy chủ đã thay đổi. Có thể đây là máy chủ giả mạo nên trò chơi từ chối kết nối. Hãy chờ thông báo chính thức hoặc xóa dữ liệu trang web nếu bạn đang chạy bản phát triển.</value></data>
+  <data name="Recovery_Link" xml:space="preserve"><value>Quên mật khẩu?</value></data>
+  <data name="Recovery_Title_Request" xml:space="preserve"><value>Khôi phục tài khoản</value></data>
+  <data name="Recovery_Title_Confirm" xml:space="preserve"><value>Nhập mã khôi phục</value></data>
+  <data name="Recovery_Title_Done" xml:space="preserve"><value>Đã đổi mật khẩu</value></data>
+  <data name="Recovery_RequestHint" xml:space="preserve"><value>Chúng tôi sẽ gửi một mã đến địa chỉ e-mail của tài khoản.</value></data>
+  <data name="Recovery_CodeSent" xml:space="preserve"><value>Nếu địa chỉ này có tài khoản, một mã đã được gửi. Mã có hiệu lực trong 15 phút.</value></data>
+  <data name="Recovery_Code" xml:space="preserve"><value>Mã khôi phục</value></data>
+  <data name="Recovery_CodeHint" xml:space="preserve"><value>8 chữ số trong thư</value></data>
+  <data name="Recovery_NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
+  <data name="Recovery_Submit_Request" xml:space="preserve"><value>Gửi mã</value></data>
+  <data name="Recovery_Submit_Confirm" xml:space="preserve"><value>Đổi mật khẩu</value></data>
+  <data name="Recovery_Done" xml:space="preserve"><value>Mật khẩu đã được đổi và mọi thiết bị đã bị đăng xuất. Hãy đăng nhập bằng mật khẩu mới.</value></data>
+  <data name="Recovery_Back" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
+  <data name="Recovery_Error_Code" xml:space="preserve"><value>Hãy nhập 8 chữ số trong thư.</value></data>
 </root>
