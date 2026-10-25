@@ -24,6 +24,20 @@
   <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Select the hoe (key 1) and press E to till the ground in front of you. Plant a seed, water it with the can and wait for it to grow.</value></data>
   <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Plant a seed</value></data>
   <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Harvest a crop</value></data>
+  <data name="Item_oak_chair_Name" xml:space="preserve"><value>Oak chair</value></data>
+  <data name="Item_oak_chair_Description" xml:space="preserve"><value>An oak chair. Place it in your farmhouse.</value></data>
+  <data name="Item_blue_armchair_Name" xml:space="preserve"><value>Blue armchair</value></data>
+  <data name="Item_blue_armchair_Description" xml:space="preserve"><value>A cosy armchair. Place it in your farmhouse.</value></data>
+  <data name="Item_blue_couch_Name" xml:space="preserve"><value>Blue couch</value></data>
+  <data name="Item_blue_couch_Description" xml:space="preserve"><value>A long couch. Place it in your farmhouse.</value></data>
+  <data name="Item_oak_table_Name" xml:space="preserve"><value>Oak table</value></data>
+  <data name="Item_oak_table_Description" xml:space="preserve"><value>An oak table. Place it in your farmhouse.</value></data>
+  <data name="Item_bookcase_Name" xml:space="preserve"><value>Bookcase</value></data>
+  <data name="Item_bookcase_Description" xml:space="preserve"><value>A tall bookcase. Place it in your farmhouse.</value></data>
+  <data name="Item_floor_lamp_Name" xml:space="preserve"><value>Floor lamp</value></data>
+  <data name="Item_floor_lamp_Description" xml:space="preserve"><value>A floor lamp. Place it in your farmhouse.</value></data>
+  <data name="Item_house_plant_Name" xml:space="preserve"><value>House plant</value></data>
+  <data name="Item_house_plant_Description" xml:space="preserve"><value>A potted plant. Place it in your farmhouse.</value></data>
   <data name="Item_shirt_red_Name" xml:space="preserve"><value>Red shirt</value></data>
   <data name="Item_shirt_red_Description" xml:space="preserve"><value>A red shirt.</value></data>
   <data name="Item_shirt_green_Name" xml:space="preserve"><value>Green shirt</value></data>

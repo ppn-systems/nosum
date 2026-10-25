@@ -12,6 +12,7 @@
 @using Nosum.Wasm.Controls.Inventory
 @using Nosum.Wasm.Controls.Looks
 @using Nosum.Wasm.Controls.Market
+@using Nosum.Wasm.Controls.Placement
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
 @using Nosum.Wasm.Controls.Wallet
@@ -26,6 +27,7 @@
 @using Nosum.Wasm.ViewModels.Trade
 @using Nosum.Wasm.ViewModels.Feedback
 @using Nosum.Wasm.ViewModels.Inventory
+@using Nosum.Wasm.ViewModels.Placement
 @using Nosum.Wasm.ViewModels.Quest
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
@@ -42,6 +44,7 @@
 @inject WardrobeViewModel Wardrobe
 @inject TradeViewModel Trade
 @inject CoopViewModel Coop
+@inject PlacementViewModel Placement
 
 <PageTitle>Nosum</PageTitle>
 
@@ -59,6 +62,7 @@
     <SessionBar Vm="Form" />
     <QuestTracker Vm="Quest" />
     <GameMessage Vm="Messages" />
+    <PlacementPanel Vm="Placement" />
     <Hotbar Vm="Inventory" />
     <CoinBadge Vm="Wallet" />
     <PanelToolbar Vm="Toolbar" OnSelect="OnToolbar" />

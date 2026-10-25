@@ -16,10 +16,10 @@ Numbers and rules marked "default" are open owner questions.
 - **D1 — Persisted ids.** `PlayerAppearance` (one row per player): skin, hair style, hair dye ids (1-based, ranges in `LookCatalog`) and the item ids of the worn shirt, trousers
   and hat (zero = the plain default garment, or no hat). A new player and every guest gets `PlayerLook.Default`; the row is created on first read.
 - **D2 — Worn clothing leaves the inventory.** Wearing moves the item out of its inventory slot and the item worn before back in, in one `ApplyAsync` whose enlisted work writes the look
-  row, so a worn item cannot also be sold, traded or deposited (no duplication) and a full inventory refuses taking something off (`NoSpace`). Clothing items are `ItemKind.Clothing` with a
+  row, so a worn item cannot also be sold, traded or deposited (no duplication) and a full inventory refuses taking something off (`NoSpace`). Clothing items are `ItemKind.Clothing` (ids 400-499; 300-399 are furniture, ADR-015) with a
   `WearSlot`, stack size 1, tradable. A new player also finds five clothes in the inventory (default) so the wardrobe has something to try.
 - **D3 — Ids only on the wire.** `LookRow` (player id on the map, skin, style, dye, three item ids). A client calls `GetLooks` after joining a map or changing map: the server replies with the
-  looks of everyone on that map (found through `IMapPresence.CopyPlayers`) and announces the caller's look to the rest of the map (`LookChanged`, `MulticastAsync`); every change is multicast to the map
+  looks of everyone on that map (found through `IMapPresence.CopyPlayers(PlayerPresence.Key)`, so a private farm shows only its owner) and announces the caller's look to the rest of the map (`LookChanged`, `MulticastAsync`); every change is multicast to the map
   group. Nothing is derived from a player id, and no presence or movement code changed. Opcode band `0x8000-0x80FF`.
 - **D4 — Client catalogue.** `LookPalette` (`Nosum.Wasm.ViewModels/Looks`) turns ids into sheet frames and tints (skin tint on the body, hair dye on the hair, shirt/trousers/hat frames); `Game/LookSprites` builds
   the `FarmerLook` that `FarmerSprite` draws with new body-tint and hat layers. `RemoteLook` is removed; a player whose look has not arrived is drawn with the default look. Compose-once
@@ -31,8 +31,8 @@ Numbers and rules marked "default" are open owner questions.
 - **D6 — Entities.** `Coop` (name as authored text), `CoopMember` (player, role `Founder`/`Member`; a unique index makes it **one co-op per player**), `CoopInvite` (open 72 hours, stored so an offline
   player sees it), `CoopStockItem` (the warehouse: quantity per item kind) and `CoopLogEntry` (member, item, signed quantity, reason `coop.deposit`/`coop.withdraw`, time).
   The warehouse is stock by item, not slots: it has no packing rules and no capacity (no size limit); moves go through the same transfer as inventories.
-- **D7 — Rules.** Create (name 3-40 characters plain, or an `i18n{...}` envelope validated by `LocalizedText`, [ADR-010](ADR-010-internationalization.md) D5), invite (founder only, a player on the inviter's map
-  by presence), accept or decline, leave, kick (founder only). A founder who leaves hands the role to the longest-standing member; a lone founder dissolves an *empty* co-op (refused while the
+- **D7 — Rules.** Create (name 3-40 characters plain, or an `i18n{...}` envelope validated by `LocalizedText`, [ADR-010](ADR-010-internationalization.md) D5), invite (founder only, a player in the inviter's place
+  by presence (`PlayerPresence.Key`)), accept or decline, leave, kick (founder only). A founder who leaves hands the role to the longest-standing member; a lone founder dissolves an *empty* co-op (refused while the
   warehouse holds items). Members are addressed by a membership id, never an account id.
 - **D8 — Warehouse permissions (default).** Any member deposits. The founder withdraws anything in stock; a member withdraws at most their net contribution of that item (their deposits minus
   their withdrawals, from the audit trail), so a member can take back what they put in but not spend others' stock (`CoopRules`). Tools cannot be deposited.

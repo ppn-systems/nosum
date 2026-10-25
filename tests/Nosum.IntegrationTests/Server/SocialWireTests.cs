@@ -147,7 +147,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     {
         await using Server server = await Server.StartAsync(_database);
         CancellationToken ct = server.Token;
-        await using SocialClient farmer = await SocialClient.ConnectAsync(server.Port, ct, s_besideTheBin);
+        await using SocialClient farmer = await SocialClient.ConnectAsync(server.Port, ct, (Program.FarmMapId, s_besideTheBin.X, s_besideTheBin.Y));
         await using SocialClient wanderer = await SocialClient.ConnectAsync(server.Port, ct);
         await farmer.JoinAsync(ct);
         await wanderer.JoinAsync(ct);

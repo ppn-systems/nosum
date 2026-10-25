@@ -376,6 +376,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("map_id");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
                     b.Property<int>("X")
                         .HasColumnType("integer")
                         .HasColumnName("x");
@@ -412,10 +416,62 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("wet_until_ms");
 
-                    b.HasKey("MapId", "X", "Y")
+                    b.HasKey("MapId", "OwnerId", "X", "Y")
                         .HasName("pk_farm_plots");
 
                     b.ToTable("farm_plots", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Farm.PlacedObject", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<DateTimeOffset>("PlacedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("placed_at");
+
+                    b.Property<int>("Rotation")
+                        .HasColumnType("integer")
+                        .HasColumnName("rotation");
+
+                    b.Property<int>("TileX")
+                        .HasColumnType("integer")
+                        .HasColumnName("tile_x");
+
+                    b.Property<int>("TileY")
+                        .HasColumnType("integer")
+                        .HasColumnName("tile_y");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_placed_objects");
+
+                    b.HasIndex("MapId", "OwnerId")
+                        .HasDatabaseName("ix_placed_objects_map_id_owner_id");
+
+                    b.ToTable("placed_objects", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.Inventory.InventoryLogEntry", b =>

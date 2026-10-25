@@ -246,7 +246,8 @@ public sealed class InventoryServiceTests : IClassFixture<PostgresFixture>
 
         (Guid to, List<(int Slot, int ItemId, int Quantity)> rows) = _notifier.Updates.Should().ContainSingle().Subject;
         to.Should().Be(player);
-        rows.Should().Equal((5, ItemCatalog.Parsnip, 3));
+        // Produce goes to the first empty slot after the starter kit.
+        rows.Should().Equal((StarterKit.Items.Length, ItemCatalog.Parsnip, 3));
     }
 
     [Fact]

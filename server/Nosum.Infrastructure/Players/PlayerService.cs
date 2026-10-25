@@ -8,6 +8,7 @@ using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Player;
@@ -20,7 +21,7 @@ using Nosum.Gameplay.Movement;
 namespace Nosum.Infrastructure.Players;
 
 /// <summary>
-/// Places players in the world (on the map they were last on, if saved), validates their movement with
+/// Places players in the world (on the map they were last on, if saved; farm and farmhouse are each player's own instance, docs/adr/ADR-015), validates their movement with
 /// <see cref="MoveValidator"/>, changes their map when they walk onto an exit (<see cref="WarpRule"/>) and
 /// saves their place. Pushes each map's state to its players while anyone is on it
 /// (see <c>PlayerService.Snapshots.cs</c>).
@@ -30,25 +31,33 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
     private readonly IPlayerStateService _states;
+    private readonly IInstanceWorld _world;
+    private readonly IInstanceAccessPolicy _access;
     private readonly TimeProvider _time;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands on which map.</param>
     /// <param name="maps">The hosted maps.</param>
     /// <param name="states">Saved player positions.</param>
+    /// <param name="world">The per-instance layer (placed furniture) players collide with.</param>
+    /// <param name="access">Who may enter which instance.</param>
     /// <param name="time">Clock for movement budgets and snapshot timestamps.</param>
     /// <param name="snapshotInterval">Time between map snapshots.</param>
-    public PlayerService(IMapPresence presence, IMapCatalog maps, IPlayerStateService states, TimeProvider time, TimeSpan snapshotInterval)
+    public PlayerService(IMapPresence presence, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, TimeProvider time, TimeSpan snapshotInterval)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(states);
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentNullException.ThrowIfNull(access);
         ArgumentNullException.ThrowIfNull(time);
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(snapshotInterval, TimeSpan.Zero);
 
         _presence = presence;
         _maps = maps;
         _states = states;
+        _world = world;
+        _access = access;
         _time = time;
         _snapshotInterval = snapshotInterval;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
@@ -66,7 +75,9 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         }
 
         (MapDefinition map, MotionState start) = await this.StartingPlaceAsync(accountId, cancellationToken).ConfigureAwait(false);
-        PlayerPresence player = await _presence.JoinAsync(connection, accountId, map.Id, start, cancellationToken: cancellationToken).ConfigureAwait(false);
+        MapInstance instance = InstanceOf(map, accountId);
+        await _world.PrepareAsync(instance, cancellationToken).ConfigureAwait(false);
+        PlayerPresence player = await _presence.JoinAsync(connection, accountId, instance, start, cancellationToken: cancellationToken).ConfigureAwait(false);
         ArmWarps(player, map);
 
         this.EnsureSnapshotLoop();
@@ -92,7 +103,7 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
                 return new MoveOutcome(MoveStatus.NotJoined, 0, 0, 0);
             }
 
-            MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, map.Grid);
+            MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, _world.GridFor(player.Instance, map));
             if (verdict != MoveVerdict.Accepted)
             {
                 MoveRefusal reason = verdict switch
@@ -144,6 +155,9 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         return (start, new MotionState(start.SpawnX, start.SpawnY, now));
     }
 
+    // A private map is entered at the entering player's own instance; nobody can name another one (visiting goes through IInstanceAccessPolicy).
+    private static MapInstance InstanceOf(MapDefinition map, Guid playerId) => map.IsPrivate ? new MapInstance(map.Id, playerId) : MapInstance.Shared(map.Id);
+
     private static bool IsLegalPlace(MapDefinition map, PlayerStateRow row)
         => double.IsFinite(row.X)
             && double.IsFinite(row.Y)
@@ -170,7 +184,8 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
     [SuppressMessage("Design", "CA1031", Justification = "Saving is best effort; the player is already on the new map.")]
     private async ValueTask<MoveOutcome> WarpAsync(IConnection connection, PlayerPresence from, MapWarp warp)
     {
-        if (!_maps.TryGet(warp.TargetMap, out MapDefinition? target))
+        MapInstance targetInstance = default;
+        if (!_maps.TryGet(warp.TargetMap, out MapDefinition? target) || !_access.CanEnter(targetInstance = InstanceOf(target, from.AccountId), from.AccountId))
         {
             // Exits to maps the catalog does not host are dropped when it is built; stay put if one slipped through.
             lock (from.Gate)
@@ -182,6 +197,7 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
 
         (double x, double y, int facing) = WarpRule.Arrival(target.Grid, warp.TargetX, warp.TargetY);
 
+        await _world.PrepareAsync(targetInstance, CancellationToken.None).ConfigureAwait(false);
         await _presence.LeaveAsync(connection, CancellationToken.None).ConfigureAwait(false);
 
         using (PacketScope<MapChanged> lease = PacketFactory<MapChanged>.Acquire())
@@ -194,7 +210,7 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
             await _presence.SendAsync(connection, lease.Value, CancellationToken.None).ConfigureAwait(false);
         }
 
-        PlayerPresence arrived = await _presence.JoinAsync(connection, from.AccountId, target.Id, new MotionState(x, y, this.NowSeconds(), facing), from.PlayerId, CancellationToken.None).ConfigureAwait(false);
+        PlayerPresence arrived = await _presence.JoinAsync(connection, from.AccountId, targetInstance, new MotionState(x, y, this.NowSeconds(), facing), from.PlayerId, CancellationToken.None).ConfigureAwait(false);
         ArmWarps(arrived, target);
         this.EnsureSnapshotLoop();
 
@@ -232,6 +248,6 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
 
         using PacketScope<PlayerLeft> lease = PacketFactory<PlayerLeft>.Acquire();
         lease.Value.PlayerId = player.PlayerId;
-        await _presence.MulticastAsync(player.MapId, lease.Value).ConfigureAwait(false);
+        await _presence.MulticastAsync(player.Key, lease.Value).ConfigureAwait(false);
     }
 }

@@ -1,23 +1,56 @@
+/* The shared frame of every game panel. The look is these variables and nothing else: a theme changes them (or this file), never a panel. */
 .game-panel {
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -55%);
+    --game-panel-background: rgba(40, 24, 8, 0.88);
+    --game-panel-color: #fff;
+    --game-panel-radius: 0.5rem;
+    --game-panel-padding: 0.6rem 0.8rem;
+    --game-panel-gap: 0.5rem;
+
     box-sizing: border-box;
-    max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 6rem);
-    overflow: auto;
-    padding: 0.75rem 1rem 1rem;
-    border-radius: 0.6rem;
-    background: var(--nosum-panel-bg, #fffaf0);
-    color: var(--nosum-panel-fg, #3b2a14);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+    max-width: 18rem;
+    padding: var(--game-panel-padding);
+    border-radius: var(--game-panel-radius);
+    background: var(--game-panel-background);
+    color: var(--game-panel-color);
     font: 14px/1.4 sans-serif;
-    z-index: 20;
+    z-index: 10;
 }
 
-.game-panel.wide {
-    width: min(46rem, calc(100vw - 1rem));
+.game-panel--top-right,
+.game-panel--top-left,
+.game-panel--center {
+    position: fixed;
+}
+
+.game-panel--top-right {
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.game-panel--top-left {
+    top: 0.75rem;
+    left: 0.75rem;
+}
+
+.game-panel--center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.game-panel-title {
+    margin: 0 0 var(--game-panel-gap);
+    font-size: 1rem;
+}
+
+.game-panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--game-panel-gap);
+}
+
+.game-panel-body ::deep p {
+    margin: 0;
 }
 
 .game-panel-header {
@@ -25,15 +58,25 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 0.5rem;
 }
 
-.game-panel-header h2 {
+.game-panel-header .game-panel-title {
     margin: 0;
-    font-size: 1.1rem;
 }
 
 .game-panel-status {
-    margin: 0.6rem 0 0;
+    margin: 0;
     font-weight: bold;
+}
+
+/* A large window that scrolls inside the screen: market, wardrobe, trade and co-op. */
+.game-panel.wide {
+    width: min(46rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 6rem);
+    overflow: auto;
+}
+
+.game-panel--center.wide {
+    transform: translate(-50%, -55%);
 }

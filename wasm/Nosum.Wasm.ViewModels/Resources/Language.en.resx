@@ -63,6 +63,26 @@
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Completed</value></data>
   <data name="Quest_Banner" xml:space="preserve"><value>Quest complete: {0}</value></data>
+  <data name="Place_Status_NotPlaceable" xml:space="preserve"><value>You can only arrange things in your own farmhouse.</value></data>
+  <data name="Place_Status_NoItem" xml:space="preserve"><value>That item cannot be placed.</value></data>
+  <data name="Place_Status_BadRotation" xml:space="preserve"><value>It cannot be turned that way.</value></data>
+  <data name="Place_Status_OutsideRoom" xml:space="preserve"><value>That is outside the room.</value></data>
+  <data name="Place_Status_Blocked" xml:space="preserve"><value>Something is in the way.</value></data>
+  <data name="Place_Status_Reserved" xml:space="preserve"><value>Keep the doorway clear.</value></data>
+  <data name="Place_Status_Overlaps" xml:space="preserve"><value>There is furniture there already.</value></data>
+  <data name="Place_Status_OutOfReach" xml:space="preserve"><value>Too far away, step closer.</value></data>
+  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>You are standing there.</value></data>
+  <data name="Place_Status_UnknownObject" xml:space="preserve"><value>That piece is gone.</value></data>
+  <data name="Place_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
+  <data name="Place_Status_LimitReached" xml:space="preserve"><value>The house cannot hold more furniture.</value></data>
+  <data name="Place_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Placement_Title" xml:space="preserve"><value>Arrange your home</value></data>
+  <data name="Placement_Hint" xml:space="preserve"><value>E: place what you hold. R: rotate. F: pick up the piece in front to move it, then E puts it down. Q: take it back into your bag.</value></data>
+  <data name="Placement_Rotate" xml:space="preserve"><value>Rotate (R)</value></data>
+  <data name="Placement_Move" xml:space="preserve"><value>Move (F)</value></data>
+  <data name="Placement_Cancel" xml:space="preserve"><value>Cancel move (F)</value></data>
+  <data name="Placement_PickUp" xml:space="preserve"><value>Pick up (Q)</value></data>
+  <data name="Placement_Carrying" xml:space="preserve"><value>Carrying: {0}</value></data>
   <data name="Panel_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Toolbar_Label" xml:space="preserve"><value>Open a panel</value></data>
   <data name="Toolbar_Inventory" xml:space="preserve"><value>Inventory</value></data>

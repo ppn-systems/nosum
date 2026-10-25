@@ -14,8 +14,11 @@ public enum ItemKind
     /// <summary>Produce harvested from a crop.</summary>
     Produce = 3,
 
+    /// <summary>Furniture a player places in their farmhouse (a <c>PlaceableDefinition</c> with the same item id).</summary>
+    Furniture = 4,
+
     /// <summary>Clothing a player wears; its <see cref="WearSlot"/> says where (docs/adr/ADR-014).</summary>
-    Clothing = 4,
+    Clothing = 5,
 }
 
 /// <summary>Where a clothing item is worn. The numbers are also the wire values of the wardrobe packets; append-only.</summary>

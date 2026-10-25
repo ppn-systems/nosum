@@ -156,7 +156,7 @@ public sealed class CoopService : ICoopService, IDisposable
         if (_presence.TryGet(connection, out PlayerPresence? me))
         {
             List<PlayerPresence> players = [];
-            _presence.CopyPlayers(me.MapId, players);
+            _presence.CopyPlayers(me.Key, players);
             target = players.Find(p => p.PlayerId == targetMapPlayerId);
         }
 

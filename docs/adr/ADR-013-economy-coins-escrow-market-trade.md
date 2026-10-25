@@ -48,8 +48,9 @@ question.
 - **D6 — Direct trade.** `ITradeService` keeps invitations (30 s) and open sessions in memory; the confirm rules are the pure `TradeSession`
   (`Nosum.Gameplay/Trade`): each side holds an offer (up to 9 item lines and coins) and a confirmation, any *different* offer from either side clears
   both confirmations, and the swap is ready only when both confirmed the offers as they now stand.
-  - "Same map" means the other player is in the list `IMapPresence.CopyPlayers` reports for the asking player's map; the target is addressed by their
-    id on the map. Nothing is keyed by a map id string.
+  - "Same map" means the other player is in the list `IMapPresence.CopyPlayers` reports for the asking player's place (`PlayerPresence.Key`, the instance key of
+    [ADR-015](ADR-015-private-instances-and-placeables.md): private farms are separate places, so players on their own farms cannot trade); the target is addressed by their
+    id on the map. Nothing here builds a group name from a map id.
   - Offers are **claims, not escrow**: they are checked when set (so the window is honest) and re-checked authoritatively inside the swap transaction. A side
     that no longer has what it offered, or no room, makes the swap fail with nothing moved and the trade ends with a code. This keeps the invariant simple (an item
     is in exactly one place) and makes "return everything on abort" trivially true.

@@ -14,6 +14,8 @@ using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.Socket.Placeable;
+using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering.Web;
 
@@ -36,6 +38,8 @@ internal static partial class GameLoop
     private static PlayerChannel? s_network;
     private static FarmChannel? s_farm;
     private static InventoryChannel? s_inventory;
+    private static PlaceableChannel? s_placeable;
+    private static PlacementViewModel? s_placement;
     private static MarketChannel? s_market;
     private static LookChannel? s_looks;
     private static double s_lastTime = -1;
@@ -58,6 +62,16 @@ internal static partial class GameLoop
     /// <summary>Connects the looks the server sent to the farmers drawn; call before <see cref="StartAsync"/>.</summary>
     /// <param name="looks">The mirror of the looks on the map.</param>
     public static void UseLooks(LookChannel looks) => s_looks = looks;
+
+    /// <summary>Connects furniture placing to the game: the placed pieces and the arrange panel's state. Call before <see cref="StartAsync"/>, after <see cref="UseFarming"/>.</summary>
+    /// <param name="placeable">The placed pieces mirror and action sender.</param>
+    /// <param name="placement">The arrange panel's view model.</param>
+    public static void UsePlacement(PlaceableChannel placeable, PlacementViewModel placement)
+    {
+        s_placeable = placeable;
+        s_placement = placement;
+    }
+
 
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
@@ -83,6 +97,13 @@ internal static partial class GameLoop
             providers.Add(new FarmDecoratorProvider(s_farm, actions));
         }
 
+        PlacementActions? placement = null;
+        if (s_placeable is not null && s_placement is not null && s_inventory is not null)
+        {
+            placement = new PlacementActions(s_placeable, s_inventory, s_placement);
+            providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement));
+        }
+
         MapLoader loader = new(http, textures, providers);
 
         Task<int[]> farmerSheets = Task.WhenAll(
@@ -103,7 +124,8 @@ internal static partial class GameLoop
         FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4]);
 
         // Until the server's look arrives (and without a server) the default look is drawn, never one made up from an id.
-        s_scene = new MapScene(loader, content, farmer, LookSprites.Resolve(LookInfo.Default), start, s_network, actions, s_looks);
+        FarmerLook look = LookSprites.Resolve(LookInfo.Default);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks);
 
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }

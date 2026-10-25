@@ -29,6 +29,10 @@ public sealed class WalkGrid
         _blocked = blocked;
     }
 
+    /// <summary>Returns an independent copy, to which a per-instance layer (placed furniture) can add blocked tiles without touching the map's shared grid.</summary>
+    /// <returns>The copy.</returns>
+    public WalkGrid Clone() => new(this.Width, this.Height, this.TileSize, (bool[])_blocked.Clone());
+
     /// <summary>Gets the width in tiles.</summary>
     public int Width { get; }
 

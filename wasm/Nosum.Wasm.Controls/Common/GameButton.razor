@@ -1,4 +1,4 @@
-@* The one button of the UI. Variants (primary, danger, plain, tab) are shared CSS classes; text comes from the caller (already localized). *@
+@* The one button of the game UI. Looks come only from the shared "game-button" class and its variants (primary, danger, plain, tab); text comes from the caller (already localized). *@
 <button type="button"
         class="game-button @Variant @(Active ? "active" : null)"
         disabled="@Disabled"
@@ -8,24 +8,31 @@
         @onclick="OnClick">@Text@ChildContent</button>
 
 @code {
-    /// <summary>The label.</summary>
-    [Parameter] public string Text { get; set; } = string.Empty;
+    /// <summary>Gets or sets what happens on a click.</summary>
+    [Parameter]
+    public EventCallback OnClick { get; set; }
 
-    /// <summary>Optional tooltip.</summary>
-    [Parameter] public string? Title { get; set; }
+    /// <summary>Gets or sets whether the button can be used.</summary>
+    [Parameter]
+    public bool Disabled { get; set; }
 
-    /// <summary>The look: <c>primary</c>, <c>danger</c>, <c>plain</c> or <c>tab</c>.</summary>
-    [Parameter] public string Variant { get; set; } = "primary";
+    /// <summary>Gets or sets the localized label (or put the label in the content).</summary>
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
 
-    /// <summary>Whether the button is the active tab.</summary>
-    [Parameter] public bool Active { get; set; }
+    /// <summary>Gets or sets an optional localized tooltip.</summary>
+    [Parameter]
+    public string? Title { get; set; }
 
-    /// <summary>Whether the button can be clicked.</summary>
-    [Parameter] public bool Disabled { get; set; }
+    /// <summary>Gets or sets the look: <c>primary</c>, <c>danger</c>, <c>plain</c> or <c>tab</c>.</summary>
+    [Parameter]
+    public string Variant { get; set; } = "primary";
 
-    /// <summary>Raised when the button is clicked.</summary>
-    [Parameter] public EventCallback OnClick { get; set; }
+    /// <summary>Gets or sets whether the button is the active tab.</summary>
+    [Parameter]
+    public bool Active { get; set; }
 
-    /// <summary>Optional extra content after the label.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Gets or sets the localized label as content.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
 }

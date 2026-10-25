@@ -1,9 +1,15 @@
+/* The shared button. The look is these variables and nothing else. */
 .game-button {
-    padding: 0.3rem 0.7rem;
-    border: 2px solid var(--nosum-button-border, #6b4a24);
-    border-radius: 4px;
-    background: var(--nosum-button-bg, #e8c27a);
-    color: var(--nosum-panel-fg, #3b2a14);
+    --game-button-background: #8a5a2b;
+    --game-button-color: #fff;
+    --game-button-radius: 0.35rem;
+    --game-button-padding: 0.25rem 0.7rem;
+
+    padding: var(--game-button-padding);
+    border: 0;
+    border-radius: var(--game-button-radius);
+    background: var(--game-button-background);
+    color: var(--game-button-color);
     font: inherit;
     cursor: pointer;
 }
@@ -14,15 +20,15 @@
 }
 
 .game-button.danger {
-    background: var(--nosum-button-danger-bg, #e29a8f);
+    --game-button-background: #a8473a;
 }
 
 .game-button.plain,
 .game-button.tab {
-    background: var(--nosum-button-plain-bg, transparent);
+    --game-button-background: rgba(255, 255, 255, 0.14);
 }
 
 .game-button.tab.active {
-    background: var(--nosum-button-bg, #e8c27a);
+    --game-button-background: #8a5a2b;
     font-weight: bold;
 }

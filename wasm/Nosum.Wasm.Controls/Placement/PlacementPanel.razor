@@ -1,0 +1,18 @@
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Placement
+@inherits ObservingComponent<PlacementViewModel>
+
+@* Arrange-your-home panel: shown only in a place where furniture can be placed. The buttons do what the keys R, F and Q do; all text comes from the view model. *@
+@if (Vm.IsVisible)
+{
+    <GamePanel Title="@Vm.Title" Dock="PanelDock.TopRight">
+        <p>@Vm.Hint</p>
+        @if (Vm.CarryingText is { } carrying)
+        {
+            <p role="status">@carrying</p>
+        }
+        <GameButton OnClick="() => Vm.Request(PlacementRequests.Rotate)">@Vm.RotateLabel</GameButton>
+        <GameButton OnClick="() => Vm.Request(PlacementRequests.Grab)">@Vm.GrabLabel</GameButton>
+        <GameButton OnClick="() => Vm.Request(PlacementRequests.PickUp)">@Vm.PickUpLabel</GameButton>
+    </GamePanel>
+}

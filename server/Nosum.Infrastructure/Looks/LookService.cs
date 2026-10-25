@@ -77,7 +77,7 @@ public sealed class LookService : ILookService
         await this.BroadcastAsync(me, mine, connection, cancellationToken).ConfigureAwait(false);
 
         List<PlayerPresence> players = [];
-        _presence.CopyPlayers(me.MapId, players);
+        _presence.CopyPlayers(me.Key, players);
         List<PlayerLookView> looks = new(players.Count);
         foreach (PlayerPresence other in players)
         {
@@ -291,6 +291,6 @@ public sealed class LookService : ILookService
         LookRow row = LookRow.Create();
         new PlayerLookView(me.PlayerId, look).FillRow(row);
         lease.Value.Look = row;
-        await _presence.MulticastAsync(me.MapId, lease.Value, except, cancellationToken).ConfigureAwait(false);
+        await _presence.MulticastAsync(me.Key, lease.Value, except, cancellationToken).ConfigureAwait(false);
     }
 }

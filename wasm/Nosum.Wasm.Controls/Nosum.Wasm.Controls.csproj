@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <Description>Nosum reusable Blazor controls: hotbar, inventory slots and grid, quest tracker, message line. Dumb components bound to view models; no socket, no text of their own.</Description>
+    <Description>Nosum reusable Blazor controls: panel and button, hotbar, inventory slots and grid, quest tracker, message line. Dumb components bound to view models; no socket, no text of their own.</Description>
   </PropertyGroup>
 
   <ItemGroup>

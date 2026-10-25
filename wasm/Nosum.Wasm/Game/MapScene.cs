@@ -5,8 +5,10 @@ using Nosum.Core;
 using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Placeables;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Look;
+using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
 
 namespace Nosum.Wasm.Game;
@@ -43,6 +45,12 @@ internal sealed class MapScene
     private readonly RemotePlayers? _remote;
     private readonly PlayerActions? _actions;
     private readonly LookChannel? _looks;
+    private readonly PlaceableChannel? _placed;
+    private readonly PlacementActions? _placement;
+    private readonly PlacedSet _placedSet = new();
+    private WalkGrid? _placedGrid;
+    private MapContent? _placedGridContent;
+    private int _placedGridVersion = -1;
     private FixedTimestep _clock = new(StepSeconds, 0.25);
     private MapContent _content;
     private Walker _farmer;
@@ -62,10 +70,14 @@ internal sealed class MapScene
     /// <param name="start">Where to start: the preferred tile, or the place the server chose.</param>
     /// <param name="channel">Server connection for multiplayer, or <see langword="null"/> to play offline (no map changes).</param>
     /// <param name="actions">Number keys, the action key and the panel keys; <see langword="null"/> when there is no server to act on.</param>
+    /// <param name="placed">The mirror of the pieces placed in the player's place; they block walking like the server's grid does.</param>
+    /// <param name="placement">The keys that place, turn, move and pick up furniture.</param>
     /// <param name="looks">The looks the server sent for the players on the map; <see langword="null"/> draws everyone with <paramref name="look"/>.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, LookChannel? looks = null)
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null)
     {
         _actions = actions;
+        _placed = placed;
+        _placement = placement;
         _looks = looks;
         ArgumentNullException.ThrowIfNull(loader);
         ArgumentNullException.ThrowIfNull(content);
@@ -115,6 +127,7 @@ internal sealed class MapScene
 
         MapContent content = _content;
         TileMap map = content.Map;
+        WalkGrid grid = this.GridOf(content);
         _clockSeconds += frameSeconds;
         long timeMs = (long)(_clockSeconds * 1000);
 
@@ -128,7 +141,7 @@ internal sealed class MapScene
             int steps = _clock.Advance(frameSeconds);
             for (int i = 0; i < steps; i++)
             {
-                _farmer.Step(input, StepSeconds, content.Grid);
+                _farmer.Step(input, StepSeconds, grid);
             }
 
             _walkTime = _farmer.IsMoving ? _walkTime + (steps * StepSeconds) : 0;
@@ -136,7 +149,12 @@ internal sealed class MapScene
         }
 
         // Keys act on the map shown, and not while a map change freezes the farmer.
-        _actions?.Update(_phase == Phase.FadingOut ? InputEdges.None : edges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable, _clockSeconds);
+        InputEdges liveEdges = _phase == Phase.FadingOut ? InputEdges.None : edges;
+        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable, _clockSeconds);
+        if (_actions is not null)
+        {
+            _placement?.Update(content.Spec.Placeable && _phase == Phase.Playing, liveEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds);
+        }
 
         int scale = ScaleFor(map, canvasWidth, canvasHeight);
         _camera.Follow(
@@ -202,6 +220,39 @@ internal sealed class MapScene
         int scale = Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * map.TileWidth)), 2, MaxScale);
         int fitsWhole = (int)Math.Min(canvasWidth / (double)(map.Width * map.TileWidth), canvasHeight / (double)(map.Height * map.TileHeight));
         return Math.Clamp(Math.Max(scale, fitsWhole), 2, MaxScale);
+    }
+
+    // The grid the farmer walks on: the map's own, plus the footprints of the pieces the server says are placed here. Rebuilt only
+    // when the mirror or the map changed (never per frame), with the same PlacedSet rule the server uses.
+    private WalkGrid GridOf(MapContent content)
+    {
+        if (_placed is null || !content.Spec.Placeable)
+        {
+            return content.Grid;
+        }
+
+        int version = _placed.Version;
+        if (version != _placedGridVersion || !ReferenceEquals(content, _placedGridContent) || _placedGrid is null)
+        {
+            _placedSet.Clear();
+            using (_placed.Read())
+            {
+                if (string.Equals(_placed.MapId, content.Spec.Id, StringComparison.Ordinal))
+                {
+                    for (int i = 0; i < _placed.Count; i++)
+                    {
+                        PlacedObjectInfo piece = _placed.At(i);
+                        _placedSet.Add(new PlacedItem(piece.Id, piece.ItemId, piece.TileX, piece.TileY, piece.Rotation));
+                    }
+                }
+            }
+
+            _placedGrid = _placedSet.BuildGrid(content.Grid);
+            _placedGridContent = content;
+            _placedGridVersion = version;
+        }
+
+        return _placedGrid;
     }
 
     private static Walker StartWalker(MapContent content, MapStart start)

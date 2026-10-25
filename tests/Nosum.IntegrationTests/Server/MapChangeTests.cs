@@ -49,15 +49,15 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
     public MapChangeTests(PostgresFixture database) => _database = database;
 
     [Fact]
-    public async Task Move_ontoTheFarmhouseDoor_MovesPlayerAToTheFarmhouseAndPlayerBStopsSeeingThem()
+    public async Task Move_ontoTheFarmhouseDoor_MovesThePlayerIntoTheirOwnFarmhouse_WhereTheyAreTheOnlyOne()
     {
         await using Host host = await Host.StartAsync(_database);
         await using WorldClient a = await host.ConnectAsync();
         await using WorldClient b = await host.ConnectAsync();
         JoinMapResult joinA = await a.JoinAsync(host.Timeout);
         JoinMapResult joinB = await b.JoinAsync(host.Timeout);
-        joinA.MapId.Should().Be(GameMaps.Farm, "a new player starts on the farm");
-        await b.WaitForSnapshotAsync(s => s.Contains(joinA.PlayerId), host.Timeout);
+        joinA.MapId.Should().Be(GameMaps.Farm, "a new player starts on their own farm");
+        joinB.MapId.Should().Be(GameMaps.Farm);
 
         await a.SendMoveAsync(1, joinA.SpawnX, DoorFeetY, Up, host.Timeout);
 
@@ -65,14 +65,11 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
         entered.MapId.Should().Be(GameMaps.FarmHouse);
         entered.PlayerId.Should().Be(joinA.PlayerId, "the player keeps their id across maps");
         entered.Facing.Should().Be(Up);
-        (await b.Left.WaitAsync(host.Timeout)).PlayerId.Should().Be(joinA.PlayerId);
-        await b.WaitForSnapshotAsync(s => !s.Contains(joinA.PlayerId), host.Timeout);
-        (await b.NextSnapshotAsync(host.Timeout)).Players.Should().NotContain(joinA.PlayerId);
-        (await b.NextSnapshotAsync(host.Timeout)).Players.Should().NotContain(joinA.PlayerId);
 
-        // The first snapshot after the map change is the farmhouse's: A sees itself, not B.
+        // The first snapshot after the map change is A's own farmhouse: A sees itself, never B. B never saw A on the farm either.
         Snapshot seenByA = await a.WaitForSnapshotAsync(s => s.MapChangesSeen >= 1, host.Timeout);
         seenByA.Players.Should().Contain(joinA.PlayerId).And.NotContain(joinB.PlayerId);
+        (await b.NextSnapshotAsync(host.Timeout)).Players.Should().ContainSingle().Which.Should().Be(joinB.PlayerId);
 
         // Walking down on the arrival tile (the way out) does nothing: an arrival is not sent straight back.
         await a.SendMoveAsync(2, entered.X, entered.Y, Down, host.Timeout);
@@ -84,7 +81,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
         MapChanged back = await a.MapChanges.WaitAsync(host.Timeout);
         back.MapId.Should().Be(GameMaps.Farm);
         back.PlayerId.Should().Be(joinA.PlayerId);
-        await b.WaitForSnapshotAsync(s => s.Contains(joinA.PlayerId), host.Timeout);
+        (await a.WaitForSnapshotAsync(s => s.MapChangesSeen >= 2, host.Timeout)).Players.Should().ContainSingle().Which.Should().Be(joinA.PlayerId);
     }
 
     [Fact]

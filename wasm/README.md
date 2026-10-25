@@ -63,6 +63,12 @@ add no colours or borders of their own, so the look of the whole UI is the CSS o
 a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
+Furniture ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `PlaceableChannel` (in `Nosum.Wasm.Socket/Placeable`) mirrors the pieces of the player's current place (loaded with the farm after every join or map change)
+and sends place, move and pick-up requests. `Game/PlacedObjectsDecorator` draws them (and the ghost of the piece being placed) as `WorldSpriteBatch` sprites; `MapScene` adds their footprints to the grid the farmer
+walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, active only on a `MapSpec.Placeable` map: `E` places the held piece (or sets down a carried one), `R` rotates, `F` picks up the piece in front to
+move it (again to cancel), `Q` puts it back in the bag. `PlacementViewModel` relays the same actions from the arrange panel (`Controls/Placement/PlacementPanel`, built from the shared `GamePanel` and `GameButton`;
+styled only through their shared CSS classes). Refusals reach the message line as `Place_Status_*` text.
+
 ```bash
 dotnet build wasm/Nosum.Wasm.slnx
 dotnet run --project wasm/Nosum.Wasm

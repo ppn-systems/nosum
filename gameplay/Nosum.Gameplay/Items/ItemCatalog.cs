@@ -8,7 +8,7 @@ namespace Nosum.Gameplay.Items;
 
 /// <summary>
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
-/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-199 seeds, 200-299 produce, 300-399 clothing.
+/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-199 seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing.
 /// </summary>
 public static class ItemCatalog
 {
@@ -36,26 +36,50 @@ public static class ItemCatalog
     /// <summary>A harvested cauliflower.</summary>
     public const int Cauliflower = 202;
 
+    /// <summary>An oak chair.</summary>
+    public const int OakChair = 300;
+
+    /// <summary>A blue armchair.</summary>
+    public const int BlueArmchair = 301;
+
+    /// <summary>A blue couch.</summary>
+    public const int BlueCouch = 302;
+
+    /// <summary>An oak table.</summary>
+    public const int OakTable = 303;
+
+    /// <summary>A bookcase.</summary>
+    public const int Bookcase = 304;
+
+    /// <summary>A floor lamp.</summary>
+    public const int FloorLamp = 305;
+
+    /// <summary>A house plant.</summary>
+    public const int HousePlant = 306;
+
+    /// <summary>Largest stack of furniture.</summary>
+    public const int FurnitureStack = 20;
+
     /// <summary>A red shirt.</summary>
-    public const int ShirtRed = 300;
+    public const int ShirtRed = 400;
 
     /// <summary>A green shirt.</summary>
-    public const int ShirtGreen = 301;
+    public const int ShirtGreen = 401;
 
     /// <summary>A blue shirt.</summary>
-    public const int ShirtBlue = 302;
+    public const int ShirtBlue = 402;
 
     /// <summary>Blue trousers.</summary>
-    public const int PantsBlue = 320;
+    public const int PantsBlue = 420;
 
     /// <summary>Khaki trousers.</summary>
-    public const int PantsKhaki = 321;
+    public const int PantsKhaki = 421;
 
     /// <summary>A straw hat.</summary>
-    public const int HatStraw = 340;
+    public const int HatStraw = 440;
 
     /// <summary>A cap.</summary>
-    public const int HatCap = 341;
+    public const int HatCap = 441;
 
     /// <summary>Largest stack of seeds and produce.</summary>
     public const int DefaultStack = 99;
@@ -70,6 +94,13 @@ public static class ItemCatalog
         new(Parsnip, "parsnip", ItemKind.Produce, DefaultStack),
         new(Radish, "radish", ItemKind.Produce, DefaultStack),
         new(Cauliflower, "cauliflower", ItemKind.Produce, DefaultStack),
+        new(OakChair, "oak_chair", ItemKind.Furniture, FurnitureStack),
+        new(BlueArmchair, "blue_armchair", ItemKind.Furniture, FurnitureStack),
+        new(BlueCouch, "blue_couch", ItemKind.Furniture, FurnitureStack),
+        new(OakTable, "oak_table", ItemKind.Furniture, FurnitureStack),
+        new(Bookcase, "bookcase", ItemKind.Furniture, FurnitureStack),
+        new(FloorLamp, "floor_lamp", ItemKind.Furniture, FurnitureStack),
+        new(HousePlant, "house_plant", ItemKind.Furniture, FurnitureStack),
         new(ShirtRed, "shirt_red", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
         new(ShirtGreen, "shirt_green", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
         new(ShirtBlue, "shirt_blue", ItemKind.Clothing, 1, wear: WearSlot.Shirt),

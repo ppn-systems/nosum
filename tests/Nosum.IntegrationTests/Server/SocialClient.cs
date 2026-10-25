@@ -94,6 +94,9 @@ internal sealed class SocialClient : IAsyncDisposable
         ];
     }
 
+    /// <summary>The shared map the clients meet on.</summary>
+    public const string SharedMapId = "busstop";
+
     public Guid PlayerId { get; private set; }
 
     public string SessionToken { get; private set; } = string.Empty;
@@ -115,8 +118,11 @@ internal sealed class SocialClient : IAsyncDisposable
 
     public Inbox<CoopCopy> Coops { get; } = new();
 
-    /// <summary>Signs in as a guest. With <paramref name="startAt"/> the player is saved there first, so the join puts them at that place of the farm.</summary>
-    public static async Task<SocialClient> ConnectAsync(ushort port, CancellationToken ct, (double X, double Y)? startAt = null)
+    /// <summary>
+    /// Signs in as a guest. The player is saved on a map first, so the join puts them there: by default on the bus stop, a shared map where clients meet
+    /// (farms are private, docs/adr/ADR-015); <paramref name="startAt"/> picks another map and place (the saved place is used when it is legal, the map's spawn otherwise).
+    /// </summary>
+    public static async Task<SocialClient> ConnectAsync(ushort port, CancellationToken ct, (string Map, double X, double Y)? startAt = null)
     {
         await PaceGuestAsync(ct);
         WebSocketSession session = new(
@@ -130,11 +136,9 @@ internal sealed class SocialClient : IAsyncDisposable
         result.Status.Should().Be(AccountStatus.Ok);
         client.PlayerId = result.PlayerId;
         client.SessionToken = result.SessionToken;
-        if (startAt is { } place)
-        {
-            IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
-            await states.SaveAsync(result.PlayerId, new PlayerStateRow(Program.FarmMapId, place.X, place.Y, Facing.Down), ct);
-        }
+        (string map, double x, double y) = startAt ?? (SharedMapId, -1, -1);
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+        await states.SaveAsync(result.PlayerId, new PlayerStateRow(map, x, y, Facing.Down), ct);
 
         return client;
     }

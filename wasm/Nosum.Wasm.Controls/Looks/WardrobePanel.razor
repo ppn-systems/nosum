@@ -2,7 +2,7 @@
 @inherits ObservingComponent<WardrobeViewModel>
 
 @* The wardrobe: avatar parts and clothing. The server validates ownership and sends the new look to everyone on the map. *@
-<GamePanel Title="@Vm.Text("Wardrobe_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+<GamePanel Dock="PanelDock.Center" Title="@Vm.Text("Wardrobe_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
     <GameStack>
         <GameSection Title="@Vm.Text("Wardrobe_Skin_Heading")">
             <GameRow>

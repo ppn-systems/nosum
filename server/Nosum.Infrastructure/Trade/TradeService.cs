@@ -72,7 +72,7 @@ public sealed class TradeService : ITradeService, IDisposable
 
         // "Same map" is the presence group: the target must be among the players the presence reports for my map.
         List<PlayerPresence> players = [];
-        _presence.CopyPlayers(me.MapId, players);
+        _presence.CopyPlayers(me.Key, players);
         PlayerPresence? target = players.Find(p => p.PlayerId == targetMapPlayerId);
         if (target is null)
         {

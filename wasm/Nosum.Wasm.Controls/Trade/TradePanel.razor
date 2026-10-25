@@ -2,7 +2,7 @@
 @inherits ObservingComponent<TradeViewModel>
 
 @* The trade window: pick a player, then both sides fill an offer and confirm. Any change clears both confirmations on the server. *@
-<GamePanel Title="@Vm.Text("Trade_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+<GamePanel Dock="PanelDock.Center" Title="@Vm.Text("Trade_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
     <GameStack>
         @if (Vm.Phase == TradePhase.Open)
         {

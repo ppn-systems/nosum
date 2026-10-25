@@ -1,6 +1,6 @@
 # ADR-012 — Maps and warps: one catalogue, exits as data, the server moves the player
 
-**Status:** Proposed
+**Status:** Accepted (owner approval, 2026-10-25). Amended by [ADR-015](ADR-015-private-instances-and-placeables.md): the farm and the farmhouse are private per player (D8 and D10 below no longer hold for them; the other maps stay shared).
 
 ## Context
 
@@ -49,7 +49,7 @@ from the wire must never become a file path.
   the starting map (`farm`) for everything else. This is a wire change, so `NosumProtocol.Version` is 2.
 - **D7 — Wire: World band `0x7000-0x70FF`.** One push so far, `MapChanged` (`0x7040`: player id, map id,
   feet x and y, facing). Ids and numbers only, no display text ([ADR-010](ADR-010-internationalization.md)).
-- **D8 — Presence is per map, not per player.** Every map is one Nalix group (`MapGroup.Name`); snapshots,
+- **D8 — Presence is per map, not per player.** (Amended by ADR-015 D3: per instance key; the map id for a shared map.) Every map is one Nalix group (`MapGroup.Name`); snapshots,
   `PlayerLeft` and everything built on `IMapPresence` already reach only that map's players, so other
   players are shown only on the same map without new code.
 - **D9 — The client loads in the background and fades.** `MapScene` (the former `FarmScene`) draws any
@@ -61,8 +61,8 @@ from the wire must never become a file path.
   input and reports, waits without blocking until the loader has the map, swaps, and fades in (0.25 s). The
   fade is a black-fill render command (`RenderCommandBuffer.FillBlack`), so the render contract is still one
   draw list per frame. A small map is zoomed until it fits the screen.
-- **D10 — Maps are shared by default.** Every map is one shared instance. Making the farmhouse private per
-  player is a presence-key change (group name from map id plus owner) and is left open below.
+- **D10 — Maps are shared by default.** Every map is one shared instance. (Amended by ADR-015: the farm and the farmhouse are
+  one instance per player, which is the presence-key change this paragraph anticipated: group name from map id plus owner.)
 
 ## Alternatives considered
 

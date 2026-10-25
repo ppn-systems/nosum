@@ -18,7 +18,10 @@ using Nosum.Contracts.Inventory.S2C;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Quests;
+using Nosum.Contracts.Placeable;
+using Nosum.Contracts.Placeable.S2C;
 using Nosum.Wasm.Socket.Farm;
+using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.ViewModels.Feedback;
 using Nosum.Wasm.ViewModels.Inventory;
@@ -134,7 +137,8 @@ public sealed class InventoryViewModelTests
         using CultureScope scope = new("en");
         (InventoryViewModel inventory, _, FakeGameSocket socket) = Create();
         using FarmChannel farm = new(socket);
-        using GameMessagesViewModel messages = new(farm, inventory, Localizer<Language>());
+        using PlaceableChannel placeable = new(socket);
+        using GameMessagesViewModel messages = new(farm, placeable, inventory, Localizer<Language>());
         socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.NotTilled });
 
         farm.Use(2, 1, 1);
@@ -147,7 +151,8 @@ public sealed class InventoryViewModelTests
     {
         (InventoryViewModel inventory, _, FakeGameSocket socket) = Create();
         using FarmChannel farm = new(socket);
-        using GameMessagesViewModel messages = new(farm, inventory, Localizer<Language>());
+        using PlaceableChannel placeable = new(socket);
+        using GameMessagesViewModel messages = new(farm, placeable, inventory, Localizer<Language>());
         socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.Ok, Action = FarmAction.Tilled });
 
         farm.Use(0, 1, 1);
@@ -189,6 +194,30 @@ public sealed class InventoryViewModelTests
 
         Keys("Language.resx", "Nosum.Wasm.ViewModels").Should().Contain(needed);
         Keys("Language.en.resx", "Nosum.Wasm.ViewModels").Should().Contain(needed);
+    }
+
+    [Fact]
+    public void Language_EveryPlaceStatusHasATextInBothLanguages()
+    {
+        string[] needed = Enum.GetValues<PlaceStatus>().Where(s => s != PlaceStatus.Ok).Select(s => "Place_Status_" + s).ToArray();
+
+        Keys("Language.resx", "Nosum.Wasm.ViewModels").Should().Contain(needed);
+        Keys("Language.en.resx", "Nosum.Wasm.ViewModels").Should().Contain(needed);
+    }
+
+    [Fact]
+    public void GameMessages_ARefusedPlacement_ShowsItsText()
+    {
+        using CultureScope scope = new("en");
+        (InventoryViewModel inventory, _, FakeGameSocket socket) = Create();
+        using FarmChannel farm = new(socket);
+        using PlaceableChannel placeable = new(socket);
+        using GameMessagesViewModel messages = new(farm, placeable, inventory, Localizer<Language>());
+        socket.ReplyWith(_ => new PlaceResult { Status = PlaceStatus.Overlaps });
+
+        placeable.Place(5, 3, 3, 0);
+
+        messages.Message.Should().Be("There is furniture there already.");
     }
 
     private static (InventoryViewModel Vm, InventoryChannel Channel, FakeGameSocket Socket) Create()

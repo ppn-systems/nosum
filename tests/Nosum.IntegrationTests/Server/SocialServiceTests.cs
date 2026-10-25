@@ -34,6 +34,7 @@ using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Market;
 using Nosum.Infrastructure.Persistence;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Xunit;
 
@@ -515,7 +516,7 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
 
         public int PlayerCount => 0;
 
-        public ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, string mapId, MotionState motion, uint? playerId = null, CancellationToken cancellationToken = default)
+        public ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, MapInstance instance, MotionState motion, uint? playerId = null, CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
 
         public ValueTask LeaveAsync(IConnection connection, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;

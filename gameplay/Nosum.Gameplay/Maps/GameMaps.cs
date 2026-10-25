@@ -11,6 +11,7 @@ namespace Nosum.Gameplay.Maps;
 /// The catalogue of maps the world hosts, shared by the server (which loads them and decides every
 /// map change) and the client (which draws them). A client names a map only by <see cref="MapSpec.Id"/>
 /// and the server accepts only ids found here, so an id is never turned into a path.
+/// Farm and farmhouse are private: each player has their own instance (<see cref="MapInstance"/>, docs/adr/ADR-015); the other maps are shared.
 /// Adding a map: add a <see cref="MapSpec"/> below, link its <c>.tmx</c> and tilesheets in
 /// <c>Nosum.Wasm.csproj</c> and <c>Nosum.Host.csproj</c> (a test checks it).
 /// </summary>
@@ -35,12 +36,20 @@ public static class GameMaps
     // so the farmer can walk into it. FarmProps.FarmhouseDoorFront is the tile in front of it.
     private static readonly (int X, int Y) s_farmhouseDoor = (FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y - 1);
 
+    /// <summary>Id of the town east of the bus stop.</summary>
+    public const string Town = "town";
+
+    /// <summary>Id of the backwoods north of the farm.</summary>
+    public const string Backwoods = "backwoods";
+
     private static readonly MapSpec[] s_all =
     [
-        new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true),
-        new(FarmHouse, "FarmHouse.tmx", 3, 11),
+        new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true, isPrivate: true),
+        new(FarmHouse, "FarmHouse.tmx", 3, 11, isPrivate: true, placeable: true),
         new(BusStop, "BusStop.tmx", 11, 23),
         new(Forest, "Forest.tmx", 68, 0),
+        new(Town, "Town.tmx", 4, 54),
+        new(Backwoods, "Backwoods.tmx", 14, 38),
     ];
 
     /// <summary>Gets every hosted map.</summary>

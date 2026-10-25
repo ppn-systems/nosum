@@ -16,12 +16,14 @@ Domains and opcode bands (record a new band here and in its `*OpCode` class):
 | Market | `0x4000-0x40FF` | get wallet, ship items, browse listings, create/buy/cancel listing, get my listings (C2S `0x4000-0x403F`); wallet snapshot, wallet update (push), ship result, listings page, market result (S2C `0x4040-0x407F`); replies carry `MarketStatus` codes ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md)) |
 | Inventory | `0x5000-0x50FF` | get inventory, move slot, select slot (C2S `0x5000-0x503F`); inventory snapshot, result, update (push of changed slots) (S2C `0x5040-0x507F`); replies carry `InventoryStatus` codes |
 | Quest | `0x6000-0x60FF` | get quests (C2S `0x6000-0x603F`); quest log, quest update (push) (S2C `0x6040-0x607F`) |
+| Placeable | `0xB000-0xB0FF` | objects a player places in their own place (furniture in the farmhouse): get placed, place, move, pick up (C2S `0xB000-0xB03F`); placed snapshot, place result (carries a `PlaceStatus`), placed changed (pushed to the instance) (S2C `0xB040-0xB07F`); [ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md) |
 | World | `0x7000-0x70FF` | map changes. C2S `0x7000-0x703F`: none (the server changes maps when a player walks onto an exit, [ADR-012](../docs/adr/ADR-012-maps-and-warps.md)); S2C `0x7040-0x707F`: `MapChanged` (player id, map id, feet x/y, facing) |
 | Look (wardrobe) | `0x8000-0x80FF` | get looks, set appearance, equip, unequip (C2S `0x8000-0x803F`); looks snapshot, look result, look changed (push to the map group) (S2C `0x8040-0x807F`); looks are ids only; replies carry `LookStatus` codes ([ADR-014](../docs/adr/ADR-014-coops-and-looks.md)) |
 | Trade | `0x9000-0x90FF` | request, respond, set offer, confirm, cancel (C2S `0x9000-0x903F`); result, invite (push), state (push to both parties), ended (push) (S2C `0x9040-0x907F`); replies carry `TradeStatus`, endings `TradeEndReason` ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md)) |
 | Coop | `0xA000-0xA0FF` | create, get, invite, respond to invite, leave, kick, deposit, withdraw (C2S `0xA000-0xA03F`); result, snapshot (also pushed to every online member) (S2C `0xA040-0xA07F`); replies carry `CoopStatus`; the co-op name is authored text (plain or `i18n{` envelope) ([ADR-014](../docs/adr/ADR-014-coops-and-looks.md)) |
 
-`NosumProtocol.Version` is 2: `JoinMapResult` gained `MapId` and `Facing` (ADR-012 D6). The social layer only added packets in new bands, so it did not bump it.
+`NosumProtocol.Version` is 2: `JoinMapResult` gained `MapId` and `Facing` (ADR-012 D6). The Placeable band only adds packets, so the version stays 2. The social layer only added packets in new bands too.
+A place is a map instance (a shared map, or one player's private farm or farmhouse); none of that is on the wire: `FarmSnapshot.MapId`, `MapChanged.MapId` and `PlacedSnapshot.MapId` are map ids and the server knows whose copy the connection is in.
 
 Shared enums that are not tied to one domain live in `Nosum.Contracts/Common` (`GameLanguage`,
 with `GameLanguages` as its one mapping to BCP-47 tags).
