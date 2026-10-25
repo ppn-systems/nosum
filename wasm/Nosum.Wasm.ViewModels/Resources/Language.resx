@@ -299,7 +299,7 @@
   <data name="Help_Section_Arrange" xml:space="preserve"><value>Sắp xếp nhà</value></data>
   <data name="Help_Move" xml:space="preserve"><value>Di chuyển</value></data>
   <data name="Help_Use" xml:space="preserve"><value>Dùng, tương tác</value></data>
-  <data name="Help_Hotbar" xml:space="preserve"><value>Chọn ô thanh đồ</value></data>
+  <data name="Help_Hotbar" xml:space="preserve"><value>Chọn ô</value></data>
   <data name="Help_Inventory" xml:space="preserve"><value>Túi đồ</value></data>
   <data name="Help_Market" xml:space="preserve"><value>Chợ</value></data>
   <data name="Help_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>

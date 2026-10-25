@@ -299,7 +299,7 @@
   <data name="Help_Section_Arrange" xml:space="preserve"><value>Arranging your home</value></data>
   <data name="Help_Move" xml:space="preserve"><value>Move</value></data>
   <data name="Help_Use" xml:space="preserve"><value>Use, interact</value></data>
-  <data name="Help_Hotbar" xml:space="preserve"><value>Pick a hotbar slot</value></data>
+  <data name="Help_Hotbar" xml:space="preserve"><value>Select slot</value></data>
   <data name="Help_Inventory" xml:space="preserve"><value>Inventory</value></data>
   <data name="Help_Market" xml:space="preserve"><value>Market</value></data>
   <data name="Help_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>

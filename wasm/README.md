@@ -69,19 +69,16 @@ walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, 
 move it (again to cancel), `Q` puts it back in the bag. `PlacementViewModel` relays the same actions from the arrange panel (`Controls/Placement/PlacementPanel`, built from the shared `GamePanel` and `GameButton`;
 styled only through their shared CSS classes). Refusals reach the message line as `Place_Status_*` text.
 
-UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`. `wwwroot/nosum-theme.css` holds the variables (`--u` is one UI pixel: 2 px, 3 px from 1500 x 850,
-4 px on large screens; colours `--nosum-*`) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `MenuTiles.png`, `Cursors.png` and `textBox.png` (linked from `assets/` in the Controls csproj, placeholder art
-per ADR-007) into `--nosum-img-*` variables used as `border-image`. `index.html` links both; the controls' scoped CSS comes through `Nosum.Wasm.styles.css`, which imports the Controls bundle. Every screen element is a shared control
-(`GamePanel`, `GameButton`, `GameInput`/`GameField`, `ItemSlotButton`/`ItemGrid`, `GameSwatch`, `GameKey`, `GameIcon`, `GameNotice`, `GameBadge`, `GameSpinner`, ...); panels add layout only, no colours. `Layout/GameHud` is the layout:
-dock regions (top-left, top-center, top-right, left, center = one modal panel, right = contextual panels, bottom-center, overlay for dialogs), so nothing overlaps. `Pages/Home.razor` puts each control in its region; `Esc` closes the open
-panel and `H`/`?` shows the help card (`InputEdges.Close`/`Help`, `HelpViewModel`, `Controls/Help/HelpPanel`). The start screen (`Components/Account/StartScreen`) wraps the account form; the loading state is an overlay panel until `GameLoop.StartAsync` returns.
-
-Shop, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): next to the Town's general store counter the action key (`E`) opens `ShopPanel`
-(`ShopViewModel`, `ShopChannel`; catalogue and prices are the shared `ShopCatalog`, the server prices and checks every purchase). `N` opens `ProfilePanel` (`ProfileViewModel`: show and change the nickname once a day);
-the registration and upgrade form asks for a nickname (`GameField`). `NicknameFormatter` shows a nickname (a guest's `guest-1234` as "Khách 1234" / "Guest 1234"); `LookChannel` caches nicknames by map player id and
-`Game/NicknameLabels` uploads each name once as an engine label (`LabelRegistry`, `renderer.js registerLabel`) that `MapScene` draws above every farmer. Tester tools exist only in a build made with
-`-p:NosumDevTools=true`: from the browser console, `(await getDotnetRuntime(0).getAssemblyExports("Nosum.Wasm.dll")).Nosum.Wasm.Game.DevTools.Grant(300, 5, 0)` asks a Development server for 5 oak chairs
-(item id, quantity, coins).
+UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md), amended by [ADR-017](../docs/adr/ADR-017-game-menu-and-world-pixel-ui.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`.
+`wwwroot/nosum-theme.css` holds the variables and the font (`--u` is one UI pixel and equals the world pixel: `round(width / 416)` like `MapScene.ScaleFor`, computed by `nosum-theme.js`; `--tp` is one pixel of the VT323 UI font,
+`fonts/`, OFL; colours `--nosum-*`; type scale title, body, small) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `MenuTiles.png`, `Cursors.png` and `textBox.png` (linked from `assets/` in the Controls csproj, placeholder art
+per ADR-007) into `--nosum-img-*` variables used as `border-image`, adds a few own glyphs, and shows the one tooltip for any element with `data-tip`. `index.html` links both and starts Blazor by hand with `loadAllSatelliteResources` (so English
+appears after sign-in); the controls' scoped CSS comes through `Nosum.Wasm.styles.css`. Every screen element is a shared control (`GamePanel`, `GameButton`, `GameInput`/`GameField`, `ItemSlotButton`/`ItemGrid`, `GameSection`, `GameSwatch`, `GameKey`,
+`GameIcon`, `GameIconButton`, `GameNotice`, `GameBadge`, `GameSpinner`, `GameMenu`/`MenuPage`, `CharacterPreview`, ...); panels add layout only, no colours. `Layout/GameHud` is the layout: dock regions (top-left quest tracker, top-center notices,
+top-right coins and the gear, center = the game menu, bottom-center hotbar with the message line, overlay for dialogs). **One game menu** (`Controls/Menu/GameMenu`): the inventory, wardrobe, market, trade, co-op, profile and settings pages
+(and a shop page while one is open) are its tabs; `Pages/Home.razor` maps `PanelKind` to a page, `ToolbarViewModel.Items` lists the tabs (a new tab = one entry there, one `case` in `Home.razor`, one sprite in `nosum-theme.js`). `Esc` closes the menu or opens it
+on the last tab, `I M C T G N` open a tab, `H` / `?` and the gear open settings (account, sign out, language, key help: `Controls/Settings/SettingsPanel`, `HelpViewModel`). The start screen (`Components/Account/StartScreen`) wraps the account form; the loading
+state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
 
 ```bash
 dotnet build wasm/Nosum.Wasm.slnx

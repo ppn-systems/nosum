@@ -7,11 +7,13 @@
     color: var(--nosum-ink-soft);
 }
 
-.listing-name {
-    min-width: calc(var(--u) * 52);
+.listing-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: calc(var(--u) * 3);
+    align-items: center;
 }
 
 .listing-price {
-    min-width: calc(var(--u) * 36);
     color: var(--nosum-ink-soft);
 }

@@ -1,0 +1,6 @@
+.shop-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: calc(var(--u) * 3);
+    align-items: center;
+}

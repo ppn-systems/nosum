@@ -18,7 +18,7 @@
         @foreach (ShopOfferDisplay offer in Vm.Offers)
         {
             int itemId = offer.ItemId;
-            <GameRow Class="center">
+            <GameRow Class="center shop-row">
                 <ItemSlotButton Slot="offer.Item" />
                 <span>@offer.Item.Name</span>
                 <span>@offer.PriceText</span>

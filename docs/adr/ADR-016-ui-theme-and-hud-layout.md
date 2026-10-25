@@ -1,6 +1,6 @@
 # ADR-016 — One pixel-art UI theme and one HUD layout system
 
-**Status:** Proposed
+**Status:** Proposed. D2, D4, D5 and D6 are superseded by [ADR-017](ADR-017-game-menu-and-world-pixel-ui.md) (one game menu, UI pixel = world pixel, VT323, a near-empty HUD); D1, D3 and D7 stand.
 
 ## Context
 
