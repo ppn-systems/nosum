@@ -1,0 +1,65 @@
+.set-top {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: var(--nosum-gap-group);
+}
+
+.set-account {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+    padding: 0 calc(var(--u) * 2) calc(var(--u) * 1);
+}
+
+.set-who {
+    margin: 0;
+}
+
+.set-note {
+    margin: 0;
+    color: var(--nosum-ink-soft);
+}
+
+.set-keys {
+    display: grid;
+    grid-template-columns: 5fr 4fr;
+    gap: var(--nosum-gap-group);
+    padding: 0 calc(var(--u) * 2) calc(var(--u) * 1);
+}
+
+.set-col.narrow {
+    --keys-w: calc(var(--u) * 20);
+}
+
+.set-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.set-heading {
+    margin: calc(var(--u) * 1) 0;
+    color: var(--nosum-ink-soft);
+}
+
+.set-col .set-heading:first-child {
+    margin-top: 0;
+}
+
+.set-col ::deep .set-heading + .help-entry {
+    margin-top: 0;
+}
+
+.help-entry {
+    display: grid;
+    grid-template-columns: var(--keys-w, calc(var(--u) * 34)) 1fr;
+    gap: calc(var(--u) * 2);
+    align-items: center;
+    min-height: calc(var(--u) * 8);
+}
+
+.help-keys {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: var(--u);
+}

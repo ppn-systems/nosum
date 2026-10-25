@@ -1,0 +1,22 @@
+.preview {
+    position: relative;
+    flex: none;
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 32);
+    image-rendering: pixelated;
+}
+
+.layer {
+    position: absolute;
+    isolation: isolate;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+}
+
+.tint {
+    position: absolute;
+    inset: 0;
+    mix-blend-mode: multiply;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}

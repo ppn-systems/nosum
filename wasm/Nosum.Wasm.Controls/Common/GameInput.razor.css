@@ -3,7 +3,7 @@
     --input-edge: calc(var(--u) * 3);
 
     box-sizing: border-box;
-    width: calc(var(--u) * 100);
+    width: calc(var(--u) * 90);
     max-width: 100%;
     min-width: 0;
     padding: var(--u) calc(var(--u) * 2);
@@ -11,7 +11,7 @@
     border-image: var(--nosum-img-field) 12 fill / var(--input-edge) stretch;
     background: var(--nosum-parchment) padding-box;
     color: var(--nosum-ink);
-    font: 600 1em / 1.3 var(--nosum-font);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
     image-rendering: pixelated;
     cursor: var(--nosum-cursor, text);
     appearance: textfield;

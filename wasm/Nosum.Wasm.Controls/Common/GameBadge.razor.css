@@ -1,3 +1,4 @@
+/* A status light with a word (connection problems only). */
 .game-badge {
     --badge-edge: calc(var(--u) * 3);
     --badge-light: var(--nosum-ok);
@@ -10,8 +11,6 @@
     border-image: var(--nosum-img-field) 12 fill / var(--badge-edge) stretch;
     background: var(--nosum-parchment) padding-box;
     color: var(--nosum-ink);
-    font-size: 0.85em;
-    font-weight: 700;
     image-rendering: pixelated;
     white-space: nowrap;
 }

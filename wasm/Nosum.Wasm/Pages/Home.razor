@@ -9,7 +9,8 @@
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.Controls.Coop
 @using Nosum.Wasm.Controls.Feedback
-@using Nosum.Wasm.Controls.Help
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.Controls.Settings
 @using Nosum.Wasm.Controls.Layout
 @using Nosum.Wasm.ViewModels.Help
 @using Nosum.Wasm.Controls.Inventory
@@ -68,7 +69,10 @@ else
 {
     <GameHud>
         <TopLeft>
-            <QuestTracker Vm="Quest" />
+            @if (_started && _panel == PanelKind.None)
+            {
+                <QuestTracker Vm="Quest" />
+            }
         </TopLeft>
         <TopCenter>
             @if (_error is not null)
@@ -77,52 +81,59 @@ else
                     <GameNotice Kind="error" Text="@_error" />
                 </GamePanel>
             }
+            <ConnectionBadge />
+            @if (_started && _panel == PanelKind.None)
+            {
+                <PlacementPanel Vm="Placement" />
+            }
         </TopCenter>
         <TopRight>
-            <SessionBar Vm="Form" />
-            <GameRow Class="end">
-                <CoinBadge Vm="Wallet" />
-                <ConnectionBadge />
-            </GameRow>
-        </TopRight>
-        <Left>
-            <PanelToolbar Vm="Toolbar" OnSelect="OnToolbar" />
-        </Left>
-        <Center>
-            @switch (_panel)
+            @if (_started)
             {
-                case PanelKind.Inventory:
-                    <InventoryPanel Vm="Inventory" OnClose="ClosePanel" />
-                    break;
-                case PanelKind.Market:
-                    <MarketPanel Vm="Market" OnClose="ClosePanel" />
-                    break;
-                case PanelKind.Wardrobe:
-                    <WardrobePanel Vm="Wardrobe" OnClose="ClosePanel" />
-                    break;
-                case PanelKind.Trade:
-                    <TradePanel Vm="Trade" OnClose="ClosePanel" />
-                    break;
-                case PanelKind.Coop:
-                    <CoopPanel Vm="Coop" OnClose="ClosePanel" />
-                    break;
-                case PanelKind.Help:
-                    <HelpPanel Vm="Help" OnClose="ClosePanel" />
-                    break;
-                case PanelKind.Profile:
-                    <ProfilePanel Vm="Profile" OnClose="ClosePanel" />
-                    break;
-                case PanelKind.Shop:
-                    <ShopPanel Vm="Shop" ShopId="_shopId" OnClose="ClosePanel" />
-                    break;
+                <CoinBadge Vm="Wallet" />
+                <GameIconButton Icon="tab-settings" Tip="@Toolbar.Text("Toolbar_Settings")" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
+            }
+        </TopRight>
+        <Center>
+            @if (_started && _panel != PanelKind.None)
+            {
+                <GameMenu Tabs="Tabs()" Active="(int)_panel" OnSelect="@(id => SelectTab((PanelKind)id))" OnClose="ClosePanel" CloseText="@Toolbar.Text("Panel_Close")">
+                    @switch (_panel)
+                    {
+                        case PanelKind.Inventory:
+                            <InventoryPanel Vm="Inventory" Wardrobe="Wardrobe" />
+                            break;
+                        case PanelKind.Market:
+                            <MarketPanel Vm="Market" />
+                            break;
+                        case PanelKind.Wardrobe:
+                            <WardrobePanel Vm="Wardrobe" />
+                            break;
+                        case PanelKind.Trade:
+                            <TradePanel Vm="Trade" />
+                            break;
+                        case PanelKind.Coop:
+                            <CoopPanel Vm="Coop" />
+                            break;
+                        case PanelKind.Profile:
+                            <ProfilePanel Vm="Profile" />
+                            break;
+                        case PanelKind.Shop:
+                            <ShopPanel Vm="Shop" ShopId="_shopId" />
+                            break;
+                        case PanelKind.Settings:
+                            <SettingsPanel Vm="Form" Help="Help" />
+                            break;
+                    }
+                </GameMenu>
             }
         </Center>
-        <Right>
-            <PlacementPanel Vm="Placement" />
-        </Right>
         <BottomCenter>
-            <GameMessage Vm="Messages" />
-            <Hotbar Vm="Inventory" />
+            @if (_started && _panel == PanelKind.None)
+            {
+                <GameMessage Vm="Messages" />
+                <Hotbar Vm="Inventory" />
+            }
         </BottomCenter>
         <Overlay>
             @if (!_started)
@@ -157,6 +168,7 @@ else
     private bool _signedIn;
     private bool _started;
     private PanelKind _panel;
+    private PanelKind _lastTab = PanelKind.Inventory;
     private int _shopId;
     private string? _error;
 
@@ -209,22 +221,22 @@ else
     // The first quest was finished: the session bar now offers the registration (the form's session is the one it shows).
     private void OnPromptUnlocked() => Form.UnlockRegistrationPrompt();
 
-    // A panel key was pressed in the game (raised from the frame loop).
-    private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind));
+    // A panel key was pressed in the game (raised from the frame loop). H and ? open the settings page, which holds the key help.
+    private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind == PanelKind.Help ? PanelKind.Settings : kind));
 
-    // The action key next to a shop counter (raised from the frame): open that shop.
+    // The action key next to a shop counter (raised from the frame): open that shop on its tab.
     private void OnShopRequested(int shopId) => _ = InvokeAsync(() =>
     {
         if (_panel != PanelKind.Shop)
         {
             _shopId = shopId;
-            _panel = PanelKind.Shop;
-            Toolbar.Active = _panel;
+            Shop.Open(shopId);
+            Show(PanelKind.Shop);
             StateHasChanged();
         }
     });
 
-    // Escape: leave the upgrade form, or else close the open panel.
+    // Escape: leave the upgrade form, or close the menu, or else open it on the tab used last.
     private void OnCloseKey() => _ = InvokeAsync(() =>
     {
         if (Form.Mode == AccountFormMode.Upgrade)
@@ -235,17 +247,59 @@ else
         {
             ClosePanel();
         }
+        else
+        {
+            Show(_lastTab);
+        }
 
         StateHasChanged();
     });
 
-    private void OnToolbar(PanelKind kind) => TogglePanel(kind);
+    // The tabs of the game menu: the toolbar's entries, plus the shop (titled by the shop that was opened) while one is open.
+    // A new tab is one more entry in ToolbarViewModel.Items.
+    private IReadOnlyList<MenuTab> Tabs()
+    {
+        List<MenuTab> tabs = [];
+        foreach (ToolbarItem item in Toolbar.Items)
+        {
+            if (item.Kind == PanelKind.Settings && _panel == PanelKind.Shop)
+            {
+                tabs.Add(Tab(Toolbar.ShopItem with { Label = Shop.Title.Length > 0 ? Shop.Title : Toolbar.ShopItem.Label }));
+            }
+
+            tabs.Add(Tab(item));
+        }
+
+        return tabs;
+
+        static MenuTab Tab(ToolbarItem item) => new((int)item.Kind, item.Label, item.Icon, item.Hotkey);
+    }
+
+    private void SelectTab(PanelKind kind) => Show(kind);
 
     private void TogglePanel(PanelKind kind)
     {
-        _panel = _panel == kind ? PanelKind.None : kind;
-        Toolbar.Active = _panel;
+        if (_panel == kind)
+        {
+            ClosePanel();
+        }
+        else
+        {
+            Show(kind);
+        }
+
         StateHasChanged();
+    }
+
+    private void Show(PanelKind kind)
+    {
+        _panel = kind;
+        if (kind != PanelKind.Shop)
+        {
+            _lastTab = kind;
+        }
+
+        Toolbar.Active = _panel;
     }
 
     private void ClosePanel()
@@ -261,8 +315,7 @@ else
         {
             _ = InvokeAsync(() =>
             {
-                _panel = PanelKind.Trade;
-                Toolbar.Active = _panel;
+                Show(PanelKind.Trade);
                 StateHasChanged();
             });
         }

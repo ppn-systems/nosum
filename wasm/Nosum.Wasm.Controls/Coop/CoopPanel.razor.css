@@ -9,7 +9,6 @@
 
 .member-name {
     min-width: calc(var(--u) * 42);
-    font-weight: 800;
 }
 
 .member-role {

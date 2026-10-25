@@ -1,0 +1,19 @@
+@* A square button that shows one sprite of the theme (the settings gear). Tip is its tooltip and accessible name (already localized). *@
+<button type="button"
+        class="game-icon-button"
+        data-tip="@Tip"
+        aria-label="@Tip"
+        tabindex="-1"
+        @onmousedown:preventDefault
+        @onclick="OnClick"><span class="game-icon-button-art" style="background-image:var(--nosum-img-@(Icon))"></span></button>
+
+@code {
+    /// <summary>The theme sprite: <c>tab-settings</c>, ... (see <c>nosum-theme.js</c>).</summary>
+    [Parameter, EditorRequired] public string Icon { get; set; } = string.Empty;
+
+    /// <summary>The localized tooltip and accessible name.</summary>
+    [Parameter, EditorRequired] public string Tip { get; set; } = string.Empty;
+
+    /// <summary>Raised on a click.</summary>
+    [Parameter] public EventCallback OnClick { get; set; }
+}

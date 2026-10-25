@@ -1,0 +1,24 @@
+.menu-page {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+    min-height: 0;
+}
+
+.menu-page-body {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: var(--nosum-gap-group);
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: var(--u);
+}
+
+.menu-page-status {
+    margin: 0;
+    padding-top: calc(var(--u) * 2);
+    border-top: var(--u) solid var(--nosum-line);
+    color: var(--nosum-danger);
+}

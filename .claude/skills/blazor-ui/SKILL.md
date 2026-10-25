@@ -36,16 +36,18 @@ Frame loop and drawing: `render-interop`. Transport internals: `nalix-client-sdk
 - `wasm/Nosum.Wasm/wwwroot/index.html` — host page; `<base href="/">` must match the deploy path
   because the render module is imported by absolute URL.
 
-## Theme and layout (ADR-016)
+## Theme and layout (ADR-016, amended by ADR-017)
 
-- **Use the shared controls; never hand-roll UI.** Frames, buttons, fields, slots, tabs, swatches, key caps, notices, badges and spinners are the controls in
-  `Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput` in a `GameField`, `ItemGrid`/`ItemSlotButton`, `GameSwatch`, `GameKey`, `GameIcon`,
-  `GameNotice`, `GameBadge`, `GameSpinner`). No raw `<button>`, `<input>` or styled `<div>` panel in a page or panel. Need something new? Add a shared control.
-- **No colours, fonts or borders in panel or page CSS.** Panel CSS is layout only, in UI pixels: `calc(var(--u) * n)`. Colours and sizes come from the `--nosum-*`
+- **Use the shared controls; never hand-roll UI.** Frames, buttons, fields, slots, tabs, sections, swatches, key caps, notices, badges, icons and spinners are the controls in
+  `Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput` in a `GameField`, `GameSection` (a recessed card), `ItemGrid`/`ItemSlotButton`, `GameSwatch`, `GameKey`, `GameIcon`, `GameIconButton`,
+  `GameNotice`, `GameBadge`, `GameSpinner`) and `Controls/Menu` (`GameMenu`, `MenuPage`). No raw `<button>`, `<input>` or styled `<div>` panel in a page or panel. Need something new? Add a shared control.
+- **One game menu.** Features are pages of the menu, not windows: a page is a `MenuPage` (content + status line); the window, title and close button are `GameMenu`'s. A new tab = one entry in `ToolbarViewModel.Items`
+  (kind, label, key, `tab-*` sprite), one `case` in `Home.razor`, one sprite in `nosum-theme.js`. The HUD stays near-empty: coins, gear, quest tracker, hotbar, a fading one-line message, the arrange key strip.
+- **No colours, fonts or borders in panel or page CSS.** Panel CSS is layout only, in UI pixels: `calc(var(--u) * n)`; spacing on the grid (2 u inside a group, 4 u between groups). Colours and sizes come from the `--nosum-*`
   variables in `wwwroot/nosum-theme.css`; sprites from `--nosum-img-*` (the rectangle table is in `wwwroot/nosum-theme.js`, art is linked from `assets/`, ADR-007).
-- **Integer scale.** `--u` is one UI pixel (2, 3 or 4 CSS px); art is `image-rendering: pixelated`; never use a fractional multiple.
-- **Dock regions, not `position: fixed`.** In-game UI goes into a `GameHud` region (top-left, top-center, top-right, left, center, right, bottom-center, overlay).
-  The center holds one modal panel (`PanelKind`); `Esc` closes it, `H` toggles help. A control never positions itself.
+- **Pixel rule.** `--u` = one world pixel (`round(width / 416)`, set by `nosum-theme.js`), never a fractional multiple; art is `image-rendering: pixelated`. Text is VT323 at `12.5 * --tp` px (title `tp + 1`, body `tp`, small),
+  regular weight only; text never gets `font-weight`, `title` attributes or shadows of its own: use `data-tip` for tooltips.
+- **Dock regions, not `position: fixed`.** In-game UI goes into a `GameHud` region (top-left, top-center, top-right, center = the menu, bottom-center, overlay). A control never positions itself.
 - **Every state.** Hover, press, disabled and focus come from the shared CSS. In the game, buttons are not focusable (the canvas keeps the keyboard); on forms use `Focusable`.
-- **Text via `.resx`**, both languages, same keys (a test checks it). Key caps (`Esc`, `E`) are the only literal text.
-- Check a UI change in a browser at 1280 x 720 and 1920 x 1080 (publish, serve `wwwroot`, run the host on 57300, screenshot with Playwright).
+- **Text via `.resx`**, both languages, same keys (a test checks it). Key caps (`Esc`, `E`) are the only literal text. Keep descriptions short: VT323 is monospaced and wraps early.
+- Check a UI change in a browser at 1280 x 720 and 1920 x 1080, in vi and en (publish, serve `wwwroot`, run the host on 57300, screenshot with Playwright).
