@@ -52,6 +52,9 @@ public enum FarmStatus : byte
 
     /// <summary>The crop withered when its season ended and cannot be harvested; plant over it.</summary>
     Withered = 15,
+
+    /// <summary>A visitor may only water another player's crops; till, plant and harvest are the owner's (docs/adr/ADR-019 D3).</summary>
+    NotYourFarm = 16,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>

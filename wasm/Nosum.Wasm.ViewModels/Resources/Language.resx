@@ -331,6 +331,38 @@
   <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Nhấn để cởi ra</value></data>
   <data name="Toolbar_Shop" xml:space="preserve"><value>Cửa hàng</value></data>
   <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Farm_Status_NotYourFarm" xml:space="preserve"><value>Ở vườn của người khác, bạn chỉ được tưới cây.</value></data>
+  <data name="Place_Status_NotYourPlace" xml:space="preserve"><value>Chỉ chủ nhà mới sắp đặt đồ ở đây.</value></data>
+  <data name="Market_Status_NotYourBin" xml:space="preserve"><value>Thùng hàng này là của chủ vườn.</value></data>
+  <data name="Toolbar_Visitors" xml:space="preserve"><value>Khách</value></data>
+  <data name="Visit_Title" xml:space="preserve"><value>Khách thăm vườn</value></data>
+  <data name="Visit_Go_Heading" xml:space="preserve"><value>Đi thăm vườn bạn bè</value></data>
+  <data name="Visit_NicknamePlaceholder" xml:space="preserve"><value>Biệt danh</value></data>
+  <data name="Visit_Go" xml:space="preserve"><value>Đến thăm</value></data>
+  <data name="Visit_Go_Hint" xml:space="preserve"><value>Hãy ra ngoài (Thị trấn, bến xe...) rồi nhập biệt danh của chủ vườn. Chỉ vào được khi họ đã mời bạn.</value></data>
+  <data name="Visit_List_Heading" xml:space="preserve"><value>Ai được vào vườn và nhà của bạn</value></data>
+  <data name="Visit_GuestOwner" xml:space="preserve"><value>Khách chưa đăng ký không thể mời người khác. Hãy đăng ký để mời bạn bè.</value></data>
+  <data name="Visit_Add" xml:space="preserve"><value>Mời</value></data>
+  <data name="Visit_ListEmpty" xml:space="preserve"><value>Chưa ai trong danh sách.</value></data>
+  <data name="Visit_Here" xml:space="preserve"><value>Đang ở đây</value></data>
+  <data name="Visit_SendHome" xml:space="preserve"><value>Tiễn ra Thị trấn</value></data>
+  <data name="Visit_Remove" xml:space="preserve"><value>Bỏ khỏi danh sách</value></data>
+  <data name="Visit_ByCoop" xml:space="preserve"><value>(qua hợp tác xã)</value></data>
+  <data name="Visit_Coop_On" xml:space="preserve"><value>Thành viên hợp tác xã được vào: BẬT</value></data>
+  <data name="Visit_Coop_Off" xml:space="preserve"><value>Thành viên hợp tác xã được vào: TẮT</value></data>
+  <data name="Visit_Rules_Hint" xml:space="preserve"><value>Khách có thể đi lại và tưới cây; không được cuốc đất, gieo hạt, thu hoạch, dời đồ hay bán hàng.</value></data>
+  <data name="Visit_UnknownPlayer" xml:space="preserve"><value>(người chơi)</value></data>
+  <data name="Visit_Status_InvalidNickname" xml:space="preserve"><value>Biệt danh không hợp lệ.</value></data>
+  <data name="Visit_Status_UnknownPlayer" xml:space="preserve"><value>Không có người chơi nào mang biệt danh này.</value></data>
+  <data name="Visit_Status_Self" xml:space="preserve"><value>Đó là chính bạn.</value></data>
+  <data name="Visit_Status_GuestOwner" xml:space="preserve"><value>Hãy đăng ký tài khoản để mời bạn bè.</value></data>
+  <data name="Visit_Status_AlreadyListed" xml:space="preserve"><value>Người này đã có trong danh sách.</value></data>
+  <data name="Visit_Status_NotListed" xml:space="preserve"><value>Người này không có trong danh sách hoặc không còn ở đây.</value></data>
+  <data name="Visit_Status_ListFull" xml:space="preserve"><value>Danh sách đã đầy.</value></data>
+  <data name="Visit_Status_NotAllowed" xml:space="preserve"><value>Chủ vườn chưa mời bạn.</value></data>
+  <data name="Visit_Status_NotOnPublicMap" xml:space="preserve"><value>Hãy ra bản đồ chung (Thị trấn, bến xe...) rồi mới đi thăm.</value></data>
+  <data name="Visit_Status_NotJoined" xml:space="preserve"><value>Chưa vào được thế giới, thử lại nhé.</value></data>
+  <data name="Visit_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Season_Spring" xml:space="preserve"><value>Xuân</value></data>
   <data name="Season_Summer" xml:space="preserve"><value>Hè</value></data>
   <data name="Season_Fall" xml:space="preserve"><value>Thu</value></data>
