@@ -3,6 +3,7 @@
 using System;
 using Nosum.Core;
 using Nosum.Core.Interpolation;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
@@ -178,7 +179,8 @@ internal sealed class MapScene
 
         // Tools work wherever the ground can be farmed or nothing can be placed; in a room the action key places furniture instead.
         bool placeableMap = content.Spec.Placeable;
-        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null);
+        BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
+        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, interior);
         if (_actions is not null)
         {
             // The action key that opened a chest or a furnace is not also a placement.
