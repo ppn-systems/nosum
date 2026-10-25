@@ -2,10 +2,13 @@
 
 using System;
 using Nosum.Core;
+using Nosum.Gameplay.Animals;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Placeables;
+using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
@@ -31,6 +34,7 @@ internal sealed class PlayerActions
     private readonly MarketChannel _market;
     private readonly ChestChannel? _chests;
     private readonly ProgressChannel? _progress;
+    private readonly BuildingChannel? _buildings;
     private double _lastUseSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
@@ -39,7 +43,8 @@ internal sealed class PlayerActions
     /// <param name="market">Sends the shipping of the held stack at the bin.</param>
     /// <param name="chests">Opens the chest the farmer faces; <see langword="null"/> when chests are not wired.</param>
     /// <param name="progress">Sends eating when the action key is pressed with food in hand; <see langword="null"/> to never eat.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null)
+    /// <param name="buildings">Sends feeding, petting and collecting inside a coop or a barn; <see langword="null"/> when buildings are not wired.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -49,6 +54,7 @@ internal sealed class PlayerActions
         _market = market;
         _chests = chests;
         _progress = progress;
+        _buildings = buildings;
     }
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
@@ -82,7 +88,8 @@ internal sealed class PlayerActions
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     /// <param name="shopId">The id of the shop whose counter is within reach, or zero; the action key then opens that shop instead of using an item.</param>
     /// <param name="placed">The pieces placed here; the action key facing a chest or a furnace opens it (the server decides whether the player may), or <see langword="null"/> where nothing is placed.</param>
-    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0, PlacedSet? placed = null)
+    /// <param name="interior">The building the player is inside, or <see langword="null"/> outside: there the action key feeds the bench, pets an animal or collects its produce (docs/adr/ADR-028 D3).</param>
+    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0, PlacedSet? placed = null, BuildingDefinition? interior = null)
     {
         this.ActionConsumed = false;
         int x = (int)(feetX / tileSize);
@@ -111,6 +118,19 @@ internal sealed class PlayerActions
         if ((edges & InputEdges.Action) != 0 && shopId != 0)
         {
             this.ShopRequested?.Invoke(shopId);
+            return;
+        }
+
+        if ((edges & InputEdges.Action) != 0 && interior is not null)
+        {
+            // Inside a building the action key tends the animals and never swings a tool; the server decides what happens.
+            this.ActionConsumed = true;
+            if (_buildings is not null && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
+            {
+                _lastUseSeconds = nowSeconds;
+                this.TendAnimals(interior, feetX, feetY, tileSize);
+            }
+
             return;
         }
 
@@ -162,6 +182,46 @@ internal sealed class PlayerActions
             {
                 _farm.Use(selected, this.TargetX, this.TargetY);
             }
+        }
+    }
+
+    // Feed in hand facing the bench fills it; otherwise the animal within reach is collected from (an egg, or milk with the pail in hand) when it has produce, and petted when it has none.
+    private void TendAnimals(BuildingDefinition interior, double feetX, double feetY, int tileSize)
+    {
+        if (_buildings is null)
+        {
+            return;
+        }
+
+        int selected = _inventory.SelectedSlot;
+        SlotInfo held = _inventory.SlotAt(selected);
+        int x = (int)(feetX / tileSize);
+        int y = (int)(feetY / tileSize);
+        if (AnimalRules.RationsOf(held.ItemId) > 0 && (interior.IsTrough(this.TargetX, this.TargetY) || interior.IsTrough(x, y - 1)))
+        {
+            _buildings.Feed(selected, interior.Capacity);
+            return;
+        }
+
+        AnimalPose animal;
+        using (_buildings.Read())
+        {
+            if (!_buildings.TryFindNear(feetX, feetY, AnimalRules.ReachPixels - 4, _buildings.NowMs, out animal))
+            {
+                return;
+            }
+        }
+
+        bool cow = animal.Kind == (byte)AnimalKind.Cow;
+        bool pail = held.ItemId == ItemCatalog.MilkPail;
+        if (animal.HasProduce && (!cow || pail || animal.Petted))
+        {
+            // A cow that was petted already and still has milk: asking again tells the player a pail is needed.
+            _buildings.Collect(animal.Id, selected);
+        }
+        else
+        {
+            _buildings.Pet(animal.Id);
         }
     }
 

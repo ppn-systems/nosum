@@ -18,7 +18,7 @@
 
   <!-- Maps of Nosum.Gameplay.Maps.GameMaps that the server loads (placeholder content, docs/adr/ADR-007); linked so assets/ stays the single copy. -->
   <ItemGroup>
-    <Content Include="..\..\assets\Maps\Farm.tmx;..\..\assets\Maps\FarmHouse.tmx;..\..\assets\Maps\BusStop.tmx;..\..\assets\Maps\Forest.tmx;..\..\assets\Maps\Town.tmx;..\..\assets\Maps\Backwoods.tmx;..\..\assets\Maps\Farm_Foraging.tmx" Link="maps\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\assets\Maps\Farm.tmx;..\..\assets\Maps\FarmHouse.tmx;..\..\assets\Maps\BusStop.tmx;..\..\assets\Maps\Forest.tmx;..\..\assets\Maps\Town.tmx;..\..\assets\Maps\Backwoods.tmx;..\..\assets\Maps\Farm_Foraging.tmx;..\..\assets\Maps\Coop.tmx;..\..\assets\Maps\Barn.tmx" Link="maps\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

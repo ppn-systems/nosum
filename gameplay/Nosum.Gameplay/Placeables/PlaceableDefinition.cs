@@ -37,6 +37,9 @@ public enum PlaceableKind : byte
 
     /// <summary>A furnace: smelts ore and coal into bars over game time.</summary>
     Furnace = 5,
+
+    /// <summary>A farm building (coop, barn): large, with a door into its own interior; placed from a blueprint, built over two game days, never moved or picked up (docs/adr/ADR-028).</summary>
+    Building = 6,
 }
 
 /// <summary>
@@ -99,6 +102,12 @@ public sealed class PlaceableDefinition
 
     /// <summary>Gets whether the footprint blocks walking; a path does not, everything else does.</summary>
     public bool BlocksWalking { get; init; } = true;
+
+    /// <summary>
+    /// Gets the door tile of a building, relative to the left and top tile of its footprint, or <see langword="null"/> for a piece with no door. The door is inside the footprint but
+    /// opened for walking, and the tile in front of it must stay free (docs/adr/ADR-028 D1).
+    /// </summary>
+    public (int X, int Y)? Door { get; init; }
 
     /// <summary>Gets how many rotations are valid: 1 or 4.</summary>
     public int Rotations => _views.Length;

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Abstractions.Data;
 using Nosum.Contracts.Placeable;
+using Nosum.Domain.Farm;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
 
@@ -38,4 +39,19 @@ public interface IPlacedBehaviour
     /// <param name="cancellationToken">Cancels the work.</param>
     /// <returns>A task that completes when the behaviour has cleaned up (closed the chest's viewers).</returns>
     ValueTask PickedUpAsync(MapInstance instance, PlacedItem item, CancellationToken cancellationToken);
+
+    /// <summary>Joins the placement transaction: add the object's own rows (a building's construction record) next to the placed object's row.</summary>
+    /// <param name="row">The placed object being inserted; set it as the navigation of a row that needs its key.</param>
+    /// <param name="unit">The unit of work the placement is saved with.</param>
+    /// <param name="now">The server time of the placement.</param>
+    void JoinPlace(PlacedObject row, IUnitOfWork unit, DateTimeOffset now)
+    {
+    }
+
+    /// <summary>Runs after a placement was committed.</summary>
+    /// <param name="instance">The place.</param>
+    /// <param name="item">The piece that was placed.</param>
+    /// <param name="cancellationToken">Cancels the work.</param>
+    /// <returns>A task that completes when the behaviour has noted the new object.</returns>
+    ValueTask PlacedAsync(MapInstance instance, PlacedItem item, CancellationToken cancellationToken) => ValueTask.CompletedTask;
 }
