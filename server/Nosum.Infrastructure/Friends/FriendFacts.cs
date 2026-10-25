@@ -61,6 +61,33 @@ public sealed class FriendFacts
     public ValueTask<IReadOnlyList<Guid>> GetFriendsAsync(Guid playerId, CancellationToken cancellationToken = default)
         => _friends.GetAsync(playerId, ct => this.LoadFriendsAsync(playerId, ct), cancellationToken);
 
+    /// <summary>Describes what is held for a player without loading it, for the audit of the caches (friends and requests are held separately; a missing part is left out).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <returns>The held parts as text, or <see langword="null"/> when nothing is held.</returns>
+    public string? DescribeHeld(Guid playerId)
+    {
+        bool friends = _friends.TryGet(playerId, out IReadOnlyList<Guid>? held);
+        bool requests = _requests.TryGet(playerId, out Requests? asked);
+        if (!friends && !requests)
+        {
+            return null;
+        }
+
+        return (friends ? "friends=" + Ids(held!) : string.Empty) + ";" + (requests ? $"in={Ids(asked!.Incoming)};out={Ids(asked.Outgoing)}" : string.Empty);
+    }
+
+    /// <summary>Reads both parts and describes them in the same shape as <see cref="DescribeHeld"/> (use facts that keep nothing).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>The state as text.</returns>
+    public async ValueTask<string> DescribeAsync(Guid playerId, CancellationToken cancellationToken = default)
+    {
+        FriendState state = await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+        return $"friends={Ids(state.Friends)};in={Ids(state.Incoming)};out={Ids(state.Outgoing)}";
+    }
+
+    private static string Ids(IReadOnlyList<Guid> ids) => string.Join(',', ids.Order());
+
     /// <summary>Drops what is known about players whose friends or requests changed in a way the caller does not track.</summary>
     /// <param name="playerIds">The players.</param>
     public void Changed(params Guid[] playerIds)

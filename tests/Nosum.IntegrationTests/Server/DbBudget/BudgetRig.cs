@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -22,7 +23,15 @@ using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Host;
+using Nosum.Abstractions.Inventory;
+using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Coops;
+using Nosum.Infrastructure.Friends;
+using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Persistence;
+using Nosum.Infrastructure.Progress;
+using Nosum.Infrastructure.Quests;
+using Nosum.Infrastructure.Visits;
 
 namespace Nosum.IntegrationTests.Server.DbBudget;
 
@@ -39,6 +48,7 @@ internal sealed class BudgetRig : IAsyncDisposable
 
     private readonly NetworkApplication _app;
     private readonly CancellationTokenSource _timeout;
+    private readonly HashSet<Guid> _watched = [];
 
     private BudgetRig(NetworkApplication app, ushort port, DbCommandCounter counter, FakeTimeProvider clock, DbContextOptions<NosumDbContext> options, TimeSpan timeout)
     {
@@ -61,6 +71,22 @@ internal sealed class BudgetRig : IAsyncDisposable
 
     /// <summary>Gets the database options the host runs on (with the counter attached).</summary>
     public DbContextOptions<NosumDbContext> Options { get; }
+
+    /// <summary>Gets where the in-memory state of a player differed from the rows after a measured row (docs/adr/ADR-035); empty when the caches are coherent.</summary>
+    public List<string> Divergences { get; } = [];
+
+    /// <summary>Gets how many held copies were compared with the rows; a check that compared nothing proves nothing.</summary>
+    public int Comparisons { get; private set; }
+
+    /// <summary>Starts comparing the in-memory state of a signed-in player with the rows after every measured row.</summary>
+    /// <param name="accountId">The player's account id.</param>
+    public void Watch(Guid accountId)
+    {
+        lock (_watched)
+        {
+            _ = _watched.Add(accountId);
+        }
+    }
 
     /// <summary>Gets everything measured so far, in the order it ran.</summary>
     public List<Measurement> Results { get; } = [];
@@ -171,7 +197,55 @@ internal sealed class BudgetRig : IAsyncDisposable
         // A write-behind row (docs/adr/ADR-035 D7) would otherwise land inside a later row's window when its timer fires; it is flushed here, after this row's count was taken,
         // and its own cost is measured in the WriteBehindFlush row.
         await Service<Nosum.Infrastructure.Caching.WriteBehind>().FlushAllAsync(this.Timeout);
+        await this.CheckCachesAsync(name + " / " + variant);
         return value;
+    }
+
+    // After a row has been measured and its delayed writes were made: whatever a cache holds of a watched player must equal what a service with nothing in memory reads
+    // from the rows. Caches that hold nothing for a player are not asked (asking would load them and change what later rows cost).
+    private async Task CheckCachesAsync(string row)
+    {
+        Guid[] accounts;
+        lock (_watched)
+        {
+            accounts = [.. _watched];
+        }
+
+        EfUnitOfWorkFactory units = new(this.Options);
+        InventoryService inventories = new(units, this.Clock);
+        PlayerStateCache states = new();
+        QuestService quests = new(units, this.Clock);
+        CoopDirectory coops = new(units, cached: false);
+        FriendFacts friends = new(units, cached: false);
+        VisitFacts visits = new(units, cached: false);
+        NicknameDirectory names = new(units, cacheFacts: false);
+        foreach (Guid account in accounts)
+        {
+            await this.CompareAsync(row, "inventory", account, ((InventoryService)Service<IInventoryService>()).DescribeHeld(account), async () => InventoryService.Describe(await inventories.GetAsync(account, this.Timeout)));
+            await this.CompareAsync(row, "saved place, energy and experience", account, Service<PlayerStateCache>().DescribeHeld(account), async () => await states.DescribeAsync(units, account, this.Timeout));
+            await this.CompareAsync(row, "quests", account, ((QuestService)Service<Nosum.Abstractions.Quests.IQuestService>()).DescribeHeld(account), async () => await quests.DescribeAsync(account, this.Timeout));
+            await this.CompareAsync(row, "co-op", account, Service<CoopDirectory>().DescribeHeld(account), async () => await coops.DescribeAsync(account, this.Timeout));
+            await this.CompareAsync(row, "friends", account, Service<FriendFacts>().DescribeHeld(account), async () => await friends.DescribeAsync(account, this.Timeout));
+            await this.CompareAsync(row, "visit settings", account, Service<VisitFacts>().DescribeHeld(account), async () => await visits.DescribeAsync(account, this.Timeout));
+            await this.CompareAsync(row, "player facts", account, ((NicknameDirectory)Service<INicknameDirectory>()).DescribeHeld(account), async () => await names.DescribeAsync(account, this.Timeout));
+        }
+    }
+
+    private async Task CompareAsync(string row, string what, Guid account, string? held, Func<Task<string>> rows)
+    {
+        if (held is null)
+        {
+            return;
+        }
+
+        // A cache may hold only the part it needs (friends without requests): every held part must be the rows' part.
+        string fromRows = await rows();
+        this.Comparisons++;
+        HashSet<string> inRows = [.. fromRows.Split(';', StringSplitOptions.RemoveEmptyEntries)];
+        if (!held.Split(';', StringSplitOptions.RemoveEmptyEntries).All(inRows.Contains))
+        {
+            this.Divergences.Add($"after {row}: {what} of {account} is [{held}] in memory but [{fromRows}] in the rows");
+        }
     }
 
     /// <summary>Records a packet that was not measured and why (a closed feature, a tester tool).</summary>
@@ -336,6 +410,7 @@ internal sealed class BudgetPlayer : IAsyncDisposable
         }
 
         this.AccountId = result.PlayerId;
+        _rig.Watch(result.PlayerId);
         this.Nickname = result.Nickname;
         this.SessionToken = token;
         return result;

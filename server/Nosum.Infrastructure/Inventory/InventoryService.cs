@@ -669,6 +669,20 @@ public sealed class InventoryService : IInventoryService
         return unknown.Count > 0 && await unit.Repository<InventorySlot>().AnyAsync(s => unknown.Contains(s.PlayerId), cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>Describes the copy held for an owner without loading it, for the audit of the caches (a service with nothing held answers <see langword="null"/>).</summary>
+    /// <param name="ownerId">The player or container.</param>
+    /// <returns>The copy as text, or <see langword="null"/> when none is held.</returns>
+    public string? DescribeHeld(Guid ownerId) => _cache.TryGetValue(ownerId, out Entry? entry) ? Describe(entry.View()) : null;
+
+    /// <summary>Describes an inventory as a service with nothing held reads it from the rows.</summary>
+    /// <param name="view">The inventory.</param>
+    /// <returns>The inventory as text.</returns>
+    public static string Describe(InventoryView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        return $"capacity={view.Capacity};selected={view.SelectedSlot};" + string.Join(',', view.Slots.Select(s => $"{s.Slot}:{s.ItemId}x{s.Quantity}"));
+    }
+
     /// <inheritdoc/>
     public void Forget(Guid ownerId) => _ = _cache.TryRemove(ownerId, out _);
 

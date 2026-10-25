@@ -89,6 +89,21 @@ public sealed class NicknameDirectory : INicknameDirectory
         _byKey.InvalidateWhere((key, fact) => fact.Id == playerId || key == NicknameRules.Key(nickname));
     }
 
+    /// <summary>Describes the facts held for a player without loading them, for the audit of the caches.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <returns>The facts as text, or <see langword="null"/> when none are held.</returns>
+    public string? DescribeHeld(Guid playerId) => _facts.TryGet(playerId, out PlayerFact? fact) ? $"{fact.Id}:{fact.Nickname}:{fact.IsGuest}" : null;
+
+    /// <summary>Reads the facts of a player and describes them (use a directory that keeps nothing).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>The facts as text.</returns>
+    public async ValueTask<string> DescribeAsync(Guid playerId, CancellationToken cancellationToken = default)
+    {
+        PlayerFact? fact = await this.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+        return fact is null ? "none" : $"{fact.Id}:{fact.Nickname}:{fact.IsGuest}";
+    }
+
     /// <inheritdoc/>
     public async ValueTask<PlayerFact?> FindAsync(Guid playerId, CancellationToken cancellationToken = default)
     {

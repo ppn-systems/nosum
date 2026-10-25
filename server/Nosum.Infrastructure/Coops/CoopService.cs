@@ -100,48 +100,79 @@ public sealed class CoopService : ICoopService, IDisposable
 
     /// <inheritdoc/>
     public async Task<CoopView> GetAsync(Guid playerId, CancellationToken cancellationToken = default)
+        => (await this.BuildViewsAsync([playerId], cancellationToken).ConfigureAwait(false))[playerId];
+
+    // The views of several players at once: what the players of one co-op share (the stock, the recent log) is read once for all of them, and so are their contributions.
+    private async Task<Dictionary<Guid, CoopView>> BuildViewsAsync(IReadOnlyList<Guid> players, CancellationToken cancellationToken)
     {
         DateTimeOffset now = _time.GetUtcNow();
+        Dictionary<Guid, CoopView> views = [];
+        Dictionary<Guid, List<(Guid Player, CoopRecord Coop, CoopMemberRecord Me)>> byCoop = [];
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            CoopRecord? mine = await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false);
-            if (mine?.MemberOf(playerId) is not { } me)
+            foreach (Guid playerId in players)
             {
-                List<CoopInvite> invites = await unit.Repository<CoopInvite>().ListAsync(i => i.PlayerId == playerId && i.ExpiresAt > now, cancellationToken).ConfigureAwait(false);
-                List<CoopInviteView> views = [];
-                foreach (CoopInvite invite in invites)
+                CoopRecord? mine = await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false);
+                if (mine?.MemberOf(playerId) is not { } me)
                 {
-                    Coop? offered = await unit.Repository<Coop>().FindAsync(invite.CoopId, cancellationToken).ConfigureAwait(false);
-                    if (offered is not null)
-                    {
-                        CoopMember? founder = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.CoopId == offered.Id && m.Role == CoopRole.Founder, cancellationToken).ConfigureAwait(false);
-                        string inviter = founder is null ? string.Empty : await _nicknames.GetAsync(founder.PlayerId, cancellationToken).ConfigureAwait(false);
-                        views.Add(new CoopInviteView(invite.Id, offered.Name, inviter));
-                    }
+                    views[playerId] = await this.InvitationsViewAsync(unit, playerId, now, cancellationToken).ConfigureAwait(false);
+                    continue;
                 }
 
-                return new CoopView(false, string.Empty, CoopRole.None, [], [], [], views, now);
+                if (!byCoop.TryGetValue(mine.Id, out List<(Guid Player, CoopRecord Coop, CoopMemberRecord Me)>? group))
+                {
+                    group = [];
+                    byCoop[mine.Id] = group;
+                }
+
+                group.Add((playerId, mine, me));
             }
 
-            Guid coopId = mine.Id;
-            HashSet<Guid> memberIds = [.. mine.Members.Select(m => m.Id)];
-            IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(mine.Members.Select(m => m.PlayerId), cancellationToken).ConfigureAwait(false);
-            List<CoopMemberView> memberViews = [.. mine.Members
-                .Select(m => new CoopMemberView(m.Id, m.Role, m.Id == me.Id, _sessions.GetActive(m.PlayerId) is not null, names.GetValueOrDefault(m.PlayerId, string.Empty)))];
+            foreach ((Guid coopId, List<(Guid Player, CoopRecord Coop, CoopMemberRecord Me)> group) in byCoop)
+            {
+                CoopRecord coop = group[0].Coop;
+                HashSet<Guid> memberIds = [.. coop.Members.Select(m => m.Id)];
+                IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(coop.Members.Select(m => m.PlayerId), cancellationToken).ConfigureAwait(false);
+                Guid[] asking = [.. group.Select(g => g.Me.Id)];
+                List<CoopLogEntry> logs = await unit.Repository<CoopLogEntry>().ListAsync(e => e.CoopId == coopId && asking.Contains(e.MemberId), cancellationToken).ConfigureAwait(false);
+                List<CoopStockItem> stock = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == coopId, cancellationToken).ConfigureAwait(false);
+                List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == coopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw"), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
+                List<CoopLogView> logViews = [.. recent.Select(e => new CoopLogView(memberIds.Contains(e.MemberId) ? e.MemberId : Guid.Empty, e.ItemId, e.Delta, e.OccurredAt))];
 
-            List<CoopLogEntry> mineLog = await unit.Repository<CoopLogEntry>().ListAsync(e => e.CoopId == coopId && e.MemberId == me.Id, cancellationToken).ConfigureAwait(false);
-            Dictionary<int, long> contributed = mineLog.Where(e => CoopLand.IsWarehouseReason(e.Reason)).GroupBy(e => e.ItemId).ToDictionary(g => g.Key, g => g.Sum(e => (long)e.Delta));
-            List<CoopStockItem> stock = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == coopId, cancellationToken).ConfigureAwait(false);
-            List<CoopStockView> stockViews = [.. stock
-                .OrderBy(s => s.ItemId)
-                .Select(s => new CoopStockView(s.ItemId, s.Quantity, CoopRules.Withdrawable(me.Role == CoopRole.Founder, s.Quantity, contributed.GetValueOrDefault(s.ItemId))))];
-
-            List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == coopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw"), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
-            List<CoopLogView> logViews = [.. recent.Select(e => new CoopLogView(memberIds.Contains(e.MemberId) ? e.MemberId : Guid.Empty, e.ItemId, e.Delta, e.OccurredAt))];
-
-            return new CoopView(true, mine.Name, me.Role, memberViews, stockViews, logViews, [], now, mine.WarehouseLevel, mine.LandLevel);
+                foreach ((Guid playerId, CoopRecord mine, CoopMemberRecord me) in group)
+                {
+                    List<CoopMemberView> memberViews = [.. mine.Members
+                        .Select(m => new CoopMemberView(m.Id, m.Role, m.Id == me.Id, _sessions.GetActive(m.PlayerId) is not null, names.GetValueOrDefault(m.PlayerId, string.Empty)))];
+                    Dictionary<int, long> contributed = logs.Where(e => e.MemberId == me.Id && CoopLand.IsWarehouseReason(e.Reason)).GroupBy(e => e.ItemId).ToDictionary(g => g.Key, g => g.Sum(e => (long)e.Delta));
+                    List<CoopStockView> stockViews = [.. stock
+                        .OrderBy(s => s.ItemId)
+                        .Select(s => new CoopStockView(s.ItemId, s.Quantity, CoopRules.Withdrawable(me.Role == CoopRole.Founder, s.Quantity, contributed.GetValueOrDefault(s.ItemId))))];
+                    views[playerId] = new CoopView(true, mine.Name, me.Role, memberViews, stockViews, logViews, [], now, mine.WarehouseLevel, mine.LandLevel);
+                }
+            }
         }
+
+        return views;
+    }
+
+    // What a player outside any co-op sees: the invitations that wait for them.
+    private async Task<CoopView> InvitationsViewAsync(IUnitOfWork unit, Guid playerId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        List<CoopInvite> invites = await unit.Repository<CoopInvite>().ListAsync(i => i.PlayerId == playerId && i.ExpiresAt > now, cancellationToken).ConfigureAwait(false);
+        List<CoopInviteView> views = [];
+        foreach (CoopInvite invite in invites)
+        {
+            Coop? offered = await unit.Repository<Coop>().FindAsync(invite.CoopId, cancellationToken).ConfigureAwait(false);
+            if (offered is not null)
+            {
+                CoopMember? founder = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.CoopId == offered.Id && m.Role == CoopRole.Founder, cancellationToken).ConfigureAwait(false);
+                string inviter = founder is null ? string.Empty : await _nicknames.GetAsync(founder.PlayerId, cancellationToken).ConfigureAwait(false);
+                views.Add(new CoopInviteView(invite.Id, offered.Name, inviter));
+            }
+        }
+
+        return new CoopView(false, string.Empty, CoopRole.None, [], [], [], views, now);
     }
 
     /// <inheritdoc/>
@@ -802,16 +833,17 @@ public sealed class CoopService : ICoopService, IDisposable
     // Each online player gets their own view (their role, what they may take) as a pushed snapshot.
     private async Task PushToAsync(IEnumerable<Guid> players, CancellationToken cancellationToken)
     {
-        foreach (Guid player in players.Distinct())
+        List<Guid> online = [.. players.Distinct().Where(p => _sessions.GetActive(p) is not null)];
+        if (online.Count == 0)
         {
-            if (_sessions.GetActive(player) is null)
-            {
-                continue;
-            }
+            return;
+        }
 
-            CoopView view = await this.GetAsync(player, cancellationToken).ConfigureAwait(false);
+        Dictionary<Guid, CoopView> views = await this.BuildViewsAsync(online, cancellationToken).ConfigureAwait(false);
+        foreach (Guid player in online)
+        {
             using PacketScope<CoopSnapshot> lease = PacketFactory<CoopSnapshot>.Acquire();
-            view.FillSnapshot(lease.Value);
+            views[player].FillSnapshot(lease.Value);
             _ = await _notifier.TrySendAsync(player, lease.Value, cancellationToken).ConfigureAwait(false);
         }
     }

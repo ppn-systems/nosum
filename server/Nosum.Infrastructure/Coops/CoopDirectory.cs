@@ -78,6 +78,21 @@ public sealed class CoopDirectory
         }
     }
 
+    /// <summary>Describes what is held for a player without loading it, for the audit of the caches.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <returns>The co-op as text, or <see langword="null"/> when nothing is held.</returns>
+    public string? DescribeHeld(Guid playerId) => _byPlayer.TryGet(playerId, out CoopRecord? record) ? Describe(ReferenceEquals(record, s_none) ? null : record) : null;
+
+    /// <summary>Reads the co-op of a player and describes it (use a directory that keeps nothing).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>The co-op as text.</returns>
+    public async ValueTask<string> DescribeAsync(Guid playerId, CancellationToken cancellationToken = default)
+        => Describe(await this.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false));
+
+    private static string Describe(CoopRecord? coop)
+        => coop is null ? "none" : $"{coop.Id}:{coop.Name}:{coop.WarehouseLevel}:{coop.LandLevel}:" + string.Join(',', coop.Members.Select(m => $"{m.Id}/{m.PlayerId}/{m.Role}").Order(StringComparer.Ordinal));
+
     /// <summary>Lets go of a signed-out player's entry.</summary>
     /// <param name="playerId">The player.</param>
     public void Forget(Guid playerId) => _byPlayer.Invalidate(playerId);

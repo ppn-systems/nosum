@@ -73,6 +73,21 @@ public sealed class QuestService : IQuestService
         }
     }
 
+    /// <summary>Describes the quests held for a player without loading them, for the audit of the caches.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <returns>The quests as text, or <see langword="null"/> when none are held.</returns>
+    public string? DescribeHeld(Guid playerId) => _cache.TryGetValue(playerId, out Entry? entry) ? Describe(ViewsOf(entry.Quests)) : null;
+
+    /// <summary>Reads the quests of a player and describes them (use a service that holds nothing).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>The quests as text.</returns>
+    public async Task<string> DescribeAsync(Guid playerId, CancellationToken cancellationToken = default)
+        => Describe(await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false));
+
+    private static string Describe(IReadOnlyList<QuestView> views)
+        => string.Join(';', views.Select(v => $"{v.QuestId}:{v.State}:{string.Join(',', v.Progress)}"));
+
     /// <summary>Lets go of a player's quests held in memory (they signed out); the next call reads the rows.</summary>
     /// <param name="playerId">The player.</param>
     public void Forget(Guid playerId) => _ = _cache.TryRemove(playerId, out _);

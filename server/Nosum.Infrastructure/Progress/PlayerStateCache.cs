@@ -29,6 +29,25 @@ public sealed class PlayerStateCache
     /// <summary>Gets the per-player lock the progress service holds for a charge (docs/adr/ADR-035 D4: energy and experience are serialized; inventory first, then this one).</summary>
     internal StripedAsyncLock Locks { get; } = new(64);
 
+    /// <summary>Describes the copy held for a player without loading it, for the audit of the caches.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <returns>The copy as text, or <see langword="null"/> when none is held.</returns>
+    public string? DescribeHeld(Guid playerId) => _entries.TryGetValue(playerId, out Entry? entry) ? Describe(entry.Current) : null;
+
+    /// <summary>Reads the row of a player and describes it (use a cache that holds nothing).</summary>
+    /// <param name="units">Creates the unit of work for the read.</param>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>The row as text.</returns>
+    public async ValueTask<string> DescribeAsync(IUnitOfWorkFactory units, Guid playerId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(units);
+        return Describe(await this.GetAsync(units, playerId, cancellationToken).ConfigureAwait(false));
+    }
+
+    private static string Describe(Snapshot s)
+        => $"exists={s.Exists};place={s.MapName}@{s.X},{s.Y},{s.Facing};energy={s.Energy}@{s.EnergyRefilledDay};xp={s.FarmingXp},{s.ForagingXp},{s.MiningXp}";
+
     /// <summary>Lets go of a player's copy (signed out, or a save of unknown outcome); the next call reads the row.</summary>
     /// <param name="playerId">The player.</param>
     public void Forget(Guid playerId) => _ = _entries.TryRemove(playerId, out _);

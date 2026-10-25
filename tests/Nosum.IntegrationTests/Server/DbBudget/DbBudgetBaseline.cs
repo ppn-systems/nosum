@@ -30,7 +30,7 @@ internal static class DbBudgetBaseline
         ["CreateListing / first listing"] = new(3, 1, 1, 1),
         ["CreateListing / second listing"] = new(3, 1, 1, 1),
         ["DeliverRequest / fill one request"] = new(4, 1, 1, 1),
-        ["DepositItem / into the warehouse"] = new(9, 1, 1, 1),
+        ["DepositItem / into the warehouse"] = new(6, 1, 1, 1),
         ["Disconnect / joined player, socket closed"] = new(1, 1, 0, 1),
         ["Eat / a parsnip from the hotbar"] = new(0, 0, 0, 0),
         ["GetBlocked / no blocks"] = new(1, 0, 0, 0),
@@ -97,8 +97,8 @@ internal static class DbBudgetBaseline
         ["RemoveVisitor / take off the allow-list"] = new(1, 1, 0, 1),
         ["RequestFriend / by nickname"] = new(8, 1, 0, 1),
         ["RespondFriend / accept"] = new(1, 1, 1, 1),
-        ["RespondInvite / accept"] = new(14, 1, 1, 1),
-        ["RespondInvite / accept again"] = new(14, 1, 1, 1),
+        ["RespondInvite / accept"] = new(11, 1, 1, 1),
+        ["RespondInvite / accept again"] = new(11, 1, 1, 1),
         ["ResumeSession / token, no other session"] = new(3, 1, 1, 1),
         ["ResumeSession / token, replacing an open session"] = new(3, 1, 1, 1),
         ["SelectSlot / hotbar slot 1"] = new(0, 0, 0, 0),
@@ -125,7 +125,7 @@ internal static class DbBudgetBaseline
         ["UseItem / water on a new game day"] = new(1, 1, 1, 1),
         ["UseItemArea / watering can over a block of tiles"] = new(0, 0, 0, 0),
         ["VisitPlayer / friend visits the farm"] = new(8, 3, 1, 3),
-        ["WithdrawItem / out of the warehouse"] = new(10, 1, 1, 1),
+        ["WithdrawItem / out of the warehouse"] = new(7, 1, 1, 1),
         ["WriteBehindFlush / a hotbar choice waiting"] = new(0, 1, 0, 1),
     };
 

@@ -65,6 +65,31 @@ public sealed class VisitFacts
     public ValueTask<IReadOnlyList<Guid>> GetListedAsync(Guid ownerId, CancellationToken cancellationToken = default)
         => _listed.GetAsync(ownerId, ct => this.LoadListedAsync(ownerId, ct), cancellationToken);
 
+    /// <summary>Describes what is held for an owner without loading it, for the audit of the caches (a missing part is left out).</summary>
+    /// <param name="ownerId">The owner.</param>
+    /// <returns>The held parts as text, or <see langword="null"/> when nothing is held.</returns>
+    public string? DescribeHeld(Guid ownerId)
+    {
+        bool listed = _listed.TryGet(ownerId, out IReadOnlyList<Guid>? list);
+        bool settings = _settings.TryGet(ownerId, out VisitSettingValues? values);
+        if (!listed && !settings)
+        {
+            return null;
+        }
+
+        return (listed ? "listed=" + string.Join(',', list!.Order()) : string.Empty) + ";" + (settings ? $"coop={values!.CoopMembersMayVisit};friends={values.FriendsMayVisit}" : string.Empty);
+    }
+
+    /// <summary>Reads both parts and describes them in the same shape as <see cref="DescribeHeld"/> (use facts that keep nothing).</summary>
+    /// <param name="ownerId">The owner.</param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>The facts as text.</returns>
+    public async ValueTask<string> DescribeAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        OwnerVisitFacts facts = await this.GetAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        return $"listed={string.Join(',', facts.Listed.Order())};coop={facts.CoopMembersMayVisit};friends={facts.FriendsMayVisit}";
+    }
+
     /// <summary>Drops the allow-list of an owner; call it after a save that added or removed a grant.</summary>
     /// <param name="ownerId">The owner.</param>
     public void ListChanged(Guid ownerId) => _listed.Invalidate(ownerId);
