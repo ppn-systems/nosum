@@ -55,17 +55,21 @@ public sealed class AccountFormViewModelTests
         vm.Email = "farmer01@gmail.com";
         vm.Password = "password-1";
         vm.ConfirmPassword = "password-1";
-        vm.Nickname = "  Nông Dân_1 ";
+        vm.Nickname = "  Nong Dan_1 ";
 
         await vm.SubmitAsync(CancellationToken.None);
 
-        client.Calls.Should().Equal("register:farmer01@gmail.com:Nông Dân_1:English");
+        client.Calls.Should().Equal("register:farmer01@gmail.com:Nong Dan_1:English");
     }
 
     [Theory]
     [InlineData("ab", AccountStatus.InvalidNickname)]
     [InlineData("has-hyphen", AccountStatus.InvalidNickname)]
     [InlineData("Admin", AccountStatus.NicknameReserved)]
+    [InlineData("Nông Dân", AccountStatus.InvalidNickname)]
+    [InlineData("Mình", AccountStatus.InvalidNickname)]
+    [InlineData("Fuck_You", AccountStatus.NicknameProfane)]
+    [InlineData("vcl 99", AccountStatus.NicknameProfane)]
     public async Task SubmitAsync_RegisterWithBadNickname_ShowsTheCodeTextAndSendsNothing(string nickname, AccountStatus expected)
     {
         FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
@@ -225,6 +229,28 @@ public sealed class AccountFormViewModelTests
         vm.Mode.Should().Be(AccountFormMode.Login);
         vm.ShowsForm.Should().BeFalse();
         client.Calls.Should().Contain("upgrade:farmer01@gmail.com:Farmer01");
+    }
+
+    [Theory]
+    [InlineData("Nông Dân", AccountStatus.InvalidNickname)]
+    [InlineData("Dit_Me", AccountStatus.NicknameProfane)]
+    public async Task SubmitAsync_UpgradeWithBadNickname_ShowsTheCodeTextAndSendsNothing(string nickname, AccountStatus expected)
+    {
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+        AccountFormViewModel vm = Create(client);
+        await vm.PlayAsGuestAsync(CancellationToken.None);
+        client.Calls.Clear();
+        vm.BeginUpgrade();
+        vm.Email = "farmer01@gmail.com";
+        vm.Password = "password-1";
+        vm.ConfirmPassword = "password-1";
+        vm.Nickname = nickname;
+
+        await vm.SubmitAsync(CancellationToken.None);
+
+        client.Calls.Should().BeEmpty();
+        vm.ErrorText.Should().Be(Text()["Account_Status_" + expected].Value);
+        vm.Mode.Should().Be(AccountFormMode.Upgrade);
     }
 
     [Fact]

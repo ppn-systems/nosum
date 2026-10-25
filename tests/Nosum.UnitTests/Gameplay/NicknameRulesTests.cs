@@ -7,17 +7,22 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>The nickname rules (docs/adr/ADR-009 amendments): length, letters with Vietnamese diacritics, separators, reserved names, NFC and uniqueness keys.</summary>
+/// <summary>The nickname rules (docs/adr/ADR-009 amendments): length, unaccented ASCII letters and digits, separators, reserved names, profanity and uniqueness keys.</summary>
 public sealed class NicknameRulesTests
 {
     [Theory]
     [InlineData("Minh")]
-    [InlineData("Nguyễn Văn_An")]
-    [InlineData("Đặng Thị Hồng")]
-    [InlineData("Ông Già 99")]
+    [InlineData("Nguyen Van_An")]
+    [InlineData("Dang Thi Hong")]
+    [InlineData("Ong Gia 99")]
     [InlineData("ABC")]
     [InlineData("a1b")]
-    [InlineData("Lê Hoàng Phúc_7")]
+    [InlineData("Le Hoang Phuc_7")]
+    [InlineData("Thanh")]
+    [InlineData("Phuc")]
+    [InlineData("Dung")]
+    [InlineData("Cuong")]
+    [InlineData("Scunthorpe")]
     [InlineData("  padded  ")]
     [InlineData("Sixteen_chars_xx")]
     public void Validate_AcceptableNames_AreOk(string name)
@@ -39,6 +44,15 @@ public sealed class NicknameRulesTests
     [InlineData("tab\tname")]
     [InlineData("emoji😀x")]
     [InlineData("guest-1234")]
+    [InlineData("Mình")]
+    [InlineData("Nguyễn")]
+    [InlineData("Đức Anh")]
+    [InlineData("Minh\u0300")]
+    [InlineData("Ádmin")]
+    [InlineData("Иван")]
+    [InlineData("Αλφα")]
+    [InlineData("Аdmin")]
+    [InlineData("ＡＢＣＤ")]
     public void Validate_BreakingARule_IsInvalid(string name)
         => NicknameRules.Validate(name).Should().Be(NicknameVerdict.Invalid);
 
@@ -49,13 +63,12 @@ public sealed class NicknameRulesTests
     [InlineData("admin")]
     [InlineData("ADMIN")]
     [InlineData("Admin_2")]
-    [InlineData("Ádmin")]
     [InlineData("Moderator")]
     [InlineData("System")]
-    [InlineData("Quản Trị")]
-    [InlineData("Hệ Thống")]
-    [InlineData("Khách")]
-    [InlineData("Khách 1234")]
+    [InlineData("Quan Tri")]
+    [InlineData("He Thong")]
+    [InlineData("Khach")]
+    [InlineData("Khach 1234")]
     [InlineData("Guest 1234")]
     [InlineData("nosum")]
     public void Validate_ReservedOrLookAlike_IsReserved(string name)
@@ -66,23 +79,40 @@ public sealed class NicknameRulesTests
         => NicknameRules.Validate("Adminton").Should().Be(NicknameVerdict.Ok);
 
     [Fact]
-    public void Validate_DecomposedVietnamese_IsAcceptedAsItsComposedForm()
+    public void Validate_DecomposedAccentedText_IsRefusedLikeItsComposedForm()
     {
         string composed = "Nguyễn Hoàng";
         string decomposed = composed.Normalize(NormalizationForm.FormD);
         decomposed.Should().NotBe(composed);
 
-        NicknameRules.Validate(decomposed).Should().Be(NicknameVerdict.Ok);
-        NicknameRules.Normalize(decomposed).Should().Be(composed);
-        NicknameRules.Key(decomposed).Should().Be(NicknameRules.Key(composed));
+        NicknameRules.Validate(composed).Should().Be(NicknameVerdict.Invalid);
+        NicknameRules.Validate(decomposed).Should().Be(NicknameVerdict.Invalid);
+    }
+
+    [Theory]
+    [InlineData("Fuck")]
+    [InlineData("dm_1")]
+    [InlineData("VCL_99")]
+    [InlineData("Ditme")]
+    [InlineData("sh1t")]
+    [InlineData("big ass")]
+    public void Validate_Profanity_IsProfane(string name)
+        => NicknameRules.Validate(name).Should().Be(NicknameVerdict.Profane);
+
+    [Fact]
+    public void Validate_ShapeIsCheckedBeforeProfanity_AndReservedBeforeProfanity()
+    {
+        NicknameRules.Validate("fuck!").Should().Be(NicknameVerdict.Invalid);
+        NicknameRules.Validate("fück").Should().Be(NicknameVerdict.Invalid);
+        NicknameRules.Validate("admin").Should().Be(NicknameVerdict.Reserved);
     }
 
     [Fact]
     public void Key_IsCaseInsensitiveAndReadsUnderscoreAsSpace()
     {
         NicknameRules.Key("Minh_Anh").Should().Be(NicknameRules.Key("minh anh")).And.Be(NicknameRules.Key("MINH ANH"));
-        NicknameRules.Key("Đức").Should().Be(NicknameRules.Key("đức"));
-        NicknameRules.Key("Minh").Should().NotBe(NicknameRules.Key("Mình"), "different letters are different names");
+        NicknameRules.Key("Minh").Should().NotBe(NicknameRules.Key("Mình"), "a stored accented name and a new unaccented one are different names");
+        NicknameRules.Key("Mình").Should().Be(NicknameRules.Key("MÌNH"), "stored legacy names keep working as keys");
     }
 
     [Fact]

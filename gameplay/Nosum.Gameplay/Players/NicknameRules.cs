@@ -18,12 +18,17 @@ public enum NicknameVerdict
 
     /// <summary>The nickname is on the reserved list, or imitates a guest name.</summary>
     Reserved = 2,
+
+    /// <summary>The nickname contains profanity or a slur (<see cref="ProfanityFilter"/>).</summary>
+    Profane = 3,
 }
 
 /// <summary>
 /// The rules for a player's display nickname. Pure, shared by the server (which decides) and the client (which gives live feedback).
-/// A nickname is 3 to 16 characters after trimming and NFC normalization: Unicode letters (Vietnamese diacritics included), ASCII digits,
-/// and single spaces or underscores between them; at least one letter; not on the reserved list. Uniqueness is case-insensitive on
+/// A nickname is 3 to 16 characters after trimming: unaccented ASCII letters (A-Z, a-z), ASCII digits, and single spaces or underscores
+/// between them; at least one letter; not on the reserved list; free of profanity (<see cref="ProfanityFilter"/>). Accented letters are refused,
+/// which also rules out Cyrillic and Greek look-alikes. Nicknames stored before this rule (docs/adr/ADR-009 amendments, 2026-10-25) are not
+/// re-checked: they stay valid until their owner changes them, and only a new or changed nickname must pass <see cref="Validate"/>. Uniqueness is case-insensitive on
 /// <see cref="Key"/>. Guests carry a neutral name <c>guest-1234</c> that no player can type (a hyphen is not allowed), which the client
 /// renders with a localized prefix (docs/adr/ADR-010: no display text on the wire).
 /// </summary>
@@ -68,13 +73,13 @@ public static class NicknameRules
         "kiemduyetvien",
     };
 
-    /// <summary>Normalizes a typed nickname: trimmed, NFC. Does not check the rules.</summary>
+    /// <summary>Normalizes a typed nickname: trimmed, NFC (stored legacy names are NFC). Does not check the rules.</summary>
     /// <param name="typed">What the player typed.</param>
     /// <returns>The normalized text (empty for null).</returns>
     public static string Normalize(string? typed)
         => string.IsNullOrWhiteSpace(typed) ? string.Empty : typed.Trim().Normalize(NormalizationForm.FormC);
 
-    /// <summary>Checks a nickname. The text is normalized first, so a decomposed (NFD) Vietnamese name is accepted as its NFC form.</summary>
+    /// <summary>Checks a nickname. The text is normalized (trimmed) first. Order of the checks: shape, reserved names, profanity.</summary>
     /// <param name="typed">What the player typed.</param>
     /// <returns><see cref="NicknameVerdict.Ok"/> or the reason.</returns>
     public static NicknameVerdict Validate(string? typed)
@@ -100,7 +105,7 @@ public static class NicknameRules
                 continue;
             }
 
-            if (char.IsLetter(c))
+            if (char.IsAsciiLetter(c))
             {
                 hasLetter = true;
             }
@@ -117,7 +122,12 @@ public static class NicknameRules
             return NicknameVerdict.Invalid;
         }
 
-        return s_reserved.Contains(Fold(name)) ? NicknameVerdict.Reserved : NicknameVerdict.Ok;
+        if (s_reserved.Contains(Fold(name)))
+        {
+            return NicknameVerdict.Reserved;
+        }
+
+        return ProfanityFilter.Contains(name) ? NicknameVerdict.Profane : NicknameVerdict.Ok;
     }
 
     /// <summary>The key two nicknames are compared by: NFC, lower case, underscore read as a space. Two names with the same key are the same name.</summary>
