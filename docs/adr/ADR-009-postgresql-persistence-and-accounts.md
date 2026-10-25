@@ -126,5 +126,34 @@ registry and map presence are in-memory).
   allowed. After a rename the map is told through the look row ([ADR-014 amendments](ADR-014-coops-and-looks.md)). Migration `PlayerNicknames` gives existing players
   `guest-0001`, `guest-0002`, ... in creation order.
 - **Cache.** `INicknameDirectory` resolves account id to nickname (in memory, filled on first read, updated by the account service) for looks, market sellers and co-op rows.
-- **Open owner questions:** whether letters of other scripts should be refused (Cyrillic or Greek look-alikes of Latin letters are accepted and are not caught by the reserved
-  list); whether guests may rename (built: yes, same wait); a profanity list; whether "Minh" and "Mình" should be one name.
+- **Open owner questions:** ~~whether letters of other scripts should be refused; whether guests may rename; a profanity list; whether "Minh" and "Mình" should be one name~~ - all four decided in the second amendment below.
+
+### 2026-10-25 (second amendment) - ASCII nicknames, profanity, registered accounts only (owner decision)
+
+This supersedes the character rule, the "Minh"/"Mình" question and the guest-rename question of the amendment above. The wire is unchanged (no field added, no version bump): two
+`AccountStatus` codes are appended.
+
+- **Characters.** A nickname is unaccented ASCII letters (A-Z, a-z) and ASCII digits, 3 to 16 characters after trimming, at least one letter. **Separators kept:** a single space or
+  underscore between words (both are ASCII, no leading, trailing or doubled one); the uniqueness key still reads an underscore as a space. Accented letters, Cyrillic and Greek
+  letters and every other script are refused (`InvalidNickname`), so look-alikes cannot occur and "Minh" and "Mình" cannot both be new names. The client says "letters without accents (a-z)
+  and digits" (`Account_NicknameHint`, `Account_Status_InvalidNickname`, vi and en).
+- **Names stored before this rule.** Not migrated, not blocked: a nickname stored earlier (accents, or anything the new rules refuse) stays the player's name, keeps working for
+  display, uniqueness and sign-in, until the owner changes it. Only a new or changed nickname is validated, so the player cannot re-save the old text either. No data change or
+  migration was needed. A legacy "Mình" and a new "Minh" are different keys, so they can coexist.
+- **Profanity.** `ProfanityFilter` (`Nosum.Gameplay/Players`, shared by server and client) with the lists as data in `ProfanityTerms` (a static table, no resource file, no package).
+  A nickname is lower-cased, stripped of accents and read through leet (0 o, 1 i, 3 e, 4 a, 5 s, 7 t, @ a, $ s, ! i). *Substring terms* (long or unmistakable words: Vietnamese
+  "dit me" and "concac" families, English "fuck", "shit", "cunt", slurs, ...) are found anywhere in the name with separators removed, also with repeated letters merged ("fuuuck").
+  *Token terms* (short abbreviations such as dm, dcm, vcl, vkl, clm, cc, cl, lon, buoi, and English words that sit inside innocent ones: ass, dick, cock, cum, anal, sex) count only as a
+  whole word between separators, ignoring digits and repeats ("dm_99", "VCL2024"); "d m" counts when the whole name is that word. A short list of innocent words that contain a
+  substring term ("Scunthorpe", "shiitake") is blanked out first. The verdict is `NicknameVerdict.Profane`, wire code `AccountStatus.NicknameProfane` (13); the text is in the
+  `.resx`. The order of checks is shape, reserved, profanity. Known limits: a filter is not a guarantee (creative spellings, a word spaced into single letters), and some real
+  strings are caught by design ("Edit Me" contains "ditme"). Words that are common given names or syllables (Diem, Du, Long, Nguyen, Chim, Thang) are deliberately **not** blocked
+  or are token-only; a test pairs 20 family names, 15 middle names and about 70 given names in three separator styles and requires every one to pass.
+- **Only registered accounts rename.** A guest keeps the generated `guest-NNNN` and `SetNickname` answers `AccountStatus.NicknameRequiresAccount` (14) before looking at the text.
+  The profile panel shows a guest the generated name and "Register an account to choose your own nickname" instead of the form. The nickname is chosen **while registering**:
+  `Register` and `UpgradeGuest` both carry it, and the account form shows the same nickname field with the same early validation in both modes. Choosing it at registration does
+  not start the 24-hour wait (as before for `Register`), so a new player may rename once at once. Fixed in the same change: `UpgradeGuest` now announces the new nickname to the
+  map (the look row), as a rename does; before, other players kept seeing `guest-NNNN` until the player moved.
+- **Open owner questions:** whether nicknames stored before this rule that contain profanity should be forced to change (not done: only a rename is checked); whether the blocklist
+  should be reviewed by a Vietnamese-speaking moderator before launch (the list is a pragmatic first cut); whether a guest should be offered a "register" button inside the profile panel
+  (today the session bar offers it once the first quest is finished).
