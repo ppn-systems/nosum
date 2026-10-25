@@ -5,6 +5,8 @@ namespace Nosum.Contracts.Account;
 /// <summary>
 /// Account protocol opcodes. Band: <c>0x1000-0x10FF</c> (C2S requests <c>0x1001-0x107F</c>,
 /// S2C replies <c>0x1081-0x10FF</c>). Never reassign or reuse a value.
+/// <para>Account recovery (docs/adr/ADR-032) takes its values from the top of the free range above the band,
+/// downward from <c>0x11F0</c>; operations (docs/adr/ADR-031) take theirs upward from <c>0x1100</c>.</para>
 /// </summary>
 public static class AccountOpCode
 {
@@ -46,4 +48,16 @@ public static class AccountOpCode
 
     /// <summary>Server push: the guest finished the first quest and may now be invited to register.</summary>
     public const ushort RegistrationPromptUnlocked = 0x1085;
+
+    /// <summary>Asks for a one-time recovery code by e-mail. The reply is always <see cref="PasswordResult"/> with Ok unless throttled, whether or not the address has an account.</summary>
+    public const ushort RequestPasswordReset = 0x11F0;
+
+    /// <summary>Sets a new password with the e-mailed code and ends every session of the account. Reply: <see cref="PasswordResult"/>.</summary>
+    public const ushort ConfirmPasswordReset = 0x11EF;
+
+    /// <summary>Changes the signed-in player's password and ends every other session. Reply: <see cref="PasswordResult"/>.</summary>
+    public const ushort ChangePassword = 0x11EE;
+
+    /// <summary>The reply to <see cref="RequestPasswordReset"/>, <see cref="ConfirmPasswordReset"/> and <see cref="ChangePassword"/>.</summary>
+    public const ushort PasswordResult = 0x11E0;
 }

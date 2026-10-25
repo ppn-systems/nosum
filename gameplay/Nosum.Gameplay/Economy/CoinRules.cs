@@ -98,6 +98,12 @@ public enum MarketVerdict
 /// <summary>Rules for putting a stack on the consignment market.</summary>
 public static class MarketRules
 {
+    /// <summary>
+    /// The id of the market counter, a <c>ShopPoint</c> of the Town (docs/adr/ADR-034). It is not a shop id (shops are 1 to 99) and differs from the community board's counter (1000), so
+    /// <c>ShopRules.TryFindShop</c> can return it like any other counter.
+    /// </summary>
+    public const int MarketCounterId = 1001;
+
     /// <summary>Checks a new listing.</summary>
     /// <param name="itemId">The item.</param>
     /// <param name="quantity">How many.</param>

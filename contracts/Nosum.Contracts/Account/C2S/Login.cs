@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Account.C2S;
 
@@ -16,8 +17,10 @@ public sealed partial class Login : PacketBase<Login>, IPacketStaticOpcode
     public static ushort StaticOpCode => AccountOpCode.Login;
 
     /// <summary>Account e-mail (case-insensitive)</summary>
+    [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(0)] public string Email { get; set; } = string.Empty;
 
     /// <summary>Account password in plain text; the transport protects the wire. Never logged.</summary>
+    [WireMaxLength(WireLimits.Password)]
     [SerializeOrder(1)] public string Password { get; set; } = string.Empty;
 }

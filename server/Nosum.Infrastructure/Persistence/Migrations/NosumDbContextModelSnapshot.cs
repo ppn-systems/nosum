@@ -22,6 +22,47 @@ namespace Nosum.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Nosum.Domain.Accounts.PasswordResetCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("code_hash");
+
+                    b.Property<DateTimeOffset?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_password_reset_codes");
+
+                    b.HasIndex("PlayerId", "CreatedAt")
+                        .HasDatabaseName("ix_password_reset_codes_player_id_created_at");
+
+                    b.ToTable("password_reset_codes", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Accounts.Player", b =>
                 {
                     b.Property<Guid>("Id")
@@ -248,6 +289,30 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_admin_audit_target_id");
 
                     b.ToTable("admin_audit", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Blacksmith.ToolUpgrade", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<long>("ReadyDay")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ready_day");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<int>("ToolItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("tool_item_id");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_tool_upgrades");
+
+                    b.ToTable("tool_upgrades", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.Buildings.FarmAnimal", b =>
@@ -1086,6 +1151,25 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Mines.PlayerMine", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<int>("DeepestFloor")
+                        .HasColumnType("integer")
+                        .HasColumnName("deepest_floor");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_player_mines");
+
+                    b.ToTable("player_mines", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_player_mines_deepest_floor", "deepest_floor >= 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Nodes.NodeInstanceState", b =>
                 {
                     b.Property<int>("Id")
@@ -1540,6 +1624,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("ground_items", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Accounts.PasswordResetCode", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_password_reset_codes_players_player_id");
+                });
+
             modelBuilder.Entity("Nosum.Domain.Accounts.PlayerSessionToken", b =>
                 {
                     b.HasOne("Nosum.Domain.Accounts.Player", null)
@@ -1558,6 +1652,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_states_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Blacksmith.ToolUpgrade", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tool_upgrades_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Buildings.FarmAnimal", b =>
@@ -1731,6 +1835,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_market_listings_players_seller_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Mines.PlayerMine", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_mines_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Placeables.ChestLogEntry", b =>

@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Placeable.C2S;
 
@@ -16,12 +17,15 @@ public sealed partial class MoveObject : PacketBase<MoveObject>, IPacketStaticOp
     public static ushort StaticOpCode => PlaceableOpCode.MoveObject;
 
     /// <summary>Id of the object, from <see cref="S2C.PlacedObjectRow.Id"/>.</summary>
+    [WireRange(0, int.MaxValue)]
     [SerializeOrder(0)] public int ObjectId { get; set; }
 
     /// <summary>New left tile of the footprint.</summary>
+    [WireRange(WireLimits.TileMin, WireLimits.TileMax)]
     [SerializeOrder(1)] public int TileX { get; set; }
 
     /// <summary>New top tile of the footprint.</summary>
+    [WireRange(WireLimits.TileMin, WireLimits.TileMax)]
     [SerializeOrder(2)] public int TileY { get; set; }
 
     /// <summary>New rotation.</summary>

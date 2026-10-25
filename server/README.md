@@ -139,6 +139,8 @@ and co-ops; `SetNickname` is in `AccountHandlers` and re-announces the look to t
 `DevHandlers` / `IDevGrantService` (`0xF000`) exist only when `Program.BuildApplication(port, clock, development: true)`, which `Main` sets only when `DOTNET_ENVIRONMENT` is
 `Development`; run a local host for testers with `DOTNET_ENVIRONMENT=Development dotnet run --project server/Nosum.Host`. Migration `PlayerNicknames`.
 
+Tool upgrades and the mine ([ADR-026](../docs/adr/ADR-026-tool-upgrades-and-the-mine.md)): `IBlacksmithService` (`Blacksmith/BlacksmithService`; `BlacksmithHandlers` `0xC001-0xC003`, encrypted for upgrade and collect): an upgrade is one `ITransferService` transfer (tool, bars, coins) with a `tool_upgrades` row enlisted, ready two game days later by the server calendar and the dev clock; `IMineService` (`Mines/MineService`; `MineHandlers` `0xC100-0xC101`): the elevator and the deepest floor (`player_mines`), and the lifecycle of the floors: a floor is the private map `mine<N>` of one player, its nodes are built in memory by `ResourceNodeService` from `MineRules.FloorSeed` (never stored) and forgotten, with its ground items, when the last player leaves it (`IMapPresence.PlayerJoined` / `PlayerLeft`, `IResourceNodeService.Forget`, `IGroundItems.ForgetAsync`); `MineLadderFarmService` decorates `IFarmService` so a tool use on a ladder takes the player down; `FarmService.UseAreaAsync` (`FarmService.Area.cs`, `UseItemArea` `0x3002`) works a line with one swing; `VisitAccess` refuses every mine floor but the owner's. Migration `MineAndBlacksmith`.
+
 Growth in game days ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D7): `FarmPlot` stores `growth_days`, `watered_day` and `tended_day` (migration `GrowthInGameDays`) and `FarmService` evaluates growth, wetness and bare-soil reverts lazily with `FarmRules`
 and the calendar. `IDayClock` (`Calendar/DayClockService`) is the day-ended seam: one timer on the calendar's day boundaries raises `DayEnded` for every day that ended; subscribers do side effects only
 (`FarmService` sweeps reverted tiles). In Development `Program` wraps the clock in `DevTimeProvider`, and `DevHandlers` / `IDevClockService` (`DevAdvanceClock`, `0xF001`) skip 1 to 60 game days; Production has neither.
@@ -157,3 +159,17 @@ which re-reads the caller's role on every call, refuses self and other admins as
 (`ISessionRegistry.EndAsync` for kick and ban, the in-memory `MuteList` that `ChatService` asks, which `Program` loads from `players.muted_until` at start). `AccountService` refuses a banned
 account at login and resume (`AccountStatus.Banned`, after the password check). `NOSUM_LOAD_TEST=1` (only with `DOTNET_ENVIRONMENT` Staging or Development, otherwise the host
 refuses to start) leaves out `RateLimitMiddleware` so `bench/Nosum.Bench.Load` is not throttled as one address. Migration `AdminRoleBanMuteAudit`.
+
+## Security configuration ([ADR-032](../docs/adr/ADR-032-security-hardening.md))
+
+| Variable | Effect |
+| :--- | :--- |
+| `NOSUM_SERVER_KEY_PATH` | File holding the server's private identity key (created on first start). Default `~/.local/share/Nalix/config/certificate.private`. Mount it on a volume: a new key makes every pinned client refuse the server. The host prints the matching public key at start-up. |
+| `NOSUM_SMTP_HOST`, `NOSUM_SMTP_PORT` (587), `NOSUM_SMTP_USER`, `NOSUM_SMTP_PASSWORD`, `NOSUM_SMTP_FROM`, `NOSUM_SMTP_SSL` (true) | Mail provider for password recovery codes. Without `NOSUM_SMTP_HOST` nothing is sent and the host warns at start-up. |
+| `NOSUM_MAX_CONNECTIONS_PER_IP` (20), `NOSUM_MAX_CONNECTIONS_PER_WINDOW` (20 per 5 s), `NOSUM_MAX_CONNECTIONS_PER_SUBNET` (200), `NOSUM_MAX_SUBNET_CONNECTIONS_PER_WINDOW` (200) | Per-address connection limits of the Nalix connection guard. |
+| `NOSUM_NEW_ACCOUNTS_PER_IP_PER_DAY` (30) | New accounts (registered or guest) one address may create per day. |
+| `NOSUM_ABUSE_ENFORCE_LOOPBACK` (false) | Also limit loopback addresses; set it when a reverse proxy on the same host fronts the server and the real client address is not forwarded. |
+
+Handlers: every `[PacketOpcode]` method declares `[PacketPermission]` and `[PacketRateLimit]`, and every client packet member declares its bounds
+(`Nosum.Contracts.Validation`); `HandlerAuditTests` and `PacketBoundsTests` fail the build otherwise. Bounds are enforced by `InputBoundsMiddleware`
+before the handler. Session tokens rotate on every resume and an account keeps at most 10 live ones.

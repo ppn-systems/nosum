@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Player.C2S;
 
@@ -22,9 +23,11 @@ public sealed partial class MoveIntent : PacketBase<MoveIntent>, IPacketStaticOp
     [SerializeOrder(0)] public uint Sequence { get; set; }
 
     /// <summary>Feet x in world pixels.</summary>
+    [WireRange(-WireLimits.WorldMax, WireLimits.WorldMax)]
     [SerializeOrder(1)] public float X { get; set; }
 
     /// <summary>Feet y in world pixels.</summary>
+    [WireRange(-WireLimits.WorldMax, WireLimits.WorldMax)]
     [SerializeOrder(2)] public float Y { get; set; }
 
     /// <summary>Facing: 0 down, 1 right, 2 up, 3 left.</summary>

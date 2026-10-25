@@ -138,6 +138,7 @@
   <data name="Market_Status_Expired" xml:space="preserve"><value>Món hàng đã hết hạn.</value></data>
   <data name="Market_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Market_Status_NotAtBin" xml:space="preserve"><value>Hãy đứng cạnh thùng hàng để bán.</value></data>
+  <data name="Market_Status_NotAtCounter" xml:space="preserve"><value>Hãy đứng ở quầy của thương nhân trong thị trấn để mua bán.</value></data>
   <data name="Market_Status_NotShippable" xml:space="preserve"><value>Thùng hàng không mua vật phẩm này.</value></data>
   <data name="Market_Status_InvalidSlot" xml:space="preserve"><value>Hãy chọn một ô hợp lệ.</value></data>
   <data name="Market_Status_TooBig" xml:space="preserve"><value>Số xu vượt quá mức cho phép.</value></data>
@@ -309,7 +310,7 @@
   <data name="Help_Use" xml:space="preserve"><value>Dùng, tương tác</value></data>
   <data name="Help_Hotbar" xml:space="preserve"><value>Chọn ô</value></data>
   <data name="Help_Inventory" xml:space="preserve"><value>Túi đồ</value></data>
-  <data name="Help_Market" xml:space="preserve"><value>Chợ</value></data>
+  <data name="Help_Counters" xml:space="preserve"><value>Đứng ở quầy (cửa hàng, bảng tin, chợ) để mở</value></data>
   <data name="Help_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
   <data name="Help_Trade" xml:space="preserve"><value>Giao dịch</value></data>
   <data name="Help_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
@@ -489,6 +490,7 @@
   <data name="Friends_Map_town" xml:space="preserve"><value>thị trấn</value></data>
   <data name="Friends_Map_backwoods" xml:space="preserve"><value>vùng rừng sâu</value></data>
   <data name="Friends_Map_coopfarm" xml:space="preserve"><value>đất hợp tác xã</value></data>
+  <data name="Friends_Map_mine" xml:space="preserve"><value>hang mỏ</value></data>
   <data name="Friends_Map_coop" xml:space="preserve"><value>chuồng gà</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>chuồng gia súc</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Xóa bạn</value></data>
@@ -651,6 +653,40 @@
   <data name="Furnace_Ready" xml:space="preserve"><value>Thỏi đã nung xong!</value></data>
   <data name="Furnace_Start" xml:space="preserve"><value>Nung {0}</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Lấy thỏi</value></data>
+  <data name="Farm_Status_InvalidArea" xml:space="preserve"><value>Công cụ này không vung rộng được như vậy.</value></data>
+  <data name="Shop_Title_blacksmith" xml:space="preserve"><value>Lò rèn</value></data>
+  <data name="Smith_Heading" xml:space="preserve"><value>Nâng cấp dụng cụ</value></data>
+  <data name="Smith_Hint" xml:space="preserve"><value>Đưa một dụng cụ kèm xu và thanh kim loại; thợ rèn giữ nó {0} ngày trong game rồi bạn nhận lại bản tốt hơn.</value></data>
+  <data name="Smith_Cost" xml:space="preserve"><value>{0} xu + {1} {2}</value></data>
+  <data name="Smith_Upgrade" xml:space="preserve"><value>Nâng cấp</value></data>
+  <data name="Smith_Collect" xml:space="preserve"><value>Nhận lại</value></data>
+  <data name="Smith_NoTools" xml:space="preserve"><value>Bạn không mang dụng cụ nào có thể nâng cấp.</value></data>
+  <data name="Smith_Holding" xml:space="preserve"><value>Thợ rèn đang làm {0} cho bạn.</value></data>
+  <data name="Smith_Ready" xml:space="preserve"><value>Đã xong! Hãy nhận lại.</value></data>
+  <data name="Smith_ReadyTomorrow" xml:space="preserve"><value>Xong vào ngày mai trong game.</value></data>
+  <data name="Smith_ReadyIn" xml:space="preserve"><value>Xong sau {0} ngày trong game.</value></data>
+  <data name="Smith_Upgraded" xml:space="preserve"><value>Thợ rèn đã nhận dụng cụ của bạn.</value></data>
+  <data name="Smith_Collected" xml:space="preserve"><value>Bạn đã nhận lại dụng cụ.</value></data>
+  <data name="Smith_Status_NotAtCounter" xml:space="preserve"><value>Bạn đứng quá xa quầy.</value></data>
+  <data name="Smith_Status_NotUpgradable" xml:space="preserve"><value>Dụng cụ này không nâng cấp được.</value></data>
+  <data name="Smith_Status_Busy" xml:space="preserve"><value>Thợ rèn đang làm một dụng cụ của bạn rồi.</value></data>
+  <data name="Smith_Status_NoTool" xml:space="preserve"><value>Bạn không có dụng cụ đó.</value></data>
+  <data name="Smith_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
+  <data name="Smith_Status_NotEnoughBars" xml:space="preserve"><value>Bạn không đủ thanh kim loại.</value></data>
+  <data name="Smith_Status_NoSpace" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
+  <data name="Smith_Status_NothingToCollect" xml:space="preserve"><value>Thợ rèn không giữ gì của bạn.</value></data>
+  <data name="Smith_Status_NotReady" xml:space="preserve"><value>Chưa xong, hãy quay lại sau.</value></data>
+  <data name="Smith_Status_Conflict" xml:space="preserve"><value>Hãy thử lại.</value></data>
+  <data name="Elevator_Title" xml:space="preserve"><value>Thang máy hầm mỏ</value></data>
+  <data name="Elevator_Hint" xml:space="preserve"><value>Chọn nơi muốn đến. Cứ năm tầng có một thang máy, và bạn đi được tới tầng sâu nhất đã đến.</value></data>
+  <data name="Elevator_Deepest" xml:space="preserve"><value>Sâu nhất: tầng {0}</value></data>
+  <data name="Elevator_Entrance" xml:space="preserve"><value>Cửa hầm</value></data>
+  <data name="Elevator_Floor" xml:space="preserve"><value>Tầng {0}</value></data>
+  <data name="Elevator_Here" xml:space="preserve"><value>(đang ở đây)</value></data>
+  <data name="Elevator_Status_NotAtElevator" xml:space="preserve"><value>Bạn đứng quá xa thang máy.</value></data>
+  <data name="Elevator_Status_NotUnlocked" xml:space="preserve"><value>Bạn chưa xuống tới đó.</value></data>
+  <data name="Elevator_Status_AlreadyThere" xml:space="preserve"><value>Bạn đã ở đây rồi.</value></data>
+  <data name="Elevator_Status_Busy" xml:space="preserve"><value>Hãy thử lại sau giây lát.</value></data>
   <data name="Market_History_Tip" xml:space="preserve"><value>Xem lịch sử giá của vật phẩm này</value></data>
   <data name="Place_Status_Fixed" xml:space="preserve"><value>Công trình đã xây xong thì không dời hay cất đi được.</value></data>
   <data name="Shop_Title_carpenter_shop" xml:space="preserve"><value>Thợ mộc</value></data>
@@ -692,4 +728,22 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Cần cầm xô vắt sữa trên tay.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>Máng đã đầy.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>Khu đất đã có tối đa số công trình.</value></data>
+  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>Mã khôi phục không đúng, đã hết hạn hoặc đã được dùng.</value></data>
+  <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Quá nhiều yêu cầu. Hãy thử lại sau.</value></data>
+  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì mật khẩu tài khoản đã được đặt lại.</value></data>
+  <data name="Connection_KeyMismatch" xml:space="preserve"><value>Danh tính máy chủ đã thay đổi. Có thể đây là máy chủ giả mạo nên trò chơi từ chối kết nối. Hãy chờ thông báo chính thức hoặc xóa dữ liệu trang web nếu bạn đang chạy bản phát triển.</value></data>
+  <data name="Recovery_Link" xml:space="preserve"><value>Quên mật khẩu?</value></data>
+  <data name="Recovery_Title_Request" xml:space="preserve"><value>Khôi phục tài khoản</value></data>
+  <data name="Recovery_Title_Confirm" xml:space="preserve"><value>Nhập mã khôi phục</value></data>
+  <data name="Recovery_Title_Done" xml:space="preserve"><value>Đã đổi mật khẩu</value></data>
+  <data name="Recovery_RequestHint" xml:space="preserve"><value>Chúng tôi sẽ gửi một mã đến địa chỉ e-mail của tài khoản.</value></data>
+  <data name="Recovery_CodeSent" xml:space="preserve"><value>Nếu địa chỉ này có tài khoản, một mã đã được gửi. Mã có hiệu lực trong 15 phút.</value></data>
+  <data name="Recovery_Code" xml:space="preserve"><value>Mã khôi phục</value></data>
+  <data name="Recovery_CodeHint" xml:space="preserve"><value>8 chữ số trong thư</value></data>
+  <data name="Recovery_NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
+  <data name="Recovery_Submit_Request" xml:space="preserve"><value>Gửi mã</value></data>
+  <data name="Recovery_Submit_Confirm" xml:space="preserve"><value>Đổi mật khẩu</value></data>
+  <data name="Recovery_Done" xml:space="preserve"><value>Mật khẩu đã được đổi và mọi thiết bị đã bị đăng xuất. Hãy đăng nhập bằng mật khẩu mới.</value></data>
+  <data name="Recovery_Back" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
+  <data name="Recovery_Error_Code" xml:space="preserve"><value>Hãy nhập 8 chữ số trong thư.</value></data>
 </root>

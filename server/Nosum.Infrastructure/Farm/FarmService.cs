@@ -55,7 +55,7 @@ namespace Nosum.Infrastructure.Farm;
 /// only tidies up: it drops reverted tiles from memory and PostgreSQL and tells the players who can see them.
 /// The tiles of an instance are kept in per-chunk buckets; a change is published to the subscribers of the chunk it happened in and a chunk's tiles are sent once when it joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
-public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTiles
+public sealed partial class FarmService : IFarmService, IChunkStateContributor, IFarmTiles
 {
     private readonly IMapPresence _presence;
     private readonly IChunkMap _chunks;
@@ -147,7 +147,12 @@ public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTil
     }
 
     /// <inheritdoc/>
-    public async Task<FarmUseOutcome> UseAsync(IConnection connection, int hotbarSlot, int tileX, int tileY, CancellationToken cancellationToken = default)
+    public Task<FarmUseOutcome> UseAsync(IConnection connection, int hotbarSlot, int tileX, int tileY, CancellationToken cancellationToken = default)
+        => this.UseCoreAsync(connection, hotbarSlot, tileX, tileY, tail: false, cancellationToken);
+
+    // One tile. The tail of a line (docs/adr/ADR-026 D1, FarmService.Area.cs) is worked under the swing and the reach check of its first tile, so it neither starts
+    // a second swing nor has to be within arm's length itself.
+    private async Task<FarmUseOutcome> UseCoreAsync(IConnection connection, int hotbarSlot, int tileX, int tileY, bool tail, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(connection);
 
@@ -176,7 +181,7 @@ public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTil
             feetY = player.Motion.Y;
         }
 
-        if (!FarmRules.InReach(feetX, feetY, tileX, tileY, map.Grid.TileSize))
+        if (!tail && !FarmRules.InReach(feetX, feetY, tileX, tileY, map.Grid.TileSize))
         {
             return Refused(FarmStatus.OutOfReach);
         }
@@ -186,7 +191,7 @@ public sealed class FarmService : IFarmService, IChunkStateContributor, IFarmTil
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? heldItem);
 
         // One swing per cooldown, whatever the tool does (docs/adr/ADR-021 D8).
-        if (heldItem is { Kind: ItemKind.Tool } && !_tools.TryBeginSwing(playerId))
+        if (!tail && heldItem is { Kind: ItemKind.Tool } && !_tools.TryBeginSwing(playerId))
         {
             return Refused(FarmStatus.Cooldown);
         }

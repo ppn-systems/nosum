@@ -98,6 +98,22 @@
   <data name="Item_baked_potato_Description" xml:space="preserve"><value>Nướng thơm phức. Ăn để hồi năng lượng.</value></data>
   <data name="Item_pumpkin_soup_Name" xml:space="preserve"><value>Súp bí ngô</value></data>
   <data name="Item_pumpkin_soup_Description" xml:space="preserve"><value>Bát súp nóng sánh. Ăn để hồi nhiều năng lượng.</value></data>
+  <data name="Item_copper_hoe_Name" xml:space="preserve"><value>Cuốc đồng</value></data>
+  <data name="Item_copper_hoe_Description" xml:space="preserve"><value>Xới đất như cuốc thường; vung rộng (phím R) xới một hàng ba ô.</value></data>
+  <data name="Item_copper_watering_can_Name" xml:space="preserve"><value>Bình tưới đồng</value></data>
+  <data name="Item_copper_watering_can_Description" xml:space="preserve"><value>Chứa 55 nước; vung rộng (phím R) tưới một hàng ba ô.</value></data>
+  <data name="Item_copper_axe_Name" xml:space="preserve"><value>Rìu đồng</value></data>
+  <data name="Item_copper_axe_Description" xml:space="preserve"><value>Chặt cây, gốc cây và cành khô với sức gấp đôi.</value></data>
+  <data name="Item_copper_pickaxe_Name" xml:space="preserve"><value>Cuốc chim đồng</value></data>
+  <data name="Item_copper_pickaxe_Description" xml:space="preserve"><value>Đập đá và quặng với sức gấp đôi.</value></data>
+  <data name="Item_iron_hoe_Name" xml:space="preserve"><value>Cuốc sắt</value></data>
+  <data name="Item_iron_hoe_Description" xml:space="preserve"><value>Xới đất như cuốc thường; vung rộng (phím R) xới một hàng năm ô.</value></data>
+  <data name="Item_iron_watering_can_Name" xml:space="preserve"><value>Bình tưới sắt</value></data>
+  <data name="Item_iron_watering_can_Description" xml:space="preserve"><value>Chứa 70 nước; vung rộng (phím R) tưới một hàng năm ô.</value></data>
+  <data name="Item_iron_axe_Name" xml:space="preserve"><value>Rìu sắt</value></data>
+  <data name="Item_iron_axe_Description" xml:space="preserve"><value>Chặt cây, gốc cây và cành khô với sức gấp ba.</value></data>
+  <data name="Item_iron_pickaxe_Name" xml:space="preserve"><value>Cuốc chim sắt</value></data>
+  <data name="Item_iron_pickaxe_Description" xml:space="preserve"><value>Đập đá và quặng với sức gấp ba.</value></data>
   <data name="Item_milk_pail_Name" xml:space="preserve"><value>Xô vắt sữa</value></data>
   <data name="Item_milk_pail_Description" xml:space="preserve"><value>Cầm xô và nhấn phím hành động trước con bò để vắt sữa.</value></data>
   <data name="Item_coop_blueprint_Name" xml:space="preserve"><value>Bản vẽ chuồng gà</value></data>

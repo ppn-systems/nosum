@@ -57,7 +57,7 @@ public enum InputEdges
     /// <summary>The pick-up key (Q): take the furniture in front back into the inventory.</summary>
     PickUp = 1 << 13,
 
-    /// <summary>The market key (M): show or hide the market panel.</summary>
+    /// <summary>The market key (M): no longer bound; the market opens only at the trader's counter in Town (docs/adr/ADR-034). The value stays so the bit layout does not change.</summary>
     Market = 1 << 14,
 
     /// <summary>The wardrobe key (C): show or hide the wardrobe panel.</summary>

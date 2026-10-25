@@ -104,7 +104,7 @@ public sealed class MailProducersTests : IClassFixture<PostgresFixture>
     }
 
     private MarketService NewMarket(IMailService? mail)
-        => new(_transfers, _inventory, _units, new MapPresence(new InMemoryGroupStore()), new NoMaps(), new CoinSink(), _nicknames, _clock, mail: mail);
+        => new(_transfers, _inventory, _units, MarketCounter.Presence(), MarketCounter.Maps(), new CoinSink(), _nicknames, _clock, mail: mail);
 
     private async Task<(Guid Seller, Guid Buyer, Guid Listing)> ListedAsync(MarketService market, int quantity, long price)
     {
@@ -123,15 +123,6 @@ public sealed class MailProducersTests : IClassFixture<PostgresFixture>
         context.Players.Add(player);
         _ = await context.SaveChangesAsync();
         return player.Id;
-    }
-
-    private sealed class NoMaps : IMapCatalog
-    {
-        public bool TryGet(string mapId, [NotNullWhen(true)] out MapDefinition? map)
-        {
-            map = null;
-            return false;
-        }
     }
 
     private sealed class SilentNotifier : IPlayerNotifier

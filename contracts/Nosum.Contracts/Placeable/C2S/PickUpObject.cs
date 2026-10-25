@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Placeable.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class PickUpObject : PacketBase<PickUpObject>, IPacketStat
     public static ushort StaticOpCode => PlaceableOpCode.PickUpObject;
 
     /// <summary>Id of the object, from <see cref="S2C.PlacedObjectRow.Id"/>.</summary>
+    [WireRange(0, int.MaxValue)]
     [SerializeOrder(0)] public int ObjectId { get; set; }
 }

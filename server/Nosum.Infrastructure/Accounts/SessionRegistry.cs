@@ -93,7 +93,7 @@ public sealed class SessionRegistry : ISessionRegistry
             _ = _playerOf.Remove(connection.ConnectionId);
         }
 
-        await this.CloseAsync(connection, reason, "ended by an admin", cancellationToken).ConfigureAwait(false);
+        await this.CloseAsync(connection, reason, "session ended by the server", cancellationToken).ConfigureAwait(false);
         return true;
     }
 

@@ -217,4 +217,84 @@ public sealed class NodeRulesTests
             item.IsTradable.Should().BeTrue();
         }
     }
+
+    [Theory]
+    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 1, 3)]
+    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 2, 2)]
+    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 3, 1)]
+    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 1, 4)]
+    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 2, 2)]
+    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 3, 2)]
+    [InlineData(NodeKind.Stump, ToolKind.Axe, 2, 1)]
+    public void Hit_AnUpgradedTool_TakesFewerSwings(NodeKind kind, ToolKind tool, int damage, int swingsToBreak)
+    {
+        ResourceNode node = Fresh(kind);
+        int swings = 0;
+        ResourceNode? current = node;
+        while (current is { } standing)
+        {
+            swings++;
+            NodeHit hit = NodeRules.Hit(standing, tool, damage);
+            if (hit.Outcome == NodeHitOutcome.Broke)
+            {
+                break;
+            }
+
+            hit.Outcome.Should().Be(NodeHitOutcome.Damaged);
+            current = hit.Next;
+        }
+
+        swings.Should().Be(swingsToBreak);
+    }
+
+    [Fact]
+    public void Hit_DamageBelowOne_CountsAsOne()
+    {
+        NodeHit hit = NodeRules.Hit(Fresh(NodeKind.CopperOre), ToolKind.Pickaxe, 0);
+
+        hit.Next!.Value.Hits.Should().Be(2);
+    }
+
+    [Fact]
+    public void Hit_AStoneThatHidesTheLadder_LeavesALadderInItsPlace_WhenItBreaks()
+    {
+        ResourceNode hiding = Fresh(NodeKind.Stone, NodeVariants.LadderStone);
+
+        NodeHit hit = NodeRules.Hit(hiding, ToolKind.Pickaxe);
+
+        hit.Outcome.Should().Be(NodeHitOutcome.Broke);
+        hit.Next.Should().NotBeNull();
+        hit.Next!.Value.Should().Match<ResourceNode>(n => n.Kind == NodeKind.Ladder && n.X == hiding.X && n.Y == hiding.Y && n.Id == hiding.Id);
+        hit.Next!.Value.Blocks.Should().BeTrue("a ladder is faced, not walked over");
+        NodeRules.RollYield(hiding, 7).Should().OnlyContain(i => i.ItemId == ItemCatalog.Stone || i.ItemId == ItemCatalog.Coal, "the stone still gives what a stone gives");
+    }
+
+    [Fact]
+    public void Hit_AnOrdinaryStone_IsGoneWhenItBreaks()
+    {
+        NodeRules.Hit(Fresh(NodeKind.Stone), ToolKind.Pickaxe).Next.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(ToolKind.Pickaxe)]
+    [InlineData(ToolKind.Axe)]
+    [InlineData(ToolKind.Hoe)]
+    [InlineData(ToolKind.None)]
+    public void Hit_ALadder_IsNeverDamaged(ToolKind tool)
+    {
+        NodeRules.Hit(Fresh(NodeKind.Ladder), tool, 3).Outcome.Should().Be(NodeHitOutcome.WrongTool);
+    }
+
+    [Fact]
+    public void IronOre_GivesOneToThreeIronOre()
+    {
+        NodeCatalog.TryGet(NodeKind.IronOre, out NodeDefinition? definition).Should().BeTrue();
+
+        definition!.Yield.Should().ContainSingle().Which.Should().Be(new NodeYield(ItemCatalog.IronOre, 1, 3));
+        definition.Blocks.Should().BeTrue();
+        for (ulong seed = 0; seed < 50; seed++)
+        {
+            NodeRules.RollYield(Fresh(NodeKind.IronOre), seed).Single().Quantity.Should().BeInRange(1, 3);
+        }
+    }
 }

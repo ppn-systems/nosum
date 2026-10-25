@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Account.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class ResumeSession : PacketBase<ResumeSession>, IPacketSt
     public static ushort StaticOpCode => AccountOpCode.ResumeSession;
 
     /// <summary>The token from <see cref="S2C.AccountResult.SessionToken"/>. Never logged.</summary>
+    [WireMaxLength(WireLimits.Token)]
     [SerializeOrder(0)] public string SessionToken { get; set; } = string.Empty;
 }
