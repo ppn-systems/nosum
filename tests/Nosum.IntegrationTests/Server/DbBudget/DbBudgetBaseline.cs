@@ -38,6 +38,7 @@ internal static class DbBudgetBaseline
         ["GetInventory / starter kit, asked again"] = new(2, 0, 0, 1),
         ["GetLooks / own and seen players"] = new(1, 1, 0, 1),
         ["GetLooks / own and seen players, asked again"] = new(0, 0, 0, 0),
+        ["GetMine / in the entrance cave"] = new(1, 0, 0, 0),
         ["GetMyListings / none"] = new(1, 0, 0, 0),
         ["GetMyListings / none, asked again"] = new(1, 0, 0, 0),
         ["GetMyListings / one listing"] = new(1, 0, 0, 0),
@@ -54,7 +55,7 @@ internal static class DbBudgetBaseline
         ["GetWallet / wallet, asked again"] = new(3, 0, 0, 1),
         ["JoinMap / first join, no saved place"] = new(9, 2, 2, 2),
         ["JoinMap / returning player, saved place"] = new(4, 0, 0, 1),
-        ["Login / e-mail and password"] = new(1, 1, 1, 1),
+        ["Login / e-mail and password"] = new(2, 1, 1, 1),
         ["MoveIntent / one step, same chunk"] = new(0, 0, 0, 0),
         ["MoveIntent / step inside a chunk, another player in sight"] = new(0, 0, 0, 0),
         ["MoveIntent / step into a new chunk (interest set changes)"] = new(0, 0, 0, 0),
@@ -65,8 +66,8 @@ internal static class DbBudgetBaseline
         ["PlaceObject / a coop blueprint"] = new(7, 2, 1, 2),
         ["PlaceObject / a fence"] = new(4, 1, 1, 2),
         ["PlaceObject / a furnace"] = new(4, 1, 1, 2),
-        ["ResumeSession / token, no other session"] = new(2, 1, 0, 1),
-        ["ResumeSession / token, replacing an open session"] = new(2, 1, 0, 1),
+        ["ResumeSession / token, no other session"] = new(3, 1, 1, 1),
+        ["ResumeSession / token, replacing an open session"] = new(3, 1, 1, 1),
         ["SelectSlot / hotbar slot 1"] = new(2, 1, 0, 1),
         ["SendChat / local channel"] = new(0, 0, 0, 0),
         ["SendChat / map channel"] = new(1, 0, 0, 0),
@@ -76,6 +77,7 @@ internal static class DbBudgetBaseline
         ["StartGuest / new guest"] = new(1, 1, 1, 1),
         ["TradeConfirm / first side confirms"] = new(0, 0, 0, 0),
         ["TradeConfirm / second side confirms: the swap"] = new(12, 1, 1, 3),
+        ["UpgradeTool / hoe to copper"] = new(11, 1, 1, 3),
         ["UseItem / break a one-hit node"] = new(8, 2, 2, 3),
         ["UseItem / harvest a mature crop"] = new(10, 4, 2, 5),
         ["UseItem / plant a seed"] = new(6, 2, 1, 3),
@@ -84,6 +86,7 @@ internal static class DbBudgetBaseline
         ["UseItem / till (hoe)"] = new(4, 1, 1, 2),
         ["UseItem / water"] = new(4, 1, 1, 2),
         ["UseItem / water on a new game day"] = new(4, 1, 1, 2),
+        ["UseItemArea / watering can over a block of tiles"] = new(2, 0, 0, 1),
     };
 
     /// <summary>The limit of one row.</summary>

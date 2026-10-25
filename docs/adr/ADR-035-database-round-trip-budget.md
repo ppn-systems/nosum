@@ -56,7 +56,7 @@ a second ago. Only a few of these are real N+1 loops (community goals, friend co
   | Anything that moves coins or items between parties (`BuyListing`, `CreateListing`, `CancelListing`, `ShipItems`, `BuyFromShop`, `TradeConfirm`, `DeliverToGoal`, `DepositItem`, `WithdrawItem`, mail collect) | **at most 1 transaction and 1 `SaveChanges`; reads only the rows the transfer must lock** (wallets of the parties, the listing row), at most 4 reads |
   | Social writes (`RequestFriend`, `RespondFriend`, `RemoveFriend`, `InvitePlayer`, `RespondInvite`, `KickMember`, `AddVisitor`, ...) | at most 3 reads and 1 write transaction |
   | `VisitPlayer`, a map change by exit, `JoinMap` | at most 2 reads (1 for a returning player) and 1 write (the saved place) |
-  | Session start (`StartGuest`, `Login`, `Register`, `ResumeSession`) | what they are today (1-2 reads, 1 write transaction); `Register` and `Login` are dominated by the password hash |
+  | Session start (`StartGuest`, `Login`, `Register`, `ResumeSession`) | what they are today (1-3 reads, 1 write); `Register` and `Login` are dominated by the password hash |
   | Background jobs | at most 1 read per pass when nothing is due; no work for rooms nobody is in |
 
   A request in a class may exceed its budget only with an amendment to this ADR.

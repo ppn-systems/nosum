@@ -12,7 +12,7 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 - Re-run it and write this table with
   `NOSUM_DB_BUDGET_TABLE=/tmp/table.md NOSUM_DB_BUDGET_STATEMENTS=/tmp/statements.txt dotnet test tests/Nosum.IntegrationTests --filter FullyQualifiedName~DbBudgetTests`
   (the statements file lists every distinct SQL statement per row with its count). The run takes about five minutes because requests are paced for the
-  per-address rate limits. Two runs gave identical numbers on every hot-path row.
+  per-address rate limits. Two runs on the merged head gave identical numbers on every hot-path row (two background rows differed by one read).
 
 ## Columns
 
@@ -22,16 +22,17 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 - Round trips on the wire are about `reads + writes + 2 x Tx`.
 - **Repeated** - commands that ran a statement already run once in the same request (the same lookup again, or an N+1 loop).
 - **Reply** - the status the server answered with. A refusal costs less than the real thing, so check it: `Eat` was measured with full energy,
-  `MoveObject` out of reach (rows marked so are refusal costs, not the success path).
+  `ConfirmPasswordReset` with a wrong code (the real code goes out by e-mail), `RideElevator` to the entrance it is already at, `UseItemArea` refused as `InvalidArea`, `MoveObject` out of reach (rows marked so are refusal costs, not the success path).
 - Rows named "asked again" are the second call of a read; the first call of several reads creates a row (`GetQuests`, `GetLooks`, `GetWallet`, `GetGoals`).
 - Instance state (plots, objects, nodes, ground items, buildings) is loaded when an instance is first entered; "first join" and the first exit into a
   map include that one-off load (about 5 reads); later joins do not.
 
 ## Headline numbers
 
+- Measured on `master` merged into this branch (admin tools ADR-031, account recovery ADR-032, mine and blacksmith ADR-026, market counter ADR-034 included).
 - **Free:** `MoveIntent` (also into a new chunk, with another player in sight), `GetFarm`, `GetNodes`, `GetGroundItems`, `GetPlaced`, `GetCalendar`,
   local chat, the WebSocket connect and handshake: 0 commands.
-- **Per connection:** `ResumeSession` 2 reads + 1 write; `JoinMap` 9 / 2 / 2 Tx the first time, 4 / 0 afterwards; a step onto an exit (map change) 5 / 3 / 1 Tx;
+- **Per connection:** `ResumeSession` 3 reads + 1 write (1 Tx); `Login` 2 / 1 / 1; `JoinMap` 9 / 2 / 2 Tx the first time, 4 / 0 afterwards; a step onto an exit (map change) 5 / 3 / 1 Tx;
   `Logout` 1 / 1; socket close of a joined player 1 / 1 (the saved place).
 - **Top 10 by reads:** `VisitPlayer` 24, `WithdrawItem` 20, `DepositItem` 18, `BuyListing` 16, `RespondInvite` 16, `RequestFriend` 15, `RespondFriend` 14,
   `RemoveFriend` 12, `TradeConfirm` (swap) 12, `ChestMove` 11; then `UseItem` harvest 10 / 4 writes / 2 Tx.
@@ -43,14 +44,24 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | Opcode | Packet / event | Case | Reply | Reads | Writes | Tx | SaveChanges | Repeated |
 |:--|:--|:--|:--|--:|--:|--:|--:|--:|
 | 0x1001 | Register | new account | Ok | 2 | 1 | 1 | 1 | 0 |
-| 0x1002 | Login | e-mail and password | Ok | 1 | 1 | 1 | 1 | 0 |
-| 0x1003 | ResumeSession | token, replacing an open session | Ok | 2 | 1 | 0 | 1 | 0 |
-| 0x1003 | ResumeSession | token, no other session | Ok | 2 | 1 | 0 | 1 | 0 |
+| 0x1002 | Login | e-mail and password | Ok | 2 | 1 | 1 | 1 | 0 |
+| 0x1003 | ResumeSession | token, replacing an open session | Ok | 3 | 1 | 1 | 1 | 0 |
+| 0x1003 | ResumeSession | token, no other session | Ok | 3 | 1 | 1 | 1 | 0 |
 | 0x1004 | SetLanguage | registered player | Ok | 1 | 1 | 0 | 1 | 0 |
 | 0x1005 | StartGuest | new guest | Ok | 1 | 1 | 1 | 1 | 0 |
-| 0x1006 | UpgradeGuest | guest to registered | Ok | 4 | 1 | 1 | 1 | 0 |
+| 0x1006 | UpgradeGuest | guest to registered | Ok | 5 | 1 | 1 | 1 | 0 |
 | 0x1007 | Logout | joined player | Ok | 1 | 1 | 0 | 1 | 0 |
 | 0x1008 | SetNickname | first change is free | Ok | 2 | 1 | 0 | 1 | 0 |
+| 0x1101 | Kick | a connected player | Ok | 3 | 2 | 0 | 2 | 1 |
+| 0x1102 | Mute | one hour | Ok | 2 | 1 | 1 | 1 | 1 |
+| 0x1103 | Ban | a player | Ok | 2 | 1 | 1 | 1 | 1 |
+| 0x1104 | Unban | a banned player | Ok | 3 | 1 | 1 | 1 | 1 |
+| 0x1105 | GrantItem | items and coins to a player | Ok | 8 | 2 | 1 | 3 | 4 |
+| 0x1106 | ListReports | one report | Ok | 4 | 0 | 0 | 0 | 2 |
+| 0x1107 | ReadReport | one report with its chat lines | Ok | 3 | 0 | 0 | 0 | 0 |
+| 0x11EE | ChangePassword | right current password | Ok | 3 | 1 | 1 | 1 | 0 |
+| 0x11EF | ConfirmPasswordReset | wrong code (refused) | InvalidResetCode | 0 | 0 | 0 | 0 | 0 |
+| 0x11F0 | RequestPasswordReset | registered address | Ok | 3 | 1 | 0 | 1 | 0 |
 | 0x2000 | JoinMap | first join, no saved place | Ok | 9 | 2 | 2 | 2 | 1 |
 | 0x2000 | JoinMap | returning player, saved place | Ok | 4 | 0 | 0 | 1 | 1 |
 | 0x2001 | MoveIntent | one step, same chunk |  | 0 | 0 | 0 | 0 | 0 |
@@ -68,10 +79,11 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0x3000 | UseItem | break a one-hit node | Ok | 8 | 2 | 2 | 3 | 2 |
 | 0x3001 | GetFarm | empty farm |  | 0 | 0 | 0 | 0 | 0 |
 | 0x3001 | GetFarm | empty farm, asked again |  | 0 | 0 | 0 | 0 | 0 |
+| 0x3002 | UseItemArea | watering can over a block of tiles | InvalidArea | 2 | 0 | 0 | 1 | 0 |
 | 0x3100 | GetBuildings | own, none built |  | 1 | 0 | 0 | 0 | 0 |
 | 0x3100 | GetBuildings | own, none built, asked again |  | 1 | 0 | 0 | 0 | 0 |
 | 0x3100 | GetBuildings | one coop standing |  | 2 | 0 | 0 | 0 | 0 |
-| 0x3101 | CommissionBuilding | a coop blueprint | Ok | 6 | 1 | 1 | 2 | 3 |
+| 0x3101 | CommissionBuilding | a coop blueprint | Ok | 7 | 1 | 1 | 2 | 3 |
 | 0x3102 | BuyAnimal | a chicken | Ok | 9 | 2 | 1 | 3 | 3 |
 | 0x3103 | GetAnimals | not inside a building |  | 0 | 0 | 0 | 0 | 0 |
 | 0x3103 | GetAnimals | not inside a building, asked again |  | 0 | 0 | 0 | 0 | 0 |
@@ -181,6 +193,11 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0xB122 | GetFurnaces | no furnace, asked again |  | 0 | 0 | 0 | 0 | 0 |
 | 0xB122 | GetFurnaces | one furnace smelting |  | 1 | 0 | 0 | 0 | 0 |
 | 0xC000 | BuyFromShop | buy seeds | Ok | 6 | 1 | 1 | 2 | 3 |
+| 0xC001 | GetBlacksmith | nothing in the forge | Ok | 1 | 0 | 0 | 0 | 0 |
+| 0xC002 | UpgradeTool | hoe to copper | Ok | 11 | 1 | 1 | 3 | 6 |
+| 0xC003 | CollectTool | a finished upgrade | Ok | 6 | 1 | 1 | 1 | 2 |
+| 0xC100 | GetMine | in the entrance cave | Ok | 1 | 0 | 0 | 0 | 0 |
+| 0xC101 | RideElevator | to the entrance, already there | AlreadyThere | 1 | 0 | 0 | 0 | 0 |
 | 0xD000 | GetCalendar | calendar |  | 0 | 0 | 0 | 0 | 0 |
 | 0xD000 | GetCalendar | calendar, asked again |  | 0 | 0 | 0 | 0 | 0 |
 | 0xE000 | GetVisitors | no visitors |  | 3 | 0 | 0 | 0 | 0 |
@@ -195,8 +212,8 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0xF001 | DevAdvanceClock | not measured | - | - | - | - | - | tester tool, Development only; the day rollover it triggers is the DayClock row |
 | - | DayClock | one game day ends (nodes, goals) |  | 4 | 3 | 0 | 3 | 4 |
 | - | AnimalWander | tick, one player inside a coop |  | 1 | 0 | 0 | 0 | 0 |
-| - | GuestCleanup | hourly pass, nothing old |  | 0 | 1 | 0 | 0 | 0 |
-| - | MarketExpiry | every minute, nothing due |  | 1 | 0 | 0 | 0 | 0 |
+| - | GuestCleanup | hourly pass, nothing old |  | 0 | 3 | 0 | 0 | 0 |
+| - | MarketExpiry | every minute, nothing due |  | 2 | 0 | 0 | 0 | 0 |
 | - | MailExpiry | hourly pass, nothing due |  | 1 | 0 | 0 | 0 | 0 |
 | - | GroundItemExpiry | every 30 s, nothing due |  | 0 | 0 | 0 | 0 | 0 |
 | - | AnimalWander | tick, nobody inside any building |  | 0 | 0 | 0 | 0 | 0 |
