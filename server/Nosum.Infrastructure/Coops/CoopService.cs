@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,6 +62,9 @@ public sealed class CoopService : ICoopService, IDisposable
         _nicknames = nicknames;
         _time = time;
     }
+
+    /// <inheritdoc/>
+    public event Func<Guid, ValueTask>? MembershipEnded;
 
     /// <inheritdoc/>
     public async Task<CoopView> GetAsync(Guid playerId, CancellationToken cancellationToken = default)
@@ -331,6 +335,7 @@ public sealed class CoopService : ICoopService, IDisposable
             }
 
             await this.PushToAsync(toPush, cancellationToken).ConfigureAwait(false);
+            await this.RaiseMembershipEndedAsync(playerId).ConfigureAwait(false);
             return CoopStatus.Ok;
         }
         finally
@@ -346,6 +351,7 @@ public sealed class CoopService : ICoopService, IDisposable
         try
         {
             List<Guid> toPush = [];
+            Guid ended;
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
@@ -376,9 +382,11 @@ public sealed class CoopService : ICoopService, IDisposable
                 _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 toPush.Add(target.PlayerId);
                 toPush.AddRange(await this.MemberPlayersAsync(unit, me.CoopId, cancellationToken).ConfigureAwait(false));
+                ended = target.PlayerId;
             }
 
             await this.PushToAsync(toPush, cancellationToken).ConfigureAwait(false);
+            await this.RaiseMembershipEndedAsync(ended).ConfigureAwait(false);
             return CoopStatus.Ok;
         }
         finally
@@ -508,6 +516,26 @@ public sealed class CoopService : ICoopService, IDisposable
         }
 
         return CoopStatus.Ok;
+    }
+
+    // Tells visiting that a player is no longer in a co-op; a listener that fails must not undo the committed change.
+    [SuppressMessage("Design", "CA1031", Justification = "The membership change is committed; a failing listener must not turn it into an error reply.")]
+    private async Task RaiseMembershipEndedAsync(Guid playerId)
+    {
+        Func<Guid, ValueTask>? handlers = this.MembershipEnded;
+        if (handlers is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await handlers(playerId).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // The visitor is re-checked at their next entry.
+        }
     }
 
     private async Task<CoopMember?> FindMemberAsync(Guid playerId, CancellationToken cancellationToken)

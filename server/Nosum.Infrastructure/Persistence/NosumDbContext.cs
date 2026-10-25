@@ -10,6 +10,7 @@ using Nosum.Domain.Inventory;
 using Nosum.Domain.Looks;
 using Nosum.Domain.Market;
 using Nosum.Domain.Quests;
+using Nosum.Domain.Visits;
 
 namespace Nosum.Infrastructure.Persistence;
 
@@ -76,6 +77,12 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the co-op warehouse audit trail.</summary>
     public DbSet<CoopLogEntry> CoopLog => this.Set<CoopLogEntry>();
+
+    /// <summary>Gets the allow-lists: which players may visit which owner's farm.</summary>
+    public DbSet<VisitGrant> VisitGrants => this.Set<VisitGrant>();
+
+    /// <summary>Gets the owners' visiting settings.</summary>
+    public DbSet<VisitSettings> VisitSettings => this.Set<VisitSettings>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

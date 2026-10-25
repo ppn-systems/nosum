@@ -23,6 +23,7 @@ using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Quests;
+using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Farm;
@@ -122,10 +123,21 @@ public sealed class FarmService : IFarmService
             FarmTile? current = farm.Tiles.TryGetValue((tileX, tileY), out FarmTile found) ? found : null;
             InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
 
+            // A visitor may only water (docs/adr/ADR-019 D3): anything else, bare hands included (they would harvest), is the owner's.
+            if (VisitRules.IsVisitor(player.Instance, playerId) && !IsWateringCan(held))
+            {
+                return Refused(FarmStatus.NotYourFarm);
+            }
+
             Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs);
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 return Refused(ToStatus(plan.Verdict));
+            }
+
+            if (!VisitRules.MayDo(player.Instance, playerId, RuleOf(plan.Action)))
+            {
+                return Refused(FarmStatus.NotYourFarm);
             }
 
             FarmStatus status = await this.CommitAsync(playerId, player.Instance, tileX, tileY, plan, cancellationToken).ConfigureAwait(false);
@@ -183,6 +195,17 @@ public sealed class FarmService : IFarmService
     }
 
     private static FarmUseOutcome Refused(FarmStatus status) => new(status, FarmAction.None);
+
+    private static bool IsWateringCan(InventorySlotView held)
+        => held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Tool && item.Tool == ToolKind.WateringCan;
+
+    private static PlaceAction RuleOf(FarmAction action) => action switch
+    {
+        FarmAction.Tilled => PlaceAction.Till,
+        FarmAction.Planted => PlaceAction.Plant,
+        FarmAction.Harvested => PlaceAction.Harvest,
+        _ => PlaceAction.Water,
+    };
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
     private static Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs)

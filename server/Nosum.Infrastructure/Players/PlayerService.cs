@@ -155,8 +155,13 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         return (start, new MotionState(start.SpawnX, start.SpawnY, now));
     }
 
-    // A private map is entered at the entering player's own instance; nobody can name another one (visiting goes through IInstanceAccessPolicy).
+    // A join enters the player's own copy of a private map; nobody can name another one (visiting goes through TravelAsync and IInstanceAccessPolicy).
     private static MapInstance InstanceOf(MapDefinition map, Guid playerId) => map.IsPrivate ? new MapInstance(map.Id, playerId) : MapInstance.Shared(map.Id);
+
+    // A door inside somebody else's farm leads to that owner's copy of the next private map (the farmhouse), so a visitor can walk in and out;
+    // from a public map a door leads to the player's own copy. The access policy still decides whether the player may enter it.
+    private static MapInstance InstanceFor(MapDefinition target, PlayerPresence from)
+        => !target.IsPrivate ? MapInstance.Shared(target.Id) : new MapInstance(target.Id, from.Instance.IsPrivate ? from.Instance.OwnerId : from.AccountId);
 
     private static bool IsLegalPlace(MapDefinition map, PlayerStateRow row)
         => double.IsFinite(row.X)
@@ -181,13 +186,32 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
 
     // Leaves the old map (its players are told, the old place is saved), tells the player where they now are
     // while they are on no map (so no snapshot of the new map can reach them first), then enters the new map and saves the new place.
-    [SuppressMessage("Design", "CA1031", Justification = "Saving is best effort; the player is already on the new map.")]
     private async ValueTask<MoveOutcome> WarpAsync(IConnection connection, PlayerPresence from, MapWarp warp)
     {
         MapInstance targetInstance = default;
-        if (!_maps.TryGet(warp.TargetMap, out MapDefinition? target) || !_access.CanEnter(targetInstance = InstanceOf(target, from.AccountId), from.AccountId))
+        bool allowed = false;
+        MapDefinition? target = null;
+        try
         {
             // Exits to maps the catalog does not host are dropped when it is built; stay put if one slipped through.
+            if (_maps.TryGet(warp.TargetMap, out target))
+            {
+                targetInstance = InstanceFor(target, from);
+                allowed = await _access.CanEnterAsync(targetInstance, from.AccountId, CancellationToken.None).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+            lock (from.Gate)
+            {
+                from.InTransit = false;
+            }
+
+            throw;
+        }
+
+        if (!allowed || target is null)
+        {
             lock (from.Gate)
             {
                 from.InTransit = false;
@@ -196,7 +220,45 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         }
 
         (double x, double y, int facing) = WarpRule.Arrival(target.Grid, warp.TargetX, warp.TargetY);
+        await this.RelocateAsync(connection, from, target, targetInstance, x, y, facing).ConfigureAwait(false);
+        return new MoveOutcome(MoveStatus.Warped, 0, (float)x, (float)y);
+    }
 
+    /// <inheritdoc/>
+    public async ValueTask<TravelStatus> TravelAsync(IConnection connection, MapInstance destination, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        if (!_presence.TryGet(connection, out PlayerPresence? from))
+        {
+            return TravelStatus.NotJoined;
+        }
+
+        // The instance must be what the map says it is: an owner for a private map, none for a shared one.
+        if (!_maps.TryGet(destination.MapId, out MapDefinition? target) || destination.IsPrivate != target.IsPrivate
+            || !await _access.CanEnterAsync(destination, from.AccountId, cancellationToken).ConfigureAwait(false))
+        {
+            return TravelStatus.NotAllowed;
+        }
+
+        lock (from.Gate)
+        {
+            if (from.InTransit)
+            {
+                return TravelStatus.NotJoined;
+            }
+
+            from.InTransit = true;
+        }
+
+        await this.RelocateAsync(connection, from, target, destination, target.SpawnX, target.SpawnY, (int)Facing.Down).ConfigureAwait(false);
+        return TravelStatus.Arrived;
+    }
+
+    // The shared move between instances: used by walking onto an exit and by a visit. The caller has set InTransit and checked access.
+    [SuppressMessage("Design", "CA1031", Justification = "Saving is best effort; the player is already on the new map.")]
+    private async ValueTask RelocateAsync(IConnection connection, PlayerPresence from, MapDefinition target, MapInstance targetInstance, double x, double y, int facing)
+    {
         await _world.PrepareAsync(targetInstance, CancellationToken.None).ConfigureAwait(false);
         await _presence.LeaveAsync(connection, CancellationToken.None).ConfigureAwait(false);
 
@@ -222,8 +284,6 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         {
             // The leave above saved the old place; the next leave saves the new one.
         }
-
-        return new MoveOutcome(MoveStatus.Warped, 0, (float)x, (float)y);
     }
 
     private double NowSeconds() => _time.GetTimestamp() / (double)_time.TimestampFrequency;

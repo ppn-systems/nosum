@@ -716,6 +716,52 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_quests", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Visits.VisitGrant", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid>("VisitorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("visitor_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("OwnerId", "VisitorId")
+                        .HasName("pk_visit_grants");
+
+                    b.HasIndex("VisitorId")
+                        .HasDatabaseName("ix_visit_grants_visitor_id");
+
+                    b.ToTable("visit_grants", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_visit_grants_not_self", "owner_id <> visitor_id");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Visits.VisitSettings", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<bool>("CoopMembersMayVisit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("coop_members_may_visit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("OwnerId")
+                        .HasName("pk_visit_settings");
+
+                    b.ToTable("visit_settings", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Accounts.PlayerSessionToken", b =>
                 {
                     b.HasOne("Nosum.Domain.Accounts.Player", null)
@@ -868,6 +914,33 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_quests_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Visits.VisitGrant", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_grants_players_owner_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("VisitorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_grants_players_visitor_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Visits.VisitSettings", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_settings_players_owner_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Accounts.Player", b =>
