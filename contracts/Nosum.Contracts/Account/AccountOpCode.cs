@@ -37,4 +37,7 @@ public static class AccountOpCode
 
     /// <summary>The reply to <see cref="SetLanguage"/>.</summary>
     public const ushort LanguageResult = 0x1082;
+
+    /// <summary>Server push: the guest finished the first quest and may now be invited to register.</summary>
+    public const ushort RegistrationPromptUnlocked = 0x1085;
 }
