@@ -434,20 +434,24 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
 
         await nodes.AdvanceDayAsync(days.Today + 1, false);
 
-        NodeChanged grew = await player.NodeChanges.WaitAsync(c => c.Upserted.Count > 0, host.Timeout);
-        grew.Upserted.Should().HaveCountGreaterThan(0).And.HaveCountLessThanOrEqualTo(NodeLimits.RegrowPerDay);
-        grew.Upserted.Should().OnlyContain(n => n.Kind == (byte)NodeKind.Weed || n.Kind == (byte)NodeKind.Stone || n.Kind == (byte)NodeKind.Twig);
-        int count = grew.Upserted.Count;
-        await using (NosumDbContext db = new(_database.Options))
-        {
-            (await db.WorldNodes.CountAsync(n => n.MapId == GameMaps.Forest && n.OwnerId == Guid.Empty)).Should().Be(count);
-        }
+        // A regrowth touches several chunks and leaves as one packet per chunk to the players who can see it (docs/adr/ADR-022 D4): the player gets the nodes in
+        // sight, added up over the packets, and not the ones far away.
+        ChunkCoord home = ChunkCoord.OfPixels(forest.SpawnX, forest.SpawnY, forest.Grid.TileSize);
+        List<WorldNode> grown = await ForestNodesAsync();
+        grown.Count.Should().BeInRange(1, NodeLimits.RegrowPerDay);
+        List<WorldNode> inSight = [.. grown.Where(n => ChunkCoord.OfTile(n.TileX, n.TileY).DistanceTo(home) <= 1)];
+        List<NodeRow> grew = await CollectUpsertsAsync(player.NodeChanges, inSight.Count, host.Timeout);
+        grew.Should().OnlyContain(n => n.Kind == (byte)NodeKind.Weed || n.Kind == (byte)NodeKind.Stone || n.Kind == (byte)NodeKind.Twig);
+        grew.Select(n => n.Id).Should().BeEquivalentTo(inSight.Select(n => n.Id));
 
         await nodes.AdvanceDayAsync(days.Today + 1, false);
         await player.NodeChanges.ExpectNothingAsync(TimeSpan.FromMilliseconds(500));
         await nodes.AdvanceDayAsync(days.Today + 2, false);
-        NodeChanged more = await player.NodeChanges.WaitAsync(c => c.Upserted.Count > 0, host.Timeout);
-        more.Upserted.Count.Should().BeLessThanOrEqualTo(NodeLimits.RegrowPerDay);
+        List<WorldNode> all = await ForestNodesAsync();
+        (all.Count - grown.Count).Should().BeInRange(1, NodeLimits.RegrowPerDay);
+        HashSet<int> before = [.. grown.Select(n => n.Id)];
+        int newInSight = all.Count(n => !before.Contains(n.Id) && ChunkCoord.OfTile(n.TileX, n.TileY).DistanceTo(home) <= 1);
+        _ = await CollectUpsertsAsync(player.NodeChanges, newInSight, host.Timeout);
         (await player.GetNodesAsync(host.Timeout)).Nodes.Select(n => (n.X, n.Y)).Should().OnlyHaveUniqueItems();
     }
 
@@ -465,6 +469,25 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
         Func<Task> act = async () => _ = await plain.RequestAsync<NodeSnapshot>(request, RequestOptions.Default.WithTimeout(1500), ct: host.Timeout);
 
         _ = await act.Should().ThrowAsync<Exception>();
+    }
+
+    private async Task<List<WorldNode>> ForestNodesAsync()
+    {
+        await using NosumDbContext db = new(_database.Options);
+        return await db.WorldNodes.Where(n => n.MapId == GameMaps.Forest && n.OwnerId == Guid.Empty).ToListAsync();
+    }
+
+    // Reads pushed node changes until this many upserted nodes arrived.
+    private static async Task<List<NodeRow>> CollectUpsertsAsync(Inbox<NodeChanged> changes, int expected, CancellationToken ct)
+    {
+        List<NodeRow> rows = [];
+        while (rows.Count < expected)
+        {
+            rows.AddRange((await changes.WaitAsync(c => c.Upserted.Count > 0, ct)).Upserted);
+        }
+
+        rows.Should().HaveCount(expected);
+        return rows;
     }
 
     private static int SlotOf(int itemId) => Array.FindIndex(StarterKit.Items, i => i.ItemId == itemId);
