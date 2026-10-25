@@ -1,0 +1,33 @@
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(9, calc(var(--u) * 18));
+    gap: var(--u);
+    justify-content: center;
+}
+
+.cell.locked {
+    opacity: 0.45;
+}
+
+.recipe-line,
+.recipe-locked {
+    margin: 0;
+}
+
+.recipe-line,
+.input-name {
+    color: var(--nosum-ink-soft);
+}
+
+.recipe-locked,
+.input-count.short {
+    color: var(--nosum-danger);
+}
+
+.input-count.enough {
+    color: var(--nosum-ok);
+}
+
+.input-name {
+    min-width: calc(var(--u) * 48);
+}

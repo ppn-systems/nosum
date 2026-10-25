@@ -4,6 +4,8 @@ using System;
 using Nosum.Core;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Placeables;
+using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
@@ -25,13 +27,15 @@ internal sealed class PlayerActions
     private readonly FarmChannel _farm;
     private readonly InventoryChannel _inventory;
     private readonly MarketChannel _market;
+    private readonly ChestChannel? _chests;
     private double _lastUseSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
     /// <param name="inventory">Holds the selected slot.</param>
     /// <param name="market">Sends the shipping of the held stack at the bin.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market)
+    /// <param name="chests">Opens the chest the farmer faces; <see langword="null"/> when chests are not wired.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ChestChannel? chests = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -39,6 +43,7 @@ internal sealed class PlayerActions
         _farm = farm;
         _inventory = inventory;
         _market = market;
+        _chests = chests;
     }
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
@@ -47,8 +52,14 @@ internal sealed class PlayerActions
     /// <summary>Raised (from the frame) when the action key was pressed next to a shop: the shop's id (docs/adr/ADR-013 amendments).</summary>
     public event Action<int>? ShopRequested;
 
+    /// <summary>Raised (from the frame) when the action key was pressed facing a furnace: the furnace's object id (docs/adr/ADR-024).</summary>
+    public event Action<int>? FurnaceRequested;
+
     /// <summary>Raised (from the frame) when the close key was pressed.</summary>
     public event Action? PanelCloseRequested;
+
+    /// <summary>Gets whether the action key of the last <see cref="Update"/> opened a chest or a furnace, so nothing else (using a tool, placing a piece) may act on it.</summary>
+    public bool ActionConsumed { get; private set; }
 
     /// <summary>Gets the tile x in front of the farmer.</summary>
     public int TargetX { get; private set; }
@@ -65,8 +76,10 @@ internal sealed class PlayerActions
     /// <param name="mapAllowsTools">Whether tools may be used on the map being shown (not in a room where the action key places furniture); the server decides what a swing does.</param>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     /// <param name="shopId">The id of the shop whose counter is within reach, or zero; the action key then opens that shop instead of using an item.</param>
-    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0)
+    /// <param name="placed">The pieces placed here; the action key facing a chest or a furnace opens it (the server decides whether the player may), or <see langword="null"/> where nothing is placed.</param>
+    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0, PlacedSet? placed = null)
     {
+        this.ActionConsumed = false;
         int x = (int)(feetX / tileSize);
         int y = (int)(feetY / tileSize);
         (this.TargetX, this.TargetY) = facing switch
@@ -96,11 +109,38 @@ internal sealed class PlayerActions
             return;
         }
 
+        if ((edges & InputEdges.Action) != 0 && placed is not null && placed.TryFindAt(this.TargetX, this.TargetY, out PlacedItem piece)
+            && PlaceableCatalog.TryGet(piece.ItemId, out PlaceableDefinition? definition) && definition.Kind is PlaceableKind.Chest or PlaceableKind.Furnace)
+        {
+            // The piece in front is something to use, not a tile to work or a place to set something down.
+            this.ActionConsumed = true;
+            if (nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
+            {
+                _lastUseSeconds = nowSeconds;
+                if (definition.Kind == PlaceableKind.Chest)
+                {
+                    _chests?.Open(piece.Id);
+                }
+                else
+                {
+                    this.FurnaceRequested?.Invoke(piece.Id);
+                }
+            }
+
+            return;
+        }
+
         if ((edges & InputEdges.Action) != 0 && mapAllowsTools && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
         {
             _lastUseSeconds = nowSeconds;
             int selected = _inventory.SelectedSlot;
             SlotInfo held = _inventory.SlotAt(selected);
+            if (PlaceableCatalog.TryGet(held.ItemId, out _))
+            {
+                // A placeable in hand is set down by the placement actions, never swung at a tile.
+                return;
+            }
+
             if (IsShippingBin(this.TargetX, this.TargetY) && ShippingPrices.TryGet(held.ItemId, out _))
             {
                 // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
