@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Maps;
@@ -18,6 +19,7 @@ using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Core;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
@@ -43,6 +45,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     private readonly ICoopMembership _coops;
     private readonly TimeProvider _time;
     private readonly IGroundItems? _groundItems;
+    private readonly IBuildingDirectory? _buildings;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands on which map.</param>
@@ -56,7 +59,8 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     /// <param name="time">Clock for movement budgets and snapshot timestamps.</param>
     /// <param name="snapshotInterval">Time between map snapshots.</param>
     /// <param name="groundItems">Told after every accepted move so items within reach are picked up (docs/adr/ADR-021 D6); <see langword="null"/> for none.</param>
-    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null)
+    /// <param name="buildings">The farm buildings: walking onto a building's door enters its interior, and leaving the interior returns to the door (docs/adr/ADR-028 D2); <see langword="null"/> for none.</param>
+    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null, IBuildingDirectory? buildings = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
@@ -79,6 +83,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         _coops = coops;
         _time = time;
         _groundItems = groundItems;
+        _buildings = buildings;
         _snapshotInterval = snapshotInterval;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
     }
@@ -128,6 +133,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
 
         double now = this.NowSeconds();
         MapWarp warp;
+        BuildingInfo? door = null;
         lock (player.Gate)
         {
             if (player.InTransit)
@@ -151,8 +157,14 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
             // The exit is looked up from the position the server keeps, never from what the client says about doors.
             if (!WarpRule.TryFind(map.Warps, map.Grid, player.Motion.X, player.Motion.Y, player.Motion.Facing, player.Motion.Moving, out warp))
             {
-                ArmWarps(player, map);
-                return new MoveOutcome(MoveStatus.Accepted, 0, x, y);
+                // No exit of the map's own: standing on a farm building's door goes into its interior (docs/adr/ADR-028 D2).
+                if (!this.TryFindDoor(player, map, out door))
+                {
+                    ArmWarps(player, map);
+                    return new MoveOutcome(MoveStatus.Accepted, 0, x, y);
+                }
+
+                warp = DoorWarp(door);
             }
 
             if (!player.WarpArmed)
@@ -163,7 +175,24 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
             player.InTransit = true;
         }
 
-        return await this.WarpAsync(connection, player, warp).ConfigureAwait(false);
+        return await this.WarpAsync(connection, player, warp, door?.Interior).ConfigureAwait(false);
+    }
+
+    // The building whose door tile the player's feet are on; the tile is computed from the position the server keeps.
+    private bool TryFindDoor(PlayerPresence player, MapDefinition map, [NotNullWhen(true)] out BuildingInfo? door)
+    {
+        door = null;
+        return _buildings is not null
+            && player.Instance.IsPrivate
+            && _buildings.TryFindDoor(player.Instance, WarpRule.TileX(player.Motion.X, map.Grid.TileSize), WarpRule.TileY(player.Motion.Y, map.Grid.TileSize), out door);
+    }
+
+    // The exit a door is: from its tile to the interior's arrival tile.
+    private static MapWarp DoorWarp(BuildingInfo building)
+    {
+        _ = BuildingCatalog.TryGet(building.Kind, out BuildingDefinition? definition);
+        (int X, int Y) doorTile = building.Doors.Door;
+        return new MapWarp(doorTile.X, doorTile.Y, building.Interior.MapId, definition!.ArrivalX, definition.ArrivalY);
     }
 
     // The saved place when its map is hosted and the place is still legal (the map may have changed since);
@@ -173,7 +202,8 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     {
         double now = this.NowSeconds();
         PlayerStateRow? saved = await _states.LoadAsync(accountId, cancellationToken).ConfigureAwait(false);
-        if (saved is { } row && _maps.TryGet(row.MapName, out MapDefinition? savedMap)
+        // The inside of a farm building belongs to the building, not to the player: a player who left the game in there starts on the farm.
+        if (saved is { } row && !(GameMaps.TryGet(row.MapName, out MapSpec? savedSpec) && savedSpec.IsInterior) && _maps.TryGet(row.MapName, out MapDefinition? savedMap)
             && await this.InstanceOfAsync(savedMap, accountId, cancellationToken).ConfigureAwait(false) is { } savedInstance)
         {
             return (savedMap, IsLegalPlace(savedMap, row)
@@ -232,15 +262,25 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
 
     // Leaves the old map (its players are told, the old place is saved), tells the player where they now are
     // while they are on no map (so no snapshot of the new map can reach them first), then enters the new map and saves the new place.
-    private async ValueTask<MoveOutcome> WarpAsync(IConnection connection, PlayerPresence from, MapWarp warp)
+    private async ValueTask<MoveOutcome> WarpAsync(IConnection connection, PlayerPresence from, MapWarp warp, MapInstance? interior = null)
     {
         MapInstance targetInstance = default;
         bool allowed = false;
         MapDefinition? found = null;
         try
         {
-            // Exits to maps the catalog does not host are dropped when it is built; stay put if one slipped through.
-            if (_maps.TryGet(warp.TargetMap, out found))
+            if (interior is { } inner && _maps.TryGet(inner.MapId, out found))
+            {
+                // A farm building's door: the interior of that building, if the access policy lets this player in (finished, and theirs or open to them).
+                targetInstance = inner;
+                allowed = await _access.CanEnterAsync(inner, from.AccountId, CancellationToken.None).ConfigureAwait(false);
+            }
+            else if (GameMaps.TryGet(from.MapId, out MapSpec? fromSpec) && fromSpec.IsInterior && string.Equals(warp.TargetMap, GameMaps.Farm, StringComparison.Ordinal))
+            {
+                // The way out of a building leads to the land it stands on, in front of its door, whatever the map file says.
+                (found, targetInstance, warp, allowed) = await this.ExitOfBuildingAsync(from, warp).ConfigureAwait(false);
+            }
+            else if (_maps.TryGet(warp.TargetMap, out found))
             {
                 if (found.IsCoop)
                 {
@@ -284,6 +324,36 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         (double x, double y, int facing) = WarpRule.Arrival(target.Grid, warp.TargetX, warp.TargetY);
         await this.RelocateAsync(connection, from, target, targetInstance, x, y, facing).ConfigureAwait(false);
         return new MoveOutcome(MoveStatus.Warped, 0, (float)x, (float)y);
+    }
+
+    // Where leaving a building leads: its land (the player's farm, a visited farm or co-op land) at the tile in front of the door, or the Town when the player may no longer be on that land.
+    private async ValueTask<(MapDefinition? Map, MapInstance Instance, MapWarp Warp, bool Allowed)> ExitOfBuildingAsync(PlayerPresence from, MapWarp warp)
+    {
+        BuildingInfo? building = _buildings is null ? null : await _buildings.FindAsync(from.Instance.OwnerId, CancellationToken.None).ConfigureAwait(false);
+        if (building is not null && _maps.TryGet(building.Land.MapId, out MapDefinition? land))
+        {
+            bool may;
+            if (building.Land.IsCoopLand)
+            {
+                CoopMembershipInfo? member = await _coops.FindAsync(from.AccountId, CancellationToken.None).ConfigureAwait(false);
+                may = member is not null && member.CoopId == building.Land.OwnerId;
+            }
+            else
+            {
+                may = await _access.CanEnterAsync(building.Land, from.AccountId, CancellationToken.None).ConfigureAwait(false);
+            }
+
+            if (may)
+            {
+                (int X, int Y) front = building.Doors.Front;
+                return (land, building.Land, warp with { TargetMap = land.Id, TargetX = front.X, TargetY = front.Y }, true);
+            }
+        }
+
+        // The land is closed to them now (a visit was revoked, a membership ended): out to the Town, like the visitors who were on the land itself.
+        _ = GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
+        _ = _maps.TryGet(GameMaps.Town, out MapDefinition? townMap);
+        return (townMap, MapInstance.Shared(GameMaps.Town), warp with { TargetMap = GameMaps.Town, TargetX = town!.SpawnTileX, TargetY = town.SpawnTileY }, townMap is not null);
     }
 
     /// <inheritdoc/>
@@ -372,7 +442,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         foreach (string key in keys)
         {
             int at = key.IndexOf('@', StringComparison.Ordinal);
-            if (at > 0 && GameMaps.TryGet(key[..at], out MapSpec? spec) && spec.IsCoop)
+            if (at > 0 && GameMaps.TryGet(key[..at], out MapSpec? spec) && (spec.IsCoop || await this.IsInteriorOnCoopLandAsync(spec, key[(at + 1)..]).ConfigureAwait(false)))
             {
                 _presence.CopyPlayers(key, players);
             }
@@ -385,6 +455,18 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                 await this.EvictPresenceAsync(player).ConfigureAwait(false);
             }
         }
+    }
+
+    // Whether an instance key names the inside of a building that stands on co-op land: members leaving the co-op must leave it too.
+    private async ValueTask<bool> IsInteriorOnCoopLandAsync(MapSpec spec, string ownerPart)
+    {
+        if (!spec.IsInterior || _buildings is null || !Guid.TryParseExact(ownerPart, "N", out Guid buildingId))
+        {
+            return false;
+        }
+
+        BuildingInfo? building = await _buildings.FindAsync(buildingId, CancellationToken.None).ConfigureAwait(false);
+        return building is not null && building.Land.IsCoopLand;
     }
 
     // Sends the player back to Town; a player already mid-warp is left to the membership re-check after that warp's arrival.

@@ -8,6 +8,7 @@ using Nosum.Core;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
 using Nosum.Rendering;
+using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Furnace;
 using Nosum.Wasm.Socket.Placeable;
 
@@ -23,11 +24,15 @@ internal sealed class PlacedObjectsDecorator : IMapDecorator
     // Multiply tint of a ghost that cannot be placed there (RRGGBBAA).
     private static readonly int s_invalidTint = unchecked((int)0xFF7070FF);
 
+    // Multiply tint of a building that is still being built: dull and bluish, so it reads as scaffolding (docs/adr/ADR-028 D1).
+    private static readonly int s_scaffoldTint = unchecked((int)0x8C94B4FF);
+
     private readonly string _mapId;
     private readonly PlaceableChannel _placed;
     private readonly PlacementActions _actions;
     private readonly IReadOnlyDictionary<int, int> _textureOfItem;
     private readonly FurnaceChannel? _furnaces;
+    private readonly BuildingChannel? _buildings;
     private readonly int _tileSize;
 
     /// <summary>Initializes the decorator.</summary>
@@ -36,14 +41,16 @@ internal sealed class PlacedObjectsDecorator : IMapDecorator
     /// <param name="actions">Where the ghost is.</param>
     /// <param name="textureOfItem">Texture id of the sheet of every placeable item.</param>
     /// <param name="furnaces">Says which furnaces are smelting (drawn lit); <see langword="null"/> draws them all unlit.</param>
+    /// <param name="buildings">Says which buildings are still being built (drawn dull); <see langword="null"/> draws them all finished.</param>
     /// <param name="tileSize">Map tile size, pixels.</param>
-    public PlacedObjectsDecorator(string mapId, PlaceableChannel placed, PlacementActions actions, IReadOnlyDictionary<int, int> textureOfItem, FurnaceChannel? furnaces, int tileSize)
+    public PlacedObjectsDecorator(string mapId, PlaceableChannel placed, PlacementActions actions, IReadOnlyDictionary<int, int> textureOfItem, FurnaceChannel? furnaces, BuildingChannel? buildings, int tileSize)
     {
         _mapId = mapId;
         _placed = placed;
         _actions = actions;
         _textureOfItem = textureOfItem;
         _furnaces = furnaces;
+        _buildings = buildings;
         _tileSize = tileSize;
     }
 
@@ -80,7 +87,9 @@ internal sealed class PlacedObjectsDecorator : IMapDecorator
         PlaceableView view = definition.View(Math.Min(rotation, definition.Rotations - 1));
         int baseY = (tileY + view.FootprintHeight) * _tileSize;
         int left = tileX * _tileSize;
-        int tint = ghost && !valid ? s_invalidTint : RenderCommandBuffer.NoTint;
+        int tint = ghost && !valid ? s_invalidTint
+            : definition.Kind == PlaceableKind.Building && !ghost && _buildings is not null && _buildings.IsUnderConstruction(placedId) ? s_scaffoldTint
+            : RenderCommandBuffer.NoTint;
 
         // A working furnace is the next cell of its sheet (lit); a path is flat ground, sorted by its own top so everything walks over it.
         int sourceX = view.SourceX + (definition.Kind == PlaceableKind.Furnace && !ghost && _furnaces is not null && _furnaces.IsWorking(placedId) ? view.Width : 0);
@@ -97,23 +106,27 @@ internal sealed class PlacedObjectsDecoratorProvider : IMapDecoratorProvider
     private readonly PlaceableChannel _placed;
     private readonly PlacementActions _actions;
     private readonly FurnaceChannel? _furnaces;
+    private readonly BuildingChannel? _buildings;
 
     /// <summary>Initializes the provider.</summary>
     /// <param name="placed">The mirrored pieces.</param>
     /// <param name="actions">Where the ghost is.</param>
     /// <param name="furnaces">Which furnaces are smelting, or <see langword="null"/>.</param>
-    public PlacedObjectsDecoratorProvider(PlaceableChannel placed, PlacementActions actions, FurnaceChannel? furnaces = null)
+    /// <param name="buildings">Which buildings are still being built, or <see langword="null"/>.</param>
+    public PlacedObjectsDecoratorProvider(PlaceableChannel placed, PlacementActions actions, FurnaceChannel? furnaces = null, BuildingChannel? buildings = null)
     {
         _placed = placed;
         _actions = actions;
         _furnaces = furnaces;
+        _buildings = buildings;
     }
 
     /// <summary>Returns where a sheet of <see cref="PlaceableDefinition.Sheet"/> is served from (placeholder art, docs/adr/ADR-007).</summary>
     /// <param name="sheet">The sheet name.</param>
     /// <returns>The URL relative to the app root.</returns>
-    internal static string UrlOf(string sheet) => string.Equals(sheet, PlaceableCatalog.ObjectsSheet, StringComparison.Ordinal)
-        ? "assets/Maps/springobjects.png"
+    internal static string UrlOf(string sheet)
+        => string.Equals(sheet, PlaceableCatalog.ObjectsSheet, StringComparison.Ordinal) ? "assets/Maps/springobjects.png"
+        : sheet.StartsWith("Buildings/", StringComparison.Ordinal) ? "assets/" + sheet + ".png"
         : "assets/TileSheets/" + sheet + ".png";
 
     /// <inheritdoc/>
@@ -143,6 +156,6 @@ internal sealed class PlacedObjectsDecoratorProvider : IMapDecoratorProvider
             byItem[definition.ItemId] = texture;
         }
 
-        return new PlacedObjectsDecorator(spec.Id, _placed, _actions, byItem, _furnaces, map.TileWidth);
+        return new PlacedObjectsDecorator(spec.Id, _placed, _actions, byItem, _furnaces, _buildings, map.TileWidth);
     }
 }

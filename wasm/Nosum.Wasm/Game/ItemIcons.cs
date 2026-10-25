@@ -30,6 +30,10 @@ internal sealed class ItemIcons : IItemIconSource
             [ItemCatalog.Axe] = Tool(5, 10),
             [ItemCatalog.Pickaxe] = Tool(5, 6),
             [ItemCatalog.Scythe] = Weapon(7, 5),
+            [ItemCatalog.MilkPail] = Tool(6, 0),
+            // Blueprints are the rolled plan at the start of the tools sheet, both buildings alike (placeholder art, docs/adr/ADR-007).
+            [ItemCatalog.CoopBlueprint] = Tool(0, 0),
+            [ItemCatalog.BarnBlueprint] = Tool(0, 0),
             [ItemCatalog.OakSeed] = ObjectId(309),
             [ItemCatalog.MapleSeed] = ObjectId(310),
             [ItemCatalog.PineSeed] = ObjectId(311),
