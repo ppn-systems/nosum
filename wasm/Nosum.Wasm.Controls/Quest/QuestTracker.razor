@@ -1,0 +1,26 @@
+@inherits ObservingComponent<QuestTrackerViewModel>
+
+@* The quest in progress (or the banner of the one just finished) in the top-left corner. All text comes from the view model. *@
+@if (Vm.IsVisible)
+{
+    <aside class="quest-tracker @(Vm.IsCompleted ? "completed" : null)">
+        @if (Vm.IsCompleted)
+        {
+            <strong class="banner">@Vm.CompletedText</strong>
+        }
+        else
+        {
+            <h2>@Vm.Heading: @Vm.Title</h2>
+            <ul>
+                @foreach (ObjectiveLine line in Vm.Objectives)
+                {
+                    <li class="@(line.IsDone ? "done" : null)"><span>@line.Text</span> <span class="count">@line.Progress</span></li>
+                }
+            </ul>
+            @if (Vm.Hint.Length > 0)
+            {
+                <p class="hint">@Vm.Hint</p>
+            }
+        }
+    </aside>
+}

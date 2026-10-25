@@ -43,7 +43,8 @@ public sealed partial class WebRenderBackend : IRenderBackend
     /// <summary>
     /// Starts the frame loop: every animation frame JS calls the exported static method
     /// <paramref name="exportPath"/> of <paramref name="assemblyName"/> with
-    /// <c>(double timeMs, int heldKeys, int canvasWidth, int canvasHeight)</c>.
+    /// <c>(double timeMs, int packedKeys, int canvasWidth, int canvasHeight)</c>, where
+    /// <c>packedKeys</c> holds the held directions in the low byte and the keys pressed since the last frame above it (<c>Nosum.Core.InputPacking</c>).
     /// </summary>
     /// <param name="canvasId">Id of the canvas element.</param>
     /// <param name="assemblyName">Assembly holding the export, e.g. <c>Nosum.Wasm.dll</c>.</param>

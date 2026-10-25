@@ -39,4 +39,28 @@
   <data name="Account_SignOut" xml:space="preserve"><value>Đăng xuất</value></data>
   <data name="Account_Title_Upgrade" xml:space="preserve"><value>Lưu tài khoản của bạn</value></data>
   <data name="Account_Status_SessionReplaced" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì tài khoản được đăng nhập ở nơi khác.</value></data>
+  <data name="Farm_Status_NotOnFarm" xml:space="preserve"><value>Bạn không thể làm ruộng ở đây.</value></data>
+  <data name="Farm_Status_InvalidSlot" xml:space="preserve"><value>Ô vật phẩm không hợp lệ.</value></data>
+  <data name="Farm_Status_InvalidTile" xml:space="preserve"><value>Ô đất không hợp lệ.</value></data>
+  <data name="Farm_Status_OutOfReach" xml:space="preserve"><value>Xa quá, hãy đứng gần hơn.</value></data>
+  <data name="Farm_Status_NotTillable" xml:space="preserve"><value>Không thể xới đất ở chỗ này.</value></data>
+  <data name="Farm_Status_AlreadyTilled" xml:space="preserve"><value>Đất đã được xới rồi.</value></data>
+  <data name="Farm_Status_NotTilled" xml:space="preserve"><value>Hãy xới đất trước.</value></data>
+  <data name="Farm_Status_HasCrop" xml:space="preserve"><value>Chỗ này đã có cây trồng.</value></data>
+  <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>Dùng vật phẩm này ở đây không có tác dụng.</value></data>
+  <data name="Farm_Status_NotMature" xml:space="preserve"><value>Cây chưa chín.</value></data>
+  <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
+  <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>Bạn không còn vật phẩm này.</value></data>
+  <data name="Farm_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Inventory_Status_Blocked" xml:space="preserve"><value>Ô đích đang chứa vật phẩm khác.</value></data>
+  <data name="Inventory_Status_NoSpace" xml:space="preserve"><value>Không đủ chỗ.</value></data>
+  <data name="Inventory_Status_Failed" xml:space="preserve"><value>Không thể di chuyển vật phẩm.</value></data>
+  <data name="Inventory_Title" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Inventory_Close" xml:space="preserve"><value>Đóng</value></data>
+  <data name="Inventory_Hotbar" xml:space="preserve"><value>Thanh vật phẩm</value></data>
+  <data name="Inventory_Quantity" xml:space="preserve"><value>Số lượng: {0}</value></data>
+  <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Nhiệm vụ</value></data>
+  <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
+  <data name="Quest_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
+  <data name="Quest_Banner" xml:space="preserve"><value>Hoàn thành nhiệm vụ: {0}</value></data>
 </root>

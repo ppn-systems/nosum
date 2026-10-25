@@ -11,11 +11,17 @@ using Microsoft.Extensions.Localization;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket;
+using Nosum.Wasm.Socket.Farm;
+using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Player;
+using Nosum.Wasm.Socket.Quest;
 using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
+using Nosum.Wasm.ViewModels.Feedback;
+using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Player;
+using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm;
@@ -46,6 +52,13 @@ internal static class Program
         builder.Services.AddSingleton<GameSocket>();
         builder.Services.AddSingleton<IGameSocket>(sp => sp.GetRequiredService<GameSocket>());
         builder.Services.AddSingleton(sp => new PlayerChannel(sp.GetRequiredService<IGameSocket>(), FarmMapId));
+        builder.Services.AddSingleton<InventoryChannel>();
+        builder.Services.AddSingleton<FarmChannel>();
+        builder.Services.AddSingleton<QuestChannel>();
+        builder.Services.AddSingleton<IItemIconSource, ItemIcons>();
+        builder.Services.AddSingleton<InventoryViewModel>();
+        builder.Services.AddSingleton<QuestTrackerViewModel>();
+        builder.Services.AddSingleton<GameMessagesViewModel>();
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
         builder.Services.AddTransient<AccountFormViewModel>();
@@ -60,8 +73,23 @@ internal static class Program
         WebAssemblyHost host = builder.Build();
 
         PlayerChannel channel = host.Services.GetRequiredService<PlayerChannel>();
+        InventoryChannel inventory = host.Services.GetRequiredService<InventoryChannel>();
+        FarmChannel farm = host.Services.GetRequiredService<FarmChannel>();
+        QuestChannel quests = host.Services.GetRequiredService<QuestChannel>();
         GameLoop.UseNetwork(channel);
-        host.Services.GetRequiredService<AccountSessionKeeper>().Authenticated += channel.Join;
+        GameLoop.UseFarming(farm, inventory);
+
+        // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;
+        // the farm is per map, so it loads whenever a map was joined.
+        AccountSessionKeeper keeper = host.Services.GetRequiredService<AccountSessionKeeper>();
+        keeper.Authenticated += channel.Join;
+        keeper.Authenticated += inventory.Load;
+        keeper.Authenticated += quests.Load;
+        channel.Joined += _ => farm.Load();
+        // The view models subscribe to their channels when they are built: build them before the first push can arrive.
+        _ = host.Services.GetRequiredService<InventoryViewModel>();
+        _ = host.Services.GetRequiredService<QuestTrackerViewModel>();
+        _ = host.Services.GetRequiredService<GameMessagesViewModel>();
         _ = host.Services.GetRequiredService<ConnectionStatusViewModel>();
         host.Services.GetRequiredService<IGameSocket>().Start();
 

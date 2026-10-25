@@ -1,0 +1,13 @@
+.hotbar {
+    position: fixed;
+    left: 50%;
+    bottom: 0.75rem;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.3rem;
+    padding: 0.35rem;
+    border-radius: 0.5rem;
+    background: var(--nosum-panel-bg, #fffaf0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    z-index: 10;
+}

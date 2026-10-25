@@ -64,6 +64,9 @@ public sealed class PlayerChannel : IDisposable
     /// <summary>Raised when the server refuses to put the player on the map. May run on any thread.</summary>
     public event Action<JoinStatus>? JoinRejected;
 
+    /// <summary>Raised after the server put the player on the map, with the map's key. Features that read per-map state (the farm) load it here. May run on any thread.</summary>
+    public event Action<string>? Joined;
+
     /// <summary>Gets the server-assigned id of the local player, or zero while not joined.</summary>
     public uint LocalPlayerId => Volatile.Read(ref _playerId);
 
@@ -192,6 +195,7 @@ public sealed class PlayerChannel : IDisposable
             }
 
             Volatile.Write(ref _playerId, result.PlayerId);
+            this.Joined?.Invoke(_mapId);
         }
         catch (Exception)
         {

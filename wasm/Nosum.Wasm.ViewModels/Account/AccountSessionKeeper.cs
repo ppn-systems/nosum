@@ -21,6 +21,7 @@ public sealed class AccountSessionKeeper : IDisposable
     private readonly IGameSocket _socket;
     private readonly IAccountClient _client;
     private readonly IDisposable _endedSubscription;
+    private readonly IDisposable _promptSubscription;
     private AccountSession? _session;
 
     /// <summary>Initializes the keeper.</summary>
@@ -35,6 +36,7 @@ public sealed class AccountSessionKeeper : IDisposable
         _client = client;
         socket.Ready += this.OnSocketReady;
         _endedSubscription = socket.Subscribe<SessionEnded>(this.OnSessionEnded);
+        _promptSubscription = socket.Subscribe<RegistrationPromptUnlocked>(this.OnPromptUnlocked);
     }
 
     /// <summary>Raised when the connection is signed in: after <see cref="SignedIn"/> and after each successful resume. May run on any thread.</summary>
@@ -42,6 +44,9 @@ public sealed class AccountSessionKeeper : IDisposable
 
     /// <summary>Raised when the server ended the session (the player signed in elsewhere). The keeper has already forgotten the session. May run on any thread.</summary>
     public event Action<AccountStatus>? SessionEnded;
+
+    /// <summary>Raised when the server unlocked the invitation to register (the guest finished the first quest). The keeper has already recorded it. May run on any thread.</summary>
+    public event Action? RegistrationPromptUnlocked;
 
     /// <summary>Gets the current session, or <see langword="null"/> before sign-in.</summary>
     public AccountSession? Session => _session;
@@ -73,6 +78,7 @@ public sealed class AccountSessionKeeper : IDisposable
     {
         _socket.Ready -= this.OnSocketReady;
         _endedSubscription.Dispose();
+        _promptSubscription.Dispose();
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "A failed resume leaves the player signed out; the next reconnect tries again.")]
@@ -99,6 +105,17 @@ public sealed class AccountSessionKeeper : IDisposable
         AccountStatus reason = packet.Reason;
         _session = null;
         this.SessionEnded?.Invoke(reason);
+    }
+
+    private void OnPromptUnlocked(RegistrationPromptUnlocked packet)
+    {
+        _ = packet;
+        if (_session is not null)
+        {
+            _session = _session with { RegistrationPromptUnlocked = true };
+        }
+
+        this.RegistrationPromptUnlocked?.Invoke();
     }
 
     private void OnSocketReady()

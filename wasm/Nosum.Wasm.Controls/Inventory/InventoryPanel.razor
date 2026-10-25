@@ -1,0 +1,21 @@
+@inherits ObservingComponent<InventoryViewModel>
+
+@* The whole inventory as a grid. Click a stack to pick it up, click another slot to move it there (empty slot: move, same item: merge, other item: swap). *@
+<div class="inventory-panel" role="dialog" aria-label="@Vm.Title">
+    <div class="header">
+        <h2>@Vm.Title</h2>
+        <button type="button" class="close" tabindex="-1" @onmousedown:preventDefault @onclick="OnClose">@Vm.CloseText</button>
+    </div>
+    <div class="grid">
+        @foreach (SlotDisplay slot in Vm.Slots)
+        {
+            int index = slot.Index;
+            <ItemSlotButton Slot="slot" Picked="@(Vm.MovingFrom == index)" OnClick="() => Vm.Click(index)" />
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>Raised when the close button is clicked.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+}

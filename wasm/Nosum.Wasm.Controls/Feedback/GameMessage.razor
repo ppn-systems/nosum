@@ -1,0 +1,7 @@
+@inherits ObservingComponent<GameMessagesViewModel>
+
+@* A short line above the hotbar that says why the server refused an action. *@
+@if (Vm.Message is { } message)
+{
+    <div class="game-message" role="status">@message</div>
+}

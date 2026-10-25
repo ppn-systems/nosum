@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Item_hoe_Name" xml:space="preserve"><value>Hoe</value></data>
+  <data name="Item_hoe_Description" xml:space="preserve"><value>Tills grass into planting soil.</value></data>
+  <data name="Item_watering_can_Name" xml:space="preserve"><value>Watering can</value></data>
+  <data name="Item_watering_can_Description" xml:space="preserve"><value>Waters tilled soil. Crops only grow while the soil is wet.</value></data>
+  <data name="Item_parsnip_seeds_Name" xml:space="preserve"><value>Parsnip seeds</value></data>
+  <data name="Item_parsnip_seeds_Description" xml:space="preserve"><value>Plant on tilled soil to grow parsnips.</value></data>
+  <data name="Item_radish_seeds_Name" xml:space="preserve"><value>Radish seeds</value></data>
+  <data name="Item_radish_seeds_Description" xml:space="preserve"><value>Plant on tilled soil to grow radishes.</value></data>
+  <data name="Item_cauliflower_seeds_Name" xml:space="preserve"><value>Cauliflower seeds</value></data>
+  <data name="Item_cauliflower_seeds_Description" xml:space="preserve"><value>Plant on tilled soil to grow cauliflower. Needs watering more than once.</value></data>
+  <data name="Item_parsnip_Name" xml:space="preserve"><value>Parsnip</value></data>
+  <data name="Item_parsnip_Description" xml:space="preserve"><value>A freshly harvested parsnip.</value></data>
+  <data name="Item_radish_Name" xml:space="preserve"><value>Radish</value></data>
+  <data name="Item_radish_Description" xml:space="preserve"><value>A freshly harvested radish.</value></data>
+  <data name="Item_cauliflower_Name" xml:space="preserve"><value>Cauliflower</value></data>
+  <data name="Item_cauliflower_Description" xml:space="preserve"><value>A freshly harvested cauliflower.</value></data>
+  <data name="Quest_first_harvest_Title" xml:space="preserve"><value>Your first harvest</value></data>
+  <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Select the hoe (key 1) and press E to till the ground in front of you. Plant a seed, water it with the can and wait for it to grow.</value></data>
+  <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Plant a seed</value></data>
+  <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Harvest a crop</value></data>
+</root>

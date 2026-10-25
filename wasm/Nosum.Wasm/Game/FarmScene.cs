@@ -6,6 +6,8 @@ using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Movement;
 using Nosum.Rendering;
+using Nosum.Wasm.Socket.Farm;
+using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Player;
 
 namespace Nosum.Wasm.Game;
@@ -21,6 +23,7 @@ internal sealed class FarmScene
     private const double StepSeconds = 1.0 / 60.0;
     private const double WalkFrameSeconds = 0.15;
     private const int TargetTilesAcross = 26;
+    private const double UseCooldownSeconds = 0.2;
 
     private static readonly string[] s_groundLayers = ["Back", "Buildings"];
     private static readonly string[] s_frontLayers = ["Front", "AlwaysFront", "AlwaysFront2"];
@@ -40,11 +43,15 @@ internal sealed class FarmScene
     private FixedTimestep _clock = new(StepSeconds, 0.25);
     private readonly PlayerChannel? _channel;
     private readonly RemotePlayers? _remote;
+    private readonly FarmChannel? _farm;
+    private readonly InventoryChannel? _inventory;
+    private readonly FarmLayer? _farmLayer;
     private Walker _farmer;
     private Camera2D _camera;
     private uint _ignoreCorrectionsBefore;
     private double _walkTime;
     private double _clockSeconds;
+    private double _lastUseSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the scene.</summary>
     /// <param name="map">The map.</param>
@@ -55,9 +62,15 @@ internal sealed class FarmScene
     /// <param name="startTileX">Preferred start tile x.</param>
     /// <param name="startTileY">Preferred start tile y.</param>
     /// <param name="channel">Server connection for multiplayer, or <see langword="null"/> to play offline.</param>
-    public FarmScene(TileMap map, int[] tileSetTextures, FarmerTextures farmerTextures, FarmerLook look, PropLayer props, int startTileX, int startTileY, PlayerChannel? channel = null)
+    /// <param name="farmLayer">Draws soil, crops and the cursor; <see langword="null"/> when the map is not farmed.</param>
+    /// <param name="farm">The farm mirror and action sender, or <see langword="null"/> offline.</param>
+    /// <param name="inventory">The inventory mirror (the held slot), or <see langword="null"/> offline.</param>
+    public FarmScene(TileMap map, int[] tileSetTextures, FarmerTextures farmerTextures, FarmerLook look, PropLayer props, int startTileX, int startTileY, PlayerChannel? channel = null, FarmLayer? farmLayer = null, FarmChannel? farm = null, InventoryChannel? inventory = null)
     {
         _channel = channel;
+        _farmLayer = farmLayer;
+        _farm = farm;
+        _inventory = inventory;
         _remote = channel is null ? null : new RemotePlayers(channel);
         _map = map;
         _tileSetTextures = tileSetTextures;
@@ -75,15 +88,19 @@ internal sealed class FarmScene
     /// <summary>Gets or sets what the farmer wears.</summary>
     public FarmerLook Look { get; set; }
 
+    /// <summary>Raised (from the frame) when the inventory key was pressed.</summary>
+    public event Action? InventoryToggleRequested;
+
     /// <summary>
     /// Advances the simulation and encodes the frame.
     /// </summary>
     /// <param name="frameSeconds">Wall time since the previous frame.</param>
     /// <param name="input">Held directions.</param>
+    /// <param name="edges">Keys pressed since the previous frame.</param>
     /// <param name="canvasWidth">Canvas width, CSS pixels.</param>
     /// <param name="canvasHeight">Canvas height, CSS pixels.</param>
     /// <param name="backend">Where the frame is drawn.</param>
-    public void Frame(double frameSeconds, InputState input, int canvasWidth, int canvasHeight, IRenderBackend backend)
+    public void Frame(double frameSeconds, InputState input, InputEdges edges, int canvasWidth, int canvasHeight, IRenderBackend backend)
     {
         this.ApplyServerAnswers();
 
@@ -107,15 +124,23 @@ internal sealed class FarmScene
             _map.Width * _map.TileWidth,
             _map.Height * _map.TileHeight);
 
+        this.HandleKeys(edges);
+        long serverNowMs = _farm?.ServerNowMs() ?? 0;
+        (int targetX, int targetY) = this.TargetTile();
+
         _commands.Begin(scale);
         foreach (TileLayer layer in _ground)
         {
             TileLayerRenderer.Draw(_map, layer, _tileSetTextures, _camera, _commands, timeMs, s_waterWave);
         }
 
+        _farmLayer?.DrawSoil(_commands, _camera, serverNowMs);
+        _farmLayer?.DrawCursor(_commands, _camera, targetX, targetY);
+
         int walkFrame = _farmer.IsMoving ? 1 + (int)(_walkTime / WalkFrameSeconds) : 0;
         _world.Begin();
         _props.AddToBatch(_world);
+        _farmLayer?.AddCrops(_world, _camera, serverNowMs);
         FarmerSprite.Draw(_world, _farmerTextures, this.Look, _farmer.Facing, walkFrame, (int)_farmer.X, (int)_farmer.Y);
         this.AddRemoteFarmers();
         _world.Flush(_commands, _camera);
@@ -127,6 +152,48 @@ internal sealed class FarmScene
         }
 
         backend.Submit(_commands.Encode());
+    }
+
+    // The tile in front of the farmer: the one the action key works on.
+    private (int X, int Y) TargetTile()
+    {
+        int x = (int)(_farmer.X / _map.TileWidth);
+        int y = (int)(_farmer.Y / _map.TileHeight);
+        return _farmer.Facing switch
+        {
+            Facing.Up => (x, y - 1),
+            Facing.Left => (x - 1, y),
+            Facing.Right => (x + 1, y),
+            _ => (x, y + 1),
+        };
+    }
+
+    // Number keys select a hotbar slot, the action key uses the held item on the tile in front, I opens the inventory.
+    private void HandleKeys(InputEdges edges)
+    {
+        if (edges == InputEdges.None)
+        {
+            return;
+        }
+
+        int slot = InputPacking.NumberSlot(edges);
+        if (slot >= 0)
+        {
+            _inventory?.Select(slot);
+        }
+
+        if ((edges & InputEdges.Inventory) != 0)
+        {
+            this.InventoryToggleRequested?.Invoke();
+        }
+
+        // A short cooldown keeps a mashed key inside the server's rate limit.
+        if ((edges & InputEdges.Action) != 0 && _farm is not null && _inventory is not null && _clockSeconds - _lastUseSeconds >= UseCooldownSeconds)
+        {
+            _lastUseSeconds = _clockSeconds;
+            (int tileX, int tileY) = this.TargetTile();
+            _farm.Use(_inventory.SelectedSlot, tileX, tileY);
+        }
     }
 
     // Moves the local farmer to the spawn the server chose, or back to where the server keeps it

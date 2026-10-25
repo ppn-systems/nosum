@@ -39,4 +39,28 @@
   <data name="Account_SignOut" xml:space="preserve"><value>Sign out</value></data>
   <data name="Account_Title_Upgrade" xml:space="preserve"><value>Save your account</value></data>
   <data name="Account_Status_SessionReplaced" xml:space="preserve"><value>Your session ended because this account signed in somewhere else.</value></data>
+  <data name="Farm_Status_NotOnFarm" xml:space="preserve"><value>You can't farm here.</value></data>
+  <data name="Farm_Status_InvalidSlot" xml:space="preserve"><value>That slot is not valid.</value></data>
+  <data name="Farm_Status_InvalidTile" xml:space="preserve"><value>That tile is not valid.</value></data>
+  <data name="Farm_Status_OutOfReach" xml:space="preserve"><value>Too far away. Stand closer.</value></data>
+  <data name="Farm_Status_NotTillable" xml:space="preserve"><value>You can't till here.</value></data>
+  <data name="Farm_Status_AlreadyTilled" xml:space="preserve"><value>The soil is already tilled.</value></data>
+  <data name="Farm_Status_NotTilled" xml:space="preserve"><value>Till the soil first.</value></data>
+  <data name="Farm_Status_HasCrop" xml:space="preserve"><value>A crop already grows here.</value></data>
+  <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>That does nothing here.</value></data>
+  <data name="Farm_Status_NotMature" xml:space="preserve"><value>The crop is not ready yet.</value></data>
+  <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
+  <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>You no longer have that item.</value></data>
+  <data name="Farm_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Inventory_Status_Blocked" xml:space="preserve"><value>Another item is in the way.</value></data>
+  <data name="Inventory_Status_NoSpace" xml:space="preserve"><value>There is no room.</value></data>
+  <data name="Inventory_Status_Failed" xml:space="preserve"><value>That item can't be moved.</value></data>
+  <data name="Inventory_Title" xml:space="preserve"><value>Inventory</value></data>
+  <data name="Inventory_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
+  <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
+  <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Quest</value></data>
+  <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
+  <data name="Quest_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="Quest_Banner" xml:space="preserve"><value>Quest complete: {0}</value></data>
 </root>

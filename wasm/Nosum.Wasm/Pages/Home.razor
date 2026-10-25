@@ -6,15 +6,24 @@
 @using System.Runtime.Versioning
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
+@using Nosum.Wasm.Controls.Feedback
+@using Nosum.Wasm.Controls.Inventory
+@using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
 @using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Feedback
+@using Nosum.Wasm.ViewModels.Inventory
+@using Nosum.Wasm.ViewModels.Quest
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
 @inject HttpClient Http
 @inject AccountFormViewModel Form
 @inject AccountSessionKeeper Keeper
 @inject NavigationManager Navigation
+@inject InventoryViewModel Inventory
+@inject QuestTrackerViewModel Quest
+@inject GameMessagesViewModel Messages
 
 <PageTitle>Nosum</PageTitle>
 
@@ -30,6 +39,13 @@
 @if (_signedIn)
 {
     <SessionBar Vm="Form" />
+    <QuestTracker Vm="Quest" />
+    <GameMessage Vm="Messages" />
+    <Hotbar Vm="Inventory" />
+    @if (_inventoryOpen)
+    {
+        <InventoryPanel Vm="Inventory" OnClose="ToggleInventory" />
+    }
 }
 @if (_error is not null)
 {
@@ -38,6 +54,7 @@
 
 @code {
     private bool _signedIn;
+    private bool _inventoryOpen;
     private string? _error;
 
     protected override void OnInitialized()
@@ -47,6 +64,8 @@
         Form.SignedOut += OnSignedOut;
         Form.Changed += OnFormChanged;
         Keeper.SessionEnded += OnSessionEnded;
+        Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
+        GameLoop.InventoryToggleRequested += OnInventoryKey;
 
         // Back from a session the server ended: say why on the account form.
         string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
@@ -65,6 +84,20 @@
         Form.SignedOut -= OnSignedOut;
         Form.Changed -= OnFormChanged;
         Keeper.SessionEnded -= OnSessionEnded;
+        Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
+        GameLoop.InventoryToggleRequested -= OnInventoryKey;
+    }
+
+    // The first quest was finished: the session bar now offers the registration (the form's session is the one it shows).
+    private void OnPromptUnlocked() => Form.UnlockRegistrationPrompt();
+
+    // The inventory key was pressed in the game (raised from the frame loop).
+    private void OnInventoryKey() => _ = InvokeAsync(ToggleInventory);
+
+    private void ToggleInventory()
+    {
+        _inventoryOpen = !_inventoryOpen;
+        StateHasChanged();
     }
 
     // The overlay shows or hides with the form's mode (upgrade form over the running game).
