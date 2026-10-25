@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <Description>Nosum wire contracts shared by server and client: opcodes, Nalix packets, DTOs and enums. No logic.</Description>
+    <!-- Required by the Nalix formatter source generator (generated code uses unsafe). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
