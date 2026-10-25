@@ -450,6 +450,7 @@ internal static class Program
         {
             inventory.Forget(id);
             playerStates.Forget(id);
+            quests.Forget(id);
             return ValueTask.CompletedTask;
         };
         InstanceManager.Instance.Register<IQuestService>(quests);
