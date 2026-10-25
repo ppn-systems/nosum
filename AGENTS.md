@@ -68,7 +68,7 @@ Owner: `docs-style`.
 | Server packet handler | `nalix-handlers` |
 | `server/Nosum.Host` entry point, listeners | `nalix-server-hosting` |
 | `wasm/Nosum.Wasm.Socket`, client transport | `nalix-client-sdk` |
-| Art under `assets/`, atlases, PixelLab generation | `assets-pipeline` |
+| Anything under `assets/`, sprite sheets, `.tmx` maps (placeholder content, ADR-007) | `assets-pipeline` |
 | Tests | `testing-style` |
 | Any markdown, ADRs | `docs-style` |
 | Before commit/PR/"done" | `review-gates` |

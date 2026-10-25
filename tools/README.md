@@ -7,11 +7,11 @@ only area allowed to use an image-processing package
 
 | Project | Does |
 | :--- | :--- |
-| `Nosum.AtlasPacker` | Packs each `assets/<category>/` folder into `wasm/Nosum.Wasm/wwwroot/assets/<category>.png` + `<category>.json` (SkiaSharp) |
+| `Nosum.AtlasPacker` | Packs each `<category>/` folder of Nosum's own art into `<category>.png` + `<category>.json` (SkiaSharp). Not used on the placeholder content in `assets/` (ADR-007). |
 
 ```bash
-dotnet run --project tools/Nosum.AtlasPacker              # pack every category
-dotnet run --project tools/Nosum.AtlasPacker -- --check   # exit 1 if a committed atlas is stale
+dotnet run --project tools/Nosum.AtlasPacker -- --assets <art dir> --out <atlas dir>
+dotnet run --project tools/Nosum.AtlasPacker -- --assets <art dir> --out <atlas dir> --check
 ```
 
 Atlas JSON (format version 1): `image`, `width`, `height`, and `sprites` mapping each sprite

@@ -1,6 +1,7 @@
 # ADR-005 — 3/4 top-down view ("2.5D")
 
 **Status:** Accepted (owner decision, 2026-10-25)
+**Amended by:** [ADR-007](ADR-007-placeholder-content-16px.md) — 16 px grid, content sheets used as shipped, placeholder only.
 
 ## Context
 

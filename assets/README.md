@@ -1,19 +1,17 @@
 # assets/
 
-Source art for Nosum: pixel art on a 32 × 32 px grid
-([ADR-004](../docs/adr/ADR-004-pixel-art-assets.md)). These PNGs are the source of truth; the
-atlases the client loads are generated from them into `wasm/Nosum.Wasm/wwwroot/assets/`.
+**Temporary development content** — the unpacked Stardew Valley `Content` folder, used under
+[ADR-007](../docs/adr/ADR-007-placeholder-content-16px.md) until Nosum's own art replaces it.
+It is copyrighted by ConcernedApe: keep this repository private and never ship, deploy or share
+a build that contains it.
 
 | Folder | Holds |
 | :--- | :--- |
-| `terrain/` | Wang tilesets for ground pairs (soil ↔ grass, grass ↔ water, …) |
-| `crops/` | One PNG per crop per growth stage |
-| `characters/` | Player and NPC sprites: one PNG per direction and animation frame |
-| `objects/` | Fences, buildings, tools, decorations |
-| `wardrobe/` | Clothing and accessory layers drawn over the base body (ADR-006) |
-| `ui/` | Item and HUD icons used by the Blazor overlay |
+| `Maps/` | Tiled maps (`*.tmx`) and their 16 px tile sheets |
+| `Characters/Farmer/` | Layered player sheets (base, pants, shirts, hairstyles, hats, accessories), 16 × 32 frames |
+| `Characters/`, `Portraits/`, `Animals/` | NPC and animal sprite sheets |
+| `TileSheets/`, `TerrainFeatures/`, `Buildings/`, `LooseSprites/` | Crops, tools, objects, trees, buildings, UI pieces |
+| `Data/` | Game data (JSON) — reference only; Nosum's rules live in `gameplay/` |
 
-Each folder keeps a `SOURCES.md` with one line per file: generator (PixelLab tool and mode),
-prompt, date, PixelLab asset id. Rules: [`assets-pipeline`](../.claude/skills/assets-pipeline/SKILL.md).
-
-Current art: terrain (soil, water, path ↔ grass), the 64 px villager base body, a jacket and a hat layer, and the old 48 px farmer placeholder.
+Conventions: 16 px tiles, sheets addressed by index on their fixed grid. Rules:
+[`assets-pipeline`](../.claude/skills/assets-pipeline/SKILL.md).

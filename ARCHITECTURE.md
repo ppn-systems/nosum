@@ -28,7 +28,7 @@ nosum/
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
-├── assets/                       # source pixel art (32 px grid) + SOURCES.md provenance; atlases are generated from it
+├── assets/                       # placeholder content (unpacked Stardew Valley, 16 px, Tiled maps) — ADR-007, never shipped
 ├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker); only area allowed an image package
 ├── deploy/                       # deployment configuration
 ├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions)

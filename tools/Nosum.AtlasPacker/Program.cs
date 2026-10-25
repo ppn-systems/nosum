@@ -7,13 +7,13 @@ using SkiaSharp;
 namespace Nosum.AtlasPacker;
 
 /// <summary>
-/// Command line: packs every category folder of <c>assets/</c> into
-/// <c>wasm/Nosum.Wasm/wwwroot/assets/&lt;category&gt;.png</c> + <c>.json</c>.
+/// Command line: packs every category folder of <c>--assets</c> into
+/// <c>&lt;out&gt;/&lt;category&gt;.png</c> + <c>.json</c>.
 /// </summary>
 /// <remarks>
 /// <c>--check</c> writes nothing and exits 1 when a committed atlas differs from a fresh pack.
-/// <c>--assets</c> and <c>--out</c> override the default folders, which are found from the
-/// repository root (the nearest parent folder holding <c>global.json</c>).
+/// <c>--assets</c> and <c>--out</c> are required: <c>assets/</c> currently holds third-party
+/// placeholder sheets that are used as shipped, not packed (docs/adr/ADR-007).
 /// </remarks>
 internal static class Program
 {
@@ -43,15 +43,8 @@ internal static class Program
 
         if (assets is null || output is null)
         {
-            string? root = FindRepositoryRoot(Directory.GetCurrentDirectory());
-            if (root is null)
-            {
-                Console.Error.WriteLine("Repository root (global.json) not found; pass --assets and --out.");
-                return 2;
-            }
-
-            assets ??= Path.Combine(root, "assets");
-            output ??= Path.Combine(root, "wasm", "Nosum.Wasm", "wwwroot", "assets");
+            Console.Error.WriteLine("usage: Nosum.AtlasPacker [--check] --assets <dir> --out <dir>");
+            return 2;
         }
 
         return Run(assets, output, check, Console.Out);
@@ -126,18 +119,5 @@ internal static class Program
 
         using SKBitmap committed = AtlasBuilder.Decode(pngPath);
         return AtlasBuilder.SamePixels(committed, atlas.Image);
-    }
-
-    private static string? FindRepositoryRoot(string start)
-    {
-        for (DirectoryInfo? directory = new(start); directory is not null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "global.json")))
-            {
-                return directory.FullName;
-            }
-        }
-
-        return null;
     }
 }
