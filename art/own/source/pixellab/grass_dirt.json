@@ -1,0 +1,264 @@
+{
+  "base_tile_ids": {
+    "lower": "332045bb-adff-4608-a2e6-d257b73e525f",
+    "upper": "16d07fab-79c8-4d01-af97-572744b2be86"
+  },
+  "created_at": "2026-10-25T20:48:40.769721+00:00",
+  "format": "tileset15",
+  "id": "ba7e9bbf-2b29-4432-94e5-be615f09df4b",
+  "lower_description": "cozy farming meadow with soft green grass blades and gentle tonal variation under basic lighting",
+  "name": "lush green meadow grass, cozy farming game \u2197 packed brown dirt path",
+  "style_settings": {
+    "detail": "medium detail",
+    "outline": "",
+    "shading": "basic shading"
+  },
+  "tile_size": {
+    "height": 16,
+    "width": 16
+  },
+  "tiles": [
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 0
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "upper",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "13"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 0
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "10"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 0
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "lower",
+        "SW": "lower"
+      },
+      "id": "4"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 0
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "lower"
+      },
+      "id": "12"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 16
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "6"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 16
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "lower"
+      },
+      "id": "8"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 16
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "lower",
+        "SE": "lower",
+        "SW": "lower"
+      },
+      "id": "332045bb-adff-4608-a2e6-d257b73e525f"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 16
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "1"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 32
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "upper",
+        "SW": "upper"
+      },
+      "id": "11"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 32
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "upper"
+      },
+      "id": "3"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 32
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "lower",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "2"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 32
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "5"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 48
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "upper",
+        "SE": "upper",
+        "SW": "upper"
+      },
+      "id": "16d07fab-79c8-4d01-af97-572744b2be86"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 48
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "14"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 48
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "9"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 48
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "upper"
+      },
+      "id": "7"
+    }
+  ],
+  "upper_description": "packed brown dirt path with subtle pebble texture and simple highlights cast across the earthen surface",
+  "view": "high top-down"
+}
