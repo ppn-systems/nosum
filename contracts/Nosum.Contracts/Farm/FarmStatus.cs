@@ -73,6 +73,9 @@ public enum FarmStatus : byte
 
     /// <summary>The line asked for is not one the held tool can work: not a hoe or a watering can, a tier too low, or a length other than 1, 3 or 5 (docs/adr/ADR-026 D1).</summary>
     InvalidArea = 22,
+
+    /// <summary>The tile is on co-op land that the co-op has not unlocked yet (docs/adr/ADR-038).</summary>
+    LockedLand = 23,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>

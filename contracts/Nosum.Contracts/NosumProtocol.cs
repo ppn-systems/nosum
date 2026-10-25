@@ -11,6 +11,7 @@ public static class NosumProtocol
     /// Wire protocol version. Bump only on a breaking wire change (a removed or reordered
     /// packet member, a reassigned opcode, a field appended to an existing packet); server and clients then ship together.
     /// 3: nicknames - fields appended to <c>Register</c>, <c>UpgradeGuest</c>, <c>AccountResult</c>, <c>LookRow</c>, <c>ListingRow</c>, <c>CoopMemberRow</c>, <c>CoopInviteRow</c> (docs/adr/ADR-009 amendments).
+    /// 4: co-op upgrades - <c>WarehouseLevel</c> and <c>LandLevel</c> appended to <c>CoopSnapshot</c> (docs/adr/ADR-038).
     /// </summary>
-    public const ushort Version = 3;
+    public const ushort Version = 4;
 }

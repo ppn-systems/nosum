@@ -14,6 +14,12 @@ public sealed class Coop : Entity
 
     /// <summary>Gets or sets when the co-op was founded.</summary>
     public DateTimeOffset CreatedAt { get; set; }
+
+    /// <summary>Gets or sets the warehouse upgrade level, 0 to <c>CoopUpgrades.MaxLevel</c>: how many item kinds the warehouse holds (docs/adr/ADR-038).</summary>
+    public int WarehouseLevel { get; set; }
+
+    /// <summary>Gets or sets the land upgrade level, 0 to <c>CoopUpgrades.MaxLevel</c>: how much of the co-op land may be tilled and built on (docs/adr/ADR-038).</summary>
+    public int LandLevel { get; set; }
 }
 
 /// <summary>A player's membership of a co-op. A player belongs to at most one co-op (unique player id).</summary>
@@ -76,7 +82,7 @@ public sealed class CoopLogEntry : Entity
     /// <summary>Gets or sets the change: positive for a deposit, negative for a withdrawal.</summary>
     public int Delta { get; set; }
 
-    /// <summary>Gets or sets a stable code, <c>coop.deposit</c> or <c>coop.withdraw</c>.</summary>
+    /// <summary>Gets or sets a stable code: <c>coop.deposit</c>, <c>coop.withdraw</c>, <c>coop.upgrade.*</c> (docs/adr/ADR-038) or a farm-land code (docs/adr/ADR-020).</summary>
     public string Reason { get; set; } = string.Empty;
 
     /// <summary>Gets or sets when it happened.</summary>

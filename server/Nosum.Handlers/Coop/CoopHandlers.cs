@@ -165,4 +165,24 @@ public static partial class CoopHandlers
         CoopStatus status = await s_coops.WithdrawAsync(player.PlayerId, itemId, quantity, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<WithdrawItem, CoopResult>(context, sequence, r => r.Status = status).ConfigureAwait(false);
     }
+
+    /// <summary>Buys the next level of a co-op upgrade, paid from the warehouse stock (founder only).</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(CoopOpCode.UpgradeCoop)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketEncryption(true)]
+    [PacketRateLimit(10, 4, PolicyId = "coop-stock")]
+    public static async ValueTask HandleUpgradeCoopAsync(IPacketContext<UpgradeCoop> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        CoopUpgradeTrack track = context.Packet.Track;
+        int targetLevel = context.Packet.TargetLevel;
+        PlayerIdentity player = context.Connection.GetPlayer();
+
+        CoopStatus status = await s_coops.UpgradeAsync(player.PlayerId, track, targetLevel, context.CancellationToken).ConfigureAwait(false);
+        await Replies.ReplyAsync<UpgradeCoop, CoopResult>(context, sequence, r => r.Status = status).ConfigureAwait(false);
+    }
 }

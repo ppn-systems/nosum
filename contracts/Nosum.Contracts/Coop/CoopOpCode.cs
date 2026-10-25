@@ -34,6 +34,9 @@ public static class CoopOpCode
     /// <summary>Moves items from the warehouse into the inventory. Reply: <see cref="S2C.CoopResult"/>.</summary>
     public const ushort WithdrawItem = 0xA007;
 
+    /// <summary>Buys the next level of a co-op upgrade track from the warehouse stock (founder only, docs/adr/ADR-038). Reply: <see cref="S2C.CoopResult"/>.</summary>
+    public const ushort UpgradeCoop = 0xA008;
+
     // -- S2C --
 
     /// <summary>Reply to every co-op request.</summary>
