@@ -88,9 +88,10 @@ public sealed class CommunityGoalService : ICommunityGoalService
         int season = _calendar.SeasonNumberAt(nowMs);
         Season current = _calendar.SeasonAt(nowMs);
         List<GoalView> goals = [];
+        Dictionary<int, CommunityGoalProgress> completed = await this.CompletedRowsAsync(cancellationToken).ConfigureAwait(false);
         foreach (CommunityGoalDefinition goal in CommunityGoalCatalog.All)
         {
-            CommunityGoalProgress? row = await this.FindCompletedAsync(goal.Id, cancellationToken).ConfigureAwait(false);
+            CommunityGoalProgress? row = completed.GetValueOrDefault(goal.Id);
             if (row is null && goal.Season == current)
             {
                 row = await this.OpenRowAsync(goal.Id, season, cancellationToken).ConfigureAwait(false);
@@ -396,6 +397,23 @@ public sealed class CommunityGoalService : ICommunityGoalService
         {
             return await again.Repository<CommunityGoalProgress>().FirstOrDefaultAsync(g => g.GoalId == goalId && g.SeasonNumber == season, cancellationToken).ConfigureAwait(false)
                 ?? throw new InvalidOperationException("The community goal row vanished after a unique violation.");
+        }
+    }
+
+    // Every goal that was completed, by goal id: one query for the board instead of one per goal.
+    private async Task<Dictionary<int, CommunityGoalProgress>> CompletedRowsAsync(CancellationToken cancellationToken)
+    {
+        IUnitOfWork unit = _units.Create();
+        await using (unit.ConfigureAwait(false))
+        {
+            List<CommunityGoalProgress> rows = await unit.Repository<CommunityGoalProgress>().ListAsync(g => g.Status == GoalStanding.Completed, cancellationToken).ConfigureAwait(false);
+            Dictionary<int, CommunityGoalProgress> byGoal = [];
+            foreach (CommunityGoalProgress row in rows)
+            {
+                byGoal.TryAdd(row.GoalId, row);
+            }
+
+            return byGoal;
         }
     }
 

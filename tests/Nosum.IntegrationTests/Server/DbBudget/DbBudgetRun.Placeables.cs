@@ -171,6 +171,7 @@ public sealed partial class DbBudgetRun
         if (animals.Animals.Count > 0)
         {
             Guid animal = animals.Animals[0].Id;
+            BudgetRig.Stand(p.AccountId, animals.Animals[0].X, animals.Animals[0].Y);
             _ = await _rig.ProbeAsync<AnimalResult>(p, "Building", BuildingOpCode.PetAnimal, "PetAnimal", "pet the chicken", () => new PetAnimal { AnimalId = animal });
             _ = BudgetRig.Service<IDevClockService>().AdvanceDays(1);
             await _rig.Counter.SettleAsync(TimeSpan.FromMilliseconds(300), _rig.Timeout);

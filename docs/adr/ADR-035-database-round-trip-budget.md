@@ -1,0 +1,158 @@
+# ADR-035 — Database round-trip budget
+
+**Status:** Proposed (written by the db-budget agent; the coordinator reviews and the owner approves before any of D3–D8 is built).
+Builds on [ADR-009](ADR-009-postgresql-persistence-and-accounts.md) (PostgreSQL, one unit of work per operation),
+[ADR-013](ADR-013-economy-coins-escrow-market-trade.md) (one atomic transfer) and
+[ADR-021](ADR-021-tools-resource-nodes-ground-items.md) / [ADR-022](ADR-022-chunked-interest-management.md) (world state held in memory per instance and chunk).
+Measurements: [docs/perf/db-round-trips.md](../perf/db-round-trips.md).
+
+## Context
+
+The owner asked to call the database as little as possible. Phase 1 measured it instead of guessing: a test-only EF Core interceptor
+(`tests/Nosum.IntegrationTests/Server/DbBudget/DbCommandCounter.cs`) counts commands, explicit transactions and `SaveChanges` calls while the real host
+serves every client packet over a real WebSocket against a real PostgreSQL. Each number below is the whole cost of one request, including the work the
+server leaves running after its reply (pushes, saves).
+
+What is already good, and stays:
+
+- **The frame path is free.** `MoveIntent` costs 0 commands, also when the step crosses a chunk border and the interest set changes (ADR-022).
+  `GetFarm`, `GetNodes`, `GetGroundItems`, `GetPlaced`, `GetCalendar`, `GetFurnaces` (empty), a local chat line and `GetAnimals` are answered from memory.
+- **Instance state is loaded once.** Plots, placed objects, nodes, ground items and buildings of an instance are read when it is first entered
+  (about 5 reads) and kept; later swings and pushes do not read them again.
+- **Some lookups are already cached:** `INicknameDirectory` (account id to nickname), `BuildingDirectory` (doors per land), `BlockList` (blocked ids per
+  player), `LookService` (look rows).
+
+What costs the most (headline numbers from the table; reads / writes / explicit transactions per request):
+
+| Request | Measured | Why |
+|:--|:--|:--|
+| `BuyListing` | 16 / 2 / 1 | the inventory and the wallet of both parties read twice each, the listing read twice |
+| `VisitPlayer` | 24 / 3 / 1 | the access check runs three times (grants, settings, blocks, friendships each 3x), four `players` reads, cold-instance load |
+| `RequestFriend` / `RespondFriend` / `RemoveFriend` | 15 / 14 / 12 reads | seven count/exists queries, three `players` reads by nickname |
+| Co-op `DepositItem` / `WithdrawItem` / `RespondInvite` | 18 / 20 / 16 reads | membership, co-op row and member list re-read 2-6 times; the snapshot rebuilt from five tables after the change |
+| `ChestMove` | 11 / 1 / 1, 4 `SaveChanges` | the player's inventory loaded five times, the chest's once |
+| `TradeConfirm` (the swap) | 12 / 1 / 1 | the inventory and the wallet of both players read twice each |
+| `UseItem` harvest | 10 / 4 / 2 | inventory twice, progress row, the pickup of the produce (a second transfer: wallet, ground items), quest, account (registration prompt) |
+| `UseItem` plant / till / water | 6 / 2 / 1 &middot; 4 / 1 / 1 &middot; 4 / 1 / 1 | the swing reads the inventory twice (check, then the transaction) and the progress row |
+| `ShipItems` | 8 / 1 / 1 | the inventory loaded three times (`PeekSlot`, then twice inside the transfer), the wallet twice |
+| `JoinMap` | 9 / 2 / 2 first time, 4 / 0 / 0 later | saved place read twice, progress row, friendships, inventory backfill, cold instance |
+| Step onto an exit (map change) | 5 / 3 / 1 | saved place read twice, access check, two position saves |
+| `GetGoals` | 8 reads before this PR's fix, 5 after | one `community_goals` query per goal |
+
+The pattern behind almost all of it: **the server re-reads data it already holds**. Every inventory operation loads the player's header and all slot rows,
+even to answer "what is in slot 3?"; every tool use reads the player's progress row; every social call re-reads membership and friendship facts it read
+a second ago. Only a few of these are real N+1 loops (community goals, friend counts); most are the same read repeated in different layers.
+
+## Decision
+
+- **D1 — A budget per packet class.** Budgets are upper bounds on database commands per request; they are the contract and are tested (D9).
+
+  | Class | Budget |
+  |:--|:--|
+  | Movement, chunk joins and leaves, snapshots, `GetFarm`, `GetNodes`, `GetGroundItems`, `GetPlaced`, `GetCalendar`, `GetAnimals`, local/map/whisper chat | **0 commands** |
+  | Pure reads of a player's own state (`GetInventory`, `SelectSlot`, `GetQuests`, `GetLooks`, `GetRecipeBook`, `GetCoop`, `GetFriends`, `GetMail`, `GetBlocked`, `GetVisitors`, `GetBuildings`) | **0 commands** once the player is signed in (served from the session state of D3-D5); at most 1 read for state that is shared and not cached (market pages) |
+  | A tool swing on a tile held in memory (`UseItem` till, water, plant, harvest, break a node) | **no reads, 1 transaction, 1 `SaveChanges`**, at most 3 write commands (tile row, inventory/energy rows, audit rows) |
+  | Inventory moves and equipment (`MoveSlot`, `EquipItem`, `UnequipItem`, `Craft`, `PlaceObject`, `PickUpObject`, `ChestMove`, `Eat`) | **no reads, at most 1 transaction** |
+  | Anything that moves coins or items between parties (`BuyListing`, `CreateListing`, `CancelListing`, `ShipItems`, `BuyFromShop`, `TradeConfirm`, `DeliverToGoal`, `DepositItem`, `WithdrawItem`, mail collect) | **at most 1 transaction and 1 `SaveChanges`; reads only the rows the transfer must lock** (wallets of the parties, the listing row), at most 4 reads |
+  | Social writes (`RequestFriend`, `RespondFriend`, `RemoveFriend`, `InvitePlayer`, `RespondInvite`, `KickMember`, `AddVisitor`, ...) | at most 3 reads and 1 write transaction |
+  | `VisitPlayer`, a map change by exit, `JoinMap` | at most 2 reads (1 for a returning player) and 1 write (the saved place) |
+  | Session start (`StartGuest`, `Login`, `Register`, `ResumeSession`) | what they are today (1-2 reads, 1 write transaction); `Register` and `Login` are dominated by the password hash |
+  | Background jobs | at most 1 read per pass when nothing is due; no work for rooms nobody is in |
+
+  A request in a class may exceed its budget only with an amendment to this ADR.
+- **D2 — The server keeps what it decided in memory and the database keeps what must survive.** State that only this process changes and that
+  every request needs (inventory, energy and skill experience, co-op membership, visit lists, friendships, block lists, nicknames) is held in memory
+  per player. The database stays the durable record and is written in the same transaction as before (write-through).
+- **D3 — Inventory.** `InventoryService` keeps, per player that is signed in (and for any container it touched, such as a chest, with a size cap),
+  the header and the slot grid it already builds in `LoadAsync`. The per-player lock the service already takes (`StripedAsyncLock`) serializes readers and
+  writers. Reads (`PeekSlotAsync`, `GetAsync`, `SelectSlotAsync` validation, the check half of every operation) are answered from the grid with no command.
+  Every change still runs in one unit of work and one `SaveChanges` (rows, `inventory_log`, enlisted work). **The cache is updated only after
+  `SaveChanges` succeeded;** on a conflict or any exception the entry is dropped and the next call reloads it. Entries leave when the player disconnects
+  (after the position save) and by an idle timeout for containers. All inventory rows must go through this service. Today two other places still touch the
+  tables directly, both only to delete the rows of a container: `ChestService` (picking a chest up checks `inventory_slots` and removes the header) and
+  `CoopService` (wiping co-op land does the same for every chest on it). Phase 2 first moves both behind an `IInventoryService` method for containers;
+  a test then fails if any file outside `InventoryService` uses `Repository<InventorySlot>` or `Repository<PlayerInventory>`.
+- **D4 — Progress.** One `player_states` row holds the saved place, the energy and the skill experience, and today two services write it
+  (`PlayerStateService` for the place, `PlayerProgressService` for energy and experience). They become one cached entry per signed-in player, so a join, a
+  map change and a swing read the same in-memory row and `JoinMap` stops reading it twice. The energy charge of a swing happens against the cached value and is
+  written in the swing's transaction, as ADR-023 D1 requires.
+- **D5 — Social and access facts.** `CoopMembership`, `VisitAccess` (grants, settings, friendships, blocks), the friend lists and the nickname to account
+  lookup (`players.normalized_nickname`) get a read-through cache with explicit invalidation in the service that writes them. Each of those services is
+  already the only writer of its tables; `INicknameDirectory` is the model. `VisitAccess` is also evaluated once per decision: ADR-019 D5 re-checks access
+  after the move to close a race, and that second check stays, but it reads memory.
+- **D6 — What stays transactional and uncached.**
+  - **Coin balances are never cached outside a transaction.** A wallet is read inside the unit of work that changes it (with its concurrency token),
+    exactly as ADR-013 D1 says. `GetWallet` is answered with one read; the client already receives `WalletUpdate` after every committed change, so it asks
+    once per session.
+  - **ADR-013's single atomic transfer is unchanged:** every leg of an exchange (items, coins, escrow row, audit rows) is committed by one `SaveChanges`
+    through `ITransferService`. Nothing in this ADR splits it or defers part of it.
+  - Market listings (escrow), mail with attachments, community goal totals and co-op stock are shared state with several writers' views; they are read
+    inside the transaction that changes them and are not cached.
+  - Inventory is cached (D3) **only because every change is committed before the cache moves**; if a commit fails, the entry is thrown away, never patched.
+- **D7 — Write-behind is allowed only for state whose loss cannot change money, items or progress.** Candidates and the data lost if the process
+  crashes inside the window:
+
+  | Write | Window | Lost on a crash |
+  |:--|:--|:--|
+  | `SelectSlot` (`player_inventories.selected_slot`) | 5 s coalesced, flushed on disconnect | the selected hotbar slot reverts to the previous one |
+  | `ReadMail` flag | 5 s | a mail shows as unread again |
+  | `last_active_at` touch on resume | 60 s | guest retention is computed from a slightly older time |
+  | Position save (`player_states` x, y) | already on leave and map change only | at most the walk since the last map change (unchanged) |
+  | Pet / friendship counters of animals | 30 s | a few friendship points |
+
+  Not write-behind, ever: coins, items, quests, crop and plot state, placed objects, ground items, market and trade rows, mail attachments, the
+  inventory log, the coin log. A flush runs on disconnect, on a map change and at shutdown (`NetworkApplication` stop), in one unit of work per player.
+- **D8 — Single process, and what changes if that ends.** These caches are correct because one process is the only writer of the tables they mirror
+  (ADR-003 server authority, ADR-009 "revisit when the host runs on more than one process": the session registry and map presence are already in memory).
+  If Nosum is ever scaled out: (a) route a player to one process for the life of the session (sticky by player id), which keeps D3 and D4 valid; (b)
+  shared facts (D5) get a version column and `LISTEN/NOTIFY` invalidation, or move behind a single owner process per co-op/land; (c) the budget test
+  stays valid, only the cache layer changes. Until then the cache classes are written behind the same interfaces handlers use today, so they can be replaced
+  without touching a handler.
+- **D9 — The gate.** `DbBudgetTests` (integration, real PostgreSQL) runs a scenario per client packet and fails when a hot-path request needs more
+  reads, writes, transactions or `SaveChanges` calls than `DbBudgetBaseline`. The limits in this PR are today's numbers; each change below lowers its rows
+  in the same commit (a ratchet). A new client packet needs a scenario (`Run_EveryClientOpcode_HasARowOrAReason` fails otherwise).
+
+## Ranked changes
+
+Savings are estimated from the statement counts in `docs/perf/db-round-trips.md` and are `[Assumption]` until each change is measured by the same
+test; if wrong, the budget test shows by how much.
+
+| # | Change | Rows it improves | Expected saving | Risk |
+|--:|:--|:--|:--|:--|
+| 1 | Inventory held in memory, write-through (D3) | every `UseItem`, `PlaceObject`, `Craft`, `ChestMove`, `Eat`, `MoveSlot`, `GetInventory`, `SelectSlot`, and the item half of market/shop/trade/co-op/mail transfers | `GetInventory`/`SelectSlot` 2 reads to 0; swings 4-10 reads to 2-6; `ChestMove` 11 to 2-3; `BuyListing`/`TradeConfirm` 16/12 to about 8/4; about one third of all hot-path reads | medium: cache coherence; mitigated by "commit first, then move the cache" and the single-writer test |
+| 2 | Progress and saved place held in memory (D4) | every tool swing, `JoinMap`, map change, `GetRecipeBook`, `Eat` | 1-2 reads per swing and per join; `GetRecipeBook` 2 to 0; `Eat` refusal 5 to 0 | low |
+| 3 | Access and social facts cached (D5), one evaluation per decision | `VisitPlayer`, friend and co-op calls, whisper, `GetFriends`, `GetVisitors`, co-op snapshot rebuilds | `VisitPlayer` 24 to about 6; friend calls 12-15 to about 4; co-op calls 10-20 to about 4 | medium: invalidation must follow every writer (co-op kick, unfriend, block) |
+| 4 | Create rows with the account instead of on the first read | `GetQuests`, `GetLooks`, `GetWallet`, `GetGoals` (first call writes), `JoinMap` first time | removes writes from "Get" packets; first `JoinMap` 9/2/2 to about 4/1/1 | low: needs a migration-free backfill on first load for old accounts |
+| 5 | Batch the remaining N+1 loops into one query | community goals (done in this PR), friend counts, co-op snapshot, `GetFriends` (5 reads) | 5 reads to 2 per call | low |
+| 6 | Load header and slots of an inventory in one command (until #1 lands) | all inventory operations | 1 round trip per load | low |
+| 7 | Write-behind for the rows of D7 | `SelectSlot`, `ReadMail`, resume | 1 write per click | low |
+| 8 | Drop instance state of an instance nobody is in after a grace period | memory only | none for the database (it adds a cold load back); listed so the growth is a decision | - |
+
+Phase 2 builds #1-#3 in that order, one PR each, with the budget test lowered in the same commit. #4-#7 follow. This ADR changes no code.
+
+## Alternatives considered
+
+- **A distributed cache (Redis).** A second source of truth and a new dependency for a single-process server; the in-memory state ADR-021/022 already
+  holds is the same idea without the network hop. Rejected.
+- **EF Core second-level cache packages or compiled-query tricks.** New packages (not allowed without asking), and prepared statements do not remove
+  round trips.
+- **Cache coin balances too.** Rejected: a balance is the one number that must never be stale in a decision, and the transfer already reads it inside
+  the transaction it changes.
+- **Write-behind for inventory or coins (flush every few seconds).** Fastest, but a crash then loses or duplicates items and breaks ADR-013. Rejected.
+- **Do nothing, buy a bigger database.** Cheap today; the repeated reads grow with players times actions per minute (a farmer swings 3 times a
+  second), so it moves the problem to the first busy day.
+
+## Consequences
+
+- Request latency falls (fewer round trips) and the database load falls roughly with the saved reads; memory grows with signed-in players
+  (an inventory grid is 36 slots, a few hundred bytes).
+- A cache bug is now a gameplay bug (a stale slot) instead of an extra query; D3's rules (commit first, drop on error, single writer, test) are the
+  defence, and the budget test cannot see staleness, so each cache needs its own coherence tests.
+- Handlers and the wire do not change.
+- Tests that build services by hand over a unit-of-work factory keep working; caches are optional constructor arguments with a null object, so unit
+  tests can run uncached.
+
+## Revisit when
+
+A second server process is planned; the signed-in population makes the memory of D3-D5 matter; an owner decision adds a feature whose packets do not
+fit a class of D1; or write-behind (D7) is asked for state that D7 forbids.

@@ -41,11 +41,17 @@ public sealed class DbBudgetTests : IClassFixture<DbBudgetRun>
     [Fact]
     public void Run_EveryScenarioCompleted()
     {
-        string report = string.Join(Environment.NewLine, _run.Results.Select(r => $"{r.Group,-12} {r.Name,-18} {r.Variant,-44} {r.Outcome,-14} reads={r.Counts.Reads} writes={r.Counts.Writes} tx={r.Counts.Transactions} saves={r.Counts.SaveChanges} repeated={r.Counts.Repeated}"));
+        string report = string.Join(Environment.NewLine, _run.Results.Select(r => string.Join('\t', r.Group, r.Name, r.Variant, r.Outcome, r.Counts.Reads, r.Counts.Writes, r.Counts.Transactions, r.Counts.SaveChanges, r.Counts.Repeated)));
         string? path = Environment.GetEnvironmentVariable("NOSUM_DB_BUDGET_DUMP");
         if (path is not null)
         {
             File.WriteAllText(path, report + Environment.NewLine + string.Join(Environment.NewLine, _run.Failures) + Environment.NewLine + "MISSING: " + string.Join(", ", this.Missing()));
+        }
+
+        string? table = Environment.GetEnvironmentVariable("NOSUM_DB_BUDGET_TABLE");
+        if (table is not null)
+        {
+            File.WriteAllText(table, this.MarkdownTable());
         }
 
         string? detail = Environment.GetEnvironmentVariable("NOSUM_DB_BUDGET_STATEMENTS");
@@ -61,6 +67,62 @@ public sealed class DbBudgetTests : IClassFixture<DbBudgetRun>
     public void Run_EveryClientOpcode_HasARowOrAReason()
     {
         this.Missing().Should().BeEmpty("every client packet is measured, or its row says why not");
+    }
+
+    // The rows, one per packet and case (the same case measured twice keeps the dearer run), in opcode order; the doc table is this output.
+    private string MarkdownTable()
+    {
+        System.Text.StringBuilder text = new();
+        text.AppendLine("| Opcode | Packet / event | Case | Reply | Reads | Writes | Tx | SaveChanges | Repeated |");
+        text.AppendLine("|:--|:--|:--|:--|--:|--:|--:|--:|--:|");
+        IEnumerable<IGrouping<string, Measurement>> groups = _run.Results
+            .GroupBy(r => r.Group + "|" + r.Opcode + "|" + r.Key)
+            .OrderBy(g => g.First().Opcode ?? ushort.MaxValue).ThenBy(g => g.First().Group, StringComparer.Ordinal);
+        foreach (IGrouping<string, Measurement> g in groups)
+        {
+            Measurement first = g.First();
+            string opcode = first.Opcode is { } o ? "0x" + o.ToString("X4", System.Globalization.CultureInfo.InvariantCulture) : "-";
+            if (first.Skipped is not null)
+            {
+                text.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"| {opcode} | {first.Name} | not measured | - | - | - | - | - | {first.Skipped} |");
+                continue;
+            }
+
+            int reads = g.Max(r => r.Counts.Reads);
+            int writes = g.Max(r => r.Counts.Writes);
+            int tx = g.Max(r => r.Counts.Transactions);
+            int saves = g.Max(r => r.Counts.SaveChanges);
+            int repeated = g.Max(r => r.Counts.Repeated);
+            text.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"| {opcode} | {first.Name} | {first.Variant} | {first.Outcome} | {reads} | {writes} | {tx} | {saves} | {repeated} |");
+        }
+
+        return text.ToString();
+    }
+
+    [Fact]
+    public void HotPaths_NeverCostMoreThanTheirBaseline()
+    {
+        List<string> over = [];
+        foreach ((string key, DbBudgetBaseline.Limit limit) in DbBudgetBaseline.HotPaths)
+        {
+            List<Measurement> rows = [.. _run.Results.Where(r => r.Key == key && r.Skipped is null)];
+            if (rows.Count == 0)
+            {
+                over.Add(key + ": not measured (the scenario failed or the row was renamed)");
+                continue;
+            }
+
+            foreach (Measurement row in rows)
+            {
+                DbCounts c = row.Counts;
+                if (c.Reads > limit.Reads || c.Writes > limit.Writes || c.Transactions > limit.Transactions || c.SaveChanges > limit.SaveChanges)
+                {
+                    over.Add($"{key}: reads {c.Reads}/{limit.Reads}, writes {c.Writes}/{limit.Writes}, transactions {c.Transactions}/{limit.Transactions}, SaveChanges {c.SaveChanges}/{limit.SaveChanges}");
+                }
+            }
+        }
+
+        over.Should().BeEmpty("a hot-path packet got dearer than its recorded baseline (docs/adr/ADR-035); find what added the database call");
     }
 
     private IEnumerable<string> Missing()
