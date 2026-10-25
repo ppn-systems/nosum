@@ -17,6 +17,7 @@ using Nosum.Contracts.World.S2C;
 using Nosum.Core;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Visits;
 
 namespace Nosum.Infrastructure.Players;
 
@@ -283,6 +284,13 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         catch (Exception)
         {
             // The leave above saved the old place; the next leave saves the new one.
+        }
+
+        // The owner may have taken the permission away while the player was on the way: the revoke looks at the players already inside, so ask once more now that this one is.
+        // Whichever of the two happens last sees the other, so nobody stays in a place they may not be in (docs/adr/ADR-019 D5).
+        if (VisitRules.IsVisitor(targetInstance, from.AccountId) && !await _access.CanEnterAsync(targetInstance, from.AccountId, CancellationToken.None).ConfigureAwait(false))
+        {
+            _ = await this.TravelAsync(connection, MapInstance.Shared(GameMaps.Town), CancellationToken.None).ConfigureAwait(false);
         }
     }
 
