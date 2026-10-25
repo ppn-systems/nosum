@@ -28,6 +28,7 @@ nosum/
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
+├── assets/                       # source pixel art (32 px grid) + SOURCES.md provenance; atlases are generated from it
 ├── deploy/                       # deployment configuration
 ├── docs/adr/                     # architecture decision records
 └── Directory.Build.props · Directory.Packages.props · Version.props · global.json

@@ -18,6 +18,7 @@ Client and server talk over one Nalix WebSocket channel and share the same C# co
 | [`wasm/`](wasm/) | Blazor WebAssembly client | `Nosum.Wasm.slnx` |
 | [`tests/`](tests/) | Unit and integration tests | `Nosum.Tests.slnx` |
 | [`bench/`](bench/) | Browser performance benchmarks | `Nosum.Bench.slnx` |
+| [`assets/`](assets/) | Source pixel art (32 px grid) | — |
 | [`deploy/`](deploy/) | Deployment configuration | — |
 | [`docs/`](docs/) | Architecture decision records | — |
 

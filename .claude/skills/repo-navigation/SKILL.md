@@ -33,6 +33,7 @@ description: Use to locate code, decide where a new file or project belongs, or 
 | Socket wiring, session lifecycle | `wasm/Nosum.Wasm.Socket/` |
 | A test | `tests/Nosum.UnitTests/{Area}/` or `tests/Nosum.IntegrationTests/{Area}/` |
 | A browser benchmark | `bench/Nosum.Bench.*` |
+| Source art (PNG) | `assets/<category>/` + its `SOURCES.md` (`assets-pipeline`) |
 
 `{Domain}` is a game domain (`Farm`, `Inventory`, `Market`, `Social`, `Player`), the same name
 in every area.
