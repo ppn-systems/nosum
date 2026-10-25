@@ -125,3 +125,9 @@ Crafting, chests and furnaces ([ADR-024](../docs/adr/ADR-024-crafting-and-outdoo
 `FurnaceChannel` (jobs with the server's remaining time counted down on the client clock) mirror the server; `CraftingViewModel`, `ChestViewModel` and `FurnaceViewModel` follow them. The pages are menu pages
 (`CraftingPanel` is a tab; `ChestPanel` and `FurnacePanel` replace the Shop-style extra tab while open). The action key facing a chest or furnace piece opens it (`PlayerActions`, using the placed set), the walk grid on the farm is the nodes' grid joined with the placed
 footprints like the server's `InstanceWorld`, and `PlacedObjectsDecorator` draws each piece from its own sheet (`PlaceableDefinition.Sheet`: furniture, Craftables, springobjects). Shift-click in an `ItemGrid` is `OnSlotShiftClick`.
+
+Server key pinning ([ADR-032](../docs/adr/ADR-032-security-hardening.md) D1): the deploy writes the server's public key (printed by the host at start-up) into
+`Nosum.Wasm/wwwroot/appsettings.json` as `Server:PublicKeys` (one key, or two during a rotation) and sets `Server:RequirePin` to `true`; the client then
+refuses any server that cannot prove it holds one of them (`GameSocketState.KeyMismatch`, shown by `ConnectionBadge`). Without a pin a development build trusts the
+server on first use and remembers the key in `localStorage` (`BrowserServerKeyStore`). Password recovery: the "forgot password" link of the sign-in form opens
+`PasswordRecoveryForm` (`PasswordRecoveryViewModel`, `IRecoveryClient`).

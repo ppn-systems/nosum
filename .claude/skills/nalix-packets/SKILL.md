@@ -21,6 +21,10 @@ Facts from the Nalix source (`src/Nalix.Codec`, generators) as used by Nalix 14.
   a breaking change bumps `NosumProtocol.Version` (`contracts/Nosum.Contracts/NosumProtocol.cs`).
 - Each packet type is defined once; `StaticOpCode` is unique across the protocol.
 - Contracts hold no logic and reference no `gameplay/` or `server/` project.
+- **Every client-supplied member of a `…/C2S` packet declares its bounds** (`Nosum.Contracts.Validation`, docs/adr/ADR-032 D3): `[WireMaxLength(n)]` on
+  strings and lists, `[WireRange(min, max)]` on `int`/`long`/`float`/`double`, `[WireDefined]` on enums (constants in `WireLimits`). Booleans, bytes, GUIDs
+  and unsigned numbers are exempt. `HandlerAuditTests` and `PacketBoundsTests` fail on a missing declaration; the server drops a packet that breaks one.
+- New account-recovery style opcodes come from the top of the free range above a band (Account recovery: `0x11F0` downward; operations: `0x1100` upward).
 
 ## Define a packet
 

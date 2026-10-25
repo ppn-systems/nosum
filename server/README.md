@@ -136,3 +136,17 @@ and the calendar. `IDayClock` (`Calendar/DayClockService`) is the day-ended seam
 (`FarmService` sweeps reverted tiles). In Development `Program` wraps the clock in `DevTimeProvider`, and `DevHandlers` / `IDevClockService` (`DevAdvanceClock`, `0xF001`) skip 1 to 60 game days; Production has neither.
 
 Chat, friends and mail ([ADR-029](../docs/adr/ADR-029-chat-friends-mail.md)): `IChatService` (`Chat/ChatService`) cleans and masks text with `ChatRules.Prepare`, applies the exact rate rule (`ChatRateLimiter`, 5 per 10 s, burst 3; `[PacketRateLimit]` is only the coarse transport guard), skips recipients who blocked the sender and keeps a 20-line ring per player that a report copies into `chat_reports`/`chat_report_lines`. Local chat goes to the sender's map instance (`ChatService.CollectLocal` is the one place to switch to the chunk interest set of ADR-022). `IBlockList` (`Chat/BlockList`, `blocked_players`) is cached per owner; `TradeService`, `CoopService.InviteAsync` and `VisitAccess` consult it. `IFriendService` (`Friends/FriendService`, `friendships` two rows per friendship, `friend_requests`, `visit_settings.friends_may_visit`) pushes `FriendStatusChanged` from `IMapPresence.PlayerJoined`/`PlayerLeft` (750 ms grace so a map change is not "offline") and raises `FriendVisitsRevoked`, which `VisitService` answers with a sweep. `IMailService` (`Mail/MailService`, `mail_messages`, `mail_attachment_items`; migration `ChatFriendsMail`) is what other features call (`SendAsync(playerId, code, args, attachments)`); an attachment is collected by one `ITransferService` call whose enlistment stamps `collected_at` (a concurrency token); `MailExpiryService` purges mail after 30 days. First producers: market sale (`MarketService`) and co-op invitation (`CoopService`). Handlers: `Nosum.Handlers/{Chat,Friends,Mail}`.
+
+## Security configuration ([ADR-032](../docs/adr/ADR-032-security-hardening.md))
+
+| Variable | Effect |
+| :--- | :--- |
+| `NOSUM_SERVER_KEY_PATH` | File holding the server's private identity key (created on first start). Default `~/.local/share/Nalix/config/certificate.private`. Mount it on a volume: a new key makes every pinned client refuse the server. The host prints the matching public key at start-up. |
+| `NOSUM_SMTP_HOST`, `NOSUM_SMTP_PORT` (587), `NOSUM_SMTP_USER`, `NOSUM_SMTP_PASSWORD`, `NOSUM_SMTP_FROM`, `NOSUM_SMTP_SSL` (true) | Mail provider for password recovery codes. Without `NOSUM_SMTP_HOST` nothing is sent and the host warns at start-up. |
+| `NOSUM_MAX_CONNECTIONS_PER_IP` (20), `NOSUM_MAX_CONNECTIONS_PER_WINDOW` (20 per 5 s), `NOSUM_MAX_CONNECTIONS_PER_SUBNET` (200), `NOSUM_MAX_SUBNET_CONNECTIONS_PER_WINDOW` (200) | Per-address connection limits of the Nalix connection guard. |
+| `NOSUM_NEW_ACCOUNTS_PER_IP_PER_DAY` (30) | New accounts (registered or guest) one address may create per day. |
+| `NOSUM_ABUSE_ENFORCE_LOOPBACK` (false) | Also limit loopback addresses; set it when a reverse proxy on the same host fronts the server and the real client address is not forwarded. |
+
+Handlers: every `[PacketOpcode]` method declares `[PacketPermission]` and `[PacketRateLimit]`, and every client packet member declares its bounds
+(`Nosum.Contracts.Validation`); `HandlerAuditTests` and `PacketBoundsTests` fail the build otherwise. Bounds are enforced by `InputBoundsMiddleware`
+before the handler. Session tokens rotate on every resume and an account keeps at most 10 live ones.
