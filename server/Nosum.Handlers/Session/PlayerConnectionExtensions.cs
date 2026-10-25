@@ -18,14 +18,18 @@ public static class PlayerConnectionExtensions
     /// <summary>Permission level granted to a signed-in player; gate handlers with <c>[PacketPermission(PermissionLevel.USER)]</c>.</summary>
     public const PermissionLevel SignedInLevel = PermissionLevel.USER;
 
+    /// <summary>Permission level granted to a signed-in admin account (docs/adr/ADR-031 D7); gate admin handlers with <c>[PacketPermission(PermissionLevel.SYSTEM_ADMINISTRATOR)]</c>.</summary>
+    public const PermissionLevel AdminLevel = PermissionLevel.SYSTEM_ADMINISTRATOR;
+
     /// <summary>Marks the connection as signed in: stores the identity and raises <see cref="IConnection.Level"/>.</summary>
     /// <param name="connection">The connection.</param>
     /// <param name="identity">The signed-in player.</param>
-    public static void AttachPlayer(this IConnection connection, PlayerIdentity identity)
+    /// <param name="isAdmin">Whether the account has the admin role; the level is then <see cref="AdminLevel"/>.</param>
+    public static void AttachPlayer(this IConnection connection, PlayerIdentity identity, bool isAdmin = false)
     {
         ArgumentNullException.ThrowIfNull(connection);
         connection.Attributes[s_key] = identity;
-        connection.Level = SignedInLevel;
+        connection.Level = isAdmin ? AdminLevel : SignedInLevel;
     }
 
     /// <summary>Reads the signed-in player of a connection.</summary>

@@ -52,6 +52,19 @@ public sealed class PlacedTilesTests
     }
 
     [Fact]
+    public void Publish_CoversTheTileInFrontOfABuildingsDoor_SoNothingGrowsThere()
+    {
+        PlacedTiles tiles = new();
+        _ = PlaceableCatalog.TryGet(ItemCatalog.CoopBlueprint, out PlaceableDefinition? coop).Should().BeTrue();
+
+        tiles.Publish(Farm, [new PlacedItem(1, ItemCatalog.CoopBlueprint, 10, 10, 0)]);
+
+        int frontY = 10 + coop!.View(0).FootprintHeight;
+        tiles.IsCovered(Farm, 10 + coop.Door!.Value.X, frontY).Should().BeTrue("a node there would shut the door");
+        tiles.IsCovered(Farm, 10 + coop.Door.Value.X + 1, frontY).Should().BeFalse();
+    }
+
+    [Fact]
     public void Publish_ReplacesThePreviousSnapshot_AndOtherInstancesAreUntouched()
     {
         PlacedTiles tiles = new();

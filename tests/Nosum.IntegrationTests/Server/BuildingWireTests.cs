@@ -493,22 +493,21 @@ public sealed class BuildingWireTests : IClassFixture<PostgresFixture>
             int width = definition.View.FootprintWidth;
             int height = definition.View.FootprintHeight;
             List<(int X, int Y)> candidates = [];
-            for (int y = startY - 6; y <= startY + 2; y++)
+            for (int y = startY - 12; y <= startY + 8; y++)
             {
-                for (int x = startX - 9; x <= startX + 3; x++)
+                for (int x = startX - 16; x <= startX + 10; x++)
                 {
+                    // The player is stood in front of each spot below, so reach does not limit the search: the farm's random debris can cover every spot near the spawn.
                     bool open = true;
-                    bool near = false;
                     for (int dy = 0; dy <= height && open; dy++)
                     {
                         for (int dx = 0; dx < width && open; dx++)
                         {
                             open = !map.Grid.IsBlocked(x + dx, y + dy) && !map.ReservedTiles.Contains((x + dx, y + dy));
-                            near |= dy < height && FarmRules.InReach((startX * 16) + 8, ((startY + 1) * 16) + 8, x + dx, y + dy, 16);
                         }
                     }
 
-                    if (open && near)
+                    if (open)
                     {
                         candidates.Add((x, y));
                     }

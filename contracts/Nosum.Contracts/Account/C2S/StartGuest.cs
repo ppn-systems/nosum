@@ -4,6 +4,7 @@ using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
 using Nosum.Contracts.Common;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Account.C2S;
 

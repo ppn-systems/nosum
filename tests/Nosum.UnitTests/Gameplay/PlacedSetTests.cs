@@ -210,4 +210,29 @@ public sealed class PlacedSetTests
 
         PlacedSet.CoversFeet(view, 2, 3, feetX, feetY, 16).Should().Be(covers);
     }
+
+    [Fact]
+    public void Check_NodeOnTheTileInFrontOfTheDoor_IsRefused()
+    {
+        PlaceableDefinition coop = Definition(ItemCatalog.CoopBlueprint);
+        (int doorX, _) = coop.Door!.Value;
+        int tileX = 2;
+        int tileY = 2;
+        int frontX = tileX + doorX;
+        int frontY = tileY + coop.View(0).FootprintHeight;
+
+        new PlacedSet().Check(coop, 0, tileX, tileY, Room(), s_reserved, layers: new Nodes(frontX, frontY)).Should().Be(PlacementVerdict.Node);
+        new PlacedSet().Check(coop, 0, tileX, tileY, Room(), s_reserved, layers: new Nodes(frontX + 1, frontY)).Should().Be(PlacementVerdict.Ok);
+    }
+
+    private sealed class Nodes : IGroundLayers
+    {
+        private readonly (int X, int Y) _node;
+
+        public Nodes(int x, int y) => _node = (x, y);
+
+        public bool IsTilled(int x, int y) => false;
+
+        public bool HasNode(int x, int y) => (x, y) == _node;
+    }
 }

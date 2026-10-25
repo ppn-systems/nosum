@@ -18,6 +18,6 @@ public sealed partial class SessionEnded : PacketBase<SessionEnded>, IPacketStat
     /// <inheritdoc/>
     public static ushort StaticOpCode => AccountOpCode.SessionEnded;
 
-    /// <summary>Why the session ended; <see cref="AccountStatus.SessionReplaced"/> today.</summary>
+    /// <summary>Why the session ended: <see cref="AccountStatus.SessionReplaced"/> (signed in elsewhere) or <see cref="AccountStatus.SessionRevoked"/> (the password was reset).</summary>
     [SerializeOrder(0)] public AccountStatus Reason { get; set; }
 }
