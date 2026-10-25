@@ -28,6 +28,14 @@ Instances and placeables ([ADR-015](../docs/adr/ADR-015-private-instances-and-pl
 footprint); `PlacedSet` holds the pieces of one place and is the single rule set (`Check`: rotation, inside the map, free floor, off reserved tiles, no overlap; `CoversFeet`; `BuildGrid` for collision)
 that the server decides with and the client predicts with.
 
+Visiting ([ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): `Visits/VisitRules` is the pure rule set for private places: `MayDo(instance, player, action)` (the owner does everything; a visitor only walks and waters; a shared map has no owner),
+`IsVisitor`, `MayEnter` (the owner, a listed player, or a co-op member while the owner's setting is on; never a guest's place) and the limits (`MaxListed` = 50, co-op members may visit by default). The server asks it in `FarmService`, `PlaceableService`, `MarketService` and `VisitAccess`.
+
+Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D5-D6, `GroundItems/`): `GroundItemRules` holds the numbers and rules of an item lying in the world (pickup radius 1.5 tiles, `CanPickUp`: the cause's
+5 s priority on shared maps, owner-and-cause only on a private farm; `Timing`: 10 minute expiry on shared maps, never on a private one; `PopPosition`: where a harvest lands so the harvester can take it at once; `ChunkOf`:
+the 16 x 16 tile bucket). `GameRandom` is the seeded generator (SplitMix64) and `ItemYield` (item, quantity range, chance) the data type for yields: rules take the generator as a parameter, the server supplies the seed
+(`IYieldRandom`), the client never rolls.
+
 Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)):
 
 - `Items/ItemCatalog` (tools, seeds, produce; stable id + key + stack size) and `Farm/CropCatalog` (stage durations in seconds of watered growth, harvest item).

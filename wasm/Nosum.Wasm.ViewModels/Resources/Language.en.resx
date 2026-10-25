@@ -334,6 +334,38 @@
   <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Click to take off</value></data>
   <data name="Toolbar_Shop" xml:space="preserve"><value>Shop</value></data>
   <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Farm_Status_NotYourFarm" xml:space="preserve"><value>On someone else's farm you can only water the crops.</value></data>
+  <data name="Place_Status_NotYourPlace" xml:space="preserve"><value>Only the owner arranges things here.</value></data>
+  <data name="Market_Status_NotYourBin" xml:space="preserve"><value>This shipping bin belongs to the farm's owner.</value></data>
+  <data name="Toolbar_Visitors" xml:space="preserve"><value>Visitors</value></data>
+  <data name="Visit_Title" xml:space="preserve"><value>Farm visitors</value></data>
+  <data name="Visit_Go_Heading" xml:space="preserve"><value>Visit a friend's farm</value></data>
+  <data name="Visit_NicknamePlaceholder" xml:space="preserve"><value>Nickname</value></data>
+  <data name="Visit_Go" xml:space="preserve"><value>Visit</value></data>
+  <data name="Visit_Go_Hint" xml:space="preserve"><value>Go out first (the Town, the bus stop...) and type the owner's nickname. You get in only if they invited you.</value></data>
+  <data name="Visit_List_Heading" xml:space="preserve"><value>Who may enter your farm and house</value></data>
+  <data name="Visit_GuestOwner" xml:space="preserve"><value>Guests cannot invite others. Register to invite your friends.</value></data>
+  <data name="Visit_Add" xml:space="preserve"><value>Invite</value></data>
+  <data name="Visit_ListEmpty" xml:space="preserve"><value>Nobody is on the list yet.</value></data>
+  <data name="Visit_Here" xml:space="preserve"><value>Here now</value></data>
+  <data name="Visit_SendHome" xml:space="preserve"><value>Send to Town</value></data>
+  <data name="Visit_Remove" xml:space="preserve"><value>Remove from list</value></data>
+  <data name="Visit_ByCoop" xml:space="preserve"><value>(through the co-op)</value></data>
+  <data name="Visit_Coop_On" xml:space="preserve"><value>Co-op members may visit: ON</value></data>
+  <data name="Visit_Coop_Off" xml:space="preserve"><value>Co-op members may visit: OFF</value></data>
+  <data name="Visit_Rules_Hint" xml:space="preserve"><value>Visitors can walk around and water crops; they cannot till, plant, harvest, move furniture or sell.</value></data>
+  <data name="Visit_UnknownPlayer" xml:space="preserve"><value>(player)</value></data>
+  <data name="Visit_Status_InvalidNickname" xml:space="preserve"><value>That is not a valid nickname.</value></data>
+  <data name="Visit_Status_UnknownPlayer" xml:space="preserve"><value>No player has that nickname.</value></data>
+  <data name="Visit_Status_Self" xml:space="preserve"><value>That is you.</value></data>
+  <data name="Visit_Status_GuestOwner" xml:space="preserve"><value>Register an account to invite friends.</value></data>
+  <data name="Visit_Status_AlreadyListed" xml:space="preserve"><value>That player is on the list already.</value></data>
+  <data name="Visit_Status_NotListed" xml:space="preserve"><value>That player is not on the list, or is no longer here.</value></data>
+  <data name="Visit_Status_ListFull" xml:space="preserve"><value>The list is full.</value></data>
+  <data name="Visit_Status_NotAllowed" xml:space="preserve"><value>The owner has not invited you.</value></data>
+  <data name="Visit_Status_NotOnPublicMap" xml:space="preserve"><value>Go out to a public map (the Town, the bus stop...) before visiting.</value></data>
+  <data name="Visit_Status_NotJoined" xml:space="preserve"><value>You are not in the world yet, try again.</value></data>
+  <data name="Visit_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Season_Spring" xml:space="preserve"><value>Spring</value></data>
   <data name="Season_Summer" xml:space="preserve"><value>Summer</value></data>
   <data name="Season_Fall" xml:space="preserve"><value>Fall</value></data>

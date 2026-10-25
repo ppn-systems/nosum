@@ -17,6 +17,7 @@ using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
@@ -28,6 +29,7 @@ using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Trade;
+using Nosum.Abstractions.Visits;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
@@ -35,6 +37,7 @@ using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
+using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
 using Nosum.Handlers.Market;
@@ -44,12 +47,14 @@ using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
 using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
+using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
+using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Maps;
@@ -62,6 +67,7 @@ using Nosum.Infrastructure.Presence;
 using Nosum.Infrastructure.Quests;
 using Nosum.Infrastructure.Shops;
 using Nosum.Infrastructure.Trade;
+using Nosum.Infrastructure.Visits;
 
 namespace Nosum.Host;
 
@@ -118,6 +124,14 @@ internal static class Program
             InstanceManager.Instance.GetExistingInstance<IGameDayClock>() ?? throw new InvalidOperationException("The game day clock is not registered."),
             TimeProvider.System).RunAsync(ex => Console.Error.WriteLine("Node day rollover failed: " + ex.Message), shutdown.Token);
 
+        // Items that lay on a shared map for ten minutes vanish (docs/adr/ADR-021 D6).
+        IGroundItems groundItems = InstanceManager.Instance.GetExistingInstance<IGroundItems>()
+            ?? throw new InvalidOperationException("The ground item service is not registered.");
+        Task groundItemExpiry = new GroundItemExpiryService(groundItems, TimeProvider.System).RunAsync(
+            GroundItemExpiryService.DefaultInterval,
+            ex => Console.Error.WriteLine("Ground item expiry failed: " + ex.Message),
+            shutdown.Token);
+
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
@@ -126,6 +140,7 @@ internal static class Program
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
         await nodeDays.ConfigureAwait(false);
+        await groundItemExpiry.ConfigureAwait(false);
 
         return 0;
     }
@@ -206,8 +221,10 @@ internal static class Program
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
             .MapHandlers(typeof(NodeHandlers))
+            .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
-            .MapHandlers(typeof(CalendarHandlers));
+            .MapHandlers(typeof(CalendarHandlers))
+            .MapHandlers(typeof(GroundItemHandlers));
 
         // Tester tools exist only in Development: no handler, no service, no opcode in Production.
         if (development)
@@ -266,25 +283,32 @@ internal static class Program
         // Farm and farmhouse are private per player; placed furniture and resource nodes are part of the instance a player walks on (docs/adr/ADR-015, ADR-021).
         PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
+        // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019).
+        VisitAccess access = new(unitOfWork);
         // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
         CoopMembership coopMembership = new(unitOfWork);
         InstanceManager.Instance.Register<ICoopMembership>(coopMembership);
 
-        // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
+        // Coins, market, looks, trade, co-ops and ground-item pickups (docs/adr/ADR-013, ADR-014, ADR-021) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
+
+        // Items lying in the world: harvests and broken nodes drop here, walking players pick them up (docs/adr/ADR-021 D5-D6).
+        GroundItemService groundItems = new(presence, maps, transfers, unitOfWork, clock);
+        InstanceManager.Instance.Register<IGroundItems>(groundItems);
+        InstanceManager.Instance.Register<IYieldRandom>(new YieldRandom((ulong)Random.Shared.NextInt64()));
 
         // The swing cooldown runs on real time (like the snapshot loop), whatever clock crops grow by.
         ToolStateService toolState = new(TimeProvider.System, notifier);
         InstanceManager.Instance.Register<IToolState>(toolState);
         CalendarGameDayClock dayClock = new(calendar, clock);
         InstanceManager.Instance.Register<IGameDayClock>(dayClock);
-        ResourceNodeService nodes = new(presence, maps, inventory, new InventoryYieldSink(transfers), toolState, dayClock, unitOfWork, clock);
+        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, dayClock, unitOfWork, clock);
         InstanceManager.Instance.Register<IResourceNodeService>(nodes);
-        PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), new OwnerOnlyAccessPolicy(), coopMembership, TimeProvider.System, SnapshotInterval);
+        PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
-        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems);
         InstanceManager.Instance.Register<IFarmService>(farm);
 
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
@@ -301,6 +325,8 @@ internal static class Program
 
         InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, nicknames, clock));
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
-        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock));
+        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock);
+        InstanceManager.Instance.Register<ICoopService>(coops);
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock));
     }
 }

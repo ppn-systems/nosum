@@ -75,6 +75,23 @@ Review of the current code found:
 - Two new tables (`resource_nodes`, `ground_items`), generated migrations.
 - Seasons (ADR-018) must merge before D7 can switch the units; until then D7 is implemented behind the calendar seam.
 
+## Implementation notes
+
+Ground items (D5, D6, D9 ground-item part), implemented 2026-10-25:
+
+- **One transaction for a harvest.** `IGroundItems.Stage` adds the `ground_items` rows to the caller's unit of work, so `FarmService` resets the plot and leaves the produce in one commit (a crash cannot lose a harvest);
+  `CompleteAsync` files and announces the drop after the save. `DropAsync` is the same in its own transaction, for callers with nothing else to save.
+- **Pickup runs on server position changes only**, after every accepted `MoveIntent` (`PlayerService` calls `OnPlayerMovedAsync`, not awaited), looking at the nine chunks around the player. A player who stands still next to a
+  fresh drop takes it with their next move report; there is no timer scanning items. A harvest lands at the plot centre nudged toward the harvester (`GroundItemRules.PopPosition`) so it is within the 1.5 tile radius at once.
+- **Atomicity.** An in-memory claim (per item) stops two players from both trying; the transfer deletes the row in the same transaction as the inventory add, and a missing row or a lost save race rolls everything back.
+  A full inventory is `NoSpace`: the claim is released and the same player is not retried for 2 s (no database hit every 100 ms). Pickup is all-or-nothing per stack (no partial take).
+- **Private instances (deviation).** D6 only says "on shared maps the cause has priority for 5 s". On a private farm there is no window and no expiry, but only the instance owner and the player who caused the drop may take an item,
+  so a future visitor cannot walk off with a harvest. Revisit when the visiting/co-op rules (their own ADRs) say who may take what.
+- **Stacks.** A drop larger than an item's stack size is split into several ground items (at most 8 per drop; larger drops are refused). Quantities are therefore always one inventory stack or less.
+- **Wire** (`0x7200-0x72FF`, `Nosum.Contracts/GroundItem`): `GetGroundItems` (C2S), `GroundItemsSnapshot`, `GroundItemSpawned`, `GroundItemTaken` (S2C). `Taken` carries a reason (`PickedUp`, `Expired`) and the taker's position so the
+  client can fly the item to them. Until ADR-022 lands, the snapshot is the whole instance and pushes go to the whole instance (`GroundItemService.PublishAsync` is the single place to change).
+- **Table** `ground_items` (bigint identity id, map, owner, item, quantity, pixel x/y, created, cause, priority-until, expires-at). Times are Unix milliseconds from the server clock.
+
 ## Revisit when
 
 Energy/stamina, tool upgrades, crafting or weather are designed; or a shared map holds so many nodes that the per-chunk
@@ -94,3 +111,14 @@ Resource nodes and the three tools (D1–D4, D8, the node part of D9) are implem
 - **D8, cooldown.** 300 ms per player on real time (not the injected game clock), started by every swing of a `Tool` item that passes the slot, map and reach checks, including one the farm then refuses. The existing farm wire test waits 330 ms between uses accordingly.
 - **D9, wire.** `0x7100` get nodes (the client asks after joining a map, like the farm), `0x7140` node snapshot, `0x7141` node changed, `0x7142` tool state, `0x7143` farm tiles cleared (new packets only; `FarmStatus` and `FarmAction` gained enum values; `NosumProtocol.Version` unchanged). Nodes are published to the whole instance through one private method (`ResourceNodeService.PublishAsync`); ADR-022 moves it to the chunk's subscribers. A snapshot carries every node of the instance (at most 1500) in one packet until chunks exist.
 - **Farm layer.** The pickaxe clears an empty tilled tile (`FarmAction.Cleared`); the scythe harvests a mature crop, as does any held item (unchanged: a mature crop is cut whatever is held).
+
+### Coordinator merge notes (2026-10-25)
+
+- Node yields now go through `GroundYieldSink` (drops at the tile, same transaction as the node change, then the breaker
+  in reach picks them up at once); `InventoryYieldSink` stays for tests that need no ground layer. A full bag no longer
+  blocks breaking.
+- Visitors (ADR-019) are refused every tool use except the watering can before the node layer runs, so they cannot
+  chop, break or scythe on someone else's land.
+- `FarmStatus` values of the node work were renumbered to 17–20 at merge (16 is `NotYourFarm`, already on master).
+- Follow-ups: give existing accounts the three new tools; a wire test for "visitor cannot chop"; co-op audit lines for
+  node yields on co-op land.

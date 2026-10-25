@@ -53,17 +53,20 @@ public enum FarmStatus : byte
     /// <summary>The crop withered when its season ended and cannot be harvested; plant over it.</summary>
     Withered = 15,
 
+    /// <summary>A visitor may only water another player's crops; till, plant and harvest are the owner's (docs/adr/ADR-019 D3).</summary>
+    NotYourFarm = 16,
+
     /// <summary>The held tool does not work on what is on that tile (an axe on a stone).</summary>
-    WrongTool = 16,
+    WrongTool = 17,
 
     /// <summary>The previous tool swing is not over yet (server-side cooldown, docs/adr/ADR-021 D8).</summary>
-    Cooldown = 17,
+    Cooldown = 18,
 
     /// <summary>The watering can is empty; refill it at water.</summary>
-    CanEmpty = 18,
+    CanEmpty = 19,
 
     /// <summary>Something is in the way: a node on the tile, or a tile a tree cannot grow on.</summary>
-    Blocked = 19,
+    Blocked = 20,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>

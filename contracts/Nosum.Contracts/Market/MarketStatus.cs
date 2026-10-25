@@ -58,4 +58,7 @@ public enum MarketStatus : byte
 
     /// <summary>The balance would exceed the largest allowed.</summary>
     TooBig = 17,
+
+    /// <summary>The shipping bin belongs to the farm's owner; a visitor cannot use it (docs/adr/ADR-019 D3).</summary>
+    NotYourBin = 18,
 }

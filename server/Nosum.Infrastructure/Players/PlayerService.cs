@@ -9,6 +9,7 @@ using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Coop;
+using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
@@ -20,6 +21,7 @@ using Nosum.Core;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Visits;
 
 namespace Nosum.Infrastructure.Players;
 
@@ -38,6 +40,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     private readonly IInstanceAccessPolicy _access;
     private readonly ICoopMembership _coops;
     private readonly TimeProvider _time;
+    private readonly IGroundItems? _groundItems;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands on which map.</param>
@@ -48,7 +51,8 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     /// <param name="coops">Which co-op a player belongs to: the owner of the co-op land they may enter.</param>
     /// <param name="time">Clock for movement budgets and snapshot timestamps.</param>
     /// <param name="snapshotInterval">Time between map snapshots.</param>
-    public PlayerService(IMapPresence presence, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval)
+    /// <param name="groundItems">Told after every accepted move so items within reach are picked up (docs/adr/ADR-021 D6); <see langword="null"/> for none.</param>
+    public PlayerService(IMapPresence presence, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -66,6 +70,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         _access = access;
         _coops = coops;
         _time = time;
+        _groundItems = groundItems;
         _snapshotInterval = snapshotInterval;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
     }
@@ -92,6 +97,18 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
 
     /// <inheritdoc/>
     public async ValueTask<MoveOutcome> MoveAsync(IConnection connection, float x, float y, byte facing, bool moving, CancellationToken cancellationToken = default)
+    {
+        MoveOutcome outcome = await this.ValidateMoveAsync(connection, x, y, facing, moving).ConfigureAwait(false);
+        if (outcome.Status == MoveStatus.Accepted && _groundItems is not null && _presence.TryGet(connection, out PlayerPresence? player))
+        {
+            // Items within reach are picked up off the movement path: the move is answered without waiting for the database.
+            _ = _groundItems.OnPlayerMovedAsync(player);
+        }
+
+        return outcome;
+    }
+
+    private async ValueTask<MoveOutcome> ValidateMoveAsync(IConnection connection, float x, float y, byte facing, bool moving)
     {
         ArgumentNullException.ThrowIfNull(connection);
 
@@ -175,8 +192,13 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         return member is null ? null : MapInstance.OfCoop(map.Id, member.CoopId);
     }
 
-    // A private map is entered at the entering player's own instance; nobody can name another one (visiting goes through IInstanceAccessPolicy).
+    // A join enters the player's own copy of a private map; nobody can name another one (visiting goes through TravelAsync and IInstanceAccessPolicy).
     private static MapInstance InstanceOf(MapDefinition map, Guid playerId) => map.IsPrivate ? new MapInstance(map.Id, playerId) : MapInstance.Shared(map.Id);
+
+    // A door inside somebody else's farm leads to that owner's copy of the next private map (the farmhouse), so a visitor can walk in and out;
+    // from a public map a door leads to the player's own copy. The access policy still decides whether the player may enter it.
+    private static MapInstance InstanceFor(MapDefinition target, PlayerPresence from)
+        => !target.IsPrivate ? MapInstance.Shared(target.Id) : new MapInstance(target.Id, from.Instance.IsPrivate ? from.Instance.OwnerId : from.AccountId);
 
     private static bool IsLegalPlace(MapDefinition map, PlayerStateRow row)
         => double.IsFinite(row.X)
@@ -201,24 +223,45 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
 
     // Leaves the old map (its players are told, the old place is saved), tells the player where they now are
     // while they are on no map (so no snapshot of the new map can reach them first), then enters the new map and saves the new place.
-    [SuppressMessage("Design", "CA1031", Justification = "Saving is best effort; the player is already on the new map.")]
     private async ValueTask<MoveOutcome> WarpAsync(IConnection connection, PlayerPresence from, MapWarp warp)
     {
-        MapInstance? entered = null;
-        if (_maps.TryGet(warp.TargetMap, out MapDefinition? found))
+        MapInstance targetInstance = default;
+        bool allowed = false;
+        MapDefinition? found = null;
+        try
         {
-            // Co-op land is the player's own co-op's copy, found from their membership, so it needs no allow-list check; the other maps go through the policy.
-            entered = await this.InstanceOfAsync(found, from.AccountId, CancellationToken.None).ConfigureAwait(false);
-            if (entered is { } candidate && !found.IsCoop && !_access.CanEnter(candidate, from.AccountId))
+            // Exits to maps the catalog does not host are dropped when it is built; stay put if one slipped through.
+            if (_maps.TryGet(warp.TargetMap, out found))
             {
-                entered = null;
+                if (found.IsCoop)
+                {
+                    // Co-op land is the player's own co-op's copy, found from their membership; a player with no co-op is refused at the gate.
+                    if (await this.InstanceOfAsync(found, from.AccountId, CancellationToken.None).ConfigureAwait(false) is { } coopLand)
+                    {
+                        targetInstance = coopLand;
+                        allowed = true;
+                    }
+                }
+                else
+                {
+                    targetInstance = InstanceFor(found, from);
+                    allowed = await _access.CanEnterAsync(targetInstance, from.AccountId, CancellationToken.None).ConfigureAwait(false);
+                }
             }
         }
-
-        if (found is null || entered is not { } targetInstance)
+        catch
         {
-            // Exits to maps the catalog does not host are dropped when it is built; a player with no co-op is refused at the gate of co-op land.
-            // Either way they stay put, and the exit is disarmed until they step off it so a refused player does not ask again every move.
+            lock (from.Gate)
+            {
+                from.InTransit = false;
+            }
+
+            throw;
+        }
+
+        if (!allowed || found is null)
+        {
+            // A refused player stays put, and the exit is disarmed until they step off it so they do not ask again every move.
             lock (from.Gate)
             {
                 from.InTransit = false;
@@ -230,7 +273,45 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         MapDefinition target = found;
 
         (double x, double y, int facing) = WarpRule.Arrival(target.Grid, warp.TargetX, warp.TargetY);
+        await this.RelocateAsync(connection, from, target, targetInstance, x, y, facing).ConfigureAwait(false);
+        return new MoveOutcome(MoveStatus.Warped, 0, (float)x, (float)y);
+    }
 
+    /// <inheritdoc/>
+    public async ValueTask<TravelStatus> TravelAsync(IConnection connection, MapInstance destination, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        if (!_presence.TryGet(connection, out PlayerPresence? from))
+        {
+            return TravelStatus.NotJoined;
+        }
+
+        // The instance must be what the map says it is: an owner for a private map, none for a shared one.
+        if (!_maps.TryGet(destination.MapId, out MapDefinition? target) || destination.IsPrivate != target.IsPrivate
+            || !await _access.CanEnterAsync(destination, from.AccountId, cancellationToken).ConfigureAwait(false))
+        {
+            return TravelStatus.NotAllowed;
+        }
+
+        lock (from.Gate)
+        {
+            if (from.InTransit)
+            {
+                return TravelStatus.NotJoined;
+            }
+
+            from.InTransit = true;
+        }
+
+        await this.RelocateAsync(connection, from, target, destination, target.SpawnX, target.SpawnY, (int)Facing.Down).ConfigureAwait(false);
+        return TravelStatus.Arrived;
+    }
+
+    // The shared move between instances: used by walking onto an exit and by a visit. The caller has set InTransit and checked access.
+    [SuppressMessage("Design", "CA1031", Justification = "Saving is best effort; the player is already on the new map.")]
+    private async ValueTask RelocateAsync(IConnection connection, PlayerPresence from, MapDefinition target, MapInstance targetInstance, double x, double y, int facing)
+    {
         await _world.PrepareAsync(targetInstance, CancellationToken.None).ConfigureAwait(false);
         await _presence.LeaveAsync(connection, CancellationToken.None).ConfigureAwait(false);
 
@@ -252,7 +333,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         if (target.IsCoop && await _coops.FindAsync(from.AccountId, CancellationToken.None).ConfigureAwait(false) is null)
         {
             await this.EvictPresenceAsync(arrived).ConfigureAwait(false);
-            return new MoveOutcome(MoveStatus.Warped, 0, (float)x, (float)y);
+            return;
         }
 
         try
@@ -264,7 +345,12 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
             // The leave above saved the old place; the next leave saves the new one.
         }
 
-        return new MoveOutcome(MoveStatus.Warped, 0, (float)x, (float)y);
+        // The owner may have taken the permission away while the player was on the way: the revoke looks at the players already inside, so ask once more now that this one is.
+        // Whichever of the two happens last sees the other, so nobody stays in a place they may not be in (docs/adr/ADR-019 D5).
+        if (VisitRules.IsVisitor(targetInstance, from.AccountId) && !await _access.CanEnterAsync(targetInstance, from.AccountId, CancellationToken.None).ConfigureAwait(false))
+        {
+            _ = await this.TravelAsync(connection, MapInstance.Shared(GameMaps.Town), CancellationToken.None).ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc/>
