@@ -9,6 +9,11 @@
     <ProjectReference Include="..\Nosum.Handlers\Nosum.Handlers.csproj" />
     <ProjectReference Include="..\Nosum.Infrastructure\Nosum.Infrastructure.csproj" />
     <PackageReference Include="Nalix.Hosting" />
+    <!-- Design-time only: lets the EF tools work with Nosum.Host as startup project; never flows to publish output. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

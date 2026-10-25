@@ -12,6 +12,16 @@
     <PackageVersion Include="Nalix.SDK" Version="14.3.7" />
   </ItemGroup>
 
+  <!-- Persistence: server/Nosum.Infrastructure only (docs/adr/ADR-009). All EF Core packages share one version. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+    <!-- Explicit so the version never depends on what the Npgsql provider resolves transitively. Keep equal to Microsoft.EntityFrameworkCore. -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
+  </ItemGroup>
+
   <!-- Blazor WebAssembly -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
@@ -22,6 +32,11 @@
   <ItemGroup>
     <PackageVersion Include="SkiaSharp" Version="4.153.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
+  </ItemGroup>
+
+  <!-- Client UI text (docs/adr/ADR-010 D3): IStringLocalizer over .resx. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Localization" Version="10.0.9" />
   </ItemGroup>
 
   <!-- Tests -->
