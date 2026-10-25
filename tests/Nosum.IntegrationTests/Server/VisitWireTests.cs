@@ -39,6 +39,7 @@ using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
 using Nosum.Domain.Nodes;
 using Nosum.Domain.Visits;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Inventory;
@@ -58,7 +59,7 @@ namespace Nosum.IntegrationTests.Server;
 [Collection(NalixHostSerial.Name)]
 public sealed class VisitWireTests : IClassFixture<PostgresFixture>
 {
-    private static readonly DateTimeOffset s_start = new(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_start = new(2026, 11, 2, 3, 0, 0, TimeSpan.Zero); // after the calendar epoch, so game days pass
 
     private readonly PostgresFixture _database;
 
@@ -163,11 +164,22 @@ public sealed class VisitWireTests : IClassFixture<PostgresFixture>
 
         // Watering is allowed: the crop is wet, and it grows from the visitor's watering alone.
         (await b.UseAsync(1, tiles[0].X, tiles[0].Y, host.Timeout)).Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Watered });
-        FarmTileRow wet = await a.Tiles.WaitAsync(t => t.X == tiles[0].X && t.Y == tiles[0].Y && t.WetUntilMs > 0, host.Timeout);
+        FarmTileRow wet = await a.Tiles.WaitAsync(t => t.X == tiles[0].X && t.Y == tiles[0].Y && t.WateredDay > 0, host.Timeout);
         wet.CropId.Should().Be(CropCatalog.Parsnip);
 
+        // The visitor keeps watering it on each game day (docs/adr/ADR-021 D7) until it is ripe.
+        TimeSpan gameDay = TimeSpan.FromMilliseconds(GameCalendar.DefaultDayLengthMs);
+        for (int day = 1; day < CropCatalog.All[0].TotalGrowthDays; day++)
+        {
+            clock.Advance(gameDay);
+            await Task.Delay(330, host.Timeout); // the tool swing cooldown runs on real time (ADR-021 D8)
+            (await b.UseAsync(1, tiles[0].X, tiles[0].Y, host.Timeout)).Action.Should().Be(FarmAction.Watered);
+        }
+
+        clock.Advance(gameDay);
+        await Task.Delay(330, host.Timeout);
+
         // A ripe crop is the owner's: neither empty hands nor the watering can harvest it for a visitor.
-        clock.Advance(TimeSpan.FromMilliseconds(CropCatalog.All[0].TotalGrowthMs + 1000));
         (await b.UseAsync(8, tiles[0].X, tiles[0].Y, host.Timeout)).Status.Should().Be(FarmStatus.NotYourFarm);
         (await b.UseAsync(1, tiles[0].X, tiles[0].Y, host.Timeout)).Status.Should().Be(FarmStatus.NotYourFarm);
         (await a.GetFarmAsync(host.Timeout)).Tiles.Should().Contain(t => t.X == tiles[0].X && t.CropId == CropCatalog.Parsnip);

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261025113955_EnergySkills")]
+    [Migration("20261025121521_EnergySkills")]
     partial class EnergySkills
     {
         /// <inheritdoc />
@@ -436,9 +436,9 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("crop_id");
 
-                    b.Property<long>("GrowthMs")
-                        .HasColumnType("bigint")
-                        .HasColumnName("growth_ms");
+                    b.Property<int>("GrowthDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("growth_days");
 
                     b.Property<Guid?>("LastWorkedBy")
                         .HasColumnType("uuid")
@@ -448,17 +448,17 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("planted_at_ms");
 
-                    b.Property<long>("SettledAtMs")
-                        .HasColumnType("bigint")
-                        .HasColumnName("settled_at_ms");
+                    b.Property<int>("TendedDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("tended_day");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<long>("WetUntilMs")
-                        .HasColumnType("bigint")
-                        .HasColumnName("wet_until_ms");
+                    b.Property<int>("WateredDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("watered_day");
 
                     b.HasKey("MapId", "OwnerId", "X", "Y")
                         .HasName("pk_farm_plots");

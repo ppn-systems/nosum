@@ -111,15 +111,26 @@ internal sealed class PlayerActions
                 // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
                 _market.Ship(selected, held.ItemId, 0);
             }
-            else if (_progress is { MaxEnergy: > 0 } && _progress.Energy < _progress.MaxEnergy && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? food) && food.IsEdible)
+            else if (_progress is { MaxEnergy: > 0 } && _progress.Energy < _progress.MaxEnergy && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? food) && food.IsEdible
+                && !this.FacesCrop())
             {
-                // Food in hand and room for energy: eat it (the server removes one and restores its energy, docs/adr/ADR-023 D2).
+                // Food in hand, room for energy and no crop in front (facing a crop the action harvests it): eat it (the server removes one and
+                // restores its energy, docs/adr/ADR-023 D2).
                 _progress.Eat(selected);
             }
             else
             {
                 _farm.Use(selected, this.TargetX, this.TargetY);
             }
+        }
+    }
+
+    // Whether the tile in front holds a crop: the action key then works the crop, whatever is held.
+    private bool FacesCrop()
+    {
+        using (_farm.Read())
+        {
+            return _farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo tile) && tile.CropId != 0;
         }
     }
 

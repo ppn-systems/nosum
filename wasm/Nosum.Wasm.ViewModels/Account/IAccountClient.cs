@@ -51,6 +51,12 @@ public interface IAccountClient
     /// <returns>The server's status code, the nickname after the request and when the next change is allowed.</returns>
     Task<NicknameReply> SetNicknameAsync(string nickname, CancellationToken cancellationToken);
 
+    /// <summary>Stores the signed-in player's language on the server so it applies the next time the account signs in.</summary>
+    /// <param name="language">The wanted language.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>The server's status code (Ok or InvalidLanguage).</returns>
+    Task<AccountStatus> SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken);
+
     /// <summary>Ends the session on the server; its token can no longer resume.</summary>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>A task that completes when the server has signed the connection out.</returns>

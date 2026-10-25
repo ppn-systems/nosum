@@ -178,7 +178,7 @@
   <data name="Trade_NotConfirmed" xml:space="preserve"><value>Not confirmed</value></data>
   <data name="Trade_AddCoins" xml:space="preserve"><value>Coins to offer</value></data>
   <data name="Trade_SetCoins" xml:space="preserve"><value>Set coins</value></data>
-  <data name="Trade_PickItems" xml:space="preserve"><value>Click items in your inventory to offer them (click an offered item to take it back)</value></data>
+  <data name="Trade_PickItems" xml:space="preserve"><value>Click an item in your bag to offer it; click an offered item to take it back.</value></data>
   <data name="Trade_Confirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="Trade_Cancel" xml:space="preserve"><value>Cancel trade</value></data>
   <data name="Trade_InviteTitle" xml:space="preserve"><value>Trade invitation</value></data>
@@ -323,7 +323,9 @@
   <data name="Toolbar_Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Settings_Account" xml:space="preserve"><value>Account</value></data>
   <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
-  <data name="Settings_LanguageName" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_LanguageVi" xml:space="preserve"><value>Tiếng Việt</value></data>
+  <data name="Settings_LanguageEn" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_LanguageNotSaved" xml:space="preserve"><value>Could not save this choice to your account.</value></data>
   <data name="Settings_Keys" xml:space="preserve"><value>Keys</value></data>
   <data name="Placement_Strip_Place" xml:space="preserve"><value>Place</value></data>
   <data name="Placement_Strip_Rotate" xml:space="preserve"><value>Rotate</value></data>

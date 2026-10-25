@@ -73,8 +73,10 @@
     inset: 0;
     z-index: 1;
     align-items: center;
-    justify-content: center;
-    padding: var(--nosum-gutter);
+    justify-content: flex-start;
+    /* The top edge of the tab row is where a full-height window (186 u plus the 13 u tab row) would put it when centred, so the tabs stay
+       put while the window grows and shrinks with its page. */
+    padding: max(var(--nosum-gutter), calc((100vh - var(--nosum-menu-h) - var(--u) * 13) / 2)) var(--nosum-gutter) var(--nosum-gutter);
     box-sizing: border-box;
     pointer-events: none;
 }

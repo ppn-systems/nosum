@@ -1,3 +1,13 @@
+.trade-sides {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nosum-gap);
+}
+
+.trade-sides ::deep .item-grid {
+    justify-content: start;
+}
+
 .trade-coins,
 .trade-state {
     margin: 0;

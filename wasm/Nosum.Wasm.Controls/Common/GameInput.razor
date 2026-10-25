@@ -1,5 +1,5 @@
 @* The one text or number field of the UI. Typing here never reaches the game: the canvas ignores keys while a field has focus. *@
-<input class="game-input"
+<input class="game-input @Class"
        type="@Type"
        value="@Value"
        placeholder="@Placeholder"
@@ -13,6 +13,9 @@
        @onkeydown="OnKey" />
 
 @code {
+    /// <summary>Extra shared classes: <c>narrow</c> for a short number field.</summary>
+    [Parameter] public string? Class { get; set; }
+
     /// <summary>The text.</summary>
     [Parameter] public string Value { get; set; } = string.Empty;
 

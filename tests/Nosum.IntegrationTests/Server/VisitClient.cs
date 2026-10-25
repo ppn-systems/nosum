@@ -69,7 +69,7 @@ internal sealed class VisitClient : IAsyncDisposable
             {
                 foreach (FarmTileRow t in p.Tiles)
                 {
-                    this.Tiles.Add(new FarmTileRow { X = t.X, Y = t.Y, CropId = t.CropId, PlantedAtMs = t.PlantedAtMs, GrowthMs = t.GrowthMs, SettledAtMs = t.SettledAtMs, WetUntilMs = t.WetUntilMs });
+                    this.Tiles.Add(new FarmTileRow { X = t.X, Y = t.Y, CropId = t.CropId, PlantedAtMs = t.PlantedAtMs, GrowthDays = t.GrowthDays, WateredDay = t.WateredDay, Removed = t.Removed });
                 }
             }),
         ];

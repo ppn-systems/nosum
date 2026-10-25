@@ -178,7 +178,7 @@
   <data name="Trade_NotConfirmed" xml:space="preserve"><value>Chưa xác nhận</value></data>
   <data name="Trade_AddCoins" xml:space="preserve"><value>Số xu đưa ra</value></data>
   <data name="Trade_SetCoins" xml:space="preserve"><value>Cập nhật xu</value></data>
-  <data name="Trade_PickItems" xml:space="preserve"><value>Chọn vật phẩm trong túi đồ để đưa ra (bấm vào món đã đưa để rút lại)</value></data>
+  <data name="Trade_PickItems" xml:space="preserve"><value>Bấm một món trong túi để đưa ra; bấm món đã đưa để rút lại.</value></data>
   <data name="Trade_Confirm" xml:space="preserve"><value>Xác nhận</value></data>
   <data name="Trade_Cancel" xml:space="preserve"><value>Hủy giao dịch</value></data>
   <data name="Trade_InviteTitle" xml:space="preserve"><value>Lời mời giao dịch</value></data>
@@ -323,7 +323,9 @@
   <data name="Toolbar_Settings" xml:space="preserve"><value>Cài đặt</value></data>
   <data name="Settings_Account" xml:space="preserve"><value>Tài khoản</value></data>
   <data name="Settings_Language" xml:space="preserve"><value>Ngôn ngữ</value></data>
-  <data name="Settings_LanguageName" xml:space="preserve"><value>Tiếng Việt</value></data>
+  <data name="Settings_LanguageVi" xml:space="preserve"><value>Tiếng Việt</value></data>
+  <data name="Settings_LanguageEn" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_LanguageNotSaved" xml:space="preserve"><value>Không lưu được lựa chọn này vào tài khoản.</value></data>
   <data name="Settings_Keys" xml:space="preserve"><value>Phím tắt</value></data>
   <data name="Placement_Strip_Place" xml:space="preserve"><value>Đặt</value></data>
   <data name="Placement_Strip_Rotate" xml:space="preserve"><value>Xoay</value></data>

@@ -29,6 +29,9 @@ public abstract class PanelViewModel : IObservableViewModel
     /// <summary>Gets the status line (the last outcome, localized), or an empty string.</summary>
     public string Status { get; private set; } = string.Empty;
 
+    /// <summary>Gets whether the status line reports a success (the control shows it in the "ok" colour, not the refusal colour).</summary>
+    public bool StatusIsGood { get; private set; }
+
     /// <summary>Looks up UI text.</summary>
     /// <param name="key">The <c>Language.resx</c> key.</param>
     /// <returns>The text in the current language.</returns>
@@ -50,9 +53,11 @@ public abstract class PanelViewModel : IObservableViewModel
 
     /// <summary>Shows a status line.</summary>
     /// <param name="text">Already localized text.</param>
-    protected void SetStatus(string text)
+    /// <param name="good"><see langword="true"/> when the text reports a success rather than a refusal.</param>
+    protected void SetStatus(string text, bool good = false)
     {
         this.Status = text;
+        this.StatusIsGood = good && !string.IsNullOrEmpty(text);
         this.Raise();
     }
 

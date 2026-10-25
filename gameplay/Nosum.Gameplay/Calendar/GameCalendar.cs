@@ -66,6 +66,24 @@ public sealed class GameCalendar
             (int)(msIntoDay * MinutesPerDay / this.DayLengthMs));
     }
 
+    /// <summary>
+    /// Returns the number of the game day an instant falls in: 1 for the first game day since the epoch (also for any instant before it), then 2, 3, and so on without
+    /// end (it does not reset at a season or year). Crop growth counts days by this number (docs/adr/ADR-021 D7); zero is never a day, so it can mean "no day" in stored state.
+    /// </summary>
+    /// <param name="unixMs">The instant, Unix milliseconds.</param>
+    /// <returns>The day number, at least 1.</returns>
+    public int DayNumberAt(long unixMs) => (int)Math.Min(int.MaxValue - 1, (Math.Max(0, unixMs - this.EpochMs) / this.DayLengthMs) + 1);
+
+    /// <summary>Returns the instant a game day starts.</summary>
+    /// <param name="dayNumber">The day number, at least 1.</param>
+    /// <returns>The start of that day, Unix milliseconds.</returns>
+    public long DayStartMs(int dayNumber) => this.EpochMs + ((Math.Max(1, dayNumber) - 1L) * this.DayLengthMs);
+
+    /// <summary>Returns the instant the next game day starts, which is when the day that contains an instant ends.</summary>
+    /// <param name="unixMs">The instant, Unix milliseconds.</param>
+    /// <returns>The start of the following game day, Unix milliseconds.</returns>
+    public long NextDayStartMs(long unixMs) => this.DayStartMs(this.DayNumberAt(unixMs) + 1);
+
     /// <summary>Returns the season at an instant.</summary>
     /// <param name="unixMs">The instant, Unix milliseconds.</param>
     /// <returns>The season.</returns>

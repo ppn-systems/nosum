@@ -111,6 +111,50 @@ const GLYPHS = {
 };
 const GLYPH_INK = "#5a2a0a";
 
+// Item pictures the sheets have no usable art for (Nosum art): 16 x 16, drawn in one colour with four shades. '#' outline, 'L' light, 'o' base,
+// 'D' shade, 'B' belt and cuff. Published as --nosum-img-<name> and used by ItemIcons (ItemIcon.ThemeImage).
+const PANTS_ART = [
+    "................",
+    "..############..",
+    ".#LLLLLLLLLLLL#.",
+    ".#BBBBBBBBBBBB#.",
+    ".#LoooD##LoooD#.",
+    ".#LoooD##LoooD#.",
+    ".#LoooD##LoooD#.",
+    ".#LoooD##LoooD#.",
+    ".#LoooD##LoooD#.",
+    ".#LoooD##LoooD#.",
+    ".#LoooD##LoooD#.",
+    ".#LoooD##LoooD#.",
+    ".#LoooD##LoooD#.",
+    ".#BBBBB##BBBBB#.",
+    ".##############.",
+    "................",
+];
+const ITEM_ART = {
+    "item-pants-blue": ["#3e5f8a", PANTS_ART],
+    "item-pants-khaki": ["#c2b280", PANTS_ART],
+};
+
+// Shade a #rrggbb colour: factor < 1 darkens, > 1 lightens (towards white).
+function shade(hex, factor) {
+    const n = parseInt(hex.slice(1), 16);
+    const channel = (v) => Math.round(factor <= 1 ? v * factor : v + (255 - v) * (factor - 1));
+    return `rgb(${channel((n >> 16) & 255)},${channel((n >> 8) & 255)},${channel(n & 255)})`;
+}
+
+function drawItem(color, rows) {
+    const palette = { "#": shade(color, 0.38), L: shade(color, 1.35), o: color, D: shade(color, 0.72), B: shade(color, 0.58) };
+    const canvas = document.createElement("canvas");
+    canvas.width = 16;
+    canvas.height = 16;
+    const context = canvas.getContext("2d");
+    rows.forEach((row, y) => [...row].forEach((c, x) => {
+        if (palette[c]) { context.fillStyle = palette[c]; context.fillRect(x, y, 1, 1); }
+    }));
+    return canvas.toDataURL("image/png");
+}
+
 // [name, sheet, x, y, width, height, glyph drawn in the middle (optional)]
 const SPRITES = [
     // Window frame: dark outline, two wood bands, an inner highlight; 16 px (4 u) on every side; the middle is the parchment.
@@ -219,6 +263,10 @@ async function publish() {
         root.style.setProperty(`--nosum-img-${name}`, `url("${cut(sheet ? sheets[sheet] : null, x, y, w, h, 1, glyph)}")`);
         root.style.setProperty(`--nosum-w-${name}`, String(w));
         root.style.setProperty(`--nosum-h-${name}`, String(h));
+    }
+
+    for (const [name, [color, rows]] of Object.entries(ITEM_ART)) {
+        root.style.setProperty(`--nosum-img-${name}`, `url("${drawItem(color, rows)}")`);
     }
 
     const paintCursors = () => {

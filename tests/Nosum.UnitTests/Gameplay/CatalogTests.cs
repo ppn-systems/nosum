@@ -57,7 +57,7 @@ public sealed class CatalogTests
         {
             ids.Add(crop.Id).Should().BeTrue();
             crop.StageCount.Should().BeGreaterThan(1);
-            crop.TotalGrowthMs.Should().BeGreaterThan(0);
+            crop.TotalGrowthDays.Should().BeGreaterThan(0);
         }
     }
 
