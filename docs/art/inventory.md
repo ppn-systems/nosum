@@ -12,24 +12,24 @@ loaded (a map names it as a tileset) and must exist at its size.
 
 ## Totals
 
-- Files the game loads: **91** of the 1,994 under `assets/` (the rest is never loaded): 41 images and 50 maps.
-- Cells used: **4,922** of 33,749 cells in those files (14.6%).
-- Frames among the used cells: **1,020**.
-- Map tile positions with a tile: **91,333** of 102,109 (map positions are not art cells and are not counted above).
+- Files the game loads: **95** of the 1,995 under `assets/` (the rest is never loaded): 42 images and 53 maps.
+- Cells used: **6,119** of 34,276 cells in those files (17.9%).
+- Frames among the used cells: **1,282**.
+- Map tile positions with a tile: **103,988** of 114,764 (map positions are not art cells and are not counted above).
 
 | Package | Image files | Map files | Used cells | Frames | Cells in its files |
 | :-- | --: | --: | --: | --: | --: |
 | Player farmer layers | 5 | 0 | 71 | 71 | 8,666 |
 | Core terrain (Farm, Town, FarmHouse) | 10 | 3 | 2,739 | 682 | 10,030 |
-| Items (icons, ground items, furniture, crafted objects) | 3 | 0 | 135 | 0 | 4,280 |
+| Items (icons, ground items, furniture, crafted objects) | 3 | 0 | 141 | 0 | 4,280 |
 | Crops and soil | 2 | 0 | 145 | 113 | 560 |
 | Tools and weapons | 2 | 0 | 15 | 0 | 576 |
 | Resource nodes | 5 | 0 | 82 | 72 | 1,494 |
 | Buildings and props | 5 | 0 | 246 | 0 | 867 |
 | Animals | 2 | 0 | 24 | 24 | 48 |
 | UI | 4 | 0 | 118 | 0 | 7,393 |
-| Remaining maps | 9 | 47 | 1,347 | 58 | 5,529 |
-| **Sum** | 47 | 50 | 4,922 | 1,020 | |
+| Remaining maps | 10 | 50 | 2,538 | 320 | 6,056 |
+| **Sum** | 48 | 53 | 6,119 | 1,282 | |
 
 A file several packages draw from appears in each of them, so the image-file sum can exceed the distinct count above; the cell sums do not overlap.
 Audio: the code loads no audio file yet; the audio package starts with [ADR-039](../adr/ADR-039-audio-hooks.md). Fonts: the only font loaded is not a placeholder (last section), so that package has no files.
@@ -55,12 +55,12 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by |
 | :-- | --: | --: | --: | --: | :-- |
 | `Maps/farmhouse_tiles.png` | 192 × 352 | 16 × 16 | 14 / 264 | 0 | Maps/FarmHouse.tmx |
-| `Maps/paths.png` | 64 × 256 | 16 × 16 | 0 / 64 | 0 | Maps/Backwoods.tmx, Maps/Barn.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, +2 more |
-| `Maps/spring_Shadows.png` | 304 × 400 | 16 × 16 | 46 / 475 | 0 | Maps/Backwoods.tmx, Maps/Forest.tmx, Maps/Town.tmx |
-| `Maps/spring_Waterfalls.png` | 576 × 400 | 16 × 16 | 602 / 900 | 578 | Maps/Forest.tmx, Maps/Town.tmx |
+| `Maps/paths.png` | 64 × 256 | 16 × 16 | 0 / 64 | 0 | Maps/Backwoods.tmx, Maps/Barn.tmx, Maps/Beach.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, +5 more |
+| `Maps/spring_Shadows.png` | 304 × 400 | 16 × 16 | 46 / 475 | 0 | Maps/Backwoods.tmx, Maps/Beach.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx |
+| `Maps/spring_Waterfalls.png` | 576 × 400 | 16 × 16 | 602 / 900 | 578 | Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx |
 | `Maps/spring_outdoorTileSheet_extra.png` | 128 × 128 | 16 × 16 | 6 / 64 | 0 | Maps/Farm.tmx, Maps/Farm_Foraging.tmx |
-| `Maps/spring_outdoorsTileSheet.png` | 400 × 1264 | 16 × 16 | 538 / 1,975 | 49 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Town.tmx |
-| `Maps/spring_outdoorsTileSheet2.png` | 256 × 1120 | 16 × 16 | 131 / 1,120 | 28 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Town.tmx |
+| `Maps/spring_outdoorsTileSheet.png` | 400 × 1264 | 16 × 16 | 538 / 1,975 | 49 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more |
+| `Maps/spring_outdoorsTileSheet2.png` | 256 × 1120 | 16 × 16 | 131 / 1,120 | 28 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more |
 | `Maps/spring_town.png` | 512 × 1152 | 16 × 16 | 1,379 / 2,304 | 27 | Maps/BusStop.tmx, Maps/Town.tmx |
 | `Maps/townInterior.png` | 512 × 1088 | 16 × 16 | 15 / 2,176 | 0 | Maps/FarmHouse.tmx |
 | `Maps/walls_and_floors.png` | 256 × 688 | 16 × 16 | 8 / 688 | 0 | Maps/FarmHouse.tmx |
@@ -69,7 +69,7 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by |
 | :-- | --: | --: | --: | --: | :-- |
-| `Maps/springobjects.png` | 384 × 624 | 16 × 16 | 77 / 936 | 0 | ItemCatalog.ObjectIcon, ItemIcons, NodeSprites, PlacedObjectsDecorator |
+| `Maps/springobjects.png` | 384 × 624 | 16 × 16 | 83 / 936 | 0 | ItemCatalog.ObjectIcon, ItemIcons, NodeSprites, PlacedObjectsDecorator |
 | `TileSheets/Craftables.png` | 128 × 1472 | 16 × 32 | 3 / 368 | 0 | ItemIcons, PlacedObjectsDecorator |
 | `TileSheets/furniture.png` | 512 × 1488 | 16 × 16 | 55 / 2,976 | 0 | ItemIcons, PlacedObjectsDecorator |
 
@@ -129,6 +129,7 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 | :-- | --: | --: | --: | :-- |
 | `Maps/Backwoods.tmx` | 800 × 640 | 16 × 16 | 2,000 / 2,000 | backwoods |
 | `Maps/Barn.tmx` | 288 × 240 | 16 × 16 | 270 / 270 | barn |
+| `Maps/Beach.tmx` | 1664 × 800 | 16 × 16 | 5,200 / 5,200 | beach |
 | `Maps/BusStop.tmx` | 1040 × 480 | 16 × 16 | 1,950 / 1,950 | busstop |
 | `Maps/Coop.tmx` | 192 × 160 | 16 × 16 | 120 / 120 | coop |
 | `Maps/Farm_Foraging.tmx` | 1280 × 1040 | 16 × 16 | 5,200 / 5,200 | coopfarm |
@@ -174,6 +175,8 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 | `Maps/Mines/7.tmx` | 720 × 560 | 16 × 16 | 1,202 / 1,575 | mine7 |
 | `Maps/Mines/8.tmx` | 720 × 560 | 16 × 16 | 1,088 / 1,575 | mine8 |
 | `Maps/Mines/9.tmx` | 720 × 560 | 16 × 16 | 1,165 / 1,575 | mine9 |
+| `Maps/Mountain.tmx` | 2160 × 656 | 16 × 16 | 5,535 / 5,535 | mountain |
+| `Maps/Woods.tmx` | 960 × 512 | 16 × 16 | 1,920 / 1,920 | woods |
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by |
 | :-- | --: | --: | --: | --: | :-- |
@@ -181,11 +184,12 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 | `Maps/Mines/mine_dark.png` | 256 × 288 | 16 × 16 | 170 / 288 | 0 | Maps/Mines/*.tmx |
 | `Maps/Mines/mine_desert.png` | 256 × 384 | 16 × 16 | 192 / 384 | 0 | Maps/Mines/*.tmx |
 | `Maps/coopTiles.png` | 64 × 336 | 16 × 16 | 65 / 84 | 0 | Maps/Barn.tmx, Maps/Coop.tmx |
-| `Maps/spring_Shadows.png` | 304 × 400 | 16 × 16 | 24 / 475 | 0 | Maps/Backwoods.tmx, Maps/Forest.tmx, Maps/Town.tmx |
-| `Maps/spring_Waterfalls.png` | 576 × 400 | 16 × 16 | 8 / 900 | 0 | Maps/Forest.tmx, Maps/Town.tmx |
+| `Maps/spring_Shadows.png` | 304 × 400 | 16 × 16 | 95 / 475 | 0 | Maps/Backwoods.tmx, Maps/Beach.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx |
+| `Maps/spring_Waterfalls.png` | 576 × 400 | 16 × 16 | 115 / 900 | 96 | Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx |
+| `Maps/spring_beach.png` | 272 × 496 | 16 × 16 | 436 / 527 | 65 | Maps/Beach.tmx |
 | `Maps/spring_monsterGraveTiles.png` | 48 × 80 | 16 × 16 | 0 / 15 | 0 | Maps/Backwoods.tmx |
-| `Maps/spring_outdoorsTileSheet.png` | 400 × 1264 | 16 × 16 | 416 / 1,975 | 22 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Town.tmx |
-| `Maps/spring_outdoorsTileSheet2.png` | 256 × 1120 | 16 × 16 | 209 / 1,120 | 36 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Town.tmx |
+| `Maps/spring_outdoorsTileSheet.png` | 400 × 1264 | 16 × 16 | 863 / 1,975 | 65 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more |
+| `Maps/spring_outdoorsTileSheet2.png` | 256 × 1120 | 16 × 16 | 339 / 1,120 | 94 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more |
 
 ## Tiles placed on the maps
 
@@ -272,6 +276,19 @@ Package: Remaining maps.
 | Back | `Maps/coopTiles.png` | 24 | 12–23, 25, 33, 36, 37, 46, 52–56, 65, 66 |
 | Buildings | `Maps/coopTiles.png` | 29 | 0–2, 4, 6, 8, 11, 16, 20, 24, 28–30, 40–43, 47, 48, 57, 59–63, 72–75 |
 | Front | `Maps/coopTiles.png` | 20 | 0–4, 6–11, 38, 39, 48, 58, 64, 68–71 |
+
+### `Maps/Beach.tmx`
+
+Package: Remaining maps.
+
+| Layer | Sheet | Different tiles | Local indices |
+| :-- | :-- | --: | :-- |
+| Back | `Maps/spring_beach.png` | 149 | 7, 16, 18–28, 30, 31, 38–45, 50–63, 68–75, 77–82, 85–96, 98–101, 107–118, 124–126, 129–135, 148, 152, 165, 168, 169, 185, 186, 202, 203, 219, 220, 233–237, 250–252, 271, 300, 302, 304, 305, 321, 322, 334–339, 373, 419–421, 423, 424, 440, 441, 453–455, 458, 470–472, 475, 487–489, 491, 504–506, 508, 512–515 |
+| Back2 | `Maps/spring_Shadows.png` | 29 | 139, 140, 156–159, 176–182, 195–201, 213–221 |
+| Buildings | `Maps/spring_beach.png` | 205 | 31, 60–63, 66, 67, 76–80, 83, 84, 94–97, 102–106, 114, 119–123, 136–147, 149–151, 153–164, 166, 167, 170–181, 187, 190–198, 204, 209–215, 226–232, 243–249, 254–266, 271–276, 283–287, 289–296, 303, 306–313, 317–320, 330, 337, 338, 357, 367, 370–372, 384, 401, 418, 422, 435, 439, 460–467, 469, 473, 474, 477–484, 486, 490, 494–503, 507, 511, 516–526 |
+| Buildings2 | `Maps/spring_Shadows.png` | 13 | 156, 157, 160–162, 175, 176, 194, 195, 214, 219–221 |
+| Front | `Maps/spring_beach.png` | 111 | 29–33, 46–49, 64, 65, 149, 150, 182–184, 199–201, 204–208, 216–218, 221–225, 238–242, 255–259, 267–269, 358–367, 369, 375–383, 392–400, 408–417, 425–434, 442–451, 457, 459, 460, 467, 468, 476, 485 |
+| AlwaysFront | `Maps/spring_beach.png` | 8 | 30, 31, 33, 46–48, 64, 65 |
 
 ### `Maps/BusStop.tmx`
 
@@ -370,6 +387,45 @@ Package: Remaining maps; 40 files.
 | Front | `Maps/Mines/mine.png` | 71 | 9–15, 25–31, 41–47, 49–51, 57–63, 68, 70–72, 74, 77, 84, 87, 88, 90, 93, 111, 116, 127, 132, 143, 148, 159, 164, 175, 178, 180, 191, 196, 197, 205–208, 213–216, 220, 221, 223, 230–232, 236 |
 | Front | `Maps/Mines/mine_dark.png` | 37 | 46, 47, 49, 51, 62, 63, 71, 72, 77, 79, 95, 111, 127, 132, 148, 164, 175, 178, 180, 191, 196, 197, 205–208, 213–216, 220, 221, 223, 230–232, 236 |
 | Front | `Maps/Mines/mine_desert.png` | 10 | 179, 196, 197, 205, 208, 213–215, 220, 221 |
+
+### `Maps/Mountain.tmx`
+
+Package: Remaining maps.
+
+| Layer | Sheet | Different tiles | Local indices |
+| :-- | :-- | --: | :-- |
+| Back | `Maps/spring_outdoorsTileSheet.png` | 245 | 150–152, 156, 175, 176, 181, 182, 200–202, 206, 207, 217, 225–227, 231, 250–252, 254–256, 261, 265, 275–278, 286, 291, 294, 300–306, 311, 315, 319–321, 325–329, 331, 338–341, 344–346, 350–353, 357, 375–381, 401, 403–407, 417, 420–423, 458, 463, 488–490, 492, 493, 509, 512–515, 517, 518, 534, 536–538, 549, 558, 560–562, 564–566, 573, 578, 583, 585–591, 596, 597, 606–608, 610, 611, 613, 614, 618, 620–622, 630–636, 654–659, 679–685, 704–707, 746, 771, 812, 813, 817, 838, 973, 1186–1188, 1211–1213, 1237–1239, 1241–1249, 1263–1274, 1278, 1280, 1297, 1299, 1303, 1305, 1322–1324, 1572–1574, 1597–1599, 1622–1624, 1647–1649, 1672, 1775–1779, 1784–1791, 1800–1804, 1809–1816, 1818, 1819, 1843, 1844, 1868, 1869 |
+| Back | `Maps/spring_outdoorsTileSheet2.png` | 23 | 739, 771, 787, 803, 832–834, 848, 849, 853, 864–869, 880–883, 900, 908, 965 |
+| Back2 | `Maps/spring_Shadows.png` | 23 | 0–2, 5, 8, 9, 24, 25, 39, 43, 57, 61, 62, 66, 82, 83, 95, 100–102, 186, 187, 206 |
+| Back2 | `Maps/spring_outdoorsTileSheet.png` | 2 | 307, 542 |
+| Back2 | `Maps/spring_outdoorsTileSheet2.png` | 1 | 401 |
+| Back3 | `Maps/spring_Shadows.png` | 2 | 9, 28 |
+| Buildings | `Maps/spring_outdoorsTileSheet.png` | 402 | 13–15, 38–40, 63–65, 88, 89, 102, 104, 111, 113, 114, 118, 119, 125, 129, 132, 133, 136, 143, 144, 156–158, 161, 168, 169, 175, 214–217, 232, 239, 241–243, 257, 264, 266, 268, 275, 290, 291, 294, 295, 304, 305, 307, 315, 316, 319–321, 325–327, 329, 340–342, 344–346, 350–352, 355, 360, 365–370, 375–377, 380, 383–386, 389, 391–394, 396, 403, 411, 414, 416–419, 434–437, 439–448, 459, 464–470, 483, 485, 489–498, 508, 510, 514–523, 533, 535, 537, 539–548, 559, 578, 584, 603–605, 609, 629, 708–710, 731–735, 746, 756–758, 760, 762, 763, 771, 779–788, 809, 811, 814, 817, 834, 836, 839, 846, 849, 859–862, 864–869, 873, 874, 884, 886, 889–894, 911, 913–919, 921, 923, 924, 958, 1080, 1081, 1083–1089, 1108–1114, 1133–1139, 1158, 1159, 1163, 1164, 1205, 1234–1236, 1259–1261, 1282–1289, 1293–1296, 1309, 1311, 1314, 1318–1321, 1520–1522, 1566, 1572–1574, 1591–1599, 1616–1624, 1641–1649, 1658, 1660, 1666–1674, 1683, 1685, 1691–1699, 1708, 1710, 1722, 1723, 1742–1745, 1750–1755, 1758–1770, 1780, 1783, 1792–1795, 1805, 1808, 1817, 1820, 1825–1830, 1833–1841, 1852, 1853, 1861–1865 |
+| Buildings | `Maps/spring_outdoorsTileSheet2.png` | 116 | 0, 1, 6, 7, 23, 39, 48–51, 54, 67, 68, 70, 71, 194–196, 210–212, 368, 371–375, 384–389, 391, 400–404, 417, 418, 420, 421, 436, 437, 452, 453, 728, 730, 732, 734, 744, 746, 748, 750, 760, 762, 764, 766, 776–778, 780, 782, 792, 794, 796, 798, 808, 810, 812, 814, 840, 841, 844, 845, 856, 860, 874, 886, 901, 902, 909, 916–919, 924, 925, 933–935, 941, 948–950, 956–958, 964, 980, 982, 983, 990, 991, 996, 998, 999, 1012, 1014, 1022, 1036–1038, 1062, 1063 |
+| Buildings2 | `Maps/spring_Shadows.png` | 16 | 24, 27, 29, 30, 43, 116–118, 133–135, 141, 143, 188, 203, 205 |
+| Buildings2 | `Maps/spring_outdoorsTileSheet.png` | 13 | 35–37, 60–62, 85–87, 466, 544, 734, 1260 |
+| Buildings2 | `Maps/spring_outdoorsTileSheet2.png` | 4 | 3, 4, 433, 434 |
+| Buildings3 | `Maps/spring_Shadows.png` | 13 | 130, 145–150, 164–166, 183–185 |
+| Front | `Maps/spring_Shadows.png` | 1 | 43 |
+| Front | `Maps/spring_Waterfalls.png` | 100 | 0–2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30, 36–39, 41, 42, 45, 46, 49, 50, 53, 54, 57, 58, 61, 62, 65, 66, 72–103, 108–139, 180 |
+| Front | `Maps/spring_outdoorsTileSheet.png` | 294 | 3–5, 10–12, 16–21, 28–30, 35–46, 53–55, 60–62, 66–71, 78–80, 85–89, 91–96, 103–105, 111, 113, 114, 118, 119, 128–130, 150, 165, 166, 175, 189–191, 214–216, 232, 239–241, 243, 257, 300, 304, 305, 307, 320, 325–327, 329, 350, 351, 358–361, 389, 391, 409, 410, 413–416, 420–423, 438, 439, 441, 446–448, 466, 468, 469, 483–485, 489, 491, 493, 494, 516, 518, 519, 541, 544, 661–667, 686–692, 711–719, 736–744, 746, 761, 764–771, 789–795, 814–821, 837, 839–844, 848, 849, 871, 888, 896, 898, 899, 933–938, 959–964, 983–989, 1008–1014, 1033–1039, 1058–1064, 1181, 1495–1497, 1567–1571, 1592–1596, 1617–1621, 1642–1646, 1659, 1725–1730, 1733–1741, 1855, 1858, 1875–1879, 1884–1891 |
+| Front | `Maps/spring_outdoorsTileSheet2.png` | 8 | 4, 177–182, 193 |
+| AlwaysFront | `Maps/spring_Waterfalls.png` | 8 | 104–107, 140–143 |
+| AlwaysFront | `Maps/spring_outdoorsTileSheet.png` | 91 | 3–5, 10–21, 28–30, 35–46, 53–55, 60–71, 78–80, 85–89, 91–96, 103, 105, 111–114, 119, 135–137, 144, 164, 169, 190, 215, 232, 257, 307, 326, 415, 439, 637–644, 746, 771, 817 |
+| AlwaysFront | `Maps/spring_outdoorsTileSheet2.png` | 32 | 1, 6, 68, 112–118, 128–134, 144–150, 160–166, 177 |
+
+### `Maps/Woods.tmx`
+
+Package: Remaining maps.
+
+| Layer | Sheet | Different tiles | Local indices |
+| :-- | :-- | --: | :-- |
+| Back | `Maps/spring_outdoorsTileSheet.png` | 118 | 150, 156, 175, 256, 261, 276–278, 281, 286, 300–306, 311, 325–329, 331, 332, 350–357, 375–382, 400, 401, 403–407, 558, 583, 606, 631–635, 654–659, 679, 681–685, 704–707, 947–949, 972–974, 998, 999, 1092–1096, 1119–1121, 1144, 1145, 1227, 1228, 1230, 1243–1246, 1252–1256, 1266–1270, 1273, 1277, 1278, 1280, 1281, 1299, 1302, 1303, 1305, 1322, 1324 |
+| Back | `Maps/spring_outdoorsTileSheet2.png` | 9 | 770, 771, 786, 802, 803, 866, 867, 882, 883 |
+| Buildings | `Maps/spring_outdoorsTileSheet.png` | 51 | 125, 209, 232, 234, 383, 384, 559, 584, 609, 629, 708–710, 731, 733, 735, 758–760, 783–785, 946, 997, 1022, 1046, 1047, 1071–1073, 1140, 1141, 1144, 1145, 1234–1236, 1259–1261, 1284–1286, 1289, 1293–1296, 1309, 1311, 1314 |
+| Buildings | `Maps/spring_outdoorsTileSheet2.png` | 11 | 902, 934, 935, 950, 966, 967, 982, 983, 1028–1030 |
+| Front | `Maps/spring_outdoorsTileSheet.png` | 7 | 358, 359, 1021, 1090, 1091, 1115, 1116 |
+| AlwaysFront | `Maps/spring_outdoorsTileSheet.png` | 39 | 940–946, 965–971, 990–996, 1015–1020, 1040–1045, 1065–1070 |
 
 ## Loaded files that are not placeholders
 
