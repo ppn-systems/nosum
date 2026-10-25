@@ -11,7 +11,7 @@ namespace Nosum.Infrastructure.Placeables;
 
 /// <summary>
 /// <see cref="IPlacedLookup"/>: the pieces of every loaded instance as immutable snapshots, replaced by <see cref="PlaceableService"/> whenever an instance changes and read
-/// without a lock by the farm layer (a tile under a piece cannot be tilled) and the growth rule (sprinklers). It is a separate singleton so the farm and the placeables do not
+/// without a lock by the farm layer (a tile under a piece, or in front of a building's door, cannot be tilled) and the growth rule (sprinklers). It is a separate singleton so the farm and the placeables do not
 /// need each other to be built (docs/adr/ADR-024 D3, D4).
 /// </summary>
 public sealed class PlacedTiles : IPlacedLookup
@@ -53,6 +53,12 @@ public sealed class PlacedTiles : IPlacedLookup
                 {
                     _ = covered.Add((x, y));
                 }
+            }
+
+            // The tile in front of a building's door stays walkable: no debris regrows and no tree is planted there, or the door could not be reached.
+            if (definition.Door is { } door)
+            {
+                _ = covered.Add((item.TileX + door.X, item.TileY + view.FootprintHeight));
             }
         }
 

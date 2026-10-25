@@ -162,7 +162,7 @@ public sealed class PlacedSet
             }
         }
 
-        // A building's door needs the tile in front of it: inside the map, walkable, not reserved and not covered by another piece.
+        // A building's door needs the tile in front of it: inside the map, walkable, not reserved, free of nodes and not covered by another piece.
         if (definition.Door is { } door)
         {
             int frontX = tileX + door.X;
@@ -170,6 +170,11 @@ public sealed class PlacedSet
             if (frontX < 0 || frontY < 0 || frontX >= mapGrid.Width || frontY >= mapGrid.Height || mapGrid.IsBlocked(frontX, frontY) || reserved.Contains((frontX, frontY)))
             {
                 return PlacementVerdict.Blocked;
+            }
+
+            if (layers?.HasNode(frontX, frontY) == true)
+            {
+                return PlacementVerdict.Node;
             }
         }
 
