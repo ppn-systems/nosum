@@ -277,7 +277,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         _ = earned;
         if (status == MarketStatus.Ok)
         {
-            this.SetStatus(this.Text("Market_Done_" + action));
+            this.SetStatus(this.Text("Market_Done_" + action), good: true);
             if (action == MarketAction.Create)
             {
                 _sellSlot = -1;

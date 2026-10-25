@@ -1,7 +1,7 @@
 @* The one layout system of the in-game UI: dock regions on a full-screen grid, so nothing can overlap. A control never positions itself;
    it is put in a region:
 
-     top-left (quest tracker) | top-center (a notice) | top-right (coins, settings button)
+     top-left (quest tracker, arrange key strip) | top-center (a notice) | top-right (coins, settings button)
                               | center (the game menu)  |
                               | bottom-center (key strip, message, hotbar) |
 
@@ -23,7 +23,7 @@
 </div>
 
 @code {
-    /// <summary>Top-left corner (the quest tracker).</summary>
+    /// <summary>Top-left corner (the quest tracker and, in a furniture place, the key strip under it).</summary>
     [Parameter] public RenderFragment? TopLeft { get; set; }
 
     /// <summary>Top, centred (a notice, a connection problem).</summary>

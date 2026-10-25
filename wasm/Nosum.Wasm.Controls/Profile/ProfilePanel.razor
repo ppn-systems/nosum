@@ -4,7 +4,7 @@
 
 @* The player's profile: the nickname everyone sees above the head, and changing it. The server checks the rules, uniqueness and the 24-hour wait.
    A guest cannot rename: the form is replaced by a note that registering unlocks it. *@
-<MenuPage Status="@Vm.Status">
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
         <GameSection>
             <p>@Vm.CurrentText</p>

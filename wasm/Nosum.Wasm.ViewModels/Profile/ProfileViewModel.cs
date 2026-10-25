@@ -104,7 +104,7 @@ public sealed class ProfileViewModel : PanelViewModel
             if (reply.Status == AccountStatus.Ok)
             {
                 this.NewNickname = string.Empty;
-                this.SetStatus(this.Text("Profile_Changed", _names.Display(_nickname)));
+                this.SetStatus(this.Text("Profile_Changed", _names.Display(_nickname)), good: true);
             }
             else if (reply.Status == AccountStatus.NicknameTooSoon && reply.NextChangeAt is { } next)
             {
