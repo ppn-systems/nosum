@@ -20,6 +20,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Market;
+using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
@@ -34,6 +35,7 @@ using Nosum.Handlers.Farm;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
 using Nosum.Handlers.Market;
+using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
@@ -48,6 +50,7 @@ using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Market;
+using Nosum.Infrastructure.Nodes;
 using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
@@ -105,6 +108,12 @@ internal static class Program
             ex => Console.Error.WriteLine("Market expiry failed: " + ex.Message),
             shutdown.Token);
 
+        // Trees grow and public places regrow debris once a game day (docs/adr/ADR-021 D4); the season calendar replaces this timer.
+        Task nodeDays = new NodeDayService(
+            InstanceManager.Instance.GetExistingInstance<IResourceNodeService>() ?? throw new InvalidOperationException("The node service is not registered."),
+            InstanceManager.Instance.GetExistingInstance<IGameDayClock>() ?? throw new InvalidOperationException("The game day clock is not registered."),
+            TimeProvider.System).RunAsync(ex => Console.Error.WriteLine("Node day rollover failed: " + ex.Message), shutdown.Token);
+
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
@@ -112,6 +121,7 @@ internal static class Program
 
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
+        await nodeDays.ConfigureAwait(false);
 
         return 0;
     }
@@ -169,6 +179,7 @@ internal static class Program
             .MapHandlers(typeof(TradeHandlers))
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
+            .MapHandlers(typeof(NodeHandlers))
             .MapHandlers(typeof(ShopHandlers));
 
         // Tester tools exist only in Development: no handler, no service, no opcode in Production.
@@ -221,16 +232,24 @@ internal static class Program
         InstanceManager.Instance.Register<IInventoryService>(inventory);
         InstanceManager.Instance.Register<IQuestService>(quests);
 
-        // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
+        // Farm and farmhouse are private per player; placed furniture and resource nodes are part of the instance a player walks on (docs/adr/ADR-015, ADR-021).
         PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
-        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval);
-        InstanceManager.Instance.Register<IPlayerService>(players);
-        InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock));
 
         // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
+
+        ToolStateService toolState = new(clock, notifier);
+        InstanceManager.Instance.Register<IToolState>(toolState);
+        RealTimeGameDayClock dayClock = new(clock);
+        InstanceManager.Instance.Register<IGameDayClock>(dayClock);
+        ResourceNodeService nodes = new(presence, maps, inventory, new InventoryYieldSink(transfers), toolState, dayClock, unitOfWork, clock);
+        InstanceManager.Instance.Register<IResourceNodeService>(nodes);
+        PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval);
+        InstanceManager.Instance.Register<IPlayerService>(players);
+        InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, nodes, toolState, unitOfWork, clock));
+
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
 

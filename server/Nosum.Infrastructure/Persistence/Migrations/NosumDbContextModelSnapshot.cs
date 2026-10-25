@@ -683,6 +683,104 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Nodes.NodeInstanceState", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("LastDay")
+                        .HasColumnType("bigint")
+                        .HasColumnName("last_day");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<DateTimeOffset>("SeededAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("seeded_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_node_instances");
+
+                    b.HasIndex("MapId", "OwnerId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_node_instances_map_id_owner_id");
+
+                    b.ToTable("node_instances", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Nodes.WorldNode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AgeDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("age_days");
+
+                    b.Property<short>("Hits")
+                        .HasColumnType("smallint")
+                        .HasColumnName("hits");
+
+                    b.Property<short>("Kind")
+                        .HasColumnType("smallint")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<DateTimeOffset>("SpawnedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("spawned_at");
+
+                    b.Property<short>("Stage")
+                        .HasColumnType("smallint")
+                        .HasColumnName("stage");
+
+                    b.Property<int>("TileX")
+                        .HasColumnType("integer")
+                        .HasColumnName("tile_x");
+
+                    b.Property<int>("TileY")
+                        .HasColumnType("integer")
+                        .HasColumnName("tile_y");
+
+                    b.Property<short>("Variant")
+                        .HasColumnType("smallint")
+                        .HasColumnName("variant");
+
+                    b.HasKey("Id")
+                        .HasName("pk_resource_nodes");
+
+                    b.HasIndex("MapId", "OwnerId", "TileX", "TileY")
+                        .IsUnique()
+                        .HasDatabaseName("ix_resource_nodes_map_id_owner_id_tile_x_tile_y");
+
+                    b.ToTable("resource_nodes", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Quests.PlayerQuest", b =>
                 {
                     b.Property<Guid>("PlayerId")
