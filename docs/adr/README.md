@@ -43,3 +43,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-031](ADR-031-deployment-and-operations.md) | Deployment and operations: images, Caddy TLS, migrations and backups, health, logs, metrics, admin role, load test | Accepted |
 | [ADR-032](ADR-032-security-hardening.md) | Security hardening: server key pinning, handler audit tests, input bounds, account recovery, session and abuse limits | Accepted |
 | [ADR-033](ADR-033-client-settings-touch-onboarding.md) | Client settings, touch controls, onboarding hints, accessibility | Accepted |
+| [ADR-036](ADR-036-quest-chain-and-requests-board.md) | Tutorial quest chain with coin rewards and the Town requests board (daily delivery requests) | Accepted |
