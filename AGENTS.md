@@ -42,6 +42,8 @@
 - **Wire format is append-only.** Never change an opcode or `[SerializeOrder]` value; never
   reuse a retired opcode. [`nalix-packets`]
 - **Handlers never reference `Nosum.Infrastructure`.** [`nalix-handlers`]
+- **i18n: Vietnamese default + English.** No display text on the wire (codes only); every
+  visible string through `.resx`; game data by key. [`i18n`]
 
 ## C# / .NET style
 
@@ -69,6 +71,7 @@ Owner: `docs-style`.
 | `server/Nosum.Host` entry point, listeners | `nalix-server-hosting` |
 | `wasm/Nosum.Wasm.Socket`, client transport | `nalix-client-sdk` |
 | Anything under `assets/`, sprite sheets, `.tmx` maps (placeholder content, ADR-007) | `assets-pipeline` |
+| Any user-visible text, status codes, game data names, language, formatting | `i18n` |
 | Tests | `testing-style` |
 | Any markdown, ADRs | `docs-style` |
 | Before commit/PR/"done" | `review-gates` |
