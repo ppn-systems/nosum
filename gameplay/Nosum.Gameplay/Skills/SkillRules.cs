@@ -82,6 +82,7 @@ public static class SkillRules
         NodeKind.Grass => 1,
         NodeKind.Stone => 4,
         NodeKind.CopperOre => 10,
+        NodeKind.Forage => 7,
         _ => 0,
     };
 }

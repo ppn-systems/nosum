@@ -98,4 +98,102 @@
   <data name="Item_baked_potato_Description" xml:space="preserve"><value>Nướng thơm phức. Ăn để hồi năng lượng.</value></data>
   <data name="Item_pumpkin_soup_Name" xml:space="preserve"><value>Súp bí ngô</value></data>
   <data name="Item_pumpkin_soup_Description" xml:space="preserve"><value>Bát súp nóng sánh. Ăn để hồi nhiều năng lượng.</value></data>
+  <data name="Item_potato_seeds_Name" xml:space="preserve"><value>Hạt khoai tây</value></data>
+  <data name="Item_potato_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa xuân để trồng khoai tây.</value></data>
+  <data name="Item_potato_Name" xml:space="preserve"><value>Khoai tây</value></data>
+  <data name="Item_potato_Description" xml:space="preserve"><value>Khoai tây vừa thu hoạch.</value></data>
+  <data name="Item_green_bean_seeds_Name" xml:space="preserve"><value>Hạt đậu que</value></data>
+  <data name="Item_green_bean_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa xuân để trồng đậu que. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_green_bean_Name" xml:space="preserve"><value>Đậu que</value></data>
+  <data name="Item_green_bean_Description" xml:space="preserve"><value>Đậu que vừa thu hoạch.</value></data>
+  <data name="Item_kale_seeds_Name" xml:space="preserve"><value>Hạt cải xoăn</value></data>
+  <data name="Item_kale_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa xuân để trồng cải xoăn.</value></data>
+  <data name="Item_kale_Name" xml:space="preserve"><value>Cải xoăn</value></data>
+  <data name="Item_kale_Description" xml:space="preserve"><value>Cải xoăn vừa thu hoạch.</value></data>
+  <data name="Item_garlic_seeds_Name" xml:space="preserve"><value>Hạt tỏi</value></data>
+  <data name="Item_garlic_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa xuân để trồng tỏi.</value></data>
+  <data name="Item_garlic_Name" xml:space="preserve"><value>Tỏi</value></data>
+  <data name="Item_garlic_Description" xml:space="preserve"><value>Tỏi vừa thu hoạch.</value></data>
+  <data name="Item_strawberry_seeds_Name" xml:space="preserve"><value>Hạt dâu tây</value></data>
+  <data name="Item_strawberry_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa xuân để trồng dâu tây. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_strawberry_Name" xml:space="preserve"><value>Dâu tây</value></data>
+  <data name="Item_strawberry_Description" xml:space="preserve"><value>Dâu tây vừa thu hoạch.</value></data>
+  <data name="Item_tomato_seeds_Name" xml:space="preserve"><value>Hạt cà chua</value></data>
+  <data name="Item_tomato_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa hè để trồng cà chua. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_tomato_Name" xml:space="preserve"><value>Cà chua</value></data>
+  <data name="Item_tomato_Description" xml:space="preserve"><value>Cà chua vừa thu hoạch.</value></data>
+  <data name="Item_blueberry_seeds_Name" xml:space="preserve"><value>Hạt việt quất</value></data>
+  <data name="Item_blueberry_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa hè để trồng việt quất. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_blueberry_Name" xml:space="preserve"><value>Việt quất</value></data>
+  <data name="Item_blueberry_Description" xml:space="preserve"><value>Việt quất vừa thu hoạch.</value></data>
+  <data name="Item_melon_seeds_Name" xml:space="preserve"><value>Hạt dưa lưới</value></data>
+  <data name="Item_melon_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa hè để trồng dưa lưới.</value></data>
+  <data name="Item_melon_Name" xml:space="preserve"><value>Dưa lưới</value></data>
+  <data name="Item_melon_Description" xml:space="preserve"><value>Dưa lưới vừa thu hoạch.</value></data>
+  <data name="Item_hot_pepper_seeds_Name" xml:space="preserve"><value>Hạt ớt cay</value></data>
+  <data name="Item_hot_pepper_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa hè để trồng ớt cay. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_hot_pepper_Name" xml:space="preserve"><value>Ớt cay</value></data>
+  <data name="Item_hot_pepper_Description" xml:space="preserve"><value>Ớt cay vừa thu hoạch.</value></data>
+  <data name="Item_corn_seeds_Name" xml:space="preserve"><value>Hạt ngô</value></data>
+  <data name="Item_corn_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa hè và mùa thu để trồng ngô. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_corn_Name" xml:space="preserve"><value>Ngô</value></data>
+  <data name="Item_corn_Description" xml:space="preserve"><value>Ngô vừa thu hoạch.</value></data>
+  <data name="Item_wheat_seeds_Name" xml:space="preserve"><value>Hạt lúa mì</value></data>
+  <data name="Item_wheat_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa hè và mùa thu để trồng lúa mì.</value></data>
+  <data name="Item_wheat_Name" xml:space="preserve"><value>Lúa mì</value></data>
+  <data name="Item_wheat_Description" xml:space="preserve"><value>Lúa mì vừa thu hoạch.</value></data>
+  <data name="Item_sunflower_seeds_Name" xml:space="preserve"><value>Hạt hướng dương</value></data>
+  <data name="Item_sunflower_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa hè để trồng hướng dương.</value></data>
+  <data name="Item_sunflower_Name" xml:space="preserve"><value>Hướng dương</value></data>
+  <data name="Item_sunflower_Description" xml:space="preserve"><value>Hướng dương vừa thu hoạch.</value></data>
+  <data name="Item_pumpkin_seeds_Name" xml:space="preserve"><value>Hạt bí ngô</value></data>
+  <data name="Item_pumpkin_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa thu để trồng bí ngô.</value></data>
+  <data name="Item_pumpkin_Name" xml:space="preserve"><value>Bí ngô</value></data>
+  <data name="Item_pumpkin_Description" xml:space="preserve"><value>Bí ngô vừa thu hoạch.</value></data>
+  <data name="Item_cranberries_seeds_Name" xml:space="preserve"><value>Hạt nam việt quất</value></data>
+  <data name="Item_cranberries_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa thu để trồng nam việt quất. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_cranberries_Name" xml:space="preserve"><value>Nam việt quất</value></data>
+  <data name="Item_cranberries_Description" xml:space="preserve"><value>Nam việt quất vừa thu hoạch.</value></data>
+  <data name="Item_eggplant_seeds_Name" xml:space="preserve"><value>Hạt cà tím</value></data>
+  <data name="Item_eggplant_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa thu để trồng cà tím. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_eggplant_Name" xml:space="preserve"><value>Cà tím</value></data>
+  <data name="Item_eggplant_Description" xml:space="preserve"><value>Cà tím vừa thu hoạch.</value></data>
+  <data name="Item_yam_seeds_Name" xml:space="preserve"><value>Hạt khoai lang</value></data>
+  <data name="Item_yam_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa thu để trồng khoai lang.</value></data>
+  <data name="Item_yam_Name" xml:space="preserve"><value>Khoai lang</value></data>
+  <data name="Item_yam_Description" xml:space="preserve"><value>Khoai lang vừa thu hoạch.</value></data>
+  <data name="Item_bok_choy_seeds_Name" xml:space="preserve"><value>Hạt cải thìa</value></data>
+  <data name="Item_bok_choy_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa thu để trồng cải thìa.</value></data>
+  <data name="Item_bok_choy_Name" xml:space="preserve"><value>Cải thìa</value></data>
+  <data name="Item_bok_choy_Description" xml:space="preserve"><value>Cải thìa vừa thu hoạch.</value></data>
+  <data name="Item_grape_seeds_Name" xml:space="preserve"><value>Hạt nho</value></data>
+  <data name="Item_grape_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới vào mùa thu để trồng nho. Mọc lại sau mỗi lần thu hoạch.</value></data>
+  <data name="Item_grape_Name" xml:space="preserve"><value>Nho</value></data>
+  <data name="Item_grape_Description" xml:space="preserve"><value>Nho vừa thu hoạch.</value></data>
+  <data name="Item_spring_onion_Name" xml:space="preserve"><value>Hành lá</value></data>
+  <data name="Item_spring_onion_Description" xml:space="preserve"><value>Hành lá hái được ngoài đồng vào mùa xuân.</value></data>
+  <data name="Item_leek_Name" xml:space="preserve"><value>Tỏi tây</value></data>
+  <data name="Item_leek_Description" xml:space="preserve"><value>Tỏi tây hái được ngoài đồng vào mùa xuân.</value></data>
+  <data name="Item_dandelion_Name" xml:space="preserve"><value>Bồ công anh</value></data>
+  <data name="Item_dandelion_Description" xml:space="preserve"><value>Bồ công anh hái được ngoài đồng vào mùa xuân.</value></data>
+  <data name="Item_daffodil_Name" xml:space="preserve"><value>Thủy tiên</value></data>
+  <data name="Item_daffodil_Description" xml:space="preserve"><value>Thủy tiên hái được ngoài đồng vào mùa xuân.</value></data>
+  <data name="Item_spice_berry_Name" xml:space="preserve"><value>Quả gia vị</value></data>
+  <data name="Item_spice_berry_Description" xml:space="preserve"><value>Quả gia vị hái được ngoài đồng vào mùa hè.</value></data>
+  <data name="Item_sweet_pea_Name" xml:space="preserve"><value>Đậu hoa</value></data>
+  <data name="Item_sweet_pea_Description" xml:space="preserve"><value>Đậu hoa hái được ngoài đồng vào mùa hè.</value></data>
+  <data name="Item_blackberry_Name" xml:space="preserve"><value>Mâm xôi đen</value></data>
+  <data name="Item_blackberry_Description" xml:space="preserve"><value>Mâm xôi đen hái được ngoài đồng vào mùa thu.</value></data>
+  <data name="Item_hazelnut_Name" xml:space="preserve"><value>Hạt phỉ</value></data>
+  <data name="Item_hazelnut_Description" xml:space="preserve"><value>Hạt phỉ hái được ngoài đồng vào mùa thu.</value></data>
+  <data name="Item_wild_plum_Name" xml:space="preserve"><value>Mận dại</value></data>
+  <data name="Item_wild_plum_Description" xml:space="preserve"><value>Mận dại hái được ngoài đồng vào mùa thu.</value></data>
+  <data name="Item_mushroom_Name" xml:space="preserve"><value>Nấm</value></data>
+  <data name="Item_mushroom_Description" xml:space="preserve"><value>Nấm hái được ngoài đồng vào mùa thu.</value></data>
+  <data name="Item_winter_root_Name" xml:space="preserve"><value>Củ mùa đông</value></data>
+  <data name="Item_winter_root_Description" xml:space="preserve"><value>Củ mùa đông hái được ngoài đồng vào mùa đông.</value></data>
+  <data name="Item_crystal_fruit_Name" xml:space="preserve"><value>Quả pha lê</value></data>
+  <data name="Item_crystal_fruit_Description" xml:space="preserve"><value>Quả pha lê hái được ngoài đồng vào mùa đông.</value></data>
+  <data name="Item_snow_yam_Name" xml:space="preserve"><value>Khoai tuyết</value></data>
+  <data name="Item_snow_yam_Description" xml:space="preserve"><value>Khoai tuyết hái được ngoài đồng vào mùa đông.</value></data>
 </root>
