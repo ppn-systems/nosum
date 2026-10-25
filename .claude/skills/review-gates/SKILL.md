@@ -37,3 +37,22 @@ Builds are warning-free by construction (`TreatWarningsAsErrors`); a warning is 
 - The frame loop gained an allocation, an `IJSRuntime` call or a per-item interop call.
 - A server handler trusts a client-supplied result (coins, items, time) (`gameplay-rules`).
 - An architecture change has no ADR.
+
+## Parallel agents
+
+Several agents may work at once, each in its own worktree on its own `feat/*` branch; one
+coordinator merges them into the session branch.
+
+- **One owner per hot spot.** At most one running agent may touch each of: a new EF Core
+  migration, `Home.razor`/`GameHud` layout, `renderer.js`, `InputEdges`, a given opcode band,
+  the `.resx` pair's structure (adding keys is fine for everyone). The brief names the owner.
+- **Merge the base before finishing.** Merge the session branch into your branch, resolve
+  conflicts there, then run the gates. If both sides added a migration, delete yours and
+  regenerate it with `dotnet ef migrations add` on top of the merged snapshot — never merge
+  `NosumDbContextModelSnapshot.cs` by hand.
+- **Share the machine.** The container has 4 cores and a fixed disk allowance. Build with
+  `-m:2`; while iterating run only the tests of the area you changed (`--filter`), and the
+  full suite once at the end. Run `dotnet build --no-incremental` once before reporting.
+  Kill only processes you started, by PID.
+- **Clean up.** The coordinator removes a worktree (`git worktree remove`) as soon as its
+  branch is merged; each worktree holds about 2 GB of build output.
