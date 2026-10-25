@@ -240,7 +240,8 @@ internal static class Program
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
 
-        ToolStateService toolState = new(clock, notifier);
+        // The swing cooldown runs on real time (like the snapshot loop), whatever clock crops grow by.
+        ToolStateService toolState = new(TimeProvider.System, notifier);
         InstanceManager.Instance.Register<IToolState>(toolState);
         RealTimeGameDayClock dayClock = new(clock);
         InstanceManager.Instance.Register<IGameDayClock>(dayClock);
