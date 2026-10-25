@@ -22,8 +22,12 @@ https://learn.microsoft.com/aspnet/core/client-side/dotnet-interop/ (accessed 20
   generator accepts this signature on .NET 10.
 - **D3** — JS decodes and draws synchronously inside that call and never keeps the view.
 - **D4** — `IJSRuntime` is allowed only outside the frame loop (startup, asset loading, UI).
-- **D5** — The WASM client runs trimmed in interpreter mode (`wasm/Directory.Build.props`);
-  AOT is enabled only if the benchmark shows a gain worth the larger download.
+- **D5** — The WASM client is trimmed. Development builds and publishes use the interpreter
+  (fastest to build). The web deploy publishes with WebAssembly AOT
+  (`dotnet publish wasm/Nosum.Wasm -c Release -p:NosumWebDeploy=true`, `wasm-tools` workload;
+  owner decision 2026-10-25). Measured on 2026-10-25: brotli `.wasm` download 2.0 MB
+  (interpreter) vs 4.9 MB (AOT); AOT publish ≈ 4 min. The server is not AOT-compiled (EF Core
+  needs reflection; JIT is fine server-side).
 - **D6** — The first backend draws with Canvas2D. A WebGL backend may replace it later
   without changing the C# side, because the command buffer is the contract.
 
