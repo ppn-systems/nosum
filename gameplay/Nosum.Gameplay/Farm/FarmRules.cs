@@ -127,11 +127,14 @@ public static class FarmRules
     public static FarmVerdict Clear(FarmTile? current)
         => current is not { } tile ? FarmVerdict.NotTilled : tile.HasCrop ? FarmVerdict.HasCrop : FarmVerdict.Ok;
 
-    /// <summary>Harvests a mature crop that has not withered; the soil stays tilled.</summary>
+    /// <summary>
+    /// Harvests a mature crop that has not withered; the soil stays tilled. A regrowing crop (<see cref="CropDefinition.RegrowDays"/>) stays
+    /// planted and needs its regrow days of watering before it bears again; any other crop leaves bare soil.
+    /// </summary>
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
     /// <param name="nowMs">Server time, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
-    /// <param name="next">The bare tile when allowed.</param>
+    /// <param name="next">The tile after the harvest when allowed: bare soil, or the regrowing plant.</param>
     /// <param name="crop">The crop that was harvested when allowed.</param>
     /// <returns>The verdict.</returns>
     public static FarmVerdict Harvest(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next, out CropDefinition? crop)
@@ -162,7 +165,10 @@ public static class FarmRules
 
         int today = calendar.DayNumberAt(nowMs);
         crop = found;
-        next = new FarmTile(0, 0, 0, tile.WateredDay == today ? today : 0, today);
+        int watered = tile.WateredDay == today ? today : 0;
+        next = found.Regrows
+            ? new FarmTile(tile.CropId, tile.PlantedAtMs, found.GrowthDaysAfterHarvest, watered, 0)
+            : new FarmTile(0, 0, 0, watered, today);
         return FarmVerdict.Ok;
     }
 

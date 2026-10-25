@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using Nosum.Gameplay.Calendar;
 
 namespace Nosum.Gameplay.Farm;
@@ -68,6 +69,24 @@ public sealed class CropDefinition
 
     /// <summary>Gets the watered game days the crop needs to mature.</summary>
     public int TotalGrowthDays { get; }
+
+    /// <summary>
+    /// Gets the watered game days a regrowing crop needs to bear again after a harvest (docs/adr/ADR-025 D2); zero for a crop that is
+    /// gone after one harvest. Never more than the days of the last stage, so the plant returns to its last growing stage.
+    /// </summary>
+    public int RegrowDays { get; init; }
+
+    /// <summary>Gets whether a harvest leaves the plant standing to bear again.</summary>
+    public bool Regrows => this.RegrowDays > 0;
+
+    /// <summary>Gets the watered game days a plant has already, right after a harvest, when it regrows: it needs <see cref="RegrowDays"/> more.</summary>
+    public int GrowthDaysAfterHarvest => this.Regrows ? this.TotalGrowthDays - this.RegrowDays : 0;
+
+    /// <summary>Gets the row of <c>assets/TileSheets/crops.png</c> the crop's pictures are in: two rows per 32 px band, 128 px each (docs/adr/ADR-025 D6).</summary>
+    public int SpriteRow { get; init; }
+
+    /// <summary>Gets the frame of the sheet row (16 × 32 px, eight per row) shown at each stage, <see cref="StageCount"/> entries; the client reads no other crop art data.</summary>
+    public IReadOnlyList<int> SpriteFrames { get; init; } = [];
 
     /// <summary>Returns whether the crop can be planted, and grows, in a season.</summary>
     /// <param name="season">The season.</param>

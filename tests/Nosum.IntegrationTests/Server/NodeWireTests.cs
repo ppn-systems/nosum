@@ -435,8 +435,9 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
         await nodes.AdvanceDayAsync(days.Today + 1, false);
 
         NodeChanged grew = await player.NodeChanges.WaitAsync(c => c.Upserted.Count > 0, host.Timeout);
-        grew.Upserted.Should().HaveCountGreaterThan(0).And.HaveCountLessThanOrEqualTo(NodeLimits.RegrowPerDay);
-        grew.Upserted.Should().OnlyContain(n => n.Kind == (byte)NodeKind.Weed || n.Kind == (byte)NodeKind.Stone || n.Kind == (byte)NodeKind.Twig);
+        grew.Upserted.Should().HaveCountGreaterThan(0).And.HaveCountLessThanOrEqualTo(NodeLimits.RegrowPerDay + NodeLimits.ForagePerDay);
+        grew.Upserted.Should().OnlyContain(n => n.Kind == (byte)NodeKind.Weed || n.Kind == (byte)NodeKind.Stone || n.Kind == (byte)NodeKind.Twig || n.Kind == (byte)NodeKind.Forage);
+        grew.Upserted.Count(n => n.Kind != (byte)NodeKind.Forage).Should().BeLessThanOrEqualTo(NodeLimits.RegrowPerDay);
         int count = grew.Upserted.Count;
         await using (NosumDbContext db = new(_database.Options))
         {
@@ -447,8 +448,84 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
         await player.NodeChanges.ExpectNothingAsync(TimeSpan.FromMilliseconds(500));
         await nodes.AdvanceDayAsync(days.Today + 2, false);
         NodeChanged more = await player.NodeChanges.WaitAsync(c => c.Upserted.Count > 0, host.Timeout);
-        more.Upserted.Count.Should().BeLessThanOrEqualTo(NodeLimits.RegrowPerDay);
+        more.Upserted.Count.Should().BeLessThanOrEqualTo(NodeLimits.RegrowPerDay + NodeLimits.ForagePerDay);
         (await player.GetNodesAsync(host.Timeout)).Nodes.Select(n => (n.X, n.Y)).Should().OnlyHaveUniqueItems();
+    }
+
+    [Fact]
+    public async Task Forage_AppearsAtADayRollover_OnAPublicMap_InTheSeasonsItems_AndNeverOnAPrivateFarm()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        await using ToolClient player = await host.ConnectAsync();
+        IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
+        _ = maps.TryGet(GameMaps.Forest, out MapDefinition? forest);
+        await SeedAsync(GameMaps.Forest, Guid.Empty);
+        await player.PutOnAsync(GameMaps.Forest, (float)forest!.SpawnX, (float)forest.SpawnY);
+        _ = await player.JoinAsync(host.Timeout);
+        IResourceNodeService nodes = InstanceManager.Instance.GetExistingInstance<IResourceNodeService>()!;
+        IGameDayClock days = InstanceManager.Instance.GetExistingInstance<IGameDayClock>()!;
+        long day = days.Today + 1;
+
+        await nodes.AdvanceDayAsync(day, false);
+
+        NodeChanged grew = await player.NodeChanges.WaitAsync(c => c.Upserted.Any(n => n.Kind == (byte)NodeKind.Forage), host.Timeout);
+        List<NodeRow> forage = [.. grew.Upserted.Where(n => n.Kind == (byte)NodeKind.Forage)];
+        forage.Should().HaveCountGreaterThan(0).And.HaveCountLessThanOrEqualTo(NodeLimits.ForagePerDay);
+        Season season = ForageCatalog.SeasonOfDay(day);
+        forage.Should().OnlyContain(n => ForageCatalog.IsInSeason(n.Variant, season), "only what grows in the season of the day");
+        forage.Select(n => (n.X, n.Y)).Should().OnlyHaveUniqueItems();
+        await using (NosumDbContext db = new(_database.Options))
+        {
+            (await db.WorldNodes.CountAsync(n => n.MapId == GameMaps.Forest && n.OwnerId == Guid.Empty && n.Kind == (short)NodeKind.Forage)).Should().Be(forage.Count);
+        }
+
+        // Forage never blocks walking, and a private farm gets none.
+        (await player.GetNodesAsync(host.Timeout)).Nodes.Where(n => n.Kind == (byte)NodeKind.Forage).Should().HaveCount(forage.Count);
+        await using ToolClient farmer = await host.ConnectAsync();
+        _ = await SeededJoinAsync(host, farmer, []);
+        await nodes.AdvanceDayAsync(day + 1, true);
+        (await farmer.GetNodesAsync(host.Timeout)).Nodes.Should().NotContain(n => n.Kind == (byte)NodeKind.Forage);
+    }
+
+    [Fact]
+    public async Task Forage_AnEmptyHandAndAHeldItemBothPickItUp_AndItLandsInTheInventory_AndAnOldSeasonsForageWithersAtTheRollover()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        await using ToolClient player = await host.ConnectAsync();
+        IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
+        _ = maps.TryGet(GameMaps.Forest, out MapDefinition? forest);
+        (int[] tilesX, int[] tilesY) = ReachableTiles(host, GameMaps.Forest, 3);
+        static byte Variant(int itemId) => (byte)ForageCatalog.All.ToList().FindIndex(e => e.ItemId == itemId);
+        byte snowYam = Variant(ItemCatalog.SnowYam);
+        await SeedAsync(
+            GameMaps.Forest,
+            Guid.Empty,
+            Row(NodeKind.Forage, tilesX[0], tilesY[0], Variant(ItemCatalog.Leek)),
+            Row(NodeKind.Forage, tilesX[1], tilesY[1], Variant(ItemCatalog.Dandelion)),
+            Row(NodeKind.Forage, tilesX[2], tilesY[2], snowYam));
+        await player.PutOnAsync(GameMaps.Forest, (float)forest!.SpawnX, (float)forest.SpawnY);
+        _ = await player.JoinAsync(host.Timeout);
+
+        // A bare hand (hotbar slot 8 is empty): the leek is gone from the map and, once the drop is taken, in the bag.
+        UseItemResult bare = await player.UseAsync(8, tilesX[0], tilesY[0], host.Timeout);
+        bare.Status.Should().Be(FarmStatus.Ok);
+        (await player.NodeChanges.WaitAsync(c => c.Removed.Count == 1, host.Timeout)).Removed.Should().HaveCount(1);
+        (await player.Slots.WaitAsync(s => s.ItemId == ItemCatalog.Leek, host.Timeout)).Quantity.Should().Be(1);
+
+        // A held item (parsnip seeds here; any item works): the dandelion.
+        (await player.UseAsync(s_parsnip, tilesX[1], tilesY[1], host.Timeout)).Status.Should().Be(FarmStatus.Ok);
+        (await player.Slots.WaitAsync(s => s.ItemId == ItemCatalog.Dandelion, host.Timeout)).Quantity.Should().Be(1);
+        (await player.GetNodesAsync(host.Timeout)).Nodes.Should().NotContain(n => n.X == tilesX[1] && n.Y == tilesY[1], "it was picked up");
+
+        // The snow yam of winter does not survive into spring: the day rollover takes it away and tells the instance.
+        IResourceNodeService nodes = InstanceManager.Instance.GetExistingInstance<IResourceNodeService>()!;
+        IGameDayClock days = InstanceManager.Instance.GetExistingInstance<IGameDayClock>()!;
+        ForageCatalog.SeasonOfDay(days.Today + 1).Should().Be(Season.Spring, "the test server's clock is before the first summer");
+        await nodes.AdvanceDayAsync(days.Today + 1, false);
+        NodeChanged withered = await player.NodeChanges.WaitAsync(c => c.Removed.Count > 0, host.Timeout);
+        withered.Removed.Should().HaveCount(1);
+        await using NosumDbContext db = new(_database.Options);
+        (await db.WorldNodes.AnyAsync(n => n.MapId == GameMaps.Forest && n.OwnerId == Guid.Empty && n.Kind == (short)NodeKind.Forage && n.Variant == snowYam)).Should().BeFalse();
     }
 
     [Fact]
@@ -465,6 +542,13 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
         Func<Task> act = async () => _ = await plain.RequestAsync<NodeSnapshot>(request, RequestOptions.Default.WithTimeout(1500), ct: host.Timeout);
 
         _ = await act.Should().ThrowAsync<Exception>();
+    }
+
+    // Open tiles near the map's spawn that the spawned player can reach (docs: FarmRules.InReach), one row of them.
+    private static (int[] X, int[] Y) ReachableTiles(TestHost host, string mapId, int count)
+    {
+        (int X, int Y)[] free = host.FreeTilesNear(mapId);
+        return ([.. free.Take(count).Select(t => t.X)], [.. free.Take(count).Select(t => t.Y)]);
     }
 
     private static int SlotOf(int itemId) => Array.FindIndex(StarterKit.Items, i => i.ItemId == itemId);
