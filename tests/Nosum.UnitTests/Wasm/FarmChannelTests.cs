@@ -12,7 +12,7 @@ namespace Nosum.UnitTests.Wasm;
 
 public sealed class FarmChannelTests
 {
-    private static FarmTileRow Row(int x, int y, int crop = 0) => new() { X = (ushort)x, Y = (ushort)y, CropId = crop, PlantedAtMs = 10, GrowthMs = 20, SettledAtMs = 30, WetUntilMs = 40 };
+    private static FarmTileRow Row(int x, int y, int crop = 0) => new() { X = (ushort)x, Y = (ushort)y, CropId = crop, PlantedAtMs = 10, GrowthDays = 2, WateredDay = 3 };
 
     [Fact]
     public void Load_StoresTheTilesTheMapAndTheServerClock()
@@ -35,7 +35,7 @@ public sealed class FarmChannelTests
         using (channel.Read())
         {
             channel.TryGetTile(61, 17, out FarmTileInfo tile).Should().BeTrue();
-            tile.Should().Be(new FarmTileInfo(61, 17, 1, 10, 20, 30, 40));
+            tile.Should().Be(new FarmTileInfo(61, 17, 1, 10, 2, 3));
             channel.TryGetTile(63, 17, out _).Should().BeFalse();
         }
 
@@ -71,6 +71,37 @@ public sealed class FarmChannelTests
         }
 
         changed.Should().Be(1);
+        push.Dispose();
+    }
+
+    [Fact]
+    public void PushedChange_MarkedRemoved_DropsTheTileAndKeepsTheOthersReachable()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            FarmSnapshot snapshot = new() { MapId = "farm", ServerNowMs = 1 };
+            snapshot.Tiles.Add(Row(1, 1));
+            snapshot.Tiles.Add(Row(2, 1));
+            snapshot.Tiles.Add(Row(3, 1));
+            return snapshot;
+        });
+        using FarmChannel channel = new(socket);
+        channel.Load();
+        FarmTilesChanged push = new() { MapId = "farm", ServerNowMs = 2 };
+        push.Tiles.Add(new FarmTileRow { X = 1, Y = 1, Removed = true });
+
+        socket.Push(push);
+
+        channel.Count.Should().Be(2);
+        using (channel.Read())
+        {
+            channel.TryGetTile(1, 1, out _).Should().BeFalse();
+            channel.TryGetTile(2, 1, out _).Should().BeTrue();
+            channel.TryGetTile(3, 1, out FarmTileInfo moved).Should().BeTrue();
+            moved.X.Should().Be(3);
+        }
+
         push.Dispose();
     }
 

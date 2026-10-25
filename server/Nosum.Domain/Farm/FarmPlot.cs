@@ -6,7 +6,7 @@ namespace Nosum.Domain.Farm;
 
 /// <summary>
 /// One tilled tile of a map. The row exists once the soil is tilled; an untilled tile has no row.
-/// The key is (map, owner, x, y): the farm is private per player (docs/adr/ADR-015), so the owner is part of the key. Times are Unix milliseconds on the server clock, the same values
+/// The key is (map, owner, x, y): the farm is private per player (docs/adr/ADR-015), so the owner is part of the key. Times are Unix milliseconds on the server clock and days are game day numbers, the same values
 /// <c>Nosum.Gameplay.Farm.FarmTile</c> computes growth from.
 /// </summary>
 public sealed class FarmPlot
@@ -29,14 +29,14 @@ public sealed class FarmPlot
     /// <summary>Gets or sets when the crop was planted; zero without a crop.</summary>
     public long PlantedAtMs { get; set; }
 
-    /// <summary>Gets or sets the watered growth time settled up to <see cref="SettledAtMs"/>.</summary>
-    public long GrowthMs { get; set; }
+    /// <summary>Gets or sets the watered game days settled so far, not counting <see cref="WateredDay"/> (docs/adr/ADR-021 D7).</summary>
+    public int GrowthDays { get; set; }
 
-    /// <summary>Gets or sets the moment <see cref="GrowthMs"/> was last settled.</summary>
-    public long SettledAtMs { get; set; }
+    /// <summary>Gets or sets the last game day number (1-based since the calendar epoch) the soil was watered; zero when never.</summary>
+    public int WateredDay { get; set; }
 
-    /// <summary>Gets or sets the moment the soil stops being wet.</summary>
-    public long WetUntilMs { get; set; }
+    /// <summary>Gets or sets the game day bare soil was tilled or its crop harvested; zero with a crop or for a row from before day counting.</summary>
+    public int TendedDay { get; set; }
 
     /// <summary>Gets or sets the player who last worked the tile (tilled, planted, watered or harvested it); null when unknown.</summary>
     public Guid? LastWorkedBy { get; set; }

@@ -31,6 +31,25 @@ public sealed class DevChannel
     /// <param name="coins">Coins to add.</param>
     public void Grant(int itemId, int quantity, long coins) => _ = this.GrantAsync(itemId, quantity, coins);
 
+    /// <summary>Asks the server to move its game clock forward by whole game days (crops grow, bare soil may revert). The change reaches the screen as pushed tiles.</summary>
+    /// <param name="days">Game days, 1 to 60.</param>
+    public void AdvanceClock(int days) => _ = this.AdvanceClockAsync(days);
+
+    [SuppressMessage("Design", "CA1031", Justification = "A tester tool: a missing answer (Production) is not an error.")]
+    private async Task AdvanceClockAsync(int days)
+    {
+        try
+        {
+            using PacketScope<DevAdvanceClock> request = PacketFactory<DevAdvanceClock>.Acquire();
+            request.Value.Days = days;
+            _ = await _socket.RequestAsync<DevAdvanceClockResult>(request.Value).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // No answer: not a Development server.
+        }
+    }
+
     [SuppressMessage("Design", "CA1031", Justification = "A tester tool: a missing answer (Production) is not an error.")]
     private async Task GrantAsync(int itemId, int quantity, long coins)
     {

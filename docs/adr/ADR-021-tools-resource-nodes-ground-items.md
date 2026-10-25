@@ -62,6 +62,37 @@ Review of the current code found:
   sub-ranges: `0x7100–0x71FF` resource nodes, `0x7200–0x72FF` ground items. Append-only; `NosumProtocol.Version`
   is bumped once by the coordinator when the work merges.
 
+## Implementation notes
+
+### D7 — growth in watered game days (implemented)
+
+- **Representation.** `FarmTile(CropId, PlantedAtMs, GrowthDays, WateredDay, TendedDay)`; a day number is the 1-based count of game days since the
+  calendar epoch (`GameCalendar.DayNumberAt`; instants before the epoch are day 1; zero means "never"). `GrowthDays` is the settled count of watered days
+  and does **not** include `WateredDay`. When `WateredDay` is before today it adds one on read (`FarmRules.GrowthDaysAt`, capped at the crop's total), so a tile
+  watered on day N grows at the rollover into N + 1. Watering settles an ended `WateredDay` into `GrowthDays`, then records today; watering twice on a day
+  counts once; a day without water adds nothing; wetness is `WateredDay == today`, so it resets at the rollover with no work. Nothing is ticked or stored per
+  tile timer; the client computes the same stage from the same numbers and the calendar.
+- **Plant and harvest.** Planting keeps water poured earlier the same day (it counts) and drops water from an earlier day (it belonged to the old crop).
+  Harvest leaves bare soil with `TendedDay` = today.
+- **Revert.** Tilled soil with no crop reverts to untilled if any game day that ended after `max(TendedDay, WateredDay)` rolls below 30
+  (`FarmRules.RevertRoll(instanceKey, x, y, day)`: FNV-1a of the instance key, then SplitMix64 rounds over tile and day; no stored random state, the same answer on
+  every call, pinned by a test). The day of tilling or harvest is a day of grace, and a watered day is not a dry day. Reads treat a reverted tile as untilled
+  (`FarmService.LiveTile`), so correctness never depends on a sweep. Rows from before day counting (no history) start their dry days when the farm loads.
+- **Day-ended seam.** `IDayClock.DayEnded` (`Nosum.Abstractions.Calendar`, implemented by `DayClockService`): one timer aimed at the next day boundary, re-armed
+  after every tick; each tick raises the event for every day since the last one (a late tick or a clock jump loses no day, at most 400 per tick); a throwing
+  subscriber is swallowed and reported. Subscribers do side effects only. First subscriber: `FarmService` sweeps the loaded farms, deleting reverted tiles from
+  memory and PostgreSQL and multicasting them as removed. Resource-node regrowth and sprinklers subscribe the same way.
+- **Dev clock.** `DevAdvanceClock` (`0xF001`, reply `0xF041` with the new server clock) in the Dev band, Development only like `DevGrant`. In Development the host
+  wraps its clock in `DevTimeProvider` (system time plus an offset) and every service reads time through it; `DevClockService` adds whole days (1 to 60) and calls
+  `DayClockService.Reconcile`, because timers measure real intervals and do not notice a jump. Production registers neither the service nor the handler.
+- **Wire (append-only).** `FarmTileRow` keeps orders 0 to 6 (4 to 6, the old millisecond fields, are now always zero) and appends `GrowthDays` (7), `WateredDay`
+  (8) and `Removed` (9, the client drops the tile). `NosumProtocol.Version` is not bumped; the coordinator may drop fields 4 to 6 at the bump. The client
+  mirror (`FarmTileInfo`, `FarmDecorator`) uses `FarmRules.StageAt` / `IsWet` with the calendar it already loads; until the calendar arrives no crop is drawn.
+- **Storage.** Migration `GrowthInGameDays`: `farm_plots` loses `growth_ms`, `settled_at_ms`, `wet_until_ms` and gains `growth_days`, `watered_day`, `tended_day`.
+  Crops planted before it keep their crop and planting time but restart with zero growth.
+- **Balance.** Parsnip 1/1/1/1 (4 days), radish 1/2/1/2 (6), cauliflower 1/2/4/4/1 (12) watered days. Cauliflower's 12 days need 12 watered days inside
+  its 28-day spring or summer, so a gap of more than 16 dry days fails it.
+
 ## Alternatives considered
 
 - **Harvest into the inventory (today).** Simple, but a full bag blocks harvesting, and drops are needed anyway for
@@ -73,7 +104,7 @@ Review of the current code found:
 
 - Farm, placeables and nodes all live in the per-instance world (`IInstanceWorld`); one lock per instance remains.
 - Two new tables (`resource_nodes`, `ground_items`), generated migrations.
-- Seasons (ADR-018) must merge before D7 can switch the units; until then D7 is implemented behind the calendar seam.
+- Seasons (ADR-018) are on `master`; D7 is implemented on top of its calendar (see Implementation notes).
 
 ## Implementation notes
 
