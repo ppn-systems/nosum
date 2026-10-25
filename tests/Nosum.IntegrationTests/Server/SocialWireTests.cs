@@ -390,7 +390,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     }
 
     [Theory]
-    [InlineData(ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 15)]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10)]
     [InlineData(ShopCatalog.ClothingShop, ItemCatalog.HatStraw, 50)]
     public async Task Shop_EachCounterOverTheWire_SellsItsOwnThing(int shopId, int itemId, int price)
     {
@@ -404,6 +404,22 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         (await buyer.BuyFromShopAsync(shopId, ItemCatalog.OakChair, 1, ct)).Status.Should().Be(ShopStatus.NotSold, "furniture is the furniture shop's");
         (await buyer.BuyFromShopAsync(shopId, itemId, 1, ct)).Should().Be((ShopStatus.Ok, price));
         (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins - price);
+    }
+
+    [Fact]
+    public async Task Shop_SeedOutOfSeason_IsRefusedAndNoCoinMoves()
+    {
+        await using Server server = await Server.StartAsync(_database);
+        CancellationToken ct = server.Token;
+        _ = GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
+        ShopPoint counter = town!.Shops.Single(p => p.ShopId == ShopCatalog.SeedShop);
+        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct, (GameMaps.Town, (counter.TileX * 16) + 8, (counter.TileY * 16) + 8));
+        await buyer.JoinAsync(ct);
+
+        // The server clock is in spring (before the calendar epoch): radish grows in summer and fall (docs/adr/ADR-018).
+        (await buyer.BuyFromShopAsync(ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 1, ct)).Should().Be((ShopStatus.OutOfSeason, 0));
+        (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins);
+        (await buyer.BuyFromShopAsync(ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 1, ct)).Status.Should().Be(ShopStatus.Ok);
     }
 
     [Fact]

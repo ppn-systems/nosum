@@ -9,6 +9,7 @@ using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Shops;
 using Nosum.Contracts.Shop;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Shops;
 
@@ -23,20 +24,28 @@ public sealed class ShopService : IShopService
     private readonly ITransferService _transfers;
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
+    private readonly GameCalendar _calendar;
+    private readonly TimeProvider _time;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="transfers">Moves coins and items atomically.</param>
     /// <param name="presence">Where players stand.</param>
     /// <param name="maps">The hosted maps (tile size).</param>
-    public ShopService(ITransferService transfers, IMapPresence presence, IMapCatalog maps)
+    /// <param name="calendar">The server calendar: seeds are only sold in a season their crop grows in (docs/adr/ADR-018).</param>
+    /// <param name="time">The server clock; tests pass a fake one.</param>
+    public ShopService(ITransferService transfers, IMapPresence presence, IMapCatalog maps, GameCalendar calendar, TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
+        ArgumentNullException.ThrowIfNull(calendar);
+        ArgumentNullException.ThrowIfNull(time);
 
         _transfers = transfers;
         _presence = presence;
         _maps = maps;
+        _calendar = calendar;
+        _time = time;
     }
 
     /// <inheritdoc/>
@@ -53,6 +62,11 @@ public sealed class ShopService : IShopService
                 ShopVerdict.NotSold => ShopStatus.NotSold,
                 _ => ShopStatus.InvalidQuantity,
             }, 0);
+        }
+
+        if (!ShopRules.IsInSeason(itemId, _calendar, _time.GetUtcNow().ToUnixTimeMilliseconds()))
+        {
+            return new ShopOutcome(ShopStatus.OutOfSeason, 0);
         }
 
         if (!this.IsAtShop(connection, shopId))
