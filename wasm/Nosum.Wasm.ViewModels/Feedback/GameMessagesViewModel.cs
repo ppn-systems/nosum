@@ -102,7 +102,9 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
     private void OnUseCompleted(FarmStatus status, FarmAction action)
     {
         _ = action;
-        if (this.TextOf(status) is { } text)
+
+        // A swing that came too soon is dropped without a word: the key was just held (docs/adr/ADR-021 D8).
+        if (status != FarmStatus.Cooldown && this.TextOf(status) is { } text)
         {
             this.Show(text);
         }

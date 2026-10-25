@@ -22,12 +22,14 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Market;
+using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Trade;
+using Nosum.Abstractions.Visits;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
@@ -39,11 +41,13 @@ using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
 using Nosum.Handlers.Market;
+using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
 using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
+using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Coops;
@@ -55,6 +59,7 @@ using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Market;
+using Nosum.Infrastructure.Nodes;
 using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
@@ -62,6 +67,7 @@ using Nosum.Infrastructure.Presence;
 using Nosum.Infrastructure.Quests;
 using Nosum.Infrastructure.Shops;
 using Nosum.Infrastructure.Trade;
+using Nosum.Infrastructure.Visits;
 
 namespace Nosum.Host;
 
@@ -147,14 +153,25 @@ internal static class Program
     /// <summary>
     /// Builds the server calendar: the default (docs/adr/ADR-018), with the epoch replaced by <c>NOSUM_CALENDAR_EPOCH</c> (an ISO 8601 UTC
     /// instant, for example <c>2026-11-02T00:00:00Z</c>) when that variable is set. An unreadable value stops the process rather than
-    /// silently starting a different calendar.
+    /// silently starting a different calendar. Without the variable, a development server started before the default epoch counts from the last Monday.
     /// </summary>
+    /// <param name="development">Whether the host runs in the Development environment.</param>
+    /// <param name="clock">The server clock.</param>
     /// <returns>The calendar every player shares.</returns>
-    private static GameCalendar ConfiguredCalendar()
+    private static GameCalendar ConfiguredCalendar(bool development, TimeProvider clock)
     {
         string? text = Environment.GetEnvironmentVariable("NOSUM_CALENDAR_EPOCH");
         if (string.IsNullOrWhiteSpace(text))
         {
+            // Before the epoch no game day passes; a development server started earlier would never grow a crop, so it counts from the last Monday instead.
+            long nowMs = clock.GetUtcNow().ToUnixTimeMilliseconds();
+            if (development && nowMs < GameCalendar.DefaultEpochMs)
+            {
+                DateTimeOffset today = clock.GetUtcNow().UtcDateTime.Date;
+                DateTimeOffset monday = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+                return new GameCalendar(new DateTimeOffset(monday.UtcDateTime, TimeSpan.Zero).ToUnixTimeMilliseconds(), GameCalendar.DefaultDayLengthMs);
+            }
+
             return GameCalendar.Default;
         }
 
@@ -207,6 +224,8 @@ internal static class Program
             .MapHandlers(typeof(TradeHandlers))
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
+            .MapHandlers(typeof(NodeHandlers))
+            .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers));
@@ -233,8 +252,12 @@ internal static class Program
 
     // Services are registered before the builder so [Inject] fields of the handlers resolve them.
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player, trade and co-op services live as long as the process; the snapshot loop ends by itself when the last player leaves.")]
-    private static void RegisterServices(TimeProvider clock, bool development)
+    private static void RegisterServices(TimeProvider systemClock, bool development)
     {
+        // Development: every service reads the time through a clock the dev tools can move forward (docs/adr/ADR-021 D7).
+        DevTimeProvider? devClock = development ? new DevTimeProvider(systemClock) : null;
+        TimeProvider clock = devClock ?? systemClock;
+
         IConnectionGroupRegistry groups = new InMemoryGroupStore();
         InstanceManager.Instance.Register(groups);
 
@@ -253,8 +276,12 @@ internal static class Program
         InstanceManager.Instance.Register<ISessionRegistry>(sessions);
 
         // The server calendar every player shares (docs/adr/ADR-018).
-        GameCalendar calendar = ConfiguredCalendar();
+        GameCalendar calendar = ConfiguredCalendar(development, clock);
         InstanceManager.Instance.Register<ICalendarService>(new CalendarService(calendar, clock));
+
+        // One timer on the calendar's day boundaries; services subscribe to the day-ended event for side effects (docs/adr/ADR-021 D7).
+        DayClockService dayClock = new(calendar, clock, ex => Console.Error.WriteLine("Day-ended handler failed: " + ex.Message));
+        InstanceManager.Instance.Register<IDayClock>(dayClock);
 
         // Items, quests and farming (docs/adr/ADR-011). One notifier pushes to a player's active connection.
         IUnitOfWorkFactory unitOfWork = InstanceManager.Instance.GetExistingInstance<IUnitOfWorkFactory>()
@@ -273,10 +300,12 @@ internal static class Program
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
 
-        // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
-        // Farm plots and placed objects publish through the chunk publisher and send their chunk's state when it joins a player's interest set (docs/adr/ADR-022).
+        // Farm and farmhouse are private per player; placed furniture and resource nodes are part of the instance a player walks on (docs/adr/ADR-015, ADR-021).
+        // Every world feature publishes through the chunk publisher and sends its chunk's state when it joins a player's interest set (docs/adr/ADR-022).
         PlaceableService placeables = new(presence, presence, publisher, maps, inventory, unitOfWork, clock);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
+        // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019).
+        VisitAccess access = new(unitOfWork);
         // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
         CoopMembership coopMembership = new(unitOfWork);
         InstanceManager.Instance.Register<ICoopMembership>(coopMembership);
@@ -285,17 +314,37 @@ internal static class Program
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
 
-        // Items lying in the world: harvests (and later broken nodes) drop here, walking players pick them up (docs/adr/ADR-021 D5-D6).
-        GroundItemService groundItems = new(presence, maps, transfers, unitOfWork, clock);
+        // Items lying in the world: harvests and broken nodes drop here, walking players pick them up (docs/adr/ADR-021 D5-D6).
+        GroundItemService groundItems = new(presence, presence, publisher, maps, transfers, unitOfWork, clock);
         InstanceManager.Instance.Register<IGroundItems>(groundItems);
         InstanceManager.Instance.Register<IYieldRandom>(new YieldRandom((ulong)Random.Shared.NextInt64()));
 
-        FarmService farm = new(presence, presence, publisher, maps, inventory, quests, coopMembership, unitOfWork, clock, calendar, groundItems);
+        // The swing cooldown runs on real time (like the snapshot loop), whatever clock crops grow by.
+        ToolStateService toolState = new(TimeProvider.System, notifier);
+        InstanceManager.Instance.Register<IToolState>(toolState);
+        CalendarGameDayClock nodeDayClock = new(calendar, clock);
+        InstanceManager.Instance.Register<IGameDayClock>(nodeDayClock);
+        ResourceNodeService nodes = new(presence, presence, publisher, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock);
+
+        // Trees grow and public places regrow debris once a game day (docs/adr/ADR-021 D4), on the one day clock every daily rule uses.
+        // The day that starts after day N ended is node day N (node days count from 0); a new season starts every DaysPerSeason days.
+        dayClock.DayEnded += ended =>
+        {
+            long today = ended.DayNumber;
+            bool seasonChanged = today % GameCalendar.DaysPerSeason == 0;
+            _ = nodes.AdvanceDayAsync(today, seasonChanged).ContinueWith(
+                static t => Console.Error.WriteLine("Node day rollover failed: " + t.Exception?.GetBaseException().Message),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
+        };
+        InstanceManager.Instance.Register<IResourceNodeService>(nodes);
+        FarmService farm = new(presence, presence, publisher, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, dayClock);
         InstanceManager.Instance.Register<IFarmService>(farm);
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
         InstanceManager.Instance.Register<ILookService>(looks);
-        ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm]);
-        PlayerService players = new(presence, presence, streamer, maps, states, placeables, new OwnerOnlyAccessPolicy(), coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
+        ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
+        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
 
@@ -306,9 +355,15 @@ internal static class Program
         if (development)
         {
             InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));
+            InstanceManager.Instance.Register<IDevClockService>(new DevClockService(devClock!, calendar, dayClock));
         }
 
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
-        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock));
+        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock);
+        InstanceManager.Instance.Register<ICoopService>(coops);
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock));
+
+        // Armed last: every subscriber is in place before the first boundary.
+        dayClock.Start();
     }
 }

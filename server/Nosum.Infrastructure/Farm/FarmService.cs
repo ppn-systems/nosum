@@ -4,21 +4,25 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
+using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
+using Nosum.Contracts.Node.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
@@ -30,6 +34,7 @@ using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Quests;
+using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Farm;
@@ -41,7 +46,9 @@ namespace Nosum.Infrastructure.Farm;
 /// The owner is a player's account id on a private farm and a co-op's id on co-op land (docs/adr/ADR-020); the rules are the same code. On co-op land the player must belong to that co-op when the action
 /// is committed, and every action writes an audit line in the same transaction. The tilled tiles of an instance are kept in memory after
 /// the first read and written through to PostgreSQL; the server is a single process (docs/adr/ADR-009).
-/// Crops are never simulated: growth is computed from the stored timestamps (docs/adr/ADR-003 D4).
+/// Crops are never simulated: growth counts watered game days and is computed from the stored day numbers (docs/adr/ADR-003 D4, ADR-021 D7);
+/// bare soil that stayed dry may have reverted (<see cref="FarmRules.IsReverted"/>), which is decided on read. The day-ended seam (<see cref="IDayClock"/>)
+/// only tidies up: it drops reverted tiles from memory and PostgreSQL and tells the players who can see them.
 /// The tiles of an instance are kept in per-chunk buckets; a change is published to the subscribers of the chunk it happened in and a chunk's tiles are sent once when it joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
 public sealed class FarmService : IFarmService, IChunkStateContributor
@@ -53,6 +60,8 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
     private readonly IInventoryService _inventory;
     private readonly IQuestService _quests;
     private readonly ICoopMembership _coops;
+    private readonly IResourceNodeService _nodes;
+    private readonly IToolState _tools;
     private readonly IGroundItems _groundItems;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
@@ -68,10 +77,13 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
     /// <param name="inventory">Seeds and harvests go through it.</param>
     /// <param name="quests">Told when a crop was planted or harvested.</param>
     /// <param name="coops">Who belongs to which co-op; asked for every action on co-op land.</param>
+    /// <param name="nodes">Trees, stones and weeds: it handles a tool aimed at one, water and tree seeds (docs/adr/ADR-021).</param>
+    /// <param name="tools">The swing cooldown and the watering can's water.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The server clock crops grow by; tests pass a fake one.</param>
-    /// <param name="calendar">The server calendar: seeds are planted by season and crops wither when theirs ends (docs/adr/ADR-018).</param>
+    /// <param name="calendar">The server calendar: seeds are planted by season, crops wither when theirs ends (docs/adr/ADR-018) and grow by watered game days (docs/adr/ADR-021 D7).</param>
     /// <param name="groundItems">A harvest pops its produce onto the ground through it (docs/adr/ADR-021 D5).</param>
+    /// <param name="dayClock">Told when a game day ends, to sweep tiles whose bare soil reverted; <see langword="null"/> leaves the lazy rule alone.</param>
     public FarmService(
         IMapPresence presence,
         IChunkMap chunks,
@@ -80,10 +92,13 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         IInventoryService inventory,
         IQuestService quests,
         ICoopMembership coops,
+        IResourceNodeService nodes,
+        IToolState tools,
         IUnitOfWorkFactory unitOfWork,
         TimeProvider time,
         GameCalendar calendar,
-        IGroundItems groundItems)
+        IGroundItems groundItems,
+        IDayClock? dayClock = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
@@ -92,6 +107,8 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(quests);
         ArgumentNullException.ThrowIfNull(coops);
+        ArgumentNullException.ThrowIfNull(nodes);
+        ArgumentNullException.ThrowIfNull(tools);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
         ArgumentNullException.ThrowIfNull(calendar);
@@ -104,10 +121,16 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         _inventory = inventory;
         _quests = quests;
         _coops = coops;
+        _nodes = nodes;
+        _tools = tools;
         _unitOfWork = unitOfWork;
         _time = time;
         _calendar = calendar;
         _groundItems = groundItems;
+        if (dayClock is not null)
+        {
+            dayClock.DayEnded += this.OnDayEnded;
+        }
     }
 
     /// <inheritdoc/>
@@ -122,12 +145,12 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
 
         if (!_presence.TryGet(connection, out PlayerPresence? player)
             || !_maps.TryGet(player.MapId, out MapDefinition? map)
-            || map.Tillable is not { } tillable)
+            || (map.Tillable is null && !map.HasNodes))
         {
             return Refused(FarmStatus.NotOnFarm);
         }
 
-        if (!tillable.Contains(tileX, tileY))
+        if ((uint)tileX >= (uint)map.Grid.Width || (uint)tileY >= (uint)map.Grid.Height)
         {
             return Refused(FarmStatus.InvalidTile);
         }
@@ -146,10 +169,56 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         }
 
         Guid playerId = player.AccountId;
-        MapFarm farm = await this.FarmOfAsync(player.Instance, cancellationToken).ConfigureAwait(false);
+        InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
+        _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? heldItem);
+
+        // One swing per cooldown, whatever the tool does (docs/adr/ADR-021 D8).
+        if (heldItem is { Kind: ItemKind.Tool } && !_tools.TryBeginSwing(playerId))
+        {
+            return Refused(FarmStatus.Cooldown);
+        }
+
+        // Co-op land is for its members only, whoever swings what (the check is repeated under the lock for the farm layer).
+        if (map.IsCoop && (await _coops.FindAsync(playerId, cancellationToken).ConfigureAwait(false) is not { } coopMember || coopMember.CoopId != player.Instance.OwnerId))
+        {
+            return Refused(FarmStatus.NotOnFarm);
+        }
+
+        // A visitor may only water (docs/adr/ADR-019 D3): no chopping, breaking, tilling, planting or harvesting on somebody else's land.
+        if (VisitRules.IsVisitor(player.Instance, playerId) && !IsWateringCan(held))
+        {
+            return Refused(FarmStatus.NotYourFarm);
+        }
+
+        // Resource nodes, water and tree seeds belong to the node layer; it answers null when the farm layer decides.
+        MapFarm? farm = null;
+        bool worked = false;
+        if (map.Tillable is not null)
+        {
+            farm = await this.FarmOfAsync(player.Instance, cancellationToken).ConfigureAwait(false);
+            if (heldItem is { Kind: ItemKind.TreeSeed })
+            {
+                using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
+                {
+                    worked = farm.TryGet(tileX, tileY, out _);
+                }
+            }
+        }
+
+        if (await _nodes.TryUseAsync(new NodeUseRequest(player, map, hotbarSlot, held, tileX, tileY, worked), cancellationToken).ConfigureAwait(false) is { } handled)
+        {
+            return handled;
+        }
+
+        if (map.Tillable is not { } tillable || farm is null)
+        {
+            return Refused(FarmStatus.NotOnFarm);
+        }
+
         FarmTile changedTile;
         FarmAction action;
         QuestEvent? report;
+        bool cleared;
         PendingGroundDrop? pending;
 
         using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
@@ -166,13 +235,21 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
             }
 
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
-            FarmTile? current = farm.TryGet(tileX, tileY, out FarmTile found) ? found : null;
-            InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
-
+            FarmTile? current = this.LiveTile(farm, player.Instance, tileX, tileY, nowMs);
             Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs);
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 return Refused(ToStatus(plan.Verdict));
+            }
+
+            if (plan.Action == FarmAction.Watered && _tools.WaterLeft(playerId) <= 0)
+            {
+                return Refused(FarmStatus.CanEmpty);
+            }
+
+            if (!VisitRules.MayDo(player.Instance, playerId, RuleOf(plan.Action)))
+            {
+                return Refused(FarmStatus.NotYourFarm);
             }
 
             GroundDrop? drop = null;
@@ -190,10 +267,30 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
                 return Refused(status);
             }
 
-            farm.Set(tileX, tileY, plan.Next);
+            cleared = plan.Action == FarmAction.Cleared;
+            if (cleared)
+            {
+                _ = farm.Remove(tileX, tileY);
+            }
+            else
+            {
+                farm.Set(tileX, tileY, plan.Next);
+            }
+
             changedTile = plan.Next;
             action = plan.Action;
             report = plan.Report;
+        }
+
+        if (action == FarmAction.Watered)
+        {
+            _ = await _tools.UseWaterAsync(playerId, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (cleared)
+        {
+            await this.PushClearedAsync(player.Instance, tileX, tileY, cancellationToken).ConfigureAwait(false);
+            return new FarmUseOutcome(FarmStatus.Ok, action);
         }
 
         await this.PushTileAsync(player.Instance, tileX, tileY, changedTile, cancellationToken).ConfigureAwait(false);
@@ -234,6 +331,11 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
 
                 foreach (KeyValuePair<(int X, int Y), FarmTile> tile in chunk.Value)
                 {
+                    if (this.LiveTile(farm, player.Instance, tile.Key.X, tile.Key.Y, nowMs) is null)
+                    {
+                        continue;
+                    }
+
                     tiles.Add(new FarmTileView(tile.Key.X, tile.Key.Y, tile.Value));
                 }
             }
@@ -257,9 +359,15 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         {
             if (farm.Chunks.TryGetValue(chunk, out Dictionary<(int X, int Y), FarmTile>? tiles))
             {
-                state.ServerNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+                long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+                state.ServerNowMs = nowMs;
                 foreach (KeyValuePair<(int X, int Y), FarmTile> tile in tiles)
                 {
+                    if (this.LiveTile(farm, instance, tile.Key.X, tile.Key.Y, nowMs) is null)
+                    {
+                        continue;
+                    }
+
                     state.FarmTiles.Add(ToRow(tile.Key.X, tile.Key.Y, tile.Value));
                 }
             }
@@ -276,13 +384,32 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         row.Y = (ushort)y;
         row.CropId = tile.CropId;
         row.PlantedAtMs = tile.PlantedAtMs;
-        row.GrowthMs = tile.GrowthMs;
-        row.SettledAtMs = tile.SettledAtMs;
-        row.WetUntilMs = tile.WetUntilMs;
+        row.GrowthDays = tile.GrowthDays;
+        row.WateredDay = tile.WateredDay;
+        return row;
+    }
+
+    private static FarmTileRow ToRemovedRow(int x, int y)
+    {
+        FarmTileRow row = FarmTileRow.Create();
+        row.X = (ushort)x;
+        row.Y = (ushort)y;
+        row.Removed = true;
         return row;
     }
 
     private static FarmUseOutcome Refused(FarmStatus status) => new(status, FarmAction.None);
+
+    private static bool IsWateringCan(InventorySlotView held)
+        => held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Tool && item.Tool == ToolKind.WateringCan;
+
+    private static PlaceAction RuleOf(FarmAction action) => action switch
+    {
+        FarmAction.Tilled => PlaceAction.Till,
+        FarmAction.Planted => PlaceAction.Plant,
+        FarmAction.Harvested => PlaceAction.Harvest,
+        _ => PlaceAction.Water,
+    };
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
     private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs)
@@ -292,7 +419,7 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
 
         // A mature crop is harvested whatever is held (bare hands included).
         bool withered = current is { HasCrop: true } standing && FarmRules.IsWithered(standing, nowMs, _calendar);
-        if (current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs))
+        if (current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar))
         {
             FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested);
             return harvest != FarmVerdict.Ok
@@ -309,14 +436,20 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         {
             case ItemKind.Tool when item.Tool == ToolKind.Hoe:
                 {
-                    FarmVerdict till = FarmRules.Till(tillable, current, out FarmTile tilled);
+                    FarmVerdict till = FarmRules.Till(tillable, current, nowMs, _calendar, out FarmTile tilled);
                     return till == FarmVerdict.Ok ? new Plan(till, FarmAction.Tilled, tilled, [], "farm.till", null, item.Id, 0) : Plan.Refuse(till);
                 }
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
-                    FarmVerdict water = FarmRules.Water(current, nowMs, out FarmTile watered);
+                    FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered);
                     return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", null, item.Id, 0) : Plan.Refuse(water);
+                }
+
+            case ItemKind.Tool when item.Tool == ToolKind.Pickaxe:
+                {
+                    FarmVerdict clear = FarmRules.Clear(current);
+                    return clear == FarmVerdict.Ok ? new Plan(clear, FarmAction.Cleared, default, [], "farm.clear", null, item.Id, 0) : Plan.Refuse(clear);
                 }
 
             case ItemKind.Seed:
@@ -363,6 +496,25 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
     // cannot reset the plot without leaving the produce.
     private async Task<(FarmStatus Status, PendingGroundDrop? Pending)> CommitAsync(Guid playerId, CoopMembershipInfo? member, MapInstance instance, int x, int y, Plan plan, GroundDrop? drop, CancellationToken cancellationToken)
     {
+        if (plan.Action == FarmAction.Cleared)
+        {
+            IUnitOfWork clearing = _unitOfWork.Create();
+            await using (clearing.ConfigureAwait(false))
+            {
+                IRepository<FarmPlot> plots = clearing.Repository<FarmPlot>();
+                FarmPlot? row = await plots.FirstOrDefaultAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId && p.X == x && p.Y == y, cancellationToken).ConfigureAwait(false);
+                if (row is not null)
+                {
+                    plots.Remove(row);
+                }
+
+                this.Audit(clearing, member, plan);
+                _ = await clearing.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return (FarmStatus.Ok, null);
+        }
+
         if (plan.Operations.Count > 0)
         {
             InventoryChange change = await _inventory.ApplyAsync(
@@ -421,9 +573,9 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
 
         row.CropId = tile.CropId;
         row.PlantedAtMs = tile.PlantedAtMs;
-        row.GrowthMs = tile.GrowthMs;
-        row.SettledAtMs = tile.SettledAtMs;
-        row.WetUntilMs = tile.WetUntilMs;
+        row.GrowthDays = tile.GrowthDays;
+        row.WateredDay = tile.WateredDay;
+        row.TendedDay = tile.TendedDay;
         row.LastWorkedBy = playerId;
         row.UpdatedAt = _time.GetUtcNow();
     }
@@ -446,14 +598,23 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
 
     private async Task<MapFarm> LoadFarmAsync(MapInstance instance)
     {
-        MapFarm farm = new();
+        MapFarm farm = new(instance);
+        int today = _calendar.DayNumberAt(_time.GetUtcNow().ToUnixTimeMilliseconds());
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
             List<FarmPlot> rows = await unit.Repository<FarmPlot>().ListAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId, CancellationToken.None).ConfigureAwait(false);
             foreach (FarmPlot row in rows)
             {
-                farm.Set(row.X, row.Y, new FarmTile(row.CropId, row.PlantedAtMs, row.GrowthMs, row.SettledAtMs, row.WetUntilMs));
+                FarmTile tile = new(row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay, row.TendedDay);
+
+                // Bare soil from before day counting has no history: it starts its dry days now instead of reverting on the spot.
+                if (!tile.HasCrop && tile.WateredDay == 0 && tile.TendedDay == 0)
+                {
+                    tile = tile with { TendedDay = today };
+                }
+
+                farm.Set(row.X, row.Y, tile);
             }
         }
 
@@ -468,6 +629,19 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         packet.ServerNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
         packet.Tiles.Clear();
         packet.Tiles.Add(ToRow(x, y, tile));
+        await _publisher.PublishAsync(instance, ChunkCoord.OfTile(x, y), packet, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task PushClearedAsync(MapInstance instance, int x, int y, CancellationToken cancellationToken)
+    {
+        using PacketScope<FarmTilesCleared> lease = PacketFactory<FarmTilesCleared>.Acquire();
+        FarmTilesCleared packet = lease.Value;
+        packet.MapId = instance.MapId;
+        packet.Tiles.Clear();
+        TileRow tile = TileRow.Create();
+        tile.X = (ushort)x;
+        tile.Y = (ushort)y;
+        packet.Tiles.Add(tile);
         await _publisher.PublishAsync(instance, ChunkCoord.OfTile(x, y), packet, null, cancellationToken).ConfigureAwait(false);
     }
 
@@ -489,9 +663,118 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
         }
     }
 
-    // The tilled tiles of one instance, in one bucket per chunk (docs/adr/ADR-022 D5): the tiles of a chunk are one lookup away.
-    private sealed class MapFarm
+    // A tile as the player sees it: null when it was never tilled or its bare soil has reverted. A reverted tile may still sit in memory and in
+    // PostgreSQL until the next day sweep; whoever tills it again overwrites it.
+    private FarmTile? LiveTile(MapFarm farm, MapInstance instance, int x, int y, long nowMs)
+        => farm.TryGet(x, y, out FarmTile found) && !FarmRules.IsReverted(found, instance.Key, x, y, nowMs, _calendar) ? found : null;
+
+    private void OnDayEnded(GameDayEnded ended)
     {
+        _ = ended;
+        _ = this.SweepAsync();
+    }
+
+    // Drops the reverted tiles of every loaded farm. Not loaded farms need nothing: the rule is computed on read.
+    [SuppressMessage("Design", "CA1031", Justification = "A failed sweep is repeated at the next day end; the reverted tiles are already invisible through the lazy rule.")]
+    private async Task SweepAsync()
+    {
+        try
+        {
+            foreach (Task<MapFarm> load in _farms.Values.ToArray())
+            {
+                if (load.IsCompletedSuccessfully)
+                {
+                    await this.SweepFarmAsync(await load.ConfigureAwait(false)).ConfigureAwait(false);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // See the suppression.
+        }
+    }
+
+    private async Task SweepFarmAsync(MapFarm farm)
+    {
+        MapInstance instance = farm.Instance;
+        List<(int X, int Y)> gone = [];
+        using (await _mapLocks.EnterAsync(instance.Key, CancellationToken.None).ConfigureAwait(false))
+        {
+            long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+            foreach (KeyValuePair<ChunkCoord, Dictionary<(int X, int Y), FarmTile>> chunk in farm.Chunks)
+            {
+                foreach (KeyValuePair<(int X, int Y), FarmTile> tile in chunk.Value)
+                {
+                    if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar))
+                    {
+                        gone.Add(tile.Key);
+                    }
+                }
+            }
+
+            if (gone.Count == 0)
+            {
+                return;
+            }
+
+            IUnitOfWork unit = _unitOfWork.Create();
+            await using (unit.ConfigureAwait(false))
+            {
+                IRepository<FarmPlot> plots = unit.Repository<FarmPlot>();
+                foreach (FarmPlot row in await plots.ListAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId, CancellationToken.None).ConfigureAwait(false))
+                {
+                    if (gone.Contains((row.X, row.Y)))
+                    {
+                        plots.Remove(row);
+                    }
+                }
+
+                _ = await unit.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
+            }
+
+            foreach ((int X, int Y) key in gone)
+            {
+                _ = farm.Remove(key.X, key.Y);
+            }
+        }
+
+        // The removed rows go to the subscribers of each tile's chunk, one batch per chunk (docs/adr/ADR-022 D4).
+        const int BatchSize = 64;
+        gone.Sort(static (a, b) => ChunkCoord.OfTile(a.X, a.Y).SortKey.CompareTo(ChunkCoord.OfTile(b.X, b.Y).SortKey));
+        int from = 0;
+        while (from < gone.Count)
+        {
+            ChunkCoord chunk = ChunkCoord.OfTile(gone[from].X, gone[from].Y);
+            int to = from;
+            while (to < gone.Count && ChunkCoord.OfTile(gone[to].X, gone[to].Y) == chunk)
+            {
+                to++;
+            }
+
+            for (int start = from; start < to; start += BatchSize)
+            {
+                using PacketScope<FarmTilesChanged> lease = PacketFactory<FarmTilesChanged>.Acquire();
+                FarmTilesChanged packet = lease.Value;
+                packet.MapId = instance.MapId;
+                packet.ServerNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+                packet.Tiles.Clear();
+                for (int i = start; i < Math.Min(to, start + BatchSize); i++)
+                {
+                    packet.Tiles.Add(ToRemovedRow(gone[i].X, gone[i].Y));
+                }
+
+                await _publisher.PublishAsync(instance, chunk, packet, null, CancellationToken.None).ConfigureAwait(false);
+            }
+
+            from = to;
+        }
+    }
+
+    // The tilled tiles of one instance, in one bucket per chunk (docs/adr/ADR-022 D5): the tiles of a chunk are one lookup away.
+    private sealed class MapFarm(MapInstance instance)
+    {
+        public MapInstance Instance { get; } = instance;
+
         public Dictionary<ChunkCoord, Dictionary<(int X, int Y), FarmTile>> Chunks { get; } = [];
 
         public int Count { get; private set; }
@@ -524,6 +807,23 @@ public sealed class FarmService : IFarmService, IChunkStateContributor
             {
                 bucket[(x, y)] = tile;
             }
+        }
+
+        public bool Remove(int x, int y)
+        {
+            ChunkCoord chunk = ChunkCoord.OfTile(x, y);
+            if (!this.Chunks.TryGetValue(chunk, out Dictionary<(int X, int Y), FarmTile>? bucket) || !bucket.Remove((x, y)))
+            {
+                return false;
+            }
+
+            this.Count--;
+            if (bucket.Count == 0)
+            {
+                _ = this.Chunks.Remove(chunk);
+            }
+
+            return true;
         }
     }
 

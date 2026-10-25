@@ -25,8 +25,14 @@ using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
+using Nosum.Contracts.Farm;
+using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Contracts.GroundItem.C2S;
+using Nosum.Contracts.GroundItem.S2C;
 using Nosum.Contracts.Look.S2C;
+using Nosum.Contracts.Node.C2S;
+using Nosum.Contracts.Node.S2C;
 using Nosum.Contracts.Placeable.S2C;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
@@ -124,6 +130,9 @@ internal sealed class ChunkClient : IAsyncDisposable
     private readonly ConcurrentQueue<ChunkState> _chunkStates = new();
     private readonly ConcurrentQueue<FarmTilesChanged> _farmChanges = new();
     private readonly ConcurrentQueue<PlacedChanged> _placedChanges = new();
+    private readonly ConcurrentQueue<NodeChanged> _nodeChanges = new();
+    private readonly ConcurrentQueue<GroundItemSpawned> _groundSpawns = new();
+    private readonly ConcurrentQueue<GroundItemTaken> _groundTakens = new();
     private long _bytes;
     private int _snapshotCount;
     private long _entryCount;
@@ -153,6 +162,9 @@ internal sealed class ChunkClient : IAsyncDisposable
             session.On<ChunkLeft>(c => _chunkLefts.Enqueue((c.MapId, c.ChunkX, c.ChunkY))),
             session.On<ChunkState>(c => _chunkStates.Enqueue(Copy(c))),
             session.On<FarmTilesChanged>(f => _farmChanges.Enqueue(new FarmTilesChanged { MapId = f.MapId, Tiles = [.. f.Tiles.Select(t => new FarmTileRow { X = t.X, Y = t.Y, CropId = t.CropId })] })),
+            session.On<NodeChanged>(n => _nodeChanges.Enqueue(new NodeChanged { MapId = n.MapId, Removed = [.. n.Removed], Upserted = [.. n.Upserted.Select(CopyNode)] })),
+            session.On<GroundItemSpawned>(g => _groundSpawns.Enqueue(new GroundItemSpawned { MapId = g.MapId, Item = CopyGround(g.Item) })),
+            session.On<GroundItemTaken>(g => _groundTakens.Enqueue(new GroundItemTaken { MapId = g.MapId, Id = g.Id, Reason = g.Reason })),
             session.On<PlacedChanged>(p => _placedChanges.Enqueue(new PlacedChanged { MapId = p.MapId, Removed = [.. p.Removed], Upserted = [.. p.Upserted.Select(o => new PlacedObjectRow { Id = o.Id, ItemId = o.ItemId, TileX = o.TileX, TileY = o.TileY, Rotation = o.Rotation })] })),
         ];
     }
@@ -183,6 +195,12 @@ internal sealed class ChunkClient : IAsyncDisposable
     public IReadOnlyCollection<FarmTilesChanged> FarmChanges => _farmChanges;
 
     public IReadOnlyCollection<PlacedChanged> PlacedChanges => _placedChanges;
+
+    public IReadOnlyCollection<NodeChanged> NodeChanges => _nodeChanges;
+
+    public IReadOnlyCollection<GroundItemSpawned> GroundSpawns => _groundSpawns;
+
+    public IReadOnlyCollection<GroundItemTaken> GroundTakens => _groundTakens;
 
     public async Task ConnectAsync(CancellationToken ct)
     {
@@ -215,6 +233,27 @@ internal sealed class ChunkClient : IAsyncDisposable
         result.Status.Should().Be(JoinStatus.Ok);
         this.PlayerId = result.PlayerId;
         return result;
+    }
+
+    /// <summary>Uses the item in a hotbar slot on a tile and waits for the server's answer.</summary>
+    public async Task<UseItemResult> UseAsync(int slot, int tileX, int tileY, CancellationToken ct)
+    {
+        using UseItem request = new() { Slot = (byte)slot, TileX = tileX, TileY = tileY };
+        return await _session.RequestAsync<UseItemResult>(request, ct: ct);
+    }
+
+    /// <summary>Asks for the ground items the server shows this player (the reply covers the interest set only).</summary>
+    public async Task<GroundItemsSnapshot> GetGroundItemsAsync(CancellationToken ct)
+    {
+        using GetGroundItems request = new();
+        return await _session.RequestAsync<GroundItemsSnapshot>(request, ct: ct);
+    }
+
+    /// <summary>Asks for the resource nodes the server shows this player (the reply covers the interest set only).</summary>
+    public async Task<NodeSnapshot> GetNodesAsync(CancellationToken ct)
+    {
+        using GetNodes request = new();
+        return await _session.RequestAsync<NodeSnapshot>(request, ct: ct);
     }
 
     /// <summary>Claims a position the way the real client does, about every 120 ms.</summary>
@@ -282,12 +321,16 @@ internal sealed class ChunkClient : IAsyncDisposable
         _session.Dispose();
     }
 
+    private static NodeRow CopyNode(NodeRow row) => new() { Id = row.Id, X = row.X, Y = row.Y, Kind = row.Kind, Variant = row.Variant, Stage = row.Stage, Hits = row.Hits };
+
+    private static GroundItemRow CopyGround(GroundItemRow row) => new() { Id = row.Id, ItemId = row.ItemId, Quantity = row.Quantity, X = row.X, Y = row.Y };
+
     private static ChunkState Copy(ChunkState source)
     {
         ChunkState copy = new() { MapId = source.MapId, ChunkX = source.ChunkX, ChunkY = source.ChunkY, ServerNowMs = source.ServerNowMs };
         foreach (FarmTileRow row in source.FarmTiles)
         {
-            copy.FarmTiles.Add(new FarmTileRow { X = row.X, Y = row.Y, CropId = row.CropId, PlantedAtMs = row.PlantedAtMs, GrowthMs = row.GrowthMs, SettledAtMs = row.SettledAtMs, WetUntilMs = row.WetUntilMs });
+            copy.FarmTiles.Add(new FarmTileRow { X = row.X, Y = row.Y, CropId = row.CropId, PlantedAtMs = row.PlantedAtMs, GrowthDays = row.GrowthDays, WateredDay = row.WateredDay });
         }
 
         foreach (PlacedObjectRow row in source.Placed)
@@ -295,6 +338,8 @@ internal sealed class ChunkClient : IAsyncDisposable
             copy.Placed.Add(new PlacedObjectRow { Id = row.Id, ItemId = row.ItemId, TileX = row.TileX, TileY = row.TileY, Rotation = row.Rotation });
         }
 
+        copy.Nodes.AddRange(source.Nodes.Select(CopyNode));
+        copy.GroundItems.AddRange(source.GroundItems.Select(CopyGround));
         return copy;
     }
 }

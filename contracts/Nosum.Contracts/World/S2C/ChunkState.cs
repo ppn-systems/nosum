@@ -5,6 +5,8 @@ using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Contracts.GroundItem.S2C;
+using Nosum.Contracts.Node.S2C;
 using Nosum.Contracts.Placeable.S2C;
 
 namespace Nosum.Contracts.World.S2C;
@@ -13,7 +15,7 @@ namespace Nosum.Contracts.World.S2C;
 /// Push to one player: the full state of one chunk (16 × 16 tiles) that just joined the player's interest set (docs/adr/ADR-022 D4).
 /// It replaces whatever the client mirrors of that chunk; changes in it follow as the usual delta packets until
 /// <see cref="ChunkLeft"/>. A chunk with nothing in it is not sent at all. Lists of other world things (resource nodes, ground items)
-/// are appended here as their features land.
+/// are appended here as their features land (resource nodes and ground items so far).
 /// </summary>
 [Packet]
 [GenerateFormatter]
@@ -41,6 +43,12 @@ public sealed partial class ChunkState : PacketBase<ChunkState>, IPacketStaticOp
     /// <summary>Every placed object whose first tile is in the chunk.</summary>
     [SerializeOrder(5)] public List<PlacedObjectRow> Placed { get; set; } = [];
 
+    /// <summary>Every resource node standing in the chunk.</summary>
+    [SerializeOrder(6)] public List<NodeRow> Nodes { get; set; } = [];
+
+    /// <summary>Every item lying on the ground in the chunk.</summary>
+    [SerializeOrder(7)] public List<GroundItemRow> GroundItems { get; set; } = [];
+
     /// <summary>Gets whether the chunk holds nothing the packet can carry; such a chunk is not sent.</summary>
-    [SerializeIgnore] public bool IsEmpty => this.FarmTiles.Count == 0 && this.Placed.Count == 0;
+    [SerializeIgnore] public bool IsEmpty => this.FarmTiles.Count == 0 && this.Placed.Count == 0 && this.Nodes.Count == 0 && this.GroundItems.Count == 0;
 }

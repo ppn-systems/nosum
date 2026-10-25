@@ -30,7 +30,7 @@ public sealed class ChunkStreamer
     /// <param name="presence">Sends to one connection.</param>
     /// <param name="publisher">Delivers a leave notice to the players who can see the leaver.</param>
     /// <param name="looks">Gives the look and nickname of a player who comes into sight.</param>
-    /// <param name="contributors">The features that keep per-chunk world state (farm plots, placed objects, ...).</param>
+    /// <param name="contributors">The features that keep per-chunk world state (farm plots, placed objects, resource nodes, ground items).</param>
     public ChunkStreamer(IMapPresence presence, IChunkPublisher publisher, ILookService looks, IEnumerable<IChunkStateContributor> contributors)
     {
         ArgumentNullException.ThrowIfNull(presence);
@@ -67,6 +67,8 @@ public sealed class ChunkStreamer
             state.ServerNowMs = 0;
             state.FarmTiles.Clear();
             state.Placed.Clear();
+            state.Nodes.Clear();
+            state.GroundItems.Clear();
             foreach (IChunkStateContributor contributor in _contributors)
             {
                 await contributor.FillAsync(player.Instance, chunk, state, cancellationToken).ConfigureAwait(false);

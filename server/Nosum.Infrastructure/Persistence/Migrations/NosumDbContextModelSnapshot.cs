@@ -412,9 +412,9 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("crop_id");
 
-                    b.Property<long>("GrowthMs")
-                        .HasColumnType("bigint")
-                        .HasColumnName("growth_ms");
+                    b.Property<int>("GrowthDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("growth_days");
 
                     b.Property<Guid?>("LastWorkedBy")
                         .HasColumnType("uuid")
@@ -424,17 +424,17 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("planted_at_ms");
 
-                    b.Property<long>("SettledAtMs")
-                        .HasColumnType("bigint")
-                        .HasColumnName("settled_at_ms");
+                    b.Property<int>("TendedDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("tended_day");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<long>("WetUntilMs")
-                        .HasColumnType("bigint")
-                        .HasColumnName("wet_until_ms");
+                    b.Property<int>("WateredDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("watered_day");
 
                     b.HasKey("MapId", "OwnerId", "X", "Y")
                         .HasName("pk_farm_plots");
@@ -683,6 +683,104 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Nodes.NodeInstanceState", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("LastDay")
+                        .HasColumnType("bigint")
+                        .HasColumnName("last_day");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<DateTimeOffset>("SeededAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("seeded_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_node_instances");
+
+                    b.HasIndex("MapId", "OwnerId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_node_instances_map_id_owner_id");
+
+                    b.ToTable("node_instances", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Nodes.WorldNode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AgeDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("age_days");
+
+                    b.Property<short>("Hits")
+                        .HasColumnType("smallint")
+                        .HasColumnName("hits");
+
+                    b.Property<short>("Kind")
+                        .HasColumnType("smallint")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<DateTimeOffset>("SpawnedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("spawned_at");
+
+                    b.Property<short>("Stage")
+                        .HasColumnType("smallint")
+                        .HasColumnName("stage");
+
+                    b.Property<int>("TileX")
+                        .HasColumnType("integer")
+                        .HasColumnName("tile_x");
+
+                    b.Property<int>("TileY")
+                        .HasColumnType("integer")
+                        .HasColumnName("tile_y");
+
+                    b.Property<short>("Variant")
+                        .HasColumnType("smallint")
+                        .HasColumnName("variant");
+
+                    b.HasKey("Id")
+                        .HasName("pk_resource_nodes");
+
+                    b.HasIndex("MapId", "OwnerId", "TileX", "TileY")
+                        .IsUnique()
+                        .HasDatabaseName("ix_resource_nodes_map_id_owner_id_tile_x_tile_y");
+
+                    b.ToTable("resource_nodes", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Quests.PlayerQuest", b =>
                 {
                     b.Property<Guid>("PlayerId")
@@ -714,6 +812,52 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasName("pk_player_quests");
 
                     b.ToTable("player_quests", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Visits.VisitGrant", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid>("VisitorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("visitor_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("OwnerId", "VisitorId")
+                        .HasName("pk_visit_grants");
+
+                    b.HasIndex("VisitorId")
+                        .HasDatabaseName("ix_visit_grants_visitor_id");
+
+                    b.ToTable("visit_grants", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_visit_grants_not_self", "owner_id <> visitor_id");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Visits.VisitSettings", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<bool>("CoopMembersMayVisit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("coop_members_may_visit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("OwnerId")
+                        .HasName("pk_visit_settings");
+
+                    b.ToTable("visit_settings", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.World.GroundItem", b =>
@@ -928,6 +1072,33 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_quests_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Visits.VisitGrant", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_grants_players_owner_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("VisitorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_grants_players_visitor_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Visits.VisitSettings", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_settings_players_owner_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Accounts.Player", b =>

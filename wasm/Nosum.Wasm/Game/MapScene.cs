@@ -5,10 +5,12 @@ using Nosum.Core;
 using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Nodes;
 using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Shops;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Look;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
 
@@ -41,7 +43,7 @@ internal sealed class MapScene
     private readonly MapLoader _loader;
     private readonly FarmerTextures _farmerTextures;
     private readonly RenderCommandBuffer _commands = new(8192);
-    private readonly WorldSpriteBatch _world = new(256);
+    private readonly WorldSpriteBatch _world = new(1024);
     private readonly PlayerChannel? _channel;
     private readonly RemotePlayers? _remote;
     private readonly PlayerActions? _actions;
@@ -54,6 +56,10 @@ internal sealed class MapScene
     private readonly PlaceableChannel? _placed;
     private readonly PlacementActions? _placement;
     private readonly PlacedSet _placedSet = new();
+    private readonly NodeChannel? _nodes;
+    private WalkGrid? _nodeGrid;
+    private MapContent? _nodeGridContent;
+    private int _nodeGridVersion = -1;
     private WalkGrid? _placedGrid;
     private MapContent? _placedGridContent;
     private int _placedGridVersion = -1;
@@ -80,9 +86,11 @@ internal sealed class MapScene
     /// <param name="placement">The keys that place, turn, move and pick up furniture.</param>
     /// <param name="looks">The looks the server sent for the players on the map; <see langword="null"/> draws everyone with <paramref name="look"/>.</param>
     /// <param name="labels">Nickname labels over players' heads; <see langword="null"/> draws no names.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null)
+    /// <param name="nodes">The mirror of the resource nodes of the player's place; the ones that block walk like the server's grid does.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null)
     {
         _actions = actions;
+        _nodes = nodes;
         _placed = placed;
         _placement = placement;
         _looks = looks;
@@ -164,7 +172,7 @@ internal sealed class MapScene
             _ = ShopRules.TryFindShop(content.Spec, _farmer.X, _farmer.Y, map.TileWidth, out shopId);
         }
 
-        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable, _clockSeconds, shopId);
+        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, !content.Spec.Placeable, _clockSeconds, shopId);
         if (_actions is not null)
         {
             _placement?.Update(content.Spec.Placeable && _phase == Phase.Playing, liveEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds);
@@ -188,6 +196,7 @@ internal sealed class MapScene
         IMapDecorator[] decorators = content.Decorators;
         for (int i = 0; i < decorators.Length; i++)
         {
+            decorators[i].SetView(_camera);
             decorators[i].DrawOnGround(_commands, _camera, timeMs);
         }
 
@@ -247,7 +256,7 @@ internal sealed class MapScene
     {
         if (_placed is null || !content.Spec.Placeable)
         {
-            return content.Grid;
+            return this.NodeGridOf(content);
         }
 
         int version = _placed.Version;
@@ -272,6 +281,39 @@ internal sealed class MapScene
         }
 
         return _placedGrid;
+    }
+
+    // The map's own grid plus the tiles of the nodes that block walking (docs/adr/ADR-021 D3), the same rule the server builds with NodeField.
+    // Rebuilt only when the mirror or the map changed.
+    private WalkGrid NodeGridOf(MapContent content)
+    {
+        if (_nodes is null)
+        {
+            return content.Grid;
+        }
+
+        int version = _nodes.Version;
+        if (version != _nodeGridVersion || !ReferenceEquals(content, _nodeGridContent) || _nodeGrid is null)
+        {
+            NodeField field = new();
+            using (_nodes.Read())
+            {
+                if (string.Equals(_nodes.MapId, content.Spec.Id, StringComparison.Ordinal))
+                {
+                    for (int i = 0; i < _nodes.Count; i++)
+                    {
+                        NodeInfo node = _nodes.At(i);
+                        field.Add(new ResourceNode(node.Id, node.X, node.Y, (NodeKind)node.Kind, node.Variant, node.Stage, node.Hits));
+                    }
+                }
+            }
+
+            _nodeGrid = field.BuildGrid(content.Grid);
+            _nodeGridContent = content;
+            _nodeGridVersion = version;
+        }
+
+        return _nodeGrid;
     }
 
     private static Walker StartWalker(MapContent content, MapStart start)

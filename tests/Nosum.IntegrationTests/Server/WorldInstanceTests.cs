@@ -54,6 +54,9 @@ namespace Nosum.IntegrationTests.Server;
 public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
 {
     private const byte Down = 0;
+
+    // The first free slot after the starter kit: hoe, can, three seeds, axe, pickaxe, scythe.
+    private const int ChairSlot = 8;
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(40);
 
     private readonly PostgresFixture _database;
@@ -177,33 +180,33 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
             first = free[0];
             second = free[1];
 
-            // Nothing is placed yet; the tester grant gives two chairs, which land in slot 5 after the tools and seeds.
+            // Nothing is placed yet; the tester grant gives two chairs, which land in the first free hotbar slot after the five tools and the seeds.
             (await a.GrantAsync(ItemCatalog.OakChair, 2, host.Timeout)).Should().BeTrue();
-            _ = await a.WaitForSlotAsync(s => s.Slot == 5 && s.Quantity == 2, host.Timeout); // the grant's own push, so later waits see only what follows
+            _ = await a.WaitForSlotAsync(s => s.Slot == ChairSlot && s.Quantity == 2, host.Timeout); // the grant's own push, so later waits see only what follows
             (await a.GetPlacedAsync(host.Timeout)).Objects.Should().BeEmpty();
-            (await a.GetInventoryAsync(host.Timeout)).Slots.Should().Contain(s => s.Slot == 5 && s.ItemId == ItemCatalog.OakChair && s.Quantity == 2);
+            (await a.GetInventoryAsync(host.Timeout)).Slots.Should().Contain(s => s.Slot == ChairSlot && s.ItemId == ItemCatalog.OakChair && s.Quantity == 2);
 
             // Refusals change nothing: the hoe, an empty slot, a rotation the chair has not got, a wall, the doorway, too far away.
             (await a.PlaceAsync(0, first.X, first.Y, 0, host.Timeout)).Status.Should().Be(PlaceStatus.NoItem);
             (await a.PlaceAsync(30, first.X, first.Y, 0, host.Timeout)).Status.Should().Be(PlaceStatus.NoItem);
-            (await a.PlaceAsync(5, first.X, first.Y, 4, host.Timeout)).Status.Should().Be(PlaceStatus.BadRotation);
-            (await a.PlaceAsync(5, 0, 0, 0, host.Timeout)).Status.Should().Be(PlaceStatus.Blocked);
-            (await a.PlaceAsync(5, 3, 10, 0, host.Timeout)).Status.Should().Be(PlaceStatus.Reserved);
-            (await a.PlaceAsync(5, -3, 4, 0, host.Timeout)).Status.Should().Be(PlaceStatus.OutsideRoom);
-            (await a.PlaceAsync(5, first.X + 9, first.Y, 0, host.Timeout)).Status.Should().BeOneOf(PlaceStatus.OutOfReach, PlaceStatus.OutsideRoom, PlaceStatus.Blocked);
+            (await a.PlaceAsync(ChairSlot, first.X, first.Y, 4, host.Timeout)).Status.Should().Be(PlaceStatus.BadRotation);
+            (await a.PlaceAsync(ChairSlot, 0, 0, 0, host.Timeout)).Status.Should().Be(PlaceStatus.Blocked);
+            (await a.PlaceAsync(ChairSlot, 3, 10, 0, host.Timeout)).Status.Should().Be(PlaceStatus.Reserved);
+            (await a.PlaceAsync(ChairSlot, -3, 4, 0, host.Timeout)).Status.Should().Be(PlaceStatus.OutsideRoom);
+            (await a.PlaceAsync(ChairSlot, first.X + 9, first.Y, 0, host.Timeout)).Status.Should().BeOneOf(PlaceStatus.OutOfReach, PlaceStatus.OutsideRoom, PlaceStatus.Blocked);
 
             // Place a chair: the player is told, the instance is pushed the change, the item left the inventory.
-            PlaceResult placed = await a.PlaceAsync(5, first.X, first.Y, 1, host.Timeout);
+            PlaceResult placed = await a.PlaceAsync(ChairSlot, first.X, first.Y, 1, host.Timeout);
             placed.Status.Should().Be(PlaceStatus.Ok);
             chairId = placed.ObjectId;
             chairId.Should().BeGreaterThan(0);
             PlacedChanged pushed = await a.PlacedChanges.WaitAsync(host.Timeout);
             pushed.MapId.Should().Be(GameMaps.FarmHouse);
             pushed.Upserted.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = chairId, ItemId = ItemCatalog.OakChair, TileX = (ushort)first.X, TileY = (ushort)first.Y, Rotation = (byte)1 });
-            (await a.WaitForSlotAsync(s => s.Slot == 5, host.Timeout)).Quantity.Should().Be(1);
+            (await a.WaitForSlotAsync(s => s.Slot == ChairSlot, host.Timeout)).Quantity.Should().Be(1);
 
             // The same tile again overlaps; the chair now blocks walking on the server.
-            (await a.PlaceAsync(5, first.X, first.Y, 0, host.Timeout)).Status.Should().Be(PlaceStatus.Overlaps);
+            (await a.PlaceAsync(ChairSlot, first.X, first.Y, 0, host.Timeout)).Status.Should().Be(PlaceStatus.Overlaps);
             await a.SendMoveAsync(1, (first.X * 16) + 8, (first.Y * 16) + 8, Down, host.Timeout);
             (await a.Corrections.WaitAsync(host.Timeout)).Reason.Should().Be(MoveRefusal.Blocked);
 
@@ -218,11 +221,11 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
             (await a.PlacedChanges.WaitAsync(host.Timeout)).Upserted.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = chairId, TileX = (ushort)second.X, TileY = (ushort)second.Y, Rotation = (byte)2 });
             (await a.PickUpAsync(chairId, host.Timeout)).Status.Should().Be(PlaceStatus.Ok);
             (await a.PlacedChanges.WaitAsync(host.Timeout)).Removed.Should().Equal(chairId);
-            (await a.WaitForSlotAsync(s => s.Slot == 5 && s.Quantity == 2, host.Timeout)).ItemId.Should().Be(ItemCatalog.OakChair);
+            (await a.WaitForSlotAsync(s => s.Slot == ChairSlot && s.Quantity == 2, host.Timeout)).ItemId.Should().Be(ItemCatalog.OakChair);
             (await a.PickUpAsync(chairId, host.Timeout)).Status.Should().Be(PlaceStatus.UnknownObject);
 
             // Place it again for the restart below.
-            PlaceResult again = await a.PlaceAsync(5, second.X, second.Y, 3, host.Timeout);
+            PlaceResult again = await a.PlaceAsync(ChairSlot, second.X, second.Y, 3, host.Timeout);
             again.Status.Should().Be(PlaceStatus.Ok);
             chairId = again.ObjectId;
         }
@@ -324,7 +327,7 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
         join.MapId.Should().Be(GameMaps.Farm);
         (await a.GrantAsync(ItemCatalog.OakChair, 1, host.Timeout)).Should().BeTrue();
 
-        (await a.PlaceAsync(5, (int)(join.SpawnX / 16), (int)(join.SpawnY / 16) + 1, 0, host.Timeout)).Status.Should().Be(PlaceStatus.NotPlaceable);
+        (await a.PlaceAsync(ChairSlot, (int)(join.SpawnX / 16), (int)(join.SpawnY / 16) + 1, 0, host.Timeout)).Status.Should().Be(PlaceStatus.NotPlaceable);
         (await a.GetPlacedAsync(host.Timeout)).MapId.Should().BeEmpty("the farm takes no furniture");
     }
 

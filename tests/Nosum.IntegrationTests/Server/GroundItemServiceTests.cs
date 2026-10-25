@@ -20,6 +20,7 @@ using Nosum.Contracts.GroundItem.S2C;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.World;
 using Nosum.Gameplay.GroundItems;
+using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
@@ -191,7 +192,7 @@ public sealed class GroundItemServiceTests : IClassFixture<PostgresFixture>
     {
         Guid player = await CreatePlayerAsync();
         MapInstance town = Unique();
-        _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, 31, "test.fill"); // 5 starter slots + 31 = 36
+        _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, InventoryLimits.DefaultCapacity - StarterKit.Items.Length, "test.fill"); // the starter kit plus this fills the bag
         _ = await _items.DropAsync(new GroundDrop(town, 100, 100, ItemCatalog.Parsnip, 1, null));
         PlayerPresence presence = Stand(player, town, 100, 100);
 
@@ -365,7 +366,7 @@ public sealed class GroundItemServiceTests : IClassFixture<PostgresFixture>
     private PlayerPresence Stand(Guid account, MapInstance instance, double x, double y)
         => _presence.Register(new PlayerPresence(1, account, instance, DispatchProxy.Create<IConnection, ConnectionStub>(), new MotionState(x, y, 0)));
 
-    private GroundItemService NewService() => new(_presence, new BlankCatalog(), _transfers, _units, _clock);
+    private GroundItemService NewService() => new(_presence, NoChunks.Instance, _presence, new BlankCatalog(), _transfers, _units, _clock);
 
     private async Task<List<GroundItem>> RowsAsync(MapInstance instance)
     {
@@ -405,8 +406,8 @@ public sealed class GroundItemServiceTests : IClassFixture<PostgresFixture>
         }
     }
 
-    // Remembers what the service multicast and who stands where; everything else is empty.
-    private sealed class RecordingPresence : IMapPresence
+    // Remembers what the service published and who stands where; everything else is empty.
+    private sealed class RecordingPresence : IMapPresence, IChunkPublisher
     {
         private readonly Dictionary<IConnection, PlayerPresence> _players = [];
 
@@ -456,6 +457,12 @@ public sealed class GroundItemServiceTests : IClassFixture<PostgresFixture>
 
             return ValueTask.CompletedTask;
         }
+
+        public ValueTask PublishAsync(MapInstance instance, ChunkCoord chunk, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default)
+            => this.MulticastAsync(instance.Key, packet, except, cancellationToken);
+
+        public ValueTask PublishInstanceAsync(MapInstance instance, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default)
+            => this.MulticastAsync(instance.Key, packet, except, cancellationToken);
 
         private static IPacket Copy(IPacket packet) => packet switch
         {

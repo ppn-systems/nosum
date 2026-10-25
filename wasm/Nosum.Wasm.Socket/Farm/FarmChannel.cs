@@ -9,26 +9,26 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Contracts.Node.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Maps;
 
 namespace Nosum.Wasm.Socket.Farm;
 
-/// <summary>One worked tile as the client mirrors it. Times are Unix milliseconds on the server's clock.</summary>
+/// <summary>One worked tile as the client mirrors it. Days are game day numbers (docs/adr/ADR-021 D7).</summary>
 /// <param name="X">Tile x.</param>
 /// <param name="Y">Tile y.</param>
 /// <param name="CropId">Planted crop id; zero for bare soil.</param>
-/// <param name="PlantedAtMs">When the crop was planted.</param>
-/// <param name="GrowthMs">Watered growth time settled up to <paramref name="SettledAtMs"/>.</param>
-/// <param name="SettledAtMs">The moment <paramref name="GrowthMs"/> was last settled.</param>
-/// <param name="WetUntilMs">The soil is wet until this moment.</param>
-public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, long GrowthMs, long SettledAtMs, long WetUntilMs);
+/// <param name="PlantedAtMs">When the crop was planted, Unix milliseconds on the server's clock.</param>
+/// <param name="GrowthDays">Watered game days settled so far, not counting <paramref name="WateredDay"/>.</param>
+/// <param name="WateredDay">The last game day the soil was watered; zero when never.</param>
+public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, int GrowthDays, int WateredDay);
 
 /// <summary>
 /// The client's mirror of the worked tiles of the player's map, plus an estimate of the server's clock. The server sends a chunk's tiles once, when the chunk joins the player's
 /// interest set (<see cref="ChunkState"/>), and then only changes in it; when the chunk leaves the set (<see cref="ChunkLeft"/>) its tiles are dropped, so the mirror holds
 /// the chunks around the player and nothing else (docs/adr/ADR-022 D6). A tile belongs to the chunk its coordinates fall in.
-/// The server sends the stored timestamps, not stages: the frame loop computes each crop's stage with the
+/// The server sends the stored growth numbers, not stages: the frame loop computes each crop's stage with the
 /// shared rules, so crops grow on screen without a push per stage. The frame loop reads the mirror with
 /// <see cref="Read"/>, <see cref="Count"/> and <see cref="TileAt"/> and never allocates or awaits.
 /// </summary>
@@ -48,7 +48,7 @@ public sealed class FarmChannel : IDisposable
     {
         ArgumentNullException.ThrowIfNull(socket);
         _socket = socket;
-        _subscriptions = [socket.Subscribe<FarmTilesChanged>(this.OnChanged), socket.Subscribe<ChunkState>(this.OnChunkState), socket.Subscribe<ChunkLeft>(this.OnChunkLeft)];
+        _subscriptions = [socket.Subscribe<FarmTilesChanged>(this.OnChanged), socket.Subscribe<FarmTilesCleared>(this.OnCleared), socket.Subscribe<ChunkState>(this.OnChunkState), socket.Subscribe<ChunkLeft>(this.OnChunkLeft)];
     }
 
     /// <summary>Raised when the server answered a use of an item. May run on any thread.</summary>
@@ -253,11 +253,55 @@ public sealed class FarmChannel : IDisposable
         this.Changed?.Invoke();
     }
 
+    // A pickaxe cleared tilled soil (docs/adr/ADR-021): the tiles are plain ground again.
+    private void OnCleared(FarmTilesCleared packet)
+    {
+        lock (_gate)
+        {
+            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            foreach (TileRow row in packet.Tiles)
+            {
+                this.Remove(Key(row.X, row.Y));
+            }
+        }
+
+        this.Changed?.Invoke();
+    }
+
+    // Call under the lock. Swaps the last tile into the hole so the list stays dense.
+    private void Remove(int key)
+    {
+        if (!_index.Remove(key, out int at))
+        {
+            return;
+        }
+
+        int last = _tiles.Count - 1;
+        if (at != last)
+        {
+            FarmTileInfo moved = _tiles[last];
+            _tiles[at] = moved;
+            _index[Key(moved.X, moved.Y)] = at;
+        }
+
+        _tiles.RemoveAt(last);
+    }
+
     // Call under the lock.
     private void Store(FarmTileRow row)
     {
-        FarmTileInfo tile = new(row.X, row.Y, row.CropId, row.PlantedAtMs, row.GrowthMs, row.SettledAtMs, row.WetUntilMs);
         int key = Key(row.X, row.Y);
+        if (row.Removed)
+        {
+            this.Remove(key);
+            return;
+        }
+
+        FarmTileInfo tile = new(row.X, row.Y, row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay);
         if (_index.TryGetValue(key, out int at))
         {
             _tiles[at] = tile;

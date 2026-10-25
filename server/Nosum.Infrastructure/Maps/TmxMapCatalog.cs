@@ -9,6 +9,7 @@ using Nosum.Core;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Nodes;
 
 namespace Nosum.Infrastructure.Maps;
 
@@ -42,8 +43,8 @@ public sealed class TmxMapCatalog : IMapCatalog
         {
             (double x, double y) = SpawnPoint.Find(grid, spec.SpawnTileX, spec.SpawnTileY);
             TillGrid? tillable = spec.Farmable ? TillGrid.FromMap(map, grid) : null;
-            HashSet<(int X, int Y)>? reserved = spec.Placeable ? ReservedTiles(spec, grid, warps, loaded) : null;
-            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, warps, tillable, spec.IsPrivate, spec.Placeable, reserved, spec.IsCoop));
+            HashSet<(int X, int Y)> reserved = ReservedTiles(spec, grid, warps, loaded);
+            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, warps, tillable, spec.IsPrivate, spec.Placeable, reserved, spec.IsCoop, WaterGrid.FromMap(map), NodeSites.Read(map)));
         }
     }
 
@@ -59,7 +60,7 @@ public sealed class TmxMapCatalog : IMapCatalog
         return _maps.TryGetValue(mapId, out map);
     }
 
-    // The door and the places visitors arrive, plus the tile north of each, stay clear so placed objects can never wall a player in
+    // The door and the places visitors arrive, plus the tile north of each, stay clear so placed objects and resource nodes can never wall a player in
     // or block the way out.
     private static HashSet<(int X, int Y)> ReservedTiles(MapSpec spec, WalkGrid grid, List<MapWarp> warps, List<(MapSpec Spec, TileMap Map, WalkGrid Grid, List<MapWarp> Warps)> all)
     {

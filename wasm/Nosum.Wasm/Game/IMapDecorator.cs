@@ -11,6 +11,12 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal interface IMapDecorator
 {
+    /// <summary>Tells the decorator what the camera sees this frame, before <see cref="AddToWorld"/>, so it can skip what is off screen.</summary>
+    /// <param name="camera">The camera.</param>
+    void SetView(in Camera2D camera)
+    {
+    }
+
     /// <summary>Draws over the ground layers and below the characters (soil, crops lying on the ground).</summary>
     /// <param name="commands">Where draws are recorded.</param>
     /// <param name="camera">The camera.</param>

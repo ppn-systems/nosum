@@ -51,7 +51,7 @@ sends each player only what happens on that map.
 Settled ([ADR-012](../adr/ADR-012-maps-and-warps.md), [ADR-015](../adr/ADR-015-private-instances-and-placeables.md)): exits are doors and map edges that the
 player walks onto; the server decides when the player changes map, saves where they are, and puts
 them back there when they return. **A player's farm and farmhouse are private**: each player has their own copy and
-nobody else enters it (visits by invitation are a later feature). The bus stop, the town, the forest and the backwoods are public:
+nobody else enters it unless the owner lets them in: the owner keeps an allow-list (and a switch for co-op members), a visitor can walk around and water but changes nothing else ([ADR-019](../adr/ADR-019-visiting-private-instances.md), proposed). The bus stop, the town, the forest and the backwoods are public:
 everyone on the same map sees each other, and that is where players meet. Inside their farmhouse a player places furniture
 (chairs, tables, a couch ...) that is kept for them and travels in the inventory.
 
@@ -83,11 +83,20 @@ the client never decides a contribution, a trade or a goal outcome.
 - Looks: skin, hair style, hair dye and worn shirt, trousers and hat, saved by the server and shown to everyone on the map as ids; clothes are bought, nobody starts with any.
 - Nicknames: every registered player has a unique display nickname (unaccented letters and digits, no profanity), chosen when registering, changeable once a day (guests keep a generated name), drawn above their head and shown in the market, trades and co-ops; guests show as "Khách 1234".
 
+- Visiting: the owner keeps an allow-list of registered players (by nickname, up to 50) and a switch for co-op members (on by default); a listed player or co-op member visits by typing the owner's nickname on a public map, even while the owner is offline; a visitor walks, looks, trades and waters crops, and cannot till, plant, harvest, move furniture or use the shipping bin; removing a player, switching co-op visits off or leaving the co-op sends them to the Town at once. Guests can visit when invited but keep no list and cannot be visited. Proposed defaults, owner to confirm.
+
 ## Built so far (seasons, [ADR-018](../adr/ADR-018-seasons-and-server-calendar.md); proposed defaults, owner to confirm)
 
 - One server calendar from server time: a season is 28 game days of 12 real hours (14 real days), four seasons a year. The client gets the epoch and day length once and shows season, day and time in a HUD widget.
 - Crops list the seasons they grow in (parsnip spring/fall/winter, radish summer/fall, cauliflower spring/summer). Planting out of season is refused, a crop withers at the season change (mature or not), and the seed shop only sells seeds that can be planted now.
 - Not built yet: community goals, seasonal prices or events, a time-of-day tint of the world, withered-crop art.
+
+## Built so far (crop growth in game days, [ADR-021](../adr/ADR-021-tools-resource-nodes-ground-items.md) D7)
+
+- A crop grows one day for every game day its soil was watered, counted when that day ends: parsnip 4 watered days, radish 6, cauliflower 12. Skipped days add nothing, watering twice on a day counts once, and wet soil dries at the day rollover. Growth is still computed from stored day numbers: no timer per tile, nothing runs while a farm is offline.
+- Tilled soil with no crop reverts to untilled with a 30 % chance for each dry game day (a deterministic hash of the instance, the tile and the day), so an abandoned plot goes back to grass.
+- The server has a day-ended seam (`IDayClock`) that other systems (resource-node regrowth, sprinklers) subscribe to; testers can skip game days with the Development-only `DevAdvanceClock` tool.
+- Not built yet: rain watering every crop, sprinklers, multi-harvest crops.
 
 ## Open questions
 
@@ -97,5 +106,5 @@ the client never decides a contribution, a trade or a goal outcome.
 - Shop prices and stock (built: unlimited stock; seeds 10/15/30, furniture 80-400, clothing 40-80) and whether more shops are wanted (built: seed, clothing and furniture shops in the town).
 - Season length is settled (two real weeks); open: the game-day length (built: 12 real hours, 28 days a season), the calendar epoch, and whether a mature crop that is not harvested in time withers (built: yes).
 - How many players share one instance of a public map (town) before it splits into copies.
-- How visiting works: who may enter another player's farm or farmhouse (an allow-list the owner edits), and what a visitor may touch.
+- Visiting (built as a proposal, [ADR-019](../adr/ADR-019-visiting-private-instances.md)): what a visitor may touch beyond walking and watering, whether an invitation needs the owner online, how guests take part, and how a visit is started (a panel now; a gate or a profile action later). The ADR lists seven owner questions.
 - Whether furniture may also go outdoors (on the farm) and what else is placeable (decorations, machines).

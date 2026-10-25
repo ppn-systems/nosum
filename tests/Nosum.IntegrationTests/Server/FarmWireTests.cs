@@ -18,10 +18,13 @@ using Nalix.Hosting;
 using Nalix.SDK.Options;
 using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
+using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Maps;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
+using Nosum.Contracts.Dev.C2S;
+using Nosum.Contracts.Dev.S2C;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
@@ -57,7 +60,9 @@ namespace Nosum.IntegrationTests.Server;
 public sealed class FarmWireTests : IClassFixture<PostgresFixture>
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(20);
-    private static readonly DateTimeOffset s_start = new(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_start = new(2026, 11, 2, 3, 0, 0, TimeSpan.Zero);
+
+    private static readonly TimeSpan s_gameDay = TimeSpan.FromMilliseconds(GameCalendar.DefaultDayLengthMs);
 
     private readonly PostgresFixture _database;
 
@@ -111,12 +116,18 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             (await farmer.UseAsync(30, x, y, timeout.Token)).Status.Should().Be(FarmStatus.InvalidSlot);
             (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NotMature);
 
-            // The server clock moves on: the crop grew while watered, and harvesting works.
-            clock.Advance(TimeSpan.FromMilliseconds(CropCatalog.All[0].TotalGrowthMs + 1000));
+            // Four game days, watered each day (docs/adr/ADR-021 D7): the crop is mature when the fourth day has ended, and harvesting works.
+            for (int day = 1; day < CropCatalog.All[0].TotalGrowthDays; day++)
+            {
+                clock.Advance(s_gameDay);
+                (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+                (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NotMature);
+            }
+
+            clock.Advance(s_gameDay);
             UseItemResult harvested = await farmer.UseAsync(8, x, y, timeout.Token);
             harvested.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Harvested });
-            FarmTileRow seenHarvested = await farmer.WaitForTileAsync(x, y, t => t.CropId == 0 && t.SettledAtMs > t.PlantedAtMs, timeout.Token);
-            seenHarvested.WetUntilMs.Should().BeGreaterThan(0);
+            _ = await farmer.WaitForTileAsync(x, y, t => t.CropId == 0 && !t.Removed, timeout.Token);
 
             // The produce pops onto the ground beside the plot (docs/adr/ADR-021 D5), within reach of the harvester, who takes it
             // at once without stepping (D6).
@@ -179,6 +190,8 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
 
             // Summer: the same seed is planted.
             clock.Advance(TimeSpan.FromMilliseconds(calendar.EpochMs + calendar.SeasonLengthMs + 3_600_000 - clock.GetUtcNow().ToUnixTimeMilliseconds()));
+            // Two dry weeks may have reverted the bare soil (docs/adr/ADR-021 D7): till it again if so.
+            _ = await farmer.UseAsync(0, x, y, timeout.Token);
             (await farmer.UseAsync(3, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
 
             // Fall still suits radish; winter does not: the crop withered, cannot be harvested, and the soil takes a winter crop.
@@ -193,6 +206,136 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
         {
             await app.DeactivateAsync(CancellationToken.None);
         }
+    }
+
+    [Fact]
+    public async Task Growth_WaterDayOne_SkipDayTwo_WaterDayThree_ShowsTheStageOfTwoWateredDays()
+    {
+        await ResetFarmAsync();
+        FakeTimeProvider clock = new(s_start);
+        GameCalendar calendar = GameCalendar.Default;
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = TileInReachOf(join);
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Action.Should().Be(FarmAction.Tilled);
+            (await farmer.UseAsync(2, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
+
+            // Day 1: watered. Day 2: skipped. Day 3: watered. Day 4: two days of growth, a stage-two parsnip.
+            (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+            clock.Advance(s_gameDay);
+            clock.Advance(s_gameDay);
+            (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+
+            FarmTileRow onDayThree = (await farmer.GetFarmAsync(timeout.Token)).Tiles.Single(t => t.X == x && t.Y == y);
+            ToTile(onDayThree).Should().Be(new FarmTile(CropCatalog.Parsnip, s_start.ToUnixTimeMilliseconds(), 1, 3, 0));
+            FarmRules.StageAt(ToTile(onDayThree), clock.GetUtcNow().ToUnixTimeMilliseconds(), calendar).Should().Be(1, "only day one has ended");
+
+            clock.Advance(s_gameDay);
+            FarmSnapshot onDayFour = await farmer.GetFarmAsync(timeout.Token);
+            FarmRules.StageAt(ToTile(onDayFour.Tiles.Single(t => t.X == x && t.Y == y)), onDayFour.ServerNowMs, calendar).Should().Be(2);
+            (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NotMature);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
+    public async Task DevClock_FastForward_GrowsTheCropAndRevertsDrySoilOnTheClientsMap()
+    {
+        await ResetFarmAsync();
+        FakeTimeProvider clock = new(s_start);
+        GameCalendar calendar = GameCalendar.Default;
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock, development: true);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = NearbyTiles(join).Where(t => IsTillable(t)).Skip(0).First();
+            (int dx, int dy) = NearbyTiles(join).Where(t => IsTillable(t) && t != (x, y)).First();
+
+            // Bad requests change nothing.
+            (await farmer.AdvanceClockAsync(0, timeout.Token)).Ok.Should().BeFalse();
+            (await farmer.AdvanceClockAsync(IDevClockService.MaxDays + 1, timeout.Token)).Ok.Should().BeFalse();
+
+            // A planted, watered parsnip and an untouched tilled tile.
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Action.Should().Be(FarmAction.Tilled);
+            (await farmer.UseAsync(2, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
+            (await farmer.UseAsync(0, dx, dy, timeout.Token)).Action.Should().Be(FarmAction.Tilled);
+
+            // Water on each of the four days, jumping one game day at a time.
+            for (int day = 1; day <= CropCatalog.All[0].TotalGrowthDays; day++)
+            {
+                (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+                DevAdvanceClockResult moved = await farmer.AdvanceClockAsync(1, timeout.Token);
+                moved.Ok.Should().BeTrue();
+                moved.ServerNowMs.Should().Be(s_start.ToUnixTimeMilliseconds() + (day * calendar.DayLengthMs));
+            }
+
+            // Harvest the mature parsnip; its soil was watered every day, so it is still there.
+            (await farmer.UseAsync(8, x, y, timeout.Token)).Action.Should().Be(FarmAction.Harvested);
+
+            // A month without watering: the untouched tile reverts (0.7^59 of surviving), is removed from the client's map and from PostgreSQL.
+            (await farmer.AdvanceClockAsync(IDevClockService.MaxDays, timeout.Token)).Ok.Should().BeTrue();
+            FarmTileRow gone = await farmer.WaitForTileAsync(dx, dy, t => t.Removed, timeout.Token);
+            gone.CropId.Should().Be(0);
+            (await farmer.GetFarmAsync(timeout.Token)).Tiles.Should().NotContain(t => t.X == dx && t.Y == dy);
+
+            await using NosumDbContext context = new(_database.Options);
+            (await context.FarmPlots.AnyAsync(p => p.X == dx && p.Y == dy)).Should().BeFalse();
+
+            // The player can till the reverted tile again.
+            (await farmer.UseAsync(0, dx, dy, timeout.Token)).Action.Should().Be(FarmAction.Tilled);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
+    public async Task DevClock_InProduction_IsNotAnswered()
+    {
+        FakeTimeProvider clock = new(s_start);
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+
+            Func<Task> advance = async () => _ = await farmer.AdvanceClockAsync(1, timeout.Token, TimeSpan.FromMilliseconds(1500));
+
+            _ = await advance.Should().ThrowAsync<Exception>();
+            clock.GetUtcNow().Should().Be(s_start);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    private static FarmTile ToTile(FarmTileRow row) => new(row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay, 0);
+
+    private static bool IsTillable((int X, int Y) tile)
+    {
+        IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
+        _ = maps.TryGet(Program.FarmMapId, out MapDefinition? map);
+        return map!.Tillable!.IsTillable(tile.X, tile.Y);
     }
 
     [Fact]
@@ -291,7 +434,14 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             FarmTileRow tile = farm.Tiles.Should().ContainSingle(t => t.X == x && t.Y == y).Subject;
             tile.CropId.Should().Be(CropCatalog.Parsnip);
 
-            clock.Advance(TimeSpan.FromMilliseconds(CropCatalog.All[0].TotalGrowthMs + 1000));
+            // Planted and watered on game day 1 before the restart; three more watered days and the fourth rollover make it mature.
+            for (int day = 2; day <= CropCatalog.All[0].TotalGrowthDays; day++)
+            {
+                clock.Advance(s_gameDay);
+                (await again.UseAsync(1, x, y, timeout2.Token)).Action.Should().Be(FarmAction.Watered);
+            }
+
+            clock.Advance(s_gameDay);
             (await again.UseAsync(8, x, y, timeout2.Token)).Action.Should().Be(FarmAction.Harvested);
         }
         finally
@@ -361,7 +511,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
 
     private sealed class FarmClient : IAsyncDisposable
     {
-        private static readonly TimeSpan s_useCooldown = TimeSpan.FromMilliseconds(140);
+        private static readonly TimeSpan s_useCooldown = TimeSpan.FromMilliseconds(330);
 
         private readonly WebSocketSession _session;
         private readonly IDisposable[] _subscriptions;
@@ -382,7 +532,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
                 {
                     foreach (FarmTileRow t in p.Tiles)
                     {
-                        _tiles.Add(new FarmTileRow { X = t.X, Y = t.Y, CropId = t.CropId, PlantedAtMs = t.PlantedAtMs, GrowthMs = t.GrowthMs, SettledAtMs = t.SettledAtMs, WetUntilMs = t.WetUntilMs });
+                        _tiles.Add(new FarmTileRow { X = t.X, Y = t.Y, CropId = t.CropId, PlantedAtMs = t.PlantedAtMs, GrowthDays = t.GrowthDays, WateredDay = t.WateredDay, Removed = t.Removed });
                     }
                 }),
                 session.On<InventoryUpdate>(p =>
@@ -445,6 +595,13 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
         {
             using GetFarm request = new();
             return await _session.RequestAsync<FarmSnapshot>(request, ct: ct);
+        }
+
+        public async Task<DevAdvanceClockResult> AdvanceClockAsync(int days, CancellationToken ct, TimeSpan? limit = null)
+        {
+            using DevAdvanceClock request = new() { Days = days };
+            RequestOptions options = RequestOptions.Default.WithEncrypt();
+            return await _session.RequestAsync<DevAdvanceClockResult>(request, limit is { } wait ? options.WithTimeout((int)wait.TotalMilliseconds) : options, ct: ct);
         }
 
         public async Task<GroundItemsSnapshot> GetGroundItemsAsync(CancellationToken ct)

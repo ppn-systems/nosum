@@ -21,6 +21,7 @@ using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Placeables;
+using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Placeables;
@@ -146,9 +147,10 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        if (!this.TryEditablePlace(connection, out PlayerPresence? player, out MapDefinition? map))
+        PlaceStatus editable = this.TryEditablePlace(connection, PlaceAction.PlaceObject, out PlayerPresence? player, out MapDefinition? map);
+        if (editable != PlaceStatus.Ok)
         {
-            return Refused(PlaceStatus.NotPlaceable);
+            return Refused(editable);
         }
 
         InventorySlotView held = await _inventory.PeekSlotAsync(player.AccountId, slot, cancellationToken).ConfigureAwait(false);
@@ -204,9 +206,10 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        if (!this.TryEditablePlace(connection, out PlayerPresence? player, out MapDefinition? map))
+        PlaceStatus editable = this.TryEditablePlace(connection, PlaceAction.MoveObject, out PlayerPresence? player, out MapDefinition? map);
+        if (editable != PlaceStatus.Ok)
         {
-            return Refused(PlaceStatus.NotPlaceable);
+            return Refused(editable);
         }
 
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
@@ -261,9 +264,10 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        if (!this.TryEditablePlace(connection, out PlayerPresence? player, out MapDefinition? map))
+        PlaceStatus editable = this.TryEditablePlace(connection, PlaceAction.PickUpObject, out PlayerPresence? player, out MapDefinition? map);
+        if (editable != PlaceStatus.Ok)
         {
-            return Refused(PlaceStatus.NotPlaceable);
+            return Refused(editable);
         }
 
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
@@ -381,23 +385,27 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         return false;
     }
 
-    // Objects are changed only by the owner standing in their own place on a map that allows it.
-    private bool TryEditablePlace(IConnection connection, out PlayerPresence player, out MapDefinition map)
+    // Objects are changed only by the owner standing in their own place on a map that allows it; a visitor in somebody's place is refused (docs/adr/ADR-019 D3).
+    private PlaceStatus TryEditablePlace(IConnection connection, PlaceAction action, out PlayerPresence player, out MapDefinition map)
     {
-        if (_presence.TryGet(connection, out PlayerPresence? found)
-            && _maps.TryGet(found.MapId, out MapDefinition? foundMap)
-            && foundMap.Placeable
-            && found.Instance.IsPrivate
-            && found.Instance.OwnerId == found.AccountId)
-        {
-            player = found;
-            map = foundMap;
-            return true;
-        }
-
         player = null!;
         map = null!;
-        return false;
+        if (!_presence.TryGet(connection, out PlayerPresence? found)
+            || !_maps.TryGet(found.MapId, out MapDefinition? foundMap)
+            || !foundMap.Placeable
+            || !found.Instance.IsPrivate)
+        {
+            return PlaceStatus.NotPlaceable;
+        }
+
+        if (!VisitRules.MayDo(found.Instance, found.AccountId, action))
+        {
+            return PlaceStatus.NotYourPlace;
+        }
+
+        player = found;
+        map = foundMap;
+        return PlaceStatus.Ok;
     }
 
     // Loads an instance's objects once; a failed load is forgotten so the next call tries again.
