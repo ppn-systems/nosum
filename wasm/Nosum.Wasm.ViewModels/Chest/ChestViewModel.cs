@@ -1,0 +1,208 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.Localization;
+using Nosum.Contracts.Placeable;
+using Nosum.Wasm.Socket.Chest;
+using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.ViewModels.Feedback;
+using Nosum.Wasm.ViewModels.Inventory;
+using Nosum.Wasm.ViewModels.Resources;
+
+namespace Nosum.Wasm.ViewModels.Chest;
+
+/// <summary>
+/// View model of the chest page (docs/adr/ADR-024 D7): the open chest's grid above the player's inventory, the Minecraft layout. Click a stack to pick it up, click a slot
+/// to put it there (empty slot: move, same item: merge, other item: swap); shift-click sends a stack to the other side at once. Every move is a request; the grids change
+/// when the server's pushes arrive.
+/// </summary>
+public sealed class ChestViewModel : PanelViewModel, IDisposable
+{
+    private readonly ChestChannel _chest;
+    private readonly InventoryChannel _inventory;
+    private readonly InventoryViewModel _bag;
+    private readonly ItemDescriber _describer;
+    private readonly GameMessagesViewModel? _messages;
+    private bool _open;
+    private ChestSide _pickedSide;
+    private int _pickedSlot = -1;
+
+    /// <summary>Initializes the view model.</summary>
+    /// <param name="chest">The open chest's mirror.</param>
+    /// <param name="inventory">The inventory mirror (the player's slots).</param>
+    /// <param name="bag">The inventory view model (describes the player's slots).</param>
+    /// <param name="describer">Describes the chest's items.</param>
+    /// <param name="text">UI text.</param>
+    /// <param name="messages">Shows a refusal on the game's message line when the page is not open; <see langword="null"/> for none.</param>
+    public ChestViewModel(ChestChannel chest, InventoryChannel inventory, InventoryViewModel bag, ItemDescriber describer, IStringLocalizer<Language> text, GameMessagesViewModel? messages = null)
+        : base(text)
+    {
+        ArgumentNullException.ThrowIfNull(chest);
+        ArgumentNullException.ThrowIfNull(inventory);
+        ArgumentNullException.ThrowIfNull(bag);
+        ArgumentNullException.ThrowIfNull(describer);
+
+        _chest = chest;
+        _inventory = inventory;
+        _bag = bag;
+        _describer = describer;
+        _messages = messages;
+        chest.Changed += this.OnChestChanged;
+        chest.Closed += this.OnChestClosed;
+        chest.Completed += this.OnCompleted;
+        bag.Changed += this.Raise;
+    }
+
+    /// <summary>Raised with <see langword="true"/> when a chest opened and with <see langword="false"/> when it closed; the page shows or hides with it.</summary>
+    public event Action<bool>? OpenChanged;
+
+    /// <summary>Gets whether a chest is open.</summary>
+    public bool IsOpen => _open;
+
+    /// <summary>Gets the side of the picked stack, meaningful while <see cref="PickedSlot"/> is not negative.</summary>
+    public ChestSide PickedSide => _pickedSide;
+
+    /// <summary>Gets the slot of the picked stack, or -1.</summary>
+    public int PickedSlot => _pickedSlot;
+
+    /// <summary>Gets the chest's slots as displays.</summary>
+    public IReadOnlyList<SlotDisplay> ChestSlots
+    {
+        get
+        {
+            List<SlotDisplay> slots = new(ChestChannel.Capacity);
+            for (int i = 0; i < ChestChannel.Capacity; i++)
+            {
+                SlotInfo info = _chest.SlotAt(i);
+                slots.Add(_describer.Describe(i, info.ItemId, info.Quantity));
+            }
+
+            return slots;
+        }
+    }
+
+    /// <summary>Gets the player's bag (the slots after the hotbar) as displays.</summary>
+    public IReadOnlyList<SlotDisplay> BagSlots => [.. _bag.Storage];
+
+    /// <summary>Gets the player's hotbar slots as displays.</summary>
+    public IReadOnlyList<SlotDisplay> HotbarSlots => [.. _bag.Hotbar];
+
+    /// <summary>Gets the localized label of the chest grid.</summary>
+    public string ChestLabel => this.Text("Chest_Title");
+
+    /// <summary>Gets the localized label of the player's grids.</summary>
+    public string BagLabel => this.Text("Chest_YourBag");
+
+    /// <summary>Gets the localized explanation of the clicks.</summary>
+    public string Hint => this.Text("Chest_Hint");
+
+    /// <summary>Handles a click on a slot of either grid.</summary>
+    /// <param name="side">Which grid.</param>
+    /// <param name="slot">The slot.</param>
+    public void Click(ChestSide side, int slot)
+    {
+        if (_pickedSlot < 0)
+        {
+            if (this.IsOccupied(side, slot))
+            {
+                _pickedSide = side;
+                _pickedSlot = slot;
+                this.Raise();
+            }
+
+            return;
+        }
+
+        ChestSide fromSide = _pickedSide;
+        int from = _pickedSlot;
+        _pickedSlot = -1;
+        if (fromSide != side || from != slot)
+        {
+            if (fromSide == ChestSide.Player && side == ChestSide.Player)
+            {
+                _inventory.Move(from, slot);
+            }
+            else
+            {
+                _chest.Move(fromSide, from, side, slot);
+            }
+        }
+
+        this.Raise();
+    }
+
+    /// <summary>Shift-click: sends the whole stack to the first slot that fits on the other side.</summary>
+    /// <param name="side">Which grid.</param>
+    /// <param name="slot">The slot.</param>
+    public void QuickMove(ChestSide side, int slot)
+    {
+        _pickedSlot = -1;
+        if (this.IsOccupied(side, slot))
+        {
+            _chest.Move(side, slot, side == ChestSide.Chest ? ChestSide.Player : ChestSide.Chest, ChestChannel.AnySlot);
+        }
+
+        this.Raise();
+    }
+
+    /// <summary>Closes the chest (the page's close button, Escape, or leaving).</summary>
+    public void Close()
+    {
+        _pickedSlot = -1;
+        _chest.Close();
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        _chest.Changed -= this.OnChestChanged;
+        _chest.Closed -= this.OnChestClosed;
+        _chest.Completed -= this.OnCompleted;
+        _bag.Changed -= this.Raise;
+    }
+
+    private bool IsOccupied(ChestSide side, int slot) => (side == ChestSide.Chest ? _chest.SlotAt(slot) : _inventory.SlotAt(slot)).ItemId != 0;
+
+    private void OnChestChanged()
+    {
+        if (!_open && _chest.IsOpen)
+        {
+            _open = true;
+            this.ClearStatus();
+            this.OpenChanged?.Invoke(true);
+        }
+
+        this.Raise();
+    }
+
+    private void OnChestClosed()
+    {
+        _pickedSlot = -1;
+        if (_open)
+        {
+            _open = false;
+            this.OpenChanged?.Invoke(false);
+        }
+
+        this.Raise();
+    }
+
+    private void OnCompleted(ChestStatus status)
+    {
+        if (status == ChestStatus.Ok)
+        {
+            return;
+        }
+
+        string text = this.Text("Chest_Status_" + status);
+        if (_open)
+        {
+            this.SetStatus(text);
+        }
+        else
+        {
+            _messages?.Notify(text);
+        }
+    }
+}

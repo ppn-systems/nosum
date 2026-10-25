@@ -1,0 +1,44 @@
+@using Nosum.Wasm.ViewModels.Crafting
+@using Nosum.Wasm.Controls.Menu
+@inherits ObservingComponent<CraftingViewModel>
+
+@* The crafting page: every recipe as a cell (locked ones greyed), and for the chosen recipe what it makes, what it takes with have/need counts and the craft buttons.
+   The buttons follow the same rules as the server (unlocked, enough items, room); the server decides. *@
+<MenuPage Status="@Vm.Status">
+    <GameStack>
+        <GameSection Title="@Vm.Text("Craft_Heading")">
+            <div class="recipe-grid">
+                @foreach (RecipeRow row in Vm.Rows)
+                {
+                    int id = row.RecipeId;
+                    <span class="cell @(row.Unlocked ? null : "locked")">
+                        <ItemSlotButton Slot="@(row.Output with { Index = id, Quantity = 0, IsSelected = false })" Picked="@(id == Vm.SelectedId)" OnClick="@(() => Vm.Select(id))" />
+                    </span>
+                }
+            </div>
+        </GameSection>
+        @{
+            RecipeRow selected = Vm.Selected;
+        }
+        <GameSection Title="@selected.Output.Name">
+            <p class="recipe-line">@Vm.MakesText</p>
+            @if (!selected.Unlocked)
+            {
+                <p class="recipe-locked">@(selected.UnlockText.Length > 0 ? selected.UnlockText : Vm.Text("Craft_Locked"))</p>
+            }
+            <p class="recipe-line">@Vm.Text("Craft_Materials")</p>
+            @foreach (InputDisplay input in selected.Inputs)
+            {
+                <GameRow Class="center">
+                    <ItemSlotButton Slot="@input.Item" Tip="@input.Item.Name" />
+                    <span class="input-name">@input.Item.Name</span>
+                    <span class="input-count @(input.Enough ? "enough" : "short")">@input.Have / @input.Need</span>
+                </GameRow>
+            }
+            <GameRow>
+                <GameButton Text="@Vm.CraftLabel" Disabled="@(!Vm.CanCraft(1))" OnClick="@(() => Vm.Craft(1))" />
+                <GameButton Variant="plain" Text="@Vm.CraftManyLabel" Disabled="@(!Vm.CanCraft(CraftingViewModel.BatchSize))" OnClick="@(() => Vm.Craft(CraftingViewModel.BatchSize))" />
+            </GameRow>
+        </GameSection>
+    </GameStack>
+</MenuPage>

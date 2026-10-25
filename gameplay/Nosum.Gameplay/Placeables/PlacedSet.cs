@@ -114,8 +114,9 @@ public sealed class PlacedSet
     /// <param name="mapGrid">The map's own grid, without any placed pieces.</param>
     /// <param name="reserved">Tiles the room keeps clear.</param>
     /// <param name="ignoreId">A piece to treat as absent (the one being moved), or zero.</param>
+    /// <param name="layers">What else stands on the ground of the instance (tilled soil, nodes); <see langword="null"/> when the place has neither.</param>
     /// <returns>Ok, or the first reason it cannot stand there.</returns>
-    public PlacementVerdict Check(PlaceableDefinition definition, int rotation, int tileX, int tileY, WalkGrid mapGrid, IReadOnlySet<(int X, int Y)> reserved, int ignoreId = 0)
+    public PlacementVerdict Check(PlaceableDefinition definition, int rotation, int tileX, int tileY, WalkGrid mapGrid, IReadOnlySet<(int X, int Y)> reserved, int ignoreId = 0, IGroundLayers? layers = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(mapGrid);
@@ -144,6 +145,19 @@ public sealed class PlacedSet
                 if (reserved.Contains((x, y)))
                 {
                     return PlacementVerdict.Reserved;
+                }
+
+                if (layers is not null)
+                {
+                    if (layers.IsTilled(x, y))
+                    {
+                        return PlacementVerdict.Tilled;
+                    }
+
+                    if (layers.HasNode(x, y))
+                    {
+                        return PlacementVerdict.Node;
+                    }
                 }
             }
         }
@@ -191,7 +205,7 @@ public sealed class PlacedSet
             && top + Walker.FootHeight - edge > tileY * tileSize;
     }
 
-    /// <summary>Returns a copy of the map's grid with every piece's footprint blocked: the grid players walk on in this instance.</summary>
+    /// <summary>Returns a copy of the map's grid with every walking-blocking piece's footprint blocked: the grid players walk on in this instance.</summary>
     /// <param name="mapGrid">The map's own grid; it is not changed.</param>
     /// <returns>The copy.</returns>
     public WalkGrid BuildGrid(WalkGrid mapGrid)
@@ -204,7 +218,10 @@ public sealed class PlacedSet
             if (PlaceableCatalog.TryGet(item.ItemId, out PlaceableDefinition? definition))
             {
                 PlaceableView view = definition.View(Math.Min(item.Rotation, definition.Rotations - 1));
-                grid.Block(item.TileX, item.TileY, view.FootprintWidth, view.FootprintHeight);
+                if (definition.BlocksWalking)
+                {
+                    grid.Block(item.TileX, item.TileY, view.FootprintWidth, view.FootprintHeight);
+                }
             }
         }
 

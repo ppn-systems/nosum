@@ -1,5 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Allocation tests (GC.GetAllocatedBytesForCurrentThread) measure steady-state frames: with tiered compilation a method can be
+       re-jitted inside the measured window when the machine is busy, which counts as an allocation on the calling thread. -->
+  <PropertyGroup>
+    <TieredCompilation>false</TieredCompilation>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
     <ProjectReference Include="..\..\engine\Nosum.Rendering\Nosum.Rendering.csproj" />

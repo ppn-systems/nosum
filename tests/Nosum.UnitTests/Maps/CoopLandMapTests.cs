@@ -31,7 +31,7 @@ public sealed class CoopLandMapTests
     {
         MapSpec land = Spec(GameMaps.CoopFarm);
 
-        (land.IsCoop, land.Farmable, land.IsPrivate, land.Placeable).Should().Be((true, true, false, false));
+        (land.IsCoop, land.Farmable, land.IsPrivate, land.Placeable).Should().Be((true, true, false, true));
         GameMaps.All.Where(m => m.IsCoop).Should().ContainSingle();
         Spec(GameMaps.Farm).TmxFile.Should().NotBe(land.TmxFile, "co-op land is a different map from the personal farm");
     }
