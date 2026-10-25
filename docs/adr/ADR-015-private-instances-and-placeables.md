@@ -1,7 +1,7 @@
 # ADR-015 — Private per-player farm and farmhouse, Town and Backwoods, player-placed furniture
 
 **Status:** Accepted (owner approval, 2026-10-25). Amends [ADR-012](ADR-012-maps-and-warps.md) D8 and D10 (owner decision, 2026-10-25: the farm and the farmhouse are private per player).
-ADR-013 and ADR-014 are reserved by the social work and are not used here.
+ADR-013 and ADR-014 are reserved by the social work and are not used here. Amended by [ADR-019](ADR-019-visiting-private-instances.md) (Proposed): D4's owner-only access policy is replaced by one that also admits invited players and co-op members.
 
 ## Context
 
@@ -65,7 +65,7 @@ same map" through `IMapPresence`; that abstraction has to keep working unchanged
 
 ## Consequences
 
-- Two players are never in the same farm or farmhouse; a shared map such as Town is where players meet. A player's farm is a place nobody else can help with yet (co-op land and visits are later).
+- Two players are never in the same farm or farmhouse unless the owner invited the other ([ADR-019](ADR-019-visiting-private-instances.md)); a shared map such as Town is where players meet. A player's farm is a place nobody else can help with yet (co-op land and visits are later).
 - Per instance there is one more Nalix group and one more in-memory set while someone is there (the snapshot loop already runs per active key); an empty instance costs nothing.
 - Existing dev inventories were created before furniture existed and do not get the new starter items (a new player does); the migration is lossy for plots that several players shared.
 - The social branch must address "same map" through `PlayerPresence.Key`, and `JoinAsync(connection, account, MapInstance, ...)`; see the merge notes of the change that introduced this ADR.

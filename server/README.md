@@ -34,10 +34,14 @@ identically; a map id from a client is only ever a key into that list, never a p
 
 Private places ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): the farm and the farmhouse are one copy per player. A place is a `MapInstance` (map id plus owner; `Key` is the map id
 for a shared map), `IMapPresence` groups players by that key (`PlayerPresence.Key`; use it, not `MapId`, to reach "the players on my map"), `PlayerService` enters a player into their own
-copy of a private map through `IInstanceAccessPolicy` (`OwnerOnlyAccessPolicy`; the seam for visiting later), and the per-place data (`farm_plots`, `placed_objects`) is keyed by (map, owner).
+copy of a private map through `IInstanceAccessPolicy` (`VisitAccess`, [ADR-019](../docs/adr/ADR-019-visiting-private-instances.md); `OwnerOnlyAccessPolicy` is the no-visiting policy tests can use), and the per-place data (`farm_plots`, `placed_objects`) is keyed by (map, owner).
 Furniture: `IPlaceableService` (`Placeables/PlaceableService`) places, moves and picks up pieces in the owner's farmhouse with `PlacedSet`/`PlaceableCatalog` from `Nosum.Gameplay`, in one transaction with the inventory change,
 and pushes `PlacedChanged` to the instance; it is also the `IInstanceWorld` that gives movement validation the grid with the pieces' footprints. Handlers: `Nosum.Handlers/Placeable` (`USER`, rate limited).
 Tables: `placed_objects` and the owner column of `farm_plots` (migration `PrivateInstancesAndPlacedObjects`, which gives existing plots to the player who last worked them).
+
+Visiting ([ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): `IVisitService` (`Visits/VisitService`) keeps the owner's allow-list and co-op setting (`visit_grants`, `visit_settings`, migration `VisitingAllowList`) and carries out
+`VisitPlayer` through `IPlayerService.TravelAsync`; `VisitAccess` is the `IInstanceAccessPolicy` (reads PostgreSQL on every entry, `VisitRules.MayEnter` decides). Removing a player, turning the co-op setting off and `ICoopService.MembershipEnded`
+sweep the visitors who may no longer stay to the Town. `FarmService`, `PlaceableService` and `MarketService.ShipAsync` ask `VisitRules.MayDo`, so a visitor can only walk and water. Handlers: `Nosum.Handlers/Visit` (`USER`, rate limited).
 
 Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)):
 `ITransferService` (`Infrastructure/Economy`) is the one way coins move: items and coins between players and co-op warehouses in one transaction, built on

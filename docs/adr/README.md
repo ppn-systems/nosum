@@ -24,4 +24,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-014](ADR-014-coops-and-looks.md) | Co-operatives (membership, shared warehouse) and player looks | Accepted |
 | [ADR-015](ADR-015-private-instances-and-placeables.md) | Private per-player farm and farmhouse, Town and Backwoods, player-placed furniture (amends ADR-012) | Accepted |
 | [ADR-016](ADR-016-ui-theme-and-hud-layout.md) | One pixel-art UI theme (shared controls, 9-slice frames) and one HUD dock-region layout | Proposed |
+| [ADR-019](ADR-019-visiting-private-instances.md) | Visiting private instances: allow-list, co-op setting, what a visitor may touch (amends ADR-015 D4) | Proposed |
 | [ADR-005](ADR-005-three-quarter-top-down-view.md) | 3/4 top-down view (layers, y-sorting, feet anchors) | Accepted |

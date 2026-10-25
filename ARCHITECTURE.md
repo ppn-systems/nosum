@@ -136,13 +136,22 @@ one), so a returning player lands where they left.
 
 The farm and the farmhouse are private per player ([ADR-015](docs/adr/ADR-015-private-instances-and-placeables.md)): the place a player is in is a
 `MapInstance` (map id, plus the owner for a private map) and its `Key` names the presence group, the farm plots and the
-placed furniture. `PlayerService` always enters a player into their own copy of a private map (checked by `IInstanceAccessPolicy`, which a later
-visiting feature replaces); the busstop, town, forest and backwoods are one shared instance each, keyed by the map id.
+placed furniture. `PlayerService` enters a player into their own copy of a private map when they join or walk through a door from a public map; entry to anyone else's copy is checked by
+`IInstanceAccessPolicy` (`VisitAccess`: the owner's allow-list and co-op setting, [ADR-019](docs/adr/ADR-019-visiting-private-instances.md)); the busstop, town, forest and backwoods are one shared instance each, keyed by the map id.
 
 ```text
 client E/R/F/Q in the farmhouse ──PlaceObject / MoveObject / PickUpObject──► PlaceableService (owner of the instance, reach, free footprint, item in the slot)
                                                                               │ inventory change + placed_objects row: one transaction
 client PlaceableChannel ◄── PlacedChanged ◄── IMapPresence (the instance's group) ◄─┘      PlayerService validates movement on IInstanceWorld.GridFor(instance)
+```
+
+A visit is a server-side move, not a client-chosen map ([ADR-019](docs/adr/ADR-019-visiting-private-instances.md)):
+
+```text
+client (on a public map) ──VisitPlayer(nickname)──► VisitService (nickname → owner, VisitAccess: listed, or same co-op and the setting on)
+                                                      │ IPlayerService.TravelAsync ─► MapChanged ─► visitor joins farm@<owner>'s presence group
+owner removes / kicks / turns the co-op setting off / leaves the co-op ──► sweep: every visitor no longer admitted is travelled to the Town
+FarmService · PlaceableService · MarketService.ShipAsync ──► VisitRules.MayDo: a visitor may walk and water, nothing else
 ```
 
 ## Runtime path 4 — items, coins and the social layer
