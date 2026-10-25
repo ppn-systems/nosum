@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Common;
 
 namespace Nosum.Contracts.Account.S2C;
 
@@ -18,6 +19,6 @@ public sealed partial class LanguageResult : PacketBase<LanguageResult>, IPacket
     /// <summary>Outcome code: Ok or InvalidLanguage.</summary>
     [SerializeOrder(0)] public AccountStatus Status { get; set; }
 
-    /// <summary>The language now stored for the player.</summary>
-    [SerializeOrder(1)] public string Language { get; set; } = string.Empty;
+    /// <summary>The language now stored for the player (never Unspecified on Ok).</summary>
+    [SerializeOrder(1)] public GameLanguage Language { get; set; }
 }

@@ -20,7 +20,8 @@ internal sealed class PlayerConfiguration : IEntityTypeConfiguration<Player>
         _ = builder.HasIndex(p => p.NormalizedEmail).IsUnique();
         _ = builder.Property(p => p.PasswordHash).HasMaxLength(256);
         _ = builder.HasIndex(p => new { p.IsGuest, p.LastActiveAt });
-        _ = builder.Property(p => p.PreferredLanguage).HasMaxLength(AccountLimits.LanguageMaxLength).IsRequired();
+        // Stored as smallint (the enum value): compact, and the numbers are append-only.
+        _ = builder.Property(p => p.Language).HasConversion<short>();
         _ = builder.HasOne(p => p.State).WithOne().HasForeignKey<PlayerState>(s => s.PlayerId).OnDelete(DeleteBehavior.Cascade);
     }
 }

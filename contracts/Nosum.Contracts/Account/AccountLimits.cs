@@ -25,10 +25,4 @@ public static class AccountLimits
 
     /// <summary>Longest accepted password (bounds the work a hashing request can cause).</summary>
     public const int PasswordMaxLength = 128;
-
-    /// <summary>Longest accepted BCP-47 language tag.</summary>
-    public const int LanguageMaxLength = 35;
-
-    /// <summary>Language used when none is given: Vietnamese.</summary>
-    public const string DefaultLanguage = "vi";
 }

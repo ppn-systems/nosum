@@ -7,6 +7,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
+using Nosum.Contracts.Common;
 using Nosum.Wasm.Socket;
 
 namespace Nosum.Wasm.ViewModels.Account;
@@ -31,22 +32,46 @@ public sealed class GameSocketAccountClient : IAccountClient
     }
 
     /// <inheritdoc/>
-    public async Task<AccountReply> RegisterAsync(string username, string password, string language, CancellationToken cancellationToken)
+    public async Task<AccountReply> RegisterAsync(string email, string password, GameLanguage language, CancellationToken cancellationToken)
     {
         using PacketScope<Register> lease = PacketFactory<Register>.Acquire();
-        lease.Value.Username = username;
+        lease.Value.Email = email;
         lease.Value.Password = password;
         lease.Value.PreferredLanguage = language;
         return await this.SendAsync(lease.Value, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public async Task<AccountReply> LoginAsync(string username, string password, CancellationToken cancellationToken)
+    public async Task<AccountReply> LoginAsync(string email, string password, CancellationToken cancellationToken)
     {
         using PacketScope<Login> lease = PacketFactory<Login>.Acquire();
-        lease.Value.Username = username;
+        lease.Value.Email = email;
         lease.Value.Password = password;
         return await this.SendAsync(lease.Value, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async Task<AccountReply> StartGuestAsync(GameLanguage language, CancellationToken cancellationToken)
+    {
+        using PacketScope<StartGuest> lease = PacketFactory<StartGuest>.Acquire();
+        lease.Value.PreferredLanguage = language;
+        return await this.SendAsync(lease.Value, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async Task<AccountReply> UpgradeGuestAsync(string email, string password, CancellationToken cancellationToken)
+    {
+        using PacketScope<UpgradeGuest> lease = PacketFactory<UpgradeGuest>.Acquire();
+        lease.Value.Email = email;
+        lease.Value.Password = password;
+        return await this.SendAsync(lease.Value, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async Task LogoutAsync(CancellationToken cancellationToken)
+    {
+        using PacketScope<Logout> lease = PacketFactory<Logout>.Acquire();
+        _ = await this.SendAsync(lease.Value, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -65,7 +90,7 @@ public sealed class GameSocketAccountClient : IAccountClient
             AccountResult result = await _socket.RequestAsync<AccountResult>(request, cancellationToken).ConfigureAwait(false);
 
             AccountSession? session = result.Status == AccountStatus.Ok
-                ? new AccountSession(result.PlayerId, result.Username, result.SessionToken, DateTimeOffset.FromUnixTimeSeconds(result.ExpiresAtUnixSeconds), result.PreferredLanguage)
+                ? new AccountSession(result.PlayerId, result.Email, result.SessionToken, DateTimeOffset.FromUnixTimeSeconds(result.ExpiresAtUnixSeconds), result.PreferredLanguage, result.IsGuest, result.RegistrationPromptUnlocked)
                 : null;
             return new AccountReply(result.Status, session);
         }

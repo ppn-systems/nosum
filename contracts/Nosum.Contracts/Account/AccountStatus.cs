@@ -24,9 +24,14 @@ public enum AccountStatus : byte
     /// <summary>The session token is unknown, expired or revoked (resume).</summary>
     InvalidToken = 5,
 
-    /// <summary>The language tag is not a well-formed BCP-47 tag (register, set language).</summary>
+    /// <summary>The language value is not a defined <see cref="Common.GameLanguage"/> (register, guest, set language).</summary>
     InvalidLanguage = 6,
 
     /// <summary>The session is not a guest session, so there is nothing to upgrade (upgrade only).</summary>
     NotGuest = 7,
+
+    /// <summary>
+    /// The player signed in on another connection, which ended this one (sent in <c>SessionEnded</c>, never as a request reply).
+    /// </summary>
+    SessionReplaced = 8,
 }

@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Common;
 
 namespace Nosum.Contracts.Account.C2S;
 
@@ -21,6 +22,6 @@ public sealed partial class Register : PacketBase<Register>, IPacketStaticOpcode
     /// <summary>Wanted password in plain text; the transport protects the wire. Never logged.</summary>
     [SerializeOrder(1)] public string Password { get; set; } = string.Empty;
 
-    /// <summary>Preferred language as a BCP-47 tag (the client's current UI language); empty means <see cref="AccountLimits.DefaultLanguage"/>.</summary>
-    [SerializeOrder(2)] public string PreferredLanguage { get; set; } = string.Empty;
+    /// <summary>Preferred language (the client's current UI language); <see cref="GameLanguage.Unspecified"/> means Vietnamese.</summary>
+    [SerializeOrder(2)] public GameLanguage PreferredLanguage { get; set; }
 }

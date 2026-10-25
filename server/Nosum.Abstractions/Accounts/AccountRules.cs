@@ -54,55 +54,6 @@ public static class AccountRules
             && password.Length >= AccountLimits.PasswordMinLength
             && password.Length <= AccountLimits.PasswordMaxLength;
 
-    /// <summary>
-    /// Structural BCP-47 check: subtags of 1-8 ASCII letters or digits separated by '-', the first
-    /// 2-8 letters, at most <see cref="AccountLimits.LanguageMaxLength"/> characters. A registry lookup is not done.
-    /// </summary>
-    /// <param name="tag">The candidate language tag.</param>
-    /// <returns>True when the tag is well formed.</returns>
-    public static bool IsWellFormedLanguageTag(string? tag)
-    {
-        if (string.IsNullOrEmpty(tag) || tag.Length > AccountLimits.LanguageMaxLength)
-        {
-            return false;
-        }
-
-        int subtagLength = 0;
-        int subtagIndex = 0;
-        foreach (char c in tag)
-        {
-            if (c == '-')
-            {
-                if (subtagLength == 0)
-                {
-                    return false;
-                }
-
-                if (subtagIndex == 0 && subtagLength < 2)
-                {
-                    return false;
-                }
-
-                subtagLength = 0;
-                subtagIndex++;
-                continue;
-            }
-
-            if (!char.IsAsciiLetterOrDigit(c) || (subtagIndex == 0 && !char.IsAsciiLetter(c)))
-            {
-                return false;
-            }
-
-            subtagLength++;
-            if (subtagLength > 8)
-            {
-                return false;
-            }
-        }
-
-        return subtagLength > 0 && (subtagIndex > 0 || subtagLength >= 2);
-    }
-
     /// <summary>Lower-cases an e-mail address for unique lookups (invariant culture).</summary>
     /// <param name="email">A valid address.</param>
     /// <returns>The normalized form.</returns>

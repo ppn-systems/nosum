@@ -4,6 +4,7 @@ using System;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Common;
 
 namespace Nosum.Contracts.Account.S2C;
 
@@ -31,8 +32,8 @@ public sealed partial class AccountResult : PacketBase<AccountResult>, IPacketSt
     /// <summary>When the session token expires, Unix time in seconds (UTC).</summary>
     [SerializeOrder(4)] public long ExpiresAtUnixSeconds { get; set; }
 
-    /// <summary>The player's stored preferred language (BCP-47 tag); the client applies it after sign-in.</summary>
-    [SerializeOrder(5)] public string PreferredLanguage { get; set; } = string.Empty;
+    /// <summary>The player's stored language; the client applies it after sign-in.</summary>
+    [SerializeOrder(5)] public GameLanguage PreferredLanguage { get; set; }
 
     /// <summary>True while the player is a guest (no e-mail or password yet).</summary>
     [SerializeOrder(6)] public bool IsGuest { get; set; }

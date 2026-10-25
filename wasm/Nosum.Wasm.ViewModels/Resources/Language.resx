@@ -6,7 +6,6 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Account_Title_Login" xml:space="preserve"><value>Đăng nhập</value></data>
   <data name="Account_Title_Register" xml:space="preserve"><value>Tạo tài khoản</value></data>
-  <data name="Account_Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
   <data name="Account_Password" xml:space="preserve"><value>Mật khẩu</value></data>
   <data name="Account_ConfirmPassword" xml:space="preserve"><value>Nhập lại mật khẩu</value></data>
   <data name="Account_Submit_Login" xml:space="preserve"><value>Đăng nhập</value></data>
@@ -14,13 +13,10 @@
   <data name="Account_Switch_ToRegister" xml:space="preserve"><value>Chưa có tài khoản? Đăng ký</value></data>
   <data name="Account_Switch_ToLogin" xml:space="preserve"><value>Đã có tài khoản? Đăng nhập</value></data>
   <data name="Account_Busy" xml:space="preserve"><value>Đang xử lý…</value></data>
-  <data name="Account_UsernameHint" xml:space="preserve"><value>{0}–{1} ký tự: chữ cái, chữ số hoặc dấu gạch dưới; bắt đầu bằng chữ cái.</value></data>
   <data name="Account_PasswordHint" xml:space="preserve"><value>Từ {0} đến {1} ký tự.</value></data>
   <data name="Account_Error_PasswordMismatch" xml:space="preserve"><value>Hai mật khẩu không khớp.</value></data>
   <data name="Account_Error_Connection" xml:space="preserve"><value>Không thể kết nối tới máy chủ. Vui lòng thử lại.</value></data>
-  <data name="Account_Status_InvalidUsername" xml:space="preserve"><value>Tên đăng nhập không hợp lệ.</value></data>
   <data name="Account_Status_InvalidPassword" xml:space="preserve"><value>Mật khẩu không hợp lệ.</value></data>
-  <data name="Account_Status_UsernameTaken" xml:space="preserve"><value>Tên đăng nhập đã được sử dụng.</value></data>
   <data name="Account_Status_InvalidCredentials" xml:space="preserve"><value>Sai tên đăng nhập hoặc mật khẩu.</value></data>
   <data name="Account_Status_InvalidToken" xml:space="preserve"><value>Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.</value></data>
   <data name="Account_Status_InvalidLanguage" xml:space="preserve"><value>Ngôn ngữ không hợp lệ.</value></data>
@@ -29,4 +25,18 @@
   <data name="Connection_Reconnecting" xml:space="preserve"><value>Mất kết nối, đang thử lại…</value></data>
   <data name="Connection_Offline" xml:space="preserve"><value>Ngoại tuyến</value></data>
   <data name="Join_UnknownMap" xml:space="preserve"><value>Không tìm thấy bản đồ</value></data>
+  <data name="Account_Email" xml:space="preserve"><value>Địa chỉ Gmail</value></data>
+  <data name="Account_EmailHint" xml:space="preserve"><value>Chỉ chấp nhận địa chỉ @{0}.</value></data>
+  <data name="Account_Status_InvalidEmail" xml:space="preserve"><value>Địa chỉ Gmail không hợp lệ.</value></data>
+  <data name="Account_Status_EmailTaken" xml:space="preserve"><value>Địa chỉ Gmail này đã được đăng ký.</value></data>
+  <data name="Account_Status_NotGuest" xml:space="preserve"><value>Tài khoản này không phải tài khoản khách.</value></data>
+  <data name="Account_PlayAsGuest" xml:space="preserve"><value>Chơi ngay với tư cách khách</value></data>
+  <data name="Account_Cancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Account_Guest" xml:space="preserve"><value>Khách</value></data>
+  <data name="Account_SignedInAs" xml:space="preserve"><value>Đã đăng nhập: {0}</value></data>
+  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy đăng ký bằng Gmail.</value></data>
+  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Đăng ký ngay</value></data>
+  <data name="Account_SignOut" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="Account_Title_Upgrade" xml:space="preserve"><value>Lưu tài khoản của bạn</value></data>
+  <data name="Account_Status_SessionReplaced" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì tài khoản được đăng nhập ở nơi khác.</value></data>
 </root>

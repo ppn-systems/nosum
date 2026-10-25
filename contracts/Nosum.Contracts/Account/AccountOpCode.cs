@@ -32,6 +32,9 @@ public static class AccountOpCode
     /// <summary>The reply to <see cref="Register"/>, <see cref="Login"/>, <see cref="ResumeSession"/>, <see cref="StartGuest"/>, <see cref="UpgradeGuest"/> and <see cref="Logout"/>.</summary>
     public const ushort AccountResult = 0x1081;
 
+    /// <summary>Server push: the session was ended by the server (see <see cref="AccountStatus.SessionReplaced"/>).</summary>
+    public const ushort SessionEnded = 0x1084;
+
     /// <summary>The reply to <see cref="SetLanguage"/>.</summary>
     public const ushort LanguageResult = 0x1082;
 }

@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Contracts.Account;
+using Nosum.Contracts.Common;
 
 namespace Nosum.Wasm.ViewModels.Account;
 
@@ -15,19 +16,37 @@ namespace Nosum.Wasm.ViewModels.Account;
 public interface IAccountClient
 {
     /// <summary>Creates an account and signs in.</summary>
-    /// <param name="username">Wanted username.</param>
+    /// <param name="email">Wanted login, a @gmail.com address.</param>
     /// <param name="password">Wanted password.</param>
-    /// <param name="language">The current UI language tag.</param>
+    /// <param name="language">The current UI language.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>The server's status code and, when Ok, the session.</returns>
-    Task<AccountReply> RegisterAsync(string username, string password, string language, CancellationToken cancellationToken);
+    Task<AccountReply> RegisterAsync(string email, string password, GameLanguage language, CancellationToken cancellationToken);
 
     /// <summary>Signs in with a username and password.</summary>
-    /// <param name="username">The username.</param>
+    /// <param name="email">The login e-mail.</param>
     /// <param name="password">The password.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>The server's status code and, when Ok, the session.</returns>
-    Task<AccountReply> LoginAsync(string username, string password, CancellationToken cancellationToken);
+    Task<AccountReply> LoginAsync(string email, string password, CancellationToken cancellationToken);
+
+    /// <summary>Starts playing as a guest: the server creates a guest player and a session.</summary>
+    /// <param name="language">The current UI language.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>The server's status code and, when Ok, the guest session.</returns>
+    Task<AccountReply> StartGuestAsync(GameLanguage language, CancellationToken cancellationToken);
+
+    /// <summary>Turns the signed-in guest into a registered player in place (same player, new session token).</summary>
+    /// <param name="email">Wanted login, a @gmail.com address.</param>
+    /// <param name="password">Wanted password.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>The server's status code and, when Ok, the new session.</returns>
+    Task<AccountReply> UpgradeGuestAsync(string email, string password, CancellationToken cancellationToken);
+
+    /// <summary>Ends the session on the server; its token can no longer resume.</summary>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the server has signed the connection out.</returns>
+    Task LogoutAsync(CancellationToken cancellationToken);
 
     /// <summary>Signs in again with a stored session token (used at start-up, not by the form).</summary>
     /// <param name="sessionToken">The token from an earlier sign-in.</param>
@@ -38,11 +57,20 @@ public interface IAccountClient
 
 /// <summary>A signed-in session as the client sees it.</summary>
 /// <param name="PlayerId">The player's id.</param>
-/// <param name="Username">The player's username.</param>
+/// <param name="Email">The login e-mail; empty for a guest.</param>
 /// <param name="SessionToken">Token for <see cref="IAccountClient.ResumeAsync"/>; keep it out of logs.</param>
 /// <param name="ExpiresAt">When the token expires.</param>
-/// <param name="PreferredLanguage">The stored language tag to apply to the UI.</param>
-public sealed record AccountSession(Guid PlayerId, string Username, string SessionToken, DateTimeOffset ExpiresAt, string PreferredLanguage);
+/// <param name="Language">The stored language to apply to the UI.</param>
+/// <param name="IsGuest">Whether the player is still a guest.</param>
+/// <param name="RegistrationPromptUnlocked">Whether the game has unlocked the invitation to register.</param>
+public sealed record AccountSession(
+    Guid PlayerId,
+    string Email,
+    string SessionToken,
+    DateTimeOffset ExpiresAt,
+    GameLanguage Language,
+    bool IsGuest,
+    bool RegistrationPromptUnlocked);
 
 /// <summary>The reply to an account request: a status code, plus the session when the code is Ok.</summary>
 /// <param name="Status">The server's outcome code.</param>

@@ -7,11 +7,11 @@
     <h2 class="account-title">@Vm.Title</h2>
 
     <label class="account-field">
-        <span>@Vm.UsernameLabel</span>
-        <input type="text" @bind="Vm.Username" @bind:event="oninput" autocomplete="username" maxlength="@Nosum.Contracts.Account.AccountLimits.UsernameMaxLength" disabled="@Vm.IsBusy" />
+        <span>@Vm.EmailLabel</span>
+        <input type="email" @bind="Vm.Email" @bind:event="oninput" autocomplete="email" maxlength="@Nosum.Contracts.Account.AccountLimits.EmailMaxLength" disabled="@Vm.IsBusy" />
         @if (Vm.IsRegister)
         {
-            <small>@Vm.UsernameHint</small>
+            <small>@Vm.EmailHint</small>
         }
     </label>
 
@@ -38,7 +38,18 @@
     }
 
     <button type="submit" class="account-submit" disabled="@Vm.IsBusy">@Vm.SubmitText</button>
-    <button type="button" class="account-switch" @onclick="Vm.SwitchMode" disabled="@Vm.IsBusy">@Vm.SwitchModeText</button>
+    @if (Vm.Mode == AccountFormMode.Upgrade)
+    {
+        <button type="button" class="account-switch" @onclick="Vm.CancelUpgrade" disabled="@Vm.IsBusy">@Vm.CancelText</button>
+    }
+    else
+    {
+        <button type="button" class="account-switch" @onclick="Vm.SwitchMode" disabled="@Vm.IsBusy">@Vm.SwitchModeText</button>
+    }
+    @if (Vm.CanPlayAsGuest)
+    {
+        <button type="button" class="account-guest" @onclick="PlayAsGuestAsync" disabled="@Vm.IsBusy">@Vm.PlayAsGuestText</button>
+    }
 </form>
 
 @code {
@@ -67,6 +78,8 @@
     private void OnChanged() => _ = InvokeAsync(StateHasChanged);
 
     private Task SubmitAsync() => Vm.SubmitAsync(CancellationToken.None);
+
+    private Task PlayAsGuestAsync() => Vm.PlayAsGuestAsync(CancellationToken.None);
 
     public void Dispose()
     {

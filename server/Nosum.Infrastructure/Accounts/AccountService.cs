@@ -8,6 +8,7 @@ using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Security;
 using Nosum.Contracts.Account;
+using Nosum.Contracts.Common;
 using Nosum.Domain.Accounts;
 
 namespace Nosum.Infrastructure.Accounts;
@@ -53,7 +54,7 @@ public sealed class AccountService : IAccountService
     }
 
     /// <inheritdoc/>
-    public async Task<AccountOutcome> RegisterAsync(string email, string password, string language, CancellationToken cancellationToken)
+    public async Task<AccountOutcome> RegisterAsync(string email, string password, GameLanguage language, CancellationToken cancellationToken)
     {
         AccountStatus? refusal = ValidateRegistration(email, password);
         if (refusal is not null)
@@ -61,11 +62,12 @@ public sealed class AccountService : IAccountService
             return AccountOutcome.Refused(refusal.Value);
         }
 
-        string preferredLanguage = string.IsNullOrEmpty(language) ? AccountLimits.DefaultLanguage : language;
-        if (!AccountRules.IsWellFormedLanguageTag(preferredLanguage))
+        if (!GameLanguages.IsDefined(language))
         {
             return AccountOutcome.Refused(AccountStatus.InvalidLanguage);
         }
+
+        GameLanguage preferredLanguage = GameLanguages.Resolve(language);
 
         string normalized = AccountRules.NormalizeEmail(email);
         IUnitOfWork unit = _unitOfWork.Create();
@@ -84,7 +86,7 @@ public sealed class AccountService : IAccountService
                 Email = email,
                 NormalizedEmail = normalized,
                 PasswordHash = hash,
-                PreferredLanguage = preferredLanguage,
+                Language = preferredLanguage,
                 CreatedAt = now,
                 LastLoginAt = now,
                 LastActiveAt = now,
@@ -97,13 +99,14 @@ public sealed class AccountService : IAccountService
     }
 
     /// <inheritdoc/>
-    public async Task<AccountOutcome> StartGuestAsync(string language, CancellationToken cancellationToken)
+    public async Task<AccountOutcome> StartGuestAsync(GameLanguage language, CancellationToken cancellationToken)
     {
-        string preferredLanguage = string.IsNullOrEmpty(language) ? AccountLimits.DefaultLanguage : language;
-        if (!AccountRules.IsWellFormedLanguageTag(preferredLanguage))
+        if (!GameLanguages.IsDefined(language))
         {
             return AccountOutcome.Refused(AccountStatus.InvalidLanguage);
         }
+
+        GameLanguage preferredLanguage = GameLanguages.Resolve(language);
 
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
@@ -112,7 +115,7 @@ public sealed class AccountService : IAccountService
             Player player = new()
             {
                 IsGuest = true,
-                PreferredLanguage = preferredLanguage,
+                Language = preferredLanguage,
                 CreatedAt = now,
                 LastLoginAt = now,
                 LastActiveAt = now,
@@ -252,9 +255,9 @@ public sealed class AccountService : IAccountService
     }
 
     /// <inheritdoc/>
-    public async Task<AccountStatus> SetLanguageAsync(Guid playerId, string language, CancellationToken cancellationToken)
+    public async Task<AccountStatus> SetLanguageAsync(Guid playerId, GameLanguage language, CancellationToken cancellationToken)
     {
-        if (!AccountRules.IsWellFormedLanguageTag(language))
+        if (!GameLanguages.IsDefined(language))
         {
             return AccountStatus.InvalidLanguage;
         }
@@ -268,7 +271,7 @@ public sealed class AccountService : IAccountService
                 return AccountStatus.InvalidToken;
             }
 
-            player.PreferredLanguage = language;
+            player.Language = GameLanguages.Resolve(language);
             _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return AccountStatus.Ok;
         }
@@ -306,7 +309,7 @@ public sealed class AccountService : IAccountService
             token,
             sessionId,
             expiresAt,
-            player.PreferredLanguage,
+            player.Language,
             player.IsGuest,
             player.RegistrationPromptUnlockedAt is not null);
 

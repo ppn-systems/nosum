@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nosum.Contracts.Common;
 using Nosum.Domain.Common;
 
 namespace Nosum.Domain.Accounts;
@@ -23,8 +24,8 @@ public sealed class Player : Entity
     /// <summary>Gets or sets when the game unlocked the invitation to register (set by the quest feature); null until then.</summary>
     public DateTimeOffset? RegistrationPromptUnlockedAt { get; set; }
 
-    /// <summary>Gets or sets the preferred UI language as a BCP-47 tag.</summary>
-    public string PreferredLanguage { get; set; } = "vi";
+    /// <summary>Gets or sets the player's language; never <see cref="GameLanguage.Unspecified"/> once stored.</summary>
+    public GameLanguage Language { get; set; } = GameLanguages.Default;
 
     /// <summary>Gets or sets when the account was created.</summary>
     public DateTimeOffset CreatedAt { get; set; }

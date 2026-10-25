@@ -70,7 +70,8 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
         where TResponse : class, IPacket, IPacketStaticOpcode
     {
         ArgumentNullException.ThrowIfNull(request);
-        return this.ReadySession().RequestAsync<TResponse>(request, ct: cancellationToken);
+        // Requests are encrypted: account packets carry passwords and tokens, and the server refuses them in plaintext.
+        return this.ReadySession().RequestAsync<TResponse>(request, RequestOptions.Default.WithEncrypt(), ct: cancellationToken);
     }
 
     /// <inheritdoc/>

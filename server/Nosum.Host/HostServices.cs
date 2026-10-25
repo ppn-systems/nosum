@@ -33,6 +33,9 @@ internal static class HostServices
         instances.Register(hasher);
         instances.Register(tokens);
         instances.Register<IAccountService>(new AccountService(unitOfWork, hasher, tokens, TimeProvider.System));
+        PlayerLifecycleService lifecycle = new(unitOfWork, TimeProvider.System);
+        instances.Register<IPlayerActivityService>(lifecycle);
+        instances.Register<IRegistrationPromptService>(lifecycle);
         instances.Register<IPlayerStateService>(new PlayerStateService(unitOfWork, TimeProvider.System));
     }
 }

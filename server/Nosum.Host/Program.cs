@@ -18,6 +18,7 @@ using Nosum.Abstractions.Presence;
 using Nosum.Gameplay.Farm;
 using Nosum.Handlers.Account;
 using Nosum.Handlers.Player;
+using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
@@ -56,11 +57,19 @@ internal static class Program
         await NosumDatabase.MigrateAsync(database, shutdown.Token).ConfigureAwait(false);
         HostServices.Register(database);
 
+        // Idle guests (30 days without coming back) are deleted once an hour.
+        Task guestCleanup = new GuestCleanupService(database, TimeProvider.System).RunAsync(
+            GuestCleanupService.DefaultInterval,
+            ex => Console.Error.WriteLine("Guest cleanup failed: " + ex.Message),
+            shutdown.Token);
+
         NetworkApplication app = BuildApplication(WebSocketPort);
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
         }
+
+        await guestCleanup.ConfigureAwait(false);
 
         return 0;
     }
@@ -125,5 +134,6 @@ internal static class Program
         InstanceManager.Instance.Register<IMapPresence>(presence);
         InstanceManager.Instance.Register<IMapCatalog>(maps);
         InstanceManager.Instance.Register<IPlayerService>(players);
+        InstanceManager.Instance.Register<ISessionRegistry>(new SessionRegistry(presence));
     }
 }

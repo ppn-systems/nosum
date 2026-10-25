@@ -11,8 +11,12 @@ culture data in the WASM bundle. Nosum follows the same rules so code and habits
 
 ## Decision
 
-- **D1 — Languages.** Vietnamese (`vi`) is the default; English (`en`) ships too. Languages are
-  BCP-47 tags; adding one never needs a schema or protocol change.
+- **D1 — Languages.** Vietnamese is the default; English ships too. A language is the
+  `GameLanguage` enum (`Unspecified = 0` meaning Vietnamese, `Vietnamese = 1`, `English = 2`;
+  `contracts/Nosum.Contracts/Common`) on the wire, in the database (smallint) and in code. New
+  languages are appended with the next number, never renumbered, and the server refuses undefined
+  values. `GameLanguages` is the one mapping to BCP-47 tags (`vi`, `en`), used only where a tag is
+  required: `.resx` culture names, `CultureInfo`, and the `i18n{}` content envelope keys.
 - **D2 — No display text on the wire.** Packets carry ids, enums and status/error codes. The
   client turns them into text. Logs, exceptions and code comments stay English and are never
   localized.
