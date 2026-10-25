@@ -5,7 +5,7 @@
 }
 
 .game-field-label {
-    font-weight: 800;
+    color: var(--nosum-heading);
 }
 
 .game-field ::deep .game-input {
@@ -14,5 +14,5 @@
 
 .game-field-hint {
     color: var(--nosum-ink-soft);
-    font-size: 0.85em;
+    font-size: var(--nosum-fs-small);
 }

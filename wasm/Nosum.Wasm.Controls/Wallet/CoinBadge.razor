@@ -1,6 +1,6 @@
 @inherits ObservingComponent<Nosum.Wasm.ViewModels.Wallet.WalletViewModel>
 
-@* The coin counter, in the shared panel frame. *@
+@* The coin counter: the coin and the amount, nothing else (the unit is the coin picture; the tooltip names it). *@
 <GamePanel Class="hud coin" Title="">
-    <p class="coin-line" role="status" aria-label="@(Vm.Amount + " " + Vm.Caption)"><GameIcon Name="coin" /><strong class="coin-amount">@Vm.Amount</strong> <span class="coin-caption">@Vm.Caption</span></p>
+    <p class="coin-line" role="status" aria-label="@(Vm.Amount + " " + Vm.Caption)" data-tip="@Vm.Caption"><GameIcon Name="coin" /><span class="coin-amount">@Vm.Amount</span></p>
 </GamePanel>

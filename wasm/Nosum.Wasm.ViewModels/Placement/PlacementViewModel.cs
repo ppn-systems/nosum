@@ -71,6 +71,18 @@ public sealed class PlacementViewModel : IObservableViewModel
     /// <summary>Gets the localized label of the pick-up button.</summary>
     public string PickUpLabel => _text["Placement_PickUp"];
 
+    /// <summary>Gets the one-word label of the place key (<c>E</c>) in the key strip.</summary>
+    public string StripPlaceLabel => _text["Placement_Strip_Place"];
+
+    /// <summary>Gets the one-word label of the rotate key (<c>R</c>) in the key strip.</summary>
+    public string StripRotateLabel => _text["Placement_Strip_Rotate"];
+
+    /// <summary>Gets the one-word label of the move key (<c>F</c>) in the key strip: "Cancel" while a piece is carried.</summary>
+    public string StripMoveLabel => _text[_carryingItemId == 0 ? "Placement_Strip_Move" : "Placement_Strip_Cancel"];
+
+    /// <summary>Gets the one-word label of the stow key (<c>Q</c>) in the key strip.</summary>
+    public string StripStowLabel => _text["Placement_Strip_Stow"];
+
     /// <summary>Gets the localized "carrying: item" line, or <see langword="null"/> when nothing is carried.</summary>
     public string? CarryingText
         => _carryingItemId != 0 && ItemCatalog.TryGet(_carryingItemId, out ItemDefinition? item)

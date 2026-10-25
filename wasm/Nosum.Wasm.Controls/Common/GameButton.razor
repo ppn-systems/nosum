@@ -3,7 +3,7 @@
 <button type="@(Submit ? "submit" : "button")"
         class="game-button @Variant @(Active ? "active" : null)"
         disabled="@Disabled"
-        title="@Title"
+        data-tip="@Title"
         tabindex="@(Focusable ? null : "-1")"
         @onmousedown:preventDefault="@(!Focusable)"
         @onclick="OnClick"><span class="game-button-label">@Text@ChildContent</span></button>

@@ -1,5 +1,24 @@
 .account-form {
     display: block;
-    width: calc(var(--u) * 150);
+    width: calc(var(--u) * 120);
     max-width: 100%;
+}
+
+.account-form ::deep .game-stack {
+    gap: calc(var(--u) * 2);
+}
+
+/* Registering has four fields: two columns, so the card is not taller than the window. */
+.account-form.register {
+    width: calc(var(--u) * 190);
+}
+
+.account-fields {
+    display: grid;
+    gap: calc(var(--u) * 2);
+}
+
+.account-form.register .account-fields {
+    grid-template-columns: 1fr 1fr;
+    gap: calc(var(--u) * 2) calc(var(--u) * 4);
 }

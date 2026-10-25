@@ -1,7 +1,7 @@
 @* A colour choice (skin, hair dye): a slot-framed square of the colour. *@
 <button type="button"
         class="game-swatch @(Current ? "current" : null)"
-        title="@Label"
+        data-tip="@Label"
         aria-label="@Label"
         aria-pressed="@(Current ? "true" : "false")"
         tabindex="-1"

@@ -1,0 +1,29 @@
+.game-icon-button {
+    display: block;
+    flex: none;
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 16);
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: var(--nosum-cursor-pointer, pointer);
+    pointer-events: auto;
+}
+
+.game-icon-button-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+}
+
+.game-icon-button:hover .game-icon-button-art {
+    filter: brightness(1.15);
+}
+
+.game-icon-button:active .game-icon-button-art {
+    filter: brightness(0.85);
+    transform: translateY(var(--u));
+}
