@@ -8,13 +8,14 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
+using Nosum.Contracts.World.S2C;
 
 namespace Nosum.Wasm.Socket.Player;
 
 /// <summary>
 /// The player's side of the connection: joins a map once the connection is signed in, publishes the
 /// local farmer's position to the server about 10 times per second, and hands the server's
-/// answers to the frame loop. The frame loop only calls <see cref="Report"/> and the
+/// answers to the frame loop (where to stand after a join or a map change, and move corrections). The frame loop only calls <see cref="Report"/> and the
 /// <c>TryTake…</c> methods, which never allocate or await; sending runs on a timer here.
 /// </summary>
 public sealed class PlayerChannel : IDisposable
@@ -30,9 +31,8 @@ public sealed class PlayerChannel : IDisposable
     private uint _playerId;
     private uint _sequence;
 
-    private bool _spawnPending;
-    private float _spawnX;
-    private float _spawnY;
+    private bool _entryPending;
+    private MapEntry _entry;
 
     private bool _correctionPending;
     private MoveCorrectionInfo _correction;
@@ -45,7 +45,7 @@ public sealed class PlayerChannel : IDisposable
 
     /// <summary>Initializes the channel and starts its report timer.</summary>
     /// <param name="socket">The game connection.</param>
-    /// <param name="mapId">Map to join.</param>
+    /// <param name="mapId">A map the server hosts, named in the join request; the server decides which map the player actually enters.</param>
     public PlayerChannel(IGameSocket socket, string mapId)
     {
         ArgumentNullException.ThrowIfNull(socket);
@@ -56,6 +56,7 @@ public sealed class PlayerChannel : IDisposable
         _subscriptions =
         [
             socket.Subscribe<MoveCorrection>(this.OnCorrection),
+            socket.Subscribe<MapChanged>(this.OnMapChanged),
         ];
         socket.Ready += this.OnSocketReady;
         _ = Task.Run(() => this.ReportLoopAsync(_stop.Token));
@@ -89,7 +90,7 @@ public sealed class PlayerChannel : IDisposable
     {
         lock (_gate)
         {
-            if (_spawnPending)
+            if (_entryPending)
             {
                 return;
             }
@@ -105,19 +106,32 @@ public sealed class PlayerChannel : IDisposable
         }
     }
 
-    /// <summary>Takes the spawn position of a fresh join, once. The frame loop moves the farmer there.</summary>
-    /// <param name="x">Spawn feet x.</param>
-    /// <param name="y">Spawn feet y.</param>
-    /// <returns><see langword="true"/> when a join completed since the last call.</returns>
-    public bool TryTakeSpawn(out float x, out float y)
+    /// <summary>
+    /// Takes the place the server put the player, once: after a join, and after every map change the server made.
+    /// The frame loop moves the farmer there and, for another map, fades to it.
+    /// </summary>
+    /// <param name="entry">The map and the place on it.</param>
+    /// <returns><see langword="true"/> when a join or a map change arrived since the last call.</returns>
+    public bool TryTakeEntry(out MapEntry entry)
     {
         lock (_gate)
         {
-            x = _spawnX;
-            y = _spawnY;
-            bool pending = _spawnPending;
-            _spawnPending = false;
+            entry = _entry;
+            bool pending = _entryPending;
+            _entryPending = false;
             return pending;
+        }
+    }
+
+    /// <summary>Looks at the place the server put the player without taking it; used to load the right map before the first frame.</summary>
+    /// <param name="entry">The map and the place on it.</param>
+    /// <returns><see langword="true"/> when an entry is waiting to be taken.</returns>
+    public bool TryPeekEntry(out MapEntry entry)
+    {
+        lock (_gate)
+        {
+            entry = _entry;
+            return _entryPending;
         }
     }
 
@@ -146,6 +160,23 @@ public sealed class PlayerChannel : IDisposable
 
         _stop.Cancel();
         _stop.Dispose();
+    }
+
+    // The server moved the player: it keeps the id, names the new map and the place to stand on.
+    private void OnMapChanged(MapChanged packet) => this.SetEntry(new MapEntry(packet.MapId, packet.X, packet.Y, packet.Facing), packet.PlayerId);
+
+    private void SetEntry(MapEntry entry, uint playerId)
+    {
+        lock (_gate)
+        {
+            _entry = entry;
+            _entryPending = true;
+            _x = entry.X;
+            _y = entry.Y;
+            _dirty = false;
+        }
+
+        Volatile.Write(ref _playerId, playerId);
     }
 
     private void OnCorrection(MoveCorrection packet)
@@ -181,17 +212,7 @@ public sealed class PlayerChannel : IDisposable
                 return;
             }
 
-            lock (_gate)
-            {
-                _spawnX = result.SpawnX;
-                _spawnY = result.SpawnY;
-                _spawnPending = true;
-                _x = result.SpawnX;
-                _y = result.SpawnY;
-                _dirty = false;
-            }
-
-            Volatile.Write(ref _playerId, result.PlayerId);
+            this.SetEntry(new MapEntry(result.MapId, result.SpawnX, result.SpawnY, result.Facing), result.PlayerId);
         }
         catch (Exception)
         {
@@ -253,6 +274,13 @@ public sealed class PlayerChannel : IDisposable
         }
     }
 }
+
+/// <summary>Where the server put the player: a map and a place on it.</summary>
+/// <param name="MapId">Stable id of the map.</param>
+/// <param name="X">Feet x on the map, world pixels.</param>
+/// <param name="Y">Feet y on the map, world pixels.</param>
+/// <param name="Facing">Facing: 0 down, 1 right, 2 up, 3 left.</param>
+public readonly record struct MapEntry(string MapId, float X, float Y, byte Facing);
 
 /// <summary>A refused move and the position the server keeps.</summary>
 /// <param name="Sequence">Sequence number of the refused intent.</param>
