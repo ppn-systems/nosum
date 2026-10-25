@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Shops;
 
 namespace Nosum.Gameplay.Maps;
@@ -44,6 +45,9 @@ public static class GameMaps
     /// <summary>Id of the backwoods north of the farm.</summary>
     public const string Backwoods = "backwoods";
 
+    /// <summary>Id of the mine's entrance cave, a shared map north of Town with the shaft to the first floor and the elevator (docs/adr/ADR-026 D3).</summary>
+    public const string Mine = "mine";
+
     /// <summary>Id of the co-op land: each co-op's own shared farm, entered from Town (docs/adr/ADR-020).</summary>
     public const string CoopFarm = "coopfarm";
 
@@ -58,6 +62,12 @@ public static class GameMaps
     private static readonly (int X, int Y) s_townClothingShopTile = (20, 89);
     private static readonly (int X, int Y) s_townFurnitureShopTile = (95, 51);
 
+    // The blacksmith's counter: the doormat in front of the door at tile (94, 81), see MineWorld.
+    private static readonly (int X, int Y) s_townBlacksmithTile = MineWorld.BlacksmithCounter;
+
+    // The forty floors of the mine, one private per-player map each (docs/adr/ADR-026 D3). A floor's way up is its own arrival tile.
+    private static readonly MapSpec[] s_mineFloors = BuildMineFloors();
+
     private static readonly MapSpec[] s_all =
     [
         new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true, isPrivate: true),
@@ -69,13 +79,30 @@ public static class GameMaps
             new ShopPoint(ShopCatalog.SeedShop, s_townSeedShopTile.X, s_townSeedShopTile.Y),
             new ShopPoint(ShopCatalog.ClothingShop, s_townClothingShopTile.X, s_townClothingShopTile.Y),
             new ShopPoint(ShopCatalog.FurnitureShop, s_townFurnitureShopTile.X, s_townFurnitureShopTile.Y),
+            new ShopPoint(ShopCatalog.Blacksmith, s_townBlacksmithTile.X, s_townBlacksmithTile.Y),
         ],
-        extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y)]),
+        extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y), .. MineGateWarps()]),
         new(Backwoods, "Backwoods.tmx", 14, 38),
+
+        // The mine's entrance cave: the file's exits to the Mountain are dropped (the world does not host it), ours lead to Town and down the shaft.
+        new(Mine, "Mine.tmx", MineWorld.CaveShaftFront.X, MineWorld.CaveShaftFront.Y,
+            openTiles: [MineWorld.CaveShaft],
+            extraWarps:
+            [
+                new MapWarp(MineWorld.CaveShaft.X, MineWorld.CaveShaft.Y, RoomOfFloor(1), MineLayouts.For(1).SpawnX, MineLayouts.For(1).SpawnY),
+                new MapWarp(MineWorld.CaveTownExit.X, MineWorld.CaveTownExit.Y, Town, MineWorld.TownArrival.X, MineWorld.TownArrival.Y),
+            ],
+            elevator: new ElevatorPoint(MineWorld.CaveElevator.X, MineWorld.CaveElevator.Y)),
 
         // Co-op land reuses the placeholder Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
         new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true),
+        .. s_mineFloors,
     ];
+
+    /// <summary>Returns the id of a mine floor map, for example <c>mine7</c>.</summary>
+    /// <param name="floor">The floor, 1 to <see cref="MineRules.MaxFloor"/>.</param>
+    /// <returns>The id.</returns>
+    public static string MineFloorId(int floor) => MineRules.FloorMapId(floor);
 
     /// <summary>Gets every hosted map.</summary>
     public static IReadOnlyList<MapSpec> All => s_all;
@@ -116,5 +143,44 @@ public static class GameMaps
         }
 
         return null;
+    }
+
+    private static string RoomOfFloor(int floor) => MineRules.FloorMapId(floor);
+
+    // The Town edge that takes a player to the mine: five tiles of the north road, where the file's own exits to the Mountain would be.
+    private static MapWarp[] MineGateWarps()
+    {
+        MapWarp[] warps = new MapWarp[MineWorld.TownGateToX - MineWorld.TownGateFromX + 1];
+        for (int i = 0; i < warps.Length; i++)
+        {
+            warps[i] = new MapWarp(MineWorld.TownGateFromX + i, -1, Mine, MineWorld.CaveArrival.X, MineWorld.CaveArrival.Y);
+        }
+
+        return warps;
+    }
+
+    private static MapSpec[] BuildMineFloors()
+    {
+        MapSpec[] floors = new MapSpec[MineRules.MaxFloor];
+        for (int floor = 1; floor <= floors.Length; floor++)
+        {
+            MineLayouts.Layout layout = MineLayouts.For(floor);
+
+            // Up: to the floor above, or from the first floor to the cave in front of the shaft. The way up is the arrival tile itself.
+            MapWarp up = floor == 1
+                ? new MapWarp(layout.SpawnX, layout.SpawnY, Mine, MineWorld.CaveShaftFront.X, MineWorld.CaveShaftFront.Y)
+                : new MapWarp(layout.SpawnX, layout.SpawnY, MineRules.FloorMapId(floor - 1), MineLayouts.For(floor - 1).SpawnX, MineLayouts.For(floor - 1).SpawnY);
+            floors[floor - 1] = new MapSpec(
+                MineRules.FloorMapId(floor),
+                MineLayouts.FileOf(floor),
+                layout.SpawnX,
+                layout.SpawnY,
+                extraWarps: [up],
+                isPrivate: true,
+                mineFloor: floor,
+                elevator: MineRules.HasElevator(floor) ? new ElevatorPoint(layout.SpawnX, layout.SpawnY) : null);
+        }
+
+        return floors;
     }
 }

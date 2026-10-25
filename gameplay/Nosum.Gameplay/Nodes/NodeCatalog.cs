@@ -8,7 +8,7 @@ namespace Nosum.Gameplay.Nodes;
 
 /// <summary>
 /// The resource-node catalogue (docs/adr/ADR-021 D3 and D5): hits to break, tool, blocking and yields per kind. Hits: twig 1, stone 1, weed 1,
-/// grass 1, stump 2, grown tree 10, copper ore 3. A tree younger than <see cref="TreeStage.Grown"/> falls to one hit and leaves nothing behind.
+/// grass 1, stump 2, grown tree 10, copper ore 3, iron ore 4. A ladder is not broken: facing it takes a player down. A tree younger than <see cref="TreeStage.Grown"/> falls to one hit and leaves nothing behind.
 /// </summary>
 public static class NodeCatalog
 {
@@ -19,6 +19,8 @@ public static class NodeCatalog
         new(NodeKind.Twig, "twig", ToolKind.Axe, 1, true, [new NodeYield(ItemCatalog.Wood, 1, 1)]),
         new(NodeKind.Stone, "stone", ToolKind.Pickaxe, 1, true, [new NodeYield(ItemCatalog.Stone, 1, 2), new NodeYield(ItemCatalog.Coal, 1, 1, 50)]),
         new(NodeKind.CopperOre, "copper_ore", ToolKind.Pickaxe, 3, true, [new NodeYield(ItemCatalog.CopperOre, 1, 3)]),
+        new(NodeKind.IronOre, "iron_ore", ToolKind.Pickaxe, 4, true, [new NodeYield(ItemCatalog.IronOre, 1, 3)]),
+        new(NodeKind.Ladder, "ladder", ToolKind.None, 1, true, []),
         new(NodeKind.Weed, "weed", ToolKind.Scythe, 1, false, [new NodeYield(ItemCatalog.Fiber, 1, 1)]),
         new(NodeKind.Grass, "grass", ToolKind.Scythe, 1, false, [new NodeYield(ItemCatalog.Fiber, 1, 1, 400)]),
     ];

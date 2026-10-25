@@ -17,6 +17,9 @@ public sealed class GameMapsTests
 {
     private static TileMap Load(MapSpec spec) => TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", spec.TmxFile)));
 
+    // The csproj spells paths with backslashes.
+    private static string InProject(string path) => path.Replace('/', '\\');
+
     public static TheoryData<string> MapIds()
     {
         TheoryData<string> ids = [];
@@ -125,11 +128,12 @@ public sealed class GameMapsTests
     }
 
     [Fact]
-    public void Catalogue_OnlyTheFarmAndTheFarmhouseArePrivate_OnlyCoopFarmIsCoopLand_AndOnlyTheFarmhouseTakesFurniture()
+    public void Catalogue_OnlyTheFarmTheFarmhouseAndTheMineFloorsArePrivate_OnlyCoopFarmIsCoopLand_AndOnlyTheFarmhouseTakesFurniture()
     {
-        GameMaps.All.Where(m => m.IsPrivate).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.Farm, GameMaps.FarmHouse);
+        GameMaps.All.Where(m => m.IsPrivate && !m.IsMineFloor).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.Farm, GameMaps.FarmHouse);
+        GameMaps.All.Where(m => m.IsMineFloor).Should().HaveCount(40).And.OnlyContain(m => m.IsPrivate && !m.Placeable && !m.Farmable);
         GameMaps.All.Where(m => m.Placeable).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.FarmHouse);
-        GameMaps.All.Where(m => !m.IsPrivate && !m.IsCoop).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.Town, GameMaps.Backwoods);
+        GameMaps.All.Where(m => !m.IsPrivate && !m.IsCoop).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.Town, GameMaps.Backwoods, GameMaps.Mine);
         GameMaps.All.Where(m => m.IsCoop).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.CoopFarm);
     }
 
@@ -153,13 +157,18 @@ public sealed class GameMapsTests
         string wasm = File.ReadAllText(RepoFiles.Path("wasm", "Nosum.Wasm", "Nosum.Wasm.csproj"));
         string host = File.ReadAllText(RepoFiles.Path("server", "Nosum.Host", "Nosum.Host.csproj"));
 
-        wasm.Should().Contain(@"assets\Maps\" + spec!.TmxFile);
-        host.Should().Contain(@"assets\Maps\" + spec.TmxFile);
+        wasm.Should().Contain(@"assets\Maps\" + InProject(spec!.TmxFile));
+        host.Should().Contain(@"assets\Maps\" + InProject(spec.TmxFile));
+
+        // A sheet is named relative to the folder of the map file (the mine's floor plans live in Mines/).
+        int slash = spec.TmxFile.LastIndexOf('/');
+        string folder = slash < 0 ? string.Empty : spec.TmxFile[..(slash + 1)];
         foreach (TileSet set in Load(spec).TileSets)
         {
-            string image = set.ImageSource.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? set.ImageSource : set.ImageSource + ".png";
+            string image = folder + (set.ImageSource.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? set.ImageSource : set.ImageSource + ".png");
+            image = image.Replace('\\', '/');
             File.Exists(RepoFiles.Path("assets", "Maps", image)).Should().BeTrue($"{image} of {id}");
-            wasm.Should().Contain(@"assets\Maps\" + image);
+            wasm.Should().Contain(@"assets\Maps\" + InProject(image));
         }
     }
 }

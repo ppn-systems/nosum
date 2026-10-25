@@ -74,6 +74,9 @@ public static class ShopCatalog
     /// <summary>The furniture shop.</summary>
     public const int FurnitureShop = 3;
 
+    /// <summary>The blacksmith's counter in the town. It sells coal and ore at high prices; upgrading tools is its own flow (docs/adr/ADR-026 D2).</summary>
+    public const int Blacksmith = 4;
+
     private static readonly ShopDefinition[] s_all =
     [
         new(SeedShop, "seed_shop",
@@ -102,6 +105,13 @@ public static class ShopCatalog
             new(ItemCatalog.Bookcase, 260),
             new(ItemCatalog.BlueArmchair, 300),
             new(ItemCatalog.BlueCouch, 400),
+        ]),
+        new(Blacksmith, "blacksmith",
+        [
+            // Several times what a player gets for the ore elsewhere: the counter is for the player who is a few ore short of a bar, not a way to skip the mine.
+            new(ItemCatalog.Coal, 150),
+            new(ItemCatalog.CopperOre, 75),
+            new(ItemCatalog.IronOre, 150),
         ]),
     ];
 

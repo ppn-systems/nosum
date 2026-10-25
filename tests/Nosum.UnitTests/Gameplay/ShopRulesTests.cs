@@ -20,9 +20,9 @@ namespace Nosum.UnitTests.Gameplay;
 public sealed class ShopRulesTests
 {
     [Fact]
-    public void Shops_AreThreeWithStableIdsAndKeys()
+    public void Shops_AreFourWithStableIdsAndKeys()
     {
-        ShopCatalog.All.Select(s => (s.Id, s.Key)).Should().Equal((1, "seed_shop"), (2, "clothing_shop"), (3, "furniture_shop"));
+        ShopCatalog.All.Select(s => (s.Id, s.Key)).Should().Equal((1, "seed_shop"), (2, "clothing_shop"), (3, "furniture_shop"), (4, "blacksmith"));
         ShopCatalog.SeedShop.Should().Be(1, "the town's only shop before the split keeps its id");
     }
 
@@ -30,6 +30,7 @@ public sealed class ShopRulesTests
     [InlineData(ShopCatalog.SeedShop, ItemKind.Seed)]
     [InlineData(ShopCatalog.ClothingShop, ItemKind.Clothing)]
     [InlineData(ShopCatalog.FurnitureShop, ItemKind.Furniture)]
+    [InlineData(ShopCatalog.Blacksmith, ItemKind.Resource)]
     public void EachShop_SellsOnlyItsOwnKindOfItem_AtPositivePrices_WithoutDuplicates(int shopId, ItemKind kind)
     {
         ShopCatalog.TryGet(shopId, out ShopDefinition? shop).Should().BeTrue();
@@ -138,7 +139,8 @@ public sealed class ShopRulesTests
         town!.Shops.Select(p => (p.ShopId, p.TileX, p.TileY)).Should().Equal(
             (ShopCatalog.SeedShop, 43, 57),
             (ShopCatalog.ClothingShop, 20, 89),
-            (ShopCatalog.FurnitureShop, 95, 51));
+            (ShopCatalog.FurnitureShop, 95, 51),
+            (ShopCatalog.Blacksmith, 94, 82));
         foreach (ShopDefinition shop in ShopCatalog.All)
         {
             town.Shops.Count(p => p.ShopId == shop.Id).Should().Be(1, $"{shop.Key} has one counter");

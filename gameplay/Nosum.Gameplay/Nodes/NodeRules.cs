@@ -32,16 +32,31 @@ public static class NodeRules
     /// <param name="node">The node.</param>
     /// <param name="tool">The held tool.</param>
     /// <returns>What happened.</returns>
-    public static NodeHit Hit(in ResourceNode node, ToolKind tool)
+    public static NodeHit Hit(in ResourceNode node, ToolKind tool) => Hit(node, tool, 1);
+
+    /// <summary>
+    /// Applies one tool swing of a given strength (docs/adr/ADR-026 D1: an upgraded axe or pickaxe does more than one hit of damage). A stone
+    /// that hides a mine ladder (<see cref="NodeVariants.LadderStone"/>) leaves the ladder behind when it breaks.
+    /// </summary>
+    /// <param name="node">The node.</param>
+    /// <param name="tool">The held tool.</param>
+    /// <param name="damage">Hits' worth of damage this swing does, at least one (<see cref="ToolRules.DamagePerHit"/>).</param>
+    /// <returns>What happened.</returns>
+    public static NodeHit Hit(in ResourceNode node, ToolKind tool, int damage)
     {
-        if (!NodeCatalog.TryGet(node.Kind, out NodeDefinition? definition) || definition.Tool != tool)
+        if (!NodeCatalog.TryGet(node.Kind, out NodeDefinition? definition) || definition.Tool != tool || tool == ToolKind.None)
         {
             return new NodeHit(NodeHitOutcome.WrongTool, node);
         }
 
-        if (node.Hits > 1)
+        if (node.Hits > Math.Max(1, damage))
         {
-            return new NodeHit(NodeHitOutcome.Damaged, node with { Hits = (byte)(node.Hits - 1) });
+            return new NodeHit(NodeHitOutcome.Damaged, node with { Hits = (byte)(node.Hits - Math.Max(1, damage)) });
+        }
+
+        if (node is { Kind: NodeKind.Stone, Variant: NodeVariants.LadderStone })
+        {
+            return new NodeHit(NodeHitOutcome.Broke, new ResourceNode(node.Id, node.X, node.Y, NodeKind.Ladder, 0, 0, NodeCatalog.HitsFor(NodeKind.Ladder, 0)));
         }
 
         if (node is { Kind: NodeKind.Tree, Stage: TreeStage.Grown })

@@ -18,7 +18,7 @@ public sealed class MapSpec
 {
     /// <summary>Initializes a map spec.</summary>
     /// <param name="id">Stable lower-case key, for example <c>farm</c>; the only map name that crosses the wire.</param>
-    /// <param name="tmxFile">File name of the <c>.tmx</c> inside the maps folder (a name, never a path).</param>
+    /// <param name="tmxFile">File name of the <c>.tmx</c> inside the maps folder, or inside one sub-folder of it such as <c>Mines/1.tmx</c> (a fixed name from this catalogue, never client input).</param>
     /// <param name="spawnTileX">Preferred tile x for a player with no saved place.</param>
     /// <param name="spawnTileY">Preferred tile y for a player with no saved place.</param>
     /// <param name="props">Buildings and props; their footprints block walking.</param>
@@ -29,6 +29,8 @@ public sealed class MapSpec
     /// <param name="placeable">Whether players may place furniture on its free floor.</param>
     /// <param name="shops">Where shops are served on this map (docs/adr/ADR-013 amendments).</param>
     /// <param name="isCoop">Whether each co-op has its own copy of the map, owned by the co-op and open to its members only (docs/adr/ADR-020).</param>
+    /// <param name="mineFloor">The floor number (1 and up) when the map is a floor of the mine: a per-player instance whose nodes are built in memory each game day (docs/adr/ADR-026 D3); zero for any other map.</param>
+    /// <param name="elevator">Where the mine elevator is served on this map, or <see langword="null"/> when there is none.</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -41,13 +43,16 @@ public sealed class MapSpec
         bool isPrivate = false,
         bool placeable = false,
         IReadOnlyList<ShopPoint>? shops = null,
-        bool isCoop = false)
+        bool isCoop = false,
+        int mineFloor = 0,
+        ElevatorPoint? elevator = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
-        if (tmxFile.AsSpan().IndexOfAny('/', '\\') >= 0)
+        ArgumentOutOfRangeException.ThrowIfNegative(mineFloor);
+        if (!IsPlainFileName(tmxFile))
         {
-            throw new ArgumentException("A map file is a name inside the maps folder, not a path.", nameof(tmxFile));
+            throw new ArgumentException("A map file is a name inside the maps folder (or one sub-folder of it), not a path.", nameof(tmxFile));
         }
 
         this.Id = id;
@@ -62,6 +67,8 @@ public sealed class MapSpec
         this.Placeable = placeable;
         this.Shops = shops ?? [];
         this.IsCoop = isCoop;
+        this.MineFloor = mineFloor;
+        this.Elevator = elevator;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -94,11 +101,32 @@ public sealed class MapSpec
     /// <summary>Gets whether every co-op has its own instance of this map, keyed by the co-op id (docs/adr/ADR-020).</summary>
     public bool IsCoop { get; }
 
+    /// <summary>Gets the mine floor number (1 and up), or zero when the map is not a floor of the mine (docs/adr/ADR-026 D3).</summary>
+    public int MineFloor { get; }
+
+    /// <summary>Gets whether the map is a floor of the mine.</summary>
+    public bool IsMineFloor => this.MineFloor > 0;
+
+    /// <summary>Gets where the mine elevator is served, or <see langword="null"/> when this map has none.</summary>
+    public ElevatorPoint? Elevator { get; }
+
     /// <summary>Gets whether players may place furniture on this map.</summary>
     public bool Placeable { get; }
 
     /// <summary>Gets the shop points of this map; empty when nothing is sold here.</summary>
     public IReadOnlyList<ShopPoint> Shops { get; }
+
+    // A bare file name, or "Folder/name": no rooted path, no "..", no backslash, at most one separator.
+    private static bool IsPlainFileName(string file)
+    {
+        if (file.Contains('\\', StringComparison.Ordinal) || file.Contains("..", StringComparison.Ordinal) || file.StartsWith('/'))
+        {
+            return false;
+        }
+
+        int first = file.IndexOf('/', StringComparison.Ordinal);
+        return first < 0 ? file.Length > 0 : first > 0 && first == file.LastIndexOf('/') && first < file.Length - 1;
+    }
 
     /// <summary>Builds the walk grid: the map's own rules, the prop footprints, then the opened tiles.</summary>
     /// <param name="map">The parsed map.</param>

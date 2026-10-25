@@ -9,7 +9,7 @@ namespace Nosum.Gameplay.Items;
 
 /// <summary>
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
-/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources.
+/// put in an inventory. Ids are append-only. Ids below 100 are tools (the five basic ones, then the copper tier from 10 and the iron tier from 20, docs/adr/ADR-026), 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources.
 /// </summary>
 public static class ItemCatalog
 {
@@ -27,6 +27,30 @@ public static class ItemCatalog
 
     /// <summary>The scythe: weeds and grass; harvests a mature crop.</summary>
     public const int Scythe = 5;
+
+    /// <summary>The copper hoe: tills a line of three tiles when the use is wide.</summary>
+    public const int CopperHoe = 10;
+
+    /// <summary>The copper watering can: holds 55, waters a line of three.</summary>
+    public const int CopperWateringCan = 11;
+
+    /// <summary>The copper axe: two hits' worth of damage per swing.</summary>
+    public const int CopperAxe = 12;
+
+    /// <summary>The copper pickaxe: two hits' worth of damage per swing.</summary>
+    public const int CopperPickaxe = 13;
+
+    /// <summary>The iron hoe: tills a line of five tiles when the use is wide.</summary>
+    public const int IronHoe = 20;
+
+    /// <summary>The iron watering can: holds 70, waters a line of five.</summary>
+    public const int IronWateringCan = 21;
+
+    /// <summary>The iron axe: three hits' worth of damage per swing.</summary>
+    public const int IronAxe = 22;
+
+    /// <summary>The iron pickaxe: three hits' worth of damage per swing.</summary>
+    public const int IronPickaxe = 23;
 
     /// <summary>Parsnip seeds.</summary>
     public const int ParsnipSeeds = 100;
@@ -91,6 +115,15 @@ public static class ItemCatalog
     /// <summary>Copper ore, from copper ore nodes.</summary>
     public const int CopperOre = 504;
 
+    /// <summary>Iron ore, from iron ore nodes in the mine (floors 20 to 40).</summary>
+    public const int IronOre = 505;
+
+    /// <summary>A copper bar, smelted from copper ore in a furnace and spent at the blacksmith.</summary>
+    public const int CopperBar = 506;
+
+    /// <summary>An iron bar, smelted from iron ore in a furnace and spent at the blacksmith.</summary>
+    public const int IronBar = 507;
+
     /// <summary>Largest stack of furniture.</summary>
     public const int FurnitureStack = 20;
 
@@ -125,6 +158,14 @@ public static class ItemCatalog
         new(Axe, "axe", ItemKind.Tool, 1, ToolKind.Axe),
         new(Pickaxe, "pickaxe", ItemKind.Tool, 1, ToolKind.Pickaxe),
         new(Scythe, "scythe", ItemKind.Tool, 1, ToolKind.Scythe),
+        new(CopperHoe, "copper_hoe", ItemKind.Tool, 1, ToolKind.Hoe, tier: ToolTier.Copper),
+        new(CopperWateringCan, "copper_watering_can", ItemKind.Tool, 1, ToolKind.WateringCan, tier: ToolTier.Copper),
+        new(CopperAxe, "copper_axe", ItemKind.Tool, 1, ToolKind.Axe, tier: ToolTier.Copper),
+        new(CopperPickaxe, "copper_pickaxe", ItemKind.Tool, 1, ToolKind.Pickaxe, tier: ToolTier.Copper),
+        new(IronHoe, "iron_hoe", ItemKind.Tool, 1, ToolKind.Hoe, tier: ToolTier.Iron),
+        new(IronWateringCan, "iron_watering_can", ItemKind.Tool, 1, ToolKind.WateringCan, tier: ToolTier.Iron),
+        new(IronAxe, "iron_axe", ItemKind.Tool, 1, ToolKind.Axe, tier: ToolTier.Iron),
+        new(IronPickaxe, "iron_pickaxe", ItemKind.Tool, 1, ToolKind.Pickaxe, tier: ToolTier.Iron),
         new(ParsnipSeeds, "parsnip_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Parsnip),
         new(RadishSeeds, "radish_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Radish),
         new(CauliflowerSeeds, "cauliflower_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Cauliflower),
@@ -139,6 +180,9 @@ public static class ItemCatalog
         new(Fiber, "fiber", ItemKind.Resource, DefaultStack),
         new(Coal, "coal", ItemKind.Resource, DefaultStack),
         new(CopperOre, "copper_ore", ItemKind.Resource, DefaultStack),
+        new(IronOre, "iron_ore", ItemKind.Resource, DefaultStack),
+        new(CopperBar, "copper_bar", ItemKind.Resource, DefaultStack),
+        new(IronBar, "iron_bar", ItemKind.Resource, DefaultStack),
         new(OakChair, "oak_chair", ItemKind.Furniture, FurnitureStack),
         new(BlueArmchair, "blue_armchair", ItemKind.Furniture, FurnitureStack),
         new(BlueCouch, "blue_couch", ItemKind.Furniture, FurnitureStack),
