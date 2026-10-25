@@ -37,5 +37,5 @@ Where the ADR was silent or the owner's brief narrowed it, the simplest thing wa
 - **Rebindable:** the four walk keys, use, and the panel and furniture keys. The arrows, Space, number keys, Escape, Enter and Tab are fixed. Binding a key another action holds swaps the two.
 - **Touch:** stick and use button are plain elements; `renderer.js` turns their pointer events into the held and pressed bits of the next frame (no .NET call per touch event). They show only where the main pointer is coarse and hide while a panel is open. The hotbar is tappable as before. Long-press on the world fires the use action on the tile in front of the farmer, not on the tile under the finger.
 - **Hints** are client-side, not server quests: walk, use, sell, open a shop, visit Town, one line at a time for 12 seconds; finished steps are stored with the settings (shown once; off or restart in the settings). The server quest chain of D3 is not built.
-- **Sound** volumes are stored and shown; there is no audio before M6.
+- **Sound** volumes are stored and shown; they drive the audio hooks of [ADR-039](ADR-039-audio-hooks.md) (the own music and sound effects are M6).
 - **Not done:** touch buttons for rotate/grab/pick-up (furniture arranging needs a keyboard), per-tile long-press targeting.
