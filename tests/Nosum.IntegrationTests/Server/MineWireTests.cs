@@ -186,8 +186,8 @@ public sealed class MineWireTests : IClassFixture<PostgresFixture>
         (await noBars.UpgradeAsync(ItemCatalog.Hoe, host.Timeout)).Status.Should().Be(BlacksmithStatus.NotEnoughBars);
         (await noBars.UpgradeAsync(ItemCatalog.CopperHoe, host.Timeout)).Status.Should().Be(BlacksmithStatus.NoTool, "the copper hoe is not carried");
 
-        // Things that cannot be upgraded.
-        foreach (int itemId in new[] { ItemCatalog.Scythe, ItemCatalog.IronHoe, ItemCatalog.Wood, ItemCatalog.ParsnipSeeds, 0, 99_999, -1 })
+        // Things that cannot be upgraded. A negative id never reaches the handler: the wire bound drops it (PacketBoundsTests, docs/adr/ADR-032).
+        foreach (int itemId in new[] { ItemCatalog.Scythe, ItemCatalog.IronHoe, ItemCatalog.Wood, ItemCatalog.ParsnipSeeds, 0, 99_999 })
         {
             (await noBars.UpgradeAsync(itemId, host.Timeout)).Status.Should().Be(BlacksmithStatus.NotUpgradable, $"item {itemId}");
         }
@@ -376,7 +376,6 @@ public sealed class MineWireTests : IClassFixture<PostgresFixture>
             (await diver.RideAsync(5, host.Timeout)).Status.Should().Be(MineStatus.AlreadyThere);
             (await diver.RideAsync(10, host.Timeout)).Status.Should().Be(MineStatus.NotUnlocked, "never been that deep");
             (await diver.RideAsync(7, host.Timeout)).Status.Should().Be(MineStatus.NotUnlocked, "not an elevator floor");
-            (await diver.RideAsync(-5, host.Timeout)).Status.Should().Be(MineStatus.NotUnlocked);
             MineState up = await diver.RideAsync(0, host.Timeout);
             up.Should().BeEquivalentTo(new { Status = MineStatus.Ok, Floor = 0, Deepest = 5 });
             (await diver.MapChanges.WaitAsync(m => m.MapId == GameMaps.Mine, host.Timeout)).MapId.Should().Be("mine");
