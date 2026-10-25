@@ -118,3 +118,20 @@
     box-sizing: border-box;
     pointer-events: none;
 }
+
+/* Narrow screens (a phone held upright, docs/adr/ADR-033 D2): the coins and the gear take the first row so they are always on screen, the quest tracker the next. */
+@media (max-width: 640px) {
+    .hud-top {
+        flex-wrap: wrap;
+    }
+
+    .hud-top-right {
+        order: -1;
+        flex: 1 1 100%;
+        justify-content: flex-end;
+    }
+
+    .hud-top-left {
+        flex: 1 1 100%;
+    }
+}
