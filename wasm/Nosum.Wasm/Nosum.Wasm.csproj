@@ -10,7 +10,7 @@
   <!-- Placeholder content served from the repository's assets/ folder (docs/adr/ADR-007):
        only the files the client loads, linked so assets/ stays the single copy. -->
   <ItemGroup>
-    <Content Include="..\..\assets\Maps\Farm.tmx;..\..\assets\Maps\springobjects.png;..\..\assets\Maps\paths.png;..\..\assets\Maps\spring_outdoorsTileSheet.png;..\..\assets\Maps\spring_outdoorsTileSheet2.png;..\..\assets\Maps\spring_outdoorTileSheet_extra.png" Link="wwwroot\assets\Maps\%(Filename)%(Extension)" />
+    <Content Include="..\..\assets\Maps\springobjects.png" Link="wwwroot\assets\Maps\%(Filename)%(Extension)" />
     <!-- Maps of Nosum.Gameplay.Maps.GameMaps and the tilesheets they name; GameMapsTests checks that every one is listed. -->
     <Content Include="..\..\assets\Maps\Farm.tmx;..\..\assets\Maps\FarmHouse.tmx;..\..\assets\Maps\BusStop.tmx;..\..\assets\Maps\Forest.tmx" Link="wwwroot\assets\Maps\%(Filename)%(Extension)" />
     <Content Include="..\..\assets\Maps\paths.png;..\..\assets\Maps\spring_outdoorsTileSheet.png;..\..\assets\Maps\spring_outdoorsTileSheet2.png;..\..\assets\Maps\spring_outdoorTileSheet_extra.png;..\..\assets\Maps\spring_town.png;..\..\assets\Maps\spring_Shadows.png;..\..\assets\Maps\spring_Waterfalls.png;..\..\assets\Maps\townInterior.png;..\..\assets\Maps\farmhouse_tiles.png;..\..\assets\Maps\walls_and_floors.png" Link="wwwroot\assets\Maps\%(Filename)%(Extension)" />

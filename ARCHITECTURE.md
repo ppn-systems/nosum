@@ -25,6 +25,7 @@ nosum/
 ├── wasm/                         # Nosum.Wasm.slnx — own Directory.Build.props (trimmed, no AOT)
 │   ├── Nosum.Wasm/               # Blazor host: canvas page + UI overlay
 │   ├── Nosum.Wasm.ViewModels/    # MVVM view models (no .razor)
+│   ├── Nosum.Wasm.Controls/      # reusable Razor controls: hotbar, inventory grid, quest tracker
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
@@ -62,8 +63,9 @@ Nosum.Infrastructure    → Abstractions, Nalix.Runtime          (groups, sendin
 Nosum.Handlers          → Abstractions, Nalix.Runtime          (never Infrastructure)
 Nosum.Host              → Handlers, Infrastructure, Nalix.Hosting
 Nosum.Wasm.Socket       → Contracts, Nalix.SDK
-Nosum.Wasm.ViewModels   → Wasm.Socket
-Nosum.Wasm              → Wasm.ViewModels, Wasm.Socket, Contracts, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
+Nosum.Wasm.ViewModels   → Wasm.Socket, Gameplay                (catalogue keys: item, crop and quest ids to localization keys)
+Nosum.Wasm.Controls     → Wasm.ViewModels                      (reusable Razor controls; no socket, no text of their own)
+Nosum.Wasm              → Wasm.Controls, Wasm.ViewModels, Wasm.Socket, Contracts, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
 Nosum.AtlasPacker       → SkiaSharp                            (tools/ only; nothing references it)
 ```
 

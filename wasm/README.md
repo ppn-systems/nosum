@@ -45,9 +45,17 @@ Many maps ([ADR-012](../docs/adr/ADR-012-maps-and-warps.md)): `Game/MapLoader` l
 it prefetches the maps the current one leads to. The server decides map changes: on `MapChanged` the scene fades out,
 freezes the farmer (no reports), waits without blocking until the map is loaded, swaps and fades in. Map-specific
 drawing plugs in as an `IMapDecorator` made by an `IMapDecoratorProvider` registered where `GameLoop` builds the loader
-(`PropDecoratorProvider` draws a map's buildings from its `MapSpec`; crops and soil belong in their own provider). The maps
+(`PropDecoratorProvider` draws a map's buildings from its `MapSpec`; `FarmDecoratorProvider` adds soil, crops and the target cursor on `MapSpec.Farmable` maps). The maps
 and tilesheets the client can load are linked from `assets/Maps/` in `Nosum.Wasm.csproj`; building sheets from
 `assets/Buildings/`. Without a server the farm still plays offline (no map changes).
+
+Farming ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)): `Nosum.Wasm.Socket` has `InventoryChannel`, `FarmChannel` and `QuestChannel`, client mirrors of the
+server's state loaded after sign-in (inventory, quests) and after every join or map change (farm) and kept current by pushes. `FarmChannel` also estimates the server clock; the
+farm decorator computes each crop's stage with `FarmRules` from the mirrored timestamps. Keys reach the frame as batched edges (`InputEdges`, packed with the held directions by `InputPacking`;
+`renderer.js` ignores keys typed into form fields): `E` or `Space` uses the held item on the tile in front (`Game/PlayerActions`), `1`-`9` select a hotbar slot, `I` opens the inventory.
+View models (`InventoryViewModel`, `QuestTrackerViewModel`, `GameMessagesViewModel`) localize everything; item, crop and quest text is in `Resources/Catalogue.resx` by catalogue key.
+`Nosum.Wasm.Controls` is the reusable Razor library: `Hotbar`, `ItemSlotButton`, `InventoryPanel`, `QuestTracker`, `GameMessage`, all following a view model through `ObservingComponent`.
+Their scoped CSS reaches the page through `Nosum.Wasm.styles.css`. Item pictures are `Game/ItemIcons` (sheet and cell), crop frames `Game/CropSprites`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
 ```bash
