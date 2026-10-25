@@ -125,7 +125,7 @@ public sealed class MarketLimitsTests : IClassFixture<PostgresFixture>, IAsyncLi
     }
 
     [Fact]
-    public async Task CreateListing_ManyAtOnceBySameSeller_NeverListMoreThanTheLimit()
+    public async Task CreateListing_ManyAtOnceBySameSeller_NeverListMoreThanTheLimit_AndNothingIsLost()
     {
         Guid seller = await NewPlayerAsync();
         _ = await _inventory.AddAsync(seller, ItemCatalog.Parsnip, 891, "test.setup"); // nine full stacks
@@ -133,8 +133,21 @@ public sealed class MarketLimitsTests : IClassFixture<PostgresFixture>, IAsyncLi
 
         MarketStatus[] results = await Task.WhenAll(slots.Select(slot => _market.CreateListingAsync(seller, slot, ItemCatalog.Parsnip, 99, 100)));
 
-        results.Count(r => r == MarketStatus.Ok).Should().Be(5, "five stacks of 99 fit under 500, the other four do not");
-        results.Where(r => r != MarketStatus.Ok).Should().OnlyContain(r => r == MarketStatus.TooManyOfItem || r == MarketStatus.Conflict);
+        // A listing takes its items from the first stack, so a request can also find its own slot already emptied by a faster one: those are refused as InvalidSlot.
+        // Whatever the interleaving, at most five stacks of 99 fit under 500 and every unit is either listed or still in the inventory.
+        int succeeded = results.Count(r => r == MarketStatus.Ok);
+        succeeded.Should().BeInRange(1, 5);
+        results.Where(r => r != MarketStatus.Ok).Should().OnlyContain(r => r == MarketStatus.TooManyOfItem || r == MarketStatus.Conflict || r == MarketStatus.InvalidSlot);
+        (await ListedUnitsAsync(seller, ItemCatalog.Parsnip)).Should().Be(succeeded * 99);
+        (await ParsnipsAsync(seller)).Should().Be(891 - (succeeded * 99));
+
+        // One at a time the limit is exact: five stacks fit, the sixth does not.
+        while (await ListedUnitsAsync(seller, ItemCatalog.Parsnip) < 495)
+        {
+            (await _market.CreateListingAsync(seller, await FullStackSlotAsync(seller), ItemCatalog.Parsnip, 99, 100)).Should().Be(MarketStatus.Ok);
+        }
+
+        (await _market.CreateListingAsync(seller, await FullStackSlotAsync(seller), ItemCatalog.Parsnip, 99, 100)).Should().Be(MarketStatus.TooManyOfItem);
         (await ListedUnitsAsync(seller, ItemCatalog.Parsnip)).Should().Be(495);
         (await ParsnipsAsync(seller)).Should().Be(891 - 495);
     }
