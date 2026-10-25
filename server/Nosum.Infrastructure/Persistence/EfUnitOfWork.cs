@@ -38,5 +38,7 @@ internal sealed class EfUnitOfWork : IUnitOfWork
     public bool IsUniqueViolation(Exception exception)
         => exception is DbUpdateException { InnerException: PostgresException { SqlState: UniqueViolationSqlState } };
 
+    public bool IsConcurrencyConflict(Exception exception) => exception is DbUpdateConcurrencyException;
+
     public ValueTask DisposeAsync() => _context.DisposeAsync();
 }

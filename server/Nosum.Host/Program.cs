@@ -12,27 +12,41 @@ using Nalix.Runtime.Groups;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Inventory;
+using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Market;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Quests;
+using Nosum.Abstractions.Trade;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
+using Nosum.Handlers.Coop;
 using Nosum.Handlers.Farm;
 using Nosum.Handlers.Inventory;
+using Nosum.Handlers.Look;
+using Nosum.Handlers.Market;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
+using Nosum.Handlers.Trade;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Coops;
+using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
 using Nosum.Infrastructure.Inventory;
+using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Maps;
+using Nosum.Infrastructure.Market;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
 using Nosum.Infrastructure.Quests;
+using Nosum.Infrastructure.Trade;
 
 namespace Nosum.Host;
 
@@ -74,12 +88,22 @@ internal static class Program
             shutdown.Token);
 
         NetworkApplication app = BuildApplication(WebSocketPort);
+
+        // Listings past their expiry give their items back to the sellers (docs/adr/ADR-013).
+        IMarketService market = InstanceManager.Instance.GetExistingInstance<IMarketService>()
+            ?? throw new InvalidOperationException("The market service is not registered.");
+        Task marketExpiry = new MarketExpiryService(market, TimeProvider.System).RunAsync(
+            MarketExpiryService.DefaultInterval,
+            ex => Console.Error.WriteLine("Market expiry failed: " + ex.Message),
+            shutdown.Token);
+
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
         }
 
         await guestCleanup.ConfigureAwait(false);
+        await marketExpiry.ConfigureAwait(false);
 
         return 0;
     }
@@ -119,6 +143,10 @@ internal static class Program
             .MapHandlers(typeof(InventoryHandlers))
             .MapHandlers(typeof(FarmHandlers))
             .MapHandlers(typeof(QuestHandlers))
+            .MapHandlers(typeof(MarketHandlers))
+            .MapHandlers(typeof(LookHandlers))
+            .MapHandlers(typeof(TradeHandlers))
+            .MapHandlers(typeof(CoopHandlers))
             .ConfigureDispatchOptions(o =>
             {
                 // Fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
@@ -133,7 +161,7 @@ internal static class Program
     }
 
     // Services are registered before the builder so [Inject] fields of the handlers resolve them.
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player service lives as long as the process; its snapshot loop ends by itself when the last player leaves.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player, trade and co-op services live as long as the process; the snapshot loop ends by itself when the last player leaves.")]
     private static void RegisterServices(TimeProvider clock)
     {
         IConnectionGroupRegistry groups = new InMemoryGroupStore();
@@ -165,5 +193,13 @@ internal static class Program
         InstanceManager.Instance.Register<IInventoryService>(inventory);
         InstanceManager.Instance.Register<IQuestService>(quests);
         InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock));
+
+        // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
+        TransferService transfers = new(inventory, clock, notifier);
+        InstanceManager.Instance.Register<ITransferService>(transfers);
+        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, clock));
+        InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, clock));
+        InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
+        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, clock));
     }
 }

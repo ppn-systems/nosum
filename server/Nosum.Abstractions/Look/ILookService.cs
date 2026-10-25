@@ -1,0 +1,84 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Nalix.Abstractions.Networking;
+using Nosum.Contracts.Look;
+using Nosum.Contracts.Look.S2C;
+using Nosum.Gameplay.Looks;
+
+namespace Nosum.Abstractions.Look;
+
+/// <summary>One player on a map with their look.</summary>
+/// <param name="PlayerId">The id the player has on the map (not the account id).</param>
+/// <param name="Look">The look.</param>
+public readonly record struct PlayerLookView(uint PlayerId, PlayerLook Look)
+{
+    /// <summary>Copies the look into a wire row (ids only, ADR-006 D6).</summary>
+    /// <param name="row">The row to fill.</param>
+    public void FillRow(LookRow row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        row.PlayerId = this.PlayerId;
+        row.SkinId = (byte)this.Look.SkinId;
+        row.HairStyleId = (byte)this.Look.HairStyleId;
+        row.HairDyeId = (byte)this.Look.HairDyeId;
+        row.ShirtItemId = this.Look.ShirtItemId;
+        row.PantsItemId = this.Look.PantsItemId;
+        row.HatItemId = this.Look.HatItemId;
+    }
+}
+
+/// <summary>
+/// Player looks and the wardrobe (docs/adr/ADR-014). The server owns every look: a new player gets the default one (and a few
+/// clothes in the inventory); the player changes avatar parts and wears clothing items they own; the server validates, saves,
+/// and sends only ids to everyone on the map.
+/// </summary>
+public interface ILookService
+{
+    /// <summary>
+    /// Returns the looks of everyone on the connection's map and announces the connection's own look to the rest of the map
+    /// (a client calls this after joining a map or changing map).
+    /// </summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="playerId">The player's account.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The looks of the players on the map, the caller included; empty when the caller is on no map.</returns>
+    Task<IReadOnlyList<PlayerLookView>> AnnounceAndGetAsync(IConnection connection, Guid playerId, CancellationToken cancellationToken = default);
+
+    /// <summary>Reads a player's own look (created with the default on first read).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The look.</returns>
+    Task<PlayerLook> GetAsync(Guid playerId, CancellationToken cancellationToken = default);
+
+    /// <summary>Chooses avatar parts.</summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="playerId">The player.</param>
+    /// <param name="skinId">Skin tone id.</param>
+    /// <param name="hairStyleId">Hair style id.</param>
+    /// <param name="hairDyeId">Hair dye id.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status.</returns>
+    Task<LookStatus> SetAppearanceAsync(IConnection connection, Guid playerId, int skinId, int hairStyleId, int hairDyeId, CancellationToken cancellationToken = default);
+
+    /// <summary>Wears a clothing item from an inventory slot; the item worn before goes back into the inventory.</summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="playerId">The player.</param>
+    /// <param name="slot">Inventory slot.</param>
+    /// <param name="itemId">The item the player expects in the slot.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status.</returns>
+    Task<LookStatus> EquipAsync(IConnection connection, Guid playerId, int slot, int itemId, CancellationToken cancellationToken = default);
+
+    /// <summary>Takes a worn item off into the inventory (a plain shirt or trousers, or no hat, shows instead).</summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="playerId">The player.</param>
+    /// <param name="wearSlot">Which slot, as the gameplay wear slot value.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status.</returns>
+    Task<LookStatus> UnequipAsync(IConnection connection, Guid playerId, int wearSlot, CancellationToken cancellationToken = default);
+}

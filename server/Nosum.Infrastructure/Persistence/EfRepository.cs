@@ -32,6 +32,12 @@ internal sealed class EfRepository<TEntity> : IRepository<TEntity>
     public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
         => _set.AnyAsync(predicate, cancellationToken);
 
+    public Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+        => _set.CountAsync(predicate, cancellationToken);
+
+    public Task<List<TEntity>> PageAsync<TKey>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TKey>> orderByDescending, int skip, int take, CancellationToken cancellationToken)
+        => _set.Where(predicate).OrderByDescending(orderByDescending).Skip(skip).Take(take).ToListAsync(cancellationToken);
+
     public void Add(TEntity entity) => _ = _set.Add(entity);
 
     public void Remove(TEntity entity) => _ = _set.Remove(entity);

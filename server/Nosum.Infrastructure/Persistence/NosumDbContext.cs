@@ -3,8 +3,12 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
+using Nosum.Domain.Coops;
+using Nosum.Domain.Economy;
 using Nosum.Domain.Farm;
 using Nosum.Domain.Inventory;
+using Nosum.Domain.Looks;
+using Nosum.Domain.Market;
 using Nosum.Domain.Quests;
 
 namespace Nosum.Infrastructure.Persistence;
@@ -42,6 +46,33 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the players' quests.</summary>
     public DbSet<PlayerQuest> PlayerQuests => this.Set<PlayerQuest>();
+
+    /// <summary>Gets the coin balances.</summary>
+    public DbSet<PlayerWallet> PlayerWallets => this.Set<PlayerWallet>();
+
+    /// <summary>Gets the coin audit trail.</summary>
+    public DbSet<CoinLogEntry> CoinLog => this.Set<CoinLogEntry>();
+
+    /// <summary>Gets the players' looks.</summary>
+    public DbSet<PlayerAppearance> PlayerAppearances => this.Set<PlayerAppearance>();
+
+    /// <summary>Gets the consignment market listings.</summary>
+    public DbSet<MarketListing> MarketListings => this.Set<MarketListing>();
+
+    /// <summary>Gets the co-ops.</summary>
+    public DbSet<Coop> Coops => this.Set<Coop>();
+
+    /// <summary>Gets the co-op memberships.</summary>
+    public DbSet<CoopMember> CoopMembers => this.Set<CoopMember>();
+
+    /// <summary>Gets the open co-op invitations.</summary>
+    public DbSet<CoopInvite> CoopInvites => this.Set<CoopInvite>();
+
+    /// <summary>Gets the warehouse stock of every co-op.</summary>
+    public DbSet<CoopStockItem> CoopStock => this.Set<CoopStockItem>();
+
+    /// <summary>Gets the co-op warehouse audit trail.</summary>
+    public DbSet<CoopLogEntry> CoopLog => this.Set<CoopLogEntry>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

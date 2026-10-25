@@ -30,4 +30,12 @@ public interface IUnitOfWork : IAsyncDisposable
     /// <param name="exception">The exception thrown by a save.</param>
     /// <returns>True when a unique constraint rejected the write.</returns>
     bool IsUniqueViolation(Exception exception);
+
+    /// <summary>
+    /// Tells whether an exception from <see cref="SaveChangesAsync"/> means another writer changed or removed a row this unit
+    /// had read (optimistic concurrency), so a service can turn a lost race into a normal refusal.
+    /// </summary>
+    /// <param name="exception">The exception thrown by a save.</param>
+    /// <returns>True when a concurrency check rejected the write.</returns>
+    bool IsConcurrencyConflict(Exception exception);
 }
