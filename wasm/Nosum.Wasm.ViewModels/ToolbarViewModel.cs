@@ -114,7 +114,7 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Inventory, this.Text("Toolbar_Inventory"), Key(GameAction.Inventory), "tab-inventory"),
         new ToolbarItem(PanelKind.Wardrobe, this.Text("Toolbar_Wardrobe"), Key(GameAction.Wardrobe), "tab-wardrobe"),
         new ToolbarItem(PanelKind.Crafting, this.Text("Toolbar_Crafting"), string.Empty, "tab-shop"),
-        new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), Key(GameAction.Market), "tab-market"),
+        new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), string.Empty, "tab-market"),
         new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), Key(GameAction.Trade), "tab-trade"),
         new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), Key(GameAction.Coop), "tab-coop"),
         new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty, "tab-visitors"),

@@ -52,7 +52,6 @@ public sealed class HelpViewModel : PanelViewModel
             this.Text("Help_Section_Panels"),
             [
                 new HelpEntry([Cap(GameAction.Inventory)], this.Text("Help_Inventory")),
-                new HelpEntry([Cap(GameAction.Market)], this.Text("Help_Market")),
                 new HelpEntry([Cap(GameAction.Wardrobe)], this.Text("Help_Wardrobe")),
                 new HelpEntry([Cap(GameAction.Trade)], this.Text("Help_Trade")),
                 new HelpEntry([Cap(GameAction.Coop)], this.Text("Help_Coop")),

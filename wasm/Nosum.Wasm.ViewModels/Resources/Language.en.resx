@@ -373,7 +373,6 @@
   <data name="Action_MoveRight" xml:space="preserve"><value>Walk right</value></data>
   <data name="Action_Use" xml:space="preserve"><value>Use, interact</value></data>
   <data name="Action_Inventory" xml:space="preserve"><value>Inventory</value></data>
-  <data name="Action_Market" xml:space="preserve"><value>Market</value></data>
   <data name="Action_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
   <data name="Action_Trade" xml:space="preserve"><value>Trade</value></data>
   <data name="Action_Coop" xml:space="preserve"><value>Co-op</value></data>

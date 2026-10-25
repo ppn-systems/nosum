@@ -33,10 +33,10 @@ const FIXED_EDGES = {
 const ACTION_BITS = {
     MoveUp: { held: 1 }, MoveDown: { held: 2 }, MoveLeft: { held: 4 }, MoveRight: { held: 8 },
     Use: { edge: 1 }, Inventory: { edge: 1024 }, Rotate: { edge: 2048 }, Grab: { edge: 4096 }, PickUp: { edge: 8192 },
-    Market: { edge: 16384 }, Wardrobe: { edge: 32768 }, Trade: { edge: 65536 }, Coop: { edge: 131072 },
+    Wardrobe: { edge: 32768 }, Trade: { edge: 65536 }, Coop: { edge: 131072 },
     Help: { edge: 524288 }, Profile: { edge: 1048576 },
 };
-const DEFAULT_BINDINGS = "MoveUp=KeyW;MoveDown=KeyS;MoveLeft=KeyA;MoveRight=KeyD;Use=KeyE;Inventory=KeyI;Market=KeyM;Wardrobe=KeyC;Trade=KeyT;Coop=KeyG;Profile=KeyN;Help=KeyH;Rotate=KeyR;Grab=KeyF;PickUp=KeyQ";
+const DEFAULT_BINDINGS = "MoveUp=KeyW;MoveDown=KeyS;MoveLeft=KeyA;MoveRight=KeyD;Use=KeyE;Inventory=KeyI;Wardrobe=KeyC;Trade=KeyT;Coop=KeyG;Profile=KeyN;Help=KeyH;Rotate=KeyR;Grab=KeyF;PickUp=KeyQ";
 
 let KEY_BITS = {};
 let EDGE_BITS = {};

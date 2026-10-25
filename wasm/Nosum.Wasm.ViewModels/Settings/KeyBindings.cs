@@ -34,7 +34,6 @@ public sealed class KeyBindings
         [GameAction.MoveRight] = "KeyD",
         [GameAction.Use] = "KeyE",
         [GameAction.Inventory] = "KeyI",
-        [GameAction.Market] = "KeyM",
         [GameAction.Wardrobe] = "KeyC",
         [GameAction.Trade] = "KeyT",
         [GameAction.Coop] = "KeyG",

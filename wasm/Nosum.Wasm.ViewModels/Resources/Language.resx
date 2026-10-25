@@ -373,7 +373,6 @@
   <data name="Action_MoveRight" xml:space="preserve"><value>Đi sang phải</value></data>
   <data name="Action_Use" xml:space="preserve"><value>Dùng, tương tác</value></data>
   <data name="Action_Inventory" xml:space="preserve"><value>Túi đồ</value></data>
-  <data name="Action_Market" xml:space="preserve"><value>Chợ</value></data>
   <data name="Action_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
   <data name="Action_Trade" xml:space="preserve"><value>Giao dịch</value></data>
   <data name="Action_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>

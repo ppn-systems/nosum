@@ -23,9 +23,6 @@ public enum GameAction
     /// <summary>Open the inventory.</summary>
     Inventory,
 
-    /// <summary>Open the market.</summary>
-    Market,
-
     /// <summary>Open the wardrobe.</summary>
     Wardrobe,
 
