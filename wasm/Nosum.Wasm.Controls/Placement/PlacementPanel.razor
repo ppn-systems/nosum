@@ -2,19 +2,16 @@
 @using Nosum.Wasm.ViewModels.Placement
 @inherits ObservingComponent<PlacementViewModel>
 
-@* Arrange-your-home panel: shown only in a place where furniture can be placed. The buttons do what the keys R, F and Q do; all text comes from the view model. *@
+@* Arrange-your-home mode: one strip of key caps with a word each (the long explanation is in the settings page). The caps are clickable and do what the keys
+   R, F and Q do; E only has its key. All text comes from the view model. *@
 @if (Vm.IsVisible)
 {
-    <GamePanel Title="@Vm.Title" Class="hud arrange">
-        <p class="arrange-hint">@Vm.Hint</p>
-        @if (Vm.CarryingText is { } carrying)
-        {
-            <GameNotice Kind="info" Text="@carrying" />
-        }
-        <GameStack>
-            <GameButton OnClick="() => Vm.Request(PlacementRequests.Rotate)">@Vm.RotateLabel</GameButton>
-            <GameButton OnClick="() => Vm.Request(PlacementRequests.Grab)">@Vm.GrabLabel</GameButton>
-            <GameButton OnClick="() => Vm.Request(PlacementRequests.PickUp)">@Vm.PickUpLabel</GameButton>
-        </GameStack>
+    <GamePanel Class="hud strip" Role="toolbar" Title="">
+        <div class="strip-row">
+            <span class="chip"><GameKey Text="E" /><span>@Vm.StripPlaceLabel</span></span>
+            <button type="button" class="chip" tabindex="-1" @onmousedown:preventDefault @onclick="() => Vm.Request(PlacementRequests.Rotate)"><GameKey Text="R" /><span>@Vm.StripRotateLabel</span></button>
+            <button type="button" class="chip" tabindex="-1" @onmousedown:preventDefault @onclick="() => Vm.Request(PlacementRequests.Grab)"><GameKey Text="F" /><span>@Vm.StripMoveLabel</span></button>
+            <button type="button" class="chip" tabindex="-1" @onmousedown:preventDefault @onclick="() => Vm.Request(PlacementRequests.PickUp)"><GameKey Text="Q" /><span>@Vm.StripStowLabel</span></button>
+        </div>
     </GamePanel>
 }

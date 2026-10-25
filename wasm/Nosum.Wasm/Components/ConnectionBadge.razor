@@ -4,7 +4,11 @@
 @implements IDisposable
 @inject ConnectionStatusViewModel Status
 
-<GameBadge Kind="@Kind" Text="@Status.Text" />
+@* Shown only when something is wrong: nothing while the connection is fine. *@
+@if (Status.State != GameSocketState.Ready)
+{
+    <GameBadge Kind="@Kind" Text="@Status.Text" />
+}
 
 @code {
     private string Kind => Status.State switch

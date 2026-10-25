@@ -6,6 +6,8 @@
 // decode and draw synchronously, never keep the view.
 
 const textures = [];          // texture id -> ImageBitmap
+const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
+let placedCount = 0;
 const labels = [];            // label id -> OffscreenCanvas with the pre-rendered text (glyph cache)
 const tinted = new Map();     // "id:rgba" -> canvas with the tint applied
 let canvas = null;
@@ -134,6 +136,7 @@ export function submitFrame(view) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    placedCount = 0;
 
     for (let i = 0, p = 2; i < count; i++, p += 9) {
         const id = data[p], sx = data[p + 1], sy = data[p + 2], w = data[p + 3], h = data[p + 4];
@@ -148,13 +151,26 @@ export function submitFrame(view) {
         }
         if (id === -3) {
             // Pre-rendered label: sx is the label id; (dx, dy) is its bottom centre.
-            // Drawn in screen space at 1x (zoom below 5) or 2x, not at the world zoom, so a name stays small next to the farmer and its pixels stay hard.
+            // Drawn in screen space at 1x at every zoom (a name stays small and its pixels stay hard). Two names that would overlap are
+            // stacked: the later one is lifted above the earlier one, so close players read as a tidy column, not a smear.
             const label = labels[sx];
             if (label) {
-                const k = scale >= 5 ? 2 : 1;
+                const lw = label.width, lh = label.height;
+                const x = Math.round(dx * scale - lw / 2);
+                let y = Math.round(dy * scale - lh);
+                for (let k = 0; k < placedCount; k += 4) {
+                    if (x < placed[k] + placed[k + 2] && x + lw > placed[k] && y < placed[k + 1] + placed[k + 3] && y + lh > placed[k + 1]) {
+                        y = placed[k + 1] - lh;
+                        k = -4;
+                    }
+                }
+                if (placedCount + 4 <= placed.length) {
+                    placed[placedCount] = x; placed[placedCount + 1] = y; placed[placedCount + 2] = lw; placed[placedCount + 3] = lh;
+                    placedCount += 4;
+                }
                 ctx.save();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.drawImage(label, Math.round(dx * scale - (label.width * k) / 2), Math.round(dy * scale - label.height * k), label.width * k, label.height * k);
+                ctx.drawImage(label, x, y);
                 ctx.restore();
             }
             continue;

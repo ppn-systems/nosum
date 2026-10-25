@@ -296,23 +296,39 @@
   <data name="Toolbar_Help" xml:space="preserve"><value>Keys</value></data>
   <data name="Help_Title" xml:space="preserve"><value>Keyboard shortcuts</value></data>
   <data name="Help_Section_Play" xml:space="preserve"><value>Playing</value></data>
-  <data name="Help_Section_Panels" xml:space="preserve"><value>Panels</value></data>
+  <data name="Help_Section_Panels" xml:space="preserve"><value>Menu</value></data>
   <data name="Help_Section_Arrange" xml:space="preserve"><value>Arranging your home</value></data>
-  <data name="Help_Move" xml:space="preserve"><value>Walk (or the arrow keys)</value></data>
-  <data name="Help_Use" xml:space="preserve"><value>Use the held item, interact</value></data>
-  <data name="Help_Hotbar" xml:space="preserve"><value>Select a hotbar slot</value></data>
-  <data name="Help_Inventory" xml:space="preserve"><value>Open the inventory</value></data>
-  <data name="Help_Market" xml:space="preserve"><value>Open the market</value></data>
-  <data name="Help_Wardrobe" xml:space="preserve"><value>Open the wardrobe</value></data>
-  <data name="Help_Trade" xml:space="preserve"><value>Open trading</value></data>
-  <data name="Help_Coop" xml:space="preserve"><value>Open the co-op</value></data>
-  <data name="Help_Help" xml:space="preserve"><value>Show or hide this card</value></data>
-  <data name="Help_Close" xml:space="preserve"><value>Close the open panel</value></data>
-  <data name="Help_Place" xml:space="preserve"><value>Place the held piece</value></data>
-  <data name="Help_Rotate" xml:space="preserve"><value>Rotate the piece</value></data>
-  <data name="Help_Grab" xml:space="preserve"><value>Pick up the piece in front to move it</value></data>
-  <data name="Help_PickUp" xml:space="preserve"><value>Put the piece in the bag</value></data>
-  <data name="Help_Profile" xml:space="preserve"><value>Open the profile (change nickname)</value></data>
+  <data name="Help_Move" xml:space="preserve"><value>Move</value></data>
+  <data name="Help_Use" xml:space="preserve"><value>Use, interact</value></data>
+  <data name="Help_Hotbar" xml:space="preserve"><value>Select slot</value></data>
+  <data name="Help_Inventory" xml:space="preserve"><value>Inventory</value></data>
+  <data name="Help_Market" xml:space="preserve"><value>Market</value></data>
+  <data name="Help_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
+  <data name="Help_Trade" xml:space="preserve"><value>Trade</value></data>
+  <data name="Help_Coop" xml:space="preserve"><value>Co-op</value></data>
+  <data name="Help_Help" xml:space="preserve"><value>Settings</value></data>
+  <data name="Help_Close" xml:space="preserve"><value>Menu / close</value></data>
+  <data name="Help_Place" xml:space="preserve"><value>Place</value></data>
+  <data name="Help_Rotate" xml:space="preserve"><value>Rotate</value></data>
+  <data name="Help_Grab" xml:space="preserve"><value>Move a piece</value></data>
+  <data name="Help_PickUp" xml:space="preserve"><value>Stow</value></data>
+  <data name="Help_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Inventory_Hand" xml:space="preserve"><value>In hand</value></data>
+  <data name="Inventory_HandEmpty" xml:space="preserve"><value>Empty hand</value></data>
+  <data name="Toolbar_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Account" xml:space="preserve"><value>Account</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageName" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_Keys" xml:space="preserve"><value>Keys</value></data>
+  <data name="Placement_Strip_Place" xml:space="preserve"><value>Place</value></data>
+  <data name="Placement_Strip_Rotate" xml:space="preserve"><value>Rotate</value></data>
+  <data name="Placement_Strip_Move" xml:space="preserve"><value>Move</value></data>
+  <data name="Placement_Strip_Stow" xml:space="preserve"><value>Stow</value></data>
+  <data name="Quest_Collapse" xml:space="preserve"><value>Collapse</value></data>
+  <data name="Quest_Expand" xml:space="preserve"><value>Expand</value></data>
+  <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Click to take off</value></data>
+  <data name="Toolbar_Shop" xml:space="preserve"><value>Shop</value></data>
+  <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Season_Spring" xml:space="preserve"><value>Spring</value></data>
   <data name="Season_Summer" xml:space="preserve"><value>Summer</value></data>
   <data name="Season_Fall" xml:space="preserve"><value>Fall</value></data>

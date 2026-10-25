@@ -1,0 +1,54 @@
+@using Nosum.Wasm.Controls.Menu
+@* The one game menu: a fixed-size window with a row of icon tabs on its top edge. The caller says which tabs exist (a new tab is one
+   MenuTab) and puts the active tab's page in the content. The window title is the active tab's name. *@
+<div class="game-menu">
+    <div class="menu-tabs" role="tablist">
+        @foreach (MenuTab tab in Tabs)
+        {
+            int id = tab.Id;
+            bool active = id == Active;
+            <button type="button" role="tab" class="menu-tab @(active ? "active" : null)" aria-selected="@(active ? "true" : "false")"
+                    aria-label="@tab.Label" data-tip="@(tab.Hotkey.Length > 0 ? tab.Label + " [" + tab.Hotkey + "]" : tab.Label)"
+                    tabindex="-1" @onmousedown:preventDefault @onclick="() => OnSelect.InvokeAsync(id)">
+                <span class="menu-tab-art" style="background-image:var(--nosum-img-@(tab.Icon))"></span>
+            </button>
+        }
+    </div>
+    <GamePanel Class="menu-window" Title="@ActiveLabel" CloseText="@CloseText" OnClose="OnClose">@ChildContent</GamePanel>
+</div>
+
+@code {
+    /// <summary>The tabs, left to right.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<MenuTab> Tabs { get; set; } = [];
+
+    /// <summary>The id of the active tab.</summary>
+    [Parameter] public int Active { get; set; }
+
+    /// <summary>Raised with a tab's id when it is clicked.</summary>
+    [Parameter] public EventCallback<int> OnSelect { get; set; }
+
+    /// <summary>Raised by the close button.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>The localized text of the close button.</summary>
+    [Parameter, EditorRequired] public string CloseText { get; set; } = string.Empty;
+
+    /// <summary>The active tab's page.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string ActiveLabel
+    {
+        get
+        {
+            foreach (MenuTab tab in Tabs)
+            {
+                if (tab.Id == Active)
+                {
+                    return tab.Label;
+                }
+            }
+
+            return string.Empty;
+        }
+    }
+}

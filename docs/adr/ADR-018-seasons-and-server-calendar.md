@@ -1,6 +1,6 @@
 # ADR-018 — Seasons and the server calendar
 
-**Status:** Proposed
+**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Review notes: 12 real hours per game day and the 2026-11-02 epoch accepted; withering of mature crops at season change kept (genre norm); parsnip stays plantable in winter only as the tutorial crop (ADR-025 roster otherwise has no winter crops); growth in game days is ADR-021 D7, done in a follow-up.
 
 ## Context
 

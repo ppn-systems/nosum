@@ -25,6 +25,19 @@ public sealed record PartChoice(int Id, string Css, string Label, bool IsCurrent
 /// <param name="Item">The worn stack, empty when nothing is worn.</param>
 public sealed record WornDisplay(int Slot, string SlotLabel, SlotDisplay Item);
 
+/// <summary>One layer of the character preview: a window onto a farmer sheet, drawn in order, optionally tinted.</summary>
+/// <param name="SheetUrl">URL of the sheet, relative to the app root.</param>
+/// <param name="X">Left edge of the frame in the sheet, pixels.</param>
+/// <param name="Y">Top edge of the frame in the sheet, pixels.</param>
+/// <param name="Width">Frame width, pixels.</param>
+/// <param name="Height">Frame height, pixels.</param>
+/// <param name="SheetWidth">Width of the whole sheet, pixels.</param>
+/// <param name="SheetHeight">Height of the whole sheet, pixels.</param>
+/// <param name="OffsetX">Where the frame sits inside the 16 x 32 character box, pixels.</param>
+/// <param name="OffsetY">Where the frame sits inside the 16 x 32 character box, pixels.</param>
+/// <param name="Tint">A CSS colour multiplied onto the frame, or <see langword="null"/> for none.</param>
+public sealed record PreviewLayer(string SheetUrl, int X, int Y, int Width, int Height, int SheetWidth, int SheetHeight, int OffsetX, int OffsetY, string? Tint);
+
 /// <summary>
 /// View model of the wardrobe panel: choose skin, hair style and dye, wear clothing from the inventory and take it off. The server
 /// validates everything and answers with the new look; the panel shows what the server last sent.
@@ -57,6 +70,36 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets the player's current look (the server's default until it has been sent).</summary>
     public LookInfo Look => _looks.TryGetLocal(out LookInfo look) ? look : LookInfo.Default;
+
+    /// <summary>
+    /// Gets the layers of the character preview (facing down, standing), back to front, with the same frames and offsets the world
+    /// sprite uses (<c>FarmerSprite</c>): body, trousers, shirt, arms, hair, hat.
+    /// </summary>
+    public IReadOnlyList<PreviewLayer> Preview
+    {
+        get
+        {
+            const string Farmer = "assets/Characters/Farmer/";
+            LookInfo look = this.Look;
+            ClothingSprite shirt = LookPalette.Shirt(look.ShirtItemId);
+            ClothingSprite pants = LookPalette.Pants(look.PantsItemId);
+            int hair = LookPalette.HairFrame(look.HairStyleId);
+            List<PreviewLayer> layers =
+            [
+                new(Farmer + "farmer_base.png", 0, 0, 16, 32, 288, 672, 0, 0, Tint(LookPalette.SkinTint(look.SkinId))),
+                new(Farmer + "pants.png", pants.SheetIndex % 10 * 192, pants.SheetIndex / 10 * 672, 16, 32, 1920, 1376, 0, 0, Tint(pants.Tint)),
+                new(Farmer + "shirts.png", shirt.SheetIndex % 16 * 8, shirt.SheetIndex / 16 * 32, 8, 8, 256, 608, 4, 15, null),
+                new(Farmer + "farmer_base.png", 6 * 16, 0, 16, 32, 288, 672, 0, 0, null),
+                new(Farmer + "hairstyles.png", hair % 8 * 16, hair / 8 * 96, 16, 32, 128, 672, 0, 2, Tint(LookPalette.DyeTint(look.HairDyeId))),
+            ];
+            if (LookPalette.TryHat(look.HatItemId, out ClothingSprite hat))
+            {
+                layers.Add(new(Farmer + "hats.png", hat.SheetIndex % 12 * 20, hat.SheetIndex / 12 * 80, 20, 20, 240, 880, -2, 0, Tint(hat.Tint)));
+            }
+
+            return layers;
+        }
+    }
 
     /// <summary>Gets the skin tones.</summary>
     public IReadOnlyList<PartChoice> Skins
@@ -173,6 +216,9 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
         _looks.Completed -= this.OnCompleted;
         _inventory.Changed -= this.Raise;
     }
+
+    // White multiplies to nothing: no layer needed.
+    private static string? Tint(int tint) => tint == unchecked((int)0xFFFFFFFF) ? null : LookPalette.Css(tint);
 
     private void OnCompleted(LookStatus status) => this.SetStatus(status == LookStatus.Ok ? string.Empty : this.Text("Wardrobe_Status_" + status));
 }

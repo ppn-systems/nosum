@@ -1,0 +1,28 @@
+@using Nosum.Wasm.ViewModels.Looks
+@* The player's character, facing down, drawn from the same farmer sheets and frames as in the world (one sheet pixel = one UI pixel = one world pixel).
+   A tinted layer is the picture multiplied by its colour, masked to the picture's own shape. *@
+<div class="preview" role="img" aria-label="@Label">
+    @foreach (PreviewLayer layer in Layers)
+    {
+        <span class="layer" style="@LayerStyle(layer)">
+            @if (layer.Tint is not null)
+            {
+                <span class="tint" style="@TintStyle(layer)"></span>
+            }
+        </span>
+    }
+</div>
+
+@code {
+    /// <summary>The layers, back to front.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PreviewLayer> Layers { get; set; } = [];
+
+    /// <summary>The accessible name (already localized).</summary>
+    [Parameter] public string? Label { get; set; }
+
+    private static string LayerStyle(PreviewLayer l) => FormattableString.Invariant(
+        $"left:calc({l.OffsetX} * var(--u));top:calc({l.OffsetY} * var(--u));width:calc({l.Width} * var(--u));height:calc({l.Height} * var(--u));background-image:url('{l.SheetUrl}');background-size:calc({l.SheetWidth} * var(--u)) calc({l.SheetHeight} * var(--u));background-position:calc({l.X} * var(--u) * -1) calc({l.Y} * var(--u) * -1)");
+
+    private static string TintStyle(PreviewLayer l) => FormattableString.Invariant(
+        $"background-color:{l.Tint};-webkit-mask-image:url('{l.SheetUrl}');mask-image:url('{l.SheetUrl}');-webkit-mask-size:calc({l.SheetWidth} * var(--u)) calc({l.SheetHeight} * var(--u));mask-size:calc({l.SheetWidth} * var(--u)) calc({l.SheetHeight} * var(--u));-webkit-mask-position:calc({l.X} * var(--u) * -1) calc({l.Y} * var(--u) * -1);mask-position:calc({l.X} * var(--u) * -1) calc({l.Y} * var(--u) * -1)");
+}
