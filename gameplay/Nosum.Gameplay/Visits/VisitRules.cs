@@ -53,15 +53,15 @@ public static class VisitRules
     /// <param name="instance">The place the player is in.</param>
     /// <param name="playerId">The player's account id.</param>
     /// <param name="action">What they want to do.</param>
-    /// <returns><see langword="true"/> for the owner, in a shared place, or for a visitor's walk or water.</returns>
+    /// <returns><see langword="true"/> for the owner, in a shared place, on co-op land (membership is checked where it is entered and worked), or for a visitor's walk or water.</returns>
     public static bool MayDo(MapInstance instance, Guid playerId, PlaceAction action)
-        => !instance.IsPrivate || instance.OwnerId == playerId || action is PlaceAction.Walk or PlaceAction.Water;
+        => !instance.IsPrivate || instance.OwnerId == playerId || instance.IsCoopLand || action is PlaceAction.Walk or PlaceAction.Water;
 
     /// <summary>Tells whether a player is a visitor: standing in a private place that is not their own.</summary>
     /// <param name="instance">The place the player is in.</param>
     /// <param name="playerId">The player's account id.</param>
-    /// <returns><see langword="true"/> when the place belongs to somebody else.</returns>
-    public static bool IsVisitor(MapInstance instance, Guid playerId) => instance.IsPrivate && instance.OwnerId != playerId;
+    /// <returns><see langword="true"/> when the place belongs to somebody else; co-op land is never a visit.</returns>
+    public static bool IsVisitor(MapInstance instance, Guid playerId) => instance.IsPrivate && !instance.IsCoopLand && instance.OwnerId != playerId;
 
     /// <summary>
     /// Decides whether a player may enter a private place of another player.

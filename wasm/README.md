@@ -73,6 +73,11 @@ walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, 
 move it (again to cancel), `Q` puts it back in the bag. `PlacementViewModel` relays the same actions from the arrange panel (`Controls/Placement/PlacementPanel`, built from the shared `GamePanel` and `GameButton`;
 styled only through their shared CSS classes). Refusals reach the message line as `Place_Status_*` text.
 
+Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): `GroundItemChannel` (`Nosum.Wasm.Socket/GroundItem`) mirrors the items lying in the player's current place (loaded after every join or map change)
+from `GroundItemSpawned` / `GroundItemTaken` pushes; a pickup also leaves a short `FlyingItem` toward where the taker stood. There is nothing to send: the server picks items up when the player walks near.
+`Game/GroundItemsDecorator` draws them as y-sorted `WorldSpriteBatch` sprites with a bob, a hop on arrival and the flight, cut from the objects sheet by `ItemIcons.TryGetGroundCell` (items pictured on other sheets are not drawn yet);
+it reads the mirror under its lock and allocates nothing. No UI panel.
+
 UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md), amended by [ADR-017](../docs/adr/ADR-017-game-menu-and-world-pixel-ui.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`.
 `wwwroot/nosum-theme.css` holds the variables and the font (`--u` is one UI pixel and equals the world pixel: `round(width / 416)` like `MapScene.ScaleFor`, computed by `nosum-theme.js`; `--tp` is one pixel of the VT323 UI font,
 `fonts/`, OFL; colours `--nosum-*`; type scale title, body, small) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `MenuTiles.png`, `Cursors.png` and `textBox.png` (linked from `assets/` in the Controls csproj, placeholder art

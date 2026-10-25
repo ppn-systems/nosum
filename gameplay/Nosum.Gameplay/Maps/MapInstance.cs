@@ -12,11 +12,14 @@ namespace Nosum.Gameplay.Maps;
 /// <c>IInstanceAccessPolicy</c>.
 /// </summary>
 /// <param name="MapId">Stable id of the map in <see cref="GameMaps"/>.</param>
-/// <param name="OwnerId">The owning player's account id, or <see cref="Guid.Empty"/> for a shared map.</param>
+/// <param name="OwnerId">The owning player's account id, the owning co-op's id for co-op land (<see cref="MapSpec.IsCoop"/>), or <see cref="Guid.Empty"/> for a shared map.</param>
 public readonly record struct MapInstance(string MapId, Guid OwnerId)
 {
-    /// <summary>Gets whether this instance belongs to one player.</summary>
+    /// <summary>Gets whether this instance has an owner (one player, or one co-op) rather than being shared by everybody.</summary>
     public bool IsPrivate => this.OwnerId != Guid.Empty;
+
+    /// <summary>Gets whether this is a co-op's land (<see cref="MapSpec.IsCoop"/>): owned by a co-op, entered and worked by its members.</summary>
+    public bool IsCoopLand => this.IsPrivate && GameMaps.TryGet(this.MapId, out MapSpec? map) && map.IsCoop;
 
     /// <summary>
     /// Gets the string that names the instance for presence groups and in-memory caches: the map id for a shared
@@ -31,6 +34,16 @@ public readonly record struct MapInstance(string MapId, Guid OwnerId)
     {
         ArgumentException.ThrowIfNullOrEmpty(mapId);
         return new MapInstance(mapId, Guid.Empty);
+    }
+
+    /// <summary>Returns the instance of co-op land: the map plus the co-op that owns it (docs/adr/ADR-020).</summary>
+    /// <param name="mapId">Id of a map with <see cref="MapSpec.IsCoop"/>.</param>
+    /// <param name="coopId">The owning co-op's id.</param>
+    /// <returns>The instance.</returns>
+    public static MapInstance OfCoop(string mapId, Guid coopId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(mapId);
+        return new MapInstance(mapId, coopId);
     }
 
     /// <summary>Returns the instance of a map a player enters: their own copy of a private map, the shared one otherwise.</summary>

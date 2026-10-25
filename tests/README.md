@@ -7,7 +7,7 @@
 
 `VisitWireTests` (visiting, [ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): real WebSocket clients on registered accounts (made through the account service) check the allow-list, entering, water-only farming, the farmhouse and bin refusals, kick, the co-op setting and leaving the co-op, an offline owner across a restart, guests and the list limit.
 
-Server tests that matter for money: `SocialServiceTests` (market, transfer and co-op services on a real PostgreSQL with real parallel races) and `SocialWireTests` (real WebSocket clients: looks,
+Server tests that matter for money: `SocialServiceTests` (market, transfer and co-op services on a real PostgreSQL with real parallel races) and `CoopLandTests` (farming on co-op land: members, audit, non-member and removed member refused, two members racing for one plot, dissolution) and `WorldInstanceTests.CoopLand_*` (the Town gate, a refused stranger, a kicked member warped out), and `SocialWireTests` (real WebSocket clients: looks,
 market, shipping, trade, co-op; `SocialClient` spaces every request because all clients share one address and its rate limits).
 
 xUnit + FluentAssertions. Folders mirror the area under test (`Engine/`, `Gameplay/`, `Server/`, `Tools/`).

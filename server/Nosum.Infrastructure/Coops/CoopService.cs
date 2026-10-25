@@ -12,11 +12,14 @@ using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Coop;
 using Nosum.Contracts.Coop.S2C;
 using Nosum.Domain.Coops;
+using Nosum.Domain.Farm;
 using Nosum.Gameplay.Coops;
+using Nosum.Gameplay.Maps;
 
 namespace Nosum.Infrastructure.Coops;
 
@@ -33,6 +36,8 @@ public sealed class CoopService : ICoopService, IDisposable
     private readonly ISessionRegistry _sessions;
     private readonly IPlayerNotifier _notifier;
     private readonly INicknameDirectory _nicknames;
+    private readonly IFarmService _farm;
+    private readonly ICoopLandEviction _eviction;
     private readonly TimeProvider _time;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -43,8 +48,10 @@ public sealed class CoopService : ICoopService, IDisposable
     /// <param name="sessions">Who is connected.</param>
     /// <param name="notifier">Pushes snapshots to online members.</param>
     /// <param name="nicknames">Resolves member nicknames.</param>
+    /// <param name="farm">Told to forget the land of a dissolved co-op.</param>
+    /// <param name="eviction">Takes a member off co-op land when they leave or are removed (docs/adr/ADR-020).</param>
     /// <param name="time">The clock; tests pass a fake one.</param>
-    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, TimeProvider time)
+    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IFarmService farm, ICoopLandEviction eviction, TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(transfers);
@@ -52,6 +59,8 @@ public sealed class CoopService : ICoopService, IDisposable
         ArgumentNullException.ThrowIfNull(sessions);
         ArgumentNullException.ThrowIfNull(notifier);
         ArgumentNullException.ThrowIfNull(nicknames);
+        ArgumentNullException.ThrowIfNull(farm);
+        ArgumentNullException.ThrowIfNull(eviction);
         ArgumentNullException.ThrowIfNull(time);
 
         _unitOfWork = unitOfWork;
@@ -60,6 +69,8 @@ public sealed class CoopService : ICoopService, IDisposable
         _sessions = sessions;
         _notifier = notifier;
         _nicknames = nicknames;
+        _farm = farm;
+        _eviction = eviction;
         _time = time;
     }
 
@@ -101,13 +112,13 @@ public sealed class CoopService : ICoopService, IDisposable
                 .Select(m => new CoopMemberView(m.Id, m.Role, m.Id == me.Id, _sessions.GetActive(m.PlayerId) is not null, names.GetValueOrDefault(m.PlayerId, string.Empty)))];
 
             List<CoopLogEntry> mineLog = await unit.Repository<CoopLogEntry>().ListAsync(e => e.CoopId == me.CoopId && e.MemberId == me.Id, cancellationToken).ConfigureAwait(false);
-            Dictionary<int, long> contributed = mineLog.GroupBy(e => e.ItemId).ToDictionary(g => g.Key, g => g.Sum(e => (long)e.Delta));
+            Dictionary<int, long> contributed = mineLog.Where(e => CoopLand.IsWarehouseReason(e.Reason)).GroupBy(e => e.ItemId).ToDictionary(g => g.Key, g => g.Sum(e => (long)e.Delta));
             List<CoopStockItem> stock = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false);
             List<CoopStockView> stockViews = [.. stock
                 .OrderBy(s => s.ItemId)
                 .Select(s => new CoopStockView(s.ItemId, s.Quantity, CoopRules.Withdrawable(me.Role == CoopRole.Founder, s.Quantity, contributed.GetValueOrDefault(s.ItemId))))];
 
-            List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == me.CoopId, e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
+            List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == me.CoopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw"), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
             List<CoopLogView> logViews = [.. recent.Select(e => new CoopLogView(memberIds.Contains(e.MemberId) ? e.MemberId : Guid.Empty, e.ItemId, e.Delta, e.OccurredAt))];
 
             return new CoopView(true, mine?.Name ?? string.Empty, me.Role, memberViews, stockViews, logViews, [], now);
@@ -297,6 +308,7 @@ public sealed class CoopService : ICoopService, IDisposable
         try
         {
             List<Guid> toPush = [playerId];
+            List<MapInstance> dissolvedLand = [];
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
@@ -325,6 +337,7 @@ public sealed class CoopService : ICoopService, IDisposable
                         if (coop is not null)
                         {
                             unit.Repository<Coop>().Remove(coop);
+                            dissolvedLand = await this.WipeLandAsync(unit, coop.Id, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -334,6 +347,12 @@ public sealed class CoopService : ICoopService, IDisposable
                 toPush.AddRange(others.Select(m => m.PlayerId));
             }
 
+            foreach (MapInstance land in dissolvedLand)
+            {
+                _farm.Forget(land);
+            }
+
+            await _eviction.EvictAsync(playerId, cancellationToken).ConfigureAwait(false);
             await this.PushToAsync(toPush, cancellationToken).ConfigureAwait(false);
             await this.RaiseMembershipEndedAsync(playerId).ConfigureAwait(false);
             return CoopStatus.Ok;
@@ -352,6 +371,7 @@ public sealed class CoopService : ICoopService, IDisposable
         {
             List<Guid> toPush = [];
             Guid ended;
+            Guid removedPlayer;
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
@@ -380,11 +400,13 @@ public sealed class CoopService : ICoopService, IDisposable
 
                 members.Remove(target);
                 _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                removedPlayer = target.PlayerId;
                 toPush.Add(target.PlayerId);
                 toPush.AddRange(await this.MemberPlayersAsync(unit, me.CoopId, cancellationToken).ConfigureAwait(false));
                 ended = target.PlayerId;
             }
 
+            await _eviction.EvictAsync(removedPlayer, cancellationToken).ConfigureAwait(false);
             await this.PushToAsync(toPush, cancellationToken).ConfigureAwait(false);
             await this.RaiseMembershipEndedAsync(ended).ConfigureAwait(false);
             return CoopStatus.Ok;
@@ -448,7 +470,7 @@ public sealed class CoopService : ICoopService, IDisposable
                 CoopStockItem? row = await unit.Repository<CoopStockItem>().FirstOrDefaultAsync(s => s.CoopId == me.CoopId && s.ItemId == itemId, cancellationToken).ConfigureAwait(false);
                 inStock = row?.Quantity ?? 0;
                 List<CoopLogEntry> log = await unit.Repository<CoopLogEntry>().ListAsync(e => e.CoopId == me.CoopId && e.MemberId == me.Id && e.ItemId == itemId, cancellationToken).ConfigureAwait(false);
-                contributed = log.Sum(e => (long)e.Delta);
+                contributed = log.Where(e => CoopLand.IsWarehouseReason(e.Reason)).Sum(e => (long)e.Delta);
             }
 
             if (quantity > inStock)
@@ -536,6 +558,29 @@ public sealed class CoopService : ICoopService, IDisposable
         {
             // The visitor is re-checked at their next entry.
         }
+    }
+
+    // A dissolved co-op's land is wiped with the co-op (docs/adr/ADR-020 D6): the plots go in the same transaction as the co-op row.
+    private async Task<List<MapInstance>> WipeLandAsync(IUnitOfWork unit, Guid coopId, CancellationToken cancellationToken)
+    {
+        List<MapInstance> wiped = [];
+        foreach (MapSpec spec in GameMaps.All)
+        {
+            if (!spec.IsCoop)
+            {
+                continue;
+            }
+
+            IRepository<FarmPlot> plots = unit.Repository<FarmPlot>();
+            foreach (FarmPlot plot in await plots.ListAsync(p => p.MapId == spec.Id && p.OwnerId == coopId, cancellationToken).ConfigureAwait(false))
+            {
+                plots.Remove(plot);
+            }
+
+            wiped.Add(MapInstance.OfCoop(spec.Id, coopId));
+        }
+
+        return wiped;
     }
 
     private async Task<CoopMember?> FindMemberAsync(Guid playerId, CancellationToken cancellationToken)

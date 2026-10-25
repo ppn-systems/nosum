@@ -1,6 +1,6 @@
 # ADR-019 — Visiting private instances
 
-**Status:** Proposed (written by an agent; becomes Accepted when the owner approves it). Amends [ADR-015](ADR-015-private-instances-and-placeables.md) D4 (the access policy is no longer owner-only) and settles the pillar 3 question "how visiting works" ([pillars](../design/pillars.md)). The ADR numbers 017 and 018 belong to other work.
+**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Review: visitors may walk and water only; owner offline does not block a listed visitor; co-op land is never a visit (fixed at merge: `MapInstance.IsCoopLand`, membership rules of ADR-020 apply there).
 
 ## Context
 

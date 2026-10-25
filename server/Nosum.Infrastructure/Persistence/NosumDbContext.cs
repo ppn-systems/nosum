@@ -11,6 +11,7 @@ using Nosum.Domain.Looks;
 using Nosum.Domain.Market;
 using Nosum.Domain.Quests;
 using Nosum.Domain.Visits;
+using Nosum.Domain.World;
 
 namespace Nosum.Infrastructure.Persistence;
 
@@ -47,6 +48,9 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the objects players placed (furniture in their farmhouse).</summary>
     public DbSet<PlacedObject> PlacedObjects => this.Set<PlacedObject>();
+
+    /// <summary>Gets the items lying on the ground of every map instance.</summary>
+    public DbSet<GroundItem> GroundItems => this.Set<GroundItem>();
 
     /// <summary>Gets the players' quests.</summary>
     public DbSet<PlayerQuest> PlayerQuests => this.Set<PlayerQuest>();

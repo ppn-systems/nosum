@@ -43,6 +43,14 @@ Visiting ([ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): `IVisit
 `VisitPlayer` through `IPlayerService.TravelAsync`; `VisitAccess` is the `IInstanceAccessPolicy` (reads PostgreSQL on every entry, `VisitRules.MayEnter` decides). Removing a player, turning the co-op setting off and `ICoopService.MembershipEnded`
 sweep the visitors who may no longer stay to the Town. `FarmService`, `PlaceableService` and `MarketService.ShipAsync` ask `VisitRules.MayDo`, so a visitor can only walk and water. Handlers: `Nosum.Handlers/Visit` (`USER`, rate limited).
 
+Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D5-D6): `IGroundItems` (`Infrastructure/GroundItems/GroundItemService`) is where anything that "pops" an item drops it
+(`DropAsync`, or `Stage` + `CompleteAsync` to save the drop in the caller's own transaction: a harvest resets the plot and leaves the produce in one commit). An instance's items are loaded once and kept in
+16 x 16 tile chunk buckets; `PlayerService.MoveAsync` calls `OnPlayerMovedAsync` after every accepted move, which looks only at the nine chunks around the player, claims what is in range and allowed
+(`GroundItemRules`), and moves it into the inventory with one `ITransferService` transfer that deletes the row in the same transaction (reason `ground.pickup`); a full inventory leaves the item (retry pause 2 s),
+an in-memory claim makes two players racing for one item a clean win for one. The pickup runs off the movement path. `GroundItemExpiryService` (hosted, every 30 s) removes items past their expiry.
+Publishing goes through one private method, `PublishAsync`, which today multicasts to the instance (chunk interest, ADR-022 D4, replaces its body). `IYieldRandom` hands out seeded `GameRandom`s for yields.
+Handler: `Nosum.Handlers/GroundItem` (`GetGroundItems`, `USER`, rate limited). Table: `ground_items` (migration `AddGroundItems`).
+
 Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)):
 `ITransferService` (`Infrastructure/Economy`) is the one way coins move: items and coins between players and co-op warehouses in one transaction, built on
 `IInventoryService.ApplyManyAsync` (every involved player's lock, one unit of work, one save; a feature joins it with an `enlist` callback). On it sit `IMarketService`
@@ -50,6 +58,10 @@ Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md
 memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Looks/`: persisted look ids, wardrobe, announces through `IMapPresence`) and `ICoopService`
 (`Coops/`: membership, invitations, the shared warehouse with its audit trail). New entities: wallets and coin log, market listings, appearances, co-ops, members, invites, stock and log
 (migration `SocialLayer`). Handlers: `Nosum.Handlers/{Market,Look,Trade,Coop}`; everything that moves coins or items is `[PacketEncryption(true)]`.
+
+Co-op land ([ADR-020](../docs/adr/ADR-020-coop-land.md)): the map `coopfarm` is an instance owned by a co-op (`MapInstance.OfCoop`). `PlayerService` finds the instance from `ICoopMembership`
+(`Coops/CoopMembership`, a database lookup per call, never cached), `FarmService` re-checks membership on every action and writes a `coop.farm.*` `CoopLogEntry` in the action's transaction, and
+`CoopService` calls `ICoopLandEviction` (implemented by `PlayerService`) after a leave or kick and wipes the plots when a co-op dissolves. No new table, migration or packet.
 
 Skills: [`data-model-ef-core`](../.claude/skills/data-model-ef-core/SKILL.md),
 [`nalix-server-hosting`](../.claude/skills/nalix-server-hosting/SKILL.md),

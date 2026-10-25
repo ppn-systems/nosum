@@ -82,4 +82,16 @@ public sealed class VisitRulesTests
         VisitRules.CoopMembersMayVisitByDefault.Should().BeTrue();
         VisitRules.MaxListed.Should().Be(50);
     }
+
+    [Fact]
+    public void IsVisitorAndMayDo_OnCoopLand_TreatMembersAsWorkersNotVisitors()
+    {
+        MapInstance land = MapInstance.OfCoop(GameMaps.CoopFarm, Guid.NewGuid());
+        Guid member = Guid.NewGuid();
+
+        land.IsCoopLand.Should().BeTrue();
+        VisitRules.IsVisitor(land, member).Should().BeFalse("co-op land is entered by membership, not by an allow-list");
+        VisitRules.MayDo(land, member, PlaceAction.Till).Should().BeTrue();
+        MapInstance.Of(GameMaps.Farm, member).IsCoopLand.Should().BeFalse();
+    }
 }

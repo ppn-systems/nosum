@@ -19,6 +19,7 @@ using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Dev;
+using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.Socket.Quest;
@@ -74,6 +75,7 @@ internal static class Program
         builder.Services.AddSingleton<InventoryChannel>();
         builder.Services.AddSingleton<FarmChannel>();
         builder.Services.AddSingleton<PlaceableChannel>();
+        builder.Services.AddSingleton<GroundItemChannel>();
         builder.Services.AddSingleton<QuestChannel>();
         builder.Services.AddSingleton<WalletChannel>();
         builder.Services.AddSingleton<CalendarChannel>();
@@ -124,8 +126,10 @@ internal static class Program
         InventoryChannel inventory = host.Services.GetRequiredService<InventoryChannel>();
         FarmChannel farm = host.Services.GetRequiredService<FarmChannel>();
         PlaceableChannel placeable = host.Services.GetRequiredService<PlaceableChannel>();
+        GroundItemChannel groundItems = host.Services.GetRequiredService<GroundItemChannel>();
         QuestChannel quests = host.Services.GetRequiredService<QuestChannel>();
         GameLoop.UseNetwork(channel);
+        GameLoop.UseGroundItems(groundItems);
         MarketChannel market = host.Services.GetRequiredService<MarketChannel>();
         WalletChannel wallet = host.Services.GetRequiredService<WalletChannel>();
         CoopChannel coop = host.Services.GetRequiredService<CoopChannel>();
@@ -151,6 +155,7 @@ internal static class Program
         {
             farm.Load();
             placeable.Load();
+            groundItems.Load();
         };
         channel.Joined += _ => looks.Load();
         // The view models subscribe to their channels when they are built: build them before the first push can arrive.

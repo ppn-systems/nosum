@@ -5,6 +5,8 @@ using FluentAssertions;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Contracts.GroundItem;
+using Nosum.Contracts.GroundItem.S2C;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.C2S;
 using Nosum.Contracts.Coop;
@@ -180,5 +182,41 @@ public sealed class PacketRoundTripTests
         copy.Stock.Should().ContainSingle().Which.Available.Should().Be(12);
         copy.Log.Should().ContainSingle().Which.Delta.Should().Be(-3);
         copy.Invites.Should().ContainSingle().Which.CoopName.Should().Be("x");
+    }
+
+    [Fact]
+    public void GroundItemsSnapshot_RoundTrips()
+    {
+        using GroundItemsSnapshot packet = new() { MapId = "town" };
+        packet.Items.Add(new GroundItemRow { Id = 5_000_000_001, ItemId = 202, Quantity = 3, X = 2000, Y = 1700 });
+        packet.Items.Add(new GroundItemRow { Id = 2, ItemId = 200, Quantity = 1, X = 4, Y = 5 });
+
+        GroundItemsSnapshot copy = GroundItemsSnapshot.Deserialize(packet.Serialize());
+
+        copy.MapId.Should().Be("town");
+        copy.Items.Should().HaveCount(2);
+        copy.Items[0].Should().BeEquivalentTo(new GroundItemRow { Id = 5_000_000_001, ItemId = 202, Quantity = 3, X = 2000, Y = 1700 });
+    }
+
+    [Fact]
+    public void GroundItemSpawnedAndTaken_RoundTrip()
+    {
+        using GroundItemSpawned spawned = new() { MapId = "farm", Item = new GroundItemRow { Id = 9, ItemId = 201, Quantity = 4, X = 33, Y = 44 } };
+        using GroundItemTaken taken = new() { MapId = "farm", Id = 9, Reason = GroundItemGone.PickedUp, ToX = 70, ToY = 80 };
+
+        GroundItemSpawned spawnedCopy = GroundItemSpawned.Deserialize(spawned.Serialize());
+        GroundItemTaken takenCopy = GroundItemTaken.Deserialize(taken.Serialize());
+
+        spawnedCopy.MapId.Should().Be("farm");
+        spawnedCopy.Item.Should().BeEquivalentTo(new GroundItemRow { Id = 9, ItemId = 201, Quantity = 4, X = 33, Y = 44 });
+        (takenCopy.MapId, takenCopy.Id, takenCopy.Reason, takenCopy.ToX, takenCopy.ToY).Should().Be(("farm", 9L, GroundItemGone.PickedUp, (ushort)70, (ushort)80));
+    }
+
+    [Fact]
+    public void GroundItemOpCodes_AreInTheGroundItemSubRangeOfTheWorldBand()
+    {
+        ushort[] codes = [GroundItemOpCode.GetGroundItems, GroundItemOpCode.GroundItemsSnapshot, GroundItemOpCode.GroundItemSpawned, GroundItemOpCode.GroundItemTaken];
+
+        codes.Should().OnlyContain(c => c >= 0x7200 && c <= 0x72FF).And.OnlyHaveUniqueItems();
     }
 }

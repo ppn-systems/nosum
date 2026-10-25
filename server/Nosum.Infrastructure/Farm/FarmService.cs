@@ -8,8 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
+using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
@@ -17,9 +19,12 @@ using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
+using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.GroundItems;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Items;
@@ -32,7 +37,9 @@ namespace Nosum.Infrastructure.Farm;
 /// <summary>
 /// <see cref="IFarmService"/>: validates a player's action with <see cref="FarmRules"/>, changes the
 /// tile and the player's items in one transaction (through <see cref="IInventoryService"/>), then
-/// tells everyone in the same instance and the quest service. The farm is private per player (docs/adr/ADR-015): the tiles belong to an instance (map plus owner), never to the map alone. The tilled tiles of an instance are kept in memory after
+/// tells everyone in the same instance and the quest service. The farm is private per player (docs/adr/ADR-015): the tiles belong to an instance (map plus owner), never to the map alone.
+/// The owner is a player's account id on a private farm and a co-op's id on co-op land (docs/adr/ADR-020); the rules are the same code. On co-op land the player must belong to that co-op when the action
+/// is committed, and every action writes an audit line in the same transaction. The tilled tiles of an instance are kept in memory after
 /// the first read and written through to PostgreSQL; the server is a single process (docs/adr/ADR-009).
 /// Crops are never simulated: growth is computed from the stored timestamps (docs/adr/ADR-003 D4).
 /// </summary>
@@ -42,6 +49,8 @@ public sealed class FarmService : IFarmService
     private readonly IMapCatalog _maps;
     private readonly IInventoryService _inventory;
     private readonly IQuestService _quests;
+    private readonly ICoopMembership _coops;
+    private readonly IGroundItems _groundItems;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
     private readonly GameCalendar _calendar;
@@ -53,33 +62,41 @@ public sealed class FarmService : IFarmService
     /// <param name="maps">The hosted maps and their tillable tiles.</param>
     /// <param name="inventory">Seeds and harvests go through it.</param>
     /// <param name="quests">Told when a crop was planted or harvested.</param>
+    /// <param name="coops">Who belongs to which co-op; asked for every action on co-op land.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The server clock crops grow by; tests pass a fake one.</param>
     /// <param name="calendar">The server calendar: seeds are planted by season and crops wither when theirs ends (docs/adr/ADR-018).</param>
+    /// <param name="groundItems">A harvest pops its produce onto the ground through it (docs/adr/ADR-021 D5).</param>
     public FarmService(
         IMapPresence presence,
         IMapCatalog maps,
         IInventoryService inventory,
         IQuestService quests,
+        ICoopMembership coops,
         IUnitOfWorkFactory unitOfWork,
         TimeProvider time,
-        GameCalendar calendar)
+        GameCalendar calendar,
+        IGroundItems groundItems)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(quests);
+        ArgumentNullException.ThrowIfNull(coops);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
         ArgumentNullException.ThrowIfNull(calendar);
+        ArgumentNullException.ThrowIfNull(groundItems);
 
         _presence = presence;
         _maps = maps;
         _inventory = inventory;
         _quests = quests;
+        _coops = coops;
         _unitOfWork = unitOfWork;
         _time = time;
         _calendar = calendar;
+        _groundItems = groundItems;
     }
 
     /// <inheritdoc/>
@@ -122,9 +139,21 @@ public sealed class FarmService : IFarmService
         FarmTile changedTile;
         FarmAction action;
         QuestEvent? report;
+        PendingGroundDrop? pending;
 
         using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
+            // Co-op land: the player must be a member of the co-op that owns this instance right now (a leave or a kick takes effect at once).
+            CoopMembershipInfo? member = null;
+            if (map.IsCoop)
+            {
+                member = await _coops.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+                if (member is null || member.CoopId != player.Instance.OwnerId)
+                {
+                    return Refused(FarmStatus.NotOnFarm);
+                }
+            }
+
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
             FarmTile? current = farm.Tiles.TryGetValue((tileX, tileY), out FarmTile found) ? found : null;
             InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
@@ -146,7 +175,16 @@ public sealed class FarmService : IFarmService
                 return Refused(FarmStatus.NotYourFarm);
             }
 
-            FarmStatus status = await this.CommitAsync(playerId, player.Instance, tileX, tileY, plan, cancellationToken).ConfigureAwait(false);
+            GroundDrop? drop = null;
+            if (plan.Drop is { } produce)
+            {
+                // The produce pops beside the plot, nudged toward the harvester so it can be picked up at once (docs/adr/ADR-021 D5).
+                int tileSize = map.Grid.TileSize;
+                GroundItemRules.PopPosition((tileX + 0.5) * tileSize, (tileY + 0.5) * tileSize, feetX, feetY, out double dropX, out double dropY);
+                drop = new GroundDrop(player.Instance, (int)dropX, (int)dropY, produce.ItemId, produce.Quantity, playerId);
+            }
+
+            (FarmStatus status, pending) = await this.CommitAsync(playerId, member, player.Instance, tileX, tileY, plan, drop, cancellationToken).ConfigureAwait(false);
             if (status != FarmStatus.Ok)
             {
                 return Refused(status);
@@ -159,6 +197,14 @@ public sealed class FarmService : IFarmService
         }
 
         await this.PushTileAsync(player.Instance, tileX, tileY, changedTile, cancellationToken).ConfigureAwait(false);
+        if (pending is not null)
+        {
+            await _groundItems.CompleteAsync(pending, cancellationToken).ConfigureAwait(false);
+
+            // The produce lands within reach: a harvester standing still takes it now, not on their next step.
+            await _groundItems.OnPlayerMovedAsync(player).ConfigureAwait(false);
+        }
+
         await this.ReportAsync(playerId, report, cancellationToken).ConfigureAwait(false);
         return new FarmUseOutcome(FarmStatus.Ok, action);
     }
@@ -186,6 +232,9 @@ public sealed class FarmService : IFarmService
             return new FarmSnapshotView(map.Id, nowMs, tiles);
         }
     }
+
+    /// <inheritdoc/>
+    public void Forget(MapInstance instance) => _ = _farms.TryRemove(instance.Key, out _);
 
     private static FarmTileRow ToRow(int x, int y, FarmTile tile)
     {
@@ -226,7 +275,7 @@ public sealed class FarmService : IFarmService
             FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested);
             return harvest != FarmVerdict.Ok
                 ? Plan.Refuse(harvest)
-                : new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [InventoryOperation.Add(harvested!.HarvestItemId, harvested.HarvestQuantity)], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested.Id));
+                : new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested!.Id), harvested.HarvestItemId, harvested.HarvestQuantity, new PlannedDrop(harvested.HarvestItemId, harvested.HarvestQuantity));
         }
 
         if (!hasItem || item is null)
@@ -239,20 +288,20 @@ public sealed class FarmService : IFarmService
             case ItemKind.Tool when item.Tool == ToolKind.Hoe:
                 {
                     FarmVerdict till = FarmRules.Till(tillable, current, out FarmTile tilled);
-                    return till == FarmVerdict.Ok ? new Plan(till, FarmAction.Tilled, tilled, [], "farm.till", null) : Plan.Refuse(till);
+                    return till == FarmVerdict.Ok ? new Plan(till, FarmAction.Tilled, tilled, [], "farm.till", null, item.Id, 0) : Plan.Refuse(till);
                 }
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
                     FarmVerdict water = FarmRules.Water(current, nowMs, out FarmTile watered);
-                    return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", null) : Plan.Refuse(water);
+                    return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", null, item.Id, 0) : Plan.Refuse(water);
                 }
 
             case ItemKind.Seed:
                 {
                     FarmVerdict plant = FarmRules.Plant(current, item.CropId, nowMs, _calendar, out FarmTile planted);
                     return plant == FarmVerdict.Ok
-                        ? new Plan(plant, FarmAction.Planted, planted, [InventoryOperation.RemoveFromSlot(held.Slot, held.ItemId, 1)], "farm.plant", new QuestEvent(QuestEventKind.CropPlanted, item.CropId))
+                        ? new Plan(plant, FarmAction.Planted, planted, [InventoryOperation.RemoveFromSlot(held.Slot, held.ItemId, 1)], "farm.plant", new QuestEvent(QuestEventKind.CropPlanted, item.CropId), item.Id, -1)
                         : Plan.Refuse(plant);
                 }
 
@@ -288,8 +337,9 @@ public sealed class FarmService : IFarmService
         _ => FarmStatus.ItemMissing,
     };
 
-    // Writes the tile and the items in one transaction.
-    private async Task<FarmStatus> CommitAsync(Guid playerId, MapInstance instance, int x, int y, Plan plan, CancellationToken cancellationToken)
+    // Writes the tile and the items in one transaction; a harvest's ground item rows join the tile's transaction, so a crash
+    // cannot reset the plot without leaving the produce.
+    private async Task<(FarmStatus Status, PendingGroundDrop? Pending)> CommitAsync(Guid playerId, CoopMembershipInfo? member, MapInstance instance, int x, int y, Plan plan, GroundDrop? drop, CancellationToken cancellationToken)
     {
         if (plan.Operations.Count > 0)
         {
@@ -300,20 +350,41 @@ public sealed class FarmService : IFarmService
                 async (unit, ct) =>
                 {
                     await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, ct).ConfigureAwait(false);
+                    this.Audit(unit, member, plan);
                     return true;
                 },
                 cancellationToken).ConfigureAwait(false);
-            return ToStatus(change.Status);
+            return (ToStatus(change.Status), null);
         }
 
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
             await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, cancellationToken).ConfigureAwait(false);
+            this.Audit(unit, member, plan);
+            PendingGroundDrop? pending = drop is { } staged ? _groundItems.Stage(unit, staged) : null;
             _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            return (FarmStatus.Ok, pending);
+        }
+    }
+
+    // Co-op land only: one audit line per action, in the same transaction as the tile and the items (docs/adr/ADR-020 D5).
+    private void Audit(IUnitOfWork unit, CoopMembershipInfo? member, Plan plan)
+    {
+        if (member is null)
+        {
+            return;
         }
 
-        return FarmStatus.Ok;
+        unit.Repository<CoopLogEntry>().Add(new CoopLogEntry
+        {
+            CoopId = member.CoopId,
+            MemberId = member.MemberId,
+            ItemId = plan.AuditItemId,
+            Delta = plan.AuditDelta,
+            Reason = CoopLand.AuditReason(plan.Reason),
+            OccurredAt = _time.GetUtcNow(),
+        });
     }
 
     private async Task UpsertAsync(IUnitOfWork unit, Guid playerId, MapInstance instance, int x, int y, FarmTile tile, CancellationToken cancellationToken)
@@ -401,7 +472,9 @@ public sealed class FarmService : IFarmService
         public Dictionary<(int X, int Y), FarmTile> Tiles { get; } = [];
     }
 
-    private readonly record struct Plan(FarmVerdict Verdict, FarmAction Action, FarmTile Next, IReadOnlyList<InventoryOperation> Operations, string Reason, QuestEvent? Report)
+    private readonly record struct PlannedDrop(int ItemId, int Quantity);
+
+    private readonly record struct Plan(FarmVerdict Verdict, FarmAction Action, FarmTile Next, IReadOnlyList<InventoryOperation> Operations, string Reason, QuestEvent? Report, int AuditItemId = 0, int AuditDelta = 0, PlannedDrop? Drop = null)
     {
         public static Plan Refuse(FarmVerdict verdict) => new(verdict, FarmAction.None, default, [], string.Empty, null);
     }
