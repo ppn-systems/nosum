@@ -93,6 +93,12 @@ public sealed class AccountFormViewModel
     /// <summary>Gets whether the session bar offers the upgrade: a guest whose invitation to register is unlocked.</summary>
     public bool CanUpgrade => this.CurrentSession is { IsGuest: true, RegistrationPromptUnlocked: true } && this.Mode != AccountFormMode.Upgrade;
 
+    /// <summary>Gets the name of the game, shown as the logo of the start screen.</summary>
+    public string GameTitle => _text["Game_Title"];
+
+    /// <summary>Gets the one-line tagline under the logo.</summary>
+    public string Tagline => _text["Game_Tagline"];
+
     /// <summary>Gets the form title.</summary>
     public string Title => _text[this.Mode switch
     {

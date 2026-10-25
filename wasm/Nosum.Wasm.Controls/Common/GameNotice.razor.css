@@ -1,0 +1,22 @@
+.game-notice {
+    --notice-colour: var(--nosum-ink-soft);
+    --notice-bg: rgba(255, 244, 214, 0.35);
+
+    margin: 0;
+    padding: calc(var(--u) * 2) calc(var(--u) * 3);
+    border: var(--u) solid var(--notice-colour);
+    border-left-width: calc(var(--u) * 3);
+    background: var(--notice-bg);
+    color: var(--nosum-ink);
+    font-weight: 700;
+}
+
+.game-notice.error {
+    --notice-colour: var(--nosum-danger);
+    --notice-bg: var(--nosum-danger-bg);
+}
+
+.game-notice.ok {
+    --notice-colour: var(--nosum-ok);
+    --notice-bg: var(--nosum-ok-bg);
+}

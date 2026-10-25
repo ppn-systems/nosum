@@ -1,13 +1,15 @@
 @inherits ObservingComponent<InventoryViewModel>
 
-@* The hotbar: the first nine inventory slots along the bottom of the screen. Number keys 1 to 9 select (handled by the game loop); a click selects too. *@
+@* The hotbar: the first nine inventory slots. Number keys 1 to 9 select (handled by the game loop); a click selects too. *@
 @if (Vm.Slots.Count > 0)
 {
-    <div class="hotbar" role="toolbar" aria-label="@Vm.HotbarLabel">
-        @foreach (SlotDisplay slot in Vm.Hotbar)
-        {
-            int index = slot.Index;
-            <ItemSlotButton Slot="slot" Hotkey="@((index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture))" OnClick="() => Vm.Select(index)" />
-        }
-    </div>
+    <GamePanel Class="hud hotbar" Role="toolbar" Title="">
+        <div class="hotbar-slots" aria-label="@Vm.HotbarLabel">
+            @foreach (SlotDisplay slot in Vm.Hotbar)
+            {
+                int index = slot.Index;
+                <ItemSlotButton Slot="slot" Hotkey="@((index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture))" OnClick="() => Vm.Select(index)" />
+            }
+        </div>
+    </GamePanel>
 }

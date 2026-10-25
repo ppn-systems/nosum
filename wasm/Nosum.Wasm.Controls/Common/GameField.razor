@@ -1,0 +1,20 @@
+@* A labelled form field: the label above, the control (a GameInput) inside, an optional hint below. *@
+<label class="game-field">
+    <span class="game-field-label">@Label</span>
+    @ChildContent
+    @if (!string.IsNullOrEmpty(Hint))
+    {
+        <small class="game-field-hint">@Hint</small>
+    }
+</label>
+
+@code {
+    /// <summary>The label (already localized).</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    /// <summary>A rule or example shown under the control (already localized), or <see langword="null"/>.</summary>
+    [Parameter] public string? Hint { get; set; }
+
+    /// <summary>The control.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

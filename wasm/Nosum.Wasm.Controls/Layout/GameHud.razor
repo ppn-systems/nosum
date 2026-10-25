@@ -1,0 +1,51 @@
+@* The one layout system of the in-game UI: dock regions on a full-screen grid, so nothing can overlap. A control never positions itself;
+   it is put in a region:
+
+     top-left  | top-center | top-right
+     left (panel buttons) | center (one big panel at a time) | right (contextual panels)
+                          | bottom-center (messages, hotbar) |
+
+   Overlay is above everything (dialogs, the help card) and dims the screen. The HUD itself never takes the mouse; only the controls in it do. *@
+<div class="game-hud">
+    <div class="hud-backdrop"></div>
+    <div class="hud-row hud-top">
+        <div class="hud-region hud-top-left">@TopLeft</div>
+        <div class="hud-region hud-top-center">@TopCenter</div>
+        <div class="hud-region hud-top-right">@TopRight</div>
+    </div>
+    <div class="hud-row hud-middle">
+        <div class="hud-region hud-left">@Left</div>
+        <div class="hud-region hud-center">@Center</div>
+        <div class="hud-region hud-right">@Right</div>
+    </div>
+    <div class="hud-row hud-bottom">
+        <div class="hud-region hud-bottom-center">@BottomCenter</div>
+    </div>
+    <div class="hud-overlay">@Overlay</div>
+</div>
+
+@code {
+    /// <summary>Top-left corner (the quest tracker).</summary>
+    [Parameter] public RenderFragment? TopLeft { get; set; }
+
+    /// <summary>Top, centred (a notice).</summary>
+    [Parameter] public RenderFragment? TopCenter { get; set; }
+
+    /// <summary>Top-right corner (session, coins, connection).</summary>
+    [Parameter] public RenderFragment? TopRight { get; set; }
+
+    /// <summary>The modal area: one big panel at a time (inventory, market, trade, co-op, wardrobe, help). Null when none is open.</summary>
+    [Parameter] public RenderFragment? Center { get; set; }
+
+    /// <summary>The right side: contextual panels such as the furniture arrange panel.</summary>
+    [Parameter] public RenderFragment? Right { get; set; }
+
+    /// <summary>The left side, vertically centred (the panel buttons).</summary>
+    [Parameter] public RenderFragment? Left { get; set; }
+
+    /// <summary>Bottom, centred (the message line above the hotbar).</summary>
+    [Parameter] public RenderFragment? BottomCenter { get; set; }
+
+    /// <summary>Above everything: dialogs and forms that need an answer. Null when there is none.</summary>
+    [Parameter] public RenderFragment? Overlay { get; set; }
+}

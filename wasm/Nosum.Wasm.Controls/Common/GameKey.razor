@@ -1,0 +1,10 @@
+@* A key cap: shows which key does something ("I", "Esc"). *@
+<kbd class="game-key">@ChildContent@Text</kbd>
+
+@code {
+    /// <summary>The key name as printed on the key.</summary>
+    [Parameter] public string Text { get; set; } = string.Empty;
+
+    /// <summary>The key name as content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

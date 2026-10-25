@@ -1,0 +1,7 @@
+@* A small picture from the theme sheet: a coin, an arrow. Decorative; the text next to it carries the meaning. *@
+<span class="game-icon @Name" aria-hidden="true"></span>
+
+@code {
+    /// <summary>Which picture: <c>coin</c>, <c>arrow-left</c> or <c>arrow-right</c>.</summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = "coin";
+}

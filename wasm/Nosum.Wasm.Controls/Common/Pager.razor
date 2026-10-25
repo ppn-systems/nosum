@@ -1,8 +1,8 @@
 @* Previous and next page with the position between them. *@
 <GameRow Class="center">
-    <GameButton Variant="plain" Text="@PreviousText" Disabled="@(Page <= 0)" OnClick="() => OnPage.InvokeAsync(Page - 1)" />
-    <span>@PositionText</span>
-    <GameButton Variant="plain" Text="@NextText" Disabled="@(Page + 1 >= PageCount)" OnClick="() => OnPage.InvokeAsync(Page + 1)" />
+    <GameButton Variant="plain" Disabled="@(Page <= 0)" OnClick="() => OnPage.InvokeAsync(Page - 1)"><GameIcon Name="arrow-left" />@PreviousText</GameButton>
+    <span class="pager-position">@PositionText</span>
+    <GameButton Variant="plain" Disabled="@(Page + 1 >= PageCount)" OnClick="() => OnPage.InvokeAsync(Page + 1)">@NextText<GameIcon Name="arrow-right" /></GameButton>
 </GameRow>
 
 @code {

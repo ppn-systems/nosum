@@ -76,6 +76,9 @@ internal static partial class GameLoop
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
 
+    /// <summary>Raised from the frame when the player pressed the close key (Escape).</summary>
+    public static event Action? PanelCloseRequested;
+
     /// <summary>
     /// Loads everything the first map needs and starts the loop on the given canvas. With a network, the first map is the one
     /// the server chose (where the player was last); the farm only when the server does not answer in time.
@@ -91,6 +94,7 @@ internal static partial class GameLoop
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
         PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
+        actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider()];
         if (actions is not null && s_farm is not null)
         {

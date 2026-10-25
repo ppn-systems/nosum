@@ -1,0 +1,36 @@
+.game-badge {
+    --badge-edge: calc(var(--u) * 3);
+    --badge-light: var(--nosum-ok);
+
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    padding: 0 calc(var(--u) * 1);
+    border: var(--badge-edge) solid var(--nosum-edge);
+    border-image: var(--nosum-img-field) 12 fill / var(--badge-edge) stretch;
+    background: var(--nosum-parchment) padding-box;
+    color: var(--nosum-ink);
+    font-size: 0.85em;
+    font-weight: 700;
+    image-rendering: pixelated;
+    white-space: nowrap;
+}
+
+.game-badge.warn {
+    --badge-light: var(--nosum-warn);
+}
+
+.game-badge.error {
+    --badge-light: var(--nosum-danger);
+}
+
+.game-badge-light {
+    width: calc(var(--u) * 3);
+    height: calc(var(--u) * 3);
+    background: var(--badge-light);
+    box-shadow: 0 0 0 var(--u) var(--nosum-ink);
+}
+
+.game-badge.warn .game-badge-light {
+    animation: nosum-blink 1s steps(2, jump-none) infinite;
+}

@@ -1,0 +1,76 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
+using FluentAssertions;
+using Xunit;
+
+namespace Nosum.UnitTests.Wasm;
+
+/// <summary>The sprite table of the UI theme (<c>nosum-theme.js</c>, ADR-016) only names rectangles that exist on the sheets it links.</summary>
+public sealed partial class ThemeSpritesTests
+{
+    [Fact]
+    public void SpriteTable_EveryRectangleLiesInsideItsSheet()
+    {
+        string root = RepositoryRoot();
+        string script = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "wwwroot", "nosum-theme.js"));
+        Dictionary<string, string> sheets = SheetRegex().Matches(script).ToDictionary(m => m.Groups[1].Value, m => m.Groups[2].Value);
+        MatchCollection rows = RowRegex().Matches(script);
+
+        sheets.Should().NotBeEmpty();
+        rows.Should().NotBeEmpty();
+        foreach (Match row in rows)
+        {
+            string sheet = row.Groups[1].Value;
+            int x = Number(row, 2);
+            int y = Number(row, 3);
+            int w = Number(row, 4);
+            int h = Number(row, 5);
+            (int width, int height) = PngSize(Path.Combine(root, "assets", AssetFolder(sheets[sheet]), Path.GetFileName(sheets[sheet])));
+
+            (x + w).Should().BeLessThanOrEqualTo(width, row.Value);
+            (y + h).Should().BeLessThanOrEqualTo(height, row.Value);
+        }
+    }
+
+    [Fact]
+    public void Sheets_AreLinkedFromAssetsInTheControlsProject()
+    {
+        string root = RepositoryRoot();
+        string project = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Nosum.Wasm.Controls.csproj"));
+
+        foreach (string file in new[] { "Maps\\MenuTiles.png", "LooseSprites\\Cursors.png", "LooseSprites\\textBox.png" })
+        {
+            project.Should().Contain("..\\..\\assets\\" + file);
+            File.Exists(Path.Combine(root, "assets", file.Replace('\\', Path.DirectorySeparatorChar))).Should().BeTrue();
+        }
+    }
+
+    // The sheets are linked into wwwroot/ui/ from these folders of assets/ (the csproj says so; Sheets_AreLinked... checks it).
+    private static string AssetFolder(string sheet) => Path.GetFileName(sheet) == "MenuTiles.png" ? "Maps" : "LooseSprites";
+
+    private static int Number(Match row, int group) => int.Parse(row.Groups[group].Value, System.Globalization.CultureInfo.InvariantCulture);
+
+    private static (int Width, int Height) PngSize(string path)
+    {
+        // The PNG signature (8 bytes) and the IHDR chunk header (8 bytes) come first, then width and height as big-endian ints.
+        byte[] header = new byte[24];
+        using FileStream stream = File.OpenRead(path);
+        stream.ReadExactly(header);
+        return (BinaryPrimitives.ReadInt32BigEndian(header.AsSpan(16)), BinaryPrimitives.ReadInt32BigEndian(header.AsSpan(20)));
+    }
+
+    private static string RepositoryRoot([CallerFilePath] string here = "") => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(here)!, "..", "..", ".."));
+
+    [GeneratedRegex("""^\s{4}(\w+): "([^"]+)",""", RegexOptions.Multiline)]
+    private static partial Regex SheetRegex();
+
+    [GeneratedRegex("""\["[\w-]+", "(\w+)", (\d+), (\d+), (\d+), (\d+)\]""")]
+    private static partial Regex RowRegex();
+}

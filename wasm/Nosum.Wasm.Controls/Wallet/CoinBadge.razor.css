@@ -1,0 +1,15 @@
+.coin-line {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    white-space: nowrap;
+}
+
+.coin-amount {
+    font-size: 1.1em;
+    font-variant-numeric: tabular-nums;
+}
+
+.coin-caption {
+    color: var(--nosum-ink-soft);
+}

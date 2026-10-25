@@ -1,95 +1,108 @@
-/* The shared frame of every game panel. The look is these variables and nothing else: a theme changes them (or this file), never a panel. */
+/* The shared window frame: a 9-slice wooden border (MenuTiles.png, 4 u thick) around a parchment page. */
 .game-panel {
-    --game-panel-background: rgba(40, 24, 8, 0.88);
-    --game-panel-color: #fff;
-    --game-panel-radius: 0.5rem;
-    --game-panel-padding: 0.6rem 0.8rem;
-    --game-panel-gap: 0.5rem;
+    --panel-edge: calc(var(--u) * 4);
 
+    position: relative;
     box-sizing: border-box;
-    max-width: 18rem;
-    padding: var(--game-panel-padding);
-    border-radius: var(--game-panel-radius);
-    background: var(--game-panel-background);
-    color: var(--game-panel-color);
-    font: 14px/1.4 sans-serif;
-    z-index: 10;
-}
-
-.game-panel--top-right,
-.game-panel--top-left,
-.game-panel--center,
-.game-panel--bottom-left,
-.game-panel--top-center {
-    position: fixed;
-}
-
-.game-panel--top-right {
-    top: 0.75rem;
-    right: 0.75rem;
-}
-
-.game-panel--top-left {
-    top: 0.75rem;
-    left: 0.75rem;
-}
-
-.game-panel--center {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    padding: var(--u) calc(var(--u) * 2);
+    border: var(--panel-edge) solid var(--nosum-edge);
+    border-image: var(--nosum-img-panel) 16 fill / var(--panel-edge) stretch;
+    background: var(--nosum-parchment) padding-box;
+    color: var(--nosum-ink);
+    font: 500 var(--nosum-font-size) / 1.35 var(--nosum-font);
+    image-rendering: pixelated;
+    pointer-events: auto;
 }
 
 .game-panel-title {
-    margin: 0 0 var(--game-panel-gap);
-    font-size: 1rem;
-}
-
-.game-panel-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--game-panel-gap);
-}
-
-.game-panel-body ::deep p {
     margin: 0;
+    font-size: 1.12em;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    text-shadow: 0 var(--u) 0 var(--nosum-shine);
 }
 
 .game-panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: calc(var(--u) * 4);
+    margin-bottom: calc(var(--u) * 2);
+    padding-bottom: calc(var(--u) * 2);
+    border-bottom: var(--u) solid var(--nosum-line);
+    box-shadow: 0 var(--u) 0 var(--nosum-shine);
 }
 
-.game-panel-header .game-panel-title {
+.game-panel > .game-panel-title {
+    margin-bottom: calc(var(--u) * 2);
+}
+
+.game-panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nosum-gap);
+    min-height: 0;
+    overflow: auto;
+    padding: var(--u);
+}
+
+.game-panel-body ::deep p {
     margin: 0;
 }
 
 .game-panel-status {
-    margin: 0;
-    font-weight: bold;
+    margin: calc(var(--u) * 2) 0 0;
+    padding-top: calc(var(--u) * 2);
+    border-top: var(--u) solid var(--nosum-line);
+    font-weight: 700;
+    color: var(--nosum-ink-soft);
 }
 
-/* A large window that scrolls inside the screen: market, wardrobe, trade and co-op. */
+/* The close button: the red X of the sheet, drawn at the UI scale. */
+.game-close {
+    flex: none;
+    width: calc(var(--nosum-w-close, 12) * var(--u));
+    height: calc(var(--nosum-h-close, 12) * var(--u));
+    padding: 0;
+    border: 0;
+    background: var(--nosum-img-close) center / 100% 100% no-repeat;
+    image-rendering: pixelated;
+    cursor: var(--nosum-cursor-pointer, pointer);
+}
+
+.game-close:hover {
+    filter: brightness(1.15);
+}
+
+.game-close:active {
+    filter: brightness(0.85);
+    transform: translateY(var(--u));
+}
+
+/* A large window: market, wardrobe, trade, co-op. */
 .game-panel.wide {
-    width: min(46rem, calc(100vw - 1rem));
-    max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 6rem);
-    overflow: auto;
+    width: calc(var(--u) * 232);
 }
 
-.game-panel--center.wide {
-    transform: translate(-50%, -55%);
+/* Always-visible HUD panels are smaller and lighter. */
+.game-panel.hud {
+    padding: 0;
 }
 
-.game-panel--bottom-left {
-    bottom: 0.75rem;
-    left: 0.75rem;
+.game-panel.hud > .game-panel-body {
+    padding: calc(var(--u) * 1);
 }
 
-.game-panel--top-center {
-    top: 0.75rem;
-    left: 50%;
-    transform: translateX(-50%);
+.game-panel.hud > .game-panel-title {
+    font-size: 1em;
+    margin-bottom: var(--u);
+}
+
+.game-panel.dialog {
+    max-width: calc(var(--u) * 150);
 }

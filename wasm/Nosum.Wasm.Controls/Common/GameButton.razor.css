@@ -1,34 +1,105 @@
-/* The shared button. The look is these variables and nothing else. */
+/* The shared button: a 9-slice pill (Cursors.png, 3 u edge). Variants and states only change the sprite and a filter. */
 .game-button {
-    --game-button-background: #8a5a2b;
-    --game-button-color: #fff;
-    --game-button-radius: 0.35rem;
-    --game-button-padding: 0.25rem 0.7rem;
+    --button-edge: calc(var(--u) * 3);
+    --button-base: brightness(1);
+    --button-state: brightness(1);
 
-    padding: var(--game-button-padding);
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    margin: 0;
+    padding: calc(var(--button-edge) + var(--u)) calc(var(--button-edge) + calc(var(--u) * 3));
     border: 0;
-    border-radius: var(--game-button-radius);
-    background: var(--game-button-background);
-    color: var(--game-button-color);
-    font: inherit;
-    cursor: pointer;
+    background: none;
+    color: var(--nosum-ink);
+    font: 800 1em / 1.1 var(--nosum-font);
+    text-shadow: 0 var(--u) 0 var(--nosum-button-shine);
+    white-space: nowrap;
+    cursor: var(--nosum-cursor-pointer, pointer);
+    user-select: none;
+}
+
+.game-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border: var(--button-edge) solid var(--nosum-edge);
+    border-image: var(--nosum-img-button) 3 fill / var(--button-edge) stretch;
+    background: var(--nosum-wood-light) padding-box;
+    filter: var(--button-base) var(--button-state);
+    image-rendering: pixelated;
+}
+
+.game-button-label {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+}
+
+.game-button:hover:not(:disabled) {
+    --button-state: brightness(1.14);
+}
+
+.game-button:active:not(:disabled) {
+    --button-state: brightness(0.86);
+}
+
+.game-button:active:not(:disabled) .game-button-label {
+    transform: translateY(var(--u));
 }
 
 .game-button:disabled {
-    opacity: 0.5;
+    --button-state: grayscale(1) brightness(0.95);
+
+    color: var(--nosum-ink-faint);
+    text-shadow: none;
     cursor: default;
 }
 
+.game-button:focus-visible {
+    outline: var(--u) solid var(--nosum-focus);
+    outline-offset: var(--u);
+}
+
 .game-button.danger {
-    --game-button-background: #a8473a;
+    color: var(--nosum-ink-on-dark);
+    text-shadow: 0 var(--u) 0 #4a0016;
+}
+
+.game-button.danger::before {
+    border-image-source: var(--nosum-img-button-danger);
 }
 
 .game-button.plain,
 .game-button.tab {
-    --game-button-background: rgba(255, 255, 255, 0.14);
+    --button-base: saturate(0.4) brightness(1.2);
 }
 
 .game-button.tab.active {
-    --game-button-background: #8a5a2b;
-    font-weight: bold;
+    --button-base: brightness(1);
+
+    font-weight: 800;
+}
+
+.game-button.tab.active::before {
+    border-image-source: var(--nosum-img-button-hot);
+}
+
+.game-button.link {
+    padding: var(--u) calc(var(--u) * 2);
+    text-decoration: underline;
+    text-underline-offset: calc(var(--u) * 1);
+    text-shadow: none;
+}
+
+.game-button.link::before {
+    display: none;
+}
+
+.game-button.link:hover:not(:disabled) {
+    color: var(--nosum-danger);
 }
