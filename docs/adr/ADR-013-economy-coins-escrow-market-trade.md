@@ -1,6 +1,6 @@
 # ADR-013 — Economy: coins, one atomic transfer, shipping bin, consignment market, direct trade
 
-**Status:** Proposed
+**Status:** Accepted (owner approval, 2026-10-25). Amendments pending: no furniture or clothing in the starter kit (bought instead); player nicknames.
 
 ## Context
 

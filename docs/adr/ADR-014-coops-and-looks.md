@@ -1,6 +1,6 @@
 # ADR-014 — Co-operatives (membership and shared warehouse) and player looks
 
-**Status:** Proposed
+**Status:** Accepted (owner approval, 2026-10-25). Amendments pending: no furniture or clothing in the starter kit (bought instead); player nicknames.
 
 ## Context
 
