@@ -79,6 +79,7 @@ internal sealed class MapScene
     /// <param name="placed">The mirror of the pieces placed in the player's place; they block walking like the server's grid does.</param>
     /// <param name="placement">The keys that place, turn, move and pick up furniture.</param>
     /// <param name="looks">The looks the server sent for the players on the map; <see langword="null"/> draws everyone with <paramref name="look"/>.</param>
+    /// <param name="labels">Nickname labels over players' heads; <see langword="null"/> draws no names.</param>
     public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null)
     {
         _actions = actions;
