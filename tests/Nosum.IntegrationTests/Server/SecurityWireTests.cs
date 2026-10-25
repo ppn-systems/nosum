@@ -55,12 +55,12 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
             using WebSocketSession session = await ConnectAsync();
             long before = InputBoundsMiddleware.Dropped;
             using Login oversized = new() { Email = new string('a', 5_000) + "@gmail.com", Password = "password-1" };
-            using Register undefinedLanguage = new() { Email = Unique(), Password = "password-1", PreferredLanguage = (GameLanguage)77, Nickname = TestNicknames.Next() };
+            using Register badChest = new() { Email = Unique(), Password = "password-1", Nickname = new string('n', 500) };
 
             Func<Task> first = async () => _ = await session.RequestAsync<AccountResult>(oversized, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: timeout.Token);
-            Func<Task> second = async () => _ = await session.RequestAsync<AccountResult>(undefinedLanguage, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: timeout.Token);
+            Func<Task> second = async () => _ = await session.RequestAsync<AccountResult>(badChest, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: timeout.Token);
             _ = await first.Should().ThrowAsync<Exception>("an oversized packet gets no reply");
-            _ = await second.Should().ThrowAsync<Exception>("an undefined enum value gets no reply");
+            _ = await second.Should().ThrowAsync<Exception>("an oversized nickname gets no reply");
 
             InputBoundsMiddleware.Dropped.Should().Be(before + 2);
             using Register fine = new() { Email = Unique(), Password = "password-1", Nickname = TestNicknames.Next() };

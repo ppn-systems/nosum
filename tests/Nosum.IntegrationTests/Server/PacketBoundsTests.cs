@@ -13,6 +13,8 @@ using Nosum.Contracts.Chat;
 using Nosum.Contracts.Chat.C2S;
 using Nosum.Contracts.Common;
 using Nosum.Contracts.Market.C2S;
+using Nosum.Contracts.Placeable;
+using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Trade.C2S;
 using Nosum.Contracts.Trade.S2C;
@@ -52,10 +54,10 @@ public sealed class PacketBoundsTests
     }
 
     [Fact]
-    public void IsWithinBounds_UndefinedEnum_Fails()
+    public void IsWithinBounds_UndefinedEnumWhereDeclared_Fails()
     {
-        Within(() => new SendChat { Channel = (ChatChannel)200 }).Should().BeFalse();
-        Within(() => new Register { Email = "a", Password = "p", PreferredLanguage = (GameLanguage)99, Nickname = "n" }).Should().BeFalse();
+        Within(() => new ChestMove { FromSide = (ChestSide)200 }).Should().BeFalse();
+        Within(() => new ChestMove { FromSide = ChestSide.Chest, ToSide = ChestSide.Player }).Should().BeTrue();
     }
 
     [Fact]

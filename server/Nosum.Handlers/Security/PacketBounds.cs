@@ -32,7 +32,7 @@ public static class PacketBounds
 
     /// <summary>
     /// Lists the wire members of a packet type that need a bound but declare none: strings and collections need <see cref="WireMaxLengthAttribute"/>,
-    /// signed and floating point numbers need <see cref="WireRangeAttribute"/>, enums need <see cref="WireDefinedAttribute"/>. Members of nested row types
+    /// signed and floating point numbers need <see cref="WireRangeAttribute"/>. Enums may add <see cref="WireDefinedAttribute"/> but need not: a service that answers an undefined value with a documented status (language, chat channel) keeps doing so. Members of nested row types
     /// are checked too. Booleans, bytes, GUIDs and unsigned numbers cannot be out of bounds and are exempt.
     /// </summary>
     /// <param name="packetType">A packet or row type.</param>
@@ -65,13 +65,6 @@ public static class PacketBounds
                 if (IsList(t, out Type? element) && element is { IsClass: true } && element != typeof(string))
                 {
                     Collect(element, missing, seen);
-                }
-            }
-            else if (t.IsEnum)
-            {
-                if (property.GetCustomAttribute<WireDefinedAttribute>() is null)
-                {
-                    missing.Add(type.Name + "." + property.Name);
                 }
             }
             else if (IsRangeType(t) && property.GetCustomAttribute<WireRangeAttribute>() is null)

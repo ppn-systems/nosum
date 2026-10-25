@@ -18,6 +18,5 @@ public sealed partial class SetLanguage : PacketBase<SetLanguage>, IPacketStatic
     public static ushort StaticOpCode => AccountOpCode.SetLanguage;
 
     /// <summary>The new language; <see cref="GameLanguage.Unspecified"/> means Vietnamese. An undefined value is refused.</summary>
-    [WireDefined]
     [SerializeOrder(0)] public GameLanguage Language { get; set; }
 }

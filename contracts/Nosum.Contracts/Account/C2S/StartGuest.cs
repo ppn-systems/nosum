@@ -18,6 +18,5 @@ public sealed partial class StartGuest : PacketBase<StartGuest>, IPacketStaticOp
     public static ushort StaticOpCode => AccountOpCode.StartGuest;
 
     /// <summary>Preferred language; <see cref="GameLanguage.Unspecified"/> means Vietnamese.</summary>
-    [WireDefined]
     [SerializeOrder(0)] public GameLanguage PreferredLanguage { get; set; }
 }

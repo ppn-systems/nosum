@@ -19,7 +19,6 @@ public sealed partial class SendChat : PacketBase<SendChat>, IPacketStaticOpcode
     public static ushort StaticOpCode => ChatOpCode.SendChat;
 
     /// <summary>The channel to send to.</summary>
-    [WireDefined]
     [SerializeOrder(0)] public ChatChannel Channel { get; set; }
 
     /// <summary>The addressee's nickname for a whisper; empty for the other channels.</summary>
