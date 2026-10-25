@@ -138,6 +138,7 @@
   <data name="Market_Status_Expired" xml:space="preserve"><value>Món hàng đã hết hạn.</value></data>
   <data name="Market_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Market_Status_NotAtBin" xml:space="preserve"><value>Hãy đứng cạnh thùng hàng để bán.</value></data>
+  <data name="Market_Status_NotAtCounter" xml:space="preserve"><value>Hãy đứng ở quầy của thương nhân trong thị trấn để mua bán.</value></data>
   <data name="Market_Status_NotShippable" xml:space="preserve"><value>Thùng hàng không mua vật phẩm này.</value></data>
   <data name="Market_Status_InvalidSlot" xml:space="preserve"><value>Hãy chọn một ô hợp lệ.</value></data>
   <data name="Market_Status_TooBig" xml:space="preserve"><value>Số xu vượt quá mức cho phép.</value></data>
@@ -323,7 +324,7 @@
   <data name="Help_Use" xml:space="preserve"><value>Dùng, tương tác</value></data>
   <data name="Help_Hotbar" xml:space="preserve"><value>Chọn ô</value></data>
   <data name="Help_Inventory" xml:space="preserve"><value>Túi đồ</value></data>
-  <data name="Help_Market" xml:space="preserve"><value>Chợ</value></data>
+  <data name="Help_Counters" xml:space="preserve"><value>Đứng ở quầy (cửa hàng, bảng tin, chợ) để mở</value></data>
   <data name="Help_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
   <data name="Help_Trade" xml:space="preserve"><value>Giao dịch</value></data>
   <data name="Help_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>

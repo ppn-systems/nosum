@@ -44,3 +44,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-032](ADR-032-security-hardening.md) | Security hardening: server key pinning, handler audit tests, input bounds, account recovery, session and abuse limits | Accepted |
 | [ADR-033](ADR-033-client-settings-touch-onboarding.md) | Client settings, touch controls, onboarding hints, accessibility | Accepted |
 | [ADR-038](ADR-038-coop-upgrades.md) | Co-op upgrades: warehouse capacity and co-op land size bought with warehouse stock, founder only, one atomic purchase | Accepted |
+| [ADR-034](ADR-034-market-at-the-trader-counter.md) | The consignment market is a counter in Town: no market tab or key, listing/buying/cancelling need the counter | Accepted |

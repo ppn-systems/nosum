@@ -138,6 +138,9 @@ internal static partial class GameLoop
     /// <summary>Raised from the frame when the player pressed the action key next to the mine elevator.</summary>
     public static event Action? ElevatorRequested;
 
+    /// <summary>Raised from the frame when the player walked out of reach of a counter: the counter's id.</summary>
+    public static event Action<int>? CounterLeft;
+
     /// <summary>Raised from the frame when the player pressed the action key facing a furnace: the furnace's object id.</summary>
     public static event Action<int>? FurnaceRequested;
 
@@ -166,6 +169,7 @@ internal static partial class GameLoop
         PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
+        actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
         actions?.FurnaceRequested += objectId => FurnaceRequested?.Invoke(objectId);
         actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
