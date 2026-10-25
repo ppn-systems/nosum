@@ -67,7 +67,7 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
         _inventory = new InventoryService(_units, _clock);
         _transfers = new TransferService(_inventory, _clock);
         _market = new MarketService(_transfers, _inventory, _units, MarketCounter.Presence(), MarketCounter.Maps(), new CoinSink(), _nicknames, _clock);
-        _coops = new CoopService(_units, _transfers, new NoPresence(), new NoSessions(), new NoNotifier(), _nicknames, new NoFarm(), new NoEviction(), _clock);
+        _coops = new CoopService(_units, _transfers, _inventory, new NoPresence(), new NoSessions(), new NoNotifier(), _nicknames, new NoFarm(), new NoEviction(), _clock);
     }
 
     public void Dispose() => _coops.Dispose();

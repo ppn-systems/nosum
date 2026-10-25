@@ -40,5 +40,7 @@ internal sealed class EfRepository<TEntity> : IRepository<TEntity>
 
     public void Add(TEntity entity) => _ = _set.Add(entity);
 
+    public void Update(TEntity entity) => _ = _set.Update(entity);
+
     public void Remove(TEntity entity) => _ = _set.Remove(entity);
 }

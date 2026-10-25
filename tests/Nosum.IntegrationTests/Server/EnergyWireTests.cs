@@ -276,6 +276,8 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
             _ = await db.InventoryLog.Where(l => l.PlayerId == player.AccountId && newTools.Contains(l.ItemId)).ExecuteDeleteAsync();
         }
 
+        inventory.Forget(player.AccountId); // rows changed behind the service's back: it reloads them (docs/adr/ADR-035 D3)
+
         (await inventory.GetAsync(player.AccountId)).Slots.Select(s => s.ItemId).Should().NotContain(newTools);
 
         _ = await player.JoinAsync(host.Timeout);

@@ -34,6 +34,9 @@ public sealed class SessionRegistry : ISessionRegistry
         _onClosed = (_, e) => this.Release(e.Connection);
     }
 
+    /// <inheritdoc/>
+    public event Func<Guid, ValueTask>? SessionEnded;
+
     /// <summary>Gets or sets whether the notice to the older connection is encrypted; off only for plaintext development.</summary>
     public bool EncryptSends { get; set; } = true;
 
@@ -44,6 +47,7 @@ public sealed class SessionRegistry : ISessionRegistry
         ArgumentNullException.ThrowIfNull(connection);
 
         IConnection? previous;
+        Guid? ended = null;
         lock (_gate)
         {
             _ = _active.TryGetValue(playerId, out previous);
@@ -56,6 +60,7 @@ public sealed class SessionRegistry : ISessionRegistry
             if (_playerOf.TryGetValue(connection.ConnectionId, out Guid earlier) && earlier != playerId)
             {
                 _ = _active.Remove(earlier);
+                ended = earlier;
             }
             else if (!_playerOf.ContainsKey(connection.ConnectionId))
             {
@@ -68,6 +73,11 @@ public sealed class SessionRegistry : ISessionRegistry
             {
                 _ = _playerOf.Remove(previous.ConnectionId);
             }
+        }
+
+        if (ended is { } left)
+        {
+            this.RaiseEnded(left);
         }
 
         if (previous is null)
@@ -94,6 +104,7 @@ public sealed class SessionRegistry : ISessionRegistry
         }
 
         await this.CloseAsync(connection, reason, "session ended by the server", cancellationToken).ConfigureAwait(false);
+        this.RaiseEnded(playerId);
         return true;
     }
 
@@ -129,6 +140,7 @@ public sealed class SessionRegistry : ISessionRegistry
     {
         ArgumentNullException.ThrowIfNull(connection);
 
+        Guid? ended = null;
         lock (_gate)
         {
             if (_playerOf.Remove(connection.ConnectionId, out Guid playerId)
@@ -136,10 +148,15 @@ public sealed class SessionRegistry : ISessionRegistry
                 && current.ConnectionId == connection.ConnectionId)
             {
                 _ = _active.Remove(playerId);
+                ended = playerId;
             }
         }
 
         connection.ConnectionClosed -= _onClosed;
+        if (ended is { } left)
+        {
+            this.RaiseEnded(left);
+        }
     }
 
     /// <inheritdoc/>
@@ -149,5 +166,30 @@ public sealed class SessionRegistry : ISessionRegistry
         {
             return _active.GetValueOrDefault(playerId);
         }
+    }
+
+    // Off the closing path: the handlers only let go of in-memory state, and a failing one must not stop the others or the close.
+    [SuppressMessage("Design", "CA1031", Justification = "Raised from a close; there is no caller to report to and the other handlers must still run.")]
+    private void RaiseEnded(Guid playerId)
+    {
+        if (this.SessionEnded is not { } handlers)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            foreach (Func<Guid, ValueTask> handler in handlers.GetInvocationList())
+            {
+                try
+                {
+                    await handler(playerId).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // Best effort.
+                }
+            }
+        });
     }
 }

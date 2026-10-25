@@ -14,6 +14,7 @@ using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Coop;
@@ -39,6 +40,7 @@ public sealed class CoopService : ICoopService, IDisposable
 {
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly ITransferService _transfers;
+    private readonly IInventoryService _inventory;
     private readonly IMapPresence _presence;
     private readonly ISessionRegistry _sessions;
     private readonly IPlayerNotifier _notifier;
@@ -53,6 +55,7 @@ public sealed class CoopService : ICoopService, IDisposable
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="transfers">Moves items between inventories and the warehouse.</param>
+    /// <param name="inventory">The owner of the inventory tables: the deletion of a wiped chest's inventory and the check whether chests hold items go through it.</param>
     /// <param name="presence">Who is on which map (an invitation goes to a player on the inviter's map).</param>
     /// <param name="sessions">Who is connected.</param>
     /// <param name="notifier">Pushes snapshots to online members.</param>
@@ -62,10 +65,11 @@ public sealed class CoopService : ICoopService, IDisposable
     /// <param name="time">The clock; tests pass a fake one.</param>
     /// <param name="mail">Receives a mail for an invited player (docs/adr/ADR-029 D5); <see langword="null"/> to send none.</param>
     /// <param name="blocks">The block lists: an invitation between players where either blocked the other is dropped (docs/adr/ADR-029 D3); <see langword="null"/> to check none.</param>
-    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IFarmService farm, ICoopLandEviction eviction, TimeProvider time, IMailService? mail = null, IBlockList? blocks = null)
+    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IInventoryService inventory, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IFarmService farm, ICoopLandEviction eviction, TimeProvider time, IMailService? mail = null, IBlockList? blocks = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(transfers);
+        ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(sessions);
         ArgumentNullException.ThrowIfNull(notifier);
@@ -76,6 +80,7 @@ public sealed class CoopService : ICoopService, IDisposable
 
         _unitOfWork = unitOfWork;
         _transfers = transfers;
+        _inventory = inventory;
         _presence = presence;
         _sessions = sessions;
         _notifier = notifier;
@@ -729,7 +734,7 @@ public sealed class CoopService : ICoopService, IDisposable
         List<PlacedObject> pieces = await unit.Repository<PlacedObject>().ListAsync(p => p.OwnerId == coopId, cancellationToken).ConfigureAwait(false);
         int[] furnaces = [.. pieces.Where(p => p.ItemId == ItemCatalog.Furnace).Select(p => p.Id)];
         Guid[] chests = [.. pieces.Where(p => p.ItemId == ItemCatalog.Chest).Select(p => ContainerIds.ForChest(p.Id))];
-        return (chests.Length > 0 && await unit.Repository<InventorySlot>().AnyAsync(s => chests.Contains(s.PlayerId), cancellationToken).ConfigureAwait(false))
+        return (chests.Length > 0 && await _inventory.AnyContainerHoldsItemsAsync(unit, chests, cancellationToken).ConfigureAwait(false))
             || (furnaces.Length > 0 && await unit.Repository<FurnaceJob>().AnyAsync(j => furnaces.Contains(j.ObjectId), cancellationToken).ConfigureAwait(false));
     }
 
@@ -753,9 +758,9 @@ public sealed class CoopService : ICoopService, IDisposable
             IRepository<PlacedObject> pieces = unit.Repository<PlacedObject>();
             foreach (PlacedObject piece in await pieces.ListAsync(p => p.MapId == spec.Id && p.OwnerId == coopId, cancellationToken).ConfigureAwait(false))
             {
-                if (piece.ItemId == ItemCatalog.Chest && await unit.Repository<PlayerInventory>().FindAsync(ContainerIds.ForChest(piece.Id), cancellationToken).ConfigureAwait(false) is { } header)
+                if (piece.ItemId == ItemCatalog.Chest)
                 {
-                    unit.Repository<PlayerInventory>().Remove(header);
+                    _ = await _inventory.DropContainerAsync(unit, ContainerIds.ForChest(piece.Id), onlyIfEmpty: false, cancellationToken).ConfigureAwait(false);
                 }
 
                 pieces.Remove(piece);

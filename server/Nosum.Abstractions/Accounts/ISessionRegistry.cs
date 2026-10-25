@@ -14,6 +14,16 @@ namespace Nosum.Abstractions.Accounts;
 /// </summary>
 public interface ISessionRegistry
 {
+    /// <summary>
+    /// Raised after a player's last connection ended (a logout, a closed socket, an ended session), not when a new sign-in replaces the old connection. Caches that hold
+    /// a signed-in player's state let go of it here (docs/adr/ADR-035); handlers run off the closing path and their failures are swallowed.
+    /// </summary>
+    event Func<Guid, ValueTask>? SessionEnded
+    {
+        add { }
+        remove { }
+    }
+
     /// <summary>Makes a connection the player's active one, ending any other connection of the same player.</summary>
     /// <param name="playerId">The signed-in player.</param>
     /// <param name="connection">The connection that just signed in.</param>

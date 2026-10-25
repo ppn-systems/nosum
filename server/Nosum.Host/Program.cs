@@ -443,6 +443,12 @@ internal static class Program
         // The first finished quest invites a guest to register.
         InstanceManager.Instance.Register(new RegistrationPromptOnQuestCompleted(quests, prompts, notifier));
         InstanceManager.Instance.Register<IInventoryService>(inventory);
+        // A player who signed out lets go of their in-memory inventory (docs/adr/ADR-035 D3).
+        sessions.SessionEnded += id =>
+        {
+            inventory.Forget(id);
+            return ValueTask.CompletedTask;
+        };
         InstanceManager.Instance.Register<IQuestService>(quests);
 
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
@@ -571,7 +577,7 @@ internal static class Program
         }
 
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock, blocks));
-        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock, mail, blocks);
+        CoopService coops = new(unitOfWork, transfers, inventory, presence, sessions, notifier, nicknames, farm, players, clock, mail, blocks);
         InstanceManager.Instance.Register<ICoopService>(coops);
 
         // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).

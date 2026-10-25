@@ -112,6 +112,28 @@ public interface IInventoryService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The slot; an empty slot has item id zero.</returns>
     Task<InventorySlotView> PeekSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Stages the deletion of a container's inventory (a chest being picked up or wiped with its land) in the caller's unit of work and drops the container from the
+    /// in-memory copy, so the rows and the copy never disagree after the caller saves. This is the only way a container's rows are deleted outside this service.
+    /// </summary>
+    /// <param name="unit">The caller's unit of work; the deletion is saved with it.</param>
+    /// <param name="containerId">The container's owner id (<c>ContainerIds</c>).</param>
+    /// <param name="onlyIfEmpty">When <see langword="true"/> a container that holds items is left alone.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns><see langword="false"/> when <paramref name="onlyIfEmpty"/> was set and the container holds items; otherwise <see langword="true"/>.</returns>
+    Task<bool> DropContainerAsync(IUnitOfWork unit, Guid containerId, bool onlyIfEmpty, CancellationToken cancellationToken = default);
+
+    /// <summary>Tells whether any of the containers holds an item.</summary>
+    /// <param name="unit">The caller's unit of work, used for the containers that are not in memory.</param>
+    /// <param name="containerIds">The containers' owner ids.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns><see langword="true"/> when at least one container holds an item.</returns>
+    Task<bool> AnyContainerHoldsItemsAsync(IUnitOfWork unit, IReadOnlyCollection<Guid> containerIds, CancellationToken cancellationToken = default);
+
+    /// <summary>Drops the in-memory copy of an owner's inventory (a player who signed out); the next call reloads it. The rows are not touched.</summary>
+    /// <param name="ownerId">The player or container.</param>
+    void Forget(Guid ownerId);
 }
 
 /// <summary>The operations to apply to one player's inventory inside <see cref="IInventoryService.ApplyManyAsync"/>.</summary>

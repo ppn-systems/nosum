@@ -61,7 +61,14 @@ public interface IRepository<TEntity>
     /// <param name="entity">The entity to insert.</param>
     void Add(TEntity entity);
 
-    /// <summary>Marks an entity to be deleted when the unit of work saves.</summary>
+    /// <summary>
+    /// Marks an entity that this unit of work did not load to be written back when it saves: every column is updated, and the save fails with a concurrency
+    /// conflict when no row has that key. For a service that keeps the row's values in memory and so has no tracked entity to change.
+    /// </summary>
+    /// <param name="entity">The entity with its key and new values; no other entity with the same key may be tracked.</param>
+    void Update(TEntity entity);
+
+    /// <summary>Marks an entity to be deleted when the unit of work saves. A new instance that only carries the key is enough; the save fails with a concurrency conflict when no row has that key.</summary>
     /// <param name="entity">The entity to delete.</param>
     void Remove(TEntity entity);
 }

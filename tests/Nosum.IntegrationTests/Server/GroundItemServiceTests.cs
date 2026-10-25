@@ -207,6 +207,8 @@ public sealed class GroundItemServiceTests : IClassFixture<PostgresFixture>
             _ = await context.InventorySlots.Where(s => s.PlayerId == player && s.ItemId == ItemCatalog.ShirtRed).ExecuteDeleteAsync();
         }
 
+        _inventory.Forget(player); // rows changed behind the service's back: it reloads them (docs/adr/ADR-035 D3)
+
         _clock.Advance(TimeSpan.FromSeconds(3));
         await _items.OnPlayerMovedAsync(presence);
 
