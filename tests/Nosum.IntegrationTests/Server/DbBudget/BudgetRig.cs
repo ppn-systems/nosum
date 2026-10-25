@@ -324,3 +324,31 @@ internal sealed record Measurement(string Group, ushort? Opcode, string Name, st
     /// <summary>Gets the key a budget names the row by: the packet name and the case.</summary>
     public string Key => this.Name + " / " + this.Variant;
 }
+
+/// <summary>Helpers shared by the scenarios.</summary>
+internal static class BudgetPlayerExtensions
+{
+    /// <summary>Sends a request, measured, and returns its reply.</summary>
+    /// <typeparam name="TResponse">The reply type.</typeparam>
+    /// <param name="rig">The rig.</param>
+    /// <param name="player">The sender.</param>
+    /// <param name="group">The area.</param>
+    /// <param name="opcode">The packet's opcode.</param>
+    /// <param name="name">The packet name.</param>
+    /// <param name="variant">The case.</param>
+    /// <param name="request">Makes the request (disposed here).</param>
+    /// <returns>The reply.</returns>
+    public static async Task<TResponse> ProbeAsync<TResponse>(this BudgetRig rig, BudgetPlayer player, string group, ushort opcode, string name, string variant, Func<IPacket> request)
+        where TResponse : class, IPacket, IPacketStaticOpcode
+    {
+        IPacket packet = request();
+        try
+        {
+            return await rig.MeasureAsync(group, opcode, name, variant, () => player.RequestAsync<TResponse>(packet));
+        }
+        finally
+        {
+            (packet as IDisposable)?.Dispose();
+        }
+    }
+}
