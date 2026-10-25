@@ -39,6 +39,7 @@ using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Domain.Nodes;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
@@ -60,7 +61,7 @@ namespace Nosum.IntegrationTests.Server;
 public sealed class NodeWireTests : IClassFixture<PostgresFixture>
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(60);
-    private static readonly DateTimeOffset s_start = new(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_start = new(2026, 11, 2, 3, 0, 0, TimeSpan.Zero); // after the calendar epoch, so game days pass
     private static readonly int s_axe = SlotOf(ItemCatalog.Axe);
     private static readonly int s_pickaxe = SlotOf(ItemCatalog.Pickaxe);
     private static readonly int s_scythe = SlotOf(ItemCatalog.Scythe);
@@ -267,8 +268,17 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
         (await player.UseAsync(s_can, x, y, host.Timeout)).Action.Should().Be(FarmAction.Watered);
         (await player.Tools.WaitAsync(t => t.WaterLeft == 39, host.Timeout)).WaterCapacity.Should().Be(40);
 
-        // The server clock moves on: the scythe harvests the mature crop (a mature crop is cut whatever is held).
-        clock.Advance(TimeSpan.FromMilliseconds(CropCatalog.All[0].TotalGrowthMs + 1000));
+        // Game days pass with the crop watered each day (docs/adr/ADR-021 D7): the scythe harvests the mature crop (a mature crop is cut whatever is held).
+        TimeSpan gameDay = TimeSpan.FromMilliseconds(GameCalendar.DefaultDayLengthMs);
+        for (int day = 1; day < CropCatalog.All[0].TotalGrowthDays; day++)
+        {
+            clock.Advance(gameDay);
+            await Task.Delay(330, host.Timeout);
+            (await player.UseAsync(s_can, x, y, host.Timeout)).Action.Should().Be(FarmAction.Watered);
+        }
+
+        clock.Advance(gameDay);
+        await Task.Delay(330, host.Timeout);
         UseItemResult harvested = await player.UseAsync(s_scythe, x, y, host.Timeout);
         harvested.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Harvested });
         (await player.Slots.WaitAsync(s => s.ItemId == ItemCatalog.Parsnip, host.Timeout)).Quantity.Should().Be(1);

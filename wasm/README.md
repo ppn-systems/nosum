@@ -96,7 +96,7 @@ on the last tab, `I M C T G N` open a tab, `H` / `?` and the gear open settings 
 state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
 
 Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `CalendarChannel` (Socket) reads the epoch and game day length once per sign-in and estimates the server clock; `CalendarViewModel` builds the shared `GameCalendar` and
-`Controls/Calendar/CalendarClock` shows season, day and time in the top-right region (the time moves in ten game-minute steps, a 5 s timer re-renders only when the text changes). The farm decorator does not draw crops that withered at a season change.
+`Controls/Calendar/CalendarClock` shows season, day and time in the top-right region (the time moves in ten game-minute steps, a 5 s timer re-renders only when the text changes). The farm decorator computes each crop stage and wet soil with `FarmRules` and that calendar (growth counts watered game days, [ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D7; nothing is drawn until the calendar has loaded) and does not draw crops that withered at a season change. `FarmChannel` drops tiles the server pushes as removed (bare soil that reverted). `DevChannel.AdvanceClock` asks a Development server to skip game days.
 The season icon is a flat colour swatch until the icon sheet has season art; the world is not tinted by the time of day yet.
 
 

@@ -91,6 +91,13 @@ the client never decides a contribution, a trade or a goal outcome.
 - Crops list the seasons they grow in (parsnip spring/fall/winter, radish summer/fall, cauliflower spring/summer). Planting out of season is refused, a crop withers at the season change (mature or not), and the seed shop only sells seeds that can be planted now.
 - Not built yet: community goals, seasonal prices or events, a time-of-day tint of the world, withered-crop art.
 
+## Built so far (crop growth in game days, [ADR-021](../adr/ADR-021-tools-resource-nodes-ground-items.md) D7)
+
+- A crop grows one day for every game day its soil was watered, counted when that day ends: parsnip 4 watered days, radish 6, cauliflower 12. Skipped days add nothing, watering twice on a day counts once, and wet soil dries at the day rollover. Growth is still computed from stored day numbers: no timer per tile, nothing runs while a farm is offline.
+- Tilled soil with no crop reverts to untilled with a 30 % chance for each dry game day (a deterministic hash of the instance, the tile and the day), so an abandoned plot goes back to grass.
+- The server has a day-ended seam (`IDayClock`) that other systems (resource-node regrowth, sprinklers) subscribe to; testers can skip game days with the Development-only `DevAdvanceClock` tool.
+- Not built yet: rain watering every crop, sprinklers, multi-harvest crops.
+
 ## Open questions
 
 - Whether a player may belong to more than one co-op (built: one).

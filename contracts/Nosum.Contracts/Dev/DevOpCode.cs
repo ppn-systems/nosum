@@ -11,6 +11,12 @@ public static class DevOpCode
     /// <summary>Gives the sender items and/or coins out of thin air (development only). Reply: <see cref="S2C.DevGrantResult"/>.</summary>
     public const ushort DevGrant = 0xF000;
 
+    /// <summary>Moves the server's game clock forward by whole game days (development only, docs/adr/ADR-021 D7). Reply: <see cref="S2C.DevAdvanceClockResult"/>.</summary>
+    public const ushort DevAdvanceClock = 0xF001;
+
     /// <summary>Reply to <see cref="DevGrant"/>.</summary>
     public const ushort DevGrantResult = 0xF040;
+
+    /// <summary>Reply to <see cref="DevAdvanceClock"/>.</summary>
+    public const ushort DevAdvanceClockResult = 0xF041;
 }
