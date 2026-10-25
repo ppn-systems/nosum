@@ -79,8 +79,8 @@ public sealed class AccountFormViewModelTests
     }
 
     [Theory]
-    [InlineData("vi", "Sai tên đăng nhập hoặc mật khẩu.")]
-    [InlineData("en", "Wrong username or password.")]
+    [InlineData("vi", "Sai email hoặc mật khẩu.")]
+    [InlineData("en", "Wrong email or password.")]
     public async Task SubmitAsync_ServerRefusesCredentials_ShowsTextInCurrentLanguage(string language, string expected)
     {
         using CultureScope scope = new(language);
