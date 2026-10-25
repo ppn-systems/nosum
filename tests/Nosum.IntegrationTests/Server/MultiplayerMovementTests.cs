@@ -11,10 +11,15 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nalix.SDK.Options;
 using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
+using Nosum.Abstractions.Accounts;
+using Nosum.Contracts.Account;
+using Nosum.Contracts.Account.C2S;
+using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
@@ -23,16 +28,21 @@ using Xunit;
 
 namespace Nosum.IntegrationTests.Server;
 
-/// <summary>Two real Nalix WebSocket clients against the real host on a free port.</summary>
+/// <summary>Two real Nalix WebSocket clients (registered accounts) against the real host and a real PostgreSQL database.</summary>
 [Collection(NalixHostSerial.Name)]
-public sealed class MultiplayerMovementTests
+public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
 {
+    private readonly PostgresFixture _database;
+
+    public MultiplayerMovementTests(PostgresFixture database) => _database = database;
+
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task MoveIntent_FromPlayerA_ReachesPlayerBInSnapshots()
     {
         ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -64,6 +74,7 @@ public sealed class MultiplayerMovementTests
     public async Task MoveIntent_Teleport_IsRefusedWithCorrection()
     {
         ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -89,6 +100,7 @@ public sealed class MultiplayerMovementTests
     public async Task Disconnect_PlayerA_TellsPlayerBThatAIsGone()
     {
         ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -113,9 +125,81 @@ public sealed class MultiplayerMovementTests
     }
 
     [Fact]
+    public async Task JoinMap_BeforeSignIn_IsNotAnswered()
+    {
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            using WebSocketSession session = new(
+                new TransportOptions { Address = "127.0.0.1", Port = port },
+                new WebSocketTransportOptions { Path = Program.WebSocketPath });
+            await session.ConnectAsync(ct: timeout.Token);
+            await session.HandshakeAsync(timeout.Token);
+            using JoinMap request = new() { MapId = Program.FarmMapId };
+
+            Func<Task> join = async () => _ = await session.RequestAsync<JoinMapResult>(request, RequestOptions.Default.WithTimeout(1500), ct: timeout.Token);
+
+            _ = await join.Should().ThrowAsync<Exception>();
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
+    public async Task JoinMap_AfterLeavingFromAWalkedPosition_ReturnsToThatPosition()
+    {
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            string sessionToken;
+            Guid accountId;
+            float targetX;
+            await using (TestClient first = await TestClient.ConnectAsync(port, timeout.Token))
+            {
+                sessionToken = first.SessionToken;
+                accountId = first.AccountId;
+                JoinMapResult join = await first.JoinAsync(timeout.Token);
+                targetX = join.SpawnX + 3;
+                await first.SendMoveAsync(1, targetX, join.SpawnY, timeout.Token);
+                // Snapshots include the receiver, so its own entry shows the server accepted the move.
+                await first.WaitForPlayerAsync(join.PlayerId, p => Math.Abs(p.X - targetX) < 0.01f, timeout.Token);
+            }
+
+            // The save happens when the server notices the disconnect.
+            IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+            PlayerStateRow? saved = null;
+            while (saved is null || Math.Abs(saved.Value.X - targetX) >= 0.01)
+            {
+                await Task.Delay(50, timeout.Token);
+                saved = await states.LoadAsync(accountId, timeout.Token);
+            }
+
+            await using TestClient second = await TestClient.ConnectAsync(port, sessionToken, timeout.Token);
+            JoinMapResult again = await second.JoinAsync(timeout.Token);
+
+            again.SpawnX.Should().BeApproximately(targetX, 0.01f);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
     public async Task JoinMap_UnknownMap_RepliesUnknownMap()
     {
         ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -179,7 +263,41 @@ public sealed class MultiplayerMovementTests
             TestClient client = new(session);
             await session.ConnectAsync(ct: ct);
             await session.HandshakeAsync(ct);
+            await client.SignInAsync(ct);
             return client;
+        }
+
+        public static async Task<TestClient> ConnectAsync(ushort port, string sessionToken, CancellationToken ct)
+        {
+            WebSocketSession session = new(
+                new TransportOptions { Address = "127.0.0.1", Port = port },
+                new WebSocketTransportOptions { Path = Program.WebSocketPath });
+            TestClient client = new(session);
+            await session.ConnectAsync(ct: ct);
+            await session.HandshakeAsync(ct);
+            await client.ResumeAsync(sessionToken, ct);
+            return client;
+        }
+
+        public Guid AccountId { get; private set; }
+
+        public string SessionToken { get; private set; } = string.Empty;
+
+        private async Task SignInAsync(CancellationToken ct)
+        {
+            using Register request = new() { Username = "m" + Guid.NewGuid().ToString("N")[..12], Password = "password-1" };
+            AccountResult result = await _session.RequestAsync<AccountResult>(request, ct: ct);
+            result.Status.Should().Be(AccountStatus.Ok);
+            this.AccountId = result.PlayerId;
+            this.SessionToken = result.SessionToken;
+        }
+
+        private async Task ResumeAsync(string sessionToken, CancellationToken ct)
+        {
+            using ResumeSession request = new() { SessionToken = sessionToken };
+            AccountResult result = await _session.RequestAsync<AccountResult>(request, ct: ct);
+            result.Status.Should().Be(AccountStatus.Ok);
+            this.AccountId = result.PlayerId;
         }
 
         public async Task<JoinMapResult> JoinAsync(CancellationToken ct, string mapId = Program.FarmMapId)

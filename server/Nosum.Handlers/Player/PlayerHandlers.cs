@@ -9,6 +9,7 @@ using Nalix.Codec.Extensions;
 using Nalix.Codec.Pooling;
 using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Player;
+using Nosum.Handlers.Session;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
@@ -25,15 +26,17 @@ public static partial class PlayerHandlers
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply was sent.</returns>
     [PacketOpcode(PlayerOpCode.JoinMap)]
-    [PacketPermission(PermissionLevel.NONE)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(4, 5, PolicyId = "player-join")]
     public static async ValueTask HandleJoinMapAsync(IPacketContext<JoinMap> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
         ushort sequence = context.Packet.SequenceId;
         string mapId = context.Packet.MapId;
+        PlayerIdentity player = context.Connection.GetPlayer();
 
-        JoinOutcome outcome = await s_players.JoinAsync(context.Connection, mapId, context.CancellationToken).ConfigureAwait(false);
+        JoinOutcome outcome = await s_players.JoinAsync(context.Connection, player.PlayerId, mapId, context.CancellationToken).ConfigureAwait(false);
 
         PacketScope<JoinMapResult> lease = PacketFactory<JoinMapResult>.Acquire();
         try
@@ -56,7 +59,8 @@ public static partial class PlayerHandlers
     /// <param name="context">The intent.</param>
     /// <returns>A task that completes when the intent was handled.</returns>
     [PacketOpcode(PlayerOpCode.MoveIntent)]
-    [PacketPermission(PermissionLevel.NONE)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(30, 1.0, PolicyId = "player-move")]
     public static async ValueTask HandleMoveIntentAsync(IPacketContext<MoveIntent> context)
     {
         ArgumentNullException.ThrowIfNull(context);

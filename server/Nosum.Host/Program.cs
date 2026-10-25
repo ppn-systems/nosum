@@ -9,13 +9,18 @@ using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nalix.Hosting.Protocols;
 using Nalix.Runtime.Groups;
+using Nalix.Runtime.Middleware.Standard;
+using Microsoft.EntityFrameworkCore;
+using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Gameplay.Farm;
+using Nosum.Handlers.Account;
 using Nosum.Handlers.Player;
 using Nosum.Infrastructure.Maps;
-using Nosum.Infrastructure.Player;
+using Nosum.Infrastructure.Players;
+using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
 
 namespace Nosum.Host;
@@ -46,6 +51,11 @@ internal static class Program
             shutdown.Cancel();
         };
 
+        // Persistence: connection string from the environment, migrations applied before any listener opens.
+        DbContextOptions<NosumDbContext> database = NosumDatabase.CreateOptions(ResolveConnectionString());
+        await NosumDatabase.MigrateAsync(database, shutdown.Token).ConfigureAwait(false);
+        HostServices.Register(database);
+
         NetworkApplication app = BuildApplication(WebSocketPort);
         await using (app.ConfigureAwait(false))
         {
@@ -56,7 +66,22 @@ internal static class Program
     }
 
     /// <summary>
-    /// Builds the Nalix application: services, system handlers, game handlers, then the WebSocket listener.
+    /// Reads <c>ConnectionStrings__Default</c>; outside Production a missing value selects the local
+    /// development database, in Production it stops the process.
+    /// </summary>
+    /// <returns>The PostgreSQL connection string.</returns>
+    private static string ResolveConnectionString()
+    {
+        string? environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        return NosumDatabase.ResolveConnectionString(
+            Environment.GetEnvironmentVariable(NosumDatabase.ConnectionStringVariable),
+            string.Equals(environment, "Production", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Builds the Nalix application: services, system handlers, game handlers, then the WebSocket
+    /// listener. Account services (<see cref="HostServices.Register"/>) must be registered first.
     /// </summary>
     /// <param name="webSocketPort">Port the WebSocket listener binds to.</param>
     /// <returns>The built, not yet activated, application.</returns>
@@ -70,6 +95,13 @@ internal static class Program
             .UseSystemControl()
             .UseSecureConnections()
             .MapHandlers(typeof(PlayerHandlers))
+            .MapHandlers(typeof(AccountHandlers))
+            .ConfigureDispatchOptions(o =>
+            {
+                // Fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
+                _ = o.WithMiddleware(new PermissionMiddleware());
+                _ = o.WithMiddleware(new RateLimitMiddleware());
+            })
             .MapWebSocket<DefaultProtocol>()
                 .OnPort(webSocketPort)
                 .WithPath(WebSocketPath)
@@ -86,7 +118,9 @@ internal static class Program
 
         MapPresence presence = new(groups);
         TmxMapCatalog maps = new([new TmxMapSource(FarmMapId, Path.Combine(AppContext.BaseDirectory, "maps", "Farm.tmx"), FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.BuildWalkGrid)]);
-        PlayerService players = new(presence, maps, TimeProvider.System, SnapshotInterval);
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
+        PlayerService players = new(presence, maps, states, TimeProvider.System, SnapshotInterval);
 
         InstanceManager.Instance.Register<IMapPresence>(presence);
         InstanceManager.Instance.Register<IMapCatalog>(maps);

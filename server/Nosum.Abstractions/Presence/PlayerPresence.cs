@@ -17,15 +17,17 @@ public sealed class PlayerPresence
 
     /// <summary>Initializes a presence record.</summary>
     /// <param name="playerId">Id unique among connected players.</param>
+    /// <param name="accountId">The signed-in account behind the connection.</param>
     /// <param name="mapId">Map the player stands on.</param>
     /// <param name="connection">The player's connection.</param>
     /// <param name="motion">Starting motion state.</param>
-    public PlayerPresence(uint playerId, string mapId, IConnection connection, MotionState motion)
+    public PlayerPresence(uint playerId, Guid accountId, string mapId, IConnection connection, MotionState motion)
     {
         ArgumentException.ThrowIfNullOrEmpty(mapId);
         ArgumentNullException.ThrowIfNull(connection);
 
         this.PlayerId = playerId;
+        this.AccountId = accountId;
         this.MapId = mapId;
         this.Connection = connection;
         _motion = motion;
@@ -33,6 +35,9 @@ public sealed class PlayerPresence
 
     /// <summary>Gets the player id, unique among connected players.</summary>
     public uint PlayerId { get; }
+
+    /// <summary>Gets the account id of the signed-in player; the id persisted data hangs off.</summary>
+    public Guid AccountId { get; }
 
     /// <summary>Gets the map the player stands on.</summary>
     public string MapId { get; }

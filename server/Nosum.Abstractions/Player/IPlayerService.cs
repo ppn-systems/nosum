@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
@@ -15,10 +16,11 @@ public interface IPlayerService
 {
     /// <summary>Puts a connection on a map, or refuses.</summary>
     /// <param name="connection">The player's connection.</param>
+    /// <param name="accountId">The signed-in account behind the connection (from the server's own sign-in record, never from a packet).</param>
     /// <param name="mapId">Map key named by the client.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The outcome code, the player id and the spawn.</returns>
-    ValueTask<JoinOutcome> JoinAsync(IConnection connection, string mapId, CancellationToken cancellationToken = default);
+    ValueTask<JoinOutcome> JoinAsync(IConnection connection, Guid accountId, string mapId, CancellationToken cancellationToken = default);
 
     /// <summary>Checks a claimed position and applies it when legal.</summary>
     /// <param name="connection">The player's connection.</param>

@@ -16,4 +16,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-010](ADR-010-internationalization.md) | Internationalization: vi + en, .resx, codes on the wire, i18n{} envelope | Accepted |
 | [ADR-007](ADR-007-placeholder-content-16px.md) | Development uses unpacked Stardew Valley content on a 16 px grid (placeholder) | Accepted |
 | [ADR-006](ADR-006-layered-character-customization.md) | Layered (paper-doll) character customization | Proposed |
+| [ADR-009](ADR-009-postgresql-persistence-and-accounts.md) | PostgreSQL persistence and player accounts | Proposed |
 | [ADR-005](ADR-005-three-quarter-top-down-view.md) | 3/4 top-down view (layers, y-sorting, feet anchors) | Accepted |

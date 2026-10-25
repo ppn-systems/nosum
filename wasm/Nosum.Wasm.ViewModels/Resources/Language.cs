@@ -2,7 +2,7 @@
 
 namespace Nosum.Wasm.ViewModels.Resources;
 
-/// <summary>Marker for <c>Language.resx</c> (Vietnamese, default) and <c>Language.en.resx</c>: <c>IStringLocalizer&lt;Language&gt;</c> reads them.</summary>
+/// <summary>Marker type for <c>IStringLocalizer&lt;Language&gt;</c>: the strings in <c>Language.resx</c> (Vietnamese, neutral) and <c>Language.en.resx</c>.</summary>
 public sealed class Language
 {
 }

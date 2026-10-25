@@ -40,7 +40,9 @@ NetworkApplication.CreateBuilder()
 Usings: `Nalix.Hosting` (`NetworkApplication`) · `Nalix.Hosting.Protocols` (`DefaultProtocol`)
 · `Nalix.Runtime.Middleware.Standard` (standard middleware).
 
-Current state: time sync, system control and the WebSocket listener only. Adding
+Current state: time sync, system control, account handlers (with `PermissionMiddleware` and
+`RateLimitMiddleware`) and the WebSocket listener. Services handlers `[Inject]` are registered in
+`HostServices.Register` before `BuildApplication`. Adding
 `UseSecureConnections()` brings a certificate store; decide where its key lives before
 enabling it (never in the repository).
 

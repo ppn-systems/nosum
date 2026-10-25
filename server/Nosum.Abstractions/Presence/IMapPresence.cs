@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Abstractions.Networking.Packets;
+using Nosum.Gameplay.Movement;
 
 namespace Nosum.Abstractions.Presence;
 
@@ -25,13 +26,12 @@ public interface IMapPresence
 
     /// <summary>Puts a connection on a map, first removing it from the map it was on.</summary>
     /// <param name="connection">The player's connection.</param>
+    /// <param name="accountId">The signed-in account behind the connection.</param>
     /// <param name="mapId">Map key.</param>
-    /// <param name="spawnX">Starting feet x, world pixels.</param>
-    /// <param name="spawnY">Starting feet y, world pixels.</param>
-    /// <param name="nowSeconds">Current time in seconds on the clock used for movement checks.</param>
+    /// <param name="motion">Starting position, facing and movement budget.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The new presence record.</returns>
-    ValueTask<PlayerPresence> JoinAsync(IConnection connection, string mapId, double spawnX, double spawnY, double nowSeconds, CancellationToken cancellationToken = default);
+    ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, string mapId, MotionState motion, CancellationToken cancellationToken = default);
 
     /// <summary>Removes a connection from its map; does nothing when it is on none.</summary>
     /// <param name="connection">The player's connection.</param>

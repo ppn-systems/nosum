@@ -9,7 +9,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Player.S2C;
 
-namespace Nosum.Infrastructure.Player;
+namespace Nosum.Infrastructure.Players;
 
 public sealed partial class PlayerService
 {

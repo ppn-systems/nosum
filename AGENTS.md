@@ -68,6 +68,7 @@ Owner: `docs-style`.
 | `gameplay/Nosum.Gameplay`, server-side validation of player actions | `gameplay-rules` |
 | Packet class or opcode in `contracts/` | `nalix-packets` |
 | Server packet handler | `nalix-handlers` |
+| Entity, `DbContext`, migration, accounts, passwords/tokens | `data-model-ef-core` |
 | `server/Nosum.Host` entry point, listeners | `nalix-server-hosting` |
 | `wasm/Nosum.Wasm.Socket`, client transport | `nalix-client-sdk` |
 | Anything under `assets/`, sprite sheets, `.tmx` maps (placeholder content, ADR-007) | `assets-pipeline` |

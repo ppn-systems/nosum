@@ -12,11 +12,12 @@ public struct MotionState
     /// <param name="x">Feet x, world pixels.</param>
     /// <param name="y">Feet y, world pixels.</param>
     /// <param name="nowSeconds">Current time in seconds on any monotonic clock; later calls use the same clock.</param>
-    public MotionState(double x, double y, double nowSeconds)
+    /// <param name="facing">Facing, 0 down, 1 right, 2 up, 3 left.</param>
+    public MotionState(double x, double y, double nowSeconds, int facing = 0)
     {
         this.X = x;
         this.Y = y;
-        this.Facing = 0;
+        this.Facing = facing;
         this.Moving = false;
         this.Budget = MoveValidator.MaxBudgetSeconds * Walker.Speed;
         this.LastSeconds = nowSeconds;

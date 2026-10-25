@@ -3,7 +3,7 @@
 | Project | Covers | Runs |
 | :--- | :--- | :--- |
 | `Nosum.UnitTests` | Engine, game rules, contracts — pure .NET, no I/O | in-process |
-| `Nosum.IntegrationTests` | Server host over a real WebSocket on a free local port | in-process server |
+| `Nosum.IntegrationTests` | Server host over a real WebSocket on a free local port; account services on a real PostgreSQL | in-process server + PostgreSQL (`NOSUM_TEST_POSTGRES`) |
 
 xUnit + FluentAssertions. Folders mirror the area under test (`Engine/`, `Gameplay/`, `Server/`, `Tools/`).
 Rules: [`testing-style`](../.claude/skills/testing-style/SKILL.md).
