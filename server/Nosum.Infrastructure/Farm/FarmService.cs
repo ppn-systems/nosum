@@ -264,10 +264,13 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
                 return Refused(FarmStatus.Blocked);
             }
 
-            Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs, player.Instance.IsOutdoors, _placed?.IsSprinklerWatered(player.Instance, tileX, tileY) == true);
+            // Ground the co-op has not unlocked cannot be tilled yet, though it is walkable (docs/adr/ADR-038 D4); soil tilled before stays workable.
+            bool ground = tillable.IsTillable(tileX, tileY);
+            bool locked = ground && member is not null && !CoopUpgrades.IsLandUnlocked(member.LandLevel, tileX, tileY);
+            Plan plan = PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.IsSprinklerWatered(player.Instance, tileX, tileY) == true);
             if (plan.Verdict != FarmVerdict.Ok)
             {
-                return Refused(ToStatus(plan.Verdict));
+                return Refused(locked && plan.Verdict == FarmVerdict.NotTillable ? FarmStatus.LockedLand : ToStatus(plan.Verdict));
             }
 
             if (plan.Action == FarmAction.Watered && _tools.WaterLeft(playerId) <= 0)

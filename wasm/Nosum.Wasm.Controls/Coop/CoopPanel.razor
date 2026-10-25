@@ -1,4 +1,5 @@
 @using Nosum.Wasm.Controls.Menu
+@using Nosum.Contracts.Coop
 @using Nosum.Wasm.ViewModels.Coop
 @inherits ObservingComponent<CoopViewModel>
 
@@ -76,6 +77,37 @@
                 </GameRow>
                 <p class="coop-empty">@Vm.Text("Coop_DepositHint")</p>
                 <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.PickDeposit(i))" />
+            </GameSection>
+            <GameSection Title="@Vm.Text("Coop_Upgrades_Heading")">
+                @foreach (UpgradeDisplay upgrade in Vm.Upgrades)
+                {
+                    CoopUpgradeTrack track = upgrade.Track;
+                    <div class="upgrade-row">
+                        <span class="upgrade-title">@upgrade.Title</span>
+                        <span class="upgrade-level">@upgrade.LevelText</span>
+                        <p class="coop-empty">@upgrade.Summary</p>
+                        @if (upgrade.IsMax)
+                        {
+                            <p class="coop-empty">@Vm.Text("Coop_Upgrade_Max")</p>
+                        }
+                        else
+                        {
+                            <p class="coop-empty">@Vm.Text("Coop_Upgrade_Next")</p>
+                            @foreach (UpgradeCostDisplay cost in upgrade.Costs)
+                            {
+                                <span class="upgrade-cost @(cost.Enough ? "enough" : "short")">@Vm.Text("Coop_Upgrade_Cost", cost.ItemName, cost.Needed, cost.Have)</span>
+                            }
+                            @if (Vm.IsFounder)
+                            {
+                                <GameButton Text="@Vm.Text("Coop_Upgrade_Buy")" Disabled="@(!upgrade.CanBuy)" OnClick="@(() => Vm.Upgrade(track))" />
+                            }
+                        }
+                    </div>
+                }
+                @if (!Vm.IsFounder)
+                {
+                    <p class="coop-empty">@Vm.Text("Coop_Upgrade_FounderOnly")</p>
+                }
             </GameSection>
             <GameSection Title="@Vm.Text("Coop_Log_Heading")">
                 @foreach (string line in Vm.Log)

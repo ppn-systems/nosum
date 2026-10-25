@@ -204,6 +204,7 @@ internal static class Program
         CoopChannel coop = host.Services.GetRequiredService<CoopChannel>();
         LookChannel looks = host.Services.GetRequiredService<LookChannel>();
         GameLoop.UseFarming(farm, inventory, market);
+        GameLoop.UseCoop(coop);
         GameLoop.UseProgress(host.Services.GetRequiredService<ProgressChannel>());
         GameLoop.UseCalendar(host.Services.GetRequiredService<CalendarChannel>());
         GameLoop.UseLooks(looks, host.Services.GetRequiredService<NicknameFormatter>());

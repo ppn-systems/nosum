@@ -45,7 +45,7 @@ Many maps ([ADR-012](../docs/adr/ADR-012-maps-and-warps.md)): `Game/MapLoader` l
 it prefetches the maps the current one leads to. The server decides map changes: on `MapChanged` the scene fades out,
 freezes the farmer (no reports), waits without blocking until the map is loaded, swaps and fades in. Map-specific
 drawing plugs in as an `IMapDecorator` made by an `IMapDecoratorProvider` registered where `GameLoop` builds the loader
-(`PropDecoratorProvider` draws a map's buildings from its `MapSpec`; `FarmDecoratorProvider` adds soil, crops and the target cursor on `MapSpec.Farmable` maps). The maps
+(`PropDecoratorProvider` draws a map's buildings from its `MapSpec`; `FarmDecoratorProvider` adds soil, crops and the target cursor on `MapSpec.Farmable` maps). `LockedLandDecoratorProvider` shades the part of the co-op land the co-op has not unlocked ([ADR-038](../docs/adr/ADR-038-coop-upgrades.md)) from `CoopUpgrades` and the level in the co-op snapshot. The maps
 and tilesheets the client can load are linked from `assets/Maps/` in `Nosum.Wasm.csproj`; building sheets from
 `assets/Buildings/`. Without a server the farm still plays offline (no map changes).
 
