@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Nosum.IntegrationTests.Server;
 
+[Collection(NalixHostSerial.Name)]
 public sealed class HostWebSocketTests
 {
     [Fact]

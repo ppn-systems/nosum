@@ -2,4 +2,8 @@
      cannot follow; keep this app's own assembly whole. BCL and packages are still trimmed. -->
 <linker>
   <assembly fullname="Nosum.Wasm" preserve="all" />
+  <!-- Packets are found by opcode through generated registrations; keep them whole. -->
+  <assembly fullname="Nosum.Contracts" preserve="all" />
+  <assembly fullname="Nosum.Wasm.Socket" preserve="all" />
+  <assembly fullname="Nosum.Wasm.ViewModels" preserve="all" />
 </linker>

@@ -2,14 +2,19 @@
 
 using System;
 using Nosum.Core;
+using Nosum.Core.Interpolation;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Movement;
 using Nosum.Rendering;
+using Nosum.Wasm.Socket.Player;
 
 namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// One playable map with one local farmer: fixed-step movement, a camera that follows, and the
-/// layer order of docs/adr/ADR-005 (ground, depth-sorted world, front).
+/// layer order of docs/adr/ADR-005 (ground, depth-sorted world, front). With a
+/// <see cref="PlayerChannel"/> the local farmer is predicted here and checked by the server, and the
+/// other farmers on the map are interpolated and depth-sorted with it (docs/adr/ADR-008).
 /// </summary>
 internal sealed class FarmScene
 {
@@ -33,8 +38,11 @@ internal sealed class FarmScene
     private readonly TileLayer[] _ground;
     private readonly TileLayer[] _front;
     private FixedTimestep _clock = new(StepSeconds, 0.25);
+    private readonly PlayerChannel? _channel;
+    private readonly RemotePlayers? _remote;
     private Walker _farmer;
     private Camera2D _camera;
+    private uint _ignoreCorrectionsBefore;
     private double _walkTime;
     private double _clockSeconds;
 
@@ -46,15 +54,17 @@ internal sealed class FarmScene
     /// <param name="props">Buildings and props; their footprints block walking.</param>
     /// <param name="startTileX">Preferred start tile x.</param>
     /// <param name="startTileY">Preferred start tile y.</param>
-    public FarmScene(TileMap map, int[] tileSetTextures, FarmerTextures farmerTextures, FarmerLook look, PropLayer props, int startTileX, int startTileY)
+    /// <param name="channel">Server connection for multiplayer, or <see langword="null"/> to play offline.</param>
+    public FarmScene(TileMap map, int[] tileSetTextures, FarmerTextures farmerTextures, FarmerLook look, PropLayer props, int startTileX, int startTileY, PlayerChannel? channel = null)
     {
+        _channel = channel;
+        _remote = channel is null ? null : new RemotePlayers(channel);
         _map = map;
         _tileSetTextures = tileSetTextures;
         _farmerTextures = farmerTextures;
         this.Look = look;
         _props = props;
-        _grid = WalkGrid.FromMap(map);
-        _grid.BlockFootprints(props.Placements);
+        _grid = FarmProps.BuildWalkGrid(map);
         _ground = Layers(map, s_groundLayers);
         _front = Layers(map, s_frontLayers);
 
@@ -75,6 +85,8 @@ internal sealed class FarmScene
     /// <param name="backend">Where the frame is drawn.</param>
     public void Frame(double frameSeconds, InputState input, int canvasWidth, int canvasHeight, IRenderBackend backend)
     {
+        this.ApplyServerAnswers();
+
         _clockSeconds += frameSeconds;
         long timeMs = (long)(_clockSeconds * 1000);
         int steps = _clock.Advance(frameSeconds);
@@ -84,6 +96,7 @@ internal sealed class FarmScene
         }
 
         _walkTime = _farmer.IsMoving ? _walkTime + (steps * StepSeconds) : 0;
+        _channel?.Report((float)_farmer.X, (float)_farmer.Y, (byte)_farmer.Facing, _farmer.IsMoving);
 
         int scale = Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * _map.TileWidth)), 2, 6);
         _camera.Follow(
@@ -104,6 +117,7 @@ internal sealed class FarmScene
         _world.Begin();
         _props.AddToBatch(_world);
         FarmerSprite.Draw(_world, _farmerTextures, this.Look, _farmer.Facing, walkFrame, (int)_farmer.X, (int)_farmer.Y);
+        this.AddRemoteFarmers();
         _world.Flush(_commands, _camera);
         _props.DrawFront(_commands, _camera);
 
@@ -113,6 +127,55 @@ internal sealed class FarmScene
         }
 
         backend.Submit(_commands.Encode());
+    }
+
+    // Moves the local farmer to the spawn the server chose, or back to where the server keeps it
+    // after refusing a move.
+    private void ApplyServerAnswers()
+    {
+        if (_channel is null)
+        {
+            return;
+        }
+
+        if (_channel.TryTakeSpawn(out float spawnX, out float spawnY))
+        {
+            _farmer = new Walker(spawnX, spawnY);
+            _remote?.Reset();
+            _ignoreCorrectionsBefore = _channel.LastSentSequence + 1;
+        }
+
+        // Intents already in flight when we snap back are refused too; ignore their corrections.
+        if (_channel.TryTakeCorrection(out MoveCorrectionInfo correction) && correction.Sequence >= _ignoreCorrectionsBefore)
+        {
+            _farmer = new Walker(correction.X, correction.Y);
+            _ignoreCorrectionsBefore = _channel.LastSentSequence + 1;
+        }
+    }
+
+    // Adds the other farmers to the same batch as the local one, buildings and props, so one
+    // depth sort orders them all (docs/adr/ADR-005 D4). Allocation-free: poses are structs.
+    private void AddRemoteFarmers()
+    {
+        if (_remote is null)
+        {
+            return;
+        }
+
+        double now = RemotePlayers.LocalNow();
+        double animation = _remote.AnimationTime(now);
+        for (int i = 0; i < _remote.Count; i++)
+        {
+            uint id = _remote.IdAt(i);
+            if (!_remote.TryGetPose(id, now, out EntityPose pose))
+            {
+                continue;
+            }
+
+            bool moving = (pose.State & 4) != 0 && !pose.Held;
+            int walk = moving ? 1 + (int)(animation / WalkFrameSeconds) : 0;
+            FarmerSprite.Draw(_world, _farmerTextures, RemoteLook.For(id), (Facing)(pose.State & 3), walk, (int)pose.X, (int)pose.Y, (int)id);
+        }
     }
 
     private static TileLayer[] Layers(TileMap map, string[] names)

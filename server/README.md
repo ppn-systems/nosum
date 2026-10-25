@@ -18,6 +18,17 @@ through `IRepository<T>` / `IUnitOfWork` (`Nosum.Abstractions/Data`) inside a se
 handlers are in `Nosum.Handlers/Account`; `connection.GetPlayer()` (`Nosum.Handlers/Session`)
 returns the signed-in player of a connection.
 
+Players on maps (movement sync, [ADR-008](../docs/adr/ADR-008-snapshot-movement-sync.md)):
+`IMapPresence` (`Nosum.Abstractions/Presence`, implemented by `MapPresence` in Infrastructure) is the
+reusable "who is on which map" service: one Nalix connection group per map (`MapGroup.Name`),
+cleanup on disconnect, `MulticastAsync(mapId, packet)` for any feature. `IPlayerService`
+(`PlayerService`) places players (saved position from `IPlayerStateService`, else the farm spawn),
+validates `MoveIntent`s with `MoveValidator` from `Nosum.Gameplay` and saves the position when the
+player leaves. While anyone is on a map it pushes a `MapSnapshot` to that map every 100 ms; the loop
+stops by itself when the last player leaves. Handlers: `Nosum.Handlers/Player` (signed-in players
+only). Maps come from `IMapCatalog` (`TmxMapCatalog`: `Farm.tmx` copied next to the host from
+`assets/Maps/`, walk grid from `FarmProps.BuildWalkGrid` so server and client collide identically).
+
 Skills: [`data-model-ef-core`](../.claude/skills/data-model-ef-core/SKILL.md),
 [`nalix-server-hosting`](../.claude/skills/nalix-server-hosting/SKILL.md),
 [`nalix-handlers`](../.claude/skills/nalix-handlers/SKILL.md),
@@ -40,5 +51,8 @@ dotnet run --project server/Nosum.Host
 Integration tests need a PostgreSQL server that may create databases: `NOSUM_TEST_POSTGRES`
 (admin connection string), default the local development server.
 
-Current state: time sync, system control, account handlers and the WebSocket listener. No secure
-handshake yet (run behind TLS, see ADR-009), and no farm handlers.
+Current state: time sync, system control, `UseGroups()`, `UseSecureConnections()` (X25519 handshake;
+the server key is generated on first start in Nalix's data directory, outside the repository),
+account and player handlers behind `PermissionMiddleware` / `RateLimitMiddleware`, and the WebSocket
+listener. Clients that skip the handshake can still send plaintext frames (passwords included): do
+not expose the host without TLS until encrypted frames are required. No farm handlers yet.

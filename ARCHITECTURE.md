@@ -58,12 +58,12 @@ Nosum.Contracts         → Nalix.Abstractions, Nalix.Codec
 Nosum.Gameplay          → Core
 Nosum.Domain            → Gameplay
 Nosum.Abstractions      → Domain, Contracts
-Nosum.Infrastructure    → Abstractions
+Nosum.Infrastructure    → Abstractions, Nalix.Runtime          (groups, sending to connections)
 Nosum.Handlers          → Abstractions, Nalix.Runtime          (never Infrastructure)
 Nosum.Host              → Handlers, Infrastructure, Nalix.Hosting
 Nosum.Wasm.Socket       → Contracts, Nalix.SDK
 Nosum.Wasm.ViewModels   → Wasm.Socket
-Nosum.Wasm              → Wasm.ViewModels, Rendering.Web, Gameplay
+Nosum.Wasm              → Wasm.ViewModels, Wasm.Socket, Contracts, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
 Nosum.AtlasPacker       → SkiaSharp                            (tools/ only; nothing references it)
 ```
 
@@ -103,6 +103,16 @@ Nosum.Host listener → Nalix dispatch → Nosum.Handlers → Abstractions → I
 
 The server is authoritative: the client sends intents ("plant seed X in plot Y"); the server
 validates them with `Nosum.Gameplay`, persists the result and replies or pushes the new state.
+
+Multiplayer movement follows that rule ([ADR-008](docs/adr/ADR-008-snapshot-movement-sync.md)):
+
+```text
+client frame loop ──Report(x,y,facing,moving)──► PlayerChannel timer ──MoveIntent @10 Hz──► PlayerHandlers
+                                                                                                │ IPlayerService → MoveValidator (Nosum.Gameplay)
+client SnapshotBuffer ◄── RemotePlayers ◄── MapSnapshot @10 Hz ◄── PlayerService loop ◄── IMapPresence (one Nalix group per map)
+```
+
+Socket callbacks write into the buffer, the frame reads from it: no await and no allocation in the frame.
 
 ## Organize by game domain
 

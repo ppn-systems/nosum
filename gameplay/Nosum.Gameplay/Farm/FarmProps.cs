@@ -1,14 +1,16 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using Nosum.Core;
+using Nosum.Gameplay.Movement;
 
-namespace Nosum.Wasm.Game;
+namespace Nosum.Gameplay.Farm;
 
 /// <summary>
 /// The farm's buildings as data: sheet rectangles, footprints and positions in the placeholder
-/// <c>Farm.tmx</c> (docs/adr/ADR-007). Names are keys, not display text.
+/// <c>Farm.tmx</c> (docs/adr/ADR-007). Names are keys, not display text. Lives in gameplay so the
+/// client (prediction) and the server (move validation) build the identical <see cref="WalkGrid"/>.
 /// </summary>
-internal static class FarmProps
+public static class FarmProps
 {
     /// <summary>Sheet name of <c>Buildings/houses.png</c>.</summary>
     public const string HousesSheet = "houses";
@@ -38,4 +40,17 @@ internal static class FarmProps
         new(Greenhouse, 25, 10),
         new(ShippingBin, 71, 14),
     ];
+
+    /// <summary>
+    /// Builds the farm's walk grid: the map's own blocking rules plus the footprints of
+    /// <see cref="Placements"/>. Client and server must both use this.
+    /// </summary>
+    /// <param name="map">The parsed <c>Farm.tmx</c>.</param>
+    /// <returns>The grid.</returns>
+    public static WalkGrid BuildWalkGrid(TileMap map)
+    {
+        WalkGrid grid = WalkGrid.FromMap(map);
+        grid.BlockFootprints(Placements);
+        return grid;
+    }
 }

@@ -26,6 +26,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nosum.Wasm.ViewModels\Nosum.Wasm.ViewModels.csproj" />
+    <ProjectReference Include="..\Nosum.Wasm.Socket\Nosum.Wasm.Socket.csproj" />
+    <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
     <ProjectReference Include="..\..\engine\Nosum.Rendering.Web\Nosum.Rendering.Web.csproj" />
     <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
     <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
