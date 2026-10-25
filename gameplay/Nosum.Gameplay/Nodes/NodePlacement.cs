@@ -28,6 +28,7 @@ public static class NodePlacements
     private const int StoneChance = 350;
     private const int TwigChance = 400;
     private const int GrassChance = 150;
+    private const int LargeStumpChance = 1000;
 
     /// <summary>Chooses the nodes a new instance starts with.</summary>
     /// <param name="sites">The map's markers.</param>
@@ -88,7 +89,7 @@ public static class NodePlacements
         while (attempts-- > 0 && placements.Count < NodeLimits.RegrowPerDay && field.Count + placements.Count < NodeLimits.MaxPerInstance)
         {
             NodeSite site = sites[random.Next(sites.Count)];
-            bool regrows = isPrivate ? site.Kind == NodeKind.Weed : site.Kind is NodeKind.Weed or NodeKind.Stone or NodeKind.Twig;
+            bool regrows = isPrivate ? site.Kind == NodeKind.Weed : site.Kind is NodeKind.Weed or NodeKind.Stone or NodeKind.Twig or NodeKind.LargeStump;
             if (!regrows
                 || field.HasNodeAt(site.X, site.Y)
                 || grid.IsBlocked(site.X, site.Y)
@@ -150,7 +151,7 @@ public static class NodePlacements
                 continue;
             }
 
-            if (ForageCatalog.Roll(season, ref random) is not { } variant)
+            if (ForageCatalog.Roll(season, site.Variant, ref random) is not { } variant)
             {
                 break;
             }
@@ -168,6 +169,7 @@ public static class NodePlacements
         NodeKind.Stone => StoneChance,
         NodeKind.Twig => TwigChance,
         NodeKind.Grass => GrassChance,
+        NodeKind.LargeStump => LargeStumpChance,
         _ => 0,
     };
 

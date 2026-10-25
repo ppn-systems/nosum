@@ -10,12 +10,24 @@ namespace Nosum.Gameplay.Nodes;
 /// <summary>One thing that can be foraged: the item a pick-up gives and the seasons it turns up in.</summary>
 /// <param name="ItemId">The item picked up, from <see cref="ItemCatalog"/>.</param>
 /// <param name="Seasons">The seasons it appears in.</param>
-public readonly record struct ForageEntry(int ItemId, SeasonSet Seasons);
+/// <param name="Pool">Which spots it turns up on: <see cref="ForagePools.Woodland"/> for the glyphs of the <c>Paths</c> layer, <see cref="ForagePools.Shore"/> for the beach's sand (docs/adr/ADR-037 D3).</param>
+public readonly record struct ForageEntry(int ItemId, SeasonSet Seasons, byte Pool = ForagePools.Woodland);
+
+/// <summary>The forage pools. A forage spot (<see cref="NodeSite"/> of kind <see cref="NodeKind.Forage"/>) carries its pool in <see cref="NodeSite.Variant"/>.</summary>
+public static class ForagePools
+{
+    /// <summary>Plants of fields and woods: every spot the <c>Paths</c> layer marks.</summary>
+    public const byte Woodland = 0;
+
+    /// <summary>Shells and coral that wash up on the beach.</summary>
+    public const byte Shore = 1;
+}
 
 /// <summary>
 /// The forage of the world (docs/adr/ADR-025 D4), as data. A forage node (<see cref="NodeKind.Forage"/>) stores the index of its entry here in
 /// <see cref="ResourceNode.Variant"/>, so the list is append-only like an id. Spring: spring onion, leek, dandelion, daffodil. Summer: grape,
-/// spice berry, sweet pea. Fall: blackberry, hazelnut, wild plum, mushroom. Winter: winter root, crystal fruit, snow yam.
+/// spice berry, sweet pea. Fall: blackberry, hazelnut, wild plum, mushroom. Winter: winter root, crystal fruit, snow yam. The beach's shore pool (docs/adr/ADR-037 D3)
+/// is appended after them: clam, cockle, coral, sea urchin, nautilus shell, rainbow shell.
 /// </summary>
 public static class ForageCatalog
 {
@@ -35,6 +47,12 @@ public static class ForageCatalog
         new(ItemCatalog.WinterRoot, SeasonSet.Winter),
         new(ItemCatalog.CrystalFruit, SeasonSet.Winter),
         new(ItemCatalog.SnowYam, SeasonSet.Winter),
+        new(ItemCatalog.Clam, SeasonSet.All, ForagePools.Shore),
+        new(ItemCatalog.Cockle, SeasonSet.All, ForagePools.Shore),
+        new(ItemCatalog.Coral, SeasonSet.Spring | SeasonSet.Summer | SeasonSet.Fall, ForagePools.Shore),
+        new(ItemCatalog.SeaUrchin, SeasonSet.Summer | SeasonSet.Fall, ForagePools.Shore),
+        new(ItemCatalog.NautilusShell, SeasonSet.Fall | SeasonSet.Winter, ForagePools.Shore),
+        new(ItemCatalog.RainbowShell, SeasonSet.Summer, ForagePools.Shore),
     ];
 
     /// <summary>Gets every forage entry; the position in the list is the node's variant.</summary>
@@ -70,14 +88,15 @@ public static class ForageCatalog
 
     /// <summary>Picks a random variant that turns up in a season.</summary>
     /// <param name="season">The season.</param>
+    /// <param name="pool">The pool of the spot, <see cref="NodeSite.Variant"/> of a forage site.</param>
     /// <param name="random">The deterministic roller.</param>
-    /// <returns>A variant, or <see langword="null"/> when nothing grows in the season.</returns>
-    public static byte? Roll(Season season, ref NodeRandom random)
+    /// <returns>A variant, or <see langword="null"/> when nothing of that pool turns up in the season.</returns>
+    public static byte? Roll(Season season, byte pool, ref NodeRandom random)
     {
         int count = 0;
         for (int i = 0; i < s_all.Length; i++)
         {
-            count += s_all[i].Seasons.Contains(season) ? 1 : 0;
+            count += s_all[i].Pool == pool && s_all[i].Seasons.Contains(season) ? 1 : 0;
         }
 
         if (count == 0)
@@ -88,7 +107,7 @@ public static class ForageCatalog
         int pick = random.Next(count);
         for (int i = 0; i < s_all.Length; i++)
         {
-            if (s_all[i].Seasons.Contains(season) && pick-- == 0)
+            if (s_all[i].Pool == pool && s_all[i].Seasons.Contains(season) && pick-- == 0)
             {
                 return (byte)i;
             }

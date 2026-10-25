@@ -41,7 +41,7 @@ Rewards that unlock content need content: the Beach map (M3) is the first unlock
 - **Expiry.** `CloseEndedSeasonsAsync` expires every open goal of an earlier season number; the day clock calls it on each day end, the host once at start, and every
   read and delivery before it looks. The consolation is half the bin price per delivered item.
 - **Unlocks.** `ICommunityUnlocks.IsUnlocked(key)` is an in-memory set loaded from `community_unlocks`; the first beneficiary (the Beach bridge, key `beach_bridge`) does not
-  query it yet because the Beach map does not exist.
+  query it yet because the Beach map does not exist. (ADR-037: the Beach exists now and the bridge tiles of its east bank are gated by this unlock.)
 - **The board counter** is `ShopPoint(1000, 42, 57)` in Town: the tile in front of the right-hand sign of the billboard on Pierre's store, next to the seed shop's doormat. A
   counter id from 1000 is not a shop. Because two counters are in reach there, `ShopRules.TryFindShop` returns the nearest one (tile 42 is the board's, 43 the seed shop's).
 - **Market.** A listing is refused with `MarketStatus.TooManyOfItem` when the seller's active listings of that item id plus the new one exceed 500 units (checked inside the

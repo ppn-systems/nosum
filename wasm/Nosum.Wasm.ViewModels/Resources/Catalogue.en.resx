@@ -228,6 +228,18 @@
   <data name="Item_crystal_fruit_Description" xml:space="preserve"><value>Foraged in the winter.</value></data>
   <data name="Item_snow_yam_Name" xml:space="preserve"><value>Snow yam</value></data>
   <data name="Item_snow_yam_Description" xml:space="preserve"><value>Foraged in the winter.</value></data>
+  <data name="Item_clam_Name" xml:space="preserve"><value>Clam</value></data>
+  <data name="Item_clam_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_cockle_Name" xml:space="preserve"><value>Cockle</value></data>
+  <data name="Item_cockle_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_coral_Name" xml:space="preserve"><value>Coral</value></data>
+  <data name="Item_coral_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_sea_urchin_Name" xml:space="preserve"><value>Sea urchin</value></data>
+  <data name="Item_sea_urchin_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_nautilus_shell_Name" xml:space="preserve"><value>Nautilus shell</value></data>
+  <data name="Item_nautilus_shell_Description" xml:space="preserve"><value>Picked up on the beach.</value></data>
+  <data name="Item_rainbow_shell_Name" xml:space="preserve"><value>Rainbow shell</value></data>
+  <data name="Item_rainbow_shell_Description" xml:space="preserve"><value>A rare shell, picked up on the beach.</value></data>
   <data name="Goal_spring_bridge_Name" xml:space="preserve"><value>The bridge to the Beach</value></data>
   <data name="Goal_spring_bridge_Reward" xml:space="preserve"><value>Opens the bridge to the Beach and shares coins among the contributors.</value></data>
   <data name="Goal_summer_festival_Name" xml:space="preserve"><value>The summer festival stall</value></data>

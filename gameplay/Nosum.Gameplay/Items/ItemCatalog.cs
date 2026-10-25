@@ -228,6 +228,24 @@ public static class ItemCatalog
     /// <summary>A snow yam, foraged in winter.</summary>
     public const int SnowYam = 812;
 
+    /// <summary>A clam, picked up on the beach.</summary>
+    public const int Clam = 813;
+
+    /// <summary>A cockle, picked up on the beach.</summary>
+    public const int Cockle = 814;
+
+    /// <summary>A piece of coral, picked up on the beach.</summary>
+    public const int Coral = 815;
+
+    /// <summary>A sea urchin, picked up on the beach.</summary>
+    public const int SeaUrchin = 816;
+
+    /// <summary>A nautilus shell, picked up on the beach.</summary>
+    public const int NautilusShell = 817;
+
+    /// <summary>A rainbow shell, picked up on the beach.</summary>
+    public const int RainbowShell = 818;
+
     /// <summary>An oak chair.</summary>
     public const int OakChair = 300;
 
@@ -460,6 +478,12 @@ public static class ItemCatalog
         new(WinterRoot, "winter_root", ItemKind.Produce, DefaultStack, foodEnergy: 6) { SellPrice = 25, ObjectIcon = 412 },
         new(CrystalFruit, "crystal_fruit", ItemKind.Produce, DefaultStack, foodEnergy: 20) { SellPrice = 80, ObjectIcon = 414 },
         new(SnowYam, "snow_yam", ItemKind.Produce, DefaultStack, foodEnergy: 7) { SellPrice = 30, ObjectIcon = 416 },
+        new(Clam, "clam", ItemKind.Produce, DefaultStack) { SellPrice = 50, ObjectIcon = 372 },
+        new(Cockle, "cockle", ItemKind.Produce, DefaultStack) { SellPrice = 50, ObjectIcon = 718 },
+        new(Coral, "coral", ItemKind.Produce, DefaultStack) { SellPrice = 80, ObjectIcon = 393 },
+        new(SeaUrchin, "sea_urchin", ItemKind.Produce, DefaultStack) { SellPrice = 160, ObjectIcon = 397 },
+        new(NautilusShell, "nautilus_shell", ItemKind.Produce, DefaultStack) { SellPrice = 120, ObjectIcon = 392 },
+        new(RainbowShell, "rainbow_shell", ItemKind.Produce, DefaultStack) { SellPrice = 300, ObjectIcon = 394 },
     ];
 
     private static readonly Dictionary<int, ItemDefinition> s_byId = Index();

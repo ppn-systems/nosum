@@ -79,6 +79,12 @@ internal static class NodeSprites
                 world.Add(TreeSheet(textures, node.Variant), 32, 96, Cell, 32, left, baseY - 32, baseY, sortX, id);
                 break;
 
+            case NodeKind.LargeStump:
+                // Placeholder art (docs/adr/ADR-007, ADR-037): the oak stump twice, side by side, until the art pass of M6 draws the clump.
+                world.Add(TreeSheet(textures, TreeVariant.Oak), 32, 96, Cell, 32, left - (Cell / 2), baseY - 32, baseY, sortX - 1, id);
+                world.Add(TreeSheet(textures, TreeVariant.Oak), 32, 96, Cell, 32, left + (Cell / 2), baseY - 32, baseY, sortX, id);
+                break;
+
             case NodeKind.Twig:
                 AddObject(world, textures, 294 + ((node.X + node.Y) & 1), left, baseY, sortX, id);
                 break;

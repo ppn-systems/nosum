@@ -32,4 +32,7 @@ public sealed partial class JoinMapResult : PacketBase<JoinMapResult>, IPacketSt
 
     /// <summary>Facing at the spawn: 0 down, 1 right, 2 up, 3 left.</summary>
     [SerializeOrder(5)] public byte Facing { get; set; }
+
+    /// <summary>Gets or sets the community unlocks that change what the client may walk on (<c>CommunityUnlockSet</c>, docs/adr/ADR-037 D4); appended to the packet.</summary>
+    [SerializeOrder(6)] public byte Unlocks { get; set; }
 }

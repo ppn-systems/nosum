@@ -212,6 +212,7 @@ public sealed class CommunityGoalService : ICommunityGoalService
             await this.PushProgressAsync(rowId, cancellationToken).ConfigureAwait(false);
             if (completed)
             {
+                await this.PushUnlocksAsync(cancellationToken).ConfigureAwait(false);
                 _ = await this.SettleAsync(rowId, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -443,6 +444,16 @@ public sealed class CommunityGoalService : ICommunityGoalService
         lease.Value.Total = row.Total;
         lease.Value.State = ToState(row.Status);
         lease.Value.Contributors = contributors;
+        await _presence.MulticastAsync(GameMaps.Town, lease.Value, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    // The unlocks that change what a client may walk on go to the maps they change: the Beach, where the bridge opens, and Town, where the board is (docs/adr/ADR-037 D4).
+    // A player elsewhere learns them with their next map change.
+    private async Task PushUnlocksAsync(CancellationToken cancellationToken)
+    {
+        using PacketScope<UnlocksChanged> lease = PacketFactory<UnlocksChanged>.Acquire();
+        lease.Value.Unlocks = CommunityUnlockWire.Pack(_unlocks.IsUnlocked);
+        await _presence.MulticastAsync(GameMaps.Beach, lease.Value, null, cancellationToken).ConfigureAwait(false);
         await _presence.MulticastAsync(GameMaps.Town, lease.Value, null, cancellationToken).ConfigureAwait(false);
     }
 

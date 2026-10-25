@@ -399,7 +399,11 @@ internal static class Program
         InstanceManager.Instance.Register(groups);
 
         MapPresence presence = new(groups);
-        TmxMapCatalog maps = new(GameMaps.All, Path.Combine(AppContext.BaseDirectory, "maps"));
+
+        // Community unlocks (docs/adr/ADR-030) open the gated tiles of the maps (the Beach bridge, docs/adr/ADR-037 D4), so they exist before the catalogue.
+        CommunityUnlocks communityUnlocks = new(InstanceManager.Instance.GetExistingInstance<IUnitOfWorkFactory>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication."));
+        TmxMapCatalog maps = new(GameMaps.All, Path.Combine(AppContext.BaseDirectory, "maps"), communityUnlocks.IsUnlocked);
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
         InstanceManager.Instance.Register<IMapPresence>(presence);
@@ -509,7 +513,7 @@ internal static class Program
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
         InstanceManager.Instance.Register<ILookService>(looks);
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
-        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory);
+        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
 
@@ -533,7 +537,6 @@ internal static class Program
         InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock));
 
         // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.
-        CommunityUnlocks communityUnlocks = new(unitOfWork);
         InstanceManager.Instance.Register<ICommunityUnlocks>(communityUnlocks);
         CommunityGoalService communityGoals = new(transfers, unitOfWork, presence, maps, calendar, clock, communityUnlocks, mail);
         InstanceManager.Instance.Register<ICommunityGoalService>(communityGoals);

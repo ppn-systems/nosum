@@ -24,6 +24,7 @@ internal sealed class MapLoader
     private readonly HttpClient _http;
     private readonly TextureCache _textures;
     private readonly IReadOnlyList<IMapDecoratorProvider> _providers;
+    private readonly Func<string, bool>? _unlocked;
     private readonly Dictionary<string, MapContent> _loaded = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Task> _loading = new(StringComparer.Ordinal);
     private readonly Dictionary<string, long> _retryAt = new(StringComparer.Ordinal);
@@ -32,7 +33,8 @@ internal sealed class MapLoader
     /// <param name="http">Client whose base address is the app root.</param>
     /// <param name="textures">Shared texture loading.</param>
     /// <param name="providers">Adds map-specific drawing to every loaded map.</param>
-    public MapLoader(HttpClient http, TextureCache textures, IReadOnlyList<IMapDecoratorProvider> providers)
+    /// <param name="unlocked">Whether the server said a community unlock is set; gated tiles of a map (<see cref="MapSpec.Gates"/>) open while it says so. <see langword="null"/> keeps every gate shut.</param>
+    public MapLoader(HttpClient http, TextureCache textures, IReadOnlyList<IMapDecoratorProvider> providers, Func<string, bool>? unlocked = null)
     {
         ArgumentNullException.ThrowIfNull(http);
         ArgumentNullException.ThrowIfNull(textures);
@@ -41,6 +43,7 @@ internal sealed class MapLoader
         _http = http;
         _textures = textures;
         _providers = providers;
+        _unlocked = unlocked;
     }
 
     /// <summary>Returns a loaded map without waiting.</summary>
@@ -132,6 +135,6 @@ internal sealed class MapLoader
         }
 
         int[] tileSetTextures = await Task.WhenAll(sheets).ConfigureAwait(false);
-        return new MapContent(spec, map, tileSetTextures, Nosum.Rendering.TileLayerPlan.For(map), spec.BuildWalkGrid(map), spec.ResolveWarps(map), [.. decorators]);
+        return new MapContent(spec, map, tileSetTextures, Nosum.Rendering.TileLayerPlan.For(map), spec.BuildWalkGrid(map, _unlocked), spec.ResolveWarps(map), [.. decorators]);
     }
 }

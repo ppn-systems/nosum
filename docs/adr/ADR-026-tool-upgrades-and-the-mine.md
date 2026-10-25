@@ -1,7 +1,8 @@
 # ADR-026 — Tool upgrades, the blacksmith and the mine
 
 **Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M2. Builds on ADR-021 (tools, nodes),
-ADR-023 (mining skill), ADR-024 (bars from the furnace), ADR-012/015 (maps and instances).
+ADR-023 (mining skill), ADR-024 (bars from the furnace), ADR-012/015 (maps and instances). Amended by ADR-037: the entrance cave is entered from the
+Mountain, not from Town (D3 and the "Maps" note below).
 
 ## Context
 

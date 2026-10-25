@@ -491,6 +491,9 @@
   <data name="Friends_Map_backwoods" xml:space="preserve"><value>vùng rừng sâu</value></data>
   <data name="Friends_Map_coopfarm" xml:space="preserve"><value>đất hợp tác xã</value></data>
   <data name="Friends_Map_mine" xml:space="preserve"><value>hang mỏ</value></data>
+  <data name="Friends_Map_mountain" xml:space="preserve"><value>núi</value></data>
+  <data name="Friends_Map_beach" xml:space="preserve"><value>bãi biển</value></data>
+  <data name="Friends_Map_woods" xml:space="preserve"><value>rừng bí mật</value></data>
   <data name="Friends_Map_coop" xml:space="preserve"><value>chuồng gà</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>chuồng gia súc</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Xóa bạn</value></data>
