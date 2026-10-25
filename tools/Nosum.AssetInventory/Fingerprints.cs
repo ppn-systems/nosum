@@ -77,6 +77,28 @@ internal sealed class Fingerprints
         return text.ToString();
     }
 
+    /// <summary>Classifies a listed file against its recorded fingerprint.</summary>
+    /// <param name="path">The file's path under <c>assets/</c>.</param>
+    /// <param name="assetsRoot">The <c>assets/</c> folder.</param>
+    /// <returns>The state: still the placeholder, replaced at the recorded size, missing or resized, or never recorded.</returns>
+    public ArtState StateOf(string path, string assetsRoot)
+    {
+        if (!this.Entries.TryGetValue(path, out Fingerprint? print))
+        {
+            return ArtState.Unrecorded;
+        }
+
+        string full = Path.Combine(assetsRoot, path);
+        if (!File.Exists(full))
+        {
+            return ArtState.Broken;
+        }
+
+        (int width, int height) = AssetSize.Read(full);
+        return width != print.Width || height != print.Height ? ArtState.Broken
+            : string.Equals(HashOf(full), print.Sha256, StringComparison.Ordinal) ? ArtState.Placeholder : ArtState.Replaced;
+    }
+
     /// <summary>Computes the SHA-256 of a file.</summary>
     /// <param name="path">The file.</param>
     /// <returns>Lower-case hex.</returns>
@@ -85,6 +107,22 @@ internal sealed class Fingerprints
         using FileStream stream = File.OpenRead(path);
         return Convert.ToHexStringLower(SHA256.HashData(stream));
     }
+}
+
+/// <summary>Where a listed file stands against the placeholder fingerprints (docs/adr/ADR-040 D6).</summary>
+internal enum ArtState
+{
+    /// <summary>The file still has the placeholder's hash.</summary>
+    Placeholder,
+
+    /// <summary>The file differs from the placeholder and keeps its pixel size.</summary>
+    Replaced,
+
+    /// <summary>The file is missing or no longer has the recorded size.</summary>
+    Broken,
+
+    /// <summary>No fingerprint is recorded for the file.</summary>
+    Unrecorded,
 }
 
 /// <summary>The recorded identity of one placeholder file.</summary>

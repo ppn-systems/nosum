@@ -27,7 +27,8 @@ internal static class ReportWriter
         _ = text.Append("code draws any pixel of it: a tile placed on a drawn layer of a hosted map, or a sprite rectangle a catalogue, a sprite table or a\n");
         _ = text.Append("drawing routine names. A *frame* is a used cell that belongs to a walk, direction, growth or animation sequence. A cell several\n");
         _ = text.Append("packages draw belongs to the first of them in priority order, so every cell is counted once. A file with 0 used cells is still\n");
-        _ = text.Append("loaded (a map names it as a tileset) and must exist at its size.\n\n");
+        _ = text.Append("loaded (a map names it as a tileset) and must exist at its size. The *Art* column compares each file with the fingerprint recorded in\n");
+        _ = text.Append("`placeholders.sha256`: `placeholder` while the file still has the placeholder's hash, `replaced` once it differs and keeps the recorded size.\n\n");
 
         Totals(text, inventory);
         foreach (Package package in Enum.GetValues<Package>())
@@ -57,36 +58,52 @@ internal static class ReportWriter
             .Append(N(inventory.Files.Count)).Append(" images and ").Append(N(inventory.MapFiles.Count)).Append(" maps.\n");
         _ = text.Append("- Cells used: **").Append(N(used)).Append("** of ").Append(N(total)).Append(" cells in those files (").Append(Percent(used, total)).Append(").\n");
         _ = text.Append("- Frames among the used cells: **").Append(N(frames)).Append("**.\n");
+        _ = text.Append("- Art: **").Append(N(inventory.States.Values.Count(v => v == ArtState.Replaced))).Append("** of ").Append(N(inventory.Listed.Count)).Append(" files already replaced, **")
+            .Append(N(inventory.States.Values.Count(v => v == ArtState.Placeholder))).Append("** still placeholder");
+        int unsure = inventory.States.Values.Count(v => v is ArtState.Broken or ArtState.Unrecorded);
+        _ = text.Append(unsure == 0 ? ".\n" : ", **" + N(unsure) + "** missing, resized or unrecorded.\n");
         _ = text.Append("- Map tile positions with a tile: **").Append(N(Placed(inventory))).Append("** of ").Append(N(Positions(inventory))).Append(" (map positions are not art cells and are not counted above).\n\n");
 
-        _ = text.Append("| Package | Image files | Map files | Used cells | Frames | Cells in its files |\n| :-- | --: | --: | --: | --: | --: |\n");
+        _ = text.Append("| Package | Image files | Map files | Used cells | Frames | Cells in its files | Used cells replaced | Files replaced |\n| :-- | --: | --: | --: | --: | --: | --: | --: |\n");
         int sumFiles = 0;
         int sumMaps = 0;
         int sumCells = 0;
         int sumFrames = 0;
+        int sumReplacedCells = 0;
+        int sumReplacedFiles = 0;
         foreach (Package package in Enum.GetValues<Package>())
         {
             List<FileEntry> files = inventory.FilesOf(package);
             int cells = 0;
             int packageFrames = 0;
             long inFiles = 0;
+            int replacedCells = 0;
             foreach (FileEntry file in files)
             {
                 (int c, int f) = file.CountOwnedBy(package);
                 cells += c;
                 packageFrames += f;
                 inFiles += file.TotalCells;
+                if (inventory.States[file.Path] == ArtState.Replaced)
+                {
+                    replacedCells += c;
+                }
             }
+
+            int replacedFiles = files.Count(f => inventory.States[f.Path] == ArtState.Replaced) + inventory.MapFiles.Count(m => m.Package == package && inventory.States[m.Path] == ArtState.Replaced);
+            sumReplacedCells += replacedCells;
+            sumReplacedFiles += replacedFiles;
 
             int maps = inventory.MapFiles.Count(m => m.Package == package);
             sumFiles += files.Count;
             sumMaps += maps;
             sumCells += cells;
             sumFrames += packageFrames;
-            _ = text.Append("| ").Append(PackageNames.Title(package)).Append(" | ").Append(N(files.Count)).Append(" | ").Append(N(maps)).Append(" | ").Append(N(cells)).Append(" | ").Append(N(packageFrames)).Append(" | ").Append(N(inFiles)).Append(" |\n");
+            _ = text.Append("| ").Append(PackageNames.Title(package)).Append(" | ").Append(N(files.Count)).Append(" | ").Append(N(maps)).Append(" | ").Append(N(cells)).Append(" | ").Append(N(packageFrames)).Append(" | ").Append(N(inFiles))
+                .Append(" | ").Append(N(replacedCells)).Append(" | ").Append(N(replacedFiles)).Append(" |\n");
         }
 
-        _ = text.Append("| **Sum** | ").Append(N(sumFiles)).Append(" | ").Append(N(sumMaps)).Append(" | ").Append(N(sumCells)).Append(" | ").Append(N(sumFrames)).Append(" | |\n\n");
+        _ = text.Append("| **Sum** | ").Append(N(sumFiles)).Append(" | ").Append(N(sumMaps)).Append(" | ").Append(N(sumCells)).Append(" | ").Append(N(sumFrames)).Append(" | | ").Append(N(sumReplacedCells)).Append(" | ").Append(N(sumReplacedFiles)).Append(" |\n\n");
         _ = text.Append("A file several packages draw from appears in each of them, so the image-file sum can exceed the distinct count above; the cell sums do not overlap.\n");
         _ = text.Append("Audio: the code loads no audio file yet; the audio package starts with [ADR-039](../adr/ADR-039-audio-hooks.md). ");
         _ = text.Append("Fonts: the only font loaded is not a placeholder (last section), so that package has no files.\n\n");
@@ -105,12 +122,12 @@ internal static class ReportWriter
 
         if (maps.Count > 0)
         {
-            _ = text.Append("| Map file (under `assets/`) | Size px | Tile px | Tile positions with a tile / total | Used by (map ids) |\n| :-- | --: | --: | --: | :-- |\n");
+            _ = text.Append("| Map file (under `assets/`) | Size px | Tile px | Tile positions with a tile / total | Used by (map ids) | Art |\n| :-- | --: | --: | --: | :-- | :-- |\n");
             foreach (MapFile map in maps)
             {
                 _ = text.Append("| `").Append(map.Path).Append("` | ").Append((map.Width * map.TileWidth).ToString(CultureInfo.InvariantCulture)).Append(" × ").Append((map.Height * map.TileHeight).ToString(CultureInfo.InvariantCulture))
                     .Append(" | ").Append(N(map.TileWidth)).Append(" × ").Append(N(map.TileHeight)).Append(" | ").Append(N(map.Placed)).Append(" / ").Append(N(map.Width * map.Height))
-                    .Append(" | ").Append(string.Join(", ", map.MapIds)).Append(" |\n");
+                    .Append(" | ").Append(string.Join(", ", map.MapIds)).Append(" | ").Append(Label(inventory.States[map.Path])).Append(" |\n");
             }
 
             _ = text.Append('\n');
@@ -121,13 +138,13 @@ internal static class ReportWriter
             return;
         }
 
-        _ = text.Append("| File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by |\n| :-- | --: | --: | --: | --: | :-- |\n");
+        _ = text.Append("| File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |\n| :-- | --: | --: | --: | --: | :-- | :-- |\n");
         foreach (FileEntry file in files)
         {
             (int cells, int frames) = file.CountOwnedBy(package);
             _ = text.Append("| `").Append(file.Path).Append("` | ").Append(file.Width.ToString(CultureInfo.InvariantCulture)).Append(" × ").Append(file.Height.ToString(CultureInfo.InvariantCulture))
                 .Append(" | ").Append(file.GridWidth.ToString(CultureInfo.InvariantCulture)).Append(" × ").Append(file.GridHeight.ToString(CultureInfo.InvariantCulture))
-                .Append(" | ").Append(N(cells)).Append(" / ").Append(N(file.TotalCells)).Append(" | ").Append(N(frames)).Append(" | ").Append(Users(file)).Append(" |\n");
+                .Append(" | ").Append(N(cells)).Append(" / ").Append(N(file.TotalCells)).Append(" | ").Append(N(frames)).Append(" | ").Append(Users(file)).Append(" | ").Append(Label(inventory.States[file.Path])).Append(" |\n");
         }
 
         _ = text.Append('\n');
@@ -180,6 +197,14 @@ internal static class ReportWriter
         _ = text.Append("\nNosum's own art that needs no replacement: the pictograms drawn in code by `nosum-theme.js`, the target cursor (`TargetCursor.cs`), the item ");
         _ = text.Append("pictures `nosum-theme.js` draws for trousers, and the sky and lights, which the engine draws without any image.\n");
     }
+
+    private static string Label(ArtState state) => state switch
+    {
+        ArtState.Placeholder => "placeholder",
+        ArtState.Replaced => "replaced",
+        ArtState.Broken => "BROKEN",
+        _ => "unrecorded",
+    };
 
     private static long Placed(Inventory inventory) => inventory.MapFiles.Sum(m => (long)m.Placed);
 
