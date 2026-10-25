@@ -19,5 +19,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-009](ADR-009-postgresql-persistence-and-accounts.md) | PostgreSQL persistence and player accounts (guests, Gmail login, one session per player) | Accepted |
 | [ADR-008](ADR-008-snapshot-movement-sync.md) | Movement sync: client-predicted intents, full-state snapshots at 10 Hz | Proposed |
 | [ADR-011](ADR-011-inventory-farming-data-model.md) | Inventory, farming and quests: catalogues, atomic audited inventory, computed crop growth | Proposed |
-| [ADR-012](ADR-012-maps-and-warps.md) | Maps and warps: one catalogue, exits as data, the server moves the player | Proposed |
+| [ADR-012](ADR-012-maps-and-warps.md) | Maps and warps: one catalogue, exits as data, the server moves the player | Accepted |
 | [ADR-005](ADR-005-three-quarter-top-down-view.md) | 3/4 top-down view (layers, y-sorting, feet anchors) | Accepted |

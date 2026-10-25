@@ -1,6 +1,6 @@
 # ADR-012 — Maps and warps: one catalogue, exits as data, the server moves the player
 
-**Status:** Proposed
+**Status:** Accepted (owner approval, 2026-10-25). Amendment pending: farm and farmhouse become private per player (owner decision, same date).
 
 ## Context
 
