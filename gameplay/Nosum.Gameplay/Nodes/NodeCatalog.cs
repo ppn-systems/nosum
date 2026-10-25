@@ -8,7 +8,7 @@ namespace Nosum.Gameplay.Nodes;
 
 /// <summary>
 /// The resource-node catalogue (docs/adr/ADR-021 D3 and D5): hits to break, tool, blocking and yields per kind. Hits: twig 1, stone 1, weed 1,
-/// grass 1, forage 1 (picked up by any hand, docs/adr/ADR-025), stump 2, grown tree 10, copper ore 3, iron ore 4. A ladder is not broken: facing it takes a player down. A tree younger than <see cref="TreeStage.Grown"/> falls to one hit and leaves nothing behind.
+/// grass 1, forage 1 (picked up by any hand, docs/adr/ADR-025), stump 2, large stump 6 (docs/adr/ADR-037), grown tree 10, copper ore 3, iron ore 4. A ladder is not broken: facing it takes a player down. A tree younger than <see cref="TreeStage.Grown"/> falls to one hit and leaves nothing behind.
 /// </summary>
 public static class NodeCatalog
 {
@@ -16,6 +16,7 @@ public static class NodeCatalog
     [
         new(NodeKind.Tree, "tree", ToolKind.Axe, 10, true, [new NodeYield(ItemCatalog.Wood, 6, 10)]),
         new(NodeKind.Stump, "stump", ToolKind.Axe, 2, true, [new NodeYield(ItemCatalog.Wood, 2, 4)]),
+        new(NodeKind.LargeStump, "large_stump", ToolKind.Axe, 6, true, [new NodeYield(ItemCatalog.Wood, 8, 12)]),
         new(NodeKind.Twig, "twig", ToolKind.Axe, 1, true, [new NodeYield(ItemCatalog.Wood, 1, 1)]),
         new(NodeKind.Stone, "stone", ToolKind.Pickaxe, 1, true, [new NodeYield(ItemCatalog.Stone, 1, 2), new NodeYield(ItemCatalog.Coal, 1, 1, 50)]),
         new(NodeKind.CopperOre, "copper_ore", ToolKind.Pickaxe, 3, true, [new NodeYield(ItemCatalog.CopperOre, 1, 3)]),

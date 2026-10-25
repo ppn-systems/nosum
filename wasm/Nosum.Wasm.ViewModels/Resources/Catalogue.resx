@@ -228,6 +228,18 @@
   <data name="Item_crystal_fruit_Description" xml:space="preserve"><value>Quả pha lê hái được ngoài đồng vào mùa đông.</value></data>
   <data name="Item_snow_yam_Name" xml:space="preserve"><value>Khoai tuyết</value></data>
   <data name="Item_snow_yam_Description" xml:space="preserve"><value>Khoai tuyết hái được ngoài đồng vào mùa đông.</value></data>
+  <data name="Item_clam_Name" xml:space="preserve"><value>Nghêu</value></data>
+  <data name="Item_clam_Description" xml:space="preserve"><value>Nghêu nhặt được trên bãi biển.</value></data>
+  <data name="Item_cockle_Name" xml:space="preserve"><value>Sò huyết</value></data>
+  <data name="Item_cockle_Description" xml:space="preserve"><value>Sò huyết nhặt được trên bãi biển.</value></data>
+  <data name="Item_coral_Name" xml:space="preserve"><value>San hô</value></data>
+  <data name="Item_coral_Description" xml:space="preserve"><value>San hô nhặt được trên bãi biển.</value></data>
+  <data name="Item_sea_urchin_Name" xml:space="preserve"><value>Nhím biển</value></data>
+  <data name="Item_sea_urchin_Description" xml:space="preserve"><value>Nhím biển nhặt được trên bãi biển.</value></data>
+  <data name="Item_nautilus_shell_Name" xml:space="preserve"><value>Vỏ ốc anh vũ</value></data>
+  <data name="Item_nautilus_shell_Description" xml:space="preserve"><value>Vỏ ốc anh vũ nhặt được trên bãi biển.</value></data>
+  <data name="Item_rainbow_shell_Name" xml:space="preserve"><value>Vỏ sò cầu vồng</value></data>
+  <data name="Item_rainbow_shell_Description" xml:space="preserve"><value>Vỏ sò cầu vồng hiếm, nhặt được trên bãi biển.</value></data>
   <data name="Goal_spring_bridge_Name" xml:space="preserve"><value>Cây cầu ra bãi biển</value></data>
   <data name="Goal_spring_bridge_Reward" xml:space="preserve"><value>Mở cây cầu dẫn tới Bãi biển và chia xu cho người đóng góp.</value></data>
   <data name="Goal_summer_festival_Name" xml:space="preserve"><value>Quầy hàng lễ hội mùa hè</value></data>

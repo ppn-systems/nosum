@@ -47,8 +47,17 @@ public static class GameMaps
     /// <summary>Id of the backwoods north of the farm.</summary>
     public const string Backwoods = "backwoods";
 
-    /// <summary>Id of the mine's entrance cave, a shared map north of Town with the shaft to the first floor and the elevator (docs/adr/ADR-026 D3).</summary>
+    /// <summary>Id of the mine's entrance cave, a shared map entered from the Mountain with the shaft to the first floor and the elevator (docs/adr/ADR-026 D3).</summary>
     public const string Mine = "mine";
+
+    /// <summary>Id of the mountain north-east of Town (docs/adr/ADR-037).</summary>
+    public const string Mountain = "mountain";
+
+    /// <summary>Id of the beach south of Town (docs/adr/ADR-037).</summary>
+    public const string Beach = "beach";
+
+    /// <summary>Id of the secret woods west of the Forest (docs/adr/ADR-037).</summary>
+    public const string Woods = "woods";
 
     /// <summary>Id of the coop interior: one instance per coop building (docs/adr/ADR-028 D2).</summary>
     public const string Coop = "coop";
@@ -64,7 +73,7 @@ public static class GameMaps
     //  - seeds: Pierre's store, door tiles (43,56) and (44,56), doormat (43,57);
     //  - clothing: Emily and Haley's house, door tile (20,88), doormat (20,89) (Emily sews, Haley follows fashion);
     //  - furniture: JojaMart, door tiles (95,50) and (96,50), doormat (95,51), a big-box store standing in for Robin's carpenter shop,
-    //    which is on the Mountain map the game does not have yet.
+    //    whose house on the Mountain is not a shop here (docs/adr/ADR-037).
     // Every doormat is walkable and reachable on foot from the town's spawn (a test checks it); the shops are far enough apart that no two are in reach at once.
     private static readonly (int X, int Y) s_townSeedShopTile = (43, 57);
     private static readonly (int X, int Y) s_townClothingShopTile = (20, 89);
@@ -76,7 +85,7 @@ public static class GameMaps
     // The forty floors of the mine, one private per-player map each (docs/adr/ADR-026 D3). A floor's way up is its own arrival tile.
     private static readonly MapSpec[] s_mineFloors = BuildMineFloors();
 
-    // The carpenter (docs/adr/ADR-028 D1) takes the blue house in the south-west of Town: door tile (10,85), doormat (10,86).
+    // The carpenter (docs/adr/ADR-028 D1; it stays here, docs/adr/ADR-037) takes the blue house in the south-west of Town: door tile (10,85), doormat (10,86).
     private static readonly (int X, int Y) s_townCarpenterTile = (10, 86);
     // The community board (docs/adr/ADR-030) is the billboard on the front of Pierre's store, tiles (41,56) and (42,56) ("Billboard" actions in Town.tmx); its counter is the walkable tile in front of
     // the right-hand sign, one tile west of the seed shop's doormat. The two are in reach of each other, so the nearest counter wins (ShopRules.TryFindShop).
@@ -97,23 +106,40 @@ public static class GameMaps
             new ShopPoint(ShopCatalog.CarpenterShop, s_townCarpenterTile.X, s_townCarpenterTile.Y),
             new ShopPoint(CommunityGoalCatalog.BoardCounterId, s_townBoardTile.X, s_townBoardTile.Y),
         ],
-        extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y), .. MineGateWarps()]),
+        extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y)],
+        dropFileWarps: [(94, 110)]),
         new(Backwoods, "Backwoods.tmx", 14, 38),
 
-        // The mine's entrance cave: the file's exits to the Mountain are dropped (the world does not host it), ours lead to Town and down the shaft.
+        // The mine's entrance cave: the file's two exits to the Mountain are replaced by one of ours (the cave mouth of the Mountain, docs/adr/ADR-037 D1); the other leads down the shaft.
         new(Mine, "Mine.tmx", MineWorld.CaveShaftFront.X, MineWorld.CaveShaftFront.Y,
             openTiles: [MineWorld.CaveShaft],
             extraWarps:
             [
                 new MapWarp(MineWorld.CaveShaft.X, MineWorld.CaveShaft.Y, RoomOfFloor(1), MineLayouts.For(1).SpawnX, MineLayouts.For(1).SpawnY),
-                new MapWarp(MineWorld.CaveTownExit.X, MineWorld.CaveTownExit.Y, Town, MineWorld.TownArrival.X, MineWorld.TownArrival.Y),
+                new MapWarp(MineWorld.CaveMountainExit.X, MineWorld.CaveMountainExit.Y, Mountain, MineWorld.MountainArrival.X, MineWorld.MountainArrival.Y),
             ],
             elevator: new ElevatorPoint(MineWorld.CaveElevator.X, MineWorld.CaveElevator.Y),
-            indoors: true),
+            indoors: true,
+            dropFileWarps: [(18, 14), (67, 18)]),
 
         // Co-op land reuses the placeholder Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
         new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true, placeable: true),
         .. s_mineFloors,
+
+        // Mountain, Beach and Secret Woods (docs/adr/ADR-037): shared outdoor maps; their exits to Town, Backwoods and Forest come from the files' own Warp properties.
+        new(Mountain, "Mountain.tmx", 15, 38,
+            extraWarps: [new MapWarp(MineWorld.MountainGate.X, MineWorld.MountainGate.Y, Mine, MineWorld.CaveArrival.X, MineWorld.CaveArrival.Y)],
+            openTiles: [.. OutdoorWorld.MountainBridges],
+            dropFileWarps: [(MineWorld.MountainGate.X, MineWorld.MountainGate.Y), (103, 15)],
+            scatter: [.. OutdoorWorld.MountainNodes]),
+        new(Beach, "Beach.tmx", 39, 2,
+            gates: [OutdoorWorld.BeachBridge],
+            dropFileWarps: [(67, -1)],
+            scatter: [.. OutdoorWorld.BeachNodes],
+            forageAreas: [.. OutdoorWorld.BeachForage]),
+        new(Woods, "Woods.tmx", 58, 15,
+            nodeSites: [.. OutdoorWorld.WoodsStumps],
+            scatter: [.. OutdoorWorld.WoodsNodes]),
 
         // Interiors of farm buildings (docs/adr/ADR-028 D2): the placeholder Coop.tmx and Barn.tmx. Private: one instance per building, owned by the building's id. A player arrives on
         // the tile in front of the interior's exit (the exit leads back to the building's door, chosen by the server, not by the file's Warp).
@@ -168,18 +194,6 @@ public static class GameMaps
     }
 
     private static string RoomOfFloor(int floor) => MineRules.FloorMapId(floor);
-
-    // The Town edge that takes a player to the mine: five tiles of the north road, where the file's own exits to the Mountain would be.
-    private static MapWarp[] MineGateWarps()
-    {
-        MapWarp[] warps = new MapWarp[MineWorld.TownGateToX - MineWorld.TownGateFromX + 1];
-        for (int i = 0; i < warps.Length; i++)
-        {
-            warps[i] = new MapWarp(MineWorld.TownGateFromX + i, -1, Mine, MineWorld.CaveArrival.X, MineWorld.CaveArrival.Y);
-        }
-
-        return warps;
-    }
 
     private static MapSpec[] BuildMineFloors()
     {
