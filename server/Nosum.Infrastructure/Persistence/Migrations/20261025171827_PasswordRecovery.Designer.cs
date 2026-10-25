@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261025153402_PasswordRecovery")]
+    [Migration("20261025171827_PasswordRecovery")]
     partial class PasswordRecovery
     {
         /// <inheritdoc />
@@ -238,6 +238,30 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasName("pk_player_states");
 
                     b.ToTable("player_states", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Blacksmith.ToolUpgrade", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<long>("ReadyDay")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ready_day");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<int>("ToolItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("tool_item_id");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_tool_upgrades");
+
+                    b.ToTable("tool_upgrades", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.Buildings.FarmAnimal", b =>
@@ -1076,6 +1100,25 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Mines.PlayerMine", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<int>("DeepestFloor")
+                        .HasColumnType("integer")
+                        .HasColumnName("deepest_floor");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_player_mines");
+
+                    b.ToTable("player_mines", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_player_mines_deepest_floor", "deepest_floor >= 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Nodes.NodeInstanceState", b =>
                 {
                     b.Property<int>("Id")
@@ -1560,6 +1603,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_player_states_players_player_id");
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Blacksmith.ToolUpgrade", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tool_upgrades_players_player_id");
+                });
+
             modelBuilder.Entity("Nosum.Domain.Buildings.FarmAnimal", b =>
                 {
                     b.HasOne("Nosum.Domain.Buildings.FarmBuilding", null)
@@ -1731,6 +1784,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_market_listings_players_seller_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Mines.PlayerMine", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_mines_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Placeables.ChestLogEntry", b =>
