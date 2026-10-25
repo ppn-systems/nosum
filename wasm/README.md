@@ -31,8 +31,7 @@ one `GameSocket` and one `PlayerChannel`. `Game/MapScene` predicts the local far
 to `PlayerChannel.Report` (no await, no allocation), snaps back on a `MoveCorrection`, and adds the
 other farmers (`Game/RemotePlayers`: a `SnapshotBuffer` from `Nosum.Core.Interpolation`, drawn 200 ms
 in the past) to the same `WorldSpriteBatch` so they y-sort with the local farmer and the buildings.
-Without a server the farm still plays offline. Remote farmers use a look derived from their player id
-until the wire carries looks (ADR-006). `ConnectionBadge` shows the connection state in the current language.
+Without a server the farm still plays offline. Remote farmers are drawn from the looks the server sent (`LookChannel`, resolved by `Game/LookSprites` and `LookPalette`; ADR-014). `ConnectionBadge` shows the connection state in the current language.
 
 Playable now: `Pages/Home.razor` starts `Game/GameLoop`, which waits (up to 10 s) for the server's join answer, loads
 that map and the farmer sheets, then runs `Game/MapScene`: walk with WASD or the arrow keys, the camera follows,
@@ -56,6 +55,12 @@ farm decorator computes each crop's stage with `FarmRules` from the mirrored tim
 View models (`InventoryViewModel`, `QuestTrackerViewModel`, `GameMessagesViewModel`) localize everything; item, crop and quest text is in `Resources/Catalogue.resx` by catalogue key.
 `Nosum.Wasm.Controls` is the reusable Razor library: `Hotbar`, `ItemSlotButton`, `InventoryPanel`, `QuestTracker`, `GameMessage`, all following a view model through `ObservingComponent`.
 Their scoped CSS reaches the page through `Nosum.Wasm.styles.css`. Item pictures are `Game/ItemIcons` (sheet and cell), crop frames `Game/CropSprites`.
+Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)): channels `WalletChannel`, `MarketChannel`, `LookChannel`, `TradeChannel`, `CoopChannel`
+and `Player/NearbyPlayers` (the other players on the map, for pickers) mirror the server; `WalletViewModel`, `MarketViewModel`, `WardrobeViewModel`, `TradeViewModel`, `CoopViewModel` and `ToolbarViewModel`
+(all `PanelViewModel`: text by key, a status line) localize them. The panels (`MarketPanel`, `WardrobePanel`, `TradePanel`, `CoopPanel`) and the coin badge/toolbar are built only from shared controls in
+`Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput`, `GameRow`, `GameStack`, `GameSection`, `ItemGrid`, `ConfirmDialog`, `PlayerPicker`, `PriceInput`, `Pager`, `TabBar`, `PanelToolbar`): panels
+add no colours or borders of their own, so the look of the whole UI is the CSS of those controls and the `--nosum-*` variables. Keys: `M` market, `C` wardrobe, `T` trade, `G` co-op; `E` facing the shipping bin with
+a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
 ```bash

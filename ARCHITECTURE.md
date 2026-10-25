@@ -25,7 +25,7 @@ nosum/
 ├── wasm/                         # Nosum.Wasm.slnx — own Directory.Build.props (trimmed, no AOT)
 │   ├── Nosum.Wasm/               # Blazor host: canvas page + UI overlay
 │   ├── Nosum.Wasm.ViewModels/    # MVVM view models (no .razor)
-│   ├── Nosum.Wasm.Controls/      # reusable Razor controls: hotbar, inventory grid, quest tracker
+│   ├── Nosum.Wasm.Controls/      # reusable Razor controls: panel frame, button, input, item grid, dialogs, hotbar, market/wardrobe/trade/co-op panels
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
@@ -133,6 +133,21 @@ client MapScene: fade out ─ MapLoader (background fetch, shared TextureCache) 
 A player is in one map group at a time, so snapshots, `PlayerLeft` and every feature built on
 `IMapPresence` reach only the players on that map. The server also picks the map at join (the saved
 one), so a returning player lands where they left.
+
+## Runtime path 4 — items, coins and the social layer
+
+Every change of items or coins is one server transaction ([ADR-013](docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](docs/adr/ADR-014-coops-and-looks.md)):
+
+```text
+handler (identity from the connection) ─► IMarketService / ITradeService / ICoopService / ILookService
+                                              │ legs: (party, item ±, coins ±) + enlisted work (listing row, log line, look row)
+                                              ▼
+                                       ITransferService ─► IInventoryService.ApplyManyAsync
+                                              locks every involved player (stripe order) · one unit of work · one SaveChanges · audit rows
+                                              ▼ pushes: InventoryUpdate, WalletUpdate · CoopSnapshot · LookChanged (to the map group) · TradeState
+```
+
+Looks travel as ids (`LookChanged`, `LooksSnapshot`) to everyone on the map and are resolved by the client's `LookPalette`; trade and co-op invitations address a player by their id on the map and find them through `IMapPresence`.
 
 ## Organize by game domain
 

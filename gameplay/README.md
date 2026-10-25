@@ -30,4 +30,7 @@ Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-fa
   slots. `StarterKit` is what a new player holds. `InventoryLimits`: 36 slots, 9 in the hotbar.
 - `Farm/FarmRules`: `Till`, `Plant`, `Water`, `Harvest` on a `FarmTile` (Unix-ms timestamps) and `GrowthAt` / `StageAt` / `IsMature` / `IsWet`; a crop grows only while
   the soil is wet (watering lasts 90 s). `InReach` is the 32 px rule. `TillGrid.FromMap` marks `Diggable` ground that is not blocked. Time is always a parameter.
+- Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)): `Economy/CoinRules` (starting coins, market fee, listing limits), `ShippingPrices`, `ShippingBinRules`, `MarketRules`;
+  `Trade/TradeOffer` and `TradeSession` (two-party confirm: a different offer clears both confirmations); `Looks/LookCatalog` and `PlayerLook`; `Coops/CoopRules` (names, who may withdraw how much);
+  `Text/LocalizedText` (validates and resolves `i18n{` envelopes). Clothing items have a `WearSlot`; tools are not tradable (`ItemDefinition.IsTradable`).
 - `Quests/QuestDefinition` / `QuestCatalog`: objectives count `QuestEvent`s (`CropPlanted`, `CropHarvested`); `first_harvest` is the tutorial.

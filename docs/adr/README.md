@@ -20,4 +20,6 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-008](ADR-008-snapshot-movement-sync.md) | Movement sync: client-predicted intents, full-state snapshots at 10 Hz | Proposed |
 | [ADR-011](ADR-011-inventory-farming-data-model.md) | Inventory, farming and quests: catalogues, atomic audited inventory, computed crop growth | Proposed |
 | [ADR-012](ADR-012-maps-and-warps.md) | Maps and warps: one catalogue, exits as data, the server moves the player | Proposed |
+| [ADR-013](ADR-013-economy-coins-escrow-market-trade.md) | Economy: coins, one atomic transfer, shipping bin, consignment market, direct trade | Proposed |
+| [ADR-014](ADR-014-coops-and-looks.md) | Co-operatives (membership, shared warehouse) and player looks | Proposed |
 | [ADR-005](ADR-005-three-quarter-top-down-view.md) | 3/4 top-down view (layers, y-sorting, feet anchors) | Accepted |

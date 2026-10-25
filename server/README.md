@@ -32,6 +32,14 @@ only). Maps come from `IMapCatalog` (`TmxMapCatalog`: every map of `GameMaps` lo
 to the host from `assets/Maps/`, walk grid and exits from `MapSpec` so server and client collide and open doors
 identically; a map id from a client is only ever a key into that list, never a path).
 
+Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)):
+`ITransferService` (`Infrastructure/Economy`) is the one way coins move: items and coins between players and co-op warehouses in one transaction, built on
+`IInventoryService.ApplyManyAsync` (every involved player's lock, one unit of work, one save; a feature joins it with an `enlist` callback). On it sit `IMarketService`
+(`Market/`: shipping bin, listings as escrow, buy, cancel, expiry; `MarketExpiryService` is the hosted sweep), `ITradeService` (`Trade/`: invitations and sessions in
+memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Looks/`: persisted look ids, wardrobe, announces through `IMapPresence`) and `ICoopService`
+(`Coops/`: membership, invitations, the shared warehouse with its audit trail). New entities: wallets and coin log, market listings, appearances, co-ops, members, invites, stock and log
+(migration `SocialLayer`). Handlers: `Nosum.Handlers/{Market,Look,Trade,Coop}`; everything that moves coins or items is `[PacketEncryption(true)]`.
+
 Skills: [`data-model-ef-core`](../.claude/skills/data-model-ef-core/SKILL.md),
 [`nalix-server-hosting`](../.claude/skills/nalix-server-hosting/SKILL.md),
 [`nalix-handlers`](../.claude/skills/nalix-handlers/SKILL.md),
