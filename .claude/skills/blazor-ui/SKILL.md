@@ -35,3 +35,17 @@ Frame loop and drawing: `render-interop`. Transport internals: `nalix-client-sdk
 - `wasm/Nosum.Wasm/App.razor`, `Layout/`, `Pages/{Domain}/` — UI.
 - `wasm/Nosum.Wasm/wwwroot/index.html` — host page; `<base href="/">` must match the deploy path
   because the render module is imported by absolute URL.
+
+## Theme and layout (ADR-016)
+
+- **Use the shared controls; never hand-roll UI.** Frames, buttons, fields, slots, tabs, swatches, key caps, notices, badges and spinners are the controls in
+  `Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput` in a `GameField`, `ItemGrid`/`ItemSlotButton`, `GameSwatch`, `GameKey`, `GameIcon`,
+  `GameNotice`, `GameBadge`, `GameSpinner`). No raw `<button>`, `<input>` or styled `<div>` panel in a page or panel. Need something new? Add a shared control.
+- **No colours, fonts or borders in panel or page CSS.** Panel CSS is layout only, in UI pixels: `calc(var(--u) * n)`. Colours and sizes come from the `--nosum-*`
+  variables in `wwwroot/nosum-theme.css`; sprites from `--nosum-img-*` (the rectangle table is in `wwwroot/nosum-theme.js`, art is linked from `assets/`, ADR-007).
+- **Integer scale.** `--u` is one UI pixel (2, 3 or 4 CSS px); art is `image-rendering: pixelated`; never use a fractional multiple.
+- **Dock regions, not `position: fixed`.** In-game UI goes into a `GameHud` region (top-left, top-center, top-right, left, center, right, bottom-center, overlay).
+  The center holds one modal panel (`PanelKind`); `Esc` closes it, `H` toggles help. A control never positions itself.
+- **Every state.** Hover, press, disabled and focus come from the shared CSS. In the game, buttons are not focusable (the canvas keeps the keyboard); on forms use `Focusable`.
+- **Text via `.resx`**, both languages, same keys (a test checks it). Key caps (`Esc`, `E`) are the only literal text.
+- Check a UI change in a browser at 1280 x 720 and 1920 x 1080 (publish, serve `wwwroot`, run the host on 57300, screenshot with Playwright).

@@ -2,18 +2,18 @@
 @inherits ObservingComponent<TradeViewModel>
 
 @* The trade window: pick a player, then both sides fill an offer and confirm. Any change clears both confirmations on the server. *@
-<GamePanel Dock="PanelDock.Center" Title="@Vm.Text("Trade_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+<GamePanel Title="@Vm.Text("Trade_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
     <GameStack>
         @if (Vm.Phase == TradePhase.Open)
         {
             <GameRow Class="top">
                 <GameSection Title="@Vm.Text("Trade_Yours")">
-                    <ItemGrid Slots="Vm.MyItems" Columns="5" Scale="2" OnSlotClick="@(i => Vm.Withdraw(i))" />
+                    <ItemGrid Slots="Vm.MyItems" Columns="5" OnSlotClick="@(i => Vm.Withdraw(i))" />
                     <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.MyCoins)</p>
                     <p class="trade-state">@(Vm.MyConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
                 </GameSection>
                 <GameSection Title="@Vm.OtherLabel">
-                    <ItemGrid Slots="Vm.OtherItems" Columns="5" Scale="2" />
+                    <ItemGrid Slots="Vm.OtherItems" Columns="5" />
                     <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.OtherCoins)</p>
                     <p class="trade-state">@(Vm.OtherConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
                 </GameSection>
@@ -23,7 +23,7 @@
                 <GameButton Text="@Vm.Text("Trade_SetCoins")" OnClick="@(() => Vm.SetCoins())" />
             </GameSection>
             <GameSection Title="@Vm.Text("Trade_PickItems")">
-                <ItemGrid Slots="Vm.InventorySlots" Columns="9" Scale="2" OnSlotClick="@(i => Vm.Offer(i))" />
+                <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.Offer(i))" />
             </GameSection>
             <GameRow>
                 <GameButton Text="@Vm.Text("Trade_Confirm")" Disabled="Vm.MyConfirmed" OnClick="@(() => Vm.Confirm())" />

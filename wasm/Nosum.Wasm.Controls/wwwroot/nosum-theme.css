@@ -1,0 +1,105 @@
+/* Nosum UI theme (docs/adr/ADR-016): the only file with colours, sizes and fonts.
+   The shared controls read these variables; panels use the controls and add none of their own.
+   The sprites (--nosum-img-*) are published by nosum-theme.js; without them the controls fall back to plain borders. */
+
+:root {
+    /* One UI pixel in CSS pixels. Every art pixel of the UI sheets is drawn this big (integer scale, never smoothed). */
+    --u: 2px;
+    --nosum-font-size: 15px;
+
+    --nosum-font: "Segoe UI", "Noto Sans", "DejaVu Sans", Verdana, system-ui, sans-serif;
+
+    /* Parchment and wood, sampled from MenuTiles.png. */
+    --nosum-parchment: #fdbc6e;
+    --nosum-parchment-deep: #ecac66;
+    --nosum-cream: #ffe4a1;
+    --nosum-edge: #853605;
+    --nosum-wood: #b14e05;
+    --nosum-wood-light: #dc7b05;
+    --nosum-gold: #fa9305;
+    --nosum-line: #d49667;
+
+    /* Text. */
+    --nosum-ink: #4a2209;
+    --nosum-ink-soft: #7a4318;
+    --nosum-ink-faint: #9b6a3c;
+    --nosum-ink-on-dark: #fff3d6;
+
+    /* Meaning. */
+    --nosum-danger: #960027;
+    --nosum-danger-bg: rgba(150, 0, 39, 0.14);
+    --nosum-ok: #2f6b17;
+    --nosum-ok-bg: rgba(47, 107, 23, 0.16);
+    --nosum-warn: #a86400;
+    --nosum-focus: #be3248;
+
+    /* Surfaces. */
+    --nosum-slot-bg: rgba(120, 58, 8, 0.2);
+    --nosum-backdrop: rgba(26, 12, 2, 0.5);
+    --nosum-shine: rgba(255, 244, 214, 0.55);
+    --nosum-button-shine: rgba(255, 228, 161, 0.45);
+
+    /* Layout. */
+    --nosum-gap: calc(var(--u) * 3);
+    --nosum-gutter: calc(var(--u) * 4);
+}
+
+@media (min-width: 1500px) and (min-height: 850px) {
+    :root {
+        --u: 3px;
+        --nosum-font-size: 20px;
+    }
+}
+
+@media (min-width: 2400px) and (min-height: 1300px) {
+    :root {
+        --u: 4px;
+        --nosum-font-size: 26px;
+    }
+}
+
+@media (max-width: 720px), (max-height: 480px) {
+    :root {
+        --u: 1px;
+        --nosum-font-size: 12px;
+    }
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    font: 500 var(--nosum-font-size) / 1.35 var(--nosum-font);
+    cursor: var(--nosum-cursor, default);
+    -webkit-text-size-adjust: 100%;
+}
+
+* {
+    scrollbar-color: var(--nosum-wood) var(--nosum-parchment-deep);
+    scrollbar-width: thin;
+}
+
+/* The page heading takes focus on navigation (FocusOnNavigate); it is not a control. */
+h1[tabindex="-1"]:focus {
+    outline: none;
+}
+
+/* A pixel-sized focus ring for anything that can be reached with the keyboard. */
+:focus-visible {
+    outline: var(--u) solid var(--nosum-focus);
+    outline-offset: var(--u);
+}
+
+@keyframes nosum-blink {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

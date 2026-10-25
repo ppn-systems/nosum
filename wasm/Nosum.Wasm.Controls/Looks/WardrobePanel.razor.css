@@ -1,25 +1,13 @@
-.swatch {
-    width: 1.8rem;
-    height: 1.8rem;
-    padding: 0;
-    border: 2px solid var(--nosum-button-border, #6b4a24);
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.swatch.current {
-    outline: 3px solid var(--nosum-slot-selected, #d4382c);
-}
-
 .worn-slot {
-    min-width: 5rem;
+    min-width: calc(var(--u) * 36);
+    font-weight: 800;
 }
 
 .worn-name {
-    min-width: 7rem;
+    min-width: calc(var(--u) * 50);
 }
 
 .wardrobe-empty {
     margin: 0;
-    opacity: 0.8;
+    color: var(--nosum-ink-soft);
 }

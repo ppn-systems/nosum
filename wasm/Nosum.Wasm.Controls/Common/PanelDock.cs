@@ -2,7 +2,10 @@
 
 namespace Nosum.Wasm.Controls.Common;
 
-/// <summary>Where a <c>GamePanel</c> sits on the screen.</summary>
+/// <summary>
+/// Where a <c>GamePanel</c> used to sit on the screen. Kept so existing markup compiles; <c>GamePanel</c> ignores it now: a panel
+/// sits where the <c>GameHud</c> dock region it is put in places it (docs/adr/ADR-016).
+/// </summary>
 public enum PanelDock
 {
     /// <summary>In the normal flow.</summary>

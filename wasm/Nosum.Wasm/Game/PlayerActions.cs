@@ -13,7 +13,7 @@ namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// What the player's one-shot keys do: number keys select a hotbar slot, the action key (E or Space) uses the
-/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G open the panels. The scene calls <see cref="Update"/> once per
+/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G H open the panels, Escape closes them. The scene calls <see cref="Update"/> once per
 /// frame; the tile in front is kept in <see cref="TargetX"/> and <see cref="TargetY"/> for the cursor the farm decorator draws.
 /// Allocation-free; the requests themselves are sent by the channels, off the frame.
 /// </summary>
@@ -43,6 +43,9 @@ internal sealed class PlayerActions
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
     public event Action<PanelKind>? PanelToggleRequested;
+
+    /// <summary>Raised (from the frame) when the close key was pressed.</summary>
+    public event Action? PanelCloseRequested;
 
     /// <summary>Gets the tile x in front of the farmer.</summary>
     public int TargetX { get; private set; }
@@ -141,6 +144,16 @@ internal sealed class PlayerActions
         if ((edges & InputEdges.Coop) != 0)
         {
             this.PanelToggleRequested?.Invoke(PanelKind.Coop);
+        }
+
+        if ((edges & InputEdges.Help) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Help);
+        }
+
+        if ((edges & InputEdges.Close) != 0)
+        {
+            this.PanelCloseRequested?.Invoke();
         }
     }
 }

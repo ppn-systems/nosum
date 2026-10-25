@@ -1,0 +1,23 @@
+@* A colour choice (skin, hair dye): a slot-framed square of the colour. *@
+<button type="button"
+        class="game-swatch @(Current ? "current" : null)"
+        title="@Label"
+        aria-label="@Label"
+        aria-pressed="@(Current ? "true" : "false")"
+        tabindex="-1"
+        @onmousedown:preventDefault
+        @onclick="OnClick"><span class="game-swatch-colour" style="background:@Colour"></span></button>
+
+@code {
+    /// <summary>A CSS colour (comes from the game's palette, not from the theme).</summary>
+    [Parameter, EditorRequired] public string Colour { get; set; } = "transparent";
+
+    /// <summary>The localized name of the colour (tooltip and accessible name).</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    /// <summary>Whether this colour is the one in use.</summary>
+    [Parameter] public bool Current { get; set; }
+
+    /// <summary>Raised on a click.</summary>
+    [Parameter] public EventCallback OnClick { get; set; }
+}

@@ -1,0 +1,5 @@
+.arrange-hint {
+    max-width: calc(var(--u) * 100);
+    font-size: 0.85em;
+    color: var(--nosum-ink-soft);
+}

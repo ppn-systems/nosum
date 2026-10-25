@@ -59,7 +59,7 @@ Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md
 and `Player/NearbyPlayers` (the other players on the map, for pickers) mirror the server; `WalletViewModel`, `MarketViewModel`, `WardrobeViewModel`, `TradeViewModel`, `CoopViewModel` and `ToolbarViewModel`
 (all `PanelViewModel`: text by key, a status line) localize them. The panels (`MarketPanel`, `WardrobePanel`, `TradePanel`, `CoopPanel`) and the coin badge/toolbar are built only from shared controls in
 `Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput`, `GameRow`, `GameStack`, `GameSection`, `ItemGrid`, `ConfirmDialog`, `PlayerPicker`, `PriceInput`, `Pager`, `TabBar`, `PanelToolbar`): panels
-add no colours or borders of their own, so the look of the whole UI is the CSS of those controls and the `--nosum-*` variables. Keys: `M` market, `C` wardrobe, `T` trade, `G` co-op; `E` facing the shipping bin with
+add no colours or borders of their own, so the look of the whole UI is the CSS of those controls and the `--nosum-*` variables. Keys: `M` market, `C` wardrobe, `T` trade, `G` co-op, `H` help, `Esc` close; `E` facing the shipping bin with
 a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
@@ -68,6 +68,13 @@ and sends place, move and pick-up requests. `Game/PlacedObjectsDecorator` draws 
 walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, active only on a `MapSpec.Placeable` map: `E` places the held piece (or sets down a carried one), `R` rotates, `F` picks up the piece in front to
 move it (again to cancel), `Q` puts it back in the bag. `PlacementViewModel` relays the same actions from the arrange panel (`Controls/Placement/PlacementPanel`, built from the shared `GamePanel` and `GameButton`;
 styled only through their shared CSS classes). Refusals reach the message line as `Place_Status_*` text.
+
+UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`. `wwwroot/nosum-theme.css` holds the variables (`--u` is one UI pixel: 2 px, 3 px from 1500 x 850,
+4 px on large screens; colours `--nosum-*`) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `MenuTiles.png`, `Cursors.png` and `textBox.png` (linked from `assets/` in the Controls csproj, placeholder art
+per ADR-007) into `--nosum-img-*` variables used as `border-image`. `index.html` links both; the controls' scoped CSS comes through `Nosum.Wasm.styles.css`, which imports the Controls bundle. Every screen element is a shared control
+(`GamePanel`, `GameButton`, `GameInput`/`GameField`, `ItemSlotButton`/`ItemGrid`, `GameSwatch`, `GameKey`, `GameIcon`, `GameNotice`, `GameBadge`, `GameSpinner`, ...); panels add layout only, no colours. `Layout/GameHud` is the layout:
+dock regions (top-left, top-center, top-right, left, center = one modal panel, right = contextual panels, bottom-center, overlay for dialogs), so nothing overlaps. `Pages/Home.razor` puts each control in its region; `Esc` closes the open
+panel and `H`/`?` shows the help card (`InputEdges.Close`/`Help`, `HelpViewModel`, `Controls/Help/HelpPanel`). The start screen (`Components/Account/StartScreen`) wraps the account form; the loading state is an overlay panel until `GameLoop.StartAsync` returns.
 
 ```bash
 dotnet build wasm/Nosum.Wasm.slnx

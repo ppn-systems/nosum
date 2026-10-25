@@ -1,11 +1,12 @@
-@* The one button of the game UI. Looks come only from the shared "game-button" class and its variants (primary, danger, plain, tab); text comes from the caller (already localized). *@
-<button type="button"
+@* The one button of the game UI. Looks come only from the shared "game-button" class and its variants (primary, danger, plain, tab, link);
+   text comes from the caller (already localized). In the game it never takes focus (the canvas keeps the keyboard); on a form (Focusable) it does. *@
+<button type="@(Submit ? "submit" : "button")"
         class="game-button @Variant @(Active ? "active" : null)"
         disabled="@Disabled"
         title="@Title"
-        tabindex="-1"
-        @onmousedown:preventDefault
-        @onclick="OnClick">@Text@ChildContent</button>
+        tabindex="@(Focusable ? null : "-1")"
+        @onmousedown:preventDefault="@(!Focusable)"
+        @onclick="OnClick"><span class="game-button-label">@Text@ChildContent</span></button>
 
 @code {
     /// <summary>Gets or sets what happens on a click.</summary>
@@ -24,13 +25,21 @@
     [Parameter]
     public string? Title { get; set; }
 
-    /// <summary>Gets or sets the look: <c>primary</c>, <c>danger</c>, <c>plain</c> or <c>tab</c>.</summary>
+    /// <summary>Gets or sets the look: <c>primary</c>, <c>danger</c>, <c>plain</c>, <c>tab</c> or <c>link</c>.</summary>
     [Parameter]
     public string Variant { get; set; } = "primary";
 
     /// <summary>Gets or sets whether the button is the active tab.</summary>
     [Parameter]
     public bool Active { get; set; }
+
+    /// <summary>Gets or sets whether the button can be reached with Tab and keeps focus when clicked (forms); in the game it must not.</summary>
+    [Parameter]
+    public bool Focusable { get; set; }
+
+    /// <summary>Gets or sets whether the button submits the form it is in.</summary>
+    [Parameter]
+    public bool Submit { get; set; }
 
     /// <summary>Gets or sets the localized label as content.</summary>
     [Parameter]

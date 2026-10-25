@@ -1,0 +1,26 @@
+.game-icon {
+    display: inline-block;
+    flex: none;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+}
+
+.game-icon.coin {
+    width: calc(var(--nosum-w-coin, 9) * var(--u));
+    height: calc(var(--nosum-h-coin, 9) * var(--u));
+    background-image: var(--nosum-img-coin);
+}
+
+.game-icon.arrow-left {
+    width: calc(var(--nosum-w-arrow-left, 12) * var(--u));
+    height: calc(var(--nosum-h-arrow-left, 11) * var(--u));
+    background-image: var(--nosum-img-arrow-left);
+}
+
+.game-icon.arrow-right {
+    width: calc(var(--nosum-w-arrow-right, 12) * var(--u));
+    height: calc(var(--nosum-h-arrow-right, 11) * var(--u));
+    background-image: var(--nosum-img-arrow-right);
+}

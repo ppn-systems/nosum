@@ -1,10 +1,19 @@
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Socket
 @using Nosum.Wasm.ViewModels.Player
 @implements IDisposable
 @inject ConnectionStatusViewModel Status
 
-<span class="connection-badge connection-@Status.State.ToString().ToLowerInvariant()">@Status.Text</span>
+<GameBadge Kind="@Kind" Text="@Status.Text" />
 
 @code {
+    private string Kind => Status.State switch
+    {
+        GameSocketState.Ready => "ok",
+        GameSocketState.Connecting or GameSocketState.Reconnecting => "warn",
+        _ => "error",
+    };
+
     protected override void OnInitialized() => Status.Changed += OnChanged;
 
     // The view model raises Changed on a socket thread; render on the component's context.

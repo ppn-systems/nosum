@@ -3,11 +3,17 @@
     margin: 0;
 }
 
+.market-empty {
+    color: var(--nosum-ink-soft);
+}
+
 .listing-name {
-    min-width: 8rem;
+    min-width: calc(var(--u) * 52);
+    font-weight: 800;
 }
 
 .listing-price {
-    min-width: 6rem;
-    font-weight: bold;
+    min-width: calc(var(--u) * 36);
+    font-weight: 800;
+    color: var(--nosum-ink-soft);
 }

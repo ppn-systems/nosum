@@ -4,17 +4,18 @@
 }
 
 .coop-empty {
-    opacity: 0.8;
+    color: var(--nosum-ink-soft);
 }
 
 .member-name {
-    min-width: 6rem;
+    min-width: calc(var(--u) * 42);
+    font-weight: 800;
 }
 
 .member-role {
-    min-width: 6rem;
+    min-width: calc(var(--u) * 36);
 }
 
 .stock-name {
-    min-width: 7rem;
+    min-width: calc(var(--u) * 48);
 }

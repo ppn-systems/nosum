@@ -1,0 +1,13 @@
+@* A message inside a panel: an error from the server, a hint. Kind picks the colour (error, info, ok). *@
+<p class="game-notice @Kind" role="@(Kind == "error" ? "alert" : "status")">@ChildContent@Text</p>
+
+@code {
+    /// <summary>The look: <c>error</c>, <c>info</c> or <c>ok</c>.</summary>
+    [Parameter] public string Kind { get; set; } = "info";
+
+    /// <summary>The localized message.</summary>
+    [Parameter] public string Text { get; set; } = string.Empty;
+
+    /// <summary>The message as content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

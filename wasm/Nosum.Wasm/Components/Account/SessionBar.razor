@@ -1,3 +1,4 @@
+@using Nosum.Wasm.Controls.Common
 @using System.Threading
 @using Nosum.Wasm.ViewModels.Account
 @implements IDisposable
@@ -5,15 +6,15 @@
 @* Reusable in-game bar: who is signed in, the invitation to register (guests), and sign out. Text and behaviour come from the view model. *@
 @if (Vm.CurrentSession is not null)
 {
-    <div class="session-bar">
+    <GamePanel Class="hud session" Title="">
         <span class="session-who">@Vm.SignedInText</span>
         @if (Vm.CanUpgrade)
         {
             <span class="session-prompt">@Vm.UpgradePromptText</span>
-            <button type="button" @onclick="Vm.BeginUpgrade" disabled="@Vm.IsBusy">@Vm.UpgradeText</button>
+            <GameButton OnClick="Vm.BeginUpgrade" Disabled="@Vm.IsBusy" Text="@Vm.UpgradeText" />
         }
-        <button type="button" @onclick="LogoutAsync" disabled="@Vm.IsBusy">@Vm.SignOutText</button>
-    </div>
+        <GameButton Variant="plain" OnClick="LogoutAsync" Disabled="@Vm.IsBusy" Text="@Vm.SignOutText" />
+    </GamePanel>
 }
 
 @code {
