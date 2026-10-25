@@ -25,7 +25,8 @@ public sealed class MapDefinition
     /// <param name="isCoop">Whether each co-op has its own instance of the map (docs/adr/ADR-020).</param>
     /// <param name="water">Water tiles, where a watering can is refilled; <see langword="null"/> when the map has none.</param>
     /// <param name="nodeSites">Places the map's <c>Paths</c> layer marks for trees, stones, twigs, weeds and grass (docs/adr/ADR-021 D4); empty when the map has none.</param>
-    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null, bool isPrivate = false, bool placeable = false, IReadOnlySet<(int X, int Y)>? reservedTiles = null, bool isCoop = false, WaterGrid? water = null, IReadOnlyList<NodeSite>? nodeSites = null)
+    /// <param name="forageSites">Places the <c>Paths</c> layer marks for forage (docs/adr/ADR-025 D4); empty when the map has none.</param>
+    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null, bool isPrivate = false, bool placeable = false, IReadOnlySet<(int X, int Y)>? reservedTiles = null, bool isCoop = false, WaterGrid? water = null, IReadOnlyList<NodeSite>? nodeSites = null, IReadOnlyList<NodeSite>? forageSites = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(grid);
@@ -42,6 +43,7 @@ public sealed class MapDefinition
         this.IsCoop = isCoop;
         this.Water = water;
         this.NodeSites = nodeSites ?? [];
+        this.ForageSites = forageSites ?? [];
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -80,6 +82,9 @@ public sealed class MapDefinition
     /// <summary>Gets the markers of the map's <c>Paths</c> layer that become resource nodes; empty when the map has no nodes.</summary>
     public IReadOnlyList<NodeSite> NodeSites { get; }
 
+    /// <summary>Gets the forage spots of the map's <c>Paths</c> layer; forage only appears on public instances (docs/adr/ADR-025 D4).</summary>
+    public IReadOnlyList<NodeSite> ForageSites { get; }
+
     /// <summary>Gets whether the map has resource nodes (docs/adr/ADR-021).</summary>
-    public bool HasNodes => this.NodeSites.Count > 0;
+    public bool HasNodes => this.NodeSites.Count > 0 || this.ForageSites.Count > 0;
 }

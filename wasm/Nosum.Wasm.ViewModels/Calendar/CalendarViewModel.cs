@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Weather;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -65,6 +66,24 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets today's weather, computed from the calendar like the server does (docs/adr/ADR-027); sun until the calendar is known.</summary>
+    public WeatherKind Today => _calendar is { } calendar ? WeatherRules.At(calendar, _channel.ServerNowMs()) : WeatherKind.Sun;
+
+    /// <summary>Gets tomorrow's forecast: the same function for the next game day (docs/adr/ADR-027 D3).</summary>
+    public WeatherKind Tomorrow => _calendar is { } calendar ? WeatherRules.ForDay(calendar, calendar.DayNumberAt(_channel.ServerNowMs()) + 1) : WeatherKind.Sun;
+
+    /// <summary>Gets the CSS name of today's weather icon: <c>sun</c>, <c>rain</c>, <c>storm</c> or <c>snow</c>.</summary>
+    public string TodayKey => WeatherKey(this.Today);
+
+    /// <summary>Gets the CSS name of tomorrow's weather icon.</summary>
+    public string TomorrowKey => WeatherKey(this.Tomorrow);
+
+    /// <summary>Gets the localized name of today's weather.</summary>
+    public string TodayName => this.Text("Weather_" + this.Today);
+
+    /// <summary>Gets the localized forecast phrase for a screen reader and a tooltip, for example <c>Today: rain. Tomorrow: sun.</c></summary>
+    public string ForecastText => this.Text("Calendar_Forecast", this.TodayName, this.Text("Weather_" + this.Tomorrow));
+
     /// <summary>Gets the whole widget as one phrase for a screen reader.</summary>
     public string Summary => this.Text("Calendar_Summary", this.SeasonName, this.DayText, this.TimeText, this.YearText);
 
@@ -74,6 +93,8 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
         _channel.Changed -= this.OnLoaded;
         _tick.Dispose();
     }
+
+    private static string WeatherKey(WeatherKind weather) => weather.ToString().ToLowerInvariant();
 
     private GameDate Now() => _calendar is { } calendar ? calendar.At(_channel.ServerNowMs()) : default;
 
@@ -90,7 +111,7 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
             return;
         }
 
-        string now = this.Summary;
+        string now = this.Summary + "|" + this.ForecastText;
         if (string.Equals(now, _shown, StringComparison.Ordinal))
         {
             return;

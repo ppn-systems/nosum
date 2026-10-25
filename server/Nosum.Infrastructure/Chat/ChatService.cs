@@ -40,6 +40,7 @@ public sealed class ChatService : IChatService
     private readonly IBlockList _blocks;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
+    private readonly IChunkMap? _chunks;
     private readonly ConcurrentDictionary<Guid, ChatRateLimiter> _limiters = new();
     private readonly ConcurrentDictionary<Guid, Ring> _rings = new();
     private int _recorded;
@@ -52,7 +53,8 @@ public sealed class ChatService : IChatService
     /// <param name="blocks">The block lists.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The clock for the rate rule and message times; tests pass a fake one.</param>
-    public ChatService(IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IBlockList blocks, IUnitOfWorkFactory unitOfWork, TimeProvider time)
+    /// <param name="chunks">Who sees whom (docs/adr/ADR-022), for local chat; <see langword="null"/> sends local chat to the whole instance.</param>
+    public ChatService(IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IBlockList blocks, IUnitOfWorkFactory unitOfWork, TimeProvider time, IChunkMap? chunks = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(sessions);
@@ -69,6 +71,7 @@ public sealed class ChatService : IChatService
         _blocks = blocks;
         _unitOfWork = unitOfWork;
         _time = time;
+        _chunks = chunks;
     }
 
     /// <inheritdoc/>
@@ -222,7 +225,22 @@ public sealed class ChatService : IChatService
 
     // Local chat: the players near the sender. ADR-022 makes this the sender's chunk interest set; until the chunk publisher is on master it is
     // the whole map instance. This and CollectMap are the only places that decide who "nearby" is.
-    private void CollectLocal(PlayerPresence sender, List<Guid> into) => this.CollectInstance(sender, into);
+    // Local chat reaches the players in the sender's chunk interest set (docs/adr/ADR-029 D1, ADR-022); without a chunk index, the whole instance.
+    private void CollectLocal(PlayerPresence sender, List<Guid> into)
+    {
+        if (_chunks is null)
+        {
+            this.CollectInstance(sender, into);
+            return;
+        }
+
+        List<PlayerPresence> players = [];
+        _chunks.CopyVisiblePlayers(sender, players);
+        foreach (PlayerPresence player in players)
+        {
+            into.Add(player.AccountId);
+        }
+    }
 
     private void CollectMap(PlayerPresence sender, List<Guid> into) => this.CollectInstance(sender, into);
 

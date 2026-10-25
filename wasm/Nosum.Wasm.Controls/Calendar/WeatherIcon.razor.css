@@ -1,0 +1,7 @@
+.weather-icon {
+    display: inline-block;
+    flex: none;
+    width: calc(var(--u) * 6);
+    height: calc(var(--u) * 6);
+    image-rendering: pixelated;
+}

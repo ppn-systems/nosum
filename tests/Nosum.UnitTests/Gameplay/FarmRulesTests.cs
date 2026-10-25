@@ -92,8 +92,8 @@ public sealed class FarmRulesTests
     {
         FarmTile tile = Planted(CropCatalog.Parsnip, 1);
 
-        FarmRules.GrowthDaysAt(tile, Noon(40), s_calendar).Should().Be(0);
-        FarmRules.StageAt(tile, Noon(40), s_calendar).Should().Be(0);
+        FarmRules.GrowthDaysAt(tile, Noon(40), s_calendar, outdoors: false).Should().Be(0);
+        FarmRules.StageAt(tile, Noon(40), s_calendar, outdoors: false).Should().Be(0);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public sealed class FarmRulesTests
 
         FarmRules.GrowthDaysAt(tile, Noon(3), s_calendar).Should().Be(1, "day 1 has ended, day 3 has not");
         FarmRules.GrowthDaysAt(tile, Midnight(4), s_calendar).Should().Be(2);
-        FarmRules.GrowthDaysAt(tile, Noon(30), s_calendar).Should().Be(2, "a crop that is never watered again stops growing");
+        FarmRules.GrowthDaysAt(tile, Noon(30), s_calendar, outdoors: false).Should().Be(2, "a crop that is never watered again stops growing");
         FarmRules.StageAt(tile, Midnight(4), s_calendar).Should().Be(2);
     }
 
@@ -164,7 +164,7 @@ public sealed class FarmRulesTests
         FarmTile tile = WateredOn(FarmTile.Bare, 1);
         FarmRules.Plant(tile, CropCatalog.Parsnip, Noon(2), s_calendar, out FarmTile planted);
 
-        FarmRules.GrowthDaysAt(planted, Midnight(30), s_calendar).Should().Be(0);
+        FarmRules.GrowthDaysAt(planted, Midnight(30), s_calendar, outdoors: false).Should().Be(0, "indoors no rain waters it");
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public sealed class FarmRulesTests
     [Fact]
     public void CropCatalog_Crops_NeedTheDocumentedWateredDays()
     {
-        CropCatalog.All.Select(c => (c.Key, c.TotalGrowthDays)).Should().Equal(("parsnip", 4), ("radish", 6), ("cauliflower", 12));
+        CropCatalog.All.Take(3).Select(c => (c.Key, c.TotalGrowthDays)).Should().Equal(("parsnip", 4), ("radish", 6), ("cauliflower", 12));
     }
 
     [Fact]
@@ -325,11 +325,11 @@ public sealed class FarmRulesTests
 
     [Fact]
     public void Plant_CropOutOfSeason_IsRefused()
-        => FarmRules.Plant(FarmTile.Bare, CropCatalog.Radish, s_calendar.EpochMs, s_calendar, out _).Should().Be(FarmVerdict.OutOfSeason);
+        => FarmRules.Plant(FarmTile.Bare, CropCatalog.Tomato, s_calendar.EpochMs, s_calendar, out _).Should().Be(FarmVerdict.OutOfSeason);
 
     [Fact]
     public void Plant_CropInSeason_IsAllowed()
-        => FarmRules.Plant(FarmTile.Bare, CropCatalog.Radish, s_summer, s_calendar, out _).Should().Be(FarmVerdict.Ok);
+        => FarmRules.Plant(FarmTile.Bare, CropCatalog.Tomato, s_summer, s_calendar, out _).Should().Be(FarmVerdict.Ok);
 
     [Fact]
     public void Plant_OnTheFirstMomentOfASeason_UsesThatSeason()

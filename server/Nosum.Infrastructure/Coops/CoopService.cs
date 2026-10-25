@@ -20,7 +20,11 @@ using Nosum.Contracts.Coop;
 using Nosum.Contracts.Coop.S2C;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
+using Nosum.Domain.Inventory;
+using Nosum.Domain.Placeables;
 using Nosum.Gameplay.Coops;
+using Nosum.Gameplay.Inventory;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Mail;
 using Nosum.Gameplay.Maps;
 
@@ -363,7 +367,8 @@ public sealed class CoopService : ICoopService, IDisposable
                         // The longest-standing member takes over.
                         others[0].Role = CoopRole.Founder;
                     }
-                    else if (await unit.Repository<CoopStockItem>().AnyAsync(s => s.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false))
+                    else if (await unit.Repository<CoopStockItem>().AnyAsync(s => s.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false)
+                        || await this.LandHoldsItemsAsync(unit, me.CoopId, cancellationToken).ConfigureAwait(false))
                     {
                         return CoopStatus.CannotLeave;
                     }
@@ -596,7 +601,17 @@ public sealed class CoopService : ICoopService, IDisposable
         }
     }
 
-    // A dissolved co-op's land is wiped with the co-op (docs/adr/ADR-020 D6): the plots go in the same transaction as the co-op row.
+    // Items must not vanish with the land (docs/adr/ADR-024): a co-op whose chests hold items, or whose furnaces hold a job, is not dissolved, like one whose warehouse holds items.
+    private async Task<bool> LandHoldsItemsAsync(IUnitOfWork unit, Guid coopId, CancellationToken cancellationToken)
+    {
+        List<PlacedObject> pieces = await unit.Repository<PlacedObject>().ListAsync(p => p.OwnerId == coopId, cancellationToken).ConfigureAwait(false);
+        int[] furnaces = [.. pieces.Where(p => p.ItemId == ItemCatalog.Furnace).Select(p => p.Id)];
+        Guid[] chests = [.. pieces.Where(p => p.ItemId == ItemCatalog.Chest).Select(p => ContainerIds.ForChest(p.Id))];
+        return (chests.Length > 0 && await unit.Repository<InventorySlot>().AnyAsync(s => chests.Contains(s.PlayerId), cancellationToken).ConfigureAwait(false))
+            || (furnaces.Length > 0 && await unit.Repository<FurnaceJob>().AnyAsync(j => furnaces.Contains(j.ObjectId), cancellationToken).ConfigureAwait(false));
+    }
+
+    // A dissolved co-op's land is wiped with the co-op (docs/adr/ADR-020 D6): the plots, the placed objects (their furnace jobs go by cascade) and the empty chests' inventories go in the same transaction as the co-op row.
     private async Task<List<MapInstance>> WipeLandAsync(IUnitOfWork unit, Guid coopId, CancellationToken cancellationToken)
     {
         List<MapInstance> wiped = [];
@@ -611,6 +626,17 @@ public sealed class CoopService : ICoopService, IDisposable
             foreach (FarmPlot plot in await plots.ListAsync(p => p.MapId == spec.Id && p.OwnerId == coopId, cancellationToken).ConfigureAwait(false))
             {
                 plots.Remove(plot);
+            }
+
+            IRepository<PlacedObject> pieces = unit.Repository<PlacedObject>();
+            foreach (PlacedObject piece in await pieces.ListAsync(p => p.MapId == spec.Id && p.OwnerId == coopId, cancellationToken).ConfigureAwait(false))
+            {
+                if (piece.ItemId == ItemCatalog.Chest && await unit.Repository<PlayerInventory>().FindAsync(ContainerIds.ForChest(piece.Id), cancellationToken).ConfigureAwait(false) is { } header)
+                {
+                    unit.Repository<PlayerInventory>().Remove(header);
+                }
+
+                pieces.Remove(piece);
             }
 
             wiped.Add(MapInstance.OfCoop(spec.Id, coopId));

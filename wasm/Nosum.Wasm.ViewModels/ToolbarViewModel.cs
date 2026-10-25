@@ -44,12 +44,21 @@ public enum PanelKind
     Visitors = 10,
 
     /// <summary>The friends page: friends, requests, the friends-may-visit switch and the block list (docs/adr/ADR-029).</summary>
-    Friends = 12,
+    Friends = 15,
 
     /// <summary>The mail page (docs/adr/ADR-029).</summary>
-    Mail = 13,
+    Mail = 16,
     /// <summary>The skills page: energy and the three skill levels (docs/adr/ADR-023).</summary>
     Skills = 11,
+
+    /// <summary>The crafting page (docs/adr/ADR-024).</summary>
+    Crafting = 12,
+
+    /// <summary>The open chest (docs/adr/ADR-024); not a toolbar tab, it shows while a chest is open.</summary>
+    Chest = 13,
+
+    /// <summary>The furnace (docs/adr/ADR-024); not a toolbar tab, it shows while a furnace is open.</summary>
+    Furnace = 14,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -93,6 +102,7 @@ public sealed class ToolbarViewModel : PanelViewModel
     [
         new ToolbarItem(PanelKind.Inventory, this.Text("Toolbar_Inventory"), "I", "tab-inventory"),
         new ToolbarItem(PanelKind.Wardrobe, this.Text("Toolbar_Wardrobe"), "C", "tab-wardrobe"),
+        new ToolbarItem(PanelKind.Crafting, this.Text("Toolbar_Crafting"), string.Empty, "tab-shop"),
         new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), "M", "tab-market"),
         new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T", "tab-trade"),
         new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G", "tab-coop"),
@@ -103,6 +113,12 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N", "tab-profile"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), "H", "tab-settings"),
     ];
+
+    /// <summary>Gets the tab shown while a chest is open.</summary>
+    public ToolbarItem ChestItem => new(PanelKind.Chest, this.Text("Chest_Title"), string.Empty, "tab-inventory");
+
+    /// <summary>Gets the tab shown while a furnace is open.</summary>
+    public ToolbarItem FurnaceItem => new(PanelKind.Furnace, this.Text("Furnace_Title"), string.Empty, "tab-market");
 
     /// <summary>Gets the shop tab, shown only while a shop is open (opened at its counter, not from the menu).</summary>
     public ToolbarItem ShopItem => new(PanelKind.Shop, this.Text("Toolbar_Shop"), string.Empty, "tab-shop");

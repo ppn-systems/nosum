@@ -29,8 +29,9 @@ public readonly record struct NodeSite(int X, int Y, NodeKind Kind, byte Variant
 /// <item><term>22</term><description>grass strokes → <see cref="NodeKind.Grass"/></description></item>
 /// </list>
 /// <para>
-/// Every other index is ignored on purpose: 0-8, 20, 21, 23 and 36 (spawn areas, a meteor, a stump or log clump and animal markers that need
-/// resource clumps Nosum does not have), 12, 31, 32 and 34 (palm and other tree species), 24-27 and 35 (forage and fish spots, no forage yet), 19 (a large log) and 28-30, 33 (monster, fence and other markers).
+/// Every other index is ignored by <see cref="Read"/> on purpose: 0-8, 20, 21, 23 and 36 (spawn areas, a meteor, a stump or log clump and animal markers that need
+/// resource clumps Nosum does not have), 12, 31, 32 and 34 (palm and other tree species), 27 and 35 (fish spots and a random marker), 19 (a large log) and 28-30, 33 (monster, fence and other markers).
+/// Indices 24, 25 and 26 mark where something is foraged; <see cref="ReadForage"/> reads them for the daily forage spawn (docs/adr/ADR-025 D4).
 /// </para>
 /// </summary>
 public static class NodeSites
@@ -40,6 +41,11 @@ public static class NodeSites
 
     /// <summary>Name of the tile set the markers come from.</summary>
     public const string TileSetName = "Paths";
+
+    /// <summary>Tells whether a <c>Paths</c> tile index marks a forage spot (the three flower and berry glyphs of the sheet's sixth row).</summary>
+    /// <param name="index">Tile index within the <c>Paths</c> sheet.</param>
+    /// <returns><see langword="true"/> for indices 24, 25 and 26.</returns>
+    public static bool IsForageIndex(int index) => index is 24 or 25 or 26;
 
     /// <summary>Maps a <c>Paths</c> tile index to what it stands for.</summary>
     /// <param name="index">Tile index within the <c>Paths</c> sheet (gid minus the set's first gid).</param>
@@ -119,6 +125,49 @@ public static class NodeSites
                 if (index >= 0 && index < tileCount && TryMap(index, out NodeKind kind, out byte variant))
                 {
                     sites.Add(new NodeSite(x, y, kind, variant));
+                }
+            }
+        }
+
+        return sites;
+    }
+
+    /// <summary>Reads the forage spots of a map, row by row (docs/adr/ADR-025 D4).</summary>
+    /// <param name="map">The parsed map.</param>
+    /// <returns>The spots as <see cref="NodeKind.Forage"/> sites with variant zero; empty when the map has no <c>Paths</c> layer or tile set.</returns>
+    public static List<NodeSite> ReadForage(TileMap map)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+
+        List<NodeSite> sites = [];
+        if (map.FindLayer(LayerName) is not TileLayer layer)
+        {
+            return sites;
+        }
+
+        TileSet? paths = null;
+        foreach (TileSet set in map.TileSets)
+        {
+            if (string.Equals(set.Name, TileSetName, StringComparison.Ordinal))
+            {
+                paths = set;
+                break;
+            }
+        }
+
+        if (paths is null)
+        {
+            return sites;
+        }
+
+        for (int y = 0; y < map.Height; y++)
+        {
+            for (int x = 0; x < map.Width; x++)
+            {
+                int index = layer.Gids[(y * map.Width) + x] - paths.FirstGid;
+                if (index >= 0 && index < paths.TileCount && IsForageIndex(index))
+                {
+                    sites.Add(new NodeSite(x, y, NodeKind.Forage, 0));
                 }
             }
         }

@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), resource nodes and tools (Nodes/), the server calendar and seasons (Calendar/), placeable objects (Placeables/), ground items (GroundItems/)
+│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), resource nodes and tools (Nodes/), the server calendar and seasons (Calendar/), placeable objects, sprinklers, furnaces and chest rules (Placeables/), recipes (Crafting/), ground items (GroundItems/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -62,7 +62,7 @@ Nosum.Abstractions      → Domain, Contracts
 Nosum.Infrastructure    → Abstractions, Nalix.Runtime          (groups, sending to connections)
 Nosum.Handlers          → Abstractions, Nalix.Runtime          (never Infrastructure)
 Nosum.Host              → Handlers, Infrastructure, Nalix.Hosting
-Nosum.Wasm.Socket       → Contracts, Nalix.SDK
+Nosum.Wasm.Socket       → Contracts, Gameplay, Nalix.SDK        (Gameplay for the chunk math that files client mirrors)
 Nosum.Wasm.ViewModels   → Wasm.Socket, Gameplay                (catalogue keys: item, crop and quest ids to localization keys)
 Nosum.Wasm.Controls     → Wasm.ViewModels                      (reusable Razor controls; no socket, no text of their own)
 Nosum.Wasm              → Wasm.Controls, Wasm.ViewModels, Wasm.Socket, Contracts, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
@@ -111,7 +111,7 @@ Multiplayer movement follows that rule ([ADR-008](docs/adr/ADR-008-snapshot-move
 ```text
 client frame loop ──Report(x,y,facing,moving)──► PlayerChannel timer ──MoveIntent @10 Hz──► PlayerHandlers
                                                                                                 │ IPlayerService → MoveValidator (Nosum.Gameplay)
-client SnapshotBuffer ◄── RemotePlayers ◄── MapSnapshot @10 Hz ◄── PlayerService loop ◄── IMapPresence (one Nalix group per map)
+client SnapshotBuffer ◄── RemotePlayers ◄── MapSnapshot @10 Hz ◄── PlayerService loop ◄── IMapPresence (who is on the instance) + chunks (who is in whose interest set, path 3b)
 ```
 
 Socket callbacks write into the buffer, the frame reads from it: no await and no allocation in the frame.
@@ -142,7 +142,29 @@ placed furniture. `PlayerService` enters a player into their own copy of a priva
 ```text
 client E/R/F/Q in the farmhouse ──PlaceObject / MoveObject / PickUpObject──► PlaceableService (owner of the instance, reach, free footprint, item in the slot)
                                                                               │ inventory change + placed_objects row: one transaction
-client PlaceableChannel ◄── PlacedChanged ◄── IMapPresence (the instance's group) ◄─┘      PlayerService validates movement on IInstanceWorld.GridFor(instance)
+client PlaceableChannel ◄── PlacedChanged ◄── IChunkPublisher (the object's chunk) ◄─┘      PlayerService validates movement on IInstanceWorld.GridFor(instance)
+```
+
+## Runtime path 3b — chunks: who is sent what
+
+A map instance is cut into 16 × 16 tile chunks and a player is interested in their chunk and its 8 neighbours, with one chunk of hysteresis ([ADR-022](docs/adr/ADR-022-chunked-interest-management.md)).
+Snapshots and world events go only to the players whose interest set contains the place they concern:
+
+```text
+PlayerService snapshot loop (10 Hz, one pass per instance)
+  read every position ─► chunk of each player ─► moved chunk? ─► IChunkMap.Relocate ─► ChunkLeft / ChunkState (IChunkStateContributor: farm plots, placed objects, ...) to that player
+  sort players by chunk ─► each receiver: MapSnapshot of the players in their chunks · LookChanged (spawn) / PlayerLeft (despawn) for who came into or left sight
+farm / placeable change ─► IChunkPublisher.PublishAsync(instance, chunk, packet) ─► the chunk's subscribers (IChunkMap) · map-wide only: PublishInstanceAsync
+client FarmChannel / PlaceableChannel: one mirror, filed by chunk; ChunkState replaces a chunk, ChunkLeft drops it
+```
+
+Crafting and crafted objects ([ADR-024](docs/adr/ADR-024-crafting-and-outdoor-placeables.md)) reuse that path: the farm and co-op land are placeable too, and a chest is one more inventory owner, so moving items in and out is the same atomic, audited inventory change:
+
+```text
+client ──Craft(recipe, n)──► CraftingService ──ISkillLevels──► IInventoryService.ApplyAsync: inputs out, outputs in (one transaction)
+client ──PlaceObject (chest, fence, furnace ...)──► PlaceableService: PlacedSet.Check + IGroundLayers (IFarmTiles, INodeTiles) ──► PlacedTiles index ──► FarmService / nodes / growth read it
+client ──OpenChest / ChestMove──► ChestService ──ApplyManyAsync [player, ContainerIds.ForChest(id)] + chest_log──► ChestUpdate to the viewers
+client ──StartSmelting / CollectFurnace──► FurnaceService ──furnace_jobs row + inventory change; ready = FurnaceRules.StateOf(start, now)
 ```
 
 Resource nodes follow the same instance rule ([ADR-021](docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): the trees, stones, twigs, weeds and grass of an instance are server state
@@ -169,10 +191,10 @@ handler (identity from the connection) ─► IMarketService / ITradeService / I
                                               ▼
                                        ITransferService ─► IInventoryService.ApplyManyAsync
                                               locks every involved player (stripe order) · one unit of work · one SaveChanges · audit rows
-                                              ▼ pushes: InventoryUpdate, WalletUpdate · CoopSnapshot · LookChanged (to the map group) · TradeState
+                                              ▼ pushes: InventoryUpdate, WalletUpdate · CoopSnapshot · LookChanged (to the players who can see the player) · TradeState
 ```
 
-Looks travel as ids (`LookChanged`, `LooksSnapshot`) to everyone on the map and are resolved by the client's `LookPalette`; the player's nickname rides in the same row (cached by map player id, drawn by the engine as a pre-rendered label); shop purchases (`BuyFromShop`) are one transfer like the others; the market fee leaves through `IFeeSink` (a coin sink); trade and co-op invitations address a player by their id on the map and find them through `IMapPresence`.
+Looks travel as ids (`LookChanged`, `LooksSnapshot`) to the players who can see the player (chunk interest, ADR-022) and are resolved by the client's `LookPalette`; the player's nickname rides in the same row (cached by map player id, drawn by the engine as a pre-rendered label); shop purchases (`BuyFromShop`) are one transfer like the others; the market fee leaves through `IFeeSink` (a coin sink); trade and co-op invitations address a player by their id on the map and find them through `IMapPresence`.
 
 ## Runtime path 5 — items on the ground
 

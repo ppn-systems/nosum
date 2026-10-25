@@ -28,6 +28,9 @@ public enum NodeKind : byte
 
     /// <summary>Tall grass; never blocks walking.</summary>
     Grass = 7,
+
+    /// <summary>A foraged item lying in the open (docs/adr/ADR-025 D4); <see cref="ResourceNode.Variant"/> is its <see cref="ForageCatalog"/> entry; it never blocks walking and any hand picks it up.</summary>
+    Forage = 8,
 }
 
 /// <summary>Tree species, the values of <see cref="ResourceNode.Variant"/>. They are also the art: oak is <c>tree1</c>, maple <c>tree2</c>, pine <c>tree3</c> in the placeholder sheets.</summary>

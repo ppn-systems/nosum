@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nosum.Contracts.Placeable;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
 
 namespace Nosum.Abstractions.Placeables;
@@ -21,6 +22,13 @@ public interface IPlaceableService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The map id and the objects; an empty map id when the player is on no placeable map.</returns>
     Task<PlacedSnapshotView> GetAsync(IConnection connection, CancellationToken cancellationToken = default);
+
+    /// <summary>Finds a placed object of an instance by id.</summary>
+    /// <param name="instance">The place.</param>
+    /// <param name="objectId">Object id.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The object; <see langword="null"/> when the instance has no such object or its map allows none.</returns>
+    Task<PlacedItem?> FindAsync(MapInstance instance, int objectId, CancellationToken cancellationToken = default);
 
     /// <summary>Places the item in an inventory slot.</summary>
     /// <param name="connection">The player's connection.</param>

@@ -17,6 +17,28 @@ namespace Nosum.Gameplay.Placeables;
 /// <param name="FlipX">Whether the sprite is drawn mirrored.</param>
 public readonly record struct PlaceableView(int SourceX, int SourceY, int Width, int Height, int FootprintWidth, int FootprintHeight, bool FlipX = false);
 
+/// <summary>What a placeable does. Furniture is decoration; the rest are the crafted objects of docs/adr/ADR-024.</summary>
+public enum PlaceableKind : byte
+{
+    /// <summary>Decoration with no behaviour (furniture, a scarecrow until crows exist).</summary>
+    Decoration = 0,
+
+    /// <summary>A storage chest with its own inventory (36 slots).</summary>
+    Chest = 1,
+
+    /// <summary>A fence piece: blocks walking.</summary>
+    Fence = 2,
+
+    /// <summary>A path tile: decorative, walked over.</summary>
+    Path = 3,
+
+    /// <summary>A sprinkler: waters the four tiles around it each game day.</summary>
+    Sprinkler = 4,
+
+    /// <summary>A furnace: smelts ore and coal into bars over game time.</summary>
+    Furnace = 5,
+}
+
 /// <summary>
 /// A thing a player may put on the ground of a placeable map: it is made from an inventory item
 /// (<see cref="ItemId"/>), has one view per rotation and a footprint that blocks walking. Furniture is the first kind;
@@ -29,9 +51,11 @@ public sealed class PlaceableDefinition
     /// <summary>Initializes a definition.</summary>
     /// <param name="itemId">The inventory item that is consumed when it is placed and returned when it is picked up.</param>
     /// <param name="sheet">Name of the sheet the art is on (a file in <c>TileSheets/</c>, without extension).</param>
+    /// <param name="lightRadius">Radius, in pixels, of the light the piece gives at night (docs/adr/ADR-027 D5); zero for a piece that gives none.</param>
     /// <param name="views">One view per rotation (clockwise from facing down), or a single view for a piece that does not rotate.</param>
-    public PlaceableDefinition(int itemId, string sheet, params PlaceableView[] views)
+    public PlaceableDefinition(int itemId, string sheet, int lightRadius, params PlaceableView[] views)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(lightRadius);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(itemId);
         ArgumentException.ThrowIfNullOrEmpty(sheet);
         ArgumentNullException.ThrowIfNull(views);
@@ -48,7 +72,17 @@ public sealed class PlaceableDefinition
 
         this.ItemId = itemId;
         this.Sheet = sheet;
+        this.LightRadius = lightRadius;
         _views = views;
+    }
+
+    /// <summary>Initializes a definition that gives no light.</summary>
+    /// <param name="itemId">The inventory item that is consumed when it is placed and returned when it is picked up.</param>
+    /// <param name="sheet">Name of the sheet the art is on.</param>
+    /// <param name="views">One view per rotation, or a single view.</param>
+    public PlaceableDefinition(int itemId, string sheet, params PlaceableView[] views)
+        : this(itemId, sheet, 0, views)
+    {
     }
 
     /// <summary>Gets the inventory item this is made from.</summary>
@@ -56,6 +90,15 @@ public sealed class PlaceableDefinition
 
     /// <summary>Gets the sheet name (a file in <c>TileSheets/</c>, without extension).</summary>
     public string Sheet { get; }
+
+    /// <summary>Gets the radius, in pixels, of the light this piece gives in the night tint; zero when it gives none.</summary>
+    public int LightRadius { get; }
+
+    /// <summary>Gets what the piece does; <see cref="PlaceableKind.Decoration"/> by default.</summary>
+    public PlaceableKind Kind { get; init; }
+
+    /// <summary>Gets whether the footprint blocks walking; a path does not, everything else does.</summary>
+    public bool BlocksWalking { get; init; } = true;
 
     /// <summary>Gets how many rotations are valid: 1 or 4.</summary>
     public int Rotations => _views.Length;

@@ -1,0 +1,49 @@
+@using System.Threading
+@using Nosum.Contracts.Placeable
+@using Nosum.Wasm.ViewModels.Furnace
+@using Nosum.Wasm.Controls.Menu
+@inherits ObservingComponent<FurnaceViewModel>
+
+@* The furnace page: what it is doing (with a once-a-second countdown), the ores a batch can start with, and the collect button when a bar is ready. *@
+<MenuPage Status="@Vm.Status">
+    <GameStack>
+        <GameSection Title="@Vm.Text("Furnace_Title")">
+            <p class="furnace-line">@Vm.StateText</p>
+            @if (Vm.State == FurnaceStateCode.Ready)
+            {
+                <GameButton Text="@Vm.CollectLabel" OnClick="@(() => Vm.Collect())" />
+            }
+            else
+            {
+                @foreach (OreChoice ore in Vm.Ores)
+                {
+                    int itemId = ore.Item.ItemId;
+                    <GameRow Class="center">
+                        <ItemSlotButton Slot="@ore.Item" />
+                        <GameButton Text="@ore.Label" Disabled="@(!ore.CanStart)" OnClick="@(() => Vm.Start(itemId))" />
+                    </GameRow>
+                }
+            }
+        </GameSection>
+    </GameStack>
+</MenuPage>
+
+@code {
+    private Timer? _tick;
+
+    protected override void OnInitialized()
+    {
+        // The countdown is computed on the client from the server's remaining time; one redraw a second is enough.
+        _tick = new Timer(_ => _ = InvokeAsync(StateHasChanged), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _tick?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+}

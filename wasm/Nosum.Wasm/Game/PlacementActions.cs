@@ -75,9 +75,10 @@ internal sealed class PlacementActions
     /// <param name="feetX">Farmer's feet x, world pixels (a piece is not placed under them).</param>
     /// <param name="feetY">Farmer's feet y, world pixels.</param>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
-    public void Update(bool active, InputEdges edges, int targetX, int targetY, Facing facing, PlacedSet placedSet, WalkGrid mapGrid, double feetX, double feetY, double nowSeconds)
+    /// <param name="alwaysShowPanel">Whether the arrange key strip is always shown (a room) rather than only while a piece is held or carried (the farm, so tools keep the screen clean).</param>
+    public void Update(bool active, InputEdges edges, int targetX, int targetY, Facing facing, PlacedSet placedSet, WalkGrid mapGrid, double feetX, double feetY, double nowSeconds, bool alwaysShowPanel = true)
     {
-        _view.SetActive(active);
+        _view.SetActive(active && (alwaysShowPanel || this.CarryingId != 0 || PlaceableCatalog.TryGet(_inventory.SlotAt(_inventory.SelectedSlot).ItemId, out _)));
         if (!active)
         {
             this.CarryingId = 0;
