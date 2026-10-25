@@ -71,8 +71,9 @@ public sealed class RequestsViewModel : PanelViewModel, IDisposable
                 return string.Empty;
             }
 
-            TimeSpan left = TimeSpan.FromMilliseconds(Math.Max(0, info.DayEndsAtMs - _calendar.ServerNowMs()));
-            return this.Text("Requests_NewIn", (int)left.TotalHours, left.Minutes);
+            // Rounded up to the minute: "0 h 0 min" would be shown for a whole minute otherwise.
+            int minutes = (int)Math.Ceiling(Math.Max(0, info.DayEndsAtMs - _calendar.ServerNowMs()) / 60_000.0);
+            return this.Text("Requests_NewIn", minutes / 60, minutes % 60);
         }
     }
 

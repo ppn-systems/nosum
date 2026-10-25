@@ -77,7 +77,7 @@ public sealed class CatalogTests
     [Fact]
     public void QuestDefinition_Apply_CapsAtTheTargetAndIgnoresOtherEvents()
     {
-        QuestDefinition quest = new(99, "test", new QuestObjective(QuestEventKind.CropPlanted, CropCatalog.Parsnip, 2));
+        QuestDefinition quest = new(99, "test", 0, new QuestObjective(QuestEventKind.CropPlanted, CropCatalog.Parsnip, 2));
         int[] progress = [0];
 
         quest.Apply(progress, new QuestEvent(QuestEventKind.CropPlanted, CropCatalog.Radish)).Should().BeFalse();
