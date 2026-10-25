@@ -20,6 +20,7 @@ using Nosum.Contracts.Inventory;
 using Nosum.Domain.Farm;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Inventory;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Quests;
 using Nosum.Infrastructure.Concurrency;
@@ -29,7 +30,7 @@ namespace Nosum.Infrastructure.Farm;
 /// <summary>
 /// <see cref="IFarmService"/>: validates a player's action with <see cref="FarmRules"/>, changes the
 /// tile and the player's items in one transaction (through <see cref="IInventoryService"/>), then
-/// tells everyone on the map and the quest service. The tilled tiles of a map are kept in memory after
+/// tells everyone in the same instance and the quest service. The farm is private per player (docs/adr/ADR-015): the tiles belong to an instance (map plus owner), never to the map alone. The tilled tiles of an instance are kept in memory after
 /// the first read and written through to PostgreSQL; the server is a single process (docs/adr/ADR-009).
 /// Crops are never simulated: growth is computed from the stored timestamps (docs/adr/ADR-003 D4).
 /// </summary>
@@ -110,12 +111,12 @@ public sealed class FarmService : IFarmService
         }
 
         Guid playerId = player.AccountId;
-        MapFarm farm = await this.FarmOfAsync(map.Id, cancellationToken).ConfigureAwait(false);
+        MapFarm farm = await this.FarmOfAsync(player.Instance, cancellationToken).ConfigureAwait(false);
         FarmTile changedTile;
         FarmAction action;
         QuestEvent? report;
 
-        using (await _mapLocks.EnterAsync(map.Id, cancellationToken).ConfigureAwait(false))
+        using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
             FarmTile? current = farm.Tiles.TryGetValue((tileX, tileY), out FarmTile found) ? found : null;
@@ -127,7 +128,7 @@ public sealed class FarmService : IFarmService
                 return Refused(ToStatus(plan.Verdict));
             }
 
-            FarmStatus status = await this.CommitAsync(playerId, map.Id, tileX, tileY, plan, cancellationToken).ConfigureAwait(false);
+            FarmStatus status = await this.CommitAsync(playerId, player.Instance, tileX, tileY, plan, cancellationToken).ConfigureAwait(false);
             if (status != FarmStatus.Ok)
             {
                 return Refused(status);
@@ -139,7 +140,7 @@ public sealed class FarmService : IFarmService
             report = plan.Report;
         }
 
-        await this.PushTileAsync(map.Id, tileX, tileY, changedTile, cancellationToken).ConfigureAwait(false);
+        await this.PushTileAsync(player.Instance, tileX, tileY, changedTile, cancellationToken).ConfigureAwait(false);
         await this.ReportAsync(playerId, report, cancellationToken).ConfigureAwait(false);
         return new FarmUseOutcome(FarmStatus.Ok, action);
     }
@@ -155,8 +156,8 @@ public sealed class FarmService : IFarmService
             return new FarmSnapshotView(string.Empty, nowMs, []);
         }
 
-        MapFarm farm = await this.FarmOfAsync(map.Id, cancellationToken).ConfigureAwait(false);
-        using (await _mapLocks.EnterAsync(map.Id, cancellationToken).ConfigureAwait(false))
+        MapFarm farm = await this.FarmOfAsync(player.Instance, cancellationToken).ConfigureAwait(false);
+        using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
             List<FarmTileView> tiles = new(farm.Tiles.Count);
             foreach (KeyValuePair<(int X, int Y), FarmTile> tile in farm.Tiles)
@@ -252,7 +253,7 @@ public sealed class FarmService : IFarmService
     };
 
     // Writes the tile and the items in one transaction.
-    private async Task<FarmStatus> CommitAsync(Guid playerId, string mapId, int x, int y, Plan plan, CancellationToken cancellationToken)
+    private async Task<FarmStatus> CommitAsync(Guid playerId, MapInstance instance, int x, int y, Plan plan, CancellationToken cancellationToken)
     {
         if (plan.Operations.Count > 0)
         {
@@ -262,7 +263,7 @@ public sealed class FarmService : IFarmService
                 plan.Reason,
                 async (unit, ct) =>
                 {
-                    await this.UpsertAsync(unit, playerId, mapId, x, y, plan.Next, ct).ConfigureAwait(false);
+                    await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, ct).ConfigureAwait(false);
                     return true;
                 },
                 cancellationToken).ConfigureAwait(false);
@@ -272,20 +273,20 @@ public sealed class FarmService : IFarmService
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            await this.UpsertAsync(unit, playerId, mapId, x, y, plan.Next, cancellationToken).ConfigureAwait(false);
+            await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, cancellationToken).ConfigureAwait(false);
             _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         return FarmStatus.Ok;
     }
 
-    private async Task UpsertAsync(IUnitOfWork unit, Guid playerId, string mapId, int x, int y, FarmTile tile, CancellationToken cancellationToken)
+    private async Task UpsertAsync(IUnitOfWork unit, Guid playerId, MapInstance instance, int x, int y, FarmTile tile, CancellationToken cancellationToken)
     {
         IRepository<FarmPlot> plots = unit.Repository<FarmPlot>();
-        FarmPlot? row = await plots.FirstOrDefaultAsync(p => p.MapId == mapId && p.X == x && p.Y == y, cancellationToken).ConfigureAwait(false);
+        FarmPlot? row = await plots.FirstOrDefaultAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId && p.X == x && p.Y == y, cancellationToken).ConfigureAwait(false);
         if (row is null)
         {
-            row = new FarmPlot { MapId = mapId, X = x, Y = y };
+            row = new FarmPlot { MapId = instance.MapId, OwnerId = instance.OwnerId, X = x, Y = y };
             plots.Add(row);
         }
 
@@ -299,27 +300,28 @@ public sealed class FarmService : IFarmService
     }
 
     // Loads a map's tilled tiles once; a failed load is forgotten so the next call tries again.
-    private async Task<MapFarm> FarmOfAsync(string mapId, CancellationToken cancellationToken)
+    private async Task<MapFarm> FarmOfAsync(MapInstance instance, CancellationToken cancellationToken)
     {
-        Task<MapFarm> load = _farms.GetOrAdd(mapId, this.LoadFarmAsync);
+        string key = instance.Key;
+        Task<MapFarm> load = _farms.GetOrAdd(key, _ => this.LoadFarmAsync(instance));
         try
         {
             return await load.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception) when (load.IsFaulted)
         {
-            _ = _farms.TryRemove(new KeyValuePair<string, Task<MapFarm>>(mapId, load));
+            _ = _farms.TryRemove(new KeyValuePair<string, Task<MapFarm>>(key, load));
             throw;
         }
     }
 
-    private async Task<MapFarm> LoadFarmAsync(string mapId)
+    private async Task<MapFarm> LoadFarmAsync(MapInstance instance)
     {
         MapFarm farm = new();
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            List<FarmPlot> rows = await unit.Repository<FarmPlot>().ListAsync(p => p.MapId == mapId, CancellationToken.None).ConfigureAwait(false);
+            List<FarmPlot> rows = await unit.Repository<FarmPlot>().ListAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId, CancellationToken.None).ConfigureAwait(false);
             foreach (FarmPlot row in rows)
             {
                 farm.Tiles[(row.X, row.Y)] = new FarmTile(row.CropId, row.PlantedAtMs, row.GrowthMs, row.SettledAtMs, row.WetUntilMs);
@@ -329,15 +331,15 @@ public sealed class FarmService : IFarmService
         return farm;
     }
 
-    private async Task PushTileAsync(string mapId, int x, int y, FarmTile tile, CancellationToken cancellationToken)
+    private async Task PushTileAsync(MapInstance instance, int x, int y, FarmTile tile, CancellationToken cancellationToken)
     {
         using PacketScope<FarmTilesChanged> lease = PacketFactory<FarmTilesChanged>.Acquire();
         FarmTilesChanged packet = lease.Value;
-        packet.MapId = mapId;
+        packet.MapId = instance.MapId;
         packet.ServerNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
         packet.Tiles.Clear();
         packet.Tiles.Add(ToRow(x, y, tile));
-        await _presence.MulticastAsync(mapId, packet, null, cancellationToken).ConfigureAwait(false);
+        await _presence.MulticastAsync(instance.Key, packet, null, cancellationToken).ConfigureAwait(false);
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "The action is committed and pushed; a failing quest update must not turn it into an error reply.")]

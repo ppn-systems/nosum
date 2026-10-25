@@ -11,7 +11,7 @@ internal sealed class FarmPlotConfiguration : IEntityTypeConfiguration<FarmPlot>
     public void Configure(EntityTypeBuilder<FarmPlot> builder)
     {
         _ = builder.ToTable("farm_plots");
-        _ = builder.HasKey(p => new { p.MapId, p.X, p.Y });
+        _ = builder.HasKey(p => new { p.MapId, p.OwnerId, p.X, p.Y });
         _ = builder.Property(p => p.MapId).HasMaxLength(64).IsRequired();
     }
 }

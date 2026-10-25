@@ -45,7 +45,7 @@ namespace Nosum.IntegrationTests.Server;
 
 /// <summary>
 /// Farming over real Nalix WebSocket sessions against the real host and a real PostgreSQL database:
-/// till, plant, water, fast-forward the server clock, harvest, and a second player on the map seeing every tile change.
+/// till, plant, water, fast-forward the server clock, harvest, and a second player on their own farm seeing none of it.
 /// </summary>
 [Collection(NalixHostSerial.Name)]
 public sealed class FarmWireTests : IClassFixture<PostgresFixture>
@@ -58,7 +58,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
     public FarmWireTests(PostgresFixture database) => _database = database;
 
     [Fact]
-    public async Task Farming_TillPlantWaterWaitHarvest_PutsTheCropInTheInventoryAndShowsEveryStepToTheOtherPlayer()
+    public async Task Farming_TillPlantWaterWaitHarvest_PutsTheCropInTheInventoryAndStaysOnThePlayersOwnFarm()
     {
         await ResetFarmAsync();
         FakeTimeProvider clock = new(s_start);
@@ -86,8 +86,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             // Till: the farmer is told, and the neighbour sees the tile.
             UseItemResult tilled = await farmer.UseAsync(0, x, y, timeout.Token);
             tilled.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Tilled });
-            FarmTileRow seenTilled = await neighbour.WaitForTileAsync(x, y, _ => true, timeout.Token);
-            seenTilled.CropId.Should().Be(0);
+            await farmer.WaitForTileAsync(x, y, _ => true, timeout.Token);
 
             // Tilling twice is refused.
             (await farmer.UseAsync(0, x, y, timeout.Token)).Status.Should().Be(FarmStatus.AlreadyTilled);
@@ -95,7 +94,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             // Plant a parsnip seed: one seed leaves the stack, the pushed update says so.
             UseItemResult planted = await farmer.UseAsync(2, x, y, timeout.Token);
             planted.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Planted });
-            FarmTileRow seenPlanted = await neighbour.WaitForTileAsync(x, y, t => t.CropId == CropCatalog.Parsnip, timeout.Token);
+            FarmTileRow seenPlanted = await farmer.WaitForTileAsync(x, y, t => t.CropId == CropCatalog.Parsnip, timeout.Token);
             seenPlanted.PlantedAtMs.Should().Be(s_start.ToUnixTimeMilliseconds());
             InventorySlotRow seedsLeft = await farmer.WaitForSlotAsync(s => s.Slot == 2, timeout.Token);
             (seedsLeft.ItemId, seedsLeft.Quantity).Should().Be((ItemCatalog.ParsnipSeeds, 7));
@@ -110,7 +109,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             clock.Advance(TimeSpan.FromMilliseconds(CropCatalog.All[0].TotalGrowthMs + 1000));
             UseItemResult harvested = await farmer.UseAsync(8, x, y, timeout.Token);
             harvested.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Harvested });
-            FarmTileRow seenHarvested = await neighbour.WaitForTileAsync(x, y, t => t.CropId == 0 && t.SettledAtMs > t.PlantedAtMs, timeout.Token);
+            FarmTileRow seenHarvested = await farmer.WaitForTileAsync(x, y, t => t.CropId == 0 && t.SettledAtMs > t.PlantedAtMs, timeout.Token);
             seenHarvested.WetUntilMs.Should().BeGreaterThan(0);
             InventorySlotRow produce = await farmer.WaitForSlotAsync(s => s.ItemId == ItemCatalog.Parsnip, timeout.Token);
             produce.Quantity.Should().Be(1);
@@ -123,8 +122,12 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             await farmer.WaitForPromptUnlockedAsync(timeout.Token);
             (await farmer.GetQuestsAsync(timeout.Token)).Quests.Should().ContainSingle().Which.State.Should().Be(QuestState.Completed);
 
-            // A player who arrives later reads the same farm.
-            await using FarmClient latecomer = await FarmClient.ConnectAsync(port, timeout.Token);
+            // The farm is private (docs/adr/ADR-015): the neighbour on their own farm never saw any of it, and their own farm is bare.
+            await neighbour.ExpectNoTilePushAsync(TimeSpan.FromMilliseconds(300), timeout.Token);
+            (await neighbour.GetFarmAsync(timeout.Token)).Tiles.Should().BeEmpty();
+
+            // The same player signing in again reads their farm.
+            await using FarmClient latecomer = await FarmClient.ResumeAsync(port, farmer.SessionToken, timeout.Token);
             _ = await latecomer.JoinAsync(timeout.Token);
             FarmSnapshot farm = await latecomer.GetFarmAsync(timeout.Token);
             farm.MapId.Should().Be(Program.FarmMapId);
@@ -390,6 +393,15 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             await Task.Delay(s_useCooldown, ct);
             using UseItem request = new() { Slot = (byte)slot, TileX = x, TileY = y };
             return await _session.RequestAsync<UseItemResult>(request, ct: ct);
+        }
+
+        // Nothing must arrive: a push meant for another player's farm would leak here.
+        public async Task ExpectNoTilePushAsync(TimeSpan wait, CancellationToken ct)
+        {
+            using CancellationTokenSource shortWait = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            shortWait.CancelAfter(wait);
+            Func<Task> next = async () => _ = await _tiles.WaitAsync(_ => true, shortWait.Token);
+            _ = await next.Should().ThrowAsync<OperationCanceledException>();
         }
 
         public Task<FarmTileRow> WaitForTileAsync(int x, int y, Func<FarmTileRow, bool> predicate, CancellationToken ct)

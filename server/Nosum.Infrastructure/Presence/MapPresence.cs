@@ -10,12 +10,13 @@ using Nalix.Abstractions.Networking;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Presence;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 
 namespace Nosum.Infrastructure.Presence;
 
 /// <summary>
-/// In-memory <see cref="IMapPresence"/>: one Nalix connection group per map, and cleanup when a
+/// In-memory <see cref="IMapPresence"/>: one Nalix connection group per map instance (a shared map, or one player's private copy), and cleanup when a
 /// connection closes.
 /// </summary>
 public sealed class MapPresence : IMapPresence
@@ -43,20 +44,20 @@ public sealed class MapPresence : IMapPresence
     public int PlayerCount => _byConnection.Count;
 
     /// <inheritdoc/>
-    public async ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, string mapId, MotionState motion, uint? playerId = null, CancellationToken cancellationToken = default)
+    public async ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, MapInstance instance, MotionState motion, uint? playerId = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
-        ArgumentException.ThrowIfNullOrEmpty(mapId);
+        ArgumentException.ThrowIfNullOrEmpty(instance.MapId);
 
         await this.LeaveAsync(connection, cancellationToken).ConfigureAwait(false);
 
         uint id = playerId ?? (uint)Interlocked.Increment(ref _nextPlayerId);
-        PlayerPresence player = new(id, accountId, mapId, connection, motion);
+        PlayerPresence player = new(id, accountId, instance, connection, motion);
         _byConnection[connection.ConnectionId] = player;
-        _byMap.GetOrAdd(mapId, static _ => new ConcurrentDictionary<uint, PlayerPresence>())[id] = player;
+        _byMap.GetOrAdd(instance.Key, static _ => new ConcurrentDictionary<uint, PlayerPresence>())[id] = player;
 
         connection.ConnectionClosed += _onClosed;
-        await _groups.AddToGroupAsync(MapGroup.Name(mapId), connection, cancellationToken).ConfigureAwait(false);
+        await _groups.AddToGroupAsync(MapGroup.Name(instance.Key), connection, cancellationToken).ConfigureAwait(false);
 
         if (connection.IsDisposed)
         {
@@ -78,16 +79,16 @@ public sealed class MapPresence : IMapPresence
         }
 
         connection.ConnectionClosed -= _onClosed;
-        if (_byMap.TryGetValue(player.MapId, out ConcurrentDictionary<uint, PlayerPresence>? members))
+        if (_byMap.TryGetValue(player.Key, out ConcurrentDictionary<uint, PlayerPresence>? members))
         {
             _ = members.TryRemove(player.PlayerId, out _);
             if (members.IsEmpty)
             {
-                _ = _byMap.TryRemove(new KeyValuePair<string, ConcurrentDictionary<uint, PlayerPresence>>(player.MapId, members));
+                _ = _byMap.TryRemove(new KeyValuePair<string, ConcurrentDictionary<uint, PlayerPresence>>(player.Key, members));
             }
         }
 
-        await _groups.RemoveFromGroupAsync(MapGroup.Name(player.MapId), connection, cancellationToken).ConfigureAwait(false);
+        await _groups.RemoveFromGroupAsync(MapGroup.Name(player.Key), connection, cancellationToken).ConfigureAwait(false);
 
         if (this.PlayerLeft is { } handlers)
         {
@@ -120,12 +121,12 @@ public sealed class MapPresence : IMapPresence
     }
 
     /// <inheritdoc/>
-    public void CopyPlayers(string mapId, List<PlayerPresence> into)
+    public void CopyPlayers(string instanceKey, List<PlayerPresence> into)
     {
-        ArgumentNullException.ThrowIfNull(mapId);
+        ArgumentNullException.ThrowIfNull(instanceKey);
         ArgumentNullException.ThrowIfNull(into);
 
-        if (_byMap.TryGetValue(mapId, out ConcurrentDictionary<uint, PlayerPresence>? members))
+        if (_byMap.TryGetValue(instanceKey, out ConcurrentDictionary<uint, PlayerPresence>? members))
         {
             foreach (KeyValuePair<uint, PlayerPresence> member in members)
             {
@@ -145,11 +146,11 @@ public sealed class MapPresence : IMapPresence
 
     /// <inheritdoc/>
     [SuppressMessage("Design", "CA1031", Justification = "Best-effort fan-out: one dead connection must not cost the rest of the map its update.")]
-    public async ValueTask MulticastAsync(string mapId, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default)
+    public async ValueTask MulticastAsync(string instanceKey, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(packet);
 
-        foreach (IConnection member in _groups.GetGroupMembers(MapGroup.Name(mapId)))
+        foreach (IConnection member in _groups.GetGroupMembers(MapGroup.Name(instanceKey)))
         {
             if (ReferenceEquals(member, except) || member.IsDisposed)
             {

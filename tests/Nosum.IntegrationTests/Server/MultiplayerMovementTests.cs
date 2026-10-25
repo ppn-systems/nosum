@@ -23,6 +23,7 @@ using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
+using Nosum.Gameplay.Maps;
 using Nosum.Host;
 using Xunit;
 
@@ -51,6 +52,9 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
             await using TestClient a = await TestClient.ConnectAsync(port, timeout.Token);
             await using TestClient b = await TestClient.ConnectAsync(port, timeout.Token);
 
+            // The farm is private per player; the bus stop is where two players meet (docs/adr/ADR-015).
+            await a.PutOnAsync(GameMaps.BusStop, timeout.Token);
+            await b.PutOnAsync(GameMaps.BusStop, timeout.Token);
             JoinMapResult joinA = await a.JoinAsync(timeout.Token);
             JoinMapResult joinB = await b.JoinAsync(timeout.Token);
             joinA.Status.Should().Be(JoinStatus.Ok);
@@ -107,10 +111,12 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
         try
         {
             await using TestClient b = await TestClient.ConnectAsync(port, timeout.Token);
+            await b.PutOnAsync(GameMaps.BusStop, timeout.Token);
             await b.JoinAsync(timeout.Token);
             uint idOfA;
             await using (TestClient a = await TestClient.ConnectAsync(port, timeout.Token))
             {
+                await a.PutOnAsync(GameMaps.BusStop, timeout.Token);
                 idOfA = (await a.JoinAsync(timeout.Token)).PlayerId;
                 await b.WaitForPlayerAsync(idOfA, _ => true, timeout.Token);
             }
@@ -298,6 +304,13 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
             AccountResult result = await _session.RequestAsync<AccountResult>(request, ct: ct);
             result.Status.Should().Be(AccountStatus.Ok);
             this.AccountId = result.PlayerId;
+        }
+
+        // Saves where the player was last, so the server's join puts them there (a bad place falls back to that map's spawn).
+        public async Task PutOnAsync(string mapId, CancellationToken ct)
+        {
+            IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+            await states.SaveAsync(this.AccountId, new PlayerStateRow(mapId, -1, -1, Nosum.Core.Facing.Down), ct);
         }
 
         public async Task<JoinMapResult> JoinAsync(CancellationToken ct, string mapId = Program.FarmMapId)

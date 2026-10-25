@@ -16,6 +16,7 @@ using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Quests;
@@ -23,12 +24,14 @@ using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
 using Nosum.Handlers.Farm;
 using Nosum.Handlers.Inventory;
+using Nosum.Handlers.Placeable;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Farm;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Maps;
+using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
@@ -119,6 +122,7 @@ internal static class Program
             .MapHandlers(typeof(InventoryHandlers))
             .MapHandlers(typeof(FarmHandlers))
             .MapHandlers(typeof(QuestHandlers))
+            .MapHandlers(typeof(PlaceableHandlers))
             .ConfigureDispatchOptions(o =>
             {
                 // Fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
@@ -143,11 +147,8 @@ internal static class Program
         TmxMapCatalog maps = new(GameMaps.All, Path.Combine(AppContext.BaseDirectory, "maps"));
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
-        PlayerService players = new(presence, maps, states, TimeProvider.System, SnapshotInterval);
-
         InstanceManager.Instance.Register<IMapPresence>(presence);
         InstanceManager.Instance.Register<IMapCatalog>(maps);
-        InstanceManager.Instance.Register<IPlayerService>(players);
         SessionRegistry sessions = new(presence);
         InstanceManager.Instance.Register<ISessionRegistry>(sessions);
 
@@ -164,6 +165,12 @@ internal static class Program
         InstanceManager.Instance.Register(new RegistrationPromptOnQuestCompleted(quests, prompts, notifier));
         InstanceManager.Instance.Register<IInventoryService>(inventory);
         InstanceManager.Instance.Register<IQuestService>(quests);
+
+        // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
+        PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
+        InstanceManager.Instance.Register<IPlaceableService>(placeables);
+        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval);
+        InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock));
     }
 }
