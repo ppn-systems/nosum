@@ -1,0 +1,28 @@
+.goals-hint,
+.goals-season,
+.goal-state {
+    margin: 0;
+}
+
+.goals-hint,
+.goals-season,
+.goal-held,
+.goal-numbers {
+    color: var(--nosum-ink-soft);
+}
+
+.goal-state.done {
+    color: var(--nosum-ok);
+}
+
+.goal-head ::deep .slot {
+    flex: none;
+}
+
+.goal-reward {
+    min-width: 0;
+}
+
+.goal-amount ::deep .game-input {
+    width: calc(var(--u) * 30);
+}

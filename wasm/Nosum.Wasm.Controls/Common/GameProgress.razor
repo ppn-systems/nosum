@@ -1,0 +1,22 @@
+@* A progress bar: a bevelled track, a fill to Percent and one line of text over it (already localized). The shared look of every "n of m" in the UI. *@
+<div class="game-progress @Class" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Percent" aria-label="@(Label ?? Text)">
+    <div class="game-progress-fill" style="width: @(Percent)%"></div>
+    @if (!string.IsNullOrEmpty(Text))
+    {
+        <span class="game-progress-text">@Text</span>
+    }
+</div>
+
+@code {
+    /// <summary>How full the bar is, 0 to 100.</summary>
+    [Parameter, EditorRequired] public int Percent { get; set; }
+
+    /// <summary>The text over the bar (for example "1,200 / 5,000"), already localized.</summary>
+    [Parameter] public string? Text { get; set; }
+
+    /// <summary>The accessible name when it differs from the text.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>Extra shared classes: <c>done</c> colours the fill gold (a finished goal), <c>faded</c> dims it (an expired one).</summary>
+    [Parameter] public string? Class { get; set; }
+}

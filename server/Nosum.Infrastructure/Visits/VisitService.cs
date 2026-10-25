@@ -10,6 +10,7 @@ using Nalix.Abstractions.Networking;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Visits;
@@ -39,6 +40,7 @@ public sealed class VisitService : IVisitService, IDisposable
     private readonly IInstanceAccessPolicy _access;
     private readonly INicknameDirectory _nicknames;
     private readonly ICoopService _coops;
+    private readonly IFriendService? _friends;
     private readonly TimeProvider _time;
 
     /// <summary>Initializes the service and starts listening for co-op members who leave.</summary>
@@ -49,7 +51,8 @@ public sealed class VisitService : IVisitService, IDisposable
     /// <param name="nicknames">Resolves nicknames for the list.</param>
     /// <param name="coops">Tells when a member's co-op membership ends.</param>
     /// <param name="time">The clock for the audit timestamps; tests pass a fake one.</param>
-    public VisitService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, IPlayerService players, IInstanceAccessPolicy access, INicknameDirectory nicknames, ICoopService coops, TimeProvider time)
+    /// <param name="friends">Tells when visiting rights through friendship end (docs/adr/ADR-029 D4); <see langword="null"/> to ignore friends.</param>
+    public VisitService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, IPlayerService players, IInstanceAccessPolicy access, INicknameDirectory nicknames, ICoopService coops, TimeProvider time, IFriendService? friends = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(presence);
@@ -66,11 +69,23 @@ public sealed class VisitService : IVisitService, IDisposable
         _nicknames = nicknames;
         _coops = coops;
         _time = time;
+        _friends = friends;
         _coops.MembershipEnded += this.OnMembershipEndedAsync;
+        if (_friends is not null)
+        {
+            _friends.FriendVisitsRevoked += this.OnFriendVisitsRevokedAsync;
+        }
     }
 
     /// <inheritdoc/>
-    public void Dispose() => _coops.MembershipEnded -= this.OnMembershipEndedAsync;
+    public void Dispose()
+    {
+        _coops.MembershipEnded -= this.OnMembershipEndedAsync;
+        if (_friends is not null)
+        {
+            _friends.FriendVisitsRevoked -= this.OnFriendVisitsRevokedAsync;
+        }
+    }
 
     /// <inheritdoc/>
     public async Task<VisitorsView> GetAsync(Guid ownerId, CancellationToken cancellationToken = default)
@@ -339,6 +354,20 @@ public sealed class VisitService : IVisitService, IDisposable
             }
 
             await Task.Delay(s_retryDelay, _time, CancellationToken.None).ConfigureAwait(false);
+        }
+    }
+
+    // An owner turned "friends may visit" off, or a friendship ended: those who may no longer be there are sent out.
+    [SuppressMessage("Design", "CA1031", Justification = "The friends change is committed; a failing sweep must not undo it. The visitor is re-checked at their next entry.")]
+    private async ValueTask OnFriendVisitsRevokedAsync(Guid ownerId, Guid? visitorId)
+    {
+        try
+        {
+            await this.SweepAsync(ownerId, visitorId).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // See above.
         }
     }
 

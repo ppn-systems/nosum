@@ -31,6 +31,7 @@ public sealed class MapSpec
     /// <param name="isCoop">Whether each co-op has its own copy of the map, owned by the co-op and open to its members only (docs/adr/ADR-020).</param>
     /// <param name="mineFloor">The floor number (1 and up) when the map is a floor of the mine: a per-player instance whose nodes are built in memory each game day (docs/adr/ADR-026 D3); zero for any other map.</param>
     /// <param name="elevator">Where the mine elevator is served on this map, or <see langword="null"/> when there is none.</param>
+    /// <param name="indoors">Whether the map is a room or a cave: no weather falls on it, rain does not water its soil and it is lit (docs/adr/ADR-027).</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -45,7 +46,8 @@ public sealed class MapSpec
         IReadOnlyList<ShopPoint>? shops = null,
         bool isCoop = false,
         int mineFloor = 0,
-        ElevatorPoint? elevator = null)
+        ElevatorPoint? elevator = null,
+        bool indoors = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
@@ -69,6 +71,7 @@ public sealed class MapSpec
         this.IsCoop = isCoop;
         this.MineFloor = mineFloor;
         this.Elevator = elevator;
+        this.Indoors = indoors;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -109,6 +112,8 @@ public sealed class MapSpec
 
     /// <summary>Gets where the mine elevator is served, or <see langword="null"/> when this map has none.</summary>
     public ElevatorPoint? Elevator { get; }
+    /// <summary>Gets whether the map is indoors: no rain or snow, rain does not water soil there, and daylight does not tint it (docs/adr/ADR-027).</summary>
+    public bool Indoors { get; }
 
     /// <summary>Gets whether players may place objects on this map: the farmhouse, the farm and co-op land.</summary>
     public bool Placeable { get; }

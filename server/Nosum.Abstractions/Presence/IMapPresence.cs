@@ -22,18 +22,18 @@ namespace Nosum.Abstractions.Presence;
 /// </summary>
 public interface IMapPresence
 {
+    /// <summary>Raised after a player left a map, through a leave request, a map change or a disconnect.</summary>
+    event Func<PlayerPresence, ValueTask>? PlayerLeft;
+
     /// <summary>
-    /// Raised after a player joined a map instance, at login or through a map change. An implementation that never raises it (a test stand-in) needs
-    /// nothing; the default does nothing.
+    /// Raised after a player joined a map (a sign-in, a map change). The default does nothing, so a test double need not implement it; the server's
+    /// presence raises it (docs/adr/ADR-029 D4: friends see each other's public map; docs/adr/ADR-026 D3: the mine builds a floor for its first player).
     /// </summary>
     event Func<PlayerPresence, ValueTask>? PlayerJoined
     {
         add { }
         remove { }
     }
-
-    /// <summary>Raised after a player left a map, through a leave request, a map change or a disconnect.</summary>
-    event Func<PlayerPresence, ValueTask>? PlayerLeft;
 
     /// <summary>Gets the number of players on all maps.</summary>
     int PlayerCount { get; }

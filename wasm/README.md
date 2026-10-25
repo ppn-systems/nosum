@@ -31,6 +31,7 @@ one `GameSocket` and one `PlayerChannel`. `Game/MapScene` predicts the local far
 to `PlayerChannel.Report` (no await, no allocation), snaps back on a `MoveCorrection`, and adds the
 other farmers (`Game/RemotePlayers`: a `SnapshotBuffer` from `Nosum.Core.Interpolation`, drawn 200 ms
 in the past) to the same `WorldSpriteBatch` so they y-sort with the local farmer and the buildings.
+The server sends a snapshot only of the players in the local player's chunk interest set, a `LookChanged` when one comes into sight and a `PlayerLeft` when one goes ([ADR-022](../docs/adr/ADR-022-chunked-interest-management.md)); `RemotePlayers` and `NearbyPlayers` follow snapshots, `LookChannel` forgets a look on `PlayerLeft`, and `FarmChannel`/`PlaceableChannel` file their mirrors by chunk (`ChunkState` replaces a chunk, `ChunkLeft` drops it).
 Without a server the farm still plays offline. Remote farmers are drawn from the looks the server sent (`LookChannel`, resolved by `Game/LookSprites` and `LookPalette`; ADR-014). `ConnectionBadge` shows the connection state in the current language.
 
 Playable now: `Pages/Home.razor` starts `Game/GameLoop`, which waits (up to 10 s) for the server's join answer, loads
@@ -64,7 +65,7 @@ a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
 Resource nodes ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): `NodeChannel` (in `Nosum.Wasm.Socket/Node`) mirrors the trees, stones, twigs, weeds and grass of the player's current place
-(`GetNodes` after every join or map change, then `NodeChanged` pushes; it notes when a node lost a hit so the scene can shake it) and the water left in the watering can (`ToolState`).
+(`GetNodes` after every join or map change, then `NodeChanged` pushes and the `ChunkState` / `ChunkLeft` of ADR-022 D6: a chunk's nodes are replaced when it enters the interest set and dropped when it leaves; it notes when a node lost a hit so the scene can shake it) and the water left in the watering can (`ToolState`).
 `Game/NodeDecorator` draws them as depth-sorted world sprites from the one table in `Game/NodeSprites` (a grown tree is two sprites, canopy and trunk, so the farmer walks behind it and in front of it);
 `MapScene` adds the blocking ones to the grid the farmer walks on (same `NodeField.BuildGrid` as the server). Using a tool is still the one `UseItem` intent: the server decides what a swing does.
 The can's water is a meter on its slot (`SlotDisplay.Meter`). The farmer has no swing animation: the layered shirt, hair and hat sheets have no tool-use frames to match the body's.
@@ -73,6 +74,12 @@ Visiting ([ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): `VisitC
 (`Controls/Visit`, shared controls only) are the "Visitors" panel: visit a friend by nickname, edit who may enter my farm, send a visitor out, switch co-op visits. It has a toolbar button and no hotkey yet (the toolbar hides an empty key). The server's refusals
 (`Visit_Status_*`, `Farm_Status_NotYourFarm`, `Place_Status_NotYourPlace`, `Market_Status_NotYourBin`) are shown through the existing message lines. A guest is typed as "Khách 1234" / "Guest 1234" and sent as `guest-1234`.
 
+Chat, friends and mail ([ADR-029](../docs/adr/ADR-029-chat-friends-mail.md)): `ChatMessenger`, `FriendsChannel` and `MailChannel` (`Nosum.Wasm.Socket/{Chat,Friends,Mail}`) mirror the server; `ChatViewModel`, `FriendsViewModel` and `MailViewModel`
+(`ViewModels/{Chat,Friends,Mail}`) localize them (status enums and mail codes by `.resx` key; player text stays a plain string). `Controls/Chat/ChatLine` is the chat at the bottom-left of the HUD (`GameHud` `BottomLeft`): closed it shows the last 3 lines
+that have not faded (8 s); `Enter` opens the input box (when no menu, dialog or form field has the keyboard), `Enter` sends and closes it, `Esc` closes it, `Tab` cycles Local, Map, Co-op; `/w nick text`, `/l` `/m` `/c`, `/block`, `/unblock`, `/report nick`.
+`wwwroot/chat-input.js` does the key handling (per key press, not per frame): it stops `Esc` so closing the box does not open the menu, and a focused field already keeps WASD and the hotkeys from the game (`renderer.js` `isTyping`). Friends and Mail are menu tabs
+(`FriendsPanel` with the block list, `MailPanel`, no hotkey); the gear shows `MailViewModel.Unread`, which is read once after sign-in and then follows the `MailUnread` push.
+
 Furniture ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `PlaceableChannel` (in `Nosum.Wasm.Socket/Placeable`) mirrors the pieces of the player's current place (loaded with the farm after every join or map change)
 and sends place, move and pick-up requests. `Game/PlacedObjectsDecorator` draws them (and the ghost of the piece being placed) as `WorldSpriteBatch` sprites; `MapScene` adds their footprints to the grid the farmer
 walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, active only on a `MapSpec.Placeable` map: `E` places the held piece (or sets down a carried one), `R` rotates, `F` picks up the piece in front to
@@ -80,7 +87,7 @@ move it (again to cancel), `Q` puts it back in the bag. `PlacementViewModel` rel
 styled only through their shared CSS classes). Refusals reach the message line as `Place_Status_*` text.
 
 Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): `GroundItemChannel` (`Nosum.Wasm.Socket/GroundItem`) mirrors the items lying in the player's current place (loaded after every join or map change)
-from `GroundItemSpawned` / `GroundItemTaken` pushes; a pickup also leaves a short `FlyingItem` toward where the taker stood. There is nothing to send: the server picks items up when the player walks near.
+from `GroundItemSpawned` / `GroundItemTaken` pushes and the `ChunkState` / `ChunkLeft` of ADR-022 D6 (a chunk's items are replaced when it enters the interest set and dropped when it leaves); a pickup also leaves a short `FlyingItem` toward where the taker stood. There is nothing to send: the server picks items up when the player walks near.
 `Game/GroundItemsDecorator` draws them as y-sorted `WorldSpriteBatch` sprites with a bob, a hop on arrival and the flight, cut from the objects sheet by `ItemIcons.TryGetGroundCell` (items pictured on other sheets are not drawn yet);
 it reads the mirror under its lock and allocates nothing. No UI panel.
 
@@ -96,6 +103,8 @@ on the last tab, `I M C T G N` open a tab, `H` / `?` and the gear open settings 
 state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
 
 Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `CalendarChannel` (Socket) reads the epoch and game day length once per sign-in and estimates the server clock; `CalendarViewModel` builds the shared `GameCalendar` and
+The Town board ([ADR-030](../docs/adr/ADR-030-community-goals-and-market-limits.md)): the action key at the board counter opens `Controls/Goals/GoalsPanel` as a shop-style menu tab (`PanelKind.Goals`, `ToolbarViewModel.GoalsItem`; not a toolbar button). `GoalChannel` reads the goals and applies the `GoalProgress` pushes every player in the Town gets; `GoalsViewModel` shows a `GameProgress` bar per goal, the player's part and an amount to deliver. The market panel's `PriceHistoryCard` shows a `GameSparkline` of an item's daily median unit price with the latest day's lowest, median and highest. `GameProgress` and `GameSparkline` are shared controls in `Controls/Common`.
+
 `Controls/Calendar/CalendarClock` shows season, day and time in the top-right region (the time moves in ten game-minute steps, a 5 s timer re-renders only when the text changes). The farm decorator computes each crop stage and wet soil with `FarmRules` and that calendar (growth counts watered game days, [ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D7; nothing is drawn until the calendar has loaded) and does not draw crops that withered at a season change. `FarmChannel` drops tiles the server pushes as removed (bare soil that reverted). `DevChannel.AdvanceClock` asks a Development server to skip game days.
 The season icon is a flat colour swatch until the icon sheet has season art; the world is not tinted by the time of day yet.
 

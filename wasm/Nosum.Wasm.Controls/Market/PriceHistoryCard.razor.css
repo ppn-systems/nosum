@@ -1,0 +1,11 @@
+.history-line {
+    margin: 0;
+    color: var(--nosum-ink-soft);
+}
+
+.history-lines {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}

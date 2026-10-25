@@ -27,6 +27,7 @@ internal sealed class VisitSettingsConfiguration : IEntityTypeConfiguration<Visi
         _ = builder.ToTable("visit_settings");
         _ = builder.HasKey(s => s.OwnerId);
         _ = builder.Property(s => s.OwnerId).ValueGeneratedNever();
+        _ = builder.Property(s => s.FriendsMayVisit).HasDefaultValue(true).ValueGeneratedNever();
         _ = builder.HasOne<Player>().WithMany().HasForeignKey(s => s.OwnerId).OnDelete(DeleteBehavior.Cascade);
     }
 }

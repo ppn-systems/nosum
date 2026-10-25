@@ -1,9 +1,11 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Nosum.Contracts.GroundItem;
 using Nosum.Contracts.GroundItem.S2C;
+using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.GroundItem;
 using Xunit;
@@ -139,5 +141,57 @@ public sealed class GroundItemChannelTests
         {
             channel.FlightAt(0).ItemId.Should().Be(0);
         }
+    }
+
+    [Fact]
+    public void ChunkState_AddsTheChunksItemsAndReplacesAnyOlderOnes()
+    {
+        FakeGameSocket socket = new();
+        using GroundItemChannel channel = Loaded(socket, Row(1, ItemCatalog.Parsnip, 1, 20, 20));
+        using ChunkState state = new() { MapId = "town", ChunkX = 4, ChunkY = 2 };
+        state.GroundItems.Add(Row(2, ItemCatalog.Wood, 3, 1100, 600));
+        state.GroundItems.Add(Row(3, ItemCatalog.Wood, 1, 1200, 640));
+        using ChunkState again = new() { MapId = "town", ChunkX = 4, ChunkY = 2 };
+        again.GroundItems.Add(Row(3, ItemCatalog.Wood, 5, 1200, 640));
+
+        socket.Push(state);
+        socket.Push(again);
+
+        List<GroundItemInfo> items = Items(channel);
+        items.Should().HaveCount(2, "the second state of chunk (4, 2) replaces the first; the chunk (0, 0) item stays");
+        items.Should().Contain(i => i.Id == 1);
+        items.Single(i => i.Id == 3).Quantity.Should().Be(5);
+    }
+
+    [Fact]
+    public void ChunkLeft_DropsOnlyThatChunksItems()
+    {
+        FakeGameSocket socket = new();
+        using GroundItemChannel channel = Loaded(socket, Row(1, ItemCatalog.Parsnip, 1, 20, 20), Row(2, ItemCatalog.Wood, 1, 1100, 600));
+        int before = channel.Version;
+        using ChunkLeft left = new() { MapId = "town", ChunkX = 4, ChunkY = 2 };
+        using ChunkLeft empty = new() { MapId = "town", ChunkX = 9, ChunkY = 9 };
+        using ChunkLeft other = new() { MapId = "farm", ChunkX = 0, ChunkY = 0 };
+
+        socket.Push(empty);
+        socket.Push(other);
+        channel.Version.Should().Be(before, "a chunk with nothing in it, or another map's chunk, changes nothing");
+        socket.Push(left);
+
+        Items(channel).Should().ContainSingle().Which.Id.Should().Be(1);
+        channel.Version.Should().NotBe(before);
+    }
+
+    [Fact]
+    public void ChunkState_ForAnotherMap_IsIgnored()
+    {
+        FakeGameSocket socket = new();
+        using GroundItemChannel channel = Loaded(socket);
+        using ChunkState state = new() { MapId = "farm", ChunkX = 0, ChunkY = 0 };
+        state.GroundItems.Add(Row(1, ItemCatalog.Wood, 1, 20, 20));
+
+        socket.Push(state);
+
+        Items(channel).Should().BeEmpty();
     }
 }

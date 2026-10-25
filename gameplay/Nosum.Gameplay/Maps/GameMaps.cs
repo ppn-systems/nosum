@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Mines;
@@ -68,10 +69,14 @@ public static class GameMaps
     // The forty floors of the mine, one private per-player map each (docs/adr/ADR-026 D3). A floor's way up is its own arrival tile.
     private static readonly MapSpec[] s_mineFloors = BuildMineFloors();
 
+    // The community board (docs/adr/ADR-030) is the billboard on the front of Pierre's store, tiles (41,56) and (42,56) ("Billboard" actions in Town.tmx); its counter is the walkable tile in front of
+    // the right-hand sign, one tile west of the seed shop's doormat. The two are in reach of each other, so the nearest counter wins (ShopRules.TryFindShop).
+    private static readonly (int X, int Y) s_townBoardTile = (42, 57);
+
     private static readonly MapSpec[] s_all =
     [
         new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true, isPrivate: true, placeable: true),
-        new(FarmHouse, "FarmHouse.tmx", 3, 11, isPrivate: true, placeable: true),
+        new(FarmHouse, "FarmHouse.tmx", 3, 11, isPrivate: true, placeable: true, indoors: true),
         new(BusStop, "BusStop.tmx", 11, 23),
         new(Forest, "Forest.tmx", 68, 0),
         new(Town, "Town.tmx", 4, 54, shops:
@@ -80,6 +85,7 @@ public static class GameMaps
             new ShopPoint(ShopCatalog.ClothingShop, s_townClothingShopTile.X, s_townClothingShopTile.Y),
             new ShopPoint(ShopCatalog.FurnitureShop, s_townFurnitureShopTile.X, s_townFurnitureShopTile.Y),
             new ShopPoint(ShopCatalog.Blacksmith, s_townBlacksmithTile.X, s_townBlacksmithTile.Y),
+            new ShopPoint(CommunityGoalCatalog.BoardCounterId, s_townBoardTile.X, s_townBoardTile.Y),
         ],
         extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y), .. MineGateWarps()]),
         new(Backwoods, "Backwoods.tmx", 14, 38),
@@ -92,7 +98,8 @@ public static class GameMaps
                 new MapWarp(MineWorld.CaveShaft.X, MineWorld.CaveShaft.Y, RoomOfFloor(1), MineLayouts.For(1).SpawnX, MineLayouts.For(1).SpawnY),
                 new MapWarp(MineWorld.CaveTownExit.X, MineWorld.CaveTownExit.Y, Town, MineWorld.TownArrival.X, MineWorld.TownArrival.Y),
             ],
-            elevator: new ElevatorPoint(MineWorld.CaveElevator.X, MineWorld.CaveElevator.Y)),
+            elevator: new ElevatorPoint(MineWorld.CaveElevator.X, MineWorld.CaveElevator.Y),
+            indoors: true),
 
         // Co-op land reuses the placeholder Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
         new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true, placeable: true),
@@ -178,6 +185,7 @@ public static class GameMaps
                 extraWarps: [up],
                 isPrivate: true,
                 mineFloor: floor,
+                indoors: true,
                 elevator: MineRules.HasElevator(floor) ? new ElevatorPoint(layout.SpawnX, layout.SpawnY) : null);
         }
 

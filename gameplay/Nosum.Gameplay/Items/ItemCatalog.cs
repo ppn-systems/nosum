@@ -9,7 +9,7 @@ namespace Nosum.Gameplay.Items;
 
 /// <summary>
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
-/// put in an inventory. Ids are append-only. Ids below 100 are tools (the five basic ones, then the copper tier from 10 and the iron tier from 20, docs/adr/ADR-026), 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources and bars, 600-699 crafted placeables, 700-799 food (dishes, ADR-024); raw produce is edible through its <see cref="ItemDefinition.FoodEnergy"/>.
+/// put in an inventory. Ids are append-only. Ids below 100 are tools (the five basic ones, then the copper tier from 10 and the iron tier from 20, docs/adr/ADR-026), 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources and bars, 600-699 crafted placeables, 700-799 food (dishes, ADR-024), 800-899 forage (docs/adr/ADR-025); raw produce is edible through its <see cref="ItemDefinition.FoodEnergy"/>.
 /// </summary>
 public static class ItemCatalog
 {
@@ -61,6 +61,60 @@ public static class ItemCatalog
     /// <summary>Cauliflower seeds.</summary>
     public const int CauliflowerSeeds = 102;
 
+    /// <summary>Potato seeds.</summary>
+    public const int PotatoSeeds = 103;
+
+    /// <summary>Green bean seeds.</summary>
+    public const int GreenBeanSeeds = 104;
+
+    /// <summary>Kale seeds.</summary>
+    public const int KaleSeeds = 105;
+
+    /// <summary>Garlic seeds.</summary>
+    public const int GarlicSeeds = 106;
+
+    /// <summary>Strawberry seeds.</summary>
+    public const int StrawberrySeeds = 107;
+
+    /// <summary>Tomato seeds.</summary>
+    public const int TomatoSeeds = 108;
+
+    /// <summary>Blueberry seeds.</summary>
+    public const int BlueberrySeeds = 109;
+
+    /// <summary>Melon seeds.</summary>
+    public const int MelonSeeds = 110;
+
+    /// <summary>Hot pepper seeds.</summary>
+    public const int HotPepperSeeds = 111;
+
+    /// <summary>Corn seeds.</summary>
+    public const int CornSeeds = 112;
+
+    /// <summary>Wheat seeds.</summary>
+    public const int WheatSeeds = 113;
+
+    /// <summary>Sunflower seeds.</summary>
+    public const int SunflowerSeeds = 114;
+
+    /// <summary>Pumpkin seeds.</summary>
+    public const int PumpkinSeeds = 115;
+
+    /// <summary>Cranberries seeds.</summary>
+    public const int CranberriesSeeds = 116;
+
+    /// <summary>Eggplant seeds.</summary>
+    public const int EggplantSeeds = 117;
+
+    /// <summary>Yam seeds.</summary>
+    public const int YamSeeds = 118;
+
+    /// <summary>Bok choy seeds.</summary>
+    public const int BokChoySeeds = 119;
+
+    /// <summary>Grape seeds.</summary>
+    public const int GrapeSeeds = 120;
+
     /// <summary>An oak seed, from chopping an oak; planted, it grows into an oak.</summary>
     public const int OakSeed = 190;
 
@@ -78,6 +132,99 @@ public static class ItemCatalog
 
     /// <summary>A harvested cauliflower.</summary>
     public const int Cauliflower = 202;
+
+    /// <summary>A harvested potato.</summary>
+    public const int Potato = 203;
+
+    /// <summary>A harvested green bean.</summary>
+    public const int GreenBean = 204;
+
+    /// <summary>A harvested kale.</summary>
+    public const int Kale = 205;
+
+    /// <summary>A harvested garlic.</summary>
+    public const int Garlic = 206;
+
+    /// <summary>A harvested strawberry.</summary>
+    public const int Strawberry = 207;
+
+    /// <summary>A harvested tomato.</summary>
+    public const int Tomato = 208;
+
+    /// <summary>A harvested blueberry.</summary>
+    public const int Blueberry = 209;
+
+    /// <summary>A harvested melon.</summary>
+    public const int Melon = 210;
+
+    /// <summary>A harvested hot pepper.</summary>
+    public const int HotPepper = 211;
+
+    /// <summary>A harvested corn.</summary>
+    public const int Corn = 212;
+
+    /// <summary>A harvested wheat.</summary>
+    public const int Wheat = 213;
+
+    /// <summary>A harvested sunflower.</summary>
+    public const int Sunflower = 214;
+
+    /// <summary>A harvested pumpkin.</summary>
+    public const int Pumpkin = 215;
+
+    /// <summary>A harvested cranberries.</summary>
+    public const int Cranberries = 216;
+
+    /// <summary>A harvested eggplant.</summary>
+    public const int Eggplant = 217;
+
+    /// <summary>A harvested yam.</summary>
+    public const int Yam = 218;
+
+    /// <summary>A harvested bok choy.</summary>
+    public const int BokChoy = 219;
+
+    /// <summary>A harvested grape.</summary>
+    public const int Grape = 220;
+
+    /// <summary>A spring onion, foraged in spring.</summary>
+    public const int SpringOnion = 800;
+
+    /// <summary>A leek, foraged in spring.</summary>
+    public const int Leek = 801;
+
+    /// <summary>A dandelion, foraged in spring.</summary>
+    public const int Dandelion = 802;
+
+    /// <summary>A daffodil, foraged in spring.</summary>
+    public const int Daffodil = 803;
+
+    /// <summary>A spice berry, foraged in summer.</summary>
+    public const int SpiceBerry = 804;
+
+    /// <summary>A sweet pea, foraged in summer.</summary>
+    public const int SweetPea = 805;
+
+    /// <summary>A blackberry, foraged in fall.</summary>
+    public const int Blackberry = 806;
+
+    /// <summary>A hazelnut, foraged in fall.</summary>
+    public const int Hazelnut = 807;
+
+    /// <summary>A wild plum, foraged in fall.</summary>
+    public const int WildPlum = 808;
+
+    /// <summary>A mushroom, foraged in fall.</summary>
+    public const int Mushroom = 809;
+
+    /// <summary>A winter root, foraged in winter.</summary>
+    public const int WinterRoot = 810;
+
+    /// <summary>A crystal fruit, foraged in winter.</summary>
+    public const int CrystalFruit = 811;
+
+    /// <summary>A snow yam, foraged in winter.</summary>
+    public const int SnowYam = 812;
 
     /// <summary>An oak chair.</summary>
     public const int OakChair = 300;
@@ -193,15 +340,51 @@ public static class ItemCatalog
         new(IronWateringCan, "iron_watering_can", ItemKind.Tool, 1, ToolKind.WateringCan, tier: ToolTier.Iron),
         new(IronAxe, "iron_axe", ItemKind.Tool, 1, ToolKind.Axe, tier: ToolTier.Iron),
         new(IronPickaxe, "iron_pickaxe", ItemKind.Tool, 1, ToolKind.Pickaxe, tier: ToolTier.Iron),
-        new(ParsnipSeeds, "parsnip_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Parsnip),
-        new(RadishSeeds, "radish_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Radish),
-        new(CauliflowerSeeds, "cauliflower_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Cauliflower),
+        new(ParsnipSeeds, "parsnip_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Parsnip) { ObjectIcon = 472 },
+        new(RadishSeeds, "radish_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Radish) { ObjectIcon = 484 },
+        new(CauliflowerSeeds, "cauliflower_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Cauliflower) { ObjectIcon = 474 },
+        new(PotatoSeeds, "potato_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Potato) { ObjectIcon = 475 },
+        new(GreenBeanSeeds, "green_bean_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.GreenBean) { ObjectIcon = 473 },
+        new(KaleSeeds, "kale_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Kale) { ObjectIcon = 477 },
+        new(GarlicSeeds, "garlic_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Garlic) { ObjectIcon = 476 },
+        new(StrawberrySeeds, "strawberry_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Strawberry) { ObjectIcon = 745 },
+        new(TomatoSeeds, "tomato_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Tomato) { ObjectIcon = 480 },
+        new(BlueberrySeeds, "blueberry_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Blueberry) { ObjectIcon = 481 },
+        new(MelonSeeds, "melon_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Melon) { ObjectIcon = 479 },
+        new(HotPepperSeeds, "hot_pepper_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.HotPepper) { ObjectIcon = 482 },
+        new(CornSeeds, "corn_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Corn) { ObjectIcon = 487 },
+        new(WheatSeeds, "wheat_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Wheat) { ObjectIcon = 483 },
+        new(SunflowerSeeds, "sunflower_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Sunflower) { ObjectIcon = 431 },
+        new(PumpkinSeeds, "pumpkin_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Pumpkin) { ObjectIcon = 490 },
+        new(CranberriesSeeds, "cranberries_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Cranberries) { ObjectIcon = 493 },
+        new(EggplantSeeds, "eggplant_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Eggplant) { ObjectIcon = 488 },
+        new(YamSeeds, "yam_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Yam) { ObjectIcon = 492 },
+        new(BokChoySeeds, "bok_choy_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.BokChoy) { ObjectIcon = 491 },
+        new(GrapeSeeds, "grape_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Grape) { ObjectIcon = 301 },
         new(OakSeed, "oak_seed", ItemKind.TreeSeed, DefaultStack, treeVariant: TreeVariant.Oak),
         new(MapleSeed, "maple_seed", ItemKind.TreeSeed, DefaultStack, treeVariant: TreeVariant.Maple),
         new(PineSeed, "pine_seed", ItemKind.TreeSeed, DefaultStack, treeVariant: TreeVariant.Pine),
-        new(Parsnip, "parsnip", ItemKind.Produce, DefaultStack, foodEnergy: 10),
-        new(Radish, "radish", ItemKind.Produce, DefaultStack, foodEnergy: 8),
-        new(Cauliflower, "cauliflower", ItemKind.Produce, DefaultStack, foodEnergy: 20),
+        new(Parsnip, "parsnip", ItemKind.Produce, DefaultStack, foodEnergy: 10) { SellPrice = 20, ObjectIcon = 24 },
+        new(Radish, "radish", ItemKind.Produce, DefaultStack, foodEnergy: 8) { SellPrice = 30, ObjectIcon = 264 },
+        new(Cauliflower, "cauliflower", ItemKind.Produce, DefaultStack, foodEnergy: 20) { SellPrice = 60, ObjectIcon = 190 },
+        new(Potato, "potato", ItemKind.Produce, DefaultStack, foodEnergy: 8) { SellPrice = 35, ObjectIcon = 192 },
+        new(GreenBean, "green_bean", ItemKind.Produce, DefaultStack, foodEnergy: 4) { SellPrice = 15, ObjectIcon = 188 },
+        new(Kale, "kale", ItemKind.Produce, DefaultStack, foodEnergy: 11) { SellPrice = 45, ObjectIcon = 250 },
+        new(Garlic, "garlic", ItemKind.Produce, DefaultStack, foodEnergy: 6) { SellPrice = 25, ObjectIcon = 248 },
+        new(Strawberry, "strawberry", ItemKind.Produce, DefaultStack, foodEnergy: 15) { SellPrice = 60, ObjectIcon = 400 },
+        new(Tomato, "tomato", ItemKind.Produce, DefaultStack, foodEnergy: 6) { SellPrice = 25, ObjectIcon = 256 },
+        new(Blueberry, "blueberry", ItemKind.Produce, DefaultStack, foodEnergy: 4) { SellPrice = 15, ObjectIcon = 258 },
+        new(Melon, "melon", ItemKind.Produce, DefaultStack, foodEnergy: 27) { SellPrice = 110, ObjectIcon = 254 },
+        new(HotPepper, "hot_pepper", ItemKind.Produce, DefaultStack, foodEnergy: 7) { SellPrice = 30, ObjectIcon = 260 },
+        new(Corn, "corn", ItemKind.Produce, DefaultStack, foodEnergy: 8) { SellPrice = 35, ObjectIcon = 270 },
+        new(Wheat, "wheat", ItemKind.Produce, DefaultStack, foodEnergy: 5) { SellPrice = 20, ObjectIcon = 262 },
+        new(Sunflower, "sunflower", ItemKind.Produce, DefaultStack, foodEnergy: 10) { SellPrice = 40, ObjectIcon = 421 },
+        new(Pumpkin, "pumpkin", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 150, ObjectIcon = 276 },
+        new(Cranberries, "cranberries", ItemKind.Produce, DefaultStack, foodEnergy: 7) { SellPrice = 30, ObjectIcon = 282 },
+        new(Eggplant, "eggplant", ItemKind.Produce, DefaultStack, foodEnergy: 7) { SellPrice = 30, ObjectIcon = 272 },
+        new(Yam, "yam", ItemKind.Produce, DefaultStack, foodEnergy: 15) { SellPrice = 60, ObjectIcon = 280 },
+        new(BokChoy, "bok_choy", ItemKind.Produce, DefaultStack, foodEnergy: 10) { SellPrice = 40, ObjectIcon = 278 },
+        new(Grape, "grape", ItemKind.Produce, DefaultStack, foodEnergy: 8) { SellPrice = 35, ObjectIcon = 398 },
         new(Wood, "wood", ItemKind.Resource, DefaultStack),
         new(Stone, "stone", ItemKind.Resource, DefaultStack),
         new(Fiber, "fiber", ItemKind.Resource, DefaultStack),
@@ -233,6 +416,19 @@ public static class ItemCatalog
         new(PantsKhaki, "pants_khaki", ItemKind.Clothing, 1, wear: WearSlot.Pants),
         new(HatStraw, "hat_straw", ItemKind.Clothing, 1, wear: WearSlot.Hat),
         new(HatCap, "hat_cap", ItemKind.Clothing, 1, wear: WearSlot.Hat),
+        new(SpringOnion, "spring_onion", ItemKind.Produce, DefaultStack, foodEnergy: 4) { SellPrice = 8, ObjectIcon = 399 },
+        new(Leek, "leek", ItemKind.Produce, DefaultStack, foodEnergy: 5) { SellPrice = 20, ObjectIcon = 20 },
+        new(Dandelion, "dandelion", ItemKind.Produce, DefaultStack, foodEnergy: 4) { SellPrice = 8, ObjectIcon = 22 },
+        new(Daffodil, "daffodil", ItemKind.Produce, DefaultStack, foodEnergy: 4) { SellPrice = 15, ObjectIcon = 18 },
+        new(SpiceBerry, "spice_berry", ItemKind.Produce, DefaultStack, foodEnergy: 5) { SellPrice = 20, ObjectIcon = 396 },
+        new(SweetPea, "sweet_pea", ItemKind.Produce, DefaultStack, foodEnergy: 6) { SellPrice = 25, ObjectIcon = 402 },
+        new(Blackberry, "blackberry", ItemKind.Produce, DefaultStack, foodEnergy: 4) { SellPrice = 10, ObjectIcon = 410 },
+        new(Hazelnut, "hazelnut", ItemKind.Produce, DefaultStack, foodEnergy: 5) { SellPrice = 20, ObjectIcon = 408 },
+        new(WildPlum, "wild_plum", ItemKind.Produce, DefaultStack, foodEnergy: 7) { SellPrice = 30, ObjectIcon = 406 },
+        new(Mushroom, "mushroom", ItemKind.Produce, DefaultStack, foodEnergy: 6) { SellPrice = 25, ObjectIcon = 404 },
+        new(WinterRoot, "winter_root", ItemKind.Produce, DefaultStack, foodEnergy: 6) { SellPrice = 25, ObjectIcon = 412 },
+        new(CrystalFruit, "crystal_fruit", ItemKind.Produce, DefaultStack, foodEnergy: 20) { SellPrice = 80, ObjectIcon = 414 },
+        new(SnowYam, "snow_yam", ItemKind.Produce, DefaultStack, foodEnergy: 7) { SellPrice = 30, ObjectIcon = 416 },
     ];
 
     private static readonly Dictionary<int, ItemDefinition> s_byId = Index();

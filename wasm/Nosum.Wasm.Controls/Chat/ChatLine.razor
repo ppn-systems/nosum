@@ -1,0 +1,170 @@
+@using Microsoft.JSInterop
+@using Nosum.Wasm.ViewModels.Chat
+@inherits ObservingComponent<ChatViewModel>
+@inject IJSRuntime Js
+
+@* The chat line at the bottom-left of the HUD (docs/adr/ADR-029 D7). Closed, it shows the last few lines that have not faded; Enter opens the input box
+   (chat-input.js), Enter sends, Esc closes, Tab changes channel. Player text is written with @@text, so Razor encodes it: it is always plain text. *@
+@{
+    ChatLineView[] lines = Vm.VisibleLines(Vm.Now());
+    bool open = Vm.InputOpen;
+}
+@if (lines.Length > 0 || open)
+{
+    <GamePanel Class="hud chat" Title="">
+        @if (lines.Length > 0)
+        {
+            <div class="chat-log @(open ? "open" : "closed")">
+            <ol class="chat-lines @(open ? "open" : "closed")" aria-live="polite" aria-label="@Vm.Text("Chat_InputLabel")">
+                @foreach (ChatLineView line in lines)
+                {
+                    <li @key="line.Id" class="chat-row @KindClass(line.Kind) @ChannelClass(line)">
+                        @if (line.Tag.Length > 0)
+                        {
+                            <span class="chat-tag">@line.Tag</span>
+                        }
+                        @if (line.Sender.Length > 0)
+                        {
+                            string nickname = line.Nickname;
+                            if (open && line.Kind == ChatLineKind.Chat && nickname.Length > 0)
+                            {
+                                <GameButton Variant="link" Text="@line.Sender" OnClick="@(() => Vm.StartWhisper(nickname))" />
+                            }
+                            else
+                            {
+                                <span class="chat-sender">@line.Sender</span>
+                            }
+
+                            <span class="chat-colon">:</span>
+                        }
+                        <span class="chat-text">@line.Text</span>
+                    </li>
+                }
+            </ol>
+            </div>
+        }
+        @if (open)
+        {
+            <div class="chat-input-row">
+                <span class="chat-channel @("chat-" + Vm.Channel.ToString().ToLowerInvariant())">@Vm.ChannelLabel</span>
+                <GameInput id="@InputId" Class="chat-input" Value="@Vm.Draft" ValueChanged="@(v => Vm.Draft = v)" MaxLength="ChatViewModel.MaxInputLength"
+                           Placeholder="@Vm.Placeholder" Label="@Vm.InputLabel" AutoComplete="off" />
+            </div>
+        }
+    </GamePanel>
+}
+
+@code {
+    private const string InputId = "nosum-chat-input";
+
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<ChatLine>? _self;
+    private bool _focused;
+    private bool _enabledSent;
+
+    /// <summary>Whether Enter may open the input box: true while the game has the keyboard (no menu or dialog is open).</summary>
+    [Parameter] public bool Enabled { get; set; } = true;
+
+    /// <summary>Called by chat-input.js when Enter is pressed and nothing else wants the key.</summary>
+    [JSInvokable]
+    public Task OpenFromKey() => InvokeAsync(Vm.OpenInput);
+
+    /// <summary>Called by chat-input.js when Enter is pressed in the input box.</summary>
+    /// <param name="text">The text in the box.</param>
+    [JSInvokable]
+    public Task SubmitFromKey(string text) => InvokeAsync(() => Vm.Submit(text));
+
+    /// <summary>Called by chat-input.js when Esc is pressed in the input box or it lost focus.</summary>
+    [JSInvokable]
+    public Task CloseFromKey() => InvokeAsync(Vm.CloseInput);
+
+    /// <summary>Called by chat-input.js when Tab is pressed in the input box.</summary>
+    [JSInvokable]
+    public Task NextChannelFromKey() => InvokeAsync(Vm.CycleChannel);
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!Enabled && Vm.InputOpen)
+        {
+            Vm.CloseInput();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                _module = await Js.InvokeAsync<IJSObjectReference>("import", "./_content/Nosum.Wasm.Controls/chat-input.js");
+                _self = DotNetObjectReference.Create(this);
+                await _module.InvokeVoidAsync("init", _self);
+            }
+
+            if (_module is null)
+            {
+                return;
+            }
+
+            if (firstRender || _enabledSent != Enabled)
+            {
+                _enabledSent = Enabled;
+                await _module.InvokeVoidAsync("setEnabled", Enabled);
+            }
+
+            bool open = Vm.InputOpen;
+            if (open && !_focused)
+            {
+                _focused = true;
+                await _module.InvokeVoidAsync("focusInput", InputId);
+            }
+            else if (!open)
+            {
+                _focused = false;
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is going away.
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _ = DisposeScriptAsync();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private async Task DisposeScriptAsync()
+    {
+        try
+        {
+            if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("dispose");
+                await _module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is going away.
+        }
+
+        _self?.Dispose();
+    }
+
+    private static string KindClass(ChatLineKind kind) => kind switch
+    {
+        ChatLineKind.Whisper => "whisper",
+        ChatLineKind.System => "system",
+        ChatLineKind.Error => "error",
+        _ => "say",
+    };
+
+    private static string ChannelClass(ChatLineView line) => line.Kind is ChatLineKind.Chat ? "chat-" + line.Channel.ToString().ToLowerInvariant() : string.Empty;
+}

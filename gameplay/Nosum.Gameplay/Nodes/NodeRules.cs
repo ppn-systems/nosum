@@ -44,7 +44,7 @@ public static class NodeRules
     /// <returns>What happened.</returns>
     public static NodeHit Hit(in ResourceNode node, ToolKind tool, int damage)
     {
-        if (!NodeCatalog.TryGet(node.Kind, out NodeDefinition? definition) || definition.Tool != tool || tool == ToolKind.None)
+        if (!NodeCatalog.TryGet(node.Kind, out NodeDefinition? definition) || definition.Tool != tool || node.Kind == NodeKind.Ladder)
         {
             return new NodeHit(NodeHitOutcome.WrongTool, node);
         }

@@ -270,8 +270,8 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         FarmService? farm = null;
         using PlacementHarness world = new(_database, farmFactory: h =>
         {
-            GroundItemService groundItems = new(h.Presence, Maps, new TransferService(h.Inventory, h.Clock), h.Units, h.Clock);
-            farm = new FarmService(h.Presence, Maps, h.Inventory, new QuestService(h.Units, h.Clock), h.Coops, new NoNodes(), new NoCooldownTools(), h.Units, h.Clock, GameCalendar.Default, groundItems, new PlayerProgressService(h.Units, new CalendarGameDayClock(GameCalendar.Default, h.Clock), h.Inventory, h.Clock), placed: h.Tiles);
+            GroundItemService groundItems = new(h.Presence, NoChunks.Instance, NoChunks.Instance, Maps, new TransferService(h.Inventory, h.Clock), h.Units, h.Clock);
+            farm = new FarmService(h.Presence, NoChunks.Instance, NoChunks.Instance, Maps, h.Inventory, new QuestService(h.Units, h.Clock), h.Coops, new NoNodes(), new NoCooldownTools(), h.Units, h.Clock, GameCalendar.Default, groundItems, new PlayerProgressService(h.Units, new CalendarGameDayClock(GameCalendar.Default, h.Clock), h.Inventory, h.Clock), placed: h.Tiles);
             return farm;
         });
         Guid player = await world.CreatePlayerAsync();

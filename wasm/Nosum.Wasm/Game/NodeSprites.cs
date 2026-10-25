@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Nodes;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Node;
@@ -31,6 +32,7 @@ internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int O
 /// <item><term>ladder</term><description>mine.png cell (3, 4): the top of a ladder going down into a dark hole</description></item>
 /// <item><term>weed</term><description>springobjects 313, 314 or 315 (green weeds)</description></item>
 /// <item><term>grass</term><description>springobjects 771 (a tuft of fiber)</description></item>
+/// <item><term>forage</term><description>the springobjects cell of the item it gives (<c>ItemDefinition.ObjectIcon</c>, docs/adr/ADR-025 D6)</description></item>
 /// </list>
 /// </summary>
 internal static class NodeSprites
@@ -103,6 +105,14 @@ internal static class NodeSprites
 
             case NodeKind.Grass:
                 AddObject(world, textures, 771, left, baseY, sortX, id);
+                break;
+
+            case NodeKind.Forage:
+                if (ForageCatalog.TryGet(node.Variant, out ForageEntry forage) && ItemCatalog.TryGet(forage.ItemId, out ItemDefinition? item) && item.ObjectIcon > 0)
+                {
+                    AddObject(world, textures, item.ObjectIcon, left, baseY, sortX, id);
+                }
+
                 break;
 
             default:

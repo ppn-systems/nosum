@@ -32,6 +32,9 @@ public static class CoinRules
     /// <summary>Most active listings one player may have.</summary>
     public const int MaxActiveListings = 20;
 
+    /// <summary>Most units of one item id one player may have listed at once, over all their listings (docs/adr/ADR-030 D4: no cornering a single item).</summary>
+    public const int MaxListedUnitsPerItem = 500;
+
     /// <summary>Listings shown per page when browsing.</summary>
     public const int ListingsPerPage = 10;
 
@@ -50,7 +53,10 @@ public static class CoinRules
     public static long SellerProceeds(long price) => price - MarketFee(price);
 }
 
-/// <summary>The fixed price the shipping bin pays for crops, per item. Only produce is bought; the table is a development default.</summary>
+/// <summary>
+/// The fixed price the shipping bin pays, per item: the <see cref="ItemDefinition.SellPrice"/> of every produce and forage item
+/// (docs/adr/ADR-025). Seeds, tools and materials are not bought. The prices are balance data in <see cref="ItemCatalog"/>.
+/// </summary>
 public static class ShippingPrices
 {
     /// <summary>Looks up what the bin pays for one item.</summary>
@@ -59,13 +65,7 @@ public static class ShippingPrices
     /// <returns><see langword="true"/> when the bin buys this item.</returns>
     public static bool TryGet(int itemId, out int coinsEach)
     {
-        coinsEach = itemId switch
-        {
-            ItemCatalog.Parsnip => 20,
-            ItemCatalog.Radish => 30,
-            ItemCatalog.Cauliflower => 60,
-            _ => 0,
-        };
+        coinsEach = ItemCatalog.TryGet(itemId, out ItemDefinition? item) && item.Kind == ItemKind.Produce ? item.SellPrice : 0;
         return coinsEach > 0;
     }
 }
@@ -90,6 +90,9 @@ public enum MarketVerdict
 
     /// <summary>The seller already has the most listings allowed.</summary>
     TooManyListings = 5,
+
+    /// <summary>The seller would have more than <see cref="CoinRules.MaxListedUnitsPerItem"/> units of this item listed at once.</summary>
+    TooManyOfItem = 6,
 }
 
 /// <summary>Rules for putting a stack on the consignment market.</summary>
@@ -100,8 +103,9 @@ public static class MarketRules
     /// <param name="quantity">How many.</param>
     /// <param name="price">The price for the whole stack.</param>
     /// <param name="activeListings">How many active listings the seller already has.</param>
+    /// <param name="listedUnitsOfItem">How many units of this item the seller already has listed, over all their active listings.</param>
     /// <returns><see cref="MarketVerdict.Ok"/> or the reason.</returns>
-    public static MarketVerdict ValidateListing(int itemId, int quantity, long price, int activeListings)
+    public static MarketVerdict ValidateListing(int itemId, int quantity, long price, int activeListings, int listedUnitsOfItem = 0)
     {
         if (!ItemCatalog.TryGet(itemId, out ItemDefinition? item))
         {
@@ -123,7 +127,12 @@ public static class MarketRules
             return MarketVerdict.InvalidPrice;
         }
 
-        return activeListings >= CoinRules.MaxActiveListings ? MarketVerdict.TooManyListings : MarketVerdict.Ok;
+        if (activeListings >= CoinRules.MaxActiveListings)
+        {
+            return MarketVerdict.TooManyListings;
+        }
+
+        return (long)listedUnitsOfItem + quantity > CoinRules.MaxListedUnitsPerItem ? MarketVerdict.TooManyOfItem : MarketVerdict.Ok;
     }
 }
 

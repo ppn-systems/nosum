@@ -29,6 +29,9 @@ public enum NodeKind : byte
     /// <summary>Tall grass; never blocks walking.</summary>
     Grass = 7,
 
+    /// <summary>A foraged item lying in the open (docs/adr/ADR-025 D4); <see cref="ResourceNode.Variant"/> is its <see cref="ForageCatalog"/> entry; it never blocks walking and any hand picks it up.</summary>
+    Forage = 8,
+
     /// <summary>An iron ore node, found on the deeper floors of the mine (docs/adr/ADR-026 D3).</summary>
     IronOre = 9,
 

@@ -5,6 +5,7 @@ using FluentAssertions;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Contracts.World.S2C;
 using Nosum.Wasm.Socket.Farm;
 using Xunit;
 
@@ -177,5 +178,113 @@ public sealed class FarmChannelTests
         UseItemArea sent = socket.Requests.Should().ContainSingle().Which.Should().BeOfType<UseItemArea>().Subject;
         (sent.Slot, sent.TileX, sent.TileY, sent.Tiles).Should().Be(((byte)2, 61, 17, (byte)3));
         status.Should().Be(FarmStatus.InvalidArea);
+    }
+
+    [Fact]
+    public void ChunkState_AddsTheChunksTilesAndReplacesAnyOlderOnes()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            FarmSnapshot snapshot = new() { MapId = "farm", ServerNowMs = 1 };
+            snapshot.Tiles.Add(Row(5, 5, 1));
+            return snapshot;
+        });
+        using FarmChannel channel = new(socket);
+        channel.Load();
+        ChunkState state = new() { MapId = "farm", ChunkX = 4, ChunkY = 2, ServerNowMs = 2 };
+        state.FarmTiles.Add(Row(69, 37, 2));
+        state.FarmTiles.Add(Row(70, 37));
+        ChunkState again = new() { MapId = "farm", ChunkX = 4, ChunkY = 2, ServerNowMs = 3 };
+        again.FarmTiles.Add(Row(70, 37, 4));
+
+        socket.Push(state);
+        socket.Push(again);
+
+        channel.Count.Should().Be(2, "the second state of the chunk replaces the first, the chunk (0, 0) tile stays");
+        using (channel.Read())
+        {
+            channel.TryGetTile(5, 5, out _).Should().BeTrue();
+            channel.TryGetTile(69, 37, out _).Should().BeFalse();
+            channel.TryGetTile(70, 37, out FarmTileInfo tile).Should().BeTrue();
+            tile.CropId.Should().Be(4);
+        }
+
+        state.Dispose();
+        again.Dispose();
+    }
+
+    [Fact]
+    public void ChunkLeft_DropsOnlyThatChunksTiles()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            FarmSnapshot snapshot = new() { MapId = "farm", ServerNowMs = 1 };
+            snapshot.Tiles.Add(Row(5, 5));
+            snapshot.Tiles.Add(Row(20, 5));
+            snapshot.Tiles.Add(Row(21, 6));
+            return snapshot;
+        });
+        using FarmChannel channel = new(socket);
+        channel.Load();
+        int changed = 0;
+        channel.Changed += () => changed++;
+        ChunkLeft left = new() { MapId = "farm", ChunkX = 1, ChunkY = 0 };
+
+        socket.Push(left);
+
+        channel.Count.Should().Be(1);
+        using (channel.Read())
+        {
+            channel.TryGetTile(5, 5, out _).Should().BeTrue();
+            channel.TryGetTile(20, 5, out _).Should().BeFalse();
+            channel.TryGetTile(21, 6, out _).Should().BeFalse();
+        }
+
+        changed.Should().Be(1);
+        left.Dispose();
+    }
+
+    [Fact]
+    public void ChunkLeft_OfAnEmptyChunkOrAnotherMap_ChangesNothing()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            FarmSnapshot snapshot = new() { MapId = "farm", ServerNowMs = 1 };
+            snapshot.Tiles.Add(Row(5, 5));
+            return snapshot;
+        });
+        using FarmChannel channel = new(socket);
+        channel.Load();
+        int changed = 0;
+        channel.Changed += () => changed++;
+        ChunkLeft empty = new() { MapId = "farm", ChunkX = 3, ChunkY = 3 };
+        ChunkLeft other = new() { MapId = "town", ChunkX = 0, ChunkY = 0 };
+
+        socket.Push(empty);
+        socket.Push(other);
+
+        channel.Count.Should().Be(1);
+        changed.Should().Be(0);
+        empty.Dispose();
+        other.Dispose();
+    }
+
+    [Fact]
+    public void ChunkState_ForAnotherMap_IsIgnored()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new FarmSnapshot { MapId = "farm", ServerNowMs = 1 });
+        using FarmChannel channel = new(socket);
+        channel.Load();
+        ChunkState state = new() { MapId = "town", ChunkX = 0, ChunkY = 0 };
+        state.FarmTiles.Add(Row(1, 1));
+
+        socket.Push(state);
+
+        channel.Count.Should().Be(0);
+        state.Dispose();
     }
 }

@@ -1,0 +1,99 @@
+/* The chat line: a compact HUD panel, newest line at the bottom. Colours only from the theme variables. */
+.chat-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-wrap: anywhere;
+}
+
+/* With the input open the log scrolls and keeps its newest line in view: a column-reverse box holding the one list sits at the bottom. */
+.chat-log.open {
+    display: flex;
+    flex-direction: column-reverse;
+    max-height: calc(var(--u) * 56);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+/* Closed: a line stays fully visible, then fades out over its last quarter (the view model drops it when it is 8 s old). */
+.chat-lines.closed > .chat-row {
+    animation: chat-fade 8s linear forwards;
+}
+
+@keyframes chat-fade {
+    0%,
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.chat-row {
+    display: block;
+    color: var(--nosum-ink);
+}
+
+.chat-tag {
+    margin-right: calc(var(--u) * 2);
+    color: var(--nosum-ink-faint);
+}
+
+.chat-sender {
+    color: var(--nosum-heading);
+}
+
+.chat-colon {
+    margin-right: calc(var(--u) * 2);
+}
+
+.chat-row.chat-map .chat-tag {
+    color: var(--nosum-heading);
+}
+
+.chat-row.chat-coop .chat-tag {
+    color: var(--nosum-ok);
+}
+
+.chat-row.whisper,
+.chat-row.whisper .chat-tag {
+    color: var(--nosum-focus);
+}
+
+.chat-row.system {
+    color: var(--nosum-ink-soft);
+}
+
+.chat-row.error {
+    color: var(--nosum-danger);
+}
+
+.chat-input-row {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    margin-top: calc(var(--u) * 2);
+}
+
+.chat-channel {
+    flex: none;
+    color: var(--nosum-heading);
+}
+
+.chat-channel.chat-map {
+    color: var(--nosum-heading);
+}
+
+.chat-channel.chat-coop {
+    color: var(--nosum-ok);
+}
+
+.chat-input-row ::deep .chat-input {
+    flex: 1 1 auto;
+    width: auto;
+}

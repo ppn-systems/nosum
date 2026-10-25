@@ -38,7 +38,7 @@ public sealed class GameMenuTabsTests
 
         vm.Items[^1].Kind.Should().Be(PanelKind.Settings);
         vm.Items[^1].Hotkey.Should().Be("H");
-        vm.Items.Should().NotContain(i => i.Kind == PanelKind.Shop || i.Kind == PanelKind.Help);
+        vm.Items.Should().NotContain(i => i.Kind == PanelKind.Shop || i.Kind == PanelKind.Help || i.Kind == PanelKind.Goals);
         vm.ShopItem.Kind.Should().Be(PanelKind.Shop);
         vm.ShopItem.Label.Should().NotBeNullOrWhiteSpace().And.NotStartWith("Toolbar_");
     }

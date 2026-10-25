@@ -32,6 +32,14 @@ description: Use when writing or debugging a server packet handler in server/Nos
 - **`[Inject]` static fields are filled only for classes registered through the host.**
 - **Handlers reference `Nosum.Abstractions`, never `Nosum.Infrastructure`.**
 - Rate-limit spam-able actions with `[PacketRateLimit(...)]` (enforced by `RateLimitMiddleware`).
+- **A push to "the players of the map" is a choice (docs/adr/ADR-022): chunk by default, instance when map-wide.**
+  Something that changed *at a place* (a plot, a placed object, a resource node, a ground item, a player's look)
+  goes through `IChunkPublisher.PublishAsync(instance, chunk, packet)` and reaches only the players who can see that
+  chunk; something that concerns the whole map whatever the distance (an announcement, chat) uses
+  `PublishInstanceAsync(instance, packet)`; something for one player is a reply or a notifier push, not a publish.
+  Never `IMapPresence.MulticastAsync` for a world event: it ignores distance. A feature that keeps per-chunk state
+  also implements `IChunkStateContributor`, so the state of a chunk is sent once when the chunk enters a player's
+  interest set.
 
 ## Shape
 

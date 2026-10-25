@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Nalix.Codec.Pooling;
 using Nosum.Contracts.Node.C2S;
 using Nosum.Contracts.Node.S2C;
+using Nosum.Contracts.World.S2C;
+using Nosum.Gameplay.Maps;
 
 namespace Nosum.Wasm.Socket.Node;
 
@@ -26,6 +28,8 @@ public readonly record struct NodeInfo(int Id, int X, int Y, byte Kind, byte Var
 /// The client's mirror of the resource nodes of the player's current place (docs/adr/ADR-021), and of the watering can's water. The server owns
 /// both: a swing shows only when its <see cref="NodeChanged"/> push arrives. The frame loop reads the mirror with <see cref="Read"/>,
 /// <see cref="Count"/> and <see cref="At"/> and never allocates or awaits; <see cref="Version"/> says when the set changed, so the scene can rebuild its collision grid then.
+/// The server sends the nodes of a chunk once, when the chunk joins the player's interest set (<see cref="ChunkState"/>), and then only changes in it; when the chunk leaves the set
+/// (<see cref="ChunkLeft"/>) its nodes are dropped (docs/adr/ADR-022 D6). A node belongs to the chunk of its tile.
 /// </summary>
 public sealed class NodeChannel : IDisposable
 {
@@ -53,6 +57,8 @@ public sealed class NodeChannel : IDisposable
         [
             socket.Subscribe<NodeChanged>(this.OnChanged),
             socket.Subscribe<ToolState>(this.OnToolState),
+            socket.Subscribe<ChunkState>(this.OnChunkState),
+            socket.Subscribe<ChunkLeft>(this.OnChunkLeft),
         ];
     }
 
@@ -160,6 +166,63 @@ public sealed class NodeChannel : IDisposable
         }
 
         this.Changed?.Invoke();
+    }
+
+    private void OnChunkState(ChunkState packet)
+    {
+        lock (_gate)
+        {
+            // A chunk of another map (a late push after a map change, or one that beat the load of this map) is not ours; the load covers it.
+            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _ = this.RemoveChunk(new ChunkCoord(packet.ChunkX, packet.ChunkY));
+            foreach (NodeRow row in packet.Nodes)
+            {
+                this.Store(row, hit: false);
+            }
+
+            _ = Interlocked.Increment(ref _version);
+        }
+
+        this.Changed?.Invoke();
+    }
+
+    private void OnChunkLeft(ChunkLeft packet)
+    {
+        bool removed;
+        lock (_gate)
+        {
+            removed = string.Equals(packet.MapId, _mapId, StringComparison.Ordinal) && this.RemoveChunk(new ChunkCoord(packet.ChunkX, packet.ChunkY));
+            if (removed)
+            {
+                _ = Interlocked.Increment(ref _version);
+            }
+        }
+
+        if (removed)
+        {
+            this.Changed?.Invoke();
+        }
+    }
+
+    // Drops the nodes of one chunk and re-indexes the rest. Call under the lock.
+    private bool RemoveChunk(ChunkCoord chunk)
+    {
+        if (_nodes.RemoveAll(n => ChunkCoord.OfTile(n.X, n.Y) == chunk) == 0)
+        {
+            return false;
+        }
+
+        _index.Clear();
+        for (int i = 0; i < _nodes.Count; i++)
+        {
+            _index[_nodes[i].Id] = i;
+        }
+
+        return true;
     }
 
     private void OnToolState(ToolState packet) => this.SetWater(packet.WaterLeft, packet.WaterCapacity);

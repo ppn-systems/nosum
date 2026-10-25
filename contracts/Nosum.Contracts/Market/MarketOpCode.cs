@@ -31,6 +31,9 @@ public static class MarketOpCode
     /// <summary>Reads the player's own listings. Reply: <see cref="S2C.ListingsPage"/>.</summary>
     public const ushort GetMyListings = 0x4006;
 
+    /// <summary>Reads the daily price history (min, median, max of sales) of one item (docs/adr/ADR-030 D4). Reply: <see cref="S2C.PriceHistory"/>.</summary>
+    public const ushort GetPriceHistory = 0x4007;
+
     // -- S2C --
 
     /// <summary>Reply to <see cref="GetWallet"/>.</summary>
@@ -47,4 +50,7 @@ public static class MarketOpCode
 
     /// <summary>Reply to <see cref="CreateListing"/>, <see cref="BuyListing"/> and <see cref="CancelListing"/>.</summary>
     public const ushort MarketResult = 0x4044;
+
+    /// <summary>Reply to <see cref="GetPriceHistory"/>.</summary>
+    public const ushort PriceHistory = 0x4045;
 }

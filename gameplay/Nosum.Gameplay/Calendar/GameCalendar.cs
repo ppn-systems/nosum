@@ -89,6 +89,14 @@ public sealed class GameCalendar
     /// <returns>The season.</returns>
     public Season SeasonAt(long unixMs) => (Season)(this.SeasonIndexAt(unixMs) % SeasonsPerYear);
 
+    /// <summary>
+    /// Returns which season an instant is in as a running count: 0 for the first spring since the epoch (also for any instant before it), then 1, 2, and so on without end
+    /// (it does not reset at a year). Community goals are kept per season number (docs/adr/ADR-030).
+    /// </summary>
+    /// <param name="unixMs">The instant, Unix milliseconds.</param>
+    /// <returns>The season number, at least 0.</returns>
+    public int SeasonNumberAt(long unixMs) => (int)Math.Min(int.MaxValue - 1, this.SeasonIndexAt(unixMs));
+
     /// <summary>Returns the instant the season that contains an instant started.</summary>
     /// <param name="unixMs">The instant, Unix milliseconds.</param>
     /// <returns>The start of that season, Unix milliseconds.</returns>

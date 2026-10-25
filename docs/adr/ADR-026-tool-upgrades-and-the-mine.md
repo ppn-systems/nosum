@@ -63,6 +63,14 @@ Built 2026-10-25. Where the code differs from the text above, or the text left a
 
 No combat. The blacksmith page is the lower part of the blacksmith's shop tab (`ShopPanel` shows `BlacksmithSection` under the price list when the shop is the blacksmith's); the elevator picker is a small dialog (`ElevatorDialog`) opened with the action key next to an elevator, not a menu tab. Nodes of a mine floor are drawn by the ordinary node decorator (iron ore `springobjects` 290, the ladder cell (3, 4) of `Mines/mine.png`).
 
+### Merged with the chunk, weather and social waves
+
+- **Chunks (ADR-022).** Floor nodes go out through `ResourceNodeService.PublishAsync` (`IChunkPublisher`, one `NodeChanged` per chunk) and a floor's nodes arrive as `ChunkState` rows from `FillAsync`, like any instance's; the hidden-ladder variant is stripped by `Public` in both paths. Ground drops use `GroundItemService`'s chunk path. `MineService` keeps listening to `IMapPresence.PlayerJoined` (the one event the presence now has, shared with the friends list) and `PlayerLeft`. Nothing on a floor is multicast to the instance.
+- **Weather (ADR-027).** The cave and every floor are `MapSpec.Indoors`: no precipitation, no ambient tint from the sky, no rain watering.
+- **Ids that had to stay clear of master.** `NodeKind.Forage = 8`, so `IronOre = 9` and `Ladder = 10` stay as built; `FarmStatus` ends at 21 on master, so `InvalidArea = 22`; `FarmAction.Descended = 10` follows master's `PlantedTree = 9`; shop ids 1–4 and the community board's counter id 1000 do not meet; item ids 10–13/20–23 and 505–507 are free in the merged catalogue (`CatalogTests` asserts unique ids). `OpcodeUniquenessTests` asserts that no two packet classes or opcode constants of `Nosum.Contracts` share a value.
+- **Migration.** `MineAndBlacksmith` was regenerated on top of master's snapshot: it creates `player_mines` and `tool_upgrades` only.
+- **Forage and the ladder.** A ladder is not broken by `NodeRules.Hit` (it answers `WrongTool`); an empty hand still picks up forage.
+
 ### Known weak spots
 
 - Leaving a floor drops it, and coming back the same day rebuilds it from the same seed, so broken stones return: a player can re-farm a floor by stepping off and on. The cost is the energy of the swings (ADR-023); a stored per-day state would fix it.

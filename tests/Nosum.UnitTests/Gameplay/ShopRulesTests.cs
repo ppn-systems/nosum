@@ -6,6 +6,7 @@ using System.Linq;
 using FluentAssertions;
 using Nosum.Core;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
@@ -140,7 +141,8 @@ public sealed class ShopRulesTests
             (ShopCatalog.SeedShop, 43, 57),
             (ShopCatalog.ClothingShop, 20, 89),
             (ShopCatalog.FurnitureShop, 95, 51),
-            (ShopCatalog.Blacksmith, 94, 82));
+            (ShopCatalog.Blacksmith, 94, 82),
+            (CommunityGoalCatalog.BoardCounterId, 42, 57));
         foreach (ShopDefinition shop in ShopCatalog.All)
         {
             town.Shops.Count(p => p.ShopId == shop.Id).Should().Be(1, $"{shop.Key} has one counter");
@@ -160,7 +162,7 @@ public sealed class ShopRulesTests
             bool[] reachable = ReachableFrom(grid, spec.SpawnTileX, spec.SpawnTileY);
             foreach (ShopPoint point in spec.Shops)
             {
-                ShopCatalog.TryGet(point.ShopId, out _).Should().BeTrue();
+                (point.ShopId == CommunityGoalCatalog.BoardCounterId || ShopCatalog.TryGet(point.ShopId, out _)).Should().BeTrue("a counter is a shop or the community board");
                 grid.IsBlocked(point.TileX, point.TileY).Should().BeFalse("the player stands on the counter tile");
                 reachable[(point.TileY * grid.Width) + point.TileX].Should().BeTrue($"shop {point.ShopId} must be walkable to from the spawn");
                 grid.IsBlocked(point.TileX, point.TileY - 1).Should().BeTrue("the counter is the doormat just south of the building's door");
@@ -169,15 +171,38 @@ public sealed class ShopRulesTests
     }
 
     [Fact]
-    public void NoTwoShopCounters_AreWithinReachOfTheSamePlace()
+    public void StandingAtACounter_UsesThatCounter_AndOnlyTheBoardAndTheSeedShopAreCloseEnoughToShareAPlace()
     {
         GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
         foreach (ShopPoint point in town!.Shops)
         {
             double cx = (point.TileX * 16) + 8;
             double cy = (point.TileY * 16) + 8;
-            town.Shops.Count(other => ShopRules.InReach(other, cx, cy, 16)).Should().Be(1, "standing at one counter reaches only that shop");
+            ShopRules.TryFindShop(town, cx, cy, 16, out int id).Should().BeTrue();
+            id.Should().Be(point.ShopId, "the nearest counter wins, so each counter's own tile uses it");
+
+            // Two counters in reach of one place is allowed for the board and the seed shop only (the billboard stands on the seed shop's store).
+            int[] reached = [.. town.Shops.Where(other => ShopRules.InReach(other, cx, cy, 16)).Select(other => other.ShopId)];
+            if (reached.Length > 1)
+            {
+                reached.Should().BeEquivalentTo([ShopCatalog.SeedShop, CommunityGoalCatalog.BoardCounterId]);
+            }
         }
+    }
+
+    [Fact]
+    public void TheBoardAndTheSeedShop_EachWinTheirOwnSideOfTheStoreFront()
+    {
+        GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
+
+        ShopRules.TryFindShop(town!, (41 * 16) + 8, (57 * 16) + 8, 16, out int west).Should().BeTrue();
+        ShopRules.TryFindShop(town!, (42 * 16) + 8, (57 * 16) + 8, 16, out int board).Should().BeTrue();
+        ShopRules.TryFindShop(town!, (43 * 16) + 8, (57 * 16) + 8, 16, out int seeds).Should().BeTrue();
+        ShopRules.TryFindShop(town!, (44 * 16) + 8, (57 * 16) + 8, 16, out int east).Should().BeTrue();
+
+        (west, board, seeds, east).Should().Be((CommunityGoalCatalog.BoardCounterId, CommunityGoalCatalog.BoardCounterId, ShopCatalog.SeedShop, ShopCatalog.SeedShop));
+        ShopRules.IsAtCounter(town!, CommunityGoalCatalog.BoardCounterId, (42 * 16) + 8, (57 * 16) + 8, 16).Should().BeTrue();
+        ShopRules.IsAtCounter(town!, CommunityGoalCatalog.BoardCounterId, (43 * 16) + 8, (57 * 16) + 8, 16).Should().BeFalse();
     }
 
     [Fact]
@@ -234,8 +259,8 @@ public sealed class ShopRulesTests
         long spring = calendar.EpochMs;
         long summer = spring + calendar.SeasonLengthMs;
 
-        ShopRules.IsInSeason(ItemCatalog.RadishSeeds, calendar, spring).Should().BeFalse();
-        ShopRules.IsInSeason(ItemCatalog.RadishSeeds, calendar, summer).Should().BeTrue();
+        ShopRules.IsInSeason(ItemCatalog.TomatoSeeds, calendar, spring).Should().BeFalse();
+        ShopRules.IsInSeason(ItemCatalog.TomatoSeeds, calendar, summer).Should().BeTrue();
         ShopRules.IsInSeason(ItemCatalog.CauliflowerSeeds, calendar, summer).Should().BeTrue();
         ShopRules.IsInSeason(ItemCatalog.OakChair, calendar, spring).Should().BeTrue();
         ShopRules.IsInSeason(ItemCatalog.HatCap, calendar, summer).Should().BeTrue();

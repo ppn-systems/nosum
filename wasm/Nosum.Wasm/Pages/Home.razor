@@ -7,11 +7,15 @@
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
 @using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Chat
 @using Nosum.Wasm.Controls.Chest
 @using Nosum.Wasm.Controls.Coop
 @using Nosum.Wasm.Controls.Crafting
+@using Nosum.Wasm.Controls.Friends
 @using Nosum.Wasm.Controls.Furnace
+@using Nosum.Wasm.Controls.Mail
 @using Nosum.Wasm.Controls.Feedback
+@using Nosum.Wasm.Controls.Goals
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.Controls.Settings
 @using Nosum.Wasm.Controls.Layout
@@ -30,14 +34,18 @@
 @using Nosum.Wasm.Controls.Wallet
 @using Nosum.Wasm.Controls.Calendar
 @using Nosum.Wasm.ViewModels.Calendar
+@using Nosum.Gameplay.Community
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Chat
 @using Nosum.Wasm.ViewModels.Chest
 @using Nosum.Wasm.ViewModels.Coop
 @using Nosum.Wasm.ViewModels.Crafting
+@using Nosum.Wasm.ViewModels.Friends
 @using Nosum.Wasm.ViewModels.Furnace
+@using Nosum.Wasm.ViewModels.Mail
 @using Nosum.Wasm.ViewModels.Visit
 @using Nosum.Wasm.Controls.Visit
 @using Nosum.Wasm.ViewModels.Looks
@@ -48,6 +56,7 @@
 @using Nosum.Wasm.ViewModels.Inventory
 @using Nosum.Wasm.ViewModels.Placement
 @using Nosum.Wasm.ViewModels.Profile
+@using Nosum.Wasm.ViewModels.Goals
 @using Nosum.Wasm.ViewModels.Shop
 @using Nosum.Wasm.ViewModels.Blacksmith
 @using Nosum.Wasm.ViewModels.Mine
@@ -69,11 +78,15 @@
 @inject TradeViewModel Trade
 @inject CoopViewModel Coop
 @inject VisitorsViewModel Visitors
+@inject ChatViewModel Chat
+@inject FriendsViewModel Friends
+@inject MailViewModel Mail
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
 @inject BlacksmithViewModel Blacksmith
 @inject ElevatorViewModel Elevator
+@inject GoalsViewModel Goals
 @inject HelpViewModel Help
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
@@ -112,7 +125,7 @@ else
             {
                 <CalendarClock Vm="Calendar" />
                 <CoinBadge Vm="Wallet" />
-                <GameIconButton Icon="tab-settings" Tip="@Toolbar.Text("Toolbar_Settings")" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
+                <GameIconButton Icon="tab-settings" Tip="@(Mail.Unread > 0 ? Toolbar.Text("Toolbar_Settings") + " - " + Toolbar.Text("Toolbar_MailUnread", Mail.Unread) : Toolbar.Text("Toolbar_Settings"))" Badge="Mail.Unread" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
             }
         </TopRight>
         <Center>
@@ -143,11 +156,20 @@ else
                         case PanelKind.Visitors:
                             <VisitorsPanel Vm="Visitors" OnClose="ClosePanel" />
                             break;
+                        case PanelKind.Friends:
+                            <FriendsPanel Vm="Friends" />
+                            break;
+                        case PanelKind.Mail:
+                            <MailPanel Vm="Mail" />
+                            break;
                         case PanelKind.Shop:
                             <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith" />
                             break;
                         case PanelKind.Skills:
                             <SkillsPanel Vm="Progress" />
+                            break;
+                        case PanelKind.Goals:
+                            <GoalsPanel Vm="Goals" />
                             break;
                         case PanelKind.Settings:
                             <SettingsPanel Vm="Form" Help="Help" />
@@ -172,6 +194,12 @@ else
                 <Hotbar Vm="Inventory" Progress="Progress" />
             }
         </BottomCenter>
+        <BottomLeft>
+            @if (_started)
+            {
+                <ChatLine Vm="Chat" Enabled="@(_panel == PanelKind.None && !Form.ShowsForm)" />
+            }
+        </BottomLeft>
         <Overlay>
             @if (!_started)
             {
@@ -233,6 +261,7 @@ else
         Trade.WantsOpen += OnTradeWantsOpen;
         Trade.Changed += OnViewModelChanged;
         Coop.Changed += OnViewModelChanged;
+        Mail.Changed += OnViewModelChanged;
 
         // Back from a session the server ended: say why on the account form.
         string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
@@ -263,6 +292,7 @@ else
         Trade.WantsOpen -= OnTradeWantsOpen;
         Trade.Changed -= OnViewModelChanged;
         Coop.Changed -= OnViewModelChanged;
+        Mail.Changed -= OnViewModelChanged;
     }
 
     // A guest registered under a nickname: the profile shows it.
@@ -274,10 +304,18 @@ else
     // A panel key was pressed in the game (raised from the frame loop). H and ? open the settings page, which holds the key help.
     private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind == PanelKind.Help ? PanelKind.Settings : kind));
 
-    // The action key next to a shop counter (raised from the frame): open that shop on its tab.
+    // The action key next to a counter (raised from the frame): open that shop on its tab, or the Town board's goals page.
     private void OnShopRequested(int shopId) => _ = InvokeAsync(() =>
     {
-        if (_panel != PanelKind.Shop)
+        if (shopId == CommunityGoalCatalog.BoardCounterId)
+        {
+            if (_panel != PanelKind.Goals)
+            {
+                Show(PanelKind.Goals);
+                StateHasChanged();
+            }
+        }
+        else if (_panel != PanelKind.Shop)
         {
             _shopId = shopId;
             Shop.Open(shopId);
@@ -353,6 +391,10 @@ else
             {
                 tabs.Add(Tab(_panel == PanelKind.Chest ? Toolbar.ChestItem : Toolbar.FurnaceItem));
             }
+            else if (item.Kind == PanelKind.Settings && _panel == PanelKind.Goals)
+            {
+                tabs.Add(Tab(Toolbar.GoalsItem));
+            }
 
             tabs.Add(Tab(item));
         }
@@ -391,7 +433,7 @@ else
         }
 
         _panel = kind;
-        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace))
+        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals))
         {
             _lastTab = kind;
         }

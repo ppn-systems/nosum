@@ -33,6 +33,24 @@ public sealed record ListingsInfo(long ServerNowMs, int Page, int Total, IReadOn
     public static readonly ListingsInfo Empty = new(0, 0, 0, []);
 }
 
+/// <summary>The sales of one item on one game day.</summary>
+/// <param name="Day">The game day number.</param>
+/// <param name="Min">The lowest unit price, coins.</param>
+/// <param name="Median">The median unit price, coins.</param>
+/// <param name="Max">The highest unit price, coins.</param>
+/// <param name="Sales">How many sales the day had.</param>
+public readonly record struct PriceDayInfo(int Day, long Min, long Median, long Max, int Sales);
+
+/// <summary>The recent daily price history of one item (docs/adr/ADR-030 D4).</summary>
+/// <param name="ItemId">The item.</param>
+/// <param name="Today">The game day number when read.</param>
+/// <param name="Days">The days that had sales, oldest first.</param>
+public sealed record PriceHistoryInfo(int ItemId, int Today, IReadOnlyList<PriceDayInfo> Days)
+{
+    /// <summary>Gets the state before any read.</summary>
+    public static readonly PriceHistoryInfo Empty = new(0, 0, []);
+}
+
 /// <summary>Which request a result answers.</summary>
 public enum MarketAction
 {
@@ -74,6 +92,12 @@ public sealed class MarketChannel
     /// <summary>Raised with the server's answer to a create, buy, cancel or ship; the number is the coins paid by a shipment. May run on any thread.</summary>
     public event Action<MarketAction, MarketStatus, long>? Completed;
 
+    /// <summary>Raised when the price history changed. May run on any thread.</summary>
+    public event Action? HistoryChanged;
+
+    /// <summary>Gets the last price history read.</summary>
+    public PriceHistoryInfo History { get; private set; } = PriceHistoryInfo.Empty;
+
     /// <summary>Gets the last browse page.</summary>
     public ListingsInfo Browsed { get; private set; } = ListingsInfo.Empty;
 
@@ -88,6 +112,10 @@ public sealed class MarketChannel
         ArgumentNullException.ThrowIfNull(itemIds);
         _ = this.BrowseAsync(page, itemIds);
     }
+
+    /// <summary>Reads the daily price history of one item.</summary>
+    /// <param name="itemId">The item.</param>
+    public void LoadHistory(int itemId) => _ = this.HistoryAsync(itemId);
 
     /// <summary>Reads the player's own listings.</summary>
     public void LoadMine() => _ = this.MineAsync();
@@ -136,6 +164,29 @@ public sealed class MarketChannel
             ListingsPage reply = await _socket.RequestAsync<ListingsPage>(request.Value).ConfigureAwait(false);
             this.Browsed = Map(reply);
             this.BrowseChanged?.Invoke();
+        }
+        catch (Exception)
+        {
+            // Connection dropped.
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "A lost read changes nothing; the player asks again.")]
+    private async Task HistoryAsync(int itemId)
+    {
+        try
+        {
+            using PacketScope<GetPriceHistory> request = PacketFactory<GetPriceHistory>.Acquire();
+            request.Value.ItemId = itemId;
+            PriceHistory reply = await _socket.RequestAsync<PriceHistory>(request.Value).ConfigureAwait(false);
+            List<PriceDayInfo> days = new(reply.Days.Count);
+            foreach (PriceDayRow row in reply.Days)
+            {
+                days.Add(new PriceDayInfo(row.Day, row.Min, row.Median, row.Max, row.Sales));
+            }
+
+            this.History = new PriceHistoryInfo(reply.ItemId, reply.Today, days);
+            this.HistoryChanged?.Invoke();
         }
         catch (Exception)
         {

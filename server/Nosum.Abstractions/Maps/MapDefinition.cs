@@ -25,8 +25,9 @@ public sealed class MapDefinition
     /// <param name="isCoop">Whether each co-op has its own instance of the map (docs/adr/ADR-020).</param>
     /// <param name="water">Water tiles, where a watering can is refilled; <see langword="null"/> when the map has none.</param>
     /// <param name="nodeSites">Places the map's <c>Paths</c> layer marks for trees, stones, twigs, weeds and grass (docs/adr/ADR-021 D4); empty when the map has none.</param>
+    /// <param name="forageSites">Places the <c>Paths</c> layer marks for forage (docs/adr/ADR-025 D4); empty when the map has none.</param>
     /// <param name="mineFloor">The floor number when the map is a floor of the mine, whose nodes are built in memory when a player enters (docs/adr/ADR-026 D3); zero otherwise.</param>
-    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null, bool isPrivate = false, bool placeable = false, IReadOnlySet<(int X, int Y)>? reservedTiles = null, bool isCoop = false, WaterGrid? water = null, IReadOnlyList<NodeSite>? nodeSites = null, int mineFloor = 0)
+    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null, bool isPrivate = false, bool placeable = false, IReadOnlySet<(int X, int Y)>? reservedTiles = null, bool isCoop = false, WaterGrid? water = null, IReadOnlyList<NodeSite>? nodeSites = null, IReadOnlyList<NodeSite>? forageSites = null, int mineFloor = 0)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(grid);
@@ -44,6 +45,7 @@ public sealed class MapDefinition
         this.Water = water;
         this.NodeSites = nodeSites ?? [];
         this.MineFloor = mineFloor;
+        this.ForageSites = forageSites ?? [];
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -88,6 +90,9 @@ public sealed class MapDefinition
     /// <summary>Gets whether the map is a floor of the mine: a per-player instance whose nodes live in memory and are rebuilt each game day.</summary>
     public bool IsMineFloor => this.MineFloor > 0;
 
+    /// <summary>Gets the forage spots of the map's <c>Paths</c> layer; forage only appears on public instances (docs/adr/ADR-025 D4).</summary>
+    public IReadOnlyList<NodeSite> ForageSites { get; }
+
     /// <summary>Gets whether the map has resource nodes (docs/adr/ADR-021): marked in its <c>Paths</c> layer, or built for a mine floor.</summary>
-    public bool HasNodes => this.NodeSites.Count > 0 || this.IsMineFloor;
+    public bool HasNodes => this.NodeSites.Count > 0 || this.ForageSites.Count > 0 || this.IsMineFloor;
 }

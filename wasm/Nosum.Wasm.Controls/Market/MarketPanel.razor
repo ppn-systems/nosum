@@ -22,6 +22,7 @@
 @foreach (ListingDisplay listing in Vm.Browsed)
             {
                 Guid id = listing.Id;
+                int itemId = listing.Item.ItemId;
                 <GameRow Class="listing-row">
                     <ItemSlotButton Slot="listing.Item" />
                     <span class="listing-main">
@@ -29,6 +30,7 @@
                         <span class="listing-seller">@listing.SellerText</span>
                     </span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
+                    <GameButton Variant="plain" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />
                     @if (listing.IsMine)
                     {
                         <span>@Vm.Text("Market_YourListing")</span>
@@ -40,6 +42,7 @@
                 </GameRow>
             }
             </div>
+            <PriceHistoryCard Vm="Vm" />
             <Pager Page="Vm.Page" PageCount="Vm.PageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
                    PositionText="@Vm.Text("Pager_Position", Vm.Page + 1, Vm.PageCount)" OnPage="@(p => Vm.GoToPage(p))" />
         }
@@ -65,6 +68,7 @@
                         <span class="market-fee sell-fee">@Vm.FeeSummary</span>
                     }
                 </div>
+                <PriceHistoryCard Vm="Vm" Compact="true" />
             }
             else
             {

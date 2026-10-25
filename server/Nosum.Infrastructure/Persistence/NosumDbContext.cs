@@ -4,16 +4,19 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Blacksmith;
+using Nosum.Domain.Community;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Economy;
 using Nosum.Domain.Farm;
 using Nosum.Domain.Inventory;
 using Nosum.Domain.Looks;
+using Nosum.Domain.Mail;
 using Nosum.Domain.Market;
 using Nosum.Domain.Mines;
 using Nosum.Domain.Nodes;
 using Nosum.Domain.Placeables;
 using Nosum.Domain.Quests;
+using Nosum.Domain.Social;
 using Nosum.Domain.Visits;
 using Nosum.Domain.World;
 
@@ -83,6 +86,18 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the consignment market listings.</summary>
     public DbSet<MarketListing> MarketListings => this.Set<MarketListing>();
 
+    /// <summary>Gets the sales of the consignment market, for the price history.</summary>
+    public DbSet<MarketSale> MarketSales => this.Set<MarketSale>();
+
+    /// <summary>Gets the community goals of every season (docs/adr/ADR-030).</summary>
+    public DbSet<CommunityGoalProgress> CommunityGoals => this.Set<CommunityGoalProgress>();
+
+    /// <summary>Gets what each player delivered to each community goal.</summary>
+    public DbSet<CommunityContribution> CommunityContributions => this.Set<CommunityContribution>();
+
+    /// <summary>Gets the unlock flags set by completed goals.</summary>
+    public DbSet<CommunityUnlockRecord> CommunityUnlocks => this.Set<CommunityUnlockRecord>();
+
     /// <summary>Gets the co-ops.</summary>
     public DbSet<Coop> Coops => this.Set<Coop>();
 
@@ -109,6 +124,26 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the tools the blacksmith is upgrading.</summary>
     public DbSet<ToolUpgrade> ToolUpgrades => this.Set<ToolUpgrade>();
+    /// <summary>Gets the block lists (docs/adr/ADR-029 D3).</summary>
+    public DbSet<BlockedPlayer> BlockedPlayers => this.Set<BlockedPlayer>();
+
+    /// <summary>Gets the chat reports.</summary>
+    public DbSet<ChatReport> ChatReports => this.Set<ChatReport>();
+
+    /// <summary>Gets the messages stored with the chat reports.</summary>
+    public DbSet<ChatReportLine> ChatReportLines => this.Set<ChatReportLine>();
+
+    /// <summary>Gets the friendships, one row per side (docs/adr/ADR-029 D4).</summary>
+    public DbSet<Friendship> Friendships => this.Set<Friendship>();
+
+    /// <summary>Gets the open friend requests.</summary>
+    public DbSet<FriendRequest> FriendRequests => this.Set<FriendRequest>();
+
+    /// <summary>Gets the mails of every mailbox (docs/adr/ADR-029 D5).</summary>
+    public DbSet<MailMessage> MailMessages => this.Set<MailMessage>();
+
+    /// <summary>Gets the items attached to mails.</summary>
+    public DbSet<MailAttachmentItem> MailAttachmentItems => this.Set<MailAttachmentItem>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
