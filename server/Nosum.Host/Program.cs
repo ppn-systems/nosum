@@ -379,7 +379,7 @@ internal static class Program
         placeables.Attach(buildings);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1).
         InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress)));
-        PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
+        PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
 
