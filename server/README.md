@@ -46,6 +46,14 @@ Furniture: `IPlaceableService` (`Placeables/PlaceableService`) places, moves and
 and pushes `PlacedChanged` to the instance; it is also the `IInstanceWorld` that gives movement validation the grid with the pieces' footprints. Handlers: `Nosum.Handlers/Placeable` (`USER`, rate limited).
 Tables: `placed_objects` and the owner column of `farm_plots` (migration `PrivateInstancesAndPlacedObjects`, which gives existing plots to the player who last worked them).
 
+Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D5-D6): `IGroundItems` (`Infrastructure/GroundItems/GroundItemService`) is where anything that "pops" an item drops it
+(`DropAsync`, or `Stage` + `CompleteAsync` to save the drop in the caller's own transaction: a harvest resets the plot and leaves the produce in one commit). An instance's items are loaded once and kept in
+16 x 16 tile chunk buckets; `PlayerService.MoveAsync` calls `OnPlayerMovedAsync` after every accepted move, which looks only at the nine chunks around the player, claims what is in range and allowed
+(`GroundItemRules`), and moves it into the inventory with one `ITransferService` transfer that deletes the row in the same transaction (reason `ground.pickup`); a full inventory leaves the item (retry pause 2 s),
+an in-memory claim makes two players racing for one item a clean win for one. The pickup runs off the movement path. `GroundItemExpiryService` (hosted, every 30 s) removes items past their expiry.
+Publishing goes through one private method, `PublishAsync`, which today multicasts to the instance (chunk interest, ADR-022 D4, replaces its body). `IYieldRandom` hands out seeded `GameRandom`s for yields.
+Handler: `Nosum.Handlers/GroundItem` (`GetGroundItems`, `USER`, rate limited). Table: `ground_items` (migration `AddGroundItems`).
+
 Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)):
 `ITransferService` (`Infrastructure/Economy`) is the one way coins move: items and coins between players and co-op warehouses in one transaction, built on
 `IInventoryService.ApplyManyAsync` (every involved player's lock, one unit of work, one save; a feature joins it with an `enlist` callback). On it sit `IMarketService`
