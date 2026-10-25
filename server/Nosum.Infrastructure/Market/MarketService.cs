@@ -19,7 +19,9 @@ using Nosum.Domain.Market;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Mail;
+using Nosum.Gameplay.Shops;
 using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
 
@@ -139,8 +141,15 @@ public sealed class MarketService : IMarketService
     }
 
     /// <inheritdoc/>
-    public async Task<MarketStatus> CreateListingAsync(Guid playerId, int slot, int itemId, int quantity, long price, CancellationToken cancellationToken = default)
+    public async Task<MarketStatus> CreateListingAsync(IConnection connection, Guid playerId, int slot, int itemId, int quantity, long price, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        if (!this.IsAtCounter(connection))
+        {
+            return MarketStatus.NotAtCounter;
+        }
+
         MarketVerdict verdict = MarketRules.ValidateListing(itemId, quantity, price, 0);
         if (verdict != MarketVerdict.Ok)
         {
@@ -194,8 +203,15 @@ public sealed class MarketService : IMarketService
     }
 
     /// <inheritdoc/>
-    public async Task<MarketStatus> BuyAsync(Guid buyerId, Guid listingId, CancellationToken cancellationToken = default)
+    public async Task<MarketStatus> BuyAsync(IConnection connection, Guid buyerId, Guid listingId, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        if (!this.IsAtCounter(connection))
+        {
+            return MarketStatus.NotAtCounter;
+        }
+
         using (await _listingLocks.EnterAsync(listingId, cancellationToken).ConfigureAwait(false))
         {
             MarketListing? listing = await this.ReadAsync(listingId, cancellationToken).ConfigureAwait(false);
@@ -288,8 +304,15 @@ public sealed class MarketService : IMarketService
     }
 
     /// <inheritdoc/>
-    public async Task<MarketStatus> CancelAsync(Guid playerId, Guid listingId, CancellationToken cancellationToken = default)
+    public async Task<MarketStatus> CancelAsync(IConnection connection, Guid playerId, Guid listingId, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        if (!this.IsAtCounter(connection))
+        {
+            return MarketStatus.NotAtCounter;
+        }
+
         using (await _listingLocks.EnterAsync(listingId, cancellationToken).ConfigureAwait(false))
         {
             MarketListing? listing = await this.ReadAsync(listingId, cancellationToken).ConfigureAwait(false);
@@ -417,6 +440,27 @@ public sealed class MarketService : IMarketService
     }
 
     // Items back to the seller and the listing closed, in one transaction. A seller with a full inventory is refused (NoSpace) and the listing stays.
+    // Listing, buying and cancelling happen at the trader's counter in Town (docs/adr/ADR-034); the position is the server's own record, never a value from the packet.
+    private bool IsAtCounter(IConnection connection)
+    {
+        if (!_presence.TryGet(connection, out PlayerPresence? player)
+            || !GameMaps.TryGet(player.MapId, out MapSpec? spec)
+            || !_maps.TryGet(player.MapId, out MapDefinition? map))
+        {
+            return false;
+        }
+
+        double feetX;
+        double feetY;
+        lock (player.Gate)
+        {
+            feetX = player.Motion.X;
+            feetY = player.Motion.Y;
+        }
+
+        return ShopRules.IsAtCounter(spec, MarketRules.MarketCounterId, feetX, feetY, map.Grid.TileSize);
+    }
+
     private async Task<TransferStatus> ReturnAsync(MarketListing listing, ListingStatus closeAs, string reason, CancellationToken cancellationToken)
     {
         Guid id = listing.Id;

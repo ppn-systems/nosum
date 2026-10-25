@@ -30,6 +30,16 @@ internal sealed class ItemIcons : IItemIconSource
             [ItemCatalog.Axe] = Tool(5, 10),
             [ItemCatalog.Pickaxe] = Tool(5, 6),
             [ItemCatalog.Scythe] = Weapon(7, 5),
+
+            // Upgraded tools: tools.png keeps every tier of a tool in the same row, copper seven columns and steel fourteen columns to the right of the basic one.
+            [ItemCatalog.CopperHoe] = Tool(7, 2),
+            [ItemCatalog.CopperWateringCan] = Tool(7, 14),
+            [ItemCatalog.CopperAxe] = Tool(12, 10),
+            [ItemCatalog.CopperPickaxe] = Tool(12, 6),
+            [ItemCatalog.IronHoe] = Tool(14, 2),
+            [ItemCatalog.IronWateringCan] = Tool(14, 14),
+            [ItemCatalog.IronAxe] = Tool(19, 10),
+            [ItemCatalog.IronPickaxe] = Tool(19, 6),
             [ItemCatalog.MilkPail] = Tool(6, 0),
             // Blueprints are the rolled plan at the start of the tools sheet, both buildings alike (placeholder art, docs/adr/ADR-007).
             [ItemCatalog.CoopBlueprint] = Tool(0, 0),

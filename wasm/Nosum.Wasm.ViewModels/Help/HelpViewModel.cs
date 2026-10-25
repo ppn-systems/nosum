@@ -46,6 +46,7 @@ public sealed class HelpViewModel : PanelViewModel
             [
                 new HelpEntry([Cap(GameAction.MoveUp), Cap(GameAction.MoveLeft), Cap(GameAction.MoveDown), Cap(GameAction.MoveRight)], this.Text("Help_Move")),
                 new HelpEntry([Cap(GameAction.Use), "Space"], this.Text("Help_Use")),
+                new HelpEntry(["E"], this.Text("Help_Counters")),
                 new HelpEntry(["1-9"], this.Text("Help_Hotbar")),
             ]),
         new HelpSection(

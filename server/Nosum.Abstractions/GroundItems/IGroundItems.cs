@@ -101,4 +101,13 @@ public interface IGroundItems
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>How many vanished.</returns>
     Task<int> ExpireDueAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Forgets an instance for good: drops it from memory and deletes its rows. Used for a mine floor when its player leaves it (docs/adr/ADR-026 D3),
+    /// so nothing lies on a floor that no longer exists.
+    /// </summary>
+    /// <param name="instance">The place.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the rows are gone.</returns>
+    Task ForgetAsync(MapInstance instance, CancellationToken cancellationToken = default) => Task.CompletedTask;
 }

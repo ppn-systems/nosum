@@ -38,9 +38,22 @@ public sealed class GameMenuTabsTests
 
         vm.Items[^1].Kind.Should().Be(PanelKind.Settings);
         vm.Items[^1].Hotkey.Should().Be("H");
-        vm.Items.Should().NotContain(i => i.Kind == PanelKind.Shop || i.Kind == PanelKind.Help || i.Kind == PanelKind.Goals);
+        vm.Items.Should().NotContain(i => i.Kind == PanelKind.Shop || i.Kind == PanelKind.Help || i.Kind == PanelKind.Goals || i.Kind == PanelKind.Market);
         vm.ShopItem.Kind.Should().Be(PanelKind.Shop);
         vm.ShopItem.Label.Should().NotBeNullOrWhiteSpace().And.NotStartWith("Toolbar_");
+    }
+
+    [Fact]
+    public void Items_HaveNoMarketTabAndNoMKey_MarketItemIsTheTabShownWhileTheMarketIsOpen()
+    {
+        ToolbarViewModel vm = new(Localizer<Language>());
+
+        vm.Items.Should().NotContain(i => i.Kind == PanelKind.Market || i.Hotkey == "M" || i.Icon == "tab-market");
+        vm.MarketItem.Kind.Should().Be(PanelKind.Market);
+        vm.MarketItem.Icon.Should().Be("tab-market");
+        vm.MarketItem.Hotkey.Should().BeEmpty("the market opens at the trader's counter, not with a key");
+        vm.MarketItem.Label.Should().NotBeNullOrWhiteSpace().And.NotStartWith("Toolbar_");
+        ((int)PanelKind.Market).Should().Be(2, "panel kinds are append-only");
     }
 
     [Fact]

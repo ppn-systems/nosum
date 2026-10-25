@@ -1,0 +1,17 @@
+.smith-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+}
+
+.smith-list ::deep .smith-row,
+::deep .smith-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: calc(var(--u) * 3);
+    align-items: center;
+}
+
+.smith-status {
+    margin: 0;
+}
