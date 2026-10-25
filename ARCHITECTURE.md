@@ -30,9 +30,9 @@ nosum/
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
 ├── assets/                       # placeholder content (unpacked Stardew Valley, 16 px, Tiled maps) — ADR-007, never shipped
-├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker); only area allowed an image package
+├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker, Nosum.AssetInventory); only area allowed an image package
 ├── deploy/                       # deployment configuration
-├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions)
+├── docs/                         # design/pillars.md (game identity) · art/ (placeholder inventory, ADR-040) · adr/ (architecture decisions)
 └── Directory.Build.props · Directory.Packages.props · Version.props · global.json
 ```
 
@@ -67,6 +67,7 @@ Nosum.Wasm.ViewModels   → Wasm.Socket, Gameplay                (catalogue keys
 Nosum.Wasm.Controls     → Wasm.ViewModels                      (reusable Razor controls; no socket, no text of their own)
 Nosum.Wasm              → Wasm.Controls, Wasm.ViewModels, Wasm.Socket, Contracts, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
 Nosum.AtlasPacker       → SkiaSharp                            (tools/ only; nothing references it)
+Nosum.AssetInventory    → Core, Rendering, Gameplay            (tools/ only; reads wasm/ sprite tables as source text; docs/art/inventory.md)
 ```
 
 Two boundaries matter most:
