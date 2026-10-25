@@ -201,14 +201,66 @@ public sealed partial class MapReauthorTests
         }
 
         own.Layers.Select(l => l.Name).Should().ContainInOrder("Back", "BackEdge", "Buildings");
+        own.FindLayer("BackEdge")!.Gids.Should().Contain(g => g >= terrain.FirstGid, "the farm's ponds and grass patches have edges");
     }
 
     [Fact]
-    public void Blob_Masks_ReduceToFortySevenShapes()
+    public void Build_PixelLabSets_IsTheCommittedTileset()
     {
-        Blob.Count.Should().Be(47);
-        Blob.Canonical(Blob.N | Blob.NE).Should().Be(Blob.N, "a corner without both of its sides does not count");
-        Blob.IndexOf(Blob.Full).Should().Be(46);
+        Rgba built = TilesetBuilder.Build(RepoFiles.Path("art", "own", "source", "pixellab"));
+        Rgba committed = Rgba.Read(RepoFiles.Path("art", "own", "Maps", "own_terrain.png"));
+
+        (built.Width, built.Height).Should().Be((committed.Width, committed.Height));
+        built.Pixels.Should().Equal(committed.Pixels, "art/own/Maps/own_terrain.png must be what `Nosum.MapReauthor tileset` writes");
+    }
+
+    [Fact]
+    public void Resolve_Uniform_NeedsNoCornerTile()
+    {
+        TerrainKind[] kinds = Cells(3, 3, TerrainKind.Grass);
+
+        TerrainEdges.Resolve(kinds, 3, 3).Should().AllBeEquivalentTo(-1);
+    }
+
+    [Fact]
+    public void Resolve_WaterInsideGrass_UsesTheWaterGrassSetAroundThePond()
+    {
+        TerrainKind[] kinds = Cells(7, 7, TerrainKind.Grass);
+        Fill(kinds, 7, 2, 2, 3, 3, TerrainKind.Water);
+
+        int[] tiles = TerrainEdges.Resolve(kinds, 7, 7);
+
+        int set = WangSet.Find(TerrainKind.Water, TerrainKind.Grass);
+        tiles[(3 * 7) + 3].Should().Be(-1, "the middle of the pond has water in all four corners");
+        tiles[(2 * 7) + 2].Should().BeInRange(OwnTileset.Corner(set, 0), OwnTileset.Corner(set, 15));
+        tiles[0].Should().Be(-1, "grass far from the pond");
+    }
+
+    [Fact]
+    public void Resolve_WaterInsideDirt_MeetsThroughGrass()
+    {
+        TerrainKind[] kinds = Cells(7, 7, TerrainKind.Dirt);
+        Fill(kinds, 7, 2, 2, 3, 3, TerrainKind.Water);
+
+        int[] tiles = TerrainEdges.Resolve(kinds, 7, 7);
+
+        int waterGrass = WangSet.Find(TerrainKind.Water, TerrainKind.Grass);
+        int grassDirt = WangSet.Find(TerrainKind.Grass, TerrainKind.Dirt);
+        tiles[(2 * 7) + 2].Should().BeInRange(OwnTileset.Corner(waterGrass, 0), OwnTileset.Corner(waterGrass, 15), "the water cell's shore is grass");
+        tiles[(1 * 7) + 2].Should().BeInRange(OwnTileset.Corner(grassDirt, 0), OwnTileset.Corner(grassDirt, 15), "the dirt cell around the shore turns from grass to dirt");
+        tiles.Should().OnlyContain(t => t < 0 || (t >= OwnTileset.FillCount && t < OwnTileset.TileCount));
+    }
+
+    [Fact]
+    public void Resolve_SandBeachBesideWater_UsesTheWaterSandSet()
+    {
+        TerrainKind[] kinds = Cells(4, 4, TerrainKind.Sand);
+        Fill(kinds, 4, 0, 0, 4, 2, TerrainKind.Water);
+
+        int[] tiles = TerrainEdges.Resolve(kinds, 4, 4);
+
+        int set = WangSet.Find(TerrainKind.Water, TerrainKind.Sand);
+        tiles[(1 * 4) + 1].Should().BeInRange(OwnTileset.Corner(set, 0), OwnTileset.Corner(set, 15));
     }
 
     [Fact]
@@ -216,6 +268,25 @@ public sealed partial class MapReauthorTests
     {
         OwnTileset.Fill(TerrainKind.Grass, TileTraits.Water, 0).Should().Be(-1);
         OwnTileset.Fill(TerrainKind.Water, TileTraits.Water | TileTraits.Impassable, 3).Should().BePositive();
+        OwnTileset.Fill(TerrainKind.Path, TileTraits.None, 0).Should().Be(-1, "there is no own path set yet");
+    }
+
+    private static TerrainKind[] Cells(int width, int height, TerrainKind kind)
+    {
+        TerrainKind[] cells = new TerrainKind[width * height];
+        System.Array.Fill(cells, kind);
+        return cells;
+    }
+
+    private static void Fill(TerrainKind[] cells, int width, int left, int top, int w, int h, TerrainKind kind)
+    {
+        for (int y = top; y < top + h; y++)
+        {
+            for (int x = left; x < left + w; x++)
+            {
+                cells[(y * width) + x] = kind;
+            }
+        }
     }
 
     private static string Layer(string xml, string name)

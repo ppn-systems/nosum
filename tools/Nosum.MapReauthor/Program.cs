@@ -8,19 +8,18 @@ namespace Nosum.MapReauthor;
 
 /// <summary>
 /// Command line.
-/// <c>tileset --pack &lt;sheet.png&gt;</c> composes <c>art/own/Maps/own_terrain.png</c> from the Kenney pack's spritesheet.
+/// <c>tileset</c> composes <c>art/own/Maps/own_terrain.png</c> from the PixelLab corner tilesets in <c>art/own/source/pixellab</c>.
 /// <c>reauthor &lt;Map&gt; [--check]</c> writes <c>art/own/Maps/&lt;Map&gt;.tmx</c> and <c>art/own/reports/&lt;Map&gt;.md</c> from <c>assets/Maps/&lt;Map&gt;.tmx</c>;
 /// <c>--check</c> writes nothing and exits 1 when the committed files differ.
 /// <c>preview &lt;Map&gt; --out &lt;png&gt; [--placeholder]</c> draws the re-authored (or with <c>--placeholder</c> the original) map.
 /// </summary>
 internal static class Program
 {
-    private const string Usage = "usage: Nosum.MapReauthor [--repo <root>] (tileset --pack <sheet.png> | reauthor <Map> [--check] | preview <Map> --out <png> [--placeholder])";
+    private const string Usage = "usage: Nosum.MapReauthor [--repo <root>] (tileset | reauthor <Map> [--check] | preview <Map> --out <png> [--placeholder])";
 
     public static int Main(string[] args)
     {
         string? repo = null;
-        string? pack = null;
         string? output = null;
         bool check = false, placeholder = false;
         List<string> words = [];
@@ -30,9 +29,6 @@ internal static class Program
             {
                 case "--repo" when i + 1 < args.Length:
                     repo = args[++i];
-                    break;
-                case "--pack" when i + 1 < args.Length:
-                    pack = args[++i];
                     break;
                 case "--out" when i + 1 < args.Length:
                     output = args[++i];
@@ -54,8 +50,8 @@ internal static class Program
         string own = Path.Combine(repo, "art", "own", "Maps");
         switch (words)
         {
-            case ["tileset"] when pack is not null:
-                File.WriteAllBytes(Path.Combine(own, OwnTileset.Name + ".png"), TilesetBuilder.Build(Rgba.Read(pack)).ToPng());
+            case ["tileset"]:
+                File.WriteAllBytes(Path.Combine(own, OwnTileset.Name + ".png"), TilesetBuilder.Build(Path.Combine(repo, "art", "own", "source", "pixellab")).ToPng());
                 Console.WriteLine($"Wrote art/own/Maps/{OwnTileset.Name}.png ({OwnTileset.TileCount} tiles).");
                 return 0;
             case ["reauthor", var map]:

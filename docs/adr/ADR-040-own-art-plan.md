@@ -126,22 +126,23 @@ layer and sheet, and the animated tiles.
 
 - **Tool:** `tools/Nosum.MapReauthor` ([`tools/README.md`](../../tools/README.md)). `Back`, the ground layer, is classified tile by tile into a terrain kind (grass,
   dirt, sand, water, path, cliff, other) through `tools/Nosum.MapReauthor/terrain-kinds.csv`, a table of (tilesheet, tile index) → kind that grows per map.
-  Each classified cell is redrawn from the own tileset; a tile that is not in the table, or whose walking traits the own tileset cannot carry, stays on
-  its placeholder sheet and is listed in `art/own/reports/<Map>.md`.
-- **How a cell is drawn.** The own tileset has an opaque fill per kind and walking trait (`Water`, `Diggable`, `Passable`) with four texture variants, and 47
-  rounded edge pieces for each of grass, dirt, sand and rock. A fill carries exactly the traits of the placeholder tile it replaced, so the walk, till and
-  water grids are unchanged. Kinds have a draw priority (water, path, rock, sand, dirt, grass): where a kind meets a lower one, its cell gets the fill of the
-  lower neighbour in `Back` and its own rounded edge piece on a new layer, `BackEdge`, which sits right above `Back`. `Other` neighbours and the map edge never
-  round a corner. Every other layer and every object group is copied character for character, and the placeholder tilesets stay in the file with their first ids.
-- **Source of the terrain art:** option 1 of the brief, a CC0 pack. Kenney "Tiny Town" was opened first and does not fit: it has grass and one dirt patch but
-  no water, sand or rock with edges. Kenney "Roguelike/RPG Pack" (CC0, 16 px) does: flat and rounded blocks of grass, dirt, sand, rock and water. The tileset is
-  composed from its spritesheet by the tool; provenance, hashes and the license copy are in `art/own/SOURCES.md` and `art/own/licenses/`. The pack is untrusted
-  data: it was only read as an image, and nothing in the archive was run.
+  Each classified cell is redrawn from the own tileset; a tile that is not in the table, whose kind has no own art yet, or whose walking traits the own tileset
+  cannot carry, stays on its placeholder sheet and is listed in `art/own/reports/<Map>.md`.
+- **How a cell is drawn.** The own tileset has a fill per kind and walking trait (`Water`, `Diggable`, `Passable`) with four texture variants, and the 16 corner
+  tiles of each own corner set. A fill carries exactly the traits of the placeholder tile it replaced, so the walk, till and water grids are unchanged. Where
+  terrains meet, the cell also gets a corner tile on a new layer, `BackEdge`, which sits right above `Back`. The corners are the vertices of the grid: a vertex takes
+  the kind of the highest-priority cell around it (water, sand, grass, dirt), and two kinds with no set between them meet through grass, so a pond in dirt gets a grass
+  shore. Every other layer and every object group is copied character for character, and the placeholder tilesets stay in the file with their first ids.
+- **Source of the terrain art.** First choice of the brief was a CC0 pack: Kenney "Tiny Town" (no water, sand or rock with edges) did not fit and Kenney
+  "Roguelike/RPG Pack" (CC0) did, and a first version of the pilot was built on it. The coordinator then supplied Nosum's own PixelLab corner tilesets (grass/dirt,
+  water/grass, water/sand, sand/grass, and two more for soil and cliff) and asked to prefer them; the pilot was rebuilt on them and the Kenney art removed, so the
+  repository holds no third-party art in `art/`. Provenance, prompts, tileset ids, what the sets really show, and what the build corrects (placeholder tiles, differing greens)
+  are in `art/own/SOURCES.md`. PixelLab's ownership terms remain to be confirmed before release.
 - **Pointing a map id at the own file.** The code is unchanged. The client and server projects link each map to the path the code loads; a map with an own file
   is linked from `art/own/Maps/` instead of `assets/Maps/` (see `art/README.md`). Maps without an own file load the placeholder as before.
 - **Not done in this phase.** The `Buildings`, `Front` and `AlwaysFront` layers still draw placeholder tiles (collision must stay byte-identical, and
-  buildings, trees, fences and cliff faces belong to package 7). The inventory (`docs/art/inventory.md`) and the release check (D6) still count the placeholder
-  `Farm.tmx` and its sheets as present; teaching them that a map has an own file comes with the next map.
+  buildings, trees, fences and cliff faces belong to package 7); the path kind (cobble) has no own set; the cliff and tilled-soil sets are not used yet. The inventory
+  (`docs/art/inventory.md`) and the release check (D6) still count the placeholder `Farm.tmx` and its sheets as present; teaching them that a map has an own file comes with the next map.
 
 ## Alternatives considered
 

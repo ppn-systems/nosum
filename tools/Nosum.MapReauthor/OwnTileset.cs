@@ -9,10 +9,10 @@ using Nosum.Core;
 namespace Nosum.MapReauthor;
 
 /// <summary>
-/// The layout of <c>own_terrain.png</c>, the tileset the re-authored maps draw terrain from: first the fill tiles (opaque, four texture
-/// variants of each kind and walking trait), then the rounded edge pieces (transparent where the terrain ends) of each rounded kind, 47 per kind.
-/// A fill tile carries the traits (<c>Water</c>, <c>Diggable</c>, <c>Passable</c>) the placeholder tile it replaced had, so collision, tilling
-/// and water refills are unchanged. The edge pieces carry none: they are drawn on their own layer above the fills.
+/// The layout of <c>own_terrain.png</c>, the tileset the re-authored maps draw terrain from: first the fill tiles (four texture variants of
+/// each kind and walking trait), then the 16 corner tiles of every <see cref="WangSet"/>. A fill carries the traits (<c>Water</c>,
+/// <c>Diggable</c>, <c>Passable</c>) of the placeholder tile it replaced, so collision, tilling and water refills are unchanged. The corner
+/// tiles carry none: they are drawn on their own layer above the fills, only where terrains meet.
 /// </summary>
 internal static class OwnTileset
 {
@@ -35,7 +35,7 @@ internal static class OwnTileset
     public static int FillCount { get; } = (((TerrainKinds.Fills.Length - 1) * s_landTraits.Length) + s_waterTraits.Length) * Variants;
 
     /// <summary>Gets the number of tiles in the tileset.</summary>
-    public static int TileCount => FillCount + (TerrainKinds.Rounded.Length * Blob.Count);
+    public static int TileCount => FillCount + (WangSet.All.Length * WangSet.Tiles);
 
     /// <summary>Gets the rows of the image.</summary>
     public static int Rows => (TileCount + Columns - 1) / Columns;
@@ -68,16 +68,15 @@ internal static class OwnTileset
         return -1;
     }
 
-    /// <summary>Returns the local tile index of an edge piece.</summary>
-    /// <param name="kind">A rounded kind.</param>
-    /// <param name="mask">The 8-neighbour mask (<see cref="Blob"/>).</param>
+    /// <summary>Returns the local tile index of a corner tile.</summary>
+    /// <param name="set">The index in <see cref="WangSet.All"/>.</param>
+    /// <param name="code">The corner code (<see cref="WangSet.Code"/>).</param>
     /// <returns>The index.</returns>
-    public static int Overlay(TerrainKind kind, int mask)
-        => FillCount + (Array.IndexOf(TerrainKinds.Rounded, kind) * Blob.Count) + Blob.IndexOf(mask);
+    public static int Corner(int set, int code) => FillCount + (set * WangSet.Tiles) + code;
 
-    /// <summary>Returns the tile entries of the tileset: the traits of every fill, as the placeholder maps write them.</summary>
+    /// <summary>Returns the <c>&lt;tileset&gt;</c> element: the tileset's size and the traits of every fill, as the placeholder maps write them.</summary>
     /// <param name="firstGid">The first global tile id the map gives the tileset.</param>
-    /// <returns>The <c>&lt;tileset&gt;</c> element, LF line endings, indented as the placeholder maps are.</returns>
+    /// <returns>The element, LF line endings, indented as the placeholder maps are.</returns>
     public static string TilesetElement(int firstGid)
     {
         StringBuilder xml = new();

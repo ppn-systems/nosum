@@ -10,7 +10,7 @@ only area allowed to use an image-processing package
 | `Nosum.AssetInventory` | Lists every placeholder file the game loads and the cells it draws, and writes [`docs/art/inventory.md`](../docs/art/inventory.md) ([ADR-040](../docs/adr/ADR-040-own-art-plan.md)). Reads the maps, the catalogues and the sprite tables in `wasm/`. |
 | `Nosum.AtlasPacker` | Packs each `<category>/` folder of Nosum's own art into `<category>.png` + `<category>.json` (SkiaSharp). Not used on the placeholder content in `assets/` (ADR-007). |
 
-| `Nosum.MapReauthor` | Re-authors a placeholder `.tmx` onto Nosum's own terrain tileset by terrain kind, builds that tileset from a CC0 pack, and reports what still draws a placeholder ([ADR-040](../docs/adr/ADR-040-own-art-plan.md), [`art/`](../art/README.md)). |
+| `Nosum.MapReauthor` | Re-authors a placeholder `.tmx` onto Nosum's own terrain tileset by terrain kind, builds that tileset from the own PixelLab corner sets, and reports what still draws a placeholder ([ADR-040](../docs/adr/ADR-040-own-art-plan.md), [`art/`](../art/README.md)). |
 
 | `synth_sounds.py` | Python 3 standard library only (no .NET project): synthesises Nosum's placeholder sound effects and the rain loop as 16-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
 
@@ -36,7 +36,7 @@ Never run `--write-fingerprints` after a file was replaced: it would record the 
 ```bash
 dotnet run --project tools/Nosum.MapReauthor -- reauthor Farm            # write art/own/Maps/Farm.tmx and art/own/reports/Farm.md from assets/Maps/Farm.tmx
 dotnet run --project tools/Nosum.MapReauthor -- reauthor Farm --check    # exit 1 when the committed files differ
-dotnet run --project tools/Nosum.MapReauthor -- tileset --pack <roguelikeSheet_transparent.png>   # rebuild art/own/Maps/own_terrain.png (the pack is not in the repo)
+dotnet run --project tools/Nosum.MapReauthor -- tileset                  # rebuild art/own/Maps/own_terrain.png from art/own/source/pixellab
 dotnet run --project tools/Nosum.MapReauthor -- preview Farm --out farm.png [--placeholder]       # draw a map to a PNG (animations not played)
 ```
 

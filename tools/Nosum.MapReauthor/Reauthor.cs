@@ -81,6 +81,10 @@ internal static partial class Reauthor
             {
                 reason = "kind other (not terrain)";
             }
+            else if (TerrainKinds.Priority(kind) < 0)
+            {
+                reason = $"no own {kind.ToString().ToLowerInvariant()} set yet";
+            }
             else if (OwnTileset.Fill(kind, map.GetTraits(gid), 0) < 0)
             {
                 reason = $"no own {kind.ToString().ToLowerInvariant()} fill with traits {map.GetTraits(gid)}";
@@ -97,6 +101,7 @@ internal static partial class Reauthor
         }
 
         int ownFirstGid = map.TileSets[^1].FirstGid + map.TileSets[^1].TileCount;
+        int[] corner = TerrainEdges.Resolve(kinds, width, height);
         int[] back = new int[kinds.Length];
         int[] edge = new int[kinds.Length];
         int own = 0;
@@ -105,15 +110,14 @@ internal static partial class Reauthor
             for (int x = 0; x < width; x++)
             {
                 int i = (y * width) + x;
-                if (kinds[i] == TerrainKind.Other)
+                if (TerrainKinds.Priority(kinds[i]) < 0)
                 {
                     continue;
                 }
 
                 own++;
-                (int fill, int piece) = Place(kinds, width, height, x, y, map.GetTraits(ground.Gids[i]));
-                back[i] = ownFirstGid + fill;
-                edge[i] = piece < 0 ? 0 : ownFirstGid + piece;
+                back[i] = ownFirstGid + OwnTileset.Fill(kinds[i], map.GetTraits(ground.Gids[i]), Variant(x, y));
+                edge[i] = corner[i] < 0 ? 0 : ownFirstGid + corner[i];
             }
         }
 
@@ -138,53 +142,6 @@ internal static partial class Reauthor
         string name = imageSource.Replace('\\', '/');
         name = name[(name.LastIndexOf('/') + 1)..];
         return name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? name[..^4] : name;
-    }
-
-    // The fill of a cell and, where its kind meets a lower one, the edge piece drawn above it (-1 for none).
-    private static (int Fill, int Piece) Place(TerrainKind[] kinds, int width, int height, int x, int y, TileTraits traits)
-    {
-        TerrainKind kind = kinds[(y * width) + x];
-        int variant = Variant(x, y);
-        if (Array.IndexOf(TerrainKinds.Rounded, kind) < 0)
-        {
-            return (OwnTileset.Fill(kind, traits, variant), -1);
-        }
-
-        int priority = TerrainKinds.Priority(kind);
-        int mask = 0;
-        int[] lowerScore = new int[TerrainKinds.Fills.Length];
-        ReadOnlySpan<(int Dx, int Dy, int Bit)> around = [(0, -1, Blob.N), (1, -1, Blob.NE), (1, 0, Blob.E), (1, 1, Blob.SE), (0, 1, Blob.S), (-1, 1, Blob.SW), (-1, 0, Blob.W), (-1, -1, Blob.NW)];
-        foreach ((int dx, int dy, int bit) in around)
-        {
-            int nx = x + dx, ny = y + dy;
-            TerrainKind other = nx < 0 || ny < 0 || nx >= width || ny >= height ? TerrainKind.Other : kinds[(ny * width) + nx];
-
-            // The map edge and tiles that stay on the placeholder never round a corner: the shape just runs on.
-            if (other == TerrainKind.Other || TerrainKinds.Priority(other) >= priority)
-            {
-                mask |= bit;
-            }
-            else
-            {
-                lowerScore[TerrainKinds.Priority(other)] += (dx == 0 || dy == 0) ? 2 : 1;
-            }
-        }
-
-        if (Blob.Canonical(mask) == Blob.Full)
-        {
-            return (OwnTileset.Fill(kind, traits, variant), -1);
-        }
-
-        int under = 0;
-        for (int p = 1; p < lowerScore.Length; p++)
-        {
-            if (lowerScore[p] >= lowerScore[under])
-            {
-                under = p;
-            }
-        }
-
-        return (OwnTileset.Fill(TerrainKinds.Fills[under], traits, variant), OwnTileset.Overlay(kind, mask));
     }
 
     // A fixed scatter of the four texture variants, so the same map always gets the same ground.
@@ -283,7 +240,7 @@ internal static partial class Reauthor
         _ = text.Append("Written by `tools/Nosum.MapReauthor`; do not edit by hand.\n\n");
         _ = text.Append(CultureInfo.InvariantCulture, $"- Ground cells (`{GroundLayer}` layer, {map.Width} × {map.Height}): {terrain:N0} place a tile.\n");
         _ = text.Append(CultureInfo.InvariantCulture, $"- Cells now drawn from the own terrain tileset: {own:N0} ({100.0 * own / Math.Max(1, terrain):F1} %).\n");
-        _ = text.Append(CultureInfo.InvariantCulture, $"- Cells that stay on a placeholder tile: {terrain - own:N0} of {kept.Count} different tiles.\n");
+        _ = text.Append(CultureInfo.InvariantCulture, $"- Cells that stay on a placeholder tile: {terrain - own:N0} ({kept.Count} different tiles).\n");
         _ = text.Append("- Every other layer (collision, logic and the drawn building, tree, fence and front layers) is copied unchanged and still draws placeholder tiles.\n\n");
         if (kept.Count > 0)
         {

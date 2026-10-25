@@ -2,12 +2,13 @@
 
 Nosum's **own** art, as it replaces the placeholder content in [`assets/`](../assets/README.md)
 ([ADR-040](../docs/adr/ADR-040-own-art-plan.md)). Nothing here is Stardew Valley content. Every file has a
-recorded provenance and a license that allows commercial use.
+recorded provenance in [`own/SOURCES.md`](own/SOURCES.md).
 
 | Folder | Holds |
 | :--- | :--- |
 | `own/Maps/` | Re-authored `.tmx` maps and the own terrain tileset they use. A map here has the same id, size, collision, warps and object groups as its placeholder; only the drawn terrain differs. |
-| `own/licenses/` | A copy of the license text of every third-party source the own art is made from. |
+| `own/source/` | The generated source art the maps' tilesets are composed from (PixelLab corner tilesets and their metadata). |
+| `own/reports/` | What each re-authored map still draws from placeholder tiles in its ground layer. |
 
 ## Which map the game loads
 
