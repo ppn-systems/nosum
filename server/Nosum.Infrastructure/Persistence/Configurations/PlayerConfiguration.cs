@@ -14,10 +14,12 @@ internal sealed class PlayerConfiguration : IEntityTypeConfiguration<Player>
         _ = builder.ToTable("players");
         _ = builder.HasKey(p => p.Id);
         _ = builder.Property(p => p.Id).ValueGeneratedNever();
-        _ = builder.Property(p => p.Username).HasMaxLength(AccountLimits.UsernameMaxLength).IsRequired();
-        _ = builder.Property(p => p.NormalizedUsername).HasMaxLength(AccountLimits.UsernameMaxLength).IsRequired();
-        _ = builder.HasIndex(p => p.NormalizedUsername).IsUnique();
-        _ = builder.Property(p => p.PasswordHash).HasMaxLength(256).IsRequired();
+        // Guests have no e-mail; PostgreSQL unique indexes allow many NULLs.
+        _ = builder.Property(p => p.Email).HasMaxLength(AccountLimits.EmailMaxLength);
+        _ = builder.Property(p => p.NormalizedEmail).HasMaxLength(AccountLimits.EmailMaxLength);
+        _ = builder.HasIndex(p => p.NormalizedEmail).IsUnique();
+        _ = builder.Property(p => p.PasswordHash).HasMaxLength(256);
+        _ = builder.HasIndex(p => new { p.IsGuest, p.LastActiveAt });
         _ = builder.Property(p => p.PreferredLanguage).HasMaxLength(AccountLimits.LanguageMaxLength).IsRequired();
         _ = builder.HasOne(p => p.State).WithOne().HasForeignKey<PlayerState>(s => s.PlayerId).OnDelete(DeleteBehavior.Cascade);
     }
