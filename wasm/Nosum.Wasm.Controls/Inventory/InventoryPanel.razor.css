@@ -1,0 +1,35 @@
+.inv-top {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--nosum-gap-group);
+    align-items: stretch;
+}
+
+.inv-hand {
+    display: flex;
+    gap: calc(var(--u) * 3);
+    align-items: flex-start;
+    padding: 0 calc(var(--u) * 2);
+}
+
+.inv-hand-text {
+    min-width: 0;
+}
+
+.hand-name {
+    margin: 0;
+    color: var(--nosum-heading);
+}
+
+.hand-line {
+    margin: 0;
+    color: var(--nosum-ink-soft);
+}
+
+/* The bag, then the hotbar row after one slot-sized gap in the same card. */
+.inv-grids {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 4);
+    padding: calc(var(--u) * 1) calc(var(--u) * 3);
+}

@@ -1,8 +1,9 @@
+@using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Coop
 @inherits ObservingComponent<CoopViewModel>
 
 @* The co-op: found or join one, manage members, and use the shared warehouse. The server decides roles and what a member may take. *@
-<GamePanel Title="@(Vm.HasCoop ? Vm.Name : Vm.Text("Coop_Title"))" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+<MenuPage Status="@Vm.Status">
     <GameStack>
         @if (!Vm.HasCoop)
         {
@@ -80,11 +81,9 @@
             </GameSection>
         }
     </GameStack>
-</GamePanel>
+</MenuPage>
 
 @code {
-    /// <summary>Raised when the close button is clicked.</summary>
-    [Parameter] public EventCallback OnClose { get; set; }
 
     protected override void OnInitialized() => Vm.Open();
 }

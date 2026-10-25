@@ -30,7 +30,11 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
-    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <!-- Started by hand so the satellite resources (Language.en.resx) are downloaded: the account's language is only known after sign-in (docs/adr/ADR-010 D6). -->
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js" autostart="false"></script>
+    <script>
+        Blazor.start({ configureRuntime: dotnet => { dotnet.withConfig({ loadAllSatelliteResources: true }); } });
+    </script>
 </body>
 
 </html>

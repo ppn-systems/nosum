@@ -1,13 +1,19 @@
-.worn-slot {
-    min-width: calc(var(--u) * 36);
-    font-weight: 800;
+.ward {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--nosum-gap-group);
+    align-items: start;
 }
 
-.worn-name {
-    min-width: calc(var(--u) * 50);
+.ward-preview {
+    display: flex;
+    justify-content: center;
+    padding: calc(var(--u) * 6) calc(var(--u) * 8);
 }
 
-.wardrobe-empty {
-    margin: 0;
-    color: var(--nosum-ink-soft);
+.ward-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nosum-gap);
+    min-width: 0;
 }

@@ -6,29 +6,32 @@
 @* Reusable login / register form, built only from the shared controls. All text and behaviour come from the view model; no network code here.
    The fields and buttons are Focusable: this form is shown while the game does not own the keyboard (before sign-in, or over the game on upgrade). *@
 <GamePanel Title="@Vm.Title" Class="account" Role="form">
-    <form class="account-form" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+    <form class="account-form @(Vm.IsRegister ? "register" : null)" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
         <GameStack>
-            <GameField Label="@Vm.EmailLabel" Hint="@(Vm.IsRegister ? Vm.EmailHint : null)">
-                <GameInput Type="email" Value="@Vm.Email" ValueChanged="@(v => Vm.Email = v)" Label="@Vm.EmailLabel" AutoComplete="email"
-                           MaxLength="@Nosum.Contracts.Account.AccountLimits.EmailMaxLength" Disabled="@Vm.IsBusy" />
-            </GameField>
+            <div class="account-fields">
+                <GameField Label="@Vm.EmailLabel" Hint="@(Vm.IsRegister ? Vm.EmailHint : null)">
+                    <GameInput Type="email" Value="@Vm.Email" ValueChanged="@(v => Vm.Email = v)" Label="@Vm.EmailLabel" AutoComplete="email"
+                               MaxLength="@Nosum.Contracts.Account.AccountLimits.EmailMaxLength" Disabled="@Vm.IsBusy" />
+                </GameField>
 
-            <GameField Label="@Vm.PasswordLabel" Hint="@(Vm.IsRegister ? Vm.PasswordHint : null)">
-                <GameInput Type="password" Value="@Vm.Password" ValueChanged="@(v => Vm.Password = v)" Label="@Vm.PasswordLabel" AutoComplete="@(Vm.IsRegister ? "new-password" : "current-password")"
-                           MaxLength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" Disabled="@Vm.IsBusy" />
-            </GameField>
-
-            @if (Vm.IsRegister)
-            {
-                <GameField Label="@Vm.ConfirmPasswordLabel">
-                    <GameInput Type="password" Value="@Vm.ConfirmPassword" ValueChanged="@(v => Vm.ConfirmPassword = v)" Label="@Vm.ConfirmPasswordLabel" AutoComplete="new-password"
+                <GameField Label="@Vm.PasswordLabel" Hint="@(Vm.IsRegister ? Vm.PasswordHint : null)">
+                    <GameInput Type="password" Value="@Vm.Password" ValueChanged="@(v => Vm.Password = v)" Label="@Vm.PasswordLabel" AutoComplete="@(Vm.IsRegister ? "new-password" : "current-password")"
                                MaxLength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" Disabled="@Vm.IsBusy" />
                 </GameField>
 
-                <GameField Label="@Vm.NicknameLabel" Hint="@Vm.NicknameHint">
-                    <GameInput Value="@Vm.Nickname" ValueChanged="@(v => Vm.Nickname = v)" Label="@Vm.NicknameLabel" AutoComplete="nickname" MaxLength="24" Disabled="@Vm.IsBusy" />
-                </GameField>
-            }
+                @if (Vm.IsRegister)
+                {
+                    <GameField Label="@Vm.ConfirmPasswordLabel">
+                        <GameInput Type="password" Value="@Vm.ConfirmPassword" ValueChanged="@(v => Vm.ConfirmPassword = v)" Label="@Vm.ConfirmPasswordLabel" AutoComplete="new-password"
+                                   MaxLength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" Disabled="@Vm.IsBusy" />
+                    </GameField>
+
+                    <GameField Label="@Vm.NicknameLabel" Hint="@Vm.NicknameHint">
+                        <GameInput Value="@Vm.Nickname" ValueChanged="@(v => Vm.Nickname = v)" Label="@Vm.NicknameLabel" AutoComplete="nickname" MaxLength="24" Disabled="@Vm.IsBusy" />
+                    </GameField>
+                }
+
+            </div>
 
             @if (Vm.ErrorText is not null)
             {
