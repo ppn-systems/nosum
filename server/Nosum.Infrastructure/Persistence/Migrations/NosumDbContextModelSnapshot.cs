@@ -28,6 +28,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("BannedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("banned_at");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -52,6 +56,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
+
+                    b.Property<DateTimeOffset?>("MutedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("muted_until");
 
                     b.Property<string>("Nickname")
                         .IsRequired()
@@ -82,6 +90,12 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("RegistrationPromptUnlockedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("registration_prompt_unlocked_at");
+
+                    b.Property<short>("Role")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint")
+                        .HasDefaultValue((short)0)
+                        .HasColumnName("role");
 
                     b.HasKey("Id")
                         .HasName("pk_players");
@@ -194,6 +208,46 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasName("pk_player_states");
 
                     b.ToTable("player_states", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Admin.AdminAuditEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<byte>("Action")
+                        .HasColumnType("smallint")
+                        .HasColumnName("action");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("detail");
+
+                    b.Property<Guid?>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_admin_audit");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_admin_audit_created_at");
+
+                    b.HasIndex("TargetId")
+                        .HasDatabaseName("ix_admin_audit_target_id");
+
+                    b.ToTable("admin_audit", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.Community.CommunityContribution", b =>

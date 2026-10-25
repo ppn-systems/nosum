@@ -3,6 +3,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
+using Nosum.Domain.Admin;
 using Nosum.Domain.Community;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Economy;
@@ -137,6 +138,9 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the items attached to mails.</summary>
     public DbSet<MailAttachmentItem> MailAttachmentItems => this.Set<MailAttachmentItem>();
+
+    /// <summary>Gets the audit trail of admin actions (docs/adr/ADR-031 D7).</summary>
+    public DbSet<AdminAuditEntry> AdminAudit => this.Set<AdminAuditEntry>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
