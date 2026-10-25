@@ -12,12 +12,14 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nalix.SDK.Options;
 using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Community;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
@@ -25,8 +27,12 @@ using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Contracts.World.S2C;
+using Nosum.Domain.Community;
+using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Maps;
 using Nosum.Host;
+using Nosum.Infrastructure.Community;
+using Nosum.Infrastructure.Persistence;
 using Xunit;
 
 namespace Nosum.IntegrationTests.Server;
@@ -155,6 +161,138 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
         (await second.WaitForSnapshotAsync(s => s.Contains(again.PlayerId), host.Timeout)).Players.Should().ContainSingle();
     }
 
+    [Fact]
+    public async Task Walk_TownToTheMountainThroughTheNorthRoad_ChangesMap()
+    {
+        await using Host host = await Host.StartAsync(_database);
+        await using WorldClient a = await host.ConnectAsync();
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+        await states.SaveAsync(a.AccountId, new PlayerStateRow(GameMaps.Town, (81 * 16) + 8, (3 * 16) + 8, Nosum.Core.Facing.Up), host.Timeout);
+        JoinMapResult join = await a.JoinAsync(host.Timeout);
+        join.MapId.Should().Be(GameMaps.Town);
+
+        uint sequence = 0;
+        float y = join.SpawnY;
+        while (a.MapChanges.IsEmpty && y > 1)
+        {
+            y = Math.Max(y - 8, 1);
+            await a.SendMoveAsync(++sequence, join.SpawnX, y, Up, host.Timeout);
+        }
+
+        MapChanged onTheMountain = await a.MapChanges.WaitAsync(host.Timeout);
+        onTheMountain.MapId.Should().Be(GameMaps.Mountain);
+    }
+
+    [Fact]
+    public async Task Walk_TownToTheBeachAndBack_ChangesMapEachWay_AndTheBridgeIsNotYetBuilt()
+    {
+        await using Host host = await Host.StartAsync(_database);
+        await using WorldClient a = await host.ConnectAsync();
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+
+        // On the Town's southern road, two tiles above the edge that the file's exit (53..55, 110) uses.
+        await states.SaveAsync(a.AccountId, new PlayerStateRow(GameMaps.Town, (54 * 16) + 8, (107 * 16) + 8, Nosum.Core.Facing.Down), host.Timeout);
+        JoinMapResult join = await a.JoinAsync(host.Timeout);
+        join.MapId.Should().Be(GameMaps.Town);
+        join.Unlocks.Should().Be(0, "no community goal is complete");
+
+        uint sequence = 0;
+        float walkY = join.SpawnY;
+        while (a.MapChanges.IsEmpty && walkY < (110 * 16) - 1)
+        {
+            walkY = Math.Min(walkY + 8, (110 * 16) - 1);
+            await a.SendMoveAsync(++sequence, join.SpawnX, walkY, Down, host.Timeout);
+        }
+
+        MapChanged onTheBeach = await a.MapChanges.WaitAsync(host.Timeout);
+        onTheBeach.MapId.Should().Be(GameMaps.Beach);
+        onTheBeach.PlayerId.Should().Be(join.PlayerId);
+        onTheBeach.Unlocks.Should().Be(0);
+        ((int)(onTheBeach.Y / 16)).Should().Be(0, "the road arrives on the top edge of the Beach");
+
+        // The way back: step off the arrival tile, then walk up out of the top edge.
+        await a.MapChanges.ExpectNothingAsync(TimeSpan.FromMilliseconds(300));
+        float y = onTheBeach.Y;
+        for (int i = 0; i < 2; i++)
+        {
+            y += 8;
+            await a.SendMoveAsync(++sequence, onTheBeach.X, y, Down, host.Timeout);
+        }
+
+        while (a.MapChanges.IsEmpty && y > 0)
+        {
+            y -= 8;
+            await a.SendMoveAsync(++sequence, onTheBeach.X, y, Up, host.Timeout);
+        }
+
+        MapChanged back = await a.MapChanges.WaitAsync(host.Timeout);
+        back.MapId.Should().Be(GameMaps.Town);
+        back.PlayerId.Should().Be(join.PlayerId);
+    }
+
+    [Fact]
+    public async Task BeachBridge_IsBlockedUntilTheCommunityUnlock_ThenWalkable_AndTheClientIsToldAtTheNextJoin()
+    {
+        await using Host host = await Host.StartAsync(_database);
+        await using WorldClient a = await host.ConnectAsync();
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+        CommunityUnlocks unlocks = (CommunityUnlocks)InstanceManager.Instance.GetExistingInstance<ICommunityUnlocks>()!;
+
+        // On the west bank, facing the bridge (tiles 58..61 of row 13).
+        float feetY = (OutdoorWorld.BridgeY * 16) + 15;
+        await states.SaveAsync(a.AccountId, new PlayerStateRow(GameMaps.Beach, (OutdoorWorld.BridgeWestBank.X * 16) + 8, feetY, Nosum.Core.Facing.Right), host.Timeout);
+        JoinMapResult join = await a.JoinAsync(host.Timeout);
+        join.MapId.Should().Be(GameMaps.Beach);
+        join.Unlocks.Should().Be(0);
+
+        uint sequence = 0;
+        float x = join.SpawnX;
+        while (a.Corrections.IsEmpty && x < (OutdoorWorld.BridgeEastBank.X + 2) * 16)
+        {
+            x += 8;
+            await a.SendMoveAsync(++sequence, x, feetY, Right, host.Timeout);
+        }
+
+        MoveCorrection wall = await a.Corrections.WaitAsync(host.Timeout);
+        wall.Reason.Should().Be(MoveRefusal.Blocked, "the planks are missing");
+        wall.X.Should().BeLessThan(OutdoorWorld.BridgeFromX * 16, "the walker stays on the west bank");
+
+        // The goal "Spring bridge" completes: the flag is in the table and the server's set.
+        await using (NosumDbContext db = new(_database.Options))
+        {
+            db.CommunityUnlocks.Add(new CommunityUnlockRecord { Key = CommunityUnlockKeys.BeachBridge, GoalId = 1, UnlockedAt = DateTimeOffset.UtcNow });
+            _ = await db.SaveChangesAsync(host.Timeout);
+        }
+
+        try
+        {
+            await unlocks.LoadAsync(host.Timeout);
+            await Task.Delay(400, host.Timeout);
+            a.Corrections.Clear();
+
+            // The same grid now lets a walker across, tile by tile, to the east bank.
+            x = wall.X;
+            uint crossing = sequence + 100;
+            while (x < (OutdoorWorld.BridgeEastBank.X + 1) * 16)
+            {
+                x += 8;
+                await a.SendMoveAsync(++crossing, x, feetY, Right, host.Timeout);
+            }
+
+            await a.Corrections.ExpectNothingAsync(TimeSpan.FromMilliseconds(500));
+
+            // A client that joins now is told, so its own grid opens the same tiles.
+            await using WorldClient b = await host.ConnectAsync();
+            await states.SaveAsync(b.AccountId, new PlayerStateRow(GameMaps.Beach, (OutdoorWorld.BridgeWestBank.X * 16) + 8, feetY, Nosum.Core.Facing.Right), host.Timeout);
+            (await b.JoinAsync(host.Timeout)).Unlocks.Should().Be((byte)CommunityUnlockSet.BeachBridge);
+        }
+        finally
+        {
+            await using NosumDbContext db = new(_database.Options);
+            _ = await db.CommunityUnlocks.Where(u => u.Key == CommunityUnlockKeys.BeachBridge).ExecuteDeleteAsync(CancellationToken.None);
+        }
+    }
+
     // Feet y on the farmhouse door tile (64, 15), straight above the spawn tile (64, 16).
     private const float DoorFeetY = (15 * 16) + 15;
 
@@ -218,6 +356,13 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
 
         public Task<T> WaitAsync(CancellationToken ct) => Task.Run(() => _items.Take(ct), ct);
 
+        public void Clear()
+        {
+            while (_items.TryTake(out _))
+            {
+            }
+        }
+
         public async Task ExpectNothingAsync(TimeSpan time)
         {
             using CancellationTokenSource limit = new(time);
@@ -253,7 +398,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
                 session.On<MapChanged>(m =>
                 {
                     _ = Interlocked.Increment(ref _mapChanges);
-                    this.MapChanges.Add(new MapChanged { PlayerId = m.PlayerId, MapId = m.MapId, X = m.X, Y = m.Y, Facing = m.Facing });
+                    this.MapChanges.Add(new MapChanged { PlayerId = m.PlayerId, MapId = m.MapId, X = m.X, Y = m.Y, Facing = m.Facing, Unlocks = m.Unlocks });
                 }),
             ];
         }

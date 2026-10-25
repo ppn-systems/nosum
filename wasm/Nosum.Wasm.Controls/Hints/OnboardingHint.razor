@@ -5,6 +5,6 @@
 <div class="hint-dock" role="status" aria-live="polite">
     @if (Vm.IsVisible)
     {
-        <p class="hint-line" @key="Vm.Current" aria-label="@(Vm.Label + ": " + Vm.Hint)">@Vm.Hint</p>
+        <p class="hint-line" @key="Vm.HintKey" aria-label="@(Vm.Label + ": " + Vm.Hint)">@Vm.Hint</p>
     }
 </div>

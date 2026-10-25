@@ -228,6 +228,11 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             return Refused(PlaceStatus.NotPlaceable);
         }
 
+        if (member is not null && !FootprintUnlocked(member, definition, rotation, tileX, tileY))
+        {
+            return Refused(PlaceStatus.LockedLand);
+        }
+
         IGroundLayers? layers = await this.LayersAsync(player.Instance, definition, rotation, tileX, tileY, cancellationToken).ConfigureAwait(false);
 
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
@@ -291,7 +296,8 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             return Refused(editable);
         }
 
-        if (map.IsCoop && await this.MemberOnCoopLandAsync(player, map, cancellationToken).ConfigureAwait(false) is null)
+        CoopMembershipInfo? mover = await this.MemberOnCoopLandAsync(player, map, cancellationToken).ConfigureAwait(false);
+        if (map.IsCoop && mover is null)
         {
             return Refused(PlaceStatus.NotYourPlace);
         }
@@ -309,6 +315,11 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             if (definition.Kind == PlaceableKind.Building)
             {
                 return Refused(PlaceStatus.Fixed);
+            }
+
+            if (mover is not null && !FootprintUnlocked(mover, definition, rotation, tileX, tileY))
+            {
+                return Refused(PlaceStatus.LockedLand);
             }
 
             IGroundLayers? layers = await this.LayersAsync(player.Instance, definition, rotation, tileX, tileY, cancellationToken).ConfigureAwait(false);
@@ -506,6 +517,18 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         return PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, map.Grid.TileSize) ? PlaceStatus.PlayerInTheWay : PlaceStatus.Ok;
     }
 
+    // Whether the whole footprint lies on land the co-op has unlocked (docs/adr/ADR-038); a rotation out of range is left to the placement check.
+    private static bool FootprintUnlocked(CoopMembershipInfo member, PlaceableDefinition definition, int rotation, int tileX, int tileY)
+    {
+        if ((uint)rotation >= (uint)definition.Rotations)
+        {
+            return true;
+        }
+
+        PlaceableView view = definition.View(rotation);
+        return CoopUpgrades.IsAreaUnlocked(member.LandLevel, tileX, tileY, view.FootprintWidth, view.FootprintHeight);
+    }
+
     // Within the farming reach of any tile of the footprint.
     private static bool Reaches(PlayerPresence player, MapDefinition map, int tileX, int tileY, PlaceableView view)
     {
@@ -532,9 +555,12 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         IReadOnlySet<(int X, int Y)> tilled = _farm is null
             ? new HashSet<(int X, int Y)>()
             : await _farm.WorkedTilesAsync(instance, tileX, tileY, view.FootprintWidth, view.FootprintHeight, cancellationToken).ConfigureAwait(false);
+
+        // A building's door needs the tile in front of it free of nodes too, one row below the footprint (docs/adr/ADR-028 D1).
+        int nodeRows = view.FootprintHeight + (definition.Door is null ? 0 : 1);
         IReadOnlySet<(int X, int Y)> nodes = _nodes is null
             ? new HashSet<(int X, int Y)>()
-            : await _nodes.NodeTilesAsync(instance, tileX, tileY, view.FootprintWidth, view.FootprintHeight, cancellationToken).ConfigureAwait(false);
+            : await _nodes.NodeTilesAsync(instance, tileX, tileY, view.FootprintWidth, nodeRows, cancellationToken).ConfigureAwait(false);
         return new GroundLayers(tilled, nodes);
     }
 

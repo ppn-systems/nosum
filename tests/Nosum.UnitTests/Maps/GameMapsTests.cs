@@ -55,7 +55,8 @@ public sealed class GameMapsTests
     {
         GameMaps.Resolve("BusStop")!.Id.Should().Be(GameMaps.BusStop);
         GameMaps.Resolve("Town")!.Id.Should().Be(GameMaps.Town);
-        GameMaps.Resolve("Mountain").Should().BeNull("the world does not host it yet");
+        GameMaps.Resolve("Mountain")!.Id.Should().Be(GameMaps.Mountain);
+        GameMaps.Resolve("Railroad").Should().BeNull("the world does not host it");
     }
 
     [Fact]
@@ -134,7 +135,7 @@ public sealed class GameMapsTests
         GameMaps.All.Where(m => m.IsMineFloor).Should().HaveCount(40).And.OnlyContain(m => m.IsPrivate && !m.Placeable && !m.Farmable);
         GameMaps.All.Where(m => m.IsInterior).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.Coop, GameMaps.Barn);
         GameMaps.All.Where(m => m.Placeable).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.FarmHouse, GameMaps.Farm, GameMaps.CoopFarm);
-        GameMaps.All.Where(m => !m.IsPrivate && !m.IsCoop).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.Town, GameMaps.Backwoods, GameMaps.Mine);
+        GameMaps.All.Where(m => !m.IsPrivate && !m.IsCoop).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.Town, GameMaps.Backwoods, GameMaps.Mine, GameMaps.Mountain, GameMaps.Beach, GameMaps.Woods);
         GameMaps.All.Where(m => m.IsCoop).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.CoopFarm);
     }
 

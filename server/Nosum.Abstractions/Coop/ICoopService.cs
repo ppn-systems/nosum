@@ -46,6 +46,8 @@ public sealed record CoopInviteView(Guid InviteId, string CoopName, string Invit
 /// <param name="Log">The latest log lines, newest first.</param>
 /// <param name="Invites">Open invitations to the viewer.</param>
 /// <param name="ServerNow">The server clock when read.</param>
+/// <param name="WarehouseLevel">The warehouse upgrade level (docs/adr/ADR-038).</param>
+/// <param name="LandLevel">The land upgrade level (docs/adr/ADR-038).</param>
 public sealed record CoopView(
     bool HasCoop,
     string Name,
@@ -54,7 +56,9 @@ public sealed record CoopView(
     IReadOnlyList<CoopStockView> Stock,
     IReadOnlyList<CoopLogView> Log,
     IReadOnlyList<CoopInviteView> Invites,
-    DateTimeOffset ServerNow)
+    DateTimeOffset ServerNow,
+    int WarehouseLevel = 0,
+    int LandLevel = 0)
 {
     /// <summary>Copies the view into a snapshot packet (the packet's lists are cleared first).</summary>
     /// <param name="packet">The packet to fill.</param>
@@ -66,6 +70,8 @@ public sealed record CoopView(
         packet.Name = this.Name;
         packet.Role = this.Role;
         packet.ServerNowMs = this.ServerNow.ToUnixTimeMilliseconds();
+        packet.WarehouseLevel = (byte)this.WarehouseLevel;
+        packet.LandLevel = (byte)this.LandLevel;
         packet.Members.Clear();
         packet.Stock.Clear();
         packet.Log.Clear();
@@ -181,4 +187,15 @@ public interface ICoopService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The status.</returns>
     Task<CoopStatus> WithdrawAsync(Guid playerId, int itemId, int quantity, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Buys the next level of an upgrade track, paid in items taken from the warehouse (docs/adr/ADR-038). Founder only. The price, the new level and the log
+    /// lines change in one transaction; the request names the level it wants, so a repeated request pays once. Every online member gets the new snapshot.
+    /// </summary>
+    /// <param name="playerId">The buyer.</param>
+    /// <param name="track">The track to upgrade.</param>
+    /// <param name="targetLevel">The level to buy; it must be one above the current level.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status.</returns>
+    Task<CoopStatus> UpgradeAsync(Guid playerId, CoopUpgradeTrack track, int targetLevel, CancellationToken cancellationToken = default);
 }

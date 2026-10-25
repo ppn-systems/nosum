@@ -46,7 +46,7 @@ the land did not ("Co-op land is not built"). Farming ([ADR-011](ADR-011-invento
 
 - Each action on co-op land costs one extra membership query and one extra audit insert (inside the existing transaction).
 - The Town gate has no sign or art yet (placeholder content); a player finds it by walking to the west plaza. A refused non-member sees nothing happen.
-- The land is large (about 2 000 tillable tiles) and unlimited; there is no cap per co-op.
+- The land is large (about 2 000 tillable tiles). It is no longer unlimited from the start: [ADR-038](ADR-038-coop-upgrades.md) opens it in blocks that a co-op buys.
 - The audit lines for tilling and watering are numerous; they are never read in bulk, but nothing prunes them yet.
 
 ## Revisit when
@@ -56,5 +56,5 @@ The harvest should go to the warehouse, members need finer roles (only the found
 
 ## Open owner questions
 
-Harvest to the harvester (built) or to the warehouse; whether members may harvest what others planted (built: yes) or only the planter; whether dissolving should pay out ripe crops instead of wiping them; land size and whether it grows with membership;
+Harvest to the harvester (built) or to the warehouse; whether members may harvest what others planted (built: yes) or only the planter; whether dissolving should pay out ripe crops instead of wiping them; land size (answered by [ADR-038](ADR-038-coop-upgrades.md): bought, not tied to membership);
 whether farm lines belong in the member-visible log; where the gate should stand and how it should look.

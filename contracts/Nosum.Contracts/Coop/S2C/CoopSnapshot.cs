@@ -39,4 +39,10 @@ public sealed partial class CoopSnapshot : PacketBase<CoopSnapshot>, IPacketStat
 
     /// <summary>The server clock when read, Unix milliseconds.</summary>
     [SerializeOrder(7)] public long ServerNowMs { get; set; }
+
+    /// <summary>The warehouse upgrade level (docs/adr/ADR-038); zero for a player with no co-op.</summary>
+    [SerializeOrder(8)] public byte WarehouseLevel { get; set; }
+
+    /// <summary>The land upgrade level (docs/adr/ADR-038); zero for a player with no co-op.</summary>
+    [SerializeOrder(9)] public byte LandLevel { get; set; }
 }

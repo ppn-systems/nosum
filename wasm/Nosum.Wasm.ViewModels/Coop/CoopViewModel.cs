@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Coop;
+using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Text;
 using Nosum.Wasm.Socket.Coop;
@@ -29,6 +30,27 @@ public sealed record MemberDisplay(Guid MemberId, string Label, string RoleText,
 /// <param name="Item">The stack for the slot control (index is the item id).</param>
 /// <param name="Available">How many the player may take out now.</param>
 public sealed record StockDisplay(SlotDisplay Item, int Available);
+
+/// <summary>One price line of an upgrade.</summary>
+/// <param name="ItemName">The localized item name.</param>
+/// <param name="Needed">How many the upgrade takes from the warehouse.</param>
+/// <param name="Have">How many the warehouse holds.</param>
+public sealed record UpgradeCostDisplay(string ItemName, int Needed, int Have)
+{
+    /// <summary>Gets whether the warehouse holds enough of the item.</summary>
+    public bool Enough => this.Have >= this.Needed;
+}
+
+/// <summary>One upgrade track of the co-op panel.</summary>
+/// <param name="Track">The track.</param>
+/// <param name="Title">The localized track name.</param>
+/// <param name="Level">The level now.</param>
+/// <param name="Summary">What the level gives, localized.</param>
+/// <param name="LevelText">"Level 1 / 3", localized.</param>
+/// <param name="IsMax">Whether the track is complete.</param>
+/// <param name="Costs">The price of the next level; empty when complete.</param>
+/// <param name="CanBuy">Whether the player is the founder and the warehouse holds the whole price.</param>
+public sealed record UpgradeDisplay(CoopUpgradeTrack Track, string Title, int Level, string Summary, string LevelText, bool IsMax, IReadOnlyList<UpgradeCostDisplay> Costs, bool CanBuy);
 
 /// <summary>View model of the co-op panel: found a co-op, answer invitations, invite players on the map, manage members, and use the shared warehouse. The server decides every outcome, including who may withdraw what.</summary>
 public sealed class CoopViewModel : PanelViewModel, IDisposable
@@ -149,6 +171,20 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the two upgrade tracks (docs/adr/ADR-038) with the price of the next level against what the warehouse holds. The server decides the purchase.</summary>
+    public IReadOnlyList<UpgradeDisplay> Upgrades
+    {
+        get
+        {
+            CoopInfo info = _coop.Current;
+            return
+            [
+                this.UpgradeOf(CoopUpgradeTrack.Warehouse, CoopTrack.Warehouse, info.WarehouseLevel, this.Text("Coop_Upgrade_Warehouse_Now", CoopUpgrades.WarehouseSlots(info.WarehouseLevel), info.Stock.Count)),
+                this.UpgradeOf(CoopUpgradeTrack.Land, CoopTrack.Land, info.LandLevel, this.Text("Coop_Upgrade_Land_Now", info.LandLevel + 1, CoopUpgrades.MaxLevel + 1)),
+            ];
+        }
+    }
+
     /// <summary>Gets the warehouse log lines as localized text, newest first.</summary>
     public IReadOnlyList<string> Log
     {
@@ -216,6 +252,14 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
     /// <param name="memberId">The membership.</param>
     public void Kick(Guid memberId) => _coop.Kick(memberId);
 
+    /// <summary>Buys the next level of a track (the server refuses anyone but the founder).</summary>
+    /// <param name="track">The track.</param>
+    public void Upgrade(CoopUpgradeTrack track)
+    {
+        int level = track == CoopUpgradeTrack.Land ? _coop.Current.LandLevel : _coop.Current.WarehouseLevel;
+        _coop.Upgrade(track, level + 1);
+    }
+
     /// <summary>Picks the inventory stack to deposit.</summary>
     /// <param name="slot">The inventory slot.</param>
     public void PickDeposit(int slot)
@@ -282,6 +326,32 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         _coop.Completed -= this.OnCompleted;
         _nearby.Changed -= this.Raise;
         _inventory.Changed -= this.Raise;
+    }
+
+    private UpgradeDisplay UpgradeOf(CoopUpgradeTrack wire, CoopTrack track, int level, string summary)
+    {
+        bool isMax = level >= CoopUpgrades.MaxLevel;
+        List<UpgradeCostDisplay> costs = [];
+        bool enough = !isMax;
+        if (!isMax)
+        {
+            foreach (UpgradeCost cost in CoopUpgrades.Cost(track, level + 1))
+            {
+                int have = 0;
+                foreach (CoopStockInfo row in _coop.Current.Stock)
+                {
+                    if (row.ItemId == cost.ItemId)
+                    {
+                        have = row.Quantity;
+                    }
+                }
+
+                costs.Add(new UpgradeCostDisplay(_describer.NameOf(cost.ItemId), cost.Quantity, have));
+                enough &= have >= cost.Quantity;
+            }
+        }
+
+        return new UpgradeDisplay(wire, this.Text(track == CoopTrack.Land ? "Coop_Upgrade_Land" : "Coop_Upgrade_Warehouse"), level, summary, this.Text("Coop_Upgrade_Level", level, CoopUpgrades.MaxLevel), isMax, costs, this.IsFounder && enough);
     }
 
     private void OnCompleted(CoopStatus status) => this.SetStatus(status == CoopStatus.Ok ? string.Empty : this.Text("Coop_Status_" + status));

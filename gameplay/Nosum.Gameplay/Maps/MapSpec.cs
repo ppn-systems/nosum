@@ -6,6 +6,7 @@ using System.Linq;
 using Nosum.Core;
 using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Nodes;
 
 namespace Nosum.Gameplay.Maps;
 
@@ -34,6 +35,11 @@ public sealed class MapSpec
     /// <param name="elevator">Where the mine elevator is served on this map, or <see langword="null"/> when there is none.</param>
     /// <param name="interiorOf">The kind of farm building this map is the inside of; there is one instance per building, keyed by the building's id (docs/adr/ADR-028 D2).</param>
     /// <param name="indoors">Whether the map is a room or a cave: no weather falls on it, rain does not water its soil and it is lit (docs/adr/ADR-027).</param>
+    /// <param name="dropFileWarps">Source tiles of exits in the file's own <c>Warp</c> property that this map does not use (the file's exit to a place the world hosts differently, docs/adr/ADR-037 D1).</param>
+    /// <param name="gates">Tiles that stay blocked until a community unlock is set (docs/adr/ADR-037 D4).</param>
+    /// <param name="nodeSites">Resource node sites the file does not mark, one by one.</param>
+    /// <param name="scatter">Resource node sites the file does not mark, spread over rectangles (<see cref="NodeScatter"/>).</param>
+    /// <param name="forageAreas">Rectangles whose walkable tiles are forage spots (<see cref="ForageArea"/>).</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -50,7 +56,12 @@ public sealed class MapSpec
         int mineFloor = 0,
         ElevatorPoint? elevator = null,
         BuildingKind interiorOf = BuildingKind.None,
-        bool indoors = false)
+        bool indoors = false,
+        IReadOnlyList<(int X, int Y)>? dropFileWarps = null,
+        IReadOnlyList<MapGate>? gates = null,
+        IReadOnlyList<NodeSite>? nodeSites = null,
+        IReadOnlyList<NodeScatter>? scatter = null,
+        IReadOnlyList<ForageArea>? forageAreas = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
@@ -76,6 +87,11 @@ public sealed class MapSpec
         this.Elevator = elevator;
         this.InteriorOf = interiorOf;
         this.Indoors = indoors;
+        this.DropFileWarps = dropFileWarps ?? [];
+        this.Gates = gates ?? [];
+        this.ExtraNodeSites = nodeSites ?? [];
+        this.Scatter = scatter ?? [];
+        this.ForageAreas = forageAreas ?? [];
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -125,6 +141,21 @@ public sealed class MapSpec
     /// <summary>Gets whether the map is indoors: no rain or snow, rain does not water soil there, and daylight does not tint it (docs/adr/ADR-027).</summary>
     public bool Indoors { get; }
 
+    /// <summary>Gets the source tiles of the file's exits that this map drops.</summary>
+    public IReadOnlyList<(int X, int Y)> DropFileWarps { get; }
+
+    /// <summary>Gets the tiles that are blocked until an unlock is set.</summary>
+    public IReadOnlyList<MapGate> Gates { get; }
+
+    /// <summary>Gets the resource node sites added to the file's own.</summary>
+    public IReadOnlyList<NodeSite> ExtraNodeSites { get; }
+
+    /// <summary>Gets the node scatters that add sites to the file's own.</summary>
+    public IReadOnlyList<NodeScatter> Scatter { get; }
+
+    /// <summary>Gets the rectangles that add forage spots to the file's own.</summary>
+    public IReadOnlyList<ForageArea> ForageAreas { get; }
+
     /// <summary>Gets whether players may place objects on this map: the farmhouse, the farm and co-op land.</summary>
     public bool Placeable { get; }
 
@@ -143,10 +174,11 @@ public sealed class MapSpec
         return first < 0 ? file.Length > 0 : first > 0 && first == file.LastIndexOf('/') && first < file.Length - 1;
     }
 
-    /// <summary>Builds the walk grid: the map's own rules, the prop footprints, then the opened tiles.</summary>
+    /// <summary>Builds the walk grid: the map's own rules, the prop footprints, then the opened tiles; gates are attached last.</summary>
     /// <param name="map">The parsed map.</param>
+    /// <param name="unlocked">Whether a community unlock key is set, asked every time a gated tile is tested; <see langword="null"/> keeps every gate shut.</param>
     /// <returns>The grid; client and server must both use this.</returns>
-    public WalkGrid BuildWalkGrid(TileMap map)
+    public WalkGrid BuildWalkGrid(TileMap map, Func<string, bool>? unlocked = null)
     {
         ArgumentNullException.ThrowIfNull(map);
 
@@ -157,7 +189,61 @@ public sealed class MapSpec
             grid.Open(x, y);
         }
 
+        foreach (MapGate gate in this.Gates)
+        {
+            grid.AddGate(new WalkGate(gate.Key, gate.Tiles, grid.Width, unlocked));
+        }
+
         return grid;
+    }
+
+    /// <summary>Returns the resource node sites of the map: the <c>Paths</c> layer's, the single sites and the scatters.</summary>
+    /// <param name="map">The parsed map.</param>
+    /// <param name="grid">The map's walk grid (scatters keep to open ground).</param>
+    /// <returns>The sites.</returns>
+    public List<NodeSite> ResolveNodeSites(TileMap map, WalkGrid grid)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+        ArgumentNullException.ThrowIfNull(grid);
+
+        // One site per tile (the store keeps one node per tile): the file's sites come first, then the single sites, then the scatters.
+        List<NodeSite> sites = NodeSites.Read(map);
+        HashSet<(int X, int Y)> taken = [.. sites.Select(s => (s.X, s.Y))];
+        sites.AddRange(this.ExtraNodeSites.Where(s => taken.Add((s.X, s.Y))));
+        ulong seed = NodeRandom.HashOf(this.Id);
+        for (int i = 0; i < this.Scatter.Count; i++)
+        {
+            sites.AddRange(this.Scatter[i].Sites(grid, NodeRandom.Mix(seed, i, 7)).Where(s => taken.Add((s.X, s.Y))));
+        }
+
+        return sites;
+    }
+
+    /// <summary>Returns the forage spots of the map: the glyphs of the <c>Paths</c> layer (pool <see cref="ForagePools.Woodland"/>) and the walkable tiles of the forage areas.</summary>
+    /// <param name="map">The parsed map.</param>
+    /// <param name="grid">The map's walk grid.</param>
+    /// <returns>The spots, <see cref="NodeSite.Variant"/> holding the pool.</returns>
+    public List<NodeSite> ResolveForageSites(TileMap map, WalkGrid grid)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+        ArgumentNullException.ThrowIfNull(grid);
+
+        List<NodeSite> sites = NodeSites.ReadForage(map);
+        foreach (ForageArea area in this.ForageAreas)
+        {
+            for (int y = area.Y0; y <= area.Y1; y++)
+            {
+                for (int x = area.X0; x <= area.X1; x++)
+                {
+                    if (!grid.IsBlocked(x, y))
+                    {
+                        sites.Add(new NodeSite(x, y, NodeKind.Forage, area.Pool));
+                    }
+                }
+            }
+        }
+
+        return sites;
     }
 
     /// <summary>
@@ -173,7 +259,7 @@ public sealed class MapSpec
 
         List<MapWarp> resolved = [];
         map.Properties.TryGetValue(WarpParser.PropertyName, out string? property);
-        foreach (MapWarp warp in WarpParser.Parse(property).Concat(this.ExtraWarps))
+        foreach (MapWarp warp in WarpParser.Parse(property).Where(w => !this.DropFileWarps.Contains((w.FromX, w.FromY))).Concat(this.ExtraWarps))
         {
             if (GameMaps.Resolve(warp.TargetMap) is { } target)
             {

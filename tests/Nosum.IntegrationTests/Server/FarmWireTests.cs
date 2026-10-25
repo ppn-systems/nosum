@@ -139,12 +139,13 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().Contain(s => s.ItemId == ItemCatalog.Parsnip && s.Quantity == 1);
             (await farmer.GetGroundItemsAsync(timeout.Token)).Items.Should().BeEmpty();
 
-            // The tutorial quest is complete and the guest is invited to register.
-            QuestRow quest = await farmer.WaitForQuestAsync(q => q.State == QuestState.Completed, timeout.Token);
-            quest.QuestId.Should().Be(QuestCatalog.FirstHarvest);
+            // The first quest is complete and the guest is invited to register; tilling and watering finished their own steps of the tutorial chain on the way (docs/adr/ADR-036).
+            QuestRow quest = await farmer.WaitForQuestAsync(q => q.QuestId == QuestCatalog.FirstHarvest && q.State == QuestState.Completed, timeout.Token);
             quest.Progress.Should().Equal(1, 1);
             await farmer.WaitForPromptUnlockedAsync(timeout.Token);
-            (await farmer.GetQuestsAsync(timeout.Token)).Quests.Should().ContainSingle().Which.State.Should().Be(QuestState.Completed);
+            QuestRow[] log = [.. (await farmer.GetQuestsAsync(timeout.Token)).Quests];
+            log.Should().HaveCount(QuestCatalog.All.Count);
+            log.Where(q => q.State == QuestState.Completed).Select(q => q.QuestId).Should().BeEquivalentTo([QuestCatalog.FirstHarvest, QuestCatalog.TillSoil, QuestCatalog.WaterCrop]);
 
             // The farm is private (docs/adr/ADR-015): the neighbour on their own farm never saw any of it, and their own farm is bare.
             await neighbour.ExpectNoTilePushAsync(TimeSpan.FromMilliseconds(300), timeout.Token);

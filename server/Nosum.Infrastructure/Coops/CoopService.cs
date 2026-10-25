@@ -134,7 +134,7 @@ public sealed class CoopService : ICoopService, IDisposable
             List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == me.CoopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw"), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
             List<CoopLogView> logViews = [.. recent.Select(e => new CoopLogView(memberIds.Contains(e.MemberId) ? e.MemberId : Guid.Empty, e.ItemId, e.Delta, e.OccurredAt))];
 
-            return new CoopView(true, mine?.Name ?? string.Empty, me.Role, memberViews, stockViews, logViews, [], now);
+            return new CoopView(true, mine?.Name ?? string.Empty, me.Role, memberViews, stockViews, logViews, [], now, mine?.WarehouseLevel ?? 0, mine?.LandLevel ?? 0);
         }
     }
 
@@ -476,6 +476,18 @@ public sealed class CoopService : ICoopService, IDisposable
                 return CoopStatus.NotInCoop;
             }
 
+            // The warehouse holds so many item kinds (docs/adr/ADR-038); the gate keeps the count from changing under this check.
+            IUnitOfWork unit = _unitOfWork.Create();
+            await using (unit.ConfigureAwait(false))
+            {
+                Coop? coop = await unit.Repository<Coop>().FindAsync(me.CoopId, cancellationToken).ConfigureAwait(false);
+                List<CoopStockItem> held = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false);
+                if (!CoopUpgrades.CanStore(coop?.WarehouseLevel ?? 0, held.Count, held.Exists(s => s.ItemId == itemId)))
+                {
+                    return CoopStatus.WarehouseFull;
+                }
+            }
+
             return await this.MoveAsync(me, itemId, quantity, deposit: true, cancellationToken).ConfigureAwait(false);
         }
         finally
@@ -525,6 +537,116 @@ public sealed class CoopService : ICoopService, IDisposable
             }
 
             return await this.MoveAsync(me, itemId, quantity, deposit: false, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _ = _gate.Release();
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<CoopStatus> UpgradeAsync(Guid playerId, CoopUpgradeTrack track, int targetLevel, CancellationToken cancellationToken = default)
+    {
+        CoopTrack rulesTrack = track switch
+        {
+            CoopUpgradeTrack.Warehouse => CoopTrack.Warehouse,
+            CoopUpgradeTrack.Land => CoopTrack.Land,
+            _ => (CoopTrack)0,
+        };
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            CoopMember? me = await this.FindMemberAsync(playerId, cancellationToken).ConfigureAwait(false);
+            if (me is null)
+            {
+                return CoopStatus.NotInCoop;
+            }
+
+            if (me.Role != CoopRole.Founder)
+            {
+                return CoopStatus.NotFounder;
+            }
+
+            // The gate serializes every change of the warehouse and of the levels, so what is read here is what the transfer sees; the enlisted work still re-checks the level.
+            Guid coopId = me.CoopId;
+            Guid memberId = me.Id;
+            int current;
+            Dictionary<int, int> stock;
+            IUnitOfWork read = _unitOfWork.Create();
+            await using (read.ConfigureAwait(false))
+            {
+                Coop? coop = await read.Repository<Coop>().FindAsync(coopId, cancellationToken).ConfigureAwait(false);
+                if (coop is null)
+                {
+                    return CoopStatus.NotInCoop;
+                }
+
+                current = rulesTrack == CoopTrack.Land ? coop.LandLevel : coop.WarehouseLevel;
+                stock = (await read.Repository<CoopStockItem>().ListAsync(s => s.CoopId == coopId, cancellationToken).ConfigureAwait(false)).ToDictionary(s => s.ItemId, s => s.Quantity);
+            }
+
+            UpgradeVerdict verdict = CoopUpgrades.CanBuy(rulesTrack, current, targetLevel, item => stock.GetValueOrDefault(item));
+            if (verdict != UpgradeVerdict.Ok)
+            {
+                return verdict switch
+                {
+                    UpgradeVerdict.MaxLevel => CoopStatus.MaxLevel,
+                    UpgradeVerdict.NotEnoughStock => CoopStatus.NotEnough,
+                    _ => CoopStatus.AlreadyUpgraded,
+                };
+            }
+
+            string reason = CoopUpgrades.ReasonOf(rulesTrack);
+            List<TransferLeg> legs = [.. CoopUpgrades.Cost(rulesTrack, targetLevel).Select(c => new TransferLeg(TransferParty.Coop(coopId), c.ItemId, -c.Quantity))];
+
+            // A transfer needs a player party to run in; the buyer takes part with a leg that moves nothing, and the price goes to nobody.
+            List<TransferLeg> transfer = [new TransferLeg(TransferParty.Player(playerId), 0, 0), .. legs];
+            bool stale = false;
+            TransferStatus status = await _transfers.ExecuteAsync(
+                transfer,
+                reason,
+                async (unit, token) =>
+                {
+                    Coop? coop = await unit.Repository<Coop>().FindAsync(coopId, token).ConfigureAwait(false);
+                    int level = coop is null ? -1 : rulesTrack == CoopTrack.Land ? coop.LandLevel : coop.WarehouseLevel;
+                    if (coop is null || level != targetLevel - 1)
+                    {
+                        stale = true;
+                        return TransferStatus.Refused;
+                    }
+
+                    if (rulesTrack == CoopTrack.Land)
+                    {
+                        coop.LandLevel = targetLevel;
+                    }
+                    else
+                    {
+                        coop.WarehouseLevel = targetLevel;
+                    }
+
+                    DateTimeOffset now = _time.GetUtcNow();
+                    foreach (TransferLeg leg in legs)
+                    {
+                        unit.Repository<CoopLogEntry>().Add(new CoopLogEntry { CoopId = coopId, MemberId = memberId, ItemId = leg.ItemId, Delta = leg.Items, Reason = reason, OccurredAt = now });
+                    }
+
+                    return TransferStatus.Ok;
+                },
+                cancellationToken).ConfigureAwait(false);
+
+            if (status != TransferStatus.Ok)
+            {
+                return stale ? CoopStatus.AlreadyUpgraded : status == TransferStatus.NotEnoughItems ? CoopStatus.NotEnough : CoopStatus.Conflict;
+            }
+
+            IUnitOfWork members = _unitOfWork.Create();
+            await using (members.ConfigureAwait(false))
+            {
+                await this.PushToAsync(await this.MemberPlayersAsync(members, coopId, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+            }
+
+            return CoopStatus.Ok;
         }
         finally
         {

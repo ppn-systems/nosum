@@ -36,7 +36,7 @@ console errors.
 - Day and night lighting; lamps (placeables) light the night.
 - Animals: coop and barn buildings on the farm (built with coins + materials), chickens and cows that produce
   eggs and milk when fed and petted daily.
-- More public maps: Mountain (carpenter counter moves there), Beach, Woods, Mine entrance.
+- More public maps: Mountain, Beach, Woods and the Mine entrance cave (ADR-026, ADR-037); the carpenter's counter stays in Town (ADR-028).
 - Ambient sound and music hooks (client audio through one interop call per frame budget; placeholder audio only if
   licensed for private use) — done as ADR-039: sound commands in the frame buffer, hooks for tools, harvest, pick-up, coins,
   doors, UI, footsteps, rain and season/day-night music ids; the sounds are generated, the music is silent until M6.

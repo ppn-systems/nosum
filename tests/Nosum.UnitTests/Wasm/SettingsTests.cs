@@ -169,7 +169,7 @@ public sealed class SettingsTests
         hints.Signal(TutorialStep.Use);
         hints.Current.Should().Be(TutorialStep.Move, "a step done early does not skip the one before it");
         hints.Signal(TutorialStep.Move);
-        hints.Current.Should().Be(TutorialStep.Sell);
+        hints.Current.Should().Be(TutorialStep.Town, "the Sell and Shop hints are steps of the quest chain now (docs/adr/ADR-036 D4)");
 
         hints.Expire();
         hints.IsVisible.Should().BeFalse();
@@ -177,7 +177,7 @@ public sealed class SettingsTests
         using SettingsViewModel again = new(Text(), store);
         using OnboardingViewModel next = new(again, Text());
         next.Start();
-        next.Current.Should().Be(TutorialStep.Sell, "the finished steps are remembered on this browser");
+        next.Current.Should().Be(TutorialStep.Town, "the finished steps are remembered on this browser");
     }
 
     [Fact]

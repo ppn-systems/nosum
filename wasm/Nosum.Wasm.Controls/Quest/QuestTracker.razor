@@ -25,6 +25,10 @@
                         <li class="@(line.IsDone ? "done" : null)"><span class="check"></span><span class="obj-text">@line.Text</span><span class="count">@line.Progress</span></li>
                     }
                 </ul>
+                @if (Vm.RewardText.Length > 0)
+                {
+                    <p class="quest-reward">@Vm.RewardText</p>
+                }
             }
         </GamePanel>
     }
