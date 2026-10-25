@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Nosum.Abstractions.Presence;
 using Nosum.Gameplay.Maps;
@@ -53,13 +54,13 @@ public sealed class MapInstanceTests
     }
 
     [Fact]
-    public void OwnerOnlyAccessPolicy_PrivateInstance_AdmitsOnlyItsOwner()
+    public async Task OwnerOnlyAccessPolicy_PrivateInstance_AdmitsOnlyItsOwner()
     {
         OwnerOnlyAccessPolicy policy = new();
 
-        policy.CanEnter(MapInstance.Of(GameMaps.FarmHouse, s_alice), s_alice).Should().BeTrue();
-        policy.CanEnter(MapInstance.Of(GameMaps.FarmHouse, s_alice), s_bob).Should().BeFalse();
-        policy.CanEnter(MapInstance.Of(GameMaps.Town, s_alice), s_bob).Should().BeTrue();
+        (await policy.CanEnterAsync(MapInstance.Of(GameMaps.FarmHouse, s_alice), s_alice)).Should().BeTrue();
+        (await policy.CanEnterAsync(MapInstance.Of(GameMaps.FarmHouse, s_alice), s_bob)).Should().BeFalse();
+        (await policy.CanEnterAsync(MapInstance.Of(GameMaps.Town, s_alice), s_bob)).Should().BeTrue();
     }
 
     [Fact]

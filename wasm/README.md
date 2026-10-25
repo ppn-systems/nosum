@@ -63,6 +63,10 @@ add no colours or borders of their own, so the look of the whole UI is the CSS o
 a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
+Visiting ([ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): `VisitChannel` (`Nosum.Wasm.Socket/Visit`) reads the player's allow-list and sends the edits and the visit request; `VisitorsViewModel` (`ViewModels/Visit`) and `VisitorsPanel`
+(`Controls/Visit`, shared controls only) are the "Visitors" panel: visit a friend by nickname, edit who may enter my farm, send a visitor out, switch co-op visits. It has a toolbar button and no hotkey yet (the toolbar hides an empty key). The server's refusals
+(`Visit_Status_*`, `Farm_Status_NotYourFarm`, `Place_Status_NotYourPlace`, `Market_Status_NotYourBin`) are shown through the existing message lines. A guest is typed as "Khách 1234" / "Guest 1234" and sent as `guest-1234`.
+
 Furniture ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `PlaceableChannel` (in `Nosum.Wasm.Socket/Placeable`) mirrors the pieces of the player's current place (loaded with the farm after every join or map change)
 and sends place, move and pick-up requests. `Game/PlacedObjectsDecorator` draws them (and the ghost of the piece being placed) as `WorldSpriteBatch` sprites; `MapScene` adds their footprints to the grid the farmer
 walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, active only on a `MapSpec.Placeable` map: `E` places the held piece (or sets down a carried one), `R` rotates, `F` picks up the piece in front to

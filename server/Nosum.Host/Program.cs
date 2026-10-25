@@ -28,6 +28,7 @@ using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Trade;
+using Nosum.Abstractions.Visits;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
@@ -44,6 +45,7 @@ using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
 using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
+using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Coops;
@@ -62,6 +64,7 @@ using Nosum.Infrastructure.Presence;
 using Nosum.Infrastructure.Quests;
 using Nosum.Infrastructure.Shops;
 using Nosum.Infrastructure.Trade;
+using Nosum.Infrastructure.Visits;
 
 namespace Nosum.Host;
 
@@ -207,6 +210,7 @@ internal static class Program
             .MapHandlers(typeof(TradeHandlers))
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
+            .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers));
@@ -268,6 +272,8 @@ internal static class Program
         // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
         PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
+        // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019).
+        VisitAccess access = new(unitOfWork);
         // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
         CoopMembership coopMembership = new(unitOfWork);
         InstanceManager.Instance.Register<ICoopMembership>(coopMembership);
@@ -281,7 +287,7 @@ internal static class Program
         InstanceManager.Instance.Register<IGroundItems>(groundItems);
         InstanceManager.Instance.Register<IYieldRandom>(new YieldRandom((ulong)Random.Shared.NextInt64()));
 
-        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
+        PlayerService players = new(presence, maps, states, placeables, access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
         FarmService farm = new(presence, maps, inventory, quests, coopMembership, unitOfWork, clock, calendar, groundItems);
@@ -300,6 +306,8 @@ internal static class Program
 
         InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, nicknames, clock));
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
-        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock));
+        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock);
+        InstanceManager.Instance.Register<ICoopService>(coops);
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock));
     }
 }

@@ -39,6 +39,9 @@ public enum PanelKind
 
     /// <summary>The settings page: account, language and the key help (opened by the gear, <c>H</c> or <c>?</c>).</summary>
     Settings = 9,
+
+    /// <summary>The visitors page: who may enter the player's farm, and visiting someone else (docs/adr/ADR-019).</summary>
+    Visitors = 10,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -85,6 +88,7 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), "M", "tab-market"),
         new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T", "tab-trade"),
         new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G", "tab-coop"),
+        new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty, "tab-visitors"),
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N", "tab-profile"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), "H", "tab-settings"),
     ];

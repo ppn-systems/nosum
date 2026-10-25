@@ -118,6 +118,12 @@ public sealed record CoopView(
 /// </summary>
 public interface ICoopService
 {
+    /// <summary>
+    /// Raised with the player's account id after a player stopped being a member of a co-op (they left, or the founder removed them).
+    /// Visiting listens to it: co-op membership can grant entry to a farm, and ending it takes the grant away (docs/adr/ADR-019 D5).
+    /// </summary>
+    event Func<Guid, ValueTask>? MembershipEnded;
+
     /// <summary>Reads the viewer's co-op (or, without one, their open invitations).</summary>
     /// <param name="playerId">The viewer.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>

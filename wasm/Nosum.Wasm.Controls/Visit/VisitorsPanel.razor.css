@@ -1,0 +1,9 @@
+.visit-hint {
+    margin: 0;
+    color: var(--nosum-ink-soft);
+}
+
+.visitor-name {
+    min-width: calc(var(--u) * 48);
+    font-weight: 800;
+}
