@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Admin.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class AdminBan : PacketBase<AdminBan>, IPacketStaticOpcode
     public static ushort StaticOpCode => AdminOpCode.Ban;
 
     /// <summary>The nickname of the player to ban.</summary>
+    [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(0)] public string Nickname { get; set; } = string.Empty;
 }
