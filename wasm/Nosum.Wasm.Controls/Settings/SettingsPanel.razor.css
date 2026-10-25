@@ -27,14 +27,19 @@
     padding: 0 calc(var(--u) * 2) calc(var(--u) * 1);
 }
 
-.set-col.narrow {
-    --keys-w: calc(var(--u) * 20);
+/* One column of the key table: the key column is as wide as its widest row, so a single key does not leave a hole before its text. */
+.set-col {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: calc(var(--u) * 3);
+    align-content: start;
 }
 
-.set-col {
+.set-lang {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: calc(var(--u) * 2);
+    align-items: stretch;
 }
 
 .set-heading {
@@ -42,18 +47,20 @@
     color: var(--nosum-ink-soft);
 }
 
+.set-col .set-heading {
+    grid-column: 1 / -1;
+}
+
 .set-col .set-heading:first-child {
     margin-top: 0;
 }
 
-.set-col ::deep .set-heading + .help-entry {
-    margin-top: 0;
+.help-entry {
+    display: contents;
 }
 
-.help-entry {
-    display: grid;
-    grid-template-columns: var(--keys-w, calc(var(--u) * 34)) 1fr;
-    gap: calc(var(--u) * 2);
+.help-entry > span {
+    display: flex;
     align-items: center;
     min-height: calc(var(--u) * 8);
 }

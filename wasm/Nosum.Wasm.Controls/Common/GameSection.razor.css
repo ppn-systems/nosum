@@ -9,7 +9,7 @@
     min-width: 0;
     padding: calc(var(--u) * 1) calc(var(--u) * 1);
     border: var(--section-edge) solid var(--nosum-edge);
-    border-image: var(--nosum-img-inset) 8 fill / var(--section-edge) stretch;
+    border-image: var(--nosum-img-inset) 8 / var(--section-edge) stretch;
     background: var(--nosum-parchment-deep) padding-box;
     image-rendering: pixelated;
 }

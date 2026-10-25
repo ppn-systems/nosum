@@ -4,18 +4,20 @@ using System;
 using Nosum.Core;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels;
 
 namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// What the player's one-shot keys do: number keys select a hotbar slot, the action key (E or Space) uses the
-/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G H N open the panels, Escape closes them; next to a shop the action key opens it. The scene calls <see cref="Update"/> once per
+/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin, or eats it when it is food and the player has room for energy), I M C T G H N open the panels, Escape closes them; next to a shop the action key opens it. The scene calls <see cref="Update"/> once per
 /// frame; the tile in front is kept in <see cref="TargetX"/> and <see cref="TargetY"/> for the cursor the farm decorator draws.
 /// Allocation-free; the requests themselves are sent by the channels, off the frame.
 /// </summary>
@@ -28,6 +30,7 @@ internal sealed class PlayerActions
     private readonly InventoryChannel _inventory;
     private readonly MarketChannel _market;
     private readonly ChestChannel? _chests;
+    private readonly ProgressChannel? _progress;
     private double _lastUseSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
@@ -35,7 +38,8 @@ internal sealed class PlayerActions
     /// <param name="inventory">Holds the selected slot.</param>
     /// <param name="market">Sends the shipping of the held stack at the bin.</param>
     /// <param name="chests">Opens the chest the farmer faces; <see langword="null"/> when chests are not wired.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ChestChannel? chests = null)
+    /// <param name="progress">Sends eating when the action key is pressed with food in hand; <see langword="null"/> to never eat.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -44,6 +48,7 @@ internal sealed class PlayerActions
         _inventory = inventory;
         _market = market;
         _chests = chests;
+        _progress = progress;
     }
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
@@ -146,10 +151,26 @@ internal sealed class PlayerActions
                 // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
                 _market.Ship(selected, held.ItemId, 0);
             }
+            else if (_progress is { MaxEnergy: > 0 } && _progress.Energy < _progress.MaxEnergy && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? food) && food.IsEdible
+                && !this.FacesCrop())
+            {
+                // Food in hand, room for energy and no crop in front (facing a crop the action harvests it): eat it (the server removes one and
+                // restores its energy, docs/adr/ADR-023 D2).
+                _progress.Eat(selected);
+            }
             else
             {
                 _farm.Use(selected, this.TargetX, this.TargetY);
             }
+        }
+    }
+
+    // Whether the tile in front holds a crop: the action key then works the crop, whatever is held.
+    private bool FacesCrop()
+    {
+        using (_farm.Read())
+        {
+            return _farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo tile) && tile.CropId != 0;
         }
     }
 

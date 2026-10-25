@@ -122,6 +122,6 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     private void OnCompleted(ShopStatus status, long spent)
     {
         _ = spent;
-        this.SetStatus(status == ShopStatus.Ok ? this.Text("Shop_Done") : this.Text("Shop_Status_" + status));
+        this.SetStatus(status == ShopStatus.Ok ? this.Text("Shop_Done") : this.Text("Shop_Status_" + status), status == ShopStatus.Ok);
     }
 }

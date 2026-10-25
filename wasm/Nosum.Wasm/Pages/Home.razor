@@ -21,6 +21,8 @@
 @using Nosum.Wasm.Controls.Market
 @using Nosum.Wasm.Controls.Placement
 @using Nosum.Wasm.Controls.Profile
+@using Nosum.Wasm.Controls.Progress
+@using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.Controls.Shop
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
@@ -71,6 +73,7 @@
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
 @inject FurnaceViewModel Furnace
+@inject ProgressViewModel Progress
 
 <PageTitle>Nosum</PageTitle>
 
@@ -87,6 +90,7 @@ else
             @if (_started && _panel == PanelKind.None)
             {
                 <QuestTracker Vm="Quest" />
+                <PlacementPanel Vm="Placement" />
             }
         </TopLeft>
         <TopCenter>
@@ -97,10 +101,6 @@ else
                 </GamePanel>
             }
             <ConnectionBadge />
-            @if (_started && _panel == PanelKind.None)
-            {
-                <PlacementPanel Vm="Placement" />
-            }
         </TopCenter>
         <TopRight>
             @if (_started)
@@ -111,7 +111,8 @@ else
             }
         </TopRight>
         <Center>
-            @if (_started && _panel != PanelKind.None)
+            @* The upgrade form is a dialog of its own: the menu steps aside while it is open and comes back with it closed. *@
+            @if (_started && _panel != PanelKind.None && !Form.ShowsForm)
             {
                 <GameMenu Tabs="Tabs()" Active="(int)_panel" OnSelect="@(id => SelectTab((PanelKind)id))" OnClose="ClosePanel" CloseText="@Toolbar.Text("Panel_Close")">
                     @switch (_panel)
@@ -140,6 +141,9 @@ else
                         case PanelKind.Shop:
                             <ShopPanel Vm="Shop" ShopId="_shopId" />
                             break;
+                        case PanelKind.Skills:
+                            <SkillsPanel Vm="Progress" />
+                            break;
                         case PanelKind.Settings:
                             <SettingsPanel Vm="Form" Help="Help" />
                             break;
@@ -160,7 +164,7 @@ else
             @if (_started && _panel == PanelKind.None)
             {
                 <GameMessage Vm="Messages" />
-                <Hotbar Vm="Inventory" />
+                <Hotbar Vm="Inventory" Progress="Progress" />
             }
         </BottomCenter>
         <Overlay>

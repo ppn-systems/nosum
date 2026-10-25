@@ -7,12 +7,26 @@
     color: var(--nosum-ink-soft);
 }
 
-.member-name {
-    min-width: calc(var(--u) * 42);
+.member-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto calc(var(--u) * 28);
+    gap: calc(var(--u) * 3);
+    align-items: center;
+    min-height: calc(var(--u) * 14);
 }
 
-.member-role {
-    min-width: calc(var(--u) * 36);
+.member-role,
+.member-online {
+    color: var(--nosum-ink-soft);
+}
+
+.member-online.on {
+    color: var(--nosum-ok);
+}
+
+.member-action {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .stock-name {

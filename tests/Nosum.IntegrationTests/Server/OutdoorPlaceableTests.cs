@@ -26,6 +26,8 @@ using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Maps;
+using Nosum.Infrastructure.Nodes;
+using Nosum.Infrastructure.Progress;
 using Nosum.Infrastructure.Quests;
 using Xunit;
 
@@ -269,7 +271,7 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         using PlacementHarness world = new(_database, farmFactory: h =>
         {
             GroundItemService groundItems = new(h.Presence, Maps, new TransferService(h.Inventory, h.Clock), h.Units, h.Clock);
-            farm = new FarmService(h.Presence, Maps, h.Inventory, new QuestService(h.Units, h.Clock), h.Coops, new NoNodes(), new NoCooldownTools(), h.Units, h.Clock, GameCalendar.Default, groundItems, placed: h.Tiles);
+            farm = new FarmService(h.Presence, Maps, h.Inventory, new QuestService(h.Units, h.Clock), h.Coops, new NoNodes(), new NoCooldownTools(), h.Units, h.Clock, GameCalendar.Default, groundItems, new PlayerProgressService(h.Units, new CalendarGameDayClock(GameCalendar.Default, h.Clock), h.Inventory, h.Clock), placed: h.Tiles);
             return farm;
         });
         Guid player = await world.CreatePlayerAsync();

@@ -87,6 +87,23 @@ public sealed class GameSocketAccountClient : IAccountClient
     }
 
     /// <inheritdoc/>
+    public async Task<AccountStatus> SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken)
+    {
+        using PacketScope<SetLanguage> lease = PacketFactory<SetLanguage>.Acquire();
+        lease.Value.Language = language;
+        try
+        {
+            await _socket.WaitReadyAsync(cancellationToken).WaitAsync(s_connectWait, cancellationToken).ConfigureAwait(false);
+            LanguageResult result = await _socket.RequestAsync<LanguageResult>(lease.Value, cancellationToken).ConfigureAwait(false);
+            return result.Status;
+        }
+        catch (Exception ex) when (ex is TimeoutException or InvalidOperationException)
+        {
+            throw new AccountConnectionException("The language request could not be completed.", ex);
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task LogoutAsync(CancellationToken cancellationToken)
     {
         using PacketScope<Logout> lease = PacketFactory<Logout>.Acquire();

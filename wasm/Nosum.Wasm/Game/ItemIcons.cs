@@ -62,8 +62,8 @@ internal sealed class ItemIcons : IItemIconSource
         [ItemCatalog.ShirtRed] = Shirt(1),
         [ItemCatalog.ShirtGreen] = Shirt(11),
         [ItemCatalog.ShirtBlue] = Shirt(7),
-        [ItemCatalog.PantsBlue] = Pants(),
-        [ItemCatalog.PantsKhaki] = Pants(),
+        [ItemCatalog.PantsBlue] = Pants("item-pants-blue"),
+        [ItemCatalog.PantsKhaki] = Pants("item-pants-khaki"),
         [ItemCatalog.HatStraw] = Hat(3),
         [ItemCatalog.HatCap] = Hat(5),
     };
@@ -104,9 +104,12 @@ internal sealed class ItemIcons : IItemIconSource
 
     // Clothing is shown by its piece of the farmer sheets (the same frames the farmer is drawn with): shirts.png is 256 x 608 (8 px
     // shirt pieces), pants.png 1920 x 1376, hats.png 240 x 880 (20 px hats, 12 per row, four rows of directions each).
-    private static ItemIcon Shirt(int index) => new("assets/Characters/Farmer/shirts.png", index % 16 * 8, index / 16 * 32, 8, 256, 608);
+    // A shirt piece is only 8 px, so it is shown at twice its size (the crop and the sheet both doubled: a 16 px window onto a 512 x 1216 picture of the sheet).
+    private static ItemIcon Shirt(int index) => new("assets/Characters/Farmer/shirts.png", index % 16 * 8 * 2, index / 16 * 32 * 2, 16, 256 * 2, 608 * 2);
 
-    private static ItemIcon Pants() => new("assets/Characters/Farmer/pants.png", 0, 16, 16, 1920, 1376);
+    // The pants frames of the sheet are 8 x 5 px grey hips, too small to read as an item: the theme draws a 16 x 16 pair of trousers itself,
+    // in the item's colour (nosum-theme.js ITEM_ART).
+    private static ItemIcon Pants(string themeImage) => new(string.Empty, 0, 0, 16, 16, 16, themeImage);
 
     private static ItemIcon Hat(int index) => new("assets/Characters/Farmer/hats.png", index % 12 * 20, index / 12 * 80, 20, 240, 880);
 

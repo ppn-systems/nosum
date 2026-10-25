@@ -40,7 +40,9 @@ using Nosum.Infrastructure.Farm;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Maps;
+using Nosum.Infrastructure.Nodes;
 using Nosum.Infrastructure.Persistence;
+using Nosum.Infrastructure.Progress;
 using Nosum.Infrastructure.Quests;
 using Xunit;
 
@@ -73,7 +75,7 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         _membership = new CoopMembership(_units);
         TransferService transfers = new(_inventory, _clock);
         GroundItemService groundItems = new(_presence, s_maps, transfers, _units, _clock);
-        _farm = new FarmService(_presence, s_maps, _inventory, new QuestService(_units, _clock), _membership, new NoNodes(), new NoCooldownTools(), _units, _clock, GameCalendar.Default, groundItems);
+        _farm = new FarmService(_presence, s_maps, _inventory, new QuestService(_units, _clock), _membership, new NoNodes(), new NoCooldownTools(), _units, _clock, GameCalendar.Default, groundItems, new PlayerProgressService(_units, new CalendarGameDayClock(GameCalendar.Default, _clock), _inventory, _clock));
         _coops = new CoopService(_units, transfers, _presence, new NoSessions(), new NoNotifier(), new NicknameDirectory(_units), _farm, _eviction, _clock);
     }
 

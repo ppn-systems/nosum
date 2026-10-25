@@ -60,5 +60,7 @@
 
     // The picture is a window onto the item sheet; every length is a whole number of UI pixels (--u), set in the CSS.
     private static string IconStyle(ItemIcon icon)
-        => FormattableString.Invariant($"background-image:url('{icon.SheetUrl}');--is:{icon.Size};--sw:{icon.SheetWidth};--sh:{icon.SheetHeight};--ix:{icon.X};--iy:{icon.Y}");
+        => icon.ThemeImage is { } name
+            ? FormattableString.Invariant($"background-image:var(--nosum-img-{name});--is:16;--sw:16;--sh:16;--ix:0;--iy:0")
+            : FormattableString.Invariant($"background-image:url('{icon.SheetUrl}');--is:{icon.Size};--sw:{icon.SheetWidth};--sh:{icon.SheetHeight};--ix:{icon.X};--iy:{icon.Y}");
 }

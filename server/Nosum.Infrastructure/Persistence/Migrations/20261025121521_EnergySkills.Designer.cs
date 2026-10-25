@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261025120639_CraftingChestsFurnaces")]
-    partial class CraftingChestsFurnaces
+    [Migration("20261025121521_EnergySkills")]
+    partial class EnergySkills
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -150,15 +150,36 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("player_id");
 
+                    b.Property<int>("Energy")
+                        .HasColumnType("integer")
+                        .HasColumnName("energy");
+
+                    b.Property<long>("EnergyRefilledDay")
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(-1L)
+                        .HasColumnName("energy_refilled_day");
+
                     b.Property<int>("Facing")
                         .HasColumnType("integer")
                         .HasColumnName("facing");
+
+                    b.Property<int>("FarmingXp")
+                        .HasColumnType("integer")
+                        .HasColumnName("farming_xp");
+
+                    b.Property<int>("ForagingXp")
+                        .HasColumnType("integer")
+                        .HasColumnName("foraging_xp");
 
                     b.Property<string>("MapName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("map_name");
+
+                    b.Property<int>("MiningXp")
+                        .HasColumnType("integer")
+                        .HasColumnName("mining_xp");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -784,70 +805,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("resource_nodes", (string)null);
                 });
 
-            modelBuilder.Entity("Nosum.Domain.Placeables.ChestLogEntry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<int>("Delta")
-                        .HasColumnType("integer")
-                        .HasColumnName("delta");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("integer")
-                        .HasColumnName("item_id");
-
-                    b.Property<int>("ObjectId")
-                        .HasColumnType("integer")
-                        .HasColumnName("object_id");
-
-                    b.Property<DateTimeOffset>("OccurredAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("occurred_at");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("player_id");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("reason");
-
-                    b.HasKey("Id")
-                        .HasName("pk_chest_log");
-
-                    b.HasIndex("PlayerId")
-                        .HasDatabaseName("ix_chest_log_player_id");
-
-                    b.HasIndex("ObjectId", "OccurredAt")
-                        .HasDatabaseName("ix_chest_log_object_id_occurred_at");
-
-                    b.ToTable("chest_log", (string)null);
-                });
-
-            modelBuilder.Entity("Nosum.Domain.Placeables.FurnaceJob", b =>
-                {
-                    b.Property<int>("ObjectId")
-                        .HasColumnType("integer")
-                        .HasColumnName("object_id");
-
-                    b.Property<int>("OreItemId")
-                        .HasColumnType("integer")
-                        .HasColumnName("ore_item_id");
-
-                    b.Property<long>("StartedAtMs")
-                        .HasColumnType("bigint")
-                        .HasColumnName("started_at_ms");
-
-                    b.HasKey("ObjectId")
-                        .HasName("pk_furnace_jobs");
-
-                    b.ToTable("furnace_jobs", (string)null);
-                });
-
             modelBuilder.Entity("Nosum.Domain.Quests.PlayerQuest", b =>
                 {
                     b.Property<Guid>("PlayerId")
@@ -1101,6 +1058,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_inventory_slots_player_inventories_player_id");
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Inventory.PlayerInventory", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_inventories_players_player_id");
+                });
+
             modelBuilder.Entity("Nosum.Domain.Looks.PlayerAppearance", b =>
                 {
                     b.HasOne("Nosum.Domain.Accounts.Player", null)
@@ -1119,26 +1086,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_market_listings_players_seller_id");
-                });
-
-            modelBuilder.Entity("Nosum.Domain.Placeables.ChestLogEntry", b =>
-                {
-                    b.HasOne("Nosum.Domain.Accounts.Player", null)
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_chest_log_players_player_id");
-                });
-
-            modelBuilder.Entity("Nosum.Domain.Placeables.FurnaceJob", b =>
-                {
-                    b.HasOne("Nosum.Domain.Farm.PlacedObject", null)
-                        .WithMany()
-                        .HasForeignKey("ObjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_furnace_jobs_placed_objects_object_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Quests.PlayerQuest", b =>

@@ -27,6 +27,7 @@ using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Trade;
@@ -66,6 +67,7 @@ using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
+using Nosum.Infrastructure.Progress;
 using Nosum.Infrastructure.Quests;
 using Nosum.Infrastructure.Shops;
 using Nosum.Infrastructure.Trade;
@@ -321,7 +323,10 @@ internal static class Program
         InstanceManager.Instance.Register<IToolState>(toolState);
         CalendarGameDayClock nodeDayClock = new(calendar, clock);
         InstanceManager.Instance.Register<IGameDayClock>(nodeDayClock);
-        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, placedTiles);
+        // Energy and skills (docs/adr/ADR-023): every tool use is charged through this in the transaction of its effect.
+        PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier);
+        InstanceManager.Instance.Register<IPlayerProgress>(progress);
+        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, progress, placedTiles);
 
         // Trees grow and public places regrow debris once a game day (docs/adr/ADR-021 D4), on the one day clock every daily rule uses.
         // The day that starts after day N ended is node day N (node days count from 0); a new season starts every DaysPerSeason days.
@@ -336,7 +341,7 @@ internal static class Program
                 TaskScheduler.Default);
         };
         InstanceManager.Instance.Register<IResourceNodeService>(nodes);
-        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, dayClock, placedTiles);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock, placedTiles);
         InstanceManager.Instance.Register<IFarmService>(farm);
 
         // Placing objects, chests and furnaces (docs/adr/ADR-024): a chest and a furnace refuse to be picked up while they hold something, so they attach to the placeables.
@@ -348,8 +353,8 @@ internal static class Program
         FurnaceService furnaces = new(presence, maps, placeables, placedTiles, placeables, inventory, unitOfWork, coopMembership, calendar, clock);
         InstanceManager.Instance.Register<IFurnaceService>(furnaces);
         placeables.Attach(furnaces);
-        // Skill levels come from the energy and skills work (docs/adr/ADR-023); until it lands every player has level 10, so every recipe is unlocked.
-        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new FixedSkillLevels()));
+        // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1).
+        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress)));
         PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);

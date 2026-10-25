@@ -14,6 +14,7 @@ using Nosum.Contracts.Inventory.S2C;
 using Nosum.Infrastructure.Concurrency;
 using Nosum.Domain.Inventory;
 using Nosum.Gameplay.Inventory;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Placeables;
 
 namespace Nosum.Infrastructure.Inventory;
@@ -29,6 +30,7 @@ namespace Nosum.Infrastructure.Inventory;
 public sealed class InventoryService : IInventoryService
 {
     private const string StarterReason = "starter";
+    private const string StarterBackfillReason = "starter.backfill";
 
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
@@ -119,6 +121,31 @@ public sealed class InventoryService : IInventoryService
             push: false,
             cancellationToken).ConfigureAwait(false);
         return (outcome.Status, outcome.View.SelectedSlot);
+    }
+
+    /// <inheritdoc/>
+    public async Task<InventoryChange> BackfillStarterToolsAsync(Guid playerId, CancellationToken cancellationToken = default)
+    {
+        Outcome outcome = await this.ExecuteAsync(
+            playerId,
+            static (loaded, deltas) =>
+            {
+                foreach (ItemSlot starter in StarterKit.Items)
+                {
+                    // A tool with no room is skipped; the next join tries again.
+                    if (ItemCatalog.TryGet(starter.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Tool && loaded.Grid.CountOf(item.Id) == 0 && loaded.Grid.Add(item.Id, 1) == InventoryVerdict.Ok)
+                    {
+                        deltas.Add((item.Id, 1));
+                    }
+                }
+
+                return InventoryStatus.Ok;
+            },
+            StarterBackfillReason,
+            null,
+            push: true,
+            cancellationToken).ConfigureAwait(false);
+        return new InventoryChange(outcome.Status, outcome.Changed);
     }
 
     /// <inheritdoc/>

@@ -43,14 +43,17 @@ public enum PanelKind
     /// <summary>The visitors page: who may enter the player's farm, and visiting someone else (docs/adr/ADR-019).</summary>
     Visitors = 10,
 
+    /// <summary>The skills page: energy and the three skill levels (docs/adr/ADR-023).</summary>
+    Skills = 11,
+
     /// <summary>The crafting page (docs/adr/ADR-024).</summary>
-    Crafting = 11,
+    Crafting = 12,
 
     /// <summary>The open chest (docs/adr/ADR-024); not a toolbar tab, it shows while a chest is open.</summary>
-    Chest = 12,
+    Chest = 13,
 
     /// <summary>The furnace (docs/adr/ADR-024); not a toolbar tab, it shows while a furnace is open.</summary>
-    Furnace = 13,
+    Furnace = 14,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -99,6 +102,7 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T", "tab-trade"),
         new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G", "tab-coop"),
         new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty, "tab-visitors"),
+        new ToolbarItem(PanelKind.Skills, this.Text("Toolbar_Skills"), string.Empty, "tab-skills"),
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N", "tab-profile"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), "H", "tab-settings"),
     ];

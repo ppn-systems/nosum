@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Globalization;
 using Nosum.Contracts.Common;
 
@@ -8,6 +9,9 @@ namespace Nosum.Wasm.ViewModels.Localization;
 /// <summary>Applies the player's language to the UI (docs/adr/ADR-010 D6).</summary>
 public static class UiCulture
 {
+    /// <summary>Raised after <see cref="Apply"/> changed the language, so view models that keep localized text can build it again. May run on any thread.</summary>
+    public static event Action? Changed;
+
     /// <summary>The language of the current UI culture, as the wire enum.</summary>
     public static GameLanguage Current => GameLanguages.FromTag(CultureInfo.CurrentUICulture.Name);
 
@@ -33,5 +37,6 @@ public static class UiCulture
         CultureInfo.DefaultThreadCurrentUICulture = culture;
         CultureInfo.CurrentCulture = culture;
         CultureInfo.CurrentUICulture = culture;
+        Changed?.Invoke();
     }
 }

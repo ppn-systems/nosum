@@ -97,6 +97,15 @@ public interface IInventoryService
     /// <returns>The status and the slot held afterwards.</returns>
     Task<(InventoryStatus Status, int SelectedSlot)> SelectSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Grants the starter tools a player lacks, once each, with the audit reason <c>starter.backfill</c>. Accounts made before a tool joined the starter kit
+    /// (axe, pickaxe, scythe) get it on their next join; a player who has every tool, or has no room, changes nothing, so calling it again is harmless.
+    /// </summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status and the slots that changed (none when nothing was missing).</returns>
+    Task<InventoryChange> BackfillStarterToolsAsync(Guid playerId, CancellationToken cancellationToken = default);
+
     /// <summary>Reads one slot.</summary>
     /// <param name="playerId">The player.</param>
     /// <param name="slot">Slot number.</param>

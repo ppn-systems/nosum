@@ -20,6 +20,7 @@ using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Progress;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
@@ -38,6 +39,7 @@ using Nosum.Gameplay.Crafting;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Skills;
 using Nosum.Gameplay.Placeables;
 using Nosum.Host;
 using Nosum.Infrastructure.Persistence;
@@ -146,6 +148,11 @@ public sealed class CraftingWireTests : IClassFixture<PostgresFixture>
         (await player.GrantAsync(ItemCatalog.CopperOre, 25, host.Timeout)).Should().BeTrue();
         (await player.GrantAsync(ItemCatalog.Stone, 25, host.Timeout)).Should().BeTrue();
         (await player.GrantAsync(ItemCatalog.Coal, 2, host.Timeout)).Should().BeTrue();
+
+        // The furnace is a mining level 1 recipe (docs/adr/ADR-024 D2): a new player cannot craft it until they have mined a little.
+        (await player.CraftAsync(RecipeCatalog.Furnace, 1, host.Timeout)).Status.Should().Be(CraftStatus.Locked);
+        IPlayerProgress progress = InstanceManager.Instance.GetExistingInstance<IPlayerProgress>()!;
+        (await progress.TryChargeAsync(player.AccountId, ToolKind.Pickaxe, SkillKind.Mining, 100)).Should().Be(ChargeStatus.Ok, "a hundred mining experience is level 1");
 
         (await player.CraftAsync(RecipeCatalog.Furnace, 1, host.Timeout)).Status.Should().Be(CraftStatus.Ok);
         (int x, int y) = host.FreeTilesNear(GameMaps.Farm)[0];

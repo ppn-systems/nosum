@@ -3,33 +3,30 @@
 @inherits ObservingComponent<TradeViewModel>
 
 @* The trade window: pick a player, then both sides fill an offer and confirm. Any change clears both confirmations on the server. *@
-<MenuPage Status="@Vm.Status">
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood" Footer="@(Vm.Phase == TradePhase.Open ? Actions() : null)">
     <GameStack>
         @if (Vm.Phase == TradePhase.Open)
         {
-            <GameRow Class="top">
+            @* Both offers side by side; under them the player's coins and bag. Confirm and cancel stay pinned under the scrolling part (Footer). *@
+            <div class="trade-sides">
                 <GameSection Title="@Vm.Text("Trade_Yours")">
-                    <ItemGrid Slots="Vm.MyItems" Columns="5" OnSlotClick="@(i => Vm.Withdraw(i))" />
+                    <ItemGrid Slots="Vm.MyItems" Columns="4" OnSlotClick="@(i => Vm.Withdraw(i))" />
                     <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.MyCoins)</p>
                     <p class="trade-state">@(Vm.MyConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
                 </GameSection>
                 <GameSection Title="@Vm.OtherLabel">
-                    <ItemGrid Slots="Vm.OtherItems" Columns="5" />
+                    <ItemGrid Slots="Vm.OtherItems" Columns="4" />
                     <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.OtherCoins)</p>
                     <p class="trade-state">@(Vm.OtherConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
                 </GameSection>
-            </GameRow>
-            <GameSection Title="@Vm.Text("Trade_AddCoins")">
-                <PriceInput Value="@Vm.CoinsText" ValueChanged="@(v => Vm.CoinsText = v)" OnEnter="@(() => Vm.SetCoins())" Label="@Vm.Text("Trade_AddCoins")" Unit="@Vm.Text("Wallet_Caption")" />
-                <GameButton Text="@Vm.Text("Trade_SetCoins")" OnClick="@(() => Vm.SetCoins())" />
-            </GameSection>
-            <GameSection Title="@Vm.Text("Trade_PickItems")">
-                <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.Offer(i))" />
-            </GameSection>
+            </div>
             <GameRow>
-                <GameButton Text="@Vm.Text("Trade_Confirm")" Disabled="Vm.MyConfirmed" OnClick="@(() => Vm.Confirm())" />
-                <GameButton Variant="danger" Text="@Vm.Text("Trade_Cancel")" OnClick="@(() => Vm.Cancel())" />
+                <span>@Vm.Text("Trade_AddCoins")</span>
+                <PriceInput Class="narrow" Value="@Vm.CoinsText" ValueChanged="@(v => Vm.CoinsText = v)" OnEnter="@(() => Vm.SetCoins())" Label="@Vm.Text("Trade_AddCoins")" Unit="@Vm.Text("Wallet_Caption")" />
+                <GameButton Text="@Vm.Text("Trade_SetCoins")" OnClick="@(() => Vm.SetCoins())" />
             </GameRow>
+            <p class="trade-state">@Vm.Text("Trade_PickItems")</p>
+            <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.Offer(i))" />
         }
         else if (Vm.Phase == TradePhase.Waiting)
         {
@@ -44,3 +41,10 @@
         }
     </GameStack>
 </MenuPage>
+
+@code {
+    private RenderFragment Actions() => @<GameRow>
+        <GameButton Text="@Vm.Text("Trade_Confirm")" Disabled="Vm.MyConfirmed" OnClick="@(() => Vm.Confirm())" />
+        <GameButton Variant="danger" Text="@Vm.Text("Trade_Cancel")" OnClick="@(() => Vm.Cancel())" />
+    </GameRow>;
+}
