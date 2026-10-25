@@ -48,6 +48,11 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         await this.GuardAsync("nodes", this.NodesAsync);
         await this.GuardAsync("walk", this.WalkAsync);
         await this.GuardAsync("warp", this.WarpAsync);
+        await this.GuardAsync("admin", this.AdminAsync);
+        await this.GuardAsync("password", this.PasswordAsync);
+        await this.GuardAsync("blacksmith", this.BlacksmithAsync);
+        await this.GuardAsync("mine", this.MineAsync);
+        await this.GuardAsync("area", this.AreaAsync);
         await this.GuardAsync("background", this.BackgroundAsync);
 
         // The tester tools exist only in Development builds and are never mapped in Production.

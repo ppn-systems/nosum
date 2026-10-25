@@ -302,6 +302,23 @@ internal sealed class BudgetPlayer : IAsyncDisposable
         await _session.SendAsync(request, _rig.Timeout);
     }
 
+    /// <summary>Sends a request and returns its reply, disposing the request.</summary>
+    /// <typeparam name="TResponse">The reply type.</typeparam>
+    /// <param name="request">The request packet.</param>
+    /// <returns>The reply.</returns>
+    public async Task<TResponse> RequestAsyncOf<TResponse>(IPacket request)
+        where TResponse : class, IPacket, IPacketStaticOpcode
+    {
+        try
+        {
+            return await this.RequestAsync<TResponse>(request);
+        }
+        finally
+        {
+            (request as IDisposable)?.Dispose();
+        }
+    }
+
     /// <summary>Signs in with a token (the client's resume path).</summary>
     /// <param name="token">The session token.</param>
     /// <returns>The reply.</returns>
