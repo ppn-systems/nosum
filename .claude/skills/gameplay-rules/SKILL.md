@@ -5,7 +5,8 @@ description: Use when writing farm rules in gameplay/Nosum.Gameplay or server co
 
 # Gameplay rules
 
-Decision: `docs/adr/ADR-003-server-authoritative-websocket.md`.
+Decision: `docs/adr/ADR-003-server-authoritative-websocket.md`. Game identity (co-ops, shared
+market, server-wide seasons): `docs/design/pillars.md`.
 
 ## Non-negotiables
 

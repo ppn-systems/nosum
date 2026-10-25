@@ -31,7 +31,7 @@ nosum/
 ├── assets/                       # source pixel art (32 px grid) + SOURCES.md provenance; atlases are generated from it
 ├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker); only area allowed an image package
 ├── deploy/                       # deployment configuration
-├── docs/adr/                     # architecture decision records
+├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions)
 └── Directory.Build.props · Directory.Packages.props · Version.props · global.json
 ```
 

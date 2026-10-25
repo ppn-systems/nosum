@@ -12,6 +12,7 @@
 | Product | Nosum — browser-based multiplayer farming game, 3/4 top-down pixel art |
 | Stack | C# / .NET 10 · own 2D engine (`engine/`) · Blazor WebAssembly client · Nalix WebSocket server · shared contracts |
 | Layout | [`ARCHITECTURE.md`](ARCHITECTURE.md) — areas, project dependencies, frame loop, network path |
+| Game pillars | [`docs/design/pillars.md`](docs/design/pillars.md) — co-ops, shared market, server-wide seasons |
 | Decisions | [`docs/adr/README.md`](docs/adr/README.md) |
 
 ## Before any agent starts work

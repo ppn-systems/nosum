@@ -21,7 +21,7 @@ Client and server talk over one Nalix WebSocket channel and share the same C# co
 | [`assets/`](assets/) | Source pixel art (32 px grid) | — |
 | [`tools/`](tools/) | Developer tools (atlas packer) | `Nosum.Tools.slnx` |
 | [`deploy/`](deploy/) | Deployment configuration | — |
-| [`docs/`](docs/) | Architecture decision records | — |
+| [`docs/`](docs/) | Game pillars (`docs/design/pillars.md`), architecture decision records | — |
 
 How the parts fit together: [`ARCHITECTURE.md`](ARCHITECTURE.md). Rules for coding agents:
 [`AGENTS.md`](AGENTS.md).
