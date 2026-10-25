@@ -327,6 +327,60 @@
   <data name="Settings_LanguageEn" xml:space="preserve"><value>English</value></data>
   <data name="Settings_LanguageNotSaved" xml:space="preserve"><value>Không lưu được lựa chọn này vào tài khoản.</value></data>
   <data name="Settings_Keys" xml:space="preserve"><value>Phím tắt</value></data>
+  <data name="Settings_TabsLabel" xml:space="preserve"><value>Mục cài đặt</value></data>
+  <data name="Settings_TabGeneral" xml:space="preserve"><value>Chung</value></data>
+  <data name="Settings_TabDisplay" xml:space="preserve"><value>Hiển thị</value></data>
+  <data name="Settings_TabSound" xml:space="preserve"><value>Âm thanh</value></data>
+  <data name="Settings_TabControls" xml:space="preserve"><value>Điều khiển</value></data>
+  <data name="Settings_UiScale" xml:space="preserve"><value>Độ phóng to</value></data>
+  <data name="Settings_ScaleAuto" xml:space="preserve"><value>Tự động</value></data>
+  <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
+  <data name="Settings_ScaleHint" xml:space="preserve"><value>Số điểm ảnh màn hình cho mỗi điểm ảnh của thế giới. Tự động chọn theo cỡ cửa sổ.</value></data>
+  <data name="Settings_ShowNames" xml:space="preserve"><value>Hiện tên trên đầu nhân vật</value></data>
+  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Giảm chuyển động (không mưa, tuyết, hiệu ứng)</value></data>
+  <data name="Settings_HighContrast" xml:space="preserve"><value>Tương phản cao</value></data>
+  <data name="Settings_Display" xml:space="preserve"><value>Hiển thị</value></data>
+  <data name="Settings_Accessibility" xml:space="preserve"><value>Dễ nhìn</value></data>
+  <data name="Settings_Music" xml:space="preserve"><value>Nhạc nền</value></data>
+  <data name="Settings_SoundFx" xml:space="preserve"><value>Hiệu ứng âm thanh</value></data>
+  <data name="Settings_Mute" xml:space="preserve"><value>Tắt toàn bộ âm thanh</value></data>
+  <data name="Settings_SoundNote" xml:space="preserve"><value>Âm thanh sẽ có ở bản sau; mức bạn chọn đã được lưu.</value></data>
+  <data name="Settings_Percent" xml:space="preserve"><value>{0}%</value></data>
+  <data name="Settings_Volume" xml:space="preserve"><value>Âm lượng</value></data>
+  <data name="Settings_KeysHint" xml:space="preserve"><value>Chọn một hành động rồi nhấn phím mới. Esc để hủy.</value></data>
+  <data name="Settings_KeyListening" xml:space="preserve"><value>Nhấn phím…</value></data>
+  <data name="Settings_KeyReserved" xml:space="preserve"><value>Không dùng được phím {0}.</value></data>
+  <data name="Settings_KeySwapped" xml:space="preserve"><value>Phím này đã đổi chỗ với {0} (nay là {1}).</value></data>
+  <data name="Settings_KeyReset" xml:space="preserve"><value>Phím mặc định</value></data>
+  <data name="Settings_KeyRebind" xml:space="preserve"><value>Đổi phím: {0}</value></data>
+  <data name="Settings_KeysFixed" xml:space="preserve"><value>Cố định: phím mũi tên, Space, 1-9, Esc, Enter.</value></data>
+  <data name="Settings_Tutorial" xml:space="preserve"><value>Gợi ý cho người mới</value></data>
+  <data name="Settings_TutorialOn" xml:space="preserve"><value>Hiện gợi ý khi chơi</value></data>
+  <data name="Settings_TutorialRestart" xml:space="preserve"><value>Xem lại từ đầu</value></data>
+  <data name="Hint_Label" xml:space="preserve"><value>Gợi ý</value></data>
+  <data name="Hint_Move" xml:space="preserve"><value>Đi lại bằng {0} hoặc cần điều khiển bên trái.</value></data>
+  <data name="Hint_Use" xml:space="preserve"><value>Nhấn {0} để dùng vật đang cầm lên ô phía trước.</value></data>
+  <data name="Hint_Sell" xml:space="preserve"><value>Đứng cạnh thùng bán hàng và nhấn {0} để bán nông sản.</value></data>
+  <data name="Hint_Shop" xml:space="preserve"><value>Đứng trước quầy của một cửa hàng và nhấn phím dùng để mua hạt giống.</value></data>
+  <data name="Hint_Town" xml:space="preserve"><value>Rời nông trại để ghé thăm Thị trấn.</value></data>
+  <data name="Touch_Stick" xml:space="preserve"><value>Cần điều khiển di chuyển</value></data>
+  <data name="Touch_Use" xml:space="preserve"><value>Dùng</value></data>
+  <data name="Touch_UseLabel" xml:space="preserve"><value>Dùng vật đang cầm</value></data>
+  <data name="Menu_Label" xml:space="preserve"><value>Menu trò chơi</value></data>
+  <data name="Action_MoveUp" xml:space="preserve"><value>Đi lên</value></data>
+  <data name="Action_MoveDown" xml:space="preserve"><value>Đi xuống</value></data>
+  <data name="Action_MoveLeft" xml:space="preserve"><value>Đi sang trái</value></data>
+  <data name="Action_MoveRight" xml:space="preserve"><value>Đi sang phải</value></data>
+  <data name="Action_Use" xml:space="preserve"><value>Dùng, tương tác</value></data>
+  <data name="Action_Inventory" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Action_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
+  <data name="Action_Trade" xml:space="preserve"><value>Giao dịch</value></data>
+  <data name="Action_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
+  <data name="Action_Profile" xml:space="preserve"><value>Hồ sơ</value></data>
+  <data name="Action_Help" xml:space="preserve"><value>Cài đặt</value></data>
+  <data name="Action_Rotate" xml:space="preserve"><value>Xoay đồ</value></data>
+  <data name="Action_Grab" xml:space="preserve"><value>Dời đồ</value></data>
+  <data name="Action_PickUp" xml:space="preserve"><value>Cất vào túi</value></data>
   <data name="Placement_Strip_Place" xml:space="preserve"><value>Đặt</value></data>
   <data name="Placement_Strip_Rotate" xml:space="preserve"><value>Xoay</value></data>
   <data name="Placement_Strip_Move" xml:space="preserve"><value>Dời</value></data>

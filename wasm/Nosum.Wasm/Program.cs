@@ -12,6 +12,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Security;
+using Nosum.Wasm.Settings;
 using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Chat;
@@ -76,8 +77,8 @@ internal static class Program
 {
     public static async Task Main(string[] args)
     {
-        // Vietnamese until sign-in applies the account's language (docs/adr/ADR-010 D1, D6).
-        UiCulture.SetDefault(GameLanguage.Vietnamese);
+        // The language this browser used last (Vietnamese on a first visit) until sign-in applies the account's language (docs/adr/ADR-010 D1, D6, docs/adr/ADR-033).
+        UiCulture.SetDefault(await SettingsWiring.LoadLanguageAsync().ConfigureAwait(false));
 
         WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.RootComponents.Add<App>("#app");
@@ -85,6 +86,7 @@ internal static class Program
         builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
         builder.Services.AddLocalization();
+        builder.Services.AddClientSettings();
 
         // One server connection for the app's lifetime (docs/adr/ADR-003 D5).
         // The deploy pins the server's public key in wwwroot/appsettings.json; without it a development build trusts the server on first use (docs/adr/ADR-032 D1).
@@ -205,6 +207,7 @@ internal static class Program
         // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;
         // the farm, the placed furniture and the resource nodes are per place, so they load whenever a map was joined.
         AccountSessionKeeper keeper = host.Services.GetRequiredService<AccountSessionKeeper>();
+        SettingsWiring.Connect(host.Services);
         keeper.Authenticated += channel.Join;
         keeper.Authenticated += inventory.Load;
         keeper.Authenticated += quests.Load;

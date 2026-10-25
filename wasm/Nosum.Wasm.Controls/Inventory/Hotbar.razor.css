@@ -9,3 +9,12 @@
     gap: calc(var(--u) * 2);
     padding: var(--u) var(--u) calc(var(--u) * 7);
 }
+
+/* Narrow screens (a phone held upright): the slots make two rows of five instead of one row that does not fit (docs/adr/ADR-033 D2). */
+@media (max-width: 640px) {
+    .hotbar-slots {
+        display: grid;
+        grid-template-columns: repeat(5, auto);
+        row-gap: calc(var(--u) * 6);
+    }
+}

@@ -1,0 +1,53 @@
+@* A labelled slider: a real range input (keyboard: Tab and the arrow keys), with the value in words next to it. The value is committed when
+   the thumb is released or a key is pressed, the number shown follows the thumb while it moves. *@
+<div class="game-slider">
+    <span class="game-slider-label" id="@_labelId">@Label</span>
+    <input type="range" min="@Min" max="@Max" step="@Step" value="@_live" disabled="@Disabled"
+           aria-labelledby="@_labelId" aria-valuetext="@ValueText(_live)"
+           @oninput="Moved" @onchange="Committed" />
+    <span class="game-slider-value" aria-hidden="true">@ValueText(_live)</span>
+</div>
+
+@code {
+    private static int s_next;
+    private readonly string _labelId = "slider-" + System.Threading.Interlocked.Increment(ref s_next).ToString(System.Globalization.CultureInfo.InvariantCulture);
+    private int _live;
+
+    /// <summary>The value.</summary>
+    [Parameter] public int Value { get; set; }
+
+    /// <summary>Raised with the new value when it is committed.</summary>
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+
+    /// <summary>The label (already localized).</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    /// <summary>Smallest value.</summary>
+    [Parameter] public int Min { get; set; }
+
+    /// <summary>Largest value.</summary>
+    [Parameter] public int Max { get; set; } = 100;
+
+    /// <summary>Step.</summary>
+    [Parameter] public int Step { get; set; } = 5;
+
+    /// <summary>Whether the slider cannot be used.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>Turns a value into the words shown next to the slider (already localized); the number itself when not given.</summary>
+    [Parameter] public Func<int, string>? Format { get; set; }
+
+    protected override void OnParametersSet() => _live = Value;
+
+    private string ValueText(int value) => Format is null ? value.ToString(System.Globalization.CultureInfo.CurrentCulture) : Format(value);
+
+    private void Moved(ChangeEventArgs e) => _live = Parse(e);
+
+    private Task Committed(ChangeEventArgs e)
+    {
+        _live = Parse(e);
+        return ValueChanged.InvokeAsync(_live);
+    }
+
+    private int Parse(ChangeEventArgs e) => int.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int value) ? Math.Clamp(value, Min, Max) : _live;
+}
