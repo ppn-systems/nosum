@@ -169,6 +169,28 @@ public sealed class PlacedSet
         return PlacementVerdict.Ok;
     }
 
+    /// <summary>
+    /// Returns whether a character standing at a point would have a piece's footprint under their feet (same feet box as
+    /// <see cref="MoveValidator.FootBlocked"/>): a piece is never placed on the person placing it.
+    /// </summary>
+    /// <param name="view">The piece's view in its rotation.</param>
+    /// <param name="tileX">Left tile of the footprint.</param>
+    /// <param name="tileY">Top tile of the footprint.</param>
+    /// <param name="feetX">Feet x, world pixels.</param>
+    /// <param name="feetY">Feet y, world pixels.</param>
+    /// <param name="tileSize">Tile size, pixels.</param>
+    /// <returns><see langword="true"/> when the feet box and the footprint overlap.</returns>
+    public static bool CoversFeet(PlaceableView view, int tileX, int tileY, double feetX, double feetY, int tileSize)
+    {
+        double left = feetX - (Walker.FootWidth / 2);
+        double top = feetY - Walker.FootHeight;
+        const double edge = 0.001;
+        return left < (tileX + view.FootprintWidth) * tileSize
+            && left + Walker.FootWidth - edge > tileX * tileSize
+            && top < (tileY + view.FootprintHeight) * tileSize
+            && top + Walker.FootHeight - edge > tileY * tileSize;
+    }
+
     /// <summary>Returns a copy of the map's grid with every piece's footprint blocked: the grid players walk on in this instance.</summary>
     /// <param name="mapGrid">The map's own grid; it is not changed.</param>
     /// <returns>The copy.</returns>

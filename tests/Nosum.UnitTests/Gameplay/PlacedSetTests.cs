@@ -194,4 +194,17 @@ public sealed class PlacedSetTests
             grid.Add(item.ItemId, item.Quantity).Should().Be(InventoryVerdict.Ok);
         }
     }
+
+    [Theory]
+    [InlineData(40, 63, true)]
+    [InlineData(40, 80, false)]
+    [InlineData(76, 63, false)]
+    [InlineData(47.9, 63.9, true)]
+    public void CoversFeet_TileFootprintAndFeetBox_OverlapOnlyWhenTheyIntersect(double feetX, double feetY, bool covers)
+    {
+        // A 1 x 1 piece on tile (2, 3): pixels x 32..48, y 48..64.
+        PlaceableView view = Definition(ItemCatalog.OakChair).View(0);
+
+        PlacedSet.CoversFeet(view, 2, 3, feetX, feetY, 16).Should().Be(covers);
+    }
 }

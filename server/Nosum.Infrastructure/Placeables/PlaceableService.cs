@@ -301,21 +301,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld
             feetY = player.Motion.Y;
         }
 
-        // The grid with the new footprint; a piece being moved no longer stands where it was.
-        PlacedSet remaining = new();
-        foreach (PlacedItem item in state.Set.Items)
-        {
-            if (item.Id != ignoreId)
-            {
-                remaining.Add(item);
-            }
-        }
-
-        WalkGrid candidate = remaining.BuildGrid(map.Grid);
-        candidate.Block(tileX, tileY, view.FootprintWidth, view.FootprintHeight);
-        return MoveValidator.FootBlocked(candidate, feetX, feetY) && !MoveValidator.FootBlocked(state.Grid, feetX, feetY)
-            ? PlaceStatus.PlayerInTheWay
-            : PlaceStatus.Ok;
+        return PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, map.Grid.TileSize) ? PlaceStatus.PlayerInTheWay : PlaceStatus.Ok;
     }
 
     // Within the farming reach of any tile of the footprint.
