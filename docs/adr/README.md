@@ -25,3 +25,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-015](ADR-015-private-instances-and-placeables.md) | Private per-player farm and farmhouse, Town and Backwoods, player-placed furniture (amends ADR-012) | Accepted |
 | [ADR-016](ADR-016-ui-theme-and-hud-layout.md) | One pixel-art UI theme (shared controls, 9-slice frames) and one HUD dock-region layout | Proposed |
 | [ADR-005](ADR-005-three-quarter-top-down-view.md) | 3/4 top-down view (layers, y-sorting, feet anchors) | Accepted |
+| [ADR-021](ADR-021-tools-resource-nodes-ground-items.md) | Farming basics: five tools, resource nodes, ground items with pickup, crop growth in game days (amends ADR-011) | Accepted |
+| [ADR-022](ADR-022-chunked-interest-management.md) | Chunks: 16×16 interest management for snapshots and world events, per-chunk state | Accepted |
