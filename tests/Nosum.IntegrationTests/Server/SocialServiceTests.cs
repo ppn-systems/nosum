@@ -135,6 +135,31 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
     }
 
     [Fact]
+    public async Task Buy_TheDefaultFeeSinkDestroysTheFee_AndASinkThatReturnsLegsRedirectsIt()
+    {
+        // Default (owner decision 2026-10-25): the 10 coins of fee exist nowhere afterwards.
+        (Guid seller, Guid buyer, Guid listing) = await ListedAsync(quantity: 10, price: 200);
+        _ = await _market.BuyAsync(buyer, listing);
+        long total = await _transfers.GetBalanceAsync(seller) + await _transfers.GetBalanceAsync(buyer);
+        total.Should().Be((2 * CoinRules.StartingCoins) - 10);
+
+        // Another sink pays the fee to a fund; nothing else about the market changes.
+        Guid fund = await CreatePlayerAsync();
+        MarketService redirecting = new(_transfers, _inventory, _units, new NoPresence(), new NoMaps(), new FundSink(fund), _nicknames, _clock);
+        (Guid seller2, Guid buyer2, Guid listing2) = await ListedAsync(quantity: 10, price: 200);
+
+        (await redirecting.BuyAsync(buyer2, listing2)).Should().Be(MarketStatus.Ok);
+
+        (await _transfers.GetBalanceAsync(fund)).Should().Be(CoinRules.StartingCoins + 10);
+        (await _transfers.GetBalanceAsync(seller2) + await _transfers.GetBalanceAsync(buyer2) + await _transfers.GetBalanceAsync(fund)).Should().Be(3 * CoinRules.StartingCoins);
+    }
+
+    private sealed class FundSink(Guid fund) : IFeeSink
+    {
+        public IReadOnlyList<TransferLeg> Collect(long fee, string reason) => [new TransferLeg(TransferParty.Player(fund), 0, 0, fee)];
+    }
+
+    [Fact]
     public async Task Buy_TwoBuyersOneListingInParallel_ExactlyOneSucceeds()
     {
         (Guid seller, _, Guid listing) = await ListedAsync(quantity: 5, price: 100);

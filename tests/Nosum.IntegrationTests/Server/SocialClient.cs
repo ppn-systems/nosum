@@ -251,6 +251,21 @@ internal sealed class SocialClient : IAsyncDisposable
         return (await this.RequestAsync<DevGrantResult>(request, ct)).Ok;
     }
 
+    /// <summary>Sends a tester grant and reports whether the server answered at all (a Production server does not know the opcode).</summary>
+    public async Task<bool> GrantIsAnsweredAsync(CancellationToken ct)
+    {
+        using DevGrant request = new() { ItemId = Nosum.Gameplay.Items.ItemCatalog.OakChair, Quantity = 1 };
+        try
+        {
+            _ = await _session.RequestAsync<DevGrantResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct);
+            return true;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+        {
+            return false;
+        }
+    }
+
     // ---- looks ----
     public async Task<LookRow[]> GetLooksAsync(CancellationToken ct)
     {
