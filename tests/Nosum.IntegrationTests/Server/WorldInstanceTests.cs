@@ -175,6 +175,7 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
 
             // Nothing is placed yet; the tester grant gives two chairs, which land in slot 5 after the tools and seeds.
             (await a.GrantAsync(ItemCatalog.OakChair, 2, host.Timeout)).Should().BeTrue();
+            _ = await a.WaitForSlotAsync(s => s.Slot == 5 && s.Quantity == 2, host.Timeout); // the grant's own push, so later waits see only what follows
             (await a.GetPlacedAsync(host.Timeout)).Objects.Should().BeEmpty();
             (await a.GetInventoryAsync(host.Timeout)).Slots.Should().Contain(s => s.Slot == 5 && s.ItemId == ItemCatalog.OakChair && s.Quantity == 2);
 
