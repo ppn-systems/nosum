@@ -20,10 +20,6 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal sealed class GameAudio
 {
-    // A pickup this close is the local farmer's own; one farther but still in earshot is a neighbour's, played quieter and panned.
-    private const int OwnPickupRadius = 24;
-    private const int EarshotRadius = 200;
-    private const int NeighbourPickupVolume = 40;
     private const int FootstepVolume = 70;
 
     private readonly SoundCues _queue = new();
@@ -87,16 +83,9 @@ internal sealed class GameAudio
     /// <param name="takerY">Where the taker stood, map pixels.</param>
     public void PlayPickup(int takerX, int takerY)
     {
-        int dx = takerX - _listenerX;
-        int dy = takerY - _listenerY;
-        long distance = ((long)dx * dx) + ((long)dy * dy);
-        if (distance <= (long)OwnPickupRadius * OwnPickupRadius)
+        if (AudioCatalog.PickupCue(takerX - _listenerX, takerY - _listenerY, out int volume, out int pan))
         {
-            this.Play(SoundIds.Pickup);
-        }
-        else if (distance <= (long)EarshotRadius * EarshotRadius)
-        {
-            this.Play(SoundIds.Pickup, NeighbourPickupVolume, Math.Clamp(dx / 2, -100, 100));
+            this.Play(SoundIds.Pickup, volume, pan);
         }
     }
 

@@ -95,6 +95,34 @@ public sealed class GroundItemChannelTests
     }
 
     [Fact]
+    public void Taken_PickedUp_RaisesPickedUpWithTheTakersPlace()
+    {
+        FakeGameSocket socket = new();
+        using GroundItemChannel channel = Loaded(socket, Row(7, ItemCatalog.Cauliflower, 1, 50, 60));
+        List<(int X, int Y)> heard = [];
+        channel.PickedUp += (x, y) => heard.Add((x, y));
+        using GroundItemTaken push = new() { MapId = "town", Id = 7, Reason = GroundItemGone.PickedUp, ToX = 70, ToY = 80 };
+
+        socket.Push(push);
+
+        heard.Should().Equal([(70, 80)]);
+    }
+
+    [Fact]
+    public void Taken_Expired_DoesNotRaisePickedUp()
+    {
+        FakeGameSocket socket = new();
+        using GroundItemChannel channel = Loaded(socket, Row(7, ItemCatalog.Cauliflower, 1, 50, 60));
+        int heard = 0;
+        channel.PickedUp += (_, _) => heard++;
+        using GroundItemTaken push = new() { MapId = "town", Id = 7, Reason = GroundItemGone.Expired };
+
+        socket.Push(push);
+
+        heard.Should().Be(0);
+    }
+
+    [Fact]
     public void Taken_Expired_RemovesTheItemWithoutAFlight()
     {
         FakeGameSocket socket = new();

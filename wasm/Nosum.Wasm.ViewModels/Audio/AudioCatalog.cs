@@ -116,6 +116,14 @@ public static class AudioCatalog
     /// <summary>Seconds between footsteps while walking.</summary>
     public const double StepIntervalSeconds = 0.34;
 
+    /// <summary>A pickup within this many pixels of the farmer is the farmer's own.</summary>
+    public const int OwnPickupRadius = 24;
+
+    /// <summary>A neighbour's pickup within this many pixels is heard.</summary>
+    public const int EarshotRadius = 200;
+
+    private const int NeighbourPickupVolume = 40;
+
     /// <summary>First minute of the day counted as night (20:00) and the first one counted as morning (06:00), the same dusk and dawn the ambient tint uses.</summary>
     private const int NightFrom = 20 * 60;
 
@@ -170,6 +178,33 @@ public static class AudioCatalog
     /// <param name="minuteOfDay">Game minute of the day, 0 to 1439.</param>
     /// <returns><see langword="true"/> from 20:00 to 06:00.</returns>
     public static bool IsNight(int minuteOfDay) => minuteOfDay >= NightFrom || minuteOfDay < NightUntil;
+
+    /// <summary>Returns how a pickup is heard: loud and centred when the local farmer picked it up, quiet and panned when a neighbour did, not at all when out of earshot.</summary>
+    /// <param name="dx">Taker minus listener, map pixels along x.</param>
+    /// <param name="dy">Taker minus listener, map pixels along y.</param>
+    /// <param name="volume">The volume, 0 to 100.</param>
+    /// <param name="pan">The stereo position, -100 to 100.</param>
+    /// <returns><see langword="false"/> when the pickup is too far to hear.</returns>
+    public static bool PickupCue(int dx, int dy, out int volume, out int pan)
+    {
+        long distance = ((long)dx * dx) + ((long)dy * dy);
+        pan = 0;
+        if (distance <= (long)OwnPickupRadius * OwnPickupRadius)
+        {
+            volume = 100;
+            return true;
+        }
+
+        if (distance <= (long)EarshotRadius * EarshotRadius)
+        {
+            volume = NeighbourPickupVolume;
+            pan = Math.Clamp(dx / 2, -100, 100);
+            return true;
+        }
+
+        volume = 0;
+        return false;
+    }
 
     /// <summary>Returns the ambient loop for the weather: rain and storms are heard outdoors only, snow and fair weather are silent.</summary>
     /// <param name="weather">Today's weather.</param>
