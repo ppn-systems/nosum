@@ -74,8 +74,8 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         _inventory = new InventoryService(_units, _clock);
         _membership = new CoopMembership(_units);
         TransferService transfers = new(_inventory, _clock);
-        GroundItemService groundItems = new(_presence, s_maps, transfers, _units, _clock);
-        _farm = new FarmService(_presence, s_maps, _inventory, new QuestService(_units, _clock), _membership, new NoNodes(), new NoCooldownTools(), _units, _clock, GameCalendar.Default, groundItems, new PlayerProgressService(_units, new CalendarGameDayClock(GameCalendar.Default, _clock), _inventory, _clock));
+        GroundItemService groundItems = new(_presence, NoChunks.Instance, NoChunks.Instance, s_maps, transfers, _units, _clock);
+        _farm = new FarmService(_presence, NoChunks.Instance, NoChunks.Instance, s_maps, _inventory, new QuestService(_units, _clock), _membership, new NoNodes(), new NoCooldownTools(), _units, _clock, GameCalendar.Default, groundItems, new PlayerProgressService(_units, new CalendarGameDayClock(GameCalendar.Default, _clock), _inventory, _clock));
         _coops = new CoopService(_units, transfers, _presence, new NoSessions(), new NoNotifier(), new NicknameDirectory(_units), _farm, _eviction, _clock);
     }
 

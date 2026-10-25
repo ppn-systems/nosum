@@ -9,6 +9,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Look;
 using Nosum.Contracts.Look.C2S;
 using Nosum.Contracts.Look.S2C;
+using Nosum.Contracts.Player.S2C;
 
 namespace Nosum.Wasm.Socket.Look;
 
@@ -27,14 +28,14 @@ public readonly record struct LookInfo(int SkinId, int HairStyleId, int HairDyeI
 }
 
 /// <summary>
-/// The client's mirror of the looks of everyone on the map. The server sends every look on join and on every change; nothing is derived
-/// from a player id here. The frame loop reads with <see cref="TryGet"/>, which never allocates or awaits.
+/// The client's mirror of the looks of the players in sight. The server sends a player's look when they come into the interest set and on every change, and
+/// a <see cref="PlayerLeft"/> when they go (docs/adr/ADR-022 D3); nothing is derived from a player id here. The frame loop reads with <see cref="TryGet"/>, which never allocates or awaits.
 /// </summary>
 public sealed class LookChannel : IDisposable
 {
     private readonly IGameSocket _socket;
     private readonly Func<uint> _localPlayerId;
-    private readonly IDisposable _changes;
+    private readonly IDisposable[] _subscriptions;
     private readonly Lock _gate = new();
     private readonly Dictionary<uint, LookInfo> _looks = [];
 
@@ -48,7 +49,7 @@ public sealed class LookChannel : IDisposable
 
         _socket = socket;
         _localPlayerId = localPlayerId;
-        _changes = socket.Subscribe<LookChanged>(p => this.Store(p.Look));
+        _subscriptions = [socket.Subscribe<LookChanged>(p => this.Store(p.Look)), socket.Subscribe<PlayerLeft>(this.OnPlayerLeft)];
     }
 
     /// <summary>Raised when any look changed. May run on any thread.</summary>
@@ -131,7 +132,28 @@ public sealed class LookChannel : IDisposable
     public void Unequip(int wearSlot) => _ = this.UnequipAsync(wearSlot);
 
     /// <inheritdoc/>
-    public void Dispose() => _changes.Dispose();
+    public void Dispose()
+    {
+        foreach (IDisposable subscription in _subscriptions)
+        {
+            subscription.Dispose();
+        }
+    }
+
+    // A player who left the interest set (or the map) takes their look with them; they get a fresh one when they come back into sight.
+    private void OnPlayerLeft(PlayerLeft left)
+    {
+        bool removed;
+        lock (_gate)
+        {
+            removed = _looks.Remove(left.PlayerId);
+        }
+
+        if (removed)
+        {
+            this.Changed?.Invoke();
+        }
+    }
 
     private void Store(LookRow row)
     {

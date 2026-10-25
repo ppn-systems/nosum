@@ -378,9 +378,13 @@ public sealed class VisitWireTests : IClassFixture<PostgresFixture>
         Account alice = await RegisterAsync();
         Account bob = await RegisterAsync();
         await PutOnAsync(bob, GameMaps.Town);
+
+        // A visitor sees the chunks around where they arrive (docs/adr/ADR-022), so the plot lies two tiles from the farmhouse door they arrive at.
+        int plotX = FarmProps.FarmhouseDoorFront.X + 2;
+        int plotY = FarmProps.FarmhouseDoorFront.Y + 2;
         await using (NosumDbContext context = new(_database.Options))
         {
-            _ = context.FarmPlots.Add(new FarmPlot { MapId = GameMaps.Farm, OwnerId = alice.Id, X = 5, Y = 6, CropId = CropCatalog.Parsnip, PlantedAtMs = 1, UpdatedAt = s_start });
+            _ = context.FarmPlots.Add(new FarmPlot { MapId = GameMaps.Farm, OwnerId = alice.Id, X = plotX, Y = plotY, CropId = CropCatalog.Parsnip, PlantedAtMs = 1, UpdatedAt = s_start });
             _ = await context.SaveChangesAsync();
         }
 
@@ -396,7 +400,7 @@ public sealed class VisitWireTests : IClassFixture<PostgresFixture>
         _ = await b.JoinAsync(host.Timeout);
         (await b.VisitAsync(alice.Nickname, host.Timeout)).Should().Be(VisitStatus.Ok);
         _ = await b.MapChanges.WaitAsync(m => m.MapId == GameMaps.Farm, host.Timeout);
-        (await b.GetFarmAsync(host.Timeout)).Tiles.Should().ContainSingle(t => t.X == 5 && t.Y == 6 && t.CropId == CropCatalog.Parsnip);
+        (await b.GetFarmAsync(host.Timeout)).Tiles.Should().ContainSingle(t => t.X == plotX && t.Y == plotY && t.CropId == CropCatalog.Parsnip);
         IVisitService service = InstanceManager.Instance.GetExistingInstance<IVisitService>()!;
         VisitorsView view = await service.GetAsync(alice.Id);
         view.Visitors.Should().ContainSingle().Which.Should().BeEquivalentTo(new { PlayerId = bob.Id, Listed = true, Present = true });

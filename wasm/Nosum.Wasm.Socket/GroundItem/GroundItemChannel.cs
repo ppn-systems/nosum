@@ -9,6 +9,8 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.GroundItem;
 using Nosum.Contracts.GroundItem.C2S;
 using Nosum.Contracts.GroundItem.S2C;
+using Nosum.Contracts.World.S2C;
+using Nosum.Gameplay.Maps;
 
 namespace Nosum.Wasm.Socket.GroundItem;
 
@@ -33,13 +35,18 @@ public readonly record struct FlyingItem(int ItemId, int FromX, int FromY, int T
 /// <summary>
 /// The client's mirror of the items lying on the ground of the player's current place (docs/adr/ADR-021 D5-D6). The server owns them and
 /// picks them up by itself when the player walks near, so there is no action to send; the mirror only follows the pushes. The frame loop
-/// reads it with <see cref="Read"/>, <see cref="Count"/> and <see cref="At"/> and never allocates or awaits. A pickup leaves a short-lived
+/// reads it with <see cref="Read"/>, <see cref="Count"/> and <see cref="At"/> and never allocates or awaits. The server sends the items of a chunk once, when the chunk joins the
+/// player's interest set (<see cref="ChunkState"/>), and then only changes in it; when the chunk leaves the set (<see cref="ChunkLeft"/>) its items are dropped
+/// (docs/adr/ADR-022 D6). An item belongs to the chunk its pixel position falls in. A pickup leaves a short-lived
 /// <see cref="FlyingItem"/> the scene draws moving to the taker.
 /// </summary>
 public sealed class GroundItemChannel : IDisposable
 {
     /// <summary>The number of flights that can be on screen at once; older ones are overwritten.</summary>
     public const int FlyCapacity = 16;
+
+    // Every map is drawn on a 16 px grid (assets-pipeline), which is what the server buckets ground items by.
+    private const int TileSize = 16;
 
     private readonly IGameSocket _socket;
     private readonly IDisposable[] _subscriptions;
@@ -56,7 +63,7 @@ public sealed class GroundItemChannel : IDisposable
     {
         ArgumentNullException.ThrowIfNull(socket);
         _socket = socket;
-        _subscriptions = [socket.Subscribe<GroundItemSpawned>(this.OnSpawned), socket.Subscribe<GroundItemTaken>(this.OnTaken)];
+        _subscriptions = [socket.Subscribe<GroundItemSpawned>(this.OnSpawned), socket.Subscribe<GroundItemTaken>(this.OnTaken), socket.Subscribe<ChunkState>(this.OnChunkState), socket.Subscribe<ChunkLeft>(this.OnChunkLeft)];
     }
 
     /// <summary>Raised when the mirror was loaded or changed. May run on any thread.</summary>
@@ -135,6 +142,52 @@ public sealed class GroundItemChannel : IDisposable
             // Connection dropped mid-load.
         }
     }
+
+    private void OnChunkState(ChunkState packet)
+    {
+        lock (_gate)
+        {
+            // A chunk of another map (a late push after a map change, or one that beat the load of this map) is not ours; the load covers it.
+            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            ChunkCoord chunk = new(packet.ChunkX, packet.ChunkY);
+            long now = Environment.TickCount64;
+            _ = this.RemoveChunk(chunk);
+            foreach (GroundItemRow row in packet.GroundItems)
+            {
+                // Items that were already lying there when the chunk came into sight do not pop in.
+                _items.Add(new GroundItemInfo(row.Id, row.ItemId, row.Quantity, row.X, row.Y, now - 1_000));
+            }
+
+            _ = Interlocked.Increment(ref _version);
+        }
+
+        this.Changed?.Invoke();
+    }
+
+    private void OnChunkLeft(ChunkLeft packet)
+    {
+        bool removed;
+        lock (_gate)
+        {
+            removed = string.Equals(packet.MapId, _mapId, StringComparison.Ordinal) && this.RemoveChunk(new ChunkCoord(packet.ChunkX, packet.ChunkY));
+            if (removed)
+            {
+                _ = Interlocked.Increment(ref _version);
+            }
+        }
+
+        if (removed)
+        {
+            this.Changed?.Invoke();
+        }
+    }
+
+    // Drops the items of one chunk. Call under the lock.
+    private bool RemoveChunk(ChunkCoord chunk) => _items.RemoveAll(i => ChunkCoord.OfPixels(i.X, i.Y, TileSize) == chunk) > 0;
 
     private void OnSpawned(GroundItemSpawned packet)
     {

@@ -21,6 +21,9 @@ using Nosum.Contracts.Trade.C2S;
 using Nosum.Contracts.Trade.S2C;
 using Nosum.Contracts.Quest;
 using Nosum.Contracts.Quest.S2C;
+using Nosum.Contracts.Placeable.S2C;
+using Nosum.Contracts.World;
+using Nosum.Contracts.World.S2C;
 using Xunit;
 
 namespace Nosum.UnitTests.Contracts;
@@ -182,6 +185,39 @@ public sealed class PacketRoundTripTests
         copy.Stock.Should().ContainSingle().Which.Available.Should().Be(12);
         copy.Log.Should().ContainSingle().Which.Delta.Should().Be(-3);
         copy.Invites.Should().ContainSingle().Which.CoopName.Should().Be("x");
+    }
+
+    [Fact]
+    public void ChunkState_RoundTripsFarmTilesAndPlacedObjects()
+    {
+        using ChunkState packet = new() { MapId = "town", ChunkX = 8, ChunkY = 6, ServerNowMs = 1_700_000_000_123 };
+        packet.FarmTiles.Add(new FarmTileRow { X = 130, Y = 100, CropId = 2, PlantedAtMs = 5, GrowthMs = 6, SettledAtMs = 7, WetUntilMs = 8 });
+        packet.Placed.Add(new PlacedObjectRow { Id = 41, ItemId = 301, TileX = 128, TileY = 96, Rotation = 2 });
+
+        ChunkState copy = ChunkState.Deserialize(packet.Serialize());
+
+        (copy.MapId, copy.ChunkX, copy.ChunkY, copy.ServerNowMs).Should().Be(("town", (ushort)8, (ushort)6, 1_700_000_000_123L));
+        copy.FarmTiles.Should().ContainSingle().Which.Should().BeEquivalentTo(packet.FarmTiles[0]);
+        copy.Placed.Should().ContainSingle().Which.Should().BeEquivalentTo(packet.Placed[0]);
+    }
+
+    [Fact]
+    public void ChunkLeft_RoundTrips()
+    {
+        using ChunkLeft packet = new() { MapId = "town", ChunkX = 3, ChunkY = 2 };
+
+        ChunkLeft copy = ChunkLeft.Deserialize(packet.Serialize());
+
+        (copy.MapId, copy.ChunkX, copy.ChunkY).Should().Be(("town", (ushort)3, (ushort)2));
+    }
+
+    [Fact]
+    public void ChunkOpcodes_SitInTheWorldSubRange()
+    {
+        WorldOpCode.ChunkState.Should().BeInRange((ushort)0x7340, (ushort)0x737F);
+        WorldOpCode.ChunkLeft.Should().BeInRange((ushort)0x7340, (ushort)0x737F);
+        ChunkState.StaticOpCode.Should().Be(WorldOpCode.ChunkState);
+        ChunkLeft.StaticOpCode.Should().Be(WorldOpCode.ChunkLeft);
     }
 
     [Fact]

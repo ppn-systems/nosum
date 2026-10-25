@@ -25,6 +25,16 @@ market, server-wide seasons): `docs/design/pillars.md`.
   status, not an exception for normal refusals.
 - **Rate-limit spam-able actions** (harvest, market posts) on the handler (`nalix-handlers`).
 
+## Chunks (docs/adr/ADR-022)
+
+- The world is cut into 16 × 16 tile chunks (`Nosum.Gameplay/Maps/ChunkCoord`); a player is interested in their
+  chunk and its 8 neighbours (`ChunkInterest`, one chunk of hysteresis). Chunk math is pure rules and lives here.
+- **Chunk by default, instance when map-wide.** A rule that changes the world at a place (till, place, chop,
+  drop an item) names the chunk of the tile it changed (`ChunkCoord.OfTile`) and the server publishes the change to
+  that chunk's subscribers; only a truly map-wide effect is published to the instance. State is kept in per-chunk
+  buckets so "everything in chunk c" is cheap.
+- Rules that look at neighbours (reach, collision) are not chunk-bound: they read the whole instance state.
+
 ## Placement
 
 - Rule code: `gameplay/Nosum.Gameplay/{Domain}/`.
