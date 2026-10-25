@@ -3,6 +3,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
+using Nosum.Domain.Community;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Economy;
 using Nosum.Domain.Farm;
@@ -73,6 +74,18 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the consignment market listings.</summary>
     public DbSet<MarketListing> MarketListings => this.Set<MarketListing>();
+
+    /// <summary>Gets the sales of the consignment market, for the price history.</summary>
+    public DbSet<MarketSale> MarketSales => this.Set<MarketSale>();
+
+    /// <summary>Gets the community goals of every season (docs/adr/ADR-030).</summary>
+    public DbSet<CommunityGoalProgress> CommunityGoals => this.Set<CommunityGoalProgress>();
+
+    /// <summary>Gets what each player delivered to each community goal.</summary>
+    public DbSet<CommunityContribution> CommunityContributions => this.Set<CommunityContribution>();
+
+    /// <summary>Gets the unlock flags set by completed goals.</summary>
+    public DbSet<CommunityUnlockRecord> CommunityUnlocks => this.Set<CommunityUnlockRecord>();
 
     /// <summary>Gets the co-ops.</summary>
     public DbSet<Coop> Coops => this.Set<Coop>();

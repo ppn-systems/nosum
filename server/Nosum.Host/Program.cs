@@ -13,6 +13,7 @@ using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Calendar;
+using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
@@ -37,6 +38,7 @@ using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
+using Nosum.Handlers.Goals;
 using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
@@ -57,6 +59,7 @@ using Nosum.Infrastructure.Farm;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
+using Nosum.Infrastructure.Community;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Market;
 using Nosum.Infrastructure.Nodes;
@@ -109,6 +112,19 @@ internal static class Program
             shutdown.Token);
 
         NetworkApplication app = BuildApplication(WebSocketPort, null, IsDevelopment());
+
+        // Goals of seasons that ended while the server was down expire now, and rewards a crash left unpaid are paid (docs/adr/ADR-030 D3).
+        ICommunityGoalService goals = InstanceManager.Instance.GetExistingInstance<ICommunityGoalService>()
+            ?? throw new InvalidOperationException("The community goal service is not registered.");
+        try
+        {
+            _ = await goals.CloseEndedSeasonsAsync(shutdown.Token).ConfigureAwait(false);
+            _ = await goals.SettlePendingAsync(shutdown.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            await Console.Error.WriteLineAsync("Community goal start-up sweep failed: " + ex.Message).ConfigureAwait(false);
+        }
 
         // Listings past their expiry give their items back to the sellers (docs/adr/ADR-013).
         IMarketService market = InstanceManager.Instance.GetExistingInstance<IMarketService>()
@@ -227,6 +243,7 @@ internal static class Program
             .MapHandlers(typeof(NodeHandlers))
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
+            .MapHandlers(typeof(GoalHandlers))
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers));
 
@@ -341,8 +358,23 @@ internal static class Program
 
         // The market fee is a coin sink (owner decision 2026-10-25); IFeeSink is the one place that would redirect it.
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
-        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock));
+        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock));
+
+        // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.
+        CommunityUnlocks communityUnlocks = new(unitOfWork);
+        InstanceManager.Instance.Register<ICommunityUnlocks>(communityUnlocks);
+        CommunityGoalService communityGoals = new(transfers, unitOfWork, presence, maps, calendar, clock, communityUnlocks);
+        InstanceManager.Instance.Register<ICommunityGoalService>(communityGoals);
+        dayClock.DayEnded += ended =>
+        {
+            _ = ended;
+            _ = communityGoals.CloseEndedSeasonsAsync().ContinueWith(
+                static t => Console.Error.WriteLine("Community goal season sweep failed: " + t.Exception?.GetBaseException().Message),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
+        };
         if (development)
         {
             InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));

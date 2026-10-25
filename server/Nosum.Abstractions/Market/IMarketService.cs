@@ -26,6 +26,20 @@ public sealed record ListingView(Guid ListingId, Guid SellerId, int ItemId, int 
 /// <param name="Listings">The page.</param>
 public sealed record ListingsPageView(DateTimeOffset ServerNow, int Page, int Total, IReadOnlyList<ListingView> Listings);
 
+/// <summary>The sales of one item on one game day.</summary>
+/// <param name="Day">The game day number.</param>
+/// <param name="Min">The lowest unit price, coins.</param>
+/// <param name="Median">The median unit price, coins.</param>
+/// <param name="Max">The highest unit price, coins.</param>
+/// <param name="Sales">How many sales the day had.</param>
+public sealed record PriceDayView(int Day, long Min, long Median, long Max, int Sales);
+
+/// <summary>The recent price history of one item (docs/adr/ADR-030 D4).</summary>
+/// <param name="ItemId">The item.</param>
+/// <param name="Today">The game day number now.</param>
+/// <param name="Days">The days that had sales, oldest first.</param>
+public sealed record PriceHistoryView(int ItemId, int Today, IReadOnlyList<PriceDayView> Days);
+
 /// <summary>Outcome of shipping items at the bin.</summary>
 /// <param name="Status">Ok, or why nothing was sold.</param>
 /// <param name="Earned">Coins paid.</param>
@@ -83,6 +97,12 @@ public interface IMarketService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The listings, newest first.</returns>
     Task<ListingsPageView> MineAsync(Guid playerId, CancellationToken cancellationToken = default);
+
+    /// <summary>Reads the daily price history of one item: the min, median and max unit price of the sales of each of the last game days that had any.</summary>
+    /// <param name="itemId">The item.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The history; no days for an item that never sold.</returns>
+    Task<PriceHistoryView> GetPriceHistoryAsync(int itemId, CancellationToken cancellationToken = default);
 
     /// <summary>Returns the items of listings past their expiry to their sellers (the hosted job calls this; a seller with a full inventory is retried on the next sweep).</summary>
     /// <param name="cancellationToken">Cancels the sweep.</param>

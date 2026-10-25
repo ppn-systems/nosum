@@ -175,6 +175,114 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_states", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Community.CommunityContribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<long>("Delivered")
+                        .HasColumnType("bigint")
+                        .HasColumnName("delivered");
+
+                    b.Property<long?>("PaidCoins")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint")
+                        .HasColumnName("paid_coins");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<Guid>("ProgressId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("progress_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_community_contributions");
+
+                    b.HasIndex("PlayerId")
+                        .HasDatabaseName("ix_community_contributions_player_id");
+
+                    b.HasIndex("ProgressId", "PlayerId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_community_contributions_progress_id_player_id");
+
+                    b.ToTable("community_contributions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_community_contributions_delivered", "delivered > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Community.CommunityGoalProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("GoalId")
+                        .HasColumnType("integer")
+                        .HasColumnName("goal_id");
+
+                    b.Property<int>("SeasonNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("season_number");
+
+                    b.Property<int>("Status")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<long>("Total")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint")
+                        .HasColumnName("total");
+
+                    b.HasKey("Id")
+                        .HasName("pk_community_goals");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_community_goals_status");
+
+                    b.HasIndex("GoalId", "SeasonNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_community_goals_goal_id_season_number");
+
+                    b.ToTable("community_goals", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_community_goals_total", "total >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Community.CommunityUnlockRecord", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("key");
+
+                    b.Property<int>("GoalId")
+                        .HasColumnType("integer")
+                        .HasColumnName("goal_id");
+
+                    b.Property<DateTimeOffset>("UnlockedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("unlocked_at");
+
+                    b.HasKey("Key")
+                        .HasName("pk_community_unlocks");
+
+                    b.ToTable("community_unlocks", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Coops.Coop", b =>
                 {
                     b.Property<Guid>("Id")
@@ -683,6 +791,48 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Market.MarketSale", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer")
+                        .HasColumnName("day");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<long>("Price")
+                        .HasColumnType("bigint")
+                        .HasColumnName("price");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<DateTimeOffset>("SoldAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sold_at");
+
+                    b.Property<long>("UnitPrice")
+                        .HasColumnType("bigint")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_market_sales");
+
+                    b.HasIndex("ItemId", "Day")
+                        .HasDatabaseName("ix_market_sales_item_id_day");
+
+                    b.ToTable("market_sales", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_market_sales_amounts", "quantity > 0 AND price > 0 AND unit_price > 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Nodes.NodeInstanceState", b =>
                 {
                     b.Property<int>("Id")
@@ -938,6 +1088,23 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_states_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Community.CommunityContribution", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_community_contributions_players_player_id");
+
+                    b.HasOne("Nosum.Domain.Community.CommunityGoalProgress", null)
+                        .WithMany()
+                        .HasForeignKey("ProgressId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_community_contributions_community_goals_progress_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Coops.CoopInvite", b =>
