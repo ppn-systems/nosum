@@ -9,6 +9,7 @@ using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Inventory;
@@ -25,6 +26,7 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     private readonly IItemIconSource _icons;
     private readonly IStringLocalizer<Catalogue> _catalogue;
     private readonly IStringLocalizer<Language> _text;
+    private readonly NodeChannel? _nodes;
     private IReadOnlyList<SlotDisplay> _slots = [];
     private int _movingFrom = -1;
 
@@ -47,6 +49,22 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
         channel.Changed += this.Rebuild;
         UiCulture.Changed += this.Rebuild;
         channel.Refused += this.OnRefused;
+        this.Rebuild();
+    }
+
+    /// <summary>Initializes the view model and also shows the water left in the watering can on its slot.</summary>
+    /// <param name="channel">The inventory mirror.</param>
+    /// <param name="icons">Where item pictures are.</param>
+    /// <param name="catalogue">Item names and descriptions.</param>
+    /// <param name="text">UI text.</param>
+    /// <param name="nodes">The node channel, which carries the water of the can.</param>
+    public InventoryViewModel(InventoryChannel channel, IItemIconSource icons, IStringLocalizer<Catalogue> catalogue, IStringLocalizer<Language> text, NodeChannel nodes)
+        : this(channel, icons, catalogue, text)
+    {
+        ArgumentNullException.ThrowIfNull(nodes);
+
+        _nodes = nodes;
+        nodes.ToolChanged += this.Rebuild;
         this.Rebuild();
     }
 
@@ -146,6 +164,7 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
         _channel.Changed -= this.Rebuild;
         _channel.Refused -= this.OnRefused;
         UiCulture.Changed -= this.Rebuild;
+        _nodes?.ToolChanged -= this.Rebuild;
     }
 
     private void OnRefused(InventoryStatus status)
@@ -188,6 +207,14 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
         string tooltip = item.MaxStack > 1
             ? string.Join('\n', name, description, string.Format(CultureInfo.CurrentCulture, _text["Inventory_Quantity"].Value, info.Quantity))
             : string.Join('\n', name, description);
+        if (item.Tool == ToolKind.WateringCan && _nodes is { } can)
+        {
+            int left = can.WaterLeft;
+            int capacity = can.WaterCapacity;
+            string water = string.Format(CultureInfo.CurrentCulture, _text["Inventory_Water"].Value, left, capacity);
+            return new SlotDisplay(index, info.ItemId, info.Quantity, name, string.Join('\n', tooltip, water), icon, selected, (double)left / capacity, left.ToString(CultureInfo.CurrentCulture));
+        }
+
         return new SlotDisplay(index, info.ItemId, info.Quantity, name, tooltip, icon, selected);
     }
 }

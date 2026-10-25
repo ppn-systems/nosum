@@ -22,6 +22,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Market;
+using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
@@ -40,6 +41,7 @@ using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
 using Nosum.Handlers.Market;
+using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
@@ -57,6 +59,7 @@ using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Market;
+using Nosum.Infrastructure.Nodes;
 using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
@@ -115,6 +118,12 @@ internal static class Program
             ex => Console.Error.WriteLine("Market expiry failed: " + ex.Message),
             shutdown.Token);
 
+        // Trees grow and public places regrow debris once a game day on the server calendar (docs/adr/ADR-021 D4).
+        Task nodeDays = new NodeDayService(
+            InstanceManager.Instance.GetExistingInstance<IResourceNodeService>() ?? throw new InvalidOperationException("The node service is not registered."),
+            InstanceManager.Instance.GetExistingInstance<IGameDayClock>() ?? throw new InvalidOperationException("The game day clock is not registered."),
+            TimeProvider.System).RunAsync(ex => Console.Error.WriteLine("Node day rollover failed: " + ex.Message), shutdown.Token);
+
         // Items that lay on a shared map for ten minutes vanish (docs/adr/ADR-021 D6).
         IGroundItems groundItems = InstanceManager.Instance.GetExistingInstance<IGroundItems>()
             ?? throw new InvalidOperationException("The ground item service is not registered.");
@@ -130,6 +139,7 @@ internal static class Program
 
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
+        await nodeDays.ConfigureAwait(false);
         await groundItemExpiry.ConfigureAwait(false);
 
         return 0;
@@ -210,6 +220,7 @@ internal static class Program
             .MapHandlers(typeof(TradeHandlers))
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
+            .MapHandlers(typeof(NodeHandlers))
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
             .MapHandlers(typeof(CalendarHandlers))
@@ -269,7 +280,7 @@ internal static class Program
         InstanceManager.Instance.Register<IInventoryService>(inventory);
         InstanceManager.Instance.Register<IQuestService>(quests);
 
-        // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
+        // Farm and farmhouse are private per player; placed furniture and resource nodes are part of the instance a player walks on (docs/adr/ADR-015, ADR-021).
         PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
         // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019).
@@ -282,16 +293,24 @@ internal static class Program
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
 
-        // Items lying in the world: harvests (and later broken nodes) drop here, walking players pick them up (docs/adr/ADR-021 D5-D6).
+        // Items lying in the world: harvests and broken nodes drop here, walking players pick them up (docs/adr/ADR-021 D5-D6).
         GroundItemService groundItems = new(presence, maps, transfers, unitOfWork, clock);
         InstanceManager.Instance.Register<IGroundItems>(groundItems);
         InstanceManager.Instance.Register<IYieldRandom>(new YieldRandom((ulong)Random.Shared.NextInt64()));
 
-        PlayerService players = new(presence, maps, states, placeables, access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
+        // The swing cooldown runs on real time (like the snapshot loop), whatever clock crops grow by.
+        ToolStateService toolState = new(TimeProvider.System, notifier);
+        InstanceManager.Instance.Register<IToolState>(toolState);
+        CalendarGameDayClock dayClock = new(calendar, clock);
+        InstanceManager.Instance.Register<IGameDayClock>(dayClock);
+        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, dayClock, unitOfWork, clock);
+        InstanceManager.Instance.Register<IResourceNodeService>(nodes);
+        PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
-        FarmService farm = new(presence, maps, inventory, quests, coopMembership, unitOfWork, clock, calendar, groundItems);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems);
         InstanceManager.Instance.Register<IFarmService>(farm);
+
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
 

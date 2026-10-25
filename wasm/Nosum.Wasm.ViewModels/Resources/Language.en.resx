@@ -52,6 +52,11 @@
   <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
   <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>You no longer have that item.</value></data>
   <data name="Farm_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Farm_Status_WrongTool" xml:space="preserve"><value>This tool does not work on that.</value></data>
+  <data name="Farm_Status_Cooldown" xml:space="preserve"><value>Easy, the last swing is not over.</value></data>
+  <data name="Farm_Status_CanEmpty" xml:space="preserve"><value>The watering can is empty. Refill it at water.</value></data>
+  <data name="Farm_Status_Blocked" xml:space="preserve"><value>Something is in the way.</value></data>
+  <data name="Inventory_Water" xml:space="preserve"><value>Water: {0}/{1}</value></data>
   <data name="Inventory_Status_Blocked" xml:space="preserve"><value>Another item is in the way.</value></data>
   <data name="Inventory_Status_NoSpace" xml:space="preserve"><value>There is no room.</value></data>
   <data name="Inventory_Status_Failed" xml:space="preserve"><value>That item can't be moved.</value></data>
