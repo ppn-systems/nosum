@@ -1,0 +1,52 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using System;
+
+namespace Nosum.Gameplay.Items;
+
+/// <summary>
+/// One kind of item: a stable numeric id (wire and database), a stable key (localization catalogue
+/// entries <c>item.&lt;key&gt;.name</c> and <c>.description</c>), how it stacks and what it does.
+/// The id and key never change once released (docs/adr/ADR-011); display text is not stored here.
+/// </summary>
+public sealed class ItemDefinition
+{
+    /// <summary>Initializes a definition.</summary>
+    /// <param name="id">Stable numeric id, greater than zero.</param>
+    /// <param name="key">Stable key, for example <c>hoe</c>.</param>
+    /// <param name="kind">What the item is for.</param>
+    /// <param name="maxStack">Largest stack in one inventory slot.</param>
+    /// <param name="tool">The tool, for <see cref="ItemKind.Tool"/> items.</param>
+    /// <param name="cropId">The crop a seed grows, for <see cref="ItemKind.Seed"/> items.</param>
+    public ItemDefinition(int id, string key, ItemKind kind, int maxStack, ToolKind tool = ToolKind.None, int cropId = 0)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxStack);
+
+        this.Id = id;
+        this.Key = key;
+        this.Kind = kind;
+        this.MaxStack = maxStack;
+        this.Tool = tool;
+        this.CropId = cropId;
+    }
+
+    /// <summary>Gets the stable numeric id.</summary>
+    public int Id { get; }
+
+    /// <summary>Gets the stable key.</summary>
+    public string Key { get; }
+
+    /// <summary>Gets what the item is for.</summary>
+    public ItemKind Kind { get; }
+
+    /// <summary>Gets the largest stack in one slot.</summary>
+    public int MaxStack { get; }
+
+    /// <summary>Gets the tool kind; <see cref="ToolKind.None"/> for items that are not tools.</summary>
+    public ToolKind Tool { get; }
+
+    /// <summary>Gets the crop a seed grows; zero for other items.</summary>
+    public int CropId { get; }
+}
