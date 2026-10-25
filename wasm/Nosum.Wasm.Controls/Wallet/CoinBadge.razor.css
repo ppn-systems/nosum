@@ -2,14 +2,10 @@
     display: flex;
     align-items: center;
     gap: calc(var(--u) * 2);
+    min-width: calc(var(--u) * 26);
     white-space: nowrap;
 }
 
 .coin-amount {
-    font-size: 1.1em;
     font-variant-numeric: tabular-nums;
-}
-
-.coin-caption {
-    color: var(--nosum-ink-soft);
 }

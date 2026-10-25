@@ -1,0 +1,16 @@
+@* The page of one menu tab: scrolling content with an optional status line fixed under it. *@
+<div class="menu-page">
+    <div class="menu-page-body">@ChildContent</div>
+    @if (!string.IsNullOrEmpty(Status))
+    {
+        <p class="menu-page-status" role="status">@Status</p>
+    }
+</div>
+
+@code {
+    /// <summary>The localized status line (why the server refused something), or empty.</summary>
+    [Parameter] public string? Status { get; set; }
+
+    /// <summary>The page content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

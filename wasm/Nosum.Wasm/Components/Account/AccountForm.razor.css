@@ -1,5 +1,9 @@
 .account-form {
     display: block;
-    width: calc(var(--u) * 150);
+    width: calc(var(--u) * 120);
     max-width: 100%;
+}
+
+.account-form ::deep .game-stack {
+    gap: calc(var(--u) * 2);
 }

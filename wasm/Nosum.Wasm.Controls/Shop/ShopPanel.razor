@@ -1,8 +1,9 @@
+@using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Shop
 @inherits ObservingComponent<ShopViewModel>
 
 @* A shop: pick what to buy for coins. Prices and stock rules are shared with the server, which prices and checks every purchase. *@
-<GamePanel Title="@Vm.Title" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+<MenuPage Status="@Vm.Status">
     <GameStack>
         <GameRow Class="spread">
             <span>@Vm.CoinsText</span>
@@ -25,9 +26,4 @@
             </GameRow>
         }
     </GameStack>
-</GamePanel>
-
-@code {
-    /// <summary>Raised when the close button is clicked.</summary>
-    [Parameter] public EventCallback OnClose { get; set; }
-}
+</MenuPage>

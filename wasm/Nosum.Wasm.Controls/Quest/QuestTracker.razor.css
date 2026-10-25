@@ -1,31 +1,73 @@
-.objectives {
+.quest-head {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    width: 100%;
     margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--nosum-heading);
+    font: inherit;
+    text-align: left;
+    cursor: var(--nosum-cursor-pointer, pointer);
+}
+
+.quest-fold {
+    flex: none;
+    width: calc(var(--u) * 4);
+    text-align: center;
+    color: var(--nosum-ink-soft);
+}
+
+.quest-title {
+    min-width: 0;
+}
+
+.objectives {
+    display: flex;
+    flex-direction: column;
+    margin: calc(var(--u) * 1) 0 0;
     padding: 0;
     list-style: none;
 }
 
 .objectives li {
     display: flex;
-    justify-content: space-between;
-    gap: calc(var(--u) * 4);
+    align-items: center;
+    gap: calc(var(--u) * 2);
 }
 
-.objectives li.done {
-    text-decoration: line-through;
+.obj-text {
+    flex: 1;
+}
+
+/* The checkbox: a 5 u square, filled with a tick when the objective is done. */
+.check {
+    flex: none;
+    box-sizing: border-box;
+    width: calc(var(--u) * 5);
+    height: calc(var(--u) * 5);
+    border: var(--u) solid var(--nosum-edge);
+    background: var(--nosum-slot-bg);
+}
+
+.objectives li.done .check {
+    background: var(--nosum-ok);
+    box-shadow: inset 0 0 0 var(--u) var(--nosum-cream);
+}
+
+.objectives li.done .obj-text,
+.objectives li.done .count {
     color: var(--nosum-ink-faint);
 }
 
 .count {
     font-variant-numeric: tabular-nums;
-    font-weight: 800;
-}
-
-.hint {
-    margin: 0;
     color: var(--nosum-ink-soft);
-    font-size: 0.85em;
 }
 
 .banner {
     color: var(--nosum-ok);
+    font-weight: 400;
 }

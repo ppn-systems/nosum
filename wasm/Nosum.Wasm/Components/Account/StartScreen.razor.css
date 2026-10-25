@@ -1,4 +1,4 @@
-/* The start screen is a pixel landscape: banded sky, two grass stripes and a dirt line, all in theme colours. */
+/* The start screen: Cloudy_Ocean_BG.png (placeholder art, ADR-007) at the UI pixel, the horizon about 62% down, sky and sea colours for what is beyond the image. */
 .start-screen {
     position: fixed;
     inset: 0;
@@ -7,32 +7,42 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: calc(var(--u) * 5);
+    justify-content: safe center;
+    gap: calc(var(--u) * 2);
     padding: var(--nosum-gutter);
     overflow: auto;
-    background:
-        linear-gradient(to bottom, transparent calc(100% - var(--u) * 24), #5f9e2d 0, #5f9e2d calc(100% - var(--u) * 14), #4a8a22 0, #4a8a22 calc(100% - var(--u) * 6), #7a4318 0),
-        repeating-linear-gradient(to bottom, #6cc3ea 0, #6cc3ea calc(var(--u) * 20), #86d0ef 0, #86d0ef calc(var(--u) * 40), #a2ddf3 0, #a2ddf3 calc(var(--u) * 60), #bfe8f6 0, #bfe8f6 calc(var(--u) * 80));
+    background-color: #00a2ff;
+    background-image: url("_content/Nosum.Wasm.Controls/ui/Cloudy_Ocean_BG.png");
+    background-repeat: no-repeat;
+    background-size: calc(var(--u) * 1500) calc(var(--u) * 520);
+    background-position: 50% calc(62vh - var(--u) * 345);
+    image-rendering: pixelated;
 }
 
-.start-header {
-    text-align: center;
-}
-
+/* Title: the UI font at 3 font pixels per u, cream with a brown outline and a hard shadow. */
 .start-logo {
+    --logo-px: calc(var(--u) * 2);
+    --logo-o: var(--u);
+
     margin: 0;
-    font: 900 calc(var(--u) * 26) / 1 var(--nosum-font);
-    letter-spacing: 0.04em;
+    font: 400 calc(var(--logo-px) * 12.5) / 1 var(--nosum-font);
     color: var(--nosum-cream);
     text-shadow:
-        var(--u) 0 0 var(--nosum-edge), calc(var(--u) * -1) 0 0 var(--nosum-edge), 0 var(--u) 0 var(--nosum-edge), 0 calc(var(--u) * -1) 0 var(--nosum-edge),
-        calc(var(--u) * 2) calc(var(--u) * 2) 0 var(--nosum-edge), calc(var(--u) * 3) calc(var(--u) * 3) 0 var(--nosum-ink);
+        var(--logo-o) 0 0 var(--nosum-edge), calc(var(--logo-o) * -1) 0 0 var(--nosum-edge), 0 var(--logo-o) 0 var(--nosum-edge), 0 calc(var(--logo-o) * -1) 0 var(--nosum-edge),
+        var(--logo-o) var(--logo-o) 0 var(--nosum-edge), calc(var(--logo-o) * -1) var(--logo-o) 0 var(--nosum-edge), var(--logo-o) calc(var(--logo-o) * -1) 0 var(--nosum-edge), calc(var(--logo-o) * -1) calc(var(--logo-o) * -1) 0 var(--nosum-edge),
+        0 calc(var(--logo-o) * 3) 0 var(--nosum-edge), var(--logo-o) calc(var(--logo-o) * 3) 0 var(--nosum-edge), calc(var(--logo-o) * -1) calc(var(--logo-o) * 3) 0 var(--nosum-edge);
 }
 
 .start-tagline {
-    margin: calc(var(--u) * 3) 0 0;
+    margin: 0 0 var(--nosum-gap-group);
     color: #fff;
-    font-weight: 800;
-    text-shadow: var(--u) var(--u) 0 var(--nosum-ink), calc(var(--u) * -1) var(--u) 0 var(--nosum-ink);
+    text-shadow: var(--tp) var(--tp) 0 var(--nosum-edge);
+}
+
+/* Short windows (a register form is tall): a smaller title. */
+@media (max-height: 800px) {
+    .start-logo {
+        --logo-px: calc(var(--tp) * 2);
+        --logo-o: var(--tp);
+    }
 }

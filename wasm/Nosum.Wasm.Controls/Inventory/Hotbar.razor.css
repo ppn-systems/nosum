@@ -1,5 +1,5 @@
 .hotbar-slots {
     display: flex;
     gap: calc(var(--u) * 2);
-    padding: calc(var(--u) * 2);
+    padding: var(--u) var(--u) calc(var(--u) * 7);
 }
