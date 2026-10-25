@@ -21,7 +21,12 @@ hosted maps (`MapSpec`: id, `.tmx` file name, spawn tile, building props, opened
 dropped); `WarpRule.TryFind` says when a player standing at a position uses an exit (on the tile; an edge
 exit needs walking outwards) and `WarpRule.Arrival` where they appear. `MapSpec.BuildWalkGrid` is the one
 grid both sides use. Adding a map: add a `MapSpec` to `GameMaps`, link its `.tmx` and tilesheets in
-`wasm/Nosum.Wasm/Nosum.Wasm.csproj` and `server/Nosum.Host/Nosum.Host.csproj` (`GameMapsTests` checks).
+`wasm/Nosum.Wasm/Nosum.Wasm.csproj` and `server/Nosum.Host/Nosum.Host.csproj` (`GameMapsTests` checks). Hosted maps: `farm`, `farmhouse`, `busstop`, `forest`, `town`, `backwoods`.
+
+Instances and placeables ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `MapSpec.IsPrivate` (farm, farmhouse) makes one copy of a map per player; `Maps/MapInstance` (map id + owner, `Key`) names a copy.
+`MapSpec.Placeable` (farmhouse) allows furniture. `Placeables/PlaceableCatalog` maps a furniture item (`ItemKind.Furniture`, ids 300-399) to a `PlaceableDefinition` (views per rotation, sheet rectangle,
+footprint); `PlacedSet` holds the pieces of one place and is the single rule set (`Check`: rotation, inside the map, free floor, off reserved tiles, no overlap; `CoversFeet`; `BuildGrid` for collision)
+that the server decides with and the client predicts with.
 
 Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)):
 

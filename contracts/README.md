@@ -16,9 +16,11 @@ Domains and opcode bands (record a new band here and in its `*OpCode` class):
 | Market | `0x4000-0x40FF` | reserved |
 | Inventory | `0x5000-0x50FF` | get inventory, move slot, select slot (C2S `0x5000-0x503F`); inventory snapshot, result, update (push of changed slots) (S2C `0x5040-0x507F`); replies carry `InventoryStatus` codes |
 | Quest | `0x6000-0x60FF` | get quests (C2S `0x6000-0x603F`); quest log, quest update (push) (S2C `0x6040-0x607F`) |
+| Placeable | `0xB000-0xB0FF` | objects a player places in their own place (furniture in the farmhouse): get placed, place, move, pick up (C2S `0xB000-0xB03F`); placed snapshot, place result (carries a `PlaceStatus`), placed changed (pushed to the instance) (S2C `0xB040-0xB07F`); [ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md) |
 | World | `0x7000-0x70FF` | map changes. C2S `0x7000-0x703F`: none (the server changes maps when a player walks onto an exit, [ADR-012](../docs/adr/ADR-012-maps-and-warps.md)); S2C `0x7040-0x707F`: `MapChanged` (player id, map id, feet x/y, facing) |
 
-`NosumProtocol.Version` is 2: `JoinMapResult` gained `MapId` and `Facing` (ADR-012 D6).
+`NosumProtocol.Version` is 2: `JoinMapResult` gained `MapId` and `Facing` (ADR-012 D6). The Placeable band only adds packets, so the version stays 2.
+A place is a map instance (a shared map, or one player's private farm or farmhouse); none of that is on the wire: `FarmSnapshot.MapId`, `MapChanged.MapId` and `PlacedSnapshot.MapId` are map ids and the server knows whose copy the connection is in.
 
 Shared enums that are not tied to one domain live in `Nosum.Contracts/Common` (`GameLanguage`,
 with `GameLanguages` as its one mapping to BCP-47 tags).

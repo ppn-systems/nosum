@@ -36,7 +36,7 @@ description: Use to locate code, decide where a new file or project belongs, or 
 | Placeholder art and maps | `assets/` — read-only (`assets-pipeline`, ADR-007) |
 | A developer tool | `tools/Nosum.*` + `tools/Nosum.Tools.slnx` |
 
-`{Domain}` is a game domain (`Farm`, `Inventory`, `Market`, `Social`, `Player`), the same name
+`{Domain}` is a game domain (`Farm`, `Inventory`, `Market`, `Social`, `Player`, `Placeable`), the same name
 in every area.
 
 ## Finding a feature
