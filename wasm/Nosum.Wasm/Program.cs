@@ -216,6 +216,7 @@ internal static class Program
         // the farm, the placed furniture and the resource nodes are per place, so they load whenever a map was joined.
         AccountSessionKeeper keeper = host.Services.GetRequiredService<AccountSessionKeeper>();
         SettingsWiring.Connect(host.Services);
+        AudioWiring.Connect(new GameAudio(), host.Services);
         keeper.Authenticated += channel.Join;
         keeper.Authenticated += inventory.Load;
         keeper.Authenticated += quests.Load;

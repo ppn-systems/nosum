@@ -22,7 +22,7 @@ public sealed record ClientSettings
     /// <summary>Gets the UI language last used on this browser; the sign-in screen starts in it.</summary>
     public GameLanguage Language { get; init; } = GameLanguage.Vietnamese;
 
-    /// <summary>Gets the music volume, 0 to 100 (stored for the audio of M6).</summary>
+    /// <summary>Gets the music volume, 0 to 100 (docs/adr/ADR-039).</summary>
     public int MusicVolume { get; init; } = 70;
 
     /// <summary>Gets the sound effects volume, 0 to 100.</summary>
