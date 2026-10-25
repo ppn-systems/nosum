@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using Nosum.Gameplay.Maps;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket;
@@ -32,9 +33,6 @@ namespace Nosum.Wasm;
 [SupportedOSPlatform("browser")]
 internal static class Program
 {
-    /// <summary>Id of the map the client joins; matches the server catalog.</summary>
-    private const string FarmMapId = "farm";
-
     public static async Task Main(string[] args)
     {
         // Vietnamese until sign-in applies the account's language (docs/adr/ADR-010 D1, D6).
@@ -51,7 +49,7 @@ internal static class Program
         builder.Services.AddSingleton(_ => GameSocketOptions.ForPageHost(new Uri(builder.HostEnvironment.BaseAddress)));
         builder.Services.AddSingleton<GameSocket>();
         builder.Services.AddSingleton<IGameSocket>(sp => sp.GetRequiredService<GameSocket>());
-        builder.Services.AddSingleton(sp => new PlayerChannel(sp.GetRequiredService<IGameSocket>(), FarmMapId));
+        builder.Services.AddSingleton(sp => new PlayerChannel(sp.GetRequiredService<IGameSocket>(), GameMaps.DefaultId));
         builder.Services.AddSingleton<InventoryChannel>();
         builder.Services.AddSingleton<FarmChannel>();
         builder.Services.AddSingleton<QuestChannel>();

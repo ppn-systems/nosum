@@ -50,4 +50,13 @@ public sealed class PlayerPresence
 
     /// <summary>Gets the authoritative motion state; use only while holding <see cref="Gate"/>.</summary>
     public ref MotionState Motion => ref _motion;
+
+    /// <summary>
+    /// Gets or sets whether the player may take an exit: false from arriving on an exit tile until they have stood
+    /// off every exit tile, so a player put on a door is not sent straight back. Use only while holding <see cref="Gate"/>.
+    /// </summary>
+    public bool WarpArmed { get; set; }
+
+    /// <summary>Gets or sets whether the server is already moving the player to another map; later moves are ignored. Use only while holding <see cref="Gate"/>.</summary>
+    public bool InTransit { get; set; }
 }

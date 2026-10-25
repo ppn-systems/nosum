@@ -83,6 +83,14 @@ export function submitFrame(view) {
     for (let i = 0, p = 2; i < count; i++, p += 9) {
         const id = data[p], sx = data[p + 1], sy = data[p + 2], w = data[p + 3], h = data[p + 4];
         const dx = data[p + 5], dy = data[p + 6], flags = data[p + 7], tint = data[p + 8];
+        if (id === -2) {
+            // Black fill (scene fades): tint holds the opacity, 0..255.
+            ctx.globalAlpha = tint / 255;
+            ctx.fillStyle = "#000";
+            ctx.fillRect(dx, dy, w, h);
+            ctx.globalAlpha = 1;
+            continue;
+        }
         const image = tint === -1 ? textures[id] : tintedTexture(id, tint);
         if (!image) {
             continue;

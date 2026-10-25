@@ -13,7 +13,8 @@ namespace Nosum.Rendering;
 /// Layout (little-endian <c>int32</c>): header <c>[count, scale]</c>, then <c>count</c> draws of
 /// <see cref="IntsPerCommand"/> values: <c>texture, srcX, srcY, srcW, srcH, dstX, dstY, flags,
 /// tint</c>. Destination is in screen pixels before scaling; <c>tint</c> is <c>0xRRGGBBAA</c>,
-/// <see cref="NoTint"/> meaning none. <c>renderer.js</c> decodes the same layout.
+/// <see cref="NoTint"/> meaning none. A draw with texture <see cref="BlackFill"/> fills a rectangle with black at the opacity in <c>tint</c>
+/// (<see cref="FillBlack"/>). <c>renderer.js</c> decodes the same layout.
 /// </remarks>
 public sealed class RenderCommandBuffer
 {
@@ -25,6 +26,9 @@ public sealed class RenderCommandBuffer
 
     /// <summary>Tint value meaning "draw unchanged".</summary>
     public const int NoTint = -1;
+
+    /// <summary>Texture id of a command that fills a rectangle with black instead of drawing a sprite; <c>tint</c> then holds the opacity.</summary>
+    public const int BlackFill = -2;
 
     /// <summary>Flag: mirror the sprite horizontally.</summary>
     public const int FlipX = 1;
@@ -85,6 +89,20 @@ public sealed class RenderCommandBuffer
         _data[i + 7] = flags;
         _data[i + 8] = tint;
         this.Count++;
+    }
+
+    /// <summary>
+    /// Records a black rectangle over everything drawn so far, for fades between scenes. Nothing is recorded for zero opacity.
+    /// </summary>
+    /// <param name="opacity">0 (clear) to 255 (solid black).</param>
+    /// <param name="width">Rectangle width, unscaled screen pixels.</param>
+    /// <param name="height">Rectangle height, unscaled screen pixels.</param>
+    public void FillBlack(int opacity, int width, int height)
+    {
+        if (opacity > 0)
+        {
+            this.Draw(BlackFill, 0, 0, width, height, 0, 0, 0, Math.Min(opacity, 255));
+        }
     }
 
     /// <summary>

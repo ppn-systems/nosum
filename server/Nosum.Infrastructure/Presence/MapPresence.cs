@@ -43,14 +43,14 @@ public sealed class MapPresence : IMapPresence
     public int PlayerCount => _byConnection.Count;
 
     /// <inheritdoc/>
-    public async ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, string mapId, MotionState motion, CancellationToken cancellationToken = default)
+    public async ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, string mapId, MotionState motion, uint? playerId = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
         ArgumentException.ThrowIfNullOrEmpty(mapId);
 
         await this.LeaveAsync(connection, cancellationToken).ConfigureAwait(false);
 
-        uint id = (uint)Interlocked.Increment(ref _nextPlayerId);
+        uint id = playerId ?? (uint)Interlocked.Increment(ref _nextPlayerId);
         PlayerPresence player = new(id, accountId, mapId, connection, motion);
         _byConnection[connection.ConnectionId] = player;
         _byMap.GetOrAdd(mapId, static _ => new ConcurrentDictionary<uint, PlayerPresence>())[id] = player;
@@ -132,6 +132,15 @@ public sealed class MapPresence : IMapPresence
                 into.Add(member.Value);
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask SendAsync(IConnection connection, IPacket packet, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        ArgumentNullException.ThrowIfNull(packet);
+
+        await connection.SendAsync(packet, NetworkTransport.TCP, enableEncrypt: this.EncryptSends, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

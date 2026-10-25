@@ -11,5 +11,5 @@ public static class NosumProtocol
     /// Wire protocol version. Bump only on a breaking wire change (a removed or reordered
     /// packet member, a reassigned opcode); server and clients then ship together.
     /// </summary>
-    public const ushort Version = 1;
+    public const ushort Version = 2;
 }
