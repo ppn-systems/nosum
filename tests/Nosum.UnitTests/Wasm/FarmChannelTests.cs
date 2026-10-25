@@ -162,4 +162,20 @@ public sealed class FarmChannelTests
         (sent.Slot, sent.TileX, sent.TileY).Should().Be(((byte)2, 61, 17));
         answer.Should().Be((FarmStatus.NotTilled, FarmAction.None));
     }
+
+    [Fact]
+    public void UseArea_SendsTheWideUseAsItsOwnPacket_AndReportsTheAnswer()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.InvalidArea, Action = FarmAction.None });
+        using FarmChannel channel = new(socket);
+        FarmStatus? status = null;
+        channel.UseCompleted += (s, _) => status = s;
+
+        channel.UseArea(2, 61, 17, 3);
+
+        UseItemArea sent = socket.Requests.Should().ContainSingle().Which.Should().BeOfType<UseItemArea>().Subject;
+        (sent.Slot, sent.TileX, sent.TileY, sent.Tiles).Should().Be(((byte)2, 61, 17, (byte)3));
+        status.Should().Be(FarmStatus.InvalidArea);
+    }
 }

@@ -40,6 +40,8 @@ using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.ViewModels.Profile;
 using Nosum.Wasm.ViewModels.Shop;
+using Nosum.Wasm.ViewModels.Blacksmith;
+using Nosum.Wasm.ViewModels.Mine;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
@@ -47,6 +49,8 @@ using Nosum.Wasm.ViewModels.Trade;
 using Nosum.Wasm.ViewModels.Wallet;
 using Nosum.Wasm.ViewModels.Calendar;
 using Nosum.Wasm.Socket.Calendar;
+using Nosum.Wasm.Socket.Blacksmith;
+using Nosum.Wasm.Socket.Mine;
 
 namespace Nosum.Wasm;
 
@@ -86,6 +90,8 @@ internal static class Program
         builder.Services.AddSingleton<CoopChannel>();
         builder.Services.AddSingleton<VisitChannel>();
         builder.Services.AddSingleton<ShopChannel>();
+        builder.Services.AddSingleton<BlacksmithChannel>();
+        builder.Services.AddSingleton<MineChannel>();
         builder.Services.AddSingleton<DevChannel>();
         builder.Services.AddSingleton<NearbyPlayers>();
         builder.Services.AddSingleton(sp =>
@@ -103,6 +109,8 @@ internal static class Program
         builder.Services.AddSingleton<NicknameFormatter>();
         builder.Services.AddSingleton<ProfileViewModel>();
         builder.Services.AddSingleton<ShopViewModel>();
+        builder.Services.AddSingleton<BlacksmithViewModel>();
+        builder.Services.AddSingleton<ElevatorViewModel>();
         builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<WalletViewModel>();
         builder.Services.AddSingleton<CalendarViewModel>();

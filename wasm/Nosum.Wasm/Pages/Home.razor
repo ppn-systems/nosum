@@ -19,6 +19,7 @@
 @using Nosum.Wasm.Controls.Placement
 @using Nosum.Wasm.Controls.Profile
 @using Nosum.Wasm.Controls.Shop
+@using Nosum.Wasm.Controls.Mine
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
 @using Nosum.Wasm.Controls.Wallet
@@ -40,6 +41,8 @@
 @using Nosum.Wasm.ViewModels.Placement
 @using Nosum.Wasm.ViewModels.Profile
 @using Nosum.Wasm.ViewModels.Shop
+@using Nosum.Wasm.ViewModels.Blacksmith
+@using Nosum.Wasm.ViewModels.Mine
 @using Nosum.Wasm.ViewModels.Quest
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
@@ -61,6 +64,8 @@
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
+@inject BlacksmithViewModel Blacksmith
+@inject ElevatorViewModel Elevator
 @inject HelpViewModel Help
 
 <PageTitle>Nosum</PageTitle>
@@ -127,7 +132,7 @@ else
                             <VisitorsPanel Vm="Visitors" OnClose="ClosePanel" />
                             break;
                         case PanelKind.Shop:
-                            <ShopPanel Vm="Shop" ShopId="_shopId" />
+                            <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith" />
                             break;
                         case PanelKind.Settings:
                             <SettingsPanel Vm="Form" Help="Help" />
@@ -149,6 +154,11 @@ else
                 <GamePanel Class="dialog" Title="" Role="status">
                     <p class="home-loading">@Toolbar.Text("Game_Loading") <GameSpinner /></p>
                 </GamePanel>
+            }
+            @if (_started)
+            {
+                @* The mine elevator's picker, a small dialog over the game. *@
+                <ElevatorDialog Vm="Elevator" />
             }
             @if (Form.ShowsForm)
             {
@@ -191,6 +201,7 @@ else
         Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
         GameLoop.PanelToggleRequested += OnPanelKey;
         GameLoop.ShopRequested += OnShopRequested;
+        GameLoop.ElevatorRequested += OnElevatorRequested;
         GameLoop.PanelCloseRequested += OnCloseKey;
         Trade.WantsOpen += OnTradeWantsOpen;
         Trade.Changed += OnViewModelChanged;
@@ -217,6 +228,7 @@ else
         Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
         GameLoop.PanelToggleRequested -= OnPanelKey;
         GameLoop.ShopRequested -= OnShopRequested;
+        GameLoop.ElevatorRequested -= OnElevatorRequested;
         GameLoop.PanelCloseRequested -= OnCloseKey;
         Trade.WantsOpen -= OnTradeWantsOpen;
         Trade.Changed -= OnViewModelChanged;
@@ -244,12 +256,26 @@ else
         }
     });
 
-    // Escape: leave the upgrade form, or close the menu, or else open it on the tab used last.
+    // The action key next to the mine elevator (raised from the frame): show the picker.
+    private void OnElevatorRequested() => _ = InvokeAsync(() =>
+    {
+        if (!Elevator.IsOpen)
+        {
+            Elevator.Open();
+            StateHasChanged();
+        }
+    });
+
+    // Escape: leave the upgrade form, or close the elevator picker, or close the menu, or else open it on the tab used last.
     private void OnCloseKey() => _ = InvokeAsync(() =>
     {
         if (Form.Mode == AccountFormMode.Upgrade)
         {
             Form.CancelUpgrade();
+        }
+        else if (Elevator.IsOpen)
+        {
+            Elevator.Close();
         }
         else if (_panel != PanelKind.None)
         {

@@ -4,6 +4,7 @@ using System;
 using Nosum.Core;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
@@ -13,7 +14,8 @@ namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// What the player's one-shot keys do: number keys select a hotbar slot, the action key (E or Space) uses the
-/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G H N open the panels, Escape closes them; next to a shop the action key opens it. The scene calls <see cref="Update"/> once per
+/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G H N open the panels, Escape closes them; next to a shop the action key opens it, next to the mine elevator it opens the elevator picker.
+/// The rotate key (R) is the wide use of an upgraded hoe or watering can: one swing over a line of three or five tiles (docs/adr/ADR-026 D1). The scene calls <see cref="Update"/> once per
 /// frame; the tile in front is kept in <see cref="TargetX"/> and <see cref="TargetY"/> for the cursor the farm decorator draws.
 /// Allocation-free; the requests themselves are sent by the channels, off the frame.
 /// </summary>
@@ -47,6 +49,9 @@ internal sealed class PlayerActions
     /// <summary>Raised (from the frame) when the action key was pressed next to a shop: the shop's id (docs/adr/ADR-013 amendments).</summary>
     public event Action<int>? ShopRequested;
 
+    /// <summary>Raised (from the frame) when the action key was pressed next to the mine elevator (docs/adr/ADR-026 D3).</summary>
+    public event Action? ElevatorRequested;
+
     /// <summary>Raised (from the frame) when the close key was pressed.</summary>
     public event Action? PanelCloseRequested;
 
@@ -65,7 +70,8 @@ internal sealed class PlayerActions
     /// <param name="mapAllowsTools">Whether tools may be used on the map being shown (not in a room where the action key places furniture); the server decides what a swing does.</param>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     /// <param name="shopId">The id of the shop whose counter is within reach, or zero; the action key then opens that shop instead of using an item.</param>
-    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0)
+    /// <param name="elevatorNear">Whether the mine elevator is within reach; the action key then opens its picker instead of using an item.</param>
+    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0, bool elevatorNear = false)
     {
         int x = (int)(feetX / tileSize);
         int y = (int)(feetY / tileSize);
@@ -94,6 +100,23 @@ internal sealed class PlayerActions
         {
             this.ShopRequested?.Invoke(shopId);
             return;
+        }
+
+        if ((edges & InputEdges.Action) != 0 && elevatorNear)
+        {
+            this.ElevatorRequested?.Invoke();
+            return;
+        }
+
+        // The wide use: a hoe or a watering can of a higher tier works a line of tiles with one swing. The server checks the length against the tool in the slot.
+        if ((edges & InputEdges.Rotate) != 0 && mapAllowsTools && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
+        {
+            int wideSlot = _inventory.SelectedSlot;
+            if (ItemCatalog.TryGet(_inventory.SlotAt(wideSlot).ItemId, out ItemDefinition? tool) && tool.Tool is ToolKind.Hoe or ToolKind.WateringCan && ToolRules.AreaLength(tool.Tier) > 1)
+            {
+                _lastUseSeconds = nowSeconds;
+                _farm.UseArea(wideSlot, this.TargetX, this.TargetY, ToolRules.AreaLength(tool.Tier));
+            }
         }
 
         if ((edges & InputEdges.Action) != 0 && mapAllowsTools && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)

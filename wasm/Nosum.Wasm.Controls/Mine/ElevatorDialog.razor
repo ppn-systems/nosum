@@ -1,0 +1,21 @@
+@using Nosum.Wasm.ViewModels.Mine
+@inherits ObservingComponent<ElevatorViewModel>
+
+@* The mine elevator's picker (docs/adr/ADR-026 D3): a small dialog over the game with a button for the entrance and for every fifth floor down to the deepest the
+   player reached. The server checks that the player stands at an elevator and has been that deep. *@
+@if (Vm.IsOpen)
+{
+    <GamePanel Title="@Vm.Text("Elevator_Title")" Class="dialog" Role="dialog" OnClose="@(() => Vm.Close())" CloseText="@Vm.Text("Panel_Close")" Status="@Vm.Status">
+        <GameStack>
+            <p>@Vm.Text("Elevator_Hint")</p>
+            <p>@Vm.DeepestText</p>
+            <div class="elevator-stops">
+                @foreach (ElevatorStopDisplay stop in Vm.Stops)
+                {
+                    int floor = stop.Floor;
+                    <GameButton Text="@(stop.IsHere ? stop.Label + " " + Vm.Text("Elevator_Here") : stop.Label)" Disabled="stop.IsHere" OnClick="@(() => Vm.Ride(floor))" />
+                }
+            </div>
+        </GameStack>
+    </GamePanel>
+}

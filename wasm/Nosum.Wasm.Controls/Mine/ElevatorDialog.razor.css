@@ -1,0 +1,5 @@
+.elevator-stops {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 52), 1fr));
+    gap: calc(var(--u) * 2);
+}

@@ -11,7 +11,8 @@ namespace Nosum.Wasm.Game;
 /// <param name="Maple"><c>tree2_spring.png</c>, the maple.</param>
 /// <param name="Pine"><c>tree3_spring.png</c>, the pine.</param>
 /// <param name="Objects"><c>assets/Maps/springobjects.png</c>, the Stardew object sheet (24 columns of 16 px cells).</param>
-internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int Objects);
+/// <param name="Mine"><c>assets/Maps/Mines/mine.png</c>, the mine's tile sheet (16 columns of 16 px cells), where the ladder is.</param>
+internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int Objects, int Mine);
 
 /// <summary>
 /// The one table that says what a resource node looks like: (kind, variant, stage) to a frame of a placeholder sheet (docs/adr/ADR-007).
@@ -26,6 +27,8 @@ internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int O
 /// <item><term>twig</term><description>springobjects 294 or 295 (branch)</description></item>
 /// <item><term>stone</term><description>springobjects 343 (pale rocks) or 450 (brown rock)</description></item>
 /// <item><term>copper ore node</term><description>springobjects 751 (the copper mining node)</description></item>
+/// <item><term>iron ore node</term><description>springobjects 290 (the iron mining node)</description></item>
+/// <item><term>ladder</term><description>mine.png cell (3, 4): the top of a ladder going down into a dark hole</description></item>
 /// <item><term>weed</term><description>springobjects 313, 314 or 315 (green weeds)</description></item>
 /// <item><term>grass</term><description>springobjects 771 (a tuft of fiber)</description></item>
 /// </list>
@@ -84,6 +87,14 @@ internal static class NodeSprites
 
             case NodeKind.CopperOre:
                 AddObject(world, textures, 751, left, baseY, sortX, id);
+                break;
+
+            case NodeKind.IronOre:
+                AddObject(world, textures, 290, left, baseY, sortX, id);
+                break;
+
+            case NodeKind.Ladder:
+                world.Add(textures.Mine, 3 * Cell, 4 * Cell, Cell, Cell, left, baseY - Cell, baseY, sortX, id);
                 break;
 
             case NodeKind.Weed:
