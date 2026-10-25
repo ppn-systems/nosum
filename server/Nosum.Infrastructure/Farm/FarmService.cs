@@ -10,6 +10,7 @@ using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
@@ -19,6 +20,7 @@ using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
 using Nosum.Domain.Farm;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.GroundItems;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Items;
@@ -40,6 +42,7 @@ public sealed class FarmService : IFarmService
     private readonly IMapCatalog _maps;
     private readonly IInventoryService _inventory;
     private readonly IQuestService _quests;
+    private readonly IGroundItems _groundItems;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
     private readonly ConcurrentDictionary<string, Task<MapFarm>> _farms = new(StringComparer.Ordinal);
@@ -52,13 +55,15 @@ public sealed class FarmService : IFarmService
     /// <param name="quests">Told when a crop was planted or harvested.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The server clock crops grow by; tests pass a fake one.</param>
+    /// <param name="groundItems">A harvest pops its produce onto the ground through it (docs/adr/ADR-021 D5).</param>
     public FarmService(
         IMapPresence presence,
         IMapCatalog maps,
         IInventoryService inventory,
         IQuestService quests,
         IUnitOfWorkFactory unitOfWork,
-        TimeProvider time)
+        TimeProvider time,
+        IGroundItems groundItems)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -66,6 +71,7 @@ public sealed class FarmService : IFarmService
         ArgumentNullException.ThrowIfNull(quests);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
+        ArgumentNullException.ThrowIfNull(groundItems);
 
         _presence = presence;
         _maps = maps;
@@ -73,6 +79,7 @@ public sealed class FarmService : IFarmService
         _quests = quests;
         _unitOfWork = unitOfWork;
         _time = time;
+        _groundItems = groundItems;
     }
 
     /// <inheritdoc/>
@@ -115,6 +122,7 @@ public sealed class FarmService : IFarmService
         FarmTile changedTile;
         FarmAction action;
         QuestEvent? report;
+        PendingGroundDrop? pending;
 
         using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
@@ -128,7 +136,16 @@ public sealed class FarmService : IFarmService
                 return Refused(ToStatus(plan.Verdict));
             }
 
-            FarmStatus status = await this.CommitAsync(playerId, player.Instance, tileX, tileY, plan, cancellationToken).ConfigureAwait(false);
+            GroundDrop? drop = null;
+            if (plan.Drop is { } produce)
+            {
+                // The produce pops beside the plot, nudged toward the harvester so it can be picked up at once (docs/adr/ADR-021 D5).
+                int tileSize = map.Grid.TileSize;
+                GroundItemRules.PopPosition((tileX + 0.5) * tileSize, (tileY + 0.5) * tileSize, feetX, feetY, out double dropX, out double dropY);
+                drop = new GroundDrop(player.Instance, (int)dropX, (int)dropY, produce.ItemId, produce.Quantity, playerId);
+            }
+
+            (FarmStatus status, pending) = await this.CommitAsync(playerId, player.Instance, tileX, tileY, plan, drop, cancellationToken).ConfigureAwait(false);
             if (status != FarmStatus.Ok)
             {
                 return Refused(status);
@@ -141,6 +158,11 @@ public sealed class FarmService : IFarmService
         }
 
         await this.PushTileAsync(player.Instance, tileX, tileY, changedTile, cancellationToken).ConfigureAwait(false);
+        if (pending is not null)
+        {
+            await _groundItems.CompleteAsync(pending, cancellationToken).ConfigureAwait(false);
+        }
+
         await this.ReportAsync(playerId, report, cancellationToken).ConfigureAwait(false);
         return new FarmUseOutcome(FarmStatus.Ok, action);
     }
@@ -196,7 +218,7 @@ public sealed class FarmService : IFarmService
             FarmVerdict harvest = FarmRules.Harvest(current, nowMs, out FarmTile bare, out CropDefinition? harvested);
             return harvest != FarmVerdict.Ok
                 ? Plan.Refuse(harvest)
-                : new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [InventoryOperation.Add(harvested!.HarvestItemId, harvested.HarvestQuantity)], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested.Id));
+                : new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested!.Id), new PlannedDrop(harvested.HarvestItemId, harvested.HarvestQuantity));
         }
 
         if (!hasItem || item is null)
@@ -252,8 +274,9 @@ public sealed class FarmService : IFarmService
         _ => FarmStatus.ItemMissing,
     };
 
-    // Writes the tile and the items in one transaction.
-    private async Task<FarmStatus> CommitAsync(Guid playerId, MapInstance instance, int x, int y, Plan plan, CancellationToken cancellationToken)
+    // Writes the tile and the items in one transaction; a harvest's ground item rows join the tile's transaction, so a crash
+    // cannot reset the plot without leaving the produce.
+    private async Task<(FarmStatus Status, PendingGroundDrop? Pending)> CommitAsync(Guid playerId, MapInstance instance, int x, int y, Plan plan, GroundDrop? drop, CancellationToken cancellationToken)
     {
         if (plan.Operations.Count > 0)
         {
@@ -267,17 +290,17 @@ public sealed class FarmService : IFarmService
                     return true;
                 },
                 cancellationToken).ConfigureAwait(false);
-            return ToStatus(change.Status);
+            return (ToStatus(change.Status), null);
         }
 
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
             await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, cancellationToken).ConfigureAwait(false);
+            PendingGroundDrop? pending = drop is { } staged ? _groundItems.Stage(unit, staged) : null;
             _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            return (FarmStatus.Ok, pending);
         }
-
-        return FarmStatus.Ok;
     }
 
     private async Task UpsertAsync(IUnitOfWork unit, Guid playerId, MapInstance instance, int x, int y, FarmTile tile, CancellationToken cancellationToken)
@@ -365,7 +388,9 @@ public sealed class FarmService : IFarmService
         public Dictionary<(int X, int Y), FarmTile> Tiles { get; } = [];
     }
 
-    private readonly record struct Plan(FarmVerdict Verdict, FarmAction Action, FarmTile Next, IReadOnlyList<InventoryOperation> Operations, string Reason, QuestEvent? Report)
+    private readonly record struct PlannedDrop(int ItemId, int Quantity);
+
+    private readonly record struct Plan(FarmVerdict Verdict, FarmAction Action, FarmTile Next, IReadOnlyList<InventoryOperation> Operations, string Reason, QuestEvent? Report, PlannedDrop? Drop = null)
     {
         public static Plan Refuse(FarmVerdict verdict) => new(verdict, FarmAction.None, default, [], string.Empty, null);
     }

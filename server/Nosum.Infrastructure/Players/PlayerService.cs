@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
@@ -34,6 +35,7 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
     private readonly IInstanceWorld _world;
     private readonly IInstanceAccessPolicy _access;
     private readonly TimeProvider _time;
+    private readonly IGroundItems? _groundItems;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands on which map.</param>
@@ -43,7 +45,8 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
     /// <param name="access">Who may enter which instance.</param>
     /// <param name="time">Clock for movement budgets and snapshot timestamps.</param>
     /// <param name="snapshotInterval">Time between map snapshots.</param>
-    public PlayerService(IMapPresence presence, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, TimeProvider time, TimeSpan snapshotInterval)
+    /// <param name="groundItems">Told after every accepted move so items within reach are picked up (docs/adr/ADR-021 D6); <see langword="null"/> for none.</param>
+    public PlayerService(IMapPresence presence, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -59,6 +62,7 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         _world = world;
         _access = access;
         _time = time;
+        _groundItems = groundItems;
         _snapshotInterval = snapshotInterval;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
     }
@@ -86,6 +90,18 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
 
     /// <inheritdoc/>
     public async ValueTask<MoveOutcome> MoveAsync(IConnection connection, float x, float y, byte facing, bool moving, CancellationToken cancellationToken = default)
+    {
+        MoveOutcome outcome = await this.ValidateMoveAsync(connection, x, y, facing, moving).ConfigureAwait(false);
+        if (outcome.Status == MoveStatus.Accepted && _groundItems is not null && _presence.TryGet(connection, out PlayerPresence? player))
+        {
+            // Items within reach are picked up off the movement path: the move is answered without waiting for the database.
+            _ = _groundItems.OnPlayerMovedAsync(player);
+        }
+
+        return outcome;
+    }
+
+    private async ValueTask<MoveOutcome> ValidateMoveAsync(IConnection connection, float x, float y, byte facing, bool moving)
     {
         ArgumentNullException.ThrowIfNull(connection);
 

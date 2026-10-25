@@ -16,6 +16,7 @@ using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
@@ -31,6 +32,7 @@ using Nosum.Handlers.Account;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
+using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
 using Nosum.Handlers.Market;
@@ -44,6 +46,7 @@ using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
+using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Maps;
@@ -105,6 +108,14 @@ internal static class Program
             ex => Console.Error.WriteLine("Market expiry failed: " + ex.Message),
             shutdown.Token);
 
+        // Items that lay on a shared map for ten minutes vanish (docs/adr/ADR-021 D6).
+        IGroundItems groundItems = InstanceManager.Instance.GetExistingInstance<IGroundItems>()
+            ?? throw new InvalidOperationException("The ground item service is not registered.");
+        Task groundItemExpiry = new GroundItemExpiryService(groundItems, TimeProvider.System).RunAsync(
+            GroundItemExpiryService.DefaultInterval,
+            ex => Console.Error.WriteLine("Ground item expiry failed: " + ex.Message),
+            shutdown.Token);
+
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
@@ -112,6 +123,7 @@ internal static class Program
 
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
+        await groundItemExpiry.ConfigureAwait(false);
 
         return 0;
     }
@@ -169,7 +181,8 @@ internal static class Program
             .MapHandlers(typeof(TradeHandlers))
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
-            .MapHandlers(typeof(ShopHandlers));
+            .MapHandlers(typeof(ShopHandlers))
+            .MapHandlers(typeof(GroundItemHandlers));
 
         // Tester tools exist only in Development: no handler, no service, no opcode in Production.
         if (development)
@@ -222,15 +235,20 @@ internal static class Program
         InstanceManager.Instance.Register<IQuestService>(quests);
 
         // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
-        PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
-        InstanceManager.Instance.Register<IPlaceableService>(placeables);
-        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval);
-        InstanceManager.Instance.Register<IPlayerService>(players);
-        InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock));
-
-        // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
+        // Coins, market, looks, trade, co-ops and ground-item pickups (docs/adr/ADR-013, ADR-014, ADR-021) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
+
+        // Items lying in the world: harvests (and later broken nodes) drop here, walking players pick them up (docs/adr/ADR-021 D5-D6).
+        GroundItemService groundItems = new(presence, maps, transfers, unitOfWork, clock);
+        InstanceManager.Instance.Register<IGroundItems>(groundItems);
+        InstanceManager.Instance.Register<IYieldRandom>(new YieldRandom((ulong)Random.Shared.NextInt64()));
+
+        PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
+        InstanceManager.Instance.Register<IPlaceableService>(placeables);
+        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval, groundItems);
+        InstanceManager.Instance.Register<IPlayerService>(players);
+        InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock, groundItems));
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
 
