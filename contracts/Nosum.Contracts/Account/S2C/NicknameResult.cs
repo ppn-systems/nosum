@@ -15,7 +15,7 @@ public sealed partial class NicknameResult : PacketBase<NicknameResult>, IPacket
     /// <inheritdoc/>
     public static ushort StaticOpCode => AccountOpCode.NicknameResult;
 
-    /// <summary>Outcome: Ok, InvalidNickname, NicknameReserved, NicknameTaken or NicknameTooSoon.</summary>
+    /// <summary>Outcome: Ok, NicknameRequiresAccount (a guest), InvalidNickname, NicknameReserved, NicknameProfane, NicknameTaken or NicknameTooSoon.</summary>
     [SerializeOrder(0)] public AccountStatus Status { get; set; }
 
     /// <summary>The player's nickname after the request (the new one on Ok, the unchanged one otherwise).</summary>

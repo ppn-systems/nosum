@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -18,93 +19,208 @@ namespace Nosum.UnitTests.Gameplay;
 public sealed class ShopRulesTests
 {
     [Fact]
-    public void GeneralStore_SellsSeedsFurnitureAndClothing_AtPositivePrices_AndNeverToolsOrProduce()
+    public void Shops_AreThreeWithStableIdsAndKeys()
     {
-        ShopCatalog.TryGet(ShopCatalog.GeneralStore, out ShopDefinition? shop).Should().BeTrue();
+        ShopCatalog.All.Select(s => (s.Id, s.Key)).Should().Equal((1, "seed_shop"), (2, "clothing_shop"), (3, "furniture_shop"));
+        ShopCatalog.SeedShop.Should().Be(1, "the town's only shop before the split keeps its id");
+    }
 
-        shop!.Offers.Select(o => o.ItemId).Should().OnlyHaveUniqueItems();
+    [Theory]
+    [InlineData(ShopCatalog.SeedShop, ItemKind.Seed)]
+    [InlineData(ShopCatalog.ClothingShop, ItemKind.Clothing)]
+    [InlineData(ShopCatalog.FurnitureShop, ItemKind.Furniture)]
+    public void EachShop_SellsOnlyItsOwnKindOfItem_AtPositivePrices_WithoutDuplicates(int shopId, ItemKind kind)
+    {
+        ShopCatalog.TryGet(shopId, out ShopDefinition? shop).Should().BeTrue();
+
+        shop!.Offers.Should().NotBeEmpty();
+        shop.Offers.Select(o => o.ItemId).Should().OnlyHaveUniqueItems();
         foreach (ShopOffer offer in shop.Offers)
         {
             offer.CoinsEach.Should().BePositive();
             ItemCatalog.TryGet(offer.ItemId, out ItemDefinition? item).Should().BeTrue($"item {offer.ItemId} must exist");
-            item!.Kind.Should().BeOneOf(ItemKind.Seed, ItemKind.Furniture, ItemKind.Clothing);
+            item!.Kind.Should().Be(kind, $"{item.Key} does not belong in {shop.Key}");
         }
+    }
 
-        // Everything the old starter kit gave away for free is for sale now.
+    [Fact]
+    public void TheShopsTogether_SellEverySeedFurnitureAndClothingItem_ExactlyOnce()
+    {
+        // Everything the old starter kit gave away for free is for sale, and no item is sold by two shops.
+        int[] sold = [.. ShopCatalog.All.SelectMany(s => s.Offers.Select(o => o.ItemId))];
+        sold.Should().OnlyHaveUniqueItems();
         foreach (ItemDefinition item in ItemCatalog.All.Where(i => i.Kind is ItemKind.Furniture or ItemKind.Clothing))
         {
-            shop.TryGetPrice(item.Id, out _).Should().BeTrue($"{item.Key} is bought at the shop");
+            sold.Should().Contain(item.Id, $"{item.Key} is bought at a shop");
+        }
+
+        foreach (int tool in ItemCatalog.All.Where(i => i.Kind is ItemKind.Tool or ItemKind.Produce).Select(i => i.Id))
+        {
+            sold.Should().NotContain(tool, "tools and produce are never sold");
+        }
+    }
+
+    [Fact]
+    public void Prices_AreUnchangedBySplittingTheShop()
+    {
+        (int Shop, int Item, int Coins)[] expected =
+        [
+            (ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10), (ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 15), (ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 30),
+            (ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 100), (ShopCatalog.FurnitureShop, ItemCatalog.HousePlant, 80), (ShopCatalog.FurnitureShop, ItemCatalog.FloorLamp, 140),
+            (ShopCatalog.FurnitureShop, ItemCatalog.OakTable, 220), (ShopCatalog.FurnitureShop, ItemCatalog.Bookcase, 260), (ShopCatalog.FurnitureShop, ItemCatalog.BlueArmchair, 300),
+            (ShopCatalog.FurnitureShop, ItemCatalog.BlueCouch, 400),
+            (ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 60), (ShopCatalog.ClothingShop, ItemCatalog.ShirtGreen, 60), (ShopCatalog.ClothingShop, ItemCatalog.ShirtBlue, 60),
+            (ShopCatalog.ClothingShop, ItemCatalog.PantsBlue, 80), (ShopCatalog.ClothingShop, ItemCatalog.PantsKhaki, 80), (ShopCatalog.ClothingShop, ItemCatalog.HatStraw, 50),
+            (ShopCatalog.ClothingShop, ItemCatalog.HatCap, 40),
+        ];
+
+        foreach ((int shop, int item, int coins) in expected)
+        {
+            ShopRules.Price(shop, item, 1, out long total).Should().Be(ShopVerdict.Ok);
+            total.Should().Be(coins);
         }
     }
 
     [Fact]
     public void Prices_AreSensibleAgainstTheStartingCoinsAndCropIncome()
     {
-        ShopCatalog.TryGet(ShopCatalog.GeneralStore, out ShopDefinition? shop);
+        ShopCatalog.TryGet(ShopCatalog.SeedShop, out ShopDefinition? seeds);
+        ShopCatalog.TryGet(ShopCatalog.FurnitureShop, out ShopDefinition? furniture);
 
         // A seed costs less than its crop sells for at the bin, so farming pays.
         ShippingPrices.TryGet(ItemCatalog.Parsnip, out int parsnip);
         ShippingPrices.TryGet(ItemCatalog.Cauliflower, out int cauliflower);
-        shop!.TryGetPrice(ItemCatalog.ParsnipSeeds, out int parsnipSeed);
-        shop.TryGetPrice(ItemCatalog.CauliflowerSeeds, out int cauliflowerSeed);
+        seeds!.TryGetPrice(ItemCatalog.ParsnipSeeds, out int parsnipSeed);
+        seeds.TryGetPrice(ItemCatalog.CauliflowerSeeds, out int cauliflowerSeed);
         parsnipSeed.Should().BeLessThan(parsnip);
         cauliflowerSeed.Should().BeLessThan(cauliflower);
 
         // The starting 500 coins buy a chair, a plant and a lamp, but not the whole range.
-        shop.TryGetPrice(ItemCatalog.OakChair, out int chair);
-        shop.TryGetPrice(ItemCatalog.HousePlant, out int plant);
-        shop.TryGetPrice(ItemCatalog.FloorLamp, out int lamp);
+        furniture!.TryGetPrice(ItemCatalog.OakChair, out int chair);
+        furniture.TryGetPrice(ItemCatalog.HousePlant, out int plant);
+        furniture.TryGetPrice(ItemCatalog.FloorLamp, out int lamp);
         (chair + plant + lamp).Should().BeLessThanOrEqualTo((int)CoinRules.StartingCoins);
-        shop.Offers.Sum(o => (long)o.CoinsEach).Should().BeGreaterThan(CoinRules.StartingCoins);
+        ShopCatalog.All.SelectMany(s => s.Offers).Sum(o => (long)o.CoinsEach).Should().BeGreaterThan(CoinRules.StartingCoins);
     }
 
     [Fact]
     public void Price_ValidatesShopItemAndQuantity()
     {
-        ShopRules.Price(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 3, out long total).Should().Be(ShopVerdict.Ok);
+        ShopRules.Price(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 3, out long total).Should().Be(ShopVerdict.Ok);
         total.Should().Be(300);
         ShopRules.Price(99, ItemCatalog.OakChair, 1, out _).Should().Be(ShopVerdict.UnknownShop);
-        ShopRules.Price(ShopCatalog.GeneralStore, ItemCatalog.Hoe, 1, out _).Should().Be(ShopVerdict.NotSold);
-        ShopRules.Price(ShopCatalog.GeneralStore, ItemCatalog.Parsnip, 1, out _).Should().Be(ShopVerdict.NotSold);
-        ShopRules.Price(ShopCatalog.GeneralStore, 4242, 1, out _).Should().Be(ShopVerdict.NotSold);
-        ShopRules.Price(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 0, out _).Should().Be(ShopVerdict.InvalidQuantity);
-        ShopRules.Price(ShopCatalog.GeneralStore, ItemCatalog.OakChair, -1, out _).Should().Be(ShopVerdict.InvalidQuantity);
-        ShopRules.Price(ShopCatalog.GeneralStore, ItemCatalog.ShirtRed, 2, out _).Should().Be(ShopVerdict.InvalidQuantity, "clothing stacks hold one");
-        ShopRules.Price(ShopCatalog.GeneralStore, ItemCatalog.ParsnipSeeds, ItemCatalog.DefaultStack + 1, out _).Should().Be(ShopVerdict.InvalidQuantity);
+        ShopRules.Price(ShopCatalog.FurnitureShop, ItemCatalog.Hoe, 1, out _).Should().Be(ShopVerdict.NotSold);
+        ShopRules.Price(ShopCatalog.SeedShop, ItemCatalog.Parsnip, 1, out _).Should().Be(ShopVerdict.NotSold);
+        ShopRules.Price(ShopCatalog.FurnitureShop, 4242, 1, out _).Should().Be(ShopVerdict.NotSold);
+        ShopRules.Price(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 0, out _).Should().Be(ShopVerdict.InvalidQuantity);
+        ShopRules.Price(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, -1, out _).Should().Be(ShopVerdict.InvalidQuantity);
+        ShopRules.Price(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 2, out _).Should().Be(ShopVerdict.InvalidQuantity, "clothing stacks hold one");
+        ShopRules.Price(ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, ItemCatalog.DefaultStack + 1, out _).Should().Be(ShopVerdict.InvalidQuantity);
+    }
+
+    [Theory]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.OakChair)]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.ShirtRed)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ParsnipSeeds)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.OakChair)]
+    [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.ParsnipSeeds)]
+    [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.HatCap)]
+    public void Price_AnItemOfAnotherShop_IsNotSold(int shopId, int itemId)
+        => ShopRules.Price(shopId, itemId, 1, out _).Should().Be(ShopVerdict.NotSold);
+
+    [Fact]
+    public void TownHasOneCounterPerShop_AtTheRecordedTiles_AndNoOtherMapHasAny()
+    {
+        GameMaps.All.Where(m => m.Shops.Count > 0).Select(m => m.Id).Should().Equal([GameMaps.Town]);
+        GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
+
+        town!.Shops.Select(p => (p.ShopId, p.TileX, p.TileY)).Should().Equal(
+            (ShopCatalog.SeedShop, 43, 57),
+            (ShopCatalog.ClothingShop, 20, 89),
+            (ShopCatalog.FurnitureShop, 95, 51));
+        foreach (ShopDefinition shop in ShopCatalog.All)
+        {
+            town.Shops.Count(p => p.ShopId == shop.Id).Should().Be(1, $"{shop.Key} has one counter");
+        }
     }
 
     [Fact]
-    public void EveryShopPoint_NamesAShop_AndStandsOnAWalkableTile_OfAPublicMap()
+    public void EveryShopPoint_NamesAShop_StandsOnAWalkableTile_ReachableOnFootFromTheSpawn_InFrontOfADoor()
     {
         MapSpec[] withShops = [.. GameMaps.All.Where(m => m.Shops.Count > 0)];
-        withShops.Select(m => m.Id).Should().Equal([GameMaps.Town]);
 
         foreach (MapSpec spec in withShops)
         {
             spec.IsPrivate.Should().BeFalse("a shop is somewhere everyone can go");
             TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", spec.TmxFile)));
             WalkGrid grid = spec.BuildWalkGrid(map);
+            bool[] reachable = ReachableFrom(grid, spec.SpawnTileX, spec.SpawnTileY);
             foreach (ShopPoint point in spec.Shops)
             {
                 ShopCatalog.TryGet(point.ShopId, out _).Should().BeTrue();
                 grid.IsBlocked(point.TileX, point.TileY).Should().BeFalse("the player stands on the counter tile");
+                reachable[(point.TileY * grid.Width) + point.TileX].Should().BeTrue($"shop {point.ShopId} must be walkable to from the spawn");
+                grid.IsBlocked(point.TileX, point.TileY - 1).Should().BeTrue("the counter is the doormat just south of the building's door");
             }
         }
     }
 
     [Fact]
-    public void TryFindShop_NearTheCounter_FindsItAndFarAway_DoesNot()
+    public void NoTwoShopCounters_AreWithinReachOfTheSamePlace()
     {
         GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
-        ShopPoint point = town!.Shops[0];
-        double cx = (point.TileX * 16) + 8;
-        double cy = (point.TileY * 16) + 8;
+        foreach (ShopPoint point in town!.Shops)
+        {
+            double cx = (point.TileX * 16) + 8;
+            double cy = (point.TileY * 16) + 8;
+            town.Shops.Count(other => ShopRules.InReach(other, cx, cy, 16)).Should().Be(1, "standing at one counter reaches only that shop");
+        }
+    }
 
-        ShopRules.TryFindShop(town, cx, cy, 16, out int id).Should().BeTrue();
-        id.Should().Be(ShopCatalog.GeneralStore);
-        ShopRules.TryFindShop(town, cx + 30, cy, 16, out _).Should().BeTrue("within about two tiles");
-        ShopRules.TryFindShop(town, cx + 100, cy, 16, out _).Should().BeFalse();
+    [Fact]
+    public void TryFindShop_NearEachCounter_FindsThatShop_AndFarAway_DoesNot()
+    {
+        GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
+        foreach (ShopPoint point in town!.Shops)
+        {
+            double cx = (point.TileX * 16) + 8;
+            double cy = (point.TileY * 16) + 8;
+
+            ShopRules.TryFindShop(town, cx, cy, 16, out int id).Should().BeTrue();
+            id.Should().Be(point.ShopId);
+            ShopRules.TryFindShop(town, cx + 30, cy, 16, out _).Should().BeTrue("within about two tiles");
+            ShopRules.TryFindShop(town, cx + 100, cy, 16, out _).Should().BeFalse();
+        }
+
+        ShopPoint first = town.Shops[0];
         GameMaps.TryGet(GameMaps.Farm, out MapSpec? farm);
-        ShopRules.TryFindShop(farm!, cx, cy, 16, out _).Should().BeFalse("no shop on the farm");
+        ShopRules.TryFindShop(farm!, (first.TileX * 16) + 8, (first.TileY * 16) + 8, 16, out _).Should().BeFalse("no shop on the farm");
+    }
+
+    private static bool[] ReachableFrom(WalkGrid grid, int startX, int startY)
+    {
+        bool[] seen = new bool[grid.Width * grid.Height];
+        Queue<(int X, int Y)> queue = new();
+        queue.Enqueue((startX, startY));
+        seen[(startY * grid.Width) + startX] = true;
+        (int Dx, int Dy)[] steps = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+        while (queue.Count > 0)
+        {
+            (int x, int y) = queue.Dequeue();
+            foreach ((int dx, int dy) in steps)
+            {
+                int nx = x + dx;
+                int ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= grid.Width || ny >= grid.Height || seen[(ny * grid.Width) + nx] || grid.IsBlocked(nx, ny))
+                {
+                    continue;
+                }
+
+                seen[(ny * grid.Width) + nx] = true;
+                queue.Enqueue((nx, ny));
+            }
+        }
+
+        return seen;
     }
 }

@@ -66,12 +66,12 @@ public interface IAccountService
     Task<AccountStatus> SetLanguageAsync(Guid playerId, GameLanguage language, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Changes a player's nickname: validated (<c>NicknameRules</c>), unique case-insensitively, and allowed once every 24 hours
-    /// (the first change is free). Asking for the nickname the player already has changes nothing and does not start the wait.
+    /// Changes a registered player's nickname: validated (<c>NicknameRules</c>: unaccented ASCII, no profanity), unique case-insensitively, and allowed
+    /// once every 24 hours (the first change is free). A guest cannot rename; they choose a nickname when they register. Asking for the nickname the player already has changes nothing and does not start the wait.
     /// </summary>
     /// <param name="playerId">The player, taken from the connection identity.</param>
     /// <param name="nickname">The wanted nickname.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
-    /// <returns>Ok, or <see cref="AccountStatus.InvalidNickname"/>, <see cref="AccountStatus.NicknameReserved"/>, <see cref="AccountStatus.NicknameTaken"/>, <see cref="AccountStatus.NicknameTooSoon"/>.</returns>
+    /// <returns>Ok, or <see cref="AccountStatus.NicknameRequiresAccount"/>, <see cref="AccountStatus.InvalidNickname"/>, <see cref="AccountStatus.NicknameReserved"/>, <see cref="AccountStatus.NicknameProfane"/>, <see cref="AccountStatus.NicknameTaken"/>, <see cref="AccountStatus.NicknameTooSoon"/>.</returns>
     Task<NicknameOutcome> SetNicknameAsync(Guid playerId, string nickname, CancellationToken cancellationToken);
 }
