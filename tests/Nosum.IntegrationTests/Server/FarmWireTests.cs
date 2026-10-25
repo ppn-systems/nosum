@@ -25,6 +25,9 @@ using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Contracts.GroundItem;
+using Nosum.Contracts.GroundItem.C2S;
+using Nosum.Contracts.GroundItem.S2C;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.C2S;
 using Nosum.Contracts.Inventory.S2C;
@@ -58,7 +61,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
     public FarmWireTests(PostgresFixture database) => _database = database;
 
     [Fact]
-    public async Task Farming_TillPlantWaterWaitHarvest_PutsTheCropInTheInventoryAndStaysOnThePlayersOwnFarm()
+    public async Task Farming_TillPlantWaterWaitHarvest_DropsTheCropOnTheGroundAndWalkingPicksItUp()
     {
         await ResetFarmAsync();
         FakeTimeProvider clock = new(s_start);
@@ -111,9 +114,19 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             harvested.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Harvested });
             FarmTileRow seenHarvested = await farmer.WaitForTileAsync(x, y, t => t.CropId == 0 && t.SettledAtMs > t.PlantedAtMs, timeout.Token);
             seenHarvested.WetUntilMs.Should().BeGreaterThan(0);
+
+            // The produce pops onto the ground beside the plot instead of going into the bag (docs/adr/ADR-021 D5)...
+            GroundItemRow dropped = await farmer.WaitForGroundItemAsync(g => g.ItemId == ItemCatalog.Parsnip, timeout.Token);
+            dropped.Quantity.Should().Be(1);
+            (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().NotContain(s => s.ItemId == ItemCatalog.Parsnip);
+            (await farmer.GetGroundItemsAsync(timeout.Token)).Items.Should().ContainSingle(g => g.Id == dropped.Id);
+
+            // ...and walking close to it picks it up, once the server has seen the move (D6).
+            await farmer.WalkUntilPickedUpAsync(join, dropped.Id, timeout.Token);
             InventorySlotRow produce = await farmer.WaitForSlotAsync(s => s.ItemId == ItemCatalog.Parsnip, timeout.Token);
             produce.Quantity.Should().Be(1);
             (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().Contain(s => s.ItemId == ItemCatalog.Parsnip && s.Quantity == 1);
+            (await farmer.GetGroundItemsAsync(timeout.Token)).Items.Should().BeEmpty();
 
             // The tutorial quest is complete and the guest is invited to register.
             QuestRow quest = await farmer.WaitForQuestAsync(q => q.State == QuestState.Completed, timeout.Token);
@@ -314,6 +327,9 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
         private readonly Inbox<InventorySlotRow> _slots = new();
         private readonly Inbox<QuestRow> _quests = new();
         private readonly Inbox<bool> _prompt = new();
+        private readonly Inbox<GroundItemRow> _spawned = new();
+        private readonly Inbox<GroundItemTaken> _taken = new();
+        private uint _moveSequence;
 
         private FarmClient(WebSocketSession session)
         {
@@ -336,6 +352,8 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
                 }),
                 session.On<QuestUpdate>(p => _quests.Add(new QuestRow { QuestId = p.Quest.QuestId, State = p.Quest.State, Progress = [.. p.Quest.Progress] })),
                 session.On<RegistrationPromptUnlocked>(_ => _prompt.Add(true)),
+                session.On<GroundItemSpawned>(p => _spawned.Add(new GroundItemRow { Id = p.Item.Id, ItemId = p.Item.ItemId, Quantity = p.Item.Quantity, X = p.Item.X, Y = p.Item.Y })),
+                session.On<GroundItemTaken>(p => _taken.Add(new GroundItemTaken { Id = p.Id, Reason = p.Reason, ToX = p.ToX, ToY = p.ToY })),
             ];
         }
 
@@ -379,6 +397,30 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
         {
             using GetFarm request = new();
             return await _session.RequestAsync<FarmSnapshot>(request, ct: ct);
+        }
+
+        public async Task<GroundItemsSnapshot> GetGroundItemsAsync(CancellationToken ct)
+        {
+            using GetGroundItems request = new();
+            return await _session.RequestAsync<GroundItemsSnapshot>(request, ct: ct);
+        }
+
+        public Task<GroundItemRow> WaitForGroundItemAsync(Func<GroundItemRow, bool> predicate, CancellationToken ct) => _spawned.WaitAsync(predicate, ct);
+
+        // Walks in small legal steps (the server checks speed) until the item is reported taken, as the real client's 10 Hz reports would.
+        public async Task WalkUntilPickedUpAsync(JoinMapResult join, long itemId, CancellationToken ct)
+        {
+            Task<GroundItemTaken> taken = _taken.WaitAsync(t => t.Id == itemId, ct);
+            float x = join.SpawnX;
+            for (int step = 0; step < 40 && !taken.IsCompleted; step++)
+            {
+                x += step % 2 == 0 ? 1f : -1f;
+                using MoveIntent intent = new() { Sequence = ++_moveSequence, X = x, Y = join.SpawnY, Facing = 1, Moving = true };
+                await _session.SendAsync(intent, ct);
+                _ = await Task.WhenAny(taken, Task.Delay(120, ct));
+            }
+
+            (await taken).Reason.Should().Be(GroundItemGone.PickedUp);
         }
 
         public async Task<QuestLog> GetQuestsAsync(CancellationToken ct)
