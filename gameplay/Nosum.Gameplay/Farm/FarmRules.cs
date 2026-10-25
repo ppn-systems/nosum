@@ -94,6 +94,12 @@ public static class FarmRules
         return FarmVerdict.Ok;
     }
 
+    /// <summary>Clears tilled soil that holds no crop (a pickaxe), so the tile is plain ground again.</summary>
+    /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
+    /// <returns>The verdict.</returns>
+    public static FarmVerdict Clear(FarmTile? current)
+        => current is not { } tile ? FarmVerdict.NotTilled : tile.HasCrop ? FarmVerdict.HasCrop : FarmVerdict.Ok;
+
     /// <summary>Harvests a mature crop; the soil stays tilled.</summary>
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
     /// <param name="nowMs">Server time, Unix milliseconds.</param>

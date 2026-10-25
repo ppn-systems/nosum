@@ -46,6 +46,18 @@ public enum FarmStatus : byte
 
     /// <summary>Another change to the same tile or inventory was applied at the same time; ask again.</summary>
     Conflict = 13,
+
+    /// <summary>The held tool does not work on what is on that tile (an axe on a stone).</summary>
+    WrongTool = 14,
+
+    /// <summary>The previous tool swing is not over yet (server-side cooldown, docs/adr/ADR-021 D8).</summary>
+    Cooldown = 15,
+
+    /// <summary>The watering can is empty; refill it at water.</summary>
+    CanEmpty = 16,
+
+    /// <summary>Something is in the way: a node on the tile, or a tile a tree cannot grow on.</summary>
+    Blocked = 17,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>
@@ -65,4 +77,19 @@ public enum FarmAction : byte
 
     /// <summary>A crop was harvested.</summary>
     Harvested = 4,
+
+    /// <summary>A resource node was hit and still stands.</summary>
+    Hit = 5,
+
+    /// <summary>A resource node broke (a tree falls to a stump, a stone is gone) and its yield was delivered.</summary>
+    Broke = 6,
+
+    /// <summary>The watering can was refilled at water.</summary>
+    Refilled = 7,
+
+    /// <summary>Tilled soil was cleared with a pickaxe.</summary>
+    Cleared = 8,
+
+    /// <summary>A tree seed was planted.</summary>
+    PlantedTree = 9,
 }
