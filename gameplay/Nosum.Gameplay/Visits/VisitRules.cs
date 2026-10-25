@@ -49,6 +49,9 @@ public static class VisitRules
     /// <summary>Gets whether a co-op's members may visit a player who never changed the setting.</summary>
     public const bool CoopMembersMayVisitByDefault = true;
 
+    /// <summary>Whether friends may visit until the owner turns it off (docs/adr/ADR-029 D4).</summary>
+    public const bool FriendsMayVisitByDefault = true;
+
     /// <summary>Tells whether a player may do an action in a place.</summary>
     /// <param name="instance">The place the player is in.</param>
     /// <param name="playerId">The player's account id.</param>
@@ -72,15 +75,18 @@ public static class VisitRules
     /// <param name="listed">Whether the owner put the visitor on the allow-list.</param>
     /// <param name="sameCoop">Whether both belong to the same co-op.</param>
     /// <param name="coopMembersMayVisit">The owner's "co-op members may visit" setting.</param>
+    /// <param name="isFriend">Whether the two are friends (docs/adr/ADR-029 D4).</param>
+    /// <param name="friendsMayVisit">The owner's "friends may visit" setting.</param>
+    /// <param name="blocked">Whether the owner blocked the visitor (docs/adr/ADR-029 D3): a block beats every other source.</param>
     /// <returns><see langword="true"/> when entry is allowed.</returns>
-    public static bool MayEnter(Guid visitorId, Guid ownerId, bool ownerIsGuest, bool listed, bool sameCoop, bool coopMembersMayVisit)
+    public static bool MayEnter(Guid visitorId, Guid ownerId, bool ownerIsGuest, bool listed, bool sameCoop, bool coopMembersMayVisit, bool isFriend = false, bool friendsMayVisit = FriendsMayVisitByDefault, bool blocked = false)
     {
         if (visitorId == ownerId)
         {
             return true;
         }
 
-        // A guest keeps no allow-list and no co-op visits; their place is private (docs/adr/ADR-019 D2).
-        return !ownerIsGuest && (listed || (sameCoop && coopMembersMayVisit));
+        // A guest keeps no allow-list, no co-op visits and no friends; their place is private (docs/adr/ADR-019 D2).
+        return !ownerIsGuest && !blocked && (listed || (sameCoop && coopMembersMayVisit) || (isFriend && friendsMayVisit));
     }
 }

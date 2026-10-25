@@ -1,0 +1,100 @@
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Friends
+@inherits ObservingComponent<FriendsViewModel>
+
+@* The Friends page of the game menu: friends with their status, open requests, the "friends may visit" switch and the block list. A guest sees a hint to register
+   instead. The server decides every outcome; nicknames are shown as plain text. *@
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
+    <GameStack>
+        @if (Vm.IsGuest)
+        {
+            <GameNotice Kind="info" Text="@Vm.Text("Friends_GuestNotice")" />
+        }
+        else
+        {
+            <GameSection Title="@Vm.Text("Friends_Add_Heading")">
+                <GameRow>
+                    <GameInput Value="@Vm.AddText" ValueChanged="@(v => Vm.AddText = v)" OnEnter="@(() => Vm.Request())" MaxLength="24" Placeholder="@Vm.Text("Friends_NicknamePlaceholder")" Label="@Vm.Text("Friends_NicknamePlaceholder")" />
+                    <GameButton Text="@Vm.Text("Friends_Request")" OnClick="@(() => Vm.Request())" />
+                </GameRow>
+                <p class="friends-hint">@Vm.Text("Friends_Add_Hint")</p>
+            </GameSection>
+            @if (Vm.Incoming.Count > 0)
+            {
+                <GameSection Title="@Vm.Text("Friends_Incoming_Heading")">
+                    <div class="friends-list">
+                        @foreach (PersonDisplay request in Vm.Incoming)
+                        {
+                            Guid playerId = request.PlayerId;
+                            <GameRow Class="friends-row">
+                                <span class="friends-name">@request.Label</span>
+                                <GameButton Text="@Vm.Text("Friends_Accept")" OnClick="@(() => Vm.Accept(playerId))" />
+                                <GameButton Variant="danger" Text="@Vm.Text("Friends_Decline")" OnClick="@(() => Vm.Decline(playerId))" />
+                            </GameRow>
+                        }
+                    </div>
+                </GameSection>
+            }
+            <GameSection Title="@Vm.Text("Friends_List_Heading")">
+                @if (Vm.Friends.Count == 0)
+                {
+                    <p class="friends-hint">@Vm.Text("Friends_ListEmpty")</p>
+                }
+                <div class="friends-list">
+                    @foreach (FriendDisplay friend in Vm.Friends)
+                    {
+                        Guid playerId = friend.PlayerId;
+                        <GameRow Class="friends-row">
+                            <span class="friends-name">@friend.Label</span>
+                            <GameBadge Kind="@(friend.Online ? "ok" : "warn")" Text="@friend.Where" />
+                            <GameButton Variant="danger" Text="@Vm.Text("Friends_Remove")" OnClick="@(() => Vm.Remove(playerId))" />
+                        </GameRow>
+                    }
+                </div>
+                @if (Vm.Outgoing.Count > 0)
+                {
+                    <p class="friends-hint">@Vm.Text("Friends_Outgoing_Heading")</p>
+                    <div class="friends-list">
+                        @foreach (PersonDisplay request in Vm.Outgoing)
+                        {
+                            Guid playerId = request.PlayerId;
+                            <GameRow Class="friends-row">
+                                <span class="friends-name">@request.Label</span>
+                                <GameButton Variant="plain" Text="@Vm.Text("Friends_Withdraw")" OnClick="@(() => Vm.Remove(playerId))" />
+                            </GameRow>
+                        }
+                    </div>
+                }
+                <GameRow Class="center">
+                    <GameButton Variant="plain" Active="Vm.FriendsMayVisit" Text="@(Vm.FriendsMayVisit ? Vm.Text("Friends_Visit_On") : Vm.Text("Friends_Visit_Off"))" OnClick="@(() => Vm.ToggleVisit())" />
+                </GameRow>
+                <p class="friends-hint">@Vm.Text("Friends_Visit_Hint")</p>
+            </GameSection>
+        }
+        <GameSection Title="@Vm.Text("Friends_Blocked_Heading")">
+            <GameRow>
+                <GameInput Value="@Vm.BlockText" ValueChanged="@(v => Vm.BlockText = v)" OnEnter="@(() => Vm.Block())" MaxLength="24" Placeholder="@Vm.Text("Friends_BlockPlaceholder")" Label="@Vm.Text("Friends_BlockPlaceholder")" />
+                <GameButton Variant="danger" Text="@Vm.Text("Friends_Block")" OnClick="@(() => Vm.Block())" />
+            </GameRow>
+            @if (Vm.Blocked.Count == 0)
+            {
+                <p class="friends-hint">@Vm.Text("Friends_BlockedEmpty")</p>
+            }
+            <div class="friends-list">
+                @foreach (PersonDisplay player in Vm.Blocked)
+                {
+                    string nickname = player.Nickname;
+                    <GameRow Class="friends-row">
+                        <span class="friends-name">@player.Label</span>
+                        <GameButton Variant="plain" Text="@Vm.Text("Friends_Unblock")" OnClick="@(() => Vm.Unblock(nickname))" />
+                    </GameRow>
+                }
+            </div>
+            <p class="friends-hint">@Vm.Text("Friends_Blocked_Hint")</p>
+        </GameSection>
+    </GameStack>
+</MenuPage>
+
+@code {
+    protected override void OnInitialized() => Vm.Open();
+}

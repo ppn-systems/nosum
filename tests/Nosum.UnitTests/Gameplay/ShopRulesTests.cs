@@ -257,8 +257,8 @@ public sealed class ShopRulesTests
         long spring = calendar.EpochMs;
         long summer = spring + calendar.SeasonLengthMs;
 
-        ShopRules.IsInSeason(ItemCatalog.RadishSeeds, calendar, spring).Should().BeFalse();
-        ShopRules.IsInSeason(ItemCatalog.RadishSeeds, calendar, summer).Should().BeTrue();
+        ShopRules.IsInSeason(ItemCatalog.TomatoSeeds, calendar, spring).Should().BeFalse();
+        ShopRules.IsInSeason(ItemCatalog.TomatoSeeds, calendar, summer).Should().BeTrue();
         ShopRules.IsInSeason(ItemCatalog.CauliflowerSeeds, calendar, summer).Should().BeTrue();
         ShopRules.IsInSeason(ItemCatalog.OakChair, calendar, spring).Should().BeTrue();
         ShopRules.IsInSeason(ItemCatalog.HatCap, calendar, summer).Should().BeTrue();

@@ -16,6 +16,7 @@ using Nalix.Abstractions.Networking;
 using Nalix.Abstractions.Networking.Packets;
 using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Goals;
@@ -26,11 +27,13 @@ using Nosum.Domain.Economy;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Mail;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Infrastructure.Community;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Inventory;
+using Nosum.Infrastructure.Mail;
 using Nosum.Infrastructure.Persistence;
 using Xunit;
 
@@ -56,6 +59,7 @@ public sealed class CommunityGoalServiceTests : IClassFixture<PostgresFixture>, 
     private readonly RecordingPresence _presence = new();
     private readonly CommunityUnlocks _unlocks;
     private readonly CommunityGoalService _goals;
+    private readonly MailService _mail;
     private readonly IConnection _connection = DispatchProxy.Create<IConnection, ConnectionStub>();
 
     public CommunityGoalServiceTests(PostgresFixture database)
@@ -66,7 +70,8 @@ public sealed class CommunityGoalServiceTests : IClassFixture<PostgresFixture>, 
         _inventory = new InventoryService(_units, _clock);
         _transfers = new FlakyTransfers(new TransferService(_inventory, _clock));
         _unlocks = new CommunityUnlocks(_units);
-        _goals = new CommunityGoalService(_transfers, _units, _presence, new TownCatalog(), _calendar, _clock, _unlocks);
+        _mail = new MailService(_units, _transfers, new NoMailPush(), _clock);
+        _goals = new CommunityGoalService(_transfers, _units, _presence, new TownCatalog(), _calendar, _clock, _unlocks, _mail);
     }
 
     // Every test starts from an empty set of goals: a completed goal is permanent, so tests must not see each other's.
@@ -262,6 +267,22 @@ public sealed class CommunityGoalServiceTests : IClassFixture<PostgresFixture>, 
         (await _transfers.GetBalanceAsync(middle)).Should().Be(start + 1_000, "10 % of the pool is exactly the cap");
         (await CoinLogOfAsync(big, "community.reward")).Should().ContainSingle().Which.Delta.Should().Be(1_000);
         goal!.CoinCapPerPlayer.Should().Be(1_000);
+    }
+
+    [Fact]
+    public async Task Completion_SendsEachContributorANoticeOfWhatTheyWerePaid_WithNothingToCollect()
+    {
+        Guid big = await NewPlayerAtBoardAsync(850);
+        Guid small = await NewPlayerAtBoardAsync(150);
+        _ = await _goals.DeliverAsync(_connection, big, WinterGoal, 850);
+        _ = await _goals.DeliverAsync(_connection, small, WinterGoal, 150);
+
+        IReadOnlyList<MailView> mails = await _mail.ListAsync(small);
+        mails.Should().ContainSingle(m => m.Code == MailRules.Codes.GoalReward);
+        MailView notice = mails.Single(m => m.Code == MailRules.Codes.GoalReward);
+        notice.Args.Should().Equal("1000");
+        (await _mail.CollectAsync(small, notice.Id)).Should().NotBe(Nosum.Contracts.Mail.MailStatus.Ok, "the coins are already in the purse; nothing rides on the mail");
+        (await _transfers.GetBalanceAsync(small)).Should().Be(Nosum.Gameplay.Economy.CoinRules.StartingCoins + 1_000);
     }
 
     [Fact]
@@ -542,5 +563,10 @@ public sealed class CommunityGoalServiceTests : IClassFixture<PostgresFixture>, 
 
             return ValueTask.CompletedTask;
         }
+    }
+
+    private sealed class NoMailPush : IPlayerNotifier
+    {
+        public ValueTask<bool> TrySendAsync(Guid playerId, Nalix.Abstractions.Networking.Packets.IPacket packet, CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
     }
 }

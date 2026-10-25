@@ -20,6 +20,7 @@ using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Node.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Domain.Nodes;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
@@ -204,6 +205,12 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         {
             if (state.Field.TryGetAt(request.TileX, request.TileY, out ResourceNode node))
             {
+                // Forage is picked up with an empty hand or whatever is held (docs/adr/ADR-025 D4); no tool, no cooldown.
+                if (node.Kind == NodeKind.Forage)
+                {
+                    return await this.PickForageAsync(player, state, node, cancellationToken).ConfigureAwait(false);
+                }
+
                 return nodeTool && item is not null
                     ? await this.HitAsync(player, state, node, item.Tool, cancellationToken).ConfigureAwait(false)
                     : Refused(item is null ? FarmStatus.NothingToDo : FarmStatus.Blocked);
@@ -368,6 +375,13 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         return new FarmUseOutcome(FarmStatus.Ok, FarmAction.Broke);
     }
 
+    // Picking forage up, under the instance lock: the item drops where the node stands like any node yield, and the node is gone.
+    private async Task<FarmUseOutcome> PickForageAsync(PlayerPresence player, InstanceNodes state, ResourceNode node, CancellationToken cancellationToken)
+    {
+        // Breaking a node charges its skill's experience in the same transaction (docs/adr/ADR-023): forage is a foraging node, and a hand costs no energy.
+        return await this.HitAsync(player, state, node, ToolKind.None, cancellationToken).ConfigureAwait(false);
+    }
+
     // Planting a tree seed, under the instance lock: free, walkable, unreserved ground that no player stands on; the seed and the new node commit together.
     private async Task<FarmUseOutcome> PlantAsync(NodeUseRequest request, ItemDefinition item, InstanceNodes state, CancellationToken cancellationToken)
     {
@@ -425,6 +439,8 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
     private async Task AdvanceInstanceAsync(InstanceNodes state, long day, bool seasonChanged, bool publish, CancellationToken cancellationToken)
     {
         List<ResourceNode> changed = [];
+        List<int> staleIds = [];
+        List<ResourceNode> stale = [];
         using (await _locks.EnterAsync(state.Instance.Key, cancellationToken).ConfigureAwait(false))
         {
             if (day <= state.LastDay)
@@ -449,6 +465,33 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
             }
 
             List<NodePlacement> placements = NodePlacements.Regrowth(state.Map.NodeSites, state.Field, state.Map.Grid, state.Map.ReservedTiles, occupied, NodeRandom.Mix(state.Seed, day, 2), state.Instance.IsPrivate, seasonChanged);
+
+            // Forage (docs/adr/ADR-025 D4): public places only. What is left of another season is taken away, then a few of this season's items appear.
+            if (!state.Instance.IsPrivate && state.Map.ForageSites.Count > 0)
+            {
+                Season season = ForageCatalog.SeasonOfDay(day);
+                int standing = 0;
+                foreach (ResourceNode node in state.Field.All)
+                {
+                    if (node.Kind != NodeKind.Forage)
+                    {
+                        continue;
+                    }
+
+                    if (ForageCatalog.IsInSeason(node.Variant, season))
+                    {
+                        standing++;
+                    }
+                    else
+                    {
+                        staleIds.Add(node.Id);
+                        stale.Add(node);
+                    }
+                }
+
+                placements.AddRange(NodePlacements.Forage(state.Map.ForageSites, state.Field, state.Map.Grid, state.Map.ReservedTiles, occupied, NodeRandom.Mix(state.Seed, day, 3), season, standing));
+            }
+
             List<(NodePlacement Placement, WorldNode Row)> inserted = [];
 
             IUnitOfWork unit = _unitOfWork.Create();
@@ -464,6 +507,14 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
                         Fill(row, aged);
                         _ = state.Field.Replace(aged);
                         changed.Add(aged);
+                    }
+                }
+
+                if (staleIds.Count > 0)
+                {
+                    foreach (WorldNode row in await rows.ListAsync(r => staleIds.Contains(r.Id), cancellationToken).ConfigureAwait(false))
+                    {
+                        rows.Remove(row);
                     }
                 }
 
@@ -492,13 +543,18 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
                 changed.Add(node);
             }
 
+            foreach (int id in staleIds)
+            {
+                _ = state.Field.Remove(id);
+            }
+
             state.LastDay = day;
             state.Rebuild();
         }
 
-        if (publish && changed.Count > 0)
+        if (publish && (changed.Count > 0 || staleIds.Count > 0))
         {
-            await this.PublishAsync(state.Instance, changed, [], cancellationToken).ConfigureAwait(false);
+            await this.PublishAsync(state.Instance, changed, stale, cancellationToken).ConfigureAwait(false);
         }
     }
 

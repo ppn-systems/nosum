@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +12,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Goals;
@@ -17,6 +20,7 @@ using Nosum.Contracts.Goals.S2C;
 using Nosum.Domain.Community;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Community;
+using Nosum.Gameplay.Mail;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Shops;
 using Nosum.Infrastructure.Concurrency;
@@ -42,6 +46,7 @@ public sealed class CommunityGoalService : ICommunityGoalService
     private readonly GameCalendar _calendar;
     private readonly TimeProvider _time;
     private readonly CommunityUnlocks _unlocks;
+    private readonly IMailService? _mail;
     private readonly StripedAsyncLock _goalLocks = new(16);
     private readonly StripedAsyncLock _closeLock = new(1);
 
@@ -53,7 +58,8 @@ public sealed class CommunityGoalService : ICommunityGoalService
     /// <param name="calendar">The server calendar: which season a goal belongs to and when it ends.</param>
     /// <param name="time">The server clock; tests pass a fake one.</param>
     /// <param name="unlocks">The unlock flags; a completed goal adds its flag.</param>
-    public CommunityGoalService(ITransferService transfers, IUnitOfWorkFactory units, IMapPresence presence, IMapCatalog maps, GameCalendar calendar, TimeProvider time, CommunityUnlocks unlocks)
+    /// <param name="mail">Tells each paid contributor how much they got (docs/adr/ADR-029 D5); <see langword="null"/> to send no notice.</param>
+    public CommunityGoalService(ITransferService transfers, IUnitOfWorkFactory units, IMapPresence presence, IMapCatalog maps, GameCalendar calendar, TimeProvider time, CommunityUnlocks unlocks, IMailService? mail = null)
     {
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(units);
@@ -70,6 +76,7 @@ public sealed class CommunityGoalService : ICommunityGoalService
         _calendar = calendar;
         _time = time;
         _unlocks = unlocks;
+        _mail = mail;
     }
 
     /// <inheritdoc/>
@@ -311,8 +318,8 @@ public sealed class CommunityGoalService : ICommunityGoalService
         return paid;
     }
 
-    // The one call site that pays a contributor: coins now, through the transfer service. When a mail service exists, this is the line that sends the coins by mail instead
-    // (docs/adr/ADR-030 D1, ADR-029); the contribution's PaidCoins guard stays either way.
+    // The one call site that pays a contributor: coins straight into the purse in one guarded transfer, then a mail that says so (docs/adr/ADR-030 D1, ADR-029).
+    // The coins do not ride on the mail: a mail is not written in the same transaction and expires after 30 days, so an attachment could be lost.
     private async Task<bool> PayAsync(Guid contributionId, Guid playerId, long coins, string reason, CancellationToken cancellationToken)
     {
         TransferStatus status = await _transfers.ExecuteAsync(
@@ -330,7 +337,32 @@ public sealed class CommunityGoalService : ICommunityGoalService
                 return TransferStatus.Ok;
             },
             cancellationToken).ConfigureAwait(false);
-        return status == TransferStatus.Ok;
+        if (status != TransferStatus.Ok)
+        {
+            return false;
+        }
+
+        await this.NotifyAsync(playerId, coins, cancellationToken).ConfigureAwait(false);
+        return true;
+    }
+
+    // The notice is best effort: the coins are already paid, so a failed mail must not turn the payout into an error or stop the others.
+    [SuppressMessage("Design", "CA1031", Justification = "The payout is committed; the mail is only a notice.")]
+    private async Task NotifyAsync(Guid playerId, long coins, CancellationToken cancellationToken)
+    {
+        if (_mail is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _ = await _mail.SendAsync(playerId, MailRules.Codes.GoalReward, [coins.ToString(CultureInfo.InvariantCulture)], null, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // See the suppression.
+        }
     }
 
     // The newest row of a goal in a season, created when the season's first look at the goal comes. A lost race on the unique index reads the winner's row.

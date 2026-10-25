@@ -20,6 +20,12 @@ public static class NodeLimits
     /// <summary>Most debris nodes that regrow on one public instance at one game-day rollover (docs/adr/ADR-021 D4).</summary>
     public const int RegrowPerDay = 12;
 
+    /// <summary>Most forage nodes that appear on one public instance at one game-day rollover (docs/adr/ADR-025 D4).</summary>
+    public const int ForagePerDay = 6;
+
+    /// <summary>Most forage nodes standing on one public instance at once; unpicked forage is replaced at a season change.</summary>
+    public const int MaxForageStanding = 24;
+
     /// <summary>Game days a tree spends in each of its first three stages (seed, sapling, bush); a grown tree stops growing.</summary>
     public const int DaysPerTreeStage = 2;
 }

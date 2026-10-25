@@ -1,0 +1,30 @@
+.mail-hint {
+    margin: 0;
+    color: var(--nosum-ink-soft);
+}
+
+.mail-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+}
+
+.mail-list ::deep .mail-head {
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.mail-expiry {
+    margin-left: auto;
+    color: var(--nosum-ink-faint);
+    white-space: nowrap;
+}
+
+.mail-body {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.mail-coins {
+    margin: 0;
+}

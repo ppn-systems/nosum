@@ -7,6 +7,7 @@ using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Presence;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Coops;
+using Nosum.Domain.Social;
 using Nosum.Domain.Visits;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Visits;
@@ -52,8 +53,11 @@ public sealed class VisitAccess : IInstanceAccessPolicy
             bool listed = await unit.Repository<VisitGrant>().AnyAsync(g => g.OwnerId == ownerId && g.VisitorId == playerId, cancellationToken).ConfigureAwait(false);
             VisitSettings? settings = await unit.Repository<VisitSettings>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
             bool coopMembersMayVisit = settings?.CoopMembersMayVisit ?? VisitRules.CoopMembersMayVisitByDefault;
-            bool sameCoop = !listed && coopMembersMayVisit && await this.ShareCoopAsync(unit, ownerId, playerId, cancellationToken).ConfigureAwait(false);
-            return VisitRules.MayEnter(playerId, ownerId, owner.IsGuest, listed, sameCoop, coopMembersMayVisit);
+            bool friendsMayVisit = settings?.FriendsMayVisit ?? VisitRules.FriendsMayVisitByDefault;
+            bool blocked = await unit.Repository<BlockedPlayer>().AnyAsync(b => b.OwnerId == ownerId && b.BlockedId == playerId, cancellationToken).ConfigureAwait(false);
+            bool isFriend = !listed && !blocked && friendsMayVisit && await unit.Repository<Friendship>().AnyAsync(f => f.PlayerId == ownerId && f.FriendId == playerId, cancellationToken).ConfigureAwait(false);
+            bool sameCoop = !listed && !isFriend && !blocked && coopMembersMayVisit && await this.ShareCoopAsync(unit, ownerId, playerId, cancellationToken).ConfigureAwait(false);
+            return VisitRules.MayEnter(playerId, ownerId, owner.IsGuest, listed, sameCoop, coopMembersMayVisit, isFriend, friendsMayVisit, blocked);
         }
     }
 

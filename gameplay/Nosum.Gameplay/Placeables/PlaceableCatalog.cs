@@ -15,6 +15,9 @@ public static class PlaceableCatalog
     /// <summary>Sheet name of <c>TileSheets/furniture.png</c>.</summary>
     public const string FurnitureSheet = "furniture";
 
+    /// <summary>Radius of the light a floor lamp gives, pixels (three and a half tiles).</summary>
+    public const int FloorLampLightRadius = 56;
+
     /// <summary>Sheet name of <c>TileSheets/Craftables.png</c>: the crafted machines and containers (placeholder art, docs/adr/ADR-007).</summary>
     public const string CraftablesSheet = "Craftables";
 
@@ -32,10 +35,10 @@ public static class PlaceableCatalog
         // Couch: three tiles wide facing down or up, two by two seen from the side.
         new(ItemCatalog.BlueCouch, FurnitureSheet, new PlaceableView(0, 208, 48, 32, 3, 1), new PlaceableView(48, 208, 32, 48, 2, 2), new PlaceableView(80, 208, 48, 32, 3, 1), new PlaceableView(48, 208, 32, 48, 2, 2, FlipX: true)),
 
-        // Table, bookcase, lamp and plant do not rotate.
+        // Table, bookcase, lamp and plant do not rotate; the lamp lights the night.
         new(ItemCatalog.OakTable, FurnitureSheet, new PlaceableView(0, 569, 32, 38, 2, 2)),
         new(ItemCatalog.Bookcase, FurnitureSheet, new PlaceableView(48, 640, 32, 48, 2, 1)),
-        new(ItemCatalog.FloorLamp, FurnitureSheet, new PlaceableView(48, 733, 16, 34, 1, 1)),
+        new(ItemCatalog.FloorLamp, FurnitureSheet, FloorLampLightRadius, new PlaceableView(48, 733, 16, 34, 1, 1)),
         new(ItemCatalog.HousePlant, FurnitureSheet, new PlaceableView(0, 688, 16, 32, 1, 1)),
 
         // Crafted objects (docs/adr/ADR-024). Craftables.png cells are 16 x 32, the footprint is the bottom tile.

@@ -5,7 +5,10 @@
         aria-label="@Tip"
         tabindex="-1"
         @onmousedown:preventDefault
-        @onclick="OnClick"><span class="game-icon-button-art" style="background-image:var(--nosum-img-@(Icon))"></span></button>
+        @onclick="OnClick"><span class="game-icon-button-art" style="background-image:var(--nosum-img-@(Icon))"></span>@if (Badge > 0)
+{
+<span class="game-icon-badge" aria-hidden="true">@(Badge > 9 ? "9+" : Badge.ToString())</span>
+}</button>
 
 @code {
     /// <summary>The theme sprite: <c>tab-settings</c>, ... (see <c>nosum-theme.js</c>).</summary>
@@ -13,6 +16,9 @@
 
     /// <summary>The localized tooltip and accessible name.</summary>
     [Parameter, EditorRequired] public string Tip { get; set; } = string.Empty;
+
+    /// <summary>A count shown in a small badge on the button (unread mail on the gear); nothing when zero.</summary>
+    [Parameter] public int Badge { get; set; }
 
     /// <summary>Raised on a click.</summary>
     [Parameter] public EventCallback OnClick { get; set; }

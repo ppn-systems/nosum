@@ -416,8 +416,8 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct, (GameMaps.Town, (counter.TileX * 16) + 8, (counter.TileY * 16) + 8));
         await buyer.JoinAsync(ct);
 
-        // The server clock is in spring (before the calendar epoch): radish grows in summer and fall (docs/adr/ADR-018).
-        (await buyer.BuyFromShopAsync(ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 1, ct)).Should().Be((ShopStatus.OutOfSeason, 0));
+        // The server clock is in spring (before the calendar epoch): tomatoes grow in summer only (docs/adr/ADR-018, ADR-025).
+        (await buyer.BuyFromShopAsync(ShopCatalog.SeedShop, ItemCatalog.TomatoSeeds, 1, ct)).Should().Be((ShopStatus.OutOfSeason, 0));
         (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins);
         (await buyer.BuyFromShopAsync(ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 1, ct)).Status.Should().Be(ShopStatus.Ok);
     }

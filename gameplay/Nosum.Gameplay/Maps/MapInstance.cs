@@ -21,6 +21,9 @@ public readonly record struct MapInstance(string MapId, Guid OwnerId)
     /// <summary>Gets whether this is a co-op's land (<see cref="MapSpec.IsCoop"/>): owned by a co-op, entered and worked by its members.</summary>
     public bool IsCoopLand => this.IsPrivate && GameMaps.TryGet(this.MapId, out MapSpec? map) && map.IsCoop;
 
+    /// <summary>Gets whether the instance is outdoors, where weather falls (docs/adr/ADR-027): every map except the ones flagged <see cref="MapSpec.Indoors"/>.</summary>
+    public bool IsOutdoors => !(GameMaps.TryGet(this.MapId, out MapSpec? map) && map.Indoors);
+
     /// <summary>
     /// Gets the string that names the instance for presence groups and in-memory caches: the map id for a shared
     /// map (so code written against map ids keeps working), <c>mapid@ownerid</c> for a private one.

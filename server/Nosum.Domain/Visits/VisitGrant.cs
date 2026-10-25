@@ -26,6 +26,9 @@ public sealed class VisitSettings
     /// <summary>Gets or sets whether members of the owner's co-op may visit without being on the allow-list.</summary>
     public bool CoopMembersMayVisit { get; set; } = true;
 
+    /// <summary>Gets or sets whether friends (docs/adr/ADR-029 D4) may visit without being on the allow-list.</summary>
+    public bool FriendsMayVisit { get; set; } = true;
+
     /// <summary>Gets or sets when the row last changed.</summary>
     public DateTimeOffset UpdatedAt { get; set; }
 }
