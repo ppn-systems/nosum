@@ -271,7 +271,7 @@ def _hair_mask(style, direction):
     dome = DOME_TOP
     if style == 0:        # short, tousled, side part
         if d:
-            return _from_profile(_profile(dome, [9, 9, 8, 8, 8, 7, 7, 7, 8, 8, 9, 9], 2)) | {(6, 8), (7, 8)}
+            return _from_profile(_profile(dome, [9, 9, 8, 7, 7, 6, 6, 7, 7, 8, 9, 9], 2))
         if r:
             return _from_profile(_profile(dome, [12, 12, 12, 11, 8, 8, 8, 7, 7, 7, 7, 6], 2))
         return _from_profile(_profile(dome, [13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 13, 13], 2))
@@ -283,18 +283,18 @@ def _hair_mask(style, direction):
         return _from_profile(_profile([6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6], [12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 12, 12], 2))
     if style == 2:        # bowl cut
         if d:
-            return _from_profile(_profile(dome, [12, 12, 12, 8, 8, 8, 8, 8, 8, 12, 12, 12], 2))
+            return _from_profile(_profile(dome, [12, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 12], 2))
         if r:
             return _from_profile(_profile(dome, [13, 13, 13, 13, 13, 8, 8, 8, 8, 8, 8, 7], 2))
         return _from_profile(_profile(dome, [14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14], 2))
     if style == 3:        # long, parted in the middle
         if d:
-            return _from_profile(_profile(dome, [19, 19, 19, 17, 8, 7, 7, 8, 17, 19, 19, 19], 2))
+            return _from_profile(_profile(dome, [19, 9, 8, 8, 7, 6, 6, 7, 8, 8, 9, 19], 2)) | _rect(1, 8, 2, 19) | _rect(13, 8, 14, 19)
         if r:
             return _from_profile(_profile(dome, [19, 20, 20, 19, 17, 8, 8, 7, 7, 7, 7, 6], 2))
         return _from_profile(_profile(dome, [20, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 20], 2))
     if style == 4:        # ponytail
-        base = _from_profile(_profile(dome, [9, 9, 8, 8, 8, 7, 7, 7, 8, 8, 9, 9], 2)) | {(6, 8), (7, 8)}
+        base = _from_profile(_profile(dome, [9, 9, 8, 7, 7, 6, 6, 7, 7, 8, 9, 9], 2))
         if d:
             return base | {(7, 4), (8, 4)}
         if r:
@@ -314,13 +314,13 @@ def _hair_mask(style, direction):
         bun = _ellipse(8, 5, 3, 2.3) | _rect(7, 6, 8, 6)
         tight = [7, 6, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7]
         if d:
-            return _from_profile(_profile(tight, [9, 9, 8, 8, 8, 7, 7, 7, 8, 8, 9, 9], 2)) | {(6, 8), (7, 8)} | bun
+            return _from_profile(_profile(tight, [9, 9, 8, 7, 7, 6, 6, 7, 7, 8, 9, 9], 2)) | bun
         if r:
             return _from_profile(_profile(tight, [12, 12, 12, 11, 8, 8, 8, 7, 7, 7, 7, 7], 2)) | _ellipse(6.5, 5, 3, 2.3)
         return _from_profile(_profile(tight, [13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 13, 13], 2)) | bun
     # style 7: curly puff
     if d:
-        return _ellipse(8, 8, 7.2, 5.2) - _rect(4, 8, 11, 14) | _rect(1, 8, 2, 13) | _rect(13, 8, 14, 13)
+        return _ellipse(8, 8, 7.2, 5.2) - _rect(3, 8, 12, 14) | _rect(1, 8, 2, 13) | _rect(13, 8, 14, 13)
     if r:
         return _ellipse(6.6, 8, 6.6, 5.2) - _rect(9, 9, 14, 14) | _rect(1, 8, 3, 14)
     return _ellipse(8, 8, 7.2, 5.6) | _rect(2, 10, 13, 14)
@@ -363,15 +363,15 @@ def _straw_hat(direction):
     c = _hat_canvas()
     d, m, l = STRAW
     dx = 0 if direction in ('down', 'up') else 1
-    c.ellipse(9.5 + dx, 6.5, 8, 2.3, m)                    # brim
-    c.rect(3 + dx, 7, 14, 1, d)
-    c.rect(5, 1, 10, 5, m)                                  # crown
+    c.ellipse(9.5 + dx, 5.6, 8, 2.1, m)                    # brim
+    c.rect(3 + dx, 6, 14, 1, d)
+    c.rect(5, 1, 10, 4, m)                                  # crown
     c.rect(6, 1, 8, 1, l)
     c.rect(5, 2, 10, 1, l)
-    c.rect(5, 4, 10, 1, BAND[1])                            # band
-    c.rect(5, 5, 10, 1, BAND[0])
-    c.rect(14, 2, 1, 3, d)
-    c.rect(2 + dx, 6, 3, 1, l)
+    c.rect(5, 3, 10, 1, BAND[1])                            # band
+    c.rect(5, 4, 10, 1, BAND[0])
+    c.rect(14, 1, 1, 3, d)
+    c.rect(2 + dx, 5, 3, 1, l)
     return c.outline(OUT)
 
 
@@ -379,23 +379,23 @@ def _cap(direction):
     c = _hat_canvas()
     d, m, l = CAP
     if direction in ('down', 'up'):
-        c.ellipse(9.5, 4, 6.5, 3.6, m)
-        c.rect(4, 5, 12, 2, m)
+        c.ellipse(9.5, 3.6, 6.5, 3.2, m)
+        c.rect(4, 4, 12, 2, m)
         c.rect(6, 1, 6, 1, l)
-        c.rect(4, 3, 3, 1, l)
-        c.rect(4, 6, 12, 1, d)
+        c.rect(4, 2, 3, 1, l)
+        c.rect(4, 5, 12, 1, d)
         if direction == 'down':
-            c.rect(5, 7, 10, 2, d)                          # bill seen from the front
-            c.rect(6, 7, 8, 1, m)
+            c.rect(5, 6, 10, 2, d)                          # bill seen from the front
+            c.rect(6, 6, 8, 1, m)
         else:
-            c.rect(8, 6, 4, 1, (60, 40, 40))               # adjustment strap
+            c.rect(8, 5, 4, 1, (60, 40, 40))               # adjustment strap
     else:
-        c.ellipse(9, 4, 6.5, 3.6, m)
-        c.rect(3, 5, 12, 2, m)
+        c.ellipse(9, 3.6, 6.5, 3.2, m)
+        c.rect(3, 4, 12, 2, m)
         c.rect(5, 1, 6, 1, l)
-        c.rect(3, 6, 12, 1, d)
-        c.rect(12, 7, 7, 2, d)                              # bill
-        c.rect(12, 7, 6, 1, m)
+        c.rect(3, 5, 12, 1, d)
+        c.rect(12, 6, 7, 2, d)                              # bill
+        c.rect(12, 6, 6, 1, m)
     return c.outline(OUT)
 
 
