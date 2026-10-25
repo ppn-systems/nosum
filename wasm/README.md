@@ -31,6 +31,7 @@ one `GameSocket` and one `PlayerChannel`. `Game/MapScene` predicts the local far
 to `PlayerChannel.Report` (no await, no allocation), snaps back on a `MoveCorrection`, and adds the
 other farmers (`Game/RemotePlayers`: a `SnapshotBuffer` from `Nosum.Core.Interpolation`, drawn 200 ms
 in the past) to the same `WorldSpriteBatch` so they y-sort with the local farmer and the buildings.
+The server sends a snapshot only of the players in the local player's chunk interest set, a `LookChanged` when one comes into sight and a `PlayerLeft` when one goes ([ADR-022](../docs/adr/ADR-022-chunked-interest-management.md)); `RemotePlayers` and `NearbyPlayers` follow snapshots, `LookChannel` forgets a look on `PlayerLeft`, and `FarmChannel`/`PlaceableChannel` file their mirrors by chunk (`ChunkState` replaces a chunk, `ChunkLeft` drops it).
 Without a server the farm still plays offline. Remote farmers are drawn from the looks the server sent (`LookChannel`, resolved by `Game/LookSprites` and `LookPalette`; ADR-014). `ConnectionBadge` shows the connection state in the current language.
 
 Playable now: `Pages/Home.razor` starts `Game/GameLoop`, which waits (up to 10 s) for the server's join answer, loads

@@ -40,6 +40,12 @@ public sealed class ViewerState
     /// <summary>Gets the other players the player was shown in the last snapshot: id to the tick stamp they were last seen at.</summary>
     public Dictionary<uint, int> Shown { get; } = [];
 
+    /// <summary>
+    /// Gets or sets whether the player has left the instance. Set by <see cref="IChunkMap"/> under its lock when the presence is removed; the snapshot loop, which may still hold the
+    /// record for the rest of its tick, then neither moves the interest set nor sends to the player.
+    /// </summary>
+    public bool Closed { get; set; }
+
     /// <summary>Gets or sets the stamp of the current snapshot tick; <see cref="Shown"/> entries with another stamp were not in the last snapshot.</summary>
     public int Stamp { get; set; }
 }

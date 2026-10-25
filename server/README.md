@@ -26,11 +26,18 @@ cleanup on disconnect, `MulticastAsync(mapId, packet)` for any feature. `IPlayer
 spawn), validates `MoveIntent`s with `MoveValidator` from `Nosum.Gameplay`, moves a player to another map
 when an accepted position is on an exit (`WarpRule`; leave the old map group, push `MapChanged`, join the
 new group, save map and place; [ADR-012](../docs/adr/ADR-012-maps-and-warps.md)) and saves the position when
-the player leaves. While anyone is on a map it pushes a `MapSnapshot` to that map every 100 ms; the loop
-stops by itself when the last player leaves. Handlers: `Nosum.Handlers/Player` (signed-in players
+the player leaves. While anyone is on a map the loop pushes each player a `MapSnapshot` every 100 ms that holds only the players
+in their chunk interest set (see Chunks below); it stops by itself when the last player leaves. Handlers: `Nosum.Handlers/Player` (signed-in players
 only). Maps come from `IMapCatalog` (`TmxMapCatalog`: every map of `GameMaps` loaded from the `.tmx` files copied next
 to the host from `assets/Maps/`, walk grid and exits from `MapSpec` so server and client collide and open doors
 identically; a map id from a client is only ever a key into that list, never a path).
+
+Chunks ([ADR-022](../docs/adr/ADR-022-chunked-interest-management.md)): a chunk is 16 × 16 tiles of one instance and a player is interested in their chunk and its 8 neighbours (one chunk of hysteresis; the pure
+`ChunkCoord`/`ChunkBounds`/`ChunkInterest` are in `Nosum.Gameplay/Maps`). `IChunkMap` (`Nosum.Abstractions/Presence`, implemented by `MapPresence` over `ChunkIndex`) is the per-instance index from chunk to the players
+interested in it; it changes at a join, a leave and when the snapshot loop sees a player's chunk change, never per move. `IChunkPublisher` (`ChunkPublisher`) is the one door for world events: `PublishAsync(instance, chunk, packet)`
+to the chunk's subscribers (the default), `PublishInstanceAsync(instance, packet)` to everybody on the instance (map-wide only). A feature with per-chunk state implements `IChunkStateContributor` (`FarmService`,
+`PlaceableService`); `ChunkStreamer` sends a contributor-built `ChunkState` once when a chunk joins a player's interest set, a `ChunkLeft` when it leaves, a `LookChanged` when another player comes into sight and a
+`PlayerLeft` when one goes. The snapshot loop (`PlayerService.Snapshots.cs`) builds each snapshot from the players standing in the receiver's chunks and does not allocate per tick.
 
 Private places ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): the farm and the farmhouse are one copy per player. A place is a `MapInstance` (map id plus owner; `Key` is the map id
 for a shared map), `IMapPresence` groups players by that key (`PlayerPresence.Key`; use it, not `MapId`, to reach "the players on my map"), `PlayerService` enters a player into their own
@@ -43,7 +50,7 @@ Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md
 `ITransferService` (`Infrastructure/Economy`) is the one way coins move: items and coins between players and co-op warehouses in one transaction, built on
 `IInventoryService.ApplyManyAsync` (every involved player's lock, one unit of work, one save; a feature joins it with an `enlist` callback). On it sit `IMarketService`
 (`Market/`: shipping bin, listings as escrow, buy, cancel, expiry; `MarketExpiryService` is the hosted sweep), `ITradeService` (`Trade/`: invitations and sessions in
-memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Looks/`: persisted look ids, wardrobe, announces through `IMapPresence`) and `ICoopService`
+memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Looks/`: persisted look ids, wardrobe, announces to the players who can see the player through `IChunkPublisher`) and `ICoopService`
 (`Coops/`: membership, invitations, the shared warehouse with its audit trail). New entities: wallets and coin log, market listings, appearances, co-ops, members, invites, stock and log
 (migration `SocialLayer`). Handlers: `Nosum.Handlers/{Market,Look,Trade,Coop}`; everything that moves coins or items is `[PacketEncryption(true)]`.
 

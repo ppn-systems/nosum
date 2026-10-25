@@ -52,6 +52,7 @@ internal sealed class ChunkIndex
         lock (_gate)
         {
             // Copied under the lock: the snapshot loop may be moving the same interest set.
+            viewer.Closed = true;
             int count = viewer.Interest.CopyTo(chunks);
             if (!_instances.TryGetValue(player.Key, out Dictionary<ChunkCoord, List<PlayerPresence>>? instance))
             {
@@ -76,7 +77,10 @@ internal sealed class ChunkIndex
         ViewerState viewer = player.Viewer ?? throw new InvalidOperationException("The player is not subscribed.");
         lock (_gate)
         {
-            if (!viewer.Interest.MoveTo(destination, entered, out enteredCount, left, out leftCount))
+            // The player left while the snapshot loop was still holding the record: nothing to move, and no ghost subscriber.
+            enteredCount = 0;
+            leftCount = 0;
+            if (viewer.Closed || !viewer.Interest.MoveTo(destination, entered, out enteredCount, left, out leftCount))
             {
                 return false;
             }

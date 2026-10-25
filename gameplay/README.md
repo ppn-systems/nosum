@@ -23,6 +23,9 @@ exit needs walking outwards) and `WarpRule.Arrival` where they appear. `MapSpec.
 grid both sides use. Adding a map: add a `MapSpec` to `GameMaps`, link its `.tmx` and tilesheets in
 `wasm/Nosum.Wasm/Nosum.Wasm.csproj` and `server/Nosum.Host/Nosum.Host.csproj` (`GameMapsTests` checks). Hosted maps: `farm`, `farmhouse`, `busstop`, `forest`, `town`, `backwoods`.
 
+Chunks ([ADR-022](../docs/adr/ADR-022-chunked-interest-management.md)): `Maps/ChunkCoord` (16 × 16 tiles; tile or pixel to chunk, distance), `ChunkBounds` (the chunks a map has) and `ChunkInterest` (the set of chunks a player is
+interested in: their chunk and its 8 neighbours, with one chunk of hysteresis; `MoveTo` says which chunks entered and left). The server decides who sees what with them, the client uses the same math to file mirrors by chunk.
+
 Instances and placeables ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `MapSpec.IsPrivate` (farm, farmhouse) makes one copy of a map per player; `Maps/MapInstance` (map id + owner, `Key`) names a copy.
 `MapSpec.Placeable` (farmhouse) allows furniture. `Placeables/PlaceableCatalog` maps a furniture item (`ItemKind.Furniture`, ids 300-399) to a `PlaceableDefinition` (views per rotation, sheet rectangle,
 footprint); `PlacedSet` holds the pieces of one place and is the single rule set (`Check`: rotation, inside the map, free floor, off reserved tiles, no overlap; `CoversFeet`; `BuildGrid` for collision)

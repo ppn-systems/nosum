@@ -96,6 +96,7 @@ public sealed partial class PlayerService
         }
     }
 
+    [SuppressMessage("Design", "CA1031", Justification = "One failed instance must not stop snapshots for the others.")]
     private async ValueTask PushSnapshotsAsync()
     {
         _mapIds.Clear();
@@ -104,7 +105,14 @@ public sealed partial class PlayerService
 
         foreach (string mapId in _mapIds)
         {
-            await this.PushInstanceAsync(mapId, timeMs).ConfigureAwait(false);
+            try
+            {
+                await this.PushInstanceAsync(mapId, timeMs).ConfigureAwait(false);
+            }
+            catch (Exception) when (!_stop.IsCancellationRequested)
+            {
+                // One instance failing its tick must not starve the others; its next tick starts over.
+            }
         }
     }
 
@@ -182,6 +190,11 @@ public sealed partial class PlayerService
     private async ValueTask UpdateInterestAsync(PlayerPresence player)
     {
         ViewerState viewer = player.Viewer!;
+        if (viewer.Closed)
+        {
+            return;
+        }
+
         try
         {
             if (viewer.Chunk != viewer.Interest.Center
@@ -219,12 +232,12 @@ public sealed partial class PlayerService
     private async ValueTask PushToViewerAsync(PlayerPresence viewerPlayer, MapSnapshot snapshot, int count)
     {
         IConnection connection = viewerPlayer.Connection;
-        if (connection.IsDisposed)
+        ViewerState viewer = viewerPlayer.Viewer!;
+        if (connection.IsDisposed || viewer.Closed)
         {
             return;
         }
 
-        ViewerState viewer = viewerPlayer.Viewer!;
         viewer.Stamp++;
         _spawns.Clear();
         _despawns.Clear();
