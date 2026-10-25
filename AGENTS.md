@@ -13,6 +13,7 @@
 | Stack | C# / .NET 10 · own 2D engine (`engine/`) · Blazor WebAssembly client · Nalix WebSocket server · shared contracts |
 | Layout | [`ARCHITECTURE.md`](ARCHITECTURE.md) — areas, project dependencies, frame loop, network path |
 | Game pillars | [`docs/design/pillars.md`](docs/design/pillars.md) — co-ops, shared market, server-wide seasons |
+| Roadmap | [`docs/design/roadmap.md`](docs/design/roadmap.md) — milestones M1–M6 to a complete game |
 | Decisions | [`docs/adr/README.md`](docs/adr/README.md) |
 
 ## Before any agent starts work
