@@ -1,0 +1,17 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Benchmarks run with the same WASM settings as wasm/, so their numbers apply to the game client. -->
+  <PropertyGroup>
+    <IsAotCompatible>false</IsAotCompatible>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+  </PropertyGroup>
+
+  <!-- A WASM publish output is downloaded by every player: keep symbols and XML docs out of it. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

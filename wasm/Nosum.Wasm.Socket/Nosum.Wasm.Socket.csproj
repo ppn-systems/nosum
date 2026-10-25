@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum client transport: owns the single Nalix WebSocketSession (connect, handshake, resume, request/push). UI code reaches it only through ViewModels.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nalix.SDK" />
+    <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

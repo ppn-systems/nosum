@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <Description>Nosum browser render backend: one [JSImport] call per frame hands the command buffer to a JS module that draws on a canvas.</Description>
+    <!-- Required by the [JSImport]/[JSExport] source generator. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nosum.Rendering\Nosum.Rendering.csproj" />
+  </ItemGroup>
+
+</Project>

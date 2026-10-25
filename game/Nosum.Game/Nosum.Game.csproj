@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum farm rules shared by server and client: plots, crops, items, time-based growth. Pure logic, no I/O.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
+  </ItemGroup>
+
+</Project>

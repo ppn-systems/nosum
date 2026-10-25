@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum MVVM view models for the UI overlay. No .razor files; pages bind to these.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nosum.Wasm.Socket\Nosum.Wasm.Socket.csproj" />
+  </ItemGroup>
+
+</Project>

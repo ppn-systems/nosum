@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Nosum server composition root: registers services and handlers into Nalix and binds the WebSocket listener.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nosum.Handlers\Nosum.Handlers.csproj" />
+    <ProjectReference Include="..\Nosum.Infrastructure\Nosum.Infrastructure.csproj" />
+    <PackageReference Include="Nalix.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Nosum.IntegrationTests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum persisted entities and enums (players, farms, plots, inventory). No infrastructure dependency.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\game\Nosum.Game\Nosum.Game.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum wire contracts shared by server and client: opcodes, Nalix packets, DTOs and enums. No logic.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nalix.Abstractions" />
+    <PackageReference Include="Nalix.Codec" />
+  </ItemGroup>
+
+</Project>

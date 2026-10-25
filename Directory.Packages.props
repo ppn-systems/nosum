@@ -1,0 +1,28 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- Nalix realtime core: all Nalix.* packages move together. -->
+  <ItemGroup>
+    <PackageVersion Include="Nalix.Abstractions" Version="14.3.7" />
+    <PackageVersion Include="Nalix.Codec" Version="14.3.7" />
+    <PackageVersion Include="Nalix.Hosting" Version="14.3.7" />
+    <PackageVersion Include="Nalix.Runtime" Version="14.3.7" />
+    <PackageVersion Include="Nalix.SDK" Version="14.3.7" />
+  </ItemGroup>
+
+  <!-- Blazor WebAssembly -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" />
+  </ItemGroup>
+
+  <!-- Tests -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="FluentAssertions" Version="7.2.0" />
+  </ItemGroup>
+</Project>

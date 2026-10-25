@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Nosum.Core/Nosum.Core.csproj" />
+  <Project Path="Nosum.Rendering/Nosum.Rendering.csproj" />
+  <Project Path="Nosum.Rendering.Web/Nosum.Rendering.Web.csproj" />
+</Solution>

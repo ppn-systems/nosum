@@ -1,0 +1,6 @@
+<Project>
+  <!-- Single source of truth for the Nosum version. -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+</Project>

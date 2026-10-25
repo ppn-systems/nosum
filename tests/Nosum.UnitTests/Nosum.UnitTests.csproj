@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
+    <ProjectReference Include="..\..\game\Nosum.Game\Nosum.Game.csproj" />
+    <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

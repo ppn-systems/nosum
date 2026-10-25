@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Nosum.UnitTests/Nosum.UnitTests.csproj" />
+  <Project Path="Nosum.IntegrationTests/Nosum.IntegrationTests.csproj" />
+</Solution>

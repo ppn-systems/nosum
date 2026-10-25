@@ -1,0 +1,17 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Blazor WASM: trimmed, interpreter (no AOT) until bench/ numbers justify AOT (docs/adr/ADR-002). -->
+  <PropertyGroup>
+    <IsAotCompatible>false</IsAotCompatible>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+  </PropertyGroup>
+
+  <!-- A WASM publish output is downloaded by every player: keep symbols and XML docs out of it. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum server implementations: persistence and service implementations of Nosum.Abstractions.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nosum.Abstractions\Nosum.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>
