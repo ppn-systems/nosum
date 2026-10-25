@@ -23,3 +23,7 @@ artifacts/
 *.env
 *.pfx
 *.key
+
+# Deployment-specific proxy rules (deploy/access.d/README.md)
+deploy/.env
+deploy/access.d/*.caddyfile

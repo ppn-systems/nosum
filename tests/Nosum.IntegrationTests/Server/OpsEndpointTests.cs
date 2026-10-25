@@ -114,10 +114,10 @@ public sealed class OpsEndpointTests
     {
         await using OpsEndpoint endpoint = Start(static _ => Task.FromResult(true), out ushort port);
         using System.IO.StringWriter output = new();
-        Microsoft.EntityFrameworkCore.DbContextOptions<NosumDbContext> unused = NosumDatabase.CreateOptions(NosumDatabase.DevelopmentConnectionString);
+        static Microsoft.EntityFrameworkCore.DbContextOptions<NosumDbContext> NoDatabase() => throw new InvalidOperationException("The healthcheck must not touch the database.");
 
-        int running = await HostCommands.RunAsync(["healthcheck"], unused, port, output, CancellationToken.None);
-        int absent = await HostCommands.RunAsync(["healthcheck"], unused, FreePort(), output, CancellationToken.None);
+        int running = await HostCommands.RunAsync(["healthcheck"], NoDatabase, port, output, CancellationToken.None);
+        int absent = await HostCommands.RunAsync(["healthcheck"], NoDatabase, FreePort(), output, CancellationToken.None);
 
         running.Should().Be(0);
         absent.Should().Be(1);

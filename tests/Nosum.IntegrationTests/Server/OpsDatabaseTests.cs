@@ -109,10 +109,10 @@ public sealed class OpsDatabaseTests : IClassFixture<PostgresFixture>, IAsyncLif
         string nickname = await CreateAsync();
         using StringWriter output = new();
 
-        int granted = await HostCommands.RunAsync(["admin", "grant", nickname.ToUpperInvariant()], _database.Options, 0, output, CancellationToken.None);
+        int granted = await HostCommands.RunAsync(["admin", "grant", nickname.ToUpperInvariant()], () => _database.Options, 0, output, CancellationToken.None);
         PlayerRole afterGrant = await RoleOfAsync(nickname);
-        int listed = await HostCommands.RunAsync(["admin", "list"], _database.Options, 0, output, CancellationToken.None);
-        int revoked = await HostCommands.RunAsync(["admin", "revoke", nickname], _database.Options, 0, output, CancellationToken.None);
+        int listed = await HostCommands.RunAsync(["admin", "list"], () => _database.Options, 0, output, CancellationToken.None);
+        int revoked = await HostCommands.RunAsync(["admin", "revoke", nickname], () => _database.Options, 0, output, CancellationToken.None);
         PlayerRole afterRevoke = await RoleOfAsync(nickname);
 
         granted.Should().Be(0);
@@ -134,8 +134,8 @@ public sealed class OpsDatabaseTests : IClassFixture<PostgresFixture>, IAsyncLif
         Nosum.Abstractions.Accounts.AccountOutcome guest = await accounts.StartGuestAsync(GameLanguage.English, CancellationToken.None);
         using StringWriter output = new();
 
-        int unknown = await HostCommands.RunAsync(["admin", "grant", TestNicknames.Next()], _database.Options, 0, output, CancellationToken.None);
-        int guestResult = await HostCommands.RunAsync(["admin", "grant", guest.Nickname], _database.Options, 0, output, CancellationToken.None);
+        int unknown = await HostCommands.RunAsync(["admin", "grant", TestNicknames.Next()], () => _database.Options, 0, output, CancellationToken.None);
+        int guestResult = await HostCommands.RunAsync(["admin", "grant", guest.Nickname], () => _database.Options, 0, output, CancellationToken.None);
 
         unknown.Should().Be(1);
         guestResult.Should().Be(1);
@@ -150,7 +150,7 @@ public sealed class OpsDatabaseTests : IClassFixture<PostgresFixture>, IAsyncLif
     {
         using StringWriter output = new();
 
-        int code = await HostCommands.RunAsync(args, _database.Options, 0, output, CancellationToken.None);
+        int code = await HostCommands.RunAsync(args, () => _database.Options, 0, output, CancellationToken.None);
 
         code.Should().Be(2);
         output.ToString().Should().Contain("usage:");

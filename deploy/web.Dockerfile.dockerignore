@@ -1,0 +1,16 @@
+# Build context of web.Dockerfile: only what the client build reads.
+**
+!global.json
+!Directory.Build.props
+!Directory.Packages.props
+!Version.props
+!engine
+!contracts
+!gameplay
+!wasm
+!assets
+!deploy/check-placeholder-art.sh
+!deploy/PlaceholderGate.targets
+!deploy/Caddyfile
+**/bin
+**/obj

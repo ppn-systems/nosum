@@ -117,14 +117,14 @@ internal static class Program
             shutdown.Cancel();
         };
 
-        // Persistence: connection string from the environment, migrations applied before any listener opens.
-        DbContextOptions<NosumDbContext> database = NosumDatabase.CreateOptions(ResolveConnectionString());
-
-        // Command line (admin role, container healthcheck): run, print, exit - nothing else of the server starts.
+        // Command line (admin role, container healthcheck): run, print, exit - nothing else of the server starts. Only the admin commands need the database.
         if (args.Length > 0)
         {
-            return await HostCommands.RunAsync(args, database, OpsPort(), Console.Out, shutdown.Token).ConfigureAwait(false);
+            return await HostCommands.RunAsync(args, () => NosumDatabase.CreateOptions(ResolveConnectionString()), OpsPort(), Console.Out, shutdown.Token).ConfigureAwait(false);
         }
+
+        // Persistence: connection string from the environment, migrations applied before any listener opens.
+        DbContextOptions<NosumDbContext> database = NosumDatabase.CreateOptions(ResolveConnectionString());
 
         // Operations (docs/adr/ADR-031): JSON logs on stdout, and /healthz /readyz /metrics up before the migration, so a slow one shows as not ready.
         OpsLog.Configure(Console.Out);

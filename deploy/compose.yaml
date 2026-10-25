@@ -1,0 +1,124 @@
+# Single-server deployment (docs/adr/ADR-031 D1-D4, D9): PostgreSQL 16, the Nosum host, Caddy (TLS, static client, WebSocket proxy) and the nightly backup.
+#
+#   cp .env.example .env      # fill every value; .env is never committed
+#   docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
+#
+# Operations (admin role, backup, restore, key rotation): docs/ops/README.md.
+name: nosum
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nosum
+      POSTGRES_USER: nosum
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nosum -d nosum"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks: [nosum]
+
+  host:
+    build:
+      context: ..
+      dockerfile: deploy/host.Dockerfile
+      args:
+        NOSUM_RELEASE: ${NOSUM_RELEASE:-private}
+    image: nosum/host:${NOSUM_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      ConnectionStrings__Default: Host=db;Port=5432;Database=nosum;Username=nosum;Password=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+      NOSUM_ORIGIN: https://${NOSUM_DOMAIN:?set NOSUM_DOMAIN in deploy/.env}
+      NOSUM_TRUSTED_PROXIES: 172.28.0.0/24
+      NOSUM_CALENDAR_EPOCH: ${NOSUM_CALENDAR_EPOCH:-}
+    volumes:
+      # The Nalix server key, server.ini and block lists: losing this volume changes the server key (docs/ops/README.md, "Rotate keys").
+      - nalix_data:/data
+    expose:
+      - "57300"
+      - "57301"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks: [nosum]
+
+  caddy:
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+      args:
+        NOSUM_RELEASE: ${NOSUM_RELEASE:-private}
+    image: nosum/web:${NOSUM_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      - host
+    environment:
+      NOSUM_DOMAIN: ${NOSUM_DOMAIN:?set NOSUM_DOMAIN in deploy/.env}
+      # Private until milestone M6 (docs/adr/ADR-031 D9): only these addresses/CIDRs may connect. After M6 set 0.0.0.0/0 ::/0.
+      NOSUM_ALLOW_IPS: ${NOSUM_ALLOW_IPS:?set NOSUM_ALLOW_IPS in deploy/.env (the team's addresses; the deployment is private until M6)}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./access.d:/etc/caddy/access.d:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      nosum:
+        ipv4_address: 172.28.0.10
+
+  backup:
+    image: postgres:16
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: nosum
+      PGDATABASE: nosum
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+      BACKUP_DIR: /backups
+      BACKUP_HOUR_UTC: ${BACKUP_HOUR_UTC:-3}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    entrypoint: ["/backup/backup.sh"]
+    volumes:
+      - ./backup:/backup:ro
+      - backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "/backup/backup.sh --check"]
+      interval: 1h
+      timeout: 10s
+      retries: 1
+      start_period: 1h
+    networks: [nosum]
+
+networks:
+  nosum:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+
+volumes:
+  db_data:
+  nalix_data:
+  backups:
+  caddy_data:
+  caddy_config:

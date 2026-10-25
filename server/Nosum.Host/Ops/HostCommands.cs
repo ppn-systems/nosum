@@ -27,12 +27,12 @@ internal static class HostCommands
 
     /// <summary>Runs a command.</summary>
     /// <param name="args">The command line, never empty.</param>
-    /// <param name="database">Options of the database (admin commands only).</param>
+    /// <param name="database">Creates the options of the database; called by the admin commands only, so the healthcheck needs no connection string.</param>
     /// <param name="opsPort">Port of the running server's ops endpoint (healthcheck only).</param>
     /// <param name="output">Where the answer goes.</param>
     /// <param name="cancellationToken">Cancels the command.</param>
     /// <returns>The process exit code: 0 on success.</returns>
-    internal static async Task<int> RunAsync(string[] args, DbContextOptions<NosumDbContext> database, ushort opsPort, TextWriter output, CancellationToken cancellationToken)
+    internal static async Task<int> RunAsync(string[] args, Func<DbContextOptions<NosumDbContext>> database, ushort opsPort, TextWriter output, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(args);
         ArgumentNullException.ThrowIfNull(database);
@@ -45,7 +45,7 @@ internal static class HostCommands
 
         if (args.Length >= 2 && args[0] == "admin")
         {
-            return await AdminAsync(args, database, output, cancellationToken).ConfigureAwait(false);
+            return await AdminAsync(args, database(), output, cancellationToken).ConfigureAwait(false);
         }
 
         await output.WriteLineAsync(Usage).ConfigureAwait(false);

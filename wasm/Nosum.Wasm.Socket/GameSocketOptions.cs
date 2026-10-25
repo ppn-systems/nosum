@@ -42,8 +42,10 @@ public sealed class GameSocketOptions
     public TimeSpan ReconnectMaxDelay { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// Builds options for the server that serves the page: same host, the default port, TLS when
-    /// the page itself is https (a plain <c>ws://</c> socket is blocked from an https page).
+    /// Builds options for the server that serves the page: same host. A page served over https sits behind the reverse proxy
+    /// (docs/adr/ADR-031 D2), which serves the client and proxies <see cref="DefaultPath"/> on the page's own port, so the socket uses
+    /// that port with TLS; an http page is a local development server and the socket goes to <see cref="DefaultPort"/> directly
+    /// (a plain <c>ws://</c> socket is blocked from an https page, which is why the two cases differ).
     /// </summary>
     /// <param name="pageAddress">The page's base address.</param>
     /// <returns>The options.</returns>
@@ -51,10 +53,12 @@ public sealed class GameSocketOptions
     {
         ArgumentNullException.ThrowIfNull(pageAddress);
 
+        bool tls = string.Equals(pageAddress.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal);
         return new GameSocketOptions
         {
             Host = pageAddress.Host,
-            UseTls = string.Equals(pageAddress.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal),
+            UseTls = tls,
+            Port = tls ? (ushort)pageAddress.Port : DefaultPort,
         };
     }
 }
