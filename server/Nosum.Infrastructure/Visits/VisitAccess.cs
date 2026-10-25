@@ -1,16 +1,17 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Data;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Coops;
+using Nosum.Infrastructure.Friends;
 using Nosum.Abstractions.Presence;
-using Nosum.Domain.Accounts;
 using Nosum.Domain.Social;
-using Nosum.Domain.Visits;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Visits;
 
@@ -27,17 +28,26 @@ public sealed class VisitAccess : IInstanceAccessPolicy
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly INicknameDirectory _players;
     private readonly CoopDirectory _coops;
+    private readonly VisitFacts _visits;
+    private readonly FriendFacts _friends;
+    private readonly IBlockList? _blocks;
 
     /// <summary>Initializes the policy.</summary>
-    /// <param name="unitOfWork">Creates units of work.</param>
+    /// <param name="unitOfWork">Creates units of work for whatever is not given.</param>
     /// <param name="players">Tells whether the owner exists and is a guest without reading their account row; <see langword="null"/> reads it every time.</param>
     /// <param name="coops">Who is in which co-op; <see langword="null"/> reads the rows every time.</param>
-    public VisitAccess(IUnitOfWorkFactory unitOfWork, INicknameDirectory? players = null, CoopDirectory? coops = null)
+    /// <param name="visits">The owner's allow-list and settings; <see langword="null"/> reads the rows every time.</param>
+    /// <param name="friends">The owner's friends; <see langword="null"/> reads the rows every time.</param>
+    /// <param name="blocks">The block lists; <see langword="null"/> reads the rows every time.</param>
+    public VisitAccess(IUnitOfWorkFactory unitOfWork, INicknameDirectory? players = null, CoopDirectory? coops = null, VisitFacts? visits = null, FriendFacts? friends = null, IBlockList? blocks = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         _unitOfWork = unitOfWork;
         _players = players ?? new NicknameDirectory(unitOfWork, cacheFacts: false);
         _coops = coops ?? new CoopDirectory(unitOfWork, cached: false);
+        _visits = visits ?? new VisitFacts(unitOfWork, cached: false);
+        _friends = friends ?? new FriendFacts(unitOfWork, cached: false);
+        _blocks = blocks;
     }
 
     /// <inheritdoc/>
@@ -55,23 +65,31 @@ public sealed class VisitAccess : IInstanceAccessPolicy
         }
 
         Guid ownerId = instance.OwnerId;
+        PlayerFact? owner = await _players.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        if (owner is null)
+        {
+            return false;
+        }
+
+        OwnerVisitFacts facts = await _visits.GetAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        bool listed = facts.Listed.Contains(playerId);
+        bool blocked = await this.HasBlockedAsync(ownerId, playerId, cancellationToken).ConfigureAwait(false);
+        bool isFriend = !listed && !blocked && facts.FriendsMayVisit && (await _friends.GetFriendsAsync(ownerId, cancellationToken).ConfigureAwait(false)).Contains(playerId);
+        bool sameCoop = !listed && !isFriend && !blocked && facts.CoopMembersMayVisit && await this.ShareCoopAsync(ownerId, playerId, cancellationToken).ConfigureAwait(false);
+        return VisitRules.MayEnter(playerId, ownerId, owner.IsGuest, listed, sameCoop, facts.CoopMembersMayVisit, isFriend, facts.FriendsMayVisit, blocked);
+    }
+
+    private async ValueTask<bool> HasBlockedAsync(Guid ownerId, Guid playerId, CancellationToken cancellationToken)
+    {
+        if (_blocks is not null)
+        {
+            return await _blocks.HasBlockedAsync(ownerId, playerId, cancellationToken).ConfigureAwait(false);
+        }
+
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            PlayerFact? owner = await _players.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
-            if (owner is null)
-            {
-                return false;
-            }
-
-            bool listed = await unit.Repository<VisitGrant>().AnyAsync(g => g.OwnerId == ownerId && g.VisitorId == playerId, cancellationToken).ConfigureAwait(false);
-            VisitSettings? settings = await unit.Repository<VisitSettings>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
-            bool coopMembersMayVisit = settings?.CoopMembersMayVisit ?? VisitRules.CoopMembersMayVisitByDefault;
-            bool friendsMayVisit = settings?.FriendsMayVisit ?? VisitRules.FriendsMayVisitByDefault;
-            bool blocked = await unit.Repository<BlockedPlayer>().AnyAsync(b => b.OwnerId == ownerId && b.BlockedId == playerId, cancellationToken).ConfigureAwait(false);
-            bool isFriend = !listed && !blocked && friendsMayVisit && await unit.Repository<Friendship>().AnyAsync(f => f.PlayerId == ownerId && f.FriendId == playerId, cancellationToken).ConfigureAwait(false);
-            bool sameCoop = !listed && !isFriend && !blocked && coopMembersMayVisit && await this.ShareCoopAsync(ownerId, playerId, cancellationToken).ConfigureAwait(false);
-            return VisitRules.MayEnter(playerId, ownerId, owner.IsGuest, listed, sameCoop, coopMembersMayVisit, isFriend, friendsMayVisit, blocked);
+            return await unit.Repository<BlockedPlayer>().AnyAsync(b => b.OwnerId == ownerId && b.BlockedId == playerId, cancellationToken).ConfigureAwait(false);
         }
     }
 

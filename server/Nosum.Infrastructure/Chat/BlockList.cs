@@ -12,6 +12,7 @@ using Nosum.Abstractions.Data;
 using Nosum.Contracts.Chat;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Social;
+using Nosum.Infrastructure.Friends;
 using Nosum.Gameplay.Chat;
 using Nosum.Gameplay.Players;
 
@@ -27,6 +28,7 @@ public sealed class BlockList : IBlockList
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly INicknameDirectory _nicknames;
     private readonly TimeProvider _time;
+    private readonly FriendFacts? _friends;
     private readonly ConcurrentDictionary<Guid, HashSet<Guid>> _cache = new();
     private long _epoch;
 
@@ -34,7 +36,8 @@ public sealed class BlockList : IBlockList
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="nicknames">Resolves the nicknames shown in the list.</param>
     /// <param name="time">The clock for the time a block was made.</param>
-    public BlockList(IUnitOfWorkFactory unitOfWork, INicknameDirectory nicknames, TimeProvider time)
+    /// <param name="friends">Friends and requests held in memory: a block removes the friendship and the requests between two players, so their entries are dropped (docs/adr/ADR-035 D5); <see langword="null"/> when none are kept.</param>
+    public BlockList(IUnitOfWorkFactory unitOfWork, INicknameDirectory nicknames, TimeProvider time, FriendFacts? friends = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(nicknames);
@@ -43,6 +46,7 @@ public sealed class BlockList : IBlockList
         _unitOfWork = unitOfWork;
         _nicknames = nicknames;
         _time = time;
+        _friends = friends;
     }
 
     /// <inheritdoc/>
@@ -78,6 +82,7 @@ public sealed class BlockList : IBlockList
             return ChatStatus.InvalidNickname;
         }
 
+        Guid targetId = Guid.Empty;
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
@@ -87,7 +92,7 @@ public sealed class BlockList : IBlockList
                 return ChatStatus.UnknownPlayer;
             }
 
-            Guid targetId = target.Id;
+            targetId = target.Id;
             if (targetId == ownerId)
             {
                 return ChatStatus.SelfBlock;
@@ -126,6 +131,10 @@ public sealed class BlockList : IBlockList
             catch (Exception ex) when (unit.IsUniqueViolation(ex))
             {
                 return ChatStatus.AlreadyBlocked;
+            }
+            finally
+            {
+                _friends?.Changed(ownerId, targetId);
             }
         }
 

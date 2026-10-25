@@ -476,7 +476,20 @@ internal static class Program
         BuildingDirectory buildingDirectory = new(unitOfWork);
         InstanceManager.Instance.Register<IBuildingDirectory>(buildingDirectory);
         // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019); the inside of a building follows its land (docs/adr/ADR-028 D2).
-        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork, nicknames, coopDirectory), buildingDirectory, coopMembership, clock);
+        // Friends and the owners' visit settings are held in memory too (docs/adr/ADR-035 D5): the access check reads them on every entry, the friend, visit and block services change them.
+        FriendFacts friendFacts = new(unitOfWork);
+        VisitFacts visitFacts = new(unitOfWork);
+        InstanceManager.Instance.Register(friendFacts);
+        InstanceManager.Instance.Register(visitFacts);
+        InstanceManager.Instance.Register(coopDirectory);
+        sessions.SessionEnded += id =>
+        {
+            friendFacts.Changed(id);
+            return ValueTask.CompletedTask;
+        };
+        BlockList blocks = new(unitOfWork, nicknames, clock, friendFacts);
+        InstanceManager.Instance.Register<IBlockList>(blocks);
+        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork, nicknames, coopDirectory, visitFacts, friendFacts, blocks), buildingDirectory, coopMembership, clock);
 
         // Admin intents, the mute list and the live gauges (docs/adr/ADR-031 D6-D7).
         OpsServices.Register(unitOfWork, sessions, transfers, presence, clock);
@@ -544,8 +557,6 @@ internal static class Program
 
         // Block lists and the mailbox (docs/adr/ADR-029): the trade, co-op and visit services drop requests between blocked players, the market and the
         // co-ops send mail, and community goals send rewards through IMailService.
-        BlockList blocks = new(unitOfWork, nicknames, clock);
-        InstanceManager.Instance.Register<IBlockList>(blocks);
         MailService mail = new(unitOfWork, transfers, notifier, clock);
         InstanceManager.Instance.Register<IMailService>(mail);
 
@@ -591,9 +602,9 @@ internal static class Program
         InstanceManager.Instance.Register<ICoopService>(coops);
 
         // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
-        FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock);
+        FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock, friendFacts, visitFacts);
         InstanceManager.Instance.Register<IFriendService>(friends);
-        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory));
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory, visitFacts));
         InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
 
         // Armed last: every subscriber is in place before the first boundary.

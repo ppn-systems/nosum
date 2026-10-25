@@ -104,9 +104,13 @@ internal sealed class ReadThroughCache<TKey, TValue>
     public void Update(TKey key, Func<TValue, TValue> change)
     {
         _ = Interlocked.Increment(ref _epoch);
-        if (_enabled && _entries.TryGetValue(key, out Entry? entry))
+        while (_enabled && _entries.TryGetValue(key, out Entry? entry))
         {
-            _entries[key] = new Entry(change(entry.Value));
+            // Two writers changing the same entry never lose one another's change: the loser starts again from the winner's value.
+            if (_entries.TryUpdate(key, new Entry(change(entry.Value)), entry))
+            {
+                return;
+            }
         }
     }
 

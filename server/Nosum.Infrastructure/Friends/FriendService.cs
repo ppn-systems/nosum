@@ -20,6 +20,7 @@ using Nosum.Domain.Accounts;
 using Nosum.Domain.Social;
 using Nosum.Domain.Visits;
 using Nosum.Infrastructure.Chat;
+using Nosum.Infrastructure.Visits;
 using Nosum.Gameplay.Friends;
 using Nosum.Gameplay.Visits;
 
@@ -43,6 +44,9 @@ public sealed class FriendService : IFriendService, IDisposable
     private readonly INicknameDirectory _nicknames;
     private readonly IBlockList _blocks;
     private readonly TimeProvider _time;
+    private readonly FriendFacts _friends;
+    private readonly VisitFacts _visits;
+    private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly ConcurrentDictionary<Guid, Location> _announced = new();
 
     /// <summary>Initializes the service and starts listening for players joining and leaving maps.</summary>
@@ -53,7 +57,9 @@ public sealed class FriendService : IFriendService, IDisposable
     /// <param name="nicknames">Resolves nicknames.</param>
     /// <param name="blocks">The block lists: nobody befriends a player who blocked them.</param>
     /// <param name="time">The clock for row times and the offline grace; tests pass a fake one.</param>
-    public FriendService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IBlockList blocks, TimeProvider time)
+    /// <param name="friends">Friends and requests per player, held in memory (docs/adr/ADR-035 D5); this service replaces what it changed. <see langword="null"/> reads the rows every time.</param>
+    /// <param name="visits">The owners' visit settings, held in memory; this service drops what it changed. <see langword="null"/> reads the rows every time.</param>
+    public FriendService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IBlockList blocks, TimeProvider time, FriendFacts? friends = null, VisitFacts? visits = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(presence);
@@ -70,6 +76,8 @@ public sealed class FriendService : IFriendService, IDisposable
         _nicknames = nicknames;
         _blocks = blocks;
         _time = time;
+        _friends = friends ?? new FriendFacts(unitOfWork, cached: false);
+        _visits = visits ?? new VisitFacts(unitOfWork, cached: false);
         _presence.PlayerJoined += this.OnJoinedAsync;
         _presence.PlayerLeft += this.OnLeftAsync;
     }
@@ -82,27 +90,19 @@ public sealed class FriendService : IFriendService, IDisposable
     {
         _presence.PlayerJoined -= this.OnJoinedAsync;
         _presence.PlayerLeft -= this.OnLeftAsync;
+        _gate.Dispose();
     }
 
     /// <inheritdoc/>
     public async Task<FriendsView> GetAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
-        bool isGuest;
-        bool friendsMayVisit;
-        List<Guid> friends;
-        List<Guid> incoming;
-        List<Guid> outgoing;
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
-        {
-            PlayerFact? me = await _nicknames.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
-            isGuest = me?.IsGuest ?? true;
-            VisitSettings? settings = await unit.Repository<VisitSettings>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
-            friendsMayVisit = settings?.FriendsMayVisit ?? VisitRules.FriendsMayVisitByDefault;
-            friends = [.. (await unit.Repository<Friendship>().ListAsync(f => f.PlayerId == playerId, cancellationToken).ConfigureAwait(false)).OrderBy(f => f.CreatedAt).Select(f => f.FriendId)];
-            incoming = [.. (await unit.Repository<FriendRequest>().ListAsync(r => r.ToId == playerId, cancellationToken).ConfigureAwait(false)).OrderBy(r => r.CreatedAt).Select(r => r.FromId)];
-            outgoing = [.. (await unit.Repository<FriendRequest>().ListAsync(r => r.FromId == playerId, cancellationToken).ConfigureAwait(false)).OrderBy(r => r.CreatedAt).Select(r => r.ToId)];
-        }
+        PlayerFact? me = await _nicknames.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+        bool isGuest = me?.IsGuest ?? true;
+        bool friendsMayVisit = await _visits.FriendsMayVisitAsync(playerId, cancellationToken).ConfigureAwait(false);
+        FriendState state = await _friends.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+        IReadOnlyList<Guid> friends = state.Friends;
+        IReadOnlyList<Guid> incoming = state.Incoming;
+        IReadOnlyList<Guid> outgoing = state.Outgoing;
 
         IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(friends.Concat(incoming).Concat(outgoing), cancellationToken).ConfigureAwait(false);
         List<FriendView> friendViews = new(friends.Count);
@@ -128,87 +128,109 @@ public sealed class FriendService : IFriendService, IDisposable
             return FriendStatus.InvalidNickname;
         }
 
-        Guid targetId;
-        bool nowFriends = false;
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
+        PlayerFact? me = await _nicknames.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+        if (me is null || me.IsGuest)
         {
-            PlayerFact? me = await _nicknames.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
-            if (me is null || me.IsGuest)
-            {
-                return FriendStatus.GuestNotAllowed;
-            }
+            return FriendStatus.GuestNotAllowed;
+        }
 
-            PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
-            if (target is null)
-            {
-                return FriendStatus.UnknownPlayer;
-            }
+        PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
+        if (target is null)
+        {
+            return FriendStatus.UnknownPlayer;
+        }
 
-            targetId = target.Id;
-            if (targetId == playerId)
-            {
-                return FriendStatus.Self;
-            }
+        Guid targetId = target.Id;
+        if (targetId == playerId)
+        {
+            return FriendStatus.Self;
+        }
 
-            if (target.IsGuest)
-            {
-                return FriendStatus.GuestNotAllowed;
-            }
+        if (target.IsGuest)
+        {
+            return FriendStatus.GuestNotAllowed;
+        }
 
-            // A block in either direction looks like an unknown player: the blocked one learns nothing.
-            if (await _blocks.IsBlockedEitherWayAsync(playerId, targetId, cancellationToken).ConfigureAwait(false))
-            {
-                return FriendStatus.UnknownPlayer;
-            }
+        // A block in either direction looks like an unknown player: the blocked one learns nothing.
+        if (await _blocks.IsBlockedEitherWayAsync(playerId, targetId, cancellationToken).ConfigureAwait(false))
+        {
+            return FriendStatus.UnknownPlayer;
+        }
 
-            IRepository<Friendship> friendships = unit.Repository<Friendship>();
-            IRepository<FriendRequest> requests = unit.Repository<FriendRequest>();
-            if (await friendships.AnyAsync(f => f.PlayerId == playerId && f.FriendId == targetId, cancellationToken).ConfigureAwait(false))
+        bool nowFriends;
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            FriendState mine = await _friends.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+            FriendState theirs = await _friends.GetAsync(targetId, cancellationToken).ConfigureAwait(false);
+            if (mine.Friends.Contains(targetId))
             {
                 return FriendStatus.AlreadyFriends;
             }
 
-            if (await requests.AnyAsync(r => r.FromId == playerId && r.ToId == targetId, cancellationToken).ConfigureAwait(false))
+            if (mine.Outgoing.Contains(targetId))
             {
                 return FriendStatus.AlreadyRequested;
             }
 
-            if (await friendships.CountAsync(f => f.PlayerId == playerId, cancellationToken).ConfigureAwait(false) >= FriendRules.MaxFriends
-                || await friendships.CountAsync(f => f.PlayerId == targetId, cancellationToken).ConfigureAwait(false) >= FriendRules.MaxFriends)
+            if (mine.Friends.Count >= FriendRules.MaxFriends || theirs.Friends.Count >= FriendRules.MaxFriends)
             {
                 return FriendStatus.ListFull;
             }
 
             DateTimeOffset now = _time.GetUtcNow();
-            FriendRequest? reverse = await requests.FirstOrDefaultAsync(r => r.FromId == targetId && r.ToId == playerId, cancellationToken).ConfigureAwait(false);
-            if (reverse is not null)
+            nowFriends = mine.Incoming.Contains(targetId);
+            if (!nowFriends && (mine.Outgoing.Count >= FriendRules.MaxPending || theirs.Incoming.Count >= FriendRules.MaxPending))
             {
-                // They already asked: asking back is accepting.
-                requests.Remove(reverse);
-                friendships.Add(new Friendship { PlayerId = playerId, FriendId = targetId, CreatedAt = now });
-                friendships.Add(new Friendship { PlayerId = targetId, FriendId = playerId, CreatedAt = now });
-                nowFriends = true;
+                return FriendStatus.PendingFull;
+            }
+
+            IUnitOfWork unit = _unitOfWork.Create();
+            await using (unit.ConfigureAwait(false))
+            {
+                if (nowFriends)
+                {
+                    // They already asked: asking back is accepting.
+                    unit.Repository<FriendRequest>().Remove(new FriendRequest { FromId = targetId, ToId = playerId });
+                    unit.Repository<Friendship>().Add(new Friendship { PlayerId = playerId, FriendId = targetId, CreatedAt = now });
+                    unit.Repository<Friendship>().Add(new Friendship { PlayerId = targetId, FriendId = playerId, CreatedAt = now });
+                }
+                else
+                {
+                    unit.Repository<FriendRequest>().Add(new FriendRequest { FromId = playerId, ToId = targetId, CreatedAt = now });
+                }
+
+                try
+                {
+                    _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (unit.IsUniqueViolation(ex) || unit.IsConcurrencyConflict(ex))
+                {
+                    // What the copy said was out of date: read both again.
+                    _friends.Changed(playerId, targetId);
+                    return nowFriends ? FriendStatus.AlreadyFriends : FriendStatus.AlreadyRequested;
+                }
+                catch
+                {
+                    _friends.Changed(playerId, targetId);
+                    throw;
+                }
+            }
+
+            if (nowFriends)
+            {
+                _friends.Apply(playerId, s => new FriendState([.. s.Friends, targetId], [.. s.Incoming.Where(id => id != targetId)], s.Outgoing));
+                _friends.Apply(targetId, s => new FriendState([.. s.Friends, playerId], s.Incoming, [.. s.Outgoing.Where(id => id != playerId)]));
             }
             else
             {
-                if (await requests.CountAsync(r => r.FromId == playerId, cancellationToken).ConfigureAwait(false) >= FriendRules.MaxPending
-                    || await requests.CountAsync(r => r.ToId == targetId, cancellationToken).ConfigureAwait(false) >= FriendRules.MaxPending)
-                {
-                    return FriendStatus.PendingFull;
-                }
-
-                requests.Add(new FriendRequest { FromId = playerId, ToId = targetId, CreatedAt = now });
+                _friends.Apply(playerId, s => new FriendState(s.Friends, s.Incoming, [.. s.Outgoing, targetId]));
+                _friends.Apply(targetId, s => new FriendState(s.Friends, [.. s.Incoming, playerId], s.Outgoing));
             }
-
-            try
-            {
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (unit.IsUniqueViolation(ex) || unit.IsConcurrencyConflict(ex))
-            {
-                return nowFriends ? FriendStatus.AlreadyFriends : FriendStatus.AlreadyRequested;
-            }
+        }
+        finally
+        {
+            _ = _gate.Release();
         }
 
         await this.PushSnapshotAsync(targetId, cancellationToken).ConfigureAwait(false);
@@ -223,42 +245,55 @@ public sealed class FriendService : IFriendService, IDisposable
     /// <inheritdoc/>
     public async Task<FriendStatus> RespondAsync(Guid playerId, Guid fromId, bool accept, CancellationToken cancellationToken = default)
     {
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            IRepository<FriendRequest> requests = unit.Repository<FriendRequest>();
-            FriendRequest? request = await requests.FirstOrDefaultAsync(r => r.FromId == fromId && r.ToId == playerId, cancellationToken).ConfigureAwait(false);
-            if (request is null)
+            FriendState mine = await _friends.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+            if (!mine.Incoming.Contains(fromId))
             {
                 return FriendStatus.NoRequest;
             }
 
-            requests.Remove(request);
-            if (accept)
+            FriendState theirs = await _friends.GetAsync(fromId, cancellationToken).ConfigureAwait(false);
+            bool befriend = accept && !mine.Friends.Contains(fromId);
+            if (accept && (mine.Friends.Count >= FriendRules.MaxFriends || theirs.Friends.Count >= FriendRules.MaxFriends))
             {
-                IRepository<Friendship> friendships = unit.Repository<Friendship>();
-                if (await friendships.CountAsync(f => f.PlayerId == playerId, cancellationToken).ConfigureAwait(false) >= FriendRules.MaxFriends
-                    || await friendships.CountAsync(f => f.PlayerId == fromId, cancellationToken).ConfigureAwait(false) >= FriendRules.MaxFriends)
-                {
-                    return FriendStatus.ListFull;
-                }
+                return FriendStatus.ListFull;
+            }
 
-                if (!await friendships.AnyAsync(f => f.PlayerId == playerId && f.FriendId == fromId, cancellationToken).ConfigureAwait(false))
+            IUnitOfWork unit = _unitOfWork.Create();
+            await using (unit.ConfigureAwait(false))
+            {
+                unit.Repository<FriendRequest>().Remove(new FriendRequest { FromId = fromId, ToId = playerId });
+                if (befriend)
                 {
                     DateTimeOffset now = _time.GetUtcNow();
-                    friendships.Add(new Friendship { PlayerId = playerId, FriendId = fromId, CreatedAt = now });
-                    friendships.Add(new Friendship { PlayerId = fromId, FriendId = playerId, CreatedAt = now });
+                    unit.Repository<Friendship>().Add(new Friendship { PlayerId = playerId, FriendId = fromId, CreatedAt = now });
+                    unit.Repository<Friendship>().Add(new Friendship { PlayerId = fromId, FriendId = playerId, CreatedAt = now });
+                }
+
+                try
+                {
+                    _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (unit.IsUniqueViolation(ex) || unit.IsConcurrencyConflict(ex))
+                {
+                    _friends.Changed(playerId, fromId);
+                    return FriendStatus.Conflict;
+                }
+                catch
+                {
+                    _friends.Changed(playerId, fromId);
+                    throw;
                 }
             }
 
-            try
-            {
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (unit.IsUniqueViolation(ex) || unit.IsConcurrencyConflict(ex))
-            {
-                return FriendStatus.Conflict;
-            }
+            _friends.Apply(playerId, s => new FriendState(befriend ? [.. s.Friends, fromId] : s.Friends, [.. s.Incoming.Where(id => id != fromId)], s.Outgoing));
+            _friends.Apply(fromId, s => new FriendState(befriend ? [.. s.Friends, playerId] : s.Friends, s.Incoming, [.. s.Outgoing.Where(id => id != playerId)]));
+        }
+        finally
+        {
+            _ = _gate.Release();
         }
 
         await this.PushSnapshotAsync(playerId, cancellationToken).ConfigureAwait(false);
@@ -269,38 +304,67 @@ public sealed class FriendService : IFriendService, IDisposable
     /// <inheritdoc/>
     public async Task<FriendStatus> RemoveAsync(Guid playerId, Guid otherId, CancellationToken cancellationToken = default)
     {
-        bool wasFriends = false;
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
+        bool wasFriends;
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            IRepository<Friendship> friendships = unit.Repository<Friendship>();
-            List<Friendship> rows = await friendships.ListAsync(f => (f.PlayerId == playerId && f.FriendId == otherId) || (f.PlayerId == otherId && f.FriendId == playerId), cancellationToken).ConfigureAwait(false);
-            wasFriends = rows.Count > 0;
-            foreach (Friendship row in rows)
-            {
-                friendships.Remove(row);
-            }
-
-            IRepository<FriendRequest> requests = unit.Repository<FriendRequest>();
-            List<FriendRequest> open = await requests.ListAsync(r => (r.FromId == playerId && r.ToId == otherId) || (r.FromId == otherId && r.ToId == playerId), cancellationToken).ConfigureAwait(false);
-            foreach (FriendRequest row in open)
-            {
-                requests.Remove(row);
-            }
-
-            if (!wasFriends && open.Count == 0)
+            FriendState mine = await _friends.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+            FriendState theirs = await _friends.GetAsync(otherId, cancellationToken).ConfigureAwait(false);
+            bool mineListsThem = mine.Friends.Contains(otherId);
+            bool theirsListsMe = theirs.Friends.Contains(playerId);
+            bool iAsked = mine.Outgoing.Contains(otherId);
+            bool theyAsked = mine.Incoming.Contains(otherId);
+            wasFriends = mineListsThem || theirsListsMe;
+            if (!wasFriends && !iAsked && !theyAsked)
             {
                 return FriendStatus.NotFriends;
             }
 
-            try
+            IUnitOfWork unit = _unitOfWork.Create();
+            await using (unit.ConfigureAwait(false))
             {
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                if (mineListsThem)
+                {
+                    unit.Repository<Friendship>().Remove(new Friendship { PlayerId = playerId, FriendId = otherId });
+                }
+
+                if (theirsListsMe)
+                {
+                    unit.Repository<Friendship>().Remove(new Friendship { PlayerId = otherId, FriendId = playerId });
+                }
+
+                if (iAsked)
+                {
+                    unit.Repository<FriendRequest>().Remove(new FriendRequest { FromId = playerId, ToId = otherId });
+                }
+
+                if (theyAsked)
+                {
+                    unit.Repository<FriendRequest>().Remove(new FriendRequest { FromId = otherId, ToId = playerId });
+                }
+
+                try
+                {
+                    _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (unit.IsConcurrencyConflict(ex))
+                {
+                    _friends.Changed(playerId, otherId);
+                    return FriendStatus.Conflict;
+                }
+                catch
+                {
+                    _friends.Changed(playerId, otherId);
+                    throw;
+                }
             }
-            catch (Exception ex) when (unit.IsConcurrencyConflict(ex))
-            {
-                return FriendStatus.Conflict;
-            }
+
+            _friends.Apply(playerId, s => new FriendState([.. s.Friends.Where(id => id != otherId)], [.. s.Incoming.Where(id => id != otherId)], [.. s.Outgoing.Where(id => id != otherId)]));
+            _friends.Apply(otherId, s => new FriendState([.. s.Friends.Where(id => id != playerId)], [.. s.Incoming.Where(id => id != playerId)], [.. s.Outgoing.Where(id => id != playerId)]));
+        }
+        finally
+        {
+            _ = _gate.Release();
         }
 
         if (wasFriends)
@@ -318,15 +382,15 @@ public sealed class FriendService : IFriendService, IDisposable
     /// <inheritdoc/>
     public async Task<FriendStatus> SetFriendsMayVisitAsync(Guid ownerId, bool allowed, CancellationToken cancellationToken = default)
     {
+        PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        if (owner is null || owner.IsGuest)
+        {
+            return FriendStatus.GuestNotAllowed;
+        }
+
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
-            if (owner is null || owner.IsGuest)
-            {
-                return FriendStatus.GuestNotAllowed;
-            }
-
             VisitSettings? settings = await unit.Repository<VisitSettings>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
             if (settings is null)
             {
@@ -344,6 +408,10 @@ public sealed class FriendService : IFriendService, IDisposable
             {
                 return FriendStatus.Conflict;
             }
+            finally
+            {
+                _visits.SettingsChanged(ownerId);
+            }
         }
 
         if (!allowed)
@@ -356,13 +424,7 @@ public sealed class FriendService : IFriendService, IDisposable
 
     /// <inheritdoc/>
     public async Task<bool> AreFriendsAsync(Guid a, Guid b, CancellationToken cancellationToken = default)
-    {
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
-        {
-            return await unit.Repository<Friendship>().AnyAsync(f => f.PlayerId == a && f.FriendId == b, cancellationToken).ConfigureAwait(false);
-        }
-    }
+        => (await _friends.GetFriendsAsync(a, cancellationToken).ConfigureAwait(false)).Contains(b);
 
     private async Task RaiseRevokedAsync(Guid ownerId, Guid? visitorId)
     {
@@ -444,12 +506,7 @@ public sealed class FriendService : IFriendService, IDisposable
             _ = _announced.TryRemove(playerId, out _);
         }
 
-        List<Guid> friends;
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
-        {
-            friends = [.. (await unit.Repository<Friendship>().ListAsync(f => f.PlayerId == playerId, CancellationToken.None).ConfigureAwait(false)).Select(f => f.FriendId)];
-        }
+        IReadOnlyList<Guid> friends = await _friends.GetFriendsAsync(playerId, CancellationToken.None).ConfigureAwait(false);
 
         foreach (Guid friend in friends)
         {

@@ -44,6 +44,7 @@ public sealed class VisitService : IVisitService, IDisposable
     private readonly IFriendService? _friends;
     private readonly TimeProvider _time;
     private readonly IBuildingDirectory? _buildings;
+    private readonly VisitFacts _facts;
 
     /// <summary>Initializes the service and starts listening for co-op members who leave.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -55,7 +56,8 @@ public sealed class VisitService : IVisitService, IDisposable
     /// <param name="time">The clock for the audit timestamps; tests pass a fake one.</param>
     /// <param name="buildings">The farm buildings of the owner's land: a visitor inside one is in the owner's place too (docs/adr/ADR-028 D2); <see langword="null"/> for none.</param>
     /// <param name="friends">Tells when visiting rights through friendship end (docs/adr/ADR-029 D4); <see langword="null"/> to ignore friends.</param>
-    public VisitService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, IPlayerService players, IInstanceAccessPolicy access, INicknameDirectory nicknames, ICoopService coops, TimeProvider time, IFriendService? friends = null, IBuildingDirectory? buildings = null)
+    /// <param name="facts">The owners' allow-lists and settings, held in memory (docs/adr/ADR-035 D5); this service drops what it changed. <see langword="null"/> reads the rows every time.</param>
+    public VisitService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, IPlayerService players, IInstanceAccessPolicy access, INicknameDirectory nicknames, ICoopService coops, TimeProvider time, IFriendService? friends = null, IBuildingDirectory? buildings = null, VisitFacts? facts = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(presence);
@@ -74,6 +76,7 @@ public sealed class VisitService : IVisitService, IDisposable
         _time = time;
         _buildings = buildings;
         _friends = friends;
+        _facts = facts ?? new VisitFacts(unitOfWork, cached: false);
         _coops.MembershipEnded += this.OnMembershipEndedAsync;
         if (_friends is not null)
         {
@@ -94,18 +97,11 @@ public sealed class VisitService : IVisitService, IDisposable
     /// <inheritdoc/>
     public async Task<VisitorsView> GetAsync(Guid ownerId, CancellationToken cancellationToken = default)
     {
-        List<Guid> listed;
-        bool coopMembersMayVisit;
-        bool isGuest;
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
-        {
-            PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
-            isGuest = owner?.IsGuest ?? true;
-            VisitSettings? settings = await unit.Repository<VisitSettings>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
-            coopMembersMayVisit = settings?.CoopMembersMayVisit ?? VisitRules.CoopMembersMayVisitByDefault;
-            listed = [.. (await unit.Repository<VisitGrant>().ListAsync(g => g.OwnerId == ownerId, cancellationToken).ConfigureAwait(false)).OrderBy(g => g.CreatedAt).Select(g => g.VisitorId)];
-        }
+        PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        bool isGuest = owner?.IsGuest ?? true;
+        OwnerVisitFacts facts = await _facts.GetAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        bool coopMembersMayVisit = facts.CoopMembersMayVisit;
+        IReadOnlyList<Guid> listed = facts.Listed;
 
         HashSet<Guid> present = [.. this.PlayersInPlacesOf(ownerId).Select(p => p.AccountId)];
         List<Guid> everyone = [.. listed, .. present.Where(id => !listed.Contains(id))];
@@ -128,38 +124,38 @@ public sealed class VisitService : IVisitService, IDisposable
             return VisitStatus.InvalidNickname;
         }
 
+        PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        if (owner is null || owner.IsGuest)
+        {
+            return VisitStatus.GuestOwner;
+        }
+
+        PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
+        if (target is null)
+        {
+            return VisitStatus.UnknownPlayer;
+        }
+
+        if (target.Id == ownerId)
+        {
+            return VisitStatus.Self;
+        }
+
+        IReadOnlyList<Guid> listed = await _facts.GetListedAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        if (listed.Contains(target.Id))
+        {
+            return VisitStatus.AlreadyListed;
+        }
+
+        if (listed.Count >= VisitRules.MaxListed)
+        {
+            return VisitStatus.ListFull;
+        }
+
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
-            if (owner is null || owner.IsGuest)
-            {
-                return VisitStatus.GuestOwner;
-            }
-
-            PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
-            if (target is null)
-            {
-                return VisitStatus.UnknownPlayer;
-            }
-
-            if (target.Id == ownerId)
-            {
-                return VisitStatus.Self;
-            }
-
-            IRepository<VisitGrant> grants = unit.Repository<VisitGrant>();
-            if (await grants.AnyAsync(g => g.OwnerId == ownerId && g.VisitorId == target.Id, cancellationToken).ConfigureAwait(false))
-            {
-                return VisitStatus.AlreadyListed;
-            }
-
-            if (await grants.CountAsync(g => g.OwnerId == ownerId, cancellationToken).ConfigureAwait(false) >= VisitRules.MaxListed)
-            {
-                return VisitStatus.ListFull;
-            }
-
-            grants.Add(new VisitGrant { OwnerId = ownerId, VisitorId = target.Id, CreatedAt = _time.GetUtcNow() });
+            unit.Repository<VisitGrant>().Add(new VisitGrant { OwnerId = ownerId, VisitorId = target.Id, CreatedAt = _time.GetUtcNow() });
             try
             {
                 _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -167,6 +163,10 @@ public sealed class VisitService : IVisitService, IDisposable
             catch (Exception ex) when (unit.IsUniqueViolation(ex))
             {
                 return VisitStatus.AlreadyListed;
+            }
+            finally
+            {
+                _facts.ListChanged(ownerId);
             }
 
             return VisitStatus.Ok;
@@ -176,18 +176,28 @@ public sealed class VisitService : IVisitService, IDisposable
     /// <inheritdoc/>
     public async Task<VisitStatus> RemoveAsync(Guid ownerId, Guid visitorId, CancellationToken cancellationToken = default)
     {
+        if (!(await _facts.GetListedAsync(ownerId, cancellationToken).ConfigureAwait(false)).Contains(visitorId))
+        {
+            return VisitStatus.NotListed;
+        }
+
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            IRepository<VisitGrant> grants = unit.Repository<VisitGrant>();
-            VisitGrant? grant = await grants.FirstOrDefaultAsync(g => g.OwnerId == ownerId && g.VisitorId == visitorId, cancellationToken).ConfigureAwait(false);
-            if (grant is null)
+            unit.Repository<VisitGrant>().Remove(new VisitGrant { OwnerId = ownerId, VisitorId = visitorId });
+            try
             {
+                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (unit.IsConcurrencyConflict(ex))
+            {
+                // Someone removed it first.
                 return VisitStatus.NotListed;
             }
-
-            grants.Remove(grant);
-            _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            finally
+            {
+                _facts.ListChanged(ownerId);
+            }
         }
 
         // A co-op member removed from the list may still be let in through the co-op setting; the sweep asks the policy, so only those who may not stay are sent out.
@@ -241,6 +251,10 @@ public sealed class VisitService : IVisitService, IDisposable
             catch (Exception ex) when (unit.IsUniqueViolation(ex) || unit.IsConcurrencyConflict(ex))
             {
                 return VisitStatus.Conflict;
+            }
+            finally
+            {
+                _facts.SettingsChanged(ownerId);
             }
         }
 
