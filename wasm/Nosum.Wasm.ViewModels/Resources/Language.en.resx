@@ -479,7 +479,7 @@
   <data name="Mail_Body_CoopInvite" xml:space="preserve"><value>You are invited to the co-op {0}. Open the Co-op page to answer.</value></data>
   <data name="Mail_Body_CoopInviteFrom" xml:space="preserve"><value>{1} invited you to the co-op {0}. Open the Co-op page to answer.</value></data>
   <data name="Mail_Title_GoalReward" xml:space="preserve"><value>Community reward</value></data>
-  <data name="Mail_Body_GoalReward" xml:space="preserve"><value>Thank you for helping with the community goal. Collect your reward below.</value></data>
+  <data name="Mail_Body_GoalReward" xml:space="preserve"><value>Thank you for helping with the community goal. {0} coins were added to your purse.</value></data>
   <data name="Mail_Title_Unknown" xml:space="preserve"><value>Notice</value></data>
   <data name="Mail_Body_Unknown" xml:space="preserve"><value>You have a new notice from the game.</value></data>
   <data name="Mail_Status_Ok" xml:space="preserve"><value>Done.</value></data>
@@ -492,6 +492,37 @@
   <data name="Mail_Status_HasAttachments" xml:space="preserve"><value>Collect the gift before deleting.</value></data>
   <data name="Mail_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Mail_Status_Failed" xml:space="preserve"><value>The transfer failed, try again.</value></data>
+  <data name="Toolbar_Goals" xml:space="preserve"><value>Board</value></data>
+  <data name="Goals_Title" xml:space="preserve"><value>Town goals</value></data>
+  <data name="Goals_Hint" xml:space="preserve"><value>The whole server delivers crops to unlock a shared reward. Everyone who helps gets coins in proportion to what they delivered.</value></data>
+  <data name="Goals_Loading" xml:space="preserve"><value>Loading the goals</value></data>
+  <data name="Goals_None" xml:space="preserve"><value>There is no goal this season.</value></data>
+  <data name="Goals_SeasonEnds" xml:space="preserve"><value>Game days left in the season: {0}.</value></data>
+  <data name="Goals_Amount" xml:space="preserve"><value>Amount to deliver</value></data>
+  <data name="Goals_Deliver" xml:space="preserve"><value>Deliver</value></data>
+  <data name="Goals_Held" xml:space="preserve"><value>You have {0}</value></data>
+  <data name="Goals_Progress" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Goals_Mine" xml:space="preserve"><value>You delivered {0}</value></data>
+  <data name="Goals_Contributors" xml:space="preserve"><value>{0} players took part</value></data>
+  <data name="Goals_Done" xml:space="preserve"><value>Delivered {0}. Thank you!</value></data>
+  <data name="Goals_State_Active" xml:space="preserve"><value>Open</value></data>
+  <data name="Goals_State_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="Goals_State_Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="Goals_Status_UnknownGoal" xml:space="preserve"><value>There is no such goal.</value></data>
+  <data name="Goals_Status_InvalidQuantity" xml:space="preserve"><value>That amount is not valid.</value></data>
+  <data name="Goals_Status_NotThisSeason" xml:space="preserve"><value>This goal is not part of the current season.</value></data>
+  <data name="Goals_Status_Closed" xml:space="preserve"><value>This goal is closed.</value></data>
+  <data name="Goals_Status_NotAtBoard" xml:space="preserve"><value>You are too far from the board.</value></data>
+  <data name="Goals_Status_NotEnough" xml:space="preserve"><value>You do not have enough of the item.</value></data>
+  <data name="Goals_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Market_History" xml:space="preserve"><value>Prices</value></data>
+  <data name="Market_History_Title" xml:space="preserve"><value>Price history: {0}</value></data>
+  <data name="Market_History_Chart" xml:space="preserve"><value>Median price of each game day</value></data>
+  <data name="Market_History_Latest" xml:space="preserve"><value>Latest day: lowest {0}, median {1}, highest {2} coins each; sales: {3}</value></data>
+  <data name="Market_History_Range" xml:space="preserve"><value>Last {0} days: from {1} to {2} coins each</value></data>
+  <data name="Market_History_None" xml:space="preserve"><value>Nothing was sold in the last {0} days.</value></data>
+  <data name="Market_History_Hide" xml:space="preserve"><value>Hide</value></data>
+  <data name="Market_Status_TooManyOfItem" xml:space="preserve"><value>You can have at most 500 units of one item listed at once.</value></data>
   <data name="Farm_Status_NoEnergy" xml:space="preserve"><value>You are out of energy. Eat some produce, or wait for the next day.</value></data>
   <data name="Eat_Status_InvalidSlot" xml:space="preserve"><value>That slot is not on the hotbar.</value></data>
   <data name="Eat_Status_NotEdible" xml:space="preserve"><value>You cannot eat that.</value></data>
@@ -561,4 +592,5 @@
   <data name="Furnace_Ready" xml:space="preserve"><value>The bar is done!</value></data>
   <data name="Furnace_Start" xml:space="preserve"><value>Smelt {0}</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Collect bar</value></data>
+  <data name="Market_History_Tip" xml:space="preserve"><value>Show the price history of this item</value></data>
 </root>

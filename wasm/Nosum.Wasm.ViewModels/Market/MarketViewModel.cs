@@ -49,6 +49,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private IReadOnlyList<int> _searchIds = [];
     private string _search = string.Empty;
     private int _sellSlot = -1;
+    private int _historyItemId;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="market">The market channel.</param>
@@ -73,6 +74,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         _names = names;
         market.BrowseChanged += this.Raise;
         market.MineChanged += this.Raise;
+        market.HistoryChanged += this.Raise;
         market.Completed += this.OnCompleted;
         inventory.Changed += this.Raise;
     }
@@ -148,9 +150,86 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the item whose price history is shown, or zero for none.</summary>
+    public int HistoryItemId => _historyItemId;
+
+    /// <summary>Gets the name of the item whose price history is shown.</summary>
+    public string HistoryTitle => _historyItemId == 0 ? string.Empty : this.Text("Market_History_Title", _describer.Describe(0, _historyItemId, 1).Name);
+
+    /// <summary>Gets the median unit price of each game day that had sales, oldest first: the points of the sparkline.</summary>
+    public IReadOnlyList<long> HistoryPoints
+    {
+        get
+        {
+            PriceHistoryInfo history = _market.History;
+            if (history.ItemId != _historyItemId)
+            {
+                return [];
+            }
+
+            List<long> points = new(history.Days.Count);
+            foreach (PriceDayInfo day in history.Days)
+            {
+                points.Add(day.Median);
+            }
+
+            return points;
+        }
+    }
+
+    /// <summary>Gets the lines under the sparkline: the latest day's lowest, median and highest price, then the range of the whole period; or a note that nothing sold.</summary>
+    public IReadOnlyList<string> HistoryLines
+    {
+        get
+        {
+            PriceHistoryInfo history = _market.History;
+            if (_historyItemId == 0 || history.ItemId != _historyItemId)
+            {
+                return [];
+            }
+
+            if (history.Days.Count == 0)
+            {
+                return [this.Text("Market_History_None", PriceHistoryRules.HistoryDays)];
+            }
+
+            PriceDayInfo latest = history.Days[^1];
+            long low = long.MaxValue;
+            long high = 0;
+            foreach (PriceDayInfo day in history.Days)
+            {
+                low = Math.Min(low, day.Min);
+                high = Math.Max(high, day.Max);
+            }
+
+            return
+            [
+                this.Text("Market_History_Latest", Number(latest.Min), Number(latest.Median), Number(latest.Max), latest.Sales),
+                this.Text("Market_History_Range", PriceHistoryRules.HistoryDays, Number(low), Number(high)),
+            ];
+        }
+    }
+
+    /// <summary>Shows the price history of an item under the list.</summary>
+    /// <param name="itemId">The item.</param>
+    public void ShowHistory(int itemId)
+    {
+        _historyItemId = itemId;
+        _market.LoadHistory(itemId);
+        this.Raise();
+    }
+
+    /// <summary>Hides the price history.</summary>
+    public void HideHistory()
+    {
+        _historyItemId = 0;
+        this.Raise();
+    }
+
     /// <summary>Called when the panel opens: loads the first page and the player's listings.</summary>
     public void Open()
     {
+        _historyItemId = 0;
         this.ClearStatus();
         this.RunSearch(string.Empty);
         _market.LoadMine();
@@ -161,6 +240,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     public void SetTab(MarketTab tab)
     {
         this.Tab = tab;
+        _historyItemId = 0;
         this.ClearStatus();
         if (tab == MarketTab.Mine)
         {
@@ -220,6 +300,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         if (this.SellItem is { } item)
         {
             this.SellQuantityText = item.Quantity.ToString(CultureInfo.InvariantCulture);
+            this.ShowHistory(item.ItemId);
         }
 
         this.Raise();
@@ -257,6 +338,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     {
         _market.BrowseChanged -= this.Raise;
         _market.MineChanged -= this.Raise;
+        _market.HistoryChanged -= this.Raise;
         _market.Completed -= this.OnCompleted;
         _inventory.Changed -= this.Raise;
     }
@@ -281,6 +363,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
             if (action == MarketAction.Create)
             {
                 _sellSlot = -1;
+                _historyItemId = 0;
                 this.SellPriceText = string.Empty;
             }
 

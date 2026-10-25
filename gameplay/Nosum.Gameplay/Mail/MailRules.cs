@@ -34,7 +34,7 @@ public static class MailRules
         /// <summary>A co-op invited the player. Arguments: co-op name, inviter nickname.</summary>
         public const string CoopInvite = "coop.invite";
 
-        /// <summary>A reward from a community goal (docs/adr/ADR-030). Arguments: defined by that feature.</summary>
+        /// <summary>A community goal paid the player (docs/adr/ADR-030); the coins are already in their purse, the mail only tells them. Arguments: coins paid.</summary>
         public const string GoalReward = "goal.reward";
     }
 }

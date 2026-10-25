@@ -104,7 +104,7 @@ public sealed class MailProducersTests : IClassFixture<PostgresFixture>
     }
 
     private MarketService NewMarket(IMailService? mail)
-        => new(_transfers, _inventory, _units, new MapPresence(new InMemoryGroupStore()), new NoMaps(), new CoinSink(), _nicknames, _clock, mail);
+        => new(_transfers, _inventory, _units, new MapPresence(new InMemoryGroupStore()), new NoMaps(), new CoinSink(), _nicknames, _clock, mail: mail);
 
     private async Task<(Guid Seller, Guid Buyer, Guid Listing)> ListedAsync(MarketService market, int quantity, long price)
     {

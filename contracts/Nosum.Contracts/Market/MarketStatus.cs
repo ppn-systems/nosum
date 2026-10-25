@@ -61,4 +61,7 @@ public enum MarketStatus : byte
 
     /// <summary>The shipping bin belongs to the farm's owner; a visitor cannot use it (docs/adr/ADR-019 D3).</summary>
     NotYourBin = 18,
+
+    /// <summary>The player would have more than 500 units of this item listed at once (docs/adr/ADR-030 D4).</summary>
+    TooManyOfItem = 19,
 }

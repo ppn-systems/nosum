@@ -59,6 +59,9 @@ public enum PanelKind
 
     /// <summary>The furnace (docs/adr/ADR-024); not a toolbar tab, it shows while a furnace is open.</summary>
     Furnace = 14,
+
+    /// <summary>The Town board's goals page, opened with the action key at the board counter (not a toolbar button, docs/adr/ADR-030).</summary>
+    Goals = 17,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -122,4 +125,7 @@ public sealed class ToolbarViewModel : PanelViewModel
 
     /// <summary>Gets the shop tab, shown only while a shop is open (opened at its counter, not from the menu).</summary>
     public ToolbarItem ShopItem => new(PanelKind.Shop, this.Text("Toolbar_Shop"), string.Empty, "tab-shop");
+
+    /// <summary>Gets the Town board tab, shown only while the board is open (opened at its counter, not from the menu).</summary>
+    public ToolbarItem GoalsItem => new(PanelKind.Goals, this.Text("Toolbar_Goals"), string.Empty, "tab-goals");
 }

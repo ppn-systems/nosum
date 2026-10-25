@@ -225,8 +225,9 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
                 return (this.Text("Mail_Title_CoopInvite"), inviter.Length > 0 ? this.Text("Mail_Body_CoopInviteFrom", coop, inviter) : this.Text("Mail_Body_CoopInvite", coop));
             }
 
-            case MailRules.Codes.GoalReward:
-                return (this.Text("Mail_Title_GoalReward"), this.Text("Mail_Body_GoalReward"));
+            case MailRules.Codes.GoalReward
+                when args.Count >= 1 && long.TryParse(args[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out long reward):
+                return (this.Text("Mail_Title_GoalReward"), this.Text("Mail_Body_GoalReward", Number(reward)));
             default:
                 return (this.Text("Mail_Title_Unknown"), this.Text("Mail_Body_Unknown"));
         }

@@ -99,6 +99,38 @@ public static partial class MarketHandlers
         await Replies.ReplyAsync<GetMyListings, ListingsPage>(context, sequence, r => FillPage(r, view, player.PlayerId)).ConfigureAwait(false);
     }
 
+    /// <summary>Reads the daily price history of one item (docs/adr/ADR-030 D4).</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(MarketOpCode.GetPriceHistory)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(8, 4, PolicyId = "market-history")]
+    public static async ValueTask HandleGetPriceHistoryAsync(IPacketContext<GetPriceHistory> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        int itemId = context.Packet.ItemId;
+
+        PriceHistoryView view = await s_market.GetPriceHistoryAsync(itemId, context.CancellationToken).ConfigureAwait(false);
+        await Replies.ReplyAsync<GetPriceHistory, PriceHistory>(context, sequence, r =>
+        {
+            r.ItemId = view.ItemId;
+            r.Today = view.Today;
+            r.Days.Clear();
+            foreach (PriceDayView day in view.Days)
+            {
+                PriceDayRow row = PriceDayRow.Create();
+                row.Day = day.Day;
+                row.Min = day.Min;
+                row.Median = day.Median;
+                row.Max = day.Max;
+                row.Sales = day.Sales;
+                r.Days.Add(row);
+            }
+        }).ConfigureAwait(false);
+    }
+
     /// <summary>Puts a stack on the market.</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply was sent.</returns>
