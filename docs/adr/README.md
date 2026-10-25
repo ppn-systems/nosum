@@ -40,3 +40,6 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-028](ADR-028-farm-buildings-and-animals.md) | Coops and barns on the farm, private interiors, chickens and cows with daily produce | Accepted |
 | [ADR-029](ADR-029-chat-friends-mail.md) | Chat channels with moderation, friends list, mailbox for system messages | Accepted |
 | [ADR-030](ADR-030-community-goals-and-market-limits.md) | Seasonal community goals with server-wide rewards; market cornering limit and price history | Accepted |
+| [ADR-031](ADR-031-deployment-and-operations.md) | Deployment and operations: images, Caddy TLS, migrations and backups, health, logs, metrics, admin role, load test | Accepted |
+| [ADR-032](ADR-032-security-hardening.md) | Security hardening: server key pinning, handler audit tests, input bounds, account recovery, session and abuse limits | Accepted |
+| [ADR-033](ADR-033-client-settings-touch-onboarding.md) | Client settings, touch controls, onboarding hints, accessibility | Accepted |
