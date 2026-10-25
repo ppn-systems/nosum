@@ -61,7 +61,8 @@ public interface IMarketService
     /// <returns>The outcome.</returns>
     Task<ShipOutcome> ShipAsync(IConnection connection, Guid playerId, int slot, int itemId, int quantity, CancellationToken cancellationToken = default);
 
-    /// <summary>Lists a stack for sale.</summary>
+    /// <summary>Lists a stack for sale; the seller must stand at the market counter in Town (docs/adr/ADR-034).</summary>
+    /// <param name="connection">The seller's connection (their position is read from the server's presence record).</param>
     /// <param name="playerId">The seller.</param>
     /// <param name="slot">Inventory slot.</param>
     /// <param name="itemId">The item the seller expects in the slot.</param>
@@ -69,21 +70,23 @@ public interface IMarketService
     /// <param name="price">Price for the whole stack.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The status.</returns>
-    Task<MarketStatus> CreateListingAsync(Guid playerId, int slot, int itemId, int quantity, long price, CancellationToken cancellationToken = default);
+    Task<MarketStatus> CreateListingAsync(IConnection connection, Guid playerId, int slot, int itemId, int quantity, long price, CancellationToken cancellationToken = default);
 
-    /// <summary>Buys a listing: buyer coins to seller (minus the fee), items to buyer.</summary>
+    /// <summary>Buys a listing: buyer coins to seller (minus the fee), items to buyer; the buyer must stand at the market counter in Town (docs/adr/ADR-034).</summary>
+    /// <param name="connection">The buyer's connection (their position is read from the server's presence record).</param>
     /// <param name="buyerId">The buyer.</param>
     /// <param name="listingId">The listing.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The status.</returns>
-    Task<MarketStatus> BuyAsync(Guid buyerId, Guid listingId, CancellationToken cancellationToken = default);
+    Task<MarketStatus> BuyAsync(IConnection connection, Guid buyerId, Guid listingId, CancellationToken cancellationToken = default);
 
-    /// <summary>Withdraws the player's own listing; the items go back to the inventory.</summary>
+    /// <summary>Withdraws the player's own listing; the items go back to the inventory. The seller must stand at the market counter in Town (docs/adr/ADR-034); the expiry sweep needs no counter.</summary>
+    /// <param name="connection">The seller's connection (their position is read from the server's presence record).</param>
     /// <param name="playerId">The seller.</param>
     /// <param name="listingId">The listing.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The status.</returns>
-    Task<MarketStatus> CancelAsync(Guid playerId, Guid listingId, CancellationToken cancellationToken = default);
+    Task<MarketStatus> CancelAsync(IConnection connection, Guid playerId, Guid listingId, CancellationToken cancellationToken = default);
 
     /// <summary>Reads one page of active listings, newest first.</summary>
     /// <param name="page">Page number, zero based.</param>

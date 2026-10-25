@@ -117,9 +117,9 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     {
         await using Server server = await Server.StartAsync(_database);
         CancellationToken ct = server.Token;
-        await using SocialClient seller = await SocialClient.ConnectAsync(server.Port, ct);
-        await using SocialClient buyerB = await SocialClient.ConnectAsync(server.Port, ct);
-        await using SocialClient buyerC = await SocialClient.ConnectAsync(server.Port, ct);
+        await using SocialClient seller = await SocialClient.ConnectAsync(server.Port, ct, MarketCounter.Place);
+        await using SocialClient buyerB = await SocialClient.ConnectAsync(server.Port, ct, MarketCounter.Place);
+        await using SocialClient buyerC = await SocialClient.ConnectAsync(server.Port, ct, MarketCounter.Place);
         foreach (SocialClient c in new[] { seller, buyerB, buyerC })
         {
             await c.JoinAsync(ct);
@@ -274,7 +274,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     {
         await using Server server = await Server.StartAsync(_database);
         CancellationToken ct = server.Token;
-        (SocialClient a, SocialClient b) = await TradersAsync(server);
+        (SocialClient a, SocialClient b) = await TradersAsync(server, MarketCounter.Place);
         await using SocialClient disposeA = a;
         await using SocialClient disposeB = b;
         (await a.TradeOfferAsync([(ItemCatalog.Parsnip, 10)], 0, ct)).Should().Be(TradeStatus.Ok);
@@ -343,11 +343,11 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     }
 
     // Two players on the farm, A holding 10 parsnips and B 10 radishes, with a trade open between them.
-    private async Task<(SocialClient A, SocialClient B)> TradersAsync(Server server)
+    private async Task<(SocialClient A, SocialClient B)> TradersAsync(Server server, (string Map, double X, double Y)? startAt = null)
     {
         CancellationToken ct = server.Token;
-        SocialClient a = await SocialClient.ConnectAsync(server.Port, ct);
-        SocialClient b = await SocialClient.ConnectAsync(server.Port, ct);
+        SocialClient a = await SocialClient.ConnectAsync(server.Port, ct, startAt);
+        SocialClient b = await SocialClient.ConnectAsync(server.Port, ct, startAt);
         await a.JoinAsync(ct);
         await b.JoinAsync(ct);
         _ = await server.Inventory.AddAsync(a.PlayerId, ItemCatalog.Parsnip, 10, "test.setup");
@@ -480,8 +480,8 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     {
         await using Server server = await Server.StartAsync(_database);
         CancellationToken ct = server.Token;
-        await using SocialClient seller = await SocialClient.ConnectAsync(server.Port, ct);
-        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct);
+        await using SocialClient seller = await SocialClient.ConnectAsync(server.Port, ct, MarketCounter.Place);
+        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct, MarketCounter.Place);
         await seller.JoinAsync(ct);
         await buyer.JoinAsync(ct);
         (await seller.GrantAsync(ItemCatalog.OakChair, 1, 0, ct)).Should().BeTrue();
@@ -495,6 +495,36 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         (await buyer.BuyAsync(rows.First(r => r.SellerNickname == seller.Nickname).ListingId, ct)).Should().Be(MarketStatus.Ok);
         (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins - 400);
         (await seller.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins + 380, "the 5 % fee (20 coins) left the economy");
+    }
+
+    [Fact]
+    public async Task Market_AwayFromTheCounter_ListBuyAndCancelAreRefusedOverTheWire_ReadingStillWorks_AndAtTheCounterTheyWork()
+    {
+        await using Server server = await Server.StartAsync(_database);
+        CancellationToken ct = server.Token;
+        await using SocialClient seller = await SocialClient.ConnectAsync(server.Port, ct, MarketCounter.Place);
+        await using SocialClient wanderer = await SocialClient.ConnectAsync(server.Port, ct);
+        await seller.JoinAsync(ct);
+        await wanderer.JoinAsync(ct);
+        (await seller.GrantAsync(ItemCatalog.OakChair, 2, 0, ct)).Should().BeTrue();
+        (await wanderer.GrantAsync(ItemCatalog.OakChair, 1, 0, ct)).Should().BeTrue();
+
+        // The wanderer is on the bus stop: nothing is listed, and the chair stays in their inventory.
+        (await wanderer.ListAsync(await wanderer.SlotOfAsync(ItemCatalog.OakChair, ct), ItemCatalog.OakChair, 1, 400, ct)).Should().Be(MarketStatus.NotAtCounter);
+        (await wanderer.CountAsync(ItemCatalog.OakChair, ct)).Should().Be(1);
+
+        (await seller.ListAsync(await seller.SlotOfAsync(ItemCatalog.OakChair, ct), ItemCatalog.OakChair, 1, 400, ct)).Should().Be(MarketStatus.Ok);
+        (int total, ListingRow[] rows) = await wanderer.BrowseAsync([ItemCatalog.OakChair], ct);
+        total.Should().BeGreaterThanOrEqualTo(1, "reading the market needs no counter");
+        Guid listing = rows.First(r => r.SellerNickname == seller.Nickname).ListingId;
+
+        long coins = await wanderer.CoinsAsync(ct);
+        (await wanderer.BuyAsync(listing, ct)).Should().Be(MarketStatus.NotAtCounter);
+        (await wanderer.CoinsAsync(ct)).Should().Be(coins);
+        (await wanderer.CountAsync(ItemCatalog.OakChair, ct)).Should().Be(1);
+        (await wanderer.CancelListingAsync(listing, ct)).Should().Be(MarketStatus.NotAtCounter);
+
+        (await seller.CancelListingAsync(listing, ct)).Should().Be(MarketStatus.Ok);
     }
 
     [Fact]
