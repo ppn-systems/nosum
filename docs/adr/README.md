@@ -32,3 +32,7 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-024](ADR-024-crafting-and-outdoor-placeables.md) | Crafting recipes, chests, sprinklers, furnace, placeables on the farm (amends ADR-015) | Accepted |
 | [ADR-025](ADR-025-crop-roster-and-forage.md) | Crop roster for three seasons, regrowing crops, seasonal forage | Accepted |
 | [ADR-026](ADR-026-tool-upgrades-and-the-mine.md) | Tool tiers, blacksmith counter, per-player mine floors | Accepted |
+| [ADR-027](ADR-027-weather-and-day-night.md) | Weather from the calendar (rain waters crops), day/night ambient tint and light sources | Accepted |
+| [ADR-028](ADR-028-farm-buildings-and-animals.md) | Coops and barns on the farm, private interiors, chickens and cows with daily produce | Accepted |
+| [ADR-029](ADR-029-chat-friends-mail.md) | Chat channels with moderation, friends list, mailbox for system messages | Accepted |
+| [ADR-030](ADR-030-community-goals-and-market-limits.md) | Seasonal community goals with server-wide rewards; market cornering limit and price history | Accepted |
