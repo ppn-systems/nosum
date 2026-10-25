@@ -12,6 +12,7 @@ using Nalix.Runtime.Groups;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
+using Nosum.Gameplay.Farm;
 using Nosum.Handlers.Player;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Player;
@@ -84,7 +85,7 @@ internal static class Program
         InstanceManager.Instance.Register(groups);
 
         MapPresence presence = new(groups);
-        TmxMapCatalog maps = new([new TmxMapSource(FarmMapId, Path.Combine(AppContext.BaseDirectory, "maps", "Farm.tmx"), SpawnTileX: 64, SpawnTileY: 17)]);
+        TmxMapCatalog maps = new([new TmxMapSource(FarmMapId, Path.Combine(AppContext.BaseDirectory, "maps", "Farm.tmx"), FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.BuildWalkGrid)]);
         PlayerService players = new(presence, maps, TimeProvider.System, SnapshotInterval);
 
         InstanceManager.Instance.Register<IMapPresence>(presence);

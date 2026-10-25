@@ -12,6 +12,7 @@
   <ItemGroup>
     <Content Include="..\..\assets\Maps\Farm.tmx;..\..\assets\Maps\paths.png;..\..\assets\Maps\spring_outdoorsTileSheet.png;..\..\assets\Maps\spring_outdoorsTileSheet2.png;..\..\assets\Maps\spring_outdoorTileSheet_extra.png" Link="wwwroot\assets\Maps\%(Filename)%(Extension)" />
     <Content Include="..\..\assets\Characters\Farmer\farmer_base.png;..\..\assets\Characters\Farmer\pants.png;..\..\assets\Characters\Farmer\shirts.png;..\..\assets\Characters\Farmer\hairstyles.png" Link="wwwroot\assets\Characters\Farmer\%(Filename)%(Extension)" />
+    <Content Include="..\..\assets\Buildings\houses.png;..\..\assets\Buildings\Greenhouse.png;..\..\assets\Buildings\Shipping Bin.png" Link="wwwroot\assets\Buildings\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +26,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nosum.Wasm.ViewModels\Nosum.Wasm.ViewModels.csproj" />
+    <ProjectReference Include="..\Nosum.Wasm.Socket\Nosum.Wasm.Socket.csproj" />
+    <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
     <ProjectReference Include="..\..\engine\Nosum.Rendering.Web\Nosum.Rendering.Web.csproj" />
     <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
     <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />

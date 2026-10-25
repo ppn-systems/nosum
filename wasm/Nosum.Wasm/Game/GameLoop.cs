@@ -7,6 +7,9 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Core;
+using Nosum.Gameplay.Farm;
+using Nosum.Wasm.Socket.Player;
+using Nosum.Rendering;
 using Nosum.Rendering.Web;
 
 namespace Nosum.Wasm.Game;
@@ -20,10 +23,16 @@ internal static partial class GameLoop
 {
     private const string MapsUrl = "assets/Maps/";
     private const string FarmerUrl = "assets/Characters/Farmer/";
+    private const string BuildingsUrl = "assets/Buildings/";
 
     private static readonly WebRenderBackend s_backend = new();
     private static FarmScene? s_scene;
+    private static PlayerChannel? s_network;
     private static double s_lastTime = -1;
+
+    /// <summary>Connects the game to the server; call before <see cref="StartAsync"/>. Without it the farm is played offline.</summary>
+    /// <param name="channel">The player channel.</param>
+    public static void UseNetwork(PlayerChannel channel) => s_network = channel;
 
     /// <summary>
     /// Loads everything and starts the loop on the given canvas.
@@ -39,7 +48,7 @@ internal static partial class GameLoop
         TileMap map = TmxReader.Parse(await http.GetStringAsync(new Uri(MapsUrl + "Farm.tmx", UriKind.Relative), cancellationToken).ConfigureAwait(false));
 
         int[] tileSetTextures = new int[map.TileSets.Count];
-        Task[] loads = new Task[map.TileSets.Count + 4];
+        Task[] loads = new Task[map.TileSets.Count + 7];
         for (int i = 0; i < map.TileSets.Count; i++)
         {
             string source = map.TileSets[i].ImageSource;
@@ -53,10 +62,24 @@ internal static partial class GameLoop
         loads[next + 1] = WebRenderBackend.LoadTextureAsync(farmer.Pants, FarmerUrl + "pants.png");
         loads[next + 2] = WebRenderBackend.LoadTextureAsync(farmer.Shirts, FarmerUrl + "shirts.png");
         loads[next + 3] = WebRenderBackend.LoadTextureAsync(farmer.Hair, FarmerUrl + "hairstyles.png");
+        int houses = next + 4;
+        loads[houses] = WebRenderBackend.LoadTextureAsync(houses, BuildingsUrl + "houses.png");
+        loads[houses + 1] = WebRenderBackend.LoadTextureAsync(houses + 1, BuildingsUrl + "Greenhouse.png");
+        loads[houses + 2] = WebRenderBackend.LoadTextureAsync(houses + 2, BuildingsUrl + "Shipping Bin.png");
         await Task.WhenAll(loads).ConfigureAwait(false);
 
         FarmerLook look = new(Hairstyle: 1, HairTint: unchecked((int)0x6B4226FF), Shirt: 3, Pants: 0, PantsTint: unchecked((int)0x3E5F8AFF));
-        s_scene = new FarmScene(map, tileSetTextures, farmer, look, startTileX: 64, startTileY: 17);
+        PropLayer props = new(
+            FarmProps.Placements,
+            sheet => sheet switch
+            {
+                FarmProps.HousesSheet => houses,
+                FarmProps.GreenhouseSheet => houses + 1,
+                FarmProps.ShippingBinSheet => houses + 2,
+                _ => -1,
+            },
+            map.TileWidth);
+        s_scene = new FarmScene(map, tileSetTextures, farmer, look, props, FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, s_network);
 
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }

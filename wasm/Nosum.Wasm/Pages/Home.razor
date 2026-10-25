@@ -4,6 +4,7 @@
 @using System.Runtime.InteropServices.JavaScript
 @using System.Threading
 @using System.Runtime.Versioning
+@using Nosum.Wasm.Components
 @using Nosum.Wasm.Game
 @attribute [SupportedOSPlatform("browser")]
 @inject HttpClient Http
@@ -11,6 +12,7 @@
 <PageTitle>Nosum</PageTitle>
 
 <canvas id="game-canvas" class="game-canvas" tabindex="0"></canvas>
+<ConnectionBadge />
 @if (_error is not null)
 {
     <p class="game-error">@_error</p>

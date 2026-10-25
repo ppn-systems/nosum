@@ -18,7 +18,9 @@ public static class TileLayerRenderer
     /// <param name="tileSetTextures">Backend texture id per entry of <see cref="TileMap.TileSets"/>; negative skips the set.</param>
     /// <param name="camera">The camera.</param>
     /// <param name="commands">Where draws are recorded.</param>
-    public static void Draw(TileMap map, TileLayer layer, ReadOnlySpan<int> tileSetTextures, in Camera2D camera, RenderCommandBuffer commands)
+    /// <param name="timeMs">Animation clock, milliseconds; animated tiles show the frame for this time.</param>
+    /// <param name="wave">Optional ripple over tiles with a trait; <see cref="TileWave.None"/> for none.</param>
+    public static void Draw(TileMap map, TileLayer layer, ReadOnlySpan<int> tileSetTextures, in Camera2D camera, RenderCommandBuffer commands, long timeMs = 0, TileWave wave = default)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(layer);
@@ -50,14 +52,30 @@ public static class TileLayerRenderer
 
                 TileSet set = map.TileSets[setIndex];
                 int local = gid - set.FirstGid;
-                commands.Draw(
-                    tileSetTextures[setIndex],
-                    local % set.Columns * tw,
-                    local / set.Columns * th,
-                    tw,
-                    th,
-                    (x * tw) - camera.Left,
-                    (y * th) - camera.Top);
+                bool ripples = wave.IsActive && set.Tiles is not null && (set.Tiles.GetTraits(local) & wave.Trait) != 0;
+                if (set.Tiles?.GetAnimation(local) is TileAnimation animation)
+                {
+                    local = animation.FrameAt(timeMs);
+                }
+
+                int srcX = local % set.Columns * tw;
+                int srcY = local / set.Columns * th;
+                int dstX = (x * tw) - camera.Left;
+                int dstY = (y * th) - camera.Top;
+                commands.Draw(tileSetTextures[setIndex], srcX, srcY, tw, th, dstX, dstY);
+                if (ripples)
+                {
+                    for (int strip = 0; strip < th; strip += wave.StripHeight)
+                    {
+                        int shift = wave.Offset((y * th) + strip, timeMs);
+                        if (shift != 0)
+                        {
+                            // Shift the strip's pixels inside the tile so nothing bleeds onto neighbouring land.
+                            int span = tw - Math.Abs(shift);
+                            commands.Draw(tileSetTextures[setIndex], srcX + Math.Max(0, -shift), srcY + strip, span, wave.StripHeight, dstX + Math.Max(0, shift), dstY + strip);
+                        }
+                    }
+                }
             }
         }
     }

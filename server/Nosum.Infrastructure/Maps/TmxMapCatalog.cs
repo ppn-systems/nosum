@@ -16,9 +16,6 @@ namespace Nosum.Infrastructure.Maps;
 /// </summary>
 public sealed class TmxMapCatalog : IMapCatalog
 {
-    /// <summary>Name of the layer whose tiles block walking.</summary>
-    public const string BlockingLayer = "Buildings";
-
     private readonly Dictionary<string, MapDefinition> _maps = new(StringComparer.Ordinal);
 
     /// <summary>Loads the given maps.</summary>
@@ -31,7 +28,7 @@ public sealed class TmxMapCatalog : IMapCatalog
         foreach (TmxMapSource source in sources)
         {
             TileMap map = TmxReader.Parse(File.ReadAllText(source.Path));
-            WalkGrid grid = WalkGrid.FromLayer(map, BlockingLayer);
+            WalkGrid grid = source.BuildGrid(map);
             (double x, double y) = SpawnPoint.Find(grid, source.SpawnTileX, source.SpawnTileY);
             _maps.Add(source.Id, new MapDefinition(source.Id, grid, x, y));
         }
@@ -55,4 +52,5 @@ public sealed class TmxMapCatalog : IMapCatalog
 /// <param name="Path">Path of the <c>.tmx</c> file.</param>
 /// <param name="SpawnTileX">Preferred spawn tile x.</param>
 /// <param name="SpawnTileY">Preferred spawn tile y.</param>
-public readonly record struct TmxMapSource(string Id, string Path, int SpawnTileX, int SpawnTileY);
+/// <param name="BuildGrid">Builds the walk grid; must be the same rule the client predicts with.</param>
+public readonly record struct TmxMapSource(string Id, string Path, int SpawnTileX, int SpawnTileY, Func<TileMap, WalkGrid> BuildGrid);
