@@ -58,9 +58,9 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     public async Task Buy_AtTheCounter_TakesCoinsAndGivesItemsInOneTransactionWithAuditRows()
     {
         Guid player = await CreatePlayerAsync();
-        StandAtCounter(player);
+        StandAtCounter(player, ShopCatalog.FurnitureShop);
 
-        ShopOutcome outcome = await _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.OakChair, 2);
+        ShopOutcome outcome = await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 2);
 
         outcome.Should().Be(new ShopOutcome(ShopStatus.Ok, 200));
         (await _transfers.GetBalanceAsync(player)).Should().Be(300);
@@ -74,11 +74,11 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     public async Task Buy_NotEnoughCoins_ChangesNothing()
     {
         Guid player = await CreatePlayerAsync();
-        StandAtCounter(player);
+        StandAtCounter(player, ShopCatalog.FurnitureShop);
 
         // 500 coins, a couch is 400 each: the second one cannot be paid.
-        (await _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.BlueCouch, 1)).Status.Should().Be(ShopStatus.Ok);
-        ShopOutcome refused = await _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.BlueCouch, 1);
+        (await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.BlueCouch, 1)).Status.Should().Be(ShopStatus.Ok);
+        ShopOutcome refused = await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.BlueCouch, 1);
 
         refused.Should().Be(new ShopOutcome(ShopStatus.NotEnoughCoins, 0));
         (await _transfers.GetBalanceAsync(player)).Should().Be(100);
@@ -89,10 +89,10 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     public async Task Buy_FullInventory_IsRefusedAndNoCoinIsTaken()
     {
         Guid player = await CreatePlayerAsync();
-        StandAtCounter(player);
+        StandAtCounter(player, ShopCatalog.FurnitureShop);
         _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, 31, "test.fill"); // 5 starter slots + 31 = 36
 
-        ShopOutcome refused = await _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.OakChair, 1);
+        ShopOutcome refused = await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 1);
 
         refused.Should().Be(new ShopOutcome(ShopStatus.NoSpace, 0));
         (await _transfers.GetBalanceAsync(player)).Should().Be(500);
@@ -105,11 +105,11 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     public async Task Buy_ASeedStackThatStillFitsAnExistingStack_Works()
     {
         Guid player = await CreatePlayerAsync();
-        StandAtCounter(player);
+        StandAtCounter(player, ShopCatalog.SeedShop);
         _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, 31, "test.fill");
 
         // Parsnip seeds merge into the starter stack (8 + 10 <= 99), so a full inventory still takes them.
-        (await _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.ParsnipSeeds, 10)).Status.Should().Be(ShopStatus.Ok);
+        (await _shop.BuyAsync(_connection, player, ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10)).Status.Should().Be(ShopStatus.Ok);
 
         (await CountAsync(player, ItemCatalog.ParsnipSeeds)).Should().Be(18);
         (await _transfers.GetBalanceAsync(player)).Should().Be(400);
@@ -120,27 +120,27 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     {
         Guid player = await CreatePlayerAsync();
         _presence.Stand(player, GameMaps.Town, 10 * 16, 10 * 16);
-        (await _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.OakChair, 1)).Status.Should().Be(ShopStatus.NotAtShop);
+        (await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 1)).Status.Should().Be(ShopStatus.NotAtShop);
 
         _presence.Stand(player, GameMaps.BusStop, (43 * 16) + 8, (57 * 16) + 8);
-        (await _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.OakChair, 1)).Status.Should().Be(ShopStatus.NotAtShop);
+        (await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 1)).Status.Should().Be(ShopStatus.NotAtShop);
 
         _presence.Remove();
-        (await _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.OakChair, 1)).Status.Should().Be(ShopStatus.NotAtShop, "not on any map");
+        (await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 1)).Status.Should().Be(ShopStatus.NotAtShop, "not on any map");
         (await _transfers.GetBalanceAsync(player)).Should().Be(500);
     }
 
     [Theory]
     [InlineData(99, ItemCatalog.OakChair, 1, ShopStatus.UnknownShop)]
-    [InlineData(ShopCatalog.GeneralStore, ItemCatalog.Hoe, 1, ShopStatus.NotSold)]
-    [InlineData(ShopCatalog.GeneralStore, ItemCatalog.Parsnip, 1, ShopStatus.NotSold)]
-    [InlineData(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 0, ShopStatus.InvalidQuantity)]
-    [InlineData(ShopCatalog.GeneralStore, ItemCatalog.OakChair, -5, ShopStatus.InvalidQuantity)]
-    [InlineData(ShopCatalog.GeneralStore, ItemCatalog.ShirtRed, 2, ShopStatus.InvalidQuantity)]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.Hoe, 1, ShopStatus.NotSold)]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.Parsnip, 1, ShopStatus.NotSold)]
+    [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 0, ShopStatus.InvalidQuantity)]
+    [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, -5, ShopStatus.InvalidQuantity)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 2, ShopStatus.InvalidQuantity)]
     public async Task Buy_InvalidRequest_IsRefusedBeforeAnythingMoves(int shopId, int itemId, int quantity, ShopStatus expected)
     {
         Guid player = await CreatePlayerAsync();
-        StandAtCounter(player);
+        StandAtCounter(player, ShopCatalog.FurnitureShop);
 
         (await _shop.BuyAsync(_connection, player, shopId, itemId, quantity)).Status.Should().Be(expected);
 
@@ -151,15 +151,65 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     public async Task Buy_ManyAtOnceWithCoinsForOnlySome_NeverSpendsMoreThanTheBalance()
     {
         Guid player = await CreatePlayerAsync();
-        StandAtCounter(player);
+        StandAtCounter(player, ShopCatalog.FurnitureShop);
 
         // Each lamp is 140: with 500 coins exactly three of the ten parallel purchases can succeed.
-        ShopOutcome[] results = await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => _shop.BuyAsync(_connection, player, ShopCatalog.GeneralStore, ItemCatalog.FloorLamp, 1)));
+        ShopOutcome[] results = await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.FloorLamp, 1)));
 
         results.Count(r => r.Status == ShopStatus.Ok).Should().Be(3);
         results.Where(r => r.Status != ShopStatus.Ok).Select(r => r.Status).Should().OnlyContain(status => status == ShopStatus.NotEnoughCoins || status == ShopStatus.Conflict);
         (await _transfers.GetBalanceAsync(player)).Should().Be(500 - (3 * 140));
         (await CountAsync(player, ItemCatalog.FloorLamp)).Should().Be(3);
+    }
+
+    [Theory]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 30)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.HatCap, 40)]
+    [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.HousePlant, 80)]
+    public async Task Buy_AtEachShopsOwnCounter_SellsThatShopsItems(int shopId, int itemId, int price)
+    {
+        Guid player = await CreatePlayerAsync();
+        StandAtCounter(player, shopId);
+
+        (await _shop.BuyAsync(_connection, player, shopId, itemId, 1)).Should().Be(new ShopOutcome(ShopStatus.Ok, price));
+
+        (await _transfers.GetBalanceAsync(player)).Should().Be(500 - price);
+        (await CountAsync(player, itemId)).Should().BeGreaterThanOrEqualTo(1);
+    }
+
+    [Theory]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.OakChair)]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.ShirtBlue)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ParsnipSeeds)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.FloorLamp)]
+    [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.RadishSeeds)]
+    [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.PantsKhaki)]
+    public async Task Buy_AnItemTheShopDoesNotSell_IsRefusedEvenAtItsOwnCounter_AndNothingMoves(int shopId, int itemId)
+    {
+        Guid player = await CreatePlayerAsync();
+        StandAtCounter(player, shopId);
+        int before = await CountAsync(player, itemId);
+
+        (await _shop.BuyAsync(_connection, player, shopId, itemId, 1)).Should().Be(new ShopOutcome(ShopStatus.NotSold, 0));
+
+        (await _transfers.GetBalanceAsync(player)).Should().Be(500);
+        (await CountAsync(player, itemId)).Should().Be(before);
+        await using NosumDbContext context = new(_database.Options);
+        (await context.CoinLog.AnyAsync(e => e.PlayerId == player && e.Reason == "shop.buy")).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(ShopCatalog.SeedShop, ShopCatalog.FurnitureShop, ItemCatalog.OakChair)]
+    [InlineData(ShopCatalog.ClothingShop, ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds)]
+    [InlineData(ShopCatalog.FurnitureShop, ShopCatalog.ClothingShop, ItemCatalog.HatCap)]
+    public async Task Buy_FromAShopWhoseCounterTheFarmerIsNotAt_IsRefused(int standAt, int buyFrom, int itemId)
+    {
+        Guid player = await CreatePlayerAsync();
+        StandAtCounter(player, standAt);
+
+        (await _shop.BuyAsync(_connection, player, buyFrom, itemId, 1)).Should().Be(new ShopOutcome(ShopStatus.NotAtShop, 0));
+
+        (await _transfers.GetBalanceAsync(player)).Should().Be(500);
     }
 
     [Fact]
@@ -180,9 +230,9 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
         (await context.CoinLog.Where(e => e.PlayerId == player && e.Reason == "dev.grant").ToListAsync()).Should().ContainSingle().Which.Delta.Should().Be(250);
     }
 
-    private void StandAtCounter(Guid player)
+    private void StandAtCounter(Guid player, int shopId)
     {
-        ShopPoint point = TownSpec().Shops[0];
+        ShopPoint point = TownSpec().Shops.Single(p => p.ShopId == shopId);
         _presence.Stand(player, GameMaps.Town, (point.TileX * 16) + 8, (point.TileY * 16) + 8);
     }
 

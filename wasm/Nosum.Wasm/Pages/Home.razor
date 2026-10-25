@@ -119,7 +119,7 @@ else
                             <ProfilePanel Vm="Profile" />
                             break;
                         case PanelKind.Shop:
-                            <ShopPanel Vm="Shop" />
+                            <ShopPanel Vm="Shop" ShopId="_shopId" />
                             break;
                         case PanelKind.Settings:
                             <SettingsPanel Vm="Form" Help="Help" />
@@ -169,6 +169,7 @@ else
     private bool _started;
     private PanelKind _panel;
     private PanelKind _lastTab = PanelKind.Inventory;
+    private int _shopId;
     private string? _error;
 
     protected override void OnInitialized()
@@ -215,7 +216,7 @@ else
     }
 
     // A guest registered under a nickname: the profile shows it.
-    private void OnSessionUpdated(AccountSession session) => Profile.Begin(session.Nickname);
+    private void OnSessionUpdated(AccountSession session) => Profile.Begin(session.Nickname, session.IsGuest);
 
     // The first quest was finished: the session bar now offers the registration (the form's session is the one it shows).
     private void OnPromptUnlocked() => Form.UnlockRegistrationPrompt();
@@ -228,6 +229,7 @@ else
     {
         if (_panel != PanelKind.Shop)
         {
+            _shopId = shopId;
             Shop.Open(shopId);
             Show(PanelKind.Shop);
             StateHasChanged();
@@ -341,7 +343,7 @@ else
     private void OnSignedIn(AccountSession session)
     {
         Keeper.SignedIn(session);
-        Profile.Begin(session.Nickname);
+        Profile.Begin(session.Nickname, session.IsGuest);
         _signedIn = true;
         _ = InvokeAsync(async () =>
         {

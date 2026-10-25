@@ -80,6 +80,13 @@ top-right coins and the gear, center = the game menu, bottom-center hotbar with 
 on the last tab, `I M C T G N` open a tab, `H` / `?` and the gear open settings (account, sign out, language, key help: `Controls/Settings/SettingsPanel`, `HelpViewModel`). The start screen (`Components/Account/StartScreen`) wraps the account form; the loading
 state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
 
+Shops, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): next to one of the Town's three shop counters (seed, clothing, furniture) the action key (`E`) opens the menu's shop page `ShopPanel`
+(takes a `ShopId`; `ShopViewModel`, `ShopChannel`; catalogue and prices are the shared `ShopCatalog`, the server prices and checks every purchase). `N` opens the profile page `ProfilePanel` (`ProfileViewModel`: show and change the nickname once a day; a guest sees a note that registering unlocks it);
+the registration and upgrade form asks for a nickname (`GameField`). `NicknameFormatter` shows a nickname (a guest's `guest-1234` as "Khách 1234" / "Guest 1234"); `LookChannel` caches nicknames by map player id and
+`Game/NicknameLabels` uploads each name once as an engine label (`LabelRegistry`, `renderer.js registerLabel`) that `MapScene` draws above every farmer. Tester tools exist only in a build made with
+`-p:NosumDevTools=true`: from the browser console, `(await getDotnetRuntime(0).getAssemblyExports("Nosum.Wasm.dll")).Nosum.Wasm.Game.DevTools.Grant(300, 5, 0)` asks a Development server for 5 oak chairs
+(item id, quantity, coins).
+
 ```bash
 dotnet build wasm/Nosum.Wasm.slnx
 dotnet run --project wasm/Nosum.Wasm
