@@ -17,6 +17,7 @@ using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
+using Nosum.Contracts.World.S2C;
 using Nosum.Domain.Farm;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Inventory;
@@ -33,10 +34,13 @@ namespace Nosum.Infrastructure.Farm;
 /// tells everyone in the same instance and the quest service. The farm is private per player (docs/adr/ADR-015): the tiles belong to an instance (map plus owner), never to the map alone. The tilled tiles of an instance are kept in memory after
 /// the first read and written through to PostgreSQL; the server is a single process (docs/adr/ADR-009).
 /// Crops are never simulated: growth is computed from the stored timestamps (docs/adr/ADR-003 D4).
+/// The tiles of an instance are kept in per-chunk buckets; a change is published to the subscribers of the chunk it happened in and a chunk's tiles are sent once when it joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
-public sealed class FarmService : IFarmService
+public sealed class FarmService : IFarmService, IChunkStateContributor
 {
     private readonly IMapPresence _presence;
+    private readonly IChunkMap _chunks;
+    private readonly IChunkPublisher _publisher;
     private readonly IMapCatalog _maps;
     private readonly IInventoryService _inventory;
     private readonly IQuestService _quests;
@@ -47,6 +51,8 @@ public sealed class FarmService : IFarmService
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands where; the action uses the server's own record of the player's position.</param>
+    /// <param name="chunks">Who is interested in which chunk; a read returns only the tiles in the player's interest set.</param>
+    /// <param name="publisher">Delivers a tile change to the players who can see its chunk.</param>
     /// <param name="maps">The hosted maps and their tillable tiles.</param>
     /// <param name="inventory">Seeds and harvests go through it.</param>
     /// <param name="quests">Told when a crop was planted or harvested.</param>
@@ -54,6 +60,8 @@ public sealed class FarmService : IFarmService
     /// <param name="time">The server clock crops grow by; tests pass a fake one.</param>
     public FarmService(
         IMapPresence presence,
+        IChunkMap chunks,
+        IChunkPublisher publisher,
         IMapCatalog maps,
         IInventoryService inventory,
         IQuestService quests,
@@ -61,6 +69,8 @@ public sealed class FarmService : IFarmService
         TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(chunks);
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(quests);
@@ -68,6 +78,8 @@ public sealed class FarmService : IFarmService
         ArgumentNullException.ThrowIfNull(time);
 
         _presence = presence;
+        _chunks = chunks;
+        _publisher = publisher;
         _maps = maps;
         _inventory = inventory;
         _quests = quests;
@@ -119,7 +131,7 @@ public sealed class FarmService : IFarmService
         using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
-            FarmTile? current = farm.Tiles.TryGetValue((tileX, tileY), out FarmTile found) ? found : null;
+            FarmTile? current = farm.TryGet(tileX, tileY, out FarmTile found) ? found : null;
             InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
 
             Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs);
@@ -134,7 +146,7 @@ public sealed class FarmService : IFarmService
                 return Refused(status);
             }
 
-            farm.Tiles[(tileX, tileY)] = plan.Next;
+            farm.Set(tileX, tileY, plan.Next);
             changedTile = plan.Next;
             action = plan.Action;
             report = plan.Report;
@@ -159,13 +171,46 @@ public sealed class FarmService : IFarmService
         MapFarm farm = await this.FarmOfAsync(player.Instance, cancellationToken).ConfigureAwait(false);
         using (await _mapLocks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
-            List<FarmTileView> tiles = new(farm.Tiles.Count);
-            foreach (KeyValuePair<(int X, int Y), FarmTile> tile in farm.Tiles)
+            // Only what the player can see: the tiles of the chunks in their interest set (all of them before the player has one).
+            List<FarmTileView> tiles = new(farm.Count);
+            foreach (KeyValuePair<ChunkCoord, Dictionary<(int X, int Y), FarmTile>> chunk in farm.Chunks)
             {
-                tiles.Add(new FarmTileView(tile.Key.X, tile.Key.Y, tile.Value));
+                if (player.Viewer is not null && !_chunks.IsInterested(player, chunk.Key))
+                {
+                    continue;
+                }
+
+                foreach (KeyValuePair<(int X, int Y), FarmTile> tile in chunk.Value)
+                {
+                    tiles.Add(new FarmTileView(tile.Key.X, tile.Key.Y, tile.Value));
+                }
             }
 
             return new FarmSnapshotView(map.Id, nowMs, tiles);
+        }
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask FillAsync(MapInstance instance, ChunkCoord chunk, ChunkState state, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || map.Tillable is null)
+        {
+            return;
+        }
+
+        MapFarm farm = await this.FarmOfAsync(instance, cancellationToken).ConfigureAwait(false);
+        using (await _mapLocks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            if (farm.Chunks.TryGetValue(chunk, out Dictionary<(int X, int Y), FarmTile>? tiles))
+            {
+                state.ServerNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+                foreach (KeyValuePair<(int X, int Y), FarmTile> tile in tiles)
+                {
+                    state.FarmTiles.Add(ToRow(tile.Key.X, tile.Key.Y, tile.Value));
+                }
+            }
         }
     }
 
@@ -324,7 +369,7 @@ public sealed class FarmService : IFarmService
             List<FarmPlot> rows = await unit.Repository<FarmPlot>().ListAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId, CancellationToken.None).ConfigureAwait(false);
             foreach (FarmPlot row in rows)
             {
-                farm.Tiles[(row.X, row.Y)] = new FarmTile(row.CropId, row.PlantedAtMs, row.GrowthMs, row.SettledAtMs, row.WetUntilMs);
+                farm.Set(row.X, row.Y, new FarmTile(row.CropId, row.PlantedAtMs, row.GrowthMs, row.SettledAtMs, row.WetUntilMs));
             }
         }
 
@@ -339,7 +384,7 @@ public sealed class FarmService : IFarmService
         packet.ServerNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
         packet.Tiles.Clear();
         packet.Tiles.Add(ToRow(x, y, tile));
-        await _presence.MulticastAsync(instance.Key, packet, null, cancellationToken).ConfigureAwait(false);
+        await _publisher.PublishAsync(instance, ChunkCoord.OfTile(x, y), packet, null, cancellationToken).ConfigureAwait(false);
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "The action is committed and pushed; a failing quest update must not turn it into an error reply.")]
@@ -360,9 +405,42 @@ public sealed class FarmService : IFarmService
         }
     }
 
+    // The tilled tiles of one instance, in one bucket per chunk (docs/adr/ADR-022 D5): the tiles of a chunk are one lookup away.
     private sealed class MapFarm
     {
-        public Dictionary<(int X, int Y), FarmTile> Tiles { get; } = [];
+        public Dictionary<ChunkCoord, Dictionary<(int X, int Y), FarmTile>> Chunks { get; } = [];
+
+        public int Count { get; private set; }
+
+        public bool TryGet(int x, int y, out FarmTile tile)
+        {
+            if (this.Chunks.TryGetValue(ChunkCoord.OfTile(x, y), out Dictionary<(int X, int Y), FarmTile>? bucket))
+            {
+                return bucket.TryGetValue((x, y), out tile);
+            }
+
+            tile = default;
+            return false;
+        }
+
+        public void Set(int x, int y, FarmTile tile)
+        {
+            ChunkCoord chunk = ChunkCoord.OfTile(x, y);
+            if (!this.Chunks.TryGetValue(chunk, out Dictionary<(int X, int Y), FarmTile>? bucket))
+            {
+                bucket = [];
+                this.Chunks[chunk] = bucket;
+            }
+
+            if (bucket.TryAdd((x, y), tile))
+            {
+                this.Count++;
+            }
+            else
+            {
+                bucket[(x, y)] = tile;
+            }
+        }
     }
 
     private readonly record struct Plan(FarmVerdict Verdict, FarmAction Action, FarmTile Next, IReadOnlyList<InventoryOperation> Operations, string Reason, QuestEvent? Report)

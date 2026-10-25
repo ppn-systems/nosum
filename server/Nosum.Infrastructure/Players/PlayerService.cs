@@ -29,6 +29,8 @@ namespace Nosum.Infrastructure.Players;
 public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
 {
     private readonly IMapPresence _presence;
+    private readonly IChunkMap _chunks;
+    private readonly ChunkStreamer _streamer;
     private readonly IMapCatalog _maps;
     private readonly IPlayerStateService _states;
     private readonly IInstanceWorld _world;
@@ -37,15 +39,19 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands on which map.</param>
+    /// <param name="chunks">Who is interested in which chunk: the snapshot of a player carries only the players in their interest set (docs/adr/ADR-022).</param>
+    /// <param name="streamer">Sends chunk state, spawns and despawns as the interest sets change.</param>
     /// <param name="maps">The hosted maps.</param>
     /// <param name="states">Saved player positions.</param>
     /// <param name="world">The per-instance layer (placed furniture) players collide with.</param>
     /// <param name="access">Who may enter which instance.</param>
     /// <param name="time">Clock for movement budgets and snapshot timestamps.</param>
     /// <param name="snapshotInterval">Time between map snapshots.</param>
-    public PlayerService(IMapPresence presence, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, TimeProvider time, TimeSpan snapshotInterval)
+    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, TimeProvider time, TimeSpan snapshotInterval)
     {
         ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(chunks);
+        ArgumentNullException.ThrowIfNull(streamer);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(states);
         ArgumentNullException.ThrowIfNull(world);
@@ -54,6 +60,8 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(snapshotInterval, TimeSpan.Zero);
 
         _presence = presence;
+        _chunks = chunks;
+        _streamer = streamer;
         _maps = maps;
         _states = states;
         _world = world;
@@ -79,6 +87,7 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
         await _world.PrepareAsync(instance, cancellationToken).ConfigureAwait(false);
         PlayerPresence player = await _presence.JoinAsync(connection, accountId, instance, start, cancellationToken: cancellationToken).ConfigureAwait(false);
         ArmWarps(player, map);
+        this.SubscribeToChunks(player, map);
 
         this.EnsureSnapshotLoop();
         return new JoinOutcome(JoinStatus.Ok, player.PlayerId, (float)start.X, (float)start.Y, map.Id, (byte)start.Facing);
@@ -212,6 +221,7 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
 
         PlayerPresence arrived = await _presence.JoinAsync(connection, from.AccountId, targetInstance, new MotionState(x, y, this.NowSeconds(), facing), from.PlayerId, CancellationToken.None).ConfigureAwait(false);
         ArmWarps(arrived, target);
+        this.SubscribeToChunks(arrived, target);
         this.EnsureSnapshotLoop();
 
         try
@@ -246,8 +256,29 @@ public sealed partial class PlayerService : IPlayerService, IAsyncDisposable
             // The player keeps their previously saved place.
         }
 
-        using PacketScope<PlayerLeft> lease = PacketFactory<PlayerLeft>.Acquire();
-        lease.Value.PlayerId = player.PlayerId;
-        await _presence.MulticastAsync(player.Key, lease.Value).ConfigureAwait(false);
+        // The players who can see the leaver hear at once; anyone the notice misses loses them from the next snapshot (docs/adr/ADR-022 D3).
+        ChunkCoord chunk = player.Viewer?.Chunk ?? default;
+        if (player.Viewer is null && _maps.TryGet(player.MapId, out MapDefinition? map))
+        {
+            lock (player.Gate)
+            {
+                chunk = ChunkCoord.OfPixels(player.Motion.X, player.Motion.Y, map.Grid.TileSize);
+            }
+        }
+
+        await _streamer.PublishLeftAsync(player, chunk).ConfigureAwait(false);
+    }
+
+    // Puts a player who just entered an instance into the chunk index with the 3 x 3 block around their chunk; their chunk state is sent by the next snapshot tick.
+    private void SubscribeToChunks(PlayerPresence player, MapDefinition map)
+    {
+        ChunkBounds bounds = ChunkBounds.ForTiles(map.Grid.Width, map.Grid.Height);
+        ChunkCoord chunk;
+        lock (player.Gate)
+        {
+            chunk = bounds.Clamp(ChunkCoord.OfPixels(player.Motion.X, player.Motion.Y, map.Grid.TileSize));
+        }
+
+        _chunks.Subscribe(player, chunk, bounds);
     }
 }

@@ -47,6 +47,9 @@ public sealed class ChunkInterest
         }
     }
 
+    /// <summary>Gets the chunks the map has; none outside them ever joins the set.</summary>
+    public ChunkBounds Bounds => _bounds;
+
     /// <summary>Gets the chunk the set is centred on: the player's chunk as of the last <see cref="MoveTo"/>.</summary>
     public ChunkCoord Center => _center;
 

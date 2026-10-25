@@ -55,6 +55,12 @@ public sealed class PlayerPresence
     /// <summary>Gets the player's connection.</summary>
     public IConnection Connection { get; }
 
+    /// <summary>
+    /// Gets or sets what the player can see: their chunk interest set and who they were shown. <see langword="null"/> until <see cref="IChunkMap.Subscribe"/> ran
+    /// (a few moments after the join). Owned by the snapshot loop (docs/adr/ADR-022).
+    /// </summary>
+    public ViewerState? Viewer { get; set; }
+
     /// <summary>Gets the lock that guards <see cref="Motion"/>.</summary>
     public Lock Gate { get; } = new();
 

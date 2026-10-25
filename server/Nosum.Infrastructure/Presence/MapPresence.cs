@@ -19,11 +19,12 @@ namespace Nosum.Infrastructure.Presence;
 /// In-memory <see cref="IMapPresence"/>: one Nalix connection group per map instance (a shared map, or one player's private copy), and cleanup when a
 /// connection closes.
 /// </summary>
-public sealed class MapPresence : IMapPresence
+public sealed class MapPresence : IMapPresence, IChunkMap
 {
     private readonly IConnectionGroupRegistry _groups;
     private readonly ConcurrentDictionary<ulong, PlayerPresence> _byConnection = new();
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<uint, PlayerPresence>> _byMap = new(StringComparer.Ordinal);
+    private readonly ChunkIndex _chunks = new();
     private readonly EventHandler<IConnectionEventArgs> _onClosed;
     private int _nextPlayerId;
 
@@ -79,6 +80,7 @@ public sealed class MapPresence : IMapPresence
         }
 
         connection.ConnectionClosed -= _onClosed;
+        _chunks.Remove(player);
         if (_byMap.TryGetValue(player.Key, out ConcurrentDictionary<uint, PlayerPresence>? members))
         {
             _ = members.TryRemove(player.PlayerId, out _);
@@ -166,6 +168,59 @@ public sealed class MapPresence : IMapPresence
                 // A closing connection is cleaned up by its close event.
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public void Subscribe(PlayerPresence player, ChunkCoord center, ChunkBounds bounds)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+
+        player.Viewer = new ViewerState(new ChunkInterest(center, bounds));
+        if (!_chunks.Add(player, () => _byConnection.TryGetValue(player.Connection.ConnectionId, out PlayerPresence? current) && ReferenceEquals(current, player)))
+        {
+            player.Viewer = null;
+        }
+    }
+
+    /// <inheritdoc/>
+    public bool Relocate(PlayerPresence player, ChunkCoord destination, Span<ChunkCoord> entered, out int enteredCount, Span<ChunkCoord> left, out int leftCount)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        return _chunks.Move(player, destination, entered, out enteredCount, left, out leftCount);
+    }
+
+    /// <inheritdoc/>
+    public bool IsInterested(PlayerPresence player, ChunkCoord chunk)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        return _chunks.IsInterested(player, chunk);
+    }
+
+    /// <inheritdoc/>
+    public void CopyVisiblePlayers(PlayerPresence viewer, List<PlayerPresence> into)
+    {
+        ArgumentNullException.ThrowIfNull(viewer);
+        ArgumentNullException.ThrowIfNull(into);
+
+        if (!_byMap.TryGetValue(viewer.Key, out ConcurrentDictionary<uint, PlayerPresence>? members))
+        {
+            return;
+        }
+
+        foreach (KeyValuePair<uint, PlayerPresence> member in members)
+        {
+            if (_chunks.Sees(viewer, member.Value))
+            {
+                into.Add(member.Value);
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public void CopySubscribers(MapInstance instance, ChunkCoord chunk, List<PlayerPresence> into)
+    {
+        ArgumentNullException.ThrowIfNull(into);
+        _chunks.CopySubscribers(instance.Key, chunk, into);
     }
 
     /// <summary>

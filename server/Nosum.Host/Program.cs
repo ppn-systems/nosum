@@ -204,6 +204,11 @@ internal static class Program
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
         InstanceManager.Instance.Register<IMapPresence>(presence);
         InstanceManager.Instance.Register<IMapCatalog>(maps);
+
+        // Chunks (docs/adr/ADR-022): the index from chunk to interested players, and the one door a world event goes through.
+        ChunkPublisher publisher = new(presence, presence);
+        InstanceManager.Instance.Register<IChunkMap>(presence);
+        InstanceManager.Instance.Register<IChunkPublisher>(publisher);
         SessionRegistry sessions = new(presence);
         InstanceManager.Instance.Register<ISessionRegistry>(sessions);
 
@@ -221,18 +226,24 @@ internal static class Program
         InstanceManager.Instance.Register<IInventoryService>(inventory);
         InstanceManager.Instance.Register<IQuestService>(quests);
 
+        INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
+
         // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
-        PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
+        // Farm plots and placed objects publish through the chunk publisher and send their chunk's state when it joins a player's interest set (docs/adr/ADR-022).
+        PlaceableService placeables = new(presence, presence, publisher, maps, inventory, unitOfWork, clock);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
-        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval);
+        FarmService farm = new(presence, presence, publisher, maps, inventory, quests, unitOfWork, clock);
+        InstanceManager.Instance.Register<IFarmService>(farm);
+        LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
+        InstanceManager.Instance.Register<ILookService>(looks);
+        ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm]);
+        PlayerService players = new(presence, presence, streamer, maps, states, placeables, new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval);
         InstanceManager.Instance.Register<IPlayerService>(players);
-        InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock));
 
         // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
-        INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
-            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
 
         // The market fee is a coin sink (owner decision 2026-10-25); IFeeSink is the one place that would redirect it.
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
@@ -243,7 +254,6 @@ internal static class Program
             InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));
         }
 
-        InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, nicknames, clock));
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
         InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, clock));
     }

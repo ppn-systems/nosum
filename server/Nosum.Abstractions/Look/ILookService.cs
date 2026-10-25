@@ -36,21 +36,28 @@ public readonly record struct PlayerLookView(uint PlayerId, PlayerLook Look, str
 
 /// <summary>
 /// Player looks and the wardrobe (docs/adr/ADR-014). The server owns every look: a new player gets the default one (plain garments; clothes are bought at the shop); the player changes avatar parts and wears clothing items they own; the server validates, saves,
-/// and sends only ids to everyone on the map.
+/// and sends only ids to the players who can see the player (docs/adr/ADR-022).
 /// </summary>
 public interface ILookService
 {
+    /// <summary>Reads what a client needs to draw one player: look ids and nickname. Used when the player enters someone's interest set (docs/adr/ADR-022 D3).</summary>
+    /// <param name="playerId">The player's id on the map.</param>
+    /// <param name="accountId">The player's account id.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The look and nickname.</returns>
+    Task<PlayerLookView> ViewAsync(uint playerId, Guid accountId, CancellationToken cancellationToken = default);
+
     /// <summary>
-    /// Returns the looks of everyone on the connection's map and announces the connection's own look to the rest of the map
-    /// (a client calls this after joining a map or changing map).
+    /// Returns the looks of the players the connection's player can see (the players in their chunk interest set, docs/adr/ADR-022) and announces the player's own look to the
+    /// players who can see them (a client calls this after joining a map or changing map).
     /// </summary>
     /// <param name="connection">The player's connection.</param>
     /// <param name="playerId">The player's account.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
-    /// <returns>The looks of the players on the map, the caller included; empty when the caller is on no map.</returns>
+    /// <returns>The looks of the players in sight, the caller included; empty when the caller is on no map.</returns>
     Task<IReadOnlyList<PlayerLookView>> AnnounceAndGetAsync(IConnection connection, Guid playerId, CancellationToken cancellationToken = default);
 
-    /// <summary>Announces the connection's current look and nickname to everyone on its map, itself included (after a nickname change).</summary>
+    /// <summary>Announces the connection's current look and nickname to the players who can see them, themselves included (after a nickname change).</summary>
     /// <param name="connection">The player's connection.</param>
     /// <param name="playerId">The player's account.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
