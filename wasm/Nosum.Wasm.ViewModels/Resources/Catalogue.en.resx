@@ -74,4 +74,28 @@
   <data name="Item_coal_Description" xml:space="preserve"><value>A rare lump of coal, sometimes found inside stones.</value></data>
   <data name="Item_copper_ore_Name" xml:space="preserve"><value>Copper ore</value></data>
   <data name="Item_copper_ore_Description" xml:space="preserve"><value>Copper ore taken from an ore node.</value></data>
+  <data name="Item_iron_ore_Name" xml:space="preserve"><value>Iron ore</value></data>
+  <data name="Item_iron_ore_Description" xml:space="preserve"><value>Iron ore from the mine.</value></data>
+  <data name="Item_copper_bar_Name" xml:space="preserve"><value>Copper bar</value></data>
+  <data name="Item_copper_bar_Description" xml:space="preserve"><value>Smelted from copper ore and coal in a furnace.</value></data>
+  <data name="Item_iron_bar_Name" xml:space="preserve"><value>Iron bar</value></data>
+  <data name="Item_iron_bar_Description" xml:space="preserve"><value>Smelted from iron ore and coal in a furnace.</value></data>
+  <data name="Item_chest_Name" xml:space="preserve"><value>Chest</value></data>
+  <data name="Item_chest_Description" xml:space="preserve"><value>Stores items. Place it on your farm or in your house; only you can open it.</value></data>
+  <data name="Item_wood_fence_Name" xml:space="preserve"><value>Wood fence</value></data>
+  <data name="Item_wood_fence_Description" xml:space="preserve"><value>A piece of wooden fence that blocks the way.</value></data>
+  <data name="Item_stone_path_Name" xml:space="preserve"><value>Stone path</value></data>
+  <data name="Item_stone_path_Description" xml:space="preserve"><value>A stone path tile to walk on.</value></data>
+  <data name="Item_scarecrow_Name" xml:space="preserve"><value>Scarecrow</value></data>
+  <data name="Item_scarecrow_Description" xml:space="preserve"><value>Stand it in your field. Crows do not exist yet, so it is only decoration for now.</value></data>
+  <data name="Item_sprinkler_Name" xml:space="preserve"><value>Sprinkler</value></data>
+  <data name="Item_sprinkler_Description" xml:space="preserve"><value>Waters the four tiles next to it at the start of every game day.</value></data>
+  <data name="Item_furnace_Name" xml:space="preserve"><value>Furnace</value></data>
+  <data name="Item_furnace_Description" xml:space="preserve"><value>Smelts 5 ore and 1 coal into 1 bar in 30 game minutes.</value></data>
+  <data name="Item_salad_Name" xml:space="preserve"><value>Salad</value></data>
+  <data name="Item_salad_Description" xml:space="preserve"><value>A fresh salad. Eat it to restore energy.</value></data>
+  <data name="Item_baked_potato_Name" xml:space="preserve"><value>Baked potato</value></data>
+  <data name="Item_baked_potato_Description" xml:space="preserve"><value>Baked until fragrant. Eat it to restore energy.</value></data>
+  <data name="Item_pumpkin_soup_Name" xml:space="preserve"><value>Pumpkin soup</value></data>
+  <data name="Item_pumpkin_soup_Description" xml:space="preserve"><value>A thick, hot soup. Eat it to restore plenty of energy.</value></data>
 </root>

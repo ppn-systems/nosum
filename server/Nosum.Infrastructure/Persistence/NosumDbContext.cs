@@ -10,6 +10,7 @@ using Nosum.Domain.Inventory;
 using Nosum.Domain.Looks;
 using Nosum.Domain.Market;
 using Nosum.Domain.Nodes;
+using Nosum.Domain.Placeables;
 using Nosum.Domain.Quests;
 using Nosum.Domain.Visits;
 using Nosum.Domain.World;
@@ -49,6 +50,12 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the objects players placed (furniture in their farmhouse).</summary>
     public DbSet<PlacedObject> PlacedObjects => this.Set<PlacedObject>();
+
+    /// <summary>Gets the item movements in and out of chests.</summary>
+    public DbSet<ChestLogEntry> ChestLog => this.Set<ChestLogEntry>();
+
+    /// <summary>Gets the smelting jobs of furnaces.</summary>
+    public DbSet<FurnaceJob> FurnaceJobs => this.Set<FurnaceJob>();
 
     /// <summary>Gets the resource nodes of every map instance.</summary>
     public DbSet<WorldNode> WorldNodes => this.Set<WorldNode>();

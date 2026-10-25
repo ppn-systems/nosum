@@ -17,6 +17,28 @@ namespace Nosum.Gameplay.Placeables;
 /// <param name="FlipX">Whether the sprite is drawn mirrored.</param>
 public readonly record struct PlaceableView(int SourceX, int SourceY, int Width, int Height, int FootprintWidth, int FootprintHeight, bool FlipX = false);
 
+/// <summary>What a placeable does. Furniture is decoration; the rest are the crafted objects of docs/adr/ADR-024.</summary>
+public enum PlaceableKind : byte
+{
+    /// <summary>Decoration with no behaviour (furniture, a scarecrow until crows exist).</summary>
+    Decoration = 0,
+
+    /// <summary>A storage chest with its own inventory (36 slots).</summary>
+    Chest = 1,
+
+    /// <summary>A fence piece: blocks walking.</summary>
+    Fence = 2,
+
+    /// <summary>A path tile: decorative, walked over.</summary>
+    Path = 3,
+
+    /// <summary>A sprinkler: waters the four tiles around it each game day.</summary>
+    Sprinkler = 4,
+
+    /// <summary>A furnace: smelts ore and coal into bars over game time.</summary>
+    Furnace = 5,
+}
+
 /// <summary>
 /// A thing a player may put on the ground of a placeable map: it is made from an inventory item
 /// (<see cref="ItemId"/>), has one view per rotation and a footprint that blocks walking. Furniture is the first kind;
@@ -71,6 +93,12 @@ public sealed class PlaceableDefinition
 
     /// <summary>Gets the radius, in pixels, of the light this piece gives in the night tint; zero when it gives none.</summary>
     public int LightRadius { get; }
+
+    /// <summary>Gets what the piece does; <see cref="PlaceableKind.Decoration"/> by default.</summary>
+    public PlaceableKind Kind { get; init; }
+
+    /// <summary>Gets whether the footprint blocks walking; a path does not, everything else does.</summary>
+    public bool BlocksWalking { get; init; } = true;
 
     /// <summary>Gets how many rotations are valid: 1 or 4.</summary>
     public int Rotations => _views.Length;

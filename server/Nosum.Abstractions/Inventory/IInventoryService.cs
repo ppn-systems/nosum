@@ -151,6 +151,9 @@ public enum InventoryOperationKind
 
     /// <summary>Removes items from one named slot, which must hold that item.</summary>
     RemoveFromSlot = 3,
+
+    /// <summary>Adds items to one named slot, which must be empty or hold the same item with room for them.</summary>
+    AddToSlot = 4,
 }
 
 /// <summary>One step of an atomic inventory change.</summary>
@@ -178,4 +181,11 @@ public readonly record struct InventoryOperation(InventoryOperationKind Kind, in
     /// <param name="quantity">How many.</param>
     /// <returns>The step.</returns>
     public static InventoryOperation RemoveFromSlot(int slot, int itemId, int quantity) => new(InventoryOperationKind.RemoveFromSlot, itemId, quantity, slot);
+
+    /// <summary>Creates a step that adds items to one slot.</summary>
+    /// <param name="slot">The slot.</param>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="quantity">How many.</param>
+    /// <returns>The step.</returns>
+    public static InventoryOperation AddToSlot(int slot, int itemId, int quantity) => new(InventoryOperationKind.AddToSlot, itemId, quantity, slot);
 }

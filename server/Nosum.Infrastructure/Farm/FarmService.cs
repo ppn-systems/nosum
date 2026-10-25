@@ -18,6 +18,7 @@ using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
+using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Quests;
@@ -52,7 +53,7 @@ namespace Nosum.Infrastructure.Farm;
 /// bare soil that stayed dry may have reverted (<see cref="FarmRules.IsReverted"/>), which is decided on read. The day-ended seam (<see cref="IDayClock"/>)
 /// only tidies up: it drops reverted tiles from memory and PostgreSQL and tells the players on the map.
 /// </summary>
-public sealed class FarmService : IFarmService
+public sealed class FarmService : IFarmService, IFarmTiles
 {
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
@@ -66,6 +67,7 @@ public sealed class FarmService : IFarmService
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
     private readonly GameCalendar _calendar;
+    private readonly IPlacedLookup? _placed;
     private readonly ConcurrentDictionary<string, Task<MapFarm>> _farms = new(StringComparer.Ordinal);
     private readonly StripedAsyncLock _mapLocks = new(16);
 
@@ -83,6 +85,7 @@ public sealed class FarmService : IFarmService
     /// <param name="groundItems">A harvest pops its produce onto the ground through it (docs/adr/ADR-021 D5).</param>
     /// <param name="progress">Every successful tool use spends energy and earns experience through it, in the transaction of its effect (docs/adr/ADR-023).</param>
     /// <param name="dayClock">Told when a game day ends, to sweep tiles whose bare soil reverted; <see langword="null"/> leaves the lazy rule alone.</param>
+    /// <param name="placed">What players placed on the ground: soil under a piece cannot be worked (docs/adr/ADR-024 D3). <see langword="null"/> when nothing can be placed.</param>
     public FarmService(
         IMapPresence presence,
         IMapCatalog maps,
@@ -96,7 +99,8 @@ public sealed class FarmService : IFarmService
         GameCalendar calendar,
         IGroundItems groundItems,
         IPlayerProgress progress,
-        IDayClock? dayClock = null)
+        IDayClock? dayClock = null,
+        IPlacedLookup? placed = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -123,6 +127,7 @@ public sealed class FarmService : IFarmService
         _calendar = calendar;
         _groundItems = groundItems;
         _progress = progress;
+        _placed = placed;
         if (dayClock is not null)
         {
             dayClock.DayEnded += this.OnDayEnded;
@@ -232,7 +237,12 @@ public sealed class FarmService : IFarmService
 
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
             FarmTile? current = this.LiveTile(farm, player.Instance, tileX, tileY, nowMs);
-            Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs, player.Instance.IsOutdoors);
+            if (current is null && _placed?.IsCovered(player.Instance, tileX, tileY) == true)
+            {
+                return Refused(FarmStatus.Blocked);
+            }
+
+            Plan plan = PlanAction(held, current, tillable.IsTillable(tileX, tileY), nowMs, player.Instance.IsOutdoors, _placed?.IsSprinklerWatered(player.Instance, tileX, tileY) == true);
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 return Refused(ToStatus(plan.Verdict));
@@ -332,6 +342,33 @@ public sealed class FarmService : IFarmService
     /// <inheritdoc/>
     public void Forget(MapInstance instance) => _ = _farms.TryRemove(instance.Key, out _);
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlySet<(int X, int Y)>> WorkedTilesAsync(MapInstance instance, int tileX, int tileY, int width, int height, CancellationToken cancellationToken = default)
+    {
+        HashSet<(int X, int Y)> found = [];
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || map.Tillable is null)
+        {
+            return found;
+        }
+
+        MapFarm farm = await this.FarmOfAsync(instance, cancellationToken).ConfigureAwait(false);
+        using (await _mapLocks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            for (int y = tileY; y < tileY + height; y++)
+            {
+                for (int x = tileX; x < tileX + width; x++)
+                {
+                    if (farm.Tiles.ContainsKey((x, y)))
+                    {
+                        _ = found.Add((x, y));
+                    }
+                }
+            }
+        }
+
+        return found;
+    }
+
     private static FarmTileRow ToRow(int x, int y, FarmTile tile)
     {
         FarmTileRow row = FarmTileRow.Create();
@@ -367,14 +404,14 @@ public sealed class FarmService : IFarmService
     };
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
-    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors)
+    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, bool sprinkled)
     {
         bool hasItem = held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out _);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item);
 
         // A mature crop is harvested whatever is held (bare hands included).
         bool withered = current is { HasCrop: true } standing && FarmRules.IsWithered(standing, nowMs, _calendar);
-        if (current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors))
+        if (current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinkled))
         {
             FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested);
             return harvest != FarmVerdict.Ok
@@ -397,7 +434,7 @@ public sealed class FarmService : IFarmService
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
-                    FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors);
+                    FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinkled);
                     return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", null, item.Id, 0) : Plan.Refuse(water);
                 }
 
@@ -695,7 +732,7 @@ public sealed class FarmService : IFarmService
     // A tile as the player sees it: null when it was never tilled or its bare soil has reverted. A reverted tile may still sit in memory and in
     // PostgreSQL until the next day sweep; whoever tills it again overwrites it.
     private FarmTile? LiveTile(MapFarm farm, MapInstance instance, int x, int y, long nowMs)
-        => farm.Tiles.TryGetValue((x, y), out FarmTile found) && !FarmRules.IsReverted(found, instance.Key, x, y, nowMs, _calendar, instance.IsOutdoors) ? found : null;
+        => farm.Tiles.TryGetValue((x, y), out FarmTile found) && !FarmRules.IsReverted(found, instance.Key, x, y, nowMs, _calendar, instance.IsOutdoors, _placed?.IsSprinklerWatered(instance, x, y) == true) ? found : null;
 
     private void OnDayEnded(GameDayEnded ended)
     {
@@ -732,7 +769,7 @@ public sealed class FarmService : IFarmService
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
             foreach (KeyValuePair<(int X, int Y), FarmTile> tile in farm.Tiles)
             {
-                if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar, instance.IsOutdoors))
+                if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar, instance.IsOutdoors, _placed?.IsSprinklerWatered(instance, tile.Key.X, tile.Key.Y) == true))
                 {
                     gone.Add(tile.Key);
                 }

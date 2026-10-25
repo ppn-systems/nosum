@@ -156,4 +156,55 @@ public sealed class FarmRulesRainTests
         lamp!.LightRadius.Should().Be(PlaceableCatalog.FloorLampLightRadius).And.BePositive();
         PlaceableCatalog.All.Where(p => p.LightRadius > 0).Select(p => p.ItemId).Should().Equal(Nosum.Gameplay.Items.ItemCatalog.FloorLamp);
     }
+
+    [Fact]
+    public void GrowthDaysAt_SprinkledOutdoors_GrowsEveryDayWithoutHandOrRain()
+    {
+        int dry = FirstDay(d => Enumerable.Range(d, 6).All(x => !Rains(x)));
+        FarmTile tile = PlantedOn(dry);
+
+        FarmRules.GrowthDaysAt(tile, Midnight(dry + 3), s_calendar, outdoors: true, sprinkled: true).Should().Be(3);
+        FarmRules.GrowthDaysAt(tile, Midnight(dry + 3), s_calendar, outdoors: true, sprinkled: false).Should().Be(0, "an uncovered, unwatered crop does not grow on dry days");
+        FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinkled: true).Should().BeTrue();
+        FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinkled: false).Should().BeFalse();
+    }
+
+    [Fact]
+    public void GrowthDaysAt_SprinkledDay_CountsOnceWithRainAndHandWater()
+    {
+        int rainy = FirstDay(Rains);
+        FarmTile tile = PlantedOn(rainy);
+        FarmRules.Water(tile, Noon(rainy), s_calendar, out FarmTile watered, outdoors: true, sprinkled: true).Should().Be(FarmVerdict.Ok);
+
+        FarmRules.GrowthDaysAt(watered, Midnight(rainy + 1), s_calendar, outdoors: true, sprinkled: true).Should().Be(1);
+    }
+
+    [Fact]
+    public void GrowthDaysAt_SprinkledButIndoors_IsStillDry()
+    {
+        int dry = FirstDay(d => !Rains(d) && !Rains(d + 1));
+        FarmTile tile = PlantedOn(dry);
+
+        FarmRules.GrowthDaysAt(tile, Midnight(dry + 1), s_calendar, outdoors: false, sprinkled: true).Should().Be(0);
+    }
+
+    [Fact]
+    public void IsWet_NextToASprinkler_IsWetOnADryDay()
+    {
+        int dry = FirstDay(d => !Rains(d));
+
+        FarmRules.IsWet(FarmTile.Bare, Noon(dry), s_calendar, outdoors: true, sprinkled: true).Should().BeTrue();
+        FarmRules.IsWet(FarmTile.Bare, Noon(dry), s_calendar, outdoors: true, sprinkled: false).Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsReverted_BareSoilNextToASprinkler_NeverReverts()
+    {
+        int day = FirstDay(_ => true, from: 5);
+        int tileX = Enumerable.Range(0, 2000).First(x => FarmRules.RevertRoll("farm@x", x, 0, day) < FarmRules.RevertChancePercent);
+        FarmTile tilled = FarmTile.Bare with { TendedDay = day - 1 };
+
+        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinkled: true).Should().BeFalse();
+        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinkled: false).Should().Be(!Rains(day));
+    }
 }

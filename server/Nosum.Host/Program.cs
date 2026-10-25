@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Coop;
+using Nosum.Abstractions.Crafting;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
@@ -52,6 +53,7 @@ using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Coops;
+using Nosum.Infrastructure.Crafting;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
@@ -226,6 +228,9 @@ internal static class Program
             .MapHandlers(typeof(TradeHandlers))
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
+            .MapHandlers(typeof(CraftingHandlers))
+            .MapHandlers(typeof(ChestHandlers))
+            .MapHandlers(typeof(FurnaceHandlers))
             .MapHandlers(typeof(NodeHandlers))
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
@@ -294,9 +299,10 @@ internal static class Program
         InstanceManager.Instance.Register<IInventoryService>(inventory);
         InstanceManager.Instance.Register<IQuestService>(quests);
 
-        // Farm and farmhouse are private per player; placed furniture and resource nodes are part of the instance a player walks on (docs/adr/ADR-015, ADR-021).
-        PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
-        InstanceManager.Instance.Register<IPlaceableService>(placeables);
+        // Farm and farmhouse are private per player; placed objects and resource nodes are part of the instance a player walks on (docs/adr/ADR-015, ADR-021, ADR-024).
+        // What stands where is published through one shared index so the farm layer and the growth rule can read it without needing the placeables built first.
+        PlacedTiles placedTiles = new();
+        InstanceManager.Instance.Register<IPlacedLookup>(placedTiles);
         // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019).
         VisitAccess access = new(unitOfWork);
         // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
@@ -320,7 +326,7 @@ internal static class Program
         // Energy and skills (docs/adr/ADR-023): every tool use is charged through this in the transaction of its effect.
         PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier);
         InstanceManager.Instance.Register<IPlayerProgress>(progress);
-        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, progress);
+        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, progress, placedTiles);
 
         // Trees grow and public places regrow debris once a game day (docs/adr/ADR-021 D4), on the one day clock every daily rule uses.
         // The day that starts after day N ended is node day N (node days count from 0); a new season starts every DaysPerSeason days.
@@ -335,11 +341,23 @@ internal static class Program
                 TaskScheduler.Default);
         };
         InstanceManager.Instance.Register<IResourceNodeService>(nodes);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock, placedTiles);
+        InstanceManager.Instance.Register<IFarmService>(farm);
+
+        // Placing objects, chests and furnaces (docs/adr/ADR-024): a chest and a furnace refuse to be picked up while they hold something, so they attach to the placeables.
+        PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock, farm, nodes, coopMembership, placedTiles);
+        InstanceManager.Instance.Register<IPlaceableService>(placeables);
+        ChestService chests = new(presence, maps, placeables, inventory, coopMembership, clock);
+        InstanceManager.Instance.Register<IChestService>(chests);
+        placeables.Attach(chests);
+        FurnaceService furnaces = new(presence, maps, placeables, placedTiles, placeables, inventory, unitOfWork, coopMembership, calendar, clock);
+        InstanceManager.Instance.Register<IFurnaceService>(furnaces);
+        placeables.Attach(furnaces);
+        // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1).
+        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress)));
         PlayerService players = new(presence, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
-        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock);
-        InstanceManager.Instance.Register<IFarmService>(farm);
 
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");

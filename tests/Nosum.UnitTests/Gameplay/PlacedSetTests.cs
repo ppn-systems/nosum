@@ -167,11 +167,11 @@ public sealed class PlacedSetTests
     }
 
     [Fact]
-    public void Catalogue_EveryFurnitureItemIsPlaceable_AndEveryPlaceableIsAnItem()
+    public void Catalogue_EveryFurnitureAndPlaceableItemIsPlaceable_AndEveryPlaceableIsAnItem()
     {
-        IEnumerable<int> furnitureItems = ItemCatalog.All.Where(i => i.Kind == ItemKind.Furniture).Select(i => i.Id);
+        IEnumerable<int> placeableItems = ItemCatalog.All.Where(i => i.Kind is ItemKind.Furniture or ItemKind.Placeable).Select(i => i.Id);
 
-        PlaceableCatalog.All.Select(p => p.ItemId).Should().BeEquivalentTo(furnitureItems);
+        PlaceableCatalog.All.Select(p => p.ItemId).Should().BeEquivalentTo(placeableItems);
         foreach (PlaceableDefinition definition in PlaceableCatalog.All)
         {
             definition.Rotations.Should().BeOneOf(1, 4);
