@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\server\Nosum.Host\Nosum.Host.csproj" />
+    <ProjectReference Include="..\..\tools\Nosum.AtlasPacker\Nosum.AtlasPacker.csproj" />
   </ItemGroup>
 
 </Project>

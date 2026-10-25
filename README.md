@@ -19,6 +19,7 @@ Client and server talk over one Nalix WebSocket channel and share the same C# co
 | [`tests/`](tests/) | Unit and integration tests | `Nosum.Tests.slnx` |
 | [`bench/`](bench/) | Browser performance benchmarks | `Nosum.Bench.slnx` |
 | [`assets/`](assets/) | Source pixel art (32 px grid) | — |
+| [`tools/`](tools/) | Developer tools (atlas packer) | `Nosum.Tools.slnx` |
 | [`deploy/`](deploy/) | Deployment configuration | — |
 | [`docs/`](docs/) | Architecture decision records | — |
 

@@ -17,8 +17,9 @@ Decision: `docs/adr/ADR-004-pixel-art-assets.md`. Drawing side: `render-interop`
   `.png`) is the sprite name used everywhere else.
 - **Every new file gets a line in its folder's `SOURCES.md`**: file, generator (PixelLab tool +
   mode), prompt, date, PixelLab asset id. No file without provenance.
-- **Atlases are generated, never hand-edited.** Change the source PNG and re-run the pack tool;
-  commit source and atlas together.
+- **Atlases are generated, never hand-edited.** Change the source PNG, run
+  `dotnet run --project tools/Nosum.AtlasPacker`, and commit source and atlas together;
+  `-- --check` must exit 0 before a PR.
 - **One look per game.** When generating with PixelLab, pass the same anchor sprite as the style
   reference (for example the farmer's south-facing sprite) so every asset shares palette,
   outline and shading.

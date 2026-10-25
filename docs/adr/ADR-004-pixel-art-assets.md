@@ -22,8 +22,9 @@ way that keeps the frame loop free of per-sprite interop.
   few atlas PNGs plus a JSON region map per atlas (`name → x, y, w, h`, frame lists for
   animations, corner data for Wang tiles). Its output goes to
   `wasm/Nosum.Wasm/wwwroot/assets/` and is committed, so the client builds without running the
-  tool. An image-processing NuGet package is allowed in that tool only — never in `engine/`,
-  `gameplay/`, `server/` or `wasm/`. Which package is decided when the tool is written.
+  tool. The tool is `tools/Nosum.AtlasPacker` and uses SkiaSharp (MIT); an image-processing
+  package is allowed in `tools/` only — never in `engine/`, `gameplay/`, `server/` or `wasm/`.
+  `--check` exits 1 when a committed atlas differs from a fresh pack.
 - **D4 — Runtime.** At startup `renderer.js` loads each atlas into an `ImageBitmap`; the C# side
   loads the JSON map once and resolves sprite names to integer ids. Render commands carry
   `(textureId, region)` — names are never looked up per frame.
@@ -34,6 +35,8 @@ way that keeps the frame loop free of per-sprite interop.
 
 ## Alternatives considered
 
+- **ImageSharp instead of SkiaSharp** — pure managed, but 4.x needs a license key and 3.x has
+  open security advisories (fixed only in 4.x).
 - **Pack atlases with an external tool (TexturePacker, free-tex-packer)** — no code to
   maintain, but a manual step outside the repo and no control over the JSON format.
 - **Build atlases in the browser at load time** — no tool, but slower first load and the
@@ -44,8 +47,8 @@ way that keeps the frame loop free of per-sprite interop.
 ## Consequences
 
 - Adding art = add PNG + `SOURCES.md` line, run the tool, commit both source and atlas.
-- Generated atlases in the repo can go stale; a later check should fail when the committed
-  atlas differs from a fresh pack.
+- Generated atlases in the repo can go stale; `Nosum.AtlasPacker --check` detects it and should
+  run in CI once CI exists.
 - PixelLab output is subject to PixelLab's Terms of Service (https://pixellab.ai/termsofservice,
   accessed 2026-10-25); its licence terms must be confirmed before a public release.
 

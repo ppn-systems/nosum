@@ -1,0 +1,10 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Developer tools run on the developer's machine with the full runtime; SkiaSharp is not trim/AOT-annotated. -->
+  <PropertyGroup>
+    <IsAotCompatible>false</IsAotCompatible>
+    <IsTrimmable>false</IsTrimmable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

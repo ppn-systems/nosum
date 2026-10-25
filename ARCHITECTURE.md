@@ -29,6 +29,7 @@ nosum/
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
 ├── assets/                       # source pixel art (32 px grid) + SOURCES.md provenance; atlases are generated from it
+├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker); only area allowed an image package
 ├── deploy/                       # deployment configuration
 ├── docs/adr/                     # architecture decision records
 └── Directory.Build.props · Directory.Packages.props · Version.props · global.json
@@ -36,7 +37,7 @@ nosum/
 
 Every area folder has its own `README.md` and, when it holds .NET projects, its own `.slnx`.
 An area adds a `Directory.Build.props` only when its build settings differ from the root
-(`wasm/`, `bench/`, `tests/`); it imports the root one first.
+(`wasm/`, `bench/`, `tests/`, `tools/`); it imports the root one first.
 
 ## No root solution
 
@@ -63,6 +64,7 @@ Nosum.Host              → Handlers, Infrastructure, Nalix.Hosting
 Nosum.Wasm.Socket       → Contracts, Nalix.SDK
 Nosum.Wasm.ViewModels   → Wasm.Socket
 Nosum.Wasm              → Wasm.ViewModels, Rendering.Web, Gameplay
+Nosum.AtlasPacker       → SkiaSharp                            (tools/ only; nothing references it)
 ```
 
 Two boundaries matter most:

@@ -15,6 +15,8 @@ description: Use before committing, opening a PR, or declaring a change done —
 | `server/` | `dotnet build server/Nosum.slnx` + `dotnet test tests/Nosum.Tests.slnx` |
 | `wasm/` | `dotnet build wasm/Nosum.Wasm.slnx` |
 | `bench/` | `dotnet build bench/Nosum.Bench.slnx` |
+| `tools/` | `dotnet build tools/Nosum.Tools.slnx` + `dotnet test tests/Nosum.Tests.slnx` |
+| `assets/` | `dotnet run --project tools/Nosum.AtlasPacker -- --check` exits 0 |
 | Root `Directory.*.props`, `global.json` | every solution above + all tests |
 
 Builds are warning-free by construction (`TreatWarningsAsErrors`); a warning is a failure.
