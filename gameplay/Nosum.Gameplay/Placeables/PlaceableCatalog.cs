@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Items;
 
 namespace Nosum.Gameplay.Placeables;
@@ -22,6 +23,11 @@ public static class PlaceableCatalog
     public const string ObjectsSheet = "springobjects";
 
     private static readonly PlaceableDefinition[] s_all =
+    [..Furniture(), ..Buildings()];
+
+    private static readonly Dictionary<int, PlaceableDefinition> s_byItem = Index();
+
+    private static PlaceableDefinition[] Furniture() =>
     [
         // Chair: one tile; down, right and up are drawn, left mirrors right.
         new(ItemCatalog.OakChair, FurnitureSheet, new PlaceableView(0, 0, 16, 32, 1, 1), new PlaceableView(16, 0, 16, 32, 1, 1), new PlaceableView(32, 0, 16, 32, 1, 1), new PlaceableView(16, 0, 16, 32, 1, 1, FlipX: true)),
@@ -47,7 +53,17 @@ public static class PlaceableCatalog
         new(ItemCatalog.Sprinkler, ObjectsSheet, new PlaceableView(368, 384, 16, 16, 1, 1)) { Kind = PlaceableKind.Sprinkler },
     ];
 
-    private static readonly Dictionary<int, PlaceableDefinition> s_byItem = Index();
+    // Farm buildings (docs/adr/ADR-028 D1): the blueprint item is placed like any large piece; sprite, footprint and door come from the building catalogue.
+    private static PlaceableDefinition[] Buildings()
+    {
+        List<PlaceableDefinition> buildings = [];
+        foreach (BuildingDefinition building in BuildingCatalog.All)
+        {
+            buildings.Add(new PlaceableDefinition(building.BlueprintItemId, building.Sheet, building.View) { Kind = PlaceableKind.Building, Door = (building.DoorX, building.DoorY) });
+        }
+
+        return [.. buildings];
+    }
 
     /// <summary>Gets every placeable.</summary>
     public static IReadOnlyList<PlaceableDefinition> All => s_all;

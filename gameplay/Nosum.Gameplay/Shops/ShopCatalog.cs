@@ -74,6 +74,9 @@ public static class ShopCatalog
     /// <summary>The furniture shop.</summary>
     public const int FurnitureShop = 3;
 
+    /// <summary>Id of the carpenter's shop: hay and the milk pail (docs/adr/ADR-028). Buildings and animals are bought through their own requests at the same counter.</summary>
+    public const int CarpenterShop = 4;
+
     private static readonly ShopDefinition[] s_all =
     [
         new(SeedShop, "seed_shop",
@@ -102,6 +105,11 @@ public static class ShopCatalog
             new(ItemCatalog.Bookcase, 260),
             new(ItemCatalog.BlueArmchair, 300),
             new(ItemCatalog.BlueCouch, 400),
+        ]),
+        new(CarpenterShop, "carpenter_shop",
+        [
+            new(ItemCatalog.Hay, 30),
+            new(ItemCatalog.MilkPail, 300),
         ]),
     ];
 

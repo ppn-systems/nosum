@@ -98,4 +98,20 @@
   <data name="Item_baked_potato_Description" xml:space="preserve"><value>Baked until fragrant. Eat it to restore energy.</value></data>
   <data name="Item_pumpkin_soup_Name" xml:space="preserve"><value>Pumpkin soup</value></data>
   <data name="Item_pumpkin_soup_Description" xml:space="preserve"><value>A thick, hot soup. Eat it to restore plenty of energy.</value></data>
+  <data name="Item_milk_pail_Name" xml:space="preserve"><value>Milk pail</value></data>
+  <data name="Item_milk_pail_Description" xml:space="preserve"><value>Hold it and press the action key in front of a cow to milk her.</value></data>
+  <data name="Item_coop_blueprint_Name" xml:space="preserve"><value>Coop blueprint</value></data>
+  <data name="Item_coop_blueprint_Description" xml:space="preserve"><value>Set it down on your farm to start building a coop; it takes two game days.</value></data>
+  <data name="Item_barn_blueprint_Name" xml:space="preserve"><value>Barn blueprint</value></data>
+  <data name="Item_barn_blueprint_Description" xml:space="preserve"><value>Set it down on your farm to start building a barn; it takes two game days.</value></data>
+  <data name="Item_egg_Name" xml:space="preserve"><value>Egg</value></data>
+  <data name="Item_egg_Description" xml:space="preserve"><value>A fresh egg from a chicken. Eat it to restore energy.</value></data>
+  <data name="Item_large_egg_Name" xml:space="preserve"><value>Large egg</value></data>
+  <data name="Item_large_egg_Description" xml:space="preserve"><value>A well-loved chicken lays these more often. Sells for more.</value></data>
+  <data name="Item_milk_Name" xml:space="preserve"><value>Milk</value></data>
+  <data name="Item_milk_Description" xml:space="preserve"><value>A bottle of fresh milk from a cow.</value></data>
+  <data name="Item_large_milk_Name" xml:space="preserve"><value>Large milk</value></data>
+  <data name="Item_large_milk_Description" xml:space="preserve"><value>A friendly cow gives this rich milk more often. Sells for more.</value></data>
+  <data name="Item_hay_Name" xml:space="preserve"><value>Hay</value></data>
+  <data name="Item_hay_Description" xml:space="preserve"><value>Feed for animals. Put it in the feeding bench of a coop or barn; fiber works too.</value></data>
 </root>

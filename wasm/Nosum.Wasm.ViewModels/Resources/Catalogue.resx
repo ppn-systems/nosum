@@ -98,4 +98,20 @@
   <data name="Item_baked_potato_Description" xml:space="preserve"><value>Nướng thơm phức. Ăn để hồi năng lượng.</value></data>
   <data name="Item_pumpkin_soup_Name" xml:space="preserve"><value>Súp bí ngô</value></data>
   <data name="Item_pumpkin_soup_Description" xml:space="preserve"><value>Bát súp nóng sánh. Ăn để hồi nhiều năng lượng.</value></data>
+  <data name="Item_milk_pail_Name" xml:space="preserve"><value>Xô vắt sữa</value></data>
+  <data name="Item_milk_pail_Description" xml:space="preserve"><value>Cầm xô và nhấn phím hành động trước con bò để vắt sữa.</value></data>
+  <data name="Item_coop_blueprint_Name" xml:space="preserve"><value>Bản vẽ chuồng gà</value></data>
+  <data name="Item_coop_blueprint_Description" xml:space="preserve"><value>Đặt xuống nông trại để bắt đầu xây chuồng gà, mất hai ngày trong game.</value></data>
+  <data name="Item_barn_blueprint_Name" xml:space="preserve"><value>Bản vẽ chuồng bò</value></data>
+  <data name="Item_barn_blueprint_Description" xml:space="preserve"><value>Đặt xuống nông trại để bắt đầu xây chuồng bò, mất hai ngày trong game.</value></data>
+  <data name="Item_egg_Name" xml:space="preserve"><value>Trứng gà</value></data>
+  <data name="Item_egg_Description" xml:space="preserve"><value>Trứng tươi do gà đẻ. Ăn để hồi năng lượng.</value></data>
+  <data name="Item_large_egg_Name" xml:space="preserve"><value>Trứng gà to</value></data>
+  <data name="Item_large_egg_Description" xml:space="preserve"><value>Gà quý chủ hay đẻ loại trứng to này. Bán được giá hơn.</value></data>
+  <data name="Item_milk_Name" xml:space="preserve"><value>Sữa bò</value></data>
+  <data name="Item_milk_Description" xml:space="preserve"><value>Một chai sữa tươi vắt từ con bò.</value></data>
+  <data name="Item_large_milk_Name" xml:space="preserve"><value>Sữa bò đặc biệt</value></data>
+  <data name="Item_large_milk_Description" xml:space="preserve"><value>Bò thân thiện cho loại sữa đậm đà này. Bán được giá hơn.</value></data>
+  <data name="Item_hay_Name" xml:space="preserve"><value>Cỏ khô</value></data>
+  <data name="Item_hay_Description" xml:space="preserve"><value>Thức ăn cho gia súc. Bỏ vào máng ăn trong chuồng; sợi bẹ cũng dùng được.</value></data>
 </root>

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Shops;
@@ -44,6 +45,12 @@ public static class GameMaps
     /// <summary>Id of the backwoods north of the farm.</summary>
     public const string Backwoods = "backwoods";
 
+    /// <summary>Id of the coop interior: one instance per coop building (docs/adr/ADR-028 D2).</summary>
+    public const string Coop = "coop";
+
+    /// <summary>Id of the barn interior: one instance per barn building.</summary>
+    public const string Barn = "barn";
+
     /// <summary>Id of the co-op land: each co-op's own shared farm, entered from Town (docs/adr/ADR-020).</summary>
     public const string CoopFarm = "coopfarm";
 
@@ -58,6 +65,9 @@ public static class GameMaps
     private static readonly (int X, int Y) s_townClothingShopTile = (20, 89);
     private static readonly (int X, int Y) s_townFurnitureShopTile = (95, 51);
 
+    // The carpenter (docs/adr/ADR-028 D1) takes the blue house in the south-west of Town: door tile (10,85), doormat (10,86).
+    private static readonly (int X, int Y) s_townCarpenterTile = (10, 86);
+
     private static readonly MapSpec[] s_all =
     [
         new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true, isPrivate: true, placeable: true),
@@ -69,12 +79,18 @@ public static class GameMaps
             new ShopPoint(ShopCatalog.SeedShop, s_townSeedShopTile.X, s_townSeedShopTile.Y),
             new ShopPoint(ShopCatalog.ClothingShop, s_townClothingShopTile.X, s_townClothingShopTile.Y),
             new ShopPoint(ShopCatalog.FurnitureShop, s_townFurnitureShopTile.X, s_townFurnitureShopTile.Y),
+            new ShopPoint(ShopCatalog.CarpenterShop, s_townCarpenterTile.X, s_townCarpenterTile.Y),
         ],
         extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y)]),
         new(Backwoods, "Backwoods.tmx", 14, 38),
 
         // Co-op land reuses the placeholder Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
         new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true, placeable: true),
+
+        // Interiors of farm buildings (docs/adr/ADR-028 D2): the placeholder Coop.tmx and Barn.tmx. Private: one instance per building, owned by the building's id. A player arrives on
+        // the tile in front of the interior's exit (the exit leads back to the building's door, chosen by the server, not by the file's Warp).
+        new(Coop, "Coop.tmx", 2, 8, isPrivate: true, interiorOf: BuildingKind.Coop),
+        new(Barn, "Barn.tmx", 11, 13, isPrivate: true, interiorOf: BuildingKind.Barn),
     ];
 
     /// <summary>Gets every hosted map.</summary>

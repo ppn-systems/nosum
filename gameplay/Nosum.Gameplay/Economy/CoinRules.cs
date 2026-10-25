@@ -64,6 +64,10 @@ public static class ShippingPrices
             ItemCatalog.Parsnip => 20,
             ItemCatalog.Radish => 30,
             ItemCatalog.Cauliflower => 60,
+            ItemCatalog.Egg => 50,
+            ItemCatalog.LargeEgg => 95,
+            ItemCatalog.Milk => 125,
+            ItemCatalog.LargeMilk => 190,
             _ => 0,
         };
         return coinsEach > 0;
