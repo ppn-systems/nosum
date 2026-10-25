@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), resource nodes and tools (Nodes/), the server calendar and seasons (Calendar/), placeable objects, sprinklers, furnaces and chest rules (Placeables/), recipes (Crafting/), ground items (GroundItems/)
+│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), farm buildings and animals (Buildings/, Animals/), walking (Movement/), farm (Farm/), resource nodes and tools (Nodes/), the server calendar and seasons (Calendar/), placeable objects, sprinklers, furnaces and chest rules (Placeables/), recipes (Crafting/), ground items (GroundItems/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -205,6 +205,18 @@ FarmService harvest ──tile reset + ground_items row: one transaction──�
 PlayerService.MoveAsync (accepted) ─► OnPlayerMovedAsync ─► 9 chunks around the player: in reach, allowed, unclaimed
                                                                           │ claim in memory ─► ITransferService (item in, row out: one transaction)
 client GroundItemChannel ◄── GroundItemTaken (flies to the taker) ◄───────┘      full inventory: the claim is released, the item stays
+```
+
+## Runtime path 6 — farm buildings and animals
+
+A building is a blueprint the carpenter sells, placed like any large piece; its interior is a private map instance keyed by the building's id ([ADR-028](docs/adr/ADR-028-farm-buildings-and-animals.md)):
+
+```text
+client at the Town counter ──CommissionBuilding / BuyAnimal──► BuildingService ──ITransferService: coins, wood, stone, blueprint (or the animal row)
+client ──PlaceObject (blueprint)──► PlaceableService + building behaviour: placed_objects row + farm_buildings row (finished two game days later, from the stored time)
+client walks onto the door tile ──MoveIntent──► PlayerService (IBuildingDirectory.TryFindDoor, BuildingAccessPolicy) ──► MapChanged: coop@<building id>
+client ──GetAnimals / FeedAnimals / PetAnimal / CollectProduce──► BuildingService (building lock, lazy overnight settlement, inventory transaction) ──► AnimalsChanged (chunk)
+AnimalWanderService (1 s tick, only rooms with a player inside) ──► AnimalsMoved (chunk): straight walks the client follows from their start time
 ```
 
 ## Organize by game domain
