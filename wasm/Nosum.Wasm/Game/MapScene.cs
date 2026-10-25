@@ -32,6 +32,7 @@ internal sealed class MapScene
     private const int TargetTilesAcross = 26;
     private const int MaxScale = 6;
     private const int MenuUnitsTall = 204;
+    private const int NarrowCanvasWidth = 640;
 
     /// <summary>Seconds the screen takes to go black when the server changes the map.</summary>
     public const double FadeOutSeconds = 0.2;
@@ -288,7 +289,9 @@ internal sealed class MapScene
         int chosen = ViewOptions.Scale;
         int world = chosen >= 2 ? chosen : Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * 16)), 2, MaxScale);
         int fits = Math.Max(2, canvasHeight / MenuUnitsTall);
-        return 40 * Math.Min(world, fits);
+
+        // Narrow screens show the hotbar in two rows (Hotbar.razor.css, max-width 640px), so the strip is taller.
+        return (canvasWidth <= NarrowCanvasWidth ? 64 : 40) * Math.Min(world, fits);
     }
 
     // The grid the farmer walks on: the map's own, plus the footprints of the pieces the server says are placed here. Rebuilt only

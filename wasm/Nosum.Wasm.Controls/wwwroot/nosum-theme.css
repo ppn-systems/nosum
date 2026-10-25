@@ -37,17 +37,17 @@
     --nosum-gold: #fa9305;
     --nosum-line: #d49667;
 
-    /* Text. */
+    /* Text. Every text colour is at least 4.5:1 on the parchment and its deeper shade (WCAG AA, ADR-033 D4); tests/…/ThemeContrastTests checks it. */
     --nosum-ink: #4a2209;
-    --nosum-ink-soft: #7a4318;
-    --nosum-ink-faint: #9b6a3c;
+    --nosum-ink-soft: #6b3a12;
+    --nosum-ink-faint: #6d3c13;
     --nosum-ink-on-dark: #fff3d6;
-    --nosum-heading: #853605;
+    --nosum-heading: #7a3204;
 
     /* Meaning. */
-    --nosum-danger: #960027;
+    --nosum-danger: #8a0023;
     --nosum-danger-bg: rgba(150, 0, 39, 0.14);
-    --nosum-ok: #2f6b17;
+    --nosum-ok: #235211;
     --nosum-ok-bg: rgba(47, 107, 23, 0.16);
     --nosum-warn: #a86400;
     --nosum-focus: #be3248;
@@ -137,9 +137,32 @@ h1[tabindex="-1"]:focus {
     font-size: var(--nosum-fs-small);
 }
 
+/* High contrast (settings page, ADR-033 D4): the darkest ink for every text colour, a thicker focus ring. */
+:root[data-contrast="high"] {
+    --nosum-ink: #140902;
+    --nosum-ink-soft: #240f04;
+    --nosum-ink-faint: #2c1405;
+    --nosum-heading: #3d1300;
+    --nosum-danger: #6b0017;
+    --nosum-ok: #123a08;
+    --nosum-focus: #7a0018;
+}
+
+:root[data-contrast="high"] :focus-visible {
+    outline-width: calc(var(--u) * 2);
+}
+
+/* Reduced motion: the system preference, or the switch on the settings page. No animation runs longer than a single frame. */
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
+}
+
+:root[data-motion="reduced"] * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
 }

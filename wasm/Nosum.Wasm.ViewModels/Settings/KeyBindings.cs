@@ -181,6 +181,15 @@ public sealed class KeyBindings
             "Minus" => "-",
             "Equal" => "=",
             "Backquote" => "`",
+            "Space" => "Space",
+            "Escape" => "Esc",
+            "Enter" or "NumpadEnter" => "Enter",
+            "ArrowUp" => "Up",
+            "ArrowDown" => "Down",
+            "ArrowLeft" => "Left",
+            "ArrowRight" => "Right",
+            _ when code.StartsWith("Digit", StringComparison.Ordinal) && code.Length == 6 => code[5].ToString(),
+            _ when code.StartsWith("Numpad", StringComparison.Ordinal) => "Num " + code[6..],
             _ => code,
         };
     }

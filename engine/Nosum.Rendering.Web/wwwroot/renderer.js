@@ -64,10 +64,15 @@ function isTyping(e) {
     return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
 }
 
-// The settings page is waiting for the next key to bind: the key belongs to the page, not the game.
+// The settings page is waiting for the next key to bind: the key belongs to the page, not the game. The page answers the key (and stops waiting) before this
+// handler sees it, so the answer is read in the capture phase, first of all, and remembered on the event.
 function isCapturing(e) {
+    return e.nosumCapture === true;
+}
+
+function markCapturing(e) {
     const t = e.target;
-    return !!t && typeof t.closest === "function" && !!t.closest("[data-capture-key]");
+    e.nosumCapture = !!t && typeof t.closest === "function" && !!t.closest("[data-capture-key]");
 }
 
 // Space and Enter on a focused button or link activate it (keyboard users): the game must not also act on the key.
@@ -204,6 +209,7 @@ export function registerLabel(id, text, style) {
 export async function start(canvasId, assemblyName, exportPath) {
     canvas = document.getElementById(canvasId);
     ctx = canvas.getContext("2d");
+    window.addEventListener("keydown", markCapturing, true);
     window.addEventListener("keydown", e => {
         if (isCapturing(e)) { return; }
         if (e.code === "Escape") {

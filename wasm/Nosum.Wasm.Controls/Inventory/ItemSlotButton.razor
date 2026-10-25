@@ -4,7 +4,6 @@
         class="slot @(Slot.IsSelected ? "selected" : null) @(Picked ? "picked" : null) @(Slot.IsEmpty ? "empty" : null)"
         data-tip="@(Tip ?? Slot.Tooltip)"
         aria-label="@(Slot.IsEmpty ? null : Slot.Name)"
-        tabindex="-1"
         @onmousedown:preventDefault
         @onclick="Clicked">
     @if (Hotkey is not null)

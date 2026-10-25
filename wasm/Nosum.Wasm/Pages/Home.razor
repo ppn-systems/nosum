@@ -18,6 +18,9 @@
 @using Nosum.Wasm.Controls.Goals
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.Controls.Settings
+@using Nosum.Wasm.Controls.Touch
+@using Nosum.Wasm.Controls.Hints
+@using Nosum.Wasm.ViewModels.Settings
 @using Nosum.Wasm.Controls.Layout
 @using Nosum.Wasm.ViewModels.Help
 @using Nosum.Wasm.Controls.Inventory
@@ -82,7 +85,8 @@
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
 @inject GoalsViewModel Goals
-@inject HelpViewModel Help
+@inject SettingsViewModel Settings
+@inject OnboardingViewModel Onboarding
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
 @inject FurnaceViewModel Furnace
@@ -167,7 +171,7 @@ else
                             <GoalsPanel Vm="Goals" />
                             break;
                         case PanelKind.Settings:
-                            <SettingsPanel Vm="Form" Help="Help" />
+                            <SettingsPanel Vm="Form" Settings="Settings" />
                             break;
                         case PanelKind.Crafting:
                             <CraftingPanel Vm="Crafting" />
@@ -185,6 +189,7 @@ else
         <BottomCenter>
             @if (_started && _panel == PanelKind.None)
             {
+                <OnboardingHint Vm="Onboarding" />
                 <GameMessage Vm="Messages" />
                 <Hotbar Vm="Inventory" Progress="Progress" />
             }
@@ -222,6 +227,10 @@ else
             }
         </Overlay>
     </GameHud>
+    @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
+    {
+        <TouchControls StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" />
+    }
 }
 
 @code {
@@ -485,6 +494,7 @@ else
         {
             await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None);
             _started = true;
+            Onboarding.Start();
             StateHasChanged();
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or JSException)
