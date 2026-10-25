@@ -28,6 +28,7 @@ internal sealed class MapScene
     private const double WalkFrameSeconds = 0.15;
     private const int TargetTilesAcross = 26;
     private const int MaxScale = 6;
+    private const int MenuUnitsTall = 204;
 
     /// <summary>Seconds the screen takes to go black when the server changes the map.</summary>
     public const double FadeOutSeconds = 0.2;
@@ -177,7 +178,8 @@ internal sealed class MapScene
             (canvasWidth + scale - 1) / scale,
             (canvasHeight + scale - 1) / scale,
             map.Width * map.TileWidth,
-            map.Height * map.TileHeight);
+            map.Height * map.TileHeight,
+            HudBottomInset(canvasWidth, canvasHeight) / scale);
 
         _commands.Begin(scale);
         foreach (TileLayer layer in content.Layers.Ground)
@@ -236,9 +238,21 @@ internal sealed class MapScene
     {
         ArgumentNullException.ThrowIfNull(map);
 
-        int scale = Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * map.TileWidth)), 2, MaxScale);
-        int fitsWhole = (int)Math.Min(canvasWidth / (double)(map.Width * map.TileWidth), canvasHeight / (double)(map.Height * map.TileHeight));
-        return Math.Clamp(Math.Max(scale, fitsWhole), 2, MaxScale);
+        return ViewZoom.Pick(map.Width * map.TileWidth, map.Height * map.TileHeight, map.TileWidth, canvasWidth, canvasHeight, HudBottomInset(canvasWidth, canvasHeight), TargetTilesAcross, MaxScale);
+    }
+
+    /// <summary>
+    /// The strip at the bottom of the canvas the hotbar covers: 40 UI pixels (the hotbar and the screen gutter). The UI pixel is the one
+    /// <c>nosum-theme.js</c> picks (<c>unitFor</c>: the open-map zoom, lowered so the menu fits the height).
+    /// </summary>
+    /// <param name="canvasWidth">Canvas width, CSS pixels.</param>
+    /// <param name="canvasHeight">Canvas height, CSS pixels.</param>
+    /// <returns>The strip's height, CSS pixels.</returns>
+    internal static int HudBottomInset(int canvasWidth, int canvasHeight)
+    {
+        int world = Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * 16)), 2, MaxScale);
+        int fits = Math.Max(2, canvasHeight / MenuUnitsTall);
+        return 40 * Math.Min(world, fits);
     }
 
     // The grid the farmer walks on: the map's own, plus the footprints of the pieces the server says are placed here. Rebuilt only
