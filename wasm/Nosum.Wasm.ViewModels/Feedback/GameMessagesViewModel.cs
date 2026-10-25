@@ -118,6 +118,10 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         }
     }
 
+    /// <summary>Shows a line on the message line (a refusal from a page that is not open, such as a chest the player may not open).</summary>
+    /// <param name="text">The localized text.</param>
+    public void Notify(string text) => this.Show(text);
+
     private void Show(string text)
     {
         int version = ++_version;
