@@ -22,3 +22,5 @@ Decisions: `docs/adr/ADR-007-placeholder-content-16px.md` (current), ADR-004/005
   hairstyles, hats, accessories on 16 × 32 frames, composed once per appearance change (ADR-006).
 - **Do not edit files in `assets/`.** Derived data goes elsewhere (e.g. a generated index under
   `wasm/`), so the folder can be swapped wholesale when the remake lands.
+- **Adding or changing what the game loads from `assets/`** (a map, sheet, sprite-table entry, catalogue sheet) means regenerating
+  `docs/art/inventory.md` (`dotnet run --project tools/Nosum.AssetInventory`); `AssetInventoryTests` fails otherwise. Plan: ADR-040.

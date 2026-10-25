@@ -43,9 +43,10 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-031](ADR-031-deployment-and-operations.md) | Deployment and operations: images, Caddy TLS, migrations and backups, health, logs, metrics, admin role, load test | Accepted |
 | [ADR-032](ADR-032-security-hardening.md) | Security hardening: server key pinning, handler audit tests, input bounds, account recovery, session and abuse limits | Accepted |
 | [ADR-033](ADR-033-client-settings-touch-onboarding.md) | Client settings, touch controls, onboarding hints, accessibility | Accepted |
-| [ADR-038](ADR-038-coop-upgrades.md) | Co-op upgrades: warehouse capacity and co-op land size bought with warehouse stock, founder only, one atomic purchase | Accepted |
 | [ADR-034](ADR-034-market-at-the-trader-counter.md) | The consignment market is a counter in Town: no market tab or key, listing/buying/cancelling need the counter | Accepted |
 | [ADR-035](ADR-035-database-round-trip-budget.md) | Database round-trip budget: per-packet budgets, state held in memory, what stays transactional, write-behind limits | Accepted |
 | [ADR-036](ADR-036-quest-chain-and-requests-board.md) | Tutorial quest chain with coin rewards and the Town requests board (daily delivery requests) | Accepted |
 | [ADR-037](ADR-037-mountain-beach-woods.md) | Mountain, Beach and the Secret Woods as public maps: warps, large stumps, shore forage, the Beach bridge unlock (amends ADR-026) | Accepted |
+| [ADR-038](ADR-038-coop-upgrades.md) | Co-op upgrades: warehouse capacity and co-op land size bought with warehouse stock, founder only, one atomic purchase | Accepted |
 | [ADR-039](ADR-039-audio-hooks.md) | Audio hooks: sound, music and ambience as commands in the frame buffer, Web Audio in `audio.js`, procedurally generated placeholder sounds | Accepted |
+| [ADR-040](ADR-040-own-art-plan.md) | Own art plan: inventory of the placeholder files, work packages, production routes, cost, release gate | Accepted |
