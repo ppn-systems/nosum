@@ -1,0 +1,80 @@
+@using Nosum.Wasm.ViewModels.Visit
+@inherits ObservingComponent<VisitorsViewModel>
+
+@* Visitors: who may enter the player's own farm and farmhouse, and a way to visit somebody else. The server checks the allow-list on every visit. *@
+<GamePanel Title="@Vm.Text("Visit_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+    <GameStack>
+        <GameSection Title="@Vm.Text("Visit_Go_Heading")">
+            <GameRow>
+                <GameInput Value="@Vm.VisitText" ValueChanged="@(v => Vm.VisitText = v)" OnEnter="@(() => Vm.Visit())" MaxLength="24" Placeholder="@Vm.Text("Visit_NicknamePlaceholder")" Label="@Vm.Text("Visit_NicknamePlaceholder")" />
+                <GameButton Text="@Vm.Text("Visit_Go")" OnClick="@(() => Vm.Visit())" />
+            </GameRow>
+            <p class="visit-hint">@Vm.Text("Visit_Go_Hint")</p>
+        </GameSection>
+        <GameSection Title="@Vm.Text("Visit_List_Heading")">
+            @if (Vm.IsGuest)
+            {
+                <GameNotice Kind="info" Text="@Vm.Text("Visit_GuestOwner")" />
+            }
+            else
+            {
+                <GameRow>
+                    <GameInput Value="@Vm.AddText" ValueChanged="@(v => Vm.AddText = v)" OnEnter="@(() => Vm.Add())" MaxLength="24" Placeholder="@Vm.Text("Visit_NicknamePlaceholder")" Label="@Vm.Text("Visit_NicknamePlaceholder")" />
+                    <GameButton Text="@Vm.Text("Visit_Add")" OnClick="@(() => Vm.Add())" />
+                </GameRow>
+                @if (Vm.Visitors.Count == 0)
+                {
+                    <p class="visit-hint">@Vm.Text("Visit_ListEmpty")</p>
+                }
+                @foreach (VisitorDisplay visitor in Vm.Visitors)
+                {
+                    Guid playerId = visitor.PlayerId;
+                    <GameRow Class="center">
+                        <span class="visitor-name">@visitor.Label</span>
+                        @if (visitor.Present)
+                        {
+                            <GameBadge Kind="ok" Text="@Vm.Text("Visit_Here")" />
+                            <GameButton Variant="plain" Text="@Vm.Text("Visit_SendHome")" OnClick="@(() => Vm.Kick(playerId))" />
+                        }
+                        @if (visitor.Listed)
+                        {
+                            <GameButton Variant="danger" Text="@Vm.Text("Visit_Remove")" OnClick="@(() => Vm.Remove(playerId))" />
+                        }
+                        else
+                        {
+                            <span class="visit-hint">@Vm.Text("Visit_ByCoop")</span>
+                        }
+                    </GameRow>
+                }
+                <GameRow Class="center">
+                    <GameButton Variant="plain" Active="Vm.CoopMembersMayVisit" Text="@(Vm.CoopMembersMayVisit ? Vm.Text("Visit_Coop_On") : Vm.Text("Visit_Coop_Off"))" OnClick="@(() => Vm.ToggleCoopVisits())" />
+                </GameRow>
+            }
+            <p class="visit-hint">@Vm.Text("Visit_Rules_Hint")</p>
+        </GameSection>
+    </GameStack>
+</GamePanel>
+
+@code {
+    /// <summary>Raised when the close button is clicked, or a visit was accepted.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Vm.Entered += OnEntered;
+        Vm.Open();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            Vm.Entered -= OnEntered;
+        }
+
+        base.Dispose(disposing);
+    }
+
+    // The visit was accepted: the map scene fades to the farm, so the panel gets out of the way.
+    private void OnEntered() => _ = InvokeAsync(OnClose.InvokeAsync);
+}

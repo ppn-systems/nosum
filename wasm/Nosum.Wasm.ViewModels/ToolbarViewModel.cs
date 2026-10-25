@@ -36,6 +36,9 @@ public enum PanelKind
 
     /// <summary>A shop, opened with the action key at its counter (not a toolbar button).</summary>
     Shop = 8,
+
+    /// <summary>The visitors panel: who may enter the player's farm, and visiting someone else (docs/adr/ADR-019).</summary>
+    Visitors = 9,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -83,5 +86,6 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G"),
         new ToolbarItem(PanelKind.Help, this.Text("Toolbar_Help"), "H"),
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N"),
+        new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty),
     ];
 }

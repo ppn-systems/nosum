@@ -26,6 +26,8 @@
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
 @using Nosum.Wasm.ViewModels.Coop
+@using Nosum.Wasm.ViewModels.Visit
+@using Nosum.Wasm.Controls.Visit
 @using Nosum.Wasm.ViewModels.Looks
 @using Nosum.Wasm.ViewModels.Market
 @using Nosum.Wasm.ViewModels.Wallet
@@ -51,6 +53,7 @@
 @inject WardrobeViewModel Wardrobe
 @inject TradeViewModel Trade
 @inject CoopViewModel Coop
+@inject VisitorsViewModel Visitors
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
@@ -111,6 +114,9 @@ else
                     break;
                 case PanelKind.Profile:
                     <ProfilePanel Vm="Profile" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Visitors:
+                    <VisitorsPanel Vm="Visitors" OnClose="ClosePanel" />
                     break;
                 case PanelKind.Shop:
                     <ShopPanel Vm="Shop" OnClose="ClosePanel" />

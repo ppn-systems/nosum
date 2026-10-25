@@ -5,7 +5,7 @@
     @foreach (Nosum.Wasm.ViewModels.ToolbarItem item in Vm.Items)
     {
         Nosum.Wasm.ViewModels.PanelKind kind = item.Kind;
-        <GameButton Variant="tab" Active="@(Vm.Active == kind)" OnClick="() => OnSelect.InvokeAsync(kind)"><span class="toolbar-label">@item.Label</span><GameKey Text="@item.Hotkey" /></GameButton>
+        <GameButton Variant="tab" Active="@(Vm.Active == kind)" OnClick="() => OnSelect.InvokeAsync(kind)"><span class="toolbar-label">@item.Label</span>@if (item.Hotkey.Length > 0){<GameKey Text="@item.Hotkey" />}</GameButton>
     }
 </GamePanel>
 
