@@ -1,6 +1,6 @@
 # ADR-035 — Database round-trip budget
 
-**Status:** Accepted (coordinator, 2026-10-25, under the authority the owner delegated; review notes on D3 writers, D4 serialization and D7 animal friendship are folded in). D3–D8 are built in phase 2.
+**Status:** Accepted (coordinator, 2026-10-25, under the authority the owner delegated; review notes on D3 writers, D4 serialization and D7 animal friendship are folded in). D3–D7 are built (phase 2, see "Phase 2: what was built" below); D8 is a statement about the future.
 Builds on [ADR-009](ADR-009-postgresql-persistence-and-accounts.md) (PostgreSQL, one unit of work per operation),
 [ADR-013](ADR-013-economy-coins-escrow-market-trade.md) (one atomic transfer) and
 [ADR-021](ADR-021-tools-resource-nodes-ground-items.md) / [ADR-022](ADR-022-chunked-interest-management.md) (world state held in memory per instance and chunk).
@@ -161,6 +161,71 @@ Coherence tests phase 2 must add with the caches (the budget test cannot see sta
 - inventory changed by a pickup, a node yield, a craft and a chest move is visible to the next `GetInventory` without a reload;
 - picking up a chest and wiping co-op land drop the container's cache entry;
 - the single-writer guard tests of D3 rule 5.
+
+## Phase 2: what was built
+
+Measured by the same test, `DbBudgetBaseline` now holds the new numbers ([docs/perf/db-round-trips.md](../perf/db-round-trips.md) has the table and the before/after rows). Reads over the rows
+both tables measure fell from 725 to 345; writes and transactions did not change except that `SelectSlot` and `ReadMail` write in the background. How each decision was built, and where the
+code differs from the text above:
+
+- **D3, inventory.** The cache is inside `InventoryService` (`ExecuteManyAsync` is still the one place that saves). An entry is the header values and an immutable array of the slots; a change works on a
+  copy of the grid, writes only the changed rows by key (`IRepository.Update/Remove` with a stub that carries the key, so no row is read), and replaces the entry after `SaveChanges`, under the locks of
+  all parties. A unique violation, a concurrency conflict (a row that is no longer there), a refused enlistment or any exception drops the entries of every party. **Reads also take the player's lock**
+  (an in-process semaphore, no command): a read that starts after a change has begun sees its result, as it did when every read hit the rows. `ChestService` and `CoopService` use
+  `IInventoryService.DropContainerAsync` and `AnyContainerHoldsItemsAsync`; two guard tests fail if another file under `Nosum.Infrastructure` names the inventory tables or the inventory log, or
+  if a `ITransferService`, `IGroundItems` or `INodeYieldSink` implementation does. Entries leave with `ISessionRegistry.SessionEnded` (a new event, raised after a player's last connection ended)
+  and by a 30 minute idle sweep; containers are also capped at 256. A test that changes rows behind the service's back calls `Forget`.
+- **D4, progress and place.** One `PlayerStateCache` entry per player, shared by `PlayerStateService` and `PlayerProgressService`. Both write only their own columns
+  (`IRepository.Update(entity, properties)`), so a place save cannot overwrite an energy charge. The swing's check and spend happen against the entry under the progress lock; the charge stages a write
+  in the caller's unit and the entry follows when the caller reports the save (`IProgressCharge.PublishAsync`, which every caller already calls after its save); a charge disposed without that report drops
+  the entry. Lock order stays inventory, then progress.
+- **Quests.** `QuestService` is the only writer of `player_quests` and holds a player's quests in memory. An event no active quest counts costs no command; a counting event writes the changed rows
+  by key; the reward is still the one transfer that completes the row and pays the coins.
+- **D5, social and access facts.** `ReadThroughCache` (an epoch keeps a load that raced a change from being kept) under four caches, each with one writer that invalidates or replaces after its save:
+  player facts and the nickname lookup in `NicknameDirectory` (`AccountService` ends every change in `Remember`), co-op membership in `CoopDirectory` (`CoopService`), friends and requests in
+  `FriendFacts` (`FriendService` replaces the entries of the two players it changed under one gate; a block drops them) and the allow-list and visit settings in `VisitFacts` (`VisitService` and
+  `FriendService`). `VisitAccess` reads only these, so the access decision costs no command once they are warm and the ADR-019 re-check after a move reads the same memory. The co-op snapshot is built once
+  per push for all online members (the stock and the log are shared state and stay uncached, D6).
+- **D6.** Nothing keeps a balance. `TransferService` pushes `WalletUpdate` with the balance its own transaction saved instead of reading the wallet again.
+- **D7, write-behind.** `WriteBehind` holds a staged write per player and key for five seconds from the first change (constant clicking costs one write per window). Built for the two rows of the
+  table that are written on a request: the selected hotbar slot and the read flag of a mail (the list and the unread count see it at once). It flushes when a player leaves a map (map change and
+  disconnect), when a session ends, and at shutdown after the application stopped; one player's rows go in one unit of work and a row that cannot be written (a mail deleted meanwhile) is dropped
+  and reported without costing the others. `last_active_at` on resume has no write of its own (it rides the write of the rotated session token), so there was nothing to defer; animal friendship and
+  everything else the table forbids stay write-through.
+- **The gate.** `DbBudgetTests` also compares, after every measured row, each copy a cache holds for a signed-in player with what a service with nothing in memory reads from the rows
+  (`Run_CachedStateEqualsTheRows_AfterEveryMeasuredRow`). Unit-level coherence tests: `InventoryCacheTests`, `PlayerStateCacheTests`, `QuestCacheTests`, `PlayerFactsTests`, `WriteBehindTests`,
+  the cached `CoopDirectory` in `SocialServiceTests` and the friends/visit comparison in `VisitWireTests`.
+
+### Amendment: rows above their D1 class
+
+Measured on the merged head. D1 says a class may be exceeded only by an amendment; these are the rows that are, with the reason and the next step. They are the limits in `DbBudgetBaseline`.
+
+| Row | Reads | D1 class says | Why | Next step |
+|:--|--:|:--|:--|:--|
+| `RespondInvite` accept | 8 | at most 3 | the invite and the open invites, the new member's membership and the snapshot (stock and two logs) | cache invitations |
+| `KickMember`, `LeaveCoop` | 10 | at most 3 | the mutation reads its own rows (they are tracked), then the directory reloads for every member that is pushed to and the snapshot is built | read the co-op once and mutate by key |
+| `InvitePlayer` | 7 | at most 3 | invite rows, the invitee's push (invites, co-op, founder), the mail copy (count and insert) | cache invitations |
+| `UpgradeCoop` | 11 | at most 4 | stock for the price check, the transfer, the co-op row inside the transfer, the snapshot | read the co-op row once |
+| `DepositItem`, `WithdrawItem` | 6, 7 | at most 4 | stock and log are shared state (D6): the check, the transfer's stock row, the wallet row and the snapshot's three reads | none planned; the stock is read inside the transaction on purpose |
+| `RequestFriend` | 8 | at most 3 | two players' friends and requests are read once each when cold (4), the push to the target (visit settings), the block set | warm after first use; the number is the cold cost |
+| `VisitPlayer` | 8 | at most 2 | 2 for the access facts when cold; 5 load the cold instance of the farm (plots, objects, nodes, buildings, ground items) | the instance load is ADR-021 state, not a cache miss; keep |
+| `JoinMap` first join | 9 | at most 2 | the instance load again, the friends the status announcement needs, the inventory and its starter-kit backfill | rank 4 of the table above (create rows with the account) |
+| `BuyListing` | 6 | at most 4 | the listing is read twice (the check, then inside the transfer), the two wallets, and the unread count of the seller's mail after the sale notice | read the listing once |
+| `DeliverToGoal`, `GetGoals` | 8, 5 | at most 4 | the season's goal rows are read for the board, again by goal and again by id inside the transaction, with the contributions and the wallet | read the goal rows once (rank 5) |
+| `GetCoop`, `GetFriends`, `GetMail`, `GetBlocked`, `BrowseListings` | 1-3 | 0 once signed in | the stock, the log, the mailbox and the market page are shared state; the block list is read for its order and nicknames | serve `GetBlocked` and `GetFriends` from the caches |
+
+Ranked changes #4 (rows created with the account), #5 (the remaining N+1 loops) and #6 (header and slots in one command) are not built; the cold read of an inventory is still two commands.
+
+### Weak spots
+
+- A cache is a gameplay bug when it is wrong. Every writer is named above and guarded by a test or by the comparison of the budget run, but a **new writer of a cached table** that does not call the invalidation is silently
+  wrong; the inventory has a guard test, the other tables have only their rule in the class comment.
+- A row changed by hand in the database (a migration, support) is not seen until the entry leaves (sign-out, 30 minutes idle) or the process restarts; the server is the only writer by design (D8).
+- `WalletUpdate` carries the balance of the transaction that sent it. Two transfers of one player that commit within the same millisecond could push in the other order and leave the client with the older
+  number until its next change; the server's own state is unaffected. Before, the push re-read the wallet, which narrowed the window but did not close it.
+- A crash loses what waits in `WriteBehind` (at most five seconds of hotbar choices and mail read flags), as D7 accepts.
+- The friend caches and `CoopDirectory` are keyed by player and dropped at sign-out, but the visit facts are keyed by owner and live until the idle sweep; memory is bounded by the players asked about in 30 minutes.
+- Entries of a signed-out player can reappear (a write that finishes after the sign-out stores one); the idle sweep removes them.
 
 ## Alternatives considered
 

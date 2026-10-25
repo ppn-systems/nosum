@@ -37,7 +37,8 @@ internal sealed class ReadThroughCache<TKey, TValue>
     /// <param name="load">Reads the value from the database.</param>
     /// <param name="cancellationToken">Cancels the load.</param>
     /// <returns>The value.</returns>
-    public async ValueTask<TValue> GetAsync(TKey key, Func<CancellationToken, Task<TValue>> load, CancellationToken cancellationToken)
+    /// <param name="alsoKeep">Names other keys the loaded value is also the value of (a co-op loaded for one member is the co-op of every member); they are kept under the same condition, without a read of their own.</param>
+    public async ValueTask<TValue> GetAsync(TKey key, Func<CancellationToken, Task<TValue>> load, CancellationToken cancellationToken, Func<TValue, IEnumerable<TKey>>? alsoKeep = null)
     {
         if (!_enabled)
         {
@@ -56,6 +57,13 @@ internal sealed class ReadThroughCache<TKey, TValue>
         if (Volatile.Read(ref _epoch) == epoch)
         {
             _entries[key] = new Entry(loaded);
+            if (alsoKeep is not null)
+            {
+                foreach (TKey other in alsoKeep(loaded))
+                {
+                    _ = _entries.TryAdd(other, new Entry(loaded));
+                }
+            }
         }
 
         return loaded;

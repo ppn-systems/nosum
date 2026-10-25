@@ -61,7 +61,7 @@ public sealed class CoopDirectory
     /// <returns>The co-op with its members, or <see langword="null"/> for a player in none.</returns>
     public async ValueTask<CoopRecord?> OfPlayerAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
-        CoopRecord record = await _byPlayer.GetAsync(playerId, ct => this.LoadAsync(playerId, ct), cancellationToken).ConfigureAwait(false);
+        CoopRecord record = await _byPlayer.GetAsync(playerId, ct => this.LoadAsync(playerId, ct), cancellationToken, static found => found.Members.Select(m => m.PlayerId)).ConfigureAwait(false);
         return ReferenceEquals(record, s_none) ? null : record;
     }
 
