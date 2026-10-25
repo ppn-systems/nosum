@@ -95,7 +95,7 @@ public sealed class FriendService : IFriendService, IDisposable
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? me = await unit.Repository<Player>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+            PlayerFact? me = await _nicknames.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
             isGuest = me?.IsGuest ?? true;
             VisitSettings? settings = await unit.Repository<VisitSettings>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
             friendsMayVisit = settings?.FriendsMayVisit ?? VisitRules.FriendsMayVisitByDefault;
@@ -133,13 +133,13 @@ public sealed class FriendService : IFriendService, IDisposable
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? me = await unit.Repository<Player>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+            PlayerFact? me = await _nicknames.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
             if (me is null || me.IsGuest)
             {
                 return FriendStatus.GuestNotAllowed;
             }
 
-            Player? target = await unit.Repository<Player>().FirstOrDefaultAsync(p => p.NormalizedNickname == key, cancellationToken).ConfigureAwait(false);
+            PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
             if (target is null)
             {
                 return FriendStatus.UnknownPlayer;
@@ -321,7 +321,7 @@ public sealed class FriendService : IFriendService, IDisposable
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? owner = await unit.Repository<Player>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+            PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
             if (owner is null || owner.IsGuest)
             {
                 return FriendStatus.GuestNotAllowed;

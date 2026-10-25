@@ -470,7 +470,7 @@ internal static class Program
         BuildingDirectory buildingDirectory = new(unitOfWork);
         InstanceManager.Instance.Register<IBuildingDirectory>(buildingDirectory);
         // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019); the inside of a building follows its land (docs/adr/ADR-028 D2).
-        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork), buildingDirectory, coopMembership, clock);
+        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork, nicknames), buildingDirectory, coopMembership, clock);
 
         // Admin intents, the mute list and the live gauges (docs/adr/ADR-031 D6-D7).
         OpsServices.Register(unitOfWork, sessions, transfers, presence, clock);

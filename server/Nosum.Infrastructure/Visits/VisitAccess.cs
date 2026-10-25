@@ -3,7 +3,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
+using Nosum.Infrastructure.Accounts;
 using Nosum.Abstractions.Presence;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Coops;
@@ -23,13 +25,16 @@ namespace Nosum.Infrastructure.Visits;
 public sealed class VisitAccess : IInstanceAccessPolicy
 {
     private readonly IUnitOfWorkFactory _unitOfWork;
+    private readonly INicknameDirectory _players;
 
     /// <summary>Initializes the policy.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
-    public VisitAccess(IUnitOfWorkFactory unitOfWork)
+    /// <param name="players">Tells whether the owner exists and is a guest without reading their account row; <see langword="null"/> reads it every time.</param>
+    public VisitAccess(IUnitOfWorkFactory unitOfWork, INicknameDirectory? players = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         _unitOfWork = unitOfWork;
+        _players = players ?? new NicknameDirectory(unitOfWork, cacheFacts: false);
     }
 
     /// <inheritdoc/>
@@ -50,7 +55,7 @@ public sealed class VisitAccess : IInstanceAccessPolicy
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? owner = await unit.Repository<Player>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+            PlayerFact? owner = await _players.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
             if (owner is null)
             {
                 return false;

@@ -81,7 +81,7 @@ public sealed class BlockList : IBlockList
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? target = await unit.Repository<Player>().FirstOrDefaultAsync(p => p.NormalizedNickname == key, cancellationToken).ConfigureAwait(false);
+            PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
             if (target is null)
             {
                 return ChatStatus.UnknownPlayer;
@@ -145,7 +145,7 @@ public sealed class BlockList : IBlockList
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? target = await unit.Repository<Player>().FirstOrDefaultAsync(p => p.NormalizedNickname == key, cancellationToken).ConfigureAwait(false);
+            PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
             if (target is null)
             {
                 return ChatStatus.UnknownPlayer;

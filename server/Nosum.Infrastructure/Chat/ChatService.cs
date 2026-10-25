@@ -298,20 +298,14 @@ public sealed class ChatService : IChatService
             return (ChatStatus.InvalidNickname, null, string.Empty);
         }
 
-        Guid targetId;
-        string nickname;
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
+        PlayerFact? player = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
+        if (player is null)
         {
-            Player? player = await unit.Repository<Player>().FirstOrDefaultAsync(p => p.NormalizedNickname == key, cancellationToken).ConfigureAwait(false);
-            if (player is null)
-            {
-                return (ChatStatus.UnknownPlayer, null, string.Empty);
-            }
-
-            targetId = player.Id;
-            nickname = player.Nickname;
+            return (ChatStatus.UnknownPlayer, null, string.Empty);
         }
+
+        Guid targetId = player.Id;
+        string nickname = player.Nickname;
 
         if (targetId == senderId)
         {

@@ -100,7 +100,7 @@ public sealed class VisitService : IVisitService, IDisposable
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? owner = await unit.Repository<Player>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+            PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
             isGuest = owner?.IsGuest ?? true;
             VisitSettings? settings = await unit.Repository<VisitSettings>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
             coopMembersMayVisit = settings?.CoopMembersMayVisit ?? VisitRules.CoopMembersMayVisitByDefault;
@@ -131,13 +131,13 @@ public sealed class VisitService : IVisitService, IDisposable
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? owner = await unit.Repository<Player>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+            PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
             if (owner is null || owner.IsGuest)
             {
                 return VisitStatus.GuestOwner;
             }
 
-            Player? target = await unit.Repository<Player>().FirstOrDefaultAsync(p => p.NormalizedNickname == key, cancellationToken).ConfigureAwait(false);
+            PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
             if (target is null)
             {
                 return VisitStatus.UnknownPlayer;
@@ -219,7 +219,7 @@ public sealed class VisitService : IVisitService, IDisposable
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            Player? owner = await unit.Repository<Player>().FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
+            PlayerFact? owner = await _nicknames.FindAsync(ownerId, cancellationToken).ConfigureAwait(false);
             if (owner is null || owner.IsGuest)
             {
                 return VisitStatus.GuestOwner;
@@ -273,18 +273,13 @@ public sealed class VisitService : IVisitService, IDisposable
             return VisitStatus.NotOnPublicMap;
         }
 
-        Guid ownerId;
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
+        PlayerFact? owner = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
+        if (owner is null)
         {
-            Player? owner = await unit.Repository<Player>().FirstOrDefaultAsync(p => p.NormalizedNickname == key, cancellationToken).ConfigureAwait(false);
-            if (owner is null)
-            {
-                return VisitStatus.UnknownPlayer;
-            }
-
-            ownerId = owner.Id;
+            return VisitStatus.UnknownPlayer;
         }
+
+        Guid ownerId = owner.Id;
 
         if (ownerId == visitorId)
         {
