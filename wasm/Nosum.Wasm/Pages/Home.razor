@@ -113,7 +113,7 @@ else
                     <ProfilePanel Vm="Profile" OnClose="ClosePanel" />
                     break;
                 case PanelKind.Shop:
-                    <ShopPanel Vm="Shop" OnClose="ClosePanel" />
+                    <ShopPanel Vm="Shop" ShopId="_shopId" OnClose="ClosePanel" />
                     break;
             }
         </Center>
@@ -157,6 +157,7 @@ else
     private bool _signedIn;
     private bool _started;
     private PanelKind _panel;
+    private int _shopId;
     private string? _error;
 
     protected override void OnInitialized()
@@ -216,7 +217,7 @@ else
     {
         if (_panel != PanelKind.Shop)
         {
-            Shop.Open(shopId);
+            _shopId = shopId;
             _panel = PanelKind.Shop;
             Toolbar.Active = _panel;
             StateHasChanged();

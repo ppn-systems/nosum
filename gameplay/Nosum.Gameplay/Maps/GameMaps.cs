@@ -43,8 +43,16 @@ public static class GameMaps
     /// <summary>Id of the backwoods north of the farm.</summary>
     public const string Backwoods = "backwoods";
 
-    // The doormat in front of Pierre's store in Town.tmx (Stardew's general store; the placeholder art, docs/adr/ADR-007). Standing near it opens the shop.
-    private static readonly (int X, int Y) s_townShopTile = (43, 57);
+    // Shop counters in Town.tmx: the walkable tile just south of a building's door (the doormat), where the farmer stands and presses the action key.
+    // The art is Stardew's placeholder (docs/adr/ADR-007); each building is the one whose owner fits the trade:
+    //  - seeds: Pierre's store, door tiles (43,56) and (44,56), doormat (43,57);
+    //  - clothing: Emily and Haley's house, door tile (20,88), doormat (20,89) (Emily sews, Haley follows fashion);
+    //  - furniture: JojaMart, door tiles (95,50) and (96,50), doormat (95,51), a big-box store standing in for Robin's carpenter shop,
+    //    which is on the Mountain map the game does not have yet.
+    // Every doormat is walkable and reachable on foot from the town's spawn (a test checks it); the shops are far enough apart that no two are in reach at once.
+    private static readonly (int X, int Y) s_townSeedShopTile = (43, 57);
+    private static readonly (int X, int Y) s_townClothingShopTile = (20, 89);
+    private static readonly (int X, int Y) s_townFurnitureShopTile = (95, 51);
 
     private static readonly MapSpec[] s_all =
     [
@@ -52,7 +60,12 @@ public static class GameMaps
         new(FarmHouse, "FarmHouse.tmx", 3, 11, isPrivate: true, placeable: true),
         new(BusStop, "BusStop.tmx", 11, 23),
         new(Forest, "Forest.tmx", 68, 0),
-        new(Town, "Town.tmx", 4, 54, shops: [new ShopPoint(ShopCatalog.GeneralStore, s_townShopTile.X, s_townShopTile.Y)]),
+        new(Town, "Town.tmx", 4, 54, shops:
+        [
+            new ShopPoint(ShopCatalog.SeedShop, s_townSeedShopTile.X, s_townSeedShopTile.Y),
+            new ShopPoint(ShopCatalog.ClothingShop, s_townClothingShopTile.X, s_townClothingShopTile.Y),
+            new ShopPoint(ShopCatalog.FurnitureShop, s_townFurnitureShopTile.X, s_townFurnitureShopTile.Y),
+        ]),
         new(Backwoods, "Backwoods.tmx", 14, 38),
     ];
 
