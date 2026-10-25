@@ -239,6 +239,20 @@ internal sealed class SocialClient : IAsyncDisposable
         return (result.Status, result.Spent);
     }
 
+    /// <summary>Registers the guest in place (the nickname is chosen here). On success this client carries the new token and nickname.</summary>
+    public async Task<AccountResult> UpgradeAsync(string nickname, CancellationToken ct)
+    {
+        using UpgradeGuest request = new() { Email = "u" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com", Password = "password-1", Nickname = nickname };
+        AccountResult result = await this.RequestAsync<AccountResult>(request, ct);
+        if (result.Status == AccountStatus.Ok)
+        {
+            this.SessionToken = result.SessionToken;
+            this.Nickname = result.Nickname;
+        }
+
+        return result;
+    }
+
     public async Task<NicknameResult> SetNicknameAsync(string nickname, CancellationToken ct)
     {
         using SetNickname request = new() { Nickname = nickname };

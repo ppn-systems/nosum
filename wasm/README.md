@@ -80,8 +80,9 @@ Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `Calend
 `Controls/Calendar/CalendarClock` shows season, day and time in the top-right region (the time moves in ten game-minute steps, a 5 s timer re-renders only when the text changes). The farm decorator does not draw crops that withered at a season change.
 The season icon is a flat colour swatch until the icon sheet has season art; the world is not tinted by the time of day yet.
 
-Shop, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): next to the Town's general store counter the action key (`E`) opens `ShopPanel`
-(`ShopViewModel`, `ShopChannel`; catalogue and prices are the shared `ShopCatalog`, the server prices and checks every purchase). `N` opens `ProfilePanel` (`ProfileViewModel`: show and change the nickname once a day);
+
+Shops, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): next to one of the Town's three shop counters (seed, clothing, furniture) the action key (`E`) opens `ShopPanel`
+(takes a `ShopId`; `ShopViewModel`, `ShopChannel`; catalogue and prices are the shared `ShopCatalog`, the server prices and checks every purchase). `N` opens `ProfilePanel` (`ProfileViewModel`: show and change the nickname once a day; a guest sees a note that registering unlocks it);
 the registration and upgrade form asks for a nickname (`GameField`). `NicknameFormatter` shows a nickname (a guest's `guest-1234` as "Khách 1234" / "Guest 1234"); `LookChannel` caches nicknames by map player id and
 `Game/NicknameLabels` uploads each name once as an engine label (`LabelRegistry`, `renderer.js registerLabel`) that `MapScene` draws above every farmer. Tester tools exist only in a build made with
 `-p:NosumDevTools=true`: from the browser console, `(await getDotnetRuntime(0).getAssemblyExports("Nosum.Wasm.dll")).Nosum.Wasm.Game.DevTools.Grant(300, 5, 0)` asks a Development server for 5 oak chairs

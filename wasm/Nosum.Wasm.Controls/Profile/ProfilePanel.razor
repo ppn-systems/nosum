@@ -1,17 +1,25 @@
 @using Nosum.Wasm.ViewModels.Profile
 @inherits ObservingComponent<ProfileViewModel>
 
-@* The player's profile: the nickname everyone sees above the head, and changing it. The server checks the rules, uniqueness and the 24-hour wait. *@
+@* The player's profile: the nickname everyone sees above the head, and changing it. The server checks the rules, uniqueness and the 24-hour wait.
+   A guest cannot rename: the form is replaced by a note that registering unlocks it. *@
 <GamePanel Title="@Vm.Text("Profile_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status">
     <GameStack>
         <GameSection>
             <p>@Vm.CurrentText</p>
         </GameSection>
-        <GameField Label="@Vm.Text("Profile_NewLabel")" Hint="@Vm.RuleText">
-            <GameInput Value="@Vm.NewNickname" ValueChanged="@(v => Vm.NewNickname = v)" OnEnter="@(() => Vm.SaveAsync(default))"
-                       Placeholder="@Vm.Text("Profile_NewLabel")" Label="@Vm.Text("Profile_NewLabel")" MaxLength="24" />
-        </GameField>
-        <GameButton Text="@Vm.Text("Profile_Save")" Disabled="Vm.IsBusy" OnClick="@(() => Vm.SaveAsync(default))" />
+        @if (Vm.CanRename)
+        {
+            <GameField Label="@Vm.Text("Profile_NewLabel")" Hint="@Vm.RuleText">
+                <GameInput Value="@Vm.NewNickname" ValueChanged="@(v => Vm.NewNickname = v)" OnEnter="@(() => Vm.SaveAsync(default))"
+                           Placeholder="@Vm.Text("Profile_NewLabel")" Label="@Vm.Text("Profile_NewLabel")" MaxLength="24" />
+            </GameField>
+            <GameButton Text="@Vm.Text("Profile_Save")" Disabled="Vm.IsBusy" OnClick="@(() => Vm.SaveAsync(default))" />
+        }
+        else
+        {
+            <GameNotice Kind="info" Text="@Vm.GuestNoticeText" />
+        }
     </GameStack>
 </GamePanel>
 

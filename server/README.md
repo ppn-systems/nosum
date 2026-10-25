@@ -92,7 +92,7 @@ Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `Progra
 Shop, nicknames and tester grant ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)):
 `IShopService` (`Shops/ShopService`) prices a purchase with `ShopRules`, checks the player's own presence is at the shop's counter, and buys through `ITransferService`
 (reason `shop.buy`); `ShopHandlers` (`0xC000`, encrypted, USER, rate limited). Every player has a nickname: `AccountService` validates and stores it (`NicknameRules`, unique index
-`ix_players_normalized_nickname`, rename once per 24 h with a per-player lock), `INicknameDirectory` caches it for `LookService` (`LookRow.Nickname`), the market (`ListingRow.SellerNickname`)
-and co-ops; `SetNickname` is in `AccountHandlers` and re-announces the look to the map. The market fee goes through `IFeeSink` (`CoinSink`: destroyed, owner decision 2026-10-25).
+`ix_players_normalized_nickname`, rename once per 24 h with a per-player lock; guests cannot rename, `NicknameRequiresAccount`; profanity is `NicknameProfane`), `INicknameDirectory` caches it for `LookService` (`LookRow.Nickname`), the market (`ListingRow.SellerNickname`)
+and co-ops; `SetNickname` is in `AccountHandlers` and re-announces the look to the map, as does a guest upgrade that chose a nickname. Three shops (seed, clothing, furniture) are three `ShopCatalog` entries; `ShopService` requires the player to stand at a counter of the named shop. The market fee goes through `IFeeSink` (`CoinSink`: destroyed, owner decision 2026-10-25).
 `DevHandlers` / `IDevGrantService` (`0xF000`) exist only when `Program.BuildApplication(port, clock, development: true)`, which `Main` sets only when `DOTNET_ENVIRONMENT` is
 `Development`; run a local host for testers with `DOTNET_ENVIRONMENT=Development dotnet run --project server/Nosum.Host`. Migration `PlayerNicknames`.

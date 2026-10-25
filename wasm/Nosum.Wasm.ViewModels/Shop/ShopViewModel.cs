@@ -14,19 +14,6 @@ using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Shop;
 
-/// <summary>What a shop sells, grouped for its tabs.</summary>
-public enum ShopTab
-{
-    /// <summary>Seeds.</summary>
-    Seeds = 0,
-
-    /// <summary>Furniture.</summary>
-    Furniture = 1,
-
-    /// <summary>Clothing.</summary>
-    Clothing = 2,
-}
-
 /// <summary>One row of the shop, already localized.</summary>
 /// <param name="ItemId">The item.</param>
 /// <param name="Item">The stack for the slot control (one unit).</param>
@@ -36,7 +23,8 @@ public sealed record ShopOfferDisplay(int ItemId, SlotDisplay Item, string Price
 
 /// <summary>
 /// View model of the shop panel (docs/adr/ADR-013 amendments). The catalogue and prices are the shared <see cref="ShopCatalog"/>; buying is an
-/// intent the server prices and checks (where the player stands, coins, room). This class lists, takes a quantity and shows the outcome.
+/// intent the server prices and checks (where the player stands, coins, room). This class lists what the opened shop sells (each shop has its
+/// own section and title, so there are no tabs), takes a quantity and shows the outcome. One instance serves whichever shop is opened.
 /// </summary>
 public sealed class ShopViewModel : PanelViewModel, IDisposable
 {
@@ -63,19 +51,19 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
         wallet.Changed += this.Raise;
     }
 
-    /// <summary>Gets the shown tab.</summary>
-    public ShopTab Tab { get; private set; }
+    /// <summary>Gets the id of the opened shop, or zero before one was opened.</summary>
+    public int ShopId => _shopId;
 
     /// <summary>Gets or sets the quantity typed for the next purchase.</summary>
     public string QuantityText { get; set; } = "1";
 
-    /// <summary>Gets the title: "General store shop"-style, from the shop's key.</summary>
-    public string Title => ShopCatalog.TryGet(_shopId, out ShopDefinition? shop) ? this.Text("Shop_Title", this.Text("Shop_Name_" + shop.Key)) : string.Empty;
+    /// <summary>Gets the title of the opened shop ("Seed shop"), from the shop's key.</summary>
+    public string Title => ShopCatalog.TryGet(_shopId, out ShopDefinition? shop) ? this.Text("Shop_Title_" + shop.Key) : string.Empty;
 
     /// <summary>Gets the balance line.</summary>
     public string CoinsText => this.Text("Shop_Coins", Number(_wallet.Coins));
 
-    /// <summary>Gets the offers of the shown tab.</summary>
+    /// <summary>Gets what the opened shop sells, in its display order.</summary>
     public IReadOnlyList<ShopOfferDisplay> Offers
     {
         get
@@ -89,11 +77,6 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
             int quantity = this.Quantity;
             foreach (ShopOffer offer in shop.Offers)
             {
-                if (!ItemCatalog.TryGet(offer.ItemId, out ItemDefinition? item) || TabOf(item) != this.Tab)
-                {
-                    continue;
-                }
-
                 rows.Add(new ShopOfferDisplay(
                     offer.ItemId,
                     _describer.Describe(0, offer.ItemId, 1),
@@ -113,17 +96,8 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     public void Open(int shopId)
     {
         _shopId = shopId;
-        this.Tab = ShopTab.Seeds;
         this.QuantityText = "1";
         this.ClearStatus();
-        this.Raise();
-    }
-
-    /// <summary>Shows another tab.</summary>
-    /// <param name="tab">The tab.</param>
-    public void SetTab(ShopTab tab)
-    {
-        this.Tab = tab;
         this.Raise();
     }
 
@@ -144,13 +118,6 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
         _channel.Completed -= this.OnCompleted;
         _wallet.Changed -= this.Raise;
     }
-
-    private static ShopTab TabOf(ItemDefinition item) => item.Kind switch
-    {
-        ItemKind.Furniture => ShopTab.Furniture,
-        ItemKind.Clothing => ShopTab.Clothing,
-        _ => ShopTab.Seeds,
-    };
 
     private void OnCompleted(ShopStatus status, long spent)
     {
