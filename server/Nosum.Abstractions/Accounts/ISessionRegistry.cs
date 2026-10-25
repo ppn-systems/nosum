@@ -29,4 +29,15 @@ public interface ISessionRegistry
     /// <param name="playerId">The player.</param>
     /// <returns>The active connection, or null when the player is not connected.</returns>
     IConnection? GetActive(Guid playerId);
+
+    /// <summary>
+    /// Ends a player's active connection for a reason an admin gave (docs/adr/ADR-031 D7): the player leaves their map (position saved), is told why
+    /// in <c>SessionEnded</c> and is disconnected. The default does nothing, so a test double need not implement it.
+    /// </summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="reason">The reason sent to the client.</param>
+    /// <param name="cancellationToken">Cancels the wait.</param>
+    /// <returns><see langword="true"/> when the player was connected.</returns>
+    ValueTask<bool> EndAsync(Guid playerId, Nosum.Contracts.Account.AccountStatus reason, CancellationToken cancellationToken = default)
+        => ValueTask.FromResult(false);
 }

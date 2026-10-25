@@ -12,6 +12,8 @@ using Nalix.Runtime.Groups;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Admin;
+using Nosum.Abstractions.Observability;
 using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Community;
@@ -39,6 +41,7 @@ using Nosum.Abstractions.Visits;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
+using Nosum.Handlers.Admin;
 using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Chat;
 using Nosum.Handlers.Coop;
@@ -59,6 +62,7 @@ using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
 using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Host.Ops;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Chat;
 using Nosum.Infrastructure.Coops;
@@ -104,7 +108,7 @@ internal static class Program
     /// <summary>Time between map snapshots (10 per second, docs/adr/ADR-008).</summary>
     private static readonly TimeSpan SnapshotInterval = TimeSpan.FromMilliseconds(100);
 
-    public static async Task<int> Main()
+    public static async Task<int> Main(string[] args)
     {
         using CancellationTokenSource shutdown = new();
         Console.CancelKeyPress += (_, e) =>
@@ -115,6 +119,26 @@ internal static class Program
 
         // Persistence: connection string from the environment, migrations applied before any listener opens.
         DbContextOptions<NosumDbContext> database = NosumDatabase.CreateOptions(ResolveConnectionString());
+
+        // Command line (admin role, container healthcheck): run, print, exit - nothing else of the server starts.
+        if (args.Length > 0)
+        {
+            return await HostCommands.RunAsync(args, database, OpsPort(), Console.Out, shutdown.Token).ConfigureAwait(false);
+        }
+
+        // Operations (docs/adr/ADR-031): JSON logs on stdout, and /healthz /readyz /metrics up before the migration, so a slow one shows as not ready.
+        OpsLog.Configure(Console.Out);
+        OpsLog.RouteConsoleError();
+        OpsEndpoint ops = OpsEndpoint.Start(Environment.GetEnvironmentVariable("NOSUM_OPS_HOST") ?? "localhost", OpsPort(), ct => NosumDatabase.IsReadyAsync(database, ct));
+        await using (ops.ConfigureAwait(false))
+        {
+            return await RunServerAsync(database, shutdown).ConfigureAwait(false);
+        }
+    }
+
+    // Everything after the ops endpoint is up: migrate, register, serve until the shutdown token fires.
+    private static async Task<int> RunServerAsync(DbContextOptions<NosumDbContext> database, CancellationTokenSource shutdown)
+    {
         await NosumDatabase.MigrateAsync(database, shutdown.Token).ConfigureAwait(false);
         HostServices.Register(database);
 
@@ -125,6 +149,7 @@ internal static class Program
             shutdown.Token);
 
         NetworkApplication app = BuildApplication(WebSocketPort, null, IsDevelopment());
+        await OpsServices.LoadMutesAsync(shutdown.Token).ConfigureAwait(false);
 
         // Goals of seasons that ended while the server was down expire now, and rewards a crash left unpaid are paid (docs/adr/ADR-030 D3).
         ICommunityGoalService goals = InstanceManager.Instance.GetExistingInstance<ICommunityGoalService>()
@@ -163,6 +188,7 @@ internal static class Program
             ex => Console.Error.WriteLine("Mail expiry failed: " + ex.Message),
             shutdown.Token);
 
+        OpsLog.Information("host.started", "The server is accepting connections.", new LogField("ws_port", (int)WebSocketPort));
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
@@ -175,6 +201,11 @@ internal static class Program
 
         return 0;
     }
+
+    /// <summary>Reads <c>NOSUM_OPS_PORT</c>, the port of the health and metrics endpoint; <see cref="OpsEndpoint.DefaultPort"/> when unset.</summary>
+    /// <returns>The port.</returns>
+    private static ushort OpsPort()
+        => ushort.TryParse(Environment.GetEnvironmentVariable("NOSUM_OPS_PORT"), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out ushort port) ? port : OpsEndpoint.DefaultPort;
 
     /// <summary>
     /// Tells whether the host was started in the Development environment: only an explicit <c>DOTNET_ENVIRONMENT</c> or
@@ -273,7 +304,8 @@ internal static class Program
             .MapHandlers(typeof(GroundItemHandlers))
             .MapHandlers(typeof(ChatHandlers))
             .MapHandlers(typeof(FriendHandlers))
-            .MapHandlers(typeof(MailHandlers));
+            .MapHandlers(typeof(MailHandlers))
+            .MapHandlers(typeof(AdminHandlers));
 
         // Tester tools exist only in Development: no handler, no service, no opcode in Production.
         if (development)
@@ -284,7 +316,8 @@ internal static class Program
         return builder
             .ConfigureDispatchOptions(o =>
             {
-                // Fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
+                // Handler timing first (it includes the checks below), then fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
+                _ = o.WithMiddleware(new MetricsMiddleware(static () => InstanceManager.Instance.GetExistingInstance<IMapPresence>()));
                 _ = o.WithMiddleware(new PermissionMiddleware());
                 _ = o.WithMiddleware(new RateLimitMiddleware());
             })
@@ -359,6 +392,9 @@ internal static class Program
         // Coins, market, looks, trade, co-ops and ground-item pickups (docs/adr/ADR-013, ADR-014, ADR-021) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
+
+        // Admin intents, the mute list and the live gauges (docs/adr/ADR-031 D6-D7).
+        OpsServices.Register(unitOfWork, sessions, transfers, presence, clock);
 
         // Items lying in the world: harvests and broken nodes drop here, walking players pick them up (docs/adr/ADR-021 D5-D6).
         GroundItemService groundItems = new(presence, presence, publisher, maps, transfers, unitOfWork, clock);
@@ -449,7 +485,7 @@ internal static class Program
         FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock);
         InstanceManager.Instance.Register<IFriendService>(friends);
         InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends));
-        InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence));
+        InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>()));
 
         // Armed last: every subscriber is in place before the first boundary.
         dayClock.Start();

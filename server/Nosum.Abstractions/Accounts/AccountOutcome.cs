@@ -17,6 +17,7 @@ namespace Nosum.Abstractions.Accounts;
 /// <param name="IsGuest">Whether the player is still a guest.</param>
 /// <param name="RegistrationPromptUnlocked">Whether the invitation to register has been unlocked.</param>
 /// <param name="Nickname">The player's nickname (a neutral <c>guest-1234</c> for a guest that never chose one); empty on a refusal.</param>
+/// <param name="IsAdmin">Whether the account has the admin role (docs/adr/ADR-031 D7); the connection then gets the admin permission level. Never sent to the client.</param>
 public readonly record struct AccountOutcome(
     AccountStatus Status,
     Guid PlayerId,
@@ -27,7 +28,8 @@ public readonly record struct AccountOutcome(
     GameLanguage Language,
     bool IsGuest,
     bool RegistrationPromptUnlocked,
-    string Nickname)
+    string Nickname,
+    bool IsAdmin = false)
 {
     /// <summary>Creates a refusal that carries only a status code.</summary>
     /// <param name="status">The refusal code.</param>

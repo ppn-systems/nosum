@@ -210,7 +210,7 @@ public static partial class AccountHandlers
         {
             // One active connection per player: an older one is saved, told and closed before this one goes on.
             await s_sessions.ActivateAsync(outcome.PlayerId, connection).ConfigureAwait(false);
-            connection.AttachPlayer(new PlayerIdentity(outcome.PlayerId, outcome.SessionId));
+            connection.AttachPlayer(new PlayerIdentity(outcome.PlayerId, outcome.SessionId), outcome.IsAdmin);
         }
 
         await ReplyOutcomeAsync(sender, outcome).ConfigureAwait(false);

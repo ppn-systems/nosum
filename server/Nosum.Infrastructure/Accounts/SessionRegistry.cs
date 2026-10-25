@@ -75,17 +75,42 @@ public sealed class SessionRegistry : ISessionRegistry
             return;
         }
 
+        await this.CloseAsync(previous, AccountStatus.SessionReplaced, "session replaced", cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask<bool> EndAsync(Guid playerId, AccountStatus reason, CancellationToken cancellationToken = default)
+    {
+        IConnection? connection;
+        lock (_gate)
+        {
+            if (!_active.TryGetValue(playerId, out connection))
+            {
+                return false;
+            }
+
+            _ = _active.Remove(playerId);
+            _ = _playerOf.Remove(connection.ConnectionId);
+        }
+
+        await this.CloseAsync(connection, reason, "ended by an admin", cancellationToken).ConfigureAwait(false);
+        return true;
+    }
+
+    // Out of the game first, so its position is saved once and a late move from it cannot overwrite a newer one; then told why; then closed.
+    [SuppressMessage("Design", "CA1031", Justification = "Ending a connection is best effort: it may already be closing, and the caller must still go on.")]
+    private async ValueTask CloseAsync(IConnection connection, AccountStatus reason, string disconnectReason, CancellationToken cancellationToken)
+    {
         try
         {
-            // Out of the game first, so its position is saved once and a late move from it cannot overwrite the new one.
-            previous.Level = PermissionLevel.NONE;
-            await _presence.LeaveAsync(previous, cancellationToken).ConfigureAwait(false);
+            connection.Level = PermissionLevel.NONE;
+            await _presence.LeaveAsync(connection, cancellationToken).ConfigureAwait(false);
 
-            if (!previous.IsDisposed)
+            if (!connection.IsDisposed)
             {
                 using PacketScope<SessionEnded> lease = PacketFactory<SessionEnded>.Acquire();
-                lease.Value.Reason = AccountStatus.SessionReplaced;
-                await previous.SendAsync(lease.Value, NetworkTransport.TCP, enableEncrypt: this.EncryptSends, cancellationToken).ConfigureAwait(false);
+                lease.Value.Reason = reason;
+                await connection.SendAsync(lease.Value, NetworkTransport.TCP, enableEncrypt: this.EncryptSends, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception)
@@ -94,8 +119,8 @@ public sealed class SessionRegistry : ISessionRegistry
         }
         finally
         {
-            previous.ConnectionClosed -= _onClosed;
-            previous.Disconnect("session replaced");
+            connection.ConnectionClosed -= _onClosed;
+            connection.Disconnect(disconnectReason);
         }
     }
 

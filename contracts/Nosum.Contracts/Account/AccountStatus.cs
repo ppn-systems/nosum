@@ -52,4 +52,10 @@ public enum AccountStatus : byte
 
     /// <summary>The player is a guest: only registered accounts may choose or change a nickname (set nickname). A guest picks theirs when registering.</summary>
     NicknameRequiresAccount = 14,
+
+    /// <summary>The account is banned by an admin (login, resume); the reply carries no session (docs/adr/ADR-031 D7).</summary>
+    Banned = 15,
+
+    /// <summary>An admin ended this connection (sent in <c>SessionEnded</c>, never as a request reply). The player may sign in again unless they were banned.</summary>
+    SessionKicked = 16,
 }

@@ -242,6 +242,12 @@ public sealed class AccountService : IAccountService
                 return AccountOutcome.Refused(AccountStatus.InvalidCredentials);
             }
 
+            // Only someone who knows the password learns of the ban.
+            if (player.BannedAt is not null)
+            {
+                return AccountOutcome.Refused(AccountStatus.Banned);
+            }
+
             DateTimeOffset now = _time.GetUtcNow();
             player.LastLoginAt = now;
             player.LastActiveAt = now;
@@ -275,6 +281,11 @@ public sealed class AccountService : IAccountService
             if (player is null)
             {
                 return AccountOutcome.Refused(AccountStatus.InvalidToken);
+            }
+
+            if (player.BannedAt is not null)
+            {
+                return AccountOutcome.Refused(AccountStatus.Banned);
             }
 
             player.LastLoginAt = now;
@@ -445,7 +456,8 @@ public sealed class AccountService : IAccountService
             player.Language,
             player.IsGuest,
             player.RegistrationPromptUnlockedAt is not null,
-            player.Nickname);
+            player.Nickname,
+            player.Role == PlayerRole.Admin);
 
     private AccountOutcome AddSession(IUnitOfWork unit, Player player, DateTimeOffset now)
     {
