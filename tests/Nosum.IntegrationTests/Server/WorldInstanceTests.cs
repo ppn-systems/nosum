@@ -319,7 +319,7 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task Furniture_OutsideTheFarmhouse_IsRefused()
+    public async Task Furniture_OnTheFarm_IsPlaced_SinceTheFarmTakesObjects()
     {
         await using TestHost host = await TestHost.StartAsync(_database);
         await using Client a = await host.ConnectAsync();
@@ -327,8 +327,17 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
         join.MapId.Should().Be(GameMaps.Farm);
         (await a.GrantAsync(ItemCatalog.OakChair, 1, host.Timeout)).Should().BeTrue();
 
-        (await a.PlaceAsync(ChairSlot, (int)(join.SpawnX / 16), (int)(join.SpawnY / 16) + 1, 0, host.Timeout)).Status.Should().Be(PlaceStatus.NotPlaceable);
-        (await a.GetPlacedAsync(host.Timeout)).MapId.Should().BeEmpty("the farm takes no furniture");
+        Nosum.Abstractions.Maps.IMapCatalog maps = Nalix.Framework.Injection.InstanceManager.Instance.GetExistingInstance<Nosum.Abstractions.Maps.IMapCatalog>()!;
+        _ = maps.TryGet(GameMaps.Farm, out Nosum.Abstractions.Maps.MapDefinition? farm);
+        int sx = (int)(join.SpawnX / 16);
+        int sy = (int)(join.SpawnY / 16);
+        (int x, int y) = Enumerable.Range(-2, 5).SelectMany(dx => Enumerable.Range(-2, 5).Select(dy => (X: sx + dx, Y: sy + dy)))
+            .Where(t => !farm!.Grid.IsBlocked(t.X, t.Y) && !farm.ReservedTiles.Contains((t.X, t.Y)) && !(t.X == sx && t.Y == sy) && Nosum.Gameplay.Farm.FarmRules.InReach(join.SpawnX, join.SpawnY, t.X, t.Y, 16))
+            .First();
+
+        // The farm is placeable since docs/adr/ADR-024; a public map still is not (covered by the placeable service tests).
+        (await a.PlaceAsync(ChairSlot, x, y, 0, host.Timeout)).Status.Should().Be(PlaceStatus.Ok);
+        (await a.GetPlacedAsync(host.Timeout)).MapId.Should().Be(GameMaps.Farm);
     }
 
     [Fact]
