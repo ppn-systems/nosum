@@ -15,7 +15,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import animals  # noqa: E402
+import buildings  # noqa: E402
 import crops  # noqa: E402
+import furniture  # noqa: E402
+import icons  # noqa: E402
+import trees  # noqa: E402
+import ui  # noqa: E402
 import pngio  # noqa: E402
 import provenance  # noqa: E402
 import sources  # noqa: E402
@@ -38,6 +44,12 @@ def build_all(src, repo):
     out['TileSheets/crops.png'] = crops.build_crops(src, repo, *size('TileSheets/crops.png'))
     out['TerrainFeatures/hoeDirt.png'] = crops.build_soil(*size('TerrainFeatures/hoeDirt.png'))
     out['TileSheets/tools.png'], out['TileSheets/weapons.png'] = tools.build(src, repo, size('TileSheets/tools.png'), size('TileSheets/weapons.png'))
+    out.update(buildings.build(src, size))
+    out.update(trees.build(size))
+    out.update(furniture.build(size))
+    out['Maps/springobjects.png'] = icons.build(src, size)
+    out.update(animals.build(size))
+    out.update(ui.build(size))
     return out
 
 

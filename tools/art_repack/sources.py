@@ -11,9 +11,6 @@ import pngio
 # directory under --sources -> (title, page, license as verified, author)
 PACKS = {
     'kenney_tiny-town': ('Kenney Tiny Town 1.1', 'https://kenney.nl/assets/tiny-town', 'CC0 1.0 (License.txt inside the archive)', 'Kenney'),
-    'kenney_tiny-dungeon': ('Kenney Tiny Dungeon 1.0', 'https://kenney.nl/assets/tiny-dungeon', 'CC0 1.0 (License.txt inside the archive)', 'Kenney'),
-    'kenney_roguelike-rpg-pack': ('Kenney Roguelike RPG Pack', 'https://kenney.nl/assets/roguelike-rpg-pack', 'CC0 1.0 (License.txt inside the archive)', 'Kenney'),
-    'kenney_pixel-ui-pack': ('Kenney Pixel UI pack', 'https://kenney.nl/assets/pixel-ui-pack', 'CC0 1.0 (License.txt inside the archive)', 'Kenney'),
     'josehzz_farming-crops-16x16': ('Farming crops 16x16', 'https://opengameart.org/content/farming-crops-16x16', 'CC0 (stated on the OpenGameArt page; the archive holds no license file)', 'josehzz'),
 }
 
@@ -21,9 +18,6 @@ PACKS = {
 SHEETS = {
     'crops': ('josehzz_farming-crops-16x16', 'Crop_Spritesheet.png', 'c98fe9cd765698738678f4a64c5ac51c713c63624ca73da05bea7be995946c46', 16, 0),
     'town': ('kenney_tiny-town', 'Tilemap/tilemap_packed.png', '3a54d99ecde790d4fdea207a3644cf130fc56fa838f1beb1507c185a95b8e902', 16, 0),
-    'dungeon': ('kenney_tiny-dungeon', 'Tilemap/tilemap_packed.png', 'd24e60a41e4ac7a745c0304dfde121143688557f40215f23221c29cfe683825f', 16, 0),
-    'rpg': ('kenney_roguelike-rpg-pack', 'Spritesheet/roguelikeSheet_transparent.png', '808c8d734480bc949b284f3bcc252e87e1ee53b24178791a6838cce6a319c439', 16, 1),
-    'ui': ('kenney_pixel-ui-pack', 'Spritesheet/UIpackSheet_transparent.png', '38cd7cabd9667ace6bdd9f561a50f697359eb9460e80adbcdde7f2a3e71efb1a', 16, 1),
 }
 
 
