@@ -12,13 +12,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Abstractions.Networking.Packets;
+using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Skills;
+using Nosum.Contracts.Building.S2C;
 using Nosum.Contracts.Coop;
 using Nosum.Contracts.Inventory.S2C;
 using Nosum.Contracts.Placeable;
@@ -27,15 +30,19 @@ using Nosum.Domain.Accounts;
 using Nosum.Domain.Coops;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Crafting;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Crafting;
+using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Placeables;
+using Nosum.Infrastructure.Visits;
 
 namespace Nosum.IntegrationTests.Server;
 
@@ -67,6 +74,15 @@ internal sealed class PlacementHarness : IDisposable
         this.Furnaces = new FurnaceService(this.Presence, s_maps, this.Placeables, this.Tiles, this.Placeables, this.Inventory, this.Units, this.Coops, GameCalendar.Default, this.Clock);
         this.Placeables.Attach(this.Furnaces);
         this.Crafting = new CraftingService(this.Presence, this.Inventory, skills ?? new FixedSkillLevels());
+
+        // Farm buildings and animals (docs/adr/ADR-028). Game day one starts at Start, so a test moves the clock a day at a time to get the next day.
+        this.Transfers = new TransferService(this.Inventory, this.Clock);
+        this.Calendar = new GameCalendar(Start.ToUnixTimeMilliseconds(), GameCalendar.DefaultDayLengthMs);
+        this.BuildingDirectory = new BuildingDirectory(this.Units);
+        this.Wander = new AnimalWanderService(this.Presence, s_maps, this.BuildingDirectory, this.Units, this.Clock, 20_261_025);
+        this.Buildings = new BuildingService(this.Presence, s_maps, this.Inventory, this.Transfers, this.BuildingDirectory, this.Wander, this.Units, this.Coops, this.Calendar, this.Clock);
+        this.Placeables.Attach(this.Buildings);
+        this.Access = new BuildingAccessPolicy(new VisitAccess(this.Units), this.BuildingDirectory, this.Coops, this.Clock);
     }
 
     public FakeTimeProvider Clock { get; }
@@ -89,6 +105,18 @@ internal sealed class PlacementHarness : IDisposable
 
     public CraftingService Crafting { get; }
 
+    public TransferService Transfers { get; }
+
+    public GameCalendar Calendar { get; }
+
+    public BuildingDirectory BuildingDirectory { get; }
+
+    public AnimalWanderService Wander { get; }
+
+    public BuildingService Buildings { get; }
+
+    public BuildingAccessPolicy Access { get; }
+
     public NosumDbContext Db() => new(_database.Options);
 
     public MapDefinition Map(string mapId)
@@ -97,12 +125,13 @@ internal sealed class PlacementHarness : IDisposable
         return map!;
     }
 
-    public async Task<Guid> CreatePlayerAsync()
+    // A guest by default; an owner who lets others visit must be registered (docs/adr/ADR-019).
+    public async Task<Guid> CreatePlayerAsync(bool guest = true)
     {
         IUnitOfWork unit = this.Units.Create();
         await using (unit)
         {
-            Player player = TestNicknames.Name(new() { IsGuest = true, CreatedAt = Start, LastActiveAt = Start });
+            Player player = TestNicknames.Name(new() { IsGuest = guest, CreatedAt = Start, LastActiveAt = Start });
             unit.Repository<Player>().Add(player);
             _ = await unit.SaveChangesAsync(CancellationToken.None);
             return player.Id;
@@ -197,6 +226,102 @@ internal sealed class PlacementHarness : IDisposable
         }
 
         throw new InvalidOperationException("No reserved tile on " + mapId);
+    }
+
+    // A free rectangle of ground near the map's spawn (and the tile in front of its bottom row): where a building may stand. Skips the first <paramref name="skip"/> rectangles that do not overlap.
+    public (int X, int Y) OpenArea(string mapId, int width, int height, int skip = 0)
+    {
+        MapDefinition map = this.Map(mapId);
+        int startX = (int)(map.SpawnX / 16);
+        int startY = (int)(map.SpawnY / 16);
+        List<(int X, int Y)> found = [];
+        for (int radius = 0; radius < 60; radius++)
+        {
+            for (int y = startY - radius; y <= startY + radius; y++)
+            {
+                for (int x = startX - radius; x <= startX + radius; x++)
+                {
+                    bool open = true;
+                    for (int dy = 0; dy <= height && open; dy++)
+                    {
+                        for (int dx = 0; dx < width && open; dx++)
+                        {
+                            open = x + dx >= 0 && y + dy >= 0 && x + dx < map.Grid.Width && y + dy < map.Grid.Height && !map.Grid.IsBlocked(x + dx, y + dy) && !map.ReservedTiles.Contains((x + dx, y + dy));
+                        }
+                    }
+
+                    if (open && !found.Any(f => Math.Abs(f.X - x) < width + 1 && Math.Abs(f.Y - y) < height + 2))
+                    {
+                        found.Add((x, y));
+                        if (found.Count > skip)
+                        {
+                            return found[skip];
+                        }
+                    }
+                }
+            }
+        }
+
+        throw new InvalidOperationException("No open area on " + mapId);
+    }
+
+    // Stands a player in front of the carpenter's counter in Town.
+    public void StandAtCarpenter(Guid player)
+    {
+        MapSpec town = GameMaps.All.Single(m => m.Id == GameMaps.Town);
+        ShopPoint counter = town.Shops.Single(p => p.ShopId == Nosum.Gameplay.Shops.ShopCatalog.CarpenterShop);
+        this.Presence.Stand(player, MapInstance.Shared(GameMaps.Town), (counter.TileX * 16) + 8, (counter.TileY * 16) + 8);
+    }
+
+    public async Task GiveCoinsAsync(Guid player, long coins)
+    {
+        TransferStatus status = await this.Transfers.ExecuteAsync([new TransferLeg(TransferParty.Player(player), 0, 0, coins)], "test.setup");
+        if (status != TransferStatus.Ok)
+        {
+            throw new InvalidOperationException("Granting coins failed: " + status);
+        }
+    }
+
+    public Task<long> CoinsOfAsync(Guid player) => this.Transfers.GetBalanceAsync(player);
+
+    // Commissions a building at the counter, places it on a free area of the player's farm and waits (by moving the clock) until it is finished; the player ends up standing at the counter again.
+    public async Task<BuildingInfo> BuildAsync(Guid owner, Nosum.Gameplay.Buildings.BuildingKind kind, int skip = 0)
+    {
+        Nosum.Gameplay.Buildings.BuildingDefinition definition = Nosum.Gameplay.Buildings.BuildingCatalog.All.Single(b => b.Kind == kind);
+        await this.GiveCoinsAsync(owner, definition.Coins);
+        _ = await this.Inventory.AddAsync(owner, ItemCatalog.Wood, definition.Wood, "test.setup");
+        _ = await this.Inventory.AddAsync(owner, ItemCatalog.Stone, definition.Stone, "test.setup");
+        this.StandAtCarpenter(owner);
+        BuildingOutcome commissioned = await this.Buildings.CommissionAsync(this.Presence.ConnectionOf(owner), kind);
+        if (commissioned.Status != Nosum.Contracts.Building.BuildingStatus.Ok)
+        {
+            throw new InvalidOperationException("Commissioning failed: " + commissioned.Status);
+        }
+
+        (int x, int y) = this.OpenArea(GameMaps.Farm, definition.View.FootprintWidth, definition.View.FootprintHeight, skip);
+        this.StandOnFarm(owner, x + definition.DoorX, y + definition.View.FootprintHeight);
+        int slot = (await this.Inventory.GetAsync(owner)).Slots.First(s => s.ItemId == definition.BlueprintItemId).Slot;
+        Nosum.Abstractions.Placeables.PlaceOutcome placed = await this.Placeables.PlaceAsync(this.Presence.ConnectionOf(owner), slot, x, y, 0);
+        if (placed.Status != PlaceStatus.Ok)
+        {
+            throw new InvalidOperationException("Placing the blueprint failed: " + placed.Status);
+        }
+
+        this.Clock.Advance(TimeSpan.FromMilliseconds(Nosum.Gameplay.Buildings.BuildingCatalog.ConstructionDays * this.Calendar.DayLengthMs));
+        MapInstance land = new(GameMaps.Farm, owner);
+        BuildingInfo info = this.BuildingDirectory.BuildingsOf(land).Single(b => b.ObjectId == placed.ObjectId);
+        this.StandAtCarpenter(owner);
+        return info;
+    }
+
+    // Stands a player inside a building, at a tile of its interior.
+    public void StandInside(Guid player, BuildingInfo building, int tileX, int tileY) => this.Presence.Stand(player, building.Interior, (tileX * 16) + 8, (tileY * 16) + 8);
+
+    // Stands a player right next to an animal (feet on its feet).
+    public void StandAt(Guid player, BuildingInfo building, Guid animal)
+    {
+        AnimalMotionView where = this.Wander.Where(building.Kind, animal, this.Clock.GetUtcNow().ToUnixTimeMilliseconds());
+        this.Presence.Stand(player, building.Interior, where.X, where.Y);
     }
 
     // Puts a player on a tile of their own farm (feet in the middle of the tile).
@@ -357,6 +482,10 @@ internal sealed class StandingPresence : IMapPresence
 
     public void CopyActiveMapIds(List<string> into)
     {
+        lock (_byPlayer)
+        {
+            into.AddRange(_byPlayer.Values.Select(v => v.Presence.Key).Distinct(StringComparer.Ordinal));
+        }
     }
 
     public void CopyPlayers(string instanceKey, List<PlayerPresence> into)
@@ -395,6 +524,9 @@ internal sealed class StandingPresence : IMapPresence
         {
             ChestUpdate u => new ChestUpdate { ObjectId = u.ObjectId, Slots = [.. u.Slots.Select(s => new InventorySlotRow { Slot = s.Slot, ItemId = s.ItemId, Quantity = s.Quantity })] },
             ChestClosed c => new ChestClosed { ObjectId = c.ObjectId },
+            AnimalsChanged a => new AnimalsChanged { BuildingId = a.BuildingId, Rations = a.Rations, Upserted = [.. a.Upserted.Select(r => new AnimalRow { Id = r.Id, Kind = r.Kind, Name = r.Name, Friendship = r.Friendship, Flags = r.Flags, X = r.X, Y = r.Y, TargetX = r.TargetX, TargetY = r.TargetY, MoveMs = r.MoveMs })], Removed = [.. a.Removed] },
+            AnimalsMoved m => new AnimalsMoved { BuildingId = m.BuildingId, Moves = [.. m.Moves.Select(r => new AnimalMoveRow { Id = r.Id, FromX = r.FromX, FromY = r.FromY, ToX = r.ToX, ToY = r.ToY, DurationMs = r.DurationMs })] },
+            BuildingsSnapshot b => new BuildingsSnapshot { Mine = b.Mine, Buildings = [.. b.Buildings.Select(r => new BuildingRow { Id = r.Id, ObjectId = r.ObjectId, Kind = r.Kind, MapId = r.MapId, RemainingMs = r.RemainingMs, Animals = r.Animals, Capacity = r.Capacity })] },
             FurnaceChanged f => new FurnaceChanged { ObjectId = f.ObjectId, State = f.State, OreItemId = f.OreItemId, RemainingMs = f.RemainingMs },
             PlacedChanged p => new PlacedChanged { MapId = p.MapId, Upserted = [.. p.Upserted.Select(r => new PlacedObjectRow { Id = r.Id, ItemId = r.ItemId, TileX = r.TileX, TileY = r.TileY, Rotation = r.Rotation })], Removed = [.. p.Removed] },
             _ => null,

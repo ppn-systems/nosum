@@ -3,6 +3,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
+using Nosum.Domain.Buildings;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Economy;
 using Nosum.Domain.Farm;
@@ -56,6 +57,12 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the smelting jobs of furnaces.</summary>
     public DbSet<FurnaceJob> FurnaceJobs => this.Set<FurnaceJob>();
+
+    /// <summary>Gets the farm buildings (coops, barns) standing on farms and co-op land (docs/adr/ADR-028).</summary>
+    public DbSet<FarmBuilding> FarmBuildings => this.Set<FarmBuilding>();
+
+    /// <summary>Gets the animals living in farm buildings.</summary>
+    public DbSet<FarmAnimal> FarmAnimals => this.Set<FarmAnimal>();
 
     /// <summary>Gets the resource nodes of every map instance.</summary>
     public DbSet<WorldNode> WorldNodes => this.Set<WorldNode>();

@@ -20,6 +20,7 @@ using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.S2C;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
@@ -175,14 +176,21 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
             return Refused(PlaceStatus.NoItem);
         }
 
+        // A building stands on the farm or on co-op land, never in the farmhouse (docs/adr/ADR-028 D1).
+        if (definition.Kind == PlaceableKind.Building && !(GameMaps.TryGet(map.Id, out MapSpec? spec) && spec.Farmable))
+        {
+            return Refused(PlaceStatus.NotPlaceable);
+        }
+
         IGroundLayers? layers = await this.LayersAsync(player.Instance, definition, rotation, tileX, tileY, cancellationToken).ConfigureAwait(false);
 
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
         PlacedObject row;
         PlacedItem placed;
+        IPlacedBehaviour? behaviour = _behaviours.Find(b => b.Kind == definition.Kind);
         using (await _locks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
-            if (state.Set.Count >= PlacementLimits.MaxPerInstance)
+            if (state.Set.Count >= PlacementLimits.MaxPerInstance || (definition.Kind == PlaceableKind.Building && CountBuildings(state.Set) >= BuildingRules.MaxPerLand))
             {
                 return Refused(PlaceStatus.LimitReached);
             }
@@ -202,6 +210,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
                 (unit, _) =>
                 {
                     unit.Repository<PlacedObject>().Add(row);
+                    behaviour?.JoinPlace(row, unit, now);
                     this.Audit(unit, member, held.ItemId, -1, CoopLand.PlaceReason);
                     return Task.FromResult(true);
                 },
@@ -214,6 +223,11 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
             placed = new PlacedItem(row.Id, row.ItemId, tileX, tileY, rotation);
             state.Set.Add(placed);
             this.Rebuild(state, player.Instance, map);
+        }
+
+        if (behaviour is not null)
+        {
+            await behaviour.PlacedAsync(player.Instance, placed, cancellationToken).ConfigureAwait(false);
         }
 
         await this.PushAsync(player.Instance, [placed], [], cancellationToken).ConfigureAwait(false);
@@ -243,6 +257,11 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
             if (!state.Set.TryGet(objectId, out PlacedItem current) || !PlaceableCatalog.TryGet(current.ItemId, out PlaceableDefinition? definition))
             {
                 return Refused(PlaceStatus.UnknownObject);
+            }
+
+            if (definition.Kind == PlaceableKind.Building)
+            {
+                return Refused(PlaceStatus.Fixed);
             }
 
             IGroundLayers? layers = await this.LayersAsync(player.Instance, definition, rotation, tileX, tileY, cancellationToken).ConfigureAwait(false);
@@ -302,6 +321,11 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
             if (!state.Set.TryGet(objectId, out current) || !PlaceableCatalog.TryGet(current.ItemId, out PlaceableDefinition? definition))
             {
                 return Refused(PlaceStatus.UnknownObject);
+            }
+
+            if (definition.Kind == PlaceableKind.Building)
+            {
+                return Refused(PlaceStatus.Fixed);
             }
 
             PlaceableView view = definition.View(Math.Min(current.Rotation, definition.Rotations - 1));
@@ -367,6 +391,21 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
     }
 
     private static PlaceOutcome Refused(PlaceStatus status) => new(status, 0);
+
+    // How many farm buildings an instance holds: a land takes at most BuildingRules.MaxPerLand.
+    private static int CountBuildings(PlacedSet set)
+    {
+        int count = 0;
+        foreach (PlacedItem item in set.Items)
+        {
+            if (PlaceableCatalog.TryGet(item.ItemId, out PlaceableDefinition? definition) && definition.Kind == PlaceableKind.Building)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
 
     private static PlaceStatus ToStatus(InventoryStatus status) => status switch
     {

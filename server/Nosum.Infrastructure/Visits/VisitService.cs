@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Player;
@@ -40,6 +41,7 @@ public sealed class VisitService : IVisitService, IDisposable
     private readonly INicknameDirectory _nicknames;
     private readonly ICoopService _coops;
     private readonly TimeProvider _time;
+    private readonly IBuildingDirectory? _buildings;
 
     /// <summary>Initializes the service and starts listening for co-op members who leave.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -49,7 +51,8 @@ public sealed class VisitService : IVisitService, IDisposable
     /// <param name="nicknames">Resolves nicknames for the list.</param>
     /// <param name="coops">Tells when a member's co-op membership ends.</param>
     /// <param name="time">The clock for the audit timestamps; tests pass a fake one.</param>
-    public VisitService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, IPlayerService players, IInstanceAccessPolicy access, INicknameDirectory nicknames, ICoopService coops, TimeProvider time)
+    /// <param name="buildings">The farm buildings of the owner's land: a visitor inside one is in the owner's place too (docs/adr/ADR-028 D2); <see langword="null"/> for none.</param>
+    public VisitService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, IPlayerService players, IInstanceAccessPolicy access, INicknameDirectory nicknames, ICoopService coops, TimeProvider time, IBuildingDirectory? buildings = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(presence);
@@ -66,6 +69,7 @@ public sealed class VisitService : IVisitService, IDisposable
         _nicknames = nicknames;
         _coops = coops;
         _time = time;
+        _buildings = buildings;
         _coops.MembershipEnded += this.OnMembershipEndedAsync;
     }
 
@@ -299,15 +303,23 @@ public sealed class VisitService : IVisitService, IDisposable
         return false;
     }
 
-    // Every player in the owner's farm and farmhouse other than the owner.
+    // Every player in the owner's farm and farmhouse, and inside the buildings on their farm, other than the owner.
     private List<PlayerPresence> PlayersInPlacesOf(Guid ownerId)
     {
         List<PlayerPresence> found = [];
         foreach (MapSpec map in GameMaps.All)
         {
-            if (map.IsPrivate)
+            if (map.IsPrivate && !map.IsInterior)
             {
                 _presence.CopyPlayers(new MapInstance(map.Id, ownerId).Key, found);
+            }
+        }
+
+        if (_buildings is not null)
+        {
+            foreach (MapInstance interior in _buildings.InteriorsOfPlayer(ownerId))
+            {
+                _presence.CopyPlayers(interior.Key, found);
             }
         }
 
@@ -361,7 +373,18 @@ public sealed class VisitService : IVisitService, IDisposable
                 _presence.CopyPlayers(key, here);
                 foreach (PlayerPresence p in here.Where(p => p.AccountId == playerId && p.Instance.IsPrivate && p.Instance.OwnerId != playerId))
                 {
-                    _ = owners.Add(p.Instance.OwnerId);
+                    // Inside a building the place is the land's owner's (a co-op's land is not a player's place: those members leave through the co-op eviction).
+                    Guid owner = p.Instance.OwnerId;
+                    if (GameMaps.TryGet(p.MapId, out MapSpec? spec) && spec.IsInterior)
+                    {
+                        BuildingInfo? building = _buildings is null ? null : await _buildings.FindAsync(owner, CancellationToken.None).ConfigureAwait(false);
+                        owner = building is { Land.IsCoopLand: false } ? building.Land.OwnerId : Guid.Empty;
+                    }
+
+                    if (owner != Guid.Empty && owner != playerId)
+                    {
+                        _ = owners.Add(owner);
+                    }
                 }
             }
 

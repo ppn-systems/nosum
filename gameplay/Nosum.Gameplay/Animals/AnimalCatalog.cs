@@ -32,7 +32,8 @@ public sealed class AnimalDefinition
     /// <param name="sheet">File in <c>Animals/</c> without extension (placeholder art, docs/adr/ADR-007).</param>
     /// <param name="frameWidth">Width of one frame, pixels.</param>
     /// <param name="frameHeight">Height of one frame, pixels.</param>
-    public AnimalDefinition(AnimalKind kind, string key, long coins, int product, int largeProduct, bool needsPail, string sheet, int frameWidth, int frameHeight)
+    /// <param name="walkPixelsPerSecond">How fast it walks inside its building.</param>
+    public AnimalDefinition(AnimalKind kind, string key, long coins, int product, int largeProduct, bool needsPail, string sheet, int frameWidth, int frameHeight, int walkPixelsPerSecond)
     {
         this.Kind = kind;
         this.Key = key;
@@ -43,6 +44,7 @@ public sealed class AnimalDefinition
         this.Sheet = sheet;
         this.FrameWidth = frameWidth;
         this.FrameHeight = frameHeight;
+        this.WalkPixelsPerSecond = walkPixelsPerSecond;
     }
 
     /// <summary>Gets the species.</summary>
@@ -71,6 +73,9 @@ public sealed class AnimalDefinition
 
     /// <summary>Gets the height of one sheet frame, pixels.</summary>
     public int FrameHeight { get; }
+
+    /// <summary>Gets how fast it walks inside its building, pixels per second.</summary>
+    public int WalkPixelsPerSecond { get; }
 }
 
 /// <summary>The animals of the game: a white chicken (800 coins) and a white cow (1 500 coins).</summary>
@@ -78,8 +83,8 @@ public static class AnimalCatalog
 {
     private static readonly AnimalDefinition[] s_all =
     [
-        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, false, "White Chicken", 16, 16),
-        new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, true, "White Cow", 32, 32),
+        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, false, "White Chicken", 16, 16, 22),
+        new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, true, "White Cow", 32, 32, 14),
     ];
 
     /// <summary>Gets every species.</summary>
