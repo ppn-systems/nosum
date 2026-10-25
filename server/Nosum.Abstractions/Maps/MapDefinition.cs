@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Nodes;
 
 namespace Nosum.Abstractions.Maps;
 
@@ -20,9 +21,11 @@ public sealed class MapDefinition
     /// <param name="tillable">Tiles a hoe works on; <see langword="null"/> for a map that cannot be farmed.</param>
     /// <param name="isPrivate">Whether every player has their own instance of the map.</param>
     /// <param name="placeable">Whether players may place furniture on it.</param>
-    /// <param name="reservedTiles">Tiles that must stay clear of placed objects (exits and arrival points).</param>
+    /// <param name="reservedTiles">Tiles that must stay clear of placed objects and resource nodes (exits and arrival points).</param>
     /// <param name="isCoop">Whether each co-op has its own instance of the map (docs/adr/ADR-020).</param>
-    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null, bool isPrivate = false, bool placeable = false, IReadOnlySet<(int X, int Y)>? reservedTiles = null, bool isCoop = false)
+    /// <param name="water">Water tiles, where a watering can is refilled; <see langword="null"/> when the map has none.</param>
+    /// <param name="nodeSites">Places the map's <c>Paths</c> layer marks for trees, stones, twigs, weeds and grass (docs/adr/ADR-021 D4); empty when the map has none.</param>
+    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null, bool isPrivate = false, bool placeable = false, IReadOnlySet<(int X, int Y)>? reservedTiles = null, bool isCoop = false, WaterGrid? water = null, IReadOnlyList<NodeSite>? nodeSites = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(grid);
@@ -37,6 +40,8 @@ public sealed class MapDefinition
         this.Placeable = placeable;
         this.ReservedTiles = reservedTiles ?? new HashSet<(int X, int Y)>();
         this.IsCoop = isCoop;
+        this.Water = water;
+        this.NodeSites = nodeSites ?? [];
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -66,6 +71,15 @@ public sealed class MapDefinition
     /// <summary>Gets whether players may place objects on this map.</summary>
     public bool Placeable { get; }
 
-    /// <summary>Gets the tiles placed objects must leave clear, so the way in and out is never blocked.</summary>
+    /// <summary>Gets the tiles placed objects and resource nodes must leave clear, so the way in and out is never blocked.</summary>
     public IReadOnlySet<(int X, int Y)> ReservedTiles { get; }
+
+    /// <summary>Gets the water tiles; <see langword="null"/> when the map has no water.</summary>
+    public WaterGrid? Water { get; }
+
+    /// <summary>Gets the markers of the map's <c>Paths</c> layer that become resource nodes; empty when the map has no nodes.</summary>
+    public IReadOnlyList<NodeSite> NodeSites { get; }
+
+    /// <summary>Gets whether the map has resource nodes (docs/adr/ADR-021).</summary>
+    public bool HasNodes => this.NodeSites.Count > 0;
 }

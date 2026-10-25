@@ -52,4 +52,26 @@
   <data name="Item_hat_straw_Description" xml:space="preserve"><value>A straw hat against the sun.</value></data>
   <data name="Item_hat_cap_Name" xml:space="preserve"><value>Cap</value></data>
   <data name="Item_hat_cap_Description" xml:space="preserve"><value>A cap.</value></data>
+  <data name="Item_axe_Name" xml:space="preserve"><value>Axe</value></data>
+  <data name="Item_axe_Description" xml:space="preserve"><value>Chops trees, stumps and twigs. A full-grown tree takes about ten swings.</value></data>
+  <data name="Item_pickaxe_Name" xml:space="preserve"><value>Pickaxe</value></data>
+  <data name="Item_pickaxe_Description" xml:space="preserve"><value>Breaks stones and copper ore; also clears tilled soil that has no crop.</value></data>
+  <data name="Item_scythe_Name" xml:space="preserve"><value>Scythe</value></data>
+  <data name="Item_scythe_Description" xml:space="preserve"><value>Cuts weeds and tall grass; also harvests a ripe crop.</value></data>
+  <data name="Item_oak_seed_Name" xml:space="preserve"><value>Oak seed</value></data>
+  <data name="Item_oak_seed_Description" xml:space="preserve"><value>Plant on bare ground to grow an oak. It grows a little each day.</value></data>
+  <data name="Item_maple_seed_Name" xml:space="preserve"><value>Maple seed</value></data>
+  <data name="Item_maple_seed_Description" xml:space="preserve"><value>Plant on bare ground to grow a maple. It grows a little each day.</value></data>
+  <data name="Item_pine_seed_Name" xml:space="preserve"><value>Pine seed</value></data>
+  <data name="Item_pine_seed_Description" xml:space="preserve"><value>Plant on bare ground to grow a pine. It grows a little each day.</value></data>
+  <data name="Item_wood_Name" xml:space="preserve"><value>Wood</value></data>
+  <data name="Item_wood_Description" xml:space="preserve"><value>Wood chopped from trees, stumps and twigs.</value></data>
+  <data name="Item_stone_Name" xml:space="preserve"><value>Stone</value></data>
+  <data name="Item_stone_Description" xml:space="preserve"><value>Stone broken from rocks.</value></data>
+  <data name="Item_fiber_Name" xml:space="preserve"><value>Fiber</value></data>
+  <data name="Item_fiber_Description" xml:space="preserve"><value>Fiber cut from weeds and tall grass.</value></data>
+  <data name="Item_coal_Name" xml:space="preserve"><value>Coal</value></data>
+  <data name="Item_coal_Description" xml:space="preserve"><value>A rare lump of coal, sometimes found inside stones.</value></data>
+  <data name="Item_copper_ore_Name" xml:space="preserve"><value>Copper ore</value></data>
+  <data name="Item_copper_ore_Description" xml:space="preserve"><value>Copper ore taken from an ore node.</value></data>
 </root>

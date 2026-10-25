@@ -37,6 +37,7 @@ using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
 using Nosum.Domain.Visits;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Host;
@@ -186,7 +187,7 @@ public sealed class VisitWireTests : IClassFixture<PostgresFixture>
 
         // Alice puts a chair in her farmhouse.
         (await a.GrantAsync(ItemCatalog.OakChair, 2, host.Timeout)).Should().BeTrue();
-        PlaceResult placed = await a.PlaceAsync(5, free[0].X, free[0].Y, 0, host.Timeout);
+        PlaceResult placed = await a.PlaceAsync(StarterKit.Items.Length, free[0].X, free[0].Y, 0, host.Timeout);
         placed.Status.Should().Be(PlaceStatus.Ok);
 
         // Bob visits the farm, cannot use the shipping bin there, then walks through the farmhouse door: it leads to Alice's house, not his own.
@@ -201,12 +202,12 @@ public sealed class VisitWireTests : IClassFixture<PostgresFixture>
         // He sees the chair, but every change is the owner's.
         (await b.GetPlacedAsync(host.Timeout)).Objects.Should().ContainSingle().Which.Id.Should().Be(placed.ObjectId);
         (await b.GrantAsync(ItemCatalog.OakChair, 2, host.Timeout)).Should().BeTrue();
-        (await b.PlaceAsync(5, free[1].X, free[1].Y, 0, host.Timeout)).Status.Should().Be(PlaceStatus.NotYourPlace);
+        (await b.PlaceAsync(StarterKit.Items.Length, free[1].X, free[1].Y, 0, host.Timeout)).Status.Should().Be(PlaceStatus.NotYourPlace);
         (await b.MoveObjectAsync(placed.ObjectId, free[1].X, free[1].Y, 1, host.Timeout)).Status.Should().Be(PlaceStatus.NotYourPlace);
         (await b.PickUpAsync(placed.ObjectId, host.Timeout)).Status.Should().Be(PlaceStatus.NotYourPlace);
         PlacedSnapshot after = await a.GetPlacedAsync(host.Timeout);
         after.Objects.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = placed.ObjectId, TileX = (ushort)free[0].X, TileY = (ushort)free[0].Y, Rotation = (byte)0 });
-        (await b.GetInventoryAsync(host.Timeout)).Slots.Should().Contain(s => s.Slot == 5 && s.ItemId == ItemCatalog.OakChair && s.Quantity == 2, "the visitor's own chairs stay in his bag");
+        (await b.GetInventoryAsync(host.Timeout)).Slots.Should().Contain(s => s.Slot == StarterKit.Items.Length && s.ItemId == ItemCatalog.OakChair && s.Quantity == 2, "the visitor's own chairs stay in his bag");
 
         // The owner still can, and removing the visitor sends him out of her house too.
         (await a.MoveObjectAsync(placed.ObjectId, free[1].X, free[1].Y, 1, host.Timeout)).Status.Should().Be(PlaceStatus.Ok);

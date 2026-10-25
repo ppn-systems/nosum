@@ -19,8 +19,8 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal sealed class PlayerActions
 {
-    // A short cooldown keeps a mashed key inside the server's rate limit.
-    private const double UseCooldownSeconds = 0.2;
+    // A cooldown just over the server's 300 ms swing keeps a mashed key from being refused (docs/adr/ADR-021 D8) and inside its rate limit.
+    private const double UseCooldownSeconds = 0.32;
 
     private readonly FarmChannel _farm;
     private readonly InventoryChannel _inventory;
@@ -62,10 +62,10 @@ internal sealed class PlayerActions
     /// <param name="feetY">Farmer's feet y, world pixels.</param>
     /// <param name="facing">Where the farmer looks.</param>
     /// <param name="tileSize">Tile size, pixels.</param>
-    /// <param name="mapIsFarmable">Whether the map being shown can be farmed (otherwise the action key does nothing).</param>
+    /// <param name="mapAllowsTools">Whether tools may be used on the map being shown (not in a room where the action key places furniture); the server decides what a swing does.</param>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     /// <param name="shopId">The id of the shop whose counter is within reach, or zero; the action key then opens that shop instead of using an item.</param>
-    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapIsFarmable, double nowSeconds, int shopId = 0)
+    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0)
     {
         int x = (int)(feetX / tileSize);
         int y = (int)(feetY / tileSize);
@@ -96,7 +96,7 @@ internal sealed class PlayerActions
             return;
         }
 
-        if ((edges & InputEdges.Action) != 0 && mapIsFarmable && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
+        if ((edges & InputEdges.Action) != 0 && mapAllowsTools && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
         {
             _lastUseSeconds = nowSeconds;
             int selected = _inventory.SelectedSlot;

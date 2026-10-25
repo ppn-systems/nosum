@@ -19,6 +19,7 @@ using Nosum.Contracts.Shop;
 using Nosum.Domain.Accounts;
 using Nosum.Gameplay.Calendar;
 using Nosum.Domain.Economy;
+using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
@@ -91,7 +92,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     {
         Guid player = await CreatePlayerAsync();
         StandAtCounter(player, ShopCatalog.FurnitureShop);
-        _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, 31, "test.fill"); // 5 starter slots + 31 = 36
+        _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, InventoryLimits.DefaultCapacity - StarterKit.Items.Length, "test.fill"); // fill every slot after the starter kit
 
         ShopOutcome refused = await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 1);
 
@@ -107,7 +108,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     {
         Guid player = await CreatePlayerAsync();
         StandAtCounter(player, ShopCatalog.SeedShop);
-        _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, 31, "test.fill");
+        _ = await _inventory.AddAsync(player, ItemCatalog.ShirtRed, InventoryLimits.DefaultCapacity - StarterKit.Items.Length, "test.fill");
 
         // Parsnip seeds merge into the starter stack (8 + 10 <= 99), so a full inventory still takes them.
         (await _shop.BuyAsync(_connection, player, ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10)).Status.Should().Be(ShopStatus.Ok);
