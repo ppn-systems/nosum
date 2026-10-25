@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Market.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class GetPriceHistory : PacketBase<GetPriceHistory>, IPack
     public static ushort StaticOpCode => MarketOpCode.GetPriceHistory;
 
     /// <summary>The item.</summary>
+    [WireRange(0, WireLimits.MaxId)]
     [SerializeOrder(0)] public int ItemId { get; set; }
 }

@@ -144,7 +144,8 @@ public sealed class ShopRulesTests
             (ShopCatalog.FurnitureShop, 95, 51),
             (ShopCatalog.Blacksmith, 94, 82),
             (ShopCatalog.CarpenterShop, 10, 86),
-            (CommunityGoalCatalog.BoardCounterId, 42, 57));
+            (CommunityGoalCatalog.BoardCounterId, 42, 57),
+            (MarketRules.MarketCounterId, 45, 71));
         foreach (ShopDefinition shop in ShopCatalog.All)
         {
             town.Shops.Count(p => p.ShopId == shop.Id).Should().Be(1, $"{shop.Key} has one counter");
@@ -164,7 +165,7 @@ public sealed class ShopRulesTests
             bool[] reachable = ReachableFrom(grid, spec.SpawnTileX, spec.SpawnTileY);
             foreach (ShopPoint point in spec.Shops)
             {
-                (point.ShopId == CommunityGoalCatalog.BoardCounterId || ShopCatalog.TryGet(point.ShopId, out _)).Should().BeTrue("a counter is a shop or the community board");
+                (point.ShopId is CommunityGoalCatalog.BoardCounterId or MarketRules.MarketCounterId || ShopCatalog.TryGet(point.ShopId, out _)).Should().BeTrue("a counter is a shop, the community board or the market");
                 grid.IsBlocked(point.TileX, point.TileY).Should().BeFalse("the player stands on the counter tile");
                 reachable[(point.TileY * grid.Width) + point.TileX].Should().BeTrue($"shop {point.ShopId} must be walkable to from the spawn");
                 grid.IsBlocked(point.TileX, point.TileY - 1).Should().BeTrue("the counter is the doormat just south of the building's door");
@@ -190,6 +191,30 @@ public sealed class ShopRulesTests
                 reached.Should().BeEquivalentTo([ShopCatalog.SeedShop, CommunityGoalCatalog.BoardCounterId]);
             }
         }
+    }
+
+    [Fact]
+    public void TheMarketCounter_IsOneTileInTown_HasItsOwnId_AndIsAloneInItsReach()
+    {
+        MarketRules.MarketCounterId.Should().NotBe(CommunityGoalCatalog.BoardCounterId).And.BeGreaterThan(CommunityGoalCatalog.BoardCounterId);
+        ShopCatalog.TryGet(MarketRules.MarketCounterId, out _).Should().BeFalse("the market is not a shop");
+        GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
+        ShopPoint market = town!.Shops.Single(p => p.ShopId == MarketRules.MarketCounterId);
+        double cx = (market.TileX * 16) + 8;
+        double cy = (market.TileY * 16) + 8;
+
+        ShopRules.IsAtCounter(town, MarketRules.MarketCounterId, cx, cy, 16).Should().BeTrue();
+        ShopRules.IsAtCounter(town, MarketRules.MarketCounterId, cx + 30, cy, 16).Should().BeTrue("within about two tiles, like the shops");
+        ShopRules.IsAtCounter(town, MarketRules.MarketCounterId, cx + 100, cy, 16).Should().BeFalse();
+        ShopRules.IsAtCounter(town, MarketRules.MarketCounterId, (town.SpawnTileX * 16) + 8, (town.SpawnTileY * 16) + 8, 16).Should().BeFalse("the Town spawn is not at the counter");
+        town.Shops.Where(other => other.ShopId != MarketRules.MarketCounterId && ShopRules.InReach(other, cx, cy, 16)).Should().BeEmpty("no other counter competes for the market's place");
+        foreach (ShopPoint other in town.Shops.Where(p => p.ShopId != MarketRules.MarketCounterId))
+        {
+            ShopRules.IsAtCounter(town, MarketRules.MarketCounterId, (other.TileX * 16) + 8, (other.TileY * 16) + 8, 16).Should().BeFalse($"standing at counter {other.ShopId} is not standing at the market");
+        }
+
+        GameMaps.TryGet(GameMaps.Farm, out MapSpec? farm);
+        ShopRules.IsAtCounter(farm!, MarketRules.MarketCounterId, cx, cy, 16).Should().BeFalse("no market outside Town");
     }
 
     [Fact]

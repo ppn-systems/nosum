@@ -52,6 +52,11 @@
                 <GameButton Variant="link" Focusable="true" OnClick="Vm.SwitchMode" Disabled="@Vm.IsBusy" Text="@Vm.SwitchModeText" />
             }
 
+            @if (!Vm.IsRegister && OnForgotPassword.HasDelegate)
+            {
+                <GameButton Variant="link" Focusable="true" OnClick="OnForgotPassword" Disabled="@Vm.IsBusy" Text="@ForgotPasswordText" />
+            }
+
             @if (Vm.CanPlayAsGuest)
             {
                 <GameButton Variant="plain" Focusable="true" OnClick="PlayAsGuestAsync" Disabled="@Vm.IsBusy" Text="@Vm.PlayAsGuestText" />
@@ -63,6 +68,12 @@
 @code {
     /// <summary>The form's view model; the page that hosts the component creates it and handles SignedIn.</summary>
     [Parameter, EditorRequired] public AccountFormViewModel Vm { get; set; } = default!;
+
+    /// <summary>Raised by the "forgot password" link of the sign-in form; the link is not shown when nobody handles it (the upgrade form).</summary>
+    [Parameter] public EventCallback OnForgotPassword { get; set; }
+
+    /// <summary>The text of the "forgot password" link.</summary>
+    [Parameter] public string ForgotPasswordText { get; set; } = string.Empty;
 
     private AccountFormViewModel? _subscribed;
 

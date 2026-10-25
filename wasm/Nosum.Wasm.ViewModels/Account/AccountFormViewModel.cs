@@ -429,7 +429,7 @@ public sealed class AccountFormViewModel
     }
 
     // Early feedback only; the server applies the full rule (AccountRules.IsValidEmail).
-    private static bool IsPlausibleEmail(string email)
+    internal static bool IsPlausibleEmail(string email)
     {
         if (email.Length > AccountLimits.EmailMaxLength || !email.EndsWith(EmailSuffix, StringComparison.OrdinalIgnoreCase))
         {

@@ -138,6 +138,7 @@
   <data name="Market_Status_Expired" xml:space="preserve"><value>That listing expired.</value></data>
   <data name="Market_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Market_Status_NotAtBin" xml:space="preserve"><value>Stand next to the shipping bin to sell.</value></data>
+  <data name="Market_Status_NotAtCounter" xml:space="preserve"><value>Stand at the trader's counter in Town to trade.</value></data>
   <data name="Market_Status_NotShippable" xml:space="preserve"><value>The bin does not buy this item.</value></data>
   <data name="Market_Status_InvalidSlot" xml:space="preserve"><value>Pick a valid slot.</value></data>
   <data name="Market_Status_TooBig" xml:space="preserve"><value>That would exceed the largest balance.</value></data>
@@ -267,6 +268,8 @@
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>That nickname is not allowed.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>That nickname is already taken.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>You changed your nickname recently. Try again later.</value></data>
+  <data name="Account_Status_Banned" xml:space="preserve"><value>This account is banned. Contact an administrator if you think this is a mistake.</value></data>
+  <data name="Account_Status_SessionKicked" xml:space="preserve"><value>An administrator removed you from the game. You can sign in again.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Profile</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Profile</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Current nickname: {0}</value></data>
@@ -307,7 +310,7 @@
   <data name="Help_Use" xml:space="preserve"><value>Use, interact</value></data>
   <data name="Help_Hotbar" xml:space="preserve"><value>Select slot</value></data>
   <data name="Help_Inventory" xml:space="preserve"><value>Inventory</value></data>
-  <data name="Help_Market" xml:space="preserve"><value>Market</value></data>
+  <data name="Help_Counters" xml:space="preserve"><value>At a counter (shops, board, market): open it</value></data>
   <data name="Help_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
   <data name="Help_Trade" xml:space="preserve"><value>Trade</value></data>
   <data name="Help_Coop" xml:space="preserve"><value>Co-op</value></data>
@@ -469,6 +472,7 @@
   <data name="Chat_Status_InvalidChannel" xml:space="preserve"><value>That chat channel does not exist.</value></data>
   <data name="Chat_Status_NothingToReport" xml:space="preserve"><value>There is no recent message from that player to report.</value></data>
   <data name="Chat_Status_SelfBlock" xml:space="preserve"><value>You cannot block or report yourself.</value></data>
+  <data name="Chat_Status_Muted" xml:space="preserve"><value>You are muted and cannot chat right now.</value></data>
   <data name="Friends_Add_Heading" xml:space="preserve"><value>Add a friend</value></data>
   <data name="Friends_NicknamePlaceholder" xml:space="preserve"><value>Nickname</value></data>
   <data name="Friends_Request" xml:space="preserve"><value>Ask</value></data>
@@ -724,4 +728,22 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Hold the milk pail to milk a cow.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>The bench is full.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>The land already has as many buildings as it can hold.</value></data>
+  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>The recovery code is wrong, expired or already used.</value></data>
+  <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Too many requests. Please try again later.</value></data>
+  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Your session ended because the account password was reset.</value></data>
+  <data name="Connection_KeyMismatch" xml:space="preserve"><value>The server identity has changed. It may be an impostor, so the game refuses to connect. Wait for an official announcement, or clear this site's data if you are running a development build.</value></data>
+  <data name="Recovery_Link" xml:space="preserve"><value>Forgot your password?</value></data>
+  <data name="Recovery_Title_Request" xml:space="preserve"><value>Recover your account</value></data>
+  <data name="Recovery_Title_Confirm" xml:space="preserve"><value>Enter the recovery code</value></data>
+  <data name="Recovery_Title_Done" xml:space="preserve"><value>Password changed</value></data>
+  <data name="Recovery_RequestHint" xml:space="preserve"><value>We will e-mail a code to the address of your account.</value></data>
+  <data name="Recovery_CodeSent" xml:space="preserve"><value>If this address has an account, a code was sent. It is valid for 15 minutes.</value></data>
+  <data name="Recovery_Code" xml:space="preserve"><value>Recovery code</value></data>
+  <data name="Recovery_CodeHint" xml:space="preserve"><value>8 digits from the e-mail</value></data>
+  <data name="Recovery_NewPassword" xml:space="preserve"><value>New password</value></data>
+  <data name="Recovery_Submit_Request" xml:space="preserve"><value>Send code</value></data>
+  <data name="Recovery_Submit_Confirm" xml:space="preserve"><value>Change password</value></data>
+  <data name="Recovery_Done" xml:space="preserve"><value>Your password was changed and every device was signed out. Sign in with the new password.</value></data>
+  <data name="Recovery_Back" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="Recovery_Error_Code" xml:space="preserve"><value>Enter the 8 digits from the e-mail.</value></data>
 </root>

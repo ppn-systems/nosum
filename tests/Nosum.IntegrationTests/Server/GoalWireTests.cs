@@ -134,8 +134,8 @@ public sealed class GoalWireTests : IClassFixture<PostgresFixture>, IAsyncLifeti
     {
         await using Server server = await Server.StartAsync(_database);
         CancellationToken ct = server.Token;
-        await using SocialClient seller = await SocialClient.ConnectAsync(server.Port, ct);
-        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct);
+        await using SocialClient seller = await SocialClient.ConnectAsync(server.Port, ct, MarketCounter.Place);
+        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct, MarketCounter.Place);
         await seller.JoinAsync(ct);
         await buyer.JoinAsync(ct);
 

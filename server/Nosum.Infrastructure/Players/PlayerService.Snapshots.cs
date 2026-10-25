@@ -2,12 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Observability;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Gameplay.Maps;
@@ -28,6 +30,7 @@ public sealed partial class PlayerService
     private readonly ChunkCoord[] _interest = new ChunkCoord[ChunkInterest.MaxChunks];
     private long[] _chunkKeys = new long[64];
     private int[] _order = new int[64];
+    private long _tickBytes;
     private int _loopRunning;
     private Task _loop = Task.CompletedTask;
 
@@ -71,9 +74,13 @@ public sealed partial class PlayerService
             using PeriodicTimer timer = new(_snapshotInterval, _time);
             while (_presence.PlayerCount > 0 && await timer.WaitForNextTickAsync(_stop.Token).ConfigureAwait(false))
             {
+                long started = Stopwatch.GetTimestamp();
+                _tickBytes = 0;
                 try
                 {
                     await this.PushSnapshotsAsync().ConfigureAwait(false);
+                    NosumMetrics.RecordSnapshotTick(started);
+                    NosumMetrics.RecordSnapshotBytes(_tickBytes);
                 }
                 catch (Exception)
                 {
@@ -305,6 +312,7 @@ public sealed partial class PlayerService
             }
 
             await _presence.SendAsync(connection, snapshot, _stop.Token).ConfigureAwait(false);
+            _tickBytes += snapshot.Length;
         }
         catch (Exception) when (!_stop.IsCancellationRequested)
         {

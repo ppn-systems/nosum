@@ -43,4 +43,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-031](ADR-031-deployment-and-operations.md) | Deployment and operations: images, Caddy TLS, migrations and backups, health, logs, metrics, admin role, load test | Accepted |
 | [ADR-032](ADR-032-security-hardening.md) | Security hardening: server key pinning, handler audit tests, input bounds, account recovery, session and abuse limits | Accepted |
 | [ADR-033](ADR-033-client-settings-touch-onboarding.md) | Client settings, touch controls, onboarding hints, accessibility | Accepted |
+| [ADR-034](ADR-034-market-at-the-trader-counter.md) | The consignment market is a counter in Town: no market tab or key, listing/buying/cancelling need the counter | Accepted |
 | [ADR-039](ADR-039-audio-hooks.md) | Audio hooks: sound, music and ambience as commands in the frame buffer, Web Audio in `audio.js`, procedurally generated placeholder sounds | Accepted |
