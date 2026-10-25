@@ -88,6 +88,13 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
 
         (MapDefinition map, MotionState start, MapInstance instance) = await this.StartingPlaceAsync(accountId, cancellationToken).ConfigureAwait(false);
         await _world.PrepareAsync(instance, cancellationToken).ConfigureAwait(false);
+
+        // A mine floor is built afresh for the player when they come back (docs/adr/ADR-026 D3), so the tile they logged out on may hold a stone now: they start at the arrival tile.
+        if (map.IsMineFloor && MoveValidator.FootBlocked(_world.GridFor(instance, map), start.X, start.Y))
+        {
+            start = new MotionState(map.SpawnX, map.SpawnY, this.NowSeconds());
+        }
+
         PlayerPresence player = await _presence.JoinAsync(connection, accountId, instance, start, cancellationToken: cancellationToken).ConfigureAwait(false);
         ArmWarps(player, map);
 

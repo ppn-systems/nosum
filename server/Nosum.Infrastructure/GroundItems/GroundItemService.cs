@@ -313,6 +313,29 @@ public sealed class GroundItemService : IGroundItems
         }
     }
 
+    /// <inheritdoc/>
+    public async Task ForgetAsync(MapInstance instance, CancellationToken cancellationToken = default)
+    {
+        _ = _instances.TryRemove(instance.Key, out _);
+        IUnitOfWork unit = _unitOfWork.Create();
+        await using (unit.ConfigureAwait(false))
+        {
+            IRepository<GroundItem> table = unit.Repository<GroundItem>();
+            List<GroundItem> rows = await table.ListAsync(g => g.MapId == instance.MapId && g.OwnerId == instance.OwnerId, cancellationToken).ConfigureAwait(false);
+            if (rows.Count == 0)
+            {
+                return;
+            }
+
+            foreach (GroundItem row in rows)
+            {
+                table.Remove(row);
+            }
+
+            _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     // Loads an instance's items once; a failed load is forgotten so the next call tries again.
     private async Task<InstanceItems> StateOfAsync(MapInstance instance, CancellationToken cancellationToken)
     {

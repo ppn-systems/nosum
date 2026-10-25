@@ -9,6 +9,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Nodes;
 
 namespace Nosum.Abstractions.Nodes;
@@ -44,6 +45,15 @@ public interface IResourceNodeService : IInstanceWorld
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when every loaded instance was brought up to date.</returns>
     Task AdvanceDayAsync(long day, bool seasonChanged, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Drops the in-memory nodes of an instance that is not needed any more: a mine floor nobody stands on (docs/adr/ADR-026 D3). A persisted instance
+    /// is loaded again from its rows on the next visit.
+    /// </summary>
+    /// <param name="instance">The place whose nodes to forget.</param>
+    void Forget(MapInstance instance)
+    {
+    }
 }
 
 /// <summary>One tool use handed to the node layer.</summary>

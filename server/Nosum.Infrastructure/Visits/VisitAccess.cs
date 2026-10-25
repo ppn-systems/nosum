@@ -39,6 +39,12 @@ public sealed class VisitAccess : IInstanceAccessPolicy
             return true;
         }
 
+        // A mine floor is its owner's alone (docs/adr/ADR-026 D3): visiting is about farms and houses, and nobody else's stones, ore or ladder are ever shown to another player.
+        if (GameMaps.TryGet(instance.MapId, out MapSpec? spec) && spec.IsMineFloor)
+        {
+            return false;
+        }
+
         Guid ownerId = instance.OwnerId;
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))

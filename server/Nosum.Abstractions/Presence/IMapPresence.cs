@@ -22,6 +22,16 @@ namespace Nosum.Abstractions.Presence;
 /// </summary>
 public interface IMapPresence
 {
+    /// <summary>
+    /// Raised after a player joined a map instance, at login or through a map change. An implementation that never raises it (a test stand-in) needs
+    /// nothing; the default does nothing.
+    /// </summary>
+    event Func<PlayerPresence, ValueTask>? PlayerJoined
+    {
+        add { }
+        remove { }
+    }
+
     /// <summary>Raised after a player left a map, through a leave request, a map change or a disconnect.</summary>
     event Func<PlayerPresence, ValueTask>? PlayerLeft;
 

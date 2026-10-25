@@ -38,6 +38,9 @@ public sealed class MapPresence : IMapPresence
     }
 
     /// <inheritdoc/>
+    public event Func<PlayerPresence, ValueTask>? PlayerJoined;
+
+    /// <inheritdoc/>
     public event Func<PlayerPresence, ValueTask>? PlayerLeft;
 
     /// <inheritdoc/>
@@ -63,6 +66,15 @@ public sealed class MapPresence : IMapPresence
         {
             // Closed while joining: the close event may have fired before we subscribed.
             await this.LeaveAsync(connection, cancellationToken).ConfigureAwait(false);
+            return player;
+        }
+
+        if (this.PlayerJoined is { } joined)
+        {
+            foreach (Func<PlayerPresence, ValueTask> handler in joined.GetInvocationList())
+            {
+                await handler(player).ConfigureAwait(false);
+            }
         }
 
         return player;

@@ -12,6 +12,7 @@ using Nalix.Runtime.Groups;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Blacksmith;
 using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
@@ -22,6 +23,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Market;
+using Nosum.Abstractions.Mines;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
@@ -33,6 +35,7 @@ using Nosum.Abstractions.Visits;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
+using Nosum.Handlers.Blacksmith;
 using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
@@ -41,6 +44,7 @@ using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
 using Nosum.Handlers.Market;
+using Nosum.Handlers.Mine;
 using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
 using Nosum.Handlers.Player;
@@ -49,6 +53,7 @@ using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
 using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Blacksmith;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Dev;
@@ -59,6 +64,7 @@ using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Market;
+using Nosum.Infrastructure.Mines;
 using Nosum.Infrastructure.Nodes;
 using Nosum.Infrastructure.Placeables;
 using Nosum.Infrastructure.Players;
@@ -227,6 +233,8 @@ internal static class Program
             .MapHandlers(typeof(NodeHandlers))
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
+            .MapHandlers(typeof(BlacksmithHandlers))
+            .MapHandlers(typeof(MineHandlers))
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers));
 
@@ -334,7 +342,11 @@ internal static class Program
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
         FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, dayClock);
-        InstanceManager.Instance.Register<IFarmService>(farm);
+
+        // The mine (docs/adr/ADR-026): floors are per-player instances built in memory, dropped when the player leaves; a tool use that ends at a ladder takes the player down.
+        MineService mine = new(presence, maps, players, unitOfWork, nodes, groundItems);
+        InstanceManager.Instance.Register<IMineService>(mine);
+        InstanceManager.Instance.Register<IFarmService>(new MineLadderFarmService(farm, mine));
 
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
@@ -343,6 +355,7 @@ internal static class Program
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
         InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock));
+        InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock));
         if (development)
         {
             InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));

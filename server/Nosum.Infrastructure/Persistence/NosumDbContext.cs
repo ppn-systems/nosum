@@ -3,12 +3,14 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
+using Nosum.Domain.Blacksmith;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Economy;
 using Nosum.Domain.Farm;
 using Nosum.Domain.Inventory;
 using Nosum.Domain.Looks;
 using Nosum.Domain.Market;
+using Nosum.Domain.Mines;
 using Nosum.Domain.Nodes;
 using Nosum.Domain.Quests;
 using Nosum.Domain.Visits;
@@ -94,6 +96,12 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the owners' visiting settings.</summary>
     public DbSet<VisitSettings> VisitSettings => this.Set<VisitSettings>();
+
+    /// <summary>Gets how deep each player has been in the mine.</summary>
+    public DbSet<PlayerMine> PlayerMines => this.Set<PlayerMine>();
+
+    /// <summary>Gets the tools the blacksmith is upgrading.</summary>
+    public DbSet<ToolUpgrade> ToolUpgrades => this.Set<ToolUpgrade>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

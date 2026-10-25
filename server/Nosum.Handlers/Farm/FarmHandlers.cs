@@ -56,6 +56,39 @@ public static partial class FarmHandlers
         }
     }
 
+    /// <summary>Uses a hoe or a watering can on a line of tiles with one swing (docs/adr/ADR-026 D1); the server checks the claim against the item in the slot.</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(FarmOpCode.UseItemArea)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(8, 3, PolicyId = "farm-use")]
+    public static async ValueTask HandleUseItemAreaAsync(IPacketContext<UseItemArea> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        int slot = context.Packet.Slot;
+        int tileX = context.Packet.TileX;
+        int tileY = context.Packet.TileY;
+        int tiles = context.Packet.Tiles;
+
+        FarmUseOutcome outcome = await s_farm.UseAreaAsync(context.Connection, slot, tileX, tileY, tiles, context.CancellationToken).ConfigureAwait(false);
+
+        PacketScope<UseItemResult> lease = PacketFactory<UseItemResult>.Acquire();
+        try
+        {
+            lease.Value.SequenceId = sequence;
+            lease.Value.Status = outcome.Status;
+            lease.Value.Action = outcome.Action;
+            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
+        }
+        catch
+        {
+            lease.Dispose();
+            throw;
+        }
+    }
+
     /// <summary>Replies with the worked tiles of the map the player stands on.</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply was sent.</returns>
