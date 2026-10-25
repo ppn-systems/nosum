@@ -20,6 +20,18 @@ public sealed class InputPackingTests
     }
 
     [Fact]
+    public void Unpack_CloseAndHelpKeys_MatchWhatRendererJsPacks()
+    {
+        // renderer.js: Escape = 262144 and KeyH = 524288, both shifted left by 8 with the held directions.
+        int fromJs = 1 | ((262144 | 524288) << 8);
+
+        InputPacking.Unpack(fromJs, out InputState held, out InputEdges edges);
+
+        held.Should().Be(InputState.Up);
+        edges.Should().Be(InputEdges.Close | InputEdges.Help);
+    }
+
+    [Fact]
     public void Unpack_WhatJavaScriptPacks_MatchesTheEdgeBits()
     {
         // renderer.js: keys | (edges << 8) with Digit3 = 8 and KeyE = 1.

@@ -9,6 +9,9 @@
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.Controls.Coop
 @using Nosum.Wasm.Controls.Feedback
+@using Nosum.Wasm.Controls.Help
+@using Nosum.Wasm.Controls.Layout
+@using Nosum.Wasm.ViewModels.Help
 @using Nosum.Wasm.Controls.Inventory
 @using Nosum.Wasm.Controls.Looks
 @using Nosum.Wasm.Controls.Market
@@ -51,72 +54,108 @@
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
+@inject HelpViewModel Help
 
 <PageTitle>Nosum</PageTitle>
 
 <canvas id="game-canvas" class="game-canvas" tabindex="0"></canvas>
-<ConnectionBadge />
-@if (!_signedIn || Form.ShowsForm)
+@if (!_signedIn)
 {
     @* The game starts after sign-in: the canvas listens to the whole window's keys, which would swallow typing. *@
-    <div class="account-overlay">
-        <AccountForm Vm="Form" />
-    </div>
+    <StartScreen Vm="Form" />
 }
-@if (_signedIn)
+else
 {
-    <SessionBar Vm="Form" />
-    <QuestTracker Vm="Quest" />
-    <GameMessage Vm="Messages" />
-    <PlacementPanel Vm="Placement" />
-    <Hotbar Vm="Inventory" />
-    <CoinBadge Vm="Wallet" />
-    <PanelToolbar Vm="Toolbar" OnSelect="OnToolbar" />
-    @switch (_panel)
-    {
-        case PanelKind.Inventory:
-            <InventoryPanel Vm="Inventory" OnClose="ClosePanel" />
-            break;
-        case PanelKind.Market:
-            <MarketPanel Vm="Market" OnClose="ClosePanel" />
-            break;
-        case PanelKind.Wardrobe:
-            <WardrobePanel Vm="Wardrobe" OnClose="ClosePanel" />
-            break;
-        case PanelKind.Trade:
-            <TradePanel Vm="Trade" OnClose="ClosePanel" />
-            break;
-        case PanelKind.Coop:
-            <CoopPanel Vm="Coop" OnClose="ClosePanel" />
-            break;
-        case PanelKind.Profile:
-            <ProfilePanel Vm="Profile" OnClose="ClosePanel" />
-            break;
-        case PanelKind.Shop:
-            <ShopPanel Vm="Shop" OnClose="ClosePanel" />
-            break;
-    }
-    @if (Trade.Phase == TradePhase.Invited)
-    {
-        <ConfirmDialog Title="@Trade.Text("Trade_InviteTitle")" Message="@Trade.Text("Trade_InviteMessage", Trade.InviterLabel)"
-                       ConfirmText="@Trade.Text("Coop_Accept")" CancelText="@Trade.Text("Coop_Decline")"
-                       OnConfirm="@(() => Trade.Respond(true))" OnCancel="@(() => Trade.Respond(false))" />
-    }
-    else if (_panel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0)
-    {
-        (Guid inviteId, string coopName, string inviter) = Coop.Invites[0];
-        <ConfirmDialog Title="@Coop.Text("Coop_InviteTitle")" Message="@(inviter.Length > 0 ? Coop.Text("Coop_InviteMessageFrom", coopName, inviter) : Coop.Text("Coop_InviteMessage", coopName))"
-                       ConfirmText="@Coop.Text("Coop_Accept")" CancelText="@Coop.Text("Coop_Decline")"
-                       OnConfirm="@(() => Coop.Respond(inviteId, true))" OnCancel="@(() => Coop.Respond(inviteId, false))" />
-    }
-}
-@if (_error is not null)
-{
-    <p class="game-error">@_error</p>
+    <GameHud>
+        <TopLeft>
+            <QuestTracker Vm="Quest" />
+        </TopLeft>
+        <TopCenter>
+            @if (_error is not null)
+            {
+                <GamePanel Class="hud" Title="">
+                    <GameNotice Kind="error" Text="@_error" />
+                </GamePanel>
+            }
+        </TopCenter>
+        <TopRight>
+            <SessionBar Vm="Form" />
+            <GameRow Class="end">
+                <CoinBadge Vm="Wallet" />
+                <ConnectionBadge />
+            </GameRow>
+        </TopRight>
+        <Left>
+            <PanelToolbar Vm="Toolbar" OnSelect="OnToolbar" />
+        </Left>
+        <Center>
+            @switch (_panel)
+            {
+                case PanelKind.Inventory:
+                    <InventoryPanel Vm="Inventory" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Market:
+                    <MarketPanel Vm="Market" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Wardrobe:
+                    <WardrobePanel Vm="Wardrobe" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Trade:
+                    <TradePanel Vm="Trade" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Coop:
+                    <CoopPanel Vm="Coop" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Help:
+                    <HelpPanel Vm="Help" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Profile:
+                    <ProfilePanel Vm="Profile" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Shop:
+                    <ShopPanel Vm="Shop" OnClose="ClosePanel" />
+                    break;
+            }
+        </Center>
+        <Right>
+            <PlacementPanel Vm="Placement" />
+        </Right>
+        <BottomCenter>
+            <GameMessage Vm="Messages" />
+            <Hotbar Vm="Inventory" />
+        </BottomCenter>
+        <Overlay>
+            @if (!_started)
+            {
+                <GamePanel Class="dialog" Title="" Role="status">
+                    <p class="home-loading">@Toolbar.Text("Game_Loading") <GameSpinner /></p>
+                </GamePanel>
+            }
+            @if (Form.ShowsForm)
+            {
+                @* Upgrade form over the running game. *@
+                <AccountForm Vm="Form" />
+            }
+            @if (Trade.Phase == TradePhase.Invited)
+            {
+                <ConfirmDialog Title="@Trade.Text("Trade_InviteTitle")" Message="@Trade.Text("Trade_InviteMessage", Trade.InviterLabel)"
+                               ConfirmText="@Trade.Text("Coop_Accept")" CancelText="@Trade.Text("Coop_Decline")"
+                               OnConfirm="@(() => Trade.Respond(true))" OnCancel="@(() => Trade.Respond(false))" />
+            }
+            else if (_panel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0)
+            {
+                (Guid inviteId, string coopName, string inviter) = Coop.Invites[0];
+                <ConfirmDialog Title="@Coop.Text("Coop_InviteTitle")" Message="@(inviter.Length > 0 ? Coop.Text("Coop_InviteMessageFrom", coopName, inviter) : Coop.Text("Coop_InviteMessage", coopName))"
+                               ConfirmText="@Coop.Text("Coop_Accept")" CancelText="@Coop.Text("Coop_Decline")"
+                               OnConfirm="@(() => Coop.Respond(inviteId, true))" OnCancel="@(() => Coop.Respond(inviteId, false))" />
+            }
+        </Overlay>
+    </GameHud>
 }
 
 @code {
     private bool _signedIn;
+    private bool _started;
     private PanelKind _panel;
     private string? _error;
 
@@ -131,6 +170,7 @@
         Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
         GameLoop.PanelToggleRequested += OnPanelKey;
         GameLoop.ShopRequested += OnShopRequested;
+        GameLoop.PanelCloseRequested += OnCloseKey;
         Trade.WantsOpen += OnTradeWantsOpen;
         Trade.Changed += OnViewModelChanged;
         Coop.Changed += OnViewModelChanged;
@@ -156,6 +196,7 @@
         Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
         GameLoop.PanelToggleRequested -= OnPanelKey;
         GameLoop.ShopRequested -= OnShopRequested;
+        GameLoop.PanelCloseRequested -= OnCloseKey;
         Trade.WantsOpen -= OnTradeWantsOpen;
         Trade.Changed -= OnViewModelChanged;
         Coop.Changed -= OnViewModelChanged;
@@ -180,6 +221,21 @@
             Toolbar.Active = _panel;
             StateHasChanged();
         }
+    });
+
+    // Escape: leave the upgrade form, or else close the open panel.
+    private void OnCloseKey() => _ = InvokeAsync(() =>
+    {
+        if (Form.Mode == AccountFormMode.Upgrade)
+        {
+            Form.CancelUpgrade();
+        }
+        else if (_panel != PanelKind.None)
+        {
+            ClosePanel();
+        }
+
+        StateHasChanged();
     });
 
     private void OnToolbar(PanelKind kind) => TogglePanel(kind);
@@ -247,10 +303,13 @@
         try
         {
             await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None);
+            _started = true;
+            StateHasChanged();
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or JSException)
         {
-            _error = $"Could not start the game: {ex.Message}";
+            _error = Toolbar.Text("Game_StartFailed", ex.Message);
+            _started = true;
             StateHasChanged();
         }
     }

@@ -86,6 +86,8 @@ internal static partial class GameLoop
 
     /// <summary>Raised from the frame when the player pressed the action key next to a shop: the shop's id.</summary>
     public static event Action<int>? ShopRequested;
+    /// <summary>Raised from the frame when the player pressed the close key (Escape).</summary>
+    public static event Action? PanelCloseRequested;
 
     /// <summary>
     /// Loads everything the first map needs and starts the loop on the given canvas. With a network, the first map is the one
@@ -103,6 +105,7 @@ internal static partial class GameLoop
         PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
+        actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider()];
         if (actions is not null && s_farm is not null)
         {

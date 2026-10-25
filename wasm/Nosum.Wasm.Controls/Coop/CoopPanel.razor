@@ -2,7 +2,7 @@
 @inherits ObservingComponent<CoopViewModel>
 
 @* The co-op: found or join one, manage members, and use the shared warehouse. The server decides roles and what a member may take. *@
-<GamePanel Dock="PanelDock.Center" Title="@(Vm.HasCoop ? Vm.Name : Vm.Text("Coop_Title"))" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+<GamePanel Title="@(Vm.HasCoop ? Vm.Name : Vm.Text("Coop_Title"))" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
     <GameStack>
         @if (!Vm.HasCoop)
         {
@@ -59,7 +59,7 @@
                 {
                     int itemId = row.Item.ItemId;
                     <GameRow Class="center">
-                        <ItemSlotButton Slot="row.Item" Scale="2" Picked="row.Item.IsSelected" OnClick="@(() => Vm.PickWithdraw(itemId))" />
+                        <ItemSlotButton Slot="row.Item" Picked="row.Item.IsSelected" OnClick="@(() => Vm.PickWithdraw(itemId))" />
                         <span class="stock-name">@row.Item.Name</span>
                         <span>@Vm.Text("Coop_Available", row.Available)</span>
                     </GameRow>
@@ -70,7 +70,7 @@
                     <GameButton Text="@Vm.Text("Coop_Deposit")" OnClick="@(() => Vm.Deposit())" />
                 </GameRow>
                 <p class="coop-empty">@Vm.Text("Coop_DepositHint")</p>
-                <ItemGrid Slots="Vm.InventorySlots" Columns="9" Scale="2" OnSlotClick="@(i => Vm.PickDeposit(i))" />
+                <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.PickDeposit(i))" />
             </GameSection>
             <GameSection Title="@Vm.Text("Coop_Log_Heading")">
                 @foreach (string line in Vm.Log)

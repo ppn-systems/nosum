@@ -1,0 +1,38 @@
+/* The start screen is a pixel landscape: banded sky, two grass stripes and a dirt line, all in theme colours. */
+.start-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 5);
+    padding: var(--nosum-gutter);
+    overflow: auto;
+    background:
+        linear-gradient(to bottom, transparent calc(100% - var(--u) * 24), #5f9e2d 0, #5f9e2d calc(100% - var(--u) * 14), #4a8a22 0, #4a8a22 calc(100% - var(--u) * 6), #7a4318 0),
+        repeating-linear-gradient(to bottom, #6cc3ea 0, #6cc3ea calc(var(--u) * 20), #86d0ef 0, #86d0ef calc(var(--u) * 40), #a2ddf3 0, #a2ddf3 calc(var(--u) * 60), #bfe8f6 0, #bfe8f6 calc(var(--u) * 80));
+}
+
+.start-header {
+    text-align: center;
+}
+
+.start-logo {
+    margin: 0;
+    font: 900 calc(var(--u) * 26) / 1 var(--nosum-font);
+    letter-spacing: 0.04em;
+    color: var(--nosum-cream);
+    text-shadow:
+        var(--u) 0 0 var(--nosum-edge), calc(var(--u) * -1) 0 0 var(--nosum-edge), 0 var(--u) 0 var(--nosum-edge), 0 calc(var(--u) * -1) 0 var(--nosum-edge),
+        calc(var(--u) * 2) calc(var(--u) * 2) 0 var(--nosum-edge), calc(var(--u) * 3) calc(var(--u) * 3) 0 var(--nosum-ink);
+}
+
+.start-tagline {
+    margin: calc(var(--u) * 3) 0 0;
+    color: #fff;
+    font-weight: 800;
+    text-shadow: var(--u) var(--u) 0 var(--nosum-ink), calc(var(--u) * -1) var(--u) 0 var(--nosum-ink);
+}

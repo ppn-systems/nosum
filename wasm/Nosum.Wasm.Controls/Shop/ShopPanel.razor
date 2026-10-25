@@ -2,7 +2,7 @@
 @inherits ObservingComponent<ShopViewModel>
 
 @* A shop: pick what to buy for coins. Prices and stock rules are shared with the server, which prices and checks every purchase. *@
-<GamePanel Dock="PanelDock.Center" Title="@Vm.Title" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+<GamePanel Title="@Vm.Title" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
     <GameStack>
         <GameRow Class="spread">
             <span>@Vm.CoinsText</span>
@@ -18,7 +18,7 @@
         {
             int itemId = offer.ItemId;
             <GameRow Class="center">
-                <ItemSlotButton Slot="offer.Item" Scale="2" />
+                <ItemSlotButton Slot="offer.Item" />
                 <span>@offer.Item.Name</span>
                 <span>@offer.PriceText</span>
                 <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanAfford" OnClick="@(() => Vm.Buy(itemId))" />

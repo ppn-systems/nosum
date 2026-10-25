@@ -1,62 +1,61 @@
+@using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.ViewModels.Account
 @using System.Threading
 @implements IDisposable
 
-@* Reusable login / register form. All text and behaviour come from the view model; no network code here. *@
-<form class="account-form" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
-    <h2 class="account-title">@Vm.Title</h2>
+@* Reusable login / register form, built only from the shared controls. All text and behaviour come from the view model; no network code here.
+   The fields and buttons are Focusable: this form is shown while the game does not own the keyboard (before sign-in, or over the game on upgrade). *@
+<GamePanel Title="@Vm.Title" Class="account" Role="form">
+    <form class="account-form" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+        <GameStack>
+            <GameField Label="@Vm.EmailLabel" Hint="@(Vm.IsRegister ? Vm.EmailHint : null)">
+                <GameInput Type="email" Value="@Vm.Email" ValueChanged="@(v => Vm.Email = v)" Label="@Vm.EmailLabel" AutoComplete="email"
+                           MaxLength="@Nosum.Contracts.Account.AccountLimits.EmailMaxLength" Disabled="@Vm.IsBusy" />
+            </GameField>
 
-    <label class="account-field">
-        <span>@Vm.EmailLabel</span>
-        <input type="email" @bind="Vm.Email" @bind:event="oninput" autocomplete="email" maxlength="@Nosum.Contracts.Account.AccountLimits.EmailMaxLength" disabled="@Vm.IsBusy" />
-        @if (Vm.IsRegister)
-        {
-            <small>@Vm.EmailHint</small>
-        }
-    </label>
+            <GameField Label="@Vm.PasswordLabel" Hint="@(Vm.IsRegister ? Vm.PasswordHint : null)">
+                <GameInput Type="password" Value="@Vm.Password" ValueChanged="@(v => Vm.Password = v)" Label="@Vm.PasswordLabel" AutoComplete="@(Vm.IsRegister ? "new-password" : "current-password")"
+                           MaxLength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" Disabled="@Vm.IsBusy" />
+            </GameField>
 
-    <label class="account-field">
-        <span>@Vm.PasswordLabel</span>
-        <input type="password" @bind="Vm.Password" @bind:event="oninput" autocomplete="@(Vm.IsRegister ? "new-password" : "current-password")" maxlength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" disabled="@Vm.IsBusy" />
-        @if (Vm.IsRegister)
-        {
-            <small>@Vm.PasswordHint</small>
-        }
-    </label>
+            @if (Vm.IsRegister)
+            {
+                <GameField Label="@Vm.ConfirmPasswordLabel">
+                    <GameInput Type="password" Value="@Vm.ConfirmPassword" ValueChanged="@(v => Vm.ConfirmPassword = v)" Label="@Vm.ConfirmPasswordLabel" AutoComplete="new-password"
+                               MaxLength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" Disabled="@Vm.IsBusy" />
+                </GameField>
 
-    @if (Vm.IsRegister)
-    {
-        <label class="account-field">
-            <span>@Vm.ConfirmPasswordLabel</span>
-            <input type="password" @bind="Vm.ConfirmPassword" @bind:event="oninput" autocomplete="new-password" maxlength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" disabled="@Vm.IsBusy" />
-        </label>
+                <GameField Label="@Vm.NicknameLabel" Hint="@Vm.NicknameHint">
+                    <GameInput Value="@Vm.Nickname" ValueChanged="@(v => Vm.Nickname = v)" Label="@Vm.NicknameLabel" AutoComplete="nickname" MaxLength="24" Disabled="@Vm.IsBusy" />
+                </GameField>
+            }
 
-        <label class="account-field">
-            <span>@Vm.NicknameLabel</span>
-            <input type="text" @bind="Vm.Nickname" @bind:event="oninput" autocomplete="nickname" maxlength="24" disabled="@Vm.IsBusy" />
-            <small>@Vm.NicknameHint</small>
-        </label>
-    }
+            @if (Vm.ErrorText is not null)
+            {
+                <GameNotice Kind="error" Text="@Vm.ErrorText" />
+            }
 
-    @if (Vm.ErrorText is not null)
-    {
-        <p class="account-error" role="alert">@Vm.ErrorText</p>
-    }
+            <GameButton Submit="true" Focusable="true" Disabled="@Vm.IsBusy">@Vm.SubmitText@if (Vm.IsBusy)
+                {
+                    <GameSpinner />
+                }</GameButton>
 
-    <button type="submit" class="account-submit" disabled="@Vm.IsBusy">@Vm.SubmitText</button>
-    @if (Vm.Mode == AccountFormMode.Upgrade)
-    {
-        <button type="button" class="account-switch" @onclick="Vm.CancelUpgrade" disabled="@Vm.IsBusy">@Vm.CancelText</button>
-    }
-    else
-    {
-        <button type="button" class="account-switch" @onclick="Vm.SwitchMode" disabled="@Vm.IsBusy">@Vm.SwitchModeText</button>
-    }
-    @if (Vm.CanPlayAsGuest)
-    {
-        <button type="button" class="account-guest" @onclick="PlayAsGuestAsync" disabled="@Vm.IsBusy">@Vm.PlayAsGuestText</button>
-    }
-</form>
+            @if (Vm.Mode == AccountFormMode.Upgrade)
+            {
+                <GameButton Variant="plain" Focusable="true" OnClick="Vm.CancelUpgrade" Disabled="@Vm.IsBusy" Text="@Vm.CancelText" />
+            }
+            else
+            {
+                <GameButton Variant="link" Focusable="true" OnClick="Vm.SwitchMode" Disabled="@Vm.IsBusy" Text="@Vm.SwitchModeText" />
+            }
+
+            @if (Vm.CanPlayAsGuest)
+            {
+                <GameButton Variant="plain" Focusable="true" OnClick="PlayAsGuestAsync" Disabled="@Vm.IsBusy" Text="@Vm.PlayAsGuestText" />
+            }
+        </GameStack>
+    </form>
+</GamePanel>
 
 @code {
     /// <summary>The form's view model; the page that hosts the component creates it and handles SignedIn.</summary>

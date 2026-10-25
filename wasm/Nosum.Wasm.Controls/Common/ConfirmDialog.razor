@@ -1,8 +1,8 @@
 @* A small question with two answers. *@
-<GamePanel Dock="PanelDock.Center" Title="@Title" Class="dialog">
+<GamePanel Title="@Title" Class="dialog" Role="alertdialog">
     <GameStack>
         <p class="confirm-message">@Message</p>
-        <GameRow>
+        <GameRow Class="end">
             <GameButton Variant="primary" Text="@ConfirmText" OnClick="OnConfirm" />
             <GameButton Variant="plain" Text="@CancelText" OnClick="OnCancel" />
         </GameRow>

@@ -1,9 +1,9 @@
-@* One inventory slot: the item's picture, its quantity, a selected frame and a hotkey label. Text comes from the slot (already localized). *@
+@* One inventory slot: the item's picture, its quantity, a selected frame and a hotkey label. Text comes from the slot (already localized).
+   The size is the theme's (a slot is 18 UI pixels, the picture 16). *@
 <button type="button"
         class="slot @(Slot.IsSelected ? "selected" : null) @(Picked ? "picked" : null) @(Slot.IsEmpty ? "empty" : null)"
         title="@Slot.Tooltip"
         tabindex="-1"
-        style="--slot-scale:@Scale"
         @onmousedown:preventDefault
         @onclick="OnClick">
     @if (Hotkey is not null)
@@ -24,8 +24,8 @@
     /// <summary>The slot to show.</summary>
     [Parameter, EditorRequired] public SlotDisplay Slot { get; set; } = default!;
 
-    /// <summary>Whole-number scale of the 16 px picture.</summary>
-    [Parameter] public int Scale { get; set; } = 3;
+    /// <summary>Obsolete and ignored: the slot size is the theme's.</summary>
+    [Parameter] public int Scale { get; set; }
 
     /// <summary>The key shown in the corner (for the hotbar), or <see langword="null"/>.</summary>
     [Parameter] public string? Hotkey { get; set; }
@@ -36,6 +36,7 @@
     /// <summary>Raised when the slot is clicked.</summary>
     [Parameter] public EventCallback OnClick { get; set; }
 
-    private string IconStyle(ItemIcon icon)
-        => FormattableString.Invariant($"width:{icon.Size * Scale}px;height:{icon.Size * Scale}px;background-image:url('{icon.SheetUrl}');background-size:{icon.SheetWidth * Scale}px {icon.SheetHeight * Scale}px;background-position:-{icon.X * Scale}px -{icon.Y * Scale}px");
+    // The picture is a window onto the item sheet; every length is a whole number of UI pixels (--u), set in the CSS.
+    private static string IconStyle(ItemIcon icon)
+        => FormattableString.Invariant($"background-image:url('{icon.SheetUrl}');--is:{icon.Size};--sw:{icon.SheetWidth};--sh:{icon.SheetHeight};--ix:{icon.X};--iy:{icon.Y}");
 }

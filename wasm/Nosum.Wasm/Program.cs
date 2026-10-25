@@ -28,6 +28,7 @@ using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Coop;
 using Nosum.Wasm.ViewModels.Feedback;
+using Nosum.Wasm.ViewModels.Help;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Looks;
@@ -92,6 +93,7 @@ internal static class Program
         builder.Services.AddSingleton<NicknameFormatter>();
         builder.Services.AddSingleton<ProfileViewModel>();
         builder.Services.AddSingleton<ShopViewModel>();
+        builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<WalletViewModel>();
         builder.Services.AddSingleton<MarketViewModel>();
         builder.Services.AddSingleton<WardrobeViewModel>();

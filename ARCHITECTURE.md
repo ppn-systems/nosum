@@ -25,7 +25,7 @@ nosum/
 ├── wasm/                         # Nosum.Wasm.slnx — own Directory.Build.props (trimmed, no AOT)
 │   ├── Nosum.Wasm/               # Blazor host: canvas page + UI overlay
 │   ├── Nosum.Wasm.ViewModels/    # MVVM view models (no .razor)
-│   ├── Nosum.Wasm.Controls/      # reusable Razor controls: panel frame, button, input, item grid, dialogs, hotbar, arrange panel, market/wardrobe/trade/co-op panels
+│   ├── Nosum.Wasm.Controls/      # reusable Razor controls and the pixel-art theme (ADR-016): panel frame, button, input, item grid, dialogs, hotbar, HUD dock layout, help, arrange panel, market/wardrobe/trade/co-op panels
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)

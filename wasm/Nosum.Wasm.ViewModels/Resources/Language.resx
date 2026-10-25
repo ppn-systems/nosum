@@ -288,4 +288,28 @@
   <data name="Shop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Market_Seller" xml:space="preserve"><value>Người bán: {0}</value></data>
   <data name="Coop_InviteMessageFrom" xml:space="preserve"><value>{1} mời bạn vào hợp tác xã "{0}".</value></data>
+  <data name="Game_Title" xml:space="preserve"><value>Nosum</value></data>
+  <data name="Game_Tagline" xml:space="preserve"><value>Nông trại trực tuyến để cùng nhau vun trồng</value></data>
+  <data name="Game_Loading" xml:space="preserve"><value>Đang vào thế giới…</value></data>
+  <data name="Game_StartFailed" xml:space="preserve"><value>Không thể bắt đầu trò chơi: {0}</value></data>
+  <data name="Toolbar_Help" xml:space="preserve"><value>Phím tắt</value></data>
+  <data name="Help_Title" xml:space="preserve"><value>Phím tắt</value></data>
+  <data name="Help_Section_Play" xml:space="preserve"><value>Chơi</value></data>
+  <data name="Help_Section_Panels" xml:space="preserve"><value>Bảng</value></data>
+  <data name="Help_Section_Arrange" xml:space="preserve"><value>Sắp xếp nhà</value></data>
+  <data name="Help_Move" xml:space="preserve"><value>Di chuyển (hoặc phím mũi tên)</value></data>
+  <data name="Help_Use" xml:space="preserve"><value>Dùng vật đang cầm, tương tác</value></data>
+  <data name="Help_Hotbar" xml:space="preserve"><value>Chọn ô trên thanh vật phẩm</value></data>
+  <data name="Help_Inventory" xml:space="preserve"><value>Mở túi đồ</value></data>
+  <data name="Help_Market" xml:space="preserve"><value>Mở chợ</value></data>
+  <data name="Help_Wardrobe" xml:space="preserve"><value>Mở tủ đồ</value></data>
+  <data name="Help_Trade" xml:space="preserve"><value>Mở giao dịch</value></data>
+  <data name="Help_Coop" xml:space="preserve"><value>Mở hợp tác xã</value></data>
+  <data name="Help_Help" xml:space="preserve"><value>Hiện hoặc ẩn bảng phím tắt</value></data>
+  <data name="Help_Close" xml:space="preserve"><value>Đóng bảng đang mở</value></data>
+  <data name="Help_Place" xml:space="preserve"><value>Đặt đồ đang cầm</value></data>
+  <data name="Help_Rotate" xml:space="preserve"><value>Xoay đồ đạc</value></data>
+  <data name="Help_Grab" xml:space="preserve"><value>Nhấc món đồ phía trước để dời chỗ</value></data>
+  <data name="Help_PickUp" xml:space="preserve"><value>Cất đồ vào túi</value></data>
+  <data name="Help_Profile" xml:space="preserve"><value>Mở hồ sơ (đổi biệt danh)</value></data>
 </root>

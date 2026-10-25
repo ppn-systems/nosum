@@ -5,6 +5,8 @@
        placeholder="@Placeholder"
        maxlength="@MaxLength"
        aria-label="@Label"
+       autocomplete="@AutoComplete"
+       disabled="@Disabled"
        inputmode="@(Type == "number" ? "numeric" : null)"
        min="@(Type == "number" ? "0" : null)"
        @oninput="OnInput"
@@ -20,7 +22,7 @@
     /// <summary>Raised when Enter is pressed.</summary>
     [Parameter] public EventCallback OnEnter { get; set; }
 
-    /// <summary><c>text</c> or <c>number</c>.</summary>
+    /// <summary><c>text</c>, <c>number</c>, <c>email</c> or <c>password</c>.</summary>
     [Parameter] public string Type { get; set; } = "text";
 
     /// <summary>Placeholder text (already localized).</summary>
@@ -31,6 +33,12 @@
 
     /// <summary>Longest text.</summary>
     [Parameter] public int MaxLength { get; set; } = 64;
+
+    /// <summary>The browser's autocomplete hint (<c>email</c>, <c>new-password</c>, ...), or <see langword="null"/>.</summary>
+    [Parameter] public string? AutoComplete { get; set; }
+
+    /// <summary>Whether the field cannot be edited.</summary>
+    [Parameter] public bool Disabled { get; set; }
 
     private Task OnInput(ChangeEventArgs e) => ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
 

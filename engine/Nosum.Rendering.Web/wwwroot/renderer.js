@@ -29,7 +29,10 @@ const EDGE_BITS = {
     KeyR: 2048,
     KeyF: 4096,
     KeyQ: 8192,
-    KeyM: 16384, KeyC: 32768, KeyT: 65536, KeyG: 131072, KeyN: 262144,
+    KeyM: 16384, KeyC: 32768, KeyT: 65536, KeyG: 131072,
+    Escape: 262144,
+    KeyH: 524288,
+    KeyN: 1048576,
 };
 
 // Typing in a form field (the upgrade form) must not move the farmer or select slots.
@@ -90,7 +93,14 @@ export async function start(canvasId, assemblyName, exportPath) {
     canvas = document.getElementById(canvasId);
     ctx = canvas.getContext("2d");
     window.addEventListener("keydown", e => {
+        if (e.code === "Escape") {
+            // Escape closes the open panel even from a form field: leave the field so the game gets the keyboard back.
+            if (isTyping(e)) { e.target.blur(); }
+            if (!e.repeat) { edges |= EDGE_BITS.Escape; }
+            return;
+        }
         if (isTyping(e) || e.ctrlKey || e.altKey || e.metaKey) { return; }
+        if (e.key === "?") { if (!e.repeat) { edges |= EDGE_BITS.KeyH; } e.preventDefault(); return; }
         const b = KEY_BITS[e.code];
         if (b) { keys |= b; e.preventDefault(); return; }
         const edge = EDGE_BITS[e.code];

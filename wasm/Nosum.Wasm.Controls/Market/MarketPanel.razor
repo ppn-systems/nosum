@@ -2,7 +2,7 @@
 @inherits ObservingComponent<MarketViewModel>
 
 @* The consignment market: browse and buy, list a stack, and the player's own listings. Every price and fee is the server's rule; this panel only asks and shows. *@
-<GamePanel Dock="PanelDock.Center" Title="@Vm.Text("Market_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+<GamePanel Title="@Vm.Text("Market_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
     <GameStack>
         <TabBar Active="(int)Vm.Tab" OnSelect="@(id => Vm.SetTab((MarketTab)id))"
                 Tabs="@(new (int, string)[] { ((int)MarketTab.Browse, Vm.Text("Market_Tab_Browse")), ((int)MarketTab.Sell, Vm.Text("Market_Tab_Sell")), ((int)MarketTab.Mine, Vm.Text("Market_Tab_Mine")) })" />
@@ -21,7 +21,7 @@
             {
                 Guid id = listing.Id;
                 <GameRow Class="listing-row">
-                    <ItemSlotButton Slot="listing.Item" Scale="2" />
+                    <ItemSlotButton Slot="listing.Item" />
                     <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
                     <span>@listing.SellerText</span>
@@ -41,7 +41,7 @@
         else if (Vm.Tab == MarketTab.Sell)
         {
             <GameSection Title="@Vm.Text("Market_SellPick")">
-                <ItemGrid Slots="Vm.InventorySlots" Columns="9" Scale="2" Picked="@(Vm.SellItem?.Index ?? -1)" OnSlotClick="@(i => Vm.PickSellSlot(i))" />
+                <ItemGrid Slots="Vm.InventorySlots" Columns="9" Picked="@(Vm.SellItem?.Index ?? -1)" OnSlotClick="@(i => Vm.PickSellSlot(i))" />
             </GameSection>
             @if (Vm.SellItem is { } item)
             {
@@ -75,7 +75,7 @@
             {
                 Guid id = listing.Id;
                 <GameRow Class="listing-row">
-                    <ItemSlotButton Slot="listing.Item" Scale="2" />
+                    <ItemSlotButton Slot="listing.Item" />
                     <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
                     <GameButton Variant="danger" Text="@Vm.Text("Market_Cancel")" OnClick="@(() => Vm.Cancel(id))" />

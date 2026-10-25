@@ -1,11 +1,14 @@
 .game-section {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: calc(var(--u) * 2);
 }
 
 .game-section h3 {
     margin: 0;
-    font-size: 0.95rem;
-    opacity: 0.85;
+    padding-bottom: var(--u);
+    border-bottom: var(--u) solid var(--nosum-line);
+    font-size: 0.95em;
+    font-weight: 800;
+    color: var(--nosum-ink-soft);
 }
