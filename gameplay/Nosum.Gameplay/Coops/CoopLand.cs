@@ -44,6 +44,9 @@ public static class CoopLand
     /// <summary>Audit reason of a bar collected from a furnace on co-op land; it enters the member's inventory.</summary>
     public const string CollectReason = "coop.collect";
 
+    /// <summary>Audit reason of feed a member put into the feeding bench of a co-op's building (docs/adr/ADR-028).</summary>
+    public const string FeedReason = "coop.feed";
+
     /// <summary>Gets whether an audit reason belongs to the warehouse (a deposit or a withdrawal), which is what a member's net contribution counts.</summary>
     /// <param name="reason">The log line's reason code.</param>
     /// <returns><see langword="true"/> for <c>coop.deposit</c> and <c>coop.withdraw</c>.</returns>

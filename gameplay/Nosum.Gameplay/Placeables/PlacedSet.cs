@@ -162,6 +162,17 @@ public sealed class PlacedSet
             }
         }
 
+        // A building's door needs the tile in front of it: inside the map, walkable, not reserved and not covered by another piece.
+        if (definition.Door is { } door)
+        {
+            int frontX = tileX + door.X;
+            int frontY = tileY + view.FootprintHeight;
+            if (frontX < 0 || frontY < 0 || frontX >= mapGrid.Width || frontY >= mapGrid.Height || mapGrid.IsBlocked(frontX, frontY) || reserved.Contains((frontX, frontY)))
+            {
+                return PlacementVerdict.Blocked;
+            }
+        }
+
         foreach (PlacedItem other in _items)
         {
             if (other.Id == ignoreId || !PlaceableCatalog.TryGet(other.ItemId, out PlaceableDefinition? otherDefinition))
@@ -177,6 +188,37 @@ public sealed class PlacedSet
             if (!apart)
             {
                 return PlacementVerdict.Overlaps;
+            }
+
+            // The tile in front of another building's door stays walkable: nothing that blocks walking goes there, and a building's own door tile needs the same space.
+            if (otherDefinition.Door is { } otherDoor && (definition.BlocksWalking || definition.Door is not null))
+            {
+                int frontX = other.TileX + otherDoor.X;
+                int frontY = other.TileY + otherView.FootprintHeight;
+                if (frontX >= tileX && frontX < tileX + view.FootprintWidth && frontY >= tileY && frontY < tileY + view.FootprintHeight)
+                {
+                    return PlacementVerdict.Overlaps;
+                }
+            }
+        }
+
+        if (definition.Door is { } ownDoor)
+        {
+            // The front tile of the piece being placed must not be under a piece that is already there.
+            int frontX = tileX + ownDoor.X;
+            int frontY = tileY + view.FootprintHeight;
+            foreach (PlacedItem other in _items)
+            {
+                if (other.Id == ignoreId || !PlaceableCatalog.TryGet(other.ItemId, out PlaceableDefinition? otherDefinition) || !otherDefinition.BlocksWalking)
+                {
+                    continue;
+                }
+
+                PlaceableView otherView = otherDefinition.View(Math.Min(other.Rotation, otherDefinition.Rotations - 1));
+                if (frontX >= other.TileX && frontX < other.TileX + otherView.FootprintWidth && frontY >= other.TileY && frontY < other.TileY + otherView.FootprintHeight)
+                {
+                    return PlacementVerdict.Blocked;
+                }
             }
         }
 
@@ -221,6 +263,11 @@ public sealed class PlacedSet
                 if (definition.BlocksWalking)
                 {
                     grid.Block(item.TileX, item.TileY, view.FootprintWidth, view.FootprintHeight);
+                    if (definition.Door is { } door)
+                    {
+                        // The door is the one tile of a building's footprint a player may stand on: walking onto it is how they go in.
+                        grid.Open(item.TileX + door.X, item.TileY + door.Y);
+                    }
                 }
             }
         }

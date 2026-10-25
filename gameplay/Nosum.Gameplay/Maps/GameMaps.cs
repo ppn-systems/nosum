@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
@@ -45,6 +46,12 @@ public static class GameMaps
     /// <summary>Id of the backwoods north of the farm.</summary>
     public const string Backwoods = "backwoods";
 
+    /// <summary>Id of the coop interior: one instance per coop building (docs/adr/ADR-028 D2).</summary>
+    public const string Coop = "coop";
+
+    /// <summary>Id of the barn interior: one instance per barn building.</summary>
+    public const string Barn = "barn";
+
     /// <summary>Id of the co-op land: each co-op's own shared farm, entered from Town (docs/adr/ADR-020).</summary>
     public const string CoopFarm = "coopfarm";
 
@@ -59,6 +66,8 @@ public static class GameMaps
     private static readonly (int X, int Y) s_townClothingShopTile = (20, 89);
     private static readonly (int X, int Y) s_townFurnitureShopTile = (95, 51);
 
+    // The carpenter (docs/adr/ADR-028 D1) takes the blue house in the south-west of Town: door tile (10,85), doormat (10,86).
+    private static readonly (int X, int Y) s_townCarpenterTile = (10, 86);
     // The community board (docs/adr/ADR-030) is the billboard on the front of Pierre's store, tiles (41,56) and (42,56) ("Billboard" actions in Town.tmx); its counter is the walkable tile in front of
     // the right-hand sign, one tile west of the seed shop's doormat. The two are in reach of each other, so the nearest counter wins (ShopRules.TryFindShop).
     private static readonly (int X, int Y) s_townBoardTile = (42, 57);
@@ -74,6 +83,7 @@ public static class GameMaps
             new ShopPoint(ShopCatalog.SeedShop, s_townSeedShopTile.X, s_townSeedShopTile.Y),
             new ShopPoint(ShopCatalog.ClothingShop, s_townClothingShopTile.X, s_townClothingShopTile.Y),
             new ShopPoint(ShopCatalog.FurnitureShop, s_townFurnitureShopTile.X, s_townFurnitureShopTile.Y),
+            new ShopPoint(ShopCatalog.CarpenterShop, s_townCarpenterTile.X, s_townCarpenterTile.Y),
             new ShopPoint(CommunityGoalCatalog.BoardCounterId, s_townBoardTile.X, s_townBoardTile.Y),
         ],
         extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y)]),
@@ -81,6 +91,11 @@ public static class GameMaps
 
         // Co-op land reuses the placeholder Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
         new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true, placeable: true),
+
+        // Interiors of farm buildings (docs/adr/ADR-028 D2): the placeholder Coop.tmx and Barn.tmx. Private: one instance per building, owned by the building's id. A player arrives on
+        // the tile in front of the interior's exit (the exit leads back to the building's door, chosen by the server, not by the file's Warp).
+        new(Coop, "Coop.tmx", 2, 8, isPrivate: true, interiorOf: BuildingKind.Coop, indoors: true),
+        new(Barn, "Barn.tmx", 11, 13, isPrivate: true, interiorOf: BuildingKind.Barn, indoors: true),
     ];
 
     /// <summary>Gets every hosted map.</summary>

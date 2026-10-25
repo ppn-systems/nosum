@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261025150307_AdminRoleBanMuteAudit")]
-    partial class AdminRoleBanMuteAudit
+    [Migration("20261025150022_FarmBuildingsAndAnimals")]
+    partial class FarmBuildingsAndAnimals
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,10 +30,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
-
-                    b.Property<DateTimeOffset?>("BannedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("banned_at");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -59,10 +55,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
-
-                    b.Property<DateTimeOffset?>("MutedUntil")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("muted_until");
 
                     b.Property<string>("Nickname")
                         .IsRequired()
@@ -93,12 +85,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("RegistrationPromptUnlockedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("registration_prompt_unlocked_at");
-
-                    b.Property<short>("Role")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("smallint")
-                        .HasDefaultValue((short)0)
-                        .HasColumnName("role");
 
                     b.HasKey("Id")
                         .HasName("pk_players");
@@ -213,44 +199,102 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_states", (string)null);
                 });
 
-            modelBuilder.Entity("Nosum.Domain.Admin.AdminAuditEntry", b =>
+            modelBuilder.Entity("Nosum.Domain.Buildings.FarmAnimal", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<byte>("Action")
-                        .HasColumnType("smallint")
-                        .HasColumnName("action");
-
-                    b.Property<Guid?>("AdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("admin_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTimeOffset>("BoughtAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("bought_at");
 
-                    b.Property<string>("Detail")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("detail");
-
-                    b.Property<Guid?>("TargetId")
+                    b.Property<Guid>("BuildingId")
                         .HasColumnType("uuid")
-                        .HasColumnName("target_id");
+                        .HasColumnName("building_id");
+
+                    b.Property<int>("CollectedDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("collected_day");
+
+                    b.Property<int>("Friendship")
+                        .HasColumnType("integer")
+                        .HasColumnName("friendship");
+
+                    b.Property<byte>("Kind")
+                        .HasColumnType("smallint")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("PettedDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("petted_day");
+
+                    b.Property<int>("ProduceDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("produce_day");
 
                     b.HasKey("Id")
-                        .HasName("pk_admin_audit");
+                        .HasName("pk_farm_animals");
 
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("ix_admin_audit_created_at");
+                    b.HasIndex("BuildingId")
+                        .HasDatabaseName("ix_farm_animals_building_id");
 
-                    b.HasIndex("TargetId")
-                        .HasDatabaseName("ix_admin_audit_target_id");
+                    b.ToTable("farm_animals", (string)null);
+                });
 
-                    b.ToTable("admin_audit", (string)null);
+            modelBuilder.Entity("Nosum.Domain.Buildings.FarmBuilding", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<long>("CompletesAtMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("completes_at_ms");
+
+                    b.Property<byte>("Kind")
+                        .HasColumnType("smallint")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_id");
+
+                    b.Property<int>("ObjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("object_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("Rations")
+                        .HasColumnType("integer")
+                        .HasColumnName("rations");
+
+                    b.Property<int>("SettledDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("settled_day");
+
+                    b.HasKey("Id")
+                        .HasName("pk_farm_buildings");
+
+                    b.HasIndex("ObjectId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_farm_buildings_object_id");
+
+                    b.HasIndex("MapId", "OwnerId")
+                        .HasDatabaseName("ix_farm_buildings_map_id_owner_id");
+
+                    b.ToTable("farm_buildings", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.Community.CommunityContribution", b =>
@@ -1463,6 +1507,28 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_states_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Buildings.FarmAnimal", b =>
+                {
+                    b.HasOne("Nosum.Domain.Buildings.FarmBuilding", null)
+                        .WithMany()
+                        .HasForeignKey("BuildingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_farm_animals_farm_buildings_building_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Buildings.FarmBuilding", b =>
+                {
+                    b.HasOne("Nosum.Domain.Farm.PlacedObject", "Placed")
+                        .WithOne()
+                        .HasForeignKey("Nosum.Domain.Buildings.FarmBuilding", "ObjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_farm_buildings_placed_objects_object_id");
+
+                    b.Navigation("Placed");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Community.CommunityContribution", b =>

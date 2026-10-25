@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Nosum.Core;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Movement;
 
 namespace Nosum.Gameplay.Maps;
@@ -29,6 +30,7 @@ public sealed class MapSpec
     /// <param name="placeable">Whether players may place objects (furniture, chests, fences, ...) on its free ground: the farmhouse, the farm and co-op land (docs/adr/ADR-024 D3).</param>
     /// <param name="shops">Where shops are served on this map (docs/adr/ADR-013 amendments).</param>
     /// <param name="isCoop">Whether each co-op has its own copy of the map, owned by the co-op and open to its members only (docs/adr/ADR-020).</param>
+    /// <param name="interiorOf">The kind of farm building this map is the inside of; there is one instance per building, keyed by the building's id (docs/adr/ADR-028 D2).</param>
     /// <param name="indoors">Whether the map is a room or a cave: no weather falls on it, rain does not water its soil and it is lit (docs/adr/ADR-027).</param>
     public MapSpec(
         string id,
@@ -43,6 +45,7 @@ public sealed class MapSpec
         bool placeable = false,
         IReadOnlyList<ShopPoint>? shops = null,
         bool isCoop = false,
+        BuildingKind interiorOf = BuildingKind.None,
         bool indoors = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
@@ -64,6 +67,7 @@ public sealed class MapSpec
         this.Placeable = placeable;
         this.Shops = shops ?? [];
         this.IsCoop = isCoop;
+        this.InteriorOf = interiorOf;
         this.Indoors = indoors;
     }
 
@@ -96,6 +100,12 @@ public sealed class MapSpec
 
     /// <summary>Gets whether every co-op has its own instance of this map, keyed by the co-op id (docs/adr/ADR-020).</summary>
     public bool IsCoop { get; }
+
+    /// <summary>Gets the kind of building this map is the inside of, or <see cref="BuildingKind.None"/> for every other map.</summary>
+    public BuildingKind InteriorOf { get; }
+
+    /// <summary>Gets whether this map is the inside of a farm building: its instance owner is the building's id, not a player (docs/adr/ADR-028 D2).</summary>
+    public bool IsInterior => this.InteriorOf != BuildingKind.None;
 
     /// <summary>Gets whether the map is indoors: no rain or snow, rain does not water soil there, and daylight does not tint it (docs/adr/ADR-027).</summary>
     public bool Indoors { get; }
