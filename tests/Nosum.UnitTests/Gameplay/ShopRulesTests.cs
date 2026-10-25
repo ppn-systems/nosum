@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Nosum.Core;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
@@ -106,5 +107,20 @@ public sealed class ShopRulesTests
         ShopRules.TryFindShop(town, cx + 100, cy, 16, out _).Should().BeFalse();
         GameMaps.TryGet(GameMaps.Farm, out MapSpec? farm);
         ShopRules.TryFindShop(farm!, cx, cy, 16, out _).Should().BeFalse("no shop on the farm");
+    }
+
+    [Fact]
+    public void IsInSeason_SeedOnlyInTheSeasonsItsCropGrows_EverythingElseAlways()
+    {
+        GameCalendar calendar = GameCalendar.Default;
+        long spring = calendar.EpochMs;
+        long summer = spring + calendar.SeasonLengthMs;
+
+        ShopRules.IsInSeason(ItemCatalog.RadishSeeds, calendar, spring).Should().BeFalse();
+        ShopRules.IsInSeason(ItemCatalog.RadishSeeds, calendar, summer).Should().BeTrue();
+        ShopRules.IsInSeason(ItemCatalog.CauliflowerSeeds, calendar, summer).Should().BeTrue();
+        ShopRules.IsInSeason(ItemCatalog.OakChair, calendar, spring).Should().BeTrue();
+        ShopRules.IsInSeason(ItemCatalog.HatCap, calendar, summer).Should().BeTrue();
+        ShopRules.IsInSeason(999_999, calendar, spring).Should().BeTrue("unknown ids are the catalogue's business, not the season's");
     }
 }
