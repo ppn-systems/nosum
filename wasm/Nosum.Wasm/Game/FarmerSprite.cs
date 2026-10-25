@@ -24,7 +24,7 @@ internal static class FarmerSprite
     private const int ShirtOffsetY = 15;
     private const int ShirtSize = 8;
     private const int HatSize = 20;
-    private const int HatOffsetY = -4;
+    private const int HatOffsetY = 0;
 
     private static readonly int[] s_walkColumns = [0, 1, 0, 2];
 

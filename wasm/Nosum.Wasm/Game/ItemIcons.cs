@@ -31,8 +31,8 @@ internal sealed class ItemIcons : IItemIconSource
         [ItemCatalog.ShirtBlue] = Shirt(7),
         [ItemCatalog.PantsBlue] = Pants(),
         [ItemCatalog.PantsKhaki] = Pants(),
-        [ItemCatalog.HatStraw] = Hat(8),
-        [ItemCatalog.HatCap] = Hat(26),
+        [ItemCatalog.HatStraw] = Hat(3),
+        [ItemCatalog.HatCap] = Hat(5),
     };
 
     /// <inheritdoc/>

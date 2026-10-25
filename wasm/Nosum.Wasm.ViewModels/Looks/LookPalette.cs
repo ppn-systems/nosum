@@ -91,10 +91,10 @@ public static class LookPalette
         switch (itemId)
         {
             case ItemCatalog.HatStraw:
-                sprite = new ClothingSprite(8, White);
+                sprite = new ClothingSprite(3, White);
                 return true;
             case ItemCatalog.HatCap:
-                sprite = new ClothingSprite(26, White);
+                sprite = new ClothingSprite(5, White);
                 return true;
             default:
                 sprite = default;
