@@ -434,21 +434,24 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
 
         await nodes.AdvanceDayAsync(days.Today + 1, false);
 
-        NodeChanged grew = await player.NodeChanges.WaitAsync(c => c.Upserted.Count > 0, host.Timeout);
-        grew.Upserted.Should().HaveCountGreaterThan(0).And.HaveCountLessThanOrEqualTo(NodeLimits.RegrowPerDay + NodeLimits.ForagePerDay);
-        grew.Upserted.Should().OnlyContain(n => n.Kind == (byte)NodeKind.Weed || n.Kind == (byte)NodeKind.Stone || n.Kind == (byte)NodeKind.Twig || n.Kind == (byte)NodeKind.Forage);
-        grew.Upserted.Count(n => n.Kind != (byte)NodeKind.Forage).Should().BeLessThanOrEqualTo(NodeLimits.RegrowPerDay);
-        int count = grew.Upserted.Count;
-        await using (NosumDbContext db = new(_database.Options))
-        {
-            (await db.WorldNodes.CountAsync(n => n.MapId == GameMaps.Forest && n.OwnerId == Guid.Empty)).Should().Be(count);
-        }
+        // A regrowth touches several chunks and leaves as one packet per chunk to the players who can see it (docs/adr/ADR-022 D4): the player gets the nodes in
+        // sight, added up over the packets, and not the ones far away.
+        ChunkCoord home = ChunkCoord.OfPixels(forest.SpawnX, forest.SpawnY, forest.Grid.TileSize);
+        List<WorldNode> grown = await ForestNodesAsync();
+        grown.Count.Should().BeInRange(1, NodeLimits.RegrowPerDay + NodeLimits.ForagePerDay);
+        List<WorldNode> inSight = [.. grown.Where(n => ChunkCoord.OfTile(n.TileX, n.TileY).DistanceTo(home) <= 1)];
+        List<NodeRow> grew = await CollectUpsertsAsync(player.NodeChanges, inSight.Count, host.Timeout);
+        grew.Should().OnlyContain(n => n.Kind == (byte)NodeKind.Weed || n.Kind == (byte)NodeKind.Stone || n.Kind == (byte)NodeKind.Twig || n.Kind == (byte)NodeKind.Forage);
+        grew.Select(n => n.Id).Should().BeEquivalentTo(inSight.Select(n => n.Id));
 
         await nodes.AdvanceDayAsync(days.Today + 1, false);
         await player.NodeChanges.ExpectNothingAsync(TimeSpan.FromMilliseconds(500));
         await nodes.AdvanceDayAsync(days.Today + 2, false);
-        NodeChanged more = await player.NodeChanges.WaitAsync(c => c.Upserted.Count > 0, host.Timeout);
-        more.Upserted.Count.Should().BeLessThanOrEqualTo(NodeLimits.RegrowPerDay + NodeLimits.ForagePerDay);
+        List<WorldNode> all = await ForestNodesAsync();
+        (all.Count - grown.Count).Should().BeInRange(1, NodeLimits.RegrowPerDay + NodeLimits.ForagePerDay);
+        HashSet<int> before = [.. grown.Select(n => n.Id)];
+        int newInSight = all.Count(n => !before.Contains(n.Id) && ChunkCoord.OfTile(n.TileX, n.TileY).DistanceTo(home) <= 1);
+        _ = await CollectUpsertsAsync(player.NodeChanges, newInSight, host.Timeout);
         (await player.GetNodesAsync(host.Timeout)).Nodes.Select(n => (n.X, n.Y)).Should().OnlyHaveUniqueItems();
     }
 
@@ -468,19 +471,17 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
 
         await nodes.AdvanceDayAsync(day, false);
 
-        NodeChanged grew = await player.NodeChanges.WaitAsync(c => c.Upserted.Any(n => n.Kind == (byte)NodeKind.Forage), host.Timeout);
-        List<NodeRow> forage = [.. grew.Upserted.Where(n => n.Kind == (byte)NodeKind.Forage)];
+        // Forage is stored for the whole map; the player is sent only what lies in the chunks around them (docs/adr/ADR-022).
+        List<WorldNode> forage = [.. (await ForestNodesAsync()).Where(n => n.Kind == (short)NodeKind.Forage)];
         forage.Should().HaveCountGreaterThan(0).And.HaveCountLessThanOrEqualTo(NodeLimits.ForagePerDay);
         Season season = ForageCatalog.SeasonOfDay(day);
-        forage.Should().OnlyContain(n => ForageCatalog.IsInSeason(n.Variant, season), "only what grows in the season of the day");
-        forage.Select(n => (n.X, n.Y)).Should().OnlyHaveUniqueItems();
-        await using (NosumDbContext db = new(_database.Options))
-        {
-            (await db.WorldNodes.CountAsync(n => n.MapId == GameMaps.Forest && n.OwnerId == Guid.Empty && n.Kind == (short)NodeKind.Forage)).Should().Be(forage.Count);
-        }
+        forage.Should().OnlyContain(n => ForageCatalog.IsInSeason((byte)n.Variant, season), "only what grows in the season of the day");
+        forage.Select(n => (n.TileX, n.TileY)).Should().OnlyHaveUniqueItems();
+        ChunkCoord home = ChunkCoord.OfPixels(forest.SpawnX, forest.SpawnY, forest.Grid.TileSize);
+        int inSight = forage.Count(n => ChunkCoord.OfTile(n.TileX, n.TileY).DistanceTo(home) <= 1);
 
         // Forage never blocks walking, and a private farm gets none.
-        (await player.GetNodesAsync(host.Timeout)).Nodes.Where(n => n.Kind == (byte)NodeKind.Forage).Should().HaveCount(forage.Count);
+        (await player.GetNodesAsync(host.Timeout)).Nodes.Where(n => n.Kind == (byte)NodeKind.Forage).Should().HaveCount(inSight);
         await using ToolClient farmer = await host.ConnectAsync();
         _ = await SeededJoinAsync(host, farmer, []);
         await nodes.AdvanceDayAsync(day + 1, true);
@@ -549,6 +550,25 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
     {
         (int X, int Y)[] free = host.FreeTilesNear(mapId);
         return ([.. free.Take(count).Select(t => t.X)], [.. free.Take(count).Select(t => t.Y)]);
+    }
+
+    private async Task<List<WorldNode>> ForestNodesAsync()
+    {
+        await using NosumDbContext db = new(_database.Options);
+        return await db.WorldNodes.Where(n => n.MapId == GameMaps.Forest && n.OwnerId == Guid.Empty).ToListAsync();
+    }
+
+    // Reads pushed node changes until this many upserted nodes arrived.
+    private static async Task<List<NodeRow>> CollectUpsertsAsync(Inbox<NodeChanged> changes, int expected, CancellationToken ct)
+    {
+        List<NodeRow> rows = [];
+        while (rows.Count < expected)
+        {
+            rows.AddRange((await changes.WaitAsync(c => c.Upserted.Count > 0, ct)).Upserted);
+        }
+
+        rows.Should().HaveCount(expected);
+        return rows;
     }
 
     private static int SlotOf(int itemId) => Array.FindIndex(StarterKit.Items, i => i.ItemId == itemId);

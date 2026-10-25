@@ -138,6 +138,43 @@ public sealed class InventoryGrid
         return InventoryVerdict.Ok;
     }
 
+    /// <summary>Adds items to one named slot: it must be empty or hold the same item with room for them all.</summary>
+    /// <param name="slot">Slot number.</param>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="quantity">How many; all of them are added or none.</param>
+    /// <returns><see cref="InventoryVerdict.Ok"/> or the reason nothing was added.</returns>
+    public InventoryVerdict AddToSlot(int slot, int itemId, int quantity)
+    {
+        if ((uint)slot >= (uint)_slots.Length)
+        {
+            return InventoryVerdict.InvalidSlot;
+        }
+
+        if (quantity <= 0)
+        {
+            return InventoryVerdict.InvalidQuantity;
+        }
+
+        if (!ItemCatalog.TryGet(itemId, out ItemDefinition? item))
+        {
+            return InventoryVerdict.UnknownItem;
+        }
+
+        ItemSlot stack = _slots[slot];
+        if (!stack.IsEmpty && stack.ItemId != itemId)
+        {
+            return InventoryVerdict.Blocked;
+        }
+
+        if ((stack.IsEmpty ? 0 : stack.Quantity) + quantity > item.MaxStack)
+        {
+            return InventoryVerdict.NoSpace;
+        }
+
+        _ = this.Fill(slot, itemId, item.MaxStack, quantity);
+        return InventoryVerdict.Ok;
+    }
+
     /// <summary>Removes items from any slots, highest slot first so the hotbar keeps its stacks longest.</summary>
     /// <param name="itemId">Item id.</param>
     /// <param name="quantity">How many; all of them are removed or none.</param>

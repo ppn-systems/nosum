@@ -31,6 +31,7 @@ one `GameSocket` and one `PlayerChannel`. `Game/MapScene` predicts the local far
 to `PlayerChannel.Report` (no await, no allocation), snaps back on a `MoveCorrection`, and adds the
 other farmers (`Game/RemotePlayers`: a `SnapshotBuffer` from `Nosum.Core.Interpolation`, drawn 200 ms
 in the past) to the same `WorldSpriteBatch` so they y-sort with the local farmer and the buildings.
+The server sends a snapshot only of the players in the local player's chunk interest set, a `LookChanged` when one comes into sight and a `PlayerLeft` when one goes ([ADR-022](../docs/adr/ADR-022-chunked-interest-management.md)); `RemotePlayers` and `NearbyPlayers` follow snapshots, `LookChannel` forgets a look on `PlayerLeft`, and `FarmChannel`/`PlaceableChannel` file their mirrors by chunk (`ChunkState` replaces a chunk, `ChunkLeft` drops it).
 Without a server the farm still plays offline. Remote farmers are drawn from the looks the server sent (`LookChannel`, resolved by `Game/LookSprites` and `LookPalette`; ADR-014). `ConnectionBadge` shows the connection state in the current language.
 
 Playable now: `Pages/Home.razor` starts `Game/GameLoop`, which waits (up to 10 s) for the server's join answer, loads
@@ -64,7 +65,7 @@ a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
 Resource nodes ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): `NodeChannel` (in `Nosum.Wasm.Socket/Node`) mirrors the trees, stones, twigs, weeds and grass of the player's current place
-(`GetNodes` after every join or map change, then `NodeChanged` pushes; it notes when a node lost a hit so the scene can shake it) and the water left in the watering can (`ToolState`).
+(`GetNodes` after every join or map change, then `NodeChanged` pushes and the `ChunkState` / `ChunkLeft` of ADR-022 D6: a chunk's nodes are replaced when it enters the interest set and dropped when it leaves; it notes when a node lost a hit so the scene can shake it) and the water left in the watering can (`ToolState`).
 `Game/NodeDecorator` draws them as depth-sorted world sprites from the one table in `Game/NodeSprites` (a grown tree is two sprites, canopy and trunk, so the farmer walks behind it and in front of it);
 `MapScene` adds the blocking ones to the grid the farmer walks on (same `NodeField.BuildGrid` as the server). Using a tool is still the one `UseItem` intent: the server decides what a swing does.
 The can's water is a meter on its slot (`SlotDisplay.Meter`). The farmer has no swing animation: the layered shirt, hair and hat sheets have no tool-use frames to match the body's.
@@ -80,7 +81,7 @@ move it (again to cancel), `Q` puts it back in the bag. `PlacementViewModel` rel
 styled only through their shared CSS classes). Refusals reach the message line as `Place_Status_*` text.
 
 Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): `GroundItemChannel` (`Nosum.Wasm.Socket/GroundItem`) mirrors the items lying in the player's current place (loaded after every join or map change)
-from `GroundItemSpawned` / `GroundItemTaken` pushes; a pickup also leaves a short `FlyingItem` toward where the taker stood. There is nothing to send: the server picks items up when the player walks near.
+from `GroundItemSpawned` / `GroundItemTaken` pushes and the `ChunkState` / `ChunkLeft` of ADR-022 D6 (a chunk's items are replaced when it enters the interest set and dropped when it leaves); a pickup also leaves a short `FlyingItem` toward where the taker stood. There is nothing to send: the server picks items up when the player walks near.
 `Game/GroundItemsDecorator` draws them as y-sorted `WorldSpriteBatch` sprites with a bob, a hop on arrival and the flight, cut from the objects sheet by `ItemIcons.TryGetGroundCell` (items pictured on other sheets are not drawn yet);
 it reads the mirror under its lock and allocates nothing. No UI panel.
 
@@ -111,3 +112,8 @@ the registration and upgrade form asks for a nickname (`GameField`). `NicknameFo
 dotnet build wasm/Nosum.Wasm.slnx
 dotnet run --project wasm/Nosum.Wasm
 ```
+
+Crafting, chests and furnaces ([ADR-024](../docs/adr/ADR-024-crafting-and-outdoor-placeables.md)): `CraftingChannel` (recipe book + craft), `ChestChannel` (the one open chest: contents on open, whole-slot pushes after, close) and
+`FurnaceChannel` (jobs with the server's remaining time counted down on the client clock) mirror the server; `CraftingViewModel`, `ChestViewModel` and `FurnaceViewModel` follow them. The pages are menu pages
+(`CraftingPanel` is a tab; `ChestPanel` and `FurnacePanel` replace the Shop-style extra tab while open). The action key facing a chest or furnace piece opens it (`PlayerActions`, using the placed set), the walk grid on the farm is the nodes' grid joined with the placed
+footprints like the server's `InstanceWorld`, and `PlacedObjectsDecorator` draws each piece from its own sheet (`PlaceableDefinition.Sheet`: furniture, Craftables, springobjects). Shift-click in an `ItemGrid` is `OnSlotShiftClick`.

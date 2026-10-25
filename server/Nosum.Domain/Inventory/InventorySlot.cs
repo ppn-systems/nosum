@@ -10,7 +10,7 @@ namespace Nosum.Domain.Inventory;
 /// </summary>
 public sealed class InventorySlot
 {
-    /// <summary>Gets or sets the owning player.</summary>
+    /// <summary>Gets or sets the owner of the inventory this slot is in: a player, or a container such as a chest.</summary>
     public Guid PlayerId { get; set; }
 
     /// <summary>Gets or sets the slot number, zero based.</summary>

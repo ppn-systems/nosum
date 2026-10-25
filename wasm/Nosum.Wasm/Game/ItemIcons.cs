@@ -16,6 +16,7 @@ internal sealed class ItemIcons : IItemIconSource
     private const string ToolsSheet = "assets/TileSheets/tools.png";
     private const string WeaponsSheet = "assets/TileSheets/weapons.png";
     private const string FurnitureSheet = "assets/TileSheets/furniture.png";
+    private const string CraftablesSheet = "assets/TileSheets/Craftables.png";
     private const int Cell = 16;
 
     private static readonly Dictionary<int, ItemIcon> s_icons = Build();
@@ -37,6 +38,18 @@ internal sealed class ItemIcons : IItemIconSource
             [ItemCatalog.Fiber] = ObjectId(771),
             [ItemCatalog.Coal] = ObjectId(382),
             [ItemCatalog.CopperOre] = ObjectId(378),
+            [ItemCatalog.IronOre] = ObjectId(380),
+            [ItemCatalog.CopperBar] = ObjectId(334),
+            [ItemCatalog.IronBar] = ObjectId(335),
+            [ItemCatalog.Chest] = Craftable(32, 528),
+            [ItemCatalog.Scarecrow] = Craftable(0, 32),
+            [ItemCatalog.Furnace] = Craftable(80, 40),
+            [ItemCatalog.WoodFence] = ObjectId(322),
+            [ItemCatalog.StonePath] = ObjectId(407),
+            [ItemCatalog.Sprinkler] = ObjectId(599),
+            [ItemCatalog.Salad] = ObjectId(196),
+            [ItemCatalog.BakedPotato] = ObjectId(208),
+            [ItemCatalog.PumpkinSoup] = ObjectId(236),
             [ItemCatalog.OakChair] = Furniture(0, 16),
             [ItemCatalog.BlueArmchair] = Furniture(8, 160),
             [ItemCatalog.BlueCouch] = Furniture(16, 216),
@@ -115,4 +128,7 @@ internal sealed class ItemIcons : IItemIconSource
 
     // furniture.png is 512 x 1488; a furniture icon is a 16 px crop of the piece (placeholder art, docs/adr/ADR-007).
     private static ItemIcon Furniture(int x, int y) => new(FurnitureSheet, x, y, Cell, 512, 1488);
+
+    // Craftables.png is 128 x 1472 (8 columns of 16 x 32 cells); an icon is a 16 px square of the cell, cut where the object reads best (chest: the body, scarecrow: the head, furnace: the middle).
+    private static ItemIcon Craftable(int x, int y) => new(CraftablesSheet, x, y, Cell, 128, 1472);
 }

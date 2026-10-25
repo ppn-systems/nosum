@@ -12,11 +12,13 @@ using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
+using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Node.S2C;
+using Nosum.Contracts.World.S2C;
 using Nosum.Domain.Nodes;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
@@ -37,10 +39,13 @@ namespace Nosum.Infrastructure.Nodes;
 /// One lock per instance serializes every change, so two players hitting the same stone at once break it once. A breaking node's yield leaves through
 /// <see cref="INodeYieldSink"/> in the same transaction as the node's change. The nodes that block walking are part of the grid
 /// <see cref="GridFor"/> returns, so server validation and client prediction agree.
+/// A change is published to the subscribers of the chunk it happened in, and a chunk's nodes are sent once when it joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
-public sealed class ResourceNodeService : IResourceNodeService
+public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContributor, INodeTiles
 {
     private readonly IMapPresence _presence;
+    private readonly IChunkMap _chunks;
+    private readonly IChunkPublisher _publisher;
     private readonly IMapCatalog _maps;
     private readonly IInventoryService _inventory;
     private readonly INodeYieldSink _yields;
@@ -49,11 +54,14 @@ public sealed class ResourceNodeService : IResourceNodeService
     private readonly IGameDayClock _days;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
+    private readonly IPlacedLookup? _placed;
     private readonly ConcurrentDictionary<string, Task<InstanceNodes>> _instances = new(StringComparer.Ordinal);
     private readonly StripedAsyncLock _locks = new(32);
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands where; every action uses the server's own record of the player.</param>
+    /// <param name="chunks">Who is interested in which chunk; a snapshot reply holds only the nodes in the player's interest set.</param>
+    /// <param name="publisher">Delivers a node change to the players who can see its chunk.</param>
     /// <param name="maps">The hosted maps and their node markers.</param>
     /// <param name="inventory">Planting a tree seed takes the seed from it.</param>
     /// <param name="yields">Where a breaking node's yield goes.</param>
@@ -62,9 +70,12 @@ public sealed class ResourceNodeService : IResourceNodeService
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">Clock for the audit timestamps.</param>
     /// <param name="progress">Every swing at a node spends energy and earns experience through it (docs/adr/ADR-023).</param>
-    public ResourceNodeService(IMapPresence presence, IMapCatalog maps, IInventoryService inventory, INodeYieldSink yields, IToolState tools, IGameDayClock days, IUnitOfWorkFactory unitOfWork, TimeProvider time, IPlayerProgress progress)
+    /// <param name="placed">What players placed on the ground (docs/adr/ADR-024); a tree is never planted, and debris never regrows, under a placed piece. <see langword="null"/> when nothing can be placed.</param>
+    public ResourceNodeService(IMapPresence presence, IChunkMap chunks, IChunkPublisher publisher, IMapCatalog maps, IInventoryService inventory, INodeYieldSink yields, IToolState tools, IGameDayClock days, IUnitOfWorkFactory unitOfWork, TimeProvider time, IPlayerProgress progress, IPlacedLookup? placed = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(chunks);
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(yields);
@@ -75,6 +86,8 @@ public sealed class ResourceNodeService : IResourceNodeService
         ArgumentNullException.ThrowIfNull(progress);
 
         _presence = presence;
+        _chunks = chunks;
+        _publisher = publisher;
         _maps = maps;
         _inventory = inventory;
         _yields = yields;
@@ -83,6 +96,7 @@ public sealed class ResourceNodeService : IResourceNodeService
         _unitOfWork = unitOfWork;
         _time = time;
         _progress = progress;
+        _placed = placed;
     }
 
     /// <inheritdoc/>
@@ -123,7 +137,40 @@ public sealed class ResourceNodeService : IResourceNodeService
         InstanceNodes state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
         using (await _locks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
-            return new NodeSnapshotView(map.Id, water, NodeLimits.WateringCanCapacity, [.. state.Field.All]);
+            // Only what the player can see: the nodes of the chunks in their interest set (all of them before the player has one).
+            List<ResourceNode> visible = new(state.Field.Count);
+            foreach (ResourceNode node in state.Field.All)
+            {
+                if (player.Viewer is null || _chunks.IsInterested(player, ChunkCoord.OfTile(node.X, node.Y)))
+                {
+                    visible.Add(node);
+                }
+            }
+
+            return new NodeSnapshotView(map.Id, water, NodeLimits.WateringCanCapacity, visible);
+        }
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask FillAsync(MapInstance instance, ChunkCoord chunk, ChunkState state, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || !map.HasNodes)
+        {
+            return;
+        }
+
+        InstanceNodes nodes = await this.StateOfAsync(instance, map, cancellationToken).ConfigureAwait(false);
+        List<ResourceNode> inChunk = [];
+        using (await _locks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            nodes.Field.CopyChunk(chunk.X, chunk.Y, inChunk);
+        }
+
+        foreach (ResourceNode node in inChunk)
+        {
+            state.Nodes.Add(ToRow(node));
         }
     }
 
@@ -322,7 +369,7 @@ public sealed class ResourceNodeService : IResourceNodeService
         {
             _ = state.Field.Remove(node.Id);
             state.Rebuild();
-            await this.PublishAsync(player.Instance, [], [node.Id], cancellationToken).ConfigureAwait(false);
+            await this.PublishAsync(player.Instance, [], [node], cancellationToken).ConfigureAwait(false);
         }
 
         return new FarmUseOutcome(FarmStatus.Ok, FarmAction.Broke);
@@ -331,18 +378,8 @@ public sealed class ResourceNodeService : IResourceNodeService
     // Picking forage up, under the instance lock: the item drops where the node stands like any node yield, and the node is gone.
     private async Task<FarmUseOutcome> PickForageAsync(PlayerPresence player, InstanceNodes state, ResourceNode node, CancellationToken cancellationToken)
     {
-        FarmUseOutcome outcome = await this.HitAsync(player, state, node, ToolKind.None, cancellationToken).ConfigureAwait(false);
-        if (outcome.Status == FarmStatus.Ok)
-        {
-            this.OnForaged(player, node);
-        }
-
-        return outcome;
-    }
-
-    // The one place a foraging skill hears of a pick-up. ADR-023 (skills and XP) is built in parallel: when its XP service exists, grant foraging XP here.
-    private void OnForaged(PlayerPresence player, in ResourceNode node)
-    {
+        // Breaking a node charges its skill's experience in the same transaction (docs/adr/ADR-023): forage is a foraging node, and a hand costs no energy.
+        return await this.HitAsync(player, state, node, ToolKind.None, cancellationToken).ConfigureAwait(false);
     }
 
     // Planting a tree seed, under the instance lock: free, walkable, unreserved ground that no player stands on; the seed and the new node commit together.
@@ -354,6 +391,7 @@ public sealed class ResourceNodeService : IResourceNodeService
         if (request.TileWorked
             || grid.IsBlocked(request.TileX, request.TileY)
             || map.ReservedTiles.Contains((request.TileX, request.TileY))
+            || _placed?.IsCovered(player.Instance, request.TileX, request.TileY) == true
             || state.Field.Count >= NodeLimits.MaxPerInstance)
         {
             return Refused(FarmStatus.Blocked);
@@ -402,6 +440,7 @@ public sealed class ResourceNodeService : IResourceNodeService
     {
         List<ResourceNode> changed = [];
         List<int> staleIds = [];
+        List<ResourceNode> stale = [];
         using (await _locks.EnterAsync(state.Instance.Key, cancellationToken).ConfigureAwait(false))
         {
             if (day <= state.LastDay)
@@ -420,6 +459,11 @@ public sealed class ResourceNodeService : IResourceNodeService
             }
 
             HashSet<(int X, int Y)> occupied = this.OccupiedTiles(state);
+            if (_placed is not null)
+            {
+                occupied.UnionWith(_placed.CoveredTiles(state.Instance));
+            }
+
             List<NodePlacement> placements = NodePlacements.Regrowth(state.Map.NodeSites, state.Field, state.Map.Grid, state.Map.ReservedTiles, occupied, NodeRandom.Mix(state.Seed, day, 2), state.Instance.IsPrivate, seasonChanged);
 
             // Forage (docs/adr/ADR-025 D4): public places only. What is left of another season is taken away, then a few of this season's items appear.
@@ -441,6 +485,7 @@ public sealed class ResourceNodeService : IResourceNodeService
                     else
                     {
                         staleIds.Add(node.Id);
+                        stale.Add(node);
                     }
                 }
 
@@ -509,8 +554,35 @@ public sealed class ResourceNodeService : IResourceNodeService
 
         if (publish && (changed.Count > 0 || staleIds.Count > 0))
         {
-            await this.PublishAsync(state.Instance, changed, staleIds, cancellationToken).ConfigureAwait(false);
+            await this.PublishAsync(state.Instance, changed, stale, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlySet<(int X, int Y)>> NodeTilesAsync(MapInstance instance, int tileX, int tileY, int width, int height, CancellationToken cancellationToken = default)
+    {
+        HashSet<(int X, int Y)> found = [];
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || !map.HasNodes)
+        {
+            return found;
+        }
+
+        InstanceNodes state = await this.StateOfAsync(instance, map, cancellationToken).ConfigureAwait(false);
+        using (await _locks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            for (int y = tileY; y < tileY + height; y++)
+            {
+                for (int x = tileX; x < tileX + width; x++)
+                {
+                    if (state.Field.HasNodeAt(x, y))
+                    {
+                        _ = found.Add((x, y));
+                    }
+                }
+            }
+        }
+
+        return found;
     }
 
     private HashSet<(int X, int Y)> OccupiedTiles(InstanceNodes state)
@@ -597,25 +669,51 @@ public sealed class ResourceNodeService : IResourceNodeService
         return state;
     }
 
-    private async ValueTask PublishAsync(MapInstance instance, IReadOnlyList<ResourceNode> upserted, IReadOnlyList<int> removed, CancellationToken cancellationToken)
+    // The one place nodes leave for the players: each node change goes to the subscribers of the chunk the node stands in (docs/adr/ADR-022 D4).
+    private async ValueTask PublishAsync(MapInstance instance, IReadOnlyList<ResourceNode> upserted, IReadOnlyList<ResourceNode> removed, CancellationToken cancellationToken)
     {
-        // The one place nodes leave for the players: an instance-wide multicast today (docs/adr/ADR-022 D4 moves it to the chunk's subscribers).
-        using PacketScope<NodeChanged> lease = PacketFactory<NodeChanged>.Acquire();
-        NodeChanged packet = lease.Value;
-        packet.MapId = instance.MapId;
-        packet.Upserted.Clear();
-        packet.Removed.Clear();
+        Dictionary<ChunkCoord, (List<ResourceNode> Upserted, List<int> Removed)> byChunk = [];
         foreach (ResourceNode node in upserted)
         {
-            packet.Upserted.Add(ToRow(node));
+            Bucket(byChunk, node).Upserted.Add(node);
         }
 
-        foreach (int id in removed)
+        foreach (ResourceNode node in removed)
         {
-            packet.Removed.Add(id);
+            Bucket(byChunk, node).Removed.Add(node.Id);
         }
 
-        await _presence.MulticastAsync(instance.Key, packet, null, cancellationToken).ConfigureAwait(false);
+        foreach (KeyValuePair<ChunkCoord, (List<ResourceNode> Upserted, List<int> Removed)> chunk in byChunk)
+        {
+            using PacketScope<NodeChanged> lease = PacketFactory<NodeChanged>.Acquire();
+            NodeChanged packet = lease.Value;
+            packet.MapId = instance.MapId;
+            packet.Upserted.Clear();
+            packet.Removed.Clear();
+            foreach (ResourceNode node in chunk.Value.Upserted)
+            {
+                packet.Upserted.Add(ToRow(node));
+            }
+
+            foreach (int id in chunk.Value.Removed)
+            {
+                packet.Removed.Add(id);
+            }
+
+            await _publisher.PublishAsync(instance, chunk.Key, packet, null, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static (List<ResourceNode> Upserted, List<int> Removed) Bucket(Dictionary<ChunkCoord, (List<ResourceNode> Upserted, List<int> Removed)> byChunk, ResourceNode node)
+    {
+        ChunkCoord chunk = ChunkCoord.OfTile(node.X, node.Y);
+        if (!byChunk.TryGetValue(chunk, out (List<ResourceNode> Upserted, List<int> Removed) bucket))
+        {
+            bucket = ([], []);
+            byChunk[chunk] = bucket;
+        }
+
+        return bucket;
     }
 
     private static string NodeKeyOf(NodeKind kind) => NodeCatalog.TryGet(kind, out NodeDefinition? definition) ? definition.Key : "unknown";

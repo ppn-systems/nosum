@@ -12,7 +12,10 @@ using Nosum.Gameplay.Maps;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket;
+using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Coop;
+using Nosum.Wasm.Socket.Crafting;
+using Nosum.Wasm.Socket.Furnace;
 using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
@@ -29,7 +32,10 @@ using Nosum.Wasm.Socket.Trade;
 using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.ViewModels.Chest;
 using Nosum.Wasm.ViewModels.Coop;
+using Nosum.Wasm.ViewModels.Crafting;
+using Nosum.Wasm.ViewModels.Furnace;
 using Nosum.Wasm.ViewModels.Visit;
 using Nosum.Wasm.ViewModels.Feedback;
 using Nosum.Wasm.ViewModels.Help;
@@ -77,6 +83,9 @@ internal static class Program
         builder.Services.AddSingleton<InventoryChannel>();
         builder.Services.AddSingleton<FarmChannel>();
         builder.Services.AddSingleton<PlaceableChannel>();
+        builder.Services.AddSingleton<CraftingChannel>();
+        builder.Services.AddSingleton<ChestChannel>();
+        builder.Services.AddSingleton(sp => new FurnaceChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton<GroundItemChannel>();
         builder.Services.AddSingleton(sp => new ProgressChannel(sp.GetRequiredService<IGameSocket>()));
@@ -113,6 +122,9 @@ internal static class Program
         builder.Services.AddSingleton<WardrobeViewModel>();
         builder.Services.AddSingleton<TradeViewModel>();
         builder.Services.AddSingleton<CoopViewModel>();
+        builder.Services.AddSingleton<CraftingViewModel>();
+        builder.Services.AddSingleton<ChestViewModel>();
+        builder.Services.AddSingleton<FurnaceViewModel>();
         builder.Services.AddSingleton<VisitorsViewModel>();
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
@@ -148,6 +160,8 @@ internal static class Program
 #if NOSUM_DEV_TOOLS
         DevTools.Use(host.Services.GetRequiredService<DevChannel>());
 #endif
+        FurnaceChannel furnaces = host.Services.GetRequiredService<FurnaceChannel>();
+        GameLoop.UseContainers(host.Services.GetRequiredService<ChestChannel>(), furnaces);
         GameLoop.UsePlacement(placeable, host.Services.GetRequiredService<PlacementViewModel>());
 
         // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;
@@ -163,6 +177,7 @@ internal static class Program
         {
             farm.Load();
             placeable.Load();
+            furnaces.Load();
             nodes.Load();
             groundItems.Load();
         };
@@ -177,6 +192,8 @@ internal static class Program
         _ = host.Services.GetRequiredService<CalendarViewModel>();
         _ = host.Services.GetRequiredService<TradeViewModel>();
         _ = host.Services.GetRequiredService<CoopViewModel>();
+        _ = host.Services.GetRequiredService<ChestViewModel>();
+        _ = host.Services.GetRequiredService<FurnaceViewModel>();
         _ = host.Services.GetRequiredService<ConnectionStatusViewModel>();
         host.Services.GetRequiredService<IGameSocket>().Start();
 

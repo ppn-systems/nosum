@@ -9,6 +9,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Nodes;
 
 namespace Nosum.Abstractions.Nodes;
@@ -44,6 +45,20 @@ public interface IResourceNodeService : IInstanceWorld
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when every loaded instance was brought up to date.</returns>
     Task AdvanceDayAsync(long day, bool seasonChanged, CancellationToken cancellationToken = default);
+}
+
+/// <summary>The nodes of an instance, for layers that must keep off them (docs/adr/ADR-024 D3: nothing is placed on a tree, a stone or a weed).</summary>
+public interface INodeTiles
+{
+    /// <summary>Returns which tiles of a rectangle hold a resource node of any kind.</summary>
+    /// <param name="instance">The place.</param>
+    /// <param name="tileX">Left tile of the rectangle.</param>
+    /// <param name="tileY">Top tile of the rectangle.</param>
+    /// <param name="width">Width in tiles.</param>
+    /// <param name="height">Height in tiles.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The tiles inside the rectangle that hold a node; empty on a map without nodes.</returns>
+    Task<IReadOnlySet<(int X, int Y)>> NodeTilesAsync(MapInstance instance, int tileX, int tileY, int width, int height, CancellationToken cancellationToken = default);
 }
 
 /// <summary>One tool use handed to the node layer.</summary>

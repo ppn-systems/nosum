@@ -9,6 +9,8 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Placeable.S2C;
+using Nosum.Contracts.World.S2C;
+using Nosum.Gameplay.Maps;
 
 namespace Nosum.Wasm.Socket.Placeable;
 
@@ -21,7 +23,9 @@ namespace Nosum.Wasm.Socket.Placeable;
 public readonly record struct PlacedObjectInfo(int Id, int ItemId, int TileX, int TileY, int Rotation);
 
 /// <summary>
-/// The client's mirror of the objects placed in the player's current place, plus the three actions that change them. The server owns the
+/// The client's mirror of the objects placed in the player's current place, plus the three actions that change them. The server sends the objects of a chunk once, when the chunk
+/// joins the player's interest set (<see cref="ChunkState"/>), and then only changes in it; when the chunk leaves the set (<see cref="ChunkLeft"/>) its objects are dropped
+/// (docs/adr/ADR-022 D6). An object belongs to the chunk of its first tile. The server owns the
 /// objects: an action shows only once its <see cref="PlacedChanged"/> push arrives. The frame loop reads the mirror with <see cref="Read"/>
 /// and <see cref="Count"/> / <see cref="At"/> and never allocates or awaits; <see cref="Version"/> says when it changed, so the scene can rebuild its collision grid then.
 /// </summary>
@@ -40,7 +44,7 @@ public sealed class PlaceableChannel : IDisposable
     {
         ArgumentNullException.ThrowIfNull(socket);
         _socket = socket;
-        _subscriptions = [socket.Subscribe<PlacedChanged>(this.OnChanged)];
+        _subscriptions = [socket.Subscribe<PlacedChanged>(this.OnChanged), socket.Subscribe<ChunkState>(this.OnChunkState), socket.Subscribe<ChunkLeft>(this.OnChunkLeft)];
     }
 
     /// <summary>Raised when the server answered a place, move or pick-up request. May run on any thread.</summary>
@@ -76,7 +80,7 @@ public sealed class PlaceableChannel : IDisposable
     /// <returns>The object.</returns>
     public PlacedObjectInfo At(int index) => _items[index];
 
-    /// <summary>Loads the objects of the place the player is in. Call after joining a map.</summary>
+    /// <summary>Reads the objects of the chunks the player can see and replaces the mirror with them. Call after joining a map: it also names the map the mirror belongs to. Later chunks arrive as pushes.</summary>
     public void Load() => _ = this.LoadAsync();
 
     /// <summary>Asks the server to place the item in an inventory slot.</summary>
@@ -184,6 +188,48 @@ public sealed class PlaceableChannel : IDisposable
         catch (Exception)
         {
             // Connection dropped; nothing was applied.
+        }
+    }
+
+    private void OnChunkState(ChunkState packet)
+    {
+        lock (_gate)
+        {
+            // A chunk of another map (a late push after a map change, or one that beat the load of this map) is not ours; the load covers it.
+            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            ChunkCoord chunk = new(packet.ChunkX, packet.ChunkY);
+            _ = _items.RemoveAll(o => ChunkCoord.OfTile(o.TileX, o.TileY) == chunk);
+            foreach (PlacedObjectRow row in packet.Placed)
+            {
+                _items.Add(new PlacedObjectInfo(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation));
+            }
+
+            _ = Interlocked.Increment(ref _version);
+        }
+
+        this.Changed?.Invoke();
+    }
+
+    private void OnChunkLeft(ChunkLeft packet)
+    {
+        bool removed;
+        lock (_gate)
+        {
+            ChunkCoord chunk = new(packet.ChunkX, packet.ChunkY);
+            removed = string.Equals(packet.MapId, _mapId, StringComparison.Ordinal) && _items.RemoveAll(o => ChunkCoord.OfTile(o.TileX, o.TileY) == chunk) > 0;
+            if (removed)
+            {
+                _ = Interlocked.Increment(ref _version);
+            }
+        }
+
+        if (removed)
+        {
+            this.Changed?.Invoke();
         }
     }
 

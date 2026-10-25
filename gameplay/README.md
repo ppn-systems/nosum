@@ -23,10 +23,16 @@ exit needs walking outwards) and `WarpRule.Arrival` where they appear. `MapSpec.
 grid both sides use. Adding a map: add a `MapSpec` to `GameMaps`, link its `.tmx` and tilesheets in
 `wasm/Nosum.Wasm/Nosum.Wasm.csproj` and `server/Nosum.Host/Nosum.Host.csproj` (`GameMapsTests` checks). Hosted maps: `farm`, `farmhouse`, `busstop`, `forest`, `town`, `backwoods`.
 
+Chunks ([ADR-022](../docs/adr/ADR-022-chunked-interest-management.md)): `Maps/ChunkCoord` (16 × 16 tiles; tile or pixel to chunk, distance), `ChunkBounds` (the chunks a map has) and `ChunkInterest` (the set of chunks a player is
+interested in: their chunk and its 8 neighbours, with one chunk of hysteresis; `MoveTo` says which chunks entered and left). The server decides who sees what with them, the client uses the same math to file mirrors by chunk.
+
 Instances and placeables ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `MapSpec.IsPrivate` (farm, farmhouse) makes one copy of a map per player; `Maps/MapInstance` (map id + owner, `Key`) names a copy.
-`MapSpec.Placeable` (farmhouse) allows furniture. `Placeables/PlaceableCatalog` maps a furniture item (`ItemKind.Furniture`, ids 300-399) to a `PlaceableDefinition` (views per rotation, sheet rectangle,
-footprint); `PlacedSet` holds the pieces of one place and is the single rule set (`Check`: rotation, inside the map, free floor, off reserved tiles, no overlap; `CoversFeet`; `BuildGrid` for collision)
-that the server decides with and the client predicts with.
+`MapSpec.Placeable` (farmhouse, farm, co-op land) allows objects. `Placeables/PlaceableCatalog` maps a furniture item (`ItemKind.Furniture`, ids 300-399) or a crafted one (`ItemKind.Placeable`, ids 600-699) to a `PlaceableDefinition` (views per rotation, sheet rectangle,
+footprint, `PlaceableKind`, `BlocksWalking`); `PlacedSet` holds the pieces of one place and is the single rule set (`Check`: rotation, inside the map, free floor, off reserved tiles, no overlap; `CoversFeet`; `BuildGrid` for collision)
+that the server decides with and the client predicts with (`IGroundLayers` adds tilled soil and nodes outdoors).
+
+Crafting and crafted objects ([ADR-024](../docs/adr/ADR-024-crafting-and-outdoor-placeables.md)): `Crafting/RecipeCatalog` is the data (recipe id, output, inputs, `RecipeUnlock` = a `CraftSkill` and a level), `RecipeRules` the unlock and affordability checks. In `Placeables/`: `SprinklerRules` (the four orthogonal
+tiles; a pure function of the placed set, for the growth rule), `FurnaceRules` (5 ore + 1 coal, 30 game minutes from the calendar, `StateOf` from timestamps), `PlacedAccess` (who may open a chest or feed a furnace; reach), `ChestRules.Capacity` (36). `Inventory/ContainerIds` derives a chest's inventory owner id from its placed-object id.
 
 Visiting ([ADR-019](../docs/adr/ADR-019-visiting-private-instances.md)): `Visits/VisitRules` is the pure rule set for private places: `MayDo(instance, player, action)` (the owner does everything; a visitor only walks and waters; a shared map has no owner),
 `IsVisitor`, `MayEnter` (the owner, a listed player, or a co-op member while the owner's setting is on; never a guest's place) and the limits (`MaxListed` = 50, co-op members may visit by default). The server asks it in `FarmService`, `PlaceableService`, `MarketService` and `VisitAccess`.

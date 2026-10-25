@@ -16,6 +16,7 @@ using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.GroundItem;
 using Nosum.Contracts.GroundItem.S2C;
+using Nosum.Contracts.World.S2C;
 using Nosum.Domain.World;
 using Nosum.Gameplay.GroundItems;
 using Nosum.Gameplay.Items;
@@ -27,9 +28,10 @@ namespace Nosum.Infrastructure.GroundItems;
 /// <see cref="IGroundItems"/>: the items lying in every map instance (docs/adr/ADR-021 D5-D6). An instance's items are loaded once, kept in
 /// memory in 16 x 16 tile chunk buckets (docs/adr/ADR-022 D5) and written through to PostgreSQL. Picking up checks only the nine chunks
 /// around the player, claims the item in memory so two players cannot take it, and moves it into the inventory with one
-/// <see cref="ITransferService"/> transfer that deletes the row in the same transaction.
+/// <see cref="ITransferService"/> transfer that deletes the row in the same transaction. A spawn or pickup is published to the subscribers of the item's
+/// chunk, and a chunk's items are sent once when it joins a player's interest set (docs/adr/ADR-022 D4).
 /// </summary>
-public sealed class GroundItemService : IGroundItems
+public sealed class GroundItemService : IGroundItems, IChunkStateContributor
 {
     private const string PickupReason = "ground.pickup";
     private const int MaxPickupsPerMove = 8;
@@ -37,6 +39,8 @@ public sealed class GroundItemService : IGroundItems
     private const long BlockedRetryMs = 2_000;
 
     private readonly IMapPresence _presence;
+    private readonly IChunkMap _chunks;
+    private readonly IChunkPublisher _publisher;
     private readonly IMapCatalog _maps;
     private readonly ITransferService _transfers;
     private readonly IUnitOfWorkFactory _unitOfWork;
@@ -44,20 +48,26 @@ public sealed class GroundItemService : IGroundItems
     private readonly ConcurrentDictionary<string, Task<InstanceItems>> _instances = new(StringComparer.Ordinal);
 
     /// <summary>Initializes the service.</summary>
-    /// <param name="presence">Who stands where, and the multicast to an instance.</param>
+    /// <param name="presence">Who stands where.</param>
+    /// <param name="chunks">Who is interested in which chunk; a snapshot reply holds only the items in the player's interest set.</param>
+    /// <param name="publisher">Delivers a spawn or pickup to the players who can see its chunk.</param>
     /// <param name="maps">The hosted maps (size, tile size).</param>
     /// <param name="transfers">Moves a picked-up stack into the inventory atomically.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The server clock; tests pass a fake one.</param>
-    public GroundItemService(IMapPresence presence, IMapCatalog maps, ITransferService transfers, IUnitOfWorkFactory unitOfWork, TimeProvider time)
+    public GroundItemService(IMapPresence presence, IChunkMap chunks, IChunkPublisher publisher, IMapCatalog maps, ITransferService transfers, IUnitOfWorkFactory unitOfWork, TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(chunks);
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
 
         _presence = presence;
+        _chunks = chunks;
+        _publisher = publisher;
         _maps = maps;
         _transfers = transfers;
         _unitOfWork = unitOfWork;
@@ -185,7 +195,21 @@ public sealed class GroundItemService : IGroundItems
         }
 
         InstanceItems state = await this.StateOfAsync(player.Instance, cancellationToken).ConfigureAwait(false);
-        return new GroundItemsView(player.MapId, state.Snapshot());
+
+        // Only what the player can see: the items of the chunks in their interest set (all of them before the player has one).
+        return new GroundItemsView(player.MapId, player.Viewer is null ? state.Snapshot() : state.Snapshot(chunk => _chunks.IsInterested(player, chunk)));
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask FillAsync(MapInstance instance, ChunkCoord chunk, ChunkState state, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+
+        InstanceItems items = await this.StateOfAsync(instance, cancellationToken).ConfigureAwait(false);
+        foreach (GroundItemView item in items.InChunk(chunk))
+        {
+            state.GroundItems.Add(new GroundItemRow { Id = item.Id, ItemId = item.ItemId, Quantity = item.Quantity, X = (ushort)item.X, Y = (ushort)item.Y });
+        }
     }
 
     /// <inheritdoc/>
@@ -367,14 +391,9 @@ public sealed class GroundItemService : IGroundItems
         await this.PublishAsync(state.Instance, state.ChunkX(entry.X), state.ChunkY(entry.Y), packet, cancellationToken).ConfigureAwait(false);
     }
 
-    // The one place ground-item events leave the service. Today every player of the instance hears them; the chunk interest
-    // management of docs/adr/ADR-022 (D4) replaces the body with "the subscribers of this chunk".
+    // The one place ground-item events leave the service: the subscribers of the chunk the item lies in (docs/adr/ADR-022 D4).
     private ValueTask PublishAsync(MapInstance instance, int chunkX, int chunkY, IPacket packet, CancellationToken cancellationToken)
-    {
-        _ = chunkX;
-        _ = chunkY;
-        return _presence.MulticastAsync(instance.Key, packet, null, cancellationToken);
-    }
+        => _publisher.PublishAsync(instance, new ChunkCoord(chunkX, chunkY), packet, null, cancellationToken);
 
     // One ground item in memory. Claimed means a pickup or the sweeper is working on it: nobody else may touch it.
     private sealed class Entry
@@ -564,14 +583,40 @@ public sealed class GroundItemService : IGroundItems
             return due;
         }
 
-        public List<GroundItemView> Snapshot()
+        public List<GroundItemView> Snapshot(Func<ChunkCoord, bool>? wanted = null)
         {
             lock (_gate)
             {
                 List<GroundItemView> items = new(_byId.Count);
-                foreach (Entry entry in _byId.Values)
+                foreach (KeyValuePair<(int X, int Y), List<Entry>> bucket in _chunks)
                 {
-                    items.Add(new GroundItemView(entry.Id, entry.ItemId, entry.Quantity, entry.X, entry.Y));
+                    if (wanted is not null && !wanted(new ChunkCoord(bucket.Key.X, bucket.Key.Y)))
+                    {
+                        continue;
+                    }
+
+                    foreach (Entry entry in bucket.Value)
+                    {
+                        items.Add(new GroundItemView(entry.Id, entry.ItemId, entry.Quantity, entry.X, entry.Y));
+                    }
+                }
+
+                return items;
+            }
+        }
+
+        // The items of one chunk: O(the chunk), not O(the map).
+        public List<GroundItemView> InChunk(ChunkCoord chunk)
+        {
+            lock (_gate)
+            {
+                List<GroundItemView> items = [];
+                if (_chunks.TryGetValue((chunk.X, chunk.Y), out List<Entry>? bucket))
+                {
+                    foreach (Entry entry in bucket)
+                    {
+                        items.Add(new GroundItemView(entry.Id, entry.ItemId, entry.Quantity, entry.X, entry.Y));
+                    }
                 }
 
                 return items;
