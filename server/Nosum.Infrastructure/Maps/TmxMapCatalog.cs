@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Nosum.Abstractions.Maps;
 using Nosum.Core;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 
@@ -34,7 +35,8 @@ public sealed class TmxMapCatalog : IMapCatalog
             TileMap map = TmxReader.Parse(File.ReadAllText(Path.Combine(mapsDirectory, spec.TmxFile)));
             WalkGrid grid = spec.BuildWalkGrid(map);
             (double x, double y) = SpawnPoint.Find(grid, spec.SpawnTileX, spec.SpawnTileY);
-            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, spec.ResolveWarps(map)));
+            TillGrid? tillable = spec.Farmable ? TillGrid.FromMap(map, grid) : null;
+            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, spec.ResolveWarps(map), tillable));
         }
     }
 

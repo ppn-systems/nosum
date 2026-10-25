@@ -60,4 +60,13 @@ account and player handlers behind `PermissionMiddleware` / `RateLimitMiddleware
 listener. Account handlers that carry a password or token are `[PacketEncryption(true)]`: plaintext
 frames are refused, so a client must complete the handshake. Keep TLS at the proxy as well; pin
 `ServerPublicKey` on clients before production (ADR-009 D11). Guests idle for 30 days are deleted
-hourly (`GuestCleanupService`). No farm handlers yet.
+hourly (`GuestCleanupService`).
+
+Items, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)): `IInventoryService` (`Inventory/InventoryService`) is the one atomic,
+audited, per-player-serialized way to change items (`ApplyAsync` with optional `enlist` work in the same transaction; starter kit on first use; pushes
+`InventoryUpdate`). `IFarmService` (`Farm/FarmService`) validates `UseItem` (hotbar slot, tile, reach, tillable, held item) with `FarmRules`, changes the tile and the
+items in one transaction, multicasts `FarmTilesChanged` to the map group and reports to quests; tilled tiles (`farm_plots`) are cached per map and written
+through; only `MapSpec.Farmable` maps (the farm) accept it. `IQuestService` counts reported events, pushes `QuestUpdate` and raises `Completed`;
+`RegistrationPromptOnQuestCompleted` unlocks the guest registration invitation. `IPlayerNotifier` pushes to a player's active connection. Handlers:
+`InventoryHandlers`, `FarmHandlers`, `QuestHandlers` (`USER`, rate limited per address). `Program.BuildApplication(port, clock)` takes the clock crops grow by, so tests move time.
+Tables: `player_inventories`, `inventory_slots`, `inventory_log`, `farm_plots`, `player_quests` (migration `InventoryFarmQuests`).

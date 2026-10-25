@@ -1,0 +1,49 @@
+.quest-tracker {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    max-width: 19rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.4rem;
+    background: var(--nosum-panel-bg, #fffaf0);
+    color: var(--nosum-panel-fg, #3b2a14);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    font: 14px/1.4 sans-serif;
+    z-index: 10;
+}
+
+.quest-tracker h2 {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+}
+
+.quest-tracker ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.quest-tracker li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.quest-tracker li.done {
+    text-decoration: line-through;
+    opacity: 0.65;
+}
+
+.count {
+    font-variant-numeric: tabular-nums;
+}
+
+.hint {
+    margin: 0.4rem 0 0;
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
+.completed {
+    background: #e3f4c9;
+}

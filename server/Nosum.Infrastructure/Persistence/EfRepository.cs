@@ -1,9 +1,11 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Data;
 
@@ -23,6 +25,9 @@ internal sealed class EfRepository<TEntity> : IRepository<TEntity>
 
     public Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
         => _set.FirstOrDefaultAsync(predicate, cancellationToken);
+
+    public Task<List<TEntity>> ListAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+        => _set.Where(predicate).ToListAsync(cancellationToken);
 
     public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
         => _set.AnyAsync(predicate, cancellationToken);

@@ -20,6 +20,9 @@ public enum TileTraits : byte
 
     /// <summary>The tile explicitly forbids walking (<c>Passable</c> property false).</summary>
     Impassable = 4,
+
+    /// <summary>The tile can be tilled with a hoe (<c>Diggable</c> property true).</summary>
+    Diggable = 8,
 }
 
 /// <summary>
@@ -170,6 +173,10 @@ public sealed class TileProperties
             else if (string.Equals(pair.Key, "Passable", StringComparison.Ordinal))
             {
                 flags |= IsTrue(pair.Value) ? TileTraits.Passable : TileTraits.Impassable;
+            }
+            else if (string.Equals(pair.Key, "Diggable", StringComparison.Ordinal) && IsTrue(pair.Value))
+            {
+                flags |= TileTraits.Diggable;
             }
         }
 

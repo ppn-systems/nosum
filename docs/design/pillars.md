@@ -67,6 +67,12 @@ bus stop and forest are all public, so everyone on the same map sees each other)
 Every pillar is server-authoritative ([ADR-003](../adr/ADR-003-server-authoritative-websocket.md)):
 the client never decides a contribution, a trade or a goal outcome.
 
+## Settled so far (first farming slice, [ADR-011](../adr/ADR-011-inventory-farming-data-model.md))
+
+- Farming happens on the shared farm map: till with a hoe, plant a seed, water, wait, harvest into the inventory. Crops grow only while the soil is wet.
+- Every item change is one atomic, logged server transaction, the base the market, trades and the co-op warehouse will use.
+- The first quest (plant and harvest one crop) is the tutorial and invites a guest to register. Durations, starter items and inventory size (36) are defaults, not balance.
+
 ## Open questions
 
 - Whether a player may belong to more than one co-op.

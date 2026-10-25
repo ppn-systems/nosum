@@ -3,6 +3,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
+using Nosum.Domain.Farm;
+using Nosum.Domain.Inventory;
+using Nosum.Domain.Quests;
 
 namespace Nosum.Infrastructure.Persistence;
 
@@ -24,6 +27,21 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the issued session tokens.</summary>
     public DbSet<PlayerSessionToken> PlayerSessionTokens => this.Set<PlayerSessionToken>();
+
+    /// <summary>Gets the inventory headers.</summary>
+    public DbSet<PlayerInventory> PlayerInventories => this.Set<PlayerInventory>();
+
+    /// <summary>Gets the occupied inventory slots.</summary>
+    public DbSet<InventorySlot> InventorySlots => this.Set<InventorySlot>();
+
+    /// <summary>Gets the inventory audit trail.</summary>
+    public DbSet<InventoryLogEntry> InventoryLog => this.Set<InventoryLogEntry>();
+
+    /// <summary>Gets the tilled tiles of every map.</summary>
+    public DbSet<FarmPlot> FarmPlots => this.Set<FarmPlot>();
+
+    /// <summary>Gets the players' quests.</summary>
+    public DbSet<PlayerQuest> PlayerQuests => this.Set<PlayerQuest>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -6,4 +6,5 @@
   <assembly fullname="Nosum.Contracts" preserve="all" />
   <assembly fullname="Nosum.Wasm.Socket" preserve="all" />
   <assembly fullname="Nosum.Wasm.ViewModels" preserve="all" />
+  <assembly fullname="Nosum.Wasm.Controls" preserve="all" />
 </linker>

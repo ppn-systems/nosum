@@ -40,6 +40,7 @@ internal sealed class MapScene
     private readonly WorldSpriteBatch _world = new(256);
     private readonly PlayerChannel? _channel;
     private readonly RemotePlayers? _remote;
+    private readonly PlayerActions? _actions;
     private FixedTimestep _clock = new(StepSeconds, 0.25);
     private MapContent _content;
     private Walker _farmer;
@@ -58,8 +59,10 @@ internal sealed class MapScene
     /// <param name="look">The farmer's look.</param>
     /// <param name="start">Where to start: the preferred tile, or the place the server chose.</param>
     /// <param name="channel">Server connection for multiplayer, or <see langword="null"/> to play offline (no map changes).</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null)
+    /// <param name="actions">Number keys, the action key and the inventory key; <see langword="null"/> when there is no server to act on.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null)
     {
+        _actions = actions;
         ArgumentNullException.ThrowIfNull(loader);
         ArgumentNullException.ThrowIfNull(content);
 
@@ -97,10 +100,11 @@ internal sealed class MapScene
     /// </summary>
     /// <param name="frameSeconds">Wall time since the previous frame.</param>
     /// <param name="input">Held directions.</param>
+    /// <param name="edges">Keys pressed since the previous frame.</param>
     /// <param name="canvasWidth">Canvas width, CSS pixels.</param>
     /// <param name="canvasHeight">Canvas height, CSS pixels.</param>
     /// <param name="backend">Where the frame is drawn.</param>
-    public void Frame(double frameSeconds, InputState input, int canvasWidth, int canvasHeight, IRenderBackend backend)
+    public void Frame(double frameSeconds, InputState input, InputEdges edges, int canvasWidth, int canvasHeight, IRenderBackend backend)
     {
         this.ApplyServerAnswers();
         this.AdvanceFade(frameSeconds);
@@ -126,6 +130,9 @@ internal sealed class MapScene
             _walkTime = _farmer.IsMoving ? _walkTime + (steps * StepSeconds) : 0;
             _channel?.Report((float)_farmer.X, (float)_farmer.Y, (byte)_farmer.Facing, _farmer.IsMoving);
         }
+
+        // Keys act on the map shown, and not while a map change freezes the farmer.
+        _actions?.Update(_phase == Phase.FadingOut ? InputEdges.None : edges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable, _clockSeconds);
 
         int scale = ScaleFor(map, canvasWidth, canvasHeight);
         _camera.Follow(

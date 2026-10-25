@@ -155,6 +155,176 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_states", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Farm.FarmPlot", b =>
+                {
+                    b.Property<string>("MapId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_id");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer")
+                        .HasColumnName("x");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer")
+                        .HasColumnName("y");
+
+                    b.Property<int>("CropId")
+                        .HasColumnType("integer")
+                        .HasColumnName("crop_id");
+
+                    b.Property<long>("GrowthMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("growth_ms");
+
+                    b.Property<Guid?>("LastWorkedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_worked_by");
+
+                    b.Property<long>("PlantedAtMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("planted_at_ms");
+
+                    b.Property<long>("SettledAtMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("settled_at_ms");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<long>("WetUntilMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("wet_until_ms");
+
+                    b.HasKey("MapId", "X", "Y")
+                        .HasName("pk_farm_plots");
+
+                    b.ToTable("farm_plots", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Inventory.InventoryLogEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Delta")
+                        .HasColumnType("integer")
+                        .HasColumnName("delta");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("reason");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inventory_log");
+
+                    b.HasIndex("PlayerId", "OccurredAt")
+                        .HasDatabaseName("ix_inventory_log_player_id_occurred_at");
+
+                    b.ToTable("inventory_log", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Inventory.InventorySlot", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("integer")
+                        .HasColumnName("slot");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("PlayerId", "Slot")
+                        .HasName("pk_inventory_slots");
+
+                    b.ToTable("inventory_slots", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_inventory_slots_quantity", "quantity > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Inventory.PlayerInventory", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("integer")
+                        .HasColumnName("capacity");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("SelectedSlot")
+                        .HasColumnType("integer")
+                        .HasColumnName("selected_slot");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_player_inventories");
+
+                    b.ToTable("player_inventories", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Quests.PlayerQuest", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<int>("QuestId")
+                        .HasColumnType("integer")
+                        .HasColumnName("quest_id");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.PrimitiveCollection<int[]>("Progress")
+                        .IsRequired()
+                        .HasColumnType("integer[]")
+                        .HasColumnName("progress");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<short>("State")
+                        .HasColumnType("smallint")
+                        .HasColumnName("state");
+
+                    b.HasKey("PlayerId", "QuestId")
+                        .HasName("pk_player_quests");
+
+                    b.ToTable("player_quests", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Accounts.PlayerSessionToken", b =>
                 {
                     b.HasOne("Nosum.Domain.Accounts.Player", null)
@@ -173,6 +343,46 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_states_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Inventory.InventoryLogEntry", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_log_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Inventory.InventorySlot", b =>
+                {
+                    b.HasOne("Nosum.Domain.Inventory.PlayerInventory", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_slots_player_inventories_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Inventory.PlayerInventory", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_inventories_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Quests.PlayerQuest", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_quests_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Accounts.Player", b =>

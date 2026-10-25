@@ -1,0 +1,151 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Nosum.Abstractions.Data;
+using Nosum.Contracts.Inventory;
+
+namespace Nosum.Abstractions.Inventory;
+
+/// <summary>Joins another change to the transaction of an inventory change; return <see langword="false"/> to refuse and roll everything back.</summary>
+/// <param name="unit">The unit of work the inventory change is saved with.</param>
+/// <param name="cancellationToken">Cancels the work.</param>
+/// <returns>A task whose result says whether the combined change may be saved.</returns>
+public delegate Task<bool> InventoryEnlistment(IUnitOfWork unit, CancellationToken cancellationToken);
+
+/// <summary>
+/// The one way to change a player's items. Every feature that gives or takes items (farming,
+/// market, co-op warehouse, quests) calls it instead of touching inventory rows: changes are atomic
+/// (all operations apply or none), serialized per player, logged for audit, and pushed to the player.
+/// </summary>
+public interface IInventoryService
+{
+    /// <summary>Loads the inventory; a player who has none yet gets one with the starter kit.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The capacity, the held hotbar slot and the occupied slots.</returns>
+    Task<InventoryView> GetAsync(Guid playerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Applies operations all-or-nothing, writes one audit entry per item changed and pushes the changed
+    /// slots to the player. When <paramref name="enlist"/> is given it runs inside the same transaction
+    /// after the operations succeeded, so a feature can change its own data (a farm tile, a market
+    /// listing) and the items together.
+    /// </summary>
+    /// <param name="playerId">The player whose inventory changes.</param>
+    /// <param name="operations">What to add and remove, applied in order.</param>
+    /// <param name="reason">Stable code for the audit trail, for example <c>farm.harvest</c>; never display text.</param>
+    /// <param name="enlist">Extra work for the same transaction, or <see langword="null"/>.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status and the slots that changed; a refusal changes nothing.</returns>
+    Task<InventoryChange> ApplyAsync(
+        Guid playerId,
+        IReadOnlyList<InventoryOperation> operations,
+        string reason,
+        InventoryEnlistment? enlist = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Adds items (all of them or none).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="itemId">Item id from the catalogue.</param>
+    /// <param name="quantity">How many.</param>
+    /// <param name="reason">Stable audit code.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status and the changed slots.</returns>
+    Task<InventoryChange> AddAsync(Guid playerId, int itemId, int quantity, string reason, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes items (all of them or none).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="itemId">Item id from the catalogue.</param>
+    /// <param name="quantity">How many.</param>
+    /// <param name="reason">Stable audit code.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status and the changed slots.</returns>
+    Task<InventoryChange> RemoveAsync(Guid playerId, int itemId, int quantity, string reason, CancellationToken cancellationToken = default);
+
+    /// <summary>Moves a stack, or part of it: into an empty slot it moves, onto the same item it merges, onto another item the whole stacks swap.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="fromSlot">Source slot.</param>
+    /// <param name="toSlot">Target slot.</param>
+    /// <param name="quantity">How many to move; zero or less means the whole stack.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status and the changed slots.</returns>
+    Task<InventoryChange> MoveAsync(Guid playerId, int fromSlot, int toSlot, int quantity, CancellationToken cancellationToken = default);
+
+    /// <summary>Selects the hotbar slot the player holds.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="slot">Hotbar slot, zero to eight.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status and the slot held afterwards.</returns>
+    Task<(InventoryStatus Status, int SelectedSlot)> SelectSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default);
+
+    /// <summary>Reads one slot.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="slot">Slot number.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The slot; an empty slot has item id zero.</returns>
+    Task<InventorySlotView> PeekSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default);
+}
+
+/// <summary>One slot of an inventory.</summary>
+/// <param name="Slot">Slot number, zero based.</param>
+/// <param name="ItemId">Item id; zero for an empty slot.</param>
+/// <param name="Quantity">How many are stacked; zero for an empty slot.</param>
+public readonly record struct InventorySlotView(int Slot, int ItemId, int Quantity);
+
+/// <summary>A player's inventory as read.</summary>
+/// <param name="Capacity">Number of slots.</param>
+/// <param name="SelectedSlot">The hotbar slot held.</param>
+/// <param name="Slots">The occupied slots, ascending by slot number.</param>
+public sealed record InventoryView(int Capacity, int SelectedSlot, IReadOnlyList<InventorySlotView> Slots);
+
+/// <summary>Outcome of a change to an inventory.</summary>
+/// <param name="Status">Ok, or why nothing changed.</param>
+/// <param name="Changed">The slots that changed, in their new state; empty on a refusal.</param>
+public readonly record struct InventoryChange(InventoryStatus Status, IReadOnlyList<InventorySlotView> Changed)
+{
+    /// <summary>Gets whether the change was applied.</summary>
+    public bool IsOk => this.Status == InventoryStatus.Ok;
+}
+
+/// <summary>What kind of step an <see cref="InventoryOperation"/> is.</summary>
+public enum InventoryOperationKind
+{
+    /// <summary>Adds items to stacks and empty slots.</summary>
+    Add = 1,
+
+    /// <summary>Removes items from any slots.</summary>
+    Remove = 2,
+
+    /// <summary>Removes items from one named slot, which must hold that item.</summary>
+    RemoveFromSlot = 3,
+}
+
+/// <summary>One step of an atomic inventory change.</summary>
+/// <param name="Kind">The step.</param>
+/// <param name="ItemId">Item id.</param>
+/// <param name="Quantity">How many.</param>
+/// <param name="Slot">The slot, for <see cref="InventoryOperationKind.RemoveFromSlot"/>.</param>
+public readonly record struct InventoryOperation(InventoryOperationKind Kind, int ItemId, int Quantity, int Slot = -1)
+{
+    /// <summary>Creates a step that adds items.</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="quantity">How many.</param>
+    /// <returns>The step.</returns>
+    public static InventoryOperation Add(int itemId, int quantity) => new(InventoryOperationKind.Add, itemId, quantity);
+
+    /// <summary>Creates a step that removes items from anywhere.</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="quantity">How many.</param>
+    /// <returns>The step.</returns>
+    public static InventoryOperation Remove(int itemId, int quantity) => new(InventoryOperationKind.Remove, itemId, quantity);
+
+    /// <summary>Creates a step that removes items from one slot.</summary>
+    /// <param name="slot">The slot.</param>
+    /// <param name="itemId">The item the slot must hold.</param>
+    /// <param name="quantity">How many.</param>
+    /// <returns>The step.</returns>
+    public static InventoryOperation RemoveFromSlot(int slot, int itemId, int quantity) => new(InventoryOperationKind.RemoveFromSlot, itemId, quantity, slot);
+}

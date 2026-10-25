@@ -1,0 +1,13 @@
+.game-message {
+    position: fixed;
+    left: 50%;
+    bottom: 6.5rem;
+    transform: translateX(-50%);
+    padding: 0.3rem 0.8rem;
+    border-radius: 0.4rem;
+    background: rgba(40, 24, 8, 0.85);
+    color: #fff;
+    font: 14px/1.4 sans-serif;
+    pointer-events: none;
+    z-index: 10;
+}

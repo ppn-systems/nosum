@@ -24,6 +24,7 @@ public sealed class MapSpec
     /// <param name="props">Buildings and props; their footprints block walking.</param>
     /// <param name="openTiles">Tiles to make walkable again after the footprints block them (doorsteps in a building's footprint).</param>
     /// <param name="extraWarps">Exits the file does not list.</param>
+    /// <param name="farmable">Whether diggable ground on this map can be tilled and planted.</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -31,7 +32,8 @@ public sealed class MapSpec
         int spawnTileY,
         IReadOnlyList<PropPlacement>? props = null,
         IReadOnlyList<(int X, int Y)>? openTiles = null,
-        IReadOnlyList<MapWarp>? extraWarps = null)
+        IReadOnlyList<MapWarp>? extraWarps = null,
+        bool farmable = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
@@ -47,6 +49,7 @@ public sealed class MapSpec
         this.Props = props ?? [];
         this.OpenTiles = openTiles ?? [];
         this.ExtraWarps = extraWarps ?? [];
+        this.Farmable = farmable;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -69,6 +72,9 @@ public sealed class MapSpec
 
     /// <summary>Gets the exits the file does not list.</summary>
     public IReadOnlyList<MapWarp> ExtraWarps { get; }
+
+    /// <summary>Gets whether diggable ground on this map can be farmed (tilled, planted, harvested).</summary>
+    public bool Farmable { get; }
 
     /// <summary>Builds the walk grid: the map's own rules, the prop footprints, then the opened tiles.</summary>
     /// <param name="map">The parsed map.</param>

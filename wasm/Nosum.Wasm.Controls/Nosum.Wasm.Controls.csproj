@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <Description>Nosum reusable Blazor controls: hotbar, inventory slots and grid, quest tracker, message line. Dumb components bound to view models; no socket, no text of their own.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Same ASP.NET release as Microsoft.AspNetCore.Components.WebAssembly (which already brings it in transitively). -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <ProjectReference Include="..\Nosum.Wasm.ViewModels\Nosum.Wasm.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>

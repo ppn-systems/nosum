@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 
@@ -16,7 +17,8 @@ public sealed class MapDefinition
     /// <param name="spawnX">Spawn feet x, world pixels.</param>
     /// <param name="spawnY">Spawn feet y, world pixels.</param>
     /// <param name="warps">The map's exits to other hosted maps; empty when none.</param>
-    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null)
+    /// <param name="tillable">Tiles a hoe works on; <see langword="null"/> for a map that cannot be farmed.</param>
+    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(grid);
@@ -26,6 +28,7 @@ public sealed class MapDefinition
         this.SpawnX = spawnX;
         this.SpawnY = spawnY;
         this.Warps = warps ?? [];
+        this.Tillable = tillable;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -42,4 +45,7 @@ public sealed class MapDefinition
 
     /// <summary>Gets the exits, with targets already resolved to hosted map ids.</summary>
     public IReadOnlyList<MapWarp> Warps { get; }
+
+    /// <summary>Gets the tiles a hoe works on; <see langword="null"/> when the map cannot be farmed.</summary>
+    public TillGrid? Tillable { get; }
 }

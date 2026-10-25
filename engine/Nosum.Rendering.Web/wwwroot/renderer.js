@@ -10,6 +10,7 @@ const tinted = new Map();     // "id:rgba" -> canvas with the tint applied
 let canvas = null;
 let ctx = null;
 let keys = 0;
+let edges = 0;  // one-shot keys pressed since the last frame, packed above the held bits (Nosum.Core.InputEdges)
 
 const KEY_BITS = {
     ArrowUp: 1, KeyW: 1,
@@ -17,6 +18,20 @@ const KEY_BITS = {
     ArrowLeft: 4, KeyA: 4,
     ArrowRight: 8, KeyD: 8,
 };
+
+// Keys that fire once per press. Bit values match Nosum.Core.InputEdges.
+const EDGE_BITS = {
+    KeyE: 1, Space: 1,
+    Digit1: 2, Digit2: 4, Digit3: 8, Digit4: 16, Digit5: 32, Digit6: 64, Digit7: 128, Digit8: 256, Digit9: 512,
+    Numpad1: 2, Numpad2: 4, Numpad3: 8, Numpad4: 16, Numpad5: 32, Numpad6: 64, Numpad7: 128, Numpad8: 256, Numpad9: 512,
+    KeyI: 1024,
+};
+
+// Typing in a form field (the upgrade form) must not move the farmer or select slots.
+function isTyping(e) {
+    const t = e.target;
+    return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+}
 
 export async function loadTexture(id, url) {
     const response = await fetch(url);
@@ -29,7 +44,13 @@ export async function loadTexture(id, url) {
 export async function start(canvasId, assemblyName, exportPath) {
     canvas = document.getElementById(canvasId);
     ctx = canvas.getContext("2d");
-    window.addEventListener("keydown", e => { const b = KEY_BITS[e.code]; if (b) { keys |= b; e.preventDefault(); } });
+    window.addEventListener("keydown", e => {
+        if (isTyping(e) || e.ctrlKey || e.altKey || e.metaKey) { return; }
+        const b = KEY_BITS[e.code];
+        if (b) { keys |= b; e.preventDefault(); return; }
+        const edge = EDGE_BITS[e.code];
+        if (edge) { if (!e.repeat) { edges |= edge; } e.preventDefault(); }
+    });
     window.addEventListener("keyup", e => { const b = KEY_BITS[e.code]; if (b) { keys &= ~b; } });
     window.addEventListener("blur", () => { keys = 0; });
 
@@ -40,7 +61,9 @@ export async function start(canvasId, assemblyName, exportPath) {
     const tick = time => {
         const w = canvas.clientWidth, h = canvas.clientHeight;
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
-        frame(time, keys, w, h);
+        const pressed = edges;
+        edges = 0;
+        frame(time, keys | (pressed << 8), w, h);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);

@@ -155,6 +155,19 @@ public sealed class AccountFormViewModel
         this.Changed?.Invoke();
     }
 
+    /// <summary>
+    /// Records that the server unlocked the invitation to register for the signed-in guest, so the session bar
+    /// offers it without signing in again. Does nothing for a registered player or when nobody is signed in.
+    /// </summary>
+    public void UnlockRegistrationPrompt()
+    {
+        if (this.CurrentSession is { IsGuest: true } session && !session.RegistrationPromptUnlocked)
+        {
+            this.CurrentSession = session with { RegistrationPromptUnlocked = true };
+            this.Changed?.Invoke();
+        }
+    }
+
     /// <summary>Switches between the login and register forms and clears the error and the typed passwords.</summary>
     public void SwitchMode()
     {
