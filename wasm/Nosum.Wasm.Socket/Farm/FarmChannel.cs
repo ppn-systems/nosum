@@ -9,6 +9,8 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Contracts.World.S2C;
+using Nosum.Gameplay.Maps;
 
 namespace Nosum.Wasm.Socket.Farm;
 
@@ -23,7 +25,9 @@ namespace Nosum.Wasm.Socket.Farm;
 public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, long GrowthMs, long SettledAtMs, long WetUntilMs);
 
 /// <summary>
-/// The client's mirror of the worked tiles of the player's map, plus an estimate of the server's clock.
+/// The client's mirror of the worked tiles of the player's map, plus an estimate of the server's clock. The server sends a chunk's tiles once, when the chunk joins the player's
+/// interest set (<see cref="ChunkState"/>), and then only changes in it; when the chunk leaves the set (<see cref="ChunkLeft"/>) its tiles are dropped, so the mirror holds
+/// the chunks around the player and nothing else (docs/adr/ADR-022 D6). A tile belongs to the chunk its coordinates fall in.
 /// The server sends the stored timestamps, not stages: the frame loop computes each crop's stage with the
 /// shared rules, so crops grow on screen without a push per stage. The frame loop reads the mirror with
 /// <see cref="Read"/>, <see cref="Count"/> and <see cref="TileAt"/> and never allocates or awaits.
@@ -44,7 +48,7 @@ public sealed class FarmChannel : IDisposable
     {
         ArgumentNullException.ThrowIfNull(socket);
         _socket = socket;
-        _subscriptions = [socket.Subscribe<FarmTilesChanged>(this.OnChanged)];
+        _subscriptions = [socket.Subscribe<FarmTilesChanged>(this.OnChanged), socket.Subscribe<ChunkState>(this.OnChunkState), socket.Subscribe<ChunkLeft>(this.OnChunkLeft)];
     }
 
     /// <summary>Raised when the server answered a use of an item. May run on any thread.</summary>
@@ -98,7 +102,7 @@ public sealed class FarmChannel : IDisposable
     /// <returns>The estimate; the local clock until the first server message.</returns>
     public long ServerNowMs() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + Volatile.Read(ref _clockOffsetMs);
 
-    /// <summary>Loads the worked tiles of the map the player stands on. Call after joining a map.</summary>
+    /// <summary>Reads the worked tiles of the chunks the player can see and replaces the mirror with them. Call after joining a map: it also names the map the mirror belongs to. Later chunks arrive as pushes.</summary>
     public void Load() => _ = this.LoadAsync();
 
     /// <summary>Asks the server to use the item in a hotbar slot on a tile; the answer arrives as <see cref="UseCompleted"/> and the change as a pushed tile.</summary>
@@ -161,6 +165,72 @@ public sealed class FarmChannel : IDisposable
         {
             // Connection dropped; nothing was applied.
         }
+    }
+
+    private void OnChunkState(ChunkState packet)
+    {
+        lock (_gate)
+        {
+            // A chunk of another map (a late push after a map change, or one that beat the load of this map) is not ours; the load covers it.
+            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _ = this.RemoveChunk(new ChunkCoord(packet.ChunkX, packet.ChunkY));
+            if (packet.FarmTiles.Count > 0)
+            {
+                this.NoteServerClock(packet.ServerNowMs);
+            }
+
+            foreach (FarmTileRow row in packet.FarmTiles)
+            {
+                this.Store(row);
+            }
+        }
+
+        this.Changed?.Invoke();
+    }
+
+    private void OnChunkLeft(ChunkLeft packet)
+    {
+        bool removed;
+        lock (_gate)
+        {
+            removed = string.Equals(packet.MapId, _mapId, StringComparison.Ordinal) && this.RemoveChunk(new ChunkCoord(packet.ChunkX, packet.ChunkY));
+        }
+
+        if (removed)
+        {
+            this.Changed?.Invoke();
+        }
+    }
+
+    // Drops the tiles of one chunk. Call under the lock.
+    private bool RemoveChunk(ChunkCoord chunk)
+    {
+        int kept = 0;
+        for (int i = 0; i < _tiles.Count; i++)
+        {
+            if (ChunkCoord.OfTile(_tiles[i].X, _tiles[i].Y) != chunk)
+            {
+                _tiles[kept++] = _tiles[i];
+            }
+        }
+
+        if (kept == _tiles.Count)
+        {
+            return false;
+        }
+
+        _tiles.RemoveRange(kept, _tiles.Count - kept);
+        _index.Clear();
+        for (int i = 0; i < _tiles.Count; i++)
+        {
+            _index[Key(_tiles[i].X, _tiles[i].Y)] = i;
+        }
+
+        return true;
     }
 
     private void OnChanged(FarmTilesChanged packet)
