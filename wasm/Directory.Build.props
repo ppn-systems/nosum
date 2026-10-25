@@ -1,0 +1,34 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Blazor WASM: trimmed; interpreter for every dev build and publish (fastest builds). -->
+  <PropertyGroup>
+    <IsAotCompatible>false</IsAotCompatible>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+  </PropertyGroup>
+
+  <!-- Web deploy only (docs/adr/ADR-002 D5): `dotnet publish -c Release -p:NosumWebDeploy=true`
+       compiles the client to WebAssembly ahead of time. Needs the `wasm-tools` workload and
+       takes minutes; never on by default so local and agent builds stay fast. -->
+  <PropertyGroup Condition="'$(NosumWebDeploy)' == 'true' And '$(Configuration)' == 'Release'">
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <!-- AOT strips IL from the intermediate assemblies (WasmStripILAfterAOT); give the deploy
+         build its own artifacts pivot so a later interpreter build never reuses them. -->
+    <ArtifactsPivots>release_webdeploy</ArtifactsPivots>
+  </PropertyGroup>
+
+  <!-- Without the deploy flag, use the prebuilt runtime: with `wasm-tools` installed a plain
+       Release publish would otherwise relink dotnet.native.wasm, which was slower and produced a
+       runtime that failed to start (Mono interpreter assertion, 2026-10-25). -->
+  <PropertyGroup Condition="'$(NosumWebDeploy)' != 'true'">
+    <WasmBuildNative>false</WasmBuildNative>
+  </PropertyGroup>
+
+  <!-- A WASM publish output is downloaded by every player: keep symbols and XML docs out of it. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

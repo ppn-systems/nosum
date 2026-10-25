@@ -1,0 +1,42 @@
+# gameplay/
+
+Farm rules shared by the server and the client: plots, crops, items, time-based growth,
+prices. Pure, deterministic logic — no I/O, no clock reads (time is passed in), no network,
+no rendering. The server runs it to decide; the client runs it to predict and display.
+
+References `engine/Nosum.Core` only. Rules: [`gameplay-rules`](../.claude/skills/gameplay-rules/SKILL.md).
+
+```bash
+dotnet build gameplay/Nosum.Gameplay.slnx
+```
+
+Implemented: `Movement/WalkGrid` (`FromMap`: `Buildings` tiles block unless `Passable`; water or
+`Passable=F` ground on `Back` blocks; `BlockFootprints` adds building footprints) and
+`Movement/Walker` (fixed-step walking with a feet footprint, sliding along walls).
+
+World maps (`Maps/`, [ADR-012](../docs/adr/ADR-012-maps-and-warps.md)): `GameMaps` is the catalogue of
+hosted maps (`MapSpec`: id, `.tmx` file name, spawn tile, building props, opened doorsteps, extra exits);
+`WarpParser` reads the Tiled `Warp` property (`fromX fromY targetMap targetX targetY` groups) and
+`MapSpec.ResolveWarps` turns it into exits whose targets are catalogue ids (exits to unhosted maps are
+dropped); `WarpRule.TryFind` says when a player standing at a position uses an exit (on the tile; an edge
+exit needs walking outwards) and `WarpRule.Arrival` where they appear. `MapSpec.BuildWalkGrid` is the one
+grid both sides use. Adding a map: add a `MapSpec` to `GameMaps`, link its `.tmx` and tilesheets in
+`wasm/Nosum.Wasm/Nosum.Wasm.csproj` and `server/Nosum.Host/Nosum.Host.csproj` (`GameMapsTests` checks). Hosted maps: `farm`, `farmhouse`, `busstop`, `forest`, `town`, `backwoods`.
+
+Instances and placeables ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `MapSpec.IsPrivate` (farm, farmhouse) makes one copy of a map per player; `Maps/MapInstance` (map id + owner, `Key`) names a copy.
+`MapSpec.Placeable` (farmhouse) allows furniture. `Placeables/PlaceableCatalog` maps a furniture item (`ItemKind.Furniture`, ids 300-399) to a `PlaceableDefinition` (views per rotation, sheet rectangle,
+footprint); `PlacedSet` holds the pieces of one place and is the single rule set (`Check`: rotation, inside the map, free floor, off reserved tiles, no overlap; `CoversFeet`; `BuildGrid` for collision)
+that the server decides with and the client predicts with.
+
+Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)):
+
+- `Items/ItemCatalog` (tools, seeds, produce; stable id + key + stack size) and `Farm/CropCatalog` (stage durations in seconds of watered growth, harvest item).
+- `Inventory/InventoryGrid`: fixed slots of stacks; `Add`, `Remove`, `RemoveFromSlot`, `Move` (move, split, merge, swap) are all-or-nothing and track the changed
+  slots. `StarterKit` is what a new player holds: tools and seeds only. `InventoryLimits`: 36 slots, 9 in the hotbar.
+- `Farm/FarmRules`: `Till`, `Plant`, `Water`, `Harvest` on a `FarmTile` (Unix-ms timestamps) and `GrowthAt` / `StageAt` / `IsMature` / `IsWet`; a crop grows only while
+  the soil is wet (watering lasts 90 s). `InReach` is the 32 px rule. `TillGrid.FromMap` marks `Diggable` ground that is not blocked. Time is always a parameter.
+- Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)): `Economy/CoinRules` (starting coins, market fee, listing limits), `ShippingPrices`, `ShippingBinRules`, `MarketRules`;
+  `Trade/TradeOffer` and `TradeSession` (two-party confirm: a different offer clears both confirmations); `Looks/LookCatalog` and `PlayerLook`; `Coops/CoopRules` (names, who may withdraw how much);
+  `Text/LocalizedText` (validates and resolves `i18n{` envelopes). Clothing items have a `WearSlot`; tools are not tradable (`ItemDefinition.IsTradable`).
+- Shops and nicknames ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): `Shops/ShopCatalog` (shop id, key, price list; three shops: seed 1, clothing 2, furniture 3), `Shops/ShopRules` (`Price`, `InReach`, `TryFindShop`), `Maps/ShopPoint` (`MapSpec.Shops`: where a shop is served; the Town has three, doormats at (43,57), (20,89), (95,51)); `Players/NicknameRules` (3-16 characters, unaccented ASCII letters and digits, reserved list, unique `Key`, neutral guest names) and `Players/ProfanityFilter` with its data in `ProfanityTerms` (substring terms, whole-word abbreviations, leet and accent folding).
+- `Quests/QuestDefinition` / `QuestCatalog`: objectives count `QuestEvent`s (`CropPlanted`, `CropHarvested`); `first_harvest` is the tutorial.

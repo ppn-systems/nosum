@@ -1,0 +1,5 @@
+.account-form {
+    display: block;
+    width: calc(var(--u) * 150);
+    max-width: 100%;
+}

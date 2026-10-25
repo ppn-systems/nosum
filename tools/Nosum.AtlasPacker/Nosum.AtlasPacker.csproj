@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Packs the source PNGs in assets/ into one atlas PNG plus a JSON region map per category (docs/adr/ADR-004).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Nosum.UnitTests" />
+    <InternalsVisibleTo Include="Nosum.IntegrationTests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+.session-who {
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.session-prompt {
+    max-width: calc(var(--u) * 120);
+    color: var(--nosum-ink-soft);
+    font-size: 0.85em;
+}

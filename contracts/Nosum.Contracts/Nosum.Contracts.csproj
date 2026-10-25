@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum wire contracts shared by server and client: opcodes, Nalix packets, DTOs and enums. No logic.</Description>
+    <!-- The Nalix formatter generator emits unsafe code. -->
+    <!-- Required by the Nalix formatter source generator (generated code uses unsafe). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nalix.Abstractions" />
+    <PackageReference Include="Nalix.Codec" />
+  </ItemGroup>
+
+</Project>

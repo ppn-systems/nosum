@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Nosum server composition root: registers services and handlers into Nalix and binds the WebSocket listener.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nosum.Handlers\Nosum.Handlers.csproj" />
+    <ProjectReference Include="..\Nosum.Infrastructure\Nosum.Infrastructure.csproj" />
+    <PackageReference Include="Nalix.Hosting" />
+    <!-- Design-time only: lets the EF tools work with Nosum.Host as startup project; never flows to publish output. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Maps of Nosum.Gameplay.Maps.GameMaps that the server loads (placeholder content, docs/adr/ADR-007); linked so assets/ stays the single copy. -->
+  <ItemGroup>
+    <Content Include="..\..\assets\Maps\Farm.tmx;..\..\assets\Maps\FarmHouse.tmx;..\..\assets\Maps\BusStop.tmx;..\..\assets\Maps\Forest.tmx;..\..\assets\Maps\Town.tmx;..\..\assets\Maps\Backwoods.tmx" Link="maps\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Nosum.IntegrationTests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Item_hoe_Name" xml:space="preserve"><value>Hoe</value></data>
+  <data name="Item_hoe_Description" xml:space="preserve"><value>Tills grass into planting soil.</value></data>
+  <data name="Item_watering_can_Name" xml:space="preserve"><value>Watering can</value></data>
+  <data name="Item_watering_can_Description" xml:space="preserve"><value>Waters tilled soil. Crops only grow while the soil is wet.</value></data>
+  <data name="Item_parsnip_seeds_Name" xml:space="preserve"><value>Parsnip seeds</value></data>
+  <data name="Item_parsnip_seeds_Description" xml:space="preserve"><value>Plant on tilled soil to grow parsnips.</value></data>
+  <data name="Item_radish_seeds_Name" xml:space="preserve"><value>Radish seeds</value></data>
+  <data name="Item_radish_seeds_Description" xml:space="preserve"><value>Plant on tilled soil to grow radishes.</value></data>
+  <data name="Item_cauliflower_seeds_Name" xml:space="preserve"><value>Cauliflower seeds</value></data>
+  <data name="Item_cauliflower_seeds_Description" xml:space="preserve"><value>Plant on tilled soil to grow cauliflower. Needs watering more than once.</value></data>
+  <data name="Item_parsnip_Name" xml:space="preserve"><value>Parsnip</value></data>
+  <data name="Item_parsnip_Description" xml:space="preserve"><value>A freshly harvested parsnip.</value></data>
+  <data name="Item_radish_Name" xml:space="preserve"><value>Radish</value></data>
+  <data name="Item_radish_Description" xml:space="preserve"><value>A freshly harvested radish.</value></data>
+  <data name="Item_cauliflower_Name" xml:space="preserve"><value>Cauliflower</value></data>
+  <data name="Item_cauliflower_Description" xml:space="preserve"><value>A freshly harvested cauliflower.</value></data>
+  <data name="Quest_first_harvest_Title" xml:space="preserve"><value>Your first harvest</value></data>
+  <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Select the hoe (key 1) and press E to till the ground in front of you. Plant a seed, water it with the can and wait for it to grow.</value></data>
+  <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Plant a seed</value></data>
+  <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Harvest a crop</value></data>
+  <data name="Item_oak_chair_Name" xml:space="preserve"><value>Oak chair</value></data>
+  <data name="Item_oak_chair_Description" xml:space="preserve"><value>An oak chair. Place it in your farmhouse.</value></data>
+  <data name="Item_blue_armchair_Name" xml:space="preserve"><value>Blue armchair</value></data>
+  <data name="Item_blue_armchair_Description" xml:space="preserve"><value>A cosy armchair. Place it in your farmhouse.</value></data>
+  <data name="Item_blue_couch_Name" xml:space="preserve"><value>Blue couch</value></data>
+  <data name="Item_blue_couch_Description" xml:space="preserve"><value>A long couch. Place it in your farmhouse.</value></data>
+  <data name="Item_oak_table_Name" xml:space="preserve"><value>Oak table</value></data>
+  <data name="Item_oak_table_Description" xml:space="preserve"><value>An oak table. Place it in your farmhouse.</value></data>
+  <data name="Item_bookcase_Name" xml:space="preserve"><value>Bookcase</value></data>
+  <data name="Item_bookcase_Description" xml:space="preserve"><value>A tall bookcase. Place it in your farmhouse.</value></data>
+  <data name="Item_floor_lamp_Name" xml:space="preserve"><value>Floor lamp</value></data>
+  <data name="Item_floor_lamp_Description" xml:space="preserve"><value>A floor lamp. Place it in your farmhouse.</value></data>
+  <data name="Item_house_plant_Name" xml:space="preserve"><value>House plant</value></data>
+  <data name="Item_house_plant_Description" xml:space="preserve"><value>A potted plant. Place it in your farmhouse.</value></data>
+  <data name="Item_shirt_red_Name" xml:space="preserve"><value>Red shirt</value></data>
+  <data name="Item_shirt_red_Description" xml:space="preserve"><value>A red shirt.</value></data>
+  <data name="Item_shirt_green_Name" xml:space="preserve"><value>Green shirt</value></data>
+  <data name="Item_shirt_green_Description" xml:space="preserve"><value>A green shirt.</value></data>
+  <data name="Item_shirt_blue_Name" xml:space="preserve"><value>Blue shirt</value></data>
+  <data name="Item_shirt_blue_Description" xml:space="preserve"><value>A blue shirt.</value></data>
+  <data name="Item_pants_blue_Name" xml:space="preserve"><value>Blue trousers</value></data>
+  <data name="Item_pants_blue_Description" xml:space="preserve"><value>Blue trousers.</value></data>
+  <data name="Item_pants_khaki_Name" xml:space="preserve"><value>Khaki trousers</value></data>
+  <data name="Item_pants_khaki_Description" xml:space="preserve"><value>Khaki trousers.</value></data>
+  <data name="Item_hat_straw_Name" xml:space="preserve"><value>Straw hat</value></data>
+  <data name="Item_hat_straw_Description" xml:space="preserve"><value>A straw hat against the sun.</value></data>
+  <data name="Item_hat_cap_Name" xml:space="preserve"><value>Cap</value></data>
+  <data name="Item_hat_cap_Description" xml:space="preserve"><value>A cap.</value></data>
+</root>

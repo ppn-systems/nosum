@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <Description>Nosum reusable Blazor controls: panel and button, hotbar, inventory slots and grid, quest tracker, message line. Dumb components bound to view models; no socket, no text of their own.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <!-- Placeholder UI art served from the repository's assets/ folder (docs/adr/ADR-007, ADR-016): linked, never copied.
+       The rectangles taken from these sheets are listed in wwwroot/nosum-theme.js. -->
+  <ItemGroup>
+    <Content Include="..\..\assets\Maps\MenuTiles.png;..\..\assets\LooseSprites\Cursors.png;..\..\assets\LooseSprites\textBox.png" Link="wwwroot\ui\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Same ASP.NET release as Microsoft.AspNetCore.Components.WebAssembly (which already brings it in transitively). -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <ProjectReference Include="..\Nosum.Wasm.ViewModels\Nosum.Wasm.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,27 @@
+@inherits ObservingComponent<QuestTrackerViewModel>
+
+@* The quest in progress (or the banner of the one just finished). All text comes from the view model. *@
+@if (Vm.IsVisible)
+{
+    @if (Vm.IsCompleted)
+    {
+        <GamePanel Class="hud quest completed" Title="">
+            <strong class="banner">@Vm.CompletedText</strong>
+        </GamePanel>
+    }
+    else
+    {
+        <GamePanel Class="hud quest" Title="@(Vm.Heading + ": " + Vm.Title)">
+            <ul class="objectives">
+                @foreach (ObjectiveLine line in Vm.Objectives)
+                {
+                    <li class="@(line.IsDone ? "done" : null)"><span>@line.Text</span> <span class="count">@line.Progress</span></li>
+                }
+            </ul>
+            @if (Vm.Hint.Length > 0)
+            {
+                <p class="hint">@Vm.Hint</p>
+            }
+        </GamePanel>
+    }
+}

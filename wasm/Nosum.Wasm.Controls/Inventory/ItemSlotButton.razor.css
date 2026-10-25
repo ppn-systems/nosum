@@ -1,0 +1,74 @@
+.slot {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--u) * 18);
+    height: calc(var(--u) * 18);
+    padding: 0;
+    border: var(--u) solid var(--nosum-edge);
+    border-image: var(--nosum-img-slot) 4 / var(--u) stretch;
+    background: var(--nosum-slot-bg);
+    color: var(--nosum-ink);
+    font: inherit;
+    image-rendering: pixelated;
+    cursor: var(--nosum-cursor-pointer, pointer);
+}
+
+.slot.empty {
+    background: transparent;
+}
+
+.slot:hover {
+    filter: brightness(1.12);
+}
+
+.slot:active {
+    filter: brightness(0.88);
+}
+
+.slot.selected::after,
+.slot.picked::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--u) * -2);
+    border: calc(var(--u) * 2) solid var(--nosum-focus);
+    border-image: var(--nosum-img-select) 8 / calc(var(--u) * 2) stretch;
+    pointer-events: none;
+}
+
+/* Picked up and waiting for a target: the same frame, blue, blinking. */
+.slot.picked::after {
+    filter: hue-rotate(170deg);
+    animation: nosum-blink 0.9s steps(2, jump-none) infinite;
+}
+
+.icon {
+    display: block;
+    width: calc(var(--is, 16) * var(--u));
+    height: calc(var(--is, 16) * var(--u));
+    background-repeat: no-repeat;
+    background-size: calc(var(--sw, 16) * var(--u)) calc(var(--sh, 16) * var(--u));
+    background-position: calc(var(--ix, 0) * var(--u) * -1) calc(var(--iy, 0) * var(--u) * -1);
+    image-rendering: pixelated;
+}
+
+.hotkey {
+    position: absolute;
+    top: 0;
+    left: calc(var(--u) * 1);
+    font: 800 0.7em / 1.2 var(--nosum-font);
+    color: var(--nosum-ink);
+    text-shadow: var(--u) var(--u) 0 var(--nosum-shine);
+}
+
+.quantity {
+    position: absolute;
+    right: calc(var(--u) * 1);
+    bottom: 0;
+    font: 800 0.8em / 1.1 var(--nosum-font);
+    color: #fff;
+    text-shadow: var(--u) 0 0 var(--nosum-ink), calc(var(--u) * -1) 0 0 var(--nosum-ink), 0 var(--u) 0 var(--nosum-ink), 0 calc(var(--u) * -1) 0 var(--nosum-ink);
+}

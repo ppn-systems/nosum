@@ -1,0 +1,16 @@
+@using Nosum.Wasm.ViewModels.Account
+
+@* The first thing a player sees: the logo, the account form, the connection state. Shown until the first sign-in (the game starts after it). *@
+<main class="start-screen">
+    <header class="start-header">
+        <h1 class="start-logo">@Vm.GameTitle</h1>
+        <p class="start-tagline">@Vm.Tagline</p>
+    </header>
+    <AccountForm Vm="Vm" />
+    <ConnectionBadge />
+</main>
+
+@code {
+    /// <summary>The account view model the form is bound to.</summary>
+    [Parameter, EditorRequired] public AccountFormViewModel Vm { get; set; } = default!;
+}

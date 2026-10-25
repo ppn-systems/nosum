@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Nosum.Wasm/Nosum.Wasm.csproj" />
+  <Project Path="Nosum.Wasm.ViewModels/Nosum.Wasm.ViewModels.csproj" />
+  <Project Path="Nosum.Wasm.Controls/Nosum.Wasm.Controls.csproj" />
+  <Project Path="Nosum.Wasm.Socket/Nosum.Wasm.Socket.csproj" />
+</Solution>

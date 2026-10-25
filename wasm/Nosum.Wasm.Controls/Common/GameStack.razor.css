@@ -1,0 +1,5 @@
+.game-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nosum-gap);
+}

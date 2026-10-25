@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum engine core: game loop, time, scene, tilemap, camera, math and normalized input. No Blazor, JS or Nalix dependency.</Description>
+  </PropertyGroup>
+
+</Project>

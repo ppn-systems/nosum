@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum stateless Nalix packet handlers, routed by opcode.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nosum.Abstractions\Nosum.Abstractions.csproj" />
+    <PackageReference Include="Nalix.Runtime" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+@* A titled block inside a panel. *@
+<section class="game-section">
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <h3>@Title</h3>
+    }
+    @ChildContent
+</section>
+
+@code {
+    /// <summary>The heading (already localized).</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

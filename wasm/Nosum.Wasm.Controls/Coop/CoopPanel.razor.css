@@ -1,0 +1,21 @@
+.coop-empty,
+.coop-log {
+    margin: 0;
+}
+
+.coop-empty {
+    color: var(--nosum-ink-soft);
+}
+
+.member-name {
+    min-width: calc(var(--u) * 42);
+    font-weight: 800;
+}
+
+.member-role {
+    min-width: calc(var(--u) * 36);
+}
+
+.stock-name {
+    min-width: calc(var(--u) * 48);
+}

@@ -1,0 +1,13 @@
+.game-key {
+    display: inline-block;
+    min-width: calc(var(--u) * 7);
+    box-sizing: border-box;
+    padding: 0 calc(var(--u) * 2);
+    border: var(--u) solid var(--nosum-edge);
+    border-bottom-width: calc(var(--u) * 2);
+    background: var(--nosum-ink);
+    color: var(--nosum-ink-on-dark);
+    font: 800 0.8em / 1.5 var(--nosum-font);
+    text-align: center;
+    text-shadow: none;
+}

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum server service interfaces and DTO rows. Handlers depend on this, never on Infrastructure.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nosum.Domain\Nosum.Domain.csproj" />
+    <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

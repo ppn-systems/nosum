@@ -1,0 +1,7 @@
+@inherits ObservingComponent<GameMessagesViewModel>
+
+@* A short line above the hotbar that says why the server refused an action. *@
+@if (Vm.Message is { } message)
+{
+    <GamePanel Class="hud toast game-message" Role="status" Title="">@message</GamePanel>
+}

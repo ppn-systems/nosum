@@ -1,0 +1,78 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using Nosum.Core;
+using Nosum.Rendering;
+
+namespace Nosum.Wasm.Game;
+
+/// <summary>
+/// Draws a layered farmer (body, pants, shirt, arms, hair) from the farmer sheets
+/// (docs/adr/ADR-007 D4). Frames are 16 × 32; the feet sit on the frame's bottom edge.
+/// </summary>
+internal static class FarmerSprite
+{
+    /// <summary>Frame width in pixels.</summary>
+    public const int Width = 16;
+
+    /// <summary>Frame height in pixels.</summary>
+    public const int Height = 32;
+
+    private const int ArmsColumnOffset = 6;
+    private const int PantsStyleWidth = 192;
+    private const int HairOffsetY = 2;
+    private const int ShirtOffsetX = 4;
+    private const int ShirtOffsetY = 15;
+    private const int ShirtSize = 8;
+    private const int HatSize = 20;
+    private const int HatOffsetY = 0;
+
+    private static readonly int[] s_walkColumns = [0, 1, 0, 2];
+
+    /// <summary>
+    /// Adds the farmer's layers to the world batch, sorted by the feet.
+    /// </summary>
+    /// <param name="batch">The world sprite batch.</param>
+    /// <param name="textures">Texture ids of the farmer sheets.</param>
+    /// <param name="look">What the farmer wears.</param>
+    /// <param name="facing">Facing.</param>
+    /// <param name="walkFrame">Walk cycle step (any integer; 0 when standing).</param>
+    /// <param name="feetX">Feet x, world pixels.</param>
+    /// <param name="feetY">Feet y, world pixels.</param>
+    /// <param name="id">Stable sort id of this character.</param>
+    public static void Draw(WorldSpriteBatch batch, in FarmerTextures textures, in FarmerLook look, Facing facing, int walkFrame, int feetX, int feetY, int id = 0)
+    {
+        // Sheet rows: 0 down, 1 right, 2 up; left is right mirrored.
+        int row = facing switch { Facing.Down => 0, Facing.Up => 2, _ => 1 };
+        int flags = facing == Facing.Left ? RenderCommandBuffer.FlipX : 0;
+        int column = s_walkColumns[walkFrame & 3];
+        int x = feetX - (Width / 2);
+        int y = feetY - Height;
+        int frameX = column * Width;
+        int frameY = row * Height;
+        int sortY = feetY;
+
+        batch.Add(textures.Body, frameX, frameY, Width, Height, x, y, sortY, feetX, id, flags, look.SkinTint);
+        batch.Add(textures.Pants, (look.Pants % 10 * PantsStyleWidth) + frameX, (look.Pants / 10 * 672) + frameY, Width, Height, x, y, sortY, feetX, id, flags, look.PantsTint);
+
+        int shirtRow = facing == Facing.Up ? 24 : facing == Facing.Down ? 0 : 8;
+        batch.Add(textures.Shirts, look.Shirt % 16 * ShirtSize, (look.Shirt / 16 * 32) + shirtRow, ShirtSize, ShirtSize, x + ShirtOffsetX, y + ShirtOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
+
+        batch.Add(textures.Body, frameX + (ArmsColumnOffset * Width), frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
+        batch.Add(textures.Hair, look.Hairstyle % 8 * Width, (look.Hairstyle / 8 * 96) + (row * Height), Width, Height, x, y + HairOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, flags, look.HairTint);
+
+        if (look.Hat >= 0)
+        {
+            // hats.png: 20 x 20 frames, one hat per 20 x 80 column strip (down, right, left, up), 12 hats per row.
+            int hatRow = facing switch { Facing.Down => 0, Facing.Right => 1, Facing.Left => 2, _ => 3 };
+            batch.Add(textures.Hats, look.Hat % 12 * HatSize, (look.Hat / 12 * HatSize * 4) + (hatRow * HatSize), HatSize, HatSize, x - ((HatSize - Width) / 2), y + HatOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, 0, look.HatTint);
+        }
+    }
+}
+
+/// <summary>Texture ids of the farmer layer sheets.</summary>
+/// <param name="Body">farmer_base.png (body and arms).</param>
+/// <param name="Pants">pants.png.</param>
+/// <param name="Shirts">shirts.png.</param>
+/// <param name="Hair">hairstyles.png.</param>
+/// <param name="Hats">hats.png.</param>
+internal readonly record struct FarmerTextures(int Body, int Pants, int Shirts, int Hair, int Hats);

@@ -1,0 +1,44 @@
+/* The shared field: the recessed peach box of textBox.png (2 u edge). */
+.game-input {
+    --input-edge: calc(var(--u) * 3);
+
+    box-sizing: border-box;
+    width: calc(var(--u) * 100);
+    max-width: 100%;
+    min-width: 0;
+    padding: var(--u) calc(var(--u) * 2);
+    border: var(--input-edge) solid var(--nosum-edge);
+    border-image: var(--nosum-img-field) 12 fill / var(--input-edge) stretch;
+    background: var(--nosum-parchment) padding-box;
+    color: var(--nosum-ink);
+    font: 600 1em / 1.3 var(--nosum-font);
+    image-rendering: pixelated;
+    cursor: var(--nosum-cursor, text);
+    appearance: textfield;
+}
+
+.game-input::placeholder {
+    color: var(--nosum-ink-faint);
+    opacity: 1;
+}
+
+.game-input::-webkit-inner-spin-button,
+.game-input::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+}
+
+.game-input:hover:not(:disabled) {
+    filter: brightness(1.06);
+}
+
+.game-input:focus {
+    outline: var(--u) solid var(--nosum-focus);
+    outline-offset: var(--u);
+    filter: brightness(1.1);
+}
+
+.game-input:disabled {
+    filter: grayscale(1) brightness(0.9);
+    color: var(--nosum-ink-faint);
+}

@@ -1,0 +1,42 @@
+@* One inventory slot: the item's picture, its quantity, a selected frame and a hotkey label. Text comes from the slot (already localized).
+   The size is the theme's (a slot is 18 UI pixels, the picture 16). *@
+<button type="button"
+        class="slot @(Slot.IsSelected ? "selected" : null) @(Picked ? "picked" : null) @(Slot.IsEmpty ? "empty" : null)"
+        title="@Slot.Tooltip"
+        tabindex="-1"
+        @onmousedown:preventDefault
+        @onclick="OnClick">
+    @if (Hotkey is not null)
+    {
+        <span class="hotkey">@Hotkey</span>
+    }
+    @if (Slot.Icon is { } icon)
+    {
+        <span class="icon" style="@IconStyle(icon)"></span>
+    }
+    @if (Slot.Quantity > 1)
+    {
+        <span class="quantity">@Slot.Quantity</span>
+    }
+</button>
+
+@code {
+    /// <summary>The slot to show.</summary>
+    [Parameter, EditorRequired] public SlotDisplay Slot { get; set; } = default!;
+
+    /// <summary>Obsolete and ignored: the slot size is the theme's.</summary>
+    [Parameter] public int Scale { get; set; }
+
+    /// <summary>The key shown in the corner (for the hotbar), or <see langword="null"/>.</summary>
+    [Parameter] public string? Hotkey { get; set; }
+
+    /// <summary>Whether the slot was picked up and waits for a target.</summary>
+    [Parameter] public bool Picked { get; set; }
+
+    /// <summary>Raised when the slot is clicked.</summary>
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    // The picture is a window onto the item sheet; every length is a whole number of UI pixels (--u), set in the CSS.
+    private static string IconStyle(ItemIcon icon)
+        => FormattableString.Invariant($"background-image:url('{icon.SheetUrl}');--is:{icon.Size};--sw:{icon.SheetWidth};--sh:{icon.SheetHeight};--ix:{icon.X};--iy:{icon.Y}");
+}

@@ -1,0 +1,317 @@
+@page "/"
+@using System.IO
+@using System.Net.Http
+@using System.Runtime.InteropServices.JavaScript
+@using System.Threading
+@using System.Runtime.Versioning
+@using Nosum.Wasm.Components
+@using Nosum.Wasm.Components.Account
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Coop
+@using Nosum.Wasm.Controls.Feedback
+@using Nosum.Wasm.Controls.Help
+@using Nosum.Wasm.Controls.Layout
+@using Nosum.Wasm.ViewModels.Help
+@using Nosum.Wasm.Controls.Inventory
+@using Nosum.Wasm.Controls.Looks
+@using Nosum.Wasm.Controls.Market
+@using Nosum.Wasm.Controls.Placement
+@using Nosum.Wasm.Controls.Profile
+@using Nosum.Wasm.Controls.Shop
+@using Nosum.Wasm.Controls.Quest
+@using Nosum.Wasm.Controls.Trade
+@using Nosum.Wasm.Controls.Wallet
+@using Nosum.Wasm.Game
+@using Nosum.Contracts.Account
+@using Nosum.Wasm.ViewModels
+@using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Coop
+@using Nosum.Wasm.ViewModels.Looks
+@using Nosum.Wasm.ViewModels.Market
+@using Nosum.Wasm.ViewModels.Wallet
+@using Nosum.Wasm.ViewModels.Trade
+@using Nosum.Wasm.ViewModels.Feedback
+@using Nosum.Wasm.ViewModels.Inventory
+@using Nosum.Wasm.ViewModels.Placement
+@using Nosum.Wasm.ViewModels.Profile
+@using Nosum.Wasm.ViewModels.Shop
+@using Nosum.Wasm.ViewModels.Quest
+@attribute [SupportedOSPlatform("browser")]
+@implements IDisposable
+@inject HttpClient Http
+@inject AccountFormViewModel Form
+@inject AccountSessionKeeper Keeper
+@inject NavigationManager Navigation
+@inject InventoryViewModel Inventory
+@inject QuestTrackerViewModel Quest
+@inject GameMessagesViewModel Messages
+@inject ToolbarViewModel Toolbar
+@inject WalletViewModel Wallet
+@inject MarketViewModel Market
+@inject WardrobeViewModel Wardrobe
+@inject TradeViewModel Trade
+@inject CoopViewModel Coop
+@inject PlacementViewModel Placement
+@inject ProfileViewModel Profile
+@inject ShopViewModel Shop
+@inject HelpViewModel Help
+
+<PageTitle>Nosum</PageTitle>
+
+<canvas id="game-canvas" class="game-canvas" tabindex="0"></canvas>
+@if (!_signedIn)
+{
+    @* The game starts after sign-in: the canvas listens to the whole window's keys, which would swallow typing. *@
+    <StartScreen Vm="Form" />
+}
+else
+{
+    <GameHud>
+        <TopLeft>
+            <QuestTracker Vm="Quest" />
+        </TopLeft>
+        <TopCenter>
+            @if (_error is not null)
+            {
+                <GamePanel Class="hud" Title="">
+                    <GameNotice Kind="error" Text="@_error" />
+                </GamePanel>
+            }
+        </TopCenter>
+        <TopRight>
+            <SessionBar Vm="Form" />
+            <GameRow Class="end">
+                <CoinBadge Vm="Wallet" />
+                <ConnectionBadge />
+            </GameRow>
+        </TopRight>
+        <Left>
+            <PanelToolbar Vm="Toolbar" OnSelect="OnToolbar" />
+        </Left>
+        <Center>
+            @switch (_panel)
+            {
+                case PanelKind.Inventory:
+                    <InventoryPanel Vm="Inventory" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Market:
+                    <MarketPanel Vm="Market" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Wardrobe:
+                    <WardrobePanel Vm="Wardrobe" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Trade:
+                    <TradePanel Vm="Trade" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Coop:
+                    <CoopPanel Vm="Coop" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Help:
+                    <HelpPanel Vm="Help" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Profile:
+                    <ProfilePanel Vm="Profile" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Shop:
+                    <ShopPanel Vm="Shop" ShopId="_shopId" OnClose="ClosePanel" />
+                    break;
+            }
+        </Center>
+        <Right>
+            <PlacementPanel Vm="Placement" />
+        </Right>
+        <BottomCenter>
+            <GameMessage Vm="Messages" />
+            <Hotbar Vm="Inventory" />
+        </BottomCenter>
+        <Overlay>
+            @if (!_started)
+            {
+                <GamePanel Class="dialog" Title="" Role="status">
+                    <p class="home-loading">@Toolbar.Text("Game_Loading") <GameSpinner /></p>
+                </GamePanel>
+            }
+            @if (Form.ShowsForm)
+            {
+                @* Upgrade form over the running game. *@
+                <AccountForm Vm="Form" />
+            }
+            @if (Trade.Phase == TradePhase.Invited)
+            {
+                <ConfirmDialog Title="@Trade.Text("Trade_InviteTitle")" Message="@Trade.Text("Trade_InviteMessage", Trade.InviterLabel)"
+                               ConfirmText="@Trade.Text("Coop_Accept")" CancelText="@Trade.Text("Coop_Decline")"
+                               OnConfirm="@(() => Trade.Respond(true))" OnCancel="@(() => Trade.Respond(false))" />
+            }
+            else if (_panel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0)
+            {
+                (Guid inviteId, string coopName, string inviter) = Coop.Invites[0];
+                <ConfirmDialog Title="@Coop.Text("Coop_InviteTitle")" Message="@(inviter.Length > 0 ? Coop.Text("Coop_InviteMessageFrom", coopName, inviter) : Coop.Text("Coop_InviteMessage", coopName))"
+                               ConfirmText="@Coop.Text("Coop_Accept")" CancelText="@Coop.Text("Coop_Decline")"
+                               OnConfirm="@(() => Coop.Respond(inviteId, true))" OnCancel="@(() => Coop.Respond(inviteId, false))" />
+            }
+        </Overlay>
+    </GameHud>
+}
+
+@code {
+    private bool _signedIn;
+    private bool _started;
+    private PanelKind _panel;
+    private int _shopId;
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        Form.SignedIn += OnSignedIn;
+        Form.SessionUpdated += Keeper.UpdateSession;
+        Form.SessionUpdated += OnSessionUpdated;
+        Form.SignedOut += OnSignedOut;
+        Form.Changed += OnFormChanged;
+        Keeper.SessionEnded += OnSessionEnded;
+        Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
+        GameLoop.PanelToggleRequested += OnPanelKey;
+        GameLoop.ShopRequested += OnShopRequested;
+        GameLoop.PanelCloseRequested += OnCloseKey;
+        Trade.WantsOpen += OnTradeWantsOpen;
+        Trade.Changed += OnViewModelChanged;
+        Coop.Changed += OnViewModelChanged;
+
+        // Back from a session the server ended: say why on the account form.
+        string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
+        if (query.StartsWith("?ended=", StringComparison.Ordinal)
+            && Enum.TryParse(query["?ended=".Length..], out AccountStatus reason)
+            && reason == AccountStatus.SessionReplaced)
+        {
+            Form.ShowSessionEnded(reason);
+        }
+    }
+
+    public void Dispose()
+    {
+        Form.SignedIn -= OnSignedIn;
+        Form.SessionUpdated -= Keeper.UpdateSession;
+        Form.SessionUpdated -= OnSessionUpdated;
+        Form.SignedOut -= OnSignedOut;
+        Form.Changed -= OnFormChanged;
+        Keeper.SessionEnded -= OnSessionEnded;
+        Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
+        GameLoop.PanelToggleRequested -= OnPanelKey;
+        GameLoop.ShopRequested -= OnShopRequested;
+        GameLoop.PanelCloseRequested -= OnCloseKey;
+        Trade.WantsOpen -= OnTradeWantsOpen;
+        Trade.Changed -= OnViewModelChanged;
+        Coop.Changed -= OnViewModelChanged;
+    }
+
+    // A guest registered under a nickname: the profile shows it.
+    private void OnSessionUpdated(AccountSession session) => Profile.Begin(session.Nickname, session.IsGuest);
+
+    // The first quest was finished: the session bar now offers the registration (the form's session is the one it shows).
+    private void OnPromptUnlocked() => Form.UnlockRegistrationPrompt();
+
+    // A panel key was pressed in the game (raised from the frame loop).
+    private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind));
+
+    // The action key next to a shop counter (raised from the frame): open that shop.
+    private void OnShopRequested(int shopId) => _ = InvokeAsync(() =>
+    {
+        if (_panel != PanelKind.Shop)
+        {
+            _shopId = shopId;
+            _panel = PanelKind.Shop;
+            Toolbar.Active = _panel;
+            StateHasChanged();
+        }
+    });
+
+    // Escape: leave the upgrade form, or else close the open panel.
+    private void OnCloseKey() => _ = InvokeAsync(() =>
+    {
+        if (Form.Mode == AccountFormMode.Upgrade)
+        {
+            Form.CancelUpgrade();
+        }
+        else if (_panel != PanelKind.None)
+        {
+            ClosePanel();
+        }
+
+        StateHasChanged();
+    });
+
+    private void OnToolbar(PanelKind kind) => TogglePanel(kind);
+
+    private void TogglePanel(PanelKind kind)
+    {
+        _panel = _panel == kind ? PanelKind.None : kind;
+        Toolbar.Active = _panel;
+        StateHasChanged();
+    }
+
+    private void ClosePanel()
+    {
+        _panel = PanelKind.None;
+        Toolbar.Active = _panel;
+    }
+
+    // A trade began: show its window.
+    private void OnTradeWantsOpen(bool open)
+    {
+        if (open && Trade.Phase == TradePhase.Open)
+        {
+            _ = InvokeAsync(() =>
+            {
+                _panel = PanelKind.Trade;
+                Toolbar.Active = _panel;
+                StateHasChanged();
+            });
+        }
+    }
+
+    // The invitation dialogs follow the trade and co-op state.
+    private void OnViewModelChanged() => _ = InvokeAsync(StateHasChanged);
+
+    // The overlay shows or hides with the form's mode (upgrade form over the running game).
+    private void OnFormChanged() => _ = InvokeAsync(StateHasChanged);
+
+    // Another connection of this player took over: reload to the account form with the reason (the game cannot be stopped in place).
+    private void OnSessionEnded(AccountStatus reason)
+        => _ = InvokeAsync(() => Navigation.NavigateTo("/?ended=" + reason, forceLoad: true));
+
+    // Signing out reloads the page: the game loop and its input handlers are torn down with it, and the
+    // account form is the first thing the fresh page shows.
+    private void OnSignedOut()
+    {
+        Keeper.SignedOut();
+        _ = InvokeAsync(() => Navigation.NavigateTo(Navigation.Uri, forceLoad: true));
+    }
+
+    // Raised by the form's view model after a successful register or login.
+    private void OnSignedIn(AccountSession session)
+    {
+        Keeper.SignedIn(session);
+        Profile.Begin(session.Nickname, session.IsGuest);
+        _signedIn = true;
+        _ = InvokeAsync(async () =>
+        {
+            StateHasChanged();
+            await StartGameAsync();
+        });
+    }
+
+    private async Task StartGameAsync()
+    {
+        try
+        {
+            await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None);
+            _started = true;
+            StateHasChanged();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or JSException)
+        {
+            _error = Toolbar.Text("Game_StartFailed", ex.Message);
+            _started = true;
+            StateHasChanged();
+        }
+    }
+}

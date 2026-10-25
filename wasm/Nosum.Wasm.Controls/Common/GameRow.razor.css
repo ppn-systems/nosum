@@ -1,0 +1,18 @@
+.game-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--u) * 2);
+    align-items: center;
+}
+
+.game-row.spread {
+    justify-content: space-between;
+}
+
+.game-row.top {
+    align-items: flex-start;
+}
+
+.game-row.end {
+    justify-content: flex-end;
+}

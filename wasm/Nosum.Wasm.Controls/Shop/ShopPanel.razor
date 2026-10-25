@@ -1,0 +1,47 @@
+@using Nosum.Wasm.ViewModels.Shop
+@inherits ObservingComponent<ShopViewModel>
+
+@* One shop, chosen by ShopId (seed, clothing or furniture shop): pick what to buy for coins. The title and the list come from the shared shop catalogue,
+   and the server prices and checks every purchase. Self-contained: it opens the shop on its view model by itself, so a host only sets ShopId and Vm. *@
+<GamePanel Title="@Vm.Title" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+    <GameStack>
+        <GameRow Class="spread">
+            <span>@Vm.CoinsText</span>
+            <GameRow Class="center">
+                <span>@Vm.Text("Shop_Quantity")</span>
+                <GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" />
+            </GameRow>
+        </GameRow>
+        <p>@Vm.Text("Shop_Hint")</p>
+        @foreach (ShopOfferDisplay offer in Vm.Offers)
+        {
+            int itemId = offer.ItemId;
+            <GameRow Class="center">
+                <ItemSlotButton Slot="offer.Item" />
+                <span>@offer.Item.Name</span>
+                <span>@offer.PriceText</span>
+                <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanAfford" OnClick="@(() => Vm.Buy(itemId))" />
+            </GameRow>
+        }
+    </GameStack>
+</GamePanel>
+
+@code {
+    private int _openedShop = -1;
+
+    /// <summary>The shop to show, an id from <c>ShopCatalog</c>. Changing it opens the other shop.</summary>
+    [Parameter, EditorRequired] public int ShopId { get; set; }
+
+    /// <summary>Raised when the close button is clicked.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (_openedShop != ShopId)
+        {
+            _openedShop = ShopId;
+            Vm.Open(ShopId);
+        }
+    }
+}

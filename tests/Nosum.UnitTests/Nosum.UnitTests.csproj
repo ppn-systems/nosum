@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
+    <ProjectReference Include="..\..\engine\Nosum.Rendering\Nosum.Rendering.csproj" />
+    <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
+    <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
+    <ProjectReference Include="..\..\wasm\Nosum.Wasm.ViewModels\Nosum.Wasm.ViewModels.csproj" />
+    <ProjectReference Include="..\..\server\Nosum.Abstractions\Nosum.Abstractions.csproj" />
+    <ProjectReference Include="..\..\server\Nosum.Infrastructure\Nosum.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\tools\Nosum.AtlasPacker\Nosum.AtlasPacker.csproj" />
+  </ItemGroup>
+
+</Project>

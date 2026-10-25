@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Item_hoe_Name" xml:space="preserve"><value>Cuốc</value></data>
+  <data name="Item_hoe_Description" xml:space="preserve"><value>Dùng để xới đất cỏ thành đất trồng.</value></data>
+  <data name="Item_watering_can_Name" xml:space="preserve"><value>Bình tưới</value></data>
+  <data name="Item_watering_can_Description" xml:space="preserve"><value>Tưới nước cho đất đã xới. Cây chỉ lớn khi đất còn ướt.</value></data>
+  <data name="Item_parsnip_seeds_Name" xml:space="preserve"><value>Hạt củ cải vàng</value></data>
+  <data name="Item_parsnip_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới để trồng củ cải vàng.</value></data>
+  <data name="Item_radish_seeds_Name" xml:space="preserve"><value>Hạt củ cải đỏ</value></data>
+  <data name="Item_radish_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới để trồng củ cải đỏ.</value></data>
+  <data name="Item_cauliflower_seeds_Name" xml:space="preserve"><value>Hạt súp lơ</value></data>
+  <data name="Item_cauliflower_seeds_Description" xml:space="preserve"><value>Gieo trên đất đã xới để trồng súp lơ. Cần tưới nhiều lần.</value></data>
+  <data name="Item_parsnip_Name" xml:space="preserve"><value>Củ cải vàng</value></data>
+  <data name="Item_parsnip_Description" xml:space="preserve"><value>Củ cải vàng vừa thu hoạch.</value></data>
+  <data name="Item_radish_Name" xml:space="preserve"><value>Củ cải đỏ</value></data>
+  <data name="Item_radish_Description" xml:space="preserve"><value>Củ cải đỏ vừa thu hoạch.</value></data>
+  <data name="Item_cauliflower_Name" xml:space="preserve"><value>Súp lơ</value></data>
+  <data name="Item_cauliflower_Description" xml:space="preserve"><value>Súp lơ vừa thu hoạch.</value></data>
+  <data name="Quest_first_harvest_Title" xml:space="preserve"><value>Vụ thu hoạch đầu tiên</value></data>
+  <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Chọn cuốc (phím 1) rồi nhấn E để xới đất phía trước. Gieo hạt giống, tưới nước bằng bình tưới và chờ cây lớn.</value></data>
+  <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Gieo một hạt giống</value></data>
+  <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Thu hoạch một cây trồng</value></data>
+  <data name="Item_oak_chair_Name" xml:space="preserve"><value>Ghế gỗ sồi</value></data>
+  <data name="Item_oak_chair_Description" xml:space="preserve"><value>Một chiếc ghế gỗ sồi. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_blue_armchair_Name" xml:space="preserve"><value>Ghế bành xanh</value></data>
+  <data name="Item_blue_armchair_Description" xml:space="preserve"><value>Một chiếc ghế bành êm ái. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_blue_couch_Name" xml:space="preserve"><value>Ghế sofa xanh</value></data>
+  <data name="Item_blue_couch_Description" xml:space="preserve"><value>Một chiếc ghế sofa dài. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_oak_table_Name" xml:space="preserve"><value>Bàn gỗ sồi</value></data>
+  <data name="Item_oak_table_Description" xml:space="preserve"><value>Một chiếc bàn gỗ sồi. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_bookcase_Name" xml:space="preserve"><value>Tủ sách</value></data>
+  <data name="Item_bookcase_Description" xml:space="preserve"><value>Một tủ sách cao. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_floor_lamp_Name" xml:space="preserve"><value>Đèn đứng</value></data>
+  <data name="Item_floor_lamp_Description" xml:space="preserve"><value>Một chiếc đèn đứng. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_house_plant_Name" xml:space="preserve"><value>Chậu cây</value></data>
+  <data name="Item_house_plant_Description" xml:space="preserve"><value>Một chậu cây cảnh. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_shirt_red_Name" xml:space="preserve"><value>Áo đỏ</value></data>
+  <data name="Item_shirt_red_Description" xml:space="preserve"><value>Một chiếc áo màu đỏ.</value></data>
+  <data name="Item_shirt_green_Name" xml:space="preserve"><value>Áo xanh lá</value></data>
+  <data name="Item_shirt_green_Description" xml:space="preserve"><value>Một chiếc áo màu xanh lá.</value></data>
+  <data name="Item_shirt_blue_Name" xml:space="preserve"><value>Áo xanh dương</value></data>
+  <data name="Item_shirt_blue_Description" xml:space="preserve"><value>Một chiếc áo màu xanh dương.</value></data>
+  <data name="Item_pants_blue_Name" xml:space="preserve"><value>Quần xanh</value></data>
+  <data name="Item_pants_blue_Description" xml:space="preserve"><value>Một chiếc quần màu xanh.</value></data>
+  <data name="Item_pants_khaki_Name" xml:space="preserve"><value>Quần kaki</value></data>
+  <data name="Item_pants_khaki_Description" xml:space="preserve"><value>Một chiếc quần màu kaki.</value></data>
+  <data name="Item_hat_straw_Name" xml:space="preserve"><value>Mũ rơm</value></data>
+  <data name="Item_hat_straw_Description" xml:space="preserve"><value>Một chiếc mũ rơm che nắng.</value></data>
+  <data name="Item_hat_cap_Name" xml:space="preserve"><value>Mũ lưỡi trai</value></data>
+  <data name="Item_hat_cap_Description" xml:space="preserve"><value>Một chiếc mũ lưỡi trai.</value></data>
+</root>

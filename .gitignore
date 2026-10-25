@@ -1,0 +1,25 @@
+# Build output (UseArtifactsOutput puts everything under artifacts/)
+artifacts/
+[Bb]in/
+[Oo]bj/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Agent worktrees
+.claude/worktrees/
+
+# OS / temp
+.DS_Store
+*.swp
+*.tmp
+*.log
+
+# Secrets
+*.env
+*.pfx
+*.key

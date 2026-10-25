@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Nosum renderer front end: render commands, sprite batching, culling and the IRenderBackend contract. Platform-agnostic.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nosum.Core\Nosum.Core.csproj" />
+  </ItemGroup>
+
+</Project>

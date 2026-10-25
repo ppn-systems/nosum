@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Nosum.Domain/Nosum.Domain.csproj" />
+  <Project Path="Nosum.Abstractions/Nosum.Abstractions.csproj" />
+  <Project Path="Nosum.Infrastructure/Nosum.Infrastructure.csproj" />
+  <Project Path="Nosum.Handlers/Nosum.Handlers.csproj" />
+  <Project Path="Nosum.Host/Nosum.Host.csproj" />
+</Solution>

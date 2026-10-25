@@ -1,0 +1,11 @@
+@inherits ObservingComponent<InventoryViewModel>
+
+@* The whole inventory as a grid. Click a stack to pick it up, click another slot to move it there (empty slot: move, same item: merge, other item: swap). *@
+<GamePanel Title="@Vm.Title" CloseText="@Vm.CloseText" OnClose="OnClose">
+    <ItemGrid Slots="Vm.Slots" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" />
+</GamePanel>
+
+@code {
+    /// <summary>Raised when the close button is clicked.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+}
