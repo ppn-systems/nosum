@@ -58,7 +58,7 @@ Their scoped CSS reaches the page through `Nosum.Wasm.styles.css`. Item pictures
 Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)): channels `WalletChannel`, `MarketChannel`, `LookChannel`, `TradeChannel`, `CoopChannel`
 and `Player/NearbyPlayers` (the other players on the map, for pickers) mirror the server; `WalletViewModel`, `MarketViewModel`, `WardrobeViewModel`, `TradeViewModel`, `CoopViewModel` and `ToolbarViewModel`
 (all `PanelViewModel`: text by key, a status line) localize them. The panels (`MarketPanel`, `WardrobePanel`, `TradePanel`, `CoopPanel`) and the coin badge/toolbar are built only from shared controls in
-`Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput`, `GameRow`, `GameStack`, `GameSection`, `ItemGrid`, `ConfirmDialog`, `PlayerPicker`, `PriceInput`, `Pager`, `TabBar`, `PanelToolbar`): panels
+`Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput`, `GameRow`, `GameStack`, `GameSection`, `ItemGrid`, `ConfirmDialog`, `PlayerPicker`, `PriceInput`, `Pager`, `TabBar`): panels
 add no colours or borders of their own, so the look of the whole UI is the CSS of those controls and the `--nosum-*` variables. Keys: `M` market, `C` wardrobe, `T` trade, `G` co-op, `H` help, `Esc` close; `E` facing the shipping bin with
 a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
