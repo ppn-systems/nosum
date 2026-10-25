@@ -1,6 +1,6 @@
 # Nosum
 
-A browser-based multiplayer farming game. The client is Blazor WebAssembly with its own
+A browser-based multiplayer farming game in 3/4 top-down pixel art. The client is Blazor WebAssembly with its own
 2D engine; the server is a .NET 10 realtime server on the Nalix networking framework.
 Client and server talk over one Nalix WebSocket channel and share the same C# contracts.
 

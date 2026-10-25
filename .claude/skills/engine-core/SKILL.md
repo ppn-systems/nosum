@@ -36,6 +36,10 @@ Decision: `docs/adr/ADR-001-separate-engine.md`. Browser backend and the JS side
 - The encoding is a contract with `renderer.js`; changing it means changing both sides in the
   same commit (`render-interop`).
 - Cull before encoding: only what intersects the camera is encoded.
+- **3/4 top-down view** (`docs/adr/ADR-005-three-quarter-top-down-view.md`): draw layers in
+  order `ground` → `ground_decor` → `world` → `front`; sort visible `world` sprites by anchor y
+  (then x, then a stable id) in place, without allocating. Positions are feet anchors; collision
+  uses a footprint, not the image bounds.
 
 ## Checklist
 

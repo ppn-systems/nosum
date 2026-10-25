@@ -20,6 +20,8 @@ Decision: `docs/adr/ADR-004-pixel-art-assets.md`. Drawing side: `render-interop`
 - **Atlases are generated, never hand-edited.** Change the source PNG, run
   `dotnet run --project tools/Nosum.AtlasPacker`, and commit source and atlas together;
   `-- --check` must exit 0 before a PR.
+- **View:** always PixelLab `high top-down` (3/4 view, ADR-005). Never prompt for or imitate another game's art, characters or locations. Characters
+  and tall objects are drawn upright and anchored at their feet / base.
 - **One look per game.** When generating with PixelLab, pass the same anchor sprite as the style
   reference (for example the farmer's south-facing sprite) so every asset shares palette,
   outline and shading.

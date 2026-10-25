@@ -15,4 +15,4 @@ atlases the client loads are generated from them into `wasm/Nosum.Wasm/wwwroot/a
 Each folder keeps a `SOURCES.md` with one line per file: generator (PixelLab tool and mode),
 prompt, date, PixelLab asset id. Rules: [`assets-pipeline`](../.claude/skills/assets-pipeline/SKILL.md).
 
-No art has been added yet.
+Current art: terrain (soil ↔ grass, water ↔ grass) and a placeholder player character.

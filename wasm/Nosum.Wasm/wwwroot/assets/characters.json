@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "image": "characters.png",
+  "width": 256,
+  "height": 256,
+  "sprites": {
+    "farmer_idle_east": {
+      "x": 2,
+      "y": 2,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_idle_north": {
+      "x": 52,
+      "y": 2,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_idle_north_east": {
+      "x": 102,
+      "y": 2,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_idle_north_west": {
+      "x": 152,
+      "y": 2,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_idle_south": {
+      "x": 202,
+      "y": 2,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_idle_south_east": {
+      "x": 2,
+      "y": 52,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_idle_south_west": {
+      "x": 52,
+      "y": 52,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_idle_west": {
+      "x": 102,
+      "y": 52,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_walk_south_0": {
+      "x": 152,
+      "y": 52,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_walk_south_1": {
+      "x": 202,
+      "y": 52,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_walk_south_2": {
+      "x": 2,
+      "y": 102,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_walk_south_3": {
+      "x": 52,
+      "y": 102,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_walk_south_4": {
+      "x": 102,
+      "y": 102,
+      "w": 48,
+      "h": 48
+    },
+    "farmer_walk_south_5": {
+      "x": 152,
+      "y": 102,
+      "w": 48,
+      "h": 48
+    }
+  }
+}
