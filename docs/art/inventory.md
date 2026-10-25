@@ -16,22 +16,22 @@ loaded (a map names it as a tileset) and must exist at its size. The *Art* colum
 - Files the game loads: **95** of the 1,995 under `assets/` (the rest is never loaded): 42 images and 53 maps.
 - Cells used: **6,119** of 34,276 cells in those files (17.9%).
 - Frames among the used cells: **1,282**.
-- Art: **21** of 95 files already replaced, **74** still placeholder.
+- Art: **90** of 95 files already replaced, **5** still placeholder.
 - Map tile positions with a tile: **103,988** of 114,764 (map positions are not art cells and are not counted above).
 
 | Package | Image files | Map files | Used cells | Frames | Cells in its files | Used cells replaced | Files replaced |
 | :-- | --: | --: | --: | --: | --: | --: | --: |
 | Player farmer layers | 5 | 0 | 71 | 71 | 8,666 | 0 | 0 |
-| Core terrain (Farm, Town, FarmHouse) | 10 | 3 | 2,739 | 682 | 10,030 | 0 | 0 |
+| Core terrain (Farm, Town, FarmHouse) | 10 | 3 | 2,739 | 682 | 10,030 | 2,739 | 13 |
 | Items (icons, ground items, furniture, crafted objects) | 3 | 0 | 141 | 0 | 4,280 | 141 | 3 |
 | Crops and soil | 2 | 0 | 145 | 113 | 560 | 145 | 2 |
 | Tools and weapons | 2 | 0 | 15 | 0 | 576 | 15 | 2 |
-| Resource nodes | 5 | 0 | 82 | 72 | 1,494 | 81 | 4 |
+| Resource nodes | 5 | 0 | 82 | 72 | 1,494 | 82 | 5 |
 | Buildings and props | 5 | 0 | 246 | 0 | 867 | 246 | 5 |
 | Animals | 2 | 0 | 24 | 24 | 48 | 24 | 2 |
 | UI | 4 | 0 | 118 | 0 | 7,393 | 118 | 4 |
-| Remaining maps | 10 | 50 | 2,538 | 320 | 6,056 | 0 | 0 |
-| **Sum** | 48 | 53 | 6,119 | 1,282 | | 770 | 22 |
+| Remaining maps | 10 | 50 | 2,538 | 320 | 6,056 | 2,538 | 60 |
+| **Sum** | 48 | 53 | 6,119 | 1,282 | | 6,048 | 96 |
 
 A file several packages draw from appears in each of them, so the image-file sum can exceed the distinct count above; the cell sums do not overlap.
 Audio: the code loads no audio file yet; the audio package starts with [ADR-039](../adr/ADR-039-audio-hooks.md). Fonts: the only font loaded is not a placeholder (last section), so that package has no files.
@@ -50,22 +50,22 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 
 | Map file (under `assets/`) | Size px | Tile px | Tile positions with a tile / total | Used by (map ids) | Art |
 | :-- | --: | --: | --: | :-- | :-- |
-| `Maps/Farm.tmx` | 1280 × 1040 | 16 × 16 | 5,200 / 5,200 | farm | placeholder |
-| `Maps/FarmHouse.tmx` | 192 × 192 | 16 × 16 | 144 / 144 | farmhouse | placeholder |
-| `Maps/Town.tmx` | 2080 × 1760 | 16 × 16 | 14,300 / 14,300 | town | placeholder |
+| `Maps/Farm.tmx` | 1280 × 1040 | 16 × 16 | 5,200 / 5,200 | farm | replaced |
+| `Maps/FarmHouse.tmx` | 192 × 192 | 16 × 16 | 144 / 144 | farmhouse | replaced |
+| `Maps/Town.tmx` | 2080 × 1760 | 16 × 16 | 14,300 / 14,300 | town | replaced |
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `Maps/farmhouse_tiles.png` | 192 × 352 | 16 × 16 | 14 / 264 | 0 | Maps/FarmHouse.tmx | placeholder |
-| `Maps/paths.png` | 64 × 256 | 16 × 16 | 0 / 64 | 0 | Maps/Backwoods.tmx, Maps/Barn.tmx, Maps/Beach.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, +5 more | placeholder |
-| `Maps/spring_Shadows.png` | 304 × 400 | 16 × 16 | 46 / 475 | 0 | Maps/Backwoods.tmx, Maps/Beach.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx | placeholder |
-| `Maps/spring_Waterfalls.png` | 576 × 400 | 16 × 16 | 602 / 900 | 578 | Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx | placeholder |
-| `Maps/spring_outdoorTileSheet_extra.png` | 128 × 128 | 16 × 16 | 6 / 64 | 0 | Maps/Farm.tmx, Maps/Farm_Foraging.tmx | placeholder |
-| `Maps/spring_outdoorsTileSheet.png` | 400 × 1264 | 16 × 16 | 538 / 1,975 | 49 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more | placeholder |
-| `Maps/spring_outdoorsTileSheet2.png` | 256 × 1120 | 16 × 16 | 131 / 1,120 | 28 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more | placeholder |
-| `Maps/spring_town.png` | 512 × 1152 | 16 × 16 | 1,379 / 2,304 | 27 | Maps/BusStop.tmx, Maps/Town.tmx | placeholder |
-| `Maps/townInterior.png` | 512 × 1088 | 16 × 16 | 15 / 2,176 | 0 | Maps/FarmHouse.tmx | placeholder |
-| `Maps/walls_and_floors.png` | 256 × 688 | 16 × 16 | 8 / 688 | 0 | Maps/FarmHouse.tmx | placeholder |
+| `Maps/farmhouse_tiles.png` | 192 × 352 | 16 × 16 | 14 / 264 | 0 | Maps/FarmHouse.tmx | replaced |
+| `Maps/paths.png` | 64 × 256 | 16 × 16 | 0 / 64 | 0 | Maps/Backwoods.tmx, Maps/Barn.tmx, Maps/Beach.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, +5 more | replaced |
+| `Maps/spring_Shadows.png` | 304 × 400 | 16 × 16 | 46 / 475 | 0 | Maps/Backwoods.tmx, Maps/Beach.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx | replaced |
+| `Maps/spring_Waterfalls.png` | 576 × 400 | 16 × 16 | 602 / 900 | 578 | Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx | replaced |
+| `Maps/spring_outdoorTileSheet_extra.png` | 128 × 128 | 16 × 16 | 6 / 64 | 0 | Maps/Farm.tmx, Maps/Farm_Foraging.tmx | replaced |
+| `Maps/spring_outdoorsTileSheet.png` | 400 × 1264 | 16 × 16 | 538 / 1,975 | 49 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more | replaced |
+| `Maps/spring_outdoorsTileSheet2.png` | 256 × 1120 | 16 × 16 | 131 / 1,120 | 28 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more | replaced |
+| `Maps/spring_town.png` | 512 × 1152 | 16 × 16 | 1,379 / 2,304 | 27 | Maps/BusStop.tmx, Maps/Town.tmx | replaced |
+| `Maps/townInterior.png` | 512 × 1088 | 16 × 16 | 15 / 2,176 | 0 | Maps/FarmHouse.tmx | replaced |
+| `Maps/walls_and_floors.png` | 256 × 688 | 16 × 16 | 8 / 688 | 0 | Maps/FarmHouse.tmx | replaced |
 
 ## Items (icons, ground items, furniture, crafted objects)
 
@@ -93,7 +93,7 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `Maps/Mines/mine.png` | 256 × 288 | 16 × 16 | 1 / 288 | 0 | Maps/Mine.tmx, Maps/Mines/*.tmx, NodeSprites | placeholder |
+| `Maps/Mines/mine.png` | 256 × 288 | 16 × 16 | 1 / 288 | 0 | Maps/Mine.tmx, Maps/Mines/*.tmx, NodeSprites | replaced |
 | `Maps/springobjects.png` | 384 × 624 | 16 × 16 | 9 / 936 | 0 | ItemCatalog.ObjectIcon, ItemIcons, NodeSprites, PlacedObjectsDecorator | replaced |
 | `TerrainFeatures/tree1_spring.png` | 144 × 160 | 16 × 16 | 24 / 90 | 24 | NodeSprites | replaced |
 | `TerrainFeatures/tree2_spring.png` | 144 × 160 | 16 × 16 | 24 / 90 | 24 | NodeSprites | replaced |
@@ -129,69 +129,69 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 
 | Map file (under `assets/`) | Size px | Tile px | Tile positions with a tile / total | Used by (map ids) | Art |
 | :-- | --: | --: | --: | :-- | :-- |
-| `Maps/Backwoods.tmx` | 800 × 640 | 16 × 16 | 2,000 / 2,000 | backwoods | placeholder |
-| `Maps/Barn.tmx` | 288 × 240 | 16 × 16 | 270 / 270 | barn | placeholder |
-| `Maps/Beach.tmx` | 1664 × 800 | 16 × 16 | 5,200 / 5,200 | beach | placeholder |
-| `Maps/BusStop.tmx` | 1040 × 480 | 16 × 16 | 1,950 / 1,950 | busstop | placeholder |
-| `Maps/Coop.tmx` | 192 × 160 | 16 × 16 | 120 / 120 | coop | placeholder |
-| `Maps/Farm_Foraging.tmx` | 1280 × 1040 | 16 × 16 | 5,200 / 5,200 | coopfarm | placeholder |
-| `Maps/Forest.tmx` | 1920 × 1920 | 16 × 16 | 14,400 / 14,400 | forest | placeholder |
-| `Maps/Mine.tmx` | 1232 × 320 | 16 × 16 | 1,102 / 1,540 | mine | placeholder |
-| `Maps/Mines/1.tmx` | 320 × 320 | 16 × 16 | 400 / 400 | mine1 | placeholder |
-| `Maps/Mines/10.tmx` | 320 × 256 | 16 × 16 | 320 / 320 | mine10 | placeholder |
-| `Maps/Mines/11.tmx` | 720 × 480 | 16 × 16 | 1,080 / 1,350 | mine11 | placeholder |
-| `Maps/Mines/12.tmx` | 1280 × 240 | 16 × 16 | 976 / 1,200 | mine12 | placeholder |
-| `Maps/Mines/13.tmx` | 560 × 560 | 16 × 16 | 1,084 / 1,225 | mine13 | placeholder |
-| `Maps/Mines/14.tmx` | 800 × 640 | 16 × 16 | 1,677 / 2,000 | mine14 | placeholder |
-| `Maps/Mines/15.tmx` | 640 × 560 | 16 × 16 | 975 / 1,400 | mine15 | placeholder |
-| `Maps/Mines/16.tmx` | 800 × 480 | 16 × 16 | 1,078 / 1,500 | mine16 | placeholder |
-| `Maps/Mines/17.tmx` | 640 × 800 | 16 × 16 | 1,308 / 2,000 | mine17 | placeholder |
-| `Maps/Mines/18.tmx` | 800 × 640 | 16 × 16 | 1,590 / 2,000 | mine18 | placeholder |
-| `Maps/Mines/19.tmx` | 800 × 800 | 16 × 16 | 2,500 / 2,500 | mine19 | placeholder |
-| `Maps/Mines/2.tmx` | 560 × 560 | 16 × 16 | 729 / 1,225 | mine2 | placeholder |
-| `Maps/Mines/20.tmx` | 800 × 352 | 16 × 16 | 1,100 / 1,100 | mine20 | placeholder |
-| `Maps/Mines/21.tmx` | 480 × 400 | 16 × 16 | 750 / 750 | mine21 | placeholder |
-| `Maps/Mines/22.tmx` | 480 × 720 | 16 × 16 | 1,350 / 1,350 | mine22 | placeholder |
-| `Maps/Mines/23.tmx` | 640 × 640 | 16 × 16 | 1,600 / 1,600 | mine23 | placeholder |
-| `Maps/Mines/24.tmx` | 880 × 640 | 16 × 16 | 1,710 / 2,200 | mine24 | placeholder |
-| `Maps/Mines/25.tmx` | 720 × 400 | 16 × 16 | 929 / 1,125 | mine25 | placeholder |
-| `Maps/Mines/26.tmx` | 640 × 560 | 16 × 16 | 1,190 / 1,400 | mine26 | placeholder |
-| `Maps/Mines/27.tmx` | 880 × 400 | 16 × 16 | 1,318 / 1,375 | mine27 | placeholder |
-| `Maps/Mines/28.tmx` | 880 × 800 | 16 × 16 | 2,178 / 2,750 | mine28 | placeholder |
-| `Maps/Mines/29.tmx` | 880 × 800 | 16 × 16 | 1,766 / 2,750 | mine29 | placeholder |
-| `Maps/Mines/3.tmx` | 560 × 560 | 16 × 16 | 814 / 1,225 | mine3 | placeholder |
-| `Maps/Mines/31.tmx` | 560 × 480 | 16 × 16 | 884 / 1,050 | mine31 | placeholder |
-| `Maps/Mines/32.tmx` | 640 × 640 | 16 × 16 | 1,450 / 1,600 | mine32 | placeholder |
-| `Maps/Mines/33.tmx` | 480 × 480 | 16 × 16 | 646 / 900 | mine33 | placeholder |
-| `Maps/Mines/34.tmx` | 720 × 480 | 16 × 16 | 1,217 / 1,350 | mine34 | placeholder |
-| `Maps/Mines/35.tmx` | 560 × 320 | 16 × 16 | 514 / 700 | mine35 | placeholder |
-| `Maps/Mines/36.tmx` | 640 × 560 | 16 × 16 | 997 / 1,400 | mine36 | placeholder |
-| `Maps/Mines/37.tmx` | 800 × 400 | 16 × 16 | 1,057 / 1,250 | mine37 | placeholder |
-| `Maps/Mines/38.tmx` | 640 × 480 | 16 × 16 | 1,013 / 1,200 | mine38 | placeholder |
-| `Maps/Mines/39.tmx` | 320 × 960 | 16 × 16 | 1,000 / 1,200 | mine39 | placeholder |
-| `Maps/Mines/4.tmx` | 560 × 560 | 16 × 16 | 1,016 / 1,225 | mine4 | placeholder |
-| `Maps/Mines/40.tmx` | 640 × 496 | 16 × 16 | 1,240 / 1,240 | mine40 | placeholder |
-| `Maps/Mines/41.tmx` | 640 × 640 | 16 × 16 | 1,600 / 1,600 | mine30 | placeholder |
-| `Maps/Mines/5.tmx` | 560 × 560 | 16 × 16 | 975 / 1,225 | mine5 | placeholder |
-| `Maps/Mines/6.tmx` | 560 × 720 | 16 × 16 | 1,161 / 1,575 | mine6 | placeholder |
-| `Maps/Mines/7.tmx` | 720 × 560 | 16 × 16 | 1,202 / 1,575 | mine7 | placeholder |
-| `Maps/Mines/8.tmx` | 720 × 560 | 16 × 16 | 1,088 / 1,575 | mine8 | placeholder |
-| `Maps/Mines/9.tmx` | 720 × 560 | 16 × 16 | 1,165 / 1,575 | mine9 | placeholder |
-| `Maps/Mountain.tmx` | 2160 × 656 | 16 × 16 | 5,535 / 5,535 | mountain | placeholder |
-| `Maps/Woods.tmx` | 960 × 512 | 16 × 16 | 1,920 / 1,920 | woods | placeholder |
+| `Maps/Backwoods.tmx` | 800 × 640 | 16 × 16 | 2,000 / 2,000 | backwoods | replaced |
+| `Maps/Barn.tmx` | 288 × 240 | 16 × 16 | 270 / 270 | barn | replaced |
+| `Maps/Beach.tmx` | 1664 × 800 | 16 × 16 | 5,200 / 5,200 | beach | replaced |
+| `Maps/BusStop.tmx` | 1040 × 480 | 16 × 16 | 1,950 / 1,950 | busstop | replaced |
+| `Maps/Coop.tmx` | 192 × 160 | 16 × 16 | 120 / 120 | coop | replaced |
+| `Maps/Farm_Foraging.tmx` | 1280 × 1040 | 16 × 16 | 5,200 / 5,200 | coopfarm | replaced |
+| `Maps/Forest.tmx` | 1920 × 1920 | 16 × 16 | 14,400 / 14,400 | forest | replaced |
+| `Maps/Mine.tmx` | 1232 × 320 | 16 × 16 | 1,102 / 1,540 | mine | replaced |
+| `Maps/Mines/1.tmx` | 320 × 320 | 16 × 16 | 400 / 400 | mine1 | replaced |
+| `Maps/Mines/10.tmx` | 320 × 256 | 16 × 16 | 320 / 320 | mine10 | replaced |
+| `Maps/Mines/11.tmx` | 720 × 480 | 16 × 16 | 1,080 / 1,350 | mine11 | replaced |
+| `Maps/Mines/12.tmx` | 1280 × 240 | 16 × 16 | 976 / 1,200 | mine12 | replaced |
+| `Maps/Mines/13.tmx` | 560 × 560 | 16 × 16 | 1,084 / 1,225 | mine13 | replaced |
+| `Maps/Mines/14.tmx` | 800 × 640 | 16 × 16 | 1,677 / 2,000 | mine14 | replaced |
+| `Maps/Mines/15.tmx` | 640 × 560 | 16 × 16 | 975 / 1,400 | mine15 | replaced |
+| `Maps/Mines/16.tmx` | 800 × 480 | 16 × 16 | 1,078 / 1,500 | mine16 | replaced |
+| `Maps/Mines/17.tmx` | 640 × 800 | 16 × 16 | 1,308 / 2,000 | mine17 | replaced |
+| `Maps/Mines/18.tmx` | 800 × 640 | 16 × 16 | 1,590 / 2,000 | mine18 | replaced |
+| `Maps/Mines/19.tmx` | 800 × 800 | 16 × 16 | 2,500 / 2,500 | mine19 | replaced |
+| `Maps/Mines/2.tmx` | 560 × 560 | 16 × 16 | 729 / 1,225 | mine2 | replaced |
+| `Maps/Mines/20.tmx` | 800 × 352 | 16 × 16 | 1,100 / 1,100 | mine20 | replaced |
+| `Maps/Mines/21.tmx` | 480 × 400 | 16 × 16 | 750 / 750 | mine21 | replaced |
+| `Maps/Mines/22.tmx` | 480 × 720 | 16 × 16 | 1,350 / 1,350 | mine22 | replaced |
+| `Maps/Mines/23.tmx` | 640 × 640 | 16 × 16 | 1,600 / 1,600 | mine23 | replaced |
+| `Maps/Mines/24.tmx` | 880 × 640 | 16 × 16 | 1,710 / 2,200 | mine24 | replaced |
+| `Maps/Mines/25.tmx` | 720 × 400 | 16 × 16 | 929 / 1,125 | mine25 | replaced |
+| `Maps/Mines/26.tmx` | 640 × 560 | 16 × 16 | 1,190 / 1,400 | mine26 | replaced |
+| `Maps/Mines/27.tmx` | 880 × 400 | 16 × 16 | 1,318 / 1,375 | mine27 | replaced |
+| `Maps/Mines/28.tmx` | 880 × 800 | 16 × 16 | 2,178 / 2,750 | mine28 | replaced |
+| `Maps/Mines/29.tmx` | 880 × 800 | 16 × 16 | 1,766 / 2,750 | mine29 | replaced |
+| `Maps/Mines/3.tmx` | 560 × 560 | 16 × 16 | 814 / 1,225 | mine3 | replaced |
+| `Maps/Mines/31.tmx` | 560 × 480 | 16 × 16 | 884 / 1,050 | mine31 | replaced |
+| `Maps/Mines/32.tmx` | 640 × 640 | 16 × 16 | 1,450 / 1,600 | mine32 | replaced |
+| `Maps/Mines/33.tmx` | 480 × 480 | 16 × 16 | 646 / 900 | mine33 | replaced |
+| `Maps/Mines/34.tmx` | 720 × 480 | 16 × 16 | 1,217 / 1,350 | mine34 | replaced |
+| `Maps/Mines/35.tmx` | 560 × 320 | 16 × 16 | 514 / 700 | mine35 | replaced |
+| `Maps/Mines/36.tmx` | 640 × 560 | 16 × 16 | 997 / 1,400 | mine36 | replaced |
+| `Maps/Mines/37.tmx` | 800 × 400 | 16 × 16 | 1,057 / 1,250 | mine37 | replaced |
+| `Maps/Mines/38.tmx` | 640 × 480 | 16 × 16 | 1,013 / 1,200 | mine38 | replaced |
+| `Maps/Mines/39.tmx` | 320 × 960 | 16 × 16 | 1,000 / 1,200 | mine39 | replaced |
+| `Maps/Mines/4.tmx` | 560 × 560 | 16 × 16 | 1,016 / 1,225 | mine4 | replaced |
+| `Maps/Mines/40.tmx` | 640 × 496 | 16 × 16 | 1,240 / 1,240 | mine40 | replaced |
+| `Maps/Mines/41.tmx` | 640 × 640 | 16 × 16 | 1,600 / 1,600 | mine30 | replaced |
+| `Maps/Mines/5.tmx` | 560 × 560 | 16 × 16 | 975 / 1,225 | mine5 | replaced |
+| `Maps/Mines/6.tmx` | 560 × 720 | 16 × 16 | 1,161 / 1,575 | mine6 | replaced |
+| `Maps/Mines/7.tmx` | 720 × 560 | 16 × 16 | 1,202 / 1,575 | mine7 | replaced |
+| `Maps/Mines/8.tmx` | 720 × 560 | 16 × 16 | 1,088 / 1,575 | mine8 | replaced |
+| `Maps/Mines/9.tmx` | 720 × 560 | 16 × 16 | 1,165 / 1,575 | mine9 | replaced |
+| `Maps/Mountain.tmx` | 2160 × 656 | 16 × 16 | 5,535 / 5,535 | mountain | replaced |
+| `Maps/Woods.tmx` | 960 × 512 | 16 × 16 | 1,920 / 1,920 | woods | replaced |
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `Maps/Mines/mine.png` | 256 × 288 | 16 × 16 | 263 / 288 | 0 | Maps/Mine.tmx, Maps/Mines/*.tmx, NodeSprites | placeholder |
-| `Maps/Mines/mine_dark.png` | 256 × 288 | 16 × 16 | 170 / 288 | 0 | Maps/Mines/*.tmx | placeholder |
-| `Maps/Mines/mine_desert.png` | 256 × 384 | 16 × 16 | 192 / 384 | 0 | Maps/Mines/*.tmx | placeholder |
-| `Maps/coopTiles.png` | 64 × 336 | 16 × 16 | 65 / 84 | 0 | Maps/Barn.tmx, Maps/Coop.tmx | placeholder |
-| `Maps/spring_Shadows.png` | 304 × 400 | 16 × 16 | 95 / 475 | 0 | Maps/Backwoods.tmx, Maps/Beach.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx | placeholder |
-| `Maps/spring_Waterfalls.png` | 576 × 400 | 16 × 16 | 115 / 900 | 96 | Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx | placeholder |
-| `Maps/spring_beach.png` | 272 × 496 | 16 × 16 | 436 / 527 | 65 | Maps/Beach.tmx | placeholder |
-| `Maps/spring_monsterGraveTiles.png` | 48 × 80 | 16 × 16 | 0 / 15 | 0 | Maps/Backwoods.tmx | placeholder |
-| `Maps/spring_outdoorsTileSheet.png` | 400 × 1264 | 16 × 16 | 863 / 1,975 | 65 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more | placeholder |
-| `Maps/spring_outdoorsTileSheet2.png` | 256 × 1120 | 16 × 16 | 339 / 1,120 | 94 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more | placeholder |
+| `Maps/Mines/mine.png` | 256 × 288 | 16 × 16 | 263 / 288 | 0 | Maps/Mine.tmx, Maps/Mines/*.tmx, NodeSprites | replaced |
+| `Maps/Mines/mine_dark.png` | 256 × 288 | 16 × 16 | 170 / 288 | 0 | Maps/Mines/*.tmx | replaced |
+| `Maps/Mines/mine_desert.png` | 256 × 384 | 16 × 16 | 192 / 384 | 0 | Maps/Mines/*.tmx | replaced |
+| `Maps/coopTiles.png` | 64 × 336 | 16 × 16 | 65 / 84 | 0 | Maps/Barn.tmx, Maps/Coop.tmx | replaced |
+| `Maps/spring_Shadows.png` | 304 × 400 | 16 × 16 | 95 / 475 | 0 | Maps/Backwoods.tmx, Maps/Beach.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx | replaced |
+| `Maps/spring_Waterfalls.png` | 576 × 400 | 16 × 16 | 115 / 900 | 96 | Maps/Forest.tmx, Maps/Mountain.tmx, Maps/Town.tmx | replaced |
+| `Maps/spring_beach.png` | 272 × 496 | 16 × 16 | 436 / 527 | 65 | Maps/Beach.tmx | replaced |
+| `Maps/spring_monsterGraveTiles.png` | 48 × 80 | 16 × 16 | 0 / 15 | 0 | Maps/Backwoods.tmx | replaced |
+| `Maps/spring_outdoorsTileSheet.png` | 400 × 1264 | 16 × 16 | 863 / 1,975 | 65 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more | replaced |
+| `Maps/spring_outdoorsTileSheet2.png` | 256 × 1120 | 16 × 16 | 339 / 1,120 | 94 | Maps/Backwoods.tmx, Maps/BusStop.tmx, Maps/Farm.tmx, Maps/Farm_Foraging.tmx, Maps/Forest.tmx, Maps/Mountain.tmx, +2 more | replaced |
 
 ## Tiles placed on the maps
 

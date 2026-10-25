@@ -1,0 +1,401 @@
+{
+  "base_tile_ids": {
+    "lower": "332045bb-adff-4608-a2e6-d257b73e525f",
+    "upper": "c2718734-2e7e-40d3-a84d-424b4aaffeed"
+  },
+  "created_at": "2026-10-25T20:54:33.249007+00:00",
+  "format": "tileset15",
+  "id": "b9dafdfc-6f80-4b01-970b-873082cd4212",
+  "layout": "4x8 grid of transition (cliff) tiles. Tiles are one cell high; a cliff face occupies the map cell BELOW the terrain boundary (wall tiles carry corners with 'transition'). Use pattern_4x4 (row_0 = terrain above, row_3 = terrain below) to pick tiles.",
+  "lower_description": "lush green meadow grass",
+  "name": "lush green meadow grass ↗ raised grassy plateau",
+  "style_settings": {
+    "detail": "medium detail",
+    "outline": "",
+    "shading": "basic shading"
+  },
+  "tile_size": {
+    "height": 16,
+    "width": 16
+  },
+  "tiles": [
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 32
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "lower",
+        "SE": "lower",
+        "SW": "lower"
+      },
+      "id": "332045bb-adff-4608-a2e6-d257b73e525f"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 32
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "1"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 64
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "upper"
+      },
+      "id": "2"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 64
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "lower",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "3"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 48
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "10"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 64
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "4"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 96
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "upper",
+        "SE": "upper",
+        "SW": "upper"
+      },
+      "id": "c2718734-2e7e-40d3-a84d-424b4aaffeed"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 0
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "6"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 16
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "14"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 64
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "upper",
+        "SW": "upper"
+      },
+      "id": "8"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 96
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "upper",
+        "SW": "upper"
+      },
+      "id": "9"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 96
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "upper",
+        "SE": "transition",
+        "SW": "upper"
+      },
+      "id": "16"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 0
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "upper",
+        "SE": "transition",
+        "SW": "transition"
+      },
+      "id": "17"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 32
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "transition"
+      },
+      "id": "18"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 112
+      },
+      "corners": {
+        "NE": "transition",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "19"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 48,
+        "y": 16
+      },
+      "corners": {
+        "NE": "transition",
+        "NW": "transition",
+        "SE": "lower",
+        "SW": "lower"
+      },
+      "id": "20"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 48
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "transition",
+        "SE": "lower",
+        "SW": "lower"
+      },
+      "id": "21"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 0
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "transition",
+        "SW": "lower"
+      },
+      "id": "22"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 0
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "upper",
+        "SE": "upper",
+        "SW": "transition"
+      },
+      "id": "23"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 96
+      },
+      "corners": {
+        "NE": "lower",
+        "NW": "upper",
+        "SE": "upper",
+        "SW": "transition"
+      },
+      "id": "24"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 16
+      },
+      "corners": {
+        "NE": "transition",
+        "NW": "lower",
+        "SE": "lower",
+        "SW": "lower"
+      },
+      "id": "25"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 16
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "transition",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "26"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 32,
+        "y": 112
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "transition",
+        "SE": "upper",
+        "SW": "lower"
+      },
+      "id": "27"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 32
+      },
+      "corners": {
+        "NE": "upper",
+        "NW": "lower",
+        "SE": "transition",
+        "SW": "upper"
+      },
+      "id": "28"
+    },
+    {
+      "bounding_box": {
+        "height": 16,
+        "width": 16,
+        "x": 0,
+        "y": 48
+      },
+      "corners": {
+        "NE": "transition",
+        "NW": "upper",
+        "SE": "lower",
+        "SW": "upper"
+      },
+      "id": "30"
+    }
+  ],
+  "transition_description": "tall brown rocky cliff face featuring exposed strata, moderate weathering, and basic two-tone light and shadow",
+  "upper_description": "raised grassy plateau with moderate surface texture, gentle color variation, and basic two-tone light and shadow",
+  "view": "high top-down"
+}

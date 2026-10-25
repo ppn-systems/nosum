@@ -4,6 +4,19 @@ using System;
 
 namespace Nosum.MapReauthor;
 
+/// <summary>Where a sheet is used.</summary>
+internal enum Setting
+{
+    /// <summary>Outdoor maps.</summary>
+    Outdoors,
+
+    /// <summary>House, coop and barn interiors.</summary>
+    Indoors,
+
+    /// <summary>The mine's entrance and floors.</summary>
+    Mine,
+}
+
 /// <summary>
 /// Draws one own tile for one placeholder tile of a drawn layer (buildings, trees, cliffs, fences, floors, walls, props).
 /// Nothing is copied from the placeholder's pixels. The painter reads three coarse facts from the tile, as a floor plan would give them: which of its
@@ -28,7 +41,8 @@ internal static class ObjectPainter
     /// <param name="seed">A number that varies the texture noise from tile to tile: the tile's index.</param>
     /// <param name="ground">Draw a floor: a ground tile that is all filled gets a flat texture with no outline and no edge light.</param>
     /// <param name="phase">The animation frame, which shifts the ripples of water; 0 for a still tile.</param>
-    public static void Paint(Rgba source, int sourceX, int sourceY, Rgba target, int targetX, int targetY, int seed, bool ground, int phase)
+    /// <param name="setting">Where the sheet is used, which moves some materials (yellow floors indoors are planks, light floors in the mine are earth).</param>
+    public static void Paint(Rgba source, int sourceX, int sourceY, Rgba target, int targetX, int targetY, int seed, bool ground, int phase, Setting setting = Setting.Outdoors)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
@@ -62,7 +76,7 @@ internal static class ObjectPainter
             {
                 if (mask[(y * Size) + x])
                 {
-                    material[(y * Size) + x] = facts.NearestMaterial(x + ((int)(Hash(x, y, seed) % 3) - 1), y + ((int)(Hash(y, x, seed + 7) % 3) - 1));
+                    material[(y * Size) + x] = Adjust(facts.NearestMaterial(x + ((int)(Hash(x, y, seed) % 3) - 1), y + ((int)(Hash(y, x, seed + 7) % 3) - 1)), setting, ground && full);
                 }
             }
         }
@@ -101,6 +115,15 @@ internal static class ObjectPainter
             }
         }
     }
+
+    private static Material Adjust(Material m, Setting setting, bool floor)
+        => setting switch
+        {
+            Setting.Indoors when m is Material.Sand or Material.Dirt => Material.Wall,
+            Setting.Mine when floor && m is Material.Rock => Material.Dirt,
+            Setting.Mine when m is Material.Wall or Material.Sand or Material.Brick or Material.Red or Material.RoofRed => Material.Dirt,
+            _ => m,
+        };
 
     // Outside the tile the outline continues what the edge pixel is, so a tile that fills its border has no outline there.
     private static bool Filled(bool[] mask, int x, int y) => mask[(Math.Clamp(y, 0, Size - 1) * Size) + Math.Clamp(x, 0, Size - 1)];

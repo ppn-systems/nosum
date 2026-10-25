@@ -109,7 +109,7 @@ internal sealed class SheetBuilder
                 }
                 else
                 {
-                    ObjectPainter.Paint(source, x, y, own, x, y, local, use.Ground > use.Other, use.Phase);
+                    ObjectPainter.Paint(source, x, y, own, x, y, local, use.Ground > use.Other, use.Phase, SettingOf(key));
                 }
             }
 
@@ -118,6 +118,11 @@ internal sealed class SheetBuilder
 
         return sheets;
     }
+
+    private static Setting SettingOf(string key)
+        => key.StartsWith("Mines/", StringComparison.Ordinal) ? Setting.Mine
+        : key is "farmhouse_tiles.png" or "walls_and_floors.png" or "townInterior.png" or "coopTiles.png" ? Setting.Indoors
+        : Setting.Outdoors;
 
     private SortedDictionary<int, CellUse> CellsOf(string key)
     {
