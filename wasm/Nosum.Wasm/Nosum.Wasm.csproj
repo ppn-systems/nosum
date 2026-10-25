@@ -3,7 +3,20 @@
   <PropertyGroup>
     <Description>Nosum Blazor WebAssembly host: the game canvas page plus the UI overlay (inventory, shop, chat).</Description>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <!-- Required by the [JSExport] source generator (Game/GameLoop.cs). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <!-- Placeholder content served from the repository's assets/ folder (docs/adr/ADR-007):
+       only the files the client loads, linked so assets/ stays the single copy. -->
+  <ItemGroup>
+    <Content Include="..\..\assets\Maps\Farm.tmx;..\..\assets\Maps\paths.png;..\..\assets\Maps\spring_outdoorsTileSheet.png;..\..\assets\Maps\spring_outdoorsTileSheet2.png;..\..\assets\Maps\spring_outdoorTileSheet_extra.png" Link="wwwroot\assets\Maps\%(Filename)%(Extension)" />
+    <Content Include="..\..\assets\Characters\Farmer\farmer_base.png;..\..\assets\Characters\Farmer\pants.png;..\..\assets\Characters\Farmer\shirts.png;..\..\assets\Characters\Farmer\hairstyles.png" Link="wwwroot\assets\Characters\Farmer\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
@@ -13,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Nosum.Wasm.ViewModels\Nosum.Wasm.ViewModels.csproj" />
     <ProjectReference Include="..\..\engine\Nosum.Rendering.Web\Nosum.Rendering.Web.csproj" />
+    <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
     <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
   </ItemGroup>
 

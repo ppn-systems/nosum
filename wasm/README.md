@@ -17,6 +17,11 @@ Skills: [`blazor-ui`](../.claude/skills/blazor-ui/SKILL.md),
 [`render-interop`](../.claude/skills/render-interop/SKILL.md),
 [`nalix-client-sdk`](../.claude/skills/nalix-client-sdk/SKILL.md).
 
+Playable now: `Pages/Home.razor` starts `Game/GameLoop`, which loads `assets/Maps/Farm.tmx` and the
+farmer sheets (linked from `assets/` in the `.csproj`), then runs `Game/FarmScene`: walk with
+WASD or the arrow keys, the camera follows, layers draw as Back → Buildings → farmer → Front.
+`TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
+
 ```bash
 dotnet build wasm/Nosum.Wasm.slnx
 dotnet run --project wasm/Nosum.Wasm

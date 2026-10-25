@@ -10,4 +10,5 @@ References `engine/Nosum.Core` only. Rules: [`gameplay-rules`](../.claude/skills
 dotnet build gameplay/Nosum.Gameplay.slnx
 ```
 
-No rules are implemented yet.
+Implemented: `Movement/WalkGrid` (blocking tiles from the map's `Buildings` layer) and
+`Movement/Walker` (fixed-step walking with a feet footprint, sliding along walls).

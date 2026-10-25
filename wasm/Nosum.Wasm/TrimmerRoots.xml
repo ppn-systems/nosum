@@ -1,0 +1,5 @@
+<!-- Razor components and their DI constructors are found by reflection, which the trimmer
+     cannot follow; keep this app's own assembly whole. BCL and packages are still trimmed. -->
+<linker>
+  <assembly fullname="Nosum.Wasm" preserve="all" />
+</linker>

@@ -4,8 +4,9 @@ A browser-based multiplayer farming game in 3/4 top-down pixel art. The client i
 2D engine; the server is a .NET 10 realtime server on the Nalix networking framework.
 Client and server talk over one Nalix WebSocket channel and share the same C# contracts.
 
-> Status: scaffold. The projects build and the server accepts WebSocket connections; the
-> engine, the renderer and the game rules are not implemented yet.
+> Status: single-player slice. The client loads the farm map and a layered farmer you can walk
+> around (Canvas2D, 60 FPS); the server accepts WebSocket connections but has no game handlers
+> yet. Art and maps are placeholder content ([ADR-007](docs/adr/ADR-007-placeholder-content-16px.md)).
 
 ## Layout
 

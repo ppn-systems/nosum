@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
+    <ProjectReference Include="..\..\engine\Nosum.Rendering\Nosum.Rendering.csproj" />
     <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
     <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
     <ProjectReference Include="..\..\tools\Nosum.AtlasPacker\Nosum.AtlasPacker.csproj" />

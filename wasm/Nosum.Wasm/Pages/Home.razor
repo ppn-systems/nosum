@@ -1,5 +1,39 @@
 @page "/"
+@using System.IO
+@using System.Net.Http
+@using System.Runtime.InteropServices.JavaScript
+@using System.Threading
+@using System.Runtime.Versioning
+@using Nosum.Wasm.Game
+@attribute [SupportedOSPlatform("browser")]
+@inject HttpClient Http
 
 <PageTitle>Nosum</PageTitle>
 
-<h1>Nosum</h1>
+<canvas id="game-canvas" class="game-canvas" tabindex="0"></canvas>
+@if (_error is not null)
+{
+    <p class="game-error">@_error</p>
+}
+
+@code {
+    private string? _error;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        try
+        {
+            await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or JSException)
+        {
+            _error = $"Could not start the game: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+}

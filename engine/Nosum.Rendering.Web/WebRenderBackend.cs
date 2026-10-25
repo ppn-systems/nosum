@@ -27,16 +27,39 @@ public sealed partial class WebRenderBackend : IRenderBackend
     public const string ModuleUrl = "/_content/Nosum.Rendering.Web/renderer.js";
 
     /// <summary>
-    /// Loads the JS module. Call once at startup, before the first <see cref="Submit"/>.
+    /// Loads the JS module. Call once at startup, before any other member.
     /// </summary>
     /// <param name="cancellationToken">Cancels the module download.</param>
     /// <returns>The loaded module.</returns>
     public static Task<JSObject> ImportModuleAsync(CancellationToken cancellationToken = default)
         => JSHost.ImportAsync(ModuleName, ModuleUrl, cancellationToken);
 
+    /// <summary>Downloads an image and registers it under a texture id.</summary>
+    /// <param name="id">Texture id used by render commands.</param>
+    /// <param name="url">Image URL.</param>
+    /// <returns>A task that completes when the texture is ready.</returns>
+    public static Task LoadTextureAsync(int id, string url) => LoadTexture(id, url);
+
+    /// <summary>
+    /// Starts the frame loop: every animation frame JS calls the exported static method
+    /// <paramref name="exportPath"/> of <paramref name="assemblyName"/> with
+    /// <c>(double timeMs, int heldKeys, int canvasWidth, int canvasHeight)</c>.
+    /// </summary>
+    /// <param name="canvasId">Id of the canvas element.</param>
+    /// <param name="assemblyName">Assembly holding the export, e.g. <c>Nosum.Wasm.dll</c>.</param>
+    /// <param name="exportPath">Full name of the exported method, e.g. <c>Nosum.Wasm.Game.GameLoop.Frame</c>.</param>
+    /// <returns>A task that completes once the loop is running.</returns>
+    public static Task StartAsync(string canvasId, string assemblyName, string exportPath) => Start(canvasId, assemblyName, exportPath);
+
     /// <inheritdoc/>
     public void Submit(Span<byte> commands) => SubmitFrame(commands);
 
     [JSImport("submitFrame", ModuleName)]
     private static partial void SubmitFrame([JSMarshalAs<JSType.MemoryView>] Span<byte> commands);
+
+    [JSImport("loadTexture", ModuleName)]
+    private static partial Task LoadTexture(int id, string url);
+
+    [JSImport("start", ModuleName)]
+    private static partial Task Start(string canvasId, string assemblyName, string exportPath);
 }

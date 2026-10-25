@@ -16,5 +16,8 @@ Rules: [`engine-core`](../.claude/skills/engine-core/SKILL.md) and, for the brow
 dotnet build engine/Nosum.Engine.slnx
 ```
 
-Implemented so far: `FixedTimestep`, the `IRenderBackend` contract and the `[JSImport]` call
-signature. The command encoding and Canvas2D drawing are not implemented yet.
+Implemented: `FixedTimestep`, `TmxReader`/`TileMap` (orthogonal, embedded tilesets, CSV layers),
+`InputState`, `Facing`; `RenderCommandBuffer` (one int32 draw list per frame), `Camera2D`,
+`TileLayerRenderer` (draws only visible tiles); the browser backend loads textures, runs the
+`requestAnimationFrame` loop, tracks WASD/arrow keys and draws with Canvas2D (flip, cached
+multiply tints).
