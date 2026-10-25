@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261025122359_CommunityGoalsAndPriceHistory")]
+    [Migration("20261025124028_CommunityGoalsAndPriceHistory")]
     partial class CommunityGoalsAndPriceHistory
     {
         /// <inheritdoc />
@@ -150,15 +150,36 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("player_id");
 
+                    b.Property<int>("Energy")
+                        .HasColumnType("integer")
+                        .HasColumnName("energy");
+
+                    b.Property<long>("EnergyRefilledDay")
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(-1L)
+                        .HasColumnName("energy_refilled_day");
+
                     b.Property<int>("Facing")
                         .HasColumnType("integer")
                         .HasColumnName("facing");
+
+                    b.Property<int>("FarmingXp")
+                        .HasColumnType("integer")
+                        .HasColumnName("farming_xp");
+
+                    b.Property<int>("ForagingXp")
+                        .HasColumnType("integer")
+                        .HasColumnName("foraging_xp");
 
                     b.Property<string>("MapName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("map_name");
+
+                    b.Property<int>("MiningXp")
+                        .HasColumnType("integer")
+                        .HasColumnName("mining_xp");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
