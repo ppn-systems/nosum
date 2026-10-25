@@ -1,0 +1,20 @@
+/* The shared button. The look is these variables and nothing else. */
+.game-button {
+    --game-button-background: #8a5a2b;
+    --game-button-color: #fff;
+    --game-button-radius: 0.35rem;
+    --game-button-padding: 0.25rem 0.7rem;
+
+    padding: var(--game-button-padding);
+    border: 0;
+    border-radius: var(--game-button-radius);
+    background: var(--game-button-background);
+    color: var(--game-button-color);
+    font: inherit;
+    cursor: pointer;
+}
+
+.game-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

@@ -11,6 +11,8 @@ using Nosum.Core;
 using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Placeable;
+using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering.Web;
 
@@ -33,6 +35,8 @@ internal static partial class GameLoop
     private static PlayerChannel? s_network;
     private static FarmChannel? s_farm;
     private static InventoryChannel? s_inventory;
+    private static PlaceableChannel? s_placeable;
+    private static PlacementViewModel? s_placement;
     private static double s_lastTime = -1;
 
     /// <summary>Connects the game to the server; call before <see cref="StartAsync"/>. Without it the farm is played offline.</summary>
@@ -46,6 +50,15 @@ internal static partial class GameLoop
     {
         s_farm = farm;
         s_inventory = inventory;
+    }
+
+    /// <summary>Connects furniture placing to the game: the placed pieces and the arrange panel's state. Call before <see cref="StartAsync"/>, after <see cref="UseFarming"/>.</summary>
+    /// <param name="placeable">The placed pieces mirror and action sender.</param>
+    /// <param name="placement">The arrange panel's view model.</param>
+    public static void UsePlacement(PlaceableChannel placeable, PlacementViewModel placement)
+    {
+        s_placeable = placeable;
+        s_placement = placement;
     }
 
     /// <summary>Raised from the frame when the player pressed the inventory key.</summary>
@@ -72,6 +85,13 @@ internal static partial class GameLoop
             providers.Add(new FarmDecoratorProvider(s_farm, actions));
         }
 
+        PlacementActions? placement = null;
+        if (s_placeable is not null && s_placement is not null && s_inventory is not null)
+        {
+            placement = new PlacementActions(s_placeable, s_inventory, s_placement);
+            providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement));
+        }
+
         MapLoader loader = new(http, textures, providers);
 
         Task<int[]> farmerSheets = Task.WhenAll(
@@ -91,7 +111,7 @@ internal static partial class GameLoop
         FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3]);
 
         FarmerLook look = new(Hairstyle: 1, HairTint: unchecked((int)0x6B4226FF), Shirt: 3, Pants: 0, PantsTint: unchecked((int)0x3E5F8AFF));
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement);
 
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }

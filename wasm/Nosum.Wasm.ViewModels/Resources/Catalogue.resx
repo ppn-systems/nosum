@@ -24,4 +24,18 @@
   <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Chọn cuốc (phím 1) rồi nhấn E để xới đất phía trước. Gieo hạt giống, tưới nước bằng bình tưới và chờ cây lớn.</value></data>
   <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Gieo một hạt giống</value></data>
   <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Thu hoạch một cây trồng</value></data>
+  <data name="Item_oak_chair_Name" xml:space="preserve"><value>Ghế gỗ sồi</value></data>
+  <data name="Item_oak_chair_Description" xml:space="preserve"><value>Một chiếc ghế gỗ sồi. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_blue_armchair_Name" xml:space="preserve"><value>Ghế bành xanh</value></data>
+  <data name="Item_blue_armchair_Description" xml:space="preserve"><value>Một chiếc ghế bành êm ái. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_blue_couch_Name" xml:space="preserve"><value>Ghế sofa xanh</value></data>
+  <data name="Item_blue_couch_Description" xml:space="preserve"><value>Một chiếc ghế sofa dài. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_oak_table_Name" xml:space="preserve"><value>Bàn gỗ sồi</value></data>
+  <data name="Item_oak_table_Description" xml:space="preserve"><value>Một chiếc bàn gỗ sồi. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_bookcase_Name" xml:space="preserve"><value>Tủ sách</value></data>
+  <data name="Item_bookcase_Description" xml:space="preserve"><value>Một tủ sách cao. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_floor_lamp_Name" xml:space="preserve"><value>Đèn đứng</value></data>
+  <data name="Item_floor_lamp_Description" xml:space="preserve"><value>Một chiếc đèn đứng. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_house_plant_Name" xml:space="preserve"><value>Chậu cây</value></data>
+  <data name="Item_house_plant_Description" xml:space="preserve"><value>Một chậu cây cảnh. Đặt trong nhà của bạn.</value></data>
 </root>

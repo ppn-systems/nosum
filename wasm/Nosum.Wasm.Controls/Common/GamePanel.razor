@@ -1,0 +1,31 @@
+@* A framed panel: the one container every game UI panel is built from. Looks come only from the shared "game-panel" classes, so the
+   theme can change in one place. Dock picks one of the shared screen positions. *@
+<section class="game-panel @DockClass" role="region" aria-label="@Title">
+    @if (Title.Length > 0)
+    {
+        <h2 class="game-panel-title">@Title</h2>
+    }
+    <div class="game-panel-body">@ChildContent</div>
+</section>
+
+@code {
+    /// <summary>Gets or sets the localized title; empty for none.</summary>
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets where the panel sits on the screen.</summary>
+    [Parameter]
+    public PanelDock Dock { get; set; } = PanelDock.None;
+
+    /// <summary>Gets or sets the content.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string DockClass => Dock switch
+    {
+        PanelDock.TopRight => "game-panel--top-right",
+        PanelDock.TopLeft => "game-panel--top-left",
+        PanelDock.Center => "game-panel--center",
+        _ => string.Empty,
+    };
+}
