@@ -224,9 +224,14 @@ internal static class Program
         // Farm and farmhouse are private per player; placed furniture is part of the instance a player walks on (docs/adr/ADR-015).
         PlaceableService placeables = new(presence, maps, inventory, unitOfWork, clock);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
-        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), TimeProvider.System, SnapshotInterval);
+        // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
+        CoopMembership coopMembership = new(unitOfWork);
+        InstanceManager.Instance.Register<ICoopMembership>(coopMembership);
+        PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), coopMembership, TimeProvider.System, SnapshotInterval);
         InstanceManager.Instance.Register<IPlayerService>(players);
-        InstanceManager.Instance.Register<IFarmService>(new FarmService(presence, maps, inventory, quests, unitOfWork, clock));
+        InstanceManager.Instance.Register<ICoopLandEviction>(players);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, unitOfWork, clock);
+        InstanceManager.Instance.Register<IFarmService>(farm);
 
         // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
@@ -245,6 +250,6 @@ internal static class Program
 
         InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, nicknames, clock));
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
-        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, clock));
+        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock));
     }
 }
