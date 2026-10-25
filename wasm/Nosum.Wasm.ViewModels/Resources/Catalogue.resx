@@ -21,7 +21,7 @@
   <data name="Item_cauliflower_Name" xml:space="preserve"><value>Súp lơ</value></data>
   <data name="Item_cauliflower_Description" xml:space="preserve"><value>Súp lơ vừa thu hoạch.</value></data>
   <data name="Quest_first_harvest_Title" xml:space="preserve"><value>Vụ thu hoạch đầu tiên</value></data>
-  <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Chọn cuốc (phím 1) rồi nhấn E để xới đất phía trước. Gieo hạt giống, tưới nước bằng bình tưới và chờ cây lớn.</value></data>
+  <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Chọn hạt giống rồi nhấn E lên đất đã xới và tưới nước. Chờ cây lớn rồi thu hoạch bằng liềm.</value></data>
   <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Gieo một hạt giống</value></data>
   <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Thu hoạch một cây trồng</value></data>
   <data name="Item_oak_chair_Name" xml:space="preserve"><value>Ghế gỗ sồi</value></data>
@@ -236,4 +236,29 @@
   <data name="Goal_fall_harvest_Reward" xml:space="preserve"><value>Mở quầy mùa thu hoạch trong thị trấn và chia xu cho người đóng góp.</value></data>
   <data name="Goal_winter_lanterns_Name" xml:space="preserve"><value>Đèn lồng quảng trường</value></data>
   <data name="Goal_winter_lanterns_Reward" xml:space="preserve"><value>Thắp đèn lồng quảng trường mùa đông và chia xu cho người đóng góp.</value></data>
+  <data name="Quest_till_soil_Title" xml:space="preserve"><value>Xới đất</value></data>
+  <data name="Quest_till_soil_Hint" xml:space="preserve"><value>Chọn cuốc (phím 1) rồi nhấn E để xới đất phía trước. Đất chỉ xới được trên nông trại.</value></data>
+  <data name="Quest_till_soil_Tip" xml:space="preserve"><value>Chọn cuốc và nhấn phím dùng để xới một ô đất.</value></data>
+  <data name="Quest_till_soil_Objective_0" xml:space="preserve"><value>Xới một ô đất</value></data>
+  <data name="Quest_water_crop_Title" xml:space="preserve"><value>Tưới nước</value></data>
+  <data name="Quest_water_crop_Hint" xml:space="preserve"><value>Chọn bình tưới rồi nhấn E lên ô đất đã xới. Đổ đầy bình ở chỗ có nước.</value></data>
+  <data name="Quest_water_crop_Tip" xml:space="preserve"><value>Chọn bình tưới và tưới một ô đất đã xới.</value></data>
+  <data name="Quest_water_crop_Objective_0" xml:space="preserve"><value>Tưới nước một ô đất</value></data>
+  <data name="Quest_first_harvest_Tip" xml:space="preserve"><value>Gieo hạt giống lên đất đã xới, tưới nước và chờ cây lớn rồi thu hoạch.</value></data>
+  <data name="Quest_ship_produce_Title" xml:space="preserve"><value>Bán nông sản</value></data>
+  <data name="Quest_ship_produce_Hint" xml:space="preserve"><value>Đứng cạnh thùng bán hàng trên nông trại, chọn nông sản và nhấn E để bán.</value></data>
+  <data name="Quest_ship_produce_Tip" xml:space="preserve"><value>Bỏ nông sản vào thùng bán hàng cạnh nhà để kiếm xu.</value></data>
+  <data name="Quest_ship_produce_Objective_0" xml:space="preserve"><value>Bán nông sản ở thùng bán hàng</value></data>
+  <data name="Quest_buy_seeds_Title" xml:space="preserve"><value>Mua hạt giống</value></data>
+  <data name="Quest_buy_seeds_Hint" xml:space="preserve"><value>Rời nông trại đến Thị trấn, đứng trước quầy cửa hàng hạt giống và nhấn phím dùng để mua.</value></data>
+  <data name="Quest_buy_seeds_Tip" xml:space="preserve"><value>Đến cửa hàng hạt giống ở Thị trấn và mua một thứ.</value></data>
+  <data name="Quest_buy_seeds_Objective_0" xml:space="preserve"><value>Mua một thứ ở cửa hàng</value></data>
+  <data name="Quest_chop_tree_Title" xml:space="preserve"><value>Đốn cây</value></data>
+  <data name="Quest_chop_tree_Hint" xml:space="preserve"><value>Chọn rìu rồi nhấn E lên một cái cây cho đến khi nó đổ. Gỗ rơi xuống đất, hãy nhặt lấy.</value></data>
+  <data name="Quest_chop_tree_Tip" xml:space="preserve"><value>Dùng rìu đốn một cái cây để lấy gỗ.</value></data>
+  <data name="Quest_chop_tree_Objective_0" xml:space="preserve"><value>Đốn đổ một cái cây</value></data>
+  <data name="Quest_craft_chest_Title" xml:space="preserve"><value>Làm một cái rương</value></data>
+  <data name="Quest_craft_chest_Hint" xml:space="preserve"><value>Mở trang chế tạo trong menu và làm một cái rương từ 50 gỗ. Đặt rương xuống để cất đồ.</value></data>
+  <data name="Quest_craft_chest_Tip" xml:space="preserve"><value>Mở menu, vào trang chế tạo và làm một cái rương từ gỗ.</value></data>
+  <data name="Quest_craft_chest_Objective_0" xml:space="preserve"><value>Chế tạo một cái rương</value></data>
 </root>

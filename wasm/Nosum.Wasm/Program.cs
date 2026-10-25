@@ -26,6 +26,7 @@ using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Goals;
+using Nosum.Wasm.Socket.Requests;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Dev;
@@ -53,6 +54,7 @@ using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Looks;
 using Nosum.Wasm.ViewModels.Goals;
+using Nosum.Wasm.ViewModels.Requests;
 using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.ViewModels.Profile;
@@ -120,6 +122,7 @@ internal static class Program
         builder.Services.AddSingleton<BlacksmithChannel>();
         builder.Services.AddSingleton<MineChannel>();
         builder.Services.AddSingleton<GoalChannel>();
+        builder.Services.AddSingleton<RequestChannel>();
         builder.Services.AddSingleton<DevChannel>();
         builder.Services.AddSingleton<NearbyPlayers>();
         builder.Services.AddSingleton(sp =>
@@ -139,6 +142,7 @@ internal static class Program
         builder.Services.AddSingleton<ShopViewModel>();
         builder.Services.AddSingleton<BlacksmithViewModel>();
         builder.Services.AddSingleton<ElevatorViewModel>();
+        builder.Services.AddSingleton<RequestsViewModel>();
         builder.Services.AddSingleton<GoalsViewModel>();
         builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<ProgressViewModel>();

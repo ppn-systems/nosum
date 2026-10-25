@@ -724,4 +724,25 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Hold the milk pail to milk a cow.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>The bench is full.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>The land already has as many buildings as it can hold.</value></data>
+  <data name="Board_Tab_Goals" xml:space="preserve"><value>Goals</value></data>
+  <data name="Board_Tab_Requests" xml:space="preserve"><value>Requests</value></data>
+  <data name="Requests_Hint" xml:space="preserve"><value>The board posts three delivery requests every game day. You can fill each one once a day, and they pay more than the shipping bin.</value></data>
+  <data name="Requests_Loading" xml:space="preserve"><value>Loading requests</value></data>
+  <data name="Requests_None" xml:space="preserve"><value>There are no requests today.</value></data>
+  <data name="Requests_NewIn" xml:space="preserve"><value>New requests in {0} h {1} min.</value></data>
+  <data name="Requests_Ask" xml:space="preserve"><value>Deliver {0} × {1}</value></data>
+  <data name="Requests_Reward" xml:space="preserve"><value>Reward: {0} coins</value></data>
+  <data name="Requests_Held" xml:space="preserve"><value>You carry {0}</value></data>
+  <data name="Requests_Deliver" xml:space="preserve"><value>Deliver</value></data>
+  <data name="Requests_Filled" xml:space="preserve"><value>Done for today</value></data>
+  <data name="Requests_Done" xml:space="preserve"><value>Delivered! You received {0} coins.</value></data>
+  <data name="Requests_Status_UnknownRequest" xml:space="preserve"><value>There is no such request.</value></data>
+  <data name="Requests_Status_NotToday" xml:space="preserve"><value>The requests changed with the new day. The board was reloaded.</value></data>
+  <data name="Requests_Status_AlreadyFilled" xml:space="preserve"><value>You already filled this request today.</value></data>
+  <data name="Requests_Status_NotAtBoard" xml:space="preserve"><value>You are too far from the board.</value></data>
+  <data name="Requests_Status_NotEnough" xml:space="preserve"><value>You do not carry enough of the item.</value></data>
+  <data name="Requests_Status_PurseFull" xml:space="preserve"><value>Your purse cannot hold that many coins.</value></data>
+  <data name="Requests_Status_Conflict" xml:space="preserve"><value>Please try again.</value></data>
+  <data name="Quest_Reward" xml:space="preserve"><value>Reward: {0} coins</value></data>
+  <data name="Hint_Quest" xml:space="preserve"><value>{0} Reward: {1} coins.</value></data>
 </root>

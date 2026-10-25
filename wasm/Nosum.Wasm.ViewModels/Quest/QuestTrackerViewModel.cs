@@ -65,6 +65,9 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the localized hint for the shown quest, or an empty string.</summary>
     public string Hint { get; private set; } = string.Empty;
 
+    /// <summary>Gets the localized reward line ("Reward: 40 coins") while the shown quest is unfinished and pays, otherwise an empty string.</summary>
+    public string RewardText { get; private set; } = string.Empty;
+
     /// <summary>Gets the localized completion text while the shown quest is finished.</summary>
     public string CompletedText { get; private set; } = string.Empty;
 
@@ -86,9 +89,11 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
 
     private void Rebuild()
     {
-        // The first unfinished quest; when all are finished, the last finished one (its banner stays).
+        // The first unfinished quest in the order of the tutorial chain (docs/adr/ADR-036 D1); when all are finished, the last finished one (its banner stays).
+        List<QuestInfo> ordered = [.. _channel.Quests()];
+        ordered.Sort(static (a, b) => QuestCatalog.PositionOf(a.QuestId).CompareTo(QuestCatalog.PositionOf(b.QuestId)));
         QuestInfo? shown = null;
-        foreach (QuestInfo quest in _channel.Quests())
+        foreach (QuestInfo quest in ordered)
         {
             if (!QuestCatalog.TryGet(quest.QuestId, out _))
             {
@@ -125,6 +130,7 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
         this.IsCompleted = shown.State == QuestState.Completed;
         this.Title = _catalogue[prefix + "Title"];
         this.Hint = this.IsCompleted ? string.Empty : _catalogue[prefix + "Hint"].Value;
+        this.RewardText = this.IsCompleted || definition.RewardCoins <= 0 ? string.Empty : string.Format(CultureInfo.CurrentCulture, _text["Quest_Reward"].Value, definition.RewardCoins.ToString("N0", CultureInfo.CurrentCulture));
         this.CompletedText = this.IsCompleted ? string.Format(CultureInfo.CurrentCulture, _text["Quest_Banner"].Value, this.Title) : string.Empty;
         this.Objectives = lines;
     }

@@ -72,3 +72,8 @@
     color: var(--nosum-ok);
     font-weight: 400;
 }
+
+.quest-reward {
+    margin: calc(var(--u) * 1) 0 0;
+    color: var(--nosum-ink-soft);
+}
