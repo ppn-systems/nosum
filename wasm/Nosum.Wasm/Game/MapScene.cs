@@ -61,6 +61,9 @@ internal sealed class MapScene
     private WalkGrid? _nodeGrid;
     private MapContent? _nodeGridContent;
     private int _nodeGridVersion = -1;
+    private WalkGrid? _joinedGrid;
+    private WalkGrid? _joinedNodes;
+    private WalkGrid? _joinedPlaced;
     private WalkGrid? _placedGrid;
     private MapContent? _placedGridContent;
     private int _placedGridVersion = -1;
@@ -175,10 +178,17 @@ internal sealed class MapScene
 
         bool elevatorNear = content.Spec.Elevator is { } elevator
             && ShopRules.InReach(new ShopPoint(0, elevator.TileX, elevator.TileY), _farmer.X, _farmer.Y, map.TileWidth);
-        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, !content.Spec.Placeable, _clockSeconds, shopId, elevatorNear);
+
+        // Tools work wherever the ground can be farmed or nothing can be placed; in a room the action key places furniture instead.
+        // The rotate key turns a piece being carried and is not a wide swing then.
+        bool placeableMap = content.Spec.Placeable;
+        InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~InputEdges.Rotate : liveEdges;
+        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear);
         if (_actions is not null)
         {
-            _placement?.Update(content.Spec.Placeable && _phase == Phase.Playing, liveEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds);
+            // The action key that opened a chest or a furnace is not also a placement.
+            InputEdges placementEdges = _actions.ActionConsumed ? liveEdges & ~InputEdges.Action : liveEdges;
+            _placement?.Update(placeableMap && _phase == Phase.Playing, placementEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds, !content.Spec.Farmable);
         }
 
         int scale = ScaleFor(map, canvasWidth, canvasHeight);
@@ -270,9 +280,10 @@ internal sealed class MapScene
     // when the mirror or the map changed (never per frame), with the same PlacedSet rule the server uses.
     private WalkGrid GridOf(MapContent content)
     {
+        WalkGrid nodes = this.NodeGridOf(content);
         if (_placed is null || !content.Spec.Placeable)
         {
-            return this.NodeGridOf(content);
+            return nodes;
         }
 
         int version = _placed.Version;
@@ -296,7 +307,22 @@ internal sealed class MapScene
             _placedGridVersion = version;
         }
 
-        return _placedGrid;
+        // The farm has both layers: the grid is the nodes' joined with the placed footprints (the server's InstanceWorld does the same). Built again only when either layer replaced its grid.
+        if (ReferenceEquals(nodes, content.Grid))
+        {
+            return _placedGrid;
+        }
+
+        if (_joinedGrid is null || !ReferenceEquals(_joinedNodes, nodes) || !ReferenceEquals(_joinedPlaced, _placedGrid))
+        {
+            WalkGrid joined = nodes.Clone();
+            joined.BlockWhereBlocked(_placedGrid);
+            _joinedGrid = joined;
+            _joinedNodes = nodes;
+            _joinedPlaced = _placedGrid;
+        }
+
+        return _joinedGrid;
     }
 
     // The map's own grid plus the tiles of the nodes that block walking (docs/adr/ADR-021 D3), the same rule the server builds with NodeField.

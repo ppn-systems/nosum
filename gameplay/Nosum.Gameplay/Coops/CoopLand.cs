@@ -32,6 +32,18 @@ public static class CoopLand
     /// <summary>Audit reason of a harvest on co-op land; the produce enters the harvester's inventory.</summary>
     public const string HarvestReason = "coop.farm.harvest";
 
+    /// <summary>Audit reason of an object placed on co-op land; the item leaves the placer's inventory (docs/adr/ADR-024).</summary>
+    public const string PlaceReason = "coop.place";
+
+    /// <summary>Audit reason of an object picked up on co-op land; the item enters the player's inventory.</summary>
+    public const string PickUpReason = "coop.pickup";
+
+    /// <summary>Audit reason of ore and coal put into a furnace on co-op land; they leave the member's inventory (docs/adr/ADR-024).</summary>
+    public const string SmeltReason = "coop.smelt";
+
+    /// <summary>Audit reason of a bar collected from a furnace on co-op land; it enters the member's inventory.</summary>
+    public const string CollectReason = "coop.collect";
+
     /// <summary>Gets whether an audit reason belongs to the warehouse (a deposit or a withdrawal), which is what a member's net contribution counts.</summary>
     /// <param name="reason">The log line's reason code.</param>
     /// <returns><see langword="true"/> for <c>coop.deposit</c> and <c>coop.withdraw</c>.</returns>

@@ -378,6 +378,75 @@
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>Cây này không trồng được vào mùa này.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì hết mùa. Hãy gieo hạt mới lên trên.</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>Hạt giống này không bán vào mùa này.</value></data>
+  <data name="Farm_Status_NoEnergy" xml:space="preserve"><value>Bạn hết sức rồi. Hãy ăn nông sản hoặc đợi sang ngày mới.</value></data>
+  <data name="Eat_Status_InvalidSlot" xml:space="preserve"><value>Ô này không có trên thanh nhanh.</value></data>
+  <data name="Eat_Status_NotEdible" xml:space="preserve"><value>Món này không ăn được.</value></data>
+  <data name="Eat_Status_ItemMissing" xml:space="preserve"><value>Món ăn không còn ở ô này.</value></data>
+  <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>Bạn đang đầy sức rồi.</value></data>
+  <data name="Eat_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Energy_Label" xml:space="preserve"><value>Sức lực {0} / {1}</value></data>
+  <data name="Energy_Heading" xml:space="preserve"><value>Sức lực</value></data>
+  <data name="Energy_Hint" xml:space="preserve"><value>Mỗi lần dùng công cụ tốn sức (liềm thì không). Sức hồi đầy khi sang ngày mới; ăn nông sản để hồi thêm.</value></data>
+  <data name="Skills_Heading" xml:space="preserve"><value>Kỹ năng</value></data>
+  <data name="Skills_Hint" xml:space="preserve"><value>Làm việc để lên cấp. Cứ 4 cấp, mỗi lần dùng công cụ của kỹ năng đó bớt 1 sức.</value></data>
+  <data name="Skill_Farming" xml:space="preserve"><value>Trồng trọt</value></data>
+  <data name="Skill_Foraging" xml:space="preserve"><value>Hái lượm</value></data>
+  <data name="Skill_Mining" xml:space="preserve"><value>Khai khoáng</value></data>
+  <data name="Skill_Level" xml:space="preserve"><value>Cấp {0}</value></data>
+  <data name="Skill_MaxLevel" xml:space="preserve"><value>Tối đa</value></data>
+  <data name="Skill_LevelUp" xml:space="preserve"><value>{0} lên cấp {1}!</value></data>
+  <data name="Toolbar_Skills" xml:space="preserve"><value>Kỹ năng</value></data>
+  <data name="Place_Status_Tilled" xml:space="preserve"><value>Không đặt được lên đất đã cuốc.</value></data>
+  <data name="Place_Status_NodeInTheWay" xml:space="preserve"><value>Có cây, đá hoặc cỏ dại chắn chỗ này.</value></data>
+  <data name="Place_Status_NotEmpty" xml:space="preserve"><value>Rương còn đồ bên trong. Hãy lấy hết ra trước.</value></data>
+  <data name="Place_Status_InUse" xml:space="preserve"><value>Lò đang nung hoặc còn thỏi chưa lấy. Hãy lấy ra trước.</value></data>
+  <data name="Craft_Status_UnknownRecipe" xml:space="preserve"><value>Không có công thức này.</value></data>
+  <data name="Craft_Status_InvalidQuantity" xml:space="preserve"><value>Số lượng chế tạo không hợp lệ.</value></data>
+  <data name="Craft_Status_Locked" xml:space="preserve"><value>Bạn chưa mở khóa công thức này.</value></data>
+  <data name="Craft_Status_NotEnough" xml:space="preserve"><value>Bạn chưa đủ nguyên liệu.</value></data>
+  <data name="Craft_Status_NoSpace" xml:space="preserve"><value>Túi đồ không còn chỗ cho thành phẩm.</value></data>
+  <data name="Craft_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Chest_Status_UnknownObject" xml:space="preserve"><value>Không tìm thấy rương này.</value></data>
+  <data name="Chest_Status_NotYours" xml:space="preserve"><value>Rương này không phải của bạn.</value></data>
+  <data name="Chest_Status_OutOfReach" xml:space="preserve"><value>Bạn đứng quá xa rương.</value></data>
+  <data name="Chest_Status_NotOpen" xml:space="preserve"><value>Hãy mở rương trước.</value></data>
+  <data name="Chest_Status_InvalidSlot" xml:space="preserve"><value>Ô không hợp lệ.</value></data>
+  <data name="Chest_Status_EmptySlot" xml:space="preserve"><value>Ô này đang trống.</value></data>
+  <data name="Chest_Status_InvalidQuantity" xml:space="preserve"><value>Số lượng không hợp lệ.</value></data>
+  <data name="Chest_Status_Blocked" xml:space="preserve"><value>Ô đích đang có món khác; hãy chuyển cả chồng.</value></data>
+  <data name="Chest_Status_NoSpace" xml:space="preserve"><value>Không còn chỗ chứa.</value></data>
+  <data name="Chest_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Chest_Status_NotAllowed" xml:space="preserve"><value>Không cất dụng cụ vào rương được.</value></data>
+  <data name="Furnace_Status_UnknownObject" xml:space="preserve"><value>Không tìm thấy lò này.</value></data>
+  <data name="Furnace_Status_NotYours" xml:space="preserve"><value>Lò này không phải của bạn.</value></data>
+  <data name="Furnace_Status_OutOfReach" xml:space="preserve"><value>Bạn đứng quá xa lò.</value></data>
+  <data name="Furnace_Status_Busy" xml:space="preserve"><value>Lò đang có mẻ nung.</value></data>
+  <data name="Furnace_Status_NotSmeltable" xml:space="preserve"><value>Không nung được thứ này.</value></data>
+  <data name="Furnace_Status_NotEnough" xml:space="preserve"><value>Cần 5 quặng và 1 than đá.</value></data>
+  <data name="Furnace_Status_NothingToCollect" xml:space="preserve"><value>Lò không có gì để lấy.</value></data>
+  <data name="Furnace_Status_NotReady" xml:space="preserve"><value>Thỏi chưa nung xong.</value></data>
+  <data name="Furnace_Status_NoSpace" xml:space="preserve"><value>Túi đồ không còn chỗ cho thỏi.</value></data>
+  <data name="Furnace_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Toolbar_Crafting" xml:space="preserve"><value>Chế tạo</value></data>
+  <data name="Craft_Heading" xml:space="preserve"><value>Công thức</value></data>
+  <data name="Craft_Materials" xml:space="preserve"><value>Nguyên liệu</value></data>
+  <data name="Craft_Makes" xml:space="preserve"><value>Tạo ra: {0} x{1}</value></data>
+  <data name="Craft_Button" xml:space="preserve"><value>Chế tạo</value></data>
+  <data name="Craft_ButtonMany" xml:space="preserve"><value>Chế tạo x{0}</value></data>
+  <data name="Craft_Unlock" xml:space="preserve"><value>Cần kỹ năng {0} cấp {1}</value></data>
+  <data name="Craft_Locked" xml:space="preserve"><value>Chưa mở khóa</value></data>
+  <data name="Craft_Skill_Farming" xml:space="preserve"><value>Làm ruộng</value></data>
+  <data name="Craft_Skill_Foraging" xml:space="preserve"><value>Hái lượm</value></data>
+  <data name="Craft_Skill_Mining" xml:space="preserve"><value>Khai khoáng</value></data>
+  <data name="Chest_Title" xml:space="preserve"><value>Rương</value></data>
+  <data name="Chest_YourBag" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Chest_Hint" xml:space="preserve"><value>Bấm một chồng đồ rồi bấm ô đích. Shift + bấm: chuyển nhanh sang bên kia.</value></data>
+  <data name="Furnace_Title" xml:space="preserve"><value>Lò nung</value></data>
+  <data name="Furnace_Idle" xml:space="preserve"><value>Lò đang trống. Mỗi mẻ cần {0} quặng và {1} than đá, nung trong {2} phút trong game.</value></data>
+  <data name="Furnace_Working" xml:space="preserve"><value>Đang nung {0}, còn {1}.</value></data>
+  <data name="Furnace_Ready" xml:space="preserve"><value>Thỏi đã nung xong!</value></data>
+  <data name="Furnace_Start" xml:space="preserve"><value>Nung {0}</value></data>
+  <data name="Furnace_Collect" xml:space="preserve"><value>Lấy thỏi</value></data>
   <data name="Farm_Status_InvalidArea" xml:space="preserve"><value>Công cụ này không vung rộng được như vậy.</value></data>
   <data name="Shop_Title_blacksmith" xml:space="preserve"><value>Lò rèn</value></data>
   <data name="Smith_Heading" xml:space="preserve"><value>Nâng cấp dụng cụ</value></data>

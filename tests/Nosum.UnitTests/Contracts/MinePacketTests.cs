@@ -83,8 +83,8 @@ public sealed class MinePacketTests
     [Fact]
     public void AppendedEnumValues_KeepTheOldOnes()
     {
-        ((byte)FarmStatus.Blocked).Should().Be(20);
-        ((byte)FarmStatus.InvalidArea).Should().Be(21);
+        ((byte)FarmStatus.NoEnergy).Should().Be(21);
+        ((byte)FarmStatus.InvalidArea).Should().Be(22);
         ((byte)FarmAction.PlantedTree).Should().Be(9);
         ((byte)FarmAction.Descended).Should().Be(10);
         ((byte)ShopStatus.OutOfSeason).Should().Be(8);

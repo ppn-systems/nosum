@@ -38,3 +38,22 @@ that level with use. Both must be server state; the client only displays them.
 
 Every tool handler must call one `IEnergy.TrySpend` inside the same transaction as its effect. Balancing numbers are
 data and may change without an ADR.
+
+## Implementation notes
+
+Implemented 2026-10-25 (D1-D6):
+
+- **Where the state lives.** The five columns are on `player_states` (`energy`, `energy_refilled_day`, `farming_xp`, `foraging_xp`, `mining_xp`, migration `EnergySkills`). A player who uses a tool before
+  any place was saved gets a state row with an empty map name, which the player service already reads as "no saved place". `energy_refilled_day` defaults to `-1` (never refilled) for rows that existed before the
+  column; the model writes the value explicitly (`ValueGeneratedNever`) so game day zero is stored as zero.
+- **One spend.** `IPlayerProgress.ChargeAsync(unit, ...)` is called inside the unit of work that carries the tool's effect: the farm's tile write or pickaxe clear, the node break (through the yield sink's enlistment) or,
+  for a hit that does not break a node, `TryChargeAsync` in a unit of its own. A refused charge (`FarmStatus.NoEnergy`) rolls the effect back. Lock order is inventory, then progress. Planting a seed and watering at a
+  water tile are free; the scythe costs nothing, so it still works at zero energy.
+- **Experience** (data in `SkillRules`): till 3, water 2, harvest 10 (farming); clear tilled soil 1 (mining); a hit that does not break a node 1, a break by node kind (tree 12, stump 4, twig 2, weed and grass 1,
+  stone 4, copper ore 10). Foraging covers trees, stumps, twigs, weeds and grass; mining covers stone and ore. XP stops counting at the level-10 threshold.
+- **Food.** `ItemKind.Food` is appended for dishes (ids 700-799, ADR-024); `ItemDefinition.FoodEnergy` makes any item edible, and parsnip, radish and cauliflower give 10, 8 and 20. The action key eats the held item
+  when it is edible and the player is not full of energy.
+- **Wire.** Player band, append-only: `Eat` 0x2002, `EatResult` 0x2044, `EnergyChanged` 0x2045, `SkillXpChanged` 0x2046 (cumulative totals), `LevelUp` 0x2047; `FarmStatus.NoEnergy` = 21. The server pushes the energy
+  and experience once after a join. No day-rollover push exists yet: a client sees the refilled energy at its next action or join.
+- **Starter tools.** `IInventoryService.BackfillStarterToolsAsync` grants a missing starter tool once on join (audit reason `starter.backfill`); a full bag keeps the tool for the next join.
+

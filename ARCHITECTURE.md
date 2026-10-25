@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), resource nodes and tools (Nodes/), the server calendar and seasons (Calendar/), placeable objects (Placeables/), ground items (GroundItems/), tool tiers (Items/ToolRules), the blacksmith (Blacksmith/) and the mine (Mines/)
+│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), resource nodes and tools (Nodes/), the server calendar and seasons (Calendar/), placeable objects, sprinklers, furnaces and chest rules (Placeables/), recipes (Crafting/), ground items (GroundItems/), tool tiers (Items/ToolRules), the blacksmith (Blacksmith/) and the mine (Mines/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -143,6 +143,15 @@ placed furniture. `PlayerService` enters a player into their own copy of a priva
 client E/R/F/Q in the farmhouse ──PlaceObject / MoveObject / PickUpObject──► PlaceableService (owner of the instance, reach, free footprint, item in the slot)
                                                                               │ inventory change + placed_objects row: one transaction
 client PlaceableChannel ◄── PlacedChanged ◄── IMapPresence (the instance's group) ◄─┘      PlayerService validates movement on IInstanceWorld.GridFor(instance)
+```
+
+Crafting and crafted objects ([ADR-024](docs/adr/ADR-024-crafting-and-outdoor-placeables.md)) reuse that path: the farm and co-op land are placeable too, and a chest is one more inventory owner, so moving items in and out is the same atomic, audited inventory change:
+
+```text
+client ──Craft(recipe, n)──► CraftingService ──ISkillLevels──► IInventoryService.ApplyAsync: inputs out, outputs in (one transaction)
+client ──PlaceObject (chest, fence, furnace ...)──► PlaceableService: PlacedSet.Check + IGroundLayers (IFarmTiles, INodeTiles) ──► PlacedTiles index ──► FarmService / nodes / growth read it
+client ──OpenChest / ChestMove──► ChestService ──ApplyManyAsync [player, ContainerIds.ForChest(id)] + chest_log──► ChestUpdate to the viewers
+client ──StartSmelting / CollectFurnace──► FurnaceService ──furnace_jobs row + inventory change; ready = FurnaceRules.StateOf(start, now)
 ```
 
 Resource nodes follow the same instance rule ([ADR-021](docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): the trees, stones, twigs, weeds and grass of an instance are server state

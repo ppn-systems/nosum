@@ -26,7 +26,7 @@ public sealed class MapSpec
     /// <param name="extraWarps">Exits the file does not list.</param>
     /// <param name="farmable">Whether diggable ground on this map can be tilled and planted.</param>
     /// <param name="isPrivate">Whether every player has their own copy of the map and nobody else enters it (docs/adr/ADR-015).</param>
-    /// <param name="placeable">Whether players may place furniture on its free floor.</param>
+    /// <param name="placeable">Whether players may place objects (furniture, chests, fences, ...) on its free ground: the farmhouse, the farm and co-op land (docs/adr/ADR-024 D3).</param>
     /// <param name="shops">Where shops are served on this map (docs/adr/ADR-013 amendments).</param>
     /// <param name="isCoop">Whether each co-op has its own copy of the map, owned by the co-op and open to its members only (docs/adr/ADR-020).</param>
     /// <param name="mineFloor">The floor number (1 and up) when the map is a floor of the mine: a per-player instance whose nodes are built in memory each game day (docs/adr/ADR-026 D3); zero for any other map.</param>
@@ -110,7 +110,7 @@ public sealed class MapSpec
     /// <summary>Gets where the mine elevator is served, or <see langword="null"/> when this map has none.</summary>
     public ElevatorPoint? Elevator { get; }
 
-    /// <summary>Gets whether players may place furniture on this map.</summary>
+    /// <summary>Gets whether players may place objects on this map: the farmhouse, the farm and co-op land.</summary>
     public bool Placeable { get; }
 
     /// <summary>Gets the shop points of this map; empty when nothing is sold here.</summary>

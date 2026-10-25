@@ -7,7 +7,10 @@
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
 @using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Chest
 @using Nosum.Wasm.Controls.Coop
+@using Nosum.Wasm.Controls.Crafting
+@using Nosum.Wasm.Controls.Furnace
 @using Nosum.Wasm.Controls.Feedback
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.Controls.Settings
@@ -18,6 +21,8 @@
 @using Nosum.Wasm.Controls.Market
 @using Nosum.Wasm.Controls.Placement
 @using Nosum.Wasm.Controls.Profile
+@using Nosum.Wasm.Controls.Progress
+@using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.Controls.Shop
 @using Nosum.Wasm.Controls.Mine
 @using Nosum.Wasm.Controls.Quest
@@ -29,7 +34,10 @@
 @using Nosum.Contracts.Account
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Chest
 @using Nosum.Wasm.ViewModels.Coop
+@using Nosum.Wasm.ViewModels.Crafting
+@using Nosum.Wasm.ViewModels.Furnace
 @using Nosum.Wasm.ViewModels.Visit
 @using Nosum.Wasm.Controls.Visit
 @using Nosum.Wasm.ViewModels.Looks
@@ -67,6 +75,10 @@
 @inject BlacksmithViewModel Blacksmith
 @inject ElevatorViewModel Elevator
 @inject HelpViewModel Help
+@inject CraftingViewModel Crafting
+@inject ChestViewModel Chest
+@inject FurnaceViewModel Furnace
+@inject ProgressViewModel Progress
 
 <PageTitle>Nosum</PageTitle>
 
@@ -134,8 +146,20 @@ else
                         case PanelKind.Shop:
                             <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith" />
                             break;
+                        case PanelKind.Skills:
+                            <SkillsPanel Vm="Progress" />
+                            break;
                         case PanelKind.Settings:
                             <SettingsPanel Vm="Form" Help="Help" />
+                            break;
+                        case PanelKind.Crafting:
+                            <CraftingPanel Vm="Crafting" />
+                            break;
+                        case PanelKind.Chest:
+                            <ChestPanel Vm="Chest" />
+                            break;
+                        case PanelKind.Furnace:
+                            <FurnacePanel Vm="Furnace" />
                             break;
                     }
                 </GameMenu>
@@ -145,7 +169,7 @@ else
             @if (_started && _panel == PanelKind.None)
             {
                 <GameMessage Vm="Messages" />
-                <Hotbar Vm="Inventory" />
+                <Hotbar Vm="Inventory" Progress="Progress" />
             }
         </BottomCenter>
         <Overlay>
@@ -202,7 +226,10 @@ else
         GameLoop.PanelToggleRequested += OnPanelKey;
         GameLoop.ShopRequested += OnShopRequested;
         GameLoop.ElevatorRequested += OnElevatorRequested;
+        GameLoop.FurnaceRequested += OnFurnaceRequested;
         GameLoop.PanelCloseRequested += OnCloseKey;
+        Chest.OpenChanged += OnContainerOpenChanged;
+        Furnace.OpenChanged += OnContainerOpenChanged;
         Trade.WantsOpen += OnTradeWantsOpen;
         Trade.Changed += OnViewModelChanged;
         Coop.Changed += OnViewModelChanged;
@@ -229,7 +256,10 @@ else
         GameLoop.PanelToggleRequested -= OnPanelKey;
         GameLoop.ShopRequested -= OnShopRequested;
         GameLoop.ElevatorRequested -= OnElevatorRequested;
+        GameLoop.FurnaceRequested -= OnFurnaceRequested;
         GameLoop.PanelCloseRequested -= OnCloseKey;
+        Chest.OpenChanged -= OnContainerOpenChanged;
+        Furnace.OpenChanged -= OnContainerOpenChanged;
         Trade.WantsOpen -= OnTradeWantsOpen;
         Trade.Changed -= OnViewModelChanged;
         Coop.Changed -= OnViewModelChanged;
@@ -266,6 +296,25 @@ else
         }
     });
 
+    // The action key facing a furnace (raised from the frame): the furnace page opens when the view model says so.
+    private void OnFurnaceRequested(int objectId) => _ = InvokeAsync(() => Furnace.Open(objectId));
+
+    // A chest or a furnace page opened (the server said Ok) or closed (the server closed it, or the player walked away): show or hide its menu page.
+    private void OnContainerOpenChanged(bool open) => _ = InvokeAsync(() =>
+    {
+        PanelKind kind = Chest.IsOpen ? PanelKind.Chest : Furnace.IsOpen ? PanelKind.Furnace : PanelKind.None;
+        if (open && kind != PanelKind.None)
+        {
+            Show(kind);
+        }
+        else if (!open && _panel is PanelKind.Chest or PanelKind.Furnace && kind != _panel)
+        {
+            ClosePanel();
+        }
+
+        StateHasChanged();
+    });
+
     // Escape: leave the upgrade form, or close the elevator picker, or close the menu, or else open it on the tab used last.
     private void OnCloseKey() => _ = InvokeAsync(() =>
     {
@@ -300,6 +349,10 @@ else
             {
                 tabs.Add(Tab(Toolbar.ShopItem with { Label = Shop.Title.Length > 0 ? Shop.Title : Toolbar.ShopItem.Label }));
             }
+            else if (item.Kind == PanelKind.Settings && _panel is PanelKind.Chest or PanelKind.Furnace)
+            {
+                tabs.Add(Tab(_panel == PanelKind.Chest ? Toolbar.ChestItem : Toolbar.FurnaceItem));
+            }
 
             tabs.Add(Tab(item));
         }
@@ -327,10 +380,25 @@ else
 
     private void Show(PanelKind kind)
     {
+        // Leaving a chest or furnace page for another tab closes it, so opening it again shows it again.
+        if (_panel == PanelKind.Chest && kind != PanelKind.Chest)
+        {
+            Chest.Close();
+        }
+        else if (_panel == PanelKind.Furnace && kind != PanelKind.Furnace)
+        {
+            Furnace.Close();
+        }
+
         _panel = kind;
-        if (kind != PanelKind.Shop)
+        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace))
         {
             _lastTab = kind;
+        }
+
+        if (kind == PanelKind.Crafting)
+        {
+            Crafting.Open();
         }
 
         Toolbar.Active = _panel;
@@ -338,6 +406,15 @@ else
 
     private void ClosePanel()
     {
+        if (_panel == PanelKind.Chest)
+        {
+            Chest.Close();
+        }
+        else if (_panel == PanelKind.Furnace)
+        {
+            Furnace.Close();
+        }
+
         _panel = PanelKind.None;
         Toolbar.Active = _panel;
     }

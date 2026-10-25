@@ -15,6 +15,12 @@ public static class PlaceableCatalog
     /// <summary>Sheet name of <c>TileSheets/furniture.png</c>.</summary>
     public const string FurnitureSheet = "furniture";
 
+    /// <summary>Sheet name of <c>TileSheets/Craftables.png</c>: the crafted machines and containers (placeholder art, docs/adr/ADR-007).</summary>
+    public const string CraftablesSheet = "Craftables";
+
+    /// <summary>Sheet name of <c>Maps/springobjects.png</c>: the small objects (fence, path, sprinkler).</summary>
+    public const string ObjectsSheet = "springobjects";
+
     private static readonly PlaceableDefinition[] s_all =
     [
         // Chair: one tile; down, right and up are drawn, left mirrors right.
@@ -31,6 +37,14 @@ public static class PlaceableCatalog
         new(ItemCatalog.Bookcase, FurnitureSheet, new PlaceableView(48, 640, 32, 48, 2, 1)),
         new(ItemCatalog.FloorLamp, FurnitureSheet, new PlaceableView(48, 733, 16, 34, 1, 1)),
         new(ItemCatalog.HousePlant, FurnitureSheet, new PlaceableView(0, 688, 16, 32, 1, 1)),
+
+        // Crafted objects (docs/adr/ADR-024). Craftables.png cells are 16 x 32, the footprint is the bottom tile.
+        new(ItemCatalog.Chest, CraftablesSheet, new PlaceableView(32, 512, 16, 32, 1, 1)) { Kind = PlaceableKind.Chest },
+        new(ItemCatalog.Scarecrow, CraftablesSheet, new PlaceableView(0, 32, 16, 32, 1, 1)),
+        new(ItemCatalog.Furnace, CraftablesSheet, new PlaceableView(80, 32, 16, 32, 1, 1)) { Kind = PlaceableKind.Furnace },
+        new(ItemCatalog.WoodFence, ObjectsSheet, new PlaceableView(160, 208, 16, 16, 1, 1)) { Kind = PlaceableKind.Fence },
+        new(ItemCatalog.StonePath, ObjectsSheet, new PlaceableView(368, 256, 16, 16, 1, 1)) { Kind = PlaceableKind.Path, BlocksWalking = false },
+        new(ItemCatalog.Sprinkler, ObjectsSheet, new PlaceableView(368, 384, 16, 16, 1, 1)) { Kind = PlaceableKind.Sprinkler },
     ];
 
     private static readonly Dictionary<int, PlaceableDefinition> s_byItem = Index();
