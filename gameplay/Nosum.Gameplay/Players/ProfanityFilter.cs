@@ -112,26 +112,36 @@ public static class ProfanityFilter
             any |= flagged[i];
         }
 
-        // Spaced-out letters: only runs of short words, so ordinary sentences are never glued into a false match.
-        for (int length = 2; length <= MaxMaskedGroup; length++)
+        // Spaced-out letters: only runs of short words, so ordinary sentences are never glued into a match. The longest run is tried first so
+        // "f u c k" is masked whole; a longer word swept up at either end is let go again while the rest is still flagged.
+        for (int length = MaxMaskedGroup; length >= 2; length--)
         {
             for (int i = 0; i + length <= words.Count; i++)
             {
-                if (!IsShortRun(words, i, length) || AnyFlagged(flagged, i, length))
+                if (!IsShortRun(words, i, length) || AnyFlagged(flagged, i, length) || !Contains(Group(text, words, i, length)))
                 {
                     continue;
                 }
 
-                string group = text.Substring(words[i].Start, words[i + length - 1].Start + words[i + length - 1].Length - words[i].Start);
-                if (Contains(group))
+                int from = i;
+                int count = length;
+                while (count > 2 && words[from].Length > 1 && Contains(Group(text, words, from + 1, count - 1)))
                 {
-                    for (int k = i; k < i + length; k++)
-                    {
-                        flagged[k] = true;
-                    }
-
-                    any = true;
+                    from++;
+                    count--;
                 }
+
+                while (count > 2 && words[from + count - 1].Length > 1 && Contains(Group(text, words, from, count - 1)))
+                {
+                    count--;
+                }
+
+                for (int k = from; k < from + count; k++)
+                {
+                    flagged[k] = true;
+                }
+
+                any = true;
             }
         }
 
@@ -159,6 +169,9 @@ public static class ProfanityFilter
 
         return new string(result);
     }
+
+    private static string Group(string text, System.Collections.Generic.List<(int Start, int Length)> words, int from, int count)
+        => text.Substring(words[from].Start, words[from + count - 1].Start + words[from + count - 1].Length - words[from].Start);
 
     private static bool AnyFlagged(bool[] flagged, int from, int count)
     {
