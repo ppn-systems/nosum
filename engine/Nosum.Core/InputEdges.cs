@@ -47,6 +47,15 @@ public enum InputEdges
 
     /// <summary>The inventory key (I): show or hide the inventory.</summary>
     Inventory = 1 << 10,
+
+    /// <summary>The rotate key (R): turn the furniture held or carried.</summary>
+    Rotate = 1 << 11,
+
+    /// <summary>The grab key (F): pick the furniture in front up to move it, or put a carried piece back where it was.</summary>
+    Grab = 1 << 12,
+
+    /// <summary>The pick-up key (Q): take the furniture in front back into the inventory.</summary>
+    PickUp = 1 << 13,
 }
 
 /// <summary>Helpers for the packed input integer the platform passes to the frame.</summary>

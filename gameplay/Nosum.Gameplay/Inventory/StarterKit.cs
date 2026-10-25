@@ -15,5 +15,12 @@ public static class StarterKit
         new(ItemCatalog.ParsnipSeeds, 8),
         new(ItemCatalog.RadishSeeds, 6),
         new(ItemCatalog.CauliflowerSeeds, 4),
+        new(ItemCatalog.OakChair, 2),
+        new(ItemCatalog.OakTable, 1),
+        new(ItemCatalog.BlueArmchair, 1),
+        new(ItemCatalog.BlueCouch, 1),
+        new(ItemCatalog.Bookcase, 1),
+        new(ItemCatalog.FloorLamp, 1),
+        new(ItemCatalog.HousePlant, 1),
     ];
 }

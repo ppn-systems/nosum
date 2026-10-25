@@ -8,7 +8,7 @@ namespace Nosum.Gameplay.Items;
 
 /// <summary>
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
-/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-199 seeds, 200-299 produce.
+/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-199 seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables).
 /// </summary>
 public static class ItemCatalog
 {
@@ -36,6 +36,30 @@ public static class ItemCatalog
     /// <summary>A harvested cauliflower.</summary>
     public const int Cauliflower = 202;
 
+    /// <summary>An oak chair.</summary>
+    public const int OakChair = 300;
+
+    /// <summary>A blue armchair.</summary>
+    public const int BlueArmchair = 301;
+
+    /// <summary>A blue couch.</summary>
+    public const int BlueCouch = 302;
+
+    /// <summary>An oak table.</summary>
+    public const int OakTable = 303;
+
+    /// <summary>A bookcase.</summary>
+    public const int Bookcase = 304;
+
+    /// <summary>A floor lamp.</summary>
+    public const int FloorLamp = 305;
+
+    /// <summary>A house plant.</summary>
+    public const int HousePlant = 306;
+
+    /// <summary>Largest stack of furniture.</summary>
+    public const int FurnitureStack = 20;
+
     /// <summary>Largest stack of seeds and produce.</summary>
     public const int DefaultStack = 99;
 
@@ -49,6 +73,13 @@ public static class ItemCatalog
         new(Parsnip, "parsnip", ItemKind.Produce, DefaultStack),
         new(Radish, "radish", ItemKind.Produce, DefaultStack),
         new(Cauliflower, "cauliflower", ItemKind.Produce, DefaultStack),
+        new(OakChair, "oak_chair", ItemKind.Furniture, FurnitureStack),
+        new(BlueArmchair, "blue_armchair", ItemKind.Furniture, FurnitureStack),
+        new(BlueCouch, "blue_couch", ItemKind.Furniture, FurnitureStack),
+        new(OakTable, "oak_table", ItemKind.Furniture, FurnitureStack),
+        new(Bookcase, "bookcase", ItemKind.Furniture, FurnitureStack),
+        new(FloorLamp, "floor_lamp", ItemKind.Furniture, FurnitureStack),
+        new(HousePlant, "house_plant", ItemKind.Furniture, FurnitureStack),
     ];
 
     private static readonly Dictionary<int, ItemDefinition> s_byId = Index();

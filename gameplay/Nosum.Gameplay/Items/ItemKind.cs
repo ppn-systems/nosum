@@ -13,6 +13,9 @@ public enum ItemKind
 
     /// <summary>Produce harvested from a crop.</summary>
     Produce = 3,
+
+    /// <summary>Furniture a player places in their farmhouse (a <c>PlaceableDefinition</c> with the same item id).</summary>
+    Furniture = 4,
 }
 
 /// <summary>Which tool a <see cref="ItemKind.Tool"/> item is.</summary>
