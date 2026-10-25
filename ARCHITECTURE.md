@@ -93,6 +93,9 @@ JS requestAnimationFrame
                 renderer.js decodes and draws, synchronously
 ```
 
+Sound travels in the same buffer: `SoundCues` writes play-sound, music and ambient-loop commands after `Begin`, and
+`renderer.js` hands them to `audio.js` (Web Audio) — no crossing of its own ([ADR-039](docs/adr/ADR-039-audio-hooks.md)).
+
 No allocation, no `async` and no `StateHasChanged` inside the frame.
 
 ## Runtime path 2 — the network

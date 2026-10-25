@@ -69,6 +69,9 @@ public sealed class GroundItemChannel : IDisposable
     /// <summary>Raised when the mirror was loaded or changed. May run on any thread.</summary>
     public event Action? Changed;
 
+    /// <summary>Raised when an item was picked up by a player on the map: where the taker stood, in map pixels (the pickup sound, docs/adr/ADR-039). May run on any thread.</summary>
+    public event Action<int, int>? PickedUp;
+
     /// <summary>Gets the key of the map the mirrored items lie on; empty before the first load.</summary>
     public string MapId
     {
@@ -244,5 +247,9 @@ public sealed class GroundItemChannel : IDisposable
         }
 
         this.Changed?.Invoke();
+        if (packet.Reason == GroundItemGone.PickedUp)
+        {
+            this.PickedUp?.Invoke(packet.ToX, packet.ToY);
+        }
     }
 }
