@@ -440,7 +440,7 @@ internal static class Program
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
         InstanceManager.Instance.Register<ILookService>(looks);
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
-        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory);
+        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
 

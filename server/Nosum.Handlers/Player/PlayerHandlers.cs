@@ -8,6 +8,7 @@ using Nalix.Abstractions.Security;
 using Nalix.Codec.Extensions;
 using Nalix.Codec.Pooling;
 using Nalix.Runtime.Extensions;
+using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Progress;
@@ -15,6 +16,7 @@ using Nosum.Handlers.Session;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
+using Nosum.Gameplay.Community;
 
 namespace Nosum.Handlers.Player;
 
@@ -25,6 +27,7 @@ public static partial class PlayerHandlers
     [Inject] private static IPlayerService s_players = null!;
     [Inject] private static IPlayerProgress s_progress = null!;
     [Inject] private static IInventoryService s_inventory = null!;
+    [Inject] private static ICommunityUnlocks s_unlocks = null!;
 
     /// <summary>Puts the player on the map the server chooses and replies with their id, that map and their spawn.</summary>
     /// <param name="context">The request.</param>
@@ -52,6 +55,7 @@ public static partial class PlayerHandlers
             lease.Value.SpawnY = outcome.SpawnY;
             lease.Value.MapId = outcome.MapId;
             lease.Value.Facing = outcome.Facing;
+            lease.Value.Unlocks = CommunityUnlockWire.Pack(s_unlocks.IsUnlocked);
             await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
         }
         catch

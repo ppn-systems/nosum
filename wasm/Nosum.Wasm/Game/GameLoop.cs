@@ -191,7 +191,12 @@ internal static partial class GameLoop
             providers.Add(new AnimalsDecoratorProvider(s_buildings));
         }
 
-        MapLoader loader = new(http, textures, providers);
+        if (s_network is not null)
+        {
+            providers.Add(new BridgeDecoratorProvider(s_network.IsUnlocked));
+        }
+
+        MapLoader loader = new(http, textures, providers, s_network is null ? null : s_network.IsUnlocked);
 
         Task<int[]> farmerSheets = Task.WhenAll(
             textures.LoadAsync(FarmerUrl + "farmer_base.png"),
