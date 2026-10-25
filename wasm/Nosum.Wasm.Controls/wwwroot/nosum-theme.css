@@ -1,13 +1,31 @@
-/* Nosum UI theme (docs/adr/ADR-016): the only file with colours, sizes and fonts.
+/* Nosum UI theme (docs/adr/ADR-017): the only file with colours, sizes and fonts.
    The shared controls read these variables; panels use the controls and add none of their own.
    The sprites (--nosum-img-*) are published by nosum-theme.js; without them the controls fall back to plain borders. */
 
-:root {
-    /* One UI pixel in CSS pixels. Every art pixel of the UI sheets is drawn this big (integer scale, never smoothed). */
-    --u: 2px;
-    --nosum-font-size: 15px;
+/* The UI font: VT323, a 5 x 7 pixel font (SIL OFL 1.1, fonts/OFL-VT323.txt) with every Vietnamese diacritic. Bundled, never fetched from a CDN. */
+@font-face {
+    font-family: "VT323";
+    src: url("fonts/VT323-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+}
 
-    --nosum-font: "Segoe UI", "Noto Sans", "DejaVu Sans", Verdana, system-ui, sans-serif;
+:root {
+    /* One UI pixel in CSS pixels = one WORLD pixel (engine zoom of the open map, ADR-017 D2). nosum-theme.js recomputes it on resize;
+       these are the values it would pick for common sizes, used until the script ran. */
+    --u: 3px;
+
+    /* One pixel of the UI font in CSS pixels (about 2/3 of --u, whole numbers only). A VT323 pixel is 0.08 em, so a size is 12.5 * --tp. */
+    --tp: 2px;
+
+    --nosum-font: "VT323", "Courier New", monospace;
+
+    /* Type scale. Everything in the UI is one of these three; sizes are whole font pixels so glyphs never blur. */
+    --nosum-fs-title: calc(var(--tp) * 12.5 + 12.5px);
+    --nosum-fs-body: calc(var(--tp) * 12.5);
+    --nosum-fs-small: calc(max(var(--tp) - 1px, 2px) * 12.5);
+    --nosum-lh: calc(var(--tp) * 11);
 
     /* Parchment and wood, sampled from MenuTiles.png. */
     --nosum-parchment: #fdbc6e;
@@ -24,6 +42,7 @@
     --nosum-ink-soft: #7a4318;
     --nosum-ink-faint: #9b6a3c;
     --nosum-ink-on-dark: #fff3d6;
+    --nosum-heading: #853605;
 
     /* Meaning. */
     --nosum-danger: #960027;
@@ -35,34 +54,17 @@
 
     /* Surfaces. */
     --nosum-slot-bg: rgba(120, 58, 8, 0.2);
-    --nosum-backdrop: rgba(26, 12, 2, 0.5);
+    --nosum-backdrop: rgba(26, 12, 2, 0.4);
     --nosum-shine: rgba(255, 244, 214, 0.55);
-    --nosum-button-shine: rgba(255, 228, 161, 0.45);
 
-    /* Layout. */
-    --nosum-gap: calc(var(--u) * 3);
+    /* Layout: one grid. Gaps are 2 u inside a group, 4 u between groups; the screen edge is 4 u. */
+    --nosum-gap: calc(var(--u) * 2);
+    --nosum-gap-group: calc(var(--u) * 4);
     --nosum-gutter: calc(var(--u) * 4);
-}
 
-@media (min-width: 1500px) and (min-height: 850px) {
-    :root {
-        --u: 3px;
-        --nosum-font-size: 20px;
-    }
-}
-
-@media (min-width: 2400px) and (min-height: 1300px) {
-    :root {
-        --u: 4px;
-        --nosum-font-size: 26px;
-    }
-}
-
-@media (max-width: 720px), (max-height: 480px) {
-    :root {
-        --u: 1px;
-        --nosum-font-size: 12px;
-    }
+    /* The menu window has one fixed size, so tabs never make it jump. */
+    --nosum-menu-w: calc(var(--u) * 200);
+    --nosum-menu-h: calc(var(--u) * 186);
 }
 
 html,
@@ -71,13 +73,14 @@ body {
     height: 100%;
     background: #000;
     overflow: hidden;
-    font: 500 var(--nosum-font-size) / 1.35 var(--nosum-font);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
     cursor: var(--nosum-cursor, default);
     -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: none;
 }
 
 * {
-    scrollbar-color: var(--nosum-wood) var(--nosum-parchment-deep);
+    scrollbar-color: var(--nosum-wood) transparent;
     scrollbar-width: thin;
 }
 
@@ -95,6 +98,41 @@ h1[tabindex="-1"]:focus {
 @keyframes nosum-blink {
     0%, 100% { opacity: 0.25; }
     50% { opacity: 1; }
+}
+
+/* The one tooltip (created and moved by nosum-theme.js for any element with data-tip). First line is the name, the rest the description. */
+#nosum-tip {
+    --tip-edge: calc(var(--u) * 4);
+
+    position: fixed;
+    z-index: 100;
+    box-sizing: border-box;
+    max-width: calc(var(--u) * 90);
+    padding: calc(var(--u) * 1) calc(var(--u) * 2);
+    border: var(--tip-edge) solid var(--nosum-edge);
+    border-image: var(--nosum-img-panel) 16 fill / var(--tip-edge) stretch;
+    background: var(--nosum-parchment) padding-box;
+    color: var(--nosum-ink);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
+    image-rendering: pixelated;
+    white-space: pre-line;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+#nosum-tip.shown {
+    visibility: visible;
+}
+
+#nosum-tip .tip-name {
+    display: block;
+    color: var(--nosum-heading);
+}
+
+#nosum-tip .tip-text {
+    display: block;
+    color: var(--nosum-ink-soft);
+    font-size: var(--nosum-fs-small);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -28,6 +28,7 @@ public sealed class MapSpec
     /// <param name="isPrivate">Whether every player has their own copy of the map and nobody else enters it (docs/adr/ADR-015).</param>
     /// <param name="placeable">Whether players may place furniture on its free floor.</param>
     /// <param name="shops">Where shops are served on this map (docs/adr/ADR-013 amendments).</param>
+    /// <param name="isCoop">Whether each co-op has its own copy of the map, owned by the co-op and open to its members only (docs/adr/ADR-020).</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -39,7 +40,8 @@ public sealed class MapSpec
         bool farmable = false,
         bool isPrivate = false,
         bool placeable = false,
-        IReadOnlyList<ShopPoint>? shops = null)
+        IReadOnlyList<ShopPoint>? shops = null,
+        bool isCoop = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
@@ -59,6 +61,7 @@ public sealed class MapSpec
         this.IsPrivate = isPrivate;
         this.Placeable = placeable;
         this.Shops = shops ?? [];
+        this.IsCoop = isCoop;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -87,6 +90,9 @@ public sealed class MapSpec
 
     /// <summary>Gets whether every player has their own instance of this map (farm, farmhouse); see <see cref="MapInstance"/>.</summary>
     public bool IsPrivate { get; }
+
+    /// <summary>Gets whether every co-op has its own instance of this map, keyed by the co-op id (docs/adr/ADR-020).</summary>
+    public bool IsCoop { get; }
 
     /// <summary>Gets whether players may place furniture on this map.</summary>
     public bool Placeable { get; }

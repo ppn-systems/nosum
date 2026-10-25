@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), placeable objects (Placeables/)
+│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), the server calendar and seasons (Calendar/), placeable objects (Placeables/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -25,7 +25,7 @@ nosum/
 ├── wasm/                         # Nosum.Wasm.slnx — own Directory.Build.props (trimmed, no AOT)
 │   ├── Nosum.Wasm/               # Blazor host: canvas page + UI overlay
 │   ├── Nosum.Wasm.ViewModels/    # MVVM view models (no .razor)
-│   ├── Nosum.Wasm.Controls/      # reusable Razor controls and the pixel-art theme (ADR-016): panel frame, button, input, item grid, dialogs, hotbar, HUD dock layout, help, arrange panel, market/wardrobe/trade/co-op panels
+│   ├── Nosum.Wasm.Controls/      # reusable Razor controls and the pixel-art theme (ADR-016, ADR-017): the game menu, panel frame, button, input, item grid, dialogs, hotbar, HUD dock layout, help, arrange panel, market/wardrobe/trade/co-op panels
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)

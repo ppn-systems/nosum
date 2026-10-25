@@ -1,0 +1,54 @@
+@using Nosum.Wasm.ViewModels.Looks
+@inherits ObservingComponent<WardrobeViewModel>
+
+@* What the character wears: the preview and one slot per piece (hat, shirt, trousers). Click a worn piece to take it off; pick a clothing stack
+   in the bag, then click the matching slot to wear it. The server checks every move. *@
+<GameSection>
+    <div class="equip">
+        <div class="equip-slots">
+            @foreach (WornDisplay worn in Ordered())
+            {
+                int slot = worn.Slot;
+                <ItemSlotButton Slot="worn.Item" Ghost="@GhostOf(slot)"
+                                Tip="@(worn.Item.IsEmpty ? worn.SlotLabel : worn.Item.Tooltip + "\n" + Vm.Text("Inventory_TakeOffHint"))"
+                                OnClick="() => Click(slot)" />
+            }
+        </div>
+        <CharacterPreview Layers="Vm.Preview" Label="@Vm.Text("Wardrobe_Title")" />
+    </div>
+</GameSection>
+
+@code {
+    /// <summary>The inventory view model: which stack is picked up.</summary>
+    [Parameter, EditorRequired] public InventoryViewModel Inventory { get; set; } = default!;
+
+    // Top to bottom: hat, shirt, trousers (the wear slots are 1 shirt, 2 trousers, 3 hat).
+    private IEnumerable<WornDisplay> Ordered()
+    {
+        IReadOnlyList<WornDisplay> worn = Vm.Worn;
+        yield return worn[2];
+        yield return worn[0];
+        yield return worn[1];
+    }
+
+    private static string GhostOf(int slot) => slot switch { 3 => "glyph-hat", 1 => "glyph-shirt", _ => "glyph-pants" };
+
+    private void Click(int slot)
+    {
+        int picked = Inventory.MovingFrom;
+        if (picked >= 0)
+        {
+            Vm.Wear(picked);
+            Inventory.Click(picked);
+            return;
+        }
+
+        foreach (WornDisplay worn in Vm.Worn)
+        {
+            if (worn.Slot == slot && !worn.Item.IsEmpty)
+            {
+                Vm.TakeOff(slot);
+            }
+        }
+    }
+}

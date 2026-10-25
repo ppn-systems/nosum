@@ -12,6 +12,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Nalix.Abstractions.Networking;
+using Nalix.Abstractions.Networking.Packets;
 using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nalix.SDK.Options;
@@ -19,6 +21,7 @@ using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
@@ -458,4 +461,35 @@ internal readonly record struct CrossingPlan(int C0, int Row, double AX, double 
 {
     /// <summary>Gets the x of a tile column's middle.</summary>
     public double ColumnX(int tileX) => (tileX + 0.5) * this.Tile;
+}
+
+/// <summary>
+/// A chunk index and publisher that know nobody, for tests that build a service by hand over a fake presence and look at its state, not at what it publishes.
+/// </summary>
+internal sealed class NoChunks : IChunkMap, IChunkPublisher
+{
+    public static NoChunks Instance { get; } = new();
+
+    public void Subscribe(PlayerPresence player, ChunkCoord center, ChunkBounds bounds)
+    {
+    }
+
+    public bool Relocate(PlayerPresence player, ChunkCoord destination, Span<ChunkCoord> entered, out int enteredCount, Span<ChunkCoord> left, out int leftCount)
+    {
+        enteredCount = 0;
+        leftCount = 0;
+        return false;
+    }
+
+    public bool IsInterested(PlayerPresence player, ChunkCoord chunk) => false;
+
+    public void CopySubscribers(MapInstance instance, ChunkCoord chunk, List<PlayerPresence> into)
+    {
+    }
+
+    public void CopyVisiblePlayers(PlayerPresence viewer, List<PlayerPresence> into) => into.Add(viewer);
+
+    public ValueTask PublishAsync(MapInstance instance, ChunkCoord chunk, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+
+    public ValueTask PublishInstanceAsync(MapInstance instance, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
 }

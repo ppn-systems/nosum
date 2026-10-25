@@ -10,7 +10,7 @@
     pointer-events: none;
 }
 
-/* The screen dims while a modal panel is open (Center) and a little more while a dialog is (Overlay). */
+/* The screen dims while the menu is open (Center) and a little more while a dialog is (Overlay). */
 .hud-backdrop {
     position: fixed;
     inset: 0;
@@ -42,13 +42,13 @@
     min-height: 0;
 }
 
-/* Top: quest tracker on the left, session on the right; the middle absorbs the space. */
+/* Top: the quest tracker on the left, coins and the gear on the right; the middle absorbs the space. */
 .hud-top {
     align-items: flex-start;
 }
 
 .hud-top-left {
-    flex: 0 1 calc(var(--u) * 120);
+    flex: 0 1 calc(var(--u) * 124);
     align-items: flex-start;
 }
 
@@ -58,38 +58,31 @@
 }
 
 .hud-top-right {
-    flex: 0 1 calc(var(--u) * 150);
-    align-items: flex-end;
+    flex: 0 1 auto;
+    flex-direction: row;
+    align-items: center;
 }
 
-/* Middle: the modal panel is centred in what the right-hand panels leave. */
+/* The menu: centred on the whole screen (it hides the HUD widgets under it, so it never overlaps them). */
 .hud-middle {
-    flex: 1 1 0;
-    align-items: stretch;
-    justify-content: center;
+    display: contents;
 }
 
 .hud-center {
-    flex: 1 1 0;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
     align-items: center;
     justify-content: center;
+    padding: var(--nosum-gutter);
+    box-sizing: border-box;
+    pointer-events: none;
 }
 
-.hud-left {
-    flex: none;
-    justify-content: center;
-    align-items: flex-start;
-}
-
-.hud-right {
-    flex: none;
-    justify-content: center;
-    align-items: flex-end;
-}
-
-/* Bottom: the hotbar, centred, with the message line above it. */
+/* Bottom: the hotbar, centred, with the strip and the message line above it. */
 .hud-bottom {
     justify-content: center;
+    margin-top: auto;
 }
 
 .hud-bottom-center {
