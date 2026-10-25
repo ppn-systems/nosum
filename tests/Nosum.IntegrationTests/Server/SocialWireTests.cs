@@ -363,33 +363,51 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task Shop_BuyOverTheWire_NeedsTheCounter_TakesCoinsAndGivesTheItem()
+    public async Task Shop_BuyOverTheWire_NeedsTheShopsOwnCounter_SellsOnlyItsOwnItems_TakesCoinsAndGivesTheItem()
     {
         await using Server server = await Server.StartAsync(_database);
         CancellationToken ct = server.Token;
         await using SocialClient far = await SocialClient.ConnectAsync(server.Port, ct);
         await far.JoinAsync(ct);
-        (await far.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 1, ct)).Status.Should().Be(ShopStatus.NotAtShop, "the bus stop has no shop");
+        (await far.BuyFromShopAsync(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 1, ct)).Status.Should().Be(ShopStatus.NotAtShop, "the bus stop has no shop");
 
         _ = GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
-        ShopPoint counter = town!.Shops[0];
-        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct, (GameMaps.Town, (counter.TileX * 16) + 8, (counter.TileY * 16) + 8));
+        ShopPoint furnitureCounter = town!.Shops.Single(p => p.ShopId == ShopCatalog.FurnitureShop);
+        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct, (GameMaps.Town, (furnitureCounter.TileX * 16) + 8, (furnitureCounter.TileY * 16) + 8));
         await buyer.JoinAsync(ct);
 
-        (await buyer.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.Hoe, 1, ct)).Status.Should().Be(ShopStatus.NotSold);
-        (await buyer.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 0, ct)).Status.Should().Be(ShopStatus.InvalidQuantity);
-        (await buyer.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.BlueCouch, 2, ct)).Status.Should().Be(ShopStatus.NotEnoughCoins);
+        (await buyer.BuyFromShopAsync(ShopCatalog.FurnitureShop, ItemCatalog.ParsnipSeeds, 1, ct)).Status.Should().Be(ShopStatus.NotSold, "seeds are the seed shop's");
+        (await buyer.BuyFromShopAsync(ShopCatalog.FurnitureShop, ItemCatalog.ShirtRed, 1, ct)).Status.Should().Be(ShopStatus.NotSold, "clothes are the clothing shop's");
+        (await buyer.BuyFromShopAsync(ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 1, ct)).Status.Should().Be(ShopStatus.NotAtShop, "this is the furniture counter, not the seed shop's");
+        (await buyer.BuyFromShopAsync(ShopCatalog.FurnitureShop, ItemCatalog.BlueCouch, 2, ct)).Status.Should().Be(ShopStatus.NotEnoughCoins);
         (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins);
 
-        (await buyer.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 2, ct)).Should().Be((ShopStatus.Ok, 200));
+        (await buyer.BuyFromShopAsync(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 2, ct)).Should().Be((ShopStatus.Ok, 200));
         (await buyer.Wallet.WaitAsync(c => c == 300, ct)).Should().Be(300);
         (await buyer.Slots.WaitAsync(s => s.ItemId == ItemCatalog.OakChair && s.Quantity == 2, ct)).Quantity.Should().Be(2);
         (await buyer.CountAsync(ItemCatalog.OakChair, ct)).Should().Be(2);
         (await buyer.CountAsync(ItemCatalog.ShirtRed, ct)).Should().Be(0, "no clothes in the starter kit");
     }
 
+    [Theory]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 15)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.HatStraw, 50)]
+    public async Task Shop_EachCounterOverTheWire_SellsItsOwnThing(int shopId, int itemId, int price)
+    {
+        await using Server server = await Server.StartAsync(_database);
+        CancellationToken ct = server.Token;
+        _ = GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
+        ShopPoint counter = town!.Shops.Single(p => p.ShopId == shopId);
+        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct, (GameMaps.Town, (counter.TileX * 16) + 8, (counter.TileY * 16) + 8));
+        await buyer.JoinAsync(ct);
+
+        (await buyer.BuyFromShopAsync(shopId, ItemCatalog.OakChair, 1, ct)).Status.Should().Be(ShopStatus.NotSold, "furniture is the furniture shop's");
+        (await buyer.BuyFromShopAsync(shopId, itemId, 1, ct)).Should().Be((ShopStatus.Ok, price));
+        (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins - price);
+    }
+
     [Fact]
-    public async Task Nicknames_AreSentWithTheLook_SeenByTheOtherClient_AndRenamesArePushedAndRateLimitedByTheDay()
+    public async Task Nicknames_GuestsCannotRename_RegisteringChoosesOne_AndRenamesAreCheckedPushedAndRateLimitedByTheDay()
     {
         await using Server server = await Server.StartAsync(_database);
         CancellationToken ct = server.Token;
@@ -403,18 +421,38 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         seenByB.Single(l => l.PlayerId == a.MapPlayerId).Nickname.Should().Be(a.Nickname);
         seenByB.Single(l => l.PlayerId == b.MapPlayerId).Nickname.Should().Be(b.Nickname);
 
-        string chosen = "Nguyễn Văn_An";
-        NicknameResult renamed = await a.SetNicknameAsync(chosen, ct);
+        // A guest keeps the generated name, even for a perfectly good one.
+        NicknameResult refused = await a.SetNicknameAsync("Farmer_Joe", ct);
+        refused.Status.Should().Be(AccountStatus.NicknameRequiresAccount);
+        refused.Nickname.Should().Be(a.Nickname);
+
+        // Registering is where the nickname is chosen, under the same rules.
+        (await a.UpgradeAsync("Nguyễn Văn", ct)).Status.Should().Be(AccountStatus.InvalidNickname, "accents are not allowed");
+        (await a.UpgradeAsync("Fuck_You", ct)).Status.Should().Be(AccountStatus.NicknameProfane);
+        a.Nickname.Should().StartWith("guest-", "a refused registration leaves the guest as it was");
+
+        string chosen = "Nguyen_Van_An";
+        AccountResult registered = await a.UpgradeAsync(chosen, ct);
+        registered.Status.Should().Be(AccountStatus.Ok);
+        registered.IsGuest.Should().BeFalse();
+        registered.Nickname.Should().Be(chosen);
+        (await b.Looks.WaitAsync(l => l.PlayerId == a.MapPlayerId && l.Nickname == chosen, ct)).Nickname.Should().Be(chosen, "the map learns the chosen name when the guest registers");
+
+        // Now a is registered and may rename (the choice at registration did not start the wait).
+        NicknameResult renamed = await a.SetNicknameAsync("Farmer_Joe", ct);
         renamed.Status.Should().Be(AccountStatus.Ok);
-        renamed.Nickname.Should().Be(chosen);
-        (await b.Looks.WaitAsync(l => l.PlayerId == a.MapPlayerId && l.Nickname == chosen, ct)).Nickname.Should().Be(chosen);
+        renamed.Nickname.Should().Be("Farmer_Joe");
+        (await b.Looks.WaitAsync(l => l.PlayerId == a.MapPlayerId && l.Nickname == "Farmer_Joe", ct)).Nickname.Should().Be("Farmer_Joe");
 
         NicknameResult again = await a.SetNicknameAsync("Another_Name", ct);
         again.Status.Should().Be(AccountStatus.NicknameTooSoon);
         again.NextChangeAtMs.Should().BeGreaterThan(0);
-        (await b.SetNicknameAsync("nguyễn văn an", ct)).Status.Should().Be(AccountStatus.NicknameTaken, "case-insensitive, underscore reads as a space");
-        (await b.SetNicknameAsync("Admin", ct)).Status.Should().Be(AccountStatus.NicknameReserved);
-        (await b.SetNicknameAsync("x", ct)).Status.Should().Be(AccountStatus.InvalidNickname);
+
+        (await b.SetNicknameAsync("Another_Name", ct)).Status.Should().Be(AccountStatus.NicknameRequiresAccount, "b is still a guest");
+        (await b.UpgradeAsync("farmer joe", ct)).Status.Should().Be(AccountStatus.NicknameTaken, "case-insensitive, underscore reads as a space");
+        (await b.UpgradeAsync("Another_Name", ct)).Status.Should().Be(AccountStatus.Ok);
+        (await b.SetNicknameAsync("vcl", ct)).Status.Should().Be(AccountStatus.NicknameProfane);
+        (await b.SetNicknameAsync("Scunthorpe", ct)).Status.Should().Be(AccountStatus.Ok, "a word that merely contains a blocked word is fine");
     }
 
     [Fact]

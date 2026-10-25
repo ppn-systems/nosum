@@ -83,6 +83,11 @@ public static partial class AccountHandlers
         AccountOutcome outcome = await s_accounts
             .UpgradeGuestAsync(player.PlayerId, player.SessionId, email, password, nickname, context.CancellationToken).ConfigureAwait(false);
         await CompleteAsync(context.Connection, context.Sender, outcome).ConfigureAwait(false);
+        if (outcome.Status == AccountStatus.Ok)
+        {
+            // The guest chose a nickname by registering: everyone on the map learns it through the look row, like after a rename.
+            await s_looks.AnnounceAsync(context.Connection, outcome.PlayerId, context.CancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <summary>Ends the session: revokes its token and signs the connection out.</summary>

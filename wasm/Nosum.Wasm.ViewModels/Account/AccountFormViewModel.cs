@@ -8,6 +8,7 @@ using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Account;
 using Nosum.Gameplay.Players;
 using Nosum.Wasm.ViewModels.Localization;
+using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Account;
@@ -369,12 +370,7 @@ public sealed class AccountFormViewModel
         if (this.IsRegister)
         {
             // Early feedback only; the server applies the same rules and checks that the name is free.
-            return NicknameRules.Validate(this.Nickname) switch
-            {
-                NicknameVerdict.Ok => null,
-                NicknameVerdict.Reserved => StatusText(AccountStatus.NicknameReserved),
-                _ => StatusText(AccountStatus.InvalidNickname),
-            };
+            return NicknameVerdictStatus.From(NicknameRules.Validate(this.Nickname)) is { } status ? StatusText(status) : null;
         }
 
         return null;

@@ -15,7 +15,8 @@ namespace Nosum.Wasm.ViewModels.Profile;
 
 /// <summary>
 /// View model of the profile panel: shows the player's nickname and changes it (the server allows one change every 24 hours, validates the
-/// rules and keeps names unique; this class only gives early feedback and shows the outcome).
+/// rules and keeps names unique; this class only gives early feedback and shows the outcome). Only a registered player may rename: a guest keeps
+/// the generated name, sees why, and chooses a nickname when registering (docs/adr/ADR-009 amendments).
 /// </summary>
 public sealed class ProfileViewModel : PanelViewModel
 {
@@ -23,6 +24,7 @@ public sealed class ProfileViewModel : PanelViewModel
     private readonly NicknameFormatter _names;
     private string _nickname = string.Empty;
     private bool _busy;
+    private bool _isGuest;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="client">The network access.</param>
@@ -52,11 +54,22 @@ public sealed class ProfileViewModel : PanelViewModel
     /// <summary>Gets whether a request is in flight.</summary>
     public bool IsBusy => _busy;
 
-    /// <summary>Records the nickname of a fresh or updated session.</summary>
+    /// <summary>Gets whether the player is a guest and so cannot change the nickname.</summary>
+    public bool IsGuest => _isGuest;
+
+    /// <summary>Gets whether the rename form is offered (a registered player).</summary>
+    public bool CanRename => !_isGuest;
+
+    /// <summary>Gets the explanation shown to a guest instead of the rename form.</summary>
+    public string GuestNoticeText => this.Text("Profile_GuestNotice");
+
+    /// <summary>Records the nickname and kind of account of a fresh or updated session.</summary>
     /// <param name="nickname">The nickname from the account result.</param>
-    public void Begin(string nickname)
+    /// <param name="isGuest">Whether the session is a guest's; registering turns this off.</param>
+    public void Begin(string nickname, bool isGuest)
     {
         _nickname = nickname;
+        _isGuest = isGuest;
         this.Raise();
     }
 
@@ -70,11 +83,16 @@ public sealed class ProfileViewModel : PanelViewModel
             return;
         }
 
-        string typed = NicknameRules.Normalize(this.NewNickname);
-        NicknameVerdict verdict = NicknameRules.Validate(typed);
-        if (verdict != NicknameVerdict.Ok)
+        if (_isGuest)
         {
-            this.SetStatus(this.Text("Account_Status_" + (verdict == NicknameVerdict.Reserved ? AccountStatus.NicknameReserved : AccountStatus.InvalidNickname)));
+            this.SetStatus(this.Text("Account_Status_" + AccountStatus.NicknameRequiresAccount));
+            return;
+        }
+
+        string typed = NicknameRules.Normalize(this.NewNickname);
+        if (NicknameVerdictStatus.From(NicknameRules.Validate(typed)) is { } invalid)
+        {
+            this.SetStatus(this.Text("Account_Status_" + invalid));
             return;
         }
 

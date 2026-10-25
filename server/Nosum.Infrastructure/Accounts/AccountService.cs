@@ -338,10 +338,16 @@ public sealed class AccountService : IAccountService
                     return new NicknameOutcome(AccountStatus.InvalidToken, string.Empty, null);
                 }
 
-                NicknameVerdict verdict = NicknameRules.Validate(nickname);
-                if (verdict != NicknameVerdict.Ok)
+                // A guest keeps the neutral name the server gave them; choosing one is part of registering.
+                if (player.IsGuest)
                 {
-                    return new NicknameOutcome(verdict == NicknameVerdict.Reserved ? AccountStatus.NicknameReserved : AccountStatus.InvalidNickname, player.Nickname, NextChange(player));
+                    return new NicknameOutcome(AccountStatus.NicknameRequiresAccount, player.Nickname, null);
+                }
+
+                AccountStatus? refusal = ToStatus(NicknameRules.Validate(nickname));
+                if (refusal is not null)
+                {
+                    return new NicknameOutcome(refusal.Value, player.Nickname, NextChange(player));
                 }
 
                 string chosen = NicknameRules.Normalize(nickname);
@@ -396,13 +402,16 @@ public sealed class AccountService : IAccountService
             return AccountStatus.InvalidPassword;
         }
 
-        return NicknameRules.Validate(nickname) switch
-        {
-            NicknameVerdict.Ok => null,
-            NicknameVerdict.Reserved => AccountStatus.NicknameReserved,
-            _ => AccountStatus.InvalidNickname,
-        };
+        return ToStatus(NicknameRules.Validate(nickname));
     }
+
+    private static AccountStatus? ToStatus(NicknameVerdict verdict) => verdict switch
+    {
+        NicknameVerdict.Ok => null,
+        NicknameVerdict.Reserved => AccountStatus.NicknameReserved,
+        NicknameVerdict.Profane => AccountStatus.NicknameProfane,
+        _ => AccountStatus.InvalidNickname,
+    };
 
     // Saves, turning a lost unique-index race (two requests for the same e-mail or nickname) into a normal refusal:
     // a fresh read tells which of the two is now taken.
