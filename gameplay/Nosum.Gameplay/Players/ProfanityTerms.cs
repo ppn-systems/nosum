@@ -57,6 +57,6 @@ public static class ProfanityTerms
 
     private static readonly string[] s_innocent =
     [
-        "scunthorpe", "shiitake", "shitake", "ashitaka", "retardant", "niggardly", "pornichet",
+        "scunthorpe", "shiitake", "shitake", "ashitaka", "sushi", "therapist", "mashita", "hashita", "retardant", "niggardly", "pornichet",
     ];
 }
