@@ -1,6 +1,7 @@
 # Build context of host.Dockerfile: only what the host build reads.
 **
 !global.json
+!.editorconfig
 !Directory.Build.props
 !Directory.Packages.props
 !Version.props

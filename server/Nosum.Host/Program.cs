@@ -188,6 +188,11 @@ internal static class Program
             ex => Console.Error.WriteLine("Mail expiry failed: " + ex.Message),
             shutdown.Token);
 
+        if (LoadTestMode())
+        {
+            OpsLog.Warning("host.load_test_mode", "NOSUM_LOAD_TEST is on: the per-address rate limits are OFF. Never run players on this server.");
+        }
+
         OpsLog.Information("host.started", "The server is accepting connections.", new LogField("ws_port", (int)WebSocketPort));
         await using (app.ConfigureAwait(false))
         {
@@ -200,6 +205,29 @@ internal static class Program
         await mailExpiry.ConfigureAwait(false);
 
         return 0;
+    }
+
+    /// <summary>
+    /// Tells whether the per-address handler rate limits are off for a load test (docs/adr/ADR-031 D8): the bots of <c>bench/Nosum.Bench.Load</c> share one
+    /// address, so the limits would throttle them as one player. Needs <c>NOSUM_LOAD_TEST=1</c> and an explicit <c>Staging</c> or <c>Development</c>
+    /// environment; with the variable set anywhere else the host refuses to start, so a forgotten variable can never switch the limits off in production.
+    /// </summary>
+    /// <returns><see langword="true"/> when the rate limits are off.</returns>
+    /// <exception cref="InvalidOperationException">The variable is set outside Staging and Development.</exception>
+    internal static bool LoadTestMode()
+    {
+        if (Environment.GetEnvironmentVariable("NOSUM_LOAD_TEST") != "1")
+        {
+            return false;
+        }
+
+        string? environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (!string.Equals(environment, "Staging", StringComparison.OrdinalIgnoreCase) && !string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("NOSUM_LOAD_TEST=1 turns the rate limits off and is only honoured when DOTNET_ENVIRONMENT is Staging or Development. Unset it.");
+        }
+
+        return true;
     }
 
     /// <summary>Reads <c>NOSUM_OPS_PORT</c>, the port of the health and metrics endpoint; <see cref="OpsEndpoint.DefaultPort"/> when unset.</summary>
@@ -319,7 +347,10 @@ internal static class Program
                 // Handler timing first (it includes the checks below), then fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
                 _ = o.WithMiddleware(new MetricsMiddleware(static () => InstanceManager.Instance.GetExistingInstance<IMapPresence>()));
                 _ = o.WithMiddleware(new PermissionMiddleware());
-                _ = o.WithMiddleware(new RateLimitMiddleware());
+                if (!LoadTestMode())
+                {
+                    _ = o.WithMiddleware(new RateLimitMiddleware());
+                }
             })
             .MapWebSocket<DefaultProtocol>()
                 .OnPort(webSocketPort)

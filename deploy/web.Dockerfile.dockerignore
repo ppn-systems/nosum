@@ -1,6 +1,7 @@
 # Build context of web.Dockerfile: only what the client build reads.
 **
 !global.json
+!.editorconfig
 !Directory.Build.props
 !Directory.Packages.props
 !Version.props

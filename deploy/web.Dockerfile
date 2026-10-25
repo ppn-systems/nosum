@@ -8,7 +8,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG NOSUM_RELEASE=private
 WORKDIR /src
 
-COPY global.json Directory.Build.props Directory.Packages.props Version.props ./
+COPY global.json .editorconfig Directory.Build.props Directory.Packages.props Version.props ./
 COPY engine engine
 COPY contracts contracts
 COPY gameplay gameplay
