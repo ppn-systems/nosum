@@ -26,6 +26,22 @@ public interface IFarmService
     /// <returns>What was done, or why not.</returns>
     Task<FarmUseOutcome> UseAsync(IConnection connection, int hotbarSlot, int tileX, int tileY, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Uses a hoe or a watering can on a line of tiles with one swing (docs/adr/ADR-026 D1): the tile in front of the player and the ones after it, the way the
+    /// server knows the player faces. One swing, one cooldown; every tile is worked like a single use (and costs what a single use costs).
+    /// </summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="hotbarSlot">Hotbar slot, zero to eight.</param>
+    /// <param name="tileX">First tile x.</param>
+    /// <param name="tileY">First tile y.</param>
+    /// <param name="length">How many tiles in a line: 1, 3 or 5; the held tool's tier must allow it.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>Ok when at least one tile was worked, otherwise why the first tile was not.</returns>
+    Task<FarmUseOutcome> UseAreaAsync(IConnection connection, int hotbarSlot, int tileX, int tileY, int length, CancellationToken cancellationToken = default)
+        => length == 1
+            ? this.UseAsync(connection, hotbarSlot, tileX, tileY, cancellationToken)
+            : Task.FromResult(new FarmUseOutcome(FarmStatus.InvalidArea, FarmAction.None));
+
     /// <summary>Reads every worked tile of the map the connection's player stands on.</summary>
     /// <param name="connection">The player's connection.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>

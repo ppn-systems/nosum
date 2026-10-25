@@ -111,6 +111,16 @@ public sealed class FarmChannel : IDisposable
     /// <param name="tileY">Target tile y.</param>
     public void Use(int slot, int tileX, int tileY) => _ = this.UseAsync(slot, tileX, tileY);
 
+    /// <summary>
+    /// Asks the server to use the item in a hotbar slot on a line of tiles (docs/adr/ADR-026 D1): the wide use of an upgraded hoe or watering can, from the tile
+    /// in front of the farmer on, the way they face. The server checks the length against the item in the slot.
+    /// </summary>
+    /// <param name="slot">Hotbar slot, zero to eight.</param>
+    /// <param name="tileX">First tile x.</param>
+    /// <param name="tileY">First tile y.</param>
+    /// <param name="tiles">How many tiles in a line: 1, 3 or 5.</param>
+    public void UseArea(int slot, int tileX, int tileY, int tiles) => _ = this.UseAreaAsync(slot, tileX, tileY, tiles);
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -158,6 +168,25 @@ public sealed class FarmChannel : IDisposable
             request.Value.Slot = (byte)slot;
             request.Value.TileX = tileX;
             request.Value.TileY = tileY;
+            UseItemResult result = await _socket.RequestAsync<UseItemResult>(request.Value).ConfigureAwait(false);
+            this.UseCompleted?.Invoke(result.Status, result.Action);
+        }
+        catch (Exception)
+        {
+            // Connection dropped; nothing was applied.
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "A lost action changes nothing; the player tries again.")]
+    private async Task UseAreaAsync(int slot, int tileX, int tileY, int tiles)
+    {
+        try
+        {
+            using PacketScope<UseItemArea> request = PacketFactory<UseItemArea>.Acquire();
+            request.Value.Slot = (byte)slot;
+            request.Value.TileX = tileX;
+            request.Value.TileY = tileY;
+            request.Value.Tiles = (byte)tiles;
             UseItemResult result = await _socket.RequestAsync<UseItemResult>(request.Value).ConfigureAwait(false);
             this.UseCompleted?.Invoke(result.Status, result.Action);
         }

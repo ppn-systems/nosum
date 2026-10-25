@@ -1,0 +1,10 @@
+@using Nosum.Wasm.ViewModels.Settings
+@inherits ObservingComponent<OnboardingViewModel>
+
+@* The first-run hint (docs/adr/ADR-033 D3): one line, announced politely to screen readers, that fades after its time; it never takes the mouse or the keyboard. *@
+<div class="hint-dock" role="status" aria-live="polite">
+    @if (Vm.IsVisible)
+    {
+        <p class="hint-line" @key="Vm.Current" aria-label="@(Vm.Label + ": " + Vm.Hint)">@Vm.Hint</p>
+    }
+</div>

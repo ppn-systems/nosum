@@ -28,6 +28,18 @@ public interface IToolState
     /// <returns>Water left, or -1 when the can was already empty.</returns>
     ValueTask<int> UseWaterAsync(Guid playerId, CancellationToken cancellationToken = default);
 
+    /// <summary>Gets the most water the player's can holds: the capacity of the can they last filled (docs/adr/ADR-026 D1).</summary>
+    /// <param name="playerId">The player's account id.</param>
+    /// <returns>The capacity; a player not seen yet has the basic can's.</returns>
+    int CapacityOf(Guid playerId) => Nosum.Gameplay.Nodes.NodeLimits.WateringCanCapacity;
+
+    /// <summary>Fills a can of a given capacity and tells the player (the capacity depends on the can's tier).</summary>
+    /// <param name="playerId">The player's account id.</param>
+    /// <param name="capacity">The capacity of the can being filled.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The new amount, which is the capacity.</returns>
+    ValueTask<int> RefillAsync(Guid playerId, int capacity, CancellationToken cancellationToken = default) => this.RefillAsync(playerId, cancellationToken);
+
     /// <summary>Fills the can and tells the player.</summary>
     /// <param name="playerId">The player's account id.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>

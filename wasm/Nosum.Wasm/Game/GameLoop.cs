@@ -59,6 +59,8 @@ internal static partial class GameLoop
     private static LookChannel? s_looks;
     private static NicknameFormatter? s_names;
     private static double s_lastTime = -1;
+    private static bool s_moved;
+    private static bool s_acted;
 
     /// <summary>Connects the game to the server; call before <see cref="StartAsync"/>. Without it the farm is played offline.</summary>
     /// <param name="channel">The player channel.</param>
@@ -127,12 +129,20 @@ internal static partial class GameLoop
 
     /// <summary>Raised from the frame when the player pressed the action key next to a shop: the shop's id.</summary>
     public static event Action<int>? ShopRequested;
+    /// <summary>Raised from the frame when the player pressed the action key next to the mine elevator.</summary>
+    public static event Action? ElevatorRequested;
 
     /// <summary>Raised from the frame when the player walked out of reach of a counter: the counter's id.</summary>
     public static event Action<int>? CounterLeft;
 
     /// <summary>Raised from the frame when the player pressed the action key facing a furnace: the furnace's object id.</summary>
     public static event Action<int>? FurnaceRequested;
+
+    /// <summary>Raised once from the frame, the first time the player walks (the first-run hints, docs/adr/ADR-033 D3).</summary>
+    public static event Action? FirstMoved;
+
+    /// <summary>Raised once from the frame, the first time the player presses the action key.</summary>
+    public static event Action? FirstActed;
 
     /// <summary>Raised from the frame when the player pressed the close key (Escape).</summary>
     public static event Action? PanelCloseRequested;
@@ -154,6 +164,7 @@ internal static partial class GameLoop
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
+        actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
         actions?.FurnaceRequested += objectId => FurnaceRequested?.Invoke(objectId);
         actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider()];
@@ -250,6 +261,18 @@ internal static partial class GameLoop
         double seconds = s_lastTime < 0 ? 0 : (timeMs - s_lastTime) / 1000.0;
         s_lastTime = timeMs;
         InputPacking.Unpack(keys, out InputState held, out InputEdges edges);
+        if (!s_moved && held != InputState.None)
+        {
+            s_moved = true;
+            FirstMoved?.Invoke();
+        }
+
+        if (!s_acted && (edges & InputEdges.Action) != 0)
+        {
+            s_acted = true;
+            FirstActed?.Invoke();
+        }
+
         s_scene.Frame(seconds, held, edges, width, height, s_backend);
     }
 }

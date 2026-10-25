@@ -1,9 +1,12 @@
 @using Nosum.Wasm.Controls.Menu
+@using Nosum.Gameplay.Shops
+@using Nosum.Wasm.ViewModels.Blacksmith
 @using Nosum.Wasm.ViewModels.Shop
 @inherits ObservingComponent<ShopViewModel>
 
 @* One shop, chosen by ShopId (seed, clothing or furniture shop): pick what to buy for coins. The title and the list come from the shared shop catalogue,
-   and the server prices and checks every purchase. Self-contained: it opens the shop on its view model by itself, so a host only sets ShopId and Vm. *@
+   and the server prices and checks every purchase. Self-contained: it opens the shop on its view model by itself, so a host only sets ShopId and Vm.
+   The blacksmith's counter (docs/adr/ADR-026 D2) also shows its tool upgrades under the list when the host gives it the blacksmith's view model. *@
 <MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
         <GameRow Class="spread">
@@ -26,6 +29,10 @@
                 </GameRow>
             }
         </div>
+        @if (ShopId == ShopCatalog.Blacksmith && Smith is not null)
+        {
+            <BlacksmithSection Vm="Smith" />
+        }
         @Extra
     </GameStack>
 </MenuPage>
@@ -35,6 +42,9 @@
 
     /// <summary>The shop to show, an id from <c>ShopCatalog</c>. Changing it opens the other shop.</summary>
     [Parameter, EditorRequired] public int ShopId { get; set; }
+
+    /// <summary>The blacksmith's upgrade view model; only used when <see cref="ShopId"/> is the blacksmith's counter.</summary>
+    [Parameter] public BlacksmithViewModel? Smith { get; set; }
 
     /// <summary>More sections under the list of what the shop sells: the carpenter's buildings and animals (docs/adr/ADR-028).</summary>
     [Parameter] public RenderFragment? Extra { get; set; }
@@ -46,6 +56,10 @@
         {
             _openedShop = ShopId;
             Vm.Open(ShopId);
+            if (ShopId == ShopCatalog.Blacksmith)
+            {
+                Smith?.Open();
+            }
         }
     }
 }

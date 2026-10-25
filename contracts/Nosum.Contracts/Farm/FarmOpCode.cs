@@ -17,6 +17,12 @@ public static class FarmOpCode
     /// <summary>Asks for every worked tile of the map the player is on. Reply: <see cref="S2C.FarmSnapshot"/>.</summary>
     public const ushort GetFarm = 0x3001;
 
+    /// <summary>
+    /// Uses a hoe or a watering can on a line of tiles with one swing: the wide use of an upgraded tool (docs/adr/ADR-026 D1). Reply: <see cref="S2C.UseItemResult"/>.
+    /// A new packet rather than a field on <see cref="UseItem"/>, so the existing packet and the protocol version stay as they are.
+    /// </summary>
+    public const ushort UseItemArea = 0x3002;
+
     // -- S2C (0x3040-0x307F) --------------------------------------------------
 
     /// <summary>Reply to <see cref="UseItem"/>.</summary>

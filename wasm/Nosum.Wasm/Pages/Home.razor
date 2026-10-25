@@ -19,6 +19,9 @@
 @using Nosum.Wasm.Controls.Goals
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.Controls.Settings
+@using Nosum.Wasm.Controls.Touch
+@using Nosum.Wasm.Controls.Hints
+@using Nosum.Wasm.ViewModels.Settings
 @using Nosum.Wasm.Controls.Layout
 @using Nosum.Wasm.ViewModels.Help
 @using Nosum.Wasm.Controls.Inventory
@@ -29,6 +32,7 @@
 @using Nosum.Wasm.Controls.Progress
 @using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.Controls.Shop
+@using Nosum.Wasm.Controls.Mine
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
 @using Nosum.Wasm.Controls.Wallet
@@ -61,6 +65,8 @@
 @using Nosum.Wasm.ViewModels.Profile
 @using Nosum.Wasm.ViewModels.Goals
 @using Nosum.Wasm.ViewModels.Shop
+@using Nosum.Wasm.ViewModels.Blacksmith
+@using Nosum.Wasm.ViewModels.Mine
 @using Nosum.Wasm.ViewModels.Quest
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
@@ -85,8 +91,11 @@
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
+@inject BlacksmithViewModel Blacksmith
+@inject ElevatorViewModel Elevator
 @inject GoalsViewModel Goals
-@inject HelpViewModel Help
+@inject SettingsViewModel Settings
+@inject OnboardingViewModel Onboarding
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
 @inject FurnaceViewModel Furnace
@@ -163,7 +172,7 @@ else
                             <MailPanel Vm="Mail" />
                             break;
                         case PanelKind.Shop:
-                            <ShopPanel Vm="Shop" ShopId="_shopId">
+                            <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith">
                                 <Extra>
                                     @if (_shopId == ShopCatalog.CarpenterShop)
                                     {
@@ -179,7 +188,7 @@ else
                             <GoalsPanel Vm="Goals" />
                             break;
                         case PanelKind.Settings:
-                            <SettingsPanel Vm="Form" Help="Help" />
+                            <SettingsPanel Vm="Form" Settings="Settings" />
                             break;
                         case PanelKind.Crafting:
                             <CraftingPanel Vm="Crafting" />
@@ -197,6 +206,7 @@ else
         <BottomCenter>
             @if (_started && _panel == PanelKind.None)
             {
+                <OnboardingHint Vm="Onboarding" />
                 <GameMessage Vm="Messages" />
                 <Hotbar Vm="Inventory" Progress="Progress" />
             }
@@ -213,6 +223,11 @@ else
                 <GamePanel Class="dialog" Title="" Role="status">
                     <p class="home-loading">@Toolbar.Text("Game_Loading") <GameSpinner /></p>
                 </GamePanel>
+            }
+            @if (_started)
+            {
+                @* The mine elevator's picker, a small dialog over the game. *@
+                <ElevatorDialog Vm="Elevator" />
             }
             @if (Form.ShowsForm)
             {
@@ -234,6 +249,10 @@ else
             }
         </Overlay>
     </GameHud>
+    @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
+    {
+        <TouchControls StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" />
+    }
 }
 
 @code {
@@ -256,6 +275,7 @@ else
         GameLoop.PanelToggleRequested += OnPanelKey;
         GameLoop.ShopRequested += OnShopRequested;
         GameLoop.CounterLeft += OnCounterLeft;
+        GameLoop.ElevatorRequested += OnElevatorRequested;
         GameLoop.FurnaceRequested += OnFurnaceRequested;
         GameLoop.PanelCloseRequested += OnCloseKey;
         Chest.OpenChanged += OnContainerOpenChanged;
@@ -287,6 +307,7 @@ else
         GameLoop.PanelToggleRequested -= OnPanelKey;
         GameLoop.ShopRequested -= OnShopRequested;
         GameLoop.CounterLeft -= OnCounterLeft;
+        GameLoop.ElevatorRequested -= OnElevatorRequested;
         GameLoop.FurnaceRequested -= OnFurnaceRequested;
         GameLoop.PanelCloseRequested -= OnCloseKey;
         Chest.OpenChanged -= OnContainerOpenChanged;
@@ -352,6 +373,16 @@ else
         }
     });
 
+    // The action key next to the mine elevator (raised from the frame): show the picker.
+    private void OnElevatorRequested() => _ = InvokeAsync(() =>
+    {
+        if (!Elevator.IsOpen)
+        {
+            Elevator.Open();
+            StateHasChanged();
+        }
+    });
+
     // The action key facing a furnace (raised from the frame): the furnace page opens when the view model says so.
     private void OnFurnaceRequested(int objectId) => _ = InvokeAsync(() => Furnace.Open(objectId));
 
@@ -371,12 +402,16 @@ else
         StateHasChanged();
     });
 
-    // Escape: leave the upgrade form, or close the menu, or else open it on the tab used last.
+    // Escape: leave the upgrade form, or close the elevator picker, or close the menu, or else open it on the tab used last.
     private void OnCloseKey() => _ = InvokeAsync(() =>
     {
         if (Form.Mode == AccountFormMode.Upgrade)
         {
             Form.CancelUpgrade();
+        }
+        else if (Elevator.IsOpen)
+        {
+            Elevator.Close();
         }
         else if (_panel != PanelKind.None)
         {
@@ -529,6 +564,7 @@ else
         {
             await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None);
             _started = true;
+            Onboarding.Start();
             StateHasChanged();
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or JSException)
