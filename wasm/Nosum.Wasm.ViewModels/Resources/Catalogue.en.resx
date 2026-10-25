@@ -251,8 +251,8 @@
   <data name="Quest_ship_produce_Objective_0" xml:space="preserve"><value>Sell produce at the shipping bin</value></data>
   <data name="Quest_buy_seeds_Title" xml:space="preserve"><value>Buy seeds</value></data>
   <data name="Quest_buy_seeds_Hint" xml:space="preserve"><value>Leave the farm for Town, stand at the seed shop counter and press the use key to buy.</value></data>
-  <data name="Quest_buy_seeds_Tip" xml:space="preserve"><value>Go to the seed shop in Town and buy something.</value></data>
-  <data name="Quest_buy_seeds_Objective_0" xml:space="preserve"><value>Buy something at a shop</value></data>
+  <data name="Quest_buy_seeds_Tip" xml:space="preserve"><value>Go to the seed shop in Town and buy seeds.</value></data>
+  <data name="Quest_buy_seeds_Objective_0" xml:space="preserve"><value>Buy seeds at a shop</value></data>
   <data name="Quest_chop_tree_Title" xml:space="preserve"><value>Chop a tree</value></data>
   <data name="Quest_chop_tree_Hint" xml:space="preserve"><value>Select the axe and press E on a tree until it falls. The wood drops on the ground, so pick it up.</value></data>
   <data name="Quest_chop_tree_Tip" xml:space="preserve"><value>Chop a tree down with the axe to get wood.</value></data>

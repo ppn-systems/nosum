@@ -251,8 +251,8 @@
   <data name="Quest_ship_produce_Objective_0" xml:space="preserve"><value>Bán nông sản ở thùng bán hàng</value></data>
   <data name="Quest_buy_seeds_Title" xml:space="preserve"><value>Mua hạt giống</value></data>
   <data name="Quest_buy_seeds_Hint" xml:space="preserve"><value>Rời nông trại đến Thị trấn, đứng trước quầy cửa hàng hạt giống và nhấn phím dùng để mua.</value></data>
-  <data name="Quest_buy_seeds_Tip" xml:space="preserve"><value>Đến cửa hàng hạt giống ở Thị trấn và mua một thứ.</value></data>
-  <data name="Quest_buy_seeds_Objective_0" xml:space="preserve"><value>Mua một thứ ở cửa hàng</value></data>
+  <data name="Quest_buy_seeds_Tip" xml:space="preserve"><value>Đến cửa hàng hạt giống ở Thị trấn và mua hạt giống.</value></data>
+  <data name="Quest_buy_seeds_Objective_0" xml:space="preserve"><value>Mua hạt giống ở cửa hàng</value></data>
   <data name="Quest_chop_tree_Title" xml:space="preserve"><value>Đốn cây</value></data>
   <data name="Quest_chop_tree_Hint" xml:space="preserve"><value>Chọn rìu rồi nhấn E lên một cái cây cho đến khi nó đổ. Gỗ rơi xuống đất, hãy nhặt lấy.</value></data>
   <data name="Quest_chop_tree_Tip" xml:space="preserve"><value>Dùng rìu đốn một cái cây để lấy gỗ.</value></data>

@@ -23,7 +23,7 @@ community goals; nothing there gives a player a reason to visit it every day.
   settle sweep, and a quest completed before this release stays completed and is never paid retroactively. A wallet that cannot
   hold the coins completes the quest without them.
 - **D3 — Quest events come from the services that already decide the action.** Appended `QuestEventKind`s: `SoilTilled`,
-  `CropWatered` (farm service), `ItemShipped` (shipping bin), `ItemBought` (shop), `NodeBroken` (resource node, subject = node
+  `CropWatered` (farm service), `ItemShipped` (shipping bin), `SeedBought` (shop, only for seeds), `NodeBroken` (resource node, subject = node
   kind), `ItemCrafted` (crafting, subject = output item). Each service reports after its own success; none re-validates.
   A failing report never fails the action. Services take `IQuestService` as an optional trailing constructor argument.
 - **D4 — Hints.** The client shows the current chain step as the same fading one-line hint as ADR-033 D3 (text by quest key in

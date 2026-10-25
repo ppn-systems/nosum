@@ -68,7 +68,7 @@ public sealed class QuestChainTests
     [InlineData(QuestCatalog.TillSoil, QuestEventKind.SoilTilled, 0)]
     [InlineData(QuestCatalog.WaterCrop, QuestEventKind.CropWatered, 0)]
     [InlineData(QuestCatalog.ShipProduce, QuestEventKind.ItemShipped, ItemCatalog.Parsnip)]
-    [InlineData(QuestCatalog.BuySeeds, QuestEventKind.ItemBought, ItemCatalog.ParsnipSeeds)]
+    [InlineData(QuestCatalog.BuySeeds, QuestEventKind.SeedBought, ItemCatalog.ParsnipSeeds)]
     [InlineData(QuestCatalog.ChopTree, QuestEventKind.NodeBroken, (int)NodeKind.Tree)]
     [InlineData(QuestCatalog.CraftChest, QuestEventKind.ItemCrafted, ItemCatalog.Chest)]
     public void EachSingleStepQuest_CompletesOnItsOwnEvent(int questId, QuestEventKind kind, int subject)
@@ -102,7 +102,7 @@ public sealed class QuestChainTests
         ((int)QuestEventKind.SoilTilled).Should().Be(3);
         ((int)QuestEventKind.CropWatered).Should().Be(4);
         ((int)QuestEventKind.ItemShipped).Should().Be(5);
-        ((int)QuestEventKind.ItemBought).Should().Be(6);
+        ((int)QuestEventKind.SeedBought).Should().Be(6);
         ((int)QuestEventKind.NodeBroken).Should().Be(7);
         ((int)QuestEventKind.ItemCrafted).Should().Be(8);
     }

@@ -11,6 +11,7 @@ using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Shops;
 using Nosum.Contracts.Shop;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
@@ -85,9 +86,9 @@ public sealed class ShopService : IShopService
             "shop.buy",
             null,
             cancellationToken).ConfigureAwait(false);
-        if (status == TransferStatus.Ok)
+        if (status == TransferStatus.Ok && ItemCatalog.TryGet(itemId, out ItemDefinition? bought) && bought.Kind is ItemKind.Seed or ItemKind.TreeSeed)
         {
-            await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.ItemBought, itemId, quantity), cancellationToken).ConfigureAwait(false);
+            await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.SeedBought, itemId, quantity), cancellationToken).ConfigureAwait(false);
         }
 
         return status switch

@@ -22,8 +22,8 @@ public enum QuestEventKind
     /// <summary>Items were put into the shipping bin; the subject is the item id, the amount how many.</summary>
     ItemShipped = 5,
 
-    /// <summary>Items were bought at a shop; the subject is the item id, the amount how many.</summary>
-    ItemBought = 6,
+    /// <summary>Seeds (of a crop or a tree) were bought at a shop; the subject is the item id, the amount how many.</summary>
+    SeedBought = 6,
 
     /// <summary>A resource node broke (a tree fell, a stone was gone); the subject is the <c>NodeKind</c>.</summary>
     NodeBroken = 7,

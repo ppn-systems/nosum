@@ -25,7 +25,7 @@ public static class QuestCatalog
     /// <summary>Put something into the shipping bin.</summary>
     public const int ShipProduce = 4;
 
-    /// <summary>Buy something at the seed shop.</summary>
+    /// <summary>Buy seeds at the seed shop.</summary>
     public const int BuySeeds = 5;
 
     /// <summary>Chop a tree down with the axe.</summary>
@@ -40,7 +40,7 @@ public static class QuestCatalog
         new(TillSoil, "till_soil", 10, new QuestObjective(QuestEventKind.SoilTilled, 0, 1)),
         new(WaterCrop, "water_crop", 10, new QuestObjective(QuestEventKind.CropWatered, 0, 1)),
         new(ShipProduce, "ship_produce", 30, new QuestObjective(QuestEventKind.ItemShipped, 0, 1)),
-        new(BuySeeds, "buy_seeds", 20, new QuestObjective(QuestEventKind.ItemBought, 0, 1)),
+        new(BuySeeds, "buy_seeds", 20, new QuestObjective(QuestEventKind.SeedBought, 0, 1)),
         new(ChopTree, "chop_tree", 30, new QuestObjective(QuestEventKind.NodeBroken, (int)NodeKind.Tree, 1)),
         new(CraftChest, "craft_chest", 50, new QuestObjective(QuestEventKind.ItemCrafted, ItemCatalog.Chest, 1)),
     ];
