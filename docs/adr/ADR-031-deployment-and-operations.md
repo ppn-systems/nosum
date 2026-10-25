@@ -30,8 +30,8 @@ admin tools — before any player outside the team connects.
   tick duration, bytes sent per tick, handler latency per opcode, DB transaction duration, rejected intents by status)
   exposed in Prometheus text format on the health port.
 - **D7 — Admin.** An `Admin` role on accounts (set only by a CLI command against the database, never over the wire);
-  admin intents (kick, mute for N hours, ban, grant items, read reports from ADR-029) in the Account band slice `0x1100–0x11FF`
-  slice, permission-checked by the existing fail-closed middleware and audited.
+  admin intents (kick, mute for N hours, ban, grant items, read reports from ADR-029) in the Account band slice `0x1100–0x11FF`,
+  permission-checked by the existing fail-closed middleware and audited.
 - **D8 — Load test.** `bench/Nosum.Bench.Load`: N headless WebSocket clients (the test client code) that sign in as
   guests, walk, farm and chat across maps; reports tick time and bandwidth. Target for M5: 200 clients with snapshot tick
   p99 < 20 ms on a 4-core server.
