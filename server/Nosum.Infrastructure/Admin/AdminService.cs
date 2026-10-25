@@ -152,7 +152,14 @@ public sealed class AdminService : IAdminService
             "admin.grant",
             null,
             cancellationToken).ConfigureAwait(false);
-        return moved == TransferStatus.Ok ? AdminStatus.Ok : AdminStatus.GrantFailed;
+        if (moved == TransferStatus.Ok)
+        {
+            return AdminStatus.Ok;
+        }
+
+        // The audit row records the order that was given; the log says it did not go through.
+        OpsLog.Warning("admin.grant_failed", "An admin grant was refused by the transfer service.", new LogField("admin_id", adminId), new LogField("target_id", targetId), new LogField("transfer", moved.ToString()));
+        return AdminStatus.GrantFailed;
     }
 
     /// <inheritdoc/>
