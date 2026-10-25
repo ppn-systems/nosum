@@ -63,6 +63,12 @@ add no colours or borders of their own, so the look of the whole UI is the CSS o
 a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
+Resource nodes ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): `NodeChannel` (in `Nosum.Wasm.Socket/Node`) mirrors the trees, stones, twigs, weeds and grass of the player's current place
+(`GetNodes` after every join or map change, then `NodeChanged` pushes; it notes when a node lost a hit so the scene can shake it) and the water left in the watering can (`ToolState`).
+`Game/NodeDecorator` draws them as depth-sorted world sprites from the one table in `Game/NodeSprites` (a grown tree is two sprites, canopy and trunk, so the farmer walks behind it and in front of it);
+`MapScene` adds the blocking ones to the grid the farmer walks on (same `NodeField.BuildGrid` as the server). Using a tool is still the one `UseItem` intent: the server decides what a swing does.
+The can's water is a meter on its slot (`SlotDisplay.Meter`). The farmer has no swing animation: the layered shirt, hair and hat sheets have no tool-use frames to match the body's.
+
 Furniture ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `PlaceableChannel` (in `Nosum.Wasm.Socket/Placeable`) mirrors the pieces of the player's current place (loaded with the farm after every join or map change)
 and sends place, move and pick-up requests. `Game/PlacedObjectsDecorator` draws them (and the ghost of the piece being placed) as `WorldSpriteBatch` sprites; `MapScene` adds their footprints to the grid the farmer
 walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, active only on a `MapSpec.Placeable` map: `E` places the held piece (or sets down a carried one), `R` rotates, `F` picks up the piece in front to

@@ -14,6 +14,7 @@ internal sealed class ItemIcons : IItemIconSource
 {
     private const string ObjectsSheet = "assets/Maps/springobjects.png";
     private const string ToolsSheet = "assets/TileSheets/tools.png";
+    private const string WeaponsSheet = "assets/TileSheets/weapons.png";
     private const string FurnitureSheet = "assets/TileSheets/furniture.png";
     private const int Cell = 16;
 
@@ -21,6 +22,17 @@ internal sealed class ItemIcons : IItemIconSource
     {
         [ItemCatalog.Hoe] = Tool(0, 2),
         [ItemCatalog.WateringCan] = Tool(0, 14),
+        [ItemCatalog.Axe] = Tool(5, 10),
+        [ItemCatalog.Pickaxe] = Tool(5, 6),
+        [ItemCatalog.Scythe] = Weapon(7, 5),
+        [ItemCatalog.OakSeed] = ObjectId(309),
+        [ItemCatalog.MapleSeed] = ObjectId(310),
+        [ItemCatalog.PineSeed] = ObjectId(311),
+        [ItemCatalog.Wood] = ObjectId(388),
+        [ItemCatalog.Stone] = ObjectId(390),
+        [ItemCatalog.Fiber] = ObjectId(771),
+        [ItemCatalog.Coal] = ObjectId(382),
+        [ItemCatalog.CopperOre] = ObjectId(378),
         [ItemCatalog.ParsnipSeeds] = Object(16, 19),
         [ItemCatalog.RadishSeeds] = Object(4, 20),
         [ItemCatalog.CauliflowerSeeds] = Object(18, 19),
@@ -48,6 +60,12 @@ internal sealed class ItemIcons : IItemIconSource
 
     // springobjects.png is 384 x 624 (24 x 39 cells).
     private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 624);
+
+    // Stardew object ids are the cell number on springobjects.png, 24 cells to a row.
+    private static ItemIcon ObjectId(int id) => Object(id % 24, id / 24);
+
+    // The scythe is a weapon in Stardew: weapons.png is 128 x 144 (8 x 9 cells), the scythe is cell 47.
+    private static ItemIcon Weapon(int column, int row) => new(WeaponsSheet, column * Cell, row * Cell, Cell, 128, 144);
 
     // Clothing is shown by its piece of the farmer sheets (the same frames the farmer is drawn with): shirts.png is 256 x 608 (8 px
     // shirt pieces), pants.png 1920 x 1376, hats.png 240 x 880 (20 px hats, 12 per row, four rows of directions each).

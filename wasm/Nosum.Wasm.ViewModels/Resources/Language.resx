@@ -52,6 +52,11 @@
   <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
   <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>Bạn không còn vật phẩm này.</value></data>
   <data name="Farm_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Farm_Status_WrongTool" xml:space="preserve"><value>Dụng cụ này không dùng được với thứ ở đó.</value></data>
+  <data name="Farm_Status_Cooldown" xml:space="preserve"><value>Từ từ thôi, vung tay chưa xong.</value></data>
+  <data name="Farm_Status_CanEmpty" xml:space="preserve"><value>Bình tưới đã hết nước. Hãy múc nước ở ao hoặc suối.</value></data>
+  <data name="Farm_Status_Blocked" xml:space="preserve"><value>Có vật cản ở chỗ này.</value></data>
+  <data name="Inventory_Water" xml:space="preserve"><value>Nước: {0}/{1}</value></data>
   <data name="Inventory_Status_Blocked" xml:space="preserve"><value>Ô đích đang chứa vật phẩm khác.</value></data>
   <data name="Inventory_Status_NoSpace" xml:space="preserve"><value>Không đủ chỗ.</value></data>
   <data name="Inventory_Status_Failed" xml:space="preserve"><value>Không thể di chuyển vật phẩm.</value></data>

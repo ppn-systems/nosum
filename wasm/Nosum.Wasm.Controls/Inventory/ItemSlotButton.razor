@@ -14,7 +14,12 @@
     {
         <span class="icon" style="@IconStyle(icon)"></span>
     }
-    @if (Slot.Quantity > 1)
+    @if (Slot.Meter is { } meter)
+    {
+        <span class="meter"><span style="width: @(Math.Round(Math.Clamp(meter, 0, 1) * 100).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span></span>
+        <span class="quantity">@Slot.MeterText</span>
+    }
+    else if (Slot.Quantity > 1)
     {
         <span class="quantity">@Slot.Quantity</span>
     }

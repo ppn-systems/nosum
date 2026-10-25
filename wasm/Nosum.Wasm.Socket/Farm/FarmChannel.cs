@@ -9,6 +9,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Contracts.Node.S2C;
 
 namespace Nosum.Wasm.Socket.Farm;
 
@@ -44,7 +45,7 @@ public sealed class FarmChannel : IDisposable
     {
         ArgumentNullException.ThrowIfNull(socket);
         _socket = socket;
-        _subscriptions = [socket.Subscribe<FarmTilesChanged>(this.OnChanged)];
+        _subscriptions = [socket.Subscribe<FarmTilesChanged>(this.OnChanged), socket.Subscribe<FarmTilesCleared>(this.OnCleared)];
     }
 
     /// <summary>Raised when the server answered a use of an item. May run on any thread.</summary>
@@ -181,6 +182,44 @@ public sealed class FarmChannel : IDisposable
         }
 
         this.Changed?.Invoke();
+    }
+
+    // A pickaxe cleared tilled soil (docs/adr/ADR-021): the tiles are plain ground again.
+    private void OnCleared(FarmTilesCleared packet)
+    {
+        lock (_gate)
+        {
+            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            foreach (TileRow row in packet.Tiles)
+            {
+                this.Remove(Key(row.X, row.Y));
+            }
+        }
+
+        this.Changed?.Invoke();
+    }
+
+    // Call under the lock. Swaps the last tile into the hole so the list stays dense.
+    private void Remove(int key)
+    {
+        if (!_index.Remove(key, out int at))
+        {
+            return;
+        }
+
+        int last = _tiles.Count - 1;
+        if (at != last)
+        {
+            FarmTileInfo moved = _tiles[last];
+            _tiles[at] = moved;
+            _index[Key(moved.X, moved.Y)] = at;
+        }
+
+        _tiles.RemoveAt(last);
     }
 
     // Call under the lock.

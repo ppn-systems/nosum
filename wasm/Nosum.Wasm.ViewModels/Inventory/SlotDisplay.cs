@@ -10,7 +10,9 @@ namespace Nosum.Wasm.ViewModels.Inventory;
 /// <param name="Tooltip">Localized tooltip (name, description, quantity); empty for an empty slot.</param>
 /// <param name="Icon">The item's picture, or <see langword="null"/>.</param>
 /// <param name="IsSelected">Whether this is the held hotbar slot.</param>
-public sealed record SlotDisplay(int Index, int ItemId, int Quantity, string Name, string Tooltip, ItemIcon? Icon, bool IsSelected)
+/// <param name="Meter">How full the item is, 0 to 1, for an item that holds something (the watering can's water); <see langword="null"/> otherwise.</param>
+/// <param name="MeterText">The amount shown beside the meter, already formatted; empty without a meter.</param>
+public sealed record SlotDisplay(int Index, int ItemId, int Quantity, string Name, string Tooltip, ItemIcon? Icon, bool IsSelected, double? Meter = null, string MeterText = "")
 {
     /// <summary>Gets whether the slot holds nothing.</summary>
     public bool IsEmpty => this.ItemId == 0;

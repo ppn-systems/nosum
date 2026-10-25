@@ -23,6 +23,8 @@ using Nosum.Contracts.Placeable.S2C;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Node;
+using Nosum.Contracts.Node.S2C;
 using Nosum.Wasm.ViewModels.Feedback;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Resources;
@@ -218,6 +220,43 @@ public sealed class InventoryViewModelTests
         placeable.Place(5, 3, 3, 0);
 
         messages.Message.Should().Be("There is furniture there already.");
+    }
+
+    [Fact]
+    public void WateringCanSlot_ShowsTheWaterLeft_AndFollowsTheServer()
+    {
+        using CultureScope scope = new("en");
+        (_, InventoryChannel channel, FakeGameSocket socket) = Create();
+        using NodeChannel nodes = new(socket);
+        using InventoryViewModel vm = new(channel, new FixedIcons(), Localizer<Catalogue>(), Localizer<Language>(), nodes);
+
+        vm.Slots[1].Meter.Should().Be(1.0);
+        vm.Slots[1].Tooltip.Should().Contain("Water: 40/40");
+
+        using ToolState state = new() { WaterLeft = 10, WaterCapacity = 40 };
+        socket.Push(state);
+
+        vm.Slots[1].Meter.Should().Be(0.25);
+        vm.Slots[1].MeterText.Should().Be("10");
+        vm.Slots[0].Meter.Should().BeNull("only the watering can holds water");
+    }
+
+    [Fact]
+    public void GameMessages_ASwingThatCameTooSoon_IsDroppedSilently_ButAWrongToolIsExplained()
+    {
+        using CultureScope scope = new("en");
+        (InventoryViewModel inventory, _, FakeGameSocket socket) = Create();
+        using FarmChannel farm = new(socket);
+        using PlaceableChannel placeable = new(socket);
+        using GameMessagesViewModel messages = new(farm, placeable, inventory, Localizer<Language>());
+
+        socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.Cooldown });
+        farm.Use(0, 3, 3);
+        messages.Message.Should().BeNull();
+
+        socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.WrongTool });
+        farm.Use(0, 3, 3);
+        messages.Message.Should().Be("This tool does not work on that.");
     }
 
     private static (InventoryViewModel Vm, InventoryChannel Channel, FakeGameSocket Socket) Create()

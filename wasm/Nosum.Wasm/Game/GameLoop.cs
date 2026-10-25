@@ -12,6 +12,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.Socket.Placeable;
@@ -41,6 +42,7 @@ internal static partial class GameLoop
     private static FarmChannel? s_farm;
     private static InventoryChannel? s_inventory;
     private static PlaceableChannel? s_placeable;
+    private static NodeChannel? s_nodes;
     private static PlacementViewModel? s_placement;
     private static MarketChannel? s_market;
     private static LookChannel? s_looks;
@@ -61,6 +63,10 @@ internal static partial class GameLoop
         s_inventory = inventory;
         s_market = market;
     }
+
+    /// <summary>Connects the resource nodes to the game: the mirror that is drawn and that blocks walking. Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="nodes">The mirror of the nodes of the player's place.</param>
+    public static void UseNodes(NodeChannel nodes) => s_nodes = nodes;
 
     /// <summary>Connects the looks the server sent to the farmers drawn; call before <see cref="StartAsync"/>.</summary>
     /// <param name="looks">The mirror of the looks on the map.</param>
@@ -112,6 +118,11 @@ internal static partial class GameLoop
             providers.Add(new FarmDecoratorProvider(s_farm, actions));
         }
 
+        if (s_nodes is not null)
+        {
+            providers.Add(new NodeDecoratorProvider(s_nodes));
+        }
+
         PlacementActions? placement = null;
         if (s_placeable is not null && s_placement is not null && s_inventory is not null)
         {
@@ -142,7 +153,7 @@ internal static partial class GameLoop
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(new LabelRegistry(WebRenderBackend.UploadLabel), s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes);
 
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }

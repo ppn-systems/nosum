@@ -17,6 +17,7 @@ using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Dev;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
@@ -70,6 +71,7 @@ internal static class Program
         builder.Services.AddSingleton<InventoryChannel>();
         builder.Services.AddSingleton<FarmChannel>();
         builder.Services.AddSingleton<PlaceableChannel>();
+        builder.Services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton<QuestChannel>();
         builder.Services.AddSingleton<WalletChannel>();
         builder.Services.AddSingleton<MarketChannel>();
@@ -116,6 +118,8 @@ internal static class Program
         InventoryChannel inventory = host.Services.GetRequiredService<InventoryChannel>();
         FarmChannel farm = host.Services.GetRequiredService<FarmChannel>();
         PlaceableChannel placeable = host.Services.GetRequiredService<PlaceableChannel>();
+        NodeChannel nodes = host.Services.GetRequiredService<NodeChannel>();
+        GameLoop.UseNodes(nodes);
         QuestChannel quests = host.Services.GetRequiredService<QuestChannel>();
         GameLoop.UseNetwork(channel);
         MarketChannel market = host.Services.GetRequiredService<MarketChannel>();
@@ -130,7 +134,7 @@ internal static class Program
         GameLoop.UsePlacement(placeable, host.Services.GetRequiredService<PlacementViewModel>());
 
         // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;
-        // the farm and the placed furniture are per place, so they load whenever a map was joined.
+        // the farm, the placed furniture and the resource nodes are per place, so they load whenever a map was joined.
         AccountSessionKeeper keeper = host.Services.GetRequiredService<AccountSessionKeeper>();
         keeper.Authenticated += channel.Join;
         keeper.Authenticated += inventory.Load;
@@ -141,6 +145,7 @@ internal static class Program
         {
             farm.Load();
             placeable.Load();
+            nodes.Load();
         };
         channel.Joined += _ => looks.Load();
         // The view models subscribe to their channels when they are built: build them before the first push can arrive.

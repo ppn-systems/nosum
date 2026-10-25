@@ -72,3 +72,20 @@
     color: #fff;
     text-shadow: var(--u) 0 0 var(--nosum-ink), calc(var(--u) * -1) 0 0 var(--nosum-ink), 0 var(--u) 0 var(--nosum-ink), 0 calc(var(--u) * -1) 0 var(--nosum-ink);
 }
+
+/* The water left in a watering can: a thin bar along the bottom of the slot, with the number above it. */
+.meter {
+    position: absolute;
+    left: calc(var(--u) * 2);
+    right: calc(var(--u) * 2);
+    bottom: calc(var(--u) * 1);
+    height: calc(var(--u) * 2);
+    background: var(--nosum-ink);
+    pointer-events: none;
+}
+
+.meter > span {
+    display: block;
+    height: 100%;
+    background: #4aa3ff;
+}
