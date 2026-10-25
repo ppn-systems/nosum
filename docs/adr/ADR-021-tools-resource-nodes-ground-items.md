@@ -81,7 +81,7 @@ Review of the current code found:
 - **Day-ended seam.** `IDayClock.DayEnded` (`Nosum.Abstractions.Calendar`, implemented by `DayClockService`): one timer aimed at the next day boundary, re-armed
   after every tick; each tick raises the event for every day since the last one (a late tick or a clock jump loses no day, at most 400 per tick); a throwing
   subscriber is swallowed and reported. Subscribers do side effects only. First subscriber: `FarmService` sweeps the loaded farms, deleting reverted tiles from
-  memory and PostgreSQL and multicasting them as removed. Resource-node regrowth and sprinklers subscribe the same way.
+  memory and PostgreSQL and publishing them as removed to the subscribers of each tile's chunk (ADR-022). Resource-node regrowth and sprinklers subscribe the same way.
 - **Dev clock.** `DevAdvanceClock` (`0xF001`, reply `0xF041` with the new server clock) in the Dev band, Development only like `DevGrant`. In Development the host
   wraps its clock in `DevTimeProvider` (system time plus an offset) and every service reads time through it; `DevClockService` adds whole days (1 to 60) and calls
   `DayClockService.Reconcile`, because timers measure real intervals and do not notice a jump. Production registers neither the service nor the handler.

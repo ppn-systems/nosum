@@ -50,7 +50,10 @@ public static class CoinRules
     public static long SellerProceeds(long price) => price - MarketFee(price);
 }
 
-/// <summary>The fixed price the shipping bin pays for crops, per item. Only produce is bought; the table is a development default.</summary>
+/// <summary>
+/// The fixed price the shipping bin pays, per item: the <see cref="ItemDefinition.SellPrice"/> of every produce and forage item
+/// (docs/adr/ADR-025). Seeds, tools and materials are not bought. The prices are balance data in <see cref="ItemCatalog"/>.
+/// </summary>
 public static class ShippingPrices
 {
     /// <summary>Looks up what the bin pays for one item.</summary>
@@ -59,13 +62,7 @@ public static class ShippingPrices
     /// <returns><see langword="true"/> when the bin buys this item.</returns>
     public static bool TryGet(int itemId, out int coinsEach)
     {
-        coinsEach = itemId switch
-        {
-            ItemCatalog.Parsnip => 20,
-            ItemCatalog.Radish => 30,
-            ItemCatalog.Cauliflower => 60,
-            _ => 0,
-        };
+        coinsEach = ItemCatalog.TryGet(itemId, out ItemDefinition? item) && item.Kind == ItemKind.Produce ? item.SellPrice : 0;
         return coinsEach > 0;
     }
 }

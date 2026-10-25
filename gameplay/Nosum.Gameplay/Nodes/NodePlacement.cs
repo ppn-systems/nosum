@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Movement;
 
 namespace Nosum.Gameplay.Nodes;
@@ -99,6 +100,62 @@ public static class NodePlacements
             }
 
             placements.Add(new NodePlacement(site.X, site.Y, site.Kind, 0, 0));
+        }
+
+        return placements;
+    }
+
+    /// <summary>
+    /// Chooses the forage that appears at a game-day rollover on a public map (docs/adr/ADR-025 D4): up to <see cref="NodeLimits.ForagePerDay"/> of the
+    /// season's items on free forage spots, never more than <see cref="NodeLimits.MaxForageStanding"/> standing. Deterministic from the seed.
+    /// </summary>
+    /// <param name="sites">The map's forage spots.</param>
+    /// <param name="field">The nodes standing now.</param>
+    /// <param name="grid">The map's own walk grid.</param>
+    /// <param name="reserved">Tiles that must stay clear.</param>
+    /// <param name="occupied">Tiles a player stands on.</param>
+    /// <param name="seed">Seed for this instance and this day.</param>
+    /// <param name="season">The season of the day that begins.</param>
+    /// <param name="standing">Forage nodes already standing that stay (those of another season are about to be removed).</param>
+    /// <returns>The placements, kind <see cref="NodeKind.Forage"/>, the variant naming the item.</returns>
+    public static List<NodePlacement> Forage(IReadOnlyList<NodeSite> sites, NodeField field, WalkGrid grid, IReadOnlySet<(int X, int Y)> reserved, IReadOnlySet<(int X, int Y)> occupied, ulong seed, Season season, int standing)
+    {
+        ArgumentNullException.ThrowIfNull(sites);
+        ArgumentNullException.ThrowIfNull(field);
+        ArgumentNullException.ThrowIfNull(grid);
+        ArgumentNullException.ThrowIfNull(reserved);
+        ArgumentNullException.ThrowIfNull(occupied);
+
+        List<NodePlacement> placements = [];
+        if (sites.Count == 0)
+        {
+            return placements;
+        }
+
+        NodeRandom random = new(seed);
+        HashSet<(int, int)> taken = [];
+        int attempts = NodeLimits.ForagePerDay * 8;
+        while (attempts-- > 0
+            && placements.Count < NodeLimits.ForagePerDay
+            && standing + placements.Count < NodeLimits.MaxForageStanding
+            && field.Count + placements.Count < NodeLimits.MaxPerInstance)
+        {
+            NodeSite site = sites[random.Next(sites.Count)];
+            if (field.HasNodeAt(site.X, site.Y)
+                || grid.IsBlocked(site.X, site.Y)
+                || occupied.Contains((site.X, site.Y))
+                || NearReserved(reserved, site.X, site.Y)
+                || !taken.Add((site.X, site.Y)))
+            {
+                continue;
+            }
+
+            if (ForageCatalog.Roll(season, ref random) is not { } variant)
+            {
+                break;
+            }
+
+            placements.Add(new NodePlacement(site.X, site.Y, NodeKind.Forage, variant, 0));
         }
 
         return placements;

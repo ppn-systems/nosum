@@ -5,6 +5,7 @@ using System.Linq;
 using FluentAssertions;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Node.S2C;
+using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
 using Nosum.Wasm.Socket.Farm;
@@ -170,5 +171,62 @@ public sealed class NodeChannelTests
         farm.TryGetTile(1, 1, out _).Should().BeFalse();
         farm.TryGetTile(2, 2, out _).Should().BeTrue();
         farm.TryGetTile(3, 3, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ChunkState_AddsTheChunksNodesAndReplacesAnyOlderOnes()
+    {
+        FakeGameSocket socket = SocketWith("forest", 40, Row(1, 3, 4, NodeKind.Stone, 1));
+        using NodeChannel channel = new(socket);
+        channel.Load();
+        int before = channel.Version;
+        using ChunkState state = new() { MapId = "forest", ChunkX = 4, ChunkY = 2 };
+        state.Nodes.Add(Row(2, 69, 37, NodeKind.Stone, 3));
+        state.Nodes.Add(Row(3, 70, 37, NodeKind.Weed, 1));
+        using ChunkState again = new() { MapId = "forest", ChunkX = 4, ChunkY = 2 };
+        again.Nodes.Add(Row(3, 70, 37, NodeKind.Weed, 1));
+
+        socket.Push(state);
+        socket.Push(again);
+
+        List<NodeInfo> nodes = Mirror(channel);
+        nodes.Select(n => n.Id).Should().BeEquivalentTo([1, 3], "the second state of chunk (4, 2) replaces the first; the chunk (0, 0) stone stays");
+        channel.Version.Should().NotBe(before);
+    }
+
+    [Fact]
+    public void ChunkLeft_DropsOnlyThatChunksNodes_AndKeepsTheIndexInStep()
+    {
+        FakeGameSocket socket = SocketWith("forest", 40, Row(1, 3, 4, NodeKind.Stone, 1), Row(2, 69, 37, NodeKind.Stone, 3), Row(3, 5, 6, NodeKind.Weed, 1));
+        using NodeChannel channel = new(socket);
+        channel.Load();
+        using ChunkLeft left = new() { MapId = "forest", ChunkX = 4, ChunkY = 2 };
+        using ChunkLeft other = new() { MapId = "town", ChunkX = 0, ChunkY = 0 };
+
+        socket.Push(other);
+        Mirror(channel).Should().HaveCount(3);
+        socket.Push(left);
+
+        Mirror(channel).Select(n => n.Id).Should().BeEquivalentTo([1, 3]);
+
+        // A later change still finds its node after the list was compacted.
+        using NodeChanged gone = new() { MapId = "forest" };
+        gone.Removed.Add(3);
+        socket.Push(gone);
+        Mirror(channel).Should().ContainSingle().Which.Id.Should().Be(1);
+    }
+
+    [Fact]
+    public void ChunkState_ForAnotherMap_IsIgnored()
+    {
+        FakeGameSocket socket = SocketWith("forest", 40);
+        using NodeChannel channel = new(socket);
+        channel.Load();
+        using ChunkState state = new() { MapId = "town", ChunkX = 0, ChunkY = 0 };
+        state.Nodes.Add(Row(1, 3, 4, NodeKind.Stone, 1));
+
+        socket.Push(state);
+
+        Mirror(channel).Should().BeEmpty();
     }
 }

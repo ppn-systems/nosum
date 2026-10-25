@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Nalix.SDK" />
     <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
+    <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
   </ItemGroup>
 
 </Project>

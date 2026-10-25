@@ -34,6 +34,8 @@ public sealed class LookService : ILookService
     private readonly IInventoryService _inventory;
     private readonly IMapPresence _presence;
     private readonly INicknameDirectory _nicknames;
+    private readonly IChunkMap _chunks;
+    private readonly IChunkPublisher _publisher;
     private readonly TimeProvider _time;
     private readonly ConcurrentDictionary<Guid, PlayerLook> _cache = new();
     private readonly StripedAsyncLock _locks = new();
@@ -43,19 +45,25 @@ public sealed class LookService : ILookService
     /// <param name="inventory">Moves clothing between the inventory and the body.</param>
     /// <param name="presence">Who is on which map; looks are announced through it.</param>
     /// <param name="nicknames">Resolves the nickname sent with every look.</param>
+    /// <param name="chunks">Who can see whom: the looks sent on a join are the ones in sight.</param>
+    /// <param name="publisher">Delivers a look change to the players who can see the player (docs/adr/ADR-022).</param>
     /// <param name="time">The clock for the saved timestamp; tests pass a fake one.</param>
-    public LookService(IUnitOfWorkFactory unitOfWork, IInventoryService inventory, IMapPresence presence, INicknameDirectory nicknames, TimeProvider time)
+    public LookService(IUnitOfWorkFactory unitOfWork, IInventoryService inventory, IMapPresence presence, INicknameDirectory nicknames, IChunkMap chunks, IChunkPublisher publisher, TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(nicknames);
+        ArgumentNullException.ThrowIfNull(chunks);
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(time);
 
         _unitOfWork = unitOfWork;
         _inventory = inventory;
         _presence = presence;
         _nicknames = nicknames;
+        _chunks = chunks;
+        _publisher = publisher;
         _time = time;
     }
 
@@ -73,7 +81,7 @@ public sealed class LookService : ILookService
         await this.BroadcastAsync(me, mine, connection, cancellationToken).ConfigureAwait(false);
 
         List<PlayerPresence> players = [];
-        _presence.CopyPlayers(me.Key, players);
+        _chunks.CopyVisiblePlayers(me, players);
         IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(players.Select(p => p.AccountId), cancellationToken).ConfigureAwait(false);
         List<PlayerLookView> looks = new(players.Count);
         foreach (PlayerPresence other in players)
@@ -83,6 +91,14 @@ public sealed class LookService : ILookService
         }
 
         return looks;
+    }
+
+    /// <inheritdoc/>
+    public async Task<PlayerLookView> ViewAsync(uint playerId, Guid accountId, CancellationToken cancellationToken = default)
+    {
+        PlayerLook look = await this.GetAsync(accountId, cancellationToken).ConfigureAwait(false);
+        string nickname = await _nicknames.GetAsync(accountId, cancellationToken).ConfigureAwait(false);
+        return new PlayerLookView(playerId, look, nickname);
     }
 
     /// <inheritdoc/>
@@ -287,6 +303,15 @@ public sealed class LookService : ILookService
         string nickname = await _nicknames.GetAsync(me.AccountId, cancellationToken).ConfigureAwait(false);
         new PlayerLookView(me.PlayerId, look, nickname).FillRow(row);
         lease.Value.Look = row;
-        await _presence.MulticastAsync(me.Key, lease.Value, except, cancellationToken).ConfigureAwait(false);
+
+        // A player's look is about one place: it reaches the players who can see them (docs/adr/ADR-022 D4). Before the first snapshot tick the player is in no interest set yet.
+        if (me.Viewer is { } viewer)
+        {
+            await _publisher.PublishAsync(me.Instance, viewer.Chunk, lease.Value, except, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            await _publisher.PublishInstanceAsync(me.Instance, lease.Value, except, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

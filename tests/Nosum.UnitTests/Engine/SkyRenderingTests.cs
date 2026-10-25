@@ -192,9 +192,14 @@ public sealed class SkyRenderingTests
     {
         PrecipitationLayer layer = new();
         RenderCommandBuffer buffer = new(PrecipitationLayer.Capacity);
-        layer.Update(Precipitation.Rain, 0.016, 416, 234);
-        buffer.Begin(2);
-        layer.Draw(Precipitation.Rain, buffer);
+        // Warm every call the measured frames make (first calls load types and compile methods on this thread).
+        for (int warm = 0; warm < 3; warm++)
+        {
+            layer.Update(Precipitation.Rain, 0.016, 416, 234);
+            buffer.Begin(2);
+            layer.Draw(Precipitation.Rain, buffer);
+            _ = buffer.Encode();
+        }
 
         long before = GC.GetAllocatedBytesForCurrentThread();
         for (int i = 0; i < 500; i++)

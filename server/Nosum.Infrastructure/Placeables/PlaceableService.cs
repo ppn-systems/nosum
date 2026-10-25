@@ -19,6 +19,7 @@ using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.S2C;
 using Nosum.Domain.Coops;
+using Nosum.Contracts.World.S2C;
 using Nosum.Domain.Farm;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Maps;
@@ -34,10 +35,14 @@ namespace Nosum.Infrastructure.Placeables;
 /// Every rule is <see cref="PlacedSet.Check"/> plus the server's own record of the player (position, instance, inventory slot);
 /// the placed set of an instance is loaded once, kept in memory and written through to PostgreSQL in the same transaction as the
 /// inventory change, so an item is never both in the inventory and in the room (docs/adr/ADR-015). One lock per instance serializes changes.
+/// An object belongs to the chunk of its first (top-left) tile: the instance keeps them in per-chunk buckets, a change is published to that chunk's subscribers and
+/// the chunk's objects are sent once when the chunk joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
-public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInstanceLock
+public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunkStateContributor, IInstanceLock
 {
     private readonly IMapPresence _presence;
+    private readonly IChunkMap _chunks;
+    private readonly IChunkPublisher _publisher;
     private readonly IMapCatalog _maps;
     private readonly IInventoryService _inventory;
     private readonly IUnitOfWorkFactory _unitOfWork;
@@ -52,6 +57,8 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands where; every action uses the server's own record of the player.</param>
+    /// <param name="chunks">Who is interested in which chunk; a read returns only the objects in the player's interest set.</param>
+    /// <param name="publisher">Delivers a change to the players who can see the chunk it happened in.</param>
     /// <param name="maps">The hosted maps.</param>
     /// <param name="inventory">Items are taken and returned through it.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -62,6 +69,8 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
     /// <param name="tiles">Where the pieces of every loaded instance are published for the farm layer and the growth rule.</param>
     public PlaceableService(
         IMapPresence presence,
+        IChunkMap chunks,
+        IChunkPublisher publisher,
         IMapCatalog maps,
         IInventoryService inventory,
         IUnitOfWorkFactory unitOfWork,
@@ -72,12 +81,16 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
         PlacedTiles? tiles = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(chunks);
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
 
         _presence = presence;
+        _chunks = chunks;
+        _publisher = publisher;
         _maps = maps;
         _inventory = inventory;
         _unitOfWork = unitOfWork;
@@ -148,7 +161,40 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
         using (await _locks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
-            return new PlacedSnapshotView(map.Id, [.. state.Set.Items]);
+            // Only what the player can see: the objects of the chunks in their interest set (all of them before the player has one).
+            List<PlacedItem> visible = new(state.Set.Count);
+            foreach (PlacedItem item in state.Set.Items)
+            {
+                if (player.Viewer is null || _chunks.IsInterested(player, ChunkCoord.OfTile(item.TileX, item.TileY)))
+                {
+                    visible.Add(item);
+                }
+            }
+
+            return new PlacedSnapshotView(map.Id, visible);
+        }
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask FillAsync(MapInstance instance, ChunkCoord chunk, ChunkState state, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+
+        if (!_maps.TryGet(instance.MapId, out MapDefinition? map) || !map.Placeable)
+        {
+            return;
+        }
+
+        InstanceState objects = await this.StateOfAsync(instance, map, cancellationToken).ConfigureAwait(false);
+        using (await _locks.EnterAsync(instance.Key, cancellationToken).ConfigureAwait(false))
+        {
+            if (objects.ByChunk.TryGetValue(chunk, out List<PlacedItem>? bucket))
+            {
+                foreach (PlacedItem item in bucket)
+                {
+                    state.Placed.Add(ToRow(item));
+                }
+            }
         }
     }
 
@@ -216,7 +262,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
             this.Rebuild(state, player.Instance, map);
         }
 
-        await this.PushAsync(player.Instance, [placed], [], cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(player.Instance, ChunkOf(placed), [placed], [], cancellationToken).ConfigureAwait(false);
         return new PlaceOutcome(PlaceStatus.Ok, placed.Id);
     }
 
@@ -238,9 +284,10 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
 
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
         PlacedItem moved;
+        PlacedItem current;
         using (await _locks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
-            if (!state.Set.TryGet(objectId, out PlacedItem current) || !PlaceableCatalog.TryGet(current.ItemId, out PlaceableDefinition? definition))
+            if (!state.Set.TryGet(objectId, out current) || !PlaceableCatalog.TryGet(current.ItemId, out PlaceableDefinition? definition))
             {
                 return Refused(PlaceStatus.UnknownObject);
             }
@@ -273,7 +320,13 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
             this.Rebuild(state, player.Instance, map);
         }
 
-        await this.PushAsync(player.Instance, [moved], [], cancellationToken).ConfigureAwait(false);
+        // A move across a chunk border is a removal for the old chunk's subscribers and an upsert for the new one's (each sees only the half it holds). Removal first.
+        if (ChunkOf(current) != ChunkOf(moved))
+        {
+            await this.PushAsync(player.Instance, ChunkOf(current), [], [objectId], cancellationToken).ConfigureAwait(false);
+        }
+
+        await this.PushAsync(player.Instance, ChunkOf(moved), [moved], [], cancellationToken).ConfigureAwait(false);
         return new PlaceOutcome(PlaceStatus.Ok, objectId);
     }
 
@@ -362,7 +415,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
             await behaviour.PickedUpAsync(player.Instance, current, cancellationToken).ConfigureAwait(false);
         }
 
-        await this.PushAsync(player.Instance, [], [objectId], cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(player.Instance, ChunkOf(current), [], [objectId], cancellationToken).ConfigureAwait(false);
         return new PlaceOutcome(PlaceStatus.Ok, objectId);
     }
 
@@ -533,7 +586,10 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
         return state;
     }
 
-    private async Task PushAsync(MapInstance instance, IReadOnlyList<PlacedItem> upserted, IReadOnlyList<int> removed, CancellationToken cancellationToken)
+    // An object lives in the chunk of its first (top-left) tile.
+    private static ChunkCoord ChunkOf(PlacedItem item) => ChunkCoord.OfTile(item.TileX, item.TileY);
+
+    private async Task PushAsync(MapInstance instance, ChunkCoord chunk, IReadOnlyList<PlacedItem> upserted, IReadOnlyList<int> removed, CancellationToken cancellationToken)
     {
         using PacketScope<PlacedChanged> lease = PacketFactory<PlacedChanged>.Acquire();
         PlacedChanged packet = lease.Value;
@@ -550,7 +606,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
             packet.Removed.Add(id);
         }
 
-        await _presence.MulticastAsync(instance.Key, packet, null, cancellationToken).ConfigureAwait(false);
+        await _publisher.PublishAsync(instance, chunk, packet, null, cancellationToken).ConfigureAwait(false);
     }
 
     private static PlacedObjectRow ToRow(PlacedItem item)
@@ -589,6 +645,24 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IInsta
         // Replaced as a whole under the instance lock; movement validation reads it without one.
         public WalkGrid Grid;
 
-        public void Rebuild(MapDefinition map) => Volatile.Write(ref this.Grid, this.Set.BuildGrid(map.Grid));
+        // The objects of each chunk, for "everything in chunk (cx, cy)" without a scan of the room. Rebuilt with the grid, under the instance lock.
+        public Dictionary<ChunkCoord, List<PlacedItem>> ByChunk { get; } = [];
+
+        public void Rebuild(MapDefinition map)
+        {
+            Volatile.Write(ref this.Grid, this.Set.BuildGrid(map.Grid));
+            this.ByChunk.Clear();
+            foreach (PlacedItem item in this.Set.Items)
+            {
+                ChunkCoord chunk = ChunkOf(item);
+                if (!this.ByChunk.TryGetValue(chunk, out List<PlacedItem>? bucket))
+                {
+                    bucket = [];
+                    this.ByChunk[chunk] = bucket;
+                }
+
+                bucket.Add(item);
+            }
+        }
     }
 }

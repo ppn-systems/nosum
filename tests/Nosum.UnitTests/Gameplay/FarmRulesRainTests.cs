@@ -17,7 +17,7 @@ namespace Nosum.UnitTests.Gameplay;
 public sealed class FarmRulesRainTests
 {
     private static readonly GameCalendar s_calendar = GameCalendar.Default;
-    private static readonly CropDefinition s_slowCrop = CropCatalog.All.OrderByDescending(c => c.TotalGrowthDays).First();
+    private static readonly CropDefinition s_slowCrop = CropCatalog.All.Where(c => c.GrowsIn(Season.Spring)).OrderByDescending(c => c.TotalGrowthDays).First();
 
     private static long Noon(int day) => s_calendar.DayStartMs(day) + (s_calendar.DayLengthMs / 2);
 
@@ -167,6 +167,8 @@ public sealed class FarmRulesRainTests
         FarmRules.GrowthDaysAt(tile, Midnight(dry + 3), s_calendar, outdoors: true, sprinkled: false).Should().Be(0, "an uncovered, unwatered crop does not grow on dry days");
         FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinkled: true).Should().BeTrue();
         FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinkled: false).Should().BeFalse();
+        FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinkled: true).Should().Be(FarmVerdict.Ok, "the harvest sees the same water as the growth");
+        FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinkled: false).Should().Be(FarmVerdict.NotMature);
     }
 
     [Fact]
@@ -206,5 +208,24 @@ public sealed class FarmRulesRainTests
 
         FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinkled: true).Should().BeFalse();
         FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinkled: false).Should().Be(!Rains(day));
+    }
+
+    [Fact]
+    public void Harvest_RegrowingCropOutdoors_DoesNotCountTheRainBeforeTheHarvestAgain()
+    {
+        CropDefinition berry = CropCatalog.All.Where(c => c.Regrows && c.GrowsIn(Season.Spring)).OrderBy(c => c.TotalGrowthDays).First();
+        int plant = FirstDay(d => ((d - 1) % GameCalendar.DaysPerSeason) + berry.TotalGrowthDays + berry.RegrowDays + 2 <= GameCalendar.DaysPerSeason
+            && (Season)(((d - 1) / GameCalendar.DaysPerSeason) % GameCalendar.SeasonsPerYear) == Season.Spring
+            && Enumerable.Range(d, berry.TotalGrowthDays).Any(Rains));
+        FarmTile tile = PlantedOn(plant, berry.Id);
+        int day = plant;
+        for (; day < plant + berry.TotalGrowthDays; day++)
+        {
+            FarmRules.Water(tile, Noon(day), s_calendar, out tile).Should().Be(FarmVerdict.Ok);
+        }
+
+        FarmRules.Harvest(tile, Midnight(day), s_calendar, out FarmTile regrowing, out _).Should().Be(FarmVerdict.Ok);
+
+        FarmRules.GrowthDaysAt(regrowing, Midnight(day), s_calendar).Should().Be(berry.GrowthDaysAfterHarvest, "the rainy days before the harvest are spent");
     }
 }

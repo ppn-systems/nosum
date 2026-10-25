@@ -21,6 +21,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Wasm;
 
+[Collection(SharedUiCulture.Name)]
 public sealed class AccountFormViewModelTests
 {
     private static readonly AccountSession s_session = new(Guid.NewGuid(), "farmer01@gmail.com", "token", DateTimeOffset.UnixEpoch, GameLanguage.English, false, false, "Farmer01");
