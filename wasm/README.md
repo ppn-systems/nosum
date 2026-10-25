@@ -19,7 +19,7 @@ Skills: [`blazor-ui`](../.claude/skills/blazor-ui/SKILL.md),
 
 Playable now: `Pages/Home.razor` starts `Game/GameLoop`, which loads `assets/Maps/Farm.tmx` and the
 farmer sheets (linked from `assets/` in the `.csproj`), then runs `Game/FarmScene`: walk with
-WASD or the arrow keys, the camera follows, layers draw as Back → Buildings → farmer → Front.
+WASD or the arrow keys, the camera follows, layers draw as Back → Buildings → depth-sorted world (farmer, farmhouse, greenhouse, shipping bin from `Game/FarmProps.cs`) → Front → roof parts. Animated tiles and a water ripple run from the scene clock; building sheets are linked from `assets/Buildings/` in the `.csproj`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
 
 ```bash

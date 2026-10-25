@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using Nosum.Core;
 
 namespace Nosum.Gameplay.Movement;
@@ -58,6 +59,71 @@ public sealed class WalkGrid
         }
 
         return new WalkGrid(map.Width, map.Height, map.TileWidth, blocked);
+    }
+
+    /// <summary>
+    /// Builds a grid from a map's tile properties: a non-empty <paramref name="blockingLayer"/> tile
+    /// blocks unless its <c>Passable</c> property is true; a <paramref name="groundLayer"/> tile blocks
+    /// when it is water or has <c>Passable</c> false. Rules live here so the server can reuse them.
+    /// </summary>
+    /// <param name="map">The map.</param>
+    /// <param name="groundLayer">Name of the terrain layer (water, impassable ground).</param>
+    /// <param name="blockingLayer">Name of the layer of walls, fences, trees and rocks.</param>
+    /// <returns>The grid; a missing layer contributes nothing.</returns>
+    public static WalkGrid FromMap(TileMap map, string groundLayer = "Back", string blockingLayer = "Buildings")
+    {
+        ArgumentNullException.ThrowIfNull(map);
+
+        bool[] blocked = new bool[map.Width * map.Height];
+        if (map.FindLayer(groundLayer) is TileLayer ground)
+        {
+            for (int i = 0; i < blocked.Length; i++)
+            {
+                blocked[i] = (map.GetTraits(ground.Gids[i]) & (TileTraits.Water | TileTraits.Impassable)) != 0;
+            }
+        }
+
+        if (map.FindLayer(blockingLayer) is TileLayer blocking)
+        {
+            for (int i = 0; i < blocked.Length; i++)
+            {
+                int gid = blocking.Gids[i];
+                if (gid != 0 && (map.GetTraits(gid) & TileTraits.Passable) == 0)
+                {
+                    blocked[i] = true;
+                }
+            }
+        }
+
+        return new WalkGrid(map.Width, map.Height, map.TileWidth, blocked);
+    }
+
+    /// <summary>Marks a rectangle of tiles as blocked; parts outside the grid are ignored.</summary>
+    /// <param name="tileX">Left tile.</param>
+    /// <param name="tileY">Top tile.</param>
+    /// <param name="tilesWide">Width in tiles.</param>
+    /// <param name="tilesHigh">Height in tiles.</param>
+    public void Block(int tileX, int tileY, int tilesWide, int tilesHigh)
+    {
+        for (int y = Math.Max(0, tileY); y < Math.Min(this.Height, tileY + tilesHigh); y++)
+        {
+            for (int x = Math.Max(0, tileX); x < Math.Min(this.Width, tileX + tilesWide); x++)
+            {
+                _blocked[(y * this.Width) + x] = true;
+            }
+        }
+    }
+
+    /// <summary>Blocks the collision footprint of every prop (docs/adr/ADR-005 D6).</summary>
+    /// <param name="props">Placed buildings and props.</param>
+    public void BlockFootprints(IReadOnlyList<PropPlacement> props)
+    {
+        ArgumentNullException.ThrowIfNull(props);
+
+        foreach (PropPlacement prop in props)
+        {
+            this.Block(prop.TileX, prop.TileY, prop.Definition.FootprintWidth, prop.Definition.FootprintHeight);
+        }
     }
 
     /// <summary>Returns whether a tile blocks; tiles outside the map block.</summary>
