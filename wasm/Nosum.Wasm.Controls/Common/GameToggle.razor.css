@@ -1,0 +1,52 @@
+.game-toggle {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 3);
+    min-height: calc(var(--u) * 8);
+    cursor: var(--nosum-cursor-pointer, pointer);
+}
+
+/* The real checkbox stays in the page for the keyboard and screen readers; the box next to it is what is drawn. */
+.game-toggle input {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 8);
+    margin: 0;
+    opacity: 0;
+    cursor: inherit;
+}
+
+.game-toggle-box {
+    flex: none;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 8);
+    border: calc(var(--u) * 1) solid var(--nosum-edge);
+    background: var(--nosum-cream);
+    color: var(--nosum-ink);
+}
+
+/* On: the box is filled with a smaller dark square (a shape, so the state is not told by colour alone). */
+.game-toggle input:checked + .game-toggle-box::after {
+    content: "";
+    width: calc(var(--u) * 4);
+    height: calc(var(--u) * 4);
+    background: var(--nosum-ink);
+}
+
+.game-toggle input:focus-visible + .game-toggle-box {
+    outline: var(--u) solid var(--nosum-focus);
+    outline-offset: var(--u);
+}
+
+.game-toggle input:disabled + .game-toggle-box {
+    filter: grayscale(1) brightness(0.9);
+}
+
+.game-toggle-text {
+    min-width: 0;
+}

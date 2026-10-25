@@ -1,0 +1,42 @@
+.hint-dock {
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+/* The fade runs as long as OnboardingViewModel.HintSeconds (12 s); the view model removes the line when it is over. */
+.hint-line {
+    margin: 0 0 calc(var(--u) * 2);
+    padding: var(--u) calc(var(--u) * 4);
+    max-width: calc(var(--u) * 180);
+    border: calc(var(--u) * 2) solid var(--nosum-edge);
+    background: var(--nosum-cream);
+    color: var(--nosum-ink);
+    text-align: center;
+    animation: hint-life 12s linear forwards;
+}
+
+@keyframes hint-life {
+    0% { opacity: 0; }
+    4% { opacity: 1; }
+    88% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* With reduced motion the line simply stays its time and goes (the view model removes it). */
+@media (prefers-reduced-motion: reduce) {
+    .hint-line {
+        animation: none;
+    }
+}
+
+:root[data-motion="reduced"] .hint-line {
+    animation: none;
+}
+
+/* Narrow touch screens: stay clear of the stick and the use button, which stand on either side at this height. */
+@media (pointer: coarse) and (max-width: 640px) {
+    .hint-line {
+        max-width: calc(100vw - var(--u) * 100);
+    }
+}

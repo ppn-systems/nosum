@@ -1,10 +1,17 @@
+.set-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nosum-gap-group);
+}
+
 .set-top {
     display: grid;
     grid-template-columns: 3fr 2fr;
     gap: var(--nosum-gap-group);
 }
 
-.set-account {
+/* The padding inside a section card; every section of every tab uses it so the pages line up. */
+.set-body {
     display: flex;
     flex-direction: column;
     gap: calc(var(--u) * 2);
@@ -20,19 +27,10 @@
     color: var(--nosum-ink-soft);
 }
 
-.set-keys {
-    display: grid;
-    grid-template-columns: 5fr 4fr;
-    gap: var(--nosum-gap-group);
-    padding: 0 calc(var(--u) * 2) calc(var(--u) * 1);
-}
-
-/* One column of the key table: the key column is as wide as its widest row, so a single key does not leave a hole before its text. */
-.set-col {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    column-gap: calc(var(--u) * 3);
-    align-content: start;
+.set-scale {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--u) * 2);
 }
 
 .set-lang {
@@ -42,31 +40,14 @@
     align-items: stretch;
 }
 
-.set-heading {
-    margin: calc(var(--u) * 1) 0;
-    color: var(--nosum-ink-soft);
-}
-
-.set-col .set-heading {
-    grid-column: 1 / -1;
-}
-
-.set-col .set-heading:first-child {
-    margin-top: 0;
-}
-
-.help-entry {
-    display: contents;
-}
-
-.help-entry > span {
-    display: flex;
+/* Key bindings: the action name, then its key as a button, two actions per row. */
+.set-keys {
+    display: grid;
+    grid-template-columns: 1fr max-content 1fr max-content;
     align-items: center;
-    min-height: calc(var(--u) * 8);
+    gap: calc(var(--u) * 1) calc(var(--u) * 3);
 }
 
-.help-keys {
-    display: inline-flex;
-    flex-wrap: nowrap;
-    gap: var(--u);
+.set-key-label {
+    min-width: 0;
 }

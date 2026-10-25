@@ -1,80 +1,156 @@
 @using System.Threading
 @using Nosum.Contracts.Common
 @using Nosum.Wasm.ViewModels.Account
-@using Nosum.Wasm.ViewModels.Help
+@using Nosum.Wasm.ViewModels.Settings
 @implements IDisposable
 
-@* The settings page: who is signed in (with the registration offer for a guest and sign out), the language, and the key help.
-   Text comes from the two view models; the key caps are the shared GameKey. *@
-<MenuPage>
-    <div class="set-top">
-        <GameSection Title="@Help.Text("Settings_Account")">
-            @if (Vm.CurrentSession is not null)
-            {
-                <div class="set-account">
-                    <p class="set-who">@Vm.SignedInText</p>
-                    @if (Vm.CanUpgrade)
-                    {
-                        <p class="set-note">@Vm.UpgradePromptText</p>
-                    }
-                    <GameRow>
-                        @if (Vm.CanUpgrade)
+@* The settings page (docs/adr/ADR-033 D1), four tabs so each fits the window: General (account, language, hints), Display (zoom, names, motion, contrast),
+   Sound (volumes, mute) and Controls (key bindings). Text comes from the settings view model; the account and language rows stay with the account view model. *@
+<MenuPage Status="@Settings.Status" Good="Settings.StatusIsGood" Footer="@(_tab == TabControls ? ResetFooter : null)">
+    <div class="set-page">
+        <nav aria-label="@Settings.Text("Settings_TabsLabel")">
+            <TabBar Tabs="TabList()" Active="_tab" OnSelect="@(id => _tab = id)" />
+        </nav>
+        @switch (_tab)
+        {
+            case TabDisplay:
+                <GameSection Title="@Settings.Text("Settings_UiScale")">
+                    <div class="set-body">
+                        <div class="set-scale" role="group" aria-label="@Settings.Text("Settings_UiScale")">
+                            @foreach (int scale in SettingsViewModel.ScaleChoices)
+                            {
+                                int choice = scale;
+                                <GameButton Variant="tab" Active="@(Settings.Current.UiScale == choice)" Text="@(choice == 0 ? Settings.Text("Settings_ScaleAuto") : Settings.Text("Settings_ScaleValue", choice))" OnClick="@(() => Settings.SetUiScale(choice))" />
+                            }
+                        </div>
+                        <p class="set-note">@Settings.Text("Settings_ScaleHint")</p>
+                    </div>
+                </GameSection>
+                <GameSection Title="@Settings.Text("Settings_Display")">
+                    <div class="set-body">
+                        <GameToggle Label="@Settings.Text("Settings_ShowNames")" Value="Settings.Current.ShowNames" ValueChanged="Settings.SetShowNames" />
+                        <GameToggle Label="@Settings.Text("Settings_ReduceMotion")" Value="Settings.Current.ReduceMotion" ValueChanged="Settings.SetReduceMotion" />
+                        <GameToggle Label="@Settings.Text("Settings_HighContrast")" Value="Settings.Current.HighContrast" ValueChanged="Settings.SetHighContrast" />
+                    </div>
+                </GameSection>
+                break;
+            case TabSound:
+                <GameSection Title="@Settings.Text("Settings_Volume")">
+                    <div class="set-body">
+                        <GameSlider Label="@Settings.Text("Settings_Music")" Value="Settings.Current.MusicVolume" ValueChanged="Settings.SetMusicVolume" Format="Percent" />
+                        <GameSlider Label="@Settings.Text("Settings_SoundFx")" Value="Settings.Current.SoundVolume" ValueChanged="Settings.SetSoundVolume" Format="Percent" />
+                        <GameToggle Label="@Settings.Text("Settings_Mute")" Value="Settings.Current.Muted" ValueChanged="Settings.SetMuted" />
+                        <p class="set-note">@Settings.Text("Settings_SoundNote")</p>
+                    </div>
+                </GameSection>
+                break;
+            case TabControls:
+                <GameSection Title="@Settings.Text("Settings_Keys")">
+                    <div class="set-body">
+                        <p class="set-note">@Settings.Text("Settings_KeysHint")</p>
+                        <div class="set-keys">
+                            @foreach (GameAction action in Enum.GetValues<GameAction>())
+                            {
+                                GameAction row = action;
+                                bool listening = Settings.Listening == row;
+                                <span class="set-key-label">@Settings.LabelOf(row)</span>
+                                <GameButton Variant="@(listening ? "tab" : "plain")" Active="listening" Focusable="true"
+                                            Text="@(listening ? Settings.Text("Settings_KeyListening") : Settings.CapOf(row))"
+                                            Title="@Settings.Text("Settings_KeyRebind", Settings.LabelOf(row))"
+                                            OnClick="@(() => Settings.BeginRebind(row))"
+                                            data-capture-key="@(listening ? "true" : null)"
+                                            aria-label="@(Settings.Text("Settings_KeyRebind", Settings.LabelOf(row)) + ": " + Settings.CapOf(row))"
+                                            onkeydown="@(listening ? (object)EventCallback.Factory.Create<KeyboardEventArgs>(this, Capture) : null)"
+                                            onfocusout="@(listening ? (object)EventCallback.Factory.Create(this, Settings.CancelRebind) : null)" />
+                            }
+                        </div>
+                        <p class="set-note">@Settings.Text("Settings_KeysFixed")</p>
+                    </div>
+                </GameSection>
+                break;
+            default:
+                <div class="set-top">
+                    <GameSection Title="@Settings.Text("Settings_Account")">
+                        @if (Vm.CurrentSession is not null)
                         {
-                            <GameButton OnClick="Vm.BeginUpgrade" Disabled="@Vm.IsBusy" Text="@Vm.UpgradeText" />
+                            <div class="set-body">
+                                <p class="set-who">@Vm.SignedInText</p>
+                                @if (Vm.CanUpgrade)
+                                {
+                                    <p class="set-note">@Vm.UpgradePromptText</p>
+                                }
+                                <GameRow>
+                                    @if (Vm.CanUpgrade)
+                                    {
+                                        <GameButton OnClick="Vm.BeginUpgrade" Disabled="@Vm.IsBusy" Text="@Vm.UpgradeText" />
+                                    }
+                                    <GameButton Variant="danger" OnClick="LogoutAsync" Disabled="@Vm.IsBusy" Text="@Vm.SignOutText" />
+                                </GameRow>
+                            </div>
                         }
-                        <GameButton Variant="danger" OnClick="LogoutAsync" Disabled="@Vm.IsBusy" Text="@Vm.SignOutText" />
-                    </GameRow>
+                    </GameSection>
+                    <GameSection Title="@Settings.Text("Settings_Language")">
+                        <div class="set-body">
+                            <div class="set-lang" role="group" aria-label="@Settings.Text("Settings_Language")">
+                                <GameButton Variant="tab" Active="@(Vm.Language == GameLanguage.Vietnamese)" Text="@Settings.Text("Settings_LanguageVi")" OnClick="@(() => SetLanguageAsync(GameLanguage.Vietnamese))" />
+                                <GameButton Variant="tab" Active="@(Vm.Language == GameLanguage.English)" Text="@Settings.Text("Settings_LanguageEn")" OnClick="@(() => SetLanguageAsync(GameLanguage.English))" />
+                            </div>
+                            @if (Vm.LanguageNote is not null)
+                            {
+                                <p class="set-note">@Vm.LanguageNote</p>
+                            }
+                        </div>
+                    </GameSection>
                 </div>
-            }
-        </GameSection>
-        <GameSection Title="@Help.Text("Settings_Language")">
-            <div class="set-account">
-                <div class="set-lang">
-                    <GameButton Variant="tab" Active="@(Vm.Language == GameLanguage.Vietnamese)" Text="@Help.Text("Settings_LanguageVi")" OnClick="@(() => SetLanguageAsync(GameLanguage.Vietnamese))" />
-                    <GameButton Variant="tab" Active="@(Vm.Language == GameLanguage.English)" Text="@Help.Text("Settings_LanguageEn")" OnClick="@(() => SetLanguageAsync(GameLanguage.English))" />
-                </div>
-                @if (Vm.LanguageNote is not null)
-                {
-                    <p class="set-note">@Vm.LanguageNote</p>
-                }
-            </div>
-        </GameSection>
+                <GameSection Title="@Settings.Text("Settings_Tutorial")">
+                    <div class="set-body">
+                        <GameToggle Label="@Settings.Text("Settings_TutorialOn")" Value="Settings.Current.TutorialEnabled" ValueChanged="Settings.SetTutorialEnabled" />
+                        <GameRow>
+                            <GameButton Variant="plain" Text="@Settings.Text("Settings_TutorialRestart")" OnClick="Settings.RestartTutorial" />
+                        </GameRow>
+                    </div>
+                </GameSection>
+                break;
+        }
     </div>
-    <GameSection Title="@Help.Text("Settings_Keys")">
-        <div class="set-keys">
-            <div class="set-col">
-                @Entries(Help.Sections[0])
-                @Entries(Help.Sections[2])
-            </div>
-            <div class="set-col narrow">
-                @Entries(Help.Sections[1])
-            </div>
-        </div>
-    </GameSection>
 </MenuPage>
 
 @code {
+    private RenderFragment ResetFooter => __builder =>
+    {
+        <GameButton Variant="plain" Text="@Settings.Text("Settings_KeyReset")" OnClick="Settings.ResetBindings" />
+    };
+
+    private const int TabGeneral = 0;
+    private const int TabDisplay = 1;
+    private const int TabSound = 2;
+    private const int TabControls = 3;
+
     /// <summary>The account view model (the same instance the sign-in form uses).</summary>
     [Parameter, EditorRequired] public AccountFormViewModel Vm { get; set; } = default!;
 
-    /// <summary>The help view model: the key table and the text of this page.</summary>
-    [Parameter, EditorRequired] public HelpViewModel Help { get; set; } = default!;
+    /// <summary>The settings view model: the text of this page and the values it edits.</summary>
+    [Parameter, EditorRequired] public SettingsViewModel Settings { get; set; } = default!;
 
     private AccountFormViewModel? _subscribed;
+    private SettingsViewModel? _subscribedSettings;
+    private int _tab = TabGeneral;
 
     protected override void OnParametersSet()
     {
-        if (ReferenceEquals(_subscribed, Vm))
+        if (ReferenceEquals(_subscribed, Vm) && ReferenceEquals(_subscribedSettings, Settings))
         {
             return;
         }
 
         Unsubscribe();
         _subscribed = Vm;
+        _subscribedSettings = Settings;
         Vm.Changed += OnChanged;
+        Settings.Changed += OnChanged;
     }
 
-    // The view model can raise Changed from a socket callback; marshal back to the render context.
+    // The view models can raise Changed from a socket callback; marshal back to the render context.
     private void OnChanged() => _ = InvokeAsync(StateHasChanged);
 
     public void Dispose() => Unsubscribe();
@@ -86,26 +162,39 @@
             _subscribed.Changed -= OnChanged;
             _subscribed = null;
         }
+
+        if (_subscribedSettings is not null)
+        {
+            _subscribedSettings.Changed -= OnChanged;
+            _subscribedSettings.CancelRebind();
+            _subscribedSettings = null;
+        }
     }
+
+    private IReadOnlyList<(int Id, string Label)> TabList() =>
+    [
+        (TabGeneral, Settings.Text("Settings_TabGeneral")),
+        (TabDisplay, Settings.Text("Settings_TabDisplay")),
+        (TabSound, Settings.Text("Settings_TabSound")),
+        (TabControls, Settings.Text("Settings_TabControls")),
+    ];
+
+    private string Percent(int value) => Settings.Text("Settings_Percent", value);
 
     private Task SetLanguageAsync(GameLanguage language) => Vm.SetLanguageAsync(language, CancellationToken.None);
 
     private Task LogoutAsync() => Vm.LogoutAsync(CancellationToken.None);
 
-    private RenderFragment Entries(HelpSection section) => __builder =>
+    // The key pressed while a row waits for one: Escape gives up, anything else is bound (or refused with the reason on the status line).
+    private void Capture(KeyboardEventArgs e)
     {
-        <p class="set-heading">@section.Title</p>
-        @foreach (HelpEntry entry in section.Entries)
+        if (e.Code == "Escape")
         {
-            <div class="help-entry">
-                <span class="help-keys">
-                    @foreach (string key in entry.Keys)
-                    {
-                        <GameKey Text="@key" />
-                    }
-                </span>
-                <span>@entry.Description</span>
-            </div>
+            Settings.CancelRebind();
         }
-    };
+        else
+        {
+            Settings.Capture(e.Code);
+        }
+    }
 }
