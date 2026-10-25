@@ -32,6 +32,9 @@ description: Use when writing or debugging a server packet handler in server/Nos
 - **`[Inject]` static fields are filled only for classes registered through the host.**
 - **Handlers reference `Nosum.Abstractions`, never `Nosum.Infrastructure`.**
 - Rate-limit spam-able actions with `[PacketRateLimit(...)]` (enforced by `RateLimitMiddleware`).
+- **Audit rules (docs/adr/ADR-032 D2, `HandlerAuditTests`):** every handler declares `[PacketPermission]` **and** `[PacketRateLimit]`; a handler whose packet
+  carries a password, token or code also declares `[PacketEncryption(true)]`; a handler reachable without signing in (`PermissionLevel.NONE`) must be added
+  to the reviewed list in that test; a new handler class is mapped in `Program.cs`. Input bounds are enforced before the handler by `InputBoundsMiddleware`.
 - **A push to "the players of the map" is a choice (docs/adr/ADR-022): chunk by default, instance when map-wide.**
   Something that changed *at a place* (a plot, a placed object, a resource node, a ground item, a player's look)
   goes through `IChunkPublisher.PublishAsync(instance, chunk, packet)` and reaches only the players who can see that

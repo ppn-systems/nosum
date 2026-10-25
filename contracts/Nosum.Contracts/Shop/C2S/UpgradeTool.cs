@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Shop.C2S;
 
@@ -19,5 +20,6 @@ public sealed partial class UpgradeTool : PacketBase<UpgradeTool>, IPacketStatic
     public static ushort StaticOpCode => ShopOpCode.UpgradeTool;
 
     /// <summary>The item id of the tool to upgrade (for example the basic hoe).</summary>
+    [WireRange(0, WireLimits.MaxId)]
     [SerializeOrder(0)] public int ItemId { get; set; }
 }

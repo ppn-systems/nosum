@@ -1,0 +1,35 @@
+# Dependency and secret hygiene (docs/adr/ADR-032 D7). Fails the build on a High or Critical package vulnerability or a committed secret.
+name: security
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  schedule:
+    # New advisories appear without any commit: look again every Monday.
+    - cron: "23 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Audit NuGet packages
+        run: .github/scripts/audit-packages.sh
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan history for secrets
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.18.4 \
+            detect --source /repo --config /repo/.gitleaks.toml --no-banner --redact --verbose

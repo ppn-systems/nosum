@@ -4,6 +4,7 @@ using System;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Building.C2S;
 
@@ -20,5 +21,6 @@ public sealed partial class CollectProduce : PacketBase<CollectProduce>, IPacket
     [SerializeOrder(0)] public Guid AnimalId { get; set; }
 
     /// <summary>The inventory slot of the tool in hand.</summary>
+    [WireRange(-1, 255)]
     [SerializeOrder(1)] public int Slot { get; set; }
 }

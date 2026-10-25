@@ -11,6 +11,7 @@ using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Maps;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
+using Nosum.Wasm.Security;
 using Nosum.Wasm.Settings;
 using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Building;
@@ -92,7 +93,9 @@ internal static class Program
         builder.Services.AddClientSettings();
 
         // One server connection for the app's lifetime (docs/adr/ADR-003 D5).
-        builder.Services.AddSingleton(_ => GameSocketOptions.ForPageHost(new Uri(builder.HostEnvironment.BaseAddress)));
+        // The deploy pins the server's public key in wwwroot/appsettings.json; without it a development build trusts the server on first use (docs/adr/ADR-032 D1).
+        builder.Services.AddSingleton(sp => GameSocketOptions.ForPageHost(new Uri(builder.HostEnvironment.BaseAddress))
+            .ApplyBootConfiguration(key => builder.Configuration[key], () => new BrowserServerKeyStore(sp.GetRequiredService<Microsoft.JSInterop.IJSRuntime>())));
         builder.Services.AddSingleton<GameSocket>();
         builder.Services.AddSingleton<IGameSocket>(sp => sp.GetRequiredService<GameSocket>());
         builder.Services.AddSingleton(sp => new PlayerChannel(sp.GetRequiredService<IGameSocket>(), GameMaps.DefaultId));
@@ -169,6 +172,9 @@ internal static class Program
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
         builder.Services.AddTransient<AccountFormViewModel>();
+        // Account recovery (docs/adr/ADR-032 D4).
+        builder.Services.AddSingleton<IRecoveryClient, GameSocketRecoveryClient>();
+        builder.Services.AddSingleton<PasswordRecoveryViewModel>();
         builder.Services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());

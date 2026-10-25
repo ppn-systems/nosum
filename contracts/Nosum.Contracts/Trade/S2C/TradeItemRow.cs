@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using Nalix.Abstractions.Serialization;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Trade.S2C;
 
@@ -13,8 +14,10 @@ public sealed partial class TradeItemRow
     public static TradeItemRow Create() => new();
 
     /// <summary>Item id.</summary>
+    [WireRange(0, WireLimits.MaxId)]
     [SerializeOrder(0)] public int ItemId { get; set; }
 
     /// <summary>How many.</summary>
+    [WireRange(0, WireLimits.MaxQuantity)]
     [SerializeOrder(1)] public int Quantity { get; set; }
 }

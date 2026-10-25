@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Placeable.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class OpenChest : PacketBase<OpenChest>, IPacketStaticOpco
     public static ushort StaticOpCode => PlaceableOpCode.OpenChest;
 
     /// <summary>Id of the placed chest.</summary>
+    [WireRange(0, int.MaxValue)]
     [SerializeOrder(0)] public int ObjectId { get; set; }
 }

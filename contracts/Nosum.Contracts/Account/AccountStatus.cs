@@ -52,4 +52,13 @@ public enum AccountStatus : byte
 
     /// <summary>The player is a guest: only registered accounts may choose or change a nickname (set nickname). A guest picks theirs when registering.</summary>
     NicknameRequiresAccount = 14,
+
+    /// <summary>The recovery code is wrong, expired, already used or locked after too many attempts. The causes are deliberately indistinguishable (confirm password reset).</summary>
+    InvalidResetCode = 15,
+
+    /// <summary>Too many recovery or registration requests from this account or address; try again later (request password reset, register, start guest).</summary>
+    TooManyRequests = 16,
+
+    /// <summary>The server ended the session because the account's password was reset (sent in <c>SessionEnded</c>, never as a request reply).</summary>
+    SessionRevoked = 17,
 }
