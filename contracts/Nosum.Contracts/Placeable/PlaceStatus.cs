@@ -49,4 +49,16 @@ public enum PlaceStatus : byte
 
     /// <summary>Only the owner changes what is placed in a place; a visitor cannot (docs/adr/ADR-019 D3).</summary>
     NotYourPlace = 14,
+
+    /// <summary>Part of the footprint is tilled soil (docs/adr/ADR-024 D3).</summary>
+    Tilled = 15,
+
+    /// <summary>Part of the footprint holds a tree, a stone, a weed or other resource node.</summary>
+    NodeInTheWay = 16,
+
+    /// <summary>The chest still holds items; empty it before picking it up.</summary>
+    NotEmpty = 17,
+
+    /// <summary>The furnace has a job or a bar inside; collect it before picking the furnace up.</summary>
+    InUse = 18,
 }
