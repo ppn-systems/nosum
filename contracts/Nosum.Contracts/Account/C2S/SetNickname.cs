@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Account.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class SetNickname : PacketBase<SetNickname>, IPacketStatic
     public static ushort StaticOpCode => AccountOpCode.SetNickname;
 
     /// <summary>The wanted nickname.</summary>
+    [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(0)] public string Nickname { get; set; } = string.Empty;
 }

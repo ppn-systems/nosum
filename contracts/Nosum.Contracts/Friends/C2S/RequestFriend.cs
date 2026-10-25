@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Friends.C2S;
 
@@ -18,5 +19,6 @@ public sealed partial class RequestFriend : PacketBase<RequestFriend>, IPacketSt
     public static ushort StaticOpCode => FriendsOpCode.RequestFriend;
 
     /// <summary>The other player's nickname.</summary>
+    [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(0)] public string Nickname { get; set; } = string.Empty;
 }

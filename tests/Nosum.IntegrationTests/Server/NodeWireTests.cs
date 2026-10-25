@@ -456,6 +456,56 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task WoodsAndBeach_AreFilledFromTheirSites_TheStumpsBlockAndBreakInSixSwings_AndTheBeachRollsShoreForage()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        await using ToolClient player = await host.ConnectAsync();
+        IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
+        _ = maps.TryGet(GameMaps.Woods, out MapDefinition? woods).Should().BeTrue();
+        _ = maps.TryGet(GameMaps.Beach, out MapDefinition? beach).Should().BeTrue();
+        woods!.HasNodes.Should().BeTrue();
+        beach!.ForageSites.Should().NotBeEmpty().And.OnlyContain(s => s.Variant == ForagePools.Shore);
+
+        // The first player on the Woods fills the whole map once: the six large stumps stand where ADR-037 puts them, beside the twigs, weeds and stones.
+        await player.PutOnAsync(GameMaps.Woods, (float)woods.SpawnX, (float)woods.SpawnY);
+        _ = await player.JoinAsync(host.Timeout);
+        _ = await player.GetNodesAsync(host.Timeout);
+        await using (NosumDbContext db = new(_database.Options))
+        {
+            List<WorldNode> rows = await db.WorldNodes.Where(n => n.MapId == GameMaps.Woods && n.OwnerId == Guid.Empty).ToListAsync();
+            rows.Where(n => n.Kind == (short)NodeKind.LargeStump).Select(n => (n.TileX, n.TileY)).Should().BeEquivalentTo(OutdoorWorld.WoodsStumps.Select(s => (s.X, s.Y)));
+            rows.Should().Contain(n => n.Kind == (short)NodeKind.Twig).And.Contain(n => n.Kind == (short)NodeKind.Weed);
+            rows.Select(n => (n.TileX, n.TileY)).Should().OnlyHaveUniqueItems();
+        }
+
+        // A stump blocks the walk grid the server and the client share; the axe takes six swings and pays wood.
+        NodeSite stumpSite = OutdoorWorld.WoodsStumps[3];
+        woods.Grid.IsBlocked(stumpSite.X, stumpSite.Y).Should().BeFalse("the map itself is open there");
+        NodeSnapshot snapshot = await player.GetNodesAsync(host.Timeout);
+        snapshot.Nodes.Should().Contain(n => n.Kind == (byte)NodeKind.LargeStump && n.X == stumpSite.X && n.Y == stumpSite.Y && n.Hits == 6);
+        IResourceNodeService nodes = InstanceManager.Instance.GetExistingInstance<IResourceNodeService>()!;
+        nodes.GridFor(new MapInstance(GameMaps.Woods, Guid.Empty), woods).IsBlocked(stumpSite.X, stumpSite.Y).Should().BeTrue("a large stump blocks walking");
+
+        // The Beach: nothing in its file is marked, so the scatters and the shore spots stand in; a day rollover rolls shells in the season of the day.
+        IGameDayClock days = InstanceManager.Instance.GetExistingInstance<IGameDayClock>()!;
+        await using ToolClient walker = await host.ConnectAsync();
+        await walker.PutOnAsync(GameMaps.Beach, (float)beach.SpawnX, (float)beach.SpawnY);
+        _ = await walker.JoinAsync(host.Timeout);
+        _ = await walker.GetNodesAsync(host.Timeout);
+        long day = days.Today + 1;
+        await nodes.AdvanceDayAsync(day, false);
+
+        await using NosumDbContext beachDb = new(_database.Options);
+        List<WorldNode> beachRows = await beachDb.WorldNodes.Where(n => n.MapId == GameMaps.Beach && n.OwnerId == Guid.Empty).ToListAsync();
+        beachRows.Should().Contain(n => n.Kind == (short)NodeKind.Twig).And.Contain(n => n.Kind == (short)NodeKind.Stone);
+        List<WorldNode> shells = [.. beachRows.Where(n => n.Kind == (short)NodeKind.Forage)];
+        shells.Should().NotBeEmpty().And.HaveCountLessThanOrEqualTo(NodeLimits.ForagePerDay);
+        Season season = ForageCatalog.SeasonOfDay(day);
+        shells.Should().OnlyContain(n => ForageCatalog.All[n.Variant].Pool == ForagePools.Shore && ForageCatalog.IsInSeason((byte)n.Variant, season));
+        shells.Select(n => (n.TileX, n.TileY)).Should().OnlyContain(t => !beach.Grid.IsBlocked(t.TileX, t.TileY));
+    }
+
+    [Fact]
     public async Task Forage_AppearsAtADayRollover_OnAPublicMap_InTheSeasonsItems_AndNeverOnAPrivateFarm()
     {
         await using TestHost host = await TestHost.StartAsync(_database);

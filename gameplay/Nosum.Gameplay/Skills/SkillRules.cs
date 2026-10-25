@@ -77,6 +77,7 @@ public static class SkillRules
     {
         NodeKind.Tree => 12,
         NodeKind.Stump => 4,
+        NodeKind.LargeStump => 8,
         NodeKind.Twig => 2,
         NodeKind.Weed => 1,
         NodeKind.Grass => 1,

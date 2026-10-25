@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Placeable.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class CollectFurnace : PacketBase<CollectFurnace>, IPacket
     public static ushort StaticOpCode => PlaceableOpCode.CollectFurnace;
 
     /// <summary>Id of the placed furnace.</summary>
+    [WireRange(0, int.MaxValue)]
     [SerializeOrder(0)] public int ObjectId { get; set; }
 }

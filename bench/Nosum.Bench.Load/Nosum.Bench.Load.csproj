@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Headless load test of a running Nosum server (docs/adr/ADR-031 D8). A console program, not a browser benchmark: it ignores the WASM settings
+       of bench/Directory.Build.props that only matter at publish. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Nosum headless load test: N WebSocket guests that walk across maps, farm and chat, then a report of tick time and bandwidth.</Description>
+    <IsAotCompatible>false</IsAotCompatible>
+    <IsTrimmable>false</IsTrimmable>
+    <PublishTrimmed>false</PublishTrimmed>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- A console program has no synchronization context: ConfigureAwait on every await would only be noise. -->
+    <NoWarn>$(NoWarn);CA2007</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nalix.SDK" />
+    <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
+    <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
+    <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Nosum.UnitTests" />
+  </ItemGroup>
+
+</Project>

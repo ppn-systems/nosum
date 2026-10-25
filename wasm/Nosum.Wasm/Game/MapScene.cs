@@ -4,17 +4,20 @@ using System;
 using Nosum.Core;
 using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Buildings;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
 using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Shops;
+using Nosum.Gameplay.Weather;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Player;
+using Nosum.Wasm.ViewModels.Audio;
 
 namespace Nosum.Wasm.Game;
 
@@ -59,6 +62,7 @@ internal sealed class MapScene
     private int _labelCount;
     private readonly PlaceableChannel? _placed;
     private readonly SkyLayer _sky;
+    private readonly GameAudio? _audio;
     private readonly PlacementActions? _placement;
     private readonly PlacedSet _placedSet = new();
     private readonly NodeChannel? _nodes;
@@ -96,9 +100,11 @@ internal sealed class MapScene
     /// <param name="labels">Nickname labels over players' heads; <see langword="null"/> draws no names.</param>
     /// <param name="nodes">The mirror of the resource nodes of the player's place; the ones that block walk like the server's grid does.</param>
     /// <param name="calendar">The server calendar: it gives the time of day and the weather for the sky (docs/adr/ADR-027); <see langword="null"/> keeps plain daylight.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null)
+    /// <param name="audio">The audio director: sounds queued by the hooks are written into the frame, and the footsteps, music and rain loop are decided here (docs/adr/ADR-039); <see langword="null"/> plays no sound.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null)
     {
         _sky = new SkyLayer(calendar, placed);
+        _audio = audio;
         _actions = actions;
         _nodes = nodes;
         _placed = placed;
@@ -208,7 +214,14 @@ internal sealed class MapScene
             map.Height * map.TileHeight,
             HudBottomInset(canvasWidth, canvasHeight) / scale);
 
+        if (_audio is not null)
+        {
+            bool hasSky = _sky.TryGetState(out Season season, out int minuteOfDay, out WeatherKind weather);
+            _audio.Frame(frameSeconds, (int)_farmer.X, (int)_farmer.Y, _phase != Phase.FadingOut && _farmer.IsMoving, content.Spec.Indoors, hasSky, season, minuteOfDay, weather);
+        }
+
         _commands.Begin(scale);
+        _audio?.Flush(_commands);
         foreach (TileLayer layer in content.Layers.Ground)
         {
             TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave);
@@ -467,6 +480,7 @@ internal sealed class MapScene
         _farmer = new Walker(_pending.X, _pending.Y, (Facing)(_pending.Facing & 3));
         _walkTime = 0;
         _phase = Phase.FadingIn;
+        _audio?.Play(SoundIds.Door);
         this.PrefetchNeighbours();
     }
 

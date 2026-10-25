@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261025164401_QuestChainAndRequests")]
-    partial class QuestChainAndRequests
+    [Migration("20261025175903_AdminRoleBanMuteAudit")]
+    partial class AdminRoleBanMuteAudit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,11 +25,56 @@ namespace Nosum.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Nosum.Domain.Accounts.PasswordResetCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("code_hash");
+
+                    b.Property<DateTimeOffset?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_password_reset_codes");
+
+                    b.HasIndex("PlayerId", "CreatedAt")
+                        .HasDatabaseName("ix_password_reset_codes_player_id_created_at");
+
+                    b.ToTable("password_reset_codes", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Accounts.Player", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("BannedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("banned_at");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -55,6 +100,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
+
+                    b.Property<DateTimeOffset?>("MutedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("muted_until");
 
                     b.Property<string>("Nickname")
                         .IsRequired()
@@ -85,6 +134,12 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("RegistrationPromptUnlockedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("registration_prompt_unlocked_at");
+
+                    b.Property<short>("Role")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint")
+                        .HasDefaultValue((short)0)
+                        .HasColumnName("role");
 
                     b.HasKey("Id")
                         .HasName("pk_players");
@@ -197,6 +252,46 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasName("pk_player_states");
 
                     b.ToTable("player_states", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Admin.AdminAuditEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<byte>("Action")
+                        .HasColumnType("smallint")
+                        .HasColumnName("action");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("detail");
+
+                    b.Property<Guid?>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_admin_audit");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_admin_audit_created_at");
+
+                    b.HasIndex("TargetId")
+                        .HasDatabaseName("ix_admin_audit_target_id");
+
+                    b.ToTable("admin_audit", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.Blacksmith.ToolUpgrade", b =>
@@ -1273,72 +1368,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_quests", (string)null);
                 });
 
-            modelBuilder.Entity("Nosum.Domain.Requests.DailyRequest", b =>
-                {
-                    b.Property<int>("Day")
-                        .HasColumnType("integer")
-                        .HasColumnName("day");
-
-                    b.Property<int>("Slot")
-                        .HasColumnType("integer")
-                        .HasColumnName("slot");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("integer")
-                        .HasColumnName("item_id");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer")
-                        .HasColumnName("quantity");
-
-                    b.Property<long>("RewardCoins")
-                        .HasColumnType("bigint")
-                        .HasColumnName("reward_coins");
-
-                    b.HasKey("Day", "Slot")
-                        .HasName("pk_daily_requests");
-
-                    b.ToTable("daily_requests", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_daily_requests_amounts", "quantity > 0 AND reward_coins >= 0");
-                        });
-                });
-
-            modelBuilder.Entity("Nosum.Domain.Requests.RequestFill", b =>
-                {
-                    b.Property<int>("Day")
-                        .HasColumnType("integer")
-                        .HasColumnName("day");
-
-                    b.Property<int>("Slot")
-                        .HasColumnType("integer")
-                        .HasColumnName("slot");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("player_id");
-
-                    b.Property<DateTimeOffset>("FilledAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("filled_at");
-
-                    b.Property<long>("RewardCoins")
-                        .HasColumnType("bigint")
-                        .HasColumnName("reward_coins");
-
-                    b.HasKey("Day", "Slot", "PlayerId")
-                        .HasName("pk_request_fills");
-
-                    b.HasIndex("PlayerId")
-                        .HasDatabaseName("ix_request_fills_player_id");
-
-                    b.ToTable("request_fills", (string)null);
-                });
-
             modelBuilder.Entity("Nosum.Domain.Social.BlockedPlayer", b =>
                 {
                     b.Property<Guid>("OwnerId")
@@ -1598,6 +1627,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("ground_items", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Accounts.PasswordResetCode", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_password_reset_codes_players_player_id");
+                });
+
             modelBuilder.Entity("Nosum.Domain.Accounts.PlayerSessionToken", b =>
                 {
                     b.HasOne("Nosum.Domain.Accounts.Player", null)
@@ -1839,23 +1878,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_quests_players_player_id");
-                });
-
-            modelBuilder.Entity("Nosum.Domain.Requests.RequestFill", b =>
-                {
-                    b.HasOne("Nosum.Domain.Accounts.Player", null)
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_request_fills_players_player_id");
-
-                    b.HasOne("Nosum.Domain.Requests.DailyRequest", null)
-                        .WithMany()
-                        .HasForeignKey("Day", "Slot")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_request_fills_daily_requests_day_slot");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Social.BlockedPlayer", b =>

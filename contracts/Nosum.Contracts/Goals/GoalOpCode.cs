@@ -26,4 +26,7 @@ public static class GoalOpCode
 
     /// <summary>Push to everyone in the Town: a goal's progress changed (a delivery, completion, expiry).</summary>
     public const ushort GoalProgress = 0x4142;
+
+    /// <summary>Pushed to a map when a goal's unlock is set: the unlocks the client needs to predict its walking (docs/adr/ADR-037 D4).</summary>
+    public const ushort UnlocksChanged = 0x4143;
 }

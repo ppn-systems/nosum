@@ -5,6 +5,10 @@
 // submitFrame receives a MemoryView over .NET memory that is valid only during the call:
 // decode and draw synchronously, never keep the view.
 
+import { audioCommand } from "./audio.js";
+// The sound commands (-7 sound, -8 music, -9 ambient loop; docs/adr/ADR-039) go to audio.js; these are the module's exports .NET calls.
+export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
+
 const textures = [];          // texture id -> ImageBitmap
 const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
 let placedCount = 0;
@@ -266,6 +270,11 @@ export function submitFrame(view) {
             ctx.fillStyle = "#000";
             ctx.fillRect(dx, dy, w, h);
             ctx.globalAlpha = 1;
+            continue;
+        }
+        if (id <= -7 && id >= -9) {
+            // Sound, music track or ambient loop: srcX, srcY and srcW are the arguments.
+            audioCommand(id, sx, sy, w);
             continue;
         }
         if (id === -4) {
