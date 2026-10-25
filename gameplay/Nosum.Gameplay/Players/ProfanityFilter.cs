@@ -21,6 +21,11 @@ public static class ProfanityFilter
 {
     private const int MinCollapsedSubstringLength = 4;
 
+    /// <summary>The most short words <see cref="Mask"/> reads as one spaced-out word.</summary>
+    public const int MaxMaskedGroup = 6;
+
+    private const int MaxGroupWordLength = 3;
+
     private static readonly FrozenSet<string> s_tokens = ProfanityTerms.Tokens.ToFrozenSet(StringComparer.Ordinal);
 
     // Each substring term next to its form with repeated letters merged (only used when that form is still long enough to be specific).
@@ -66,6 +71,120 @@ public static class ProfanityFilter
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Masks profanity in chat text (docs/adr/ADR-029 D1): every word that <see cref="Contains"/> flags has its letters and digits replaced by
+    /// <c>*</c>, so the length and the punctuation stay. A word is a run of characters between whitespace. Letters spaced out one by one
+    /// ("f u c k") are caught as a group of up to <see cref="MaxMaskedGroup"/> short words. Clean text comes back unchanged (the same instance).
+    /// It reuses the nickname normalisation, so accents, leet spellings and repeated letters are read the same way.
+    /// </summary>
+    /// <param name="text">The text to mask; null is empty.</param>
+    /// <returns>The masked text.</returns>
+    public static string Mask(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return string.Empty;
+        }
+
+        System.Collections.Generic.List<(int Start, int Length)> words = [];
+        int start = -1;
+        for (int i = 0; i <= text.Length; i++)
+        {
+            bool space = i == text.Length || char.IsWhiteSpace(text[i]);
+            if (!space && start < 0)
+            {
+                start = i;
+            }
+            else if (space && start >= 0)
+            {
+                words.Add((start, i - start));
+                start = -1;
+            }
+        }
+
+        bool[] flagged = new bool[words.Count];
+        bool any = false;
+        for (int i = 0; i < words.Count; i++)
+        {
+            flagged[i] = Contains(text.Substring(words[i].Start, words[i].Length));
+            any |= flagged[i];
+        }
+
+        // Spaced-out letters: only runs of short words, so ordinary sentences are never glued into a false match.
+        for (int length = 2; length <= MaxMaskedGroup; length++)
+        {
+            for (int i = 0; i + length <= words.Count; i++)
+            {
+                if (!IsShortRun(words, i, length) || AnyFlagged(flagged, i, length))
+                {
+                    continue;
+                }
+
+                string group = text.Substring(words[i].Start, words[i + length - 1].Start + words[i + length - 1].Length - words[i].Start);
+                if (Contains(group))
+                {
+                    for (int k = i; k < i + length; k++)
+                    {
+                        flagged[k] = true;
+                    }
+
+                    any = true;
+                }
+            }
+        }
+
+        if (!any)
+        {
+            return text;
+        }
+
+        char[] result = text.ToCharArray();
+        for (int i = 0; i < words.Count; i++)
+        {
+            if (!flagged[i])
+            {
+                continue;
+            }
+
+            for (int k = words[i].Start; k < words[i].Start + words[i].Length; k++)
+            {
+                if (char.IsLetterOrDigit(result[k]))
+                {
+                    result[k] = '*';
+                }
+            }
+        }
+
+        return new string(result);
+    }
+
+    private static bool AnyFlagged(bool[] flagged, int from, int count)
+    {
+        for (int i = from; i < from + count; i++)
+        {
+            if (flagged[i])
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // A group of spaced-out letters is made of words of at most three characters.
+    private static bool IsShortRun(System.Collections.Generic.List<(int Start, int Length)> words, int from, int count)
+    {
+        for (int i = from; i < from + count; i++)
+        {
+            if (words[i].Length > MaxGroupWordLength)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // A whole word: as typed (leet undone), with repeats merged, and with digits dropped ("dm2024", "vcl_99" is two words already).
