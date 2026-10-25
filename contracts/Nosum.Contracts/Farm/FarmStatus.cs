@@ -67,6 +67,9 @@ public enum FarmStatus : byte
 
     /// <summary>Something is in the way: a node on the tile, or a tile a tree cannot grow on.</summary>
     Blocked = 20,
+
+    /// <summary>The line asked for is not one the held tool can work: not a hoe or a watering can, a tier too low, or a length other than 1, 3 or 5 (docs/adr/ADR-026 D1).</summary>
+    InvalidArea = 21,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>
@@ -101,4 +104,7 @@ public enum FarmAction : byte
 
     /// <summary>A tree seed was planted.</summary>
     PlantedTree = 9,
+
+    /// <summary>A ladder was used: the player went down to the next mine floor (docs/adr/ADR-026 D3); the map change arrives as <c>MapChanged</c>.</summary>
+    Descended = 10,
 }
