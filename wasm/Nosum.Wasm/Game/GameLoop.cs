@@ -49,6 +49,7 @@ internal static partial class GameLoop
     private static GroundItemChannel? s_groundItems;
     private static PlacementViewModel? s_placement;
     private static MarketChannel? s_market;
+    private static ProgressChannel? s_progress;
     private static LookChannel? s_looks;
     private static NicknameFormatter? s_names;
     private static double s_lastTime = -1;
@@ -67,6 +68,10 @@ internal static partial class GameLoop
         s_inventory = inventory;
         s_market = market;
     }
+
+    /// <summary>Connects energy and skills to the game: with it the action key eats the food in hand while the player is not full of energy (docs/adr/ADR-023). Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="progress">The energy mirror and eat sender.</param>
+    public static void UseProgress(ProgressChannel progress) => s_progress = progress;
 
     /// <summary>Connects the resource nodes to the game: the mirror that is drawn and that blocks walking. Call before <see cref="StartAsync"/>.</summary>
     /// <param name="nodes">The mirror of the nodes of the player's place.</param>
@@ -119,7 +124,7 @@ internal static partial class GameLoop
         ArgumentNullException.ThrowIfNull(http);
 
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
-        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market) : null;
+        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
