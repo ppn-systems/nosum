@@ -9,6 +9,7 @@ using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nalix.Hosting.Protocols;
 using Nalix.Runtime.Groups;
+using Nalix.Network.Options;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
@@ -59,6 +60,7 @@ using Nosum.Handlers.Market;
 using Nosum.Handlers.Mine;
 using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
+using Nosum.Handlers.Security;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
 using Nosum.Handlers.Shop;
@@ -180,11 +182,13 @@ internal static class Program
             ex => Console.Error.WriteLine("Mail expiry failed: " + ex.Message),
             shutdown.Token);
 
+        Task keyAnnouncement = ServerKey.AnnounceAsync(Console.WriteLine, shutdown.Token);
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
         }
 
+        await keyAnnouncement.ConfigureAwait(false);
         await animalWander.ConfigureAwait(false);
 
         await guestCleanup.ConfigureAwait(false);
@@ -270,7 +274,8 @@ internal static class Program
             .UseGroups()
             .UseTimeSync()
             .UseSystemControl()
-            .UseSecureConnections()
+            .UseSecureConnections(ServerKey.ConfiguredPath())
+            .Configure<ConnectionQuotaOptions>(AbuseLimits.Apply)
             .MapHandlers(typeof(PlayerHandlers))
             .MapHandlers(typeof(AccountHandlers))
             .MapHandlers(typeof(InventoryHandlers))
@@ -306,7 +311,8 @@ internal static class Program
         return builder
             .ConfigureDispatchOptions(o =>
             {
-                // Fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
+                // Declared input bounds are enforced first (docs/adr/ADR-032 D3), then fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
+                _ = o.WithMiddleware(new InputBoundsMiddleware());
                 _ = o.WithMiddleware(new PermissionMiddleware());
                 _ = o.WithMiddleware(new RateLimitMiddleware());
             })

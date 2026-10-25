@@ -22,6 +22,47 @@ namespace Nosum.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Nosum.Domain.Accounts.PasswordResetCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("code_hash");
+
+                    b.Property<DateTimeOffset?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_password_reset_codes");
+
+                    b.HasIndex("PlayerId", "CreatedAt")
+                        .HasDatabaseName("ix_password_reset_codes_player_id_created_at");
+
+                    b.ToTable("password_reset_codes", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Accounts.Player", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1539,6 +1580,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_ground_items_map_id_owner_id");
 
                     b.ToTable("ground_items", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Accounts.PasswordResetCode", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_password_reset_codes_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Accounts.PlayerSessionToken", b =>

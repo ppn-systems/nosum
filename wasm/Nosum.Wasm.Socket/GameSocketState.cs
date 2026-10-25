@@ -16,4 +16,7 @@ public enum GameSocketState
 
     /// <summary>The connection was lost or failed; waiting to try again.</summary>
     Reconnecting = 3,
+
+    /// <summary>The server's key is not the pinned one, or not the one trusted earlier: the server may be an impostor. The client refuses to talk to it (docs/adr/ADR-032 D1).</summary>
+    KeyMismatch = 4,
 }

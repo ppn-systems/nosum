@@ -49,6 +49,7 @@ public sealed class ConnectionStatusViewModel : IDisposable
             GameSocketState.Connecting => _text["Connection_Connecting"].Value,
             GameSocketState.Ready => _text["Connection_Online"].Value,
             GameSocketState.Reconnecting => _text["Connection_Reconnecting"].Value,
+            GameSocketState.KeyMismatch => _text["Connection_KeyMismatch"].Value,
             _ => _text["Connection_Offline"].Value,
         },
     };

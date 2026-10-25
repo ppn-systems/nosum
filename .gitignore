@@ -23,3 +23,6 @@ artifacts/
 *.env
 *.pfx
 *.key
+
+# Server identity (docs/adr/ADR-032)
+certificate.private

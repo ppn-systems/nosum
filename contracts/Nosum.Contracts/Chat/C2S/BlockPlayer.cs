@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Chat.C2S;
 
@@ -18,5 +19,6 @@ public sealed partial class BlockPlayer : PacketBase<BlockPlayer>, IPacketStatic
     public static ushort StaticOpCode => ChatOpCode.BlockPlayer;
 
     /// <summary>The player's nickname.</summary>
+    [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(0)] public string Nickname { get; set; } = string.Empty;
 }
