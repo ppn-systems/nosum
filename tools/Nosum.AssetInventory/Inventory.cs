@@ -22,8 +22,9 @@ internal sealed record ListedFile(string Path, int Width, int Height);
 /// <summary>Everything the game loads from the placeholder content, and how much of it.</summary>
 internal sealed class Inventory
 {
-    private Inventory(IReadOnlyList<FileEntry> files, IReadOnlyList<MapReport> maps, IReadOnlyList<MapFile> mapFiles, IReadOnlyList<KeptFile> kept, int filesInAssets)
+    private Inventory(IReadOnlyList<FileEntry> files, IReadOnlyList<MapReport> maps, IReadOnlyList<MapFile> mapFiles, IReadOnlyList<KeptFile> kept, int filesInAssets, IReadOnlyDictionary<string, ArtState> states)
     {
+        this.States = states;
         this.Files = files;
         this.Maps = maps;
         this.MapFiles = mapFiles;
@@ -50,6 +51,9 @@ internal sealed class Inventory
             return listed;
         }
     }
+
+    /// <summary>Gets, per listed file, whether it is still the placeholder or already replaced (read from <c>docs/art/placeholders.sha256</c>).</summary>
+    public IReadOnlyDictionary<string, ArtState> States { get; }
 
     /// <summary>Gets the loaded files that are not placeholders.</summary>
     public IReadOnlyList<KeptFile> Kept { get; }
@@ -81,7 +85,15 @@ internal sealed class Inventory
         }
 
         int inAssets = Directory.GetFiles(assets, "*", SearchOption.AllDirectories).Length;
-        return new Inventory(ledger.Files, maps.Reports, maps.Files, kept, inAssets);
+        string prints = Path.Combine(repoRoot, "docs", "art", Fingerprints.FileName);
+        Fingerprints? recorded = File.Exists(prints) ? Fingerprints.Read(prints) : null;
+        Dictionary<string, ArtState> states = new(StringComparer.Ordinal);
+        foreach (string path in ledger.Files.Select(f => f.Path).Concat(maps.Files.Select(m => m.Path)))
+        {
+            states[path] = recorded?.StateOf(path, assets) ?? ArtState.Unrecorded;
+        }
+
+        return new Inventory(ledger.Files, maps.Reports, maps.Files, kept, inAssets, states);
     }
 
     /// <summary>Returns the files a package is responsible for: those it owns a cell of, and the loaded files with no used cell it is first to load.</summary>
