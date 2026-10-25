@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # farm rules shared by server and client (plots, crops, items, growth)
+│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue and warps (Maps/), walking (Movement/), farm (Farm/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -114,10 +114,28 @@ client SnapshotBuffer ◄── RemotePlayers ◄── MapSnapshot @10 Hz ◄�
 
 Socket callbacks write into the buffer, the frame reads from it: no await and no allocation in the frame.
 
+## Runtime path 3 — many maps
+
+The world is a catalogue of maps, `GameMaps` in `Nosum.Gameplay/Maps` ([ADR-012](docs/adr/ADR-012-maps-and-warps.md)):
+id, Tiled file, spawn, buildings, doors. Tilesets and exits (the Tiled `Warp` property) come from the
+map files. Server and client build the walk grid and the exits from the same `MapSpec`.
+
+```text
+client walks onto an exit ──MoveIntent──► PlayerService (accepts it, WarpRule: standing on the exit tile?)
+                                            │ leave old map group ─► PlayerLeft to the old map's players
+                                            │ MapChanged ──────────► this player only (id, map, place)
+                                            │ join new map group ──► snapshots of the new map; saved map + place
+client MapScene: fade out ─ MapLoader (background fetch, shared TextureCache) ─ swap ─ fade in
+```
+
+A player is in one map group at a time, so snapshots, `PlayerLeft` and every feature built on
+`IMapPresence` reach only the players on that map. The server also picks the map at join (the saved
+one), so a returning player lands where they left.
+
 ## Organize by game domain
 
 Inside each area, code is grouped by game domain (`Farm`, `Inventory`, `Market`, `Social`,
-`Player`), the same axis in every area:
+`Player`, `World`), the same axis in every area:
 
 - `contracts/Nosum.Contracts/{Domain}/{C2S,S2C}/`
 - `server/Nosum.Handlers/{Domain}/`

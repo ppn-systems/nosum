@@ -24,10 +24,19 @@ public struct Walker
     /// <param name="x">Feet x, world pixels.</param>
     /// <param name="y">Feet y, world pixels.</param>
     public Walker(double x, double y)
+        : this(x, y, Facing.Down)
+    {
+    }
+
+    /// <summary>Initializes a walker standing at a point.</summary>
+    /// <param name="x">Feet x, world pixels.</param>
+    /// <param name="y">Feet y, world pixels.</param>
+    /// <param name="facing">The direction the walker faces.</param>
+    public Walker(double x, double y, Facing facing)
     {
         this.X = x;
         this.Y = y;
-        this.Facing = Facing.Down;
+        this.Facing = facing;
     }
 
     /// <summary>Gets the feet x, world pixels.</summary>

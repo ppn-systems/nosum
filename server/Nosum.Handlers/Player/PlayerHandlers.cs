@@ -16,13 +16,13 @@ using Nosum.Contracts.Player.S2C;
 
 namespace Nosum.Handlers.Player;
 
-/// <summary>Entering a map and walking on it. The server keeps the positions; these handlers only relay intents.</summary>
+/// <summary>Entering the world and walking on a map. The server keeps the positions and changes maps itself; these handlers only relay intents.</summary>
 [PacketHandler("Nosum.Player")]
 public static partial class PlayerHandlers
 {
     [Inject] private static IPlayerService s_players = null!;
 
-    /// <summary>Puts the player on the map they name and replies with their id and spawn.</summary>
+    /// <summary>Puts the player on the map the server chooses and replies with their id, that map and their spawn.</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply was sent.</returns>
     [PacketOpcode(PlayerOpCode.JoinMap)]
@@ -46,6 +46,8 @@ public static partial class PlayerHandlers
             lease.Value.PlayerId = outcome.PlayerId;
             lease.Value.SpawnX = outcome.SpawnX;
             lease.Value.SpawnY = outcome.SpawnY;
+            lease.Value.MapId = outcome.MapId;
+            lease.Value.Facing = outcome.Facing;
             await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
         }
         catch
@@ -68,7 +70,7 @@ public static partial class PlayerHandlers
         MoveIntent intent = context.Packet;
         uint sequence = intent.Sequence;
 
-        MoveOutcome outcome = s_players.Move(context.Connection, intent.X, intent.Y, intent.Facing, intent.Moving);
+        MoveOutcome outcome = await s_players.MoveAsync(context.Connection, intent.X, intent.Y, intent.Facing, intent.Moving, context.CancellationToken).ConfigureAwait(false);
         if (outcome.Status != MoveStatus.Refused)
         {
             return;

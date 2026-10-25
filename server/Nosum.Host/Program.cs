@@ -15,7 +15,7 @@ using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
-using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
 using Nosum.Handlers.Player;
 using Nosum.Infrastructure.Accounts;
@@ -37,8 +37,8 @@ internal static class Program
     /// <summary>WebSocket path; must match the client's <c>WebSocketTransportOptions.Path</c>.</summary>
     internal const string WebSocketPath = "/ws/";
 
-    /// <summary>Id of the farm map, the only map so far.</summary>
-    internal const string FarmMapId = "farm";
+    /// <summary>Id of the farm map, where a new player starts.</summary>
+    internal const string FarmMapId = GameMaps.DefaultId;
 
     /// <summary>Time between map snapshots (10 per second, docs/adr/ADR-008).</summary>
     private static readonly TimeSpan SnapshotInterval = TimeSpan.FromMilliseconds(100);
@@ -126,7 +126,7 @@ internal static class Program
         InstanceManager.Instance.Register(groups);
 
         MapPresence presence = new(groups);
-        TmxMapCatalog maps = new([new TmxMapSource(FarmMapId, Path.Combine(AppContext.BaseDirectory, "maps", "Farm.tmx"), FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.BuildWalkGrid)]);
+        TmxMapCatalog maps = new(GameMaps.All, Path.Combine(AppContext.BaseDirectory, "maps"));
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
         PlayerService players = new(presence, maps, states, TimeProvider.System, SnapshotInterval);

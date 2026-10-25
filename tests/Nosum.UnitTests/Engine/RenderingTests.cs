@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using FluentAssertions;
 using Nosum.Core;
@@ -213,5 +214,31 @@ public sealed class RenderingTests
         wave.Offset(0, 0).Should().Be(0);
         wave.Offset(4, 0).Should().Be(1);
         wave.Offset(4, 500).Should().Be(-1);
+    }
+
+    [Fact]
+    public void FillBlack_Opacity_RecordsAFillCommandWithTheOpacityAsTint()
+    {
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(2);
+
+        buffer.FillBlack(300, 320, 180);
+        buffer.FillBlack(0, 320, 180);
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        buffer.Count.Should().Be(1, "a clear fade records nothing");
+        ints[2..11].Should().Equal(RenderCommandBuffer.BlackFill, 0, 0, 320, 180, 0, 0, 0, 255);
+    }
+
+    [Fact]
+    public void TileLayerPlan_For_SplitsGroundFrontAndSkipsLogicLayers()
+    {
+        string[] names = ["Back", "Buildings", "Paths", "Buildings2", "Front", "AlwaysFront", "AlwaysFront2", "AlwaysFront3"];
+        TileMap map = new(1, 1, 16, 16, [new TileSet(1, "t", "t", 1, 1)], [.. names.Select(n => new TileLayer(n, [0]))]);
+
+        TileLayerPlan plan = TileLayerPlan.For(map);
+
+        plan.Ground.ToArray().Select(l => l.Name).Should().Equal("Back", "Buildings", "Buildings2");
+        plan.Front.ToArray().Select(l => l.Name).Should().Equal("Front", "AlwaysFront", "AlwaysFront2", "AlwaysFront3");
     }
 }

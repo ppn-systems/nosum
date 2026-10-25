@@ -49,6 +49,11 @@ The world is made of many maps, not one: each player's farm, co-op land, the tow
 and other areas reached through exits. A player is on exactly one map at a time; the server
 sends each player only what happens on that map.
 
+Settled ([ADR-012](../adr/ADR-012-maps-and-warps.md)): exits are doors and map edges that the
+player walks onto; the server decides when the player changes map, saves where they are, and puts
+them back there when they return. Every map is one shared place for now (the farm, farmhouse,
+bus stop and forest are all public, so everyone on the same map sees each other).
+
 ## What this asks of the architecture
 
 | Pillar | Needs | Where |
@@ -68,3 +73,4 @@ the client never decides a contribution, a trade or a goal outcome.
 - Market fee rate, listing duration, and limits that stop one player cornering a crop.
 - Season length in real time.
 - How many players share one instance of a public map (town) before it splits into copies.
+- Whether a player's farm and farmhouse are private to them (visitors by invitation) or open to everyone; today every map is shared.

@@ -6,7 +6,10 @@ using Nalix.Codec.DataFrames;
 
 namespace Nosum.Contracts.Player.C2S;
 
-/// <summary>Asks the server to put the player on a map. The server decides where they stand.</summary>
+/// <summary>
+/// Asks the server to put the player in the world. The server decides the map and where they stand: the map
+/// they were last on, else the starting map. <see cref="MapId"/> only has to name a map the server hosts.
+/// </summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]
@@ -15,6 +18,6 @@ public sealed partial class JoinMap : PacketBase<JoinMap>, IPacketStaticOpcode
     /// <inheritdoc/>
     public static ushort StaticOpCode => PlayerOpCode.JoinMap;
 
-    /// <summary>Id of the map to enter, for example <c>farm</c>.</summary>
+    /// <summary>Id of a hosted map, for example <c>farm</c>; an unknown id is refused with <see cref="JoinStatus.UnknownMap"/>. It does not choose the map.</summary>
     [SerializeOrder(0)] public string MapId { get; set; } = string.Empty;
 }

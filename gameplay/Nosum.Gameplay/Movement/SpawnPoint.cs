@@ -40,4 +40,46 @@ public static class SpawnPoint
 
         return ((x + 0.5) * grid.TileSize, ((y + 1) * grid.TileSize) - 1);
     }
+
+    /// <summary>
+    /// Like <see cref="Find"/>, but among equally near tiles prefers the one straight below, then beside, then above:
+    /// doors open southwards, so an arriving player is put in front of the door rather than beside it.
+    /// </summary>
+    /// <param name="grid">Walkable tiles.</param>
+    /// <param name="tileX">Preferred tile x.</param>
+    /// <param name="tileY">Preferred tile y.</param>
+    /// <returns>Feet x and y in world pixels.</returns>
+    public static (double X, double Y) FindSouthFirst(WalkGrid grid, int tileX, int tileY)
+    {
+        ArgumentNullException.ThrowIfNull(grid);
+
+        int bestX = tileX;
+        int bestY = tileY;
+        long bestScore = long.MaxValue;
+        int limit = Math.Max(grid.Width, grid.Height);
+        for (int radius = 0; radius < limit && bestScore == long.MaxValue; radius++)
+        {
+            for (int dy = -radius; dy <= radius; dy++)
+            {
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    if (grid.IsBlocked(tileX + dx, tileY + dy))
+                    {
+                        continue;
+                    }
+
+                    // Nearest first (squared distance), then below before beside before above, then the left tile.
+                    long score = (((long)((dx * dx) + (dy * dy)) * 4 + (dy > 0 ? 0 : dy == 0 ? 1 : 2)) * 1000) + Math.Abs(dx) + (dx < 0 ? 0 : 1);
+                    if (score < bestScore)
+                    {
+                        bestScore = score;
+                        bestX = tileX + dx;
+                        bestY = tileY + dy;
+                    }
+                }
+            }
+        }
+
+        return ((bestX + 0.5) * grid.TileSize, ((bestY + 1) * grid.TileSize) - 1);
+    }
 }
