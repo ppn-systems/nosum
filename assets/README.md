@@ -10,9 +10,10 @@ atlases the client loads are generated from them into `wasm/Nosum.Wasm/wwwroot/a
 | `crops/` | One PNG per crop per growth stage |
 | `characters/` | Player and NPC sprites: one PNG per direction and animation frame |
 | `objects/` | Fences, buildings, tools, decorations |
+| `wardrobe/` | Clothing and accessory layers drawn over the base body (ADR-006) |
 | `ui/` | Item and HUD icons used by the Blazor overlay |
 
 Each folder keeps a `SOURCES.md` with one line per file: generator (PixelLab tool and mode),
 prompt, date, PixelLab asset id. Rules: [`assets-pipeline`](../.claude/skills/assets-pipeline/SKILL.md).
 
-Current art: terrain (soil ↔ grass, water ↔ grass) and a placeholder player character.
+Current art: terrain (soil, water, path ↔ grass), the 64 px villager base body, a jacket and a hat layer, and the old 48 px farmer placeholder.

@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "image": "wardrobe.png",
+  "width": 256,
+  "height": 256,
+  "sprites": {
+    "beanie_east": {
+      "x": 2,
+      "y": 2,
+      "w": 64,
+      "h": 64
+    },
+    "beanie_north": {
+      "x": 68,
+      "y": 2,
+      "w": 64,
+      "h": 64
+    },
+    "beanie_south": {
+      "x": 134,
+      "y": 2,
+      "w": 64,
+      "h": 64
+    },
+    "beanie_west": {
+      "x": 2,
+      "y": 68,
+      "w": 64,
+      "h": 64
+    },
+    "jacket_east": {
+      "x": 68,
+      "y": 68,
+      "w": 64,
+      "h": 64
+    },
+    "jacket_north": {
+      "x": 134,
+      "y": 68,
+      "w": 64,
+      "h": 64
+    },
+    "jacket_south": {
+      "x": 2,
+      "y": 134,
+      "w": 64,
+      "h": 64
+    },
+    "jacket_west": {
+      "x": 68,
+      "y": 134,
+      "w": 64,
+      "h": 64
+    }
+  }
+}
