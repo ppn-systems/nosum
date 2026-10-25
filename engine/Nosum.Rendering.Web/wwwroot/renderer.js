@@ -6,6 +6,7 @@
 // decode and draw synchronously, never keep the view.
 
 const textures = [];          // texture id -> ImageBitmap
+const labels = [];            // label id -> OffscreenCanvas with the pre-rendered text (glyph cache)
 const tinted = new Map();     // "id:rgba" -> canvas with the tint applied
 let canvas = null;
 let ctx = null;
@@ -31,6 +32,7 @@ const EDGE_BITS = {
     KeyM: 16384, KeyC: 32768, KeyT: 65536, KeyG: 131072,
     Escape: 262144,
     KeyH: 524288,
+    KeyN: 1048576,
 };
 
 // Typing in a form field (the upgrade form) must not move the farmer or select slots.
@@ -45,6 +47,46 @@ export async function loadTexture(id, url) {
         throw new Error(`texture ${url}: HTTP ${response.status}`);
     }
     textures[id] = await createImageBitmap(await response.blob());
+}
+
+// Renders a text label once into a bitmap: the glyph shape is thresholded to hard pixels (no soft edges) and
+// outlined in black, so a nickname stays crisp when the world scale magnifies it. Called when a name arrives,
+// never from the frame; the frame only draws the bitmap by id (command texture -3).
+const LABEL_FILL = ["#ffffff", "#ffe08a"];
+const LABEL_FONT = "bold 11px 'Segoe UI', system-ui, sans-serif";
+
+export function registerLabel(id, text, style) {
+    const probe = new OffscreenCanvas(1, 1).getContext("2d");
+    probe.font = LABEL_FONT;
+    const m = probe.measureText(text);
+    const ascent = Math.ceil(m.fontBoundingBoxAscent || 9);
+    const descent = Math.ceil(m.fontBoundingBoxDescent || 3);
+    const w = Math.ceil(m.width) + 2, h = ascent + descent + 2;
+
+    const shape = new OffscreenCanvas(w, h);
+    const sc = shape.getContext("2d", { willReadFrequently: true });
+    sc.font = LABEL_FONT;
+    sc.textBaseline = "alphabetic";
+    sc.fillStyle = "#fff";
+    sc.fillText(text, 1, ascent + 1);
+    const px = sc.getImageData(0, 0, w, h);
+    for (let i = 3; i < px.data.length; i += 4) { px.data[i] = px.data[i] >= 110 ? 255 : 0; }
+    sc.putImageData(px, 0, 0);
+
+    const colour = (css) => {
+        const c = new OffscreenCanvas(w, h), cc = c.getContext("2d");
+        cc.drawImage(shape, 0, 0);
+        cc.globalCompositeOperation = "source-in";
+        cc.fillStyle = css;
+        cc.fillRect(0, 0, w, h);
+        return c;
+    };
+    const dark = colour("#000"), fill = colour(LABEL_FILL[style] || LABEL_FILL[0]);
+
+    const out = new OffscreenCanvas(w + 2, h + 2), oc = out.getContext("2d");
+    for (let dy = 0; dy <= 2; dy++) { for (let dx = 0; dx <= 2; dx++) { if (dx !== 1 || dy !== 1) { oc.drawImage(dark, dx, dy); } } }
+    oc.drawImage(fill, 1, 1);
+    labels[id] = out;
 }
 
 export async function start(canvasId, assemblyName, exportPath) {
@@ -102,6 +144,19 @@ export function submitFrame(view) {
             ctx.fillStyle = "#000";
             ctx.fillRect(dx, dy, w, h);
             ctx.globalAlpha = 1;
+            continue;
+        }
+        if (id === -3) {
+            // Pre-rendered label: sx is the label id; (dx, dy) is its bottom centre.
+            // Drawn in screen space at 1x (zoom below 5) or 2x, not at the world zoom, so a name stays small next to the farmer and its pixels stay hard.
+            const label = labels[sx];
+            if (label) {
+                const k = scale >= 5 ? 2 : 1;
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.drawImage(label, Math.round(dx * scale - (label.width * k) / 2), Math.round(dy * scale - label.height * k), label.width * k, label.height * k);
+                ctx.restore();
+            }
             continue;
         }
         const image = tint === -1 ? textures[id] : tintedTexture(id, tint);

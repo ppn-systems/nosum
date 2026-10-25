@@ -19,6 +19,11 @@ using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Coop;
+using Nosum.Contracts.Dev.C2S;
+using Nosum.Contracts.Dev.S2C;
+using Nosum.Contracts.Shop;
+using Nosum.Contracts.Shop.C2S;
+using Nosum.Contracts.Shop.S2C;
 using Nosum.Contracts.Coop.C2S;
 using Nosum.Contracts.Coop.S2C;
 using Nosum.Contracts.Inventory;
@@ -88,7 +93,7 @@ internal sealed class SocialClient : IAsyncDisposable
                 p.HasCoop,
                 p.Name,
                 p.Role,
-                [.. p.Members.Select(m => new CoopMemberRow { MemberId = m.MemberId, Role = m.Role, IsMe = m.IsMe, Online = m.Online })],
+                [.. p.Members.Select(m => new CoopMemberRow { MemberId = m.MemberId, Role = m.Role, IsMe = m.IsMe, Online = m.Online, Nickname = m.Nickname })],
                 [.. p.Stock.Select(s => (s.ItemId, s.Quantity, s.Available))],
                 [.. p.Invites.Select(i => i.InviteId)]))),
         ];
@@ -100,6 +105,9 @@ internal sealed class SocialClient : IAsyncDisposable
     public Guid PlayerId { get; private set; }
 
     public string SessionToken { get; private set; } = string.Empty;
+
+    /// <summary>Gets the nickname the account result carried (a neutral guest name for a guest).</summary>
+    public string Nickname { get; private set; } = string.Empty;
 
     /// <summary>Gets the id the player has on the map.</summary>
     public uint MapPlayerId { get; private set; }
@@ -135,6 +143,7 @@ internal sealed class SocialClient : IAsyncDisposable
         AccountResult result = await session.RequestAsync<AccountResult>(request, ct: ct);
         result.Status.Should().Be(AccountStatus.Ok);
         client.PlayerId = result.PlayerId;
+        client.Nickname = result.Nickname;
         client.SessionToken = result.SessionToken;
         (string map, double x, double y) = startAt ?? (SharedMapId, -1, -1);
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
@@ -157,6 +166,7 @@ internal sealed class SocialClient : IAsyncDisposable
         AccountResult result = await session.RequestAsync<AccountResult>(request, ct: ct);
         result.Status.Should().Be(AccountStatus.Ok);
         client.PlayerId = result.PlayerId;
+        client.Nickname = result.Nickname;
         client.SessionToken = token;
         return client;
     }
@@ -211,7 +221,7 @@ internal sealed class SocialClient : IAsyncDisposable
         using BrowseListings request = new() { Page = 0 };
         request.ItemIds.AddRange(itemIds);
         ListingsPage page = await this.RequestAsync<ListingsPage>(request, ct);
-        return (page.Total, [.. page.Rows.Select(r => new ListingRow { ListingId = r.ListingId, ItemId = r.ItemId, Quantity = r.Quantity, Price = r.Price, ExpiresAtMs = r.ExpiresAtMs, IsMine = r.IsMine })]);
+        return (page.Total, [.. page.Rows.Select(r => new ListingRow { ListingId = r.ListingId, ItemId = r.ItemId, Quantity = r.Quantity, Price = r.Price, ExpiresAtMs = r.ExpiresAtMs, IsMine = r.IsMine, SellerNickname = r.SellerNickname })]);
     }
 
     public async Task<(MarketStatus Status, long Earned)> ShipAsync(int slot, int itemId, int quantity, CancellationToken ct)
@@ -219,6 +229,41 @@ internal sealed class SocialClient : IAsyncDisposable
         using ShipItems request = new() { Slot = (byte)slot, ItemId = itemId, Quantity = quantity };
         ShipResult result = await this.RequestAsync<ShipResult>(request, ct);
         return (result.Status, result.Earned);
+    }
+
+    // ---- shop, nickname, tester grant ----
+    public async Task<(ShopStatus Status, long Spent)> BuyFromShopAsync(int shopId, int itemId, int quantity, CancellationToken ct)
+    {
+        using BuyFromShop request = new() { ShopId = shopId, ItemId = itemId, Quantity = quantity };
+        ShopResult result = await this.RequestAsync<ShopResult>(request, ct);
+        return (result.Status, result.Spent);
+    }
+
+    public async Task<NicknameResult> SetNicknameAsync(string nickname, CancellationToken ct)
+    {
+        using SetNickname request = new() { Nickname = nickname };
+        return await this.RequestAsync<NicknameResult>(request, ct);
+    }
+
+    public async Task<bool> GrantAsync(int itemId, int quantity, long coins, CancellationToken ct)
+    {
+        using DevGrant request = new() { ItemId = itemId, Quantity = quantity, Coins = coins };
+        return (await this.RequestAsync<DevGrantResult>(request, ct)).Ok;
+    }
+
+    /// <summary>Sends a tester grant and reports whether the server answered at all (a Production server does not know the opcode).</summary>
+    public async Task<bool> GrantIsAnsweredAsync(CancellationToken ct)
+    {
+        using DevGrant request = new() { ItemId = Nosum.Gameplay.Items.ItemCatalog.OakChair, Quantity = 1 };
+        try
+        {
+            _ = await _session.RequestAsync<DevGrantResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct);
+            return true;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+        {
+            return false;
+        }
     }
 
     // ---- looks ----
@@ -294,7 +339,7 @@ internal sealed class SocialClient : IAsyncDisposable
     {
         using GetCoop request = new();
         CoopSnapshot p = await this.RequestAsync<CoopSnapshot>(request, ct);
-        return new CoopCopy(p.HasCoop, p.Name, p.Role, [.. p.Members.Select(m => new CoopMemberRow { MemberId = m.MemberId, Role = m.Role, IsMe = m.IsMe, Online = m.Online })], [.. p.Stock.Select(s => (s.ItemId, s.Quantity, s.Available))], [.. p.Invites.Select(i => i.InviteId)]);
+        return new CoopCopy(p.HasCoop, p.Name, p.Role, [.. p.Members.Select(m => new CoopMemberRow { MemberId = m.MemberId, Role = m.Role, IsMe = m.IsMe, Online = m.Online, Nickname = m.Nickname })], [.. p.Stock.Select(s => (s.ItemId, s.Quantity, s.Available))], [.. p.Invites.Select(i => i.InviteId)]);
     }
 
     public async Task<CoopStatus> CoopInviteAsync(uint target, CancellationToken ct)
@@ -338,7 +383,7 @@ internal sealed class SocialClient : IAsyncDisposable
         _session.Dispose();
     }
 
-    private static LookRow Copy(LookRow p) => new() { PlayerId = p.PlayerId, SkinId = p.SkinId, HairStyleId = p.HairStyleId, HairDyeId = p.HairDyeId, ShirtItemId = p.ShirtItemId, PantsItemId = p.PantsItemId, HatItemId = p.HatItemId };
+    private static LookRow Copy(LookRow p) => new() { PlayerId = p.PlayerId, SkinId = p.SkinId, HairStyleId = p.HairStyleId, HairDyeId = p.HairDyeId, ShirtItemId = p.ShirtItemId, PantsItemId = p.PantsItemId, HatItemId = p.HatItemId, Nickname = p.Nickname };
 
     private static async Task PaceGuestAsync(CancellationToken ct)
     {

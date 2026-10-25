@@ -24,4 +24,7 @@ public sealed partial class CoopMemberRow
 
     /// <summary>Whether the member is connected.</summary>
     [SerializeOrder(3)] public bool Online { get; set; }
+
+    /// <summary>The member's nickname. Appended in protocol version 3.</summary>
+    [SerializeOrder(4)] public string Nickname { get; set; } = string.Empty;
 }

@@ -263,7 +263,7 @@ public sealed class InventoryServiceTests : IClassFixture<PostgresFixture>
         IUnitOfWork unit = _units.Create();
         await using (unit)
         {
-            Player player = new() { IsGuest = true, CreatedAt = s_start, LastActiveAt = s_start };
+            Player player = TestNicknames.Name(new() { IsGuest = true, CreatedAt = s_start, LastActiveAt = s_start });
             unit.Repository<Player>().Add(player);
             _ = await unit.SaveChangesAsync(CancellationToken.None);
             return player.Id;

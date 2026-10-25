@@ -15,7 +15,8 @@ namespace Nosum.Abstractions.Coop;
 /// <param name="Role">The role.</param>
 /// <param name="IsMe">Whether this is the viewer.</param>
 /// <param name="Online">Whether the member is connected.</param>
-public sealed record CoopMemberView(Guid MemberId, CoopRole Role, bool IsMe, bool Online);
+/// <param name="Nickname">The member's nickname.</param>
+public sealed record CoopMemberView(Guid MemberId, CoopRole Role, bool IsMe, bool Online, string Nickname);
 
 /// <summary>One item kind in the warehouse.</summary>
 /// <param name="ItemId">The item.</param>
@@ -33,7 +34,8 @@ public sealed record CoopLogView(Guid MemberId, int ItemId, int Delta, DateTimeO
 /// <summary>An invitation to the viewer.</summary>
 /// <param name="InviteId">The invitation id.</param>
 /// <param name="CoopName">The co-op's authored name.</param>
-public sealed record CoopInviteView(Guid InviteId, string CoopName);
+/// <param name="InviterNickname">The nickname of the co-op's founder, who invites; empty when unknown.</param>
+public sealed record CoopInviteView(Guid InviteId, string CoopName, string InviterNickname);
 
 /// <summary>A viewer's co-op as the service reports it.</summary>
 /// <param name="HasCoop">Whether the viewer belongs to a co-op.</param>
@@ -75,6 +77,7 @@ public sealed record CoopView(
             row.Role = member.Role;
             row.IsMe = member.IsMe;
             row.Online = member.Online;
+            row.Nickname = member.Nickname;
             packet.Members.Add(row);
         }
 
@@ -102,6 +105,7 @@ public sealed record CoopView(
             CoopInviteRow row = CoopInviteRow.Create();
             row.InviteId = invite.InviteId;
             row.CoopName = invite.CoopName;
+            row.InviterNickname = invite.InviterNickname;
             packet.Invites.Add(row);
         }
     }

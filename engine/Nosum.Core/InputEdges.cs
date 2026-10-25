@@ -74,6 +74,9 @@ public enum InputEdges
 
     /// <summary>The help key (H or ?): show or hide the keyboard help.</summary>
     Help = 1 << 19,
+
+    /// <summary>The profile key (N): show or hide the profile panel (change nickname).</summary>
+    Profile = 1 << 20,
 }
 
 /// <summary>Helpers for the packed input integer the platform passes to the frame.</summary>

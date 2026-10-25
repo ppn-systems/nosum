@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
+using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Inventory;
@@ -36,6 +37,8 @@ public sealed class MarketService : IMarketService
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
+    private readonly IFeeSink _feeSink;
+    private readonly INicknameDirectory _nicknames;
     private readonly TimeProvider _time;
     private readonly StripedAsyncLock _listingLocks = new(64);
 
@@ -45,14 +48,18 @@ public sealed class MarketService : IMarketService
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="presence">Where players stand (the shipping bin needs the position).</param>
     /// <param name="maps">The hosted maps (the farm is the map that can be tilled).</param>
+    /// <param name="feeSink">Receives the market fee (a sink: the coins are destroyed).</param>
+    /// <param name="nicknames">Resolves seller nicknames for listings.</param>
     /// <param name="time">The clock for expiry; tests pass a fake one.</param>
-    public MarketService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, TimeProvider time)
+    public MarketService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IFeeSink feeSink, INicknameDirectory nicknames, TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
+        ArgumentNullException.ThrowIfNull(feeSink);
+        ArgumentNullException.ThrowIfNull(nicknames);
         ArgumentNullException.ThrowIfNull(time);
 
         _transfers = transfers;
@@ -60,6 +67,8 @@ public sealed class MarketService : IMarketService
         _unitOfWork = unitOfWork;
         _presence = presence;
         _maps = maps;
+        _feeSink = feeSink;
+        _nicknames = nicknames;
         _time = time;
     }
 
@@ -186,13 +195,19 @@ public sealed class MarketService : IMarketService
             }
 
             long price = listing.Price;
-            long proceeds = CoinRules.SellerProceeds(price);
+            long fee = CoinRules.MarketFee(price);
+            long proceeds = price - fee;
             MarketStatus refusal = MarketStatus.Ok;
+
+            // The fee is whatever the buyer pays and the seller does not get; the sink says whether anybody receives it.
+            List<TransferLeg> legs =
+            [
+                new TransferLeg(TransferParty.Player(buyerId), listing.ItemId, listing.Quantity, -price),
+                new TransferLeg(TransferParty.Player(listing.SellerId), 0, 0, proceeds),
+                .. _feeSink.Collect(fee, "market.buy"),
+            ];
             TransferStatus status = await _transfers.ExecuteAsync(
-                [
-                    new TransferLeg(TransferParty.Player(buyerId), listing.ItemId, listing.Quantity, -price),
-                    new TransferLeg(TransferParty.Player(listing.SellerId), 0, 0, proceeds),
-                ],
+                legs,
                 "market.buy",
                 async (unit, token) =>
                 {
@@ -253,7 +268,7 @@ public sealed class MarketService : IMarketService
                 index * CoinRules.ListingsPerPage,
                 CoinRules.ListingsPerPage,
                 cancellationToken).ConfigureAwait(false);
-            return new ListingsPageView(now, index, total, [.. rows.Select(ViewOf)]);
+            return new ListingsPageView(now, index, total, await this.ViewsAsync(rows, cancellationToken).ConfigureAwait(false));
         }
     }
 
@@ -270,7 +285,7 @@ public sealed class MarketService : IMarketService
                 0,
                 MaxMine,
                 cancellationToken).ConfigureAwait(false);
-            return new ListingsPageView(now, 0, rows.Count, [.. rows.Select(ViewOf)]);
+            return new ListingsPageView(now, 0, rows.Count, await this.ViewsAsync(rows, cancellationToken).ConfigureAwait(false));
         }
     }
 
@@ -307,7 +322,11 @@ public sealed class MarketService : IMarketService
         return returned;
     }
 
-    private static ListingView ViewOf(MarketListing l) => new(l.Id, l.SellerId, l.ItemId, l.Quantity, l.Price, l.ExpiresAt);
+    private async Task<IReadOnlyList<ListingView>> ViewsAsync(List<MarketListing> rows, CancellationToken cancellationToken)
+    {
+        IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(rows.Select(l => l.SellerId), cancellationToken).ConfigureAwait(false);
+        return [.. rows.Select(l => new ListingView(l.Id, l.SellerId, l.ItemId, l.Quantity, l.Price, l.ExpiresAt, names.GetValueOrDefault(l.SellerId, string.Empty)))];
+    }
 
     private async Task<MarketListing?> ReadAsync(Guid listingId, CancellationToken cancellationToken)
     {

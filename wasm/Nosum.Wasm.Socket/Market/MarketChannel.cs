@@ -12,14 +12,15 @@ using Nosum.Contracts.Market.S2C;
 
 namespace Nosum.Wasm.Socket.Market;
 
-/// <summary>One listing as the client mirrors it. The seller is never sent; <paramref name="IsMine"/> says whether the viewer is the seller.</summary>
+/// <summary>One listing as the client mirrors it. <paramref name="IsMine"/> says whether the viewer is the seller; the seller is shown by nickname.</summary>
 /// <param name="Id">The listing id.</param>
 /// <param name="ItemId">The item.</param>
 /// <param name="Quantity">How many.</param>
 /// <param name="Price">Price for the whole stack, coins.</param>
 /// <param name="ExpiresAtMs">Expiry, Unix milliseconds on the server clock.</param>
 /// <param name="IsMine">Whether the viewer is the seller.</param>
-public readonly record struct ListingInfo(Guid Id, int ItemId, int Quantity, long Price, long ExpiresAtMs, bool IsMine);
+/// <param name="SellerNickname">The seller's nickname as the server sent it (a guest's neutral name is localized by the view model).</param>
+public readonly record struct ListingInfo(Guid Id, int ItemId, int Quantity, long Price, long ExpiresAtMs, bool IsMine, string SellerNickname);
 
 /// <summary>One page of listings with the server clock it was read at.</summary>
 /// <param name="ServerNowMs">The server clock, Unix milliseconds.</param>
@@ -117,7 +118,7 @@ public sealed class MarketChannel
         List<ListingInfo> rows = new(page.Rows.Count);
         foreach (ListingRow row in page.Rows)
         {
-            rows.Add(new ListingInfo(row.ListingId, row.ItemId, row.Quantity, row.Price, row.ExpiresAtMs, row.IsMine));
+            rows.Add(new ListingInfo(row.ListingId, row.ItemId, row.Quantity, row.Price, row.ExpiresAtMs, row.IsMine, row.SellerNickname));
         }
 
         return new ListingsInfo(page.ServerNowMs, page.Page, page.Total, rows);

@@ -32,4 +32,7 @@ public sealed partial class LookRow
 
     /// <summary>Worn hat item id; zero for none.</summary>
     [SerializeOrder(6)] public int HatItemId { get; set; }
+
+    /// <summary>The player's nickname, cached by the client under <see cref="PlayerId"/> (sent with the look: on join, map change and every change, never in a snapshot). Appended in protocol version 3.</summary>
+    [SerializeOrder(7)] public string Nickname { get; set; } = string.Empty;
 }

@@ -8,6 +8,7 @@ using Nosum.Contracts.Trade;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.Socket.Trade;
 using Nosum.Wasm.ViewModels.Inventory;
+using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Trade;
@@ -44,6 +45,7 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
     private readonly NearbyPlayers _nearby;
     private readonly InventoryViewModel _inventory;
     private readonly ItemDescriber _describer;
+    private readonly NicknameFormatter _names;
     private TradeEndReason? _ended;
 
     /// <summary>Initializes the view model.</summary>
@@ -51,19 +53,22 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
     /// <param name="nearby">The other players on the map.</param>
     /// <param name="inventory">The inventory view model (what can be offered).</param>
     /// <param name="describer">Describes offered items.</param>
+    /// <param name="names">Names the players by nickname.</param>
     /// <param name="text">UI text.</param>
-    public TradeViewModel(TradeChannel trade, NearbyPlayers nearby, InventoryViewModel inventory, ItemDescriber describer, IStringLocalizer<Language> text)
+    public TradeViewModel(TradeChannel trade, NearbyPlayers nearby, InventoryViewModel inventory, ItemDescriber describer, NicknameFormatter names, IStringLocalizer<Language> text)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(trade);
         ArgumentNullException.ThrowIfNull(nearby);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(describer);
+        ArgumentNullException.ThrowIfNull(names);
 
         _trade = trade;
         _nearby = nearby;
         _inventory = inventory;
         _describer = describer;
+        _names = names;
         trade.Changed += this.OnChanged;
         trade.Ended += this.OnEnded;
         trade.Completed += this.OnCompleted;
@@ -78,7 +83,7 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
     public TradePhase Phase => _trade.Open is not null ? TradePhase.Open : _trade.Invite != 0 ? TradePhase.Invited : _trade.Waiting ? TradePhase.Waiting : TradePhase.Idle;
 
     /// <summary>Gets the localized label of the player who invited, for the invitation dialog.</summary>
-    public string InviterLabel => this.Text("Player_Label", _trade.Invite);
+    public string InviterLabel => _names.PlayerLabel(_trade.Invite);
 
     /// <summary>Gets the players on the map that can be invited.</summary>
     public IReadOnlyList<PlayerChoice> Players
@@ -88,7 +93,7 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
             List<PlayerChoice> players = [];
             foreach (uint id in _nearby.Ids())
             {
-                players.Add(new PlayerChoice(id, this.Text("Player_Label", id)));
+                players.Add(new PlayerChoice(id, _names.PlayerLabel(id)));
             }
 
             return players;
@@ -96,7 +101,7 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
     }
 
     /// <summary>Gets the label of the other party of the open trade.</summary>
-    public string OtherLabel => _trade.Open is { } open ? this.Text("Player_Label", open.OtherPlayerId) : string.Empty;
+    public string OtherLabel => _trade.Open is { } open ? _names.PlayerLabel(open.OtherPlayerId) : string.Empty;
 
     /// <summary>Gets or sets the coins typed in the offer.</summary>
     public string CoinsText { get; set; } = "0";

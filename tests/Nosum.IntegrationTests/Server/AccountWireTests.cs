@@ -37,7 +37,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
         try
         {
             AccountResult registered = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new Register { Email = name, Password = "password-1", PreferredLanguage = GameLanguage.English }, ct: timeout.Token));
+                new Register { Email = name, Password = "password-1", PreferredLanguage = GameLanguage.English, Nickname = TestNicknames.Next() }, ct: timeout.Token));
             AccountResult loggedIn = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
                 new Login { Email = name, Password = "password-1" }, ct: timeout.Token));
             AccountResult resumed = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
@@ -67,7 +67,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
         try
         {
             _ = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new Register { Email = name, Password = "password-1" }, ct: timeout.Token));
+                new Register { Email = name, Password = "password-1", Nickname = TestNicknames.Next() }, ct: timeout.Token));
 
             AccountResult result = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
                 new Login { Email = name, Password = "wrong-password" }, ct: timeout.Token));
@@ -98,7 +98,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
                 new SetLanguage { Language = GameLanguage.English }, RequestOptions.Default.WithTimeout(1500), ct: timeout.Token);
             _ = await denied.Should().ThrowAsync<Exception>();
 
-            using Register register = new() { Email = name, Password = "password-1" };
+            using Register register = new() { Email = name, Password = "password-1", Nickname = TestNicknames.Next() };
             AccountResult registered = await session.RequestAsync<AccountResult>(register, ct: timeout.Token);
             using SetLanguage setLanguage = new() { Language = GameLanguage.English };
             LanguageResult allowed = await session.RequestAsync<LanguageResult>(setLanguage, ct: timeout.Token);
@@ -130,9 +130,9 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
 
             using StartGuest start = new() { PreferredLanguage = GameLanguage.English };
             AccountResult guest = await session.RequestAsync<AccountResult>(start, ct: timeout.Token);
-            using UpgradeGuest upgrade = new() { Email = email, Password = "password-1" };
+            using UpgradeGuest upgrade = new() { Email = email, Password = "password-1", Nickname = TestNicknames.Next() };
             AccountResult upgraded = await session.RequestAsync<AccountResult>(upgrade, ct: timeout.Token);
-            using UpgradeGuest again = new() { Email = "x" + email, Password = "password-1" };
+            using UpgradeGuest again = new() { Email = "x" + email, Password = "password-1", Nickname = TestNicknames.Next() };
             AccountResult second = await session.RequestAsync<AccountResult>(again, ct: timeout.Token);
             AccountResult guestToken = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
                 new ResumeSession { SessionToken = guest.SessionToken }, ct: timeout.Token));
@@ -165,7 +165,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
             using WebSocketSession session = NewSession();
             await session.ConnectAsync();
         await session.HandshakeAsync();
-            using Register register = new() { Email = email, Password = "password-1" };
+            using Register register = new() { Email = email, Password = "password-1", Nickname = TestNicknames.Next() };
             AccountResult registered = await session.RequestAsync<AccountResult>(register, ct: timeout.Token);
 
             using Logout logout = new();

@@ -52,11 +52,20 @@ public sealed partial class WebRenderBackend : IRenderBackend
     /// <returns>A task that completes once the loop is running.</returns>
     public static Task StartAsync(string canvasId, string assemblyName, string exportPath) => Start(canvasId, assemblyName, exportPath);
 
+    /// <summary>Uploads a text label (a nickname) once; the backend renders it into a cached bitmap and frames draw it by id (<see cref="LabelRegistry"/>).</summary>
+    /// <param name="id">Label id.</param>
+    /// <param name="text">The text.</param>
+    /// <param name="style">Style number: 0 normal, 1 the local player's.</param>
+    public static void UploadLabel(int id, string text, int style) => RegisterLabel(id, text, style);
+
     /// <inheritdoc/>
     public void Submit(Span<byte> commands) => SubmitFrame(commands);
 
     [JSImport("submitFrame", ModuleName)]
     private static partial void SubmitFrame([JSMarshalAs<JSType.MemoryView>] Span<byte> commands);
+
+    [JSImport("registerLabel", ModuleName)]
+    private static partial void RegisterLabel(int id, string text, int style);
 
     [JSImport("loadTexture", ModuleName)]
     private static partial Task LoadTexture(int id, string url);

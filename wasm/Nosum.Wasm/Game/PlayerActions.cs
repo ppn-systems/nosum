@@ -13,7 +13,7 @@ namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// What the player's one-shot keys do: number keys select a hotbar slot, the action key (E or Space) uses the
-/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G H open the panels, Escape closes them. The scene calls <see cref="Update"/> once per
+/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G H N open the panels, Escape closes them; next to a shop the action key opens it. The scene calls <see cref="Update"/> once per
 /// frame; the tile in front is kept in <see cref="TargetX"/> and <see cref="TargetY"/> for the cursor the farm decorator draws.
 /// Allocation-free; the requests themselves are sent by the channels, off the frame.
 /// </summary>
@@ -44,6 +44,9 @@ internal sealed class PlayerActions
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
     public event Action<PanelKind>? PanelToggleRequested;
 
+    /// <summary>Raised (from the frame) when the action key was pressed next to a shop: the shop's id (docs/adr/ADR-013 amendments).</summary>
+    public event Action<int>? ShopRequested;
+
     /// <summary>Raised (from the frame) when the close key was pressed.</summary>
     public event Action? PanelCloseRequested;
 
@@ -61,7 +64,8 @@ internal sealed class PlayerActions
     /// <param name="tileSize">Tile size, pixels.</param>
     /// <param name="mapIsFarmable">Whether the map being shown can be farmed (otherwise the action key does nothing).</param>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
-    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapIsFarmable, double nowSeconds)
+    /// <param name="shopId">The id of the shop whose counter is within reach, or zero; the action key then opens that shop instead of using an item.</param>
+    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapIsFarmable, double nowSeconds, int shopId = 0)
     {
         int x = (int)(feetX / tileSize);
         int y = (int)(feetY / tileSize);
@@ -85,6 +89,12 @@ internal sealed class PlayerActions
         }
 
         this.RaisePanelKeys(edges);
+
+        if ((edges & InputEdges.Action) != 0 && shopId != 0)
+        {
+            this.ShopRequested?.Invoke(shopId);
+            return;
+        }
 
         if ((edges & InputEdges.Action) != 0 && mapIsFarmable && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
         {
@@ -154,6 +164,11 @@ internal sealed class PlayerActions
         if ((edges & InputEdges.Close) != 0)
         {
             this.PanelCloseRequested?.Invoke();
+        }
+
+        if ((edges & InputEdges.Profile) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Profile);
         }
     }
 }

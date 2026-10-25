@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Account;
+using Nosum.Gameplay.Players;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -69,6 +70,9 @@ public sealed class AccountFormViewModel
     /// <summary>Gets or sets the typed e-mail.</summary>
     public string Email { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the typed nickname (register and upgrade).</summary>
+    public string Nickname { get; set; } = string.Empty;
+
     /// <summary>Gets or sets the typed password. Cleared after every submit.</summary>
     public string Password { get; set; } = string.Empty;
 
@@ -109,6 +113,12 @@ public sealed class AccountFormViewModel
 
     /// <summary>Gets the e-mail field label.</summary>
     public string EmailLabel => _text["Account_Email"];
+
+    /// <summary>Gets the nickname field label.</summary>
+    public string NicknameLabel => _text["Account_Nickname"];
+
+    /// <summary>Gets the nickname rules, shown under the field when registering.</summary>
+    public string NicknameHint => string.Format(CultureInfo.CurrentCulture, _text["Account_NicknameHint"].Value, NicknameRules.MinLength, NicknameRules.MaxLength);
 
     /// <summary>Gets the password field label.</summary>
     public string PasswordLabel => _text["Account_Password"];
@@ -232,11 +242,12 @@ public sealed class AccountFormViewModel
 
         string email = this.Email.Trim();
         string password = this.Password;
+        string nickname = NicknameRules.Normalize(this.Nickname);
         await this.RunAsync(
             () => this.Mode switch
             {
-                AccountFormMode.Register => _client.RegisterAsync(email, password, UiCulture.Current, cancellationToken),
-                AccountFormMode.Upgrade => _client.UpgradeGuestAsync(email, password, cancellationToken),
+                AccountFormMode.Register => _client.RegisterAsync(email, password, nickname, UiCulture.Current, cancellationToken),
+                AccountFormMode.Upgrade => _client.UpgradeGuestAsync(email, password, nickname, cancellationToken),
                 _ => _client.LoginAsync(email, password, cancellationToken),
             },
             isUpgrade: this.Mode == AccountFormMode.Upgrade).ConfigureAwait(false);
@@ -353,6 +364,17 @@ public sealed class AccountFormViewModel
         if (this.IsRegister && !string.Equals(this.Password, this.ConfirmPassword, StringComparison.Ordinal))
         {
             return _text["Account_Error_PasswordMismatch"];
+        }
+
+        if (this.IsRegister)
+        {
+            // Early feedback only; the server applies the same rules and checks that the name is free.
+            return NicknameRules.Validate(this.Nickname) switch
+            {
+                NicknameVerdict.Ok => null,
+                NicknameVerdict.Reserved => StatusText(AccountStatus.NicknameReserved),
+                _ => StatusText(AccountStatus.InvalidNickname),
+            };
         }
 
         return null;

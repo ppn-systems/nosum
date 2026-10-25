@@ -32,10 +32,11 @@ Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-fa
 
 - `Items/ItemCatalog` (tools, seeds, produce; stable id + key + stack size) and `Farm/CropCatalog` (stage durations in seconds of watered growth, harvest item).
 - `Inventory/InventoryGrid`: fixed slots of stacks; `Add`, `Remove`, `RemoveFromSlot`, `Move` (move, split, merge, swap) are all-or-nothing and track the changed
-  slots. `StarterKit` is what a new player holds. `InventoryLimits`: 36 slots, 9 in the hotbar.
+  slots. `StarterKit` is what a new player holds: tools and seeds only. `InventoryLimits`: 36 slots, 9 in the hotbar.
 - `Farm/FarmRules`: `Till`, `Plant`, `Water`, `Harvest` on a `FarmTile` (Unix-ms timestamps) and `GrowthAt` / `StageAt` / `IsMature` / `IsWet`; a crop grows only while
   the soil is wet (watering lasts 90 s). `InReach` is the 32 px rule. `TillGrid.FromMap` marks `Diggable` ground that is not blocked. Time is always a parameter.
 - Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)): `Economy/CoinRules` (starting coins, market fee, listing limits), `ShippingPrices`, `ShippingBinRules`, `MarketRules`;
   `Trade/TradeOffer` and `TradeSession` (two-party confirm: a different offer clears both confirmations); `Looks/LookCatalog` and `PlayerLook`; `Coops/CoopRules` (names, who may withdraw how much);
   `Text/LocalizedText` (validates and resolves `i18n{` envelopes). Clothing items have a `WearSlot`; tools are not tradable (`ItemDefinition.IsTradable`).
+- Shops and nicknames ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): `Shops/ShopCatalog` (shop id, key, price list; seeds, furniture and clothing in the general store), `Shops/ShopRules` (`Price`, `InReach`, `TryFindShop`), `Maps/ShopPoint` (`MapSpec.Shops`: where a shop is served; the Town has one); `Players/NicknameRules` (3-16 characters, letters incl. Vietnamese, NFC, reserved list, unique `Key`, neutral guest names).
 - `Quests/QuestDefinition` / `QuestCatalog`: objectives count `QuestEvent`s (`CropPlanted`, `CropHarvested`); `first_harvest` is the tutorial.

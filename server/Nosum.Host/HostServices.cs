@@ -32,7 +32,9 @@ internal static class HostServices
         instances.Register(unitOfWork);
         instances.Register(hasher);
         instances.Register(tokens);
-        instances.Register<IAccountService>(new AccountService(unitOfWork, hasher, tokens, TimeProvider.System));
+        NicknameDirectory nicknames = new(unitOfWork);
+        instances.Register<INicknameDirectory>(nicknames);
+        instances.Register<IAccountService>(new AccountService(unitOfWork, hasher, tokens, TimeProvider.System, nicknames: nicknames));
         PlayerLifecycleService lifecycle = new(unitOfWork, TimeProvider.System);
         instances.Register<IPlayerActivityService>(lifecycle);
         instances.Register<IRegistrationPromptService>(lifecycle);

@@ -24,6 +24,10 @@
                     <GameInput Type="password" Value="@Vm.ConfirmPassword" ValueChanged="@(v => Vm.ConfirmPassword = v)" Label="@Vm.ConfirmPasswordLabel" AutoComplete="new-password"
                                MaxLength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" Disabled="@Vm.IsBusy" />
                 </GameField>
+
+                <GameField Label="@Vm.NicknameLabel" Hint="@Vm.NicknameHint">
+                    <GameInput Value="@Vm.Nickname" ValueChanged="@(v => Vm.Nickname = v)" Label="@Vm.NicknameLabel" AutoComplete="nickname" MaxLength="24" Disabled="@Vm.IsBusy" />
+                </GameField>
             }
 
             @if (Vm.ErrorText is not null)

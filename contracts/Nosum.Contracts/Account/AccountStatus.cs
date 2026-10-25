@@ -34,4 +34,16 @@ public enum AccountStatus : byte
     /// The player signed in on another connection, which ended this one (sent in <c>SessionEnded</c>, never as a request reply).
     /// </summary>
     SessionReplaced = 8,
+
+    /// <summary>The nickname breaks the rules: length, characters or separators (register, upgrade, set nickname).</summary>
+    InvalidNickname = 9,
+
+    /// <summary>The nickname is on the reserved list or imitates a guest name (register, upgrade, set nickname).</summary>
+    NicknameReserved = 10,
+
+    /// <summary>Another player already has this nickname, compared case-insensitively (register, upgrade, set nickname).</summary>
+    NicknameTaken = 11,
+
+    /// <summary>The nickname was changed less than 24 hours ago (set nickname); the reply carries when the next change is allowed.</summary>
+    NicknameTooSoon = 12,
 }

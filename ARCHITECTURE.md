@@ -158,7 +158,7 @@ handler (identity from the connection) ─► IMarketService / ITradeService / I
                                               ▼ pushes: InventoryUpdate, WalletUpdate · CoopSnapshot · LookChanged (to the map group) · TradeState
 ```
 
-Looks travel as ids (`LookChanged`, `LooksSnapshot`) to everyone on the map and are resolved by the client's `LookPalette`; trade and co-op invitations address a player by their id on the map and find them through `IMapPresence`.
+Looks travel as ids (`LookChanged`, `LooksSnapshot`) to everyone on the map and are resolved by the client's `LookPalette`; the player's nickname rides in the same row (cached by map player id, drawn by the engine as a pre-rendered label); shop purchases (`BuyFromShop`) are one transfer like the others; the market fee leaves through `IFeeSink` (a coin sink); trade and co-op invitations address a player by their id on the map and find them through `IMapPresence`.
 
 ## Organize by game domain
 

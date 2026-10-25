@@ -24,4 +24,7 @@ public sealed partial class Register : PacketBase<Register>, IPacketStaticOpcode
 
     /// <summary>Preferred language (the client's current UI language); <see cref="GameLanguage.Unspecified"/> means Vietnamese.</summary>
     [SerializeOrder(2)] public GameLanguage PreferredLanguage { get; set; }
+
+    /// <summary>Wanted display nickname (3-16 characters; see <c>Nosum.Gameplay.Players.NicknameRules</c>). Appended in protocol version 3.</summary>
+    [SerializeOrder(3)] public string Nickname { get; set; } = string.Empty;
 }

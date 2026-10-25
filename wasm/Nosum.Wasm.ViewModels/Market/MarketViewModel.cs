@@ -9,6 +9,7 @@ using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.ViewModels.Inventory;
+using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Market;
@@ -31,7 +32,8 @@ public enum MarketTab
 /// <param name="Item">The stack for the slot control.</param>
 /// <param name="PriceText">The price, formatted.</param>
 /// <param name="IsMine">Whether the viewer is the seller.</param>
-public sealed record ListingDisplay(Guid Id, SlotDisplay Item, string PriceText, bool IsMine);
+/// <param name="SellerText">"Seller: nickname", already localized.</param>
+public sealed record ListingDisplay(Guid Id, SlotDisplay Item, string PriceText, bool IsMine, string SellerText);
 
 /// <summary>
 /// View model of the market panel: browse with a search box and pages, list a stack from the inventory with a price (showing the fee
@@ -43,6 +45,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private readonly InventoryViewModel _inventory;
     private readonly ItemDescriber _describer;
     private readonly IStringLocalizer<Catalogue> _catalogue;
+    private readonly NicknameFormatter _names;
     private IReadOnlyList<int> _searchIds = [];
     private string _search = string.Empty;
     private int _sellSlot = -1;
@@ -52,19 +55,22 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     /// <param name="inventory">The inventory view model (the stacks that can be sold).</param>
     /// <param name="describer">Describes listed items.</param>
     /// <param name="catalogue">Item names, for the search box.</param>
+    /// <param name="names">Shows the seller's nickname.</param>
     /// <param name="text">UI text.</param>
-    public MarketViewModel(MarketChannel market, InventoryViewModel inventory, ItemDescriber describer, IStringLocalizer<Catalogue> catalogue, IStringLocalizer<Language> text)
+    public MarketViewModel(MarketChannel market, InventoryViewModel inventory, ItemDescriber describer, IStringLocalizer<Catalogue> catalogue, NicknameFormatter names, IStringLocalizer<Language> text)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(market);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(describer);
         ArgumentNullException.ThrowIfNull(catalogue);
+        ArgumentNullException.ThrowIfNull(names);
 
         _market = market;
         _inventory = inventory;
         _describer = describer;
         _catalogue = catalogue;
+        _names = names;
         market.BrowseChanged += this.Raise;
         market.MineChanged += this.Raise;
         market.Completed += this.OnCompleted;
@@ -260,7 +266,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         List<ListingDisplay> rows = new(page.Listings.Count);
         foreach (ListingInfo listing in page.Listings)
         {
-            rows.Add(new ListingDisplay(listing.Id, _describer.Describe(0, listing.ItemId, listing.Quantity), Number(listing.Price), listing.IsMine));
+            rows.Add(new ListingDisplay(listing.Id, _describer.Describe(0, listing.ItemId, listing.Quantity), Number(listing.Price), listing.IsMine, this.Text("Market_Seller", _names.Display(listing.SellerNickname))));
         }
 
         return rows;

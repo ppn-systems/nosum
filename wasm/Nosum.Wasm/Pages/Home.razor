@@ -16,6 +16,8 @@
 @using Nosum.Wasm.Controls.Looks
 @using Nosum.Wasm.Controls.Market
 @using Nosum.Wasm.Controls.Placement
+@using Nosum.Wasm.Controls.Profile
+@using Nosum.Wasm.Controls.Shop
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
 @using Nosum.Wasm.Controls.Wallet
@@ -31,6 +33,8 @@
 @using Nosum.Wasm.ViewModels.Feedback
 @using Nosum.Wasm.ViewModels.Inventory
 @using Nosum.Wasm.ViewModels.Placement
+@using Nosum.Wasm.ViewModels.Profile
+@using Nosum.Wasm.ViewModels.Shop
 @using Nosum.Wasm.ViewModels.Quest
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
@@ -48,6 +52,8 @@
 @inject TradeViewModel Trade
 @inject CoopViewModel Coop
 @inject PlacementViewModel Placement
+@inject ProfileViewModel Profile
+@inject ShopViewModel Shop
 @inject HelpViewModel Help
 
 <PageTitle>Nosum</PageTitle>
@@ -103,6 +109,12 @@ else
                 case PanelKind.Help:
                     <HelpPanel Vm="Help" OnClose="ClosePanel" />
                     break;
+                case PanelKind.Profile:
+                    <ProfilePanel Vm="Profile" OnClose="ClosePanel" />
+                    break;
+                case PanelKind.Shop:
+                    <ShopPanel Vm="Shop" OnClose="ClosePanel" />
+                    break;
             }
         </Center>
         <Right>
@@ -132,8 +144,8 @@ else
             }
             else if (_panel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0)
             {
-                (Guid inviteId, string coopName) = Coop.Invites[0];
-                <ConfirmDialog Title="@Coop.Text("Coop_InviteTitle")" Message="@Coop.Text("Coop_InviteMessage", coopName)"
+                (Guid inviteId, string coopName, string inviter) = Coop.Invites[0];
+                <ConfirmDialog Title="@Coop.Text("Coop_InviteTitle")" Message="@(inviter.Length > 0 ? Coop.Text("Coop_InviteMessageFrom", coopName, inviter) : Coop.Text("Coop_InviteMessage", coopName))"
                                ConfirmText="@Coop.Text("Coop_Accept")" CancelText="@Coop.Text("Coop_Decline")"
                                OnConfirm="@(() => Coop.Respond(inviteId, true))" OnCancel="@(() => Coop.Respond(inviteId, false))" />
             }
@@ -151,11 +163,13 @@ else
     {
         Form.SignedIn += OnSignedIn;
         Form.SessionUpdated += Keeper.UpdateSession;
+        Form.SessionUpdated += OnSessionUpdated;
         Form.SignedOut += OnSignedOut;
         Form.Changed += OnFormChanged;
         Keeper.SessionEnded += OnSessionEnded;
         Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
         GameLoop.PanelToggleRequested += OnPanelKey;
+        GameLoop.ShopRequested += OnShopRequested;
         GameLoop.PanelCloseRequested += OnCloseKey;
         Trade.WantsOpen += OnTradeWantsOpen;
         Trade.Changed += OnViewModelChanged;
@@ -175,22 +189,39 @@ else
     {
         Form.SignedIn -= OnSignedIn;
         Form.SessionUpdated -= Keeper.UpdateSession;
+        Form.SessionUpdated -= OnSessionUpdated;
         Form.SignedOut -= OnSignedOut;
         Form.Changed -= OnFormChanged;
         Keeper.SessionEnded -= OnSessionEnded;
         Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
         GameLoop.PanelToggleRequested -= OnPanelKey;
+        GameLoop.ShopRequested -= OnShopRequested;
         GameLoop.PanelCloseRequested -= OnCloseKey;
         Trade.WantsOpen -= OnTradeWantsOpen;
         Trade.Changed -= OnViewModelChanged;
         Coop.Changed -= OnViewModelChanged;
     }
 
+    // A guest registered under a nickname: the profile shows it.
+    private void OnSessionUpdated(AccountSession session) => Profile.Begin(session.Nickname);
+
     // The first quest was finished: the session bar now offers the registration (the form's session is the one it shows).
     private void OnPromptUnlocked() => Form.UnlockRegistrationPrompt();
 
     // A panel key was pressed in the game (raised from the frame loop).
     private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind));
+
+    // The action key next to a shop counter (raised from the frame): open that shop.
+    private void OnShopRequested(int shopId) => _ = InvokeAsync(() =>
+    {
+        if (_panel != PanelKind.Shop)
+        {
+            Shop.Open(shopId);
+            _panel = PanelKind.Shop;
+            Toolbar.Active = _panel;
+            StateHasChanged();
+        }
+    });
 
     // Escape: leave the upgrade form, or else close the open panel.
     private void OnCloseKey() => _ = InvokeAsync(() =>
@@ -258,6 +289,7 @@ else
     private void OnSignedIn(AccountSession session)
     {
         Keeper.SignedIn(session);
+        Profile.Begin(session.Nickname);
         _signedIn = true;
         _ = InvokeAsync(async () =>
         {

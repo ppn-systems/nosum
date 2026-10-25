@@ -53,10 +53,26 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
 
+                    b.Property<string>("Nickname")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("nickname");
+
+                    b.Property<DateTimeOffset?>("NicknameChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("nickname_changed_at");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
                         .HasColumnName("normalized_email");
+
+                    b.Property<string>("NormalizedNickname")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("normalized_nickname");
 
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(256)
@@ -73,6 +89,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.HasIndex("NormalizedEmail")
                         .IsUnique()
                         .HasDatabaseName("ix_players_normalized_email");
+
+                    b.HasIndex("NormalizedNickname")
+                        .IsUnique()
+                        .HasDatabaseName("ix_players_normalized_nickname");
 
                     b.HasIndex("IsGuest", "LastActiveAt")
                         .HasDatabaseName("ix_players_is_guest_last_active_at");

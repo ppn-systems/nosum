@@ -14,12 +14,13 @@ public interface IAccountService
     /// <summary>Creates a registered account and issues a session token.</summary>
     /// <param name="email">Wanted login, a @gmail.com address.</param>
     /// <param name="password">Wanted password.</param>
+    /// <param name="nickname">Wanted display nickname (<c>NicknameRules</c>); must be free.</param>
     /// <param name="language">Preferred language; Unspecified selects Vietnamese.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Ok with a session, or a refusal code.</returns>
-    Task<AccountOutcome> RegisterAsync(string email, string password, GameLanguage language, CancellationToken cancellationToken);
+    Task<AccountOutcome> RegisterAsync(string email, string password, string nickname, GameLanguage language, CancellationToken cancellationToken);
 
-    /// <summary>Creates a guest player (no e-mail, no password) and issues a session token so the guest can resume.</summary>
+    /// <summary>Creates a guest player (no e-mail, no password, a neutral nickname such as <c>guest-1234</c>) and issues a session token so the guest can resume.</summary>
     /// <param name="language">Preferred language; Unspecified selects Vietnamese.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Ok with a guest session, or <see cref="AccountStatus.InvalidLanguage"/>.</returns>
@@ -33,9 +34,10 @@ public interface IAccountService
     /// <param name="sessionId">The session being replaced, taken from the connection identity.</param>
     /// <param name="email">Wanted login, a @gmail.com address.</param>
     /// <param name="password">Wanted password.</param>
+    /// <param name="nickname">Wanted display nickname, replacing the guest's neutral one.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Ok with the new session, <see cref="AccountStatus.NotGuest"/>, or a validation refusal.</returns>
-    Task<AccountOutcome> UpgradeGuestAsync(Guid playerId, Guid sessionId, string email, string password, CancellationToken cancellationToken);
+    Task<AccountOutcome> UpgradeGuestAsync(Guid playerId, Guid sessionId, string email, string password, string nickname, CancellationToken cancellationToken);
 
     /// <summary>Checks credentials and issues a session token.</summary>
     /// <param name="email">The login e-mail.</param>
@@ -62,4 +64,14 @@ public interface IAccountService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Ok or <see cref="AccountStatus.InvalidLanguage"/>.</returns>
     Task<AccountStatus> SetLanguageAsync(Guid playerId, GameLanguage language, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Changes a player's nickname: validated (<c>NicknameRules</c>), unique case-insensitively, and allowed once every 24 hours
+    /// (the first change is free). Asking for the nickname the player already has changes nothing and does not start the wait.
+    /// </summary>
+    /// <param name="playerId">The player, taken from the connection identity.</param>
+    /// <param name="nickname">The wanted nickname.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>Ok, or <see cref="AccountStatus.InvalidNickname"/>, <see cref="AccountStatus.NicknameReserved"/>, <see cref="AccountStatus.NicknameTaken"/>, <see cref="AccountStatus.NicknameTooSoon"/>.</returns>
+    Task<NicknameOutcome> SetNicknameAsync(Guid playerId, string nickname, CancellationToken cancellationToken);
 }

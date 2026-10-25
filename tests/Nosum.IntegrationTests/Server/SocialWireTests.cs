@@ -14,7 +14,13 @@ using Microsoft.EntityFrameworkCore;
 using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nosum.Abstractions.Inventory;
+using Nosum.Contracts.Account;
+using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Coop;
+using Nosum.Contracts.Shop;
+using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Players;
+using Nosum.Gameplay.Shops;
 using Nosum.Contracts.Look;
 using Nosum.Contracts.Look.S2C;
 using Nosum.Contracts.Market;
@@ -62,7 +68,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
             await b.JoinAsync(ct);
 
             // A new player (a guest too) has the default look; the second client learns it of the first on joining.
-            (await a.GetLooksAsync(ct)).Single(l => l.PlayerId == a.MapPlayerId).Should().BeEquivalentTo(new LookRow { PlayerId = a.MapPlayerId, SkinId = 1, HairStyleId = 1, HairDyeId = 1 });
+            (await a.GetLooksAsync(ct)).Single(l => l.PlayerId == a.MapPlayerId).Should().BeEquivalentTo(new LookRow { PlayerId = a.MapPlayerId, SkinId = 1, HairStyleId = 1, HairDyeId = 1, Nickname = a.Nickname });
             LookRow[] seenByB = await b.GetLooksAsync(ct);
             seenByB.Select(l => l.PlayerId).Should().BeEquivalentTo([a.MapPlayerId, b.MapPlayerId]);
             (await a.Looks.WaitAsync(l => l.PlayerId == b.MapPlayerId, ct)).SkinId.Should().Be(1, "the joiner's look is announced to the map");
@@ -74,7 +80,13 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
             LookRow changed = await b.Looks.WaitAsync(l => l.PlayerId == a.MapPlayerId && l.SkinId == 3, ct);
             (changed.HairStyleId, changed.HairDyeId).Should().Be(((byte)4, (byte)2));
 
-            // Clothing comes out of the inventory: only owned clothing can be worn, and what was worn goes back.
+            // Clothing comes out of the inventory: only owned clothing can be worn, and what was worn goes back. New players own none, so the tester grant supplies it.
+            (await a.CountAsync(ItemCatalog.ShirtRed, ct)).Should().Be(0, "new players start without clothes");
+            foreach (int clothes in new[] { ItemCatalog.ShirtRed, ItemCatalog.ShirtGreen, ItemCatalog.HatCap })
+            {
+                (await a.GrantAsync(clothes, 1, 0, ct)).Should().BeTrue();
+            }
+
             int red = await a.SlotOfAsync(ItemCatalog.ShirtRed, ct);
             (await a.EquipAsync(0, ItemCatalog.Hoe, ct)).Should().Be(LookStatus.NotWearable);
             (await a.EquipAsync(30, ItemCatalog.ShirtGreen, ct)).Should().Be(LookStatus.InvalidSlot);
@@ -350,6 +362,103 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         return (a, b);
     }
 
+    [Fact]
+    public async Task Shop_BuyOverTheWire_NeedsTheCounter_TakesCoinsAndGivesTheItem()
+    {
+        await using Server server = await Server.StartAsync(_database);
+        CancellationToken ct = server.Token;
+        await using SocialClient far = await SocialClient.ConnectAsync(server.Port, ct);
+        await far.JoinAsync(ct);
+        (await far.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 1, ct)).Status.Should().Be(ShopStatus.NotAtShop, "the bus stop has no shop");
+
+        _ = GameMaps.TryGet(GameMaps.Town, out MapSpec? town);
+        ShopPoint counter = town!.Shops[0];
+        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct, (GameMaps.Town, (counter.TileX * 16) + 8, (counter.TileY * 16) + 8));
+        await buyer.JoinAsync(ct);
+
+        (await buyer.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.Hoe, 1, ct)).Status.Should().Be(ShopStatus.NotSold);
+        (await buyer.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 0, ct)).Status.Should().Be(ShopStatus.InvalidQuantity);
+        (await buyer.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.BlueCouch, 2, ct)).Status.Should().Be(ShopStatus.NotEnoughCoins);
+        (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins);
+
+        (await buyer.BuyFromShopAsync(ShopCatalog.GeneralStore, ItemCatalog.OakChair, 2, ct)).Should().Be((ShopStatus.Ok, 200));
+        (await buyer.Wallet.WaitAsync(c => c == 300, ct)).Should().Be(300);
+        (await buyer.Slots.WaitAsync(s => s.ItemId == ItemCatalog.OakChair && s.Quantity == 2, ct)).Quantity.Should().Be(2);
+        (await buyer.CountAsync(ItemCatalog.OakChair, ct)).Should().Be(2);
+        (await buyer.CountAsync(ItemCatalog.ShirtRed, ct)).Should().Be(0, "no clothes in the starter kit");
+    }
+
+    [Fact]
+    public async Task Nicknames_AreSentWithTheLook_SeenByTheOtherClient_AndRenamesArePushedAndRateLimitedByTheDay()
+    {
+        await using Server server = await Server.StartAsync(_database);
+        CancellationToken ct = server.Token;
+        await using SocialClient a = await SocialClient.ConnectAsync(server.Port, ct);
+        await using SocialClient b = await SocialClient.ConnectAsync(server.Port, ct);
+        await a.JoinAsync(ct);
+        await b.JoinAsync(ct);
+        NicknameRules.IsGuestName(a.Nickname, out _).Should().BeTrue("a guest has a neutral name the client localizes");
+
+        LookRow[] seenByB = await b.GetLooksAsync(ct);
+        seenByB.Single(l => l.PlayerId == a.MapPlayerId).Nickname.Should().Be(a.Nickname);
+        seenByB.Single(l => l.PlayerId == b.MapPlayerId).Nickname.Should().Be(b.Nickname);
+
+        string chosen = "Nguyễn Văn_An";
+        NicknameResult renamed = await a.SetNicknameAsync(chosen, ct);
+        renamed.Status.Should().Be(AccountStatus.Ok);
+        renamed.Nickname.Should().Be(chosen);
+        (await b.Looks.WaitAsync(l => l.PlayerId == a.MapPlayerId && l.Nickname == chosen, ct)).Nickname.Should().Be(chosen);
+
+        NicknameResult again = await a.SetNicknameAsync("Another_Name", ct);
+        again.Status.Should().Be(AccountStatus.NicknameTooSoon);
+        again.NextChangeAtMs.Should().BeGreaterThan(0);
+        (await b.SetNicknameAsync("nguyễn văn an", ct)).Status.Should().Be(AccountStatus.NicknameTaken, "case-insensitive, underscore reads as a space");
+        (await b.SetNicknameAsync("Admin", ct)).Status.Should().Be(AccountStatus.NicknameReserved);
+        (await b.SetNicknameAsync("x", ct)).Status.Should().Be(AccountStatus.InvalidNickname);
+    }
+
+    [Fact]
+    public async Task Market_ListingsCarryTheSellerNickname_AndTheFeeIsDestroyed()
+    {
+        await using Server server = await Server.StartAsync(_database);
+        CancellationToken ct = server.Token;
+        await using SocialClient seller = await SocialClient.ConnectAsync(server.Port, ct);
+        await using SocialClient buyer = await SocialClient.ConnectAsync(server.Port, ct);
+        await seller.JoinAsync(ct);
+        await buyer.JoinAsync(ct);
+        (await seller.GrantAsync(ItemCatalog.OakChair, 1, 0, ct)).Should().BeTrue();
+        int slot = await seller.SlotOfAsync(ItemCatalog.OakChair, ct);
+        (await seller.ListAsync(slot, ItemCatalog.OakChair, 1, 400, ct)).Should().Be(MarketStatus.Ok);
+
+        (int total, ListingRow[] rows) = await buyer.BrowseAsync([ItemCatalog.OakChair], ct);
+
+        total.Should().BeGreaterThanOrEqualTo(1);
+        rows.Should().Contain(r => r.SellerNickname == seller.Nickname && !r.IsMine);
+        (await buyer.BuyAsync(rows.First(r => r.SellerNickname == seller.Nickname).ListingId, ct)).Should().Be(MarketStatus.Ok);
+        (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins - 400);
+        (await seller.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins + 380, "the 5 % fee (20 coins) left the economy");
+    }
+
+    [Fact]
+    public async Task DevGrant_InDevelopment_Works_AndInProductionTheOpcodeIsNotHandledAtAll()
+    {
+        await using (Server development = await Server.StartAsync(_database, development: true))
+        {
+            await using SocialClient a = await SocialClient.ConnectAsync(development.Port, development.Token);
+            await a.JoinAsync(development.Token);
+            (await a.GrantAsync(ItemCatalog.OakChair, 3, 700, development.Token)).Should().BeTrue();
+            (await a.CountAsync(ItemCatalog.OakChair, development.Token)).Should().Be(3);
+            (await a.CoinsAsync(development.Token)).Should().Be(CoinRules.StartingCoins + 700);
+        }
+
+        await using Server production = await Server.StartAsync(_database, development: false);
+        await using SocialClient b = await SocialClient.ConnectAsync(production.Port, production.Token);
+        await b.JoinAsync(production.Token);
+        (await b.GrantIsAnsweredAsync(production.Token)).Should().BeFalse("Production never maps the tester handler");
+        (await b.CountAsync(ItemCatalog.OakChair, production.Token)).Should().Be(0);
+        (await b.CoinsAsync(production.Token)).Should().Be(CoinRules.StartingCoins);
+    }
+
     private static ushort GetFreePort()
     {
         using TcpListener probe = new(IPAddress.Loopback, 0);
@@ -376,11 +485,11 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         public IInventoryService Inventory => InstanceManager.Instance.GetExistingInstance<IInventoryService>()!;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The server is returned to the test, which disposes it.")]
-        public static async Task<Server> StartAsync(PostgresFixture database)
+        public static async Task<Server> StartAsync(PostgresFixture database, bool development = true)
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
-            NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start));
+            NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start), development);
             Server server = new(app, port);
             await app.ActivateAsync(server.Token);
             return server;

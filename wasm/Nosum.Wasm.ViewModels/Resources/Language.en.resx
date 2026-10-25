@@ -253,6 +253,41 @@
   <data name="Coop_Status_SelfKick" xml:space="preserve"><value>You cannot remove yourself; leave instead.</value></data>
   <data name="Coop_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>That player was already invited.</value></data>
+  <data name="Nickname_Guest" xml:space="preserve"><value>Guest {0}</value></data>
+  <data name="Account_Nickname" xml:space="preserve"><value>Nickname</value></data>
+  <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} characters: letters (accents allowed), digits, a space or underscore.</value></data>
+  <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>That nickname is not valid.</value></data>
+  <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>That nickname is not allowed.</value></data>
+  <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>That nickname is already taken.</value></data>
+  <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>You changed your nickname recently. Try again later.</value></data>
+  <data name="Toolbar_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Profile_Title" xml:space="preserve"><value>Profile</value></data>
+  <data name="Profile_Current" xml:space="preserve"><value>Current nickname: {0}</value></data>
+  <data name="Profile_NewLabel" xml:space="preserve"><value>New nickname</value></data>
+  <data name="Profile_Save" xml:space="preserve"><value>Change nickname</value></data>
+  <data name="Profile_Rule" xml:space="preserve"><value>You can change your nickname once every 24 hours.</value></data>
+  <data name="Profile_Changed" xml:space="preserve"><value>Your nickname is now {0}.</value></data>
+  <data name="Profile_NextChange" xml:space="preserve"><value>You can change it again at {0}.</value></data>
+  <data name="Shop_Title" xml:space="preserve"><value>{0} shop</value></data>
+  <data name="Shop_Name_general_store" xml:space="preserve"><value>General store</value></data>
+  <data name="Shop_Coins" xml:space="preserve"><value>Balance: {0} coins</value></data>
+  <data name="Shop_Tab_Seeds" xml:space="preserve"><value>Seeds</value></data>
+  <data name="Shop_Tab_Furniture" xml:space="preserve"><value>Furniture</value></data>
+  <data name="Shop_Tab_Clothing" xml:space="preserve"><value>Clothing</value></data>
+  <data name="Shop_Quantity" xml:space="preserve"><value>Quantity</value></data>
+  <data name="Shop_Buy" xml:space="preserve"><value>Buy</value></data>
+  <data name="Shop_Price" xml:space="preserve"><value>{0} coins</value></data>
+  <data name="Shop_Done" xml:space="preserve"><value>Bought. It is in your inventory.</value></data>
+  <data name="Shop_Hint" xml:space="preserve"><value>Pick what to buy. Prices are per item.</value></data>
+  <data name="Shop_Status_UnknownShop" xml:space="preserve"><value>There is no such shop.</value></data>
+  <data name="Shop_Status_NotSold" xml:space="preserve"><value>The shop does not sell that.</value></data>
+  <data name="Shop_Status_InvalidQuantity" xml:space="preserve"><value>That quantity is not valid.</value></data>
+  <data name="Shop_Status_NotAtShop" xml:space="preserve"><value>You are too far from the counter.</value></data>
+  <data name="Shop_Status_NotEnoughCoins" xml:space="preserve"><value>You do not have enough coins.</value></data>
+  <data name="Shop_Status_NoSpace" xml:space="preserve"><value>Your inventory is full.</value></data>
+  <data name="Shop_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Market_Seller" xml:space="preserve"><value>Seller: {0}</value></data>
+  <data name="Coop_InviteMessageFrom" xml:space="preserve"><value>{1} invites you to the co-op "{0}".</value></data>
   <data name="Game_Title" xml:space="preserve"><value>Nosum</value></data>
   <data name="Game_Tagline" xml:space="preserve"><value>An online farm to grow together</value></data>
   <data name="Game_Loading" xml:space="preserve"><value>Entering the world…</value></data>
@@ -276,4 +311,5 @@
   <data name="Help_Rotate" xml:space="preserve"><value>Rotate the piece</value></data>
   <data name="Help_Grab" xml:space="preserve"><value>Pick up the piece in front to move it</value></data>
   <data name="Help_PickUp" xml:space="preserve"><value>Put the piece in the bag</value></data>
+  <data name="Help_Profile" xml:space="preserve"><value>Open the profile (change nickname)</value></data>
 </root>

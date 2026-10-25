@@ -1,6 +1,6 @@
 # ADR-013 — Economy: coins, one atomic transfer, shipping bin, consignment market, direct trade
 
-**Status:** Accepted (owner approval, 2026-10-25). Amendments pending: no furniture or clothing in the starter kit (bought instead); player nicknames.
+**Status:** Accepted (owner approval, 2026-10-25). Amended 2026-10-25: starter kit, town shop, market fee sink (see Amendments).
 
 ## Context
 
@@ -85,5 +85,34 @@ names, or the fee should be a sink with a recipient (a town fund).
 
 ## Open owner questions
 
-Starting coins (500), fee (5 %), listing time (48 h), listing limit (20), shipping prices, price bounds against cornering, trade invitation lifetime (30 s), whether the
-fee goes to a community goal ([pillar 3](../design/pillars.md)).
+Starting coins (500), fee (5 %), listing time (48 h), listing limit (20), shipping prices, price bounds against cornering, trade invitation lifetime (30 s), the fee goes nowhere (decided 2026-10-25: a coin sink).
+
+## Amendments
+
+### 2026-10-25 - starter kit, the town shop, the fee sink (owner decisions)
+
+- **A1 - Starter kit.** A new player and every guest start with the hoe, the watering can and seeds (8 parsnip, 6 radish, 4 cauliflower) and nothing else
+  (`StarterKit`). The seven furniture pieces and five clothes they used to receive are gone; `LookService` no longer gives a starter wardrobe either. The default
+  look still has the plain shirt and trousers (item id zero in `PlayerLook`), so the look system needs no clothing item. Players created before this change keep what they
+  were given.
+- **A2 - Shop.** Furniture and clothing are bought for coins at a shop in the Town (a public map), and seeds are sold there too, so coins have a use besides the market.
+  - *Data.* A shop is `ShopDefinition` in `ShopCatalog` (`Nosum.Gameplay/Shops`): stable id, key (`Shop_Name_<key>` text), price list; stock is unlimited. Where it is
+    served is `MapSpec.Shops` (`ShopPoint`: shop id and counter tile), so another shop is one catalogue entry and one map point. The general store's point is the doormat
+    in front of Pierre's store in `Town.tmx` (tile 43, 57).
+  - *Wire.* New band `0xC000-0xC0FF`: `BuyFromShop` (shop id, item id, quantity; encrypted, USER, rate limited 8 per 4 s) and `ShopResult` (`ShopStatus`, coins spent). The
+    client lists the offers from the same shared catalogue, so no catalogue packet exists; the items and coins arrive as the usual inventory and wallet pushes.
+  - *Rules.* `ShopRules.Price` checks the shop, that it sells the item and a quantity of 1 to a stack. `ShopService` then checks the player's own presence record is on the
+    shop's map within 40 px of the counter tile, and runs one `ITransferService` transfer (coins out, items in, reason `shop.buy`): not enough coins, no room or a lost race
+    change nothing. Opening the panel is client-side (the action key next to the counter); the server re-checks on every purchase.
+  - *Prices (defaults, owner questions).* Seeds: parsnip 10, radish 15, cauliflower 30 (crops sell for 20 / 30 / 60 at the bin). Furniture: chair 100, plant 80, lamp 140, table 220,
+    bookcase 260, armchair 300, couch 400. Clothing: shirts 60, trousers 80, straw hat 50, cap 40. The 500 starting coins buy a chair, a plant and a lamp, not the range.
+- **A3 - Tester grant.** `DevGrant` (band `0xF000-0xF0FF`, `DevOpCode`) gives the sender an item stack and/or coins through the same transfer (reason `dev.grant`). The host maps
+  `DevHandlers` and registers `IDevGrantService` only when `DOTNET_ENVIRONMENT` (or `ASPNETCORE_ENVIRONMENT`) is explicitly `Development`; in Production or when unset the
+  opcode is unknown, so the frame is dropped (a test asserts no answer). The client can send it only from a build made with `-p:NosumDevTools=true` (`Game/DevTools`, called from
+  the browser console); a normal publish contains no way to ask.
+- **A4 - Market fee = coin sink (anti-inflation), owner decision 2026-10-25.** The 5 % fee stays destroyed. The sale transfer asks `IFeeSink.Collect(fee, reason)` for the legs that
+  receive it; the only implementation (`CoinSink`) returns none, so the coins leave the economy. Redirecting the fee later (to a fund) means another `IFeeSink` and nothing else.
+  The community-goal question is closed.
+- **A5 - Names.** Market listings carry `SellerNickname` ([ADR-009 amendments](ADR-009-postgresql-persistence-and-accounts.md)); `ListingRow` gained a field (protocol version 3).
+
+Open owner questions added: the shop prices above; whether the shop should have limited stock or daily price changes; a second shop (animals, tools) and where.

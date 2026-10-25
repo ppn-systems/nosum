@@ -20,4 +20,7 @@ public sealed partial class UpgradeGuest : PacketBase<UpgradeGuest>, IPacketStat
 
     /// <summary>Wanted password in plain text; never logged.</summary>
     [SerializeOrder(1)] public string Password { get; set; } = string.Empty;
+
+    /// <summary>Wanted display nickname, replacing the guest's neutral one. Appended in protocol version 3.</summary>
+    [SerializeOrder(2)] public string Nickname { get; set; } = string.Empty;
 }

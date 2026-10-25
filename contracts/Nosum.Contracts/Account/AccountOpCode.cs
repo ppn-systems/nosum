@@ -29,6 +29,9 @@ public static class AccountOpCode
     /// <summary>Ends the session: revokes its token and signs the connection out.</summary>
     public const ushort Logout = 0x1007;
 
+    /// <summary>Changes the signed-in player's nickname (at most once per 24 hours). Reply: <see cref="NicknameResult"/>.</summary>
+    public const ushort SetNickname = 0x1008;
+
     /// <summary>The reply to <see cref="Register"/>, <see cref="Login"/>, <see cref="ResumeSession"/>, <see cref="StartGuest"/>, <see cref="UpgradeGuest"/> and <see cref="Logout"/>.</summary>
     public const ushort AccountResult = 0x1081;
 
@@ -37,6 +40,9 @@ public static class AccountOpCode
 
     /// <summary>The reply to <see cref="SetLanguage"/>.</summary>
     public const ushort LanguageResult = 0x1082;
+
+    /// <summary>The reply to <see cref="SetNickname"/>.</summary>
+    public const ushort NicknameResult = 0x1086;
 
     /// <summary>Server push: the guest finished the first quest and may now be invited to register.</summary>
     public const ushort RegistrationPromptUnlocked = 0x1085;

@@ -27,6 +27,7 @@ public sealed class MapSpec
     /// <param name="farmable">Whether diggable ground on this map can be tilled and planted.</param>
     /// <param name="isPrivate">Whether every player has their own copy of the map and nobody else enters it (docs/adr/ADR-015).</param>
     /// <param name="placeable">Whether players may place furniture on its free floor.</param>
+    /// <param name="shops">Where shops are served on this map (docs/adr/ADR-013 amendments).</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -37,7 +38,8 @@ public sealed class MapSpec
         IReadOnlyList<MapWarp>? extraWarps = null,
         bool farmable = false,
         bool isPrivate = false,
-        bool placeable = false)
+        bool placeable = false,
+        IReadOnlyList<ShopPoint>? shops = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
@@ -56,6 +58,7 @@ public sealed class MapSpec
         this.Farmable = farmable;
         this.IsPrivate = isPrivate;
         this.Placeable = placeable;
+        this.Shops = shops ?? [];
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -87,6 +90,9 @@ public sealed class MapSpec
 
     /// <summary>Gets whether players may place furniture on this map.</summary>
     public bool Placeable { get; }
+
+    /// <summary>Gets the shop points of this map; empty when nothing is sold here.</summary>
+    public IReadOnlyList<ShopPoint> Shops { get; }
 
     /// <summary>Builds the walk grid: the map's own rules, the prop footprints, then the opened tiles.</summary>
     /// <param name="map">The parsed map.</param>

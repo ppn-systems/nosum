@@ -107,3 +107,24 @@ below.
 Accounts need e-mail verification, other sign-in providers or password reset; a per-account
 lockout; a pinned server key is set up; or the host runs on more than one process (the session
 registry and map presence are in-memory).
+
+## Amendments
+
+### 2026-10-25 - nicknames (owner decision)
+
+- **Every player has a display nickname.** `players.nickname` (as chosen, NFC), `normalized_nickname` (unique index) and `nickname_changed_at`. Rules (`NicknameRules`, shared by
+  server and client): trimmed and NFC-normalized, 3 to 16 characters, Unicode letters (Vietnamese diacritics included), ASCII digits, single spaces or underscores between them
+  (no leading, trailing or doubled separator), at least one letter. The uniqueness key is NFC, lower case, underscore read as a space, so "Minh_Anh" and "minh anh" are the same
+  name while "Minh" and "Mình" are different. A reserved list (admin, moderator, system, staff, gm, support, nosum, guest, khach, quản trị, hệ thống, ...) is compared after folding
+  (lower case, no diacritics, no separators, no digits), so "Ádmin", "Admin_2" and "Quản Trị" are refused too.
+- **Registration and guest upgrade ask for it.** `Register.Nickname` and `UpgradeGuest.Nickname` (appended fields; `NosumProtocol.Version` is now 3). Refusals are `AccountStatus`
+  codes `InvalidNickname`, `NicknameReserved`, `NicknameTaken`. A lost race on the unique index is a normal `NicknameTaken` (or `EmailTaken` when the e-mail was the clash).
+- **Guests.** The server stores a neutral `guest-NNNN` (4 random digits, wider after a few clashes); a hyphen is not allowed in a chosen name, so a player can never type one. The
+  client renders the localized prefix from `Nickname_Guest` ([ADR-010](ADR-010-internationalization.md): no display text on the wire). `AccountResult.Nickname` carries it.
+- **Rename.** `SetNickname` / `NicknameResult` (opcodes `0x1008` / `0x1086`, encrypted, USER, rate limited) once every 24 hours; the first change is free; asking for the current
+  nickname changes nothing and does not start the wait; a per-player lock keeps two parallel requests from both passing the wait. The reply carries when the next change is
+  allowed. After a rename the map is told through the look row ([ADR-014 amendments](ADR-014-coops-and-looks.md)). Migration `PlayerNicknames` gives existing players
+  `guest-0001`, `guest-0002`, ... in creation order.
+- **Cache.** `INicknameDirectory` resolves account id to nickname (in memory, filled on first read, updated by the account service) for looks, market sellers and co-op rows.
+- **Open owner questions:** whether letters of other scripts should be refused (Cyrillic or Greek look-alikes of Latin letters are accepted and are not caught by the reserved
+  list); whether guests may rename (built: yes, same wait); a profanity list; whether "Minh" and "Mình" should be one name.

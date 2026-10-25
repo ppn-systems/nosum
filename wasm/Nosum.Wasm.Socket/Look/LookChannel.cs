@@ -19,10 +19,11 @@ namespace Nosum.Wasm.Socket.Look;
 /// <param name="ShirtItemId">Worn shirt item id, or zero.</param>
 /// <param name="PantsItemId">Worn trousers item id, or zero.</param>
 /// <param name="HatItemId">Worn hat item id, or zero.</param>
-public readonly record struct LookInfo(int SkinId, int HairStyleId, int HairDyeId, int ShirtItemId, int PantsItemId, int HatItemId)
+/// <param name="Nickname">The player's nickname as the server sent it with the look (empty until known; a guest's neutral name is localized by the view layer).</param>
+public readonly record struct LookInfo(int SkinId, int HairStyleId, int HairDyeId, int ShirtItemId, int PantsItemId, int HatItemId, string Nickname = "")
 {
     /// <summary>Gets the look shown for a player whose look has not arrived yet (the server's default).</summary>
-    public static LookInfo Default => new(1, 1, 1, 0, 0, 0);
+    public static LookInfo Default => new(1, 1, 1, 0, 0, 0, string.Empty);
 }
 
 /// <summary>
@@ -68,6 +69,44 @@ public sealed class LookChannel : IDisposable
         }
     }
 
+    /// <summary>Looks up a player's nickname (cached with the look the server sends on join, map change and every change).</summary>
+    /// <param name="playerId">The player's id on the map.</param>
+    /// <param name="nickname">The nickname when known and not empty.</param>
+    /// <returns><see langword="true"/> when the server sent this player's nickname.</returns>
+    public bool TryGetNickname(uint playerId, [NotNullWhen(true)] out string? nickname)
+    {
+        lock (_gate)
+        {
+            if (_looks.TryGetValue(playerId, out LookInfo look) && !string.IsNullOrEmpty(look.Nickname))
+            {
+                nickname = look.Nickname;
+                return true;
+            }
+        }
+
+        nickname = null;
+        return false;
+    }
+
+    /// <summary>Copies the nicknames of everyone whose look is known (a copy, for the label cache; not for the frame).</summary>
+    /// <returns>The distinct nicknames.</returns>
+    public string[] KnownNicknames()
+    {
+        lock (_gate)
+        {
+            HashSet<string> names = [];
+            foreach (LookInfo look in _looks.Values)
+            {
+                if (!string.IsNullOrEmpty(look.Nickname))
+                {
+                    _ = names.Add(look.Nickname);
+                }
+            }
+
+            return [.. names];
+        }
+    }
+
     /// <summary>Looks up the local player's look.</summary>
     /// <param name="look">The look when known.</param>
     /// <returns><see langword="true"/> when the server sent it.</returns>
@@ -98,7 +137,7 @@ public sealed class LookChannel : IDisposable
     {
         lock (_gate)
         {
-            _looks[row.PlayerId] = new LookInfo(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId);
+            _looks[row.PlayerId] = new LookInfo(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId, row.Nickname);
         }
 
         this.Changed?.Invoke();
@@ -128,7 +167,7 @@ public sealed class LookChannel : IDisposable
                 _looks.Clear();
                 foreach (LookRow row in snapshot.Looks)
                 {
-                    _looks[row.PlayerId] = new LookInfo(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId);
+                    _looks[row.PlayerId] = new LookInfo(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId, row.Nickname);
                 }
             }
 

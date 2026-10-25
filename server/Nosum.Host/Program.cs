@@ -23,11 +23,13 @@ using Nosum.Abstractions.Market;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Trade;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
 using Nosum.Handlers.Coop;
+using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
@@ -35,9 +37,11 @@ using Nosum.Handlers.Market;
 using Nosum.Handlers.Placeable;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
+using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Coops;
+using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
 using Nosum.Infrastructure.Inventory;
@@ -49,6 +53,7 @@ using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
 using Nosum.Infrastructure.Quests;
+using Nosum.Infrastructure.Shops;
 using Nosum.Infrastructure.Trade;
 
 namespace Nosum.Host;
@@ -90,7 +95,7 @@ internal static class Program
             ex => Console.Error.WriteLine("Guest cleanup failed: " + ex.Message),
             shutdown.Token);
 
-        NetworkApplication app = BuildApplication(WebSocketPort);
+        NetworkApplication app = BuildApplication(WebSocketPort, null, IsDevelopment());
 
         // Listings past their expiry give their items back to the sellers (docs/adr/ADR-013).
         IMarketService market = InstanceManager.Instance.GetExistingInstance<IMarketService>()
@@ -109,6 +114,18 @@ internal static class Program
         await marketExpiry.ConfigureAwait(false);
 
         return 0;
+    }
+
+    /// <summary>
+    /// Tells whether the host was started in the Development environment: only an explicit <c>DOTNET_ENVIRONMENT</c> or
+    /// <c>ASPNETCORE_ENVIRONMENT</c> of <c>Development</c> counts; an unset variable is not development (tester tools stay off).
+    /// </summary>
+    /// <returns><see langword="true"/> in Development.</returns>
+    internal static bool IsDevelopment()
+    {
+        string? environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        return string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -131,12 +148,13 @@ internal static class Program
     /// </summary>
     /// <param name="webSocketPort">Port the WebSocket listener binds to.</param>
     /// <param name="clock">The clock crops grow by and quests and audit entries are stamped with; tests pass a fake one. Defaults to the system clock.</param>
+    /// <param name="development">Whether the host runs in the Development environment. Only then are the tester tools (<see cref="DevHandlers"/>) registered; Production never maps them.</param>
     /// <returns>The built, not yet activated, application.</returns>
-    internal static NetworkApplication BuildApplication(ushort webSocketPort, TimeProvider? clock = null)
+    internal static NetworkApplication BuildApplication(ushort webSocketPort, TimeProvider? clock = null, bool development = false)
     {
-        RegisterServices(clock ?? TimeProvider.System);
+        RegisterServices(clock ?? TimeProvider.System, development);
 
-        return NetworkApplication.CreateBuilder()
+        INetworkApplicationBuilder builder = NetworkApplication.CreateBuilder()
             .UseGroups()
             .UseTimeSync()
             .UseSystemControl()
@@ -151,6 +169,15 @@ internal static class Program
             .MapHandlers(typeof(TradeHandlers))
             .MapHandlers(typeof(CoopHandlers))
             .MapHandlers(typeof(PlaceableHandlers))
+            .MapHandlers(typeof(ShopHandlers));
+
+        // Tester tools exist only in Development: no handler, no service, no opcode in Production.
+        if (development)
+        {
+            builder = builder.MapHandlers(typeof(DevHandlers));
+        }
+
+        return builder
             .ConfigureDispatchOptions(o =>
             {
                 // Fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
@@ -166,7 +193,7 @@ internal static class Program
 
     // Services are registered before the builder so [Inject] fields of the handlers resolve them.
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player, trade and co-op services live as long as the process; the snapshot loop ends by itself when the last player leaves.")]
-    private static void RegisterServices(TimeProvider clock)
+    private static void RegisterServices(TimeProvider clock, bool development)
     {
         IConnectionGroupRegistry groups = new InMemoryGroupStore();
         InstanceManager.Instance.Register(groups);
@@ -204,9 +231,20 @@ internal static class Program
         // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
-        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, clock));
-        InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, clock));
+        INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
+
+        // The market fee is a coin sink (owner decision 2026-10-25); IFeeSink is the one place that would redirect it.
+        InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
+        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock));
+        InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps));
+        if (development)
+        {
+            InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));
+        }
+
+        InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, nicknames, clock));
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
-        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, clock));
+        InstanceManager.Instance.Register<ICoopService>(new CoopService(unitOfWork, transfers, presence, sessions, notifier, nicknames, clock));
     }
 }
