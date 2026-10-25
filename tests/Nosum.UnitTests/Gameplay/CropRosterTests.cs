@@ -138,7 +138,11 @@ public sealed class CropRosterTests
 
         crop.Should().BeSameAs(tomato);
         next.CropId.Should().Be(CropCatalog.Tomato, "the plant stays");
-        next.PlantedAtMs.Should().Be(summer, "it withers with its season, as before");
+        next.PlantedAtMs.Should().Be(Noon(day), "regrowth counts from the harvest (docs/adr/ADR-027 D2)");
+        long fall = summer + s_calendar.SeasonLengthMs;
+        long winter = fall + s_calendar.SeasonLengthMs;
+        FarmRules.IsWithered(next, winter + 1, s_calendar).Should().Be(FarmRules.IsWithered(ripe, winter + 1, s_calendar), "it withers with its season, as before");
+        FarmRules.IsWithered(next, fall - 1, s_calendar).Should().Be(FarmRules.IsWithered(ripe, fall - 1, s_calendar));
         next.GrowthDays.Should().Be(tomato.TotalGrowthDays - tomato.RegrowDays);
         FarmRules.IsMature(next, Noon(day), s_calendar).Should().BeFalse();
         FarmRules.StageAt(next, Noon(day), s_calendar).Should().Be(tomato.StageCount - 2);
@@ -147,26 +151,27 @@ public sealed class CropRosterTests
     [Fact]
     public void Harvest_RegrowingCrop_BearsAgainAfterExactlyItsRegrowDaysOfWatering()
     {
+        // Indoors, so rain never waters the plant: only the hand watering below counts (docs/adr/ADR-027 D2).
         CropDefinition bean = CropCatalog.All.Single(c => c.Id == CropCatalog.GreenBean);
         int start = 2;
         FarmRules.Plant(FarmTile.Bare, CropCatalog.GreenBean, Noon(start), s_calendar, out FarmTile tile).Should().Be(FarmVerdict.Ok);
         int day = start;
         for (int watered = 0; watered < bean.TotalGrowthDays; watered++, day++)
         {
-            FarmRules.Water(tile, Noon(day), s_calendar, out tile).Should().Be(FarmVerdict.Ok);
+            FarmRules.Water(tile, Noon(day), s_calendar, out tile, outdoors: false).Should().Be(FarmVerdict.Ok);
         }
 
-        FarmRules.IsMature(tile, Midnight(day), s_calendar).Should().BeTrue("the first crop is ready");
-        FarmRules.Harvest(tile, Midnight(day), s_calendar, out tile, out _).Should().Be(FarmVerdict.Ok);
+        FarmRules.IsMature(tile, Midnight(day), s_calendar, outdoors: false).Should().BeTrue("the first crop is ready");
+        FarmRules.Harvest(tile, Midnight(day), s_calendar, out tile, out _, outdoors: false).Should().Be(FarmVerdict.Ok);
 
         for (int watered = 0; watered < bean.RegrowDays; watered++, day++)
         {
-            FarmRules.IsMature(tile, Midnight(day), s_calendar).Should().BeFalse($"{watered} of {bean.RegrowDays} regrow days");
-            FarmRules.Water(tile, Noon(day), s_calendar, out tile).Should().Be(FarmVerdict.Ok);
+            FarmRules.IsMature(tile, Midnight(day), s_calendar, outdoors: false).Should().BeFalse($"{watered} of {bean.RegrowDays} regrow days");
+            FarmRules.Water(tile, Noon(day), s_calendar, out tile, outdoors: false).Should().Be(FarmVerdict.Ok);
         }
 
-        FarmRules.IsMature(tile, Midnight(day), s_calendar).Should().BeTrue("bears again after its regrow days");
-        FarmRules.Harvest(tile, Midnight(day), s_calendar, out tile, out CropDefinition? second).Should().Be(FarmVerdict.Ok, "and can be harvested a second time");
+        FarmRules.IsMature(tile, Midnight(day), s_calendar, outdoors: false).Should().BeTrue("bears again after its regrow days");
+        FarmRules.Harvest(tile, Midnight(day), s_calendar, out tile, out CropDefinition? second, outdoors: false).Should().Be(FarmVerdict.Ok, "and can be harvested a second time");
         second!.Id.Should().Be(CropCatalog.GreenBean);
         tile.CropId.Should().Be(CropCatalog.GreenBean);
     }
@@ -174,15 +179,16 @@ public sealed class CropRosterTests
     [Fact]
     public void Harvest_RegrowingCropWateredTheSameDay_CountsThatWateringForTheRegrowth()
     {
+        // Indoors, so rain never waters the plant: only the hand watering below counts (docs/adr/ADR-027 D2).
         CropDefinition tomato = CropCatalog.All.Single(c => c.Id == CropCatalog.Tomato);
         long summer = s_calendar.EpochMs + s_calendar.SeasonLengthMs;
         int day = s_calendar.DayNumberAt(summer) + 1;
         FarmTile ripe = new(CropCatalog.Tomato, summer, tomato.TotalGrowthDays, day, 0);
 
-        FarmRules.Harvest(ripe, Noon(day), s_calendar, out FarmTile next, out _).Should().Be(FarmVerdict.Ok);
+        FarmRules.Harvest(ripe, Noon(day), s_calendar, out FarmTile next, out _, outdoors: false).Should().Be(FarmVerdict.Ok);
 
         next.WateredDay.Should().Be(day, "today's water is not lost");
-        FarmRules.GrowthDaysAt(next, Midnight(day + 1), s_calendar).Should().Be(tomato.GrowthDaysAfterHarvest + 1);
+        FarmRules.GrowthDaysAt(next, Midnight(day + 1), s_calendar, outdoors: false).Should().Be(tomato.GrowthDaysAfterHarvest + 1);
     }
 
     [Fact]

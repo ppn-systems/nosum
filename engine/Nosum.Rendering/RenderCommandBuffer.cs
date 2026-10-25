@@ -16,6 +16,12 @@ namespace Nosum.Rendering;
 /// <see cref="NoTint"/> meaning none. A draw with texture <see cref="BlackFill"/> fills a rectangle with black at the opacity in <c>tint</c>
 /// (<see cref="FillBlack"/>). A draw with texture <see cref="LabelTexture"/> draws a pre-rendered text label (<see cref="DrawLabel"/>): <c>srcX</c> is the label id
 /// the backend was given by <see cref="LabelRegistry"/>, the destination is the label's bottom centre. <c>renderer.js</c> decodes the same layout.
+/// <para>
+/// Appended for docs/adr/ADR-027 (the older commands keep their meaning): a draw with texture <see cref="FillTexture"/> fills a coloured rectangle (<see cref="FillRect"/>,
+/// <c>tint</c> is <c>0xRRGGBBAA</c>); a draw with texture <see cref="LightTexture"/> adds a light source for this frame (<see cref="AddLight"/>: centre in <c>dstX, dstY</c>,
+/// radius in <c>srcW</c>); a draw with texture <see cref="AmbientTexture"/> composites the ambient tint over everything drawn so far, cutting the frame's lights out of it
+/// (<see cref="SetAmbient"/>: <c>srcX, srcY, srcW, srcH</c> hold red, green, blue and opacity).
+/// </para>
 /// </remarks>
 public sealed class RenderCommandBuffer
 {
@@ -34,10 +40,23 @@ public sealed class RenderCommandBuffer
     /// <summary>Texture id of a command that draws a text label instead of a sprite; <c>srcX</c> then holds the label id (see <see cref="LabelRegistry"/>).</summary>
     public const int LabelTexture = -3;
 
+    /// <summary>Texture id of a command that composites the ambient tint (docs/adr/ADR-027 D4); <c>srcX..srcH</c> then hold red, green, blue and opacity, 0 to 255.</summary>
+    public const int AmbientTexture = -4;
+
+    /// <summary>Texture id of a command that adds a light source for the ambient pass of this frame (docs/adr/ADR-027 D5); <c>srcW</c> then holds the radius and the destination the centre.</summary>
+    public const int LightTexture = -5;
+
+    /// <summary>Texture id of a command that fills a rectangle with a colour; <c>tint</c> then holds <c>0xRRGGBBAA</c> (rain and snow, docs/adr/ADR-027 D6).</summary>
+    public const int FillTexture = -6;
+
+    /// <summary>Most light sources one frame may carry; further ones are dropped (docs/adr/ADR-027 D5).</summary>
+    public const int MaxLights = 64;
+
     /// <summary>Flag: mirror the sprite horizontally.</summary>
     public const int FlipX = 1;
 
     private readonly int[] _data;
+    private int _lights;
 
     /// <summary>Initializes a buffer.</summary>
     /// <param name="capacity">Maximum draws per frame.</param>
@@ -51,6 +70,9 @@ public sealed class RenderCommandBuffer
     /// <summary>Gets the maximum number of draws per frame.</summary>
     public int Capacity { get; }
 
+    /// <summary>Gets the number of light sources recorded since <see cref="Begin"/>.</summary>
+    public int LightCount => _lights;
+
     /// <summary>Gets the number of draws recorded since <see cref="Begin"/>.</summary>
     public int Count { get; private set; }
 
@@ -60,6 +82,7 @@ public sealed class RenderCommandBuffer
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(scale);
         this.Count = 0;
+        _lights = 0;
         _data[1] = scale;
     }
 
@@ -106,6 +129,56 @@ public sealed class RenderCommandBuffer
         if (opacity > 0)
         {
             this.Draw(BlackFill, 0, 0, width, height, 0, 0, 0, Math.Min(opacity, 255));
+        }
+    }
+
+    /// <summary>Records a coloured rectangle in unscaled screen pixels. Nothing is recorded for a fully transparent colour or an empty rectangle.</summary>
+    /// <param name="x">Left, unscaled screen pixels.</param>
+    /// <param name="y">Top, unscaled screen pixels.</param>
+    /// <param name="width">Width, unscaled screen pixels.</param>
+    /// <param name="height">Height, unscaled screen pixels.</param>
+    /// <param name="rgba">Colour as <c>0xRRGGBBAA</c>.</param>
+    public void FillRect(int x, int y, int width, int height, int rgba)
+    {
+        if (width > 0 && height > 0 && (rgba & 0xFF) != 0)
+        {
+            this.Draw(FillTexture, 0, 0, width, height, x, y, 0, rgba);
+        }
+    }
+
+    /// <summary>
+    /// Records a light source for this frame's ambient pass: a hole in the tint around a point. At most <see cref="MaxLights"/> are kept; the caller culls to
+    /// the camera first. Record the lights before <see cref="SetAmbient"/>.
+    /// </summary>
+    /// <param name="centerX">Centre x, unscaled screen pixels.</param>
+    /// <param name="centerY">Centre y, unscaled screen pixels.</param>
+    /// <param name="radius">Radius, unscaled screen pixels.</param>
+    /// <returns><see langword="true"/> when the light was recorded.</returns>
+    public bool AddLight(int centerX, int centerY, int radius)
+    {
+        if (radius <= 0 || _lights >= MaxLights || this.Count == this.Capacity)
+        {
+            return false;
+        }
+
+        _lights++;
+        this.Draw(LightTexture, 0, 0, radius, 0, centerX, centerY);
+        return true;
+    }
+
+    /// <summary>
+    /// Records the ambient tint: one full-canvas composite over everything drawn so far, with the lights recorded before it cut out of it. Nothing is
+    /// recorded for a fully transparent tint (daylight).
+    /// </summary>
+    /// <param name="red">Red, 0 to 255.</param>
+    /// <param name="green">Green, 0 to 255.</param>
+    /// <param name="blue">Blue, 0 to 255.</param>
+    /// <param name="opacity">Opacity, 0 (none) to 255.</param>
+    public void SetAmbient(int red, int green, int blue, int opacity)
+    {
+        if (opacity > 0)
+        {
+            this.Draw(AmbientTexture, Math.Clamp(red, 0, 255), Math.Clamp(green, 0, 255), Math.Clamp(blue, 0, 255), Math.Min(opacity, 255), 0, 0);
         }
     }
 

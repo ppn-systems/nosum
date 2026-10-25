@@ -20,6 +20,7 @@ using static Nosum.UnitTests.Wasm.WasmTestSupport;
 
 namespace Nosum.UnitTests.Wasm;
 
+[Collection(SharedUiCulture.Name)]
 [SuppressMessage("Reliability", "CA2000", Justification = "Short-lived test fixtures: the fake socket owns nothing, pooled packets and channels die with the test.")]
 public sealed class ChestViewModelTests
 {

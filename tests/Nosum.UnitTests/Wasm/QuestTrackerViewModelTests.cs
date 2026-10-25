@@ -20,6 +20,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Wasm;
 
+[Collection(SharedUiCulture.Name)]
 public sealed class QuestTrackerViewModelTests
 {
     private static QuestLog Log(QuestState state, params int[] progress)

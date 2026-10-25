@@ -46,6 +46,7 @@ using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Quests;
+using Nosum.Gameplay.Weather;
 using Nosum.Host;
 using Nosum.Infrastructure.Persistence;
 using Xunit;
@@ -240,6 +241,58 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             FarmSnapshot onDayFour = await farmer.GetFarmAsync(timeout.Token);
             FarmRules.StageAt(ToTile(onDayFour.Tiles.Single(t => t.X == x && t.Y == y)), onDayFour.ServerNowMs, calendar).Should().Be(2);
             (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NotMature);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
+    public async Task Rain_OnAnUnwateredOutdoorCrop_CountsAsAWateredDayOnTheServer()
+    {
+        await ResetFarmAsync();
+        GameCalendar calendar = GameCalendar.Default;
+        int needed = CropCatalog.All[0].TotalGrowthDays;
+
+        // The first rainy day that leaves the parsnip's whole growth inside one spring-like stretch (never summer, never across a season change).
+        int rainy = Enumerable.Range(3, 400).First(day =>
+        {
+            int dayOfSeason = ((day - 1) % GameCalendar.DaysPerSeason) + 1;
+            Season season = (Season)(((day - 1) / GameCalendar.DaysPerSeason) % GameCalendar.SeasonsPerYear);
+            return WeatherRules.WatersOn(calendar, day) && season != Season.Summer && dayOfSeason + needed <= GameCalendar.DaysPerSeason;
+        });
+        FakeTimeProvider clock = new(s_start);
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = TileInReachOf(join);
+
+            // Till and plant on the rainy day and never water that day: the rain is the only water it gets.
+            clock.Advance(TimeSpan.FromTicks(s_gameDay.Ticks * (rainy - 1)));
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Action.Should().Be(FarmAction.Tilled);
+            (await farmer.UseAsync(2, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
+
+            // Water by hand on each later day. After needed - 1 more days the crop has the rain day plus needed - 2 hand days: one short.
+            for (int day = 1; day < needed - 1; day++)
+            {
+                clock.Advance(s_gameDay);
+                (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+            }
+
+            clock.Advance(s_gameDay);
+            (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+            (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NotMature, "the last watered day has not ended");
+
+            // One more day ends: the rain day counted once, so the crop is mature and the server lets it be harvested.
+            clock.Advance(s_gameDay);
+            (await farmer.UseAsync(8, x, y, timeout.Token)).Action.Should().Be(FarmAction.Harvested);
         }
         finally
         {

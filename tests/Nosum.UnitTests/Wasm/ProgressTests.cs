@@ -31,6 +31,7 @@ using Xunit;
 namespace Nosum.UnitTests.Wasm;
 
 /// <summary>The client side of energy and skills (docs/adr/ADR-023 D6): the mirror, the energy bar and Skills page view model, the toasts and the menu tab.</summary>
+[Collection(SharedUiCulture.Name)]
 public sealed class ProgressTests
 {
     private static void PushEnergy(FakeGameSocket socket, int energy, int max = 270)
