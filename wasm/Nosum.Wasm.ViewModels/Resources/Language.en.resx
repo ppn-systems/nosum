@@ -6,7 +6,6 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Account_Title_Login" xml:space="preserve"><value>Sign in</value></data>
   <data name="Account_Title_Register" xml:space="preserve"><value>Create account</value></data>
-  <data name="Account_Username" xml:space="preserve"><value>Username</value></data>
   <data name="Account_Password" xml:space="preserve"><value>Password</value></data>
   <data name="Account_ConfirmPassword" xml:space="preserve"><value>Confirm password</value></data>
   <data name="Account_Submit_Login" xml:space="preserve"><value>Sign in</value></data>
@@ -14,13 +13,10 @@
   <data name="Account_Switch_ToRegister" xml:space="preserve"><value>No account yet? Register</value></data>
   <data name="Account_Switch_ToLogin" xml:space="preserve"><value>Already have an account? Sign in</value></data>
   <data name="Account_Busy" xml:space="preserve"><value>Working…</value></data>
-  <data name="Account_UsernameHint" xml:space="preserve"><value>{0}–{1} characters: letters, digits or underscore; must start with a letter.</value></data>
   <data name="Account_PasswordHint" xml:space="preserve"><value>{0} to {1} characters.</value></data>
   <data name="Account_Error_PasswordMismatch" xml:space="preserve"><value>The two passwords do not match.</value></data>
   <data name="Account_Error_Connection" xml:space="preserve"><value>Could not reach the server. Please try again.</value></data>
-  <data name="Account_Status_InvalidUsername" xml:space="preserve"><value>That username is not valid.</value></data>
   <data name="Account_Status_InvalidPassword" xml:space="preserve"><value>That password is not valid.</value></data>
-  <data name="Account_Status_UsernameTaken" xml:space="preserve"><value>That username is already taken.</value></data>
   <data name="Account_Status_InvalidCredentials" xml:space="preserve"><value>Wrong username or password.</value></data>
   <data name="Account_Status_InvalidToken" xml:space="preserve"><value>Your session has expired. Please sign in again.</value></data>
   <data name="Account_Status_InvalidLanguage" xml:space="preserve"><value>That language is not valid.</value></data>
@@ -29,4 +25,18 @@
   <data name="Connection_Reconnecting" xml:space="preserve"><value>Connection lost, retrying…</value></data>
   <data name="Connection_Offline" xml:space="preserve"><value>Offline</value></data>
   <data name="Join_UnknownMap" xml:space="preserve"><value>Map not found</value></data>
+  <data name="Account_Email" xml:space="preserve"><value>Gmail address</value></data>
+  <data name="Account_EmailHint" xml:space="preserve"><value>Only @{0} addresses are accepted.</value></data>
+  <data name="Account_Status_InvalidEmail" xml:space="preserve"><value>That Gmail address is not valid.</value></data>
+  <data name="Account_Status_EmailTaken" xml:space="preserve"><value>That Gmail address is already registered.</value></data>
+  <data name="Account_Status_NotGuest" xml:space="preserve"><value>This account is not a guest account.</value></data>
+  <data name="Account_PlayAsGuest" xml:space="preserve"><value>Play now as a guest</value></data>
+  <data name="Account_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Account_Guest" xml:space="preserve"><value>Guest</value></data>
+  <data name="Account_SignedInAs" xml:space="preserve"><value>Signed in as {0}</value></data>
+  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Register with Gmail.</value></data>
+  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Register now</value></data>
+  <data name="Account_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Account_Title_Upgrade" xml:space="preserve"><value>Save your account</value></data>
+  <data name="Account_Status_SessionReplaced" xml:space="preserve"><value>Your session ended because this account signed in somewhere else.</value></data>
 </root>

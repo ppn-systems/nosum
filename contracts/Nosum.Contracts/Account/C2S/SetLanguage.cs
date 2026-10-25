@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Common;
 
 namespace Nosum.Contracts.Account.C2S;
 
@@ -15,6 +16,6 @@ public sealed partial class SetLanguage : PacketBase<SetLanguage>, IPacketStatic
     /// <inheritdoc/>
     public static ushort StaticOpCode => AccountOpCode.SetLanguage;
 
-    /// <summary>BCP-47 language tag, for example <c>vi</c> or <c>en</c>.</summary>
-    [SerializeOrder(0)] public string Language { get; set; } = string.Empty;
+    /// <summary>The new language; <see cref="GameLanguage.Unspecified"/> means Vietnamese. An undefined value is refused.</summary>
+    [SerializeOrder(0)] public GameLanguage Language { get; set; }
 }

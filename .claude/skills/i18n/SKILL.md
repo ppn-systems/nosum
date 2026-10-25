@@ -14,6 +14,11 @@ Decision: `docs/adr/ADR-010-internationalization.md`.
 - **Every visible string through `.resx`.** `Resources/Language.resx` (Vietnamese, neutral) and
   `Resources/Language.en.resx` in the project that owns the component; read via
   `IStringLocalizer<…>` in the view model or component. Add both languages in the same change.
+- **A language is the `GameLanguage` enum** (`Nosum.Contracts.Common`) on the wire, in the
+  database and in code — never a tag string. `GameLanguages.ToTag/FromTag` is the only mapping to
+  BCP-47, for culture names and the `i18n{}` envelope. New languages are appended, never
+  renumbered; the server rejects undefined values with `AccountStatus.InvalidLanguage`;
+  `Unspecified` means Vietnamese.
 - **Game data by key.** Items, crops, buildings, maps, NPCs: stable keys (`crop.parsnip`); names
   and descriptions come from the localization catalogue.
 - **Authored multi-language text** uses the `i18n{"vi":"…","en":"…"}` envelope (ADR-010 D5):

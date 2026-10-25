@@ -12,6 +12,7 @@ using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Player;
+using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Player;
@@ -31,7 +32,7 @@ internal static class Program
     public static async Task Main(string[] args)
     {
         // Vietnamese until sign-in applies the account's language (docs/adr/ADR-010 D1, D6).
-        UiCulture.Apply("vi");
+        UiCulture.Apply(GameLanguage.Vietnamese);
 
         WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.RootComponents.Add<App>("#app");

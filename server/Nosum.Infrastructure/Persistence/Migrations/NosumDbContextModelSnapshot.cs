@@ -32,40 +32,50 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("IsGuest")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_guest");
+
+                    b.Property<short>("Language")
+                        .HasColumnType("smallint")
+                        .HasColumnName("language");
+
+                    b.Property<DateTimeOffset>("LastActiveAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_active_at");
+
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
 
-                    b.Property<string>("NormalizedUsername")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("normalized_username");
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("normalized_email");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
                         .HasColumnName("password_hash");
 
-                    b.Property<string>("PreferredLanguage")
-                        .IsRequired()
-                        .HasMaxLength(35)
-                        .HasColumnType("character varying(35)")
-                        .HasColumnName("preferred_language");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("username");
+                    b.Property<DateTimeOffset?>("RegistrationPromptUnlockedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("registration_prompt_unlocked_at");
 
                     b.HasKey("Id")
                         .HasName("pk_players");
 
-                    b.HasIndex("NormalizedUsername")
+                    b.HasIndex("NormalizedEmail")
                         .IsUnique()
-                        .HasDatabaseName("ix_players_normalized_username");
+                        .HasDatabaseName("ix_players_normalized_email");
+
+                    b.HasIndex("IsGuest", "LastActiveAt")
+                        .HasDatabaseName("ix_players_is_guest_last_active_at");
 
                     b.ToTable("players", (string)null);
                 });

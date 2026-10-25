@@ -7,23 +7,29 @@
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
 @using Nosum.Wasm.Game
+@using Nosum.Contracts.Account
 @using Nosum.Wasm.ViewModels.Account
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
 @inject HttpClient Http
 @inject AccountFormViewModel Form
 @inject AccountSessionKeeper Keeper
+@inject NavigationManager Navigation
 
 <PageTitle>Nosum</PageTitle>
 
 <canvas id="game-canvas" class="game-canvas" tabindex="0"></canvas>
 <ConnectionBadge />
-@if (!_signedIn)
+@if (!_signedIn || Form.ShowsForm)
 {
     @* The game starts after sign-in: the canvas listens to the whole window's keys, which would swallow typing. *@
     <div class="account-overlay">
         <AccountForm Vm="Form" />
     </div>
+}
+@if (_signedIn)
+{
+    <SessionBar Vm="Form" />
 }
 @if (_error is not null)
 {
@@ -34,9 +40,47 @@
     private bool _signedIn;
     private string? _error;
 
-    protected override void OnInitialized() => Form.SignedIn += OnSignedIn;
+    protected override void OnInitialized()
+    {
+        Form.SignedIn += OnSignedIn;
+        Form.SessionUpdated += Keeper.UpdateSession;
+        Form.SignedOut += OnSignedOut;
+        Form.Changed += OnFormChanged;
+        Keeper.SessionEnded += OnSessionEnded;
 
-    public void Dispose() => Form.SignedIn -= OnSignedIn;
+        // Back from a session the server ended: say why on the account form.
+        string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
+        if (query.StartsWith("?ended=", StringComparison.Ordinal)
+            && Enum.TryParse(query["?ended=".Length..], out AccountStatus reason)
+            && reason == AccountStatus.SessionReplaced)
+        {
+            Form.ShowSessionEnded(reason);
+        }
+    }
+
+    public void Dispose()
+    {
+        Form.SignedIn -= OnSignedIn;
+        Form.SessionUpdated -= Keeper.UpdateSession;
+        Form.SignedOut -= OnSignedOut;
+        Form.Changed -= OnFormChanged;
+        Keeper.SessionEnded -= OnSessionEnded;
+    }
+
+    // The overlay shows or hides with the form's mode (upgrade form over the running game).
+    private void OnFormChanged() => _ = InvokeAsync(StateHasChanged);
+
+    // Another connection of this player took over: reload to the account form with the reason (the game cannot be stopped in place).
+    private void OnSessionEnded(AccountStatus reason)
+        => _ = InvokeAsync(() => Navigation.NavigateTo("/?ended=" + reason, forceLoad: true));
+
+    // Signing out reloads the page: the game loop and its input handlers are torn down with it, and the
+    // account form is the first thing the fresh page shows.
+    private void OnSignedOut()
+    {
+        Keeper.SignedOut();
+        _ = InvokeAsync(() => Navigation.NavigateTo(Navigation.Uri, forceLoad: true));
+    }
 
     // Raised by the form's view model after a successful register or login.
     private void OnSignedIn(AccountSession session)

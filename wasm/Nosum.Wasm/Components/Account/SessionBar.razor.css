@@ -1,0 +1,17 @@
+.session-bar {
+    position: fixed;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.4rem;
+    background: var(--nosum-panel-bg, #fffaf0);
+    color: var(--nosum-panel-fg, #3b2a14);
+    z-index: 10;
+}
+
+.session-prompt {
+    opacity: 0.85;
+}

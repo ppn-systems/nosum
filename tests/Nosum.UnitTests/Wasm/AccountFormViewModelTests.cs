@@ -14,6 +14,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Nosum.Contracts.Account;
+using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels.Resources;
 using Xunit;
@@ -22,14 +23,15 @@ namespace Nosum.UnitTests.Wasm;
 
 public sealed class AccountFormViewModelTests
 {
-    private static readonly AccountSession s_session = new(Guid.NewGuid(), "farmer", "token", DateTimeOffset.UnixEpoch, "en");
+    private static readonly AccountSession s_session = new(Guid.NewGuid(), "farmer01@gmail.com", "token", DateTimeOffset.UnixEpoch, GameLanguage.English, false, false);
+    private static readonly AccountSession s_guest = new(Guid.NewGuid(), string.Empty, "guest-token", DateTimeOffset.UnixEpoch, GameLanguage.Vietnamese, true, true);
 
     [Fact]
     public async Task SubmitAsync_LoginOk_RaisesSignedInAndClearsPassword()
     {
         FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
         AccountFormViewModel vm = Create(client);
-        vm.Username = "farmer";
+        vm.Email = "farmer01@gmail.com";
         vm.Password = "password-1";
         AccountSession? signedIn = null;
         vm.SignedIn += s => signedIn = s;
@@ -40,7 +42,7 @@ public sealed class AccountFormViewModelTests
         vm.Password.Should().BeEmpty();
         vm.ErrorText.Should().BeNull();
         vm.IsBusy.Should().BeFalse();
-        client.Calls.Should().Equal("login:farmer");
+        client.Calls.Should().Equal("login:farmer01@gmail.com");
     }
 
     [Fact]
@@ -50,13 +52,13 @@ public sealed class AccountFormViewModelTests
         FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
         AccountFormViewModel vm = Create(client);
         vm.SwitchMode();
-        vm.Username = "farmer";
+        vm.Email = "farmer01@gmail.com";
         vm.Password = "password-1";
         vm.ConfirmPassword = "password-1";
 
         await vm.SubmitAsync(CancellationToken.None);
 
-        client.Calls.Should().Equal("register:farmer:en");
+        client.Calls.Should().Equal("register:farmer01@gmail.com:English");
     }
 
     [Fact]
@@ -66,7 +68,7 @@ public sealed class AccountFormViewModelTests
         FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
         AccountFormViewModel vm = Create(client);
         vm.SwitchMode();
-        vm.Username = "farmer";
+        vm.Email = "farmer01@gmail.com";
         vm.Password = "password-1";
         vm.ConfirmPassword = "password-2";
 
@@ -83,7 +85,7 @@ public sealed class AccountFormViewModelTests
     {
         using CultureScope scope = new(language);
         AccountFormViewModel vm = Create(new FakeClient(new AccountReply(AccountStatus.InvalidCredentials, null)));
-        vm.Username = "farmer";
+        vm.Email = "farmer01@gmail.com";
         vm.Password = "password-1";
 
         await vm.SubmitAsync(CancellationToken.None);
@@ -96,7 +98,7 @@ public sealed class AccountFormViewModelTests
     {
         using CultureScope scope = new("en");
         AccountFormViewModel vm = Create(new FakeClient(null));
-        vm.Username = "farmer";
+        vm.Email = "farmer01@gmail.com";
         vm.Password = "password-1";
 
         await vm.SubmitAsync(CancellationToken.None);
@@ -106,11 +108,11 @@ public sealed class AccountFormViewModelTests
     }
 
     [Fact]
-    public async Task SubmitAsync_UsernameTooShort_IsRefusedLocally()
+    public async Task SubmitAsync_EmailNotGmail_IsRefusedLocally()
     {
         FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
         AccountFormViewModel vm = Create(client);
-        vm.Username = "ab";
+        vm.Email = "farmer01@yahoo.com";
         vm.Password = "password-1";
 
         await vm.SubmitAsync(CancellationToken.None);
@@ -128,16 +130,16 @@ public sealed class AccountFormViewModelTests
         string english;
         using (new CultureScope("vi"))
         {
-            vietnamese = vm.UsernameLabel;
+            vietnamese = vm.EmailLabel;
         }
 
         using (new CultureScope("en"))
         {
-            english = vm.UsernameLabel;
+            english = vm.EmailLabel;
         }
 
-        vietnamese.Should().Be("Tên đăng nhập");
-        english.Should().Be("Username");
+        vietnamese.Should().Be("Địa chỉ Gmail");
+        english.Should().Be("Gmail address");
     }
 
     [Fact]
@@ -161,6 +163,101 @@ public sealed class AccountFormViewModelTests
         Keys("Language.en.resx").Should().Contain(expected);
     }
 
+    [Fact]
+    public async Task PlayAsGuestAsync_Ok_RaisesSignedInWithTheGuestSession()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+        AccountFormViewModel vm = Create(client);
+        AccountSession? signedIn = null;
+        vm.SignedIn += s => signedIn = s;
+
+        await vm.PlayAsGuestAsync(CancellationToken.None);
+
+        signedIn.Should().Be(s_guest);
+        vm.CurrentSession.Should().Be(s_guest);
+        vm.ShowsForm.Should().BeFalse();
+        client.Calls.Should().Equal("guest:English");
+    }
+
+    [Fact]
+    public async Task SubmitAsync_UpgradeOk_RaisesSessionUpdatedNotSignedInAndLeavesUpgradeMode()
+    {
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+        AccountFormViewModel vm = Create(client);
+        await vm.PlayAsGuestAsync(CancellationToken.None);
+        client.Reply = new AccountReply(AccountStatus.Ok, s_session);
+        int signedIn = 0;
+        AccountSession? updated = null;
+        vm.SignedIn += _ => signedIn++;
+        vm.SessionUpdated += s => updated = s;
+        vm.BeginUpgrade();
+        vm.Email = "farmer01@gmail.com";
+        vm.Password = "password-1";
+        vm.ConfirmPassword = "password-1";
+
+        await vm.SubmitAsync(CancellationToken.None);
+
+        updated.Should().Be(s_session);
+        signedIn.Should().Be(0);
+        vm.Mode.Should().Be(AccountFormMode.Login);
+        vm.ShowsForm.Should().BeFalse();
+        client.Calls.Should().Contain("upgrade:farmer01@gmail.com");
+    }
+
+    [Fact]
+    public void BeginUpgrade_NotSignedIn_DoesNothing()
+    {
+        AccountFormViewModel vm = Create(new FakeClient(null));
+
+        vm.BeginUpgrade();
+
+        vm.Mode.Should().Be(AccountFormMode.Login);
+    }
+
+    [Fact]
+    public async Task CanUpgrade_GuestWithPromptUnlocked_IsTrueOtherwiseFalse()
+    {
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
+        AccountFormViewModel vm = Create(client);
+        await vm.PlayAsGuestAsync(CancellationToken.None);
+        bool registered = vm.CanUpgrade;
+        client.Reply = new AccountReply(AccountStatus.Ok, s_guest);
+        AccountFormViewModel guestVm = Create(client);
+        await guestVm.PlayAsGuestAsync(CancellationToken.None);
+
+        registered.Should().BeFalse();
+        guestVm.CanUpgrade.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LogoutAsync_SignedIn_CallsClientClearsSessionAndRaisesSignedOut()
+    {
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
+        AccountFormViewModel vm = Create(client);
+        await vm.PlayAsGuestAsync(CancellationToken.None);
+        bool signedOut = false;
+        vm.SignedOut += () => signedOut = true;
+
+        await vm.LogoutAsync(CancellationToken.None);
+
+        signedOut.Should().BeTrue();
+        vm.CurrentSession.Should().BeNull();
+        vm.ShowsForm.Should().BeTrue();
+        client.Calls.Should().Contain("logout");
+    }
+
+    [Fact]
+    public async Task LogoutAsync_NotSignedIn_DoesNothing()
+    {
+        FakeClient client = new(null);
+        AccountFormViewModel vm = Create(client);
+
+        await vm.LogoutAsync(CancellationToken.None);
+
+        client.Calls.Should().BeEmpty();
+    }
+
     private static AccountFormViewModel Create(IAccountClient client)
     {
         ResourceManagerStringLocalizerFactory factory = new(Options.Create(new LocalizationOptions()), NullLoggerFactory.Instance);
@@ -176,29 +273,47 @@ public sealed class AccountFormViewModelTests
 
     private sealed class FakeClient : IAccountClient
     {
-        private readonly AccountReply? _reply;
+        public FakeClient(AccountReply? reply) => this.Reply = reply;
 
-        public FakeClient(AccountReply? reply) => _reply = reply;
+        public AccountReply? Reply { get; set; }
 
         public List<string> Calls { get; } = [];
 
-        public Task<AccountReply> RegisterAsync(string username, string password, string language, CancellationToken cancellationToken)
+        public Task<AccountReply> RegisterAsync(string email, string password, GameLanguage language, CancellationToken cancellationToken)
         {
-            this.Calls.Add($"register:{username}:{language}");
-            return Reply();
+            this.Calls.Add($"register:{email}:{language}");
+            return Answer();
         }
 
-        public Task<AccountReply> LoginAsync(string username, string password, CancellationToken cancellationToken)
+        public Task<AccountReply> LoginAsync(string email, string password, CancellationToken cancellationToken)
         {
-            this.Calls.Add($"login:{username}");
-            return Reply();
+            this.Calls.Add($"login:{email}");
+            return Answer();
+        }
+
+        public Task<AccountReply> StartGuestAsync(GameLanguage language, CancellationToken cancellationToken)
+        {
+            this.Calls.Add($"guest:{language}");
+            return Answer();
+        }
+
+        public Task<AccountReply> UpgradeGuestAsync(string email, string password, CancellationToken cancellationToken)
+        {
+            this.Calls.Add($"upgrade:{email}");
+            return Answer();
+        }
+
+        public Task LogoutAsync(CancellationToken cancellationToken)
+        {
+            this.Calls.Add("logout");
+            return Task.CompletedTask;
         }
 
         public Task<AccountReply> ResumeAsync(string sessionToken, CancellationToken cancellationToken)
-            => Reply();
+            => Answer();
 
-        private Task<AccountReply> Reply()
-            => _reply is null ? throw new AccountConnectionException("test") : Task.FromResult(_reply);
+        private Task<AccountReply> Answer()
+            => this.Reply is null ? throw new AccountConnectionException("test") : Task.FromResult(this.Reply);
     }
 
     private sealed class CultureScope : IDisposable

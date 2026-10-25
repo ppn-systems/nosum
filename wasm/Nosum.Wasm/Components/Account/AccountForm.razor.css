@@ -35,3 +35,7 @@
     cursor: pointer;
     color: inherit;
 }
+
+.account-guest {
+    cursor: pointer;
+}

@@ -54,5 +54,7 @@ Integration tests need a PostgreSQL server that may create databases: `NOSUM_TES
 Current state: time sync, system control, `UseGroups()`, `UseSecureConnections()` (X25519 handshake;
 the server key is generated on first start in Nalix's data directory, outside the repository),
 account and player handlers behind `PermissionMiddleware` / `RateLimitMiddleware`, and the WebSocket
-listener. Clients that skip the handshake can still send plaintext frames (passwords included): do
-not expose the host without TLS until encrypted frames are required. No farm handlers yet.
+listener. Account handlers that carry a password or token are `[PacketEncryption(true)]`: plaintext
+frames are refused, so a client must complete the handshake. Keep TLS at the proxy as well; pin
+`ServerPublicKey` on clients before production (ADR-009 D11). Guests idle for 30 days are deleted
+hourly (`GuestCleanupService`). No farm handlers yet.

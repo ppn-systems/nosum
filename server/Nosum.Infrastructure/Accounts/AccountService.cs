@@ -8,11 +8,12 @@ using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Security;
 using Nosum.Contracts.Account;
+using Nosum.Contracts.Common;
 using Nosum.Domain.Accounts;
 
 namespace Nosum.Infrastructure.Accounts;
 
-/// <summary>Register, sign in, resume and language preference on top of <see cref="IUnitOfWorkFactory"/>.</summary>
+/// <summary>Guest, register, sign in, resume, upgrade, logout and language preference on top of <see cref="IUnitOfWorkFactory"/>.</summary>
 public sealed class AccountService : IAccountService
 {
     /// <summary>How long a session token stays valid.</summary>
@@ -53,78 +54,141 @@ public sealed class AccountService : IAccountService
     }
 
     /// <inheritdoc/>
-    public async Task<AccountOutcome> RegisterAsync(string username, string password, string language, CancellationToken cancellationToken)
+    public async Task<AccountOutcome> RegisterAsync(string email, string password, GameLanguage language, CancellationToken cancellationToken)
     {
-        if (!AccountRules.IsValidUsername(username))
+        AccountStatus? refusal = ValidateRegistration(email, password);
+        if (refusal is not null)
         {
-            return AccountOutcome.Refused(AccountStatus.InvalidUsername);
+            return AccountOutcome.Refused(refusal.Value);
         }
 
-        if (!AccountRules.IsValidPassword(password))
-        {
-            return AccountOutcome.Refused(AccountStatus.InvalidPassword);
-        }
-
-        string preferredLanguage = string.IsNullOrEmpty(language) ? AccountLimits.DefaultLanguage : language;
-        if (!AccountRules.IsWellFormedLanguageTag(preferredLanguage))
+        if (!GameLanguages.IsDefined(language))
         {
             return AccountOutcome.Refused(AccountStatus.InvalidLanguage);
         }
 
-        string normalized = AccountRules.NormalizeUsername(username);
+        GameLanguage preferredLanguage = GameLanguages.Resolve(language);
+
+        string normalized = AccountRules.NormalizeEmail(email);
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
             IRepository<Player> players = unit.Repository<Player>();
-            if (await players.AnyAsync(p => p.NormalizedUsername == normalized, cancellationToken).ConfigureAwait(false))
+            if (await players.AnyAsync(p => p.NormalizedEmail == normalized, cancellationToken).ConfigureAwait(false))
             {
-                return AccountOutcome.Refused(AccountStatus.UsernameTaken);
+                return AccountOutcome.Refused(AccountStatus.EmailTaken);
             }
 
             DateTimeOffset now = _time.GetUtcNow();
             string hash = await Task.Run(() => _hasher.Hash(password), cancellationToken).ConfigureAwait(false);
             Player player = new()
             {
-                Username = username,
-                NormalizedUsername = normalized,
+                Email = email,
+                NormalizedEmail = normalized,
                 PasswordHash = hash,
-                PreferredLanguage = preferredLanguage,
+                Language = preferredLanguage,
                 CreatedAt = now,
                 LastLoginAt = now,
+                LastActiveAt = now,
             };
             players.Add(player);
-            IssuedToken token = this.AddToken(unit, player.Id, now, out DateTimeOffset expiresAt);
+            AccountOutcome outcome = this.AddSession(unit, player, now);
 
-            try
-            {
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (DbUpdateException ex) when (unit.IsUniqueViolation(ex))
-            {
-                return AccountOutcome.Refused(AccountStatus.UsernameTaken);
-            }
-
-            return new AccountOutcome(AccountStatus.Ok, player.Id, player.Username, token.Token, expiresAt, player.PreferredLanguage);
+            return await SaveAsync(unit, outcome, AccountStatus.EmailTaken, cancellationToken).ConfigureAwait(false);
         }
     }
 
     /// <inheritdoc/>
-    public async Task<AccountOutcome> LoginAsync(string username, string password, CancellationToken cancellationToken)
+    public async Task<AccountOutcome> StartGuestAsync(GameLanguage language, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)
-            || username.Length > AccountLimits.UsernameMaxLength || password.Length > AccountLimits.PasswordMaxLength)
+        if (!GameLanguages.IsDefined(language))
+        {
+            return AccountOutcome.Refused(AccountStatus.InvalidLanguage);
+        }
+
+        GameLanguage preferredLanguage = GameLanguages.Resolve(language);
+
+        IUnitOfWork unit = _unitOfWork.Create();
+        await using (unit.ConfigureAwait(false))
+        {
+            DateTimeOffset now = _time.GetUtcNow();
+            Player player = new()
+            {
+                IsGuest = true,
+                Language = preferredLanguage,
+                CreatedAt = now,
+                LastLoginAt = now,
+                LastActiveAt = now,
+            };
+            unit.Repository<Player>().Add(player);
+            AccountOutcome outcome = this.AddSession(unit, player, now);
+
+            return await SaveAsync(unit, outcome, AccountStatus.InvalidToken, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<AccountOutcome> UpgradeGuestAsync(Guid playerId, Guid sessionId, string email, string password, CancellationToken cancellationToken)
+    {
+        IUnitOfWork unit = _unitOfWork.Create();
+        await using (unit.ConfigureAwait(false))
+        {
+            Player? player = await unit.Repository<Player>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+            if (player is null || !player.IsGuest)
+            {
+                return AccountOutcome.Refused(AccountStatus.NotGuest);
+            }
+
+            AccountStatus? refusal = ValidateRegistration(email, password);
+            if (refusal is not null)
+            {
+                return AccountOutcome.Refused(refusal.Value);
+            }
+
+            string normalized = AccountRules.NormalizeEmail(email);
+            if (await unit.Repository<Player>().AnyAsync(p => p.NormalizedEmail == normalized, cancellationToken).ConfigureAwait(false))
+            {
+                return AccountOutcome.Refused(AccountStatus.EmailTaken);
+            }
+
+            DateTimeOffset now = _time.GetUtcNow();
+            string hash = await Task.Run(() => _hasher.Hash(password), cancellationToken).ConfigureAwait(false);
+            player.Email = email;
+            player.NormalizedEmail = normalized;
+            player.PasswordHash = hash;
+            player.IsGuest = false;
+            player.LastLoginAt = now;
+            player.LastActiveAt = now;
+
+            // A change of privilege gets a fresh token; the guest token stops working.
+            PlayerSessionToken? old = await unit.Repository<PlayerSessionToken>().FindAsync(sessionId, cancellationToken).ConfigureAwait(false);
+            if (old is not null && old.PlayerId == playerId)
+            {
+                old.RevokedAt = now;
+            }
+
+            AccountOutcome outcome = this.AddSession(unit, player, now);
+            return await SaveAsync(unit, outcome, AccountStatus.EmailTaken, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<AccountOutcome> LoginAsync(string email, string password, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password)
+            || email.Length > AccountLimits.EmailMaxLength || password.Length > AccountLimits.PasswordMaxLength)
         {
             return AccountOutcome.Refused(AccountStatus.InvalidCredentials);
         }
 
-        string normalized = AccountRules.NormalizeUsername(username);
+        string normalized = AccountRules.NormalizeEmail(email);
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
             Player? player = await unit.Repository<Player>()
-                .FirstOrDefaultAsync(p => p.NormalizedUsername == normalized, cancellationToken).ConfigureAwait(false);
+                .FirstOrDefaultAsync(p => p.NormalizedEmail == normalized, cancellationToken).ConfigureAwait(false);
 
-            // An unknown username still pays for one hash check, so response time does not reveal which usernames exist.
+            // An unknown e-mail still pays for one hash check, so response time does not reveal which addresses exist.
             string storedHash = player?.PasswordHash ?? _decoyHash.Value;
             bool matches = await Task.Run(() => _hasher.Verify(password, storedHash), cancellationToken).ConfigureAwait(false);
             if (player is null || !matches)
@@ -134,10 +198,10 @@ public sealed class AccountService : IAccountService
 
             DateTimeOffset now = _time.GetUtcNow();
             player.LastLoginAt = now;
-            IssuedToken token = this.AddToken(unit, player.Id, now, out DateTimeOffset expiresAt);
+            player.LastActiveAt = now;
+            AccountOutcome outcome = this.AddSession(unit, player, now);
             _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-            return new AccountOutcome(AccountStatus.Ok, player.Id, player.Username, token.Token, expiresAt, player.PreferredLanguage);
+            return outcome;
         }
     }
 
@@ -168,16 +232,32 @@ public sealed class AccountService : IAccountService
             }
 
             player.LastLoginAt = now;
+            player.LastActiveAt = now;
             _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-            return new AccountOutcome(AccountStatus.Ok, player.Id, player.Username, sessionToken, stored.ExpiresAt, player.PreferredLanguage);
+            return ToOutcome(player, sessionToken, stored.Id, stored.ExpiresAt);
         }
     }
 
     /// <inheritdoc/>
-    public async Task<AccountStatus> SetLanguageAsync(Guid playerId, string language, CancellationToken cancellationToken)
+    public async Task LogoutAsync(Guid sessionId, CancellationToken cancellationToken)
     {
-        if (!AccountRules.IsWellFormedLanguageTag(language))
+        IUnitOfWork unit = _unitOfWork.Create();
+        await using (unit.ConfigureAwait(false))
+        {
+            PlayerSessionToken? stored = await unit.Repository<PlayerSessionToken>().FindAsync(sessionId, cancellationToken).ConfigureAwait(false);
+            if (stored is not null && stored.RevokedAt is null)
+            {
+                stored.RevokedAt = _time.GetUtcNow();
+                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<AccountStatus> SetLanguageAsync(Guid playerId, GameLanguage language, CancellationToken cancellationToken)
+    {
+        if (!GameLanguages.IsDefined(language))
         {
             return AccountStatus.InvalidLanguage;
         }
@@ -191,23 +271,60 @@ public sealed class AccountService : IAccountService
                 return AccountStatus.InvalidToken;
             }
 
-            player.PreferredLanguage = language;
+            player.Language = GameLanguages.Resolve(language);
             _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return AccountStatus.Ok;
         }
     }
 
-    private IssuedToken AddToken(IUnitOfWork unit, Guid playerId, DateTimeOffset now, out DateTimeOffset expiresAt)
+    private static AccountStatus? ValidateRegistration(string email, string password)
+    {
+        if (!AccountRules.IsValidEmail(email))
+        {
+            return AccountStatus.InvalidEmail;
+        }
+
+        return AccountRules.IsValidPassword(password) ? null : AccountStatus.InvalidPassword;
+    }
+
+    // Saves, turning a lost unique-index race (two requests for the same e-mail) into a normal refusal.
+    private static async Task<AccountOutcome> SaveAsync(IUnitOfWork unit, AccountOutcome outcome, AccountStatus onUniqueViolation, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            return outcome;
+        }
+        catch (DbUpdateException ex) when (unit.IsUniqueViolation(ex))
+        {
+            return AccountOutcome.Refused(onUniqueViolation);
+        }
+    }
+
+    private static AccountOutcome ToOutcome(Player player, string token, Guid sessionId, DateTimeOffset expiresAt)
+        => new(
+            AccountStatus.Ok,
+            player.Id,
+            player.NormalizedEmail ?? string.Empty,
+            token,
+            sessionId,
+            expiresAt,
+            player.Language,
+            player.IsGuest,
+            player.RegistrationPromptUnlockedAt is not null);
+
+    private AccountOutcome AddSession(IUnitOfWork unit, Player player, DateTimeOffset now)
     {
         IssuedToken token = _tokens.Create();
-        expiresAt = now + _sessionLifetime;
-        unit.Repository<PlayerSessionToken>().Add(new PlayerSessionToken
+        DateTimeOffset expiresAt = now + _sessionLifetime;
+        PlayerSessionToken stored = new()
         {
-            PlayerId = playerId,
+            PlayerId = player.Id,
             TokenHash = token.Hash,
             CreatedAt = now,
             ExpiresAt = expiresAt,
-        });
-        return token;
+        };
+        unit.Repository<PlayerSessionToken>().Add(stored);
+        return ToOutcome(player, token.Token, stored.Id, expiresAt);
     }
 }

@@ -9,24 +9,34 @@ namespace Nosum.UnitTests.Server;
 public sealed class AccountRulesTests
 {
     [Theory]
-    [InlineData("abc")]
-    [InlineData("Farmer_01")]
-    [InlineData("a2345678901234567890")]
-    public void IsValidUsername_AcceptedForms_ReturnsTrue(string username)
-        => AccountRules.IsValidUsername(username).Should().BeTrue();
+    [InlineData("farmer01@gmail.com")]
+    [InlineData("Farmer.One@Gmail.COM")]
+    [InlineData("a2345678901234567890123456789a@gmail.com")]
+    [InlineData("abcdef@gmail.com")]
+    public void IsValidEmail_GmailAddresses_ReturnsTrue(string email)
+        => AccountRules.IsValidEmail(email).Should().BeTrue();
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    [InlineData("ab")]
-    [InlineData("a23456789012345678901")]
-    [InlineData("1farmer")]
-    [InlineData("_farmer")]
-    [InlineData("far mer")]
-    [InlineData("farmer-1")]
-    [InlineData("nông")]
-    public void IsValidUsername_RejectedForms_ReturnsFalse(string? username)
-        => AccountRules.IsValidUsername(username).Should().BeFalse();
+    [InlineData("farmer01")]
+    [InlineData("farmer01@yahoo.com")]
+    [InlineData("farmer01@gmail.com.vn")]
+    [InlineData("farmer01@mail.gmail.com")]
+    [InlineData("farmer01@googlemail.com")]
+    [InlineData("abcde@gmail.com")]
+    [InlineData("a23456789012345678901234567890a@gmail.com")]
+    [InlineData(".farmer01@gmail.com")]
+    [InlineData("farmer01.@gmail.com")]
+    [InlineData("farmer..01@gmail.com")]
+    [InlineData("farmer+tag@gmail.com")]
+    [InlineData("far mer01@gmail.com")]
+    [InlineData("farmer_01@gmail.com")]
+    [InlineData("n\u00f4ngdan@gmail.com")]
+    [InlineData("a@b@gmail.com")]
+    [InlineData("@gmail.com")]
+    public void IsValidEmail_OtherAddresses_ReturnsFalse(string? email)
+        => AccountRules.IsValidEmail(email).Should().BeFalse();
 
     [Fact]
     public void IsValidPassword_ExactlyMinimumLength_ReturnsTrue()
@@ -47,29 +57,7 @@ public sealed class AccountRulesTests
     public void IsValidPassword_TooLong_ReturnsFalse()
         => AccountRules.IsValidPassword(new string('x', 129)).Should().BeFalse();
 
-    [Theory]
-    [InlineData("vi")]
-    [InlineData("en")]
-    [InlineData("en-US")]
-    [InlineData("zh-Hans-CN")]
-    public void IsWellFormedLanguageTag_ValidTags_ReturnsTrue(string tag)
-        => AccountRules.IsWellFormedLanguageTag(tag).Should().BeTrue();
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("v")]
-    [InlineData("en-")]
-    [InlineData("-en")]
-    [InlineData("en--US")]
-    [InlineData("1n")]
-    [InlineData("en_US")]
-    [InlineData("englishlanguage")]
-    [InlineData("vi-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-    public void IsWellFormedLanguageTag_InvalidTags_ReturnsFalse(string? tag)
-        => AccountRules.IsWellFormedLanguageTag(tag).Should().BeFalse();
-
     [Fact]
-    public void NormalizeUsername_MixedCase_IsLowerInvariant()
-        => AccountRules.NormalizeUsername("FarmER_1").Should().Be("farmer_1");
+    public void NormalizeEmail_MixedCase_IsLowerInvariant()
+        => AccountRules.NormalizeEmail("FarmER.One@GMAIL.com").Should().Be("farmer.one@gmail.com");
 }
