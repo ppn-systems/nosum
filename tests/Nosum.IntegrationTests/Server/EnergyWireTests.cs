@@ -340,6 +340,9 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
     {
         await using NosumDbContext db = new(_database.Options);
         (await db.PlayerStates.Where(s => s.PlayerId == playerId).ExecuteUpdateAsync(change)).Should().Be(1);
+
+        // The row changed behind the server's back: it reads it again (docs/adr/ADR-035 D4).
+        InstanceManager.Instance.GetExistingInstance<Nosum.Infrastructure.Progress.PlayerStateCache>()!.Forget(playerId);
     }
 
     private static ushort GetFreePort()

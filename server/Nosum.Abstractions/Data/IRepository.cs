@@ -68,6 +68,13 @@ public interface IRepository<TEntity>
     /// <param name="entity">The entity with its key and new values; no other entity with the same key may be tracked.</param>
     void Update(TEntity entity);
 
+    /// <summary>
+    /// Like <see cref="Update(TEntity)"/> but writes only the named properties, so two writers that own different columns of one row never overwrite each other.
+    /// </summary>
+    /// <param name="entity">The entity with its key and the new values of the named properties.</param>
+    /// <param name="properties">The names of the properties to write.</param>
+    void Update(TEntity entity, params string[] properties);
+
     /// <summary>Marks an entity to be deleted when the unit of work saves. A new instance that only carries the key is enough; the save fails with a concurrency conflict when no row has that key.</summary>
     /// <param name="entity">The entity to delete.</param>
     void Remove(TEntity entity);

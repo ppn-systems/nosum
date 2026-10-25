@@ -444,9 +444,12 @@ internal static class Program
         InstanceManager.Instance.Register(new RegistrationPromptOnQuestCompleted(quests, prompts, notifier));
         InstanceManager.Instance.Register<IInventoryService>(inventory);
         // A player who signed out lets go of their in-memory inventory (docs/adr/ADR-035 D3).
+        PlayerStateCache playerStates = InstanceManager.Instance.GetExistingInstance<PlayerStateCache>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
         sessions.SessionEnded += id =>
         {
             inventory.Forget(id);
+            playerStates.Forget(id);
             return ValueTask.CompletedTask;
         };
         InstanceManager.Instance.Register<IQuestService>(quests);
@@ -482,7 +485,7 @@ internal static class Program
         CalendarGameDayClock nodeDayClock = new(calendar, clock);
         InstanceManager.Instance.Register<IGameDayClock>(nodeDayClock);
         // Energy and skills (docs/adr/ADR-023): every tool use is charged through this in the transaction of its effect.
-        PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier);
+        PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier, playerStates);
         InstanceManager.Instance.Register<IPlayerProgress>(progress);
         ResourceNodeService nodes = new(presence, presence, publisher, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, progress, placedTiles);
 
