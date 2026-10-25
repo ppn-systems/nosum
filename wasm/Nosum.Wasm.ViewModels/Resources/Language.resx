@@ -255,8 +255,10 @@
   <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>Người đó đã được mời rồi.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Khách {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Biệt danh</value></data>
-  <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} ký tự: chữ cái (có dấu), chữ số, dấu cách hoặc gạch dưới.</value></data>
-  <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>Biệt danh không hợp lệ.</value></data>
+  <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} ký tự: chữ cái không dấu (a-z) và chữ số, giữa các từ là một dấu cách hoặc gạch dưới. Không dùng từ tục tĩu.</value></data>
+  <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>Biệt danh không hợp lệ. Chỉ dùng chữ cái không dấu (a-z) và chữ số.</value></data>
+  <data name="Account_Status_NicknameProfane" xml:space="preserve"><value>Biệt danh này không được phép dùng: chứa từ ngữ thô tục.</value></data>
+  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Hãy đăng ký tài khoản để chọn biệt danh.</value></data>
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>Biệt danh này không được phép dùng.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>Biệt danh này đã có người dùng.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>Bạn vừa đổi biệt danh. Hãy thử lại sau.</value></data>
@@ -266,14 +268,13 @@
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>Bạn chỉ đổi được biệt danh mỗi 24 giờ một lần.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách giữ tên được tạo sẵn. Hãy đăng ký tài khoản để chọn biệt danh của riêng bạn.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Đã đổi biệt danh thành {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>Có thể đổi lại lúc {0}.</value></data>
-  <data name="Shop_Title" xml:space="preserve"><value>Cửa hàng {0}</value></data>
-  <data name="Shop_Name_general_store" xml:space="preserve"><value>tạp hóa</value></data>
+  <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Cửa hàng hạt giống</value></data>
+  <data name="Shop_Title_clothing_shop" xml:space="preserve"><value>Cửa hàng quần áo</value></data>
+  <data name="Shop_Title_furniture_shop" xml:space="preserve"><value>Cửa hàng nội thất</value></data>
   <data name="Shop_Coins" xml:space="preserve"><value>Số dư: {0} xu</value></data>
-  <data name="Shop_Tab_Seeds" xml:space="preserve"><value>Hạt giống</value></data>
-  <data name="Shop_Tab_Furniture" xml:space="preserve"><value>Đồ nội thất</value></data>
-  <data name="Shop_Tab_Clothing" xml:space="preserve"><value>Quần áo</value></data>
   <data name="Shop_Quantity" xml:space="preserve"><value>Số lượng</value></data>
   <data name="Shop_Buy" xml:space="preserve"><value>Mua</value></data>
   <data name="Shop_Price" xml:space="preserve"><value>{0} xu</value></data>
@@ -295,23 +296,39 @@
   <data name="Toolbar_Help" xml:space="preserve"><value>Phím tắt</value></data>
   <data name="Help_Title" xml:space="preserve"><value>Phím tắt</value></data>
   <data name="Help_Section_Play" xml:space="preserve"><value>Chơi</value></data>
-  <data name="Help_Section_Panels" xml:space="preserve"><value>Bảng</value></data>
+  <data name="Help_Section_Panels" xml:space="preserve"><value>Menu</value></data>
   <data name="Help_Section_Arrange" xml:space="preserve"><value>Sắp xếp nhà</value></data>
-  <data name="Help_Move" xml:space="preserve"><value>Di chuyển (hoặc phím mũi tên)</value></data>
-  <data name="Help_Use" xml:space="preserve"><value>Dùng vật đang cầm, tương tác</value></data>
-  <data name="Help_Hotbar" xml:space="preserve"><value>Chọn ô trên thanh vật phẩm</value></data>
-  <data name="Help_Inventory" xml:space="preserve"><value>Mở túi đồ</value></data>
-  <data name="Help_Market" xml:space="preserve"><value>Mở chợ</value></data>
-  <data name="Help_Wardrobe" xml:space="preserve"><value>Mở tủ đồ</value></data>
-  <data name="Help_Trade" xml:space="preserve"><value>Mở giao dịch</value></data>
-  <data name="Help_Coop" xml:space="preserve"><value>Mở hợp tác xã</value></data>
-  <data name="Help_Help" xml:space="preserve"><value>Hiện hoặc ẩn bảng phím tắt</value></data>
-  <data name="Help_Close" xml:space="preserve"><value>Đóng bảng đang mở</value></data>
-  <data name="Help_Place" xml:space="preserve"><value>Đặt đồ đang cầm</value></data>
-  <data name="Help_Rotate" xml:space="preserve"><value>Xoay đồ đạc</value></data>
-  <data name="Help_Grab" xml:space="preserve"><value>Nhấc món đồ phía trước để dời chỗ</value></data>
-  <data name="Help_PickUp" xml:space="preserve"><value>Cất đồ vào túi</value></data>
-  <data name="Help_Profile" xml:space="preserve"><value>Mở hồ sơ (đổi biệt danh)</value></data>
+  <data name="Help_Move" xml:space="preserve"><value>Di chuyển</value></data>
+  <data name="Help_Use" xml:space="preserve"><value>Dùng, tương tác</value></data>
+  <data name="Help_Hotbar" xml:space="preserve"><value>Chọn ô</value></data>
+  <data name="Help_Inventory" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Help_Market" xml:space="preserve"><value>Chợ</value></data>
+  <data name="Help_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
+  <data name="Help_Trade" xml:space="preserve"><value>Giao dịch</value></data>
+  <data name="Help_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
+  <data name="Help_Help" xml:space="preserve"><value>Cài đặt</value></data>
+  <data name="Help_Close" xml:space="preserve"><value>Menu / đóng</value></data>
+  <data name="Help_Place" xml:space="preserve"><value>Đặt đồ</value></data>
+  <data name="Help_Rotate" xml:space="preserve"><value>Xoay</value></data>
+  <data name="Help_Grab" xml:space="preserve"><value>Dời đồ</value></data>
+  <data name="Help_PickUp" xml:space="preserve"><value>Cất vào túi</value></data>
+  <data name="Help_Profile" xml:space="preserve"><value>Hồ sơ</value></data>
+  <data name="Inventory_Hand" xml:space="preserve"><value>Đang cầm</value></data>
+  <data name="Inventory_HandEmpty" xml:space="preserve"><value>Tay không</value></data>
+  <data name="Toolbar_Settings" xml:space="preserve"><value>Cài đặt</value></data>
+  <data name="Settings_Account" xml:space="preserve"><value>Tài khoản</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Ngôn ngữ</value></data>
+  <data name="Settings_LanguageName" xml:space="preserve"><value>Tiếng Việt</value></data>
+  <data name="Settings_Keys" xml:space="preserve"><value>Phím tắt</value></data>
+  <data name="Placement_Strip_Place" xml:space="preserve"><value>Đặt</value></data>
+  <data name="Placement_Strip_Rotate" xml:space="preserve"><value>Xoay</value></data>
+  <data name="Placement_Strip_Move" xml:space="preserve"><value>Dời</value></data>
+  <data name="Placement_Strip_Stow" xml:space="preserve"><value>Cất</value></data>
+  <data name="Quest_Collapse" xml:space="preserve"><value>Thu gọn</value></data>
+  <data name="Quest_Expand" xml:space="preserve"><value>Mở rộng</value></data>
+  <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Nhấn để cởi ra</value></data>
+  <data name="Toolbar_Shop" xml:space="preserve"><value>Cửa hàng</value></data>
+  <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Farm_Status_NotYourFarm" xml:space="preserve"><value>Ở vườn của người khác, bạn chỉ được tưới cây.</value></data>
   <data name="Place_Status_NotYourPlace" xml:space="preserve"><value>Chỉ chủ nhà mới sắp đặt đồ ở đây.</value></data>
   <data name="Market_Status_NotYourBin" xml:space="preserve"><value>Thùng hàng này là của chủ vườn.</value></data>

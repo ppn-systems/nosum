@@ -14,7 +14,7 @@ public readonly record struct ShopOffer(int ItemId, int CoinsEach);
 
 /// <summary>
 /// A shop: a stable id (the only shop name that crosses the wire), a stable key (localization entry <c>shop.&lt;key&gt;.name</c>) and
-/// its price list. Where a shop stands is data of the map (<c>MapSpec.Shops</c>), so a second shop is one more catalogue entry and
+/// its price list. Where a shop stands is data of the map (<c>MapSpec.Shops</c>), so another shop is one more catalogue entry and
 /// one more map point. Prices are product defaults, not balance (docs/adr/ADR-013 amendments).
 /// </summary>
 public sealed class ShopDefinition
@@ -23,7 +23,7 @@ public sealed class ShopDefinition
 
     /// <summary>Initializes a shop.</summary>
     /// <param name="id">Stable numeric id, greater than zero.</param>
-    /// <param name="key">Stable key, for example <c>general_store</c>.</param>
+    /// <param name="key">Stable key, for example <c>seed_shop</c>.</param>
     /// <param name="offers">What it sells, in display order.</param>
     public ShopDefinition(int id, string key, IReadOnlyList<ShopOffer> offers)
     {
@@ -59,29 +59,32 @@ public sealed class ShopDefinition
 }
 
 /// <summary>
-/// The shops of the world. Ids are append-only. The general store in the town sells seeds (so coins have a use), furniture and clothing
-/// (which new players no longer start with, docs/adr/ADR-013 amendments).
+/// The shops of the world. Ids are append-only and each shop sells one kind of thing (docs/adr/ADR-013 amendments): seeds in the seed shop,
+/// clothing in the clothing shop, furniture in the furniture shop (which new players no longer start with). A shop is one entry here and one
+/// <see cref="Maps.ShopPoint"/> on a map.
 /// </summary>
 public static class ShopCatalog
 {
-    /// <summary>The town's general store.</summary>
-    public const int GeneralStore = 1;
+    /// <summary>The seed shop (Pierre's in the town). It was the town's only shop, the general store, before the split, so the id is unchanged.</summary>
+    public const int SeedShop = 1;
+
+    /// <summary>The clothing shop.</summary>
+    public const int ClothingShop = 2;
+
+    /// <summary>The furniture shop.</summary>
+    public const int FurnitureShop = 3;
 
     private static readonly ShopDefinition[] s_all =
     [
-        new(GeneralStore, "general_store",
+        new(SeedShop, "seed_shop",
         [
             // Seeds cost a little under half of what the crop sells for at the bin (20 / 30 / 60).
             new(ItemCatalog.ParsnipSeeds, 10),
             new(ItemCatalog.RadishSeeds, 15),
             new(ItemCatalog.CauliflowerSeeds, 30),
-            new(ItemCatalog.OakChair, 100),
-            new(ItemCatalog.HousePlant, 80),
-            new(ItemCatalog.FloorLamp, 140),
-            new(ItemCatalog.OakTable, 220),
-            new(ItemCatalog.Bookcase, 260),
-            new(ItemCatalog.BlueArmchair, 300),
-            new(ItemCatalog.BlueCouch, 400),
+        ]),
+        new(ClothingShop, "clothing_shop",
+        [
             new(ItemCatalog.ShirtRed, 60),
             new(ItemCatalog.ShirtGreen, 60),
             new(ItemCatalog.ShirtBlue, 60),
@@ -89,6 +92,16 @@ public static class ShopCatalog
             new(ItemCatalog.PantsKhaki, 80),
             new(ItemCatalog.HatStraw, 50),
             new(ItemCatalog.HatCap, 40),
+        ]),
+        new(FurnitureShop, "furniture_shop",
+        [
+            new(ItemCatalog.OakChair, 100),
+            new(ItemCatalog.HousePlant, 80),
+            new(ItemCatalog.FloorLamp, 140),
+            new(ItemCatalog.OakTable, 220),
+            new(ItemCatalog.Bookcase, 260),
+            new(ItemCatalog.BlueArmchair, 300),
+            new(ItemCatalog.BlueCouch, 400),
         ]),
     ];
 

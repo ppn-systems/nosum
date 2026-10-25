@@ -35,7 +35,7 @@ public enum AccountStatus : byte
     /// </summary>
     SessionReplaced = 8,
 
-    /// <summary>The nickname breaks the rules: length, characters or separators (register, upgrade, set nickname).</summary>
+    /// <summary>The nickname breaks the rules: length, characters (unaccented ASCII letters and digits only) or separators (register, upgrade, set nickname).</summary>
     InvalidNickname = 9,
 
     /// <summary>The nickname is on the reserved list or imitates a guest name (register, upgrade, set nickname).</summary>
@@ -46,4 +46,10 @@ public enum AccountStatus : byte
 
     /// <summary>The nickname was changed less than 24 hours ago (set nickname); the reply carries when the next change is allowed.</summary>
     NicknameTooSoon = 12,
+
+    /// <summary>The nickname contains profanity or a slur (register, upgrade, set nickname).</summary>
+    NicknameProfane = 13,
+
+    /// <summary>The player is a guest: only registered accounts may choose or change a nickname (set nickname). A guest picks theirs when registering.</summary>
+    NicknameRequiresAccount = 14,
 }

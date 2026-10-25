@@ -22,13 +22,12 @@
     gap: calc(var(--u) * 5);
     background: #2b1608;
     color: var(--nosum-cream);
-    font: 800 var(--nosum-font-size) / 1.3 var(--nosum-font);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
 }
 
 .boot-title {
-    font: 900 calc(var(--u) * 26) / 1 var(--nosum-font);
-    letter-spacing: 0.04em;
-    text-shadow: calc(var(--u) * 2) calc(var(--u) * 2) 0 var(--nosum-edge);
+    font: 400 calc(var(--u) * 2 * 12.5) / 1 var(--nosum-font);
+    text-shadow: var(--u) var(--u) 0 var(--nosum-edge), calc(var(--u) * 2) calc(var(--u) * 2) 0 var(--nosum-edge);
 }
 
 .boot-bar {
@@ -61,7 +60,7 @@
     border-top: calc(var(--u) * 2) solid var(--nosum-edge);
     background: var(--nosum-parchment);
     color: var(--nosum-danger);
-    font: 800 var(--nosum-font-size) / 1.3 var(--nosum-font);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
 }
 
 #blazor-error-ui .reload {

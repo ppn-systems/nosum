@@ -37,15 +37,19 @@ public enum PanelKind
     /// <summary>A shop, opened with the action key at its counter (not a toolbar button).</summary>
     Shop = 8,
 
-    /// <summary>The visitors panel: who may enter the player's farm, and visiting someone else (docs/adr/ADR-019).</summary>
-    Visitors = 9,
+    /// <summary>The settings page: account, language and the key help (opened by the gear, <c>H</c> or <c>?</c>).</summary>
+    Settings = 9,
+
+    /// <summary>The visitors page: who may enter the player's farm, and visiting someone else (docs/adr/ADR-019).</summary>
+    Visitors = 10,
 }
 
 /// <summary>One toolbar button.</summary>
 /// <param name="Kind">The panel it opens.</param>
 /// <param name="Label">The localized name.</param>
 /// <param name="Hotkey">The key that does the same.</param>
-public sealed record ToolbarItem(PanelKind Kind, string Label, string Hotkey);
+/// <param name="Icon">The theme sprite of its menu tab, for example <c>tab-inventory</c>.</param>
+public sealed record ToolbarItem(PanelKind Kind, string Label, string Hotkey, string Icon = "");
 
 /// <summary>View model of the toolbar of panel buttons; knows which panel is open.</summary>
 public sealed class ToolbarViewModel : PanelViewModel
@@ -76,16 +80,19 @@ public sealed class ToolbarViewModel : PanelViewModel
         }
     }
 
-    /// <summary>Gets the buttons.</summary>
+    /// <summary>Gets the tabs of the game menu, left to right. A new tab is one more entry here (plus its page in <c>Home.razor</c> and its sprite in <c>nosum-theme.js</c>).</summary>
     public IReadOnlyList<ToolbarItem> Items =>
     [
-        new ToolbarItem(PanelKind.Inventory, this.Text("Toolbar_Inventory"), "I"),
-        new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), "M"),
-        new ToolbarItem(PanelKind.Wardrobe, this.Text("Toolbar_Wardrobe"), "C"),
-        new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T"),
-        new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G"),
-        new ToolbarItem(PanelKind.Help, this.Text("Toolbar_Help"), "H"),
-        new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N"),
-        new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty),
+        new ToolbarItem(PanelKind.Inventory, this.Text("Toolbar_Inventory"), "I", "tab-inventory"),
+        new ToolbarItem(PanelKind.Wardrobe, this.Text("Toolbar_Wardrobe"), "C", "tab-wardrobe"),
+        new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), "M", "tab-market"),
+        new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T", "tab-trade"),
+        new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G", "tab-coop"),
+        new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty, "tab-visitors"),
+        new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N", "tab-profile"),
+        new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), "H", "tab-settings"),
     ];
+
+    /// <summary>Gets the shop tab, shown only while a shop is open (opened at its counter, not from the menu).</summary>
+    public ToolbarItem ShopItem => new(PanelKind.Shop, this.Text("Toolbar_Shop"), string.Empty, "tab-shop");
 }

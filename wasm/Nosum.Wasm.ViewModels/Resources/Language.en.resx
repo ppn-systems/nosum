@@ -255,8 +255,10 @@
   <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>That player was already invited.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Guest {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Nickname</value></data>
-  <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} characters: letters (accents allowed), digits, a space or underscore.</value></data>
-  <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>That nickname is not valid.</value></data>
+  <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} characters: letters without accents (a-z) and digits, with a single space or underscore between words. No profanity.</value></data>
+  <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>That nickname is not valid. Use letters without accents (a-z) and digits only.</value></data>
+  <data name="Account_Status_NicknameProfane" xml:space="preserve"><value>That nickname is not allowed: it contains offensive language.</value></data>
+  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Register an account to choose a nickname.</value></data>
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>That nickname is not allowed.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>That nickname is already taken.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>You changed your nickname recently. Try again later.</value></data>
@@ -266,14 +268,13 @@
   <data name="Profile_NewLabel" xml:space="preserve"><value>New nickname</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Change nickname</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>You can change your nickname once every 24 hours.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep their generated name. Register an account to choose your own nickname.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Your nickname is now {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>You can change it again at {0}.</value></data>
-  <data name="Shop_Title" xml:space="preserve"><value>{0} shop</value></data>
-  <data name="Shop_Name_general_store" xml:space="preserve"><value>General store</value></data>
+  <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Seed shop</value></data>
+  <data name="Shop_Title_clothing_shop" xml:space="preserve"><value>Clothing shop</value></data>
+  <data name="Shop_Title_furniture_shop" xml:space="preserve"><value>Furniture shop</value></data>
   <data name="Shop_Coins" xml:space="preserve"><value>Balance: {0} coins</value></data>
-  <data name="Shop_Tab_Seeds" xml:space="preserve"><value>Seeds</value></data>
-  <data name="Shop_Tab_Furniture" xml:space="preserve"><value>Furniture</value></data>
-  <data name="Shop_Tab_Clothing" xml:space="preserve"><value>Clothing</value></data>
   <data name="Shop_Quantity" xml:space="preserve"><value>Quantity</value></data>
   <data name="Shop_Buy" xml:space="preserve"><value>Buy</value></data>
   <data name="Shop_Price" xml:space="preserve"><value>{0} coins</value></data>
@@ -295,23 +296,39 @@
   <data name="Toolbar_Help" xml:space="preserve"><value>Keys</value></data>
   <data name="Help_Title" xml:space="preserve"><value>Keyboard shortcuts</value></data>
   <data name="Help_Section_Play" xml:space="preserve"><value>Playing</value></data>
-  <data name="Help_Section_Panels" xml:space="preserve"><value>Panels</value></data>
+  <data name="Help_Section_Panels" xml:space="preserve"><value>Menu</value></data>
   <data name="Help_Section_Arrange" xml:space="preserve"><value>Arranging your home</value></data>
-  <data name="Help_Move" xml:space="preserve"><value>Walk (or the arrow keys)</value></data>
-  <data name="Help_Use" xml:space="preserve"><value>Use the held item, interact</value></data>
-  <data name="Help_Hotbar" xml:space="preserve"><value>Select a hotbar slot</value></data>
-  <data name="Help_Inventory" xml:space="preserve"><value>Open the inventory</value></data>
-  <data name="Help_Market" xml:space="preserve"><value>Open the market</value></data>
-  <data name="Help_Wardrobe" xml:space="preserve"><value>Open the wardrobe</value></data>
-  <data name="Help_Trade" xml:space="preserve"><value>Open trading</value></data>
-  <data name="Help_Coop" xml:space="preserve"><value>Open the co-op</value></data>
-  <data name="Help_Help" xml:space="preserve"><value>Show or hide this card</value></data>
-  <data name="Help_Close" xml:space="preserve"><value>Close the open panel</value></data>
-  <data name="Help_Place" xml:space="preserve"><value>Place the held piece</value></data>
-  <data name="Help_Rotate" xml:space="preserve"><value>Rotate the piece</value></data>
-  <data name="Help_Grab" xml:space="preserve"><value>Pick up the piece in front to move it</value></data>
-  <data name="Help_PickUp" xml:space="preserve"><value>Put the piece in the bag</value></data>
-  <data name="Help_Profile" xml:space="preserve"><value>Open the profile (change nickname)</value></data>
+  <data name="Help_Move" xml:space="preserve"><value>Move</value></data>
+  <data name="Help_Use" xml:space="preserve"><value>Use, interact</value></data>
+  <data name="Help_Hotbar" xml:space="preserve"><value>Select slot</value></data>
+  <data name="Help_Inventory" xml:space="preserve"><value>Inventory</value></data>
+  <data name="Help_Market" xml:space="preserve"><value>Market</value></data>
+  <data name="Help_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
+  <data name="Help_Trade" xml:space="preserve"><value>Trade</value></data>
+  <data name="Help_Coop" xml:space="preserve"><value>Co-op</value></data>
+  <data name="Help_Help" xml:space="preserve"><value>Settings</value></data>
+  <data name="Help_Close" xml:space="preserve"><value>Menu / close</value></data>
+  <data name="Help_Place" xml:space="preserve"><value>Place</value></data>
+  <data name="Help_Rotate" xml:space="preserve"><value>Rotate</value></data>
+  <data name="Help_Grab" xml:space="preserve"><value>Move a piece</value></data>
+  <data name="Help_PickUp" xml:space="preserve"><value>Stow</value></data>
+  <data name="Help_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Inventory_Hand" xml:space="preserve"><value>In hand</value></data>
+  <data name="Inventory_HandEmpty" xml:space="preserve"><value>Empty hand</value></data>
+  <data name="Toolbar_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Account" xml:space="preserve"><value>Account</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageName" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_Keys" xml:space="preserve"><value>Keys</value></data>
+  <data name="Placement_Strip_Place" xml:space="preserve"><value>Place</value></data>
+  <data name="Placement_Strip_Rotate" xml:space="preserve"><value>Rotate</value></data>
+  <data name="Placement_Strip_Move" xml:space="preserve"><value>Move</value></data>
+  <data name="Placement_Strip_Stow" xml:space="preserve"><value>Stow</value></data>
+  <data name="Quest_Collapse" xml:space="preserve"><value>Collapse</value></data>
+  <data name="Quest_Expand" xml:space="preserve"><value>Expand</value></data>
+  <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Click to take off</value></data>
+  <data name="Toolbar_Shop" xml:space="preserve"><value>Shop</value></data>
+  <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Farm_Status_NotYourFarm" xml:space="preserve"><value>On someone else's farm you can only water the crops.</value></data>
   <data name="Place_Status_NotYourPlace" xml:space="preserve"><value>Only the owner arranges things here.</value></data>
   <data name="Market_Status_NotYourBin" xml:space="preserve"><value>This shipping bin belongs to the farm's owner.</value></data>

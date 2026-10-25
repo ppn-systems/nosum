@@ -42,14 +42,12 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task Register_VietnameseNickname_IsStoredComposedAndReturned()
+    public async Task Register_UnaccentedNickname_IsStoredAndReturned()
     {
-        string decomposed = "Nguyễn Văn_An".Normalize(NormalizationForm.FormD);
-
-        AccountOutcome outcome = await RegisterAsync(decomposed);
+        AccountOutcome outcome = await RegisterAsync("  Nguyen Van_An  ");
 
         outcome.Status.Should().Be(AccountStatus.Ok);
-        outcome.Nickname.Should().Be("Nguyễn Văn_An".Normalize(NormalizationForm.FormC));
+        outcome.Nickname.Should().Be("Nguyen Van_An");
         (await _directory.GetAsync(outcome.PlayerId)).Should().Be(outcome.Nickname);
         (await _accounts.ResumeAsync(outcome.SessionToken, CancellationToken.None)).Nickname.Should().Be(outcome.Nickname);
     }
@@ -58,9 +56,15 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     [InlineData("ab", AccountStatus.InvalidNickname)]
     [InlineData("bad-name", AccountStatus.InvalidNickname)]
     [InlineData("", AccountStatus.InvalidNickname)]
+    [InlineData("Nguyễn Văn", AccountStatus.InvalidNickname)]
+    [InlineData("Mình", AccountStatus.InvalidNickname)]
+    [InlineData("Иван", AccountStatus.InvalidNickname)]
     [InlineData("Admin", AccountStatus.NicknameReserved)]
-    [InlineData("Quản Trị", AccountStatus.NicknameReserved)]
-    public async Task Register_InvalidOrReserved_IsRefusedWithMatchingCodeAndCreatesNothing(string nickname, AccountStatus expected)
+    [InlineData("Quan Tri", AccountStatus.NicknameReserved)]
+    [InlineData("Fuck", AccountStatus.NicknameProfane)]
+    [InlineData("VCL_77", AccountStatus.NicknameProfane)]
+    [InlineData("d1t me", AccountStatus.NicknameProfane)]
+    public async Task Register_InvalidReservedOrProfane_IsRefusedWithMatchingCodeAndCreatesNothing(string nickname, AccountStatus expected)
     {
         string email = NextEmail();
 
@@ -72,14 +76,13 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task Register_SameNicknameDifferentCaseAccentsComposition_IsTaken_ButADifferentAccentIsADifferentName()
+    public async Task Register_SameNicknameDifferentCase_IsTaken()
     {
-        string name = "Tên" + Guid.NewGuid().ToString("N")[..6];
+        string name = "Name" + Guid.NewGuid().ToString("N")[..6];
         (await RegisterAsync(name)).Status.Should().Be(AccountStatus.Ok);
 
         (await RegisterAsync(name.ToUpperInvariant())).Status.Should().Be(AccountStatus.NicknameTaken);
-        (await RegisterAsync(name.Normalize(NormalizationForm.FormD))).Status.Should().Be(AccountStatus.NicknameTaken);
-        (await RegisterAsync(name.Replace('ê', 'e'))).Status.Should().Be(AccountStatus.Ok, "Ten and Tên are different names");
+        (await RegisterAsync(name + "2")).Status.Should().Be(AccountStatus.Ok, "different characters are a different name");
     }
 
     [Fact]
@@ -136,6 +139,55 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task UpgradeGuest_WithAnInvalidReservedOrProfaneNickname_IsRefused_AndTheGuestStaysAGuest()
+    {
+        AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
+
+        foreach ((string nickname, AccountStatus expected) in new[] { ("Nguyễn", AccountStatus.InvalidNickname), ("Admin", AccountStatus.NicknameReserved), ("Cai_Lon", AccountStatus.NicknameProfane) })
+        {
+            (await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, NextEmail(), "password-1", nickname, CancellationToken.None)).Status.Should().Be(expected);
+        }
+
+        AccountOutcome resumed = await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None);
+        resumed.IsGuest.Should().BeTrue();
+        resumed.Nickname.Should().Be(guest.Nickname);
+    }
+
+    [Fact]
+    public async Task SetNickname_AGuestCannotRename_EvenToAValidName_AndNothingChanges()
+    {
+        AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
+
+        NicknameOutcome refused = await _accounts.SetNicknameAsync(guest.PlayerId, TestNicknames.Next(), CancellationToken.None);
+
+        refused.Should().Be(new NicknameOutcome(AccountStatus.NicknameRequiresAccount, guest.Nickname, null));
+        (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).Nickname.Should().Be(guest.Nickname);
+        (await _directory.GetAsync(guest.PlayerId)).Should().Be(guest.Nickname);
+        await using NosumDbContext context = new(_database.Options);
+        (await context.Players.SingleAsync(p => p.Id == guest.PlayerId)).NicknameChangedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SetNickname_ANicknameStoredBeforeTheAsciiRule_StaysValidUntilRenamed_AndTheNewNameMustPass()
+    {
+        // Stored before the 2026-10-25 rule: accents, and even a word that is on the blocklist today. Nothing rewrites it.
+        string legacy = "Mình Đức " + Guid.NewGuid().ToString("N")[..4];
+        Guid id;
+        await using (NosumDbContext seed = new(_database.Options))
+        {
+            Player player = new() { NormalizedEmail = NextEmail(), Email = NextEmail(), PasswordHash = "x", Nickname = legacy, NormalizedNickname = NicknameRules.Key(legacy), CreatedAt = s_start, LastActiveAt = s_start };
+            seed.Players.Add(player);
+            _ = await seed.SaveChangesAsync();
+            id = player.Id;
+        }
+
+        (await _directory.GetAsync(id)).Should().Be(legacy);
+        NicknameRules.Validate(legacy).Should().Be(NicknameVerdict.Invalid, "it would not be accepted as a new name");
+        (await _accounts.SetNicknameAsync(id, legacy, CancellationToken.None)).Status.Should().Be(AccountStatus.InvalidNickname, "re-saving the old name is a new name, which must pass");
+        (await _accounts.SetNicknameAsync(id, "Minh Duc", CancellationToken.None)).Should().Match<NicknameOutcome>(o => o.Status == AccountStatus.Ok && o.Nickname == "Minh Duc");
+    }
+
+    [Fact]
     public async Task SetNickname_FirstChangeIsFree_ThenTheSecondWaitsTwentyFourHours()
     {
         AccountOutcome player = await RegisterAsync(TestNicknames.Next());
@@ -168,6 +220,8 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
         (await _accounts.SetNicknameAsync(a.PlayerId, b.Nickname.ToUpperInvariant(), CancellationToken.None)).Status.Should().Be(AccountStatus.NicknameTaken);
         (await _accounts.SetNicknameAsync(a.PlayerId, "x", CancellationToken.None)).Status.Should().Be(AccountStatus.InvalidNickname);
         (await _accounts.SetNicknameAsync(a.PlayerId, "Moderator", CancellationToken.None)).Status.Should().Be(AccountStatus.NicknameReserved);
+        (await _accounts.SetNicknameAsync(a.PlayerId, "Fuck_You", CancellationToken.None)).Status.Should().Be(AccountStatus.NicknameProfane);
+        (await _accounts.SetNicknameAsync(a.PlayerId, "Mình Đức", CancellationToken.None)).Status.Should().Be(AccountStatus.InvalidNickname);
         (await _accounts.SetNicknameAsync(a.PlayerId, a.Nickname, CancellationToken.None)).Should().Match<NicknameOutcome>(o => o.Status == AccountStatus.Ok && o.NextChangeAt == null);
 
         // Changing only the case of one's own name is a change, and allowed (it is not "taken" by oneself).

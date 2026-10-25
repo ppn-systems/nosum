@@ -1,14 +1,21 @@
+/* A section inside a window: a recessed card (MenuTiles inset, 2 u edge), so the hierarchy is window > section > slot. */
 .game-section {
+    --section-edge: calc(var(--u) * 2);
+
     display: flex;
     flex-direction: column;
     gap: calc(var(--u) * 2);
+    box-sizing: border-box;
+    min-width: 0;
+    padding: calc(var(--u) * 1) calc(var(--u) * 1);
+    border: var(--section-edge) solid var(--nosum-edge);
+    border-image: var(--nosum-img-inset) 8 fill / var(--section-edge) stretch;
+    background: var(--nosum-parchment-deep) padding-box;
+    image-rendering: pixelated;
 }
 
 .game-section h3 {
     margin: 0;
-    padding-bottom: var(--u);
-    border-bottom: var(--u) solid var(--nosum-line);
-    font-size: 0.95em;
-    font-weight: 800;
-    color: var(--nosum-ink-soft);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
+    color: var(--nosum-heading);
 }

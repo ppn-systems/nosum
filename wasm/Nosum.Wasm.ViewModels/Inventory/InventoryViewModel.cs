@@ -69,6 +69,27 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the slots after the hotbar: the bag proper, shown above the hotbar row in the inventory window.</summary>
+    public IEnumerable<SlotDisplay> Storage
+    {
+        get
+        {
+            for (int i = InventoryLimits.HotbarSlots; i < _slots.Count; i++)
+            {
+                yield return _slots[i];
+            }
+        }
+    }
+
+    /// <summary>Gets the stack in the held hotbar slot, or <see langword="null"/> when that slot is empty.</summary>
+    public SlotDisplay? Held => (uint)this.SelectedSlot < (uint)_slots.Count && !_slots[this.SelectedSlot].IsEmpty ? _slots[this.SelectedSlot] : null;
+
+    /// <summary>Gets the heading of the held-item card.</summary>
+    public string HandTitle => _text["Inventory_Hand"];
+
+    /// <summary>Gets the text of the held-item card when the hand is empty.</summary>
+    public string HandEmptyText => _text["Inventory_HandEmpty"];
+
     /// <summary>Gets the held hotbar slot.</summary>
     public int SelectedSlot => _channel.SelectedSlot;
 

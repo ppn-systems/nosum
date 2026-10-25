@@ -1,8 +1,9 @@
+@using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Visit
 @inherits ObservingComponent<VisitorsViewModel>
 
-@* Visitors: who may enter the player's own farm and farmhouse, and a way to visit somebody else. The server checks the allow-list on every visit. *@
-<GamePanel Title="@Vm.Text("Visit_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+@* The Visitors page of the game menu: who may enter the player's own farm and farmhouse, and a way to visit somebody else. The server checks the allow-list on every visit. *@
+<MenuPage Status="@Vm.Status">
     <GameStack>
         <GameSection Title="@Vm.Text("Visit_Go_Heading")">
             <GameRow>
@@ -53,10 +54,10 @@
             <p class="visit-hint">@Vm.Text("Visit_Rules_Hint")</p>
         </GameSection>
     </GameStack>
-</GamePanel>
+</MenuPage>
 
 @code {
-    /// <summary>Raised when the close button is clicked, or a visit was accepted.</summary>
+    /// <summary>Raised when a visit was accepted, so the menu closes and the map scene shows the farm.</summary>
     [Parameter] public EventCallback OnClose { get; set; }
 
     protected override void OnInitialized()
@@ -75,6 +76,6 @@
         base.Dispose(disposing);
     }
 
-    // The visit was accepted: the map scene fades to the farm, so the panel gets out of the way.
+    // The visit was accepted: the map scene fades to the farm, so the menu gets out of the way.
     private void OnEntered() => _ = InvokeAsync(OnClose.InvokeAsync);
 }
