@@ -62,9 +62,9 @@ public sealed partial class DbBudgetRun
         // Eating: produce is food.
         IDevGrantService grants = BudgetRig.Service<IDevGrantService>();
         _ = await grants.GrantAsync(p.AccountId, ItemCatalog.Parsnip, 3, 0, _rig.Timeout);
-        int slot = 9;
+        int slot = await this.SlotOfAsync(p, ItemCatalog.Parsnip);
         using Eat eat = new() { Slot = (byte)slot };
-        _ = await _rig.MeasureAsync("Player", PlayerOpCode.Eat, "Eat", "a parnsip from the hotbar", () => p.RequestAsync<EatResult>(eat));
+        _ = await _rig.MeasureAsync("Player", PlayerOpCode.Eat, "Eat", "a parsnip from the hotbar", () => p.RequestAsync<EatResult>(eat));
 
         // The day rollover the server runs for everybody once per game day.
         _ = await _rig.MeasureAsync("Background", null, "DayClock", "one game day ends (nodes, goals)", () =>

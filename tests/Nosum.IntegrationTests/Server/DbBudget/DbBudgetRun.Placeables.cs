@@ -160,6 +160,11 @@ public sealed partial class DbBudgetRun
         BuildingCatalog.TryGet(BuildingKind.Coop, out BuildingDefinition? coop);
         BudgetRig.Stand(p.AccountId, ((coop!.TroughLeft + 1) * 16) + 8, ((coop.TroughTop + 1) * 16) + 8);
         await _rig.Counter.SettleAsync(TimeSpan.FromMilliseconds(300), _rig.Timeout);
+        _ = await _rig.MeasureAsync("Background", null, "AnimalWander", "tick, one player inside a coop", async () =>
+        {
+            await BudgetRig.Service<Nosum.Infrastructure.Buildings.AnimalWanderService>().TickAsync(_rig.Clock.GetUtcNow().ToUnixTimeMilliseconds() + 10_000, _rig.Timeout);
+            return true;
+        });
         AnimalsSnapshot animals = await _rig.ProbeAsync<AnimalsSnapshot>(p, "Building", BuildingOpCode.GetAnimals, "GetAnimals", "inside, one chicken", () => new GetAnimals());
         int feed = await this.SlotOfAsync(p, ItemCatalog.Hay);
         _ = await _rig.ProbeAsync<BuildingResult>(p, "Building", BuildingOpCode.FeedAnimals, "FeedAnimals", "hay into the trough", () => new FeedAnimals { Slot = feed, Quantity = 1 });

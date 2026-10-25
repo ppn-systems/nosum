@@ -45,6 +45,14 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         await this.GuardAsync("social", this.SocialAsync);
         await this.GuardAsync("placeables", this.PlaceablesAsync);
         await this.GuardAsync("buildings", this.BuildingsAsync);
+        await this.GuardAsync("nodes", this.NodesAsync);
+        await this.GuardAsync("walk", this.WalkAsync);
+        await this.GuardAsync("warp", this.WarpAsync);
+        await this.GuardAsync("background", this.BackgroundAsync);
+
+        // The tester tools exist only in Development builds and are never mapped in Production.
+        _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevGrant, "DevGrant", "tester tool, Development only; its cost is test set-up");
+        _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevAdvanceClock, "DevAdvanceClock", "tester tool, Development only; the day rollover it triggers is the DayClock row");
     }
 
     /// <inheritdoc/>

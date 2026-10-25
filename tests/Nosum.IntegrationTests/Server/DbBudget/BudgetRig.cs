@@ -270,6 +270,15 @@ internal sealed class BudgetPlayer : IAsyncDisposable
     /// <summary>Gets where the player stands after the join and every accepted move, in pixels.</summary>
     public (float X, float Y) Feet { get; private set; }
 
+    /// <summary>Sets where the next step starts from, after the server was told to stand the player elsewhere.</summary>
+    /// <param name="x">Feet x.</param>
+    /// <param name="y">Feet y.</param>
+    public void SetFeet(float x, float y) => this.Feet = (x, y);
+
+    /// <summary>Gets the next move sequence number.</summary>
+    /// <returns>A sequence number.</returns>
+    public uint NextSequence() => ++_moveSequence;
+
     /// <summary>Gets the underlying session, for subscriptions.</summary>
     public WebSocketSession Session => _session;
 
