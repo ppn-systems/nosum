@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261025105836_GrowthInGameDays")]
+    [Migration("20261025110703_GrowthInGameDays")]
     partial class GrowthInGameDays
     {
         /// <inheritdoc />
@@ -717,6 +717,66 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasName("pk_player_quests");
 
                     b.ToTable("player_quests", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.World.GroundItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid?>("CausedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("caused_by");
+
+                    b.Property<long>("CreatedAtMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at_ms");
+
+                    b.Property<long>("ExpiresAtMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("expires_at_ms");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("MapId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<long>("PriorityUntilMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("priority_until_ms");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer")
+                        .HasColumnName("x");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer")
+                        .HasColumnName("y");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ground_items");
+
+                    b.HasIndex("MapId", "OwnerId")
+                        .HasDatabaseName("ix_ground_items_map_id_owner_id");
+
+                    b.ToTable("ground_items", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.Accounts.PlayerSessionToken", b =>

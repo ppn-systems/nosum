@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), the server calendar and seasons (Calendar/), placeable objects (Placeables/)
+│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), walking (Movement/), farm (Farm/), the server calendar and seasons (Calendar/), placeable objects (Placeables/), ground items (GroundItems/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -159,6 +159,18 @@ handler (identity from the connection) ─► IMarketService / ITradeService / I
 ```
 
 Looks travel as ids (`LookChanged`, `LooksSnapshot`) to everyone on the map and are resolved by the client's `LookPalette`; the player's nickname rides in the same row (cached by map player id, drawn by the engine as a pre-rendered label); shop purchases (`BuyFromShop`) are one transfer like the others; the market fee leaves through `IFeeSink` (a coin sink); trade and co-op invitations address a player by their id on the map and find them through `IMapPresence`.
+
+## Runtime path 5 — items on the ground
+
+Harvests (and later broken nodes) do not go straight into a bag: they land on the ground ([ADR-021](docs/adr/ADR-021-tools-resource-nodes-ground-items.md)), and the server hands them to whoever walks near.
+
+```text
+FarmService harvest ──tile reset + ground_items row: one transaction──► IGroundItems (chunk buckets, 16 × 16 tiles)
+                                                                          │ GroundItemSpawned ─► the instance's players (one PublishAsync seam)
+PlayerService.MoveAsync (accepted) ─► OnPlayerMovedAsync ─► 9 chunks around the player: in reach, allowed, unclaimed
+                                                                          │ claim in memory ─► ITransferService (item in, row out: one transaction)
+client GroundItemChannel ◄── GroundItemTaken (flies to the taker) ◄───────┘      full inventory: the claim is released, the item stays
+```
 
 ## Organize by game domain
 
