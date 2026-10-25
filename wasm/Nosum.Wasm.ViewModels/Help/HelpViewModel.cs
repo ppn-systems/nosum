@@ -37,13 +37,13 @@ public sealed class HelpViewModel : PanelViewModel
             [
                 new HelpEntry(["W", "A", "S", "D"], this.Text("Help_Move")),
                 new HelpEntry(["E", "Space"], this.Text("Help_Use")),
+                new HelpEntry(["E"], this.Text("Help_Counters")),
                 new HelpEntry(["1-9"], this.Text("Help_Hotbar")),
             ]),
         new HelpSection(
             this.Text("Help_Section_Panels"),
             [
                 new HelpEntry(["I"], this.Text("Help_Inventory")),
-                new HelpEntry(["M"], this.Text("Help_Market")),
                 new HelpEntry(["C"], this.Text("Help_Wardrobe")),
                 new HelpEntry(["T"], this.Text("Help_Trade")),
                 new HelpEntry(["G"], this.Text("Help_Coop")),

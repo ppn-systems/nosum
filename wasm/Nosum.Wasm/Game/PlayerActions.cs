@@ -32,6 +32,7 @@ internal sealed class PlayerActions
     private readonly FarmChannel _farm;
     private readonly InventoryChannel _inventory;
     private readonly MarketChannel _market;
+    private int _counterId;
     private readonly ChestChannel? _chests;
     private readonly ProgressChannel? _progress;
     private readonly BuildingChannel? _buildings;
@@ -63,6 +64,9 @@ internal sealed class PlayerActions
     /// <summary>Raised (from the frame) when the action key was pressed next to a shop: the shop's id (docs/adr/ADR-013 amendments).</summary>
     public event Action<int>? ShopRequested;
 
+    /// <summary>Raised (from the frame) when the farmer walked out of reach of a counter: the counter's id (a shop, the Town board or the market, docs/adr/ADR-034), so its panel can close.</summary>
+    public event Action<int>? CounterLeft;
+
     /// <summary>Raised (from the frame) when the action key was pressed facing a furnace: the furnace's object id (docs/adr/ADR-024).</summary>
     public event Action<int>? FurnaceRequested;
 
@@ -92,6 +96,12 @@ internal sealed class PlayerActions
     public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0, PlacedSet? placed = null, BuildingDefinition? interior = null)
     {
         this.ActionConsumed = false;
+        if (_counterId != 0 && shopId != _counterId)
+        {
+            this.CounterLeft?.Invoke(_counterId);
+        }
+
+        _counterId = shopId;
         int x = (int)(feetX / tileSize);
         int y = (int)(feetY / tileSize);
         (this.TargetX, this.TargetY) = facing switch
@@ -255,11 +265,6 @@ internal sealed class PlayerActions
         if ((edges & InputEdges.Inventory) != 0)
         {
             this.PanelToggleRequested?.Invoke(PanelKind.Inventory);
-        }
-
-        if ((edges & InputEdges.Market) != 0)
-        {
-            this.PanelToggleRequested?.Invoke(PanelKind.Market);
         }
 
         if ((edges & InputEdges.Wardrobe) != 0)

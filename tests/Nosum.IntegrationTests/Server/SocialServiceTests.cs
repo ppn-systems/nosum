@@ -66,7 +66,7 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
         _nicknames = new NicknameDirectory(_units);
         _inventory = new InventoryService(_units, _clock);
         _transfers = new TransferService(_inventory, _clock);
-        _market = new MarketService(_transfers, _inventory, _units, new NoPresence(), new NoMaps(), new CoinSink(), _nicknames, _clock);
+        _market = new MarketService(_transfers, _inventory, _units, MarketCounter.Presence(), MarketCounter.Maps(), new CoinSink(), _nicknames, _clock);
         _coops = new CoopService(_units, _transfers, new NoPresence(), new NoSessions(), new NoNotifier(), _nicknames, new NoFarm(), new NoEviction(), _clock);
     }
 
@@ -146,7 +146,7 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
 
         // Another sink pays the fee to a fund; nothing else about the market changes.
         Guid fund = await CreatePlayerAsync();
-        MarketService redirecting = new(_transfers, _inventory, _units, new NoPresence(), new NoMaps(), new FundSink(fund), _nicknames, _clock);
+        MarketService redirecting = new(_transfers, _inventory, _units, MarketCounter.Presence(), MarketCounter.Maps(), new FundSink(fund), _nicknames, _clock);
         (Guid seller2, Guid buyer2, Guid listing2) = await ListedAsync(quantity: 10, price: 200);
 
         (await redirecting.BuyAsync(buyer2, listing2)).Should().Be(MarketStatus.Ok);
@@ -540,15 +540,6 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
         }
 
         public IConnection? GetActive(Guid playerId) => null;
-    }
-
-    private sealed class NoMaps : IMapCatalog
-    {
-        public bool TryGet(string mapId, [NotNullWhen(true)] out MapDefinition? map)
-        {
-            map = null;
-            return false;
-        }
     }
 
     private sealed class NoPresence : IMapPresence

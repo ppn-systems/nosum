@@ -64,4 +64,7 @@ public enum MarketStatus : byte
 
     /// <summary>The player would have more than 500 units of this item listed at once (docs/adr/ADR-030 D4).</summary>
     TooManyOfItem = 19,
+
+    /// <summary>The player is not at the trader's counter in Town; listing, buying and cancelling need it (docs/adr/ADR-034).</summary>
+    NotAtCounter = 20,
 }

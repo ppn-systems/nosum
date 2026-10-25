@@ -16,7 +16,7 @@ public enum PanelKind
     /// <summary>The inventory.</summary>
     Inventory = 1,
 
-    /// <summary>The market.</summary>
+    /// <summary>The market, opened with the action key at the trader's counter in Town (not a toolbar button, docs/adr/ADR-034).</summary>
     Market = 2,
 
     /// <summary>The wardrobe.</summary>
@@ -106,7 +106,6 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Inventory, this.Text("Toolbar_Inventory"), "I", "tab-inventory"),
         new ToolbarItem(PanelKind.Wardrobe, this.Text("Toolbar_Wardrobe"), "C", "tab-wardrobe"),
         new ToolbarItem(PanelKind.Crafting, this.Text("Toolbar_Crafting"), string.Empty, "tab-shop"),
-        new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), "M", "tab-market"),
         new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T", "tab-trade"),
         new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G", "tab-coop"),
         new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty, "tab-visitors"),
@@ -125,6 +124,9 @@ public sealed class ToolbarViewModel : PanelViewModel
 
     /// <summary>Gets the shop tab, shown only while a shop is open (opened at its counter, not from the menu).</summary>
     public ToolbarItem ShopItem => new(PanelKind.Shop, this.Text("Toolbar_Shop"), string.Empty, "tab-shop");
+
+    /// <summary>Gets the market tab, shown only while the market is open (opened at the trader's counter in Town, not from the menu).</summary>
+    public ToolbarItem MarketItem => new(PanelKind.Market, this.Text("Toolbar_Market"), string.Empty, "tab-market");
 
     /// <summary>Gets the Town board tab, shown only while the board is open (opened at its counter, not from the menu).</summary>
     public ToolbarItem GoalsItem => new(PanelKind.Goals, this.Text("Toolbar_Goals"), string.Empty, "tab-goals");

@@ -35,6 +35,7 @@
 @using Nosum.Wasm.Controls.Calendar
 @using Nosum.Wasm.ViewModels.Calendar
 @using Nosum.Gameplay.Community
+@using Nosum.Gameplay.Economy
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
 @using Nosum.Gameplay.Shops
@@ -254,6 +255,7 @@ else
         Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
         GameLoop.PanelToggleRequested += OnPanelKey;
         GameLoop.ShopRequested += OnShopRequested;
+        GameLoop.CounterLeft += OnCounterLeft;
         GameLoop.FurnaceRequested += OnFurnaceRequested;
         GameLoop.PanelCloseRequested += OnCloseKey;
         Chest.OpenChanged += OnContainerOpenChanged;
@@ -284,6 +286,7 @@ else
         Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
         GameLoop.PanelToggleRequested -= OnPanelKey;
         GameLoop.ShopRequested -= OnShopRequested;
+        GameLoop.CounterLeft -= OnCounterLeft;
         GameLoop.FurnaceRequested -= OnFurnaceRequested;
         GameLoop.PanelCloseRequested -= OnCloseKey;
         Chest.OpenChanged -= OnContainerOpenChanged;
@@ -306,7 +309,15 @@ else
     // The action key next to a counter (raised from the frame): open that shop on its tab, or the Town board's goals page.
     private void OnShopRequested(int shopId) => _ = InvokeAsync(() =>
     {
-        if (shopId == CommunityGoalCatalog.BoardCounterId)
+        if (shopId == MarketRules.MarketCounterId)
+        {
+            if (_panel != PanelKind.Market)
+            {
+                Show(PanelKind.Market);
+                StateHasChanged();
+            }
+        }
+        else if (shopId == CommunityGoalCatalog.BoardCounterId)
         {
             if (_panel != PanelKind.Goals)
             {
@@ -324,6 +335,19 @@ else
             }
 
             Show(PanelKind.Shop);
+            StateHasChanged();
+        }
+    });
+
+    // The farmer walked out of reach of a counter (raised from the frame): the panel that counter opened closes.
+    private void OnCounterLeft(int counterId) => _ = InvokeAsync(() =>
+    {
+        bool open = counterId == MarketRules.MarketCounterId ? _panel == PanelKind.Market
+            : counterId == CommunityGoalCatalog.BoardCounterId ? _panel == PanelKind.Goals
+            : _panel == PanelKind.Shop && counterId == _shopId;
+        if (open)
+        {
+            ClosePanel();
             StateHasChanged();
         }
     });
@@ -385,6 +409,10 @@ else
             {
                 tabs.Add(Tab(Toolbar.GoalsItem));
             }
+            else if (item.Kind == PanelKind.Settings && _panel == PanelKind.Market)
+            {
+                tabs.Add(Tab(Toolbar.MarketItem));
+            }
 
             tabs.Add(Tab(item));
         }
@@ -423,7 +451,7 @@ else
         }
 
         _panel = kind;
-        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals))
+        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals or PanelKind.Market))
         {
             _lastTab = kind;
         }
