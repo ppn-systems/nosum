@@ -152,13 +152,19 @@ internal sealed class BudgetRig : IAsyncDisposable
     /// <param name="name">The packet or event name.</param>
     /// <param name="variant">What the measured call did (the case; the same packet may have several rows).</param>
     /// <param name="act">The work to measure.</param>
+    /// <param name="keep">Tells whether the result is worth a row (a try that was refused is not); all rows by default.</param>
     /// <returns>What <paramref name="act"/> returned.</returns>
-    public async Task<T> MeasureAsync<T>(string group, ushort? opcode, string name, string variant, Func<Task<T>> act)
+    public async Task<T> MeasureAsync<T>(string group, ushort? opcode, string name, string variant, Func<Task<T>> act, Func<T, bool>? keep = null)
     {
         await this.Counter.SettleAsync(TimeSpan.FromMilliseconds(120), this.Timeout);
         int mark = this.Counter.Mark;
         T value = await act();
         await this.Counter.SettleAsync(TimeSpan.FromMilliseconds(220), this.Timeout);
+        if (keep is not null && !keep(value))
+        {
+            return value;
+        }
+
         string? outcome = value?.GetType().GetProperty("Status")?.GetValue(value)?.ToString();
         this.Results.Add(new Measurement(group, opcode, name, variant, this.Counter.Since(mark)) { Outcome = outcome });
         return value;
@@ -171,6 +177,39 @@ internal sealed class BudgetRig : IAsyncDisposable
     /// <param name="reason">Why there is no number.</param>
     public void Skip(string group, ushort opcode, string name, string reason)
         => this.Results.Add(new Measurement(group, opcode, name, "not measured", DbCounts.None) { Skipped = reason });
+
+    /// <summary>Stands a joined player at a point of the place they are in, as if they had walked there.</summary>
+    /// <param name="account">The player's account id.</param>
+    /// <param name="x">Feet x, pixels.</param>
+    /// <param name="y">Feet y, pixels.</param>
+    public static void Stand(Guid account, double x, double y)
+    {
+        Nalix.Abstractions.Networking.IConnection connection = Service<ISessionRegistry>().GetActive(account) ?? throw new InvalidOperationException("Not signed in.");
+        if (!Service<Nosum.Abstractions.Presence.IMapPresence>().TryGet(connection, out Nosum.Abstractions.Presence.PlayerPresence? player))
+        {
+            throw new InvalidOperationException("Not on a map.");
+        }
+
+        double now = TimeProvider.System.GetTimestamp() / (double)TimeProvider.System.TimestampFrequency;
+        lock (player.Gate)
+        {
+            player.Motion = new Nosum.Gameplay.Movement.MotionState(x, y, now, (int)Nosum.Core.Facing.Up);
+        }
+    }
+
+    /// <summary>Moves a joined player to another instance on the server's side, as a visit or a door would.</summary>
+    /// <param name="account">The player's account id.</param>
+    /// <param name="destination">Where to.</param>
+    /// <returns>A task that completes on arrival.</returns>
+    public static async Task TravelAsync(Guid account, Nosum.Gameplay.Maps.MapInstance destination)
+    {
+        Nalix.Abstractions.Networking.IConnection connection = Service<ISessionRegistry>().GetActive(account) ?? throw new InvalidOperationException("Not signed in.");
+        Nosum.Abstractions.Player.TravelStatus status = await Service<Nosum.Abstractions.Player.IPlayerService>().TravelAsync(connection, destination);
+        if (status != Nosum.Abstractions.Player.TravelStatus.Arrived)
+        {
+            throw new InvalidOperationException("Travel refused: " + status);
+        }
+    }
 
     /// <summary>Waits out the gap between two requests of the run and holds the shared pace.</summary>
     /// <param name="ct">Cancels the wait.</param>
@@ -346,13 +385,13 @@ internal static class BudgetPlayerExtensions
     /// <param name="variant">The case.</param>
     /// <param name="request">Makes the request (disposed here).</param>
     /// <returns>The reply.</returns>
-    public static async Task<TResponse> ProbeAsync<TResponse>(this BudgetRig rig, BudgetPlayer player, string group, ushort opcode, string name, string variant, Func<IPacket> request)
+    public static async Task<TResponse> ProbeAsync<TResponse>(this BudgetRig rig, BudgetPlayer player, string group, ushort opcode, string name, string variant, Func<IPacket> request, Func<TResponse, bool>? keep = null)
         where TResponse : class, IPacket, IPacketStaticOpcode
     {
         IPacket packet = request();
         try
         {
-            return await rig.MeasureAsync(group, opcode, name, variant, () => player.RequestAsync<TResponse>(packet));
+            return await rig.MeasureAsync(group, opcode, name, variant, () => player.RequestAsync<TResponse>(packet), keep);
         }
         finally
         {

@@ -56,8 +56,11 @@ public sealed partial class DbBudgetRun
         bool first = true;
         foreach ((int itemId, int quantity) in items)
         {
-            _ = await grants.GrantAsync(p.AccountId, itemId, quantity, first ? coins : 0, _rig.Timeout);
-            first = false;
+            for (int left = quantity; left > 0; left -= 50)
+            {
+                _ = await grants.GrantAsync(p.AccountId, itemId, Math.Min(left, 50), first ? coins : 0, _rig.Timeout);
+                first = false;
+            }
         }
 
         if (items.Length == 0 && coins > 0)
