@@ -58,11 +58,18 @@ public sealed partial class WebRenderBackend : IRenderBackend
     /// <param name="style">Style number: 0 normal, 1 the local player's.</param>
     public static void UploadLabel(int id, string text, int style) => RegisterLabel(id, text, style);
 
+    /// <summary>Sets the keys bound to the actions; call when the player changes them (never from the frame).</summary>
+    /// <param name="bindings">Every action as <c>Action=Code;Action=Code</c>, the action names being <c>Nosum.Wasm.ViewModels.Settings.GameAction</c> and the codes browser key codes.</param>
+    public static void SetBindings(string bindings) => SetKeyBindings(bindings);
+
     /// <inheritdoc/>
     public void Submit(Span<byte> commands) => SubmitFrame(commands);
 
     [JSImport("submitFrame", ModuleName)]
     private static partial void SubmitFrame([JSMarshalAs<JSType.MemoryView>] Span<byte> commands);
+
+    [JSImport("setKeyBindings", ModuleName)]
+    private static partial void SetKeyBindings(string bindings);
 
     [JSImport("registerLabel", ModuleName)]
     private static partial void RegisterLabel(int id, string text, int style);

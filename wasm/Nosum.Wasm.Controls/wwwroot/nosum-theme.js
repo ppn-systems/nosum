@@ -243,10 +243,19 @@ const base = new URL("./", import.meta.url);
 
 const TILES_ACROSS = 26, TILE = 16, MIN_UNIT = 2, MAX_UNIT = 6, MENU_UNITS_TALL = 204;
 
+let chosenUnit = 0; // the zoom the player picked in the settings (2..6), or 0 for automatic (docs/adr/ADR-033)
+
 export function unitFor(width, height) {
-    const world = Math.min(MAX_UNIT, Math.max(MIN_UNIT, Math.round(width / (TILES_ACROSS * TILE))));
+    const world = chosenUnit >= MIN_UNIT ? chosenUnit : Math.min(MAX_UNIT, Math.max(MIN_UNIT, Math.round(width / (TILES_ACROSS * TILE))));
     const fits = Math.max(MIN_UNIT, Math.floor(height / MENU_UNITS_TALL));
     return Math.min(world, fits);
+}
+
+// Sets the zoom the player picked (0 = automatic) and redraws the theme at the new pixel size.
+export function setUnitChoice(unit) {
+    chosenUnit = unit >= MIN_UNIT && unit <= MAX_UNIT ? unit : 0;
+    applyUnit();
+    window.dispatchEvent(new Event("resize"));
 }
 
 function applyUnit() {

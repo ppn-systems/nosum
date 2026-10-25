@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Localization;
 using Nosum.Wasm.ViewModels.Resources;
+using Nosum.Wasm.ViewModels.Settings;
 
 namespace Nosum.Wasm.ViewModels;
 
@@ -74,13 +75,20 @@ public sealed record ToolbarItem(PanelKind Kind, string Label, string Hotkey, st
 /// <summary>View model of the toolbar of panel buttons; knows which panel is open.</summary>
 public sealed class ToolbarViewModel : PanelViewModel
 {
+    private readonly SettingsViewModel? _settings;
     private PanelKind _active;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="text">UI text.</param>
-    public ToolbarViewModel(IStringLocalizer<Language> text)
+    /// <param name="settings">The settings whose key bindings the tabs show; <see langword="null"/> for the default keys.</param>
+    public ToolbarViewModel(IStringLocalizer<Language> text, SettingsViewModel? settings = null)
         : base(text)
     {
+        _settings = settings;
+        if (settings is not null)
+        {
+            settings.Changed += this.Raise;
+        }
     }
 
     /// <summary>Gets the accessible name of the toolbar.</summary>
@@ -103,19 +111,21 @@ public sealed class ToolbarViewModel : PanelViewModel
     /// <summary>Gets the tabs of the game menu, left to right. A new tab is one more entry here (plus its page in <c>Home.razor</c> and its sprite in <c>nosum-theme.js</c>).</summary>
     public IReadOnlyList<ToolbarItem> Items =>
     [
-        new ToolbarItem(PanelKind.Inventory, this.Text("Toolbar_Inventory"), "I", "tab-inventory"),
-        new ToolbarItem(PanelKind.Wardrobe, this.Text("Toolbar_Wardrobe"), "C", "tab-wardrobe"),
+        new ToolbarItem(PanelKind.Inventory, this.Text("Toolbar_Inventory"), Key(GameAction.Inventory), "tab-inventory"),
+        new ToolbarItem(PanelKind.Wardrobe, this.Text("Toolbar_Wardrobe"), Key(GameAction.Wardrobe), "tab-wardrobe"),
         new ToolbarItem(PanelKind.Crafting, this.Text("Toolbar_Crafting"), string.Empty, "tab-shop"),
-        new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), "M", "tab-market"),
-        new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T", "tab-trade"),
-        new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G", "tab-coop"),
+        new ToolbarItem(PanelKind.Market, this.Text("Toolbar_Market"), Key(GameAction.Market), "tab-market"),
+        new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), Key(GameAction.Trade), "tab-trade"),
+        new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), Key(GameAction.Coop), "tab-coop"),
         new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty, "tab-visitors"),
         new ToolbarItem(PanelKind.Friends, this.Text("Toolbar_Friends"), string.Empty, "tab-friends"),
         new ToolbarItem(PanelKind.Mail, this.Text("Toolbar_Mail"), string.Empty, "tab-mail"),
         new ToolbarItem(PanelKind.Skills, this.Text("Toolbar_Skills"), string.Empty, "tab-skills"),
-        new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N", "tab-profile"),
-        new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), "H", "tab-settings"),
+        new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), Key(GameAction.Profile), "tab-profile"),
+        new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), Key(GameAction.Help), "tab-settings"),
     ];
+
+    private string Key(GameAction action) => KeyBindings.CapOf((_settings?.Current.Bindings ?? KeyBindings.Default).CodeOf(action));
 
     /// <summary>Gets the tab shown while a chest is open.</summary>
     public ToolbarItem ChestItem => new(PanelKind.Chest, this.Text("Chest_Title"), string.Empty, "tab-inventory");
