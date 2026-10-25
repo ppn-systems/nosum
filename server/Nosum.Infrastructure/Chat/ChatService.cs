@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Admin;
+using Nosum.Abstractions.Observability;
 using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Presence;
@@ -41,6 +43,7 @@ public sealed class ChatService : IChatService
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
     private readonly IChunkMap? _chunks;
+    private readonly IMuteList? _mutes;
     private readonly ConcurrentDictionary<Guid, ChatRateLimiter> _limiters = new();
     private readonly ConcurrentDictionary<Guid, Ring> _rings = new();
     private int _recorded;
@@ -54,7 +57,8 @@ public sealed class ChatService : IChatService
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The clock for the rate rule and message times; tests pass a fake one.</param>
     /// <param name="chunks">Who sees whom (docs/adr/ADR-022), for local chat; <see langword="null"/> sends local chat to the whole instance.</param>
-    public ChatService(IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IBlockList blocks, IUnitOfWorkFactory unitOfWork, TimeProvider time, IChunkMap? chunks = null)
+    /// <param name="mutes">Who an admin muted (docs/adr/ADR-031 D7); <see langword="null"/> mutes nobody.</param>
+    public ChatService(IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IBlockList blocks, IUnitOfWorkFactory unitOfWork, TimeProvider time, IChunkMap? chunks = null, IMuteList? mutes = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(sessions);
@@ -72,6 +76,7 @@ public sealed class ChatService : IChatService
         _unitOfWork = unitOfWork;
         _time = time;
         _chunks = chunks;
+        _mutes = mutes;
     }
 
     /// <inheritdoc/>
@@ -82,6 +87,12 @@ public sealed class ChatService : IChatService
         if (!Enum.IsDefined(channel))
         {
             return ChatStatus.InvalidChannel;
+        }
+
+        if (_mutes is not null && _mutes.IsMuted(senderId))
+        {
+            NosumMetrics.IntentRejected("chat", nameof(ChatStatus.Muted));
+            return ChatStatus.Muted;
         }
 
         string clean = ChatRules.Prepare(text);

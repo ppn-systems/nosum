@@ -52,3 +52,12 @@ enabling it (never in the repository).
   automatically unless that is disabled.
 - Inbound path: listener → frame processor (decrypt/decompress, sequence check) → protocol →
   dispatch → middleware → handler. A frame dropped by the sequence check is not logged.
+- Nalix keeps its server key, `server.ini` and block lists under `NALIX_BASE_PATH` / `NALIX_CONFIG_PATH` (default `~/.local/share/Nalix`); a container must mount a volume
+  there. `server.ini` is created with every default on first start and keeps the values already in it; `deploy/host-entrypoint.sh` sets `[ForwardedHeaders]` and
+  `AllowedOrigins` in it. Behind a proxy without those, every player shares the proxy's address and its rate limits.
+- Operations live in `Nosum.Host/Ops/` (docs/adr/ADR-031): the health and metrics `HttpListener` (port 57301), the host command line (`Main(string[] args)`: `admin ...`,
+  `healthcheck`), `MetricsMiddleware` (registered first, so it times the permission and rate-limit checks too) and `OpsServices.Register` (one call from `RegisterServices`).
+  Keep `Program.cs` edits to one-liners that call into that folder.
+- `NOSUM_LOAD_TEST=1` leaves `RateLimitMiddleware` out for the load test; the host refuses to start with it outside Staging and Development. Never set it anywhere else.
+- A handler gated `PermissionLevel.SYSTEM_ADMINISTRATOR` is an admin intent: the connection gets that level only when `AccountOutcome.IsAdmin` (the `players.role` column), and the
+  service behind it re-checks the role on every call.

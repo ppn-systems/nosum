@@ -12,6 +12,7 @@ using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Observability;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
@@ -158,6 +159,13 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                     MoveVerdict.Blocked => MoveRefusal.Blocked,
                     _ => MoveRefusal.Invalid,
                 };
+                NosumMetrics.IntentRejected("move", reason switch
+                {
+                    MoveRefusal.TooFast => nameof(MoveRefusal.TooFast),
+                    MoveRefusal.OutOfMap => nameof(MoveRefusal.OutOfMap),
+                    MoveRefusal.Blocked => nameof(MoveRefusal.Blocked),
+                    _ => nameof(MoveRefusal.Invalid),
+                });
                 return new MoveOutcome(MoveStatus.Refused, reason, (float)player.Motion.X, (float)player.Motion.Y);
             }
 

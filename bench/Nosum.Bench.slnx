@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="Nosum.Bench.Interop/Nosum.Bench.Interop.csproj" />
+  <Project Path="Nosum.Bench.Load/Nosum.Bench.Load.csproj" />
 </Solution>

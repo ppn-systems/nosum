@@ -268,7 +268,7 @@ public static partial class AccountHandlers
         if (outcome.Status == AccountStatus.Ok)
         {
             // Every session ends, a connection that is still open included.
-            await s_sessions.EndAsync(outcome.PlayerId, AccountStatus.SessionRevoked, context.CancellationToken).ConfigureAwait(false);
+            _ = await s_sessions.EndAsync(outcome.PlayerId, AccountStatus.SessionRevoked, context.CancellationToken).ConfigureAwait(false);
         }
 
         await ReplyPasswordAsync(context.Sender, outcome.Status).ConfigureAwait(false);
@@ -317,7 +317,7 @@ public static partial class AccountHandlers
         {
             // One active connection per player: an older one is saved, told and closed before this one goes on.
             await s_sessions.ActivateAsync(outcome.PlayerId, connection).ConfigureAwait(false);
-            connection.AttachPlayer(new PlayerIdentity(outcome.PlayerId, outcome.SessionId));
+            connection.AttachPlayer(new PlayerIdentity(outcome.PlayerId, outcome.SessionId), outcome.IsAdmin);
         }
 
         await ReplyOutcomeAsync(sender, outcome).ConfigureAwait(false);

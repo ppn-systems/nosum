@@ -61,4 +61,10 @@ public enum AccountStatus : byte
 
     /// <summary>The server ended the session because the account's password was reset (sent in <c>SessionEnded</c>, never as a request reply).</summary>
     SessionRevoked = 17,
+
+    /// <summary>The account is banned by an admin (login, resume); the reply carries no session (docs/adr/ADR-031 D7).</summary>
+    Banned = 18,
+
+    /// <summary>An admin ended this connection (sent in <c>SessionEnded</c>, never as a request reply). The player may sign in again unless they were banned.</summary>
+    SessionKicked = 19,
 }

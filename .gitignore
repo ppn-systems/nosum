@@ -26,3 +26,6 @@ artifacts/
 
 # Server identity (docs/adr/ADR-032)
 certificate.private
+# Deployment-specific proxy rules (deploy/access.d/README.md)
+deploy/.env
+deploy/access.d/*.caddyfile
