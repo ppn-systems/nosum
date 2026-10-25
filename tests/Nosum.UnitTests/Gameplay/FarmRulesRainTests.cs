@@ -141,10 +141,11 @@ public sealed class FarmRulesRainTests
     }
 
     [Fact]
-    public void MapCatalogue_OnlyTheFarmhouseAndBuildingInteriorsAreIndoors_AndNoFarmableMapIs()
+    public void MapCatalogue_OnlyTheFarmhouseTheMineAndBuildingInteriorsAreIndoors_AndNoFarmableMapIs()
     {
-        GameMaps.All.Where(m => m.Indoors).Select(m => m.Id).Should().BeEquivalentTo([GameMaps.FarmHouse, GameMaps.Coop, GameMaps.Barn]);
-        GameMaps.All.Where(m => m.IsInterior).Should().OnlyContain(m => m.Indoors);
+        // The mine's cave and its floors are caves (docs/adr/ADR-026, ADR-027): no weather, no rain watering.
+        GameMaps.All.Where(m => m.Indoors).Select(m => m.Id).Should().BeEquivalentTo([GameMaps.FarmHouse, GameMaps.Coop, GameMaps.Barn, GameMaps.Mine, .. GameMaps.All.Where(m => m.IsMineFloor).Select(m => m.Id)]);
+        GameMaps.All.Where(m => m.IsMineFloor || m.IsInterior).Should().OnlyContain(m => m.Indoors);
         GameMaps.All.Where(m => m.Farmable).Should().OnlyContain(m => !m.Indoors);
         MapInstance.Of(GameMaps.TryGet(GameMaps.FarmHouse, out MapSpec? house) ? house : throw new InvalidOperationException(), Guid.NewGuid()).IsOutdoors.Should().BeFalse();
         MapInstance.Shared(GameMaps.Farm).IsOutdoors.Should().BeTrue();

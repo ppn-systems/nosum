@@ -19,6 +19,9 @@
 @using Nosum.Wasm.Controls.Goals
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.Controls.Settings
+@using Nosum.Wasm.Controls.Touch
+@using Nosum.Wasm.Controls.Hints
+@using Nosum.Wasm.ViewModels.Settings
 @using Nosum.Wasm.Controls.Layout
 @using Nosum.Wasm.ViewModels.Help
 @using Nosum.Wasm.Controls.Inventory
@@ -29,12 +32,14 @@
 @using Nosum.Wasm.Controls.Progress
 @using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.Controls.Shop
+@using Nosum.Wasm.Controls.Mine
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
 @using Nosum.Wasm.Controls.Wallet
 @using Nosum.Wasm.Controls.Calendar
 @using Nosum.Wasm.ViewModels.Calendar
 @using Nosum.Gameplay.Community
+@using Nosum.Gameplay.Economy
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
 @using Nosum.Gameplay.Shops
@@ -60,6 +65,8 @@
 @using Nosum.Wasm.ViewModels.Profile
 @using Nosum.Wasm.ViewModels.Goals
 @using Nosum.Wasm.ViewModels.Shop
+@using Nosum.Wasm.ViewModels.Blacksmith
+@using Nosum.Wasm.ViewModels.Mine
 @using Nosum.Wasm.ViewModels.Quest
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
@@ -84,8 +91,11 @@
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
+@inject BlacksmithViewModel Blacksmith
+@inject ElevatorViewModel Elevator
 @inject GoalsViewModel Goals
-@inject HelpViewModel Help
+@inject SettingsViewModel Settings
+@inject OnboardingViewModel Onboarding
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
 @inject FurnaceViewModel Furnace
@@ -162,7 +172,7 @@ else
                             <MailPanel Vm="Mail" />
                             break;
                         case PanelKind.Shop:
-                            <ShopPanel Vm="Shop" ShopId="_shopId">
+                            <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith">
                                 <Extra>
                                     @if (_shopId == ShopCatalog.CarpenterShop)
                                     {
@@ -178,7 +188,7 @@ else
                             <GoalsPanel Vm="Goals" />
                             break;
                         case PanelKind.Settings:
-                            <SettingsPanel Vm="Form" Help="Help" />
+                            <SettingsPanel Vm="Form" Settings="Settings" />
                             break;
                         case PanelKind.Crafting:
                             <CraftingPanel Vm="Crafting" />
@@ -196,6 +206,7 @@ else
         <BottomCenter>
             @if (_started && _panel == PanelKind.None)
             {
+                <OnboardingHint Vm="Onboarding" />
                 <GameMessage Vm="Messages" />
                 <Hotbar Vm="Inventory" Progress="Progress" />
             }
@@ -212,6 +223,11 @@ else
                 <GamePanel Class="dialog" Title="" Role="status">
                     <p class="home-loading">@Toolbar.Text("Game_Loading") <GameSpinner /></p>
                 </GamePanel>
+            }
+            @if (_started)
+            {
+                @* The mine elevator's picker, a small dialog over the game. *@
+                <ElevatorDialog Vm="Elevator" />
             }
             @if (Form.ShowsForm)
             {
@@ -233,6 +249,10 @@ else
             }
         </Overlay>
     </GameHud>
+    @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
+    {
+        <TouchControls StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" />
+    }
 }
 
 @code {
@@ -254,6 +274,8 @@ else
         Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
         GameLoop.PanelToggleRequested += OnPanelKey;
         GameLoop.ShopRequested += OnShopRequested;
+        GameLoop.CounterLeft += OnCounterLeft;
+        GameLoop.ElevatorRequested += OnElevatorRequested;
         GameLoop.FurnaceRequested += OnFurnaceRequested;
         GameLoop.PanelCloseRequested += OnCloseKey;
         Chest.OpenChanged += OnContainerOpenChanged;
@@ -267,7 +289,7 @@ else
         string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
         if (query.StartsWith("?ended=", StringComparison.Ordinal)
             && Enum.TryParse(query["?ended=".Length..], out AccountStatus reason)
-            && reason == AccountStatus.SessionReplaced)
+            && reason is AccountStatus.SessionReplaced or AccountStatus.SessionKicked or AccountStatus.Banned)
         {
             Form.ShowSessionEnded(reason);
         }
@@ -284,6 +306,8 @@ else
         Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
         GameLoop.PanelToggleRequested -= OnPanelKey;
         GameLoop.ShopRequested -= OnShopRequested;
+        GameLoop.CounterLeft -= OnCounterLeft;
+        GameLoop.ElevatorRequested -= OnElevatorRequested;
         GameLoop.FurnaceRequested -= OnFurnaceRequested;
         GameLoop.PanelCloseRequested -= OnCloseKey;
         Chest.OpenChanged -= OnContainerOpenChanged;
@@ -306,7 +330,15 @@ else
     // The action key next to a counter (raised from the frame): open that shop on its tab, or the Town board's goals page.
     private void OnShopRequested(int shopId) => _ = InvokeAsync(() =>
     {
-        if (shopId == CommunityGoalCatalog.BoardCounterId)
+        if (shopId == MarketRules.MarketCounterId)
+        {
+            if (_panel != PanelKind.Market)
+            {
+                Show(PanelKind.Market);
+                StateHasChanged();
+            }
+        }
+        else if (shopId == CommunityGoalCatalog.BoardCounterId)
         {
             if (_panel != PanelKind.Goals)
             {
@@ -324,6 +356,29 @@ else
             }
 
             Show(PanelKind.Shop);
+            StateHasChanged();
+        }
+    });
+
+    // The farmer walked out of reach of a counter (raised from the frame): the panel that counter opened closes.
+    private void OnCounterLeft(int counterId) => _ = InvokeAsync(() =>
+    {
+        bool open = counterId == MarketRules.MarketCounterId ? _panel == PanelKind.Market
+            : counterId == CommunityGoalCatalog.BoardCounterId ? _panel == PanelKind.Goals
+            : _panel == PanelKind.Shop && counterId == _shopId;
+        if (open)
+        {
+            ClosePanel();
+            StateHasChanged();
+        }
+    });
+
+    // The action key next to the mine elevator (raised from the frame): show the picker.
+    private void OnElevatorRequested() => _ = InvokeAsync(() =>
+    {
+        if (!Elevator.IsOpen)
+        {
+            Elevator.Open();
             StateHasChanged();
         }
     });
@@ -347,12 +402,16 @@ else
         StateHasChanged();
     });
 
-    // Escape: leave the upgrade form, or close the menu, or else open it on the tab used last.
+    // Escape: leave the upgrade form, or close the elevator picker, or close the menu, or else open it on the tab used last.
     private void OnCloseKey() => _ = InvokeAsync(() =>
     {
         if (Form.Mode == AccountFormMode.Upgrade)
         {
             Form.CancelUpgrade();
+        }
+        else if (Elevator.IsOpen)
+        {
+            Elevator.Close();
         }
         else if (_panel != PanelKind.None)
         {
@@ -384,6 +443,10 @@ else
             else if (item.Kind == PanelKind.Settings && _panel == PanelKind.Goals)
             {
                 tabs.Add(Tab(Toolbar.GoalsItem));
+            }
+            else if (item.Kind == PanelKind.Settings && _panel == PanelKind.Market)
+            {
+                tabs.Add(Tab(Toolbar.MarketItem));
             }
 
             tabs.Add(Tab(item));
@@ -423,7 +486,7 @@ else
         }
 
         _panel = kind;
-        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals))
+        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals or PanelKind.Market))
         {
             _lastTab = kind;
         }
@@ -501,6 +564,7 @@ else
         {
             await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None);
             _started = true;
+            Onboarding.Start();
             StateHasChanged();
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or JSException)

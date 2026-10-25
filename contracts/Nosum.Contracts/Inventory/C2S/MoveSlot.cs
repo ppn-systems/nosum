@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Inventory.C2S;
 
@@ -25,5 +26,6 @@ public sealed partial class MoveSlot : PacketBase<MoveSlot>, IPacketStaticOpcode
     [SerializeOrder(1)] public byte To { get; set; }
 
     /// <summary>How many to move; zero means the whole stack.</summary>
+    [WireRange(0, WireLimits.MaxQuantity)]
     [SerializeOrder(2)] public int Quantity { get; set; }
 }

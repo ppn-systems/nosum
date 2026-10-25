@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Look.C2S;
 
@@ -19,5 +20,6 @@ public sealed partial class EquipItem : PacketBase<EquipItem>, IPacketStaticOpco
     [SerializeOrder(0)] public byte Slot { get; set; }
 
     /// <summary>The item the player expects in the slot.</summary>
+    [WireRange(0, WireLimits.MaxId)]
     [SerializeOrder(1)] public int ItemId { get; set; }
 }

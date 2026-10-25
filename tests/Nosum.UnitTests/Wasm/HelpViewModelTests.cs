@@ -35,6 +35,7 @@ public sealed class HelpViewModelTests
 
         string[] keys = vm.Sections.SelectMany(s => s.Entries).SelectMany(e => e.Keys).ToArray();
 
-        keys.Should().Contain(["I", "M", "C", "T", "G", "H", "Esc", "E", "R", "F", "Q", "1-9"]);
+        keys.Should().Contain(["I", "C", "T", "G", "H", "Esc", "E", "R", "F", "Q", "1-9"]);
+        keys.Should().NotContain("M", "the market opens at the trader's counter (docs/adr/ADR-034)");
     }
 }

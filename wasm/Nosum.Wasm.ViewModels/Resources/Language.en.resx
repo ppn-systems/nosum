@@ -138,6 +138,7 @@
   <data name="Market_Status_Expired" xml:space="preserve"><value>That listing expired.</value></data>
   <data name="Market_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Market_Status_NotAtBin" xml:space="preserve"><value>Stand next to the shipping bin to sell.</value></data>
+  <data name="Market_Status_NotAtCounter" xml:space="preserve"><value>Stand at the trader's counter in Town to trade.</value></data>
   <data name="Market_Status_NotShippable" xml:space="preserve"><value>The bin does not buy this item.</value></data>
   <data name="Market_Status_InvalidSlot" xml:space="preserve"><value>Pick a valid slot.</value></data>
   <data name="Market_Status_TooBig" xml:space="preserve"><value>That would exceed the largest balance.</value></data>
@@ -267,6 +268,8 @@
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>That nickname is not allowed.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>That nickname is already taken.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>You changed your nickname recently. Try again later.</value></data>
+  <data name="Account_Status_Banned" xml:space="preserve"><value>This account is banned. Contact an administrator if you think this is a mistake.</value></data>
+  <data name="Account_Status_SessionKicked" xml:space="preserve"><value>An administrator removed you from the game. You can sign in again.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Profile</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Profile</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Current nickname: {0}</value></data>
@@ -307,7 +310,7 @@
   <data name="Help_Use" xml:space="preserve"><value>Use, interact</value></data>
   <data name="Help_Hotbar" xml:space="preserve"><value>Select slot</value></data>
   <data name="Help_Inventory" xml:space="preserve"><value>Inventory</value></data>
-  <data name="Help_Market" xml:space="preserve"><value>Market</value></data>
+  <data name="Help_Counters" xml:space="preserve"><value>At a counter (shops, board, market): open it</value></data>
   <data name="Help_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
   <data name="Help_Trade" xml:space="preserve"><value>Trade</value></data>
   <data name="Help_Coop" xml:space="preserve"><value>Co-op</value></data>
@@ -327,6 +330,60 @@
   <data name="Settings_LanguageEn" xml:space="preserve"><value>English</value></data>
   <data name="Settings_LanguageNotSaved" xml:space="preserve"><value>Could not save this choice to your account.</value></data>
   <data name="Settings_Keys" xml:space="preserve"><value>Keys</value></data>
+  <data name="Settings_TabsLabel" xml:space="preserve"><value>Settings sections</value></data>
+  <data name="Settings_TabGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="Settings_TabDisplay" xml:space="preserve"><value>Display</value></data>
+  <data name="Settings_TabSound" xml:space="preserve"><value>Sound</value></data>
+  <data name="Settings_TabControls" xml:space="preserve"><value>Controls</value></data>
+  <data name="Settings_UiScale" xml:space="preserve"><value>Zoom</value></data>
+  <data name="Settings_ScaleAuto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
+  <data name="Settings_ScaleHint" xml:space="preserve"><value>Screen pixels per world pixel. Auto picks it from the window size.</value></data>
+  <data name="Settings_ShowNames" xml:space="preserve"><value>Show names over heads</value></data>
+  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Reduce motion (no rain, snow or effects)</value></data>
+  <data name="Settings_HighContrast" xml:space="preserve"><value>High contrast</value></data>
+  <data name="Settings_Display" xml:space="preserve"><value>Display</value></data>
+  <data name="Settings_Accessibility" xml:space="preserve"><value>Easier to see</value></data>
+  <data name="Settings_Music" xml:space="preserve"><value>Music</value></data>
+  <data name="Settings_SoundFx" xml:space="preserve"><value>Sound effects</value></data>
+  <data name="Settings_Mute" xml:space="preserve"><value>Mute all sound</value></data>
+  <data name="Settings_SoundNote" xml:space="preserve"><value>Audio arrives in a later version; the levels you choose are already saved.</value></data>
+  <data name="Settings_Percent" xml:space="preserve"><value>{0}%</value></data>
+  <data name="Settings_Volume" xml:space="preserve"><value>Volume</value></data>
+  <data name="Settings_KeysHint" xml:space="preserve"><value>Pick an action, then press the new key. Esc cancels.</value></data>
+  <data name="Settings_KeyListening" xml:space="preserve"><value>Press a key…</value></data>
+  <data name="Settings_KeyReserved" xml:space="preserve"><value>Key {0} cannot be used.</value></data>
+  <data name="Settings_KeySwapped" xml:space="preserve"><value>That key traded places with {0} (now {1}).</value></data>
+  <data name="Settings_KeyReset" xml:space="preserve"><value>Reset keys</value></data>
+  <data name="Settings_KeyRebind" xml:space="preserve"><value>Change key: {0}</value></data>
+  <data name="Settings_KeysFixed" xml:space="preserve"><value>Fixed: arrow keys, Space, 1-9, Esc, Enter.</value></data>
+  <data name="Settings_Tutorial" xml:space="preserve"><value>Beginner hints</value></data>
+  <data name="Settings_TutorialOn" xml:space="preserve"><value>Show hints while playing</value></data>
+  <data name="Settings_TutorialRestart" xml:space="preserve"><value>Show again from the start</value></data>
+  <data name="Hint_Label" xml:space="preserve"><value>Hint</value></data>
+  <data name="Hint_Move" xml:space="preserve"><value>Walk with {0} or the stick on the left.</value></data>
+  <data name="Hint_Use" xml:space="preserve"><value>Press {0} to use what you hold on the tile in front of you.</value></data>
+  <data name="Hint_Sell" xml:space="preserve"><value>Stand at the shipping bin and press {0} to sell your crops.</value></data>
+  <data name="Hint_Shop" xml:space="preserve"><value>Stand at a shop counter and press the use key to buy seeds.</value></data>
+  <data name="Hint_Town" xml:space="preserve"><value>Leave the farm to visit Town.</value></data>
+  <data name="Touch_Stick" xml:space="preserve"><value>Movement stick</value></data>
+  <data name="Touch_Use" xml:space="preserve"><value>Use</value></data>
+  <data name="Touch_UseLabel" xml:space="preserve"><value>Use the held item</value></data>
+  <data name="Menu_Label" xml:space="preserve"><value>Game menu</value></data>
+  <data name="Action_MoveUp" xml:space="preserve"><value>Walk up</value></data>
+  <data name="Action_MoveDown" xml:space="preserve"><value>Walk down</value></data>
+  <data name="Action_MoveLeft" xml:space="preserve"><value>Walk left</value></data>
+  <data name="Action_MoveRight" xml:space="preserve"><value>Walk right</value></data>
+  <data name="Action_Use" xml:space="preserve"><value>Use, interact</value></data>
+  <data name="Action_Inventory" xml:space="preserve"><value>Inventory</value></data>
+  <data name="Action_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
+  <data name="Action_Trade" xml:space="preserve"><value>Trade</value></data>
+  <data name="Action_Coop" xml:space="preserve"><value>Co-op</value></data>
+  <data name="Action_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Action_Help" xml:space="preserve"><value>Settings</value></data>
+  <data name="Action_Rotate" xml:space="preserve"><value>Rotate</value></data>
+  <data name="Action_Grab" xml:space="preserve"><value>Move furniture</value></data>
+  <data name="Action_PickUp" xml:space="preserve"><value>Pick up</value></data>
   <data name="Placement_Strip_Place" xml:space="preserve"><value>Place</value></data>
   <data name="Placement_Strip_Rotate" xml:space="preserve"><value>Rotate</value></data>
   <data name="Placement_Strip_Move" xml:space="preserve"><value>Move</value></data>
@@ -415,6 +472,7 @@
   <data name="Chat_Status_InvalidChannel" xml:space="preserve"><value>That chat channel does not exist.</value></data>
   <data name="Chat_Status_NothingToReport" xml:space="preserve"><value>There is no recent message from that player to report.</value></data>
   <data name="Chat_Status_SelfBlock" xml:space="preserve"><value>You cannot block or report yourself.</value></data>
+  <data name="Chat_Status_Muted" xml:space="preserve"><value>You are muted and cannot chat right now.</value></data>
   <data name="Friends_Add_Heading" xml:space="preserve"><value>Add a friend</value></data>
   <data name="Friends_NicknamePlaceholder" xml:space="preserve"><value>Nickname</value></data>
   <data name="Friends_Request" xml:space="preserve"><value>Ask</value></data>
@@ -432,6 +490,7 @@
   <data name="Friends_Map_town" xml:space="preserve"><value>the Town</value></data>
   <data name="Friends_Map_backwoods" xml:space="preserve"><value>the backwoods</value></data>
   <data name="Friends_Map_coopfarm" xml:space="preserve"><value>the co-op land</value></data>
+  <data name="Friends_Map_mine" xml:space="preserve"><value>the mine</value></data>
   <data name="Friends_Map_coop" xml:space="preserve"><value>the coop</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>the barn</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Remove</value></data>
@@ -594,6 +653,40 @@
   <data name="Furnace_Ready" xml:space="preserve"><value>The bar is done!</value></data>
   <data name="Furnace_Start" xml:space="preserve"><value>Smelt {0}</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Collect bar</value></data>
+  <data name="Farm_Status_InvalidArea" xml:space="preserve"><value>This tool cannot swing that wide.</value></data>
+  <data name="Shop_Title_blacksmith" xml:space="preserve"><value>Blacksmith</value></data>
+  <data name="Smith_Heading" xml:space="preserve"><value>Tool upgrades</value></data>
+  <data name="Smith_Hint" xml:space="preserve"><value>Hand in a tool with coins and bars; the smith keeps it for {0} game days and you take back a better one.</value></data>
+  <data name="Smith_Cost" xml:space="preserve"><value>{0} coins + {1} {2}</value></data>
+  <data name="Smith_Upgrade" xml:space="preserve"><value>Upgrade</value></data>
+  <data name="Smith_Collect" xml:space="preserve"><value>Collect</value></data>
+  <data name="Smith_NoTools" xml:space="preserve"><value>You carry no tool that can be upgraded.</value></data>
+  <data name="Smith_Holding" xml:space="preserve"><value>The smith is making your {0}.</value></data>
+  <data name="Smith_Ready" xml:space="preserve"><value>Ready! Take it back.</value></data>
+  <data name="Smith_ReadyTomorrow" xml:space="preserve"><value>Ready tomorrow (game day).</value></data>
+  <data name="Smith_ReadyIn" xml:space="preserve"><value>Ready in {0} game days.</value></data>
+  <data name="Smith_Upgraded" xml:space="preserve"><value>The smith has your tool.</value></data>
+  <data name="Smith_Collected" xml:space="preserve"><value>You took your tool back.</value></data>
+  <data name="Smith_Status_NotAtCounter" xml:space="preserve"><value>You are too far from the counter.</value></data>
+  <data name="Smith_Status_NotUpgradable" xml:space="preserve"><value>That tool cannot be upgraded.</value></data>
+  <data name="Smith_Status_Busy" xml:space="preserve"><value>The smith is already making a tool for you.</value></data>
+  <data name="Smith_Status_NoTool" xml:space="preserve"><value>You do not have that tool.</value></data>
+  <data name="Smith_Status_NotEnoughCoins" xml:space="preserve"><value>You do not have enough coins.</value></data>
+  <data name="Smith_Status_NotEnoughBars" xml:space="preserve"><value>You do not have enough bars.</value></data>
+  <data name="Smith_Status_NoSpace" xml:space="preserve"><value>Your inventory is full.</value></data>
+  <data name="Smith_Status_NothingToCollect" xml:space="preserve"><value>The smith holds nothing of yours.</value></data>
+  <data name="Smith_Status_NotReady" xml:space="preserve"><value>Not ready yet, come back later.</value></data>
+  <data name="Smith_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Elevator_Title" xml:space="preserve"><value>Mine elevator</value></data>
+  <data name="Elevator_Hint" xml:space="preserve"><value>Pick where to go. Every fifth floor has an elevator, and you can ride down to the deepest floor you reached.</value></data>
+  <data name="Elevator_Deepest" xml:space="preserve"><value>Deepest: floor {0}</value></data>
+  <data name="Elevator_Entrance" xml:space="preserve"><value>Mine entrance</value></data>
+  <data name="Elevator_Floor" xml:space="preserve"><value>Floor {0}</value></data>
+  <data name="Elevator_Here" xml:space="preserve"><value>(you are here)</value></data>
+  <data name="Elevator_Status_NotAtElevator" xml:space="preserve"><value>You are too far from the elevator.</value></data>
+  <data name="Elevator_Status_NotUnlocked" xml:space="preserve"><value>You have not been that deep.</value></data>
+  <data name="Elevator_Status_AlreadyThere" xml:space="preserve"><value>You are already there.</value></data>
+  <data name="Elevator_Status_Busy" xml:space="preserve"><value>Try again in a moment.</value></data>
   <data name="Market_History_Tip" xml:space="preserve"><value>Show the price history of this item</value></data>
   <data name="Place_Status_Fixed" xml:space="preserve"><value>A finished building cannot be moved or picked up.</value></data>
   <data name="Shop_Title_carpenter_shop" xml:space="preserve"><value>Carpenter</value></data>
@@ -635,4 +728,22 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Hold the milk pail to milk a cow.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>The bench is full.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>The land already has as many buildings as it can hold.</value></data>
+  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>The recovery code is wrong, expired or already used.</value></data>
+  <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Too many requests. Please try again later.</value></data>
+  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Your session ended because the account password was reset.</value></data>
+  <data name="Connection_KeyMismatch" xml:space="preserve"><value>The server identity has changed. It may be an impostor, so the game refuses to connect. Wait for an official announcement, or clear this site's data if you are running a development build.</value></data>
+  <data name="Recovery_Link" xml:space="preserve"><value>Forgot your password?</value></data>
+  <data name="Recovery_Title_Request" xml:space="preserve"><value>Recover your account</value></data>
+  <data name="Recovery_Title_Confirm" xml:space="preserve"><value>Enter the recovery code</value></data>
+  <data name="Recovery_Title_Done" xml:space="preserve"><value>Password changed</value></data>
+  <data name="Recovery_RequestHint" xml:space="preserve"><value>We will e-mail a code to the address of your account.</value></data>
+  <data name="Recovery_CodeSent" xml:space="preserve"><value>If this address has an account, a code was sent. It is valid for 15 minutes.</value></data>
+  <data name="Recovery_Code" xml:space="preserve"><value>Recovery code</value></data>
+  <data name="Recovery_CodeHint" xml:space="preserve"><value>8 digits from the e-mail</value></data>
+  <data name="Recovery_NewPassword" xml:space="preserve"><value>New password</value></data>
+  <data name="Recovery_Submit_Request" xml:space="preserve"><value>Send code</value></data>
+  <data name="Recovery_Submit_Confirm" xml:space="preserve"><value>Change password</value></data>
+  <data name="Recovery_Done" xml:space="preserve"><value>Your password was changed and every device was signed out. Sign in with the new password.</value></data>
+  <data name="Recovery_Back" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="Recovery_Error_Code" xml:space="preserve"><value>Enter the 8 digits from the e-mail.</value></data>
 </root>

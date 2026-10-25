@@ -27,7 +27,7 @@ public interface IMapPresence
 
     /// <summary>
     /// Raised after a player joined a map (a sign-in, a map change). The default does nothing, so a test double need not implement it; the server's
-    /// presence raises it (docs/adr/ADR-029 D4: friends see each other's public map).
+    /// presence raises it (docs/adr/ADR-029 D4: friends see each other's public map; docs/adr/ADR-026 D3: the mine builds a floor for its first player).
     /// </summary>
     event Func<PlayerPresence, ValueTask>? PlayerJoined
     {

@@ -1,0 +1,3 @@
+<Project>
+  <Import Project="..\deploy\PlaceholderGate.targets" />
+</Project>

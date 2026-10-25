@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Goals.C2S;
 
@@ -16,8 +17,10 @@ public sealed partial class DeliverToGoal : PacketBase<DeliverToGoal>, IPacketSt
     public static ushort StaticOpCode => GoalOpCode.DeliverToGoal;
 
     /// <summary>The goal id (<c>CommunityGoalCatalog</c>).</summary>
+    [WireRange(0, int.MaxValue)]
     [SerializeOrder(0)] public int GoalId { get; set; }
 
     /// <summary>How many items. More than the goal still takes delivers only what fits.</summary>
+    [WireRange(0, WireLimits.MaxQuantity)]
     [SerializeOrder(1)] public int Quantity { get; set; }
 }

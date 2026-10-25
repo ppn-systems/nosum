@@ -1,0 +1,27 @@
+# Placeholder-art gate for releases (docs/adr/ADR-031 D9, docs/adr/ADR-007).
+# A tag that names a release, or a manual run, fails while assets/PLACEHOLDER_CONTENT exists: the Stardew Valley placeholder content must
+# never ship publicly. Milestone M6 deletes the marker; until then only private deployments are built (deploy/README.md).
+name: release-gate
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'release-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  placeholder-art:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            deploy
+            assets/PLACEHOLDER_CONTENT
+          sparse-checkout-cone-mode: false
+      - name: Refuse a public release while placeholder art is present
+        run: sh deploy/check-placeholder-art.sh public

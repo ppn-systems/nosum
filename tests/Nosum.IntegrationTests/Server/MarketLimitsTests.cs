@@ -52,7 +52,7 @@ public sealed class MarketLimitsTests : IClassFixture<PostgresFixture>, IAsyncLi
         _units = new EfUnitOfWorkFactory(database.Options);
         _inventory = new InventoryService(_units, _clock);
         _transfers = new TransferService(_inventory, _clock);
-        _market = new MarketService(_transfers, _inventory, _units, new NoPresence(), new NoMaps(), new CoinSink(), new NicknameDirectory(_units), _clock, _calendar);
+        _market = new MarketService(_transfers, _inventory, _units, MarketCounter.Presence(), MarketCounter.Maps(), new CoinSink(), new NicknameDirectory(_units), _clock, _calendar);
     }
 
     // The tests share one database and read whole histories: every test starts without sales.
@@ -267,48 +267,5 @@ public sealed class MarketLimitsTests : IClassFixture<PostgresFixture>, IAsyncLi
         context.Players.Add(player);
         _ = await context.SaveChangesAsync();
         return player.Id;
-    }
-
-    private sealed class NoMaps : IMapCatalog
-    {
-        public bool TryGet(string mapId, [NotNullWhen(true)] out MapDefinition? map)
-        {
-            map = null;
-            return false;
-        }
-    }
-
-    private sealed class NoPresence : IMapPresence
-    {
-        public event Func<PlayerPresence, ValueTask>? PlayerLeft
-        {
-            add { }
-            remove { }
-        }
-
-        public int PlayerCount => 0;
-
-        public ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, MapInstance instance, MotionState motion, uint? playerId = null, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
-
-        public ValueTask LeaveAsync(IConnection connection, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
-
-        public bool TryGet(IConnection connection, [NotNullWhen(true)] out PlayerPresence? player)
-        {
-            player = null;
-            return false;
-        }
-
-        public void CopyActiveMapIds(List<string> into)
-        {
-        }
-
-        public void CopyPlayers(string mapId, List<PlayerPresence> into)
-        {
-        }
-
-        public ValueTask SendAsync(IConnection connection, IPacket packet, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
-
-        public ValueTask MulticastAsync(string mapId, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
@@ -25,6 +26,7 @@ using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
 using Nosum.Gameplay.Skills;
@@ -38,7 +40,8 @@ namespace Nosum.Infrastructure.Nodes;
 /// 16 × 16-tile chunk buckets (<see cref="NodeField"/>) and written through to PostgreSQL when they are created, grow, change kind or break.
 /// One lock per instance serializes every change, so two players hitting the same stone at once break it once. A breaking node's yield leaves through
 /// <see cref="INodeYieldSink"/> in the same transaction as the node's change. The nodes that block walking are part of the grid
-/// <see cref="GridFor"/> returns, so server validation and client prediction agree.
+/// <see cref="GridFor"/> returns, so server validation and client prediction agree. The floors of the mine (docs/adr/ADR-026 D3) are the one exception to persistence: their
+/// nodes are built in memory from the player, the game day and the floor when the player enters, never written to PostgreSQL, and dropped by <see cref="Forget"/> when the player leaves.
 /// A change is published to the subscribers of the chunk it happened in, and a chunk's nodes are sent once when it joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
 public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContributor, INodeTiles
@@ -129,9 +132,10 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         }
 
         int water = _tools.WaterLeft(player.AccountId);
+        int capacity = _tools.CapacityOf(player.AccountId);
         if (!_maps.TryGet(player.MapId, out MapDefinition? map) || !map.HasNodes)
         {
-            return new NodeSnapshotView(string.Empty, water, NodeLimits.WateringCanCapacity, []);
+            return new NodeSnapshotView(string.Empty, water, capacity, []);
         }
 
         InstanceNodes state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
@@ -143,11 +147,11 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
             {
                 if (player.Viewer is null || _chunks.IsInterested(player, ChunkCoord.OfTile(node.X, node.Y)))
                 {
-                    visible.Add(node);
+                    visible.Add(Public(node));
                 }
             }
 
-            return new NodeSnapshotView(map.Id, water, NodeLimits.WateringCanCapacity, visible);
+            return new NodeSnapshotView(map.Id, water, _tools.CapacityOf(player.AccountId), visible);
         }
     }
 
@@ -170,7 +174,7 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
 
         foreach (ResourceNode node in inChunk)
         {
-            state.Nodes.Add(ToRow(node));
+            state.Nodes.Add(ToRow(Public(node)));
         }
     }
 
@@ -184,12 +188,13 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         // A can aimed at water is refilled, on any map.
         if (item is { Tool: ToolKind.WateringCan } && map.Water is { } water && water.IsWater(request.TileX, request.TileY))
         {
-            if (_tools.WaterLeft(player.AccountId) >= NodeLimits.WateringCanCapacity)
+            int capacity = ToolRules.WateringCanCapacity(item.Tier);
+            if (_tools.WaterLeft(player.AccountId) >= capacity && _tools.CapacityOf(player.AccountId) >= capacity)
             {
                 return Refused(FarmStatus.NothingToDo);
             }
 
-            _ = await _tools.RefillAsync(player.AccountId, cancellationToken).ConfigureAwait(false);
+            _ = await _tools.RefillAsync(player.AccountId, capacity, cancellationToken).ConfigureAwait(false);
             return new FarmUseOutcome(FarmStatus.Ok, FarmAction.Refilled);
         }
 
@@ -205,14 +210,21 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         {
             if (state.Field.TryGetAt(request.TileX, request.TileY, out ResourceNode node))
             {
+                // A ladder is not broken: using it (facing it, any item in hand) takes the player down; the mine service does the walking (docs/adr/ADR-026 D3).
+                if (node.Kind == NodeKind.Ladder)
+                {
+                    return new FarmUseOutcome(FarmStatus.Ok, FarmAction.Descended);
+                }
+
                 // Forage is picked up with an empty hand or whatever is held (docs/adr/ADR-025 D4); no tool, no cooldown.
                 if (node.Kind == NodeKind.Forage)
                 {
                     return await this.PickForageAsync(player, state, node, cancellationToken).ConfigureAwait(false);
                 }
 
+                // An upgraded axe or pickaxe does more damage per swing (docs/adr/ADR-026 D1); the scythe has one tier.
                 return nodeTool && item is not null
-                    ? await this.HitAsync(player, state, node, item.Tool, cancellationToken).ConfigureAwait(false)
+                    ? await this.HitAsync(player, state, node, item.Tool, item.Tool is ToolKind.Axe or ToolKind.Pickaxe ? ToolRules.DamagePerHit(item.Tier) : 1, cancellationToken).ConfigureAwait(false)
                     : Refused(item is null ? FarmStatus.NothingToDo : FarmStatus.Blocked);
             }
 
@@ -226,13 +238,21 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
     }
 
     /// <inheritdoc/>
+    public void Forget(MapInstance instance) => _ = _instances.TryRemove(instance.Key, out _);
+
+    /// <inheritdoc/>
     public async Task AdvanceDayAsync(long day, bool seasonChanged, CancellationToken cancellationToken = default)
     {
         foreach (Task<InstanceNodes> load in _instances.Values)
         {
             if (load.IsCompletedSuccessfully)
             {
-                await this.AdvanceInstanceAsync(await load.ConfigureAwait(false), day, seasonChanged, publish: true, cancellationToken).ConfigureAwait(false);
+                // A mine floor is rebuilt from the day when a player enters it; it has nothing to advance.
+                InstanceNodes state = await load.ConfigureAwait(false);
+                if (!state.Map.IsMineFloor)
+                {
+                    await this.AdvanceInstanceAsync(state, day, seasonChanged, publish: true, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
     }
@@ -259,6 +279,9 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         row.AgeDays = node.AgeDays;
     }
 
+    // The client never learns which stone hides the ladder (docs/adr/ADR-026 D3): its variant is not sent.
+    private static ResourceNode Public(in ResourceNode node) => node is { Kind: NodeKind.Stone, Variant: NodeVariants.LadderStone } ? node with { Variant = 0 } : node;
+
     private static NodeRow ToRow(in ResourceNode node)
     {
         NodeRow row = NodeRow.Create();
@@ -266,7 +289,7 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         row.X = (ushort)node.X;
         row.Y = (ushort)node.Y;
         row.Kind = (byte)node.Kind;
-        row.Variant = node.Variant;
+        row.Variant = Public(node).Variant;
         row.Stage = node.Stage;
         row.Hits = node.Hits;
         return row;
@@ -274,9 +297,9 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
 
     // One swing at a node, under the instance lock. A hit that does not break the node only changes memory and tells the instance; the
     // hit that breaks it delivers the yield and changes the row in one transaction.
-    private async Task<FarmUseOutcome> HitAsync(PlayerPresence player, InstanceNodes state, ResourceNode node, ToolKind tool, CancellationToken cancellationToken)
+    private async Task<FarmUseOutcome> HitAsync(PlayerPresence player, InstanceNodes state, ResourceNode node, ToolKind tool, int damage, CancellationToken cancellationToken)
     {
-        NodeHit hit = NodeRules.Hit(node, tool);
+        NodeHit hit = NodeRules.Hit(node, tool, damage);
         switch (hit.Outcome)
         {
             case NodeHitOutcome.WrongTool:
@@ -313,6 +336,12 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
                     if (!charge.Allowed)
                     {
                         return false;
+                    }
+
+                    // A mine floor has no rows: its nodes live in memory only.
+                    if (state.Map.IsMineFloor)
+                    {
+                        return true;
                     }
 
                     IRepository<WorldNode> rows = unit.Repository<WorldNode>();
@@ -379,7 +408,7 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
     private async Task<FarmUseOutcome> PickForageAsync(PlayerPresence player, InstanceNodes state, ResourceNode node, CancellationToken cancellationToken)
     {
         // Breaking a node charges its skill's experience in the same transaction (docs/adr/ADR-023): forage is a foraging node, and a hand costs no energy.
-        return await this.HitAsync(player, state, node, ToolKind.None, cancellationToken).ConfigureAwait(false);
+        return await this.HitAsync(player, state, node, ToolKind.None, 1, cancellationToken).ConfigureAwait(false);
     }
 
     // Planting a tree seed, under the instance lock: free, walkable, unreserved ground that no player stands on; the seed and the new node commit together.
@@ -389,6 +418,7 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         MapDefinition map = request.Map;
         WalkGrid grid = Volatile.Read(ref state.Grid);
         if (request.TileWorked
+            || map.IsMineFloor
             || grid.IsBlocked(request.TileX, request.TileY)
             || map.ReservedTiles.Contains((request.TileX, request.TileY))
             || _placed?.IsCovered(player.Instance, request.TileX, request.TileY) == true
@@ -620,8 +650,13 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
 
     private async Task<InstanceNodes> LoadAsync(MapInstance instance, MapDefinition map)
     {
-        InstanceNodes state = new(instance, map, NodeRandom.HashOf(instance.Key));
         long today = _days.Today;
+        if (map.IsMineFloor)
+        {
+            return this.BuildMineFloor(instance, map, today);
+        }
+
+        InstanceNodes state = new(instance, map, NodeRandom.HashOf(instance.Key));
         long markedDay;
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
@@ -666,6 +701,21 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
             await this.AdvanceInstanceAsync(state, today, seasonChanged: false, publish: false, CancellationToken.None).ConfigureAwait(false);
         }
 
+        return state;
+    }
+
+    // A mine floor is built from the player, the game day and the floor: the same three always give the same stones, ore and ladder, and nothing is stored (docs/adr/ADR-026 D3).
+    private InstanceNodes BuildMineFloor(MapInstance instance, MapDefinition map, long today)
+    {
+        InstanceNodes state = new(instance, map, MineRules.FloorSeed(instance.OwnerId, today, map.MineFloor)) { LastDay = today };
+        (int spawnX, int spawnY) = (WarpRule.TileX(map.SpawnX, map.Grid.TileSize), WarpRule.TileY(map.SpawnY, map.Grid.TileSize));
+        MineFloorPlanner.Plan plan = MineFloorPlanner.Build(map.MineFloor, state.Seed, map.Grid, map.ReservedTiles, spawnX, spawnY);
+        foreach (NodePlacement placement in plan.Nodes)
+        {
+            state.Field.Add(new ResourceNode(++state.LastId, placement.X, placement.Y, placement.Kind, placement.Variant, placement.Stage, NodeCatalog.HitsFor(placement.Kind, placement.Stage)));
+        }
+
+        state.Rebuild();
         return state;
     }
 
@@ -737,6 +787,9 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
         public NodeField Field { get; } = new();
 
         public long LastDay { get; set; }
+
+        // Ids of the nodes of a mine floor, which has no database to hand them out.
+        public int LastId;
 
         // Replaced as a whole under the instance lock; movement validation reads it without one.
         public WalkGrid Grid;

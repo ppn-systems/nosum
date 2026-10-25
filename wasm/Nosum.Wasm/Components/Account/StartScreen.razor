@@ -5,11 +5,40 @@
 <main class="start-screen">
     <h1 class="start-logo">@Vm.GameTitle</h1>
     <p class="start-tagline">@Vm.Tagline</p>
-    <AccountForm Vm="Vm" />
+    @if (_recovering)
+    {
+        <PasswordRecoveryForm Vm="Recovery" />
+    }
+    else
+    {
+        <AccountForm Vm="Vm" OnForgotPassword="BeginRecovery" ForgotPasswordText="@Recovery.LinkText" />
+    }
     <ConnectionBadge />
 </main>
+
+@implements IDisposable
+@inject PasswordRecoveryViewModel Recovery
 
 @code {
     /// <summary>The account view model the form is bound to.</summary>
     [Parameter, EditorRequired] public AccountFormViewModel Vm { get; set; } = default!;
+
+    private bool _recovering;
+
+    protected override void OnInitialized() => Recovery.Closed += OnRecoveryClosed;
+
+    private void BeginRecovery()
+    {
+        Recovery.Begin(Vm.Email);
+        _recovering = true;
+    }
+
+    // Closed is raised by the view model (cancel, or "back to sign in" once the password changed).
+    private void OnRecoveryClosed()
+    {
+        _recovering = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => Recovery.Closed -= OnRecoveryClosed;
 }

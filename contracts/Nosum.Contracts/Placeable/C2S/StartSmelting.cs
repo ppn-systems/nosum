@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Placeable.C2S;
 
@@ -16,8 +17,10 @@ public sealed partial class StartSmelting : PacketBase<StartSmelting>, IPacketSt
     public static ushort StaticOpCode => PlaceableOpCode.StartSmelting;
 
     /// <summary>Id of the placed furnace.</summary>
+    [WireRange(0, int.MaxValue)]
     [SerializeOrder(0)] public int ObjectId { get; set; }
 
     /// <summary>The ore to smelt: copper ore or iron ore.</summary>
+    [WireRange(0, WireLimits.MaxId)]
     [SerializeOrder(1)] public int OreItemId { get; set; }
 }

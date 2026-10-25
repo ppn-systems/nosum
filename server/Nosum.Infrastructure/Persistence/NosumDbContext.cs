@@ -3,15 +3,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
+using Nosum.Domain.Admin;
+using Nosum.Domain.Blacksmith;
 using Nosum.Domain.Buildings;
 using Nosum.Domain.Community;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Economy;
 using Nosum.Domain.Farm;
 using Nosum.Domain.Inventory;
-using Nosum.Domain.Mail;
 using Nosum.Domain.Looks;
+using Nosum.Domain.Mail;
 using Nosum.Domain.Market;
+using Nosum.Domain.Mines;
 using Nosum.Domain.Nodes;
 using Nosum.Domain.Placeables;
 using Nosum.Domain.Quests;
@@ -39,6 +42,9 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the issued session tokens.</summary>
     public DbSet<PlayerSessionToken> PlayerSessionTokens => this.Set<PlayerSessionToken>();
+
+    /// <summary>Gets the one-time password recovery codes (docs/adr/ADR-032 D4).</summary>
+    public DbSet<PasswordResetCode> PasswordResetCodes => this.Set<PasswordResetCode>();
 
     /// <summary>Gets the inventory headers.</summary>
     public DbSet<PlayerInventory> PlayerInventories => this.Set<PlayerInventory>();
@@ -124,6 +130,11 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the owners' visiting settings.</summary>
     public DbSet<VisitSettings> VisitSettings => this.Set<VisitSettings>();
 
+    /// <summary>Gets how deep each player has been in the mine.</summary>
+    public DbSet<PlayerMine> PlayerMines => this.Set<PlayerMine>();
+
+    /// <summary>Gets the tools the blacksmith is upgrading.</summary>
+    public DbSet<ToolUpgrade> ToolUpgrades => this.Set<ToolUpgrade>();
     /// <summary>Gets the block lists (docs/adr/ADR-029 D3).</summary>
     public DbSet<BlockedPlayer> BlockedPlayers => this.Set<BlockedPlayer>();
 
@@ -144,6 +155,9 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the items attached to mails.</summary>
     public DbSet<MailAttachmentItem> MailAttachmentItems => this.Set<MailAttachmentItem>();
+
+    /// <summary>Gets the audit trail of admin actions (docs/adr/ADR-031 D7).</summary>
+    public DbSet<AdminAuditEntry> AdminAudit => this.Set<AdminAuditEntry>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

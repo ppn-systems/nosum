@@ -1,7 +1,7 @@
 @using Nosum.Wasm.Controls.Menu
 @* The one game menu: a fixed-size window with a row of icon tabs on its top edge. The caller says which tabs exist (a new tab is one
    MenuTab) and puts the active tab's page in the content. The window title is the active tab's name. *@
-<div class="game-menu">
+<div class="game-menu" role="dialog" aria-label="@ActiveLabel">
     <div class="menu-tabs" role="tablist">
         @foreach (MenuTab tab in Tabs)
         {
@@ -9,7 +9,7 @@
             bool active = id == Active;
             <button type="button" role="tab" class="menu-tab @(active ? "active" : null)" aria-selected="@(active ? "true" : "false")"
                     aria-label="@tab.Label" data-tip="@(tab.Hotkey.Length > 0 ? tab.Label + " [" + tab.Hotkey + "]" : tab.Label)"
-                    tabindex="-1" @onmousedown:preventDefault @onclick="() => OnSelect.InvokeAsync(id)">
+                    @onmousedown:preventDefault @onclick="() => OnSelect.InvokeAsync(id)">
                 <span class="menu-tab-art" style="background-image:var(--nosum-img-@(tab.Icon))"></span>
             </button>
         }

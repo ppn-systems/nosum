@@ -12,6 +12,7 @@ using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Observability;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
@@ -101,6 +102,13 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
 
         (MapDefinition map, MotionState start, MapInstance instance) = await this.StartingPlaceAsync(accountId, cancellationToken).ConfigureAwait(false);
         await _world.PrepareAsync(instance, cancellationToken).ConfigureAwait(false);
+
+        // A mine floor is built afresh for the player when they come back (docs/adr/ADR-026 D3), so the tile they logged out on may hold a stone now: they start at the arrival tile.
+        if (map.IsMineFloor && MoveValidator.FootBlocked(_world.GridFor(instance, map), start.X, start.Y))
+        {
+            start = new MotionState(map.SpawnX, map.SpawnY, this.NowSeconds());
+        }
+
         PlayerPresence player = await _presence.JoinAsync(connection, accountId, instance, start, cancellationToken: cancellationToken).ConfigureAwait(false);
         ArmWarps(player, map);
         this.SubscribeToChunks(player, map);
@@ -151,6 +159,13 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                     MoveVerdict.Blocked => MoveRefusal.Blocked,
                     _ => MoveRefusal.Invalid,
                 };
+                NosumMetrics.IntentRejected("move", reason switch
+                {
+                    MoveRefusal.TooFast => nameof(MoveRefusal.TooFast),
+                    MoveRefusal.OutOfMap => nameof(MoveRefusal.OutOfMap),
+                    MoveRefusal.Blocked => nameof(MoveRefusal.Blocked),
+                    _ => nameof(MoveRefusal.Invalid),
+                });
                 return new MoveOutcome(MoveStatus.Refused, reason, (float)player.Motion.X, (float)player.Motion.Y);
             }
 

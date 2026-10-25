@@ -58,14 +58,46 @@ public sealed partial class WebRenderBackend : IRenderBackend
     /// <param name="style">Style number: 0 normal, 1 the local player's.</param>
     public static void UploadLabel(int id, string text, int style) => RegisterLabel(id, text, style);
 
+    /// <summary>Sets the keys bound to the actions; call when the player changes them (never from the frame).</summary>
+    /// <param name="bindings">Every action as <c>Action=Code;Action=Code</c>, the action names being <c>Nosum.Wasm.ViewModels.Settings.GameAction</c> and the codes browser key codes.</param>
+    public static void SetBindings(string bindings) => SetKeyBindings(bindings);
+
+    /// <summary>Downloads and decodes one audio file once, at load (docs/adr/ADR-039). A file that is missing or cannot be decoded leaves its id silent; it never throws.</summary>
+    /// <param name="kind">0 for a one-shot sound, 1 for an ambient loop, 2 for a music track.</param>
+    /// <param name="id">The sound, loop or track id used by the audio commands of the frame.</param>
+    /// <param name="url">File URL.</param>
+    /// <returns>A task that completes when the file is decoded (<see langword="true"/>) or was skipped (<see langword="false"/>).</returns>
+    public static Task<bool> LoadAudioAsync(int kind, int id, string url) => LoadAudio(kind, id, url);
+
+    /// <summary>Sets the music and sound effect gains from the settings; call when the player changes them (never from the frame).</summary>
+    /// <param name="musicGain">Music gain, 0 to 1 (<see cref="VolumeCurve"/>, 0 when muted).</param>
+    /// <param name="soundGain">Sound effect gain, 0 to 1 (0 when muted).</param>
+    public static void SetLevels(double musicGain, double soundGain) => SetAudioLevels(musicGain, soundGain);
+
+    /// <summary>Chooses the sound a click on any button of the interface plays, in the browser, without a call into .NET.</summary>
+    /// <param name="soundId">The sound id, or 0 for none.</param>
+    public static void SetUiClick(int soundId) => SetUiClickSound(soundId);
+
     /// <inheritdoc/>
     public void Submit(Span<byte> commands) => SubmitFrame(commands);
 
     [JSImport("submitFrame", ModuleName)]
     private static partial void SubmitFrame([JSMarshalAs<JSType.MemoryView>] Span<byte> commands);
 
+    [JSImport("setKeyBindings", ModuleName)]
+    private static partial void SetKeyBindings(string bindings);
+
     [JSImport("registerLabel", ModuleName)]
     private static partial void RegisterLabel(int id, string text, int style);
+
+    [JSImport("loadAudio", ModuleName)]
+    private static partial Task<bool> LoadAudio(int kind, int id, string url);
+
+    [JSImport("setAudioLevels", ModuleName)]
+    private static partial void SetAudioLevels(double musicGain, double soundGain);
+
+    [JSImport("setUiClickSound", ModuleName)]
+    private static partial void SetUiClickSound(int soundId);
 
     [JSImport("loadTexture", ModuleName)]
     private static partial Task LoadTexture(int id, string url);

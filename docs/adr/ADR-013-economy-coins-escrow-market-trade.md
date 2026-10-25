@@ -1,6 +1,6 @@
 # ADR-013 — Economy: coins, one atomic transfer, shipping bin, consignment market, direct trade
 
-**Status:** Accepted (owner approval, 2026-10-25). Amended 2026-10-25: starter kit, town shop, market fee sink; the shop split into three (see Amendments).
+**Status:** Accepted (owner approval, 2026-10-25). Amended 2026-10-25: starter kit, town shop, market fee sink; the shop split into three (see Amendments). Amended by [ADR-034](ADR-034-market-at-the-trader-counter.md): the market (D5, D8) is a counter in Town, no longer a menu tab or the `M` key.
 
 ## Context
 

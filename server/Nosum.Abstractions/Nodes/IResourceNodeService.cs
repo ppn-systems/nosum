@@ -45,6 +45,15 @@ public interface IResourceNodeService : IInstanceWorld
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when every loaded instance was brought up to date.</returns>
     Task AdvanceDayAsync(long day, bool seasonChanged, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Drops the in-memory nodes of an instance that is not needed any more: a mine floor nobody stands on (docs/adr/ADR-026 D3). A persisted instance
+    /// is loaded again from its rows on the next visit.
+    /// </summary>
+    /// <param name="instance">The place whose nodes to forget.</param>
+    void Forget(MapInstance instance)
+    {
+    }
 }
 
 /// <summary>The nodes of an instance, for layers that must keep off them (docs/adr/ADR-024 D3: nothing is placed on a tree, a stone or a weed).</summary>

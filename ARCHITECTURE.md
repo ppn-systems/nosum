@@ -21,18 +21,18 @@ nosum/
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
 │   ├── Nosum.Infrastructure/     # persistence and service implementations
 │   ├── Nosum.Handlers/           # stateless Nalix packet handlers by opcode
-│   └── Nosum.Host/               # composition root, WebSocket listener (:57300 /ws/)
+│   └── Nosum.Host/               # composition root, WebSocket listener (:57300 /ws/), health + metrics endpoint (:57301), host command line (admin, healthcheck)
 ├── wasm/                         # Nosum.Wasm.slnx — own Directory.Build.props (trimmed, no AOT)
 │   ├── Nosum.Wasm/               # Blazor host: canvas page + UI overlay
 │   ├── Nosum.Wasm.ViewModels/    # MVVM view models (no .razor)
 │   ├── Nosum.Wasm.Controls/      # reusable Razor controls and the pixel-art theme (ADR-016, ADR-017): the game menu, panel frame, button, input, item grid, dialogs, hotbar, HUD dock layout, help, arrange panel, market/wardrobe/trade/co-op panels
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
-├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
+├── bench/                        # Nosum.Bench.slnx — Nosum.Bench.Interop (browser benchmark, same WASM settings as wasm/) and Nosum.Bench.Load (headless load test of a running server, ADR-031 D8)
 ├── assets/                       # placeholder content (unpacked Stardew Valley, 16 px, Tiled maps) — ADR-007, never shipped
 ├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker); only area allowed an image package
-├── deploy/                       # deployment configuration
-├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions)
+├── deploy/                       # images, compose (PostgreSQL, host, Caddy, backups), the placeholder-art gate — ADR-031; runbook in docs/ops/
+├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions) · ops/ (operations runbook)
 └── Directory.Build.props · Directory.Packages.props · Version.props · global.json
 ```
 
@@ -92,6 +92,9 @@ JS requestAnimationFrame
               [JSImport] submitFrame(MemoryView)   crossing 2: .NET → JS, no copy, no JSON
                 renderer.js decodes and draws, synchronously
 ```
+
+Sound travels in the same buffer: `SoundCues` writes play-sound, music and ambient-loop commands after `Begin`, and
+`renderer.js` hands them to `audio.js` (Web Audio) — no crossing of its own ([ADR-039](docs/adr/ADR-039-audio-hooks.md)).
 
 No allocation, no `async` and no `StateHasChanged` inside the frame.
 

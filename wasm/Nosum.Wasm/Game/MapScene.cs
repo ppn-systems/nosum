@@ -4,17 +4,20 @@ using System;
 using Nosum.Core;
 using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Buildings;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
 using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Shops;
+using Nosum.Gameplay.Weather;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Player;
+using Nosum.Wasm.ViewModels.Audio;
 
 namespace Nosum.Wasm.Game;
 
@@ -33,6 +36,7 @@ internal sealed class MapScene
     private const int TargetTilesAcross = 26;
     private const int MaxScale = 6;
     private const int MenuUnitsTall = 204;
+    private const int NarrowCanvasWidth = 640;
 
     /// <summary>Seconds the screen takes to go black when the server changes the map.</summary>
     public const double FadeOutSeconds = 0.2;
@@ -58,6 +62,7 @@ internal sealed class MapScene
     private int _labelCount;
     private readonly PlaceableChannel? _placed;
     private readonly SkyLayer _sky;
+    private readonly GameAudio? _audio;
     private readonly PlacementActions? _placement;
     private readonly PlacedSet _placedSet = new();
     private readonly NodeChannel? _nodes;
@@ -95,9 +100,11 @@ internal sealed class MapScene
     /// <param name="labels">Nickname labels over players' heads; <see langword="null"/> draws no names.</param>
     /// <param name="nodes">The mirror of the resource nodes of the player's place; the ones that block walk like the server's grid does.</param>
     /// <param name="calendar">The server calendar: it gives the time of day and the weather for the sky (docs/adr/ADR-027); <see langword="null"/> keeps plain daylight.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null)
+    /// <param name="audio">The audio director: sounds queued by the hooks are written into the frame, and the footsteps, music and rain loop are decided here (docs/adr/ADR-039); <see langword="null"/> plays no sound.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null)
     {
         _sky = new SkyLayer(calendar, placed);
+        _audio = audio;
         _actions = actions;
         _nodes = nodes;
         _placed = placed;
@@ -181,10 +188,15 @@ internal sealed class MapScene
             _ = ShopRules.TryFindShop(content.Spec, _farmer.X, _farmer.Y, map.TileWidth, out shopId);
         }
 
+        bool elevatorNear = content.Spec.Elevator is { } elevator
+            && ShopRules.InReach(new ShopPoint(0, elevator.TileX, elevator.TileY), _farmer.X, _farmer.Y, map.TileWidth);
+
         // Tools work wherever the ground can be farmed or nothing can be placed; in a room the action key places furniture instead.
+        // The rotate key turns a piece being carried and is not a wide swing then.
         bool placeableMap = content.Spec.Placeable;
+        InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~InputEdges.Rotate : liveEdges;
         BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
-        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, interior);
+        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear, interior);
         if (_actions is not null)
         {
             // The action key that opened a chest or a furnace is not also a placement.
@@ -202,7 +214,14 @@ internal sealed class MapScene
             map.Height * map.TileHeight,
             HudBottomInset(canvasWidth, canvasHeight) / scale);
 
+        if (_audio is not null)
+        {
+            bool hasSky = _sky.TryGetState(out Season season, out int minuteOfDay, out WeatherKind weather);
+            _audio.Frame(frameSeconds, (int)_farmer.X, (int)_farmer.Y, _phase != Phase.FadingOut && _farmer.IsMoving, content.Spec.Indoors, hasSky, season, minuteOfDay, weather);
+        }
+
         _commands.Begin(scale);
+        _audio?.Flush(_commands);
         foreach (TileLayer layer in content.Layers.Ground)
         {
             TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave);
@@ -246,7 +265,10 @@ internal sealed class MapScene
         // The sky: the night tint with the lamps cut out of it over the whole world, then the rain or snow, then the names and the fade.
         _sky.DrawAmbient(_commands, content.Spec, _camera, map.TileWidth);
         _sky.Update(content.Spec, frameSeconds, (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
-        _sky.DrawPrecipitation(_commands);
+        if (!ViewOptions.ReduceMotion)
+        {
+            _sky.DrawPrecipitation(_commands);
+        }
         this.DrawLabels();
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
         backend.Submit(_commands.Encode());
@@ -264,7 +286,15 @@ internal sealed class MapScene
     {
         ArgumentNullException.ThrowIfNull(map);
 
-        return ViewZoom.Pick(map.Width * map.TileWidth, map.Height * map.TileHeight, map.TileWidth, canvasWidth, canvasHeight, HudBottomInset(canvasWidth, canvasHeight), TargetTilesAcross, MaxScale);
+        int auto = ViewZoom.Pick(map.Width * map.TileWidth, map.Height * map.TileHeight, map.TileWidth, canvasWidth, canvasHeight, HudBottomInset(canvasWidth, canvasHeight), TargetTilesAcross, MaxScale);
+        int chosen = ViewOptions.Scale;
+        if (chosen < 2)
+        {
+            return auto;
+        }
+
+        // The zoom the player picked (docs/adr/ADR-033 D1); a room is still shown whole, so it never goes past what fits.
+        return map.Width * map.TileWidth > TargetTilesAcross * map.TileWidth ? chosen : Math.Min(chosen, auto);
     }
 
     /// <summary>
@@ -276,9 +306,12 @@ internal sealed class MapScene
     /// <returns>The strip's height, CSS pixels.</returns>
     internal static int HudBottomInset(int canvasWidth, int canvasHeight)
     {
-        int world = Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * 16)), 2, MaxScale);
+        int chosen = ViewOptions.Scale;
+        int world = chosen >= 2 ? chosen : Math.Clamp((int)Math.Round(canvasWidth / (double)(TargetTilesAcross * 16)), 2, MaxScale);
         int fits = Math.Max(2, canvasHeight / MenuUnitsTall);
-        return 40 * Math.Min(world, fits);
+
+        // Narrow screens show the hotbar in two rows (Hotbar.razor.css, max-width 640px), so the strip is taller.
+        return (canvasWidth <= NarrowCanvasWidth ? 64 : 40) * Math.Min(world, fits);
     }
 
     // The grid the farmer walks on: the map's own, plus the footprints of the pieces the server says are placed here. Rebuilt only
@@ -447,6 +480,7 @@ internal sealed class MapScene
         _farmer = new Walker(_pending.X, _pending.Y, (Facing)(_pending.Facing & 3));
         _walkTime = 0;
         _phase = Phase.FadingIn;
+        _audio?.Play(SoundIds.Door);
         this.PrefetchNeighbours();
     }
 
@@ -490,6 +524,11 @@ internal sealed class MapScene
     // Remembers where a nickname goes; the labels are recorded after everything else so no sprite or roof covers them.
     private void AddLabel(string? nickname, int feetX, int feetY)
     {
+        if (!ViewOptions.ShowNames)
+        {
+            return;
+        }
+
         int id = _labels?.IdOf(nickname) ?? 0;
         if (id > 0 && _labelCount < _labelIds.Length)
         {

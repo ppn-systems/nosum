@@ -11,6 +11,8 @@ using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Maps;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
+using Nosum.Wasm.Security;
+using Nosum.Wasm.Settings;
 using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Chat;
@@ -57,6 +59,8 @@ using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.ViewModels.Profile;
 using Nosum.Wasm.ViewModels.Progress;
 using Nosum.Wasm.ViewModels.Shop;
+using Nosum.Wasm.ViewModels.Blacksmith;
+using Nosum.Wasm.ViewModels.Mine;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
@@ -64,6 +68,8 @@ using Nosum.Wasm.ViewModels.Trade;
 using Nosum.Wasm.ViewModels.Wallet;
 using Nosum.Wasm.ViewModels.Calendar;
 using Nosum.Wasm.Socket.Calendar;
+using Nosum.Wasm.Socket.Blacksmith;
+using Nosum.Wasm.Socket.Mine;
 
 namespace Nosum.Wasm;
 
@@ -75,8 +81,8 @@ internal static class Program
 {
     public static async Task Main(string[] args)
     {
-        // Vietnamese until sign-in applies the account's language (docs/adr/ADR-010 D1, D6).
-        UiCulture.SetDefault(GameLanguage.Vietnamese);
+        // The language this browser used last (Vietnamese on a first visit) until sign-in applies the account's language (docs/adr/ADR-010 D1, D6, docs/adr/ADR-033).
+        UiCulture.SetDefault(await SettingsWiring.LoadLanguageAsync().ConfigureAwait(false));
 
         WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.RootComponents.Add<App>("#app");
@@ -84,9 +90,12 @@ internal static class Program
         builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
         builder.Services.AddLocalization();
+        builder.Services.AddClientSettings();
 
         // One server connection for the app's lifetime (docs/adr/ADR-003 D5).
-        builder.Services.AddSingleton(_ => GameSocketOptions.ForPageHost(new Uri(builder.HostEnvironment.BaseAddress)));
+        // The deploy pins the server's public key in wwwroot/appsettings.json; without it a development build trusts the server on first use (docs/adr/ADR-032 D1).
+        builder.Services.AddSingleton(sp => GameSocketOptions.ForPageHost(new Uri(builder.HostEnvironment.BaseAddress))
+            .ApplyBootConfiguration(key => builder.Configuration[key], () => new BrowserServerKeyStore(sp.GetRequiredService<Microsoft.JSInterop.IJSRuntime>())));
         builder.Services.AddSingleton<GameSocket>();
         builder.Services.AddSingleton<IGameSocket>(sp => sp.GetRequiredService<GameSocket>());
         builder.Services.AddSingleton(sp => new PlayerChannel(sp.GetRequiredService<IGameSocket>(), GameMaps.DefaultId));
@@ -111,6 +120,8 @@ internal static class Program
         builder.Services.AddSingleton<FriendsChannel>();
         builder.Services.AddSingleton<MailChannel>();
         builder.Services.AddSingleton<ShopChannel>();
+        builder.Services.AddSingleton<BlacksmithChannel>();
+        builder.Services.AddSingleton<MineChannel>();
         builder.Services.AddSingleton<GoalChannel>();
         builder.Services.AddSingleton<DevChannel>();
         builder.Services.AddSingleton<NearbyPlayers>();
@@ -129,6 +140,8 @@ internal static class Program
         builder.Services.AddSingleton<NicknameFormatter>();
         builder.Services.AddSingleton<ProfileViewModel>();
         builder.Services.AddSingleton<ShopViewModel>();
+        builder.Services.AddSingleton<BlacksmithViewModel>();
+        builder.Services.AddSingleton<ElevatorViewModel>();
         builder.Services.AddSingleton<GoalsViewModel>();
         builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<ProgressViewModel>();
@@ -159,6 +172,9 @@ internal static class Program
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
         builder.Services.AddTransient<AccountFormViewModel>();
+        // Account recovery (docs/adr/ADR-032 D4).
+        builder.Services.AddSingleton<IRecoveryClient, GameSocketRecoveryClient>();
+        builder.Services.AddSingleton<PasswordRecoveryViewModel>();
         builder.Services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());
@@ -199,6 +215,8 @@ internal static class Program
         // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;
         // the farm, the placed furniture and the resource nodes are per place, so they load whenever a map was joined.
         AccountSessionKeeper keeper = host.Services.GetRequiredService<AccountSessionKeeper>();
+        SettingsWiring.Connect(host.Services);
+        AudioWiring.Connect(new GameAudio(), host.Services);
         keeper.Authenticated += channel.Join;
         keeper.Authenticated += inventory.Load;
         keeper.Authenticated += quests.Load;

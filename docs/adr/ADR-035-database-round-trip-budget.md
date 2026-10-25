@@ -1,6 +1,6 @@
 # ADR-035 — Database round-trip budget
 
-**Status:** Proposed (written by the db-budget agent; the coordinator reviews and the owner approves before any of D3–D8 is built).
+**Status:** Accepted (coordinator, 2026-10-25, under the authority the owner delegated; review notes on D3 writers, D4 serialization and D7 animal friendship are folded in). D3–D8 are built in phase 2.
 Builds on [ADR-009](ADR-009-postgresql-persistence-and-accounts.md) (PostgreSQL, one unit of work per operation),
 [ADR-013](ADR-013-economy-coins-escrow-market-trade.md) (one atomic transfer) and
 [ADR-021](ADR-021-tools-resource-nodes-ground-items.md) / [ADR-022](ADR-022-chunked-interest-management.md) (world state held in memory per instance and chunk).

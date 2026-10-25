@@ -5,6 +5,10 @@
 // submitFrame receives a MemoryView over .NET memory that is valid only during the call:
 // decode and draw synchronously, never keep the view.
 
+import { audioCommand } from "./audio.js";
+// The sound commands (-7 sound, -8 music, -9 ambient loop; docs/adr/ADR-039) go to audio.js; these are the module's exports .NET calls.
+export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
+
 const textures = [];          // texture id -> ImageBitmap
 const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
 let placedCount = 0;
@@ -19,32 +23,143 @@ let ambientLayer = null;      // full-canvas offscreen layer the ambient tint is
 let lightSprite = null;       // white-to-transparent radial gradient, scaled per light
 let edges = 0;  // one-shot keys pressed since the last frame, packed above the held bits (Nosum.Core.InputEdges)
 
-const KEY_BITS = {
-    ArrowUp: 1, KeyW: 1,
-    ArrowDown: 2, KeyS: 2,
-    ArrowLeft: 4, KeyA: 4,
-    ArrowRight: 8, KeyD: 8,
-};
-
-// Keys that fire once per press. Bit values match Nosum.Core.InputEdges.
-const EDGE_BITS = {
-    KeyE: 1, Space: 1,
+// Keys that never change: the arrows, Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
+// so the maps below are built from both. Bit values match Nosum.Core.InputState (held) and Nosum.Core.InputEdges (pressed once).
+const FIXED_HELD = { ArrowUp: 1, ArrowDown: 2, ArrowLeft: 4, ArrowRight: 8 };
+const FIXED_EDGES = {
+    Space: 1,
     Digit1: 2, Digit2: 4, Digit3: 8, Digit4: 16, Digit5: 32, Digit6: 64, Digit7: 128, Digit8: 256, Digit9: 512,
     Numpad1: 2, Numpad2: 4, Numpad3: 8, Numpad4: 16, Numpad5: 32, Numpad6: 64, Numpad7: 128, Numpad8: 256, Numpad9: 512,
-    KeyI: 1024,
-    KeyR: 2048,
-    KeyF: 4096,
-    KeyQ: 8192,
-    KeyM: 16384, KeyC: 32768, KeyT: 65536, KeyG: 131072,
     Escape: 262144,
-    KeyH: 524288,
-    KeyN: 1048576,
 };
+
+// The names are Nosum.Wasm.ViewModels.Settings.GameAction.
+const ACTION_BITS = {
+    MoveUp: { held: 1 }, MoveDown: { held: 2 }, MoveLeft: { held: 4 }, MoveRight: { held: 8 },
+    Use: { edge: 1 }, Inventory: { edge: 1024 }, Rotate: { edge: 2048 }, Grab: { edge: 4096 }, PickUp: { edge: 8192 },
+    Wardrobe: { edge: 32768 }, Trade: { edge: 65536 }, Coop: { edge: 131072 },
+    Help: { edge: 524288 }, Profile: { edge: 1048576 },
+};
+const DEFAULT_BINDINGS = "MoveUp=KeyW;MoveDown=KeyS;MoveLeft=KeyA;MoveRight=KeyD;Use=KeyE;Inventory=KeyI;Wardrobe=KeyC;Trade=KeyT;Coop=KeyG;Profile=KeyN;Help=KeyH;Rotate=KeyR;Grab=KeyF;PickUp=KeyQ";
+
+let KEY_BITS = {};
+let EDGE_BITS = {};
+
+// Sets the keys of the actions: "Action=Code;Action=Code" (every action). Called when the settings change, never from the frame.
+export function setKeyBindings(text) {
+    const held = { ...FIXED_HELD }, edge = { ...FIXED_EDGES };
+    for (const pair of String(text || DEFAULT_BINDINGS).split(";")) {
+        const at = pair.indexOf("=");
+        const bits = at > 0 ? ACTION_BITS[pair.slice(0, at)] : null;
+        if (!bits) { continue; }
+        const code = pair.slice(at + 1);
+        if (bits.held) { held[code] = (held[code] || 0) | bits.held; } else { edge[code] = (edge[code] || 0) | bits.edge; }
+    }
+    KEY_BITS = held;
+    EDGE_BITS = edge;
+    keys = 0;
+}
+
+setKeyBindings(DEFAULT_BINDINGS);
 
 // Typing in a form field (the upgrade form) must not move the farmer or select slots.
 function isTyping(e) {
     const t = e.target;
     return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+}
+
+// The settings page is waiting for the next key to bind: the key belongs to the page, not the game. The page answers the key (and stops waiting) before this
+// handler sees it, so the answer is read in the capture phase, first of all, and remembered on the event.
+function isCapturing(e) {
+    return e.nosumCapture === true;
+}
+
+function markCapturing(e) {
+    const t = e.target;
+    e.nosumCapture = !!t && typeof t.closest === "function" && !!t.closest("[data-capture-key]");
+}
+
+// Space and Enter on a focused button or link activate it (keyboard users): the game must not also act on the key.
+function isActivating(e) {
+    const t = e.target;
+    return !!t && (e.code === "Space" || e.code === "Enter") && (t.tagName === "BUTTON" || t.tagName === "A" || t.getAttribute?.("role") === "button");
+}
+
+// --- touch (docs/adr/ADR-033 D2) ---
+// The controls are plain elements drawn by the Razor TouchControls component: a stick ([data-touch=stick] with a [data-touch=knob] inside) and buttons
+// ([data-touch-edge=<InputEdges bit>]). The pointer events are handled here and only change `touchHeld` / `edges`, which join the input of the next
+// frame: there is no call into .NET per touch event.
+let touchHeld = 0;
+let stickPointer = -1;
+const STICK_DEAD = 0.3;
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_SLOP = 12;
+let press = null;
+
+function moveStick(stick, e) {
+    const rect = stick.getBoundingClientRect();
+    const r = rect.width / 2;
+    let dx = e.clientX - (rect.left + r), dy = e.clientY - (rect.top + r);
+    const len = Math.hypot(dx, dy);
+    if (len > r) { dx = dx / len * r; dy = dy / len * r; }
+    let bits = 0;
+    if (dx > STICK_DEAD * r) { bits |= 8; } else if (dx < -STICK_DEAD * r) { bits |= 4; }
+    if (dy > STICK_DEAD * r) { bits |= 2; } else if (dy < -STICK_DEAD * r) { bits |= 1; }
+    touchHeld = bits;
+    const knob = stick.querySelector("[data-touch=knob]");
+    if (knob) { knob.style.transform = `translate(${dx}px, ${dy}px)`; }
+}
+
+function releaseStick() {
+    stickPointer = -1;
+    touchHeld = 0;
+    const knob = document.querySelector("[data-touch=knob]");
+    if (knob) { knob.style.transform = ""; }
+}
+
+function installTouch() {
+    document.addEventListener("pointerdown", e => {
+        const t = e.target;
+        if (!t || typeof t.closest !== "function") { return; }
+        const stick = t.closest("[data-touch=stick]");
+        if (stick) {
+            e.preventDefault();
+            stickPointer = e.pointerId;
+            try { stick.setPointerCapture(e.pointerId); } catch { /* the pointer ended already */ }
+            moveStick(stick, e);
+            return;
+        }
+        const button = t.closest("[data-touch-edge]");
+        if (button) {
+            e.preventDefault();
+            edges |= Number(button.getAttribute("data-touch-edge")) || 0;
+            button.classList.add("down");
+        }
+    });
+    document.addEventListener("pointermove", e => {
+        if (e.pointerId === stickPointer) {
+            const stick = document.querySelector("[data-touch=stick]");
+            if (stick) { moveStick(stick, e); }
+        }
+        if (press && e.pointerId === press.id && Math.hypot(e.clientX - press.x, e.clientY - press.y) > LONG_PRESS_SLOP) {
+            clearTimeout(press.timer);
+            press = null;
+        }
+    });
+    const end = e => {
+        if (e.pointerId === stickPointer) { releaseStick(); }
+        if (press && e.pointerId === press.id) { clearTimeout(press.timer); press = null; }
+        document.querySelectorAll("[data-touch-edge].down").forEach(b => b.classList.remove("down"));
+    };
+    document.addEventListener("pointerup", end);
+    document.addEventListener("pointercancel", end);
+    // Holding a finger on the world uses the held item on the tile in front, like the action key (the world tile under the finger is not chosen).
+    canvas.addEventListener("pointerdown", e => {
+        if (e.pointerType === "mouse") { return; }
+        clearTimeout(press?.timer);
+        press = { id: e.pointerId, x: e.clientX, y: e.clientY, timer: setTimeout(() => { edges |= 1; press = null; }, LONG_PRESS_MS) };
+    });
+    canvas.addEventListener("contextmenu", e => e.preventDefault());
 }
 
 export async function loadTexture(id, url) {
@@ -98,22 +213,25 @@ export function registerLabel(id, text, style) {
 export async function start(canvasId, assemblyName, exportPath) {
     canvas = document.getElementById(canvasId);
     ctx = canvas.getContext("2d");
+    window.addEventListener("keydown", markCapturing, true);
     window.addEventListener("keydown", e => {
+        if (isCapturing(e)) { return; }
         if (e.code === "Escape") {
             // Escape closes the open panel even from a form field: leave the field so the game gets the keyboard back.
             if (isTyping(e)) { e.target.blur(); }
             if (!e.repeat) { edges |= EDGE_BITS.Escape; }
             return;
         }
-        if (isTyping(e) || e.ctrlKey || e.altKey || e.metaKey) { return; }
-        if (e.key === "?") { if (!e.repeat) { edges |= EDGE_BITS.KeyH; } e.preventDefault(); return; }
+        if (isTyping(e) || isActivating(e) || e.ctrlKey || e.altKey || e.metaKey) { return; }
+        if (e.key === "?") { if (!e.repeat) { edges |= ACTION_BITS.Help.edge; } e.preventDefault(); return; }
         const b = KEY_BITS[e.code];
         if (b) { keys |= b; e.preventDefault(); return; }
         const edge = EDGE_BITS[e.code];
         if (edge) { if (!e.repeat) { edges |= edge; } e.preventDefault(); }
     });
     window.addEventListener("keyup", e => { const b = KEY_BITS[e.code]; if (b) { keys &= ~b; } });
-    window.addEventListener("blur", () => { keys = 0; });
+    window.addEventListener("blur", () => { keys = 0; releaseStick(); });
+    installTouch();
 
     const runtime = await globalThis.getDotnetRuntime(0);
     const exports = await runtime.getAssemblyExports(assemblyName);
@@ -124,7 +242,7 @@ export async function start(canvasId, assemblyName, exportPath) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
         const pressed = edges;
         edges = 0;
-        frame(time, keys | (pressed << 8), w, h);
+        frame(time, (keys | touchHeld) | (pressed << 8), w, h);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -152,6 +270,11 @@ export function submitFrame(view) {
             ctx.fillStyle = "#000";
             ctx.fillRect(dx, dy, w, h);
             ctx.globalAlpha = 1;
+            continue;
+        }
+        if (id <= -7 && id >= -9) {
+            // Sound, music track or ambient loop: srcX, srcY and srcW are the arguments.
+            audioCommand(id, sx, sy, w);
             continue;
         }
         if (id === -4) {
