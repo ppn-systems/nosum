@@ -25,6 +25,12 @@ public enum ItemKind
 
     /// <summary>A tree seed; planted on free ground it grows into a tree over game days (<see cref="ItemDefinition.TreeVariant"/>).</summary>
     TreeSeed = 7,
+
+    /// <summary>Food: eaten to restore energy (docs/adr/ADR-023); cooked dishes come from recipes (docs/adr/ADR-024).</summary>
+    Food = 8,
+
+    /// <summary>A crafted object a player places on the ground of their farm or co-op land: chest, fence, path, scarecrow, sprinkler, furnace (docs/adr/ADR-024).</summary>
+    Placeable = 9,
 }
 
 /// <summary>Where a clothing item is worn. The numbers are also the wire values of the wardrobe packets; append-only.</summary>

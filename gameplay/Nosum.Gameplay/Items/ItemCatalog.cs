@@ -9,7 +9,7 @@ namespace Nosum.Gameplay.Items;
 
 /// <summary>
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
-/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources.
+/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources and bars, 600-699 crafted placeables, 700-799 food.
 /// </summary>
 public static class ItemCatalog
 {
@@ -91,6 +91,42 @@ public static class ItemCatalog
     /// <summary>Copper ore, from copper ore nodes.</summary>
     public const int CopperOre = 504;
 
+    /// <summary>Iron ore, from iron ore nodes (the mine, docs/adr/ADR-026).</summary>
+    public const int IronOre = 505;
+
+    /// <summary>A copper bar, smelted from copper ore and coal in a furnace.</summary>
+    public const int CopperBar = 506;
+
+    /// <summary>An iron bar, smelted from iron ore and coal in a furnace.</summary>
+    public const int IronBar = 507;
+
+    /// <summary>A storage chest (docs/adr/ADR-024).</summary>
+    public const int Chest = 600;
+
+    /// <summary>A wood fence piece.</summary>
+    public const int WoodFence = 601;
+
+    /// <summary>A stone path tile.</summary>
+    public const int StonePath = 602;
+
+    /// <summary>A scarecrow.</summary>
+    public const int Scarecrow = 603;
+
+    /// <summary>A sprinkler: waters the four tiles around it at the start of each game day.</summary>
+    public const int Sprinkler = 604;
+
+    /// <summary>A furnace: smelts ore into bars.</summary>
+    public const int Furnace = 605;
+
+    /// <summary>A salad.</summary>
+    public const int Salad = 700;
+
+    /// <summary>A baked potato.</summary>
+    public const int BakedPotato = 701;
+
+    /// <summary>A bowl of pumpkin soup.</summary>
+    public const int PumpkinSoup = 702;
+
     /// <summary>Largest stack of furniture.</summary>
     public const int FurnitureStack = 20;
 
@@ -139,6 +175,18 @@ public static class ItemCatalog
         new(Fiber, "fiber", ItemKind.Resource, DefaultStack),
         new(Coal, "coal", ItemKind.Resource, DefaultStack),
         new(CopperOre, "copper_ore", ItemKind.Resource, DefaultStack),
+        new(IronOre, "iron_ore", ItemKind.Resource, DefaultStack),
+        new(CopperBar, "copper_bar", ItemKind.Resource, DefaultStack),
+        new(IronBar, "iron_bar", ItemKind.Resource, DefaultStack),
+        new(Chest, "chest", ItemKind.Placeable, FurnitureStack),
+        new(WoodFence, "wood_fence", ItemKind.Placeable, DefaultStack),
+        new(StonePath, "stone_path", ItemKind.Placeable, DefaultStack),
+        new(Scarecrow, "scarecrow", ItemKind.Placeable, FurnitureStack),
+        new(Sprinkler, "sprinkler", ItemKind.Placeable, FurnitureStack),
+        new(Furnace, "furnace", ItemKind.Placeable, FurnitureStack),
+        new(Salad, "salad", ItemKind.Food, DefaultStack),
+        new(BakedPotato, "baked_potato", ItemKind.Food, DefaultStack),
+        new(PumpkinSoup, "pumpkin_soup", ItemKind.Food, DefaultStack),
         new(OakChair, "oak_chair", ItemKind.Furniture, FurnitureStack),
         new(BlueArmchair, "blue_armchair", ItemKind.Furniture, FurnitureStack),
         new(BlueCouch, "blue_couch", ItemKind.Furniture, FurnitureStack),
