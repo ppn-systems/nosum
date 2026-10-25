@@ -76,12 +76,13 @@ internal static class OwnTileset
 
     /// <summary>Returns the <c>&lt;tileset&gt;</c> element: the tileset's size and the traits of every fill, as the placeholder maps write them.</summary>
     /// <param name="firstGid">The first global tile id the map gives the tileset.</param>
+    /// <param name="source">The image source the map writes, relative to the map's folder.</param>
     /// <returns>The element, LF line endings, indented as the placeholder maps are.</returns>
-    public static string TilesetElement(int firstGid)
+    public static string TilesetElement(int firstGid, string source)
     {
         StringBuilder xml = new();
         _ = xml.Append(CultureInfo.InvariantCulture, $"  <tileset firstgid=\"{firstGid}\" name=\"{Name}\" tilewidth=\"{TileSize}\" tileheight=\"{TileSize}\" tilecount=\"{TileCount}\" columns=\"{Columns}\">\n");
-        _ = xml.Append(CultureInfo.InvariantCulture, $"    <image source=\"{Name}\" width=\"{Columns * TileSize}\" height=\"{Rows * TileSize}\" />\n");
+        _ = xml.Append(CultureInfo.InvariantCulture, $"    <image source=\"{source}\" width=\"{Columns * TileSize}\" height=\"{Rows * TileSize}\" />\n");
         int index = 0;
         foreach (TerrainKind kind in TerrainKinds.Fills)
         {
