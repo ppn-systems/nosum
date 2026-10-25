@@ -75,10 +75,18 @@ the client never decides a contribution, a trade or a goal outcome.
 - Every item change is one atomic, logged server transaction, the base the market, trades and the co-op warehouse will use.
 - The first quest (plant and harvest one crop) is the tutorial and invites a guest to register. Durations, starter items and inventory size (36) are defaults, not balance.
 
+## Built so far (social layer, [ADR-013](../adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../adr/ADR-014-coops-and-looks.md); proposed defaults, owner to confirm)
+
+- Coins: a persisted balance, 500 to start; the farm's shipping bin buys crops at a fixed price (the first coin source).
+- Market: listings are escrow, 5 % fee, 48 hours, at most 20 per player, paged browse with search by item; the seller is paid while offline; cancel and expiry return the items.
+- Direct trade: same map, both sides set an offer, any change clears both confirmations, both confirm, one atomic swap; leaving the map aborts with nothing moved.
+- Co-ops: one per player, founder and member roles, invitations, shared warehouse with an audit trail; the founder takes anything, a member takes back what they put in. Co-op land is not built.
+- Looks: skin, hair style, hair dye and worn shirt, trousers and hat, saved by the server and shown to everyone on the map as ids.
+
 ## Open questions
 
-- Whether a player may belong to more than one co-op.
-- Market fee rate, listing duration, and limits that stop one player cornering a crop.
+- Whether a player may belong to more than one co-op (built: one).
+- Market fee rate, listing duration, and limits that stop one player cornering a crop (built defaults: 5 %, 48 hours, 20 listings; no cornering limit yet).
 - Season length in real time.
 - How many players share one instance of a public map (town) before it splits into copies.
 - How visiting works: who may enter another player's farm or farmhouse (an allow-list the owner edits), and what a visitor may touch.

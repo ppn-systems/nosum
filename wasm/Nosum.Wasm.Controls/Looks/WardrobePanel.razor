@@ -1,0 +1,66 @@
+@using Nosum.Wasm.ViewModels.Looks
+@inherits ObservingComponent<WardrobeViewModel>
+
+@* The wardrobe: avatar parts and clothing. The server validates ownership and sends the new look to everyone on the map. *@
+<GamePanel Dock="PanelDock.Center" Title="@Vm.Text("Wardrobe_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+    <GameStack>
+        <GameSection Title="@Vm.Text("Wardrobe_Skin_Heading")">
+            <GameRow>
+                @foreach (PartChoice choice in Vm.Skins)
+                {
+                    int id = choice.Id;
+                    <button type="button" class="swatch @(choice.IsCurrent ? "current" : null)" style="background:@choice.Css" title="@choice.Label" aria-label="@choice.Label" tabindex="-1" @onmousedown:preventDefault @onclick="() => Vm.SetSkin(id)"></button>
+                }
+            </GameRow>
+        </GameSection>
+        <GameSection Title="@Vm.Text("Wardrobe_HairStyle_Heading")">
+            <GameRow>
+                @foreach (PartChoice choice in Vm.HairStyles)
+                {
+                    int id = choice.Id;
+                    <GameButton Variant="tab" Active="choice.IsCurrent" Text="@id.ToString(System.Globalization.CultureInfo.CurrentCulture)" Title="@choice.Label" OnClick="@(() => Vm.SetHairStyle(id))" />
+                }
+            </GameRow>
+        </GameSection>
+        <GameSection Title="@Vm.Text("Wardrobe_HairDye_Heading")">
+            <GameRow>
+                @foreach (PartChoice choice in Vm.HairDyes)
+                {
+                    int id = choice.Id;
+                    <button type="button" class="swatch @(choice.IsCurrent ? "current" : null)" style="background:@choice.Css" title="@choice.Label" aria-label="@choice.Label" tabindex="-1" @onmousedown:preventDefault @onclick="() => Vm.SetHairDye(id)"></button>
+                }
+            </GameRow>
+        </GameSection>
+        <GameSection Title="@Vm.Text("Wardrobe_Worn_Heading")">
+            @foreach (WornDisplay worn in Vm.Worn)
+            {
+                int slot = worn.Slot;
+                <GameRow Class="center">
+                    <span class="worn-slot">@worn.SlotLabel</span>
+                    <ItemSlotButton Slot="worn.Item" Scale="2" />
+                    <span class="worn-name">@(worn.Item.IsEmpty ? Vm.Text("Wardrobe_Plain") : worn.Item.Name)</span>
+                    @if (!worn.Item.IsEmpty)
+                    {
+                        <GameButton Variant="plain" Text="@Vm.Text("Wardrobe_TakeOff")" OnClick="@(() => Vm.TakeOff(slot))" />
+                    }
+                </GameRow>
+            }
+        </GameSection>
+        <GameSection Title="@Vm.Text("Wardrobe_Clothes_Heading")">
+            @if (Vm.Wardrobe.Count == 0)
+            {
+                <p class="wardrobe-empty">@Vm.Text("Wardrobe_NoClothes")</p>
+            }
+            else
+            {
+                <ItemGrid Slots="Vm.Wardrobe" Columns="9" Scale="2" OnSlotClick="@(i => Vm.Wear(i))" />
+                <p class="wardrobe-empty">@Vm.Text("Wardrobe_Hint")</p>
+            }
+        </GameSection>
+    </GameStack>
+</GamePanel>
+
+@code {
+    /// <summary>Raised when the close button is clicked.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+}

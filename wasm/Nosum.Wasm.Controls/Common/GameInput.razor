@@ -1,0 +1,38 @@
+@* The one text or number field of the UI. Typing here never reaches the game: the canvas ignores keys while a field has focus. *@
+<input class="game-input"
+       type="@Type"
+       value="@Value"
+       placeholder="@Placeholder"
+       maxlength="@MaxLength"
+       aria-label="@Label"
+       inputmode="@(Type == "number" ? "numeric" : null)"
+       min="@(Type == "number" ? "0" : null)"
+       @oninput="OnInput"
+       @onkeydown="OnKey" />
+
+@code {
+    /// <summary>The text.</summary>
+    [Parameter] public string Value { get; set; } = string.Empty;
+
+    /// <summary>Raised on every keystroke with the new text.</summary>
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>Raised when Enter is pressed.</summary>
+    [Parameter] public EventCallback OnEnter { get; set; }
+
+    /// <summary><c>text</c> or <c>number</c>.</summary>
+    [Parameter] public string Type { get; set; } = "text";
+
+    /// <summary>Placeholder text (already localized).</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Accessible name (already localized).</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>Longest text.</summary>
+    [Parameter] public int MaxLength { get; set; } = 64;
+
+    private Task OnInput(ChangeEventArgs e) => ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+
+    private Task OnKey(KeyboardEventArgs e) => e.Key == "Enter" ? OnEnter.InvokeAsync() : Task.CompletedTask;
+}

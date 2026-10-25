@@ -34,6 +34,13 @@ internal sealed class ItemIcons : IItemIconSource
         [ItemCatalog.Bookcase] = Furniture(56, 656),
         [ItemCatalog.FloorLamp] = Furniture(48, 733),
         [ItemCatalog.HousePlant] = Furniture(0, 688),
+        [ItemCatalog.ShirtRed] = Shirt(1),
+        [ItemCatalog.ShirtGreen] = Shirt(11),
+        [ItemCatalog.ShirtBlue] = Shirt(7),
+        [ItemCatalog.PantsBlue] = Pants(),
+        [ItemCatalog.PantsKhaki] = Pants(),
+        [ItemCatalog.HatStraw] = Hat(3),
+        [ItemCatalog.HatCap] = Hat(5),
     };
 
     /// <inheritdoc/>
@@ -41,6 +48,14 @@ internal sealed class ItemIcons : IItemIconSource
 
     // springobjects.png is 384 x 624 (24 x 39 cells).
     private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 624);
+
+    // Clothing is shown by its piece of the farmer sheets (the same frames the farmer is drawn with): shirts.png is 256 x 608 (8 px
+    // shirt pieces), pants.png 1920 x 1376, hats.png 240 x 880 (20 px hats, 12 per row, four rows of directions each).
+    private static ItemIcon Shirt(int index) => new("assets/Characters/Farmer/shirts.png", index % 16 * 8, index / 16 * 32, 8, 256, 608);
+
+    private static ItemIcon Pants() => new("assets/Characters/Farmer/pants.png", 0, 8, 16, 1920, 1376);
+
+    private static ItemIcon Hat(int index) => new("assets/Characters/Farmer/hats.png", index % 12 * 20, index / 12 * 80, 20, 240, 880);
 
     // tools.png is 336 x 384 (21 x 24 cells).
     private static ItemIcon Tool(int column, int row) => new(ToolsSheet, column * Cell, row * Cell, Cell, 336, 384);

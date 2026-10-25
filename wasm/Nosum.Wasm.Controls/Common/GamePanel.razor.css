@@ -18,7 +18,9 @@
 
 .game-panel--top-right,
 .game-panel--top-left,
-.game-panel--center {
+.game-panel--center,
+.game-panel--bottom-left,
+.game-panel--top-center {
     position: fixed;
 }
 
@@ -51,4 +53,43 @@
 
 .game-panel-body ::deep p {
     margin: 0;
+}
+
+.game-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.game-panel-header .game-panel-title {
+    margin: 0;
+}
+
+.game-panel-status {
+    margin: 0;
+    font-weight: bold;
+}
+
+/* A large window that scrolls inside the screen: market, wardrobe, trade and co-op. */
+.game-panel.wide {
+    width: min(46rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 6rem);
+    overflow: auto;
+}
+
+.game-panel--center.wide {
+    transform: translate(-50%, -55%);
+}
+
+.game-panel--bottom-left {
+    bottom: 0.75rem;
+    left: 0.75rem;
+}
+
+.game-panel--top-center {
+    top: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
 }

@@ -1,5 +1,11 @@
-@* The one button of the game UI. Looks come only from the shared "game-button" class. *@
-<button type="button" class="game-button" disabled="@Disabled" @onclick="OnClick">@ChildContent</button>
+@* The one button of the game UI. Looks come only from the shared "game-button" class and its variants (primary, danger, plain, tab); text comes from the caller (already localized). *@
+<button type="button"
+        class="game-button @Variant @(Active ? "active" : null)"
+        disabled="@Disabled"
+        title="@Title"
+        tabindex="-1"
+        @onmousedown:preventDefault
+        @onclick="OnClick">@Text@ChildContent</button>
 
 @code {
     /// <summary>Gets or sets what happens on a click.</summary>
@@ -10,7 +16,23 @@
     [Parameter]
     public bool Disabled { get; set; }
 
-    /// <summary>Gets or sets the localized label.</summary>
+    /// <summary>Gets or sets the localized label (or put the label in the content).</summary>
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets an optional localized tooltip.</summary>
+    [Parameter]
+    public string? Title { get; set; }
+
+    /// <summary>Gets or sets the look: <c>primary</c>, <c>danger</c>, <c>plain</c> or <c>tab</c>.</summary>
+    [Parameter]
+    public string Variant { get; set; } = "primary";
+
+    /// <summary>Gets or sets whether the button is the active tab.</summary>
+    [Parameter]
+    public bool Active { get; set; }
+
+    /// <summary>Gets or sets the localized label as content.</summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 }

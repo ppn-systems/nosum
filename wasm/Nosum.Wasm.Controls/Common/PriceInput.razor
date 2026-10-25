@@ -1,0 +1,22 @@
+@* A whole number of coins. *@
+<GameRow Class="center">
+    <GameInput Type="number" Value="@Value" ValueChanged="ValueChanged" Label="@Label" MaxLength="12" OnEnter="OnEnter" />
+    <span class="price-unit">@Unit</span>
+</GameRow>
+
+@code {
+    /// <summary>The typed amount.</summary>
+    [Parameter] public string Value { get; set; } = string.Empty;
+
+    /// <summary>Raised on every keystroke with the new text.</summary>
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>Raised when Enter is pressed.</summary>
+    [Parameter] public EventCallback OnEnter { get; set; }
+
+    /// <summary>The accessible name (already localized).</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The unit shown after the number, for example "coins" (already localized).</summary>
+    [Parameter] public string Unit { get; set; } = string.Empty;
+}

@@ -18,3 +18,17 @@
     opacity: 0.5;
     cursor: default;
 }
+
+.game-button.danger {
+    --game-button-background: #a8473a;
+}
+
+.game-button.plain,
+.game-button.tab {
+    --game-button-background: rgba(255, 255, 255, 0.14);
+}
+
+.game-button.tab.active {
+    --game-button-background: #8a5a2b;
+    font-weight: bold;
+}

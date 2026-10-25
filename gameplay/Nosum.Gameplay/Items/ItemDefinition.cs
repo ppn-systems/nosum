@@ -18,7 +18,8 @@ public sealed class ItemDefinition
     /// <param name="maxStack">Largest stack in one inventory slot.</param>
     /// <param name="tool">The tool, for <see cref="ItemKind.Tool"/> items.</param>
     /// <param name="cropId">The crop a seed grows, for <see cref="ItemKind.Seed"/> items.</param>
-    public ItemDefinition(int id, string key, ItemKind kind, int maxStack, ToolKind tool = ToolKind.None, int cropId = 0)
+    /// <param name="wear">Where the item is worn, for <see cref="ItemKind.Clothing"/> items.</param>
+    public ItemDefinition(int id, string key, ItemKind kind, int maxStack, ToolKind tool = ToolKind.None, int cropId = 0, WearSlot wear = WearSlot.None)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
         ArgumentException.ThrowIfNullOrEmpty(key);
@@ -30,6 +31,7 @@ public sealed class ItemDefinition
         this.MaxStack = maxStack;
         this.Tool = tool;
         this.CropId = cropId;
+        this.Wear = wear;
     }
 
     /// <summary>Gets the stable numeric id.</summary>
@@ -49,4 +51,13 @@ public sealed class ItemDefinition
 
     /// <summary>Gets the crop a seed grows; zero for other items.</summary>
     public int CropId { get; }
+
+    /// <summary>Gets where the item is worn; <see cref="WearSlot.None"/> for items that are not clothing.</summary>
+    public WearSlot Wear { get; }
+
+    /// <summary>
+    /// Gets whether the item may be sold, traded or put in a co-op warehouse. Tools are bound to their owner so nobody can
+    /// lose the means to farm.
+    /// </summary>
+    public bool IsTradable => this.Kind != ItemKind.Tool;
 }

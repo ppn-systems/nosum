@@ -155,6 +155,220 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_states", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Coops.Coop", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_coops");
+
+                    b.ToTable("coops", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Coops.CoopInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CoopId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("coop_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_coop_invites");
+
+                    b.HasIndex("PlayerId")
+                        .HasDatabaseName("ix_coop_invites_player_id");
+
+                    b.HasIndex("CoopId", "PlayerId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_coop_invites_coop_id_player_id");
+
+                    b.ToTable("coop_invites", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Coops.CoopLogEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CoopId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("coop_id");
+
+                    b.Property<int>("Delta")
+                        .HasColumnType("integer")
+                        .HasColumnName("delta");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("member_id");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("reason");
+
+                    b.HasKey("Id")
+                        .HasName("pk_coop_log");
+
+                    b.HasIndex("CoopId", "OccurredAt")
+                        .HasDatabaseName("ix_coop_log_coop_id_occurred_at");
+
+                    b.ToTable("coop_log", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Coops.CoopMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CoopId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("coop_id");
+
+                    b.Property<DateTimeOffset>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<byte>("Role")
+                        .HasColumnType("smallint")
+                        .HasColumnName("role");
+
+                    b.HasKey("Id")
+                        .HasName("pk_coop_members");
+
+                    b.HasIndex("CoopId")
+                        .HasDatabaseName("ix_coop_members_coop_id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_coop_members_player_id");
+
+                    b.ToTable("coop_members", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Coops.CoopStockItem", b =>
+                {
+                    b.Property<Guid>("CoopId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("coop_id");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<int>("Quantity")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("CoopId", "ItemId")
+                        .HasName("pk_coop_stock");
+
+                    b.ToTable("coop_stock", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_coop_stock_quantity", "quantity > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Economy.CoinLogEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<long>("Delta")
+                        .HasColumnType("bigint")
+                        .HasColumnName("delta");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("reason");
+
+                    b.HasKey("Id")
+                        .HasName("pk_coin_log");
+
+                    b.HasIndex("PlayerId", "OccurredAt")
+                        .HasDatabaseName("ix_coin_log_player_id_occurred_at");
+
+                    b.ToTable("coin_log", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Economy.PlayerWallet", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<long>("Coins")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint")
+                        .HasColumnName("coins");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_player_wallets");
+
+                    b.ToTable("player_wallets", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_player_wallets_coins", "coins >= 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Farm.FarmPlot", b =>
                 {
                     b.Property<string>("MapId")
@@ -348,6 +562,107 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_inventories", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Looks.PlayerAppearance", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<int>("HairDyeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("hair_dye_id");
+
+                    b.Property<int>("HairStyleId")
+                        .HasColumnType("integer")
+                        .HasColumnName("hair_style_id");
+
+                    b.Property<int>("HatItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("hat_item_id");
+
+                    b.Property<int>("PantsItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("pants_item_id");
+
+                    b.Property<int>("ShirtItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("shirt_item_id");
+
+                    b.Property<int>("SkinId")
+                        .HasColumnType("integer")
+                        .HasColumnName("skin_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_player_appearances");
+
+                    b.ToTable("player_appearances", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Market.MarketListing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("BuyerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("buyer_id");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<long>("Price")
+                        .HasColumnType("bigint")
+                        .HasColumnName("price");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("seller_id");
+
+                    b.Property<int>("Status")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_market_listings");
+
+                    b.HasIndex("SellerId", "Status")
+                        .HasDatabaseName("ix_market_listings_seller_id_status");
+
+                    b.HasIndex("Status", "ExpiresAt")
+                        .HasDatabaseName("ix_market_listings_status_expires_at");
+
+                    b.HasIndex("Status", "ItemId", "CreatedAt")
+                        .HasDatabaseName("ix_market_listings_status_item_id_created_at");
+
+                    b.ToTable("market_listings", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_market_listings_amounts", "quantity > 0 AND price > 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Quests.PlayerQuest", b =>
                 {
                     b.Property<Guid>("PlayerId")
@@ -401,6 +716,80 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_player_states_players_player_id");
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Coops.CoopInvite", b =>
+                {
+                    b.HasOne("Nosum.Domain.Coops.Coop", null)
+                        .WithMany()
+                        .HasForeignKey("CoopId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_coop_invites_coops_coop_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_coop_invites_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Coops.CoopLogEntry", b =>
+                {
+                    b.HasOne("Nosum.Domain.Coops.Coop", null)
+                        .WithMany()
+                        .HasForeignKey("CoopId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_coop_log_coops_coop_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Coops.CoopMember", b =>
+                {
+                    b.HasOne("Nosum.Domain.Coops.Coop", null)
+                        .WithMany()
+                        .HasForeignKey("CoopId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_coop_members_coops_coop_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_coop_members_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Coops.CoopStockItem", b =>
+                {
+                    b.HasOne("Nosum.Domain.Coops.Coop", null)
+                        .WithMany()
+                        .HasForeignKey("CoopId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_coop_stock_coops_coop_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Economy.CoinLogEntry", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_coin_log_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Economy.PlayerWallet", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_wallets_players_player_id");
+                });
+
             modelBuilder.Entity("Nosum.Domain.Inventory.InventoryLogEntry", b =>
                 {
                     b.HasOne("Nosum.Domain.Accounts.Player", null)
@@ -429,6 +818,26 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_inventories_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Looks.PlayerAppearance", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_appearances_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Market.MarketListing", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_market_listings_players_seller_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Quests.PlayerQuest", b =>

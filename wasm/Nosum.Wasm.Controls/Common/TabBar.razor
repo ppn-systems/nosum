@@ -1,0 +1,19 @@
+@* A row of tabs. *@
+<GameRow>
+    @foreach ((int id, string label) in Tabs)
+    {
+        int tab = id;
+        <GameButton Variant="tab" Active="@(Active == id)" Text="@label" OnClick="() => OnSelect.InvokeAsync(tab)" />
+    }
+</GameRow>
+
+@code {
+    /// <summary>The tabs: id and localized label.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<(int Id, string Label)> Tabs { get; set; } = [];
+
+    /// <summary>The active tab's id.</summary>
+    [Parameter] public int Active { get; set; }
+
+    /// <summary>Raised with the chosen tab's id.</summary>
+    [Parameter] public EventCallback<int> OnSelect { get; set; }
+}

@@ -1,11 +1,22 @@
 @* A framed panel: the one container every game UI panel is built from. Looks come only from the shared "game-panel" classes, so the
-   theme can change in one place. Dock picks one of the shared screen positions. *@
-<section class="game-panel @DockClass" role="region" aria-label="@Title">
-    @if (Title.Length > 0)
+   theme can change in one place. Dock picks one of the shared screen positions; a panel with a close handler has a header with a close button and a status line. *@
+<section class="game-panel @DockClass @Class" role="@(OnClose.HasDelegate ? "dialog" : "region")" aria-label="@Title">
+    @if (OnClose.HasDelegate)
+    {
+        <div class="game-panel-header">
+            <h2 class="game-panel-title">@Title</h2>
+            <GameButton Variant="plain" Text="@CloseText" OnClick="OnClose" />
+        </div>
+    }
+    else if (Title.Length > 0)
     {
         <h2 class="game-panel-title">@Title</h2>
     }
     <div class="game-panel-body">@ChildContent</div>
+    @if (!string.IsNullOrEmpty(Status))
+    {
+        <p class="game-panel-status" role="status">@Status</p>
+    }
 </section>
 
 @code {
@@ -17,6 +28,22 @@
     [Parameter]
     public PanelDock Dock { get; set; } = PanelDock.None;
 
+    /// <summary>Gets or sets the localized text of the close button.</summary>
+    [Parameter]
+    public string CloseText { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets what happens when the close button is clicked; without a handler there is no header and no close button.</summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    /// <summary>Gets or sets the localized status line under the body, or empty.</summary>
+    [Parameter]
+    public string? Status { get; set; }
+
+    /// <summary>Gets or sets extra shared CSS classes; <c>wide</c> makes a large scrolling window.</summary>
+    [Parameter]
+    public string? Class { get; set; }
+
     /// <summary>Gets or sets the content.</summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -26,6 +53,8 @@
         PanelDock.TopRight => "game-panel--top-right",
         PanelDock.TopLeft => "game-panel--top-left",
         PanelDock.Center => "game-panel--center",
+        PanelDock.BottomLeft => "game-panel--bottom-left",
+        PanelDock.TopCenter => "game-panel--top-center",
         _ => string.Empty,
     };
 }

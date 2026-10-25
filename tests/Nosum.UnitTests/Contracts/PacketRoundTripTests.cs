@@ -1,12 +1,22 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using FluentAssertions;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.C2S;
+using Nosum.Contracts.Coop;
+using Nosum.Contracts.Coop.S2C;
 using Nosum.Contracts.Inventory.S2C;
+using Nosum.Contracts.Look.S2C;
+using Nosum.Contracts.Market;
+using Nosum.Contracts.Market.C2S;
+using Nosum.Contracts.Market.S2C;
+using Nosum.Contracts.Trade;
+using Nosum.Contracts.Trade.C2S;
+using Nosum.Contracts.Trade.S2C;
 using Nosum.Contracts.Quest;
 using Nosum.Contracts.Quest.S2C;
 using Xunit;
@@ -93,5 +103,82 @@ public sealed class PacketRoundTripTests
         QuestLog copy = QuestLog.Deserialize(packet.Serialize());
 
         copy.Quests.Should().ContainSingle().Which.Progress.Should().Equal(0, 1);
+    }
+
+    [Fact]
+    public void ListingsPage_WithGuidsAndPrices_RoundTrips()
+    {
+        Guid id = Guid.CreateVersion7();
+        using ListingsPage packet = new() { ServerNowMs = 123, Page = 2, Total = 41 };
+        packet.Rows.Add(new ListingRow { ListingId = id, ItemId = 202, Quantity = 9, Price = 1_000_000_000_000, ExpiresAtMs = 99, IsMine = true });
+
+        ListingsPage copy = ListingsPage.Deserialize(packet.Serialize());
+
+        copy.Total.Should().Be(41);
+        copy.Rows.Should().ContainSingle().Which.Should().BeEquivalentTo(new ListingRow { ListingId = id, ItemId = 202, Quantity = 9, Price = 1_000_000_000_000, ExpiresAtMs = 99, IsMine = true });
+    }
+
+    [Fact]
+    public void BuyListingAndBrowse_RoundTrip()
+    {
+        Guid id = Guid.CreateVersion7();
+        using BuyListing buy = new() { ListingId = id };
+        using BrowseListings browse = new() { Page = 3 };
+        browse.ItemIds.AddRange([200, 201]);
+
+        BuyListing.Deserialize(buy.Serialize()).ListingId.Should().Be(id);
+        BrowseListings copy = BrowseListings.Deserialize(browse.Serialize());
+        copy.Page.Should().Be(3);
+        copy.ItemIds.Should().Equal(200, 201);
+    }
+
+    [Fact]
+    public void LookChanged_CarriesOnlyIds()
+    {
+        using LookChanged packet = new();
+        packet.Look.PlayerId = 7;
+        packet.Look.SkinId = 2;
+        packet.Look.HairStyleId = 5;
+        packet.Look.HairDyeId = 3;
+        packet.Look.ShirtItemId = 300;
+        packet.Look.HatItemId = 341;
+
+        LookChanged copy = LookChanged.Deserialize(packet.Serialize());
+
+        copy.Look.Should().BeEquivalentTo(new LookRow { PlayerId = 7, SkinId = 2, HairStyleId = 5, HairDyeId = 3, ShirtItemId = 300, PantsItemId = 0, HatItemId = 341 });
+    }
+
+    [Fact]
+    public void TradeState_WithBothOffers_RoundTrips()
+    {
+        using TradeState packet = new() { OtherPlayerId = 4, MyCoins = 10, OtherCoins = 20, MyConfirmed = true, OtherConfirmed = false };
+        packet.MyItems.Add(new TradeItemRow { ItemId = 200, Quantity = 3 });
+        packet.OtherItems.Add(new TradeItemRow { ItemId = 201, Quantity = 4 });
+
+        TradeState copy = TradeState.Deserialize(packet.Serialize());
+
+        (copy.OtherPlayerId, copy.MyCoins, copy.OtherCoins, copy.MyConfirmed, copy.OtherConfirmed).Should().Be((4u, 10L, 20L, true, false));
+        copy.MyItems.Should().ContainSingle().Which.Quantity.Should().Be(3);
+        copy.OtherItems.Should().ContainSingle().Which.ItemId.Should().Be(201);
+    }
+
+    [Fact]
+    public void CoopSnapshot_WithMembersStockLogAndInvites_RoundTrips()
+    {
+        Guid member = Guid.CreateVersion7();
+        using CoopSnapshot packet = new() { HasCoop = true, Name = "i18n{\"vi\":\"Vườn\",\"en\":\"Garden\"}", Role = CoopRole.Founder, ServerNowMs = 5 };
+        packet.Members.Add(new CoopMemberRow { MemberId = member, Role = CoopRole.Founder, IsMe = true, Online = true });
+        packet.Stock.Add(new CoopStockRow { ItemId = 200, Quantity = 12, Available = 12 });
+        packet.Log.Add(new CoopLogRow { MemberId = member, ItemId = 200, Delta = -3, AtMs = 77 });
+        packet.Invites.Add(new CoopInviteRow { InviteId = member, CoopName = "x" });
+
+        CoopSnapshot copy = CoopSnapshot.Deserialize(packet.Serialize());
+
+        copy.Name.Should().Contain("Garden");
+        copy.Role.Should().Be(CoopRole.Founder);
+        copy.Members.Should().ContainSingle().Which.MemberId.Should().Be(member);
+        copy.Stock.Should().ContainSingle().Which.Available.Should().Be(12);
+        copy.Log.Should().ContainSingle().Which.Delta.Should().Be(-3);
+        copy.Invites.Should().ContainSingle().Which.CoopName.Should().Be("x");
     }
 }

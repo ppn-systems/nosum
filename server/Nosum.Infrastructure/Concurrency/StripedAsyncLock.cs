@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,6 +33,54 @@ internal sealed class StripedAsyncLock
         SemaphoreSlim gate = _locks[(uint)key.GetHashCode() % (uint)_locks.Length];
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         return new Releaser(gate);
+    }
+
+    /// <summary>
+    /// Waits for the locks of several keys at once, always in stripe order so two callers with overlapping keys cannot deadlock,
+    /// and takes a stripe only once when several keys share it. Dispose the result to release them all.
+    /// </summary>
+    public async ValueTask<IDisposable> EnterAllAsync<TKey>(IReadOnlyCollection<TKey> keys, CancellationToken cancellationToken)
+        where TKey : notnull
+    {
+        SortedSet<int> stripes = [];
+        foreach (TKey key in keys)
+        {
+            _ = stripes.Add((int)((uint)key.GetHashCode() % (uint)_locks.Length));
+        }
+
+        List<SemaphoreSlim> held = new(stripes.Count);
+        try
+        {
+            foreach (int stripe in stripes)
+            {
+                await _locks[stripe].WaitAsync(cancellationToken).ConfigureAwait(false);
+                held.Add(_locks[stripe]);
+            }
+        }
+        catch
+        {
+            new MultiReleaser(held).Dispose();
+            throw;
+        }
+
+        return new MultiReleaser(held);
+    }
+
+    private sealed class MultiReleaser : IDisposable
+    {
+        private readonly List<SemaphoreSlim> _held;
+
+        public MultiReleaser(List<SemaphoreSlim> held) => _held = held;
+
+        public void Dispose()
+        {
+            foreach (SemaphoreSlim gate in _held)
+            {
+                _ = gate.Release();
+            }
+
+            _held.Clear();
+        }
     }
 
     public readonly struct Releaser : IDisposable

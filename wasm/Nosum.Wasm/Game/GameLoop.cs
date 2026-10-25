@@ -11,6 +11,9 @@ using Nosum.Core;
 using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Look;
+using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
@@ -37,6 +40,8 @@ internal static partial class GameLoop
     private static InventoryChannel? s_inventory;
     private static PlaceableChannel? s_placeable;
     private static PlacementViewModel? s_placement;
+    private static MarketChannel? s_market;
+    private static LookChannel? s_looks;
     private static double s_lastTime = -1;
 
     /// <summary>Connects the game to the server; call before <see cref="StartAsync"/>. Without it the farm is played offline.</summary>
@@ -46,11 +51,17 @@ internal static partial class GameLoop
     /// <summary>Connects farming to the game: the farm mirror and the held item. Call before <see cref="StartAsync"/>.</summary>
     /// <param name="farm">The farm mirror and action sender.</param>
     /// <param name="inventory">The inventory mirror.</param>
-    public static void UseFarming(FarmChannel farm, InventoryChannel inventory)
+    /// <param name="market">Ships crops at the bin.</param>
+    public static void UseFarming(FarmChannel farm, InventoryChannel inventory, MarketChannel market)
     {
         s_farm = farm;
         s_inventory = inventory;
+        s_market = market;
     }
+
+    /// <summary>Connects the looks the server sent to the farmers drawn; call before <see cref="StartAsync"/>.</summary>
+    /// <param name="looks">The mirror of the looks on the map.</param>
+    public static void UseLooks(LookChannel looks) => s_looks = looks;
 
     /// <summary>Connects furniture placing to the game: the placed pieces and the arrange panel's state. Call before <see cref="StartAsync"/>, after <see cref="UseFarming"/>.</summary>
     /// <param name="placeable">The placed pieces mirror and action sender.</param>
@@ -61,8 +72,9 @@ internal static partial class GameLoop
         s_placement = placement;
     }
 
-    /// <summary>Raised from the frame when the player pressed the inventory key.</summary>
-    public static event Action? InventoryToggleRequested;
+
+    /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
+    public static event Action<PanelKind>? PanelToggleRequested;
 
     /// <summary>
     /// Loads everything the first map needs and starts the loop on the given canvas. With a network, the first map is the one
@@ -77,8 +89,8 @@ internal static partial class GameLoop
         ArgumentNullException.ThrowIfNull(http);
 
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
-        PlayerActions? actions = s_farm is not null && s_inventory is not null ? new PlayerActions(s_farm, s_inventory) : null;
-        actions?.InventoryToggleRequested += () => InventoryToggleRequested?.Invoke();
+        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market) : null;
+        actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider()];
         if (actions is not null && s_farm is not null)
         {
@@ -98,7 +110,8 @@ internal static partial class GameLoop
             textures.LoadAsync(FarmerUrl + "farmer_base.png"),
             textures.LoadAsync(FarmerUrl + "pants.png"),
             textures.LoadAsync(FarmerUrl + "shirts.png"),
-            textures.LoadAsync(FarmerUrl + "hairstyles.png"));
+            textures.LoadAsync(FarmerUrl + "hairstyles.png"),
+            textures.LoadAsync(FarmerUrl + "hats.png"));
 
         MapEntry? entry = await WaitForEntryAsync(cancellationToken).ConfigureAwait(false);
         MapSpec spec = entry is { } answered && GameMaps.TryGet(answered.MapId, out MapSpec? chosen)
@@ -108,10 +121,11 @@ internal static partial class GameLoop
 
         MapContent content = await loader.LoadAsync(spec.Id, cancellationToken).ConfigureAwait(false);
         int[] sheets = await farmerSheets.ConfigureAwait(false);
-        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3]);
+        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4]);
 
-        FarmerLook look = new(Hairstyle: 1, HairTint: unchecked((int)0x6B4226FF), Shirt: 3, Pants: 0, PantsTint: unchecked((int)0x3E5F8AFF));
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement);
+        // Until the server's look arrives (and without a server) the default look is drawn, never one made up from an id.
+        FarmerLook look = LookSprites.Resolve(LookInfo.Default);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks);
 
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }

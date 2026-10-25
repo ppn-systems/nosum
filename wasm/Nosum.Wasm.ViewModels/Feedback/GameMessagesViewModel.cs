@@ -4,7 +4,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Farm;
+using Nosum.Contracts.Market;
 using Nosum.Contracts.Placeable;
+using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Inventory;
@@ -48,6 +50,19 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         inventory.Refused += this.Show;
     }
 
+    /// <summary>Initializes the view model and also reports what the shipping bin paid (or why it paid nothing).</summary>
+    /// <param name="farm">The farm channel (answers to item use).</param>
+    /// <param name="placeables">The placeable channel (answers to placing furniture).</param>
+    /// <param name="inventory">The inventory view model (refused moves).</param>
+    /// <param name="text">UI text.</param>
+    /// <param name="market">The market channel (answers to shipping).</param>
+    public GameMessagesViewModel(FarmChannel farm, PlaceableChannel placeables, InventoryViewModel inventory, IStringLocalizer<Language> text, MarketChannel market)
+        : this(farm, placeables, inventory, text)
+    {
+        ArgumentNullException.ThrowIfNull(market);
+        market.Completed += this.OnMarketCompleted;
+    }
+
     /// <summary>Raised when <see cref="Message"/> changed. May run on any thread.</summary>
     public event Action? Changed;
 
@@ -70,6 +85,18 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         _farm.UseCompleted -= this.OnUseCompleted;
         _placeables.Completed -= this.OnPlaceCompleted;
         _inventory.Refused -= this.Show;
+    }
+
+    private void OnMarketCompleted(MarketAction action, MarketStatus status, long earned)
+    {
+        if (action != MarketAction.Ship)
+        {
+            return;
+        }
+
+        this.Show(status == MarketStatus.Ok
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, _text["Market_Shipped"].Value, earned)
+            : _text["Market_Status_" + status].Value);
     }
 
     private void OnUseCompleted(FarmStatus status, FarmAction action)

@@ -184,8 +184,55 @@ public sealed class InventoryService : IInventoryService
         return new InventoryView(header.Capacity, header.SelectedSlot, slots);
     }
 
-    // Loads the player's inventory (creating it with the starter kit), runs one change under the player's
-    // lock, writes the changed rows plus the audit entries and the enlisted work in one save, then pushes.
+    /// <inheritdoc/>
+    public async Task<InventoryStatus> ApplyManyAsync(
+        IReadOnlyList<PlayerInventoryChange> changes,
+        string reason,
+        InventoryEnlistment? enlist = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(changes);
+        ArgumentException.ThrowIfNullOrEmpty(reason);
+
+        if (changes.Count == 0)
+        {
+            return InventoryStatus.Ok;
+        }
+
+        Guid[] players = new Guid[changes.Count];
+        for (int i = 0; i < players.Length; i++)
+        {
+            players[i] = changes[i].PlayerId;
+        }
+
+        if (new HashSet<Guid>(players).Count != players.Length)
+        {
+            throw new ArgumentException("A player may appear once in a combined change.", nameof(changes));
+        }
+
+        ManyOutcome outcome = await this.ExecuteManyAsync(
+            players,
+            (loaded, deltas) =>
+            {
+                for (int i = 0; i < loaded.Length; i++)
+                {
+                    InventoryStatus status = ApplyOperations(loaded[i].Grid, changes[i].Operations, deltas[i]);
+                    if (status != InventoryStatus.Ok)
+                    {
+                        return status;
+                    }
+                }
+
+                return InventoryStatus.Ok;
+            },
+            reason,
+            enlist,
+            push: true,
+            cancellationToken).ConfigureAwait(false);
+        return outcome.Status;
+    }
+
+    // One player: the same machinery as several.
     private async Task<Outcome> ExecuteAsync(
         Guid playerId,
         Func<Loaded, List<(int ItemId, int Delta)>, InventoryStatus> change,
@@ -194,46 +241,95 @@ public sealed class InventoryService : IInventoryService
         bool push,
         CancellationToken cancellationToken)
     {
-        using (await _locks.EnterAsync(playerId, cancellationToken).ConfigureAwait(false))
+        ManyOutcome many = await this.ExecuteManyAsync(
+            [playerId],
+            (loaded, deltas) => change(loaded[0], deltas[0]),
+            reason,
+            enlist,
+            push,
+            cancellationToken).ConfigureAwait(false);
+        return new Outcome(many.Status, many.Changed[0], many.Views[0]);
+    }
+
+    // Loads the players' inventories (creating them with the starter kit), runs one change under all their locks,
+    // writes the changed rows plus the audit entries and the enlisted work in one save, then pushes.
+    private async Task<ManyOutcome> ExecuteManyAsync(
+        Guid[] playerIds,
+        Func<Loaded[], List<(int ItemId, int Delta)>[], InventoryStatus> change,
+        string reason,
+        InventoryEnlistment? enlist,
+        bool push,
+        CancellationToken cancellationToken)
+    {
+        using (await _locks.EnterAllAsync(playerIds, cancellationToken).ConfigureAwait(false))
         {
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
-                Loaded loaded = await this.LoadAsync(unit, playerId, cancellationToken).ConfigureAwait(false);
-                List<(int ItemId, int Delta)> deltas = [];
+                Loaded[] loaded = new Loaded[playerIds.Length];
+                List<(int ItemId, int Delta)>[] deltas = new List<(int ItemId, int Delta)>[playerIds.Length];
+                for (int i = 0; i < playerIds.Length; i++)
+                {
+                    loaded[i] = await this.LoadAsync(unit, playerIds[i], cancellationToken).ConfigureAwait(false);
+                    deltas[i] = [];
+                }
+
                 InventoryStatus status = change(loaded, deltas);
                 if (status != InventoryStatus.Ok)
                 {
                     // Nothing is saved, not even a starter kit: the next call creates it again.
-                    return new Outcome(status, [], ViewOf(loaded.Header, loaded.Grid));
+                    return Refusal(status, loaded);
                 }
 
-                List<int> changedSlots = [];
-                loaded.Grid.TakeChanged(changedSlots);
-                List<InventorySlotView> changed = this.WriteRows(unit, loaded, changedSlots, deltas, reason);
+                List<InventorySlotView>[] changed = new List<InventorySlotView>[playerIds.Length];
+                for (int i = 0; i < playerIds.Length; i++)
+                {
+                    List<int> changedSlots = [];
+                    loaded[i].Grid.TakeChanged(changedSlots);
+                    changed[i] = this.WriteRows(unit, loaded[i], changedSlots, deltas[i], reason);
+                }
 
                 if (enlist is not null && !await enlist(unit, cancellationToken).ConfigureAwait(false))
                 {
-                    return new Outcome(InventoryStatus.Conflict, [], ViewOf(loaded.Header, loaded.Grid));
+                    return Refusal(InventoryStatus.Conflict, loaded);
                 }
 
                 try
                 {
                     _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 }
-                catch (DbUpdateException ex) when (unit.IsUniqueViolation(ex))
+                catch (DbUpdateException ex) when (unit.IsUniqueViolation(ex) || unit.IsConcurrencyConflict(ex))
                 {
-                    return new Outcome(InventoryStatus.Conflict, [], ViewOf(loaded.Header, loaded.Grid));
+                    return Refusal(InventoryStatus.Conflict, loaded);
                 }
 
-                if (push && changed.Count > 0)
+                List<InventoryView> views = new(loaded.Length);
+                for (int i = 0; i < loaded.Length; i++)
                 {
-                    await this.PushAsync(playerId, changed, cancellationToken).ConfigureAwait(false);
+                    if (push && changed[i].Count > 0)
+                    {
+                        await this.PushAsync(playerIds[i], changed[i], cancellationToken).ConfigureAwait(false);
+                    }
+
+                    views.Add(ViewOf(loaded[i].Header, loaded[i].Grid));
                 }
 
-                return new Outcome(InventoryStatus.Ok, changed, ViewOf(loaded.Header, loaded.Grid));
+                return new ManyOutcome(InventoryStatus.Ok, changed, views);
             }
         }
+    }
+
+    private static ManyOutcome Refusal(InventoryStatus status, Loaded[] loaded)
+    {
+        List<List<InventorySlotView>> none = [];
+        List<InventoryView> views = [];
+        foreach (Loaded one in loaded)
+        {
+            none.Add([]);
+            views.Add(ViewOf(one.Header, one.Grid));
+        }
+
+        return new ManyOutcome(status, none, views);
     }
 
     private async Task<Loaded> LoadAsync(IUnitOfWork unit, Guid playerId, CancellationToken cancellationToken)
@@ -344,7 +440,7 @@ public sealed class InventoryService : IInventoryService
         }
     }
 
-    private async Task PushAsync(Guid playerId, List<InventorySlotView> changed, CancellationToken cancellationToken)
+    private async Task PushAsync(Guid playerId, IReadOnlyList<InventorySlotView> changed, CancellationToken cancellationToken)
     {
         if (_notifier is null)
         {
@@ -367,5 +463,7 @@ public sealed class InventoryService : IInventoryService
 
     private sealed record Loaded(PlayerInventory Header, InventoryGrid Grid, Dictionary<int, InventorySlot> Rows);
 
-    private sealed record Outcome(InventoryStatus Status, List<InventorySlotView> Changed, InventoryView View);
+    private sealed record Outcome(InventoryStatus Status, IReadOnlyList<InventorySlotView> Changed, InventoryView View);
+
+    private sealed record ManyOutcome(InventoryStatus Status, IReadOnlyList<IReadOnlyList<InventorySlotView>> Changed, IReadOnlyList<InventoryView> Views);
 }

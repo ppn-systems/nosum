@@ -47,6 +47,22 @@ public interface IInventoryService
         InventoryEnlistment? enlist = null,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Applies the inventory changes of several players in one transaction (all players change or none), serialized against every
+    /// other change of any of them. This is the base of trades, market purchases and the warehouse: items move between players
+    /// together with whatever the <paramref name="enlist"/> callback changes (coins, a listing) or nothing does.
+    /// </summary>
+    /// <param name="changes">One entry per player, players distinct; operations are applied in order per player.</param>
+    /// <param name="reason">Stable code for the audit trail; never display text.</param>
+    /// <param name="enlist">Extra work for the same transaction, or <see langword="null"/>; return <see langword="false"/> to refuse.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>Ok, or why nothing changed (an enlistment that refused is <see cref="InventoryStatus.Conflict"/>; the caller knows why).</returns>
+    Task<InventoryStatus> ApplyManyAsync(
+        IReadOnlyList<PlayerInventoryChange> changes,
+        string reason,
+        InventoryEnlistment? enlist = null,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Adds items (all of them or none).</summary>
     /// <param name="playerId">The player.</param>
     /// <param name="itemId">Item id from the catalogue.</param>
@@ -88,6 +104,11 @@ public interface IInventoryService
     /// <returns>The slot; an empty slot has item id zero.</returns>
     Task<InventorySlotView> PeekSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default);
 }
+
+/// <summary>The operations to apply to one player's inventory inside <see cref="IInventoryService.ApplyManyAsync"/>.</summary>
+/// <param name="PlayerId">The player.</param>
+/// <param name="Operations">What to add and remove, applied in order; may be empty (the player's other data still joins the transaction).</param>
+public readonly record struct PlayerInventoryChange(Guid PlayerId, IReadOnlyList<InventoryOperation> Operations);
 
 /// <summary>One slot of an inventory.</summary>
 /// <param name="Slot">Slot number, zero based.</param>

@@ -1,0 +1,25 @@
+@* A grid of item slots (inventory, an offer, a warehouse). The caller says what a click means. *@
+<div class="item-grid" style="--item-grid-columns:@Columns">
+    @foreach (SlotDisplay slot in Slots)
+    {
+        int index = slot.Index;
+        <ItemSlotButton Slot="slot" Scale="Scale" Picked="@(Picked == index)" OnClick="() => OnSlotClick.InvokeAsync(index)" />
+    }
+</div>
+
+@code {
+    /// <summary>The slots to show.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<SlotDisplay> Slots { get; set; } = [];
+
+    /// <summary>Slots per row.</summary>
+    [Parameter] public int Columns { get; set; } = 9;
+
+    /// <summary>Whole-number scale of the 16 px pictures.</summary>
+    [Parameter] public int Scale { get; set; } = 2;
+
+    /// <summary>The index marked as picked, or -1.</summary>
+    [Parameter] public int Picked { get; set; } = -1;
+
+    /// <summary>Raised with the clicked slot's index.</summary>
+    [Parameter] public EventCallback<int> OnSlotClick { get; set; }
+}

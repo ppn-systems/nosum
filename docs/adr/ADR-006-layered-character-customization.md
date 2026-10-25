@@ -32,7 +32,7 @@ character while keeping its pose and canvas, which makes garment extraction poss
   ids. No sprite coordinates, colours or text on the wire. Each client resolves ids to sheets,
   frames, tints and localized names through the shared catalogue. Clients never derive a look
   from a player id or local data; the id-derived look in `RemoteLook.cs` is a stand-in until
-  this ships. (Owner decision, 2026-10-25.)
+  this ships. (Owner decision, 2026-10-25.) Implemented by [ADR-014](ADR-014-coops-and-looks.md): `RemoteLook` is gone.
 - **D5 — Appearance is server data.** What a player wears is a list of item ids plus colour
   values, owned and validated by the server (the player must own each item) and sent to players
   on the same map. Wardrobe items are tradable through the market (docs/design/pillars.md).

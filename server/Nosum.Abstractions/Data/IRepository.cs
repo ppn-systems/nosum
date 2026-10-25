@@ -41,6 +41,22 @@ public interface IRepository<TEntity>
     /// <returns>True when at least one entity matches.</returns>
     Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken);
 
+    /// <summary>Counts the entities that match a condition.</summary>
+    /// <param name="predicate">The condition, translated to the database.</param>
+    /// <param name="cancellationToken">Cancels the count.</param>
+    /// <returns>The number of matches.</returns>
+    Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken);
+
+    /// <summary>Loads one page of the entities that match a condition, ordered by a key, highest first.</summary>
+    /// <typeparam name="TKey">The type of the ordering key.</typeparam>
+    /// <param name="predicate">The condition, translated to the database.</param>
+    /// <param name="orderByDescending">The ordering key, translated to the database.</param>
+    /// <param name="skip">How many matches to skip.</param>
+    /// <param name="take">How many matches to load.</param>
+    /// <param name="cancellationToken">Cancels the query.</param>
+    /// <returns>The page; empty when there are no more matches. The entities are tracked.</returns>
+    Task<List<TEntity>> PageAsync<TKey>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TKey>> orderByDescending, int skip, int take, CancellationToken cancellationToken);
+
     /// <summary>Marks a new entity to be inserted when the unit of work saves.</summary>
     /// <param name="entity">The entity to insert.</param>
     void Add(TEntity entity);

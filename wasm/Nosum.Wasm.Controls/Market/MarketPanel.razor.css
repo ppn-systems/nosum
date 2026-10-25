@@ -1,0 +1,13 @@
+.market-empty,
+.market-fee {
+    margin: 0;
+}
+
+.listing-name {
+    min-width: 8rem;
+}
+
+.listing-price {
+    min-width: 6rem;
+    font-weight: bold;
+}

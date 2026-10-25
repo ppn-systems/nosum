@@ -39,6 +39,14 @@ Furniture: `IPlaceableService` (`Placeables/PlaceableService`) places, moves and
 and pushes `PlacedChanged` to the instance; it is also the `IInstanceWorld` that gives movement validation the grid with the pieces' footprints. Handlers: `Nosum.Handlers/Placeable` (`USER`, rate limited).
 Tables: `placed_objects` and the owner column of `farm_plots` (migration `PrivateInstancesAndPlacedObjects`, which gives existing plots to the player who last worked them).
 
+Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)):
+`ITransferService` (`Infrastructure/Economy`) is the one way coins move: items and coins between players and co-op warehouses in one transaction, built on
+`IInventoryService.ApplyManyAsync` (every involved player's lock, one unit of work, one save; a feature joins it with an `enlist` callback). On it sit `IMarketService`
+(`Market/`: shipping bin, listings as escrow, buy, cancel, expiry; `MarketExpiryService` is the hosted sweep), `ITradeService` (`Trade/`: invitations and sessions in
+memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Looks/`: persisted look ids, wardrobe, announces through `IMapPresence`) and `ICoopService`
+(`Coops/`: membership, invitations, the shared warehouse with its audit trail). New entities: wallets and coin log, market listings, appearances, co-ops, members, invites, stock and log
+(migration `SocialLayer`). Handlers: `Nosum.Handlers/{Market,Look,Trade,Coop}`; everything that moves coins or items is `[PacketEncryption(true)]`.
+
 Skills: [`data-model-ef-core`](../.claude/skills/data-model-ef-core/SKILL.md),
 [`nalix-server-hosting`](../.claude/skills/nalix-server-hosting/SKILL.md),
 [`nalix-handlers`](../.claude/skills/nalix-handlers/SKILL.md),

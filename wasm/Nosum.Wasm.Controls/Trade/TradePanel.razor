@@ -1,0 +1,50 @@
+@using Nosum.Wasm.ViewModels.Trade
+@inherits ObservingComponent<TradeViewModel>
+
+@* The trade window: pick a player, then both sides fill an offer and confirm. Any change clears both confirmations on the server. *@
+<GamePanel Dock="PanelDock.Center" Title="@Vm.Text("Trade_Title")" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+    <GameStack>
+        @if (Vm.Phase == TradePhase.Open)
+        {
+            <GameRow Class="top">
+                <GameSection Title="@Vm.Text("Trade_Yours")">
+                    <ItemGrid Slots="Vm.MyItems" Columns="5" Scale="2" OnSlotClick="@(i => Vm.Withdraw(i))" />
+                    <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.MyCoins)</p>
+                    <p class="trade-state">@(Vm.MyConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
+                </GameSection>
+                <GameSection Title="@Vm.OtherLabel">
+                    <ItemGrid Slots="Vm.OtherItems" Columns="5" Scale="2" />
+                    <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.OtherCoins)</p>
+                    <p class="trade-state">@(Vm.OtherConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
+                </GameSection>
+            </GameRow>
+            <GameSection Title="@Vm.Text("Trade_AddCoins")">
+                <PriceInput Value="@Vm.CoinsText" ValueChanged="@(v => Vm.CoinsText = v)" OnEnter="@(() => Vm.SetCoins())" Label="@Vm.Text("Trade_AddCoins")" Unit="@Vm.Text("Wallet_Caption")" />
+                <GameButton Text="@Vm.Text("Trade_SetCoins")" OnClick="@(() => Vm.SetCoins())" />
+            </GameSection>
+            <GameSection Title="@Vm.Text("Trade_PickItems")">
+                <ItemGrid Slots="Vm.InventorySlots" Columns="9" Scale="2" OnSlotClick="@(i => Vm.Offer(i))" />
+            </GameSection>
+            <GameRow>
+                <GameButton Text="@Vm.Text("Trade_Confirm")" Disabled="Vm.MyConfirmed" OnClick="@(() => Vm.Confirm())" />
+                <GameButton Variant="danger" Text="@Vm.Text("Trade_Cancel")" OnClick="@(() => Vm.Cancel())" />
+            </GameRow>
+        }
+        else if (Vm.Phase == TradePhase.Waiting)
+        {
+            <p class="trade-state">@Vm.Text("Trade_Waiting")</p>
+            <GameButton Variant="danger" Text="@Vm.Text("Trade_Cancel")" OnClick="@(() => Vm.Cancel())" />
+        }
+        else
+        {
+            <GameSection Title="@Vm.Text("Trade_PickPlayer")">
+                <PlayerPicker Players="Vm.Players" ActionText="@Vm.Text("Trade_Invite")" EmptyText="@Vm.Text("Trade_NobodyNear")" OnPick="@(id => Vm.Invite(id))" />
+            </GameSection>
+        }
+    </GameStack>
+</GamePanel>
+
+@code {
+    /// <summary>Raised when the close button is clicked.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+}

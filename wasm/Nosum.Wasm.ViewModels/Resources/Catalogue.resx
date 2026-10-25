@@ -38,4 +38,18 @@
   <data name="Item_floor_lamp_Description" xml:space="preserve"><value>Một chiếc đèn đứng. Đặt trong nhà của bạn.</value></data>
   <data name="Item_house_plant_Name" xml:space="preserve"><value>Chậu cây</value></data>
   <data name="Item_house_plant_Description" xml:space="preserve"><value>Một chậu cây cảnh. Đặt trong nhà của bạn.</value></data>
+  <data name="Item_shirt_red_Name" xml:space="preserve"><value>Áo đỏ</value></data>
+  <data name="Item_shirt_red_Description" xml:space="preserve"><value>Một chiếc áo màu đỏ.</value></data>
+  <data name="Item_shirt_green_Name" xml:space="preserve"><value>Áo xanh lá</value></data>
+  <data name="Item_shirt_green_Description" xml:space="preserve"><value>Một chiếc áo màu xanh lá.</value></data>
+  <data name="Item_shirt_blue_Name" xml:space="preserve"><value>Áo xanh dương</value></data>
+  <data name="Item_shirt_blue_Description" xml:space="preserve"><value>Một chiếc áo màu xanh dương.</value></data>
+  <data name="Item_pants_blue_Name" xml:space="preserve"><value>Quần xanh</value></data>
+  <data name="Item_pants_blue_Description" xml:space="preserve"><value>Một chiếc quần màu xanh.</value></data>
+  <data name="Item_pants_khaki_Name" xml:space="preserve"><value>Quần kaki</value></data>
+  <data name="Item_pants_khaki_Description" xml:space="preserve"><value>Một chiếc quần màu kaki.</value></data>
+  <data name="Item_hat_straw_Name" xml:space="preserve"><value>Mũ rơm</value></data>
+  <data name="Item_hat_straw_Description" xml:space="preserve"><value>Một chiếc mũ rơm che nắng.</value></data>
+  <data name="Item_hat_cap_Name" xml:space="preserve"><value>Mũ lưỡi trai</value></data>
+  <data name="Item_hat_cap_Description" xml:space="preserve"><value>Một chiếc mũ lưỡi trai.</value></data>
 </root>

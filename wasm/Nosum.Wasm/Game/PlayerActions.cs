@@ -2,14 +2,18 @@
 
 using System;
 using Nosum.Core;
+using Nosum.Gameplay.Economy;
+using Nosum.Gameplay.Farm;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.ViewModels;
 
 namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// What the player's one-shot keys do: number keys select a hotbar slot, the action key (E or Space) uses the
-/// held item on the tile in front of the farmer, I opens the inventory. The scene calls <see cref="Update"/> once per
+/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G open the panels. The scene calls <see cref="Update"/> once per
 /// frame; the tile in front is kept in <see cref="TargetX"/> and <see cref="TargetY"/> for the cursor the farm decorator draws.
 /// Allocation-free; the requests themselves are sent by the channels, off the frame.
 /// </summary>
@@ -20,21 +24,25 @@ internal sealed class PlayerActions
 
     private readonly FarmChannel _farm;
     private readonly InventoryChannel _inventory;
+    private readonly MarketChannel _market;
     private double _lastUseSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
     /// <param name="inventory">Holds the selected slot.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory)
+    /// <param name="market">Sends the shipping of the held stack at the bin.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
+        ArgumentNullException.ThrowIfNull(market);
         _farm = farm;
         _inventory = inventory;
+        _market = market;
     }
 
-    /// <summary>Raised (from the frame) when the inventory key was pressed.</summary>
-    public event Action? InventoryToggleRequested;
+    /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
+    public event Action<PanelKind>? PanelToggleRequested;
 
     /// <summary>Gets the tile x in front of the farmer.</summary>
     public int TargetX { get; private set; }
@@ -73,15 +81,66 @@ internal sealed class PlayerActions
             _inventory.Select(slot);
         }
 
-        if ((edges & InputEdges.Inventory) != 0)
-        {
-            this.InventoryToggleRequested?.Invoke();
-        }
+        this.RaisePanelKeys(edges);
 
         if ((edges & InputEdges.Action) != 0 && mapIsFarmable && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
         {
             _lastUseSeconds = nowSeconds;
-            _farm.Use(_inventory.SelectedSlot, this.TargetX, this.TargetY);
+            int selected = _inventory.SelectedSlot;
+            SlotInfo held = _inventory.SlotAt(selected);
+            if (IsShippingBin(this.TargetX, this.TargetY) && ShippingPrices.TryGet(held.ItemId, out _))
+            {
+                // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
+                _market.Ship(selected, held.ItemId, 0);
+            }
+            else
+            {
+                _farm.Use(selected, this.TargetX, this.TargetY);
+            }
+        }
+    }
+
+    // Whether a tile is one of the shipping bin's footprint tiles on the standard farm layout.
+    private static bool IsShippingBin(int tileX, int tileY)
+    {
+        foreach (PropPlacement placement in FarmProps.Placements)
+        {
+            if (ReferenceEquals(placement.Definition, FarmProps.ShippingBin)
+                && tileX >= placement.TileX && tileX < placement.TileX + placement.Definition.FootprintWidth
+                && tileY >= placement.TileY && tileY < placement.TileY + placement.Definition.FootprintHeight)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void RaisePanelKeys(InputEdges edges)
+    {
+        if ((edges & InputEdges.Inventory) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Inventory);
+        }
+
+        if ((edges & InputEdges.Market) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Market);
+        }
+
+        if ((edges & InputEdges.Wardrobe) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Wardrobe);
+        }
+
+        if ((edges & InputEdges.Trade) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Trade);
+        }
+
+        if ((edges & InputEdges.Coop) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Coop);
         }
     }
 }

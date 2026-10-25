@@ -28,6 +28,7 @@ const EDGE_BITS = {
     KeyR: 2048,
     KeyF: 4096,
     KeyQ: 8192,
+    KeyM: 16384, KeyC: 32768, KeyT: 65536, KeyG: 131072,
 };
 
 // Typing in a form field (the upgrade form) must not move the farmer or select slots.

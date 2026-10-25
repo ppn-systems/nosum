@@ -16,4 +16,10 @@ public enum PanelDock
 
     /// <summary>Centred.</summary>
     Center = 3,
+
+    /// <summary>Bottom-left corner.</summary>
+    BottomLeft = 4,
+
+    /// <summary>Top, centred.</summary>
+    TopCenter = 5,
 }
