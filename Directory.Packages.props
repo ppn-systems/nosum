@@ -34,6 +34,11 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
   </ItemGroup>
 
+  <!-- Client UI text (docs/adr/ADR-010 D3): IStringLocalizer over .resx. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Localization" Version="10.0.9" />
+  </ItemGroup>
+
   <!-- Tests -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

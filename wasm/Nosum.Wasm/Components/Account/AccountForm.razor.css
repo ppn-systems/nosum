@@ -1,0 +1,37 @@
+.account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 22rem;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    background: var(--nosum-panel-bg, #fffaf0);
+    color: var(--nosum-panel-fg, #3b2a14);
+}
+
+.account-title {
+    margin: 0;
+}
+
+.account-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.account-field small {
+    opacity: 0.75;
+}
+
+.account-error {
+    margin: 0;
+    color: var(--nosum-danger, #b32121);
+}
+
+.account-switch {
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    color: inherit;
+}
