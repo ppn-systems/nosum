@@ -118,6 +118,19 @@ public sealed class WalkGrid
         }
     }
 
+    /// <summary>Blocks every tile another grid of the same size blocks, so two layers built on the same map (nodes, placed objects) can be joined.</summary>
+    /// <param name="other">A grid of the same width and height.</param>
+    public void BlockWhereBlocked(WalkGrid other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+        ArgumentOutOfRangeException.ThrowIfNotEqual(other._blocked.Length, _blocked.Length);
+
+        for (int i = 0; i < _blocked.Length; i++)
+        {
+            _blocked[i] |= other._blocked[i];
+        }
+    }
+
     /// <summary>Marks one tile as walkable; a tile outside the grid is ignored.</summary>
     /// <param name="x">Tile x.</param>
     /// <param name="y">Tile y.</param>

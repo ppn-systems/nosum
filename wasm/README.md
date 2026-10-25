@@ -113,3 +113,8 @@ the registration and upgrade form asks for a nickname (`GameField`). `NicknameFo
 dotnet build wasm/Nosum.Wasm.slnx
 dotnet run --project wasm/Nosum.Wasm
 ```
+
+Crafting, chests and furnaces ([ADR-024](../docs/adr/ADR-024-crafting-and-outdoor-placeables.md)): `CraftingChannel` (recipe book + craft), `ChestChannel` (the one open chest: contents on open, whole-slot pushes after, close) and
+`FurnaceChannel` (jobs with the server's remaining time counted down on the client clock) mirror the server; `CraftingViewModel`, `ChestViewModel` and `FurnaceViewModel` follow them. The pages are menu pages
+(`CraftingPanel` is a tab; `ChestPanel` and `FurnacePanel` replace the Shop-style extra tab while open). The action key facing a chest or furnace piece opens it (`PlayerActions`, using the placed set), the walk grid on the farm is the nodes' grid joined with the placed
+footprints like the server's `InstanceWorld`, and `PlacedObjectsDecorator` draws each piece from its own sheet (`PlaceableDefinition.Sheet`: furniture, Craftables, springobjects). Shift-click in an `ItemGrid` is `OnSlotShiftClick`.

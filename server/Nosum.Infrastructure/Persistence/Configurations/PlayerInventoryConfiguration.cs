@@ -2,7 +2,6 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Nosum.Domain.Accounts;
 using Nosum.Domain.Inventory;
 
 namespace Nosum.Infrastructure.Persistence.Configurations;
@@ -14,6 +13,7 @@ internal sealed class PlayerInventoryConfiguration : IEntityTypeConfiguration<Pl
         _ = builder.ToTable("player_inventories");
         _ = builder.HasKey(i => i.PlayerId);
         _ = builder.Property(i => i.PlayerId).ValueGeneratedNever();
-        _ = builder.HasOne<Player>().WithMany().HasForeignKey(i => i.PlayerId).OnDelete(DeleteBehavior.Cascade);
+
+        // The key is an inventory owner id: a player's account id, or a container's derived id (docs/adr/ADR-024 D4, ContainerIds), so there is no foreign key to players.
     }
 }

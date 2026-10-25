@@ -30,4 +30,10 @@ public enum PlacementVerdict
 
     /// <summary>Another piece is already there.</summary>
     Overlaps = 5,
+
+    /// <summary>Part of the footprint is tilled soil (docs/adr/ADR-024 D3).</summary>
+    Tilled = 6,
+
+    /// <summary>Part of the footprint holds a resource node: a tree, a stone, a weed (docs/adr/ADR-024 D3).</summary>
+    Node = 7,
 }

@@ -236,7 +236,7 @@ public sealed class GoalsViewModelTests
         toolbar.GoalsItem.Kind.Should().Be(PanelKind.Goals);
         toolbar.GoalsItem.Icon.Should().Be("tab-goals");
         toolbar.GoalsItem.Label.Should().NotBeNullOrWhiteSpace().And.NotStartWith("Toolbar_");
-        ((int)PanelKind.Goals).Should().Be(12, "master took 11 for Skills");
+        ((int)PanelKind.Goals).Should().Be(15, "master took 11 to 14 for Skills, Crafting, Chest and Furnace");
     }
 
     private static StringLocalizer<T> Localizer<T>()
