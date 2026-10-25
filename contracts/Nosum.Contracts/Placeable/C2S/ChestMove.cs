@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Placeable.C2S;
 
@@ -16,15 +17,18 @@ public sealed partial class ChestMove : PacketBase<ChestMove>, IPacketStaticOpco
     public static ushort StaticOpCode => PlaceableOpCode.ChestMove;
 
     /// <summary>Id of the open chest.</summary>
+    [WireRange(0, int.MaxValue)]
     [SerializeOrder(0)] public int ObjectId { get; set; }
 
     /// <summary>Where the stack is now.</summary>
+    [WireDefined]
     [SerializeOrder(1)] public ChestSide FromSide { get; set; }
 
     /// <summary>Slot it is in.</summary>
     [SerializeOrder(2)] public byte FromSlot { get; set; }
 
     /// <summary>Where it goes.</summary>
+    [WireDefined]
     [SerializeOrder(3)] public ChestSide ToSide { get; set; }
 
     /// <summary>Slot it goes to, or 255 for the first slot that fits.</summary>

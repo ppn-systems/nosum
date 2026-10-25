@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Visit.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class AddVisitor : PacketBase<AddVisitor>, IPacketStaticOp
     public static ushort StaticOpCode => VisitOpCode.AddVisitor;
 
     /// <summary>The nickname the owner typed; the server resolves it.</summary>
+    [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(0)] public string Nickname { get; set; } = string.Empty;
 }

@@ -4,6 +4,7 @@ using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
 using Nosum.Contracts.Common;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Account.C2S;
 
@@ -17,5 +18,6 @@ public sealed partial class StartGuest : PacketBase<StartGuest>, IPacketStaticOp
     public static ushort StaticOpCode => AccountOpCode.StartGuest;
 
     /// <summary>Preferred language; <see cref="GameLanguage.Unspecified"/> means Vietnamese.</summary>
+    [WireDefined]
     [SerializeOrder(0)] public GameLanguage PreferredLanguage { get; set; }
 }
