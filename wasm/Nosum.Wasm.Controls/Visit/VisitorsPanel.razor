@@ -27,26 +27,28 @@
                 {
                     <p class="visit-hint">@Vm.Text("Visit_ListEmpty")</p>
                 }
-                @foreach (VisitorDisplay visitor in Vm.Visitors)
-                {
-                    Guid playerId = visitor.PlayerId;
-                    <GameRow Class="center">
-                        <span class="visitor-name">@visitor.Label</span>
-                        @if (visitor.Present)
-                        {
-                            <GameBadge Kind="ok" Text="@Vm.Text("Visit_Here")" />
-                            <GameButton Variant="plain" Text="@Vm.Text("Visit_SendHome")" OnClick="@(() => Vm.Kick(playerId))" />
-                        }
-                        @if (visitor.Listed)
-                        {
-                            <GameButton Variant="danger" Text="@Vm.Text("Visit_Remove")" OnClick="@(() => Vm.Remove(playerId))" />
-                        }
-                        else
-                        {
-                            <span class="visit-hint">@Vm.Text("Visit_ByCoop")</span>
-                        }
-                    </GameRow>
-                }
+                <div class="visitor-list">
+                    @foreach (VisitorDisplay visitor in Vm.Visitors)
+                    {
+                        Guid playerId = visitor.PlayerId;
+                        <GameRow Class="visitor-row">
+                            <span class="visitor-name">@visitor.Label</span>
+                            @if (visitor.Present)
+                            {
+                                <GameBadge Kind="ok" Text="@Vm.Text("Visit_Here")" />
+                                <GameButton Variant="plain" Text="@Vm.Text("Visit_SendHome")" OnClick="@(() => Vm.Kick(playerId))" />
+                            }
+                            @if (visitor.Listed)
+                            {
+                                <GameButton Variant="danger" Text="@Vm.Text("Visit_Remove")" OnClick="@(() => Vm.Remove(playerId))" />
+                            }
+                            else
+                            {
+                                <span class="visit-hint">@Vm.Text("Visit_ByCoop")</span>
+                            }
+                        </GameRow>
+                    }
+                </div>
                 <GameRow Class="center">
                     <GameButton Variant="plain" Active="Vm.CoopMembersMayVisit" Text="@(Vm.CoopMembersMayVisit ? Vm.Text("Visit_Coop_On") : Vm.Text("Visit_Coop_Off"))" OnClick="@(() => Vm.ToggleCoopVisits())" />
                 </GameRow>
