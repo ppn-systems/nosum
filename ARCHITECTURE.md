@@ -1,0 +1,115 @@
+# Nosum — Architecture
+
+Directory layout, project boundaries and the two runtime paths (frame loop, network).
+Product overview and build commands: [`README.md`](README.md). Agent rules: [`AGENTS.md`](AGENTS.md).
+Decisions behind this layout: [`docs/adr/`](docs/adr/README.md).
+
+## Directory layout
+
+```text
+nosum/
+├── engine/                       # Nosum.Engine.slnx — the 2D engine, reusable, knows nothing about farming
+│   ├── Nosum.Core/               # loop (FixedTimestep), time, scene, tilemap, camera, math, normalized input
+│   ├── Nosum.Rendering/          # render commands, sprite batching, culling, IRenderBackend
+│   └── Nosum.Rendering.Web/      # browser backend: [JSImport] + wwwroot/renderer.js (canvas)
+├── contracts/                    # Nosum.Contracts.slnx
+│   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
+├── game/                         # Nosum.Game.slnx
+│   └── Nosum.Game/               # farm rules shared by server and client (plots, crops, items, growth)
+├── server/                       # Nosum.slnx
+│   ├── Nosum.Domain/             # persisted entities and enums
+│   ├── Nosum.Abstractions/       # service interfaces, DTO rows
+│   ├── Nosum.Infrastructure/     # persistence and service implementations
+│   ├── Nosum.Handlers/           # stateless Nalix packet handlers by opcode
+│   └── Nosum.Host/               # composition root, WebSocket listener (:57300 /ws/)
+├── wasm/                         # Nosum.Wasm.slnx — own Directory.Build.props (trimmed, no AOT)
+│   ├── Nosum.Wasm/               # Blazor host: canvas page + UI overlay
+│   ├── Nosum.Wasm.ViewModels/    # MVVM view models (no .razor)
+│   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
+├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
+├── bench/                        # Nosum.Bench.slnx — browser benchmarks (same WASM settings as wasm/)
+├── deploy/                       # deployment configuration
+├── docs/adr/                     # architecture decision records
+└── Directory.Build.props · Directory.Packages.props · Version.props · global.json
+```
+
+Every area folder has its own `README.md` and, when it holds .NET projects, its own `.slnx`.
+An area adds a `Directory.Build.props` only when its build settings differ from the root
+(`wasm/`, `bench/`, `tests/`); it imports the root one first.
+
+## No root solution
+
+There is no root `.sln`/`.slnx`. A project that needs one from another area adds a
+`<ProjectReference>`; it does not add that project to its own `.slnx`. MSBuild still builds
+the whole graph. Build output from every area goes to `artifacts/` at the repo root
+(`ArtifactsPath` in the root `Directory.Build.props`).
+
+## Project dependencies
+
+Arrows point at what a project may reference. Anything not listed is forbidden.
+
+```text
+Nosum.Core              → (nothing)
+Nosum.Rendering         → Core
+Nosum.Rendering.Web     → Rendering
+Nosum.Contracts         → Nalix.Abstractions, Nalix.Codec
+Nosum.Game              → Core
+Nosum.Domain            → Game
+Nosum.Abstractions      → Domain, Contracts
+Nosum.Infrastructure    → Abstractions
+Nosum.Handlers          → Abstractions, Nalix.Runtime          (never Infrastructure)
+Nosum.Host              → Handlers, Infrastructure, Nalix.Hosting
+Nosum.Wasm.Socket       → Contracts, Nalix.SDK
+Nosum.Wasm.ViewModels   → Wasm.Socket
+Nosum.Wasm              → Wasm.ViewModels, Rendering.Web, Game
+```
+
+Two boundaries matter most:
+
+- **The engine (`Nosum.Core`, `Nosum.Rendering`) references no Blazor, JS or Nalix code.**
+  Only `Nosum.Rendering.Web` touches the browser. This keeps the engine unit-testable and the
+  backend replaceable ([ADR-001](docs/adr/ADR-001-separate-engine.md)).
+- **`Nosum.Game` is pure rules.** The server runs it to decide outcomes; the client runs the
+  same code only to predict and display them ([ADR-003](docs/adr/ADR-003-server-authoritative-websocket.md)).
+
+## Runtime path 1 — the frame loop
+
+Blazor renders the UI overlay only. The game world is drawn on a `<canvas>` by the engine,
+with at most two interop crossings per frame
+([ADR-002](docs/adr/ADR-002-batched-render-interop.md)):
+
+```text
+JS requestAnimationFrame
+  └─► [JSExport] frame entry (C#)           crossing 1: JS → .NET, input events batched in
+        FixedTimestep.Advance → N fixed simulation steps
+        culling → encode render commands into a preallocated buffer
+        └─► IRenderBackend.Submit(Span<byte>)
+              [JSImport] submitFrame(MemoryView)   crossing 2: .NET → JS, no copy, no JSON
+                renderer.js decodes and draws, synchronously
+```
+
+No allocation, no `async` and no `StateHasChanged` inside the frame.
+
+## Runtime path 2 — the network
+
+```text
+Blazor page → ViewModel → Nosum.Wasm.Socket (WebSocketSession)
+      ⇅  Nalix frames over WebSocket (/ws/), opcode + [SerializeOrder] wire format
+Nosum.Host listener → Nalix dispatch → Nosum.Handlers → Abstractions → Infrastructure
+```
+
+The server is authoritative: the client sends intents ("plant seed X in plot Y"); the server
+validates them with `Nosum.Game`, persists the result and replies or pushes the new state.
+
+## Organize by game domain
+
+Inside each area, code is grouped by game domain (`Farm`, `Inventory`, `Market`, `Social`,
+`Player`), the same axis in every area:
+
+- `contracts/Nosum.Contracts/{Domain}/{C2S,S2C}/`
+- `server/Nosum.Handlers/{Domain}/`
+- `wasm/Nosum.Wasm/Pages/{Domain}/` and `wasm/Nosum.Wasm.ViewModels/{Domain}/`
+
+The wire format is the opcode plus `[SerializeOrder]`, not the type name, so renaming a type
+or folder is wire-safe. Never change an opcode value or a `[SerializeOrder]` value, and never
+reuse a retired opcode.
