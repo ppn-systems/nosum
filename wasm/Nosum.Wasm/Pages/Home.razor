@@ -7,7 +7,10 @@
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
 @using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Chat
 @using Nosum.Wasm.Controls.Coop
+@using Nosum.Wasm.Controls.Friends
+@using Nosum.Wasm.Controls.Mail
 @using Nosum.Wasm.Controls.Feedback
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.Controls.Settings
@@ -28,7 +31,10 @@
 @using Nosum.Contracts.Account
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Chat
 @using Nosum.Wasm.ViewModels.Coop
+@using Nosum.Wasm.ViewModels.Friends
+@using Nosum.Wasm.ViewModels.Mail
 @using Nosum.Wasm.ViewModels.Visit
 @using Nosum.Wasm.Controls.Visit
 @using Nosum.Wasm.ViewModels.Looks
@@ -58,6 +64,9 @@
 @inject TradeViewModel Trade
 @inject CoopViewModel Coop
 @inject VisitorsViewModel Visitors
+@inject ChatViewModel Chat
+@inject FriendsViewModel Friends
+@inject MailViewModel Mail
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
@@ -95,7 +104,7 @@ else
             {
                 <CalendarClock Vm="Calendar" />
                 <CoinBadge Vm="Wallet" />
-                <GameIconButton Icon="tab-settings" Tip="@Toolbar.Text("Toolbar_Settings")" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
+                <GameIconButton Icon="tab-settings" Tip="@(Mail.Unread > 0 ? Toolbar.Text("Toolbar_Settings") + " - " + Toolbar.Text("Toolbar_MailUnread", Mail.Unread) : Toolbar.Text("Toolbar_Settings"))" Badge="Mail.Unread" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
             }
         </TopRight>
         <Center>
@@ -126,6 +135,12 @@ else
                         case PanelKind.Visitors:
                             <VisitorsPanel Vm="Visitors" OnClose="ClosePanel" />
                             break;
+                        case PanelKind.Friends:
+                            <FriendsPanel Vm="Friends" />
+                            break;
+                        case PanelKind.Mail:
+                            <MailPanel Vm="Mail" />
+                            break;
                         case PanelKind.Shop:
                             <ShopPanel Vm="Shop" ShopId="_shopId" />
                             break;
@@ -143,6 +158,12 @@ else
                 <Hotbar Vm="Inventory" />
             }
         </BottomCenter>
+        <BottomLeft>
+            @if (_started)
+            {
+                <ChatLine Vm="Chat" Enabled="@(_panel == PanelKind.None && !Form.ShowsForm)" />
+            }
+        </BottomLeft>
         <Overlay>
             @if (!_started)
             {
@@ -195,6 +216,7 @@ else
         Trade.WantsOpen += OnTradeWantsOpen;
         Trade.Changed += OnViewModelChanged;
         Coop.Changed += OnViewModelChanged;
+        Mail.Changed += OnViewModelChanged;
 
         // Back from a session the server ended: say why on the account form.
         string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
@@ -221,6 +243,7 @@ else
         Trade.WantsOpen -= OnTradeWantsOpen;
         Trade.Changed -= OnViewModelChanged;
         Coop.Changed -= OnViewModelChanged;
+        Mail.Changed -= OnViewModelChanged;
     }
 
     // A guest registered under a nickname: the profile shows it.

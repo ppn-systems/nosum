@@ -1,0 +1,76 @@
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Mail
+@inherits ObservingComponent<MailViewModel>
+
+@* The Mail page of the game menu: the mailbox, newest first. Clicking a mail opens it and marks it read; a mail with a gift has a Collect button (one atomic transfer on
+   the server) and can be deleted once nothing is left to collect. Texts are rendered from the mail code and its arguments. *@
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
+    <GameStack>
+        @if (Vm.Mails.Count == 0)
+        {
+            <p class="mail-hint">@Vm.Text("Mail_Empty")</p>
+        }
+        <div class="mail-list">
+            @foreach (MailDisplay mail in Vm.Mails)
+            {
+                Guid mailId = mail.Id;
+                bool open = Vm.Selected == mailId;
+                <GameSection>
+                    <GameRow Class="mail-head">
+                        <GameButton Variant="@(open ? "tab" : "plain")" Active="open" Text="@mail.Title" OnClick="@(() => Vm.Toggle(mailId))" />
+                        @if (!mail.Read)
+                        {
+                            <GameBadge Kind="warn" Text="@Vm.Text("Mail_Unread")" />
+                        }
+                        <span class="mail-expiry">@mail.Expiry</span>
+                    </GameRow>
+                    @if (open)
+                    {
+                        <p class="mail-body">@mail.Body</p>
+                        @if (mail.Items.Count > 0 || mail.Coins > 0)
+                        {
+                            <p class="mail-hint">@Vm.Text("Mail_Attachments")</p>
+                            @if (mail.Items.Count > 0)
+                            {
+                                <ItemGrid Slots="mail.Items" Columns="8" />
+                            }
+                            @if (mail.Coins > 0)
+                            {
+                                <p class="mail-coins">@Vm.Text("Mail_Coins", mail.CoinsText)</p>
+                            }
+                        }
+                        <GameRow>
+                            @if (mail.CanCollect)
+                            {
+                                <GameButton Text="@Vm.Text("Mail_Collect")" OnClick="@(() => Vm.Collect(mailId))" />
+                            }
+                            else if (mail.Collected)
+                            {
+                                <GameBadge Kind="ok" Text="@Vm.Text("Mail_CollectedTag")" />
+                            }
+                            @if (mail.CanDelete)
+                            {
+                                <GameButton Variant="danger" Text="@Vm.Text("Mail_Delete")" OnClick="@(() => Vm.Delete(mailId))" />
+                            }
+                        </GameRow>
+                    }
+                </GameSection>
+            }
+        </div>
+        <p class="mail-hint">@Vm.Text("Mail_Hint")</p>
+    </GameStack>
+</MenuPage>
+
+@code {
+    protected override void OnInitialized() => Vm.Open();
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            Vm.Close();
+        }
+
+        base.Dispose(disposing);
+    }
+}

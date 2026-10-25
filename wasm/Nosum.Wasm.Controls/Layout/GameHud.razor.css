@@ -91,6 +91,20 @@
     align-items: center;
 }
 
+/* Bottom-left: the chat line. Fixed so it never moves the hotbar row; it stays left of the hotbar and under the menu. */
+.hud-bottom-left {
+    position: fixed;
+    left: var(--nosum-gutter);
+    bottom: var(--nosum-gutter);
+    z-index: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: min(calc(var(--u) * 120), calc(50vw - var(--u) * 92));
+    max-height: calc(var(--u) * 100);
+    pointer-events: none;
+}
+
 .hud-overlay {
     position: fixed;
     inset: 0;
