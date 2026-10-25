@@ -1,14 +1,27 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Nalix.Abstractions.Networking;
+using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nalix.Hosting.Protocols;
+using Nalix.Runtime.Groups;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
+using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Player;
+using Nosum.Abstractions.Presence;
+using Nosum.Gameplay.Farm;
 using Nosum.Handlers.Account;
+using Nosum.Handlers.Player;
+using Nosum.Infrastructure.Maps;
+using Nosum.Infrastructure.Players;
 using Nosum.Infrastructure.Persistence;
+using Nosum.Infrastructure.Presence;
 
 namespace Nosum.Host;
 
@@ -22,6 +35,12 @@ internal static class Program
 
     /// <summary>WebSocket path; must match the client's <c>WebSocketTransportOptions.Path</c>.</summary>
     internal const string WebSocketPath = "/ws/";
+
+    /// <summary>Id of the farm map, the only map so far.</summary>
+    internal const string FarmMapId = "farm";
+
+    /// <summary>Time between map snapshots (10 per second, docs/adr/ADR-008).</summary>
+    private static readonly TimeSpan SnapshotInterval = TimeSpan.FromMilliseconds(100);
 
     public static async Task<int> Main()
     {
@@ -61,15 +80,21 @@ internal static class Program
     }
 
     /// <summary>
-    /// Builds the Nalix application: system handlers, game handlers, then the WebSocket listener.
-    /// Services that handlers inject (<see cref="HostServices.Register"/>) must be registered first.
+    /// Builds the Nalix application: services, system handlers, game handlers, then the WebSocket
+    /// listener. Account services (<see cref="HostServices.Register"/>) must be registered first.
     /// </summary>
     /// <param name="webSocketPort">Port the WebSocket listener binds to.</param>
     /// <returns>The built, not yet activated, application.</returns>
     internal static NetworkApplication BuildApplication(ushort webSocketPort)
-        => NetworkApplication.CreateBuilder()
+    {
+        RegisterServices();
+
+        return NetworkApplication.CreateBuilder()
+            .UseGroups()
             .UseTimeSync()
             .UseSystemControl()
+            .UseSecureConnections()
+            .MapHandlers(typeof(PlayerHandlers))
             .MapHandlers(typeof(AccountHandlers))
             .ConfigureDispatchOptions(o =>
             {
@@ -82,4 +107,23 @@ internal static class Program
                 .WithPath(WebSocketPath)
                 .Bind()
             .Build();
+    }
+
+    // Services are registered before the builder so [Inject] fields of the handlers resolve them.
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player service lives as long as the process; its snapshot loop ends by itself when the last player leaves.")]
+    private static void RegisterServices()
+    {
+        IConnectionGroupRegistry groups = new InMemoryGroupStore();
+        InstanceManager.Instance.Register(groups);
+
+        MapPresence presence = new(groups);
+        TmxMapCatalog maps = new([new TmxMapSource(FarmMapId, Path.Combine(AppContext.BaseDirectory, "maps", "Farm.tmx"), FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.BuildWalkGrid)]);
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
+        PlayerService players = new(presence, maps, states, TimeProvider.System, SnapshotInterval);
+
+        InstanceManager.Instance.Register<IMapPresence>(presence);
+        InstanceManager.Instance.Register<IMapCatalog>(maps);
+        InstanceManager.Instance.Register<IPlayerService>(players);
+    }
 }

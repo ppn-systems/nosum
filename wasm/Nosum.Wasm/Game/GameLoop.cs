@@ -7,6 +7,8 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Core;
+using Nosum.Gameplay.Farm;
+using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
 
@@ -25,7 +27,12 @@ internal static partial class GameLoop
 
     private static readonly WebRenderBackend s_backend = new();
     private static FarmScene? s_scene;
+    private static PlayerChannel? s_network;
     private static double s_lastTime = -1;
+
+    /// <summary>Connects the game to the server; call before <see cref="StartAsync"/>. Without it the farm is played offline.</summary>
+    /// <param name="channel">The player channel.</param>
+    public static void UseNetwork(PlayerChannel channel) => s_network = channel;
 
     /// <summary>
     /// Loads everything and starts the loop on the given canvas.
@@ -72,7 +79,7 @@ internal static partial class GameLoop
                 _ => -1,
             },
             map.TileWidth);
-        s_scene = new FarmScene(map, tileSetTextures, farmer, look, props, FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y);
+        s_scene = new FarmScene(map, tileSetTextures, farmer, look, props, FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, s_network);
 
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }

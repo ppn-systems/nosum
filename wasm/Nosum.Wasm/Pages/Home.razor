@@ -4,28 +4,54 @@
 @using System.Runtime.InteropServices.JavaScript
 @using System.Threading
 @using System.Runtime.Versioning
+@using Nosum.Wasm.Components
+@using Nosum.Wasm.Components.Account
 @using Nosum.Wasm.Game
+@using Nosum.Wasm.ViewModels.Account
 @attribute [SupportedOSPlatform("browser")]
+@implements IDisposable
 @inject HttpClient Http
+@inject AccountFormViewModel Form
+@inject AccountSessionKeeper Keeper
 
 <PageTitle>Nosum</PageTitle>
 
 <canvas id="game-canvas" class="game-canvas" tabindex="0"></canvas>
+<ConnectionBadge />
+@if (!_signedIn)
+{
+    @* The game starts after sign-in: the canvas listens to the whole window's keys, which would swallow typing. *@
+    <div class="account-overlay">
+        <AccountForm Vm="Form" />
+    </div>
+}
 @if (_error is not null)
 {
     <p class="game-error">@_error</p>
 }
 
 @code {
+    private bool _signedIn;
     private string? _error;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
+    protected override void OnInitialized() => Form.SignedIn += OnSignedIn;
 
+    public void Dispose() => Form.SignedIn -= OnSignedIn;
+
+    // Raised by the form's view model after a successful register or login.
+    private void OnSignedIn(AccountSession session)
+    {
+        Keeper.SignedIn(session);
+        _signedIn = true;
+        _ = InvokeAsync(async () =>
+        {
+            StateHasChanged();
+            await StartGameAsync();
+        });
+    }
+
+    private async Task StartGameAsync()
+    {
         try
         {
             await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None);

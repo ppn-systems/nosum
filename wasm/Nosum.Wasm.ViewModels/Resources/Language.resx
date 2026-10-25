@@ -24,4 +24,9 @@
   <data name="Account_Status_InvalidCredentials" xml:space="preserve"><value>Sai tên đăng nhập hoặc mật khẩu.</value></data>
   <data name="Account_Status_InvalidToken" xml:space="preserve"><value>Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.</value></data>
   <data name="Account_Status_InvalidLanguage" xml:space="preserve"><value>Ngôn ngữ không hợp lệ.</value></data>
+  <data name="Connection_Connecting" xml:space="preserve"><value>Đang kết nối…</value></data>
+  <data name="Connection_Online" xml:space="preserve"><value>Trực tuyến</value></data>
+  <data name="Connection_Reconnecting" xml:space="preserve"><value>Mất kết nối, đang thử lại…</value></data>
+  <data name="Connection_Offline" xml:space="preserve"><value>Ngoại tuyến</value></data>
+  <data name="Join_UnknownMap" xml:space="preserve"><value>Không tìm thấy bản đồ</value></data>
 </root>

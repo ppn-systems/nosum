@@ -19,6 +19,7 @@ using Xunit;
 namespace Nosum.IntegrationTests.Server;
 
 /// <summary>Register, login and resume over a real WebSocket against the real host and a real PostgreSQL database.</summary>
+[Collection(NalixHostSerial.Name)]
 public sealed class AccountWireTests : IClassFixture<PostgresFixture>
 {
     private readonly PostgresFixture _database;
