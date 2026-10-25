@@ -74,5 +74,5 @@ One co-op per player or several; who may withdraw (the default above); founder s
 - **Co-op names.** `CoopMemberRow.Nickname` lists members by nickname (membership ids stay the addressing); `CoopInviteRow.InviterNickname` names the founder in the invitation.
   Trade windows and invitation pickers use the map player's nickname from the look cache (the trade packets did not change).
 - **Drawn by the engine.** A nickname is drawn above each farmer as a pre-rendered label: `LabelRegistry` interns the text and uploads it once to `renderer.js` (`registerLabel`:
-  thresholded glyphs with a black outline, cached as a bitmap) when the name arrives; the frame only records `RenderCommandBuffer.DrawLabel(id, x, y)` (texture id -3). Still
+  thresholded glyphs with a black outline, cached as a bitmap, drawn in screen space at 1x or 2x so the name stays small beside the farmer) when the name arrives; the frame only records `RenderCommandBuffer.DrawLabel(id, x, y)` (texture id -3). Still
   one interop crossing per frame, no allocation.

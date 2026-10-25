@@ -53,7 +53,7 @@ export async function loadTexture(id, url) {
 // outlined in black, so a nickname stays crisp when the world scale magnifies it. Called when a name arrives,
 // never from the frame; the frame only draws the bitmap by id (command texture -3).
 const LABEL_FILL = ["#ffffff", "#ffe08a"];
-const LABEL_FONT = "bold 9px 'Segoe UI', system-ui, sans-serif";
+const LABEL_FONT = "bold 11px 'Segoe UI', system-ui, sans-serif";
 
 export function registerLabel(id, text, style) {
     const probe = new OffscreenCanvas(1, 1).getContext("2d");
@@ -148,8 +148,15 @@ export function submitFrame(view) {
         }
         if (id === -3) {
             // Pre-rendered label: sx is the label id; (dx, dy) is its bottom centre.
+            // Drawn in screen space at 1x (zoom below 5) or 2x, not at the world zoom, so a name stays small next to the farmer and its pixels stay hard.
             const label = labels[sx];
-            if (label) { ctx.drawImage(label, dx - (label.width >> 1), dy - label.height); }
+            if (label) {
+                const k = scale >= 5 ? 2 : 1;
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.drawImage(label, Math.round(dx * scale - (label.width * k) / 2), Math.round(dy * scale - label.height * k), label.width * k, label.height * k);
+                ctx.restore();
+            }
             continue;
         }
         const image = tint === -1 ? textures[id] : tintedTexture(id, tint);

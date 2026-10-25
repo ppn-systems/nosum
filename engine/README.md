@@ -39,4 +39,4 @@ same way. `RenderCommandBuffer.FillBlack(opacity, w, h)` records a black rectang
 `BlackFill`, tint = opacity); `renderer.js` fills it, which is how a scene fades without a second
 interop call.
 
-Text labels (nicknames): `RenderCommandBuffer.DrawLabel` records a label by id (texture `-3`); `LabelRegistry` interns the text and uploads it once to the backend (`WebRenderBackend.UploadLabel` -> `renderer.js registerLabel`, which renders it into a cached, outlined bitmap), so a frame still crosses to the browser once with no strings and no allocation.
+Text labels (nicknames): `RenderCommandBuffer.DrawLabel` records a label by id (texture `-3`); `LabelRegistry` interns the text and uploads it once to the backend (`WebRenderBackend.UploadLabel` -> `renderer.js registerLabel`, which renders it into a cached, outlined bitmap drawn in screen space at 1x, or 2x from world zoom 5), so a frame still crosses to the browser once with no strings and no allocation.
