@@ -1,0 +1,50 @@
+@using System.Globalization
+@* A tiny line chart of a few numbers, oldest first: one point per value, scaled to the lowest and highest. One value is a dot. The caller says what it shows (Label). *@
+@if (Values.Count > 0)
+{
+    <svg class="game-sparkline" viewBox="0 0 @Width @Height" role="img" aria-label="@Label" shape-rendering="crispEdges" preserveAspectRatio="none">
+        @if (Values.Count == 1)
+        {
+            <rect class="game-sparkline-dot" x="@Inv(Width / 2 - 1)" y="@Inv(Height / 2 - 1)" width="3" height="3" />
+        }
+        else
+        {
+            <polyline class="game-sparkline-line" points="@Points()" fill="none" />
+        }
+    </svg>
+}
+
+@code {
+    private const int Width = 60;
+    private const int Height = 16;
+
+    /// <summary>The values, oldest first.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<long> Values { get; set; } = [];
+
+    /// <summary>The accessible name of the chart (what it shows), already localized.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    private static string Inv(int value) => value.ToString(CultureInfo.InvariantCulture);
+
+    // x spreads the points evenly over the width, y puts the lowest value on the bottom line and the highest on the top (a flat series in the middle).
+    private string Points()
+    {
+        long low = long.MaxValue;
+        long high = long.MinValue;
+        foreach (long value in Values)
+        {
+            low = Math.Min(low, value);
+            high = Math.Max(high, value);
+        }
+
+        System.Text.StringBuilder points = new();
+        for (int i = 0; i < Values.Count; i++)
+        {
+            int x = i * (Width - 1) / (Values.Count - 1);
+            int y = high == low ? Height / 2 : (Height - 1) - (int)((Values[i] - low) * (Height - 1) / (high - low));
+            _ = points.Append(Inv(x)).Append(',').Append(Inv(y)).Append(' ');
+        }
+
+        return points.ToString().TrimEnd();
+    }
+}

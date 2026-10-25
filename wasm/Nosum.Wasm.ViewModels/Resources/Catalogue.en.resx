@@ -74,4 +74,12 @@
   <data name="Item_coal_Description" xml:space="preserve"><value>A rare lump of coal, sometimes found inside stones.</value></data>
   <data name="Item_copper_ore_Name" xml:space="preserve"><value>Copper ore</value></data>
   <data name="Item_copper_ore_Description" xml:space="preserve"><value>Copper ore taken from an ore node.</value></data>
+  <data name="Goal_spring_bridge_Name" xml:space="preserve"><value>The bridge to the Beach</value></data>
+  <data name="Goal_spring_bridge_Reward" xml:space="preserve"><value>Opens the bridge to the Beach and shares coins among the contributors.</value></data>
+  <data name="Goal_summer_festival_Name" xml:space="preserve"><value>The summer festival stall</value></data>
+  <data name="Goal_summer_festival_Reward" xml:space="preserve"><value>Sets up a festival stall that sells a rare seed and shares coins among the contributors.</value></data>
+  <data name="Goal_fall_harvest_Name" xml:space="preserve"><value>The harvest stall</value></data>
+  <data name="Goal_fall_harvest_Reward" xml:space="preserve"><value>Opens the harvest stall in town and shares coins among the contributors.</value></data>
+  <data name="Goal_winter_lanterns_Name" xml:space="preserve"><value>Lanterns for the town square</value></data>
+  <data name="Goal_winter_lanterns_Reward" xml:space="preserve"><value>Lights the lanterns of the town square for winter and shares coins among the contributors.</value></data>
 </root>

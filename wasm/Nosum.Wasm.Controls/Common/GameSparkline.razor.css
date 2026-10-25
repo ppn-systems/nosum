@@ -1,0 +1,18 @@
+/* The line chart of a few numbers: whole UI pixels wide, the line in the ink colour. */
+.game-sparkline {
+    width: calc(var(--u) * 60);
+    height: calc(var(--u) * 16);
+    background: var(--nosum-slot-bg);
+    border: calc(var(--u) * 1) solid var(--nosum-edge);
+    box-sizing: content-box;
+}
+
+.game-sparkline-line {
+    stroke: var(--nosum-ink);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.game-sparkline-dot {
+    fill: var(--nosum-ink);
+}

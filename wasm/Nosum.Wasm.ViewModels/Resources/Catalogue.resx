@@ -74,4 +74,12 @@
   <data name="Item_coal_Description" xml:space="preserve"><value>Một cục than hiếm, đôi khi lẫn trong đá.</value></data>
   <data name="Item_copper_ore_Name" xml:space="preserve"><value>Quặng đồng</value></data>
   <data name="Item_copper_ore_Description" xml:space="preserve"><value>Quặng đồng lấy từ mỏ quặng.</value></data>
+  <data name="Goal_spring_bridge_Name" xml:space="preserve"><value>Cây cầu ra bãi biển</value></data>
+  <data name="Goal_spring_bridge_Reward" xml:space="preserve"><value>Mở cây cầu dẫn tới Bãi biển và chia xu cho người đóng góp.</value></data>
+  <data name="Goal_summer_festival_Name" xml:space="preserve"><value>Quầy hàng lễ hội mùa hè</value></data>
+  <data name="Goal_summer_festival_Reward" xml:space="preserve"><value>Dựng quầy lễ hội bán hạt giống hiếm và chia xu cho người đóng góp.</value></data>
+  <data name="Goal_fall_harvest_Name" xml:space="preserve"><value>Quầy hàng mùa thu hoạch</value></data>
+  <data name="Goal_fall_harvest_Reward" xml:space="preserve"><value>Mở quầy mùa thu hoạch trong thị trấn và chia xu cho người đóng góp.</value></data>
+  <data name="Goal_winter_lanterns_Name" xml:space="preserve"><value>Đèn lồng quảng trường</value></data>
+  <data name="Goal_winter_lanterns_Reward" xml:space="preserve"><value>Thắp đèn lồng quảng trường mùa đông và chia xu cho người đóng góp.</value></data>
 </root>

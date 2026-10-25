@@ -378,4 +378,35 @@
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>Cây này không trồng được vào mùa này.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì hết mùa. Hãy gieo hạt mới lên trên.</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>Hạt giống này không bán vào mùa này.</value></data>
+  <data name="Toolbar_Goals" xml:space="preserve"><value>Bảng tin</value></data>
+  <data name="Goals_Title" xml:space="preserve"><value>Bảng mục tiêu của thị trấn</value></data>
+  <data name="Goals_Hint" xml:space="preserve"><value>Cả máy chủ cùng nộp nông sản để mở khóa phần thưởng chung. Mỗi người nhận xu theo tỷ lệ đóng góp.</value></data>
+  <data name="Goals_Loading" xml:space="preserve"><value>Đang tải mục tiêu</value></data>
+  <data name="Goals_None" xml:space="preserve"><value>Mùa này chưa có mục tiêu nào.</value></data>
+  <data name="Goals_SeasonEnds" xml:space="preserve"><value>Mùa còn {0} ngày trong game.</value></data>
+  <data name="Goals_Amount" xml:space="preserve"><value>Số lượng nộp</value></data>
+  <data name="Goals_Deliver" xml:space="preserve"><value>Nộp</value></data>
+  <data name="Goals_Held" xml:space="preserve"><value>Bạn có {0}</value></data>
+  <data name="Goals_Progress" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Goals_Mine" xml:space="preserve"><value>Bạn đã nộp {0}</value></data>
+  <data name="Goals_Contributors" xml:space="preserve"><value>{0} người tham gia</value></data>
+  <data name="Goals_Done" xml:space="preserve"><value>Đã nộp {0}. Cảm ơn bạn!</value></data>
+  <data name="Goals_State_Active" xml:space="preserve"><value>Đang mở</value></data>
+  <data name="Goals_State_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
+  <data name="Goals_State_Expired" xml:space="preserve"><value>Đã hết hạn</value></data>
+  <data name="Goals_Status_UnknownGoal" xml:space="preserve"><value>Không có mục tiêu này.</value></data>
+  <data name="Goals_Status_InvalidQuantity" xml:space="preserve"><value>Số lượng không hợp lệ.</value></data>
+  <data name="Goals_Status_NotThisSeason" xml:space="preserve"><value>Mục tiêu này không thuộc mùa hiện tại.</value></data>
+  <data name="Goals_Status_Closed" xml:space="preserve"><value>Mục tiêu này đã đóng.</value></data>
+  <data name="Goals_Status_NotAtBoard" xml:space="preserve"><value>Bạn đứng quá xa bảng tin.</value></data>
+  <data name="Goals_Status_NotEnough" xml:space="preserve"><value>Bạn không có đủ vật phẩm.</value></data>
+  <data name="Goals_Status_Conflict" xml:space="preserve"><value>Hãy thử lại.</value></data>
+  <data name="Market_History" xml:space="preserve"><value>Giá</value></data>
+  <data name="Market_History_Title" xml:space="preserve"><value>Lịch sử giá: {0}</value></data>
+  <data name="Market_History_Chart" xml:space="preserve"><value>Giá trung vị mỗi ngày trong game</value></data>
+  <data name="Market_History_Latest" xml:space="preserve"><value>Ngày gần nhất: thấp nhất {0}, trung vị {1}, cao nhất {2} xu mỗi món ({3} giao dịch)</value></data>
+  <data name="Market_History_Range" xml:space="preserve"><value>{0} ngày qua: từ {1} đến {2} xu mỗi món</value></data>
+  <data name="Market_History_None" xml:space="preserve"><value>Chưa có giao dịch nào trong {0} ngày qua.</value></data>
+  <data name="Market_History_Hide" xml:space="preserve"><value>Ẩn</value></data>
+  <data name="Market_Status_TooManyOfItem" xml:space="preserve"><value>Bạn đang bán tối đa 500 món loại này cùng lúc.</value></data>
 </root>

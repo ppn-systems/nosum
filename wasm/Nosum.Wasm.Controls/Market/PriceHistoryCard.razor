@@ -1,0 +1,24 @@
+@using Nosum.Wasm.ViewModels.Market
+
+@* The price history of one item (docs/adr/ADR-030 D4): a line of the daily median unit price and the latest day's lowest, median and highest. Shown under the
+   browse list and the sell form; the market view model says which item. *@
+@if (Vm.HistoryItemId != 0)
+{
+    <GameSection Title="@Vm.HistoryTitle">
+        <GameStack>
+            <GameSparkline Values="Vm.HistoryPoints" Label="@Vm.Text("Market_History_Chart")" />
+            @foreach (string line in Vm.HistoryLines)
+            {
+                <p class="history-line">@line</p>
+            }
+            <GameRow>
+                <GameButton Variant="plain" Text="@Vm.Text("Market_History_Hide")" OnClick="@(() => Vm.HideHistory())" />
+            </GameRow>
+        </GameStack>
+    </GameSection>
+}
+
+@code {
+    /// <summary>The market view model that holds the history.</summary>
+    [Parameter, EditorRequired] public MarketViewModel Vm { get; set; } = default!;
+}

@@ -42,6 +42,9 @@ public enum PanelKind
 
     /// <summary>The visitors page: who may enter the player's farm, and visiting someone else (docs/adr/ADR-019).</summary>
     Visitors = 10,
+
+    /// <summary>The Town board's goals page, opened with the action key at the board counter (not a toolbar button, docs/adr/ADR-030).</summary>
+    Goals = 11,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -95,4 +98,7 @@ public sealed class ToolbarViewModel : PanelViewModel
 
     /// <summary>Gets the shop tab, shown only while a shop is open (opened at its counter, not from the menu).</summary>
     public ToolbarItem ShopItem => new(PanelKind.Shop, this.Text("Toolbar_Shop"), string.Empty, "tab-shop");
+
+    /// <summary>Gets the Town board tab, shown only while the board is open (opened at its counter, not from the menu).</summary>
+    public ToolbarItem GoalsItem => new(PanelKind.Goals, this.Text("Toolbar_Goals"), string.Empty, "tab-goals");
 }

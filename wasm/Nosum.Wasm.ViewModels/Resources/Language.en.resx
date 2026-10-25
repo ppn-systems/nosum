@@ -378,4 +378,35 @@
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered when its season ended. Plant a new seed over it.</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>That seed is not sold in this season.</value></data>
+  <data name="Toolbar_Goals" xml:space="preserve"><value>Board</value></data>
+  <data name="Goals_Title" xml:space="preserve"><value>Town goals</value></data>
+  <data name="Goals_Hint" xml:space="preserve"><value>The whole server delivers crops to unlock a shared reward. Everyone who helps gets coins in proportion to what they delivered.</value></data>
+  <data name="Goals_Loading" xml:space="preserve"><value>Loading the goals</value></data>
+  <data name="Goals_None" xml:space="preserve"><value>There is no goal this season.</value></data>
+  <data name="Goals_SeasonEnds" xml:space="preserve"><value>Game days left in the season: {0}.</value></data>
+  <data name="Goals_Amount" xml:space="preserve"><value>Amount to deliver</value></data>
+  <data name="Goals_Deliver" xml:space="preserve"><value>Deliver</value></data>
+  <data name="Goals_Held" xml:space="preserve"><value>You have {0}</value></data>
+  <data name="Goals_Progress" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Goals_Mine" xml:space="preserve"><value>You delivered {0}</value></data>
+  <data name="Goals_Contributors" xml:space="preserve"><value>{0} players took part</value></data>
+  <data name="Goals_Done" xml:space="preserve"><value>Delivered {0}. Thank you!</value></data>
+  <data name="Goals_State_Active" xml:space="preserve"><value>Open</value></data>
+  <data name="Goals_State_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="Goals_State_Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="Goals_Status_UnknownGoal" xml:space="preserve"><value>There is no such goal.</value></data>
+  <data name="Goals_Status_InvalidQuantity" xml:space="preserve"><value>That amount is not valid.</value></data>
+  <data name="Goals_Status_NotThisSeason" xml:space="preserve"><value>This goal is not part of the current season.</value></data>
+  <data name="Goals_Status_Closed" xml:space="preserve"><value>This goal is closed.</value></data>
+  <data name="Goals_Status_NotAtBoard" xml:space="preserve"><value>You are too far from the board.</value></data>
+  <data name="Goals_Status_NotEnough" xml:space="preserve"><value>You do not have enough of the item.</value></data>
+  <data name="Goals_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Market_History" xml:space="preserve"><value>Prices</value></data>
+  <data name="Market_History_Title" xml:space="preserve"><value>Price history: {0}</value></data>
+  <data name="Market_History_Chart" xml:space="preserve"><value>Median price of each game day</value></data>
+  <data name="Market_History_Latest" xml:space="preserve"><value>Latest day: lowest {0}, median {1}, highest {2} coins each ({3} sales)</value></data>
+  <data name="Market_History_Range" xml:space="preserve"><value>Last {0} days: from {1} to {2} coins each</value></data>
+  <data name="Market_History_None" xml:space="preserve"><value>Nothing was sold in the last {0} days.</value></data>
+  <data name="Market_History_Hide" xml:space="preserve"><value>Hide</value></data>
+  <data name="Market_Status_TooManyOfItem" xml:space="preserve"><value>You can have at most 500 units of one item listed at once.</value></data>
 </root>

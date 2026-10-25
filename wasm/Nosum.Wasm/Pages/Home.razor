@@ -9,6 +9,7 @@
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.Controls.Coop
 @using Nosum.Wasm.Controls.Feedback
+@using Nosum.Wasm.Controls.Goals
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.Controls.Settings
 @using Nosum.Wasm.Controls.Layout
@@ -24,6 +25,7 @@
 @using Nosum.Wasm.Controls.Wallet
 @using Nosum.Wasm.Controls.Calendar
 @using Nosum.Wasm.ViewModels.Calendar
+@using Nosum.Gameplay.Community
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
 @using Nosum.Wasm.ViewModels
@@ -39,6 +41,7 @@
 @using Nosum.Wasm.ViewModels.Inventory
 @using Nosum.Wasm.ViewModels.Placement
 @using Nosum.Wasm.ViewModels.Profile
+@using Nosum.Wasm.ViewModels.Goals
 @using Nosum.Wasm.ViewModels.Shop
 @using Nosum.Wasm.ViewModels.Quest
 @attribute [SupportedOSPlatform("browser")]
@@ -61,6 +64,7 @@
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ShopViewModel Shop
+@inject GoalsViewModel Goals
 @inject HelpViewModel Help
 
 <PageTitle>Nosum</PageTitle>
@@ -128,6 +132,9 @@ else
                             break;
                         case PanelKind.Shop:
                             <ShopPanel Vm="Shop" ShopId="_shopId" />
+                            break;
+                        case PanelKind.Goals:
+                            <GoalsPanel Vm="Goals" />
                             break;
                         case PanelKind.Settings:
                             <SettingsPanel Vm="Form" Help="Help" />
@@ -232,10 +239,18 @@ else
     // A panel key was pressed in the game (raised from the frame loop). H and ? open the settings page, which holds the key help.
     private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind == PanelKind.Help ? PanelKind.Settings : kind));
 
-    // The action key next to a shop counter (raised from the frame): open that shop on its tab.
+    // The action key next to a counter (raised from the frame): open that shop on its tab, or the Town board's goals page.
     private void OnShopRequested(int shopId) => _ = InvokeAsync(() =>
     {
-        if (_panel != PanelKind.Shop)
+        if (shopId == CommunityGoalCatalog.BoardCounterId)
+        {
+            if (_panel != PanelKind.Goals)
+            {
+                Show(PanelKind.Goals);
+                StateHasChanged();
+            }
+        }
+        else if (_panel != PanelKind.Shop)
         {
             _shopId = shopId;
             Shop.Open(shopId);
@@ -274,6 +289,10 @@ else
             {
                 tabs.Add(Tab(Toolbar.ShopItem with { Label = Shop.Title.Length > 0 ? Shop.Title : Toolbar.ShopItem.Label }));
             }
+            else if (item.Kind == PanelKind.Settings && _panel == PanelKind.Goals)
+            {
+                tabs.Add(Tab(Toolbar.GoalsItem));
+            }
 
             tabs.Add(Tab(item));
         }
@@ -302,7 +321,7 @@ else
     private void Show(PanelKind kind)
     {
         _panel = kind;
-        if (kind != PanelKind.Shop)
+        if (kind != PanelKind.Shop && kind != PanelKind.Goals)
         {
             _lastTab = kind;
         }
