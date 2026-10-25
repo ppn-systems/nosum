@@ -15,6 +15,7 @@ using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
@@ -43,6 +44,7 @@ internal static partial class GameLoop
     private static FarmChannel? s_farm;
     private static InventoryChannel? s_inventory;
     private static PlaceableChannel? s_placeable;
+    private static GroundItemChannel? s_groundItems;
     private static PlacementViewModel? s_placement;
     private static MarketChannel? s_market;
     private static LookChannel? s_looks;
@@ -86,6 +88,9 @@ internal static partial class GameLoop
         s_placement = placement;
     }
 
+    /// <summary>Connects the items lying on the ground to the game: they are drawn as world sprites. Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="groundItems">The ground items mirror.</param>
+    public static void UseGroundItems(GroundItemChannel groundItems) => s_groundItems = groundItems;
 
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
@@ -123,6 +128,11 @@ internal static partial class GameLoop
         {
             placement = new PlacementActions(s_placeable, s_inventory, s_placement);
             providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement));
+        }
+
+        if (s_groundItems is not null)
+        {
+            providers.Add(new GroundItemsDecoratorProvider(s_groundItems));
         }
 
         MapLoader loader = new(http, textures, providers);
