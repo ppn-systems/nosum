@@ -428,6 +428,8 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         {
         }
 
+        public ValueTask EndAsync(Guid playerId, Nosum.Contracts.Account.AccountStatus reason, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+
         public IConnection? GetActive(Guid playerId) => null;
     }
 

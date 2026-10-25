@@ -9,6 +9,7 @@ using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nalix.Hosting.Protocols;
 using Nalix.Runtime.Groups;
+using Nalix.Network.Options;
 using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
@@ -53,6 +54,7 @@ using Nosum.Handlers.Mail;
 using Nosum.Handlers.Market;
 using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
+using Nosum.Handlers.Security;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
 using Nosum.Handlers.Shop;
@@ -252,6 +254,7 @@ internal static class Program
             .UseTimeSync()
             .UseSystemControl()
             .UseSecureConnections()
+            .Configure<ConnectionQuotaOptions>(AbuseLimits.Apply)
             .MapHandlers(typeof(PlayerHandlers))
             .MapHandlers(typeof(AccountHandlers))
             .MapHandlers(typeof(InventoryHandlers))
@@ -284,7 +287,8 @@ internal static class Program
         return builder
             .ConfigureDispatchOptions(o =>
             {
-                // Fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
+                // Declared input bounds are enforced first (docs/adr/ADR-032 D3), then fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
+                _ = o.WithMiddleware(new InputBoundsMiddleware());
                 _ = o.WithMiddleware(new PermissionMiddleware());
                 _ = o.WithMiddleware(new RateLimitMiddleware());
             })

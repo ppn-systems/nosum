@@ -593,4 +593,7 @@
   <data name="Furnace_Start" xml:space="preserve"><value>Nung {0}</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Lấy thỏi</value></data>
   <data name="Market_History_Tip" xml:space="preserve"><value>Xem lịch sử giá của vật phẩm này</value></data>
+  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>Mã khôi phục không đúng, đã hết hạn hoặc đã được dùng.</value></data>
+  <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Quá nhiều yêu cầu. Hãy thử lại sau.</value></data>
+  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì mật khẩu tài khoản đã được đặt lại.</value></data>
 </root>

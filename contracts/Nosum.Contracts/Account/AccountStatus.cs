@@ -58,4 +58,7 @@ public enum AccountStatus : byte
 
     /// <summary>Too many recovery or registration requests from this account or address; try again later (request password reset, register, start guest).</summary>
     TooManyRequests = 16,
+
+    /// <summary>The server ended the session because the account's password was reset (sent in <c>SessionEnded</c>, never as a request reply).</summary>
+    SessionRevoked = 17,
 }

@@ -75,6 +75,31 @@ public sealed class SessionRegistry : ISessionRegistry
             return;
         }
 
+        await this.CloseAsync(previous, AccountStatus.SessionReplaced, "session replaced", cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask EndAsync(Guid playerId, AccountStatus reason, CancellationToken cancellationToken = default)
+    {
+        IConnection? active;
+        lock (_gate)
+        {
+            if (!_active.TryGetValue(playerId, out active))
+            {
+                return;
+            }
+
+            _ = _active.Remove(playerId);
+            _ = _playerOf.Remove(active.ConnectionId);
+        }
+
+        await this.CloseAsync(active, reason, "session revoked", cancellationToken).ConfigureAwait(false);
+    }
+
+    // Takes the connection out of the game (its position is saved once), tells it why, then closes it. Best effort: it may already be closing.
+    [SuppressMessage("Design", "CA1031", Justification = "Ending the connection is best effort: it may already be closing, and the caller must still go on.")]
+    private async ValueTask CloseAsync(IConnection previous, AccountStatus reason, string disconnectReason, CancellationToken cancellationToken)
+    {
         try
         {
             // Out of the game first, so its position is saved once and a late move from it cannot overwrite the new one.
@@ -84,7 +109,7 @@ public sealed class SessionRegistry : ISessionRegistry
             if (!previous.IsDisposed)
             {
                 using PacketScope<SessionEnded> lease = PacketFactory<SessionEnded>.Acquire();
-                lease.Value.Reason = AccountStatus.SessionReplaced;
+                lease.Value.Reason = reason;
                 await previous.SendAsync(lease.Value, NetworkTransport.TCP, enableEncrypt: this.EncryptSends, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -95,7 +120,7 @@ public sealed class SessionRegistry : ISessionRegistry
         finally
         {
             previous.ConnectionClosed -= _onClosed;
-            previous.Disconnect("session replaced");
+            previous.Disconnect(disconnectReason);
         }
     }
 

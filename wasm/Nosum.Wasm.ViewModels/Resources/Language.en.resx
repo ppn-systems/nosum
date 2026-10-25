@@ -593,4 +593,7 @@
   <data name="Furnace_Start" xml:space="preserve"><value>Smelt {0}</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Collect bar</value></data>
   <data name="Market_History_Tip" xml:space="preserve"><value>Show the price history of this item</value></data>
+  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>The recovery code is wrong, expired or already used.</value></data>
+  <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Too many requests. Please try again later.</value></data>
+  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Your session ended because the account password was reset.</value></data>
 </root>
