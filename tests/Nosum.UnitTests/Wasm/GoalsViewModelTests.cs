@@ -21,9 +21,11 @@ using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Goals;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Requests;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Goals;
 using Nosum.Wasm.ViewModels.Inventory;
+using Nosum.Wasm.ViewModels.Requests;
 using Nosum.Wasm.ViewModels.Resources;
 using Xunit;
 
@@ -302,7 +304,8 @@ public sealed class GoalsViewModelTests
             CalendarChannel calendar = new(socket);
             calendar.Load();
             ItemDescriber describer = new(new FixedIcons(), Localizer<Catalogue>(), Localizer<Language>());
-            GoalsViewModel vm = new(new GoalChannel(socket), inventory, describer, calendar, Localizer<Catalogue>(), Localizer<Language>());
+            RequestsViewModel requests = new(new RequestChannel(socket), inventory, describer, calendar, Localizer<Language>());
+            GoalsViewModel vm = new(new GoalChannel(socket), inventory, describer, calendar, Localizer<Catalogue>(), requests, Localizer<Language>());
             return new Fixture { Socket = socket, Vm = vm, Delivered = delivered };
         }
     }

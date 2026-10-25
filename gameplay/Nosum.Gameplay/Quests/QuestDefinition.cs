@@ -12,6 +12,24 @@ public enum QuestEventKind
 
     /// <summary>A crop was harvested; the subject is the crop id.</summary>
     CropHarvested = 2,
+
+    /// <summary>Soil was tilled; no subject.</summary>
+    SoilTilled = 3,
+
+    /// <summary>Soil was watered; no subject.</summary>
+    CropWatered = 4,
+
+    /// <summary>Items were put into the shipping bin; the subject is the item id, the amount how many.</summary>
+    ItemShipped = 5,
+
+    /// <summary>Seeds (of a crop or a tree) were bought at a shop; the subject is the item id, the amount how many.</summary>
+    SeedBought = 6,
+
+    /// <summary>A resource node broke (a tree fell, a stone was gone); the subject is the <c>NodeKind</c>.</summary>
+    NodeBroken = 7,
+
+    /// <summary>Something was crafted; the subject is the item id of the result, the amount how many.</summary>
+    ItemCrafted = 8,
 }
 
 /// <summary>One thing a player did, reported by a feature to the quest service.</summary>
@@ -34,7 +52,7 @@ public readonly record struct QuestObjective(QuestEventKind Kind, int SubjectId,
 
 /// <summary>
 /// A quest as data: a stable id and key (texts live in the localization catalogue under
-/// <c>quest.&lt;key&gt;</c>) and its objectives. A quest is complete when every objective is.
+/// <c>quest.&lt;key&gt;</c>), the coins completing it pays (docs/adr/ADR-036 D2) and its objectives. A quest is complete when every objective is.
 /// </summary>
 public sealed class QuestDefinition
 {
@@ -43,11 +61,13 @@ public sealed class QuestDefinition
     /// <summary>Initializes a quest.</summary>
     /// <param name="id">Stable numeric id, greater than zero.</param>
     /// <param name="key">Stable key.</param>
+    /// <param name="rewardCoins">Coins paid once when the quest is completed; zero for none.</param>
     /// <param name="objectives">The objectives, in display order.</param>
-    public QuestDefinition(int id, string key, params QuestObjective[] objectives)
+    public QuestDefinition(int id, string key, long rewardCoins, params QuestObjective[] objectives)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
         ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentOutOfRangeException.ThrowIfNegative(rewardCoins);
         ArgumentNullException.ThrowIfNull(objectives);
         ArgumentOutOfRangeException.ThrowIfZero(objectives.Length);
         foreach (QuestObjective objective in objectives)
@@ -57,6 +77,7 @@ public sealed class QuestDefinition
 
         this.Id = id;
         this.Key = key;
+        this.RewardCoins = rewardCoins;
         _objectives = objectives;
     }
 
@@ -65,6 +86,9 @@ public sealed class QuestDefinition
 
     /// <summary>Gets the stable key.</summary>
     public string Key { get; }
+
+    /// <summary>Gets the coins paid once when the quest is completed; zero when it pays nothing.</summary>
+    public long RewardCoins { get; }
 
     /// <summary>Gets the number of objectives.</summary>
     public int ObjectiveCount => _objectives.Length;

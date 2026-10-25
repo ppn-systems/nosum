@@ -40,6 +40,7 @@ using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Shops;
 using Nosum.Abstractions.Quests;
+using Nosum.Abstractions.Requests;
 using Nosum.Abstractions.Trade;
 using Nosum.Abstractions.Visits;
 using Nosum.Gameplay.Calendar;
@@ -66,6 +67,7 @@ using Nosum.Handlers.Placeable;
 using Nosum.Handlers.Security;
 using Nosum.Handlers.Player;
 using Nosum.Handlers.Quest;
+using Nosum.Handlers.Requests;
 using Nosum.Handlers.Shop;
 using Nosum.Handlers.Trade;
 using Nosum.Handlers.Visit;
@@ -96,6 +98,7 @@ using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Presence;
 using Nosum.Infrastructure.Progress;
 using Nosum.Infrastructure.Quests;
+using Nosum.Infrastructure.Requests;
 using Nosum.Infrastructure.Shops;
 using Nosum.Infrastructure.Trade;
 using Nosum.Infrastructure.Visits;
@@ -360,7 +363,8 @@ internal static class Program
             .MapHandlers(typeof(ChatHandlers))
             .MapHandlers(typeof(FriendHandlers))
             .MapHandlers(typeof(MailHandlers))
-            .MapHandlers(typeof(AdminHandlers));
+            .MapHandlers(typeof(AdminHandlers))
+            .MapHandlers(typeof(RequestHandlers));
 
         // Tester tools exist only in Development: no handler, no service, no opcode in Production.
         if (development)
@@ -432,7 +436,10 @@ internal static class Program
         PlayerNotifier notifier = new(sessions);
         InstanceManager.Instance.Register<IPlayerNotifier>(notifier);
         InventoryService inventory = new(unitOfWork, clock, notifier);
-        QuestService quests = new(unitOfWork, clock, notifier);
+        // Coins, market, looks, trade, co-ops and ground-item pickups (docs/adr/ADR-013, ADR-014, ADR-021) all move items through the one transfer service; a quest's reward is one too.
+        TransferService transfers = new(inventory, clock, notifier);
+        InstanceManager.Instance.Register<ITransferService>(transfers);
+        QuestService quests = new(unitOfWork, clock, notifier, transfers);
         // The first finished quest invites a guest to register.
         InstanceManager.Instance.Register(new RegistrationPromptOnQuestCompleted(quests, prompts, notifier));
         InstanceManager.Instance.Register<IInventoryService>(inventory);
@@ -454,10 +461,6 @@ internal static class Program
         InstanceManager.Instance.Register<IBuildingDirectory>(buildingDirectory);
         // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019); the inside of a building follows its land (docs/adr/ADR-028 D2).
         BuildingAccessPolicy access = new(new VisitAccess(unitOfWork), buildingDirectory, coopMembership, clock);
-
-        // Coins, market, looks, trade, co-ops and ground-item pickups (docs/adr/ADR-013, ADR-014, ADR-021) all move items through the one transfer service.
-        TransferService transfers = new(inventory, clock, notifier);
-        InstanceManager.Instance.Register<ITransferService>(transfers);
 
         // Admin intents, the mute list and the live gauges (docs/adr/ADR-031 D6-D7).
         OpsServices.Register(unitOfWork, sessions, transfers, presence, clock);
@@ -509,7 +512,7 @@ internal static class Program
         InstanceManager.Instance.Register<IBuildingService>(buildings);
         placeables.Attach(buildings);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1).
-        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress)));
+        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress), quests));
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
         InstanceManager.Instance.Register<ILookService>(looks);
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
@@ -532,8 +535,8 @@ internal static class Program
 
         // The market fee is a coin sink (owner decision 2026-10-25); IFeeSink is the one place that would redirect it.
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
-        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar, mail));
-        InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock));
+        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar, mail, quests));
+        InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock, quests));
         InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock));
 
         // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.
@@ -545,6 +548,18 @@ internal static class Program
             _ = ended;
             _ = communityGoals.CloseEndedSeasonsAsync().ContinueWith(
                 static t => Console.Error.WriteLine("Community goal season sweep failed: " + t.Exception?.GetBaseException().Message),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
+        };
+
+        // The Town requests board (docs/adr/ADR-036): the next day's requests are written when a day ends; a read after a restart writes them lazily.
+        RequestService requests = new(transfers, unitOfWork, presence, maps, calendar, clock);
+        InstanceManager.Instance.Register<IRequestService>(requests);
+        dayClock.DayEnded += ended =>
+        {
+            _ = requests.EnsureDayAsync(ended.DayNumber + 1).ContinueWith(
+                static t => Console.Error.WriteLine("Request day roll failed: " + t.Exception?.GetBaseException().Message),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted,
                 TaskScheduler.Default);

@@ -3,9 +3,18 @@
 @inherits ObservingComponent<GoalsViewModel>
 
 @* The Town board (docs/adr/ADR-030): the goals of the season with a progress bar each, this player's part and an amount to deliver. Totals, rewards and every
-   delivery are the server's; this page only asks and shows. Opened at the board counter, so it opens its own view model by itself. *@
-<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
+   delivery are the server's; this page only asks and shows. Opened at the board counter, so it opens its own view model by itself.
+   A second tab holds today's delivery requests (docs/adr/ADR-036 D5). *@
+<MenuPage Status="@Vm.ActiveStatus" Good="Vm.ActiveStatusIsGood">
     <GameStack>
+        <TabBar Active="(int)Vm.Tab" OnSelect="@(id => Vm.SetTab((BoardTab)id))"
+                Tabs="@(new (int, string)[] { ((int)BoardTab.Goals, Vm.Text("Board_Tab_Goals")), ((int)BoardTab.Requests, Vm.Text("Board_Tab_Requests")) })" />
+        @if (Vm.Tab == BoardTab.Requests)
+        {
+            <RequestsSection Vm="Vm.Requests" />
+        }
+        else
+        {
         <p class="goals-hint">@Vm.Text("Goals_Hint")</p>
         @if (Vm.SeasonEndText.Length > 0)
         {
@@ -50,6 +59,7 @@
                     }
                 </GameStack>
             </GameSection>
+        }
         }
     </GameStack>
 </MenuPage>

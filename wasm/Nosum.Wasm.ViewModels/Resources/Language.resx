@@ -749,4 +749,25 @@
   <data name="Recovery_Done" xml:space="preserve"><value>Mật khẩu đã được đổi và mọi thiết bị đã bị đăng xuất. Hãy đăng nhập bằng mật khẩu mới.</value></data>
   <data name="Recovery_Back" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
   <data name="Recovery_Error_Code" xml:space="preserve"><value>Hãy nhập 8 chữ số trong thư.</value></data>
+  <data name="Board_Tab_Goals" xml:space="preserve"><value>Mục tiêu</value></data>
+  <data name="Board_Tab_Requests" xml:space="preserve"><value>Yêu cầu</value></data>
+  <data name="Requests_Hint" xml:space="preserve"><value>Mỗi ngày trong game bảng tin có ba yêu cầu giao hàng. Mỗi người chỉ làm mỗi yêu cầu một lần trong ngày và được trả cao hơn giá thùng bán hàng.</value></data>
+  <data name="Requests_Loading" xml:space="preserve"><value>Đang tải yêu cầu</value></data>
+  <data name="Requests_None" xml:space="preserve"><value>Hôm nay chưa có yêu cầu nào.</value></data>
+  <data name="Requests_NewIn" xml:space="preserve"><value>Yêu cầu mới sau {0} giờ {1} phút.</value></data>
+  <data name="Requests_Ask" xml:space="preserve"><value>Giao {0} × {1}</value></data>
+  <data name="Requests_Reward" xml:space="preserve"><value>Thưởng: {0} xu</value></data>
+  <data name="Requests_Held" xml:space="preserve"><value>Bạn có {0}</value></data>
+  <data name="Requests_Deliver" xml:space="preserve"><value>Giao hàng</value></data>
+  <data name="Requests_Filled" xml:space="preserve"><value>Đã xong hôm nay</value></data>
+  <data name="Requests_Done" xml:space="preserve"><value>Đã giao! Bạn nhận được {0} xu.</value></data>
+  <data name="Requests_Status_UnknownRequest" xml:space="preserve"><value>Không có yêu cầu này.</value></data>
+  <data name="Requests_Status_NotToday" xml:space="preserve"><value>Yêu cầu đã đổi sang ngày mới. Đã tải lại bảng.</value></data>
+  <data name="Requests_Status_AlreadyFilled" xml:space="preserve"><value>Hôm nay bạn đã làm yêu cầu này rồi.</value></data>
+  <data name="Requests_Status_NotAtBoard" xml:space="preserve"><value>Bạn đứng quá xa bảng tin.</value></data>
+  <data name="Requests_Status_NotEnough" xml:space="preserve"><value>Bạn không có đủ vật phẩm.</value></data>
+  <data name="Requests_Status_PurseFull" xml:space="preserve"><value>Ví của bạn không chứa thêm được số xu này.</value></data>
+  <data name="Requests_Status_Conflict" xml:space="preserve"><value>Hãy thử lại.</value></data>
+  <data name="Quest_Reward" xml:space="preserve"><value>Thưởng: {0} xu</value></data>
+  <data name="Hint_Quest" xml:space="preserve"><value>{0} Thưởng: {1} xu.</value></data>
 </root>

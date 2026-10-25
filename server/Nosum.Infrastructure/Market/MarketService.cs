@@ -14,6 +14,7 @@ using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Market;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Market;
 using Nosum.Domain.Market;
 using Nosum.Gameplay.Calendar;
@@ -21,9 +22,11 @@ using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Mail;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
 using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Market;
 
@@ -46,6 +49,7 @@ public sealed class MarketService : IMarketService
     private readonly IFeeSink _feeSink;
     private readonly INicknameDirectory _nicknames;
     private readonly IMailService? _mail;
+    private readonly IQuestService? _quests;
     private readonly TimeProvider _time;
     private readonly GameCalendar _calendar;
     private readonly StripedAsyncLock _listingLocks = new(64);
@@ -61,7 +65,8 @@ public sealed class MarketService : IMarketService
     /// <param name="time">The clock for expiry; tests pass a fake one.</param>
     /// <param name="calendar">The server calendar: sales are filed under the game day they happened (the price history); the default calendar when <see langword="null"/>.</param>
     /// <param name="mail">Receives a "your listing sold" notice for the seller (docs/adr/ADR-029 D5); <see langword="null"/> to send none.</param>
-    public MarketService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IFeeSink feeSink, INicknameDirectory nicknames, TimeProvider time, GameCalendar? calendar = null, IMailService? mail = null)
+    /// <param name="quests">Told what the player shipped (docs/adr/ADR-036 D3); <see langword="null"/> to tell nobody.</param>
+    public MarketService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IFeeSink feeSink, INicknameDirectory nicknames, TimeProvider time, GameCalendar? calendar = null, IMailService? mail = null, IQuestService? quests = null)
     {
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -82,6 +87,7 @@ public sealed class MarketService : IMarketService
         _time = time;
         _calendar = calendar ?? GameCalendar.Default;
         _mail = mail;
+        _quests = quests;
     }
 
     /// <inheritdoc/>
@@ -137,7 +143,13 @@ public sealed class MarketService : IMarketService
             "shipping.sell",
             null,
             cancellationToken).ConfigureAwait(false);
-        return status == TransferStatus.Ok ? new ShipOutcome(MarketStatus.Ok, earned) : new ShipOutcome(ToStatus(status), 0);
+        if (status != TransferStatus.Ok)
+        {
+            return new ShipOutcome(ToStatus(status), 0);
+        }
+
+        await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.ItemShipped, itemId, count), cancellationToken).ConfigureAwait(false);
+        return new ShipOutcome(MarketStatus.Ok, earned);
     }
 
     /// <inheritdoc/>
