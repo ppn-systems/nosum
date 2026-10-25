@@ -27,7 +27,7 @@ public enum OpsLevel
 /// <summary>
 /// Structured JSON logs, one object per line (docs/adr/ADR-031 D5). Every event has an event id, a level and a time; fields add the player id,
 /// the map instance, latencies and so on. Secrets never get out: fields named like a password, token, key, hash, e-mail or chat text are replaced
-/// by <c>[redacted]</c>, and e-mail addresses and long token-like runs inside any string value are masked (<see cref="Scrub"/>). The output is a
+/// by <c>[redacted]</c>, and e-mail addresses and long token-like runs inside any string value are masked (<see cref="Scrub"/>; ids pass). The output is a
 /// <see cref="TextWriter"/> that defaults to nothing, so tests stay silent; the host points it at standard output.
 /// </summary>
 public static partial class OpsLog
@@ -129,7 +129,9 @@ public static partial class OpsLog
         }
 
         string withoutMail = EmailPattern().Replace(text, "[email]");
-        return TokenPattern().Replace(withoutMail, Redacted);
+
+        // Ids are not secrets and are what an operator searches for; anything else that long and token-shaped (a session token is 43 base64url characters) is.
+        return TokenPattern().Replace(withoutMail, static m => Guid.TryParse(m.Value, out _) ? m.Value : Redacted);
     }
 
     /// <summary>Redirects <see cref="Console.Error"/> into the log: each line written there becomes one <c>console.error</c> event at error level.</summary>
@@ -198,7 +200,7 @@ public static partial class OpsLog
     [GeneratedRegex(@"[^\s@""'<>,;]+@[^\s@""'<>,;]+\.[^\s@""'<>,;]+", RegexOptions.CultureInvariant)]
     private static partial Regex EmailPattern();
 
-    [GeneratedRegex(@"[A-Za-z0-9_+/=]{32,}", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"[A-Za-z0-9_+/=-]{32,}", RegexOptions.CultureInvariant)]
     private static partial Regex TokenPattern();
 
     private sealed class ErrorLineWriter : TextWriter
