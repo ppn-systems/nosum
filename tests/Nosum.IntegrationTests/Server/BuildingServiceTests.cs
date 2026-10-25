@@ -115,6 +115,25 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task Place_BlueprintWithANodeInFrontOfItsDoor_IsRefused_SoTheDoorCanBeReached()
+    {
+        using PlacementHarness probe = new(_database);
+        (int x, int y) = probe.OpenArea(GameMaps.Farm, 6, 4);
+        using PlacementHarness world = new(_database, nodes: new PlacementHarness.NodesAt((x + 1, y + 3)));
+        Guid owner = await world.CreatePlayerAsync();
+        await world.GiveCoinsAsync(owner, 4_000);
+        _ = await world.Inventory.AddAsync(owner, ItemCatalog.Wood, 300, "test.setup");
+        _ = await world.Inventory.AddAsync(owner, ItemCatalog.Stone, 100, "test.setup");
+        world.StandAtCarpenter(owner);
+        _ = await world.Buildings.CommissionAsync(world.Presence.ConnectionOf(owner), BuildingKind.Coop);
+        world.StandOnFarm(owner, x + 2, y + 3);
+        int slot = (await world.Inventory.GetAsync(owner)).Slots.First(s => s.ItemId == ItemCatalog.CoopBlueprint).Slot;
+
+        (await world.Placeables.PlaceAsync(world.Presence.ConnectionOf(owner), slot, x, y, 0)).Status.Should().Be(PlaceStatus.NodeInTheWay, "the node stands on the tile in front of the door");
+        (await world.Placeables.PlaceAsync(world.Presence.ConnectionOf(owner), slot, x + 1, y, 0)).Status.Should().Be(PlaceStatus.Ok, "one tile to the right the doorstep is free");
+    }
+
+    [Fact]
     public async Task Place_BlueprintInTheFarmhouse_OrOverAFence_IsRefused_AndAFinishedBuildingCannotBeMovedOrPickedUp()
     {
         using PlacementHarness world = new(_database);
