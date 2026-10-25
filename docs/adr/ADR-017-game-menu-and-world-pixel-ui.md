@@ -1,6 +1,6 @@
 # ADR-017 — One game menu, a UI pixel equal to the world pixel, a pixel font, a near-empty HUD
 
-**Status:** Proposed. Supersedes [ADR-016](ADR-016-ui-theme-and-hud-layout.md) D4, D5 and D6 and amends its D2 (owner decision, 2026-10-25: the UI was cluttered and
+**Status:** Accepted (coordinator, 2026-10-25, under the owner's delegation; VT323 kept over Handjet — the dot-matrix look reads worse at small sizes. Follow-ups required by the review: content-sized menu window, uniform parchment fill, language switch, farmhouse zoom; tracked in the UI polish PR). Supersedes [ADR-016](ADR-016-ui-theme-and-hud-layout.md) D4, D5 and D6 and amends its D2 (owner decision, 2026-10-25: the UI was cluttered and
 "ugly"; it must be tidy). D1 (one theme in the shared controls), D3 (sprites cut at start-up from the linked sheets) and D7 (forms) of ADR-016 stand.
 
 ## Context
