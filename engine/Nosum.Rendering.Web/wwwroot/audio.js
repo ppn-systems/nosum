@@ -61,8 +61,8 @@ export function setUiClickSound(id) {
     uiClickId = id;
 }
 
-// Starts the audio context on the first user gesture. The listeners stay until the context is really running (a touch gesture may need its second event).
-export function installAudioUnlock() {
+// Starts the audio context on the first user gesture. Installed when the module loads (at page start, before the sign-in screen), so the very first click counts. The listeners stay until the context is really running (a touch gesture may need its second event).
+function installAudioUnlock() {
     const unlock = () => {
         if (!ctx) {
             const Context = globalThis.AudioContext || globalThis.webkitAudioContext;
@@ -176,3 +176,5 @@ function syncLayer(layer) {
         layer.gain.gain.linearRampToValueAtTime(layer.volume / 100, now + layer.fade);
     }
 }
+
+installAudioUnlock();

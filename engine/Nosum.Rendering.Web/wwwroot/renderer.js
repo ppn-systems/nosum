@@ -5,7 +5,7 @@
 // submitFrame receives a MemoryView over .NET memory that is valid only during the call:
 // decode and draw synchronously, never keep the view.
 
-import { audioCommand, installAudioUnlock } from "./audio.js";
+import { audioCommand } from "./audio.js";
 // The sound commands (-7 sound, -8 music, -9 ambient loop; docs/adr/ADR-039) go to audio.js; these are the module's exports .NET calls.
 export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 
@@ -232,7 +232,6 @@ export async function start(canvasId, assemblyName, exportPath) {
     window.addEventListener("keyup", e => { const b = KEY_BITS[e.code]; if (b) { keys &= ~b; } });
     window.addEventListener("blur", () => { keys = 0; releaseStick(); });
     installTouch();
-    installAudioUnlock();
 
     const runtime = await globalThis.getDotnetRuntime(0);
     const exports = await runtime.getAssemblyExports(assemblyName);
