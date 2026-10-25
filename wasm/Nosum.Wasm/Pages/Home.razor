@@ -21,6 +21,8 @@
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
 @using Nosum.Wasm.Controls.Wallet
+@using Nosum.Wasm.Controls.Calendar
+@using Nosum.Wasm.ViewModels.Calendar
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
 @using Nosum.Wasm.ViewModels
@@ -47,6 +49,7 @@
 @inject GameMessagesViewModel Messages
 @inject ToolbarViewModel Toolbar
 @inject WalletViewModel Wallet
+@inject CalendarViewModel Calendar
 @inject MarketViewModel Market
 @inject WardrobeViewModel Wardrobe
 @inject TradeViewModel Trade
@@ -84,6 +87,7 @@ else
                 <CoinBadge Vm="Wallet" />
                 <ConnectionBadge />
             </GameRow>
+            <CalendarClock Vm="Calendar" />
         </TopRight>
         <Left>
             <PanelToolbar Vm="Toolbar" OnSelect="OnToolbar" />

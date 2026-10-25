@@ -1,0 +1,30 @@
+.calendar-line {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    white-space: nowrap;
+}
+
+.calendar-day,
+.calendar-time {
+    font-variant-numeric: tabular-nums;
+}
+
+.calendar-time {
+    color: var(--nosum-ink-soft);
+}
+
+/* A flat pixel swatch per season: spring green, summer gold, fall orange, winter blue. Placeholder until the icon sheet has season art. */
+.season-icon {
+    display: inline-block;
+    width: calc(var(--u) * 4);
+    height: calc(var(--u) * 4);
+    image-rendering: pixelated;
+    background: var(--season-color, #7bc96f);
+    box-shadow: inset calc(var(--u) * -1) calc(var(--u) * -1) 0 rgb(0 0 0 / 25%);
+}
+
+.season-icon.spring { --season-color: #7bc96f; }
+.season-icon.summer { --season-color: #f2c94c; }
+.season-icon.fall { --season-color: #d9822b; }
+.season-icon.winter { --season-color: #8fc7ee; }

@@ -312,4 +312,14 @@
   <data name="Help_Grab" xml:space="preserve"><value>Pick up the piece in front to move it</value></data>
   <data name="Help_PickUp" xml:space="preserve"><value>Put the piece in the bag</value></data>
   <data name="Help_Profile" xml:space="preserve"><value>Open the profile (change nickname)</value></data>
+  <data name="Season_Spring" xml:space="preserve"><value>Spring</value></data>
+  <data name="Season_Summer" xml:space="preserve"><value>Summer</value></data>
+  <data name="Season_Fall" xml:space="preserve"><value>Fall</value></data>
+  <data name="Season_Winter" xml:space="preserve"><value>Winter</value></data>
+  <data name="Calendar_Day" xml:space="preserve"><value>Day {0}</value></data>
+  <data name="Calendar_Year" xml:space="preserve"><value>Year {0}</value></data>
+  <data name="Calendar_Summary" xml:space="preserve"><value>{0}, {1}, {2} ({3})</value></data>
+  <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
+  <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered when its season ended. Plant a new seed over it.</value></data>
+  <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>That seed is not sold in this season.</value></data>
 </root>

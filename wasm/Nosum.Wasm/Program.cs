@@ -41,6 +41,8 @@ using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Trade;
 using Nosum.Wasm.ViewModels.Wallet;
+using Nosum.Wasm.ViewModels.Calendar;
+using Nosum.Wasm.Socket.Calendar;
 
 namespace Nosum.Wasm;
 
@@ -72,6 +74,7 @@ internal static class Program
         builder.Services.AddSingleton<PlaceableChannel>();
         builder.Services.AddSingleton<QuestChannel>();
         builder.Services.AddSingleton<WalletChannel>();
+        builder.Services.AddSingleton<CalendarChannel>();
         builder.Services.AddSingleton<MarketChannel>();
         builder.Services.AddSingleton<TradeChannel>();
         builder.Services.AddSingleton<CoopChannel>();
@@ -95,6 +98,7 @@ internal static class Program
         builder.Services.AddSingleton<ShopViewModel>();
         builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<WalletViewModel>();
+        builder.Services.AddSingleton<CalendarViewModel>();
         builder.Services.AddSingleton<MarketViewModel>();
         builder.Services.AddSingleton<WardrobeViewModel>();
         builder.Services.AddSingleton<TradeViewModel>();
@@ -123,6 +127,7 @@ internal static class Program
         CoopChannel coop = host.Services.GetRequiredService<CoopChannel>();
         LookChannel looks = host.Services.GetRequiredService<LookChannel>();
         GameLoop.UseFarming(farm, inventory, market);
+        GameLoop.UseCalendar(host.Services.GetRequiredService<CalendarChannel>());
         GameLoop.UseLooks(looks, host.Services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
         DevTools.Use(host.Services.GetRequiredService<DevChannel>());
@@ -136,6 +141,7 @@ internal static class Program
         keeper.Authenticated += inventory.Load;
         keeper.Authenticated += quests.Load;
         keeper.Authenticated += wallet.Load;
+        keeper.Authenticated += host.Services.GetRequiredService<CalendarChannel>().Load;
         keeper.Authenticated += coop.Load;
         channel.Joined += _ =>
         {
@@ -149,6 +155,7 @@ internal static class Program
         _ = host.Services.GetRequiredService<GameMessagesViewModel>();
         _ = host.Services.GetRequiredService<NearbyPlayers>();
         _ = host.Services.GetRequiredService<WalletViewModel>();
+        _ = host.Services.GetRequiredService<CalendarViewModel>();
         _ = host.Services.GetRequiredService<TradeViewModel>();
         _ = host.Services.GetRequiredService<CoopViewModel>();
         _ = host.Services.GetRequiredService<ConnectionStatusViewModel>();
