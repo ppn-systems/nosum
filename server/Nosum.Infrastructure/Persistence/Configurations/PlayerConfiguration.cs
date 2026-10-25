@@ -25,6 +25,7 @@ internal sealed class PlayerConfiguration : IEntityTypeConfiguration<Player>
         _ = builder.HasIndex(p => new { p.IsGuest, p.LastActiveAt });
         // Stored as smallint (the enum value): compact, and the numbers are append-only.
         _ = builder.Property(p => p.Language).HasConversion<short>();
+        _ = builder.Property(p => p.Role).HasConversion<short>().HasDefaultValue(PlayerRole.Player);
         _ = builder.HasOne(p => p.State).WithOne().HasForeignKey<PlayerState>(s => s.PlayerId).OnDelete(DeleteBehavior.Cascade);
     }
 }

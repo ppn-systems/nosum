@@ -44,16 +44,16 @@ public sealed class QuestServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task GetAsync_NewPlayer_StartsTheTutorialQuest()
+    public async Task GetAsync_NewPlayer_StartsTheWholeTutorialChain()
     {
         Guid player = await CreatePlayerAsync(guest: true);
 
         IReadOnlyList<QuestView> quests = await _quests.GetAsync(player);
 
-        QuestView quest = quests.Should().ContainSingle().Subject;
-        quest.QuestId.Should().Be(QuestCatalog.FirstHarvest);
-        quest.State.Should().Be(QuestState.Active);
-        quest.Progress.Should().Equal(0, 0);
+        quests.Select(q => q.QuestId).Should().Equal(QuestCatalog.All.Select(q => q.Id).Order());
+        quests.Should().OnlyContain(q => q.State == QuestState.Active);
+        quests.Single(q => q.QuestId == QuestCatalog.FirstHarvest).Progress.Should().Equal(0, 0);
+        quests.Single(q => q.QuestId == QuestCatalog.TillSoil).Progress.Should().Equal(0);
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public sealed class QuestServiceTests : IClassFixture<PostgresFixture>
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.CropPlanted, CropCatalog.Parsnip));
 
         IReadOnlyList<QuestView> quests = await new QuestService(_units, _clock).GetAsync(player);
-        quests.Single().Progress.Should().Equal(1, 0);
+        quests.Single(q => q.QuestId == QuestCatalog.FirstHarvest).Progress.Should().Equal(1, 0);
         (Guid to, int questId, QuestState state, int[] progress) = _notifier.Quests.Should().ContainSingle().Subject;
         (to, questId, state).Should().Be((player, QuestCatalog.FirstHarvest, QuestState.Active));
         progress.Should().Equal(1, 0);
@@ -86,10 +86,10 @@ public sealed class QuestServiceTests : IClassFixture<PostgresFixture>
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.CropHarvested, CropCatalog.Radish));
 
         completions.Should().Equal(new QuestCompletion(player, QuestCatalog.FirstHarvest));
-        QuestView quest = (await _quests.GetAsync(player)).Single();
+        QuestView quest = (await _quests.GetAsync(player)).Single(q => q.QuestId == QuestCatalog.FirstHarvest);
         quest.State.Should().Be(QuestState.Completed);
         await using NosumDbContext context = new(_database.Options);
-        (await context.PlayerQuests.SingleAsync(q => q.PlayerId == player)).CompletedAt.Should().Be(s_start);
+        (await context.PlayerQuests.SingleAsync(q => q.PlayerId == player && q.QuestId == QuestCatalog.FirstHarvest)).CompletedAt.Should().Be(s_start);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public sealed class QuestServiceTests : IClassFixture<PostgresFixture>
         await _quests.ReportAsync(player, new QuestEvent((QuestEventKind)99, 0));
 
         _notifier.Quests.Should().BeEmpty();
-        (await _quests.GetAsync(player)).Single().Progress.Should().Equal(0, 0);
+        (await _quests.GetAsync(player)).Single(q => q.QuestId == QuestCatalog.FirstHarvest).Progress.Should().Equal(0, 0);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class QuestServiceTests : IClassFixture<PostgresFixture>
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.CropPlanted));
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.CropHarvested));
 
-        (await _quests.GetAsync(player)).Single().State.Should().Be(QuestState.Completed);
+        (await _quests.GetAsync(player)).Single(q => q.QuestId == QuestCatalog.FirstHarvest).State.Should().Be(QuestState.Completed);
     }
 
     [Fact]

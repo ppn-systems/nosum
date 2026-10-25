@@ -25,8 +25,9 @@ public sealed class TmxMapCatalog : IMapCatalog
     /// <summary>Loads the given maps.</summary>
     /// <param name="specs">The maps to host.</param>
     /// <param name="mapsDirectory">Folder that holds the <c>.tmx</c> files.</param>
+    /// <param name="unlocked">Whether a community unlock is set; gated tiles of a map (<see cref="MapSpec.Gates"/>) open while it says so. <see langword="null"/> keeps every gate shut.</param>
     /// <exception cref="FileNotFoundException">A map file is missing.</exception>
-    public TmxMapCatalog(IEnumerable<MapSpec> specs, string mapsDirectory)
+    public TmxMapCatalog(IEnumerable<MapSpec> specs, string mapsDirectory, Func<string, bool>? unlocked = null)
     {
         ArgumentNullException.ThrowIfNull(specs);
         ArgumentException.ThrowIfNullOrEmpty(mapsDirectory);
@@ -36,7 +37,7 @@ public sealed class TmxMapCatalog : IMapCatalog
         foreach (MapSpec spec in specs)
         {
             TileMap map = TmxReader.Parse(File.ReadAllText(Path.Combine(mapsDirectory, spec.TmxFile)));
-            loaded.Add((spec, map, spec.BuildWalkGrid(map), spec.ResolveWarps(map)));
+            loaded.Add((spec, map, spec.BuildWalkGrid(map, unlocked), spec.ResolveWarps(map)));
         }
 
         foreach ((MapSpec spec, TileMap map, WalkGrid grid, List<MapWarp> warps) in loaded)
@@ -44,7 +45,7 @@ public sealed class TmxMapCatalog : IMapCatalog
             (double x, double y) = SpawnPoint.Find(grid, spec.SpawnTileX, spec.SpawnTileY);
             TillGrid? tillable = spec.Farmable ? TillGrid.FromMap(map, grid) : null;
             HashSet<(int X, int Y)> reserved = ReservedTiles(spec, grid, warps, loaded);
-            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, warps, tillable, spec.IsPrivate, spec.Placeable, reserved, spec.IsCoop, WaterGrid.FromMap(map), NodeSites.Read(map), NodeSites.ReadForage(map), spec.MineFloor));
+            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, warps, tillable, spec.IsPrivate, spec.Placeable, reserved, spec.IsCoop, WaterGrid.FromMap(map), spec.ResolveNodeSites(map, grid), spec.ResolveForageSites(map, grid), spec.MineFloor));
         }
     }
 

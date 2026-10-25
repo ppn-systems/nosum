@@ -15,6 +15,7 @@ using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.ViewModels.Audio;
 
 namespace Nosum.Wasm.Game;
 
@@ -37,6 +38,7 @@ internal sealed class PlayerActions
     private readonly ChestChannel? _chests;
     private readonly ProgressChannel? _progress;
     private readonly BuildingChannel? _buildings;
+    private readonly GameAudio? _audio;
     private double _lastUseSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
@@ -46,7 +48,8 @@ internal sealed class PlayerActions
     /// <param name="chests">Opens the chest the farmer faces; <see langword="null"/> when chests are not wired.</param>
     /// <param name="progress">Sends eating when the action key is pressed with food in hand; <see langword="null"/> to never eat.</param>
     /// <param name="buildings">Sends feeding, petting and collecting inside a coop or a barn; <see langword="null"/> when buildings are not wired.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null)
+    /// <param name="audio">Plays the swing of the tool in hand (docs/adr/ADR-039); <see langword="null"/> for no sound.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -57,6 +60,7 @@ internal sealed class PlayerActions
         _chests = chests;
         _progress = progress;
         _buildings = buildings;
+        _audio = audio;
     }
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
@@ -183,6 +187,7 @@ internal sealed class PlayerActions
             if (ItemCatalog.TryGet(_inventory.SlotAt(wideSlot).ItemId, out ItemDefinition? tool) && tool.Tool is ToolKind.Hoe or ToolKind.WateringCan && ToolRules.AreaLength(tool.Tier) > 1)
             {
                 _lastUseSeconds = nowSeconds;
+                this.PlaySwing(tool.Tool);
                 _farm.UseArea(wideSlot, this.TargetX, this.TargetY, ToolRules.AreaLength(tool.Tier));
             }
         }
@@ -212,10 +217,18 @@ internal sealed class PlayerActions
             }
             else
             {
+                if (ItemCatalog.TryGet(held.ItemId, out ItemDefinition? swung))
+                {
+                    this.PlaySwing(swung.Tool);
+                }
+
                 _farm.Use(selected, this.TargetX, this.TargetY);
             }
         }
     }
+
+    // The swing sounds when the key is pressed, not when the server answers: the sound is feedback for the key, the server still decides what the swing did.
+    private void PlaySwing(ToolKind tool) => _audio?.Play(AudioCatalog.ToolSound(tool));
 
     // Feed in hand facing the bench fills it; otherwise the animal within reach is collected from (an egg, or milk with the pail in hand) when it has produce, and petted when it has none.
     private void TendAnimals(BuildingDefinition interior, double feetX, double feetY, int tileSize)

@@ -22,6 +22,12 @@ namespace Nosum.Rendering;
 /// radius in <c>srcW</c>); a draw with texture <see cref="AmbientTexture"/> composites the ambient tint over everything drawn so far, cutting the frame's lights out of it
 /// (<see cref="SetAmbient"/>: <c>srcX, srcY, srcW, srcH</c> hold red, green, blue and opacity).
 /// </para>
+/// <para>
+/// Appended for docs/adr/ADR-039 (sound rides in the same buffer, so audio costs no crossing of its own): a draw with texture <see cref="SoundTexture"/> plays a sound once
+/// (<see cref="PlaySound"/>: <c>srcX</c> sound id, <c>srcY</c> volume 0 to 100, <c>srcW</c> pan -100 to 100); <see cref="MusicTexture"/> sets the music track
+/// (<see cref="SetMusic"/>: <c>srcX</c> track id, 0 for none); <see cref="AmbientLoopTexture"/> sets the ambient loop (<see cref="SetAmbientLoop"/>: <c>srcX</c> loop id, 0 for none,
+/// <c>srcY</c> volume 0 to 100). They draw nothing; <c>renderer.js</c> hands them to <c>audio.js</c>.
+/// </para>
 /// </remarks>
 public sealed class RenderCommandBuffer
 {
@@ -48,6 +54,15 @@ public sealed class RenderCommandBuffer
 
     /// <summary>Texture id of a command that fills a rectangle with a colour; <c>tint</c> then holds <c>0xRRGGBBAA</c> (rain and snow, docs/adr/ADR-027 D6).</summary>
     public const int FillTexture = -6;
+
+    /// <summary>Texture id of a command that plays a sound once (docs/adr/ADR-039): <c>srcX</c> holds the sound id, <c>srcY</c> the volume and <c>srcW</c> the pan.</summary>
+    public const int SoundTexture = -7;
+
+    /// <summary>Texture id of a command that sets the music track (docs/adr/ADR-039): <c>srcX</c> holds the track id, 0 for silence.</summary>
+    public const int MusicTexture = -8;
+
+    /// <summary>Texture id of a command that sets the ambient loop (docs/adr/ADR-039): <c>srcX</c> holds the loop id, 0 for none, and <c>srcY</c> the volume.</summary>
+    public const int AmbientLoopTexture = -9;
 
     /// <summary>Most light sources one frame may carry; further ones are dropped (docs/adr/ADR-027 D5).</summary>
     public const int MaxLights = 64;
@@ -181,6 +196,27 @@ public sealed class RenderCommandBuffer
             this.Draw(AmbientTexture, Math.Clamp(red, 0, 255), Math.Clamp(green, 0, 255), Math.Clamp(blue, 0, 255), Math.Min(opacity, 255), 0, 0);
         }
     }
+
+    /// <summary>Records a one-shot sound. Nothing is recorded for an id below 1.</summary>
+    /// <param name="soundId">Sound id the backend loaded (1 or more).</param>
+    /// <param name="volume">Volume, 0 to 100 (clamped).</param>
+    /// <param name="pan">Stereo position, -100 (left) to 100 (right), clamped.</param>
+    public void PlaySound(int soundId, int volume, int pan)
+    {
+        if (soundId > 0)
+        {
+            this.Draw(SoundTexture, soundId, Math.Clamp(volume, 0, 100), Math.Clamp(pan, -100, 100), 0, 0, 0);
+        }
+    }
+
+    /// <summary>Records the music track to play; the backend keeps it playing until the next such command.</summary>
+    /// <param name="trackId">Track id, or 0 for silence.</param>
+    public void SetMusic(int trackId) => this.Draw(MusicTexture, Math.Max(trackId, 0), 0, 0, 0, 0, 0);
+
+    /// <summary>Records the ambient loop to play (rain); the backend keeps it playing until the next such command.</summary>
+    /// <param name="loopId">Loop id, or 0 for none.</param>
+    /// <param name="volume">Volume, 0 to 100 (clamped).</param>
+    public void SetAmbientLoop(int loopId, int volume) => this.Draw(AmbientLoopTexture, Math.Max(loopId, 0), Math.Clamp(volume, 0, 100), 0, 0, 0, 0);
 
     /// <summary>
     /// Records a text label (a nickname above a head), centred on <paramref name="centerX"/> with its bottom edge at <paramref name="bottomY"/>.

@@ -60,6 +60,7 @@ internal static partial class GameLoop
     private static ProgressChannel? s_progress;
     private static LookChannel? s_looks;
     private static NicknameFormatter? s_names;
+    private static GameAudio? s_audio;
     private static double s_lastTime = -1;
     private static bool s_moved;
     private static bool s_acted;
@@ -130,6 +131,10 @@ internal static partial class GameLoop
     /// <param name="buildings">The building channel.</param>
     public static void UseBuildings(BuildingChannel buildings) => s_buildings = buildings;
 
+    /// <summary>Gives the loop the audio director (docs/adr/ADR-039): it loads the sound files in the background and its queue is written into every frame. Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="audio">The audio director.</param>
+    internal static void UseAudio(GameAudio audio) => s_audio = audio;
+
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
 
@@ -166,7 +171,7 @@ internal static partial class GameLoop
         ArgumentNullException.ThrowIfNull(http);
 
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
-        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings) : null;
+        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
@@ -206,7 +211,12 @@ internal static partial class GameLoop
             providers.Add(new AnimalsDecoratorProvider(s_buildings));
         }
 
-        MapLoader loader = new(http, textures, providers);
+        if (s_network is not null)
+        {
+            providers.Add(new BridgeDecoratorProvider(s_network.IsUnlocked));
+        }
+
+        MapLoader loader = new(http, textures, providers, s_network is null ? null : s_network.IsUnlocked);
 
         Task<int[]> farmerSheets = Task.WhenAll(
             textures.LoadAsync(FarmerUrl + "farmer_base.png"),
@@ -229,7 +239,12 @@ internal static partial class GameLoop
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(new LabelRegistry(WebRenderBackend.UploadLabel), s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio);
+        if (s_audio is not null)
+        {
+            // Not awaited: the game starts at once and the sounds arrive when they are decoded (a file that fails stays silent).
+            _ = GameAudio.LoadAsync();
+        }
 
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }

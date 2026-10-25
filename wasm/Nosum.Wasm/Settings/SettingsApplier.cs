@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System.Runtime.Versioning;
+using Nosum.Rendering;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.ViewModels.Settings;
@@ -15,6 +16,7 @@ internal sealed class SettingsApplier
     private bool? _contrast;
     private bool? _motion;
     private string? _keys;
+    private (int Music, int Sound, bool Muted)? _volumes;
 
     /// <summary>Applies settings; only what changed since the last call reaches the browser.</summary>
     /// <param name="settings">The settings.</param>
@@ -33,6 +35,13 @@ internal sealed class SettingsApplier
         {
             _scale = settings.UiScale;
             BrowserSettings.ApplyScale(settings.UiScale);
+        }
+
+        (int, int, bool) volumes = (settings.MusicVolume, settings.SoundVolume, settings.Muted);
+        if (_volumes != volumes)
+        {
+            _volumes = volumes;
+            WebRenderBackend.SetLevels(VolumeCurve.Gain(settings.MusicVolume, settings.Muted), VolumeCurve.Gain(settings.SoundVolume, settings.Muted));
         }
 
         string keys = settings.Bindings.SerializeAll();

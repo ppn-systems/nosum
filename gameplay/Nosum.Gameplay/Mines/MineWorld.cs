@@ -3,25 +3,22 @@
 namespace Nosum.Gameplay.Mines;
 
 /// <summary>
-/// Where the mine and the blacksmith stand on the placeholder maps (docs/adr/ADR-007, ADR-026): the Town edge that leads to the mine, the
+/// Where the mine and the blacksmith stand on the placeholder maps (docs/adr/ADR-007, ADR-026, ADR-037): the Mountain's cave mouth that leads to the mine, the
 /// entrance cave <c>Mine.tmx</c> and the blacksmith's counter. Tile coordinates, checked against the map files by tests.
 /// </summary>
 public static class MineWorld
 {
-    /// <summary>First Town x of the north edge that leads to the mine: the road to the Mountain, which the world does not host yet, ends here for now.</summary>
-    public const int TownGateFromX = 79;
+    /// <summary>Tile of the Mountain a player stands on to enter the mine: the file's own <c>Mine</c> exit, the cave mouth at the north end of the path (docs/adr/ADR-037 D1).</summary>
+    public static readonly (int X, int Y) MountainGate = (54, 4);
 
-    /// <summary>Last Town x of the north edge that leads to the mine (five tiles wide, as the file's own exit to the Mountain).</summary>
-    public const int TownGateToX = 83;
+    /// <summary>Mountain tile a player arrives on when leaving the mine, one tile south of the gate (not on it, so they do not bounce back).</summary>
+    public static readonly (int X, int Y) MountainArrival = (54, 5);
 
-    /// <summary>Town tile a player arrives on when leaving the mine, one tile in from the gate (not on the edge, so they do not bounce back).</summary>
-    public static readonly (int X, int Y) TownArrival = (81, 2);
-
-    /// <summary>Tile of the entrance cave a player arrives on when coming from Town, beside the way back.</summary>
+    /// <summary>Tile of the entrance cave a player arrives on when coming from the Mountain, beside the way back.</summary>
     public static readonly (int X, int Y) CaveArrival = (18, 11);
 
-    /// <summary>Tile of the entrance cave that leads back to Town: the cave's open south passage.</summary>
-    public static readonly (int X, int Y) CaveTownExit = (18, 13);
+    /// <summary>Tile of the entrance cave that leads back to the Mountain: the cave's open south passage.</summary>
+    public static readonly (int X, int Y) CaveMountainExit = (18, 13);
 
     /// <summary>Tile of the entrance cave where the shaft to the first floor is (the file's <c>Mine</c> action tile, opened so a farmer can step into it).</summary>
     public static readonly (int X, int Y) CaveShaft = (23, 9);

@@ -555,9 +555,12 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         IReadOnlySet<(int X, int Y)> tilled = _farm is null
             ? new HashSet<(int X, int Y)>()
             : await _farm.WorkedTilesAsync(instance, tileX, tileY, view.FootprintWidth, view.FootprintHeight, cancellationToken).ConfigureAwait(false);
+
+        // A building's door needs the tile in front of it free of nodes too, one row below the footprint (docs/adr/ADR-028 D1).
+        int nodeRows = view.FootprintHeight + (definition.Door is null ? 0 : 1);
         IReadOnlySet<(int X, int Y)> nodes = _nodes is null
             ? new HashSet<(int X, int Y)>()
-            : await _nodes.NodeTilesAsync(instance, tileX, tileY, view.FootprintWidth, view.FootprintHeight, cancellationToken).ConfigureAwait(false);
+            : await _nodes.NodeTilesAsync(instance, tileX, tileY, view.FootprintWidth, nodeRows, cancellationToken).ConfigureAwait(false);
         return new GroundLayers(tilled, nodes);
     }
 

@@ -10,6 +10,7 @@ using Nosum.Gameplay.Community;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Goals;
 using Nosum.Wasm.ViewModels.Inventory;
+using Nosum.Wasm.ViewModels.Requests;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Goals;
@@ -30,6 +31,16 @@ namespace Nosum.Wasm.ViewModels.Goals;
 /// <param name="CanDeliver">Whether the goal is open and the player has the item.</param>
 public sealed record GoalDisplay(int GoalId, string Name, string RewardText, SlotDisplay Item, int Percent, string ProgressText, string MineText, string ContributorsText, GoalState State, string StateText, int Held, string AmountText, bool CanDeliver);
 
+/// <summary>The tabs of the Town board panel (docs/adr/ADR-036 D5). Values are the tab ids.</summary>
+public enum BoardTab
+{
+    /// <summary>The community goals of the season.</summary>
+    Goals = 0,
+
+    /// <summary>Today's delivery requests.</summary>
+    Requests = 1,
+}
+
 /// <summary>
 /// View model of the Town board page (docs/adr/ADR-030): one row per goal of the season with its progress bar, this player's part and an amount to
 /// deliver. The catalogue (item, target, reward) is the shared <see cref="CommunityGoalCatalog"/>; the totals come from the server and
@@ -42,6 +53,7 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
     private readonly ItemDescriber _describer;
     private readonly CalendarChannel _calendar;
     private readonly IStringLocalizer<Catalogue> _catalogue;
+    private readonly RequestsViewModel _requests;
     private readonly ConcurrentDictionary<int, string> _amounts = [];
 
     /// <summary>Initializes the view model.</summary>
@@ -50,8 +62,9 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
     /// <param name="describer">Describes the delivered items.</param>
     /// <param name="calendar">The server calendar, for the time the season has left.</param>
     /// <param name="catalogue">Goal names and rewards.</param>
+    /// <param name="requests">The requests tab (docs/adr/ADR-036 D5).</param>
     /// <param name="text">UI text.</param>
-    public GoalsViewModel(GoalChannel channel, InventoryViewModel inventory, ItemDescriber describer, CalendarChannel calendar, IStringLocalizer<Catalogue> catalogue, IStringLocalizer<Language> text)
+    public GoalsViewModel(GoalChannel channel, InventoryViewModel inventory, ItemDescriber describer, CalendarChannel calendar, IStringLocalizer<Catalogue> catalogue, RequestsViewModel requests, IStringLocalizer<Language> text)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(channel);
@@ -59,8 +72,10 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
         ArgumentNullException.ThrowIfNull(describer);
         ArgumentNullException.ThrowIfNull(calendar);
         ArgumentNullException.ThrowIfNull(catalogue);
+        ArgumentNullException.ThrowIfNull(requests);
 
         _channel = channel;
+        _requests = requests;
         _inventory = inventory;
         _describer = describer;
         _calendar = calendar;
@@ -68,7 +83,20 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
         channel.Changed += this.Raise;
         channel.Delivered += this.OnDelivered;
         inventory.Changed += this.Raise;
+        requests.Changed += this.Raise;
     }
+
+    /// <summary>Gets the tab that is showing.</summary>
+    public BoardTab Tab { get; private set; }
+
+    /// <summary>Gets the requests tab's view model.</summary>
+    public RequestsViewModel Requests => _requests;
+
+    /// <summary>Gets the status line of the tab that is showing.</summary>
+    public string ActiveStatus => this.Tab == BoardTab.Requests ? _requests.Status : this.Status;
+
+    /// <summary>Gets whether the status line of the tab that is showing reports a success.</summary>
+    public bool ActiveStatusIsGood => this.Tab == BoardTab.Requests ? _requests.StatusIsGood : this.StatusIsGood;
 
     /// <summary>Gets the title of the board page.</summary>
     public string Title => this.Text("Goals_Title");
@@ -116,8 +144,29 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
     {
         _amounts.Clear();
         this.ClearStatus();
+        this.Tab = BoardTab.Goals;
         _channel.Load();
         this.Raise();
+    }
+
+    /// <summary>Shows a tab; the requests are read again when their tab comes up.</summary>
+    /// <param name="tab">The tab.</param>
+    public void SetTab(BoardTab tab)
+    {
+        if (tab == this.Tab)
+        {
+            return;
+        }
+
+        this.Tab = tab;
+        if (tab == BoardTab.Requests)
+        {
+            _requests.Open();
+        }
+        else
+        {
+            this.Raise();
+        }
     }
 
     /// <summary>Sets the amount typed for a goal.</summary>
@@ -150,6 +199,7 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
         _channel.Changed -= this.Raise;
         _channel.Delivered -= this.OnDelivered;
         _inventory.Changed -= this.Raise;
+        _requests.Changed -= this.Raise;
     }
 
     private GoalDisplay Describe(CommunityGoalDefinition goal, GoalInfo info)

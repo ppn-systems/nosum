@@ -20,6 +20,7 @@ using Nosum.Contracts.Coop;
 using Nosum.Contracts.Shop;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Players;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
 using Nosum.Contracts.Look;
 using Nosum.Contracts.Look.S2C;
@@ -403,7 +404,10 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
 
         (await buyer.BuyFromShopAsync(shopId, ItemCatalog.OakChair, 1, ct)).Status.Should().Be(ShopStatus.NotSold, "furniture is the furniture shop's");
         (await buyer.BuyFromShopAsync(shopId, itemId, 1, ct)).Should().Be((ShopStatus.Ok, price));
-        (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins - price);
+
+        // Buying seeds finishes a step of the tutorial chain, which pays its reward before the answer comes back (docs/adr/ADR-036).
+        long reward = shopId == ShopCatalog.SeedShop && QuestCatalog.TryGet(QuestCatalog.BuySeeds, out QuestDefinition? quest) ? quest.RewardCoins : 0;
+        (await buyer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins - price + reward);
     }
 
     [Fact]

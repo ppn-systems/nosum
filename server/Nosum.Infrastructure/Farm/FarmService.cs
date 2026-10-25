@@ -225,6 +225,11 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
 
         if (await _nodes.TryUseAsync(new NodeUseRequest(player, map, hotbarSlot, held, tileX, tileY, worked), cancellationToken).ConfigureAwait(false) is { } handled)
         {
+            if (handled is { Status: FarmStatus.Ok, Action: FarmAction.Broke })
+            {
+                await this.ReportAsync(playerId, new QuestEvent(QuestEventKind.NodeBroken, handled.Subject), cancellationToken).ConfigureAwait(false);
+            }
+
             return handled;
         }
 
@@ -492,13 +497,13 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             case ItemKind.Tool when item.Tool == ToolKind.Hoe:
                 {
                     FarmVerdict till = FarmRules.Till(tillable, current, nowMs, _calendar, out FarmTile tilled);
-                    return till == FarmVerdict.Ok ? new Plan(till, FarmAction.Tilled, tilled, [], "farm.till", null, item.Id, 0) : Plan.Refuse(till);
+                    return till == FarmVerdict.Ok ? new Plan(till, FarmAction.Tilled, tilled, [], "farm.till", new QuestEvent(QuestEventKind.SoilTilled), item.Id, 0) : Plan.Refuse(till);
                 }
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
                     FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinkled);
-                    return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", null, item.Id, 0) : Plan.Refuse(water);
+                    return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", new QuestEvent(QuestEventKind.CropWatered), item.Id, 0) : Plan.Refuse(water);
                 }
 
             case ItemKind.Tool when item.Tool == ToolKind.Pickaxe:
