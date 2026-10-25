@@ -114,6 +114,17 @@ public sealed class WalkGrid
         }
     }
 
+    /// <summary>Marks one tile as walkable; a tile outside the grid is ignored.</summary>
+    /// <param name="x">Tile x.</param>
+    /// <param name="y">Tile y.</param>
+    public void Open(int x, int y)
+    {
+        if (x >= 0 && y >= 0 && x < this.Width && y < this.Height)
+        {
+            _blocked[(y * this.Width) + x] = false;
+        }
+    }
+
     /// <summary>Blocks the collision footprint of every prop (docs/adr/ADR-005 D6).</summary>
     /// <param name="props">Placed buildings and props.</param>
     public void BlockFootprints(IReadOnlyList<PropPlacement> props)

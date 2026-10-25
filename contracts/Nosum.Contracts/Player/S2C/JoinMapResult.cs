@@ -6,7 +6,7 @@ using Nalix.Codec.DataFrames;
 
 namespace Nosum.Contracts.Player.S2C;
 
-/// <summary>Reply to <see cref="C2S.JoinMap"/>: the player's id and where they stand.</summary>
+/// <summary>Reply to <see cref="C2S.JoinMap"/>: the player's id, the map the server put them on and where they stand.</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]
@@ -26,4 +26,10 @@ public sealed partial class JoinMapResult : PacketBase<JoinMapResult>, IPacketSt
 
     /// <summary>Spawn feet y in world pixels.</summary>
     [SerializeOrder(3)] public float SpawnY { get; set; }
+
+    /// <summary>Stable id of the map the server put the player on: where they were last, else the starting map.</summary>
+    [SerializeOrder(4)] public string MapId { get; set; } = string.Empty;
+
+    /// <summary>Facing at the spawn: 0 down, 1 right, 2 up, 3 left.</summary>
+    [SerializeOrder(5)] public byte Facing { get; set; }
 }

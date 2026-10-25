@@ -4,7 +4,7 @@ namespace Nosum.Contracts.Player;
 
 /// <summary>
 /// Opcodes of the Player domain (presence and movement).
-/// <para>Band <c>0x2000-0x20FF</c> is reserved for this domain; <c>0x0000-0x00FF</c> belongs to Nalix and <c>0x1000-0x10FF</c> to Account.
+/// <para>Band <c>0x2000-0x20FF</c> is reserved for this domain; <c>0x0000-0x00FF</c> belongs to Nalix and <c>0x1000-0x10FF</c> to Account, <c>0x7000-0x70FF</c> to World.
 /// C2S requests use <c>0x2000-0x203F</c>, S2C replies and pushes use <c>0x2040-0x207F</c>.
 /// Never reassign or reuse a value.</para>
 /// </summary>

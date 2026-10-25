@@ -6,31 +6,35 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Nosum.Abstractions.Maps;
 using Nosum.Core;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 
 namespace Nosum.Infrastructure.Maps;
 
 /// <summary>
-/// Maps loaded once from Tiled <c>.tmx</c> files. Ids are a fixed list given by the composition
-/// root, so a client-supplied id can never be turned into a file path.
+/// The maps of <see cref="GameMaps"/>, loaded once from their Tiled <c>.tmx</c> files. The ids are the
+/// catalogue's fixed list and the files are names inside one folder, so a client-supplied id can never
+/// be turned into a file path.
 /// </summary>
 public sealed class TmxMapCatalog : IMapCatalog
 {
     private readonly Dictionary<string, MapDefinition> _maps = new(StringComparer.Ordinal);
 
     /// <summary>Loads the given maps.</summary>
-    /// <param name="sources">The maps to host.</param>
+    /// <param name="specs">The maps to host.</param>
+    /// <param name="mapsDirectory">Folder that holds the <c>.tmx</c> files.</param>
     /// <exception cref="FileNotFoundException">A map file is missing.</exception>
-    public TmxMapCatalog(IEnumerable<TmxMapSource> sources)
+    public TmxMapCatalog(IEnumerable<MapSpec> specs, string mapsDirectory)
     {
-        ArgumentNullException.ThrowIfNull(sources);
+        ArgumentNullException.ThrowIfNull(specs);
+        ArgumentException.ThrowIfNullOrEmpty(mapsDirectory);
 
-        foreach (TmxMapSource source in sources)
+        foreach (MapSpec spec in specs)
         {
-            TileMap map = TmxReader.Parse(File.ReadAllText(source.Path));
-            WalkGrid grid = source.BuildGrid(map);
-            (double x, double y) = SpawnPoint.Find(grid, source.SpawnTileX, source.SpawnTileY);
-            _maps.Add(source.Id, new MapDefinition(source.Id, grid, x, y));
+            TileMap map = TmxReader.Parse(File.ReadAllText(Path.Combine(mapsDirectory, spec.TmxFile)));
+            WalkGrid grid = spec.BuildWalkGrid(map);
+            (double x, double y) = SpawnPoint.Find(grid, spec.SpawnTileX, spec.SpawnTileY);
+            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, spec.ResolveWarps(map)));
         }
     }
 
@@ -46,11 +50,3 @@ public sealed class TmxMapCatalog : IMapCatalog
         return _maps.TryGetValue(mapId, out map);
     }
 }
-
-/// <summary>A map file the server hosts.</summary>
-/// <param name="Id">Stable map key.</param>
-/// <param name="Path">Path of the <c>.tmx</c> file.</param>
-/// <param name="SpawnTileX">Preferred spawn tile x.</param>
-/// <param name="SpawnTileY">Preferred spawn tile y.</param>
-/// <param name="BuildGrid">Builds the walk grid; must be the same rule the client predicts with.</param>
-public readonly record struct TmxMapSource(string Id, string Path, int SpawnTileX, int SpawnTileY, Func<TileMap, WalkGrid> BuildGrid);

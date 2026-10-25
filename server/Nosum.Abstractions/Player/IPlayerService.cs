@@ -9,27 +9,35 @@ using Nosum.Contracts.Player;
 namespace Nosum.Abstractions.Player;
 
 /// <summary>
-/// The player's place in the world: entering a map and walking on it. The server owns positions;
-/// clients only claim them.
+/// The player's place in the world: entering the world, walking on a map and changing maps. The server
+/// owns positions and decides every map change; clients only claim positions.
 /// </summary>
 public interface IPlayerService
 {
-    /// <summary>Puts a connection on a map, or refuses.</summary>
+    /// <summary>
+    /// Puts a connection in the world, or refuses. The map is the server's choice: where the player was last, else the starting map.
+    /// </summary>
     /// <param name="connection">The player's connection.</param>
     /// <param name="accountId">The signed-in account behind the connection (from the server's own sign-in record, never from a packet).</param>
-    /// <param name="mapId">Map key named by the client.</param>
+    /// <param name="mapId">Map key named by the client; must be a hosted map, but does not choose the map.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
-    /// <returns>The outcome code, the player id and the spawn.</returns>
+    /// <returns>The outcome code, the player id, the map and the spawn.</returns>
     ValueTask<JoinOutcome> JoinAsync(IConnection connection, Guid accountId, string mapId, CancellationToken cancellationToken = default);
 
-    /// <summary>Checks a claimed position and applies it when legal.</summary>
+    /// <summary>
+    /// Checks a claimed position and applies it when legal. When the accepted position puts the player on an exit
+    /// of the map (and they did not just arrive on it), also moves them to the exit's target map: the player
+    /// leaves the old map's group, is told with a <c>MapChanged</c> push, enters the new map's group and the
+    /// new place is saved.
+    /// </summary>
     /// <param name="connection">The player's connection.</param>
     /// <param name="x">Claimed feet x.</param>
     /// <param name="y">Claimed feet y.</param>
     /// <param name="facing">Claimed facing, 0 to 3.</param>
     /// <param name="moving">Claimed walking flag.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Whether it was accepted and, when not, why and where the player is kept.</returns>
-    MoveOutcome Move(IConnection connection, float x, float y, byte facing, bool moving);
+    ValueTask<MoveOutcome> MoveAsync(IConnection connection, float x, float y, byte facing, bool moving, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Outcome of <see cref="IPlayerService.JoinAsync"/>.</summary>
@@ -37,9 +45,11 @@ public interface IPlayerService
 /// <param name="PlayerId">Player id; zero unless the status is <see cref="JoinStatus.Ok"/>.</param>
 /// <param name="SpawnX">Spawn feet x.</param>
 /// <param name="SpawnY">Spawn feet y.</param>
-public readonly record struct JoinOutcome(JoinStatus Status, uint PlayerId, float SpawnX, float SpawnY);
+/// <param name="MapId">The map the player was put on; empty unless the status is <see cref="JoinStatus.Ok"/>.</param>
+/// <param name="Facing">Facing at the spawn, 0 down, 1 right, 2 up, 3 left.</param>
+public readonly record struct JoinOutcome(JoinStatus Status, uint PlayerId, float SpawnX, float SpawnY, string MapId = "", byte Facing = 0);
 
-/// <summary>How <see cref="IPlayerService.Move"/> ended.</summary>
+/// <summary>How <see cref="IPlayerService.MoveAsync"/> ended.</summary>
 public enum MoveStatus
 {
     /// <summary>The claim was legal and applied.</summary>
@@ -48,13 +58,16 @@ public enum MoveStatus
     /// <summary>The claim was refused; the player is kept where they were.</summary>
     Refused = 1,
 
-    /// <summary>The connection is on no map, so there is nothing to move.</summary>
+    /// <summary>The connection is on no map (or is already being moved to another), so there is nothing to move.</summary>
     NotJoined = 2,
+
+    /// <summary>The claim was legal and put the player on an exit: they are now on another map and were told so.</summary>
+    Warped = 3,
 }
 
-/// <summary>Outcome of <see cref="IPlayerService.Move"/>.</summary>
-/// <param name="Status">Accepted, refused or not joined.</param>
+/// <summary>Outcome of <see cref="IPlayerService.MoveAsync"/>.</summary>
+/// <param name="Status">Accepted, refused, not joined or warped.</param>
 /// <param name="Reason">Why it was refused; meaningful only for <see cref="MoveStatus.Refused"/>.</param>
-/// <param name="X">Feet x the server keeps.</param>
-/// <param name="Y">Feet y the server keeps.</param>
+/// <param name="X">Feet x the server keeps (on the new map when warped).</param>
+/// <param name="Y">Feet y the server keeps (on the new map when warped).</param>
 public readonly record struct MoveOutcome(MoveStatus Status, MoveRefusal Reason, float X, float Y);

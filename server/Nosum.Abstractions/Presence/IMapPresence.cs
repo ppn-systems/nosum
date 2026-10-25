@@ -29,9 +29,10 @@ public interface IMapPresence
     /// <param name="accountId">The signed-in account behind the connection.</param>
     /// <param name="mapId">Map key.</param>
     /// <param name="motion">Starting position, facing and movement budget.</param>
+    /// <param name="playerId">The id to keep when the player changes map, or <see langword="null"/> for a new id.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The new presence record.</returns>
-    ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, string mapId, MotionState motion, CancellationToken cancellationToken = default);
+    ValueTask<PlayerPresence> JoinAsync(IConnection connection, Guid accountId, string mapId, MotionState motion, uint? playerId = null, CancellationToken cancellationToken = default);
 
     /// <summary>Removes a connection from its map; does nothing when it is on none.</summary>
     /// <param name="connection">The player's connection.</param>
@@ -53,6 +54,13 @@ public interface IMapPresence
     /// <param name="mapId">Map key.</param>
     /// <param name="into">List that receives the players.</param>
     void CopyPlayers(string mapId, List<PlayerPresence> into);
+
+    /// <summary>Sends one packet to one connection, with the same transport and encryption as <see cref="MulticastAsync"/>.</summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="packet">The packet; the caller keeps ownership and may return it to its pool afterwards.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the packet was sent.</returns>
+    ValueTask SendAsync(IConnection connection, IPacket packet, CancellationToken cancellationToken = default);
 
     /// <summary>Sends one packet to every player of a map. Best effort: a dead connection never fails the rest.</summary>
     /// <param name="mapId">Map key.</param>
