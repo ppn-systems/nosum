@@ -18,6 +18,9 @@ public static class PlayerOpCode
     /// <summary>Reports where the player's feet are now. No reply; a refusal arrives as <see cref="S2C.MoveCorrection"/>.</summary>
     public const ushort MoveIntent = 0x2001;
 
+    /// <summary>Eats the food in a hotbar slot. Reply: <see cref="S2C.EatResult"/> (docs/adr/ADR-023).</summary>
+    public const ushort Eat = 0x2002;
+
     // -- S2C (0x2040-0x207F) --------------------------------------------------
 
     /// <summary>Reply to <see cref="JoinMap"/>.</summary>
@@ -31,4 +34,16 @@ public static class PlayerOpCode
 
     /// <summary>Push to one player: the server refused a <see cref="MoveIntent"/> and puts the player back.</summary>
     public const ushort MoveCorrection = 0x2043;
+
+    /// <summary>Reply to <see cref="Eat"/>.</summary>
+    public const ushort EatResult = 0x2044;
+
+    /// <summary>Push to one player: their energy changed (docs/adr/ADR-023).</summary>
+    public const ushort EnergyChanged = 0x2045;
+
+    /// <summary>Push to one player: their skill experience totals changed.</summary>
+    public const ushort SkillXpChanged = 0x2046;
+
+    /// <summary>Push to one player: a skill reached a new level.</summary>
+    public const ushort LevelUp = 0x2047;
 }

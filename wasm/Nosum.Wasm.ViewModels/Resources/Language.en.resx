@@ -487,4 +487,22 @@
   <data name="Mail_Status_HasAttachments" xml:space="preserve"><value>Collect the gift before deleting.</value></data>
   <data name="Mail_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Mail_Status_Failed" xml:space="preserve"><value>The transfer failed, try again.</value></data>
+  <data name="Farm_Status_NoEnergy" xml:space="preserve"><value>You are out of energy. Eat some produce, or wait for the next day.</value></data>
+  <data name="Eat_Status_InvalidSlot" xml:space="preserve"><value>That slot is not on the hotbar.</value></data>
+  <data name="Eat_Status_NotEdible" xml:space="preserve"><value>You cannot eat that.</value></data>
+  <data name="Eat_Status_ItemMissing" xml:space="preserve"><value>The food is no longer in that slot.</value></data>
+  <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>You are full of energy already.</value></data>
+  <data name="Eat_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Energy_Label" xml:space="preserve"><value>Energy {0} / {1}</value></data>
+  <data name="Energy_Heading" xml:space="preserve"><value>Energy</value></data>
+  <data name="Energy_Hint" xml:space="preserve"><value>Every tool use costs energy (the scythe is free). It refills at the start of each game day; eat produce to restore some.</value></data>
+  <data name="Skills_Heading" xml:space="preserve"><value>Skills</value></data>
+  <data name="Skills_Hint" xml:space="preserve"><value>Work to level up. Every 4 levels take 1 energy off each use of that skill's tool.</value></data>
+  <data name="Skill_Farming" xml:space="preserve"><value>Farming</value></data>
+  <data name="Skill_Foraging" xml:space="preserve"><value>Foraging</value></data>
+  <data name="Skill_Mining" xml:space="preserve"><value>Mining</value></data>
+  <data name="Skill_Level" xml:space="preserve"><value>Level {0}</value></data>
+  <data name="Skill_MaxLevel" xml:space="preserve"><value>Max level</value></data>
+  <data name="Skill_LevelUp" xml:space="preserve"><value>{0} reached level {1}!</value></data>
+  <data name="Toolbar_Skills" xml:space="preserve"><value>Skills</value></data>
 </root>

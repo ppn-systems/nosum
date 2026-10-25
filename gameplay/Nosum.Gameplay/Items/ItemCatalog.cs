@@ -9,7 +9,7 @@ namespace Nosum.Gameplay.Items;
 
 /// <summary>
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
-/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources.
+/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources, 700-799 food (dishes, ADR-024); raw produce is edible through its <see cref="ItemDefinition.FoodEnergy"/>.
 /// </summary>
 public static class ItemCatalog
 {
@@ -131,9 +131,9 @@ public static class ItemCatalog
         new(OakSeed, "oak_seed", ItemKind.TreeSeed, DefaultStack, treeVariant: TreeVariant.Oak),
         new(MapleSeed, "maple_seed", ItemKind.TreeSeed, DefaultStack, treeVariant: TreeVariant.Maple),
         new(PineSeed, "pine_seed", ItemKind.TreeSeed, DefaultStack, treeVariant: TreeVariant.Pine),
-        new(Parsnip, "parsnip", ItemKind.Produce, DefaultStack),
-        new(Radish, "radish", ItemKind.Produce, DefaultStack),
-        new(Cauliflower, "cauliflower", ItemKind.Produce, DefaultStack),
+        new(Parsnip, "parsnip", ItemKind.Produce, DefaultStack, foodEnergy: 10),
+        new(Radish, "radish", ItemKind.Produce, DefaultStack, foodEnergy: 8),
+        new(Cauliflower, "cauliflower", ItemKind.Produce, DefaultStack, foodEnergy: 20),
         new(Wood, "wood", ItemKind.Resource, DefaultStack),
         new(Stone, "stone", ItemKind.Resource, DefaultStack),
         new(Fiber, "fiber", ItemKind.Resource, DefaultStack),

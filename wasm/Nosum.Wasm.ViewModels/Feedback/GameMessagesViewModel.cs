@@ -6,8 +6,11 @@ using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Market;
 using Nosum.Contracts.Placeable;
+using Nosum.Contracts.Player;
+using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Farm;
+using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Resources;
@@ -63,6 +66,21 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         market.Completed += this.OnMarketCompleted;
     }
 
+    /// <summary>Initializes the view model and also tells the player when a skill levels up and why eating was refused (docs/adr/ADR-023).</summary>
+    /// <param name="farm">The farm channel (answers to item use).</param>
+    /// <param name="placeables">The placeable channel (answers to placing furniture).</param>
+    /// <param name="inventory">The inventory view model (refused moves).</param>
+    /// <param name="text">UI text.</param>
+    /// <param name="market">The market channel (answers to shipping).</param>
+    /// <param name="progress">The energy and skills channel.</param>
+    public GameMessagesViewModel(FarmChannel farm, PlaceableChannel placeables, InventoryViewModel inventory, IStringLocalizer<Language> text, MarketChannel market, ProgressChannel progress)
+        : this(farm, placeables, inventory, text, market)
+    {
+        ArgumentNullException.ThrowIfNull(progress);
+        progress.LevelledUp += this.OnLevelUp;
+        progress.EatCompleted += this.OnEatCompleted;
+    }
+
     /// <summary>Raised when <see cref="Message"/> changed. May run on any thread.</summary>
     public event Action? Changed;
 
@@ -85,6 +103,17 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         _farm.UseCompleted -= this.OnUseCompleted;
         _placeables.Completed -= this.OnPlaceCompleted;
         _inventory.Refused -= this.Show;
+    }
+
+    private void OnLevelUp(byte skill, int level)
+        => this.Show(string.Format(System.Globalization.CultureInfo.CurrentCulture, _text["Skill_LevelUp"].Value, _text["Skill_" + (SkillKind)skill].Value, level));
+
+    private void OnEatCompleted(EatStatus status)
+    {
+        if (status != EatStatus.Ok)
+        {
+            this.Show(_text["Eat_Status_" + status].Value);
+        }
     }
 
     private void OnMarketCompleted(MarketAction action, MarketStatus status, long earned)

@@ -103,6 +103,18 @@ const GLYPHS = {
         "###...###",
         "###...###",
     ],
+    star: [
+        ".....#.....",
+        ".....#.....",
+        "....###....",
+        "###########",
+        ".#########.",
+        "..#######..",
+        "..#######..",
+        ".####.####.",
+        ".###...###.",
+        ".#.......#.",
+    ],
     swap: [
         "...#.......",
         "...##......",
@@ -197,6 +209,7 @@ const SPRITES = [
     ["tab-visitors", "cursors", 16, 368, 16, 16, "people"],
     ["tab-friends", "cursors", 16, 368, 16, 16, "heart"],
     ["tab-mail", "cursors", 16, 368, 16, 16, "envelope"],
+    ["tab-skills", "cursors", 16, 368, 16, 16, "star"],
     ["tab-settings", "cursors", 16, 368, 16, 16, "gear"],
     // The faint picture in an empty equipment slot (glyph only, no sheet).
     ["glyph-hat", null, 0, 0, 11, 4, "hat"],

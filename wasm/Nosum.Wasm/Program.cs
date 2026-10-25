@@ -45,6 +45,7 @@ using Nosum.Wasm.ViewModels.Looks;
 using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.ViewModels.Profile;
+using Nosum.Wasm.ViewModels.Progress;
 using Nosum.Wasm.ViewModels.Shop;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Quest;
@@ -84,6 +85,7 @@ internal static class Program
         builder.Services.AddSingleton<PlaceableChannel>();
         builder.Services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton<GroundItemChannel>();
+        builder.Services.AddSingleton(sp => new ProgressChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton<QuestChannel>();
         builder.Services.AddSingleton<WalletChannel>();
         builder.Services.AddSingleton<CalendarChannel>();
@@ -113,6 +115,7 @@ internal static class Program
         builder.Services.AddSingleton<ProfileViewModel>();
         builder.Services.AddSingleton<ShopViewModel>();
         builder.Services.AddSingleton<HelpViewModel>();
+        builder.Services.AddSingleton<ProgressViewModel>();
         builder.Services.AddSingleton<WalletViewModel>();
         builder.Services.AddSingleton<CalendarViewModel>();
         builder.Services.AddSingleton<MarketViewModel>();
@@ -160,6 +163,7 @@ internal static class Program
         CoopChannel coop = host.Services.GetRequiredService<CoopChannel>();
         LookChannel looks = host.Services.GetRequiredService<LookChannel>();
         GameLoop.UseFarming(farm, inventory, market);
+        GameLoop.UseProgress(host.Services.GetRequiredService<ProgressChannel>());
         GameLoop.UseCalendar(host.Services.GetRequiredService<CalendarChannel>());
         GameLoop.UseLooks(looks, host.Services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
@@ -191,6 +195,7 @@ internal static class Program
         _ = host.Services.GetRequiredService<QuestTrackerViewModel>();
         _ = host.Services.GetRequiredService<GameMessagesViewModel>();
         _ = host.Services.GetRequiredService<NearbyPlayers>();
+        _ = host.Services.GetRequiredService<ProgressViewModel>();
         _ = host.Services.GetRequiredService<WalletViewModel>();
         _ = host.Services.GetRequiredService<CalendarViewModel>();
         _ = host.Services.GetRequiredService<TradeViewModel>();

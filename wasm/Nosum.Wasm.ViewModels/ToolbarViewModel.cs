@@ -44,10 +44,12 @@ public enum PanelKind
     Visitors = 10,
 
     /// <summary>The friends page: friends, requests, the friends-may-visit switch and the block list (docs/adr/ADR-029).</summary>
-    Friends = 11,
+    Friends = 12,
 
     /// <summary>The mail page (docs/adr/ADR-029).</summary>
-    Mail = 12,
+    Mail = 13,
+    /// <summary>The skills page: energy and the three skill levels (docs/adr/ADR-023).</summary>
+    Skills = 11,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -97,6 +99,7 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty, "tab-visitors"),
         new ToolbarItem(PanelKind.Friends, this.Text("Toolbar_Friends"), string.Empty, "tab-friends"),
         new ToolbarItem(PanelKind.Mail, this.Text("Toolbar_Mail"), string.Empty, "tab-mail"),
+        new ToolbarItem(PanelKind.Skills, this.Text("Toolbar_Skills"), string.Empty, "tab-skills"),
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N", "tab-profile"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), "H", "tab-settings"),
     ];
