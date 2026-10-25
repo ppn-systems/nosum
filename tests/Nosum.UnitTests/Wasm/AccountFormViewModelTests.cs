@@ -306,6 +306,70 @@ public sealed class AccountFormViewModelTests
         client.Calls.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task SetLanguageAsync_SignedIn_SwitchesTheUiAtOnceAndStoresItOnTheAccount()
+    {
+        using CultureScope scope = new("vi");
+        CultureInfo? defaultCulture = CultureInfo.DefaultThreadCurrentUICulture;
+        try
+        {
+            FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+            AccountFormViewModel vm = Create(client);
+            await vm.PlayAsGuestAsync(CancellationToken.None);
+            bool changed = false;
+            vm.Changed += () => changed = true;
+
+            await vm.SetLanguageAsync(GameLanguage.English, CancellationToken.None);
+
+            vm.Language.Should().Be(GameLanguage.English);
+            vm.CurrentSession!.Language.Should().Be(GameLanguage.English);
+            vm.LanguageNote.Should().BeNull();
+            changed.Should().BeTrue();
+            client.Calls.Should().Contain("language:English");
+        }
+        finally
+        {
+            CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+            CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+        }
+    }
+
+    [Fact]
+    public async Task SetLanguageAsync_ServerRefuses_KeepsTheNewLanguageAndSaysItWasNotSaved()
+    {
+        using CultureScope scope = new("vi");
+        CultureInfo? defaultCulture = CultureInfo.DefaultThreadCurrentUICulture;
+        try
+        {
+            FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest)) { LanguageStatus = AccountStatus.InvalidLanguage };
+            AccountFormViewModel vm = Create(client);
+            await vm.PlayAsGuestAsync(CancellationToken.None);
+
+            await vm.SetLanguageAsync(GameLanguage.English, CancellationToken.None);
+
+            vm.Language.Should().Be(GameLanguage.English);
+            vm.LanguageNote.Should().NotBeNullOrEmpty();
+        }
+        finally
+        {
+            CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+            CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+        }
+    }
+
+    [Fact]
+    public async Task SetLanguageAsync_SameLanguage_SendsNothing()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
+        AccountFormViewModel vm = Create(client);
+        await vm.PlayAsGuestAsync(CancellationToken.None);
+
+        await vm.SetLanguageAsync(GameLanguage.English, CancellationToken.None);
+
+        client.Calls.Should().NotContain(c => c.StartsWith("language:", StringComparison.Ordinal));
+    }
+
     private static StringLocalizer<Language> Text()
     {
         ResourceManagerStringLocalizerFactory factory = new(Options.Create(new LocalizationOptions()), NullLoggerFactory.Instance);
@@ -355,6 +419,14 @@ public sealed class AccountFormViewModelTests
 
         public Task<NicknameReply> SetNicknameAsync(string nickname, CancellationToken cancellationToken)
             => Task.FromResult(new NicknameReply(AccountStatus.Ok, nickname, null));
+
+        public AccountStatus LanguageStatus { get; set; } = AccountStatus.Ok;
+
+        public Task<AccountStatus> SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken)
+        {
+            this.Calls.Add($"language:{language}");
+            return this.Reply is null ? throw new AccountConnectionException("test") : Task.FromResult(this.LanguageStatus);
+        }
 
         public Task LogoutAsync(CancellationToken cancellationToken)
         {

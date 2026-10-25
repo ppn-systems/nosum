@@ -3,7 +3,18 @@
     color: var(--nosum-ink-soft);
 }
 
+/* One visitor per line: the name takes the space, the badge and the buttons sit at the right edge. */
+.visitor-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+}
+
+.visitor-list ::deep .visitor-row {
+    flex-wrap: nowrap;
+}
+
 .visitor-name {
-    min-width: calc(var(--u) * 48);
-    font-weight: 800;
+    flex: 1 1 auto;
+    min-width: 0;
 }

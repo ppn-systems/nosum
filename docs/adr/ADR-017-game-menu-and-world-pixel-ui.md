@@ -12,8 +12,8 @@ The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px,
 
 ## Decision
 
-- **D1 — One game menu.** Inventory, wardrobe, market, trade, co-op, profile, settings (and a shop while one is open) are the tabs of one window (`GameMenu`, fixed size
-  200 x 186 UI pixels, so tabs never make it jump). The tabs are 16 x 16 icon tabs on the window's top edge; the window title is the active tab's name; the tooltip shows
+- **D1 — One game menu.** Inventory, wardrobe, market, trade, co-op, profile, settings (and a shop while one is open) are the tabs of one window (`GameMenu`, 200 UI pixels wide and as tall
+  as its page: 64 to 186 UI pixels, longer pages scroll inside; the window's top edge is fixed, so the tabs never move). The tabs are 16 x 16 icon tabs on the window's top edge; the window title is the active tab's name; the tooltip shows
   the name and the key. `Esc` closes the menu, or opens it on the tab used last; `I M C T G N` open it on that tab; `H` or `?` and the gear button on the HUD open the
   settings tab. A shop opens on its own tab (titled by the shop) when the action key is pressed at its counter, and the tab disappears with it. A new tab is **one entry**
   in `ToolbarViewModel.Items` (kind, label, key, sprite), one `case` in `Home.razor`, one sprite in `nosum-theme.js`. Tab pages are `MenuPage`s (scrolling content and a status
@@ -21,7 +21,7 @@ The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px,
 - **D2 — The UI pixel is the world pixel.** `--u` (one UI art pixel, CSS px) is computed by `nosum-theme.js` with the engine's own formula, `round(width / 416)` clamped to 2..6,
   and capped at `floor(height / 204)` so the menu always fits (the cap only bites on very wide, short windows). Thin art (Cursors.png, own glyphs) is drawn at `sheet px * --u`, fat art
   (MenuTiles.png, textBox.png: 4 x 4 blocks) at `sheet px / 4 * --u`, `image-rendering: pixelated`, integer sizes only: 3 px at 1280 x 720, 5 px at 1920 x 1080. In a small room the
-  engine zooms further in (a farmhouse is drawn at 5 at 1280 x 720), but the UI keeps the open-map size, so its layout does not change between maps.
+  engine zooms a room (a map no wider than the open-map view, today the farmhouse) to the largest zoom that shows all of it above the hotbar strip, so the room can be drawn at a smaller world pixel than the UI pixel (4 against 5 at 1920 x 1080); the UI keeps the open-map size, so its layout does not change between maps.
 - **D3 — Text is VT323.** The UI font is VT323 (SIL OFL 1.1, `Nosum.Wasm.Controls/wwwroot/fonts/`, licence in `OFL-VT323.txt`), a 5 x 7 pixel font with all Vietnamese diacritics (checked:
   every precomposed letter of Vietnamese, including `ẩ ợ ữ Đ`). Bundled and served with the app; nothing is fetched at run time. Alternatives checked and rejected: Pixelify Sans, Silkscreen,
   Press Start 2P, Jersey, Micro 5, DotGothic16 (no or incomplete Vietnamese); Handjet (full coverage, but a dot-matrix look and a variable font). One font pixel is `--tp` CSS px (`floor(2 u / 3)`:
@@ -63,12 +63,30 @@ The glyphs (gear, shirt, hat, trousers, person, swap arrows) are Nosum's own 1-b
 
 ## Consequences
 
-- Windows are 200 x 186 u: 600 x 558 CSS px at 1280 x 720 (plus the tab row), 1000 x 930 at 1920 x 1080. A window or a short browser (under about 612 px tall at u = 3) lowers `--u` by one step.
+- Windows are 200 u wide and up to 186 u tall: 600 x 558 CSS px at 1280 x 720 (plus the tab row), 1000 x 930 at 1920 x 1080. A window or a short browser (under about 612 px tall at u = 3) lowers `--u` by one step.
 - The game's `Esc` now opens the menu when nothing is open (it used to do nothing).
-- Language is shown in the settings tab but cannot be changed there: the server has `SetLanguage`, the client has no request for it yet.
+- Language is switched in the settings tab (vi / en) and stored on the account through `SetLanguage`; see the implementation notes.
 - VT323 is a monospaced face: text is wider than the old sans-serif for the same number of characters; sentences were shortened where they wrapped (key help).
 - `HelpPanel`, `SessionBar`, `PanelToolbar` and the left/right HUD regions are gone; `GamePanel` only draws dialogs, HUD widgets and the menu window.
 
 ## Revisit when
 
-The art remake replaces the placeholder sheets (the rectangles above change, the controls do not), or the player needs a language switch (add the client request, then a button in the settings tab).
+The art remake replaces the placeholder sheets (the rectangles above change, the controls do not), or a third language is added (one more button in the settings tab).
+
+## Implementation notes (UI polish after the redesign)
+
+- **Window height.** `GameMenu` no longer has a fixed height: the window is `min-height 64 u`, `max-height 186 u`, and a page that needs more scrolls inside it (`MenuPage` body). The menu region
+  (`hud-center`) is top-aligned at the position a full-height window plus its 13 u tab row would have when centred, so the tab row never moves while the window grows and shrinks between pages.
+  A page may pin controls under its scrolling part with `MenuPage Footer` (the trade page pins confirm and cancel); `MenuPage Good` shows a success message in the "ok" colour instead of the refusal colour.
+- **Parchment.** The `fill` keyword is gone from the panel and section `border-image`s: the 9-slice centre of `MenuTiles.png` is a vertical gradient of about six bands, and stretching it over a tall window
+  showed the bands. The centre is now the plain `--nosum-parchment` / `--nosum-parchment-deep` colour (sampled from the sheet's middle band), so every window and section is uniform at any height.
+- **Language switch.** `IAccountClient.SetLanguageAsync` sends the existing `SetLanguage` packet and reads `LanguageResult` (no wire change). `AccountFormViewModel.SetLanguageAsync` applies the language
+  with `UiCulture.Apply` at once, then stores it; if the server refuses or the connection fails the language stays changed for this visit and the settings page says it was not saved. `UiCulture.Changed` is raised by
+  `Apply` so the view models that keep localized text (quest tracker, inventory slots) rebuild it. Text that was uploaded to the engine (the label above a guest's head) is not rebuilt until the next join.
+- **Rooms.** `Nosum.Rendering.ViewZoom.Pick` is the zoom rule (an open map: `round(width / 416)`; a room: the largest zoom whose whole map fits above the bottom strip, never below 2), and
+  `Camera2D.Follow(..., bottomInset)` centres a room that fits in the rest of the view. `MapScene.HudBottomInset` is the strip the hotbar covers, 40 UI pixels (the hotbar and the screen gutter), using the same
+  unit as `nosum-theme.js unitFor`. The farmhouse is drawn at 3 at 1280 x 720 and 4 at 1920 x 1080 (it was drawn centred in the full canvas, so the hotbar covered its bottom rows). The furniture key strip moved
+  from the top centre to the top-left under the quest tracker, where it cannot cover the room.
+- **Item pictures drawn by the theme.** `ItemIcon.ThemeImage` names a 16 x 16 picture the theme publishes as `--nosum-img-<name>` (`ITEM_ART` in `nosum-theme.js`, Nosum's own art like the glyphs). Trousers use it:
+  the farmer sheet's pants frames are 8 x 5 px grey hips and read as nothing. Shirt pieces (8 px) are shown at twice their size.
+- **Dialogs.** The account upgrade form hides the menu while it is open, and the menu comes back with the form closed.

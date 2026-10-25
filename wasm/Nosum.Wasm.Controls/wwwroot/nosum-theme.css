@@ -62,9 +62,11 @@
     --nosum-gap-group: calc(var(--u) * 4);
     --nosum-gutter: calc(var(--u) * 4);
 
-    /* The menu window has one fixed size, so tabs never make it jump. */
+    /* The menu window is 200 u wide and as tall as its page (at least min-h, at most h; longer pages scroll inside). Its top edge is fixed
+       (the tabs never move), see hud-center. */
     --nosum-menu-w: calc(var(--u) * 200);
     --nosum-menu-h: calc(var(--u) * 186);
+    --nosum-menu-min-h: calc(var(--u) * 64);
 }
 
 html,
@@ -110,7 +112,7 @@ h1[tabindex="-1"]:focus {
     max-width: calc(var(--u) * 90);
     padding: calc(var(--u) * 1) calc(var(--u) * 2);
     border: var(--tip-edge) solid var(--nosum-edge);
-    border-image: var(--nosum-img-panel) 16 fill / var(--tip-edge) stretch;
+    border-image: var(--nosum-img-panel) 16 / var(--tip-edge) stretch;
     background: var(--nosum-parchment) padding-box;
     color: var(--nosum-ink);
     font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);

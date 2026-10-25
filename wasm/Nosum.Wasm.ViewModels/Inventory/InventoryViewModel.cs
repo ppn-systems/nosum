@@ -8,6 +8,7 @@ using Nosum.Contracts.Inventory;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -46,6 +47,7 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
         _catalogue = catalogue;
         _text = text;
         channel.Changed += this.Rebuild;
+        UiCulture.Changed += this.Rebuild;
         channel.Refused += this.OnRefused;
         this.Rebuild();
     }
@@ -161,6 +163,7 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     {
         _channel.Changed -= this.Rebuild;
         _channel.Refused -= this.OnRefused;
+        UiCulture.Changed -= this.Rebuild;
         _nodes?.ToolChanged -= this.Rebuild;
     }
 

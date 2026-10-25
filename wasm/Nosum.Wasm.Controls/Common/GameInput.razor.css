@@ -17,6 +17,10 @@
     appearance: textfield;
 }
 
+.game-input.narrow {
+    width: calc(var(--u) * 30);
+}
+
 .game-input::placeholder {
     color: var(--nosum-ink-faint);
     opacity: 1;

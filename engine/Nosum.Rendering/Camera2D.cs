@@ -33,11 +33,26 @@ public struct Camera2D
     /// <param name="worldWidth">World width, pixels.</param>
     /// <param name="worldHeight">World height, pixels.</param>
     public void Follow(int centerX, int centerY, int viewWidth, int viewHeight, int worldWidth, int worldHeight)
+        => this.Follow(centerX, centerY, viewWidth, viewHeight, worldWidth, worldHeight, 0);
+
+    /// <summary>
+    /// Like <see cref="Follow(int, int, int, int, int, int)"/>, with the bottom strip of the view kept free (for the interface): a world that fits above
+    /// the strip is centred in the rest of the view, a larger one is followed as usual.
+    /// </summary>
+    /// <param name="centerX">Target x, world pixels.</param>
+    /// <param name="centerY">Target y, world pixels.</param>
+    /// <param name="viewWidth">View width, world pixels.</param>
+    /// <param name="viewHeight">View height, world pixels.</param>
+    /// <param name="worldWidth">World width, pixels.</param>
+    /// <param name="worldHeight">World height, pixels.</param>
+    /// <param name="bottomInset">Height of the free strip, world pixels.</param>
+    public void Follow(int centerX, int centerY, int viewWidth, int viewHeight, int worldWidth, int worldHeight, int bottomInset)
     {
         this.Width = viewWidth;
         this.Height = viewHeight;
         this.Left = Axis(centerX, viewWidth, worldWidth);
-        this.Top = Axis(centerY, viewHeight, worldHeight);
+        int free = viewHeight - Math.Max(0, bottomInset);
+        this.Top = worldHeight <= free ? (worldHeight - free) / 2 : Axis(centerY, viewHeight, worldHeight);
     }
 
     private static int Axis(int center, int view, int world)

@@ -40,6 +40,7 @@
 
 .obj-text {
     flex: 1;
+    padding-right: calc(var(--u) * 3);
 }
 
 /* The checkbox: a 5 u square, filled with a tick when the objective is done. */

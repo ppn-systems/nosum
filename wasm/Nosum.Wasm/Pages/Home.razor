@@ -78,6 +78,7 @@ else
             @if (_started && _panel == PanelKind.None)
             {
                 <QuestTracker Vm="Quest" />
+                <PlacementPanel Vm="Placement" />
             }
         </TopLeft>
         <TopCenter>
@@ -88,10 +89,6 @@ else
                 </GamePanel>
             }
             <ConnectionBadge />
-            @if (_started && _panel == PanelKind.None)
-            {
-                <PlacementPanel Vm="Placement" />
-            }
         </TopCenter>
         <TopRight>
             @if (_started)
@@ -102,7 +99,8 @@ else
             }
         </TopRight>
         <Center>
-            @if (_started && _panel != PanelKind.None)
+            @* The upgrade form is a dialog of its own: the menu steps aside while it is open and comes back with it closed. *@
+            @if (_started && _panel != PanelKind.None && !Form.ShowsForm)
             {
                 <GameMenu Tabs="Tabs()" Active="(int)_panel" OnSelect="@(id => SelectTab((PanelKind)id))" OnClose="ClosePanel" CloseText="@Toolbar.Text("Panel_Close")">
                     @switch (_panel)

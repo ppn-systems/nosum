@@ -7,6 +7,29 @@
     color: var(--nosum-ink-soft);
 }
 
+.sell-form {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: calc(var(--u) * 2) calc(var(--u) * 3);
+    align-items: center;
+}
+
+.sell-price {
+    grid-column: 1 / 3;
+}
+
+.sell-fee {
+    grid-column: 1 / -1;
+    color: var(--nosum-ink-soft);
+}
+
+.sell-form .sell-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .listing-list {
     display: flex;
     flex-direction: column;
@@ -20,6 +43,16 @@
     align-items: center;
 }
 
+.listing-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .listing-price {
+    color: var(--nosum-ink);
+}
+
+.listing-seller {
     color: var(--nosum-ink-soft);
 }

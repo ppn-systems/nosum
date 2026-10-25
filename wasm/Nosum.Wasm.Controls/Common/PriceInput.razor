@@ -1,10 +1,13 @@
 @* A whole number of coins. *@
 <GameRow Class="center">
-    <GameInput Type="number" Value="@Value" ValueChanged="ValueChanged" Label="@Label" MaxLength="12" OnEnter="OnEnter" />
+    <GameInput Class="@Class" Type="number" Value="@Value" ValueChanged="ValueChanged" Label="@Label" MaxLength="12" OnEnter="OnEnter" />
     <span class="price-unit">@Unit</span>
 </GameRow>
 
 @code {
+    /// <summary>Extra shared classes of the field (<c>narrow</c>).</summary>
+    [Parameter] public string? Class { get; set; }
+
     /// <summary>The typed amount.</summary>
     [Parameter] public string Value { get; set; } = string.Empty;
 
