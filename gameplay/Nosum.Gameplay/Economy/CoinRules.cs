@@ -32,6 +32,9 @@ public static class CoinRules
     /// <summary>Most active listings one player may have.</summary>
     public const int MaxActiveListings = 20;
 
+    /// <summary>Most units of one item id one player may have listed at once, over all their listings (docs/adr/ADR-030 D4: no cornering a single item).</summary>
+    public const int MaxListedUnitsPerItem = 500;
+
     /// <summary>Listings shown per page when browsing.</summary>
     public const int ListingsPerPage = 10;
 
@@ -90,6 +93,9 @@ public enum MarketVerdict
 
     /// <summary>The seller already has the most listings allowed.</summary>
     TooManyListings = 5,
+
+    /// <summary>The seller would have more than <see cref="CoinRules.MaxListedUnitsPerItem"/> units of this item listed at once.</summary>
+    TooManyOfItem = 6,
 }
 
 /// <summary>Rules for putting a stack on the consignment market.</summary>
@@ -100,8 +106,9 @@ public static class MarketRules
     /// <param name="quantity">How many.</param>
     /// <param name="price">The price for the whole stack.</param>
     /// <param name="activeListings">How many active listings the seller already has.</param>
+    /// <param name="listedUnitsOfItem">How many units of this item the seller already has listed, over all their active listings.</param>
     /// <returns><see cref="MarketVerdict.Ok"/> or the reason.</returns>
-    public static MarketVerdict ValidateListing(int itemId, int quantity, long price, int activeListings)
+    public static MarketVerdict ValidateListing(int itemId, int quantity, long price, int activeListings, int listedUnitsOfItem = 0)
     {
         if (!ItemCatalog.TryGet(itemId, out ItemDefinition? item))
         {
@@ -123,7 +130,12 @@ public static class MarketRules
             return MarketVerdict.InvalidPrice;
         }
 
-        return activeListings >= CoinRules.MaxActiveListings ? MarketVerdict.TooManyListings : MarketVerdict.Ok;
+        if (activeListings >= CoinRules.MaxActiveListings)
+        {
+            return MarketVerdict.TooManyListings;
+        }
+
+        return (long)listedUnitsOfItem + quantity > CoinRules.MaxListedUnitsPerItem ? MarketVerdict.TooManyOfItem : MarketVerdict.Ok;
     }
 }
 

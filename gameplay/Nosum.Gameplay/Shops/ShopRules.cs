@@ -88,27 +88,51 @@ public static class ShopRules
         return (dx * dx) + (dy * dy) <= ReachPixels * ReachPixels;
     }
 
-    /// <summary>Finds the shop a farmer on a map can use from where they stand.</summary>
+    /// <summary>Tells whether feet are at the counter with a given id on a map: some point of that id is in reach and no other counter is nearer.</summary>
+    /// <param name="map">The map the farmer is on.</param>
+    /// <param name="counterId">The shop id, or <c>CommunityGoalCatalog.BoardCounterId</c>.</param>
+    /// <param name="feetX">Feet x, world pixels.</param>
+    /// <param name="feetY">Feet y, world pixels.</param>
+    /// <param name="tileSize">Tile size, pixels.</param>
+    /// <returns><see langword="true"/> when the action key at these feet would use that counter.</returns>
+    public static bool IsAtCounter(MapSpec map, int counterId, double feetX, double feetY, int tileSize)
+        => TryFindShop(map, feetX, feetY, tileSize, out int found) && found == counterId;
+
+    /// <summary>
+    /// Finds the counter a farmer on a map can use from where they stand: the nearest one in reach, so two counters close together (the
+    /// community board next to the seed shop) each win on their own side.
+    /// </summary>
     /// <param name="map">The map the farmer is on.</param>
     /// <param name="feetX">Feet x, world pixels.</param>
     /// <param name="feetY">Feet y, world pixels.</param>
     /// <param name="tileSize">Tile size, pixels.</param>
-    /// <param name="shopId">The nearest shop's id when found.</param>
-    /// <returns><see langword="true"/> when a shop point of the map is in reach.</returns>
+    /// <param name="shopId">The nearest counter's id when found (a shop id, or <c>CommunityGoalCatalog.BoardCounterId</c>).</param>
+    /// <returns><see langword="true"/> when a counter of the map is in reach.</returns>
     public static bool TryFindShop(MapSpec map, double feetX, double feetY, int tileSize, out int shopId)
     {
         ArgumentNullException.ThrowIfNull(map);
 
         shopId = 0;
+        double best = double.MaxValue;
         foreach (ShopPoint point in map.Shops)
         {
-            if (InReach(point, feetX, feetY, tileSize))
+            if (!InReach(point, feetX, feetY, tileSize))
             {
+                continue;
+            }
+
+            double left = point.TileX * tileSize;
+            double top = point.TileY * tileSize;
+            double dx = Math.Max(Math.Max(left - feetX, 0), feetX - (left + tileSize));
+            double dy = Math.Max(Math.Max(top - feetY, 0), feetY - (top + tileSize));
+            double distance = (dx * dx) + (dy * dy);
+            if (distance < best)
+            {
+                best = distance;
                 shopId = point.ShopId;
-                return true;
             }
         }
 
-        return false;
+        return shopId != 0;
     }
 }
