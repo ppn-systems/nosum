@@ -12,6 +12,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket;
+using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Chat;
 using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Coop;
@@ -36,6 +37,7 @@ using Nosum.Wasm.Socket.Trade;
 using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.ViewModels.Building;
 using Nosum.Wasm.ViewModels.Chat;
 using Nosum.Wasm.ViewModels.Chest;
 using Nosum.Wasm.ViewModels.Coop;
@@ -98,6 +100,7 @@ internal static class Program
         builder.Services.AddSingleton<CraftingChannel>();
         builder.Services.AddSingleton<ChestChannel>();
         builder.Services.AddSingleton(sp => new FurnaceChannel(sp.GetRequiredService<IGameSocket>()));
+        builder.Services.AddSingleton(sp => new BuildingChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton<GroundItemChannel>();
         builder.Services.AddSingleton(sp => new ProgressChannel(sp.GetRequiredService<IGameSocket>()));
@@ -146,6 +149,8 @@ internal static class Program
         builder.Services.AddSingleton<CraftingViewModel>();
         builder.Services.AddSingleton<ChestViewModel>();
         builder.Services.AddSingleton<FurnaceViewModel>();
+        builder.Services.AddSingleton<CarpenterViewModel>();
+        builder.Services.AddSingleton<AnimalCareViewModel>();
         builder.Services.AddSingleton<VisitorsViewModel>();
         builder.Services.AddSingleton<FriendsViewModel>();
         builder.Services.AddSingleton(sp => new ChatViewModel(
@@ -195,6 +200,8 @@ internal static class Program
 #endif
         FurnaceChannel furnaces = host.Services.GetRequiredService<FurnaceChannel>();
         GameLoop.UseContainers(host.Services.GetRequiredService<ChestChannel>(), furnaces);
+        BuildingChannel buildings = host.Services.GetRequiredService<BuildingChannel>();
+        GameLoop.UseBuildings(buildings);
         GameLoop.UsePlacement(placeable, host.Services.GetRequiredService<PlacementViewModel>());
 
         // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;
@@ -217,6 +224,27 @@ internal static class Program
             groundItems.Load();
         };
         channel.Joined += _ => looks.Load();
+        // Farm buildings (docs/adr/ADR-028): a farm lists its buildings (those still under construction are drawn dull); inside one, the animals are read.
+        channel.Joined += mapId =>
+        {
+            bool known = GameMaps.TryGet(mapId, out MapSpec? spec);
+            if (known && spec!.IsInterior)
+            {
+                buildings.ClearHere();
+                buildings.LoadRoom();
+                return;
+            }
+
+            buildings.ClearRoom();
+            if (known && spec!.Farmable)
+            {
+                buildings.LoadHere();
+            }
+            else
+            {
+                buildings.ClearHere();
+            }
+        };
         // The view models subscribe to their channels when they are built: build them before the first push can arrive.
         _ = host.Services.GetRequiredService<InventoryViewModel>();
         _ = host.Services.GetRequiredService<QuestTrackerViewModel>();
@@ -233,6 +261,8 @@ internal static class Program
         _ = host.Services.GetRequiredService<MailViewModel>();
         _ = host.Services.GetRequiredService<ChestViewModel>();
         _ = host.Services.GetRequiredService<FurnaceViewModel>();
+        _ = host.Services.GetRequiredService<CarpenterViewModel>();
+        _ = host.Services.GetRequiredService<AnimalCareViewModel>();
         _ = host.Services.GetRequiredService<ConnectionStatusViewModel>();
         host.Services.GetRequiredService<IGameSocket>().Start();
 

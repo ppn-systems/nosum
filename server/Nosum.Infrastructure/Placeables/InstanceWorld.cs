@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
@@ -21,18 +22,21 @@ public sealed class InstanceWorld : IInstanceWorld
 {
     private readonly IInstanceWorld _placeables;
     private readonly IResourceNodeService _nodes;
+    private readonly IBuildingDirectory? _buildings;
     private readonly ConcurrentDictionary<string, Joined> _joined = new(StringComparer.Ordinal);
 
     /// <summary>Initializes the world.</summary>
     /// <param name="placeables">The placed-objects layer.</param>
     /// <param name="nodes">The resource-node layer.</param>
-    public InstanceWorld(IInstanceWorld placeables, IResourceNodeService nodes)
+    /// <param name="buildings">The farm buildings of the land, loaded when a land is entered so their doors are known on the movement path (docs/adr/ADR-028); <see langword="null"/> for none.</param>
+    public InstanceWorld(IInstanceWorld placeables, IResourceNodeService nodes, IBuildingDirectory? buildings = null)
     {
         ArgumentNullException.ThrowIfNull(placeables);
         ArgumentNullException.ThrowIfNull(nodes);
 
         _placeables = placeables;
         _nodes = nodes;
+        _buildings = buildings;
     }
 
     /// <inheritdoc/>
@@ -40,6 +44,10 @@ public sealed class InstanceWorld : IInstanceWorld
     {
         await _placeables.PrepareAsync(instance, cancellationToken).ConfigureAwait(false);
         await _nodes.PrepareAsync(instance, cancellationToken).ConfigureAwait(false);
+        if (_buildings is not null)
+        {
+            await _buildings.PrepareAsync(instance, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc/>

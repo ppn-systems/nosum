@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Core;
 using Nosum.Gameplay.Maps;
+using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Farm;
@@ -52,6 +53,7 @@ internal static partial class GameLoop
     private static PlacementViewModel? s_placement;
     private static ChestChannel? s_chests;
     private static FurnaceChannel? s_furnaces;
+    private static BuildingChannel? s_buildings;
     private static MarketChannel? s_market;
     private static ProgressChannel? s_progress;
     private static LookChannel? s_looks;
@@ -116,6 +118,10 @@ internal static partial class GameLoop
     /// <param name="groundItems">The ground items mirror.</param>
     public static void UseGroundItems(GroundItemChannel groundItems) => s_groundItems = groundItems;
 
+    /// <summary>Gives the loop the farm buildings and their animals (docs/adr/ADR-028): buildings under construction are drawn dull, animals inside a building are drawn and tended with the action key.</summary>
+    /// <param name="buildings">The building channel.</param>
+    public static void UseBuildings(BuildingChannel buildings) => s_buildings = buildings;
+
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
 
@@ -143,7 +149,7 @@ internal static partial class GameLoop
         ArgumentNullException.ThrowIfNull(http);
 
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
-        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests) : null;
+        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
@@ -164,12 +170,17 @@ internal static partial class GameLoop
         if (s_placeable is not null && s_placement is not null && s_inventory is not null)
         {
             placement = new PlacementActions(s_placeable, s_inventory, s_placement);
-            providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement, s_furnaces));
+            providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement, s_furnaces, s_buildings));
         }
 
         if (s_groundItems is not null)
         {
             providers.Add(new GroundItemsDecoratorProvider(s_groundItems));
+        }
+
+        if (s_buildings is not null)
+        {
+            providers.Add(new AnimalsDecoratorProvider(s_buildings));
         }
 
         MapLoader loader = new(http, textures, providers);

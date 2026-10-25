@@ -1,0 +1,13 @@
+.carpenter-line {
+    margin: 0;
+    color: var(--nosum-ink-soft);
+}
+
+.carpenter-cost {
+    color: var(--nosum-ink-soft);
+}
+
+.carpenter-row {
+    justify-content: space-between;
+    gap: calc(var(--u) * 3);
+}

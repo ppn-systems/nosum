@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Nosum.Core;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Movement;
 
 namespace Nosum.Gameplay.Maps;
@@ -31,6 +32,7 @@ public sealed class MapSpec
     /// <param name="isCoop">Whether each co-op has its own copy of the map, owned by the co-op and open to its members only (docs/adr/ADR-020).</param>
     /// <param name="mineFloor">The floor number (1 and up) when the map is a floor of the mine: a per-player instance whose nodes are built in memory each game day (docs/adr/ADR-026 D3); zero for any other map.</param>
     /// <param name="elevator">Where the mine elevator is served on this map, or <see langword="null"/> when there is none.</param>
+    /// <param name="interiorOf">The kind of farm building this map is the inside of; there is one instance per building, keyed by the building's id (docs/adr/ADR-028 D2).</param>
     /// <param name="indoors">Whether the map is a room or a cave: no weather falls on it, rain does not water its soil and it is lit (docs/adr/ADR-027).</param>
     public MapSpec(
         string id,
@@ -47,6 +49,7 @@ public sealed class MapSpec
         bool isCoop = false,
         int mineFloor = 0,
         ElevatorPoint? elevator = null,
+        BuildingKind interiorOf = BuildingKind.None,
         bool indoors = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
@@ -71,6 +74,7 @@ public sealed class MapSpec
         this.IsCoop = isCoop;
         this.MineFloor = mineFloor;
         this.Elevator = elevator;
+        this.InteriorOf = interiorOf;
         this.Indoors = indoors;
     }
 
@@ -112,6 +116,12 @@ public sealed class MapSpec
 
     /// <summary>Gets where the mine elevator is served, or <see langword="null"/> when this map has none.</summary>
     public ElevatorPoint? Elevator { get; }
+    /// <summary>Gets the kind of building this map is the inside of, or <see cref="BuildingKind.None"/> for every other map.</summary>
+    public BuildingKind InteriorOf { get; }
+
+    /// <summary>Gets whether this map is the inside of a farm building: its instance owner is the building's id, not a player (docs/adr/ADR-028 D2).</summary>
+    public bool IsInterior => this.InteriorOf != BuildingKind.None;
+
     /// <summary>Gets whether the map is indoors: no rain or snow, rain does not water soil there, and daylight does not tint it (docs/adr/ADR-027).</summary>
     public bool Indoors { get; }
 

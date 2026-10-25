@@ -28,6 +28,8 @@ public static class ItemCatalog
     /// <summary>The scythe: weeds and grass; harvests a mature crop.</summary>
     public const int Scythe = 5;
 
+    /// <summary>The milk pail: collects a cow's milk (docs/adr/ADR-028). Sold at the carpenter; not part of the starter kit.</summary>
+    public const int MilkPail = 6;
     /// <summary>The copper hoe: tills a line of three tiles when the use is wide.</summary>
     public const int CopperHoe = 10;
 
@@ -289,6 +291,12 @@ public static class ItemCatalog
     /// <summary>A furnace: smelts ore into bars.</summary>
     public const int Furnace = 605;
 
+    /// <summary>The coop blueprint: handed over by the carpenter, set down on the farm or co-op land to start building (docs/adr/ADR-028 D1).</summary>
+    public const int CoopBlueprint = 610;
+
+    /// <summary>The barn blueprint (docs/adr/ADR-028 D1).</summary>
+    public const int BarnBlueprint = 611;
+
     /// <summary>A salad.</summary>
     public const int Salad = 700;
 
@@ -297,6 +305,21 @@ public static class ItemCatalog
 
     /// <summary>A bowl of pumpkin soup.</summary>
     public const int PumpkinSoup = 702;
+
+    /// <summary>An egg, a chicken's produce (docs/adr/ADR-028 D3; animal produce is ids 900-949).</summary>
+    public const int Egg = 900;
+
+    /// <summary>A large egg.</summary>
+    public const int LargeEgg = 901;
+
+    /// <summary>A bottle of milk, a cow's produce.</summary>
+    public const int Milk = 902;
+
+    /// <summary>A bottle of large milk.</summary>
+    public const int LargeMilk = 903;
+
+    /// <summary>Hay, the feed the carpenter sells for the feeding bench (fiber works too).</summary>
+    public const int Hay = 508;
 
     /// <summary>Largest stack of furniture.</summary>
     public const int FurnitureStack = 20;
@@ -332,6 +355,7 @@ public static class ItemCatalog
         new(Axe, "axe", ItemKind.Tool, 1, ToolKind.Axe),
         new(Pickaxe, "pickaxe", ItemKind.Tool, 1, ToolKind.Pickaxe),
         new(Scythe, "scythe", ItemKind.Tool, 1, ToolKind.Scythe),
+        new(MilkPail, "milk_pail", ItemKind.Tool, 1, ToolKind.MilkPail),
         new(CopperHoe, "copper_hoe", ItemKind.Tool, 1, ToolKind.Hoe, tier: ToolTier.Copper),
         new(CopperWateringCan, "copper_watering_can", ItemKind.Tool, 1, ToolKind.WateringCan, tier: ToolTier.Copper),
         new(CopperAxe, "copper_axe", ItemKind.Tool, 1, ToolKind.Axe, tier: ToolTier.Copper),
@@ -399,6 +423,13 @@ public static class ItemCatalog
         new(Scarecrow, "scarecrow", ItemKind.Placeable, FurnitureStack),
         new(Sprinkler, "sprinkler", ItemKind.Placeable, FurnitureStack),
         new(Furnace, "furnace", ItemKind.Placeable, FurnitureStack),
+        new(CoopBlueprint, "coop_blueprint", ItemKind.Placeable, 1),
+        new(BarnBlueprint, "barn_blueprint", ItemKind.Placeable, 1),
+        new(Egg, "egg", ItemKind.Produce, DefaultStack, foodEnergy: 20) { SellPrice = 50, ObjectIcon = 176 },
+        new(LargeEgg, "large_egg", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 95, ObjectIcon = 174 },
+        new(Milk, "milk", ItemKind.Produce, DefaultStack, foodEnergy: 25) { SellPrice = 125, ObjectIcon = 184 },
+        new(LargeMilk, "large_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 190, ObjectIcon = 186 },
+        new(Hay, "hay", ItemKind.Resource, DefaultStack) { ObjectIcon = 178 },
         new(Salad, "salad", ItemKind.Food, DefaultStack, foodEnergy: 90),
         new(BakedPotato, "baked_potato", ItemKind.Food, DefaultStack, foodEnergy: 60),
         new(PumpkinSoup, "pumpkin_soup", ItemKind.Food, DefaultStack, foodEnergy: 120),

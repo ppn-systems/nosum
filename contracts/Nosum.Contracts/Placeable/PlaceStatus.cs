@@ -61,4 +61,7 @@ public enum PlaceStatus : byte
 
     /// <summary>The furnace has a job or a bar inside; collect it before picking the furnace up.</summary>
     InUse = 18,
+
+    /// <summary>A farm building cannot be moved or picked up (docs/adr/ADR-028 D1).</summary>
+    Fixed = 19,
 }

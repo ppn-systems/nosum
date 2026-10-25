@@ -33,6 +33,7 @@
         {
             <BlacksmithSection Vm="Smith" />
         }
+        @Extra
     </GameStack>
 </MenuPage>
 
@@ -44,6 +45,9 @@
 
     /// <summary>The blacksmith's upgrade view model; only used when <see cref="ShopId"/> is the blacksmith's counter.</summary>
     [Parameter] public BlacksmithViewModel? Smith { get; set; }
+
+    /// <summary>More sections under the list of what the shop sells: the carpenter's buildings and animals (docs/adr/ADR-028).</summary>
+    [Parameter] public RenderFragment? Extra { get; set; }
 
     protected override void OnParametersSet()
     {

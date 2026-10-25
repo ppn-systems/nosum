@@ -7,6 +7,7 @@
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
 @using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Building
 @using Nosum.Wasm.Controls.Chat
 @using Nosum.Wasm.Controls.Chest
 @using Nosum.Wasm.Controls.Coop
@@ -37,8 +38,10 @@
 @using Nosum.Gameplay.Community
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
+@using Nosum.Gameplay.Shops
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Building
 @using Nosum.Wasm.ViewModels.Chat
 @using Nosum.Wasm.ViewModels.Chest
 @using Nosum.Wasm.ViewModels.Coop
@@ -91,6 +94,7 @@
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
 @inject FurnaceViewModel Furnace
+@inject CarpenterViewModel Carpenter
 @inject ProgressViewModel Progress
 
 <PageTitle>Nosum</PageTitle>
@@ -163,7 +167,14 @@ else
                             <MailPanel Vm="Mail" />
                             break;
                         case PanelKind.Shop:
-                            <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith" />
+                            <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith">
+                                <Extra>
+                                    @if (_shopId == ShopCatalog.CarpenterShop)
+                                    {
+                                        <CarpenterSections Vm="Carpenter" />
+                                    }
+                                </Extra>
+                            </ShopPanel>
                             break;
                         case PanelKind.Skills:
                             <SkillsPanel Vm="Progress" />
@@ -319,6 +330,11 @@ else
         {
             _shopId = shopId;
             Shop.Open(shopId);
+            if (shopId == ShopCatalog.CarpenterShop)
+            {
+                Carpenter.Open();
+            }
+
             Show(PanelKind.Shop);
             StateHasChanged();
         }

@@ -13,6 +13,7 @@ using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Blacksmith;
+using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Community;
@@ -42,6 +43,7 @@ using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
 using Nosum.Handlers.Blacksmith;
+using Nosum.Handlers.Building;
 using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Chat;
 using Nosum.Handlers.Coop;
@@ -64,6 +66,7 @@ using Nosum.Handlers.Trade;
 using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Blacksmith;
+using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Chat;
 using Nosum.Infrastructure.Coops;
@@ -161,6 +164,14 @@ internal static class Program
             ex => Console.Error.WriteLine("Ground item expiry failed: " + ex.Message),
             shutdown.Token);
 
+        // Animals inside a building with a player in it pick a new walk every few seconds (docs/adr/ADR-028 D4).
+        AnimalWanderService wander = InstanceManager.Instance.GetExistingInstance<AnimalWanderService>()
+            ?? throw new InvalidOperationException("The animal wander service is not registered.");
+        Task animalWander = wander.RunAsync(
+            AnimalWanderService.DefaultInterval,
+            ex => Console.Error.WriteLine("Animal wander failed: " + ex.Message),
+            shutdown.Token);
+
         // Mail past its 30 days is removed with its attachment (docs/adr/ADR-029 D5).
         IMailService mail = InstanceManager.Instance.GetExistingInstance<IMailService>()
             ?? throw new InvalidOperationException("The mail service is not registered.");
@@ -173,6 +184,8 @@ internal static class Program
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
         }
+
+        await animalWander.ConfigureAwait(false);
 
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
@@ -271,6 +284,7 @@ internal static class Program
             .MapHandlers(typeof(CraftingHandlers))
             .MapHandlers(typeof(ChestHandlers))
             .MapHandlers(typeof(FurnaceHandlers))
+            .MapHandlers(typeof(BuildingHandlers))
             .MapHandlers(typeof(NodeHandlers))
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
@@ -358,11 +372,14 @@ internal static class Program
         PlacedTiles placedTiles = new();
         InstanceManager.Instance.Register<IPlacedLookup>(placedTiles);
         // Every world feature publishes through the chunk publisher and sends its chunk's state when it joins a player's interest set (docs/adr/ADR-022).
-        // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019).
-        VisitAccess access = new(unitOfWork);
         // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
         CoopMembership coopMembership = new(unitOfWork);
         InstanceManager.Instance.Register<ICoopMembership>(coopMembership);
+        // Farm buildings (docs/adr/ADR-028): their doors are known to the movement path, and the inside of a building is entered by whoever may enter its land.
+        BuildingDirectory buildingDirectory = new(unitOfWork);
+        InstanceManager.Instance.Register<IBuildingDirectory>(buildingDirectory);
+        // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019); the inside of a building follows its land (docs/adr/ADR-028 D2).
+        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork), buildingDirectory, coopMembership, clock);
 
         // Coins, market, looks, trade, co-ops and ground-item pickups (docs/adr/ADR-013, ADR-014, ADR-021) all move items through the one transfer service.
         TransferService transfers = new(inventory, clock, notifier);
@@ -407,12 +424,19 @@ internal static class Program
         FurnaceService furnaces = new(presence, maps, placeables, placedTiles, placeables, inventory, unitOfWork, coopMembership, calendar, clock);
         InstanceManager.Instance.Register<IFurnaceService>(furnaces);
         placeables.Attach(furnaces);
+        // Coops and barns (docs/adr/ADR-028): placed from a blueprint the carpenter sells, finished two game days later; the animals walk inside while players watch.
+        AnimalWanderService animalWander = new(presence, publisher, maps, buildingDirectory, unitOfWork, clock, (ulong)Random.Shared.NextInt64());
+        InstanceManager.Instance.Register(animalWander);
+        InstanceManager.Instance.Register<IAnimalWander>(animalWander);
+        BuildingService buildings = new(presence, publisher, maps, inventory, transfers, buildingDirectory, animalWander, unitOfWork, coopMembership, calendar, clock);
+        InstanceManager.Instance.Register<IBuildingService>(buildings);
+        placeables.Attach(buildings);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1).
         InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress)));
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
         InstanceManager.Instance.Register<ILookService>(looks);
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
-        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems);
+        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
 
@@ -462,7 +486,7 @@ internal static class Program
         // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
         FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock);
         InstanceManager.Instance.Register<IFriendService>(friends);
-        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends));
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory));
         InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence));
 
         // Armed last: every subscriber is in place before the first boundary.

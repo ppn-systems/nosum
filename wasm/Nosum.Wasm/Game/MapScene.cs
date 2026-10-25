@@ -3,6 +3,7 @@
 using System;
 using Nosum.Core;
 using Nosum.Core.Interpolation;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
@@ -187,7 +188,8 @@ internal sealed class MapScene
         // The rotate key turns a piece being carried and is not a wide swing then.
         bool placeableMap = content.Spec.Placeable;
         InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~InputEdges.Rotate : liveEdges;
-        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear);
+        BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
+        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear, interior);
         if (_actions is not null)
         {
             // The action key that opened a chest or a furnace is not also a placement.

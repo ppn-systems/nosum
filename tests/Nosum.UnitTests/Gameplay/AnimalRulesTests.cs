@@ -1,0 +1,203 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using System;
+using FluentAssertions;
+using Nosum.Gameplay.Animals;
+using Nosum.Gameplay.Economy;
+using Nosum.Gameplay.Items;
+using Xunit;
+
+namespace Nosum.UnitTests.Gameplay;
+
+/// <summary>Feeding, produce, petting and friendship of farm animals (docs/adr/ADR-028 D3).</summary>
+public sealed class AnimalRulesTests
+{
+    private static readonly Guid s_animal = Guid.Parse("44444444-4444-4444-4444-444444444444");
+
+    [Theory]
+    [InlineData(ItemCatalog.Hay, 1)]
+    [InlineData(ItemCatalog.Fiber, 1)]
+    [InlineData(ItemCatalog.Wood, 0)]
+    [InlineData(ItemCatalog.Parsnip, 0)]
+    public void RationsOf_OnlyHayAndFiberFeedAnimals(int itemId, int expected)
+    {
+        AnimalRules.RationsOf(itemId).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Settle_SameDay_ChangesNothing()
+    {
+        AnimalRules.Settle(5, 3, 7, 7).Should().Be(new FeedingSettlement(5, 0));
+        AnimalRules.Settle(5, 3, 7, 6).Should().Be(new FeedingSettlement(5, 0));
+    }
+
+    [Fact]
+    public void Settle_NextDayWithEnoughHay_FeedsEveryAnimalOneRation()
+    {
+        AnimalRules.Settle(5, 3, 7, 8).Should().Be(new FeedingSettlement(2, 3));
+    }
+
+    [Fact]
+    public void Settle_NotEnoughHay_FeedsOnlyAsManyAnimalsAsRations()
+    {
+        AnimalRules.Settle(2, 4, 7, 8).Should().Be(new FeedingSettlement(0, 2));
+    }
+
+    [Fact]
+    public void Settle_NoHay_FeedsNobody()
+    {
+        AnimalRules.Settle(0, 4, 7, 8).Should().Be(new FeedingSettlement(0, 0));
+    }
+
+    [Fact]
+    public void Settle_SeveralNightsAway_EatsOneRationPerAnimalPerNight()
+    {
+        // 7 rations, 2 animals: nights 1-3 take 2 each (1 left), night 4 takes the last one.
+        AnimalRules.Settle(7, 2, 10, 14).Should().Be(new FeedingSettlement(0, 1));
+        AnimalRules.Settle(7, 2, 10, 13).Should().Be(new FeedingSettlement(1, 2));
+    }
+
+    [Fact]
+    public void Settle_HayRanOutBeforeToday_FeedsNobodyToday()
+    {
+        AnimalRules.Settle(4, 2, 10, 15).Should().Be(new FeedingSettlement(0, 0));
+    }
+
+    [Fact]
+    public void Settle_NoAnimals_KeepsTheHay()
+    {
+        AnimalRules.Settle(6, 0, 1, 9).Should().Be(new FeedingSettlement(6, 0));
+    }
+
+    [Theory]
+    [InlineData(8, 0, 8, true)]
+    [InlineData(8, 8, 8, false)]
+    [InlineData(7, 0, 8, false)]
+    [InlineData(AnimalRules.Never, AnimalRules.Never, 8, false)]
+    public void HasProduce_OnlyOnTheDayItWasMade_AndOnlyUntilCollected(int produceDay, int collectedDay, int today, bool expected)
+    {
+        AnimalRules.HasProduce(produceDay, collectedDay, today).Should().Be(expected);
+    }
+
+    [Fact]
+    public void CanPet_OncePerDay()
+    {
+        AnimalRules.CanPet(7, 8).Should().BeTrue();
+        AnimalRules.CanPet(8, 8).Should().BeFalse();
+        AnimalRules.CanPet(AnimalRules.Never, 1).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(0, 40)]
+    [InlineData(500, 540)]
+    [InlineData(980, 1000)]
+    [InlineData(1000, 1000)]
+    public void AfterPetting_RaisesFriendshipUpToTheMaximum(int before, int expected)
+    {
+        AnimalRules.AfterPetting(before).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(0, 5)]
+    [InlineData(200, 15)]
+    [InlineData(1000, 55)]
+    [InlineData(5000, 55)]
+    [InlineData(-3, 5)]
+    public void LargeChancePercent_GrowsWithFriendship(int friendship, int expected)
+    {
+        AnimalRules.LargeChancePercent(friendship).Should().Be(expected);
+    }
+
+    [Fact]
+    public void IsLarge_SameAnimalSameDay_AlwaysGivesTheSameAnswer()
+    {
+        for (int friendship = 0; friendship <= AnimalRules.MaxFriendship; friendship += 100)
+        {
+            AnimalRules.IsLarge(s_animal, 12, friendship).Should().Be(AnimalRules.IsLarge(s_animal, 12, friendship));
+        }
+    }
+
+    [Fact]
+    public void IsLarge_HigherFriendship_CanOnlyTurnSmallIntoLarge()
+    {
+        for (int day = 1; day <= 200; day++)
+        {
+            bool atZero = AnimalRules.IsLarge(s_animal, day, 0);
+            bool atMax = AnimalRules.IsLarge(s_animal, day, AnimalRules.MaxFriendship);
+            (atZero && !atMax).Should().BeFalse($"day {day}: a large produce stays large");
+        }
+    }
+
+    [Fact]
+    public void IsLarge_OverManyDays_FollowsTheChance()
+    {
+        int largeAtZero = 0;
+        int largeAtMax = 0;
+        for (int day = 1; day <= 2_000; day++)
+        {
+            largeAtZero += AnimalRules.IsLarge(s_animal, day, 0) ? 1 : 0;
+            largeAtMax += AnimalRules.IsLarge(s_animal, day, AnimalRules.MaxFriendship) ? 1 : 0;
+        }
+
+        largeAtZero.Should().BeInRange(60, 140, "5 percent of 2000 days");
+        largeAtMax.Should().BeInRange(1_000, 1_200, "55 percent of 2000 days");
+    }
+
+    [Fact]
+    public void ProduceOf_ChickenGivesEggs_CowGivesMilk()
+    {
+        _ = AnimalCatalog.TryGet(AnimalKind.Chicken, out AnimalDefinition? chicken).Should().BeTrue();
+        _ = AnimalCatalog.TryGet(AnimalKind.Cow, out AnimalDefinition? cow).Should().BeTrue();
+
+        AnimalRules.ProduceOf(chicken!, s_animal, 3, 0).Should().BeOneOf(ItemCatalog.Egg, ItemCatalog.LargeEgg);
+        AnimalRules.ProduceOf(cow!, s_animal, 3, 0).Should().BeOneOf(ItemCatalog.Milk, ItemCatalog.LargeMilk);
+        chicken!.NeedsPail.Should().BeFalse();
+        cow!.NeedsPail.Should().BeTrue();
+        (chicken.Coins, cow.Coins).Should().Be((800L, 1_500L));
+    }
+
+    [Fact]
+    public void ProduceItems_AreEdibleProduceThatShipsForCoins()
+    {
+        foreach (int itemId in new[] { ItemCatalog.Egg, ItemCatalog.LargeEgg, ItemCatalog.Milk, ItemCatalog.LargeMilk })
+        {
+            ItemCatalog.TryGet(itemId, out ItemDefinition? item).Should().BeTrue();
+            item!.Kind.Should().Be(ItemKind.Produce);
+            item.IsEdible.Should().BeTrue();
+            ShippingPrices.TryGet(itemId, out int price).Should().BeTrue();
+            price.Should().BePositive();
+        }
+
+        ShippingPrices.TryGet(ItemCatalog.LargeEgg, out int large).Should().BeTrue();
+        ShippingPrices.TryGet(ItemCatalog.Egg, out int small).Should().BeTrue();
+        large.Should().BeGreaterThan(small);
+    }
+
+    [Theory]
+    [InlineData("Bella", true)]
+    [InlineData("Mi Mi", true)]
+    [InlineData("ab", false)]
+    [InlineData("", false)]
+    [InlineData("Admin", false)]
+    [InlineData("Bad!Name", false)]
+    public void IsValidName_FollowsTheNicknameRules(string name, bool expected)
+    {
+        AnimalRules.IsValidName(name).Should().Be(expected);
+    }
+
+    [Fact]
+    public void IsValidName_ProfanityIsRefused()
+    {
+        AnimalRules.IsValidName("fuck").Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(0, 0, 0, 0, true)]
+    [InlineData(0, 0, 44, 0, true)]
+    [InlineData(0, 0, 45, 0, false)]
+    [InlineData(0, 0, 40, 40, false)]
+    public void InReach_IsADistanceCheck(double feetX, double feetY, double animalX, double animalY, bool expected)
+    {
+        AnimalRules.InReach(feetX, feetY, animalX, animalY).Should().Be(expected);
+    }
+}
