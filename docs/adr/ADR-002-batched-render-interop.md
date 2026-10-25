@@ -26,8 +26,13 @@ https://learn.microsoft.com/aspnet/core/client-side/dotnet-interop/ (accessed 20
   (fastest to build). The web deploy publishes with WebAssembly AOT
   (`dotnet publish wasm/Nosum.Wasm -c Release -p:NosumWebDeploy=true`, `wasm-tools` workload;
   owner decision 2026-10-25). Measured on 2026-10-25: brotli `.wasm` download 2.0 MB
-  (interpreter) vs 4.9 MB (AOT); AOT publish ≈ 4 min. The server is not AOT-compiled (EF Core
-  needs reflection; JIT is fine server-side).
+  (interpreter) vs 4.9 MB (AOT); AOT publish ≈ 4 min. Frame cost on the farm slice with one
+  walking player (headless Chromium, CDP script+task time per frame): interpreter 0.09 / 0.12 ms,
+  AOT 0.13 / 0.16 ms — both far under the 16.7 ms budget and within noise of each other, so AOT
+  has no measured gain yet; re-measure when frames carry real work (many players, crops).
+  The deploy build uses its own artifacts pivot because AOT strips IL from intermediate
+  assemblies, which broke a later interpreter build that reused them. The server is not
+  AOT-compiled (EF Core needs reflection; JIT is fine server-side).
 - **D6** — The first backend draws with Canvas2D. A WebGL backend may replace it later
   without changing the C# side, because the command buffer is the contract.
 

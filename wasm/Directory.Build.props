@@ -13,6 +13,16 @@
        takes minutes; never on by default so local and agent builds stay fast. -->
   <PropertyGroup Condition="'$(NosumWebDeploy)' == 'true' And '$(Configuration)' == 'Release'">
     <RunAOTCompilation>true</RunAOTCompilation>
+    <!-- AOT strips IL from the intermediate assemblies (WasmStripILAfterAOT); give the deploy
+         build its own artifacts pivot so a later interpreter build never reuses them. -->
+    <ArtifactsPivots>release_webdeploy</ArtifactsPivots>
+  </PropertyGroup>
+
+  <!-- Without the deploy flag, use the prebuilt runtime: with `wasm-tools` installed a plain
+       Release publish would otherwise relink dotnet.native.wasm, which was slower and produced a
+       runtime that failed to start (Mono interpreter assertion, 2026-10-25). -->
+  <PropertyGroup Condition="'$(NosumWebDeploy)' != 'true'">
+    <WasmBuildNative>false</WasmBuildNative>
   </PropertyGroup>
 
   <!-- A WASM publish output is downloaded by every player: keep symbols and XML docs out of it. -->
