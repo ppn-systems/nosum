@@ -7,13 +7,19 @@
     color: var(--nosum-ink-soft);
 }
 
-.listing-name {
-    min-width: calc(var(--u) * 52);
-    font-weight: 800;
+.listing-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+}
+
+.listing-list ::deep .listing-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: calc(var(--u) * 3);
+    align-items: center;
 }
 
 .listing-price {
-    min-width: calc(var(--u) * 36);
-    font-weight: 800;
     color: var(--nosum-ink-soft);
 }

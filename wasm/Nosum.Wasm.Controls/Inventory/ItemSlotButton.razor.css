@@ -1,3 +1,5 @@
+/* A slot: a square bevel (MenuTiles, 1 u edge) 18 u wide around a 16 u item picture. The hotkey is printed under the slot, outside
+   the picture; the stack count sits in the bottom-right corner with an outline. */
 .slot {
     position: relative;
     box-sizing: border-box;
@@ -18,11 +20,11 @@
 }
 
 .slot.empty {
-    background: transparent;
+    background: rgba(120, 58, 8, 0.12);
 }
 
 .slot:hover {
-    filter: brightness(1.12);
+    background-color: rgba(255, 244, 214, 0.28);
 }
 
 .slot:active {
@@ -33,7 +35,7 @@
 .slot.picked::after {
     content: "";
     position: absolute;
-    inset: calc(var(--u) * -2);
+    inset: calc(var(--u) * -1);
     border: calc(var(--u) * 2) solid var(--nosum-focus);
     border-image: var(--nosum-img-select) 8 / calc(var(--u) * 2) stretch;
     pointer-events: none;
@@ -57,20 +59,40 @@
 
 .hotkey {
     position: absolute;
-    top: 0;
-    left: calc(var(--u) * 1);
-    font: 800 0.7em / 1.2 var(--nosum-font);
-    color: var(--nosum-ink);
-    text-shadow: var(--u) var(--u) 0 var(--nosum-shine);
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: calc(var(--u) * 2);
+    text-align: center;
+    font: 400 var(--nosum-fs-small) / calc(var(--tp) * 8) var(--nosum-font);
+    color: var(--nosum-ink-soft);
+    pointer-events: none;
+}
+
+.slot.selected .hotkey {
+    color: var(--nosum-danger);
 }
 
 .quantity {
     position: absolute;
     right: calc(var(--u) * 1);
     bottom: 0;
-    font: 800 0.8em / 1.1 var(--nosum-font);
+    font: 400 var(--nosum-fs-body) / calc(var(--tp) * 9) var(--nosum-font);
     color: #fff;
-    text-shadow: var(--u) 0 0 var(--nosum-ink), calc(var(--u) * -1) 0 0 var(--nosum-ink), 0 var(--u) 0 var(--nosum-ink), 0 calc(var(--u) * -1) 0 var(--nosum-ink);
+    text-shadow:
+        var(--tp) 0 0 var(--nosum-ink), calc(var(--tp) * -1) 0 0 var(--nosum-ink), 0 var(--tp) 0 var(--nosum-ink), 0 calc(var(--tp) * -1) 0 var(--nosum-ink),
+        var(--tp) var(--tp) 0 var(--nosum-ink), calc(var(--tp) * -1) var(--tp) 0 var(--nosum-ink);
+    pointer-events: none;
+}
+
+.ghost {
+    display: block;
+    width: calc(var(--gw, 8) * var(--u));
+    height: calc(var(--gh, 8) * var(--u));
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    opacity: 0.35;
 }
 
 /* The water left in a watering can: a thin bar along the bottom of the slot, with the number above it. */

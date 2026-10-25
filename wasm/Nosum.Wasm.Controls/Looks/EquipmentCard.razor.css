@@ -1,0 +1,12 @@
+.equip {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 4);
+    padding: calc(var(--u) * 1) calc(var(--u) * 3);
+}
+
+.equip-slots {
+    display: flex;
+    flex-direction: column;
+    gap: var(--u);
+}

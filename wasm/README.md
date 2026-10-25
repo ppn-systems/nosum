@@ -58,7 +58,7 @@ Their scoped CSS reaches the page through `Nosum.Wasm.styles.css`. Item pictures
 Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)): channels `WalletChannel`, `MarketChannel`, `LookChannel`, `TradeChannel`, `CoopChannel`
 and `Player/NearbyPlayers` (the other players on the map, for pickers) mirror the server; `WalletViewModel`, `MarketViewModel`, `WardrobeViewModel`, `TradeViewModel`, `CoopViewModel` and `ToolbarViewModel`
 (all `PanelViewModel`: text by key, a status line) localize them. The panels (`MarketPanel`, `WardrobePanel`, `TradePanel`, `CoopPanel`) and the coin badge/toolbar are built only from shared controls in
-`Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput`, `GameRow`, `GameStack`, `GameSection`, `ItemGrid`, `ConfirmDialog`, `PlayerPicker`, `PriceInput`, `Pager`, `TabBar`, `PanelToolbar`): panels
+`Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput`, `GameRow`, `GameStack`, `GameSection`, `ItemGrid`, `ConfirmDialog`, `PlayerPicker`, `PriceInput`, `Pager`, `TabBar`): panels
 add no colours or borders of their own, so the look of the whole UI is the CSS of those controls and the `--nosum-*` variables. Keys: `M` market, `C` wardrobe, `T` trade, `G` co-op, `H` help, `Esc` close; `E` facing the shipping bin with
 a crop held sells the stack. Text is in `Language.resx` / `Language.en.resx`.
 `TrimmerRoots.xml` keeps this assembly whole because Razor components are found by reflection.
@@ -75,15 +75,24 @@ walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, 
 move it (again to cancel), `Q` puts it back in the bag. `PlacementViewModel` relays the same actions from the arrange panel (`Controls/Placement/PlacementPanel`, built from the shared `GamePanel` and `GameButton`;
 styled only through their shared CSS classes). Refusals reach the message line as `Place_Status_*` text.
 
-UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`. `wwwroot/nosum-theme.css` holds the variables (`--u` is one UI pixel: 2 px, 3 px from 1500 x 850,
-4 px on large screens; colours `--nosum-*`) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `MenuTiles.png`, `Cursors.png` and `textBox.png` (linked from `assets/` in the Controls csproj, placeholder art
-per ADR-007) into `--nosum-img-*` variables used as `border-image`. `index.html` links both; the controls' scoped CSS comes through `Nosum.Wasm.styles.css`, which imports the Controls bundle. Every screen element is a shared control
-(`GamePanel`, `GameButton`, `GameInput`/`GameField`, `ItemSlotButton`/`ItemGrid`, `GameSwatch`, `GameKey`, `GameIcon`, `GameNotice`, `GameBadge`, `GameSpinner`, ...); panels add layout only, no colours. `Layout/GameHud` is the layout:
-dock regions (top-left, top-center, top-right, left, center = one modal panel, right = contextual panels, bottom-center, overlay for dialogs), so nothing overlaps. `Pages/Home.razor` puts each control in its region; `Esc` closes the open
-panel and `H`/`?` shows the help card (`InputEdges.Close`/`Help`, `HelpViewModel`, `Controls/Help/HelpPanel`). The start screen (`Components/Account/StartScreen`) wraps the account form; the loading state is an overlay panel until `GameLoop.StartAsync` returns.
+UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md), amended by [ADR-017](../docs/adr/ADR-017-game-menu-and-world-pixel-ui.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`.
+`wwwroot/nosum-theme.css` holds the variables and the font (`--u` is one UI pixel and equals the world pixel: `round(width / 416)` like `MapScene.ScaleFor`, computed by `nosum-theme.js`; `--tp` is one pixel of the VT323 UI font,
+`fonts/`, OFL; colours `--nosum-*`; type scale title, body, small) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `MenuTiles.png`, `Cursors.png` and `textBox.png` (linked from `assets/` in the Controls csproj, placeholder art
+per ADR-007) into `--nosum-img-*` variables used as `border-image`, adds a few own glyphs, and shows the one tooltip for any element with `data-tip`. `index.html` links both and starts Blazor by hand with `loadAllSatelliteResources` (so English
+appears after sign-in); the controls' scoped CSS comes through `Nosum.Wasm.styles.css`. Every screen element is a shared control (`GamePanel`, `GameButton`, `GameInput`/`GameField`, `ItemSlotButton`/`ItemGrid`, `GameSection`, `GameSwatch`, `GameKey`,
+`GameIcon`, `GameIconButton`, `GameNotice`, `GameBadge`, `GameSpinner`, `GameMenu`/`MenuPage`, `CharacterPreview`, ...); panels add layout only, no colours. `Layout/GameHud` is the layout: dock regions (top-left quest tracker, top-center notices,
+top-right coins and the gear, center = the game menu, bottom-center hotbar with the message line, overlay for dialogs). **One game menu** (`Controls/Menu/GameMenu`): the inventory, wardrobe, market, trade, co-op, profile and settings pages
+(and a shop page while one is open) are its tabs; `Pages/Home.razor` maps `PanelKind` to a page, `ToolbarViewModel.Items` lists the tabs (a new tab = one entry there, one `case` in `Home.razor`, one sprite in `nosum-theme.js`). `Esc` closes the menu or opens it
+on the last tab, `I M C T G N` open a tab, `H` / `?` and the gear open settings (account, sign out, language, key help: `Controls/Settings/SettingsPanel`, `HelpViewModel`). The start screen (`Components/Account/StartScreen`) wraps the account form; the loading
+state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
 
-Shops, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): next to one of the Town's three shop counters (seed, clothing, furniture) the action key (`E`) opens `ShopPanel`
-(takes a `ShopId`; `ShopViewModel`, `ShopChannel`; catalogue and prices are the shared `ShopCatalog`, the server prices and checks every purchase). `N` opens `ProfilePanel` (`ProfileViewModel`: show and change the nickname once a day; a guest sees a note that registering unlocks it);
+Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `CalendarChannel` (Socket) reads the epoch and game day length once per sign-in and estimates the server clock; `CalendarViewModel` builds the shared `GameCalendar` and
+`Controls/Calendar/CalendarClock` shows season, day and time in the top-right region (the time moves in ten game-minute steps, a 5 s timer re-renders only when the text changes). The farm decorator does not draw crops that withered at a season change.
+The season icon is a flat colour swatch until the icon sheet has season art; the world is not tinted by the time of day yet.
+
+
+Shops, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): next to one of the Town's three shop counters (seed, clothing, furniture) the action key (`E`) opens the menu's shop page `ShopPanel`
+(takes a `ShopId`; `ShopViewModel`, `ShopChannel`; catalogue and prices are the shared `ShopCatalog`, the server prices and checks every purchase). `N` opens the profile page `ProfilePanel` (`ProfileViewModel`: show and change the nickname once a day; a guest sees a note that registering unlocks it);
 the registration and upgrade form asks for a nickname (`GameField`). `NicknameFormatter` shows a nickname (a guest's `guest-1234` as "Khách 1234" / "Guest 1234"); `LookChannel` caches nicknames by map player id and
 `Game/NicknameLabels` uploads each name once as an engine label (`LabelRegistry`, `renderer.js registerLabel`) that `MapScene` draws above every farmer. Tester tools exist only in a build made with
 `-p:NosumDevTools=true`: from the browser console, `(await getDotnetRuntime(0).getAssemblyExports("Nosum.Wasm.dll")).Nosum.Wasm.Game.DevTools.Grant(300, 5, 0)` asks a Development server for 5 oak chairs

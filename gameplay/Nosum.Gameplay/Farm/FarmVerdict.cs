@@ -34,4 +34,10 @@ public enum FarmVerdict
 
     /// <summary>The crop id is not in the catalogue.</summary>
     UnknownCrop = 9,
+
+    /// <summary>The crop does not grow in the current season (docs/adr/ADR-018).</summary>
+    OutOfSeason = 10,
+
+    /// <summary>The crop withered when its season ended; plant over it to clear it.</summary>
+    Withered = 11,
 }

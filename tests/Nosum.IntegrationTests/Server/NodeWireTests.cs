@@ -484,7 +484,7 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
             db.WorldNodes.Add(node);
         }
 
-        db.NodeInstances.Add(new NodeInstanceState { MapId = mapId, OwnerId = owner, SeededAt = s_start, LastDay = new RealTimeGameDayClock(TimeProvider.System).Today });
+        db.NodeInstances.Add(new NodeInstanceState { MapId = mapId, OwnerId = owner, SeededAt = s_start, LastDay = InstanceManager.Instance.GetExistingInstance<IGameDayClock>()!.Today });
         _ = await db.SaveChangesAsync();
     }
 

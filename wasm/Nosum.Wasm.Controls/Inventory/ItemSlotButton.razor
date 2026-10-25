@@ -2,13 +2,18 @@
    The size is the theme's (a slot is 18 UI pixels, the picture 16). *@
 <button type="button"
         class="slot @(Slot.IsSelected ? "selected" : null) @(Picked ? "picked" : null) @(Slot.IsEmpty ? "empty" : null)"
-        title="@Slot.Tooltip"
+        data-tip="@(Tip ?? Slot.Tooltip)"
+        aria-label="@(Slot.IsEmpty ? null : Slot.Name)"
         tabindex="-1"
         @onmousedown:preventDefault
         @onclick="OnClick">
     @if (Hotkey is not null)
     {
         <span class="hotkey">@Hotkey</span>
+    }
+    @if (Slot.IsEmpty && Ghost is not null)
+    {
+        <span class="ghost" style="background-image:var(--nosum-img-@(Ghost));--gw:var(--nosum-w-@(Ghost));--gh:var(--nosum-h-@(Ghost))"></span>
     }
     @if (Slot.Icon is { } icon)
     {
@@ -34,6 +39,12 @@
 
     /// <summary>The key shown in the corner (for the hotbar), or <see langword="null"/>.</summary>
     [Parameter] public string? Hotkey { get; set; }
+
+    /// <summary>A tooltip that replaces the slot's own (an equipment slot names what goes there), or <see langword="null"/>.</summary>
+    [Parameter] public string? Tip { get; set; }
+
+    /// <summary>A theme glyph drawn faintly while the slot is empty (<c>glyph-hat</c>, ...), or <see langword="null"/>.</summary>
+    [Parameter] public string? Ghost { get; set; }
 
     /// <summary>Whether the slot was picked up and waits for a target.</summary>
     [Parameter] public bool Picked { get; set; }

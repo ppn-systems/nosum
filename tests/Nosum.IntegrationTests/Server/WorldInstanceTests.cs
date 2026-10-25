@@ -12,14 +12,17 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nalix.SDK.Options;
 using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
+using Nosum.Contracts.Coop;
 using Nosum.Contracts.Dev.C2S;
 using Nosum.Contracts.Dev.S2C;
 using Nosum.Contracts.Account;
@@ -34,6 +37,7 @@ using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Contracts.World.S2C;
+using Nosum.Domain.Coops;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Host;
@@ -247,6 +251,71 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
             await again.SendMoveAsync(1, (second.X * 16) + 8, (second.Y * 16) + 8, Down, restarted.Timeout);
             (await again.Corrections.WaitAsync(restarted.Timeout)).Reason.Should().Be(MoveRefusal.Blocked);
         }
+    }
+
+    [Fact]
+    public async Task CoopLand_MembersEnterThroughTheTownGate_AStrangerIsRefused_AKickedMemberIsWarpedOut()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        await using Client founder = await host.ConnectAsync();
+        await using Client member = await host.ConnectAsync();
+        await using Client stranger = await host.ConnectAsync();
+        ICoopService coops = InstanceManager.Instance.GetExistingInstance<ICoopService>()!;
+        IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
+        IMapPresence presence = InstanceManager.Instance.GetExistingInstance<IMapPresence>()!;
+        (await coops.CreateAsync(founder.AccountId, "Gate coop")).Should().Be(CoopStatus.Ok);
+        Guid coopId;
+        Guid memberRow;
+        await using (NosumDbContext context = new(_database.Options))
+        {
+            coopId = (await context.CoopMembers.SingleAsync(m => m.PlayerId == founder.AccountId)).CoopId;
+            CoopMember row = new() { CoopId = coopId, PlayerId = member.AccountId, Role = CoopRole.Member, JoinedAt = DateTimeOffset.UtcNow };
+            context.CoopMembers.Add(row);
+            _ = await context.SaveChangesAsync();
+            memberRow = row.Id;
+        }
+
+        _ = maps.TryGet(GameMaps.Town, out MapDefinition? town);
+        (float startX, float startY, float gateX, float gateY, byte facing) = ApproachToExit(town!, GameMaps.CoopFarm);
+        Client[] all = [founder, member, stranger];
+        Dictionary<Client, JoinMapResult> joins = [];
+        foreach (Client client in all)
+        {
+            await client.PutOnAsync(GameMaps.Town, startX, startY);
+            await Task.Delay(700, host.Timeout);
+            joins[client] = await client.JoinAsync(host.Timeout);
+            joins[client].MapId.Should().Be(GameMaps.Town);
+        }
+
+        await founder.SendMoveAsync(1, gateX, gateY, facing, host.Timeout);
+        (await founder.MapChanges.WaitAsync(host.Timeout)).MapId.Should().Be(GameMaps.CoopFarm);
+        await Task.Delay(700, host.Timeout);
+        await member.SendMoveAsync(1, gateX, gateY, facing, host.Timeout);
+        (await member.MapChanges.WaitAsync(host.Timeout)).MapId.Should().Be(GameMaps.CoopFarm);
+        await Task.Delay(700, host.Timeout);
+        await stranger.SendMoveAsync(1, gateX, gateY, facing, host.Timeout);
+        await stranger.MapChanges.ExpectNothingAsync(TimeSpan.FromSeconds(1.5));
+
+        string landKey = MapInstance.OfCoop(GameMaps.CoopFarm, coopId).Key;
+        (await founder.WaitForSnapshotAsync(s => s.Contains(joins[founder].PlayerId) && s.Contains(joins[member].PlayerId), host.Timeout)).Players.Should().HaveCount(2, "members share one instance of the land");
+        List<PlayerPresence> here = [];
+        presence.CopyPlayers(landKey, here);
+        here.Select(p => p.AccountId).Should().BeEquivalentTo([founder.AccountId, member.AccountId]);
+        List<PlayerPresence> inTown = [];
+        presence.CopyPlayers(GameMaps.Town, inTown);
+        inTown.Select(p => p.AccountId).Should().Equal([stranger.AccountId], "the player without a co-op was refused at the gate and stayed in Town");
+        inTown[0].Motion.X.Should().Be(gateX, "the stranger's step onto the gate was accepted; only the warp was refused");
+
+        (await coops.KickAsync(founder.AccountId, memberRow)).Should().Be(CoopStatus.Ok);
+
+        MapChanged evicted = await member.MapChanges.WaitAsync(host.Timeout);
+        evicted.MapId.Should().Be(GameMaps.Town);
+        evicted.PlayerId.Should().Be(joins[member].PlayerId);
+        here.Clear();
+        presence.CopyPlayers(landKey, here);
+        here.Select(p => p.AccountId).Should().Equal([founder.AccountId], "the removed member is off the land at once");
+        PlayerStateRow saved = (await InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!.LoadAsync(member.AccountId, CancellationToken.None))!.Value;
+        saved.MapName.Should().Be(GameMaps.Town, "a kicked member who reconnects starts in Town, not on land they may not enter");
     }
 
     [Fact]

@@ -1,5 +1,22 @@
-.arrange-hint {
-    max-width: calc(var(--u) * 100);
-    font-size: 0.85em;
-    color: var(--nosum-ink-soft);
+.strip-row {
+    display: flex;
+    gap: calc(var(--u) * 4);
+    align-items: center;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--nosum-ink);
+    font: inherit;
+    cursor: var(--nosum-cursor-pointer, pointer);
+}
+
+button.chip:hover {
+    color: var(--nosum-danger);
 }

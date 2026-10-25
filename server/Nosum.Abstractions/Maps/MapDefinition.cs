@@ -22,9 +22,10 @@ public sealed class MapDefinition
     /// <param name="isPrivate">Whether every player has their own instance of the map.</param>
     /// <param name="placeable">Whether players may place furniture on it.</param>
     /// <param name="reservedTiles">Tiles that must stay clear of placed objects and resource nodes (exits and arrival points).</param>
+    /// <param name="isCoop">Whether each co-op has its own instance of the map (docs/adr/ADR-020).</param>
     /// <param name="water">Water tiles, where a watering can is refilled; <see langword="null"/> when the map has none.</param>
     /// <param name="nodeSites">Places the map's <c>Paths</c> layer marks for trees, stones, twigs, weeds and grass (docs/adr/ADR-021 D4); empty when the map has none.</param>
-    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null, bool isPrivate = false, bool placeable = false, IReadOnlySet<(int X, int Y)>? reservedTiles = null, WaterGrid? water = null, IReadOnlyList<NodeSite>? nodeSites = null)
+    public MapDefinition(string id, WalkGrid grid, double spawnX, double spawnY, IReadOnlyList<MapWarp>? warps = null, TillGrid? tillable = null, bool isPrivate = false, bool placeable = false, IReadOnlySet<(int X, int Y)>? reservedTiles = null, bool isCoop = false, WaterGrid? water = null, IReadOnlyList<NodeSite>? nodeSites = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(grid);
@@ -38,6 +39,7 @@ public sealed class MapDefinition
         this.IsPrivate = isPrivate;
         this.Placeable = placeable;
         this.ReservedTiles = reservedTiles ?? new HashSet<(int X, int Y)>();
+        this.IsCoop = isCoop;
         this.Water = water;
         this.NodeSites = nodeSites ?? [];
     }
@@ -62,6 +64,9 @@ public sealed class MapDefinition
 
     /// <summary>Gets whether every player has their own instance of this map (docs/adr/ADR-015).</summary>
     public bool IsPrivate { get; }
+
+    /// <summary>Gets whether every co-op has its own instance of this map, owned by the co-op and open to its members only (docs/adr/ADR-020).</summary>
+    public bool IsCoop { get; }
 
     /// <summary>Gets whether players may place objects on this map.</summary>
     public bool Placeable { get; }

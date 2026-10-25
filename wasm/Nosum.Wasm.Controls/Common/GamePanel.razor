@@ -6,7 +6,7 @@
     {
         <div class="game-panel-header">
             <h2 class="game-panel-title">@Title</h2>
-            <button type="button" class="game-close" aria-label="@CloseText" title="@CloseText" tabindex="-1" @onmousedown:preventDefault @onclick="OnClose"></button>
+            <button type="button" class="game-close" aria-label="@CloseText" data-tip="@CloseText" tabindex="-1" @onmousedown:preventDefault @onclick="OnClose"></button>
         </div>
     }
     else if (Title.Length > 0)

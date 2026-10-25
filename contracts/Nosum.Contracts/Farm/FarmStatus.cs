@@ -47,17 +47,23 @@ public enum FarmStatus : byte
     /// <summary>Another change to the same tile or inventory was applied at the same time; ask again.</summary>
     Conflict = 13,
 
+    /// <summary>The seed's crop does not grow in the current season (docs/adr/ADR-018).</summary>
+    OutOfSeason = 14,
+
+    /// <summary>The crop withered when its season ended and cannot be harvested; plant over it.</summary>
+    Withered = 15,
+
     /// <summary>The held tool does not work on what is on that tile (an axe on a stone).</summary>
-    WrongTool = 14,
+    WrongTool = 16,
 
     /// <summary>The previous tool swing is not over yet (server-side cooldown, docs/adr/ADR-021 D8).</summary>
-    Cooldown = 15,
+    Cooldown = 17,
 
     /// <summary>The watering can is empty; refill it at water.</summary>
-    CanEmpty = 16,
+    CanEmpty = 18,
 
     /// <summary>Something is in the way: a node on the tile, or a tile a tree cannot grow on.</summary>
-    Blocked = 17,
+    Blocked = 19,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nosum.Gameplay.Calendar;
 
 namespace Nosum.Gameplay.Farm;
 
@@ -48,28 +49,36 @@ public static class FarmRules
         return tillable ? FarmVerdict.Ok : FarmVerdict.NotTillable;
     }
 
-    /// <summary>Plants a seed's crop on tilled, empty soil.</summary>
+    /// <summary>Plants a seed's crop on tilled soil that is empty or holds a withered crop, in a season the crop grows in.</summary>
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
     /// <param name="cropId">The crop to plant.</param>
     /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
     /// <param name="next">The planted tile when allowed.</param>
     /// <returns>The verdict.</returns>
-    public static FarmVerdict Plant(FarmTile? current, int cropId, long nowMs, out FarmTile next)
+    public static FarmVerdict Plant(FarmTile? current, int cropId, long nowMs, GameCalendar calendar, out FarmTile next)
     {
+        ArgumentNullException.ThrowIfNull(calendar);
+
         next = default;
         if (current is not { } tile)
         {
             return FarmVerdict.NotTilled;
         }
 
-        if (tile.HasCrop)
+        if (tile.HasCrop && !IsWithered(tile, nowMs, calendar))
         {
             return FarmVerdict.HasCrop;
         }
 
-        if (!CropCatalog.TryGet(cropId, out _))
+        if (!CropCatalog.TryGet(cropId, out CropDefinition? crop))
         {
             return FarmVerdict.UnknownCrop;
+        }
+
+        if (!crop.GrowsIn(calendar.SeasonAt(nowMs)))
+        {
+            return FarmVerdict.OutOfSeason;
         }
 
         next = new FarmTile(cropId, nowMs, 0, nowMs, tile.WetUntilMs);
@@ -100,14 +109,17 @@ public static class FarmRules
     public static FarmVerdict Clear(FarmTile? current)
         => current is not { } tile ? FarmVerdict.NotTilled : tile.HasCrop ? FarmVerdict.HasCrop : FarmVerdict.Ok;
 
-    /// <summary>Harvests a mature crop; the soil stays tilled.</summary>
+    /// <summary>Harvests a mature crop that has not withered; the soil stays tilled.</summary>
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
     /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
     /// <param name="next">The bare tile when allowed.</param>
     /// <param name="crop">The crop that was harvested when allowed.</param>
     /// <returns>The verdict.</returns>
-    public static FarmVerdict Harvest(FarmTile? current, long nowMs, out FarmTile next, out CropDefinition? crop)
+    public static FarmVerdict Harvest(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next, out CropDefinition? crop)
     {
+        ArgumentNullException.ThrowIfNull(calendar);
+
         next = default;
         crop = null;
         if (current is not { } tile)
@@ -118,6 +130,11 @@ public static class FarmRules
         if (!tile.HasCrop || !CropCatalog.TryGet(tile.CropId, out CropDefinition? found))
         {
             return FarmVerdict.NothingToDo;
+        }
+
+        if (IsWithered(tile, nowMs, calendar))
+        {
+            return FarmVerdict.Withered;
         }
 
         if (!IsMature(tile, nowMs))
@@ -160,6 +177,22 @@ public static class FarmRules
     /// <returns><see langword="true"/> when a mature crop grows there.</returns>
     public static bool IsMature(in FarmTile tile, long nowMs)
         => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && GrowthAt(tile, nowMs) >= crop.TotalGrowthMs;
+
+    /// <summary>
+    /// Returns whether a tile's crop has withered: it was planted in a season it grows in, and the first later season it does not grow in
+    /// has begun (docs/adr/ADR-018). Computed from the planting time alone, so no tick is needed and it never reverses; a mature crop
+    /// that was not harvested in time withers too.
+    /// </summary>
+    /// <param name="tile">The tile.</param>
+    /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <returns><see langword="true"/> when a withered crop stands on the tile.</returns>
+    public static bool IsWithered(in FarmTile tile, long nowMs, GameCalendar calendar)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        return tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && nowMs >= calendar.WitherAtMs(tile.PlantedAtMs, crop.Seasons);
+    }
 
     /// <summary>Returns whether the soil is wet at a moment.</summary>
     /// <param name="tile">The tile.</param>

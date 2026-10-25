@@ -1,0 +1,101 @@
+@using System.Threading
+@using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Help
+@implements IDisposable
+
+@* The settings page: who is signed in (with the registration offer for a guest and sign out), the language, and the key help.
+   Text comes from the two view models; the key caps are the shared GameKey. *@
+<MenuPage>
+    <div class="set-top">
+        <GameSection Title="@Help.Text("Settings_Account")">
+            @if (Vm.CurrentSession is not null)
+            {
+                <div class="set-account">
+                    <p class="set-who">@Vm.SignedInText</p>
+                    @if (Vm.CanUpgrade)
+                    {
+                        <p class="set-note">@Vm.UpgradePromptText</p>
+                    }
+                    <GameRow>
+                        @if (Vm.CanUpgrade)
+                        {
+                            <GameButton OnClick="Vm.BeginUpgrade" Disabled="@Vm.IsBusy" Text="@Vm.UpgradeText" />
+                        }
+                        <GameButton Variant="danger" OnClick="LogoutAsync" Disabled="@Vm.IsBusy" Text="@Vm.SignOutText" />
+                    </GameRow>
+                </div>
+            }
+        </GameSection>
+        <GameSection Title="@Help.Text("Settings_Language")">
+            <div class="set-account">
+                <p class="set-who">@Help.Text("Settings_LanguageName")</p>
+            </div>
+        </GameSection>
+    </div>
+    <GameSection Title="@Help.Text("Settings_Keys")">
+        <div class="set-keys">
+            <div class="set-col">
+                @Entries(Help.Sections[0])
+                @Entries(Help.Sections[2])
+            </div>
+            <div class="set-col narrow">
+                @Entries(Help.Sections[1])
+            </div>
+        </div>
+    </GameSection>
+</MenuPage>
+
+@code {
+    /// <summary>The account view model (the same instance the sign-in form uses).</summary>
+    [Parameter, EditorRequired] public AccountFormViewModel Vm { get; set; } = default!;
+
+    /// <summary>The help view model: the key table and the text of this page.</summary>
+    [Parameter, EditorRequired] public HelpViewModel Help { get; set; } = default!;
+
+    private AccountFormViewModel? _subscribed;
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_subscribed, Vm))
+        {
+            return;
+        }
+
+        Unsubscribe();
+        _subscribed = Vm;
+        Vm.Changed += OnChanged;
+    }
+
+    // The view model can raise Changed from a socket callback; marshal back to the render context.
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Unsubscribe();
+
+    private void Unsubscribe()
+    {
+        if (_subscribed is not null)
+        {
+            _subscribed.Changed -= OnChanged;
+            _subscribed = null;
+        }
+    }
+
+    private Task LogoutAsync() => Vm.LogoutAsync(CancellationToken.None);
+
+    private RenderFragment Entries(HelpSection section) => __builder =>
+    {
+        <p class="set-heading">@section.Title</p>
+        @foreach (HelpEntry entry in section.Entries)
+        {
+            <div class="help-entry">
+                <span class="help-keys">
+                    @foreach (string key in entry.Keys)
+                    {
+                        <GameKey Text="@key" />
+                    }
+                </span>
+                <span>@entry.Description</span>
+            </div>
+        }
+    };
+}

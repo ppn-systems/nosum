@@ -125,11 +125,12 @@ public sealed class GameMapsTests
     }
 
     [Fact]
-    public void Catalogue_OnlyTheFarmAndTheFarmhouseArePrivate_AndOnlyTheFarmhouseTakesFurniture()
+    public void Catalogue_OnlyTheFarmAndTheFarmhouseArePrivate_OnlyCoopFarmIsCoopLand_AndOnlyTheFarmhouseTakesFurniture()
     {
         GameMaps.All.Where(m => m.IsPrivate).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.Farm, GameMaps.FarmHouse);
         GameMaps.All.Where(m => m.Placeable).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.FarmHouse);
-        GameMaps.All.Where(m => !m.IsPrivate).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.Town, GameMaps.Backwoods);
+        GameMaps.All.Where(m => !m.IsPrivate && !m.IsCoop).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.BusStop, GameMaps.Forest, GameMaps.Town, GameMaps.Backwoods);
+        GameMaps.All.Where(m => m.IsCoop).Select(m => m.Id).Should().BeEquivalentTo(GameMaps.CoopFarm);
     }
 
     [Fact]

@@ -1,9 +1,9 @@
 .game-swatch {
     position: relative;
     box-sizing: border-box;
-    width: calc(var(--u) * 14);
-    height: calc(var(--u) * 14);
-    padding: calc(var(--u) * 2);
+    width: calc(var(--u) * 18);
+    height: calc(var(--u) * 18);
+    padding: calc(var(--u) * 3);
     border: var(--u) solid var(--nosum-edge);
     border-image: var(--nosum-img-slot) 4 / var(--u) stretch;
     background: var(--nosum-slot-bg);
