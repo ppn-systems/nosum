@@ -1,0 +1,11 @@
+Farming crops 16x16, by josehzz
+https://opengameart.org/content/farming-crops-16x16
+
+The archive (FarmingCrops16x16.zip, SHA-256 bb22bea539a7c8c2b8c8f481bd9f45fe087671dafb9c418d7f3acab843160377) holds the sheet and a README.txt with the crop list and
+"16x16 spritesheet, no padding, no margin"; it holds no license file. The license is the one stated on the OpenGameArt page, read on 2026-10-25:
+
+    License(s): CC0
+    Copyright/Attribution Notice: A link to my profile page (https://opengameart.org/users/josehzz) would be appreciated, but this is not requiered.
+
+CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/
+Nosum credits the author in docs/art/provenance.md; the link is courtesy, not a condition.
