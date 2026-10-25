@@ -1,4 +1,5 @@
 .game-icon-button {
+    position: relative;
     display: block;
     flex: none;
     width: calc(var(--u) * 16);
@@ -26,4 +27,21 @@
 .game-icon-button:active .game-icon-button-art {
     filter: brightness(0.85);
     transform: translateY(var(--u));
+}
+
+/* The count on the corner: a red dot with a number. */
+.game-icon-badge {
+    position: absolute;
+    top: calc(var(--u) * -1);
+    right: calc(var(--u) * -1);
+    box-sizing: border-box;
+    min-width: calc(var(--u) * 7);
+    height: calc(var(--u) * 7);
+    padding: 0 var(--u);
+    border: var(--u) solid var(--nosum-edge);
+    background: var(--nosum-danger);
+    color: var(--nosum-ink-on-dark);
+    font: 400 var(--nosum-fs-small) / calc(var(--u) * 5) var(--nosum-font);
+    text-align: center;
+    pointer-events: none;
 }

@@ -42,6 +42,12 @@ public enum PanelKind
 
     /// <summary>The visitors page: who may enter the player's farm, and visiting someone else (docs/adr/ADR-019).</summary>
     Visitors = 10,
+
+    /// <summary>The friends page: friends, requests, the friends-may-visit switch and the block list (docs/adr/ADR-029).</summary>
+    Friends = 11,
+
+    /// <summary>The mail page (docs/adr/ADR-029).</summary>
+    Mail = 12,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -89,6 +95,8 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T", "tab-trade"),
         new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G", "tab-coop"),
         new ToolbarItem(PanelKind.Visitors, this.Text("Toolbar_Visitors"), string.Empty, "tab-visitors"),
+        new ToolbarItem(PanelKind.Friends, this.Text("Toolbar_Friends"), string.Empty, "tab-friends"),
+        new ToolbarItem(PanelKind.Mail, this.Text("Toolbar_Mail"), string.Empty, "tab-mail"),
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N", "tab-profile"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), "H", "tab-settings"),
     ];
