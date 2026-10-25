@@ -33,3 +33,13 @@ offline channel for system messages.
 
 Chat is the first feature that sends user text to many clients: tests must cover masking, length limits, block
 lists, and that whispers never reach a third party.
+
+## Amendments (implementation, 2026-10-25)
+
+- **Local = instance for now.** `IChunkPublisher` (ADR-022) is not on master yet; local and map chat both go to the sender's map instance. `ChatService.CollectLocal` is the single call site to switch.
+- **Rate rule is two layers.** `[PacketRateLimit]` takes whole requests per second, so it is only a flood guard (and is per address); the exact 5 per 10 s, burst 3 rule is `ChatRateLimiter`, answered with `ChatStatus.RateLimited`.
+- **Guest = guest-style nickname** (`NicknameRules.IsGuestName`), which no player can type.
+- **Blocks look like absence.** A blocked sender's whisper reports the target offline; trade and co-op invitations report the target not found; a block beats an allow-list entry for visits; a block ends the friendship and open requests.
+- **Friends-may-visit** is a column of `visit_settings` (default on), not a new table. Guests keep no friends list.
+- **Reports** store what the reporter had received (last 20 lines, any channel, in memory), not the reported player's own history.
+- **Mail** is storage-bounded (200 per mailbox; oldest mails with nothing to collect make room); expired mail is hidden at once and purged hourly. Admin mute (D3) is left to M5.

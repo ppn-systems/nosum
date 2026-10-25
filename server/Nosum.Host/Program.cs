@@ -13,14 +13,17 @@ using Nalix.Runtime.Middleware.Standard;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Calendar;
+using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Crafting;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
+using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Market;
 using Nosum.Abstractions.Nodes;
@@ -36,12 +39,15 @@ using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Handlers.Account;
 using Nosum.Handlers.Calendar;
+using Nosum.Handlers.Chat;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
+using Nosum.Handlers.Friends;
 using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
 using Nosum.Handlers.Look;
+using Nosum.Handlers.Mail;
 using Nosum.Handlers.Market;
 using Nosum.Handlers.Node;
 using Nosum.Handlers.Placeable;
@@ -52,14 +58,17 @@ using Nosum.Handlers.Trade;
 using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Calendar;
+using Nosum.Infrastructure.Chat;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Crafting;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
+using Nosum.Infrastructure.Friends;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Looks;
+using Nosum.Infrastructure.Mail;
 using Nosum.Infrastructure.Maps;
 using Nosum.Infrastructure.Market;
 using Nosum.Infrastructure.Nodes;
@@ -130,6 +139,14 @@ internal static class Program
             ex => Console.Error.WriteLine("Ground item expiry failed: " + ex.Message),
             shutdown.Token);
 
+        // Mail past its 30 days is removed with its attachment (docs/adr/ADR-029 D5).
+        IMailService mail = InstanceManager.Instance.GetExistingInstance<IMailService>()
+            ?? throw new InvalidOperationException("The mail service is not registered.");
+        Task mailExpiry = new MailExpiryService(mail, TimeProvider.System).RunAsync(
+            MailExpiryService.DefaultInterval,
+            ex => Console.Error.WriteLine("Mail expiry failed: " + ex.Message),
+            shutdown.Token);
+
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
@@ -138,6 +155,7 @@ internal static class Program
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
         await groundItemExpiry.ConfigureAwait(false);
+        await mailExpiry.ConfigureAwait(false);
 
         return 0;
     }
@@ -235,7 +253,10 @@ internal static class Program
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
             .MapHandlers(typeof(CalendarHandlers))
-            .MapHandlers(typeof(GroundItemHandlers));
+            .MapHandlers(typeof(GroundItemHandlers))
+            .MapHandlers(typeof(ChatHandlers))
+            .MapHandlers(typeof(FriendHandlers))
+            .MapHandlers(typeof(MailHandlers));
 
         // Tester tools exist only in Development: no handler, no service, no opcode in Production.
         if (development)
@@ -371,9 +392,16 @@ internal static class Program
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
 
+        // Block lists and the mailbox (docs/adr/ADR-029): the trade, co-op and visit services drop requests between blocked players, the market and the
+        // co-ops send mail, and community goals send rewards through IMailService.
+        BlockList blocks = new(unitOfWork, nicknames, clock);
+        InstanceManager.Instance.Register<IBlockList>(blocks);
+        MailService mail = new(unitOfWork, transfers, notifier, clock);
+        InstanceManager.Instance.Register<IMailService>(mail);
+
         // The market fee is a coin sink (owner decision 2026-10-25); IFeeSink is the one place that would redirect it.
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
-        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock));
+        InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, mail));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock));
         if (development)
         {
@@ -381,10 +409,15 @@ internal static class Program
             InstanceManager.Instance.Register<IDevClockService>(new DevClockService(devClock!, calendar, dayClock));
         }
 
-        InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));
-        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock);
+        InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock, blocks));
+        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock, mail, blocks);
         InstanceManager.Instance.Register<ICoopService>(coops);
-        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock));
+
+        // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
+        FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock);
+        InstanceManager.Instance.Register<IFriendService>(friends);
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends));
+        InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence));
 
         // Armed last: every subscriber is in place before the first boundary.
         dayClock.Start();

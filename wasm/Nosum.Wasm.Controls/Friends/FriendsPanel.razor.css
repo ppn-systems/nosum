@@ -1,0 +1,22 @@
+.friends-hint {
+    margin: 0;
+    color: var(--nosum-ink-soft);
+}
+
+/* One friend per line: the name takes the space, the status and the buttons sit at the right edge. */
+.friends-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+}
+
+.friends-list ::deep .friends-row {
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.friends-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}

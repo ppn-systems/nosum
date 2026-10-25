@@ -383,6 +383,115 @@
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered when its season ended. Plant a new seed over it.</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>That seed is not sold in this season.</value></data>
+  <data name="Toolbar_Friends" xml:space="preserve"><value>Friends</value></data>
+  <data name="Toolbar_Mail" xml:space="preserve"><value>Mail</value></data>
+  <data name="Toolbar_MailUnread" xml:space="preserve"><value>Unread mail: {0}</value></data>
+  <data name="Chat_Channel_Local" xml:space="preserve"><value>Local</value></data>
+  <data name="Chat_Channel_Map" xml:space="preserve"><value>Map</value></data>
+  <data name="Chat_Channel_Coop" xml:space="preserve"><value>Co-op</value></data>
+  <data name="Chat_Channel_Whisper" xml:space="preserve"><value>Whisper</value></data>
+  <data name="Chat_InputHint" xml:space="preserve"><value>Type to talk. Tab changes channel, /w name whispers</value></data>
+  <data name="Chat_GuestHint" xml:space="preserve"><value>Guests can only use local chat. Register for more channels</value></data>
+  <data name="Chat_InputLabel" xml:space="preserve"><value>Chat message</value></data>
+  <data name="Chat_WhisperFromTo" xml:space="preserve"><value>{0} → {1}</value></data>
+  <data name="Chat_Sys_Usage" xml:space="preserve"><value>Usage: /w name text, /block name, /unblock name, /report name.</value></data>
+  <data name="Chat_Sys_UnknownCommand" xml:space="preserve"><value>Unknown command. Use /w, /l, /m, /c, /block, /unblock or /report.</value></data>
+  <data name="Chat_Sys_Blocked" xml:space="preserve"><value>You blocked {0}.</value></data>
+  <data name="Chat_Sys_Unblocked" xml:space="preserve"><value>You unblocked {0}.</value></data>
+  <data name="Chat_Sys_Reported" xml:space="preserve"><value>You reported {0}. Thank you.</value></data>
+  <data name="Chat_Status_Empty" xml:space="preserve"><value>There is nothing to send.</value></data>
+  <data name="Chat_Status_NotOnMap" xml:space="preserve"><value>You are not in the world yet, try again.</value></data>
+  <data name="Chat_Status_GuestLocalOnly" xml:space="preserve"><value>Guests can only use local chat. Register an account.</value></data>
+  <data name="Chat_Status_NotInCoop" xml:space="preserve"><value>You are not in a co-op.</value></data>
+  <data name="Chat_Status_TargetOffline" xml:space="preserve"><value>That player is not online.</value></data>
+  <data name="Chat_Status_SelfWhisper" xml:space="preserve"><value>You cannot whisper to yourself.</value></data>
+  <data name="Chat_Status_InvalidNickname" xml:space="preserve"><value>That is not a valid nickname.</value></data>
+  <data name="Chat_Status_Blocked" xml:space="preserve"><value>You blocked that player. Unblock them first.</value></data>
+  <data name="Chat_Status_RateLimited" xml:space="preserve"><value>You are sending too fast, wait a moment.</value></data>
+  <data name="Chat_Status_UnknownPlayer" xml:space="preserve"><value>No player has that nickname.</value></data>
+  <data name="Chat_Status_AlreadyBlocked" xml:space="preserve"><value>That player is blocked already.</value></data>
+  <data name="Chat_Status_NotBlocked" xml:space="preserve"><value>That player is not blocked.</value></data>
+  <data name="Chat_Status_BlockListFull" xml:space="preserve"><value>The block list is full.</value></data>
+  <data name="Chat_Status_InvalidChannel" xml:space="preserve"><value>That chat channel does not exist.</value></data>
+  <data name="Chat_Status_NothingToReport" xml:space="preserve"><value>There is no recent message from that player to report.</value></data>
+  <data name="Chat_Status_SelfBlock" xml:space="preserve"><value>You cannot block or report yourself.</value></data>
+  <data name="Friends_Add_Heading" xml:space="preserve"><value>Add a friend</value></data>
+  <data name="Friends_NicknamePlaceholder" xml:space="preserve"><value>Nickname</value></data>
+  <data name="Friends_Request" xml:space="preserve"><value>Ask</value></data>
+  <data name="Friends_Add_Hint" xml:space="preserve"><value>Type the nickname of a player. If they asked you too, you become friends at once.</value></data>
+  <data name="Friends_GuestNotice" xml:space="preserve"><value>Guests keep no friends list. Register to use friends.</value></data>
+  <data name="Friends_List_Heading" xml:space="preserve"><value>Friends</value></data>
+  <data name="Friends_ListEmpty" xml:space="preserve"><value>You have no friends yet.</value></data>
+  <data name="Friends_Online" xml:space="preserve"><value>Online</value></data>
+  <data name="Friends_Offline" xml:space="preserve"><value>Offline</value></data>
+  <data name="Friends_OnMap" xml:space="preserve"><value>At {0}</value></data>
+  <data name="Friends_Map_farm" xml:space="preserve"><value>the farm</value></data>
+  <data name="Friends_Map_farmhouse" xml:space="preserve"><value>the farmhouse</value></data>
+  <data name="Friends_Map_busstop" xml:space="preserve"><value>the bus stop</value></data>
+  <data name="Friends_Map_forest" xml:space="preserve"><value>the forest</value></data>
+  <data name="Friends_Map_town" xml:space="preserve"><value>the Town</value></data>
+  <data name="Friends_Map_backwoods" xml:space="preserve"><value>the backwoods</value></data>
+  <data name="Friends_Map_coopfarm" xml:space="preserve"><value>the co-op land</value></data>
+  <data name="Friends_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Friends_Incoming_Heading" xml:space="preserve"><value>Friend requests</value></data>
+  <data name="Friends_Accept" xml:space="preserve"><value>Accept</value></data>
+  <data name="Friends_Decline" xml:space="preserve"><value>Decline</value></data>
+  <data name="Friends_Outgoing_Heading" xml:space="preserve"><value>Requests you sent</value></data>
+  <data name="Friends_Withdraw" xml:space="preserve"><value>Withdraw</value></data>
+  <data name="Friends_Visit_On" xml:space="preserve"><value>Friends may visit my farm: ON</value></data>
+  <data name="Friends_Visit_Off" xml:space="preserve"><value>Friends may visit my farm: OFF</value></data>
+  <data name="Friends_Visit_Hint" xml:space="preserve"><value>When on, every friend can enter your farm and house without a separate invitation.</value></data>
+  <data name="Friends_Blocked_Heading" xml:space="preserve"><value>Blocked players</value></data>
+  <data name="Friends_BlockedEmpty" xml:space="preserve"><value>You have blocked nobody.</value></data>
+  <data name="Friends_BlockPlaceholder" xml:space="preserve"><value>Nickname to block</value></data>
+  <data name="Friends_Block" xml:space="preserve"><value>Block</value></data>
+  <data name="Friends_Unblock" xml:space="preserve"><value>Unblock</value></data>
+  <data name="Friends_Blocked_Hint" xml:space="preserve"><value>Blocked players cannot chat, trade or ask to visit you. Type /report name in the chat to report someone.</value></data>
+  <data name="Friends_UnknownPlayer" xml:space="preserve"><value>(player)</value></data>
+  <data name="Friend_Status_Ok" xml:space="preserve"><value>Done.</value></data>
+  <data name="Friend_Status_InvalidNickname" xml:space="preserve"><value>That is not a valid nickname.</value></data>
+  <data name="Friend_Status_UnknownPlayer" xml:space="preserve"><value>No player has that nickname.</value></data>
+  <data name="Friend_Status_Self" xml:space="preserve"><value>That is you.</value></data>
+  <data name="Friend_Status_GuestNotAllowed" xml:space="preserve"><value>Register an account to use friends.</value></data>
+  <data name="Friend_Status_AlreadyFriends" xml:space="preserve"><value>You are friends already.</value></data>
+  <data name="Friend_Status_AlreadyRequested" xml:space="preserve"><value>You already asked that player.</value></data>
+  <data name="Friend_Status_ListFull" xml:space="preserve"><value>The friends list is full.</value></data>
+  <data name="Friend_Status_NoRequest" xml:space="preserve"><value>There is no such request.</value></data>
+  <data name="Friend_Status_NotFriends" xml:space="preserve"><value>You are not friends.</value></data>
+  <data name="Friend_Status_PendingFull" xml:space="preserve"><value>There are too many open requests.</value></data>
+  <data name="Friend_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Mail_Empty" xml:space="preserve"><value>Your mailbox is empty.</value></data>
+  <data name="Mail_Unread" xml:space="preserve"><value>Unread</value></data>
+  <data name="Mail_Collect" xml:space="preserve"><value>Collect</value></data>
+  <data name="Mail_Collected" xml:space="preserve"><value>Collected.</value></data>
+  <data name="Mail_CollectedTag" xml:space="preserve"><value>Collected</value></data>
+  <data name="Mail_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Mail_Attachments" xml:space="preserve"><value>Attached</value></data>
+  <data name="Mail_Coins" xml:space="preserve"><value>{0} coins</value></data>
+  <data name="Mail_Expiry" xml:space="preserve"><value>{0} days left</value></data>
+  <data name="Mail_Expiry_One" xml:space="preserve"><value>1 day left</value></data>
+  <data name="Mail_Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="Mail_Hint" xml:space="preserve"><value>Mail is deleted after 30 days. Collect a mail's gift before you delete it.</value></data>
+  <data name="Mail_UnknownItem" xml:space="preserve"><value>an item</value></data>
+  <data name="Mail_Title_MarketSold" xml:space="preserve"><value>Your listing sold</value></data>
+  <data name="Mail_Body_MarketSold" xml:space="preserve"><value>{0} x{1} sold. You receive {2} coins after the fee.</value></data>
+  <data name="Mail_Title_CoopInvite" xml:space="preserve"><value>Co-op invitation</value></data>
+  <data name="Mail_Body_CoopInvite" xml:space="preserve"><value>You are invited to the co-op {0}. Open the Co-op page to answer.</value></data>
+  <data name="Mail_Body_CoopInviteFrom" xml:space="preserve"><value>{1} invited you to the co-op {0}. Open the Co-op page to answer.</value></data>
+  <data name="Mail_Title_GoalReward" xml:space="preserve"><value>Community reward</value></data>
+  <data name="Mail_Body_GoalReward" xml:space="preserve"><value>Thank you for helping with the community goal. Collect your reward below.</value></data>
+  <data name="Mail_Title_Unknown" xml:space="preserve"><value>Notice</value></data>
+  <data name="Mail_Body_Unknown" xml:space="preserve"><value>You have a new notice from the game.</value></data>
+  <data name="Mail_Status_Ok" xml:space="preserve"><value>Done.</value></data>
+  <data name="Mail_Status_NotFound" xml:space="preserve"><value>That mail is gone.</value></data>
+  <data name="Mail_Status_NothingToCollect" xml:space="preserve"><value>This mail has nothing to collect.</value></data>
+  <data name="Mail_Status_AlreadyCollected" xml:space="preserve"><value>You collected this gift already.</value></data>
+  <data name="Mail_Status_Expired" xml:space="preserve"><value>This mail expired.</value></data>
+  <data name="Mail_Status_NoSpace" xml:space="preserve"><value>Your bag has no room.</value></data>
+  <data name="Mail_Status_TooRich" xml:space="preserve"><value>These coins would go over the coin limit.</value></data>
+  <data name="Mail_Status_HasAttachments" xml:space="preserve"><value>Collect the gift before deleting.</value></data>
+  <data name="Mail_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Mail_Status_Failed" xml:space="preserve"><value>The transfer failed, try again.</value></data>
   <data name="Farm_Status_NoEnergy" xml:space="preserve"><value>You are out of energy. Eat some produce, or wait for the next day.</value></data>
   <data name="Eat_Status_InvalidSlot" xml:space="preserve"><value>That slot is not on the hotbar.</value></data>
   <data name="Eat_Status_NotEdible" xml:space="preserve"><value>You cannot eat that.</value></data>
