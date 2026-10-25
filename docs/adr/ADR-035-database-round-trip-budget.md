@@ -63,19 +63,41 @@ a second ago. Only a few of these are real N+1 loops (community goals, friend co
 - **D2 — The server keeps what it decided in memory and the database keeps what must survive.** State that only this process changes and that
   every request needs (inventory, energy and skill experience, co-op membership, visit lists, friendships, block lists, nicknames) is held in memory
   per player. The database stays the durable record and is written in the same transaction as before (write-through).
-- **D3 — Inventory.** `InventoryService` keeps, per player that is signed in (and for any container it touched, such as a chest, with a size cap),
-  the header and the slot grid it already builds in `LoadAsync`. The per-player lock the service already takes (`StripedAsyncLock`) serializes readers and
-  writers. Reads (`PeekSlotAsync`, `GetAsync`, `SelectSlotAsync` validation, the check half of every operation) are answered from the grid with no command.
-  Every change still runs in one unit of work and one `SaveChanges` (rows, `inventory_log`, enlisted work). **The cache is updated only after
-  `SaveChanges` succeeded;** on a conflict or any exception the entry is dropped and the next call reloads it. Entries leave when the player disconnects
-  (after the position save) and by an idle timeout for containers. All inventory rows must go through this service. Today two other places still touch the
-  tables directly, both only to delete the rows of a container: `ChestService` (picking a chest up checks `inventory_slots` and removes the header) and
-  `CoopService` (wiping co-op land does the same for every chest on it). Phase 2 first moves both behind an `IInventoryService` method for containers;
-  a test then fails if any file outside `InventoryService` uses `Repository<InventorySlot>` or `Repository<PlayerInventory>`.
+- **D3 — Inventory.** The cache lives in the layer that owns the transaction. Every committed change of an inventory row, whoever asked for it,
+  runs through `InventoryService` (`ExecuteManyAsync`, the one place that opens the unit of work, writes `inventory_slots`/`player_inventories` and the
+  `inventory_log`): the single-player operations (`ApplyAsync`, `MoveAsync`, `SelectSlotAsync`, `BackfillStarterToolsAsync`) and `ApplyManyAsync`, which is
+  what `ITransferService` calls for the item legs of a shop purchase, market listing/purchase/cancel, direct trade, shipping, mail collect, community goal
+  delivery and co-op deposit/withdraw, and what `GroundItemService` (pickups), `InventoryYieldSink` (node yields), `BuildingService`, `PlaceableService`,
+  `ChestService`, `CraftingService`, `CoopService` and `DevGrantService` use. Writers found by grep over `server/Nosum.Infrastructure`
+  (`Repository<InventorySlot>`, `Repository<PlayerInventory>`):
+
+  | File | What it does to the tables |
+  |:--|:--|
+  | `Inventory/InventoryService.cs` | loads, inserts the starter kit, updates and deletes slot rows, updates the header: **the only writer of item counts** |
+  | `Placeables/ChestService.cs` | reads `inventory_slots` and removes the header of a chest container when the chest is picked up |
+  | `Coops/CoopService.cs` | reads `inventory_slots` and removes the header of each chest when co-op land is wiped |
+
+  The cache keeps, per player that is signed in (and for any container it touched, with a size cap), the header and the slot grid `LoadAsync` already
+  builds. Rules:
+  1. The per-player locks `ExecuteManyAsync` already takes (`StripedAsyncLock.EnterAllAsync`, all parties in stripe order) cover the read, the change,
+     the save **and the cache update**, so a transfer updates the cached grid of **each party** under the locks of all parties.
+  2. A cache entry is changed only **after** `SaveChanges` succeeded. On a conflict, a unique violation or any exception the entries of all parties are
+     dropped and the next call reloads them.
+  3. Reads (`PeekSlotAsync`, `GetAsync`, `SelectSlotAsync` validation, the check half of every operation) are answered from the grid with no command.
+  4. Entries leave when the player disconnects (after the position save) and by an idle timeout for containers.
+  5. The two container deletions above move behind an `IInventoryService` method (`DropContainerAsync`), which drops the cache entry with the rows, before any
+     cache is built. Then a test fails if any file outside `InventoryService` uses `Repository<InventorySlot>` or `Repository<PlayerInventory>`, and a
+     second test fails if an implementation of `ITransferService`, `IGroundItems` or any yield sink opens its own inventory write instead of calling
+     `IInventoryService`.
 - **D4 — Progress.** One `player_states` row holds the saved place, the energy and the skill experience, and today two services write it
   (`PlayerStateService` for the place, `PlayerProgressService` for energy and experience). They become one cached entry per signed-in player, so a join, a
   map change and a swing read the same in-memory row and `JoinMap` stops reading it twice. The energy charge of a swing happens against the cached value and is
   written in the swing's transaction, as ADR-023 D1 requires.
+  **Concurrent swings are serialized.** `PlayerProgressService` already takes one `StripedAsyncLock` per player for every charge and keeps it until the
+  caller disposed the charge, after the save; the energy check and the XP grant happen under that lock against the cached value, and the cache is updated
+  only after `SaveChanges`. The inventory lock of D3 is the other per-player lock; the order between them stays what the code documents today (inventory
+  lock first, progress second, because the charge is enlisted in the inventory transaction, `PlayerProgressService` class comment), and a swing that needs both takes them in that order only.
+  Two quick swings therefore cannot both pass a check against 1 remaining energy.
 - **D5 — Social and access facts.** `CoopMembership`, `VisitAccess` (grants, settings, friendships, blocks), the friend lists and the nickname to account
   lookup (`players.normalized_nickname`) get a read-through cache with explicit invalidation in the service that writes them. Each of those services is
   already the only writer of its tables; `INicknameDirectory` is the model. `VisitAccess` is also evaluated once per decision: ADR-019 D5 re-checks access
@@ -98,9 +120,9 @@ a second ago. Only a few of these are real N+1 loops (community goals, friend co
   | `ReadMail` flag | 5 s | a mail shows as unread again |
   | `last_active_at` touch on resume | 60 s | guest retention is computed from a slightly older time |
   | Position save (`player_states` x, y) | already on leave and map change only | at most the walk since the last map change (unchanged) |
-  | Pet / friendship counters of animals | 30 s | a few friendship points |
 
-  Not write-behind, ever: coins, items, quests, crop and plot state, placed objects, ground items, market and trade rows, mail attachments, the
+  Not write-behind, ever: animal friendship (petting) - friendship sets the chance of the large produce (`AnimalRules.LargeChancePercent`), so losing it would change items; it stays
+  write-through - coins, items, quests, crop and plot state, placed objects, ground items, market and trade rows, mail attachments, the
   inventory log, the coin log. A flush runs on disconnect, on a map change and at shutdown (`NetworkApplication` stop), in one unit of work per player.
 - **D8 — Single process, and what changes if that ends.** These caches are correct because one process is the only writer of the tables they mirror
   (ADR-003 server authority, ADR-009 "revisit when the host runs on more than one process": the session registry and map presence are already in memory).
@@ -110,7 +132,9 @@ a second ago. Only a few of these are real N+1 loops (community goals, friend co
   without touching a handler.
 - **D9 — The gate.** `DbBudgetTests` (integration, real PostgreSQL) runs a scenario per client packet and fails when a hot-path request needs more
   reads, writes, transactions or `SaveChanges` calls than `DbBudgetBaseline`. The limits in this PR are today's numbers; each change below lowers its rows
-  in the same commit (a ratchet). A new client packet needs a scenario (`Run_EveryClientOpcode_HasARowOrAReason` fails otherwise).
+  in the same commit (a ratchet). A new client packet needs a scenario (`Run_EveryClientOpcode_HasARowOrAReason` fails otherwise). The budget test runs in CI's integration job with the rest
+  of `Nosum.IntegrationTests` and does not depend on timing: it counts commands, never durations, and the waits in the scenarios only let the server finish
+  its own work before the count is read.
 
 ## Ranked changes
 
@@ -129,6 +153,14 @@ test; if wrong, the budget test shows by how much.
 | 8 | Drop instance state of an instance nobody is in after a grace period | memory only | none for the database (it adds a cold load back); listed so the growth is a decision | - |
 
 Phase 2 builds #1-#3 in that order, one PR each, with the budget test lowered in the same commit. #4-#7 follow. This ADR changes no code.
+
+Coherence tests phase 2 must add with the caches (the budget test cannot see staleness):
+- two parallel transfers touching the same player never leave the cache different from the database (compare after each);
+- a transfer that fails its `SaveChanges` leaves no cache entry for any party;
+- two quick swings with 1 energy left: exactly one passes (D4);
+- inventory changed by a pickup, a node yield, a craft and a chest move is visible to the next `GetInventory` without a reload;
+- picking up a chest and wiping co-op land drop the container's cache entry;
+- the single-writer guard tests of D3 rule 5.
 
 ## Alternatives considered
 
