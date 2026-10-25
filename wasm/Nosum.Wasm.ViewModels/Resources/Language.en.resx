@@ -404,7 +404,7 @@
   <data name="Market_History" xml:space="preserve"><value>Prices</value></data>
   <data name="Market_History_Title" xml:space="preserve"><value>Price history: {0}</value></data>
   <data name="Market_History_Chart" xml:space="preserve"><value>Median price of each game day</value></data>
-  <data name="Market_History_Latest" xml:space="preserve"><value>Latest day: lowest {0}, median {1}, highest {2} coins each ({3} sales)</value></data>
+  <data name="Market_History_Latest" xml:space="preserve"><value>Latest day: lowest {0}, median {1}, highest {2} coins each; sales: {3}</value></data>
   <data name="Market_History_Range" xml:space="preserve"><value>Last {0} days: from {1} to {2} coins each</value></data>
   <data name="Market_History_None" xml:space="preserve"><value>Nothing was sold in the last {0} days.</value></data>
   <data name="Market_History_Hide" xml:space="preserve"><value>Hide</value></data>
@@ -427,4 +427,5 @@
   <data name="Skill_MaxLevel" xml:space="preserve"><value>Max level</value></data>
   <data name="Skill_LevelUp" xml:space="preserve"><value>{0} reached level {1}!</value></data>
   <data name="Toolbar_Skills" xml:space="preserve"><value>Skills</value></data>
+  <data name="Market_History_Tip" xml:space="preserve"><value>Show the price history of this item</value></data>
 </root>

@@ -41,7 +41,7 @@ public sealed class PriceHistoryViewModelTests
         vm.HistoryTitle.Should().Be("Price history: Parsnip");
         vm.HistoryPoints.Should().Equal(10, 14, 9);
         vm.HistoryLines.Should().Equal(
-            "Latest day: lowest 8, median 9, highest 10 coins each (4 sales)",
+            "Latest day: lowest 8, median 9, highest 10 coins each; sales: 4",
             "Last 14 days: from 8 to 20 coins each");
     }
 

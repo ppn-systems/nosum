@@ -404,7 +404,7 @@
   <data name="Market_History" xml:space="preserve"><value>Giá</value></data>
   <data name="Market_History_Title" xml:space="preserve"><value>Lịch sử giá: {0}</value></data>
   <data name="Market_History_Chart" xml:space="preserve"><value>Giá trung vị mỗi ngày trong game</value></data>
-  <data name="Market_History_Latest" xml:space="preserve"><value>Ngày gần nhất: thấp nhất {0}, trung vị {1}, cao nhất {2} xu mỗi món ({3} giao dịch)</value></data>
+  <data name="Market_History_Latest" xml:space="preserve"><value>Ngày gần nhất: thấp nhất {0}, trung vị {1}, cao nhất {2} xu mỗi món; số giao dịch: {3}</value></data>
   <data name="Market_History_Range" xml:space="preserve"><value>{0} ngày qua: từ {1} đến {2} xu mỗi món</value></data>
   <data name="Market_History_None" xml:space="preserve"><value>Chưa có giao dịch nào trong {0} ngày qua.</value></data>
   <data name="Market_History_Hide" xml:space="preserve"><value>Ẩn</value></data>
@@ -427,4 +427,5 @@
   <data name="Skill_MaxLevel" xml:space="preserve"><value>Tối đa</value></data>
   <data name="Skill_LevelUp" xml:space="preserve"><value>{0} lên cấp {1}!</value></data>
   <data name="Toolbar_Skills" xml:space="preserve"><value>Kỹ năng</value></data>
+  <data name="Market_History_Tip" xml:space="preserve"><value>Xem lịch sử giá của vật phẩm này</value></data>
 </root>

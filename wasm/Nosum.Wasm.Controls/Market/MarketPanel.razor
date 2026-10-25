@@ -30,7 +30,7 @@
                         <span class="listing-seller">@listing.SellerText</span>
                     </span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
-                    <GameButton Variant="plain" Text="@Vm.Text("Market_History")" OnClick="@(() => Vm.ShowHistory(itemId))" />
+                    <GameButton Variant="plain" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />
                     @if (listing.IsMine)
                     {
                         <span>@Vm.Text("Market_YourListing")</span>
@@ -68,7 +68,7 @@
                         <span class="market-fee sell-fee">@Vm.FeeSummary</span>
                     }
                 </div>
-                <PriceHistoryCard Vm="Vm" />
+                <PriceHistoryCard Vm="Vm" Compact="true" />
             }
             else
             {
