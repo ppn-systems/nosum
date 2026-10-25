@@ -24,9 +24,11 @@
                 Guid id = listing.Id;
                 <GameRow Class="listing-row">
                     <ItemSlotButton Slot="listing.Item" />
-                    <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
+                    <span class="listing-main">
+                        <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
+                        <span class="listing-seller">@listing.SellerText</span>
+                    </span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
-                    <span class="listing-seller">@listing.SellerText</span>
                     @if (listing.IsMine)
                     {
                         <span>@Vm.Text("Market_YourListing")</span>
@@ -79,9 +81,9 @@
 @foreach (ListingDisplay listing in Vm.Mine)
             {
                 Guid id = listing.Id;
-                <GameRow Class="listing-row mine">
+                <GameRow Class="listing-row">
                     <ItemSlotButton Slot="listing.Item" />
-                    <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
+                    <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span></span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
                     <GameButton Variant="danger" Text="@Vm.Text("Market_Cancel")" OnClick="@(() => Vm.Cancel(id))" />
                 </GameRow>

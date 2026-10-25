@@ -38,13 +38,15 @@
 
 .listing-list ::deep .listing-row {
     display: grid;
-    grid-template-columns: auto 1fr auto auto auto;
+    grid-template-columns: auto 1fr auto auto;
     gap: calc(var(--u) * 3);
     align-items: center;
 }
 
-.listing-list ::deep .listing-row.mine {
-    grid-template-columns: auto 1fr auto auto;
+.listing-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .listing-price {
