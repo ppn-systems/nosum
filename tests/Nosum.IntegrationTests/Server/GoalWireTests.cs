@@ -33,6 +33,7 @@ namespace Nosum.IntegrationTests.Server;
 /// The community goals and the price history through the real host over a WebSocket (docs/adr/ADR-030): deliveries at the Town board, the push to everyone in the Town,
 /// the season end driven by the development clock, and the market limit and history packets.
 /// </summary>
+[Collection(NalixHostSerial.Name)]
 public sealed class GoalWireTests : IClassFixture<PostgresFixture>, IAsyncLifetime
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(120);
