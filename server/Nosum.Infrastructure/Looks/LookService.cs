@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
+using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
@@ -28,19 +30,10 @@ namespace Nosum.Infrastructure.Looks;
 /// </summary>
 public sealed class LookService : ILookService
 {
-    // What a new player finds in the inventory so the wardrobe has something to try. A product default (docs/adr/ADR-014).
-    private static readonly int[] s_starterWardrobe =
-    [
-        ItemCatalog.ShirtRed,
-        ItemCatalog.ShirtGreen,
-        ItemCatalog.PantsBlue,
-        ItemCatalog.HatStraw,
-        ItemCatalog.HatCap,
-    ];
-
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly IInventoryService _inventory;
     private readonly IMapPresence _presence;
+    private readonly INicknameDirectory _nicknames;
     private readonly TimeProvider _time;
     private readonly ConcurrentDictionary<Guid, PlayerLook> _cache = new();
     private readonly StripedAsyncLock _locks = new();
@@ -49,17 +42,20 @@ public sealed class LookService : ILookService
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="inventory">Moves clothing between the inventory and the body.</param>
     /// <param name="presence">Who is on which map; looks are announced through it.</param>
+    /// <param name="nicknames">Resolves the nickname sent with every look.</param>
     /// <param name="time">The clock for the saved timestamp; tests pass a fake one.</param>
-    public LookService(IUnitOfWorkFactory unitOfWork, IInventoryService inventory, IMapPresence presence, TimeProvider time)
+    public LookService(IUnitOfWorkFactory unitOfWork, IInventoryService inventory, IMapPresence presence, INicknameDirectory nicknames, TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(nicknames);
         ArgumentNullException.ThrowIfNull(time);
 
         _unitOfWork = unitOfWork;
         _inventory = inventory;
         _presence = presence;
+        _nicknames = nicknames;
         _time = time;
     }
 
@@ -78,14 +74,27 @@ public sealed class LookService : ILookService
 
         List<PlayerPresence> players = [];
         _presence.CopyPlayers(me.Key, players);
+        IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(players.Select(p => p.AccountId), cancellationToken).ConfigureAwait(false);
         List<PlayerLookView> looks = new(players.Count);
         foreach (PlayerPresence other in players)
         {
             PlayerLook look = other.AccountId == playerId ? mine : await this.GetAsync(other.AccountId, cancellationToken).ConfigureAwait(false);
-            looks.Add(new PlayerLookView(other.PlayerId, look));
+            looks.Add(new PlayerLookView(other.PlayerId, look, names.GetValueOrDefault(other.AccountId, string.Empty)));
         }
 
         return looks;
+    }
+
+    /// <inheritdoc/>
+    public async Task AnnounceAsync(IConnection connection, Guid playerId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        if (_presence.TryGet(connection, out PlayerPresence? me))
+        {
+            PlayerLook mine = await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+            await this.BroadcastAsync(me, mine, null, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc/>
@@ -231,7 +240,7 @@ public sealed class LookService : ILookService
         return LookStatus.Ok;
     }
 
-    // Loads the look (creating the default one and the starter wardrobe for a new player). Call while holding the player's look lock.
+    // Loads the look (creating the default one for a new player). Call while holding the player's look lock.
     private async Task<PlayerLook> LoadLockedAsync(Guid playerId, CancellationToken cancellationToken)
     {
         if (_cache.TryGetValue(playerId, out PlayerLook cached))
@@ -239,7 +248,6 @@ public sealed class LookService : ILookService
             return cached;
         }
 
-        bool created = false;
         PlayerLook look;
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
@@ -252,24 +260,11 @@ public sealed class LookService : ILookService
                 Apply(row, look, _time.GetUtcNow());
                 unit.Repository<PlayerAppearance>().Add(row);
                 _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                created = true;
             }
             else
             {
                 look = new PlayerLook(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId);
             }
-        }
-
-        if (created)
-        {
-            // A full inventory just means a new player starts without the extra clothes; it is not an error.
-            List<InventoryOperation> gifts = [];
-            foreach (int itemId in s_starterWardrobe)
-            {
-                gifts.Add(InventoryOperation.Add(itemId, 1));
-            }
-
-            _ = await _inventory.ApplyAsync(playerId, gifts, "starter.wardrobe", null, cancellationToken).ConfigureAwait(false);
         }
 
         _cache[playerId] = look;
@@ -289,7 +284,8 @@ public sealed class LookService : ILookService
         using PacketScope<LookChanged> lease = PacketFactory<LookChanged>.Acquire();
         // A pooled packet may come back with its nested row reset: always give it a fresh one.
         LookRow row = LookRow.Create();
-        new PlayerLookView(me.PlayerId, look).FillRow(row);
+        string nickname = await _nicknames.GetAsync(me.AccountId, cancellationToken).ConfigureAwait(false);
+        new PlayerLookView(me.PlayerId, look, nickname).FillRow(row);
         lease.Value.Look = row;
         await _presence.MulticastAsync(me.Key, lease.Value, except, cancellationToken).ConfigureAwait(false);
     }

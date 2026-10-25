@@ -16,7 +16,8 @@ namespace Nosum.Abstractions.Market;
 /// <param name="Quantity">How many.</param>
 /// <param name="Price">Price for the whole stack, coins.</param>
 /// <param name="ExpiresAt">When the listing expires.</param>
-public sealed record ListingView(Guid ListingId, Guid SellerId, int ItemId, int Quantity, long Price, DateTimeOffset ExpiresAt);
+/// <param name="SellerNickname">The seller's nickname.</param>
+public sealed record ListingView(Guid ListingId, Guid SellerId, int ItemId, int Quantity, long Price, DateTimeOffset ExpiresAt, string SellerNickname);
 
 /// <summary>One page of listings.</summary>
 /// <param name="ServerNow">The server clock when read.</param>

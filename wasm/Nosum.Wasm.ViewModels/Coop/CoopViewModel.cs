@@ -10,6 +10,7 @@ using Nosum.Gameplay.Text;
 using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels.Inventory;
+using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Trade;
 
@@ -36,6 +37,7 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
     private readonly NearbyPlayers _nearby;
     private readonly InventoryViewModel _inventory;
     private readonly ItemDescriber _describer;
+    private readonly NicknameFormatter _names;
     private int _depositSlot = -1;
     private int _withdrawItem;
 
@@ -44,19 +46,22 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
     /// <param name="nearby">The other players on the map (invitations).</param>
     /// <param name="inventory">The inventory view model (what can be deposited).</param>
     /// <param name="describer">Describes warehouse items.</param>
+    /// <param name="names">Names the players by nickname.</param>
     /// <param name="text">UI text.</param>
-    public CoopViewModel(CoopChannel coop, NearbyPlayers nearby, InventoryViewModel inventory, ItemDescriber describer, IStringLocalizer<Language> text)
+    public CoopViewModel(CoopChannel coop, NearbyPlayers nearby, InventoryViewModel inventory, ItemDescriber describer, NicknameFormatter names, IStringLocalizer<Language> text)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(coop);
         ArgumentNullException.ThrowIfNull(nearby);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(describer);
+        ArgumentNullException.ThrowIfNull(names);
 
         _coop = coop;
         _nearby = nearby;
         _inventory = inventory;
         _describer = describer;
+        _names = names;
         coop.Changed += this.Raise;
         coop.Completed += this.OnCompleted;
         nearby.Changed += this.Raise;
@@ -79,15 +84,15 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
     public string Name => LocalizedText.Resolve(_coop.Current.Name, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
 
     /// <summary>Gets the invitations to the player, with the co-op names resolved.</summary>
-    public IReadOnlyList<(Guid Id, string Name)> Invites
+    public IReadOnlyList<(Guid Id, string Name, string Inviter)> Invites
     {
         get
         {
-            List<(Guid, string)> invites = [];
+            List<(Guid, string, string)> invites = [];
             string tag = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             foreach (CoopInviteInfo invite in _coop.Current.Invites)
             {
-                invites.Add((invite.InviteId, LocalizedText.Resolve(invite.CoopName, tag)));
+                invites.Add((invite.InviteId, LocalizedText.Resolve(invite.CoopName, tag), _names.Display(invite.InviterNickname)));
             }
 
             return invites;
@@ -104,7 +109,8 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
             foreach (CoopMemberInfo member in _coop.Current.Members)
             {
                 number++;
-                string label = member.IsMe ? this.Text("Coop_You") : this.Text("Coop_MemberNumber", number);
+                string nickname = _names.Display(member.Nickname);
+                string label = member.IsMe ? this.Text("Coop_You") : nickname.Length > 0 ? nickname : this.Text("Coop_MemberNumber", number);
                 members.Add(new MemberDisplay(member.MemberId, label, this.Text("Coop_Role_" + member.Role), member.IsMe, member.Online, this.IsFounder && !member.IsMe));
             }
 
@@ -120,7 +126,7 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
             List<PlayerChoice> players = [];
             foreach (uint id in _nearby.Ids())
             {
-                players.Add(new PlayerChoice(id, this.Text("Player_Label", id)));
+                players.Add(new PlayerChoice(id, _names.PlayerLabel(id)));
             }
 
             return players;
@@ -149,16 +155,18 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         get
         {
             List<string> lines = [];
-            Dictionary<Guid, int> numbers = [];
+            Dictionary<Guid, string> names = [];
             int n = 0;
             foreach (CoopMemberInfo member in _coop.Current.Members)
             {
-                numbers[member.MemberId] = ++n;
+                n++;
+                string nickname = _names.Display(member.Nickname);
+                names[member.MemberId] = nickname.Length > 0 ? nickname : this.Text("Coop_MemberNumber", n);
             }
 
             foreach (CoopLogInfo entry in _coop.Current.Log)
             {
-                string who = entry.MemberId == Guid.Empty || !numbers.TryGetValue(entry.MemberId, out int number) ? this.Text("Coop_FormerMember") : this.Text("Coop_MemberNumber", number);
+                string who = entry.MemberId == Guid.Empty || !names.TryGetValue(entry.MemberId, out string? known) ? this.Text("Coop_FormerMember") : known;
                 string when = DateTimeOffset.FromUnixTimeMilliseconds(entry.AtMs).ToLocalTime().ToString("t", CultureInfo.CurrentCulture);
                 lines.Add(this.Text(entry.Delta > 0 ? "Coop_Log_Deposit" : "Coop_Log_Withdraw", when, who, Math.Abs(entry.Delta), _describer.NameOf(entry.ItemId)));
             }

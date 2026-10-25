@@ -40,4 +40,7 @@ public sealed partial class AccountResult : PacketBase<AccountResult>, IPacketSt
 
     /// <summary>True once the game has unlocked the invitation to register (a guest who finished the first quest).</summary>
     [SerializeOrder(7)] public bool RegistrationPromptUnlocked { get; set; }
+
+    /// <summary>The player's nickname: the chosen one, or a neutral guest name (<c>guest-1234</c>) the client renders with a localized prefix. Appended in protocol version 3.</summary>
+    [SerializeOrder(8)] public string Nickname { get; set; } = string.Empty;
 }

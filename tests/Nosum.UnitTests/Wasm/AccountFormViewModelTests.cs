@@ -23,8 +23,8 @@ namespace Nosum.UnitTests.Wasm;
 
 public sealed class AccountFormViewModelTests
 {
-    private static readonly AccountSession s_session = new(Guid.NewGuid(), "farmer01@gmail.com", "token", DateTimeOffset.UnixEpoch, GameLanguage.English, false, false);
-    private static readonly AccountSession s_guest = new(Guid.NewGuid(), string.Empty, "guest-token", DateTimeOffset.UnixEpoch, GameLanguage.Vietnamese, true, true);
+    private static readonly AccountSession s_session = new(Guid.NewGuid(), "farmer01@gmail.com", "token", DateTimeOffset.UnixEpoch, GameLanguage.English, false, false, "Farmer01");
+    private static readonly AccountSession s_guest = new(Guid.NewGuid(), string.Empty, "guest-token", DateTimeOffset.UnixEpoch, GameLanguage.Vietnamese, true, true, "guest-0001");
 
     [Fact]
     public async Task SubmitAsync_LoginOk_RaisesSignedInAndClearsPassword()
@@ -55,10 +55,31 @@ public sealed class AccountFormViewModelTests
         vm.Email = "farmer01@gmail.com";
         vm.Password = "password-1";
         vm.ConfirmPassword = "password-1";
+        vm.Nickname = "  Nông Dân_1 ";
 
         await vm.SubmitAsync(CancellationToken.None);
 
-        client.Calls.Should().Equal("register:farmer01@gmail.com:English");
+        client.Calls.Should().Equal("register:farmer01@gmail.com:Nông Dân_1:English");
+    }
+
+    [Theory]
+    [InlineData("ab", AccountStatus.InvalidNickname)]
+    [InlineData("has-hyphen", AccountStatus.InvalidNickname)]
+    [InlineData("Admin", AccountStatus.NicknameReserved)]
+    public async Task SubmitAsync_RegisterWithBadNickname_ShowsTheCodeTextAndSendsNothing(string nickname, AccountStatus expected)
+    {
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
+        AccountFormViewModel vm = Create(client);
+        vm.SwitchMode();
+        vm.Email = "farmer01@gmail.com";
+        vm.Password = "password-1";
+        vm.ConfirmPassword = "password-1";
+        vm.Nickname = nickname;
+
+        await vm.SubmitAsync(CancellationToken.None);
+
+        client.Calls.Should().BeEmpty();
+        vm.ErrorText.Should().Be(Text()["Account_Status_" + expected].Value);
     }
 
     [Fact]
@@ -195,6 +216,7 @@ public sealed class AccountFormViewModelTests
         vm.Email = "farmer01@gmail.com";
         vm.Password = "password-1";
         vm.ConfirmPassword = "password-1";
+        vm.Nickname = "Farmer01";
 
         await vm.SubmitAsync(CancellationToken.None);
 
@@ -202,7 +224,7 @@ public sealed class AccountFormViewModelTests
         signedIn.Should().Be(0);
         vm.Mode.Should().Be(AccountFormMode.Login);
         vm.ShowsForm.Should().BeFalse();
-        client.Calls.Should().Contain("upgrade:farmer01@gmail.com");
+        client.Calls.Should().Contain("upgrade:farmer01@gmail.com:Farmer01");
     }
 
     [Fact]
@@ -258,11 +280,13 @@ public sealed class AccountFormViewModelTests
         client.Calls.Should().BeEmpty();
     }
 
-    private static AccountFormViewModel Create(IAccountClient client)
+    private static StringLocalizer<Language> Text()
     {
         ResourceManagerStringLocalizerFactory factory = new(Options.Create(new LocalizationOptions()), NullLoggerFactory.Instance);
-        return new AccountFormViewModel(client, new StringLocalizer<Language>(factory));
+        return new StringLocalizer<Language>(factory);
     }
+
+    private static AccountFormViewModel Create(IAccountClient client) => new(client, Text());
 
     private static HashSet<string> Keys(string file, [CallerFilePath] string here = "")
     {
@@ -279,9 +303,9 @@ public sealed class AccountFormViewModelTests
 
         public List<string> Calls { get; } = [];
 
-        public Task<AccountReply> RegisterAsync(string email, string password, GameLanguage language, CancellationToken cancellationToken)
+        public Task<AccountReply> RegisterAsync(string email, string password, string nickname, GameLanguage language, CancellationToken cancellationToken)
         {
-            this.Calls.Add($"register:{email}:{language}");
+            this.Calls.Add($"register:{email}:{nickname}:{language}");
             return Answer();
         }
 
@@ -297,11 +321,14 @@ public sealed class AccountFormViewModelTests
             return Answer();
         }
 
-        public Task<AccountReply> UpgradeGuestAsync(string email, string password, CancellationToken cancellationToken)
+        public Task<AccountReply> UpgradeGuestAsync(string email, string password, string nickname, CancellationToken cancellationToken)
         {
-            this.Calls.Add($"upgrade:{email}");
+            this.Calls.Add($"upgrade:{email}:{nickname}");
             return Answer();
         }
+
+        public Task<NicknameReply> SetNicknameAsync(string nickname, CancellationToken cancellationToken)
+            => Task.FromResult(new NicknameReply(AccountStatus.Ok, nickname, null));
 
         public Task LogoutAsync(CancellationToken cancellationToken)
         {

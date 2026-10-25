@@ -30,4 +30,7 @@ public sealed partial class ListingRow
 
     /// <summary>Whether the viewer is the seller.</summary>
     [SerializeOrder(5)] public bool IsMine { get; set; }
+
+    /// <summary>The seller's nickname (a neutral guest name is rendered by the client). Appended in protocol version 3.</summary>
+    [SerializeOrder(6)] public string SellerNickname { get; set; } = string.Empty;
 }

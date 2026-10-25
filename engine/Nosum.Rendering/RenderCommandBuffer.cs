@@ -14,7 +14,8 @@ namespace Nosum.Rendering;
 /// <see cref="IntsPerCommand"/> values: <c>texture, srcX, srcY, srcW, srcH, dstX, dstY, flags,
 /// tint</c>. Destination is in screen pixels before scaling; <c>tint</c> is <c>0xRRGGBBAA</c>,
 /// <see cref="NoTint"/> meaning none. A draw with texture <see cref="BlackFill"/> fills a rectangle with black at the opacity in <c>tint</c>
-/// (<see cref="FillBlack"/>). <c>renderer.js</c> decodes the same layout.
+/// (<see cref="FillBlack"/>). A draw with texture <see cref="LabelTexture"/> draws a pre-rendered text label (<see cref="DrawLabel"/>): <c>srcX</c> is the label id
+/// the backend was given by <see cref="LabelRegistry"/>, the destination is the label's bottom centre. <c>renderer.js</c> decodes the same layout.
 /// </remarks>
 public sealed class RenderCommandBuffer
 {
@@ -29,6 +30,9 @@ public sealed class RenderCommandBuffer
 
     /// <summary>Texture id of a command that fills a rectangle with black instead of drawing a sprite; <c>tint</c> then holds the opacity.</summary>
     public const int BlackFill = -2;
+
+    /// <summary>Texture id of a command that draws a text label instead of a sprite; <c>srcX</c> then holds the label id (see <see cref="LabelRegistry"/>).</summary>
+    public const int LabelTexture = -3;
 
     /// <summary>Flag: mirror the sprite horizontally.</summary>
     public const int FlipX = 1;
@@ -102,6 +106,21 @@ public sealed class RenderCommandBuffer
         if (opacity > 0)
         {
             this.Draw(BlackFill, 0, 0, width, height, 0, 0, 0, Math.Min(opacity, 255));
+        }
+    }
+
+    /// <summary>
+    /// Records a text label (a nickname above a head), centred on <paramref name="centerX"/> with its bottom edge at <paramref name="bottomY"/>.
+    /// The text itself never crosses per frame: it was uploaded once with <see cref="LabelRegistry"/> and only its id is recorded here.
+    /// </summary>
+    /// <param name="labelId">Label id from <see cref="LabelRegistry"/>.</param>
+    /// <param name="centerX">Centre x, unscaled screen pixels.</param>
+    /// <param name="bottomY">Bottom y, unscaled screen pixels.</param>
+    public void DrawLabel(int labelId, int centerX, int bottomY)
+    {
+        if (labelId > 0)
+        {
+            this.Draw(LabelTexture, labelId, 0, 0, 0, centerX, bottomY);
         }
     }
 

@@ -54,7 +54,7 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
             BlockingCollection<AccountStatus> ended = [];
             using IDisposable subscription = first.On<SessionEnded>(p => ended.Add(p.Reason));
 
-            using Register register = new() { Email = email, Password = "password-1" };
+            using Register register = new() { Email = email, Password = "password-1", Nickname = TestNicknames.Next() };
             AccountResult registered = await first.RequestAsync<AccountResult>(register, ct: timeout.Token);
             using JoinMap join = new() { MapId = Program.FarmMapId };
             JoinMapResult joined = await first.RequestAsync<JoinMapResult>(join, ct: timeout.Token);

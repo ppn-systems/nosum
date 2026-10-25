@@ -41,7 +41,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     {
         string name = Unique();
 
-        AccountOutcome outcome = await _accounts.RegisterAsync(name, "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome outcome = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
         outcome.Status.Should().Be(AccountStatus.Ok);
         outcome.PlayerId.Should().NotBeEmpty();
@@ -57,7 +57,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     {
         string name = Unique();
 
-        AccountOutcome outcome = await _accounts.RegisterAsync(name, "password-1", GameLanguage.English, CancellationToken.None);
+        AccountOutcome outcome = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
 
         await using NosumDbContext db = new(_database.Options);
         Player player = await db.Players.SingleAsync(p => p.Id == outcome.PlayerId);
@@ -72,7 +72,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     {
         string name = Unique();
 
-        AccountOutcome outcome = await _accounts.RegisterAsync(name.ToUpperInvariant(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome outcome = await _accounts.RegisterAsync(name.ToUpperInvariant(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         AccountOutcome login = await _accounts.LoginAsync(name, "password-1", CancellationToken.None);
 
         outcome.Status.Should().Be(AccountStatus.Ok);
@@ -84,9 +84,9 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task RegisterAsync_SameUsernameDifferentCase_IsUsernameTaken()
     {
         string name = Unique();
-        _ = await _accounts.RegisterAsync(name, "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        _ = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
-        AccountOutcome second = await _accounts.RegisterAsync(name.ToUpperInvariant(), "password-2", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome second = await _accounts.RegisterAsync(name.ToUpperInvariant(), "password-2", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
         second.Status.Should().Be(AccountStatus.EmailTaken);
         second.SessionToken.Should().BeEmpty();
@@ -98,9 +98,9 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
         string name = Unique();
 
         AccountOutcome[] results = await Task.WhenAll(
-            _accounts.RegisterAsync(name, "password-1", GameLanguage.Unspecified, CancellationToken.None),
-            _accounts.RegisterAsync(name, "password-2", GameLanguage.Unspecified, CancellationToken.None),
-            _accounts.RegisterAsync(name, "password-3", GameLanguage.Unspecified, CancellationToken.None));
+            _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None),
+            _accounts.RegisterAsync(name, "password-2", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None),
+            _accounts.RegisterAsync(name, "password-3", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None));
 
         results.Should().ContainSingle(r => r.Status == AccountStatus.Ok);
         results.Should().OnlyContain(r => r.Status == AccountStatus.Ok || r.Status == AccountStatus.EmailTaken);
@@ -114,7 +114,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [InlineData("validname@gmail.com", "password-1", (GameLanguage)99, AccountStatus.InvalidLanguage)]
     public async Task RegisterAsync_BreaksARule_IsRefusedWithMatchingCode(string name, string password, GameLanguage language, AccountStatus expected)
     {
-        AccountOutcome outcome = await _accounts.RegisterAsync(name, password, language, CancellationToken.None);
+        AccountOutcome outcome = await _accounts.RegisterAsync(name, password, TestNicknames.Next(), language, CancellationToken.None);
 
         outcome.Status.Should().Be(expected);
         outcome.SessionToken.Should().BeEmpty();
@@ -124,7 +124,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task LoginAsync_CorrectPassword_IssuesNewTokenAndRecordsLastLogin()
     {
         string name = Unique();
-        AccountOutcome registered = await _accounts.RegisterAsync(name, "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         _clock.Advance(TimeSpan.FromHours(1));
 
         AccountOutcome login = await _accounts.LoginAsync(name.ToUpperInvariant(), "password-1", CancellationToken.None);
@@ -140,7 +140,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task LoginAsync_WrongPasswordOrUnknownUser_IsTheSameRefusal()
     {
         string name = Unique();
-        _ = await _accounts.RegisterAsync(name, "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        _ = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
         AccountOutcome wrongPassword = await _accounts.LoginAsync(name, "password-2", CancellationToken.None);
         AccountOutcome unknownUser = await _accounts.LoginAsync(Unique(), "password-1", CancellationToken.None);
@@ -152,7 +152,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task ResumeAsync_TokenFromRegister_SignsInSamePlayer()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
         AccountOutcome resumed = await _accounts.ResumeAsync(registered.SessionToken, CancellationToken.None);
 
@@ -166,7 +166,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task ResumeAsync_TokenFromLogin_SignsIn()
     {
         string name = Unique();
-        _ = await _accounts.RegisterAsync(name, "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        _ = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         AccountOutcome login = await _accounts.LoginAsync(name, "password-1", CancellationToken.None);
 
         AccountOutcome resumed = await _accounts.ResumeAsync(login.SessionToken, CancellationToken.None);
@@ -177,7 +177,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task ResumeAsync_AfterExpiry_IsInvalidToken()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         _clock.Advance(AccountService.DefaultSessionLifetime + TimeSpan.FromSeconds(1));
 
         AccountOutcome resumed = await _accounts.ResumeAsync(registered.SessionToken, CancellationToken.None);
@@ -188,7 +188,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task ResumeAsync_RevokedToken_IsInvalidToken()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         await using (NosumDbContext db = new(_database.Options))
         {
             PlayerSessionToken stored = await db.PlayerSessionTokens.SingleAsync(t => t.PlayerId == registered.PlayerId);
@@ -215,7 +215,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task SetLanguageAsync_ValidTag_IsStoredAndReturnedByNextLogin()
     {
         string name = Unique();
-        AccountOutcome registered = await _accounts.RegisterAsync(name, "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
         AccountStatus status = await _accounts.SetLanguageAsync(registered.PlayerId, GameLanguage.English, CancellationToken.None);
         AccountOutcome login = await _accounts.LoginAsync(name, "password-1", CancellationToken.None);
@@ -227,7 +227,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task SetLanguageAsync_MalformedTag_IsRefusedAndKeepsOldValue()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
         AccountStatus status = await _accounts.SetLanguageAsync(registered.PlayerId, (GameLanguage)7, CancellationToken.None);
 
@@ -270,7 +270,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
         PlayerStateService states = new(new EfUnitOfWorkFactory(_database.Options), _clock);
         await states.SaveAsync(guest.PlayerId, new PlayerStateRow("Farm", 5, 6, Facing.Right), CancellationToken.None);
 
-        AccountOutcome upgraded = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, email, "password-1", CancellationToken.None);
+        AccountOutcome upgraded = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, email, "password-1", TestNicknames.Next(), CancellationToken.None);
         AccountOutcome guestToken = await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None);
         AccountOutcome newToken = await _accounts.ResumeAsync(upgraded.SessionToken, CancellationToken.None);
         AccountOutcome login = await _accounts.LoginAsync(email, "password-1", CancellationToken.None);
@@ -289,9 +289,9 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task UpgradeGuestAsync_RegisteredPlayer_IsRefusedAsNotGuest()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
-        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(registered.PlayerId, registered.SessionId, Unique(), "password-2", CancellationToken.None);
+        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(registered.PlayerId, registered.SessionId, Unique(), "password-2", TestNicknames.Next(), CancellationToken.None);
 
         outcome.Status.Should().Be(AccountStatus.NotGuest);
     }
@@ -300,10 +300,10 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task UpgradeGuestAsync_EmailAlreadyRegistered_IsRefusedAndStaysGuest()
     {
         string taken = Unique();
-        _ = await _accounts.RegisterAsync(taken, "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        _ = await _accounts.RegisterAsync(taken, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
 
-        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, taken, "password-2", CancellationToken.None);
+        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, taken, "password-2", TestNicknames.Next(), CancellationToken.None);
 
         outcome.Status.Should().Be(AccountStatus.EmailTaken);
         (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).IsGuest.Should().BeTrue();
@@ -316,7 +316,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     {
         AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
 
-        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, email, password, CancellationToken.None);
+        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, email, password, TestNicknames.Next(), CancellationToken.None);
 
         outcome.Status.Should().Be(expected);
         (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).Status.Should().Be(AccountStatus.Ok);
@@ -326,7 +326,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task LogoutAsync_RevokesOnlyThatSession()
     {
         string email = Unique();
-        AccountOutcome first = await _accounts.RegisterAsync(email, "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome first = await _accounts.RegisterAsync(email, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         AccountOutcome second = await _accounts.LoginAsync(email, "password-1", CancellationToken.None);
 
         await _accounts.LogoutAsync(first.SessionId, CancellationToken.None);
@@ -357,7 +357,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task UnlockAsync_RegisteredPlayer_DoesNothing()
     {
         PlayerLifecycleService lifecycle = new(new EfUnitOfWorkFactory(_database.Options), _clock);
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
 
         (await lifecycle.UnlockAsync(registered.PlayerId, CancellationToken.None)).Should().BeFalse();
     }
@@ -368,7 +368,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
         PlayerStateService states = new(new EfUnitOfWorkFactory(_database.Options), _clock);
         PlayerLifecycleService lifecycle = new(new EfUnitOfWorkFactory(_database.Options), _clock);
         AccountOutcome oldGuest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
-        AccountOutcome oldRegistered = await _accounts.RegisterAsync(Unique(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome oldRegistered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         await states.SaveAsync(oldGuest.PlayerId, new PlayerStateRow("Farm", 1, 2, Facing.Down), CancellationToken.None);
 
         _clock.Advance(TimeSpan.FromDays(31));
@@ -407,7 +407,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task PlayerStateService_SaveThenLoad_RoundTripsAndOverwrites()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
         PlayerStateService states = new(new EfUnitOfWorkFactory(_database.Options), _clock);
 
         PlayerStateRow? before = await states.LoadAsync(registered.PlayerId, CancellationToken.None);

@@ -7,6 +7,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <!-- Tester tools (Game/DevTools.cs, docs/adr/ADR-013 amendments) exist only in a build made with -p:NosumDevTools=true; a normal or Production publish has none. -->
+  <PropertyGroup Condition="'$(NosumDevTools)' == 'true'">
+    <DefineConstants>$(DefineConstants);NOSUM_DEV_TOOLS</DefineConstants>
+  </PropertyGroup>
+
   <!-- Placeholder content served from the repository's assets/ folder (docs/adr/ADR-007):
        only the files the client loads, linked so assets/ stays the single copy. -->
   <ItemGroup>

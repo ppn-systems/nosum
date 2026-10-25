@@ -1,0 +1,116 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Nosum.Gameplay.Items;
+
+namespace Nosum.Gameplay.Shops;
+
+/// <summary>One thing a shop sells: an item at a fixed price in coins per unit. Stock is unlimited.</summary>
+/// <param name="ItemId">The item, from <see cref="ItemCatalog"/>.</param>
+/// <param name="CoinsEach">Coins for one unit.</param>
+public readonly record struct ShopOffer(int ItemId, int CoinsEach);
+
+/// <summary>
+/// A shop: a stable id (the only shop name that crosses the wire), a stable key (localization entry <c>shop.&lt;key&gt;.name</c>) and
+/// its price list. Where a shop stands is data of the map (<c>MapSpec.Shops</c>), so a second shop is one more catalogue entry and
+/// one more map point. Prices are product defaults, not balance (docs/adr/ADR-013 amendments).
+/// </summary>
+public sealed class ShopDefinition
+{
+    private readonly Dictionary<int, int> _prices;
+
+    /// <summary>Initializes a shop.</summary>
+    /// <param name="id">Stable numeric id, greater than zero.</param>
+    /// <param name="key">Stable key, for example <c>general_store</c>.</param>
+    /// <param name="offers">What it sells, in display order.</param>
+    public ShopDefinition(int id, string key, IReadOnlyList<ShopOffer> offers)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(offers);
+
+        this.Id = id;
+        this.Key = key;
+        this.Offers = offers;
+        _prices = new Dictionary<int, int>(offers.Count);
+        foreach (ShopOffer offer in offers)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(offer.CoinsEach);
+            _prices.Add(offer.ItemId, offer.CoinsEach);
+        }
+    }
+
+    /// <summary>Gets the stable numeric id.</summary>
+    public int Id { get; }
+
+    /// <summary>Gets the stable key.</summary>
+    public string Key { get; }
+
+    /// <summary>Gets what the shop sells, in display order.</summary>
+    public IReadOnlyList<ShopOffer> Offers { get; }
+
+    /// <summary>Looks up what an item costs here.</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="coinsEach">Coins for one unit when sold here.</param>
+    /// <returns><see langword="true"/> when this shop sells the item.</returns>
+    public bool TryGetPrice(int itemId, out int coinsEach) => _prices.TryGetValue(itemId, out coinsEach);
+}
+
+/// <summary>
+/// The shops of the world. Ids are append-only. The general store in the town sells seeds (so coins have a use), furniture and clothing
+/// (which new players no longer start with, docs/adr/ADR-013 amendments).
+/// </summary>
+public static class ShopCatalog
+{
+    /// <summary>The town's general store.</summary>
+    public const int GeneralStore = 1;
+
+    private static readonly ShopDefinition[] s_all =
+    [
+        new(GeneralStore, "general_store",
+        [
+            // Seeds cost a little under half of what the crop sells for at the bin (20 / 30 / 60).
+            new(ItemCatalog.ParsnipSeeds, 10),
+            new(ItemCatalog.RadishSeeds, 15),
+            new(ItemCatalog.CauliflowerSeeds, 30),
+            new(ItemCatalog.OakChair, 100),
+            new(ItemCatalog.HousePlant, 80),
+            new(ItemCatalog.FloorLamp, 140),
+            new(ItemCatalog.OakTable, 220),
+            new(ItemCatalog.Bookcase, 260),
+            new(ItemCatalog.BlueArmchair, 300),
+            new(ItemCatalog.BlueCouch, 400),
+            new(ItemCatalog.ShirtRed, 60),
+            new(ItemCatalog.ShirtGreen, 60),
+            new(ItemCatalog.ShirtBlue, 60),
+            new(ItemCatalog.PantsBlue, 80),
+            new(ItemCatalog.PantsKhaki, 80),
+            new(ItemCatalog.HatStraw, 50),
+            new(ItemCatalog.HatCap, 40),
+        ]),
+    ];
+
+    /// <summary>Gets every shop.</summary>
+    public static IReadOnlyList<ShopDefinition> All => s_all;
+
+    /// <summary>Looks up a shop by its id.</summary>
+    /// <param name="shopId">Shop id as sent by a client; not trusted.</param>
+    /// <param name="shop">The shop when found.</param>
+    /// <returns><see langword="true"/> when the id names a shop.</returns>
+    public static bool TryGet(int shopId, [NotNullWhen(true)] out ShopDefinition? shop)
+    {
+        foreach (ShopDefinition candidate in s_all)
+        {
+            if (candidate.Id == shopId)
+            {
+                shop = candidate;
+                return true;
+            }
+        }
+
+        shop = null;
+        return false;
+    }
+}

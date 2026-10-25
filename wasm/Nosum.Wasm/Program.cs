@@ -17,9 +17,11 @@ using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.Socket.Dev;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.Socket.Quest;
+using Nosum.Wasm.Socket.Shop;
 using Nosum.Wasm.Socket.Trade;
 using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
@@ -31,6 +33,8 @@ using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Looks;
 using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Placement;
+using Nosum.Wasm.ViewModels.Profile;
+using Nosum.Wasm.ViewModels.Shop;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
@@ -70,6 +74,8 @@ internal static class Program
         builder.Services.AddSingleton<MarketChannel>();
         builder.Services.AddSingleton<TradeChannel>();
         builder.Services.AddSingleton<CoopChannel>();
+        builder.Services.AddSingleton<ShopChannel>();
+        builder.Services.AddSingleton<DevChannel>();
         builder.Services.AddSingleton<NearbyPlayers>();
         builder.Services.AddSingleton(sp =>
         {
@@ -83,6 +89,9 @@ internal static class Program
         builder.Services.AddSingleton<GameMessagesViewModel>();
         builder.Services.AddSingleton<ItemDescriber>();
         builder.Services.AddSingleton<ToolbarViewModel>();
+        builder.Services.AddSingleton<NicknameFormatter>();
+        builder.Services.AddSingleton<ProfileViewModel>();
+        builder.Services.AddSingleton<ShopViewModel>();
         builder.Services.AddSingleton<WalletViewModel>();
         builder.Services.AddSingleton<MarketViewModel>();
         builder.Services.AddSingleton<WardrobeViewModel>();
@@ -112,7 +121,10 @@ internal static class Program
         CoopChannel coop = host.Services.GetRequiredService<CoopChannel>();
         LookChannel looks = host.Services.GetRequiredService<LookChannel>();
         GameLoop.UseFarming(farm, inventory, market);
-        GameLoop.UseLooks(looks);
+        GameLoop.UseLooks(looks, host.Services.GetRequiredService<NicknameFormatter>());
+#if NOSUM_DEV_TOOLS
+        DevTools.Use(host.Services.GetRequiredService<DevChannel>());
+#endif
         GameLoop.UsePlacement(placeable, host.Services.GetRequiredService<PlacementViewModel>());
 
         // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;

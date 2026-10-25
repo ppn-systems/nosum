@@ -18,6 +18,18 @@ public sealed class Player : Entity
     /// <summary>Gets or sets the self-describing password hash (algorithm, iterations, salt, hash); null for a guest. Never the password.</summary>
     public string? PasswordHash { get; set; }
 
+    /// <summary>
+    /// Gets or sets the display nickname as chosen (NFC), or a guest's neutral name (<c>guest-1234</c>). Every player has one;
+    /// see <c>Nosum.Gameplay.Players.NicknameRules</c> (docs/adr/ADR-009 amendments).
+    /// </summary>
+    public string Nickname { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the unique, case-insensitive key of <see cref="Nickname"/> (<c>NicknameRules.Key</c>).</summary>
+    public string NormalizedNickname { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets when the nickname was last changed with a rename request; null while it never was (a rename is then allowed at once).</summary>
+    public DateTimeOffset? NicknameChangedAt { get; set; }
+
     /// <summary>Gets or sets whether this is a guest: no e-mail or password yet. A guest is upgraded in place, keeping <see cref="Entity.Id"/>.</summary>
     public bool IsGuest { get; set; }
 

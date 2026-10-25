@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Shops;
 
 namespace Nosum.Gameplay.Maps;
 
@@ -42,13 +43,16 @@ public static class GameMaps
     /// <summary>Id of the backwoods north of the farm.</summary>
     public const string Backwoods = "backwoods";
 
+    // The doormat in front of Pierre's store in Town.tmx (Stardew's general store; the placeholder art, docs/adr/ADR-007). Standing near it opens the shop.
+    private static readonly (int X, int Y) s_townShopTile = (43, 57);
+
     private static readonly MapSpec[] s_all =
     [
         new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true, isPrivate: true),
         new(FarmHouse, "FarmHouse.tmx", 3, 11, isPrivate: true, placeable: true),
         new(BusStop, "BusStop.tmx", 11, 23),
         new(Forest, "Forest.tmx", 68, 0),
-        new(Town, "Town.tmx", 4, 54),
+        new(Town, "Town.tmx", 4, 54, shops: [new ShopPoint(ShopCatalog.GeneralStore, s_townShopTile.X, s_townShopTile.Y)]),
         new(Backwoods, "Backwoods.tmx", 14, 38),
     ];
 

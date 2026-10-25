@@ -174,6 +174,7 @@ public static partial class MarketHandlers
             row.Price = listing.Price;
             row.ExpiresAtMs = listing.ExpiresAt.ToUnixTimeMilliseconds();
             row.IsMine = listing.SellerId == viewer;
+            row.SellerNickname = listing.SellerNickname;
             page.Rows.Add(row);
         }
     }

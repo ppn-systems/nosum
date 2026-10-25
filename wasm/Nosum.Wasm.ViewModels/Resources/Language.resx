@@ -253,4 +253,39 @@
   <data name="Coop_Status_SelfKick" xml:space="preserve"><value>Bạn không thể tự mời mình ra.</value></data>
   <data name="Coop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>Người đó đã được mời rồi.</value></data>
+  <data name="Nickname_Guest" xml:space="preserve"><value>Khách {0}</value></data>
+  <data name="Account_Nickname" xml:space="preserve"><value>Biệt danh</value></data>
+  <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} ký tự: chữ cái (có dấu), chữ số, dấu cách hoặc gạch dưới.</value></data>
+  <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>Biệt danh không hợp lệ.</value></data>
+  <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>Biệt danh này không được phép dùng.</value></data>
+  <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>Biệt danh này đã có người dùng.</value></data>
+  <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>Bạn vừa đổi biệt danh. Hãy thử lại sau.</value></data>
+  <data name="Toolbar_Profile" xml:space="preserve"><value>Hồ sơ</value></data>
+  <data name="Profile_Title" xml:space="preserve"><value>Hồ sơ</value></data>
+  <data name="Profile_Current" xml:space="preserve"><value>Biệt danh hiện tại: {0}</value></data>
+  <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
+  <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>
+  <data name="Profile_Rule" xml:space="preserve"><value>Bạn chỉ đổi được biệt danh mỗi 24 giờ một lần.</value></data>
+  <data name="Profile_Changed" xml:space="preserve"><value>Đã đổi biệt danh thành {0}.</value></data>
+  <data name="Profile_NextChange" xml:space="preserve"><value>Có thể đổi lại lúc {0}.</value></data>
+  <data name="Shop_Title" xml:space="preserve"><value>Cửa hàng {0}</value></data>
+  <data name="Shop_Name_general_store" xml:space="preserve"><value>tạp hóa</value></data>
+  <data name="Shop_Coins" xml:space="preserve"><value>Số dư: {0} xu</value></data>
+  <data name="Shop_Tab_Seeds" xml:space="preserve"><value>Hạt giống</value></data>
+  <data name="Shop_Tab_Furniture" xml:space="preserve"><value>Đồ nội thất</value></data>
+  <data name="Shop_Tab_Clothing" xml:space="preserve"><value>Quần áo</value></data>
+  <data name="Shop_Quantity" xml:space="preserve"><value>Số lượng</value></data>
+  <data name="Shop_Buy" xml:space="preserve"><value>Mua</value></data>
+  <data name="Shop_Price" xml:space="preserve"><value>{0} xu</value></data>
+  <data name="Shop_Done" xml:space="preserve"><value>Đã mua. Món đồ đã vào túi của bạn.</value></data>
+  <data name="Shop_Hint" xml:space="preserve"><value>Chọn món muốn mua. Giá tính cho mỗi món.</value></data>
+  <data name="Shop_Status_UnknownShop" xml:space="preserve"><value>Không có cửa hàng này.</value></data>
+  <data name="Shop_Status_NotSold" xml:space="preserve"><value>Cửa hàng không bán món này.</value></data>
+  <data name="Shop_Status_InvalidQuantity" xml:space="preserve"><value>Số lượng không hợp lệ.</value></data>
+  <data name="Shop_Status_NotAtShop" xml:space="preserve"><value>Bạn đang đứng quá xa quầy hàng.</value></data>
+  <data name="Shop_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
+  <data name="Shop_Status_NoSpace" xml:space="preserve"><value>Túi đồ của bạn đã đầy.</value></data>
+  <data name="Shop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Market_Seller" xml:space="preserve"><value>Người bán: {0}</value></data>
+  <data name="Coop_InviteMessageFrom" xml:space="preserve"><value>{1} mời bạn vào hợp tác xã "{0}".</value></data>
 </root>

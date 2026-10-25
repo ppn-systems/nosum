@@ -31,6 +31,7 @@ public sealed class CoopService : ICoopService, IDisposable
     private readonly IMapPresence _presence;
     private readonly ISessionRegistry _sessions;
     private readonly IPlayerNotifier _notifier;
+    private readonly INicknameDirectory _nicknames;
     private readonly TimeProvider _time;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -40,14 +41,16 @@ public sealed class CoopService : ICoopService, IDisposable
     /// <param name="presence">Who is on which map (an invitation goes to a player on the inviter's map).</param>
     /// <param name="sessions">Who is connected.</param>
     /// <param name="notifier">Pushes snapshots to online members.</param>
+    /// <param name="nicknames">Resolves member nicknames.</param>
     /// <param name="time">The clock; tests pass a fake one.</param>
-    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, TimeProvider time)
+    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(sessions);
         ArgumentNullException.ThrowIfNull(notifier);
+        ArgumentNullException.ThrowIfNull(nicknames);
         ArgumentNullException.ThrowIfNull(time);
 
         _unitOfWork = unitOfWork;
@@ -55,6 +58,7 @@ public sealed class CoopService : ICoopService, IDisposable
         _presence = presence;
         _sessions = sessions;
         _notifier = notifier;
+        _nicknames = nicknames;
         _time = time;
     }
 
@@ -75,7 +79,9 @@ public sealed class CoopService : ICoopService, IDisposable
                     Coop? coop = await unit.Repository<Coop>().FindAsync(invite.CoopId, cancellationToken).ConfigureAwait(false);
                     if (coop is not null)
                     {
-                        views.Add(new CoopInviteView(invite.Id, coop.Name));
+                        CoopMember? founder = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.CoopId == coop.Id && m.Role == CoopRole.Founder, cancellationToken).ConfigureAwait(false);
+                        string inviter = founder is null ? string.Empty : await _nicknames.GetAsync(founder.PlayerId, cancellationToken).ConfigureAwait(false);
+                        views.Add(new CoopInviteView(invite.Id, coop.Name, inviter));
                     }
                 }
 
@@ -85,9 +91,10 @@ public sealed class CoopService : ICoopService, IDisposable
             Coop? mine = await unit.Repository<Coop>().FindAsync(me.CoopId, cancellationToken).ConfigureAwait(false);
             List<CoopMember> members = await unit.Repository<CoopMember>().ListAsync(m => m.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false);
             HashSet<Guid> memberIds = [.. members.Select(m => m.Id)];
+            IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(members.Select(m => m.PlayerId), cancellationToken).ConfigureAwait(false);
             List<CoopMemberView> memberViews = [.. members
                 .OrderBy(m => m.JoinedAt)
-                .Select(m => new CoopMemberView(m.Id, m.Role, m.Id == me.Id, _sessions.GetActive(m.PlayerId) is not null))];
+                .Select(m => new CoopMemberView(m.Id, m.Role, m.Id == me.Id, _sessions.GetActive(m.PlayerId) is not null, names.GetValueOrDefault(m.PlayerId, string.Empty)))];
 
             List<CoopLogEntry> mineLog = await unit.Repository<CoopLogEntry>().ListAsync(e => e.CoopId == me.CoopId && e.MemberId == me.Id, cancellationToken).ConfigureAwait(false);
             Dictionary<int, long> contributed = mineLog.GroupBy(e => e.ItemId).ToDictionary(g => g.Key, g => g.Sum(e => (long)e.Delta));

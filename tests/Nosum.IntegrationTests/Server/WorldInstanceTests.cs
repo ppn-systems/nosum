@@ -20,6 +20,8 @@ using Nalix.SDK.Transport.Extensions;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
+using Nosum.Contracts.Dev.C2S;
+using Nosum.Contracts.Dev.S2C;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
@@ -171,7 +173,8 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
             first = free[0];
             second = free[1];
 
-            // Nothing is placed yet; the starter kit holds two chairs in slot 5.
+            // Nothing is placed yet; the tester grant gives two chairs, which land in slot 5 after the tools and seeds.
+            (await a.GrantAsync(ItemCatalog.OakChair, 2, host.Timeout)).Should().BeTrue();
             (await a.GetPlacedAsync(host.Timeout)).Objects.Should().BeEmpty();
             (await a.GetInventoryAsync(host.Timeout)).Slots.Should().Contain(s => s.Slot == 5 && s.ItemId == ItemCatalog.OakChair && s.Quantity == 2);
 
@@ -249,6 +252,7 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
         await using Client a = await host.ConnectAsync();
         JoinMapResult join = await a.JoinAsync(host.Timeout);
         join.MapId.Should().Be(GameMaps.Farm);
+        (await a.GrantAsync(ItemCatalog.OakChair, 1, host.Timeout)).Should().BeTrue();
 
         (await a.PlaceAsync(5, (int)(join.SpawnX / 16), (int)(join.SpawnY / 16) + 1, 0, host.Timeout)).Status.Should().Be(PlaceStatus.NotPlaceable);
         (await a.GetPlacedAsync(host.Timeout)).MapId.Should().BeEmpty("the farm takes no furniture");
@@ -348,7 +352,9 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
-            NetworkApplication app = Program.BuildApplication(port);
+
+            // Development, so the tester grant can hand out the furniture that new players no longer start with.
+            NetworkApplication app = Program.BuildApplication(port, null, development: true);
             TestHost host = new(app, port);
             await app.ActivateAsync(host.Timeout);
             return host;
@@ -541,6 +547,12 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
         {
             using GetInventory request = new();
             return await _session.RequestAsync<InventorySnapshot>(request, ct: ct);
+        }
+
+        public async Task<bool> GrantAsync(int itemId, int quantity, CancellationToken ct)
+        {
+            using DevGrant request = new() { ItemId = itemId, Quantity = quantity };
+            return (await _session.RequestAsync<DevGrantResult>(request, ct: ct)).Ok;
         }
 
         public async Task<PlaceResult> PlaceAsync(int slot, int x, int y, int rotation, CancellationToken ct)

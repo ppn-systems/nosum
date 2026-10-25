@@ -16,7 +16,8 @@ namespace Nosum.Wasm.Socket.Coop;
 /// <param name="Role">The role.</param>
 /// <param name="IsMe">Whether this is the player.</param>
 /// <param name="Online">Whether the member is connected.</param>
-public readonly record struct CoopMemberInfo(Guid MemberId, CoopRole Role, bool IsMe, bool Online);
+/// <param name="Nickname">The member's nickname as the server sent it.</param>
+public readonly record struct CoopMemberInfo(Guid MemberId, CoopRole Role, bool IsMe, bool Online, string Nickname);
 
 /// <summary>One item kind in the warehouse.</summary>
 /// <param name="ItemId">The item.</param>
@@ -34,7 +35,8 @@ public readonly record struct CoopLogInfo(Guid MemberId, int ItemId, int Delta, 
 /// <summary>An invitation to the player.</summary>
 /// <param name="InviteId">The invitation id.</param>
 /// <param name="CoopName">The co-op's authored name (plain or i18n envelope).</param>
-public readonly record struct CoopInviteInfo(Guid InviteId, string CoopName);
+/// <param name="InviterNickname">The founder's nickname; empty when unknown.</param>
+public readonly record struct CoopInviteInfo(Guid InviteId, string CoopName, string InviterNickname);
 
 /// <summary>The player's co-op as the server last sent it.</summary>
 /// <param name="HasCoop">Whether the player belongs to a co-op.</param>
@@ -132,7 +134,7 @@ public sealed class CoopChannel : IDisposable
         List<CoopMemberInfo> members = [];
         foreach (CoopMemberRow row in snapshot.Members)
         {
-            members.Add(new CoopMemberInfo(row.MemberId, row.Role, row.IsMe, row.Online));
+            members.Add(new CoopMemberInfo(row.MemberId, row.Role, row.IsMe, row.Online, row.Nickname));
         }
 
         List<CoopStockInfo> stock = [];
@@ -150,7 +152,7 @@ public sealed class CoopChannel : IDisposable
         List<CoopInviteInfo> invites = [];
         foreach (CoopInviteRow row in snapshot.Invites)
         {
-            invites.Add(new CoopInviteInfo(row.InviteId, row.CoopName));
+            invites.Add(new CoopInviteInfo(row.InviteId, row.CoopName, row.InviterNickname));
         }
 
         this.Current = new CoopInfo(snapshot.HasCoop, snapshot.Name, snapshot.Role, members, stock, log, invites);

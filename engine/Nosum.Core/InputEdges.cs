@@ -68,6 +68,9 @@ public enum InputEdges
 
     /// <summary>The co-op key (G): show or hide the co-op panel.</summary>
     Coop = 1 << 17,
+
+    /// <summary>The profile key (N): show or hide the profile panel (change nickname).</summary>
+    Profile = 1 << 18,
 }
 
 /// <summary>Helpers for the packed input integer the platform passes to the frame.</summary>

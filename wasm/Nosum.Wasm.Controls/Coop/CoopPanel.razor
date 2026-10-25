@@ -17,11 +17,11 @@
                 {
                     <p class="coop-empty">@Vm.Text("Coop_NoInvites")</p>
                 }
-                @foreach ((Guid id, string name) in Vm.Invites)
+                @foreach ((Guid id, string name, string inviter) in Vm.Invites)
                 {
                     Guid inviteId = id;
                     <GameRow Class="center">
-                        <span>@name</span>
+                        <span>@(inviter.Length > 0 ? Vm.Text("Coop_InviteMessageFrom", name, inviter) : name)</span>
                         <GameButton Text="@Vm.Text("Coop_Accept")" OnClick="@(() => Vm.Respond(inviteId, true))" />
                         <GameButton Variant="plain" Text="@Vm.Text("Coop_Decline")" OnClick="@(() => Vm.Respond(inviteId, false))" />
                     </GameRow>

@@ -18,4 +18,7 @@ public sealed partial class CoopInviteRow
 
     /// <summary>The co-op's name as authored (plain or i18n envelope).</summary>
     [SerializeOrder(1)] public string CoopName { get; set; } = string.Empty;
+
+    /// <summary>The nickname of the founder who invited; empty when unknown. Appended in protocol version 3.</summary>
+    [SerializeOrder(2)] public string InviterNickname { get; set; } = string.Empty;
 }

@@ -6,6 +6,7 @@ using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Placeables;
+using Nosum.Gameplay.Shops;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Placeable;
@@ -45,6 +46,11 @@ internal sealed class MapScene
     private readonly RemotePlayers? _remote;
     private readonly PlayerActions? _actions;
     private readonly LookChannel? _looks;
+    private readonly NicknameLabels? _labels;
+    private readonly int[] _labelIds = new int[RemotePlayers.MaxPlayers + 1];
+    private readonly int[] _labelX = new int[RemotePlayers.MaxPlayers + 1];
+    private readonly int[] _labelY = new int[RemotePlayers.MaxPlayers + 1];
+    private int _labelCount;
     private readonly PlaceableChannel? _placed;
     private readonly PlacementActions? _placement;
     private readonly PlacedSet _placedSet = new();
@@ -73,12 +79,13 @@ internal sealed class MapScene
     /// <param name="placed">The mirror of the pieces placed in the player's place; they block walking like the server's grid does.</param>
     /// <param name="placement">The keys that place, turn, move and pick up furniture.</param>
     /// <param name="looks">The looks the server sent for the players on the map; <see langword="null"/> draws everyone with <paramref name="look"/>.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null)
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null)
     {
         _actions = actions;
         _placed = placed;
         _placement = placement;
         _looks = looks;
+        _labels = labels;
         ArgumentNullException.ThrowIfNull(loader);
         ArgumentNullException.ThrowIfNull(content);
 
@@ -150,7 +157,13 @@ internal sealed class MapScene
 
         // Keys act on the map shown, and not while a map change freezes the farmer.
         InputEdges liveEdges = _phase == Phase.FadingOut ? InputEdges.None : edges;
-        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable, _clockSeconds);
+        int shopId = 0;
+        if (content.Spec.Shops.Count > 0)
+        {
+            _ = ShopRules.TryFindShop(content.Spec, _farmer.X, _farmer.Y, map.TileWidth, out shopId);
+        }
+
+        _actions?.Update(liveEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable, _clockSeconds, shopId);
         if (_actions is not null)
         {
             _placement?.Update(content.Spec.Placeable && _phase == Phase.Playing, liveEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds);
@@ -184,7 +197,11 @@ internal sealed class MapScene
             decorators[i].AddToWorld(_world);
         }
 
-        FarmerSprite.Draw(_world, _farmerTextures, _looks is not null && _looks.TryGetLocal(out LookInfo own) ? LookSprites.Resolve(own) : this.Look, _farmer.Facing, walkFrame, (int)_farmer.X, (int)_farmer.Y);
+        _labelCount = 0;
+        LookInfo ownLook = default;
+        bool hasOwn = _looks is not null && _looks.TryGetLocal(out ownLook);
+        FarmerSprite.Draw(_world, _farmerTextures, hasOwn ? LookSprites.Resolve(ownLook) : this.Look, _farmer.Facing, walkFrame, (int)_farmer.X, (int)_farmer.Y);
+        this.AddLabel(ownLook.Nickname, (int)_farmer.X, (int)_farmer.Y);
         if (_phase != Phase.FadingOut)
         {
             this.AddRemoteFarmers();
@@ -201,6 +218,7 @@ internal sealed class MapScene
             TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave);
         }
 
+        this.DrawLabels();
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
         backend.Submit(_commands.Encode());
     }
@@ -372,8 +390,32 @@ internal sealed class MapScene
 
             bool moving = (pose.State & 4) != 0 && !pose.Held;
             int walk = moving ? 1 + (int)(animation / WalkFrameSeconds) : 0;
-            FarmerLook look = _looks is not null && _looks.TryGet(id, out LookInfo known) ? LookSprites.Resolve(known) : this.Look;
+            LookInfo known = default;
+            FarmerLook look = _looks is not null && _looks.TryGet(id, out known) ? LookSprites.Resolve(known) : this.Look;
             FarmerSprite.Draw(_world, _farmerTextures, look, (Facing)(pose.State & 3), walk, (int)pose.X, (int)pose.Y, (int)id);
+            this.AddLabel(known.Nickname, (int)pose.X, (int)pose.Y);
+        }
+    }
+
+    // Remembers where a nickname goes; the labels are recorded after everything else so no sprite or roof covers them.
+    private void AddLabel(string? nickname, int feetX, int feetY)
+    {
+        int id = _labels?.IdOf(nickname) ?? 0;
+        if (id > 0 && _labelCount < _labelIds.Length)
+        {
+            _labelIds[_labelCount] = id;
+            _labelX[_labelCount] = feetX;
+            _labelY[_labelCount] = feetY;
+            _labelCount++;
+        }
+    }
+
+    // One label command per player: the bitmap was uploaded when the name arrived, so the frame still crosses to the browser once.
+    private void DrawLabels()
+    {
+        for (int i = 0; i < _labelCount; i++)
+        {
+            _commands.DrawLabel(_labelIds[i], _labelX[i] - _camera.Left, _labelY[i] - FarmerSprite.Height - _camera.Top - 1);
         }
     }
 }

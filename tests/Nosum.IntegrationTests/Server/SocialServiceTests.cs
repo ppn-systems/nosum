@@ -29,6 +29,7 @@ using Nosum.Domain.Economy;
 using Nosum.Domain.Market;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
+using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Inventory;
@@ -51,6 +52,7 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
     private readonly PostgresFixture _database;
     private readonly FakeTimeProvider _clock = new(s_start);
     private readonly EfUnitOfWorkFactory _units;
+    private readonly NicknameDirectory _nicknames;
     private readonly InventoryService _inventory;
     private readonly TransferService _transfers;
     private readonly MarketService _market;
@@ -60,10 +62,11 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
     {
         _database = database;
         _units = new EfUnitOfWorkFactory(database.Options);
+        _nicknames = new NicknameDirectory(_units);
         _inventory = new InventoryService(_units, _clock);
         _transfers = new TransferService(_inventory, _clock);
-        _market = new MarketService(_transfers, _inventory, _units, new NoPresence(), new NoMaps(), _clock);
-        _coops = new CoopService(_units, _transfers, new NoPresence(), new NoSessions(), new NoNotifier(), _clock);
+        _market = new MarketService(_transfers, _inventory, _units, new NoPresence(), new NoMaps(), new CoinSink(), _nicknames, _clock);
+        _coops = new CoopService(_units, _transfers, new NoPresence(), new NoSessions(), new NoNotifier(), _nicknames, _clock);
     }
 
     public void Dispose() => _coops.Dispose();
@@ -475,7 +478,7 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
     private async Task<Guid> CreatePlayerAsync()
     {
         await using NosumDbContext context = new(_database.Options);
-        Player player = new() { IsGuest = true, CreatedAt = s_start, LastActiveAt = s_start };
+        Player player = TestNicknames.Name(new() { IsGuest = true, CreatedAt = s_start, LastActiveAt = s_start });
         context.Players.Add(player);
         _ = await context.SaveChangesAsync();
         return player.Id;

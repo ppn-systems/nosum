@@ -1,0 +1,105 @@
+// Copyright (c) 2026 PPN Systems. All rights reserved.
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Nalix.Abstractions.Networking;
+using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Shops;
+using Nosum.Contracts.Shop;
+using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Shops;
+
+namespace Nosum.Infrastructure.Shops;
+
+/// <summary>
+/// <see cref="IShopService"/>: validates against <see cref="ShopRules"/> and the player's presence, then buys through <see cref="ITransferService"/>
+/// (coins out, items in, one transaction, audit rows with reason <c>shop.buy</c>).
+/// </summary>
+public sealed class ShopService : IShopService
+{
+    private readonly ITransferService _transfers;
+    private readonly IMapPresence _presence;
+    private readonly IMapCatalog _maps;
+
+    /// <summary>Initializes the service.</summary>
+    /// <param name="transfers">Moves coins and items atomically.</param>
+    /// <param name="presence">Where players stand.</param>
+    /// <param name="maps">The hosted maps (tile size).</param>
+    public ShopService(ITransferService transfers, IMapPresence presence, IMapCatalog maps)
+    {
+        ArgumentNullException.ThrowIfNull(transfers);
+        ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(maps);
+
+        _transfers = transfers;
+        _presence = presence;
+        _maps = maps;
+    }
+
+    /// <inheritdoc/>
+    public async Task<ShopOutcome> BuyAsync(IConnection connection, Guid playerId, int shopId, int itemId, int quantity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        ShopVerdict verdict = ShopRules.Price(shopId, itemId, quantity, out long total);
+        if (verdict != ShopVerdict.Ok)
+        {
+            return new ShopOutcome(verdict switch
+            {
+                ShopVerdict.UnknownShop => ShopStatus.UnknownShop,
+                ShopVerdict.NotSold => ShopStatus.NotSold,
+                _ => ShopStatus.InvalidQuantity,
+            }, 0);
+        }
+
+        if (!this.IsAtShop(connection, shopId))
+        {
+            return new ShopOutcome(ShopStatus.NotAtShop, 0);
+        }
+
+        TransferStatus status = await _transfers.ExecuteAsync(
+            [new TransferLeg(TransferParty.Player(playerId), itemId, quantity, -total)],
+            "shop.buy",
+            null,
+            cancellationToken).ConfigureAwait(false);
+        return status switch
+        {
+            TransferStatus.Ok => new ShopOutcome(ShopStatus.Ok, total),
+            TransferStatus.NotEnoughCoins => new ShopOutcome(ShopStatus.NotEnoughCoins, 0),
+            TransferStatus.NoSpace => new ShopOutcome(ShopStatus.NoSpace, 0),
+            _ => new ShopOutcome(ShopStatus.Conflict, 0),
+        };
+    }
+
+    // The position is the server's own record, never a value from the packet.
+    private bool IsAtShop(IConnection connection, int shopId)
+    {
+        if (!_presence.TryGet(connection, out PlayerPresence? player)
+            || !GameMaps.TryGet(player.MapId, out MapSpec? spec)
+            || !_maps.TryGet(player.MapId, out MapDefinition? map))
+        {
+            return false;
+        }
+
+        double feetX;
+        double feetY;
+        lock (player.Gate)
+        {
+            feetX = player.Motion.X;
+            feetY = player.Motion.Y;
+        }
+
+        foreach (ShopPoint point in spec.Shops)
+        {
+            if (point.ShopId == shopId && ShopRules.InReach(point, feetX, feetY, map.Grid.TileSize))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

@@ -17,7 +17,9 @@ using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
+using Nosum.Rendering;
 using Nosum.Rendering.Web;
+using Nosum.Wasm.ViewModels.Player;
 
 namespace Nosum.Wasm.Game;
 
@@ -42,6 +44,7 @@ internal static partial class GameLoop
     private static PlacementViewModel? s_placement;
     private static MarketChannel? s_market;
     private static LookChannel? s_looks;
+    private static NicknameFormatter? s_names;
     private static double s_lastTime = -1;
 
     /// <summary>Connects the game to the server; call before <see cref="StartAsync"/>. Without it the farm is played offline.</summary>
@@ -61,7 +64,12 @@ internal static partial class GameLoop
 
     /// <summary>Connects the looks the server sent to the farmers drawn; call before <see cref="StartAsync"/>.</summary>
     /// <param name="looks">The mirror of the looks on the map.</param>
-    public static void UseLooks(LookChannel looks) => s_looks = looks;
+    /// <param name="names">Formats the nicknames drawn above the farmers.</param>
+    public static void UseLooks(LookChannel looks, NicknameFormatter names)
+    {
+        s_looks = looks;
+        s_names = names;
+    }
 
     /// <summary>Connects furniture placing to the game: the placed pieces and the arrange panel's state. Call before <see cref="StartAsync"/>, after <see cref="UseFarming"/>.</summary>
     /// <param name="placeable">The placed pieces mirror and action sender.</param>
@@ -75,6 +83,9 @@ internal static partial class GameLoop
 
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
+
+    /// <summary>Raised from the frame when the player pressed the action key next to a shop: the shop's id.</summary>
+    public static event Action<int>? ShopRequested;
 
     /// <summary>
     /// Loads everything the first map needs and starts the loop on the given canvas. With a network, the first map is the one
@@ -91,6 +102,7 @@ internal static partial class GameLoop
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
         PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
+        actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider()];
         if (actions is not null && s_farm is not null)
         {
@@ -125,7 +137,9 @@ internal static partial class GameLoop
 
         // Until the server's look arrives (and without a server) the default look is drawn, never one made up from an id.
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks);
+        // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
+        NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(new LabelRegistry(WebRenderBackend.UploadLabel), s_looks, s_names) : null;
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels);
 
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }

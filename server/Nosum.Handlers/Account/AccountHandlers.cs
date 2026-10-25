@@ -15,6 +15,7 @@ using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Common;
 using Nosum.Handlers.Session;
+using Nosum.Abstractions.Look;
 
 namespace Nosum.Handlers.Account;
 
@@ -27,6 +28,7 @@ public static partial class AccountHandlers
 {
     [Inject] private static IAccountService s_accounts = null!;
     [Inject] private static ISessionRegistry s_sessions = null!;
+    [Inject] private static ILookService s_looks = null!;
 
     /// <summary>Creates an account and signs the connection in.</summary>
     /// <param name="context">The request.</param>
@@ -41,8 +43,9 @@ public static partial class AccountHandlers
         string email = context.Packet.Email;
         string password = context.Packet.Password;
         GameLanguage language = context.Packet.PreferredLanguage;
+        string nickname = context.Packet.Nickname;
 
-        AccountOutcome outcome = await s_accounts.RegisterAsync(email, password, language, context.CancellationToken).ConfigureAwait(false);
+        AccountOutcome outcome = await s_accounts.RegisterAsync(email, password, nickname, language, context.CancellationToken).ConfigureAwait(false);
         await CompleteAsync(context.Connection, context.Sender, outcome).ConfigureAwait(false);
     }
 
@@ -75,9 +78,10 @@ public static partial class AccountHandlers
         PlayerIdentity player = context.Connection.GetPlayer();
         string email = context.Packet.Email;
         string password = context.Packet.Password;
+        string nickname = context.Packet.Nickname;
 
         AccountOutcome outcome = await s_accounts
-            .UpgradeGuestAsync(player.PlayerId, player.SessionId, email, password, context.CancellationToken).ConfigureAwait(false);
+            .UpgradeGuestAsync(player.PlayerId, player.SessionId, email, password, nickname, context.CancellationToken).ConfigureAwait(false);
         await CompleteAsync(context.Connection, context.Sender, outcome).ConfigureAwait(false);
     }
 
@@ -95,7 +99,7 @@ public static partial class AccountHandlers
         await s_accounts.LogoutAsync(player.SessionId, context.CancellationToken).ConfigureAwait(false);
         s_sessions.Release(context.Connection);
         context.Connection.DetachPlayer();
-        await ReplyOutcomeAsync(context.Sender, new AccountOutcome(AccountStatus.Ok, Guid.Empty, string.Empty, string.Empty, Guid.Empty, default, GameLanguage.Unspecified, false, false)).ConfigureAwait(false);
+        await ReplyOutcomeAsync(context.Sender, new AccountOutcome(AccountStatus.Ok, Guid.Empty, string.Empty, string.Empty, Guid.Empty, default, GameLanguage.Unspecified, false, false, string.Empty)).ConfigureAwait(false);
     }
 
     /// <summary>Signs the connection in with an e-mail and password.</summary>
@@ -159,6 +163,41 @@ public static partial class AccountHandlers
         }
     }
 
+    /// <summary>Changes the signed-in player's nickname and tells their map.</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply is sent.</returns>
+    [PacketOpcode(AccountOpCode.SetNickname)]
+    [PacketEncryption(true)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(1, 5, PolicyId = "account-nickname", HardLockoutSeconds = 60, MaxSoftViolations = 10)]
+    public static async ValueTask HandleSetNicknameAsync(IPacketContext<SetNickname> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        PlayerIdentity player = context.Connection.GetPlayer();
+        string nickname = context.Packet.Nickname;
+
+        NicknameOutcome outcome = await s_accounts.SetNicknameAsync(player.PlayerId, nickname, context.CancellationToken).ConfigureAwait(false);
+        if (outcome.Status == AccountStatus.Ok)
+        {
+            // Everyone on the map learns the new name through the look row (docs/adr/ADR-009 amendments).
+            await s_looks.AnnounceAsync(context.Connection, player.PlayerId, context.CancellationToken).ConfigureAwait(false);
+        }
+
+        PacketScope<NicknameResult> lease = PacketFactory<NicknameResult>.Acquire();
+        try
+        {
+            lease.Value.Status = outcome.Status;
+            lease.Value.Nickname = outcome.Nickname;
+            lease.Value.NextChangeAtMs = outcome.NextChangeAt?.ToUnixTimeMilliseconds() ?? 0;
+            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
+        }
+        catch
+        {
+            lease.Dispose();
+            throw;
+        }
+    }
+
     // Signs the connection in on success (identity from the server's own outcome, never from the packet), then replies.
     private static async ValueTask CompleteAsync(IConnection connection, IPacketSender sender, AccountOutcome outcome)
     {
@@ -186,6 +225,7 @@ public static partial class AccountHandlers
             packet.PreferredLanguage = outcome.Language;
             packet.IsGuest = outcome.IsGuest;
             packet.RegistrationPromptUnlocked = outcome.RegistrationPromptUnlocked;
+            packet.Nickname = outcome.Nickname;
             await sender.ReplyAsync(packet).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
         }
         catch

@@ -14,7 +14,8 @@ namespace Nosum.Abstractions.Look;
 /// <summary>One player on a map with their look.</summary>
 /// <param name="PlayerId">The id the player has on the map (not the account id).</param>
 /// <param name="Look">The look.</param>
-public readonly record struct PlayerLookView(uint PlayerId, PlayerLook Look)
+/// <param name="Nickname">The player's nickname, sent with the look so the client caches it by player id.</param>
+public readonly record struct PlayerLookView(uint PlayerId, PlayerLook Look, string Nickname)
 {
     /// <summary>Copies the look into a wire row (ids only, ADR-006 D6).</summary>
     /// <param name="row">The row to fill.</param>
@@ -29,12 +30,12 @@ public readonly record struct PlayerLookView(uint PlayerId, PlayerLook Look)
         row.ShirtItemId = this.Look.ShirtItemId;
         row.PantsItemId = this.Look.PantsItemId;
         row.HatItemId = this.Look.HatItemId;
+        row.Nickname = this.Nickname;
     }
 }
 
 /// <summary>
-/// Player looks and the wardrobe (docs/adr/ADR-014). The server owns every look: a new player gets the default one (and a few
-/// clothes in the inventory); the player changes avatar parts and wears clothing items they own; the server validates, saves,
+/// Player looks and the wardrobe (docs/adr/ADR-014). The server owns every look: a new player gets the default one (plain garments; clothes are bought at the shop); the player changes avatar parts and wears clothing items they own; the server validates, saves,
 /// and sends only ids to everyone on the map.
 /// </summary>
 public interface ILookService
@@ -48,6 +49,13 @@ public interface ILookService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The looks of the players on the map, the caller included; empty when the caller is on no map.</returns>
     Task<IReadOnlyList<PlayerLookView>> AnnounceAndGetAsync(IConnection connection, Guid playerId, CancellationToken cancellationToken = default);
+
+    /// <summary>Announces the connection's current look and nickname to everyone on its map, itself included (after a nickname change).</summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="playerId">The player's account.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the announcement was sent.</returns>
+    Task AnnounceAsync(IConnection connection, Guid playerId, CancellationToken cancellationToken = default);
 
     /// <summary>Reads a player's own look (created with the default on first read).</summary>
     /// <param name="playerId">The player.</param>

@@ -27,6 +27,12 @@ public enum PanelKind
 
     /// <summary>The co-op.</summary>
     Coop = 5,
+
+    /// <summary>The profile (nickname).</summary>
+    Profile = 6,
+
+    /// <summary>A shop, opened with the action key at its counter (not a toolbar button).</summary>
+    Shop = 7,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -72,5 +78,6 @@ public sealed class ToolbarViewModel : PanelViewModel
         new ToolbarItem(PanelKind.Wardrobe, this.Text("Toolbar_Wardrobe"), "C"),
         new ToolbarItem(PanelKind.Trade, this.Text("Toolbar_Trade"), "T"),
         new ToolbarItem(PanelKind.Coop, this.Text("Toolbar_Coop"), "G"),
+        new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), "N"),
     ];
 }

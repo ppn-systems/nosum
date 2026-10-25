@@ -24,6 +24,7 @@
                     <ItemSlotButton Slot="listing.Item" Scale="2" />
                     <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
+                    <span>@listing.SellerText</span>
                     @if (listing.IsMine)
                     {
                         <span>@Vm.Text("Market_YourListing")</span>

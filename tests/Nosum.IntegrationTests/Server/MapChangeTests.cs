@@ -274,7 +274,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
             await _session.HandshakeAsync(ct);
             if (sessionToken is null)
             {
-                using Register request = new() { Email = "w" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com", Password = "password-1" };
+                using Register request = new() { Email = "w" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com", Password = "password-1", Nickname = TestNicknames.Next() };
                 AccountResult result = await _session.RequestAsync<AccountResult>(request, ct: ct);
                 result.Status.Should().Be(AccountStatus.Ok);
                 this.AccountId = result.PlayerId;

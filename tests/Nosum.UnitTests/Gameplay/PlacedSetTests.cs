@@ -185,9 +185,12 @@ public sealed class PlacedSetTests
     }
 
     [Fact]
-    public void StarterKit_GivesAFewPlaceablePieces_AndFitsTheInventory()
+    public void StarterKit_HasNoFurnitureOrClothing_AndFitsTheInventory()
     {
-        StarterKit.Items.Count(i => PlaceableCatalog.TryGet(i.ItemId, out _)).Should().BeGreaterThanOrEqualTo(3);
+        // Furniture and clothing are bought at the shop (docs/adr/ADR-013 amendments); a new player starts with tools and seeds only.
+        StarterKit.Items.Count(i => PlaceableCatalog.TryGet(i.ItemId, out _)).Should().Be(0);
+        StarterKit.Items.Select(i => ItemCatalog.TryGet(i.ItemId, out ItemDefinition? d) ? d.Kind : ItemKind.Tool)
+            .Should().OnlyContain(k => k == ItemKind.Tool || k == ItemKind.Seed);
         InventoryGrid grid = new(InventoryLimits.DefaultCapacity);
         foreach (ItemSlot item in StarterKit.Items)
         {

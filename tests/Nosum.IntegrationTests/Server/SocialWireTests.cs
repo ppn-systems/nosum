@@ -62,7 +62,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
             await b.JoinAsync(ct);
 
             // A new player (a guest too) has the default look; the second client learns it of the first on joining.
-            (await a.GetLooksAsync(ct)).Single(l => l.PlayerId == a.MapPlayerId).Should().BeEquivalentTo(new LookRow { PlayerId = a.MapPlayerId, SkinId = 1, HairStyleId = 1, HairDyeId = 1 });
+            (await a.GetLooksAsync(ct)).Single(l => l.PlayerId == a.MapPlayerId).Should().BeEquivalentTo(new LookRow { PlayerId = a.MapPlayerId, SkinId = 1, HairStyleId = 1, HairDyeId = 1, Nickname = a.Nickname });
             LookRow[] seenByB = await b.GetLooksAsync(ct);
             seenByB.Select(l => l.PlayerId).Should().BeEquivalentTo([a.MapPlayerId, b.MapPlayerId]);
             (await a.Looks.WaitAsync(l => l.PlayerId == b.MapPlayerId, ct)).SkinId.Should().Be(1, "the joiner's look is announced to the map");
@@ -74,7 +74,13 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
             LookRow changed = await b.Looks.WaitAsync(l => l.PlayerId == a.MapPlayerId && l.SkinId == 3, ct);
             (changed.HairStyleId, changed.HairDyeId).Should().Be(((byte)4, (byte)2));
 
-            // Clothing comes out of the inventory: only owned clothing can be worn, and what was worn goes back.
+            // Clothing comes out of the inventory: only owned clothing can be worn, and what was worn goes back. New players own none, so the tester grant supplies it.
+            (await a.CountAsync(ItemCatalog.ShirtRed, ct)).Should().Be(0, "new players start without clothes");
+            foreach (int clothes in new[] { ItemCatalog.ShirtRed, ItemCatalog.ShirtGreen, ItemCatalog.HatCap })
+            {
+                (await a.GrantAsync(clothes, 1, 0, ct)).Should().BeTrue();
+            }
+
             int red = await a.SlotOfAsync(ItemCatalog.ShirtRed, ct);
             (await a.EquipAsync(0, ItemCatalog.Hoe, ct)).Should().Be(LookStatus.NotWearable);
             (await a.EquipAsync(30, ItemCatalog.ShirtGreen, ct)).Should().Be(LookStatus.InvalidSlot);
@@ -380,7 +386,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
-            NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start));
+            NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start), development: true);
             Server server = new(app, port);
             await app.ActivateAsync(server.Token);
             return server;

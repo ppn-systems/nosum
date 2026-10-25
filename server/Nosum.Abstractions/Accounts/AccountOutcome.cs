@@ -16,6 +16,7 @@ namespace Nosum.Abstractions.Accounts;
 /// <param name="Language">The player's stored language.</param>
 /// <param name="IsGuest">Whether the player is still a guest.</param>
 /// <param name="RegistrationPromptUnlocked">Whether the invitation to register has been unlocked.</param>
+/// <param name="Nickname">The player's nickname (a neutral <c>guest-1234</c> for a guest that never chose one); empty on a refusal.</param>
 public readonly record struct AccountOutcome(
     AccountStatus Status,
     Guid PlayerId,
@@ -25,11 +26,18 @@ public readonly record struct AccountOutcome(
     DateTimeOffset ExpiresAt,
     GameLanguage Language,
     bool IsGuest,
-    bool RegistrationPromptUnlocked)
+    bool RegistrationPromptUnlocked,
+    string Nickname)
 {
     /// <summary>Creates a refusal that carries only a status code.</summary>
     /// <param name="status">The refusal code.</param>
     /// <returns>An outcome with empty session fields.</returns>
     public static AccountOutcome Refused(AccountStatus status)
-        => new(status, Guid.Empty, string.Empty, string.Empty, Guid.Empty, default, GameLanguage.Unspecified, false, false);
+        => new(status, Guid.Empty, string.Empty, string.Empty, Guid.Empty, default, GameLanguage.Unspecified, false, false, string.Empty);
 }
+
+/// <summary>Result of a nickname change.</summary>
+/// <param name="Status">Ok, or the refusal code.</param>
+/// <param name="Nickname">The player's nickname after the request.</param>
+/// <param name="NextChangeAt">When the next change is allowed; null when one is allowed now.</param>
+public readonly record struct NicknameOutcome(AccountStatus Status, string Nickname, DateTimeOffset? NextChangeAt);

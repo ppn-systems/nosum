@@ -241,4 +241,47 @@ public sealed class RenderingTests
         plan.Ground.ToArray().Select(l => l.Name).Should().Equal("Back", "Buildings", "Buildings2");
         plan.Front.ToArray().Select(l => l.Name).Should().Equal("Front", "AlwaysFront", "AlwaysFront2", "AlwaysFront3");
     }
+
+    [Fact]
+    public void DrawLabel_RecordsOneLabelCommandWithTheIdAndPosition_AndIgnoresZero()
+    {
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(2);
+
+        buffer.DrawLabel(7, 120, 80);
+        buffer.DrawLabel(0, 1, 1);
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        ints.Should().Equal(1, 2, RenderCommandBuffer.LabelTexture, 7, 0, 0, 0, 120, 80, 0, RenderCommandBuffer.NoTint);
+    }
+
+    [Fact]
+    public void LabelRegistry_UploadsEachTextOnce_AndLooksUpWithoutUploading()
+    {
+        List<(int Id, string Text, int Style)> uploads = [];
+        LabelRegistry registry = new((id, text, style) => uploads.Add((id, text, style)));
+
+        int a = registry.Intern("Nguyễn Văn An", 0);
+        int again = registry.Intern("Nguyễn Văn An", 0);
+        int own = registry.Intern("Nguyễn Văn An", 1);
+
+        again.Should().Be(a);
+        own.Should().NotBe(a, "the local player's style is a separate bitmap");
+        uploads.Should().HaveCount(2);
+        registry.TryGet("Nguyễn Văn An", 0, out int found).Should().BeTrue();
+        found.Should().Be(a);
+        registry.TryGet("unknown", 0, out _).Should().BeFalse();
+        uploads.Should().HaveCount(2, "TryGet never uploads");
+        registry.Intern(string.Empty, 0).Should().Be(0);
+    }
+
+    [Fact]
+    public void LabelRegistry_PastCapacity_DrawsNothingMore()
+    {
+        LabelRegistry registry = new((_, _, _) => { }, capacity: 2);
+
+        registry.Intern("one", 0).Should().BeGreaterThan(0);
+        registry.Intern("two", 0).Should().BeGreaterThan(0);
+        registry.Intern("three", 0).Should().Be(0);
+    }
 }

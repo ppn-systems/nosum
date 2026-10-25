@@ -85,7 +85,7 @@ public sealed class QuestTrackerViewModelTests
     [Fact]
     public async System.Threading.Tasks.Task UnlockRegistrationPrompt_ForAGuest_ShowsTheUpgradeOffer()
     {
-        AccountSession guest = new(Guid.NewGuid(), string.Empty, "t", DateTimeOffset.UnixEpoch, GameLanguage.English, true, false);
+        AccountSession guest = new(Guid.NewGuid(), string.Empty, "t", DateTimeOffset.UnixEpoch, GameLanguage.English, true, false, "guest-0002");
         AccountFormViewModel form = new(new NoAccountClient(guest), Localizer<Language>());
         await form.PlayAsGuestAsync(System.Threading.CancellationToken.None);
         int changes = 0;
@@ -110,13 +110,15 @@ public sealed class QuestTrackerViewModelTests
 
         public NoAccountClient(AccountSession guest) => _guest = guest;
 
-        public System.Threading.Tasks.Task<AccountReply> RegisterAsync(string email, string password, GameLanguage language, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
+        public System.Threading.Tasks.Task<AccountReply> RegisterAsync(string email, string password, string nickname, GameLanguage language, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
 
         public System.Threading.Tasks.Task<AccountReply> LoginAsync(string email, string password, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
 
         public System.Threading.Tasks.Task<AccountReply> StartGuestAsync(GameLanguage language, System.Threading.CancellationToken cancellationToken) => System.Threading.Tasks.Task.FromResult(new AccountReply(AccountStatus.Ok, _guest));
 
-        public System.Threading.Tasks.Task<AccountReply> UpgradeGuestAsync(string email, string password, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
+        public System.Threading.Tasks.Task<AccountReply> UpgradeGuestAsync(string email, string password, string nickname, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public System.Threading.Tasks.Task<NicknameReply> SetNicknameAsync(string nickname, System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
 
         public System.Threading.Tasks.Task LogoutAsync(System.Threading.CancellationToken cancellationToken) => throw new NotSupportedException();
 
