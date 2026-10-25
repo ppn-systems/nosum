@@ -4,6 +4,7 @@ using System;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Building.C2S;
 
@@ -23,5 +24,6 @@ public sealed partial class BuyAnimal : PacketBase<BuyAnimal>, IPacketStaticOpco
     [SerializeOrder(1)] public byte Kind { get; set; }
 
     /// <summary>The name the player gives it; the nickname rules apply.</summary>
+    [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(2)] public string Name { get; set; } = string.Empty;
 }

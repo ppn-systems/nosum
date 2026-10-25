@@ -1,0 +1,18 @@
+# Build context of host.Dockerfile: only what the host build reads.
+**
+!global.json
+!.editorconfig
+!Directory.Build.props
+!Directory.Packages.props
+!Version.props
+!engine/Nosum.Core
+!contracts
+!gameplay
+!server
+!assets/Maps
+!assets/PLACEHOLDER_CONTENT
+!deploy/check-placeholder-art.sh
+!deploy/PlaceholderGate.targets
+!deploy/host-entrypoint.sh
+**/bin
+**/obj

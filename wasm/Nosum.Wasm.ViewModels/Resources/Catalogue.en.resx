@@ -74,6 +74,22 @@
   <data name="Item_coal_Description" xml:space="preserve"><value>A rare lump of coal, sometimes found inside stones.</value></data>
   <data name="Item_copper_ore_Name" xml:space="preserve"><value>Copper ore</value></data>
   <data name="Item_copper_ore_Description" xml:space="preserve"><value>Copper ore taken from an ore node.</value></data>
+  <data name="Item_copper_hoe_Name" xml:space="preserve"><value>Copper hoe</value></data>
+  <data name="Item_copper_hoe_Description" xml:space="preserve"><value>Tills soil like the hoe; a wide swing (R) tills a line of three tiles.</value></data>
+  <data name="Item_copper_watering_can_Name" xml:space="preserve"><value>Copper watering can</value></data>
+  <data name="Item_copper_watering_can_Description" xml:space="preserve"><value>Holds 55 water; a wide swing (R) waters a line of three tiles.</value></data>
+  <data name="Item_copper_axe_Name" xml:space="preserve"><value>Copper axe</value></data>
+  <data name="Item_copper_axe_Description" xml:space="preserve"><value>Chops trees, stumps and twigs with twice the force.</value></data>
+  <data name="Item_copper_pickaxe_Name" xml:space="preserve"><value>Copper pickaxe</value></data>
+  <data name="Item_copper_pickaxe_Description" xml:space="preserve"><value>Breaks stones and ore with twice the force.</value></data>
+  <data name="Item_iron_hoe_Name" xml:space="preserve"><value>Iron hoe</value></data>
+  <data name="Item_iron_hoe_Description" xml:space="preserve"><value>Tills soil like the hoe; a wide swing (R) tills a line of five tiles.</value></data>
+  <data name="Item_iron_watering_can_Name" xml:space="preserve"><value>Iron watering can</value></data>
+  <data name="Item_iron_watering_can_Description" xml:space="preserve"><value>Holds 70 water; a wide swing (R) waters a line of five tiles.</value></data>
+  <data name="Item_iron_axe_Name" xml:space="preserve"><value>Iron axe</value></data>
+  <data name="Item_iron_axe_Description" xml:space="preserve"><value>Chops trees, stumps and twigs with three times the force.</value></data>
+  <data name="Item_iron_pickaxe_Name" xml:space="preserve"><value>Iron pickaxe</value></data>
+  <data name="Item_iron_pickaxe_Description" xml:space="preserve"><value>Breaks stones and ore with three times the force.</value></data>
   <data name="Item_iron_ore_Name" xml:space="preserve"><value>Iron ore</value></data>
   <data name="Item_iron_ore_Description" xml:space="preserve"><value>Iron ore from the mine.</value></data>
   <data name="Item_copper_bar_Name" xml:space="preserve"><value>Copper bar</value></data>

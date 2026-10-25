@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Dev.C2S;
 
@@ -16,5 +17,6 @@ public sealed partial class DevAdvanceClock : PacketBase<DevAdvanceClock>, IPack
     public static ushort StaticOpCode => DevOpCode.DevAdvanceClock;
 
     /// <summary>How many game days to skip, 1 to 60.</summary>
+    [WireRange(0, 365)]
     [SerializeOrder(0)] public int Days { get; set; }
 }

@@ -44,7 +44,7 @@ public sealed class TmxMapCatalog : IMapCatalog
             (double x, double y) = SpawnPoint.Find(grid, spec.SpawnTileX, spec.SpawnTileY);
             TillGrid? tillable = spec.Farmable ? TillGrid.FromMap(map, grid) : null;
             HashSet<(int X, int Y)> reserved = ReservedTiles(spec, grid, warps, loaded);
-            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, warps, tillable, spec.IsPrivate, spec.Placeable, reserved, spec.IsCoop, WaterGrid.FromMap(map), NodeSites.Read(map), NodeSites.ReadForage(map)));
+            _maps.Add(spec.Id, new MapDefinition(spec.Id, grid, x, y, warps, tillable, spec.IsPrivate, spec.Placeable, reserved, spec.IsCoop, WaterGrid.FromMap(map), NodeSites.Read(map), NodeSites.ReadForage(map), spec.MineFloor));
         }
     }
 

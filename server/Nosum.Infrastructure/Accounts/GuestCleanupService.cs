@@ -11,13 +11,19 @@ namespace Nosum.Infrastructure.Accounts;
 
 /// <summary>
 /// Deletes guest players that have not come back for <see cref="GuestRetention"/>, with their state and
-/// session tokens (cascade). Registered players are never touched. Reusable: <see cref="RunOnceAsync"/>
+/// session tokens (cascade), and sweeps stale token and recovery code rows. Registered players are never touched. Reusable: <see cref="RunOnceAsync"/>
 /// does one pass, <see cref="RunAsync"/> repeats it on a timer until cancelled.
 /// </summary>
 public sealed class GuestCleanupService
 {
     /// <summary>How long a guest may stay away before being deleted.</summary>
     public static readonly TimeSpan GuestRetention = TimeSpan.FromDays(30);
+
+    /// <summary>How long an expired or revoked session token row is kept before it is deleted.</summary>
+    public static readonly TimeSpan TokenRetention = TimeSpan.FromDays(7);
+
+    /// <summary>How long an expired recovery code row is kept before it is deleted.</summary>
+    public static readonly TimeSpan ResetCodeRetention = TimeSpan.FromDays(1);
 
     /// <summary>How often <see cref="RunAsync"/> looks for idle guests.</summary>
     public static readonly TimeSpan DefaultInterval = TimeSpan.FromHours(1);
@@ -49,9 +55,21 @@ public sealed class GuestCleanupService
         await using (db.ConfigureAwait(false))
         {
             // States and tokens go with the player (ON DELETE CASCADE).
-            return await db.Players
+            int guests = await db.Players
                 .Where(p => p.IsGuest && p.LastActiveAt < cutoff)
                 .ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+
+            // Session rotation leaves a revoked row behind at every resume, and recovery codes are single use: both are swept after a week and a day (docs/adr/ADR-032 D5).
+            DateTimeOffset now = _time.GetUtcNow();
+            DateTimeOffset tokenCutoff = now - TokenRetention;
+            DateTimeOffset codeCutoff = now - ResetCodeRetention;
+            _ = await db.PlayerSessionTokens
+                .Where(t => t.ExpiresAt < tokenCutoff || (t.RevokedAt != null && t.RevokedAt < tokenCutoff))
+                .ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+            _ = await db.PasswordResetCodes
+                .Where(c => c.ExpiresAt < codeCutoff)
+                .ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+            return guests;
         }
     }
 

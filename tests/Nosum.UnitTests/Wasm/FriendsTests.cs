@@ -242,7 +242,8 @@ public sealed class FriendsTests
     {
         List<string> needed = [];
         needed.AddRange(Enum.GetValues<FriendStatus>().Select(s => "Friend_Status_" + s));
-        needed.AddRange(GameMaps.All.Select(m => "Friends_Map_" + m.Id));
+        // The floors of the mine are private places: the server never sends their id (docs/adr/ADR-029 D4), so only the cave is named.
+        needed.AddRange(GameMaps.All.Where(m => !m.IsMineFloor).Select(m => "Friends_Map_" + m.Id));
 
         SocialClientFixtures.Keys("Language.resx").Should().Contain(needed);
         SocialClientFixtures.Keys("Language.en.resx").Should().Contain(needed);

@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Player.C2S;
 
@@ -19,5 +20,6 @@ public sealed partial class JoinMap : PacketBase<JoinMap>, IPacketStaticOpcode
     public static ushort StaticOpCode => PlayerOpCode.JoinMap;
 
     /// <summary>Id of a hosted map, for example <c>farm</c>; an unknown id is refused with <see cref="JoinStatus.UnknownMap"/>. It does not choose the map.</summary>
+    [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(0)] public string MapId { get; set; } = string.Empty;
 }

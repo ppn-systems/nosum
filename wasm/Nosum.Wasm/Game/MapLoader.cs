@@ -112,11 +112,14 @@ internal sealed class MapLoader
         string xml = await _http.GetStringAsync(new Uri(MapsUrl + spec.TmxFile, UriKind.Relative), cancellationToken).ConfigureAwait(false);
         TileMap map = TmxReader.Parse(xml);
 
+        // A sheet is named relative to the folder of the map file (the mine's floor plans live in Mines/ and name "mine").
+        int slash = spec.TmxFile.LastIndexOf('/');
+        string folder = slash < 0 ? string.Empty : spec.TmxFile[..(slash + 1)];
         Task<int>[] sheets = new Task<int>[map.TileSets.Count];
         for (int i = 0; i < sheets.Length; i++)
         {
             string source = map.TileSets[i].ImageSource.Replace('\\', '/');
-            sheets[i] = _textures.LoadAsync(MapsUrl + (source.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? source : source + ".png"));
+            sheets[i] = _textures.LoadAsync(MapsUrl + folder + (source.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? source : source + ".png"));
         }
 
         List<IMapDecorator> decorators = [];

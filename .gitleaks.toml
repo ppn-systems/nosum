@@ -1,0 +1,7 @@
+# Secret scanning configuration (docs/adr/ADR-032 D7). The default rules stay on; only the known development placeholder is allowed.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "The local development database password, which says it is not for production."
+regexes = ['''dev_password_not_for_production''']

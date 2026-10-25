@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Farm.C2S;
 
@@ -23,8 +24,10 @@ public sealed partial class UseItem : PacketBase<UseItem>, IPacketStaticOpcode
     [SerializeOrder(0)] public byte Slot { get; set; }
 
     /// <summary>Target tile x on the player's map.</summary>
+    [WireRange(WireLimits.TileMin, WireLimits.TileMax)]
     [SerializeOrder(1)] public int TileX { get; set; }
 
     /// <summary>Target tile y on the player's map.</summary>
+    [WireRange(WireLimits.TileMin, WireLimits.TileMax)]
     [SerializeOrder(2)] public int TileY { get; set; }
 }

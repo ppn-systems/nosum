@@ -39,4 +39,6 @@ public enum ChatStatus : byte
     NothingToReport = 15,
     /// <summary>A player cannot block or report themselves.</summary>
     SelfBlock = 16,
+    /// <summary>An admin muted the player; chat is refused until the mute ends (docs/adr/ADR-031 D7).</summary>
+    Muted = 17,
 }

@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Placeable.C2S;
 
@@ -22,9 +23,11 @@ public sealed partial class PlaceObject : PacketBase<PlaceObject>, IPacketStatic
     [SerializeOrder(0)] public byte Slot { get; set; }
 
     /// <summary>Left tile of the footprint.</summary>
+    [WireRange(WireLimits.TileMin, WireLimits.TileMax)]
     [SerializeOrder(1)] public int TileX { get; set; }
 
     /// <summary>Top tile of the footprint.</summary>
+    [WireRange(WireLimits.TileMin, WireLimits.TileMax)]
     [SerializeOrder(2)] public int TileY { get; set; }
 
     /// <summary>Rotation: 0 down, 1 right, 2 up, 3 left (pieces that do not rotate accept only 0).</summary>

@@ -1,0 +1,13 @@
+<Project>
+  <!-- Placeholder-art gate for MSBuild (docs/adr/ADR-031 D9, docs/adr/ADR-007). Imported by server/ and wasm/ through their
+       Directory.Build.targets. A publish with -p:NosumRelease=public fails while assets/PLACEHOLDER_CONTENT exists; M6 deletes that file.
+       NosumRepoRoot can be overridden (the tests point it at a scratch folder). -->
+  <PropertyGroup>
+    <NosumRepoRoot Condition="'$(NosumRepoRoot)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..'))</NosumRepoRoot>
+  </PropertyGroup>
+
+  <Target Name="NosumPlaceholderGate" BeforeTargets="PrepareForPublish;Pack" Condition="'$(NosumRelease)' == 'public'">
+    <Error Condition="Exists('$(NosumRepoRoot)assets/PLACEHOLDER_CONTENT')"
+           Text="Refusing a public release build: assets/PLACEHOLDER_CONTENT exists, so the Stardew Valley placeholder content is still in the repository (docs/adr/ADR-007). Public releases wait for milestone M6." />
+  </Target>
+</Project>
