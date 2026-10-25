@@ -1,0 +1,21 @@
+.energy-bar {
+    position: relative;
+    width: calc(var(--u) * 4);
+    height: calc(var(--u) * 21);
+    background: var(--nosum-ink);
+    box-sizing: border-box;
+    padding: var(--u);
+}
+
+.energy-fill {
+    position: absolute;
+    left: var(--u);
+    right: var(--u);
+    bottom: var(--u);
+    max-height: calc(100% - var(--u) * 2);
+    background: var(--nosum-ok);
+}
+
+.energy-bar.low .energy-fill {
+    background: var(--nosum-danger);
+}

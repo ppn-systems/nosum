@@ -1,15 +1,28 @@
+@using Nosum.Wasm.Controls.Progress
 @inherits ObservingComponent<InventoryViewModel>
 
 @* The hotbar: the first nine inventory slots. Number keys 1 to 9 select (handled by the game loop); a click selects too. *@
 @if (Vm.Slots.Count > 0)
 {
-    <GamePanel Class="hud hotbar" Role="toolbar" Title="">
-        <div class="hotbar-slots" aria-label="@Vm.HotbarLabel">
-            @foreach (SlotDisplay slot in Vm.Hotbar)
-            {
-                int index = slot.Index;
-                <ItemSlotButton Slot="slot" Hotkey="@((index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture))" OnClick="() => Vm.Select(index)" />
-            }
-        </div>
-    </GamePanel>
+    <div class="hotbar-dock">
+        <GamePanel Class="hud hotbar" Role="toolbar" Title="">
+            <div class="hotbar-slots" aria-label="@Vm.HotbarLabel">
+                @foreach (SlotDisplay slot in Vm.Hotbar)
+                {
+                    int index = slot.Index;
+                    <ItemSlotButton Slot="slot" Hotkey="@((index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture))" OnClick="() => Vm.Select(index)" />
+                }
+            </div>
+        </GamePanel>
+        @if (Progress is not null)
+        {
+            @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@
+            <EnergyBar Vm="Progress" />
+        }
+    </div>
+}
+
+@code {
+    /// <summary>The energy view model; when given, its bar stands beside the slots.</summary>
+    [Parameter] public Nosum.Wasm.ViewModels.Progress.ProgressViewModel? Progress { get; set; }
 }
