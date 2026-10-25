@@ -33,13 +33,13 @@ public static partial class AccountHandlers
     [Inject] private static IAbuseGuard s_abuse = null!;
 
     /// <summary>New accounts (registered or guest) one address may create per day; more are refused with <see cref="AccountStatus.TooManyRequests"/> (docs/adr/ADR-032 D6).</summary>
-    internal const int NewAccountsPerAddressPerDay = 30;
+    public static int NewAccountsPerAddressPerDay { get; set; } = 30;
 
     /// <summary>Recovery codes one address may ask for per hour.</summary>
-    internal const int ResetRequestsPerAddressPerHour = 5;
+    public const int ResetRequestsPerAddressPerHour = 5;
 
     /// <summary>Recovery codes one address may try per hour, across all accounts.</summary>
-    internal const int ResetConfirmsPerAddressPerHour = 20;
+    public const int ResetConfirmsPerAddressPerHour = 20;
 
     /// <summary>Creates an account and signs the connection in.</summary>
     /// <param name="context">The request.</param>

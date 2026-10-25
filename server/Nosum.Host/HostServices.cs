@@ -7,6 +7,7 @@ using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Email;
 using Nosum.Abstractions.Security;
+using Nosum.Handlers.Account;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Email;
 using Nosum.Infrastructure.Persistence;
@@ -46,6 +47,7 @@ internal static class HostServices
         }
 
         instances.Register(email);
+        AccountHandlers.NewAccountsPerAddressPerDay = AbuseLimits.NewAccountsPerAddressPerDay();
         instances.Register<IAbuseGuard>(new SlidingWindowAbuseGuard(TimeProvider.System, exemptLoopback: !AbuseLimits.EnforceLoopback()));
         instances.Register<IAccountService>(new AccountService(unitOfWork, hasher, tokens, TimeProvider.System, nicknames: nicknames, email: email));
         PlayerLifecycleService lifecycle = new(unitOfWork, TimeProvider.System);

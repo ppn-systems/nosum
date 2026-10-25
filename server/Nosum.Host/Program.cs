@@ -165,10 +165,13 @@ internal static class Program
             ex => Console.Error.WriteLine("Mail expiry failed: " + ex.Message),
             shutdown.Token);
 
+        Task keyAnnouncement = ServerKey.AnnounceAsync(Console.WriteLine, shutdown.Token);
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
         }
+
+        await keyAnnouncement.ConfigureAwait(false);
 
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
@@ -253,7 +256,7 @@ internal static class Program
             .UseGroups()
             .UseTimeSync()
             .UseSystemControl()
-            .UseSecureConnections()
+            .UseSecureConnections(ServerKey.ConfiguredPath())
             .Configure<ConnectionQuotaOptions>(AbuseLimits.Apply)
             .MapHandlers(typeof(PlayerHandlers))
             .MapHandlers(typeof(AccountHandlers))

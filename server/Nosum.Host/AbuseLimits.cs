@@ -31,6 +31,10 @@ internal static class AbuseLimits
         options.ExemptLoopback = !EnforceLoopback();
     }
 
+    /// <summary>New accounts (registered or guest) one address may create per day: <c>NOSUM_NEW_ACCOUNTS_PER_IP_PER_DAY</c>, 30 by default.</summary>
+    /// <returns>The daily cap.</returns>
+    internal static int NewAccountsPerAddressPerDay() => Read("NOSUM_NEW_ACCOUNTS_PER_IP_PER_DAY", 30);
+
     private static int Read(string name, int fallback)
         => int.TryParse(Environment.GetEnvironmentVariable(name), NumberStyles.None, CultureInfo.InvariantCulture, out int value) && value > 0 ? value : fallback;
 }
