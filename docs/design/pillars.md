@@ -30,8 +30,7 @@ Players trade with each other in two ways:
 - **Direct trade.** Two players open a trade, each puts in items and coins, both confirm, and
   the server swaps everything at once. Changing an offer clears both confirmations.
 
-Prices come from what players ask and pay, not from a fixed shop table (a fixed shop may
-still exist for seeds and basic tools). Every purchase and every direct trade is one atomic
+Prices come from what players ask and pay, not from a fixed shop table. A fixed shop in the town sells seeds, furniture and clothing for coins (new players start with only tools and seeds); the market fee is a pure coin sink (owner decision 2026-10-25). Every purchase and every direct trade is one atomic
 server transaction: items and coins move together or not at all.
 
 ## Pillar 3 — Server-wide seasons and goals
@@ -77,16 +76,18 @@ the client never decides a contribution, a trade or a goal outcome.
 
 ## Built so far (social layer, [ADR-013](../adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../adr/ADR-014-coops-and-looks.md); proposed defaults, owner to confirm)
 
-- Coins: a persisted balance, 500 to start; the farm's shipping bin buys crops at a fixed price (the first coin source).
-- Market: listings are escrow, 5 % fee, 48 hours, at most 20 per player, paged browse with search by item; the seller is paid while offline; cancel and expiry return the items.
+- Coins: a persisted balance, 500 to start; the farm's shipping bin buys crops at a fixed price (the first coin source); the town general store sells seeds, furniture and clothing at fixed prices (the main coin use besides the market).
+- Market: listings are escrow, 5 % fee, 48 hours, at most 20 per player, paged browse with search by item; the seller is paid while offline; cancel and expiry return the items. The fee is destroyed (anti-inflation), behind one seam (`IFeeSink`).
 - Direct trade: same map, both sides set an offer, any change clears both confirmations, both confirm, one atomic swap; leaving the map aborts with nothing moved.
 - Co-ops: one per player, founder and member roles, invitations, shared warehouse with an audit trail; the founder takes anything, a member takes back what they put in. Co-op land is not built.
-- Looks: skin, hair style, hair dye and worn shirt, trousers and hat, saved by the server and shown to everyone on the map as ids.
+- Looks: skin, hair style, hair dye and worn shirt, trousers and hat, saved by the server and shown to everyone on the map as ids; clothes are bought, nobody starts with any.
+- Nicknames: every player has a unique display nickname (Vietnamese letters allowed), chosen when registering, changeable once a day, drawn above their head and shown in the market, trades and co-ops; guests show as "Khách 1234".
 
 ## Open questions
 
 - Whether a player may belong to more than one co-op (built: one).
-- Market fee rate, listing duration, and limits that stop one player cornering a crop (built defaults: 5 %, 48 hours, 20 listings; no cornering limit yet).
+- Market fee rate, listing duration, and limits that stop one player cornering a crop (built defaults: 5 %, 48 hours, 20 listings; no cornering limit yet). The fee itself is closed: a coin sink.
+- Shop prices and stock (built: unlimited stock; seeds 10/15/30, furniture 80-400, clothing 40-80) and whether more shops are wanted.
 - Season length in real time.
 - How many players share one instance of a public map (town) before it splits into copies.
 - How visiting works: who may enter another player's farm or farmhouse (an allow-list the owner edits), and what a visitor may touch.

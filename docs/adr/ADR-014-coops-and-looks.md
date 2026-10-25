@@ -1,6 +1,6 @@
 # ADR-014 — Co-operatives (membership and shared warehouse) and player looks
 
-**Status:** Accepted (owner approval, 2026-10-25). Amendments pending: no furniture or clothing in the starter kit (bought instead); player nicknames.
+**Status:** Accepted (owner approval, 2026-10-25). Amended 2026-10-25: no starter wardrobe, nicknames on the wire (see Amendments).
 
 ## Context
 
@@ -60,3 +60,19 @@ A player may belong to several co-ops, co-op land arrives, the warehouse needs a
 ## Open owner questions
 
 One co-op per player or several; who may withdraw (the default above); founder succession; whether a dissolved co-op's items go to its founder; clothing sources beyond the starter set; which hairstyles, skins and dyes ship.
+
+## Amendments
+
+### 2026-10-25 - no starter wardrobe, nicknames (owner decisions)
+
+- **Looks D2 changed.** A new player no longer finds five clothes in the inventory: the wardrobe starts empty and clothing is bought at the town shop
+  ([ADR-013 amendments](ADR-013-economy-coins-escrow-market-trade.md)). Everything else of D2 stands (worn clothing leaves the inventory, one transaction with the look row).
+- **Looks D3 - the nickname travels with the look.** `LookRow` gained `Nickname` (string, appended, protocol version 3). Chosen over putting it in `MapSnapshot` because snapshots
+  go out at 10 Hz to everyone and a name almost never changes, while a look row is sent only on join, map change and change: a 12-character name costs a few bytes once per
+  join instead of 10 times a second per player. A rename calls `ILookService.AnnounceAsync`, which multicasts the look row to the whole map, so everyone's cache updates;
+  `LookChannel` caches the nickname by map player id and `NicknameFormatter` shows it (a guest's neutral `guest-1234` becomes "Khách 1234" / "Guest 1234").
+- **Co-op names.** `CoopMemberRow.Nickname` lists members by nickname (membership ids stay the addressing); `CoopInviteRow.InviterNickname` names the founder in the invitation.
+  Trade windows and invitation pickers use the map player's nickname from the look cache (the trade packets did not change).
+- **Drawn by the engine.** A nickname is drawn above each farmer as a pre-rendered label: `LabelRegistry` interns the text and uploads it once to `renderer.js` (`registerLabel`:
+  thresholded glyphs with a black outline, cached as a bitmap) when the name arrives; the frame only records `RenderCommandBuffer.DrawLabel(id, x, y)` (texture id -3). Still
+  one interop crossing per frame, no allocation.
