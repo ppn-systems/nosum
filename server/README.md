@@ -47,6 +47,10 @@ memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Loo
 (`Coops/`: membership, invitations, the shared warehouse with its audit trail). New entities: wallets and coin log, market listings, appearances, co-ops, members, invites, stock and log
 (migration `SocialLayer`). Handlers: `Nosum.Handlers/{Market,Look,Trade,Coop}`; everything that moves coins or items is `[PacketEncryption(true)]`.
 
+Co-op land ([ADR-020](../docs/adr/ADR-020-coop-land.md)): the map `coopfarm` is an instance owned by a co-op (`MapInstance.OfCoop`). `PlayerService` finds the instance from `ICoopMembership`
+(`Coops/CoopMembership`, a database lookup per call, never cached), `FarmService` re-checks membership on every action and writes a `coop.farm.*` `CoopLogEntry` in the action's transaction, and
+`CoopService` calls `ICoopLandEviction` (implemented by `PlayerService`) after a leave or kick and wipes the plots when a co-op dissolves. No new table, migration or packet.
+
 Skills: [`data-model-ef-core`](../.claude/skills/data-model-ef-core/SKILL.md),
 [`nalix-server-hosting`](../.claude/skills/nalix-server-hosting/SKILL.md),
 [`nalix-handlers`](../.claude/skills/nalix-handlers/SKILL.md),

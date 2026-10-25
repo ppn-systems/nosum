@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nosum.Contracts.Farm;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Maps;
 
 namespace Nosum.Abstractions.Farm;
 
@@ -30,6 +31,13 @@ public interface IFarmService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The map id, the server clock and the tiles; an empty map id when the player is on no map.</returns>
     Task<FarmSnapshotView> GetFarmAsync(IConnection connection, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Drops the in-memory tiles of an instance. Called after the instance's rows were deleted (a dissolved co-op's land, docs/adr/ADR-020),
+    /// so a stale copy is never served.
+    /// </summary>
+    /// <param name="instance">The place whose tiles to forget.</param>
+    void Forget(MapInstance instance);
 }
 
 /// <summary>Outcome of <see cref="IFarmService.UseAsync"/>.</summary>
