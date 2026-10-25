@@ -120,12 +120,6 @@ internal static class Program
             ex => Console.Error.WriteLine("Market expiry failed: " + ex.Message),
             shutdown.Token);
 
-        // Trees grow and public places regrow debris once a game day on the server calendar (docs/adr/ADR-021 D4).
-        Task nodeDays = new NodeDayService(
-            InstanceManager.Instance.GetExistingInstance<IResourceNodeService>() ?? throw new InvalidOperationException("The node service is not registered."),
-            InstanceManager.Instance.GetExistingInstance<IGameDayClock>() ?? throw new InvalidOperationException("The game day clock is not registered."),
-            TimeProvider.System).RunAsync(ex => Console.Error.WriteLine("Node day rollover failed: " + ex.Message), shutdown.Token);
-
         // Items that lay on a shared map for ten minutes vanish (docs/adr/ADR-021 D6).
         IGroundItems groundItems = InstanceManager.Instance.GetExistingInstance<IGroundItems>()
             ?? throw new InvalidOperationException("The ground item service is not registered.");
@@ -141,7 +135,6 @@ internal static class Program
 
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);
-        await nodeDays.ConfigureAwait(false);
         await groundItemExpiry.ConfigureAwait(false);
 
         return 0;
@@ -162,14 +155,25 @@ internal static class Program
     /// <summary>
     /// Builds the server calendar: the default (docs/adr/ADR-018), with the epoch replaced by <c>NOSUM_CALENDAR_EPOCH</c> (an ISO 8601 UTC
     /// instant, for example <c>2026-11-02T00:00:00Z</c>) when that variable is set. An unreadable value stops the process rather than
-    /// silently starting a different calendar.
+    /// silently starting a different calendar. Without the variable, a development server started before the default epoch counts from the last Monday.
     /// </summary>
+    /// <param name="development">Whether the host runs in the Development environment.</param>
+    /// <param name="clock">The server clock.</param>
     /// <returns>The calendar every player shares.</returns>
-    private static GameCalendar ConfiguredCalendar()
+    private static GameCalendar ConfiguredCalendar(bool development, TimeProvider clock)
     {
         string? text = Environment.GetEnvironmentVariable("NOSUM_CALENDAR_EPOCH");
         if (string.IsNullOrWhiteSpace(text))
         {
+            // Before the epoch no game day passes; a development server started earlier would never grow a crop, so it counts from the last Monday instead.
+            long nowMs = clock.GetUtcNow().ToUnixTimeMilliseconds();
+            if (development && nowMs < GameCalendar.DefaultEpochMs)
+            {
+                DateTimeOffset today = clock.GetUtcNow().UtcDateTime.Date;
+                DateTimeOffset monday = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+                return new GameCalendar(new DateTimeOffset(monday.UtcDateTime, TimeSpan.Zero).ToUnixTimeMilliseconds(), GameCalendar.DefaultDayLengthMs);
+            }
+
             return GameCalendar.Default;
         }
 
@@ -253,8 +257,12 @@ internal static class Program
 
     // Services are registered before the builder so [Inject] fields of the handlers resolve them.
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player, trade and co-op services live as long as the process; the snapshot loop ends by itself when the last player leaves.")]
-    private static void RegisterServices(TimeProvider clock, bool development)
+    private static void RegisterServices(TimeProvider systemClock, bool development)
     {
+        // Development: every service reads the time through a clock the dev tools can move forward (docs/adr/ADR-021 D7).
+        DevTimeProvider? devClock = development ? new DevTimeProvider(systemClock) : null;
+        TimeProvider clock = devClock ?? systemClock;
+
         IConnectionGroupRegistry groups = new InMemoryGroupStore();
         InstanceManager.Instance.Register(groups);
 
@@ -268,8 +276,12 @@ internal static class Program
         InstanceManager.Instance.Register<ISessionRegistry>(sessions);
 
         // The server calendar every player shares (docs/adr/ADR-018).
-        GameCalendar calendar = ConfiguredCalendar();
+        GameCalendar calendar = ConfiguredCalendar(development, clock);
         InstanceManager.Instance.Register<ICalendarService>(new CalendarService(calendar, clock));
+
+        // One timer on the calendar's day boundaries; services subscribe to the day-ended event for side effects (docs/adr/ADR-021 D7).
+        DayClockService dayClock = new(calendar, clock, ex => Console.Error.WriteLine("Day-ended handler failed: " + ex.Message));
+        InstanceManager.Instance.Register<IDayClock>(dayClock);
 
         // Items, quests and farming (docs/adr/ADR-011). One notifier pushes to a player's active connection.
         IUnitOfWorkFactory unitOfWork = InstanceManager.Instance.GetExistingInstance<IUnitOfWorkFactory>()
@@ -307,11 +319,24 @@ internal static class Program
         // The swing cooldown runs on real time (like the snapshot loop), whatever clock crops grow by.
         ToolStateService toolState = new(TimeProvider.System, notifier);
         InstanceManager.Instance.Register<IToolState>(toolState);
-        CalendarGameDayClock dayClock = new(calendar, clock);
-        InstanceManager.Instance.Register<IGameDayClock>(dayClock);
-        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, dayClock, unitOfWork, clock, placedTiles);
+        CalendarGameDayClock nodeDayClock = new(calendar, clock);
+        InstanceManager.Instance.Register<IGameDayClock>(nodeDayClock);
+        ResourceNodeService nodes = new(presence, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, placedTiles);
+
+        // Trees grow and public places regrow debris once a game day (docs/adr/ADR-021 D4), on the one day clock every daily rule uses.
+        // The day that starts after day N ended is node day N (node days count from 0); a new season starts every DaysPerSeason days.
+        dayClock.DayEnded += ended =>
+        {
+            long today = ended.DayNumber;
+            bool seasonChanged = today % GameCalendar.DaysPerSeason == 0;
+            _ = nodes.AdvanceDayAsync(today, seasonChanged).ContinueWith(
+                static t => Console.Error.WriteLine("Node day rollover failed: " + t.Exception?.GetBaseException().Message),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
+        };
         InstanceManager.Instance.Register<IResourceNodeService>(nodes);
-        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, placedTiles);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, dayClock, placedTiles);
         InstanceManager.Instance.Register<IFarmService>(farm);
 
         // Placing objects, chests and furnaces (docs/adr/ADR-024): a chest and a furnace refuse to be picked up while they hold something, so they attach to the placeables.
@@ -339,7 +364,11 @@ internal static class Program
         if (development)
         {
             InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));
+            InstanceManager.Instance.Register<IDevClockService>(new DevClockService(devClock!, calendar, dayClock));
         }
+
+        // Armed last: every subscriber is in place before the first boundary.
+        dayClock.Start();
 
         InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, nicknames, clock));
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));

@@ -47,7 +47,7 @@ internal sealed class FarmDecorator : IMapDecorator
     /// <param name="cropsTexture">Texture id of <c>crops.png</c>.</param>
     /// <param name="cursorTexture">Texture id of the 16 x 16 target cursor.</param>
     /// <param name="tileSize">Map tile size, pixels.</param>
-    /// <param name="calendar">The server calendar; crops that withered are not drawn. <see langword="null"/> draws every crop.</param>
+    /// <param name="calendar">The server calendar: it tells the game day, which decides growth, wet soil and withering (docs/adr/ADR-018, ADR-021 D7). Without it nothing grows on screen.</param>
     public FarmDecorator(string mapId, FarmChannel farm, PlayerActions actions, int soilTexture, int cropsTexture, int cursorTexture, int tileSize, CalendarChannel? calendar = null)
     {
         _calendar = calendar;
@@ -67,6 +67,7 @@ internal sealed class FarmDecorator : IMapDecorator
         // Kept for AddToWorld, which runs later in the same frame and has no camera of its own.
         _camera = camera;
         _nowMs = _farm.ServerNowMs();
+        GameCalendar? rules = this.Rules();
 
         using (_farm.Read())
         {
@@ -90,7 +91,7 @@ internal sealed class FarmDecorator : IMapDecorator
                     | (_farm.TryGetTile(tile.X, tile.Y + 1, out _) ? 4 : 0)
                     | (_farm.TryGetTile(tile.X - 1, tile.Y, out _) ? 8 : 0);
                 int cell = s_soilCell[mask];
-                int sourceX = ((cell & 3) * 16) + (_nowMs < tile.WetUntilMs ? WetSheetOffset : 0);
+                int sourceX = ((cell & 3) * 16) + (rules is not null && FarmRules.IsWet(new FarmTile(tile.CropId, tile.PlantedAtMs, tile.GrowthDays, tile.WateredDay, 0), _nowMs, rules) ? WetSheetOffset : 0);
                 int sourceY = (cell >> 2) * 16;
                 commands.Draw(_soilTexture, sourceX, sourceY, 16, 16, worldX - camera.Left, worldY - camera.Top);
             }
@@ -102,7 +103,13 @@ internal sealed class FarmDecorator : IMapDecorator
     /// <inheritdoc/>
     public void AddToWorld(WorldSpriteBatch world)
     {
+        // Growth counts game days, which only the calendar can tell; until the server sent it (once, at sign-in) no crop is drawn.
         GameCalendar? rules = this.Rules();
+        if (rules is null)
+        {
+            return;
+        }
+
         using (_farm.Read())
         {
             if (!string.Equals(_farm.MapId, _mapId, StringComparison.Ordinal))
@@ -125,15 +132,15 @@ internal sealed class FarmDecorator : IMapDecorator
                     continue;
                 }
 
-                FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthMs, info.SettledAtMs, info.WetUntilMs);
+                FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, 0);
 
                 // A crop that withered at the season change is gone from the picture; the soil stays and can be planted over (docs/adr/ADR-018).
-                if (rules is not null && FarmRules.IsWithered(tile, _nowMs, rules))
+                if (FarmRules.IsWithered(tile, _nowMs, rules))
                 {
                     continue;
                 }
 
-                if (CropSprites.TryGetFrame(info.CropId, FarmRules.StageAt(tile, _nowMs), out int sourceX, out int sourceY))
+                if (CropSprites.TryGetFrame(info.CropId, FarmRules.StageAt(tile, _nowMs, rules), out int sourceX, out int sourceY))
                 {
                     // Anchored at the tile's centre so a farmer walking over it is ordered by which half they stand on.
                     world.Add(_cropsTexture, sourceX, sourceY, CropSprites.FrameWidth, CropSprites.FrameHeight, worldX, worldY, (info.Y * _tileSize) + (_tileSize / 2), worldX);

@@ -52,7 +52,7 @@ namespace Nosum.IntegrationTests.Server;
 /// </summary>
 public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
 {
-    private static readonly DateTimeOffset s_start = new(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_start = new(2026, 11, 2, 3, 0, 0, TimeSpan.Zero);
     private static readonly TmxMapCatalog s_maps = new(GameMaps.All, Path.Combine(AppContext.BaseDirectory, "maps"));
 
     private readonly PostgresFixture _database;
@@ -79,6 +79,18 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
 
     public void Dispose() => _coops.Dispose();
 
+    // The parsnip was planted and watered on game day 1: three more watered days and the fourth rollover make it ripe (docs/adr/ADR-021 D7).
+    private async Task GrowParsnipAsync(Guid player, int x, int y)
+    {
+        for (int day = 2; day <= CropCatalog.All[0].TotalGrowthDays; day++)
+        {
+            _clock.Advance(TimeSpan.FromMilliseconds(GameCalendar.DefaultDayLengthMs));
+            (await UseAsync(player, FarmItem.Can, x, y)).Status.Should().Be(FarmStatus.Ok);
+        }
+
+        _clock.Advance(TimeSpan.FromMilliseconds(GameCalendar.DefaultDayLengthMs));
+    }
+
     [Fact]
     public async Task Farm_MembersWorkTheSameLand_PlantedByOneAndHarvestedByAnother_AuditedAndPaidToTheHarvester()
     {
@@ -91,7 +103,7 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         (await UseAsync(founder, FarmItem.Seed, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Planted));
         (await UseAsync(member, FarmItem.Can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Watered), "a member may water what another planted");
         (await UseAsync(member, FarmItem.Hoe, x, y)).Status.Should().NotBe(FarmStatus.Ok, "an unripe crop is not harvested");
-        _clock.Advance(TimeSpan.FromSeconds(70));
+        await GrowParsnipAsync(member, x, y);
         (await UseAsync(member, FarmItem.Hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Harvested), "a member may harvest what another planted");
 
         (await CountAsync(member, ItemCatalog.Parsnip)).Should().BePositive("the harvester takes the produce");
@@ -112,6 +124,9 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
                 (CoopLand.TillReason, ids.Founder),
                 (CoopLand.PlantReason, ids.Founder),
                 (CoopLand.WaterReason, ids.Member),
+                (CoopLand.WaterReason, ids.Member),
+                (CoopLand.WaterReason, ids.Member),
+                (CoopLand.WaterReason, ids.Member),
                 (CoopLand.HarvestReason, ids.Member),
             });
         audit.Single(e => e.Reason == CoopLand.PlantReason).Should().Match<CoopLogEntry>(e => e.ItemId == ItemCatalog.ParsnipSeeds && e.Delta == -1);
@@ -126,7 +141,7 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         _ = await UseAsync(member, FarmItem.Hoe, 26, 24);
         _ = await UseAsync(member, FarmItem.Seed, 26, 24);
         _ = await UseAsync(member, FarmItem.Can, 26, 24);
-        _clock.Advance(TimeSpan.FromSeconds(70));
+        await GrowParsnipAsync(member, 26, 24);
         _ = await UseAsync(member, FarmItem.Hoe, 26, 24);
         _ = await _inventory.AddAsync(founder, ItemCatalog.Radish, 3, "test.setup");
         (await _coops.DepositAsync(founder, ItemCatalog.Radish, 3)).Should().Be(CoopStatus.Ok);
@@ -217,7 +232,17 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
             _ = await UseAsync(founder, FarmItem.Can, 20 + i, 26);
         }
 
-        _clock.Advance(TimeSpan.FromSeconds(70));
+        for (int day = 2; day <= CropCatalog.All[0].TotalGrowthDays; day++)
+        {
+            _clock.Advance(TimeSpan.FromMilliseconds(GameCalendar.DefaultDayLengthMs));
+            for (int i = 0; i < plots; i++)
+            {
+                Stand(founder, coop, 20 + i, 26);
+                _ = await UseAsync(founder, FarmItem.Can, 20 + i, 26);
+            }
+        }
+
+        _clock.Advance(TimeSpan.FromMilliseconds(GameCalendar.DefaultDayLengthMs));
         int wins = 0;
         for (int i = 0; i < plots; i++)
         {
