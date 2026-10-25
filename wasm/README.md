@@ -69,6 +69,11 @@ walks on (same `PlacedSet` as the server). `Game/PlacementActions` is the keys, 
 move it (again to cancel), `Q` puts it back in the bag. `PlacementViewModel` relays the same actions from the arrange panel (`Controls/Placement/PlacementPanel`, built from the shared `GamePanel` and `GameButton`;
 styled only through their shared CSS classes). Refusals reach the message line as `Place_Status_*` text.
 
+Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md)): `GroundItemChannel` (`Nosum.Wasm.Socket/GroundItem`) mirrors the items lying in the player's current place (loaded after every join or map change)
+from `GroundItemSpawned` / `GroundItemTaken` pushes; a pickup also leaves a short `FlyingItem` toward where the taker stood. There is nothing to send: the server picks items up when the player walks near.
+`Game/GroundItemsDecorator` draws them as y-sorted `WorldSpriteBatch` sprites with a bob, a hop on arrival and the flight, cut from the objects sheet by `ItemIcons.TryGetGroundCell` (items pictured on other sheets are not drawn yet);
+it reads the mirror under its lock and allocates nothing. No UI panel.
+
 UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md), amended by [ADR-017](../docs/adr/ADR-017-game-menu-and-world-pixel-ui.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`.
 `wwwroot/nosum-theme.css` holds the variables and the font (`--u` is one UI pixel and equals the world pixel: `round(width / 416)` like `MapScene.ScaleFor`, computed by `nosum-theme.js`; `--tp` is one pixel of the VT323 UI font,
 `fonts/`, OFL; colours `--nosum-*`; type scale title, body, small) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `MenuTiles.png`, `Cursors.png` and `textBox.png` (linked from `assets/` in the Controls csproj, placeholder art
@@ -79,6 +84,11 @@ top-right coins and the gear, center = the game menu, bottom-center hotbar with 
 (and a shop page while one is open) are its tabs; `Pages/Home.razor` maps `PanelKind` to a page, `ToolbarViewModel.Items` lists the tabs (a new tab = one entry there, one `case` in `Home.razor`, one sprite in `nosum-theme.js`). `Esc` closes the menu or opens it
 on the last tab, `I M C T G N` open a tab, `H` / `?` and the gear open settings (account, sign out, language, key help: `Controls/Settings/SettingsPanel`, `HelpViewModel`). The start screen (`Components/Account/StartScreen`) wraps the account form; the loading
 state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
+
+Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `CalendarChannel` (Socket) reads the epoch and game day length once per sign-in and estimates the server clock; `CalendarViewModel` builds the shared `GameCalendar` and
+`Controls/Calendar/CalendarClock` shows season, day and time in the top-right region (the time moves in ten game-minute steps, a 5 s timer re-renders only when the text changes). The farm decorator does not draw crops that withered at a season change.
+The season icon is a flat colour swatch until the icon sheet has season art; the world is not tinted by the time of day yet.
+
 
 Shops, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): next to one of the Town's three shop counters (seed, clothing, furniture) the action key (`E`) opens the menu's shop page `ShopPanel`
 (takes a `ShopId`; `ShopViewModel`, `ShopChannel`; catalogue and prices are the shared `ShopCatalog`, the server prices and checks every purchase). `N` opens the profile page `ProfilePanel` (`ProfileViewModel`: show and change the nickname once a day; a guest sees a note that registering unlocks it);

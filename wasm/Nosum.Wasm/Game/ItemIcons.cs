@@ -43,8 +43,30 @@ internal sealed class ItemIcons : IItemIconSource
         [ItemCatalog.HatCap] = Hat(5),
     };
 
+    /// <summary>The sheet ground items are drawn from: the objects sheet, where produce and materials live.</summary>
+    internal const string GroundSheetUrl = ObjectsSheet;
+
     /// <inheritdoc/>
     public bool TryGet(int itemId, out ItemIcon icon) => s_icons.TryGetValue(itemId, out icon!);
+
+    /// <summary>Finds the cell of an item on the objects sheet, for drawing it lying on the ground; items pictured on other sheets (tools, clothes, furniture) have none.</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="x">Left edge of the 16 px cell, pixels.</param>
+    /// <param name="y">Top edge of the cell, pixels.</param>
+    /// <returns><see langword="true"/> when the item has a picture on the objects sheet.</returns>
+    internal static bool TryGetGroundCell(int itemId, out int x, out int y)
+    {
+        if (s_icons.TryGetValue(itemId, out ItemIcon? icon) && string.Equals(icon.SheetUrl, ObjectsSheet, System.StringComparison.Ordinal))
+        {
+            x = icon.X;
+            y = icon.Y;
+            return true;
+        }
+
+        x = 0;
+        y = 0;
+        return false;
+    }
 
     // springobjects.png is 384 x 624 (24 x 39 cells).
     private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 624);

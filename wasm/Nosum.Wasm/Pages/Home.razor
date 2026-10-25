@@ -22,6 +22,8 @@
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Trade
 @using Nosum.Wasm.Controls.Wallet
+@using Nosum.Wasm.Controls.Calendar
+@using Nosum.Wasm.ViewModels.Calendar
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
 @using Nosum.Wasm.ViewModels
@@ -48,6 +50,7 @@
 @inject GameMessagesViewModel Messages
 @inject ToolbarViewModel Toolbar
 @inject WalletViewModel Wallet
+@inject CalendarViewModel Calendar
 @inject MarketViewModel Market
 @inject WardrobeViewModel Wardrobe
 @inject TradeViewModel Trade
@@ -87,6 +90,7 @@ else
         <TopRight>
             @if (_started)
             {
+                <CalendarClock Vm="Calendar" />
                 <CoinBadge Vm="Wallet" />
                 <GameIconButton Icon="tab-settings" Tip="@Toolbar.Text("Toolbar_Settings")" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
             }

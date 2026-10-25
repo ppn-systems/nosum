@@ -28,6 +28,11 @@ Instances and placeables ([ADR-015](../docs/adr/ADR-015-private-instances-and-pl
 footprint); `PlacedSet` holds the pieces of one place and is the single rule set (`Check`: rotation, inside the map, free floor, off reserved tiles, no overlap; `CoversFeet`; `BuildGrid` for collision)
 that the server decides with and the client predicts with.
 
+Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D5-D6, `GroundItems/`): `GroundItemRules` holds the numbers and rules of an item lying in the world (pickup radius 1.5 tiles, `CanPickUp`: the cause's
+5 s priority on shared maps, owner-and-cause only on a private farm; `Timing`: 10 minute expiry on shared maps, never on a private one; `PopPosition`: where a harvest lands so the harvester can take it at once; `ChunkOf`:
+the 16 x 16 tile bucket). `GameRandom` is the seeded generator (SplitMix64) and `ItemYield` (item, quantity range, chance) the data type for yields: rules take the generator as a parameter, the server supplies the seed
+(`IYieldRandom`), the client never rolls.
+
 Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)):
 
 - `Items/ItemCatalog` (tools, seeds, produce; stable id + key + stack size) and `Farm/CropCatalog` (stage durations in seconds of watered growth, harvest item).
@@ -35,8 +40,11 @@ Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-fa
   slots. `StarterKit` is what a new player holds: tools and seeds only. `InventoryLimits`: 36 slots, 9 in the hotbar.
 - `Farm/FarmRules`: `Till`, `Plant`, `Water`, `Harvest` on a `FarmTile` (Unix-ms timestamps) and `GrowthAt` / `StageAt` / `IsMature` / `IsWet`; a crop grows only while
   the soil is wet (watering lasts 90 s). `InReach` is the 32 px rule. `TillGrid.FromMap` marks `Diggable` ground that is not blocked. Time is always a parameter.
+- Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `Calendar/GameCalendar` (pure: UTC instant + epoch + game-day length to `GameDate` year/season/day/minute; 28 days a season; `WitherAtMs`),
+  `Season`, `SeasonSet`. `CropDefinition.Seasons` lists where a crop grows; `FarmRules.Plant` / `Harvest` take the calendar (`OutOfSeason`, `Withered` verdicts) and `FarmRules.IsWithered` is computed from `PlantedAtMs`.
+  `ShopRules.IsInSeason` gates seeds in the shop.
 - Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)): `Economy/CoinRules` (starting coins, market fee, listing limits), `ShippingPrices`, `ShippingBinRules`, `MarketRules`;
-  `Trade/TradeOffer` and `TradeSession` (two-party confirm: a different offer clears both confirmations); `Looks/LookCatalog` and `PlayerLook`; `Coops/CoopRules` (names, who may withdraw how much);
+  `Trade/TradeOffer` and `TradeSession` (two-party confirm: a different offer clears both confirmations); `Looks/LookCatalog` and `PlayerLook`; `Coops/CoopRules` (names, who may withdraw how much); `Coops/CoopLand` (the Town gate and land tiles, the `coop.farm.*` audit reason codes; co-op land is the map `coopfarm`, one instance per co-op: [ADR-020](../docs/adr/ADR-020-coop-land.md));
   `Text/LocalizedText` (validates and resolves `i18n{` envelopes). Clothing items have a `WearSlot`; tools are not tradable (`ItemDefinition.IsTradable`).
 - Shops and nicknames ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)): `Shops/ShopCatalog` (shop id, key, price list; three shops: seed 1, clothing 2, furniture 3), `Shops/ShopRules` (`Price`, `InReach`, `TryFindShop`), `Maps/ShopPoint` (`MapSpec.Shops`: where a shop is served; the Town has three, doormats at (43,57), (20,89), (95,51)); `Players/NicknameRules` (3-16 characters, unaccented ASCII letters and digits, reserved list, unique `Key`, neutral guest names) and `Players/ProfanityFilter` with its data in `ProfanityTerms` (substring terms, whole-word abbreviations, leet and accent folding).
 - `Quests/QuestDefinition` / `QuestCatalog`: objectives count `QuestEvent`s (`CropPlanted`, `CropHarvested`); `first_harvest` is the tutorial.

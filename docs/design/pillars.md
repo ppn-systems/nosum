@@ -79,16 +79,23 @@ the client never decides a contribution, a trade or a goal outcome.
 - Coins: a persisted balance, 500 to start; the farm's shipping bin buys crops at a fixed price (the first coin source); the town general store sells seeds, furniture and clothing at fixed prices (the main coin use besides the market).
 - Market: listings are escrow, 5 % fee, 48 hours, at most 20 per player, paged browse with search by item; the seller is paid while offline; cancel and expiry return the items. The fee is destroyed (anti-inflation), behind one seam (`IFeeSink`).
 - Direct trade: same map, both sides set an offer, any change clears both confirmations, both confirm, one atomic swap; leaving the map aborts with nothing moved.
-- Co-ops: one per player, founder and member roles, invitations, shared warehouse with an audit trail; the founder takes anything, a member takes back what they put in. Co-op land is not built.
+- Co-ops: one per player, founder and member roles, invitations, shared warehouse with an audit trail; the founder takes anything, a member takes back what they put in. Co-op land ([ADR-020](../adr/ADR-020-coop-land.md), proposed): every co-op has its own shared farm, entered through a gate on Town's west plaza by members only; members till, plant, water and harvest together, the harvester keeps the produce and every action is audited; leaving or being removed ends access at once.
 - Looks: skin, hair style, hair dye and worn shirt, trousers and hat, saved by the server and shown to everyone on the map as ids; clothes are bought, nobody starts with any.
 - Nicknames: every registered player has a unique display nickname (unaccented letters and digits, no profanity), chosen when registering, changeable once a day (guests keep a generated name), drawn above their head and shown in the market, trades and co-ops; guests show as "Khách 1234".
+
+## Built so far (seasons, [ADR-018](../adr/ADR-018-seasons-and-server-calendar.md); proposed defaults, owner to confirm)
+
+- One server calendar from server time: a season is 28 game days of 12 real hours (14 real days), four seasons a year. The client gets the epoch and day length once and shows season, day and time in a HUD widget.
+- Crops list the seasons they grow in (parsnip spring/fall/winter, radish summer/fall, cauliflower spring/summer). Planting out of season is refused, a crop withers at the season change (mature or not), and the seed shop only sells seeds that can be planted now.
+- Not built yet: community goals, seasonal prices or events, a time-of-day tint of the world, withered-crop art.
 
 ## Open questions
 
 - Whether a player may belong to more than one co-op (built: one).
+- Co-op land ([ADR-020](../adr/ADR-020-coop-land.md)): whether a harvest goes to the harvester (built) or the warehouse, and whether members may harvest what others planted (built: yes).
 - Market fee rate, listing duration, and limits that stop one player cornering a crop (built defaults: 5 %, 48 hours, 20 listings; no cornering limit yet). The fee itself is closed: a coin sink.
 - Shop prices and stock (built: unlimited stock; seeds 10/15/30, furniture 80-400, clothing 40-80) and whether more shops are wanted (built: seed, clothing and furniture shops in the town).
-- Season length in real time.
+- Season length is settled (two real weeks); open: the game-day length (built: 12 real hours, 28 days a season), the calendar epoch, and whether a mature crop that is not harvested in time withers (built: yes).
 - How many players share one instance of a public map (town) before it splits into copies.
 - How visiting works: who may enter another player's farm or farmhouse (an allow-list the owner edits), and what a visitor may touch.
 - Whether furniture may also go outdoors (on the farm) and what else is placeable (decorations, machines).

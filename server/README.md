@@ -39,6 +39,14 @@ Furniture: `IPlaceableService` (`Placeables/PlaceableService`) places, moves and
 and pushes `PlacedChanged` to the instance; it is also the `IInstanceWorld` that gives movement validation the grid with the pieces' footprints. Handlers: `Nosum.Handlers/Placeable` (`USER`, rate limited).
 Tables: `placed_objects` and the owner column of `farm_plots` (migration `PrivateInstancesAndPlacedObjects`, which gives existing plots to the player who last worked them).
 
+Ground items ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D5-D6): `IGroundItems` (`Infrastructure/GroundItems/GroundItemService`) is where anything that "pops" an item drops it
+(`DropAsync`, or `Stage` + `CompleteAsync` to save the drop in the caller's own transaction: a harvest resets the plot and leaves the produce in one commit). An instance's items are loaded once and kept in
+16 x 16 tile chunk buckets; `PlayerService.MoveAsync` calls `OnPlayerMovedAsync` after every accepted move, which looks only at the nine chunks around the player, claims what is in range and allowed
+(`GroundItemRules`), and moves it into the inventory with one `ITransferService` transfer that deletes the row in the same transaction (reason `ground.pickup`); a full inventory leaves the item (retry pause 2 s),
+an in-memory claim makes two players racing for one item a clean win for one. The pickup runs off the movement path. `GroundItemExpiryService` (hosted, every 30 s) removes items past their expiry.
+Publishing goes through one private method, `PublishAsync`, which today multicasts to the instance (chunk interest, ADR-022 D4, replaces its body). `IYieldRandom` hands out seeded `GameRandom`s for yields.
+Handler: `Nosum.Handlers/GroundItem` (`GetGroundItems`, `USER`, rate limited). Table: `ground_items` (migration `AddGroundItems`).
+
 Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)):
 `ITransferService` (`Infrastructure/Economy`) is the one way coins move: items and coins between players and co-op warehouses in one transaction, built on
 `IInventoryService.ApplyManyAsync` (every involved player's lock, one unit of work, one save; a feature joins it with an `enlist` callback). On it sit `IMarketService`
@@ -46,6 +54,10 @@ Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md
 memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Looks/`: persisted look ids, wardrobe, announces through `IMapPresence`) and `ICoopService`
 (`Coops/`: membership, invitations, the shared warehouse with its audit trail). New entities: wallets and coin log, market listings, appearances, co-ops, members, invites, stock and log
 (migration `SocialLayer`). Handlers: `Nosum.Handlers/{Market,Look,Trade,Coop}`; everything that moves coins or items is `[PacketEncryption(true)]`.
+
+Co-op land ([ADR-020](../docs/adr/ADR-020-coop-land.md)): the map `coopfarm` is an instance owned by a co-op (`MapInstance.OfCoop`). `PlayerService` finds the instance from `ICoopMembership`
+(`Coops/CoopMembership`, a database lookup per call, never cached), `FarmService` re-checks membership on every action and writes a `coop.farm.*` `CoopLogEntry` in the action's transaction, and
+`CoopService` calls `ICoopLandEviction` (implemented by `PlayerService`) after a leave or kick and wipes the plots when a co-op dissolves. No new table, migration or packet.
 
 Skills: [`data-model-ef-core`](../.claude/skills/data-model-ef-core/SKILL.md),
 [`nalix-server-hosting`](../.claude/skills/nalix-server-hosting/SKILL.md),
@@ -85,6 +97,9 @@ through; only `MapSpec.Farmable` maps (the farm) accept it. `IQuestService` coun
 `RegistrationPromptOnQuestCompleted` unlocks the guest registration invitation. `IPlayerNotifier` pushes to a player's active connection. Handlers:
 `InventoryHandlers`, `FarmHandlers`, `QuestHandlers` (`USER`, rate limited per address). `Program.BuildApplication(port, clock)` takes the clock crops grow by, so tests move time.
 Tables: `player_inventories`, `inventory_slots`, `inventory_log`, `farm_plots`, `player_quests` (migration `InventoryFarmQuests`).
+
+Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `Program` builds one `GameCalendar` (default epoch and 12 h game day, epoch override `NOSUM_CALENDAR_EPOCH`) and gives it to `FarmService` (planting by season, withered crops) and
+`ShopService` (seeds only in season, `ShopStatus.OutOfSeason`); `ICalendarService` / `CalendarService` and `CalendarHandlers` (`0xD000`, USER) answer `GetCalendar` with the epoch, the day length and the server clock. No new table.
 
 Shop, nicknames and tester grant ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)):
 `IShopService` (`Shops/ShopService`) prices a purchase with `ShopRules`, checks the player's own presence is at the shop's counter, and buys through `ITransferService`

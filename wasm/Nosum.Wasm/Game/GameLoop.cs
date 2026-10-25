@@ -9,11 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Core;
 using Nosum.Gameplay.Maps;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
@@ -38,9 +40,11 @@ internal static partial class GameLoop
     private static readonly WebRenderBackend s_backend = new();
     private static MapScene? s_scene;
     private static PlayerChannel? s_network;
+    private static CalendarChannel? s_calendar;
     private static FarmChannel? s_farm;
     private static InventoryChannel? s_inventory;
     private static PlaceableChannel? s_placeable;
+    private static GroundItemChannel? s_groundItems;
     private static PlacementViewModel? s_placement;
     private static MarketChannel? s_market;
     private static LookChannel? s_looks;
@@ -62,6 +66,10 @@ internal static partial class GameLoop
         s_market = market;
     }
 
+    /// <summary>Connects the server calendar, so crops that withered at a season change are not drawn; call before <see cref="StartAsync"/>.</summary>
+    /// <param name="calendar">The server calendar.</param>
+    public static void UseCalendar(CalendarChannel calendar) => s_calendar = calendar;
+
     /// <summary>Connects the looks the server sent to the farmers drawn; call before <see cref="StartAsync"/>.</summary>
     /// <param name="looks">The mirror of the looks on the map.</param>
     /// <param name="names">Formats the nicknames drawn above the farmers.</param>
@@ -80,6 +88,9 @@ internal static partial class GameLoop
         s_placement = placement;
     }
 
+    /// <summary>Connects the items lying on the ground to the game: they are drawn as world sprites. Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="groundItems">The ground items mirror.</param>
+    public static void UseGroundItems(GroundItemChannel groundItems) => s_groundItems = groundItems;
 
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
@@ -109,7 +120,7 @@ internal static partial class GameLoop
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider()];
         if (actions is not null && s_farm is not null)
         {
-            providers.Add(new FarmDecoratorProvider(s_farm, actions));
+            providers.Add(new FarmDecoratorProvider(s_farm, actions, s_calendar));
         }
 
         PlacementActions? placement = null;
@@ -117,6 +128,11 @@ internal static partial class GameLoop
         {
             placement = new PlacementActions(s_placeable, s_inventory, s_placement);
             providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement));
+        }
+
+        if (s_groundItems is not null)
+        {
+            providers.Add(new GroundItemsDecoratorProvider(s_groundItems));
         }
 
         MapLoader loader = new(http, textures, providers);

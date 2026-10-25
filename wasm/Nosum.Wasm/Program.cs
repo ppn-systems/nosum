@@ -18,6 +18,7 @@ using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Dev;
+using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.Socket.Quest;
@@ -41,6 +42,8 @@ using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Trade;
 using Nosum.Wasm.ViewModels.Wallet;
+using Nosum.Wasm.ViewModels.Calendar;
+using Nosum.Wasm.Socket.Calendar;
 
 namespace Nosum.Wasm;
 
@@ -70,8 +73,10 @@ internal static class Program
         builder.Services.AddSingleton<InventoryChannel>();
         builder.Services.AddSingleton<FarmChannel>();
         builder.Services.AddSingleton<PlaceableChannel>();
+        builder.Services.AddSingleton<GroundItemChannel>();
         builder.Services.AddSingleton<QuestChannel>();
         builder.Services.AddSingleton<WalletChannel>();
+        builder.Services.AddSingleton<CalendarChannel>();
         builder.Services.AddSingleton<MarketChannel>();
         builder.Services.AddSingleton<TradeChannel>();
         builder.Services.AddSingleton<CoopChannel>();
@@ -95,6 +100,7 @@ internal static class Program
         builder.Services.AddSingleton<ShopViewModel>();
         builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<WalletViewModel>();
+        builder.Services.AddSingleton<CalendarViewModel>();
         builder.Services.AddSingleton<MarketViewModel>();
         builder.Services.AddSingleton<WardrobeViewModel>();
         builder.Services.AddSingleton<TradeViewModel>();
@@ -116,13 +122,16 @@ internal static class Program
         InventoryChannel inventory = host.Services.GetRequiredService<InventoryChannel>();
         FarmChannel farm = host.Services.GetRequiredService<FarmChannel>();
         PlaceableChannel placeable = host.Services.GetRequiredService<PlaceableChannel>();
+        GroundItemChannel groundItems = host.Services.GetRequiredService<GroundItemChannel>();
         QuestChannel quests = host.Services.GetRequiredService<QuestChannel>();
         GameLoop.UseNetwork(channel);
+        GameLoop.UseGroundItems(groundItems);
         MarketChannel market = host.Services.GetRequiredService<MarketChannel>();
         WalletChannel wallet = host.Services.GetRequiredService<WalletChannel>();
         CoopChannel coop = host.Services.GetRequiredService<CoopChannel>();
         LookChannel looks = host.Services.GetRequiredService<LookChannel>();
         GameLoop.UseFarming(farm, inventory, market);
+        GameLoop.UseCalendar(host.Services.GetRequiredService<CalendarChannel>());
         GameLoop.UseLooks(looks, host.Services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
         DevTools.Use(host.Services.GetRequiredService<DevChannel>());
@@ -136,11 +145,13 @@ internal static class Program
         keeper.Authenticated += inventory.Load;
         keeper.Authenticated += quests.Load;
         keeper.Authenticated += wallet.Load;
+        keeper.Authenticated += host.Services.GetRequiredService<CalendarChannel>().Load;
         keeper.Authenticated += coop.Load;
         channel.Joined += _ =>
         {
             farm.Load();
             placeable.Load();
+            groundItems.Load();
         };
         channel.Joined += _ => looks.Load();
         // The view models subscribe to their channels when they are built: build them before the first push can arrive.
@@ -149,6 +160,7 @@ internal static class Program
         _ = host.Services.GetRequiredService<GameMessagesViewModel>();
         _ = host.Services.GetRequiredService<NearbyPlayers>();
         _ = host.Services.GetRequiredService<WalletViewModel>();
+        _ = host.Services.GetRequiredService<CalendarViewModel>();
         _ = host.Services.GetRequiredService<TradeViewModel>();
         _ = host.Services.GetRequiredService<CoopViewModel>();
         _ = host.Services.GetRequiredService<ConnectionStatusViewModel>();
