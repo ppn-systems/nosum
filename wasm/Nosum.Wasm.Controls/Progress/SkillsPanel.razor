@@ -1,0 +1,36 @@
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Progress
+@inherits ObservingComponent<ProgressViewModel>
+
+@* The Skills page of the game menu: energy, and the three skills with their level and how far each is to the next one. *@
+<MenuPage>
+    <GameStack>
+        <GameSection Title="@Vm.Text("Energy_Heading")">
+            <div class="skill-row">
+                <div class="skill-bar" role="meter" aria-label="@Vm.EnergyLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxEnergy" aria-valuenow="@Vm.Energy">
+                    <span class="@(Vm.EnergyLow ? "skill-fill low" : "skill-fill")" style="width: @Percent(Vm.EnergyFraction)%"></span>
+                </div>
+                <span class="skill-caption">@Vm.EnergyLabel</span>
+            </div>
+            <p class="skill-hint">@Vm.Text("Energy_Hint")</p>
+        </GameSection>
+        <GameSection Title="@Vm.Text("Skills_Heading")">
+            @foreach (SkillDisplay skill in Vm.Skills)
+            {
+                <div class="skill-row">
+                    <span class="skill-name">@skill.Name</span>
+                    <GameBadge Kind="ok" Text="@Vm.Text("Skill_Level", skill.Level)" />
+                    <div class="skill-bar" role="meter" aria-label="@skill.Name" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Percent(skill.Fraction)">
+                        <span class="skill-fill" style="width: @Percent(skill.Fraction)%"></span>
+                    </div>
+                    <span class="skill-caption">@skill.Caption</span>
+                </div>
+            }
+            <p class="skill-hint">@Vm.Text("Skills_Hint")</p>
+        </GameSection>
+    </GameStack>
+</MenuPage>
+
+@code {
+    private static string Percent(double fraction) => Math.Round(Math.Clamp(fraction, 0, 1) * 100).ToString(System.Globalization.CultureInfo.InvariantCulture);
+}

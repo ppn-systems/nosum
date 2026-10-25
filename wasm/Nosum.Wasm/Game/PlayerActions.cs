@@ -4,16 +4,18 @@ using System;
 using Nosum.Core;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels;
 
 namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// What the player's one-shot keys do: number keys select a hotbar slot, the action key (E or Space) uses the
-/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin), I M C T G H N open the panels, Escape closes them; next to a shop the action key opens it. The scene calls <see cref="Update"/> once per
+/// held item on the tile in front of the farmer (or ships it when that tile is the shipping bin, or eats it when it is food and the player has room for energy), I M C T G H N open the panels, Escape closes them; next to a shop the action key opens it. The scene calls <see cref="Update"/> once per
 /// frame; the tile in front is kept in <see cref="TargetX"/> and <see cref="TargetY"/> for the cursor the farm decorator draws.
 /// Allocation-free; the requests themselves are sent by the channels, off the frame.
 /// </summary>
@@ -25,13 +27,15 @@ internal sealed class PlayerActions
     private readonly FarmChannel _farm;
     private readonly InventoryChannel _inventory;
     private readonly MarketChannel _market;
+    private readonly ProgressChannel? _progress;
     private double _lastUseSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
     /// <param name="inventory">Holds the selected slot.</param>
     /// <param name="market">Sends the shipping of the held stack at the bin.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market)
+    /// <param name="progress">Sends eating when the action key is pressed with food in hand; <see langword="null"/> to never eat.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -39,6 +43,7 @@ internal sealed class PlayerActions
         _farm = farm;
         _inventory = inventory;
         _market = market;
+        _progress = progress;
     }
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
@@ -105,6 +110,11 @@ internal sealed class PlayerActions
             {
                 // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
                 _market.Ship(selected, held.ItemId, 0);
+            }
+            else if (_progress is { MaxEnergy: > 0 } && _progress.Energy < _progress.MaxEnergy && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? food) && food.IsEdible)
+            {
+                // Food in hand and room for energy: eat it (the server removes one and restores its energy, docs/adr/ADR-023 D2).
+                _progress.Eat(selected);
             }
             else
             {

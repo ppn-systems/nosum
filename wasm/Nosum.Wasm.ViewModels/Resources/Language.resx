@@ -376,4 +376,22 @@
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>Cây này không trồng được vào mùa này.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì hết mùa. Hãy gieo hạt mới lên trên.</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>Hạt giống này không bán vào mùa này.</value></data>
+  <data name="Farm_Status_NoEnergy" xml:space="preserve"><value>Bạn hết sức rồi. Hãy ăn nông sản hoặc đợi sang ngày mới.</value></data>
+  <data name="Eat_Status_InvalidSlot" xml:space="preserve"><value>Ô này không có trên thanh nhanh.</value></data>
+  <data name="Eat_Status_NotEdible" xml:space="preserve"><value>Món này không ăn được.</value></data>
+  <data name="Eat_Status_ItemMissing" xml:space="preserve"><value>Món ăn không còn ở ô này.</value></data>
+  <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>Bạn đang đầy sức rồi.</value></data>
+  <data name="Eat_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Energy_Label" xml:space="preserve"><value>Sức lực {0} / {1}</value></data>
+  <data name="Energy_Heading" xml:space="preserve"><value>Sức lực</value></data>
+  <data name="Energy_Hint" xml:space="preserve"><value>Mỗi lần dùng công cụ tốn sức (liềm thì không). Sức hồi đầy khi sang ngày mới; ăn nông sản để hồi thêm.</value></data>
+  <data name="Skills_Heading" xml:space="preserve"><value>Kỹ năng</value></data>
+  <data name="Skills_Hint" xml:space="preserve"><value>Làm việc để lên cấp. Cứ 4 cấp, mỗi lần dùng công cụ của kỹ năng đó bớt 1 sức.</value></data>
+  <data name="Skill_Farming" xml:space="preserve"><value>Trồng trọt</value></data>
+  <data name="Skill_Foraging" xml:space="preserve"><value>Hái lượm</value></data>
+  <data name="Skill_Mining" xml:space="preserve"><value>Khai khoáng</value></data>
+  <data name="Skill_Level" xml:space="preserve"><value>Cấp {0}</value></data>
+  <data name="Skill_MaxLevel" xml:space="preserve"><value>Tối đa</value></data>
+  <data name="Skill_LevelUp" xml:space="preserve"><value>{0} lên cấp {1}!</value></data>
+  <data name="Toolbar_Skills" xml:space="preserve"><value>Kỹ năng</value></data>
 </root>
