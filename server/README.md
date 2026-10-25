@@ -22,12 +22,15 @@ Players on maps (movement sync, [ADR-008](../docs/adr/ADR-008-snapshot-movement-
 `IMapPresence` (`Nosum.Abstractions/Presence`, implemented by `MapPresence` in Infrastructure) is the
 reusable "who is on which map" service: one Nalix connection group per map (`MapGroup.Name`),
 cleanup on disconnect, `MulticastAsync(mapId, packet)` for any feature. `IPlayerService`
-(`PlayerService`) places players (saved position from `IPlayerStateService`, else the farm spawn),
-validates `MoveIntent`s with `MoveValidator` from `Nosum.Gameplay` and saves the position when the
-player leaves. While anyone is on a map it pushes a `MapSnapshot` to that map every 100 ms; the loop
+(`PlayerService`) places players (the saved map and position from `IPlayerStateService`, else the farm
+spawn), validates `MoveIntent`s with `MoveValidator` from `Nosum.Gameplay`, moves a player to another map
+when an accepted position is on an exit (`WarpRule`; leave the old map group, push `MapChanged`, join the
+new group, save map and place; [ADR-012](../docs/adr/ADR-012-maps-and-warps.md)) and saves the position when
+the player leaves. While anyone is on a map it pushes a `MapSnapshot` to that map every 100 ms; the loop
 stops by itself when the last player leaves. Handlers: `Nosum.Handlers/Player` (signed-in players
-only). Maps come from `IMapCatalog` (`TmxMapCatalog`: `Farm.tmx` copied next to the host from
-`assets/Maps/`, walk grid from `FarmProps.BuildWalkGrid` so server and client collide identically).
+only). Maps come from `IMapCatalog` (`TmxMapCatalog`: every map of `GameMaps` loaded from the `.tmx` files copied next
+to the host from `assets/Maps/`, walk grid and exits from `MapSpec` so server and client collide and open doors
+identically; a map id from a client is only ever a key into that list, never a path).
 
 Skills: [`data-model-ef-core`](../.claude/skills/data-model-ef-core/SKILL.md),
 [`nalix-server-hosting`](../.claude/skills/nalix-server-hosting/SKILL.md),

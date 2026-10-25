@@ -32,3 +32,9 @@ placeholder map). `WorldSpriteBatch` is the depth-sorted `world` layer of ADR-00
 `PropDefinition`/`PropPlacement` (Core) describe a building as data (sheet rectangle, footprint,
 roof height) and `PropLayer` (Rendering) draws any list of them: base into the world batch, roof
 over everything. Prop names are keys, not display text.
+
+Maps and scene changes: `TileLayerPlan.For(map)` sorts a map's layers into ground (below characters) and
+front (`Front*`/`AlwaysFront*`, over them) and skips the logic layer `Paths`, so any map can be drawn the
+same way. `RenderCommandBuffer.FillBlack(opacity, w, h)` records a black rectangle (texture id
+`BlackFill`, tint = opacity); `renderer.js` fills it, which is how a scene fades without a second
+interop call.
