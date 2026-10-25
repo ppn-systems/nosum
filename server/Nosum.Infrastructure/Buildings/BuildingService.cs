@@ -47,6 +47,7 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
     private const string CollectReason = "animal.collect";
 
     private readonly IMapPresence _presence;
+    private readonly IChunkPublisher _publisher;
     private readonly IMapCatalog _maps;
     private readonly IInventoryService _inventory;
     private readonly ITransferService _transfers;
@@ -60,6 +61,7 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands where; every request uses the server's own record of the player.</param>
+    /// <param name="publisher">Tells the players inside a building about an animal that changed, to the chunk the animal is in (docs/adr/ADR-022 D4); the buildings of a land go to everybody on it.</param>
     /// <param name="maps">The hosted maps.</param>
     /// <param name="inventory">Feed and produce move through it.</param>
     /// <param name="transfers">Coins and items of a commission or a purchase move through it in one transaction.</param>
@@ -71,6 +73,7 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
     /// <param name="time">The server clock; tests pass a fake one.</param>
     public BuildingService(
         IMapPresence presence,
+        IChunkPublisher publisher,
         IMapCatalog maps,
         IInventoryService inventory,
         ITransferService transfers,
@@ -82,6 +85,7 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
         TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(transfers);
@@ -92,6 +96,7 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
         ArgumentNullException.ThrowIfNull(time);
 
         _presence = presence;
+        _publisher = publisher;
         _maps = maps;
         _inventory = inventory;
         _transfers = transfers;
@@ -211,7 +216,8 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
             packet.Buildings.Add(view.ToRow());
         }
 
-        await _presence.MulticastAsync(instance.Key, packet, null, cancellationToken).ConfigureAwait(false);
+        // A land's list of buildings is small and replaces the client's whole list, so it goes to everybody on the land, not to a chunk.
+        await _publisher.PublishInstanceAsync(instance, packet, null, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

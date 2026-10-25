@@ -32,6 +32,9 @@ namespace Nosum.Infrastructure.Buildings;
 /// <summary>The animal side of <see cref="BuildingService"/>: buying, feeding, petting and collecting.</summary>
 public sealed partial class BuildingService
 {
+    // Tile size of the interior maps, pixels: the same 16 as every map.
+    private const int ChunkTileSize = 16;
+
     /// <inheritdoc/>
     public async Task<BuildingOutcome> BuyAnimalAsync(IConnection connection, Guid buildingId, AnimalKind kind, string? name, CancellationToken cancellationToken = default)
     {
@@ -100,7 +103,7 @@ public sealed partial class BuildingService
         }
 
         // The new animal appears in its room for whoever is inside.
-        await this.PushAsync(building, null, this.NowMs(), cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(building, definition, row.Id, this.NowMs(), cancellationToken).ConfigureAwait(false);
         return new BuildingOutcome(BuildingStatus.Ok, row.Id, 0, 0);
     }
 
@@ -217,7 +220,7 @@ public sealed partial class BuildingService
             }
         }
 
-        await this.PushAsync(building, null, this.NowMs(), cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(building, inside.Definition, null, this.NowMs(), cancellationToken).ConfigureAwait(false);
         return new BuildingOutcome(BuildingStatus.Ok, Guid.Empty, held.ItemId, resulting);
     }
 
@@ -264,7 +267,7 @@ public sealed partial class BuildingService
             }
         }
 
-        await this.PushAsync(building, animalId, this.NowMs(), cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(building, inside.Definition, animalId, this.NowMs(), cancellationToken).ConfigureAwait(false);
         return new AnimalOutcome(BuildingStatus.Ok, 0, 0, friendship);
     }
 
@@ -347,7 +350,7 @@ public sealed partial class BuildingService
             }
         }
 
-        await this.PushAsync(building, animalId, this.NowMs(), cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(building, inside.Definition, animalId, this.NowMs(), cancellationToken).ConfigureAwait(false);
         return new AnimalOutcome(BuildingStatus.Ok, itemId, 1, friendship);
     }
 
@@ -485,8 +488,9 @@ public sealed partial class BuildingService
         return new AnimalView(animal.Id, (AnimalKind)animal.Kind, animal.Name, animal.Friendship, flags, where.X, where.Y, where.TargetX, where.TargetY, where.MoveMs);
     }
 
-    // Tells everybody inside the building how it stands now: the bench, and the one animal that changed (or every animal when none is named).
-    private async Task PushAsync(BuildingInfo building, Guid? animalId, long nowMs, CancellationToken cancellationToken)
+    // Tells the players inside the building how it stands now: the bench, and the one animal that changed. It goes to the chunk of that animal (or of the bench when no animal
+    // changed): the inside of a building is within the interest set of everybody in it (docs/adr/ADR-022 D2, D4).
+    private async Task PushAsync(BuildingInfo building, BuildingDefinition definition, Guid? animalId, long nowMs, CancellationToken cancellationToken)
     {
         Room? room;
         using (await _locks.EnterAsync(building.Id, cancellationToken).ConfigureAwait(false))
@@ -509,15 +513,18 @@ public sealed partial class BuildingService
         packet.Rations = room.Building.Rations;
         packet.Upserted.Clear();
         packet.Removed.Clear();
+        ChunkCoord chunk = ChunkCoord.OfTile(definition.TroughLeft, definition.TroughTop);
         foreach (FarmAnimal animal in room.Animals)
         {
-            if (animalId is null || animal.Id == animalId)
+            if (animal.Id == animalId)
             {
-                packet.Upserted.Add(this.ViewOf(building.Kind, animal, room.Today, nowMs).ToRow());
+                AnimalView view = this.ViewOf(building.Kind, animal, room.Today, nowMs);
+                packet.Upserted.Add(view.ToRow());
+                chunk = ChunkCoord.OfPixels(view.X, view.Y, ChunkTileSize);
             }
         }
 
-        await _presence.MulticastAsync(building.Interior.Key, packet, null, cancellationToken).ConfigureAwait(false);
+        await _publisher.PublishAsync(building.Interior, chunk, packet, null, cancellationToken).ConfigureAwait(false);
     }
 
     // Co-op land keeps an audit line for every change of what the members hold (docs/adr/ADR-020).

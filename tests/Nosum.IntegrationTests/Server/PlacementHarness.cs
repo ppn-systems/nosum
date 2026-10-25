@@ -68,7 +68,7 @@ internal sealed class PlacementHarness : IDisposable
         this.Tiles = new PlacedTiles();
         this.Coops = new CoopMembership(this.Units);
         farm = farmFactory?.Invoke(this) ?? farm;
-        this.Placeables = new PlaceableService(this.Presence, s_maps, this.Inventory, this.Units, this.Clock, farm, nodes, this.Coops, this.Tiles);
+        this.Placeables = new PlaceableService(this.Presence, NoChunks.Instance, new InstanceWidePublisher(this.Presence), s_maps, this.Inventory, this.Units, this.Clock, farm, nodes, this.Coops, this.Tiles);
         this.Chests = new ChestService(this.Presence, s_maps, this.Placeables, this.Inventory, this.Coops, this.Clock);
         this.Placeables.Attach(this.Chests);
         this.Furnaces = new FurnaceService(this.Presence, s_maps, this.Placeables, this.Tiles, this.Placeables, this.Inventory, this.Units, this.Coops, GameCalendar.Default, this.Clock);
@@ -79,8 +79,8 @@ internal sealed class PlacementHarness : IDisposable
         this.Transfers = new TransferService(this.Inventory, this.Clock);
         this.Calendar = new GameCalendar(Start.ToUnixTimeMilliseconds(), GameCalendar.DefaultDayLengthMs);
         this.BuildingDirectory = new BuildingDirectory(this.Units);
-        this.Wander = new AnimalWanderService(this.Presence, s_maps, this.BuildingDirectory, this.Units, this.Clock, 20_261_025);
-        this.Buildings = new BuildingService(this.Presence, s_maps, this.Inventory, this.Transfers, this.BuildingDirectory, this.Wander, this.Units, this.Coops, this.Calendar, this.Clock);
+        this.Wander = new AnimalWanderService(this.Presence, new InstanceWidePublisher(this.Presence), s_maps, this.BuildingDirectory, this.Units, this.Clock, 20_261_025);
+        this.Buildings = new BuildingService(this.Presence, new InstanceWidePublisher(this.Presence), s_maps, this.Inventory, this.Transfers, this.BuildingDirectory, this.Wander, this.Units, this.Coops, this.Calendar, this.Clock);
         this.Placeables.Attach(this.Buildings);
         this.Access = new BuildingAccessPolicy(new VisitAccess(this.Units), this.BuildingDirectory, this.Coops, this.Clock);
     }

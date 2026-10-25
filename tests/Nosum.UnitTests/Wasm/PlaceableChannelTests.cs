@@ -5,6 +5,7 @@ using FluentAssertions;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Placeable.S2C;
+using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Placeable;
 using Xunit;
@@ -109,5 +110,64 @@ public sealed class PlaceableChannelTests
         PlaceObject request = (PlaceObject)socket.Requests[0];
         (request.Slot, request.TileX, request.TileY, request.Rotation).Should().Be(((byte)5, 3, 4, (byte)2));
         answers.Should().Equal(PlaceStatus.Blocked);
+    }
+
+    [Fact]
+    public void ChunkState_ReplacesTheChunksObjectsAndKeepsTheOthers()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            PlacedSnapshot snapshot = new() { MapId = "farmhouse" };
+            snapshot.Objects.Add(Row(1, ItemCatalog.OakChair, 2, 2));
+            snapshot.Objects.Add(Row(2, ItemCatalog.OakChair, 18, 3));
+            return snapshot;
+        });
+        using PlaceableChannel channel = new(socket);
+        channel.Load();
+        int before = channel.Version;
+        ChunkState state = new() { MapId = "farmhouse", ChunkX = 1, ChunkY = 0 };
+        state.Placed.Add(Row(3, ItemCatalog.OakChair, 30, 4));
+
+        socket.Push(state);
+
+        channel.Version.Should().NotBe(before);
+        List<int> ids = [];
+        using (channel.Read())
+        {
+            for (int i = 0; i < channel.Count; i++)
+            {
+                ids.Add(channel.At(i).Id);
+            }
+        }
+
+        ids.Should().BeEquivalentTo([1, 3]);
+        state.Dispose();
+    }
+
+    [Fact]
+    public void ChunkLeft_DropsTheObjectsOfThatChunkOnly()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            PlacedSnapshot snapshot = new() { MapId = "farmhouse" };
+            snapshot.Objects.Add(Row(1, ItemCatalog.OakChair, 2, 2));
+            snapshot.Objects.Add(Row(2, ItemCatalog.OakChair, 18, 3));
+            return snapshot;
+        });
+        using PlaceableChannel channel = new(socket);
+        channel.Load();
+        ChunkLeft left = new() { MapId = "farmhouse", ChunkX = 1, ChunkY = 0 };
+
+        socket.Push(left);
+
+        channel.Count.Should().Be(1);
+        using (channel.Read())
+        {
+            channel.At(0).Id.Should().Be(1);
+        }
+
+        left.Dispose();
     }
 }

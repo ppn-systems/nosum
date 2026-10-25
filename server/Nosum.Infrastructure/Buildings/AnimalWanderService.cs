@@ -34,6 +34,7 @@ public sealed class AnimalWanderService : IAnimalWander
     private const int Attempts = 8;
 
     private readonly IMapPresence _presence;
+    private readonly IChunkPublisher _publisher;
     private readonly IMapCatalog _maps;
     private readonly IBuildingDirectory _buildings;
     private readonly IUnitOfWorkFactory _unitOfWork;
@@ -47,14 +48,16 @@ public sealed class AnimalWanderService : IAnimalWander
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands in which building.</param>
+    /// <param name="publisher">Tells the players in a building about the walks, one packet per chunk the walks start in (docs/adr/ADR-022 D4).</param>
     /// <param name="maps">The hosted maps: the interiors' walk grids.</param>
     /// <param name="buildings">Finds a building by the id in its instance key.</param>
     /// <param name="unitOfWork">Creates units of work: the animals of a building are read from the database.</param>
     /// <param name="time">The server clock the walks are stamped with: the one the building service reads, so a development clock that jumps days moves both.</param>
     /// <param name="seed">Seeds the choice of walks; tests pass a fixed one.</param>
-    public AnimalWanderService(IMapPresence presence, IMapCatalog maps, IBuildingDirectory buildings, IUnitOfWorkFactory unitOfWork, TimeProvider time, ulong seed)
+    public AnimalWanderService(IMapPresence presence, IChunkPublisher publisher, IMapCatalog maps, IBuildingDirectory buildings, IUnitOfWorkFactory unitOfWork, TimeProvider time, ulong seed)
     {
         ArgumentNullException.ThrowIfNull(presence);
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(maps);
         ArgumentNullException.ThrowIfNull(buildings);
         ArgumentNullException.ThrowIfNull(unitOfWork);
@@ -62,6 +65,7 @@ public sealed class AnimalWanderService : IAnimalWander
 
         _time = time;
         _presence = presence;
+        _publisher = publisher;
         _maps = maps;
         _buildings = buildings;
         _unitOfWork = unitOfWork;
@@ -137,20 +141,31 @@ public sealed class AnimalWanderService : IAnimalWander
     /// <inheritdoc/>
     public void Forget(Guid animalId) => _ = _walks.TryRemove(animalId, out _);
 
-    /// <summary>Tells the players inside a building about walks that were just chosen.</summary>
-    /// <param name="instance">The building's interior instance.</param>
-    /// <param name="buildingId">The building.</param>
-    /// <param name="moves">The new walks.</param>
-    /// <param name="cancellationToken">Cancels the send.</param>
-    /// <returns>A task that completes when the push was sent.</returns>
-    private async Task PublishAsync(MapInstance instance, Guid buildingId, List<AnimalMoveRow> moves, CancellationToken cancellationToken)
+    // Tells the players inside a building about walks that were just chosen: one packet per chunk the walks start in (a barn is two chunks wide).
+    private async Task PublishAsync(MapInstance instance, Guid buildingId, int tileSize, List<AnimalMoveRow> moves, CancellationToken cancellationToken)
     {
-        using PacketScope<AnimalsMoved> lease = PacketFactory<AnimalsMoved>.Acquire();
-        AnimalsMoved packet = lease.Value;
-        packet.BuildingId = buildingId;
-        packet.Moves.Clear();
-        packet.Moves.AddRange(moves);
-        await _presence.MulticastAsync(instance.Key, packet, null, cancellationToken).ConfigureAwait(false);
+        Dictionary<ChunkCoord, List<AnimalMoveRow>> byChunk = [];
+        foreach (AnimalMoveRow move in moves)
+        {
+            ChunkCoord chunk = ChunkCoord.OfPixels(move.FromX, move.FromY, tileSize);
+            if (!byChunk.TryGetValue(chunk, out List<AnimalMoveRow>? group))
+            {
+                group = [];
+                byChunk[chunk] = group;
+            }
+
+            group.Add(move);
+        }
+
+        foreach ((ChunkCoord chunk, List<AnimalMoveRow> group) in byChunk)
+        {
+            using PacketScope<AnimalsMoved> lease = PacketFactory<AnimalsMoved>.Acquire();
+            AnimalsMoved packet = lease.Value;
+            packet.BuildingId = buildingId;
+            packet.Moves.Clear();
+            packet.Moves.AddRange(group);
+            await _publisher.PublishAsync(instance, chunk, packet, null, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private static bool TryParse(string key, out string mapId, out Guid buildingId)
@@ -196,7 +211,7 @@ public sealed class AnimalWanderService : IAnimalWander
 
         if (moves.Count > 0)
         {
-            await this.PublishAsync(instance, buildingId, moves, cancellationToken).ConfigureAwait(false);
+            await this.PublishAsync(instance, buildingId, map.Grid.TileSize, moves, cancellationToken).ConfigureAwait(false);
         }
     }
 
