@@ -29,10 +29,10 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 
 ## Headline numbers
 
-- Measured on `master` merged into this branch (admin tools ADR-031, account recovery ADR-032, mine and blacksmith ADR-026, market counter ADR-034 included).
+- Measured on `master` merged into this branch (admin tools ADR-031, account recovery ADR-032, mine and blacksmith ADR-026, market counter ADR-034, quest chain and requests board ADR-036, maps ADR-037, co-op upgrades ADR-038 included).
 - **Free:** `MoveIntent` (also into a new chunk, with another player in sight), `GetFarm`, `GetNodes`, `GetGroundItems`, `GetPlaced`, `GetCalendar`,
   local chat, the WebSocket connect and handshake: 0 commands.
-- **Per connection:** `ResumeSession` 3 reads + 1 write (1 Tx); `Login` 2 / 1 / 1; `JoinMap` 9 / 2 / 2 Tx the first time, 4 / 0 afterwards; a step onto an exit (map change) 5 / 3 / 1 Tx;
+- **Per connection:** `ResumeSession` 3 reads + 1 write (1 Tx); `Login` 2 / 1 / 1; `JoinMap` 10 / 2 / 2 Tx the first time, 4 / 0 afterwards; a step onto an exit (map change) 5 / 3 / 1 Tx;
   `Logout` 1 / 1; socket close of a joined player 1 / 1 (the saved place).
 - **Top 10 by reads:** `VisitPlayer` 24, `WithdrawItem` 20, `DepositItem` 18, `BuyListing` 16, `RespondInvite` 16, `RequestFriend` 15, `RespondFriend` 14,
   `RemoveFriend` 12, `TradeConfirm` (swap) 12, `ChestMove` 11; then `UseItem` harvest 10 / 4 writes / 2 Tx.
@@ -62,7 +62,7 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0x11EE | ChangePassword | right current password | Ok | 3 | 1 | 1 | 1 | 0 |
 | 0x11EF | ConfirmPasswordReset | wrong code (refused) | InvalidResetCode | 0 | 0 | 0 | 0 | 0 |
 | 0x11F0 | RequestPasswordReset | registered address | Ok | 3 | 1 | 0 | 1 | 0 |
-| 0x2000 | JoinMap | first join, no saved place | Ok | 9 | 2 | 2 | 2 | 1 |
+| 0x2000 | JoinMap | first join, no saved place | Ok | 10 | 2 | 2 | 2 | 1 |
 | 0x2000 | JoinMap | returning player, saved place | Ok | 4 | 0 | 0 | 1 | 1 |
 | 0x2001 | MoveIntent | one step, same chunk |  | 0 | 0 | 0 | 0 | 0 |
 | 0x2001 | MoveIntent | step inside a chunk, another player in sight |  | 0 | 0 | 0 | 0 | 0 |
@@ -71,12 +71,12 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0x2002 | Eat | a parsnip from the hotbar | EnergyFull | 5 | 0 | 0 | 1 | 2 |
 | 0x3000 | UseItem | plant on untilled soil (refused) | NotTilled | 2 | 0 | 0 | 1 | 0 |
 | 0x3000 | UseItem | slot with nothing in it (refused) | InvalidSlot | 0 | 0 | 0 | 0 | 0 |
-| 0x3000 | UseItem | till (hoe) | Ok | 4 | 1 | 1 | 2 | 0 |
+| 0x3000 | UseItem | till (hoe) | Ok | 12 | 3 | 3 | 5 | 5 |
 | 0x3000 | UseItem | plant a seed | Ok | 6 | 2 | 1 | 3 | 2 |
-| 0x3000 | UseItem | water | Ok | 4 | 1 | 1 | 2 | 0 |
-| 0x3000 | UseItem | water on a new game day | Ok | 4 | 1 | 1 | 2 | 0 |
-| 0x3000 | UseItem | harvest a mature crop | Ok | 10 | 4 | 2 | 5 | 2 |
-| 0x3000 | UseItem | break a one-hit node | Ok | 8 | 2 | 2 | 3 | 2 |
+| 0x3000 | UseItem | water | Ok | 12 | 2 | 2 | 5 | 5 |
+| 0x3000 | UseItem | water on a new game day | Ok | 5 | 1 | 1 | 3 | 0 |
+| 0x3000 | UseItem | harvest a mature crop | Ok | 17 | 4 | 3 | 7 | 8 |
+| 0x3000 | UseItem | break a one-hit node | Ok | 9 | 3 | 3 | 4 | 2 |
 | 0x3001 | GetFarm | empty farm |  | 0 | 0 | 0 | 0 | 0 |
 | 0x3001 | GetFarm | empty farm, asked again |  | 0 | 0 | 0 | 0 | 0 |
 | 0x3002 | UseItemArea | watering can over a block of tiles | InvalidArea | 2 | 0 | 0 | 1 | 0 |
@@ -93,7 +93,7 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0x3106 | CollectProduce | an egg | Ok | 7 | 2 | 2 | 2 | 2 |
 | 0x4000 | GetWallet | wallet |  | 3 | 1 | 1 | 1 | 0 |
 | 0x4000 | GetWallet | wallet, asked again |  | 3 | 0 | 0 | 1 | 0 |
-| 0x4001 | ShipItems | ship a stack at the bin | Ok | 8 | 1 | 1 | 3 | 5 |
+| 0x4001 | ShipItems | ship a stack at the bin | Ok | 16 | 3 | 3 | 6 | 11 |
 | 0x4002 | BrowseListings | empty market, page 0 |  | 2 | 0 | 0 | 0 | 0 |
 | 0x4002 | BrowseListings | empty market, page 0, asked again |  | 2 | 0 | 0 | 0 | 0 |
 | 0x4002 | BrowseListings | one listing on the page |  | 2 | 0 | 0 | 0 | 0 |
@@ -114,8 +114,11 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0x5000 | GetInventory | starter kit, asked again |  | 2 | 0 | 0 | 1 | 0 |
 | 0x5001 | MoveSlot | split a stack into a free slot | Ok | 4 | 1 | 1 | 2 | 2 |
 | 0x5002 | SelectSlot | hotbar slot 1 | Ok | 2 | 1 | 0 | 1 | 0 |
-| 0x6000 | GetQuests | new player |  | 1 | 1 | 0 | 1 | 0 |
+| 0x6000 | GetQuests | new player |  | 1 | 1 | 1 | 1 | 0 |
 | 0x6000 | GetQuests | new player, asked again |  | 1 | 0 | 0 | 1 | 0 |
+| 0x6100 | GetRequests | today's board |  | 3 | 0 | 0 | 0 | 0 |
+| 0x6100 | GetRequests | today's board, asked again |  | 2 | 0 | 0 | 0 | 0 |
+| 0x6101 | DeliverRequest | fill one request | Ok | 9 | 1 | 1 | 2 | 4 |
 | 0x7100 | GetNodes | farm |  | 0 | 0 | 0 | 0 | 0 |
 | 0x7100 | GetNodes | farm, asked again |  | 0 | 0 | 0 | 0 | 0 |
 | 0x7200 | GetGroundItems | nothing on the ground |  | 0 | 0 | 0 | 0 | 0 |
@@ -168,8 +171,9 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0xA003 | RespondInvite | accept again | Ok | 16 | 1 | 1 | 1 | 6 |
 | 0xA004 | LeaveCoop | a member leaves | Ok | 10 | 1 | 0 | 1 | 1 |
 | 0xA005 | KickMember | owner removes a member | Ok | 11 | 1 | 0 | 1 | 1 |
-| 0xA006 | DepositItem | into the warehouse | Ok | 18 | 1 | 1 | 1 | 6 |
+| 0xA006 | DepositItem | into the warehouse | Ok | 20 | 1 | 1 | 1 | 8 |
 | 0xA007 | WithdrawItem | out of the warehouse | Ok | 20 | 1 | 1 | 1 | 6 |
+| 0xA008 | UpgradeCoop | warehouse to level 1 | Ok | 16 | 1 | 1 | 1 | 3 |
 | 0xB000 | GetPlaced | empty farm |  | 0 | 0 | 0 | 0 | 0 |
 | 0xB000 | GetPlaced | empty farm, asked again |  | 0 | 0 | 0 | 0 | 0 |
 | 0xB000 | GetPlaced | a chest and a furnace standing |  | 0 | 0 | 0 | 0 | 0 |
@@ -179,8 +183,8 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0xB001 | PlaceObject | a coop blueprint | Ok | 7 | 2 | 1 | 2 | 2 |
 | 0xB002 | MoveObject | a fence one tile over | OutOfReach | 0 | 0 | 0 | 0 | 0 |
 | 0xB003 | PickUpObject | pick up a fence | Ok | 3 | 1 | 1 | 1 | 0 |
-| 0xB100 | Craft | a chest from wood | Ok | 2 | 1 | 1 | 1 | 0 |
-| 0xB100 | Craft | five fences | Ok | 2 | 1 | 1 | 1 | 0 |
+| 0xB100 | Craft | a chest from wood | Ok | 10 | 3 | 3 | 4 | 5 |
+| 0xB100 | Craft | five fences | Ok | 3 | 1 | 1 | 2 | 0 |
 | 0xB101 | GetRecipeBook | new player |  | 2 | 0 | 0 | 0 | 1 |
 | 0xB101 | GetRecipeBook | new player, asked again |  | 2 | 0 | 0 | 0 | 1 |
 | 0xB110 | OpenChest | empty chest | Ok | 1 | 1 | 0 | 1 | 0 |
@@ -192,7 +196,7 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0xB122 | GetFurnaces | no furnace |  | 0 | 0 | 0 | 0 | 0 |
 | 0xB122 | GetFurnaces | no furnace, asked again |  | 0 | 0 | 0 | 0 | 0 |
 | 0xB122 | GetFurnaces | one furnace smelting |  | 1 | 0 | 0 | 0 | 0 |
-| 0xC000 | BuyFromShop | buy seeds | Ok | 6 | 1 | 1 | 2 | 3 |
+| 0xC000 | BuyFromShop | buy seeds | Ok | 14 | 3 | 3 | 5 | 9 |
 | 0xC001 | GetBlacksmith | nothing in the forge | Ok | 1 | 0 | 0 | 0 | 0 |
 | 0xC002 | UpgradeTool | hoe to copper | Ok | 11 | 1 | 1 | 3 | 6 |
 | 0xC003 | CollectTool | a finished upgrade | Ok | 6 | 1 | 1 | 1 | 2 |
@@ -210,10 +214,10 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 | 0xE005 | VisitPlayer | friend visits the farm | Ok | 24 | 3 | 1 | 3 | 12 |
 | 0xF000 | DevGrant | not measured | - | - | - | - | - | tester tool, Development only; its cost is test set-up |
 | 0xF001 | DevAdvanceClock | not measured | - | - | - | - | - | tester tool, Development only; the day rollover it triggers is the DayClock row |
-| - | DayClock | one game day ends (nodes, goals) |  | 4 | 3 | 0 | 3 | 4 |
+| - | DayClock | one game day ends (nodes, goals) |  | 6 | 4 | 1 | 4 | 4 |
 | - | AnimalWander | tick, one player inside a coop |  | 1 | 0 | 0 | 0 | 0 |
 | - | GuestCleanup | hourly pass, nothing old |  | 0 | 3 | 0 | 0 | 0 |
-| - | MarketExpiry | every minute, nothing due |  | 2 | 0 | 0 | 0 | 0 |
+| - | MarketExpiry | every minute, nothing due |  | 1 | 0 | 0 | 0 | 0 |
 | - | MailExpiry | hourly pass, nothing due |  | 1 | 0 | 0 | 0 | 0 |
 | - | GroundItemExpiry | every 30 s, nothing due |  | 0 | 0 | 0 | 0 | 0 |
 | - | AnimalWander | tick, nobody inside any building |  | 0 | 0 | 0 | 0 | 0 |
@@ -235,6 +239,7 @@ The statements file shows the cause of each repeat; the common ones:
   row and the member list two to six times and rebuild the snapshot from five tables after the change.
 - **N+1:** `CommunityGoalService.GetAsync` asked once per goal for its completed row (fixed in this change: 8 to 5 reads). `GetFriends` runs 5 queries for
   a list.
+- **Quest hooks grew the shop path:** `BuyFromShop` rose from 6 to 14 reads on master because the purchase now completes a tutorial-quest step (ADR-036): the quest rows are created and the coin reward is a second transfer (inventory and wallet loaded four times). It is a first-time cost per quest step.
 - **Reads that write:** the first `GetQuests`, `GetLooks`, `GetWallet` and `GetGoals` insert their rows; `SelectSlot` writes on every click.
 - **Cold work:** the first entry to an instance reads five tables once per process; a game day ending reads and writes for the nodes and the goals.
 
