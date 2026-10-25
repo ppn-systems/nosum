@@ -1,0 +1,10 @@
+@* A vertical stack with a gap: the shared vertical layout of panels. *@
+<div class="game-stack @Class">@ChildContent</div>
+
+@code {
+    /// <summary>Extra shared classes.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>The content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

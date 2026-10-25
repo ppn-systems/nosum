@@ -10,4 +10,7 @@ namespace Nosum.Wasm.Game;
 /// <param name="Shirt">Index into <c>shirts.png</c> (16 shirts per row).</param>
 /// <param name="Pants">Index into <c>pants.png</c> (10 styles per row).</param>
 /// <param name="PantsTint">Pants colour, <c>0xRRGGBBAA</c>.</param>
-internal readonly record struct FarmerLook(int Hairstyle, int HairTint, int Shirt, int Pants, int PantsTint);
+/// <param name="SkinTint">Body colour, <c>0xRRGGBBAA</c>.</param>
+/// <param name="Hat">Index into <c>hats.png</c> (12 hats per row), or -1 for no hat.</param>
+/// <param name="HatTint">Hat colour, <c>0xRRGGBBAA</c>.</param>
+internal readonly record struct FarmerLook(int Hairstyle, int HairTint, int Shirt, int Pants, int PantsTint, int SkinTint = unchecked((int)0xFFFFFFFF), int Hat = -1, int HatTint = unchecked((int)0xFFFFFFFF));

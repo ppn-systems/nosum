@@ -1,0 +1,90 @@
+@using Nosum.Wasm.ViewModels.Coop
+@inherits ObservingComponent<CoopViewModel>
+
+@* The co-op: found or join one, manage members, and use the shared warehouse. The server decides roles and what a member may take. *@
+<GamePanel Title="@(Vm.HasCoop ? Vm.Name : Vm.Text("Coop_Title"))" CloseText="@Vm.Text("Panel_Close")" OnClose="OnClose" Status="@Vm.Status" Class="wide">
+    <GameStack>
+        @if (!Vm.HasCoop)
+        {
+            <GameSection Title="@Vm.Text("Coop_Create_Heading")">
+                <GameRow>
+                    <GameInput Value="@Vm.NameText" ValueChanged="@(v => Vm.NameText = v)" OnEnter="@(() => Vm.Create())" MaxLength="120" Placeholder="@Vm.Text("Coop_NamePlaceholder")" Label="@Vm.Text("Coop_NamePlaceholder")" />
+                    <GameButton Text="@Vm.Text("Coop_Create")" OnClick="@(() => Vm.Create())" />
+                </GameRow>
+            </GameSection>
+            <GameSection Title="@Vm.Text("Coop_Invites_Heading")">
+                @if (Vm.Invites.Count == 0)
+                {
+                    <p class="coop-empty">@Vm.Text("Coop_NoInvites")</p>
+                }
+                @foreach ((Guid id, string name) in Vm.Invites)
+                {
+                    Guid inviteId = id;
+                    <GameRow Class="center">
+                        <span>@name</span>
+                        <GameButton Text="@Vm.Text("Coop_Accept")" OnClick="@(() => Vm.Respond(inviteId, true))" />
+                        <GameButton Variant="plain" Text="@Vm.Text("Coop_Decline")" OnClick="@(() => Vm.Respond(inviteId, false))" />
+                    </GameRow>
+                }
+            </GameSection>
+        }
+        else
+        {
+            <GameSection Title="@Vm.Text("Coop_Members_Heading")">
+                @foreach (MemberDisplay member in Vm.Members)
+                {
+                    Guid memberId = member.MemberId;
+                    <GameRow Class="center">
+                        <span class="member-name">@member.Label</span>
+                        <span class="member-role">@member.RoleText</span>
+                        <span>@(member.Online ? Vm.Text("Coop_Online") : Vm.Text("Coop_Offline"))</span>
+                        @if (member.CanKick)
+                        {
+                            <GameButton Variant="danger" Text="@Vm.Text("Coop_Kick")" OnClick="@(() => Vm.Kick(memberId))" />
+                        }
+                    </GameRow>
+                }
+                @if (Vm.IsFounder)
+                {
+                    <PlayerPicker Players="Vm.Players" ActionText="@Vm.Text("Coop_Invite")" EmptyText="@Vm.Text("Coop_NobodyNear")" OnPick="@(id => Vm.Invite(id))" />
+                }
+                <GameButton Variant="danger" Text="@Vm.Text("Coop_Leave")" OnClick="@(() => Vm.Leave())" />
+            </GameSection>
+            <GameSection Title="@Vm.Text("Coop_Warehouse_Heading")">
+                @if (Vm.Stock.Count == 0)
+                {
+                    <p class="coop-empty">@Vm.Text("Coop_WarehouseEmpty")</p>
+                }
+                @foreach (StockDisplay row in Vm.Stock)
+                {
+                    int itemId = row.Item.ItemId;
+                    <GameRow Class="center">
+                        <ItemSlotButton Slot="row.Item" Scale="2" Picked="row.Item.IsSelected" OnClick="@(() => Vm.PickWithdraw(itemId))" />
+                        <span class="stock-name">@row.Item.Name</span>
+                        <span>@Vm.Text("Coop_Available", row.Available)</span>
+                    </GameRow>
+                }
+                <GameRow Class="center">
+                    <GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => Vm.QuantityText = v)" Label="@Vm.Text("Coop_Quantity")" MaxLength="5" />
+                    <GameButton Text="@Vm.Text("Coop_Withdraw")" OnClick="@(() => Vm.Withdraw())" />
+                    <GameButton Text="@Vm.Text("Coop_Deposit")" OnClick="@(() => Vm.Deposit())" />
+                </GameRow>
+                <p class="coop-empty">@Vm.Text("Coop_DepositHint")</p>
+                <ItemGrid Slots="Vm.InventorySlots" Columns="9" Scale="2" OnSlotClick="@(i => Vm.PickDeposit(i))" />
+            </GameSection>
+            <GameSection Title="@Vm.Text("Coop_Log_Heading")">
+                @foreach (string line in Vm.Log)
+                {
+                    <p class="coop-log">@line</p>
+                }
+            </GameSection>
+        }
+    </GameStack>
+</GamePanel>
+
+@code {
+    /// <summary>Raised when the close button is clicked.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    protected override void OnInitialized() => Vm.Open();
+}

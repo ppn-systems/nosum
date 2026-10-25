@@ -24,7 +24,7 @@ const EDGE_BITS = {
     KeyE: 1, Space: 1,
     Digit1: 2, Digit2: 4, Digit3: 8, Digit4: 16, Digit5: 32, Digit6: 64, Digit7: 128, Digit8: 256, Digit9: 512,
     Numpad1: 2, Numpad2: 4, Numpad3: 8, Numpad4: 16, Numpad5: 32, Numpad6: 64, Numpad7: 128, Numpad8: 256, Numpad9: 512,
-    KeyI: 1024,
+    KeyI: 1024, KeyM: 2048, KeyC: 4096, KeyT: 8192, KeyG: 16384,
 };
 
 // Typing in a form field (the upgrade form) must not move the farmer or select slots.

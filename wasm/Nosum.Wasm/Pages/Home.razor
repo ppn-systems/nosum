@@ -6,12 +6,24 @@
 @using System.Runtime.Versioning
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Coop
 @using Nosum.Wasm.Controls.Feedback
 @using Nosum.Wasm.Controls.Inventory
+@using Nosum.Wasm.Controls.Looks
+@using Nosum.Wasm.Controls.Market
 @using Nosum.Wasm.Controls.Quest
+@using Nosum.Wasm.Controls.Trade
+@using Nosum.Wasm.Controls.Wallet
 @using Nosum.Wasm.Game
 @using Nosum.Contracts.Account
+@using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Coop
+@using Nosum.Wasm.ViewModels.Looks
+@using Nosum.Wasm.ViewModels.Market
+@using Nosum.Wasm.ViewModels.Wallet
+@using Nosum.Wasm.ViewModels.Trade
 @using Nosum.Wasm.ViewModels.Feedback
 @using Nosum.Wasm.ViewModels.Inventory
 @using Nosum.Wasm.ViewModels.Quest
@@ -24,6 +36,12 @@
 @inject InventoryViewModel Inventory
 @inject QuestTrackerViewModel Quest
 @inject GameMessagesViewModel Messages
+@inject ToolbarViewModel Toolbar
+@inject WalletViewModel Wallet
+@inject MarketViewModel Market
+@inject WardrobeViewModel Wardrobe
+@inject TradeViewModel Trade
+@inject CoopViewModel Coop
 
 <PageTitle>Nosum</PageTitle>
 
@@ -42,9 +60,38 @@
     <QuestTracker Vm="Quest" />
     <GameMessage Vm="Messages" />
     <Hotbar Vm="Inventory" />
-    @if (_inventoryOpen)
+    <CoinBadge Vm="Wallet" />
+    <PanelToolbar Vm="Toolbar" OnSelect="OnToolbar" />
+    @switch (_panel)
     {
-        <InventoryPanel Vm="Inventory" OnClose="ToggleInventory" />
+        case PanelKind.Inventory:
+            <InventoryPanel Vm="Inventory" OnClose="ClosePanel" />
+            break;
+        case PanelKind.Market:
+            <MarketPanel Vm="Market" OnClose="ClosePanel" />
+            break;
+        case PanelKind.Wardrobe:
+            <WardrobePanel Vm="Wardrobe" OnClose="ClosePanel" />
+            break;
+        case PanelKind.Trade:
+            <TradePanel Vm="Trade" OnClose="ClosePanel" />
+            break;
+        case PanelKind.Coop:
+            <CoopPanel Vm="Coop" OnClose="ClosePanel" />
+            break;
+    }
+    @if (Trade.Phase == TradePhase.Invited)
+    {
+        <ConfirmDialog Title="@Trade.Text("Trade_InviteTitle")" Message="@Trade.Text("Trade_InviteMessage", Trade.InviterLabel)"
+                       ConfirmText="@Trade.Text("Coop_Accept")" CancelText="@Trade.Text("Coop_Decline")"
+                       OnConfirm="@(() => Trade.Respond(true))" OnCancel="@(() => Trade.Respond(false))" />
+    }
+    else if (_panel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0)
+    {
+        (Guid inviteId, string coopName) = Coop.Invites[0];
+        <ConfirmDialog Title="@Coop.Text("Coop_InviteTitle")" Message="@Coop.Text("Coop_InviteMessage", coopName)"
+                       ConfirmText="@Coop.Text("Coop_Accept")" CancelText="@Coop.Text("Coop_Decline")"
+                       OnConfirm="@(() => Coop.Respond(inviteId, true))" OnCancel="@(() => Coop.Respond(inviteId, false))" />
     }
 }
 @if (_error is not null)
@@ -54,7 +101,7 @@
 
 @code {
     private bool _signedIn;
-    private bool _inventoryOpen;
+    private PanelKind _panel;
     private string? _error;
 
     protected override void OnInitialized()
@@ -65,7 +112,10 @@
         Form.Changed += OnFormChanged;
         Keeper.SessionEnded += OnSessionEnded;
         Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
-        GameLoop.InventoryToggleRequested += OnInventoryKey;
+        GameLoop.PanelToggleRequested += OnPanelKey;
+        Trade.WantsOpen += OnTradeWantsOpen;
+        Trade.Changed += OnViewModelChanged;
+        Coop.Changed += OnViewModelChanged;
 
         // Back from a session the server ended: say why on the account form.
         string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
@@ -85,20 +135,49 @@
         Form.Changed -= OnFormChanged;
         Keeper.SessionEnded -= OnSessionEnded;
         Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
-        GameLoop.InventoryToggleRequested -= OnInventoryKey;
+        GameLoop.PanelToggleRequested -= OnPanelKey;
+        Trade.WantsOpen -= OnTradeWantsOpen;
+        Trade.Changed -= OnViewModelChanged;
+        Coop.Changed -= OnViewModelChanged;
     }
 
     // The first quest was finished: the session bar now offers the registration (the form's session is the one it shows).
     private void OnPromptUnlocked() => Form.UnlockRegistrationPrompt();
 
-    // The inventory key was pressed in the game (raised from the frame loop).
-    private void OnInventoryKey() => _ = InvokeAsync(ToggleInventory);
+    // A panel key was pressed in the game (raised from the frame loop).
+    private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind));
 
-    private void ToggleInventory()
+    private void OnToolbar(PanelKind kind) => TogglePanel(kind);
+
+    private void TogglePanel(PanelKind kind)
     {
-        _inventoryOpen = !_inventoryOpen;
+        _panel = _panel == kind ? PanelKind.None : kind;
+        Toolbar.Active = _panel;
         StateHasChanged();
     }
+
+    private void ClosePanel()
+    {
+        _panel = PanelKind.None;
+        Toolbar.Active = _panel;
+    }
+
+    // A trade began: show its window.
+    private void OnTradeWantsOpen(bool open)
+    {
+        if (open && Trade.Phase == TradePhase.Open)
+        {
+            _ = InvokeAsync(() =>
+            {
+                _panel = PanelKind.Trade;
+                Toolbar.Active = _panel;
+                StateHasChanged();
+            });
+        }
+    }
+
+    // The invitation dialogs follow the trade and co-op state.
+    private void OnViewModelChanged() => _ = InvokeAsync(StateHasChanged);
 
     // The overlay shows or hides with the form's mode (upgrade form over the running game).
     private void OnFormChanged() => _ = InvokeAsync(StateHasChanged);

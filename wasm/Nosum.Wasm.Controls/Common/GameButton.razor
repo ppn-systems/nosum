@@ -1,0 +1,31 @@
+@* The one button of the UI. Variants (primary, danger, plain, tab) are shared CSS classes; text comes from the caller (already localized). *@
+<button type="button"
+        class="game-button @Variant @(Active ? "active" : null)"
+        disabled="@Disabled"
+        title="@Title"
+        tabindex="-1"
+        @onmousedown:preventDefault
+        @onclick="OnClick">@Text@ChildContent</button>
+
+@code {
+    /// <summary>The label.</summary>
+    [Parameter] public string Text { get; set; } = string.Empty;
+
+    /// <summary>Optional tooltip.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The look: <c>primary</c>, <c>danger</c>, <c>plain</c> or <c>tab</c>.</summary>
+    [Parameter] public string Variant { get; set; } = "primary";
+
+    /// <summary>Whether the button is the active tab.</summary>
+    [Parameter] public bool Active { get; set; }
+
+    /// <summary>Whether the button can be clicked.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>Raised when the button is clicked.</summary>
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    /// <summary>Optional extra content after the label.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

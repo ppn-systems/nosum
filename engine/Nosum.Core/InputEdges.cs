@@ -47,6 +47,18 @@ public enum InputEdges
 
     /// <summary>The inventory key (I): show or hide the inventory.</summary>
     Inventory = 1 << 10,
+
+    /// <summary>The market key (M): show or hide the market panel.</summary>
+    Market = 1 << 11,
+
+    /// <summary>The wardrobe key (C): show or hide the wardrobe panel.</summary>
+    Wardrobe = 1 << 12,
+
+    /// <summary>The trade key (T): show or hide the trade window.</summary>
+    Trade = 1 << 13,
+
+    /// <summary>The co-op key (G): show or hide the co-op panel.</summary>
+    Coop = 1 << 14,
 }
 
 /// <summary>Helpers for the packed input integer the platform passes to the frame.</summary>

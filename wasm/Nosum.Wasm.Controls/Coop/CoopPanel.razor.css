@@ -1,0 +1,20 @@
+.coop-empty,
+.coop-log {
+    margin: 0;
+}
+
+.coop-empty {
+    opacity: 0.8;
+}
+
+.member-name {
+    min-width: 6rem;
+}
+
+.member-role {
+    min-width: 6rem;
+}
+
+.stock-name {
+    min-width: 7rem;
+}

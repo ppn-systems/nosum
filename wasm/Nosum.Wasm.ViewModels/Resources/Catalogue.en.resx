@@ -24,4 +24,18 @@
   <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Select the hoe (key 1) and press E to till the ground in front of you. Plant a seed, water it with the can and wait for it to grow.</value></data>
   <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Plant a seed</value></data>
   <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Harvest a crop</value></data>
+  <data name="Item_shirt_red_Name" xml:space="preserve"><value>Red shirt</value></data>
+  <data name="Item_shirt_red_Description" xml:space="preserve"><value>A red shirt.</value></data>
+  <data name="Item_shirt_green_Name" xml:space="preserve"><value>Green shirt</value></data>
+  <data name="Item_shirt_green_Description" xml:space="preserve"><value>A green shirt.</value></data>
+  <data name="Item_shirt_blue_Name" xml:space="preserve"><value>Blue shirt</value></data>
+  <data name="Item_shirt_blue_Description" xml:space="preserve"><value>A blue shirt.</value></data>
+  <data name="Item_pants_blue_Name" xml:space="preserve"><value>Blue trousers</value></data>
+  <data name="Item_pants_blue_Description" xml:space="preserve"><value>Blue trousers.</value></data>
+  <data name="Item_pants_khaki_Name" xml:space="preserve"><value>Khaki trousers</value></data>
+  <data name="Item_pants_khaki_Description" xml:space="preserve"><value>Khaki trousers.</value></data>
+  <data name="Item_hat_straw_Name" xml:space="preserve"><value>Straw hat</value></data>
+  <data name="Item_hat_straw_Description" xml:space="preserve"><value>A straw hat against the sun.</value></data>
+  <data name="Item_hat_cap_Name" xml:space="preserve"><value>Cap</value></data>
+  <data name="Item_hat_cap_Description" xml:space="preserve"><value>A cap.</value></data>
 </root>

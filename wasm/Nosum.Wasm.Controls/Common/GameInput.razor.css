@@ -1,0 +1,10 @@
+.game-input {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 0.3rem 0.5rem;
+    border: 2px solid var(--nosum-input-border, #6b4a24);
+    border-radius: 4px;
+    background: var(--nosum-input-bg, #fff);
+    color: var(--nosum-panel-fg, #3b2a14);
+    font: inherit;
+}

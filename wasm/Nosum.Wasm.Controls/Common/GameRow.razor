@@ -1,0 +1,10 @@
+@* A wrapping row with a gap: the shared horizontal layout of panels. *@
+<div class="game-row @Class">@ChildContent</div>
+
+@code {
+    /// <summary>Extra shared classes: <c>spread</c> pushes the first and last child apart, <c>center</c> centres vertically.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>The content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

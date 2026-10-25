@@ -1,0 +1,30 @@
+@using Nosum.Wasm.ViewModels.Trade
+@* Choose one of the other players on the map. *@
+@if (Players.Count == 0)
+{
+    <p class="player-picker-empty">@EmptyText</p>
+}
+else
+{
+    <GameRow>
+        @foreach (PlayerChoice player in Players)
+        {
+            uint id = player.Id;
+            <GameButton Variant="plain" Text="@(player.Label + " - " + ActionText)" OnClick="() => OnPick.InvokeAsync(id)" />
+        }
+    </GameRow>
+}
+
+@code {
+    /// <summary>The players that can be chosen.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PlayerChoice> Players { get; set; } = [];
+
+    /// <summary>What choosing does, shown on each button (already localized).</summary>
+    [Parameter, EditorRequired] public string ActionText { get; set; } = string.Empty;
+
+    /// <summary>What to show when nobody is there (already localized).</summary>
+    [Parameter, EditorRequired] public string EmptyText { get; set; } = string.Empty;
+
+    /// <summary>Raised with the chosen player's id.</summary>
+    [Parameter] public EventCallback<uint> OnPick { get; set; }
+}

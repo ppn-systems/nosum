@@ -24,4 +24,18 @@
   <data name="Quest_first_harvest_Hint" xml:space="preserve"><value>Chọn cuốc (phím 1) rồi nhấn E để xới đất phía trước. Gieo hạt giống, tưới nước bằng bình tưới và chờ cây lớn.</value></data>
   <data name="Quest_first_harvest_Objective_0" xml:space="preserve"><value>Gieo một hạt giống</value></data>
   <data name="Quest_first_harvest_Objective_1" xml:space="preserve"><value>Thu hoạch một cây trồng</value></data>
+  <data name="Item_shirt_red_Name" xml:space="preserve"><value>Áo đỏ</value></data>
+  <data name="Item_shirt_red_Description" xml:space="preserve"><value>Một chiếc áo màu đỏ.</value></data>
+  <data name="Item_shirt_green_Name" xml:space="preserve"><value>Áo xanh lá</value></data>
+  <data name="Item_shirt_green_Description" xml:space="preserve"><value>Một chiếc áo màu xanh lá.</value></data>
+  <data name="Item_shirt_blue_Name" xml:space="preserve"><value>Áo xanh dương</value></data>
+  <data name="Item_shirt_blue_Description" xml:space="preserve"><value>Một chiếc áo màu xanh dương.</value></data>
+  <data name="Item_pants_blue_Name" xml:space="preserve"><value>Quần xanh</value></data>
+  <data name="Item_pants_blue_Description" xml:space="preserve"><value>Một chiếc quần màu xanh.</value></data>
+  <data name="Item_pants_khaki_Name" xml:space="preserve"><value>Quần kaki</value></data>
+  <data name="Item_pants_khaki_Description" xml:space="preserve"><value>Một chiếc quần màu kaki.</value></data>
+  <data name="Item_hat_straw_Name" xml:space="preserve"><value>Mũ rơm</value></data>
+  <data name="Item_hat_straw_Description" xml:space="preserve"><value>Một chiếc mũ rơm che nắng.</value></data>
+  <data name="Item_hat_cap_Name" xml:space="preserve"><value>Mũ lưỡi trai</value></data>
+  <data name="Item_hat_cap_Description" xml:space="preserve"><value>Một chiếc mũ lưỡi trai.</value></data>
 </root>

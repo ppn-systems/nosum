@@ -12,18 +12,28 @@ using Nosum.Gameplay.Maps;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket;
+using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Look;
+using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.Socket.Quest;
+using Nosum.Wasm.Socket.Trade;
 using Nosum.Contracts.Common;
 using Nosum.Wasm.ViewModels.Account;
+using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.ViewModels.Coop;
 using Nosum.Wasm.ViewModels.Feedback;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
+using Nosum.Wasm.ViewModels.Looks;
+using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
+using Nosum.Wasm.ViewModels.Trade;
+using Nosum.Wasm.ViewModels.Wallet;
 
 namespace Nosum.Wasm;
 
@@ -53,10 +63,27 @@ internal static class Program
         builder.Services.AddSingleton<InventoryChannel>();
         builder.Services.AddSingleton<FarmChannel>();
         builder.Services.AddSingleton<QuestChannel>();
+        builder.Services.AddSingleton<WalletChannel>();
+        builder.Services.AddSingleton<MarketChannel>();
+        builder.Services.AddSingleton<TradeChannel>();
+        builder.Services.AddSingleton<CoopChannel>();
+        builder.Services.AddSingleton<NearbyPlayers>();
+        builder.Services.AddSingleton(sp =>
+        {
+            PlayerChannel player = sp.GetRequiredService<PlayerChannel>();
+            return new LookChannel(sp.GetRequiredService<IGameSocket>(), () => player.LocalPlayerId);
+        });
         builder.Services.AddSingleton<IItemIconSource, ItemIcons>();
         builder.Services.AddSingleton<InventoryViewModel>();
         builder.Services.AddSingleton<QuestTrackerViewModel>();
         builder.Services.AddSingleton<GameMessagesViewModel>();
+        builder.Services.AddSingleton<ItemDescriber>();
+        builder.Services.AddSingleton<ToolbarViewModel>();
+        builder.Services.AddSingleton<WalletViewModel>();
+        builder.Services.AddSingleton<MarketViewModel>();
+        builder.Services.AddSingleton<WardrobeViewModel>();
+        builder.Services.AddSingleton<TradeViewModel>();
+        builder.Services.AddSingleton<CoopViewModel>();
         builder.Services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         builder.Services.AddSingleton<AccountSessionKeeper>();
         builder.Services.AddTransient<AccountFormViewModel>();
@@ -75,7 +102,12 @@ internal static class Program
         FarmChannel farm = host.Services.GetRequiredService<FarmChannel>();
         QuestChannel quests = host.Services.GetRequiredService<QuestChannel>();
         GameLoop.UseNetwork(channel);
-        GameLoop.UseFarming(farm, inventory);
+        MarketChannel market = host.Services.GetRequiredService<MarketChannel>();
+        WalletChannel wallet = host.Services.GetRequiredService<WalletChannel>();
+        CoopChannel coop = host.Services.GetRequiredService<CoopChannel>();
+        LookChannel looks = host.Services.GetRequiredService<LookChannel>();
+        GameLoop.UseFarming(farm, inventory, market);
+        GameLoop.UseLooks(looks);
 
         // Every time the connection is signed in (first sign-in and each resume) the server-side state is read again;
         // the farm is per map, so it loads whenever a map was joined.
@@ -83,11 +115,18 @@ internal static class Program
         keeper.Authenticated += channel.Join;
         keeper.Authenticated += inventory.Load;
         keeper.Authenticated += quests.Load;
+        keeper.Authenticated += wallet.Load;
+        keeper.Authenticated += coop.Load;
         channel.Joined += _ => farm.Load();
+        channel.Joined += _ => looks.Load();
         // The view models subscribe to their channels when they are built: build them before the first push can arrive.
         _ = host.Services.GetRequiredService<InventoryViewModel>();
         _ = host.Services.GetRequiredService<QuestTrackerViewModel>();
         _ = host.Services.GetRequiredService<GameMessagesViewModel>();
+        _ = host.Services.GetRequiredService<NearbyPlayers>();
+        _ = host.Services.GetRequiredService<WalletViewModel>();
+        _ = host.Services.GetRequiredService<TradeViewModel>();
+        _ = host.Services.GetRequiredService<CoopViewModel>();
         _ = host.Services.GetRequiredService<ConnectionStatusViewModel>();
         host.Services.GetRequiredService<IGameSocket>().Start();
 

@@ -63,4 +63,174 @@
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Completed</value></data>
   <data name="Quest_Banner" xml:space="preserve"><value>Quest complete: {0}</value></data>
+  <data name="Panel_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Toolbar_Label" xml:space="preserve"><value>Open a panel</value></data>
+  <data name="Toolbar_Inventory" xml:space="preserve"><value>Inventory</value></data>
+  <data name="Toolbar_Market" xml:space="preserve"><value>Market</value></data>
+  <data name="Toolbar_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
+  <data name="Toolbar_Trade" xml:space="preserve"><value>Trade</value></data>
+  <data name="Toolbar_Coop" xml:space="preserve"><value>Co-op</value></data>
+  <data name="Pager_Previous" xml:space="preserve"><value>Previous</value></data>
+  <data name="Pager_Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Pager_Position" xml:space="preserve"><value>Page {0} of {1}</value></data>
+  <data name="Player_Label" xml:space="preserve"><value>Player #{0}</value></data>
+  <data name="Wallet_Caption" xml:space="preserve"><value>coins</value></data>
+  <data name="Market_Title" xml:space="preserve"><value>Market</value></data>
+  <data name="Market_Tab_Browse" xml:space="preserve"><value>Browse</value></data>
+  <data name="Market_Tab_Sell" xml:space="preserve"><value>Sell</value></data>
+  <data name="Market_Tab_Mine" xml:space="preserve"><value>My listings</value></data>
+  <data name="Market_SearchPlaceholder" xml:space="preserve"><value>Search by item name</value></data>
+  <data name="Market_Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Market_Empty" xml:space="preserve"><value>No listings found.</value></data>
+  <data name="Market_Price" xml:space="preserve"><value>{0} coins</value></data>
+  <data name="Market_PriceLabel" xml:space="preserve"><value>coins</value></data>
+  <data name="Market_Buy" xml:space="preserve"><value>Buy</value></data>
+  <data name="Market_Cancel" xml:space="preserve"><value>Withdraw</value></data>
+  <data name="Market_YourListing" xml:space="preserve"><value>Your listing</value></data>
+  <data name="Market_SellPick" xml:space="preserve"><value>Pick an item to sell</value></data>
+  <data name="Market_SellHint" xml:space="preserve"><value>Pick a slot of your inventory to list it.</value></data>
+  <data name="Market_Quantity" xml:space="preserve"><value>Quantity</value></data>
+  <data name="Market_List" xml:space="preserve"><value>List for sale</value></data>
+  <data name="Market_FeeSummary" xml:space="preserve"><value>Market fee {2}%: {0} coins. You receive {1} coins.</value></data>
+  <data name="Market_NoneMine" xml:space="preserve"><value>You have no listings.</value></data>
+  <data name="Market_Shipped" xml:space="preserve"><value>Sold for {0} coins.</value></data>
+  <data name="Market_Done_Create" xml:space="preserve"><value>Listed for sale.</value></data>
+  <data name="Market_Done_Buy" xml:space="preserve"><value>Bought.</value></data>
+  <data name="Market_Done_Cancel" xml:space="preserve"><value>Withdrawn to your inventory.</value></data>
+  <data name="Market_Done_Ship" xml:space="preserve"><value>Sold.</value></data>
+  <data name="Market_Status_Ok" xml:space="preserve"><value>Done.</value></data>
+  <data name="Market_Status_UnknownItem" xml:space="preserve"><value>Unknown item.</value></data>
+  <data name="Market_Status_NotTradable" xml:space="preserve"><value>This item cannot be traded.</value></data>
+  <data name="Market_Status_InvalidQuantity" xml:space="preserve"><value>Invalid quantity.</value></data>
+  <data name="Market_Status_InvalidPrice" xml:space="preserve"><value>Invalid price.</value></data>
+  <data name="Market_Status_TooManyListings" xml:space="preserve"><value>You have too many listings.</value></data>
+  <data name="Market_Status_NotEnough" xml:space="preserve"><value>You do not have enough of that item.</value></data>
+  <data name="Market_Status_NoSpace" xml:space="preserve"><value>Your inventory is full.</value></data>
+  <data name="Market_Status_NotEnoughCoins" xml:space="preserve"><value>You do not have enough coins.</value></data>
+  <data name="Market_Status_ListingGone" xml:space="preserve"><value>That listing was sold or withdrawn.</value></data>
+  <data name="Market_Status_OwnListing" xml:space="preserve"><value>You cannot buy your own listing.</value></data>
+  <data name="Market_Status_NotOwner" xml:space="preserve"><value>That is not your listing.</value></data>
+  <data name="Market_Status_Expired" xml:space="preserve"><value>That listing expired.</value></data>
+  <data name="Market_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Market_Status_NotAtBin" xml:space="preserve"><value>Stand next to the shipping bin to sell.</value></data>
+  <data name="Market_Status_NotShippable" xml:space="preserve"><value>The bin does not buy this item.</value></data>
+  <data name="Market_Status_InvalidSlot" xml:space="preserve"><value>Pick a valid slot.</value></data>
+  <data name="Market_Status_TooBig" xml:space="preserve"><value>That would exceed the largest balance.</value></data>
+  <data name="Wardrobe_Title" xml:space="preserve"><value>Wardrobe</value></data>
+  <data name="Wardrobe_Skin_Heading" xml:space="preserve"><value>Skin tone</value></data>
+  <data name="Wardrobe_Skin" xml:space="preserve"><value>Skin tone {0}</value></data>
+  <data name="Wardrobe_HairStyle_Heading" xml:space="preserve"><value>Hair style</value></data>
+  <data name="Wardrobe_HairStyle" xml:space="preserve"><value>Hair style {0}</value></data>
+  <data name="Wardrobe_HairDye_Heading" xml:space="preserve"><value>Hair colour</value></data>
+  <data name="Wardrobe_HairDye" xml:space="preserve"><value>Hair colour {0}</value></data>
+  <data name="Wardrobe_Worn_Heading" xml:space="preserve"><value>Wearing</value></data>
+  <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Shirt</value></data>
+  <data name="Wardrobe_Slot_Pants" xml:space="preserve"><value>Trousers</value></data>
+  <data name="Wardrobe_Slot_Hat" xml:space="preserve"><value>Hat</value></data>
+  <data name="Wardrobe_Plain" xml:space="preserve"><value>Plain</value></data>
+  <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Take off</value></data>
+  <data name="Wardrobe_Clothes_Heading" xml:space="preserve"><value>Clothes in your inventory</value></data>
+  <data name="Wardrobe_NoClothes" xml:space="preserve"><value>You have no clothes.</value></data>
+  <data name="Wardrobe_Hint" xml:space="preserve"><value>Click an item to wear it.</value></data>
+  <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Done.</value></data>
+  <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Invalid skin tone.</value></data>
+  <data name="Wardrobe_Status_InvalidHairStyle" xml:space="preserve"><value>Invalid hair style.</value></data>
+  <data name="Wardrobe_Status_InvalidHairDye" xml:space="preserve"><value>Invalid hair colour.</value></data>
+  <data name="Wardrobe_Status_InvalidSlot" xml:space="preserve"><value>Invalid slot.</value></data>
+  <data name="Wardrobe_Status_NotWearable" xml:space="preserve"><value>That cannot be worn.</value></data>
+  <data name="Wardrobe_Status_NoSpace" xml:space="preserve"><value>Your inventory is full.</value></data>
+  <data name="Wardrobe_Status_NotOnMap" xml:space="preserve"><value>You are not on a map.</value></data>
+  <data name="Wardrobe_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Wardrobe_Status_NothingWorn" xml:space="preserve"><value>Nothing is worn there.</value></data>
+  <data name="Trade_Title" xml:space="preserve"><value>Trade</value></data>
+  <data name="Trade_PickPlayer" xml:space="preserve"><value>Pick a player to trade with</value></data>
+  <data name="Trade_Invite" xml:space="preserve"><value>Invite</value></data>
+  <data name="Trade_NobodyNear" xml:space="preserve"><value>No other players on this map.</value></data>
+  <data name="Trade_Waiting" xml:space="preserve"><value>Waiting for an answer…</value></data>
+  <data name="Trade_Yours" xml:space="preserve"><value>Yours</value></data>
+  <data name="Trade_Coins" xml:space="preserve"><value>Coins: {0}</value></data>
+  <data name="Trade_Confirmed" xml:space="preserve"><value>Confirmed</value></data>
+  <data name="Trade_NotConfirmed" xml:space="preserve"><value>Not confirmed</value></data>
+  <data name="Trade_AddCoins" xml:space="preserve"><value>Coins to offer</value></data>
+  <data name="Trade_SetCoins" xml:space="preserve"><value>Set coins</value></data>
+  <data name="Trade_PickItems" xml:space="preserve"><value>Click items in your inventory to offer them (click an offered item to take it back)</value></data>
+  <data name="Trade_Confirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Trade_Cancel" xml:space="preserve"><value>Cancel trade</value></data>
+  <data name="Trade_InviteTitle" xml:space="preserve"><value>Trade invitation</value></data>
+  <data name="Trade_InviteMessage" xml:space="preserve"><value>{0} wants to trade with you.</value></data>
+  <data name="Trade_Status_Ok" xml:space="preserve"><value>Done.</value></data>
+  <data name="Trade_Status_NotOnMap" xml:space="preserve"><value>You are not on a map.</value></data>
+  <data name="Trade_Status_TargetNotFound" xml:space="preserve"><value>That player is not on your map.</value></data>
+  <data name="Trade_Status_SelfTrade" xml:space="preserve"><value>You cannot trade with yourself.</value></data>
+  <data name="Trade_Status_AlreadyTrading" xml:space="preserve"><value>You are already trading.</value></data>
+  <data name="Trade_Status_TargetBusy" xml:space="preserve"><value>That player is busy.</value></data>
+  <data name="Trade_Status_NoInvite" xml:space="preserve"><value>There is no invitation.</value></data>
+  <data name="Trade_Status_NoSession" xml:space="preserve"><value>There is no open trade.</value></data>
+  <data name="Trade_Status_InvalidOffer" xml:space="preserve"><value>Invalid offer.</value></data>
+  <data name="Trade_Status_NotEnoughItems" xml:space="preserve"><value>You do not have those items.</value></data>
+  <data name="Trade_Status_NotEnoughCoins" xml:space="preserve"><value>You do not have enough coins.</value></data>
+  <data name="Trade_Status_NothingOffered" xml:space="preserve"><value>Neither side offers anything.</value></data>
+  <data name="Trade_Ended_Completed" xml:space="preserve"><value>Trade complete.</value></data>
+  <data name="Trade_Ended_Cancelled" xml:space="preserve"><value>You cancelled the trade.</value></data>
+  <data name="Trade_Ended_CancelledByOther" xml:space="preserve"><value>The other player cancelled the trade.</value></data>
+  <data name="Trade_Ended_OtherLeft" xml:space="preserve"><value>The other player left. Nothing was lost.</value></data>
+  <data name="Trade_Ended_Declined" xml:space="preserve"><value>The invitation was declined.</value></data>
+  <data name="Trade_Ended_InviteExpired" xml:space="preserve"><value>The invitation expired.</value></data>
+  <data name="Trade_Ended_NotEnoughItems" xml:space="preserve"><value>A side no longer had its items. Nothing moved.</value></data>
+  <data name="Trade_Ended_NotEnoughCoins" xml:space="preserve"><value>A side no longer had its coins. Nothing moved.</value></data>
+  <data name="Trade_Ended_NoSpace" xml:space="preserve"><value>Not enough room in an inventory. Nothing moved.</value></data>
+  <data name="Trade_Ended_Failed" xml:space="preserve"><value>The trade failed. Nothing moved.</value></data>
+  <data name="Trade_Ended_SelfLeft" xml:space="preserve"><value>You left the map, so the trade ended.</value></data>
+  <data name="Coop_Title" xml:space="preserve"><value>Co-op</value></data>
+  <data name="Coop_Create_Heading" xml:space="preserve"><value>Found a co-op</value></data>
+  <data name="Coop_NamePlaceholder" xml:space="preserve"><value>Co-op name</value></data>
+  <data name="Coop_Create" xml:space="preserve"><value>Found</value></data>
+  <data name="Coop_Invites_Heading" xml:space="preserve"><value>Invitations</value></data>
+  <data name="Coop_NoInvites" xml:space="preserve"><value>You have no invitations.</value></data>
+  <data name="Coop_Accept" xml:space="preserve"><value>Accept</value></data>
+  <data name="Coop_Decline" xml:space="preserve"><value>Decline</value></data>
+  <data name="Coop_InviteTitle" xml:space="preserve"><value>Co-op invitation</value></data>
+  <data name="Coop_InviteMessage" xml:space="preserve"><value>You are invited to the co-op "{0}".</value></data>
+  <data name="Coop_Members_Heading" xml:space="preserve"><value>Members</value></data>
+  <data name="Coop_You" xml:space="preserve"><value>You</value></data>
+  <data name="Coop_MemberNumber" xml:space="preserve"><value>Member {0}</value></data>
+  <data name="Coop_FormerMember" xml:space="preserve"><value>A former member</value></data>
+  <data name="Coop_Role_None" xml:space="preserve"><value>None</value></data>
+  <data name="Coop_Role_Founder" xml:space="preserve"><value>Founder</value></data>
+  <data name="Coop_Role_Member" xml:space="preserve"><value>Member</value></data>
+  <data name="Coop_Online" xml:space="preserve"><value>Online</value></data>
+  <data name="Coop_Offline" xml:space="preserve"><value>Offline</value></data>
+  <data name="Coop_Kick" xml:space="preserve"><value>Remove</value></data>
+  <data name="Coop_Invite" xml:space="preserve"><value>Invite</value></data>
+  <data name="Coop_NobodyNear" xml:space="preserve"><value>No other players here to invite.</value></data>
+  <data name="Coop_Leave" xml:space="preserve"><value>Leave co-op</value></data>
+  <data name="Coop_Warehouse_Heading" xml:space="preserve"><value>Shared warehouse</value></data>
+  <data name="Coop_WarehouseEmpty" xml:space="preserve"><value>The warehouse is empty.</value></data>
+  <data name="Coop_Available" xml:space="preserve"><value>You may take: {0}</value></data>
+  <data name="Coop_Quantity" xml:space="preserve"><value>Quantity</value></data>
+  <data name="Coop_Withdraw" xml:space="preserve"><value>Withdraw</value></data>
+  <data name="Coop_Deposit" xml:space="preserve"><value>Deposit</value></data>
+  <data name="Coop_DepositHint" xml:space="preserve"><value>Pick an item in the warehouse to take, or a slot of your inventory to deposit.</value></data>
+  <data name="Coop_Log_Heading" xml:space="preserve"><value>Warehouse log</value></data>
+  <data name="Coop_Log_Deposit" xml:space="preserve"><value>{0} - {1} deposited {2} {3}</value></data>
+  <data name="Coop_Log_Withdraw" xml:space="preserve"><value>{0} - {1} withdrew {2} {3}</value></data>
+  <data name="Coop_Status_Ok" xml:space="preserve"><value>Done.</value></data>
+  <data name="Coop_Status_InvalidName" xml:space="preserve"><value>Invalid name (3 to 40 characters).</value></data>
+  <data name="Coop_Status_AlreadyInCoop" xml:space="preserve"><value>You already belong to a co-op.</value></data>
+  <data name="Coop_Status_NotInCoop" xml:space="preserve"><value>You do not belong to a co-op.</value></data>
+  <data name="Coop_Status_NotFounder" xml:space="preserve"><value>Only the founder can do that.</value></data>
+  <data name="Coop_Status_TargetNotFound" xml:space="preserve"><value>That player is not on your map.</value></data>
+  <data name="Coop_Status_TargetInCoop" xml:space="preserve"><value>That player already belongs to a co-op.</value></data>
+  <data name="Coop_Status_InviteNotFound" xml:space="preserve"><value>That invitation is gone.</value></data>
+  <data name="Coop_Status_CannotLeave" xml:space="preserve"><value>The warehouse still holds items, so you cannot dissolve the co-op.</value></data>
+  <data name="Coop_Status_NotAllowed" xml:space="preserve"><value>You may not take that much.</value></data>
+  <data name="Coop_Status_NotEnough" xml:space="preserve"><value>Not enough items.</value></data>
+  <data name="Coop_Status_NoSpace" xml:space="preserve"><value>Your inventory is full.</value></data>
+  <data name="Coop_Status_InvalidQuantity" xml:space="preserve"><value>Invalid quantity.</value></data>
+  <data name="Coop_Status_NotTradable" xml:space="preserve"><value>That item cannot go into the warehouse.</value></data>
+  <data name="Coop_Status_UnknownItem" xml:space="preserve"><value>Unknown item.</value></data>
+  <data name="Coop_Status_MemberNotFound" xml:space="preserve"><value>No such member.</value></data>
+  <data name="Coop_Status_SelfKick" xml:space="preserve"><value>You cannot remove yourself; leave instead.</value></data>
+  <data name="Coop_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
+  <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>That player was already invited.</value></data>
 </root>

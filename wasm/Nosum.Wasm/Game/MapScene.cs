@@ -6,6 +6,7 @@ using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Rendering;
+using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Player;
 
 namespace Nosum.Wasm.Game;
@@ -41,6 +42,7 @@ internal sealed class MapScene
     private readonly PlayerChannel? _channel;
     private readonly RemotePlayers? _remote;
     private readonly PlayerActions? _actions;
+    private readonly LookChannel? _looks;
     private FixedTimestep _clock = new(StepSeconds, 0.25);
     private MapContent _content;
     private Walker _farmer;
@@ -59,10 +61,12 @@ internal sealed class MapScene
     /// <param name="look">The farmer's look.</param>
     /// <param name="start">Where to start: the preferred tile, or the place the server chose.</param>
     /// <param name="channel">Server connection for multiplayer, or <see langword="null"/> to play offline (no map changes).</param>
-    /// <param name="actions">Number keys, the action key and the inventory key; <see langword="null"/> when there is no server to act on.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null)
+    /// <param name="actions">Number keys, the action key and the panel keys; <see langword="null"/> when there is no server to act on.</param>
+    /// <param name="looks">The looks the server sent for the players on the map; <see langword="null"/> draws everyone with <paramref name="look"/>.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, LookChannel? looks = null)
     {
         _actions = actions;
+        _looks = looks;
         ArgumentNullException.ThrowIfNull(loader);
         ArgumentNullException.ThrowIfNull(content);
 
@@ -83,7 +87,7 @@ internal sealed class MapScene
         FadingIn,
     }
 
-    /// <summary>Gets or sets what the farmer wears.</summary>
+    /// <summary>Gets or sets what a farmer wears until the server's look for them arrives.</summary>
     public FarmerLook Look { get; set; }
 
     /// <summary>Gets the id of the map being shown (the old one until a map change has faded out).</summary>
@@ -162,7 +166,7 @@ internal sealed class MapScene
             decorators[i].AddToWorld(_world);
         }
 
-        FarmerSprite.Draw(_world, _farmerTextures, this.Look, _farmer.Facing, walkFrame, (int)_farmer.X, (int)_farmer.Y);
+        FarmerSprite.Draw(_world, _farmerTextures, _looks is not null && _looks.TryGetLocal(out LookInfo own) ? LookSprites.Resolve(own) : this.Look, _farmer.Facing, walkFrame, (int)_farmer.X, (int)_farmer.Y);
         if (_phase != Phase.FadingOut)
         {
             this.AddRemoteFarmers();
@@ -317,7 +321,8 @@ internal sealed class MapScene
 
             bool moving = (pose.State & 4) != 0 && !pose.Held;
             int walk = moving ? 1 + (int)(animation / WalkFrameSeconds) : 0;
-            FarmerSprite.Draw(_world, _farmerTextures, RemoteLook.For(id), (Facing)(pose.State & 3), walk, (int)pose.X, (int)pose.Y, (int)id);
+            FarmerLook look = _looks is not null && _looks.TryGet(id, out LookInfo known) ? LookSprites.Resolve(known) : this.Look;
+            FarmerSprite.Draw(_world, _farmerTextures, look, (Facing)(pose.State & 3), walk, (int)pose.X, (int)pose.Y, (int)id);
         }
     }
 }

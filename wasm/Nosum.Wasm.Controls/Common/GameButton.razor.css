@@ -1,0 +1,28 @@
+.game-button {
+    padding: 0.3rem 0.7rem;
+    border: 2px solid var(--nosum-button-border, #6b4a24);
+    border-radius: 4px;
+    background: var(--nosum-button-bg, #e8c27a);
+    color: var(--nosum-panel-fg, #3b2a14);
+    font: inherit;
+    cursor: pointer;
+}
+
+.game-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.game-button.danger {
+    background: var(--nosum-button-danger-bg, #e29a8f);
+}
+
+.game-button.plain,
+.game-button.tab {
+    background: var(--nosum-button-plain-bg, transparent);
+}
+
+.game-button.tab.active {
+    background: var(--nosum-button-bg, #e8c27a);
+    font-weight: bold;
+}

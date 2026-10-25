@@ -23,6 +23,8 @@ internal static class FarmerSprite
     private const int ShirtOffsetX = 4;
     private const int ShirtOffsetY = 15;
     private const int ShirtSize = 8;
+    private const int HatSize = 20;
+    private const int HatOffsetY = -4;
 
     private static readonly int[] s_walkColumns = [0, 1, 0, 2];
 
@@ -49,7 +51,7 @@ internal static class FarmerSprite
         int frameY = row * Height;
         int sortY = feetY;
 
-        batch.Add(textures.Body, frameX, frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
+        batch.Add(textures.Body, frameX, frameY, Width, Height, x, y, sortY, feetX, id, flags, look.SkinTint);
         batch.Add(textures.Pants, (look.Pants % 10 * PantsStyleWidth) + frameX, (look.Pants / 10 * 672) + frameY, Width, Height, x, y, sortY, feetX, id, flags, look.PantsTint);
 
         int shirtRow = facing == Facing.Up ? 24 : facing == Facing.Down ? 0 : 8;
@@ -57,6 +59,13 @@ internal static class FarmerSprite
 
         batch.Add(textures.Body, frameX + (ArmsColumnOffset * Width), frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
         batch.Add(textures.Hair, look.Hairstyle % 8 * Width, (look.Hairstyle / 8 * 96) + (row * Height), Width, Height, x, y + HairOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, flags, look.HairTint);
+
+        if (look.Hat >= 0)
+        {
+            // hats.png: 20 x 20 frames, one hat per 20 x 80 column strip (down, right, left, up), 12 hats per row.
+            int hatRow = facing switch { Facing.Down => 0, Facing.Right => 1, Facing.Left => 2, _ => 3 };
+            batch.Add(textures.Hats, look.Hat % 12 * HatSize, (look.Hat / 12 * HatSize * 4) + (hatRow * HatSize), HatSize, HatSize, x - ((HatSize - Width) / 2), y + HatOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, 0, look.HatTint);
+        }
     }
 }
 
@@ -65,4 +74,5 @@ internal static class FarmerSprite
 /// <param name="Pants">pants.png.</param>
 /// <param name="Shirts">shirts.png.</param>
 /// <param name="Hair">hairstyles.png.</param>
-internal readonly record struct FarmerTextures(int Body, int Pants, int Shirts, int Hair);
+/// <param name="Hats">hats.png.</param>
+internal readonly record struct FarmerTextures(int Body, int Pants, int Shirts, int Hair, int Hats);

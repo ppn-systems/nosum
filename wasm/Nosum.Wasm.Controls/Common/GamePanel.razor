@@ -1,0 +1,35 @@
+@* The frame of every panel and dialog: a title, a close button, a body and a status line. The look lives in this component's CSS and the --nosum-* variables only. *@
+<div class="game-panel @Class" role="dialog" aria-label="@Title">
+    <div class="game-panel-header">
+        <h2>@Title</h2>
+        @if (OnClose.HasDelegate)
+        {
+            <GameButton Variant="plain" Text="@CloseText" OnClick="OnClose" />
+        }
+    </div>
+    <div class="game-panel-body">@ChildContent</div>
+    @if (!string.IsNullOrEmpty(Status))
+    {
+        <p class="game-panel-status" role="status">@Status</p>
+    }
+</div>
+
+@code {
+    /// <summary>The title (already localized).</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+
+    /// <summary>The close button's text (already localized).</summary>
+    [Parameter] public string CloseText { get; set; } = string.Empty;
+
+    /// <summary>Raised when the close button is clicked; without a handler there is no close button.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>The status line under the body (already localized), or empty.</summary>
+    [Parameter] public string? Status { get; set; }
+
+    /// <summary>Extra shared CSS classes, for example <c>wide</c>.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>The body.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}
