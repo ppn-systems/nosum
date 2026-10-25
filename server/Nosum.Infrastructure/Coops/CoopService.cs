@@ -41,6 +41,7 @@ public sealed class CoopService : ICoopService, IDisposable
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly ITransferService _transfers;
     private readonly IInventoryService _inventory;
+    private readonly CoopDirectory _directory;
     private readonly IMapPresence _presence;
     private readonly ISessionRegistry _sessions;
     private readonly IPlayerNotifier _notifier;
@@ -65,7 +66,8 @@ public sealed class CoopService : ICoopService, IDisposable
     /// <param name="time">The clock; tests pass a fake one.</param>
     /// <param name="mail">Receives a mail for an invited player (docs/adr/ADR-029 D5); <see langword="null"/> to send none.</param>
     /// <param name="blocks">The block lists: an invitation between players where either blocked the other is dropped (docs/adr/ADR-029 D3); <see langword="null"/> to check none.</param>
-    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IInventoryService inventory, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IFarmService farm, ICoopLandEviction eviction, TimeProvider time, IMailService? mail = null, IBlockList? blocks = null)
+    /// <param name="directory">Who is in which co-op, held in memory (docs/adr/ADR-035 D5); this service drops what it changed. <see langword="null"/> reads the rows every time.</param>
+    public CoopService(IUnitOfWorkFactory unitOfWork, ITransferService transfers, IInventoryService inventory, IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IFarmService farm, ICoopLandEviction eviction, TimeProvider time, IMailService? mail = null, IBlockList? blocks = null, CoopDirectory? directory = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(transfers);
@@ -90,6 +92,7 @@ public sealed class CoopService : ICoopService, IDisposable
         _time = time;
         _mail = mail;
         _blocks = blocks;
+        _directory = directory ?? new CoopDirectory(unitOfWork, cached: false);
     }
 
     /// <inheritdoc/>
@@ -102,44 +105,42 @@ public sealed class CoopService : ICoopService, IDisposable
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            CoopMember? me = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
-            if (me is null)
+            CoopRecord? mine = await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false);
+            if (mine?.MemberOf(playerId) is not { } me)
             {
                 List<CoopInvite> invites = await unit.Repository<CoopInvite>().ListAsync(i => i.PlayerId == playerId && i.ExpiresAt > now, cancellationToken).ConfigureAwait(false);
                 List<CoopInviteView> views = [];
                 foreach (CoopInvite invite in invites)
                 {
-                    Coop? coop = await unit.Repository<Coop>().FindAsync(invite.CoopId, cancellationToken).ConfigureAwait(false);
-                    if (coop is not null)
+                    Coop? offered = await unit.Repository<Coop>().FindAsync(invite.CoopId, cancellationToken).ConfigureAwait(false);
+                    if (offered is not null)
                     {
-                        CoopMember? founder = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.CoopId == coop.Id && m.Role == CoopRole.Founder, cancellationToken).ConfigureAwait(false);
+                        CoopMember? founder = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.CoopId == offered.Id && m.Role == CoopRole.Founder, cancellationToken).ConfigureAwait(false);
                         string inviter = founder is null ? string.Empty : await _nicknames.GetAsync(founder.PlayerId, cancellationToken).ConfigureAwait(false);
-                        views.Add(new CoopInviteView(invite.Id, coop.Name, inviter));
+                        views.Add(new CoopInviteView(invite.Id, offered.Name, inviter));
                     }
                 }
 
                 return new CoopView(false, string.Empty, CoopRole.None, [], [], [], views, now);
             }
 
-            Coop? mine = await unit.Repository<Coop>().FindAsync(me.CoopId, cancellationToken).ConfigureAwait(false);
-            List<CoopMember> members = await unit.Repository<CoopMember>().ListAsync(m => m.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false);
-            HashSet<Guid> memberIds = [.. members.Select(m => m.Id)];
-            IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(members.Select(m => m.PlayerId), cancellationToken).ConfigureAwait(false);
-            List<CoopMemberView> memberViews = [.. members
-                .OrderBy(m => m.JoinedAt)
+            Guid coopId = mine.Id;
+            HashSet<Guid> memberIds = [.. mine.Members.Select(m => m.Id)];
+            IReadOnlyDictionary<Guid, string> names = await _nicknames.GetManyAsync(mine.Members.Select(m => m.PlayerId), cancellationToken).ConfigureAwait(false);
+            List<CoopMemberView> memberViews = [.. mine.Members
                 .Select(m => new CoopMemberView(m.Id, m.Role, m.Id == me.Id, _sessions.GetActive(m.PlayerId) is not null, names.GetValueOrDefault(m.PlayerId, string.Empty)))];
 
-            List<CoopLogEntry> mineLog = await unit.Repository<CoopLogEntry>().ListAsync(e => e.CoopId == me.CoopId && e.MemberId == me.Id, cancellationToken).ConfigureAwait(false);
+            List<CoopLogEntry> mineLog = await unit.Repository<CoopLogEntry>().ListAsync(e => e.CoopId == coopId && e.MemberId == me.Id, cancellationToken).ConfigureAwait(false);
             Dictionary<int, long> contributed = mineLog.Where(e => CoopLand.IsWarehouseReason(e.Reason)).GroupBy(e => e.ItemId).ToDictionary(g => g.Key, g => g.Sum(e => (long)e.Delta));
-            List<CoopStockItem> stock = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false);
+            List<CoopStockItem> stock = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == coopId, cancellationToken).ConfigureAwait(false);
             List<CoopStockView> stockViews = [.. stock
                 .OrderBy(s => s.ItemId)
                 .Select(s => new CoopStockView(s.ItemId, s.Quantity, CoopRules.Withdrawable(me.Role == CoopRole.Founder, s.Quantity, contributed.GetValueOrDefault(s.ItemId))))];
 
-            List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == me.CoopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw"), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
+            List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == coopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw"), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
             List<CoopLogView> logViews = [.. recent.Select(e => new CoopLogView(memberIds.Contains(e.MemberId) ? e.MemberId : Guid.Empty, e.ItemId, e.Delta, e.OccurredAt))];
 
-            return new CoopView(true, mine?.Name ?? string.Empty, me.Role, memberViews, stockViews, logViews, [], now, mine?.WarehouseLevel ?? 0, mine?.LandLevel ?? 0);
+            return new CoopView(true, mine.Name, me.Role, memberViews, stockViews, logViews, [], now, mine.WarehouseLevel, mine.LandLevel);
         }
     }
 
@@ -176,6 +177,10 @@ public sealed class CoopService : ICoopService, IDisposable
                 {
                     return CoopStatus.AlreadyInCoop;
                 }
+                finally
+                {
+                    _directory.Changed(coop.Id, playerId);
+                }
             }
 
             await this.PushToAsync([playerId], cancellationToken).ConfigureAwait(false);
@@ -189,7 +194,7 @@ public sealed class CoopService : ICoopService, IDisposable
 
     // The invitation is stored and pushed; the mail is the copy that waits for a player who is offline (docs/adr/ADR-029 D5).
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031", Justification = "The invitation is committed; a failing mail must not turn it into an error for the inviter.")]
-    private async Task MailInviteAsync(IUnitOfWork unit, Guid coopId, Guid inviterId, Guid inviteeId, CancellationToken cancellationToken)
+    private async Task MailInviteAsync(string coopName, Guid inviterId, Guid inviteeId, CancellationToken cancellationToken)
     {
         if (_mail is null)
         {
@@ -198,9 +203,8 @@ public sealed class CoopService : ICoopService, IDisposable
 
         try
         {
-            Coop? coop = await unit.Repository<Coop>().FindAsync(coopId, cancellationToken).ConfigureAwait(false);
             string inviter = await _nicknames.GetAsync(inviterId, cancellationToken).ConfigureAwait(false);
-            _ = await _mail.SendAsync(inviteeId, MailRules.Codes.CoopInvite, [coop?.Name ?? string.Empty, inviter], null, cancellationToken).ConfigureAwait(false);
+            _ = await _mail.SendAsync(inviteeId, MailRules.Codes.CoopInvite, [coopName, inviter], null, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -228,8 +232,8 @@ public sealed class CoopService : ICoopService, IDisposable
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
-                CoopMember? member = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
-                if (member is null)
+                CoopRecord? mine = await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false);
+                if (mine?.MemberOf(playerId) is not { } member)
                 {
                     return CoopStatus.NotInCoop;
                 }
@@ -250,13 +254,13 @@ public sealed class CoopService : ICoopService, IDisposable
                     return CoopStatus.TargetNotFound;
                 }
 
-                if (await unit.Repository<CoopMember>().AnyAsync(m => m.PlayerId == invitee, cancellationToken).ConfigureAwait(false))
+                if (await _directory.OfPlayerAsync(invitee, cancellationToken).ConfigureAwait(false) is not null)
                 {
                     return CoopStatus.TargetInCoop;
                 }
 
                 IRepository<CoopInvite> invites = unit.Repository<CoopInvite>();
-                CoopInvite? existing = await invites.FirstOrDefaultAsync(i => i.CoopId == member.CoopId && i.PlayerId == invitee, cancellationToken).ConfigureAwait(false);
+                CoopInvite? existing = await invites.FirstOrDefaultAsync(i => i.CoopId == mine.Id && i.PlayerId == invitee, cancellationToken).ConfigureAwait(false);
                 if (existing is not null)
                 {
                     if (existing.ExpiresAt > now)
@@ -267,7 +271,7 @@ public sealed class CoopService : ICoopService, IDisposable
                     invites.Remove(existing);
                 }
 
-                invites.Add(new CoopInvite { CoopId = member.CoopId, PlayerId = invitee, CreatedAt = now, ExpiresAt = now.AddHours(CoopRules.InviteHours) });
+                invites.Add(new CoopInvite { CoopId = mine.Id, PlayerId = invitee, CreatedAt = now, ExpiresAt = now.AddHours(CoopRules.InviteHours) });
                 try
                 {
                     _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -278,7 +282,7 @@ public sealed class CoopService : ICoopService, IDisposable
                 }
 
                 await this.PushToAsync([invitee], cancellationToken).ConfigureAwait(false);
-                await this.MailInviteAsync(unit, member.CoopId, playerId, invitee, cancellationToken).ConfigureAwait(false);
+                await this.MailInviteAsync(mine.Name, playerId, invitee, cancellationToken).ConfigureAwait(false);
                 return CoopStatus.Ok;
             }
         }
@@ -313,7 +317,7 @@ public sealed class CoopService : ICoopService, IDisposable
                 }
                 else
                 {
-                    if (await unit.Repository<CoopMember>().AnyAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false))
+                    if (await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false) is not null)
                     {
                         return CoopStatus.AlreadyInCoop;
                     }
@@ -332,8 +336,12 @@ public sealed class CoopService : ICoopService, IDisposable
                     {
                         return CoopStatus.AlreadyInCoop;
                     }
+                    finally
+                    {
+                        _directory.Changed(invite.CoopId, playerId);
+                    }
 
-                    toPush.AddRange(await this.MemberPlayersAsync(unit, invite.CoopId, cancellationToken).ConfigureAwait(false));
+                    toPush.AddRange(await this.MemberPlayersAsync(playerId, cancellationToken).ConfigureAwait(false));
                 }
             }
 
@@ -389,7 +397,15 @@ public sealed class CoopService : ICoopService, IDisposable
                 }
 
                 memberRepository.Remove(me);
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _directory.Changed(me.CoopId, playerId);
+                }
+
                 toPush.AddRange(others.Select(m => m.PlayerId));
             }
 
@@ -445,10 +461,18 @@ public sealed class CoopService : ICoopService, IDisposable
                 }
 
                 members.Remove(target);
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _directory.Changed(me.CoopId, target.PlayerId);
+                }
+
                 removedPlayer = target.PlayerId;
                 toPush.Add(target.PlayerId);
-                toPush.AddRange(await this.MemberPlayersAsync(unit, me.CoopId, cancellationToken).ConfigureAwait(false));
+                toPush.AddRange(await this.MemberPlayersAsync(playerId, cancellationToken).ConfigureAwait(false));
                 ended = target.PlayerId;
             }
 
@@ -475,8 +499,7 @@ public sealed class CoopService : ICoopService, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            CoopMember? me = await this.FindMemberAsync(playerId, cancellationToken).ConfigureAwait(false);
-            if (me is null)
+            if (await this.FindMemberAsync(playerId, cancellationToken).ConfigureAwait(false) is not { } me)
             {
                 return CoopStatus.NotInCoop;
             }
@@ -485,7 +508,7 @@ public sealed class CoopService : ICoopService, IDisposable
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
-                Coop? coop = await unit.Repository<Coop>().FindAsync(me.CoopId, cancellationToken).ConfigureAwait(false);
+                CoopRecord? coop = await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false);
                 List<CoopStockItem> held = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false);
                 if (!CoopUpgrades.CanStore(coop?.WarehouseLevel ?? 0, held.Count, held.Exists(s => s.ItemId == itemId)))
                 {
@@ -513,8 +536,7 @@ public sealed class CoopService : ICoopService, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            CoopMember? me = await this.FindMemberAsync(playerId, cancellationToken).ConfigureAwait(false);
-            if (me is null)
+            if (await this.FindMemberAsync(playerId, cancellationToken).ConfigureAwait(false) is not { } me)
             {
                 return CoopStatus.NotInCoop;
             }
@@ -562,8 +584,7 @@ public sealed class CoopService : ICoopService, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            CoopMember? me = await this.FindMemberAsync(playerId, cancellationToken).ConfigureAwait(false);
-            if (me is null)
+            if (await this.FindMemberAsync(playerId, cancellationToken).ConfigureAwait(false) is not { } me)
             {
                 return CoopStatus.NotInCoop;
             }
@@ -581,7 +602,7 @@ public sealed class CoopService : ICoopService, IDisposable
             IUnitOfWork read = _unitOfWork.Create();
             await using (read.ConfigureAwait(false))
             {
-                Coop? coop = await read.Repository<Coop>().FindAsync(coopId, cancellationToken).ConfigureAwait(false);
+                CoopRecord? coop = await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false);
                 if (coop is null)
                 {
                     return CoopStatus.NotInCoop;
@@ -640,17 +661,14 @@ public sealed class CoopService : ICoopService, IDisposable
                 },
                 cancellationToken).ConfigureAwait(false);
 
+            // The level may have changed in the row whatever the status says (a lost race): the next read comes from the rows.
+            _directory.Changed(coopId);
             if (status != TransferStatus.Ok)
             {
                 return stale ? CoopStatus.AlreadyUpgraded : status == TransferStatus.NotEnoughItems ? CoopStatus.NotEnough : CoopStatus.Conflict;
             }
 
-            IUnitOfWork members = _unitOfWork.Create();
-            await using (members.ConfigureAwait(false))
-            {
-                await this.PushToAsync(await this.MemberPlayersAsync(members, coopId, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-            }
-
+            await this.PushToAsync(await this.MemberPlayersAsync(playerId, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
             return CoopStatus.Ok;
         }
         finally
@@ -662,7 +680,7 @@ public sealed class CoopService : ICoopService, IDisposable
     /// <inheritdoc/>
     public void Dispose() => _gate.Dispose();
 
-    private async Task<CoopStatus> MoveAsync(CoopMember me, int itemId, int quantity, bool deposit, CancellationToken cancellationToken)
+    private async Task<CoopStatus> MoveAsync(Me me, int itemId, int quantity, bool deposit, CancellationToken cancellationToken)
     {
         int signed = deposit ? quantity : -quantity;
         Guid coopId = me.CoopId;
@@ -698,13 +716,7 @@ public sealed class CoopService : ICoopService, IDisposable
             };
         }
 
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
-        {
-            List<Guid> players = await this.MemberPlayersAsync(unit, coopId, cancellationToken).ConfigureAwait(false);
-            await this.PushToAsync(players, cancellationToken).ConfigureAwait(false);
-        }
-
+        await this.PushToAsync(await this.MemberPlayersAsync(me.PlayerId, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
         return CoopStatus.Ok;
     }
 
@@ -772,20 +784,20 @@ public sealed class CoopService : ICoopService, IDisposable
         return wiped;
     }
 
-    private async Task<CoopMember?> FindMemberAsync(Guid playerId, CancellationToken cancellationToken)
+    private async Task<Me?> FindMemberAsync(Guid playerId, CancellationToken cancellationToken)
     {
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
-        {
-            return await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
-        }
+        CoopRecord? coop = await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false);
+        return coop?.MemberOf(playerId) is { } member ? new Me(member.Id, coop.Id, playerId, member.Role) : null;
     }
 
-    private async Task<List<Guid>> MemberPlayersAsync(IUnitOfWork unit, Guid coopId, CancellationToken cancellationToken)
+    // The players of the co-op the given member belongs to, from the directory (after a change it was dropped, so this reads the rows again once).
+    private async Task<List<Guid>> MemberPlayersAsync(Guid memberPlayerId, CancellationToken cancellationToken)
     {
-        List<CoopMember> members = await unit.Repository<CoopMember>().ListAsync(m => m.CoopId == coopId, cancellationToken).ConfigureAwait(false);
-        return [.. members.Select(m => m.PlayerId)];
+        CoopRecord? coop = await _directory.OfPlayerAsync(memberPlayerId, cancellationToken).ConfigureAwait(false);
+        return coop is null ? [] : [.. coop.Members.Select(m => m.PlayerId)];
     }
+
+    private readonly record struct Me(Guid Id, Guid CoopId, Guid PlayerId, CoopRole Role);
 
     // Each online player gets their own view (their role, what they may take) as a pushed snapshot.
     private async Task PushToAsync(IEnumerable<Guid> players, CancellationToken cancellationToken)

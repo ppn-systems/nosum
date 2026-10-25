@@ -19,6 +19,7 @@ using Nosum.Contracts.Chat.S2C;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Social;
+using Nosum.Infrastructure.Coops;
 using Nosum.Gameplay.Chat;
 using Nosum.Gameplay.Players;
 
@@ -44,6 +45,7 @@ public sealed class ChatService : IChatService
     private readonly TimeProvider _time;
     private readonly IChunkMap? _chunks;
     private readonly IMuteList? _mutes;
+    private readonly CoopDirectory _coops;
     private readonly ConcurrentDictionary<Guid, ChatRateLimiter> _limiters = new();
     private readonly ConcurrentDictionary<Guid, Ring> _rings = new();
     private int _recorded;
@@ -58,7 +60,8 @@ public sealed class ChatService : IChatService
     /// <param name="time">The clock for the rate rule and message times; tests pass a fake one.</param>
     /// <param name="chunks">Who sees whom (docs/adr/ADR-022), for local chat; <see langword="null"/> sends local chat to the whole instance.</param>
     /// <param name="mutes">Who an admin muted (docs/adr/ADR-031 D7); <see langword="null"/> mutes nobody.</param>
-    public ChatService(IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IBlockList blocks, IUnitOfWorkFactory unitOfWork, TimeProvider time, IChunkMap? chunks = null, IMuteList? mutes = null)
+    /// <param name="coops">Who is in which co-op (docs/adr/ADR-035 D5), for co-op chat; <see langword="null"/> reads the rows every time.</param>
+    public ChatService(IMapPresence presence, ISessionRegistry sessions, IPlayerNotifier notifier, INicknameDirectory nicknames, IBlockList blocks, IUnitOfWorkFactory unitOfWork, TimeProvider time, IChunkMap? chunks = null, IMuteList? mutes = null, CoopDirectory? coops = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(sessions);
@@ -77,6 +80,7 @@ public sealed class ChatService : IChatService
         _time = time;
         _chunks = chunks;
         _mutes = mutes;
+        _coops = coops ?? new CoopDirectory(unitOfWork, cached: false);
     }
 
     /// <inheritdoc/>
@@ -267,27 +271,21 @@ public sealed class ChatService : IChatService
 
     private async Task<bool> CollectCoopAsync(Guid senderId, List<Guid> into, CancellationToken cancellationToken)
     {
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
+        CoopRecord? coop = await _coops.OfPlayerAsync(senderId, cancellationToken).ConfigureAwait(false);
+        if (coop is null)
         {
-            CoopMember? mine = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.PlayerId == senderId, cancellationToken).ConfigureAwait(false);
-            if (mine is null)
-            {
-                return false;
-            }
-
-            Guid coopId = mine.CoopId;
-            List<CoopMember> members = await unit.Repository<CoopMember>().ListAsync(m => m.CoopId == coopId, cancellationToken).ConfigureAwait(false);
-            foreach (CoopMember member in members)
-            {
-                if (_sessions.GetActive(member.PlayerId) is not null)
-                {
-                    into.Add(member.PlayerId);
-                }
-            }
-
-            return true;
+            return false;
         }
+
+        foreach (CoopMemberRecord member in coop.Members)
+        {
+            if (_sessions.GetActive(member.PlayerId) is not null)
+            {
+                into.Add(member.PlayerId);
+            }
+        }
+
+        return true;
     }
 
     // A whisper goes to one online player. A player who blocked the sender looks offline; a player the sender blocked is refused honestly.

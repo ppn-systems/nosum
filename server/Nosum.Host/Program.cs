@@ -464,13 +464,19 @@ internal static class Program
         InstanceManager.Instance.Register<IPlacedLookup>(placedTiles);
         // Every world feature publishes through the chunk publisher and sends its chunk's state when it joins a player's interest set (docs/adr/ADR-022).
         // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
-        CoopMembership coopMembership = new(unitOfWork);
+        CoopDirectory coopDirectory = new(unitOfWork);
+        sessions.SessionEnded += id =>
+        {
+            coopDirectory.Forget(id);
+            return ValueTask.CompletedTask;
+        };
+        CoopMembership coopMembership = new(unitOfWork, coopDirectory);
         InstanceManager.Instance.Register<ICoopMembership>(coopMembership);
         // Farm buildings (docs/adr/ADR-028): their doors are known to the movement path, and the inside of a building is entered by whoever may enter its land.
         BuildingDirectory buildingDirectory = new(unitOfWork);
         InstanceManager.Instance.Register<IBuildingDirectory>(buildingDirectory);
         // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019); the inside of a building follows its land (docs/adr/ADR-028 D2).
-        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork, nicknames), buildingDirectory, coopMembership, clock);
+        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork, nicknames, coopDirectory), buildingDirectory, coopMembership, clock);
 
         // Admin intents, the mute list and the live gauges (docs/adr/ADR-031 D6-D7).
         OpsServices.Register(unitOfWork, sessions, transfers, presence, clock);
@@ -581,14 +587,14 @@ internal static class Program
         }
 
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock, blocks));
-        CoopService coops = new(unitOfWork, transfers, inventory, presence, sessions, notifier, nicknames, farm, players, clock, mail, blocks);
+        CoopService coops = new(unitOfWork, transfers, inventory, presence, sessions, notifier, nicknames, farm, players, clock, mail, blocks, coopDirectory);
         InstanceManager.Instance.Register<ICoopService>(coops);
 
         // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
         FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock);
         InstanceManager.Instance.Register<IFriendService>(friends);
         InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory));
-        InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>()));
+        InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
 
         // Armed last: every subscriber is in place before the first boundary.
         dayClock.Start();
