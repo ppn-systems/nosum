@@ -13,6 +13,25 @@ public enum ItemKind
 
     /// <summary>Produce harvested from a crop.</summary>
     Produce = 3,
+
+    /// <summary>Clothing a player wears; its <see cref="WearSlot"/> says where (docs/adr/ADR-014).</summary>
+    Clothing = 4,
+}
+
+/// <summary>Where a clothing item is worn. The numbers are also the wire values of the wardrobe packets; append-only.</summary>
+public enum WearSlot : byte
+{
+    /// <summary>Not wearable.</summary>
+    None = 0,
+
+    /// <summary>Worn on the upper body.</summary>
+    Shirt = 1,
+
+    /// <summary>Worn on the legs.</summary>
+    Pants = 2,
+
+    /// <summary>Worn on the head.</summary>
+    Hat = 3,
 }
 
 /// <summary>Which tool a <see cref="ItemKind.Tool"/> item is.</summary>

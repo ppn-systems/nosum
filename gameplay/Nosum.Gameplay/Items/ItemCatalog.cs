@@ -8,7 +8,7 @@ namespace Nosum.Gameplay.Items;
 
 /// <summary>
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
-/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-199 seeds, 200-299 produce.
+/// put in an inventory. Ids are append-only. Ids below 100 are tools, 100-199 seeds, 200-299 produce, 300-399 clothing.
 /// </summary>
 public static class ItemCatalog
 {
@@ -36,6 +36,27 @@ public static class ItemCatalog
     /// <summary>A harvested cauliflower.</summary>
     public const int Cauliflower = 202;
 
+    /// <summary>A red shirt.</summary>
+    public const int ShirtRed = 300;
+
+    /// <summary>A green shirt.</summary>
+    public const int ShirtGreen = 301;
+
+    /// <summary>A blue shirt.</summary>
+    public const int ShirtBlue = 302;
+
+    /// <summary>Blue trousers.</summary>
+    public const int PantsBlue = 320;
+
+    /// <summary>Khaki trousers.</summary>
+    public const int PantsKhaki = 321;
+
+    /// <summary>A straw hat.</summary>
+    public const int HatStraw = 340;
+
+    /// <summary>A cap.</summary>
+    public const int HatCap = 341;
+
     /// <summary>Largest stack of seeds and produce.</summary>
     public const int DefaultStack = 99;
 
@@ -49,6 +70,13 @@ public static class ItemCatalog
         new(Parsnip, "parsnip", ItemKind.Produce, DefaultStack),
         new(Radish, "radish", ItemKind.Produce, DefaultStack),
         new(Cauliflower, "cauliflower", ItemKind.Produce, DefaultStack),
+        new(ShirtRed, "shirt_red", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
+        new(ShirtGreen, "shirt_green", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
+        new(ShirtBlue, "shirt_blue", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
+        new(PantsBlue, "pants_blue", ItemKind.Clothing, 1, wear: WearSlot.Pants),
+        new(PantsKhaki, "pants_khaki", ItemKind.Clothing, 1, wear: WearSlot.Pants),
+        new(HatStraw, "hat_straw", ItemKind.Clothing, 1, wear: WearSlot.Hat),
+        new(HatCap, "hat_cap", ItemKind.Clothing, 1, wear: WearSlot.Hat),
     ];
 
     private static readonly Dictionary<int, ItemDefinition> s_byId = Index();
