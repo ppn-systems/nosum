@@ -18,6 +18,11 @@
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" />
   </ItemGroup>
 
+  <!-- UI localization: IStringLocalizer abstractions only (docs/adr/ADR-010 D3); the resx-backed implementation is in Nosum.Wasm.ViewModels. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.13" />
+  </ItemGroup>
+
   <!-- Image processing: tools/ only (docs/adr/ADR-004 D3). -->
   <ItemGroup>
     <PackageVersion Include="SkiaSharp" Version="4.153.1" />
