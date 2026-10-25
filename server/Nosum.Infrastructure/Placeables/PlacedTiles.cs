@@ -35,7 +35,7 @@ public sealed class PlacedTiles : IPlacedLookup
     /// <summary>Replaces what is known about an instance.</summary>
     /// <param name="instance">The place.</param>
     /// <param name="items">The pieces now standing there.</param>
-    internal void Publish(MapInstance instance, IReadOnlyList<PlacedItem> items)
+    public void Publish(MapInstance instance, IReadOnlyList<PlacedItem> items)
     {
         HashSet<(int X, int Y)> covered = [];
         PlacedItem[] copy = [.. items];
