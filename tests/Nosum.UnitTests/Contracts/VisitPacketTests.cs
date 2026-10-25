@@ -73,7 +73,7 @@ public sealed class VisitPacketTests
     [Fact]
     public void RefusalCodesAddedForVisitors_AppendAfterTheExistingOnes()
     {
-        ((byte)FarmStatus.NotYourFarm).Should().Be(14);
+        ((byte)FarmStatus.NotYourFarm).Should().Be(16, "14 and 15 are the season refusals");
         ((byte)PlaceStatus.NotYourPlace).Should().Be(14);
         ((byte)MarketStatus.NotYourBin).Should().Be(18);
         ((byte)FarmStatus.Conflict).Should().Be(13, "existing values did not move");

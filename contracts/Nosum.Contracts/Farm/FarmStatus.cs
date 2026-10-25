@@ -47,8 +47,14 @@ public enum FarmStatus : byte
     /// <summary>Another change to the same tile or inventory was applied at the same time; ask again.</summary>
     Conflict = 13,
 
+    /// <summary>The seed's crop does not grow in the current season (docs/adr/ADR-018).</summary>
+    OutOfSeason = 14,
+
+    /// <summary>The crop withered when its season ended and cannot be harvested; plant over it.</summary>
+    Withered = 15,
+
     /// <summary>A visitor may only water another player's crops; till, plant and harvest are the owner's (docs/adr/ADR-019 D3).</summary>
-    NotYourFarm = 14,
+    NotYourFarm = 16,
 }
 
 /// <summary>What a successful <see cref="C2S.UseItem"/> did. Values are append-only.</summary>

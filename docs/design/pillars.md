@@ -85,12 +85,18 @@ the client never decides a contribution, a trade or a goal outcome.
 
 - Visiting: the owner keeps an allow-list of registered players (by nickname, up to 50) and a switch for co-op members (on by default); a listed player or co-op member visits by typing the owner's nickname on a public map, even while the owner is offline; a visitor walks, looks, trades and waters crops, and cannot till, plant, harvest, move furniture or use the shipping bin; removing a player, switching co-op visits off or leaving the co-op sends them to the Town at once. Guests can visit when invited but keep no list and cannot be visited. Proposed defaults, owner to confirm.
 
+## Built so far (seasons, [ADR-018](../adr/ADR-018-seasons-and-server-calendar.md); proposed defaults, owner to confirm)
+
+- One server calendar from server time: a season is 28 game days of 12 real hours (14 real days), four seasons a year. The client gets the epoch and day length once and shows season, day and time in a HUD widget.
+- Crops list the seasons they grow in (parsnip spring/fall/winter, radish summer/fall, cauliflower spring/summer). Planting out of season is refused, a crop withers at the season change (mature or not), and the seed shop only sells seeds that can be planted now.
+- Not built yet: community goals, seasonal prices or events, a time-of-day tint of the world, withered-crop art.
+
 ## Open questions
 
 - Whether a player may belong to more than one co-op (built: one).
 - Market fee rate, listing duration, and limits that stop one player cornering a crop (built defaults: 5 %, 48 hours, 20 listings; no cornering limit yet). The fee itself is closed: a coin sink.
 - Shop prices and stock (built: unlimited stock; seeds 10/15/30, furniture 80-400, clothing 40-80) and whether more shops are wanted (built: seed, clothing and furniture shops in the town).
-- Season length in real time.
+- Season length is settled (two real weeks); open: the game-day length (built: 12 real hours, 28 days a season), the calendar epoch, and whether a mature crop that is not harvested in time withers (built: yes).
 - How many players share one instance of a public map (town) before it splits into copies.
 - Visiting (built as a proposal, [ADR-019](../adr/ADR-019-visiting-private-instances.md)): what a visitor may touch beyond walking and watering, whether an invitation needs the owner online, how guests take part, and how a visit is started (a panel now; a gate or a profile action later). The ADR lists seven owner questions.
 - Whether furniture may also go outdoors (on the farm) and what else is placeable (decorations, machines).

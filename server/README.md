@@ -90,6 +90,9 @@ through; only `MapSpec.Farmable` maps (the farm) accept it. `IQuestService` coun
 `InventoryHandlers`, `FarmHandlers`, `QuestHandlers` (`USER`, rate limited per address). `Program.BuildApplication(port, clock)` takes the clock crops grow by, so tests move time.
 Tables: `player_inventories`, `inventory_slots`, `inventory_log`, `farm_plots`, `player_quests` (migration `InventoryFarmQuests`).
 
+Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `Program` builds one `GameCalendar` (default epoch and 12 h game day, epoch override `NOSUM_CALENDAR_EPOCH`) and gives it to `FarmService` (planting by season, withered crops) and
+`ShopService` (seeds only in season, `ShopStatus.OutOfSeason`); `ICalendarService` / `CalendarService` and `CalendarHandlers` (`0xD000`, USER) answer `GetCalendar` with the epoch, the day length and the server clock. No new table.
+
 Shop, nicknames and tester grant ([ADR-013 amendments](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-009 amendments](../docs/adr/ADR-009-postgresql-persistence-and-accounts.md)):
 `IShopService` (`Shops/ShopService`) prices a purchase with `ShopRules`, checks the player's own presence is at the shop's counter, and buys through `ITransferService`
 (reason `shop.buy`); `ShopHandlers` (`0xC000`, encrypted, USER, rate limited). Every player has a nickname: `AccountService` validates and stores it (`NicknameRules`, unique index
