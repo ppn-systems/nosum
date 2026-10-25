@@ -1,11 +1,18 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
-  <!-- Blazor WASM: trimmed, interpreter (no AOT) until bench/ numbers justify AOT (docs/adr/ADR-002). -->
+  <!-- Blazor WASM: trimmed; interpreter for every dev build and publish (fastest builds). -->
   <PropertyGroup>
     <IsAotCompatible>false</IsAotCompatible>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
+  </PropertyGroup>
+
+  <!-- Web deploy only (docs/adr/ADR-002 D5): `dotnet publish -c Release -p:NosumWebDeploy=true`
+       compiles the client to WebAssembly ahead of time. Needs the `wasm-tools` workload and
+       takes minutes; never on by default so local and agent builds stay fast. -->
+  <PropertyGroup Condition="'$(NosumWebDeploy)' == 'true' And '$(Configuration)' == 'Release'">
+    <RunAOTCompilation>true</RunAOTCompilation>
   </PropertyGroup>
 
   <!-- A WASM publish output is downloaded by every player: keep symbols and XML docs out of it. -->

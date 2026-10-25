@@ -26,6 +26,13 @@ character while keeping its pose and canvas, which makes garment extraction poss
 - **D4 — Compose once, draw once.** When a character's appearance changes, the client composes
   its layers into one cached image per direction/frame; the frame loop draws that cache, so a
   dressed character costs one draw like any sprite (keeps ADR-002's one-crossing-per-frame rule).
+- **D6 — The server decides every look; the wire carries ids only.** The server owns each
+  player's avatar parts (body, skin, hair) and equipped items and sends, to every client on the
+  map (on join and whenever it changes), only ids: avatar part ids, equipped item ids and dye
+  ids. No sprite coordinates, colours or text on the wire. Each client resolves ids to sheets,
+  frames, tints and localized names through the shared catalogue. Clients never derive a look
+  from a player id or local data; the id-derived look in `RemoteLook.cs` is a stand-in until
+  this ships. (Owner decision, 2026-10-25.)
 - **D5 — Appearance is server data.** What a player wears is a list of item ids plus colour
   values, owned and validated by the server (the player must own each item) and sent to players
   on the same map. Wardrobe items are tradable through the market (docs/design/pillars.md).
