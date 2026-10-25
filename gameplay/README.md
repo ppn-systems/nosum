@@ -30,11 +30,12 @@ that the server decides with and the client predicts with.
 
 Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)):
 
-- `Items/ItemCatalog` (tools, seeds, produce; stable id + key + stack size) and `Farm/CropCatalog` (stage durations in seconds of watered growth, harvest item).
+- `Items/ItemCatalog` (tools, seeds, produce; stable id + key + stack size) and `Farm/CropCatalog` (stage durations in watered game days, harvest item).
 - `Inventory/InventoryGrid`: fixed slots of stacks; `Add`, `Remove`, `RemoveFromSlot`, `Move` (move, split, merge, swap) are all-or-nothing and track the changed
   slots. `StarterKit` is what a new player holds: tools and seeds only. `InventoryLimits`: 36 slots, 9 in the hotbar.
-- `Farm/FarmRules`: `Till`, `Plant`, `Water`, `Harvest` on a `FarmTile` (Unix-ms timestamps) and `GrowthAt` / `StageAt` / `IsMature` / `IsWet`; a crop grows only while
-  the soil is wet (watering lasts 90 s). `InReach` is the 32 px rule. `TillGrid.FromMap` marks `Diggable` ground that is not blocked. Time is always a parameter.
+- `Farm/FarmRules`: `Till`, `Plant`, `Water`, `Harvest` on a `FarmTile` (`GrowthDays`, `WateredDay`, `TendedDay`: game day numbers from `GameCalendar.DayNumberAt`) and `GrowthDaysAt` / `StageAt` / `IsMature` / `IsWet` / `IsReverted`;
+  a crop grows one day for every game day its soil was watered, counted when that day ends ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D7); bare tilled soil reverts with 30 % per dry day by the pure hash `RevertRoll`.
+  `InReach` is the 32 px rule. `TillGrid.FromMap` marks `Diggable` ground that is not blocked. Time and the calendar are always parameters.
 - Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `Calendar/GameCalendar` (pure: UTC instant + epoch + game-day length to `GameDate` year/season/day/minute; 28 days a season; `WitherAtMs`),
   `Season`, `SeasonSet`. `CropDefinition.Seasons` lists where a crop grows; `FarmRules.Plant` / `Harvest` take the calendar (`OutOfSeason`, `Withered` verdicts) and `FarmRules.IsWithered` is computed from `PlantedAtMs`.
   `ShopRules.IsInSeason` gates seeds in the shop.

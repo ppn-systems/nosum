@@ -12,19 +12,18 @@ using Nosum.Contracts.Farm.S2C;
 
 namespace Nosum.Wasm.Socket.Farm;
 
-/// <summary>One worked tile as the client mirrors it. Times are Unix milliseconds on the server's clock.</summary>
+/// <summary>One worked tile as the client mirrors it. Days are game day numbers (docs/adr/ADR-021 D7).</summary>
 /// <param name="X">Tile x.</param>
 /// <param name="Y">Tile y.</param>
 /// <param name="CropId">Planted crop id; zero for bare soil.</param>
-/// <param name="PlantedAtMs">When the crop was planted.</param>
-/// <param name="GrowthMs">Watered growth time settled up to <paramref name="SettledAtMs"/>.</param>
-/// <param name="SettledAtMs">The moment <paramref name="GrowthMs"/> was last settled.</param>
-/// <param name="WetUntilMs">The soil is wet until this moment.</param>
-public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, long GrowthMs, long SettledAtMs, long WetUntilMs);
+/// <param name="PlantedAtMs">When the crop was planted, Unix milliseconds on the server's clock.</param>
+/// <param name="GrowthDays">Watered game days settled so far, not counting <paramref name="WateredDay"/>.</param>
+/// <param name="WateredDay">The last game day the soil was watered; zero when never.</param>
+public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, int GrowthDays, int WateredDay);
 
 /// <summary>
 /// The client's mirror of the worked tiles of the player's map, plus an estimate of the server's clock.
-/// The server sends the stored timestamps, not stages: the frame loop computes each crop's stage with the
+/// The server sends the stored growth numbers, not stages: the frame loop computes each crop's stage with the
 /// shared rules, so crops grow on screen without a push per stage. The frame loop reads the mirror with
 /// <see cref="Read"/>, <see cref="Count"/> and <see cref="TileAt"/> and never allocates or awaits.
 /// </summary>
@@ -186,8 +185,14 @@ public sealed class FarmChannel : IDisposable
     // Call under the lock.
     private void Store(FarmTileRow row)
     {
-        FarmTileInfo tile = new(row.X, row.Y, row.CropId, row.PlantedAtMs, row.GrowthMs, row.SettledAtMs, row.WetUntilMs);
         int key = Key(row.X, row.Y);
+        if (row.Removed)
+        {
+            this.Remove(key);
+            return;
+        }
+
+        FarmTileInfo tile = new(row.X, row.Y, row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay);
         if (_index.TryGetValue(key, out int at))
         {
             _tiles[at] = tile;
@@ -197,6 +202,25 @@ public sealed class FarmChannel : IDisposable
             _index[key] = _tiles.Count;
             _tiles.Add(tile);
         }
+    }
+
+    // Call under the lock. Swap-removes: the list order is not meaningful.
+    private void Remove(int key)
+    {
+        if (!_index.Remove(key, out int at))
+        {
+            return;
+        }
+
+        int last = _tiles.Count - 1;
+        if (at != last)
+        {
+            FarmTileInfo moved = _tiles[last];
+            _tiles[at] = moved;
+            _index[Key(moved.X, moved.Y)] = at;
+        }
+
+        _tiles.RemoveAt(last);
     }
 
     // The offset is the server clock minus ours at the moment a server message arrived (latency counts as clock error, a few tens of milliseconds).

@@ -220,8 +220,12 @@ internal static class Program
 
     // Services are registered before the builder so [Inject] fields of the handlers resolve them.
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player, trade and co-op services live as long as the process; the snapshot loop ends by itself when the last player leaves.")]
-    private static void RegisterServices(TimeProvider clock, bool development)
+    private static void RegisterServices(TimeProvider systemClock, bool development)
     {
+        // Development: every service reads the time through a clock the dev tools can move forward (docs/adr/ADR-021 D7).
+        DevTimeProvider? devClock = development ? new DevTimeProvider(systemClock) : null;
+        TimeProvider clock = devClock ?? systemClock;
+
         IConnectionGroupRegistry groups = new InMemoryGroupStore();
         InstanceManager.Instance.Register(groups);
 
@@ -237,6 +241,10 @@ internal static class Program
         // The server calendar every player shares (docs/adr/ADR-018).
         GameCalendar calendar = ConfiguredCalendar();
         InstanceManager.Instance.Register<ICalendarService>(new CalendarService(calendar, clock));
+
+        // One timer on the calendar's day boundaries; services subscribe to the day-ended event for side effects (docs/adr/ADR-021 D7).
+        DayClockService dayClock = new(calendar, clock, ex => Console.Error.WriteLine("Day-ended handler failed: " + ex.Message));
+        InstanceManager.Instance.Register<IDayClock>(dayClock);
 
         // Items, quests and farming (docs/adr/ADR-011). One notifier pushes to a player's active connection.
         IUnitOfWorkFactory unitOfWork = InstanceManager.Instance.GetExistingInstance<IUnitOfWorkFactory>()
@@ -261,7 +269,7 @@ internal static class Program
         PlayerService players = new(presence, maps, states, placeables, new OwnerOnlyAccessPolicy(), coopMembership, TimeProvider.System, SnapshotInterval);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
-        FarmService farm = new(presence, maps, inventory, quests, coopMembership, unitOfWork, clock, calendar);
+        FarmService farm = new(presence, maps, inventory, quests, coopMembership, unitOfWork, clock, calendar, dayClock);
         InstanceManager.Instance.Register<IFarmService>(farm);
 
         // Coins, market, looks, trade and co-ops (docs/adr/ADR-013, ADR-014) all move items through the one transfer service.
@@ -277,7 +285,11 @@ internal static class Program
         if (development)
         {
             InstanceManager.Instance.Register<IDevGrantService>(new DevGrantService(transfers));
+            InstanceManager.Instance.Register<IDevClockService>(new DevClockService(devClock!, calendar, dayClock));
         }
+
+        // Armed last: every subscriber is in place before the first boundary.
+        dayClock.Start();
 
         InstanceManager.Instance.Register<ILookService>(new LookService(unitOfWork, inventory, presence, nicknames, clock));
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock));

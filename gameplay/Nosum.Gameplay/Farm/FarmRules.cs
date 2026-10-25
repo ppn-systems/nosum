@@ -6,15 +6,15 @@ using Nosum.Gameplay.Calendar;
 namespace Nosum.Gameplay.Farm;
 
 /// <summary>
-/// The pure farm rules: tilling, planting, watering, harvesting and crop growth. Time is a
-/// parameter (Unix milliseconds), so the server and the client compute the same stage from the same
-/// stored timestamps and tests need no clock. A crop grows only while its soil is wet: watering wets
-/// the soil for <see cref="WetDurationMs"/>, and growth is the wet time that has passed since planting.
+/// The pure farm rules: tilling, planting, watering, harvesting and crop growth. Time is a parameter (Unix milliseconds) and the calendar is
+/// passed in, so the server and the client compute the same stage from the same stored numbers and tests need no clock. A crop grows by one day
+/// for every game day its soil was watered, counted when that day ends (docs/adr/ADR-021 D7, <see cref="FarmTile"/>); bare tilled soil
+/// that stays dry may revert to untilled (<see cref="IsReverted"/>).
 /// </summary>
 public static class FarmRules
 {
-    /// <summary>How long watering keeps the soil wet, milliseconds.</summary>
-    public const long WetDurationMs = 90_000;
+    /// <summary>Chance, in percent, that tilled soil without a crop reverts to untilled at the end of a dry game day.</summary>
+    public const int RevertChancePercent = 30;
 
     /// <summary>Farthest distance from the player's feet to the centre of the target tile, world pixels.</summary>
     public const double MaxReachPixels = 32;
@@ -36,17 +36,27 @@ public static class FarmRules
     /// <summary>Tills a tile.</summary>
     /// <param name="tillable">Whether the map allows tilling there.</param>
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
     /// <param name="next">The tilled tile when allowed.</param>
     /// <returns>The verdict.</returns>
-    public static FarmVerdict Till(bool tillable, FarmTile? current, out FarmTile next)
+    public static FarmVerdict Till(bool tillable, FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next)
     {
+        ArgumentNullException.ThrowIfNull(calendar);
+
         next = FarmTile.Bare;
         if (current is not null)
         {
             return FarmVerdict.AlreadyTilled;
         }
 
-        return tillable ? FarmVerdict.Ok : FarmVerdict.NotTillable;
+        if (!tillable)
+        {
+            return FarmVerdict.NotTillable;
+        }
+
+        next = FarmTile.Bare with { TendedDay = calendar.DayNumberAt(nowMs) };
+        return FarmVerdict.Ok;
     }
 
     /// <summary>Plants a seed's crop on tilled soil that is empty or holds a withered crop, in a season the crop grows in.</summary>
@@ -81,25 +91,33 @@ public static class FarmRules
             return FarmVerdict.OutOfSeason;
         }
 
-        next = new FarmTile(cropId, nowMs, 0, nowMs, tile.WetUntilMs);
+        // Water from an earlier day belongs to the old crop; water poured today (before planting) still counts.
+        int today = calendar.DayNumberAt(nowMs);
+        next = new FarmTile(cropId, nowMs, 0, tile.WateredDay == today ? today : 0, 0);
         return FarmVerdict.Ok;
     }
 
-    /// <summary>Waters tilled soil: settles the growth so far, then wets the soil from now.</summary>
+    /// <summary>
+    /// Waters tilled soil for the current game day: a day that already ended since the last watering is settled into the growth, then today is
+    /// recorded. Watering twice on one day changes nothing.
+    /// </summary>
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
     /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
     /// <param name="next">The watered tile when allowed.</param>
     /// <returns>The verdict.</returns>
-    public static FarmVerdict Water(FarmTile? current, long nowMs, out FarmTile next)
+    public static FarmVerdict Water(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next)
     {
+        ArgumentNullException.ThrowIfNull(calendar);
+
         next = default;
         if (current is not { } tile)
         {
             return FarmVerdict.NotTilled;
         }
 
-        long settled = tile.HasCrop ? GrowthAt(tile, nowMs) : 0;
-        next = tile with { GrowthMs = settled, SettledAtMs = nowMs, WetUntilMs = nowMs + WetDurationMs };
+        int today = calendar.DayNumberAt(nowMs);
+        next = tile with { GrowthDays = tile.HasCrop ? GrowthDaysAt(tile, nowMs, calendar) : 0, WateredDay = today };
         return FarmVerdict.Ok;
     }
 
@@ -131,46 +149,111 @@ public static class FarmRules
             return FarmVerdict.Withered;
         }
 
-        if (!IsMature(tile, nowMs))
+        if (!IsMature(tile, nowMs, calendar))
         {
             return FarmVerdict.NotMature;
         }
 
+        int today = calendar.DayNumberAt(nowMs);
         crop = found;
-        next = new FarmTile(0, 0, 0, nowMs, tile.WetUntilMs);
+        next = new FarmTile(0, 0, 0, tile.WateredDay == today ? today : 0, today);
         return FarmVerdict.Ok;
     }
 
-    /// <summary>Returns the watered growth time a crop has reached, capped at what it needs to mature.</summary>
+    /// <summary>Returns the watered game days a crop has reached, capped at what it needs to mature.</summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
-    /// <returns>Milliseconds of watered growth; zero for bare soil.</returns>
-    public static long GrowthAt(in FarmTile tile, long nowMs)
+    /// <param name="calendar">The server calendar.</param>
+    /// <returns>Watered game days; zero for bare soil.</returns>
+    public static int GrowthDaysAt(in FarmTile tile, long nowMs, GameCalendar calendar)
     {
+        ArgumentNullException.ThrowIfNull(calendar);
+
         if (!tile.HasCrop || !CropCatalog.TryGet(tile.CropId, out CropDefinition? crop))
         {
             return 0;
         }
 
-        // Wet time since the last settle: the soil was wet from the last watering (which settled) until WetUntil.
-        long wetEnd = Math.Min(nowMs, tile.WetUntilMs);
-        long wetMs = Math.Max(0, wetEnd - tile.SettledAtMs);
-        return Math.Min(crop.TotalGrowthMs, tile.GrowthMs + wetMs);
+        // The last watered day counts once it has ended.
+        int pending = tile.WateredDay > 0 && tile.WateredDay < calendar.DayNumberAt(nowMs) ? 1 : 0;
+        return Math.Min(crop.TotalGrowthDays, tile.GrowthDays + pending);
     }
 
     /// <summary>Returns the stage a tile's crop shows, from 0 (just planted) to mature.</summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
     /// <returns>The stage, or -1 for bare soil.</returns>
-    public static int StageAt(in FarmTile tile, long nowMs)
-        => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) ? crop.StageAt(GrowthAt(tile, nowMs)) : -1;
+    public static int StageAt(in FarmTile tile, long nowMs, GameCalendar calendar)
+        => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) ? crop.StageAt(GrowthDaysAt(tile, nowMs, calendar)) : -1;
 
     /// <summary>Returns whether a tile's crop can be harvested.</summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
     /// <returns><see langword="true"/> when a mature crop grows there.</returns>
-    public static bool IsMature(in FarmTile tile, long nowMs)
-        => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && GrowthAt(tile, nowMs) >= crop.TotalGrowthMs;
+    public static bool IsMature(in FarmTile tile, long nowMs, GameCalendar calendar)
+        => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && GrowthDaysAt(tile, nowMs, calendar) >= crop.TotalGrowthDays;
+
+    /// <summary>
+    /// Returns whether bare tilled soil has reverted to untilled: each game day that ended while the soil held no crop and was not watered
+    /// has a <see cref="RevertChancePercent"/> chance of undoing the tilling (docs/adr/ADR-021 D7). The day the soil was tilled or its crop
+    /// harvested, and each day it was watered, do not count. The roll is a pure hash of the instance, the tile and the day, so it needs no stored
+    /// random state, gives the same answer wherever and whenever it is asked, and never reverses. Soil with a crop never reverts.
+    /// </summary>
+    /// <param name="tile">The tile.</param>
+    /// <param name="instanceKey">The key of the map instance (<c>MapInstance.Key</c>) the tile is in.</param>
+    /// <param name="tileX">Tile x.</param>
+    /// <param name="tileY">Tile y.</param>
+    /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <returns><see langword="true"/> when the tile is no longer tilled.</returns>
+    public static bool IsReverted(in FarmTile tile, string instanceKey, int tileX, int tileY, long nowMs, GameCalendar calendar)
+    {
+        ArgumentNullException.ThrowIfNull(instanceKey);
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        if (tile.HasCrop)
+        {
+            return false;
+        }
+
+        int today = calendar.DayNumberAt(nowMs);
+        for (int day = Math.Max(tile.TendedDay, tile.WateredDay) + 1; day < today; day++)
+        {
+            if (RevertRoll(instanceKey, tileX, tileY, day) < RevertChancePercent)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Returns the deterministic roll, 0 to 99, that decides whether a dry tile reverts at the end of a day.</summary>
+    /// <param name="instanceKey">The key of the map instance.</param>
+    /// <param name="tileX">Tile x.</param>
+    /// <param name="tileY">Tile y.</param>
+    /// <param name="dayNumber">The day that ended.</param>
+    /// <returns>A number from 0 to 99, evenly spread.</returns>
+    public static int RevertRoll(string instanceKey, int tileX, int tileY, int dayNumber)
+    {
+        ArgumentNullException.ThrowIfNull(instanceKey);
+
+        unchecked
+        {
+            // FNV-1a over the key (string.GetHashCode is randomized per process), then SplitMix64 rounds over the tile and the day.
+            ulong hash = 14695981039346656037UL;
+            foreach (char c in instanceKey)
+            {
+                hash = (hash ^ c) * 1099511628211UL;
+            }
+
+            hash = Mix(hash ^ (((ulong)(uint)tileX << 32) | (uint)tileY));
+            hash = Mix(hash ^ ((ulong)(uint)dayNumber * 0x9E3779B97F4A7C15UL));
+            return (int)(hash % 100UL);
+        }
+    }
 
     /// <summary>
     /// Returns whether a tile's crop has withered: it was planted in a season it grows in, and the first later season it does not grow in
@@ -188,9 +271,25 @@ public static class FarmRules
         return tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && nowMs >= calendar.WitherAtMs(tile.PlantedAtMs, crop.Seasons);
     }
 
-    /// <summary>Returns whether the soil is wet at a moment.</summary>
+    /// <summary>Returns whether the soil is wet at a moment: it was watered during the current game day.</summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
-    /// <returns><see langword="true"/> while the watering lasts.</returns>
-    public static bool IsWet(in FarmTile tile, long nowMs) => nowMs < tile.WetUntilMs;
+    /// <param name="calendar">The server calendar.</param>
+    /// <returns><see langword="true"/> until the day ends.</returns>
+    public static bool IsWet(in FarmTile tile, long nowMs, GameCalendar calendar)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        return tile.WateredDay > 0 && tile.WateredDay == calendar.DayNumberAt(nowMs);
+    }
+
+    private static ulong Mix(ulong value)
+    {
+        unchecked
+        {
+            value = (value ^ (value >> 30)) * 0xBF58476D1CE4E5B9UL;
+            value = (value ^ (value >> 27)) * 0x94D049BB133111EBUL;
+            return value ^ (value >> 31);
+        }
+    }
 }

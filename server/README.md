@@ -100,3 +100,7 @@ Shop, nicknames and tester grant ([ADR-013 amendments](../docs/adr/ADR-013-econo
 and co-ops; `SetNickname` is in `AccountHandlers` and re-announces the look to the map, as does a guest upgrade that chose a nickname. Three shops (seed, clothing, furniture) are three `ShopCatalog` entries; `ShopService` requires the player to stand at a counter of the named shop. The market fee goes through `IFeeSink` (`CoinSink`: destroyed, owner decision 2026-10-25).
 `DevHandlers` / `IDevGrantService` (`0xF000`) exist only when `Program.BuildApplication(port, clock, development: true)`, which `Main` sets only when `DOTNET_ENVIRONMENT` is
 `Development`; run a local host for testers with `DOTNET_ENVIRONMENT=Development dotnet run --project server/Nosum.Host`. Migration `PlayerNicknames`.
+
+Growth in game days ([ADR-021](../docs/adr/ADR-021-tools-resource-nodes-ground-items.md) D7): `FarmPlot` stores `growth_days`, `watered_day` and `tended_day` (migration `GrowthInGameDays`) and `FarmService` evaluates growth, wetness and bare-soil reverts lazily with `FarmRules`
+and the calendar. `IDayClock` (`Calendar/DayClockService`) is the day-ended seam: one timer on the calendar's day boundaries raises `DayEnded` for every day that ended; subscribers do side effects only
+(`FarmService` sweeps reverted tiles). In Development `Program` wraps the clock in `DevTimeProvider`, and `DevHandlers` / `IDevClockService` (`DevAdvanceClock`, `0xF001`) skip 1 to 60 game days; Production has neither.

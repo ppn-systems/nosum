@@ -8,28 +8,27 @@ using Nosum.Gameplay.Items;
 namespace Nosum.Gameplay.Farm;
 
 /// <summary>
-/// Every crop the game knows. The durations are short development values (seconds of watered
-/// growth per stage) so the loop can be played and tested in minutes; real-play balance is an open
-/// owner decision (docs/adr/ADR-011). Ids are append-only. Each crop lists the seasons it grows in (docs/adr/ADR-018): parsnip is the hardy
+/// Every crop the game knows. The durations are watered game days per stage (docs/adr/ADR-021 D7; a game day is 12 real hours,
+/// docs/adr/ADR-018): parsnip 1/1/1/1 = 4 days, radish 1/2/1/2 = 6, cauliflower 1/2/4/4/1 = 12. Balance is an open owner decision. Ids are append-only. Each crop lists the seasons it grows in (docs/adr/ADR-018): parsnip is the hardy
 /// root (spring, fall and winter, so a new player in any season can plant the tutorial crop), radish grows in summer and fall,
 /// cauliflower in spring and summer. The sets are product defaults, not balance.
 /// </summary>
 public static class CropCatalog
 {
-    /// <summary>Parsnip: five sprite stages, about a minute.</summary>
+    /// <summary>Parsnip: five sprite stages, four watered days.</summary>
     public const int Parsnip = 1;
 
-    /// <summary>Radish: five sprite stages, a little longer.</summary>
+    /// <summary>Radish: five sprite stages, six watered days.</summary>
     public const int Radish = 2;
 
-    /// <summary>Cauliflower: six sprite stages, the slowest and the only one that needs watering twice.</summary>
+    /// <summary>Cauliflower: six sprite stages, the slowest: twelve watered days.</summary>
     public const int Cauliflower = 3;
 
     private static readonly CropDefinition[] s_all =
     [
-        new(Parsnip, "parsnip", SeasonSet.Spring | SeasonSet.Fall | SeasonSet.Winter, ItemCatalog.Parsnip, 1, 12, 16, 16, 16),
-        new(Radish, "radish", SeasonSet.Summer | SeasonSet.Fall, ItemCatalog.Radish, 1, 14, 18, 18, 20),
-        new(Cauliflower, "cauliflower", SeasonSet.Spring | SeasonSet.Summer, ItemCatalog.Cauliflower, 1, 16, 20, 24, 24, 26),
+        new(Parsnip, "parsnip", SeasonSet.Spring | SeasonSet.Fall | SeasonSet.Winter, ItemCatalog.Parsnip, 1, 1, 1, 1, 1),
+        new(Radish, "radish", SeasonSet.Summer | SeasonSet.Fall, ItemCatalog.Radish, 1, 1, 2, 1, 2),
+        new(Cauliflower, "cauliflower", SeasonSet.Spring | SeasonSet.Summer, ItemCatalog.Cauliflower, 1, 1, 2, 4, 4, 1),
     ];
 
     private static readonly Dictionary<int, CropDefinition> s_byId = Index();

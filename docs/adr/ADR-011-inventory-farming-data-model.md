@@ -28,7 +28,7 @@ game data by stable key) apply. Product numbers below are defaults chosen by the
 - **D4 — Farm tiles.** `FarmPlot` rows, keyed (map id, x, y), exist once the soil is tilled. They hold `FarmTile` values: crop id, planted-at, watered
   growth settled so far, the moment it was settled, and the moment the soil stops being wet (Unix ms). Tiles are per map, not per player; only
   maps with `MapSpec.Farmable` (today the farm) accept farming, and tillable tiles are the `Diggable` ground that nothing blocks (`TillGrid`).
-- **D5 — Growth is computed, never ticked.** A crop grows only while the soil is wet; watering wets it for 90 s (`FarmRules.WetDurationMs`).
+- **D5 — Growth is computed, never ticked.** *(The unit changed to watered game days in [ADR-021](ADR-021-tools-resource-nodes-ground-items.md) D7; the text below describes the first slice.)* A crop grows only while the soil is wet; watering wets it for 90 s (`FarmRules.WetDurationMs`).
   Stage = the crop's stage table applied to `settled growth + wet time since the settle`. Watering settles the growth first. The same pure
   function runs on the server (harvest check) and on the client (the wire carries the stored timestamps and the server clock, not stages), so a
   crop grows on screen without a push per stage. Durations are short dev values (parsnip 60 s, radish 70 s, cauliflower 110 s) kept as data.

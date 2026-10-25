@@ -84,9 +84,8 @@ public static partial class FarmHandlers
                 row.Y = (ushort)tile.Y;
                 row.CropId = tile.State.CropId;
                 row.PlantedAtMs = tile.State.PlantedAtMs;
-                row.GrowthMs = tile.State.GrowthMs;
-                row.SettledAtMs = tile.State.SettledAtMs;
-                row.WetUntilMs = tile.State.WetUntilMs;
+                row.GrowthDays = tile.State.GrowthDays;
+                row.WateredDay = tile.State.WateredDay;
                 snapshot.Tiles.Add(row);
             }
 
