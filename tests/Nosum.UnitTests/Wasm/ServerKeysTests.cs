@@ -43,7 +43,7 @@ public sealed class ServerKeysTests
     [Fact]
     public void FromConfiguration_MalformedOrTooManyKeys_StopsInsteadOfWeakeningThePin()
     {
-        Func<string[]> malformed = () => ServerKeys.FromConfiguration(k => k.EndsWith("0", StringComparison.Ordinal) ? "oops" : null);
+        Func<string[]> malformed = () => ServerKeys.FromConfiguration(k => k.EndsWith('0') ? "oops" : null);
         Func<string[]> tooMany = () => ServerKeys.FromConfiguration(_ => s_a);
 
         _ = malformed.Should().Throw<FormatException>();
