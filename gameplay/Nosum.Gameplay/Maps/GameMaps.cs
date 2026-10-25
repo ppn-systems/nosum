@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Shops;
 
@@ -12,7 +13,7 @@ namespace Nosum.Gameplay.Maps;
 /// The catalogue of maps the world hosts, shared by the server (which loads them and decides every
 /// map change) and the client (which draws them). A client names a map only by <see cref="MapSpec.Id"/>
 /// and the server accepts only ids found here, so an id is never turned into a path.
-/// Farm and farmhouse are private: each player has their own instance (<see cref="MapInstance"/>, docs/adr/ADR-015); the other maps are shared.
+/// Farm and farmhouse are private: each player has their own instance (<see cref="MapInstance"/>, docs/adr/ADR-015); co-op land has one per co-op (docs/adr/ADR-020); the other maps are shared.
 /// Adding a map: add a <see cref="MapSpec"/> below, link its <c>.tmx</c> and tilesheets in
 /// <c>Nosum.Wasm.csproj</c> and <c>Nosum.Host.csproj</c> (a test checks it).
 /// </summary>
@@ -43,6 +44,9 @@ public static class GameMaps
     /// <summary>Id of the backwoods north of the farm.</summary>
     public const string Backwoods = "backwoods";
 
+    /// <summary>Id of the co-op land: each co-op's own shared farm, entered from Town (docs/adr/ADR-020).</summary>
+    public const string CoopFarm = "coopfarm";
+
     // Shop counters in Town.tmx: the walkable tile just south of a building's door (the doormat), where the farmer stands and presses the action key.
     // The art is Stardew's placeholder (docs/adr/ADR-007); each building is the one whose owner fits the trade:
     //  - seeds: Pierre's store, door tiles (43,56) and (44,56), doormat (43,57);
@@ -65,8 +69,12 @@ public static class GameMaps
             new ShopPoint(ShopCatalog.SeedShop, s_townSeedShopTile.X, s_townSeedShopTile.Y),
             new ShopPoint(ShopCatalog.ClothingShop, s_townClothingShopTile.X, s_townClothingShopTile.Y),
             new ShopPoint(ShopCatalog.FurnitureShop, s_townFurnitureShopTile.X, s_townFurnitureShopTile.Y),
-        ]),
+        ],
+        extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y)]),
         new(Backwoods, "Backwoods.tmx", 14, 38),
+
+        // Co-op land reuses the placeholder Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
+        new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true),
     ];
 
     /// <summary>Gets every hosted map.</summary>

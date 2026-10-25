@@ -6,7 +6,7 @@
 
 [Pillar 1](../design/pillars.md) asks for co-ops with roles, no size limit and an audited shared warehouse. [ADR-006](ADR-006-layered-character-customization.md) D6 says the
 server decides every look and the wire carries ids only; the stand-in look derived from the player id (`RemoteLook`) was to be removed once real looks flow. Both
-build on [ADR-013](ADR-013-economy-coins-escrow-market-trade.md)'s atomic transfer. Co-op land is out of scope (it depends on the owner's decision about private versus shared farms).
+build on [ADR-013](ADR-013-economy-coins-escrow-market-trade.md)'s atomic transfer. Co-op land is out of scope here (see [ADR-020](ADR-020-coop-land.md)).
 Numbers and rules marked "default" are open owner questions.
 
 ## Decision

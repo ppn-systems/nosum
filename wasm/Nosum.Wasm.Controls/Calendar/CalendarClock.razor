@@ -1,0 +1,14 @@
+@inherits ObservingComponent<Nosum.Wasm.ViewModels.Calendar.CalendarViewModel>
+
+@* The season, the day of the season and the time of day, in the shared panel frame. Shows nothing until the server calendar is known. *@
+@if (Vm.IsReady)
+{
+    <GamePanel Class="hud calendar" Title="">
+        <p class="calendar-line" role="status" aria-label="@Vm.Summary">
+            <span class="season-icon @Vm.SeasonKey" aria-hidden="true"></span>
+            <strong class="calendar-season">@Vm.SeasonName</strong>
+            <span class="calendar-day">@Vm.DayText</span>
+            <span class="calendar-time">@Vm.TimeText</span>
+        </p>
+    </GamePanel>
+}

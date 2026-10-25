@@ -37,6 +37,9 @@ using Nosum.Contracts.Player.S2C;
 using Nosum.Contracts.Quest;
 using Nosum.Contracts.Quest.C2S;
 using Nosum.Contracts.Quest.S2C;
+using Nosum.Contracts.Season.C2S;
+using Nosum.Contracts.Season.S2C;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Quests;
@@ -61,7 +64,7 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
     public FarmWireTests(PostgresFixture database) => _database = database;
 
     [Fact]
-    public async Task Farming_TillPlantWaterWaitHarvest_DropsTheCropOnTheGroundAndWalkingPicksItUp()
+    public async Task Farming_TillPlantWaterWaitHarvest_DropsTheCropBesideTheHarvesterWhoTakesIt()
     {
         await ResetFarmAsync();
         FakeTimeProvider clock = new(s_start);
@@ -115,14 +118,10 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             FarmTileRow seenHarvested = await farmer.WaitForTileAsync(x, y, t => t.CropId == 0 && t.SettledAtMs > t.PlantedAtMs, timeout.Token);
             seenHarvested.WetUntilMs.Should().BeGreaterThan(0);
 
-            // The produce pops onto the ground beside the plot instead of going into the bag (docs/adr/ADR-021 D5)...
+            // The produce pops onto the ground beside the plot (docs/adr/ADR-021 D5), within reach of the harvester, who takes it
+            // at once without stepping (D6).
             GroundItemRow dropped = await farmer.WaitForGroundItemAsync(g => g.ItemId == ItemCatalog.Parsnip, timeout.Token);
             dropped.Quantity.Should().Be(1);
-            (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().NotContain(s => s.ItemId == ItemCatalog.Parsnip);
-            (await farmer.GetGroundItemsAsync(timeout.Token)).Items.Should().ContainSingle(g => g.Id == dropped.Id);
-
-            // ...and walking close to it picks it up, once the server has seen the move (D6).
-            await farmer.WalkUntilPickedUpAsync(join, dropped.Id, timeout.Token);
             InventorySlotRow produce = await farmer.WaitForSlotAsync(s => s.ItemId == ItemCatalog.Parsnip, timeout.Token);
             produce.Quantity.Should().Be(1);
             (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().Contain(s => s.ItemId == ItemCatalog.Parsnip && s.Quantity == 1);
@@ -146,6 +145,49 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             farm.MapId.Should().Be(Program.FarmMapId);
             farm.ServerNowMs.Should().Be(clock.GetUtcNow().ToUnixTimeMilliseconds());
             farm.Tiles.Should().ContainSingle(t => t.X == x && t.Y == y).Which.CropId.Should().Be(0);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
+    public async Task Seasons_OutOfSeasonSeedIsRefused_ACropWithersAtTheSeasonChange_AndTheSoilCanBeReplanted()
+    {
+        await ResetFarmAsync();
+        FakeTimeProvider clock = new(s_start);
+        GameCalendar calendar = GameCalendar.Default;
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = TileInReachOf(join);
+
+            // The client gets the calendar as two numbers and the server clock, and computes the rest itself.
+            CalendarInfo info = await farmer.GetCalendarAsync(timeout.Token);
+            (info.EpochMs, info.DayLengthMs, info.ServerNowMs).Should().Be((calendar.EpochMs, calendar.DayLengthMs, s_start.ToUnixTimeMilliseconds()));
+
+            // Spring: radish seeds (slot 3) cannot be planted, and the seed stays in the stack.
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Action.Should().Be(FarmAction.Tilled);
+            (await farmer.UseAsync(3, x, y, timeout.Token)).Status.Should().Be(FarmStatus.OutOfSeason);
+
+            // Summer: the same seed is planted.
+            clock.Advance(TimeSpan.FromMilliseconds(calendar.EpochMs + calendar.SeasonLengthMs + 3_600_000 - clock.GetUtcNow().ToUnixTimeMilliseconds()));
+            (await farmer.UseAsync(3, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
+
+            // Fall still suits radish; winter does not: the crop withered, cannot be harvested, and the soil takes a winter crop.
+            clock.Advance(TimeSpan.FromMilliseconds(calendar.SeasonLengthMs));
+            (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().NotBe(FarmStatus.Withered);
+            clock.Advance(TimeSpan.FromMilliseconds(calendar.SeasonLengthMs));
+            (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.Withered);
+            (await farmer.UseAsync(2, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
+            (await farmer.WaitForTileAsync(x, y, t => t.CropId == CropCatalog.Parsnip, timeout.Token)).PlantedAtMs.Should().Be(clock.GetUtcNow().ToUnixTimeMilliseconds());
         }
         finally
         {
@@ -385,6 +427,12 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             JoinMapResult result = await _session.RequestAsync<JoinMapResult>(request, ct: ct);
             result.Status.Should().Be(JoinStatus.Ok);
             return result;
+        }
+
+        public async Task<CalendarInfo> GetCalendarAsync(CancellationToken ct)
+        {
+            using GetCalendar request = new();
+            return await _session.RequestAsync<CalendarInfo>(request, ct: ct);
         }
 
         public async Task<InventorySnapshot> GetInventoryAsync(CancellationToken ct)

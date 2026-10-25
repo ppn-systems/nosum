@@ -28,4 +28,7 @@ public enum ShopStatus : byte
 
     /// <summary>Another change happened at the same time; nothing was bought, ask again.</summary>
     Conflict = 7,
+
+    /// <summary>The seed's crop does not grow in the current season, so the shop does not sell it now (docs/adr/ADR-018).</summary>
+    OutOfSeason = 8,
 }
