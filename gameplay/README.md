@@ -35,6 +35,9 @@ Items, inventory, farming and quests ([ADR-011](../docs/adr/ADR-011-inventory-fa
   slots. `StarterKit` is what a new player holds: tools and seeds only. `InventoryLimits`: 36 slots, 9 in the hotbar.
 - `Farm/FarmRules`: `Till`, `Plant`, `Water`, `Harvest` on a `FarmTile` (Unix-ms timestamps) and `GrowthAt` / `StageAt` / `IsMature` / `IsWet`; a crop grows only while
   the soil is wet (watering lasts 90 s). `InReach` is the 32 px rule. `TillGrid.FromMap` marks `Diggable` ground that is not blocked. Time is always a parameter.
+- Seasons ([ADR-018](../docs/adr/ADR-018-seasons-and-server-calendar.md)): `Calendar/GameCalendar` (pure: UTC instant + epoch + game-day length to `GameDate` year/season/day/minute; 28 days a season; `WitherAtMs`),
+  `Season`, `SeasonSet`. `CropDefinition.Seasons` lists where a crop grows; `FarmRules.Plant` / `Harvest` take the calendar (`OutOfSeason`, `Withered` verdicts) and `FarmRules.IsWithered` is computed from `PlantedAtMs`.
+  `ShopRules.IsInSeason` gates seeds in the shop.
 - Social layer ([ADR-013](../docs/adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../docs/adr/ADR-014-coops-and-looks.md)): `Economy/CoinRules` (starting coins, market fee, listing limits), `ShippingPrices`, `ShippingBinRules`, `MarketRules`;
   `Trade/TradeOffer` and `TradeSession` (two-party confirm: a different offer clears both confirmations); `Looks/LookCatalog` and `PlayerLook`; `Coops/CoopRules` (names, who may withdraw how much); `Coops/CoopLand` (the Town gate and land tiles, the `coop.farm.*` audit reason codes; co-op land is the map `coopfarm`, one instance per co-op: [ADR-020](../docs/adr/ADR-020-coop-land.md));
   `Text/LocalizedText` (validates and resolves `i18n{` envelopes). Clothing items have a `WearSlot`; tools are not tradable (`ItemDefinition.IsTradable`).

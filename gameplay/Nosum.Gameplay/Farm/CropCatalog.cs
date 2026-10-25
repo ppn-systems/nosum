@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Items;
 
 namespace Nosum.Gameplay.Farm;
@@ -9,7 +10,9 @@ namespace Nosum.Gameplay.Farm;
 /// <summary>
 /// Every crop the game knows. The durations are short development values (seconds of watered
 /// growth per stage) so the loop can be played and tested in minutes; real-play balance is an open
-/// owner decision (docs/adr/ADR-011). Ids are append-only.
+/// owner decision (docs/adr/ADR-011). Ids are append-only. Each crop lists the seasons it grows in (docs/adr/ADR-018): parsnip is the hardy
+/// root (spring, fall and winter, so a new player in any season can plant the tutorial crop), radish grows in summer and fall,
+/// cauliflower in spring and summer. The sets are product defaults, not balance.
 /// </summary>
 public static class CropCatalog
 {
@@ -24,9 +27,9 @@ public static class CropCatalog
 
     private static readonly CropDefinition[] s_all =
     [
-        new(Parsnip, "parsnip", ItemCatalog.Parsnip, 1, 12, 16, 16, 16),
-        new(Radish, "radish", ItemCatalog.Radish, 1, 14, 18, 18, 20),
-        new(Cauliflower, "cauliflower", ItemCatalog.Cauliflower, 1, 16, 20, 24, 24, 26),
+        new(Parsnip, "parsnip", SeasonSet.Spring | SeasonSet.Fall | SeasonSet.Winter, ItemCatalog.Parsnip, 1, 12, 16, 16, 16),
+        new(Radish, "radish", SeasonSet.Summer | SeasonSet.Fall, ItemCatalog.Radish, 1, 14, 18, 18, 20),
+        new(Cauliflower, "cauliflower", SeasonSet.Spring | SeasonSet.Summer, ItemCatalog.Cauliflower, 1, 16, 20, 24, 24, 26),
     ];
 
     private static readonly Dictionary<int, CropDefinition> s_byId = Index();

@@ -1,6 +1,6 @@
 # ADR-020 — Co-op land: a shared farm instance per co-op
 
-**Status:** Proposed
+**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Review: harvester keeps the produce and any member may harvest (co-op trust model, every action audited); dissolving wipes the land; the Town gate stays until the M3 map work places a proper entrance.
 
 ## Context
 

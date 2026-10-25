@@ -1,6 +1,8 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 
@@ -54,6 +56,21 @@ public static class ShopRules
 
         total = (long)each * quantity;
         return ShopVerdict.Ok;
+    }
+
+    /// <summary>Tells whether an item can be sold now: a seed only while its crop grows in the current season, anything else always.</summary>
+    /// <param name="itemId">The item.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <returns><see langword="false"/> for a seed that cannot be planted in the current season.</returns>
+    public static bool IsInSeason(int itemId, GameCalendar calendar, long nowMs)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        return !ItemCatalog.TryGet(itemId, out ItemDefinition? item)
+            || item.Kind != ItemKind.Seed
+            || !CropCatalog.TryGet(item.CropId, out CropDefinition? crop)
+            || crop.GrowsIn(calendar.SeasonAt(nowMs));
     }
 
     /// <summary>Tells whether feet are close enough to a shop point.</summary>

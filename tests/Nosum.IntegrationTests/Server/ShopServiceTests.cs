@@ -17,6 +17,7 @@ using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Shops;
 using Nosum.Contracts.Shop;
 using Nosum.Domain.Accounts;
+using Nosum.Gameplay.Calendar;
 using Nosum.Domain.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
@@ -51,7 +52,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
         _units = new EfUnitOfWorkFactory(database.Options);
         _inventory = new InventoryService(_units, _clock);
         _transfers = new TransferService(_inventory, _clock);
-        _shop = new ShopService(_transfers, _presence, new TownCatalog());
+        _shop = new ShopService(_transfers, _presence, new TownCatalog(), GameCalendar.Default, TimeProvider.System);
     }
 
     [Fact]

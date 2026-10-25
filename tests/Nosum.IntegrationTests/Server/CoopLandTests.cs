@@ -25,6 +25,7 @@ using Nosum.Contracts.Farm;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
@@ -67,7 +68,7 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         _units = new EfUnitOfWorkFactory(database.Options);
         _inventory = new InventoryService(_units, _clock);
         _membership = new CoopMembership(_units);
-        _farm = new FarmService(_presence, s_maps, _inventory, new QuestService(_units, _clock), _membership, _units, _clock);
+        _farm = new FarmService(_presence, s_maps, _inventory, new QuestService(_units, _clock), _membership, _units, _clock, GameCalendar.Default);
         _coops = new CoopService(_units, new TransferService(_inventory, _clock), _presence, new NoSessions(), new NoNotifier(), new NicknameDirectory(_units), _farm, _eviction, _clock);
     }
 

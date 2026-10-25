@@ -20,6 +20,7 @@ using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Inventory;
@@ -48,6 +49,7 @@ public sealed class FarmService : IFarmService
     private readonly ICoopMembership _coops;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
+    private readonly GameCalendar _calendar;
     private readonly ConcurrentDictionary<string, Task<MapFarm>> _farms = new(StringComparer.Ordinal);
     private readonly StripedAsyncLock _mapLocks = new(16);
 
@@ -59,6 +61,7 @@ public sealed class FarmService : IFarmService
     /// <param name="coops">Who belongs to which co-op; asked for every action on co-op land.</param>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="time">The server clock crops grow by; tests pass a fake one.</param>
+    /// <param name="calendar">The server calendar: seeds are planted by season and crops wither when theirs ends (docs/adr/ADR-018).</param>
     public FarmService(
         IMapPresence presence,
         IMapCatalog maps,
@@ -66,7 +69,8 @@ public sealed class FarmService : IFarmService
         IQuestService quests,
         ICoopMembership coops,
         IUnitOfWorkFactory unitOfWork,
-        TimeProvider time)
+        TimeProvider time,
+        GameCalendar calendar)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -75,6 +79,7 @@ public sealed class FarmService : IFarmService
         ArgumentNullException.ThrowIfNull(coops);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(time);
+        ArgumentNullException.ThrowIfNull(calendar);
 
         _presence = presence;
         _maps = maps;
@@ -83,6 +88,7 @@ public sealed class FarmService : IFarmService
         _coops = coops;
         _unitOfWork = unitOfWork;
         _time = time;
+        _calendar = calendar;
     }
 
     /// <inheritdoc/>
@@ -209,15 +215,16 @@ public sealed class FarmService : IFarmService
     private static FarmUseOutcome Refused(FarmStatus status) => new(status, FarmAction.None);
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
-    private static Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs)
+    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs)
     {
         bool hasItem = held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out _);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item);
 
         // A mature crop is harvested whatever is held (bare hands included).
-        if (current is { HasCrop: true } crop && FarmRules.IsMature(crop, nowMs))
+        bool withered = current is { HasCrop: true } standing && FarmRules.IsWithered(standing, nowMs, _calendar);
+        if (current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs))
         {
-            FarmVerdict harvest = FarmRules.Harvest(current, nowMs, out FarmTile bare, out CropDefinition? harvested);
+            FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested);
             return harvest != FarmVerdict.Ok
                 ? Plan.Refuse(harvest)
                 : new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [InventoryOperation.Add(harvested!.HarvestItemId, harvested.HarvestQuantity)], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested.Id), harvested.HarvestItemId, harvested.HarvestQuantity);
@@ -225,7 +232,7 @@ public sealed class FarmService : IFarmService
 
         if (!hasItem || item is null)
         {
-            return Plan.Refuse(current is { HasCrop: true } ? FarmVerdict.NotMature : FarmVerdict.NothingToDo);
+            return Plan.Refuse(NoActionVerdict(current, withered));
         }
 
         switch (item.Kind)
@@ -244,16 +251,20 @@ public sealed class FarmService : IFarmService
 
             case ItemKind.Seed:
                 {
-                    FarmVerdict plant = FarmRules.Plant(current, item.CropId, nowMs, out FarmTile planted);
+                    FarmVerdict plant = FarmRules.Plant(current, item.CropId, nowMs, _calendar, out FarmTile planted);
                     return plant == FarmVerdict.Ok
                         ? new Plan(plant, FarmAction.Planted, planted, [InventoryOperation.RemoveFromSlot(held.Slot, held.ItemId, 1)], "farm.plant", new QuestEvent(QuestEventKind.CropPlanted, item.CropId), item.Id, -1)
                         : Plan.Refuse(plant);
                 }
 
             default:
-                return Plan.Refuse(current is { HasCrop: true } ? FarmVerdict.NotMature : FarmVerdict.NothingToDo);
+                return Plan.Refuse(NoActionVerdict(current, withered));
         }
     }
+
+    // Why a held item (or bare hands) does nothing on a tile that holds a crop.
+    private static FarmVerdict NoActionVerdict(FarmTile? current, bool withered)
+        => withered ? FarmVerdict.Withered : current is { HasCrop: true } ? FarmVerdict.NotMature : FarmVerdict.NothingToDo;
 
     private static FarmStatus ToStatus(FarmVerdict verdict) => verdict switch
     {
@@ -265,6 +276,8 @@ public sealed class FarmService : IFarmService
         FarmVerdict.NotTilled => FarmStatus.NotTilled,
         FarmVerdict.HasCrop => FarmStatus.HasCrop,
         FarmVerdict.NotMature => FarmStatus.NotMature,
+        FarmVerdict.OutOfSeason => FarmStatus.OutOfSeason,
+        FarmVerdict.Withered => FarmStatus.Withered,
         _ => FarmStatus.NothingToDo,
     };
 
