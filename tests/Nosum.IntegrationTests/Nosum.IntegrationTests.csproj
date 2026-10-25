@@ -4,6 +4,7 @@
     <PackageReference Include="Nalix.SDK" />
     <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
     <ProjectReference Include="..\..\server\Nosum.Host\Nosum.Host.csproj" />
+    <ProjectReference Include="..\..\wasm\Nosum.Wasm.Socket\Nosum.Wasm.Socket.csproj" />
     <ProjectReference Include="..\..\tools\Nosum.AtlasPacker\Nosum.AtlasPacker.csproj" />
   </ItemGroup>
 

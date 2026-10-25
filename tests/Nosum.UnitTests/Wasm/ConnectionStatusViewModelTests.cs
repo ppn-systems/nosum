@@ -23,6 +23,7 @@ public sealed class ConnectionStatusViewModelTests
     [InlineData("en", GameSocketState.Reconnecting, "Connection lost, retrying…")]
     [InlineData("vi", GameSocketState.Ready, "Trực tuyến")]
     [InlineData("vi", GameSocketState.Offline, "Ngoại tuyến")]
+    [InlineData("en", GameSocketState.KeyMismatch, "The server identity has changed. It may be an impostor, so the game refuses to connect. Wait for an official announcement, or clear this site's data if you are running a development build.")]
     public void Text_ForStateAndCulture_ComesFromTheResources(string culture, GameSocketState state, string expected)
     {
         CultureInfo previous = CultureInfo.CurrentUICulture;
