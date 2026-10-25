@@ -162,13 +162,35 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task Walk_TownToTheMountainThroughTheNorthRoad_ChangesMap()
+    {
+        await using Host host = await Host.StartAsync(_database);
+        await using WorldClient a = await host.ConnectAsync();
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+        await states.SaveAsync(a.AccountId, new PlayerStateRow(GameMaps.Town, (81 * 16) + 8, (3 * 16) + 8, Nosum.Core.Facing.Up), host.Timeout);
+        JoinMapResult join = await a.JoinAsync(host.Timeout);
+        join.MapId.Should().Be(GameMaps.Town);
+
+        uint sequence = 0;
+        float y = join.SpawnY;
+        while (a.MapChanges.IsEmpty && y > 1)
+        {
+            y = Math.Max(y - 8, 1);
+            await a.SendMoveAsync(++sequence, join.SpawnX, y, Up, host.Timeout);
+        }
+
+        MapChanged onTheMountain = await a.MapChanges.WaitAsync(host.Timeout);
+        onTheMountain.MapId.Should().Be(GameMaps.Mountain);
+    }
+
+    [Fact]
     public async Task Walk_TownToTheBeachAndBack_ChangesMapEachWay_AndTheBridgeIsNotYetBuilt()
     {
         await using Host host = await Host.StartAsync(_database);
         await using WorldClient a = await host.ConnectAsync();
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
 
-        // On the Town's southern road, one tile above the edge that the file's exit (53..55, 110) uses.
+        // On the Town's southern road, two tiles above the edge that the file's exit (53..55, 110) uses.
         await states.SaveAsync(a.AccountId, new PlayerStateRow(GameMaps.Town, (54 * 16) + 8, (107 * 16) + 8, Nosum.Core.Facing.Down), host.Timeout);
         JoinMapResult join = await a.JoinAsync(host.Timeout);
         join.MapId.Should().Be(GameMaps.Town);

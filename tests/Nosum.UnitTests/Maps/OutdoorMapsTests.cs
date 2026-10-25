@@ -219,6 +219,8 @@ public sealed class OutdoorMapsTests
         List<NodeSite> forage = spec.ResolveForageSites(map, grid);
 
         nodes.Should().NotBeEmpty();
+        nodes.Select(s => (s.X, s.Y)).Should().OnlyHaveUniqueItems("the store keeps one node per tile");
+        forage.Select(s => (s.X, s.Y)).Should().OnlyHaveUniqueItems();
         forage.Should().HaveCountGreaterThan(40);
         forage.Should().OnlyContain(s => s.Kind == NodeKind.Forage);
         nodes.Where(s => spec.ExtraNodeSites.Contains(s) || spec.Scatter.Any(c => c.Kind == s.Kind)).Should().OnlyContain(s => !grid.IsBlocked(s.X, s.Y), "added sites are on open ground");

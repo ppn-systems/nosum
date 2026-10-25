@@ -206,12 +206,14 @@ public sealed class MapSpec
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(grid);
 
+        // One site per tile (the store keeps one node per tile): the file's sites come first, then the single sites, then the scatters.
         List<NodeSite> sites = NodeSites.Read(map);
-        sites.AddRange(this.ExtraNodeSites);
+        HashSet<(int X, int Y)> taken = [.. sites.Select(s => (s.X, s.Y))];
+        sites.AddRange(this.ExtraNodeSites.Where(s => taken.Add((s.X, s.Y))));
         ulong seed = NodeRandom.HashOf(this.Id);
         for (int i = 0; i < this.Scatter.Count; i++)
         {
-            sites.AddRange(this.Scatter[i].Sites(grid, NodeRandom.Mix(seed, i, 7)));
+            sites.AddRange(this.Scatter[i].Sites(grid, NodeRandom.Mix(seed, i, 7)).Where(s => taken.Add((s.X, s.Y))));
         }
 
         return sites;
