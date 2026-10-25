@@ -14,8 +14,8 @@ nosum/
 │   └── Nosum.Rendering.Web/      # browser backend: [JSImport] + wwwroot/renderer.js (canvas)
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
-├── game/                         # Nosum.Game.slnx
-│   └── Nosum.Game/               # farm rules shared by server and client (plots, crops, items, growth)
+├── gameplay/                     # Nosum.Gameplay.slnx
+│   └── Nosum.Gameplay/           # farm rules shared by server and client (plots, crops, items, growth)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -53,15 +53,15 @@ Nosum.Core              → (nothing)
 Nosum.Rendering         → Core
 Nosum.Rendering.Web     → Rendering
 Nosum.Contracts         → Nalix.Abstractions, Nalix.Codec
-Nosum.Game              → Core
-Nosum.Domain            → Game
+Nosum.Gameplay          → Core
+Nosum.Domain            → Gameplay
 Nosum.Abstractions      → Domain, Contracts
 Nosum.Infrastructure    → Abstractions
 Nosum.Handlers          → Abstractions, Nalix.Runtime          (never Infrastructure)
 Nosum.Host              → Handlers, Infrastructure, Nalix.Hosting
 Nosum.Wasm.Socket       → Contracts, Nalix.SDK
 Nosum.Wasm.ViewModels   → Wasm.Socket
-Nosum.Wasm              → Wasm.ViewModels, Rendering.Web, Game
+Nosum.Wasm              → Wasm.ViewModels, Rendering.Web, Gameplay
 ```
 
 Two boundaries matter most:
@@ -69,7 +69,7 @@ Two boundaries matter most:
 - **The engine (`Nosum.Core`, `Nosum.Rendering`) references no Blazor, JS or Nalix code.**
   Only `Nosum.Rendering.Web` touches the browser. This keeps the engine unit-testable and the
   backend replaceable ([ADR-001](docs/adr/ADR-001-separate-engine.md)).
-- **`Nosum.Game` is pure rules.** The server runs it to decide outcomes; the client runs the
+- **`Nosum.Gameplay` is pure rules.** The server runs it to decide outcomes; the client runs the
   same code only to predict and display them ([ADR-003](docs/adr/ADR-003-server-authoritative-websocket.md)).
 
 ## Runtime path 1 — the frame loop
@@ -99,7 +99,7 @@ Nosum.Host listener → Nalix dispatch → Nosum.Handlers → Abstractions → I
 ```
 
 The server is authoritative: the client sends intents ("plant seed X in plot Y"); the server
-validates them with `Nosum.Game`, persists the result and replies or pushes the new state.
+validates them with `Nosum.Gameplay`, persists the result and replies or pushes the new state.
 
 ## Organize by game domain
 

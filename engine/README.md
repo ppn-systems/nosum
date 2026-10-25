@@ -1,7 +1,7 @@
 # engine/
 
 The Nosum 2D engine. It knows nothing about farming, the network or Blazor; the game in
-`game/` and the client in `wasm/` build on it. Decision: [ADR-001](../docs/adr/ADR-001-separate-engine.md).
+`gameplay/` and the client in `wasm/` build on it. Decision: [ADR-001](../docs/adr/ADR-001-separate-engine.md).
 
 | Project | Holds | May reference |
 | :--- | :--- | :--- |

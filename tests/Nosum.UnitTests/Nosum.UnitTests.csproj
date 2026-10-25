@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
-    <ProjectReference Include="..\..\game\Nosum.Game\Nosum.Game.csproj" />
+    <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
     <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
   </ItemGroup>
 

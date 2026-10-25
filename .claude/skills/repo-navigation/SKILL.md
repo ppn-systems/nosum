@@ -1,6 +1,6 @@
 ---
 name: repo-navigation
-description: Use to locate code, decide where a new file or project belongs, or find the packet/handler/rule/page for a feature — engine/contracts/game/server/wasm/tests/bench layout, the no-root-solution rule, allowed project references.
+description: Use to locate code, decide where a new file or project belongs, or find the packet/handler/rule/page for a feature — engine/contracts/gameplay/server/wasm/tests/bench layout, the no-root-solution rule, allowed project references.
 ---
 
 # Repository navigation
@@ -24,7 +24,7 @@ description: Use to locate code, decide where a new file or project belongs, or 
 | Math, time, scene, tilemap, camera, input, anything a non-farm game could reuse | `engine/Nosum.Core/` |
 | Render command, batching, culling | `engine/Nosum.Rendering/` |
 | Code that calls the browser for drawing | `engine/Nosum.Rendering.Web/` (+ `wwwroot/*.js`) |
-| A rule about plots, crops, items, prices, growth | `game/Nosum.Game/{Domain}/` |
+| A rule about plots, crops, items, prices, growth | `gameplay/Nosum.Gameplay/{Domain}/` |
 | A packet, opcode, DTO or wire enum | `contracts/Nosum.Contracts/{Domain}/{C2S,S2C}/` |
 | A persisted entity | `server/Nosum.Domain/{Domain}/` |
 | A service interface / its implementation | `server/Nosum.Abstractions/Services/{Domain}/` / `server/Nosum.Infrastructure/Services/{Domain}/` |
@@ -41,5 +41,5 @@ in every area.
 
 1. Opcode: `grep -rn "<Name>" contracts/` → the `*OpCode` class names the domain.
 2. Handler: `grep -rn "PacketOpcode(<OpCodeClass>.<Name>" server/Nosum.Handlers`.
-3. Rule: `game/Nosum.Game/<Domain>/`.
+3. Rule: `gameplay/Nosum.Gameplay/<Domain>/`.
 4. UI: `wasm/Nosum.Wasm/Pages/<Domain>/` and `wasm/Nosum.Wasm.ViewModels/<Domain>/`.

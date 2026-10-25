@@ -5,7 +5,7 @@ connects to. Decision: [ADR-003](../docs/adr/ADR-003-server-authoritative-websoc
 
 | Project | Holds | May reference |
 | :--- | :--- | :--- |
-| `Nosum.Domain` | Persisted entities and enums | `Nosum.Game` |
+| `Nosum.Domain` | Persisted entities and enums | `Nosum.Gameplay` |
 | `Nosum.Abstractions` | Service interfaces, DTO rows | `Nosum.Domain`, `Nosum.Contracts` |
 | `Nosum.Infrastructure` | Persistence, service implementations | `Nosum.Abstractions` |
 | `Nosum.Handlers` | Stateless packet handlers, by domain folder | `Nosum.Abstractions`, `Nalix.Runtime` — **never** Infrastructure |
@@ -13,7 +13,7 @@ connects to. Decision: [ADR-003](../docs/adr/ADR-003-server-authoritative-websoc
 
 Skills: [`nalix-server-hosting`](../.claude/skills/nalix-server-hosting/SKILL.md),
 [`nalix-handlers`](../.claude/skills/nalix-handlers/SKILL.md),
-[`game-rules`](../.claude/skills/game-rules/SKILL.md).
+[`gameplay-rules`](../.claude/skills/gameplay-rules/SKILL.md).
 
 ```bash
 dotnet build server/Nosum.slnx

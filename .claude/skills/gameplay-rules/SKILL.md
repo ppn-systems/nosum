@@ -1,18 +1,18 @@
 ---
-name: game-rules
-description: Use when writing farm rules in game/Nosum.Game or server code that validates a player action — plots, crops, growth timers, items, inventory, prices, currency. Server-authoritative rule, time-from-timestamps, determinism, what the client may compute.
+name: gameplay-rules
+description: Use when writing farm rules in gameplay/Nosum.Gameplay or server code that validates a player action — plots, crops, growth timers, items, inventory, prices, currency. Server-authoritative rule, time-from-timestamps, determinism, what the client may compute.
 ---
 
-# Game rules
+# Gameplay rules
 
 Decision: `docs/adr/ADR-003-server-authoritative-websocket.md`.
 
 ## Non-negotiables
 
 - **The server decides.** A client packet is an intent ("plant seed X in plot Y"), never a
-  result ("I now have 500 coins"). The handler loads state, runs the rule from `Nosum.Game`,
+  result ("I now have 500 coins"). The handler loads state, runs the rule from `Nosum.Gameplay`,
   persists and replies. Coins, items, time and growth are never taken from the client.
-- **Pure rules.** `Nosum.Game` has no I/O, database, network, logging, randomness source or
+- **Pure rules.** `Nosum.Gameplay` has no I/O, database, network, logging, randomness source or
   clock read. Time (`DateTimeOffset now`) and random values are parameters, so the same input
   always gives the same output on server and client.
 - **Timers from timestamps.** Growth and cooldowns are computed from stored timestamps
@@ -26,11 +26,11 @@ Decision: `docs/adr/ADR-003-server-authoritative-websocket.md`.
 
 ## Placement
 
-- Rule code: `game/Nosum.Game/{Domain}/`.
-- Persisted shape: `server/Nosum.Domain/{Domain}/` (may use `Nosum.Game` types).
-- Wire shape: `contracts/Nosum.Contracts/{Domain}/` — contracts do not reference `Nosum.Game`.
+- Rule code: `gameplay/Nosum.Gameplay/{Domain}/`.
+- Persisted shape: `server/Nosum.Domain/{Domain}/` (may use `Nosum.Gameplay` types).
+- Wire shape: `contracts/Nosum.Contracts/{Domain}/` — contracts do not reference `Nosum.Gameplay`.
 
 ## Tests
 
-Every rule gets unit tests in `tests/Nosum.UnitTests/Game/` covering the accepted path and each
+Every rule gets unit tests in `tests/Nosum.UnitTests/Gameplay/` covering the accepted path and each
 refusal (`testing-style`).

@@ -36,8 +36,8 @@
   `IJSRuntime` inside the frame loop. [`render-interop`]
 - **Blazor draws UI, not the world.** No `StateHasChanged` per frame; `.razor` files never
   touch the socket. [`blazor-ui`]
-- **The server decides.** Clients send intents; the server validates with `Nosum.Game` and
-  owns every outcome (money, items, time). [`game-rules`]
+- **The server decides.** Clients send intents; the server validates with `Nosum.Gameplay` and
+  owns every outcome (money, items, time). [`gameplay-rules`]
 - **Wire format is append-only.** Never change an opcode or `[SerializeOrder]` value; never
   reuse a retired opcode. [`nalix-packets`]
 - **Handlers never reference `Nosum.Infrastructure`.** [`nalix-handlers`]
@@ -62,7 +62,7 @@ Owner: `docs-style`.
 | `engine/Nosum.Core`, `engine/Nosum.Rendering` | `engine-core` |
 | Frame loop, `Nosum.Rendering.Web`, `renderer.js`, anything crossing .NET ↔ JS | `render-interop` |
 | Anything under `wasm/` (pages, ViewModels, socket wiring) | `blazor-ui` |
-| `game/Nosum.Game`, server-side validation of player actions | `game-rules` |
+| `gameplay/Nosum.Gameplay`, server-side validation of player actions | `gameplay-rules` |
 | Packet class or opcode in `contracts/` | `nalix-packets` |
 | Server packet handler | `nalix-handlers` |
 | `server/Nosum.Host` entry point, listeners | `nalix-server-hosting` |

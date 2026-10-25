@@ -6,7 +6,7 @@ description: Use when writing or debugging a server packet handler in server/Nos
 # Nalix handlers (server/Nosum.Handlers)
 
 **Version: Nalix 14.3.7.** Registration in the host: `nalix-server-hosting`. Packet classes:
-`nalix-packets`. What a handler must check: `game-rules`.
+`nalix-packets`. What a handler must check: `gameplay-rules`.
 
 ## Non-negotiables
 

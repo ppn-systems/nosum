@@ -20,7 +20,7 @@ Facts from the Nalix source (`src/Nalix.Codec`, generators) as used by Nalix 14.
 - **A frame one field short or long does not deserialize.** Server and client ship together;
   a breaking change bumps `NosumProtocol.Version` (`contracts/Nosum.Contracts/NosumProtocol.cs`).
 - Each packet type is defined once; `StaticOpCode` is unique across the protocol.
-- Contracts hold no logic and reference no `game/` or `server/` project.
+- Contracts hold no logic and reference no `gameplay/` or `server/` project.
 
 ## Define a packet
 

@@ -23,7 +23,7 @@ Frame loop and drawing: `render-interop`. Transport internals: `nalix-client-sdk
   `Dispose`/`DisposeAsync`.
 - **The bundle is public.** Everything in the published `wwwroot/_framework` is downloadable:
   no secrets, keys, admin endpoints or server-only rules in `wasm/` projects. The server
-  re-validates everything (`game-rules`).
+  re-validates everything (`gameplay-rules`).
 - **Trimmed, no AOT** (`wasm/Directory.Build.props`). Changing this needs `bench/` numbers and
   an ADR-002 amendment.
 

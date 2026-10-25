@@ -11,11 +11,11 @@ Decision: `docs/adr/ADR-001-separate-engine.md`. Browser backend and the JS side
 ## Non-negotiables
 
 - **No platform references.** `Nosum.Core` and `Nosum.Rendering` never reference Blazor,
-  `Microsoft.JSInterop`, `System.Runtime.InteropServices.JavaScript`, Nalix, or `game/`. If
+  `Microsoft.JSInterop`, `System.Runtime.InteropServices.JavaScript`, Nalix, or `gameplay/`. If
   something needs the browser, define an interface here and implement it in a
   `Nosum.Rendering.*` (or future `Nosum.Platform.*`) project.
 - **No farming in the engine.** Anything that only makes sense for this game goes to
-  `game/Nosum.Game` (`game-rules`).
+  `gameplay/Nosum.Gameplay` (`gameplay-rules`).
 - **Fixed timestep.** Simulation advances only through `FixedTimestep.Advance`
   (`engine/Nosum.Core/FixedTimestep.cs`): run the returned number of steps, then render with
   `Alpha` to interpolate. Never scale movement by the raw frame delta.

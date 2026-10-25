@@ -11,7 +11,7 @@ description: Use before committing, opening a PR, or declaring a change done —
 |:--|:--|
 | Only markdown / skills | nothing |
 | `engine/` | `dotnet build engine/Nosum.Engine.slnx` + `dotnet test tests/Nosum.UnitTests` |
-| `game/` or `contracts/` | `dotnet build game/Nosum.Game.slnx` / `contracts/Nosum.Contracts.slnx` + `dotnet build server/Nosum.slnx` + `dotnet build wasm/Nosum.Wasm.slnx` + `dotnet test tests/Nosum.Tests.slnx` |
+| `gameplay/` or `contracts/` | `dotnet build gameplay/Nosum.Gameplay.slnx` / `contracts/Nosum.Contracts.slnx` + `dotnet build server/Nosum.slnx` + `dotnet build wasm/Nosum.Wasm.slnx` + `dotnet test tests/Nosum.Tests.slnx` |
 | `server/` | `dotnet build server/Nosum.slnx` + `dotnet test tests/Nosum.Tests.slnx` |
 | `wasm/` | `dotnet build wasm/Nosum.Wasm.slnx` |
 | `bench/` | `dotnet build bench/Nosum.Bench.slnx` |
@@ -34,5 +34,5 @@ Builds are warning-free by construction (`TreatWarningsAsErrors`); a warning is 
 - An engine project gained a Blazor/JS/Nalix reference, or `Nosum.Handlers` references
   `Nosum.Infrastructure`.
 - The frame loop gained an allocation, an `IJSRuntime` call or a per-item interop call.
-- A server handler trusts a client-supplied result (coins, items, time) (`game-rules`).
+- A server handler trusts a client-supplied result (coins, items, time) (`gameplay-rules`).
 - An architecture change has no ADR.

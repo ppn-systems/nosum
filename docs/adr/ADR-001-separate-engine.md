@@ -20,7 +20,7 @@ locked to one rendering technology.
   (`engine/Nosum.Rendering/IRenderBackend.cs`). The browser implementation is
   `Nosum.Rendering.Web`, the only engine project that may reference
   `System.Runtime.InteropServices.JavaScript`.
-- **D4** — Farming rules do not live in the engine; they live in `game/Nosum.Game`, which
+- **D4** — Farming rules do not live in the engine; they live in `gameplay/Nosum.Gameplay`, which
   references `Nosum.Core` only.
 - **D5** — The simulation advances in fixed steps (`engine/Nosum.Core/FixedTimestep.cs`);
   rendering interpolates with `FixedTimestep.Alpha`.

@@ -13,12 +13,12 @@ description: Use when writing, changing or reviewing tests under tests/ — xUni
 - **Arrange / act / assert** separated by blank lines; one behavior per test.
 - **Deterministic.** Time and randomness are passed in; no `Thread.Sleep`, no wall-clock
   assertions, no dependence on test order.
-- **Placement mirrors the source:** `tests/Nosum.UnitTests/Engine/`, `.../Game/`,
+- **Placement mirrors the source:** `tests/Nosum.UnitTests/Engine/`, `.../Gameplay/`,
   `.../Contracts/`; server-over-the-wire tests in `tests/Nosum.IntegrationTests/Server/`.
 - **Integration tests bind a free port** (`TcpListener` on port 0, as in
   `tests/Nosum.IntegrationTests/Server/HostWebSocketTests.cs`), build the app through
   `Program.BuildApplication`, and always deactivate it in `finally`.
-- Every game rule tests its accepted path and each refusal (`game-rules`).
+- Every game rule tests its accepted path and each refusal (`gameplay-rules`).
 - Never skip, disable or delete a failing test to get green.
 
 ## Run

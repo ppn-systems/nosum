@@ -17,7 +17,7 @@ and modified by the player. Nalix ships a WebSocket listener on the server
 - **D2** — Client and server share packet definitions from `contracts/Nosum.Contracts`; the
   wire format is opcode plus `[SerializeOrder]`.
 - **D3** — The server is authoritative. Clients send intents; the server validates them with
-  `Nosum.Game`, applies them, persists the result and replies or pushes the new state. Time,
+  `Nosum.Gameplay`, applies them, persists the result and replies or pushes the new state. Time,
   currency and inventory are never taken from the client.
 - **D4** — Crop growth and other timers are computed from stored timestamps on demand, not
   simulated per tick on the server.

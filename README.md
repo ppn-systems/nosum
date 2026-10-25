@@ -13,7 +13,7 @@ Client and server talk over one Nalix WebSocket channel and share the same C# co
 | :--- | :--- | :--- |
 | [`engine/`](engine/) | 2D engine: loop, scene, rendering front end, browser render backend | `Nosum.Engine.slnx` |
 | [`contracts/`](contracts/) | Wire contracts shared by server and client (opcodes, packets) | `Nosum.Contracts.slnx` |
-| [`game/`](game/) | Farm rules shared by server and client | `Nosum.Game.slnx` |
+| [`gameplay/`](gameplay/) | Farm rules shared by server and client | `Nosum.Gameplay.slnx` |
 | [`server/`](server/) | Realtime server (Nalix) | `Nosum.slnx` |
 | [`wasm/`](wasm/) | Blazor WebAssembly client | `Nosum.Wasm.slnx` |
 | [`tests/`](tests/) | Unit and integration tests | `Nosum.Tests.slnx` |
