@@ -57,7 +57,7 @@ internal static class HostCommands
         using HttpClient client = new() { Timeout = TimeSpan.FromSeconds(4) };
         try
         {
-            using HttpResponseMessage response = await client.GetAsync(new Uri($"http://127.0.0.1:{port}/readyz"), cancellationToken).ConfigureAwait(false);
+            using HttpResponseMessage response = await client.GetAsync(new Uri($"http://localhost:{port}/readyz"), cancellationToken).ConfigureAwait(false);
             await output.WriteLineAsync(response.IsSuccessStatusCode ? "ready" : "not ready").ConfigureAwait(false);
             return response.IsSuccessStatusCode ? 0 : 1;
         }
