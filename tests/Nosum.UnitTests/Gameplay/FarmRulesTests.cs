@@ -92,8 +92,8 @@ public sealed class FarmRulesTests
     {
         FarmTile tile = Planted(CropCatalog.Parsnip, 1);
 
-        FarmRules.GrowthDaysAt(tile, Noon(40), s_calendar).Should().Be(0);
-        FarmRules.StageAt(tile, Noon(40), s_calendar).Should().Be(0);
+        FarmRules.GrowthDaysAt(tile, Noon(40), s_calendar, outdoors: false).Should().Be(0);
+        FarmRules.StageAt(tile, Noon(40), s_calendar, outdoors: false).Should().Be(0);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public sealed class FarmRulesTests
 
         FarmRules.GrowthDaysAt(tile, Noon(3), s_calendar).Should().Be(1, "day 1 has ended, day 3 has not");
         FarmRules.GrowthDaysAt(tile, Midnight(4), s_calendar).Should().Be(2);
-        FarmRules.GrowthDaysAt(tile, Noon(30), s_calendar).Should().Be(2, "a crop that is never watered again stops growing");
+        FarmRules.GrowthDaysAt(tile, Noon(30), s_calendar, outdoors: false).Should().Be(2, "a crop that is never watered again stops growing");
         FarmRules.StageAt(tile, Midnight(4), s_calendar).Should().Be(2);
     }
 
@@ -164,7 +164,7 @@ public sealed class FarmRulesTests
         FarmTile tile = WateredOn(FarmTile.Bare, 1);
         FarmRules.Plant(tile, CropCatalog.Parsnip, Noon(2), s_calendar, out FarmTile planted);
 
-        FarmRules.GrowthDaysAt(planted, Midnight(30), s_calendar).Should().Be(0);
+        FarmRules.GrowthDaysAt(planted, Midnight(30), s_calendar, outdoors: false).Should().Be(0, "indoors no rain waters it");
     }
 
     [Fact]

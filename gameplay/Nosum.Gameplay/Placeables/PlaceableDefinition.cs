@@ -29,9 +29,11 @@ public sealed class PlaceableDefinition
     /// <summary>Initializes a definition.</summary>
     /// <param name="itemId">The inventory item that is consumed when it is placed and returned when it is picked up.</param>
     /// <param name="sheet">Name of the sheet the art is on (a file in <c>TileSheets/</c>, without extension).</param>
+    /// <param name="lightRadius">Radius, in pixels, of the light the piece gives at night (docs/adr/ADR-027 D5); zero for a piece that gives none.</param>
     /// <param name="views">One view per rotation (clockwise from facing down), or a single view for a piece that does not rotate.</param>
-    public PlaceableDefinition(int itemId, string sheet, params PlaceableView[] views)
+    public PlaceableDefinition(int itemId, string sheet, int lightRadius, params PlaceableView[] views)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(lightRadius);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(itemId);
         ArgumentException.ThrowIfNullOrEmpty(sheet);
         ArgumentNullException.ThrowIfNull(views);
@@ -48,7 +50,17 @@ public sealed class PlaceableDefinition
 
         this.ItemId = itemId;
         this.Sheet = sheet;
+        this.LightRadius = lightRadius;
         _views = views;
+    }
+
+    /// <summary>Initializes a definition that gives no light.</summary>
+    /// <param name="itemId">The inventory item that is consumed when it is placed and returned when it is picked up.</param>
+    /// <param name="sheet">Name of the sheet the art is on.</param>
+    /// <param name="views">One view per rotation, or a single view.</param>
+    public PlaceableDefinition(int itemId, string sheet, params PlaceableView[] views)
+        : this(itemId, sheet, 0, views)
+    {
     }
 
     /// <summary>Gets the inventory item this is made from.</summary>
@@ -56,6 +68,9 @@ public sealed class PlaceableDefinition
 
     /// <summary>Gets the sheet name (a file in <c>TileSheets/</c>, without extension).</summary>
     public string Sheet { get; }
+
+    /// <summary>Gets the radius, in pixels, of the light this piece gives in the night tint; zero when it gives none.</summary>
+    public int LightRadius { get; }
 
     /// <summary>Gets how many rotations are valid: 1 or 4.</summary>
     public int Rotations => _views.Length;

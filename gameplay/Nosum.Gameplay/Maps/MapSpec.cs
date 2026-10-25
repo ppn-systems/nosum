@@ -29,6 +29,7 @@ public sealed class MapSpec
     /// <param name="placeable">Whether players may place furniture on its free floor.</param>
     /// <param name="shops">Where shops are served on this map (docs/adr/ADR-013 amendments).</param>
     /// <param name="isCoop">Whether each co-op has its own copy of the map, owned by the co-op and open to its members only (docs/adr/ADR-020).</param>
+    /// <param name="indoors">Whether the map is a room or a cave: no weather falls on it, rain does not water its soil and it is lit (docs/adr/ADR-027).</param>
     public MapSpec(
         string id,
         string tmxFile,
@@ -41,7 +42,8 @@ public sealed class MapSpec
         bool isPrivate = false,
         bool placeable = false,
         IReadOnlyList<ShopPoint>? shops = null,
-        bool isCoop = false)
+        bool isCoop = false,
+        bool indoors = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(tmxFile);
@@ -62,6 +64,7 @@ public sealed class MapSpec
         this.Placeable = placeable;
         this.Shops = shops ?? [];
         this.IsCoop = isCoop;
+        this.Indoors = indoors;
     }
 
     /// <summary>Gets the stable map key.</summary>
@@ -93,6 +96,9 @@ public sealed class MapSpec
 
     /// <summary>Gets whether every co-op has its own instance of this map, keyed by the co-op id (docs/adr/ADR-020).</summary>
     public bool IsCoop { get; }
+
+    /// <summary>Gets whether the map is indoors: no rain or snow, rain does not water soil there, and daylight does not tint it (docs/adr/ADR-027).</summary>
+    public bool Indoors { get; }
 
     /// <summary>Gets whether players may place furniture on this map.</summary>
     public bool Placeable { get; }
