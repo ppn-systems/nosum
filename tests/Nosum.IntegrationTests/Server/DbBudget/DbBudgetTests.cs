@@ -64,6 +64,13 @@ public sealed class DbBudgetTests : IClassFixture<DbBudgetRun>
     }
 
     [Fact]
+    public void Run_CachedStateEqualsTheRows_AfterEveryMeasuredRow()
+    {
+        _run.Comparisons.Should().BeGreaterThan(300, "the check must have looked at the caches, not at nothing");
+        _run.Divergences.Should().BeEmpty("after every request of the scenarios (the economy ones included) what the server holds in memory for each signed-in player - inventory, saved place, energy, experience, quests, co-op, friends, visit settings, player facts - equals what a service with nothing in memory reads from the rows (docs/adr/ADR-035)");
+    }
+
+    [Fact]
     public void Run_EveryClientOpcode_HasARowOrAReason()
     {
         this.Missing().Should().BeEmpty("every client packet is measured, or its row says why not");

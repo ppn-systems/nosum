@@ -192,8 +192,10 @@ public sealed class SkyRenderingTests
     {
         PrecipitationLayer layer = new();
         RenderCommandBuffer buffer = new(PrecipitationLayer.Capacity);
-        // Warm every call the measured frames make (first calls load types and compile methods on this thread).
-        for (int warm = 0; warm < 3; warm++)
+        // Warm every path the measured frames take (first calls load types and compile methods on this thread). Three frames are not enough: the slowest
+        // particle needs about 95 frames to reach the bottom, and the wrap-around branch (a particle re-seeded through Next) runs for the first time then,
+        // inside the measured window, where its first-call cost is counted as an allocation of this thread.
+        for (int warm = 0; warm < 300; warm++)
         {
             layer.Update(Precipitation.Rain, 0.016, 416, 234);
             buffer.Begin(2);

@@ -74,6 +74,7 @@ using Nosum.Handlers.Visit;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Host.Ops;
 using Nosum.Infrastructure.Blacksmith;
+using Nosum.Infrastructure.Caching;
 using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Chat;
@@ -221,6 +222,9 @@ internal static class Program
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
         }
+
+        // Whatever waits for its write goes to the database before the process ends (docs/adr/ADR-035 D7).
+        await (InstanceManager.Instance.GetExistingInstance<WriteBehind>() ?? throw new InvalidOperationException("The write-behind queue is not registered.")).FlushAllAsync(CancellationToken.None).ConfigureAwait(false);
 
         await keyAnnouncement.ConfigureAwait(false);
         await animalWander.ConfigureAwait(false);
@@ -435,7 +439,13 @@ internal static class Program
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
         PlayerNotifier notifier = new(sessions);
         InstanceManager.Instance.Register<IPlayerNotifier>(notifier);
-        InventoryService inventory = new(unitOfWork, clock, notifier);
+        // The few writes whose loss changes no money, item or progress wait up to five seconds and are written when the player leaves and at shutdown (docs/adr/ADR-035 D7).
+        WriteBehind writeBehind = new(unitOfWork, TimeProvider.System);
+        writeBehind.Failed += ex => Console.Error.WriteLine("A delayed write failed and was dropped: " + ex.Message);
+        InstanceManager.Instance.Register(writeBehind);
+        presence.PlayerLeft += player => new ValueTask(writeBehind.FlushAsync(player.AccountId));
+        sessions.SessionEnded += id => new ValueTask(writeBehind.FlushAsync(id));
+        InventoryService inventory = new(unitOfWork, clock, notifier, writeBehind);
         // Coins, market, looks, trade, co-ops and ground-item pickups (docs/adr/ADR-013, ADR-014, ADR-021) all move items through the one transfer service; a quest's reward is one too.
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
@@ -443,6 +453,16 @@ internal static class Program
         // The first finished quest invites a guest to register.
         InstanceManager.Instance.Register(new RegistrationPromptOnQuestCompleted(quests, prompts, notifier));
         InstanceManager.Instance.Register<IInventoryService>(inventory);
+        // A player who signed out lets go of their in-memory inventory (docs/adr/ADR-035 D3).
+        PlayerStateCache playerStates = InstanceManager.Instance.GetExistingInstance<PlayerStateCache>()
+            ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
+        sessions.SessionEnded += id =>
+        {
+            inventory.Forget(id);
+            playerStates.Forget(id);
+            quests.Forget(id);
+            return ValueTask.CompletedTask;
+        };
         InstanceManager.Instance.Register<IQuestService>(quests);
 
         INicknameDirectory nicknames = InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()
@@ -454,13 +474,32 @@ internal static class Program
         InstanceManager.Instance.Register<IPlacedLookup>(placedTiles);
         // Every world feature publishes through the chunk publisher and sends its chunk's state when it joins a player's interest set (docs/adr/ADR-022).
         // Co-op land (docs/adr/ADR-020) is entered by membership; the player service also moves a removed member out.
-        CoopMembership coopMembership = new(unitOfWork);
+        CoopDirectory coopDirectory = new(unitOfWork);
+        sessions.SessionEnded += id =>
+        {
+            coopDirectory.Forget(id);
+            return ValueTask.CompletedTask;
+        };
+        CoopMembership coopMembership = new(unitOfWork, coopDirectory);
         InstanceManager.Instance.Register<ICoopMembership>(coopMembership);
         // Farm buildings (docs/adr/ADR-028): their doors are known to the movement path, and the inside of a building is entered by whoever may enter its land.
         BuildingDirectory buildingDirectory = new(unitOfWork);
         InstanceManager.Instance.Register<IBuildingDirectory>(buildingDirectory);
         // Entry to a private place is decided by the owner's allow-list and co-op setting (docs/adr/ADR-019); the inside of a building follows its land (docs/adr/ADR-028 D2).
-        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork), buildingDirectory, coopMembership, clock);
+        // Friends and the owners' visit settings are held in memory too (docs/adr/ADR-035 D5): the access check reads them on every entry, the friend, visit and block services change them.
+        FriendFacts friendFacts = new(unitOfWork);
+        VisitFacts visitFacts = new(unitOfWork);
+        InstanceManager.Instance.Register(friendFacts);
+        InstanceManager.Instance.Register(visitFacts);
+        InstanceManager.Instance.Register(coopDirectory);
+        sessions.SessionEnded += id =>
+        {
+            friendFacts.Changed(id);
+            return ValueTask.CompletedTask;
+        };
+        BlockList blocks = new(unitOfWork, nicknames, clock, friendFacts);
+        InstanceManager.Instance.Register<IBlockList>(blocks);
+        BuildingAccessPolicy access = new(new VisitAccess(unitOfWork, nicknames, coopDirectory, visitFacts, friendFacts, blocks), buildingDirectory, coopMembership, clock);
 
         // Admin intents, the mute list and the live gauges (docs/adr/ADR-031 D6-D7).
         OpsServices.Register(unitOfWork, sessions, transfers, presence, clock);
@@ -476,7 +515,7 @@ internal static class Program
         CalendarGameDayClock nodeDayClock = new(calendar, clock);
         InstanceManager.Instance.Register<IGameDayClock>(nodeDayClock);
         // Energy and skills (docs/adr/ADR-023): every tool use is charged through this in the transaction of its effect.
-        PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier);
+        PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier, playerStates);
         InstanceManager.Instance.Register<IPlayerProgress>(progress);
         ResourceNodeService nodes = new(presence, presence, publisher, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, progress, placedTiles);
 
@@ -528,9 +567,7 @@ internal static class Program
 
         // Block lists and the mailbox (docs/adr/ADR-029): the trade, co-op and visit services drop requests between blocked players, the market and the
         // co-ops send mail, and community goals send rewards through IMailService.
-        BlockList blocks = new(unitOfWork, nicknames, clock);
-        InstanceManager.Instance.Register<IBlockList>(blocks);
-        MailService mail = new(unitOfWork, transfers, notifier, clock);
+        MailService mail = new(unitOfWork, transfers, notifier, clock, writeBehind);
         InstanceManager.Instance.Register<IMailService>(mail);
 
         // The market fee is a coin sink (owner decision 2026-10-25); IFeeSink is the one place that would redirect it.
@@ -571,14 +608,14 @@ internal static class Program
         }
 
         InstanceManager.Instance.Register<ITradeService>(new TradeService(presence, inventory, transfers, notifier, clock, blocks));
-        CoopService coops = new(unitOfWork, transfers, presence, sessions, notifier, nicknames, farm, players, clock, mail, blocks);
+        CoopService coops = new(unitOfWork, transfers, inventory, presence, sessions, notifier, nicknames, farm, players, clock, mail, blocks, coopDirectory);
         InstanceManager.Instance.Register<ICoopService>(coops);
 
         // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
-        FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock);
+        FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock, friendFacts, visitFacts);
         InstanceManager.Instance.Register<IFriendService>(friends);
-        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory));
-        InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>()));
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory, visitFacts));
+        InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
 
         // Armed last: every subscriber is in place before the first boundary.
         dayClock.Start();

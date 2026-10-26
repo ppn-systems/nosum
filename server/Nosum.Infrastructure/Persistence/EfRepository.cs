@@ -16,9 +16,14 @@ namespace Nosum.Infrastructure.Persistence;
 internal sealed class EfRepository<TEntity> : IRepository<TEntity>
     where TEntity : class
 {
+    private readonly DbContext _context;
     private readonly DbSet<TEntity> _set;
 
-    public EfRepository(DbContext context) => _set = context.Set<TEntity>();
+    public EfRepository(DbContext context)
+    {
+        _context = context;
+        _set = context.Set<TEntity>();
+    }
 
     public ValueTask<TEntity?> FindAsync(object key, CancellationToken cancellationToken)
         => _set.FindAsync([key], cancellationToken);
@@ -39,6 +44,17 @@ internal sealed class EfRepository<TEntity> : IRepository<TEntity>
         => _set.Where(predicate).OrderByDescending(orderByDescending).Skip(skip).Take(take).ToListAsync(cancellationToken);
 
     public void Add(TEntity entity) => _ = _set.Add(entity);
+
+    public void Update(TEntity entity) => _ = _set.Update(entity);
+
+    public void Update(TEntity entity, params string[] properties)
+    {
+        Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TEntity> entry = _set.Attach(entity);
+        foreach (string name in properties)
+        {
+            entry.Property(name).IsModified = true;
+        }
+    }
 
     public void Remove(TEntity entity) => _ = _set.Remove(entity);
 }
