@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Compiles Nosum's own map layouts into .tmx files and generates the mine floors (docs/adr/ADR-042 D4).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
+    <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Nosum.UnitTests" />
+  </ItemGroup>
+
+</Project>

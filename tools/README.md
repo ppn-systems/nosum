@@ -8,6 +8,7 @@ only area allowed to use an image-processing package
 | Project | Does |
 | :--- | :--- |
 | `Nosum.AssetInventory` | Lists every placeholder file the game loads and the cells it draws, and writes [`docs/art/inventory.md`](../docs/art/inventory.md) ([ADR-040](../docs/adr/ADR-040-own-art-plan.md)). Reads the maps, the catalogues and the sprite tables in `wasm/`. |
+| `Nosum.MapGen` | Compiles Nosum's own map layouts into `.tmx` files and generates the forty mine floors; reads the own tileset data files. Section [Own maps](#own-maps-nosummapgen) below ([ADR-042](../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D3, D4). |
 | `Nosum.AtlasPacker` | Packs each `<category>/` folder of Nosum's own art into `<category>.png` + `<category>.json` (SkiaSharp). Not used on the placeholder content in `assets/` (ADR-007). |
 | `Nosum.MapReauthor` | Re-authors the placeholder `.tmx` of every hosted map: the ground layer onto Nosum's own terrain tileset by terrain kind (PixelLab corner sets plus a drawn cobble path), and paints own tilesheets, named like the placeholder sheets, for every other drawn layer ([ADR-040](../docs/adr/ADR-040-own-art-plan.md), [`art/`](../art/README.md)). |
 | `art_repack/` | Python 3 standard library only: rebuilds the replaced art under `assets/` from CC0 packs and pictures drawn in code (the farmer layers: `farmer.py`, buildable alone with `--only farmer`), and writes [`docs/art/provenance.md`](../docs/art/provenance.md) ([sourcing](../docs/art/sourcing.md)). Deterministic; `--check` fails when a file on disk differs. |
@@ -47,3 +48,69 @@ dotnet run --project tools/Nosum.MapReauthor -- preview Farm --out farm.png [--p
 
 A new map starts with `reauthor <Map>`: the report lists the tiles the kind table does not know yet; add them to `tools/Nosum.MapReauthor/terrain-kinds.csv`
 (sheet name without `.png`, local index, kind) and run it again. Tiles of kind `other` (floors, walls, stone) keep their index and are drawn by the painter like every other layer. The own map is linked into `wasm/Nosum.Wasm` and `server/Nosum.Host` as described in `art/README.md`.
+
+## Own maps (Nosum.MapGen)
+
+`Nosum.MapGen` writes Nosum's own `.tmx` maps under `art/own/Maps` ([ADR-042](../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D3, D4). Nothing in the game
+references it. A `.tmx` it writes is generated: edit the source, never the output.
+
+```bash
+dotnet run --project tools/Nosum.MapGen -- layout <Name> [--check]   # art/own/source/layouts/<Name>.txt → art/own/Maps/<Name>.tmx
+dotnet run --project tools/Nosum.MapGen -- layout all [--check]
+dotnet run --project tools/Nosum.MapGen -- mine <floor | all> [--check]   # → art/own/Maps/Mines/<file>.tmx, one to forty
+```
+
+`--check` writes nothing and exits 1 when a committed file differs from what the tool writes. Exit 2 means a usage or source error, and the
+message names the file and the line. The output depends only on the inputs, so the same input always gives the same bytes.
+
+**Tileset data** is `art/own/source/tilesets/<name>.tileset`: one keyword per line, `//` starts a comment, and the name line equals the file name.
+
+```text
+name terrain
+image terrain.png
+tilewidth 16
+tileheight 16
+columns 16
+tilecount 256
+tile 0 Diggable
+tile 1-3 Passable
+tile 4 Water
+tile 9 Impassable
+```
+
+`image` is the sheet's file, relative to the map's folder, as the `.tmx` names it. A `tile` line is `tile <index or first-last> <trait>...`.
+The traits are the ones the rules read: `Water` (`WalkGrid`), `Passable` and `Impassable` (`WalkGrid`: a non-empty `Buildings` tile blocks unless it is
+`Passable`; a tile cannot be both) and `Diggable` (`TillGrid`). The compiler writes them into each `<tileset>` of the `.tmx` as the properties
+`Water` (`T`), `Passable` (`T` or `F`) and `Diggable` (`T`), the form `TileProperties` reads.
+
+**Layout** is `art/own/source/layouts/<Name>.txt`: one character per tile, a legend, and layered sections.
+
+```text
+// a room: Back is the floor and Buildings the walls
+legend
+a terrain 0
+b terrain 1
+property Warp 3 5 Town 10 4
+layer Back
+aaaaaaaa
+abbbbbba
+layer Buildings
+........
+.bbbbbb.
+```
+
+- A legend line is `<character> <tileset> <tile index>`. `.` is the empty tile and cannot be in the legend. `property <Name> <value>` lines
+  (map properties) come before the first `layer`; `layer <Name>` starts a section.
+- Each row is one word of characters. Every layer has the same number of rows, and every row the same number of tiles.
+- A tileset takes its global ids in the order the legend first names it, so the ids are fixed by the file.
+- A layer's rows are read top to bottom; a row may not be spelled like a keyword (`legend`, `layer`, `property`).
+
+**Mine floors** (`mine`). Each floor is grown from a fixed seed as a cave of `Size` × `Size` tiles around its arrival tile in `MineLayouts`: the
+arrival and its neighbours are open, the cave is smoothed, and only the part connected to the arrival is kept. The floor is then checked the way the
+game reads it, and a seed that fails is tried again, so the tool never writes a floor that fails: the arrival is walkable and lies in a cave of at least
+200 tiles; the way up is the one exit, on the arrival tile; the elevator stands on the arrival; and on three days `MineFloorPlanner` places at least six
+stones, copper and iron exactly where `MineRules` says, and a ladder under a stone when the floor has one. The floors use two tiles of the cave
+tileset: `MineGenerator.FloorTile` (index 0) under every cell and `MineGenerator.WallTile` (index 1) on the closed cells, which must not be `Passable`.
+The cave tileset `art/own/source/tilesets/cave.tileset` is drawn in ADR-042 P2; until it exists, `mine` exits 2 and says so.
+
+Until ADR-042 P3 regenerates the floors, `mine all --check` reports the committed floors as differing: they are still the derived ones.
