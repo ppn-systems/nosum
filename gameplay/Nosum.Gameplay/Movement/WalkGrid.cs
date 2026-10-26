@@ -43,28 +43,6 @@ public sealed class WalkGrid
     /// <summary>Gets the tile size in pixels.</summary>
     public int TileSize { get; }
 
-    /// <summary>
-    /// Builds a grid where every non-empty tile of the given layer blocks (the map's
-    /// <c>Buildings</c> layer: walls, fences, trees, rocks).
-    /// </summary>
-    /// <param name="map">The map.</param>
-    /// <param name="blockingLayer">Name of the layer whose tiles block.</param>
-    /// <returns>The grid; with no such layer, everything is walkable.</returns>
-    public static WalkGrid FromLayer(TileMap map, string blockingLayer)
-    {
-        ArgumentNullException.ThrowIfNull(map);
-
-        bool[] blocked = new bool[map.Width * map.Height];
-        if (map.FindLayer(blockingLayer) is TileLayer layer)
-        {
-            for (int i = 0; i < blocked.Length; i++)
-            {
-                blocked[i] = layer.Gids[i] != 0;
-            }
-        }
-
-        return new WalkGrid(map.Width, map.Height, map.TileWidth, blocked);
-    }
 
     /// <summary>
     /// Builds a grid from a map's tile properties: a non-empty <paramref name="blockingLayer"/> tile

@@ -156,20 +156,6 @@ public sealed class TradeSession
         return TradeVerdict.Ok;
     }
 
-    /// <summary>Withdraws a player's confirmation without changing the offers.</summary>
-    /// <param name="player">The party.</param>
-    public void Unconfirm(Guid player)
-    {
-        if (player == this.A)
-        {
-            _confirmedA = false;
-        }
-        else if (player == this.B)
-        {
-            _confirmedB = false;
-        }
-    }
-
     /// <summary>Ends the session; nothing can change afterwards.</summary>
     public void Close() => this.IsClosed = true;
 }

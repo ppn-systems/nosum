@@ -11,9 +11,6 @@ namespace Nosum.Gameplay.Placeables;
 /// </summary>
 public static class SprinklerRules
 {
-    /// <summary>Gets the offsets of the tiles a sprinkler waters.</summary>
-    public static readonly (int Dx, int Dy)[] Reach = [(0, -1), (1, 0), (0, 1), (-1, 0)];
-
     /// <summary>Tells whether one sprinkler waters a tile.</summary>
     /// <param name="sprinklerX">The sprinkler's tile x.</param>
     /// <param name="sprinklerY">The sprinkler's tile y.</param>
