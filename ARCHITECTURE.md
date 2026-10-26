@@ -68,6 +68,7 @@ Nosum.Wasm.Controls     → Wasm.ViewModels                      (reusable Razor
 Nosum.Wasm              → Wasm.Controls, Wasm.ViewModels, Wasm.Socket, Contracts, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
 Nosum.AtlasPacker       → SkiaSharp                            (tools/ only; nothing references it)
 Nosum.AssetInventory    → Core, Rendering, Gameplay            (tools/ only; reads wasm/ sprite tables as source text; docs/art/inventory.md)
+Nosum.MapGen           → Core, Gameplay                       (tools/ only; compiles art/own layouts to .tmx, generates the mine floors; tools/README.md)
 ```
 
 Two boundaries matter most:
