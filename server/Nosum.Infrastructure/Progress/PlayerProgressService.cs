@@ -29,6 +29,11 @@ namespace Nosum.Infrastructure.Progress;
 /// totals; levels are derived. The daily refill is computed lazily every time the row is read, so offline players need no tick. One lock per player serializes the
 /// changes (the server is a single process, docs/adr/ADR-009); a charge keeps it until the caller disposed the charge, after the save. The lock order is always
 /// inventory, then progress: a charge is only taken inside an inventory enlistment or on its own.
+/// <para>
+/// Docs/adr/ADR-035 D4: the row is read from <see cref="PlayerStateCache"/>, shared with the place service. A charge checks and spends against the copy under the lock,
+/// stages a write of the progress columns only, and moves the copy when the caller reports the save (<see cref="IProgressCharge.PublishAsync"/>); a charge that is
+/// disposed without that report drops the copy, so the next call reads the row.
+/// </para>
 /// </summary>
 public sealed class PlayerProgressService : IPlayerProgress
 {
@@ -37,7 +42,7 @@ public sealed class PlayerProgressService : IPlayerProgress
     private readonly IInventoryService _inventory;
     private readonly TimeProvider _time;
     private readonly IPlayerNotifier? _notifier;
-    private readonly StripedAsyncLock _locks = new(64);
+    private readonly PlayerStateCache _cache;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -45,7 +50,8 @@ public sealed class PlayerProgressService : IPlayerProgress
     /// <param name="inventory">Eating takes the food from it.</param>
     /// <param name="time">Clock for the row's timestamps.</param>
     /// <param name="notifier">Pushes to the player; <see langword="null"/> in tests that do not listen.</param>
-    public PlayerProgressService(IUnitOfWorkFactory unitOfWork, IGameDayClock days, IInventoryService inventory, TimeProvider time, IPlayerNotifier? notifier = null)
+    /// <param name="cache">The row copy shared with the place service; <see langword="null"/> for a private one.</param>
+    public PlayerProgressService(IUnitOfWorkFactory unitOfWork, IGameDayClock days, IInventoryService inventory, TimeProvider time, IPlayerNotifier? notifier = null, PlayerStateCache? cache = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(days);
@@ -57,21 +63,18 @@ public sealed class PlayerProgressService : IPlayerProgress
         _inventory = inventory;
         _time = time;
         _notifier = notifier;
+        _cache = cache ?? new PlayerStateCache();
     }
 
     /// <inheritdoc/>
     public async Task<PlayerProgressView> GetAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
-        using (await _locks.EnterAsync(playerId, cancellationToken).ConfigureAwait(false))
+        using (await _cache.Locks.EnterAsync(playerId, cancellationToken).ConfigureAwait(false))
         {
-            IUnitOfWork unit = _unitOfWork.Create();
-            await using (unit.ConfigureAwait(false))
-            {
-                PlayerState? row = await unit.Repository<PlayerState>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
-                return row is null
-                    ? new PlayerProgressView(EnergyRules.MaxEnergy, EnergyRules.MaxEnergy, 0, 0, 0)
-                    : ViewOf(row, _days.Today);
-            }
+            PlayerStateCache.Snapshot row = await _cache.GetAsync(_unitOfWork, playerId, cancellationToken).ConfigureAwait(false);
+            return row.Exists
+                ? ViewOf(row, _days.Today)
+                : new PlayerProgressView(EnergyRules.MaxEnergy, EnergyRules.MaxEnergy, 0, 0, 0);
         }
     }
 
@@ -80,25 +83,23 @@ public sealed class PlayerProgressService : IPlayerProgress
     {
         ArgumentNullException.ThrowIfNull(unit);
 
-        StripedAsyncLock.Releaser gate = await _locks.EnterAsync(playerId, cancellationToken).ConfigureAwait(false);
+        StripedAsyncLock.Releaser gate = await _cache.Locks.EnterAsync(playerId, cancellationToken).ConfigureAwait(false);
         try
         {
-            PlayerState row = await this.RowAsync(unit, playerId, cancellationToken).ConfigureAwait(false);
+            PlayerStateCache.Snapshot row = await _cache.GetAsync(_unitOfWork, playerId, cancellationToken).ConfigureAwait(false);
             (int energy, long day) = EnergyRules.Refill(row.Energy, row.EnergyRefilledDay, _days.Today);
             int level = SkillRules.LevelOf(XpOf(row, SkillRules.SkillOf(tool)));
             int cost = EnergyRules.Cost(tool, level);
             if (!EnergyRules.TrySpend(energy, cost, out int left))
             {
-                return new Charge(this, gate, playerId, allowed: false, 0, 0, 0, 0, SkillKind.None, 0, 0);
+                return new Charge(this, gate, playerId, allowed: false, 0, 0, 0, 0, SkillKind.None, 0, 0, null);
             }
 
-            row.Energy = left;
-            row.EnergyRefilledDay = day;
             int before = XpOf(row, skill);
             int after = skill == SkillKind.None ? before : Math.Min(SkillRules.XpCap, before + Math.Max(0, xp));
-            SetXp(row, skill, after);
-            row.UpdatedAt = _time.GetUtcNow();
-            return new Charge(this, gate, playerId, allowed: true, left, row.FarmingXp, row.ForagingXp, row.MiningXp, skill, SkillRules.LevelOf(before), SkillRules.LevelOf(after));
+            PlayerStateCache.Snapshot next = SetXp(row with { Exists = true, Energy = left, EnergyRefilledDay = day, UpdatedAt = _time.GetUtcNow() }, skill, after);
+            this.Stage(unit, playerId, row.Exists, next);
+            return new Charge(this, gate, playerId, allowed: true, left, next.FarmingXp, next.ForagingXp, next.MiningXp, skill, SkillRules.LevelOf(before), SkillRules.LevelOf(after), next);
         }
         catch
         {
@@ -151,6 +152,8 @@ public sealed class PlayerProgressService : IPlayerProgress
         EatStatus refused = EatStatus.Conflict;
         StripedAsyncLock.Releaser gate = default;
         bool locked = false;
+        bool staged = false;
+        PlayerStateCache.Snapshot? saved = null;
         int energyAfter = 0;
         try
         {
@@ -160,9 +163,9 @@ public sealed class PlayerProgressService : IPlayerProgress
                 "eat",
                 async (unit, ct) =>
                 {
-                    gate = await _locks.EnterAsync(playerId, ct).ConfigureAwait(false);
+                    gate = await _cache.Locks.EnterAsync(playerId, ct).ConfigureAwait(false);
                     locked = true;
-                    PlayerState row = await this.RowAsync(unit, playerId, ct).ConfigureAwait(false);
+                    PlayerStateCache.Snapshot row = await _cache.GetAsync(_unitOfWork, playerId, ct).ConfigureAwait(false);
                     (int energy, long day) = EnergyRules.Refill(row.Energy, row.EnergyRefilledDay, _days.Today);
                     if (energy >= EnergyRules.MaxEnergy)
                     {
@@ -170,21 +173,31 @@ public sealed class PlayerProgressService : IPlayerProgress
                         return false;
                     }
 
-                    row.Energy = EnergyRules.Eat(energy, food.FoodEnergy);
-                    row.EnergyRefilledDay = day;
-                    row.UpdatedAt = _time.GetUtcNow();
-                    energyAfter = row.Energy;
+                    energyAfter = EnergyRules.Eat(energy, food.FoodEnergy);
+                    saved = row with { Exists = true, Energy = energyAfter, EnergyRefilledDay = day, UpdatedAt = _time.GetUtcNow() };
+                    this.Stage(unit, playerId, row.Exists, saved);
+                    staged = true;
                     return true;
                 },
                 cancellationToken).ConfigureAwait(false);
             if (!change.IsOk)
             {
+                if (staged)
+                {
+                    // The save did not go through (a lost race): whether the row changed is unknown, so the copy is read again.
+                    _cache.Forget(playerId);
+                }
+
                 return new EatOutcome(change.Status switch
                 {
                     InventoryStatus.Conflict => refused,
                     _ => EatStatus.ItemMissing,
                 });
             }
+
+            // Saved with the food: the copy follows, still under the progress lock.
+            PlayerStateCache.Snapshot eaten = saved!;
+            _cache.Apply(playerId, s => s with { Exists = true, Energy = eaten.Energy, EnergyRefilledDay = eaten.EnergyRefilledDay, UpdatedAt = eaten.UpdatedAt });
         }
         finally
         {
@@ -206,13 +219,13 @@ public sealed class PlayerProgressService : IPlayerProgress
         await this.PushXpAsync(playerId, view.FarmingXp, view.ForagingXp, view.MiningXp, cancellationToken).ConfigureAwait(false);
     }
 
-    private static PlayerProgressView ViewOf(PlayerState row, long today)
+    private static PlayerProgressView ViewOf(PlayerStateCache.Snapshot row, long today)
     {
         (int energy, _) = EnergyRules.Refill(row.Energy, row.EnergyRefilledDay, today);
         return new PlayerProgressView(energy, EnergyRules.MaxEnergy, row.FarmingXp, row.ForagingXp, row.MiningXp);
     }
 
-    private static int XpOf(PlayerState row, SkillKind skill) => skill switch
+    private static int XpOf(PlayerStateCache.Snapshot row, SkillKind skill) => skill switch
     {
         SkillKind.Farming => row.FarmingXp,
         SkillKind.Foraging => row.ForagingXp,
@@ -220,34 +233,44 @@ public sealed class PlayerProgressService : IPlayerProgress
         _ => 0,
     };
 
-    private static void SetXp(PlayerState row, SkillKind skill, int xp)
+    private static PlayerStateCache.Snapshot SetXp(PlayerStateCache.Snapshot row, SkillKind skill, int xp) => skill switch
     {
-        switch (skill)
-        {
-            case SkillKind.Farming:
-                row.FarmingXp = xp;
-                break;
-            case SkillKind.Foraging:
-                row.ForagingXp = xp;
-                break;
-            case SkillKind.Mining:
-                row.MiningXp = xp;
-                break;
-        }
-    }
+        SkillKind.Farming => row with { FarmingXp = xp },
+        SkillKind.Foraging => row with { ForagingXp = xp },
+        SkillKind.Mining => row with { MiningXp = xp },
+        _ => row,
+    };
 
-    // The player's state row, made when the player has none yet. Such a row has no place (empty map name), which the player service reads as "no saved place".
-    private async Task<PlayerState> RowAsync(IUnitOfWork unit, Guid playerId, CancellationToken cancellationToken)
+    // Stages the write of the progress columns in the caller's unit; a player without a row gets one, with no saved place (an empty map name, which the player service reads as "none").
+    private void Stage(IUnitOfWork unit, Guid playerId, bool exists, PlayerStateCache.Snapshot next)
     {
-        IRepository<PlayerState> states = unit.Repository<PlayerState>();
-        PlayerState? row = await states.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
-        if (row is null)
+        PlayerState row = new()
         {
-            row = new PlayerState { PlayerId = playerId, MapName = string.Empty, UpdatedAt = _time.GetUtcNow() };
-            states.Add(row);
+            PlayerId = playerId,
+            MapName = exists ? next.MapName : string.Empty,
+            Energy = next.Energy,
+            EnergyRefilledDay = next.EnergyRefilledDay,
+            FarmingXp = next.FarmingXp,
+            ForagingXp = next.ForagingXp,
+            MiningXp = next.MiningXp,
+            UpdatedAt = next.UpdatedAt,
+        };
+        if (exists)
+        {
+            // Only the progress columns: the place service owns the others and may be saving them right now.
+            unit.Repository<PlayerState>().Update(
+                row,
+                nameof(PlayerState.Energy),
+                nameof(PlayerState.EnergyRefilledDay),
+                nameof(PlayerState.FarmingXp),
+                nameof(PlayerState.ForagingXp),
+                nameof(PlayerState.MiningXp),
+                nameof(PlayerState.UpdatedAt));
         }
-
-        return row;
+        else
+        {
+            unit.Repository<PlayerState>().Add(row);
+        }
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "The change is saved; a failed push only delays the display until the next one.")]
@@ -326,9 +349,11 @@ public sealed class PlayerProgressService : IPlayerProgress
         private readonly SkillKind _skill;
         private readonly int _levelBefore;
         private readonly int _levelAfter;
+        private readonly PlayerStateCache.Snapshot? _next;
         private int _released;
+        private int _published;
 
-        public Charge(PlayerProgressService owner, StripedAsyncLock.Releaser gate, Guid playerId, bool allowed, int energy, int farming, int foraging, int mining, SkillKind skill, int levelBefore, int levelAfter)
+        public Charge(PlayerProgressService owner, StripedAsyncLock.Releaser gate, Guid playerId, bool allowed, int energy, int farming, int foraging, int mining, SkillKind skill, int levelBefore, int levelAfter, PlayerStateCache.Snapshot? next)
         {
             _owner = owner;
             _gate = gate;
@@ -341,6 +366,7 @@ public sealed class PlayerProgressService : IPlayerProgress
             _skill = skill;
             _levelBefore = levelBefore;
             _levelAfter = levelAfter;
+            _next = next;
         }
 
         public bool Allowed { get; }
@@ -350,6 +376,13 @@ public sealed class PlayerProgressService : IPlayerProgress
             if (!this.Allowed)
             {
                 return;
+            }
+
+            // The caller saved: the copy follows the row before anything is pushed.
+            if (Interlocked.Exchange(ref _published, 1) == 0)
+            {
+                PlayerStateCache.Snapshot next = _next!;
+                _owner._cache.Apply(_playerId, s => s with { Exists = true, Energy = next.Energy, EnergyRefilledDay = next.EnergyRefilledDay, FarmingXp = next.FarmingXp, ForagingXp = next.ForagingXp, MiningXp = next.MiningXp, UpdatedAt = next.UpdatedAt });
             }
 
             await _owner.PushEnergyAsync(_playerId, _energy, cancellationToken).ConfigureAwait(false);
@@ -367,6 +400,12 @@ public sealed class PlayerProgressService : IPlayerProgress
         {
             if (Interlocked.Exchange(ref _released, 1) == 0)
             {
+                if (this.Allowed && Volatile.Read(ref _published) == 0)
+                {
+                    // Staged but never reported as saved (the save failed, or the caller gave up): the row may or may not have changed.
+                    _owner._cache.Forget(_playerId);
+                }
+
                 _gate.Dispose();
             }
         }

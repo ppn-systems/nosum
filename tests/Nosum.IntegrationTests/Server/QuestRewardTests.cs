@@ -151,6 +151,8 @@ public sealed class QuestRewardTests : IClassFixture<PostgresFixture>
                 .ExecuteUpdateAsync(s => s.SetProperty(q => q.State, QuestState.Completed).SetProperty(q => q.Progress, s_twoSteps).SetProperty(q => q.CompletedAt, s_start));
         }
 
+        _quests.Forget(player); // rows changed behind the service's back: it reads them again (docs/adr/ADR-035)
+
         long before = await _transfers.GetBalanceAsync(player);
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.CropPlanted, 1));
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.CropHarvested, 1));

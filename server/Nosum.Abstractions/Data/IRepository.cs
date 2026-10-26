@@ -61,7 +61,21 @@ public interface IRepository<TEntity>
     /// <param name="entity">The entity to insert.</param>
     void Add(TEntity entity);
 
-    /// <summary>Marks an entity to be deleted when the unit of work saves.</summary>
+    /// <summary>
+    /// Marks an entity that this unit of work did not load to be written back when it saves: every column is updated, and the save fails with a concurrency
+    /// conflict when no row has that key. For a service that keeps the row's values in memory and so has no tracked entity to change.
+    /// </summary>
+    /// <param name="entity">The entity with its key and new values; no other entity with the same key may be tracked.</param>
+    void Update(TEntity entity);
+
+    /// <summary>
+    /// Like <see cref="Update(TEntity)"/> but writes only the named properties, so two writers that own different columns of one row never overwrite each other.
+    /// </summary>
+    /// <param name="entity">The entity with its key and the new values of the named properties.</param>
+    /// <param name="properties">The names of the properties to write.</param>
+    void Update(TEntity entity, params string[] properties);
+
+    /// <summary>Marks an entity to be deleted when the unit of work saves. A new instance that only carries the key is enough; the save fails with a concurrency conflict when no row has that key.</summary>
     /// <param name="entity">The entity to delete.</param>
     void Remove(TEntity entity);
 }

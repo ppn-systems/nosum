@@ -159,8 +159,10 @@ public sealed class GameMapsTests
         string wasm = File.ReadAllText(RepoFiles.Path("wasm", "Nosum.Wasm", "Nosum.Wasm.csproj"));
         string host = File.ReadAllText(RepoFiles.Path("server", "Nosum.Host", "Nosum.Host.csproj"));
 
-        wasm.Should().Contain(@"assets\Maps\" + InProject(spec!.TmxFile));
-        host.Should().Contain(@"assets\Maps\" + InProject(spec.TmxFile));
+        // A map with an own file (art/README.md) is linked from art/own/Maps/ to the same served path.
+        string own = File.Exists(RepoFiles.Path("art", "own", "Maps", spec!.TmxFile)) ? @"art\own\Maps\" : @"assets\Maps\";
+        wasm.Should().Contain(own + InProject(spec.TmxFile));
+        host.Should().Contain(own + InProject(spec.TmxFile));
 
         // A sheet is named relative to the folder of the map file (the mine's floor plans live in Mines/).
         int slash = spec.TmxFile.LastIndexOf('/');
@@ -170,7 +172,10 @@ public sealed class GameMapsTests
             string image = folder + (set.ImageSource.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? set.ImageSource : set.ImageSource + ".png");
             image = image.Replace('\\', '/');
             File.Exists(RepoFiles.Path("assets", "Maps", image)).Should().BeTrue($"{image} of {id}");
-            wasm.Should().Contain(@"assets\Maps\" + InProject(image));
+
+            // A sheet with an own file is served from art/own/Maps/ under the placeholder's name; the client never gets the placeholder.
+            string sheetRoot = File.Exists(RepoFiles.Path("art", "own", "Maps", image)) ? @"art\own\Maps\" : @"assets\Maps\";
+            wasm.Should().Contain(sheetRoot + InProject(image));
         }
     }
 }

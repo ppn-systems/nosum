@@ -120,6 +120,37 @@ layer and sheet, and the animated tiles.
   kept as the upper bound until the first map is converted.
 - The owner decides the budget: the PixelLab account is on a trial with 10 generations left, which is enough only for a farmer concept.
 
+## Implementation notes
+
+### Phase 1 — re-author tool, first own terrain set, Farm pilot
+
+- **Tool:** `tools/Nosum.MapReauthor` ([`tools/README.md`](../../tools/README.md)). `Back`, the ground layer, is classified tile by tile into a terrain kind (grass,
+  dirt, sand, water, path, cliff, other) through `tools/Nosum.MapReauthor/terrain-kinds.csv`, a table of (tilesheet, tile index) → kind that grows per map.
+  Each classified cell is redrawn from the own tileset; a tile that is not in the table, whose kind has no own art yet, or whose walking traits the own tileset
+  cannot carry, stays on its placeholder sheet and is listed in `art/own/reports/<Map>.md`.
+- **How a cell is drawn.** The own tileset has a fill per kind and walking trait (`Water`, `Diggable`, `Passable`) with four texture variants, and the 16 corner
+  tiles of each own corner set. A fill carries exactly the traits of the placeholder tile it replaced, so the walk, till and water grids are unchanged. Where
+  terrains meet, the cell also gets a corner tile on a new layer, `BackEdge`, which sits right above `Back`. The corners are the vertices of the grid: a vertex takes
+  the kind of the highest-priority cell around it (water, sand, grass, dirt), and two kinds with no set between them meet through grass, so a pond in dirt gets a grass
+  shore. Every other layer and every object group is copied character for character, and the placeholder tilesets stay in the file with their first ids.
+- **Source of the terrain art.** First choice of the brief was a CC0 pack: Kenney "Tiny Town" (no water, sand or rock with edges) did not fit and Kenney
+  "Roguelike/RPG Pack" (CC0) did, and a first version of the pilot was built on it. The coordinator then supplied Nosum's own PixelLab corner tilesets (grass/dirt,
+  water/grass, water/sand, sand/grass, and two more for soil and cliff) and asked to prefer them; the pilot was rebuilt on them and the Kenney art removed, so the
+  repository holds no third-party art in `art/`. Provenance, prompts, tileset ids, what the sets really show, and what the build corrects (placeholder tiles, differing greens)
+  are in `art/own/SOURCES.md`. PixelLab's ownership terms remain to be confirmed before release.
+- **Pointing a map id at the own file.** The code is unchanged. The client and server projects link each map to the path the code loads; a map with an own file
+  is linked from `art/own/Maps/` instead of `assets/Maps/` (see `art/README.md`). Maps without an own file load the placeholder as before.
+- **Not done in this phase.** The `Buildings`, `Front` and `AlwaysFront` layers still draw placeholder tiles (collision must stay byte-identical, and
+  buildings, trees, fences and cliff faces belong to package 7); the path kind (cobble) has no own set; the cliff and tilled-soil sets are not used yet. The inventory
+  (`docs/art/inventory.md`) and the release check (D6) still count the placeholder `Farm.tmx` and its sheets as present; teaching them that a map has an own file comes with the next map.
+
+### Phase 3 — every hosted map, the drawn layers, the path set
+
+- **Maps.** `reauthor all` re-authors the 52 hosted map files (`GameMaps`): kind table grown to every ground tile (outdoor sheets by their `Type` and `Water` properties and dominant colour; indoor sheets and the mine floors are `other`), a cobble path kind with its own fills and a drawn path/grass corner set in `own_terrain.png` (`PathArt.cs`).
+- **Drawn layers.** Instead of mapping gids layer by layer, the tool paints an own sheet for every placeholder sheet the maps name, with the same name, size and grid (`SheetBuilder`, `ObjectPainter`). Layers, tileset properties and animations stay the placeholder's, character for character, so collision and traits cannot change; the client links the own sheet to the placeholder's served path. The painter reads only a floor plan from each placeholder tile (block occupancy and material, see `art/own/SOURCES.md`) and draws every pixel in code in the shared palette. This keeps Stardew's layouts (D9) and was the only way to cover about 3,000 distinct tiles; the layouts themselves remain an owner decision.
+- **Gate.** `Nosum.AssetInventory --release` counts a map or `Maps/` sheet with an own file as replaced; fingerprints are untouched. It now lists only the five farmer layers.
+- **Not done.** The farmer (needs PixelLab budget). Quality: painted objects are readable but plain; buildings in Town lack windows and signs, and animated water and waterfalls are two-frame ripples at best. A hand pass or PixelLab objects can replace any sheet cell later without a code change.
+
 ## Alternatives considered
 
 - **Replace everything in `assets/`** — 1,953 files are never loaded; replacing them is wasted work. The inventory lists only what is loaded; the

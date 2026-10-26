@@ -471,10 +471,70 @@ public sealed class VisitWireTests : IClassFixture<PostgresFixture>
             _ = await context.SaveChangesAsync();
         }
 
+        InstanceManager.Instance.GetExistingInstance<Nosum.Infrastructure.Visits.VisitFacts>()!.Changed(alice.Id); // rows added behind the service's back (docs/adr/ADR-035 D5)
+
         Account late = await RegisterAsync();
         (await visits.AddAsync(alice.Id, late.Nickname)).Should().Be(VisitStatus.ListFull);
         (await visits.RemoveAsync(alice.Id, bob.Id)).Should().Be(VisitStatus.Ok);
         (await visits.AddAsync(alice.Id, late.Nickname)).Should().Be(VisitStatus.Ok);
+    }
+
+    [Fact]
+    public async Task Friends_AfterEveryChange_TheCachedStateAndTheVisitFactsEqualTheRows()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        Nosum.Abstractions.Friends.IFriendService friends = InstanceManager.Instance.GetExistingInstance<Nosum.Abstractions.Friends.IFriendService>()!;
+        Nosum.Abstractions.Chat.IBlockList blocks = InstanceManager.Instance.GetExistingInstance<Nosum.Abstractions.Chat.IBlockList>()!;
+        IVisitService visits = InstanceManager.Instance.GetExistingInstance<IVisitService>()!;
+        Nosum.Infrastructure.Friends.FriendFacts cachedFriends = InstanceManager.Instance.GetExistingInstance<Nosum.Infrastructure.Friends.FriendFacts>()!;
+        Nosum.Infrastructure.Visits.VisitFacts cachedVisits = InstanceManager.Instance.GetExistingInstance<Nosum.Infrastructure.Visits.VisitFacts>()!;
+        Nosum.Abstractions.Data.IUnitOfWorkFactory units = InstanceManager.Instance.GetExistingInstance<Nosum.Abstractions.Data.IUnitOfWorkFactory>()!;
+        Account alice = await RegisterAsync();
+        Account bob = await RegisterAsync();
+        Account carol = await RegisterAsync();
+
+        async Task AssertEqualToRowsAsync()
+        {
+            Nosum.Infrastructure.Friends.FriendFacts fresh = new(units, cached: false);
+            Nosum.Infrastructure.Visits.VisitFacts freshVisits = new(units, cached: false);
+            foreach (Account account in new[] { alice, bob, carol })
+            {
+                Nosum.Infrastructure.Friends.FriendState held = await cachedFriends.GetAsync(account.Id);
+                Nosum.Infrastructure.Friends.FriendState rows = await fresh.GetAsync(account.Id);
+                held.Friends.Should().Equal(rows.Friends);
+                held.Incoming.Should().Equal(rows.Incoming);
+                held.Outgoing.Should().Equal(rows.Outgoing);
+                Nosum.Infrastructure.Visits.OwnerVisitFacts heldVisit = await cachedVisits.GetAsync(account.Id);
+                Nosum.Infrastructure.Visits.OwnerVisitFacts rowsVisit = await freshVisits.GetAsync(account.Id);
+                (heldVisit.CoopMembersMayVisit, heldVisit.FriendsMayVisit).Should().Be((rowsVisit.CoopMembersMayVisit, rowsVisit.FriendsMayVisit));
+                heldVisit.Listed.Should().Equal(rowsVisit.Listed);
+            }
+        }
+
+        await AssertEqualToRowsAsync();
+        (await friends.RequestAsync(alice.Id, bob.Nickname)).Should().Be(Nosum.Contracts.Friends.FriendStatus.Ok);
+        await AssertEqualToRowsAsync();
+        (await friends.RequestAsync(alice.Id, bob.Nickname)).Should().Be(Nosum.Contracts.Friends.FriendStatus.AlreadyRequested);
+        (await friends.RequestAsync(carol.Id, alice.Nickname)).Should().Be(Nosum.Contracts.Friends.FriendStatus.Ok);
+        await AssertEqualToRowsAsync();
+        (await friends.RespondAsync(bob.Id, alice.Id, accept: true)).Should().Be(Nosum.Contracts.Friends.FriendStatus.Ok);
+        (await friends.RespondAsync(alice.Id, carol.Id, accept: false)).Should().Be(Nosum.Contracts.Friends.FriendStatus.Ok);
+        await AssertEqualToRowsAsync();
+        (await friends.AreFriendsAsync(alice.Id, bob.Id)).Should().BeTrue();
+        (await friends.RequestAsync(carol.Id, bob.Nickname)).Should().Be(Nosum.Contracts.Friends.FriendStatus.Ok);
+        (await friends.RequestAsync(bob.Id, carol.Nickname)).Should().Be(Nosum.Contracts.Friends.FriendStatus.Ok, "asking back is accepting");
+        await AssertEqualToRowsAsync();
+        (await friends.SetFriendsMayVisitAsync(alice.Id, false)).Should().Be(Nosum.Contracts.Friends.FriendStatus.Ok);
+        (await visits.AddAsync(alice.Id, carol.Nickname)).Should().Be(VisitStatus.Ok);
+        (await visits.SetCoopMembersMayVisitAsync(alice.Id, false)).Should().Be(VisitStatus.Ok);
+        await AssertEqualToRowsAsync();
+        (await friends.RemoveAsync(alice.Id, bob.Id)).Should().Be(Nosum.Contracts.Friends.FriendStatus.Ok);
+        await AssertEqualToRowsAsync();
+        (await blocks.BlockAsync(carol.Id, bob.Nickname)).Should().Be(Nosum.Contracts.Chat.ChatStatus.Ok);
+        await AssertEqualToRowsAsync();
+        (await friends.AreFriendsAsync(carol.Id, bob.Id)).Should().BeFalse("a block ends the friendship");
+        (await visits.RemoveAsync(alice.Id, carol.Id)).Should().Be(VisitStatus.Ok);
+        await AssertEqualToRowsAsync();
     }
 
     private static MapInstance? WhereIs(Guid accountId)

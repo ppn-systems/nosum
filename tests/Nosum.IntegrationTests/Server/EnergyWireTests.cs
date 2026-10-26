@@ -91,6 +91,65 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task SelectSlot_WaitsForItsWrite_AndALeavingPlayerFlushesIt()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        Guid account;
+        await using (Client player = await host.ConnectAsync())
+        {
+            account = player.AccountId;
+            _ = await player.JoinAsync(host.Timeout);
+            (await player.SelectSlotAsync(3, host.Timeout)).Should().Be(InventoryStatus.Ok);
+            (await InstanceManager.Instance.GetExistingInstance<IInventoryService>()!.GetAsync(account)).SelectedSlot.Should().Be(3, "the server answers from memory at once");
+            (await SelectedInRowsAsync(account)).Should().Be(0, "the row is written within the window, or when the player leaves");
+        }
+
+        await WaitForAsync(async () => await SelectedInRowsAsync(account) == 3, host.Timeout);
+    }
+
+    [Fact]
+    public async Task SelectSlot_AMapChangeFlushesIt()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        await using Client player = await host.ConnectAsync();
+        _ = await player.JoinAsync(host.Timeout);
+        (await player.SelectSlotAsync(5, host.Timeout)).Should().Be(InventoryStatus.Ok);
+        (await SelectedInRowsAsync(player.AccountId)).Should().Be(0);
+
+        Nalix.Abstractions.Networking.IConnection connection = InstanceManager.Instance.GetExistingInstance<ISessionRegistry>()!.GetActive(player.AccountId)!;
+        _ = await InstanceManager.Instance.GetExistingInstance<Nosum.Abstractions.Player.IPlayerService>()!.TravelAsync(connection, Nosum.Gameplay.Maps.MapInstance.Shared(Nosum.Gameplay.Maps.GameMaps.Town));
+
+        await WaitForAsync(async () => await SelectedInRowsAsync(player.AccountId) == 5, host.Timeout);
+    }
+
+    [Fact]
+    public async Task SelectSlot_ShutdownFlushesWhatIsWaiting()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        await using Client player = await host.ConnectAsync();
+        _ = await player.JoinAsync(host.Timeout);
+        (await player.SelectSlotAsync(4, host.Timeout)).Should().Be(InventoryStatus.Ok);
+
+        await InstanceManager.Instance.GetExistingInstance<Nosum.Infrastructure.Caching.WriteBehind>()!.FlushAllAsync();
+
+        (await SelectedInRowsAsync(player.AccountId)).Should().Be(4);
+    }
+
+    private async Task<int> SelectedInRowsAsync(Guid account)
+    {
+        await using NosumDbContext db = new(_database.Options);
+        return await db.PlayerInventories.Where(i => i.PlayerId == account).Select(i => i.SelectedSlot).SingleAsync();
+    }
+
+    private static async Task WaitForAsync(Func<Task<bool>> condition, CancellationToken ct)
+    {
+        while (!await condition())
+        {
+            await Task.Delay(50, ct);
+        }
+    }
+
+    [Fact]
     public async Task Tilling_SpendsTwoEnergyAndEarnsFarmingExperience_InTheSameCommitAsTheTile()
     {
         await using TestHost host = await TestHost.StartAsync(_database);
@@ -276,6 +335,8 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
             _ = await db.InventoryLog.Where(l => l.PlayerId == player.AccountId && newTools.Contains(l.ItemId)).ExecuteDeleteAsync();
         }
 
+        inventory.Forget(player.AccountId); // rows changed behind the service's back: it reloads them (docs/adr/ADR-035 D3)
+
         (await inventory.GetAsync(player.AccountId)).Slots.Select(s => s.ItemId).Should().NotContain(newTools);
 
         _ = await player.JoinAsync(host.Timeout);
@@ -338,6 +399,9 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
     {
         await using NosumDbContext db = new(_database.Options);
         (await db.PlayerStates.Where(s => s.PlayerId == playerId).ExecuteUpdateAsync(change)).Should().Be(1);
+
+        // The row changed behind the server's back: it reads it again (docs/adr/ADR-035 D4).
+        InstanceManager.Instance.GetExistingInstance<Nosum.Infrastructure.Progress.PlayerStateCache>()!.Forget(playerId);
     }
 
     private static ushort GetFreePort()
@@ -523,6 +587,12 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
             await Task.Delay(s_swing, ct);
             using Eat request = new() { Slot = (byte)slot };
             return await _session.RequestAsync<EatResult>(request, ct: ct);
+        }
+
+        public async Task<InventoryStatus> SelectSlotAsync(int slot, CancellationToken ct)
+        {
+            using SelectSlot request = new() { Slot = (byte)slot };
+            return (await _session.RequestAsync<InventoryResult>(request, ct: ct)).Status;
         }
 
         public async Task<bool> GrantAsync(int itemId, int quantity, CancellationToken ct)

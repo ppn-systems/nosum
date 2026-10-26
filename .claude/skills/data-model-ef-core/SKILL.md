@@ -43,6 +43,18 @@ is stored: `gameplay-rules`. Handler mechanics: `nalix-handlers`.
   local `nosum_dev` database. Migrations are applied at host start.
 - `Nosum.Infrastructure` is not AOT/trim compatible (EF Core); the other server libraries are.
 
+## Caches and the database budget (ADR-035)
+
+- The server holds inventory, saved place, energy and experience, quests, co-op membership, friends, visit settings and player facts in memory. **Each cached table has one writer** (the service
+  named in the ADR); a new writer of a cached table must call that cache's invalidation after its save, and a test must prove the copy equals the rows (see `DbBudgetTests.Run_CachedStateEqualsTheRows_AfterEveryMeasuredRow`).
+- A cache moves **after** `SaveChanges` succeeded, under the locks that covered the change, and any exception drops it. Never patch a cache from a guess.
+- Coin balances are never cached; a wallet is read inside the transaction that changes it.
+- Write by key when the row's values are in memory: `IRepository.Update(entity, properties)` writes only the named columns, `Remove(stub)` needs only the key. A row that is no longer there is a
+  concurrency conflict, which the caller turns into a refusal and a dropped cache entry.
+- Only the rows ADR-035 D7 lists may be written behind (`WriteBehind`). Anything that moves money, items, quests or crops is written in its own transaction.
+- Services built by hand in a test run uncached unless the cache is passed in; a test that edits rows behind a service's back calls its `Forget`/`Changed`.
+- A new client packet needs a row in `DbBudgetRun` and a limit in `DbBudgetBaseline`; never raise a limit.
+
 ## Accounts and the current player
 
 - Account packets: `contracts/Nosum.Contracts/Account/` (opcode band `0x1000-0x10FF`).
