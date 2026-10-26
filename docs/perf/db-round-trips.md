@@ -33,7 +33,7 @@ served by the real host over a real WebSocket against a real PostgreSQL, includi
 - Phase 2 on `master` merged into `feat/db-budget-2`. The numbers are the whole cost of one request after the caches of ADR-035 D3-D7 are warm for the player; "first" rows pay the cold read of a cache once per signed-in player.
 - **Still free:** `MoveIntent` (also into a new chunk), `GetFarm`, `GetNodes`, `GetGroundItems`, `GetPlaced`, `GetCalendar`, local chat, the connect and handshake: 0 commands.
 - **Now also free once read:** `GetInventory`, `Eat`, `GetRecipeBook`, a swing's inventory/energy/quest checks, `GetQuests` asked again, `GetFriends`, `GetVisitors` (one read for the allow-list the first time), `SelectSlot` (0 writes; one write per player and five seconds in the background), `ReadMail` (0 writes), `AddVisitor` (0 reads), `RespondFriend` and `RemoveFriend` (1 read).
-- **Per connection:** a signed-in player's caches start cold and fill on first use; `JoinMap` returning is 2 reads (saved place; the inventory and friends fill on their first use), the first join into a cold instance reads that instance's tables once.
+- **Per connection:** a signed-in player's caches start cold and fill on first use; `JoinMap` returning is 2 reads (the inventory and its starter-kit backfill; the saved place stays in memory after the leave saves it, and friends fill on their first use), the first join into a cold instance reads that instance's tables once.
 - **Largest after phase 2:** `UpgradeCoop` 11 reads, `KickMember` and `LeaveCoop` 10, `JoinMap` first join 9, `RequestFriend` 8, `VisitPlayer` 8 (5 of them load the cold instance), `RespondInvite` 8, `WithdrawItem` 7, `InvitePlayer` 7, `DepositItem` 6, `BuyListing` 6.
 - **Background (nothing due):** unchanged; a flush of write-behind rows is 1 write per player with something waiting (`WriteBehindFlush`).
 
@@ -142,7 +142,7 @@ Phase 2 (all of ADR-035 D3-D7 built). The table of phase 1 is in the history of 
 | 0x1003 | ResumeSession | token, no other session | Ok | 3 | 1 | 1 | 1 | 0 |
 | 0x1004 | SetLanguage | registered player | Ok | 1 | 1 | 0 | 1 | 0 |
 | 0x1005 | StartGuest | new guest | Ok | 1 | 1 | 1 | 1 | 0 |
-| 0x1006 | UpgradeGuest | guest to registered | Ok | 5 | 1 | 1 | 1 | 0 |
+| 0x1006 | UpgradeGuest | guest to registered | Ok | 4 | 1 | 1 | 1 | 0 |
 | 0x1007 | Logout | joined player | Ok | 1 | 1 | 0 | 1 | 0 |
 | 0x1008 | SetNickname | first change is free | Ok | 2 | 1 | 0 | 1 | 0 |
 | 0x1101 | Kick | a connected player | Ok | 2 | 2 | 0 | 2 | 1 |
@@ -316,7 +316,7 @@ Phase 2 (all of ADR-035 D3-D7 built). The table of phase 1 is in the history of 
 | - | GroundItemExpiry | every 30 s, nothing due |  | 0 | 0 | 0 | 0 | 0 |
 | - | AnimalWander | tick, nobody inside any building |  | 0 | 0 | 0 | 0 | 0 |
 | - | Connect | WebSocket + handshake |  | 0 | 0 | 0 | 0 | 0 |
-| - | Disconnect | joined player, socket closed |  | 1 | 1 | 0 | 1 | 0 |
+| - | Disconnect | joined player, socket closed |  | 0 | 1 | 0 | 1 | 0 |
 
 ## Where the repeats came from (phase 1 findings)
 

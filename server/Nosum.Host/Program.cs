@@ -456,10 +456,10 @@ internal static class Program
         // A player who signed out lets go of their in-memory inventory (docs/adr/ADR-035 D3).
         PlayerStateCache playerStates = InstanceManager.Instance.GetExistingInstance<PlayerStateCache>()
             ?? throw new InvalidOperationException("HostServices.Register must run before BuildApplication.");
+        // The saved place stays in memory: the leave saves it through the same cache (docs/adr/ADR-035 D4), so dropping it here would race that save.
         sessions.SessionEnded += id =>
         {
             inventory.Forget(id);
-            playerStates.Forget(id);
             quests.Forget(id);
             return ValueTask.CompletedTask;
         };
