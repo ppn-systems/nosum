@@ -114,6 +114,10 @@ Both workflows are manual only and run in the `production` environment. A deploy
 production deploy is **refused by design** (ADR-040, ADR-031 D9). That file is removed by milestone M6 when the placeholder art is replaced.
 Do not delete it to get a deploy through; the owner decides when M6 is done.
 
+**First deploy: after the placeholder removal lands** (`feat/remove-placeholder-content`). The first test deploy runs with the strict
+public gate, so it can only pass once the marker and the unlisted placeholder files are gone. Before that, neither workflow can run to completion.
+The setup checklist at the top of `deploy/README.md` lists what to set up by hand before that run.
+
 **Rollback.** The deploy keeps the previous tag in `NOSUM_PREVIOUS_TAG`. If the readiness gate fails, the deploy restores that tag automatically
 and reports it. To roll back by hand (to any commit whose image is still in GHCR):
 

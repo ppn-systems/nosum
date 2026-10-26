@@ -4,6 +4,37 @@ Everything that turns the repository into a running production service (docs/adr
 the nightly backup and the placeholder-art gate. The web client is published to Cloudflare Pages by the workflow `deploy-web`.
 How to set up, deploy, roll back and look after it: the [operations runbook](../docs/ops/README.md). Secrets never go in this repository.
 
+## Before the first deploy: what the owner sets up by hand
+
+Do these once, in this order. The runbook has the details of each step.
+
+1. **Cloudflare Tunnel** `nosum-prod` (Zero Trust → Networks → Tunnels). Copy its token into the `CLOUDFLARE_TUNNEL_TOKEN` secret.
+   Public hostname `nosum.ppnsys.com` → service HTTP → `host:57300`.
+2. **Cloudflare Pages** project `nosum` (Direct Upload, production branch `main`). Note its `https://nosum.pages.dev` address.
+3. **GitHub secrets** (environment `production`): `PROD_HOST`, `PROD_SSH_USER`, `PROD_SSH_KEY`, `CLOUDFLARE_TUNNEL_TOKEN`,
+   `POSTGRES_PASSWORD`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. Optional: `NOSUM_SMTP_*`.
+4. **GitHub variables**: `NOSUM_ORIGIN` (the Pages origin), `NOSUM_SERVER_PUBLIC_KEY` (read it from the host after the first start, see the runbook).
+5. **One-time server bootstrap** (as the deploy user):
+
+   ```bash
+   curl -fsSL https://get.docker.com | sudo sh          # Docker Engine with the Compose plugin
+   sudo usermod -aG docker "$USER"
+   sudo mkdir -p /opt/nosum/backup && sudo chown -R "$USER" /opt/nosum
+   sudo ufw allow OpenSSH && sudo ufw enable             # SSH is the only inbound port
+   ```
+
+   Append the deploy key's public half to `~/.ssh/authorized_keys`; its private half goes into `PROD_SSH_KEY`.
+
+**Open items to settle before the first run:**
+
+- The `cloudflared` image tag (`CLOUDFLARED_TAG`, default `2025.8.1`) is unverified. Confirm the tag exists and pin a current release.
+- `NOSUM_SERVER_PUBLIC_KEY` must be set from the host's key before `deploy-web` runs.
+- The workflow does not pin the SSH host key (ADR-041 Consequences). Accept this risk or add host-key pinning first.
+- After the first deploy, confirm the tunnel passes `X-Forwarded-For` (ADR-041 Consequences), so players are not all one address.
+
+**The first deploy waits for the placeholder removal.** Run it after `feat/remove-placeholder-content` lands. Until then both deploy
+workflows refuse by design, because the placeholder art is still in the repository.
+
 | File | What it is |
 | :--- | :--- |
 | `compose.yaml` | production on one host: PostgreSQL 16, the Nosum host (GHCR image), the Cloudflare Tunnel connector, the nightly backup |
