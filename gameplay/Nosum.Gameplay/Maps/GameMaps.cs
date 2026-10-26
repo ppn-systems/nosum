@@ -57,7 +57,7 @@ public static class GameMaps
     /// <summary>Id of the beach south of Town (docs/adr/ADR-037).</summary>
     public const string Beach = "beach";
 
-    /// <summary>Id of the secret woods west of the Forest (docs/adr/ADR-037).</summary>
+    /// <summary>Id of the woods west of the Forest (docs/adr/ADR-037).</summary>
     public const string Woods = "woods";
 
     /// <summary>Id of the coop interior: one instance per coop building (docs/adr/ADR-028 D2).</summary>
@@ -71,9 +71,9 @@ public static class GameMaps
 
     // Shop counters in Town.tmx: the walkable tile just south of a building's door (the doormat), where the farmer stands and presses the action key.
     // The art is early art (docs/adr/ADR-007); each building is the one whose owner fits the trade:
-    //  - seeds: Pierre's store, door tiles (43,56) and (44,56), doormat (43,57);
-    //  - clothing: Emily and Haley's house, door tile (20,88), doormat (20,89) (Emily sews, Haley follows fashion);
-    //  - furniture: JojaMart, door tiles (95,50) and (96,50), doormat (95,51), a big-box store standing in for Robin's carpenter shop,
+    //  - seeds: the seed shop, door tiles (43,56) and (44,56), doormat (43,57);
+    //  - clothing: the clothing house, door tile (20,88), doormat (20,89);
+    //  - furniture: the furniture store, door tiles (95,50) and (96,50), doormat (95,51), a big-box store standing in for a carpenter's shop,
     //    whose house on the Mountain is not a shop here (docs/adr/ADR-037).
     // Every doormat is walkable and reachable on foot from the town's spawn (a test checks it); the shops are far enough apart that no two are in reach at once.
     private static readonly (int X, int Y) s_townSeedShopTile = (43, 57);
@@ -88,11 +88,11 @@ public static class GameMaps
 
     // The carpenter (docs/adr/ADR-028 D1; it stays here, docs/adr/ADR-037) takes the blue house in the south-west of Town: door tile (10,85), doormat (10,86).
     private static readonly (int X, int Y) s_townCarpenterTile = (10, 86);
-    // The community board (docs/adr/ADR-030) is the billboard on the front of Pierre's store, tiles (41,56) and (42,56) ("Billboard" actions in Town.tmx); its counter is the walkable tile in front of
+    // The community board (docs/adr/ADR-030) is the billboard on the front of the seed shop, tiles (41,56) and (42,56) ("Billboard" actions in Town.tmx); its counter is the walkable tile in front of
     // the right-hand sign, one tile west of the seed shop's doormat. The two are in reach of each other, so the nearest counter wins (ShopRules.TryFindShop).
     private static readonly (int X, int Y) s_townBoardTile = (42, 57);
 
-    // The market's trader (docs/adr/ADR-034) stands in front of the saloon: door tile (45,70), doormat (45,71) - the tavern is where traders meet. Far from every other counter, so nothing competes for it.
+    // The market's trader (docs/adr/ADR-034) stands in front of the tavern: door tile (45,70), doormat (45,71) - the tavern is where traders meet. Far from every other counter, so nothing competes for it.
     private static readonly (int X, int Y) s_townMarketTile = (45, 71);
 
     private static readonly MapSpec[] s_all =
@@ -131,7 +131,7 @@ public static class GameMaps
         new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true, placeable: true),
         .. s_mineFloors,
 
-        // Mountain, Beach and Secret Woods (docs/adr/ADR-037): shared outdoor maps; their exits to Town, Backwoods and Forest come from the files' own Warp properties.
+        // Mountain, Beach and Woods (docs/adr/ADR-037): shared outdoor maps; their exits to Town, Backwoods and Forest come from the files' own Warp properties.
         new(Mountain, "Mountain.tmx", 15, 38,
             extraWarps: [new MapWarp(MineWorld.MountainGate.X, MineWorld.MountainGate.Y, Mine, MineWorld.CaveArrival.X, MineWorld.CaveArrival.Y)],
             openTiles: [.. OutdoorWorld.MountainBridges],

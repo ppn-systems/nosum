@@ -1,4 +1,4 @@
-# ADR-037 — Mountain, Beach and the Secret Woods
+# ADR-037 — Mountain, Beach and the Woods
 
 **Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M3 ("More public maps"). Builds on ADR-007
 (early content), ADR-012 (maps and warps), ADR-021 (resource nodes and regrowth), ADR-022 (chunks), ADR-025
@@ -8,7 +8,7 @@ cave is entered from the Mountain, not from Town.
 ## Context
 
 Town, Forest and Backwoods are the only public outdoor maps. The early files for the Mountain, the Beach and the
-Secret Woods are already under `assets/Maps/` and name their exits to the maps the world hosts. ADR-026 sent the mine
+Woods are already under `assets/Maps/` and name their exits to the maps the world hosts. ADR-026 sent the mine
 cave to Town's north road because the Mountain did not exist, and ADR-030 left the Beach's bridge as the first unlock
 target without a map to use it on.
 

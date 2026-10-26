@@ -98,7 +98,7 @@ Starting coins (500), fee (5 %), listing time (48 h), listing limit (20), shippi
 - **A2 - Shop.** Furniture and clothing are bought for coins at a shop in the Town (a public map), and seeds are sold there too, so coins have a use besides the market.
   - *Data.* A shop is `ShopDefinition` in `ShopCatalog` (`Nosum.Gameplay/Shops`): stable id, key (`Shop_Name_<key>` text), price list; stock is unlimited. Where it is
     served is `MapSpec.Shops` (`ShopPoint`: shop id and counter tile), so another shop is one catalogue entry and one map point. The general store's point is the doormat
-    in front of Pierre's store in `Town.tmx` (tile 43, 57).
+    in front of the seed shop in `Town.tmx` (tile 43, 57).
   - *Wire.* New band `0xC000-0xC0FF`: `BuyFromShop` (shop id, item id, quantity; encrypted, USER, rate limited 8 per 4 s) and `ShopResult` (`ShopStatus`, coins spent). The
     client lists the offers from the same shared catalogue, so no catalogue packet exists; the items and coins arrive as the usual inventory and wallet pushes.
   - *Rules.* `ShopRules.Price` checks the shop, that it sells the item and a quantity of 1 to a stack. `ShopService` then checks the player's own presence record is on the
@@ -124,14 +124,14 @@ Amends A2: the Town's one general store is now three shops, each one catalogue e
 
 | Id | Key | Sells | Counter (Town.tmx tile) | Building |
 | :-- | :-- | :-- | :-- | :-- |
-| 1 | `seed_shop` | parsnip, radish, cauliflower seeds | (43, 57) | Pierre's store, door tiles (43,56) and (44,56) |
-| 2 | `clothing_shop` | shirts, trousers, hats | (20, 89) | Emily and Haley's house, door tile (20,88) |
+| 1 | `seed_shop` | parsnip, radish, cauliflower seeds | (43, 57) | the seed shop, door tiles (43,56) and (44,56) |
+| 2 | `clothing_shop` | shirts, trousers, hats | (20, 89) | the clothing house, door tile (20,88) |
 | 3 | `furniture_shop` | the seven furniture pieces | (95, 51) | a big-box store stand-in, door tiles (95,50) and (96,50) |
 
 - **Why these tiles.** Each counter is the walkable doormat one tile south of a building's door tile in `Town.tmx` (the same convention as the existing one, found from the
   `LockedDoorWarp` tile data of the map); a test checks each is walkable, reachable on foot from the Town spawn (4, 54) and directly in front of a blocked door tile, and that no two
-  counters are in reach of the same place. Seeds stay at Pierre's (id 1 is unchanged: it was the only shop). Clothing is at Emily and Haley's house (Emily sews, Haley follows fashion; it is
-  also the nearest house to the west half of the town). Furniture belongs in the carpenter's shop, which is on the Mountain map the game does not have; **a big-box store** is the stand-in
+  counters are in reach of the same place. Seeds stay at the seed shop (id 1 is unchanged: it was the only shop). Clothing is at the clothing house (it is
+  also the nearest house to the west half of the town). Furniture belongs in a carpenter's shop, which is not on any map here; **a big-box store** is the stand-in
   (and the farthest east, so the three trades are spread over the town). When a carpenter map exists, move the furniture point there and nothing else changes.
 - **Rules.** Prices are unchanged (seeds 10 / 15 / 30, furniture 80-400, clothing 40-80). A shop sells only its own kind and no item is sold by two shops (tests). The server already did
   what is needed: `ShopRules.Price` answers `NotSold` for an item the named shop does not carry, and `ShopService` answers `NotAtShop` unless the player's own presence is at a counter
