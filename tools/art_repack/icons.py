@@ -8,6 +8,7 @@ import draw
 from draw import Canvas
 from trees import blob
 import crops
+from pngio import Image, recolor
 
 GREY = ((82, 96, 124), (140, 156, 181), (192, 203, 220))
 COAL = ((30, 24, 34), (58, 50, 66), (96, 88, 110))
@@ -42,27 +43,38 @@ def rock(tones, specks=None, wide=True):
     return done(c)
 
 
+FARM_BAGS = {'tomato': 45, 'corn': 33, 'wheat': 69, 'radish': 21, 'garlic': 21}     # Tiny Farm seed bags with their own emblem
+PLAIN_BAG = 74                                                                          # Tiny Farm bag without an emblem
+BAG_RECIPE = {'radish': recolor(0.19, only=[(0.69, 0.92)]), 'garlic': recolor(0.0, sat=0.10, val=1.7, only=[(0.69, 0.92)])}
+
+
+def tile_of(sheet, index):
+    return sheet.cell(index % 12, index // 12)
+
+
+def mini(pic):
+    """A 16 x 16 picture halved to 8 x 8: per 2 x 2 block the most saturated opaque pixel (a block of mostly outline keeps the outline)."""
+    out = Image(8, 8)
+    for y in range(8):
+        for x in range(8):
+            block = [pic.px[2 * y + j][2 * x + i] for j in (0, 1) for i in (0, 1)]
+            solid = [p for p in block if p[3]]
+            if len(solid) < 2:
+                continue
+            body = [p for p in solid if sum(p[:3]) > 190]
+            out.px[y][x] = max(body, key=lambda p: max(p[:3]) - min(p[:3])) if body else min(solid, key=lambda p: sum(p[:3]))
+    return out
+
+
 def packet(src, crop):
-    """A seed packet: paper, a fold, a band in the crop's own colour and a sprout."""
-    pic = crops.produce_icon(src, crop)
-    counts = {}
-    for row in pic.px:
-        for p in row:
-            if p[3] and max(p[:3]) - min(p[:3]) > 60 and sum(p[:3]) > 200:
-                key = tuple(v // 16 * 16 for v in p[:3])
-                counts[key] = counts.get(key, 0) + 1
-    band = max(counts, key=counts.get) if counts else (99, 199, 77)
-    band = tuple(min(255, v + 8) for v in band)
-    c = cv()
-    c.rect(3, 1, 10, 14, (240, 230, 200))
-    c.rect(3, 1, 10, 3, (214, 200, 160))
-    c.rect(3, 4, 10, 1, (190, 175, 135))
-    c.rect(3, 8, 10, 5, band)
-    c.rect(3, 8, 10, 1, tuple(min(255, v + 50) for v in band))
-    c.rect(7, 5, 2, 3, draw.GREEN)               # a sprout above the band
-    c.dot(6, 5, draw.GREEN_L)
-    c.dot(9, 5, draw.GREEN_L)
-    return done(c)
+    """A seed packet: Tiny Farm's own bag for its crops, else its plain bag carrying a half-size picture of the harvest."""
+    farm = src.sheet('farm')
+    if crop in FARM_BAGS:
+        bag = tile_of(farm, FARM_BAGS[crop])
+        return bag.map_pixels(BAG_RECIPE[crop]) if crop in BAG_RECIPE else bag
+    bag = tile_of(farm, PLAIN_BAG)
+    bag.paste(mini(crops.produce_icon(src, crop)), 4, 6)
+    return bag
 
 
 def tint(img, rgb):
@@ -379,13 +391,13 @@ def wheat():
 
 def seeds_of(crop):
     f = lambda src, _t: packet(src, crop)
-    f.note = f'drawn seed packet, band in the colour of the `{crop}` harvest picture'
+    f.note = f'Tiny Farm seed bag (tile {FARM_BAGS[crop]}) with its own emblem' if crop in FARM_BAGS else f'Tiny Farm plain seed bag (tile {PLAIN_BAG}) with a half-size `{crop}` harvest picture'
     return f
 
 
 def produce(crop):
     f = lambda src, _t: crops.produce_icon(src, crop)
-    f.note = f'CC0 crop `{crop}` harvest picture (see the crop table)'
+    f.note = f'Tiny Farm sunflower (tile {crops.SUNFLOWER_PRODUCE})' if crop == 'sunflower' else f'Tiny Farm `{crop}` harvest picture (see the crop table)' if crop in crops.FARM else f'CC0 crop `{crop}` harvest picture (see the crop table)'
     return f
 
 
@@ -393,6 +405,15 @@ def static(fn, *a):
     f = lambda src, _t: fn(*a)
     f.note = f'drawn here: `icons.{fn.__name__}`'
     return f
+
+
+def farm_tile(index, recipe=None):
+    """A Tiny Farm tile as an object-sheet picture."""
+    def fn(src, _town):
+        pic = tile_of(src.sheet('farm'), index)
+        return pic.map_pixels(recipe) if recipe else pic
+    fn.note = f'Tiny Farm tile {index}' + (' recoloured' if recipe else '')
+    return fn
 
 
 def tiny_town_fence(src, town):
@@ -406,7 +427,7 @@ OBJECTS = {
     # crop produce
     25: produce('parsnip'), 26: produce('radish'), 27: static(cauliflower), 28: produce('potato'), 29: produce('green_bean'),
     30: produce('kale'), 31: produce('garlic'), 32: produce('strawberry'), 33: produce('tomato'), 34: produce('blueberry'),
-    35: produce('melon'), 36: produce('hot_pepper'), 37: produce('corn'), 38: static(wheat), 39: produce('sunflower'),
+    35: produce('melon'), 36: produce('hot_pepper'), 37: produce('corn'), 38: produce('wheat'), 39: produce('sunflower'),
     40: produce('pumpkin'), 41: produce('cranberries'), 42: produce('eggplant'), 43: produce('yam'), 44: produce('bok_choy'), 45: produce('grape'),
     # seed packets
     1: seeds_of('parsnip'), 5: seeds_of('green_bean'), 3: seeds_of('cauliflower'), 4: seeds_of('potato'), 7: seeds_of('garlic'),
@@ -419,10 +440,10 @@ OBJECTS = {
     69: static(berries, RED, 4), 71: static(berries, PURPLE, 5), 72: static(nut), 73: static(plum), 74: static(mushroom),
     75: static(root, ((120, 50, 60), (170, 90, 100), (215, 140, 150))), 76: static(crystal_fruit), 77: static(root, ((150, 110, 60), (210, 170, 110), (245, 220, 170))),
     # animal products and food
-    57: static(egg), 58: static(egg, True, True), 59: static(bottle), 60: static(bottle, True), 61: static(hay),
+    57: static(egg), 58: farm_tile(125), 59: farm_tile(123), 60: farm_tile(124), 61: farm_tile(96),
     62: static(bowl, GREENS, ((5, 5), (9, 4), (7, 6), (11, 5))), 63: static(baked_potato), 64: static(bowl, ORANGE, ((6, 5), (10, 5))),
     # resources
-    46: static(log), 47: static(rock, GREY), 49: static(rock, COAL, [(5, 8, (150, 150, 170)), (9, 9, (150, 150, 170))]),
+    46: static(log), 47: farm_tile(89), 49: static(rock, COAL, [(5, 8, (150, 150, 170)), (9, 9, (150, 150, 170))]),
     50: static(rock, GREY, [(5, 9, COPPER[1]), (9, 8, COPPER[2]), (8, 11, COPPER[1])]),
     51: static(rock, GREY, [(5, 9, (210, 120, 100)), (9, 8, (170, 190, 235)), (8, 11, (210, 120, 100))]),
     52: static(bar, COPPER), 53: static(bar, GREY), 48: static(grass_tuft),

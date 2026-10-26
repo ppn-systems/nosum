@@ -63,13 +63,17 @@ def blueprint():
 
 def build(src, repo, tools_size, weapons_size):
     town = src.sheet('town')
+    farm = src.sheet('farm')
 
     def tile(i):
         return town.cell(i % 12, i // 12)
+
+    def farm_tile(i):
+        return farm.cell(i % 12, i // 12)
     from draw import swap
     base = {
-        'Hoe': hoe(), 'WateringCan': watering_can(), 'Axe': tile(127), 'Pickaxe': tile(115),
-        'Scythe': tile(129), 'MilkPail': tile(130), 'CoopBlueprint': blueprint(), 'BarnBlueprint': blueprint(),
+        'Hoe': hoe(), 'WateringCan': farm_tile(84), 'Axe': tile(127), 'Pickaxe': tile(115),
+        'Scythe': farm_tile(88), 'MilkPail': farm_tile(124), 'CoopBlueprint': blueprint(), 'BarnBlueprint': blueprint(),
     }
     tools = Image(*tools_size)
     weapons = Image(*weapons_size)

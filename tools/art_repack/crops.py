@@ -30,6 +30,23 @@ RECIPES = {
     'bok_choy': (13, recolor(0.31, sat=1.0, val=1.0, only=[(0.92, 0.04), (0.04, 0.12)]), 'Cassava, pink-brown leaves shifted to green'),
     'grape': (11, None, 'Grapes as drawn'),
 }
+
+# Kenney Tiny Farm (CC0) draws six crops as five tiles in a row of its sheet: sprout, young plant, grown plant, withered plant, harvest.
+# game crop -> (first tile, recolour of every picture or None, recolour that turns the grown plant's fruit unripe, note); with no unripe
+# recolour the grown plant is the third growth stage and the harvest picture is the ripe one (roots and cabbages)
+LEAF = [(0.18, 0.5)]
+GREEN_FRUIT = recolor(0.3, sat=0.8, val=0.95, only=[(0.92, 0.04)])
+FARM = {
+    'parsnip': (4, recolor(0.0, sat=0.25, val=1.3, only=[(0.0, 0.15)]), None, 'Tiny Farm carrot (tiles 4-8), orange recoloured to cream'),
+    'radish': (16, recolor(0.19, only=PURPLE), None, 'Tiny Farm turnip (tiles 16-20), purple shifted to red'),
+    'kale': (52, recolor(0.07, sat=1.0, val=0.72, only=LEAF), None, 'Tiny Farm cabbage (tiles 52-56), shifted to a dark blue-green'),
+    'garlic': (16, recolor(0.0, sat=0.10, val=1.7, only=PURPLE), None, 'Tiny Farm turnip (tiles 16-20), purple bulb recoloured white'),
+    'tomato': (40, None, GREEN_FRUIT, 'Tiny Farm tomato (tiles 40-44) as drawn; the unripe stage has green fruit'),
+    'corn': (28, None, recolor(0.15, sat=0.8, only=[(0.07, 0.17)]), 'Tiny Farm corn (tiles 28-32) as drawn; the unripe stage has green cobs'),
+    'wheat': (64, None, recolor(0.18, sat=0.8, val=0.9, only=[(0.07, 0.17)]), 'Tiny Farm wheat (tiles 64-68) as drawn; the unripe stage is green'),
+    'bok_choy': (52, recolor(-0.03, sat=0.85, val=1.05, only=LEAF), None, 'Tiny Farm cabbage (tiles 52-56), shifted to a lighter yellow-green'),
+}
+SUNFLOWER_PRODUCE = 83     # Tiny Farm sunflower: the harvest picture only, the growth stages stay the CC0 crops pack's
 ROW = re.compile(r'new\(\w+, "(\w+)".*?SpriteRow = (\d+), SpriteFrames = \[([\d, ]+)\]')
 
 
@@ -51,20 +68,42 @@ def cc0_stages(sheet, index, recipe):
     return dict(produce=pics[0], ripe=pics[1], s3=pics[2], s2=pics[3], s1=pics[4], seed=pics[5])
 
 
+def farm_stages(sheet, first, recipe, unripe):
+    """The pictures of one Tiny Farm crop. The seed is the crops pack's, which the caller adds; the unripe stage is the grown plant with green fruit."""
+    pics = [sheet.cell((first + i) % 12, (first + i) // 12) for i in range(5)]
+    if recipe is not None:
+        pics = [p.map_pixels(recipe) for p in pics]
+    if unripe is None:
+        return dict(produce=pics[4], ripe=pics[4], s3=pics[2], s2=pics[1], s1=pics[0])
+    return dict(produce=pics[4], ripe=pics[2], s3=pics[2].map_pixels(unripe), s2=pics[1], s1=pics[0])
+
+
+def stages(src, crop_name):
+    """The seed, three growth stages, ripe and produce pictures of a game crop: Tiny Farm's where it has the crop, else the crops pack's."""
+    index, recipe, _ = RECIPES[crop_name]
+    pack = cc0_stages(src.sheet('crops'), index, recipe)
+    if crop_name not in FARM:
+        return pack
+    first, farm_recipe, unripe, _ = FARM[crop_name]
+    st = farm_stages(src.sheet('farm'), first, farm_recipe, unripe)
+    st['seed'] = pack['seed']
+    return st
+
+
 def produce_icon(src, crop_name):
     """The harvest picture of a game crop (16 x 16), reused as its item icon."""
-    index, recipe, _ = RECIPES[crop_name]
-    return cc0_stages(src.sheet('crops'), index, recipe)['produce']
+    if crop_name == 'sunflower':
+        farm = src.sheet('farm')
+        return farm.cell(SUNFLOWER_PRODUCE % 12, SUNFLOWER_PRODUCE // 12)
+    return stages(src, crop_name)['produce']
 
 
 def build_crops(src, repo):
     catalogue = read_catalogue(repo)
     bands = (max(row for _, row, _ in catalogue) // 2) + 1
     out = Image(256, bands * 32)
-    sheet = src.sheet('crops')
     for name, row, frames in catalogue:
-        index, recipe, _ = RECIPES[name]
-        st = cc0_stages(sheet, index, recipe)
+        st = stages(src, name)
         ladder = [st['seed'], st['s1'], st['s2'], st['s3'], st['ripe']]
         n = len(frames)
         for k, frame in enumerate(frames):
