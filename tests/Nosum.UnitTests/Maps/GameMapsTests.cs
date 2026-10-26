@@ -90,6 +90,56 @@ public sealed class GameMapsTests
         warps.Any(w => WarpRule.TryEdge(w, grid, out int sx, out int sy, out _) && !grid.IsBlocked(sx, sy)).Should().BeTrue();
     }
 
+    [Theory]
+    [MemberData(nameof(MapIds))]
+    public void ResolveWarps_EveryDestination_IsReachableOnFootFromTheSpawn_AndCanBeArmed(string id)
+    {
+        _ = GameMaps.TryGet(id, out MapSpec? spec);
+        TileMap map = Load(spec!);
+        WalkGrid grid = spec!.BuildWalkGrid(map, _ => true);
+        bool[] reached = Reachable(grid, spec.SpawnTileX, spec.SpawnTileY);
+
+        // Every place the map leads to has at least one exit tile a player can walk to from the spawn, and that tile has a walkable
+        // neighbour inside the map: an exit only fires after the player stepped off exit tiles (PlayerService arms it), so a spawn on
+        // an exit tile needs somewhere to step back from.
+        foreach (IGrouping<string, MapWarp> exits in spec.ResolveWarps(map).GroupBy(w => w.TargetMap))
+        {
+            exits.Any(w => Usable(w, grid, reached)).Should().BeTrue($"{id} must lead to {exits.Key} through a tile reachable from its spawn");
+        }
+    }
+
+    private static bool[] Reachable(WalkGrid grid, int startX, int startY)
+    {
+        bool[] seen = new bool[grid.Width * grid.Height];
+        Queue<(int X, int Y)> open = new();
+        if (!grid.IsBlocked(startX, startY))
+        {
+            seen[(startY * grid.Width) + startX] = true;
+            open.Enqueue((startX, startY));
+        }
+
+        while (open.Count > 0)
+        {
+            (int x, int y) = open.Dequeue();
+            foreach ((int nx, int ny) in new[] { (x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1) })
+            {
+                if (!grid.IsBlocked(nx, ny) && !seen[(ny * grid.Width) + nx])
+                {
+                    seen[(ny * grid.Width) + nx] = true;
+                    open.Enqueue((nx, ny));
+                }
+            }
+        }
+
+        return seen;
+    }
+
+    private static bool Usable(MapWarp warp, WalkGrid grid, bool[] reached)
+        => WarpRule.TryEdge(warp, grid, out int x, out int y, out _) && reached[(y * grid.Width) + x] && HasWalkableNeighbour(grid, x, y);
+
+    private static bool HasWalkableNeighbour(WalkGrid grid, int x, int y)
+        => !grid.IsBlocked(x + 1, y) || !grid.IsBlocked(x - 1, y) || !grid.IsBlocked(x, y + 1) || !grid.IsBlocked(x, y - 1);
+
     [Fact]
     public void ResolveWarps_Farm_DropsExitsToMapsTheWorldDoesNotHost()
     {
