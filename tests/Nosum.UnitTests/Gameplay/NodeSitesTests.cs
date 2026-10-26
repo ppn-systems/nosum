@@ -60,10 +60,10 @@ public sealed class NodeSitesTests
 
     [Theory]
     [InlineData("Farm.tmx", 165)]
-    [InlineData("Forest.tmx", 1976)]
-    [InlineData("Backwoods.tmx", 1991)]
-    [InlineData("Town.tmx", 1976)]
-    [InlineData("BusStop.tmx", 1976)]
+    [InlineData("Forest.tmx", 165)]
+    [InlineData("Backwoods.tmx", 165)]
+    [InlineData("Town.tmx", 203)]
+    [InlineData("BusStop.tmx", 203)]
     public void Read_TheRealMaps_FindsExactlyTheMarkersTheTableKnows(string mapFile, int pathsFirstGid)
     {
         TileMap map = Load(mapFile);
