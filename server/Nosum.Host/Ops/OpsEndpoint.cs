@@ -13,7 +13,7 @@ namespace Nosum.Host.Ops;
 /// <summary>
 /// The tiny HTTP listener on its own port (docs/adr/ADR-031 D4, D6): <c>/healthz</c> says the process is up, <c>/readyz</c> says the database answers and
 /// every migration is applied, <c>/metrics</c> is the Prometheus scrape. It serves only GET, holds no state and takes no input, and is never published
-/// to the internet: Caddy proxies <c>/ws/</c> and the static client, nothing else.
+/// to the internet: the Cloudflare Tunnel reaches only the game WebSocket (docs/adr/ADR-041), and the ops port is not published by compose.
 /// </summary>
 internal sealed class OpsEndpoint : IAsyncDisposable
 {
