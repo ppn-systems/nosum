@@ -1,4 +1,4 @@
-"""Package 1: Characters/Farmer/*.png, the player layers, drawn here (no pack has a layered 16 x 32 base that fits).
+"""Package 1: farmer/*.png, the player layers, drawn here (no pack has a layered 16 x 32 base that fits).
 
 The client stacks the layers as wasm/Nosum.Wasm/Game/FarmerSprite.cs does, on one 16 x 32 frame whose bottom edge is the feet:
 
@@ -410,13 +410,13 @@ def hat(kind, row):
 
 def build(size):
     files = {
-        'Characters/Farmer/farmer_base.png': Image(*size('Characters/Farmer/farmer_base.png')),
-        'Characters/Farmer/pants.png': Image(*size('Characters/Farmer/pants.png')),
-        'Characters/Farmer/hairstyles.png': Image(*size('Characters/Farmer/hairstyles.png')),
-        'Characters/Farmer/shirts.png': Image(*size('Characters/Farmer/shirts.png')),
-        'Characters/Farmer/hats.png': Image(*size('Characters/Farmer/hats.png')),
+        'farmer/body.png': Image(*size('farmer/body.png')),
+        'farmer/pants.png': Image(*size('farmer/pants.png')),
+        'farmer/hair.png': Image(*size('farmer/hair.png')),
+        'farmer/shirts.png': Image(*size('farmer/shirts.png')),
+        'farmer/hats.png': Image(*size('farmer/hats.png')),
     }
-    base, pant, hairs, shirts, hats = (files['Characters/Farmer/' + n] for n in ('farmer_base.png', 'pants.png', 'hairstyles.png', 'shirts.png', 'hats.png'))
+    base, pant, hairs, shirts, hats = (files['farmer/' + n] for n in ('body.png', 'pants.png', 'hair.png', 'shirts.png', 'hats.png'))
     for row, direction in enumerate(DIRECTIONS):
         for column in WALK_COLUMNS:
             base.paste(body(direction, column), column * FRAME_W, row * FRAME_H)
@@ -449,17 +449,17 @@ def compose(files, look, direction, column):
 
     flip = direction == 'left'
     b = _bob(column)
-    base = files['Characters/Farmer/farmer_base.png']
+    base = files['farmer/body.png']
     put(tint(base.crop(column * 16, row * 32, 16, 32), look['skin']), 0, 0, flip)
-    pant = files['Characters/Farmer/pants.png'].crop(column * 16, row * 32, 16, 32)
+    pant = files['farmer/pants.png'].crop(column * 16, row * 32, 16, 32)
     put(tint(pant, look['pants']), 0, 0, flip)
-    shirt_img = files['Characters/Farmer/shirts.png'].crop(look['shirt'] % 16 * 8, look['shirt'] // 16 * 32 + {0: 0, 1: 8, 2: 24}[row], 8, 8)
+    shirt_img = files['farmer/shirts.png'].crop(look['shirt'] % 16 * 8, look['shirt'] // 16 * 32 + {0: 0, 1: 8, 2: 24}[row], 8, 8)
     put(shirt_img, SHIRT_OFFSET[0], SHIRT_OFFSET[1] + b, flip)
     put(base.crop((column + 6) * 16, row * 32, 16, 32), 0, 0, flip)
-    hair_img = files['Characters/Farmer/hairstyles.png'].crop(look['hair'] % 8 * 16, row * 32, 16, 32)
+    hair_img = files['farmer/hair.png'].crop(look['hair'] % 8 * 16, row * 32, 16, 32)
     put(tint(hair_img, look['dye']), 0, HAIR_OFFSET_Y + b, flip)
     if look.get('hat') is not None:
         hat_row = {'down': 0, 'right': 1, 'left': 2, 'up': 3}[direction]
-        hat_img = files['Characters/Farmer/hats.png'].crop(look['hat'] % 12 * 20, look['hat'] // 12 * 80 + hat_row * 20, 20, 20)
+        hat_img = files['farmer/hats.png'].crop(look['hat'] % 12 * 20, look['hat'] // 12 * 80 + hat_row * 20, 20, 20)
         put(hat_img, -HAT_OFFSET_X, b)
     return out

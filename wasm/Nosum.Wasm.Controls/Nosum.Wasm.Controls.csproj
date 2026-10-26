@@ -11,7 +11,7 @@
   <!-- Placeholder UI art served from the repository's assets/ folder (docs/adr/ADR-007, ADR-016): linked, never copied.
        The rectangles taken from these sheets are listed in wwwroot/nosum-theme.js. -->
   <ItemGroup>
-    <Content Include="..\..\assets\Maps\MenuTiles.png;..\..\assets\LooseSprites\Cursors.png;..\..\assets\LooseSprites\textBox.png;..\..\assets\LooseSprites\Cloudy_Ocean_BG.png" Link="wwwroot\ui\%(Filename)%(Extension)" />
+    <Content Include="..\..\assets\ui\menu.png;..\..\assets\ui\cursors.png;..\..\assets\ui\text_box.png;..\..\assets\ui\start_background.png" Link="wwwroot\ui\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

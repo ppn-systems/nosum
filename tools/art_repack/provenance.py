@@ -10,35 +10,35 @@ NOSUM = 'Nosum original (drawn in tools/art_repack, no outside source)'
 
 # path under assets/ -> (package, [pack directories or NOSUM], what the file is and how it is made)
 ENTRIES = {
-    'Characters/Farmer/farmer_base.png': ('1 Player farmer layers', [NOSUM], 'Body (head, neck, torso, legs; skin tint) in columns 0-2 and arms with boots (no tint) in columns 6-8; rows down, right, up, three walk frames; the step columns carry the 1 px bob the code gives shirt, hair and hat (`farmer.body`, `farmer.arms`)'),
-    'Characters/Farmer/pants.png': ('1 Player farmer layers', [NOSUM], 'Trousers style 0, grey-scale for the pants tint, same walk frames as the body (`farmer.pants`)'),
-    'Characters/Farmer/hairstyles.png': ('1 Player farmer layers', [NOSUM], 'Eight hair styles in grey-scale for the hair dye, rows down, right, up (`farmer.hair`)'),
-    'Characters/Farmer/shirts.png': ('1 Player farmer layers', [NOSUM], '8 x 8 shirt pieces (front, right, back) of shirts 1 red, 3 straw, 7 blue, 11 green; the front piece is also the inventory icon (`farmer.shirt`)'),
-    'Characters/Farmer/hats.png': ('1 Player farmer layers', [NOSUM], '20 x 20 hats 3 (straw) and 5 (cap), rows down, right, left, up; the down frame is the inventory icon (`farmer.hat`)'),
-    'TileSheets/crops.png': ('4 Crops and soil', ['josehzz_farming-crops-16x16'],
+    'farmer/body.png': ('1 Player farmer layers', [NOSUM], 'Body (head, neck, torso, legs; skin tint) in columns 0-2 and arms with boots (no tint) in columns 6-8; rows down, right, up, three walk frames; the step columns carry the 1 px bob the code gives shirt, hair and hat (`farmer.body`, `farmer.arms`)'),
+    'farmer/pants.png': ('1 Player farmer layers', [NOSUM], 'Trousers style 0, grey-scale for the pants tint, same walk frames as the body (`farmer.pants`)'),
+    'farmer/hair.png': ('1 Player farmer layers', [NOSUM], 'Eight hair styles in grey-scale for the hair dye, rows down, right, up (`farmer.hair`)'),
+    'farmer/shirts.png': ('1 Player farmer layers', [NOSUM], '8 x 8 shirt pieces (front, right, back) of shirts 1 red, 3 straw, 7 blue, 11 green; the front piece is also the inventory icon (`farmer.shirt`)'),
+    'farmer/hats.png': ('1 Player farmer layers', [NOSUM], '20 x 20 hats 3 (straw) and 5 (cap), rows down, right, left, up; the down frame is the inventory icon (`farmer.hat`)'),
+    'sprites/crops.png': ('4 Crops and soil', ['josehzz_farming-crops-16x16'],
                              '21 crops, 5-6 growth frames each: the six CC0 pictures of a crop (seed, three stages, ripe) placed in the catalogue\'s frames at the bottom of each 16 x 32 cell; recolours in the crop table'),
-    'TerrainFeatures/hoeDirt.png': ('4 Crops and soil', [NOSUM], 'Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator (`crops.soil_tile`)'),
-    'TileSheets/tools.png': ('5 Tools and weapons', ['kenney_tiny-town', NOSUM],
+    'sprites/soil.png': ('4 Crops and soil', [NOSUM], 'Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator (`crops.soil_tile`)'),
+    'sprites/tools.png': ('5 Tools and weapons', ['kenney_tiny-town', NOSUM],
                              'Axe, pickaxe and milk pail from Tiny Town (tiles 127, 115, 130) in three material tiers by palette swap; hoe, watering can and blueprint drawn in the same palette'),
-    'TileSheets/weapons.png': ('5 Tools and weapons', ['kenney_tiny-town'], 'The scythe: Tiny Town sickle (tile 129)'),
-    'Maps/springobjects.png': ('3 Items, 6 Resource nodes', ['josehzz_farming-crops-16x16', 'kenney_tiny-town', NOSUM],
+    'sprites/weapons.png': ('5 Tools and weapons', ['kenney_tiny-town'], 'The scythe: Tiny Town sickle (tile 129)'),
+    'sprites/items.png': ('3 Items, 6 Resource nodes', ['josehzz_farming-crops-16x16', 'kenney_tiny-town', NOSUM],
                                'The 92 object cells the game draws: produce from the CC0 crops, the fence from Tiny Town, everything else drawn here (table below); unused cells are transparent'),
-    'TileSheets/furniture.png': ('3 Items', [NOSUM], 'Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`)'),
-    'TileSheets/Craftables.png': ('3 Items', [NOSUM], 'Scarecrow, chest and furnace (`furniture.py`)'),
-    'TerrainFeatures/tree1_spring.png': ('6 Resource nodes', [NOSUM], 'Oak: 48 x 96 tree, bush, sapling, seed mound and stump at the cells `NodeSprites` reads (`trees.py`)'),
-    'TerrainFeatures/tree2_spring.png': ('6 Resource nodes', [NOSUM], 'Maple, same layout in autumn orange (`trees.py`)'),
-    'TerrainFeatures/tree3_spring.png': ('6 Resource nodes', [NOSUM], 'Pine, same layout (`trees.py`)'),
-    'Buildings/houses.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Farmhouse, 9 x 9 tiles at (16, 0): Tiny Town roof and wall tiles (`buildings.py`)'),
-    'Buildings/Greenhouse.png': ('7 Buildings and props', ['kenney_tiny-town', NOSUM], 'Greenhouse, 7 x 10 tiles at (0, 160): slate roof and door from Tiny Town, glass wall drawn here'),
-    'Buildings/Barn.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Barn, 7 x 7 tiles: red roof, brown wall, two double doors'),
-    'Buildings/Coop.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Coop, 6 x 7 tiles: slate roof, brown wall, door and windows'),
-    'Buildings/Shipping Bin.png': ('7 Buildings and props', [NOSUM], 'Shipping bin, 2 x 2 tiles (`buildings.shipping_bin`)'),
-    'Animals/White Chicken.png': ('8 Animals', [NOSUM], 'Chicken, 16 x 16 frames: rows down, right, up, four walk frames (`animals.py`)'),
-    'Animals/White Cow.png': ('8 Animals', [NOSUM], 'Cow, 32 x 32 frames: rows down, right, up, four walk frames (`animals.py`)'),
-    'Maps/MenuTiles.png': ('9 UI', [NOSUM], 'Window frame (60 x 60 at 0, 256), inset (0, 320) and inventory slot (128, 128) for the CSS border-image slices (`ui.py`)'),
-    'LooseSprites/Cursors.png': ('9 UI', [NOSUM], 'Selection frame, buttons, close button, arrows, coin, tab pictograms and the two mouse cursors at the rectangles of `nosum-theme.js` (`ui.py`)'),
-    'LooseSprites/textBox.png': ('9 UI', [NOSUM], 'Text field box (188 x 48 at x 4) (`ui.py`)'),
-    'LooseSprites/Cloudy_Ocean_BG.png': ('9 UI', [NOSUM], 'Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`)'),
+    'sprites/furniture.png': ('3 Items', [NOSUM], 'Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`)'),
+    'sprites/craftables.png': ('3 Items', [NOSUM], 'Scarecrow, chest and furnace (`furniture.py`)'),
+    'sprites/trees/oak.png': ('6 Resource nodes', [NOSUM], 'Oak: 48 x 96 tree, bush, sapling, seed mound and stump at the cells `NodeSprites` reads (`trees.py`)'),
+    'sprites/trees/maple.png': ('6 Resource nodes', [NOSUM], 'Maple, same layout in autumn orange (`trees.py`)'),
+    'sprites/trees/pine.png': ('6 Resource nodes', [NOSUM], 'Pine, same layout (`trees.py`)'),
+    'sprites/buildings/farmhouse.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Farmhouse, 9 x 9 tiles at (16, 0): Tiny Town roof and wall tiles (`buildings.py`)'),
+    'sprites/buildings/greenhouse.png': ('7 Buildings and props', ['kenney_tiny-town', NOSUM], 'Greenhouse, 7 x 10 tiles at (0, 160): slate roof and door from Tiny Town, glass wall drawn here'),
+    'sprites/buildings/barn.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Barn, 7 x 7 tiles: red roof, brown wall, two double doors'),
+    'sprites/buildings/coop.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Coop, 6 x 7 tiles: slate roof, brown wall, door and windows'),
+    'sprites/buildings/shipping_bin.png': ('7 Buildings and props', [NOSUM], 'Shipping bin, 2 x 2 tiles (`buildings.shipping_bin`)'),
+    'sprites/animals/chicken.png': ('8 Animals', [NOSUM], 'Chicken, 16 x 16 frames: rows down, right, up, four walk frames (`animals.py`)'),
+    'sprites/animals/cow.png': ('8 Animals', [NOSUM], 'Cow, 32 x 32 frames: rows down, right, up, four walk frames (`animals.py`)'),
+    'ui/menu.png': ('9 UI', [NOSUM], 'Window frame (60 x 60 at 0, 256), inset (0, 320) and inventory slot (128, 128) for the CSS border-image slices (`ui.py`)'),
+    'ui/cursors.png': ('9 UI', [NOSUM], 'Selection frame, buttons, close button, arrows, coin, tab pictograms and the two mouse cursors at the rectangles of `nosum-theme.js` (`ui.py`)'),
+    'ui/text_box.png': ('9 UI', [NOSUM], 'Text field box (188 x 48 at x 4) (`ui.py`)'),
+    'ui/start_background.png': ('9 UI', [NOSUM], 'Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`)'),
 }
 
 HEADER = '''# Provenance of replaced art
@@ -66,7 +66,7 @@ def write(repo, replaced):
               '| Game crop | CC0 crop (index in the pack README) | Change |\n', '| :-- | :-- | :-- |\n']
     for name, (index, _, note) in crops.RECIPES.items():
         lines.append(f'| `{name}` | {CC0_CROPS[index]} ({index}) | {note} |\n')
-    lines += ['\n## Mapping: object sheet\n\n', '`Maps/springobjects.png` has 24 columns of 16 px cells: index = row x 24 + column.\n\n',
+    lines += ['\n## Mapping: object sheet\n\n', '`sprites/items.png` has 24 columns of 16 px cells: index = row x 24 + column.\n\n',
               '| Index | Game item or node | How |\n', '| --: | :-- | :-- |\n']
     names = object_names(repo)
     for index, fn in sorted(icons.OBJECTS.items()):

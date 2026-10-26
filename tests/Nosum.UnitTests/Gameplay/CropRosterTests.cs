@@ -15,7 +15,7 @@ namespace Nosum.UnitTests.Gameplay;
 /// <summary>The crop roster and the regrowing crops (docs/adr/ADR-025 D1, D2, D5, D6).</summary>
 public sealed class CropRosterTests
 {
-    // crops.png is 256 x 1024: two rows of eight 16 x 32 frames per 32 px band. springobjects.png is 24 x 39 cells.
+    // crops.png is 256 x 1024: two rows of eight 16 x 32 frames per 32 px band. items.png is 24 x 39 cells.
     private const int CropSheetRows = 64;
     private const int ObjectCells = 24 * 39;
 

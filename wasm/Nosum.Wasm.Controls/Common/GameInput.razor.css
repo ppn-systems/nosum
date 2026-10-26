@@ -1,4 +1,4 @@
-/* The shared field: the recessed peach box of textBox.png (2 u edge). */
+/* The shared field: the recessed peach box of text_box.png (2 u edge). */
 .game-input {
     --input-edge: calc(var(--u) * 3);
 

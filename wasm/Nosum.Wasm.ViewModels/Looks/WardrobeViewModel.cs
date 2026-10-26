@@ -79,18 +79,18 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     {
         get
         {
-            const string Farmer = "assets/Characters/Farmer/";
+            const string Farmer = "assets/farmer/";
             LookInfo look = this.Look;
             ClothingSprite shirt = LookPalette.Shirt(look.ShirtItemId);
             ClothingSprite pants = LookPalette.Pants(look.PantsItemId);
             int hair = LookPalette.HairFrame(look.HairStyleId);
             List<PreviewLayer> layers =
             [
-                new(Farmer + "farmer_base.png", 0, 0, 16, 32, 288, 672, 0, 0, Tint(LookPalette.SkinTint(look.SkinId))),
+                new(Farmer + "body.png", 0, 0, 16, 32, 288, 672, 0, 0, Tint(LookPalette.SkinTint(look.SkinId))),
                 new(Farmer + "pants.png", pants.SheetIndex % 10 * 192, pants.SheetIndex / 10 * 672, 16, 32, 1920, 1376, 0, 0, Tint(pants.Tint)),
                 new(Farmer + "shirts.png", shirt.SheetIndex % 16 * 8, shirt.SheetIndex / 16 * 32, 8, 8, 256, 608, 4, 15, null),
-                new(Farmer + "farmer_base.png", 6 * 16, 0, 16, 32, 288, 672, 0, 0, null),
-                new(Farmer + "hairstyles.png", hair % 8 * 16, hair / 8 * 96, 16, 32, 128, 672, 0, 2, Tint(LookPalette.DyeTint(look.HairDyeId))),
+                new(Farmer + "body.png", 6 * 16, 0, 16, 32, 288, 672, 0, 0, null),
+                new(Farmer + "hair.png", hair % 8 * 16, hair / 8 * 96, 16, 32, 128, 672, 0, 2, Tint(LookPalette.DyeTint(look.HairDyeId))),
             ];
             if (LookPalette.TryHat(look.HatItemId, out ClothingSprite hat))
             {

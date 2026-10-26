@@ -12,14 +12,14 @@ namespace Nosum.Gameplay.Farm;
 /// </summary>
 public static class FarmProps
 {
-    /// <summary>Sheet name of <c>Buildings/houses.png</c>.</summary>
-    public const string HousesSheet = "houses";
+    /// <summary>Sheet name of <c>sprites/buildings/farmhouse.png</c>.</summary>
+    public const string HousesSheet = "buildings/farmhouse";
 
-    /// <summary>Sheet name of <c>Buildings/Greenhouse.png</c>.</summary>
-    public const string GreenhouseSheet = "Greenhouse";
+    /// <summary>Sheet name of <c>sprites/buildings/greenhouse.png</c>.</summary>
+    public const string GreenhouseSheet = "buildings/greenhouse";
 
-    /// <summary>Sheet name of <c>Buildings/Shipping Bin.png</c>.</summary>
-    public const string ShippingBinSheet = "Shipping Bin";
+    /// <summary>Sheet name of <c>sprites/buildings/shipping_bin.png</c>.</summary>
+    public const string ShippingBinSheet = "buildings/shipping_bin";
 
     /// <summary>Tile in front of the farmhouse door, where a new farmer appears.</summary>
     public static readonly (int X, int Y) FarmhouseDoorFront = (64, 16);

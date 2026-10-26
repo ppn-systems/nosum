@@ -23,8 +23,8 @@ namespace Nosum.AssetInventory;
 /// </summary>
 internal static partial class SpriteUses
 {
-    private const string Objects = "Maps/springobjects.png";
-    private const string Farmer = "Characters/Farmer/";
+    private const string Objects = "sprites/items.png";
+    private const string Farmer = "farmer/";
     private const int ObjectColumns = 24;
 
     /// <summary>Adds every sprite cell the client draws to the ledger.</summary>
@@ -63,19 +63,19 @@ internal static partial class SpriteUses
             switch (kind)
             {
                 case "Tool":
-                    ledger.Use("TileSheets/tools.png", Package.Tools, "ItemIcons", a * 16, b * 16, 16, 16);
+                    ledger.Use("sprites/tools.png", Package.Tools, "ItemIcons", a * 16, b * 16, 16, 16);
                     break;
                 case "Weapon":
-                    ledger.Use("TileSheets/weapons.png", Package.Tools, "ItemIcons", a * 16, b * 16, 16, 16);
+                    ledger.Use("sprites/weapons.png", Package.Tools, "ItemIcons", a * 16, b * 16, 16, 16);
                     break;
                 case "ObjectId":
                     Object(ledger, Package.Items, "ItemIcons", a);
                     break;
                 case "Craftable":
-                    ledger.Use("TileSheets/Craftables.png", Package.Items, "ItemIcons", a, b, 16, 16);
+                    ledger.Use("sprites/craftables.png", Package.Items, "ItemIcons", a, b, 16, 16);
                     break;
                 case "Furniture":
-                    ledger.Use("TileSheets/furniture.png", Package.Items, "ItemIcons", a, b, 16, 16);
+                    ledger.Use("sprites/furniture.png", Package.Items, "ItemIcons", a, b, 16, 16);
                     break;
                 case "Shirt":
                     ledger.Use(Farmer + "shirts.png", Package.Items, "ItemIcons", a % 16 * 8, a / 16 * 32, 8, 8);
@@ -120,8 +120,8 @@ internal static partial class SpriteUses
         {
             for (int column = 0; column < 3; column++)
             {
-                ledger.Use(Farmer + "farmer_base.png", Package.Farmer, By, column * 16, row * 32, 16, 32, frame: true);
-                ledger.Use(Farmer + "farmer_base.png", Package.Farmer, By, (column + 6) * 16, row * 32, 16, 32, frame: true);
+                ledger.Use(Farmer + "body.png", Package.Farmer, By, column * 16, row * 32, 16, 32, frame: true);
+                ledger.Use(Farmer + "body.png", Package.Farmer, By, (column + 6) * 16, row * 32, 16, 32, frame: true);
                 foreach (int style in pants)
                 {
                     ledger.Use(Farmer + "pants.png", Package.Farmer, By, (style % 10 * 192) + (column * 16), (style / 10 * 672) + (row * 32), 16, 32, frame: true);
@@ -130,7 +130,7 @@ internal static partial class SpriteUses
 
             for (int style = 0; style < LookCatalog.HairStyleCount; style++)
             {
-                ledger.Use(Farmer + "hairstyles.png", Package.Farmer, By, style % 8 * 16, (style / 8 * 96) + (row * 32), 16, 32, frame: true);
+                ledger.Use(Farmer + "hair.png", Package.Farmer, By, style % 8 * 16, (style / 8 * 96) + (row * 32), 16, 32, frame: true);
             }
         }
 
@@ -158,19 +158,19 @@ internal static partial class SpriteUses
         {
             foreach (int frame in crop.SpriteFrames)
             {
-                ledger.Use("TileSheets/crops.png", Package.Crops, "CropSprites", (crop.SpriteRow % 2 * 128) + (frame * 16), crop.SpriteRow / 2 * 32, 16, 32, frame: true);
+                ledger.Use("sprites/crops.png", Package.Crops, "CropSprites", (crop.SpriteRow % 2 * 128) + (frame * 16), crop.SpriteRow / 2 * 32, 16, 32, frame: true);
             }
         }
 
-        ledger.Use("TerrainFeatures/hoeDirt.png", Package.Crops, "FarmDecorator", 0, 0, 128, 64);
+        ledger.Use("sprites/soil.png", Package.Crops, "FarmDecorator", 0, 0, 128, 64);
     }
 
     // wasm/Nosum.Wasm/Game/NodeSprites.cs: tree pieces (every growth stage), objects-sheet cells per node kind and the ladder.
     private static void NodeUses(UseLedger ledger)
     {
-        foreach (string tree in new[] { "tree1_spring", "tree2_spring", "tree3_spring" })
+        foreach (string tree in new[] { "oak", "maple", "pine" })
         {
-            string sheet = "TerrainFeatures/" + tree + ".png";
+            string sheet = "sprites/trees/" + tree + ".png";
             ledger.Use(sheet, Package.Nodes, "NodeSprites", 0, 0, 48, 96, frame: true);
             ledger.Use(sheet, Package.Nodes, "NodeSprites", 32, 96, 16, 32, frame: true);
             ledger.Use(sheet, Package.Nodes, "NodeSprites", 0, 96, 16, 32, frame: true);
@@ -197,7 +197,7 @@ internal static partial class SpriteUses
             foreach (PropPlacement placement in spec.Props)
             {
                 PropDefinition prop = placement.Definition;
-                ledger.Use("Buildings/" + prop.Sheet + ".png", Package.Buildings, "PropDecorator", prop.SrcX, prop.SrcY, prop.Width, prop.Height);
+                ledger.Use("sprites/" + prop.Sheet + ".png", Package.Buildings, "PropDecorator", prop.SrcX, prop.SrcY, prop.Width, prop.Height);
             }
         }
 
@@ -222,7 +222,7 @@ internal static partial class SpriteUses
             {
                 for (int column = 0; column < 4; column++)
                 {
-                    ledger.Use("Animals/" + animal.Sheet + ".png", Package.Animals, "AnimalsDecorator", column * animal.FrameWidth, row * animal.FrameHeight, animal.FrameWidth, animal.FrameHeight, frame: true);
+                    ledger.Use("sprites/animals/" + animal.Sheet + ".png", Package.Animals, "AnimalsDecorator", column * animal.FrameWidth, row * animal.FrameHeight, animal.FrameWidth, animal.FrameHeight, frame: true);
                 }
             }
         }
@@ -265,7 +265,7 @@ internal static partial class SpriteUses
             throw new InvalidDataException("nosum-theme.js: no sprite rows found; the inventory tool must be updated with it.");
         }
 
-        FileEntry background = ledger.Loaded(linked["Cloudy_Ocean_BG.png"], Package.Ui, "StartScreen.razor.css");
+        FileEntry background = ledger.Loaded(linked["start_background.png"], Package.Ui, "StartScreen.razor.css");
         background.Mark(Package.Ui, 0, 0, background.Width, background.Height, frame: false);
     }
 
@@ -276,9 +276,7 @@ internal static partial class SpriteUses
     /// <param name="sheet">The sheet name in <see cref="PlaceableCatalog"/>.</param>
     /// <returns>The path.</returns>
     internal static string PlaceableSheet(string sheet)
-        => string.Equals(sheet, PlaceableCatalog.ObjectsSheet, StringComparison.Ordinal) ? Objects
-        : sheet.StartsWith("Buildings/", StringComparison.Ordinal) ? sheet + ".png"
-        : "TileSheets/" + sheet + ".png";
+        => string.Equals(sheet, PlaceableCatalog.ObjectsSheet, StringComparison.Ordinal) ? Objects : "sprites/" + sheet + ".png";
 
     private static string ItemName(int id)
     {

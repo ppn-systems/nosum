@@ -82,7 +82,7 @@ public sealed class CropDefinition
     /// <summary>Gets the watered game days a plant has already, right after a harvest, when it regrows: it needs <see cref="RegrowDays"/> more.</summary>
     public int GrowthDaysAfterHarvest => this.Regrows ? this.TotalGrowthDays - this.RegrowDays : 0;
 
-    /// <summary>Gets the row of <c>assets/TileSheets/crops.png</c> the crop's pictures are in: two rows per 32 px band, 128 px each (docs/adr/ADR-025 D6).</summary>
+    /// <summary>Gets the row of <c>assets/sprites/crops.png</c> the crop's pictures are in: two rows per 32 px band, 128 px each (docs/adr/ADR-025 D6).</summary>
     public int SpriteRow { get; init; }
 
     /// <summary>Gets the frame of the sheet row (16 × 32 px, eight per row) shown at each stage, <see cref="StageCount"/> entries; the client reads no other crop art data.</summary>

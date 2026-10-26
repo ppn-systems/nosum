@@ -1,4 +1,4 @@
-"""Package 8: Animals/White Chicken.png (16 x 16 frames) and Animals/White Cow.png (32 x 32 frames), drawn here.
+"""Package 8: sprites/animals/chicken.png (16 x 16 frames) and sprites/animals/cow.png (32 x 32 frames), drawn here.
 
 Layout (AnimalsDecorator): four walk columns, rows down, right, up; left is the right row mirrored by the game. No CC0 pack has top-down farm
 animals with a walk cycle in this style, so the pictures are drawn from shaded blobs in the Kenney palette.
@@ -110,10 +110,10 @@ def cow(direction, frame):
 
 def build(size):
     rows = ['down', 'right', 'up']
-    chick = Image(*size('Animals/White Chicken.png'))
-    cows = Image(*size('Animals/White Cow.png'))
+    chick = Image(*size('sprites/animals/chicken.png'))
+    cows = Image(*size('sprites/animals/cow.png'))
     for r, d in enumerate(rows):
         for f in range(4):
             chick.paste(chicken(d, f), f * 16, r * 16)
             cows.paste(cow(d, f), f * 32, r * 32)
-    return {'Animals/White Chicken.png': chick, 'Animals/White Cow.png': cows}
+    return {'sprites/animals/chicken.png': chick, 'sprites/animals/cow.png': cows}

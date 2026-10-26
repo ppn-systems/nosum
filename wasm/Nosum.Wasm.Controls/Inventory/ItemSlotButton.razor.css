@@ -1,4 +1,4 @@
-/* A slot: a square bevel (MenuTiles, 1 u edge) 18 u wide around a 16 u item picture. The hotkey is printed under the slot, outside
+/* A slot: a square bevel (menu.png, 1 u edge) 18 u wide around a 16 u item picture. The hotkey is printed under the slot, outside
    the picture; the stack count sits in the bottom-right corner with an outline. */
 .slot {
     position: relative;

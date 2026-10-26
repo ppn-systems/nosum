@@ -1,4 +1,4 @@
-"""Package 9: the UI sheets (Maps/MenuTiles.png, LooseSprites/Cursors.png, LooseSprites/textBox.png, LooseSprites/Cloudy_Ocean_BG.png).
+"""Package 9: the UI sheets (ui/menu.png, ui/cursors.png, ui/text_box.png, ui/start_background.png).
 
 Window frames, slots, buttons, the pictograms and the cursors are drawn here in the warm wood-and-parchment palette at the rectangles
 nosum-theme.js reads (CSS border-image slices them, so each piece keeps its slice width). The start-screen picture is a sky and a sea drawn
@@ -179,7 +179,7 @@ def cursor_hand():
 
 
 def menu_tiles(size):
-    sheet = Image(*size('Maps/MenuTiles.png'))
+    sheet = Image(*size('ui/menu.png'))
     sheet.paste(panel(), 0, 256)
     sheet.paste(inset(), 0, 320)
     sheet.paste(slot(), 128, 128)
@@ -187,7 +187,7 @@ def menu_tiles(size):
 
 
 def cursors(size):
-    sheet = Image(*size('LooseSprites/Cursors.png'))
+    sheet = Image(*size('ui/cursors.png'))
     for pic, x, y in (
             (select(), 448, 128),
             (pill(13, 9, (240, 150, 50), (255, 200, 110), (190, 100, 30)), 145, 338),
@@ -201,7 +201,7 @@ def cursors(size):
 
 
 def text_box(size):
-    sheet = Image(*size('LooseSprites/textBox.png'))
+    sheet = Image(*size('ui/text_box.png'))
     sheet.paste(field(), 4, 0)
     return sheet
 
@@ -226,7 +226,7 @@ def dithered(y, x, top, bottom, y0, y1, steps=14):
 
 
 def sky(size):
-    w, h = size('LooseSprites/Cloudy_Ocean_BG.png')
+    w, h = size('ui/start_background.png')
     img = Image(w, h)
     horizon = 345
     for y in range(h):
@@ -263,8 +263,8 @@ def sky(size):
 
 def build(size):
     return {
-        'Maps/MenuTiles.png': menu_tiles(size),
-        'LooseSprites/Cursors.png': cursors(size),
-        'LooseSprites/textBox.png': text_box(size),
-        'LooseSprites/Cloudy_Ocean_BG.png': sky(size),
+        'ui/menu.png': menu_tiles(size),
+        'ui/cursors.png': cursors(size),
+        'ui/text_box.png': text_box(size),
+        'ui/start_background.png': sky(size),
     }

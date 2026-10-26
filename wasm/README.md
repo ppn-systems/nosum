@@ -47,7 +47,7 @@ freezes the farmer (no reports), waits without blocking until the map is loaded,
 drawing plugs in as an `IMapDecorator` made by an `IMapDecoratorProvider` registered where `GameLoop` builds the loader
 (`PropDecoratorProvider` draws a map's buildings from its `MapSpec`; `FarmDecoratorProvider` adds soil, crops and the target cursor on `MapSpec.Farmable` maps). `LockedLandDecoratorProvider` shades the part of the co-op land the co-op has not unlocked ([ADR-038](../docs/adr/ADR-038-coop-upgrades.md)) from `CoopUpgrades` and the level in the co-op snapshot. The maps
 and tilesheets the client can load are linked from `assets/Maps/` in `Nosum.Wasm.csproj`; building sheets from
-`assets/Buildings/`. Without a server the farm still plays offline (no map changes).
+`assets/sprites/buildings/`. Without a server the farm still plays offline (no map changes).
 
 Farming ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)): `Nosum.Wasm.Socket` has `InventoryChannel`, `FarmChannel` and `QuestChannel`, client mirrors of the
 server's state loaded after sign-in (inventory, quests) and after every join or map change (farm) and kept current by pushes. `FarmChannel` also estimates the server clock; the
@@ -93,7 +93,7 @@ it reads the mirror under its lock and allocates nothing. No UI panel.
 
 UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md), amended by [ADR-017](../docs/adr/ADR-017-game-menu-and-world-pixel-ui.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`.
 `wwwroot/nosum-theme.css` holds the variables and the font (`--u` is one UI pixel and equals the world pixel: `round(width / 416)` like `MapScene.ScaleFor`, computed by `nosum-theme.js`; `--tp` is one pixel of the VT323 UI font,
-`fonts/`, OFL; colours `--nosum-*`; type scale title, body, small) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `MenuTiles.png`, `Cursors.png` and `textBox.png` (linked from `assets/` in the Controls csproj, placeholder art
+`fonts/`, OFL; colours `--nosum-*`; type scale title, body, small) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `menu.png`, `cursors.png` and `text_box.png` (linked from `assets/` in the Controls csproj, placeholder art
 per ADR-007) into `--nosum-img-*` variables used as `border-image`, adds a few own glyphs, and shows the one tooltip for any element with `data-tip`. `index.html` links both and starts Blazor by hand with `loadAllSatelliteResources` (so English
 appears after sign-in); the controls' scoped CSS comes through `Nosum.Wasm.styles.css`. Every screen element is a shared control (`GamePanel`, `GameButton`, `GameInput`/`GameField`, `ItemSlotButton`/`ItemGrid`, `GameSection`, `GameSwatch`, `GameKey`,
 `GameIcon`, `GameIconButton`, `GameNotice`, `GameBadge`, `GameSpinner`, `GameMenu`/`MenuPage`, `CharacterPreview`, ...); panels add layout only, no colours. `Layout/GameHud` is the layout: dock regions (top-left quest tracker, top-center notices,
@@ -124,11 +124,11 @@ dotnet run --project wasm/Nosum.Wasm
 Crafting, chests and furnaces ([ADR-024](../docs/adr/ADR-024-crafting-and-outdoor-placeables.md)): `CraftingChannel` (recipe book + craft), `ChestChannel` (the one open chest: contents on open, whole-slot pushes after, close) and
 `FurnaceChannel` (jobs with the server's remaining time counted down on the client clock) mirror the server; `CraftingViewModel`, `ChestViewModel` and `FurnaceViewModel` follow them. The pages are menu pages
 (`CraftingPanel` is a tab; `ChestPanel` and `FurnacePanel` replace the Shop-style extra tab while open). The action key facing a chest or furnace piece opens it (`PlayerActions`, using the placed set), the walk grid on the farm is the nodes' grid joined with the placed
-footprints like the server's `InstanceWorld`, and `PlacedObjectsDecorator` draws each piece from its own sheet (`PlaceableDefinition.Sheet`: furniture, Craftables, springobjects). Shift-click in an `ItemGrid` is `OnSlotShiftClick`.
+footprints like the server's `InstanceWorld`, and `PlacedObjectsDecorator` draws each piece from its own sheet (`PlaceableDefinition.Sheet`: furniture, craftables, items). Shift-click in an `ItemGrid` is `OnSlotShiftClick`.
 
 Farm buildings and animals ([ADR-028](../docs/adr/ADR-028-farm-buildings-and-animals.md)): `BuildingChannel` mirrors the buildings of the land (a building still under construction is drawn dull by `PlacedObjectsDecorator`), the player's own buildings (the carpenter page) and the animals of the building the player is inside;
-an animal's position is computed every frame from the walk the server chose (start time, straight line), never ticked. `AnimalsDecorator` draws them depth-sorted from `Animals/White Chicken.png` and `White Cow.png` (rows down, right, up; left is the right row mirrored) with the produce above an animal that has some; a building is a placed piece
-(`PlaceableDefinition.Sheet = "Buildings/Coop"`) sorted by its bottom row, so the farmer walks behind its roof and in front of its door like the farmhouse. The action key inside a building (`PlayerActions`, `interior`) feeds the bench with hay or fiber in hand, collects an egg (or milk with the pail in hand) from the nearest animal that has produce,
+an animal's position is computed every frame from the walk the server chose (start time, straight line), never ticked. `AnimalsDecorator` draws them depth-sorted from `sprites/animals/chicken.png` and `cow.png` (rows down, right, up; left is the right row mirrored) with the produce above an animal that has some; a building is a placed piece
+(`PlaceableDefinition.Sheet = "buildings/coop"`) sorted by its bottom row, so the farmer walks behind its roof and in front of its door like the farmhouse. The action key inside a building (`PlayerActions`, `interior`) feeds the bench with hay or fiber in hand, collects an egg (or milk with the pail in hand) from the nearest animal that has produce,
 and pets it otherwise; `AnimalCareViewModel` turns the answers into one-line messages. The carpenter's shop page is `ShopPanel` with `CarpenterSections` under the supplies (hay, milk pail): order a blueprint, then buy an animal for a finished building with a typed name (`CarpenterViewModel`).
 Server key pinning ([ADR-032](../docs/adr/ADR-032-security-hardening.md) D1): the deploy writes the server's public key (printed by the host at start-up) into
 `Nosum.Wasm/wwwroot/appsettings.json` as `Server:PublicKeys` (one key, or two during a rotation) and sets `Server:RequirePin` to `true`; the client then

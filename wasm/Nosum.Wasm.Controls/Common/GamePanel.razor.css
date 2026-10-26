@@ -1,4 +1,4 @@
-/* The shared window frame: a 9-slice wooden border (MenuTiles.png, 4 u thick) around a parchment page. */
+/* The shared window frame: a 9-slice wooden border (menu.png, 4 u thick) around a parchment page. */
 .game-panel {
     --panel-edge: calc(var(--u) * 4);
 

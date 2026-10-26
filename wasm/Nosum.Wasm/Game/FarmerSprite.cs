@@ -70,9 +70,9 @@ internal static class FarmerSprite
 }
 
 /// <summary>Texture ids of the farmer layer sheets.</summary>
-/// <param name="Body">farmer_base.png (body and arms).</param>
+/// <param name="Body">body.png (body and arms).</param>
 /// <param name="Pants">pants.png.</param>
 /// <param name="Shirts">shirts.png.</param>
-/// <param name="Hair">hairstyles.png.</param>
+/// <param name="Hair">hair.png.</param>
 /// <param name="Hats">hats.png.</param>
 internal readonly record struct FarmerTextures(int Body, int Pants, int Shirts, int Hair, int Hats);

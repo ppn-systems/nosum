@@ -14,7 +14,7 @@ loaded (a map names it as a tileset) and must exist at its size. The *Art* colum
 
 ## Totals
 
-- Files the game loads: **95** of the 1,995 files the placeholder `assets/` held (the rest was never loaded): 42 images and 53 maps.
+- Files the game loads: **95** of the 590 files the placeholder `assets/` held (the rest was never loaded): 42 images and 53 maps.
 - Cells used: **6,119** of 34,276 cells in those files (17.9%).
 - Frames among the used cells: **1,282**.
 - Art: **95** of 95 files already replaced, **0** still placeholder.
@@ -41,11 +41,11 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `Characters/Farmer/farmer_base.png` | 288 × 672 | 16 × 32 | 18 / 378 | 18 | FarmerSprite | replaced |
-| `Characters/Farmer/hairstyles.png` | 128 × 672 | 16 × 32 | 24 / 168 | 24 | FarmerSprite | replaced |
-| `Characters/Farmer/hats.png` | 240 × 880 | 20 × 20 | 8 / 528 | 8 | FarmerSprite, ItemIcons | replaced |
-| `Characters/Farmer/pants.png` | 1920 × 1376 | 16 × 32 | 9 / 5,160 | 9 | FarmerSprite | replaced |
-| `Characters/Farmer/shirts.png` | 256 × 608 | 8 × 8 | 12 / 2,432 | 12 | FarmerSprite, ItemIcons | replaced |
+| `farmer/body.png` | 288 × 672 | 16 × 32 | 18 / 378 | 18 | FarmerSprite | replaced |
+| `farmer/hair.png` | 128 × 672 | 16 × 32 | 24 / 168 | 24 | FarmerSprite | replaced |
+| `farmer/hats.png` | 240 × 880 | 20 × 20 | 8 / 528 | 8 | FarmerSprite, ItemIcons | replaced |
+| `farmer/pants.png` | 1920 × 1376 | 16 × 32 | 9 / 5,160 | 9 | FarmerSprite | replaced |
+| `farmer/shirts.png` | 256 × 608 | 8 × 8 | 12 / 2,432 | 12 | FarmerSprite, ItemIcons | replaced |
 
 ## Core terrain (Farm, Town, FarmHouse)
 
@@ -72,59 +72,59 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `Maps/springobjects.png` | 384 × 624 | 16 × 16 | 83 / 936 | 0 | ItemCatalog.ObjectIcon, ItemIcons, NodeSprites, PlacedObjectsDecorator | replaced |
-| `TileSheets/Craftables.png` | 128 × 1472 | 16 × 32 | 3 / 368 | 0 | ItemIcons, PlacedObjectsDecorator | replaced |
-| `TileSheets/furniture.png` | 512 × 1488 | 16 × 16 | 55 / 2,976 | 0 | ItemIcons, PlacedObjectsDecorator | replaced |
+| `sprites/craftables.png` | 128 × 1472 | 16 × 32 | 3 / 368 | 0 | ItemIcons, PlacedObjectsDecorator | replaced |
+| `sprites/furniture.png` | 512 × 1488 | 16 × 16 | 55 / 2,976 | 0 | ItemIcons, PlacedObjectsDecorator | replaced |
+| `sprites/items.png` | 384 × 624 | 16 × 16 | 83 / 936 | 0 | ItemCatalog.ObjectIcon, ItemIcons, NodeSprites, PlacedObjectsDecorator | replaced |
 
 ## Crops and soil
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `TerrainFeatures/hoeDirt.png` | 192 × 64 | 16 × 16 | 32 / 48 | 0 | FarmDecorator | replaced |
-| `TileSheets/crops.png` | 256 × 1024 | 16 × 32 | 113 / 512 | 113 | CropSprites | replaced |
+| `sprites/crops.png` | 256 × 1024 | 16 × 32 | 113 / 512 | 113 | CropSprites | replaced |
+| `sprites/soil.png` | 192 × 64 | 16 × 16 | 32 / 48 | 0 | FarmDecorator | replaced |
 
 ## Tools and weapons
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `TileSheets/tools.png` | 336 × 384 | 16 × 16 | 14 / 504 | 0 | ItemIcons | replaced |
-| `TileSheets/weapons.png` | 128 × 144 | 16 × 16 | 1 / 72 | 0 | ItemIcons | replaced |
+| `sprites/tools.png` | 336 × 384 | 16 × 16 | 14 / 504 | 0 | ItemIcons | replaced |
+| `sprites/weapons.png` | 128 × 144 | 16 × 16 | 1 / 72 | 0 | ItemIcons | replaced |
 
 ## Resource nodes
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
 | `Maps/Mines/mine.png` | 256 × 288 | 16 × 16 | 1 / 288 | 0 | Maps/Mine.tmx, Maps/Mines/*.tmx, NodeSprites | replaced |
-| `Maps/springobjects.png` | 384 × 624 | 16 × 16 | 9 / 936 | 0 | ItemCatalog.ObjectIcon, ItemIcons, NodeSprites, PlacedObjectsDecorator | replaced |
-| `TerrainFeatures/tree1_spring.png` | 144 × 160 | 16 × 16 | 24 / 90 | 24 | NodeSprites | replaced |
-| `TerrainFeatures/tree2_spring.png` | 144 × 160 | 16 × 16 | 24 / 90 | 24 | NodeSprites | replaced |
-| `TerrainFeatures/tree3_spring.png` | 144 × 160 | 16 × 16 | 24 / 90 | 24 | NodeSprites | replaced |
+| `sprites/items.png` | 384 × 624 | 16 × 16 | 9 / 936 | 0 | ItemCatalog.ObjectIcon, ItemIcons, NodeSprites, PlacedObjectsDecorator | replaced |
+| `sprites/trees/maple.png` | 144 × 160 | 16 × 16 | 24 / 90 | 24 | NodeSprites | replaced |
+| `sprites/trees/oak.png` | 144 × 160 | 16 × 16 | 24 / 90 | 24 | NodeSprites | replaced |
+| `sprites/trees/pine.png` | 144 × 160 | 16 × 16 | 24 / 90 | 24 | NodeSprites | replaced |
 
 ## Buildings and props
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `Buildings/Barn.png` | 112 × 128 | 16 × 16 | 49 / 56 | 0 | PlacedObjectsDecorator | replaced |
-| `Buildings/Coop.png` | 96 × 128 | 16 × 16 | 42 / 48 | 0 | PlacedObjectsDecorator | replaced |
-| `Buildings/Greenhouse.png` | 240 × 320 | 16 × 16 | 70 / 300 | 0 | PropDecorator | replaced |
-| `Buildings/Shipping Bin.png` | 32 × 32 | 16 × 16 | 4 / 4 | 0 | PropDecorator | replaced |
-| `Buildings/houses.png` | 272 × 432 | 16 × 16 | 81 / 459 | 0 | PropDecorator | replaced |
+| `sprites/buildings/barn.png` | 112 × 128 | 16 × 16 | 49 / 56 | 0 | PlacedObjectsDecorator | replaced |
+| `sprites/buildings/coop.png` | 96 × 128 | 16 × 16 | 42 / 48 | 0 | PlacedObjectsDecorator | replaced |
+| `sprites/buildings/farmhouse.png` | 272 × 432 | 16 × 16 | 81 / 459 | 0 | PropDecorator | replaced |
+| `sprites/buildings/greenhouse.png` | 240 × 320 | 16 × 16 | 70 / 300 | 0 | PropDecorator | replaced |
+| `sprites/buildings/shipping_bin.png` | 32 × 32 | 16 × 16 | 4 / 4 | 0 | PropDecorator | replaced |
 
 ## Animals
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `Animals/White Chicken.png` | 64 × 112 | 16 × 16 | 12 / 28 | 12 | AnimalsDecorator | replaced |
-| `Animals/White Cow.png` | 128 × 160 | 32 × 32 | 12 / 20 | 12 | AnimalsDecorator | replaced |
+| `sprites/animals/chicken.png` | 64 × 112 | 16 × 16 | 12 / 28 | 12 | AnimalsDecorator | replaced |
+| `sprites/animals/cow.png` | 128 × 160 | 32 × 32 | 12 / 20 | 12 | AnimalsDecorator | replaced |
 
 ## UI
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `LooseSprites/Cloudy_Ocean_BG.png` | 1500 × 520 | 1500 × 520 | 1 / 1 | 0 | StartScreen.razor.css | replaced |
-| `LooseSprites/Cursors.png` | 704 × 2256 | 16 × 16 | 33 / 6,204 | 0 | nosum-theme.js | replaced |
-| `LooseSprites/textBox.png` | 192 × 48 | 16 × 16 | 36 / 36 | 0 | nosum-theme.js | replaced |
-| `Maps/MenuTiles.png` | 256 × 1152 | 16 × 16 | 48 / 1,152 | 0 | nosum-theme.js | replaced |
+| `ui/cursors.png` | 704 × 2256 | 16 × 16 | 33 / 6,204 | 0 | nosum-theme.js | replaced |
+| `ui/menu.png` | 256 × 1152 | 16 × 16 | 48 / 1,152 | 0 | nosum-theme.js | replaced |
+| `ui/start_background.png` | 1500 × 520 | 1500 × 520 | 1 / 1 | 0 | StartScreen.razor.css | replaced |
+| `ui/text_box.png` | 192 × 48 | 16 × 16 | 36 / 36 | 0 | nosum-theme.js | replaced |
 
 ## Remaining maps
 

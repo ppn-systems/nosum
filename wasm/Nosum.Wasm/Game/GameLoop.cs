@@ -38,7 +38,7 @@ namespace Nosum.Wasm.Game;
 [SupportedOSPlatform("browser")]
 internal static partial class GameLoop
 {
-    private const string FarmerUrl = "assets/Characters/Farmer/";
+    private const string FarmerUrl = "assets/farmer/";
 
     private static readonly TimeSpan s_entryTimeout = TimeSpan.FromSeconds(10);
 
@@ -219,10 +219,10 @@ internal static partial class GameLoop
         MapLoader loader = new(http, textures, providers, s_network is null ? null : s_network.IsUnlocked);
 
         Task<int[]> farmerSheets = Task.WhenAll(
-            textures.LoadAsync(FarmerUrl + "farmer_base.png"),
+            textures.LoadAsync(FarmerUrl + "body.png"),
             textures.LoadAsync(FarmerUrl + "pants.png"),
             textures.LoadAsync(FarmerUrl + "shirts.png"),
-            textures.LoadAsync(FarmerUrl + "hairstyles.png"),
+            textures.LoadAsync(FarmerUrl + "hair.png"),
             textures.LoadAsync(FarmerUrl + "hats.png"));
 
         MapEntry? entry = await WaitForEntryAsync(cancellationToken).ConfigureAwait(false);

@@ -47,7 +47,7 @@ internal sealed class FarmDecorator : IMapDecorator
     /// <param name="mapId">The map it decorates.</param>
     /// <param name="farm">The mirrored tiles.</param>
     /// <param name="actions">Where the cursor goes.</param>
-    /// <param name="soilTexture">Texture id of <c>hoeDirt.png</c>.</param>
+    /// <param name="soilTexture">Texture id of <c>soil.png</c>.</param>
     /// <param name="cropsTexture">Texture id of <c>crops.png</c>.</param>
     /// <param name="cursorTexture">Texture id of the 16 x 16 target cursor.</param>
     /// <param name="tileSize">Map tile size, pixels.</param>
@@ -205,8 +205,7 @@ internal sealed class FarmDecorator : IMapDecorator
 /// <summary>Builds the <see cref="FarmDecorator"/> of every farmable map.</summary>
 internal sealed class FarmDecoratorProvider : IMapDecoratorProvider
 {
-    private const string TileSheetsUrl = "assets/TileSheets/";
-    private const string TerrainUrl = "assets/TerrainFeatures/";
+    private const string SpritesUrl = "assets/sprites/";
 
     private readonly FarmChannel _farm;
     private readonly PlayerActions _actions;
@@ -239,8 +238,8 @@ internal sealed class FarmDecoratorProvider : IMapDecoratorProvider
         }
 
         int[] ids = await Task.WhenAll(
-            textures.LoadAsync(TerrainUrl + "hoeDirt.png"),
-            textures.LoadAsync(TileSheetsUrl + "crops.png"),
+            textures.LoadAsync(SpritesUrl + "soil.png"),
+            textures.LoadAsync(SpritesUrl + "crops.png"),
             textures.LoadAsync(TargetCursor.DataUrl)).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         return new FarmDecorator(spec.Id, _farm, _actions, ids[0], ids[1], ids[2], map.TileWidth, _calendar, !spec.Indoors, _placed);

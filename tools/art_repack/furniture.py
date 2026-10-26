@@ -1,4 +1,4 @@
-"""Package 3 (placed objects): TileSheets/furniture.png and TileSheets/Craftables.png, drawn in the Kenney palette.
+"""Package 3 (placed objects): sprites/furniture.png and sprites/craftables.png, drawn in the Kenney palette.
 
 Each piece is drawn once at the rectangle PlaceableCatalog names; the inventory icon is the 16 x 16 window of the same picture that
 ItemIcons names, so a window never falls on an empty part of the picture.
@@ -220,10 +220,10 @@ CRAFTABLES = [((0, 32), scarecrow()), ((32, 512), chest()), ((80, 32), furnace()
 
 
 def build(size):
-    furniture = Image(*size('TileSheets/furniture.png'))
+    furniture = Image(*size('sprites/furniture.png'))
     for (x, y), pic in FURNITURE_VIEWS:
         furniture.paste(pic, x, y)
-    craftables = Image(*size('TileSheets/Craftables.png'))
+    craftables = Image(*size('sprites/craftables.png'))
     for (x, y), pic in CRAFTABLES:
         craftables.paste(pic, x, y)
-    return {'TileSheets/furniture.png': furniture, 'TileSheets/Craftables.png': craftables}
+    return {'sprites/furniture.png': furniture, 'sprites/craftables.png': craftables}

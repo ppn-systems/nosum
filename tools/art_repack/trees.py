@@ -1,4 +1,4 @@
-"""Package 6: TerrainFeatures/tree{1,2,3}_spring.png (oak, maple, pine).
+"""Package 6: sprites/trees/{oak,maple,pine}.png (oak, maple, pine).
 
 The pine, oak and maple are drawn here (Kenney's trees are 16 x 32, the game draws a 48 x 96 canopy and trunk): leaf blobs shaded from the
 top left on the Kenney palette, with a 1 px outline. The stump, bush, sapling and seed pictures sit at the cells NodeSprites reads.
@@ -120,7 +120,7 @@ def build(size):
     is replaced with the mine maps. Kenney Tiny Town tile 103 (a ladder in a stone frame) is a candidate for the ladder at cell (3, 4).
     """
     return {
-        'TerrainFeatures/tree1_spring.png': tree_sheet(size('TerrainFeatures/tree1_spring.png'), OAK, 'oak'),
-        'TerrainFeatures/tree2_spring.png': tree_sheet(size('TerrainFeatures/tree2_spring.png'), MAPLE, 'maple'),
-        'TerrainFeatures/tree3_spring.png': tree_sheet(size('TerrainFeatures/tree3_spring.png'), PINE, 'pine'),
+        'sprites/trees/oak.png': tree_sheet(size('sprites/trees/oak.png'), OAK, 'oak'),
+        'sprites/trees/maple.png': tree_sheet(size('sprites/trees/maple.png'), MAPLE, 'maple'),
+        'sprites/trees/pine.png': tree_sheet(size('sprites/trees/pine.png'), PINE, 'pine'),
     }

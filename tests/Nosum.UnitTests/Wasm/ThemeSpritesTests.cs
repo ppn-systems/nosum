@@ -32,7 +32,7 @@ public sealed partial class ThemeSpritesTests
             int y = Number(row, 3);
             int w = Number(row, 4);
             int h = Number(row, 5);
-            (int width, int height) = PngSize(Path.Combine(root, "assets", AssetFolder(sheets[sheet]), Path.GetFileName(sheets[sheet])));
+            (int width, int height) = PngSize(Path.Combine(root, "assets", sheets[sheet].Replace('/', Path.DirectorySeparatorChar)));
 
             (x + w).Should().BeLessThanOrEqualTo(width, row.Value);
             (y + h).Should().BeLessThanOrEqualTo(height, row.Value);
@@ -45,15 +45,12 @@ public sealed partial class ThemeSpritesTests
         string root = RepositoryRoot();
         string project = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Nosum.Wasm.Controls.csproj"));
 
-        foreach (string file in new[] { "Maps\\MenuTiles.png", "LooseSprites\\Cursors.png", "LooseSprites\\textBox.png" })
+        foreach (string file in new[] { "ui\\menu.png", "ui\\cursors.png", "ui\\text_box.png" })
         {
             project.Should().Contain("..\\..\\assets\\" + file);
             File.Exists(Path.Combine(root, "assets", file.Replace('\\', Path.DirectorySeparatorChar))).Should().BeTrue();
         }
     }
-
-    // The sheets are linked into wwwroot/ui/ from these folders of assets/ (the csproj says so; Sheets_AreLinked... checks it).
-    private static string AssetFolder(string sheet) => Path.GetFileName(sheet) == "MenuTiles.png" ? "Maps" : "LooseSprites";
 
     private static int Number(Match row, int group) => int.Parse(row.Groups[group].Value, System.Globalization.CultureInfo.InvariantCulture);
 

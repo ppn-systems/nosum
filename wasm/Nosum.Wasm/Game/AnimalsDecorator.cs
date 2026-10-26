@@ -78,7 +78,7 @@ internal sealed class AnimalsDecorator : IMapDecorator
 /// <summary>Builds the <see cref="AnimalsDecorator"/> of the inside of every farm building.</summary>
 internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
 {
-    private const string AnimalsUrl = "assets/Animals/";
+    private const string AnimalsUrl = "assets/sprites/animals/";
 
     private readonly BuildingChannel _buildings;
 

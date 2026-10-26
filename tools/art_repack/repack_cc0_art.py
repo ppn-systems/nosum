@@ -46,13 +46,13 @@ def build_all(src, repo, only=None):
     out.update(farmer.build(size))
     if only == 'farmer':
         return out
-    out['TileSheets/crops.png'] = crops.build_crops(src, repo, *size('TileSheets/crops.png'))
-    out['TerrainFeatures/hoeDirt.png'] = crops.build_soil(*size('TerrainFeatures/hoeDirt.png'))
-    out['TileSheets/tools.png'], out['TileSheets/weapons.png'] = tools.build(src, repo, size('TileSheets/tools.png'), size('TileSheets/weapons.png'))
+    out['sprites/crops.png'] = crops.build_crops(src, repo, *size('sprites/crops.png'))
+    out['sprites/soil.png'] = crops.build_soil(*size('sprites/soil.png'))
+    out['sprites/tools.png'], out['sprites/weapons.png'] = tools.build(src, repo, size('sprites/tools.png'), size('sprites/weapons.png'))
     out.update(buildings.build(src, size))
     out.update(trees.build(size))
     out.update(furniture.build(size))
-    out['Maps/springobjects.png'] = icons.build(src, size)
+    out['sprites/items.png'] = icons.build(src, size)
     out.update(animals.build(size))
     out.update(ui.build(size))
     return out

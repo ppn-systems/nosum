@@ -33,7 +33,7 @@ internal sealed class PropDecorator : IMapDecorator
 /// <summary>Loads the sheets of a map's props and builds its <see cref="PropDecorator"/>.</summary>
 internal sealed class PropDecoratorProvider : IMapDecoratorProvider
 {
-    private const string BuildingsUrl = "assets/Buildings/";
+    private const string SpritesUrl = "assets/sprites/";
 
     /// <inheritdoc/>
     public async Task<IMapDecorator?> CreateAsync(MapSpec spec, TileMap map, TextureCache textures, CancellationToken cancellationToken)
@@ -47,14 +47,14 @@ internal sealed class PropDecoratorProvider : IMapDecoratorProvider
             return null;
         }
 
-        // A prop sheet name is the file name of its image in Buildings/.
+        // A prop sheet name is the path of its image under sprites/, without extension (buildings/farmhouse).
         Dictionary<string, int> sheets = new(StringComparer.Ordinal);
         foreach (PropPlacement placement in spec.Props)
         {
             string sheet = placement.Definition.Sheet;
             if (!sheets.ContainsKey(sheet))
             {
-                sheets[sheet] = await textures.LoadAsync(BuildingsUrl + sheet + ".png").ConfigureAwait(false);
+                sheets[sheet] = await textures.LoadAsync(SpritesUrl + sheet + ".png").ConfigureAwait(false);
             }
         }
 
