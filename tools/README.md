@@ -44,7 +44,7 @@ dotnet run --project tools/Nosum.MapGen -- sheets [--check]                 # â†
 dotnet run --project tools/Nosum.MapGen -- sheets --contact <file.png>      # also a picture of every sheet, for judging the art
 ```
 
-A new sheet is a drawing in `Sheets/` listed in `SheetCatalog.All`, its `.tileset` trait file, and a line in `art/own/SOURCES.md`. The trait files are hand-written; `MapGenSheetsTests` checks that every index they name exists in the picture.
+The drawings share `Palette.cs` (tones and five-tone ramps) and `Shading.cs` (tileable smooth noise, mixing, bevels, wood grain, lobed canopies); noise that fills a tile repeats every 16 pixels, so tiles join without a seam. A new sheet is a drawing in `Sheets/` listed in `SheetCatalog.All`, its `.tileset` trait file, and a line in `art/own/SOURCES.md`. The trait files are hand-written; `MapGenSheetsTests` checks that every index they name exists in the picture.
 
 **Tileset data** is `art/own/source/tilesets/<name>.tileset`: one keyword per line, `//` starts a comment, and the name line equals the file name.
 

@@ -170,3 +170,20 @@ A game crop uses the CC0 crop named; "as drawn" means no recolour. The harvest p
 | 90 | resource node | drawn here: `icons.rock` |
 | 91 | resource node | drawn here: `icons.rock` |
 | 92 | resource node | drawn here: `icons.rock` |
+
+## Map tilesheets (art/own/Maps)
+
+The six tilesheets of the own maps are not under `assets/`: they are drawn in code, deterministically, by `tools/Nosum.MapGen sheets` from
+`tools/Nosum.MapGen/Sheets/` (palette, texture helpers and one drawing per sheet), and `sheets --check` fails when a committed picture differs from
+what the code draws. No outside art is read or copied. The sheets were redrawn on 2026-10-26 with smooth tileable noise, five-tone ramps, shore
+foam and lip edges on the transitions, lobed tree canopies and bevelled wood and stone, keeping every sheet's grid and tile indices. The open-licensed
+packs that were checked for them, and why none is used, are in [`sourcing-2026-10-26.md`](sourcing-2026-10-26.md). Per-file entries: [`art/own/SOURCES.md`](../../art/own/SOURCES.md).
+
+| File | Tileset | Source | License |
+| :-- | :-- | :-- | :-- |
+| `art/own/Maps/terrain.png` | `terrain` | Nosum original, drawn by `tools/Nosum.MapGen/Sheets/TerrainSheet.cs` | Nosum's own art |
+| `art/own/Maps/nature.png` | `nature` | Nosum original, drawn by `NatureSheet.cs` | Nosum's own art |
+| `art/own/Maps/town.png` | `town` | Nosum original, drawn by `TownSheet.cs` | Nosum's own art |
+| `art/own/Maps/interior.png` | `interior` | Nosum original, drawn by `InteriorSheet.cs` | Nosum's own art |
+| `art/own/Maps/cave.png` | `cave` | Nosum original, drawn by `CaveSheet.cs` | Nosum's own art |
+| `art/own/Maps/markers.png` | `Paths` | Nosum original, drawn by `MarkerSheet.cs` (never drawn in game) | Nosum's own art |
