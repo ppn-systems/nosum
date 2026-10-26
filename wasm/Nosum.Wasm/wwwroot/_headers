@@ -1,0 +1,23 @@
+# Cloudflare Pages headers of the web client (docs/adr/ADR-041 D5). Pages applies every matching rule; the more specific rules below
+# override the general one for the fingerprinted framework files.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: same-origin
+  Cache-Control: no-cache
+
+# Fingerprinted framework files never change under the same name (<name>.<hash>.<ext>): cache them for a year.
+/_framework/*.*.wasm
+  Cache-Control: public, max-age=31536000, immutable
+/_framework/*.*.js
+  Cache-Control: public, max-age=31536000, immutable
+/_framework/*.*.dll
+  Cache-Control: public, max-age=31536000, immutable
+/_framework/*.*.dat
+  Cache-Control: public, max-age=31536000, immutable
+/_framework/*.*.webcil
+  Cache-Control: public, max-age=31536000, immutable
+/_framework/*.*.json
+  Cache-Control: public, max-age=31536000, immutable
+/_framework/*.*.blat
+  Cache-Control: public, max-age=31536000, immutable

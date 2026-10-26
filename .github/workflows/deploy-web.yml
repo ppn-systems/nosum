@@ -1,0 +1,52 @@
+# Publishes the web client to Cloudflare Pages (docs/adr/ADR-041 D1, D4, D5, D7). Manual only: a deploy is a decision.
+# The client is told where the server is and which server key to trust by wwwroot/appsettings.json, written here at publish time.
+name: deploy-web
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-web-production
+  cancel-in-progress: false
+
+jobs:
+  placeholder-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse a public release while placeholder art is present
+        run: sh deploy/check-placeholder-art.sh public
+
+  publish:
+    needs: placeholder-gate
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Install the WebAssembly workload
+        run: dotnet workload install wasm-tools
+      - name: Write the boot configuration (server address and pinned key)
+        env:
+          SERVER_URL: ${{ vars.NOSUM_SERVER_URL || 'wss://nosum.ppnsys.com/ws/' }}
+          SERVER_PUBLIC_KEY: ${{ vars.NOSUM_SERVER_PUBLIC_KEY }}
+        run: |
+          if [ -z "$SERVER_PUBLIC_KEY" ]; then
+            echo "::error::Set the repository variable NOSUM_SERVER_PUBLIC_KEY to the server's public key (the host prints it at start-up)."
+            exit 1
+          fi
+          jq -n --arg url "$SERVER_URL" --arg key "$SERVER_PUBLIC_KEY" \
+            '{Server: {Url: $url, PublicKeys: [$key], RequirePin: true}}' > wasm/Nosum.Wasm/wwwroot/appsettings.json
+      - name: Publish the client ahead-of-time compiled
+        run: dotnet publish wasm/Nosum.Wasm/Nosum.Wasm.csproj -c Release -p:NosumWebDeploy=true -p:NosumRelease=public -o out
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy out/wwwroot --project-name=nosum --branch=main

@@ -1,6 +1,6 @@
 # ADR-031 — Deployment and operations
 
-**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M5. Builds on ADR-002 D5 (AOT web deploy),
+**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Amended by ADR-041 (Caddy, TLS and the IP allow-list are replaced by Cloudflare Pages and a Cloudflare Tunnel). Roadmap M5. Builds on ADR-002 D5 (AOT web deploy),
 ADR-003 (WebSocket server), ADR-009 (PostgreSQL).
 
 ## Context

@@ -1,15 +1,18 @@
-# Single-server deployment (docs/adr/ADR-031 D1-D4, D9): PostgreSQL 16, the Nosum host, Caddy (TLS, static client, WebSocket proxy) and the nightly backup.
+# Production deployment of one server (docs/adr/ADR-041, ADR-031 D1-D4): PostgreSQL 16, the Nosum host, a Cloudflare Tunnel connector and the nightly backup.
+# The web client is not here: it is on Cloudflare Pages (docs/adr/ADR-041 D4). Nothing listens on the internet; the tunnel dials out.
 #
-#   cp .env.example .env      # fill every value; .env is never committed
-#   docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
+# Images are pulled from GHCR (built and deployed by .github/workflows/deploy-server.yml, which writes deploy/.env on the host).
+# By hand, on the host:
+#   docker compose --env-file .env -f compose.yaml up -d
 #
-# Operations (admin role, backup, restore, key rotation): docs/ops/README.md.
+# Operations (first start, tunnel, backup, restore, rollback, key rotation): docs/ops/README.md.
 name: nosum
 
 services:
-  db:
+  postgres:
     image: postgres:16
     restart: unless-stopped
+    # No `ports:`: PostgreSQL is reachable only on the compose network.
     environment:
       POSTGRES_DB: nosum
       POSTGRES_USER: nosum
@@ -24,74 +27,64 @@ services:
     networks: [nosum]
 
   host:
-    build:
-      context: ..
-      dockerfile: deploy/host.Dockerfile
-      args:
-        NOSUM_RELEASE: ${NOSUM_RELEASE:-private}
-    image: nosum/host:${NOSUM_TAG:-local}
+    image: ghcr.io/ppn-systems/nosum-host:${NOSUM_TAG:?set NOSUM_TAG in deploy/.env (the commit SHA the workflow deploys)}
     restart: unless-stopped
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     environment:
       DOTNET_ENVIRONMENT: Production
-      ConnectionStrings__Default: Host=db;Port=5432;Database=nosum;Username=nosum;Password=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
-      NOSUM_ORIGIN: https://${NOSUM_DOMAIN:?set NOSUM_DOMAIN in deploy/.env}
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=nosum;Username=nosum;Password=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+      # The page the players load (Cloudflare Pages). The server refuses WebSocket handshakes from any other web origin (CSWSH).
+      NOSUM_ORIGIN: ${NOSUM_ORIGIN:?set NOSUM_ORIGIN in deploy/.env (the Pages address, for example https://nosum.pages.dev)}
+      # The tunnel connector is the only peer that reaches the host from the network; its X-Forwarded-For is trusted.
       NOSUM_TRUSTED_PROXIES: 172.28.0.0/24
       NOSUM_CALENDAR_EPOCH: ${NOSUM_CALENDAR_EPOCH:-}
+      NOSUM_SMTP_HOST: ${NOSUM_SMTP_HOST:-}
+      NOSUM_SMTP_PORT: ${NOSUM_SMTP_PORT:-587}
+      NOSUM_SMTP_USER: ${NOSUM_SMTP_USER:-}
+      NOSUM_SMTP_PASSWORD: ${NOSUM_SMTP_PASSWORD:-}
+      NOSUM_SMTP_FROM: ${NOSUM_SMTP_FROM:-}
+      NOSUM_SMTP_SSL: ${NOSUM_SMTP_SSL:-true}
     volumes:
-      # The Nalix server key, server.ini and block lists: losing this volume changes the server key (docs/ops/README.md, "Rotate keys").
+      # The Nalix server key, server.ini and block lists: losing this volume changes the server key, and every pinned client then refuses the server (docs/ops/README.md, "Rotate keys").
       - nalix_data:/data
-    expose:
-      - "57300"
-      - "57301"
+    # The game WebSocket (57300) is published to this machine's loopback only, for debugging on the host. Players come through the tunnel.
+    # The ops port (57301: health, metrics) is not published at all; the image binds it to localhost.
+    ports:
+      - "127.0.0.1:57300:57300"
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
     networks: [nosum]
 
-  caddy:
-    build:
-      context: ..
-      dockerfile: deploy/web.Dockerfile
-      args:
-        NOSUM_RELEASE: ${NOSUM_RELEASE:-private}
-    image: nosum/web:${NOSUM_TAG:-local}
+  cloudflared:
+    image: cloudflare/cloudflared:${CLOUDFLARED_TAG:-2025.8.1}
     restart: unless-stopped
-    depends_on:
-      - host
+    # Dials out to Cloudflare and forwards the public hostname to http://host:57300 (the public hostname is set in the dashboard, docs/ops/README.md).
+    # The token comes from deploy/.env; cloudflared reads it from TUNNEL_TOKEN, so it never appears on a command line.
+    command: tunnel --no-autoupdate run
     environment:
-      NOSUM_DOMAIN: ${NOSUM_DOMAIN:?set NOSUM_DOMAIN in deploy/.env}
-      # Private until milestone M6 (docs/adr/ADR-031 D9): only these addresses/CIDRs may connect. After M6 set 0.0.0.0/0 ::/0.
-      NOSUM_ALLOW_IPS: ${NOSUM_ALLOW_IPS:?set NOSUM_ALLOW_IPS in deploy/.env (the team's addresses; the deployment is private until M6)}
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./access.d:/etc/caddy/access.d:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in deploy/.env (the token of the tunnel nosum-prod)}
+    depends_on:
+      host:
+        condition: service_healthy
+    # No `ports:`: the connector accepts no inbound connections.
     security_opt:
       - no-new-privileges:true
-    networks:
-      nosum:
-        ipv4_address: 172.28.0.10
+    cap_drop:
+      - ALL
+    networks: [nosum]
 
   backup:
     image: postgres:16
     restart: unless-stopped
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     environment:
-      PGHOST: db
+      PGHOST: postgres
       PGUSER: nosum
       PGDATABASE: nosum
       PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
@@ -120,5 +113,3 @@ volumes:
   db_data:
   nalix_data:
   backups:
-  caddy_data:
-  caddy_config:
