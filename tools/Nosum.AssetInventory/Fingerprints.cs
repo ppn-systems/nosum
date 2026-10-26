@@ -88,15 +88,38 @@ internal sealed class Fingerprints
             return ArtState.Unrecorded;
         }
 
-        string full = Path.Combine(assetsRoot, path);
+        string full = OwnFile(path, assetsRoot) ?? Path.Combine(assetsRoot, path);
         if (!File.Exists(full))
         {
             return ArtState.Broken;
         }
 
+        if (!full.EndsWith(".png", StringComparison.Ordinal))
+        {
+            return full.StartsWith(Path.GetFullPath(assetsRoot), StringComparison.Ordinal) ? (string.Equals(HashOf(full), print.Sha256, StringComparison.Ordinal) ? ArtState.Placeholder : ArtState.Replaced) : ArtState.Replaced;
+        }
+
         (int width, int height) = AssetSize.Read(full);
         return width != print.Width || height != print.Height ? ArtState.Broken
             : string.Equals(HashOf(full), print.Sha256, StringComparison.Ordinal) ? ArtState.Placeholder : ArtState.Replaced;
+    }
+
+    /// <summary>
+    /// Finds Nosum's own file that stands in for a map or a map sheet (<c>Maps/...</c>): <c>art/own/Maps/...</c> has the same relative path and is the file the
+    /// client and server link to the placeholder's served path (<c>art/README.md</c>). The placeholder stays in <c>assets/</c> as the input of the painter and is not shipped.
+    /// </summary>
+    /// <param name="path">The placeholder's path under <c>assets/</c>.</param>
+    /// <param name="assetsRoot">The <c>assets/</c> folder.</param>
+    /// <returns>The own file, or <see langword="null"/> when there is none.</returns>
+    public static string? OwnFile(string path, string assetsRoot)
+    {
+        if (!path.StartsWith("Maps/", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        string own = Path.GetFullPath(Path.Combine(assetsRoot, "..", "art", "own", path));
+        return File.Exists(own) ? own : null;
     }
 
     /// <summary>Computes the SHA-256 of a file.</summary>

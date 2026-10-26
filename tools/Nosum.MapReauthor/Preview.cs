@@ -12,19 +12,20 @@ internal static class Preview
 {
     /// <summary>Renders a map.</summary>
     /// <param name="tmxPath">The <c>.tmx</c> file.</param>
-    /// <param name="sheetFolders">Folders searched, in order, for the tileset images.</param>
+    /// <param name="sheetFolders">Root folders searched, in order, for the tileset images.</param>
+    /// <param name="mapFolder">The folder of the map under its root (<c>Mines</c> for <c>Mines/3.tmx</c>, empty for the others); images are named relative to it.</param>
     /// <returns>The picture.</returns>
-    public static Rgba Render(string tmxPath, IReadOnlyList<string> sheetFolders)
+    public static Rgba Render(string tmxPath, IReadOnlyList<string> sheetFolders, string mapFolder = "")
     {
         TileMap map = TmxReader.Parse(File.ReadAllText(tmxPath));
         Rgba[] sheets = new Rgba[map.TileSets.Count];
         for (int i = 0; i < sheets.Length; i++)
         {
-            string name = Reauthor.SheetName(map.TileSets[i].ImageSource) + ".png";
+            string name = Path.Combine(mapFolder, map.TileSets[i].ImageSource.Replace('\\', '/') + (map.TileSets[i].ImageSource.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? string.Empty : ".png"));
             string? found = null;
             foreach (string folder in sheetFolders)
             {
-                string candidate = Path.Combine(folder, name);
+                string candidate = Path.GetFullPath(Path.Combine(folder, name));
                 if (File.Exists(candidate))
                 {
                     found = candidate;

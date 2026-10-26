@@ -37,6 +37,11 @@ internal static class TilesetBuilder
         Dictionary<string, List<SourceTile>> tiles = [];
         foreach (WangSet set in WangSet.All)
         {
+            if (set.Drawn)
+            {
+                continue;
+            }
+
             sheets[set.Name] = Rgba.Read(Path.Combine(sourceFolder, set.Name + ".png"));
             tiles[set.Name] = ReadTiles(Path.Combine(sourceFolder, set.Name + ".json"));
         }
@@ -50,6 +55,20 @@ internal static class TilesetBuilder
         Rgba image = new(OwnTileset.Columns * OwnTileset.TileSize, OwnTileset.Rows * OwnTileset.TileSize);
         foreach (TerrainKind kind in TerrainKinds.Fills)
         {
+            if (kind == TerrainKind.Path)
+            {
+                foreach (TileTraits traits in OwnTileset.TraitsOf(kind))
+                {
+                    for (int v = 0; v < OwnTileset.Variants; v++)
+                    {
+                        int tile = OwnTileset.Fill(kind, traits, v);
+                        PathArt.Fill(image, tile % OwnTileset.Columns * OwnTileset.TileSize, tile / OwnTileset.Columns * OwnTileset.TileSize, v);
+                    }
+                }
+
+                continue;
+            }
+
             (string setName, string word) = s_fillSources[kind];
             SourceTile source = tiles[setName].Find(t => t.Uniform == word)
                 ?? throw new InvalidDataException($"{setName}: no uniform '{word}' tile.");
@@ -71,6 +90,18 @@ internal static class TilesetBuilder
         for (int s = 0; s < WangSet.All.Length; s++)
         {
             WangSet set = WangSet.All[s];
+            if (set.Drawn)
+            {
+                SourceTile grassFill = tiles["grass_dirt"].Find(t => t.Uniform == "upper")!;
+                for (int code = 0; code < WangSet.Tiles; code++)
+                {
+                    int tile = OwnTileset.Corner(s, code);
+                    PathArt.Corner(image, tile % OwnTileset.Columns * OwnTileset.TileSize, tile / OwnTileset.Columns * OwnTileset.TileSize, code, sheets["grass_dirt"], grassFill.X, grassFill.Y);
+                }
+
+                continue;
+            }
+
             bool[] seen = new bool[WangSet.Tiles];
             foreach (SourceTile source in tiles[set.Name])
             {

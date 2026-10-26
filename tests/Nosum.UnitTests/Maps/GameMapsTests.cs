@@ -172,7 +172,10 @@ public sealed class GameMapsTests
             string image = folder + (set.ImageSource.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? set.ImageSource : set.ImageSource + ".png");
             image = image.Replace('\\', '/');
             File.Exists(RepoFiles.Path("assets", "Maps", image)).Should().BeTrue($"{image} of {id}");
-            wasm.Should().Contain(@"assets\Maps\" + InProject(image));
+
+            // A sheet with an own file is served from art/own/Maps/ under the placeholder's name; the client never gets the placeholder.
+            string sheetRoot = File.Exists(RepoFiles.Path("art", "own", "Maps", image)) ? @"art\own\Maps\" : @"assets\Maps\";
+            wasm.Should().Contain(sheetRoot + InProject(image));
         }
     }
 }

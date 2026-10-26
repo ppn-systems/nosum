@@ -23,14 +23,23 @@ internal sealed record KeptTile(string Sheet, int Index, int Cells, string Reaso
 /// <param name="TerrainCells">Cells of the ground layer that place a tile.</param>
 /// <param name="OwnCells">Of those, the cells that now draw an own tile.</param>
 /// <param name="Kept">The placeholder tiles that stay, with their cell counts.</param>
-internal sealed record ReauthorResult(string Tmx, string Report, int TerrainCells, int OwnCells, IReadOnlyList<KeptTile> Kept);
+/// <param name="Layers">What every drawn layer of the own map is made of.</param>
+internal sealed record ReauthorResult(string Tmx, string Report, int TerrainCells, int OwnCells, IReadOnlyList<KeptTile> Kept, IReadOnlyList<LayerShare> Layers);
+
+/// <summary>Where the tiles of one drawn layer of an own map come from.</summary>
+/// <param name="Layer">The layer name.</param>
+/// <param name="Cells">Cells that place a tile.</param>
+/// <param name="Terrain">Of those, the cells drawn from the own terrain tileset (<c>own_terrain</c>, the PixelLab corner sets).</param>
+/// <param name="Painted">Of those, the cells drawn from an own sheet painted by <see cref="ObjectPainter"/>, served under the placeholder sheet's name.</param>
+internal sealed record LayerShare(string Layer, int Cells, int Terrain, int Painted);
 
 /// <summary>
 /// Re-authors a placeholder map onto <see cref="OwnTileset"/>: every tile of the ground layer (<c>Back</c>) is classified into a
 /// <see cref="TerrainKind"/> by <see cref="KindTable"/> and replaced by an own fill of that kind; where a kind meets a lower one, the cell
 /// also gets a rounded edge piece on a new layer, <c>BackEdge</c>, right above <c>Back</c>. Every other layer and object group is copied
 /// as it is, character for character, so collision, exits, spawn tiles and node sites do not change.
-/// The placeholder tilesets stay in the file with their first ids, so the tiles that are kept (and every other layer) still resolve.
+/// The placeholder tilesets stay in the file with their first ids, so the tiles that are kept (and every other layer) still resolve; the sheets
+/// they name are served as the own sheets of <see cref="SheetBuilder"/> (<c>art/README.md</c>), so those tiles draw own art too.
 /// </summary>
 internal static partial class Reauthor
 {
@@ -121,7 +130,7 @@ internal static partial class Reauthor
             }
         }
 
-        string tmx = Rewrite(xml, back, edge, width, height, ownFirstGid, mapFile);
+        string tmx = own > 0 ? Rewrite(xml, back, edge, width, height, ownFirstGid, mapFile) : xml;
         List<KeptTile> list = [];
         foreach (((string sheet, int index), (int cells, string reason)) in kept)
         {
@@ -129,7 +138,8 @@ internal static partial class Reauthor
         }
 
         list.Sort(static (a, b) => b.Cells != a.Cells ? b.Cells.CompareTo(a.Cells) : string.CompareOrdinal(a.Sheet + a.Index.ToString("D5", CultureInfo.InvariantCulture), b.Sheet + b.Index.ToString("D5", CultureInfo.InvariantCulture)));
-        return new ReauthorResult(tmx, Report(mapFile, map, terrain, own, list), terrain, own, list);
+        List<LayerShare> layers = Shares(tmx, own > 0 ? ownFirstGid : int.MaxValue);
+        return new ReauthorResult(tmx, Report(mapFile, map, terrain, own, list, layers), terrain, own, list, layers);
     }
 
     /// <summary>Returns the tileset image name of a tileset without its extension.</summary>
@@ -201,7 +211,7 @@ internal static partial class Reauthor
         int layerEnd = layer.Index + layer.Length;
         StringBuilder result = new();
         _ = result.Append(xml, 0, firstLayer)
-            .Append(OwnTileset.TilesetElement(ownFirstGid))
+            .Append(OwnTileset.TilesetElement(ownFirstGid, TerrainSource(mapFile)))
             .Append(xml, firstLayer, data.Index - firstLayer)
             .Append('\n').Append(rows).Append('\n')
             .Append(xml, data.Index + data.Length, layerEnd - data.Index - data.Length)
@@ -233,21 +243,79 @@ internal static partial class Reauthor
         return text.ToString();
     }
 
-    private static string Report(string mapFile, TileMap map, int terrain, int own, List<KeptTile> kept)
+    // The own terrain tileset sits next to the maps of the root folder; a map in a subfolder reaches it with "../".
+    private static string TerrainSource(string mapFile)
+    {
+        StringBuilder source = new();
+        foreach (char c in mapFile)
+        {
+            if (c == '/')
+            {
+                _ = source.Append("../");
+            }
+        }
+
+        return source.Append(OwnTileset.Name).ToString();
+    }
+
+    private static List<LayerShare> Shares(string tmx, int terrainFirstGid)
+    {
+        TileMap map = TmxReader.Parse(tmx);
+        List<LayerShare> shares = [];
+        foreach (TileLayer layer in map.Layers)
+        {
+            if (layer.Name == "Paths")
+            {
+                continue;
+            }
+
+            int cells = 0, terrain = 0;
+            foreach (int gid in layer.Gids)
+            {
+                if (gid > 0)
+                {
+                    cells++;
+                    terrain += gid >= terrainFirstGid ? 1 : 0;
+                }
+            }
+
+            if (cells > 0)
+            {
+                shares.Add(new LayerShare(layer.Name, cells, terrain, cells - terrain));
+            }
+        }
+
+        return shares;
+    }
+
+    private static string Report(string mapFile, TileMap map, int terrain, int own, List<KeptTile> kept, List<LayerShare> layers)
     {
         StringBuilder text = new();
         _ = text.Append(CultureInfo.InvariantCulture, $"# Re-authored `{mapFile}`\n\n");
         _ = text.Append("Written by `tools/Nosum.MapReauthor`; do not edit by hand.\n\n");
         _ = text.Append(CultureInfo.InvariantCulture, $"- Ground cells (`{GroundLayer}` layer, {map.Width} × {map.Height}): {terrain:N0} place a tile.\n");
-        _ = text.Append(CultureInfo.InvariantCulture, $"- Cells now drawn from the own terrain tileset: {own:N0} ({100.0 * own / Math.Max(1, terrain):F1} %).\n");
-        _ = text.Append(CultureInfo.InvariantCulture, $"- Cells that stay on a placeholder tile: {terrain - own:N0} ({kept.Count} different tiles).\n");
-        _ = text.Append("- Every other layer (collision, logic and the drawn building, tree, fence and front layers) is copied unchanged and still draws placeholder tiles.\n\n");
+        _ = text.Append(CultureInfo.InvariantCulture, $"- Cells drawn from the own terrain tileset (PixelLab corner sets): {own:N0} ({100.0 * own / Math.Max(1, terrain):F1} %).\n");
+        _ = text.Append(CultureInfo.InvariantCulture, $"- Ground cells that keep their placeholder tile index: {terrain - own:N0} ({kept.Count} different tiles); the own sheet of that tileset draws them (floors, walls, paths, stone).\n");
+        _ = text.Append("- Every other layer (collision, logic and the drawn building, tree, fence and front layers) is copied unchanged; the tilesheets they name are served as own sheets of the same name, so the same indices draw own art.\n\n");
+        _ = text.Append("| Layer | Cells | Own terrain tileset | Own painted sheet |\n| :-- | --: | --: | --: |\n");
+        foreach (LayerShare layer in layers)
+        {
+            _ = text.Append(CultureInfo.InvariantCulture, $"| `{layer.Layer}` | {layer.Cells:N0} | {layer.Terrain:N0} | {layer.Painted:N0} |\n");
+        }
+
         if (kept.Count > 0)
         {
-            _ = text.Append("| Sheet | Tile | Cells | Why it stays |\n| :-- | --: | --: | :-- |\n");
-            foreach (KeptTile tile in kept)
+            const int Listed = 40;
+            _ = text.Append("\nGround tiles that keep their index (most used first):\n\n| Sheet | Tile | Cells | Why |\n| :-- | --: | --: | :-- |\n");
+            for (int i = 0; i < Math.Min(Listed, kept.Count); i++)
             {
+                KeptTile tile = kept[i];
                 _ = text.Append(CultureInfo.InvariantCulture, $"| `{tile.Sheet}` | {tile.Index} | {tile.Cells} | {tile.Reason} |\n");
+            }
+
+            if (kept.Count > Listed)
+            {
+                _ = text.Append(CultureInfo.InvariantCulture, $"\n… and {kept.Count - Listed} more tiles with fewer cells.\n");
             }
         }
 
