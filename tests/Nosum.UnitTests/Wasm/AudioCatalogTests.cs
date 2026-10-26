@@ -1,5 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -48,7 +50,36 @@ public sealed class AudioCatalogTests
             byte[] bytes = File.ReadAllBytes(RepoFiles.Path("wasm", "Nosum.Wasm", "wwwroot", "audio", file.File));
             System.Text.Encoding.ASCII.GetString(bytes, 0, 4).Should().Be("RIFF", file.File);
             System.Text.Encoding.ASCII.GetString(bytes, 8, 4).Should().Be("WAVE", file.File);
-            bytes.Length.Should().BeInRange(1000, 200_000, file.File);
+            bytes.Length.Should().BeInRange(1000, file.Kind == AudioKind.Track ? 1_000_000 : 200_000, file.File);
+        }
+    }
+
+    [Fact]
+    public void Files_EveryMusicTrackIdHasAFile()
+    {
+        AudioFile[] tracks = [.. AudioCatalog.Files.Where(f => f.Kind == AudioKind.Track)];
+
+        tracks.Select(f => f.Id).Should().BeEquivalentTo(Enumerable.Range(1, 8));
+        foreach (AudioFile track in tracks)
+        {
+            File.Exists(RepoFiles.Path("wasm", "Nosum.Wasm", "wwwroot", "audio", track.File)).Should().BeTrue($"{track.File} is in the catalogue");
+        }
+    }
+
+    [Fact]
+    public void Files_EveryMusicTrackIsAMonoEightBitLoopOfThirtyToSixtySeconds()
+    {
+        foreach (AudioFile track in AudioCatalog.Files.Where(f => f.Kind == AudioKind.Track))
+        {
+            // The canonical 44-byte WAV header that tools/synth_music.py writes: channels at 22, rate at 24, bits at 34, data size at 40.
+            byte[] bytes = File.ReadAllBytes(RepoFiles.Path("wasm", "Nosum.Wasm", "wwwroot", "audio", track.File));
+            ushort channels = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(22));
+            uint rate = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(24));
+            ushort bits = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(34));
+            uint dataBytes = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(40));
+
+            (channels, rate, bits).Should().Be(((ushort)1, 22050u, (ushort)8), track.File);
+            ((double)dataBytes / rate).Should().BeInRange(30, 60, track.File);
         }
     }
 

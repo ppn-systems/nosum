@@ -1,5 +1,5 @@
 // Drives audio.js directly (run: NODE_PATH=$(npm root -g) node tests/browser/audio-module-check.js <page url>): requests made before a gesture are remembered (rain) or dropped (one-shots),
-// the rain loop starts after the gesture, and a track with no file is silence.
+// the rain loop starts after the gesture, and a music track with no loaded buffer is silence.
 const { chromium } = require('playwright');
 (async () => {
   const browser = await chromium.launch();
@@ -18,7 +18,7 @@ const { chromium } = require('playwright');
     const loaded = await a.loadAudio(1, 1, 'audio/rain_loop.wav');
     const sound = await a.loadAudio(0, 14, 'audio/footstep.wav');
     a.audioCommand(-9, 1, 55, 0);   // rain wanted before any gesture: remembered
-    a.audioCommand(-8, 3, 0, 0);    // a music track with no file: silence
+    a.audioCommand(-8, 3, 0, 0);    // a music track that is not loaded (no buffer): silence
     a.audioCommand(-7, 14, 100, 0); // a one-shot before the gesture: dropped
     return { loaded, sound, startedBeforeGesture: window.__started.length };
   });

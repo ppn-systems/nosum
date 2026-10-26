@@ -47,8 +47,7 @@ ADR builds the *hooks* and ships tiny placeholder sounds that are Nosum's own.
   low/high-pass filters, linear-attack / decaying envelopes, a cross-faded 3 s noise bed for the rain loop; 22.05 kHz, 16-bit mono
   WAV, 264 KB for all fifteen files, committed in `wasm/Nosum.Wasm/wwwroot/audio/`. They are Nosum's own, so unlike `assets/` they
   are not third-party placeholder content, but they are placeholders in quality. `--check` verifies the committed files match the
-  script. **Music tracks have ids and no files** (silence, no error) until M6, which replaces the sounds and adds the music; the
-  hooks, ids and settings stay.
+  script. Music tracks had ids and no files until M6; their own loops are in the implementation notes below.
 
 ## Alternatives considered
 
@@ -65,10 +64,28 @@ ADR builds the *hooks* and ships tiny placeholder sounds that are Nosum's own.
 - The command-buffer encoding grows by three ids; `renderer.js` and `RenderCommandBuffer` change in the same commit.
 - Sounds are feedback for the key press, not for the server's outcome: a swing that the server refuses still sounds.
 - A browser that blocks audio entirely (or has no Web Audio) plays nothing and the game is unaffected.
-- M6 owns the real assets: replace the WAVs (same file names, or edit `AudioCatalog`), add music files and register them with
-  `AudioKind.Track` in `AudioCatalog.Files`.
+- Replacing the synthesised sounds with better own sound effects is still open: same file names, or edit `AudioCatalog`.
 
 ## Revisit when
 
-M6 brings own music and sound effects; or positional sound for other players' tools and footsteps is wanted (the pan field is
-already in the command).
+Better own sound effects are wanted (the synthesised ones are placeholders in quality); or positional sound for other players' tools
+and footsteps is wanted (the pan field is already in the command).
+
+## Implementation notes (M6: own music)
+
+- **Made by `tools/synth_music.py`**: Python standard library only and deterministic (a fixed seed per track); `--check` fails when the
+  committed files differ from the script. Like the sounds, every sample is computed from square, triangle and sine voices with simple
+  envelopes; nothing is recorded, downloaded or taken from any game.
+- **Eight tracks, one per `MusicTrackIds.For` id** (1 spring day, 2 spring night … 8 winter night; night is the same dusk-to-dawn rule as
+  the sky). Each is a whole number of bars, so it loops seamlessly: a note that runs past the end wraps to the start, and the one-pole
+  low-pass that softens the square voice is run twice so its state at the loop point matches the start.
+- **Style.** Day tracks are brighter and busier: major keys, triangle arpeggios and bass, a square melody in spring and summer, a sine pad
+  with seventh chords in fall. Night tracks are slower with fewer voices (sine only). Winter is sparse: a sine pad and one melody note per
+  chord. Progressions: spring C G Am F, summer G D Em C, fall F Dm7 B♭maj7 C7, winter Am F C G; the night tracks use minor keys.
+- **Format.** 8-bit mono PCM WAV at 22.05 kHz, the eight files about 5.7 MB in total, each 30 to 38 s. 16-bit would be about 10.6 MB for
+  the eight tracks alone, over the budget; OGG needs an encoder, which is not in the standard library. `audio.js` decodes each file once at
+  load, as it does the sounds.
+- **Catalogue.** `AudioCatalog.Files` lists the eight `AudioKind.Track` entries by file name (`music_<season>_<day|night>.wav`);
+  `AudioCatalogTests` checks that every music id has a file and that each file is a mono 22.05 kHz 8-bit loop of 30 to 60 s.
+- **Unchanged.** The frame command buffer, the interop budget and `audio.js`'s design. The music bus takes the music gain from the settings
+  (mute included), and playback starts after the first user gesture.
