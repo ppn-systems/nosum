@@ -9,6 +9,7 @@ using Nosum.Abstractions.Email;
 using Nosum.Abstractions.Security;
 using Nosum.Handlers.Account;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Progress;
 using Nosum.Infrastructure.Email;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Security;
@@ -53,6 +54,9 @@ internal static class HostServices
         PlayerLifecycleService lifecycle = new(unitOfWork, TimeProvider.System);
         instances.Register<IPlayerActivityService>(lifecycle);
         instances.Register<IRegistrationPromptService>(lifecycle);
-        instances.Register<IPlayerStateService>(new PlayerStateService(unitOfWork, TimeProvider.System));
+        // The row of a player's saved place, energy and experience is held once and shared by the two services that write it (docs/adr/ADR-035 D4).
+        PlayerStateCache playerStates = new();
+        instances.Register(playerStates);
+        instances.Register<IPlayerStateService>(new PlayerStateService(unitOfWork, TimeProvider.System, playerStates));
     }
 }

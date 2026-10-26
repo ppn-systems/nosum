@@ -162,20 +162,8 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
     /// <inheritdoc/>
     async Task<PlaceStatus> IPlacedBehaviour.JoinPickUpAsync(PlacedItem item, IUnitOfWork unit, CancellationToken cancellationToken)
     {
-        Guid owner = ContainerIds.ForChest(item.Id);
-        if (await unit.Repository<InventorySlot>().AnyAsync(s => s.PlayerId == owner, cancellationToken).ConfigureAwait(false))
-        {
-            return PlaceStatus.NotEmpty;
-        }
-
-        // The empty chest's inventory goes with it; a header created only by this pick-up's own load is simply forgotten.
-        PlayerInventory? header = await unit.Repository<PlayerInventory>().FindAsync(owner, cancellationToken).ConfigureAwait(false);
-        if (header is not null)
-        {
-            unit.Repository<PlayerInventory>().Remove(header);
-        }
-
-        return PlaceStatus.Ok;
+        // A chest that holds something is not picked up; an empty chest's inventory goes with it.
+        return await _inventory.DropContainerAsync(unit, ContainerIds.ForChest(item.Id), onlyIfEmpty: true, cancellationToken).ConfigureAwait(false) ? PlaceStatus.Ok : PlaceStatus.NotEmpty;
     }
 
     /// <inheritdoc/>

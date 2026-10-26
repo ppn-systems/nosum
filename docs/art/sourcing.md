@@ -6,7 +6,7 @@ page for OpenGameArt and itch.io) and its sheets opened as images only; nothing 
 than CC0, and on a license that is unclear, however well it looks. The art direction is ADR-040 D1: 16 px grid, 3/4 top-down, warm farm look, a 1 px
 outline in a darker tone of the fill.
 
-Result: 21 of the 27 non-terrain files are replaced. The 5 farmer layer files are not (no layered CC0 base fits) and `Maps/Mines/mine.png` goes with the mine maps. How each file was made is in
+Result: 26 of the 27 non-terrain files are replaced. No layered CC0 base fits the farmer, so its 5 layer files are drawn in code like the animals; only `Maps/Mines/mine.png` is left, it goes with the mine maps. How each file was made is in
 [`provenance.md`](provenance.md); the script that rebuilds them is [`tools/art_repack/`](../../tools/art_repack/).
 
 ## Candidates checked
@@ -36,7 +36,7 @@ Result: 21 of the 27 non-terrain files are replaced. The 5 farmer layer files ar
 
 | Package | Result | Source | Left to do |
 | :-- | :-- | :-- | :-- |
-| 1 Player farmer layers (5 files, 71 cells) | **Not replaced** | None fits | PixelLab or hand work: 19 jobs by ADR-040 D5 (body and arms with a walk each, 8 hairstyles, 2 hats, 4 shirts, trousers), about 40 with re-rolls. The shirt and hat inventory icons ride on `shirts.png` and `hats.png` |
+| 1 Player farmer layers (5 files, 71 cells) | Replaced | No CC0 source: drawn in code (`tools/art_repack/farmer.py`): body and arms with three walk frames per direction, trousers, 8 hairstyles, 4 shirts, 2 hats, in the Kenney palette with a 1 px outline. Body, trousers and hair are light or grey-scale so the code's skin, pants and hair tints work. The shirt and hat inventory icons ride on `shirts.png` and `hats.png` | Optional polish: PixelLab, 19 jobs by ADR-040 D5 (about 40 with re-rolls), only if the budget is decided; the layers must keep the same cells and anchors |
 | 3 Items (3 files, 141 cells) | Replaced | Produce: CC0 crops pack. Fence: Tiny Town. Seed packets, forage, food, animal products, resources, shells, furniture, scarecrow, chest, furnace: drawn in the Kenney palette | Optional: redo the drawn icons with PixelLab, 135 jobs or about 9 batched (`create_tiles_pro`) |
 | 4 Crops and soil (2 files, 145 cells) | Replaced | CC0 crops pack, recoloured for the 9 crops it lacks; soil drawn | None |
 | 5 Tools and weapons (2 files, 15 cells) | Replaced | Tiny Town axe, pickaxe, pail, sickle, tiers by palette swap; hoe and watering can drawn | None |
@@ -45,8 +45,7 @@ Result: 21 of the 27 non-terrain files are replaced. The 5 farmer layer files ar
 | 8 Animals (2 files, 24 frames) | Replaced | No CC0 source: drawn (chicken, cow, three directions, four walk frames) | Optional: PixelLab character and walk, 4 jobs |
 | 9 UI (4 files, 118 cells) | Replaced | Drawn to the slice sizes of `nosum-theme.js`; start picture drawn | Optional polish from Kenney UI Pack - Pixel Adventure |
 
-Estimated PixelLab generations that CC0 could not cover: **19 jobs** for the farmer (about 40 with re-rolls). Everything else is replaced with CC0 or drawn
-art; redoing the drawn pictures with PixelLab would cost about 150 jobs (135 item icons one by one, or 9 batched; 5 buildings; 4 animals; trees and UI by
+Nothing is left that needs PixelLab. Everything is replaced with CC0 or drawn art; redoing the drawn pictures (the farmer, 19 jobs, about 40 with re-rolls) with PixelLab would cost about 170 jobs (135 item icons one by one, or 9 batched; 5 buildings; 4 animals; trees and UI by
 hand) and is a quality choice, not a requirement.
 
 ## Limits of this result

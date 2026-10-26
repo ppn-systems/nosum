@@ -10,6 +10,11 @@ NOSUM = 'Nosum original (drawn in tools/art_repack, no outside source)'
 
 # path under assets/ -> (package, [pack directories or NOSUM], what the file is and how it is made)
 ENTRIES = {
+    'Characters/Farmer/farmer_base.png': ('1 Player farmer layers', [NOSUM], 'Body (head, neck, torso, legs; skin tint) in columns 0-2 and arms with boots (no tint) in columns 6-8; rows down, right, up, three walk frames; the step columns carry the 1 px bob the code gives shirt, hair and hat (`farmer.body`, `farmer.arms`)'),
+    'Characters/Farmer/pants.png': ('1 Player farmer layers', [NOSUM], 'Trousers style 0, grey-scale for the pants tint, same walk frames as the body (`farmer.pants`)'),
+    'Characters/Farmer/hairstyles.png': ('1 Player farmer layers', [NOSUM], 'Eight hair styles in grey-scale for the hair dye, rows down, right, up (`farmer.hair`)'),
+    'Characters/Farmer/shirts.png': ('1 Player farmer layers', [NOSUM], '8 x 8 shirt pieces (front, right, back) of shirts 1 red, 3 straw, 7 blue, 11 green; the front piece is also the inventory icon (`farmer.shirt`)'),
+    'Characters/Farmer/hats.png': ('1 Player farmer layers', [NOSUM], '20 x 20 hats 3 (straw) and 5 (cap), rows down, right, left, up; the down frame is the inventory icon (`farmer.hat`)'),
     'TileSheets/crops.png': ('4 Crops and soil', ['josehzz_farming-crops-16x16'],
                              '21 crops, 5-6 growth frames each: the six CC0 pictures of a crop (seed, three stages, ripe) placed in the catalogue\'s frames at the bottom of each 16 x 32 cell; recolours in the crop table'),
     'TerrainFeatures/hoeDirt.png': ('4 Crops and soil', [NOSUM], 'Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator (`crops.soil_tile`)'),

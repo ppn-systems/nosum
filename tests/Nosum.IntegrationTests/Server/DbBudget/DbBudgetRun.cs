@@ -29,6 +29,10 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
     /// <summary>Gets every measured row, in the order it ran.</summary>
     internal IReadOnlyList<Measurement> Results => _rig.Results;
 
+    internal IReadOnlyList<string> Divergences => _rig.Divergences;
+
+    internal int Comparisons => _rig.Comparisons;
+
     /// <summary>Gets the scenarios that threw, with the error, so a missing row is explained.</summary>
     internal List<string> Failures { get; } = [];
 

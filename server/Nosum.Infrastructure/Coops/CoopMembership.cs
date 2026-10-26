@@ -5,37 +5,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
-using Nosum.Domain.Coops;
 
 namespace Nosum.Infrastructure.Coops;
 
-/// <summary><see cref="ICoopMembership"/> on PostgreSQL: two indexed lookups per call (membership, then the co-op row for its land level), never cached, so a leave or a kick is felt at once.</summary>
+/// <summary><see cref="ICoopMembership"/> over the <see cref="CoopDirectory"/>: memory once a player's co-op was read, and a leave or a kick is felt at once because <c>CoopService</c> drops the entries it changed.</summary>
 public sealed class CoopMembership : ICoopMembership
 {
-    private readonly IUnitOfWorkFactory _unitOfWork;
+    private readonly CoopDirectory _directory;
 
     /// <summary>Initializes the lookup.</summary>
-    /// <param name="unitOfWork">Creates units of work.</param>
-    public CoopMembership(IUnitOfWorkFactory unitOfWork)
+    /// <param name="unitOfWork">Creates units of work for a directory of its own when none is given.</param>
+    /// <param name="directory">The shared directory; <see langword="null"/> reads the rows every time.</param>
+    public CoopMembership(IUnitOfWorkFactory unitOfWork, CoopDirectory? directory = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
-        _unitOfWork = unitOfWork;
+        _directory = directory ?? new CoopDirectory(unitOfWork, cached: false);
     }
 
     /// <inheritdoc/>
     public async Task<CoopMembershipInfo?> FindAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
-        {
-            CoopMember? member = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
-            if (member is null)
-            {
-                return null;
-            }
-
-            Coop? coop = await unit.Repository<Coop>().FindAsync(member.CoopId, cancellationToken).ConfigureAwait(false);
-            return new CoopMembershipInfo(member.CoopId, member.Id, member.Role, coop?.LandLevel ?? 0);
-        }
+        CoopRecord? coop = await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false);
+        return coop?.MemberOf(playerId) is { } member ? new CoopMembershipInfo(coop.Id, member.Id, member.Role, coop.LandLevel) : null;
     }
 }

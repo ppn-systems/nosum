@@ -1,8 +1,10 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Codec.Pooling;
@@ -23,6 +25,11 @@ namespace Nosum.Infrastructure.Quests;
 /// the first time their quests are read or something is reported (the catalogue is the tutorial chain, docs/adr/ADR-036). The counting
 /// rules are <see cref="QuestDefinition"/>. A quest that pays coins is completed by one transfer that also marks the row completed, so a quest is
 /// never completed without its reward and never rewarded twice.
+/// <para>
+/// Docs/adr/ADR-035: this class is the only writer of <c>player_quests</c>, so a player's quests are held in memory once they were read. Reporting an event that is not
+/// the current step of any quest costs no command; a step that counts is written by key in the one transaction (or the reward transfer) and the copy follows after it
+/// saved. Any failure drops the copy. The per-player lock covers the read, the change and the copy.
+/// </para>
 /// </summary>
 public sealed class QuestService : IQuestService
 {
@@ -34,6 +41,8 @@ public sealed class QuestService : IQuestService
     private readonly IPlayerNotifier? _notifier;
     private readonly ITransferService? _transfers;
     private readonly StripedAsyncLock _locks = new();
+    private readonly ConcurrentDictionary<Guid, Entry> _cache = new();
+    private int _operations;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -59,15 +68,29 @@ public sealed class QuestService : IQuestService
     {
         using (await _locks.EnterAsync(playerId, cancellationToken).ConfigureAwait(false))
         {
-            IUnitOfWork unit = _unitOfWork.Create();
-            await using (unit.ConfigureAwait(false))
-            {
-                List<PlayerQuest> quests = await this.LoadAsync(unit, playerId, cancellationToken).ConfigureAwait(false);
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                return ViewsOf(quests);
-            }
+            Entry entry = await this.EntryAsync(playerId, cancellationToken).ConfigureAwait(false);
+            return ViewsOf(entry.Quests);
         }
     }
+
+    /// <summary>Describes the quests held for a player without loading them, for the audit of the caches.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <returns>The quests as text, or <see langword="null"/> when none are held.</returns>
+    public string? DescribeHeld(Guid playerId) => _cache.TryGetValue(playerId, out Entry? entry) ? Describe(ViewsOf(entry.Quests)) : null;
+
+    /// <summary>Reads the quests of a player and describes them (use a service that holds nothing).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>The quests as text.</returns>
+    public async Task<string> DescribeAsync(Guid playerId, CancellationToken cancellationToken = default)
+        => Describe(await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false));
+
+    private static string Describe(IReadOnlyList<QuestView> views)
+        => string.Join(';', views.Select(v => $"{v.QuestId}:{v.State}:{string.Join(',', v.Progress)}"));
+
+    /// <summary>Lets go of a player's quests held in memory (they signed out); the next call reads the rows.</summary>
+    /// <param name="playerId">The player.</param>
+    public void Forget(Guid playerId) => _ = _cache.TryRemove(playerId, out _);
 
     /// <inheritdoc/>
     public async Task ReportAsync(Guid playerId, QuestEvent questEvent, CancellationToken cancellationToken = default)
@@ -76,12 +99,12 @@ public sealed class QuestService : IQuestService
         List<QuestView> updates = [];
         using (await _locks.EnterAsync(playerId, cancellationToken).ConfigureAwait(false))
         {
-            List<(int QuestId, int[] Progress)> rewarded = [];
-            IUnitOfWork unit = _unitOfWork.Create();
-            await using (unit.ConfigureAwait(false))
+            try
             {
-                List<PlayerQuest> quests = await this.LoadAsync(unit, playerId, cancellationToken).ConfigureAwait(false);
-                foreach (PlayerQuest quest in quests)
+                Entry entry = await this.EntryAsync(playerId, cancellationToken).ConfigureAwait(false);
+                List<(int QuestId, int[] Progress)> rewarded = [];
+                List<QuestRecord> changed = [];
+                foreach (QuestRecord quest in entry.Quests)
                 {
                     if (quest.State != QuestState.Active || !QuestCatalog.TryGet(quest.QuestId, out QuestDefinition? definition))
                     {
@@ -101,26 +124,46 @@ public sealed class QuestService : IQuestService
                         continue;
                     }
 
-                    // A new array, so the change is detected.
-                    quest.Progress = progress;
+                    QuestRecord next = quest with { Progress = progress };
                     if (definition.IsComplete(progress))
                     {
-                        quest.State = QuestState.Completed;
-                        quest.CompletedAt = _time.GetUtcNow();
+                        next = next with { State = QuestState.Completed, CompletedAt = _time.GetUtcNow() };
                         completions.Add(new QuestCompletion(playerId, quest.QuestId));
                     }
 
-                    updates.Add(ViewOf(quest));
+                    changed.Add(next);
+                    updates.Add(ViewOf(next));
                 }
 
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            }
+                if (changed.Count > 0)
+                {
+                    IUnitOfWork unit = _unitOfWork.Create();
+                    await using (unit.ConfigureAwait(false))
+                    {
+                        foreach (QuestRecord next in changed)
+                        {
+                            Stage(unit, playerId, next);
+                        }
 
-            foreach ((int questId, int[] progress) in rewarded)
+                        _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    this.Store(playerId, entry, changed);
+                }
+
+                foreach ((int questId, int[] progress) in rewarded)
+                {
+                    QuestRecord done = await this.CompleteWithRewardAsync(playerId, entry, questId, progress, cancellationToken).ConfigureAwait(false);
+                    this.Store(playerId, this.Current(playerId, entry), [done]);
+                    updates.Add(ViewOf(done));
+                    completions.Add(new QuestCompletion(playerId, questId));
+                }
+            }
+            catch
             {
-                await this.CompleteWithRewardAsync(playerId, questId, progress, cancellationToken).ConfigureAwait(false);
-                updates.Add(new QuestView(questId, QuestState.Completed, progress));
-                completions.Add(new QuestCompletion(playerId, questId));
+                // A failed save leaves the rows and the copy possibly different: read the rows again next time.
+                this.Forget(playerId);
+                throw;
             }
         }
 
@@ -136,37 +179,32 @@ public sealed class QuestService : IQuestService
     }
 
     // The coins and the completed row commit together (docs/adr/ADR-036 D2). A wallet that cannot take the coins completes the quest without them: the quest is still done.
-    private async Task CompleteWithRewardAsync(Guid playerId, int questId, int[] progress, CancellationToken cancellationToken)
+    private async Task<QuestRecord> CompleteWithRewardAsync(Guid playerId, Entry entry, int questId, int[] progress, CancellationToken cancellationToken)
     {
         _ = QuestCatalog.TryGet(questId, out QuestDefinition? definition);
-        DateTimeOffset now = _time.GetUtcNow();
+        QuestRecord started = entry.Quests.Single(q => q.QuestId == questId);
+        QuestRecord done = started with { Progress = progress, State = QuestState.Completed, CompletedAt = _time.GetUtcNow() };
         TransferStatus status = TransferStatus.Conflict;
         for (int attempt = 0; attempt < MaxRewardAttempts && status == TransferStatus.Conflict; attempt++)
         {
             status = await _transfers!.ExecuteAsync(
                 [new TransferLeg(TransferParty.Player(playerId), 0, 0, definition!.RewardCoins)],
                 RewardReason,
-                async (inner, token) =>
+                (inner, token) =>
                 {
-                    PlayerQuest? tracked = await inner.Repository<PlayerQuest>().FirstOrDefaultAsync(q => q.PlayerId == playerId && q.QuestId == questId, token).ConfigureAwait(false);
-                    if (tracked is null || tracked.State != QuestState.Active)
-                    {
-                        return TransferStatus.Refused;
-                    }
-
-                    tracked.Progress = progress;
-                    tracked.State = QuestState.Completed;
-                    tracked.CompletedAt = now;
-                    return TransferStatus.Ok;
+                    // The quest is active (checked under this player's lock, and nothing else writes quests): it is written by key, with no read.
+                    Stage(inner, playerId, done);
+                    return Task.FromResult(TransferStatus.Ok);
                 },
                 cancellationToken).ConfigureAwait(false);
         }
 
         if (status == TransferStatus.Ok)
         {
-            return;
+            return done;
         }
 
+        // The wallet could not take the coins (or the transfer kept losing its race): the quest is still done, without them.
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
@@ -175,16 +213,26 @@ public sealed class QuestService : IQuestService
             {
                 quest.Progress = progress;
                 quest.State = QuestState.Completed;
-                quest.CompletedAt = now;
+                quest.CompletedAt = done.CompletedAt;
                 _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
+
+        return done;
     }
 
-    private static List<QuestView> ViewsOf(List<PlayerQuest> quests)
+    // The row of a quest, written by key and only the columns a report changes.
+    private static void Stage(IUnitOfWork unit, Guid playerId, QuestRecord quest)
+        => unit.Repository<PlayerQuest>().Update(
+            new PlayerQuest { PlayerId = playerId, QuestId = quest.QuestId, Progress = quest.Progress, State = quest.State, StartedAt = quest.StartedAt, CompletedAt = quest.CompletedAt },
+            nameof(PlayerQuest.Progress),
+            nameof(PlayerQuest.State),
+            nameof(PlayerQuest.CompletedAt));
+
+    private static List<QuestView> ViewsOf(IReadOnlyList<QuestRecord> quests)
     {
         List<QuestView> views = new(quests.Count);
-        foreach (PlayerQuest quest in quests)
+        foreach (QuestRecord quest in quests)
         {
             views.Add(ViewOf(quest));
         }
@@ -193,33 +241,88 @@ public sealed class QuestService : IQuestService
         return views;
     }
 
-    private static QuestView ViewOf(PlayerQuest quest) => new(quest.QuestId, quest.State, (int[])quest.Progress.Clone());
+    private static QuestView ViewOf(QuestRecord quest) => new(quest.QuestId, quest.State, (int[])quest.Progress.Clone());
 
-    // Loads the player's quests and adds the catalogue quests the player does not have yet (not saved here).
-    private async Task<List<PlayerQuest>> LoadAsync(IUnitOfWork unit, Guid playerId, CancellationToken cancellationToken)
+    // The player's quests: from memory, else from the rows, starting the catalogue quests the player does not have yet (written once, here).
+    private async Task<Entry> EntryAsync(Guid playerId, CancellationToken cancellationToken)
     {
-        IRepository<PlayerQuest> repository = unit.Repository<PlayerQuest>();
-        List<PlayerQuest> quests = await repository.ListAsync(q => q.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
-        foreach (QuestDefinition definition in QuestCatalog.All)
+        this.Trim();
+        if (_cache.TryGetValue(playerId, out Entry? known) && known.Quests.Count >= QuestCatalog.All.Count)
         {
-            if (quests.Exists(q => q.QuestId == definition.Id))
-            {
-                continue;
-            }
-
-            PlayerQuest started = new()
-            {
-                PlayerId = playerId,
-                QuestId = definition.Id,
-                State = QuestState.Active,
-                Progress = new int[definition.ObjectiveCount],
-                StartedAt = _time.GetUtcNow(),
-            };
-            repository.Add(started);
-            quests.Add(started);
+            known.Touch();
+            return known;
         }
 
-        return quests;
+        IUnitOfWork unit = _unitOfWork.Create();
+        await using (unit.ConfigureAwait(false))
+        {
+            IRepository<PlayerQuest> repository = unit.Repository<PlayerQuest>();
+            List<PlayerQuest> quests = await repository.ListAsync(q => q.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
+            foreach (QuestDefinition definition in QuestCatalog.All)
+            {
+                if (quests.Exists(q => q.QuestId == definition.Id))
+                {
+                    continue;
+                }
+
+                PlayerQuest started = new()
+                {
+                    PlayerId = playerId,
+                    QuestId = definition.Id,
+                    State = QuestState.Active,
+                    Progress = new int[definition.ObjectiveCount],
+                    StartedAt = _time.GetUtcNow(),
+                };
+                repository.Add(started);
+                quests.Add(started);
+            }
+
+            _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            Entry entry = new([.. quests.Select(q => new QuestRecord(q.QuestId, q.State, (int[])q.Progress.Clone(), q.StartedAt, q.CompletedAt))]);
+            _cache[playerId] = entry;
+            return entry;
+        }
+    }
+
+    // The entry as it is now (a reward replaced it while the loop ran).
+    private Entry Current(Guid playerId, Entry fallback) => _cache.TryGetValue(playerId, out Entry? now) ? now : fallback;
+
+    // Replaces the changed records after their save succeeded; the lock of the player is held.
+    private void Store(Guid playerId, Entry entry, List<QuestRecord> changed)
+    {
+        QuestRecord[] next = [.. entry.Quests.Select(q => changed.Find(c => c.QuestId == q.QuestId) ?? q)];
+        _cache[playerId] = new Entry(next);
+    }
+
+    private void Trim()
+    {
+        if ((Interlocked.Increment(ref _operations) & 0xFF) != 0)
+        {
+            return;
+        }
+
+        long now = Environment.TickCount64;
+        foreach (KeyValuePair<Guid, Entry> pair in _cache.Where(p => now - p.Value.LastUsed > IdleLimitMilliseconds).ToList())
+        {
+            _ = _cache.TryRemove(pair.Key, out _);
+        }
+    }
+
+    private const long IdleLimitMilliseconds = 30 * 60 * 1000;
+
+    private sealed record QuestRecord(int QuestId, QuestState State, int[] Progress, DateTimeOffset StartedAt, DateTimeOffset? CompletedAt);
+
+    private sealed class Entry
+    {
+        private long _lastUsed = Environment.TickCount64;
+
+        public Entry(IReadOnlyList<QuestRecord> quests) => this.Quests = quests;
+
+        public IReadOnlyList<QuestRecord> Quests { get; }
+
+        public long LastUsed => Volatile.Read(ref _lastUsed);
+
+        public void Touch() => Volatile.Write(ref _lastUsed, Environment.TickCount64);
     }
 
     private async Task PushAsync(Guid playerId, QuestView view, CancellationToken cancellationToken)

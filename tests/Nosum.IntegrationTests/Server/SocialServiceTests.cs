@@ -58,6 +58,7 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
     private readonly TransferService _transfers;
     private readonly MarketService _market;
     private readonly CoopService _coops;
+    private readonly CoopDirectory _directory;
 
     public SocialServiceTests(PostgresFixture database)
     {
@@ -66,8 +67,9 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
         _nicknames = new NicknameDirectory(_units);
         _inventory = new InventoryService(_units, _clock);
         _transfers = new TransferService(_inventory, _clock);
+        _directory = new CoopDirectory(_units);
         _market = new MarketService(_transfers, _inventory, _units, MarketCounter.Presence(), MarketCounter.Maps(), new CoinSink(), _nicknames, _clock);
-        _coops = new CoopService(_units, _transfers, new NoPresence(), new NoSessions(), new NoNotifier(), _nicknames, new NoFarm(), new NoEviction(), _clock);
+        _coops = new CoopService(_units, _transfers, _inventory, new NoPresence(), new NoSessions(), new NoNotifier(), _nicknames, new NoFarm(), new NoEviction(), _clock, directory: _directory);
     }
 
     public void Dispose() => _coops.Dispose();
@@ -444,6 +446,75 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
         (await _coops.GetAsync(member)).HasCoop.Should().BeFalse();
         (await _coops.RespondAsync(member, Guid.NewGuid(), true)).Should().Be(CoopStatus.InviteNotFound);
         _ = coop;
+    }
+
+    [Fact]
+    public async Task CoopDirectory_AfterEveryChange_EqualsTheRows()
+    {
+        Guid founder = await CreatePlayerAsync();
+        Guid member = await CreatePlayerAsync();
+        Guid outsider = await CreatePlayerAsync();
+        await AssertDirectoryAsync(founder, member, outsider);
+
+        (await _coops.CreateAsync(founder, "Test co-op")).Should().Be(CoopStatus.Ok);
+        await AssertDirectoryAsync(founder, member, outsider);
+
+        Guid coop;
+        Guid invite;
+        await using (NosumDbContext context = new(_database.Options))
+        {
+            coop = (await context.CoopMembers.SingleAsync(m => m.PlayerId == founder)).CoopId;
+            CoopInvite row = new() { CoopId = coop, PlayerId = member, CreatedAt = s_start, ExpiresAt = s_start.AddDays(3) };
+            context.CoopInvites.Add(row);
+            _ = await context.SaveChangesAsync();
+            invite = row.Id;
+        }
+
+        (await _coops.RespondAsync(member, invite, true)).Should().Be(CoopStatus.Ok);
+        await AssertDirectoryAsync(founder, member, outsider);
+
+        _ = await _inventory.AddAsync(founder, ItemCatalog.Parsnip, 40, "test.setup");
+        (await _coops.DepositAsync(founder, ItemCatalog.Parsnip, 40)).Should().Be(CoopStatus.Ok);
+        await AssertDirectoryAsync(founder, member, outsider);
+
+        (await _coops.LeaveAsync(founder)).Should().Be(CoopStatus.Ok);
+        await AssertDirectoryAsync(founder, member, outsider);
+        (await _directory.OfPlayerAsync(member))!.MemberOf(member)!.Role.Should().Be(CoopRole.Founder, "the longest-standing member took over and the next read says so");
+
+        (await _coops.WithdrawAsync(member, ItemCatalog.Parsnip, 40)).Should().Be(CoopStatus.Ok);
+        (await _coops.LeaveAsync(member)).Should().Be(CoopStatus.Ok);
+        await AssertDirectoryAsync(founder, member, outsider);
+        (await _directory.OfPlayerAsync(member)).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CoopDirectory_AfterAKickAndAnUpgrade_EqualsTheRows()
+    {
+        (Guid founder, Guid member, Guid coop) = await CoopWithMemberAsync();
+        _ = (await _directory.OfPlayerAsync(member), await _directory.OfPlayerAsync(founder));
+        CoopView view = await _coops.GetAsync(founder);
+
+        (await _coops.KickAsync(founder, view.Members.Single(m => !m.IsMe).MemberId)).Should().Be(CoopStatus.Ok);
+
+        await AssertDirectoryAsync(founder, member);
+        (await _directory.OfPlayerAsync(member)).Should().BeNull("a kicked member is out at the next read");
+        _ = coop;
+    }
+
+    private async Task AssertDirectoryAsync(params Guid[] players)
+    {
+        CoopDirectory fresh = new(_units, cached: false);
+        foreach (Guid player in players)
+        {
+            CoopRecord? cached = await _directory.OfPlayerAsync(player);
+            CoopRecord? rows = await fresh.OfPlayerAsync(player);
+            (cached is null).Should().Be(rows is null);
+            if (cached is not null && rows is not null)
+            {
+                (cached.Id, cached.Name, cached.WarehouseLevel, cached.LandLevel).Should().Be((rows.Id, rows.Name, rows.WarehouseLevel, rows.LandLevel));
+                cached.Members.Should().Equal(rows.Members);
+            }
+        }
     }
 
     private async Task<(Guid Founder, Guid Member, Guid Coop)> CoopWithMemberAsync()

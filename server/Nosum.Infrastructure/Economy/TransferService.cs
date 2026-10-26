@@ -108,12 +108,13 @@ public sealed class TransferService : ITransferService
         }
 
         TransferStatus failure = TransferStatus.Ok;
+        Dictionary<Guid, long> balances = [];
         InventoryStatus status = await _inventory.ApplyManyAsync(
             changes,
             reason,
             async (unit, token) =>
             {
-                failure = await this.JoinAsync(unit, coins, stock, reason, token).ConfigureAwait(false);
+                failure = await this.JoinAsync(unit, coins, stock, balances, reason, token).ConfigureAwait(false);
                 if (failure == TransferStatus.Ok && enlist is not null)
                 {
                     failure = await enlist(unit, token).ConfigureAwait(false);
@@ -135,12 +136,10 @@ public sealed class TransferService : ITransferService
 
         if (result == TransferStatus.Ok)
         {
-            foreach ((Guid player, long delta) in coins)
+            // The balance each wallet was saved with: pushed as it is, not read again. It is not kept anywhere, so it is not a cache of a balance (docs/adr/ADR-035 D6).
+            foreach ((Guid player, long balance) in balances)
             {
-                if (delta != 0)
-                {
-                    await this.PushBalanceAsync(player, cancellationToken).ConfigureAwait(false);
-                }
+                await this.PushBalanceAsync(player, balance, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -164,7 +163,7 @@ public sealed class TransferService : ITransferService
         return balance;
     }
 
-    private async Task<TransferStatus> JoinAsync(IUnitOfWork unit, Dictionary<Guid, long> coins, Dictionary<(Guid Coop, int Item), int> stock, string reason, CancellationToken cancellationToken)
+    private async Task<TransferStatus> JoinAsync(IUnitOfWork unit, Dictionary<Guid, long> coins, Dictionary<(Guid Coop, int Item), int> stock, Dictionary<Guid, long> balances, string reason, CancellationToken cancellationToken)
     {
         DateTimeOffset now = _time.GetUtcNow();
 
@@ -190,6 +189,7 @@ public sealed class TransferService : ITransferService
             }
 
             wallet.Coins = next;
+            balances[player] = next;
             unit.Repository<CoinLogEntry>().Add(new CoinLogEntry { PlayerId = player, Delta = delta, Reason = reason, OccurredAt = now });
         }
 
@@ -242,14 +242,13 @@ public sealed class TransferService : ITransferService
         return wallet;
     }
 
-    private async Task PushBalanceAsync(Guid playerId, CancellationToken cancellationToken)
+    private async Task PushBalanceAsync(Guid playerId, long balance, CancellationToken cancellationToken)
     {
         if (_notifier is null)
         {
             return;
         }
 
-        long balance = await this.GetBalanceAsync(playerId, cancellationToken).ConfigureAwait(false);
         using PacketScope<WalletUpdate> lease = PacketFactory<WalletUpdate>.Acquire();
         lease.Value.Coins = balance;
         _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
