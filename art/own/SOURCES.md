@@ -51,7 +51,7 @@ One file per placeholder sheet a hosted map names (`spring_outdoorsTileSheet.png
 
 ## `Maps/*.tmx`
 
-Own maps are written by `tools/Nosum.MapReauthor` from the placeholder maps in `assets/Maps/`. They keep the placeholder's layout (every layer except the ground, and every
+`Farm.tmx` and `Farm_Foraging.tmx` are no longer re-authored: they are compiled by `tools/Nosum.MapGen layout` from `source/layouts/` (ADR-042 P5a, see below). The other own maps are still written by `tools/Nosum.MapReauthor` from the placeholder maps in `assets/Maps/`. Those keep the placeholder's layout (every layer except the ground, and every
 object group, character for character) and name the placeholder sheets for the tiles that are not terrain yet. Every hosted map has one. Only the ground layer (`Back`) is rewritten, onto `own_terrain`; the other layers, tileset properties, animations and object groups are copied, and the tilesheets they name are the own sheets above. `reports/<Map>.md` gives, per layer, how many cells come from the own terrain tileset and how many from the painted sheets.
 
 ## `Maps/cave.png`, `Maps/terrain.png`, `Maps/nature.png`, `Maps/town.png`, `Maps/interior.png`, `Maps/markers.png`
@@ -74,3 +74,18 @@ The own tilesheets of [ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-c
 | `Maps/markers.png` | `Paths` | 27 | The marks of the `Paths` layer that `NodeSites` reads (trees, weeds, stones, twig, grass, forage); the layer is never drawn |
 
 `source/tilesets/*.tileset` are the trait files of these pictures (`Water`, `Passable`, `Impassable`, `Diggable`), read by `tools/Nosum.MapGen`.
+
+## `source/layouts/*.txt`
+
+Text grids of the own maps, one character per tile with a legend, compiled into `Maps/<Name>.tmx` by `tools/Nosum.MapGen layout` ([ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D4). The `.tmx` is generated; the layout is the source.
+
+| Field | Value |
+| :-- | :-- |
+| Made by | Designed by PPN Systems for each map, around the gameplay points of [ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D2. Written as text, not traced, mirrored or re-tiled from any placeholder layout |
+| Tiles | Only the own tilesets of `Maps/` (`terrain`, `nature`, `town`, `interior`, `cave`, `Paths`) |
+| License | Nosum's own work |
+
+| File | Map | Contents |
+| :-- | :-- | :-- |
+| `source/layouts/Farm.txt` | `Farm.tmx` | The personal farm: fields, a yard, a pond, a fenced field, a cave mouth and the exits to the bus stop, the forest and the backwoods (ADR-042 P5a) |
+| `source/layouts/Farm_Foraging.txt` | `Farm_Foraging.tmx` | The co-op land: an open meadow with fields in four unlock bands, a gate to Town and the same exits (ADR-042 P5a) |

@@ -28,3 +28,6 @@ artifacts/
 certificate.private
 # Deployment values: the secrets of the production server (docs/ops/README.md)
 deploy/.env
+
+# Test run output (vstest blame and hang dumps)
+TestResults/

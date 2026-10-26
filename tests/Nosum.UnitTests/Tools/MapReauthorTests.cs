@@ -215,28 +215,20 @@ public sealed partial class MapReauthorTests
     }
 
     [Fact]
-    public void Run_Farm_OwnTilesStayInsideTheOwnTileset()
+    public void Run_Farm_EveryTileIsInsideTheTilesetItBelongsTo()
     {
+        // Farm.tmx is compiled from its layout (ADR-042 P5a), not re-authored: its tiles come from the own sheets it names.
         TileMap own = TmxReader.Parse(s_own);
-        TileSet terrain = own.TileSets[^1];
-        Rgba image = Rgba.Read(RepoFiles.Path("art", "own", "Maps", "own_terrain.png"));
 
-        terrain.ImageSource.Should().Be(OwnTileset.Name);
-        (image.Width, image.Height).Should().Be((OwnTileset.Columns * OwnTileset.TileSize, OwnTileset.Rows * OwnTileset.TileSize));
-        terrain.TileCount.Should().Be(OwnTileset.TileCount);
-        foreach (string name in new[] { "Back", "BackEdge" })
+        own.Layers.Select(l => l.Name).Should().ContainInOrder("Back", "Buildings", "Paths");
+        foreach (TileLayer layer in own.Layers.OfType<TileLayer>())
         {
-            foreach (int gid in own.FindLayer(name)!.Gids)
+            foreach (int gid in layer.Gids.Where(g => g != 0))
             {
-                if (gid >= terrain.FirstGid)
-                {
-                    (gid - terrain.FirstGid).Should().BeLessThan(OwnTileset.TileCount);
-                }
+                TileSet set = own.TileSets.Last(t => t.FirstGid <= gid);
+                (gid - set.FirstGid).Should().BeLessThan(set.TileCount, $"gid {gid} of layer {layer.Name}");
             }
         }
-
-        own.Layers.Select(l => l.Name).Should().ContainInOrder("Back", "BackEdge", "Buildings");
-        own.FindLayer("BackEdge")!.Gids.Should().Contain(g => g >= terrain.FirstGid, "the farm's ponds and grass patches have edges");
     }
 
     [Fact]
