@@ -1,0 +1,16 @@
+// Outdoor terrain, drawn by tools/Nosum.MapGen (sheets; docs/adr/ADR-042 P2).
+// Fills: index kind × 4 + variant. Kinds: 0 grass, 1 dirt, 2 sand, 3 path, 4 cliff, 5 shallow water, 6 deep water.
+// Transitions 28 to 125: seven pairs of 14, tile 28 + 14 × pair + (code − 1), with no traits: the fills under them carry the traits.
+// Pairs: 0 grass over dirt, 1 grass over sand, 2 sand over shallow water, 3 grass over shallow water, 4 shallow over deep water,
+// 5 grass over cliff, 6 grass over path.
+name terrain
+image terrain.png
+tilewidth 16
+tileheight 16
+columns 16
+tilecount 126
+tile 4-7 Diggable
+tile 12-15 Passable
+tile 16-19 Impassable
+tile 20-23 Water
+tile 24-27 Water Impassable

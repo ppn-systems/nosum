@@ -53,3 +53,24 @@ One file per placeholder sheet a hosted map names (`spring_outdoorsTileSheet.png
 
 Own maps are written by `tools/Nosum.MapReauthor` from the placeholder maps in `assets/Maps/`. They keep the placeholder's layout (every layer except the ground, and every
 object group, character for character) and name the placeholder sheets for the tiles that are not terrain yet. Every hosted map has one. Only the ground layer (`Back`) is rewritten, onto `own_terrain`; the other layers, tileset properties, animations and object groups are copied, and the tilesheets they name are the own sheets above. `reports/<Map>.md` gives, per layer, how many cells come from the own terrain tileset and how many from the painted sheets.
+
+## `Maps/cave.png`, `Maps/terrain.png`, `Maps/nature.png`, `Maps/town.png`, `Maps/interior.png`, `Maps/markers.png`
+
+The own tilesheets of [ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D3, drawn in code by tools/Nosum.MapGen sheets from scratch: no painted sheet and no floor plan of any placeholder sheet is read. Each has a trait file in `source/tilesets/<TileSet>.tileset` (hand-written, its tile indices checked by `MapGenSheetsTests`).
+
+| Field | Value |
+| :-- | :-- |
+| Made by | Drawn in code by tools/Nosum.MapGen sheets (PPN Systems; `tools/Nosum.MapGen/Sheets/`). `sheets --check` fails when a committed picture is not what the code draws |
+| Palette | Nosum's own tones, `Palette.cs`: the values of the painted maps' materials (`Material.cs` in `Nosum.MapReauthor`) and the shared outline `(63, 38, 49)`; light from the top left |
+| License | Nosum's own art |
+
+| File | Tileset | Tiles | Contents |
+| :-- | :-- | :-- | :-- |
+| `Maps/cave.png` | `cave` | 48 | Mine floor (0) and wall (1), floor variants, wall edges by open sides, ladder-up and elevator markers, decor |
+| `Maps/terrain.png` | `terrain` | 126 | Grass, dirt, sand, cobbled path, cliff, shallow and deep water in four variants each; seven transition pairs of 14 corner tiles |
+| `Maps/nature.png` | `nature` | 38 | Oak, maple and pine (2 × 3 tiles each), bushes, rocks, stump, log, fences, corners, gate, hedge, sapling |
+| `Maps/town.png` | `town` | 38 | Plaster and timber walls, door, windows, red roof edges, chimney, sign, shop counters, bridge planks and rail, crates, lamp posts, flower box, awnings, barrel, bench, stone step and pillar |
+| `Maps/interior.png` | `interior` | 41 | Wood, rug, straw and barn floors; interior walls, window and door; farmhouse bed and table (2 × 2), kitchen, troughs, hay, benches, nest boxes, perch, gate |
+| `Maps/markers.png` | `Paths` | 27 | The marks of the `Paths` layer that `NodeSites` reads (trees, weeds, stones, twig, grass, forage); the layer is never drawn |
+
+`source/tilesets/*.tileset` are the trait files of these pictures (`Water`, `Passable`, `Impassable`, `Diggable`), read by `tools/Nosum.MapGen`.

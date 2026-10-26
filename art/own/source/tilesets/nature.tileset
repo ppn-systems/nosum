@@ -1,0 +1,14 @@
+// Nature objects on the Buildings and Front layers, drawn by tools/Nosum.MapGen (sheets; docs/adr/ADR-042 P2).
+// Trees are 2 × 3 blocks: the canopy is 0-1, 2-3, 4-5 (oak, maple, pine) and 16-21 (their middle rows), and the trunk is 32-37.
+// Canopies are no traits (the Front layer); trunks and the solid objects block. 26 is the gate, which is Passable.
+name nature
+image nature.png
+tilewidth 16
+tileheight 16
+columns 16
+tilecount 38
+tile 6-15 Impassable
+tile 22-25 Impassable
+tile 26 Passable
+tile 27-30 Impassable
+tile 32-37 Impassable

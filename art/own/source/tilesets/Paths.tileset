@@ -1,0 +1,8 @@
+// The node-site marker sheet of the Paths layer (docs/adr/ADR-042 P2). NodeSites reads these indices (gid minus the set's first gid):
+// 9 to 11 trees, 13 to 15 weeds, 16 and 17 stones, 18 a twig, 22 grass, 24 to 26 forage spots. The layer is logic only, so no traits.
+name Paths
+image markers.png
+tilewidth 16
+tileheight 16
+columns 16
+tilecount 27
