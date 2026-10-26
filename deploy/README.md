@@ -8,7 +8,8 @@ How to set up, deploy, roll back and look after it: the [operations runbook](../
 
 Do these once, in this order. The runbook has the details of each step.
 
-1. **Cloudflare Tunnel** `nosum-prod` (Zero Trust → Networks → Tunnels). Copy its token into the `CLOUDFLARE_TUNNEL_TOKEN` secret.
+1. **Cloudflare Tunnel** `nosum-api` (Zero Trust → Networks → Tunnels; the name is free, only the token and the public hostname matter).
+   Copy its token into the `CLOUDFLARE_TUNNEL_TOKEN` secret.
    Public hostname `nosum.ppnsys.com` → service HTTP → `host:57300`.
 2. **Cloudflare Pages** project `nosum` (Direct Upload, production branch `main`). Note its `https://nosum.pages.dev` address.
 3. **GitHub secrets** (environment `production`): `PROD_HOST`, `PROD_SSH_USER`, `PROD_SSH_KEY`, `CLOUDFLARE_TUNNEL_TOKEN`,
