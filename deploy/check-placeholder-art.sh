@@ -25,11 +25,11 @@ if [ -e "$marker" ]; then
     {
       echo "REFUSED: this is a public release build, but assets/PLACEHOLDER_CONTENT exists."
       echo "The repository still contains the copyrighted Stardew Valley placeholder content (docs/adr/ADR-007)."
-      echo "Public releases wait for milestone M6, which replaces the art and removes the marker. Build with NOSUM_RELEASE=private for the team deployment."
+      echo "Public releases wait for milestone M6, which replaces the art and removes the marker. Do not work around this gate (docs/ops/README.md)."
     } >&2
     exit 1
   fi
-  echo "warning: this build contains placeholder art (docs/adr/ADR-007): deploy it privately only (IP allow-list)." >&2
+  echo "warning: this build contains placeholder art (docs/adr/ADR-007): do not publish it." >&2
 fi
 
 exit 0

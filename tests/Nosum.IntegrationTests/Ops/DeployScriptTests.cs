@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Npgsql;
@@ -115,6 +116,32 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
         publicMarked.Should().NotBe(0);
     }
 
+    // ---- production compose (docs/adr/ADR-041 D2), read through `docker compose config` ----
+
+    [Fact]
+    public async Task Compose_PublishesOnlyTheGameWebSocketOnLoopback()
+    {
+        JsonElement services = await ComposeServicesAsync();
+
+        services.TryGetProperty("caddy", out _).Should().BeFalse("the Cloudflare Tunnel replaces the proxy");
+        services.TryGetProperty("web", out _).Should().BeFalse("the web client is on Cloudflare Pages");
+        PublishedPorts(services, "postgres").Should().BeEmpty("PostgreSQL is never published (ADR-031 D1)");
+        PublishedPorts(services, "cloudflared").Should().BeEmpty("the connector accepts no inbound connection");
+        PublishedPorts(services, "backup").Should().BeEmpty();
+        PublishedPorts(services, "host").Should().ContainSingle("the game WebSocket is the only published port, and the ops port is not published")
+            .Which.Should().Be("127.0.0.1:57300->57300");
+    }
+
+    [Fact]
+    public async Task Compose_TunnelConnectorStartsOnlyOnceTheHostIsHealthy()
+    {
+        JsonElement services = await ComposeServicesAsync();
+
+        services.GetProperty("cloudflared").GetProperty("environment").GetProperty("TUNNEL_TOKEN").GetString().Should().NotBeNullOrEmpty();
+        services.GetProperty("cloudflared").GetProperty("depends_on").GetProperty("host").GetProperty("condition").GetString()
+            .Should().Be("service_healthy");
+    }
+
     // ---- host entrypoint ----
 
     [Fact]
@@ -190,6 +217,42 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     }
 
     // ---- helpers ----
+
+    // The services of deploy/compose.yaml as Docker Compose resolves them; the variables it requires are set to dummies.
+    private static async Task<JsonElement> ComposeServicesAsync()
+    {
+        Dictionary<string, string> environment = new()
+        {
+            ["POSTGRES_PASSWORD"] = "test",
+            ["NOSUM_ORIGIN"] = "https://nosum.pages.dev",
+            ["NOSUM_TAG"] = "test",
+            ["CLOUDFLARE_TUNNEL_TOKEN"] = "test",
+        };
+
+        (int code, string output) = await RunAsync("docker", ["compose", "-f", DeployFile("compose.yaml"), "config", "--format", "json"], environment);
+
+        code.Should().Be(0, output);
+        using JsonDocument document = JsonDocument.Parse(output);
+        return document.RootElement.GetProperty("services").Clone();
+    }
+
+    // "host_ip:published->target" for every published port of a service; an empty list when it publishes none.
+    private static List<string> PublishedPorts(JsonElement services, string service)
+    {
+        List<string> published = [];
+        if (!services.GetProperty(service).TryGetProperty("ports", out JsonElement ports))
+        {
+            return published;
+        }
+
+        foreach (JsonElement port in ports.EnumerateArray())
+        {
+            string address = port.TryGetProperty("host_ip", out JsonElement ip) ? ip.GetString()! : "0.0.0.0";
+            published.Add($"{address}:{port.GetProperty("published").GetString()}->{port.GetProperty("target").GetInt32()}");
+        }
+
+        return published;
+    }
 
     private static string[] SectionOf(string[] lines, string header)
     {

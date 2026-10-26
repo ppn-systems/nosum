@@ -155,7 +155,7 @@ Chat, friends and mail ([ADR-029](../docs/adr/ADR-029-chat-friends-mail.md)): `I
 Operations ([ADR-031](../docs/adr/ADR-031-deployment-and-operations.md); runbook: [`docs/ops/`](../docs/ops/README.md)): `Program.Main` with arguments is a command line, not a server:
 `admin grant|revoke|list <nickname>` (`Ops/HostCommands`) is the only way the `Admin` role (`players.role`) changes - never a packet - and `healthcheck` asks the running
 server's `/readyz` (the container health check). Without arguments the host starts `Ops/OpsEndpoint` first, an `HttpListener` on `NOSUM_OPS_PORT` (default 57301, bound to
-`NOSUM_OPS_HOST`, default `localhost`; the container sets `+`): `/healthz` (process up), `/readyz` (`NosumDatabase.IsReadyAsync`: database answers, no migration pending) and
+`NOSUM_OPS_HOST`, default `localhost`, which the container keeps: the ops port is not published, ADR-041): `/healthz` (process up), `/readyz` (`NosumDatabase.IsReadyAsync`: database answers, no migration pending) and
 `/metrics` (`Ops/PrometheusExporter`, a `MeterListener` over the `Nosum` meter, `NosumMetrics` in `Nosum.Abstractions/Observability`: players online and per map, snapshot tick duration
 and bytes, handler latency per opcode via `Ops/MetricsMiddleware`, database save duration, rejected intents by area and status). Logs are JSON lines through `OpsLog` (the same
 folder): fields named like a secret are redacted, e-mail addresses and token-shaped strings are masked, and `Console.Error` is routed into it. Migrations run under a PostgreSQL advisory

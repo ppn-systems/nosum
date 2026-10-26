@@ -30,6 +30,12 @@ public sealed class GameSocketOptions
     public bool UseTls { get; set; }
 
     /// <summary>
+    /// Gets or sets how often the socket sends a keep-alive PING. A proxy in front of the server (Cloudflare, docs/adr/ADR-041) closes a WebSocket that
+    /// carries no traffic for about 100 seconds, so the interval stays well under that. Nalix sends no PING unless this is set.
+    /// </summary>
+    public TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(25);
+
+    /// <summary>
     /// Gets or sets a pinned server X25519 public key (hex). Kept for single-key setups; it counts like the first entry of
     /// <see cref="ServerPublicKeys"/>.
     /// </summary>
@@ -61,17 +67,24 @@ public sealed class GameSocketOptions
     public TimeSpan ReconnectMaxDelay { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// Applies the boot configuration the deploy publishes (<c>wwwroot/appsettings.json</c>): <c>Server:PublicKeys:0</c> and <c>Server:PublicKeys:1</c> are the
-    /// pinned server keys, <c>Server:RequirePin</c> makes a pin mandatory. When no key is pinned, a development build trusts the server on first use and
-    /// remembers the key in the store the factory creates.
+    /// Applies the boot configuration the deploy publishes (<c>wwwroot/appsettings.json</c>): <c>Server:Url</c>, when set, is the full
+    /// <c>wss://</c> address of the server and replaces the host, port, TLS and path that <see cref="ForPageHost"/> derived from the page
+    /// (docs/adr/ADR-041). <c>Server:PublicKeys:0</c> and <c>Server:PublicKeys:1</c> are the pinned server keys, <c>Server:RequirePin</c> makes a
+    /// pin mandatory. When no key is pinned, a development build trusts the server on first use and remembers the key in the store the factory creates.
     /// </summary>
     /// <param name="read">Reads a configuration value by key.</param>
     /// <param name="keyStore">Creates the store for the key trusted on first use; called only when no key is pinned.</param>
     /// <returns>These options.</returns>
-    /// <exception cref="FormatException">A configured key is not a 64-digit hex key.</exception>
+    /// <exception cref="FormatException">A configured key is not a 64-digit hex key, or <c>Server:Url</c> is not an absolute ws:// or wss:// address.</exception>
     public GameSocketOptions ApplyBootConfiguration(Func<string, string?> read, Func<Security.IServerKeyStore>? keyStore = null)
     {
         ArgumentNullException.ThrowIfNull(read);
+        string? url = read("Server:Url");
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            this.ApplyUrl(url);
+        }
+
         foreach (string key in Security.ServerKeys.FromConfiguration(read))
         {
             this.ServerPublicKeys.Add(key);
@@ -84,6 +97,20 @@ public sealed class GameSocketOptions
         }
 
         return this;
+    }
+
+    // The address the deploy names for the server (for example wss://nosum.example.org/ws/), read into the fields the socket connects with.
+    private void ApplyUrl(string url)
+    {
+        if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out Uri? uri) || uri.Scheme is not ("wss" or "ws"))
+        {
+            throw new FormatException("Server:Url must be an absolute wss:// (or ws://) address, for example wss://nosum.example.org/ws/.");
+        }
+
+        this.Host = uri.Host;
+        this.Port = (ushort)uri.Port;
+        this.UseTls = uri.Scheme == "wss";
+        this.Path = uri.AbsolutePath;
     }
 
     /// <summary>

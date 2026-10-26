@@ -32,7 +32,7 @@ RUN chmod 0555 /usr/local/bin/nosum-entrypoint \
 ENV DOTNET_ENVIRONMENT=Production \
     NALIX_BASE_PATH=/data \
     NALIX_CONFIG_PATH=/data/config \
-    NOSUM_OPS_HOST=+ \
+    NOSUM_OPS_HOST=localhost \
     DOTNET_EnableDiagnostics=0
 VOLUME /data
 USER $APP_UID
