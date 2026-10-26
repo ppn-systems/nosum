@@ -51,3 +51,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-039](ADR-039-audio-hooks.md) | Audio hooks: sound, music and ambience as commands in the frame buffer, Web Audio in `audio.js`, procedurally generated placeholder sounds | Accepted |
 | [ADR-040](ADR-040-own-art-plan.md) | Own art plan: inventory of the placeholder files, work packages, production routes, cost, release gate | Accepted |
 | [ADR-041](ADR-041-deploy-cloudflare-pages-and-tunnel.md) | Deployment: web client on Cloudflare Pages, server behind a Cloudflare Tunnel, deploy by SSH (amends ADR-031) | Accepted |
+| [ADR-042](ADR-042-own-maps-and-provenance-cleanup.md) | Own map layouts, own sheet names and removal of the former placeholder traces before the public release; fresh public history | Accepted |
