@@ -42,8 +42,10 @@ function onInputKey(e) {
     }
 }
 
+// The blur also fires when Blazor removes the focused box while it applies a render batch (closing the box, sending a line); the .NET heap is locked
+// then and a call into .NET throws "heap is currently locked". Calling back after the batch (a macrotask) is safe, and closing an already closed box is a no-op.
 function onInputBlur() {
-    if (host) { host.invokeMethodAsync("CloseFromKey"); }
+    setTimeout(() => { if (host) { host.invokeMethodAsync("CloseFromKey"); } }, 0);
 }
 
 export function init(reference) {

@@ -10,7 +10,7 @@ namespace Nosum.Wasm.Game;
 /// <summary>
 /// Tester tools, compiled only into a build made with <c>-p:NosumDevTools=true</c>. A tester calls
 /// <c>(await getDotnetRuntime(0).getAssemblyExports("Nosum.Wasm.dll")).Nosum.Wasm.Game.DevTools.Grant(300, 5, 0)</c> from the browser console to
-/// get 5 oak chairs; the server grants it only when it runs in Development.
+/// get 5 oak chairs (<c>AdvanceClock(days)</c> skips game days); the server grants it only when it runs in Development.
 /// </summary>
 [SupportedOSPlatform("browser")]
 internal static partial class DevTools
@@ -27,5 +27,10 @@ internal static partial class DevTools
     /// <param name="coins">Coins to add.</param>
     [JSExport]
     internal static void Grant(int itemId, int quantity, int coins) => s_channel?.Grant(itemId, quantity, coins);
+
+    /// <summary>Asks a Development server to skip whole game days (crop growth, day rollover, rain, regrowth).</summary>
+    /// <param name="days">Game days to skip, 1 to 60.</param>
+    [JSExport]
+    internal static void AdvanceClock(int days) => s_channel?.AdvanceClock(days);
 }
 #endif
