@@ -51,8 +51,12 @@ One file per placeholder sheet a hosted map names (`spring_outdoorsTileSheet.png
 
 ## `Maps/*.tmx`
 
-`Farm.tmx` and `Farm_Foraging.tmx` are no longer re-authored: they are compiled by `tools/Nosum.MapGen layout` from `source/layouts/` (ADR-042 P5a, see below). The other own maps are still written by `tools/Nosum.MapReauthor` from the placeholder maps in `assets/Maps/`. Those keep the placeholder's layout (every layer except the ground, and every
-object group, character for character) and name the placeholder sheets for the tiles that are not terrain yet. Every hosted map has one. Only the ground layer (`Back`) is rewritten, onto `own_terrain`; the other layers, tileset properties, animations and object groups are copied, and the tilesheets they name are the own sheets above. `reports/<Map>.md` gives, per layer, how many cells come from the own terrain tileset and how many from the painted sheets.
+The mine is written by `tools/Nosum.MapGen` (ADR-042 P3): `Mine.tmx` compiles the hand-drawn `source/layouts/Mine.txt` (`layout Mine`), and the forty floors (`Mines/*.tmx`)
+are grown from fixed seeds by `mine all`, on the cave sheet (`cave.png`, drawn in code by `sheets`). Their tiles are the cave tileset's
+own: floor variants, rock decor and wall edges; the generated floors name the sheet as `../cave.png`.
+
+Every other hosted map is compiled by `tools/Nosum.MapGen layout` from its own text layout in `source/layouts/` (ADR-042 P4 and P5), on the own sheets below. No hosted map is
+re-authored from a placeholder map any more.
 
 ## `Maps/cave.png`, `Maps/terrain.png`, `Maps/nature.png`, `Maps/town.png`, `Maps/interior.png`, `Maps/markers.png`
 

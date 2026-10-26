@@ -39,7 +39,7 @@ Run the report command after a change that adds a map, a sheet or a sprite table
 Never run `--write-fingerprints` after a file was replaced: it would record the replacement as the placeholder.
 
 ```bash
-dotnet run --project tools/Nosum.MapReauthor -- reauthor all             # every hosted map, its report and the own sheets under art/own/Maps; add --check to fail on a difference
+dotnet run --project tools/Nosum.MapReauthor -- reauthor all             # every hosted map but the mine (Nosum.MapGen writes it, ADR-042 P3), its report and the own sheets under art/own/Maps; add --check to fail on a difference
 dotnet run --project tools/Nosum.MapReauthor -- reauthor Farm            # one map only: write art/own/Maps/Farm.tmx and art/own/reports/Farm.md from assets/Maps/Farm.tmx
 dotnet run --project tools/Nosum.MapReauthor -- reauthor Farm --check    # exit 1 when the committed files differ
 dotnet run --project tools/Nosum.MapReauthor -- tileset                  # rebuild art/own/Maps/own_terrain.png from art/own/source/pixellab
@@ -118,8 +118,9 @@ layer Buildings
 arrival and its neighbours are open, the cave is smoothed, and only the part connected to the arrival is kept. The floor is then checked the way the
 game reads it, and a seed that fails is tried again, so the tool never writes a floor that fails: the arrival is walkable and lies in a cave of at least
 200 tiles; the way up is the one exit, on the arrival tile; the elevator stands on the arrival; and on three days `MineFloorPlanner` places at least six
-stones, copper and iron exactly where `MineRules` says, and a ladder under a stone when the floor has one. The floors use two tiles of the cave
-tileset: `MineGenerator.FloorTile` (index 0) under every cell and `MineGenerator.WallTile` (index 1) on the closed cells, which must not be `Passable`.
-The cave tileset `art/own/source/tilesets/cave.tileset` and its picture `art/own/Maps/cave.png` are drawn by `sheets` (below); `mine` reads the trait file.
-
-Until ADR-042 P3 regenerates the floors, `mine all --check` reports the committed floors as differing: they are still the derived ones.
+stones, copper and iron exactly where `MineRules` says, and a ladder under a stone when the floor has one. The floor is dressed from the same seed:
+each open cell takes one of the cave tileset's floor variants (tiles 0, 2, 3, 4) or, on about one cell in sixteen, a rock decor tile (35, 39, 45, 46);
+the arrival tile carries the way up (the ladder-up tile, or the lit elevator pad on an elevator floor). Each closed cell is `MineGenerator.WallTile`
+(index 1) or, next to open ground, the wall edge of its open sides (16 to 31); every wall must not be `Passable`. The floors name the sheet `../cave.png`,
+because they live in `Maps/Mines/`. The cave tileset `art/own/source/tilesets/cave.tileset` and its picture `art/own/Maps/cave.png` are drawn by `sheets`
+(below); `mine` reads the trait file.
