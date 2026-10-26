@@ -60,7 +60,7 @@ public sealed class NodeSitesTests
 
     [Theory]
     [InlineData("Farm.tmx", 65)]
-    [InlineData("Forest.tmx", 1976)]
+    [InlineData("Forest.tmx", 165)]
     [InlineData("Backwoods.tmx", 165)]
     [InlineData("Town.tmx", 203)]
     [InlineData("BusStop.tmx", 203)]
