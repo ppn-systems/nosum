@@ -30,7 +30,7 @@ Set these in GitHub → repository → **Settings → Environments → productio
 | `CLOUDFLARE_API_TOKEN` | secret | Dashboard → My Profile → API Tokens → Create Custom token: permission **Account · Cloudflare Pages · Edit**, for your account only. |
 | `CLOUDFLARE_ACCOUNT_ID` | secret | Dashboard → any account page, right-hand column ("Account ID"). |
 | `NOSUM_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM`, `_SSL` | secret, optional | Your mail provider (password recovery codes). Without `NOSUM_SMTP_HOST` no mail is sent. |
-| `NOSUM_ORIGIN` | variable | The Pages address, for example `https://nosum.pages.dev`. The server accepts WebSocket handshakes from this origin only. |
+| `NOSUM_ORIGIN` | variable | The address players open: production uses `https://farm.ppnsys.com` (the Pages custom domain); without one, the Pages address such as `https://nosum.pages.dev`. The server accepts WebSocket handshakes from this origin only, so a second address (for example the `pages.dev` one) cannot connect. |
 | `NOSUM_SERVER_PUBLIC_KEY` | variable | The server's public key: see "Read the server key" below. Public, so a variable, not a secret. |
 | `NOSUM_SERVER_URL` | variable, optional | Default `wss://nosum.ppnsys.com/ws/`. |
 | `NOSUM_CALENDAR_EPOCH` | variable, optional | The start of the server calendar (ISO 8601 UTC). Default: the built-in epoch. |

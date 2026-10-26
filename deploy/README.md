@@ -28,7 +28,6 @@ Do these once, in this order. The runbook has the details of each step.
 
 **Open items to settle before the first run:**
 
-- The `cloudflared` image tag (`CLOUDFLARED_TAG`, default `2025.8.1`) is unverified. Confirm the tag exists and pin a current release.
 - `NOSUM_SERVER_PUBLIC_KEY` must be set from the host's key before `deploy-web` runs.
 - The workflow does not pin the SSH host key (ADR-041 Consequences). Accept this risk or add host-key pinning first.
 - After the first deploy, confirm the tunnel passes `X-Forwarded-For` (ADR-041 Consequences), so players are not all one address.
