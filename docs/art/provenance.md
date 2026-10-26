@@ -78,95 +78,95 @@ A game crop uses the CC0 crop named; "as drawn" means no recolour. The harvest p
 
 | Index | Game item or node | How |
 | --: | :-- | :-- |
-| 18 | `daffodil` | drawn here: `icons.flower` |
-| 20 | `leek` | drawn here: `icons.leek` |
-| 22 | `dandelion` | drawn here: `icons.flower` |
-| 24 | `parsnip` | CC0 crop `parsnip` harvest picture (see the crop table) |
-| 174 | `large_egg` | drawn here: `icons.egg` |
-| 176 | `egg` | drawn here: `icons.egg` |
-| 178 | `hay` | drawn here: `icons.hay` |
-| 184 | `milk` | drawn here: `icons.bottle` |
-| 186 | `large_milk` | drawn here: `icons.bottle` |
-| 188 | `green_bean` | CC0 crop `green_bean` harvest picture (see the crop table) |
-| 190 | `cauliflower` | drawn here: `icons.cauliflower` |
-| 192 | `potato` | CC0 crop `potato` harvest picture (see the crop table) |
-| 196 | `Salad` | drawn here: `icons.bowl` |
-| 208 | `BakedPotato` | drawn here: `icons.baked_potato` |
-| 236 | `PumpkinSoup` | drawn here: `icons.bowl` |
-| 248 | `garlic` | CC0 crop `garlic` harvest picture (see the crop table) |
-| 250 | `kale` | CC0 crop `kale` harvest picture (see the crop table) |
-| 254 | `melon` | CC0 crop `melon` harvest picture (see the crop table) |
-| 256 | `tomato` | CC0 crop `tomato` harvest picture (see the crop table) |
-| 258 | `blueberry` | CC0 crop `blueberry` harvest picture (see the crop table) |
-| 260 | `hot_pepper` | CC0 crop `hot_pepper` harvest picture (see the crop table) |
-| 262 | `wheat` | drawn here: `icons.wheat` |
-| 264 | `radish` | CC0 crop `radish` harvest picture (see the crop table) |
-| 270 | `corn` | CC0 crop `corn` harvest picture (see the crop table) |
-| 272 | `eggplant` | CC0 crop `eggplant` harvest picture (see the crop table) |
-| 276 | `pumpkin` | CC0 crop `pumpkin` harvest picture (see the crop table) |
-| 278 | `bok_choy` | CC0 crop `bok_choy` harvest picture (see the crop table) |
-| 280 | `yam` | CC0 crop `yam` harvest picture (see the crop table) |
-| 282 | `cranberries` | CC0 crop `cranberries` harvest picture (see the crop table) |
-| 290 | iron ore node | drawn here: `icons.rock` |
-| 294 | twig node | drawn here: `icons.twig` |
-| 295 | twig node | drawn here: `icons.twig` |
-| 301 | `grape_seeds` | drawn seed packet, band in the colour of the `grape` harvest picture |
-| 309 | `OakSeed` | drawn here: `icons.acorn` |
-| 310 | `MapleSeed` | drawn here: `icons.samara` |
-| 311 | `PineSeed` | drawn here: `icons.pinecone` |
-| 313 | weed node | drawn here: `icons.weed` |
-| 314 | weed node | drawn here: `icons.weed` |
-| 315 | weed node | drawn here: `icons.weed` |
-| 322 | `WoodFence` | Kenney Tiny Town tile 81 (horizontal fence) |
-| 334 | `CopperBar` | drawn here: `icons.bar` |
-| 335 | `IronBar` | drawn here: `icons.bar` |
-| 343 | stone node | drawn here: `icons.rock` |
-| 372 | `clam` | drawn here: `icons.shell` |
-| 378 | `CopperOre` | drawn here: `icons.rock` |
-| 380 | `IronOre` | drawn here: `icons.rock` |
-| 382 | `Coal` | drawn here: `icons.rock` |
-| 388 | `Wood` | drawn here: `icons.log` |
-| 390 | `Stone` | drawn here: `icons.rock` |
-| 392 | `nautilus_shell` | drawn here: `icons.nautilus` |
-| 393 | `coral` | drawn here: `icons.coral` |
-| 394 | `rainbow_shell` | drawn here: `icons.rainbow_shell` |
-| 396 | `spice_berry` | drawn here: `icons.berries` |
-| 397 | `sea_urchin` | drawn here: `icons.urchin` |
-| 398 | `grape` | CC0 crop `grape` harvest picture (see the crop table) |
-| 399 | `spring_onion` | drawn here: `icons.spring_onion` |
-| 400 | `strawberry` | CC0 crop `strawberry` harvest picture (see the crop table) |
-| 402 | `sweet_pea` | drawn here: `icons.flower` |
-| 404 | `mushroom` | drawn here: `icons.mushroom` |
-| 406 | `wild_plum` | drawn here: `icons.plum` |
-| 407 | `StonePath` | drawn here: `icons.stone_path` |
-| 408 | `hazelnut` | drawn here: `icons.nut` |
-| 410 | `blackberry` | drawn here: `icons.berries` |
-| 412 | `winter_root` | drawn here: `icons.root` |
-| 414 | `crystal_fruit` | drawn here: `icons.crystal_fruit` |
-| 416 | `snow_yam` | drawn here: `icons.root` |
-| 421 | `sunflower` | CC0 crop `sunflower` harvest picture (see the crop table) |
-| 431 | `sunflower_seeds` | drawn seed packet, band in the colour of the `sunflower` harvest picture |
-| 450 | stone node | drawn here: `icons.rock` |
-| 472 | `parsnip_seeds` | drawn seed packet, band in the colour of the `parsnip` harvest picture |
-| 473 | `green_bean_seeds` | drawn seed packet, band in the colour of the `green_bean` harvest picture |
-| 474 | `cauliflower_seeds` | drawn seed packet, band in the colour of the `cauliflower` harvest picture |
-| 475 | `potato_seeds` | drawn seed packet, band in the colour of the `potato` harvest picture |
-| 476 | `garlic_seeds` | drawn seed packet, band in the colour of the `garlic` harvest picture |
-| 477 | `kale_seeds` | drawn seed packet, band in the colour of the `kale` harvest picture |
-| 479 | `melon_seeds` | drawn seed packet, band in the colour of the `melon` harvest picture |
-| 480 | `tomato_seeds` | drawn seed packet, band in the colour of the `tomato` harvest picture |
-| 481 | `blueberry_seeds` | drawn seed packet, band in the colour of the `blueberry` harvest picture |
-| 482 | `hot_pepper_seeds` | drawn seed packet, band in the colour of the `hot_pepper` harvest picture |
-| 483 | `wheat_seeds` | drawn seed packet, band in the colour of the `wheat` harvest picture |
-| 484 | `radish_seeds` | drawn seed packet, band in the colour of the `radish` harvest picture |
-| 487 | `corn_seeds` | drawn seed packet, band in the colour of the `corn` harvest picture |
-| 488 | `eggplant_seeds` | drawn seed packet, band in the colour of the `eggplant` harvest picture |
-| 490 | `pumpkin_seeds` | drawn seed packet, band in the colour of the `pumpkin` harvest picture |
-| 491 | `bok_choy_seeds` | drawn seed packet, band in the colour of the `bok_choy` harvest picture |
-| 492 | `yam_seeds` | drawn seed packet, band in the colour of the `yam` harvest picture |
-| 493 | `cranberries_seeds` | drawn seed packet, band in the colour of the `cranberries` harvest picture |
-| 599 | `Sprinkler` | drawn here: `icons.sprinkler` |
-| 718 | `cockle` | drawn here: `icons.shell` |
-| 745 | `strawberry_seeds` | drawn seed packet, band in the colour of the `strawberry` harvest picture |
-| 751 | copper ore node | drawn here: `icons.rock` |
-| 771 | `Fiber` and fiber / grass node | drawn here: `icons.grass_tuft` |
+| 1 | `parsnip_seeds` | drawn seed packet, band in the colour of the `parsnip` harvest picture |
+| 2 | `radish_seeds` | drawn seed packet, band in the colour of the `radish` harvest picture |
+| 3 | `cauliflower_seeds` | drawn seed packet, band in the colour of the `cauliflower` harvest picture |
+| 4 | `potato_seeds` | drawn seed packet, band in the colour of the `potato` harvest picture |
+| 5 | `green_bean_seeds` | drawn seed packet, band in the colour of the `green_bean` harvest picture |
+| 6 | `kale_seeds` | drawn seed packet, band in the colour of the `kale` harvest picture |
+| 7 | `garlic_seeds` | drawn seed packet, band in the colour of the `garlic` harvest picture |
+| 8 | `strawberry_seeds` | drawn seed packet, band in the colour of the `strawberry` harvest picture |
+| 9 | `tomato_seeds` | drawn seed packet, band in the colour of the `tomato` harvest picture |
+| 10 | `blueberry_seeds` | drawn seed packet, band in the colour of the `blueberry` harvest picture |
+| 11 | `melon_seeds` | drawn seed packet, band in the colour of the `melon` harvest picture |
+| 12 | `hot_pepper_seeds` | drawn seed packet, band in the colour of the `hot_pepper` harvest picture |
+| 13 | `corn_seeds` | drawn seed packet, band in the colour of the `corn` harvest picture |
+| 14 | `wheat_seeds` | drawn seed packet, band in the colour of the `wheat` harvest picture |
+| 15 | `sunflower_seeds` | drawn seed packet, band in the colour of the `sunflower` harvest picture |
+| 16 | `pumpkin_seeds` | drawn seed packet, band in the colour of the `pumpkin` harvest picture |
+| 17 | `cranberries_seeds` | drawn seed packet, band in the colour of the `cranberries` harvest picture |
+| 18 | `eggplant_seeds` | drawn seed packet, band in the colour of the `eggplant` harvest picture |
+| 19 | `yam_seeds` | drawn seed packet, band in the colour of the `yam` harvest picture |
+| 20 | `bok_choy_seeds` | drawn seed packet, band in the colour of the `bok_choy` harvest picture |
+| 21 | `grape_seeds` | drawn seed packet, band in the colour of the `grape` harvest picture |
+| 22 | `OakSeed` | drawn here: `icons.acorn` |
+| 23 | `MapleSeed` | drawn here: `icons.samara` |
+| 24 | `PineSeed` | drawn here: `icons.pinecone` |
+| 25 | `parsnip` | CC0 crop `parsnip` harvest picture (see the crop table) |
+| 26 | `radish` | CC0 crop `radish` harvest picture (see the crop table) |
+| 27 | `cauliflower` | drawn here: `icons.cauliflower` |
+| 28 | `potato` | CC0 crop `potato` harvest picture (see the crop table) |
+| 29 | `green_bean` | CC0 crop `green_bean` harvest picture (see the crop table) |
+| 30 | `kale` | CC0 crop `kale` harvest picture (see the crop table) |
+| 31 | `garlic` | CC0 crop `garlic` harvest picture (see the crop table) |
+| 32 | `strawberry` | CC0 crop `strawberry` harvest picture (see the crop table) |
+| 33 | `tomato` | CC0 crop `tomato` harvest picture (see the crop table) |
+| 34 | `blueberry` | CC0 crop `blueberry` harvest picture (see the crop table) |
+| 35 | `melon` | CC0 crop `melon` harvest picture (see the crop table) |
+| 36 | `hot_pepper` | CC0 crop `hot_pepper` harvest picture (see the crop table) |
+| 37 | `corn` | CC0 crop `corn` harvest picture (see the crop table) |
+| 38 | `wheat` | drawn here: `icons.wheat` |
+| 39 | `sunflower` | CC0 crop `sunflower` harvest picture (see the crop table) |
+| 40 | `pumpkin` | CC0 crop `pumpkin` harvest picture (see the crop table) |
+| 41 | `cranberries` | CC0 crop `cranberries` harvest picture (see the crop table) |
+| 42 | `eggplant` | CC0 crop `eggplant` harvest picture (see the crop table) |
+| 43 | `yam` | CC0 crop `yam` harvest picture (see the crop table) |
+| 44 | `bok_choy` | CC0 crop `bok_choy` harvest picture (see the crop table) |
+| 45 | `grape` | CC0 crop `grape` harvest picture (see the crop table) |
+| 46 | `Wood` | drawn here: `icons.log` |
+| 47 | `Stone` | drawn here: `icons.rock` |
+| 48 | `Fiber` | drawn here: `icons.grass_tuft` |
+| 49 | `Coal` | drawn here: `icons.rock` |
+| 50 | `CopperOre` | drawn here: `icons.rock` |
+| 51 | `IronOre` | drawn here: `icons.rock` |
+| 52 | `CopperBar` | drawn here: `icons.bar` |
+| 53 | `IronBar` | drawn here: `icons.bar` |
+| 54 | `WoodFence` | Kenney Tiny Town tile 81 (horizontal fence) |
+| 55 | `StonePath` | drawn here: `icons.stone_path` |
+| 56 | `Sprinkler` | drawn here: `icons.sprinkler` |
+| 57 | `egg` | drawn here: `icons.egg` |
+| 58 | `large_egg` | drawn here: `icons.egg` |
+| 59 | `milk` | drawn here: `icons.bottle` |
+| 60 | `large_milk` | drawn here: `icons.bottle` |
+| 61 | `hay` | drawn here: `icons.hay` |
+| 62 | `Salad` | drawn here: `icons.bowl` |
+| 63 | `BakedPotato` | drawn here: `icons.baked_potato` |
+| 64 | `PumpkinSoup` | drawn here: `icons.bowl` |
+| 65 | `spring_onion` | drawn here: `icons.spring_onion` |
+| 66 | `leek` | drawn here: `icons.leek` |
+| 67 | `dandelion` | drawn here: `icons.flower` |
+| 68 | `daffodil` | drawn here: `icons.flower` |
+| 69 | `spice_berry` | drawn here: `icons.berries` |
+| 70 | `sweet_pea` | drawn here: `icons.flower` |
+| 71 | `blackberry` | drawn here: `icons.berries` |
+| 72 | `hazelnut` | drawn here: `icons.nut` |
+| 73 | `wild_plum` | drawn here: `icons.plum` |
+| 74 | `mushroom` | drawn here: `icons.mushroom` |
+| 75 | `winter_root` | drawn here: `icons.root` |
+| 76 | `crystal_fruit` | drawn here: `icons.crystal_fruit` |
+| 77 | `snow_yam` | drawn here: `icons.root` |
+| 78 | `clam` | drawn here: `icons.shell` |
+| 79 | `cockle` | drawn here: `icons.shell` |
+| 80 | `coral` | drawn here: `icons.coral` |
+| 81 | `sea_urchin` | drawn here: `icons.urchin` |
+| 82 | `nautilus_shell` | drawn here: `icons.nautilus` |
+| 83 | `rainbow_shell` | drawn here: `icons.rainbow_shell` |
+| 84 | resource node | drawn here: `icons.twig` |
+| 85 | resource node | drawn here: `icons.twig` |
+| 86 | resource node | drawn here: `icons.weed` |
+| 87 | resource node | drawn here: `icons.weed` |
+| 88 | resource node | drawn here: `icons.weed` |
+| 89 | resource node | drawn here: `icons.rock` |
+| 90 | resource node | drawn here: `icons.rock` |
+| 91 | resource node | drawn here: `icons.rock` |
+| 92 | resource node | drawn here: `icons.rock` |

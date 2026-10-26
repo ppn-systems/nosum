@@ -44,26 +44,26 @@ internal sealed class ItemIcons : IItemIconSource
             // Blueprints are the rolled plan at the start of the tools sheet, both buildings alike (early art, docs/adr/ADR-007).
             [ItemCatalog.CoopBlueprint] = Tool(0, 0),
             [ItemCatalog.BarnBlueprint] = Tool(0, 0),
-            [ItemCatalog.OakSeed] = ObjectId(309),
-            [ItemCatalog.MapleSeed] = ObjectId(310),
-            [ItemCatalog.PineSeed] = ObjectId(311),
-            [ItemCatalog.Wood] = ObjectId(388),
-            [ItemCatalog.Stone] = ObjectId(390),
-            [ItemCatalog.Fiber] = ObjectId(771),
-            [ItemCatalog.Coal] = ObjectId(382),
-            [ItemCatalog.CopperOre] = ObjectId(378),
-            [ItemCatalog.IronOre] = ObjectId(380),
-            [ItemCatalog.CopperBar] = ObjectId(334),
-            [ItemCatalog.IronBar] = ObjectId(335),
+            [ItemCatalog.OakSeed] = ObjectId(22),
+            [ItemCatalog.MapleSeed] = ObjectId(23),
+            [ItemCatalog.PineSeed] = ObjectId(24),
+            [ItemCatalog.Wood] = ObjectId(46),
+            [ItemCatalog.Stone] = ObjectId(47),
+            [ItemCatalog.Fiber] = ObjectId(48),
+            [ItemCatalog.Coal] = ObjectId(49),
+            [ItemCatalog.CopperOre] = ObjectId(50),
+            [ItemCatalog.IronOre] = ObjectId(51),
+            [ItemCatalog.CopperBar] = ObjectId(52),
+            [ItemCatalog.IronBar] = ObjectId(53),
             [ItemCatalog.Chest] = Craftable(32, 528),
             [ItemCatalog.Scarecrow] = Craftable(0, 32),
             [ItemCatalog.Furnace] = Craftable(80, 40),
-            [ItemCatalog.WoodFence] = ObjectId(322),
-            [ItemCatalog.StonePath] = ObjectId(407),
-            [ItemCatalog.Sprinkler] = ObjectId(599),
-            [ItemCatalog.Salad] = ObjectId(196),
-            [ItemCatalog.BakedPotato] = ObjectId(208),
-            [ItemCatalog.PumpkinSoup] = ObjectId(236),
+            [ItemCatalog.WoodFence] = ObjectId(54),
+            [ItemCatalog.StonePath] = ObjectId(55),
+            [ItemCatalog.Sprinkler] = ObjectId(56),
+            [ItemCatalog.Salad] = ObjectId(62),
+            [ItemCatalog.BakedPotato] = ObjectId(63),
+            [ItemCatalog.PumpkinSoup] = ObjectId(64),
             [ItemCatalog.OakChair] = Furniture(0, 16),
             [ItemCatalog.BlueArmchair] = Furniture(8, 160),
             [ItemCatalog.BlueCouch] = Furniture(16, 216),
@@ -117,10 +117,10 @@ internal sealed class ItemIcons : IItemIconSource
         return false;
     }
 
-    // items.png is 384 x 624 (24 x 39 cells).
-    private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 624);
+    // items.png is 384 x 64 (24 x 4 cells). Object ids are cell numbers in compact order from 1 (0 means no picture).
+    private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 64);
 
-    // Object ids are the cell number on items.png, 24 cells to a row.
+    // Object ids are the cell number on items.png (compact order, 24 cells to a row).
     private static ItemIcon ObjectId(int id) => Object(id % 24, id / 24);
 
     // The scythe is a weapon: weapons.png is 128 x 144 (8 x 9 cells), the scythe is cell 47.
