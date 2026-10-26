@@ -8,7 +8,7 @@ Production is **one server** and the **web client on Cloudflare Pages**:
 
 ```
 player's browser ──https──► Cloudflare Pages      (the WASM client: the project "nosum")
-player's game    ──wss────► Cloudflare edge ──tunnel "nosum-prod"──► cloudflared ──► host:57300   (nosum.ppnsys.com/ws/)
+player's game    ──wss────► Cloudflare edge ──tunnel "nosum-api"──► cloudflared ──► host:57300   (nosum.ppnsys.com/ws/)
                                                                               │
                                                                               ├── postgres (nothing published)
                                                                               └── backup (nightly pg_dump)
@@ -25,7 +25,7 @@ Set these in GitHub → repository → **Settings → Environments → productio
 | `PROD_HOST` | secret | The host's address: its public IP or DNS name. SSH is the only port that must answer. |
 | `PROD_SSH_USER` | secret | The deploy user on that host. It must be in the `docker` group. |
 | `PROD_SSH_KEY` | secret | A private key for that user (section "Bootstrap", step 3). |
-| `CLOUDFLARE_TUNNEL_TOKEN` | secret | Zero Trust dashboard → Networks → Tunnels → `nosum-prod` → the Docker install command: the value after `--token`. |
+| `CLOUDFLARE_TUNNEL_TOKEN` | secret | Zero Trust dashboard → Networks → Tunnels → `nosum-api` → the Docker install command: the value after `--token`. |
 | `POSTGRES_PASSWORD` | secret | A new random value: `openssl rand -hex 24`. Letters and digits only. |
 | `CLOUDFLARE_API_TOKEN` | secret | Dashboard → My Profile → API Tokens → Create Custom token: permission **Account · Cloudflare Pages · Edit**, for your account only. |
 | `CLOUDFLARE_ACCOUNT_ID` | secret | Dashboard → any account page, right-hand column ("Account ID"). |
@@ -52,11 +52,11 @@ Set these in GitHub → repository → **Settings → Environments → productio
 The first deploy writes `deploy/.env` and starts PostgreSQL, the host and the connector, so there is no separate database step. To check the
 database password before the first deploy, start PostgreSQL alone by hand: `cd /opt/nosum && docker compose --env-file .env -f compose.yaml up -d postgres`.
 
-## The Cloudflare Tunnel (`nosum-prod`)
+## The Cloudflare Tunnel (`nosum-api`)
 
 One-time, in the Cloudflare Zero Trust dashboard:
 
-1. **Networks → Tunnels → Create a tunnel**. Connector type **Cloudflared**. Name it `nosum-prod`.
+1. **Networks → Tunnels → Create a tunnel**. Connector type **Cloudflared**. Name it `nosum-api` (the name is free: only the token and the public hostname matter to the deploy).
 2. On the install page choose **Docker**, copy the token (the value after `--token`) and store it as the `CLOUDFLARE_TUNNEL_TOKEN` secret.
    You do not run the install command: the deploy starts the connector (`cloudflared` in `deploy/compose.yaml`).
 3. **Public hostname**: subdomain `nosum`, domain `ppnsys.com`, path empty, service type **HTTP**, URL **`host:57300`**. Use the service name
@@ -113,6 +113,10 @@ Both workflows are manual only and run in the `production` environment. A deploy
 **The placeholder gate.** Both workflows first run `deploy/check-placeholder-art.sh public`. While `assets/PLACEHOLDER_CONTENT` exists, a
 production deploy is **refused by design** (ADR-040, ADR-031 D9). That file is removed by milestone M6 when the placeholder art is replaced.
 Do not delete it to get a deploy through; the owner decides when M6 is done.
+
+**First deploy: after the placeholder removal lands** (`feat/remove-placeholder-content`). The first test deploy runs with the strict
+public gate, so it can only pass once the marker and the unlisted placeholder files are gone. Before that, neither workflow can run to completion.
+The setup checklist at the top of `deploy/README.md` lists what to set up by hand before that run.
 
 **Rollback.** The deploy keeps the previous tag in `NOSUM_PREVIOUS_TAG`. If the readiness gate fails, the deploy restores that tag automatically
 and reports it. To roll back by hand (to any commit whose image is still in GHCR):
@@ -224,7 +228,7 @@ the private file may have leaked, and only with a plan: every pinned client refu
 
 Everyone is disconnected by the restart; login tokens are not affected.
 
-**Tunnel token.** In the dashboard, rotate the connector token of `nosum-prod`, update `CLOUDFLARE_TUNNEL_TOKEN`, and run **deploy-server**.
+**Tunnel token.** In the dashboard, rotate the connector token of `nosum-api`, update `CLOUDFLARE_TUNNEL_TOKEN`, and run **deploy-server**.
 The old token stops working at once.
 
 **Database password.** PostgreSQL reads `POSTGRES_PASSWORD` only when its data volume is created. Changing the secret alone breaks the host.
