@@ -12,6 +12,7 @@ only area allowed to use an image-processing package
 | `Nosum.MapReauthor` | Re-authors a placeholder `.tmx` onto Nosum's own terrain tileset by terrain kind, builds that tileset from the own PixelLab corner sets, and reports what still draws a placeholder ([ADR-040](../docs/adr/ADR-040-own-art-plan.md), [`art/`](../art/README.md)). |
 | `art_repack/` | Python 3 standard library only: rebuilds the replaced art under `assets/` from CC0 packs and pictures drawn in code (the farmer layers: `farmer.py`, buildable alone with `--only farmer`), and writes [`docs/art/provenance.md`](../docs/art/provenance.md) ([sourcing](../docs/art/sourcing.md)). Deterministic; `--check` fails when a file on disk differs. |
 | `synth_sounds.py` | Python 3 standard library only (no .NET project): synthesises Nosum's placeholder sound effects and the rain loop as 16-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
+| `synth_music.py` | Python 3 standard library only (no .NET project): composes Nosum's own music, eight seamless loops (one per season, day and night), as 8-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/music_*.wav` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
 
 ```bash
 python3 tools/art_repack/repack_cc0_art.py --sources <dir with the unzipped packs> [--check] [--docs]   # packs and pins: docs/art/provenance.md
