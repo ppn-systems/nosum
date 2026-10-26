@@ -16,12 +16,12 @@ loaded (a map names it as a tileset) and must exist at its size. The *Art* colum
 - Files the game loads: **95** of the 1,995 under `assets/` (the rest is never loaded): 42 images and 53 maps.
 - Cells used: **6,119** of 34,276 cells in those files (17.9%).
 - Frames among the used cells: **1,282**.
-- Art: **21** of 95 files already replaced, **74** still placeholder.
+- Art: **26** of 95 files already replaced, **69** still placeholder.
 - Map tile positions with a tile: **103,988** of 114,764 (map positions are not art cells and are not counted above).
 
 | Package | Image files | Map files | Used cells | Frames | Cells in its files | Used cells replaced | Files replaced |
 | :-- | --: | --: | --: | --: | --: | --: | --: |
-| Player farmer layers | 5 | 0 | 71 | 71 | 8,666 | 0 | 0 |
+| Player farmer layers | 5 | 0 | 71 | 71 | 8,666 | 71 | 5 |
 | Core terrain (Farm, Town, FarmHouse) | 10 | 3 | 2,739 | 682 | 10,030 | 0 | 0 |
 | Items (icons, ground items, furniture, crafted objects) | 3 | 0 | 141 | 0 | 4,280 | 141 | 3 |
 | Crops and soil | 2 | 0 | 145 | 113 | 560 | 145 | 2 |
@@ -31,7 +31,7 @@ loaded (a map names it as a tileset) and must exist at its size. The *Art* colum
 | Animals | 2 | 0 | 24 | 24 | 48 | 24 | 2 |
 | UI | 4 | 0 | 118 | 0 | 7,393 | 118 | 4 |
 | Remaining maps | 10 | 50 | 2,538 | 320 | 6,056 | 0 | 0 |
-| **Sum** | 48 | 53 | 6,119 | 1,282 | | 770 | 22 |
+| **Sum** | 48 | 53 | 6,119 | 1,282 | | 841 | 27 |
 
 A file several packages draw from appears in each of them, so the image-file sum can exceed the distinct count above; the cell sums do not overlap.
 Audio: the code loads no audio file yet; the audio package starts with [ADR-039](../adr/ADR-039-audio-hooks.md). Fonts: the only font loaded is not a placeholder (last section), so that package has no files.
@@ -40,11 +40,11 @@ Audio: the code loads no audio file yet; the audio package starts with [ADR-039]
 
 | File (under `assets/`) | Size px | Grid px | Used / total cells | Frames | Used by | Art |
 | :-- | --: | --: | --: | --: | :-- | :-- |
-| `Characters/Farmer/farmer_base.png` | 288 × 672 | 16 × 32 | 18 / 378 | 18 | FarmerSprite | placeholder |
-| `Characters/Farmer/hairstyles.png` | 128 × 672 | 16 × 32 | 24 / 168 | 24 | FarmerSprite | placeholder |
-| `Characters/Farmer/hats.png` | 240 × 880 | 20 × 20 | 8 / 528 | 8 | FarmerSprite, ItemIcons | placeholder |
-| `Characters/Farmer/pants.png` | 1920 × 1376 | 16 × 32 | 9 / 5,160 | 9 | FarmerSprite | placeholder |
-| `Characters/Farmer/shirts.png` | 256 × 608 | 8 × 8 | 12 / 2,432 | 12 | FarmerSprite, ItemIcons | placeholder |
+| `Characters/Farmer/farmer_base.png` | 288 × 672 | 16 × 32 | 18 / 378 | 18 | FarmerSprite | replaced |
+| `Characters/Farmer/hairstyles.png` | 128 × 672 | 16 × 32 | 24 / 168 | 24 | FarmerSprite | replaced |
+| `Characters/Farmer/hats.png` | 240 × 880 | 20 × 20 | 8 / 528 | 8 | FarmerSprite, ItemIcons | replaced |
+| `Characters/Farmer/pants.png` | 1920 × 1376 | 16 × 32 | 9 / 5,160 | 9 | FarmerSprite | replaced |
+| `Characters/Farmer/shirts.png` | 256 × 608 | 8 × 8 | 12 / 2,432 | 12 | FarmerSprite, ItemIcons | replaced |
 
 ## Core terrain (Farm, Town, FarmHouse)
 
