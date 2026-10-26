@@ -178,7 +178,7 @@ public sealed class GameMapsTests
         }
     }
 
-    // A mine names the own terrain tileset as "../own_terrain.png": the browser resolves it to Maps/own_terrain.png, so the link is that file.
+    // A mine floor names the cave sheet as "../cave.png": the browser resolves it to Maps/cave.png, so the link is that file.
     private static string Normalized(string path)
     {
         List<string> parts = [];

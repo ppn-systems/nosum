@@ -12,7 +12,7 @@ namespace Nosum.Wasm.Game;
 /// <param name="Maple"><c>trees/maple.png</c>, the maple.</param>
 /// <param name="Pine"><c>trees/pine.png</c>, the pine.</param>
 /// <param name="Objects"><c>assets/sprites/items.png</c>, the object sheet (24 columns of 16 px cells).</param>
-/// <param name="Mine"><c>assets/Maps/Mines/mine.png</c>, the mine's tile sheet (16 columns of 16 px cells), where the ladder is.</param>
+/// <param name="Mine"><c>assets/Maps/cave.png</c>, the mine's tile sheet (16 columns of 16 px cells), where the ladder is.</param>
 internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int Objects, int Mine);
 
 /// <summary>
@@ -29,7 +29,7 @@ internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int O
 /// <item><term>stone</term><description>object 343 (pale rocks) or 450 (brown rock)</description></item>
 /// <item><term>copper ore node</term><description>object 751 (the copper mining node)</description></item>
 /// <item><term>iron ore node</term><description>object 290 (the iron mining node)</description></item>
-/// <item><term>ladder</term><description>mine.png cell (3, 4): the top of a ladder going down into a dark hole</description></item>
+/// <item><term>ladder</term><description>cave.png cell (0, 2), tile 32 of the cave sheet: the top of a ladder going down into a dark hole</description></item>
 /// <item><term>weed</term><description>object 313, 314 or 315 (green weeds)</description></item>
 /// <item><term>grass</term><description>object 771 (a tuft of fiber)</description></item>
 /// <item><term>forage</term><description>the object cell of the item it gives (<c>ItemDefinition.ObjectIcon</c>, docs/adr/ADR-025 D6)</description></item>
@@ -102,7 +102,7 @@ internal static class NodeSprites
                 break;
 
             case NodeKind.Ladder:
-                world.Add(textures.Mine, 3 * Cell, 4 * Cell, Cell, Cell, left, baseY - Cell, baseY, sortX, id);
+                world.Add(textures.Mine, 0, 2 * Cell, Cell, Cell, left, baseY - Cell, baseY, sortX, id);
                 break;
 
             case NodeKind.Weed:

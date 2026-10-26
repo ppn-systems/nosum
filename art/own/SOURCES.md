@@ -30,25 +30,6 @@ The `.json` files keep the fields the build needs (id, the full prompt text, sty
 
 Not used and not committed: the grass / tilled-soil set (`773ea46a-2e3c-4063-93c5-f32ef0dafdad`, belongs with the soil and crops package).
 
-## `Maps/own_terrain.png`
-
-Composed by `dotnet run --project tools/Nosum.MapReauthor -- tileset` from the four sets above (`TilesetBuilder.cs` says what is taken from where): fills are the uniform tiles with mirrored variants (half of the water variants without the swirl), the corner tiles are copied unchanged apart from the grass colour. `MapReauthorTests` fails when the committed file is not what the tool writes.
-
-## `Maps/*.png` (own tilesheets)
-
-One file per placeholder sheet a hosted map names (`spring_outdoorsTileSheet.png`, `spring_town.png`, `Mines/mine.png`, ...), with the placeholder's name, size and grid; the client serves it under the placeholder's name. Made by `dotnet run --project tools/Nosum.MapReauthor -- reauthor all` (`SheetBuilder`, `ObjectPainter`):
-
-| Field | Value |
-| :-- | :-- |
-| Made by | The painter, in code (PPN Systems). No third-party art and no pixel of a placeholder is copied. `MapReauthorTests` checks the files are what the tool writes and that fewer than 3 % of their pixels equal the placeholder's |
-| What it reads from a placeholder tile | Only a floor plan: which of the 16 blocks of 4 × 4 px hold anything, and the material of each (named from its average colour), plus whether the tile is a translucent shadow. Layouts of the maps stay (ADR-040 D9) |
-| What it draws | Silhouette: the blocks smoothed to round shapes. Outline: the shared dark tone `(63, 38, 49)`. Light from the top left. Textures per material (leaves, bark, rock strata, shingles, planks, brick, cobbles, water ripples) are code, in the Kenney palette of `tools/art_repack/draw.py` (CC0 colours, no sprites) and, for earth and rock, the tones of the PixelLab terrain and cliff sets |
-| Not placed | Cells no hosted map and no client drawing routine uses stay transparent |
-| `Mines/mine.png` cell (3, 4) | The ladder the client draws for the mine ladder node (`NodeSprites`), drawn in code (`Ladder.cs`) |
-| `paths.png` | Transparent: the `Paths` layer is logic only and never drawn |
-
-`own_terrain.png` also holds the cobble path, drawn in code (`PathArt.cs`): 4 fill variants per walking trait, and the 16 corner tiles that join it to the grass of `grass_dirt`.
-
 ## `Maps/*.tmx`
 
 The mine is written by `tools/Nosum.MapGen` (ADR-042 P3): `Mine.tmx` compiles the hand-drawn `source/layouts/Mine.txt` (`layout Mine`), and the forty floors (`Mines/*.tmx`)
