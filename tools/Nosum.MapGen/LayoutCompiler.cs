@@ -183,6 +183,7 @@ internal static class LayoutCompiler
             mapLayers.Add(new MapLayer(layer.Name, gids));
         }
 
+        AutoTerrain.Apply(width, height, placed, mapLayers);
         return TmxWriter.Write(width, height, placed, mapLayers, properties);
     }
 

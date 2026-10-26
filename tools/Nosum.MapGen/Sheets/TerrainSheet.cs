@@ -62,6 +62,23 @@ internal static class TerrainSheet
     private static readonly int[] s_courseTop = [0, 5, 11];
     private static readonly int[] s_courseHeight = [5, 6, 5];
 
+    /// <summary>Returns the pair a transition of <paramref name="upper"/> over <paramref name="lower"/> belongs to, or -1 when the sheet has none.</summary>
+    /// <param name="upper">The terrain drawn over.</param>
+    /// <param name="lower">The terrain it borders.</param>
+    /// <returns>The pair, 0 to 6, or -1.</returns>
+    public static int PairOf(Ground upper, Ground lower)
+    {
+        for (int i = 0; i < s_pairs.Length; i++)
+        {
+            if (s_pairs[i].Upper == upper && s_pairs[i].Lower == lower)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     /// <summary>Returns the index of a fill.</summary>
     /// <param name="ground">The kind of fill.</param>
     /// <param name="variant">The texture variant, 0 to <see cref="Variants"/> − 1.</param>
