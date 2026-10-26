@@ -18,7 +18,7 @@ public sealed class CoopLandMapTests
 {
     private static readonly Guid s_coop = Guid.Parse("33333333-3333-3333-3333-333333333333");
 
-    private static TileMap Load(MapSpec spec) => TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", spec.TmxFile)));
+    private static TileMap Load(MapSpec spec) => TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", spec.TmxFile)));
 
     private static MapSpec Spec(string id)
     {

@@ -160,7 +160,7 @@ public sealed class ShopRulesTests
         foreach (MapSpec spec in withShops)
         {
             spec.IsPrivate.Should().BeFalse("a shop is somewhere everyone can go");
-            TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", spec.TmxFile)));
+            TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", spec.TmxFile)));
             WalkGrid grid = spec.BuildWalkGrid(map);
             bool[] reachable = ReachableFrom(grid, spec.SpawnTileX, spec.SpawnTileY);
             foreach (ShopPoint point in spec.Shops)

@@ -62,7 +62,7 @@ public sealed class TillGridTests
     [Fact]
     public void FromMap_RealFarmMap_HasTillableGroundNearTheFarmhouseDoor()
     {
-        TileMap map = TmxReader.Parse(File.ReadAllText(FindUp("assets/Maps/Farm.tmx")));
+        TileMap map = TmxReader.Parse(File.ReadAllText(FindUp("art/own/Maps/Farm.tmx")));
         WalkGrid walk = FarmProps.BuildWalkGrid(map);
 
         TillGrid grid = TillGrid.FromMap(map, walk);

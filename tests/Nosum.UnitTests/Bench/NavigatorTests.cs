@@ -18,7 +18,7 @@ namespace Nosum.UnitTests.Bench;
 /// </summary>
 public sealed class NavigatorTests
 {
-    private static readonly WorldMaps s_world = WorldMaps.Load(RepoFiles.Path("assets", "Maps"));
+    private static readonly WorldMaps s_world = WorldMaps.Load(RepoFiles.Path("art", "own", "Maps"));
 
     public static TheoryData<string> PublicMaps
     {

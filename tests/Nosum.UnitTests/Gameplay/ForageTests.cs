@@ -127,7 +127,7 @@ public sealed class ForageTests
     [InlineData("Farm.tmx", 65)]
     public void ReadForage_TheRealMaps_FindsTheForageGlyphsOfThePathsLayer(string mapFile, int pathsFirstGid)
     {
-        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", mapFile)));
+        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", mapFile)));
         TileSet paths = map.TileSets.Single(t => t.Name == "Paths");
         paths.FirstGid.Should().Be(pathsFirstGid);
         int expected = map.FindLayer("Paths")!.Gids.Count(gid => gid >= paths.FirstGid && NodeSites.IsForageIndex(gid - paths.FirstGid));
@@ -142,5 +142,5 @@ public sealed class ForageTests
 
     [Fact]
     public void ReadForage_AMapWithoutAPathsLayer_HasNoSpots()
-        => NodeSites.ReadForage(TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", "FarmHouse.tmx")))).Should().BeEmpty();
+        => NodeSites.ReadForage(TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", "FarmHouse.tmx")))).Should().BeEmpty();
 }

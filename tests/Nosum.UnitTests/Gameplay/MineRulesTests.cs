@@ -24,7 +24,7 @@ public sealed class MineRulesTests
     private static (MapSpec Spec, WalkGrid Grid, HashSet<(int X, int Y)> Reserved, int SpawnX, int SpawnY) Floor(int floor)
     {
         _ = GameMaps.TryGet(MineRules.FloorMapId(floor), out MapSpec? spec);
-        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", spec!.TmxFile)));
+        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", spec!.TmxFile)));
         WalkGrid grid = spec.BuildWalkGrid(map);
         (double x, double y) = SpawnPoint.Find(grid, spec.SpawnTileX, spec.SpawnTileY);
         int tx = WarpRule.TileX(x, grid.TileSize);
@@ -111,7 +111,7 @@ public sealed class MineRulesTests
         MineLayouts.All.ToArray().Select(l => l.File).Should().OnlyHaveUniqueItems();
         for (int floor = 1; floor <= MineRules.MaxFloor; floor++)
         {
-            File.Exists(RepoFiles.Path("assets", "Maps", MineLayouts.FileOf(floor))).Should().BeTrue($"floor {floor}");
+            File.Exists(RepoFiles.Path("art", "own", "Maps", MineLayouts.FileOf(floor))).Should().BeTrue($"floor {floor}");
         }
     }
 

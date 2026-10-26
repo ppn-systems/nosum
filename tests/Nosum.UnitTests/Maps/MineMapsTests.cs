@@ -19,7 +19,7 @@ public sealed class MineMapsTests
     private static (MapSpec Spec, TileMap Map, WalkGrid Grid) Load(string id)
     {
         _ = GameMaps.TryGet(id, out MapSpec? spec);
-        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", spec!.TmxFile)));
+        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", spec!.TmxFile)));
         return (spec, map, spec.BuildWalkGrid(map));
     }
 
