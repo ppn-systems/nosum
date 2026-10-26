@@ -65,10 +65,10 @@ Cloudflare Tunnel, deployed by SSH from a manual workflow. Nosum adopts the same
   `nosum_intents_rejected_total` and a test request through the tunnel after the first deploy.
 - The SSH host key is not pinned by the workflow. [Assumption] The runner trusts the host named by `PROD_HOST`; a hostile network could impersonate
   it and receive the deploy secrets. Pinning the host key is the next hardening step.
-- A deploy cannot run while the placeholder marker exists (D8). Until M6 the production deploy is blocked by design.
+- A deploy cannot run while the placeholder marker exists (D8). Until M6 the production deploy was blocked by design; M6 removed the marker (ADR-040 phase 4).
 
 ## Revisit when
 
-- Milestone M6 removes `assets/PLACEHOLDER_CONTENT` (then the gate passes and the first public deploy can run).
+- Milestone M6 removes `assets/PLACEHOLDER_CONTENT` (done, 2026-10-26). The gate passes; a public deploy still needs the decision on the git history in `docs/ops/README.md`.
 - The owner wants a second host or a staging environment.
 - Cloudflare changes the tunnel's idle timeout, or the connector stops setting `X-Forwarded-For`.

@@ -6,7 +6,7 @@ Client and server talk over one Nalix WebSocket channel and share the same C# co
 
 > Status: single-player slice. The client loads the farm map and a layered farmer you can walk
 > around (Canvas2D, 60 FPS); the server accepts WebSocket connections but has no game handlers
-> yet. Art and maps are placeholder content ([ADR-007](docs/adr/ADR-007-placeholder-content-16px.md)).
+> yet. Art and maps are Nosum's own or CC0 art; the Stardew Valley placeholder content is gone from the repository ([ADR-007](docs/adr/ADR-007-placeholder-content-16px.md), [ADR-040](docs/adr/ADR-040-own-art-plan.md)), though its git history is not (`docs/ops/README.md`).
 
 ## Layout
 
@@ -19,7 +19,7 @@ Client and server talk over one Nalix WebSocket channel and share the same C# co
 | [`wasm/`](wasm/) | Blazor WebAssembly client | `Nosum.Wasm.slnx` |
 | [`tests/`](tests/) | Unit and integration tests | `Nosum.Tests.slnx` |
 | [`bench/`](bench/) | Browser performance benchmarks | `Nosum.Bench.slnx` |
-| [`assets/`](assets/) | Placeholder content, 16 px (ADR-007: private, never shipped) | — |
+| [`assets/`](assets/) | The replacement sprite sheets the game loads (own or CC0, 16 px; ADR-040) | — |
 | [`tools/`](tools/) | Developer tools (atlas packer) | `Nosum.Tools.slnx` |
 | [`deploy/`](deploy/) | Deployment configuration | — |
 | [`docs/`](docs/) | Game pillars (`docs/design/pillars.md`), architecture decision records | — |

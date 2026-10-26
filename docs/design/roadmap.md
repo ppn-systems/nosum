@@ -68,6 +68,9 @@ console errors.
   of the public release branch.
 - Own music and sound effects.
 
+**Status (2026-10-26): the art is done in the repository (ADR-040 phase 4); the audio is not.** The repository holds no placeholder art, but its git
+history still does. A public release needs a history without it: the owner's decision (`docs/ops/README.md`).
+
 ## Rules for every wave
 
 - Each feature: an ADR (approved by the coordinator after a written critique), one branch, one PR into `master`.
