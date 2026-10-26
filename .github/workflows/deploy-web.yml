@@ -13,6 +13,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  placeholder-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Refuse a public release while placeholder art is present
+        run: sh deploy/check-placeholder-art.sh public
+
   publish:
     runs-on: ubuntu-latest
     environment: production

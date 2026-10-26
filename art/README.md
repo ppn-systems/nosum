@@ -16,8 +16,9 @@ recorded provenance in [`own/SOURCES.md`](own/SOURCES.md).
 (`assets/Maps/<name>.tmx` on the web side, `maps/<name>.tmx` on the server). **Every hosted map has an own file** in `own/Maps/` (same relative path,
 `Mines/3.tmx` included) and is linked from there; nothing in the code changes. The own `.tmx` keeps the placeholder's tilesheet names, and the client links
 the own sheet of each name from `own/Maps/` to the placeholder's served path (`own/Maps/spring_town.png` is served as `assets/Maps/spring_town.png`), so every
-tile index of every layer draws own art while the layers, tile properties and animations are the placeholder's. The placeholder maps and sheets stay in
-`assets/` as the input of the tool; they are no longer linked into the client or the server, and `Nosum.AssetInventory --release` counts a map or a
-`Maps/` sheet with an own file as replaced. What is left on a placeholder is the farmer (`assets/Characters/Farmer/`).
+tile index of every layer draws own art while the layers, tile properties and animations are the placeholder's. The placeholder maps and sheets are no longer
+in the repository (commit `64ce88e` has them; [`tools/README.md`](../tools/README.md) says how the tool reads them). `Nosum.AssetInventory --release` checks
+each listed map or `Maps/` sheet against its own file, and the sprite sheets at their own paths in `assets/`; nothing listed is a placeholder any more
+(ADR-040 phase 4).
 
 The tool that produces these files is [`tools/Nosum.MapReauthor`](../tools/README.md): `reauthor all` writes the maps, the reports and the sheets.

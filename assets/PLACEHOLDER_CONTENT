@@ -1,8 +1,0 @@
-This repository still holds the Stardew Valley placeholder content (docs/adr/ADR-007).
-
-It is copyrighted by ConcernedApe. While this file exists:
-  - a build made for a public release is refused (deploy/check-placeholder-art.sh, deploy/PlaceholderGate.targets);
-  - the deployment stays private: an IP allow-list in front of the client (deploy/compose.yaml).
-
-Milestone M6 replaces every placeholder with Nosum's own art in the same layouts, deletes the placeholder content, and
-deletes THIS FILE as its last step. Do not delete it earlier to get a build through: the gate exists to stop exactly that.

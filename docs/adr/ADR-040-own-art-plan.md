@@ -151,6 +151,26 @@ layer and sheet, and the animated tiles.
 - **Gate.** `Nosum.AssetInventory --release` counts a map or `Maps/` sheet with an own file as replaced; fingerprints are untouched. It now lists only the five farmer layers.
 - **Not done.** The farmer (needs PixelLab budget). Quality: painted objects are readable but plain; buildings in Town lack windows and signs, and animated water and waterfalls are two-frame ripples at best. A hand pass or PixelLab objects can replace any sheet cell later without a code change.
 
+### Phase 4 — M6 complete: the repository holds no placeholder content
+
+- **Removed.** 1,967 files under `assets/` in one commit (`chore(assets)`): the 53 maps, the 16 map tilesheets that the own maps replace, and every file the game
+  never loads (fonts, dialogue, schedules, monsters, portraits, minigames, volcano layouts). The marker `assets/PLACEHOLDER_CONTENT` went last, in its own commit. The
+  95 listed files are all replaced: 26 replacements stay under `assets/` at their paths (own art or CC0, `docs/art/provenance.md`); the 69 maps and map tilesheets
+  are served from `art/own/` (linked by `wasm/Nosum.Wasm` and `server/Nosum.Host`, as phase 1 and 3 set up).
+- **Gate.** `Nosum.AssetInventory --release` reads only `docs/art/placeholders.sha256` and the repository. A listed file is a placeholder while its hash matches at
+  its `assets/` path, even when an own replacement exists (exit 1); a missing or resized file is broken, and any file under `assets/` other than the listed ones and
+  `README.md` is unlisted (exit 2). `deploy/check-placeholder-art.sh public` passes only when the marker is gone and this check passes; the MSBuild target runs the
+  same script after its marker check. `private` is unchanged (a warning while the marker exists).
+- **The tools read the placeholder content from history.** `write`, `--check`, `--write-fingerprints` and `reauthor` read the folder named by
+  `NOSUM_PLACEHOLDER_ROOT`: the `assets/` of commit `64ce88e`. With it, the inventory's `--check` and `reauthor all --check` reproduce the committed report and maps
+  (checked when the content was removed). The tests that compare with the placeholder return early without the variable and run with it set
+  (`tools/README.md`).
+- **History.** The Stardew files are still in git history (commit `64ce88e` and earlier). A public repository or release needs a history without them. That is the
+  owner's decision (`docs/ops/README.md`); this phase does not rewrite history.
+- **Not M6.** Own music and sound effects (ADR-039) are still open. The art part of M6 is complete; the audio part is not.
+- **Deviations from D6 and D8.** D6 said a placeholder is recognised by its hash; the gate also checks the file at its `assets/` path, so a restored placeholder
+  cannot pass behind its own replacement. D8's "no second gate" held: the marker check stays, and the release check is the same tool.
+
 ## Alternatives considered
 
 - **Replace everything in `assets/`** — 1,953 files are never loaded; replacing them is wasted work. The inventory lists only what is loaded; the

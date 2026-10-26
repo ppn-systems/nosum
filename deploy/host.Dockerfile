@@ -4,16 +4,22 @@
 # The final image is the .NET runtime only (no SDK), runs as the non-root `app` user and carries nothing but the published host and the maps it loads.
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-# public | private. A public build is refused while assets/PLACEHOLDER_CONTENT exists (docs/adr/ADR-031 D9), here and again by MSBuild at publish.
+# public | private. A public build is refused while assets/PLACEHOLDER_CONTENT exists or the release check of tools/Nosum.AssetInventory fails
+# (docs/adr/ADR-031 D9, docs/adr/ADR-040 D8), here and again by MSBuild at publish.
 ARG NOSUM_RELEASE=private
 WORKDIR /src
 
 COPY global.json .editorconfig Directory.Build.props Directory.Packages.props Version.props ./
 COPY engine/Nosum.Core engine/Nosum.Core
+COPY engine/Nosum.Rendering engine/Nosum.Rendering
 COPY contracts contracts
 COPY gameplay gameplay
 COPY server server
 COPY assets assets
+COPY art/own/Maps art/own/Maps
+COPY docs/art/placeholders.sha256 docs/art/placeholders.sha256
+COPY tools/Directory.Build.props tools/Directory.Build.props
+COPY tools/Nosum.AssetInventory tools/Nosum.AssetInventory
 COPY deploy/check-placeholder-art.sh deploy/PlaceholderGate.targets deploy/
 
 RUN sh deploy/check-placeholder-art.sh "$NOSUM_RELEASE"

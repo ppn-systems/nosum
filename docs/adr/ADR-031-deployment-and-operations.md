@@ -90,7 +90,8 @@ Built on branch `feat/ops` (M5). Where the decision above is silent, this is wha
   p99 16 ms and 5 ms. Also 100 clients: mean 2.4 ms, p99 at most 10 ms. The tick percentiles are bucket upper bounds.
 - **D9 gate.** The marker is `assets/PLACEHOLDER_CONTENT`. `deploy/check-placeholder-art.sh [public|private]` (exit 1 for public while it exists), the MSBuild target in
   `deploy/PlaceholderGate.targets` (imported through `server/` and `wasm/` `Directory.Build.targets`; `-p:NosumRelease=public` fails the publish before anything is copied), and both
-  Dockerfiles run the script first. The private deployment is `NOSUM_ALLOW_IPS`, which compose requires.
+  Dockerfiles run the script first. The private deployment is `NOSUM_ALLOW_IPS`, which compose requires. M6 (ADR-040 phase 4) removed the marker; the public check also runs
+  `Nosum.AssetInventory --release` (every listed file replaced, nothing unlisted under `assets/`), so a public build needs both.
 - **Weak spots.** (1) The Docker daemon was not available where this was built: the images were not built and the compose stack was not started. What was checked instead: the Dockerfile
   COPY sets were reproduced in a clean directory and published (host and client); `docker compose config` accepts the file and refuses to start without the required settings; the
   Caddyfile and the entrypoint-written Nalix settings were run together for real; every script has a test. The AOT client publish (`wasm-tools`) was not run. (2) Nalix prints its own banner and

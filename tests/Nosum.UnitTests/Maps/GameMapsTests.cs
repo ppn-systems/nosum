@@ -15,7 +15,7 @@ namespace Nosum.UnitTests.Maps;
 /// <summary>The real placeholder maps and the catalogue that names them.</summary>
 public sealed class GameMapsTests
 {
-    private static TileMap Load(MapSpec spec) => TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", spec.TmxFile)));
+    private static TileMap Load(MapSpec spec) => TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", spec.TmxFile)));
 
     // The csproj spells paths with backslashes.
     private static string InProject(string path) => path.Replace('/', '\\');
@@ -169,13 +169,31 @@ public sealed class GameMapsTests
         string folder = slash < 0 ? string.Empty : spec.TmxFile[..(slash + 1)];
         foreach (TileSet set in Load(spec).TileSets)
         {
-            string image = folder + (set.ImageSource.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? set.ImageSource : set.ImageSource + ".png");
-            image = image.Replace('\\', '/');
-            File.Exists(RepoFiles.Path("assets", "Maps", image)).Should().BeTrue($"{image} of {id}");
+            string image = Normalized(folder + (set.ImageSource.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? set.ImageSource : set.ImageSource + ".png"));
+            File.Exists(RepoFiles.Path("art", "own", "Maps", image)).Should().BeTrue($"{image} of {id}");
 
             // A sheet with an own file is served from art/own/Maps/ under the placeholder's name; the client never gets the placeholder.
             string sheetRoot = File.Exists(RepoFiles.Path("art", "own", "Maps", image)) ? @"art\own\Maps\" : @"assets\Maps\";
             wasm.Should().Contain(sheetRoot + InProject(image));
         }
+    }
+
+    // A mine names the own terrain tileset as "../own_terrain.png": the browser resolves it to Maps/own_terrain.png, so the link is that file.
+    private static string Normalized(string path)
+    {
+        List<string> parts = [];
+        foreach (string part in path.Replace('\\', '/').Split('/'))
+        {
+            if (part == "..")
+            {
+                parts.RemoveAt(parts.Count - 1);
+            }
+            else if (part.Length > 0 && part != ".")
+            {
+                parts.Add(part);
+            }
+        }
+
+        return string.Join('/', parts);
     }
 }

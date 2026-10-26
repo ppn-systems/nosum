@@ -17,7 +17,7 @@ namespace Nosum.UnitTests.Gameplay;
 
 public sealed class NodeSitesTests
 {
-    private static TileMap Load(string mapFile) => TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", mapFile)));
+    private static TileMap Load(string mapFile) => TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", mapFile)));
 
     [Theory]
     [InlineData(9, NodeKind.Tree, TreeVariant.Oak)]

@@ -16,6 +16,9 @@ namespace Nosum.MapReauthor;
 /// </summary>
 internal static class Program
 {
+    /// <summary>The environment variable that names the placeholder <c>assets/</c> folder.</summary>
+    internal const string PlaceholderVariable = "NOSUM_PLACEHOLDER_ROOT";
+
     private const string Usage = "usage: Nosum.MapReauthor [--repo <root>] (tileset | reauthor (<Map> | all) [--check] | preview <Map> --out <png> [--placeholder])";
 
     public static int Main(string[] args)
@@ -47,26 +50,33 @@ internal static class Program
         }
 
         repo = Path.GetFullPath(repo ?? FindRoot());
-        string assets = Path.Combine(repo, "assets", "Maps");
         string own = Path.Combine(repo, "art", "own", "Maps");
-        switch (words)
+        try
         {
-            case ["tileset"]:
-                File.WriteAllBytes(Path.Combine(own, OwnTileset.Name + ".png"), TilesetBuilder.Build(Path.Combine(repo, "art", "own", "source", "pixellab")).ToPng());
-                Console.WriteLine($"Wrote art/own/Maps/{OwnTileset.Name}.png ({OwnTileset.TileCount} tiles).");
-                return 0;
-            case ["reauthor", "all"]:
-                return RunAll(repo, check, Console.Out);
-            case ["reauthor", var map]:
-                return Run(repo, map, check, Console.Out);
-            case ["preview", var map] when output is not null:
-                string tmx = placeholder ? Path.Combine(assets, map + ".tmx") : Path.Combine(own, map + ".tmx");
-                File.WriteAllBytes(output, Preview.Render(tmx, placeholder ? [assets] : [own, assets], map.Contains('/', StringComparison.Ordinal) ? map[..map.LastIndexOf('/')] : string.Empty).ToPng());
-                Console.WriteLine($"Wrote {output}.");
-                return 0;
-            default:
-                Console.Error.WriteLine(Usage);
-                return 2;
+            switch (words)
+            {
+                case ["tileset"]:
+                    File.WriteAllBytes(Path.Combine(own, OwnTileset.Name + ".png"), TilesetBuilder.Build(Path.Combine(repo, "art", "own", "source", "pixellab")).ToPng());
+                    Console.WriteLine($"Wrote art/own/Maps/{OwnTileset.Name}.png ({OwnTileset.TileCount} tiles).");
+                    return 0;
+                case ["reauthor", "all"]:
+                    return RunAll(repo, check, Console.Out);
+                case ["reauthor", var map]:
+                    return Run(repo, map, check, Console.Out);
+                case ["preview", var map] when output is not null:
+                    string tmx = placeholder ? Path.Combine(PlaceholderMaps(), map + ".tmx") : Path.Combine(own, map + ".tmx");
+                    File.WriteAllBytes(output, Preview.Render(tmx, placeholder ? [PlaceholderMaps()] : [own], map.Contains('/', StringComparison.Ordinal) ? map[..map.LastIndexOf('/')] : string.Empty).ToPng());
+                    Console.WriteLine($"Wrote {output}.");
+                    return 0;
+                default:
+                    Console.Error.WriteLine(Usage);
+                    return 2;
+            }
+        }
+        catch (InvalidOperationException error)
+        {
+            Console.Error.WriteLine(error.Message);
+            return 2;
         }
     }
 
@@ -78,7 +88,7 @@ internal static class Program
     /// <returns>0 on success; 1 when <paramref name="check"/> finds a difference.</returns>
     internal static int Run(string repo, string map, bool check, TextWriter log)
     {
-        string source = Path.Combine(repo, "assets", "Maps", map + ".tmx");
+        string source = Path.Combine(PlaceholderMaps(), map + ".tmx");
         ReauthorResult result = Reauthor.Run(File.ReadAllText(source), map + ".tmx", KindTable.Embedded());
         string tmx = Path.Combine(repo, "art", "own", "Maps", map + ".tmx");
         string report = Path.Combine(repo, "art", "own", "reports", map + ".md");
@@ -104,7 +114,7 @@ internal static class Program
     /// <returns>0 on success; 1 when <paramref name="check"/> finds a difference.</returns>
     internal static int RunAll(string repo, bool check, TextWriter log)
     {
-        string assets = Path.Combine(repo, "assets", "Maps");
+        string assets = PlaceholderMaps();
         string own = Path.Combine(repo, "art", "own", "Maps");
         KindTable table = KindTable.Embedded();
         SheetBuilder sheets = new();
@@ -127,7 +137,26 @@ internal static class Program
         return stale == 0 ? 0 : 1;
     }
 
-    /// <summary>Lists the map files the world hosts, relative to <c>assets/Maps</c>, each once.</summary>
+    /// <summary>
+    /// Gets the placeholder <c>Maps/</c> folder that the re-author reads. The repository no longer holds the placeholder content (ADR-040 D9); the
+    /// folder is the <c>assets/Maps</c> of commit <c>64ce88e</c>, named by <c>NOSUM_PLACEHOLDER_ROOT</c> (the <c>assets/</c> folder itself).
+    /// </summary>
+    /// <returns>The folder.</returns>
+    /// <exception cref="InvalidOperationException">The variable is unset or does not name a folder.</exception>
+    internal static string PlaceholderMaps()
+    {
+        string? root = Environment.GetEnvironmentVariable(PlaceholderVariable);
+        if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+        {
+            throw new InvalidOperationException(
+                $"This reads the placeholder maps, which the repository no longer holds. Set {PlaceholderVariable} to the assets/ folder of commit 64ce88e "
+                + "(git archive 64ce88e assets | tar -x -C <dir>, then <dir>/assets).");
+        }
+
+        return Path.Combine(Path.GetFullPath(root), "Maps");
+    }
+
+    /// <summary>Lists the map files the world hosts, relative to the placeholder <c>Maps/</c> folder, each once.</summary>
     /// <returns>The files, sorted.</returns>
     internal static IReadOnlyList<string> HostedMaps()
     {
