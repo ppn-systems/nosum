@@ -60,7 +60,7 @@ services:
     networks: [nosum]
 
   cloudflared:
-    image: cloudflare/cloudflared:${CLOUDFLARED_TAG:-2025.8.1}
+    image: cloudflare/cloudflared:${CLOUDFLARED_TAG:-2026.10.3}
     restart: unless-stopped
     # Dials out to Cloudflare and forwards the public hostname to http://host:57300 (the public hostname is set in the dashboard, docs/ops/README.md).
     # The token comes from deploy/.env; cloudflared reads it from TUNNEL_TOKEN, so it never appears on a command line.
