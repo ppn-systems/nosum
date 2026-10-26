@@ -11,6 +11,7 @@ namespace Nosum.AssetInventory;
 /// Command line. With no option it writes <c>docs/art/inventory.md</c>. <c>--check</c> writes nothing and exits 1 when the committed
 /// report is stale. <c>--write-fingerprints</c> records the placeholder files' hashes once. <c>--release</c> is the release gate: it reads
 /// only the committed list (<c>docs/art/placeholders.sha256</c>) and the files of the repository, so it needs no placeholder content.
+/// <c>--stardew-scan</c> lists every file whose hash is a Stardew Valley fingerprint (<c>docs/art/stardew-fingerprints.sha256</c>, docs/adr/ADR-042 D5).
 /// The three other modes read the placeholder content, which the repository no longer holds (ADR-040 D9): point
 /// <c>NOSUM_PLACEHOLDER_ROOT</c> at an <c>assets/</c> folder of the commit that still had it (<c>64ce88e</c>).
 /// </summary>
@@ -32,11 +33,11 @@ internal static class Program
                 case "--repo" when i + 1 < args.Length:
                     repo = args[++i];
                     break;
-                case "--check" or "--release" or "--write-fingerprints":
+                case "--check" or "--release" or "--write-fingerprints" or "--stardew-scan":
                     mode = args[i][2..];
                     break;
                 default:
-                    Console.Error.WriteLine("usage: Nosum.AssetInventory [--repo <root>] [--check | --release | --write-fingerprints]");
+                    Console.Error.WriteLine("usage: Nosum.AssetInventory [--repo <root>] [--check | --release | --write-fingerprints | --stardew-scan]");
                     return 2;
             }
         }
@@ -66,6 +67,11 @@ internal static class Program
         if (mode == "release")
         {
             return ReleaseGate(prints, assets, log);
+        }
+
+        if (mode == "stardew-scan")
+        {
+            return StardewScanMode(repo, log);
         }
 
         string? placeholder = PlaceholderAssets();
@@ -101,6 +107,43 @@ internal static class Program
                 log.WriteLine($"{ReportPath} is up to date.");
                 return 0;
         }
+    }
+
+    /// <summary>
+    /// The Stardew scan (docs/adr/ADR-042 D5): lists every file of the repository whose hash is a Stardew Valley fingerprint.
+    /// It reads no placeholder content, only <c>docs/art/stardew-fingerprints.sha256</c>. It is opt-in and does not gate the
+    /// release yet, because the maps still carry Stardew's layouts.
+    /// </summary>
+    /// <param name="repo">The repository root.</param>
+    /// <param name="log">Where messages go.</param>
+    /// <returns>0 when no file matches, 1 when files match, 2 when the list is missing or malformed.</returns>
+    internal static int StardewScanMode(string repo, TextWriter log)
+    {
+        string list = Path.Combine(repo, "docs", "art", StardewScan.FileName);
+        if (!File.Exists(list))
+        {
+            log.WriteLine($"MISSING       docs/art/{StardewScan.FileName}: the scan has no list of the Stardew fingerprints.");
+            return 2;
+        }
+
+        List<string> hits;
+        try
+        {
+            hits = StardewScan.Scan(repo, StardewScan.ReadFingerprints(list));
+        }
+        catch (InvalidDataException error)
+        {
+            log.WriteLine($"MALFORMED     {error.Message}");
+            return 2;
+        }
+
+        foreach (string path in hits)
+        {
+            log.WriteLine($"STARDEW       {path}: its hash is a Stardew Valley fingerprint (docs/adr/ADR-042 D5).");
+        }
+
+        log.WriteLine(hits.Count == 0 ? "No file of the repository is Stardew Valley content." : $"{hits.Count} file(s) are Stardew Valley content.");
+        return hits.Count == 0 ? 0 : 1;
     }
 
     /// <summary>The release gate's input: the committed list of the placeholder files, checked against the repository.</summary>

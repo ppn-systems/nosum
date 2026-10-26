@@ -31,6 +31,7 @@ dotnet run --project tools/Nosum.AssetInventory                      # rewrite d
 dotnet run --project tools/Nosum.AssetInventory -- --check           # exit 1 when the committed report is stale
 dotnet run --project tools/Nosum.AssetInventory -- --release         # gate: 1 while placeholders remain, 2 on a missing or resized file
 dotnet run --project tools/Nosum.AssetInventory -- --write-fingerprints   # once: record hashes in docs/art/placeholders.sha256
+dotnet run --project tools/Nosum.AssetInventory -- --stardew-scan        # lists every file of the repo whose hash is in docs/art/stardew-fingerprints.sha256 (exit 1 on a hit; opt-in until ADR-042 P5)
 ```
 
 The report has an *Art* column and replaced-cell counts per package: a file is `replaced` once it differs from its recorded placeholder hash and keeps its size; regenerate the report after replacing a file.
