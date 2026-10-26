@@ -34,13 +34,13 @@ internal static class TerrainKinds
 {
     /// <summary>
     /// Kinds the own tileset has art for, lowest priority first. Where two meet, the higher one wins the corner they share, and a pair that has no
-    /// <see cref="WangSet"/> meets through grass. Path and cliff have no own set yet and stay on their placeholder tiles.
+    /// <see cref="WangSet"/> meets through grass. Cliff has no ground set: its faces and tops are drawn on the layers above, by the painter.
     /// </summary>
-    public static readonly TerrainKind[] Fills = [TerrainKind.Water, TerrainKind.Sand, TerrainKind.Grass, TerrainKind.Dirt];
+    public static readonly TerrainKind[] Fills = [TerrainKind.Water, TerrainKind.Sand, TerrainKind.Grass, TerrainKind.Dirt, TerrainKind.Path];
 
     /// <summary>Returns the draw priority of a kind: a higher one overlaps a lower one. <see cref="TerrainKind.Other"/> has none.</summary>
     /// <param name="kind">The kind.</param>
-    /// <returns>The priority, 0 for water up to 3 for dirt; -1 for <see cref="TerrainKind.Other"/>.</returns>
+    /// <returns>The priority, 0 for water up to 4 for path; -1 for <see cref="TerrainKind.Other"/>.</returns>
     public static int Priority(TerrainKind kind) => Array.IndexOf(Fills, kind);
 
     /// <summary>Parses a kind name of the table.</summary>

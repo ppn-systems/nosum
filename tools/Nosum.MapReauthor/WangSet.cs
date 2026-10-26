@@ -11,7 +11,8 @@ namespace Nosum.MapReauthor;
 /// <param name="Name">The file name without extension.</param>
 /// <param name="Lower">The terrain of the corners the file calls lower.</param>
 /// <param name="Upper">The terrain of the corners the file calls upper.</param>
-internal sealed record WangSet(string Name, TerrainKind Lower, TerrainKind Upper)
+/// <param name="Drawn">The set has no file: <see cref="PathArt"/> draws it in code.</param>
+internal sealed record WangSet(string Name, TerrainKind Lower, TerrainKind Upper, bool Drawn = false)
 {
     /// <summary>The sets, in the order their tiles are laid out in the own tileset. Every pair of kinds not listed here has no direct transition.</summary>
     public static readonly WangSet[] All =
@@ -20,6 +21,7 @@ internal sealed record WangSet(string Name, TerrainKind Lower, TerrainKind Upper
         new("water_grass", TerrainKind.Water, TerrainKind.Grass),
         new("water_sand", TerrainKind.Water, TerrainKind.Sand),
         new("sand_grass", TerrainKind.Sand, TerrainKind.Grass),
+        new("path_grass", TerrainKind.Path, TerrainKind.Grass, Drawn: true),
     ];
 
     /// <summary>Gets the number of tiles of a set.</summary>

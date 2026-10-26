@@ -144,6 +144,13 @@ layer and sheet, and the animated tiles.
   buildings, trees, fences and cliff faces belong to package 7); the path kind (cobble) has no own set; the cliff and tilled-soil sets are not used yet. The inventory
   (`docs/art/inventory.md`) and the release check (D6) still count the placeholder `Farm.tmx` and its sheets as present; teaching them that a map has an own file comes with the next map.
 
+### Phase 3 — every hosted map, the drawn layers, the path set
+
+- **Maps.** `reauthor all` re-authors the 52 hosted map files (`GameMaps`): kind table grown to every ground tile (outdoor sheets by their `Type` and `Water` properties and dominant colour; indoor sheets and the mine floors are `other`), a cobble path kind with its own fills and a drawn path/grass corner set in `own_terrain.png` (`PathArt.cs`).
+- **Drawn layers.** Instead of mapping gids layer by layer, the tool paints an own sheet for every placeholder sheet the maps name, with the same name, size and grid (`SheetBuilder`, `ObjectPainter`). Layers, tileset properties and animations stay the placeholder's, character for character, so collision and traits cannot change; the client links the own sheet to the placeholder's served path. The painter reads only a floor plan from each placeholder tile (block occupancy and material, see `art/own/SOURCES.md`) and draws every pixel in code in the shared palette. This keeps Stardew's layouts (D9) and was the only way to cover about 3,000 distinct tiles; the layouts themselves remain an owner decision.
+- **Gate.** `Nosum.AssetInventory --release` counts a map or `Maps/` sheet with an own file as replaced; fingerprints are untouched. It now lists only the five farmer layers.
+- **Not done.** The farmer (needs PixelLab budget). Quality: painted objects are readable but plain; buildings in Town lack windows and signs, and animated water and waterfalls are two-frame ripples at best. A hand pass or PixelLab objects can replace any sheet cell later without a code change.
+
 ## Alternatives considered
 
 - **Replace everything in `assets/`** — 1,953 files are never loaded; replacing them is wasted work. The inventory lists only what is loaded; the

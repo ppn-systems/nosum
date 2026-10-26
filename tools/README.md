@@ -9,7 +9,7 @@ only area allowed to use an image-processing package
 | :--- | :--- |
 | `Nosum.AssetInventory` | Lists every placeholder file the game loads and the cells it draws, and writes [`docs/art/inventory.md`](../docs/art/inventory.md) ([ADR-040](../docs/adr/ADR-040-own-art-plan.md)). Reads the maps, the catalogues and the sprite tables in `wasm/`. |
 | `Nosum.AtlasPacker` | Packs each `<category>/` folder of Nosum's own art into `<category>.png` + `<category>.json` (SkiaSharp). Not used on the placeholder content in `assets/` (ADR-007). |
-| `Nosum.MapReauthor` | Re-authors a placeholder `.tmx` onto Nosum's own terrain tileset by terrain kind, builds that tileset from the own PixelLab corner sets, and reports what still draws a placeholder ([ADR-040](../docs/adr/ADR-040-own-art-plan.md), [`art/`](../art/README.md)). |
+| `Nosum.MapReauthor` | Re-authors the placeholder `.tmx` of every hosted map: the ground layer onto Nosum's own terrain tileset by terrain kind (PixelLab corner sets plus a drawn cobble path), and paints own tilesheets, named like the placeholder sheets, for every other drawn layer ([ADR-040](../docs/adr/ADR-040-own-art-plan.md), [`art/`](../art/README.md)). |
 | `art_repack/` | Python 3 standard library only: rebuilds the replaced art under `assets/` from CC0 packs and pictures drawn in code (the farmer layers: `farmer.py`, buildable alone with `--only farmer`), and writes [`docs/art/provenance.md`](../docs/art/provenance.md) ([sourcing](../docs/art/sourcing.md)). Deterministic; `--check` fails when a file on disk differs. |
 | `synth_sounds.py` | Python 3 standard library only (no .NET project): synthesises Nosum's placeholder sound effects and the rain loop as 16-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
 | `synth_music.py` | Python 3 standard library only (no .NET project): composes Nosum's own music, eight seamless loops (one per season, day and night), as 8-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/music_*.wav` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
@@ -36,11 +36,12 @@ Run the report command after a change that adds a map, a sheet or a sprite table
 Never run `--write-fingerprints` after a file was replaced: it would record the replacement as the placeholder.
 
 ```bash
-dotnet run --project tools/Nosum.MapReauthor -- reauthor Farm            # write art/own/Maps/Farm.tmx and art/own/reports/Farm.md from assets/Maps/Farm.tmx
+dotnet run --project tools/Nosum.MapReauthor -- reauthor all             # every hosted map, its report and the own sheets under art/own/Maps; add --check to fail on a difference
+dotnet run --project tools/Nosum.MapReauthor -- reauthor Farm            # one map only: write art/own/Maps/Farm.tmx and art/own/reports/Farm.md from assets/Maps/Farm.tmx
 dotnet run --project tools/Nosum.MapReauthor -- reauthor Farm --check    # exit 1 when the committed files differ
 dotnet run --project tools/Nosum.MapReauthor -- tileset                  # rebuild art/own/Maps/own_terrain.png from art/own/source/pixellab
 dotnet run --project tools/Nosum.MapReauthor -- preview Farm --out farm.png [--placeholder]       # draw a map to a PNG (animations not played)
 ```
 
 A new map starts with `reauthor <Map>`: the report lists the tiles the kind table does not know yet; add them to `tools/Nosum.MapReauthor/terrain-kinds.csv`
-(sheet name without `.png`, local index, kind) and run it again. The own map is linked into `wasm/Nosum.Wasm` and `server/Nosum.Host` as described in `art/README.md`.
+(sheet name without `.png`, local index, kind) and run it again. Tiles of kind `other` (floors, walls, stone) keep their index and are drawn by the painter like every other layer. The own map is linked into `wasm/Nosum.Wasm` and `server/Nosum.Host` as described in `art/README.md`.

@@ -268,7 +268,8 @@ public sealed partial class MapReauthorTests
     {
         OwnTileset.Fill(TerrainKind.Grass, TileTraits.Water, 0).Should().Be(-1);
         OwnTileset.Fill(TerrainKind.Water, TileTraits.Water | TileTraits.Impassable, 3).Should().BePositive();
-        OwnTileset.Fill(TerrainKind.Path, TileTraits.None, 0).Should().Be(-1, "there is no own path set yet");
+        OwnTileset.Fill(TerrainKind.Path, TileTraits.None, 0).Should().BePositive("the cobble path has its own fill");
+        OwnTileset.Fill(TerrainKind.Cliff, TileTraits.None, 0).Should().Be(-1, "cliffs are drawn on the layers above the ground, not as a ground fill");
     }
 
     private static TerrainKind[] Cells(int width, int height, TerrainKind kind)
@@ -286,6 +287,123 @@ public sealed partial class MapReauthorTests
             {
                 cells[(y * width) + x] = kind;
             }
+        }
+    }
+
+    public static TheoryData<string> HostedFiles()
+    {
+        TheoryData<string> files = [];
+        foreach (string file in Program.HostedMaps())
+        {
+            files.Add(file);
+        }
+
+        return files;
+    }
+
+    [Fact]
+    public void RunAll_CommittedMapsReportsAndSheets_AreWhatTheToolWrites()
+    {
+        using StringWriter log = new();
+
+        Program.RunAll(RepoFiles.Path(), check: true, log).Should().Be(0, log.ToString() + " Regenerate: dotnet run --project tools/Nosum.MapReauthor -- reauthor all");
+    }
+
+    [Theory]
+    [MemberData(nameof(HostedFiles))]
+    public void OwnMap_EveryHostedMap_KeepsEveryGameplayLayerObjectGroupAndTileset(string file)
+    {
+        string original = File.ReadAllText(RepoFiles.Path("assets", "Maps", file));
+        string own = File.ReadAllText(RepoFiles.Path("art", "own", "Maps", file));
+
+        foreach (string name in new[] { "Buildings", "Paths", "Front", "AlwaysFront", "AlwaysFront2", "AlwaysFront3", "Buildings2", "Buildings3", "Back2", "Back3" })
+        {
+            if (original.Contains($"name=\"{name}\" width", System.StringComparison.Ordinal))
+            {
+                Layer(own, name).Should().Be(Layer(original, name), $"{name} of {file} is copied character for character: the sheet it names is served as an own sheet");
+            }
+        }
+
+        int groups = original.IndexOf("<objectgroup", System.StringComparison.Ordinal);
+        if (groups >= 0)
+        {
+            own[own.IndexOf("<objectgroup", System.StringComparison.Ordinal)..].Should().Be(original[groups..]);
+        }
+
+        TileMap before = TmxReader.Parse(original), after = TmxReader.Parse(own);
+        after.Properties.Should().BeEquivalentTo(before.Properties);
+        for (int i = 0; i < before.TileSets.Count; i++)
+        {
+            after.TileSets[i].Should().BeEquivalentTo(before.TileSets[i], o => o.Excluding(t => t.Tiles), $"tileset {i} of {file}");
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(HostedFiles))]
+    public void OwnMap_EveryHostedMap_HasTheSameWalkTillAndWaterGrids(string file)
+    {
+        TileMap before = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", file)));
+        TileMap after = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", file)));
+        MapSpec spec = GameMaps.All.First(m => m.TmxFile == file);
+
+        WalkGrid walkBefore = spec.BuildWalkGrid(before), walkAfter = spec.BuildWalkGrid(after);
+        TillGrid tillBefore = TillGrid.FromMap(before, walkBefore), tillAfter = TillGrid.FromMap(after, walkAfter);
+        WaterGrid waterBefore = WaterGrid.FromMap(before), waterAfter = WaterGrid.FromMap(after);
+        int different = 0;
+        for (int y = 0; y < before.Height; y++)
+        {
+            for (int x = 0; x < before.Width; x++)
+            {
+                different += walkBefore.IsBlocked(x, y) != walkAfter.IsBlocked(x, y) || tillBefore.IsTillable(x, y) != tillAfter.IsTillable(x, y) || waterBefore.IsWater(x, y) != waterAfter.IsWater(x, y) ? 1 : 0;
+            }
+        }
+
+        different.Should().Be(0, $"{file}: collision, tilling and water are gameplay data");
+        spec.ResolveWarps(after).Should().Equal(spec.ResolveWarps(before));
+    }
+
+    [Theory]
+    [MemberData(nameof(HostedFiles))]
+    public void OwnMap_EveryHostedMap_DrawsOnlyOwnTilesheets(string file)
+    {
+        TileMap own = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", file)));
+        string folder = file.Contains('/', System.StringComparison.Ordinal) ? file[..(file.LastIndexOf('/') + 1)] : string.Empty;
+
+        foreach (TileSet set in own.TileSets)
+        {
+            string image = (folder + set.ImageSource.Replace('\\', '/')).Replace(folder + "../", string.Empty, System.StringComparison.Ordinal);
+            image += image.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase) ? string.Empty : ".png";
+            string ownPath = RepoFiles.Path("art", "own", "Maps", image);
+            File.Exists(ownPath).Should().BeTrue($"{image} of {file} must be an own sheet");
+
+            if (File.Exists(RepoFiles.Path("assets", "Maps", image)))
+            {
+                Rgba mine = Rgba.Read(ownPath), placeholder = Rgba.Read(RepoFiles.Path("assets", "Maps", image));
+                (mine.Width, mine.Height).Should().Be((placeholder.Width, placeholder.Height), $"{image} keeps the placeholder's grid");
+            }
+        }
+    }
+
+    [Fact]
+    public void OwnSheets_NeverCopyPlaceholderPixels()
+    {
+        foreach (string image in new[] { "spring_outdoorsTileSheet.png", "spring_town.png", "spring_beach.png", "Mines/mine.png", "coopTiles.png" })
+        {
+            Rgba mine = Rgba.Read(RepoFiles.Path("art", "own", "Maps", image)), placeholder = Rgba.Read(RepoFiles.Path("assets", "Maps", image));
+            int opaque = 0, same = 0;
+            for (int i = 0; i < mine.Pixels.Length; i += 4)
+            {
+                if (mine.Pixels[i + 3] == 0)
+                {
+                    continue;
+                }
+
+                opaque++;
+                same += mine.Pixels[i] == placeholder.Pixels[i] && mine.Pixels[i + 1] == placeholder.Pixels[i + 1] && mine.Pixels[i + 2] == placeholder.Pixels[i + 2] && placeholder.Pixels[i + 3] != 0 ? 1 : 0;
+            }
+
+            opaque.Should().BeGreaterThan(0, image);
+            (same / (double)opaque).Should().BeLessThan(0.03, $"{image} is painted in code, a few colours may coincide but no pixels are copied");
         }
     }
 

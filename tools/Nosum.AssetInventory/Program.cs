@@ -98,11 +98,17 @@ internal static class Program
                 continue;
             }
 
-            string full = Path.Combine(assets, file.Path);
+            string? own = Fingerprints.OwnFile(file.Path, assets);
+            string full = own ?? Path.Combine(assets, file.Path);
             if (!File.Exists(full))
             {
                 log.WriteLine($"MISSING       {file.Path}");
                 broken++;
+                continue;
+            }
+
+            if (own is not null && !own.EndsWith(".png", StringComparison.Ordinal))
+            {
                 continue;
             }
 

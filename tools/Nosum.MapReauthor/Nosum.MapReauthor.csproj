@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Nosum.Core\Nosum.Core.csproj" />
+    <ProjectReference Include="..\..\gameplay\Nosum.Gameplay\Nosum.Gameplay.csproj" />
   </ItemGroup>
 
   <ItemGroup>
