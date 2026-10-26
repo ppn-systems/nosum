@@ -173,13 +173,7 @@ internal sealed class ChunkClient : IAsyncDisposable
 
     public uint PlayerId { get; private set; }
 
-    /// <summary>Gets the bytes of every frame received so far.</summary>
-    public long BytesReceived => Interlocked.Read(ref _bytes);
-
     public int SnapshotCount => Volatile.Read(ref _snapshotCount);
-
-    /// <summary>Gets the number of player entries in every snapshot received so far.</summary>
-    public long EntriesReceived => Interlocked.Read(ref _entryCount);
 
     /// <summary>Gets the ids in the newest snapshot.</summary>
     public uint[] LastSeen => Volatile.Read(ref _lastSeen);

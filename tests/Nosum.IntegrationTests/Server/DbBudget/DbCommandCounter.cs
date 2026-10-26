@@ -220,9 +220,6 @@ internal sealed record DbCounts(int Reads, int Writes, int Transactions, int Sav
     /// <summary>Gets the executed commands, reads plus writes.</summary>
     public int Commands => this.Reads + this.Writes;
 
-    /// <summary>Gets the round trips to the server: one per command and two per explicit transaction.</summary>
-    public int RoundTrips => this.Commands + (2 * this.Transactions);
-
     /// <summary>Gets how many commands repeated a statement already run in the same window (a repeated lookup or an N+1).</summary>
     public int Repeated => this.Statements.Values.Sum(n => n - 1);
 
