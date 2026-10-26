@@ -124,7 +124,7 @@ public sealed class ForageTests
     [InlineData("Forest.tmx", 1976)]
     [InlineData("Backwoods.tmx", 1991)]
     [InlineData("BusStop.tmx", 1976)]
-    [InlineData("Farm.tmx", 65)]
+    [InlineData("Farm.tmx", 165)]
     public void ReadForage_TheRealMaps_FindsTheForageGlyphsOfThePathsLayer(string mapFile, int pathsFirstGid)
     {
         TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", mapFile)));
