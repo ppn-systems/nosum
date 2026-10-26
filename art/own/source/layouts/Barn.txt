@@ -1,0 +1,54 @@
+// The barn, 18 x 15 (ADR-042 P4). The door is the gate (11, 14) in the bottom wall; the spawn (11, 13) is inside it.
+// The animals walk on tiles 6-13 x 4-10, a straw pen with nothing on it; the feeding bench is row 3, tiles 8-11, and the hay sits at the far end.
+legend
+f interior 0
+g interior 1
+h interior 2
+i interior 3
+s interior 5
+m interior 6
+y interior 8
+W interior 10
+C interior 12
+K interior 13
+N interior 14
+G interior 38
+A interior 27
+S interior 39
+x interior 31
+E interior 36
+w interior 25
+F interior 26
+property Warp 11 15 Farm 14 11
+layer Back
+fghifghifghifghifg
+hifghifghifghifghi
+gfhigfhigfhigfhigf
+ssmssmsssmssmsssms
+msssmssmsssmssssms
+smssssmsyssmsssssm
+ssmsssmssmsssmssms
+msssmssmsssmssssms
+ssmssmsssmssmsssms
+msssmssmsssmssmsss
+smssssmsssmsssmssm
+fghifghifghifghifg
+hifghifghifghifghi
+gfhigfhigfhigfhigf
+ffffffffffffffffff
+layer Buildings
+KWWWNWWWWWWWWNWWWK
+W.SS...........AAW
+WxEx.............W
+W.......wFFF.....W
+W................W
+W...............SW
+W...............AW
+W................W
+W................W
+W................W
+W................W
+W................W
+W................W
+W................W
+KCCCCCCCCCCGCCCCCK

@@ -1,0 +1,46 @@
+// The chicken coop, 12 x 10 (ADR-042 P4). The door is the open tile (2, 9) in the bottom wall; the spawn (2, 8) is inside it.
+// The pen is the straw floor on tiles 2-9 x 4-7, kept clear for the hens. The feeding bench is row 3, tiles 6-9; the nests and the perch are on the back wall.
+legend
+f interior 0
+g interior 1
+h interior 2
+i interior 3
+s interior 5
+m interior 6
+d interior 7
+y interior 8
+W interior 10
+C interior 12
+K interior 13
+N interior 14
+D interior 15
+A interior 27
+x interior 31
+E interior 36
+p interior 37
+w interior 25
+F interior 26
+S interior 39
+property Warp 2 10 Farm 21 11
+layer Back
+fghifghifghi
+hifgdhifgdhi
+gfhigfhigfhi
+figfhgifhgif
+ssmsssmssmss
+smssmsssmsss
+ssmsssmsyssm
+msssmssmsssm
+fghifghifghi
+ffffffffffff
+layer Buildings
+KWNWWWWWNWWK
+WAA.....xExW
+W...pp.....W
+W.....wFFF.W
+W..........W
+W.........SW
+W..........W
+W..........W
+W..........W
+KCDCCCCCCCCK

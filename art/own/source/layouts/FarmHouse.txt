@@ -1,0 +1,60 @@
+// The player's farmhouse, 12 x 12 (ADR-042 P4). The spawn (3, 11) is the doorway in the bottom wall; the Warp below it leaves for the farm.
+// The kitchen runs along the top wall, the bed and the table sit on the rug, and the room is open between them.
+legend
+f interior 0
+g interior 1
+h interior 2
+i interior 3
+r interior 4
+s interior 5
+m interior 6
+d interior 7
+y interior 8
+o interior 9
+W interior 10
+V interior 11
+C interior 12
+K interior 13
+N interior 14
+D interior 15
+B interior 16
+Z interior 17
+T interior 18
+U interior 19
+Q interior 20
+J interior 21
+L interior 22
+P interior 23
+H interior 24
+c interior 30
+b interior 32
+z interior 33
+t interior 34
+u interior 35
+property Warp 3 12 Farm 64 15
+layer Back
+fghifghifghi
+hifgdhidfddh
+gfhigfhigfhi
+figfhgifhgif
+fghirrrrrrfg
+hifgrrrrrrhi
+gfhirrrrrrfh
+fighrrrrrrig
+ghifhgifhgif
+hifghifghifg
+figfhgifhgif
+ffffffffffff
+layer Buildings
+KWWNWWWWNWWK
+WQLLJLP.H..W
+W..........W
+W.BZ.......W
+W.bz.......W
+W.....TU...W
+W.....tuc..W
+W........P.W
+W..........W
+W..........W
+W..........W
+KVVDVVVVVVVK
