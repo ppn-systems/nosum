@@ -56,7 +56,7 @@ public sealed class GameMapsTests
         GameMaps.Resolve("BusStop")!.Id.Should().Be(GameMaps.BusStop);
         GameMaps.Resolve("Town")!.Id.Should().Be(GameMaps.Town);
         GameMaps.Resolve("Mountain")!.Id.Should().Be(GameMaps.Mountain);
-        GameMaps.Resolve("Railroad").Should().BeNull("the world does not host it");
+        GameMaps.Resolve("Railway").Should().BeNull("the world does not host it");
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public sealed class GameMapsTests
     {
         _ = GameMaps.TryGet(GameMaps.Farm, out MapSpec? farm);
         TileMap map = Load(farm!);
-        map.Properties["Warp"].Should().Contain("Backwoods").And.Contain("FarmCave");
+        map.Properties["Warp"].Should().Contain("Backwoods").And.Contain("Cellar");
 
         List<MapWarp> warps = farm!.ResolveWarps(map);
 

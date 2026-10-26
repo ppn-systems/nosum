@@ -98,8 +98,8 @@ public static class GameMaps
     private static readonly MapSpec[] s_all =
     [
         new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true, isPrivate: true, placeable: true),
-        new(FarmHouse, "FarmHouse.tmx", 3, 11, isPrivate: true, placeable: true, indoors: true),
-        new(BusStop, "BusStop.tmx", 11, 23),
+        new(FarmHouse, "Farmhouse.tmx", 3, 11, isPrivate: true, placeable: true, indoors: true),
+        new(BusStop, "Crossroads.tmx", 11, 23),
         new(Forest, "Forest.tmx", 68, 0),
         new(Town, "Town.tmx", 4, 54, shops:
         [
@@ -113,7 +113,7 @@ public static class GameMaps
         ],
         extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y)],
         dropFileWarps: [(94, 110)]),
-        new(Backwoods, "Backwoods.tmx", 14, 38),
+        new(Backwoods, "Hillside.tmx", 14, 38),
 
         // The mine's entrance cave: the file's two exits to the Mountain are replaced by one of ours (the cave mouth of the Mountain, docs/adr/ADR-037 D1); the other leads down the shaft.
         new(Mine, "Mine.tmx", MineWorld.CaveShaftFront.X, MineWorld.CaveShaftFront.Y,
@@ -127,8 +127,8 @@ public static class GameMaps
             indoors: true,
             dropFileWarps: [(18, 14), (67, 18)]),
 
-        // Co-op land reuses the early Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
-        new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true, placeable: true),
+        // Co-op land reuses the early co-op layout, CoopFarm.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
+        new(CoopFarm, "CoopFarm.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true, placeable: true),
         .. s_mineFloors,
 
         // Mountain, Beach and Woods (docs/adr/ADR-037): shared outdoor maps; their exits to Town, Backwoods and Forest come from the files' own Warp properties.

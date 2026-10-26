@@ -83,7 +83,7 @@ memory, the pure `TradeSession` rules in `Nosum.Gameplay`), `ILookService` (`Loo
 (`Coops/`: membership, invitations, the shared warehouse with its audit trail). New entities: wallets and coin log, market listings, appearances, co-ops, members, invites, stock and log
 (migration `SocialLayer`). Handlers: `Nosum.Handlers/{Market,Look,Trade,Coop}`; everything that moves coins or items is `[PacketEncryption(true)]`.
 
-Co-op upgrades ([ADR-038](../docs/adr/ADR-038-coop-upgrades.md)): `ICoopService.UpgradeAsync` (founder only) buys the next level of `CoopTrack.Warehouse` (capacity in item kinds, checked on deposit) or `CoopTrack.Land` (the tiles of `Farm_Foraging.tmx`
+Co-op upgrades ([ADR-038](../docs/adr/ADR-038-coop-upgrades.md)): `ICoopService.UpgradeAsync` (founder only) buys the next level of `CoopTrack.Warehouse` (capacity in item kinds, checked on deposit) or `CoopTrack.Land` (the tiles of `CoopFarm.tmx`
 that may be tilled and built on, read with `CoopMembershipInfo.LandLevel` by `FarmService` and `PlaceableService`). The price is items taken from the warehouse stock through `ITransferService` (a no-op player leg for the buyer, the stock legs go to nobody), with the new level
 (`coops.warehouse_level`, `land_level`, migration `CoopUpgrades`) and the log lines in the same transaction; the request names the level, under the co-op gate, so a repeat pays once. The rules and the cost table are `CoopUpgrades` in `Nosum.Gameplay`.
 

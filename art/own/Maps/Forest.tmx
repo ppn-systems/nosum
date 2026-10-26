@@ -3,11 +3,6 @@
   <properties>
     <property name="Warp" type="string" value="120 25 Town 0 90 120 26 Town 0 90 120 24 Town 0 90 120 27 Town 0 90 67 -1 Farm 41 64 68 -1 Farm 41 64 69 -1 Farm 41 64 -1 6 Woods 59 15 -1 7 Woods 59 15 70 -1 Farm 41 64 71 -1 Farm 41 64 72 -1 Farm 41 64" />
     <property name="Outdoors" type="string" value="T" />
-    <property name="AllowGrassSurviveInWinter" type="string" value="T" />
-    <property name="Fall_Objects" type="string" value="T" />
-    <property name="Spring_Objects" type="string" value="T" />
-    <property name="Summer_Objects" type="string" value="T" />
-    <property name="Winter_Objects" type="string" value="T" />
   </properties>
   <tileset firstgid="1" name="terrain" tilewidth="16" tileheight="16" tilecount="126" columns="16">
     <image source="terrain.png" width="256" height="128" />

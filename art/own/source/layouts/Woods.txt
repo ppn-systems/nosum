@@ -48,10 +48,6 @@ S Paths 13
 
 property Warp 60 15 Forest 0 7 60 16 Forest 0 7
 property Outdoors T
-property Fall_Objects T
-property Spring_Objects T
-property Summer_Objects T
-property AmbientLight 120 65 120
 
 layer Back
 abcbdcaaaabdcadbddabadbbccadbadcbbdcabbbdbbacaaccdddaabcdcba

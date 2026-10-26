@@ -11,8 +11,8 @@ The owner is publishing the project as a public repository. The public repositor
 the early content (ADR-007) came from. A measurement on `master` (`b0310b3`) shows three kinds of remaining derived material:
 
 1. **Map layouts.** All 53 `.tmx` files under `art/own/Maps` keep the early content's level layouts. 43 are byte-identical to the early maps: `Barn`,
-   `Coop`, `FarmHouse`, `Mine` and 39 of the 40 mine floors. The other 10 (`Backwoods`, `Beach`, `BusStop`, `Farm`, `Farm_Foraging`, `Forest`, `Mines/20`,
-   `Mountain`, `Town`, `Woods`) had only their `Back` layer re-authored (ADR-040). The release gate does not see any of this, because it checks only
+   `Coop`, the farmhouse, `Mine` and 39 of the 40 mine floors. The other 10 (the hillside, beach, crossroads, farm, co-op land, forest, mine floor 20,
+   mountain, town, woods) had only their `Back` layer re-authored (ADR-040). The release gate does not see any of this, because it checks only
    the 95 listed paths under `assets/` (ADR-040 D8).
 2. **Painted sheets and names.** The map sheets in `art/own/Maps/*.png` were painted in code, but from floor plans read off the early content's sheets, and
    they keep the early content's sheet names, grids and served paths. The same holds for `assets/` paths and the tileset names inside the maps (for example

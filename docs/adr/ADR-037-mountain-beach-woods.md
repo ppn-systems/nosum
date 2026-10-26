@@ -17,7 +17,7 @@ target without a map to use it on.
 - **D1 — Three shared maps, wired like the original.** `Mountain.tmx`, `Beach.tmx` and `Woods.tmx` become shared public
   outdoor maps (`GameMaps.Mountain`, `Beach`, `Woods`; not private, not farmable, not placeable, not `indoors`, so
   ADR-027 weather falls on them). Their exits come from the files' own `Warp` property; an exit to a map the world does
-  not host (the Tent, the Railroad, the quarry) is dropped by `MapSpec.ResolveWarps`, as before. Where the file and the
+  not host (the camp, the railway, the quarry) is dropped by `MapSpec.ResolveWarps`, as before. Where the file and the
   world disagree a `MapSpec` drops the file's exit (`dropFileWarps`) and adds its own. Every exit that can be walked to:
 
   | From | Source tiles | To | Arrival tile |

@@ -61,9 +61,9 @@ public sealed class NodeSitesTests
     [Theory]
     [InlineData("Farm.tmx", 165)]
     [InlineData("Forest.tmx", 165)]
-    [InlineData("Backwoods.tmx", 165)]
+    [InlineData("Hillside.tmx", 165)]
     [InlineData("Town.tmx", 203)]
-    [InlineData("BusStop.tmx", 203)]
+    [InlineData("Crossroads.tmx", 203)]
     public void Read_TheRealMaps_FindsExactlyTheMarkersTheTableKnows(string mapFile, int pathsFirstGid)
     {
         TileMap map = Load(mapFile);
@@ -105,7 +105,7 @@ public sealed class NodeSitesTests
     [Fact]
     public void Read_AMapWithoutAPathsLayerOrSheet_HasNoSites()
     {
-        NodeSites.Read(Load("FarmHouse.tmx")).Should().BeEmpty();
+        NodeSites.Read(Load("Farmhouse.tmx")).Should().BeEmpty();
         NodeSites.Read(new TileMap(1, 1, 16, 16, [], [new TileLayer("Paths", [9])])).Should().BeEmpty("without the Paths tile set the number means nothing");
     }
 

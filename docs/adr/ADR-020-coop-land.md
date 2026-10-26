@@ -32,7 +32,7 @@ the land did not ("Co-op land is not built"). Farming ([ADR-011](ADR-011-invento
   plots (crops included) are deleted in one transaction and the in-memory copy is dropped (`IFarmService.Forget`). Co-op ids are never reused.
 - **D7 — Wire: unchanged.** The farm intents (`GetFarm`, `UseItem`), `MapChanged` and the existing statuses carry everything; the instance decides ownership. No opcode, field or enum value was added, and
   `NosumProtocol.Version` is untouched. No migration: plots and audit lines use existing tables.
-- **D8 — Client.** Nothing changed except linking `Farm_Foraging.tmx` into the WebAssembly bundle: the warp, `GetFarm` after a map change and the farm decorator already work from the map's `Farmable` flag.
+- **D8 — Client.** Nothing changed except linking `CoopFarm.tmx` into the WebAssembly bundle: the warp, `GetFarm` after a map change and the farm decorator already work from the map's `Farmable` flag.
 
 ## Alternatives considered
 
