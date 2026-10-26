@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Maps;
 
-/// <summary>The Mountain, the Beach and the Secret Woods on the placeholder files (docs/adr/ADR-007, ADR-037): their exits, spawns, the Beach bridge and the nodes placed on them.</summary>
+/// <summary>The Mountain, the Beach and the Secret Woods on the early files (docs/adr/ADR-007, ADR-037): their exits, spawns, the Beach bridge and the nodes placed on them.</summary>
 public sealed class OutdoorMapsTests
 {
     private static readonly string[] s_newMaps = [GameMaps.Mountain, GameMaps.Beach, GameMaps.Woods];

@@ -3,7 +3,7 @@
 namespace Nosum.Gameplay.Mines;
 
 /// <summary>
-/// Where the mine and the blacksmith stand on the placeholder maps (docs/adr/ADR-007, ADR-026, ADR-037): the Mountain's cave mouth that leads to the mine, the
+/// Where the mine and the blacksmith stand on the early maps (docs/adr/ADR-007, ADR-026, ADR-037): the Mountain's cave mouth that leads to the mine, the
 /// entrance cave <c>Mine.tmx</c> and the blacksmith's counter. Tile coordinates, checked against the map files by tests.
 /// </summary>
 public static class MineWorld

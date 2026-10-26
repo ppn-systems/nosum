@@ -27,7 +27,7 @@ properties and `<animation>` frames, plus map and layer properties (`TilePropert
 `TileTraits` for `Water`/`Passable`, `TileAnimation.FrameAt(ms)`, `TileMap.GetTraits(gid)`).
 `TileLayerRenderer.Draw` picks the animated frame from a clock passed in (no allocation) and can
 ripple tiles carrying a trait with `TileWave` (used for water, whose tiles have no frames in the
-placeholder map). `WorldSpriteBatch` is the depth-sorted `world` layer of ADR-005 D4 (`Begin`,
+early map). `WorldSpriteBatch` is the depth-sorted `world` layer of ADR-005 D4 (`Begin`,
 `Add(..., sortY, sortX, id)`, `Flush`: preallocated keys, in-place sort, culled).
 `PropDefinition`/`PropPlacement` (Core) describe a building as data (sheet rectangle, footprint,
 roof height) and `PropLayer` (Rendering) draws any list of them: base into the world batch, roof

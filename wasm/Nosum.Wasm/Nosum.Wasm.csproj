@@ -12,7 +12,7 @@
     <DefineConstants>$(DefineConstants);NOSUM_DEV_TOOLS</DefineConstants>
   </PropertyGroup>
 
-  <!-- Placeholder content served from the repository's assets/ folder (docs/adr/ADR-007):
+  <!-- Early content served from the repository's assets/ folder (docs/adr/ADR-007):
        only the files the client loads, linked so assets/ stays the single copy. -->
   <ItemGroup>
     <Content Include="..\..\assets\sprites\items.png" Link="wwwroot\assets\sprites\%(Filename)%(Extension)" />

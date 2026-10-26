@@ -15,7 +15,7 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-004](ADR-004-pixel-art-assets.md) | Pixel-art assets: grid, provenance, atlases built by a repo tool (amended by ADR-007) | Proposed |
 | [ADR-005](ADR-005-three-quarter-top-down-view.md) | 3/4 top-down view (layers, y-sorting, feet anchors) | Accepted |
 | [ADR-006](ADR-006-layered-character-customization.md) | Layered (paper-doll) character customization | Proposed |
-| [ADR-007](ADR-007-placeholder-content-16px.md) | Development uses unpacked Stardew Valley content on a 16 px grid (placeholder) | Accepted |
+| [ADR-007](ADR-007-own-art-16px.md) | Nosum's own art pipeline on a 16 px grid: sprite sheets, own maps, build tools, provenance | Accepted |
 | [ADR-008](ADR-008-snapshot-movement-sync.md) | Movement sync: client-predicted intents, full-state snapshots at 10 Hz | Proposed |
 | [ADR-009](ADR-009-postgresql-persistence-and-accounts.md) | PostgreSQL persistence and player accounts (guests, Gmail login, one session per player) | Accepted |
 | [ADR-010](ADR-010-internationalization.md) | Internationalization: vi + en, .resx, codes on the wire, i18n{} envelope | Accepted |
@@ -48,7 +48,7 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-036](ADR-036-quest-chain-and-requests-board.md) | Tutorial quest chain with coin rewards and the Town requests board (daily delivery requests) | Accepted |
 | [ADR-037](ADR-037-mountain-beach-woods.md) | Mountain, Beach and the Secret Woods as public maps: warps, large stumps, shore forage, the Beach bridge unlock (amends ADR-026) | Accepted |
 | [ADR-038](ADR-038-coop-upgrades.md) | Co-op upgrades: warehouse capacity and co-op land size bought with warehouse stock, founder only, one atomic purchase | Accepted |
-| [ADR-039](ADR-039-audio-hooks.md) | Audio hooks: sound, music and ambience as commands in the frame buffer, Web Audio in `audio.js`, procedurally generated placeholder sounds | Accepted |
-| [ADR-040](ADR-040-own-art-plan.md) | Own art plan: inventory of the placeholder files, work packages, production routes, cost, release gate | Accepted |
+| [ADR-039](ADR-039-audio-hooks.md) | Audio hooks: sound, music and ambience as commands in the frame buffer, Web Audio in `audio.js`, procedurally generated stand-in sounds | Accepted |
+| [ADR-040](ADR-040-own-art-plan.md) | Own art plan (condensed): art direction, sources, build tools, provenance records | Accepted |
 | [ADR-041](ADR-041-deploy-cloudflare-pages-and-tunnel.md) | Deployment: web client on Cloudflare Pages, server behind a Cloudflare Tunnel, deploy by SSH (amends ADR-031) | Accepted |
-| [ADR-042](ADR-042-own-maps-and-provenance-cleanup.md) | Own map layouts, own sheet names and removal of the former placeholder traces before the public release; fresh public history | Accepted |
+| [ADR-042](ADR-042-own-maps-and-provenance-cleanup.md) | Own map layouts, own sheet names and removal of the former early-content traces before the public release; fresh public history | Accepted |

@@ -23,7 +23,7 @@ Numbers and rules marked "default" are open owner questions.
   group. Nothing is derived from a player id, and no presence or movement code changed. Opcode band `0x8000-0x80FF`.
 - **D4 — Client catalogue.** `LookPalette` (`Nosum.Wasm.ViewModels/Looks`) turns ids into sheet frames and tints (skin tint on the body, hair dye on the hair, shirt/trousers/hat frames); `Game/LookSprites` builds
   the `FarmerLook` that `FarmerSprite` draws with new body-tint and hat layers. `RemoteLook` is removed; a player whose look has not arrived is drawn with the default look. Compose-once
-  caching ([ADR-006](ADR-006-layered-character-customization.md) D4) is not done: a farmer is still six batch entries per frame, which the placeholder art does not need yet.
+  caching ([ADR-006](ADR-006-layered-character-customization.md) D4) is not done: a farmer is still six batch entries per frame, which the early art does not need yet.
 - **D5 — Wardrobe panel.** `WardrobeViewModel` / `WardrobePanel` (key `C`): skin, hair and dye choices, what is worn, the clothing in the inventory. Equip and unequip are encrypted requests.
 
 ### Co-ops

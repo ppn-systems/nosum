@@ -183,7 +183,7 @@ public sealed class TileProperties
         return flags;
     }
 
-    // Tiled "bool" properties write true/false; the placeholder content uses "T"/"F".
+    // Tiled "bool" properties write true/false; the early content uses "T"/"F".
     private static bool IsTrue(string value)
         => string.Equals(value, "T", StringComparison.OrdinalIgnoreCase) || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
 }

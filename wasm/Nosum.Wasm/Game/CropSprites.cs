@@ -9,7 +9,7 @@ namespace Nosum.Wasm.Game;
 /// Which picture a crop shows at each growth stage, cut out of <c>crops.png</c>: each crop is a row of
 /// 16 x 32 frames, two rows per 32 px band. The row and the frame of each stage are data of the crop
 /// (<see cref="CropDefinition.SpriteRow"/>, <see cref="CropDefinition.SpriteFrames"/>, docs/adr/ADR-025 D6); this class only does the arithmetic,
-/// so another crop is a catalogue entry and no code. Placeholder art (docs/adr/ADR-007).
+/// so another crop is a catalogue entry and no code. Early art (docs/adr/ADR-007).
 /// </summary>
 internal static class CropSprites
 {

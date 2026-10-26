@@ -16,7 +16,7 @@ namespace Nosum.Wasm.Game;
 internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int Objects, int Mine);
 
 /// <summary>
-/// The one table that says what a resource node looks like: (kind, variant, stage) to a frame of a placeholder sheet (docs/adr/ADR-007).
+/// The one table that says what a resource node looks like: (kind, variant, stage) to a frame of an early sheet (docs/adr/ADR-007).
 /// Replacing the art means replacing this class. Every frame was checked by cutting it out of the sheet and looking at it.
 /// <list type="table">
 /// <listheader><term>Node</term><description>Frame</description></listheader>
@@ -80,7 +80,7 @@ internal static class NodeSprites
                 break;
 
             case NodeKind.LargeStump:
-                // Placeholder art (docs/adr/ADR-007, ADR-037): the oak stump twice, side by side, until the art pass of M6 draws the clump.
+                // Early art (docs/adr/ADR-007, ADR-037): the oak stump twice, side by side, until the art pass of M6 draws the clump.
                 world.Add(TreeSheet(textures, TreeVariant.Oak), 32, 96, Cell, 32, left - (Cell / 2), baseY - 32, baseY, sortX - 1, id);
                 world.Add(TreeSheet(textures, TreeVariant.Oak), 32, 96, Cell, 32, left + (Cell / 2), baseY - 32, baseY, sortX, id);
                 break;

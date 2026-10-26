@@ -7,7 +7,7 @@ using Nosum.Wasm.ViewModels.Inventory;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// Pictures of the items, cut out of the placeholder sheets (docs/adr/ADR-007). Addressed by sheet and
+/// Pictures of the items, cut out of the early sheets (docs/adr/ADR-007). Addressed by sheet and
 /// grid cell, so replacing the art means replacing this table, nothing else.
 /// </summary>
 internal sealed class ItemIcons : IItemIconSource
@@ -41,7 +41,7 @@ internal sealed class ItemIcons : IItemIconSource
             [ItemCatalog.IronAxe] = Tool(19, 10),
             [ItemCatalog.IronPickaxe] = Tool(19, 6),
             [ItemCatalog.MilkPail] = Tool(6, 0),
-            // Blueprints are the rolled plan at the start of the tools sheet, both buildings alike (placeholder art, docs/adr/ADR-007).
+            // Blueprints are the rolled plan at the start of the tools sheet, both buildings alike (early art, docs/adr/ADR-007).
             [ItemCatalog.CoopBlueprint] = Tool(0, 0),
             [ItemCatalog.BarnBlueprint] = Tool(0, 0),
             [ItemCatalog.OakSeed] = ObjectId(309),
@@ -140,7 +140,7 @@ internal sealed class ItemIcons : IItemIconSource
     // tools.png is 336 x 384 (21 x 24 cells).
     private static ItemIcon Tool(int column, int row) => new(ToolsSheet, column * Cell, row * Cell, Cell, 336, 384);
 
-    // furniture.png is 512 x 1488; a furniture icon is a 16 px crop of the piece (placeholder art, docs/adr/ADR-007).
+    // furniture.png is 512 x 1488; a furniture icon is a 16 px crop of the piece (early art, docs/adr/ADR-007).
     private static ItemIcon Furniture(int x, int y) => new(FurnitureSheet, x, y, Cell, 512, 1488);
 
     // craftables.png is 128 x 1472 (8 columns of 16 x 32 cells); an icon is a 16 px square of the cell, cut where the object reads best (chest: the body, scarecrow: the head, furnace: the middle).

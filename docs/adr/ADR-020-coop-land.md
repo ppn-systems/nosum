@@ -13,8 +13,8 @@ the land did not ("Co-op land is not built"). Farming ([ADR-011](ADR-011-invento
 
 - **D1 — A co-op's land is a `MapInstance` owned by the co-op.** The map `coopfarm` (`MapSpec.IsCoop`) is hosted like any other map, but its instance is `coopfarm@<coop id>`
   (`MapInstance.OfCoop`): the owner id is the co-op's id, not a player's. Presence, the Nalix group, the farm cache and the `farm_plots` rows are all keyed by that instance, so two
-  members see each other and nobody else, with no change to presence or snapshots. The map file is the placeholder `Farm_Foraging.tmx` (an open 80 x 65 meadow with no buildings, same tilesheets
-  as the farm; [ADR-007](ADR-007-placeholder-content-16px.md)), chosen because it differs from the personal farm and needs no new tilesheet. Its file exits to the bus stop, the forest and the backwoods stay.
+  members see each other and nobody else, with no change to presence or snapshots. The map file is the early `Farm_Foraging.tmx` (an open 80 x 65 meadow with no buildings, same tilesheets
+  as the farm; [ADR-007](ADR-007-own-art-16px.md)), chosen because it differs from the personal farm and needs no new tilesheet. Its file exits to the bus stop, the forest and the backwoods stay.
 - **D2 — Entry is a gate in Town, and membership decides the instance.** Town tile (13, 60) (the west plaza, south of the road from the bus stop) is an exit to `coopfarm`; the way back is the land's tile
   (46, 25) to Town (12, 60). `PlayerService` never trusts a client: for a co-op map it asks `ICoopMembership` (one database lookup, no cache) and enters the *player's own co-op's* instance. A player with no co-op is
   refused: they stay on the gate tile, the exit is disarmed until they step off it (so a refused player does not cost a lookup per move). A player saved on co-op land who is no longer a member starts on the
@@ -45,7 +45,7 @@ the land did not ("Co-op land is not built"). Farming ([ADR-011](ADR-011-invento
 ## Consequences
 
 - Each action on co-op land costs one extra membership query and one extra audit insert (inside the existing transaction).
-- The Town gate has no sign or art yet (placeholder content); a player finds it by walking to the west plaza. A refused non-member sees nothing happen.
+- The Town gate has no sign or art yet (early content); a player finds it by walking to the west plaza. A refused non-member sees nothing happen.
 - The land is large (about 2 000 tillable tiles). It is no longer unlimited from the start: [ADR-038](ADR-038-coop-upgrades.md) opens it in blocks that a co-op buys.
 - The audit lines for tilling and watering are numerous; they are never read in bulk, but nothing prunes them yet.
 

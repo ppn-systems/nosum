@@ -3,7 +3,7 @@
 // 1. The UI pixel. --u is one UI pixel in CSS pixels and equals one WORLD pixel: the engine zooms the open map by
 //    round(canvas width / (26 tiles * 16 px)) (MapScene.ScaleFor, never less than 2), so the same formula gives --u. It is also
 //    capped so the fixed-size menu window always fits the height. --tp is one pixel of the UI font (2/3 of --u, whole numbers).
-// 2. The sprites. Cuts the pieces the UI needs out of the placeholder UI sheets (docs/adr/ADR-007: assets/, linked into this
+// 2. The sprites. Cuts the pieces the UI needs out of the early UI sheets (docs/adr/ADR-007: assets/, linked into this
 //    package's wwwroot/ui/) and publishes each as a CSS custom property on :root for border-image / background-image:
 //      --nosum-img-<name>   url("data:image/png;...")  the piece at its native size
 //      --nosum-w-<name>, --nosum-h-<name>              size in sheet pixels (unitless; multiply by --u)
@@ -18,7 +18,7 @@ const SHEETS = {
     textbox: "ui/text_box.png",    // fat: the text field
 };
 
-// Own 1-bit pictures for the tabs the sheets have no icon for (Nosum art, not placeholder content). '#' is ink, anything else clear.
+// Own 1-bit pictures for the tabs the sheets have no icon for (Nosum art, not early content). '#' is ink, anything else clear.
 const GLYPHS = {
     gear: [
         "....###....",

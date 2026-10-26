@@ -41,7 +41,7 @@ both to have a size, and a price the co-op already holds.
 
 - **A coin treasury.** The pillars and ADR-013 keep coins out of warehouses; a treasury needs a new ledger and a rule for who may fill it. Items are what a co-op holds today.
 - **Capacity as total quantity.** The warehouse is not slotted; a cap on quantity punishes the crops the pillars ask members to contribute, while a cap on kinds is a simple, visible limit.
-- **Hide or wall off locked land.** Walls need map edits (`.tmx`, placeholder art); a rule plus a shade changes no asset and the land can grow without touching the map.
+- **Hide or wall off locked land.** Walls need map edits (`.tmx`, early art); a rule plus a shade changes no asset and the land can grow without touching the map.
 - **Any member may buy.** A member could spend stock they never put in; the founder already holds that right.
 - **"Buy next level" without a target level.** A double click would buy two levels.
 

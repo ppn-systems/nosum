@@ -4,7 +4,7 @@ One entry per file or group of files, as [ADR-004](../../docs/adr/ADR-004-pixel-
 
 ## `source/pixellab/*.png`, `*.json`
 
-Corner (Wang) tilesets of two terrains each: 16 tiles of 16 × 16 px in a 64 × 64 sheet, with the metadata that names the corners of every tile.
+Corner (Wang) tilesets of two terrains each: 16 tiles of 16 × 16 px in a 64 × 64 sheet, with the metadata that names the corners of every tile. No tool reads these files now: the own maps are compiled from `source/layouts/` on the own tilesheets below, and the pixellab sets are kept as the source of the corner tiles.
 
 | Field | Value |
 | :-- | :-- |
@@ -23,10 +23,10 @@ Corner (Wang) tilesets of two terrains each: 16 tiles of 16 × 16 px in a 64 × 
 The `.json` files keep the fields the build needs (id, the full prompt text, style, base tile ids, and each tile's corners and bounding box). What the files really show:
 
 - In `grass_dirt` the corner word `lower` is the dirt and `upper` the grass, the reverse of the description; in the other three it is as described.
-- The uniform "all upper" tile of `water_grass` and `sand_grass` is a flat brown placeholder, not grass. The build never draws a uniform tile from them: fills come from the uniform tiles that are real (`grass_dirt` both, `water_grass` water, `sand_grass` sand).
+- The uniform "all upper" tile of `water_grass` and `sand_grass` is a flat brown tile, not grass. The build never draws a uniform tile from them: fills come from the uniform tiles that are real (`grass_dirt` both, `water_grass` water, `sand_grass` sand).
 - Each set has a slightly different green. The build moves the grass colour of every set to the mean of `grass_dirt`'s.
 
-`grass_cliff` is a 25-tile set of cliff transitions (a face occupies the cell below the plateau edge), downloaded on 2026-10-26 from the same endpoints. Its brown rock tones are the palette of the painted cliff faces (`Material.Rock` in `tools/Nosum.MapReauthor/Material.cs`); its tiles are not placed on a map, because the maps' cliffs are on the gameplay-bearing `Buildings` layer, whose tile positions must not change.
+`grass_cliff` is a 25-tile set of cliff transitions (a face occupies the cell below the plateau edge), downloaded on 2026-10-26 from the same endpoints. Its brown rock tones are its own; its tiles are not placed on a map, because the maps' cliffs are on the gameplay-bearing `Buildings` layer, whose tile positions must not change.
 
 Not used and not committed: the grass / tilled-soil set (`773ea46a-2e3c-4063-93c5-f32ef0dafdad`, belongs with the soil and crops package).
 
@@ -37,16 +37,16 @@ are grown from fixed seeds by `mine all`, on the cave sheet (`cave.png`, drawn i
 own: floor variants, rock decor and wall edges; the generated floors name the sheet as `../cave.png`.
 
 Every other hosted map is compiled by `tools/Nosum.MapGen layout` from its own text layout in `source/layouts/` (ADR-042 P4 and P5), on the own sheets below. No hosted map is
-re-authored from a placeholder map any more.
+copied from the early maps any more.
 
 ## `Maps/cave.png`, `Maps/terrain.png`, `Maps/nature.png`, `Maps/town.png`, `Maps/interior.png`, `Maps/markers.png`
 
-The own tilesheets of [ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D3, drawn in code by tools/Nosum.MapGen sheets from scratch: no painted sheet and no floor plan of any placeholder sheet is read. Each has a trait file in `source/tilesets/<TileSet>.tileset` (hand-written, its tile indices checked by `MapGenSheetsTests`).
+The own tilesheets of [ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D3, drawn in code by tools/Nosum.MapGen sheets from scratch: no painted sheet and no floor plan of the early art is read. Each has a trait file in `source/tilesets/<TileSet>.tileset` (hand-written, its tile indices checked by `MapGenSheetsTests`).
 
 | Field | Value |
 | :-- | :-- |
 | Made by | Drawn in code by tools/Nosum.MapGen sheets (PPN Systems; `tools/Nosum.MapGen/Sheets/`). `sheets --check` fails when a committed picture is not what the code draws |
-| Palette | Nosum's own tones, `Palette.cs`: the values of the painted maps' materials (`Material.cs` in `Nosum.MapReauthor`) and the shared outline `(63, 38, 49)`; light from the top left |
+| Palette | Nosum's own tones, `Palette.cs` in `tools/Nosum.MapGen/Sheets/`, and the shared outline `(63, 38, 49)`; light from the top left |
 | License | Nosum's own art |
 
 | File | Tileset | Tiles | Contents |
@@ -66,7 +66,7 @@ Text grids of the own maps, one character per tile with a legend, compiled into 
 
 | Field | Value |
 | :-- | :-- |
-| Made by | Designed by PPN Systems for each map, around the gameplay points of [ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D2. Written as text, not traced, mirrored or re-tiled from any placeholder layout |
+| Made by | Designed by PPN Systems for each map, around the gameplay points of [ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D2. Written as text, not traced, mirrored or re-tiled from the early maps |
 | Tiles | Only the own tilesets of `Maps/` (`terrain`, `nature`, `town`, `interior`, `cave`, `Paths`) |
 | License | Nosum's own work |
 

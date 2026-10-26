@@ -6,7 +6,7 @@
 
 The UI overlay (Blazor, [ADR-002](ADR-002-batched-render-interop.md)) was plain white or brown HTML boxes, each control and panel placing itself with
 `position: fixed` and its own colours. Panels overlapped (the furniture arrange panel covered the session bar), the account form was unstyled, and
-nothing matched the pixel-art world. The placeholder content ([ADR-007](ADR-007-placeholder-content-16px.md)) ships UI art: `Maps/MenuTiles.png`
+nothing matched the pixel-art world. The early content ([ADR-007](ADR-007-own-art-16px.md)) ships UI art: `Maps/MenuTiles.png`
 (wooden window frames), `LooseSprites/Cursors.png` (buttons, icons, cursors) and `LooseSprites/textBox.png` (text field). Those sheets mix two kinds
 of art: "fat" 4 x 4 pixel blocks (MenuTiles, textBox) and ordinary 1:1 pixels (most of Cursors).
 
@@ -57,11 +57,11 @@ of art: "fat" 4 x 4 pixel blocks (MenuTiles, textBox) and ordinary 1:1 pixels (m
 
 ## Consequences
 
-- Replacing the placeholder art means changing the three linked files and the rectangle table; no control changes.
+- Replacing the early art means changing the three linked files and the rectangle table; no control changes.
 - The sprite script runs before Blazor starts; for a moment the plain-border fallback may show.
 - The pre-boot screen and Blazor's error bar in `index.html` are static English text (they exist before any localization can load).
 - Key legends (`Esc`, `Space`, `WASD`) are shown as printed on keyboards and are not translated; their descriptions are.
 
 ## Revisit when
 
-The art remake replaces the placeholder sheets, or a second theme (for example high contrast) is wanted.
+The art remake replaces the early sheets, or a second theme (for example high contrast) is wanted.

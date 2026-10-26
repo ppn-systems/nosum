@@ -8,9 +8,9 @@ only area allowed to use an image-processing package
 | Project | Does |
 | :--- | :--- |
 | `Nosum.MapGen` | Compiles Nosum's own map layouts into `.tmx` files and generates the forty mine floors; reads the own tileset data files. Section [Own maps](#own-maps-nosummapgen) below ([ADR-042](../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D3, D4). |
-| `Nosum.AtlasPacker` | Packs each `<category>/` folder of Nosum's own art into `<category>.png` + `<category>.json` (SkiaSharp). Not used on the placeholder content in `assets/` (ADR-007). |
+| `Nosum.AtlasPacker` | Packs each `<category>/` folder of Nosum's own art into `<category>.png` + `<category>.json` (SkiaSharp). Not used on the early content in `assets/` (ADR-007). |
 | `art_repack/` | Python 3 standard library only: rebuilds the replaced art under `assets/` from CC0 packs and pictures drawn in code (the farmer layers: `farmer.py`, buildable alone with `--only farmer`), and writes [`docs/art/provenance.md`](../docs/art/provenance.md) ([sourcing](../docs/art/sourcing.md)). Deterministic; `--check` fails when a file on disk differs. |
-| `synth_sounds.py` | Python 3 standard library only (no .NET project): synthesises Nosum's placeholder sound effects and the rain loop as 16-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
+| `synth_sounds.py` | Python 3 standard library only (no .NET project): synthesises Nosum's early sound effects and the rain loop as 16-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
 | `synth_music.py` | Python 3 standard library only (no .NET project): composes Nosum's own music, eight seamless loops (one per season, day and night), as 8-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/music_*.wav` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
 
 ```bash

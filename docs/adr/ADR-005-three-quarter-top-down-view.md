@@ -1,12 +1,11 @@
 # ADR-005 — 3/4 top-down view ("2.5D")
 
 **Status:** Accepted (owner decision, 2026-10-25)
-**Amended by:** [ADR-007](ADR-007-placeholder-content-16px.md) — 16 px grid, content sheets used as shipped, placeholder only.
+**Amended by:** [ADR-007](ADR-007-own-art-16px.md) — 16 px grid, content sheets used as shipped, early content only.
 
 ## Context
 
-The game uses the 3/4 top-down view common to farming games (Stardew Valley is the best-known
-example): a flat tile grid seen from above at a slant, where characters, crops, trees and
+The game uses the 3/4 top-down view common to farming games: a flat tile grid seen from above at a slant, where characters, crops, trees and
 buildings are drawn upright and taller than one tile, so things nearer the bottom of the screen
 hide things behind them. This is a 2D technique (no 3D camera, no isometric diamond grid), and
 it decides how art is drawn and how the renderer orders sprites.

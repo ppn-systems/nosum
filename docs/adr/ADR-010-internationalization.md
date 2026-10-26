@@ -48,7 +48,7 @@ culture data in the WASM bundle. Nosum follows the same rules so code and habits
 ## Consequences
 
 - Every new feature adds its strings to both `.resx` files in the same change.
-- Content from the placeholder game data (ADR-007) is not localized by this system; it is
+- Content from the early game data (ADR-007) is not localized by this system; it is
   replaced together with the art.
 
 ## Revisit when

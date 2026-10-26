@@ -72,7 +72,7 @@ Owner: `docs-style`.
 | Entity, `DbContext`, migration, accounts, passwords/tokens | `data-model-ef-core` |
 | `server/Nosum.Host` entry point, listeners | `nalix-server-hosting` |
 | `wasm/Nosum.Wasm.Socket`, client transport | `nalix-client-sdk` |
-| Anything under `assets/`, sprite sheets, `.tmx` maps (placeholder content, ADR-007) | `assets-pipeline` |
+| Anything under `assets/`, sprite sheets, `.tmx` maps (early content, ADR-007) | `assets-pipeline` |
 | Any user-visible text, status codes, game data names, language, formatting | `i18n` |
 | Tests | `testing-style` |
 | Any markdown, ADRs | `docs-style` |
