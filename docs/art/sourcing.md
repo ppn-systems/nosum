@@ -6,7 +6,7 @@ page for OpenGameArt and itch.io) and its sheets opened as images only; nothing 
 than CC0, and on a license that is unclear, however well it looks. The art direction is ADR-040 D1: 16 px grid, 3/4 top-down, warm farm look, a 1 px
 outline in a darker tone of the fill.
 
-Result: 26 of the 27 non-terrain files are replaced. No layered CC0 base fits the farmer, so its 5 layer files are drawn in code like the animals; only `Maps/Mines/mine.png` is left, it goes with the mine maps. How each file was made is in
+Result: 26 of the 27 non-terrain files are replaced. No layered CC0 base fits the farmer, so its 5 layer files are drawn in code like the animals; only the early mine sheet is left, it goes with the mine maps. How each file was made is in
 [`provenance.md`](provenance.md); the script that rebuilds them is [`tools/art_repack/`](../../tools/art_repack/).
 
 ## Candidates checked
@@ -40,7 +40,7 @@ Result: 26 of the 27 non-terrain files are replaced. No layered CC0 base fits th
 | 3 Items (3 files, 141 cells) | Replaced | Produce: CC0 crops pack. Fence: Tiny Town. Seed packets, forage, food, animal products, resources, shells, furniture, scarecrow, chest, furnace: drawn in the Kenney palette | Optional: redo the drawn icons with PixelLab, 135 jobs or about 9 batched (`create_tiles_pro`) |
 | 4 Crops and soil (2 files, 145 cells) | Replaced | CC0 crops pack, recoloured for the 9 crops it lacks; soil drawn | None |
 | 5 Tools and weapons (2 files, 15 cells) | Replaced | Tiny Town axe, pickaxe, pail, sickle, tiers by palette swap; hoe and watering can drawn | None |
-| 6 Resource nodes (5 files, 82 cells) | 4 of 5 replaced | Oak, maple, pine, stump, bush, sapling, seed drawn; rocks and ore drawn in the object sheet | `Maps/Mines/mine.png` holds the mine floors (package 11) as well as the ladder, so it goes with the mine maps; Tiny Town tile 103 (a ladder in a stone frame) can be the ladder cell (3, 4) |
+| 6 Resource nodes (5 files, 82 cells) | 4 of 5 replaced | Oak, maple, pine, stump, bush, sapling, seed drawn; rocks and ore drawn in the object sheet | the early mine sheet holds the mine floors (package 11) as well as the ladder, so it goes with the mine maps; Tiny Town tile 103 (a ladder in a stone frame) can be the ladder cell (3, 4) |
 | 7 Buildings and props (5 files, 246 cells) | Replaced | Farmhouse, barn, coop, greenhouse roof and walls from Tiny Town tiles; glass wall and shipping bin drawn | Optional: PixelLab `create_map_object`, 5 jobs, for buildings that look less modular |
 | 8 Animals (2 files, 24 frames) | Replaced | No CC0 source: drawn (chicken, cow, three directions, four walk frames) | Optional: PixelLab character and walk, 4 jobs |
 | 9 UI (4 files, 118 cells) | Replaced | Drawn to the slice sizes of `nosum-theme.js`; start picture drawn | Optional polish from Kenney UI Pack - Pixel Adventure |

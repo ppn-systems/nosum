@@ -8,7 +8,7 @@ cave is entered from the Mountain, not from Town.
 ## Context
 
 Town, Forest and Backwoods are the only public outdoor maps. The early files for the Mountain, the Beach and the
-Woods are already under `assets/Maps/` and name their exits to the maps the world hosts. ADR-026 sent the mine
+Woods are already in the tree and name their exits to the maps the world hosts. ADR-026 sent the mine
 cave to Town's north road because the Mountain did not exist, and ADR-030 left the Beach's bridge as the first unlock
 target without a map to use it on.
 

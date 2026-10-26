@@ -19,7 +19,7 @@ coins, and a mine whose deeper floors hold better ore.
   copper = 2 000 coins + 5 copper bars, iron = 5 000 + 5 iron bars; also sells coal and ore at high prices. The
   upgrade takes two game days (the tool is held by the blacksmith; collect intent) — keeps the genre's trade-off.
 - **D3 — The mine.** A shared public map `Mine` (entrance from Town or Mountain when it exists; Town edge for now)
-  leading to floors built from `Maps/Mines/*.tmx` layouts. Floors are **per player instances** (`mine<N>@<player>`) so
+  leading to floors built from the generated mine layouts (`tools/Nosum.MapGen mine`). Floors are **per player instances** (`mine<N>@<player>`) so
   nobody's stones are taken by others; floors 1–40 in M2. Each floor spawns stones, copper (1–39) and iron (20–40)
   nodes and one ladder hidden under a stone (breaking it reveals the ladder to the next floor). Floor layouts are
   rebuilt every game day. An elevator every 5 floors remembers the deepest floor reached (persisted per player).
@@ -62,7 +62,7 @@ Built 2026-10-25. Where the code differs from the text above, or the text left a
 
 ### D4 / client
 
-No combat. The blacksmith page is the lower part of the blacksmith's shop tab (`ShopPanel` shows `BlacksmithSection` under the price list when the shop is the blacksmith's); the elevator picker is a small dialog (`ElevatorDialog`) opened with the action key next to an elevator, not a menu tab. Nodes of a mine floor are drawn by the ordinary node decorator (iron ore `springobjects` 290, the ladder cell (3, 4) of `Mines/mine.png`).
+No combat. The blacksmith page is the lower part of the blacksmith's shop tab (`ShopPanel` shows `BlacksmithSection` under the price list when the shop is the blacksmith's); the elevator picker is a small dialog (`ElevatorDialog`) opened with the action key next to an elevator, not a menu tab. Nodes of a mine floor are drawn by the ordinary node decorator (iron ore, a node sprite of the item sheet; the ladder cell of the mine sheet).
 
 ### Merged with the chunk, weather and social waves
 

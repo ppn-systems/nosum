@@ -16,7 +16,7 @@ internal sealed class ItemIcons : IItemIconSource
     private const string ToolsSheet = "assets/sprites/tools.png";
     private const string WeaponsSheet = "assets/sprites/weapons.png";
     private const string FurnitureSheet = "assets/sprites/furniture.png";
-    private const string CraftablesSheet = "assets/sprites/craftables.png";
+    private const string CraftedSheet = "assets/sprites/craftables.png";
     private const int Cell = 16;
 
     private static readonly Dictionary<int, ItemIcon> s_icons = Build();
@@ -144,5 +144,5 @@ internal sealed class ItemIcons : IItemIconSource
     private static ItemIcon Furniture(int x, int y) => new(FurnitureSheet, x, y, Cell, 512, 1488);
 
     // craftables.png is 128 x 1472 (8 columns of 16 x 32 cells); an icon is a 16 px square of the cell, cut where the object reads best (chest: the body, scarecrow: the head, furnace: the middle).
-    private static ItemIcon Craftable(int x, int y) => new(CraftablesSheet, x, y, Cell, 128, 1472);
+    private static ItemIcon Craftable(int x, int y) => new(CraftedSheet, x, y, Cell, 128, 1472);
 }

@@ -16,7 +16,7 @@ the early content (ADR-007) came from. A measurement on `master` (`b0310b3`) sho
    the 95 listed paths under `assets/` (ADR-040 D8).
 2. **Painted sheets and names.** The map sheets in `art/own/Maps/*.png` were painted in code, but from floor plans read off the early content's sheets, and
    they keep the early content's sheet names, grids and served paths. The same holds for `assets/` paths and the tileset names inside the maps (for example
-   `springobjects`, `crops`, `townInterior`, `mine`). Item ids are Nosum's own scheme (`ItemCatalog`), but sprite cells index the early content's sheet grids.
+   the item, crop, town and interior sheets). Item ids are Nosum's own scheme (`ItemCatalog`), but sprite cells index the early content's sheet grids.
 3. **Text and tools.** About 41 mentions of the source game's name across code comments, XML docs, docs, ADRs, skills and workflows. Fingerprints and
    inventory (`docs/art/placeholders.sha256`, `docs/art/inventory.md`, `docs/art/provenance.md`). Two tools that exist only for the transition
    (`tools/Nosum.AssetInventory` and `tools/Nosum.MapReauthor`, with the `NOSUM_PLACEHOLDER_ROOT` paths), the early release gate
