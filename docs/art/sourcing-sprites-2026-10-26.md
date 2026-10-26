@@ -13,10 +13,11 @@ The licenses of the others were read on their pages (search result and page text
 | Package | Change | Source |
 | :-- | :-- | :-- |
 | Crops (`sprites/crops.png`) | 8 of 21 crops now use Tiny Farm stages (sprout, young, grown, harvest) instead of the crops pack's | Kenney Tiny Farm |
-| Items (`sprites/items.png`) | seed bags, 9 produce icons, hay, milk, brown egg, stone | Kenney Tiny Farm |
-| Tools (`tools.png`, `weapons.png`) | watering can, milk pail, scythe | Kenney Tiny Farm |
-| Buildings | barn walls and doors | Kenney Tiny Farm |
-| Animals, farmer layers, UI, trees, furniture, coop | unchanged: no candidate fits the sheet layout and the style (reasons below) | - |
+| Items (`sprites/items.png`) | seed packets redrawn on Tiny Farm's bag, each in its crop's colour with a picture of the harvest; 9 produce icons, hay, milk, brown egg, stone from Tiny Farm | Kenney Tiny Farm |
+| Tools (`tools.png`, `weapons.png`) | hoe, axe, pickaxe, watering can and scythe redrawn in code (three-tone metal head with a glint, shaded handle, outline) in three tiers; milk pail from Tiny Farm | Nosum original, Kenney Tiny Farm |
+| Buildings | barn walls and doors, coop boards, windows and door | Kenney Tiny Farm |
+| Soil, trees, animals, farmer face, window frame | redrawn in code: furrowed soil, rim-lit tree crowns, wattle, comb and udder detail, a forehead highlight, a nailed window frame; same grids | Nosum original |
+| Rest of the farmer layers, UI buttons and cursors, furniture | unchanged: no candidate fits the sheet layout and the style (reasons below) | - |
 
 ## Candidates
 
@@ -45,11 +46,10 @@ The licenses of the others were read on their pages (search result and page text
 | Rustic UI Pixel Art, Pixel UI Kit | https://chottoinc.itch.io/rustic-ui-pixel-art, https://gegx.itch.io/pixel-ui-kit | no resale or redistribution | Chotto Inc, GegX | 16 px | **Rejected** (redistribution) |
 | Farmyard pack, Farm Essentials bundle | https://xstrax69.itch.io/farm-pack, gamedevmarket.net | paid, custom license | xStrax69, Maurizio | 16 px | **Rejected** (license) |
 
-## Why the rest stays drawn
+## Why the rest stays drawn, not cut from a pack
 
-- **Animals.** Tiny Farm's chicken and cows are single poses; the game needs three directions and four walk frames per animal, and the one CC0 or
+- **Animals.** Tiny Farm's chicken and cows are single poses and the drawn animals only got detail; the game needs three directions and four walk frames per animal, and the one CC0 or
   CC-BY set that has them (LPC) does not fit the 16 px style. The drawn animals keep their sheets.
 - **Farmer.** Still no layered 16 x 32 CC0 base with a walk cycle (the first round's finding).
 - **UI.** No CC0 wooden frame matches the slice sizes; the drawn frames stay.
-- **Trees, furniture, coop.** Tiny Farm's trees are 16 px tiles, the game's nodes are 48 x 96; furniture has no open source in this style. The coop keeps
-  the Tiny Town wall: Tiny Farm has only red barn boards.
+- **Trees, furniture.** Tiny Farm's trees are 16 px tiles, the game's nodes are 48 x 96, so the trees are redrawn in code; furniture has no open source in this style.

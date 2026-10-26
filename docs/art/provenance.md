@@ -26,7 +26,7 @@ Download the archives from the pages below, unzip each into a directory with the
 | `sprites/animals/chicken.png` | 8 Animals | Nosum original (drawn in tools/art_repack, no outside source) | Chicken, 16 x 16 frames: rows down, right, up, four walk frames (`animals.py`) |
 | `sprites/animals/cow.png` | 8 Animals | Nosum original (drawn in tools/art_repack, no outside source) | Cow, 32 x 32 frames: rows down, right, up, four walk frames (`animals.py`) |
 | `sprites/buildings/barn.png` | 7 Buildings and props | `kenney_tiny-town`, `kenney_tiny-farm` | Barn, 7 x 7 tiles: Tiny Town red roof, Tiny Farm cross-braced red boards (tiles 90-92, 102-104, 114-116), window (128) and two braced double doors (126) |
-| `sprites/buildings/coop.png` | 7 Buildings and props | `kenney_tiny-town` | Coop, 6 x 7 tiles: slate roof, brown wall, door and windows |
+| `sprites/buildings/coop.png` | 7 Buildings and props | `kenney_tiny-town`, `kenney_tiny-farm` | Coop, 6 x 7 tiles: Tiny Town slate roof, Tiny Farm boards (tiles 102-104, 114-116) turned to pine, windows (128) and door (127) |
 | `sprites/buildings/farmhouse.png` | 7 Buildings and props | `kenney_tiny-town` | Farmhouse, 9 x 9 tiles at (16, 0): Tiny Town roof and wall tiles (`buildings.py`) |
 | `sprites/buildings/greenhouse.png` | 7 Buildings and props | `kenney_tiny-town`, Nosum original (drawn in tools/art_repack, no outside source) | Greenhouse, 7 x 10 tiles at (0, 160): slate roof and door from Tiny Town, glass wall drawn here |
 | `sprites/buildings/shipping_bin.png` | 7 Buildings and props | Nosum original (drawn in tools/art_repack, no outside source) | Shipping bin, 2 x 2 tiles (`buildings.shipping_bin`) |
@@ -34,12 +34,12 @@ Download the archives from the pages below, unzip each into a directory with the
 | `sprites/crops.png` | 4 Crops and soil | `kenney_tiny-farm`, `josehzz_farming-crops-16x16` | 21 crops, 5-6 growth frames each: Tiny Farm's stages for the 8 crops it covers, the crops pack's six pictures (seed, three stages, ripe) for the rest, placed in the catalogue's frames at the bottom of each 16 x 32 cell; recolours in the crop table |
 | `sprites/furniture.png` | 3 Items | Nosum original (drawn in tools/art_repack, no outside source) | Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`) |
 | `sprites/items.png` | 3 Items, 6 Resource nodes | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, `kenney_tiny-town`, Nosum original (drawn in tools/art_repack, no outside source) | The 92 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, everything else drawn here (table below); unused cells are transparent |
-| `sprites/soil.png` | 4 Crops and soil | Nosum original (drawn in tools/art_repack, no outside source) | Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator (`crops.soil_tile`) |
-| `sprites/tools.png` | 5 Tools and weapons | `kenney_tiny-town`, `kenney_tiny-farm`, Nosum original (drawn in tools/art_repack, no outside source) | Axe and pickaxe from Tiny Town (tiles 127, 115), watering can (Tiny Farm tile 84) and milk pail (Tiny Farm tile 124), in three material tiers by palette swap; hoe and blueprint drawn in the same palette |
+| `sprites/soil.png` | 4 Crops and soil | Nosum original (drawn in tools/art_repack, no outside source) | Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator: lit ridges, furrows, clods and a dark lip (`crops.soil_tile`) |
+| `sprites/tools.png` | 5 Tools and weapons | `kenney_tiny-farm`, Nosum original (drawn in tools/art_repack, no outside source) | Hoe, axe, pickaxe and watering can drawn here in three material tiers (a three-tone metal head with a glint, a shaded wooden handle, a 1 px outline: `tools.py`); the milk pail is Tiny Farm tile 124; the blueprints are drawn |
 | `sprites/trees/maple.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Maple, same layout in autumn orange (`trees.py`) |
 | `sprites/trees/oak.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Oak: 48 x 96 tree, bush, sapling, seed mound and stump at the cells `NodeSprites` reads (`trees.py`) |
 | `sprites/trees/pine.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Pine, same layout (`trees.py`) |
-| `sprites/weapons.png` | 5 Tools and weapons | `kenney_tiny-farm` | The scythe: Tiny Farm sickle (tile 88) |
+| `sprites/weapons.png` | 5 Tools and weapons | Nosum original (drawn in tools/art_repack, no outside source) | The scythe drawn here (`tools.scythe`), cell (7, 5) |
 | `ui/cursors.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Selection frame, buttons, close button, arrows, coin, tab pictograms and the two mouse cursors at the rectangles of `nosum-theme.js` (`ui.py`) |
 | `ui/menu.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Window frame (60 x 60 at 0, 256), inset (0, 320) and inventory slot (128, 128) for the CSS border-image slices (`ui.py`) |
 | `ui/start_background.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`) |
@@ -79,27 +79,27 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 
 | Index | Game item or node | How |
 | --: | :-- | :-- |
-| 1 | `parsnip_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `parsnip` harvest picture |
-| 2 | `radish_seeds` | Tiny Farm seed bag (tile 21) with its own emblem |
-| 3 | `cauliflower_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `cauliflower` harvest picture |
-| 4 | `potato_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `potato` harvest picture |
-| 5 | `green_bean_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `green_bean` harvest picture |
-| 6 | `kale_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `kale` harvest picture |
-| 7 | `garlic_seeds` | Tiny Farm seed bag (tile 21) with its own emblem |
-| 8 | `strawberry_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `strawberry` harvest picture |
-| 9 | `tomato_seeds` | Tiny Farm seed bag (tile 45) with its own emblem |
-| 10 | `blueberry_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `blueberry` harvest picture |
-| 11 | `melon_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `melon` harvest picture |
-| 12 | `hot_pepper_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `hot_pepper` harvest picture |
-| 13 | `corn_seeds` | Tiny Farm seed bag (tile 33) with its own emblem |
-| 14 | `wheat_seeds` | Tiny Farm seed bag (tile 69) with its own emblem |
-| 15 | `sunflower_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `sunflower` harvest picture |
-| 16 | `pumpkin_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `pumpkin` harvest picture |
-| 17 | `cranberries_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `cranberries` harvest picture |
-| 18 | `eggplant_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `eggplant` harvest picture |
-| 19 | `yam_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `yam` harvest picture |
-| 20 | `bok_choy_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `bok_choy` harvest picture |
-| 21 | `grape_seeds` | Tiny Farm plain seed bag (tile 74) with a half-size `grape` harvest picture |
+| 1 | `parsnip_seeds` | Tiny Farm bag (tile 74) in the colour of the `parsnip` harvest picture, with a half-size picture of it |
+| 2 | `radish_seeds` | Tiny Farm bag (tile 74) in the colour of the `radish` harvest picture, with a half-size picture of it |
+| 3 | `cauliflower_seeds` | Tiny Farm bag (tile 74) in the colour of the `cauliflower` harvest picture, with a half-size picture of it |
+| 4 | `potato_seeds` | Tiny Farm bag (tile 74) in the colour of the `potato` harvest picture, with a half-size picture of it |
+| 5 | `green_bean_seeds` | Tiny Farm bag (tile 74) in the colour of the `green_bean` harvest picture, with a half-size picture of it |
+| 6 | `kale_seeds` | Tiny Farm bag (tile 74) in the colour of the `kale` harvest picture, with a half-size picture of it |
+| 7 | `garlic_seeds` | Tiny Farm bag (tile 74) in the colour of the `garlic` harvest picture, with a half-size picture of it |
+| 8 | `strawberry_seeds` | Tiny Farm bag (tile 74) in the colour of the `strawberry` harvest picture, with a half-size picture of it |
+| 9 | `tomato_seeds` | Tiny Farm bag (tile 74) in the colour of the `tomato` harvest picture, with a half-size picture of it |
+| 10 | `blueberry_seeds` | Tiny Farm bag (tile 74) in the colour of the `blueberry` harvest picture, with a half-size picture of it |
+| 11 | `melon_seeds` | Tiny Farm bag (tile 74) in the colour of the `melon` harvest picture, with a half-size picture of it |
+| 12 | `hot_pepper_seeds` | Tiny Farm bag (tile 74) in the colour of the `hot_pepper` harvest picture, with a half-size picture of it |
+| 13 | `corn_seeds` | Tiny Farm bag (tile 74) in the colour of the `corn` harvest picture, with a half-size picture of it |
+| 14 | `wheat_seeds` | Tiny Farm bag (tile 74) in the colour of the `wheat` harvest picture, with a half-size picture of it |
+| 15 | `sunflower_seeds` | Tiny Farm bag (tile 74) in the colour of the `sunflower` harvest picture, with a half-size picture of it |
+| 16 | `pumpkin_seeds` | Tiny Farm bag (tile 74) in the colour of the `pumpkin` harvest picture, with a half-size picture of it |
+| 17 | `cranberries_seeds` | Tiny Farm bag (tile 74) in the colour of the `cranberries` harvest picture, with a half-size picture of it |
+| 18 | `eggplant_seeds` | Tiny Farm bag (tile 74) in the colour of the `eggplant` harvest picture, with a half-size picture of it |
+| 19 | `yam_seeds` | Tiny Farm bag (tile 74) in the colour of the `yam` harvest picture, with a half-size picture of it |
+| 20 | `bok_choy_seeds` | Tiny Farm bag (tile 74) in the colour of the `bok_choy` harvest picture, with a half-size picture of it |
+| 21 | `grape_seeds` | Tiny Farm bag (tile 74) in the colour of the `grape` harvest picture, with a half-size picture of it |
 | 22 | `OakSeed` | drawn here: `icons.acorn` |
 | 23 | `MapleSeed` | drawn here: `icons.samara` |
 | 24 | `PineSeed` | drawn here: `icons.pinecone` |

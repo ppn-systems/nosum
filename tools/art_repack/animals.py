@@ -12,6 +12,8 @@ WHITE = ((176, 168, 160), (240, 234, 224), (255, 252, 248))
 DARK = ((30, 24, 34), (58, 50, 66), (96, 88, 110))
 ORANGE = (240, 150, 50)
 COMB = (222, 60, 52)
+COMB_D = (160, 36, 44)
+BEAK_D = (214, 110, 30)
 PINK = (240, 170, 170)
 LEGS = [(0, 0), (1, 1), (0, 0), (-1, 1)]        # per walk frame: horizontal shift of the front leg, how far the other leg lifts
 
@@ -27,10 +29,15 @@ def chicken(direction, frame):
         blob(c, 7, 9 + bob, 5, 4, WHITE)
         blob(c, 3, 6 + bob, 2.2, 3, WHITE)                    # tail
         blob(c, 11, 5 + bob, 2.6, 2.8, WHITE)                  # head
-        c.rect(11, 2 + bob, 2, 1, COMB)
+        c.rect(11, 2 + bob, 3, 1, COMB)
+        c.dot(11, 3 + bob, COMB_D)
         c.rect(14, 5 + bob, 2, 1, ORANGE)
+        c.dot(14, 6 + bob, BEAK_D)
+        c.dot(13, 7 + bob, COMB)                                # wattle
         c.dot(12, 4 + bob, draw.OUT)
         c.rect(5, 8 + bob, 4, 2, WHITE[0])                     # wing
+        c.line(5, 9 + bob, 8, 9 + bob, WHITE[1])
+        c.dot(4, 6 + bob, WHITE[0])                            # tail feather shade
     elif direction == 'down':
         for x, up in ((5, lift), (10 + shift, 0)):
             c.rect(x, 12 + up, 1, 3 - up, ORANGE)
@@ -38,11 +45,16 @@ def chicken(direction, frame):
         blob(c, 8, 9 + bob, 5.2, 4.6, WHITE)
         blob(c, 8, 5 + bob, 3, 3, WHITE)
         c.rect(7, 2 + bob, 2, 1, COMB)
-        c.rect(7, 6 + bob, 2, 2, ORANGE)
+        c.dot(7, 3 + bob, COMB_D)
+        c.rect(7, 6 + bob, 2, 1, ORANGE)
+        c.dot(7, 7 + bob, COMB)                                 # wattle under the beak
+        c.dot(8, 7 + bob, COMB_D)
         c.dot(6, 4 + bob, draw.OUT)
         c.dot(9, 4 + bob, draw.OUT)
         c.rect(2, 8 + bob, 2, 3, WHITE[0])
         c.rect(12, 8 + bob, 2, 3, WHITE[0])
+        c.line(3, 8 + bob, 3, 10 + bob, WHITE[1])
+        c.line(12, 8 + bob, 12, 10 + bob, WHITE[1])
     else:
         for x, up in ((5, lift), (10 + shift, 0)):
             c.rect(x, 12 + up, 1, 3 - up, ORANGE)
@@ -71,8 +83,11 @@ def cow(direction, frame):
         blob(c, 19, 17 + bob, 3.2, 2.6, spot)
         blob(c, 26, 11 + bob, 4.4, 4.2, WHITE)
         c.rect(28, 12 + bob, 4, 4, PINK)
+        c.rect(28, 15 + bob, 4, 1, (214, 130, 140))
         c.dot(29, 13 + bob, draw.OUT)
         c.dot(30, 13 + bob, draw.OUT)
+        c.rect(15, 19 + bob, 4, 2, PINK)                        # udder
+        c.dot(16, 21 + bob, (214, 130, 140))
         c.rect(24, 7 + bob, 2, 3, (230, 210, 170))
         c.rect(23, 9 + bob, 2, 3, DARK[1])
         c.dot(27, 9 + bob, draw.OUT)
@@ -85,8 +100,11 @@ def cow(direction, frame):
         blob(c, 22, 15 + bob, 3, 4, spot)
         blob(c, 16, 9 + bob, 6, 5.4, WHITE)
         c.rect(12, 11 + bob, 8, 4, PINK)
+        c.rect(12, 14 + bob, 8, 1, (214, 130, 140))
         c.dot(14, 12 + bob, draw.OUT)
         c.dot(17, 12 + bob, draw.OUT)
+        c.dot(14, 13 + bob, (180, 90, 100))
+        c.dot(17, 13 + bob, (180, 90, 100))
         c.dot(11, 7 + bob, draw.OUT)
         c.dot(20, 7 + bob, draw.OUT)
         c.rect(8, 3 + bob, 2, 3, (230, 210, 170))

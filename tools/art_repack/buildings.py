@@ -1,7 +1,7 @@
 """Package 7: the five sprites/buildings/ sheets, composed from Kenney Tiny Town house tiles and one piece drawn here."""
 import draw
 from draw import Canvas
-from pngio import Image
+from pngio import Image, recolor
 
 # Tiny Town tile indices (12 columns). Roofs: left end, middle, right end of the top row and of the eave row.
 ROOF = {
@@ -122,13 +122,20 @@ def barn(src):
     return b.img
 
 
+COOP_WOOD = recolor(0.06, sat=0.85, val=0.82)     # the barn's red boards turned to warm pine
+
+
 def coop(src):
-    b = Builder(src, 96, 112)
+    b = FarmBuilder(src, 96, 112)
     b.roof(0, 0, 6, 3, 'slate')
-    for r in (3, 4, 5):
-        b.wall_row(0, r, 6, 'brown')
-    b.wall_row(0, 4, 6, 'brown', windows=(1, 4))
-    b.wall_row(0, 6, 6, 'brown', windows=(4,), door=2)
+    b.board_row(0, 3, 6, 102, COOP_WOOD)
+    b.board_row(0, 4, 6, 102, COOP_WOOD)
+    b.board_row(0, 5, 6, 114, COOP_WOOD)
+    b.board_row(0, 6, 6, 114, COOP_WOOD)
+    for col in (1, 4):
+        b.put_farm(128, col, 4, COOP_WOOD)      # windows
+    b.put_farm(128, 4, 6, COOP_WOOD)
+    b.put_farm(127, 2, 6, COOP_WOOD)            # the door
     return b.img
 
 

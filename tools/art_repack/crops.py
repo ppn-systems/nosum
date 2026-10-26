@@ -119,25 +119,30 @@ SOIL_CELL = [0, 12, 13, 9, 4, 8, 1, 5, 15, 11, 14, 10, 3, 7, 2, 6]  # FarmDecora
 
 
 def soil_tile(mask, wet):
-    """One 16 x 16 tilled-soil tile. mask: bit 1 up, 2 right, 4 down, 8 left are tilled neighbours (the edge is open without one)."""
-    base = (101, 72, 53) if not wet else (66, 46, 38)
-    furrow = (84, 58, 44) if not wet else (49, 33, 29)
-    light = (122, 90, 66) if not wet else (84, 60, 50)
-    edge = (62, 42, 33) if not wet else (38, 26, 24)
+    """One 16 x 16 tilled-soil tile: ridges lit from above with furrows between them, a few clods, a dark lip where the bed ends.
+
+    mask: bit 1 up, 2 right, 4 down, 8 left are tilled neighbours (the edge is open without one).
+    """
+    if wet:
+        base, furrow, light, glint, edge = (88, 62, 52), (58, 40, 36), (112, 82, 68), (136, 104, 88), (40, 28, 26)
+    else:
+        base, furrow, light, glint, edge = (128, 90, 60), (88, 58, 40), (156, 114, 78), (184, 142, 98), (62, 42, 33)
     t = Image(16, 16)
     for y in range(16):
         for x in range(16):
-            c = base
-            if y % 4 == 1:
-                c = furrow          # horizontal furrows every fourth row
-            elif y % 4 == 3 and (x * 7 + y * 3) % 5 == 0:
-                c = light           # a few lit crumbs on the ridges
+            band = y % 4
+            c = light if band == 0 else base if band in (1, 2) else furrow     # lit ridge, body, furrow below it
+            if band == 0 and (x * 5 + y) % 7 == 0:
+                c = glint                                                         # a lit crumb on the ridge
+            elif band in (1, 2) and (x * 7 + y * 3) % 11 == 0:
+                c = furrow                                                        # a shadowed clod
             t.px[y][x] = c + (255,)
     for y in range(16):
         for x in range(16):
-            off = (not mask & 1 and y == 0) or (not mask & 4 and y == 15) or (not mask & 8 and x == 0) or (not mask & 2 and x == 15)
-            if off:
+            if (not mask & 1 and y == 0) or (not mask & 4 and y == 15) or (not mask & 8 and x == 0) or (not mask & 2 and x == 15):
                 t.px[y][x] = edge + (255,)
+            elif not mask & 1 and y == 1:
+                t.px[y][x] = light + (255,)
     # Round the corners where both sides meet open edges.
     for open_a, open_b, corner in ((1, 8, (0, 0)), (1, 2, (15, 0)), (4, 8, (0, 15)), (4, 2, (15, 15))):
         if not mask & open_a and not mask & open_b:

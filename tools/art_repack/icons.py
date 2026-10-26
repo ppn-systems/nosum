@@ -4,6 +4,8 @@ Crop produce comes from the CC0 crop pictures (crops.py); a few pictures come fr
 shaded blobs and pixel dots in the Kenney palette and a 1 px outline (ADR-040 D1). OBJECTS maps the compact sheet index the game uses
 (24 columns, numbered in item catalogue order from 1; 0 is no picture) to a function that returns the picture.
 """
+import colorsys
+
 import draw
 from draw import Canvas
 from trees import blob
@@ -43,9 +45,8 @@ def rock(tones, specks=None, wide=True):
     return done(c)
 
 
-FARM_BAGS = {'tomato': 45, 'corn': 33, 'wheat': 69, 'radish': 21, 'garlic': 21}     # Tiny Farm seed bags with their own emblem
-PLAIN_BAG = 74                                                                          # Tiny Farm bag without an emblem
-BAG_RECIPE = {'radish': recolor(0.19, only=[(0.69, 0.92)]), 'garlic': recolor(0.0, sat=0.10, val=1.7, only=[(0.69, 0.92)])}
+PLAIN_BAG = 74       # Tiny Farm's seed bag without an emblem: the silhouette every packet is drawn on
+BAG_LIGHT, BAG_MID, BAG_DARK = (254, 201, 156), (234, 165, 108), (207, 130, 84)    # its three paper tones
 
 
 def tile_of(sheet, index):
@@ -66,14 +67,34 @@ def mini(pic):
     return out
 
 
+def crop_colour(pic):
+    """The most common strongly coloured tone of a harvest picture, the colour of its seed packet."""
+    counts = {}
+    for row in pic.px:
+        for p in row:
+            if p[3] and max(p[:3]) - min(p[:3]) > 50 and sum(p[:3]) > 220:
+                counts[p[:3]] = counts.get(p[:3], 0) + 1
+    return max(counts, key=lambda c: (counts[c], c)) if counts else (200, 200, 190)
+
+
+def tones(rgb):
+    """Light, middle and dark paper tones of a packet of the given crop colour."""
+    h, s, v = colorsys.rgb_to_hsv(*(c / 255 for c in rgb))
+    s = max(s, 0.35)
+    return [tuple(round(c * 255) for c in colorsys.hsv_to_rgb(h, min(1.0, s * k), val)) for k, val in ((0.7, 1.0), (1.0, 0.9), (1.0, 0.6))]
+
+
 def packet(src, crop):
-    """A seed packet: Tiny Farm's own bag for its crops, else its plain bag carrying a half-size picture of the harvest."""
-    farm = src.sheet('farm')
-    if crop in FARM_BAGS:
-        bag = tile_of(farm, FARM_BAGS[crop])
-        return bag.map_pixels(BAG_RECIPE[crop]) if crop in BAG_RECIPE else bag
-    bag = tile_of(farm, PLAIN_BAG)
-    bag.paste(mini(crops.produce_icon(src, crop)), 4, 6)
+    """A seed packet on Tiny Farm's bag: the paper takes the crop's colour and the front carries a half-size picture of the harvest."""
+    pic = crops.produce_icon(src, crop)
+    swap = dict(zip((BAG_LIGHT, BAG_MID, BAG_DARK), tones(crop_colour(pic))))
+    bag = tile_of(src.sheet('farm'), PLAIN_BAG).map_pixels(lambda p: swap.get(p[:3], p[:3]) + (p[3],))
+    emblem = mini(pic)
+    for y in range(16):                                 # a cream label under the picture so it reads on any paper colour
+        for x in range(16):
+            if 4 <= x < 12 and 6 <= y < 13 and bag.px[y][x][3] and bag.px[y][x][:3] in swap.values():
+                bag.px[y][x] = (252, 240, 214, 255)
+    bag.paste(emblem, 4, 5)
     return bag
 
 
@@ -391,7 +412,7 @@ def wheat():
 
 def seeds_of(crop):
     f = lambda src, _t: packet(src, crop)
-    f.note = f'Tiny Farm seed bag (tile {FARM_BAGS[crop]}) with its own emblem' if crop in FARM_BAGS else f'Tiny Farm plain seed bag (tile {PLAIN_BAG}) with a half-size `{crop}` harvest picture'
+    f.note = f'Tiny Farm bag (tile {PLAIN_BAG}) in the colour of the `{crop}` harvest picture, with a half-size picture of it'
     return f
 
 
