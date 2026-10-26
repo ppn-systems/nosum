@@ -21,7 +21,7 @@ namespace Nosum.UnitTests.Tools;
 /// </summary>
 public sealed partial class MapReauthorTests
 {
-    private static readonly string s_original = File.ReadAllText(RepoFiles.Path("assets", "Maps", "Farm.tmx"));
+    private static string Original => File.ReadAllText(PlaceholderContent.Of("Maps", "Farm.tmx"));
     private static readonly string s_own = File.ReadAllText(RepoFiles.Path("art", "own", "Maps", "Farm.tmx"));
 
     private static MapSpec FarmSpec()
@@ -33,8 +33,13 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void KindTable_Farm_ListsEveryTileTheGroundLayerPlaces()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         KindTable table = KindTable.Embedded();
-        TileMap map = TmxReader.Parse(s_original);
+        TileMap map = TmxReader.Parse(Original);
         TileLayer ground = map.FindLayer("Back")!;
 
         List<string> missing = [];
@@ -61,6 +66,11 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void Run_Farm_CommittedFilesAreWhatTheToolWrites()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         using StringWriter log = new();
 
         Program.Run(RepoFiles.Path(), "Farm", check: true, log).Should().Be(0, log.ToString() + " Regenerate: dotnet run --project tools/Nosum.MapReauthor -- reauthor Farm");
@@ -69,16 +79,21 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void Run_Farm_EveryLayerExceptTheGroundIsCopiedCharacterForCharacter()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         foreach (string name in new[] { "Buildings", "Paths", "Front", "AlwaysFront", "AlwaysFront2" })
         {
-            Layer(s_own, name).Should().Be(Layer(s_original, name), $"{name} is a gameplay or object layer");
+            Layer(s_own, name).Should().Be(Layer(Original, name), $"{name} is a gameplay or object layer");
         }
 
         // Everything from the first object group on (warps of the Paths objects, TileData, node sites) is untouched.
-        s_own[s_own.IndexOf("<objectgroup", System.StringComparison.Ordinal)..].Should().Be(s_original[s_original.IndexOf("<objectgroup", System.StringComparison.Ordinal)..]);
+        s_own[s_own.IndexOf("<objectgroup", System.StringComparison.Ordinal)..].Should().Be(Original[Original.IndexOf("<objectgroup", System.StringComparison.Ordinal)..]);
 
         // The map properties (Warp, Outdoors) and the placeholder tilesets keep their text, and the own tileset is appended after them.
-        string head = s_original[..s_original.IndexOf("\n  <layer ", System.StringComparison.Ordinal)];
+        string head = Original[..Original.IndexOf("\n  <layer ", System.StringComparison.Ordinal)];
         head = NextLayerId().Replace(head, string.Empty);
         NextLayerId().Replace(s_own, string.Empty).Should().Contain(head);
     }
@@ -86,7 +101,12 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void Run_Farm_GroundCellsThatStayKeepTheirPlaceholderValue()
     {
-        TileMap original = TmxReader.Parse(s_original);
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
+        TileMap original = TmxReader.Parse(Original);
         TileMap own = TmxReader.Parse(s_own);
         TileLayer before = original.FindLayer("Back")!;
         TileLayer after = own.FindLayer("Back")!;
@@ -112,8 +132,13 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void BuildWalkGrid_ConvertedFarm_BlocksExactlyTheSameTiles()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         MapSpec spec = FarmSpec();
-        TileMap original = TmxReader.Parse(s_original);
+        TileMap original = TmxReader.Parse(Original);
         TileMap own = TmxReader.Parse(s_own);
 
         WalkGrid before = spec.BuildWalkGrid(original);
@@ -138,8 +163,13 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void FromMap_ConvertedFarm_TillsAndRefillsOnTheSameTiles()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         MapSpec spec = FarmSpec();
-        TileMap original = TmxReader.Parse(s_original);
+        TileMap original = TmxReader.Parse(Original);
         TileMap own = TmxReader.Parse(s_own);
         TillGrid tillBefore = TillGrid.FromMap(original, spec.BuildWalkGrid(original));
         TillGrid tillAfter = TillGrid.FromMap(own, spec.BuildWalkGrid(own));
@@ -165,8 +195,13 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void Resolve_ConvertedFarm_HasTheSameWarpsSpawnAndNodeSites()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         MapSpec spec = FarmSpec();
-        TileMap original = TmxReader.Parse(s_original);
+        TileMap original = TmxReader.Parse(Original);
         TileMap own = TmxReader.Parse(s_own);
         WalkGrid gridBefore = spec.BuildWalkGrid(original);
         WalkGrid gridAfter = spec.BuildWalkGrid(own);
@@ -304,6 +339,11 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void RunAll_CommittedMapsReportsAndSheets_AreWhatTheToolWrites()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         using StringWriter log = new();
 
         Program.RunAll(RepoFiles.Path(), check: true, log).Should().Be(0, log.ToString() + " Regenerate: dotnet run --project tools/Nosum.MapReauthor -- reauthor all");
@@ -313,7 +353,12 @@ public sealed partial class MapReauthorTests
     [MemberData(nameof(HostedFiles))]
     public void OwnMap_EveryHostedMap_KeepsEveryGameplayLayerObjectGroupAndTileset(string file)
     {
-        string original = File.ReadAllText(RepoFiles.Path("assets", "Maps", file));
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
+        string original = File.ReadAllText(PlaceholderContent.Of("Maps", file));
         string own = File.ReadAllText(RepoFiles.Path("art", "own", "Maps", file));
 
         foreach (string name in new[] { "Buildings", "Paths", "Front", "AlwaysFront", "AlwaysFront2", "AlwaysFront3", "Buildings2", "Buildings3", "Back2", "Back3" })
@@ -342,7 +387,12 @@ public sealed partial class MapReauthorTests
     [MemberData(nameof(HostedFiles))]
     public void OwnMap_EveryHostedMap_HasTheSameWalkTillAndWaterGrids(string file)
     {
-        TileMap before = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", file)));
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
+        TileMap before = TmxReader.Parse(File.ReadAllText(PlaceholderContent.Of("Maps", file)));
         TileMap after = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", file)));
         MapSpec spec = GameMaps.All.First(m => m.TmxFile == file);
 
@@ -366,6 +416,11 @@ public sealed partial class MapReauthorTests
     [MemberData(nameof(HostedFiles))]
     public void OwnMap_EveryHostedMap_DrawsOnlyOwnTilesheets(string file)
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         TileMap own = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", file)));
         string folder = file.Contains('/', System.StringComparison.Ordinal) ? file[..(file.LastIndexOf('/') + 1)] : string.Empty;
 
@@ -376,9 +431,9 @@ public sealed partial class MapReauthorTests
             string ownPath = RepoFiles.Path("art", "own", "Maps", image);
             File.Exists(ownPath).Should().BeTrue($"{image} of {file} must be an own sheet");
 
-            if (File.Exists(RepoFiles.Path("assets", "Maps", image)))
+            if (File.Exists(PlaceholderContent.Of("Maps", image)))
             {
-                Rgba mine = Rgba.Read(ownPath), placeholder = Rgba.Read(RepoFiles.Path("assets", "Maps", image));
+                Rgba mine = Rgba.Read(ownPath), placeholder = Rgba.Read(PlaceholderContent.Of("Maps", image));
                 (mine.Width, mine.Height).Should().Be((placeholder.Width, placeholder.Height), $"{image} keeps the placeholder's grid");
             }
         }
@@ -387,9 +442,14 @@ public sealed partial class MapReauthorTests
     [Fact]
     public void OwnSheets_NeverCopyPlaceholderPixels()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         foreach (string image in new[] { "spring_outdoorsTileSheet.png", "spring_town.png", "spring_beach.png", "Mines/mine.png", "coopTiles.png" })
         {
-            Rgba mine = Rgba.Read(RepoFiles.Path("art", "own", "Maps", image)), placeholder = Rgba.Read(RepoFiles.Path("assets", "Maps", image));
+            Rgba mine = Rgba.Read(RepoFiles.Path("art", "own", "Maps", image)), placeholder = Rgba.Read(PlaceholderContent.Of("Maps", image));
             int opaque = 0, same = 0;
             for (int i = 0; i < mine.Pixels.Length; i += 4)
             {

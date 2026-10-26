@@ -23,6 +23,8 @@ Atlas JSON (format version 1): `image`, `width`, `height`, and `sprites` mapping
 name (the PNG file name) to `{ x, y, w, h }`. Sprites are padded by 2 px; atlas sides are
 powers of two; the same input always produces the same atlas.
 
+**Placeholder content.** The repository no longer holds the Stardew Valley placeholder files once M6 is done ([ADR-040](../docs/adr/ADR-040-own-art-plan.md) D9). The tools that read them read the folder named by `NOSUM_PLACEHOLDER_ROOT`: the `assets/` folder of commit `64ce88e`, for example `git archive 64ce88e assets | tar -x -C <dir>` and `NOSUM_PLACEHOLDER_ROOT=<dir>/assets`. These need it: `Nosum.AssetInventory` (write, `--check`, `--write-fingerprints`), `Nosum.MapReauthor` (`reauthor`, `preview --placeholder`). `--release` does not: it reads only `docs/art/placeholders.sha256` and the repository, and refuses any file under `assets/` that is not listed.
+
 ```bash
 dotnet run --project tools/Nosum.AssetInventory                      # rewrite docs/art/inventory.md
 dotnet run --project tools/Nosum.AssetInventory -- --check           # exit 1 when the committed report is stale
