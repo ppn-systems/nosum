@@ -7,7 +7,7 @@ using Nosum.Gameplay.Nodes;
 namespace Nosum.Gameplay.Maps;
 
 /// <summary>
-/// What the own maps of the Mountain, the Beach and the Secret Woods do not draw (docs/adr/ADR-037, ADR-042 P5c): the tiles of the Beach's broken bridge, where shells
+/// What the own maps of the Mountain, the Beach and the Woods do not draw (docs/adr/ADR-037, ADR-042 P5c): the tiles of the Beach's broken bridge, where shells
 /// wash up, the large stumps of the Woods and where extra stones, twigs and weeds lie. Tile coordinates, checked against the map files by tests.
 /// </summary>
 public static class OutdoorWorld
@@ -66,7 +66,7 @@ public static class OutdoorWorld
         new(NodeKind.Weed, 20, 60, 9, 84, 15),
     ];
 
-    /// <summary>The six large stumps of the Secret Woods (docs/adr/ADR-037 D2): the file marks no tree or stump there.</summary>
+    /// <summary>The six large stumps of the Woods (docs/adr/ADR-037 D2): the file marks no tree or stump there.</summary>
     public static IReadOnlyList<NodeSite> WoodsStumps { get; } =
     [
         new(10, 12, NodeKind.LargeStump, 0),
@@ -77,7 +77,7 @@ public static class OutdoorWorld
         new(4, 25, NodeKind.LargeStump, 0),
     ];
 
-    /// <summary>Twigs, weeds and stones of the Secret Woods.</summary>
+    /// <summary>Twigs, weeds and stones of the Woods.</summary>
     public static IReadOnlyList<NodeScatter> WoodsNodes { get; } =
     [
         new(NodeKind.Twig, 30, 2, 4, 55, 30),

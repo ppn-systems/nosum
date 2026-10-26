@@ -65,7 +65,7 @@ public sealed class ShopDefinition
 /// </summary>
 public static class ShopCatalog
 {
-    /// <summary>The seed shop (Pierre's in the town). It was the town's only shop, the general store, before the split, so the id is unchanged.</summary>
+    /// <summary>The seed shop in the town. It was the town's only shop, the general store, before the split, so the id is unchanged.</summary>
     public const int SeedShop = 1;
 
     /// <summary>The clothing shop.</summary>

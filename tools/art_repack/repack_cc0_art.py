@@ -46,7 +46,7 @@ def build_all(src, repo, only=None):
     out.update(farmer.build(size))
     if only == 'farmer':
         return out
-    out['sprites/crops.png'] = crops.build_crops(src, repo, *size('sprites/crops.png'))
+    out['sprites/crops.png'] = crops.build_crops(src, repo)
     out['sprites/soil.png'] = crops.build_soil(*size('sprites/soil.png'))
     out['sprites/tools.png'], out['sprites/weapons.png'] = tools.build(src, repo, size('sprites/tools.png'), size('sprites/weapons.png'))
     out.update(buildings.build(src, size))

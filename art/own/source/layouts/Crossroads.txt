@@ -1,4 +1,4 @@
-// Layout of the BusStop map (ADR-042 P5b). One character per tile; see tools/README.md.
+// Layout of the Crossroads map (ADR-042 P5b). One character per tile; see tools/README.md.
 legend
 a terrain 0
 b terrain 1

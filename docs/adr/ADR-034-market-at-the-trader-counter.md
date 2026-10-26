@@ -12,7 +12,7 @@ the trader to stand at a counter in Town: no market from the farm, the mine or t
 
 - **D1 — One market counter.** The market is a `ShopPoint` of the Town with the id `MarketRules.MarketCounterId = 1001` (`Nosum.Gameplay/Economy`). Ids 1 to 99 are
   shops and 1000 is the community board (`CommunityGoalCatalog.BoardCounterId`), so `ShopRules.TryFindShop` returns it like any counter.
-- **D2 — The tile.** The counter is **(45, 71)** in `Town.tmx`: the walkable doormat one tile south of the saloon's door tile (45, 70), the same convention as every other
+- **D2 — The tile.** The counter is **(45, 71)** in `Town.tmx`: the walkable doormat one tile south of the tavern's door tile (45, 70), the same convention as every other
   counter (ADR-013 amendment, ADR-030). The tavern is where traders meet, and the tile is far from every other counter (the nearest is the seed shop at (43, 57), 14 tiles
   away), so no two counters are ever in reach of one place and "nearest counter wins" never has to decide. A test checks the tile, that it is walkable, reachable on foot from
   the Town spawn (4, 54), in front of a blocked door tile, and that it shares no reach with another counter.
@@ -41,4 +41,4 @@ the trader to stand at a counter in Town: no market from the farm, the mine or t
 
 ## Revisit when
 
-A second market (a farm stall, a co-op stand) is wanted, or the final Town art moves the saloon: move the point, nothing else changes.
+A second market (a farm stall, a co-op stand) is wanted, or the final Town art moves the tavern: move the point, nothing else changes.

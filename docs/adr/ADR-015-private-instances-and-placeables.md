@@ -19,7 +19,7 @@ same map" through `IMapPresence`; that abstraction has to keep working unchanged
   in-memory caches and their locks. The key is also the Nalix group name suffix (`MapGroup.Name(key)`).
 - **D2 — Which maps are private.** `MapSpec.IsPrivate` marks `farm` and `farmhouse`; `busstop`, `forest`, `town` and `backwoods` stay shared (one
   instance for everybody, key = map id). `MapSpec.Placeable` marks where furniture may be placed (`farmhouse` only). Town (130 x 110) and Backwoods
-  (50 x 40) are plain `MapSpec`s: their layers, tilesheets (`spring_town`, `spring_Shadows`, `spring_Waterfalls`, `spring_monsterGraveTiles`) and `Warp`
+  (50 x 40) are plain `MapSpec`s: their layers, tilesheets (the early town, shadow, waterfall and grave sheets) and `Warp`
   property are read by the existing reader, and the client and the host link the files like the other maps. Exits to maps the world does not host
   (Mountain, Beach, Woods, Tunnel, ...) are dropped as before. Shop and house doors in Town are `Action` tile properties, which stay unused, so they are walls.
 - **D3 — Presence is keyed by instance key; `IMapPresence` keeps its shape.** `JoinAsync` takes a `MapInstance` (a `string mapId` overload joins the shared instance);
@@ -40,7 +40,7 @@ same map" through `IMapPresence`; that abstraction has to keep working unchanged
   client builds the same grid from the same pieces with `PlacedSet.BuildGrid`, rebuilt only when the mirror changes, so prediction and the server agree.
 - **D7 — A generic placeable, furniture first.** `PlaceableDefinition` (made from an inventory item; 1 or 4 views, each a sheet rectangle, optional mirroring and a footprint of whole tiles
   anchored bottom-left to the sprite) and `PlaceableCatalog` live in `Nosum.Gameplay/Placeables`; furniture is `ItemKind.Furniture`, ids 300-399 (oak chair, blue armchair, blue couch, oak table, bookcase, floor lamp,
-  house plant, with measured rectangles of the early `furniture.png`). The rules are the pure `PlacedSet.Check`: valid rotation, footprint inside the map, on floor the map does not block, off the tiles
+  house plant, with measured rectangles of the furniture sheet `assets/sprites/furniture.png`). The rules are the pure `PlacedSet.Check`: valid rotation, footprint inside the map, on floor the map does not block, off the tiles
   the room keeps clear (`MapDefinition.ReservedTiles`: the exit tiles, the arrival points of every exit into the map and the tile north of each, so a player is never walled in), not on another piece
   (a piece being moved ignores itself); `PlacedSet.CoversFeet` refuses a piece under the player placing it. Decorations and machines reuse the same definition and set later.
 - **D8 — The server decides placing.** `IPlaceableService` (`PlaceableService`): the player must be in a placeable map, in an instance they own (`Instance.OwnerId == account`), within reach (the 32 px

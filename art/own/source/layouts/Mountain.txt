@@ -64,12 +64,8 @@ Z Paths 11
 9 Paths 18
 ! Paths 15
 
-property Warp 29 6 Tent 2 5 14 41 Town 81 0 15 41 Town 81 0 16 41 Town 81 0 54 4 Mine 18 13 9 -1 Railroad 29 59 10 -1 Railroad 29 59 -1 12 Backwoods 49 14 -1 13 Backwoods 49 14 -1 14 Backwoods 49 14 103 15 Mine 67 17 57 41 Town 90 0 85 41 Town 98 0
+property Warp 29 6 Camp 2 5 14 41 Town 81 0 15 41 Town 81 0 16 41 Town 81 0 54 4 Mine 18 13 9 -1 Railway 29 59 10 -1 Railway 29 59 -1 12 Backwoods 49 14 -1 13 Backwoods 49 14 -1 14 Backwoods 49 14 103 15 Mine 67 17 57 41 Town 90 0 85 41 Town 98 0
 property Outdoors T
-property Fall_Objects T
-property Spring_Objects T
-property Summer_Objects T
-property Winter_Objects T
 
 layer Back
 abcbdcaaaabdcadbddabadbbccadbadcbbdcabbbdbbacaaccdddaabcdcbabbbdbdddbbbcadbbadcaaddaadacacdaccbdccccdaddcabbddbdddadaacccdabbabbabbabcb

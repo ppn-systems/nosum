@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Maps;
 
-/// <summary>The Mountain, the Beach and the Secret Woods on the early files (docs/adr/ADR-007, ADR-037): their exits, spawns, the Beach bridge and the nodes placed on them.</summary>
+/// <summary>The Mountain, the Beach and the Woods on the early files (docs/adr/ADR-007, ADR-037): their exits, spawns, the Beach bridge and the nodes placed on them.</summary>
 public sealed class OutdoorMapsTests
 {
     private static readonly string[] s_newMaps = [GameMaps.Mountain, GameMaps.Beach, GameMaps.Woods];
@@ -120,7 +120,7 @@ public sealed class OutdoorMapsTests
     public void Warps_ExitsToMapsTheWorldDoesNotHost_AreDropped_AndTheFilesOwnMineExitsAreReplaced()
     {
         (MapSpec mountain, TileMap mountainMap, _) = Load(GameMaps.Mountain);
-        mountainMap.Properties["Warp"].Should().Contain("Railroad").And.Contain("Tent");
+        mountainMap.Properties["Warp"].Should().Contain("Railway").And.Contain("Camp");
         mountain.ResolveWarps(mountainMap).Select(w => w.TargetMap).Distinct().Should().BeEquivalentTo(GameMaps.Town, GameMaps.Backwoods, GameMaps.Mine);
         mountain.ResolveWarps(mountainMap).Where(w => w.TargetMap == GameMaps.Mine).Should().ContainSingle().Which.Should().Be(new MapWarp(54, 4, GameMaps.Mine, 18, 11));
 

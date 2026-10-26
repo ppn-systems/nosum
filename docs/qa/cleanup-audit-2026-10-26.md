@@ -96,8 +96,8 @@ run before the cleanup PR on `chore/source-cleanup`. Verdicts: **REMOVE** (delet
 
 | Candidate | Evidence | Category | Verdict |
 |:--|:--|:--|:--|
-| Paths to deleted early-art files in ADR-004, ADR-006, ADR-007, ADR-021, ADR-040, ADR-041 (e.g. `assets/Maps/paths.png`, `assets/wardrobe/SOURCES.md`) | ADRs record decisions as they were | ADR history | KEEP — ADRs are not edited except for status (`docs-style`) |
-| `art/README.md`, "`own/Maps/spring_town.png` is served as `assets/Maps/spring_town.png`" | `wasm/Nosum.Wasm/Nosum.Wasm.csproj` links `art/own/Maps` files to those served paths; the mechanism still exists | Current behaviour | KEEP |
+| Paths to deleted early-art files in ADR-004, ADR-006, ADR-007, ADR-021, ADR-040, ADR-041 (e.g. the early paths sheet, a deleted sources file) | ADRs record decisions as they were | ADR history | KEEP — ADRs are not edited except for status (`docs-style`) |
+| `art/README.md`, "a map sheet is served under `assets/Maps/`" | `wasm/Nosum.Wasm/Nosum.Wasm.csproj` links `art/own/Maps` files to those served paths; the mechanism still exists | Current behaviour | KEEP |
 | Short paths in `README.md`, `ARCHITECTURE.md`, `wasm/README.md`, `engine/README.md` (`Nosum.Engine.slnx`, `wwwroot/renderer.js`) | each names a file that exists under its area folder | Shorthand | KEEP |
 | `deploy/.env` in `deploy/README.md`, `docs/ops/README.md` | the file is git-ignored by design (`.gitignore`, `deploy/.env.example`) | Current | KEEP |
 | Nalix version in `.claude/skills/nalix-packets/SKILL.md` | `Directory.Packages.props` pins `Nalix.Codec` 14.3.7 | Current | KEEP |

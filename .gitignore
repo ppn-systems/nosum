@@ -31,3 +31,4 @@ deploy/.env
 
 # Test run output (vstest blame and hang dumps)
 TestResults/
+__pycache__/
