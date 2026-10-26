@@ -11,14 +11,15 @@ namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// Draws the planks of a map's gated bridge (<see cref="MapSpec.Gates"/>, docs/adr/ADR-037 D4) once its unlock is known: the file draws the bridge broken, and the tiles
-/// that open to walkers get a plank each. Placeholder art (docs/adr/ADR-007): the end plank of the Beach sheet, repeated.
+/// that open to walkers get a plank each. The plank is <see cref="OutdoorWorld.BridgePlankTile"/> of the own <c>town</c> sheet (docs/adr/ADR-042 P5c).
 /// </summary>
 internal sealed class BridgeDecorator : IMapDecorator
 {
-    // The "untitled tile sheet" of Beach.tmx starts at gid 65 and has 17 columns; the bridge end plank is gid 141, so local tile 76: column 8, row 4.
-    private const int PlankSrcX = 8 * 16;
-    private const int PlankSrcY = 4 * 16;
+    // The <c>town</c> sheet is 16 columns of 16 px tiles (art/own/source/tilesets/town.tileset).
+    private const int Columns = 16;
     private const int Tile = 16;
+    private const int PlankSrcX = (OutdoorWorld.BridgePlankTile % Columns) * Tile;
+    private const int PlankSrcY = (OutdoorWorld.BridgePlankTile / Columns) * Tile;
 
     private readonly MapGate _gate;
     private readonly int _texture;
@@ -59,7 +60,7 @@ internal sealed class BridgeDecorator : IMapDecorator
 internal sealed class BridgeDecoratorProvider : IMapDecoratorProvider
 {
     private const string MapsUrl = "assets/Maps/";
-    private const string BridgeSheet = "spring_beach.png";
+    private const string BridgeSheet = "town.png";
 
     private readonly Func<string, bool> _unlocked;
 
