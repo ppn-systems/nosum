@@ -7,6 +7,7 @@ using Nosum.Abstractions.Accounts;
 using System.Collections.Generic;
 using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Shops;
 using Nosum.Contracts.Building;
@@ -75,6 +76,8 @@ public sealed partial class DbBudgetRun
     }
 
     // Sets a piece down on the first free spot in reach of the farm's spawn: the player stands in front of each candidate, nearest first.
+    // The farm's debris is seeded per account, so it differs from run to run; a spot is tried only when the node service reports no node in its footprint or on the row in front
+    // of it (the rectangle PlaceableService checks). The search reaches as far as BuildingWireTests does, since debris can cover every spot near the spawn.
     private async Task<(int ObjectId, int X, int Y)> PlaceAsync(BudgetPlayer p, int itemId, string what)
     {
         IMapCatalog maps = BudgetRig.Service<IMapCatalog>();
@@ -89,17 +92,21 @@ public sealed partial class DbBudgetRun
 
         int startX = (int)(map!.SpawnX / 16);
         int startY = (int)(map.SpawnY / 16);
+        (int minX, int maxX, int minY, int maxY) = (startX - 16, startX + 10, startY - 12, startY + 8);
+        // The node service is the one PlaceableService asks (its INodeTiles view).
+        INodeTiles tiles = (INodeTiles)BudgetRig.Service<IResourceNodeService>();
+        IReadOnlySet<(int X, int Y)> nodes = await tiles.NodeTilesAsync(new MapInstance(GameMaps.Farm, p.AccountId), minX, minY, maxX - minX + width, maxY - minY + height + 1);
         List<(int X, int Y)> candidates = [];
-        for (int y = startY - 8; y <= startY + 3; y++)
+        for (int y = minY; y <= maxY; y++)
         {
-            for (int x = startX - 10; x <= startX + 4; x++)
+            for (int x = minX; x <= maxX; x++)
             {
                 bool open = true;
                 for (int dy = 0; dy <= height && open; dy++)
                 {
                     for (int dx = 0; dx < width && open; dx++)
                     {
-                        open = !map.Grid.IsBlocked(x + dx, y + dy) && !map.ReservedTiles.Contains((x + dx, y + dy));
+                        open = !map.Grid.IsBlocked(x + dx, y + dy) && !map.ReservedTiles.Contains((x + dx, y + dy)) && !nodes.Contains((x + dx, y + dy));
                     }
                 }
 
