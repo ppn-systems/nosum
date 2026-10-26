@@ -13,19 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  placeholder-gate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
-      - name: Refuse a public release while placeholder art is present
-        run: sh deploy/check-placeholder-art.sh public
-
   publish:
-    # The deploy waits for the placeholder gate: a refused gate stops it (docs/adr/ADR-041).
-    needs: placeholder-gate
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -47,7 +35,7 @@ jobs:
           jq -n --arg url "$SERVER_URL" --arg key "$SERVER_PUBLIC_KEY" \
             '{Server: {Url: $url, PublicKeys: [$key], RequirePin: true}}' > wasm/Nosum.Wasm/wwwroot/appsettings.json
       - name: Publish the client ahead-of-time compiled
-        run: dotnet publish wasm/Nosum.Wasm/Nosum.Wasm.csproj -c Release -p:NosumWebDeploy=true -p:NosumRelease=public -o out
+        run: dotnet publish wasm/Nosum.Wasm/Nosum.Wasm.csproj -c Release -p:NosumWebDeploy=true -o out
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:

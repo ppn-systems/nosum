@@ -18,8 +18,8 @@ using Xunit;
 namespace Nosum.IntegrationTests.Ops;
 
 /// <summary>
-/// The deployment scripts and the placeholder-art gate (docs/adr/ADR-031 D3, D9), run for real: a shell script, an MSBuild target, and the
-/// backup/restore round trip against PostgreSQL. A gate nobody runs is a gate that rots.
+/// The deployment scripts (docs/adr/ADR-031 D3), run for real: the compose file, the host entrypoint and the backup/restore round trip against
+/// PostgreSQL. A script nobody runs is a script that rots.
 /// </summary>
 public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, IDisposable
 {
@@ -29,128 +29,6 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     public DeployScriptTests(Server.PostgresFixture database) => _database = database;
 
     public void Dispose() => Directory.Delete(_scratch, recursive: true);
-
-    // ---- placeholder-art gate (script) ----
-
-    [Fact]
-    public async Task Gate_PublicReleaseWhileTheMarkerExists_IsRefused()
-    {
-        string root = this.RepositoryWith(marker: true);
-
-        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
-
-        code.Should().Be(1);
-        output.Should().Contain("REFUSED").And.Contain("ADR-007");
-    }
-
-    [Fact]
-    public async Task Gate_PrivateReleaseWhileTheMarkerExists_PassesWithAWarning()
-    {
-        string root = this.RepositoryWith(marker: true);
-
-        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "private", root]);
-
-        code.Should().Be(0);
-        output.Should().Contain("placeholder art");
-    }
-
-    [Theory]
-    [InlineData("public")]
-    [InlineData("private")]
-    public async Task Gate_NoMarker_PassesSilently(string release)
-    {
-        string root = this.RepositoryWith(marker: false);
-
-        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), release, root]);
-
-        code.Should().Be(0);
-        output.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task Gate_PublicWithAnUnlistedFileUnderAssets_IsRefused()
-    {
-        string root = this.RepositoryWith(marker: false);
-        await File.WriteAllTextAsync(Path.Combine(root, "assets", "Stray.png"), "not in the inventory");
-
-        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
-
-        code.Should().Be(1);
-        output.Should().Contain("UNLISTED      assets/Stray.png").And.Contain("REFUSED");
-    }
-
-    [Fact]
-    public async Task Gate_PublicWithAPlaceholderFileStillAtItsPath_IsRefused()
-    {
-        string root = this.RepositoryWith(marker: false);
-        await File.WriteAllTextAsync(Path.Combine(root, "assets", "Placeholder.png"), "placeholder bytes");
-        RecordPlaceholder(root, "Placeholder.png", "placeholder bytes", "1x1");
-
-        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
-
-        code.Should().Be(1);
-        output.Should().Contain("PLACEHOLDER   Placeholder.png").And.Contain("REFUSED");
-    }
-
-    [Fact]
-    public async Task Gate_PublicWithAListedFileMissing_IsRefused()
-    {
-        string root = this.RepositoryWith(marker: false);
-        RecordPlaceholder(root, "Gone.png", "any bytes", "1x1");
-
-        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
-
-        code.Should().Be(1);
-        output.Should().Contain("MISSING       Gone.png").And.Contain("REFUSED");
-    }
-
-    [Fact]
-    public async Task Gate_UnknownRelease_IsABadArgument()
-    {
-        (int code, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "staging", this.RepositoryWith(marker: false)]);
-
-        code.Should().Be(2);
-    }
-
-    [Fact]
-    public async Task Gate_NoArguments_UsesNosumReleaseFromTheEnvironmentAndTheRealRepository()
-    {
-        (int publicCode, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh")], new Dictionary<string, string> { ["NOSUM_RELEASE"] = "public" });
-        (int privateCode, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh")], new Dictionary<string, string> { ["NOSUM_RELEASE"] = "private" });
-
-        publicCode.Should().Be(0, "the repository holds no placeholder content any more (M6, ADR-040 phase 4)");
-        privateCode.Should().Be(0);
-    }
-
-    // ---- placeholder-art gate (MSBuild) ----
-
-    [Theory]
-    [InlineData("server/Nosum.Host/Nosum.Host.csproj")]
-    [InlineData("wasm/Nosum.Wasm/Nosum.Wasm.csproj")]
-    public async Task GateTarget_PublicReleaseInTheRealRepository_Passes(string project)
-    {
-        File.Exists(Path.Combine(RepositoryRoot(), "assets", "PLACEHOLDER_CONTENT")).Should().BeFalse("M6 removed the marker (ADR-040 phase 4)");
-
-        (int code, string output) = await RunDotnetAsync(["msbuild", Path.Combine(RepositoryRoot(), project), "-t:NosumPlaceholderGate", "-p:NosumRelease=public", "-nologo", "-v:q"]);
-
-        code.Should().Be(0, output);
-    }
-
-    [Fact]
-    public async Task GateTarget_PublicReleaseWithoutTheMarker_PassesAndPrivateAlwaysPasses()
-    {
-        string clean = this.RepositoryWith(marker: false) + Path.DirectorySeparatorChar;
-        string marked = this.RepositoryWith(marker: true) + Path.DirectorySeparatorChar;
-        string project = Path.Combine(RepositoryRoot(), "server", "Nosum.Host", "Nosum.Host.csproj");
-
-        (int publicClean, _) = await RunDotnetAsync(["msbuild", project, "-t:NosumPlaceholderGate", "-p:NosumRelease=public", $"-p:NosumRepoRoot={clean}", "-nologo", "-v:q"]);
-        (int privateMarked, _) = await RunDotnetAsync(["msbuild", project, "-t:NosumPlaceholderGate", "-p:NosumRelease=private", $"-p:NosumRepoRoot={marked}", "-nologo", "-v:q"]);
-        (int publicMarked, _) = await RunDotnetAsync(["msbuild", project, "-t:NosumPlaceholderGate", "-p:NosumRelease=public", $"-p:NosumRepoRoot={marked}", "-nologo", "-v:q"]);
-
-        publicClean.Should().Be(0);
-        privateMarked.Should().Be(0);
-        publicMarked.Should().NotBe(0);
-    }
 
     // ---- production compose (docs/adr/ADR-041 D2), read through `docker compose config` ----
 
@@ -300,28 +178,6 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
 
     private static Dictionary<string, string> Entrypoint(string config, string origin, string proxies)
         => new() { ["NALIX_CONFIG_PATH"] = config, ["NOSUM_ORIGIN"] = origin, ["NOSUM_TRUSTED_PROXIES"] = proxies };
-
-    // A fake repository root: the marker, and an empty list of placeholder files, so the release check has nothing to refuse.
-    private string RepositoryWith(bool marker)
-    {
-        string root = Path.Combine(_scratch, "repo-" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(Path.Combine(root, "assets"));
-        Directory.CreateDirectory(Path.Combine(root, "docs", "art"));
-        File.WriteAllText(Path.Combine(root, "docs", "art", "placeholders.sha256"), "# the placeholder files the release check knows\n");
-        if (marker)
-        {
-            File.WriteAllText(Path.Combine(root, "assets", "PLACEHOLDER_CONTENT"), "placeholder");
-        }
-
-        return root;
-    }
-
-    // Records a file as a placeholder, as `--write-fingerprints` would: its SHA-256 and its size.
-    private static void RecordPlaceholder(string root, string path, string content, string size)
-    {
-        string hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(content))).ToLowerInvariant();
-        File.AppendAllText(Path.Combine(root, "docs", "art", "placeholders.sha256"), $"{hash} {size} {path}\n");
-    }
 
     private static string RepositoryRoot()
     {
