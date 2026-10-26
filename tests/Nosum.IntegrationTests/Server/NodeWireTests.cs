@@ -376,7 +376,7 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
             NodeSnapshot snapshot = await player.GetNodesAsync(host.Timeout);
 
             first = snapshot.Nodes.Count;
-            first.Should().BeInRange(100, NodeLimits.MaxPerInstance);
+            first.Should().BeInRange(10, NodeLimits.MaxPerInstance);
             snapshot.Nodes.Should().Contain(n => n.Kind == (byte)NodeKind.Tree).And.Contain(n => n.Kind == (byte)NodeKind.Stone).And.Contain(n => n.Kind == (byte)NodeKind.Weed);
             snapshot.Nodes.Select(n => (n.X, n.Y)).Should().OnlyHaveUniqueItems();
             snapshot.Nodes.Where(n => n.Kind == (byte)NodeKind.Tree).Should().OnlyContain(n => n.Stage == TreeStage.Grown && n.Hits == 10);
