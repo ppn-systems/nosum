@@ -1,8 +1,8 @@
 """Package 3 and 6: sprites/items.png, the 16 x 16 object sheet (items, forage, resource nodes).
 
 Crop produce comes from the CC0 crop pictures (crops.py); a few pictures come from Kenney Tiny Town; every other icon is drawn here with
-shaded blobs and pixel dots in the Kenney palette and a 1 px outline (ADR-040 D1). OBJECTS maps the sheet index the game uses (24 columns)
-to a function that returns the picture.
+shaded blobs and pixel dots in the Kenney palette and a 1 px outline (ADR-040 D1). OBJECTS maps the compact sheet index the game uses
+(24 columns, numbered in item catalogue order from 1; 0 is no picture) to a function that returns the picture.
 """
 import draw
 from draw import Canvas
@@ -404,45 +404,48 @@ tiny_town_fence.note = 'Kenney Tiny Town tile 81 (horizontal fence)'
 # sheet index -> picture(src, town sheet)
 OBJECTS = {
     # crop produce
-    24: produce('parsnip'), 264: produce('radish'), 190: static(cauliflower), 192: produce('potato'), 188: produce('green_bean'),
-    250: produce('kale'), 248: produce('garlic'), 400: produce('strawberry'), 256: produce('tomato'), 258: produce('blueberry'),
-    254: produce('melon'), 260: produce('hot_pepper'), 270: produce('corn'), 262: static(wheat), 421: produce('sunflower'),
-    276: produce('pumpkin'), 282: produce('cranberries'), 272: produce('eggplant'), 280: produce('yam'), 278: produce('bok_choy'), 398: produce('grape'),
+    25: produce('parsnip'), 26: produce('radish'), 27: static(cauliflower), 28: produce('potato'), 29: produce('green_bean'),
+    30: produce('kale'), 31: produce('garlic'), 32: produce('strawberry'), 33: produce('tomato'), 34: produce('blueberry'),
+    35: produce('melon'), 36: produce('hot_pepper'), 37: produce('corn'), 38: static(wheat), 39: produce('sunflower'),
+    40: produce('pumpkin'), 41: produce('cranberries'), 42: produce('eggplant'), 43: produce('yam'), 44: produce('bok_choy'), 45: produce('grape'),
     # seed packets
-    472: seeds_of('parsnip'), 473: seeds_of('green_bean'), 474: seeds_of('cauliflower'), 475: seeds_of('potato'), 476: seeds_of('garlic'),
-    477: seeds_of('kale'), 745: seeds_of('strawberry'), 480: seeds_of('tomato'), 481: seeds_of('blueberry'), 479: seeds_of('melon'),
-    482: seeds_of('hot_pepper'), 487: seeds_of('corn'), 483: seeds_of('wheat'), 431: seeds_of('sunflower'), 490: seeds_of('pumpkin'),
-    493: seeds_of('cranberries'), 488: seeds_of('eggplant'), 492: seeds_of('yam'), 491: seeds_of('bok_choy'), 301: seeds_of('grape'),
-    484: seeds_of('radish'),
+    1: seeds_of('parsnip'), 5: seeds_of('green_bean'), 3: seeds_of('cauliflower'), 4: seeds_of('potato'), 7: seeds_of('garlic'),
+    6: seeds_of('kale'), 8: seeds_of('strawberry'), 9: seeds_of('tomato'), 10: seeds_of('blueberry'), 11: seeds_of('melon'),
+    12: seeds_of('hot_pepper'), 13: seeds_of('corn'), 14: seeds_of('wheat'), 15: seeds_of('sunflower'), 16: seeds_of('pumpkin'),
+    17: seeds_of('cranberries'), 18: seeds_of('eggplant'), 19: seeds_of('yam'), 20: seeds_of('bok_choy'), 21: seeds_of('grape'),
+    2: seeds_of('radish'),
     # forage
-    18: static(flower, YELLOW), 22: static(flower, YELLOW, draw.WOOD_D), 402: static(flower, PINK), 20: static(leek), 399: static(spring_onion),
-    396: static(berries, RED, 4), 410: static(berries, PURPLE, 5), 408: static(nut), 406: static(plum), 404: static(mushroom),
-    412: static(root, ((120, 50, 60), (170, 90, 100), (215, 140, 150))), 414: static(crystal_fruit), 416: static(root, ((150, 110, 60), (210, 170, 110), (245, 220, 170))),
+    68: static(flower, YELLOW), 67: static(flower, YELLOW, draw.WOOD_D), 70: static(flower, PINK), 66: static(leek), 65: static(spring_onion),
+    69: static(berries, RED, 4), 71: static(berries, PURPLE, 5), 72: static(nut), 73: static(plum), 74: static(mushroom),
+    75: static(root, ((120, 50, 60), (170, 90, 100), (215, 140, 150))), 76: static(crystal_fruit), 77: static(root, ((150, 110, 60), (210, 170, 110), (245, 220, 170))),
     # animal products and food
-    176: static(egg), 174: static(egg, True, True), 184: static(bottle), 186: static(bottle, True), 178: static(hay),
-    196: static(bowl, GREENS, ((5, 5), (9, 4), (7, 6), (11, 5))), 208: static(baked_potato), 236: static(bowl, ORANGE, ((6, 5), (10, 5))),
+    57: static(egg), 58: static(egg, True, True), 59: static(bottle), 60: static(bottle, True), 61: static(hay),
+    62: static(bowl, GREENS, ((5, 5), (9, 4), (7, 6), (11, 5))), 63: static(baked_potato), 64: static(bowl, ORANGE, ((6, 5), (10, 5))),
     # resources
-    388: static(log), 390: static(rock, GREY), 382: static(rock, COAL, [(5, 8, (150, 150, 170)), (9, 9, (150, 150, 170))]),
-    378: static(rock, GREY, [(5, 9, COPPER[1]), (9, 8, COPPER[2]), (8, 11, COPPER[1])]),
-    380: static(rock, GREY, [(5, 9, (210, 120, 100)), (9, 8, (170, 190, 235)), (8, 11, (210, 120, 100))]),
-    334: static(bar, COPPER), 335: static(bar, GREY), 771: static(grass_tuft),
-    309: static(acorn), 310: static(samara), 311: static(pinecone),
+    46: static(log), 47: static(rock, GREY), 49: static(rock, COAL, [(5, 8, (150, 150, 170)), (9, 9, (150, 150, 170))]),
+    50: static(rock, GREY, [(5, 9, COPPER[1]), (9, 8, COPPER[2]), (8, 11, COPPER[1])]),
+    51: static(rock, GREY, [(5, 9, (210, 120, 100)), (9, 8, (170, 190, 235)), (8, 11, (210, 120, 100))]),
+    52: static(bar, COPPER), 53: static(bar, GREY), 48: static(grass_tuft),
+    22: static(acorn), 23: static(samara), 24: static(pinecone),
     # sea
-    372: static(shell, WHITE), 718: static(shell, ((170, 120, 80), (220, 175, 125), (245, 220, 175))), 393: static(coral), 397: static(urchin),
-    392: static(nautilus), 394: static(rainbow_shell),
+    78: static(shell, WHITE), 79: static(shell, ((170, 120, 80), (220, 175, 125), (245, 220, 175))), 80: static(coral), 81: static(urchin),
+    82: static(nautilus), 83: static(rainbow_shell),
     # nodes and placed pieces
-    290: static(rock, GREY, [(4, 8, (110, 130, 190)), (9, 7, (170, 190, 235)), (10, 11, (110, 130, 190))]),
-    751: static(rock, ((110, 60, 40), (170, 100, 60), (214, 150, 100)), [(5, 8, COPPER[2]), (9, 7, COPPER[1]), (10, 11, COPPER[2])]),
-    343: static(rock, ((120, 125, 140), (190, 195, 205), (230, 232, 240))), 450: static(rock, BROWN),
-    294: static(twig, False), 295: static(twig, True), 313: static(weed, 0), 314: static(weed, 1), 315: static(weed, 2),
-    322: tiny_town_fence, 407: static(stone_path), 599: static(sprinkler),
+    92: static(rock, GREY, [(4, 8, (110, 130, 190)), (9, 7, (170, 190, 235)), (10, 11, (110, 130, 190))]),
+    91: static(rock, ((110, 60, 40), (170, 100, 60), (214, 150, 100)), [(5, 8, COPPER[2]), (9, 7, COPPER[1]), (10, 11, COPPER[2])]),
+    89: static(rock, ((120, 125, 140), (190, 195, 205), (230, 232, 240))), 90: static(rock, BROWN),
+    84: static(twig, False), 85: static(twig, True), 86: static(weed, 0), 87: static(weed, 1), 88: static(weed, 2),
+    54: tiny_town_fence, 55: static(stone_path), 56: static(sprinkler),
 }
+
+
+COLUMNS = 24
 
 
 def build(src, size):
     from pngio import Image
     town = src.sheet('town')
-    sheet = Image(*size('sprites/items.png'))
+    sheet = Image(COLUMNS * 16, (max(OBJECTS) // COLUMNS + 1) * 16)
     for index, fn in OBJECTS.items():
-        sheet.paste(fn(src, town), index % 24 * 16, index // 24 * 16)
+        sheet.paste(fn(src, town), index % COLUMNS * 16, index // COLUMNS * 16)
     return sheet

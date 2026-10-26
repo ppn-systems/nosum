@@ -122,8 +122,8 @@ public sealed class ForageTests
     [Theory]
     [InlineData("Town.tmx", 203)]
     [InlineData("Forest.tmx", 165)]
-    [InlineData("Backwoods.tmx", 165)]
-    [InlineData("BusStop.tmx", 203)]
+    [InlineData("Hillside.tmx", 165)]
+    [InlineData("Crossroads.tmx", 203)]
     [InlineData("Farm.tmx", 165)]
     public void ReadForage_TheRealMaps_FindsTheForageGlyphsOfThePathsLayer(string mapFile, int pathsFirstGid)
     {
@@ -142,5 +142,5 @@ public sealed class ForageTests
 
     [Fact]
     public void ReadForage_AMapWithoutAPathsLayer_HasNoSpots()
-        => NodeSites.ReadForage(TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", "FarmHouse.tmx")))).Should().BeEmpty();
+        => NodeSites.ReadForage(TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", "Farmhouse.tmx")))).Should().BeEmpty();
 }

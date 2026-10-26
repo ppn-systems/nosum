@@ -26,7 +26,7 @@ from the wire must never become a file path.
 - **D2 — Exits are data from the maps.** `WarpParser` reads the Tiled `Warp` property; a target is a map
   name resolved case-insensitively to a catalogue id (`BusStop` is `busstop`). An exit to a map the world
   does not host is dropped, so its edge stays a plain wall: the world can grow one map at a time.
-  Hand-made doors (the farmhouse, which the original game hard-codes) are `MapSpec.ExtraWarps`. The
+  Hand-made doors (the farmhouse, which is hard-coded) are `MapSpec.ExtraWarps`. The
   `Action`/`TouchAction` tile properties are not used by the enabled maps and are not read.
 - **D3 — The rule lives in gameplay.** `WarpRule` takes the position the server keeps, not a client claim.
   The player must stand on the exit's tile. An edge exit counts from the nearest edge tile and also needs
@@ -79,7 +79,7 @@ from the wire must never become a file path.
 
 - A map change costs two database writes (the leave saves the old place, then the new place is saved);
   a crash between them restores the old place, which is harmless.
-- Edge exits trigger one tile earlier than in the original game (on the edge tile, not outside it).
+- Edge exits trigger on the edge tile itself, not outside it.
 - Every shared map is a place where all players meet; a busy map still needs the interest management or
   splitting noted in [ADR-008](ADR-008-snapshot-movement-sync.md) and the pillars.
 - Exits to unhosted maps are silently walls; the catalogue test only checks the hosted ones.

@@ -57,10 +57,12 @@ def produce_icon(src, crop_name):
     return cc0_stages(src.sheet('crops'), index, recipe)['produce']
 
 
-def build_crops(src, repo, width, height):
-    out = Image(width, height)
+def build_crops(src, repo):
+    catalogue = read_catalogue(repo)
+    bands = (max(row for _, row, _ in catalogue) // 2) + 1
+    out = Image(256, bands * 32)
     sheet = src.sheet('crops')
-    for name, row, frames in read_catalogue(repo):
+    for name, row, frames in catalogue:
         index, recipe, _ = RECIPES[name]
         st = cc0_stages(sheet, index, recipe)
         ladder = [st['seed'], st['s1'], st['s2'], st['s3'], st['ripe']]

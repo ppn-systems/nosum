@@ -73,4 +73,4 @@ Text grids of the own maps, one character per tile with a legend, compiled into 
 | File | Map | Contents |
 | :-- | :-- | :-- |
 | `source/layouts/Farm.txt` | `Farm.tmx` | The personal farm: fields, a yard, a pond, a fenced field, a cave mouth and the exits to the bus stop, the forest and the backwoods (ADR-042 P5a) |
-| `source/layouts/Farm_Foraging.txt` | `Farm_Foraging.tmx` | The co-op land: an open meadow with fields in four unlock bands, a gate to Town and the same exits (ADR-042 P5a) |
+| `source/layouts/CoopFarm.txt` | `CoopFarm.tmx` | The co-op land: an open meadow with fields in four unlock bands, a gate to Town and the same exits (ADR-042 P5a) |

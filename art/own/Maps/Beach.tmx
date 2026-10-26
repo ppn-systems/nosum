@@ -3,8 +3,6 @@
   <properties>
     <property name="Warp" type="string" value="38 -1 Town 54 108 39 -1 Town 54 108 40 -1 Town 54 108 67 -1 Town 94 109" />
     <property name="Outdoors" type="string" value="T" />
-    <property name="Music" type="string" value="ocean" />
-    <property name="MusicIgnoreInRain" type="string" value="t" />
   </properties>
   <tileset firstgid="1" name="terrain" tilewidth="16" tileheight="16" tilecount="126" columns="16">
     <image source="terrain.png" width="256" height="128" />

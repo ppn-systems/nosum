@@ -116,8 +116,8 @@ def tree_sheet(size, tones, kind):
 def build(size):
     """{path: Image}: the three tree sheets.
 
-    Maps/Mines/mine.png is not here: it holds the mine's floor tiles (package 11, terrain) and the ladder cell NodeSprites draws, so it
-    is replaced with the mine maps. Kenney Tiny Town tile 103 (a ladder in a stone frame) is a candidate for the ladder at cell (3, 4).
+    The mine's floor tiles and ladder cell are not here: the mine maps are generated (tools/Nosum.MapGen), so the ladder cell the node
+    sprites draw is a separate picture. Kenney Tiny Town tile 103 (a ladder in a stone frame) is a candidate for the ladder at cell (3, 4).
     """
     return {
         'sprites/trees/oak.png': tree_sheet(size('sprites/trees/oak.png'), OAK, 'oak'),

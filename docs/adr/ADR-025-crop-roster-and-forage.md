@@ -5,8 +5,7 @@
 
 ## Context
 
-Three spring crops cannot carry a two-week season, let alone a year. The early sheets (`TileSheets/crops.png`,
-`Maps/springobjects.png`, ADR-007) carry art for many more crops, seeds and forage items.
+Three spring crops cannot carry a two-week season, let alone a year. The early sheets (ADR-007) carried art for many more crops, seeds and forage items.
 
 ## Decision
 

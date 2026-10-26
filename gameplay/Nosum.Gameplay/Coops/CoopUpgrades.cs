@@ -90,7 +90,7 @@ public static class CoopUpgrades
         [new(ItemCatalog.Wood, 500), new(ItemCatalog.Stone, 400), new(ItemCatalog.IronBar, 10)],
     ];
 
-    // The ground of the co-op land map (Farm_Foraging.tmx, 80 x 65): level 0 is the northern meadow around the arrival tile, each level adds
+    // The ground of the co-op land map (CoopFarm.tmx, 80 x 65): level 0 is the northern meadow around the arrival tile, each level adds
     // one more block, and the last one is the whole map, so nothing is left locked at the top level.
     private static readonly LandRect[] s_landSteps =
     [
