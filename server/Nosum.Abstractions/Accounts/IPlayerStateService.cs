@@ -22,6 +22,13 @@ public interface IPlayerStateService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when the state is stored.</returns>
     Task SaveAsync(Guid playerId, PlayerStateRow state, CancellationToken cancellationToken);
+
+    /// <summary>Saves a player's state as they leave a map: written to the row, and it never adds an in-memory copy (a held copy follows the row).</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="state">The state to store.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the state is stored.</returns>
+    Task LeaveAsync(Guid playerId, PlayerStateRow state, CancellationToken cancellationToken);
 }
 
 /// <summary>A player's saved position.</summary>

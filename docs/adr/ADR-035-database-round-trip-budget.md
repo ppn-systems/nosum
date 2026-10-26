@@ -98,6 +98,7 @@ a second ago. Only a few of these are real N+1 loops (community goals, friend co
   only after `SaveChanges`. The inventory lock of D3 is the other per-player lock; the order between them stays what the code documents today (inventory
   lock first, progress second, because the charge is enlisted in the inventory transaction, `PlayerProgressService` class comment), and a swing that needs both takes them in that order only.
   Two quick swings therefore cannot both pass a check against 1 remaining energy.
+  Cache scope: the cache is per signed-in session; bounded memory. A player who has left keeps no copy (`LeaveAsync` writes the place and evicts it), so the cache holds only players who are signed in, plus the 30-minute idle sweep.
 - **D5 — Social and access facts.** `CoopMembership`, `VisitAccess` (grants, settings, friendships, blocks), the friend lists and the nickname to account
   lookup (`players.normalized_nickname`) get a read-through cache with explicit invalidation in the service that writes them. Each of those services is
   already the only writer of its tables; `INicknameDirectory` is the model. `VisitAccess` is also evaluated once per decision: ADR-019 D5 re-checks access

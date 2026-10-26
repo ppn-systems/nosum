@@ -200,5 +200,12 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
             _ = _saves.AddOrUpdate(playerId, 1, static (_, n) => n + 1);
             return _inner.SaveAsync(playerId, state, cancellationToken);
         }
+
+        public Task LeaveAsync(Guid playerId, PlayerStateRow state, CancellationToken cancellationToken)
+        {
+            // A leave is the save of the place as the player goes, so it counts as one.
+            _ = _saves.AddOrUpdate(playerId, 1, static (_, n) => n + 1);
+            return _inner.LeaveAsync(playerId, state, cancellationToken);
+        }
     }
 }

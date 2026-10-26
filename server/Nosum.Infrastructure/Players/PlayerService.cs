@@ -519,7 +519,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                 state = new PlayerStateRow(player.MapId, player.Motion.X, player.Motion.Y, (Facing)player.Motion.Facing);
             }
 
-            await _states.SaveAsync(player.AccountId, state, CancellationToken.None).ConfigureAwait(false);
+            await _states.LeaveAsync(player.AccountId, state, CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception)
         {

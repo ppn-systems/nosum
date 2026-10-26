@@ -194,6 +194,43 @@ public sealed class PlayerStateCacheTests : IClassFixture<PostgresFixture>
         (await _progress.GetAsync(player)).Energy.Should().Be(12);
     }
 
+    [Fact]
+    public async Task Leave_ThenSessionEnded_EvictsTheCopy()
+    {
+        Guid player = await CreatePlayerAsync(energy: 40, farmingXp: 0);
+        _ = await _places.LoadAsync(player, CancellationToken.None);
+        _cache.DescribeHeld(player).Should().NotBeNull("the place was read into memory");
+
+        await _places.LeaveAsync(player, new PlayerStateRow("Farm", 10, 20, Facing.Down), CancellationToken.None);
+        _cache.Forget(player);
+
+        _cache.DescribeHeld(player).Should().BeNull("a player who left keeps no copy");
+        (await RowAsync(player)).MapName.Should().Be("Farm", "the leave still wrote the place through");
+    }
+
+    [Fact]
+    public async Task SessionEnded_ThenLeave_EvictsTheCopy()
+    {
+        Guid player = await CreatePlayerAsync(energy: 40, farmingXp: 0);
+        _ = await _places.LoadAsync(player, CancellationToken.None);
+
+        _cache.Forget(player);
+        await _places.LeaveAsync(player, new PlayerStateRow("Farm", 10, 20, Facing.Down), CancellationToken.None);
+
+        _cache.DescribeHeld(player).Should().BeNull("the leave evicts whatever the session end left behind");
+        (await RowAsync(player)).MapName.Should().Be("Farm");
+    }
+
+    [Fact]
+    public async Task Leave_WithoutACopy_DoesNotPutOneBack()
+    {
+        Guid player = await CreatePlayerAsync(energy: 40, farmingXp: 0);
+
+        await _places.LeaveAsync(player, new PlayerStateRow("Farm", 10, 20, Facing.Down), CancellationToken.None);
+
+        _cache.DescribeHeld(player).Should().BeNull("the save of a player who left is written straight to the row");
+    }
+
     private async Task AssertCacheEqualsRowAsync(Guid player)
     {
         PlayerProgressView cached = await _progress.GetAsync(player);
