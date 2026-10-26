@@ -83,10 +83,8 @@
   <data name="Place_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Placement_Title" xml:space="preserve"><value>Sắp xếp nhà</value></data>
   <data name="Placement_Hint" xml:space="preserve"><value>E: đặt đồ đang cầm. R: xoay. F: cầm món đồ phía trước để dời chỗ, nhấn E để đặt xuống. Q: cất vào túi.</value></data>
-  <data name="Placement_Rotate" xml:space="preserve"><value>Xoay (R)</value></data>
   <data name="Placement_Move" xml:space="preserve"><value>Dời chỗ (F)</value></data>
   <data name="Placement_Cancel" xml:space="preserve"><value>Hủy dời (F)</value></data>
-  <data name="Placement_PickUp" xml:space="preserve"><value>Cất vào túi (Q)</value></data>
   <data name="Placement_Carrying" xml:space="preserve"><value>Đang cầm: {0}</value></data>
   <data name="Panel_Close" xml:space="preserve"><value>Đóng</value></data>
   <data name="Toolbar_Label" xml:space="preserve"><value>Mở bảng</value></data>
@@ -100,7 +98,6 @@
   <data name="Pager_Position" xml:space="preserve"><value>Trang {0}/{1}</value></data>
   <data name="Player_Label" xml:space="preserve"><value>Người chơi số {0}</value></data>
   <data name="Wallet_Caption" xml:space="preserve"><value>xu</value></data>
-  <data name="Market_Title" xml:space="preserve"><value>Chợ</value></data>
   <data name="Market_Tab_Browse" xml:space="preserve"><value>Mua</value></data>
   <data name="Market_Tab_Sell" xml:space="preserve"><value>Bán</value></data>
   <data name="Market_Tab_Mine" xml:space="preserve"><value>Hàng của tôi</value></data>
@@ -113,7 +110,6 @@
   <data name="Market_Buy" xml:space="preserve"><value>Mua</value></data>
   <data name="Market_Cancel" xml:space="preserve"><value>Rút lại</value></data>
   <data name="Market_YourListing" xml:space="preserve"><value>Hàng của bạn</value></data>
-  <data name="Market_SellPick" xml:space="preserve"><value>Chọn vật phẩm để bán</value></data>
   <data name="Market_SellHint" xml:space="preserve"><value>Chọn một ô trong túi đồ để đăng bán.</value></data>
   <data name="Market_Quantity" xml:space="preserve"><value>Số lượng</value></data>
   <data name="Market_List" xml:space="preserve"><value>Đăng bán</value></data>
@@ -150,15 +146,9 @@
   <data name="Wardrobe_HairStyle" xml:space="preserve"><value>Kiểu tóc {0}</value></data>
   <data name="Wardrobe_HairDye_Heading" xml:space="preserve"><value>Màu tóc</value></data>
   <data name="Wardrobe_HairDye" xml:space="preserve"><value>Màu tóc {0}</value></data>
-  <data name="Wardrobe_Worn_Heading" xml:space="preserve"><value>Đang mặc</value></data>
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Áo</value></data>
   <data name="Wardrobe_Slot_Pants" xml:space="preserve"><value>Quần</value></data>
   <data name="Wardrobe_Slot_Hat" xml:space="preserve"><value>Mũ</value></data>
-  <data name="Wardrobe_Plain" xml:space="preserve"><value>Mặc định</value></data>
-  <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Cởi</value></data>
-  <data name="Wardrobe_Clothes_Heading" xml:space="preserve"><value>Quần áo trong túi</value></data>
-  <data name="Wardrobe_NoClothes" xml:space="preserve"><value>Bạn không có quần áo nào.</value></data>
-  <data name="Wardrobe_Hint" xml:space="preserve"><value>Chọn một món để mặc.</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Màu da không hợp lệ.</value></data>
   <data name="Wardrobe_Status_InvalidHairStyle" xml:space="preserve"><value>Kiểu tóc không hợp lệ.</value></data>
@@ -169,7 +159,6 @@
   <data name="Wardrobe_Status_NotOnMap" xml:space="preserve"><value>Bạn chưa ở trên bản đồ nào.</value></data>
   <data name="Wardrobe_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Wardrobe_Status_NothingWorn" xml:space="preserve"><value>Bạn không mặc gì ở đó.</value></data>
-  <data name="Trade_Title" xml:space="preserve"><value>Giao dịch</value></data>
   <data name="Trade_PickPlayer" xml:space="preserve"><value>Chọn người để giao dịch</value></data>
   <data name="Trade_Invite" xml:space="preserve"><value>Mời</value></data>
   <data name="Trade_NobodyNear" xml:space="preserve"><value>Không có người chơi nào khác trên bản đồ này.</value></data>
@@ -208,7 +197,6 @@
   <data name="Trade_Ended_NoSpace" xml:space="preserve"><value>Túi đồ không đủ chỗ. Không có gì thay đổi.</value></data>
   <data name="Trade_Ended_Failed" xml:space="preserve"><value>Giao dịch thất bại. Không có gì thay đổi.</value></data>
   <data name="Trade_Ended_SelfLeft" xml:space="preserve"><value>Bạn đã rời bản đồ nên giao dịch bị hủy.</value></data>
-  <data name="Coop_Title" xml:space="preserve"><value>Hợp tác xã</value></data>
   <data name="Coop_Create_Heading" xml:space="preserve"><value>Lập hợp tác xã</value></data>
   <data name="Coop_NamePlaceholder" xml:space="preserve"><value>Tên hợp tác xã</value></data>
   <data name="Coop_Create" xml:space="preserve"><value>Lập</value></data>
@@ -288,7 +276,6 @@
   <data name="Account_Status_Banned" xml:space="preserve"><value>Tài khoản này đã bị khóa. Hãy liên hệ quản trị viên nếu bạn cho rằng đây là nhầm lẫn.</value></data>
   <data name="Account_Status_SessionKicked" xml:space="preserve"><value>Quản trị viên đã đưa bạn ra khỏi trò chơi. Bạn có thể đăng nhập lại.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Hồ sơ</value></data>
-  <data name="Profile_Title" xml:space="preserve"><value>Hồ sơ</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Biệt danh hiện tại: {0}</value></data>
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>
@@ -318,7 +305,6 @@
   <data name="Game_Tagline" xml:space="preserve"><value>Nông trại trực tuyến để cùng nhau vun trồng</value></data>
   <data name="Game_Loading" xml:space="preserve"><value>Đang vào thế giới…</value></data>
   <data name="Game_StartFailed" xml:space="preserve"><value>Không thể bắt đầu trò chơi: {0}</value></data>
-  <data name="Toolbar_Help" xml:space="preserve"><value>Phím tắt</value></data>
   <data name="Help_Title" xml:space="preserve"><value>Phím tắt</value></data>
   <data name="Help_Section_Play" xml:space="preserve"><value>Chơi</value></data>
   <data name="Help_Section_Panels" xml:space="preserve"><value>Menu</value></data>
@@ -360,7 +346,6 @@
   <data name="Settings_ReduceMotion" xml:space="preserve"><value>Giảm chuyển động (không mưa, tuyết, hiệu ứng)</value></data>
   <data name="Settings_HighContrast" xml:space="preserve"><value>Tương phản cao</value></data>
   <data name="Settings_Display" xml:space="preserve"><value>Hiển thị</value></data>
-  <data name="Settings_Accessibility" xml:space="preserve"><value>Dễ nhìn</value></data>
   <data name="Settings_Music" xml:space="preserve"><value>Nhạc nền</value></data>
   <data name="Settings_SoundFx" xml:space="preserve"><value>Hiệu ứng âm thanh</value></data>
   <data name="Settings_Mute" xml:space="preserve"><value>Tắt toàn bộ âm thanh</value></data>
@@ -386,7 +371,6 @@
   <data name="Touch_Stick" xml:space="preserve"><value>Cần điều khiển di chuyển</value></data>
   <data name="Touch_Use" xml:space="preserve"><value>Dùng</value></data>
   <data name="Touch_UseLabel" xml:space="preserve"><value>Dùng vật đang cầm</value></data>
-  <data name="Menu_Label" xml:space="preserve"><value>Menu trò chơi</value></data>
   <data name="Action_MoveUp" xml:space="preserve"><value>Đi lên</value></data>
   <data name="Action_MoveDown" xml:space="preserve"><value>Đi xuống</value></data>
   <data name="Action_MoveLeft" xml:space="preserve"><value>Đi sang trái</value></data>
