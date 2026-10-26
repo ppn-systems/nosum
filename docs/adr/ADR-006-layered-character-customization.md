@@ -1,7 +1,7 @@
 # ADR-006 — Layered ("paper-doll") character customization
 
 **Status:** Proposed — prototype done 2026-10-25 (one jacket, one hat, three colours).
-**Amended by:** [ADR-007](ADR-007-placeholder-content-16px.md) — 16 px grid, content sheets used as shipped, placeholder only.
+**Amended by:** [ADR-007](ADR-007-own-art-16px.md) — 16 px grid, content sheets used as shipped, early content only.
 
 ## Context
 
@@ -20,7 +20,7 @@ character while keeping its pose and canvas, which makes garment extraction poss
   behind the body facing south, in front facing north).
 - **D2 — Garments come from the base body.** A garment is made by re-dressing the base body
   with `create_character_state`, then extracting the garment (method recorded in
-  `assets/wardrobe/SOURCES.md`) and cleaning stray pixels by hand where needed.
+  a deleted sources file) and cleaning stray pixels by hand where needed.
 - **D3 — Colour variants are runtime hue shifts**, not new art: one garment image, many colours;
   outline pixels keep their colour. Skin and hair tones use the same mechanism.
 - **D4 — Compose once, draw once.** When a character's appearance changes, the client composes

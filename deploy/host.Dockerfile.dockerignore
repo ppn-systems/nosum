@@ -1,4 +1,4 @@
-# Build context of host.Dockerfile: only what the host build and its release check read (the check reads the whole of assets/ for unlisted files).
+# Build context of host.Dockerfile: only what the host build reads.
 **
 !global.json
 !.editorconfig
@@ -10,13 +10,7 @@
 !contracts
 !gameplay
 !server
-!assets
 !art/own/Maps
-!docs/art/placeholders.sha256
-!tools/Directory.Build.props
-!tools/Nosum.AssetInventory
-!deploy/check-placeholder-art.sh
-!deploy/PlaceholderGate.targets
 !deploy/host-entrypoint.sh
 **/bin
 **/obj

@@ -7,7 +7,7 @@ using Nosum.Wasm.ViewModels.Inventory;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// Pictures of the items, cut out of the placeholder sheets (docs/adr/ADR-007). Addressed by sheet and
+/// Pictures of the items, cut out of the early sheets (docs/adr/ADR-007). Addressed by sheet and
 /// grid cell, so replacing the art means replacing this table, nothing else.
 /// </summary>
 internal sealed class ItemIcons : IItemIconSource
@@ -16,7 +16,7 @@ internal sealed class ItemIcons : IItemIconSource
     private const string ToolsSheet = "assets/sprites/tools.png";
     private const string WeaponsSheet = "assets/sprites/weapons.png";
     private const string FurnitureSheet = "assets/sprites/furniture.png";
-    private const string CraftablesSheet = "assets/sprites/craftables.png";
+    private const string CraftedSheet = "assets/sprites/craftables.png";
     private const int Cell = 16;
 
     private static readonly Dictionary<int, ItemIcon> s_icons = Build();
@@ -41,29 +41,29 @@ internal sealed class ItemIcons : IItemIconSource
             [ItemCatalog.IronAxe] = Tool(19, 10),
             [ItemCatalog.IronPickaxe] = Tool(19, 6),
             [ItemCatalog.MilkPail] = Tool(6, 0),
-            // Blueprints are the rolled plan at the start of the tools sheet, both buildings alike (placeholder art, docs/adr/ADR-007).
+            // Blueprints are the rolled plan at the start of the tools sheet, both buildings alike (early art, docs/adr/ADR-007).
             [ItemCatalog.CoopBlueprint] = Tool(0, 0),
             [ItemCatalog.BarnBlueprint] = Tool(0, 0),
-            [ItemCatalog.OakSeed] = ObjectId(309),
-            [ItemCatalog.MapleSeed] = ObjectId(310),
-            [ItemCatalog.PineSeed] = ObjectId(311),
-            [ItemCatalog.Wood] = ObjectId(388),
-            [ItemCatalog.Stone] = ObjectId(390),
-            [ItemCatalog.Fiber] = ObjectId(771),
-            [ItemCatalog.Coal] = ObjectId(382),
-            [ItemCatalog.CopperOre] = ObjectId(378),
-            [ItemCatalog.IronOre] = ObjectId(380),
-            [ItemCatalog.CopperBar] = ObjectId(334),
-            [ItemCatalog.IronBar] = ObjectId(335),
+            [ItemCatalog.OakSeed] = ObjectId(22),
+            [ItemCatalog.MapleSeed] = ObjectId(23),
+            [ItemCatalog.PineSeed] = ObjectId(24),
+            [ItemCatalog.Wood] = ObjectId(46),
+            [ItemCatalog.Stone] = ObjectId(47),
+            [ItemCatalog.Fiber] = ObjectId(48),
+            [ItemCatalog.Coal] = ObjectId(49),
+            [ItemCatalog.CopperOre] = ObjectId(50),
+            [ItemCatalog.IronOre] = ObjectId(51),
+            [ItemCatalog.CopperBar] = ObjectId(52),
+            [ItemCatalog.IronBar] = ObjectId(53),
             [ItemCatalog.Chest] = Craftable(32, 528),
             [ItemCatalog.Scarecrow] = Craftable(0, 32),
             [ItemCatalog.Furnace] = Craftable(80, 40),
-            [ItemCatalog.WoodFence] = ObjectId(322),
-            [ItemCatalog.StonePath] = ObjectId(407),
-            [ItemCatalog.Sprinkler] = ObjectId(599),
-            [ItemCatalog.Salad] = ObjectId(196),
-            [ItemCatalog.BakedPotato] = ObjectId(208),
-            [ItemCatalog.PumpkinSoup] = ObjectId(236),
+            [ItemCatalog.WoodFence] = ObjectId(54),
+            [ItemCatalog.StonePath] = ObjectId(55),
+            [ItemCatalog.Sprinkler] = ObjectId(56),
+            [ItemCatalog.Salad] = ObjectId(62),
+            [ItemCatalog.BakedPotato] = ObjectId(63),
+            [ItemCatalog.PumpkinSoup] = ObjectId(64),
             [ItemCatalog.OakChair] = Furniture(0, 16),
             [ItemCatalog.BlueArmchair] = Furniture(8, 160),
             [ItemCatalog.BlueCouch] = Furniture(16, 216),
@@ -117,10 +117,10 @@ internal sealed class ItemIcons : IItemIconSource
         return false;
     }
 
-    // items.png is 384 x 624 (24 x 39 cells).
-    private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 624);
+    // items.png is 384 x 64 (24 x 4 cells). Object ids are cell numbers in compact order from 1 (0 means no picture).
+    private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 64);
 
-    // Object ids are the cell number on items.png, 24 cells to a row.
+    // Object ids are the cell number on items.png (compact order, 24 cells to a row).
     private static ItemIcon ObjectId(int id) => Object(id % 24, id / 24);
 
     // The scythe is a weapon: weapons.png is 128 x 144 (8 x 9 cells), the scythe is cell 47.
@@ -140,9 +140,9 @@ internal sealed class ItemIcons : IItemIconSource
     // tools.png is 336 x 384 (21 x 24 cells).
     private static ItemIcon Tool(int column, int row) => new(ToolsSheet, column * Cell, row * Cell, Cell, 336, 384);
 
-    // furniture.png is 512 x 1488; a furniture icon is a 16 px crop of the piece (placeholder art, docs/adr/ADR-007).
+    // furniture.png is 512 x 1488; a furniture icon is a 16 px crop of the piece (early art, docs/adr/ADR-007).
     private static ItemIcon Furniture(int x, int y) => new(FurnitureSheet, x, y, Cell, 512, 1488);
 
     // craftables.png is 128 x 1472 (8 columns of 16 x 32 cells); an icon is a 16 px square of the cell, cut where the object reads best (chest: the body, scarecrow: the head, furnace: the middle).
-    private static ItemIcon Craftable(int x, int y) => new(CraftablesSheet, x, y, Cell, 128, 1472);
+    private static ItemIcon Craftable(int x, int y) => new(CraftedSheet, x, y, Cell, 128, 1472);
 }

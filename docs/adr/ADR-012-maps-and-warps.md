@@ -7,8 +7,8 @@
 The world is made of many maps ([pillars](../design/pillars.md)): the farm, the farmhouse, the roads
 and woods around it, later the town and co-op land. Until now the server and the client each knew one
 map, `Farm.tmx`. Moving between maps touches everything: what is loaded and drawn, who sees whom, what
-is saved, and which rules a player is walking under. The placeholder maps
-([ADR-007](ADR-007-placeholder-content-16px.md)) already describe their exits: a `Warp` map property of
+is saved, and which rules a player is walking under. The early maps
+([ADR-007](ADR-007-own-art-16px.md)) already describe their exits: a `Warp` map property of
 groups `fromX fromY targetMap targetX targetY`, where an exit one tile outside the map (`x = -1`, `x =
 width`) is an edge exit. The server decides everything that matters
 ([ADR-003](ADR-003-server-authoritative-websocket.md)); a client must never pick a map, and a map name
@@ -26,7 +26,7 @@ from the wire must never become a file path.
 - **D2 — Exits are data from the maps.** `WarpParser` reads the Tiled `Warp` property; a target is a map
   name resolved case-insensitively to a catalogue id (`BusStop` is `busstop`). An exit to a map the world
   does not host is dropped, so its edge stays a plain wall: the world can grow one map at a time.
-  Hand-made doors (the farmhouse, which the original game hard-codes) are `MapSpec.ExtraWarps`. The
+  Hand-made doors (the farmhouse, which is hard-coded) are `MapSpec.ExtraWarps`. The
   `Action`/`TouchAction` tile properties are not used by the enabled maps and are not read.
 - **D3 — The rule lives in gameplay.** `WarpRule` takes the position the server keeps, not a client claim.
   The player must stand on the exit's tile. An edge exit counts from the nearest edge tile and also needs
@@ -72,14 +72,14 @@ from the wire must never become a file path.
   edge would throw the player out of the map.
 - **Loading the target map after the server's answer, on the frame.** Blocks the loop or shows a half
   loaded map; background loading with a fade hides the wait.
-- **Per-map `.tsx` tilesets or a custom map format.** The placeholder maps embed their tilesets; the
+- **Per-map `.tsx` tilesets or a custom map format.** The early maps embed their tilesets; the
   reader already handles them.
 
 ## Consequences
 
 - A map change costs two database writes (the leave saves the old place, then the new place is saved);
   a crash between them restores the old place, which is harmless.
-- Edge exits trigger one tile earlier than in the original game (on the edge tile, not outside it).
+- Edge exits trigger on the edge tile itself, not outside it.
 - Every shared map is a place where all players meet; a busy map still needs the interest management or
   splitting noted in [ADR-008](ADR-008-snapshot-movement-sync.md) and the pillars.
 - Exits to unhosted maps are silently walls; the catalogue test only checks the hosted ones.

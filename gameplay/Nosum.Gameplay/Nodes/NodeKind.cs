@@ -38,7 +38,7 @@ public enum NodeKind : byte
     /// <summary>A ladder down to the next mine floor, revealed when the stone that hid it breaks; used by facing it (docs/adr/ADR-026 D3).</summary>
     Ladder = 10,
 
-    /// <summary>A large stump of the Secret Woods: it takes six axe hits, gives a lot of wood and grows back on the public map (docs/adr/ADR-037 D2).</summary>
+    /// <summary>A large stump of the Woods: it takes six axe hits, gives a lot of wood and grows back on the public map (docs/adr/ADR-037 D2).</summary>
     LargeStump = 11,
 }
 
@@ -49,7 +49,7 @@ public static class NodeVariants
     public const byte LadderStone = 1;
 }
 
-/// <summary>Tree species, the values of <see cref="ResourceNode.Variant"/>. They are also the art: oak is <c>tree1</c>, maple <c>tree2</c>, pine <c>tree3</c> in the placeholder sheets.</summary>
+/// <summary>Tree species, the values of <see cref="ResourceNode.Variant"/>. They are also the art: oak is <c>tree1</c>, maple <c>tree2</c>, pine <c>tree3</c> in the early sheets.</summary>
 public static class TreeVariant
 {
     /// <summary>An oak.</summary>

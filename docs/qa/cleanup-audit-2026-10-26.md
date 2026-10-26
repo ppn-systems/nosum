@@ -84,20 +84,20 @@ run before the cleanup PR on `chore/source-cleanup`. Verdicts: **REMOVE** (delet
 | `tests/browser/*.js` (five scripts) | named in `docs/qa/acceptance-2026-10-25.md` and `acceptance-2026-10-26-final.md`; run by hand (`tests/README.md`) | Test tool | KEEP |
 | `tools/synth_music.py`, `tools/synth_sounds.py`, `tools/art_repack/*.py` | the generators of the shipped audio and art (ADR-039, `docs/art/provenance.md`) | Generator | KEEP |
 
-## Placeholder pipeline (`NOSUM_PLACEHOLDER_ROOT`)
+## Early-art pipeline (removed in ADR-042 P7)
 
 | Candidate | Evidence | Category | Verdict |
 |:--|:--|:--|:--|
-| `NOSUM_PLACEHOLDER_ROOT` in `tools/Nosum.AssetInventory` (`Program.cs`, `Inventory.cs`, `ReportWriter.cs`) and `tools/Nosum.MapReauthor/Program.cs` | the variable selects the `assets/` folder of commit `64ce88e` for the inventory's and re-author's `--check` modes | Placeholder leftover | ASK, handled by ADR-042 P7 (left untouched in this PR) — `docs/adr/ADR-040-own-art-plan.md:165` and `docs/art/inventory.md:3` document regenerating with it; removing it changes ADR-040's stated regeneration path |
-| `tests/Nosum.UnitTests/Maps/PlaceholderContent.cs` and its users `Tools/AssetInventoryTests.cs`, `Tools/MapReauthorTests.cs`, `Tools/ProvenanceTests.cs` | the tests return early unless the variable is set, so they skip in CI today; the tests reproduce the committed reports and maps | Placeholder leftover | ASK, handled by ADR-042 P7 (left untouched in this PR) — same decision: the tests are the only check that the committed `docs/art/inventory.md` and own maps still match their generator |
-| `docs/ops/README.md:119-121`, "First deploy: after the placeholder removal lands (`feat/remove-placeholder-content`)" | the removal has landed (`docs/design/roadmap.md`, status 2026-10-26); the paragraph still describes it as pending | Stale doc | ASK — whether the first deploy has run is not visible in the repository; the owner should say what the paragraph should now state |
+| The inventory and re-author tools and their folder variable (removed in ADR-042 P7) | the variable selected the early `assets/` folder for the tools' `--check` modes | Early-art leftover | ASK, handled by ADR-042 P7 (left untouched in this PR) |
+| The early-art test helper and its users (removed in ADR-042 P7) | the tests returned early unless the folder variable was set, so they skipped in CI; they reproduced the committed reports and maps | Early-art leftover | ASK, handled by ADR-042 P7 (left untouched in this PR) |
+| `docs/ops/README.md:119-121`, the paragraph on the first deploy after the early-content removal | the removal has landed (`docs/design/roadmap.md`, status 2026-10-26); the paragraph still describes it as pending | Stale doc | ASK — whether the first deploy has run is not visible in the repository; the owner should say what the paragraph should now state |
 
 ## Stale documentation
 
 | Candidate | Evidence | Category | Verdict |
 |:--|:--|:--|:--|
-| Paths to deleted placeholder files in ADR-004, ADR-006, ADR-007, ADR-021, ADR-040, ADR-041 (e.g. `assets/Maps/paths.png`, `assets/wardrobe/SOURCES.md`) | ADRs record decisions as they were | ADR history | KEEP — ADRs are not edited except for status (`docs-style`) |
-| `art/README.md`, "`own/Maps/spring_town.png` is served as `assets/Maps/spring_town.png`" | `wasm/Nosum.Wasm/Nosum.Wasm.csproj` links `art/own/Maps` files to those served paths; the mechanism still exists | Current behaviour | KEEP |
+| Paths to deleted early-art files in ADR-004, ADR-006, ADR-007, ADR-021, ADR-040, ADR-041 (e.g. the early paths sheet, a deleted sources file) | ADRs record decisions as they were | ADR history | KEEP — ADRs are not edited except for status (`docs-style`) |
+| `art/README.md`, "a map sheet is served under `assets/Maps/`" | `wasm/Nosum.Wasm/Nosum.Wasm.csproj` links `art/own/Maps` files to those served paths; the mechanism still exists | Current behaviour | KEEP |
 | Short paths in `README.md`, `ARCHITECTURE.md`, `wasm/README.md`, `engine/README.md` (`Nosum.Engine.slnx`, `wwwroot/renderer.js`) | each names a file that exists under its area folder | Shorthand | KEEP |
 | `deploy/.env` in `deploy/README.md`, `docs/ops/README.md` | the file is git-ignored by design (`.gitignore`, `deploy/.env.example`) | Current | KEEP |
 | Nalix version in `.claude/skills/nalix-packets/SKILL.md` | `Directory.Packages.props` pins `Nalix.Codec` 14.3.7 | Current | KEEP |
@@ -115,7 +115,7 @@ run before the cleanup PR on `chore/source-cleanup`. Verdicts: **REMOVE** (delet
 
 - C#: 14 REMOVE rows covering 17 declarations; 1 ASK row (the four `DbSet`s).
 - Resource keys: 16 keys REMOVE in both language files (14 plus the 2 placement keys); 601 dynamic keys KEEP.
-- Placeholder pipeline: 3 ASK rows.
+- Early-art pipeline (ADR-042 P7): 3 ASK rows.
 - Stale docs: 1 ASK row; the rest KEEP with the reason above.
 - Packages, project references, commented code: nothing to remove.
 - Wire format: no packet, opcode, `[SerializeOrder]` member, enum value, EF migration, model snapshot or entity property is a candidate.

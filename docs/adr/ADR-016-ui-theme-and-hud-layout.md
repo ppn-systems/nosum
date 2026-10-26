@@ -6,9 +6,9 @@
 
 The UI overlay (Blazor, [ADR-002](ADR-002-batched-render-interop.md)) was plain white or brown HTML boxes, each control and panel placing itself with
 `position: fixed` and its own colours. Panels overlapped (the furniture arrange panel covered the session bar), the account form was unstyled, and
-nothing matched the pixel-art world. The placeholder content ([ADR-007](ADR-007-placeholder-content-16px.md)) ships UI art: `Maps/MenuTiles.png`
-(wooden window frames), `LooseSprites/Cursors.png` (buttons, icons, cursors) and `LooseSprites/textBox.png` (text field). Those sheets mix two kinds
-of art: "fat" 4 x 4 pixel blocks (MenuTiles, textBox) and ordinary 1:1 pixels (most of Cursors).
+nothing matched the pixel-art world. The early content ([ADR-007](ADR-007-own-art-16px.md)) shipped UI art: a menu sheet
+(wooden window frames), a cursor sheet (buttons, icons, cursors) and a text-field sheet. Those sheets mix two kinds
+of art: "fat" 4 x 4 pixel blocks (the menu and text-field sheets) and ordinary 1:1 pixels (most of the cursor sheet).
 
 ## Decision
 
@@ -38,15 +38,15 @@ of art: "fat" 4 x 4 pixel blocks (MenuTiles, textBox) and ordinary 1:1 pixels (m
 
 | Variable | Sheet | x, y, w, h | Used for |
 |:--|:--|:--|:--|
-| `panel` | MenuTiles.png | 0, 256, 60, 60 | window frame (9-slice, 16 px corners) |
-| `slot` | MenuTiles.png | 128, 128, 64, 64 | item slot bevel (4 px) |
-| `select` | Cursors.png | 448, 128, 64, 64 | red selection frame (8 px) |
-| `field` | textBox.png | 4, 0, 188, 48 | text field and badge (12 px) |
-| `button`, `button-hot`, `button-danger` | Cursors.png | 145, 338, 13, 9 / 159, 338, 13, 9 / 137, 338, 7, 9 | buttons (3 px) |
-| `close` | Cursors.png | 337, 494, 12, 12 | panel close button |
-| `arrow-left`, `arrow-right` | Cursors.png | 352, 495, 12, 11 / 365, 495, 12, 11 | pager |
-| `coin` | Cursors.png | 193, 373, 9, 9 | coin counter |
-| cursors | Cursors.png | 0, 0, 8, 10 (arrow) / 32, 0, 10, 10 (hand) | mouse cursors |
+| `panel` | assets/ui/menu.png | 0, 256, 60, 60 | window frame (9-slice, 16 px corners) |
+| `slot` | assets/ui/menu.png | 128, 128, 64, 64 | item slot bevel (4 px) |
+| `select` | assets/ui/cursors.png | 448, 128, 64, 64 | red selection frame (8 px) |
+| `field` | assets/ui/text_box.png | 4, 0, 188, 48 | text field and badge (12 px) |
+| `button`, `button-hot`, `button-danger` | assets/ui/cursors.png | 145, 338, 13, 9 / 159, 338, 13, 9 / 137, 338, 7, 9 | buttons (3 px) |
+| `close` | assets/ui/cursors.png | 337, 494, 12, 12 | panel close button |
+| `arrow-left`, `arrow-right` | assets/ui/cursors.png | 352, 495, 12, 11 / 365, 495, 12, 11 | pager |
+| `coin` | assets/ui/cursors.png | 193, 373, 9, 9 | coin counter |
+| cursors | assets/ui/cursors.png | 0, 0, 8, 10 (arrow) / 32, 0, 10, 10 (hand) | mouse cursors |
 
 ## Alternatives considered
 
@@ -57,11 +57,11 @@ of art: "fat" 4 x 4 pixel blocks (MenuTiles, textBox) and ordinary 1:1 pixels (m
 
 ## Consequences
 
-- Replacing the placeholder art means changing the three linked files and the rectangle table; no control changes.
+- Replacing the early art means changing the three linked files and the rectangle table; no control changes.
 - The sprite script runs before Blazor starts; for a moment the plain-border fallback may show.
 - The pre-boot screen and Blazor's error bar in `index.html` are static English text (they exist before any localization can load).
 - Key legends (`Esc`, `Space`, `WASD`) are shown as printed on keyboards and are not translated; their descriptions are.
 
 ## Revisit when
 
-The art remake replaces the placeholder sheets, or a second theme (for example high contrast) is wanted.
+The art remake replaces the early sheets, or a second theme (for example high contrast) is wanted.

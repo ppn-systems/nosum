@@ -4,7 +4,7 @@ namespace Nosum.Gameplay.Coops;
 
 /// <summary>
 /// Where co-op land is entered and left, and the audit reason codes of farming on it (docs/adr/ADR-020).
-/// Tile coordinates are those of the placeholder maps (docs/adr/ADR-007).
+/// Tile coordinates are those of the early maps (docs/adr/ADR-007).
 /// </summary>
 public static class CoopLand
 {

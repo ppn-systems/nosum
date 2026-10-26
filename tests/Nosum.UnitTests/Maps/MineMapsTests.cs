@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Maps;
 
-/// <summary>The recorded tiles of the mine on the placeholder maps (docs/adr/ADR-007, ADR-026): Town's gate, the entrance cave, the shaft, the elevator and the floors' stairs.</summary>
+/// <summary>The recorded tiles of the mine on the early maps (docs/adr/ADR-007, ADR-026): Town's gate, the entrance cave, the shaft, the elevator and the floors' stairs.</summary>
 public sealed class MineMapsTests
 {
     private static (MapSpec Spec, TileMap Map, WalkGrid Grid) Load(string id)

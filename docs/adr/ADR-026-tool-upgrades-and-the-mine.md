@@ -19,7 +19,7 @@ coins, and a mine whose deeper floors hold better ore.
   copper = 2 000 coins + 5 copper bars, iron = 5 000 + 5 iron bars; also sells coal and ore at high prices. The
   upgrade takes two game days (the tool is held by the blacksmith; collect intent) — keeps the genre's trade-off.
 - **D3 — The mine.** A shared public map `Mine` (entrance from Town or Mountain when it exists; Town edge for now)
-  leading to floors built from `Maps/Mines/*.tmx` layouts. Floors are **per player instances** (`mine<N>@<player>`) so
+  leading to floors built from the generated mine layouts (`tools/Nosum.MapGen mine`). Floors are **per player instances** (`mine<N>@<player>`) so
   nobody's stones are taken by others; floors 1–40 in M2. Each floor spawns stones, copper (1–39) and iron (20–40)
   nodes and one ladder hidden under a stone (breaking it reveals the ladder to the next floor). Floor layouts are
   rebuilt every game day. An elevator every 5 floors remembers the deepest floor reached (persisted per player).
@@ -62,7 +62,7 @@ Built 2026-10-25. Where the code differs from the text above, or the text left a
 
 ### D4 / client
 
-No combat. The blacksmith page is the lower part of the blacksmith's shop tab (`ShopPanel` shows `BlacksmithSection` under the price list when the shop is the blacksmith's); the elevator picker is a small dialog (`ElevatorDialog`) opened with the action key next to an elevator, not a menu tab. Nodes of a mine floor are drawn by the ordinary node decorator (iron ore `springobjects` 290, the ladder cell (3, 4) of `Mines/mine.png`).
+No combat. The blacksmith page is the lower part of the blacksmith's shop tab (`ShopPanel` shows `BlacksmithSection` under the price list when the shop is the blacksmith's); the elevator picker is a small dialog (`ElevatorDialog`) opened with the action key next to an elevator, not a menu tab. Nodes of a mine floor are drawn by the ordinary node decorator (iron ore, a node sprite of the item sheet; the ladder cell of the mine sheet).
 
 ### Merged with the chunk, weather and social waves
 
@@ -77,5 +77,5 @@ No combat. The blacksmith page is the lower part of the blacksmith's shop tab (`
 
 - Leaving a floor drops it, and coming back the same day rebuilds it from the same seed, so broken stones return: a player can re-farm a floor by stepping off and on. The cost is the energy of the swings (ADR-023); a stored per-day state would fix it.
 - A stone or ore node can stand in a one-tile corridor and wall off the rest of a cave. Everything is breakable with the pickaxe the starter kit gives, so the player is never stuck, but a floor can need clearing.
-- The layouts are Stardew's own and have void tiles outside the caves that the walk grid treats as walkable if a gap connects them; the planner only places nodes on tiles reachable from the arrival tile.
-- Tool art is cut from the placeholder sheets (ADR-007) and the ladder reuses the mine sheet's ladder top; both are replaced with the rest of the art in M6.
+- The layouts are the early content's own and have void tiles outside the caves that the walk grid treats as walkable if a gap connects them; the planner only places nodes on tiles reachable from the arrival tile.
+- Tool art is cut from the early sheets (ADR-007) and the ladder reuses the mine sheet's ladder top; both are replaced with the rest of the art in M6.

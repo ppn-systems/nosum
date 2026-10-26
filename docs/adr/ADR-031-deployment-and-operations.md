@@ -1,6 +1,6 @@
 # ADR-031 — Deployment and operations
 
-**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Amended by ADR-041 (Caddy, TLS and the IP allow-list are replaced by Cloudflare Pages and a Cloudflare Tunnel). Roadmap M5. Builds on ADR-002 D5 (AOT web deploy),
+**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Amended by ADR-041 (Caddy, TLS and the IP allow-list are replaced by Cloudflare Pages and a Cloudflare Tunnel). Partly superseded by ADR-042 (the D9 release gate is removed). Roadmap M5. Builds on ADR-002 D5 (AOT web deploy),
 ADR-003 (WebSocket server), ADR-009 (PostgreSQL).
 
 ## Context
@@ -35,8 +35,8 @@ admin tools — before any player outside the team connects.
 - **D8 — Load test.** `bench/Nosum.Bench.Load`: N headless WebSocket clients (the test client code) that sign in as
   guests, walk, farm and chat across maps; reports tick time and bandwidth. Target for M5: 200 clients with snapshot tick
   p99 < 20 ms on a 4-core server.
-- **D9 — Placeholder content gate.** A deploy script refuses to build a public image while `assets/` contains the
-  Stardew placeholder content (ADR-007): it checks for a marker file that M6 removes. Until M6 the deployment is private
+- **D9 — Early content gate.** A deploy script refuses to build a public image while `assets/` contains the
+  early content (ADR-007): it checks for a marker file that M6 removes. Until M6 the deployment is private
   (allow-list by IP or basic auth on the client) for the team only.
 
 ## Consequences
@@ -47,7 +47,7 @@ The host gains a tiny HTTP listener (health + metrics); everything else is confi
 
 Built on branch `feat/ops` (M5). Where the decision above is silent, this is what was chosen.
 
-- **Layout.** `deploy/` holds the images, `compose.yaml`, `Caddyfile`, `backup/` and the placeholder-art gate; `docs/ops/README.md` is the runbook (deploy, update, health, logs,
+- **Layout.** `deploy/` holds the images, `compose.yaml`, `Caddyfile`, `backup/` and the early-content gate; `docs/ops/README.md` is the runbook (deploy, update, health, logs,
   metrics, backup and restore, admin, rotating keys, load test, troubleshooting). `bench/Nosum.Bench.Load` is the load test. `Nosum.Host/Ops/` holds the endpoint, exporter,
   middleware and command line. No NuGet or npm package was added: the endpoint is the BCL `HttpListener` (so the final image stays on `dotnet/runtime`, not `aspnet`), the exporter
   is a `MeterListener`, and the load test reuses Nalix.SDK.
@@ -90,7 +90,7 @@ Built on branch `feat/ops` (M5). Where the decision above is silent, this is wha
   p99 16 ms and 5 ms. Also 100 clients: mean 2.4 ms, p99 at most 10 ms. The tick percentiles are bucket upper bounds.
 - **D9 gate.** The marker is `assets/PLACEHOLDER_CONTENT`. `deploy/check-placeholder-art.sh [public|private]` (exit 1 for public while it exists), the MSBuild target in
   `deploy/PlaceholderGate.targets` (imported through `server/` and `wasm/` `Directory.Build.targets`; `-p:NosumRelease=public` fails the publish before anything is copied), and both
-  Dockerfiles run the script first. The private deployment is `NOSUM_ALLOW_IPS`, which compose requires. M6 (ADR-040 phase 4) removed the marker; the public check also runs
+  Dockerfiles run the script first. The private deployment is `NOSUM_ALLOW_IPS`, which compose requires. M6 (ADR-040) removed the marker; the public check also runs
   `Nosum.AssetInventory --release` (every listed file replaced, nothing unlisted under `assets/`), so a public build needs both.
 - **Weak spots.** (1) The Docker daemon was not available where this was built: the images were not built and the compose stack was not started. What was checked instead: the Dockerfile
   COPY sets were reproduced in a clean directory and published (host and client); `docker compose config` accepts the file and refuses to start without the required settings; the

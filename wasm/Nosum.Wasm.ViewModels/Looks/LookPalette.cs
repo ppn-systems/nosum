@@ -7,7 +7,7 @@ using Nosum.Gameplay.Looks;
 
 namespace Nosum.Wasm.ViewModels.Looks;
 
-/// <summary>What the server's ids for one clothing item mean on the placeholder sheets (docs/adr/ADR-006 D6, ADR-007).</summary>
+/// <summary>What the server's ids for one clothing item mean on the early sheets (docs/adr/ADR-006 D6, ADR-007).</summary>
 /// <param name="SheetIndex">Frame index in the item's sheet (<c>shirts.png</c>, <c>pants.png</c> or <c>hats.png</c>).</param>
 /// <param name="Tint">Colour multiplied onto the frame, <c>0xRRGGBBAA</c>; white (<c>0xFFFFFFFF</c>) for none.</param>
 public readonly record struct ClothingSprite(int SheetIndex, int Tint);

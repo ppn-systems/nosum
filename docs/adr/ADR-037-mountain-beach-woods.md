@@ -1,14 +1,14 @@
-# ADR-037 — Mountain, Beach and the Secret Woods
+# ADR-037 — Mountain, Beach and the Woods
 
 **Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M3 ("More public maps"). Builds on ADR-007
-(placeholder content), ADR-012 (maps and warps), ADR-021 (resource nodes and regrowth), ADR-022 (chunks), ADR-025
+(early content), ADR-012 (maps and warps), ADR-021 (resource nodes and regrowth), ADR-022 (chunks), ADR-025
 (forage), ADR-026 (the mine cave), ADR-027 (weather), ADR-030 (community goals and unlocks). Amends ADR-026 D3: the
 cave is entered from the Mountain, not from Town.
 
 ## Context
 
-Town, Forest and Backwoods are the only public outdoor maps. The placeholder files for the Mountain, the Beach and the
-Secret Woods are already under `assets/Maps/` and name their exits to the maps the world hosts. ADR-026 sent the mine
+Town, Forest and Backwoods are the only public outdoor maps. The early files for the Mountain, the Beach and the
+Woods are already in the tree and name their exits to the maps the world hosts. ADR-026 sent the mine
 cave to Town's north road because the Mountain did not exist, and ADR-030 left the Beach's bridge as the first unlock
 target without a map to use it on.
 
@@ -17,7 +17,7 @@ target without a map to use it on.
 - **D1 — Three shared maps, wired like the original.** `Mountain.tmx`, `Beach.tmx` and `Woods.tmx` become shared public
   outdoor maps (`GameMaps.Mountain`, `Beach`, `Woods`; not private, not farmable, not placeable, not `indoors`, so
   ADR-027 weather falls on them). Their exits come from the files' own `Warp` property; an exit to a map the world does
-  not host (the Tent, the Railroad, the quarry) is dropped by `MapSpec.ResolveWarps`, as before. Where the file and the
+  not host (the camp, the railway, the quarry) is dropped by `MapSpec.ResolveWarps`, as before. Where the file and the
   world disagree a `MapSpec` drops the file's exit (`dropFileWarps`) and adds its own. Every exit that can be walked to:
 
   | From | Source tiles | To | Arrival tile |
@@ -100,13 +100,13 @@ or on the Beach when the bridge is built learns it at their next map change.
 
 ## Revisit when
 
-Hardwood exists; the art pass (M6) replaces the placeholder planks and stumps; a second gated tile set is added (the gate
+Hardwood exists; the art pass (M6) replaces the early planks and stumps; a second gated tile set is added (the gate
 list is the only place to change).
 
 ## Implementation notes
 
 - Nodes of the new maps are stored like any public map's (`world_nodes`); no migration. The node kind is a number, `11`.
-- The large stump's placeholder art is the oak stump drawn twice, and the planks are the Beach sheet's end plank
+- The large stump's early art is the oak stump drawn twice, and the planks are the Beach sheet's end plank
   repeated (ADR-007).
 - Weak spots: parts of the Mountain's files (the quarry, the south pocket) are sealed and unreachable; the Beach's east
   bank has no exit of its own besides the bridge; players on other maps learn of the bridge at their next map change; the

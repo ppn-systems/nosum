@@ -15,8 +15,8 @@ internal readonly record struct Rgb(byte R, byte G, byte B);
 internal readonly record struct Tones(Rgb Shade, Rgb Base, Rgb Light);
 
 /// <summary>
-/// The palette of Nosum's drawn sheets (docs/adr/ADR-042 P2): the tones of the own painted maps, the same values as <c>Material.cs</c> in
-/// <c>Nosum.MapReauthor</c>, and the shared dark outline. Light comes from the top left everywhere.
+/// The palette of Nosum's drawn sheets (docs/adr/ADR-042 P2): earth, grass, stone, wood and water tones, and the shared dark outline.
+/// Light comes from the top left everywhere.
 /// </summary>
 internal static class Palette
 {

@@ -4,7 +4,7 @@
     python3 tools/art_repack/repack_cc0_art.py --sources <dir with the unzipped packs> [--repo <root>] [--check] [--docs]
     python3 tools/art_repack/repack_cc0_art.py --only farmer [--repo <root>] [--check]    # drawn files only, no packs needed
 
-Each replaced file keeps the path, the pixel size and the grid of the placeholder it replaces; the repack places CC0 sprites (and a few
+Each replaced file keeps the path, the pixel size and the grid of the early file it replaces; the repack places CC0 sprites (and a few
 pictures drawn in this folder) into the cells the game draws. The same sources always give the same bytes. --check writes nothing and
 exits 1 when a file on disk differs; --docs rewrites docs/art/provenance.md from the table in provenance.py.
 Python 3 standard library only.
@@ -46,7 +46,7 @@ def build_all(src, repo, only=None):
     out.update(farmer.build(size))
     if only == 'farmer':
         return out
-    out['sprites/crops.png'] = crops.build_crops(src, repo, *size('sprites/crops.png'))
+    out['sprites/crops.png'] = crops.build_crops(src, repo)
     out['sprites/soil.png'] = crops.build_soil(*size('sprites/soil.png'))
     out['sprites/tools.png'], out['sprites/weapons.png'] = tools.build(src, repo, size('sprites/tools.png'), size('sprites/weapons.png'))
     out.update(buildings.build(src, size))

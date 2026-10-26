@@ -26,7 +26,7 @@ both to have a size, and a price the co-op already holds.
   The price is one `ITransferService` transfer whose legs take items from the co-op party and give them to nobody (a sink, like a market fee); the new level and one `CoopLogEntry` per item (negative delta, reason `coop.upgrade.warehouse|land`,
   the buyer's membership id) are enlisted in the same transaction. All or nothing: too little stock changes nothing. Upgrade lines are not warehouse arithmetic (`CoopLand.IsWarehouseReason` is unchanged), so they never change what a member may withdraw, and the
   panel's recent-log list stays deposits and withdrawals (as for farm lines in ADR-020 D5; showing them needs a reason field on `CoopLogRow`, a wire change).
-- **D4 — Land size.** Level 0 is the northern meadow of `Farm_Foraging.tmx` around the arrival and exit tiles (tiles x 19-60, y 8-36); level 1 adds the southern block (x 19-60, y 37-60), level 2 the east strip (x 61-79), level 3 the rest (the whole map).
+- **D4 — Land size.** Level 0 is the northern meadow of `CoopFarm.tmx` around the arrival and exit tiles (tiles x 19-60, y 8-36); level 1 adds the southern block (x 19-60, y 37-60), level 2 the east strip (x 61-79), level 3 the rest (the whole map).
   Locked ground stays walkable. The server refuses **tilling** and **placing or moving an object** (the whole footprint must be unlocked) on locked tiles with `FarmStatus.LockedLand` / `PlaceStatus.LockedLand`. Soil tilled and objects placed before are never taken away, and watering, harvesting, picking up,
   chopping and mining are not restricted (a level never goes down). The land level is read with the membership (`CoopMembershipInfo.LandLevel`, one extra primary-key lookup in the lookup that already runs for every action), so a purchase applies to the next action without a cache to invalidate.
   Existing co-ops that tilled outside level 0 keep their soil.
@@ -41,7 +41,7 @@ both to have a size, and a price the co-op already holds.
 
 - **A coin treasury.** The pillars and ADR-013 keep coins out of warehouses; a treasury needs a new ledger and a rule for who may fill it. Items are what a co-op holds today.
 - **Capacity as total quantity.** The warehouse is not slotted; a cap on quantity punishes the crops the pillars ask members to contribute, while a cap on kinds is a simple, visible limit.
-- **Hide or wall off locked land.** Walls need map edits (`.tmx`, placeholder art); a rule plus a shade changes no asset and the land can grow without touching the map.
+- **Hide or wall off locked land.** Walls need map edits (`.tmx`, early art); a rule plus a shade changes no asset and the land can grow without touching the map.
 - **Any member may buy.** A member could spend stock they never put in; the founder already holds that right.
 - **"Buy next level" without a target level.** A double click would buy two levels.
 
@@ -49,7 +49,7 @@ both to have a size, and a price the co-op already holds.
 
 - Every co-op action that already looked up membership now reads the `coops` row too.
 - Taking the price out of the warehouse can remove an item kind from it (stock row at zero), freeing a slot.
-- The land rectangles are tied to `Farm_Foraging.tmx`; a different map needs its own table.
+- The land rectangles are tied to `CoopFarm.tmx`; a different map needs its own table.
 - Ground a co-op tilled before this ADR, outside level 0, keeps working.
 
 ## Revisit when

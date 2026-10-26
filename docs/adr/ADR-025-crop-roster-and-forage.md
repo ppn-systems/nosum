@@ -5,8 +5,7 @@
 
 ## Context
 
-Three spring crops cannot carry a two-week season, let alone a year. The placeholder sheets (`TileSheets/crops.png`,
-`Maps/springobjects.png`, ADR-007) carry art for many more crops, seeds and forage items.
+Three spring crops cannot carry a two-week season, let alone a year. The early sheets (ADR-007) carried art for many more crops, seeds and forage items.
 
 ## Decision
 
@@ -14,7 +13,7 @@ Three spring crops cannot carry a two-week season, let alone a year. The placeho
   strawberry (regrows). Summer: tomato (regrows), blueberry (regrows), melon, hot pepper (regrows), corn (regrows,
   summer+fall), wheat (summer+fall), sunflower. Fall: pumpkin, cranberries (regrows), eggplant (regrows), yam,
   bok choy, grape (regrows). (*radish kept in spring for the existing tutorial.) Days, prices and sprite indices are
-  taken from the placeholder data where it exists and recorded in `CropCatalog`; seed prices sit at roughly half the
+  taken from the early data where it exists and recorded in `CropCatalog`; seed prices sit at roughly half the
   single-harvest sale value; regrowing crops cost more.
 - **D2 — Regrowing crops.** `CropDefinition.RegrowDays`: after a harvest the plant returns to its last stage minus
   one and needs that many watered days. Scythe and hand harvest behave the same.

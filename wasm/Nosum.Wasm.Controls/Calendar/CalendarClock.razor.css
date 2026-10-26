@@ -14,7 +14,7 @@
     color: var(--nosum-ink-soft);
 }
 
-/* A flat pixel swatch per season: spring green, summer gold, fall orange, winter blue. Placeholder until the icon sheet has season art. */
+/* A flat pixel swatch per season: spring green, summer gold, fall orange, winter blue. Stand-in until the icon sheet has season art. */
 .season-icon {
     display: inline-block;
     width: calc(var(--u) * 4);

@@ -16,7 +16,7 @@ public readonly record struct NodeSite(int X, int Y, NodeKind Kind, byte Variant
 /// <summary>
 /// Reads node sites from the <c>Paths</c> layer of a Tiled map (docs/adr/ADR-021 D4a).
 /// <para>
-/// The layer uses the tile sheet named <c>Paths</c> (<c>assets/Maps/paths.png</c>, 4 columns × 16 rows, tiles drawn as pink labels). The
+/// The layer uses the tile sheet named <c>Paths</c> (<c>assets/Maps/markers.png</c>, drawn by Nosum.MapGen; the layer is never drawn). The
 /// meaning of each tile index was read off that sheet and checked against the maps (<c>Farm</c>, <c>Forest</c>, <c>Town</c>, <c>Backwoods</c>,
 /// <c>BusStop</c>), where trees sit in the woods and stones, twigs and weeds in the clearings:
 /// </para>

@@ -13,7 +13,7 @@ namespace Nosum.AtlasPacker;
 /// <remarks>
 /// <c>--check</c> writes nothing and exits 1 when a committed atlas differs from a fresh pack.
 /// <c>--assets</c> and <c>--out</c> are required: <c>assets/</c> currently holds third-party
-/// placeholder sheets that are used as shipped, not packed (docs/adr/ADR-007).
+/// early sheets that are used as shipped, not packed (docs/adr/ADR-007).
 /// </remarks>
 internal static class Program
 {

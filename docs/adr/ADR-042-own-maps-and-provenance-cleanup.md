@@ -1,30 +1,31 @@
-# ADR-042 — Own map layouts and removal of the former placeholder content's traces before the public release
+# ADR-042 — Own map layouts and removal of the former early content's traces before the public release
 
 **Status:** Accepted (coordinator, under the owner's delegation, 2026-10-26). Supersedes ADR-040 D9 (layouts kept) and the placeholder parts of ADR-007 and
+
 ADR-040. Builds on ADR-012 (maps and warps), ADR-015 and ADR-019 (private instances), ADR-020 (co-op land), ADR-026 (mine floors), ADR-028 (building
 interiors), ADR-034 (trader counter), ADR-037 (outdoor maps).
 
 ## Context
 
 The owner is publishing the project as a public repository. The public repository must contain only Nosum's own work, and nothing in it may show which game
-the early placeholder content (ADR-007) came from. A measurement on `master` (`b0310b3`) shows three kinds of remaining derived material:
+the early content (ADR-007) came from. A measurement on `master` (`b0310b3`) shows three kinds of remaining derived material:
 
-1. **Map layouts.** All 53 `.tmx` files under `art/own/Maps` keep the placeholder's level layouts. 43 are byte-identical to the placeholder maps: `Barn`,
-   `Coop`, `FarmHouse`, `Mine` and 39 of the 40 mine floors. The other 10 (`Backwoods`, `Beach`, `BusStop`, `Farm`, `Farm_Foraging`, `Forest`, `Mines/20`,
-   `Mountain`, `Town`, `Woods`) had only their `Back` layer re-authored (ADR-040 phase 3). The release gate does not see any of this, because it checks only
+1. **Map layouts.** All 53 `.tmx` files under `art/own/Maps` keep the early content's level layouts. 43 are byte-identical to the early maps: `Barn`,
+   `Coop`, the farmhouse, `Mine` and 39 of the 40 mine floors. The other 10 (the hillside, beach, crossroads, farm, co-op land, forest, mine floor 20,
+   mountain, town, woods) had only their `Back` layer re-authored (ADR-040). The release gate does not see any of this, because it checks only
    the 95 listed paths under `assets/` (ADR-040 D8).
-2. **Painted sheets and names.** The map sheets in `art/own/Maps/*.png` were painted in code, but from floor plans read off the placeholder's sheets, and
-   they keep the placeholder's sheet names, grids and served paths. The same holds for `assets/` paths and the tileset names inside the maps (for example
-   `springobjects`, `crops`, `townInterior`, `mine`). Item ids are Nosum's own scheme (`ItemCatalog`), but sprite cells index the placeholder's sheet grids.
+2. **Painted sheets and names.** The map sheets in `art/own/Maps/*.png` were painted in code, but from floor plans read off the early content's sheets, and
+   they keep the early content's sheet names, grids and served paths. The same holds for `assets/` paths and the tileset names inside the maps (for example
+   the item, crop, town and interior sheets). Item ids are Nosum's own scheme (`ItemCatalog`), but sprite cells index the early content's sheet grids.
 3. **Text and tools.** About 41 mentions of the source game's name across code comments, XML docs, docs, ADRs, skills and workflows. Fingerprints and
    inventory (`docs/art/placeholders.sha256`, `docs/art/inventory.md`, `docs/art/provenance.md`). Two tools that exist only for the transition
-   (`tools/Nosum.AssetInventory` and `tools/Nosum.MapReauthor`, with the `NOSUM_PLACEHOLDER_ROOT` paths), the placeholder release gate
-   (`deploy/check-placeholder-art.sh` and its workflow jobs), and `tests/Nosum.UnitTests/Maps/PlaceholderContent.cs` with the tests that read the placeholder.
+   (`tools/Nosum.AssetInventory` and `tools/Nosum.MapReauthor`, with the `NOSUM_PLACEHOLDER_ROOT` paths), the early release gate
+   (`deploy/check-placeholder-art.sh` and its workflow jobs), and `tests/Nosum.UnitTests/Maps/PlaceholderContent.cs` with the tests that read the early.
 
 ## Decision
 
 - **D1 — Every map gets an own layout.** All 53 `.tmx` files are replaced. A replacement keeps the file's map id. It draws only from own tilesets (D3), and
-  no layer derives from the placeholder map. Byte-identity is not the test: copying a layout cell by cell onto new tiles counts as derived.
+  no layer derives from the early map. Byte-identity is not the test: copying a layout cell by cell onto new tiles counts as derived.
 
 - **D2 — The gameplay contract stays, or moves with its code.** A replacement keeps every point the code and tests read, unless the same PR changes that
   code and those tests and lists each move:
@@ -41,7 +42,7 @@ the early placeholder content (ADR-007) came from. A measurement on `master` (`b
   with the layout, in the same PR.
 
 - **D3 — Own tilesets with own names.** The maps use own sheets with Nosum names, for example `terrain`, `interior`, `town`, `mine` → `cave`. Each sheet is
-  drawn from scratch (in code like `own_terrain`, or by hand/PixelLab under ADR-040 D4), not from a floor plan of a placeholder sheet. The old painted
+  drawn from scratch (in code like `own_terrain`, or by hand/PixelLab under ADR-040 D4), not from a floor plan of an early sheet. The old painted
   sheets are deleted. Tile traits live in Nosum's own tileset data. The client and server link sheets by their new names; links to old served paths are
   removed.
 
@@ -51,7 +52,7 @@ the early placeholder content (ADR-007) came from. A measurement on `master` (`b
     like an interior.
   - **Interiors and outdoor maps:** each layout is a text grid, `art/own/source/layouts/<Map>.txt` (one character per tile, with a legend), compiled into
     the `.tmx` by `tools/Nosum.MapGen layout`. The `.tmx` is generated, never edited. Layouts are new designs around the D2 points; mirroring, rotating or
-    re-tiling a placeholder layout is not allowed.
+    re-tiling an early layout is not allowed.
 
 - **D5 — Sprite sheets and paths get own names.** Every file under `assets/` moves to a Nosum path and name, with a cell grid of Nosum's choosing. The code
   references (sprite indices in `ItemDefinition`, `CropDefinition`, `PlaceableCatalog`, the farmer layers, UI) follow in the same PR. Wire ids and item ids
@@ -59,14 +60,14 @@ the early placeholder content (ADR-007) came from. A measurement on `master` (`b
 
 - **D6 — The transition tooling and its traces are removed.** After D1–D5: delete `tools/Nosum.AssetInventory`, `tools/Nosum.MapReauthor`,
   `deploy/check-placeholder-art.sh` with its workflow jobs and MSBuild target, `docs/art/placeholders.sha256`, `docs/art/inventory.md`, the
-  placeholder sections of `docs/art/provenance.md`, `PlaceholderContent.cs` and the tests that read the placeholder. ADR-007 and ADR-040 are condensed into
+  early sections of `docs/art/provenance.md`, `PlaceholderContent.cs` and the tests that read the early content. ADR-007 and ADR-040 are condensed into
   a short record of Nosum's own art pipeline: what the own sources are and how they are built. Every remaining mention of the source game in code, docs,
   skills and workflows is rewritten neutrally or deleted. A unit test replaces the gate: every tileset a map names and every file under `assets/` is listed
   in `art/own/SOURCES.md` with its own source, a tool or a licensed pack.
 
 - **D7 — External provenance audit, not an in-repo gate.** The repository carries no fingerprints of the source content. Before publishing, the
   coordinator runs a one-off audit outside the repository against the private archive. It checks that no file in the tree is byte-identical to a former
-  placeholder file, and that no map layer matches a former map's layer cell by cell. The result is reported to the owner, not committed.
+  early file, and that no map layer matches a former map's layer cell by cell. The result is reported to the owner, not committed.
 
 - **D8 — The public repository starts from fresh history.** Old commit messages and files name the source content, so stripping blobs is not enough. The
   current repository is renamed and stays private as the archive. The new public repository `nosum` starts with one commit of the cleaned tree. Secrets,
@@ -102,7 +103,7 @@ Each phase is one PR, small enough for one session. P1 lands first; after it, th
 
 - The public release waits for P1–P8. The game keeps running from the private repository meanwhile.
 - Test pins on tiles and counts change phase by phase, each listed in its PR.
-- The transition tools and the placeholder gate disappear; `SOURCES.md` and its test become the provenance record.
+- The transition tools and the early gate disappear; `SOURCES.md` and its test become the provenance record.
 - After D8, PR numbers and issues start again in the new repository.
 
 ## Revisit when

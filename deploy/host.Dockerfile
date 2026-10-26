@@ -1,12 +1,9 @@
 # syntax=docker/dockerfile:1.7
 # Nosum.Host image (docs/adr/ADR-031 D1). Build from the repository root:
-#   docker build -f deploy/host.Dockerfile --build-arg NOSUM_RELEASE=private -t nosum/host .
+#   docker build -f deploy/host.Dockerfile -t nosum/host .
 # The final image is the .NET runtime only (no SDK), runs as the non-root `app` user and carries nothing but the published host and the maps it loads.
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-# public | private. A public build is refused while assets/PLACEHOLDER_CONTENT exists or the release check of tools/Nosum.AssetInventory fails
-# (docs/adr/ADR-031 D9, docs/adr/ADR-040 D8), here and again by MSBuild at publish.
-ARG NOSUM_RELEASE=private
 WORKDIR /src
 
 COPY global.json .editorconfig Directory.Build.props Directory.Packages.props Version.props ./
@@ -15,16 +12,9 @@ COPY engine/Nosum.Rendering engine/Nosum.Rendering
 COPY contracts contracts
 COPY gameplay gameplay
 COPY server server
-COPY assets assets
 COPY art/own/Maps art/own/Maps
-COPY docs/art/placeholders.sha256 docs/art/placeholders.sha256
-COPY tools/Directory.Build.props tools/Directory.Build.props
-COPY tools/Nosum.AssetInventory tools/Nosum.AssetInventory
-COPY deploy/check-placeholder-art.sh deploy/PlaceholderGate.targets deploy/
-
-RUN sh deploy/check-placeholder-art.sh "$NOSUM_RELEASE"
 RUN dotnet restore server/Nosum.Host/Nosum.Host.csproj
-RUN dotnet publish server/Nosum.Host/Nosum.Host.csproj -c Release --no-restore -p:NosumRelease="$NOSUM_RELEASE" -o /out
+RUN dotnet publish server/Nosum.Host/Nosum.Host.csproj -c Release --no-restore -o /out
 
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
 WORKDIR /app

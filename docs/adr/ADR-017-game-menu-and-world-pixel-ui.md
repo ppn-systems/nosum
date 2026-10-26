@@ -8,7 +8,7 @@
 ADR-016 gave the UI one theme, but the result was still crowded and flat: six always-visible boxes over the world, a button column, one loose panel per feature,
 every panel the same orange card, a UI pixel (2 px) smaller than the world pixel (3 px at 1280 x 720), system fonts with shadows, and permanent hint paragraphs.
 The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px, never below 2, `MapScene.ScaleFor`), so the world pixel is 3 CSS px at
-1280 x 720 and 5 at 1920 x 1080; the placeholder UI art (ADR-007) is drawn in Stardew at exactly that zoom.
+1280 x 720 and 5 at 1920 x 1080; the early UI art (ADR-007) is drawn at exactly that zoom.
 
 ## Decision
 
@@ -19,8 +19,8 @@ The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px,
   in `ToolbarViewModel.Items` (kind, label, key, sprite), one `case` in `Home.razor`, one sprite in `nosum-theme.js`. Tab pages are `MenuPage`s (scrolling content and a status
   line), never windows of their own. While the menu is open the HUD widgets under it are hidden.
 - **D2 — The UI pixel is the world pixel.** `--u` (one UI art pixel, CSS px) is computed by `nosum-theme.js` with the engine's own formula, `round(width / 416)` clamped to 2..6,
-  and capped at `floor(height / 204)` so the menu always fits (the cap only bites on very wide, short windows). Thin art (Cursors.png, own glyphs) is drawn at `sheet px * --u`, fat art
-  (MenuTiles.png, textBox.png: 4 x 4 blocks) at `sheet px / 4 * --u`, `image-rendering: pixelated`, integer sizes only: 3 px at 1280 x 720, 5 px at 1920 x 1080. In a small room the
+  and capped at `floor(height / 204)` so the menu always fits (the cap only bites on very wide, short windows). Thin art (`assets/ui/cursors.png`, own glyphs) is drawn at `sheet px * --u`, fat art
+  (`assets/ui/menu.png`, `assets/ui/text_box.png`: 4 x 4 blocks) at `sheet px / 4 * --u`, `image-rendering: pixelated`, integer sizes only: 3 px at 1280 x 720, 5 px at 1920 x 1080. In a small room the
   engine zooms a room (a map no wider than the open-map view, today the farmhouse) to the largest zoom that shows all of it above the hotbar strip, so the room can be drawn at a smaller world pixel than the UI pixel (4 against 5 at 1920 x 1080); the UI keeps the open-map size, so its layout does not change between maps.
 - **D3 — Text is VT323.** The UI font is VT323 (SIL OFL 1.1, `Nosum.Wasm.Controls/wwwroot/fonts/`, licence in `OFL-VT323.txt`), a 5 x 7 pixel font with all Vietnamese diacritics (checked:
   every precomposed letter of Vietnamese, including `ẩ ợ ữ Đ`). Bundled and served with the app; nothing is fetched at run time. Alternatives checked and rejected: Pixelify Sans, Silkscreen,
@@ -28,8 +28,8 @@ The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px,
   2 px at 1280 x 720, 3 px at 1920 x 1080), a size is `12.5 * --tp` px, so glyphs never blur. **Type scale** (all of the UI): title `(tp + 1) * 12.5` (window titles, the logo is larger),
   body `tp * 12.5` (everything), small `max(tp - 1, 2) * 12.5` (hotkeys, tooltip descriptions, hints; equal to body at 1280 x 720 because VT323 has no legible size between). One line height, `11 tp`.
   Only regular weight (no synthetic bold). Names above heads are drawn by the renderer (see D6), not by this font.
-- **D4 — Frames, sections, slots.** Hierarchy: the window (MenuTiles `panel`, 9-slice, 4 u border), a section (MenuTiles `inset`, a recessed card, 2 u border), a slot (MenuTiles `slot` bevel, 18 u square).
-  Buttons are Cursors.png sprites with hover, pressed and disabled states in the same palette (a disabled button is dimmer, never grey). Spacing is on one grid: 2 u inside a group, 4 u between groups, 4 u to the screen edge.
+- **D4 — Frames, sections, slots.** Hierarchy: the window (menu sheet `panel`, 9-slice, 4 u border), a section (menu sheet `inset`, a recessed card, 2 u border), a slot (menu sheet `slot` bevel, 18 u square).
+  Buttons are sprites of `assets/ui/cursors.png` with hover, pressed and disabled states in the same palette (a disabled button is dimmer, never grey). Spacing is on one grid: 2 u inside a group, 4 u between groups, 4 u to the screen edge.
 - **D5 — The HUD shows almost nothing.** Top-left: the quest tracker (title and one checkbox line per objective; click the title to fold it; the long hint is its tooltip). Top-right: the coin
   counter (coin and amount) and the settings gear. Bottom-centre: the hotbar (slot numbers under the slots, never over the picture; stack counts bottom-right with an outline; the selected slot has the red
   frame), a one-line message that fades after 2.5 s, and, in a furniture place, a one-line strip of key caps (`E` place, `R` rotate, `F` move, `Q` stow, the last three clickable) at the top. The connection
@@ -46,13 +46,13 @@ The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px,
 
 | Variable | Sheet | x, y, w, h | Used for |
 |:--|:--|:--|:--|
-| `inset` | MenuTiles.png | 0, 320, 60, 60 | section card (9-slice, 8 px = 2 u) |
-| `tab-inventory`, `tab-coop`, `tab-market`, `tab-shop` | Cursors.png | 0, 368 / 32, 368 / 80, 368 / 0, 384 (16 x 16) | menu tabs |
-| `tab-wardrobe`, `tab-trade`, `tab-profile`, `tab-settings` | Cursors.png (blank tab 16, 368) + own glyph | 16, 368, 16, 16 | menu tabs and the gear button |
+| `inset` | assets/ui/menu.png | 0, 320, 60, 60 | section card (9-slice, 8 px = 2 u) |
+| `tab-inventory`, `tab-coop`, `tab-market`, `tab-shop` | assets/ui/cursors.png | 0, 368 / 32, 368 / 80, 368 / 0, 384 (16 x 16) | menu tabs |
+| `tab-wardrobe`, `tab-trade`, `tab-profile`, `tab-settings` | assets/ui/cursors.png (blank tab 16, 368) + own glyph | 16, 368, 16, 16 | menu tabs and the gear button |
 | `glyph-hat`, `glyph-shirt`, `glyph-pants` | own glyphs | 11 x 4, 11 x 8, 9 x 9 | faint picture in an empty equipment slot |
-| backdrop | `LooseSprites/Cloudy_Ocean_BG.png` | whole file (1500 x 520) | start screen, drawn at 1 art pixel = 1 u |
+| backdrop | `assets/ui/start_background.png` | whole file (1500 x 520) | start screen, drawn at 1 art pixel = 1 u |
 
-The glyphs (gear, shirt, hat, trousers, person, swap arrows) are Nosum's own 1-bit pictures in the table at the top of `nosum-theme.js`; they stay when the placeholder art is replaced.
+The glyphs (gear, shirt, hat, trousers, person, swap arrows) are Nosum's own 1-bit pictures in the table at the top of `nosum-theme.js`; they stay when the early art is replaced.
 
 ## Alternatives considered
 
@@ -71,7 +71,7 @@ The glyphs (gear, shirt, hat, trousers, person, swap arrows) are Nosum's own 1-b
 
 ## Revisit when
 
-The art remake replaces the placeholder sheets (the rectangles above change, the controls do not), or a third language is added (one more button in the settings tab).
+The art remake replaces the early sheets (the rectangles above change, the controls do not), or a third language is added (one more button in the settings tab).
 
 ## Implementation notes (UI polish after the redesign)
 
@@ -80,7 +80,7 @@ The art remake replaces the placeholder sheets (the rectangles above change, the
   On a screen too short for 186 u (a landscape phone) the window is also capped at the screen height minus the gutters and the tab row, and the page scrolls inside it. Below 640 px wide the
   16 u tabs shrink to share the window (a portrait phone); wider screens keep them at 16 u.
   A page may pin controls under its scrolling part with `MenuPage Footer` (the trade page pins confirm and cancel); `MenuPage Good` shows a success message in the "ok" colour instead of the refusal colour.
-- **Parchment.** The `fill` keyword is gone from the panel and section `border-image`s: the 9-slice centre of `MenuTiles.png` is a vertical gradient of about six bands, and stretching it over a tall window
+- **Parchment.** The `fill` keyword is gone from the panel and section `border-image`s: the 9-slice centre of `assets/ui/menu.png` is a vertical gradient of about six bands, and stretching it over a tall window
   showed the bands. The centre is now the plain `--nosum-parchment` / `--nosum-parchment-deep` colour (sampled from the sheet's middle band), so every window and section is uniform at any height.
 - **Language switch.** `IAccountClient.SetLanguageAsync` sends the existing `SetLanguage` packet and reads `LanguageResult` (no wire change). `AccountFormViewModel.SetLanguageAsync` applies the language
   with `UiCulture.Apply` at once, then stores it; if the server refuses or the connection fails the language stays changed for this visit and the settings page says it was not saved. `UiCulture.Changed` is raised by

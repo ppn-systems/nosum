@@ -85,7 +85,7 @@ internal sealed class NodeDecoratorProvider : IMapDecoratorProvider
 {
     private const string TreesUrl = "assets/sprites/trees/";
     private const string ObjectsUrl = "assets/sprites/items.png";
-    private const string MineUrl = "assets/Maps/Mines/mine.png";
+    private const string MineUrl = "assets/Maps/cave.png";
 
     private readonly NodeChannel _nodes;
     private NodeTextures? _textures;

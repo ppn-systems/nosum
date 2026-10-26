@@ -30,8 +30,8 @@ nosum/
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — Nosum.Bench.Interop (browser benchmark, same WASM settings as wasm/) and Nosum.Bench.Load (headless load test of a running server, ADR-031 D8)
 ├── assets/                       # the replacement sprite sheets the game loads (own or CC0, 16 px); maps live in art/own/Maps — ADR-040
-├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker, Nosum.AssetInventory); only area allowed an image package
-├── deploy/                       # host image, compose (PostgreSQL, host, Cloudflare Tunnel, backups), the placeholder-art gate — ADR-031, ADR-041; runbook in docs/ops/
+├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker, Nosum.MapGen); only area allowed an image package
+├── deploy/                       # host image, compose (PostgreSQL, host, Cloudflare Tunnel, backups); runbook in docs/ops/
 ├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions) · art/ (own maps and tilesheets, ADR-040) · ops/ (operations runbook)
 └── Directory.Build.props · Directory.Packages.props · Version.props · global.json
 ```
@@ -67,7 +67,6 @@ Nosum.Wasm.ViewModels   → Wasm.Socket, Gameplay                (catalogue keys
 Nosum.Wasm.Controls     → Wasm.ViewModels                      (reusable Razor controls; no socket, no text of their own)
 Nosum.Wasm              → Wasm.Controls, Wasm.ViewModels, Wasm.Socket, Contracts, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
 Nosum.AtlasPacker       → SkiaSharp                            (tools/ only; nothing references it)
-Nosum.AssetInventory    → Core, Rendering, Gameplay            (tools/ only; reads wasm/ sprite tables as source text; docs/art/inventory.md)
 Nosum.MapGen           → Core, Gameplay                       (tools/ only; compiles art/own layouts to .tmx, generates the mine floors; tools/README.md)
 ```
 

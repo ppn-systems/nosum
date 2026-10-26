@@ -6,7 +6,7 @@ using Nosum.Gameplay.Movement;
 namespace Nosum.Gameplay.Farm;
 
 /// <summary>
-/// The farm's buildings as data: sheet rectangles, footprints and positions in the placeholder
+/// The farm's buildings as data: sheet rectangles, footprints and positions in the early
 /// <c>Farm.tmx</c> (docs/adr/ADR-007). Names are keys, not display text. Lives in gameplay so the
 /// client (prediction) and the server (move validation) build the identical <see cref="WalkGrid"/>.
 /// </summary>

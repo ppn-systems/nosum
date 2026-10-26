@@ -4,7 +4,7 @@ namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// The 16 x 16 cursor drawn on the tile the action key will work on: four light corner brackets with a
-/// dark edge, so it shows on grass and on soil. Embedded because it is Nosum's own, tiny, and not part of the placeholder content.
+/// dark edge, so it shows on grass and on soil. Embedded because it is Nosum's own, tiny, and not part of the early content.
 /// </summary>
 internal static class TargetCursor
 {

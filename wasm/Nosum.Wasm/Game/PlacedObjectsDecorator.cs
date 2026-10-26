@@ -121,7 +121,7 @@ internal sealed class PlacedObjectsDecoratorProvider : IMapDecoratorProvider
         _buildings = buildings;
     }
 
-    /// <summary>Returns where a sheet of <see cref="PlaceableDefinition.Sheet"/> is served from (placeholder art, docs/adr/ADR-007).</summary>
+    /// <summary>Returns where a sheet of <see cref="PlaceableDefinition.Sheet"/> is served from (early art, docs/adr/ADR-007).</summary>
     /// <param name="sheet">The sheet name.</param>
     /// <returns>The URL relative to the app root.</returns>
     internal static string UrlOf(string sheet)

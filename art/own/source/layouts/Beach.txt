@@ -43,8 +43,6 @@ N nature 17
 
 property Warp 38 -1 Town 54 108 39 -1 Town 54 108 40 -1 Town 54 108 67 -1 Town 94 109
 property Outdoors T
-property Music ocean
-property MusicIgnoreInRain t
 
 layer Back
 abcbdcaaaabdcadbddabadbbccadbadcbbdcabeefbbacaaccdddaabcghijiikgbdddbbbcadbbadcaaddaadacacdaccbdccccdadd

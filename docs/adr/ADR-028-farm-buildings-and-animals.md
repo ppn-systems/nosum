@@ -5,9 +5,9 @@ placeables), ADR-024 (outdoor placement), ADR-023 (energy), ADR-018 (days).
 
 ## Context
 
-Crops alone make a thin farm. Coops and barns add daily care and steady produce. The placeholder content has the
-buildings (`Buildings/Coop.png`, `Barn.png`), interiors (`Maps/Coop.tmx`, `Barn.tmx`) and animals
-(`Animals/White Chicken.png`, `White Cow.png`).
+Crops alone make a thin farm. Coops and barns add daily care and steady produce. The early content has the
+buildings (`assets/sprites/buildings/coop.png`, `barn.png`), interiors (`art/own/Maps/Coop.tmx`, `Barn.tmx`) and animals
+(`assets/sprites/animals/chicken.png`, `cow.png`).
 
 ## Decision
 
@@ -39,7 +39,7 @@ How the decisions above were built, and where the build fills in the text.
 - **D1 — a building is a blueprint item, placed like any large piece.** The carpenter does not place anything: `CommissionBuilding` takes coins, wood and stone and hands over a blueprint (`coop_blueprint` 610, `barn_blueprint` 611, `ItemKind.Placeable`, stack 1) in one
   `ITransferService` transaction. The blueprint is set down with the usual place intent on the player's farm or on co-op land (members only; the farmhouse and every public map refuse it: `PlaceStatus.NotPlaceable`), so footprint validation, reach, tilled soil and nodes, the ghost and the
   client mirror are the ones of ADR-024. Placing adds a `farm_buildings` row in the same transaction (`IPlacedBehaviour.JoinPlace`); the construction clock starts at the placement (`completes_at_ms` = placement time + two game days) and is read from that stored number, never ticked. A land holds at most 8
-  buildings. A building cannot be moved or picked up (`PlaceStatus.Fixed`, appended). Coop: 4 000 coins, 300 wood, 100 stone, footprint 6 × 3 tiles (sprite 96 × 112 from `Buildings/Coop.png`; the strip below the body is door animation and unused), door at the second tile of the bottom row. Barn: 6 000, 350, 150, 7 × 3 (112 × 112).
+  buildings. A building cannot be moved or picked up (`PlaceStatus.Fixed`, appended). Coop: 4 000 coins, 300 wood, 100 stone, footprint 6 × 3 tiles (sprite 96 × 112 from `assets/sprites/buildings/coop.png`; the strip below the body is door animation and unused), door at the second tile of the bottom row. Barn: 6 000, 350, 150, 7 × 3 (112 × 112).
   The door tile is inside the footprint but opened for walking (`PlaceableDefinition.Door`), and the tile in front of a door must stay free: `PlacedSet.Check` refuses a blocking piece there, and a building whose own front tile is blocked.
 - **D2 — interiors.** `MapSpec.InteriorOf` marks `coop` (`Coop.tmx`, 12 × 10) and `barn` (`Barn.tmx`, 18 × 15) as private maps whose instance owner is the **building's id**, not a player (`coop@<id>`). Walking onto the door tile warps the player in (`PlayerService`, from the movement path: `IBuildingDirectory.TryFindDoor` reads an immutable per-land list,
   nothing allocates); the interior's exit tile leads back to the tile in front of the door, found from the building, not from the map file's `Warp`. `BuildingAccessPolicy` (a decorator of `VisitAccess`) admits whoever may enter the land, once the building is finished. A player who left the game inside restarts on the farm, because the saved place of an interior is not the player's.
@@ -54,4 +54,4 @@ How the decisions above were built, and where the build fills in the text.
 - **D5 — persistence.** `farm_buildings` (Guid id, FK to `placed_objects` with cascade, unique; land map and owner; kind; `completes_at_ms`; rations; `settled_day`) and `farm_animals` (Guid id, FK to the building; kind, name, friendship, `petted_day`, `produce_day`, `collected_day`, `bought_at`). One migration, `FarmBuildingsAndAnimals`. Days are `GameCalendar.DayNumberAt`. The day-ended hook is not used: lazy settlement covers it.
 - **D6 — wire.** `Nosum.Contracts.Building`, opcodes `0x3100-0x3106` (C2S) and `0x3140-0x3145` (S2C), one `BuildingStatus` for every refusal; `PlaceStatus.Fixed = 19` is appended. Nothing is renumbered and `NosumProtocol.Version` is not changed. The list of a land's buildings (`BuildingsSnapshot`) is also pushed to everybody on the land when a building is placed (instance-wide: it is small and replaces the client's list).
 - **Client.** The carpenter is the Town counter at the blue house in the south-west of the map (door tile (10, 85), doormat (10, 86)) and its page is the shop page with the building and animal sections under the supplies. Buildings under construction are drawn dull. Front and back of a building are one depth-sorted sprite anchored at the bottom of its footprint, so the farmer is behind the roof and in front of the door without
-  the extra front layer the farmhouse needs. The placeholder art is `Buildings/Coop.png`, `Barn.png`, `Animals/White Chicken.png`, `White Cow.png` (ADR-007).
+  the extra front layer the farmhouse needs. The early art (ADR-007) was replaced by own pictures in `assets/sprites/buildings/` and `assets/sprites/animals/`.

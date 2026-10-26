@@ -102,23 +102,12 @@ Put that value (64 hex digits) in the `NOSUM_SERVER_PUBLIC_KEY` variable. The we
 
 Deploy the **server first**, then the **web client** (the client needs the server key and the address).
 
-1. **Actions → deploy-server → Run workflow.** It runs on the branch you pick and deploys that commit. The steps: the placeholder gate, the
-   image build and push to `ghcr.io/ppn-systems/nosum-host:<commit>`, the copy of `compose.yaml` and `backup/` to `/opt/nosum`, the write of
+1. **Actions → deploy-server → Run workflow.** It runs on the branch you pick and deploys that commit. The steps: the image build and push to `ghcr.io/ppn-systems/nosum-host:<commit>`, the copy of `compose.yaml` and `backup/` to `/opt/nosum`, the write of
    `deploy/.env`, `docker compose pull` and `up -d`, and the readiness gate (up to five minutes).
 2. **Actions → deploy-web → Run workflow.** It publishes the client with the server address and pinned key, and deploys it to Pages.
 3. Check: the tunnel is Healthy, and the WebSocket check in "The Cloudflare Tunnel" returns `101`. Open the Pages address and sign in.
 
 Both workflows are manual only and run in the `production` environment. A deploy is a decision.
-
-**The placeholder gate.** Both workflows first run `deploy/check-placeholder-art.sh public`. A public build passes only when every file the game loads is
-Nosum's own or CC0 art (`tools/Nosum.AssetInventory --release`) and `assets/` holds nothing else (ADR-040 D8, ADR-031 D9). The repository holds no
-placeholder content (M6, ADR-040 phase 4). **Its git history still does** (commit `64ce88e` and every commit before it, the unpacked Stardew Valley files of
-ADR-007). A public repository or release therefore needs a history without them: a fresh history or a filtered branch. That is the owner's decision; do not
-rewrite `master` for it without that decision.
-
-**First deploy: after the placeholder removal lands** (`feat/remove-placeholder-content`). The first test deploy runs with the strict
-public gate, so it can only pass once the marker and the unlisted placeholder files are gone. Before that, neither workflow can run to completion.
-The setup checklist at the top of `deploy/README.md` lists what to set up by hand before that run.
 
 **Rollback.** The deploy keeps the previous tag in `NOSUM_PREVIOUS_TAG`. If the readiness gate fails, the deploy restores that tag automatically
 and reports it. To roll back by hand (to any commit whose image is still in GHCR):

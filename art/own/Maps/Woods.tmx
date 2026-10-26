@@ -3,10 +3,6 @@
   <properties>
     <property name="Warp" type="string" value="60 15 Forest 0 7 60 16 Forest 0 7" />
     <property name="Outdoors" type="string" value="T" />
-    <property name="Fall_Objects" type="string" value="T" />
-    <property name="Spring_Objects" type="string" value="T" />
-    <property name="Summer_Objects" type="string" value="T" />
-    <property name="AmbientLight" type="string" value="120 65 120" />
   </properties>
   <tileset firstgid="1" name="terrain" tilewidth="16" tileheight="16" tilecount="126" columns="16">
     <image source="terrain.png" width="256" height="128" />

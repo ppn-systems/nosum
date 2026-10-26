@@ -5,11 +5,11 @@
 
   <!-- Nalix realtime core: all Nalix.* packages move together. -->
   <ItemGroup>
-    <PackageVersion Include="Nalix.Abstractions" Version="14.3.7" />
-    <PackageVersion Include="Nalix.Codec" Version="14.3.7" />
-    <PackageVersion Include="Nalix.Hosting" Version="14.3.7" />
-    <PackageVersion Include="Nalix.Runtime" Version="14.3.7" />
-    <PackageVersion Include="Nalix.SDK" Version="14.3.7" />
+    <PackageVersion Include="Nalix.Abstractions" Version="14.3.8" />
+    <PackageVersion Include="Nalix.Codec" Version="14.3.8" />
+    <PackageVersion Include="Nalix.Hosting" Version="14.3.8" />
+    <PackageVersion Include="Nalix.Runtime" Version="14.3.8" />
+    <PackageVersion Include="Nalix.SDK" Version="14.3.8" />
   </ItemGroup>
 
   <!-- Persistence: server/Nosum.Infrastructure only (docs/adr/ADR-009). All EF Core packages share one version. -->
