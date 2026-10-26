@@ -126,17 +126,17 @@ Amends A2: the Town's one general store is now three shops, each one catalogue e
 | :-- | :-- | :-- | :-- | :-- |
 | 1 | `seed_shop` | parsnip, radish, cauliflower seeds | (43, 57) | Pierre's store, door tiles (43,56) and (44,56) |
 | 2 | `clothing_shop` | shirts, trousers, hats | (20, 89) | Emily and Haley's house, door tile (20,88) |
-| 3 | `furniture_shop` | the seven furniture pieces | (95, 51) | JojaMart, door tiles (95,50) and (96,50) |
+| 3 | `furniture_shop` | the seven furniture pieces | (95, 51) | a big-box store stand-in, door tiles (95,50) and (96,50) |
 
 - **Why these tiles.** Each counter is the walkable doormat one tile south of a building's door tile in `Town.tmx` (the same convention as the existing one, found from the
   `LockedDoorWarp` tile data of the map); a test checks each is walkable, reachable on foot from the Town spawn (4, 54) and directly in front of a blocked door tile, and that no two
   counters are in reach of the same place. Seeds stay at Pierre's (id 1 is unchanged: it was the only shop). Clothing is at Emily and Haley's house (Emily sews, Haley follows fashion; it is
-  also the nearest house to the west half of the town). Furniture belongs in the carpenter's shop, which is on the Mountain map the game does not have; **JojaMart** is the stand-in
-  (a big-box store, and the farthest east, so the three trades are spread over the town). When a carpenter map exists, move the furniture point there and nothing else changes.
+  also the nearest house to the west half of the town). Furniture belongs in the carpenter's shop, which is on the Mountain map the game does not have; **a big-box store** is the stand-in
+  (and the farthest east, so the three trades are spread over the town). When a carpenter map exists, move the furniture point there and nothing else changes.
 - **Rules.** Prices are unchanged (seeds 10 / 15 / 30, furniture 80-400, clothing 40-80). A shop sells only its own kind and no item is sold by two shops (tests). The server already did
   what is needed: `ShopRules.Price` answers `NotSold` for an item the named shop does not carry, and `ShopService` answers `NotAtShop` unless the player's own presence is at a counter
   **of that shop id**, so standing at the seed shop and naming the furniture shop is refused. Both are covered by service and over-the-wire tests.
 - **Client.** `ShopPanel` takes a `ShopId` and shows that shop's title (`Shop_Title_<key>`, vi and en) and list; the tab bar is gone. It opens its shop on its view model itself, so a host
   sets only `Vm` and `ShopId`. The action key next to any counter opens the matching shop.
-- **Open owner questions:** the JojaMart stand-in for furniture (and the "Joja" name, which is Stardew's placeholder art, not Nosum branding); shop names for the final art; whether
+- **Open owner questions:** the big-box store stand-in for furniture (its name is early art, not Nosum branding); shop names for the final art; whether
   the clothing shop should move closer to the farm entrance.

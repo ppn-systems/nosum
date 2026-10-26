@@ -7,8 +7,8 @@
 The world is made of many maps ([pillars](../design/pillars.md)): the farm, the farmhouse, the roads
 and woods around it, later the town and co-op land. Until now the server and the client each knew one
 map, `Farm.tmx`. Moving between maps touches everything: what is loaded and drawn, who sees whom, what
-is saved, and which rules a player is walking under. The placeholder maps
-([ADR-007](ADR-007-placeholder-content-16px.md)) already describe their exits: a `Warp` map property of
+is saved, and which rules a player is walking under. The early maps
+([ADR-007](ADR-007-own-art-16px.md)) already describe their exits: a `Warp` map property of
 groups `fromX fromY targetMap targetX targetY`, where an exit one tile outside the map (`x = -1`, `x =
 width`) is an edge exit. The server decides everything that matters
 ([ADR-003](ADR-003-server-authoritative-websocket.md)); a client must never pick a map, and a map name
@@ -72,7 +72,7 @@ from the wire must never become a file path.
   edge would throw the player out of the map.
 - **Loading the target map after the server's answer, on the frame.** Blocks the loop or shows a half
   loaded map; background loading with a fade hides the wait.
-- **Per-map `.tsx` tilesets or a custom map format.** The placeholder maps embed their tilesets; the
+- **Per-map `.tsx` tilesets or a custom map format.** The early maps embed their tilesets; the
   reader already handles them.
 
 ## Consequences

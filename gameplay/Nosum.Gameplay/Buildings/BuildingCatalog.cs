@@ -174,7 +174,7 @@ public sealed class BuildingDefinition
 }
 
 /// <summary>
-/// The buildings of the game. The interior maps are the placeholder <c>Maps/Coop.tmx</c> and <c>Barn.tmx</c> (docs/adr/ADR-007); the rectangles were measured on
+/// The buildings of the game. The interior maps are the early <c>Maps/Coop.tmx</c> and <c>Barn.tmx</c> (docs/adr/ADR-007); the rectangles were measured on
 /// <c>sprites/buildings/coop.png</c> and <c>barn.png</c> (the body is the top 112 rows; the strip below is door animation), so replacing the art means replacing this table.
 /// </summary>
 public static class BuildingCatalog

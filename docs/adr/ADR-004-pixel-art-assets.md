@@ -1,7 +1,7 @@
 # ADR-004 — Pixel-art assets: 32 px grid, source art in `assets/`, atlases built by a repo tool
 
 **Status:** Proposed (owner choices recorded 2026-10-25: pixel art, 32 px tiles, own atlas tool)
-**Amended by:** [ADR-007](ADR-007-placeholder-content-16px.md) — 16 px grid, content sheets used as shipped, placeholder only.
+**Amended by:** [ADR-007](ADR-007-own-art-16px.md) — 16 px grid, content sheets used as shipped, early content only.
 
 ## Context
 

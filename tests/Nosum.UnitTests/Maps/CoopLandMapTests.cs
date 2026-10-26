@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Maps;
 
-/// <summary>Co-op land (docs/adr/ADR-020): the map entry in the catalogue, its gate and arrival tiles on the real placeholder maps, and the audit reason codes.</summary>
+/// <summary>Co-op land (docs/adr/ADR-020): the map entry in the catalogue, its gate and arrival tiles on the real early maps, and the audit reason codes.</summary>
 public sealed class CoopLandMapTests
 {
     private static readonly Guid s_coop = Guid.Parse("33333333-3333-3333-3333-333333333333");

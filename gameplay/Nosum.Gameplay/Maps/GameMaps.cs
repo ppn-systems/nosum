@@ -70,7 +70,7 @@ public static class GameMaps
     public const string CoopFarm = "coopfarm";
 
     // Shop counters in Town.tmx: the walkable tile just south of a building's door (the doormat), where the farmer stands and presses the action key.
-    // The art is Stardew's placeholder (docs/adr/ADR-007); each building is the one whose owner fits the trade:
+    // The art is early art (docs/adr/ADR-007); each building is the one whose owner fits the trade:
     //  - seeds: Pierre's store, door tiles (43,56) and (44,56), doormat (43,57);
     //  - clothing: Emily and Haley's house, door tile (20,88), doormat (20,89) (Emily sews, Haley follows fashion);
     //  - furniture: JojaMart, door tiles (95,50) and (96,50), doormat (95,51), a big-box store standing in for Robin's carpenter shop,
@@ -127,7 +127,7 @@ public static class GameMaps
             indoors: true,
             dropFileWarps: [(18, 14), (67, 18)]),
 
-        // Co-op land reuses the placeholder Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
+        // Co-op land reuses the early Farm_Foraging.tmx (an open meadow, no buildings; same tilesheets as the farm, docs/adr/ADR-007). Its file exits to the bus stop, forest and backwoods stay.
         new(CoopFarm, "Farm_Foraging.tmx", CoopLand.LandArrival.X, CoopLand.LandArrival.Y, extraWarps: [new MapWarp(CoopLand.LandGate.X, CoopLand.LandGate.Y, Town, CoopLand.TownArrival.X, CoopLand.TownArrival.Y)], farmable: true, isCoop: true, placeable: true),
         .. s_mineFloors,
 
@@ -146,7 +146,7 @@ public static class GameMaps
             nodeSites: [.. OutdoorWorld.WoodsStumps],
             scatter: [.. OutdoorWorld.WoodsNodes]),
 
-        // Interiors of farm buildings (docs/adr/ADR-028 D2): the placeholder Coop.tmx and Barn.tmx. Private: one instance per building, owned by the building's id. A player arrives on
+        // Interiors of farm buildings (docs/adr/ADR-028 D2): the early Coop.tmx and Barn.tmx. Private: one instance per building, owned by the building's id. A player arrives on
         // the tile in front of the interior's exit (the exit leads back to the building's door, chosen by the server, not by the file's Warp).
         new(Coop, "Coop.tmx", 2, 8, isPrivate: true, interiorOf: BuildingKind.Coop, indoors: true),
         new(Barn, "Barn.tmx", 11, 13, isPrivate: true, interiorOf: BuildingKind.Barn, indoors: true),

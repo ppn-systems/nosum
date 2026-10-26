@@ -49,7 +49,7 @@ public static class NodeVariants
     public const byte LadderStone = 1;
 }
 
-/// <summary>Tree species, the values of <see cref="ResourceNode.Variant"/>. They are also the art: oak is <c>tree1</c>, maple <c>tree2</c>, pine <c>tree3</c> in the placeholder sheets.</summary>
+/// <summary>Tree species, the values of <see cref="ResourceNode.Variant"/>. They are also the art: oak is <c>tree1</c>, maple <c>tree2</c>, pine <c>tree3</c> in the early sheets.</summary>
 public static class TreeVariant
 {
     /// <summary>An oak.</summary>

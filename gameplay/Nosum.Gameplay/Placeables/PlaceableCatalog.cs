@@ -8,7 +8,7 @@ using Nosum.Gameplay.Items;
 namespace Nosum.Gameplay.Placeables;
 
 /// <summary>
-/// The placeables of the game, keyed by the item they are made from. The art is the placeholder furniture sheet
+/// The placeables of the game, keyed by the item they are made from. The art is the early furniture sheet
 /// (docs/adr/ADR-007); rectangles were measured on <c>sprites/furniture.png</c>, so replacing the art means replacing this table.
 /// </summary>
 public static class PlaceableCatalog
@@ -19,7 +19,7 @@ public static class PlaceableCatalog
     /// <summary>Radius of the light a floor lamp gives, pixels (three and a half tiles).</summary>
     public const int FloorLampLightRadius = 56;
 
-    /// <summary>Sheet name of <c>sprites/craftables.png</c>: the crafted machines and containers (placeholder art, docs/adr/ADR-007).</summary>
+    /// <summary>Sheet name of <c>sprites/craftables.png</c>: the crafted machines and containers (early art, docs/adr/ADR-007).</summary>
     public const string CraftablesSheet = "craftables";
 
     /// <summary>Sheet name of <c>sprites/items.png</c>: the small objects (fence, path, sprinkler).</summary>

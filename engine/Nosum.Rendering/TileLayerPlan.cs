@@ -8,7 +8,7 @@ namespace Nosum.Rendering;
 
 /// <summary>
 /// Which tile layers of a map are drawn below the characters (ground) and which over them (front), by the layer-name
-/// convention of the placeholder maps (docs/adr/ADR-007): names starting with <c>Front</c> or <c>AlwaysFront</c> draw over
+/// convention of the early maps (docs/adr/ADR-007): names starting with <c>Front</c> or <c>AlwaysFront</c> draw over
 /// the characters, <c>Paths</c> is a logic layer that is not drawn, everything else (<c>Back</c>, <c>Back2</c>,
 /// <c>Buildings</c>, <c>Buildings2</c>, ...) is ground. Order in the map file is kept.
 /// </summary>

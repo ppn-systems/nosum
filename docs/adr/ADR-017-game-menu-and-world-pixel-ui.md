@@ -8,7 +8,7 @@
 ADR-016 gave the UI one theme, but the result was still crowded and flat: six always-visible boxes over the world, a button column, one loose panel per feature,
 every panel the same orange card, a UI pixel (2 px) smaller than the world pixel (3 px at 1280 x 720), system fonts with shadows, and permanent hint paragraphs.
 The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px, never below 2, `MapScene.ScaleFor`), so the world pixel is 3 CSS px at
-1280 x 720 and 5 at 1920 x 1080; the placeholder UI art (ADR-007) is drawn in Stardew at exactly that zoom.
+1280 x 720 and 5 at 1920 x 1080; the early UI art (ADR-007) is drawn at exactly that zoom.
 
 ## Decision
 
@@ -52,7 +52,7 @@ The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px,
 | `glyph-hat`, `glyph-shirt`, `glyph-pants` | own glyphs | 11 x 4, 11 x 8, 9 x 9 | faint picture in an empty equipment slot |
 | backdrop | `LooseSprites/Cloudy_Ocean_BG.png` | whole file (1500 x 520) | start screen, drawn at 1 art pixel = 1 u |
 
-The glyphs (gear, shirt, hat, trousers, person, swap arrows) are Nosum's own 1-bit pictures in the table at the top of `nosum-theme.js`; they stay when the placeholder art is replaced.
+The glyphs (gear, shirt, hat, trousers, person, swap arrows) are Nosum's own 1-bit pictures in the table at the top of `nosum-theme.js`; they stay when the early art is replaced.
 
 ## Alternatives considered
 
@@ -71,7 +71,7 @@ The glyphs (gear, shirt, hat, trousers, person, swap arrows) are Nosum's own 1-b
 
 ## Revisit when
 
-The art remake replaces the placeholder sheets (the rectangles above change, the controls do not), or a third language is added (one more button in the settings tab).
+The art remake replaces the early sheets (the rectangles above change, the controls do not), or a third language is added (one more button in the settings tab).
 
 ## Implementation notes (UI polish after the redesign)
 

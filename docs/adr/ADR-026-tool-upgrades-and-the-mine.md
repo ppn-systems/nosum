@@ -77,5 +77,5 @@ No combat. The blacksmith page is the lower part of the blacksmith's shop tab (`
 
 - Leaving a floor drops it, and coming back the same day rebuilds it from the same seed, so broken stones return: a player can re-farm a floor by stepping off and on. The cost is the energy of the swings (ADR-023); a stored per-day state would fix it.
 - A stone or ore node can stand in a one-tile corridor and wall off the rest of a cave. Everything is breakable with the pickaxe the starter kit gives, so the player is never stuck, but a floor can need clearing.
-- The layouts are Stardew's own and have void tiles outside the caves that the walk grid treats as walkable if a gap connects them; the planner only places nodes on tiles reachable from the arrival tile.
-- Tool art is cut from the placeholder sheets (ADR-007) and the ladder reuses the mine sheet's ladder top; both are replaced with the rest of the art in M6.
+- The layouts are the early content's own and have void tiles outside the caves that the walk grid treats as walkable if a gap connects them; the planner only places nodes on tiles reachable from the arrival tile.
+- Tool art is cut from the early sheets (ADR-007) and the ladder reuses the mine sheet's ladder top; both are replaced with the rest of the art in M6.

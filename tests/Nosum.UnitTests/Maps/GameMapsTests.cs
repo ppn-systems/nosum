@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Maps;
 
-/// <summary>The real placeholder maps and the catalogue that names them.</summary>
+/// <summary>The real early maps and the catalogue that names them.</summary>
 public sealed class GameMapsTests
 {
     private static TileMap Load(MapSpec spec) => TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", spec.TmxFile)));
@@ -172,13 +172,13 @@ public sealed class GameMapsTests
             string image = Normalized(folder + (set.ImageSource.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? set.ImageSource : set.ImageSource + ".png"));
             File.Exists(RepoFiles.Path("art", "own", "Maps", image)).Should().BeTrue($"{image} of {id}");
 
-            // A sheet with an own file is served from art/own/Maps/ under the placeholder's name; the client never gets the placeholder.
+            // A sheet with an own file is served from art/own/Maps/ under the early file's name; the client never gets the early file.
             string sheetRoot = File.Exists(RepoFiles.Path("art", "own", "Maps", image)) ? @"art\own\Maps\" : @"assets\Maps\";
             wasm.Should().Contain(sheetRoot + InProject(image));
         }
     }
 
-    // A mine names the own terrain tileset as "../own_terrain.png": the browser resolves it to Maps/own_terrain.png, so the link is that file.
+    // A mine floor names the cave sheet as "../cave.png": the browser resolves it to Maps/cave.png, so the link is that file.
     private static string Normalized(string path)
     {
         List<string> parts = [];

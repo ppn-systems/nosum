@@ -33,8 +33,8 @@ description: Use to locate code, decide where a new file or project belongs, or 
 | Socket wiring, session lifecycle | `wasm/Nosum.Wasm.Socket/` |
 | A test | `tests/Nosum.UnitTests/{Area}/` or `tests/Nosum.IntegrationTests/{Area}/` |
 | A browser benchmark | `bench/Nosum.Bench.*` |
-| Placeholder art and maps | `assets/` — read-only (`assets-pipeline`, ADR-007) |
-| Nosum's own art and re-authored maps (not placeholder) | `art/own/` — made by `tools/Nosum.MapReauthor`, see `art/README.md` |
+| Sprite sheets and maps the game loads | `assets/` — read-only (`assets-pipeline`, ADR-007) |
+| Nosum's own art and generated maps | `art/own/` — maps made by `tools/Nosum.MapGen`, see `art/README.md` |
 | A developer tool | `tools/Nosum.*` + `tools/Nosum.Tools.slnx` |
 
 `{Domain}` is a game domain (`Farm`, `Inventory`, `Market`, `Social`, `Player`, `Placeable`), the same name

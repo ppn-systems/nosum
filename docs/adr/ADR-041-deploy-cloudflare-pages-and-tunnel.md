@@ -1,7 +1,7 @@
 # ADR-041 — Deployment: web client on Cloudflare Pages, server behind a Cloudflare Tunnel
 
 **Status:** Accepted (coordinator, 2026-10-26). Amends ADR-031 D2 (TLS and routing), D9 (the access control of the private phase) and the compose
-layout of D1. Builds on ADR-002 D5 (AOT web publish), ADR-003 (WebSocket server), ADR-031 (images, health, backups, gate), ADR-032 D1 (server key pinning).
+layout of D1. Partly superseded by ADR-042 (the early-content gate of D8 is removed). Builds on ADR-002 D5 (AOT web publish), ADR-003 (WebSocket server), ADR-031 (images, health, backups, gate), ADR-032 D1 (server key pinning).
 
 ## Context
 
@@ -36,7 +36,7 @@ Cloudflare Tunnel, deployed by SSH from a manual workflow. Nosum adopts the same
   gate restores the previous tag (kept in `NOSUM_PREVIOUS_TAG`) and fails the run. Old images are pruned.
 - **D7 — Triggers.** Both deploy workflows are `workflow_dispatch` only, run in the `production` environment, and the owner merges nothing
   automatically. A deploy is a decision.
-- **D8 — Placeholder gate.** Both workflows start with `deploy/check-placeholder-art.sh public`, and the image build and the MSBuild publish
+- **D8 — Early-content gate (removed by ADR-042).** Both workflows start with `deploy/check-placeholder-art.sh public`, and the image build and the MSBuild publish
   repeat it (ADR-031 D9). The gate is not weakened: while `assets/PLACEHOLDER_CONTENT` exists, both deploys are refused. The marker is removed
   by milestone M6 (ADR-040), not by this decision.
 - **D9 — Retired.** `NOSUM_ALLOW_IPS`, `deploy/access.d/`, the Caddy configuration and `deploy/web.Dockerfile` are removed.
@@ -65,7 +65,7 @@ Cloudflare Tunnel, deployed by SSH from a manual workflow. Nosum adopts the same
   `nosum_intents_rejected_total` and a test request through the tunnel after the first deploy.
 - The SSH host key is not pinned by the workflow. [Assumption] The runner trusts the host named by `PROD_HOST`; a hostile network could impersonate
   it and receive the deploy secrets. Pinning the host key is the next hardening step.
-- A deploy cannot run while the placeholder marker exists (D8). Until M6 the production deploy was blocked by design; M6 removed the marker (ADR-040 phase 4).
+- A deploy cannot run while the early marker exists (D8). Until M6 the production deploy was blocked by design; M6 removed the marker (ADR-040).
 
 ## Revisit when
 

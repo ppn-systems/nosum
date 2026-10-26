@@ -30,7 +30,7 @@ the trader to stand at a counter in Town: no market from the farm, the mine or t
 ## Alternatives considered
 
 - **Keep the tab and refuse on the server only** — the client would offer a panel whose every action fails.
-- **Make the market a map of its own** — a building interior the placeholder art does not have; a counter reuses the existing mechanism.
+- **Make the market a map of its own** — a building interior the early art does not have; a counter reuses the existing mechanism.
 - **Hide the tab but keep the server open** — a modified client could still trade from anywhere, and the owner's rule is a rule of the world, not of the menu.
 
 ## Consequences

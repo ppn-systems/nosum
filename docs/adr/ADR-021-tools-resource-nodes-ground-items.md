@@ -34,7 +34,7 @@ Review of the current code found:
   stone, ore node (copper only for now), weed, grass. Hits to break are data (twig 1, stone 1, weed 1, stump 2, tree
   10, ore 3). A node blocks walking (except grass and weeds, which only slow nothing) and is part of
   `IInstanceWorld.GridFor` like placed objects, so client prediction and server agree.
-- **D4 — Where nodes come from.** (a) Initial placement from the map itself: Stardew maps mark trees and debris spawn
+- **D4 — Where nodes come from.** (a) Initial placement from the map itself: early maps mark trees and debris spawn
   points in the `Paths` layer (tile index → kind; the exact index table is verified against the map files and recorded
   in the code); the reader turns those into nodes when an instance is first created and
   never again. (b) Public maps (Forest, Backwoods, Town edges) regrow: at each game-day rollover a bounded number of

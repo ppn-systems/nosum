@@ -15,7 +15,7 @@ checks listed below were run and are recorded here.
 |:--|:--|
 | Gates: 8 `.slnx` build, 0 warnings, 0 errors | Pass |
 | Gates: `dotnet test tests/Nosum.Tests.slnx` run twice | Pass (both runs: 2300 unit, 672 integration, 0 failed, 0 skipped) |
-| Gates: `sh deploy/check-placeholder-art.sh public` | Pass (exit 0) |
+| Release gate (removed in ADR-042 P7) | Pass (exit 0) |
 | 1. Start and account (register, login, wrong password refused) | Pass for the items run; rename, guest rename and password-recovery form **not re-run** |
 | 2. UI, game menu at four sizes in both languages | Pass (`tests/browser/menu-fit-check.js`: all 11 tabs inside and reachable, 8 combinations) |
 | 2. UI, settings, inventory, hotbar, language switch | Pass at 1280x720 and 1920x1080 (smoke pass: inventory, hotbar key, Vi to En and back, Esc). Hotbar selection was sent but not asserted; touch controls and first-run hints **not re-run** |
@@ -38,7 +38,7 @@ Open failures in this run: **none** among the items executed. The unexecuted ite
 - All 8 `.slnx` (`git ls-files '*.slnx'`) built with `--no-incremental`: 0 warnings, 0 errors.
 - `dotnet test tests/Nosum.Tests.slnx`: run 1 and run 2 each passed 2300 unit tests and 672 integration tests, none failed, none skipped. The
   counts are higher than the previous run's 2111 and 588 because of tests added since M5.
-- `sh deploy/check-placeholder-art.sh public` exited 0.
+- The release gate (removed in ADR-042 P7) exited 0.
 - Static check of the art: all 97 tilesheet references in `art/own/Maps/*.tmx` (and `Mines/`) resolve to files in the published bundle.
 
 ## How it was run

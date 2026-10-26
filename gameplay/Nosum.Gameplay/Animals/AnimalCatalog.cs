@@ -19,7 +19,7 @@ public enum AnimalKind : byte
     Cow = 2,
 }
 
-/// <summary>One species as data: price, produce and the placeholder sheet it is drawn from.</summary>
+/// <summary>One species as data: price, produce and the early sheet it is drawn from.</summary>
 public sealed class AnimalDefinition
 {
     /// <summary>Initializes a definition.</summary>
@@ -29,7 +29,7 @@ public sealed class AnimalDefinition
     /// <param name="product">The everyday produce item.</param>
     /// <param name="largeProduct">The large produce item a well-loved animal gives more often.</param>
     /// <param name="needsPail">Whether collecting the produce takes a milk pail in hand.</param>
-    /// <param name="sheet">File in <c>sprites/animals/</c> without extension (placeholder art, docs/adr/ADR-007).</param>
+    /// <param name="sheet">File in <c>sprites/animals/</c> without extension (early art, docs/adr/ADR-007).</param>
     /// <param name="frameWidth">Width of one frame, pixels.</param>
     /// <param name="frameHeight">Height of one frame, pixels.</param>
     /// <param name="walkPixelsPerSecond">How fast it walks inside its building.</param>

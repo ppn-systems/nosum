@@ -16,7 +16,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- Maps of Nosum.Gameplay.Maps.GameMaps that the server loads (placeholder content, docs/adr/ADR-007); linked so assets/ stays the single copy. -->
+  <!-- Maps of Nosum.Gameplay.Maps.GameMaps that the server loads (early content, docs/adr/ADR-007); linked so assets/ stays the single copy. -->
   <ItemGroup>
     <!-- Every hosted map has an own file (art/README.md), linked from art/own/Maps/ to the same path: same layout, own art. -->
     <Content Include="..\..\art\own\Maps\Farm.tmx" Link="maps\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

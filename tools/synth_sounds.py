@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synthesises Nosum's placeholder sound effects (docs/adr/ADR-039): short blips and one rain loop, written as 16-bit mono WAV.
+"""Synthesises Nosum's early sound effects (docs/adr/ADR-039): short blips and one rain loop, written as 16-bit mono WAV.
 
 Standard library only; the output is deterministic (fixed random seed), so the files can be re-created at any time and a change shows up in review.
 Every sample is computed here from sine waves, filtered noise and envelopes: nothing is recorded, downloaded or taken from any game.

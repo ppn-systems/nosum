@@ -5,7 +5,7 @@ placeables), ADR-024 (outdoor placement), ADR-023 (energy), ADR-018 (days).
 
 ## Context
 
-Crops alone make a thin farm. Coops and barns add daily care and steady produce. The placeholder content has the
+Crops alone make a thin farm. Coops and barns add daily care and steady produce. The early content has the
 buildings (`Buildings/Coop.png`, `Barn.png`), interiors (`Maps/Coop.tmx`, `Barn.tmx`) and animals
 (`Animals/White Chicken.png`, `White Cow.png`).
 
@@ -54,4 +54,4 @@ How the decisions above were built, and where the build fills in the text.
 - **D5 — persistence.** `farm_buildings` (Guid id, FK to `placed_objects` with cascade, unique; land map and owner; kind; `completes_at_ms`; rations; `settled_day`) and `farm_animals` (Guid id, FK to the building; kind, name, friendship, `petted_day`, `produce_day`, `collected_day`, `bought_at`). One migration, `FarmBuildingsAndAnimals`. Days are `GameCalendar.DayNumberAt`. The day-ended hook is not used: lazy settlement covers it.
 - **D6 — wire.** `Nosum.Contracts.Building`, opcodes `0x3100-0x3106` (C2S) and `0x3140-0x3145` (S2C), one `BuildingStatus` for every refusal; `PlaceStatus.Fixed = 19` is appended. Nothing is renumbered and `NosumProtocol.Version` is not changed. The list of a land's buildings (`BuildingsSnapshot`) is also pushed to everybody on the land when a building is placed (instance-wide: it is small and replaces the client's list).
 - **Client.** The carpenter is the Town counter at the blue house in the south-west of the map (door tile (10, 85), doormat (10, 86)) and its page is the shop page with the building and animal sections under the supplies. Buildings under construction are drawn dull. Front and back of a building are one depth-sorted sprite anchored at the bottom of its footprint, so the farmer is behind the roof and in front of the door without
-  the extra front layer the farmhouse needs. The placeholder art is `Buildings/Coop.png`, `Barn.png`, `Animals/White Chicken.png`, `White Cow.png` (ADR-007).
+  the extra front layer the farmhouse needs. The early art is `Buildings/Coop.png`, `Barn.png`, `Animals/White Chicken.png`, `White Cow.png` (ADR-007).

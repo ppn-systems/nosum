@@ -37,7 +37,7 @@ console errors.
 - Animals: coop and barn buildings on the farm (built with coins + materials), chickens and cows that produce
   eggs and milk when fed and petted daily.
 - More public maps: Mountain, Beach, Woods and the Mine entrance cave (ADR-026, ADR-037); the carpenter's counter stays in Town (ADR-028).
-- Ambient sound and music hooks (client audio through one interop call per frame budget; placeholder audio only if
+- Ambient sound and music hooks (client audio through one interop call per frame budget; early audio only if
   licensed for private use) — done as ADR-039: sound commands in the frame buffer, hooks for tools, harvest, pick-up, coins,
   doors, UI, footsteps, rain and season/day-night music ids; the sounds are generated, the music is silent until M6.
 
@@ -63,12 +63,12 @@ console errors.
 
 ## M6 — Own art and audio (required before any public release, ADR-007)
 
-- Replace every Stardew Valley placeholder (maps, tilesheets, characters, items, UI sheets, fonts) with own art in
-  the same layouts so the code does not change; then delete the placeholder content from the repository history
+- Replace every early-art item (maps, tilesheets, characters, items, UI sheets, fonts) with own art in
+  the same layouts so the code does not change; then remove the early content from the repository history
   of the public release branch.
 - Own music and sound effects.
 
-**Status (2026-10-26): the art is done in the repository (ADR-040 phase 4); the audio is not.** The repository holds no placeholder art, but its git
+**Status (2026-10-26): the art is done in the repository (ADR-042); the audio is not.** The repository holds no early art, but its git
 history still does. A public release needs a history without it: the owner's decision (`docs/ops/README.md`).
 
 ## Rules for every wave

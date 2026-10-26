@@ -1,7 +1,7 @@
 # ADR-006 — Layered ("paper-doll") character customization
 
 **Status:** Proposed — prototype done 2026-10-25 (one jacket, one hat, three colours).
-**Amended by:** [ADR-007](ADR-007-placeholder-content-16px.md) — 16 px grid, content sheets used as shipped, placeholder only.
+**Amended by:** [ADR-007](ADR-007-own-art-16px.md) — 16 px grid, content sheets used as shipped, early content only.
 
 ## Context
 
