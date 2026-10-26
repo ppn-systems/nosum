@@ -77,7 +77,7 @@ internal static class DbBudgetBaseline
         ["InvitePlayer / invite a neighbour"] = new(7, 2, 0, 2),
         ["InvitePlayer / invite again"] = new(6, 2, 0, 2),
         ["JoinMap / first join, no saved place"] = new(9, 2, 2, 2),
-        ["JoinMap / returning player, saved place"] = new(2, 0, 0, 0),
+        ["JoinMap / returning player, saved place"] = new(3, 0, 0, 0),
         ["KickMember / owner removes a member"] = new(10, 1, 0, 1),
         ["KickVisitor / send the visitor away"] = new(0, 2, 0, 2),
         ["LeaveCoop / a member leaves"] = new(10, 1, 0, 1),

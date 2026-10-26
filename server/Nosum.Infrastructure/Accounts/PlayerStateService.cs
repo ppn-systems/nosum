@@ -41,12 +41,28 @@ public sealed class PlayerStateService : IPlayerStateService
     }
 
     /// <inheritdoc/>
-    public async Task SaveAsync(Guid playerId, PlayerStateRow state, CancellationToken cancellationToken)
+    public Task SaveAsync(Guid playerId, PlayerStateRow state, CancellationToken cancellationToken)
+        => this.WriteAsync(playerId, state, signedIn: true, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task LeaveAsync(Guid playerId, PlayerStateRow state, CancellationToken cancellationToken)
+        => this.WriteAsync(playerId, state, signedIn: false, cancellationToken);
+
+    private async Task WriteAsync(Guid playerId, PlayerStateRow state, bool signedIn, CancellationToken cancellationToken)
     {
         DateTimeOffset now = _time.GetUtcNow();
         for (int attempt = 0; ; attempt++)
         {
-            PlayerStateCache.Snapshot seen = await _cache.GetAsync(_unitOfWork, playerId, cancellationToken).ConfigureAwait(false);
+            PlayerStateCache.Snapshot seen;
+            if (signedIn)
+            {
+                seen = await _cache.GetAsync(_unitOfWork, playerId, cancellationToken).ConfigureAwait(false);
+            }
+            else if (!_cache.TryPeek(playerId, out seen))
+            {
+                seen = await PlayerStateCache.ReadRowAsync(_unitOfWork, playerId, cancellationToken).ConfigureAwait(false);
+            }
+
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
@@ -84,6 +100,7 @@ public sealed class PlayerStateService : IPlayerStateService
                 }
             }
 
+            // A copy that is held follows the row; a leave never adds one (the session end drops the copy).
             _cache.Apply(playerId, s => s with { Exists = true, MapName = state.MapName, X = state.X, Y = state.Y, Facing = state.Facing, UpdatedAt = now });
             return;
         }

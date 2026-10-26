@@ -48,7 +48,7 @@ public sealed class PlayerStateCache
     private static string Describe(Snapshot s)
         => $"exists={s.Exists};place={s.MapName}@{s.X},{s.Y},{s.Facing};energy={s.Energy}@{s.EnergyRefilledDay};xp={s.FarmingXp},{s.ForagingXp},{s.MiningXp}";
 
-    /// <summary>Lets go of a player's copy (signed out, or a save of unknown outcome); the next call reads the row.</summary>
+    /// <summary>Lets go of a player's copy (left the game, signed out, or a save of unknown outcome); the next call reads the row.</summary>
     /// <param name="playerId">The player.</param>
     public void Forget(Guid playerId) => _ = _entries.TryRemove(playerId, out _);
 
@@ -66,16 +66,42 @@ public sealed class PlayerStateCache
             return entry.Current;
         }
 
+        Snapshot read = await ReadRowAsync(units, playerId, cancellationToken).ConfigureAwait(false);
+
+        // Whoever stored one first wins; a concurrent writer's newer value is not overwritten by this older read.
+        return _entries.GetOrAdd(playerId, _ => new Entry(read)).Current;
+    }
+
+    /// <summary>Looks at the copy held for a player without loading it or refreshing its last use.</summary>
+    /// <param name="playerId">The player.</param>
+    /// <param name="snapshot">The copy, when one is held.</param>
+    /// <returns>Whether a copy is held.</returns>
+    internal bool TryPeek(Guid playerId, out Snapshot snapshot)
+    {
+        if (_entries.TryGetValue(playerId, out Entry? entry))
+        {
+            snapshot = entry.Current;
+            return true;
+        }
+
+        snapshot = Snapshot.Missing;
+        return false;
+    }
+
+    /// <summary>Reads the player's row from the database without keeping a copy of it.</summary>
+    /// <param name="units">Creates the unit of work for the read.</param>
+    /// <param name="playerId">The player.</param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>The snapshot; <see cref="Snapshot.Exists"/> is false for a player without a row.</returns>
+    internal static async ValueTask<Snapshot> ReadRowAsync(IUnitOfWorkFactory units, Guid playerId, CancellationToken cancellationToken)
+    {
         IUnitOfWork unit = units.Create();
         await using (unit.ConfigureAwait(false))
         {
             PlayerState? row = await unit.Repository<PlayerState>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
-            Snapshot loaded = row is null
+            return row is null
                 ? Snapshot.Missing
                 : new Snapshot(true, row.MapName, row.X, row.Y, row.Facing, row.Energy, row.EnergyRefilledDay, row.FarmingXp, row.ForagingXp, row.MiningXp, row.UpdatedAt);
-
-            // Whoever stored one first wins; a concurrent writer's newer value is not overwritten by this older read.
-            return _entries.GetOrAdd(playerId, _ => new Entry(loaded)).Current;
         }
     }
 
