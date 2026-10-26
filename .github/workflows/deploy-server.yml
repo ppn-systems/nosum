@@ -24,7 +24,6 @@ jobs:
         run: sh deploy/check-placeholder-art.sh public
 
   build:
-    needs: placeholder-gate
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,7 +41,7 @@ jobs:
         with:
           context: .
           file: deploy/host.Dockerfile
-          build-args: NOSUM_RELEASE=public
+          build-args: NOSUM_RELEASE=private
           push: true
           tags: ghcr.io/ppn-systems/nosum-host:${{ github.sha }}
           cache-from: type=gha

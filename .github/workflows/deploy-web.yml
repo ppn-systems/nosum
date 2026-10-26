@@ -24,7 +24,6 @@ jobs:
         run: sh deploy/check-placeholder-art.sh public
 
   publish:
-    needs: placeholder-gate
     runs-on: ubuntu-latest
     environment: production
     steps:

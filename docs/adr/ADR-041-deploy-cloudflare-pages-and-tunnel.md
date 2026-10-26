@@ -20,7 +20,7 @@ Cloudflare Tunnel, deployed by SSH from a manual workflow. Nosum adopts the same
   game WebSocket published to `127.0.0.1:57300` only; the ops port 57301 not published, bound to localhost inside the container),
   `cloudflared` (`cloudflare/cloudflared`, `tunnel run`, token from the environment, no published port) and `backup`. Caddy and the `web`
   image are removed. The host's only inbound port is SSH.
-- **D3 — Tunnel.** A remotely managed tunnel `nosum-prod` routes the public hostname `nosum.ppnsys.com` to `http://host:57300`, the compose
+- **D3 — Tunnel.** A remotely managed tunnel `nosum-api` routes the public hostname `nosum.ppnsys.com` to `http://host:57300`, the compose
   service name on the compose network. WebSockets are on by default for the tunnel. Cloudflare closes a WebSocket with no traffic after about
   100 s, so the client sends a Nalix keep-alive PING every 25 s (`GameSocketOptions.KeepAliveInterval`; Nalix sends none by default).
 - **D4 — Client address.** The published `wwwroot/appsettings.json` carries `Server:Url` (`wss://nosum.ppnsys.com/ws/`), the pinned server
