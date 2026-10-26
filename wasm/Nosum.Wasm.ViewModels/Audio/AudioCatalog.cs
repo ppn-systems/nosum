@@ -85,7 +85,7 @@ public static class LoopIds
     public const int Rain = 1;
 }
 
-/// <summary>The music track ids: one per season for the day and one for the night. They have no files until M6 (docs/adr/ADR-039 D4), so they play as silence.</summary>
+/// <summary>The music track ids: one per season for the day and one for the night. Each has its own loop made by <c>tools/synth_music.py</c> (docs/adr/ADR-039 D6); a track without a file is silence.</summary>
 public static class MusicTrackIds
 {
     /// <summary>No music.</summary>
@@ -100,7 +100,7 @@ public static class MusicTrackIds
 
 /// <summary>
 /// The audio files the client loads and the rules that pick which cue plays (docs/adr/ADR-039). Pure: the frame loop asks and queues the answer. The files are
-/// made by <c>tools/synth_sounds.py</c> (the sounds and the rain loop); a unit test checks that the list here and the folder agree.
+/// made by <c>tools/synth_sounds.py</c> (the sounds and the rain loop) and <c>tools/synth_music.py</c> (the music); a unit test checks that the list here and the folder agree.
 /// </summary>
 public static class AudioCatalog
 {
@@ -129,7 +129,7 @@ public static class AudioCatalog
 
     private const int NightUntil = 6 * 60;
 
-    /// <summary>Gets every file the client loads; a music track is added here when its file exists (M6).</summary>
+    /// <summary>Gets every file the client loads: the sounds, the rain loop, then the eight music tracks (one per <see cref="MusicTrackIds.For"/>).</summary>
     public static IReadOnlyList<AudioFile> Files { get; } =
     [
         new(AudioKind.Sound, SoundIds.ToolHoe, "tool_hoe.wav", 0.1),
@@ -147,6 +147,14 @@ public static class AudioCatalog
         new(AudioKind.Sound, SoundIds.UiClose, "ui_close.wav", 0.12),
         new(AudioKind.Sound, SoundIds.Footstep, "footstep.wav", 0.2),
         new(AudioKind.Loop, LoopIds.Rain, "rain_loop.wav"),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Spring, false), "music_spring_day.wav"),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Spring, true), "music_spring_night.wav"),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Summer, false), "music_summer_day.wav"),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Summer, true), "music_summer_night.wav"),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Fall, false), "music_fall_day.wav"),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Fall, true), "music_fall_night.wav"),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Winter, false), "music_winter_day.wav"),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Winter, true), "music_winter_night.wav"),
     ];
 
     /// <summary>Returns the sound a tool makes when swung.</summary>
