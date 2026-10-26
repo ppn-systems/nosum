@@ -65,7 +65,7 @@ public sealed class ItemDefinition
     /// <summary>Gets what the shipping bin pays for one item, in coins; zero when the bin does not buy it (docs/adr/ADR-025). Balance data.</summary>
     public int SellPrice { get; init; }
 
-    /// <summary>Gets the cell of the placeholder objects sheet (<c>assets/Maps/springobjects.png</c>, 24 columns of 16 px cells) that pictures the item; zero when another sheet does (docs/adr/ADR-025 D6).</summary>
+    /// <summary>Gets the cell of the placeholder objects sheet (<c>assets/sprites/items.png</c>, 24 columns of 16 px cells) that pictures the item; zero when another sheet does (docs/adr/ADR-025 D6).</summary>
     public int ObjectIcon { get; init; }
 
     /// <summary>Gets the tree species a tree seed grows (<c>Nosum.Gameplay.Nodes.TreeVariant</c>); zero for other items.</summary>

@@ -83,8 +83,8 @@ internal sealed class NodeDecorator : IMapDecorator
 /// <summary>Loads the sheets the resource nodes are drawn from and builds the <see cref="NodeDecorator"/> of every map that has nodes.</summary>
 internal sealed class NodeDecoratorProvider : IMapDecoratorProvider
 {
-    private const string TreesUrl = "assets/TerrainFeatures/";
-    private const string ObjectsUrl = "assets/Maps/springobjects.png";
+    private const string TreesUrl = "assets/sprites/trees/";
+    private const string ObjectsUrl = "assets/sprites/items.png";
     private const string MineUrl = "assets/Maps/Mines/mine.png";
 
     private readonly NodeChannel _nodes;
@@ -109,9 +109,9 @@ internal sealed class NodeDecoratorProvider : IMapDecoratorProvider
 
         if (_textures is null)
         {
-            int oak = await textures.LoadAsync(TreesUrl + "tree1_spring.png").ConfigureAwait(false);
-            int maple = await textures.LoadAsync(TreesUrl + "tree2_spring.png").ConfigureAwait(false);
-            int pine = await textures.LoadAsync(TreesUrl + "tree3_spring.png").ConfigureAwait(false);
+            int oak = await textures.LoadAsync(TreesUrl + "oak.png").ConfigureAwait(false);
+            int maple = await textures.LoadAsync(TreesUrl + "maple.png").ConfigureAwait(false);
+            int pine = await textures.LoadAsync(TreesUrl + "pine.png").ConfigureAwait(false);
             int objects = await textures.LoadAsync(ObjectsUrl).ConfigureAwait(false);
             int mine = await textures.LoadAsync(MineUrl).ConfigureAwait(false);
             _textures = new NodeTextures(oak, maple, pine, objects, mine);

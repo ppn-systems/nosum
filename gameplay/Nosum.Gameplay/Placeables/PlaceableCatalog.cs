@@ -9,21 +9,21 @@ namespace Nosum.Gameplay.Placeables;
 
 /// <summary>
 /// The placeables of the game, keyed by the item they are made from. The art is the placeholder furniture sheet
-/// (docs/adr/ADR-007); rectangles were measured on <c>TileSheets/furniture.png</c>, so replacing the art means replacing this table.
+/// (docs/adr/ADR-007); rectangles were measured on <c>sprites/furniture.png</c>, so replacing the art means replacing this table.
 /// </summary>
 public static class PlaceableCatalog
 {
-    /// <summary>Sheet name of <c>TileSheets/furniture.png</c>.</summary>
+    /// <summary>Sheet name of <c>sprites/furniture.png</c>.</summary>
     public const string FurnitureSheet = "furniture";
 
     /// <summary>Radius of the light a floor lamp gives, pixels (three and a half tiles).</summary>
     public const int FloorLampLightRadius = 56;
 
-    /// <summary>Sheet name of <c>TileSheets/Craftables.png</c>: the crafted machines and containers (placeholder art, docs/adr/ADR-007).</summary>
-    public const string CraftablesSheet = "Craftables";
+    /// <summary>Sheet name of <c>sprites/craftables.png</c>: the crafted machines and containers (placeholder art, docs/adr/ADR-007).</summary>
+    public const string CraftablesSheet = "craftables";
 
-    /// <summary>Sheet name of <c>Maps/springobjects.png</c>: the small objects (fence, path, sprinkler).</summary>
-    public const string ObjectsSheet = "springobjects";
+    /// <summary>Sheet name of <c>sprites/items.png</c>: the small objects (fence, path, sprinkler).</summary>
+    public const string ObjectsSheet = "items";
 
     private static readonly PlaceableDefinition[] s_all =
     [..Furniture(), ..Buildings()];
@@ -47,7 +47,7 @@ public static class PlaceableCatalog
         new(ItemCatalog.FloorLamp, FurnitureSheet, FloorLampLightRadius, new PlaceableView(48, 733, 16, 34, 1, 1)),
         new(ItemCatalog.HousePlant, FurnitureSheet, new PlaceableView(0, 688, 16, 32, 1, 1)),
 
-        // Crafted objects (docs/adr/ADR-024). Craftables.png cells are 16 x 32, the footprint is the bottom tile.
+        // Crafted objects (docs/adr/ADR-024). craftables.png cells are 16 x 32, the footprint is the bottom tile.
         new(ItemCatalog.Chest, CraftablesSheet, new PlaceableView(32, 512, 16, 32, 1, 1)) { Kind = PlaceableKind.Chest },
         new(ItemCatalog.Scarecrow, CraftablesSheet, new PlaceableView(0, 32, 16, 32, 1, 1)),
         new(ItemCatalog.Furnace, CraftablesSheet, new PlaceableView(80, 32, 16, 32, 1, 1)) { Kind = PlaceableKind.Furnace },

@@ -1,4 +1,4 @@
-/* The shared button: a 9-slice pill (Cursors.png, 3 u edge). Variants and states only change the sprite and a filter;
+/* The shared button: a 9-slice pill (cursors.png, 3 u edge). Variants and states only change the sprite and a filter;
    a disabled button keeps the palette (dimmer, flatter), it never turns grey. */
 .game-button {
     --button-edge: calc(var(--u) * 3);

@@ -1,4 +1,4 @@
-"""Package 3 and 6: Maps/springobjects.png, the 16 x 16 object sheet (items, forage, resource nodes).
+"""Package 3 and 6: sprites/items.png, the 16 x 16 object sheet (items, forage, resource nodes).
 
 Crop produce comes from the CC0 crop pictures (crops.py); a few pictures come from Kenney Tiny Town; every other icon is drawn here with
 shaded blobs and pixel dots in the Kenney palette and a 1 px outline (ADR-040 D1). OBJECTS maps the sheet index the game uses (24 columns)
@@ -442,7 +442,7 @@ OBJECTS = {
 def build(src, size):
     from pngio import Image
     town = src.sheet('town')
-    sheet = Image(*size('Maps/springobjects.png'))
+    sheet = Image(*size('sprites/items.png'))
     for index, fn in OBJECTS.items():
         sheet.paste(fn(src, town), index % 24 * 16, index // 24 * 16)
     return sheet

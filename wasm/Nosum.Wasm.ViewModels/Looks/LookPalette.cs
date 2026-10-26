@@ -56,7 +56,7 @@ public static class LookPalette
     /// <returns>The tint.</returns>
     public static int DyeTint(int dyeId) => s_dye[(uint)(dyeId - 1) < (uint)s_dye.Length ? dyeId - 1 : 0];
 
-    /// <summary>Returns the frame of a hair style in <c>hairstyles.png</c> (eight styles per row).</summary>
+    /// <summary>Returns the frame of a hair style in <c>hair.png</c> (eight styles per row).</summary>
     /// <param name="styleId">Hair style id, from 1.</param>
     /// <returns>The zero-based frame index.</returns>
     public static int HairFrame(int styleId) => Math.Clamp(styleId - 1, 0, LookCatalog.HairStyleCount - 1);

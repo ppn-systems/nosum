@@ -37,7 +37,7 @@ public sealed class BuildingDefinition
     /// <param name="stone">Stone the commission costs.</param>
     /// <param name="capacity">Animals the building holds.</param>
     /// <param name="residents">The species that live in it.</param>
-    /// <param name="sheet">The picture's sheet name: a file in <c>Buildings/</c> without extension, written <c>Buildings/Name</c> (docs/adr/ADR-007).</param>
+    /// <param name="sheet">The picture's sheet name: a file in <c>sprites/</c> without extension, written <c>buildings/Name</c> (docs/adr/ADR-007).</param>
     /// <param name="view">Sprite rectangle and footprint on the land; the footprint is the bottom rows of the sprite.</param>
     /// <param name="doorX">Door tile, relative to the footprint's left tile.</param>
     /// <param name="doorY">Door tile, relative to the footprint's top tile (the bottom row).</param>
@@ -120,7 +120,7 @@ public sealed class BuildingDefinition
     /// <summary>Gets the species that live here.</summary>
     public AnimalKind Residents { get; }
 
-    /// <summary>Gets the picture's sheet name (<c>Buildings/Name</c>).</summary>
+    /// <summary>Gets the picture's sheet name (<c>buildings/Name</c>, a file in <c>sprites/</c>).</summary>
     public string Sheet { get; }
 
     /// <summary>Gets the sprite rectangle and footprint on the land.</summary>
@@ -175,15 +175,15 @@ public sealed class BuildingDefinition
 
 /// <summary>
 /// The buildings of the game. The interior maps are the placeholder <c>Maps/Coop.tmx</c> and <c>Barn.tmx</c> (docs/adr/ADR-007); the rectangles were measured on
-/// <c>Buildings/Coop.png</c> and <c>Barn.png</c> (the body is the top 112 rows; the strip below is door animation), so replacing the art means replacing this table.
+/// <c>sprites/buildings/coop.png</c> and <c>barn.png</c> (the body is the top 112 rows; the strip below is door animation), so replacing the art means replacing this table.
 /// </summary>
 public static class BuildingCatalog
 {
     /// <summary>Sheet of the coop picture.</summary>
-    public const string CoopSheet = "Buildings/Coop";
+    public const string CoopSheet = "buildings/coop";
 
     /// <summary>Sheet of the barn picture.</summary>
-    public const string BarnSheet = "Buildings/Barn";
+    public const string BarnSheet = "buildings/barn";
 
     /// <summary>Game days a construction takes.</summary>
     public const int ConstructionDays = 2;

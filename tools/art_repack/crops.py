@@ -1,4 +1,4 @@
-"""Package 4: TileSheets/crops.png and TerrainFeatures/hoeDirt.png; also the produce pictures other sheets reuse."""
+"""Package 4: sprites/crops.png and sprites/soil.png; also the produce pictures other sheets reuse."""
 import re
 
 import pngio

@@ -1,4 +1,4 @@
-/* A section inside a window: a recessed card (MenuTiles inset, 2 u edge), so the hierarchy is window > section > slot. */
+/* A section inside a window: a recessed card (menu.png inset, 2 u edge), so the hierarchy is window > section > slot. */
 .game-section {
     --section-edge: calc(var(--u) * 2);
 

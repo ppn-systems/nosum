@@ -125,9 +125,7 @@ internal sealed class PlacedObjectsDecoratorProvider : IMapDecoratorProvider
     /// <param name="sheet">The sheet name.</param>
     /// <returns>The URL relative to the app root.</returns>
     internal static string UrlOf(string sheet)
-        => string.Equals(sheet, PlaceableCatalog.ObjectsSheet, StringComparison.Ordinal) ? "assets/Maps/springobjects.png"
-        : sheet.StartsWith("Buildings/", StringComparison.Ordinal) ? "assets/" + sheet + ".png"
-        : "assets/TileSheets/" + sheet + ".png";
+        => "assets/sprites/" + sheet + ".png";
 
     /// <inheritdoc/>
     public async Task<IMapDecorator?> CreateAsync(MapSpec spec, TileMap map, TextureCache textures, CancellationToken cancellationToken)

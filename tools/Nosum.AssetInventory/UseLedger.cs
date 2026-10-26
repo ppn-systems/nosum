@@ -241,12 +241,12 @@ internal sealed class UseLedger
     /// </summary>
     private static (int Width, int Height) GridOf(string path, int width, int height) => path switch
     {
-        "Characters/Farmer/farmer_base.png" or "Characters/Farmer/pants.png" or "Characters/Farmer/hairstyles.png" => (16, 32),
-        "Characters/Farmer/shirts.png" => (8, 8),
-        "Characters/Farmer/hats.png" => (20, 20),
-        "TileSheets/crops.png" or "TileSheets/Craftables.png" => (16, 32),
-        "Animals/White Cow.png" => (32, 32),
-        "LooseSprites/Cloudy_Ocean_BG.png" => (width, height),
+        "farmer/body.png" or "farmer/pants.png" or "farmer/hair.png" => (16, 32),
+        "farmer/shirts.png" => (8, 8),
+        "farmer/hats.png" => (20, 20),
+        "sprites/crops.png" or "sprites/craftables.png" => (16, 32),
+        "sprites/animals/cow.png" => (32, 32),
+        "ui/start_background.png" => (width, height),
         _ => (16, 16),
     };
 }

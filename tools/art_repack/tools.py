@@ -1,4 +1,4 @@
-"""Package 5: TileSheets/tools.png and TileSheets/weapons.png (the tool and weapon icons)."""
+"""Package 5: sprites/tools.png and sprites/weapons.png (the tool and weapon icons)."""
 import re
 
 import draw

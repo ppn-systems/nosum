@@ -12,11 +12,11 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal sealed class ItemIcons : IItemIconSource
 {
-    private const string ObjectsSheet = "assets/Maps/springobjects.png";
-    private const string ToolsSheet = "assets/TileSheets/tools.png";
-    private const string WeaponsSheet = "assets/TileSheets/weapons.png";
-    private const string FurnitureSheet = "assets/TileSheets/furniture.png";
-    private const string CraftablesSheet = "assets/TileSheets/Craftables.png";
+    private const string ObjectsSheet = "assets/sprites/items.png";
+    private const string ToolsSheet = "assets/sprites/tools.png";
+    private const string WeaponsSheet = "assets/sprites/weapons.png";
+    private const string FurnitureSheet = "assets/sprites/furniture.png";
+    private const string CraftablesSheet = "assets/sprites/craftables.png";
     private const int Cell = 16;
 
     private static readonly Dictionary<int, ItemIcon> s_icons = Build();
@@ -117,25 +117,25 @@ internal sealed class ItemIcons : IItemIconSource
         return false;
     }
 
-    // springobjects.png is 384 x 624 (24 x 39 cells).
+    // items.png is 384 x 624 (24 x 39 cells).
     private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 624);
 
-    // Stardew object ids are the cell number on springobjects.png, 24 cells to a row.
+    // Object ids are the cell number on items.png, 24 cells to a row.
     private static ItemIcon ObjectId(int id) => Object(id % 24, id / 24);
 
-    // The scythe is a weapon in Stardew: weapons.png is 128 x 144 (8 x 9 cells), the scythe is cell 47.
+    // The scythe is a weapon: weapons.png is 128 x 144 (8 x 9 cells), the scythe is cell 47.
     private static ItemIcon Weapon(int column, int row) => new(WeaponsSheet, column * Cell, row * Cell, Cell, 128, 144);
 
     // Clothing is shown by its piece of the farmer sheets (the same frames the farmer is drawn with): shirts.png is 256 x 608 (8 px
     // shirt pieces), pants.png 1920 x 1376, hats.png 240 x 880 (20 px hats, 12 per row, four rows of directions each).
     // A shirt piece is only 8 px, so it is shown at twice its size (the crop and the sheet both doubled: a 16 px window onto a 512 x 1216 picture of the sheet).
-    private static ItemIcon Shirt(int index) => new("assets/Characters/Farmer/shirts.png", index % 16 * 8 * 2, index / 16 * 32 * 2, 16, 256 * 2, 608 * 2);
+    private static ItemIcon Shirt(int index) => new("assets/farmer/shirts.png", index % 16 * 8 * 2, index / 16 * 32 * 2, 16, 256 * 2, 608 * 2);
 
     // The pants frames of the sheet are 8 x 5 px grey hips, too small to read as an item: the theme draws a 16 x 16 pair of trousers itself,
     // in the item's colour (nosum-theme.js ITEM_ART).
     private static ItemIcon Pants(string themeImage) => new(string.Empty, 0, 0, 16, 16, 16, themeImage);
 
-    private static ItemIcon Hat(int index) => new("assets/Characters/Farmer/hats.png", index % 12 * 20, index / 12 * 80, 20, 240, 880);
+    private static ItemIcon Hat(int index) => new("assets/farmer/hats.png", index % 12 * 20, index / 12 * 80, 20, 240, 880);
 
     // tools.png is 336 x 384 (21 x 24 cells).
     private static ItemIcon Tool(int column, int row) => new(ToolsSheet, column * Cell, row * Cell, Cell, 336, 384);
@@ -143,6 +143,6 @@ internal sealed class ItemIcons : IItemIconSource
     // furniture.png is 512 x 1488; a furniture icon is a 16 px crop of the piece (placeholder art, docs/adr/ADR-007).
     private static ItemIcon Furniture(int x, int y) => new(FurnitureSheet, x, y, Cell, 512, 1488);
 
-    // Craftables.png is 128 x 1472 (8 columns of 16 x 32 cells); an icon is a 16 px square of the cell, cut where the object reads best (chest: the body, scarecrow: the head, furnace: the middle).
+    // craftables.png is 128 x 1472 (8 columns of 16 x 32 cells); an icon is a 16 px square of the cell, cut where the object reads best (chest: the body, scarecrow: the head, furnace: the middle).
     private static ItemIcon Craftable(int x, int y) => new(CraftablesSheet, x, y, Cell, 128, 1472);
 }

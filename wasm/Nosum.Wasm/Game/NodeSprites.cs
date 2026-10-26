@@ -8,10 +8,10 @@ using Nosum.Wasm.Socket.Node;
 namespace Nosum.Wasm.Game;
 
 /// <summary>Texture ids of the sheets resource nodes are drawn from.</summary>
-/// <param name="Oak"><c>assets/TerrainFeatures/tree1_spring.png</c>, the oak.</param>
-/// <param name="Maple"><c>tree2_spring.png</c>, the maple.</param>
-/// <param name="Pine"><c>tree3_spring.png</c>, the pine.</param>
-/// <param name="Objects"><c>assets/Maps/springobjects.png</c>, the Stardew object sheet (24 columns of 16 px cells).</param>
+/// <param name="Oak"><c>assets/sprites/trees/oak.png</c>, the oak.</param>
+/// <param name="Maple"><c>trees/maple.png</c>, the maple.</param>
+/// <param name="Pine"><c>trees/pine.png</c>, the pine.</param>
+/// <param name="Objects"><c>assets/sprites/items.png</c>, the object sheet (24 columns of 16 px cells).</param>
 /// <param name="Mine"><c>assets/Maps/Mines/mine.png</c>, the mine's tile sheet (16 columns of 16 px cells), where the ladder is.</param>
 internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int Objects, int Mine);
 
@@ -25,14 +25,14 @@ internal readonly record struct NodeTextures(int Oak, int Maple, int Pine, int O
 /// <item><term>tree, sapling</term><description>16 × 16 at (16, 128)</description></item>
 /// <item><term>tree, seed</term><description>16 × 16 at (32, 128), a mound of dirt</description></item>
 /// <item><term>stump</term><description>16 × 32 at (32, 96); its top 12 rows are empty</description></item>
-/// <item><term>twig</term><description>springobjects 294 or 295 (branch)</description></item>
-/// <item><term>stone</term><description>springobjects 343 (pale rocks) or 450 (brown rock)</description></item>
-/// <item><term>copper ore node</term><description>springobjects 751 (the copper mining node)</description></item>
-/// <item><term>iron ore node</term><description>springobjects 290 (the iron mining node)</description></item>
+/// <item><term>twig</term><description>object 294 or 295 (branch)</description></item>
+/// <item><term>stone</term><description>object 343 (pale rocks) or 450 (brown rock)</description></item>
+/// <item><term>copper ore node</term><description>object 751 (the copper mining node)</description></item>
+/// <item><term>iron ore node</term><description>object 290 (the iron mining node)</description></item>
 /// <item><term>ladder</term><description>mine.png cell (3, 4): the top of a ladder going down into a dark hole</description></item>
-/// <item><term>weed</term><description>springobjects 313, 314 or 315 (green weeds)</description></item>
-/// <item><term>grass</term><description>springobjects 771 (a tuft of fiber)</description></item>
-/// <item><term>forage</term><description>the springobjects cell of the item it gives (<c>ItemDefinition.ObjectIcon</c>, docs/adr/ADR-025 D6)</description></item>
+/// <item><term>weed</term><description>object 313, 314 or 315 (green weeds)</description></item>
+/// <item><term>grass</term><description>object 771 (a tuft of fiber)</description></item>
+/// <item><term>forage</term><description>the object cell of the item it gives (<c>ItemDefinition.ObjectIcon</c>, docs/adr/ADR-025 D6)</description></item>
 /// </list>
 /// </summary>
 internal static class NodeSprites

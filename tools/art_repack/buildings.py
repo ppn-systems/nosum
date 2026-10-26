@@ -1,4 +1,4 @@
-"""Package 7: the five Buildings/ sheets, composed from Kenney Tiny Town house tiles and one piece drawn here."""
+"""Package 7: the five sprites/buildings/ sheets, composed from Kenney Tiny Town house tiles and one piece drawn here."""
 import draw
 from draw import Canvas
 from pngio import Image
@@ -131,11 +131,11 @@ def build(src, size):
     """{path under assets/: Image} for the Buildings sheets; each sheet is transparent but for the rectangle the game draws."""
     out = {}
     for name, (img, x, y) in {
-        'Buildings/houses.png': (farmhouse(src), 16, 0),
-        'Buildings/Greenhouse.png': (greenhouse(src), 0, 160),
-        'Buildings/Barn.png': (barn(src), 0, 0),
-        'Buildings/Coop.png': (coop(src), 0, 0),
-        'Buildings/Shipping Bin.png': (shipping_bin(), 0, 0),
+        'sprites/buildings/farmhouse.png': (farmhouse(src), 16, 0),
+        'sprites/buildings/greenhouse.png': (greenhouse(src), 0, 160),
+        'sprites/buildings/barn.png': (barn(src), 0, 0),
+        'sprites/buildings/coop.png': (coop(src), 0, 0),
+        'sprites/buildings/shipping_bin.png': (shipping_bin(), 0, 0),
     }.items():
         sheet = Image(*size(name))
         sheet.paste(img, x, y)

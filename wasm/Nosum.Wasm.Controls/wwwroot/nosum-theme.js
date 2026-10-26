@@ -8,14 +8,14 @@
 //      --nosum-img-<name>   url("data:image/png;...")  the piece at its native size
 //      --nosum-w-<name>, --nosum-h-<name>              size in sheet pixels (unitless; multiply by --u)
 //      --nosum-cursor, --nosum-cursor-pointer          a `cursor` value, scaled by --u
-//    "fat" sheets (MenuTiles.png, textBox.png) use 4 x 4 pixel blocks: a piece is drawn at (sheet px) / 4 * --u CSS pixels;
-//    "thin" art (Cursors.png, glyphs below) is 1:1: (sheet px) * --u.
+//    "fat" sheets (menu.png, text_box.png) use 4 x 4 pixel blocks: a piece is drawn at (sheet px) / 4 * --u CSS pixels;
+//    "thin" art (cursors.png, glyphs below) is 1:1: (sheet px) * --u.
 // 3. The tooltip. One element, created here, shows the data-tip text of whatever is under the mouse (first line = name).
 
 const SHEETS = {
-    menu: "ui/MenuTiles.png",     // fat: window frames, inset and slot bevels
-    cursors: "ui/Cursors.png",    // thin: tabs, buttons, icons, mouse cursors (a few fat pieces too, noted below)
-    textbox: "ui/textBox.png",    // fat: the text field
+    menu: "ui/menu.png",     // fat: window frames, inset and slot bevels
+    cursors: "ui/cursors.png",    // thin: tabs, buttons, icons, mouse cursors (a few fat pieces too, noted below)
+    textbox: "ui/text_box.png",    // fat: the text field
 };
 
 // Own 1-bit pictures for the tabs the sheets have no icon for (Nosum art, not placeholder content). '#' is ink, anything else clear.

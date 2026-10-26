@@ -1,4 +1,4 @@
-/* The start screen: Cloudy_Ocean_BG.png (placeholder art, ADR-007) at the UI pixel, the horizon about 62% down, sky and sea colours for what is beyond the image. */
+/* The start screen: start_background.png (placeholder art, ADR-007) at the UI pixel, the horizon about 62% down, sky and sea colours for what is beyond the image. */
 .start-screen {
     position: fixed;
     inset: 0;
@@ -12,7 +12,7 @@
     padding: var(--nosum-gutter);
     overflow: auto;
     background-color: #00a2ff;
-    background-image: url("_content/Nosum.Wasm.Controls/ui/Cloudy_Ocean_BG.png");
+    background-image: url("_content/Nosum.Wasm.Controls/ui/start_background.png");
     background-repeat: no-repeat;
     background-size: calc(var(--u) * 1500) calc(var(--u) * 520);
     background-position: 50% calc(62vh - var(--u) * 345);

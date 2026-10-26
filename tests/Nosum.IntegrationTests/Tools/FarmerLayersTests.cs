@@ -48,9 +48,9 @@ public sealed class FarmerLayersTests
         int bob = column == 0 ? 0 : 1;
         for (int style = 0; style < 8; style++)
         {
-            bool[,] body = Cell("farmer_base.png", column * W, row * H, W, H);
+            bool[,] body = Cell("body.png", column * W, row * H, W, H);
             bool[,] pants = Cell("pants.png", column * W, row * H, W, H);
-            bool[,] hair = Shift(Cell("hairstyles.png", style * W, row * H, W, H), 0, HairOffsetY + bob);
+            bool[,] hair = Shift(Cell("hair.png", style * W, row * H, W, H), 0, HairOffsetY + bob);
             Box head = Box.Of(body, 0, 0, W, 17 + bob);
             Box torso = Box.Of(body, 0, 15 + bob, W, 23);
 
@@ -91,7 +91,7 @@ public sealed class FarmerLayersTests
     public void Hats_EveryDirection_SitOnTheHead(int row, int column)
     {
         int bob = column == 0 ? 0 : 1;
-        bool[,] body = Cell("farmer_base.png", column * W, row * H, W, H);
+        bool[,] body = Cell("body.png", column * W, row * H, W, H);
         Box head = Box.Of(body, 0, 0, W, 17 + bob);
         int[] hatRows = row == 0 ? [0] : row == 1 ? [1, 2] : [3];
         foreach (int hat in s_hats)
@@ -121,12 +121,12 @@ public sealed class FarmerLayersTests
     {
         bob = column == 0 ? 0 : 1;
         bool[,] image = new bool[Canvas, Canvas + 16];
-        Stamp(image, Cell("farmer_base.png", column * W, row * H, W, H), 0, 0);
+        Stamp(image, Cell("body.png", column * W, row * H, W, H), 0, 0);
         Stamp(image, Cell("pants.png", column * W, row * H, W, H), 0, 0);
         int[] pieceOffset = [0, 8, 24];
         Stamp(image, Cell("shirts.png", shirt % 16 * 8, (shirt / 16 * 32) + pieceOffset[row], 8, 8), ShirtX, ShirtY + bob);
-        Stamp(image, Cell("farmer_base.png", (column + 6) * W, row * H, W, H), 0, 0);
-        Stamp(image, Cell("hairstyles.png", style * W, row * H, W, H), 0, HairOffsetY + bob);
+        Stamp(image, Cell("body.png", (column + 6) * W, row * H, W, H), 0, 0);
+        Stamp(image, Cell("hair.png", style * W, row * H, W, H), 0, HairOffsetY + bob);
         if (hat >= 0)
         {
             int hatRow = row == 0 ? 0 : row == 1 ? 1 : 3;
@@ -226,7 +226,7 @@ public sealed class FarmerLayersTests
     /// <summary>Opaque pixels of a rectangle of one farmer sheet, indexed [x, y].</summary>
     private static bool[,] Cell(string sheet, int x, int y, int w, int h)
     {
-        string path = Path.Combine(FindRoot(), "assets", "Characters", "Farmer", sheet);
+        string path = Path.Combine(FindRoot(), "assets", "farmer", sheet);
         using SKBitmap bitmap = SKBitmap.Decode(path);
         bool[,] cell = new bool[w, h];
         for (int j = 0; j < h; j++)

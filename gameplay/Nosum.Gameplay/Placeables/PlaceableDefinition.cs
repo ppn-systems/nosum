@@ -53,7 +53,7 @@ public sealed class PlaceableDefinition
 
     /// <summary>Initializes a definition.</summary>
     /// <param name="itemId">The inventory item that is consumed when it is placed and returned when it is picked up.</param>
-    /// <param name="sheet">Name of the sheet the art is on (a file in <c>TileSheets/</c>, without extension).</param>
+    /// <param name="sheet">Name of the sheet the art is on (a file in <c>sprites/</c>, without extension).</param>
     /// <param name="lightRadius">Radius, in pixels, of the light the piece gives at night (docs/adr/ADR-027 D5); zero for a piece that gives none.</param>
     /// <param name="views">One view per rotation (clockwise from facing down), or a single view for a piece that does not rotate.</param>
     public PlaceableDefinition(int itemId, string sheet, int lightRadius, params PlaceableView[] views)
@@ -91,7 +91,7 @@ public sealed class PlaceableDefinition
     /// <summary>Gets the inventory item this is made from.</summary>
     public int ItemId { get; }
 
-    /// <summary>Gets the sheet name (a file in <c>TileSheets/</c>, without extension).</summary>
+    /// <summary>Gets the sheet name (a file in <c>sprites/</c>, without extension).</summary>
     public string Sheet { get; }
 
     /// <summary>Gets the radius, in pixels, of the light this piece gives in the night tint; zero when it gives none.</summary>

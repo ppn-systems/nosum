@@ -29,7 +29,7 @@ public sealed class AnimalDefinition
     /// <param name="product">The everyday produce item.</param>
     /// <param name="largeProduct">The large produce item a well-loved animal gives more often.</param>
     /// <param name="needsPail">Whether collecting the produce takes a milk pail in hand.</param>
-    /// <param name="sheet">File in <c>Animals/</c> without extension (placeholder art, docs/adr/ADR-007).</param>
+    /// <param name="sheet">File in <c>sprites/animals/</c> without extension (placeholder art, docs/adr/ADR-007).</param>
     /// <param name="frameWidth">Width of one frame, pixels.</param>
     /// <param name="frameHeight">Height of one frame, pixels.</param>
     /// <param name="walkPixelsPerSecond">How fast it walks inside its building.</param>
@@ -65,7 +65,7 @@ public sealed class AnimalDefinition
     /// <summary>Gets whether collecting takes a milk pail.</summary>
     public bool NeedsPail { get; }
 
-    /// <summary>Gets the sheet: a file in <c>Animals/</c>, without extension.</summary>
+    /// <summary>Gets the sheet: a file in <c>sprites/animals/</c>, without extension.</summary>
     public string Sheet { get; }
 
     /// <summary>Gets the width of one sheet frame, pixels. Rows are down, right, up; four walking frames each; left is the right row mirrored.</summary>
@@ -83,8 +83,8 @@ public static class AnimalCatalog
 {
     private static readonly AnimalDefinition[] s_all =
     [
-        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, false, "White Chicken", 16, 16, 22),
-        new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, true, "White Cow", 32, 32, 14),
+        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, false, "chicken", 16, 16, 22),
+        new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, true, "cow", 32, 32, 14),
     ];
 
     /// <summary>Gets every species.</summary>
