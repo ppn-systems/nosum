@@ -1,0 +1,14 @@
+// Interior floors, walls and furniture, drawn by tools/Nosum.MapGen (sheets; docs/adr/ADR-042 P2).
+// 0 to 9 are floors (no traits, on the Back layer). 15 is the interior door and 38 the barn gate: both Passable.
+// The farmhouse bed is 16, 17, 32, 33 and the table 18, 19, 34, 35.
+name interior
+image interior.png
+tilewidth 16
+tileheight 16
+columns 16
+tilecount 41
+tile 10-14 Impassable
+tile 15 Passable
+tile 16-37 Impassable
+tile 38 Passable
+tile 39-40 Impassable

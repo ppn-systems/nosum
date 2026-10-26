@@ -63,6 +63,15 @@ dotnet run --project tools/Nosum.MapGen -- mine <floor | all> [--check]   # → 
 `--check` writes nothing and exits 1 when a committed file differs from what the tool writes. Exit 2 means a usage or source error, and the
 message names the file and the line. The output depends only on the inputs, so the same input always gives the same bytes.
 
+**Own sheets** (`sheets`, [ADR-042](../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) P2). The tilesheets of the own maps are drawn in code, deterministically, from `tools/Nosum.MapGen/Sheets/`: `cave`, `terrain`, `nature`, `town`, `interior` and `markers` (the `Paths` node-site marks).
+
+```bash
+dotnet run --project tools/Nosum.MapGen -- sheets [--check]                 # → art/own/Maps/<name>.png, one per sheet
+dotnet run --project tools/Nosum.MapGen -- sheets --contact <file.png>      # also a picture of every sheet, for judging the art
+```
+
+A new sheet is a drawing in `Sheets/` listed in `SheetCatalog.All`, its `.tileset` trait file, and a line in `art/own/SOURCES.md`. The trait files are hand-written; `MapGenSheetsTests` checks that every index they name exists in the picture.
+
 **Tileset data** is `art/own/source/tilesets/<name>.tileset`: one keyword per line, `//` starts a comment, and the name line equals the file name.
 
 ```text
@@ -111,6 +120,6 @@ game reads it, and a seed that fails is tried again, so the tool never writes a 
 200 tiles; the way up is the one exit, on the arrival tile; the elevator stands on the arrival; and on three days `MineFloorPlanner` places at least six
 stones, copper and iron exactly where `MineRules` says, and a ladder under a stone when the floor has one. The floors use two tiles of the cave
 tileset: `MineGenerator.FloorTile` (index 0) under every cell and `MineGenerator.WallTile` (index 1) on the closed cells, which must not be `Passable`.
-The cave tileset `art/own/source/tilesets/cave.tileset` is drawn in ADR-042 P2; until it exists, `mine` exits 2 and says so.
+The cave tileset `art/own/source/tilesets/cave.tileset` and its picture `art/own/Maps/cave.png` are drawn by `sheets` (below); `mine` reads the trait file.
 
 Until ADR-042 P3 regenerates the floors, `mine all --check` reports the committed floors as differing: they are still the derived ones.

@@ -1,0 +1,18 @@
+// Town buildings, street and bridge, drawn by tools/Nosum.MapGen (sheets; docs/adr/ADR-042 P2).
+// 3 is the door and 16, 17, 19 and 35 are walkable: the bridge planks and the stone step. The awnings (26 to 28) are on the Front layer.
+name town
+image town.png
+tilewidth 16
+tileheight 16
+columns 16
+tilecount 38
+tile 0-2 Impassable
+tile 3 Passable
+tile 4-15 Impassable
+tile 16-17 Passable
+tile 18 Impassable
+tile 19 Passable
+tile 20-25 Impassable
+tile 29-34 Impassable
+tile 35 Passable
+tile 36-37 Impassable

@@ -1,0 +1,12 @@
+// The mine's cave sheet, drawn by tools/Nosum.MapGen (sheets; docs/adr/ADR-042 P2).
+// Tile 0 is the floor and tile 1 the wall: MineGenerator reads these two, and the wall must not be Passable.
+// Walkable, no traits: 0 floor, 2 to 4 floor variants, 32 ladder up, 33 and 34 elevator markers, 35 to 47 decor.
+// Solid, on the Buildings layer: 1 wall, 16 to 31 wall edges (one per set of open sides).
+name cave
+image cave.png
+tilewidth 16
+tileheight 16
+columns 16
+tilecount 48
+tile 1 Impassable
+tile 16-31 Impassable

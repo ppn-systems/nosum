@@ -6,18 +6,20 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Nosum.Gameplay.Mines;
+using Nosum.MapGen.Sheets;
 
 namespace Nosum.MapGen;
 
 /// <summary>
 /// Command line (docs/adr/ADR-042 D4). Writes under <c>art/own/Maps</c> and reads <c>art/own/source</c>:
 /// <c>layout &lt;Name&gt;</c> compiles <c>source/layouts/&lt;Name&gt;.txt</c> to <c>Maps/&lt;Name&gt;.tmx</c>, <c>layout all</c> every layout;
-/// <c>mine &lt;floor&gt;</c> generates one mine floor to <c>Maps/Mines/&lt;file&gt;.tmx</c>, <c>mine all</c> the forty.
+/// <c>mine &lt;floor&gt;</c> generates one mine floor to <c>Maps/Mines/&lt;file&gt;.tmx</c>, <c>mine all</c> the forty; <c>sheets</c> draws Nosum's own
+/// tilesheets in code to <c>Maps/&lt;name&gt;.png</c> (ADR-042 P2), and <c>--contact &lt;file&gt;</c> also writes a picture of all of them.
 /// <c>--check</c> writes nothing and exits 1 when a committed file differs from what the tool would write. Exit 2 means a usage or source error.
 /// </summary>
 internal static class Program
 {
-    private const string Usage = "usage: Nosum.MapGen [--repo <root>] (layout (<Name> | all) | mine (<floor> | all)) [--check]";
+    private const string Usage = "usage: Nosum.MapGen [--repo <root>] (layout (<Name> | all) | mine (<floor> | all) | sheets) [--check] [--contact <file>]";
 
     /// <summary>Runs the tool.</summary>
     /// <param name="args">The command line.</param>
@@ -26,6 +28,7 @@ internal static class Program
     {
         string? repo = null;
         bool check = false;
+        string? contact = null;
         List<string> words = [];
         for (int i = 0; i < args.Length; i++)
         {
@@ -36,6 +39,9 @@ internal static class Program
                     break;
                 case "--check":
                     check = true;
+                    break;
+                case "--contact" when i + 1 < args.Length:
+                    contact = args[++i];
                     break;
                 default:
                     words.Add(args[i]);
@@ -75,6 +81,9 @@ internal static class Program
                         .ToList();
                     return Emit(root, floorFiles, check);
 
+                case ["sheets"]:
+                    return Sheets(root, check, contact);
+
                 default:
                     Console.Error.WriteLine(Usage);
                     return 2;
@@ -85,6 +94,35 @@ internal static class Program
             Console.Error.WriteLine(ex.Message);
             return 2;
         }
+    }
+
+    private static int Sheets(string root, bool check, string? contact)
+    {
+        string maps = Path.Combine(root, "art", "own", "Maps");
+        if (contact is not null)
+        {
+            File.WriteAllBytes(contact, SheetCatalog.Contact(3).ToPng());
+            Console.WriteLine($"Wrote {Path.GetRelativePath(root, contact)}.");
+        }
+
+        if (check)
+        {
+            IReadOnlyList<string> stale = SheetCatalog.Differences(maps);
+            foreach (string file in stale)
+            {
+                Console.Error.WriteLine($"differs: art/own/Maps/{file}");
+            }
+
+            return stale.Count == 0 ? 0 : 1;
+        }
+
+        SheetCatalog.Write(maps);
+        foreach (SheetInfo sheet in SheetCatalog.All)
+        {
+            Console.WriteLine($"Wrote art/own/Maps/{sheet.File}.");
+        }
+
+        return 0;
     }
 
     private static int Emit(string root, IReadOnlyList<Output> outputs, bool check)
