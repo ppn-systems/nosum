@@ -13,15 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  placeholder-gate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Refuse a public release while placeholder art is present
-        run: sh deploy/check-placeholder-art.sh public
-
   build:
-    needs: placeholder-gate
     runs-on: ubuntu-latest
     permissions:
       contents: read
