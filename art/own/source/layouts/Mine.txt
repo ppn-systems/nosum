@@ -1,0 +1,56 @@
+// The entrance cave of the mine (ADR-042 P3): hand-drawn, not derived from any earlier map.
+// Contract points (MineWorld): the arrival from the Mountain (18,11), the way back (18,13), the shaft (23,9) with its front (23,10),
+// and the elevator wall (17,3) with the stop in front of it (17,4). Closed rock is the Buildings layer; the floor is Back.
+legend
+a cave 0
+b cave 2
+c cave 3
+d cave 4
+p cave 35
+r cave 39
+k cave 45
+u cave 46
+e cave 34
+# cave 1
+layer Back
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaaedacabaadabcaabdcaabdaacbdaaabacaabdcabuaabcaadbaabcaadbaacd
+abacabdaabcdapcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadrbcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadapcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabkadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdrbcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaapbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaapbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcrbdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabuaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+abacabdaabcdabcaabdacabaadabcaabdcaabdaacbdaaabacaabdcabdaabcaadbaabcaadbaacd
+layer Buildings
+#############################################################################
+#############################################################################
+#############################################################################
+#############################################################################
+###########...................###############................################
+##########.....................##########..........................##########
+#########.......................#########...........#..............##########
+#########.......................#########...........#..............##########
+#########.......................#########..........................##########
+#########..............................................................######
+#########..............................................................######
+#########..............................................................######
+##########.....................############...............#......############
+################.....######################......................############
+####################################################.............############
+########################################################........#############
+#############################################################################
+#############################################################################
+#############################################################################
+#############################################################################

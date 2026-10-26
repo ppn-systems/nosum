@@ -331,7 +331,9 @@ public sealed class MineWireTests : IClassFixture<PostgresFixture>
         // The client is never told which stone hides the ladder.
         NodeSnapshot snapshot = await miner.GetNodesAsync(host.Timeout);
         snapshot.MapId.Should().Be("mine1");
-        snapshot.Nodes.Should().HaveCount(plan.Nodes.Count);
+
+        // The client gets the nodes of the chunks it is interested in (ADR-022), so part of a floor can be out of view.
+        snapshot.Nodes.Select(n => (n.X, n.Y, n.Kind)).Should().NotBeEmpty().And.BeSubsetOf(Planned(plan));
         snapshot.Nodes.Should().OnlyContain(n => n.Variant == 0 && n.Kind != (byte)NodeKind.Ladder);
         NodeRow hidden = snapshot.Nodes.Single(n => n.X == stone.X && n.Y == stone.Y);
         hidden.Kind.Should().Be((byte)NodeKind.Stone);
@@ -423,7 +425,8 @@ public sealed class MineWireTests : IClassFixture<PostgresFixture>
         NodeSnapshot bobNodes = await bob.GetNodesAsync(host.Timeout);
         adaNodes.MapId.Should().Be("mine1");
         bobNodes.MapId.Should().Be("mine1");
-        adaNodes.Nodes.Select(n => (n.X, n.Y, n.Kind)).Should().BeEquivalentTo(adaPlan.Nodes.Select(n => ((ushort)n.X, (ushort)n.Y, (byte)n.Kind)));
+        // The server sends only the chunks a player is interested in (ADR-022), so ada gets some of her plan, never more.
+        adaNodes.Nodes.Select(n => (n.X, n.Y, n.Kind)).Should().NotBeEmpty().And.BeSubsetOf(Planned(adaPlan));
         bobNodes.Nodes.Select(n => (n.X, n.Y, n.Kind)).Should().NotBeEquivalentTo(adaNodes.Nodes.Select(n => (n.X, n.Y, n.Kind)), "a floor is built from the player");
 
         // Neither sees the other on the map, and a stone ada breaks is not announced to bob.
@@ -446,17 +449,21 @@ public sealed class MineWireTests : IClassFixture<PostgresFixture>
         await using TestHost host = await TestHost.StartAsync(_database);
         string token;
         List<(ushort X, ushort Y, byte Kind)> first;
+        List<(ushort X, ushort Y, byte Kind)> planned;
+        (ushort X, ushort Y, byte Kind) broken;
         Guid playerId;
         await using (Client miner = await host.ConnectAsync())
         {
             token = miner.SessionToken;
             playerId = miner.AccountId;
             (NodePlacement stone, MineFloorPlanner.Plan plan) = await StandNextToAsync(host, miner, floor: 1, n => n.Kind == NodeKind.Stone && n.Variant == 0);
+            planned = Planned(plan);
+            broken = ((ushort)stone.X, (ushort)stone.Y, (byte)stone.Kind);
             first = [.. (await miner.GetNodesAsync(host.Timeout)).Nodes.Select(n => (n.X, n.Y, n.Kind))];
-            first.Should().HaveCount(plan.Nodes.Count);
+            first.Should().NotBeEmpty().And.BeSubsetOf(planned);
 
             (await miner.UseAsync(await miner.SlotOfAsync(ItemCatalog.Pickaxe), stone.X, stone.Y, host.Timeout)).Action.Should().Be(FarmAction.Broke);
-            (await miner.GetNodesAsync(host.Timeout)).Nodes.Should().HaveCount(plan.Nodes.Count - 1);
+            (await miner.GetNodesAsync(host.Timeout)).Nodes.Should().HaveCount(first.Count - 1, "the broken stone leaves the view and nothing else does");
         }
 
         await host.WaitUntilNobodyIsOnAMapAsync();
@@ -469,9 +476,10 @@ public sealed class MineWireTests : IClassFixture<PostgresFixture>
         await using (Client same = await host.ConnectAsync(token))
         {
             same.AccountId.Should().Be(playerId);
-            await same.PutOnAsync("mine1", -1, -1);
-            _ = await same.JoinAsync(host.Timeout);
-            (await same.GetNodesAsync(host.Timeout)).Nodes.Select(n => (n.X, n.Y, n.Kind)).Should().BeEquivalentTo(first);
+            _ = await StandNextToAsync(host, same, floor: 1, n => n.X == broken.X && n.Y == broken.Y);
+
+            // What is in view is of this day's plan, and the broken stone is in it again.
+            (await same.GetNodesAsync(host.Timeout)).Nodes.Select(n => (n.X, n.Y, n.Kind)).Should().NotBeEmpty().And.BeSubsetOf(planned).And.Contain(broken);
         }
 
         await host.WaitUntilNobodyIsOnAMapAsync();
@@ -487,6 +495,9 @@ public sealed class MineWireTests : IClassFixture<PostgresFixture>
     }
 
     // ---- helpers ----
+
+    // The plan's nodes as the client sees them on the wire.
+    private static List<(ushort X, ushort Y, byte Kind)> Planned(MineFloorPlanner.Plan plan) => [.. plan.Nodes.Select(n => ((ushort)n.X, (ushort)n.Y, (byte)n.Kind))];
 
     // Puts the player on a floor beside the first node of that floor's plan that matches (the server builds the same plan from the same inputs), and joins.
     private async Task<(NodePlacement Node, MineFloorPlanner.Plan Plan)> StandNextToAsync(TestHost host, Client player, int floor, Func<NodePlacement, bool> match)

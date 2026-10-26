@@ -23,10 +23,10 @@ internal static class MineGenerator
     /// <summary>The name of the cave tileset in <c>art/own/source/tilesets</c>.</summary>
     public const string Tileset = "cave";
 
-    /// <summary>The cave sheet's floor tile: the <c>Back</c> layer under every cell.</summary>
+    /// <summary>The cave sheet's plain floor tile: the <c>Back</c> layer under every closed cell, and one of the floor variants on an open cell.</summary>
     public const int FloorTile = 0;
 
-    /// <summary>The cave sheet's wall tile: the <c>Buildings</c> layer on every closed cell. It must not be <c>Passable</c>.</summary>
+    /// <summary>The cave sheet's wall tile: the <c>Buildings</c> layer on a closed cell with no open side. It must not be <c>Passable</c>.</summary>
     public const int WallTile = 1;
 
     /// <summary>Tiles per side of a floor.</summary>
@@ -56,6 +56,25 @@ internal static class MineGenerator
     // Salt of the cave seeds, so they differ from every other seeded choice.
     private const ulong Salt = 0x4E6F73756D;
 
+    // Salt of the dressing seeds: the floor variants and the decor of a floor.
+    private const ulong DressSalt = 0x44726573;
+
+    // The cave sheet's walkable tiles (cave.tileset): the floor variants, the rock decor, and the ladder-up and elevator markers.
+    private static readonly int[] s_floorVariants = [FloorTile, 2, 3, 4];
+    private static readonly int[] s_decor = [35, 39, 45, 46];
+    private const int LadderUp = 32;
+    private const int ElevatorLit = 34;
+
+    // Share of the open cells that carry a decor tile instead of a floor variant, in percent.
+    private const int DecorPercent = 6;
+
+    // The wall edges: a closed cell next to open ground takes WallEdge plus its open sides (north 1, east 2, south 4, west 8).
+    private const int WallEdge = 16;
+    private const int WallEdges = 16;
+
+    // The floors live in Maps/Mines, so the sheet is one folder up from the floor, as the .tmx names it.
+    private const string SheetFromFloors = "../";
+
     private static readonly (int Dx, int Dy)[] s_steps = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
     /// <summary>Generates a floor.</summary>
@@ -72,11 +91,12 @@ internal static class MineGenerator
         CheckTiles(cave);
 
         MineLayouts.Layout arrival = MineLayouts.For(floor);
+        TilesetData placed = new(cave.Name, SheetFromFloors + cave.Image, cave.TileWidth, cave.TileHeight, cave.Columns, cave.TileCount, cave.Traits);
         IReadOnlyList<string> last = [];
         for (int attempt = 0; attempt < Attempts; attempt++)
         {
             bool[] open = Carve(NodeRandom.Mix(Salt, floor, attempt), arrival.SpawnX, arrival.SpawnY);
-            string tmx = Write(open, cave);
+            string tmx = Write(open, placed, arrival.SpawnX, arrival.SpawnY, MineRules.HasElevator(floor), NodeRandom.Mix(DressSalt, floor, attempt));
             last = Verify(floor, tmx);
             if (last.Count == 0)
             {
@@ -260,16 +280,43 @@ internal static class MineGenerator
         return keep;
     }
 
-    private static string Write(bool[] open, TilesetData cave)
+    // The floor is dressed from its own seed: each open cell takes a floor variant, or rock decor on a few of them. The arrival tile
+    // carries the way up (the ladder, or the lit elevator pad on an elevator floor). Closed cells take a wall edge by their open sides.
+    private static string Write(bool[] open, TilesetData cave, int ax, int ay, bool elevator, ulong dressSeed)
     {
         int cells = Size * Size;
+        NodeRandom random = new(dressSeed);
         int[] floorGids = new int[cells];
         int[] wallGids = new int[cells];
         int[] front = new int[cells];
-        for (int i = 0; i < cells; i++)
+        for (int y = 0; y < Size; y++)
         {
-            floorGids[i] = 1 + FloorTile;
-            wallGids[i] = open[i] ? 0 : 1 + WallTile;
+            for (int x = 0; x < Size; x++)
+            {
+                int i = Index(x, y);
+                if (!open[i])
+                {
+                    floorGids[i] = 1 + FloorTile;
+                    wallGids[i] = 1 + WallTileAt(open, x, y);
+                    continue;
+                }
+
+                int tile;
+                if (x == ax && y == ay)
+                {
+                    tile = elevator ? ElevatorLit : LadderUp;
+                }
+                else if (random.Next(100) < DecorPercent)
+                {
+                    tile = s_decor[random.Next(s_decor.Length)];
+                }
+                else
+                {
+                    tile = s_floorVariants[random.Next(s_floorVariants.Length)];
+                }
+
+                floorGids[i] = 1 + tile;
+            }
         }
 
         return TmxWriter.Write(
@@ -280,6 +327,15 @@ internal static class MineGenerator
             []);
     }
 
+    // A closed cell is the plain wall when no side is open, and the wall edge of its open sides otherwise.
+    private static int WallTileAt(bool[] open, int x, int y)
+    {
+        int sides = (IsOpen(open, x, y - 1) ? 1 : 0) | (IsOpen(open, x + 1, y) ? 2 : 0) | (IsOpen(open, x, y + 1) ? 4 : 0) | (IsOpen(open, x - 1, y) ? 8 : 0);
+        return sides == 0 ? WallTile : WallEdge + sides;
+    }
+
+    private static bool IsOpen(bool[] open, int x, int y) => x >= 0 && y >= 0 && x < Size && y < Size && open[Index(x, y)];
+
     private static void CheckTiles(TilesetData cave)
     {
         if (cave.TileCount <= WallTile)
@@ -287,16 +343,32 @@ internal static class MineGenerator
             throw new InvalidDataException($"Tileset '{cave.Name}' needs a wall tile {WallTile}; it has {cave.TileCount} tiles.");
         }
 
-        cave.Traits.TryGetValue(FloorTile, out TileTraits floor);
-        cave.Traits.TryGetValue(WallTile, out TileTraits wall);
-        if ((floor & (TileTraits.Water | TileTraits.Impassable)) != 0)
+        foreach (int tile in s_floorVariants.Concat(s_decor).Concat([LadderUp, ElevatorLit]))
         {
-            throw new InvalidDataException($"Tileset '{cave.Name}': the floor tile {FloorTile} must be walkable.");
+            CheckExists(cave, tile);
+            cave.Traits.TryGetValue(tile, out TileTraits traits);
+            if ((traits & (TileTraits.Water | TileTraits.Impassable)) != 0)
+            {
+                throw new InvalidDataException($"Tileset '{cave.Name}': the floor tile {tile} must be walkable.");
+            }
         }
 
-        if ((wall & TileTraits.Passable) != 0)
+        foreach (int tile in Enumerable.Range(WallEdge, WallEdges).Append(WallTile))
         {
-            throw new InvalidDataException($"Tileset '{cave.Name}': the wall tile {WallTile} must not be Passable.");
+            CheckExists(cave, tile);
+            cave.Traits.TryGetValue(tile, out TileTraits wall);
+            if ((wall & TileTraits.Passable) != 0)
+            {
+                throw new InvalidDataException($"Tileset '{cave.Name}': the wall tile {tile} must not be Passable.");
+            }
+        }
+    }
+
+    private static void CheckExists(TilesetData cave, int tile)
+    {
+        if (tile >= cave.TileCount)
+        {
+            throw new InvalidDataException($"Tileset '{cave.Name}' needs tile {tile} for the floors; it has {cave.TileCount} tiles.");
         }
     }
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
+using Nosum.Core;
 using Nosum.Gameplay.Mines;
 using Nosum.MapGen;
 using Xunit;
@@ -17,16 +18,20 @@ namespace Nosum.UnitTests.Tools;
 /// </summary>
 public sealed class MineGeneratorTests
 {
-    // A stand-in for the cave sheet: tile 0 is the floor, tile 1 the wall. The sheet itself is drawn later (ADR-042 P2).
+    // The cave sheet as cave.tileset describes it: tile 0 is the floor, tile 1 the wall, 16 to 31 the wall edges.
     private const string Cave = """
         name cave
         image cave.png
         tilewidth 16
         tileheight 16
-        columns 4
-        tilecount 4
+        columns 16
+        tilecount 48
         tile 1 Impassable
+        tile 16-31 Impassable
         """;
+
+    private static readonly int[] s_floorVariants = [0, 2, 3, 4];
+    private static readonly int[] s_rockDecor = [35, 39, 45, 46];
 
     public static IEnumerable<object[]> Floors() => Enumerable.Range(1, MineRules.MaxFloor).Select(floor => new object[] { floor });
 
@@ -50,6 +55,31 @@ public sealed class MineGeneratorTests
         string tmx = MineGenerator.Generate(floor, cave);
 
         MineGenerator.Verify(floor, tmx).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Floor_LooksVaried_WithFloorVariantsRockDecorAndWallEdges()
+    {
+        TilesetData cave = TilesetData.Parse(Cave, "cave.tileset");
+
+        TileMap map = TmxReader.Parse(MineGenerator.Generate(12, cave));
+        int[] back = map.FindLayer("Back")!.Gids;
+        int[] walls = map.FindLayer("Buildings")!.Gids;
+
+        // Gids are tile index + 1: the floor variants are tiles 0, 2, 3 and 4; the decor 35, 39, 45 and 46.
+        back.Where(g => g != 0).Select(g => g - 1).Distinct().Should().Contain(s_floorVariants);
+        back.Select(g => g - 1).Should().Contain(s_rockDecor);
+        walls.Where(g => g != 0).Select(g => g - 1).Should().Contain(g => g >= 16 && g <= 31, "a wall next to open ground takes its edge");
+    }
+
+    [Fact]
+    public void Floor_NamesTheSheetOneFolderUp_BecauseFloorsLiveInMines()
+    {
+        TilesetData cave = TilesetData.Parse(Cave, "cave.tileset");
+
+        TileMap map = TmxReader.Parse(MineGenerator.Generate(3, cave));
+
+        map.TileSets.Should().ContainSingle().Which.ImageSource.Should().Be("../cave.png");
     }
 
     [Fact]

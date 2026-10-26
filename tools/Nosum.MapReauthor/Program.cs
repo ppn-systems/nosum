@@ -156,13 +156,21 @@ internal static class Program
         return Path.Combine(Path.GetFullPath(root), "Maps");
     }
 
-    /// <summary>Lists the map files the world hosts, relative to the placeholder <c>Maps/</c> folder, each once.</summary>
+    /// <summary>
+    /// Lists the map files the world hosts, relative to the placeholder <c>Maps/</c> folder, each once. The mine (the entrance cave and the forty
+    /// floors) is left out: since ADR-042 P3 it is written by <c>Nosum.MapGen</c>, and re-authoring it would overwrite the generated maps.
+    /// </summary>
     /// <returns>The files, sorted.</returns>
     internal static IReadOnlyList<string> HostedMaps()
     {
         SortedSet<string> files = new(StringComparer.Ordinal);
         foreach (Nosum.Gameplay.Maps.MapSpec spec in Nosum.Gameplay.Maps.GameMaps.All)
         {
+            if (spec.IsMineFloor || spec.Id == Nosum.Gameplay.Maps.GameMaps.Mine)
+            {
+                continue;
+            }
+
             _ = files.Add(spec.TmxFile);
         }
 
