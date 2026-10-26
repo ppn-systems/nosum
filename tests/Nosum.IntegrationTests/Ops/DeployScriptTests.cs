@@ -118,7 +118,7 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
         (int publicCode, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh")], new Dictionary<string, string> { ["NOSUM_RELEASE"] = "public" });
         (int privateCode, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh")], new Dictionary<string, string> { ["NOSUM_RELEASE"] = "private" });
 
-        publicCode.Should().Be(1, "assets/PLACEHOLDER_CONTENT is still in the repository");
+        publicCode.Should().Be(0, "the repository holds no placeholder content any more (M6, ADR-040 phase 4)");
         privateCode.Should().Be(0);
     }
 
@@ -127,14 +127,13 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     [Theory]
     [InlineData("server/Nosum.Host/Nosum.Host.csproj")]
     [InlineData("wasm/Nosum.Wasm/Nosum.Wasm.csproj")]
-    public async Task GateTarget_PublicReleaseInTheRealRepository_FailsWhileThePlaceholderMarkerIsThere(string project)
+    public async Task GateTarget_PublicReleaseInTheRealRepository_Passes(string project)
     {
-        File.Exists(Path.Combine(RepositoryRoot(), "assets", "PLACEHOLDER_CONTENT")).Should().BeTrue("M6 deletes the marker; until then this test pins the gate on");
+        File.Exists(Path.Combine(RepositoryRoot(), "assets", "PLACEHOLDER_CONTENT")).Should().BeFalse("M6 removed the marker (ADR-040 phase 4)");
 
         (int code, string output) = await RunDotnetAsync(["msbuild", Path.Combine(RepositoryRoot(), project), "-t:NosumPlaceholderGate", "-p:NosumRelease=public", "-nologo", "-v:q"]);
 
-        code.Should().NotBe(0);
-        output.Should().Contain("ADR-007");
+        code.Should().Be(0, output);
     }
 
     [Fact]
