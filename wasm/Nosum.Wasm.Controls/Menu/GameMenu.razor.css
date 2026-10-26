@@ -43,6 +43,14 @@
     filter: saturate(0.9) brightness(1.08);
 }
 
+/* A phone held upright (docs/adr/ADR-033 D2): the tabs shrink to share the narrow window instead of running past its edge. Wider screens keep 16 u tabs. */
+@media (max-width: 640px) {
+    .menu-tab {
+        flex: 0 1 calc(var(--u) * 16);
+        min-width: 0;
+    }
+}
+
 .menu-tab.active {
     z-index: 3;
     transform: translateY(calc(var(--u) * -1));
@@ -52,12 +60,13 @@
     filter: none;
 }
 
+/* The window is as tall as its page, at most 186 u and at most the screen minus the gutters and the 13 u tab row (a landscape phone): a longer page scrolls inside. */
 .game-menu ::deep .menu-window {
     z-index: 2;
     width: 100%;
     height: auto;
     min-height: var(--nosum-menu-min-h);
-    max-height: var(--nosum-menu-h);
+    max-height: min(var(--nosum-menu-h), calc(100vh - var(--nosum-gutter) * 2 - var(--u) * 13));
 }
 
 .game-menu ::deep .menu-window > .game-panel-header {
