@@ -14,7 +14,7 @@ const GESTURES = ["pointerdown", "pointerup", "mousedown", "keydown", "touchend"
 
 const sounds = [];          // sound id -> AudioBuffer
 const loops = [];           // ambient loop id -> AudioBuffer
-const tracks = [];          // music track id -> AudioBuffer (none until the own music of M6)
+const tracks = [];          // music track id -> AudioBuffer (tools/synth_music.py, ADR-039)
 let decoder = null;         // OfflineAudioContext used for decoding, created lazily
 let ctx = null;             // the AudioContext, created on the first gesture
 let musicBus = null;

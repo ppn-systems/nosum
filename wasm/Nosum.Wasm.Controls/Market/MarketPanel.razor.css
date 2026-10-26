@@ -14,8 +14,12 @@
     align-items: center;
 }
 
+/* The price row: its label, the field and the unit, in one line like the quantity row above it. */
 .sell-price {
     grid-column: 1 / 3;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 3);
 }
 
 .sell-fee {

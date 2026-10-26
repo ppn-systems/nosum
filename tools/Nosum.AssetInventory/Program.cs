@@ -3,16 +3,22 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Nosum.AssetInventory;
 
 /// <summary>
 /// Command line. With no option it writes <c>docs/art/inventory.md</c>. <c>--check</c> writes nothing and exits 1 when the committed
-/// report is stale. <c>--write-fingerprints</c> records the placeholder files' hashes once. <c>--release</c> is the release gate:
-/// it exits 1 while a placeholder file is still present and 2 when a replacement has the wrong size or a file is missing.
+/// report is stale. <c>--write-fingerprints</c> records the placeholder files' hashes once. <c>--release</c> is the release gate: it reads
+/// only the committed list (<c>docs/art/placeholders.sha256</c>) and the files of the repository, so it needs no placeholder content.
+/// The three other modes read the placeholder content, which the repository no longer holds (ADR-040 D9): point
+/// <c>NOSUM_PLACEHOLDER_ROOT</c> at an <c>assets/</c> folder of the commit that still had it (<c>64ce88e</c>).
 /// </summary>
 internal static class Program
 {
+    /// <summary>The environment variable that names the placeholder <c>assets/</c> folder.</summary>
+    internal const string PlaceholderVariable = "NOSUM_PLACEHOLDER_ROOT";
+
     private const string ReportPath = "docs/art/inventory.md";
 
     public static int Main(string[] args)
@@ -39,6 +45,14 @@ internal static class Program
         return Run(repo, mode, Console.Out);
     }
 
+    /// <summary>Gets the placeholder <c>assets/</c> folder named by <c>NOSUM_PLACEHOLDER_ROOT</c>.</summary>
+    /// <returns>The folder, or <see langword="null"/> when the variable is unset or the folder does not exist.</returns>
+    internal static string? PlaceholderAssets()
+    {
+        string? root = Environment.GetEnvironmentVariable(PlaceholderVariable);
+        return string.IsNullOrWhiteSpace(root) || !Directory.Exists(root) ? null : Path.GetFullPath(root);
+    }
+
     /// <summary>Runs one mode against a checkout.</summary>
     /// <param name="repo">The repository root.</param>
     /// <param name="mode"><c>write</c>, <c>check</c>, <c>release</c> or <c>write-fingerprints</c>.</param>
@@ -46,10 +60,23 @@ internal static class Program
     /// <returns>The exit code.</returns>
     internal static int Run(string repo, string mode, TextWriter log)
     {
-        Inventory inventory = Inventory.Build(repo);
         string report = Path.Combine(repo, ReportPath.Replace('/', Path.DirectorySeparatorChar));
         string prints = Path.Combine(Path.GetDirectoryName(report)!, Fingerprints.FileName);
         string assets = Path.Combine(repo, "assets");
+        if (mode == "release")
+        {
+            return ReleaseGate(prints, assets, log);
+        }
+
+        string? placeholder = PlaceholderAssets();
+        if (placeholder is null)
+        {
+            log.WriteLine($"`--{mode}` reads the placeholder content, which the repository no longer holds. Set {PlaceholderVariable} to the assets/ folder of commit 64ce88e "
+                + "(git archive 64ce88e assets | tar -x -C <dir>, then <dir>/assets).");
+            return 2;
+        }
+
+        Inventory inventory = Inventory.Build(repo, placeholder);
         switch (mode)
         {
             case "write":
@@ -60,31 +87,49 @@ internal static class Program
 
             case "write-fingerprints":
                 Directory.CreateDirectory(Path.GetDirectoryName(report)!);
-                File.WriteAllText(prints, Fingerprints.Capture(inventory.Listed, assets).Render());
+                File.WriteAllText(prints, Fingerprints.Capture(inventory.Listed, placeholder).Render());
                 log.WriteLine($"Wrote {Fingerprints.FileName}: {inventory.Listed.Count} files.");
                 return 0;
 
-            case "check":
+            default:
                 if (!File.Exists(report) || File.ReadAllText(report) != ReportWriter.Render(inventory))
                 {
-                    log.WriteLine($"{ReportPath} is stale; run `dotnet run --project tools/Nosum.AssetInventory`.");
+                    log.WriteLine($"{ReportPath} is stale; run `dotnet run --project tools/Nosum.AssetInventory` with {PlaceholderVariable} set.");
                     return 1;
                 }
 
                 log.WriteLine($"{ReportPath} is up to date.");
                 return 0;
-
-            default:
-                return Release(inventory.Listed, Fingerprints.Read(prints), assets, log);
         }
     }
 
-    /// <summary>The release gate: checks every listed file against its recorded fingerprint.</summary>
+    /// <summary>The release gate's input: the committed list of the placeholder files, checked against the repository.</summary>
+    /// <param name="prints">The committed fingerprint file.</param>
+    /// <param name="assets">The <c>assets/</c> folder of the repository.</param>
+    /// <param name="log">Where messages go.</param>
+    /// <returns>The exit code of <see cref="Release"/>, or 2 when the list is missing.</returns>
+    internal static int ReleaseGate(string prints, string assets, TextWriter log)
+    {
+        if (!File.Exists(prints))
+        {
+            log.WriteLine($"MISSING       docs/art/{Fingerprints.FileName}: the release gate has no list of the placeholder files.");
+            return 2;
+        }
+
+        Fingerprints recorded = Fingerprints.Read(prints);
+        List<ListedFile> listed = [.. recorded.Entries.Select(e => new ListedFile(e.Key, e.Value.Width, e.Value.Height))];
+        return Release(listed, recorded, assets, log);
+    }
+
+    /// <summary>
+    /// The release gate: every listed file must be replaced, and <c>assets/</c> must hold nothing else but the listed files and its README.
+    /// A listed file is still a placeholder when the file at its <c>assets/</c> path, or its own replacement, matches the recorded hash.
+    /// </summary>
     /// <param name="files">The listed files.</param>
     /// <param name="prints">The recorded fingerprints.</param>
     /// <param name="assets">The <c>assets/</c> folder.</param>
     /// <param name="log">Where messages go.</param>
-    /// <returns>0 when every file is replaced at its size; 1 while one still matches its placeholder hash; 2 when one is unrecorded, missing or the wrong size.</returns>
+    /// <returns>0 when every file is replaced at its size and nothing is unlisted; 1 while one still matches its placeholder hash; 2 when one is unrecorded, missing, the wrong size, or <c>assets/</c> holds an unlisted file.</returns>
     internal static int Release(IReadOnlyList<ListedFile> files, Fingerprints prints, string assets, TextWriter log)
     {
         int placeholders = 0;
@@ -98,8 +143,16 @@ internal static class Program
                 continue;
             }
 
+            string at = Path.Combine(assets, file.Path);
+            if (File.Exists(at) && string.Equals(Fingerprints.HashOf(at), print.Sha256, StringComparison.Ordinal))
+            {
+                log.WriteLine($"PLACEHOLDER   {file.Path}");
+                placeholders++;
+                continue;
+            }
+
             string? own = Fingerprints.OwnFile(file.Path, assets);
-            string full = own ?? Path.Combine(assets, file.Path);
+            string full = own ?? at;
             if (!File.Exists(full))
             {
                 log.WriteLine($"MISSING       {file.Path}");
@@ -118,15 +171,30 @@ internal static class Program
                 log.WriteLine($"WRONG SIZE    {file.Path}: {width} x {height}, the layout needs {print.Width} x {print.Height}.");
                 broken++;
             }
-            else if (string.Equals(Fingerprints.HashOf(full), print.Sha256, StringComparison.Ordinal))
+        }
+
+        int unlisted = 0;
+        if (Directory.Exists(assets))
+        {
+            HashSet<string> listedPaths = [.. files.Select(f => f.Path)];
+            foreach (string file in Directory.EnumerateFiles(assets, "*", SearchOption.AllDirectories).OrderBy(f => f, StringComparer.Ordinal))
             {
-                log.WriteLine($"PLACEHOLDER   {file.Path}");
-                placeholders++;
+                string relative = Path.GetRelativePath(assets, file).Replace(Path.DirectorySeparatorChar, '/');
+                if (relative != "README.md" && !listedPaths.Contains(relative))
+                {
+                    log.WriteLine($"UNLISTED      assets/{relative}: only the listed files and assets/README.md may stay (docs/art/inventory.md).");
+                    unlisted++;
+                }
             }
         }
 
         log.WriteLine($"{files.Count} files listed: {placeholders} placeholder, {broken} broken, {files.Count - placeholders - broken} replaced.");
-        return broken > 0 ? 2 : placeholders > 0 ? 1 : 0;
+        if (unlisted > 0)
+        {
+            log.WriteLine($"{unlisted} file(s) under assets/ are not listed.");
+        }
+
+        return broken > 0 || unlisted > 0 ? 2 : placeholders > 0 ? 1 : 0;
     }
 
     private static string FindRoot()

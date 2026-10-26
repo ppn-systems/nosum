@@ -59,8 +59,9 @@
                     <span>@Vm.Text("Market_Quantity")</span>
                     <GameInput Class="narrow" Type="number" Value="@Vm.SellQuantityText" ValueChanged="@(v => { Vm.SellQuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Market_Quantity")" MaxLength="4" />
                     <span class="sell-price">
+                        <span>@Vm.Text("Market_TotalPrice")</span>
                         <PriceInput Class="narrow" Value="@Vm.SellPriceText" ValueChanged="@(v => { Vm.SellPriceText = v; Vm.Touch(); })" OnEnter="@(() => Vm.Sell())"
-                                    Label="@Vm.Text("Market_PriceLabel")" Unit="@Vm.Text("Market_PriceLabel")" />
+                                    Label="@Vm.Text("Market_TotalPrice")" Unit="@Vm.Text("Market_PriceLabel")" />
                     </span>
                     <GameButton Text="@Vm.Text("Market_List")" OnClick="@(() => Vm.Sell())" />
                     @if (Vm.FeeSummary.Length > 0)

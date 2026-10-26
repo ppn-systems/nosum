@@ -77,6 +77,8 @@ The art remake replaces the placeholder sheets (the rectangles above change, the
 
 - **Window height.** `GameMenu` no longer has a fixed height: the window is `min-height 64 u`, `max-height 186 u`, and a page that needs more scrolls inside it (`MenuPage` body). The menu region
   (`hud-center`) is top-aligned at the position a full-height window plus its 13 u tab row would have when centred, so the tab row never moves while the window grows and shrinks between pages.
+  On a screen too short for 186 u (a landscape phone) the window is also capped at the screen height minus the gutters and the tab row, and the page scrolls inside it. Below 640 px wide the
+  16 u tabs shrink to share the window (a portrait phone); wider screens keep them at 16 u.
   A page may pin controls under its scrolling part with `MenuPage Footer` (the trade page pins confirm and cancel); `MenuPage Good` shows a success message in the "ok" colour instead of the refusal colour.
 - **Parchment.** The `fill` keyword is gone from the panel and section `border-image`s: the 9-slice centre of `MenuTiles.png` is a vertical gradient of about six bands, and stretching it over a tall window
   showed the bands. The centre is now the plain `--nosum-parchment` / `--nosum-parchment-deep` colour (sampled from the sheet's middle band), so every window and section is uniform at any height.

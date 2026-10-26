@@ -29,10 +29,10 @@ nosum/
 │   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
 ├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
 ├── bench/                        # Nosum.Bench.slnx — Nosum.Bench.Interop (browser benchmark, same WASM settings as wasm/) and Nosum.Bench.Load (headless load test of a running server, ADR-031 D8)
-├── assets/                       # placeholder content (unpacked Stardew Valley, 16 px, Tiled maps) — ADR-007, never shipped
+├── assets/                       # the replacement sprite sheets the game loads (own or CC0, 16 px); maps live in art/own/Maps — ADR-040
 ├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker, Nosum.AssetInventory); only area allowed an image package
-├── deploy/                       # images, compose (PostgreSQL, host, Caddy, backups), the placeholder-art gate — ADR-031; runbook in docs/ops/
-├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions) · art/ (placeholder inventory, ADR-040) · ops/ (operations runbook)
+├── deploy/                       # host image, compose (PostgreSQL, host, Cloudflare Tunnel, backups), the placeholder-art gate — ADR-031, ADR-041; runbook in docs/ops/
+├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions) · art/ (own maps and tilesheets, ADR-040) · ops/ (operations runbook)
 └── Directory.Build.props · Directory.Packages.props · Version.props · global.json
 ```
 

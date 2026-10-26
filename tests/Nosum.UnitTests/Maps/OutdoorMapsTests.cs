@@ -25,7 +25,7 @@ public sealed class OutdoorMapsTests
     private static (MapSpec Spec, TileMap Map, WalkGrid Grid) Load(string id, Func<string, bool>? unlocked = null)
     {
         _ = GameMaps.TryGet(id, out MapSpec? spec).Should().BeTrue(id);
-        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("assets", "Maps", spec!.TmxFile)));
+        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", spec!.TmxFile)));
         return (spec, map, spec.BuildWalkGrid(map, unlocked));
     }
 
@@ -185,7 +185,7 @@ public sealed class OutdoorMapsTests
     [Fact]
     public void BeachBridge_TilesMatchTheFile_TheBrokenBridgeActionSitsOnTheFirstPlank()
     {
-        string xml = File.ReadAllText(RepoFiles.Path("assets", "Maps", "Beach.tmx"));
+        string xml = File.ReadAllText(RepoFiles.Path("art", "own", "Maps", "Beach.tmx"));
 
         // Tiled objects are in pixels: (928, 208) is tile (58, 13).
         xml.Should().Contain("x=\"" + (OutdoorWorld.BridgeFromX * 16) + "\" y=\"" + (OutdoorWorld.BridgeY * 16) + "\"");

@@ -61,14 +61,14 @@ internal sealed class Inventory
     /// <summary>Gets the number of files under <c>assets/</c>, loaded or not.</summary>
     public int FilesInAssets { get; }
 
-    /// <summary>Reads the code and the maps of a checkout.</summary>
+    /// <summary>Reads the code, the maps and the sheets of a checkout.</summary>
     /// <param name="repoRoot">The repository root.</param>
+    /// <param name="placeholderAssets">The placeholder <c>assets/</c> folder (<c>NOSUM_PLACEHOLDER_ROOT</c>): the maps and sheets the cell counts come from.</param>
     /// <returns>The inventory.</returns>
-    public static Inventory Build(string repoRoot)
+    public static Inventory Build(string repoRoot, string placeholderAssets)
     {
-        string assets = Path.Combine(repoRoot, "assets");
-        UseLedger ledger = new(assets);
-        MapCatalog maps = MapUses.Collect(ledger, assets);
+        UseLedger ledger = new(placeholderAssets);
+        MapCatalog maps = MapUses.Collect(ledger, placeholderAssets);
         SpriteUses.Collect(ledger, repoRoot);
 
         // Files the game loads that are not Stardew content. Each is checked to exist, so the list cannot rot silently.
@@ -84,9 +84,10 @@ internal sealed class Inventory
             }
         }
 
-        int inAssets = Directory.GetFiles(assets, "*", SearchOption.AllDirectories).Length;
+        int inAssets = Directory.GetFiles(placeholderAssets, "*", SearchOption.AllDirectories).Length;
         string prints = Path.Combine(repoRoot, "docs", "art", Fingerprints.FileName);
         Fingerprints? recorded = File.Exists(prints) ? Fingerprints.Read(prints) : null;
+        string assets = Path.Combine(repoRoot, "assets");
         Dictionary<string, ArtState> states = new(StringComparer.Ordinal);
         foreach (string path in ledger.Files.Select(f => f.Path).Concat(maps.Files.Select(m => m.Path)))
         {

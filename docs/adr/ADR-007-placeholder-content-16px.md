@@ -1,6 +1,7 @@
 # ADR-007 — Development uses unpacked Stardew Valley content on a 16 px grid
 
-**Status:** Accepted (owner decision, 2026-10-25). Amends ADR-004 D1–D3, ADR-005 D1 and ADR-006 D1.
+**Status:** Accepted (owner decision, 2026-10-25). Amends ADR-004 D1–D3, ADR-005 D1 and ADR-006 D1. **Closed by ADR-040 (M6, 2026-10-26):** the
+repository holds no placeholder content any more; the git history still does (`docs/ops/README.md`).
 
 ## Context
 

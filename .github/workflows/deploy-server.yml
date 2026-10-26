@@ -1,0 +1,176 @@
+# Deploys the Nosum server to the one production host (docs/adr/ADR-041 D2, D6, D7). Manual only: a deploy is a decision.
+# The host runs deploy/compose.yaml behind a Cloudflare Tunnel (docs/ops/README.md has the secrets and the bootstrap).
+name: deploy-server
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  placeholder-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Refuse a public release while placeholder art is present
+        run: sh deploy/check-placeholder-art.sh public
+
+  build:
+    # The deploy waits for the placeholder gate: a refused gate stops it (docs/adr/ADR-041).
+    needs: placeholder-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push the host image, tagged with the commit
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/host.Dockerfile
+          build-args: NOSUM_RELEASE=private
+          push: true
+          tags: ghcr.io/ppn-systems/nosum-host:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare the deploy key (never printed)
+        id: prepare_key
+        env:
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          # A key pasted from a text editor often arrives with CRLF line endings or indented lines; both break the PEM parser.
+          normalized="$(printf '%s\n' "$PROD_SSH_KEY" | sed -e 's/\r$//' -e 's/^[[:space:]]*//')"
+          # Mask every line first, so the logs never show the key even if a later step echoes it.
+          printf '%s\n' "$normalized" | while IFS= read -r line; do
+            [ -n "$line" ] && echo "::add-mask::$line"
+          done
+          key="$RUNNER_TEMP/prod_ssh_key"
+          printf '%s\n' "$normalized" > "$key"
+          chmod 600 "$key"
+          if ! ssh-keygen -y -f "$key" > /dev/null 2>&1; then
+            echo "::error::PROD_SSH_KEY is not a complete OpenSSH private key. Set it again from the key file (no copy-paste with indentation)."
+            exit 1
+          fi
+          rm -f "$key"
+          {
+            echo "key<<PROD_KEY_EOF"
+            printf '%s\n' "$normalized"
+            echo "PROD_KEY_EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Copy the compose file and the backup scripts
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ steps.prepare_key.outputs.key }}
+          source: deploy/compose.yaml,deploy/backup/backup.sh,deploy/backup/restore.sh,deploy/backup/test-restore.sh
+          target: /opt/nosum
+          strip_components: 1
+      - name: Write the settings, pull the images, start, and check readiness
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          NOSUM_TAG: ${{ github.sha }}
+          NOSUM_ORIGIN: ${{ vars.NOSUM_ORIGIN }}
+          NOSUM_CALENDAR_EPOCH: ${{ vars.NOSUM_CALENDAR_EPOCH }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
+          NOSUM_SMTP_HOST: ${{ secrets.NOSUM_SMTP_HOST }}
+          NOSUM_SMTP_PORT: ${{ secrets.NOSUM_SMTP_PORT }}
+          NOSUM_SMTP_USER: ${{ secrets.NOSUM_SMTP_USER }}
+          NOSUM_SMTP_PASSWORD: ${{ secrets.NOSUM_SMTP_PASSWORD }}
+          NOSUM_SMTP_FROM: ${{ secrets.NOSUM_SMTP_FROM }}
+          NOSUM_SMTP_SSL: ${{ secrets.NOSUM_SMTP_SSL }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ steps.prepare_key.outputs.key }}
+          envs: NOSUM_TAG,NOSUM_ORIGIN,NOSUM_CALENDAR_EPOCH,POSTGRES_PASSWORD,CLOUDFLARE_TUNNEL_TOKEN,NOSUM_SMTP_HOST,NOSUM_SMTP_PORT,NOSUM_SMTP_USER,NOSUM_SMTP_PASSWORD,NOSUM_SMTP_FROM,NOSUM_SMTP_SSL,GHCR_USER,GHCR_TOKEN
+          script: |
+            set -eu
+            cd /opt/nosum
+            umask 077
+
+            # The settings file. Values come from the environment and are written, never echoed. The previous tag is kept for a rollback.
+            previous="$(sed -n 's/^NOSUM_TAG=//p' .env 2>/dev/null | tail -n 1 || true)"
+            {
+              printf 'POSTGRES_PASSWORD=%s\n' "$POSTGRES_PASSWORD"
+              printf 'CLOUDFLARE_TUNNEL_TOKEN=%s\n' "$CLOUDFLARE_TUNNEL_TOKEN"
+              printf 'NOSUM_ORIGIN=%s\n' "$NOSUM_ORIGIN"
+              printf 'NOSUM_TAG=%s\n' "$NOSUM_TAG"
+              printf 'NOSUM_PREVIOUS_TAG=%s\n' "$previous"
+              printf 'NOSUM_CALENDAR_EPOCH=%s\n' "${NOSUM_CALENDAR_EPOCH:-}"
+              printf 'NOSUM_SMTP_HOST=%s\n' "${NOSUM_SMTP_HOST:-}"
+              printf 'NOSUM_SMTP_PORT=%s\n' "${NOSUM_SMTP_PORT:-587}"
+              printf 'NOSUM_SMTP_USER=%s\n' "${NOSUM_SMTP_USER:-}"
+              printf 'NOSUM_SMTP_PASSWORD=%s\n' "${NOSUM_SMTP_PASSWORD:-}"
+              printf 'NOSUM_SMTP_FROM=%s\n' "${NOSUM_SMTP_FROM:-}"
+              printf 'NOSUM_SMTP_SSL=%s\n' "${NOSUM_SMTP_SSL:-true}"
+            } > .env.new
+            mv .env.new .env
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
+            trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+
+            dc() { docker compose --env-file .env -f compose.yaml "$@"; }
+            dc pull
+            dc up -d --remove-orphans
+
+            # Ready means the database answers, every migration is applied and the host listens (docs/ops/README.md, "Health").
+            ready() {
+              i=0
+              while [ "$i" -lt 30 ]; do
+                if dc exec -T host dotnet Nosum.Host.dll healthcheck >/dev/null 2>&1; then
+                  return 0
+                fi
+                i=$((i + 1))
+                sleep 10
+              done
+              return 1
+            }
+
+            if ready; then
+              echo "Deployed $NOSUM_TAG: the host is ready."
+              docker image prune -f --filter "until=168h" >/dev/null
+              exit 0
+            fi
+
+            echo "::error::The host is not ready after five minutes."
+            dc logs --tail 80 host || true
+            if [ -n "$previous" ]; then
+              echo "Rolling back to $previous."
+              sed -i "s/^NOSUM_TAG=.*/NOSUM_TAG=$previous/" .env
+              dc up -d host cloudflared
+              if ready; then
+                echo "Rolled back to $previous: the host is ready."
+              else
+                echo "::error::The rollback to $previous is not ready either. Check the host (docs/ops/README.md)."
+              fi
+            fi
+            exit 1

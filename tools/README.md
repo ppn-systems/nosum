@@ -12,6 +12,7 @@ only area allowed to use an image-processing package
 | `Nosum.MapReauthor` | Re-authors the placeholder `.tmx` of every hosted map: the ground layer onto Nosum's own terrain tileset by terrain kind (PixelLab corner sets plus a drawn cobble path), and paints own tilesheets, named like the placeholder sheets, for every other drawn layer ([ADR-040](../docs/adr/ADR-040-own-art-plan.md), [`art/`](../art/README.md)). |
 | `art_repack/` | Python 3 standard library only: rebuilds the replaced art under `assets/` from CC0 packs and pictures drawn in code (the farmer layers: `farmer.py`, buildable alone with `--only farmer`), and writes [`docs/art/provenance.md`](../docs/art/provenance.md) ([sourcing](../docs/art/sourcing.md)). Deterministic; `--check` fails when a file on disk differs. |
 | `synth_sounds.py` | Python 3 standard library only (no .NET project): synthesises Nosum's placeholder sound effects and the rain loop as 16-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
+| `synth_music.py` | Python 3 standard library only (no .NET project): composes Nosum's own music, eight seamless loops (one per season, day and night), as 8-bit mono WAV into `wasm/Nosum.Wasm/wwwroot/audio/music_*.wav` ([ADR-039](../docs/adr/ADR-039-audio-hooks.md)). Deterministic; `--check` fails when the committed files differ. |
 
 ```bash
 python3 tools/art_repack/repack_cc0_art.py --sources <dir with the unzipped packs> [--check] [--docs]   # packs and pins: docs/art/provenance.md
@@ -22,6 +23,8 @@ dotnet run --project tools/Nosum.AtlasPacker -- --assets <art dir> --out <atlas 
 Atlas JSON (format version 1): `image`, `width`, `height`, and `sprites` mapping each sprite
 name (the PNG file name) to `{ x, y, w, h }`. Sprites are padded by 2 px; atlas sides are
 powers of two; the same input always produces the same atlas.
+
+**Placeholder content.** The repository no longer holds the Stardew Valley placeholder files once M6 is done ([ADR-040](../docs/adr/ADR-040-own-art-plan.md) D9). The tools that read them read the folder named by `NOSUM_PLACEHOLDER_ROOT`: the `assets/` folder of commit `64ce88e`, for example `git archive 64ce88e assets | tar -x -C <dir>` and `NOSUM_PLACEHOLDER_ROOT=<dir>/assets`. These need it: `Nosum.AssetInventory` (write, `--check`, `--write-fingerprints`), `Nosum.MapReauthor` (`reauthor`, `preview --placeholder`). `--release` does not: it reads only `docs/art/placeholders.sha256` and the repository, and refuses any file under `assets/` that is not listed.
 
 ```bash
 dotnet run --project tools/Nosum.AssetInventory                      # rewrite docs/art/inventory.md

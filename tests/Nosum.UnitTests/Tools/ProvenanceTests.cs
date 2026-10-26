@@ -37,7 +37,12 @@ public sealed partial class ProvenanceTests
     [Fact]
     public void Files_EveryListedFile_IsAFileTheGameLoads()
     {
-        HashSet<string> loaded = [.. Inventory.Build(RepoFiles.Path()).Listed.Select(f => f.Path)];
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
+        HashSet<string> loaded = [.. Inventory.Build(RepoFiles.Path(), PlaceholderContent.Assets).Listed.Select(f => f.Path)];
 
         FilesSection().Select(m => m.Groups[1].Value).Should().OnlyContain(path => loaded.Contains(path), "provenance.md lists a file the inventory does not know");
     }

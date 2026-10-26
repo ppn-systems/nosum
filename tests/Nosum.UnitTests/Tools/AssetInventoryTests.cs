@@ -20,11 +20,16 @@ public sealed partial class AssetInventoryTests
 {
     private static readonly string[] s_sourceFolders = ["engine", "gameplay", "server", "wasm", "contracts"];
     private static readonly string[] s_sourceExtensions = [".cs", ".razor", ".js", ".css", ".html"];
-    private static readonly Lazy<Inventory> s_inventory = new(() => Inventory.Build(RepoFiles.Path()));
+    private static readonly Lazy<Inventory> s_inventory = new(() => Inventory.Build(RepoFiles.Path(), PlaceholderContent.Assets));
 
     [Fact]
     public void Report_ListsExactlyTheFilesTheCodeLoads()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         string report = File.ReadAllText(RepoFiles.Path("docs", "art", "inventory.md"));
         HashSet<string> listed = [.. ReportRow().Matches(report).Select(m => $"{m.Groups[1].Value} {m.Groups[2].Value}x{m.Groups[3].Value}")];
         HashSet<string> loaded = [.. s_inventory.Value.Listed.Select(f => $"{f.Path} {f.Width}x{f.Height}")];
@@ -36,6 +41,11 @@ public sealed partial class AssetInventoryTests
     [Fact]
     public void ProjectContentLinks_AreAllListed()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         HashSet<string> loaded = [.. s_inventory.Value.Listed.Select(f => f.Path)];
         List<string> unlisted = [];
         foreach (string project in SourceFiles(".csproj"))
@@ -60,7 +70,12 @@ public sealed partial class AssetInventoryTests
     [Fact]
     public void SourceLiterals_NamingAnAssetsFile_NameAListedOne()
     {
-        string assets = RepoFiles.Path("assets");
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
+        string assets = PlaceholderContent.Assets;
         HashSet<string> assetNames = new(StringComparer.OrdinalIgnoreCase);
         foreach (string file in Directory.EnumerateFiles(assets, "*", SearchOption.AllDirectories))
         {
@@ -113,6 +128,11 @@ public sealed partial class AssetInventoryTests
     [Fact]
     public void Fingerprints_RecordEveryListedFileAtItsCurrentSize()
     {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
         Fingerprints recorded = Fingerprints.Read(RepoFiles.Path("docs", "art", Fingerprints.FileName));
 
         recorded.Entries.Keys.Should().BeEquivalentTo(s_inventory.Value.Listed.Select(f => f.Path), "a new placeholder file needs `--write-fingerprints` (docs/adr/ADR-040 D6)");
@@ -125,7 +145,14 @@ public sealed partial class AssetInventoryTests
 
     [Fact]
     public void Render_SameInput_SameText()
-        => ReportWriter.Render(s_inventory.Value).Should().Be(ReportWriter.Render(Inventory.Build(RepoFiles.Path())));
+    {
+        if (!PlaceholderContent.Available)
+        {
+            return;
+        }
+
+        ReportWriter.Render(s_inventory.Value).Should().Be(ReportWriter.Render(Inventory.Build(RepoFiles.Path(), PlaceholderContent.Assets)));
+    }
 
     [Fact]
     public void Release_ReplacedSheetOfTheSameSize_PassesAndWrongSizeFails()
@@ -154,6 +181,60 @@ public sealed partial class AssetInventoryTests
         finally
         {
             Directory.Delete(assets, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Release_UnlistedFileUnderAssets_FailsExceptTheReadme()
+    {
+        string root = Directory.CreateTempSubdirectory("nosum-gate-").FullName;
+        try
+        {
+            string assets = Path.Combine(root, "assets");
+            _ = Directory.CreateDirectory(assets);
+            File.WriteAllBytes(Path.Combine(assets, "sheet.png"), PngWithHeader(32, 16, 2));
+            File.WriteAllText(Path.Combine(assets, "README.md"), "# assets");
+            string prints = Path.Combine(root, "placeholders.sha256");
+            File.WriteAllText(prints, "0000000000000000000000000000000000000000000000000000000000000000 32x16 sheet.png\n");
+            List<ListedFile> listed = [new("sheet.png", 32, 16)];
+
+            Program.Release(listed, Fingerprints.Read(prints), assets, TextWriter.Null).Should().Be(0, "the README and the listed replacement are allowed");
+
+            File.WriteAllBytes(Path.Combine(assets, "stray.png"), PngWithHeader(8, 8, 3));
+            using StringWriter log = new();
+            Program.Release(listed, Fingerprints.Read(prints), assets, log).Should().Be(2, "assets/ holds a file the inventory does not list");
+            log.ToString().Should().Contain("UNLISTED      assets/stray.png");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Release_PlaceholderAtItsAssetsPath_FailsEvenWithAnOwnReplacement()
+    {
+        string root = Directory.CreateTempSubdirectory("nosum-gate-").FullName;
+        try
+        {
+            string assets = Path.Combine(root, "assets");
+            _ = Directory.CreateDirectory(Path.Combine(assets, "Maps"));
+            _ = Directory.CreateDirectory(Path.Combine(root, "art", "own", "Maps"));
+            File.WriteAllText(Path.Combine(assets, "Maps", "Farm.tmx"), "<map>placeholder</map>");
+            File.WriteAllText(Path.Combine(root, "art", "own", "Maps", "Farm.tmx"), "<map>own</map>");
+            List<ListedFile> listed = [new("Maps/Farm.tmx", 16, 16)];
+            Fingerprints recorded = Fingerprints.Capture(listed, assets);
+
+            using StringWriter log = new();
+            Program.Release(listed, recorded, assets, log).Should().Be(1, "the stale placeholder is still in assets/, whatever its replacement says");
+            log.ToString().Should().Contain("PLACEHOLDER   Maps/Farm.tmx");
+
+            File.Delete(Path.Combine(assets, "Maps", "Farm.tmx"));
+            Program.Release(listed, recorded, assets, TextWriter.Null).Should().Be(0, "without the placeholder file, the own replacement is what the game loads");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
         }
     }
 

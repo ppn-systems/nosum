@@ -333,6 +333,7 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
             Port = _options.Port,
             ServerPublicKey = pinnedKey,
             AllowTofu = pinnedKey is null,
+            KeepAliveIntervalMillis = (int)_options.KeepAliveInterval.TotalMilliseconds,
         };
 
     private WebSocketTransportOptions WebSocketOptions()

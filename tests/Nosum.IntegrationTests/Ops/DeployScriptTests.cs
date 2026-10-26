@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Npgsql;
@@ -67,6 +68,43 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     }
 
     [Fact]
+    public async Task Gate_PublicWithAnUnlistedFileUnderAssets_IsRefused()
+    {
+        string root = this.RepositoryWith(marker: false);
+        await File.WriteAllTextAsync(Path.Combine(root, "assets", "Stray.png"), "not in the inventory");
+
+        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
+
+        code.Should().Be(1);
+        output.Should().Contain("UNLISTED      assets/Stray.png").And.Contain("REFUSED");
+    }
+
+    [Fact]
+    public async Task Gate_PublicWithAPlaceholderFileStillAtItsPath_IsRefused()
+    {
+        string root = this.RepositoryWith(marker: false);
+        await File.WriteAllTextAsync(Path.Combine(root, "assets", "Placeholder.png"), "placeholder bytes");
+        RecordPlaceholder(root, "Placeholder.png", "placeholder bytes", "1x1");
+
+        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
+
+        code.Should().Be(1);
+        output.Should().Contain("PLACEHOLDER   Placeholder.png").And.Contain("REFUSED");
+    }
+
+    [Fact]
+    public async Task Gate_PublicWithAListedFileMissing_IsRefused()
+    {
+        string root = this.RepositoryWith(marker: false);
+        RecordPlaceholder(root, "Gone.png", "any bytes", "1x1");
+
+        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
+
+        code.Should().Be(1);
+        output.Should().Contain("MISSING       Gone.png").And.Contain("REFUSED");
+    }
+
+    [Fact]
     public async Task Gate_UnknownRelease_IsABadArgument()
     {
         (int code, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "staging", this.RepositoryWith(marker: false)]);
@@ -80,7 +118,7 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
         (int publicCode, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh")], new Dictionary<string, string> { ["NOSUM_RELEASE"] = "public" });
         (int privateCode, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh")], new Dictionary<string, string> { ["NOSUM_RELEASE"] = "private" });
 
-        publicCode.Should().Be(1, "assets/PLACEHOLDER_CONTENT is still in the repository");
+        publicCode.Should().Be(0, "the repository holds no placeholder content any more (M6, ADR-040 phase 4)");
         privateCode.Should().Be(0);
     }
 
@@ -89,14 +127,13 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     [Theory]
     [InlineData("server/Nosum.Host/Nosum.Host.csproj")]
     [InlineData("wasm/Nosum.Wasm/Nosum.Wasm.csproj")]
-    public async Task GateTarget_PublicReleaseInTheRealRepository_FailsWhileThePlaceholderMarkerIsThere(string project)
+    public async Task GateTarget_PublicReleaseInTheRealRepository_Passes(string project)
     {
-        File.Exists(Path.Combine(RepositoryRoot(), "assets", "PLACEHOLDER_CONTENT")).Should().BeTrue("M6 deletes the marker; until then this test pins the gate on");
+        File.Exists(Path.Combine(RepositoryRoot(), "assets", "PLACEHOLDER_CONTENT")).Should().BeFalse("M6 removed the marker (ADR-040 phase 4)");
 
         (int code, string output) = await RunDotnetAsync(["msbuild", Path.Combine(RepositoryRoot(), project), "-t:NosumPlaceholderGate", "-p:NosumRelease=public", "-nologo", "-v:q"]);
 
-        code.Should().NotBe(0);
-        output.Should().Contain("ADR-007");
+        code.Should().Be(0, output);
     }
 
     [Fact]
@@ -113,6 +150,32 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
         publicClean.Should().Be(0);
         privateMarked.Should().Be(0);
         publicMarked.Should().NotBe(0);
+    }
+
+    // ---- production compose (docs/adr/ADR-041 D2), read through `docker compose config` ----
+
+    [Fact]
+    public async Task Compose_PublishesOnlyTheGameWebSocketOnLoopback()
+    {
+        JsonElement services = await ComposeServicesAsync();
+
+        services.TryGetProperty("caddy", out _).Should().BeFalse("the Cloudflare Tunnel replaces the proxy");
+        services.TryGetProperty("web", out _).Should().BeFalse("the web client is on Cloudflare Pages");
+        PublishedPorts(services, "postgres").Should().BeEmpty("PostgreSQL is never published (ADR-031 D1)");
+        PublishedPorts(services, "cloudflared").Should().BeEmpty("the connector accepts no inbound connection");
+        PublishedPorts(services, "backup").Should().BeEmpty();
+        PublishedPorts(services, "host").Should().ContainSingle("the game WebSocket is the only published port, and the ops port is not published")
+            .Which.Should().Be("127.0.0.1:57300->57300");
+    }
+
+    [Fact]
+    public async Task Compose_TunnelConnectorStartsOnlyOnceTheHostIsHealthy()
+    {
+        JsonElement services = await ComposeServicesAsync();
+
+        services.GetProperty("cloudflared").GetProperty("environment").GetProperty("TUNNEL_TOKEN").GetString().Should().NotBeNullOrEmpty();
+        services.GetProperty("cloudflared").GetProperty("depends_on").GetProperty("host").GetProperty("condition").GetString()
+            .Should().Be("service_healthy");
     }
 
     // ---- host entrypoint ----
@@ -191,6 +254,42 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
 
     // ---- helpers ----
 
+    // The services of deploy/compose.yaml as Docker Compose resolves them; the variables it requires are set to dummies.
+    private static async Task<JsonElement> ComposeServicesAsync()
+    {
+        Dictionary<string, string> environment = new()
+        {
+            ["POSTGRES_PASSWORD"] = "test",
+            ["NOSUM_ORIGIN"] = "https://nosum.pages.dev",
+            ["NOSUM_TAG"] = "test",
+            ["CLOUDFLARE_TUNNEL_TOKEN"] = "test",
+        };
+
+        (int code, string output) = await RunAsync("docker", ["compose", "-f", DeployFile("compose.yaml"), "config", "--format", "json"], environment);
+
+        code.Should().Be(0, output);
+        using JsonDocument document = JsonDocument.Parse(output);
+        return document.RootElement.GetProperty("services").Clone();
+    }
+
+    // "host_ip:published->target" for every published port of a service; an empty list when it publishes none.
+    private static List<string> PublishedPorts(JsonElement services, string service)
+    {
+        List<string> published = [];
+        if (!services.GetProperty(service).TryGetProperty("ports", out JsonElement ports))
+        {
+            return published;
+        }
+
+        foreach (JsonElement port in ports.EnumerateArray())
+        {
+            string address = port.TryGetProperty("host_ip", out JsonElement ip) ? ip.GetString()! : "0.0.0.0";
+            published.Add($"{address}:{port.GetProperty("published").GetString()}->{port.GetProperty("target").GetInt32()}");
+        }
+
+        return published;
+    }
+
     private static string[] SectionOf(string[] lines, string header)
     {
         int start = Array.IndexOf(lines, header);
@@ -202,17 +301,26 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     private static Dictionary<string, string> Entrypoint(string config, string origin, string proxies)
         => new() { ["NALIX_CONFIG_PATH"] = config, ["NOSUM_ORIGIN"] = origin, ["NOSUM_TRUSTED_PROXIES"] = proxies };
 
-    // A fake repository root: only the marker matters to the gate.
+    // A fake repository root: the marker, and an empty list of placeholder files, so the release check has nothing to refuse.
     private string RepositoryWith(bool marker)
     {
         string root = Path.Combine(_scratch, "repo-" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(Path.Combine(root, "assets"));
+        Directory.CreateDirectory(Path.Combine(root, "docs", "art"));
+        File.WriteAllText(Path.Combine(root, "docs", "art", "placeholders.sha256"), "# the placeholder files the release check knows\n");
         if (marker)
         {
             File.WriteAllText(Path.Combine(root, "assets", "PLACEHOLDER_CONTENT"), "placeholder");
         }
 
         return root;
+    }
+
+    // Records a file as a placeholder, as `--write-fingerprints` would: its SHA-256 and its size.
+    private static void RecordPlaceholder(string root, string path, string content, string size)
+    {
+        string hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(content))).ToLowerInvariant();
+        File.AppendAllText(Path.Combine(root, "docs", "art", "placeholders.sha256"), $"{hash} {size} {path}\n");
     }
 
     private static string RepositoryRoot()
