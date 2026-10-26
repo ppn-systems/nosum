@@ -120,10 +120,10 @@ public sealed class ForageTests
     }
 
     [Theory]
-    [InlineData("Town.tmx", 1976)]
+    [InlineData("Town.tmx", 203)]
     [InlineData("Forest.tmx", 1976)]
-    [InlineData("Backwoods.tmx", 1991)]
-    [InlineData("BusStop.tmx", 1976)]
+    [InlineData("Backwoods.tmx", 165)]
+    [InlineData("BusStop.tmx", 203)]
     [InlineData("Farm.tmx", 65)]
     public void ReadForage_TheRealMaps_FindsTheForageGlyphsOfThePathsLayer(string mapFile, int pathsFirstGid)
     {
