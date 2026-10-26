@@ -183,13 +183,31 @@ public sealed class OutdoorMapsTests
     }
 
     [Fact]
-    public void BeachBridge_TilesMatchTheFile_TheBrokenBridgeActionSitsOnTheFirstPlank()
+    public void BeachBridge_TheSpanIsOverWater_AndTheBanksAreDry()
     {
-        string xml = File.ReadAllText(RepoFiles.Path("art", "own", "Maps", "Beach.tmx"));
+        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", "Beach.tmx")));
+        TileLayer ground = map.FindLayer("Back")!;
+        int Index(int x, int y) => (y * map.Width) + x;
 
-        // Tiled objects are in pixels: (928, 208) is tile (58, 13).
-        xml.Should().Contain("x=\"" + (OutdoorWorld.BridgeFromX * 16) + "\" y=\"" + (OutdoorWorld.BridgeY * 16) + "\"");
-        xml.Should().Contain("BrokenBeachBridge");
+        for (int x = OutdoorWorld.BridgeFromX; x <= OutdoorWorld.BridgeToX; x++)
+        {
+            (map.GetTraits(ground.Gids[Index(x, OutdoorWorld.BridgeY)]) & TileTraits.Water).Should().Be(TileTraits.Water, $"the gate tile {x} is the river the planks cross");
+        }
+
+        (map.GetTraits(ground.Gids[Index(OutdoorWorld.BridgeWestBank.X, OutdoorWorld.BridgeWestBank.Y)]) & TileTraits.Water).Should().Be(TileTraits.None, "the west bank is dry");
+        (map.GetTraits(ground.Gids[Index(OutdoorWorld.BridgeEastBank.X, OutdoorWorld.BridgeEastBank.Y)]) & TileTraits.Water).Should().Be(TileTraits.None, "the east bank is dry");
+    }
+
+    [Fact]
+    public void BridgePlank_IsAPassablePlankOfTheTownSheet_ThatTheMountainBridgeUses()
+    {
+        // The browser draws OutdoorWorld.BridgePlankTile of the town sheet over the Beach gate; the Mountain's bridge planks are the same sheet and must include it.
+        TileMap map = TmxReader.Parse(File.ReadAllText(RepoFiles.Path("art", "own", "Maps", "Mountain.tmx")));
+        TileSet town = map.TileSets.Single(t => t.Name == "town");
+        int plank = map.FindLayer("Buildings")!.Gids[(7 * map.Width) + 46];
+
+        (plank - town.FirstGid).Should().Be(OutdoorWorld.BridgePlankTile);
+        (map.GetTraits(plank) & TileTraits.Passable).Should().Be(TileTraits.Passable, "a walker stands on the plank");
     }
 
     [Fact]

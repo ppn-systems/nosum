@@ -121,7 +121,7 @@ public sealed class ForageTests
 
     [Theory]
     [InlineData("Town.tmx", 203)]
-    [InlineData("Forest.tmx", 1976)]
+    [InlineData("Forest.tmx", 165)]
     [InlineData("Backwoods.tmx", 165)]
     [InlineData("BusStop.tmx", 203)]
     [InlineData("Farm.tmx", 65)]

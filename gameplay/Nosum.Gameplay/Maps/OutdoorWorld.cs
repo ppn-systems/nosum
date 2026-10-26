@@ -7,12 +7,15 @@ using Nosum.Gameplay.Nodes;
 namespace Nosum.Gameplay.Maps;
 
 /// <summary>
-/// What the placeholder files of the Mountain, the Beach and the Secret Woods do not say (docs/adr/ADR-007, ADR-037): the tiles of the Beach's broken bridge, where shells
+/// What the own maps of the Mountain, the Beach and the Secret Woods do not draw (docs/adr/ADR-037, ADR-042 P5c): the tiles of the Beach's broken bridge, where shells
 /// wash up, the large stumps of the Woods and where extra stones, twigs and weeds lie. Tile coordinates, checked against the map files by tests.
 /// </summary>
 public static class OutdoorWorld
 {
-    /// <summary>First tile x of the broken span of the Beach bridge (the gap in the river, the file's <c>BrokenBeachBridge</c> action is on its first tile).</summary>
+    /// <summary>Index on the <c>town</c> sheet of the plank drawn over the Beach bridge's gate (a passable plank of <c>town.tileset</c>, see <c>BridgeDecorator</c>).</summary>
+    public const int BridgePlankTile = 16;
+
+    /// <summary>First tile x of the broken span of the Beach bridge (the gap in the river, where the Beach layout runs water).</summary>
     public const int BridgeFromX = 58;
 
     /// <summary>Last tile x of the broken span of the Beach bridge.</summary>
