@@ -5,9 +5,6 @@ namespace Nosum.Gameplay.Nodes;
 /// <summary>Constants of the node system.</summary>
 public static class NodeLimits
 {
-    /// <summary>Side of a chunk in tiles (docs/adr/ADR-022 D1).</summary>
-    public const int ChunkSize = 16;
-
     /// <summary>Most nodes one instance may hold; a snapshot of a full instance must fit one packet.</summary>
     public const int MaxPerInstance = 1500;
 

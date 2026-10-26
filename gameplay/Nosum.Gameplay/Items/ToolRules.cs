@@ -27,9 +27,6 @@ public enum AreaVerdict
 /// </summary>
 public static class ToolRules
 {
-    /// <summary>The longest line any tool works (an iron hoe or can).</summary>
-    public const int MaxAreaLength = 5;
-
     /// <summary>Gets the highest tier there is.</summary>
     public const ToolTier TopTier = ToolTier.Iron;
 

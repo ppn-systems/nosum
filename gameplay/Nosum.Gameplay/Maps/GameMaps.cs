@@ -152,11 +152,6 @@ public static class GameMaps
         new(Barn, "Barn.tmx", 11, 13, isPrivate: true, interiorOf: BuildingKind.Barn, indoors: true),
     ];
 
-    /// <summary>Returns the id of a mine floor map, for example <c>mine7</c>.</summary>
-    /// <param name="floor">The floor, 1 to <see cref="MineRules.MaxFloor"/>.</param>
-    /// <returns>The id.</returns>
-    public static string MineFloorId(int floor) => MineRules.FloorMapId(floor);
-
     /// <summary>Gets every hosted map.</summary>
     public static IReadOnlyList<MapSpec> All => s_all;
 

@@ -62,14 +62,8 @@ public sealed class PlacementViewModel : IObservableViewModel
     /// <summary>Gets the localized explanation of the keys.</summary>
     public string Hint => _text["Placement_Hint"];
 
-    /// <summary>Gets the localized label of the rotate button.</summary>
-    public string RotateLabel => _text["Placement_Rotate"];
-
     /// <summary>Gets the localized label of the move button (grab, or put back while carrying).</summary>
     public string GrabLabel => _text[_carryingItemId == 0 ? "Placement_Move" : "Placement_Cancel"];
-
-    /// <summary>Gets the localized label of the pick-up button.</summary>
-    public string PickUpLabel => _text["Placement_PickUp"];
 
     /// <summary>Gets the one-word label of the place key (<c>E</c>) in the key strip.</summary>
     public string StripPlaceLabel => _text["Placement_Strip_Place"];

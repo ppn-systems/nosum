@@ -137,12 +137,6 @@ internal sealed class MapScene
     /// <summary>Gets the id of the map being shown (the old one until a map change has faded out).</summary>
     public string MapId => _content.Spec.Id;
 
-    /// <summary>Gets the opacity of the black fade over the scene, 0 (clear) to 1.</summary>
-    public double Fade => _fade;
-
-    /// <summary>Gets whether a map change is in progress and the farmer cannot be moved.</summary>
-    public bool IsChangingMap => _phase == Phase.FadingOut;
-
     /// <summary>
     /// Advances the simulation and encodes the frame.
     /// </summary>

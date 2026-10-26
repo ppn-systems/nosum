@@ -40,9 +40,6 @@ internal sealed class GameAudio
         }
     }
 
-    /// <summary>Gets the cues; tests read them.</summary>
-    internal SoundCues Cues => _queue;
-
     /// <summary>Loads every file of <see cref="AudioCatalog.Files"/> and tells the browser which sound a button click plays. Never throws: a file that does not load is silence.</summary>
     /// <returns>A task that completes when every file was tried.</returns>
     [SupportedOSPlatform("browser")]

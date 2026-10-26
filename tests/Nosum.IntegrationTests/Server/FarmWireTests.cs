@@ -629,7 +629,6 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
         private readonly Inbox<bool> _prompt = new();
         private readonly Inbox<GroundItemRow> _spawned = new();
         private readonly Inbox<GroundItemTaken> _taken = new();
-        private uint _moveSequence;
 
         private FarmClient(WebSocketSession session)
         {
@@ -725,22 +724,6 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
         }
 
         public Task<GroundItemRow> WaitForGroundItemAsync(Func<GroundItemRow, bool> predicate, CancellationToken ct) => _spawned.WaitAsync(predicate, ct);
-
-        // Walks in small legal steps (the server checks speed) until the item is reported taken, as the real client's 10 Hz reports would.
-        public async Task WalkUntilPickedUpAsync(JoinMapResult join, long itemId, CancellationToken ct)
-        {
-            Task<GroundItemTaken> taken = _taken.WaitAsync(t => t.Id == itemId, ct);
-            float x = join.SpawnX;
-            for (int step = 0; step < 40 && !taken.IsCompleted; step++)
-            {
-                x += step % 2 == 0 ? 1f : -1f;
-                using MoveIntent intent = new() { Sequence = ++_moveSequence, X = x, Y = join.SpawnY, Facing = 1, Moving = true };
-                await _session.SendAsync(intent, ct);
-                _ = await Task.WhenAny(taken, Task.Delay(120, ct));
-            }
-
-            (await taken).Reason.Should().Be(GroundItemGone.PickedUp);
-        }
 
         public async Task<QuestLog> GetQuestsAsync(CancellationToken ct)
         {

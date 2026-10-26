@@ -349,13 +349,6 @@ internal sealed partial class SocialClient : IAsyncDisposable
         return (await this.RequestAsync<CoopResult>(request, ct)).Status;
     }
 
-    public async Task<CoopCopy> GetCoopAsync(CancellationToken ct)
-    {
-        using GetCoop request = new();
-        CoopSnapshot p = await this.RequestAsync<CoopSnapshot>(request, ct);
-        return new CoopCopy(p.HasCoop, p.Name, p.Role, [.. p.Members.Select(m => new CoopMemberRow { MemberId = m.MemberId, Role = m.Role, IsMe = m.IsMe, Online = m.Online, Nickname = m.Nickname })], [.. p.Stock.Select(s => (s.ItemId, s.Quantity, s.Available))], [.. p.Invites.Select(i => i.InviteId)]);
-    }
-
     public async Task<CoopStatus> CoopInviteAsync(uint target, CancellationToken ct)
     {
         using InvitePlayer request = new() { TargetPlayerId = target };

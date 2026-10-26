@@ -46,9 +46,6 @@ public sealed class SoundCues
     /// <summary>Gets the music track wanted, 0 for silence.</summary>
     public int Music => _music;
 
-    /// <summary>Gets the ambient loop wanted, 0 for none.</summary>
-    public int AmbientLoop => _loop;
-
     /// <summary>Sets how soon a sound may play again after it was accepted.</summary>
     /// <param name="soundId">Sound id, 1 to <see cref="MaxSounds"/> - 1.</param>
     /// <param name="seconds">Minimum seconds between two plays; 0 for no limit.</param>
