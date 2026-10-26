@@ -40,6 +40,8 @@ if [ "$release" = "public" ]; then
     exit 1
   fi
 
+  # No reusable MSBuild nodes or build server: they inherit the output pipe and keep it open, so the capture below would never end.
+  export MSBUILDDISABLENODEREUSE=1 DOTNET_CLI_USE_MSBUILD_SERVER=0 UseSharedCompilation=false
   if ! report="$(dotnet run --project "$here/tools/Nosum.AssetInventory" -- --repo "$root" --release 2>&1)"; then
     printf '%s\n' "$report" >&2
     echo "REFUSED: assets/ does not pass the release check: a file is still a placeholder, missing, or not listed (docs/adr/ADR-040 D8)." >&2
