@@ -56,12 +56,25 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare the deploy key (never printed)
+        env:
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          # A key pasted from a text editor often arrives with CRLF line endings or indented lines; both break the PEM parser.
+          key="$RUNNER_TEMP/prod_ssh_key"
+          printf '%s\n' "$PROD_SSH_KEY" | sed -e 's/\r$//' -e 's/^[[:space:]]*//' > "$key"
+          chmod 600 "$key"
+          if ! ssh-keygen -y -f "$key" > /dev/null 2>&1; then
+            echo "::error::PROD_SSH_KEY is not a complete OpenSSH private key. Set it again from the key file (no copy-paste with indentation)."
+            exit 1
+          fi
+          echo "PROD_SSH_KEY_PATH=$key" >> "$GITHUB_ENV"
       - name: Copy the compose file and the backup scripts
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_SSH_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          key_path: ${{ env.PROD_SSH_KEY_PATH }}
           source: deploy/compose.yaml,deploy/backup/backup.sh,deploy/backup/restore.sh,deploy/backup/test-restore.sh
           target: /opt/nosum
           strip_components: 1
@@ -84,7 +97,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_SSH_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          key_path: ${{ env.PROD_SSH_KEY_PATH }}
           envs: NOSUM_TAG,NOSUM_ORIGIN,NOSUM_CALENDAR_EPOCH,POSTGRES_PASSWORD,CLOUDFLARE_TUNNEL_TOKEN,NOSUM_SMTP_HOST,NOSUM_SMTP_PORT,NOSUM_SMTP_USER,NOSUM_SMTP_PASSWORD,NOSUM_SMTP_FROM,NOSUM_SMTP_SSL,GHCR_USER,GHCR_TOKEN
           script: |
             set -eu
