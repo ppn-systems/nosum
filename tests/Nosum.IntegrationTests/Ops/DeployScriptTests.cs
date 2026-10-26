@@ -68,6 +68,43 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     }
 
     [Fact]
+    public async Task Gate_PublicWithAnUnlistedFileUnderAssets_IsRefused()
+    {
+        string root = this.RepositoryWith(marker: false);
+        await File.WriteAllTextAsync(Path.Combine(root, "assets", "Stray.png"), "not in the inventory");
+
+        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
+
+        code.Should().Be(1);
+        output.Should().Contain("UNLISTED      assets/Stray.png").And.Contain("REFUSED");
+    }
+
+    [Fact]
+    public async Task Gate_PublicWithAPlaceholderFileStillAtItsPath_IsRefused()
+    {
+        string root = this.RepositoryWith(marker: false);
+        await File.WriteAllTextAsync(Path.Combine(root, "assets", "Placeholder.png"), "placeholder bytes");
+        RecordPlaceholder(root, "Placeholder.png", "placeholder bytes", "1x1");
+
+        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
+
+        code.Should().Be(1);
+        output.Should().Contain("PLACEHOLDER   Placeholder.png").And.Contain("REFUSED");
+    }
+
+    [Fact]
+    public async Task Gate_PublicWithAListedFileMissing_IsRefused()
+    {
+        string root = this.RepositoryWith(marker: false);
+        RecordPlaceholder(root, "Gone.png", "any bytes", "1x1");
+
+        (int code, string output) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "public", root]);
+
+        code.Should().Be(1);
+        output.Should().Contain("MISSING       Gone.png").And.Contain("REFUSED");
+    }
+
+    [Fact]
     public async Task Gate_UnknownRelease_IsABadArgument()
     {
         (int code, _) = await RunAsync("sh", [DeployFile("check-placeholder-art.sh"), "staging", this.RepositoryWith(marker: false)]);
@@ -265,17 +302,26 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     private static Dictionary<string, string> Entrypoint(string config, string origin, string proxies)
         => new() { ["NALIX_CONFIG_PATH"] = config, ["NOSUM_ORIGIN"] = origin, ["NOSUM_TRUSTED_PROXIES"] = proxies };
 
-    // A fake repository root: only the marker matters to the gate.
+    // A fake repository root: the marker, and an empty list of placeholder files, so the release check has nothing to refuse.
     private string RepositoryWith(bool marker)
     {
         string root = Path.Combine(_scratch, "repo-" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(Path.Combine(root, "assets"));
+        Directory.CreateDirectory(Path.Combine(root, "docs", "art"));
+        File.WriteAllText(Path.Combine(root, "docs", "art", "placeholders.sha256"), "# the placeholder files the release check knows\n");
         if (marker)
         {
             File.WriteAllText(Path.Combine(root, "assets", "PLACEHOLDER_CONTENT"), "placeholder");
         }
 
         return root;
+    }
+
+    // Records a file as a placeholder, as `--write-fingerprints` would: its SHA-256 and its size.
+    private static void RecordPlaceholder(string root, string path, string content, string size)
+    {
+        string hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(content))).ToLowerInvariant();
+        File.AppendAllText(Path.Combine(root, "docs", "art", "placeholders.sha256"), $"{hash} {size} {path}\n");
     }
 
     private static string RepositoryRoot()

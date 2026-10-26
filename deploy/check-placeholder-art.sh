@@ -1,15 +1,17 @@
 #!/bin/sh
-# Placeholder-art gate (docs/adr/ADR-031 D9, docs/adr/ADR-007).
+# Placeholder-art gate (docs/adr/ADR-031 D9, docs/adr/ADR-007, docs/adr/ADR-040 D8).
 #
 #   check-placeholder-art.sh [public|private] [repository-root]
 #
-# While assets/PLACEHOLDER_CONTENT exists the repository holds the Stardew Valley placeholder content, which must never be
-# shipped publicly. A "public" build then fails (exit 1); a "private" build (the team's own deployment) passes with a warning.
-# The release defaults to $NOSUM_RELEASE, then to "private". Exit 2 = bad arguments.
+# A public build passes only when all three hold: assets/PLACEHOLDER_CONTENT is gone; Nosum.AssetInventory --release reports no placeholder
+# and no broken file; and assets/ holds nothing but the listed files and assets/README.md (the tool checks the last two). A private build
+# (the team's own deployment) passes with a warning while the marker exists. The release defaults to $NOSUM_RELEASE, then to "private".
+# Exit 1 = refused, 2 = bad arguments.
 set -eu
 
+here="$(cd "$(dirname "$0")/.." && pwd)"
 release="${1:-${NOSUM_RELEASE:-private}}"
-root="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
+root="${2:-$here}"
 marker="$root/assets/PLACEHOLDER_CONTENT"
 
 case "$release" in
@@ -30,6 +32,19 @@ if [ -e "$marker" ]; then
     exit 1
   fi
   echo "warning: this build contains placeholder art (docs/adr/ADR-007): do not publish it." >&2
+fi
+
+if [ "$release" = "public" ]; then
+  if ! command -v dotnet >/dev/null 2>&1; then
+    echo "REFUSED: the release check runs tools/Nosum.AssetInventory, and it needs dotnet." >&2
+    exit 1
+  fi
+
+  if ! report="$(dotnet run --project "$here/tools/Nosum.AssetInventory" -- --repo "$root" --release 2>&1)"; then
+    printf '%s\n' "$report" >&2
+    echo "REFUSED: assets/ does not pass the release check: a file is still a placeholder, missing, or not listed (docs/adr/ADR-040 D8)." >&2
+    exit 1
+  fi
 fi
 
 exit 0
