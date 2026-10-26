@@ -24,6 +24,8 @@ jobs:
         run: sh deploy/check-placeholder-art.sh public
 
   publish:
+    # The deploy waits for the placeholder gate: a refused gate stops it (docs/adr/ADR-041).
+    needs: placeholder-gate
     runs-on: ubuntu-latest
     environment: production
     steps:
