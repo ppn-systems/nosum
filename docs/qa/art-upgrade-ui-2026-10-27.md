@@ -10,6 +10,8 @@ Branch `feat/art-upgrade-ui`. Every shot is the real game in Chromium (Playwrigh
 | Dialog: the mine elevator picker (the game has no NPC speech box; this is its dialog window) | [before](art-ui-before-dialog-1280x720.png) | [after](art-ui-after-dialog-1280x720.png) | [before](art-ui-before-dialog-1920x1080.png) | [after](art-ui-after-dialog-1920x1080.png) |
 | Quest card, cropped from the HUD shot at native size | [before](art-ui-before-quest-card-1280x720.png) | [after](art-ui-after-quest-card-1280x720.png) | [before](art-ui-before-quest-card-1920x1080.png) | [after](art-ui-after-quest-card-1920x1080.png) |
 
+The narrow-window overlay of the device gate (PR #71) is a `GamePanel`, so it wears the same frame: [after, 480 x 720](art-ui-after-narrow-window-480x720.png) (no before: the gate did not exist then).
+
 ## What changed
 
 - The art is Kenney's CC0 UI packs (UI Pack - Pixel Adventure for the window and HUD frames, Pixel UI pack for the buttons, close button, tab plates and cursors), committed under `art/source/ui/` with their licenses and pinned by SHA-256; `tools/art_repack/ui.py` repacks them into the sheets (`repack_cc0_art.py --only ui --check` is green). Pieces the packs lack (slot bevel, selection frame, title strip, energy gauge, tab pictograms, coin, pager arrows, text field) are drawn in their style from one palette (`palette.py`); the palette block of `nosum-theme.css` is generated from it.
