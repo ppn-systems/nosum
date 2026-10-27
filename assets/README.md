@@ -11,7 +11,7 @@ the code in `tools/art_repack`). The CC0 packs are Kenney Tiny Town and Tiny Far
 | `sprites/buildings/` | Farm buildings and props (the barn walls are Tiny Farm's) | `sprites/buildings/coop.png` |
 | `sprites/animals/` | Animal sheets | `sprites/animals/chicken.png` |
 | `farmer/` | Layered player sheets: body, pants, shirts, hair, hats (16 × 32 frames) | `farmer/body.png` |
-| `ui/` | Menu frame, cursors, text box, start background; linked into the Controls package | `ui/menu.png` |
+| `ui/` | Window frames, slots, parchment, buttons, tab pictograms, gauge, cursors, text box, start background; all drawn in one palette; linked into the Controls package | `ui/menu.png` |
 
 ## Naming scheme
 
