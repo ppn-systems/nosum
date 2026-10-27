@@ -53,8 +53,22 @@ public sealed class NicknameRulesTests
     [InlineData("Αλφα")]
     [InlineData("Аdmin")]
     [InlineData("ＡＢＣＤ")]
+    [InlineData("a\u200bb\u200bc")]
+    [InlineData("Na\u00a0me")]
+    [InlineData("محمد علي")]
+    [InlineData("日本語の名前")]
+    [InlineData("name\nline")]
+    [InlineData("x\0yz1")]
+    [InlineData("\u202eGnimoc")]
     public void Validate_BreakingARule_IsInvalid(string name)
         => NicknameRules.Validate(name).Should().Be(NicknameVerdict.Invalid);
+
+    [Fact]
+    public void Validate_VeryLongNames_AreInvalid()
+    {
+        NicknameRules.Validate(new string('a', 200)).Should().Be(NicknameVerdict.Invalid);
+        NicknameRules.Validate(new string('a', 10_000)).Should().Be(NicknameVerdict.Invalid);
+    }
 
     [Fact]
     public void Validate_Null_IsInvalid() => NicknameRules.Validate(null).Should().Be(NicknameVerdict.Invalid);

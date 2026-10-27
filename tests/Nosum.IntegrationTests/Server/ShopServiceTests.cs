@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Nalix.Abstractions.Networking;
 using Nalix.Abstractions.Networking.Packets;
 using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Shops;
@@ -85,6 +86,53 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
 
         refused.Should().Be(new ShopOutcome(ShopStatus.NotEnoughCoins, 0));
         (await _transfers.GetBalanceAsync(player)).Should().Be(100);
+        (await CountAsync(player, ItemCatalog.BlueCouch)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Buy_ExactlyTheBalance_Works_AndLeavesZeroCoins()
+    {
+        Guid player = await CreatePlayerAsync();
+        StandAtCounter(player, ShopCatalog.FurnitureShop);
+
+        // 500 coins buy exactly five 100-coin chairs.
+        ShopOutcome outcome = await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 5);
+
+        outcome.Should().Be(new ShopOutcome(ShopStatus.Ok, 500));
+        (await _transfers.GetBalanceAsync(player)).Should().Be(0);
+        (await CountAsync(player, ItemCatalog.OakChair)).Should().Be(5);
+    }
+
+    [Fact]
+    public async Task Buy_OneCoinShort_IsRefused_AndTheBalanceAndItemsStay()
+    {
+        Guid player = await CreatePlayerAsync();
+        StandAtCounter(player, ShopCatalog.FurnitureShop);
+        _ = await _transfers.ExecuteAsync([new TransferLeg(TransferParty.Player(player), 0, 0, -1)], "test.setup");
+
+        // 499 coins, five 100-coin chairs cost 500.
+        ShopOutcome refused = await _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 5);
+
+        refused.Should().Be(new ShopOutcome(ShopStatus.NotEnoughCoins, 0));
+        (await _transfers.GetBalanceAsync(player)).Should().Be(499);
+        (await CountAsync(player, ItemCatalog.OakChair)).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Buy_TwiceAtOnceWithCoinsForOne_PaysForExactlyOne()
+    {
+        Guid player = await CreatePlayerAsync();
+        StandAtCounter(player, ShopCatalog.FurnitureShop);
+        _ = await _transfers.ExecuteAsync([new TransferLeg(TransferParty.Player(player), 0, 0, -100)], "test.setup"); // 400: one couch
+
+        // A fast double click on "Buy": two identical requests race for the last 400 coins.
+        ShopOutcome[] outcomes = await Task.WhenAll(
+            _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.BlueCouch, 1),
+            _shop.BuyAsync(_connection, player, ShopCatalog.FurnitureShop, ItemCatalog.BlueCouch, 1));
+
+        outcomes.Count(o => o.Status == ShopStatus.Ok).Should().Be(1);
+        outcomes.Count(o => o.Status == ShopStatus.NotEnoughCoins).Should().Be(1);
+        (await _transfers.GetBalanceAsync(player)).Should().Be(0);
         (await CountAsync(player, ItemCatalog.BlueCouch)).Should().Be(1);
     }
 
