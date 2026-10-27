@@ -1,6 +1,6 @@
 # ADR-043 — NPC merchants and the menu split
 
-**Status:** Proposed (awaiting the coordinator). Amends [ADR-034](ADR-034-market-at-the-trader-counter.md) D4, the counter pages of
+**Status:** Accepted (coordinator, under the owner's delegation, 2026-10-27). Amends [ADR-034](ADR-034-market-at-the-trader-counter.md) D4, the counter pages of
 [ADR-013](ADR-013-economy-coins-escrow-market-trade.md) (amendments), [ADR-028](ADR-028-farm-buildings-and-animals.md) (the carpenter's page) and
 [ADR-030](ADR-030-community-goals-and-market-limits.md) (the board's page): they were menu tabs, they become dialogs of a merchant. Follows the counter model of those ADRs.
 
