@@ -6,8 +6,9 @@ Branch `feat/art-upgrade-ui`. Every shot is the real game in Chromium (Playwrigh
 | :-- | :-- | :-- | :-- | :-- |
 | HUD on the farm (quest card top left, clock, coins and gear top right, message line, hotbar and energy gauge) | [before](art-ui-before-hud-farm-1280x720.png) | [after](art-ui-after-hud-farm-1280x720.png) | [before](art-ui-before-hud-farm-1920x1080.png) | [after](art-ui-after-hud-farm-1920x1080.png) |
 | Inventory open | [before](art-ui-before-inventory-1280x720.png) | [after](art-ui-after-inventory-1280x720.png) | [before](art-ui-before-inventory-1920x1080.png) | [after](art-ui-after-inventory-1920x1080.png) |
-| Seed shop open (Town counter) | [before](art-ui-before-shop-1280x720.png) | [after](art-ui-after-shop-1280x720.png) | [before](art-ui-before-shop-1920x1080.png) | [after](art-ui-after-shop-1920x1080.png) |
-| Dialog: the mine elevator picker (the game has no NPC speech box; this is its dialog window) | [before](art-ui-before-dialog-1280x720.png) | [after](art-ui-after-dialog-1280x720.png) | [before](art-ui-before-dialog-1920x1080.png) | [after](art-ui-after-dialog-1920x1080.png) |
+| Seed shop dialog (Buy at the seed merchant; before = the old counter panel) | [before](art-ui-before-shop-1280x720.png) | [after](art-ui-after-shop-1280x720.png) | [before](art-ui-before-shop-1920x1080.png) | [after](art-ui-after-shop-1920x1080.png) |
+| Dialog window: the mine elevator picker | [before](art-ui-before-dialog-1280x720.png) | [after](art-ui-after-dialog-1280x720.png) | [before](art-ui-before-dialog-1920x1080.png) | [after](art-ui-after-dialog-1920x1080.png) |
+| NPC dialog box (the seed merchant, PR #72; no before: it did not exist) | - | [after](art-ui-after-npc-dialog-1280x720.png) | - | [after](art-ui-after-npc-dialog-1920x1080.png) |
 | Quest card, cropped from the HUD shot at native size | [before](art-ui-before-quest-card-1280x720.png) | [after](art-ui-after-quest-card-1280x720.png) | [before](art-ui-before-quest-card-1920x1080.png) | [after](art-ui-after-quest-card-1920x1080.png) |
 
 The narrow-window overlay of the device gate (PR #71) is a `GamePanel`, so it wears the same frame: [after, 480 x 720](art-ui-after-narrow-window-480x720.png) (no before: the gate did not exist then).
@@ -27,7 +28,7 @@ The narrow-window overlay of the device gate (PR #71) is a `GamePanel`, so it we
 
 ## Limits
 
-- There is no NPC speech box in the client yet; the dialog row shows the elevator window, the one `GamePanel Class="dialog"` that can be opened by one player. The trade and co-op invite dialogs share its frame but need two players.
+- The trade and co-op invite dialogs share the dialog frame but need two players and were not shot.
 - The mine dims the whole screen under an open dialog (the HUD backdrop), so the dialog shot is darker around the window in both versions.
 - At 1920 x 1080 the menu tab row runs over the clock (unchanged from before).
 - Hover and pressed states were checked in the browser earlier in this branch's history but are not in the committed shots.

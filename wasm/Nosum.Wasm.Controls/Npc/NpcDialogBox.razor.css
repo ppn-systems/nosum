@@ -15,9 +15,10 @@
     box-sizing: border-box;
     width: calc(var(--u) * 36);
     height: calc(var(--u) * 36);
-    padding: calc(var(--u) * 2);
-    border: var(--u) solid var(--nosum-line);
-    background: var(--nosum-parchment-deep, var(--nosum-line));
+    padding: calc(var(--u) * 1);
+    border: calc(var(--u) * 4) solid var(--nosum-edge);
+    border-image: var(--nosum-img-plaque) 4 / calc(var(--u) * 4) stretch;
+    background: var(--nosum-parchment-deep) padding-box;
     image-rendering: pixelated;
     object-fit: contain;
 }
