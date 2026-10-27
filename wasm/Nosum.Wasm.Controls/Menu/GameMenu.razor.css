@@ -37,28 +37,16 @@
     background-size: 100% 100%;
     background-repeat: no-repeat;
     image-rendering: pixelated;
-    filter: saturate(0.7) brightness(0.9);
-}
-
-/* Unread mail: the same red count the HUD's mail icon carries. */
-.menu-tab-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    box-sizing: border-box;
-    min-width: calc(var(--u) * 7);
-    height: calc(var(--u) * 7);
-    padding: 0 var(--u);
-    border: var(--u) solid var(--nosum-edge);
-    background: var(--nosum-danger);
-    color: var(--nosum-ink-on-dark);
-    font: 400 var(--nosum-fs-small) / calc(var(--u) * 5) var(--nosum-font);
-    text-align: center;
-    pointer-events: none;
+    transition: transform 0.1s ease-out, filter 0.1s ease-out;
 }
 
 .menu-tab:hover .menu-tab-art {
-    filter: saturate(1) brightness(1.06);
+    transform: translateY(calc(var(--u) * -1));
+    filter: brightness(1.2);
+}
+
+.menu-tab.active .menu-tab-art {
+    filter: brightness(1.05);
 }
 
 /* A phone held upright (docs/adr/ADR-033 D2): the tabs shrink to share the narrow window instead of running past its edge. Wider screens keep 16 u tabs. */

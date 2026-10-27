@@ -39,6 +39,18 @@
     min-height: calc(var(--nosum-lh) * 2);
 }
 
+.npc-prompt {
+    display: inline-block;
+    margin-left: calc(var(--u) * 2);
+    vertical-align: middle;
+    animation: npc-arrow-bounce 0.8s steps(2, jump-none) infinite;
+}
+
+@keyframes npc-arrow-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(calc(var(--u) * 1)); }
+}
+
 .npc-actions {
     justify-content: flex-end;
     flex-wrap: wrap;

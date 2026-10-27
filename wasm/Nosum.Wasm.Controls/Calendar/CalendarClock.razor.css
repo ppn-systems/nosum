@@ -14,20 +14,22 @@
     color: var(--nosum-ink-soft);
 }
 
-/* A flat pixel swatch per season: spring green, summer gold, fall orange, winter blue. Stand-in until the icon sheet has season art. */
+/* Pixel-art season icon: sprout/blossom for spring, radiant sun for summer, maple leaf for fall, frost snowflake for winter. */
 .season-icon {
     display: inline-block;
-    width: calc(var(--u) * 4);
-    height: calc(var(--u) * 4);
+    flex: none;
+    width: calc(var(--u) * 6);
+    height: calc(var(--u) * 6);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
     image-rendering: pixelated;
-    background: var(--season-color, #7bc96f);
-    box-shadow: inset calc(var(--u) * -1) calc(var(--u) * -1) 0 rgb(0 0 0 / 25%);
 }
 
-.season-icon.spring { --season-color: #7bc96f; }
-.season-icon.summer { --season-color: #f2c94c; }
-.season-icon.fall { --season-color: #d9822b; }
-.season-icon.winter { --season-color: #8fc7ee; }
+.season-icon.spring { background-image: var(--nosum-img-season-spring); }
+.season-icon.summer { background-image: var(--nosum-img-season-summer); }
+.season-icon.fall { background-image: var(--nosum-img-season-fall); }
+.season-icon.winter { background-image: var(--nosum-img-season-winter); }
 
 /* Today's weather, and tomorrow's smaller and dimmed after a pixel arrow. */
 .calendar-forecast {

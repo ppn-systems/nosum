@@ -8,9 +8,45 @@
 }
 
 .game-icon.coin {
-    width: calc(var(--nosum-w-coin, 9) * var(--u));
-    height: calc(var(--nosum-h-coin, 9) * var(--u));
+    width: calc(var(--nosum-w-coin, 16) * var(--u));
+    height: calc(var(--nosum-h-coin, 16) * var(--u));
     background-image: var(--nosum-img-coin);
+}
+
+.game-icon.coin-pouch {
+    width: calc(var(--nosum-w-coin-pouch, 16) * var(--u));
+    height: calc(var(--nosum-h-coin-pouch, 16) * var(--u));
+    background-image: var(--nosum-img-coin-pouch);
+}
+
+.game-icon.quest-scroll {
+    width: calc(var(--nosum-w-quest-scroll, 16) * var(--u));
+    height: calc(var(--nosum-h-quest-scroll, 16) * var(--u));
+    background-image: var(--nosum-img-quest-scroll);
+}
+
+.game-icon.sound-on {
+    width: calc(var(--nosum-w-sound-on, 16) * var(--u));
+    height: calc(var(--nosum-h-sound-on, 16) * var(--u));
+    background-image: var(--nosum-img-sound-on);
+}
+
+.game-icon.sound-off {
+    width: calc(var(--nosum-w-sound-off, 16) * var(--u));
+    height: calc(var(--nosum-h-sound-off, 16) * var(--u));
+    background-image: var(--nosum-img-sound-off);
+}
+
+.game-icon.music {
+    width: calc(var(--nosum-w-music, 16) * var(--u));
+    height: calc(var(--nosum-h-music, 16) * var(--u));
+    background-image: var(--nosum-img-music);
+}
+
+.game-icon.dialog-arrow {
+    width: calc(var(--nosum-w-dialog-arrow, 16) * var(--u));
+    height: calc(var(--nosum-h-dialog-arrow, 16) * var(--u));
+    background-image: var(--nosum-img-dialog-arrow);
 }
 
 .game-icon.arrow-left {
