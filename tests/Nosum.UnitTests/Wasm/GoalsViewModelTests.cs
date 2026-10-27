@@ -230,14 +230,11 @@ public sealed class GoalsViewModelTests
     }
 
     [Fact]
-    public void Toolbar_TheBoardIsNotAMenuButton_ButHasItsOwnTab()
+    public void Toolbar_TheBoardIsNotAMenuButton_ItIsADialogOfTheBoardKeeper()
     {
         ToolbarViewModel toolbar = new(Localizer<Language>());
 
         toolbar.Items.Should().NotContain(i => i.Kind == PanelKind.Goals);
-        toolbar.GoalsItem.Kind.Should().Be(PanelKind.Goals);
-        toolbar.GoalsItem.Icon.Should().Be("tab-goals");
-        toolbar.GoalsItem.Label.Should().NotBeNullOrWhiteSpace().And.NotStartWith("Toolbar_");
         ((int)PanelKind.Goals).Should().Be(17, "11 to 16 are Skills, Crafting, Chest, Furnace, Friends and Mail");
     }
 

@@ -135,6 +135,11 @@ internal static partial class GameLoop
     /// <param name="audio">The audio director.</param>
     internal static void UseAudio(GameAudio audio) => s_audio = audio;
 
+    /// <summary>Tells the scene the player clicked or tapped the canvas; the next frame checks whether a merchant was hit (docs/adr/ADR-043 D3). Called from the page, not from the frame.</summary>
+    /// <param name="x">Click x, canvas CSS pixels.</param>
+    /// <param name="y">Click y, canvas CSS pixels.</param>
+    public static void PointerClicked(int x, int y) => s_scene?.Pointer(x, y);
+
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
 
@@ -178,7 +183,7 @@ internal static partial class GameLoop
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
         actions?.FurnaceRequested += objectId => FurnaceRequested?.Invoke(objectId);
         actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
-        List<IMapDecoratorProvider> providers = [new PropDecoratorProvider()];
+        List<IMapDecoratorProvider> providers = [new PropDecoratorProvider(), new NpcDecoratorProvider()];
         if (actions is not null && s_farm is not null)
         {
             providers.Add(new FarmDecoratorProvider(s_farm, actions, s_calendar, s_placeable));

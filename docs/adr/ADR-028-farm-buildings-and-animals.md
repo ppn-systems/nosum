@@ -1,6 +1,6 @@
 # ADR-028 — Farm buildings and animals
 
-**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M3. Builds on ADR-015 (instances,
+**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M3. The carpenter's page amended by [ADR-043](ADR-043-npc-merchants-and-the-menu-split.md): it opens from the carpenter's dialog box, as a dialog of its own, not a menu tab. Builds on ADR-015 (instances,
 placeables), ADR-024 (outdoor placement), ADR-023 (energy), ADR-018 (days).
 
 ## Context
