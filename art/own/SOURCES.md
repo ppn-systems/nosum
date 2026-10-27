@@ -45,8 +45,8 @@ The own tilesheets of [ADR-042](../../docs/adr/ADR-042-own-maps-and-provenance-c
 
 | Field | Value |
 | :-- | :-- |
-| Made by | Drawn in code by tools/Nosum.MapGen sheets (PPN Systems; `tools/Nosum.MapGen/Sheets/`). `sheets --check` fails when a committed picture is not what the code draws |
-| Palette | Nosum's own tones, `Palette.cs` in `tools/Nosum.MapGen/Sheets/`, and the shared outline `(63, 38, 49)`; light from the top left |
+| Made by | Drawn in code by tools/Nosum.MapGen sheets (PPN Systems; `tools/Nosum.MapGen/Sheets/`). `sheets --check` fails when a committed picture is not what the code draws. Redrawn on 2026-10-26 with smooth tileable noise, five-tone ramps, lobed canopies and per-pair transition rims (`Shading.cs`), on the same grids and indices. No open-licensed pack was used: see [`docs/art/sourcing-2026-10-26.md`](../../docs/art/sourcing-2026-10-26.md) |
+| Palette | Nosum's own tones and five-tone ramps, `Palette.cs` in `tools/Nosum.MapGen/Sheets/`, and the shared outline `(63, 38, 49)`; light from the top left |
 | License | Nosum's own art |
 
 | File | Tileset | Tiles | Contents |

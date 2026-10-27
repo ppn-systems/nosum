@@ -134,3 +134,18 @@ Server key pinning ([ADR-032](../docs/adr/ADR-032-security-hardening.md) D1): th
 refuses any server that cannot prove it holds one of them (`GameSocketState.KeyMismatch`, shown by `ConnectionBadge`). Without a pin a development build trusts the
 server on first use and remembers the key in `localStorage` (`BrowserServerKeyStore`). Password recovery: the "forgot password" link of the sign-in form opens
 `PasswordRecoveryForm` (`PasswordRecoveryViewModel`, `IRecoveryClient`).
+
+## Device gate and page behaviour
+
+The client is for computers for now. Two switches in `Nosum.Wasm/wwwroot/appsettings.json` (section `Device`, read by `Device/BrowserDevice.ReadPolicy` into a `DevicePolicy`):
+
+| Key | Default | Meaning |
+| :--- | :--- | :--- |
+| `Device:BlockTouchDevices` | `true` | Phones and tablets get a full-screen notice (`Components/DeviceGuard.razor`, text `Device_*` in `Language.resx` / `Language.en.resx`) **instead of the page**: `Home` is never rendered, so there is no sign-in form, no canvas, no `TouchControls`, and `Program.cs` does not call `IGameSocket.Start()` (no WebSocket is opened). Set it to `false` to lift the block; `TouchControls` and the rest are untouched and come back. |
+| `Device:MinimumWidth` | `1024` | The narrowest window (CSS px) the layout supports (the game menu and the HUD regions). A narrower desktop window gets a "widen the window" overlay over the (inert) page; widening it brings the same game back. |
+
+How a phone is recognised (`ViewModels/Device/DeviceGate`, a pure function over `DeviceSignals`, covered by `DeviceGateTests`): the UA Client Hints `navigator.userAgentData.mobile` flag; else a mobile or tablet word in the user agent (Safari and Firefox have no Client Hints); an iPad that reports a Mac user agent (`MacIntel` with more than one touch point); or a touch-first input (`pointer: coarse`, no `hover`, touch points present). A touch laptop keeps its mouse (`hover: hover`) and is a desktop. The viewport width is not a phone signal: a small desktop window must get the "widen" overlay, not the phone notice. `page-guard.js` reads the signals; `DeviceGuardViewModel` holds the verdict and re-evaluates only when the window crosses the minimum (a media-query `change` event, nothing per frame or per resize).
+
+`wwwroot/page-guard.js` (a classic script, first in `index.html`, so it covers the boot screen too) and `css/app.css` make the page behave like a game: no context menu, no text selection (`user-select: none`), no image drag, copy and cut cancelled, middle-click autoscroll off, F5 / Ctrl+R / Backspace navigation cancelled, Ctrl+wheel and Safari pinch zoom cancelled, `touch-action: pan-x pan-y` and a fixed viewport (no pinch, no double-tap zoom), `overscroll-behavior: none` (no pull-to-refresh), and a "really leave?" prompt on closing or reloading the tab while the player is in the game (armed after sign-in, disarmed on sign-out and when the server ends the session). Text fields keep everything (typing, selection, paste, copy, cut, Backspace, the context menu); `data-selectable` text (the chat log) stays selectable. The canvas is `image-rendering: pixelated`. The reload button and Ctrl+Shift+R still work, and neither devtools nor the WASM bundle are "protected": the bundle is public by design and the server decides every outcome.
+
+Checks: `tests/browser/page-hardening-check.js` (iPhone 14 profile sees the notice and opens no WebSocket; 800 px window sees the overlay; a 1280x720 desktop plays; context menu, selection, clipboard and chat input behave as above). Screenshots are in `docs/qa/device-gate/`.

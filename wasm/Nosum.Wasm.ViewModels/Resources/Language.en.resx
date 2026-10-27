@@ -771,4 +771,7 @@
   <data name="Requests_Status_Conflict" xml:space="preserve"><value>Please try again.</value></data>
   <data name="Quest_Reward" xml:space="preserve"><value>Reward: {0} coins</value></data>
   <data name="Hint_Quest" xml:space="preserve"><value>{0} Reward: {1} coins.</value></data>
+  <data name="Device_BlockedText" xml:space="preserve"><value>Nosum is for computers for now. Please open this page on a PC!</value></data>
+  <data name="Device_NarrowTitle" xml:space="preserve"><value>Window too narrow</value></data>
+  <data name="Device_NarrowText" xml:space="preserve"><value>Please widen your browser window to at least {0} px to play.</value></data>
 </root>

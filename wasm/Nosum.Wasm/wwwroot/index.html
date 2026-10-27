@@ -3,9 +3,11 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Nosum</title>
     <base href="/" />
+    <!-- Page behaviour of a game and the device signals; first, so it also covers the boot screen (wasm/README.md). -->
+    <script src="page-guard.js"></script>
     <link rel="preload" id="webassembly" />
     <!-- The UI theme: variables, then the sprite cutter (docs/adr/ADR-016); the controls' scoped CSS comes with Nosum.Wasm.styles.css. -->
     <link rel="stylesheet" href="_content/Nosum.Wasm.Controls/nosum-theme.css" />
