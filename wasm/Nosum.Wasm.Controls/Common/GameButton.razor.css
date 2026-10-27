@@ -102,6 +102,10 @@
     --button-frame-down: var(--nosum-img-button-plain-down);
 }
 
+.game-button.tab {
+    padding-inline: calc(var(--button-edge) + var(--u));
+}
+
 .game-button.tab.active {
     --button-frame: var(--nosum-img-button-hot);
     --button-frame-down: var(--nosum-img-button-hot-down);

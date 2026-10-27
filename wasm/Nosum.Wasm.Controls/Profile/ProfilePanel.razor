@@ -1,25 +1,50 @@
+@using System.Threading
 @using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Account
 @using Nosum.Wasm.ViewModels.Profile
 @inherits ObservingComponent<ProfileViewModel>
 
-@* The player's profile: the nickname everyone sees above the head, and changing it. The server checks the rules, uniqueness and the 24-hour wait.
-   A guest cannot rename: the form is replaced by a note that registering unlocks it. *@
+@* The player's profile and account: the nickname everyone sees above the head, changing it (24-hour server cooldown), and the signed-in account (guest upgrade or sign out). *@
 <MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
-        <GameSection>
+        <GameSection Title="@Vm.Text("Toolbar_Profile")">
             <p>@Vm.CurrentText</p>
+            @if (Vm.CanRename)
+            {
+                <GameField Label="@Vm.Text("Profile_NewLabel")" Hint="@Vm.RuleText">
+                    <GameInput Value="@Vm.NewNickname" ValueChanged="@(v => Vm.NewNickname = v)" OnEnter="@(() => Vm.SaveAsync(default))"
+                               Placeholder="@Vm.Text("Profile_NewLabel")" Label="@Vm.Text("Profile_NewLabel")" MaxLength="24" />
+                </GameField>
+                <GameRow>
+                    <GameButton Text="@Vm.Text("Profile_Save")" Disabled="Vm.IsBusy" OnClick="@(() => Vm.SaveAsync(default))" />
+                </GameRow>
+            }
+            else
+            {
+                <GameNotice Kind="info" Text="@Vm.GuestNoticeText" />
+            }
         </GameSection>
-        @if (Vm.CanRename)
+        @if (Account?.CurrentSession is not null)
         {
-            <GameField Label="@Vm.Text("Profile_NewLabel")" Hint="@Vm.RuleText">
-                <GameInput Value="@Vm.NewNickname" ValueChanged="@(v => Vm.NewNickname = v)" OnEnter="@(() => Vm.SaveAsync(default))"
-                           Placeholder="@Vm.Text("Profile_NewLabel")" Label="@Vm.Text("Profile_NewLabel")" MaxLength="24" />
-            </GameField>
-            <GameButton Text="@Vm.Text("Profile_Save")" Disabled="Vm.IsBusy" OnClick="@(() => Vm.SaveAsync(default))" />
-        }
-        else
-        {
-            <GameNotice Kind="info" Text="@Vm.GuestNoticeText" />
+            <GameSection Title="@Vm.Text("Settings_Account")">
+                <p>@Account.SignedInText</p>
+                @if (Account.CurrentSession.IsGuest)
+                {
+                    <p>@Account.UpgradePromptText</p>
+                }
+                <GameRow>
+                    @if (Account.CurrentSession.IsGuest)
+                    {
+                        <GameButton OnClick="Account.BeginUpgrade" Disabled="@Account.IsBusy" Text="@Account.UpgradeText" />
+                    }
+                    <GameButton Variant="danger" OnClick="@(() => Account.LogoutAsync(CancellationToken.None))" Disabled="@Account.IsBusy" Text="@Account.SignOutText" />
+                </GameRow>
+            </GameSection>
         }
     </GameStack>
 </MenuPage>
+
+@code {
+    /// <summary>The account view model for guest registration and sign-out.</summary>
+    [Parameter] public AccountFormViewModel? Account { get; set; }
+}

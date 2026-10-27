@@ -817,6 +817,7 @@
   <data name="Device_NarrowTitle" xml:space="preserve"><value>Window too narrow</value></data>
   <data name="Device_NarrowText" xml:space="preserve"><value>Please widen your browser window to at least {0} px to play.</value></data>
   <data name="Settings_Credits" xml:space="preserve"><value>Art credits</value></data>
+  <data name="Settings_TabCredits" xml:space="preserve"><value>Credits</value></data>
   <data name="Settings_CreditsNote" xml:space="preserve"><value>The pictures in the game come from these open-licensed packs. Pack, author, license.</value></data>
   <data name="Credits_Back" xml:space="preserve"><value>Back</value></data>
   <data name="Start_ArtCredits" xml:space="preserve"><value>Art credits</value></data>

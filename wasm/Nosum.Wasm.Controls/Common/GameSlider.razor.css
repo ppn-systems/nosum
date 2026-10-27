@@ -6,8 +6,16 @@
     min-height: calc(var(--u) * 10);
 }
 
+.game-slider-label {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    min-width: 0;
+}
+
 .game-slider-value {
     text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
 .game-slider input {

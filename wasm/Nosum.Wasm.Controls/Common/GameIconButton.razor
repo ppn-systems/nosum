@@ -1,6 +1,7 @@
-@* A square button that shows one sprite of the theme (the settings gear). Tip is its tooltip and accessible name (already localized). *@
+@* A square button that shows one sprite of the theme (the settings gear, mail, or a HUD panel button). Tip is its tooltip and accessible name (already localized). *@
 <button type="button"
-        class="game-icon-button"
+        class="game-icon-button @(Active ? "active" : null)"
+        aria-pressed="@(Active ? "true" : "false")"
         data-tip="@Tip"
         aria-label="@Tip"
         @onmousedown:preventDefault
@@ -15,6 +16,9 @@
 
     /// <summary>The localized tooltip and accessible name.</summary>
     [Parameter, EditorRequired] public string Tip { get; set; } = string.Empty;
+
+    /// <summary>Whether the panel this button opens is currently active.</summary>
+    [Parameter] public bool Active { get; set; }
 
     /// <summary>A count shown in a small badge on the button (unread mail on the gear); nothing when zero.</summary>
     [Parameter] public int Badge { get; set; }

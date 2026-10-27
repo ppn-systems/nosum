@@ -1,13 +1,11 @@
 const { chromium } = require('playwright');
 const path = require('path');
-const fs = require('fs');
 const http = require('http');
 const net = require('net');
 
 const base = process.argv[2] || 'http://localhost:5080/';
 const outDir = path.resolve(__dirname, '../../docs/qa');
 
-// 1. Start WS Proxy
 function startProxy(port = 57301, targetPort = 57300) {
   const server = http.createServer((req, res) => {
     res.writeHead(404);
@@ -52,29 +50,31 @@ async function capture() {
 
   console.log('Launching browser...');
   const browser = await chromium.launch();
-  
+  const errors = [];
+
   // 1280x720 Run
   {
     console.log('\n--- Capturing 1280x720 ---');
     const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, locale: 'vi-VN' });
     const page = await context.newPage();
     page.on('console', m => {
-      if (m.type() === 'error') console.log('[Browser Error]', m.text());
+      if (m.type() === 'error') {
+        console.log('[Browser Error]', m.text());
+        errors.push(m.text());
+      }
     });
-    page.on('pageerror', e => console.error('[Page Error]', e.message));
+    page.on('pageerror', e => {
+      console.error('[Page Error]', e.message);
+      errors.push(e.message);
+    });
 
-    console.log('Navigating to', base);
     await page.goto(base, { waitUntil: 'load' });
     await page.waitForSelector('button', { timeout: 60000 });
     await page.waitForTimeout(1000);
 
-    // Guest login
-    console.log('Clicking guest button...');
     await page.getByRole('button', { name: /khách|guest/i }).click();
-    console.log('Waiting for canvas / game load...');
     await page.waitForSelector('canvas', { timeout: 60000 });
-    console.log('Waiting for HUD and initial assets...');
-    await page.waitForSelector('.game-hud, .calendar-clock, .hud', { timeout: 30000 });
+    await page.waitForSelector('.game-hud .hud-top-right .game-icon-button', { timeout: 30000 });
     await page.waitForTimeout(4000);
 
     // 1. HUD screenshot
@@ -99,40 +99,56 @@ async function capture() {
       await hotbarEl.first().screenshot({ path: path.join(outDir, 'ui-overhaul-hotbar-1280x720.png') });
     }
 
-    // 2. Open Menu by clicking settings button
-    console.log('Opening menu...');
-    const iconButtons = page.locator('.game-icon-button');
-    await iconButtons.last().click();
-    await page.waitForSelector('.game-menu', { timeout: 10000 });
-    await page.waitForTimeout(600);
-
-    // Crop tab row
-    const tabsEl = page.locator('.menu-tabs');
-    if (await tabsEl.count() > 0) {
-      await tabsEl.screenshot({ path: path.join(outDir, 'ui-overhaul-menu-tabs-1280x720.png') });
+    // Crop HUD player action bar
+    const playerBarEl = page.locator('.hud-player-bar');
+    if (await playerBarEl.count() > 0) {
+      await playerBarEl.first().screenshot({ path: path.join(outDir, 'ui-overhaul-menu-tabs-1280x720.png') });
     }
 
-    // Click inventory tab (first tab: "Túi đồ")
-    console.log('Selecting inventory tab...');
-    await page.locator('.menu-tab').first().click();
-    await page.waitForTimeout(800);
-    console.log('Capturing Inventory Menu 1280x720...');
+    // 2. Open standalone Inventory window via HUD button
+    console.log('Opening standalone Inventory window...');
+    await page.locator('.game-icon-button[aria-label*="Túi đồ"]').click();
+    await page.waitForSelector('.trade-window', { timeout: 10000 });
+    await page.waitForTimeout(600);
     await page.screenshot({ path: path.join(outDir, 'ui-overhaul-menu-inventory-1280x720.png') });
 
-    // 3. Switch to Settings panel & Sound sub-tab
-    console.log('Switching to settings tab...');
-    const settingsTab = page.locator('.menu-tab[aria-label*="Cài đặt"], .menu-tab[aria-label*="Settings"]');
-    await settingsTab.click();
+    // 3. Open standalone Crafting window via HUD button
+    console.log('Opening standalone Crafting window...');
+    await page.locator('.game-icon-button[aria-label*="Chế tạo"]').click();
     await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(outDir, 'ui-overhaul-panel-crafting-1280x720.png') });
 
+    // 4. Open standalone Profile & Account window via HUD button
+    console.log('Opening standalone Profile & Account window...');
+    await page.locator('.game-icon-button[aria-label*="Hồ sơ"]').click();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(outDir, 'ui-overhaul-panel-profile-1280x720.png') });
+
+    // 5. Open standalone Mail window via HUD button
+    console.log('Opening standalone Mail window...');
+    await page.locator('.game-icon-button[aria-label*="Thư"]').click();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(outDir, 'ui-overhaul-panel-mail-1280x720.png') });
+
+    // 6. Open standalone Settings window via HUD button
+    console.log('Opening standalone Settings window...');
+    await page.locator('.game-icon-button[aria-label*="Cài đặt"]').click();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(outDir, 'ui-overhaul-settings-general-1280x720.png') });
+
+    // Switch to Sound sub-tab in Settings
     console.log('Selecting Sound sub-tab...');
     const soundSubTab = page.getByRole('button', { name: /Âm thanh|Sound/i });
-    if (await soundSubTab.count() > 0) {
-      await soundSubTab.click();
-      await page.waitForTimeout(600);
-    }
-    console.log('Capturing Settings Sound Panel 1280x720...');
+    await soundSubTab.click();
+    await page.waitForTimeout(600);
     await page.screenshot({ path: path.join(outDir, 'ui-overhaul-menu-settings-1280x720.png') });
+
+    // Switch to Credits sub-tab in Settings
+    console.log('Selecting Credits sub-tab...');
+    const creditsSubTab = page.getByRole('button', { name: /Ghi công|Credits/i });
+    await creditsSubTab.click();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(outDir, 'ui-overhaul-settings-credits-1280x720.png') });
 
     await context.close();
   }
@@ -143,46 +159,35 @@ async function capture() {
     const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, locale: 'vi-VN' });
     const page = await context.newPage();
     page.on('console', m => {
-      if (m.type() === 'error') console.log('[Browser Error]', m.text());
+      if (m.type() === 'error') {
+        console.log('[Browser Error]', m.text());
+        errors.push(m.text());
+      }
     });
 
     await page.goto(base, { waitUntil: 'load' });
     await page.waitForSelector('button', { timeout: 60000 });
     await page.waitForTimeout(1000);
 
-    // Guest login
     await page.getByRole('button', { name: /khách|guest/i }).click();
     await page.waitForSelector('canvas', { timeout: 60000 });
-    await page.waitForSelector('.game-hud, .calendar-clock, .hud', { timeout: 30000 });
+    await page.waitForSelector('.game-hud .hud-top-right .game-icon-button', { timeout: 30000 });
     await page.waitForTimeout(4000);
 
-    // 1. HUD screenshot
     console.log('Capturing HUD 1920x1080...');
     await page.screenshot({ path: path.join(outDir, 'ui-overhaul-hud-1920x1080.png') });
 
-    // 2. Open Inventory Menu
-    console.log('Opening menu...');
-    const iconButtons = page.locator('.game-icon-button');
-    await iconButtons.last().click();
-    await page.waitForSelector('.game-menu', { timeout: 10000 });
+    console.log('Opening standalone Inventory 1920x1080...');
+    await page.locator('.game-icon-button[aria-label*="Túi đồ"]').click();
+    await page.waitForSelector('.trade-window', { timeout: 10000 });
     await page.waitForTimeout(600);
-
-    await page.locator('.menu-tab').first().click();
-    await page.waitForTimeout(800);
-    console.log('Capturing Inventory Menu 1920x1080...');
     await page.screenshot({ path: path.join(outDir, 'ui-overhaul-menu-inventory-1920x1080.png') });
 
-    // 3. Settings panel
-    const settingsTab = page.locator('.menu-tab[aria-label*="Cài đặt"], .menu-tab[aria-label*="Settings"]');
-    await settingsTab.click();
+    console.log('Opening standalone Settings 1920x1080...');
+    await page.locator('.game-icon-button[aria-label*="Cài đặt"]').click();
     await page.waitForTimeout(600);
-
-    const soundSubTab = page.getByRole('button', { name: /Âm thanh|Sound/i });
-    if (await soundSubTab.count() > 0) {
-      await soundSubTab.click();
-      await page.waitForTimeout(600);
-    }
-    console.log('Capturing Settings Menu 1920x1080...');
+    await page.getByRole('button', { name: /Âm thanh|Sound/i }).click();
+    await page.waitForTimeout(600);
     await page.screenshot({ path: path.join(outDir, 'ui-overhaul-menu-settings-1920x1080.png') });
 
     await context.close();
@@ -190,7 +195,11 @@ async function capture() {
 
   await browser.close();
   proxy.close();
-  console.log('\n[Done] All screenshots captured successfully!');
+  if (errors.length > 0) {
+    console.error('Console errors detected:', errors);
+    process.exit(1);
+  }
+  console.log('\n[Done] All screenshots captured with 0 console errors!');
 }
 
 capture().catch(err => {

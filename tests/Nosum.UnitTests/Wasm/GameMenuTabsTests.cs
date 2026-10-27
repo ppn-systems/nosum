@@ -78,6 +78,20 @@ public sealed class GameMenuTabsTests
     }
 
     [Fact]
+    public void TitleOf_ReturnsLocalizedTitleForEveryToolbarItem_AndEmptyForNonToolbarKind()
+    {
+        ToolbarViewModel vm = new(Localizer<Language>());
+
+        foreach (ToolbarItem item in vm.Items)
+        {
+            vm.TitleOf(item.Kind).Should().Be(item.Label);
+        }
+
+        vm.TitleOf(PanelKind.None).Should().BeEmpty();
+        vm.TitleOf(PanelKind.Shop).Should().BeEmpty();
+    }
+
+    [Fact]
     public void StripLabels_AreOneWordAndTheMoveKeyBecomesCancelWhileCarrying()
     {
         PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());

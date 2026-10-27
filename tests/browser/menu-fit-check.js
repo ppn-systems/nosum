@@ -1,5 +1,5 @@
-// Browser check for the game menu (docs/adr/ADR-017 D1, ADR-033 D1): at each viewport and language the menu window and every tab are inside the
-// screen, every tab's page scrolls from its first line to its last, and the page logs no console errors.
+// Browser check for the standalone panels and HUD action bar (docs/adr/ADR-044): at each viewport and language every HUD button opens its own standalone
+// window inside the screen, every page scrolls from its first line to its last, and the page logs no console errors.
 // Run: NODE_PATH=$(npm root -g) node tests/browser/menu-fit-check.js <page url> <screenshot dir>
 const { chromium } = require('playwright');
 const fs = require('fs');
@@ -10,9 +10,9 @@ const shots = process.argv[3] || '.';
 const SIZES = [[802, 293], [393, 727], [1280, 720], [1920, 1080]];
 const LANGS = ['vi', 'en'];
 
-// Reads the menu's geometry in the page: is each piece inside the viewport, and does the open tab's page scroll to its end.
 const measure = () => {
   const inside = el => {
+    if (!el) return false;
     const b = el.getBoundingClientRect();
     return b.left >= -0.5 && b.top >= -0.5 && b.right <= innerWidth + 0.5 && b.bottom <= innerHeight + 0.5;
   };
@@ -30,11 +30,12 @@ const measure = () => {
       reachable = reachable && first.getBoundingClientRect().top >= body.getBoundingClientRect().top - 1;
     }
   }
-  const tabs = [...document.querySelectorAll('.menu-tab')].map(t => ({ label: t.getAttribute('aria-label'), inside: inside(t) }));
+  const win = document.querySelector('.trade-window');
+  const dialog = document.querySelector('.trade-dialog');
   return {
-    windowInside: inside(document.querySelector('.menu-window')),
-    menuInside: inside(document.querySelector('.game-menu')),
-    tabs,
+    windowInside: inside(win),
+    menuInside: inside(dialog),
+    title: document.querySelector('.trade-window .game-panel-title')?.textContent || '',
     reachable,
     scrolls: body ? body.scrollHeight > body.clientHeight : false,
   };
@@ -55,27 +56,28 @@ async function checkMenu(browser, width, height, lang) {
   await page.waitForSelector('canvas', { timeout: 60000 });
   await page.waitForTimeout(3000);
 
-  // The settings tab (H) sets the language for the account; the menu then stays on that tab for the first measurement.
   await page.keyboard.press('KeyH');
-  await page.waitForSelector('.menu-tab', { timeout: 10000 });
+  await page.waitForSelector('.trade-window', { timeout: 10000 });
   if (lang === 'en') {
     await page.getByRole('button', { name: 'English' }).click();
     await page.waitForTimeout(800);
   }
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
 
-  const count = await page.locator('.menu-tab').count();
+  const count = await page.locator('.game-icon-button').count();
   for (let i = 0; i < count; i++) {
-    const tab = page.locator('.menu-tab').nth(i);
-    const label = await tab.getAttribute('aria-label');
+    const btn = page.locator('.game-icon-button').nth(i);
+    const label = await btn.getAttribute('aria-label');
     let clicked = true;
     try {
-      await tab.click({ timeout: 4000 });
+      await btn.click({ timeout: 4000 });
     } catch {
       clicked = false;
     }
     await page.waitForTimeout(250);
     const m = await page.evaluate(measure);
-    const ok = clicked && m.menuInside && m.windowInside && m.tabs.every(t => t.inside) && m.reachable;
+    const ok = clicked && m.menuInside && m.windowInside && m.reachable;
     results.push({ label, clicked, ...m, ok });
     await page.screenshot({ path: path.join(shots, `menu-${tag}-${i}.png`) });
   }
@@ -83,11 +85,11 @@ async function checkMenu(browser, width, height, lang) {
   await context.close();
 
   const failed = results.filter(r => !r.ok).map(r => r.label);
-  console.log(`${tag} tabs=${count} scrollable=${results.filter(r => r.scrolls).map(r => r.label).join(',') || 'none'}`);
+  console.log(`${tag} buttons=${count} scrollable=${results.filter(r => r.scrolls).map(r => r.label).join(',') || 'none'}`);
   for (const r of results) {
-    console.log(`  ${(r.label || '').padEnd(14)} click=${r.clicked} menu=${r.menuInside} window=${r.windowInside} tabsInside=${r.tabs.every(t => t.inside)} reach=${r.reachable} ${r.ok ? 'ok' : 'FAIL'}`);
+    console.log(`  ${(r.label || '').padEnd(18)} click=${r.clicked} dialog=${r.menuInside} window=${r.windowInside} reach=${r.reachable} ${r.ok ? 'ok' : 'FAIL'}`);
   }
-  if (failed.length) console.log(`  FAILED tabs: ${failed.join(', ')}`);
+  if (failed.length) console.log(`  FAILED panels: ${failed.join(', ')}`);
   console.log(`  console errors: ${errors.length ? JSON.stringify(errors) : 'none'}`);
   return results.length > 0 && failed.length === 0 && errors.length === 0;
 }

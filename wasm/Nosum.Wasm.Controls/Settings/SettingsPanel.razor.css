@@ -35,9 +35,8 @@
 
 .set-lang {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: calc(var(--u) * 2);
-    align-items: stretch;
 }
 
 /* Key bindings: the action name, then its key as a button, two actions per row. */

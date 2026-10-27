@@ -1,6 +1,8 @@
 .art-credits {
     margin: 0;
     padding-left: calc(var(--u) * 4);
+    max-height: calc(var(--u) * 92);
+    overflow-y: auto;
     font-size: calc(var(--u) * 5);
     line-height: 1.4;
 }

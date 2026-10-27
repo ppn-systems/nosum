@@ -208,7 +208,7 @@ public sealed class SettingsTests
         string[] files = [Path.Combine(root, "wasm/Nosum.Wasm.ViewModels/Resources/Language.resx"), Path.Combine(root, "wasm/Nosum.Wasm.ViewModels/Resources/Language.en.resx")];
         string[] needed = Enum.GetValues<GameAction>().Select(a => "Action_" + a)
             .Concat(Enum.GetValues<TutorialStep>().Select(s => "Hint_" + s))
-            .Concat(["Settings_TabGeneral", "Settings_TabDisplay", "Settings_TabSound", "Settings_TabControls", "Settings_KeySwapped", "Settings_KeyReserved", "Touch_Use", "Touch_UseLabel", "Touch_Stick"]).ToArray();
+            .Concat(["Settings_TabGeneral", "Settings_TabDisplay", "Settings_TabSound", "Settings_TabControls", "Settings_TabCredits", "Settings_KeySwapped", "Settings_KeyReserved", "Touch_Use", "Touch_UseLabel", "Touch_Stick"]).ToArray();
 
         foreach (string file in files)
         {

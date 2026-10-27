@@ -1,6 +1,6 @@
-# UI Assets Overhaul: Visual Redraw and Polish Report, 2026-10-27
+# UI Assets Overhaul & Standalone Window Separation Report, 2026-10-27
 
-Branch: `feat/ui-assets-overhaul`  
+Branch: `feat/ui-separation-and-bugfixes`  
 Author: Phan Nguyen  
 Co-author: `Co-authored-by: phcnguyen <phcnguyenz@proton.me>`
 
@@ -8,74 +8,57 @@ Co-author: `Co-authored-by: phcnguyen <phcnguyenz@proton.me>`
 
 ## 1. Overview & Motivation
 
-Nosum includes an extensive art asset library (`art/source/` with 26 CC0 / open-licensed asset packs such as Kenney Pixel UI Pack, Kenney UI Pack Pixel Adventure, DawnLike, and OpenGameArt icons). However, several major UI elements were previously rendered using rudimentary placeholders:
-1. **Menu Tabs**: 12 monochrome ASCII strings (e.g. `BAG`, `OVR`, `TRD`, `V+`) with a harsh `filter: saturate(0.7) brightness(0.9)` washing them out.
-2. **Calendar Seasons**: A flat 4x4 CSS square (`.season-icon`) with no seasonal character.
-3. **Weather Display**: Hardcoded 8x8 SVG rects without depth or thematic feeling.
-4. **Coin & Economy**: A plain 10x10 CSS circular glyph and non-tabular text.
-5. **Quest Tracker**: Raw textual layout without the RPG parchment scroll identity.
-6. **Hotbar & Item Slots**: Lacked physical bevel inset depth; hotkey pills hung uncomfortably below.
-7. **Settings Sliders & Toggles**: Plain text labels without audio or UI iconography.
-8. **NPC Dialogue**: Missing animated advance/prompt arrows for dialogue progression.
+Following the initial UI asset overhaul, a full UI/UX and code audit revealed two major classes of issues:
 
-This overhaul replaces these crude placeholders with rich, cohesive pixel art generated directly from Kenney's color palette and open UI packs, wired seamlessly into `--nosum-img-*` CSS variables without any client runtime network overhead or runtime allocation.
+1. **Everything Was Hidden Behind or Crammed Into Settings (`ADR-044`)**:
+   - Only `Mail` and `Settings` had icon buttons on the HUD (`Home.razor`), forcing players who did not know keyboard shortcuts (`E`, `O`, `C`, `T`, `G`, `V`, `F`, `K`, `P`) to click `Settings` (`Cài đặt`) just to access the 11-tab `GameMenu` (`Inventory`, `Wardrobe`, `Crafting`, `Trade`, `Coop`, `Visitors`, `Friends`, `Mail`, `Skills`, `Profile`, `Settings`).
+   - Inside `SettingsPanel.razor` (`Chung` / `General`), `Account` management (`Tài khoản`: signed-in status, guest upgrade, sign out) and `ArtCreditsList` (`Ghi công hình ảnh`: 9 open-licensed asset packs) were crammed together with language and tutorial settings.
+2. **UI Layout & Visual Bugs**:
+   - **`GameSlider.razor` 3-Column Grid Misalignment**: Adding `<GameIcon>` as a direct child of `.game-slider` (`grid-template-columns: minmax(calc(var(--u) * 44), auto) 1fr calc(var(--u) * 18)`) created 4 grid items in a 3-column grid, pushing the percentage value (`70%`) onto a second row.
+   - **Obsolete Sound Placeholder Note**: `SettingsPanel.razor` still rendered `Settings_SoundNote` (*"Âm thanh sẽ có ở bản sau. Mức âm lượng bạn chọn được lưu sẵn trên máy này."*), even though Web Audio (`SoundBank` / `audio.js`) is already live.
+   - **`TradeDialog.razor.css` Header Misalignment**: `.trade-window > .game-panel-header` added `padding-bottom: calc(var(--u) * 2)` and a bottom border/shadow on top of the dark wood header bar, unbalancing the title and `[X]` close button.
+   - **`QuestTracker.razor` Header & Scroll Sprite**: The fold indicator (`-` / `+`) sat right next to the title instead of at the right edge (`margin-left: auto`), and `quest-scroll`, `sound-on`, and `sound-off` sprites in `tools/art_repack/ui.py` needed cleaner pixel art.
 
 ---
 
 ## 2. Visual Proof: In-Game Screenshots
 
-All screenshots below were captured from the live Chromium browser instance via Playwright running the published WebAssembly client and realtime server.
+All screenshots below were captured from the live Chromium browser instance via Playwright (`tests/browser/capture-ui-overhaul.cjs`) running the published WebAssembly client against the realtime server with **0 console errors**.
 
-### Main Surfaces
+### 2.1 Farm HUD & Standalone Windows (1280 × 720 & 1920 × 1080)
 
-| Surface | 1280 x 720 | 1920 x 1080 |
+| Surface | 1280 × 720 | 1920 × 1080 |
 | :--- | :--- | :--- |
-| **Farm HUD** (New season sprout, weather sun, 3D gold coin, quest scroll badge, and beveled hotbar slots) | ![HUD 1280x720](ui-overhaul-hud-1280x720.png) | ![HUD 1920x1080](ui-overhaul-hud-1920x1080.png) |
-| **Game Menu: Inventory Tab** (All 12 vibrant tab icons, 3D inset item slots, farmer preview) | ![Inventory 1280x720](ui-overhaul-menu-inventory-1280x720.png) | ![Inventory 1920x1080](ui-overhaul-menu-inventory-1920x1080.png) |
-| **Game Menu: Settings Sound Panel** (Music note, sound speaker, mute icons on sliders and toggles) | ![Settings 1280x720](ui-overhaul-menu-settings-1280x720.png) | ![Settings 1920x1080](ui-overhaul-menu-settings-1920x1080.png) |
+| **Farm HUD** (Top-right system bar + 3×3 player action bar, quest scroll badge, and beveled hotbar slots) | ![HUD 1280x720](ui-overhaul-hud-1280x720.png) | ![HUD 1920x1080](ui-overhaul-hud-1920x1080.png) |
+| **Standalone Inventory Window (`Túi đồ`)** (Opened directly from HUD backpack button; 100% unclipped at both resolutions) | ![Inventory 1280x720](ui-overhaul-menu-inventory-1280x720.png) | ![Inventory 1920x1080](ui-overhaul-menu-inventory-1920x1080.png) |
+| **Standalone Settings: Sound Sub-Tab (`Âm thanh`)** (Fixed 3-column slider grid, crisp speaker icons, obsolete note removed) | ![Settings Sound 1280x720](ui-overhaul-menu-settings-1280x720.png) | ![Settings Sound 1920x1080](ui-overhaul-menu-settings-1920x1080.png) |
 
-### Detail Close-Ups (Native Pixel Scale)
+### 2.2 Separated Standalone Panels & Settings Sub-Tabs (1280 × 720)
+
+| Separated Window / Tab | Screenshot (1280 × 720) | What Changed |
+| :--- | :--- | :--- |
+| **Standalone Crafting (`Chế tạo`)** | ![Crafting 1280x720](ui-overhaul-panel-crafting-1280x720.png) | Opens as its own standalone `TradeDialog` window directly from the HUD crafting button (`C`), with active gold frame highlight on the HUD icon. |
+| **Standalone Profile & Account (`Hồ sơ` & `Tài khoản`)** | ![Profile 1280x720](ui-overhaul-panel-profile-1280x720.png) | `Tài khoản` (signed-in status, guest `Đăng ký ngay` upgrade button, `Đăng xuất` sign-out button) moved out of `Settings` into `Hồ sơ`. |
+| **Standalone Mail (`Thư`)** | ![Mail 1280x720](ui-overhaul-panel-mail-1280x720.png) | Opens as its own standalone `TradeDialog` window (`Thư`) without any multi-tab menu bar. |
+| **Settings — General (`Chung`)** | ![Settings General 1280x720](ui-overhaul-settings-general-1280x720.png) | Holds only `Ngôn ngữ` (`Tiếng Việt` / `English`) and `Gợi ý cho người mới` (`Hiện gợi ý khi chơi` / `Xem lại từ đầu`). All 5 sub-tabs fit on 1 row. |
+| **Settings — Credits (`Ghi công`)** | ![Settings Credits 1280x720](ui-overhaul-settings-credits-1280x720.png) | Dedicated 5th sub-tab (`Ghi công` / `Credits`) for `ArtCreditsList`, separated from `Chung`. |
+
+### 2.3 Detail Close-Ups (Native Pixel Scale)
 
 | Component | Detail Screenshot | Description |
 | :--- | :--- | :--- |
-| **12 Menu Tabs** | ![Tabs Row](ui-overhaul-menu-tabs-1280x720.png) | Left-to-right: Leather Backpack, Blue Overalls, Locked Crate, Sprout, Coop Chicken, Straw-Hat Farmer, Twin Hearts, Sealed Envelope, Golden Star, Portrait, Steel Cog, Trophy. |
+| **3×3 HUD Player Action Grid** | ![HUD Player Action Grid](ui-overhaul-menu-tabs-1280x720.png) | 9 dedicated HUD icon buttons (`Túi đồ`, `Tủ đồ`, `Chế tạo`, `Trao đổi`, `Hợp tác xã`, `Thăm trại`, `Bạn bè`, `Kỹ năng`, `Hồ sơ`) arranged in a compact 3×3 grid beside the window area. |
 | **Calendar Clock & Weather** | ![Clock & Weather](ui-overhaul-clock-1280x720.png) | Pixel-art Spring blossom sprout, crisp sun icon with light rays, and next-day forecast preview. |
-| **Quest Tracker Card** | ![Quest Card](ui-overhaul-quest-1280x720.png) | Sealed quest parchment scroll icon (`quest-scroll`) alongside bold quest title and reward. |
+| **Quest Tracker Card** | ![Quest Card](ui-overhaul-quest-1280x720.png) | Redrawn vertical parchment scroll icon (`quest-scroll`) with wooden rollers and red wax seal, plus right-aligned `-` fold button. |
 | **Hotbar Slots** | ![Hotbar Slots](ui-overhaul-hotbar-1280x720.png) | 1px inset dark shadow bevel for physical depth, high-contrast tool art, and crisp hotkey pills. |
 
 ---
 
-## 3. Technical Implementation Details
+## 3. Verification & Quality Gates
 
-### Asset Repacking (`tools/art_repack/ui.py` & `assets/ui/cursors.png`)
-- Added dedicated 16x16 pixel generators using Kenney's UI palette for:
-  - 12 Tab icons: `inventory` (rucksack), `wardrobe` (tunic), `trade` (arrows/crate), `visitors` (farmer), `market` (chicken/stall), `friends` (hearts), `mail` (wax-sealed letter), `skills` (gold star), `profile` (portrait), `settings` (steel cog), `goals` (gold trophy), `shop` (basket).
-  - 4 Seasonal icons (`season_icon`): Spring (leaf & bloom), Summer (bright sunflower/sun), Autumn (golden oak leaf), Winter (crystalline snowflake).
-  - 4 Weather icons (`weather_icon`): Sun, Rain, Storm, Snow.
-  - UI functional icons: `quest_scroll`, `sound_icon`, `music_icon`, `dialog_arrow`, `coin_pouch`, and enhanced `coin_rich`.
-- Placed clean sprites in row 384 of `cursors.png` (a previously unmapped, empty transparent area), preserving all existing 9-slice button and cursor definitions.
-
-### Client Theme Wiring (`wasm/Nosum.Wasm.Controls/wwwroot/nosum-theme.js`)
-- Registered new sprite definitions in the `SPRITES` coordinate map (`season-spring`, `season-summer`, `season-fall`, `season-winter`, `weather-sun`, `weather-rain`, `weather-storm`, `weather-snow`, `quest-scroll`, `sound-on`, `sound-off`, `music`, `dialog-arrow`, `coin-pouch`, and upgraded `coin` to 16x16 at `[240, 384]`).
-- Published slices directly as base64 CSS variables (`--nosum-img-*`), eliminating any extra network round-trips.
-
-### Razor Controls & CSS
-- **`CalendarClock.razor.css`**: Updated `.season-icon` to 6u x 6u pixel art with background images mapped to `--nosum-img-season-*`.
-- **`WeatherIcon.razor` & `.css`**: Replaced inline 8x8 SVG rects with `<span class="weather-icon @Kind"></span>` driven by `--nosum-img-weather-*`.
-- **`QuestTracker.razor` & `.css`**: Integrated `<GameIcon Name="quest-scroll" />` on the title row.
-- **`ItemSlotButton.razor.css`**: Added inner box-shadow bevels (`inset 0 1px 0 var(--nosum-edge-dark), inset 1px 0 0 var(--nosum-edge-dark)`) for tactile depth.
-- **`GameMenu.razor.css`**: Removed washed-out `saturate(0.7)` filters, added interactive hover lift and active plate brightness.
-- **`NpcDialogBox.razor` & `.css`**: Added pulsing `<GameIcon Name="dialog-arrow" />` continue indicator.
-- **`SettingsPanel.razor`**: Enhanced sliders and toggles with optional `Icon` parameters (`music`, `sound-on`, `sound-off`).
-
----
-
-## 4. Verification & Quality Gates
-
-- **Compiler Warnings**: 0 warnings across all 8 `.slnx` under `TreatWarningsAsErrors`.
-- **Frame Loop**: Zero allocations verified on hot render paths.
+- **Compiler Warnings**: 0 warnings, 0 errors across all 8 `.slnx` solutions with `--no-incremental` and `TreatWarningsAsErrors`.
+- **Art Repack Check**: `python3 tools/art_repack/repack_cc0_art.py --check` passed.
 - **Automated Tests**:
-  - `ThemeSpritesTests`: 2/2 green (verifies all sprite coordinates lie completely within sheet boundaries).
-  - `Nosum.UnitTests`: 2,351/2,351 green (100% pass rate).
-  - `Nosum.IntegrationTests`: 676/676 green with live PostgreSQL 16 database.
-- **Browser Playwright Verification**: Executed automated browser script `tests/browser/capture-ui-overhaul.cjs` at 1280x720 and 1920x1080 without console errors.
+  - `Nosum.UnitTests`: 100% green (including updated `SettingsTests` and `GameMenuTabsTests` for `Settings_TabCredits` and `ToolbarViewModel.TitleOf`).
+  - `Nosum.IntegrationTests`: 100% green against PostgreSQL 16.
+- **Browser Playwright Verification**: Executed `tests/browser/capture-ui-overhaul.cjs` at 1280×720 and 1920×1080 with 0 console errors and 0 page errors.

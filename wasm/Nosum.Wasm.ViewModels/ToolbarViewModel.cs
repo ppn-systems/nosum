@@ -134,4 +134,20 @@ public sealed class ToolbarViewModel : PanelViewModel
 
     /// <summary>Gets the tooltip of the settings cog in the HUD: only "Settings", the cog holds nothing else (docs/adr/ADR-043 D4).</summary>
     public string SettingsTip => this.Text("Toolbar_Settings");
+
+    /// <summary>Gets the localized window title for a panel kind.</summary>
+    /// <param name="kind">The panel kind.</param>
+    /// <returns>The localized title.</returns>
+    public string TitleOf(PanelKind kind)
+    {
+        foreach (ToolbarItem item in this.Items)
+        {
+            if (item.Kind == kind)
+            {
+                return item.Label;
+            }
+        }
+
+        return string.Empty;
+    }
 }

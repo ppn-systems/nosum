@@ -16,6 +16,7 @@
 .quest-fold {
     flex: none;
     width: calc(var(--u) * 4);
+    margin-left: auto;
     text-align: center;
     color: var(--nosum-ink-soft);
 }
