@@ -1,0 +1,10 @@
+.art-credits {
+    margin: 0;
+    padding-left: calc(var(--u) * 4);
+    font-size: calc(var(--u) * 5);
+    line-height: 1.4;
+}
+
+.art-credits a {
+    color: inherit;
+}

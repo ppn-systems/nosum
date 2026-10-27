@@ -1,15 +1,15 @@
 # assets/
 
 The sprite sheets the client and server load: the farm's objects, crops and tools, the layered farmer, the animals and buildings, and the menu
-pieces. Every file here is Nosum's own art or CC0, with its source recorded in [`docs/art/provenance.md`](../docs/art/provenance.md) (CC0 packs and
-the code in `tools/art_repack`). The CC0 packs are Kenney Tiny Town and Tiny Farm and josehzz's Farming crops 16x16; candidates checked: [`docs/art/sourcing-sprites-2026-10-26.md`](../docs/art/sourcing-sprites-2026-10-26.md). The maps are own too ([`art/`](../art/README.md)).
+pieces. Every file here is Nosum's own art, CC0, or CC-BY with credit, with its source recorded in [`docs/art/provenance.md`](../docs/art/provenance.md) (packs and
+the code in `tools/art_repack`). The packs in use are Kenney Tiny Town, Tiny Farm and Tiny Dungeon, josehzz's Farming crops 16x16, Clint Bellanger's Tiny Creatures (all CC0) and DragonDePlatino's DawnLike (CC-BY 4.0, credited in `provenance.md`, `wwwroot/credits.txt` and the in-game Credits (Settings, start screen)). All open-licensed packs we keep, used or not, are in [`art/source/`](../art/source/) and listed in [`docs/art/library.md`](../docs/art/library.md); candidates checked earlier: [`docs/art/sourcing-sprites-2026-10-26.md`](../docs/art/sourcing-sprites-2026-10-26.md). The maps are own too ([`art/`](../art/README.md)).
 
 | Folder | Holds | Examples |
 | :--- | :--- | :--- |
 | `sprites/` | Items and objects, crops, soil, tools, weapons, furniture, craftables. CC0 from Tiny Farm: crops (tomato, corn, wheat, carrot, turnip, cabbage), seed bags, produce, hay, milk, watering can, scythe | `sprites/items.png`, `sprites/crops.png` |
 | `sprites/trees/` | Resource-node trees: oak, maple, pine | `sprites/trees/oak.png` |
 | `sprites/buildings/` | Farm buildings and props (the barn walls are Tiny Farm's) | `sprites/buildings/coop.png` |
-| `sprites/animals/` | Animal sheets | `sprites/animals/chicken.png` |
+| `sprites/animals/` | Animal sheets (Tiny Creatures, CC0) | `sprites/animals/chicken.png` |
 | `sprites/npcs/` | The Town's merchants: a world sheet (two 16 × 32 idle frames) and a 32 × 32 portrait each | `sprites/npcs/blacksmith.png`, `sprites/npcs/blacksmith_portrait.png` |
 | `farmer/` | Layered player sheets: body, pants, shirts, hair, hats (16 × 32 frames) | `farmer/body.png` |
 | `ui/` | Window frames, slots, block buttons, tab plates and pictograms, gauge, cursors, text box, start background; Kenney's CC0 UI packs plus a few pieces drawn in their style; linked into the Controls package | `ui/menu.png` |

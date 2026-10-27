@@ -1,0 +1,13 @@
+Nosum art credits
+
+DawnLike tileset by DragonDePlatino, palette by DawnBringer, CC-BY 4.0
+https://opengameart.org/content/dawnlike-16x16-universal-rogue-like-tileset-v181
+https://creativecommons.org/licenses/by/4.0/
+Used for some item icons (mushroom, hazelnut, berries, leek, soup, copper and steel ore, copper boulder). The pictures are cut from the sheets unchanged.
+
+CC0 art (no credit required; named with thanks):
+Kenney - Tiny Town, Tiny Farm, Tiny Dungeon (https://kenney.nl)
+Clint Bellanger - Tiny Creatures
+josehzz - Farming crops 16x16
+
+The complete list, with the file each pack feeds, is docs/art/provenance.md in the repository.

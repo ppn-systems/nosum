@@ -1,0 +1,5 @@
+Tiny 16 (Basic, Dungeon, Overworld sheets), by Sharm (Lanea Zimmerman)
+https://opengameart.org/content/tiny-16-basic
+
+License: CC-BY 4.0 (the page offers CC-BY 3.0, CC-BY 4.0 and OGA-BY 3.0) (https://creativecommons.org/licenses/by/4.0/), stated on the OpenGameArt page, read 2026-10-27.
+Attribution: REQUIRED: "Tiny 16 tileset by Sharm (Lanea Zimmerman), CC-BY 4.0"

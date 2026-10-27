@@ -1,7 +1,10 @@
-"""Package 8: sprites/animals/chicken.png (16 x 16 frames) and sprites/animals/cow.png (32 x 32 frames), drawn here.
+"""Package 8: sprites/animals/chicken.png (16 x 16 frames) and sprites/animals/cow.png (32 x 32 frames), cut from Tiny Creatures (CC0).
 
-Layout (AnimalsDecorator): four walk columns, rows down, right, up; left is the right row mirrored by the game. No CC0 pack has top-down farm
-animals with a walk cycle in this style, so the pictures are drawn from shaded blobs in the Kenney palette.
+Layout (AnimalsDecorator): four walk columns, rows down, right, up; left is the right row mirrored by the game. Tiny Creatures has one picture
+per animal, facing left, so the right row is that picture flipped, the down and up rows use it as it is, and the walk frames 1 and 3 lift it 1 px
+(the bob the drawn animals had). The cow stays the one drawn here at its 32 x 32 frame size (cow() below): Tiny Creatures' 16 x 16 cow would have to be upscaled, which gives a 2 px outline that clashes with the rest of the art.
+
+cow() below draws the cow; chicken() is still read by ui.py for the co-op tab pictogram.
 """
 import draw
 from draw import Canvas
@@ -126,12 +129,24 @@ def cow(direction, frame):
     return c.outline()
 
 
-def build(size):
-    rows = ['down', 'right', 'up']
+CHICKEN = (0, 15)       # column, row of tilemap_packed.png
+BOB = [0, 1, 0, 1]      # pixels each walk frame lifts the picture
+
+
+def chicken_frames(picture):
+    """The 4 x 3 sheet of the chicken: the 16 x 16 Tiny Creatures picture for rows down, right (flipped) and up, lifted 1 px on frames 1 and 3."""
+    sheet = Image(64, 48)
+    for row, pic in enumerate((picture, picture.flip_h(), picture)):
+        for column in range(4):
+            sheet.paste(pic, column * 16, row * 16 - BOB[column])
+    return sheet
+
+
+def build(src, size):
     chick = Image(*size('sprites/animals/chicken.png'))
+    chick.paste(chicken_frames(src.sheet('creatures').cell(*CHICKEN)), 0, 0)
     cows = Image(*size('sprites/animals/cow.png'))
-    for r, d in enumerate(rows):
+    for r, d in enumerate(['down', 'right', 'up']):
         for f in range(4):
-            chick.paste(chicken(d, f), f * 16, r * 16)
             cows.paste(cow(d, f), f * 32, r * 32)
     return {'sprites/animals/chicken.png': chick, 'sprites/animals/cow.png': cows}

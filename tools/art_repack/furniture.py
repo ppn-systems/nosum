@@ -164,18 +164,6 @@ def plant():
     return c.outline()
 
 
-def chest():
-    c = Canvas(16, 32)
-    c.rect(1, 18, 14, 12, draw.WOOD)
-    c.rect(1, 18, 14, 4, draw.WOOD_L)
-    c.rect(1, 22, 14, 1, draw.WOOD_D)
-    c.rect(1, 25, 14, 1, draw.WOOD_D)
-    c.rect(7, 21, 2, 4, draw.GOLD)
-    c.rect(2, 18, 1, 12, draw.STEEL)
-    c.rect(13, 18, 1, 12, draw.STEEL)
-    return c.outline()
-
-
 def scarecrow():
     c = Canvas(16, 32)
     c.rect(7, 8, 2, 22, draw.WOOD_D)
@@ -216,14 +204,16 @@ FURNITURE_VIEWS = [
     ((0, 208), couch('front')), ((48, 208), couch('side')), ((80, 208), couch('back')),
     ((0, 569), table()), ((48, 640), bookcase()), ((48, 733), lamp()), ((0, 688), plant()),
 ]
-CRAFTABLES = [((0, 32), scarecrow()), ((32, 512), chest()), ((80, 32), furnace())]
+CRAFTABLES = [((0, 32), scarecrow()), ((80, 32), furnace())]
+CHEST = (32, 512)    # the chest is Tiny Dungeon's closed chest (tile 5, 7), standing at the foot of the 16 x 32 cell
 
 
-def build(size):
+def build(src, size):
     furniture = Image(*size('sprites/furniture.png'))
     for (x, y), pic in FURNITURE_VIEWS:
         furniture.paste(pic, x, y)
     craftables = Image(*size('sprites/craftables.png'))
     for (x, y), pic in CRAFTABLES:
         craftables.paste(pic, x, y)
+    craftables.paste(src.sheet('dungeon').cell(5, 7), CHEST[0], CHEST[1] + 14)
     return {'sprites/furniture.png': furniture, 'sprites/craftables.png': craftables}

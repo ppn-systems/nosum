@@ -56,9 +56,9 @@ def build_all(src, repo, only=None):
     out['sprites/tools.png'], out['sprites/weapons.png'] = tools.build(src, repo, size('sprites/tools.png'), size('sprites/weapons.png'))
     out.update(buildings.build(src, size))
     out.update(trees.build(size))
-    out.update(furniture.build(size))
+    out.update(furniture.build(src, size))
     out['sprites/items.png'] = icons.build(src, size)
-    out.update(animals.build(size))
+    out.update(animals.build(src, size))
     out.update(ui.build(repo, size))
     out.update(npcs.build())
     return out
