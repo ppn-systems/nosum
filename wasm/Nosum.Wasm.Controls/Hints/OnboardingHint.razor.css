@@ -9,9 +9,9 @@
     margin: 0 0 calc(var(--u) * 2);
     padding: var(--u) calc(var(--u) * 4);
     max-width: calc(var(--u) * 180);
-    border: calc(var(--u) * 3) solid var(--nosum-edge);
-    border-image: var(--nosum-img-plaque) 12 / calc(var(--u) * 3) stretch;
-    background: var(--nosum-img-parchment) 0 0 / calc(16 * var(--u)) calc(16 * var(--u)) repeat padding-box, var(--nosum-parchment) padding-box;
+    border: calc(var(--u) * 4) solid var(--nosum-edge);
+    border-image: var(--nosum-img-plaque) 4 / calc(var(--u) * 4) stretch;
+    background: var(--nosum-parchment) padding-box;
     image-rendering: pixelated;
     color: var(--nosum-ink);
     text-align: center;

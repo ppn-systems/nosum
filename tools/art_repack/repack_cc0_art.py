@@ -44,7 +44,7 @@ def build_all(src, repo, only=None):
 
     out = {}
     if only == 'ui':
-        return ui.build(size)
+        return ui.build(repo, size)
     out.update(farmer.build(size))
     if only == 'farmer':
         return out
@@ -56,7 +56,7 @@ def build_all(src, repo, only=None):
     out.update(furniture.build(size))
     out['sprites/items.png'] = icons.build(src, size)
     out.update(animals.build(size))
-    out.update(ui.build(size))
+    out.update(ui.build(repo, size))
     return out
 
 

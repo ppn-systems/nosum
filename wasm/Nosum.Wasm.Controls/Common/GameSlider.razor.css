@@ -42,9 +42,8 @@
     height: calc(var(--u) * 10);
     margin-top: calc(var(--u) * -3);
     border: var(--u) solid var(--nosum-ink);
-    background: var(--nosum-img-face-wood) 0 0 / calc(8 * var(--u)) calc(8 * var(--u)), #d68a58;
-    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #facc94, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #8c4c38;
-    image-rendering: pixelated;
+    background: #977148;
+    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #b7916a, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #6d543a;
     appearance: none;
 }
 
@@ -54,8 +53,8 @@
     height: calc(var(--u) * 10);
     border: var(--u) solid var(--nosum-ink);
     border-radius: 0;
-    background: var(--nosum-img-face-wood) 0 0 / calc(8 * var(--u)) calc(8 * var(--u)), #d68a58;
-    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #facc94, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #8c4c38;
+    background: #977148;
+    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #b7916a, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #6d543a;
 }
 
 .game-slider input:focus-visible {

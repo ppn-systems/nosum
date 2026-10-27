@@ -96,41 +96,33 @@ function drawItem(color, rows) {
 
 // [name, sheet, x, y, width, height, glyph drawn in the middle (optional)]
 const SPRITES = [
-    // Window frame: dark outline, lit and shaded wood, an inner lip, a rivet in each corner; 16 px (4 u) on every side. The middle is the parchment,
-    // painted from the "parchment" tile by the CSS.
-    ["panel", "menu", 0, 256, 60, 60],
-    // The small frame of the HUD widgets, the tooltip and the message line: 12 px (3 u) on every side.
-    ["plaque", "menu", 64, 256, 48, 48],
-    // The page texture (fat, 64 x 64 = 16 u): it tiles.
-    ["parchment", "menu", 128, 256, 64, 64],
-    // A recessed card (section inside a window): brown outline, shaded top and left, lit bottom and right; 8 px (2 u) slice.
-    ["inset", "menu", 0, 320, 60, 60],
-    // Inventory slot (sunk, same light direction), transparent inside; 8 px (2 u) edge. The picture overlaps the inner ring.
-    ["slot", "menu", 128, 128, 64, 64],
+    // Window frame: the Pixel Adventure cream panel, a wood frame with steel corner brackets (thin, 16 x 16, 5 px slice, drawn 5 u thick). The middle is
+    // the parchment, painted flat by the CSS.
+    ["panel", "menu", 0, 256, 16, 16],
+    // The small frame of the HUD widgets, the tooltip and the message line: a plain wood frame (thin, 16 x 16, 4 px slice).
+    ["plaque", "menu", 32, 256, 16, 16],
+    // Inventory slot: a 1 px inset bevel (thin, 3 x 3, 1 px slice), transparent inside.
+    ["slot", "menu", 128, 128, 3, 3],
     // The frame around the selected hotbar slot (fat): a gold line in a dark outline, two steps of glow outside; 20 px (5 u) slice.
     ["select", "cursors", 448, 128, 80, 80],
     // Text field: sunk light box (the 4 transparent columns on the left of the sheet are cut off); 12 px slice.
     ["field", "textbox", 4, 0, 188, 48],
-    // Block buttons (thin, 9 x 9 frames, 3 px slice, the middle is not drawn): wood (primary), stone (neutral), gold (the active tab), red (destructive);
-    // each has a pressed frame with the bevel flattened, and a face tile (8 x 8) the CSS repeats inside the frame.
-    ["button", "cursors", 0, 432, 9, 9],
-    ["button-plain", "cursors", 10, 432, 9, 9],
-    ["button-hot", "cursors", 20, 432, 9, 9],
-    ["button-danger", "cursors", 30, 432, 9, 9],
-    ["button-down", "cursors", 0, 442, 9, 9],
-    ["button-plain-down", "cursors", 10, 442, 9, 9],
-    ["button-hot-down", "cursors", 20, 442, 9, 9],
-    ["button-danger-down", "cursors", 30, 442, 9, 9],
-    ["face-wood", "cursors", 0, 452, 8, 8],
-    ["face-stone", "cursors", 8, 452, 8, 8],
-    ["face-gold", "cursors", 16, 452, 8, 8],
-    ["face-red", "cursors", 24, 452, 8, 8],
-    // The title bar of a window (thin, 8 x 14, repeats along the bar).
-    ["title", "cursors", 0, 400, 8, 14],
+    // Block buttons (thin, 9 x 11, slice 3 on the top, right and left and 5 on the bottom, which holds the shadow): wood (primary), stone (neutral), gold
+    // (the active tab), red (destructive), from the Pixel UI pack; each has a pressed frame with the shadow gone.
+    ["button", "cursors", 0, 432, 9, 11],
+    ["button-plain", "cursors", 10, 432, 9, 11],
+    ["button-hot", "cursors", 20, 432, 9, 11],
+    ["button-danger", "cursors", 30, 432, 9, 11],
+    ["button-down", "cursors", 0, 444, 9, 11],
+    ["button-plain-down", "cursors", 10, 444, 9, 11],
+    ["button-hot-down", "cursors", 20, 444, 9, 11],
+    ["button-danger-down", "cursors", 30, 444, 9, 11],
+    // The title bar of a window (thin, 8 x 18, repeats along the bar).
+    ["title", "cursors", 0, 400, 8, 18],
     // The frame of the energy gauge: gold end caps, a dark track (thin, 10 x 26, 3 px slice).
     ["gauge", "cursors", 16, 400, 10, 26],
-    // The close button of a window: a red cross on a block (thin, 12 x 12).
-    ["close", "cursors", 337, 494, 12, 12],
+    // The close button of a window: an orange cross on a white square (Pixel UI pack, thin, 14 x 14).
+    ["close", "cursors", 337, 494, 14, 14],
     // Left and right arrows (thin).
     ["arrow-left", "cursors", 352, 495, 12, 11],
     ["arrow-right", "cursors", 365, 495, 12, 11],
@@ -158,8 +150,8 @@ const SPRITES = [
 
 // Mouse cursors: [name, sheet, x, y, width, height, hotspot x, hotspot y]; scaled by --u when published.
 const CURSORS = [
-    ["cursor", "cursors", 0, 0, 10, 15, 0, 0],            // the arrow: light face, dark outline
-    ["cursor-pointer", "cursors", 32, 0, 10, 10, 3, 0],   // the hand, over anything clickable
+    ["cursor", "cursors", 0, 0, 12, 16, 0, 0],            // the arrow (Pixel UI pack)
+    ["cursor-pointer", "cursors", 32, 0, 12, 14, 5, 0],   // the hand, over anything clickable
 ];
 
 const root = document.documentElement;

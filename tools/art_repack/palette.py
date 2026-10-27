@@ -1,7 +1,7 @@
 """The one UI palette (docs/adr/ADR-040 D1: one palette, outline = a darker tone), defined once for the sheets and for the style sheet.
 
-The wood, gold, red and green ramps start from the hues the tileset and the sprites already use (draw.py), so a window sits next to the world
-it floats over; parchment is the tileset's cream pushed into five steps. ui.py draws every UI sheet from these names, and css_block() renders the
+The gold, red and green ramps start from the hues the tileset and the sprites already use (draw.py), so a window sits next to the world it floats
+over; parchment and wood are the tones of the Kenney UI pack's cream and wood frames (tools/art_repack/ui.py cuts them), in five and six steps. ui.py draws every UI sheet from these names, and css_block() renders the
 same colours as the custom properties of nosum-theme.css (between two marker comments the repack rewrites and --check compares), so a text colour
 in the style sheet can never drift from the sheet it sits on. Contrast: every text colour reaches 4.5 : 1 on both parchment steps
 (SettingsTests.Theme_TextColoursReachContrast4Point5OnParchment).
@@ -16,20 +16,20 @@ INK_SOFT = draw.BROWN_D
 INK_FAINT = (104, 76, 60)
 INK_ON_DARK = (255, 243, 214)
 
-# --- parchment (the page of a window) ----------------------------------------------------------------------------------------
-PARCH_HI = (251, 243, 222)
-PARCH = (240, 228, 196)
-PARCH_LO = (226, 208, 166)
-PARCH_SH = (204, 178, 134)
-PARCH_DK = (170, 140, 104)
+# --- parchment (the page of a window): the cream of the Pixel Adventure panels -------------------------------------------------
+PARCH_HI = (255, 250, 232)
+PARCH = (255, 241, 210)
+PARCH_LO = (240, 222, 180)
+PARCH_SH = (214, 190, 146)
+PARCH_DK = (170, 138, 98)
 
-# --- wood (frames, plates, strips): light to dark, bevel highlight to the dark cut ----------------------------------------------
-WOOD_HI = (250, 204, 148)
-WOOD_L = draw.WOOD_L
-WOOD = draw.WOOD
-WOOD_MID = (210, 128, 86)
-WOOD_D = draw.WOOD_D
-WOOD_DD = (88, 42, 44)
+# --- wood (frames, plates, strips), the Pixel Adventure frame's tones: light to dark ---------------------------------------------
+WOOD_HI = (222, 166, 100)
+WOOD_L = (197, 135, 71)
+WOOD = (163, 112, 58)
+WOOD_MID = (180, 124, 64)
+WOOD_D = (109, 75, 39)
+WOOD_DD = (81, 56, 30)
 
 # --- gold, red, green, blue --------------------------------------------------------------------------------------------------
 GOLD_HI = (255, 246, 190)

@@ -1,4 +1,4 @@
-/* A slot: a sunk square (menu.png, 2 u edge: outline and an inner bevel) 18 u wide around a 16 u item picture, which overlaps the inner ring. The hotkey
+/* A slot: a sunk square (menu.png, a 1 u inset bevel) 18 u wide around a 16 u item picture. The hotkey
    is printed on a dark pill under the slot; the stack count sits on a dark pill in the bottom-right corner. */
 .slot {
     position: relative;
@@ -10,8 +10,8 @@
     width: calc(var(--u) * 18);
     height: calc(var(--u) * 18);
     padding: 0;
-    border: calc(var(--u) * 2) solid var(--nosum-edge);
-    border-image: var(--nosum-img-slot) 8 / calc(var(--u) * 2) stretch;
+    border: var(--u) solid var(--nosum-edge);
+    border-image: var(--nosum-img-slot) 1 / var(--u) stretch;
     background: var(--nosum-slot-bg) padding-box;
     color: var(--nosum-ink);
     font: inherit;
@@ -27,17 +27,18 @@
     filter: brightness(0.88);
 }
 
-/* The selected slot: a gold line in a dark outline with a two-step glow (menu "select", 5 u), lifted over its neighbours. */
+/* The selected slot: a thick gold line in a dark outline with a two-step glow (cursors "select", 5 u), lifted 1 u over its neighbours. */
 .slot.selected,
 .slot.picked {
     z-index: 1;
+    transform: translateY(calc(var(--u) * -1));
 }
 
 .slot.selected::after,
 .slot.picked::after {
     content: "";
     position: absolute;
-    inset: calc(var(--u) * -4);
+    inset: calc(var(--u) * -5);
     border: calc(var(--u) * 5) solid var(--nosum-gold);
     border-image: var(--nosum-img-select) 20 / calc(var(--u) * 5) stretch;
     pointer-events: none;
@@ -68,6 +69,7 @@
     right: 0;
     width: calc(var(--u) * 8);
     height: calc(var(--u) * 6);
+    z-index: 2;
     margin: var(--u) auto 0;
     background: var(--nosum-ink);
     clip-path: var(--nosum-pill-clip);
@@ -85,8 +87,8 @@
 /* The stack count: cream on a dark pill in the corner. */
 .quantity {
     position: absolute;
-    right: calc(var(--u) * -1);
-    bottom: calc(var(--u) * -1);
+    right: 0;
+    bottom: 0;
     min-width: calc(var(--u) * 6);
     height: calc(var(--u) * 6);
     padding: 0 var(--u);

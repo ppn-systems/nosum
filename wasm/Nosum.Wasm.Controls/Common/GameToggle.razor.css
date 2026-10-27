@@ -26,16 +26,15 @@
     width: calc(var(--u) * 10);
     height: calc(var(--u) * 10);
     border: var(--u) solid var(--nosum-ink);
-    background: var(--nosum-img-face-stone) 0 0 / calc(8 * var(--u)) calc(8 * var(--u)), #a8a8b0;
-    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #d6d6de, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #60606c;
+    background: #7e7e8e;
+    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #b4b4c0, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #4e4e5c;
     color: var(--nosum-ink);
-    image-rendering: pixelated;
 }
 
 /* On: the block turns gold and holds a dark square (a shape, so the state is not told by colour alone). */
 .game-toggle input:checked + .game-toggle-box {
-    background: var(--nosum-img-face-gold) 0 0 / calc(8 * var(--u)) calc(8 * var(--u)), #fec850;
-    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #fff6be, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #c4701c;
+    background: #ffcc00;
+    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #ffe248, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #a88600;
 }
 
 .game-toggle input:checked + .game-toggle-box::after {
