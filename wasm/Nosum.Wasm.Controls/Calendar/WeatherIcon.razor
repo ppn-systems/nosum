@@ -1,39 +1,7 @@
-@* A small pixel-art weather icon (8 x 8 flat cells, drawn as SVG so it stays crisp at any UI scale). Kind: sun, rain, storm or snow. Decorative: the text next to it carries the meaning. *@
-<svg class="weather-icon @Kind" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
-    @for (int y = 0; y < 8; y++)
-    {
-        string row = Map[y];
-        for (int x = 0; x < 8; x++)
-        {
-            if (Palette.TryGetValue(row[x], out string? colour))
-            {
-                <rect x="@x" y="@y" width="1" height="1" fill="@colour" />
-            }
-        }
-    }
-</svg>
+@* A small pixel-art weather icon. Kind: sun, rain, storm or snow. Decorative: the text next to it carries the meaning. *@
+<span class="weather-icon @Kind" aria-hidden="true"></span>
 
 @code {
-    private static readonly Dictionary<char, string> Palette = new()
-    {
-        ['y'] = "#f2c94c",
-        ['o'] = "#d9822b",
-        ['w'] = "#ffffff",
-        ['g'] = "#b4bdc8",
-        ['d'] = "#5f6b7a",
-        ['b'] = "#4a90d9",
-    };
-
-    private static readonly Dictionary<string, string[]> Maps = new(StringComparer.Ordinal)
-    {
-        ["sun"] = ["...oo...", ".o.yy.o.", "..yyyy..", "oyyyyyyo", "oyyyyyyo", "..yyyy..", ".o.yy.o.", "...oo..."],
-        ["rain"] = ["........", "..gggg..", ".gggggg.", "gggggggg", "gggggggg", ".b..b.b.", "..b..b..", ".b..b..."],
-        ["storm"] = ["........", "..dddd..", ".dddddd.", "dddddddd", "..yyy...", "...yy...", "..yy....", "..y....."],
-        ["snow"] = ["........", "..gggg..", ".gggggg.", "gggggggg", "gggggggg", ".w..w.w.", "w..w..w.", "..w..w.."],
-    };
-
-    private string[] Map => Maps.TryGetValue(Kind, out string[]? found) ? found : Maps["sun"];
-
     /// <summary>The weather: <c>sun</c>, <c>rain</c>, <c>storm</c> or <c>snow</c>.</summary>
     [Parameter] public string Kind { get; set; } = "sun";
 }

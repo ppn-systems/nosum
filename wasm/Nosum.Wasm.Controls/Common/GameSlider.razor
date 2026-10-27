@@ -1,6 +1,10 @@
 @* A labelled slider: a real range input (keyboard: Tab and the arrow keys), with the value in words next to it. The value is committed when
    the thumb is released or a key is pressed, the number shown follows the thumb while it moves. *@
 <div class="game-slider">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <GameIcon Name="@Icon" />
+    }
     <span class="game-slider-label" id="@_labelId">@Label</span>
     <input type="range" min="@Min" max="@Max" step="@Step" value="@_live" disabled="@Disabled"
            aria-labelledby="@_labelId" aria-valuetext="@ValueText(_live)"
@@ -21,6 +25,9 @@
 
     /// <summary>The label (already localized).</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    /// <summary>Optional icon name.</summary>
+    [Parameter] public string? Icon { get; set; }
 
     /// <summary>Smallest value.</summary>
     [Parameter] public int Min { get; set; }

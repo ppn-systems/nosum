@@ -37,9 +37,9 @@
             case TabSound:
                 <GameSection Title="@Settings.Text("Settings_Volume")">
                     <div class="set-body">
-                        <GameSlider Label="@Settings.Text("Settings_Music")" Value="Settings.Current.MusicVolume" ValueChanged="Settings.SetMusicVolume" Format="Percent" />
-                        <GameSlider Label="@Settings.Text("Settings_SoundFx")" Value="Settings.Current.SoundVolume" ValueChanged="Settings.SetSoundVolume" Format="Percent" />
-                        <GameToggle Label="@Settings.Text("Settings_Mute")" Value="Settings.Current.Muted" ValueChanged="Settings.SetMuted" />
+                        <GameSlider Icon="music" Label="@Settings.Text("Settings_Music")" Value="Settings.Current.MusicVolume" ValueChanged="Settings.SetMusicVolume" Format="Percent" />
+                        <GameSlider Icon="sound-on" Label="@Settings.Text("Settings_SoundFx")" Value="Settings.Current.SoundVolume" ValueChanged="Settings.SetSoundVolume" Format="Percent" />
+                        <GameToggle Icon="sound-off" Label="@Settings.Text("Settings_Mute")" Value="Settings.Current.Muted" ValueChanged="Settings.SetMuted" />
                         <p class="set-note">@Settings.Text("Settings_SoundNote")</p>
                     </div>
                 </GameSection>

@@ -15,7 +15,7 @@
         <GamePanel Class="hud quest" Title="">
             <button type="button" class="quest-head" tabindex="-1" aria-expanded="@(_open ? "true" : "false")" data-tip="@(Vm.Heading + ": " + Vm.Title + (Vm.Hint.Length > 0 ? "\n" + Vm.Hint : string.Empty))"
                     @onmousedown:preventDefault @onclick="() => _open = !_open">
-                <span class="quest-fold">@(_open ? "-" : "+")</span><span class="quest-title">@Vm.Title</span>
+                <span class="quest-fold">@(_open ? "-" : "+")</span><GameIcon Name="quest-scroll" /><span class="quest-title">@Vm.Title</span>
             </button>
             @if (_open)
             {

@@ -3,5 +3,13 @@
     flex: none;
     width: calc(var(--u) * 6);
     height: calc(var(--u) * 6);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
     image-rendering: pixelated;
 }
+
+.weather-icon.sun { background-image: var(--nosum-img-weather-sun); }
+.weather-icon.rain { background-image: var(--nosum-img-weather-rain); }
+.weather-icon.storm { background-image: var(--nosum-img-weather-storm); }
+.weather-icon.snow { background-image: var(--nosum-img-weather-snow); }

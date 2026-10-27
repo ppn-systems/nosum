@@ -126,8 +126,25 @@ const SPRITES = [
     // Left and right arrows (thin).
     ["arrow-left", "cursors", 352, 495, 12, 11],
     ["arrow-right", "cursors", 365, 495, 12, 11],
-    // The gold coin (thin, 10 x 10).
-    ["coin", "cursors", 193, 373, 10, 10],
+    // The gold coin (thin, 16 x 16).
+    ["coin", "cursors", 240, 384, 16, 16],
+    ["coin-pouch", "cursors", 224, 384, 16, 16],
+    // Season icons (thin, 16 x 16 each).
+    ["season-spring", "cursors", 16, 384, 16, 16],
+    ["season-summer", "cursors", 32, 384, 16, 16],
+    ["season-fall", "cursors", 48, 384, 16, 16],
+    ["season-winter", "cursors", 64, 384, 16, 16],
+    // Weather icons (thin, 16 x 16 each).
+    ["weather-sun", "cursors", 80, 384, 16, 16],
+    ["weather-rain", "cursors", 96, 384, 16, 16],
+    ["weather-storm", "cursors", 112, 384, 16, 16],
+    ["weather-snow", "cursors", 128, 384, 16, 16],
+    // Quest and UI icons (thin, 16 x 16 each).
+    ["quest-scroll", "cursors", 144, 384, 16, 16],
+    ["sound-on", "cursors", 160, 384, 16, 16],
+    ["sound-off", "cursors", 176, 384, 16, 16],
+    ["music", "cursors", 192, 384, 16, 16],
+    ["dialog-arrow", "cursors", 208, 384, 16, 16],
     // Menu tabs (thin, 16 x 16 each): a bevelled plate with an outlined pictogram.
     ["tab-inventory", "cursors", 0, 368, 16, 16],
     ["tab-wardrobe", "cursors", 16, 368, 16, 16],

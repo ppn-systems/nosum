@@ -2,6 +2,10 @@
 <label class="game-toggle">
     <input type="checkbox" checked="@Value" disabled="@Disabled" @onchange="Changed" />
     <span class="game-toggle-box" aria-hidden="true"></span>
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <GameIcon Name="@Icon" />
+    }
     <span class="game-toggle-text">@Label</span>
 </label>
 
@@ -14,6 +18,9 @@
 
     /// <summary>The label (already localized).</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    /// <summary>Optional icon name.</summary>
+    [Parameter] public string? Icon { get; set; }
 
     /// <summary>Whether the switch cannot be used.</summary>
     [Parameter] public bool Disabled { get; set; }
