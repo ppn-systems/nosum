@@ -63,6 +63,7 @@ using Nosum.Wasm.ViewModels.Progress;
 using Nosum.Wasm.ViewModels.Shop;
 using Nosum.Wasm.ViewModels.Blacksmith;
 using Nosum.Wasm.ViewModels.Mine;
+using Nosum.Wasm.ViewModels.Npc;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
@@ -143,6 +144,7 @@ internal static class Program
         builder.Services.AddSingleton<NicknameFormatter>();
         builder.Services.AddSingleton<ProfileViewModel>();
         builder.Services.AddSingleton<ShopViewModel>();
+        builder.Services.AddSingleton<NpcDialogViewModel>();
         builder.Services.AddSingleton<BlacksmithViewModel>();
         builder.Services.AddSingleton<ElevatorViewModel>();
         builder.Services.AddSingleton<RequestsViewModel>();

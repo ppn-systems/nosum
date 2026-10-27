@@ -32,28 +32,49 @@ public sealed class GameMenuTabsTests
     }
 
     [Fact]
-    public void Items_SettingsIsTheLastTabAndHOpensIt_ShopIsNotAMenuButton()
+    public void Items_SettingsIsTheLastTabAndHOpensIt()
     {
         ToolbarViewModel vm = new(Localizer<Language>());
 
         vm.Items[^1].Kind.Should().Be(PanelKind.Settings);
         vm.Items[^1].Hotkey.Should().Be("H");
-        vm.Items.Should().NotContain(i => i.Kind == PanelKind.Shop || i.Kind == PanelKind.Help || i.Kind == PanelKind.Goals || i.Kind == PanelKind.Market);
-        vm.ShopItem.Kind.Should().Be(PanelKind.Shop);
-        vm.ShopItem.Label.Should().NotBeNullOrWhiteSpace().And.NotStartWith("Toolbar_");
     }
 
     [Fact]
-    public void Items_HaveNoMarketTabAndNoMKey_MarketItemIsTheTabShownWhileTheMarketIsOpen()
+    public void Items_HoldOnlyPlayerThings_NoShopMarketBoardChestOrFurnaceTab()
     {
         ToolbarViewModel vm = new(Localizer<Language>());
 
-        vm.Items.Should().NotContain(i => i.Kind == PanelKind.Market || i.Hotkey == "M" || i.Icon == "tab-market");
-        vm.MarketItem.Kind.Should().Be(PanelKind.Market);
-        vm.MarketItem.Icon.Should().Be("tab-market");
-        vm.MarketItem.Hotkey.Should().BeEmpty("the market opens at the trader's counter, not with a key");
-        vm.MarketItem.Label.Should().NotBeNullOrWhiteSpace().And.NotStartWith("Toolbar_");
+        vm.Items.Select(i => i.Kind).Should().BeEquivalentTo(
+        [
+            PanelKind.Inventory, PanelKind.Wardrobe, PanelKind.Crafting, PanelKind.Trade, PanelKind.Coop, PanelKind.Visitors,
+            PanelKind.Friends, PanelKind.Mail, PanelKind.Skills, PanelKind.Profile, PanelKind.Settings,
+        ]);
+        vm.Items.Select(i => i.Kind).Should().NotContain([PanelKind.Shop, PanelKind.Market, PanelKind.Goals, PanelKind.Chest, PanelKind.Furnace, PanelKind.Help]);
+        vm.Items.Should().NotContain(i => i.Hotkey == "M", "the market opens at the trader, not with a key");
         ((int)PanelKind.Market).Should().Be(2, "panel kinds are append-only");
+    }
+
+    [Fact]
+    public void Items_MailIsATabOfItsOwn()
+    {
+        ToolbarViewModel vm = new(Localizer<Language>());
+
+        ToolbarItem mail = vm.Items.Single(i => i.Kind == PanelKind.Mail);
+
+        mail.Icon.Should().Be("tab-mail");
+        mail.Label.Should().NotBeNullOrWhiteSpace().And.NotStartWith("Toolbar_");
+    }
+
+    [Fact]
+    public void MailTip_ShowsTheUnreadCountOnlyWhenThereIsUnreadMail_AndTheCogTipIsOnlySettings()
+    {
+        ToolbarViewModel vm = new(Localizer<Language>());
+
+        vm.MailTip(0).Should().Be(vm.Text("Toolbar_Mail"));
+        vm.MailTip(3).Should().StartWith(vm.Text("Toolbar_Mail")).And.Contain("3");
+        vm.SettingsTip.Should().Be(vm.Text("Toolbar_Settings"));
+        vm.SettingsTip.Should().NotContain(vm.Text("Toolbar_Mail"), "the cog holds settings only (docs/adr/ADR-043 D4)");
     }
 
     [Fact]

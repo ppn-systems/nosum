@@ -313,7 +313,7 @@
   <data name="Help_Use" xml:space="preserve"><value>Use, interact</value></data>
   <data name="Help_Hotbar" xml:space="preserve"><value>Select slot</value></data>
   <data name="Help_Inventory" xml:space="preserve"><value>Inventory</value></data>
-  <data name="Help_Counters" xml:space="preserve"><value>At a counter (shops, board, market): open it</value></data>
+  <data name="Help_Counters" xml:space="preserve"><value>At a counter (shops, board, market): talk to the merchant</value></data>
   <data name="Help_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
   <data name="Help_Trade" xml:space="preserve"><value>Trade</value></data>
   <data name="Help_Coop" xml:space="preserve"><value>Co-op</value></data>
@@ -771,4 +771,46 @@
   <data name="Requests_Status_Conflict" xml:space="preserve"><value>Please try again.</value></data>
   <data name="Quest_Reward" xml:space="preserve"><value>Reward: {0} coins</value></data>
   <data name="Hint_Quest" xml:space="preserve"><value>{0} Reward: {1} coins.</value></data>
+  <data name="Npc_Action_Buy" xml:space="preserve"><value>Buy</value></data>
+  <data name="Npc_Action_Sell" xml:space="preserve"><value>Sell</value></data>
+  <data name="Npc_Action_Talk" xml:space="preserve"><value>Talk</value></data>
+  <data name="Npc_Action_Build" xml:space="preserve"><value>Build</value></data>
+  <data name="Npc_Action_Upgrade" xml:space="preserve"><value>Upgrade</value></data>
+  <data name="Npc_Action_Goals" xml:space="preserve"><value>Goals</value></data>
+  <data name="Npc_Leave" xml:space="preserve"><value>Leave</value></data>
+  <data name="Npc_seed_keeper_Name" xml:space="preserve"><value>Mai</value></data>
+  <data name="Npc_seed_keeper_Role" xml:space="preserve"><value>Seed shopkeeper</value></data>
+  <data name="Npc_seed_keeper_Greeting" xml:space="preserve"><value>Hello there! This season's seeds are fresh. Have a look.</value></data>
+  <data name="Npc_seed_keeper_Talk1" xml:space="preserve"><value>Sow in the right season and every seed comes up strong. Out of season, the plants just wither.</value></data>
+  <data name="Npc_seed_keeper_Talk2" xml:space="preserve"><value>I have sold seeds here since I was small. Damp soil is my favourite smell.</value></data>
+  <data name="Npc_tailor_Name" xml:space="preserve"><value>Hanh</value></data>
+  <data name="Npc_tailor_Role" xml:space="preserve"><value>Tailor</value></data>
+  <data name="Npc_tailor_Greeting" xml:space="preserve"><value>Come in and look around! New shirts, new hats, all cut to fit.</value></data>
+  <data name="Npc_tailor_Talk1" xml:space="preserve"><value>Wear a straw hat out in the fields, it keeps the sun off.</value></data>
+  <data name="Npc_tailor_Talk2" xml:space="preserve"><value>I sew every stitch myself, so it lasts. You can plough in it and it will not wear through.</value></data>
+  <data name="Npc_furnisher_Name" xml:space="preserve"><value>Tam</value></data>
+  <data name="Npc_furnisher_Role" xml:space="preserve"><value>Furniture seller</value></data>
+  <data name="Npc_furnisher_Greeting" xml:space="preserve"><value>Hello! A nice home makes work a pleasure. Take a look at the chairs and tables.</value></data>
+  <data name="Npc_furnisher_Talk1" xml:space="preserve"><value>One lamp and one plant and a room looks completely different.</value></data>
+  <data name="Npc_furnisher_Talk2" xml:space="preserve"><value>My oak furniture has lasted decades without a crack.</value></data>
+  <data name="Npc_blacksmith_Name" xml:space="preserve"><value>Cuong</value></data>
+  <data name="Npc_blacksmith_Role" xml:space="preserve"><value>Blacksmith</value></data>
+  <data name="Npc_blacksmith_Greeting" xml:space="preserve"><value>Hm, a customer. Coal, ore, or an upgrade for your tools?</value></data>
+  <data name="Npc_blacksmith_Talk1" xml:space="preserve"><value>Bring me ore and coal and I will forge you a proper hoe.</value></data>
+  <data name="Npc_blacksmith_Talk2" xml:space="preserve"><value>There is good stuff down in the mine, but take some food with you.</value></data>
+  <data name="Npc_carpenter_Name" xml:space="preserve"><value>Lam</value></data>
+  <data name="Npc_carpenter_Role" xml:space="preserve"><value>Carpenter</value></data>
+  <data name="Npc_carpenter_Greeting" xml:space="preserve"><value>Ah, you are here. Coops, barns, I can build them all.</value></data>
+  <data name="Npc_carpenter_Talk1" xml:space="preserve"><value>Chickens need hay every evening, and so do cows. Do not let them go hungry.</value></data>
+  <data name="Npc_carpenter_Talk2" xml:space="preserve"><value>A building takes a few days, but built well it lasts a lifetime.</value></data>
+  <data name="Npc_trader_Name" xml:space="preserve"><value>Phat</value></data>
+  <data name="Npc_trader_Role" xml:space="preserve"><value>Trader</value></data>
+  <data name="Npc_trader_Greeting" xml:space="preserve"><value>Hello! Something to sell, or looking to buy from other farmers?</value></data>
+  <data name="Npc_trader_Talk1" xml:space="preserve"><value>Prices at the market follow the sellers. Check the price history before you list.</value></data>
+  <data name="Npc_trader_Talk2" xml:space="preserve"><value>I only keep the stall for everyone. What you sell and for how much is up to you.</value></data>
+  <data name="Npc_board_keeper_Name" xml:space="preserve"><value>Thu</value></data>
+  <data name="Npc_board_keeper_Role" xml:space="preserve"><value>Board keeper</value></data>
+  <data name="Npc_board_keeper_Greeting" xml:space="preserve"><value>Hello! There is work for the whole village on the board today.</value></data>
+  <data name="Npc_board_keeper_Talk1" xml:space="preserve"><value>When the village pitches in, every goal gets done. The reward is shared with everyone.</value></data>
+  <data name="Npc_board_keeper_Talk2" xml:space="preserve"><value>There are a few new delivery requests every day. First to finish is paid first.</value></data>
 </root>
