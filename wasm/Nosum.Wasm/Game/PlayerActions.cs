@@ -90,6 +90,10 @@ internal sealed class PlayerActions
     /// <summary>Gets the tile y in front of the farmer.</summary>
     public int TargetY { get; private set; }
 
+    /// <summary>Asks for a counter as if the action key had been pressed at it: a click on its merchant (docs/adr/ADR-043 D3). The caller has checked the farmer is within reach.</summary>
+    /// <param name="shopId">The counter's id.</param>
+    public void RequestShop(int shopId) => this.ShopRequested?.Invoke(shopId);
+
     /// <summary>Handles the keys pressed this frame.</summary>
     /// <param name="edges">Keys pressed since the previous frame.</param>
     /// <param name="feetX">Farmer's feet x, world pixels.</param>

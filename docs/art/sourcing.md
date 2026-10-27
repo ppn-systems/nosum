@@ -44,6 +44,7 @@ Result: 26 of the 27 non-terrain files are replaced. No layered CC0 base fits th
 | 7 Buildings and props (5 files, 246 cells) | Replaced | Farmhouse, barn, coop, greenhouse roof and walls from Tiny Town tiles; glass wall and shipping bin drawn | Optional: PixelLab `create_map_object`, 5 jobs, for buildings that look less modular |
 | 8 Animals (2 files, 24 frames) | Replaced | No CC0 source: drawn (chicken, cow, three directions, four walk frames) | Optional: PixelLab character and walk, 4 jobs |
 | 9 UI (4 files, 118 cells) | Replaced | Drawn to the slice sizes of `nosum-theme.js`; start picture drawn | Optional polish from Kenney UI Pack - Pixel Adventure |
+| 10 Merchants (14 files, 7 merchants) | Replaced | No CC0 source: drawn in code (`tools/art_repack/npcs.py`): a 16 x 32 world sheet with two idle frames and a 32 x 32 portrait for each of the Town's seven merchants (ADR-043 D5), in the Kenney palette with three-tone ramps and a 1 px outline | Optional polish like the farmer; the cells must stay 16 x 32 and 32 x 32 |
 
 Nothing is left that needs PixelLab. Everything is replaced with CC0 or drawn art; redoing the drawn pictures (the farmer, 19 jobs, about 40 with re-rolls) with PixelLab would cost about 170 jobs (135 item icons one by one, or 9 batched; 5 buildings; 4 animals; trees and UI by
 hand) and is a quality choice, not a requirement.

@@ -313,7 +313,7 @@
   <data name="Help_Use" xml:space="preserve"><value>Dùng, tương tác</value></data>
   <data name="Help_Hotbar" xml:space="preserve"><value>Chọn ô</value></data>
   <data name="Help_Inventory" xml:space="preserve"><value>Túi đồ</value></data>
-  <data name="Help_Counters" xml:space="preserve"><value>Đứng ở quầy (cửa hàng, bảng tin, chợ) để mở</value></data>
+  <data name="Help_Counters" xml:space="preserve"><value>Đứng ở quầy (cửa hàng, bảng tin, chợ) để nói chuyện với người bán</value></data>
   <data name="Help_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
   <data name="Help_Trade" xml:space="preserve"><value>Giao dịch</value></data>
   <data name="Help_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
@@ -771,6 +771,48 @@
   <data name="Requests_Status_Conflict" xml:space="preserve"><value>Hãy thử lại.</value></data>
   <data name="Quest_Reward" xml:space="preserve"><value>Thưởng: {0} xu</value></data>
   <data name="Hint_Quest" xml:space="preserve"><value>{0} Thưởng: {1} xu.</value></data>
+  <data name="Npc_Action_Buy" xml:space="preserve"><value>Mua</value></data>
+  <data name="Npc_Action_Sell" xml:space="preserve"><value>Bán</value></data>
+  <data name="Npc_Action_Talk" xml:space="preserve"><value>Trò chuyện</value></data>
+  <data name="Npc_Action_Build" xml:space="preserve"><value>Xây dựng</value></data>
+  <data name="Npc_Action_Upgrade" xml:space="preserve"><value>Nâng cấp</value></data>
+  <data name="Npc_Action_Goals" xml:space="preserve"><value>Mục tiêu</value></data>
+  <data name="Npc_Leave" xml:space="preserve"><value>Tạm biệt</value></data>
+  <data name="Npc_seed_keeper_Name" xml:space="preserve"><value>Cô Mai</value></data>
+  <data name="Npc_seed_keeper_Role" xml:space="preserve"><value>Chủ tiệm hạt giống</value></data>
+  <data name="Npc_seed_keeper_Greeting" xml:space="preserve"><value>Chào bạn! Hạt giống mùa này tươi lắm, bạn xem thử nhé.</value></data>
+  <data name="Npc_seed_keeper_Talk1" xml:space="preserve"><value>Gieo đúng mùa thì hạt nào cũng lên tốt. Trái mùa là cây héo hết đấy.</value></data>
+  <data name="Npc_seed_keeper_Talk2" xml:space="preserve"><value>Tôi bán hạt giống ở đây từ hồi bé tí. Mùi đất ẩm là mùi tôi thích nhất.</value></data>
+  <data name="Npc_tailor_Name" xml:space="preserve"><value>Chị Hạnh</value></data>
+  <data name="Npc_tailor_Role" xml:space="preserve"><value>Thợ may</value></data>
+  <data name="Npc_tailor_Greeting" xml:space="preserve"><value>Mời bạn vào xem! Áo mới, mũ mới, vừa vặn cả.</value></data>
+  <data name="Npc_tailor_Talk1" xml:space="preserve"><value>Ra đồng thì nên đội mũ rơm cho đỡ nắng, bạn nhé.</value></data>
+  <data name="Npc_tailor_Talk2" xml:space="preserve"><value>Tôi may từng đường kim mũi chỉ, bền lắm. Mặc đi cày cũng không sờn.</value></data>
+  <data name="Npc_furnisher_Name" xml:space="preserve"><value>Chú Tâm</value></data>
+  <data name="Npc_furnisher_Role" xml:space="preserve"><value>Chủ tiệm nội thất</value></data>
+  <data name="Npc_furnisher_Greeting" xml:space="preserve"><value>Chào bạn! Nhà đẹp thì làm việc mới vui. Xem ghế bàn nào.</value></data>
+  <data name="Npc_furnisher_Talk1" xml:space="preserve"><value>Một chiếc đèn và một chậu cây là căn phòng khác hẳn ngay.</value></data>
+  <data name="Npc_furnisher_Talk2" xml:space="preserve"><value>Đồ gỗ sồi nhà tôi dùng mấy chục năm chưa hỏng.</value></data>
+  <data name="Npc_blacksmith_Name" xml:space="preserve"><value>Ông Cường</value></data>
+  <data name="Npc_blacksmith_Role" xml:space="preserve"><value>Thợ rèn</value></data>
+  <data name="Npc_blacksmith_Greeting" xml:space="preserve"><value>Hừm, lại có khách. Cần than, quặng, hay nâng cấp nông cụ?</value></data>
+  <data name="Npc_blacksmith_Talk1" xml:space="preserve"><value>Mang quặng và than tới đây, tôi sẽ rèn cho bạn cái cuốc ra trò.</value></data>
+  <data name="Npc_blacksmith_Talk2" xml:space="preserve"><value>Dưới hầm mỏ có nhiều thứ quý, nhưng nhớ mang theo đồ ăn.</value></data>
+  <data name="Npc_carpenter_Name" xml:space="preserve"><value>Bác Lâm</value></data>
+  <data name="Npc_carpenter_Role" xml:space="preserve"><value>Thợ mộc</value></data>
+  <data name="Npc_carpenter_Greeting" xml:space="preserve"><value>À, bạn đến rồi. Chuồng gà, chuồng bò, bác dựng được hết.</value></data>
+  <data name="Npc_carpenter_Talk1" xml:space="preserve"><value>Gà cần có cỏ khô mỗi tối, bò cũng vậy. Đừng để chúng đói.</value></data>
+  <data name="Npc_carpenter_Talk2" xml:space="preserve"><value>Dựng nhà mất vài ngày, nhưng làm chắc thì dùng cả đời.</value></data>
+  <data name="Npc_trader_Name" xml:space="preserve"><value>Anh Phát</value></data>
+  <data name="Npc_trader_Role" xml:space="preserve"><value>Thương nhân</value></data>
+  <data name="Npc_trader_Greeting" xml:space="preserve"><value>Chào bạn! Có hàng gì hay muốn bán, hay muốn mua đồ của người khác?</value></data>
+  <data name="Npc_trader_Talk1" xml:space="preserve"><value>Giá ở chợ lên xuống theo người bán. Xem lịch sử giá trước khi đăng nhé.</value></data>
+  <data name="Npc_trader_Talk2" xml:space="preserve"><value>Tôi chỉ giữ chỗ cho mọi người buôn bán. Hàng nào, giá nào là do bạn quyết định.</value></data>
+  <data name="Npc_board_keeper_Name" xml:space="preserve"><value>Bà Thư</value></data>
+  <data name="Npc_board_keeper_Role" xml:space="preserve"><value>Người giữ bảng tin</value></data>
+  <data name="Npc_board_keeper_Greeting" xml:space="preserve"><value>Chào bạn! Bảng tin hôm nay có việc cho cả làng đấy.</value></data>
+  <data name="Npc_board_keeper_Talk1" xml:space="preserve"><value>Cả làng góp sức thì mục tiêu nào cũng xong. Phần thưởng chia đều cho mọi người.</value></data>
+  <data name="Npc_board_keeper_Talk2" xml:space="preserve"><value>Mỗi ngày có vài yêu cầu giao hàng mới. Ai làm trước được thưởng trước.</value></data>
   <data name="Device_BlockedText" xml:space="preserve"><value>Nosum hiện chỉ chơi được trên máy tính. Hãy mở trang này trên PC nhé!</value></data>
   <data name="Device_NarrowTitle" xml:space="preserve"><value>Cửa sổ quá hẹp</value></data>
   <data name="Device_NarrowText" xml:space="preserve"><value>Hãy kéo rộng cửa sổ trình duyệt ra ít nhất {0} px để chơi.</value></data>

@@ -3,6 +3,7 @@ import os
 
 import crops
 import icons
+import npcs
 import re
 import sources
 
@@ -40,6 +41,8 @@ ENTRIES = {
     'ui/text_box.png': ('9 UI', [NOSUM], 'Sunk text field box (188 x 48 at x 4), drawn at art pixels and enlarged 4 x in the palette of the UI packs (`ui.py`)'),
     'ui/start_background.png': ('9 UI', [NOSUM], 'Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`)'),
 }
+
+ENTRIES.update(npcs.provenance_entries(NOSUM))
 
 HEADER = '''# Provenance of the art under assets/
 

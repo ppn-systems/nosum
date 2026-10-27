@@ -17,6 +17,7 @@
 }
 
 .menu-tab {
+    position: relative;
     flex: none;
     width: calc(var(--u) * 16);
     height: calc(var(--u) * 16);
@@ -37,6 +38,23 @@
     background-repeat: no-repeat;
     image-rendering: pixelated;
     filter: saturate(0.7) brightness(0.9);
+}
+
+/* Unread mail: the same red count the HUD's mail icon carries. */
+.menu-tab-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    box-sizing: border-box;
+    min-width: calc(var(--u) * 7);
+    height: calc(var(--u) * 7);
+    padding: 0 var(--u);
+    border: var(--u) solid var(--nosum-edge);
+    background: var(--nosum-danger);
+    color: var(--nosum-ink-on-dark);
+    font: 400 var(--nosum-fs-small) / calc(var(--u) * 5) var(--nosum-font);
+    text-align: center;
+    pointer-events: none;
 }
 
 .menu-tab:hover .menu-tab-art {

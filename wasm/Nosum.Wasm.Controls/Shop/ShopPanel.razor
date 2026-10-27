@@ -9,31 +9,37 @@
    The blacksmith's counter (docs/adr/ADR-026 D2) also shows its tool upgrades under the list when the host gives it the blacksmith's view model. *@
 <MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
-        <GameRow Class="spread">
-            <span>@Vm.CoinsText</span>
-            <GameRow Class="center">
-                <span>@Vm.Text("Shop_Quantity")</span>
-                <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
-            </GameRow>
-        </GameRow>
-        <p>@Vm.Text("Shop_Hint")</p>
-        <div class="shop-list">
-            @foreach (ShopOfferDisplay offer in Vm.Offers)
-            {
-                int itemId = offer.ItemId;
-                <GameRow Class="center shop-row">
-                    <ItemSlotButton Slot="offer.Item" />
-                    <span>@offer.Item.Name</span>
-                    <span>@offer.PriceText</span>
-                    <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanAfford" OnClick="@(() => Vm.Buy(itemId))" />
-                </GameRow>
-            }
-        </div>
-        @if (ShopId == ShopCatalog.Blacksmith && Smith is not null)
+        @if (ShowOffers)
         {
-            <BlacksmithSection Vm="Smith" />
+            <GameRow Class="spread">
+                <span>@Vm.CoinsText</span>
+                <GameRow Class="center">
+                    <span>@Vm.Text("Shop_Quantity")</span>
+                    <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
+                </GameRow>
+            </GameRow>
+            <p>@Vm.Text("Shop_Hint")</p>
+            <div class="shop-list">
+                @foreach (ShopOfferDisplay offer in Vm.Offers)
+                {
+                    int itemId = offer.ItemId;
+                    <GameRow Class="center shop-row">
+                        <ItemSlotButton Slot="offer.Item" />
+                        <span>@offer.Item.Name</span>
+                        <span>@offer.PriceText</span>
+                        <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanAfford" OnClick="@(() => Vm.Buy(itemId))" />
+                    </GameRow>
+                }
+            </div>
         }
-        @Extra
+        @if (ShowExtras)
+        {
+            @if (ShopId == ShopCatalog.Blacksmith && Smith is not null)
+            {
+                <BlacksmithSection Vm="Smith" />
+            }
+            @Extra
+        }
     </GameStack>
 </MenuPage>
 
@@ -48,6 +54,12 @@
 
     /// <summary>More sections under the list of what the shop sells: the carpenter's buildings and animals (docs/adr/ADR-028).</summary>
     [Parameter] public RenderFragment? Extra { get; set; }
+
+    /// <summary>Whether the list of what the shop sells is shown. The merchant's Build and Upgrade buttons show only the sections (docs/adr/ADR-043 D3).</summary>
+    [Parameter] public bool ShowOffers { get; set; } = true;
+
+    /// <summary>Whether the sections under the list (the blacksmith's upgrades, the carpenter's buildings) are shown. The merchant's Buy button shows only the list.</summary>
+    [Parameter] public bool ShowExtras { get; set; } = true;
 
     protected override void OnParametersSet()
     {

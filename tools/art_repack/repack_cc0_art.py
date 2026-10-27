@@ -2,7 +2,7 @@
 """Rebuilds the replaced art files under assets/ from CC0 packs (docs/adr/ADR-040, docs/art/sourcing.md).
 
     python3 tools/art_repack/repack_cc0_art.py --sources <dir with the unzipped packs> [--repo <root>] [--check] [--docs]
-    python3 tools/art_repack/repack_cc0_art.py --only farmer|ui [--repo <root>] [--check]    # drawn files only, no packs needed
+    python3 tools/art_repack/repack_cc0_art.py --only farmer|npcs|ui [--repo <root>] [--check]    # drawn files only, no downloads needed
 
 Each replaced file keeps the path, the pixel size and the grid of the early file it replaces; the repack places CC0 sprites (and a few
 pictures drawn in this folder) into the cells the game draws. The same sources always give the same bytes. --check writes nothing and
@@ -22,6 +22,7 @@ import crops  # noqa: E402
 import farmer  # noqa: E402
 import furniture  # noqa: E402
 import icons  # noqa: E402
+import npcs  # noqa: E402
 import trees  # noqa: E402
 import ui  # noqa: E402
 import pngio  # noqa: E402
@@ -48,6 +49,8 @@ def build_all(src, repo, only=None):
     out.update(farmer.build(size))
     if only == 'farmer':
         return out
+    if only == 'npcs':
+        return npcs.build()
     out['sprites/crops.png'] = crops.build_crops(src, repo)
     out['sprites/soil.png'] = crops.build_soil(*size('sprites/soil.png'))
     out['sprites/tools.png'], out['sprites/weapons.png'] = tools.build(src, repo, size('sprites/tools.png'), size('sprites/weapons.png'))
@@ -57,13 +60,14 @@ def build_all(src, repo, only=None):
     out['sprites/items.png'] = icons.build(src, size)
     out.update(animals.build(size))
     out.update(ui.build(repo, size))
+    out.update(npcs.build())
     return out
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--sources')
-    parser.add_argument('--only', choices=['farmer', 'ui'])
+    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui'])
     parser.add_argument('--repo', default=os.path.abspath(os.path.join(HERE, '..', '..')))
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--docs', action='store_true')
@@ -81,6 +85,7 @@ def main():
             if current.px != img.px:
                 stale.append(rel)
         else:
+            os.makedirs(os.path.dirname(target), exist_ok=True)
             pngio.write_png(target, img)
             print('wrote', rel)
     for rel, text in sorted(ui.texts(args.repo).items()):
