@@ -49,13 +49,14 @@
     box-sizing: border-box;
     width: calc(var(--u) * 5);
     height: calc(var(--u) * 5);
-    border: var(--u) solid var(--nosum-edge);
-    background: var(--nosum-slot-bg);
+    border: var(--u) solid var(--nosum-ink);
+    background: var(--nosum-parchment-light);
+    box-shadow: inset var(--u) var(--u) 0 var(--nosum-slot-bg);
 }
 
 .objectives li.done .check {
     background: var(--nosum-ok);
-    box-shadow: inset 0 0 0 var(--u) var(--nosum-cream);
+    box-shadow: inset 0 0 0 var(--u) var(--nosum-gold-light);
 }
 
 .objectives li.done .obj-text,

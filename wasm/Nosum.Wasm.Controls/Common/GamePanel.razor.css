@@ -1,4 +1,4 @@
-/* The shared window frame: a 9-slice wooden border (menu.png, 4 u thick) around a parchment page. */
+/* The shared window frame: a 9-slice wooden border (menu.png, 4 u thick, rounded, bevelled, rivets) around a page of parchment texture. */
 .game-panel {
     --panel-edge: calc(var(--u) * 4);
 
@@ -12,7 +12,7 @@
     padding: calc(var(--u) * 2) calc(var(--u) * 3);
     border: var(--panel-edge) solid var(--nosum-edge);
     border-image: var(--nosum-img-panel) 16 / var(--panel-edge) stretch;
-    background: var(--nosum-parchment) padding-box;
+    background: var(--nosum-img-parchment) 0 0 / calc(16 * var(--u)) calc(16 * var(--u)) repeat padding-box, var(--nosum-parchment) padding-box;
     color: var(--nosum-ink);
     font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
     image-rendering: pixelated;
@@ -22,19 +22,31 @@
 .game-panel-title {
     margin: 0;
     font: 400 var(--nosum-fs-title) / var(--nosum-lh) var(--nosum-font);
-    text-shadow: 0 var(--tp) 0 var(--nosum-shine);
 }
 
-.game-panel-header {
+/* The title bar: a strip of wood (cursors.png "title", 14 u tall) across the top of the window, flush with the frame's inner edge, the title in
+   cream on it (7.9 : 1 on the darkest wood). */
+.game-panel-header,
+.game-panel > .game-panel-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: calc(var(--u) * 4);
-    margin-bottom: calc(var(--u) * 2);
+    box-sizing: border-box;
+    height: calc(var(--u) * 14);
+    margin: calc(var(--u) * -2) calc(var(--u) * -3) calc(var(--u) * 3);
+    padding: 0 calc(var(--u) * 3);
+    background: var(--nosum-img-title) 0 0 / calc(var(--nosum-w-title, 8) * var(--u)) calc(var(--u) * 14) repeat-x, var(--nosum-wood-dark);
+    color: var(--nosum-ink-on-dark);
+    image-rendering: pixelated;
+}
+
+.game-panel-header > .game-panel-title {
+    text-shadow: 0 var(--u) 0 var(--nosum-edge);
 }
 
 .game-panel > .game-panel-title {
-    margin-bottom: calc(var(--u) * 3);
+    text-shadow: 0 var(--u) 0 var(--nosum-edge);
 }
 
 .game-panel-body {
@@ -53,7 +65,7 @@
     color: var(--nosum-ink-soft);
 }
 
-/* The close button: the red X of the sheet, drawn at the UI scale. */
+/* The close button: the red cross on a lit square (10 u), drawn at the UI scale. */
 .game-close {
     flex: none;
     width: calc(var(--nosum-w-close, 12) * var(--u));
@@ -74,13 +86,29 @@
     transform: translateY(var(--u));
 }
 
-/* A compact always-visible widget: the coin counter, the quest tracker, the message line. */
+/* A compact always-visible widget (the coin counter, the clock, the quest tracker, the message line, the hotbar): the small plaque frame (3 u). */
 .game-panel.hud {
+    --panel-edge: calc(var(--u) * 3);
+
     padding: var(--u) calc(var(--u) * 2);
+    border-image: var(--nosum-img-plaque) 12 / var(--panel-edge) stretch;
+}
+
+/* A widget that draws its own frame (the energy gauge): the panel keeps only the region role. */
+.game-panel.bare {
+    padding: 0;
+    border: 0;
+    border-image: none;
+    background: none;
 }
 
 .game-panel.hud > .game-panel-title {
-    margin-bottom: 0;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: none;
+    color: var(--nosum-heading);
+    text-shadow: none;
 }
 
 .game-panel.dialog {

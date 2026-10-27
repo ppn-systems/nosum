@@ -1,5 +1,5 @@
-/* A slot: a square bevel (menu.png, 1 u edge) 18 u wide around a 16 u item picture. The hotkey is printed under the slot, outside
-   the picture; the stack count sits in the bottom-right corner with an outline. */
+/* A slot: a sunk square (menu.png, 2 u edge: outline and an inner bevel) 18 u wide around a 16 u item picture, which overlaps the inner ring. The hotkey
+   is printed on a dark pill under the slot; the stack count sits on a dark pill in the bottom-right corner. */
 .slot {
     position: relative;
     box-sizing: border-box;
@@ -10,34 +10,36 @@
     width: calc(var(--u) * 18);
     height: calc(var(--u) * 18);
     padding: 0;
-    border: var(--u) solid var(--nosum-edge);
-    border-image: var(--nosum-img-slot) 4 / var(--u) stretch;
-    background: var(--nosum-slot-bg);
+    border: calc(var(--u) * 2) solid var(--nosum-edge);
+    border-image: var(--nosum-img-slot) 8 / calc(var(--u) * 2) stretch;
+    background: var(--nosum-slot-bg) padding-box;
     color: var(--nosum-ink);
     font: inherit;
     image-rendering: pixelated;
     cursor: var(--nosum-cursor-pointer, pointer);
 }
 
-.slot.empty {
-    background: rgba(120, 58, 8, 0.12);
-}
-
 .slot:hover {
-    background-color: rgba(255, 244, 214, 0.28);
+    background-color: var(--nosum-parchment-deep);
 }
 
 .slot:active {
     filter: brightness(0.88);
 }
 
+/* The selected slot: a gold line in a dark outline with a two-step glow (menu "select", 5 u), lifted over its neighbours. */
+.slot.selected,
+.slot.picked {
+    z-index: 1;
+}
+
 .slot.selected::after,
 .slot.picked::after {
     content: "";
     position: absolute;
-    inset: calc(var(--u) * -1);
-    border: calc(var(--u) * 2) solid var(--nosum-focus);
-    border-image: var(--nosum-img-select) 8 / calc(var(--u) * 2) stretch;
+    inset: calc(var(--u) * -4);
+    border: calc(var(--u) * 5) solid var(--nosum-gold);
+    border-image: var(--nosum-img-select) 20 / calc(var(--u) * 5) stretch;
     pointer-events: none;
 }
 
@@ -49,6 +51,7 @@
 
 .icon {
     display: block;
+    flex: none;
     width: calc(var(--is, 16) * var(--u));
     height: calc(var(--is, 16) * var(--u));
     background-repeat: no-repeat;
@@ -57,31 +60,42 @@
     image-rendering: pixelated;
 }
 
+/* The slot number: cream on a dark pill under the slot (7.9 : 1), gold with dark ink on the selected one. */
 .hotkey {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    margin-top: calc(var(--u) * 2);
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 6);
+    margin: var(--u) auto 0;
+    background: var(--nosum-ink);
+    clip-path: var(--nosum-pill-clip);
     text-align: center;
-    font: 400 var(--nosum-fs-small) / calc(var(--tp) * 8) var(--nosum-font);
-    color: var(--nosum-ink-soft);
+    font: 400 var(--nosum-fs-small) / calc(var(--u) * 6) var(--nosum-font);
+    color: var(--nosum-ink-on-dark);
     pointer-events: none;
 }
 
 .slot.selected .hotkey {
-    color: var(--nosum-danger);
+    background: var(--nosum-gold);
+    color: var(--nosum-ink);
 }
 
+/* The stack count: cream on a dark pill in the corner. */
 .quantity {
     position: absolute;
-    right: calc(var(--u) * 1);
-    bottom: 0;
-    font: 400 var(--nosum-fs-body) / calc(var(--tp) * 9) var(--nosum-font);
-    color: #fff;
-    text-shadow:
-        var(--tp) 0 0 var(--nosum-ink), calc(var(--tp) * -1) 0 0 var(--nosum-ink), 0 var(--tp) 0 var(--nosum-ink), 0 calc(var(--tp) * -1) 0 var(--nosum-ink),
-        var(--tp) var(--tp) 0 var(--nosum-ink), calc(var(--tp) * -1) var(--tp) 0 var(--nosum-ink);
+    right: calc(var(--u) * -1);
+    bottom: calc(var(--u) * -1);
+    min-width: calc(var(--u) * 6);
+    height: calc(var(--u) * 6);
+    padding: 0 var(--u);
+    box-sizing: border-box;
+    background: var(--nosum-ink);
+    clip-path: var(--nosum-pill-clip);
+    text-align: center;
+    font: 400 var(--nosum-fs-body) / calc(var(--u) * 6) var(--nosum-font);
+    color: var(--nosum-ink-on-dark);
     pointer-events: none;
 }
 
@@ -98,10 +112,12 @@
 /* The water left in a watering can: a thin bar along the bottom of the slot, with the number above it. */
 .meter {
     position: absolute;
-    left: calc(var(--u) * 2);
-    right: calc(var(--u) * 2);
-    bottom: calc(var(--u) * 1);
-    height: calc(var(--u) * 2);
+    left: calc(var(--u) * 1);
+    right: calc(var(--u) * 1);
+    bottom: calc(var(--u) * 0);
+    height: calc(var(--u) * 3);
+    box-sizing: border-box;
+    border: var(--u) solid var(--nosum-ink);
     background: var(--nosum-ink);
     pointer-events: none;
 }
@@ -109,5 +125,5 @@
 .meter > span {
     display: block;
     height: 100%;
-    background: #4aa3ff;
+    background: linear-gradient(to bottom, #76e4ff 0 50%, #009adc 50% 100%);
 }

@@ -4,7 +4,7 @@
    so the HUD stays tidy. It is hidden until the server has said how much energy the player has. *@
 @if (Vm.HasEnergy)
 {
-    <GamePanel Class="hud energy" Title="">
+    <GamePanel Class="hud bare energy" Title="">
         <div class="energy-bar @(Vm.EnergyLow ? "low" : null)" role="meter" aria-label="@Vm.EnergyLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxEnergy" aria-valuenow="@Vm.Energy" data-tip="@Vm.EnergyLabel">
             <span class="energy-fill" style="height: @(Math.Round(Vm.EnergyFraction * 100).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span>
         </div>

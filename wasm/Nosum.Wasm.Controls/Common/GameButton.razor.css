@@ -54,7 +54,7 @@
 }
 
 .game-button:disabled {
-    --button-state: saturate(0.6) brightness(0.92);
+    --button-state: saturate(0.5) brightness(1.1);
 
     color: var(--nosum-ink-soft);
     text-shadow: none;
@@ -62,7 +62,7 @@
 }
 
 .game-button:disabled .game-button-label {
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 .game-button:focus-visible {

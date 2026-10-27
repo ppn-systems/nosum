@@ -29,7 +29,7 @@
     transform: translateY(var(--u));
 }
 
-/* The count on the corner: a red dot with a number. */
+/* The count on the corner: a red pill with a number. */
 .game-icon-badge {
     position: absolute;
     top: calc(var(--u) * -1);
@@ -38,8 +38,8 @@
     min-width: calc(var(--u) * 7);
     height: calc(var(--u) * 7);
     padding: 0 var(--u);
-    border: var(--u) solid var(--nosum-edge);
     background: var(--nosum-danger);
+    clip-path: var(--nosum-pill-clip);
     color: var(--nosum-ink-on-dark);
     font: 400 var(--nosum-fs-small) / calc(var(--u) * 5) var(--nosum-font);
     text-align: center;

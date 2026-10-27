@@ -18,21 +18,8 @@ const SHEETS = {
     textbox: "ui/text_box.png",    // fat: the text field
 };
 
-// Own 1-bit pictures for the tabs the sheets have no icon for (Nosum art, not early content). '#' is ink, anything else clear.
+// Own 1-bit pictures for the faint hints in the empty equipment slots (Nosum art, not early content). '#' is ink, anything else clear.
 const GLYPHS = {
-    gear: [
-        "....###....",
-        ".##.###.##.",
-        ".#########.",
-        "..###.###..",
-        "####...####",
-        "####...####",
-        "####...####",
-        "..###.###..",
-        ".#########.",
-        ".##.###.##.",
-        "....###....",
-    ],
     shirt: [
         "..##...##..",
         ".#########.",
@@ -42,49 +29,6 @@ const GLYPHS = {
         "...#####...",
         "...#####...",
         "...#####...",
-    ],
-    person: [
-        "...###...",
-        "..#####..",
-        "..#####..",
-        "...###...",
-        ".........",
-        ".#######.",
-        "#########",
-        "#########",
-        "#########",
-        "#########",
-    ],
-    people: [
-        "..##...##..",
-        ".####.####.",
-        ".####.####.",
-        "..##...##..",
-        "...........",
-        "#####.#####",
-        "#####.#####",
-        "#####.#####",
-        "#####.#####",
-    ],
-    heart: [
-        ".###...###.",
-        "#####.#####",
-        "###########",
-        "###########",
-        ".#########.",
-        "..#######..",
-        "...#####...",
-        "....###....",
-        ".....#.....",
-    ],
-    envelope: [
-        "###########",
-        "##.#####.##",
-        "###.###.###",
-        "####...####",
-        "###########",
-        "###########",
-        "###########",
     ],
     hat: [
         "...#####...",
@@ -103,45 +47,8 @@ const GLYPHS = {
         "###...###",
         "###...###",
     ],
-    board: [
-        "###########",
-        "#.........#",
-        "#.##...##.#",
-        "#.##...##.#",
-        "#.........#",
-        "#.###.###.#",
-        "#.........#",
-        "###########",
-        "....#.#....",
-        "....#.#....",
-    ],
-    star: [
-        ".....#.....",
-        ".....#.....",
-        "....###....",
-        "###########",
-        ".#########.",
-        "..#######..",
-        "..#######..",
-        ".####.####.",
-        ".###...###.",
-        ".#.......#.",
-    ],
-    swap: [
-        "...#.......",
-        "...##......",
-        "###########",
-        "...##......",
-        "...#.......",
-        "...........",
-        ".......#...",
-        "......##...",
-        "###########",
-        "......##...",
-        ".......#...",
-    ],
 };
-const GLYPH_INK = "#5a2a0a";
+const GLYPH_INK = "#5a3a2e";
 
 // Item pictures the sheets have no usable art for (Nosum art): 16 x 16, drawn in one colour with four shades. '#' outline, 'L' light, 'o' base,
 // 'D' shade, 'B' belt and cuff. Published as --nosum-img-<name> and used by ItemIcons (ItemIcon.ThemeImage).
@@ -189,41 +96,50 @@ function drawItem(color, rows) {
 
 // [name, sheet, x, y, width, height, glyph drawn in the middle (optional)]
 const SPRITES = [
-    // Window frame: dark outline, two wood bands, an inner highlight; 16 px (4 u) on every side; the middle is the parchment.
+    // Window frame: dark outline, lit and shaded wood, an inner lip, a rivet in each corner; 16 px (4 u) on every side. The middle is the parchment,
+    // painted from the "parchment" tile by the CSS.
     ["panel", "menu", 0, 256, 60, 60],
-    // A recessed card (section inside a window): dark outline, shaded top and right; 8 px (2 u) slice.
+    // The small frame of the HUD widgets, the tooltip and the message line: 12 px (3 u) on every side.
+    ["plaque", "menu", 64, 256, 48, 48],
+    // The page texture (fat, 64 x 64 = 16 u): it tiles.
+    ["parchment", "menu", 128, 256, 64, 64],
+    // A recessed card (section inside a window): brown outline, shaded top and left, lit bottom and right; 8 px (2 u) slice.
     ["inset", "menu", 0, 320, 60, 60],
-    // Inventory slot bevel (cream on the left/bottom, brown on the top/right), transparent inside; 4 px (1 u) edge.
+    // Inventory slot (sunk, same light direction), transparent inside; 8 px (2 u) edge. The picture overlaps the inner ring.
     ["slot", "menu", 128, 128, 64, 64],
-    // The red frame around the selected hotbar slot (fat; 4 px line); 8 px slice.
-    ["select", "cursors", 448, 128, 64, 64],
-    // Text field: recessed peach box (the 4 transparent columns on the left of the sheet are cut off); 12 px slice.
+    // The frame around the selected hotbar slot (fat): a gold line in a dark outline, two steps of glow outside; 20 px (5 u) slice.
+    ["select", "cursors", 448, 128, 80, 80],
+    // Text field: sunk light box (the 4 transparent columns on the left of the sheet are cut off); 12 px slice.
     ["field", "textbox", 4, 0, 188, 48],
-    // Buttons (thin): orange pill; hot (yellow) pill for the active tab; red pill for destructive actions; 3 px slice.
+    // Buttons (thin): wood pill; gold pill for the active tab; red pill for destructive actions; 3 px slice.
     ["button", "cursors", 145, 338, 13, 9],
     ["button-hot", "cursors", 159, 338, 13, 9],
     ["button-danger", "cursors", 137, 338, 7, 9],
-    // Red X in a wooden square: the close button of a window (thin, 12 x 12).
-    ["close", "cursors", 337, 494, 12, 12],
+    // The title bar of a window (thin, 8 x 14, repeats along the bar).
+    ["title", "cursors", 0, 400, 8, 14],
+    // The frame of the energy gauge: gold end caps, a dark track (thin, 10 x 26, 3 px slice).
+    ["gauge", "cursors", 16, 400, 10, 26],
+    // The close button of a window: a red cross on a lit square (thin, 10 x 10).
+    ["close", "cursors", 337, 494, 10, 10],
     // Left and right arrows (thin).
     ["arrow-left", "cursors", 352, 495, 12, 11],
     ["arrow-right", "cursors", 365, 495, 12, 11],
-    // The gold coin (thin, 9 x 9).
-    ["coin", "cursors", 193, 373, 9, 9],
-    // Menu tabs (thin, 16 x 16 each): the sheet's own icons, and its blank tab with a glyph on it.
+    // The gold coin (thin, 10 x 10).
+    ["coin", "cursors", 193, 373, 10, 10],
+    // Menu tabs (thin, 16 x 16 each): a bevelled plate with an outlined pictogram.
     ["tab-inventory", "cursors", 0, 368, 16, 16],
+    ["tab-wardrobe", "cursors", 16, 368, 16, 16],
     ["tab-coop", "cursors", 32, 368, 16, 16],
+    ["tab-trade", "cursors", 48, 368, 16, 16],
+    ["tab-visitors", "cursors", 64, 368, 16, 16],
     ["tab-market", "cursors", 80, 368, 16, 16],
+    ["tab-friends", "cursors", 96, 368, 16, 16],
+    ["tab-mail", "cursors", 112, 368, 16, 16],
+    ["tab-skills", "cursors", 128, 368, 16, 16],
+    ["tab-profile", "cursors", 144, 368, 16, 16],
+    ["tab-settings", "cursors", 160, 368, 16, 16],
+    ["tab-goals", "cursors", 176, 368, 16, 16],
     ["tab-shop", "cursors", 0, 384, 16, 16],
-    ["tab-wardrobe", "cursors", 16, 368, 16, 16, "shirt"],
-    ["tab-trade", "cursors", 16, 368, 16, 16, "swap"],
-    ["tab-profile", "cursors", 16, 368, 16, 16, "person"],
-    ["tab-visitors", "cursors", 16, 368, 16, 16, "people"],
-    ["tab-friends", "cursors", 16, 368, 16, 16, "heart"],
-    ["tab-mail", "cursors", 16, 368, 16, 16, "envelope"],
-    ["tab-skills", "cursors", 16, 368, 16, 16, "star"],
-    ["tab-settings", "cursors", 16, 368, 16, 16, "gear"],
-    ["tab-goals", "cursors", 16, 368, 16, 16, "board"],
     // The faint picture in an empty equipment slot (glyph only, no sheet).
     ["glyph-hat", null, 0, 0, 11, 4, "hat"],
     ["glyph-shirt", null, 0, 0, 11, 8, "shirt"],
@@ -232,8 +148,8 @@ const SPRITES = [
 
 // Mouse cursors: [name, sheet, x, y, width, height, hotspot x, hotspot y]; scaled by --u when published.
 const CURSORS = [
-    ["cursor", "cursors", 0, 0, 8, 10, 0, 0],             // the brown arrow
-    ["cursor-pointer", "cursors", 32, 0, 10, 10, 2, 1],   // the hand, over anything clickable
+    ["cursor", "cursors", 0, 0, 10, 15, 0, 0],            // the arrow: light face, dark outline
+    ["cursor-pointer", "cursors", 32, 0, 10, 10, 3, 0],   // the hand, over anything clickable
 ];
 
 const root = document.documentElement;
