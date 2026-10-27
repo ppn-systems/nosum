@@ -26,7 +26,7 @@ powers of two; the same input always produces the same atlas.
 ## Own maps (Nosum.MapGen)
 
 `Nosum.MapGen` writes Nosum's own `.tmx` maps under `art/own/Maps` ([ADR-042](../docs/adr/ADR-042-own-maps-and-provenance-cleanup.md) D3, D4). Nothing in the game
-references it. A `.tmx` it writes is generated: edit the source, never the output.
+references it. Every layout also goes through the terrain pass (`AutoTerrain.cs`): grass and dirt fills take one of their four variants by a hash of the cell position, and a ground layer `Back2` gets the transition tile of each cell whose corners border a terrain the terrain sheet has a pair for (upper terrain wins a corner; a one-tile run keeps its fill; deep water against land uses the shallows pair). `Back2` carries no traits, so the walk rules do not change. A `.tmx` it writes is generated: edit the source, never the output.
 
 ```bash
 dotnet run --project tools/Nosum.MapGen -- layout <Name> [--check]   # art/own/source/layouts/<Name>.txt â†’ art/own/Maps/<Name>.tmx
@@ -44,7 +44,7 @@ dotnet run --project tools/Nosum.MapGen -- sheets [--check]                 # â†
 dotnet run --project tools/Nosum.MapGen -- sheets --contact <file.png>      # also a picture of every sheet, for judging the art
 ```
 
-A new sheet is a drawing in `Sheets/` listed in `SheetCatalog.All`, its `.tileset` trait file, and a line in `art/own/SOURCES.md`. The trait files are hand-written; `MapGenSheetsTests` checks that every index they name exists in the picture.
+The drawings share `Palette.cs` (tones and five-tone ramps) and `Shading.cs` (tileable smooth noise, mixing, bevels, wood grain, lobed canopies); noise that fills a tile repeats every 16 pixels, so tiles join without a seam. A new sheet is a drawing in `Sheets/` listed in `SheetCatalog.All`, its `.tileset` trait file, and a line in `art/own/SOURCES.md`. The trait files are hand-written; `MapGenSheetsTests` checks that every index they name exists in the picture.
 
 **Tileset data** is `art/own/source/tilesets/<name>.tileset`: one keyword per line, `//` starts a comment, and the name line equals the file name.
 

@@ -51,6 +51,26 @@ Download the archives from the pages below, unzip each into a directory with the
 '''
 
 
+MAP_SHEETS = '''
+## Map tilesheets (art/own/Maps)
+
+The six tilesheets of the own maps are not under `assets/`: they are drawn in code, deterministically, by `tools/Nosum.MapGen sheets` from
+`tools/Nosum.MapGen/Sheets/` (palette, texture helpers and one drawing per sheet), and `sheets --check` fails when a committed picture differs from
+what the code draws. No outside art is read or copied. The sheets were redrawn on 2026-10-26 with smooth tileable noise, five-tone ramps, shore
+foam and lip edges on the transitions, lobed tree canopies and bevelled wood and stone, keeping every sheet's grid and tile indices. The open-licensed
+packs that were checked for them, and why none is used, are in [`sourcing-2026-10-26.md`](sourcing-2026-10-26.md). Per-file entries: [`art/own/SOURCES.md`](../../art/own/SOURCES.md).
+
+| File | Tileset | Source | License |
+| :-- | :-- | :-- | :-- |
+| `art/own/Maps/terrain.png` | `terrain` | Nosum original, drawn by `tools/Nosum.MapGen/Sheets/TerrainSheet.cs` | Nosum's own art |
+| `art/own/Maps/nature.png` | `nature` | Nosum original, drawn by `NatureSheet.cs` | Nosum's own art |
+| `art/own/Maps/town.png` | `town` | Nosum original, drawn by `TownSheet.cs` | Nosum's own art |
+| `art/own/Maps/interior.png` | `interior` | Nosum original, drawn by `InteriorSheet.cs` | Nosum's own art |
+| `art/own/Maps/cave.png` | `cave` | Nosum original, drawn by `CaveSheet.cs` | Nosum's own art |
+| `art/own/Maps/markers.png` | `Paths` | Nosum original, drawn by `MarkerSheet.cs` (never drawn in game) | Nosum's own art |
+'''
+
+
 def write(repo, replaced):
     lines = [HEADER, '## Sources\n\n', '| Directory | Pack | Page | License as verified | Author |\n', '| :-- | :-- | :-- | :-- | :-- |\n']
     for key, (title, page, lic, author) in sources.PACKS.items():
@@ -73,6 +93,7 @@ def write(repo, replaced):
     names = object_names(repo)
     for index, fn in sorted(icons.OBJECTS.items()):
         lines.append(f'| {index} | {names.get(index, "resource node")} | {fn.note} |\n')
+    lines.append(MAP_SHEETS)
     with open(os.path.join(repo, 'docs', 'art', 'provenance.md'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(''.join(lines))
 
