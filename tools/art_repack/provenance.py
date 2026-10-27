@@ -34,7 +34,7 @@ ENTRIES = {
     'sprites/buildings/coop.png': ('7 Buildings and props', ['kenney_tiny-town', 'kenney_tiny-farm'], 'Coop, 6 x 7 tiles: Tiny Town slate roof, Tiny Farm boards (tiles 102-104, 114-116) turned to pine, windows (128) and door (127)'),
     'sprites/buildings/shipping_bin.png': ('7 Buildings and props', [NOSUM], 'Shipping bin, 2 x 2 tiles (`buildings.shipping_bin`)'),
     'sprites/animals/chicken.png': ('8 Animals', ['oga_tiny-creatures'], 'Chicken, 16 x 16 frames: Tiny Creatures chicken (column 0, row 15), flipped for the right row, lifted 1 px on walk frames 1 and 3; rows down, right, up (`animals.py`)'),
-    'sprites/animals/cow.png': ('8 Animals', ['oga_tiny-creatures'], 'Cow, 32 x 32 frames: Tiny Creatures cow (column 1, row 15, 16 x 16) at the foot of each frame, same flip and bob as the chicken (`animals.py`)'),
+    'sprites/animals/cow.png': ('8 Animals', ['oga_tiny-creatures'], 'Cow, 32 x 32 frames: Tiny Creatures cow (column 1, row 15, 16 x 16) doubled to fill each frame, same flip and a 2 px bob (`animals.py`)'),
     'ui/menu.png': ('9 UI', [NOSUM], 'Window frame (60 x 60 at 0, 256), inset (0, 320) and inventory slot (128, 128) for the CSS border-image slices (`ui.py`)'),
     'ui/cursors.png': ('9 UI', [NOSUM], 'Selection frame, buttons, close button, arrows, coin, tab pictograms and the two mouse cursors at the rectangles of `nosum-theme.js` (`ui.py`)'),
     'ui/text_box.png': ('9 UI', [NOSUM], 'Text field box (188 x 48 at x 4) (`ui.py`)'),
