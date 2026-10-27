@@ -48,6 +48,24 @@ def trunk(c, cx, y0, y1, w, tones, flare=True):
             c.dot(x, y, col)
 
 
+def rim_light(c, tones):
+    """Light on the canopy's upper-left silhouette and shadow on its lower-right one, so the crown reads as a lit mass, not a flat cloud."""
+    dark, _, light = tones
+    snap = [row[:] for row in c.px]
+
+    def empty(x, y):
+        return not (0 <= x < c.width and 0 <= y < c.height) or snap[y][x][3] == 0
+
+    for y in range(c.height):
+        for x in range(c.width):
+            if snap[y][x][3] == 0:
+                continue
+            if empty(x, y - 1) or empty(x - 1, y):
+                c.dot(x, y, light)
+            elif empty(x, y + 1) or empty(x + 1, y):
+                c.dot(x, y, dark)
+
+
 def big_tree(tones, kind):
     c = Canvas(48, 96)
     if kind == 'pine':
@@ -58,7 +76,13 @@ def big_tree(tones, kind):
         leaf = tones['leaf']
         for cx, cy, rx, ry in ((24, 38, 22, 20), (13, 40, 11, 13), (35, 40, 11, 13), (24, 20, 16, 14), (14, 26, 11, 11), (34, 26, 11, 11), (24, 52, 15, 8)):
             blob(c, cx, cy, rx, ry, leaf)
+    rim_light(c, leaf)
     trunk(c, 24, 56, 95, 8, tones["bark"])
+    shadow = tones['bark'][0]
+    for y in range(56, 61):                          # the crown's shadow falls on the top of the trunk
+        for x in range(20, 28):
+            if c.px[y][x][3] and c.px[y][x][:3] != leaf[0] and (x + y) % 2 == 0:
+                c.dot(x, y, shadow)
     # The canopy overlaps the trunk top; the outline must not cut the trunk's foot off the sheet.
     c.outline()
     return c
