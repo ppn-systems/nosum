@@ -557,21 +557,19 @@ def weather_icon(kind):
 def quest_scroll():
     c = Canvas(16, 16)
     c.art([
-        '.....PP.........',
-        '....PPPP........',
-        '...PPLLPP..RR...',
-        '..PPLLLLPPRRRR..',
-        '..PLLLLLLLRRRR..',
-        '..PLLLLLLLLRR...',
-        '...PLLLLLLLLP...',
-        '...PPLLLLLLLP...',
-        '....PPLLLLLLP...',
-        '.....PLLLLLLP...',
-        '.....PLLLLLLP...',
-        '......PPLLLP....',
-        '.......PPPP.....',
-        '........PP......',
-    ], {'P': P.PARCH_DK, 'L': P.PARCH_HI, 'R': P.RED}, 1, 1)
+        '.wWWWWWWWWWWw.',
+        '..PPPPPPPPPP..',
+        '..PLLLLLLLLP..',
+        '..PLLwwwwLLP..',
+        '..PLLLLLLLLP..',
+        '..PLLwwwLLLP..',
+        '..PLLLLLLLLP..',
+        '..PLLLRRLLLP..',
+        '..PLLRRRRLLP..',
+        '..PLLLRRLLLP..',
+        '..PPPPPPPPPP..',
+        '.wWWWWWWWWWWw.',
+    ], {'w': P.GOLD_L, 'W': P.WOOD_L, 'P': P.GOLD_D, 'L': P.PARCH_HI, 'R': P.RED}, 1, 2)
     return c.outline()
 
 
@@ -579,32 +577,28 @@ def sound_icon(kind):
     c = Canvas(16, 16)
     if kind == 'on':
         c.art([
-            '......WW........',
-            '....WWWW..G.....',
-            '...WWWWW...G....',
-            '..WWWWWW....G...',
-            'WWWWWWWW....G...',
-            'WWWWWWWW....G...',
-            'WWWWWWWW....G...',
-            '..WWWWWW....G...',
-            '...WWWWW...G....',
-            '....WWWW..G.....',
-            '......WW........',
-        ], {'W': P.WOOD_HI, 'G': P.GOLD}, 1, 2)
+            '.....WW.......',
+            '....WWW..G....',
+            '...WWWW...G...',
+            'WWWWWWW.G..G..',
+            'WWWWWWW..G.G..',
+            'WWWWWWW.G..G..',
+            '...WWWW...G...',
+            '....WWW..G....',
+            '.....WW.......',
+        ], {'W': P.GOLD_L, 'G': P.GOLD_HI}, 1, 3)
     else:
         c.art([
-            'R.....WW........',
-            '.R..WWWW........',
-            '..RWWWWW........',
-            '..RWWWWW........',
-            'WWWRWWWW........',
-            'WWWWRPWW........',
-            'WWWWWRWW........',
-            '..WWWWWR........',
-            '...WWWWWR.......',
-            '....WWWW.R......',
-            '......WW..R.....',
-        ], {'W': P.WOOD_D, 'P': P.WOOD_L, 'R': P.RED}, 1, 2)
+            '.....WW.......',
+            '....WWW.......',
+            '...WWWW..R...R',
+            'WWWWWWW...R.R.',
+            'WWWWWWW....R..',
+            'WWWWWWW...R.R.',
+            '...WWWW..R...R',
+            '....WWW.......',
+            '.....WW.......',
+        ], {'W': P.STONE_L, 'R': P.RED}, 1, 3)
     return c.outline()
 
 

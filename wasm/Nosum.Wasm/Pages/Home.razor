@@ -136,18 +136,29 @@ else
         <TopRight>
             @if (_started)
             {
-                <CalendarClock Vm="Calendar" />
-                <CoinBadge Vm="Wallet" />
-                @* Mail has its own icon with the unread count; the cog holds settings only (docs/adr/ADR-043 D4). *@
-                <GameIconButton Icon="tab-mail" Tip="@Toolbar.MailTip(Mail.Unread)" Badge="Mail.Unread" OnClick="@(() => TogglePanel(PanelKind.Mail))" />
-                <GameIconButton Icon="tab-settings" Tip="@Toolbar.SettingsTip" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
+                <div class="hud-bar">
+                    <CalendarClock Vm="Calendar" />
+                    <CoinBadge Vm="Wallet" />
+                    @* Mail and Settings are standalone windows of their own (docs/adr/ADR-043 D4, ADR-044). *@
+                    <GameIconButton Icon="tab-mail" Active="@(_panel == PanelKind.Mail)" Tip="@Toolbar.MailTip(Mail.Unread)" Badge="Mail.Unread" OnClick="@(() => TogglePanel(PanelKind.Mail))" />
+                    <GameIconButton Icon="tab-settings" Active="@(_panel == PanelKind.Settings)" Tip="@Toolbar.SettingsTip" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
+                </div>
+                <div class="hud-bar hud-player-bar" role="toolbar" aria-label="@Toolbar.Label">
+                    @foreach (ToolbarItem item in Toolbar.Items)
+                    {
+                        if (item.Kind is not (PanelKind.Mail or PanelKind.Settings))
+                        {
+                            PanelKind kind = item.Kind;
+                            <GameIconButton Icon="@item.Icon" Active="@(_panel == kind)" Tip="@(item.Hotkey.Length > 0 ? item.Label + " [" + item.Hotkey + "]" : item.Label)" OnClick="@(() => TogglePanel(kind))" />
+                        }
+                    }
+                </div>
             }
         </TopRight>
         <Center>
-            @* The upgrade form is a dialog of its own: the menu steps aside while it is open and comes back with it closed. *@
-            @if (_started && IsDialog(_panel) && !Form.ShowsForm)
+            @* Every open panel is a standalone window of its own, never crammed into a shared multi-tab menu (docs/adr/ADR-044). *@
+            @if (_started && _panel != PanelKind.None && !Form.ShowsForm)
             {
-                @* The standalone dialog of a counter, a chest or a furnace: not a tab of the menu (docs/adr/ADR-043 D2). *@
                 <TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" OnClose="OnDialogClose">
                     @switch (_panel)
                     {
@@ -173,14 +184,6 @@ else
                         case PanelKind.Furnace:
                             <FurnacePanel Vm="Furnace" />
                             break;
-                    }
-                </TradeDialog>
-            }
-            else if (_started && _panel != PanelKind.None && !Form.ShowsForm)
-            {
-                <GameMenu Tabs="Tabs()" Active="(int)_panel" OnSelect="@(id => SelectTab((PanelKind)id))" OnClose="ClosePanel" CloseText="@Toolbar.Text("Panel_Close")">
-                    @switch (_panel)
-                    {
                         case PanelKind.Inventory:
                             <InventoryPanel Vm="Inventory" Wardrobe="Wardrobe" />
                             break;
@@ -194,7 +197,7 @@ else
                             <CoopPanel Vm="Coop" />
                             break;
                         case PanelKind.Profile:
-                            <ProfilePanel Vm="Profile" />
+                            <ProfilePanel Vm="Profile" Account="Form" />
                             break;
                         case PanelKind.Visitors:
                             <VisitorsPanel Vm="Visitors" OnClose="ClosePanel" />
@@ -215,7 +218,7 @@ else
                             <CraftingPanel Vm="Crafting" />
                             break;
                     }
-                </GameMenu>
+                </TradeDialog>
             }
         </Center>
         <BottomCenter>
@@ -397,15 +400,12 @@ else
         }
     }
 
-    // The pages that are dialogs of their own, not tabs of the menu (docs/adr/ADR-043 D2).
-    private static bool IsDialog(PanelKind kind) => kind is PanelKind.Shop or PanelKind.Market or PanelKind.Goals or PanelKind.Chest or PanelKind.Furnace;
-
     private string DialogTitle() => _panel switch
     {
         PanelKind.Shop or PanelKind.Market or PanelKind.Goals => Npc.PageTitle.Length > 0 ? Npc.PageTitle : Toolbar.Text("Toolbar_Shop"),
         PanelKind.Chest => Toolbar.Text("Chest_Title"),
         PanelKind.Furnace => Toolbar.Text("Furnace_Title"),
-        _ => string.Empty,
+        _ => Toolbar.TitleOf(_panel),
     };
 
     // The close button of a dialog: back to the merchant's box, or away for a chest or a furnace.
@@ -477,21 +477,6 @@ else
 
         StateHasChanged();
     });
-
-    // The tabs of the game menu: the toolbar's entries, and nothing else (docs/adr/ADR-043 D1). Mail carries its unread count.
-    // A new tab is one more entry in ToolbarViewModel.Items.
-    private IReadOnlyList<MenuTab> Tabs()
-    {
-        List<MenuTab> tabs = [];
-        foreach (ToolbarItem item in Toolbar.Items)
-        {
-            tabs.Add(new MenuTab((int)item.Kind, item.Label, item.Icon, item.Hotkey, item.Kind == PanelKind.Mail ? Mail.Unread : 0));
-        }
-
-        return tabs;
-    }
-
-    private void SelectTab(PanelKind kind) => Show(kind);
 
     private void TogglePanel(PanelKind kind)
     {

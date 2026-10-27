@@ -42,8 +42,10 @@
     min-height: 0;
 }
 
-/* Top: the quest tracker on the left, coins and the gear on the right; the middle absorbs the space. */
+/* Top: the quest tracker on the left, coins, system buttons and the player action bar on the right; the middle absorbs the space. */
 .hud-top {
+    position: relative;
+    z-index: 2;
     align-items: flex-start;
 }
 
@@ -59,11 +61,26 @@
 
 .hud-top-right {
     flex: 0 1 auto;
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: calc(var(--u) * 2);
 }
 
-/* The menu: centred on the whole screen (it hides the HUD widgets under it, so it never overlaps them). */
+.hud-top-right ::deep .hud-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+}
+
+.hud-top-right ::deep .hud-player-bar {
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
+    gap: calc(var(--u) * 2);
+}
+
+/* The standalone window: centred below the top HUD row so it never overlaps the HUD buttons. */
 .hud-middle {
     display: contents;
 }
@@ -74,11 +91,15 @@
     z-index: 1;
     align-items: center;
     justify-content: flex-start;
-    /* The top edge of the tab row is where a full-height window (186 u plus the 13 u tab row) would put it when centred, so the tabs stay
-       put while the window grows and shrinks with its page. */
-    padding: max(var(--nosum-gutter), calc((100vh - var(--nosum-menu-h) - var(--u) * 13) / 2)) var(--nosum-gutter) var(--nosum-gutter);
+    padding: max(var(--nosum-gutter), calc(var(--nosum-gutter) + var(--u) * 24), calc((100vh - var(--nosum-menu-h)) / 2)) var(--nosum-gutter) var(--nosum-gutter);
     box-sizing: border-box;
     pointer-events: none;
+}
+
+@media (max-height: 500px) {
+    .hud-center {
+        padding-top: var(--nosum-gutter);
+    }
 }
 
 /* Bottom: the hotbar, centred, with the strip and the message line above it. */

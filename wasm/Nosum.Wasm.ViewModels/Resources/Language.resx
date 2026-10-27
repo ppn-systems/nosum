@@ -817,6 +817,7 @@
   <data name="Device_NarrowTitle" xml:space="preserve"><value>Cửa sổ quá hẹp</value></data>
   <data name="Device_NarrowText" xml:space="preserve"><value>Hãy kéo rộng cửa sổ trình duyệt ra ít nhất {0} px để chơi.</value></data>
   <data name="Settings_Credits" xml:space="preserve"><value>Ghi công hình ảnh</value></data>
+  <data name="Settings_TabCredits" xml:space="preserve"><value>Ghi công</value></data>
   <data name="Settings_CreditsNote" xml:space="preserve"><value>Hình ảnh trong game lấy từ các bộ tranh mã nguồn mở này. Bộ tranh, tác giả, giấy phép.</value></data>
   <data name="Credits_Back" xml:space="preserve"><value>Quay lại</value></data>
   <data name="Start_ArtCredits" xml:space="preserve"><value>Ghi công hình ảnh</value></data>
