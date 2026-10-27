@@ -2,9 +2,9 @@
 
 Layout (AnimalsDecorator): four walk columns, rows down, right, up; left is the right row mirrored by the game. Tiny Creatures has one picture
 per animal, facing left, so the right row is that picture flipped, the down and up rows use it as it is, and the walk frames 1 and 3 lift it 1 px
-(the bob the drawn animals had). The cow is 16 x 16 in the pack and is doubled (nearest neighbour) to fill its 32 x 32 frame: at 1x it was as small as the chicken.
+(the bob the drawn animals had). The cow stays the one drawn here at its 32 x 32 frame size (cow() below): Tiny Creatures' 16 x 16 cow would have to be upscaled, which gives a 2 px outline that clashes with the rest of the art.
 
-chicken() and cow() below are the earlier drawn animals; only ui.py still reads chicken() for the co-op tab pictogram (assets/ui is not part of this swap).
+cow() below draws the cow; chicken() is still read by ui.py for the co-op tab pictogram.
 """
 import draw
 from draw import Canvas
@@ -130,28 +130,23 @@ def cow(direction, frame):
 
 
 CHICKEN = (0, 15)       # column, row of tilemap_packed.png
-COW = (1, 15)
 BOB = [0, 1, 0, 1]      # pixels each walk frame lifts the picture
 
 
-def frames(picture, frame, bottom, scale=1):
-    """The 4 x 3 sheet of one animal: picture is the 16 x 16 cell, frame the cell size of the sheet, bottom whether it stands at the foot of the frame, scale its pixel size."""
-    size = 16 * scale
-    sheet = Image(frame * 4, frame * 3)
+def chicken_frames(picture):
+    """The 4 x 3 sheet of the chicken: the 16 x 16 Tiny Creatures picture for rows down, right (flipped) and up, lifted 1 px on frames 1 and 3."""
+    sheet = Image(64, 48)
     for row, pic in enumerate((picture, picture.flip_h(), picture)):
-        pic = pic.scale(scale) if scale > 1 else pic
         for column in range(4):
-            x = column * frame + (frame - size) // 2
-            y = row * frame + (frame - size if bottom else 0) - BOB[column] * scale
-            sheet.paste(pic, x, y)
+            sheet.paste(pic, column * 16, row * 16 - BOB[column])
     return sheet
 
 
 def build(src, size):
-    creatures = src.sheet('creatures')
-    out = {}
-    for rel, cell, frame, bottom, scale in (('sprites/animals/chicken.png', CHICKEN, 16, False, 1), ('sprites/animals/cow.png', COW, 32, True, 2)):
-        full = Image(*size(rel))
-        full.paste(frames(creatures.cell(*cell), frame, bottom, scale), 0, 0)
-        out[rel] = full
-    return out
+    chick = Image(*size('sprites/animals/chicken.png'))
+    chick.paste(chicken_frames(src.sheet('creatures').cell(*CHICKEN)), 0, 0)
+    cows = Image(*size('sprites/animals/cow.png'))
+    for r, d in enumerate(['down', 'right', 'up']):
+        for f in range(4):
+            cows.paste(cow(d, f), f * 32, r * 32)
+    return {'sprites/animals/chicken.png': chick, 'sprites/animals/cow.png': cows}
