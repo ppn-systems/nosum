@@ -181,19 +181,16 @@ internal static class AutoTerrain
 
         if (code == 15)
         {
-            // All four corners upper. A cell that is part of a run (a one-tile river or path) keeps its fill, or it would vanish into its
-            // neighbours; a lone cell becomes a small patch, with one corner of its own terrain left.
+            // All four corners upper. A cell with two or more neighbours of its own terrain is part of a one-tile run (a river or path) and
+            // keeps its fill, or it would vanish into its surroundings. A lone cell or the tip of a spur has too little body for a shore tile
+            // (its neighbours are drawn mostly as the upper terrain, so a half-tile of it would float), so it is covered with the upper terrain's
+            // fill; the cell's traits on Back do not change.
             int same = 0;
             same += x > 0 && kind[(y * width) + x - 1] == own ? 1 : 0;
             same += x + 1 < width && kind[(y * width) + x + 1] == own ? 1 : 0;
             same += y > 0 && kind[((y - 1) * width) + x] == own ? 1 : 0;
             same += y + 1 < height && kind[((y + 1) * width) + x] == own ? 1 : 0;
-            if (same > 1)
-            {
-                return -1;
-            }
-
-            code = 15 ^ (1 << ((int)(Noise.Of(x, y, 78) >> 8) % 4));
+            return same > 1 ? -1 : TerrainSheet.Fill((TerrainSheet.Ground)upper, (int)(Noise.Of(x, y, 77) >> 8) % TerrainSheet.Variants);
         }
 
         return code == 0 ? -1 : TerrainSheet.Transition(PairFor((TerrainSheet.Ground)upper, lower), code);

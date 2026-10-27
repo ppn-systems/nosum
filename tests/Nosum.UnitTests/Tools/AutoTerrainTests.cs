@@ -69,4 +69,48 @@ public sealed class AutoTerrainTests
 
         first.Should().Be(second);
     }
+
+    [Fact]
+    public void Compile_LoneWaterCellInGrass_IsCoveredWithGrass()
+    {
+        const string Lone = """
+            legend
+            a terrain 0
+            w terrain 20
+            layer Back
+            aaaaa
+            aaaaa
+            aawaa
+            aaaaa
+            aaaaa
+            """;
+
+        TileMap map = TmxReader.Parse(LayoutCompiler.Compile(Lone, "lone.txt", Resolve, terrainPass: true));
+
+        TileLayer edge = map.FindLayer(AutoTerrain.EdgeLayer)!;
+        edge.Gids[(2 * 5) + 2].Should().BeInRange(1, 4, "a lone water cell is covered with grass instead of a floating shore corner");
+        edge.Gids.Where((g, i) => g > 0 && i != (2 * 5) + 2).Should().BeEmpty("the grass around it draws nothing");
+        map.FindLayer("Back")!.Gids[(2 * 5) + 2].Should().Be(21, "the lone cell keeps its water fill and traits");
+    }
+
+    [Fact]
+    public void Compile_DiagonalWaterNeighbour_LeavesGrassPlain()
+    {
+        const string Diagonal = """
+            legend
+            a terrain 0
+            w terrain 20
+            layer Back
+            aaaaa
+            aawwa
+            aawwa
+            aaaaa
+            aaaaa
+            """;
+
+        TileMap map = TmxReader.Parse(LayoutCompiler.Compile(Diagonal, "diagonal.txt", Resolve, terrainPass: true));
+
+        TileLayer edge = map.FindLayer(AutoTerrain.EdgeLayer)!;
+        edge.Gids.Where((g, i) => g > 0 && map.FindLayer("Back")!.Gids[i] <= 4).Should().BeEmpty("a grass cell never takes a water corner, even with water on its diagonal");
+    }
 }
