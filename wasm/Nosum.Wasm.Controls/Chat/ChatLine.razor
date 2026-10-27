@@ -15,7 +15,7 @@
         @if (lines.Length > 0)
         {
             <div class="chat-log @(open ? "open" : "closed")">
-            <ol class="chat-lines @(open ? "open" : "closed")" aria-live="polite" aria-label="@Vm.Text("Chat_InputLabel")">
+            <ol data-selectable class="chat-lines @(open ? "open" : "closed")" aria-live="polite" aria-label="@Vm.Text("Chat_InputLabel")">
                 @foreach (ChatLineView line in lines)
                 {
                     <li @key="line.Id" class="chat-row @KindClass(line.Kind) @ChannelClass(line)">

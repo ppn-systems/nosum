@@ -18,6 +18,7 @@
 @using Nosum.Wasm.Controls.Feedback
 @using Nosum.Wasm.Controls.Goals
 @using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.Controls.Npc
 @using Nosum.Wasm.Controls.Settings
 @using Nosum.Wasm.Controls.Touch
 @using Nosum.Wasm.Controls.Hints
@@ -67,6 +68,7 @@
 @using Nosum.Wasm.ViewModels.Shop
 @using Nosum.Wasm.ViewModels.Blacksmith
 @using Nosum.Wasm.ViewModels.Mine
+@using Nosum.Wasm.ViewModels.Npc
 @using Nosum.Wasm.ViewModels.Quest
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
@@ -101,10 +103,12 @@
 @inject FurnaceViewModel Furnace
 @inject CarpenterViewModel Carpenter
 @inject ProgressViewModel Progress
+@inject NpcDialogViewModel Npc
 
 <PageTitle>Nosum</PageTitle>
 
-<canvas id="game-canvas" class="game-canvas" tabindex="0"></canvas>
+@* A click or tap on a merchant talks to them (docs/adr/ADR-043 D3); the frame decides whether the click hit one and whether the farmer is in reach. *@
+<canvas id="game-canvas" class="game-canvas" tabindex="0" @onclick="OnCanvasClick"></canvas>
 @if (!_signedIn)
 {
     @* The game starts after sign-in: the canvas listens to the whole window's keys, which would swallow typing. *@
@@ -134,21 +138,51 @@ else
             {
                 <CalendarClock Vm="Calendar" />
                 <CoinBadge Vm="Wallet" />
-                <GameIconButton Icon="tab-settings" Tip="@(Mail.Unread > 0 ? Toolbar.Text("Toolbar_Settings") + " - " + Toolbar.Text("Toolbar_MailUnread", Mail.Unread) : Toolbar.Text("Toolbar_Settings"))" Badge="Mail.Unread" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
+                @* Mail has its own icon with the unread count; the cog holds settings only (docs/adr/ADR-043 D4). *@
+                <GameIconButton Icon="tab-mail" Tip="@Toolbar.MailTip(Mail.Unread)" Badge="Mail.Unread" OnClick="@(() => TogglePanel(PanelKind.Mail))" />
+                <GameIconButton Icon="tab-settings" Tip="@Toolbar.SettingsTip" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
             }
         </TopRight>
         <Center>
             @* The upgrade form is a dialog of its own: the menu steps aside while it is open and comes back with it closed. *@
-            @if (_started && _panel != PanelKind.None && !Form.ShowsForm)
+            @if (_started && IsDialog(_panel) && !Form.ShowsForm)
+            {
+                @* The standalone dialog of a counter, a chest or a furnace: not a tab of the menu (docs/adr/ADR-043 D2). *@
+                <TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" OnClose="OnDialogClose">
+                    @switch (_panel)
+                    {
+                        case PanelKind.Market:
+                            <MarketPanel Vm="Market" />
+                            break;
+                        case PanelKind.Shop:
+                            <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith" ShowOffers="@(Npc.Page != NpcPage.Build && Npc.Page != NpcPage.Upgrade)" ShowExtras="@(Npc.Page != NpcPage.Shop)">
+                                <Extra>
+                                    @if (_shopId == ShopCatalog.CarpenterShop)
+                                    {
+                                        <CarpenterSections Vm="Carpenter" />
+                                    }
+                                </Extra>
+                            </ShopPanel>
+                            break;
+                        case PanelKind.Goals:
+                            <GoalsPanel Vm="Goals" />
+                            break;
+                        case PanelKind.Chest:
+                            <ChestPanel Vm="Chest" />
+                            break;
+                        case PanelKind.Furnace:
+                            <FurnacePanel Vm="Furnace" />
+                            break;
+                    }
+                </TradeDialog>
+            }
+            else if (_started && _panel != PanelKind.None && !Form.ShowsForm)
             {
                 <GameMenu Tabs="Tabs()" Active="(int)_panel" OnSelect="@(id => SelectTab((PanelKind)id))" OnClose="ClosePanel" CloseText="@Toolbar.Text("Panel_Close")">
                     @switch (_panel)
                     {
                         case PanelKind.Inventory:
                             <InventoryPanel Vm="Inventory" Wardrobe="Wardrobe" />
-                            break;
-                        case PanelKind.Market:
-                            <MarketPanel Vm="Market" />
                             break;
                         case PanelKind.Wardrobe:
                             <WardrobePanel Vm="Wardrobe" />
@@ -171,33 +205,14 @@ else
                         case PanelKind.Mail:
                             <MailPanel Vm="Mail" />
                             break;
-                        case PanelKind.Shop:
-                            <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith">
-                                <Extra>
-                                    @if (_shopId == ShopCatalog.CarpenterShop)
-                                    {
-                                        <CarpenterSections Vm="Carpenter" />
-                                    }
-                                </Extra>
-                            </ShopPanel>
-                            break;
                         case PanelKind.Skills:
                             <SkillsPanel Vm="Progress" />
-                            break;
-                        case PanelKind.Goals:
-                            <GoalsPanel Vm="Goals" />
                             break;
                         case PanelKind.Settings:
                             <SettingsPanel Vm="Form" Settings="Settings" />
                             break;
                         case PanelKind.Crafting:
                             <CraftingPanel Vm="Crafting" />
-                            break;
-                        case PanelKind.Chest:
-                            <ChestPanel Vm="Chest" />
-                            break;
-                        case PanelKind.Furnace:
-                            <FurnacePanel Vm="Furnace" />
                             break;
                     }
                 </GameMenu>
@@ -206,9 +221,18 @@ else
         <BottomCenter>
             @if (_started && _panel == PanelKind.None)
             {
-                <OnboardingHint Vm="Onboarding" />
-                <GameMessage Vm="Messages" />
-                <Hotbar Vm="Inventory" Progress="Progress" />
+                @if (Npc.Stage == NpcStage.Speaking)
+                {
+                    @* A merchant is talking: their box takes the hotbar's place (docs/adr/ADR-043 D3). *@
+                    <GameMessage Vm="Messages" />
+                    <NpcDialogBox Vm="Npc" />
+                }
+                else
+                {
+                    <OnboardingHint Vm="Onboarding" />
+                    <GameMessage Vm="Messages" />
+                    <Hotbar Vm="Inventory" Progress="Progress" />
+                }
             }
         </BottomCenter>
         <BottomLeft>
@@ -275,6 +299,7 @@ else
         GameLoop.PanelToggleRequested += OnPanelKey;
         GameLoop.ShopRequested += OnShopRequested;
         GameLoop.CounterLeft += OnCounterLeft;
+        Npc.Changed += OnNpcChanged;
         GameLoop.ElevatorRequested += OnElevatorRequested;
         GameLoop.FurnaceRequested += OnFurnaceRequested;
         GameLoop.PanelCloseRequested += OnCloseKey;
@@ -307,6 +332,7 @@ else
         GameLoop.PanelToggleRequested -= OnPanelKey;
         GameLoop.ShopRequested -= OnShopRequested;
         GameLoop.CounterLeft -= OnCounterLeft;
+        Npc.Changed -= OnNpcChanged;
         GameLoop.ElevatorRequested -= OnElevatorRequested;
         GameLoop.FurnaceRequested -= OnFurnaceRequested;
         GameLoop.PanelCloseRequested -= OnCloseKey;
@@ -327,51 +353,74 @@ else
     // A panel key was pressed in the game (raised from the frame loop). H and ? open the settings page, which holds the key help.
     private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind == PanelKind.Help ? PanelKind.Settings : kind));
 
-    // The action key next to a counter (raised from the frame): open that shop on its tab, or the Town board's goals page.
-    private void OnShopRequested(int shopId) => _ = InvokeAsync(() =>
-    {
-        if (shopId == MarketRules.MarketCounterId)
-        {
-            if (_panel != PanelKind.Market)
-            {
-                Show(PanelKind.Market);
-                StateHasChanged();
-            }
-        }
-        else if (shopId == CommunityGoalCatalog.BoardCounterId)
-        {
-            if (_panel != PanelKind.Goals)
-            {
-                Show(PanelKind.Goals);
-                StateHasChanged();
-            }
-        }
-        else if (_panel != PanelKind.Shop)
-        {
-            _shopId = shopId;
-            Shop.Open(shopId);
-            if (shopId == ShopCatalog.CarpenterShop)
-            {
-                Carpenter.Open();
-            }
+    // The action key next to a counter, or a click on its merchant (raised from the frame): the merchant's dialog box opens (docs/adr/ADR-043 D3).
+    private void OnShopRequested(int counterId) => _ = InvokeAsync(() => Npc.Interact(counterId));
 
-            Show(PanelKind.Shop);
-            StateHasChanged();
+    // The farmer walked out of reach of a counter (raised from the frame): the conversation with its merchant ends, and with it the dialog it opened.
+    private void OnCounterLeft(int counterId) => _ = InvokeAsync(() => Npc.CounterLeft(counterId));
+
+    // The conversation moved on: the dialog box, the page it opened, or neither. The page shown follows the view model, never the other way round.
+    private void OnNpcChanged() => _ = InvokeAsync(() =>
+    {
+        PanelKind want = Npc.Stage == NpcStage.Trading ? Npc.Panel : PanelKind.None;
+        if (want != PanelKind.None)
+        {
+            if (_panel != want)
+            {
+                _shopId = Npc.ShopId;
+                if (Npc.Page == NpcPage.Build)
+                {
+                    Carpenter.Open();
+                }
+                else if (Npc.Page is NpcPage.MarketBuy or NpcPage.MarketSell)
+                {
+                    Market.SetTab(Npc.Page == NpcPage.MarketSell ? MarketTab.Sell : MarketTab.Browse);
+                }
+
+                Show(want);
+            }
         }
+        else if (_panel is PanelKind.Shop or PanelKind.Market or PanelKind.Goals)
+        {
+            ClosePanel();
+        }
+
+        StateHasChanged();
     });
 
-    // The farmer walked out of reach of a counter (raised from the frame): the panel that counter opened closes.
-    private void OnCounterLeft(int counterId) => _ = InvokeAsync(() =>
+    // A click on the world: the frame checks it against the merchants.
+    private void OnCanvasClick(MouseEventArgs e)
     {
-        bool open = counterId == MarketRules.MarketCounterId ? _panel == PanelKind.Market
-            : counterId == CommunityGoalCatalog.BoardCounterId ? _panel == PanelKind.Goals
-            : _panel == PanelKind.Shop && counterId == _shopId;
-        if (open)
+        if (_started && _panel == PanelKind.None && !Form.ShowsForm)
+        {
+            GameLoop.PointerClicked((int)e.OffsetX, (int)e.OffsetY);
+        }
+    }
+
+    // The pages that are dialogs of their own, not tabs of the menu (docs/adr/ADR-043 D2).
+    private static bool IsDialog(PanelKind kind) => kind is PanelKind.Shop or PanelKind.Market or PanelKind.Goals or PanelKind.Chest or PanelKind.Furnace;
+
+    private string DialogTitle() => _panel switch
+    {
+        PanelKind.Shop or PanelKind.Market or PanelKind.Goals => Npc.PageTitle.Length > 0 ? Npc.PageTitle : Toolbar.Text("Toolbar_Shop"),
+        PanelKind.Chest => Toolbar.Text("Chest_Title"),
+        PanelKind.Furnace => Toolbar.Text("Furnace_Title"),
+        _ => string.Empty,
+    };
+
+    // The close button of a dialog: back to the merchant's box, or away for a chest or a furnace.
+    private void OnDialogClose()
+    {
+        if (Npc.Stage == NpcStage.Trading)
+        {
+            Npc.Back();
+        }
+        else
         {
             ClosePanel();
             StateHasChanged();
         }
-    });
+    }
 
     // The action key next to the mine elevator (raised from the frame): show the picker.
     private void OnElevatorRequested() => _ = InvokeAsync(() =>
@@ -413,6 +462,10 @@ else
         {
             Elevator.Close();
         }
+        else if (Npc.Stage != NpcStage.Closed)
+        {
+            Npc.Leave();
+        }
         else if (_panel != PanelKind.None)
         {
             ClosePanel();
@@ -425,36 +478,17 @@ else
         StateHasChanged();
     });
 
-    // The tabs of the game menu: the toolbar's entries, plus the shop (titled by the shop that was opened) while one is open.
+    // The tabs of the game menu: the toolbar's entries, and nothing else (docs/adr/ADR-043 D1). Mail carries its unread count.
     // A new tab is one more entry in ToolbarViewModel.Items.
     private IReadOnlyList<MenuTab> Tabs()
     {
         List<MenuTab> tabs = [];
         foreach (ToolbarItem item in Toolbar.Items)
         {
-            if (item.Kind == PanelKind.Settings && _panel == PanelKind.Shop)
-            {
-                tabs.Add(Tab(Toolbar.ShopItem with { Label = Shop.Title.Length > 0 ? Shop.Title : Toolbar.ShopItem.Label }));
-            }
-            else if (item.Kind == PanelKind.Settings && _panel is PanelKind.Chest or PanelKind.Furnace)
-            {
-                tabs.Add(Tab(_panel == PanelKind.Chest ? Toolbar.ChestItem : Toolbar.FurnaceItem));
-            }
-            else if (item.Kind == PanelKind.Settings && _panel == PanelKind.Goals)
-            {
-                tabs.Add(Tab(Toolbar.GoalsItem));
-            }
-            else if (item.Kind == PanelKind.Settings && _panel == PanelKind.Market)
-            {
-                tabs.Add(Tab(Toolbar.MarketItem));
-            }
-
-            tabs.Add(Tab(item));
+            tabs.Add(new MenuTab((int)item.Kind, item.Label, item.Icon, item.Hotkey, item.Kind == PanelKind.Mail ? Mail.Unread : 0));
         }
 
         return tabs;
-
-        static MenuTab Tab(ToolbarItem item) => new((int)item.Kind, item.Label, item.Icon, item.Hotkey);
     }
 
     private void SelectTab(PanelKind kind) => Show(kind);
@@ -475,6 +509,12 @@ else
 
     private void Show(PanelKind kind)
     {
+        // Anything but the page the merchant opened ends the conversation, so it cannot be left half open behind another page.
+        if (Npc.Stage != NpcStage.Closed && kind != Npc.Panel)
+        {
+            Npc.Leave();
+        }
+
         // Leaving a chest or furnace page for another tab closes it, so opening it again shows it again.
         if (_panel == PanelKind.Chest && kind != PanelKind.Chest)
         {

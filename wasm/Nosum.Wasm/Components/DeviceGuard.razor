@@ -1,0 +1,43 @@
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Device
+@implements IDisposable
+@inject DeviceGuardViewModel Guard
+
+@* The device gate (wwwroot/appsettings.json "Device", wasm/README.md). A phone or tablet gets the notice INSTEAD of the page, so the game, its canvas and the
+   touch controls are never created on it (Program.cs also leaves the socket closed). A narrow desktop window gets an overlay over the page, which is kept
+   (inert) so widening the window brings the same game back. *@
+@if (Guard.Verdict == DeviceVerdict.TouchBlocked)
+{
+    <div class="device-block">
+        <GamePanel Class="dialog" Title="Nosum" Role="alert">
+            <p class="device-text">@Guard.BlockedText</p>
+        </GamePanel>
+    </div>
+}
+else
+{
+    <div class="device-body" inert="@(Guard.Verdict == DeviceVerdict.TooNarrow)">
+        @ChildContent
+    </div>
+    @if (Guard.Verdict == DeviceVerdict.TooNarrow)
+    {
+        <div class="device-block">
+            <GamePanel Class="dialog" Title="@Guard.NarrowTitle" Role="alert">
+                <p class="device-text">@Guard.NarrowText</p>
+            </GamePanel>
+        </div>
+    }
+}
+
+@code {
+    /// <summary>Gets or sets the page to guard.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override void OnInitialized() => Guard.Changed += OnChanged;
+
+    // Raised from a JS callback on the main thread; render on the component's context anyway.
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Guard.Changed -= OnChanged;
+}

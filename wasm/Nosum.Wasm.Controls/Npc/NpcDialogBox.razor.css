@@ -1,0 +1,52 @@
+/* The box sits at the bottom of the screen where the hotbar is, as wide as a menu page so a line of talk fits on two rows. */
+.game-panel.npc-box {
+    width: calc(var(--u) * 200);
+    max-width: 100%;
+}
+
+.npc-box-body {
+    display: flex;
+    align-items: flex-start;
+    gap: calc(var(--u) * 3);
+}
+
+.npc-portrait {
+    flex: none;
+    box-sizing: border-box;
+    width: calc(var(--u) * 36);
+    height: calc(var(--u) * 36);
+    padding: calc(var(--u) * 2);
+    border: var(--u) solid var(--nosum-line);
+    background: var(--nosum-parchment-deep, var(--nosum-line));
+    image-rendering: pixelated;
+    object-fit: contain;
+}
+
+.npc-box-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--u);
+    min-width: 0;
+}
+
+.npc-role {
+    color: var(--nosum-ink-soft);
+}
+
+.npc-line {
+    min-height: calc(var(--nosum-lh) * 2);
+}
+
+.npc-actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+/* A phone held upright: the portrait shrinks so the line keeps its width. */
+@media (max-width: 640px) {
+    .npc-portrait {
+        width: calc(var(--u) * 24);
+        height: calc(var(--u) * 24);
+    }
+}

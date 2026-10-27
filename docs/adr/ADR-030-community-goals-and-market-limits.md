@@ -1,6 +1,6 @@
 # ADR-030 — Community goals and market limits
 
-**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M4 (Pillar 3). Builds on ADR-018 (seasons),
+**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M4 (Pillar 3). The board's page amended by [ADR-043](ADR-043-npc-merchants-and-the-menu-split.md): it opens from the board keeper's dialog box, as a dialog of its own, not a menu tab. Builds on ADR-018 (seasons),
 ADR-013 (market, transfer), ADR-029 (mail).
 
 ## Context

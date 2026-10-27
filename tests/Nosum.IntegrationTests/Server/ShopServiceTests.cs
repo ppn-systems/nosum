@@ -23,6 +23,7 @@ using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Npcs;
 using Nosum.Gameplay.Shops;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
@@ -230,6 +231,39 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
         (await _transfers.GetBalanceAsync(player)).Should().Be(750);
         await using NosumDbContext context = new(_database.Options);
         (await context.CoinLog.Where(e => e.PlayerId == player && e.Reason == "dev.grant").ToListAsync()).Should().ContainSingle().Which.Delta.Should().Be(250);
+    }
+
+    // The shopkeepers' ids, for the theory below.
+    public static TheoryData<string> ShopMerchants()
+    {
+        TheoryData<string> merchants = [];
+        foreach (NpcDefinition npc in NpcCatalog.All)
+        {
+            if ((npc.Actions & NpcActions.Buy) != 0 && ShopCatalog.TryGet(npc.CounterId, out _))
+            {
+                merchants.Add(npc.Id);
+            }
+        }
+
+        return merchants;
+    }
+
+    // The merchants are a picture of the counters (docs/adr/ADR-043): a player who talks to one stands in front of the merchant, and what the server sells there is unchanged.
+    [Theory]
+    [MemberData(nameof(ShopMerchants))]
+    public async Task Buy_StandingInFrontOfTheShopkeeper_StillWorksEndToEnd(string merchantId)
+    {
+        NpcCatalog.TryGet(merchantId, out NpcDefinition? npc).Should().BeTrue();
+        ShopCatalog.TryGet(npc!.CounterId, out ShopDefinition? shop).Should().BeTrue();
+        ShopOffer offer = shop!.Offers.First(o => ShopRules.IsInSeason(o.ItemId, GameCalendar.Default, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+        Guid player = await CreatePlayerAsync();
+        _presence.Stand(player, npc.MapId, (npc.TileX * 16) + 8, ((npc.TileY + 1) * 16) + 8);
+
+        ShopOutcome outcome = await _shop.BuyAsync(_connection, player, npc.CounterId, offer.ItemId, 1);
+
+        outcome.Status.Should().Be(ShopStatus.Ok);
+        (await _transfers.GetBalanceAsync(player)).Should().Be(500 - offer.CoinsEach);
+        (await CountAsync(player, offer.ItemId)).Should().BeGreaterThanOrEqualTo(1);
     }
 
     private void StandAtCounter(Guid player, int shopId)

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Maps;
+using Nosum.Wasm.Device;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Game;
 using Nosum.Wasm.Security;
@@ -63,12 +64,14 @@ using Nosum.Wasm.ViewModels.Progress;
 using Nosum.Wasm.ViewModels.Shop;
 using Nosum.Wasm.ViewModels.Blacksmith;
 using Nosum.Wasm.ViewModels.Mine;
+using Nosum.Wasm.ViewModels.Npc;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Trade;
 using Nosum.Wasm.ViewModels.Wallet;
 using Nosum.Wasm.ViewModels.Calendar;
+using Nosum.Wasm.ViewModels.Device;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Blacksmith;
 using Nosum.Wasm.Socket.Mine;
@@ -92,6 +95,11 @@ internal static class Program
         builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
         builder.Services.AddLocalization();
+
+        // The device gate (wasm/README.md): a phone or tablet gets the notice instead of the game and no connection is opened for it.
+        DevicePolicy devicePolicy = BrowserDevice.ReadPolicy(builder.Configuration);
+        DeviceSignals deviceSignals = BrowserDevice.ReadSignals();
+        builder.Services.AddSingleton(sp => new DeviceGuardViewModel(sp.GetRequiredService<IStringLocalizer<Language>>(), deviceSignals, devicePolicy));
         builder.Services.AddClientSettings();
 
         // One server connection for the app's lifetime (docs/adr/ADR-003 D5).
@@ -143,6 +151,7 @@ internal static class Program
         builder.Services.AddSingleton<NicknameFormatter>();
         builder.Services.AddSingleton<ProfileViewModel>();
         builder.Services.AddSingleton<ShopViewModel>();
+        builder.Services.AddSingleton<NpcDialogViewModel>();
         builder.Services.AddSingleton<BlacksmithViewModel>();
         builder.Services.AddSingleton<ElevatorViewModel>();
         builder.Services.AddSingleton<RequestsViewModel>();
@@ -279,7 +288,19 @@ internal static class Program
         _ = host.Services.GetRequiredService<CarpenterViewModel>();
         _ = host.Services.GetRequiredService<AnimalCareViewModel>();
         _ = host.Services.GetRequiredService<ConnectionStatusViewModel>();
-        host.Services.GetRequiredService<IGameSocket>().Start();
+
+        DeviceGuardViewModel device = host.Services.GetRequiredService<DeviceGuardViewModel>();
+        BrowserDevice.WatchWidth(devicePolicy.MinimumWidth, _ => device.UpdateWidth(BrowserDevice.ViewportWidth()));
+
+        // Closing or reloading the tab asks first while the player is in the game (page-guard.js).
+        keeper.Authenticated += () => BrowserDevice.SetUnloadGuard(true);
+        keeper.SessionEnded += _ => BrowserDevice.SetUnloadGuard(false);
+        keeper.LoggedOut += () => BrowserDevice.SetUnloadGuard(false);
+
+        if (device.Verdict != DeviceVerdict.TouchBlocked)
+        {
+            host.Services.GetRequiredService<IGameSocket>().Start();
+        }
 
         await host.RunAsync().ConfigureAwait(false);
     }

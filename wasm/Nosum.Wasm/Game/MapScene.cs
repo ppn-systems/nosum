@@ -1,12 +1,14 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using Nosum.Core;
 using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Npcs;
 using Nosum.Gameplay.Nodes;
 using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Shops;
@@ -85,6 +87,9 @@ internal sealed class MapScene
     private uint _ignoreCorrectionsBefore;
     private double _walkTime;
     private double _clockSeconds;
+    private int _pointerX;
+    private int _pointerY;
+    private bool _pointerPending;
 
     /// <summary>Initializes the scene.</summary>
     /// <param name="loader">Loads the maps the server sends the player to.</param>
@@ -137,6 +142,16 @@ internal sealed class MapScene
     /// <summary>Gets the id of the map being shown (the old one until a map change has faded out).</summary>
     public string MapId => _content.Spec.Id;
 
+    /// <summary>Remembers a click or tap on the canvas; the next <see cref="Frame"/> checks whether it hit a merchant. Allocation-free.</summary>
+    /// <param name="x">Click x, canvas CSS pixels.</param>
+    /// <param name="y">Click y, canvas CSS pixels.</param>
+    public void Pointer(int x, int y)
+    {
+        _pointerX = x;
+        _pointerY = y;
+        _pointerPending = true;
+    }
+
     /// <summary>
     /// Advances the simulation and encodes the frame.
     /// </summary>
@@ -180,6 +195,15 @@ internal sealed class MapScene
         if (content.Spec.Shops.Count > 0)
         {
             _ = ShopRules.TryFindShop(content.Spec, _farmer.X, _farmer.Y, map.TileWidth, out shopId);
+        }
+
+        if (_pointerPending)
+        {
+            _pointerPending = false;
+            if (_phase != Phase.FadingOut)
+            {
+                this.TalkToMerchantAt(content.Spec, map.TileWidth, ScaleFor(map, canvasWidth, canvasHeight));
+            }
         }
 
         bool elevatorNear = content.Spec.Elevator is { } elevator
@@ -266,6 +290,32 @@ internal sealed class MapScene
         this.DrawLabels();
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
         backend.Submit(_commands.Encode());
+    }
+
+    // A click on a merchant standing within reach of their counter is the action key at that counter. The camera and zoom are the previous frame's, which is what the player clicked on.
+    private void TalkToMerchantAt(MapSpec spec, int tileSize, int scale)
+    {
+        if (_actions is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<NpcDefinition> merchants = NpcCatalog.OnMap(spec.Id);
+        double worldX = _camera.Left + ((double)_pointerX / scale);
+        double worldY = _camera.Top + ((double)_pointerY / scale);
+        for (int i = 0; i < merchants.Count; i++)
+        {
+            NpcDefinition npc = merchants[i];
+            double left = (npc.TileX * tileSize) - NpcSprites.ClickSlack;
+            double right = ((npc.TileX + 1) * tileSize) + NpcSprites.ClickSlack;
+            double bottom = (npc.TileY + 1) * tileSize;
+            double top = bottom - NpcSprites.Height - NpcSprites.ClickSlack;
+            if (worldX >= left && worldX < right && worldY >= top && worldY < bottom + NpcSprites.ClickSlack && ShopRules.IsAtCounter(spec, npc.CounterId, _farmer.X, _farmer.Y, tileSize))
+            {
+                _actions.RequestShop(npc.CounterId);
+                return;
+            }
+        }
     }
 
     /// <summary>

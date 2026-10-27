@@ -17,7 +17,7 @@ public enum PanelKind
     /// <summary>The inventory.</summary>
     Inventory = 1,
 
-    /// <summary>The market, opened with the action key at the trader's counter in Town (not a toolbar button, docs/adr/ADR-034).</summary>
+    /// <summary>The market, opened from the trader's dialog box in Town (docs/adr/ADR-034, ADR-043); not a menu tab.</summary>
     Market = 2,
 
     /// <summary>The wardrobe.</summary>
@@ -35,7 +35,7 @@ public enum PanelKind
     /// <summary>The profile (nickname).</summary>
     Profile = 7,
 
-    /// <summary>A shop, opened with the action key at its counter (not a toolbar button).</summary>
+    /// <summary>A shop, opened from a merchant's dialog box (docs/adr/ADR-043); not a menu tab.</summary>
     Shop = 8,
 
     /// <summary>The settings page: account, language and the key help (opened by the gear, <c>H</c> or <c>?</c>).</summary>
@@ -47,21 +47,22 @@ public enum PanelKind
     /// <summary>The friends page: friends, requests, the friends-may-visit switch and the block list (docs/adr/ADR-029).</summary>
     Friends = 15,
 
-    /// <summary>The mail page (docs/adr/ADR-029).</summary>
+    /// <summary>The mail page (docs/adr/ADR-029): a tab of its own, with its own HUD icon and unread badge (docs/adr/ADR-043 D4).</summary>
     Mail = 16,
+
     /// <summary>The skills page: energy and the three skill levels (docs/adr/ADR-023).</summary>
     Skills = 11,
 
     /// <summary>The crafting page (docs/adr/ADR-024).</summary>
     Crafting = 12,
 
-    /// <summary>The open chest (docs/adr/ADR-024); not a toolbar tab, it shows while a chest is open.</summary>
+    /// <summary>The open chest (docs/adr/ADR-024); a dialog of its own while a chest is open, not a menu tab (docs/adr/ADR-043).</summary>
     Chest = 13,
 
-    /// <summary>The furnace (docs/adr/ADR-024); not a toolbar tab, it shows while a furnace is open.</summary>
+    /// <summary>The furnace (docs/adr/ADR-024); a dialog of its own while a furnace is open, not a menu tab (docs/adr/ADR-043).</summary>
     Furnace = 14,
 
-    /// <summary>The Town board's goals page, opened with the action key at the board counter (not a toolbar button, docs/adr/ADR-030).</summary>
+    /// <summary>The Town board's goals page, opened from the board keeper's dialog box (docs/adr/ADR-030, ADR-043); not a menu tab.</summary>
     Goals = 17,
 }
 
@@ -126,18 +127,11 @@ public sealed class ToolbarViewModel : PanelViewModel
 
     private string Key(GameAction action) => KeyBindings.CapOf((_settings?.Current.Bindings ?? KeyBindings.Default).CodeOf(action));
 
-    /// <summary>Gets the tab shown while a chest is open.</summary>
-    public ToolbarItem ChestItem => new(PanelKind.Chest, this.Text("Chest_Title"), string.Empty, "tab-inventory");
+    /// <summary>Gets the tooltip of the mail icon in the HUD: "Mail", with the unread count when there is mail to read (docs/adr/ADR-043 D4).</summary>
+    /// <param name="unread">Unread mails.</param>
+    /// <returns>The localized tooltip.</returns>
+    public string MailTip(int unread) => unread > 0 ? this.Text("Toolbar_Mail") + " - " + this.Text("Toolbar_MailUnread", unread) : this.Text("Toolbar_Mail");
 
-    /// <summary>Gets the tab shown while a furnace is open.</summary>
-    public ToolbarItem FurnaceItem => new(PanelKind.Furnace, this.Text("Furnace_Title"), string.Empty, "tab-market");
-
-    /// <summary>Gets the shop tab, shown only while a shop is open (opened at its counter, not from the menu).</summary>
-    public ToolbarItem ShopItem => new(PanelKind.Shop, this.Text("Toolbar_Shop"), string.Empty, "tab-shop");
-
-    /// <summary>Gets the market tab, shown only while the market is open (opened at the trader's counter in Town, not from the menu).</summary>
-    public ToolbarItem MarketItem => new(PanelKind.Market, this.Text("Toolbar_Market"), string.Empty, "tab-market");
-
-    /// <summary>Gets the Town board tab, shown only while the board is open (opened at its counter, not from the menu).</summary>
-    public ToolbarItem GoalsItem => new(PanelKind.Goals, this.Text("Toolbar_Goals"), string.Empty, "tab-goals");
+    /// <summary>Gets the tooltip of the settings cog in the HUD: only "Settings", the cog holds nothing else (docs/adr/ADR-043 D4).</summary>
+    public string SettingsTip => this.Text("Toolbar_Settings");
 }

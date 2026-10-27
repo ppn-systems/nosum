@@ -11,6 +11,10 @@
                     aria-label="@tab.Label" data-tip="@(tab.Hotkey.Length > 0 ? tab.Label + " [" + tab.Hotkey + "]" : tab.Label)"
                     @onmousedown:preventDefault @onclick="() => OnSelect.InvokeAsync(id)">
                 <span class="menu-tab-art" style="background-image:var(--nosum-img-@(tab.Icon))"></span>
+                @if (tab.Badge > 0)
+                {
+                    <span class="menu-tab-badge" aria-hidden="true">@(tab.Badge > 9 ? "9+" : tab.Badge.ToString())</span>
+                }
             </button>
         }
     </div>

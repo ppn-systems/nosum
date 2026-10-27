@@ -88,4 +88,25 @@ internal static class Palette
 
     /// <summary>The mine's rock wall.</summary>
     public static readonly Tones CaveWall = new(new Rgb(30, 22, 40), new Rgb(46, 36, 58), new Rgb(76, 64, 92));
+
+    /// <summary>Foam on the water's edge.</summary>
+    public static readonly Rgb Foam = new(214, 244, 252);
+
+    /// <summary>The five tones of an oak canopy, deepest shade to brightest highlight.</summary>
+    public static readonly Rgb[] OakRamp = [new(22, 66, 56), new(34, 100, 64), new(56, 134, 70), new(92, 168, 76), new(150, 204, 92)];
+
+    /// <summary>The five tones of an autumn maple canopy.</summary>
+    public static readonly Rgb[] MapleRamp = [new(120, 32, 44), new(170, 48, 48), new(214, 82, 50), new(240, 128, 58), new(252, 186, 86)];
+
+    /// <summary>The five tones of a pine's needles.</summary>
+    public static readonly Rgb[] PineRamp = [new(16, 52, 52), new(24, 78, 58), new(36, 108, 66), new(62, 142, 76), new(104, 176, 90)];
+
+    /// <summary>The five tones of the grass: the dim patch, the shade, the base, the sunlit patch and a bright blade.</summary>
+    public static readonly Rgb[] GrassRamp = [new(44, 108, 64), new(54, 126, 68), new(66, 142, 72), new(82, 158, 76), new(116, 188, 86)];
+
+    /// <summary>The dithered shadow a tree throws on the ground.</summary>
+    public static readonly Rgb Shadow = new(34, 82, 58);
+
+    /// <summary>The five tones of stones and boulders.</summary>
+    public static readonly Rgb[] StoneRamp = [new(58, 66, 92), new(82, 96, 124), new(118, 132, 158), new(160, 176, 198), new(204, 216, 230)];
 }

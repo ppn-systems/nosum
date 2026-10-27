@@ -1,0 +1,28 @@
+/* As wide as the menu window, and on the same rows: the 13 u above it are the menu's tab row, which a dialog does not have. */
+.trade-dialog {
+    display: flex;
+    flex-direction: column;
+    width: var(--nosum-menu-w);
+    max-width: 100%;
+    margin-top: calc(var(--u) * 13);
+    pointer-events: none;
+}
+
+.trade-dialog ::deep .trade-window {
+    width: 100%;
+    height: auto;
+    min-height: var(--nosum-menu-min-h);
+    max-height: min(var(--nosum-menu-h), calc(100vh - var(--nosum-gutter) * 2 - var(--u) * 13));
+}
+
+.trade-dialog ::deep .trade-window > .game-panel-header {
+    padding-bottom: calc(var(--u) * 2);
+    border-bottom: var(--u) solid var(--nosum-line);
+    box-shadow: 0 var(--u) 0 var(--nosum-shine);
+}
+
+.trade-dialog ::deep .trade-window > .game-panel-body {
+    flex: 0 1 auto;
+    min-height: 0;
+    padding-top: calc(var(--u) * 2);
+}

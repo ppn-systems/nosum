@@ -42,6 +42,20 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `sprites/crops.png` | 4 Crops and soil | `kenney_tiny-farm`, `josehzz_farming-crops-16x16` | 21 crops, 5-6 growth frames each: Tiny Farm's stages for the 8 crops it covers, the crops pack's six pictures (seed, three stages, ripe) for the rest, placed in the catalogue's frames at the bottom of each 16 x 32 cell; recolours in the crop table |
 | `sprites/furniture.png` | 3 Items | Nosum original (drawn in tools/art_repack, no outside source) | Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`) |
 | `sprites/items.png` | 3 Items, 6 Resource nodes | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, `kenney_tiny-town`, `dawnlike`, Nosum original (drawn in tools/art_repack, no outside source) | The 92 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), everything else drawn here (table below); unused cells are transparent |
+| `sprites/npcs/blacksmith.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Blacksmith (bald, beard, bare arms, leather apron, hammer); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
+| `sprites/npcs/blacksmith_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
+| `sprites/npcs/board_keeper.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Board keeper (green visor, glasses, blue shawl, scroll); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
+| `sprites/npcs/board_keeper_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
+| `sprites/npcs/carpenter.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Carpenter (orange cap, moustache, blue overalls, pencil behind the ear, plank); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
+| `sprites/npcs/carpenter_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
+| `sprites/npcs/furnisher.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Furniture seller (grey hair, glasses, brown waistcoat, red bow tie); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
+| `sprites/npcs/furnisher_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
+| `sprites/npcs/seed_keeper.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Seed shopkeeper (straw hat, green top, cream apron with a seed pocket); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
+| `sprites/npcs/seed_keeper_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
+| `sprites/npcs/tailor.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Tailor (beret, rose dress, tape measure round the neck); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
+| `sprites/npcs/tailor_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
+| `sprites/npcs/trader.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Trader (plumed hat, teal top, purple coat, coin purse); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
+| `sprites/npcs/trader_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
 | `sprites/soil.png` | 4 Crops and soil | Nosum original (drawn in tools/art_repack, no outside source) | Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator: lit ridges, furrows, clods and a dark lip (`crops.soil_tile`) |
 | `sprites/tools.png` | 5 Tools and weapons | `kenney_tiny-farm`, Nosum original (drawn in tools/art_repack, no outside source) | Hoe, axe, pickaxe and watering can drawn here in three material tiers (a three-tone metal head with a glint, a shaded wooden handle, a 1 px outline: `tools.py`); the milk pail is Tiny Farm tile 124; the blueprints are drawn |
 | `sprites/trees/maple.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Maple, same layout in autumn orange (`trees.py`) |
@@ -179,3 +193,20 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 | 90 | resource node | drawn here: `icons.rock` |
 | 91 | resource node | DawnLike Rock (2, 1), the copper boulder |
 | 92 | resource node | drawn here: `icons.rock` |
+
+## Map tilesheets (art/own/Maps)
+
+The six tilesheets of the own maps are not under `assets/`: they are drawn in code, deterministically, by `tools/Nosum.MapGen sheets` from
+`tools/Nosum.MapGen/Sheets/` (palette, texture helpers and one drawing per sheet), and `sheets --check` fails when a committed picture differs from
+what the code draws. No outside art is read or copied. The sheets were redrawn on 2026-10-26 with smooth tileable noise, five-tone ramps, shore
+foam and lip edges on the transitions, lobed tree canopies and bevelled wood and stone, keeping every sheet's grid and tile indices. The open-licensed
+packs that were checked for them, and why none is used, are in [`sourcing-2026-10-26.md`](sourcing-2026-10-26.md). Per-file entries: [`art/own/SOURCES.md`](../../art/own/SOURCES.md).
+
+| File | Tileset | Source | License |
+| :-- | :-- | :-- | :-- |
+| `art/own/Maps/terrain.png` | `terrain` | Nosum original, drawn by `tools/Nosum.MapGen/Sheets/TerrainSheet.cs` | Nosum's own art |
+| `art/own/Maps/nature.png` | `nature` | Nosum original, drawn by `NatureSheet.cs` | Nosum's own art |
+| `art/own/Maps/town.png` | `town` | Nosum original, drawn by `TownSheet.cs` | Nosum's own art |
+| `art/own/Maps/interior.png` | `interior` | Nosum original, drawn by `InteriorSheet.cs` | Nosum's own art |
+| `art/own/Maps/cave.png` | `cave` | Nosum original, drawn by `CaveSheet.cs` | Nosum's own art |
+| `art/own/Maps/markers.png` | `Paths` | Nosum original, drawn by `MarkerSheet.cs` (never drawn in game) | Nosum's own art |

@@ -7,4 +7,5 @@ namespace Nosum.Wasm.Controls.Menu;
 /// <param name="Label">The localized name (tooltip and window title).</param>
 /// <param name="Icon">The theme sprite, for example <c>tab-inventory</c> (see <c>nosum-theme.js</c>).</param>
 /// <param name="Hotkey">The key that opens the tab, or empty.</param>
-public sealed record MenuTab(int Id, string Label, string Icon, string Hotkey);
+/// <param name="Badge">A count shown on the tab (unread mail), or zero for none.</param>
+public sealed record MenuTab(int Id, string Label, string Icon, string Hotkey, int Badge = 0);
