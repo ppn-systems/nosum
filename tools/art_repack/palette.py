@@ -50,6 +50,13 @@ BLUE_D = draw.BLUE_D
 STEEL_L = draw.STEEL_L
 STEEL = draw.STEEL
 
+# --- stone (neutral buttons) -------------------------------------------------------------------------------------------------
+STONE_HI = (214, 214, 222)
+STONE_L = (186, 186, 194)
+STONE = (168, 168, 176)
+STONE_D = (150, 150, 160)
+STONE_SH = (96, 96, 108)
+
 # Surfaces the style sheet paints (alpha in 0..1).
 SLOT_FILL = PARCH_SH
 BACKDROP = (26, 12, 2, 0.4)

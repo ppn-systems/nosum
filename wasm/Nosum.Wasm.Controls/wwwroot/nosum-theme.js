@@ -111,16 +111,26 @@ const SPRITES = [
     ["select", "cursors", 448, 128, 80, 80],
     // Text field: sunk light box (the 4 transparent columns on the left of the sheet are cut off); 12 px slice.
     ["field", "textbox", 4, 0, 188, 48],
-    // Buttons (thin): wood pill; gold pill for the active tab; red pill for destructive actions; 3 px slice.
-    ["button", "cursors", 145, 338, 13, 9],
-    ["button-hot", "cursors", 159, 338, 13, 9],
-    ["button-danger", "cursors", 137, 338, 7, 9],
+    // Block buttons (thin, 9 x 9 frames, 3 px slice, the middle is not drawn): wood (primary), stone (neutral), gold (the active tab), red (destructive);
+    // each has a pressed frame with the bevel flattened, and a face tile (8 x 8) the CSS repeats inside the frame.
+    ["button", "cursors", 0, 432, 9, 9],
+    ["button-plain", "cursors", 10, 432, 9, 9],
+    ["button-hot", "cursors", 20, 432, 9, 9],
+    ["button-danger", "cursors", 30, 432, 9, 9],
+    ["button-down", "cursors", 0, 442, 9, 9],
+    ["button-plain-down", "cursors", 10, 442, 9, 9],
+    ["button-hot-down", "cursors", 20, 442, 9, 9],
+    ["button-danger-down", "cursors", 30, 442, 9, 9],
+    ["face-wood", "cursors", 0, 452, 8, 8],
+    ["face-stone", "cursors", 8, 452, 8, 8],
+    ["face-gold", "cursors", 16, 452, 8, 8],
+    ["face-red", "cursors", 24, 452, 8, 8],
     // The title bar of a window (thin, 8 x 14, repeats along the bar).
     ["title", "cursors", 0, 400, 8, 14],
     // The frame of the energy gauge: gold end caps, a dark track (thin, 10 x 26, 3 px slice).
     ["gauge", "cursors", 16, 400, 10, 26],
-    // The close button of a window: a red cross on a lit square (thin, 10 x 10).
-    ["close", "cursors", 337, 494, 10, 10],
+    // The close button of a window: a red cross on a block (thin, 12 x 12).
+    ["close", "cursors", 337, 494, 12, 12],
     // Left and right arrows (thin).
     ["arrow-left", "cursors", 352, 495, 12, 11],
     ["arrow-right", "cursors", 365, 495, 12, 11],

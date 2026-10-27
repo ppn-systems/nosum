@@ -83,7 +83,7 @@
 
 .game-close:active {
     filter: brightness(0.85);
-    transform: translateY(var(--u));
+    transform: translateY(calc(var(--u) * 2));
 }
 
 /* A compact always-visible widget (the coin counter, the clock, the quest tracker, the message line, the hotbar): the small plaque frame (3 u). */

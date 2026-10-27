@@ -1,8 +1,12 @@
-/* The shared button: a 9-slice pill (cursors.png, 3 u edge). Variants and states only change the sprite and a filter;
-   a disabled button keeps the palette (dimmer, flatter), it never turns grey. */
+/* The shared button: a chunky block (cursors.png, 3 u frame: a 1 u outline, a bright 2 u edge on the top and left, a dark 2 u edge on the bottom and
+   right) over a flat textured face tile. Primary is wood, plain and tab are stone, the active tab is gold, danger is red. Hover lightens the face and
+   adds a thin highlight border; pressed swaps in the flattened frame and sinks the button 2 u. A disabled button keeps its palette (paler, flatter). */
 .game-button {
     --button-edge: calc(var(--u) * 3);
-    --button-base: brightness(1);
+    --button-frame: var(--nosum-img-button);
+    --button-frame-down: var(--nosum-img-button-down);
+    --button-face: var(--nosum-img-face-wood);
+    --button-face-color: #d68a58;
     --button-state: brightness(1);
 
     position: relative;
@@ -17,7 +21,7 @@
     background: none;
     color: var(--nosum-ink);
     font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
-    text-shadow: 0 var(--tp) 0 rgba(255, 228, 161, 0.5);
+    text-shadow: var(--tp) var(--tp) 0 rgba(255, 244, 214, 0.45);
     white-space: nowrap;
     cursor: var(--nosum-cursor-pointer, pointer);
     user-select: none;
@@ -29,9 +33,9 @@
     inset: 0;
     z-index: -1;
     border: var(--button-edge) solid var(--nosum-edge);
-    border-image: var(--nosum-img-button) 3 fill / var(--button-edge) stretch;
-    background: var(--nosum-wood-light) padding-box;
-    filter: var(--button-base) var(--button-state);
+    border-image: var(--button-frame) 3 / var(--button-edge) stretch;
+    background: var(--button-face) 0 0 / calc(8 * var(--u)) calc(8 * var(--u)) repeat padding-box, var(--button-face-color) padding-box;
+    filter: var(--button-state);
     image-rendering: pixelated;
 }
 
@@ -42,15 +46,33 @@
 }
 
 .game-button:hover:not(:disabled) {
-    --button-state: brightness(1.15);
+    --button-state: brightness(1.12);
+}
+
+/* The thin highlight border of a hovered button, just inside the outline's bevel. */
+.game-button:hover:not(:disabled)::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--u) * 1);
+    border: var(--u) solid rgba(255, 250, 230, 0.75);
+    pointer-events: none;
 }
 
 .game-button:active:not(:disabled) {
-    --button-state: brightness(0.82);
+    --button-state: brightness(0.94);
+}
+
+.game-button:active:not(:disabled)::before {
+    border-image-source: var(--button-frame-down);
+    transform: translateY(calc(var(--u) * 2));
+}
+
+.game-button:active:not(:disabled)::after {
+    display: none;
 }
 
 .game-button:active:not(:disabled) .game-button-label {
-    transform: translateY(var(--u));
+    transform: translateY(calc(var(--u) * 2));
 }
 
 .game-button:disabled {
@@ -71,29 +93,32 @@
 }
 
 .game-button.danger {
+    --button-frame: var(--nosum-img-button-danger);
+    --button-frame-down: var(--nosum-img-button-danger-down);
+    --button-face: var(--nosum-img-face-red);
+    --button-face-color: #e24c3e;
+
     color: var(--nosum-ink-on-dark);
-    text-shadow: 0 var(--tp) 0 #4a0016;
+    text-shadow: var(--tp) var(--tp) 0 #4a0016;
 }
 
 .game-button.danger:disabled {
     color: var(--nosum-ink-on-dark);
 }
 
-.game-button.danger::before {
-    border-image-source: var(--nosum-img-button-danger);
-}
-
 .game-button.plain,
 .game-button.tab {
-    --button-base: saturate(0.45) brightness(1.2);
+    --button-frame: var(--nosum-img-button-plain);
+    --button-frame-down: var(--nosum-img-button-plain-down);
+    --button-face: var(--nosum-img-face-stone);
+    --button-face-color: #a8a8b0;
 }
 
 .game-button.tab.active {
-    --button-base: brightness(1);
-}
-
-.game-button.tab.active::before {
-    border-image-source: var(--nosum-img-button-hot);
+    --button-frame: var(--nosum-img-button-hot);
+    --button-frame-down: var(--nosum-img-button-hot-down);
+    --button-face: var(--nosum-img-face-gold);
+    --button-face-color: #fec850;
 }
 
 .game-button.link {
@@ -103,7 +128,8 @@
     text-shadow: none;
 }
 
-.game-button.link::before {
+.game-button.link::before,
+.game-button.link::after {
     display: none;
 }
 

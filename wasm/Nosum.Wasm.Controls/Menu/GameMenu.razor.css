@@ -51,6 +51,10 @@
     }
 }
 
+.menu-tab:active .menu-tab-art {
+    transform: translateY(calc(var(--u) * 2));
+}
+
 .menu-tab.active {
     z-index: 3;
     transform: translateY(calc(var(--u) * -1));

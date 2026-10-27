@@ -26,7 +26,7 @@
 
 .game-icon-button:active .game-icon-button-art {
     filter: brightness(0.85);
-    transform: translateY(var(--u));
+    transform: translateY(calc(var(--u) * 2));
 }
 
 /* The count on the corner: a red pill with a number. */

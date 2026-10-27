@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     gap: calc(var(--u) * 3);
-    min-height: calc(var(--u) * 8);
+    min-height: calc(var(--u) * 10);
     cursor: var(--nosum-cursor-pointer, pointer);
 }
 
@@ -11,8 +11,8 @@
 .game-toggle input {
     position: absolute;
     inset: 0 auto auto 0;
-    width: calc(var(--u) * 8);
-    height: calc(var(--u) * 8);
+    width: calc(var(--u) * 10);
+    height: calc(var(--u) * 10);
     margin: 0;
     opacity: 0;
     cursor: inherit;
@@ -23,14 +23,21 @@
     box-sizing: border-box;
     display: grid;
     place-items: center;
-    width: calc(var(--u) * 8);
-    height: calc(var(--u) * 8);
-    border: calc(var(--u) * 1) solid var(--nosum-edge);
-    background: var(--nosum-cream);
+    width: calc(var(--u) * 10);
+    height: calc(var(--u) * 10);
+    border: var(--u) solid var(--nosum-ink);
+    background: var(--nosum-img-face-stone) 0 0 / calc(8 * var(--u)) calc(8 * var(--u)), #a8a8b0;
+    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #d6d6de, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #60606c;
     color: var(--nosum-ink);
+    image-rendering: pixelated;
 }
 
-/* On: the box is filled with a smaller dark square (a shape, so the state is not told by colour alone). */
+/* On: the block turns gold and holds a dark square (a shape, so the state is not told by colour alone). */
+.game-toggle input:checked + .game-toggle-box {
+    background: var(--nosum-img-face-gold) 0 0 / calc(8 * var(--u)) calc(8 * var(--u)), #fec850;
+    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #fff6be, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #c4701c;
+}
+
 .game-toggle input:checked + .game-toggle-box::after {
     content: "";
     width: calc(var(--u) * 4);

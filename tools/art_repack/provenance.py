@@ -36,7 +36,7 @@ ENTRIES = {
     'sprites/animals/chicken.png': ('8 Animals', [NOSUM], 'Chicken, 16 x 16 frames: rows down, right, up, four walk frames (`animals.py`)'),
     'sprites/animals/cow.png': ('8 Animals', [NOSUM], 'Cow, 32 x 32 frames: rows down, right, up, four walk frames (`animals.py`)'),
     'ui/menu.png': ('9 UI', [NOSUM], 'Window frame (60 x 60 at 0, 256), small plaque frame (48 x 48 at 64, 256), parchment tile (64 x 64 at 128, 256), section card (0, 320) and inventory slot (128, 128) for the CSS border-image slices, drawn at art pixels and enlarged 4 x (`ui.py`, palette in `palette.py`)'),
-    'ui/cursors.png': ('9 UI', [NOSUM], 'Gold selection frame with glow (80 x 80 at 448, 128), buttons, title strip, gauge frame, close button, arrows, coin, the twelve tab plates with their pictograms and the two mouse cursors at the rectangles of `nosum-theme.js` (`ui.py`)'),
+    'ui/cursors.png': ('9 UI', [NOSUM], 'Gold selection frame with glow (80 x 80 at 448, 128), the block-button frames (9 x 9, normal and pressed, wood, stone, gold and red) and their 8 x 8 face tiles (y 432-459), title strip, gauge frame, close button, arrows, coin, the twelve tab plates with their pictograms and the two mouse cursors at the rectangles of `nosum-theme.js` (`ui.py`)'),
     'ui/text_box.png': ('9 UI', [NOSUM], 'Sunk text field box (188 x 48 at x 4), drawn at art pixels and enlarged 4 x (`ui.py`)'),
     'ui/start_background.png': ('9 UI', [NOSUM], 'Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`)'),
 }

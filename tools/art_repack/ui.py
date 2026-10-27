@@ -148,45 +148,58 @@ def gauge():
 
 # --- buttons and small pieces (thin) -------------------------------------------------------------------------------------------
 
-def button(w, tones):
-    """A pill button w x 9, 3 px slice: outline, a lit edge, the face (lighter above, darker below), a shaded foot."""
-    hi, f1, base, dark, shade = tones
-    h = 9
-    c = Canvas(w, h)
-    for y in range(h):
-        for x in range(w):
-            if (x, y) in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)):
+# A chunky block button: a 1 px outline, a bright 2 px edge on the top and left, a dark 2 px edge on the bottom and right (a 45 degree mitre in the
+# corners), and a flat textured face painted by the style sheet from a face tile. The pressed frame flattens the bevel (a shade on the top and
+# left only), so the button looks pushed in. Each is 9 x 9 with a 3 px slice; the middle is not drawn.
+BLOCKS = {
+    'button': (P.WOOD_HI, (140, 76, 56), (214, 138, 88)),            # primary: wood
+    'button-plain': (P.STONE_HI, P.STONE_SH, P.STONE),                # neutral: stone
+    'button-hot': (P.GOLD_HI, P.GOLD_D, (254, 200, 80)),              # the active tab: gold
+    'button-danger': (P.RED_HI, (130, 28, 36), (226, 76, 62)),        # destructive: red
+}
+FACES = {'face-wood': ((214, 138, 88), (196, 120, 78), (230, 160, 108)), 'face-stone': (P.STONE, P.STONE_D, P.STONE_L),
+         'face-gold': ((254, 200, 80), (240, 178, 60), (255, 224, 120)), 'face-red': ((226, 76, 62), (206, 60, 52), (240, 100, 84))}
+
+
+def block(size, hi, shade, base, pressed=False):
+    c = Canvas(size, size)
+    for y in range(size):
+        for x in range(size):
+            cx, cy = min(x, size - 1 - x), min(y, size - 1 - y)
+            if (cx, cy) == (0, 0) or (min(cx, cy) >= 3):
                 continue
-            if y in (0, h - 1) or x in (0, w - 1):
+            d = min(cx, cy)
+            if d == 0:
                 col = OUT
-            elif y == 1 or x == 1:
-                col = hi
-            elif y == h - 2 or x == w - 2:
-                col = shade
-            elif y == h - 3:
-                col = dark
-            elif y == 2:
-                col = f1
+            elif pressed:
+                col = shade if d == 1 and min(x, y) < min(size - 1 - x, size - 1 - y) else base
             else:
-                col = base
+                col = hi if min(x, y) < min(size - 1 - x, size - 1 - y) else shade
             c.dot(x, y, col)
     return c
 
 
-BUTTON = (P.WOOD_HI, (240, 176, 118), (226, 146, 90), (200, 112, 72), (160, 84, 60))
-BUTTON_HOT = (P.GOLD_HI, P.GOLD_L, (254, 200, 80), (232, 160, 44), P.GOLD_D)
-BUTTON_DANGER = (P.RED_HI, P.RED_L, (226, 76, 62), (190, 52, 48), P.RED_D)
+def face(base, dark, light):
+    """An 8 x 8 tile of a flat, lightly speckled face."""
+    c = Canvas(8, 8)
+    for y in range(8):
+        for x in range(8):
+            n = (x * 73856093 ^ y * 19349663 ^ 0x2f1) % 23
+            c.dot(x, y, dark if n < 3 else light if n == 3 else base)
+    return c
 
 
 def close_button():
-    """The close button, 10 x 10: a lit square with a red cross, to stand out on the title bar."""
-    c = frame(10, 10, [OUT, (P.PARCH_HI, P.PARCH_DK)], fill=P.PARCH)
+    """The close button, 12 x 12: a block with a lit top and left, a shaded bottom and right and a red cross."""
+    c = block(12, P.PARCH_HI, P.PARCH_DK, P.PARCH)
+    c.rect(3, 3, 6, 6, P.PARCH)
     for i in range(6):
-        for x in (2 + i, 7 - i):
-            c.dot(x, 2 + i, P.RED)
-            c.dot(x + (1 if x < 5 else -1), 2 + i, P.RED_D if i in (2, 3) else P.RED)
-    for x, y in ((2, 2), (7, 2)):
-        c.dot(x, y, P.RED_L)
+        for x in (3 + i, 8 - i):
+            c.dot(x, 3 + i, P.RED)
+    c.dot(3, 3, P.RED_L)
+    c.dot(8, 3, P.RED_L)
+    c.dot(3, 8, P.RED_D)
+    c.dot(8, 8, P.RED_D)
     return c
 
 
@@ -222,8 +235,9 @@ def coin():
 # --- tab plates and their pictograms ----------------------------------------------------------------------------------------
 
 def plate():
-    """The tab plate, 16 x 16: parchment in a bevelled outline, rounded at the top where it stands on the window."""
-    return frame(16, 16, [OUT, (P.PARCH_HI, P.PARCH_SH)], fill=P.PARCH)
+    """The tab plate, 16 x 16: a parchment block with a bright 2 px top and left edge and a dark 2 px bottom and right edge in an outline."""
+    c = frame(16, 16, [OUT, (P.PARCH_HI, P.PARCH_DK), (P.PARCH_HI, P.PARCH_DK)], fill=P.PARCH)
+    return c
 
 
 def tones(base):
@@ -343,7 +357,9 @@ def cursors(size):
     sheet = Image(*size('ui/cursors.png'))
     pieces = [
         (fat(select()), 448, 128),
-        (button(13, BUTTON), 145, 338), (button(13, BUTTON_HOT), 159, 338), (button(7, BUTTON_DANGER), 137, 338),
+        *[(block(9, hi, sh, base), 10 * i, 432) for i, (hi, sh, base) in enumerate(BLOCKS.values())],
+        *[(block(9, hi, sh, base, pressed=True), 10 * i, 442) for i, (hi, sh, base) in enumerate(BLOCKS.values())],
+        *[(face(*tones), 8 * i, 452) for i, tones in enumerate(FACES.values())],
         (close_button(), 337, 494), (arrow(True), 352, 495), (arrow(False), 365, 495), (coin(), 193, 373),
         (title_strip(), 0, 400), (gauge(), 16, 400),
         (cursor_arrow(), 0, 0), (cursor_hand(), 32, 0),
