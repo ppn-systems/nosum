@@ -2,7 +2,7 @@
 
 The sprite sheets the client and server load: the farm's objects, crops and tools, the layered farmer, the animals and buildings, and the menu
 pieces. Every file here is Nosum's own art, CC0, or CC-BY with credit, with its source recorded in [`docs/art/provenance.md`](../docs/art/provenance.md) (packs and
-the code in `tools/art_repack`). The packs in use are Kenney Tiny Town, Tiny Farm and Tiny Dungeon, josehzz's Farming crops 16x16, Clint Bellanger's Tiny Creatures (all CC0) and DragonDePlatino's DawnLike (CC-BY 4.0, credited in `provenance.md` and `wwwroot/credits.txt`). All open-licensed packs we keep, used or not, are in [`art/source/`](../art/source/) and listed in [`docs/art/library.md`](../docs/art/library.md); candidates checked earlier: [`docs/art/sourcing-sprites-2026-10-26.md`](../docs/art/sourcing-sprites-2026-10-26.md). The maps are own too ([`art/`](../art/README.md)).
+the code in `tools/art_repack`). The packs in use are Kenney Tiny Town, Tiny Farm and Tiny Dungeon, josehzz's Farming crops 16x16, Clint Bellanger's Tiny Creatures (all CC0) and DragonDePlatino's DawnLike (CC-BY 4.0, credited in `provenance.md`, `wwwroot/credits.txt` and the in-game Credits (Settings, start screen)). All open-licensed packs we keep, used or not, are in [`art/source/`](../art/source/) and listed in [`docs/art/library.md`](../docs/art/library.md); candidates checked earlier: [`docs/art/sourcing-sprites-2026-10-26.md`](../docs/art/sourcing-sprites-2026-10-26.md). The maps are own too ([`art/`](../art/README.md)).
 
 | Folder | Holds | Examples |
 | :--- | :--- | :--- |

@@ -1,0 +1,9 @@
+@using Nosum.Wasm.ViewModels.Settings
+
+@* The packs of art the game uses, with author and license (CC-BY needs a visible credit). The data is the generated ArtCredits; the title and note come from the caller's resources. *@
+<ul class="art-credits">
+    @foreach (ArtCredit credit in ArtCredits.All)
+    {
+        <li><a href="@credit.Url" target="_blank" rel="noopener noreferrer">@credit.Title</a> · @credit.Author · @credit.License</li>
+    }
+</ul>

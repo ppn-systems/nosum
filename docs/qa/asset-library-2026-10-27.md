@@ -26,6 +26,8 @@ Not swapped, and why: the cow (Tiny Creatures' 16 px cow had to be doubled to fi
 | [`asset-library-ingame-mine-1280x720.png`](asset-library-ingame-mine-1280x720.png) | Mine floor 25: the copper boulder and the other rock nodes |
 | [`asset-library-ingame-interior-1280x720.png`](asset-library-ingame-interior-1280x720.png) | The farmhouse with the new chest (left of the rug) and the furnace |
 | [`asset-library-ingame-inventory-1280x720.png`](asset-library-ingame-inventory-1280x720.png) | Inventory: steel ore, mushroom, hazelnut, berries, leek, soup, chest, furnace and the copper ore in the hotbar |
+| [`asset-library-credits-start-1280x720.png`](asset-library-credits-start-1280x720.png) | The credits opened from the start screen's "Ghi công hình ảnh" link |
+| [`asset-library-credits-settings-1280x720.png`](asset-library-credits-settings-1280x720.png) | Settings → General, scrolled to the bottom: the Credits section |
 
 ## How it was run
 
@@ -34,4 +36,4 @@ Host `DOTNET_ENVIRONMENT=Development` with `NOSUM_CALENDAR_EPOCH` six hours befo
 ## Limits
 
 - The chicken has one picture facing left: its down and up rows repeat it, so it shows its face walking up.
-- The in-game credit for DawnLike is `wwwroot/credits.txt`; there is no credits screen yet.
+- The credits list is generated into `ArtCredits.g.cs` by `repack_cc0_art.py --docs`; the pack titles are not translated.
