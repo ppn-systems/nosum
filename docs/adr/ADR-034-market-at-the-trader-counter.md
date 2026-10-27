@@ -2,6 +2,7 @@
 
 **Status:** Accepted (coordinator, 2026-10-25, owner decision). Amends [ADR-013](ADR-013-economy-coins-escrow-market-trade.md) D5 and D8;
 follows the counter model of ADR-013 amendment A2 and [ADR-030](ADR-030-community-goals-and-market-limits.md) (the board counter).
+D4 amended by [ADR-043](ADR-043-npc-merchants-and-the-menu-split.md): the market opens from the trader's dialog box, as a dialog of its own, not a menu tab.
 
 ## Context
 

@@ -52,3 +52,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-040](ADR-040-own-art-plan.md) | Own art plan (condensed): art direction, sources, build tools, provenance records | Accepted |
 | [ADR-041](ADR-041-deploy-cloudflare-pages-and-tunnel.md) | Deployment: web client on Cloudflare Pages, server behind a Cloudflare Tunnel, deploy by SSH (amends ADR-031) | Accepted |
 | [ADR-042](ADR-042-own-maps-and-provenance-cleanup.md) | Own map layouts, own sheet names and removal of the former early-content traces before the public release; fresh public history | Accepted |
+| [ADR-043](ADR-043-npc-merchants-and-the-menu-split.md) | NPC merchants at the counters with a dialog box, shop/market/board pages as standalone dialogs, mail with its own HUD icon, the menu holds player things only (amends ADR-034 D4) | Proposed |
