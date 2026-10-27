@@ -163,6 +163,48 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task Place_BlueprintOverAnotherBuilding_IsRefused_AndTheBlueprintStays()
+    {
+        using PlacementHarness world = new(_database);
+        Guid owner = await world.CreatePlayerAsync();
+        IConnection me = world.Presence.ConnectionOf(await Place(world, owner));
+        BuildingInfo building = await world.BuildAsync(owner, BuildingKind.Coop, skip: 1);
+        _ = await world.Inventory.AddAsync(owner, ItemCatalog.CoopBlueprint, 1, "test.setup");
+        int slot = (await world.Inventory.GetAsync(owner)).Slots.First(s => s.ItemId == ItemCatalog.CoopBlueprint).Slot;
+        world.StandOnFarm(owner, building.TileX + 1, building.TileY - 1);
+
+        // Exactly on it, shifted by one tile into it, and one row up so only the bottom row of the new one touches the old roof.
+        foreach ((int dx, int dy) in new[] { (0, 0), (1, 0), (-5, 0), (0, -2), (3, 2) })
+        {
+            (await world.Placeables.PlaceAsync(me, slot, building.TileX + dx, building.TileY + dy, 0)).Status.Should().Be(PlaceStatus.Overlaps, $"offset ({dx}, {dy}) overlaps the standing building");
+        }
+
+        (await world.CountAsync(owner, ItemCatalog.CoopBlueprint)).Should().Be(1);
+        await using NosumDbContext db = world.Db();
+        (await db.FarmBuildings.CountAsync(b => b.OwnerId == owner)).Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData(78, 30)]
+    [InlineData(-3, 30)]
+    [InlineData(40, -2)]
+    [InlineData(40, 64)]
+    public async Task Place_BlueprintHangingOverTheMapEdge_IsRefused_AndTheBlueprintStays(int tileX, int tileY)
+    {
+        using PlacementHarness world = new(_database);
+        Guid owner = await world.CreatePlayerAsync();
+        IConnection me = world.Presence.ConnectionOf(await Place(world, owner));
+        _ = await world.Inventory.AddAsync(owner, ItemCatalog.CoopBlueprint, 1, "test.setup");
+        int slot = (await world.Inventory.GetAsync(owner)).Slots.First(s => s.ItemId == ItemCatalog.CoopBlueprint).Slot;
+        world.StandOnFarm(owner, 64, 17);
+
+        // The Farm is 80 x 65 tiles; a coop is 6 x 3, so these footprints stick out of the map on one side.
+        (await world.Placeables.PlaceAsync(me, slot, tileX, tileY, 0)).Status.Should().BeOneOf(PlaceStatus.OutsideRoom, PlaceStatus.Reserved); // the south edge also holds the reserved exit tiles
+
+        (await world.CountAsync(owner, ItemCatalog.CoopBlueprint)).Should().Be(1);
+    }
+
+    [Fact]
     public async Task Place_NinthBuildingOnOneLand_IsRefused()
     {
         using PlacementHarness world = new(_database);

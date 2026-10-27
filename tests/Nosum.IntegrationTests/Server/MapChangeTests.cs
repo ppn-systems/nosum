@@ -20,6 +20,7 @@ using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Community;
+using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
@@ -159,6 +160,47 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
         again.SpawnX.Should().BeApproximately(entered.X, 0.01f);
         again.SpawnY.Should().BeApproximately(entered.Y, 0.01f);
         (await second.WaitForSnapshotAsync(s => s.Contains(again.PlayerId), host.Timeout)).Players.Should().ContainSingle();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(40)]
+    [InlineData(120)]
+    public async Task Disconnect_RightAfterTheMoveOntoAnExit_LeavesNobodyOnAnyMap_AndTheSessionRejoinsOnTheOldOrTheNewMap(int closeAfterMs)
+    {
+        await using Host host = await Host.StartAsync(_database);
+        IMapPresence presence = InstanceManager.Instance.GetExistingInstance<IMapPresence>()!;
+        string sessionToken;
+        Guid accountId;
+        await using (WorldClient first = await host.ConnectAsync())
+        {
+            sessionToken = first.SessionToken;
+            accountId = first.AccountId;
+            JoinMapResult join = await first.JoinAsync(host.Timeout);
+            await first.SendMoveAsync(1, join.SpawnX, DoorFeetY, Up, host.Timeout);
+
+            // The connection closes while the server may be in the middle of moving the player into the farmhouse.
+            await Task.Delay(closeAfterMs, host.Timeout);
+        }
+
+        // Nobody is left behind: the presence record of the dead connection is gone whichever side of the map change it fell on.
+        while (presence.PlayerCount != 0)
+        {
+            await Task.Delay(25, host.Timeout);
+        }
+
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+        PlayerStateRow? saved = await states.LoadAsync(accountId, host.Timeout);
+        saved.Should().NotBeNull();
+        saved!.Value.MapName.Should().BeOneOf(GameMaps.Farm, GameMaps.FarmHouse);
+
+        await using WorldClient second = await host.ConnectAsync(sessionToken);
+        JoinMapResult again = await second.JoinAsync(host.Timeout);
+        again.Status.Should().Be(JoinStatus.Ok);
+        again.MapId.Should().BeOneOf(GameMaps.Farm, GameMaps.FarmHouse);
+        (await second.WaitForSnapshotAsync(s => s.Contains(again.PlayerId), host.Timeout)).Players.Should().ContainSingle("the player is the only one on their map: no ghost of the first connection");
+        presence.PlayerCount.Should().Be(1);
     }
 
     [Fact]

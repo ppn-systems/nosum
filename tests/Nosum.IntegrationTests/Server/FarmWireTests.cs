@@ -19,6 +19,7 @@ using Nalix.SDK.Options;
 using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
 using Nosum.Abstractions.Calendar;
+using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
@@ -349,6 +350,57 @@ public sealed class FarmWireTests : IClassFixture<PostgresFixture>
             (await farmer.UseAsync(seeds, x, y, timeout.Token)).Action.Should().Be(FarmAction.Harvested);
             (await farmer.WaitForGroundItemAsync(i => i.ItemId == ItemCatalog.Strawberry, timeout.Token)).Quantity.Should().Be(berry.HarvestQuantity);
             (await farmer.GetFarmAsync(timeout.Token)).Tiles.Single(t => t.X == x && t.Y == y).CropId.Should().Be(CropCatalog.Strawberry, "and it can bear a third time");
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
+    public async Task Harvest_WithACompletelyFullInventory_LosesNothing_TheCropLiesOnTheGroundAndTheSoilIsFree()
+    {
+        await ResetFarmAsync();
+        FakeTimeProvider clock = new(s_start);
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock, development: true);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = TileInReachOf(join);
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Action.Should().Be(FarmAction.Tilled);
+            (await farmer.UseAsync(2, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
+            for (int day = 1; day <= CropCatalog.All[0].TotalGrowthDays; day++)
+            {
+                (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+                (await farmer.AdvanceClockAsync(1, timeout.Token)).Ok.Should().BeTrue();
+            }
+
+            // Every slot is taken by a full stack that the parsnip cannot join (the dev grant is rate limited, so the stacks are added on the server).
+            Guid player;
+            await using (NosumDbContext lookup = new(_database.Options))
+            {
+                player = (await lookup.Players.OrderByDescending(p => p.CreatedAt).FirstAsync(timeout.Token)).Id;
+            }
+
+            IInventoryService inventory = InstanceManager.Instance.GetExistingInstance<IInventoryService>()!;
+            _ = await inventory.AddAsync(player, ItemCatalog.Wood, 99 * 28, "test.fill", timeout.Token);
+            (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().HaveCount(36);
+
+            UseItemResult harvested = await farmer.UseAsync(0, x, y, timeout.Token);
+
+            harvested.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Harvested });
+            _ = await farmer.WaitForTileAsync(x, y, t => t.CropId == 0 && !t.Removed, timeout.Token);
+            GroundItemRow dropped = await farmer.WaitForGroundItemAsync(g => g.ItemId == ItemCatalog.Parsnip, timeout.Token);
+            dropped.Quantity.Should().Be(1);
+            (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().NotContain(s => s.ItemId == ItemCatalog.Parsnip);
+            (await farmer.GetGroundItemsAsync(timeout.Token)).Items.Should().ContainSingle(g => g.ItemId == ItemCatalog.Parsnip, "the crop waits on the ground for the player");
+            await using NosumDbContext context = new(_database.Options);
+            (await context.GroundItems.CountAsync(g => g.ItemId == ItemCatalog.Parsnip)).Should().Be(1, "the drop is stored, so a restart does not lose it");
         }
         finally
         {
