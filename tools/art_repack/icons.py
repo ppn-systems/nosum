@@ -437,6 +437,14 @@ def farm_tile(index, recipe=None):
     return fn
 
 
+def library_tile(sheet, column, row, what):
+    """A cell of a library pack (sources.SHEETS) as an object-sheet picture."""
+    def fn(src, _town):
+        return src.sheet(sheet).cell(column, row)
+    fn.note = what
+    return fn
+
+
 def tiny_town_fence(src, town):
     return fence(town)
 
@@ -457,16 +465,16 @@ OBJECTS = {
     17: seeds_of('cranberries'), 18: seeds_of('eggplant'), 19: seeds_of('yam'), 20: seeds_of('bok_choy'), 21: seeds_of('grape'),
     2: seeds_of('radish'),
     # forage
-    68: static(flower, YELLOW), 67: static(flower, YELLOW, draw.WOOD_D), 70: static(flower, PINK), 66: static(leek), 65: static(spring_onion),
-    69: static(berries, RED, 4), 71: static(berries, PURPLE, 5), 72: static(nut), 73: static(plum), 74: static(mushroom),
+    68: static(flower, YELLOW), 67: static(flower, YELLOW, draw.WOOD_D), 70: static(flower, PINK), 66: library_tile('dawn_food', 3, 3, 'DawnLike Food (3, 3), the leek'), 65: static(spring_onion),
+    69: library_tile('dawn_food', 7, 2, 'DawnLike Food (7, 2), red berries'), 71: static(berries, PURPLE, 5), 72: library_tile('dawn_food', 3, 5, 'DawnLike Food (3, 5), the hazelnut'), 73: static(plum), 74: library_tile('dawn_food', 1, 0, 'DawnLike Food (1, 0), the pink-capped mushroom'),
     75: static(root, ((120, 50, 60), (170, 90, 100), (215, 140, 150))), 76: static(crystal_fruit), 77: static(root, ((150, 110, 60), (210, 170, 110), (245, 220, 170))),
     # animal products and food
     57: static(egg), 58: farm_tile(125), 59: farm_tile(123), 60: farm_tile(124), 61: farm_tile(96),
-    62: static(bowl, GREENS, ((5, 5), (9, 4), (7, 6), (11, 5))), 63: static(baked_potato), 64: static(bowl, ORANGE, ((6, 5), (10, 5))),
+    62: static(bowl, GREENS, ((5, 5), (9, 4), (7, 6), (11, 5))), 63: static(baked_potato), 64: library_tile('dawn_food', 4, 5, 'DawnLike Food (4, 5), the bowl of soup'),
     # resources
     46: static(log), 47: farm_tile(89), 49: static(rock, COAL, [(5, 8, (150, 150, 170)), (9, 9, (150, 150, 170))]),
-    50: static(rock, GREY, [(5, 9, COPPER[1]), (9, 8, COPPER[2]), (8, 11, COPPER[1])]),
-    51: static(rock, GREY, [(5, 9, (210, 120, 100)), (9, 8, (170, 190, 235)), (8, 11, (210, 120, 100))]),
+    50: library_tile('dawn_rock', 3, 0, 'DawnLike Rock (3, 0), the copper chunk'),
+    51: library_tile('dawn_rock', 0, 1, 'DawnLike Rock (0, 1), the steel-blue ore chunk'),
     52: static(bar, COPPER), 53: static(bar, GREY), 48: static(grass_tuft),
     22: static(acorn), 23: static(samara), 24: static(pinecone),
     # sea
@@ -474,7 +482,7 @@ OBJECTS = {
     82: static(nautilus), 83: static(rainbow_shell),
     # nodes and placed pieces
     92: static(rock, GREY, [(4, 8, (110, 130, 190)), (9, 7, (170, 190, 235)), (10, 11, (110, 130, 190))]),
-    91: static(rock, ((110, 60, 40), (170, 100, 60), (214, 150, 100)), [(5, 8, COPPER[2]), (9, 7, COPPER[1]), (10, 11, COPPER[2])]),
+    91: library_tile('dawn_rock', 2, 1, 'DawnLike Rock (2, 1), the copper boulder'),
     89: static(rock, ((120, 125, 140), (190, 195, 205), (230, 232, 240))), 90: static(rock, BROWN),
     84: static(twig, False), 85: static(twig, True), 86: static(weed, 0), 87: static(weed, 1), 88: static(weed, 2),
     54: tiny_town_fence, 55: static(stone_path), 56: static(sprinkler),

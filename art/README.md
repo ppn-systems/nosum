@@ -1,10 +1,11 @@
 # art/
 
-Nosum's **own** art. Every file has a recorded provenance in [`own/SOURCES.md`](own/SOURCES.md).
+Nosum's **own** art (`own/`, provenance in [`own/SOURCES.md`](own/SOURCES.md)) and the open-licensed art library (`source/`, provenance in each pack's `SOURCE.md`).
 
 | Folder | Holds |
 | :--- | :--- |
 | `own/Maps/` | The `.tmx` maps and the tilesheets they name (`terrain`, `nature`, `town`, `interior`, `cave`, `markers`). The sheets are drawn in code by `tools/Nosum.MapGen sheets`; the maps are compiled from text layouts (`layout`) or generated (`mine`). |
+| `source/` | The art library: open-licensed packs (CC0, CC-BY) with their license texts and `SOURCE.md`; see [`docs/art/library.md`](../docs/art/library.md). Read by `tools/art_repack`. |
 | `own/source/` | The source of those files: text layouts of the maps, tileset trait files, and the generated corner tilesets (PixelLab) with their metadata. |
 
 ## Which map the game loads

@@ -1,7 +1,10 @@
-"""Package 8: sprites/animals/chicken.png (16 x 16 frames) and sprites/animals/cow.png (32 x 32 frames), drawn here.
+"""Package 8: sprites/animals/chicken.png (16 x 16 frames) and sprites/animals/cow.png (32 x 32 frames), cut from Tiny Creatures (CC0).
 
-Layout (AnimalsDecorator): four walk columns, rows down, right, up; left is the right row mirrored by the game. No CC0 pack has top-down farm
-animals with a walk cycle in this style, so the pictures are drawn from shaded blobs in the Kenney palette.
+Layout (AnimalsDecorator): four walk columns, rows down, right, up; left is the right row mirrored by the game. Tiny Creatures has one picture
+per animal, facing left, so the right row is that picture flipped, the down and up rows use it as it is, and the walk frames 1 and 3 lift it 1 px
+(the bob the drawn animals had). The cow is 16 x 16 in the pack and stands at the foot of its 32 x 32 frame.
+
+chicken() and cow() below are the earlier drawn animals; only ui.py still reads chicken() for the co-op tab pictogram (assets/ui is not part of this swap).
 """
 import draw
 from draw import Canvas
@@ -126,12 +129,27 @@ def cow(direction, frame):
     return c.outline()
 
 
-def build(size):
-    rows = ['down', 'right', 'up']
-    chick = Image(*size('sprites/animals/chicken.png'))
-    cows = Image(*size('sprites/animals/cow.png'))
-    for r, d in enumerate(rows):
-        for f in range(4):
-            chick.paste(chicken(d, f), f * 16, r * 16)
-            cows.paste(cow(d, f), f * 32, r * 32)
-    return {'sprites/animals/chicken.png': chick, 'sprites/animals/cow.png': cows}
+CHICKEN = (0, 15)       # column, row of tilemap_packed.png
+COW = (1, 15)
+BOB = [0, 1, 0, 1]      # pixels each walk frame lifts the picture
+
+
+def frames(picture, frame, bottom):
+    """The 4 x 3 sheet of one animal: picture is the 16 x 16 cell, frame the cell size of the sheet, bottom whether it stands at the foot of the frame."""
+    sheet = Image(frame * 4, frame * 3)
+    for row, pic in enumerate((picture, picture.flip_h(), picture)):
+        for column in range(4):
+            x = column * frame + (frame - 16) // 2
+            y = row * frame + (frame - 16 if bottom else 0) - BOB[column]
+            sheet.paste(pic, x, y)
+    return sheet
+
+
+def build(src, size):
+    creatures = src.sheet('creatures')
+    out = {}
+    for rel, cell, frame, bottom in (('sprites/animals/chicken.png', CHICKEN, 16, False), ('sprites/animals/cow.png', COW, 32, True)):
+        full = Image(*size(rel))
+        full.paste(frames(creatures.cell(*cell), frame, bottom), 0, 0)
+        out[rel] = full
+    return out

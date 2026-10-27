@@ -1,0 +1,5 @@
+16x16 Puny Dungeon Tileset v1, by Shade
+https://opengameart.org/content/16x16-puny-dungeon-tileset
+
+License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/), stated on the OpenGameArt page ("LICENSE (CC0)").
+The archive holds no license text of its own.
