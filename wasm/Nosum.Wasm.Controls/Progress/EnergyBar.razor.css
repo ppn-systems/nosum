@@ -1,21 +1,28 @@
+/* The energy gauge: a tube framed in wood with gold end caps (cursors.png "gauge", 3 px edge) round a dark track, filled from the bottom with a
+   stepped gradient (the fill keeps one gradient for the whole tube, so a half-full bar shows the lower half of it) and a lit edge on the left. */
 .energy-bar {
     position: relative;
-    width: calc(var(--u) * 4);
-    height: calc(var(--u) * 21);
-    background: var(--nosum-ink);
     box-sizing: border-box;
-    padding: var(--u);
+    width: calc(var(--u) * 10);
+    height: calc(var(--u) * 26);
+    border: calc(var(--u) * 3) solid var(--nosum-edge);
+    border-image: var(--nosum-img-gauge) 3 fill / calc(var(--u) * 3) stretch;
+    image-rendering: pixelated;
 }
 
 .energy-fill {
     position: absolute;
-    left: var(--u);
-    right: var(--u);
-    bottom: var(--u);
-    max-height: calc(100% - var(--u) * 2);
-    background: var(--nosum-ok);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 100%;
+    background:
+        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
+        linear-gradient(to top, #265c42 0 20%, #3e8948 20% 45%, #63c74d 45% 75%, #b8e04a 75% 100%) bottom / 100% calc(var(--u) * 20) no-repeat;
 }
 
 .energy-bar.low .energy-fill {
-    background: var(--nosum-danger);
+    background:
+        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
+        linear-gradient(to top, #961e28 0 40%, #e94334 40% 100%) bottom / 100% calc(var(--u) * 20) no-repeat;
 }

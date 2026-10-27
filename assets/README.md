@@ -12,7 +12,7 @@ the code in `tools/art_repack`). The packs in use are Kenney Tiny Town, Tiny Far
 | `sprites/animals/` | Animal sheets (Tiny Creatures, CC0) | `sprites/animals/chicken.png` |
 | `sprites/npcs/` | The Town's merchants: a world sheet (two 16 × 32 idle frames) and a 32 × 32 portrait each | `sprites/npcs/blacksmith.png`, `sprites/npcs/blacksmith_portrait.png` |
 | `farmer/` | Layered player sheets: body, pants, shirts, hair, hats (16 × 32 frames) | `farmer/body.png` |
-| `ui/` | Menu frame, cursors, text box, start background; linked into the Controls package | `ui/menu.png` |
+| `ui/` | Window frames, slots, block buttons, tab plates and pictograms, gauge, cursors, text box, start background; Kenney's CC0 UI packs plus a few pieces drawn in their style; linked into the Controls package | `ui/menu.png` |
 
 ## Naming scheme
 

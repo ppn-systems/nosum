@@ -32,6 +32,8 @@ The art that reaches the game goes through `tools/art_repack` (`python3 tools/ar
 | [`oga_random-animals`](https://opengameart.org/content/random-animals) Random animals | hdst | CC0 | Six 16 px animals (bee, fox, jellyfish, ladybug, parrot, pig) | Not used yet (new-animal candidates) |
 | [`oga_pixel-animals-16x16`](https://opengameart.org/content/pixel-animals-16x16) Pixel Animals 16x16 | GrumpyDiamond | CC0 | A small 16 px animal sheet | Not used yet |
 | [`oga_6-color-dungeon`](https://opengameart.org/content/6-color-dungeon-16x16) 6 Color Dungeon 16x16 | HorusKDI | CC0 | A six-colour 16 px dungeon tileset | Not used yet |
+| [`ui/kenney_ui-pack-pixel-adventure`](https://kenney.nl/assets/ui-pack-pixel-adventure) Kenney UI Pack - Pixel Adventure 2.0 | Kenney (www.kenney.nl) | CC0 1.0 | 16 px UI frames, plaques and icons (only the small-tile sheet is kept; see `art/source/ui/README.md`) | Menu window frame and plaque (`assets/ui/menu.png`) |
+| [`ui/kenney_pixel-ui-pack`](https://kenney.nl/assets/pixel-ui-pack) Kenney Pixel UI pack | Kenney (www.kenney.nl) | CC0 1.0 | 9-slice button and panel sets in several colours (only the files the repack reads are kept) | Buttons in `assets/ui/cursors.png` |
 
 ## Candidates not downloaded
 

@@ -5,6 +5,7 @@ the code in `tools/art_repack`, or cut from a pack of the library ([`library.md`
 CC-BY 4.0 and must be credited (see Credits below). The license texts are kept in [`licenses/`](licenses/). `ProvenanceTests` checks that
 each pack named here keeps its license text. How the candidates were chosen: [`sourcing.md`](sourcing.md).
 The packs are committed under `art/source/<directory>`; run the script with `--sources art/source` (the pinned SHA-256 of every sheet it reads is in `sources.py`).
+The two Kenney UI packs' files are also committed under [`art/source/ui/`](../../art/source/ui/README.md) (CC0), so `--only ui` needs no other download.
 
 ## Sources
 
@@ -15,6 +16,8 @@ The packs are committed under `art/source/<directory>`; run the script with `--s
 | `kenney_tiny-dungeon` | Kenney Tiny Dungeon 1.0 | <https://kenney.nl/assets/tiny-dungeon> | CC0 1.0 (License.txt inside the archive) | Kenney |
 | `oga_tiny-creatures` | Tiny Creatures 1.0 | <https://opengameart.org/content/tiny-creatures> | CC0 1.0 (License.txt inside the archive) | Clint Bellanger |
 | `dawnlike` | DawnLike 16x16 Universal Rogue-like tileset v1.81 | <https://opengameart.org/content/dawnlike-16x16-universal-rogue-like-tileset-v181> | CC-BY 4.0 (README.txt inside the archive); credit DragonDePlatino and DawnBringer (palette) | DragonDePlatino |
+| `kenney_ui-pack-pixel-adventure` | Kenney UI Pack - Pixel Adventure 2.0 | <https://kenney.nl/assets/ui-pack-pixel-adventure> | CC0 1.0 (License.txt inside the archive; archive SHA-256 0b0ed4802ebcfff5e44e370f394baa1d751862a5a4a7612ac4ce84e85faa0627) | Kenney |
+| `kenney_pixel-ui-pack` | Kenney Pixel UI pack | <https://kenney.nl/assets/pixel-ui-pack> | CC0 1.0 (License.txt inside the archive; archive SHA-256 b76f2f60f2be76eb8e66511038fa4d48faec11e638316fa37d06084878cdf0c7) | Kenney, with Lynn Evers |
 | `josehzz_farming-crops-16x16` | Farming crops 16x16 | <https://opengameart.org/content/farming-crops-16x16> | CC0 (stated on the OpenGameArt page; the archive holds no license file) | josehzz |
 | `tools/art_repack` | Nosum original | - | Own work of the project: shapes drawn by the code in this folder, no outside art | PPN Systems |
 
@@ -32,7 +35,7 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `farmer/pants.png` | 1 Player farmer layers | Nosum original (drawn in tools/art_repack, no outside source) | Trousers style 0, grey-scale for the pants tint, same walk frames as the body (`farmer.pants`) |
 | `farmer/shirts.png` | 1 Player farmer layers | Nosum original (drawn in tools/art_repack, no outside source) | 8 x 8 shirt pieces (front, right, back) of shirts 1 red, 3 straw, 7 blue, 11 green; the front piece is also the inventory icon (`farmer.shirt`) |
 | `sprites/animals/chicken.png` | 8 Animals | `oga_tiny-creatures` | Chicken, 16 x 16 frames: Tiny Creatures chicken (column 0, row 15), flipped for the right row, lifted 1 px on walk frames 1 and 3; rows down, right, up (`animals.py`) |
-| `sprites/animals/cow.png` | 8 Animals | `oga_tiny-creatures` | Cow, 32 x 32 frames: Tiny Creatures cow (column 1, row 15, 16 x 16) doubled to fill each frame, same flip and a 2 px bob (`animals.py`) |
+| `sprites/animals/cow.png` | 8 Animals | Nosum original (drawn in tools/art_repack, no outside source) | Cow, 32 x 32 frames: rows down, right, up, four walk frames (`animals.py`); Tiny Creatures' 16 x 16 cow was tried and rejected because it needs upscaling |
 | `sprites/buildings/barn.png` | 7 Buildings and props | `kenney_tiny-town`, `kenney_tiny-farm` | Barn, 7 x 7 tiles: Tiny Town red roof, Tiny Farm cross-braced red boards (tiles 90-92, 102-104, 114-116), window (128) and two braced double doors (126) |
 | `sprites/buildings/coop.png` | 7 Buildings and props | `kenney_tiny-town`, `kenney_tiny-farm` | Coop, 6 x 7 tiles: Tiny Town slate roof, Tiny Farm boards (tiles 102-104, 114-116) turned to pine, windows (128) and door (127) |
 | `sprites/buildings/farmhouse.png` | 7 Buildings and props | `kenney_tiny-town` | Farmhouse, 9 x 9 tiles at (16, 0): Tiny Town roof and wall tiles (`buildings.py`) |
@@ -62,10 +65,10 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `sprites/trees/oak.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Oak: 48 x 96 tree, bush, sapling, seed mound and stump at the cells `NodeSprites` reads (`trees.py`) |
 | `sprites/trees/pine.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Pine, same layout (`trees.py`) |
 | `sprites/weapons.png` | 5 Tools and weapons | Nosum original (drawn in tools/art_repack, no outside source) | The scythe drawn here (`tools.scythe`), cell (7, 5) |
-| `ui/cursors.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Selection frame, buttons, close button, arrows, coin, tab pictograms and the two mouse cursors at the rectangles of `nosum-theme.js` (`ui.py`) |
-| `ui/menu.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Window frame (60 x 60 at 0, 256), inset (0, 320) and inventory slot (128, 128) for the CSS border-image slices (`ui.py`) |
+| `ui/cursors.png` | 9 UI | `kenney_pixel-ui-pack`, Nosum original (drawn in tools/art_repack, no outside source) | From the Pixel UI pack: the eight block-button frames (9 x 11, normal and pressed; Ancient brown, grey, Colored yellow and red 9-slice buttons assembled to a 3 / 3 / 5 / 3 slice, the wood, stone and red faces darkened for text contrast, at y 432 and 444), the twelve tab plates (Ancient tan), the close button (cell 21, 6) and the arrow and hand cursors (cells 3, 32 and 0, 25). Drawn here: the gold selection frame with glow (80 x 80 at 448, 128), title strip, gauge frame, tab pictograms, pager arrows and coin (`ui.py`) |
+| `ui/menu.png` | 9 UI | `kenney_ui-pack-pixel-adventure`, Nosum original (drawn in tools/art_repack, no outside source) | Window frame (16 x 16 at 0, 256, 5 px slice) and the small plaque frame (16 x 16 at 32, 256, 4 px slice): Pixel Adventure small tiles (15, 1) and (10, 0), three transparent edge pixels of the first filled in; the 3 x 3 slot bevel at (128, 128) is drawn here (`ui.py`) |
 | `ui/start_background.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`) |
-| `ui/text_box.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Text field box (188 x 48 at x 4) (`ui.py`) |
+| `ui/text_box.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Sunk text field box (188 x 48 at x 4), drawn at art pixels and enlarged 4 x in the palette of the UI packs (`ui.py`) |
 
 ## Mapping: crops
 

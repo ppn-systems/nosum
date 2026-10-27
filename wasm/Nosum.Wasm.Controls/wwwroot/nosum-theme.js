@@ -18,21 +18,8 @@ const SHEETS = {
     textbox: "ui/text_box.png",    // fat: the text field
 };
 
-// Own 1-bit pictures for the tabs the sheets have no icon for (Nosum art, not early content). '#' is ink, anything else clear.
+// Own 1-bit pictures for the faint hints in the empty equipment slots (Nosum art, not early content). '#' is ink, anything else clear.
 const GLYPHS = {
-    gear: [
-        "....###....",
-        ".##.###.##.",
-        ".#########.",
-        "..###.###..",
-        "####...####",
-        "####...####",
-        "####...####",
-        "..###.###..",
-        ".#########.",
-        ".##.###.##.",
-        "....###....",
-    ],
     shirt: [
         "..##...##..",
         ".#########.",
@@ -42,49 +29,6 @@ const GLYPHS = {
         "...#####...",
         "...#####...",
         "...#####...",
-    ],
-    person: [
-        "...###...",
-        "..#####..",
-        "..#####..",
-        "...###...",
-        ".........",
-        ".#######.",
-        "#########",
-        "#########",
-        "#########",
-        "#########",
-    ],
-    people: [
-        "..##...##..",
-        ".####.####.",
-        ".####.####.",
-        "..##...##..",
-        "...........",
-        "#####.#####",
-        "#####.#####",
-        "#####.#####",
-        "#####.#####",
-    ],
-    heart: [
-        ".###...###.",
-        "#####.#####",
-        "###########",
-        "###########",
-        ".#########.",
-        "..#######..",
-        "...#####...",
-        "....###....",
-        ".....#.....",
-    ],
-    envelope: [
-        "###########",
-        "##.#####.##",
-        "###.###.###",
-        "####...####",
-        "###########",
-        "###########",
-        "###########",
     ],
     hat: [
         "...#####...",
@@ -103,45 +47,8 @@ const GLYPHS = {
         "###...###",
         "###...###",
     ],
-    board: [
-        "###########",
-        "#.........#",
-        "#.##...##.#",
-        "#.##...##.#",
-        "#.........#",
-        "#.###.###.#",
-        "#.........#",
-        "###########",
-        "....#.#....",
-        "....#.#....",
-    ],
-    star: [
-        ".....#.....",
-        ".....#.....",
-        "....###....",
-        "###########",
-        ".#########.",
-        "..#######..",
-        "..#######..",
-        ".####.####.",
-        ".###...###.",
-        ".#.......#.",
-    ],
-    swap: [
-        "...#.......",
-        "...##......",
-        "###########",
-        "...##......",
-        "...#.......",
-        "...........",
-        ".......#...",
-        "......##...",
-        "###########",
-        "......##...",
-        ".......#...",
-    ],
 };
-const GLYPH_INK = "#5a2a0a";
+const GLYPH_INK = "#5a3a2e";
 
 // Item pictures the sheets have no usable art for (Nosum art): 16 x 16, drawn in one colour with four shades. '#' outline, 'L' light, 'o' base,
 // 'D' shade, 'B' belt and cuff. Published as --nosum-img-<name> and used by ItemIcons (ItemIcon.ThemeImage).
@@ -189,41 +96,52 @@ function drawItem(color, rows) {
 
 // [name, sheet, x, y, width, height, glyph drawn in the middle (optional)]
 const SPRITES = [
-    // Window frame: dark outline, two wood bands, an inner highlight; 16 px (4 u) on every side; the middle is the parchment.
-    ["panel", "menu", 0, 256, 60, 60],
-    // A recessed card (section inside a window): dark outline, shaded top and right; 8 px (2 u) slice.
-    ["inset", "menu", 0, 320, 60, 60],
-    // Inventory slot bevel (cream on the left/bottom, brown on the top/right), transparent inside; 4 px (1 u) edge.
-    ["slot", "menu", 128, 128, 64, 64],
-    // The red frame around the selected hotbar slot (fat; 4 px line); 8 px slice.
-    ["select", "cursors", 448, 128, 64, 64],
-    // Text field: recessed peach box (the 4 transparent columns on the left of the sheet are cut off); 12 px slice.
+    // Window frame: the Pixel Adventure cream panel, a wood frame with steel corner brackets (thin, 16 x 16, 5 px slice, drawn 5 u thick). The middle is
+    // the parchment, painted flat by the CSS.
+    ["panel", "menu", 0, 256, 16, 16],
+    // The small frame of the HUD widgets, the tooltip and the message line: a plain wood frame (thin, 16 x 16, 4 px slice).
+    ["plaque", "menu", 32, 256, 16, 16],
+    // Inventory slot: a 1 px inset bevel (thin, 3 x 3, 1 px slice), transparent inside.
+    ["slot", "menu", 128, 128, 3, 3],
+    // The frame around the selected hotbar slot (fat): a gold line in a dark outline, two steps of glow outside; 20 px (5 u) slice.
+    ["select", "cursors", 448, 128, 80, 80],
+    // Text field: sunk light box (the 4 transparent columns on the left of the sheet are cut off); 12 px slice.
     ["field", "textbox", 4, 0, 188, 48],
-    // Buttons (thin): orange pill; hot (yellow) pill for the active tab; red pill for destructive actions; 3 px slice.
-    ["button", "cursors", 145, 338, 13, 9],
-    ["button-hot", "cursors", 159, 338, 13, 9],
-    ["button-danger", "cursors", 137, 338, 7, 9],
-    // Red X in a wooden square: the close button of a window (thin, 12 x 12).
-    ["close", "cursors", 337, 494, 12, 12],
+    // Block buttons (thin, 9 x 11, slice 3 on the top, right and left and 5 on the bottom, which holds the shadow): wood (primary), stone (neutral), gold
+    // (the active tab), red (destructive), from the Pixel UI pack; each has a pressed frame with the shadow gone.
+    ["button", "cursors", 0, 432, 9, 11],
+    ["button-plain", "cursors", 10, 432, 9, 11],
+    ["button-hot", "cursors", 20, 432, 9, 11],
+    ["button-danger", "cursors", 30, 432, 9, 11],
+    ["button-down", "cursors", 0, 444, 9, 11],
+    ["button-plain-down", "cursors", 10, 444, 9, 11],
+    ["button-hot-down", "cursors", 20, 444, 9, 11],
+    ["button-danger-down", "cursors", 30, 444, 9, 11],
+    // The title bar of a window (thin, 8 x 18, repeats along the bar).
+    ["title", "cursors", 0, 400, 8, 18],
+    // The frame of the energy gauge: gold end caps, a dark track (thin, 10 x 26, 3 px slice).
+    ["gauge", "cursors", 16, 400, 10, 26],
+    // The close button of a window: an orange cross on a white square (Pixel UI pack, thin, 14 x 14).
+    ["close", "cursors", 337, 494, 14, 14],
     // Left and right arrows (thin).
     ["arrow-left", "cursors", 352, 495, 12, 11],
     ["arrow-right", "cursors", 365, 495, 12, 11],
-    // The gold coin (thin, 9 x 9).
-    ["coin", "cursors", 193, 373, 9, 9],
-    // Menu tabs (thin, 16 x 16 each): the sheet's own icons, and its blank tab with a glyph on it.
+    // The gold coin (thin, 10 x 10).
+    ["coin", "cursors", 193, 373, 10, 10],
+    // Menu tabs (thin, 16 x 16 each): a bevelled plate with an outlined pictogram.
     ["tab-inventory", "cursors", 0, 368, 16, 16],
+    ["tab-wardrobe", "cursors", 16, 368, 16, 16],
     ["tab-coop", "cursors", 32, 368, 16, 16],
+    ["tab-trade", "cursors", 48, 368, 16, 16],
+    ["tab-visitors", "cursors", 64, 368, 16, 16],
     ["tab-market", "cursors", 80, 368, 16, 16],
+    ["tab-friends", "cursors", 96, 368, 16, 16],
+    ["tab-mail", "cursors", 112, 368, 16, 16],
+    ["tab-skills", "cursors", 128, 368, 16, 16],
+    ["tab-profile", "cursors", 144, 368, 16, 16],
+    ["tab-settings", "cursors", 160, 368, 16, 16],
+    ["tab-goals", "cursors", 176, 368, 16, 16],
     ["tab-shop", "cursors", 0, 384, 16, 16],
-    ["tab-wardrobe", "cursors", 16, 368, 16, 16, "shirt"],
-    ["tab-trade", "cursors", 16, 368, 16, 16, "swap"],
-    ["tab-profile", "cursors", 16, 368, 16, 16, "person"],
-    ["tab-visitors", "cursors", 16, 368, 16, 16, "people"],
-    ["tab-friends", "cursors", 16, 368, 16, 16, "heart"],
-    ["tab-mail", "cursors", 16, 368, 16, 16, "envelope"],
-    ["tab-skills", "cursors", 16, 368, 16, 16, "star"],
-    ["tab-settings", "cursors", 16, 368, 16, 16, "gear"],
-    ["tab-goals", "cursors", 16, 368, 16, 16, "board"],
     // The faint picture in an empty equipment slot (glyph only, no sheet).
     ["glyph-hat", null, 0, 0, 11, 4, "hat"],
     ["glyph-shirt", null, 0, 0, 11, 8, "shirt"],
@@ -232,8 +150,8 @@ const SPRITES = [
 
 // Mouse cursors: [name, sheet, x, y, width, height, hotspot x, hotspot y]; scaled by --u when published.
 const CURSORS = [
-    ["cursor", "cursors", 0, 0, 8, 10, 0, 0],             // the brown arrow
-    ["cursor-pointer", "cursors", 32, 0, 10, 10, 2, 1],   // the hand, over anything clickable
+    ["cursor", "cursors", 0, 0, 12, 16, 0, 0],            // the arrow (Pixel UI pack)
+    ["cursor-pointer", "cursors", 32, 0, 12, 14, 5, 0],   // the hand, over anything clickable
 ];
 
 const root = document.documentElement;

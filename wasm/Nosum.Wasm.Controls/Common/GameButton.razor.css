@@ -1,8 +1,11 @@
-/* The shared button: a 9-slice pill (cursors.png, 3 u edge). Variants and states only change the sprite and a filter;
-   a disabled button keeps the palette (dimmer, flatter), it never turns grey. */
+/* The shared button: the Pixel UI pack's chunky block (cursors.png: a 3 u outline and bevel, a flat face, a 5 u foot that holds the shadow). Primary is
+   wood, plain and tab are stone, the active tab is gold, danger is red. Hover lightens the face and adds a thin highlight border; pressed swaps in the
+   frame without the shadow and sinks the label 2 u. A disabled button keeps its palette (paler, flatter). */
 .game-button {
     --button-edge: calc(var(--u) * 3);
-    --button-base: brightness(1);
+    --button-foot: calc(var(--u) * 5);
+    --button-frame: var(--nosum-img-button);
+    --button-frame-down: var(--nosum-img-button-down);
     --button-state: brightness(1);
 
     position: relative;
@@ -12,12 +15,12 @@
     justify-content: center;
     box-sizing: border-box;
     margin: 0;
-    padding: calc(var(--button-edge) - var(--u)) calc(var(--button-edge) + var(--u) * 2);
+    padding: calc(var(--button-edge) - var(--u)) calc(var(--button-edge) + var(--u) * 2) calc(var(--button-foot) - var(--u));
     border: 0;
     background: none;
-    color: var(--nosum-ink);
+    color: var(--nosum-ink-on-dark);
     font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
-    text-shadow: 0 var(--tp) 0 rgba(255, 228, 161, 0.5);
+    text-shadow: var(--tp) var(--tp) 0 rgba(30, 16, 10, 0.75);
     white-space: nowrap;
     cursor: var(--nosum-cursor-pointer, pointer);
     user-select: none;
@@ -28,10 +31,11 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    border: var(--button-edge) solid var(--nosum-edge);
-    border-image: var(--nosum-img-button) 3 fill / var(--button-edge) stretch;
-    background: var(--nosum-wood-light) padding-box;
-    filter: var(--button-base) var(--button-state);
+    border-style: solid;
+    border-color: var(--nosum-edge);
+    border-width: var(--button-edge) var(--button-edge) var(--button-foot);
+    border-image: var(--button-frame) 3 3 5 3 fill / var(--button-edge) var(--button-edge) var(--button-foot) var(--button-edge) stretch;
+    filter: var(--button-state);
     image-rendering: pixelated;
 }
 
@@ -42,27 +46,44 @@
 }
 
 .game-button:hover:not(:disabled) {
-    --button-state: brightness(1.15);
+    --button-state: brightness(1.12);
+}
+
+/* The thin highlight border of a hovered button, just inside the outline's bevel. */
+.game-button:hover:not(:disabled)::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--u) * 1);
+    border: var(--u) solid rgba(255, 250, 230, 0.75);
+    pointer-events: none;
 }
 
 .game-button:active:not(:disabled) {
-    --button-state: brightness(0.82);
+    --button-state: brightness(0.94);
+}
+
+.game-button:active:not(:disabled)::before {
+    border-image-source: var(--button-frame-down);
+}
+
+.game-button:active:not(:disabled)::after {
+    display: none;
 }
 
 .game-button:active:not(:disabled) .game-button-label {
-    transform: translateY(var(--u));
+    transform: translateY(calc(var(--u) * 2));
 }
 
 .game-button:disabled {
-    --button-state: saturate(0.6) brightness(0.92);
+    --button-state: saturate(0.5) brightness(1.1);
 
-    color: var(--nosum-ink-soft);
+    color: var(--nosum-ink-on-dark);
     text-shadow: none;
     cursor: default;
 }
 
 .game-button:disabled .game-button-label {
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 .game-button:focus-visible {
@@ -71,39 +92,38 @@
 }
 
 .game-button.danger {
-    color: var(--nosum-ink-on-dark);
-    text-shadow: 0 var(--tp) 0 #4a0016;
-}
-
-.game-button.danger:disabled {
-    color: var(--nosum-ink-on-dark);
-}
-
-.game-button.danger::before {
-    border-image-source: var(--nosum-img-button-danger);
+    --button-frame: var(--nosum-img-button-danger);
+    --button-frame-down: var(--nosum-img-button-danger-down);
 }
 
 .game-button.plain,
 .game-button.tab {
-    --button-base: saturate(0.45) brightness(1.2);
+    --button-frame: var(--nosum-img-button-plain);
+    --button-frame-down: var(--nosum-img-button-plain-down);
 }
 
 .game-button.tab.active {
-    --button-base: brightness(1);
+    --button-frame: var(--nosum-img-button-hot);
+    --button-frame-down: var(--nosum-img-button-hot-down);
+
+    color: var(--nosum-ink);
+    text-shadow: var(--tp) var(--tp) 0 rgba(255, 244, 214, 0.55);
 }
 
-.game-button.tab.active::before {
-    border-image-source: var(--nosum-img-button-hot);
+.game-button.tab.active:disabled {
+    color: var(--nosum-ink);
 }
 
 .game-button.link {
     padding: var(--u) calc(var(--u) * 2);
+    color: var(--nosum-ink);
     text-decoration: underline;
     text-underline-offset: calc(var(--u) * 1);
     text-shadow: none;
 }
 
-.game-button.link::before {
+.game-button.link::before,
+.game-button.link::after {
     display: none;
 }
 

@@ -36,9 +36,9 @@ ENTRIES = {
     'sprites/buildings/shipping_bin.png': ('7 Buildings and props', [NOSUM], 'Shipping bin, 2 x 2 tiles (`buildings.shipping_bin`)'),
     'sprites/animals/chicken.png': ('8 Animals', ['oga_tiny-creatures'], 'Chicken, 16 x 16 frames: Tiny Creatures chicken (column 0, row 15), flipped for the right row, lifted 1 px on walk frames 1 and 3; rows down, right, up (`animals.py`)'),
     'sprites/animals/cow.png': ('8 Animals', [NOSUM], 'Cow, 32 x 32 frames: rows down, right, up, four walk frames (`animals.py`); Tiny Creatures\' 16 x 16 cow was tried and rejected because it needs upscaling'),
-    'ui/menu.png': ('9 UI', [NOSUM], 'Window frame (60 x 60 at 0, 256), inset (0, 320) and inventory slot (128, 128) for the CSS border-image slices (`ui.py`)'),
-    'ui/cursors.png': ('9 UI', [NOSUM], 'Selection frame, buttons, close button, arrows, coin, tab pictograms and the two mouse cursors at the rectangles of `nosum-theme.js` (`ui.py`)'),
-    'ui/text_box.png': ('9 UI', [NOSUM], 'Text field box (188 x 48 at x 4) (`ui.py`)'),
+    'ui/menu.png': ('9 UI', ['kenney_ui-pack-pixel-adventure', NOSUM], 'Window frame (16 x 16 at 0, 256, 5 px slice) and the small plaque frame (16 x 16 at 32, 256, 4 px slice): Pixel Adventure small tiles (15, 1) and (10, 0), three transparent edge pixels of the first filled in; the 3 x 3 slot bevel at (128, 128) is drawn here (`ui.py`)'),
+    'ui/cursors.png': ('9 UI', ['kenney_pixel-ui-pack', NOSUM], 'From the Pixel UI pack: the eight block-button frames (9 x 11, normal and pressed; Ancient brown, grey, Colored yellow and red 9-slice buttons assembled to a 3 / 3 / 5 / 3 slice, the wood, stone and red faces darkened for text contrast, at y 432 and 444), the twelve tab plates (Ancient tan), the close button (cell 21, 6) and the arrow and hand cursors (cells 3, 32 and 0, 25). Drawn here: the gold selection frame with glow (80 x 80 at 448, 128), title strip, gauge frame, tab pictograms, pager arrows and coin (`ui.py`)'),
+    'ui/text_box.png': ('9 UI', [NOSUM], 'Sunk text field box (188 x 48 at x 4), drawn at art pixels and enlarged 4 x in the palette of the UI packs (`ui.py`)'),
     'ui/start_background.png': ('9 UI', [NOSUM], 'Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`)'),
 }
 
@@ -51,6 +51,7 @@ the code in `tools/art_repack`, or cut from a pack of the library ([`library.md`
 CC-BY 4.0 and must be credited (see Credits below). The license texts are kept in [`licenses/`](licenses/). `ProvenanceTests` checks that
 each pack named here keeps its license text. How the candidates were chosen: [`sourcing.md`](sourcing.md).
 The packs are committed under `art/source/<directory>`; run the script with `--sources art/source` (the pinned SHA-256 of every sheet it reads is in `sources.py`).
+The two Kenney UI packs' files are also committed under [`art/source/ui/`](../../art/source/ui/README.md) (CC0), so `--only ui` needs no other download.
 
 '''
 
