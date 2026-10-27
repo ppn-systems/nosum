@@ -2,13 +2,13 @@
 
 The sprite sheets the client and server load: the farm's objects, crops and tools, the layered farmer, the animals and buildings, and the menu
 pieces. Every file here is Nosum's own art or CC0, with its source recorded in [`docs/art/provenance.md`](../docs/art/provenance.md) (CC0 packs and
-the code in `tools/art_repack`). The maps are own too ([`art/`](../art/README.md)).
+the code in `tools/art_repack`). The CC0 packs are Kenney Tiny Town and Tiny Farm and josehzz's Farming crops 16x16; candidates checked: [`docs/art/sourcing-sprites-2026-10-26.md`](../docs/art/sourcing-sprites-2026-10-26.md). The maps are own too ([`art/`](../art/README.md)).
 
 | Folder | Holds | Examples |
 | :--- | :--- | :--- |
-| `sprites/` | Items and objects, crops, soil, tools, weapons, furniture, craftables | `sprites/items.png`, `sprites/crops.png` |
+| `sprites/` | Items and objects, crops, soil, tools, weapons, furniture, craftables. CC0 from Tiny Farm: crops (tomato, corn, wheat, carrot, turnip, cabbage), seed bags, produce, hay, milk, watering can, scythe | `sprites/items.png`, `sprites/crops.png` |
 | `sprites/trees/` | Resource-node trees: oak, maple, pine | `sprites/trees/oak.png` |
-| `sprites/buildings/` | Farm buildings and props | `sprites/buildings/coop.png` |
+| `sprites/buildings/` | Farm buildings and props (the barn walls are Tiny Farm's) | `sprites/buildings/coop.png` |
 | `sprites/animals/` | Animal sheets | `sprites/animals/chicken.png` |
 | `sprites/npcs/` | The Town's merchants: a world sheet (two 16 × 32 idle frames) and a 32 × 32 portrait each | `sprites/npcs/blacksmith.png`, `sprites/npcs/blacksmith_portrait.png` |
 | `farmer/` | Layered player sheets: body, pants, shirts, hair, hats (16 × 32 frames) | `farmer/body.png` |

@@ -48,6 +48,9 @@ public sealed class AccountSessionKeeper : IDisposable
     /// <summary>Raised when the server unlocked the invitation to register (the guest finished the first quest). The keeper has already recorded it. May run on any thread.</summary>
     public event Action? RegistrationPromptUnlocked;
 
+    /// <summary>Raised when the player signed out (<see cref="SignedOut"/>). May run on any thread.</summary>
+    public event Action? LoggedOut;
+
     /// <summary>Gets the current session, or <see langword="null"/> before sign-in.</summary>
     public AccountSession? Session => _session;
 
@@ -71,7 +74,11 @@ public sealed class AccountSessionKeeper : IDisposable
     }
 
     /// <summary>Forgets the session (after logout) so a reconnect no longer signs in.</summary>
-    public void SignedOut() => _session = null;
+    public void SignedOut()
+    {
+        _session = null;
+        this.LoggedOut?.Invoke();
+    }
 
     /// <inheritdoc/>
     public void Dispose()

@@ -67,7 +67,7 @@ internal static class Program
                             throw new InvalidDataException($"No layout {layout}.");
                         }
 
-                        string tmx = LayoutCompiler.Compile(File.ReadAllText(layout), layout, n => TilesetData.Load(tilesets, n));
+                        string tmx = LayoutCompiler.Compile(File.ReadAllText(layout), layout, n => TilesetData.Load(tilesets, n), terrainPass: true);
                         pages.Add(new Output(Path.Combine(maps, name + ".tmx"), tmx));
                     }
 

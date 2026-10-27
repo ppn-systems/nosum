@@ -50,7 +50,22 @@ def bevel(w, h, depth, tl, br, outline=OUT, fill=None):
 
 
 def panel():
-    return box(60, 60, [OUT, draw.WOOD_L, draw.WOOD, draw.WOOD, draw.WOOD_D, OUT, PARCH_D, PARCH_D])
+    """The window frame: a wooden border with grain, a nail in each corner and a shaded inner lip. Grain keeps to the straight runs so the
+    slices that repeat along an edge stay seamless."""
+    c = box(60, 60, [OUT, draw.WOOD_L, draw.WOOD, draw.WOOD, draw.WOOD_D, OUT, PARCH_D, PARCH_D])
+    for y in range(60):
+        for x in range(60):
+            d = min(x, y, 59 - x, 59 - y)
+            along = x if min(x, 59 - x) > d else y            # position along the edge the pixel belongs to
+            if 12 <= along <= 47 and d in (2, 3) and (along * 7 + d * 5) % 11 == 0:
+                c.dot(x, y, draw.WOOD_D)
+            elif 12 <= along <= 47 and d == 2 and (along * 3) % 13 == 0:
+                c.dot(x, y, draw.WOOD_L)
+    for cx, cy in ((3, 3), (56, 3), (3, 56), (56, 56)):                       # corner nails
+        c.rect(cx - 1, cy - 1, 2, 2, (196, 196, 214))
+        c.dot(cx - 1, cy - 1, (255, 255, 255))
+        c.dot(cx, cy, (110, 110, 134))
+    return c
 
 
 def inset():

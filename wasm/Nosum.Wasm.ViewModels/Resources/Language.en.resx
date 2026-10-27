@@ -813,4 +813,7 @@
   <data name="Npc_board_keeper_Greeting" xml:space="preserve"><value>Hello! There is work for the whole village on the board today.</value></data>
   <data name="Npc_board_keeper_Talk1" xml:space="preserve"><value>When the village pitches in, every goal gets done. The reward is shared with everyone.</value></data>
   <data name="Npc_board_keeper_Talk2" xml:space="preserve"><value>There are a few new delivery requests every day. First to finish is paid first.</value></data>
+  <data name="Device_BlockedText" xml:space="preserve"><value>Nosum is for computers for now. Please open this page on a PC!</value></data>
+  <data name="Device_NarrowTitle" xml:space="preserve"><value>Window too narrow</value></data>
+  <data name="Device_NarrowText" xml:space="preserve"><value>Please widen your browser window to at least {0} px to play.</value></data>
 </root>

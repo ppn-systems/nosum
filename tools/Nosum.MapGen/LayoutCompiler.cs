@@ -25,9 +25,10 @@ internal static class LayoutCompiler
     /// <param name="text">The layout file content.</param>
     /// <param name="source">The file name, for error messages.</param>
     /// <param name="tilesetOf">Returns the data of a tileset a legend names.</param>
+    /// <param name="terrainPass">Whether to run the terrain pass (<see cref="AutoTerrain"/>): grass and dirt variants and the <c>Back2</c> edge layer.</param>
     /// <returns>The <c>.tmx</c> document.</returns>
     /// <exception cref="InvalidDataException">The layout is malformed; the message names the line.</exception>
-    public static string Compile(string text, string source, Func<string, TilesetData> tilesetOf)
+    public static string Compile(string text, string source, Func<string, TilesetData> tilesetOf, bool terrainPass = false)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(source);
@@ -181,6 +182,11 @@ internal static class LayoutCompiler
             }
 
             mapLayers.Add(new MapLayer(layer.Name, gids));
+        }
+
+        if (terrainPass)
+        {
+            AutoTerrain.Apply(width, height, placed, mapLayers);
         }
 
         return TmxWriter.Write(width, height, placed, mapLayers, properties);

@@ -40,7 +40,7 @@ internal static class CaveSheet
         }
     }
 
-    // Stone with speckles. Variant 1 has a crack, 2 pebbles and 3 moss.
+    // Flagstone: smooth patches of two tones, short lit and shaded flecks, and a variant 1 crack, 2 pebbles or 3 moss.
     private static void Floor(Area area, int variant)
     {
         Tones t = Palette.CaveFloor;
@@ -49,7 +49,9 @@ internal static class CaveSheet
             for (int x = 0; x < SheetInfo.TileSize; x++)
             {
                 uint n = Noise.Of(x, y, 10 + variant);
-                area.Put(x, y, n % 11 == 0 ? t.Shade : n % 17 == 0 ? t.Light : t.Base);
+                int patch = Shading.Smooth(x, y, 61, 8) + (int)(n % 36) - 18;
+                Rgb c = patch < 100 ? Shading.Mix(t.Base, t.Shade, 140) : patch > 175 ? Shading.Mix(t.Base, t.Light, 80) : t.Base;
+                area.Put(x, y, n % 19 == 0 ? t.Light : n % 13 == 0 ? t.Shade : c);
             }
         }
 
@@ -60,22 +62,25 @@ internal static class CaveSheet
                 int[] cy = [3, 4, 5, 5, 6, 7, 8, 8, 9, 10, 11];
                 for (int i = 0; i < cx.Length; i++)
                 {
-                    area.Put(cx[i], cy[i], t.Shade);
+                    area.Put(cx[i], cy[i], Shading.Mix(t.Base, Palette.Dark.Base, 140));
+                    area.Put(cx[i] + 1, cy[i], Shading.Mix(t.Base, t.Light, 90));
                 }
 
                 break;
             case 2:
-                area.Blob(4, 5, 2, 1.5, t);
-                area.Blob(11, 10, 2, 2, t);
+                Pebble(area, 4, 5);
+                Pebble(area, 11, 10);
+                Pebble(area, 13, 12);
                 break;
             case 3:
-                area.Blob(3, 11, 2, 2, Palette.Leaf);
-                area.Blob(12, 4, 2, 2, Palette.Leaf);
+                Moss(area, 3, 11);
+                Moss(area, 12, 4);
                 break;
         }
     }
 
-    // A wall: solid rock; an open side gets a lit rim (north and west, toward the light) or a shaded one (east and south).
+    // A wall: rough dark rock in blocks with lit edges and cracks; an open side gets a lit rim (north and west, toward the light) or a
+    // dark one with a face (east and south).
     private static void Wall(Area area, int open)
     {
         Tones t = Palette.CaveWall;
@@ -84,28 +89,44 @@ internal static class CaveSheet
             for (int x = 0; x < SheetInfo.TileSize; x++)
             {
                 uint n = Noise.Of(x, y, 40);
-                area.Put(x, y, n % 9 == 0 ? t.Shade : n % 19 == 0 ? t.Light : t.Base);
+                int block = Shading.Smooth(x, y, 62, 4) + (int)(n % 40) - 20;
+                Rgb c = block < 90 ? Shading.Mix(t.Base, t.Shade, 160) : block > 160 ? Shading.Mix(t.Base, t.Light, 90) : t.Base;
+                area.Put(x, y, n % 31 == 0 ? t.Light : c);
             }
+        }
+
+        // Cracks: a jagged dark line with a lit pixel beside it.
+        for (int i = 0; i < 5; i++)
+        {
+            area.Put(3 + i, 4 + (i / 2), t.Shade);
+            area.Put(10 + (i / 2), 9 + i, t.Shade);
+            area.Put(4 + i, 5 + (i / 2), Shading.Mix(t.Base, t.Light, 80));
         }
 
         if ((open & 1) != 0)
         {
-            area.Fill(0, 0, SheetInfo.TileSize, 2, t.Light);
+            area.Fill(0, 0, SheetInfo.TileSize, 1, Shading.Mix(t.Light, Palette.White.Base, 70));
+            area.Fill(0, 1, SheetInfo.TileSize, 1, t.Light);
+            area.Fill(0, 2, SheetInfo.TileSize, 1, Shading.Mix(t.Base, t.Light, 120));
         }
 
         if ((open & 8) != 0)
         {
-            area.Fill(0, 0, 2, SheetInfo.TileSize, t.Light);
+            area.Fill(0, 0, 1, SheetInfo.TileSize, Shading.Mix(t.Light, Palette.White.Base, 70));
+            area.Fill(1, 0, 1, SheetInfo.TileSize, t.Light);
         }
 
         if ((open & 2) != 0)
         {
-            area.Fill(SheetInfo.TileSize - 2, 0, 2, SheetInfo.TileSize, t.Shade);
+            area.Fill(SheetInfo.TileSize - 3, 0, 3, SheetInfo.TileSize, t.Shade);
+            area.Fill(SheetInfo.TileSize - 1, 0, 1, SheetInfo.TileSize, Palette.Dark.Shade);
         }
 
         if ((open & 4) != 0)
         {
-            area.Fill(0, SheetInfo.TileSize - 2, SheetInfo.TileSize, 2, t.Shade);
+            area.Fill(0, SheetInfo.TileSize - 4, SheetInfo.TileSize, 4, t.Shade);
+            area.Fill(0, SheetInfo.TileSize - 4, SheetInfo.TileSize, 1, Shading.Mix(t.Shade, t.Light, 90));
+            area.Fill(0, SheetInfo.TileSize - 1, SheetInfo.TileSize, 1, Palette.Dark.Shade);
         }
     }
 
@@ -144,16 +165,21 @@ internal static class CaveSheet
         switch (index)
         {
             case 35:
-                area.Blob(4, 11, 2, 1.5, Palette.Stone);
-                area.Blob(10, 6, 2, 2, Palette.Stone);
-                area.Blob(12, 12, 1.5, 1.5, Palette.Stone);
+                area.Canopy([(4, 11, 2.6), (10, 6, 2.8), (12, 12, 2.2)], Palette.StoneRamp, 35);
                 break;
             case 36:
-                area.Blob(8, 8, 3, 6, Palette.Purple);
+                // A cluster of crystals: tall faceted spikes, lit on the left face.
+                Crystal(area, 8, 14, 3, 11);
+                Crystal(area, 4, 14, 2, 6);
+                Crystal(area, 12, 14, 2, 7);
                 break;
             case 37:
                 area.Fill(7, 9, 2, 5, Palette.White.Base);
-                area.Blob(8, 7, 4, 3, Palette.Red);
+                area.Put(7, 9, Palette.White.Light);
+                area.Blob(8, 7, 4.5, 3.2, Palette.Red);
+                area.Put(6, 6, Palette.White.Light);
+                area.Put(9, 7, Palette.White.Light);
+                area.Put(10, 5, Palette.White.Base);
                 break;
             case 38:
                 area.Fill(4, 8, 8, 1, Palette.White.Base);
@@ -162,23 +188,46 @@ internal static class CaveSheet
                 area.Blob(11, 10, 1.5, 1.5, Palette.White);
                 break;
             case 39:
-                area.Blob(5, 11, 4, 3, Palette.Stone);
-                area.Blob(11, 10, 3, 3, Palette.Stone);
+                area.Canopy([(5, 11, 4.2), (11, 10.5, 3.8), (8, 7.5, 3.6)], Palette.StoneRamp, 39);
                 break;
             case 40:
                 for (int y = 3; y < 15; y++)
                 {
                     int half = 1 + ((y - 3) / 2);
-                    area.Fill(8 - half, y, half * 2, 1, Palette.CaveWall.Base);
+                    for (int x = 8 - half; x < 8 + half; x++)
+                    {
+                        Rgb c = x == 8 - half ? Palette.CaveFloor.Light : x >= 8 + half - 1 ? Palette.Dark.Base : Palette.CaveWall.Light;
+                        area.Put(x, y, y > 12 ? Palette.Dark.Base : c);
+                    }
                 }
 
+                area.Fill(4, 14, 8, 1, Palette.Dark.Shade);
                 break;
             case 41:
-                area.Blob(8, 11, 6, 3, Palette.Water);
+                area.Blob(8, 11, 6.5, 3.2, Palette.Water);
+                area.Put(6, 10, Palette.Foam);
+                area.Put(7, 10, Palette.Foam);
+                area.Put(10, 12, Palette.Water.Light);
                 break;
             case 42:
+                for (int y = 0; y < SheetInfo.TileSize; y++)
+                {
+                    for (int x = 0; x < SheetInfo.TileSize; x++)
+                    {
+                        double d = Math.Sqrt(((x - 8) * (x - 8)) + ((y - 6) * (y - 6)));
+                        if (d < 7.5 && ((x + y) & 1) == 0)
+                        {
+                            area.Put(x, y, Shading.Mix(Palette.CaveFloor.Base, Palette.Yellow.Base, d < 4 ? 130 : 70));
+                        }
+                    }
+                }
+
                 area.Fill(7, 8, 2, 6, Palette.Wood.Base);
-                area.Blob(8, 6, 2, 2, Palette.Yellow);
+                area.Put(7, 8, Palette.Wood.Light);
+                area.Fill(6, 13, 4, 1, Palette.Outline);
+                area.Fill(6, 7, 4, 1, Palette.Stone.Shade);
+                area.Blob(8, 4.5, 2.4, 3, Palette.Yellow);
+                area.Fill(8, 3, 1, 3, Palette.White.Light);
                 break;
             case 43:
                 for (int i = 0; i < SheetInfo.TileSize; i++)
@@ -189,7 +238,7 @@ internal static class CaveSheet
 
                 break;
             case 44:
-                area.Blob(8, 8, 6, 5, Palette.Leaf);
+                area.Canopy([(5, 9, 3.5), (10, 8, 4), (8, 11, 3.5)], Palette.OakRamp, 44);
                 break;
             case 45:
                 for (int i = 0; i < 6; i++)
@@ -220,5 +269,46 @@ internal static class CaveSheet
 
                 break;
         }
+    }
+
+    // A crystal spike: a lit left face, a dark right face and a bright tip, standing on the floor at (x, base).
+    private static void Crystal(Area area, int x, int bottom, int half, int height)
+    {
+        for (int i = 0; i < height; i++)
+        {
+            int y = bottom - i;
+            int w = i > height - 3 ? Math.Max(1, half - (i - (height - 3))) : half;
+            for (int dx = -w; dx < w; dx++)
+            {
+                Rgb c = dx == -w || dx == w - 1 ? Palette.Outline : dx < 0 ? Palette.Purple.Light : Palette.Purple.Shade;
+                area.Put(x + dx, y, i == height - 1 ? Palette.Outline : c);
+            }
+        }
+
+        area.Put(x - 1, bottom - height + 2, Palette.White.Light);
+        area.Put(x - 1, bottom - (height / 2), Palette.White.Base);
+    }
+
+    // A pebble: two grey pixels with a shadow under them, small enough not to read as an object.
+    private static void Pebble(Area area, int x, int y)
+    {
+        Tones t = Palette.CaveFloor;
+        area.Put(x, y, Shading.Mix(t.Base, t.Light, 190));
+        area.Put(x + 1, y, Shading.Mix(t.Base, t.Light, 110));
+        area.Put(x, y + 1, Shading.Mix(t.Base, t.Shade, 190));
+        area.Put(x + 1, y + 1, Shading.Mix(t.Base, t.Shade, 120));
+    }
+
+    // A patch of moss: a few muted green pixels.
+    private static void Moss(Area area, int x, int y)
+    {
+        Rgb green = Shading.Mix(Palette.CaveFloor.Base, Palette.OakRamp[2], 120);
+        Rgb dark = Shading.Mix(Palette.CaveFloor.Shade, Palette.OakRamp[1], 100);
+        area.Put(x, y, green);
+        area.Put(x + 1, y, green);
+        area.Put(x - 1, y + 1, dark);
+        area.Put(x, y + 1, green);
+        area.Put(x + 1, y + 1, dark);
+        area.Put(x, y - 1, dark);
     }
 }
