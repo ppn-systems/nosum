@@ -10,6 +10,7 @@ the code in `tools/art_repack`). The maps are own too ([`art/`](../art/README.md
 | `sprites/trees/` | Resource-node trees: oak, maple, pine | `sprites/trees/oak.png` |
 | `sprites/buildings/` | Farm buildings and props | `sprites/buildings/coop.png` |
 | `sprites/animals/` | Animal sheets | `sprites/animals/chicken.png` |
+| `sprites/npcs/` | The Town's merchants: a world sheet (two 16 × 32 idle frames) and a 32 × 32 portrait each | `sprites/npcs/blacksmith.png`, `sprites/npcs/blacksmith_portrait.png` |
 | `farmer/` | Layered player sheets: body, pants, shirts, hair, hats (16 × 32 frames) | `farmer/body.png` |
 | `ui/` | Menu frame, cursors, text box, start background; linked into the Controls package | `ui/menu.png` |
 
