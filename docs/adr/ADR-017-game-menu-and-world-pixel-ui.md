@@ -46,13 +46,12 @@ The engine zooms the open map by `round(canvas width / 416)` (26 tiles of 16 px,
 
 | Variable | Sheet | x, y, w, h | Used for |
 |:--|:--|:--|:--|
-| `inset` | assets/ui/menu.png | 0, 320, 60, 60 | section card (9-slice, 8 px = 2 u) |
-| `tab-inventory`, `tab-coop`, `tab-market`, `tab-shop` | assets/ui/cursors.png | 0, 368 / 32, 368 / 80, 368 / 0, 384 (16 x 16) | menu tabs |
-| `tab-wardrobe`, `tab-trade`, `tab-profile`, `tab-settings` | assets/ui/cursors.png (blank tab 16, 368) + own glyph | 16, 368, 16, 16 | menu tabs and the gear button |
+| `tab-inventory`, `tab-wardrobe`, `tab-coop`, `tab-trade`, `tab-visitors`, `tab-market`, `tab-friends`, `tab-mail`, `tab-skills`, `tab-profile`, `tab-settings`, `tab-goals` | assets/ui/cursors.png | x = 0, 16, 32, ... 176 at y 368 (16 x 16 each) | menu tabs and the gear button |
+| `tab-shop` | assets/ui/cursors.png | 0, 384, 16, 16 | the shop and crafting tabs |
 | `glyph-hat`, `glyph-shirt`, `glyph-pants` | own glyphs | 11 x 4, 11 x 8, 9 x 9 | faint picture in an empty equipment slot |
 | backdrop | `assets/ui/start_background.png` | whole file (1500 x 520) | start screen, drawn at 1 art pixel = 1 u |
 
-The glyphs (gear, shirt, hat, trousers, person, swap arrows) are Nosum's own 1-bit pictures in the table at the top of `nosum-theme.js`; they stay when the early art is replaced.
+The glyphs (shirt, hat, trousers) are Nosum's own 1-bit pictures in the table at the top of `nosum-theme.js`; the tab pictograms are drawn on their plates in `tools/art_repack/ui.py`.
 
 ## Alternatives considered
 
@@ -80,8 +79,17 @@ The art remake replaces the early sheets (the rectangles above change, the contr
   On a screen too short for 186 u (a landscape phone) the window is also capped at the screen height minus the gutters and the tab row, and the page scrolls inside it. Below 640 px wide the
   16 u tabs shrink to share the window (a portrait phone); wider screens keep them at 16 u.
   A page may pin controls under its scrolling part with `MenuPage Footer` (the trade page pins confirm and cancel); `MenuPage Good` shows a success message in the "ok" colour instead of the refusal colour.
-- **Parchment.** The `fill` keyword is gone from the panel and section `border-image`s: the 9-slice centre of `assets/ui/menu.png` is a vertical gradient of about six bands, and stretching it over a tall window
-  showed the bands. The centre is now the plain `--nosum-parchment` / `--nosum-parchment-deep` colour (sampled from the sheet's middle band), so every window and section is uniform at any height.
+- **Parchment.** The `fill` keyword is gone from the panel and section `border-image`s: the 9-slice centre of the sheet is stretched, and stretching a gradient over a tall window showed its bands. The page is the
+  plain `--nosum-parchment` colour, overlaid with the tiling `parchment` texture (a 16 u tile, never stretched), and a section is `--nosum-parchment-deep`, so every window is uniform at any height.
+- **UI art redraw.** The UI sheets are built by `tools/art_repack/ui.py` from two CC0 packs by Kenney committed under `art/source/ui/` (UI Pack - Pixel Adventure, Pixel UI pack; pinned by
+  SHA-256 in `sources.py`, listed in `docs/art/provenance.md`), plus a few pieces drawn here in their style from the one palette in `tools/art_repack/palette.py`; the palette block of `nosum-theme.css` between its
+  two `palette:` comments is generated from it (`repack_cc0_art.py --only ui --check`). A window is one 5 u `panel` frame (wood with steel corner brackets) round a flat parchment page and a 18 u wood `title` strip;
+  HUD widgets, the tooltip and the message line use the 4 u `plaque` frame; a section has no frame of its own (a thin rule under its heading). Slots are a 1 u inset bevel, the selected one wears the 5 u gold `select`
+  frame with its glow, lifted 1 u; the slot number and the stack count sit on dark pills (CSS `clip-path` with one-pixel corners, `--nosum-pill-clip`). Buttons are the pack's chunky blocks (`button`, `button-plain`,
+  `button-hot`, `button-danger` at y 432, 9 x 11, slice 3 / 3 / 5 / 3; the `-down` frames at y 444 without the shadow): wood is primary, stone is neutral and the tabs, gold the active tab, red destructive; hover lightens
+  the face and adds a thin highlight border, pressed swaps the frame and sinks the label 2 u. Tab plates, the 14 x 14 close button and the cursors (12 x 16 arrow, hotspot 0, 0; 12 x 14 hand, hotspot 5, 0) are the
+  pack's too; toggles and slider knobs use the same bevel colours in CSS, and the energy gauge draws its own `gauge` frame with a stepped gradient fill. New rectangles: `plaque` (32, 256, 16, 16), `title` (0, 400, 8, 18),
+  `gauge` (16, 400, 10, 26); changed: `panel` (0, 256, 16, 16, now thin), `slot` (128, 128, 3, 3), `select` (448, 128, 80, 80, slice 20), `close`, `coin`, the buttons and the cursors; gone: `inset`.
 - **Language switch.** `IAccountClient.SetLanguageAsync` sends the existing `SetLanguage` packet and reads `LanguageResult` (no wire change). `AccountFormViewModel.SetLanguageAsync` applies the language
   with `UiCulture.Apply` at once, then stores it; if the server refuses or the connection fails the language stays changed for this visit and the settings page says it was not saved. `UiCulture.Changed` is raised by
   `Apply` so the view models that keep localized text (quest tracker, inventory slots) rebuild it. Text that was uploaded to the engine (the label above a guest's head) is not rebuilt until the next join.

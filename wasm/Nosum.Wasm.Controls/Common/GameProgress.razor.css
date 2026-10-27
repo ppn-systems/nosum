@@ -2,24 +2,24 @@
 .game-progress {
     position: relative;
     height: calc(var(--u) * 9);
-    border: calc(var(--u) * 1) solid var(--nosum-edge);
-    background: var(--nosum-slot-bg);
-    box-shadow: inset 0 calc(var(--u) * 1) 0 rgba(26, 12, 2, 0.25);
+    border: calc(var(--u) * 1) solid var(--nosum-ink);
+    background: #30202a;
+    box-shadow: inset 0 calc(var(--u) * 1) 0 #18080e;
     overflow: hidden;
 }
 
+/* The fill is a stepped gradient (a lit top, the body, a shaded foot) that stays the same height however long the bar is. */
 .game-progress-fill {
     height: 100%;
-    background: var(--nosum-ok);
-    box-shadow: inset 0 calc(var(--u) * 1) 0 rgba(255, 244, 214, 0.35);
+    background: linear-gradient(to bottom, #b8e04a 0 20%, #63c74d 20% 55%, #3e8948 55% 85%, #265c42 85% 100%);
 }
 
 .game-progress.done .game-progress-fill {
-    background: var(--nosum-gold);
+    background: linear-gradient(to bottom, #fff6be 0 20%, #ffe078 20% 55%, #feae34 55% 85%, #c4701c 85% 100%);
 }
 
 .game-progress.faded .game-progress-fill {
-    background: var(--nosum-ink-faint);
+    background: linear-gradient(to bottom, #a08c7c 0 20%, #846e60 20% 100%);
 }
 
 .game-progress-text {

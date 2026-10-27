@@ -9,8 +9,10 @@
     margin: 0 0 calc(var(--u) * 2);
     padding: var(--u) calc(var(--u) * 4);
     max-width: calc(var(--u) * 180);
-    border: calc(var(--u) * 2) solid var(--nosum-edge);
-    background: var(--nosum-cream);
+    border: calc(var(--u) * 4) solid var(--nosum-edge);
+    border-image: var(--nosum-img-plaque) 4 / calc(var(--u) * 4) stretch;
+    background: var(--nosum-parchment) padding-box;
+    image-rendering: pixelated;
     color: var(--nosum-ink);
     text-align: center;
     animation: hint-life 12s linear forwards;

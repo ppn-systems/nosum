@@ -3,7 +3,7 @@
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) calc(var(--u) * 14);
     align-items: center;
     gap: calc(var(--u) * 3);
-    min-height: calc(var(--u) * 8);
+    min-height: calc(var(--u) * 10);
 }
 
 .game-slider-value {
@@ -12,39 +12,49 @@
 
 .game-slider input {
     width: 100%;
-    height: calc(var(--u) * 8);
+    height: calc(var(--u) * 10);
     margin: 0;
     background: transparent;
     appearance: none;
     cursor: var(--nosum-cursor-pointer, pointer);
 }
 
+/* A groove (dark, sunk) with a block knob (wood face, bright top and left, dark bottom and right). */
 .game-slider input::-webkit-slider-runnable-track {
-    height: calc(var(--u) * 2);
-    background: var(--nosum-edge);
+    box-sizing: border-box;
+    height: calc(var(--u) * 4);
+    border: var(--u) solid var(--nosum-ink);
+    background: #30202a;
+    box-shadow: inset 0 var(--u) 0 #18080e;
 }
 
 .game-slider input::-moz-range-track {
-    height: calc(var(--u) * 2);
-    background: var(--nosum-edge);
+    box-sizing: border-box;
+    height: calc(var(--u) * 4);
+    border: var(--u) solid var(--nosum-ink);
+    background: #30202a;
+    box-shadow: inset 0 var(--u) 0 #18080e;
 }
 
 .game-slider input::-webkit-slider-thumb {
-    width: calc(var(--u) * 4);
-    height: calc(var(--u) * 8);
+    box-sizing: border-box;
+    width: calc(var(--u) * 6);
+    height: calc(var(--u) * 10);
     margin-top: calc(var(--u) * -3);
-    border: var(--u) solid var(--nosum-edge);
-    background: var(--nosum-wood-light);
+    border: var(--u) solid var(--nosum-ink);
+    background: #977148;
+    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #b7916a, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #6d543a;
     appearance: none;
 }
 
 .game-slider input::-moz-range-thumb {
     box-sizing: border-box;
-    width: calc(var(--u) * 4);
-    height: calc(var(--u) * 8);
-    border: var(--u) solid var(--nosum-edge);
+    width: calc(var(--u) * 6);
+    height: calc(var(--u) * 10);
+    border: var(--u) solid var(--nosum-ink);
     border-radius: 0;
-    background: var(--nosum-wood-light);
+    background: #977148;
+    box-shadow: inset calc(var(--u) * 2) calc(var(--u) * 2) 0 #b7916a, inset calc(var(--u) * -2) calc(var(--u) * -2) 0 #6d543a;
 }
 
 .game-slider input:focus-visible {

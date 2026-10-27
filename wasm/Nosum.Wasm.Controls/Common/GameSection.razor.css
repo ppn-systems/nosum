@@ -1,21 +1,18 @@
-/* A section inside a window: a recessed card (menu.png inset, 2 u edge), so the hierarchy is window > section > slot. */
+/* A section inside a window: no frame of its own (a window holds one frame); it is set off by the gap around it and a thin rule under its heading,
+   so the hierarchy is window > section > slot without boxes inside boxes. */
 .game-section {
-    --section-edge: calc(var(--u) * 2);
-
     display: flex;
     flex-direction: column;
     gap: calc(var(--u) * 2);
     box-sizing: border-box;
     min-width: 0;
-    padding: calc(var(--u) * 1) calc(var(--u) * 1);
-    border: var(--section-edge) solid var(--nosum-edge);
-    border-image: var(--nosum-img-inset) 8 / var(--section-edge) stretch;
-    background: var(--nosum-parchment-deep) padding-box;
-    image-rendering: pixelated;
+    padding: calc(var(--u) * 1) 0;
 }
 
 .game-section h3 {
     margin: 0;
+    padding-bottom: var(--u);
+    border-bottom: var(--u) solid var(--nosum-line);
     font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
     color: var(--nosum-heading);
 }
