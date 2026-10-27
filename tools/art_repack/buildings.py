@@ -1,7 +1,7 @@
 """Package 7: the five sprites/buildings/ sheets, composed from Kenney Tiny Town house tiles and one piece drawn here."""
 import draw
 from draw import Canvas
-from pngio import Image
+from pngio import Image, recolor
 
 # Tiny Town tile indices (12 columns). Roofs: left end, middle, right end of the top row and of the eave row.
 ROOF = {
@@ -89,25 +89,53 @@ def greenhouse(src):
     return b.img
 
 
+class FarmBuilder(Builder):
+    """Adds Tiny Farm's red barn wall: three-tile rows of cross-braced boards, plank rows, a braced door and a window."""
+
+    def __init__(self, src, width, height):
+        super().__init__(src, width, height)
+        farm = src.sheet('farm')
+        self.farm = lambda i: farm.cell(i % 12, i // 12)
+
+    def board_row(self, col, row, w, first, recipe=None):
+        """One wall row w tiles wide from the three Tiny Farm tiles first, first + 1, first + 2 (left end, middle, right end)."""
+        for c in range(w):
+            pic = self.farm(first + (0 if c == 0 else 2 if c == w - 1 else 1))
+            self.img.paste(pic.map_pixels(recipe) if recipe else pic, (col + c) * 16, row * 16)
+
+    def put_farm(self, i, col, row, recipe=None):
+        pic = self.farm(i)
+        self.img.paste(pic.map_pixels(recipe) if recipe else pic, col * 16, row * 16)
+
+
 def barn(src):
-    b = Builder(src, 112, 112)
+    b = FarmBuilder(src, 112, 112)
     b.roof(0, 0, 7, 3, 'red')
-    b.wall_row(0, 3, 7, 'brown')
-    b.wall_row(0, 4, 7, 'brown', windows=(3,))
-    b.wall_row(0, 5, 7, 'brown')
-    b.wall_row(0, 6, 7, 'brown', door=1, double=True)
-    b.put(WALL['brown']['dbl'][0], 3, 6)
-    b.put(WALL['brown']['dbl'][1], 4, 6)
+    b.board_row(0, 3, 7, 90)
+    b.board_row(0, 4, 7, 102)
+    b.put_farm(128, 3, 4)
+    b.board_row(0, 5, 7, 114)
+    b.board_row(0, 6, 7, 114)
+    for col in (1, 4):
+        b.put_farm(126, col, 6)
+        b.put_farm(126, col + 1, 6)
     return b.img
 
 
+COOP_WOOD = recolor(0.06, sat=0.85, val=0.82)     # the barn's red boards turned to warm pine
+
+
 def coop(src):
-    b = Builder(src, 96, 112)
+    b = FarmBuilder(src, 96, 112)
     b.roof(0, 0, 6, 3, 'slate')
-    for r in (3, 4, 5):
-        b.wall_row(0, r, 6, 'brown')
-    b.wall_row(0, 4, 6, 'brown', windows=(1, 4))
-    b.wall_row(0, 6, 6, 'brown', windows=(4,), door=2)
+    b.board_row(0, 3, 6, 102, COOP_WOOD)
+    b.board_row(0, 4, 6, 102, COOP_WOOD)
+    b.board_row(0, 5, 6, 114, COOP_WOOD)
+    b.board_row(0, 6, 6, 114, COOP_WOOD)
+    for col in (1, 4):
+        b.put_farm(128, col, 4, COOP_WOOD)      # windows
+    b.put_farm(128, 4, 6, COOP_WOOD)
+    b.put_farm(127, 2, 6, COOP_WOOD)            # the door
     return b.img
 
 

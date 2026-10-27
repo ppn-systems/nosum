@@ -11,12 +11,14 @@ import pngio
 # directory under --sources -> (title, page, license as verified, author)
 PACKS = {
     'kenney_tiny-town': ('Kenney Tiny Town 1.1', 'https://kenney.nl/assets/tiny-town', 'CC0 1.0 (License.txt inside the archive)', 'Kenney'),
+    'kenney_tiny-farm': ('Kenney Tiny Farm 1.0', 'https://kenney.nl/assets/tiny-farm', 'CC0 1.0 (License.txt inside the archive)', 'Kenney'),
     'josehzz_farming-crops-16x16': ('Farming crops 16x16', 'https://opengameart.org/content/farming-crops-16x16', 'CC0 (stated on the OpenGameArt page; the archive holds no license file)', 'josehzz'),
 }
 
 # key -> (pack directory, path inside it, sha256, cell size, margin between cells)
 SHEETS = {
     'crops': ('josehzz_farming-crops-16x16', 'Crop_Spritesheet.png', 'c98fe9cd765698738678f4a64c5ac51c713c63624ca73da05bea7be995946c46', 16, 0),
+    'farm': ('kenney_tiny-farm', 'Tilemap/tilemap_packed.png', '0c4b3b4058cacf6a9bf021666838156d46da9ce27500d4c13e30cd5a92b722f4', 16, 0),
     'town': ('kenney_tiny-town', 'Tilemap/tilemap_packed.png', '3a54d99ecde790d4fdea207a3644cf130fc56fa838f1beb1507c185a95b8e902', 16, 0),
 }
 

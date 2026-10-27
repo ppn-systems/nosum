@@ -15,14 +15,14 @@ ENTRIES = {
     'farmer/hair.png': ('1 Player farmer layers', [NOSUM], 'Eight hair styles in grey-scale for the hair dye, rows down, right, up (`farmer.hair`)'),
     'farmer/shirts.png': ('1 Player farmer layers', [NOSUM], '8 x 8 shirt pieces (front, right, back) of shirts 1 red, 3 straw, 7 blue, 11 green; the front piece is also the inventory icon (`farmer.shirt`)'),
     'farmer/hats.png': ('1 Player farmer layers', [NOSUM], '20 x 20 hats 3 (straw) and 5 (cap), rows down, right, left, up; the down frame is the inventory icon (`farmer.hat`)'),
-    'sprites/crops.png': ('4 Crops and soil', ['josehzz_farming-crops-16x16'],
-                             '21 crops, 5-6 growth frames each: the six CC0 pictures of a crop (seed, three stages, ripe) placed in the catalogue\'s frames at the bottom of each 16 x 32 cell; recolours in the crop table'),
-    'sprites/soil.png': ('4 Crops and soil', [NOSUM], 'Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator (`crops.soil_tile`)'),
-    'sprites/tools.png': ('5 Tools and weapons', ['kenney_tiny-town', NOSUM],
-                             'Axe, pickaxe and milk pail from Tiny Town (tiles 127, 115, 130) in three material tiers by palette swap; hoe, watering can and blueprint drawn in the same palette'),
-    'sprites/weapons.png': ('5 Tools and weapons', ['kenney_tiny-town'], 'The scythe: Tiny Town sickle (tile 129)'),
-    'sprites/items.png': ('3 Items, 6 Resource nodes', ['josehzz_farming-crops-16x16', 'kenney_tiny-town', NOSUM],
-                               'The 92 object cells the game draws: produce from the CC0 crops, the fence from Tiny Town, everything else drawn here (table below); unused cells are transparent'),
+    'sprites/crops.png': ('4 Crops and soil', ['kenney_tiny-farm', 'josehzz_farming-crops-16x16'],
+                             '21 crops, 5-6 growth frames each: Tiny Farm\'s stages for the 8 crops it covers, the crops pack\'s six pictures (seed, three stages, ripe) for the rest, placed in the catalogue\'s frames at the bottom of each 16 x 32 cell; recolours in the crop table'),
+    'sprites/soil.png': ('4 Crops and soil', [NOSUM], 'Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator: lit ridges, furrows, clods and a dark lip (`crops.soil_tile`)'),
+    'sprites/tools.png': ('5 Tools and weapons', ['kenney_tiny-farm', NOSUM],
+                             'Hoe, axe, pickaxe and watering can drawn here in three material tiers (a three-tone metal head with a glint, a shaded wooden handle, a 1 px outline: `tools.py`); the milk pail is Tiny Farm tile 124; the blueprints are drawn'),
+    'sprites/weapons.png': ('5 Tools and weapons', [NOSUM], 'The scythe drawn here (`tools.scythe`), cell (7, 5)'),
+    'sprites/items.png': ('3 Items, 6 Resource nodes', ['kenney_tiny-farm', 'josehzz_farming-crops-16x16', 'kenney_tiny-town', NOSUM],
+                               'The 92 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, everything else drawn here (table below); unused cells are transparent'),
     'sprites/furniture.png': ('3 Items', [NOSUM], 'Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`)'),
     'sprites/craftables.png': ('3 Items', [NOSUM], 'Scarecrow, chest and furnace (`furniture.py`)'),
     'sprites/trees/oak.png': ('6 Resource nodes', [NOSUM], 'Oak: 48 x 96 tree, bush, sapling, seed mound and stump at the cells `NodeSprites` reads (`trees.py`)'),
@@ -30,8 +30,8 @@ ENTRIES = {
     'sprites/trees/pine.png': ('6 Resource nodes', [NOSUM], 'Pine, same layout (`trees.py`)'),
     'sprites/buildings/farmhouse.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Farmhouse, 9 x 9 tiles at (16, 0): Tiny Town roof and wall tiles (`buildings.py`)'),
     'sprites/buildings/greenhouse.png': ('7 Buildings and props', ['kenney_tiny-town', NOSUM], 'Greenhouse, 7 x 10 tiles at (0, 160): slate roof and door from Tiny Town, glass wall drawn here'),
-    'sprites/buildings/barn.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Barn, 7 x 7 tiles: red roof, brown wall, two double doors'),
-    'sprites/buildings/coop.png': ('7 Buildings and props', ['kenney_tiny-town'], 'Coop, 6 x 7 tiles: slate roof, brown wall, door and windows'),
+    'sprites/buildings/barn.png': ('7 Buildings and props', ['kenney_tiny-town', 'kenney_tiny-farm'], 'Barn, 7 x 7 tiles: Tiny Town red roof, Tiny Farm cross-braced red boards (tiles 90-92, 102-104, 114-116), window (128) and two braced double doors (126)'),
+    'sprites/buildings/coop.png': ('7 Buildings and props', ['kenney_tiny-town', 'kenney_tiny-farm'], 'Coop, 6 x 7 tiles: Tiny Town slate roof, Tiny Farm boards (tiles 102-104, 114-116) turned to pine, windows (128) and door (127)'),
     'sprites/buildings/shipping_bin.png': ('7 Buildings and props', [NOSUM], 'Shipping bin, 2 x 2 tiles (`buildings.shipping_bin`)'),
     'sprites/animals/chicken.png': ('8 Animals', [NOSUM], 'Chicken, 16 x 16 frames: rows down, right, up, four walk frames (`animals.py`)'),
     'sprites/animals/cow.png': ('8 Animals', [NOSUM], 'Cow, 32 x 32 frames: rows down, right, up, four walk frames (`animals.py`)'),
@@ -81,10 +81,13 @@ def write(repo, replaced):
         package, keys, what = ENTRIES[path]
         names = ', '.join(f'`{k}`' if k in sources.PACKS else NOSUM for k in keys)
         lines.append(f'| `{path}` | {package} | {names} | {what} |\n')
-    lines += ['\n## Mapping: crops\n\n', 'A game crop uses the CC0 crop named; "as drawn" means no recolour. The harvest picture is reused as the produce icon.\n\n',
-              '| Game crop | CC0 crop (index in the pack README) | Change |\n', '| :-- | :-- | :-- |\n']
+    lines += ['\n## Mapping: crops\n\n', 'A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with its index in the pack README); "as drawn" means no recolour. The harvest picture is reused as the produce icon.\n\n',
+              '| Game crop | CC0 crop | Change |\n', '| :-- | :-- | :-- |\n']
     for name, (index, _, note) in crops.RECIPES.items():
-        lines.append(f'| `{name}` | {CC0_CROPS[index]} ({index}) | {note} |\n')
+        if name in crops.FARM:
+            lines.append(f'| `{name}` | {crops.FARM[name][3]} | seed: {CC0_CROPS[index]} ({index}) of the crops pack |\n')
+        else:
+            lines.append(f'| `{name}` | {CC0_CROPS[index]} ({index}) | {note} |\n')
     lines += ['\n## Mapping: object sheet\n\n', '`sprites/items.png` has 24 columns of 16 px cells: index = row x 24 + column.\n\n',
               '| Index | Game item or node | How |\n', '| --: | :-- | :-- |\n']
     names = object_names(repo)

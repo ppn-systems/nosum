@@ -4,10 +4,13 @@ Crop produce comes from the CC0 crop pictures (crops.py); a few pictures come fr
 shaded blobs and pixel dots in the Kenney palette and a 1 px outline (ADR-040 D1). OBJECTS maps the compact sheet index the game uses
 (24 columns, numbered in item catalogue order from 1; 0 is no picture) to a function that returns the picture.
 """
+import colorsys
+
 import draw
 from draw import Canvas
 from trees import blob
 import crops
+from pngio import Image, recolor
 
 GREY = ((82, 96, 124), (140, 156, 181), (192, 203, 220))
 COAL = ((30, 24, 34), (58, 50, 66), (96, 88, 110))
@@ -42,27 +45,57 @@ def rock(tones, specks=None, wide=True):
     return done(c)
 
 
-def packet(src, crop):
-    """A seed packet: paper, a fold, a band in the crop's own colour and a sprout."""
-    pic = crops.produce_icon(src, crop)
+PLAIN_BAG = 74       # Tiny Farm's seed bag without an emblem: the silhouette every packet is drawn on
+BAG_LIGHT, BAG_MID, BAG_DARK = (254, 201, 156), (234, 165, 108), (207, 130, 84)    # its three paper tones
+
+
+def tile_of(sheet, index):
+    return sheet.cell(index % 12, index // 12)
+
+
+def mini(pic):
+    """A 16 x 16 picture halved to 8 x 8: per 2 x 2 block the most saturated opaque pixel (a block of mostly outline keeps the outline)."""
+    out = Image(8, 8)
+    for y in range(8):
+        for x in range(8):
+            block = [pic.px[2 * y + j][2 * x + i] for j in (0, 1) for i in (0, 1)]
+            solid = [p for p in block if p[3]]
+            if len(solid) < 2:
+                continue
+            body = [p for p in solid if sum(p[:3]) > 190]
+            out.px[y][x] = max(body, key=lambda p: max(p[:3]) - min(p[:3])) if body else min(solid, key=lambda p: sum(p[:3]))
+    return out
+
+
+def crop_colour(pic):
+    """The most common strongly coloured tone of a harvest picture, the colour of its seed packet."""
     counts = {}
     for row in pic.px:
         for p in row:
-            if p[3] and max(p[:3]) - min(p[:3]) > 60 and sum(p[:3]) > 200:
-                key = tuple(v // 16 * 16 for v in p[:3])
-                counts[key] = counts.get(key, 0) + 1
-    band = max(counts, key=counts.get) if counts else (99, 199, 77)
-    band = tuple(min(255, v + 8) for v in band)
-    c = cv()
-    c.rect(3, 1, 10, 14, (240, 230, 200))
-    c.rect(3, 1, 10, 3, (214, 200, 160))
-    c.rect(3, 4, 10, 1, (190, 175, 135))
-    c.rect(3, 8, 10, 5, band)
-    c.rect(3, 8, 10, 1, tuple(min(255, v + 50) for v in band))
-    c.rect(7, 5, 2, 3, draw.GREEN)               # a sprout above the band
-    c.dot(6, 5, draw.GREEN_L)
-    c.dot(9, 5, draw.GREEN_L)
-    return done(c)
+            if p[3] and max(p[:3]) - min(p[:3]) > 50 and sum(p[:3]) > 220:
+                counts[p[:3]] = counts.get(p[:3], 0) + 1
+    return max(counts, key=lambda c: (counts[c], c)) if counts else (200, 200, 190)
+
+
+def tones(rgb):
+    """Light, middle and dark paper tones of a packet of the given crop colour."""
+    h, s, v = colorsys.rgb_to_hsv(*(c / 255 for c in rgb))
+    s = max(s, 0.35)
+    return [tuple(round(c * 255) for c in colorsys.hsv_to_rgb(h, min(1.0, s * k), val)) for k, val in ((0.7, 1.0), (1.0, 0.9), (1.0, 0.6))]
+
+
+def packet(src, crop):
+    """A seed packet on Tiny Farm's bag: the paper takes the crop's colour and the front carries a half-size picture of the harvest."""
+    pic = crops.produce_icon(src, crop)
+    swap = dict(zip((BAG_LIGHT, BAG_MID, BAG_DARK), tones(crop_colour(pic))))
+    bag = tile_of(src.sheet('farm'), PLAIN_BAG).map_pixels(lambda p: swap.get(p[:3], p[:3]) + (p[3],))
+    emblem = mini(pic)
+    for y in range(16):                                 # a cream label under the picture so it reads on any paper colour
+        for x in range(16):
+            if 4 <= x < 12 and 6 <= y < 13 and bag.px[y][x][3] and bag.px[y][x][:3] in swap.values():
+                bag.px[y][x] = (252, 240, 214, 255)
+    bag.paste(emblem, 4, 5)
+    return bag
 
 
 def tint(img, rgb):
@@ -379,13 +412,13 @@ def wheat():
 
 def seeds_of(crop):
     f = lambda src, _t: packet(src, crop)
-    f.note = f'drawn seed packet, band in the colour of the `{crop}` harvest picture'
+    f.note = f'Tiny Farm bag (tile {PLAIN_BAG}) in the colour of the `{crop}` harvest picture, with a half-size picture of it'
     return f
 
 
 def produce(crop):
     f = lambda src, _t: crops.produce_icon(src, crop)
-    f.note = f'CC0 crop `{crop}` harvest picture (see the crop table)'
+    f.note = f'Tiny Farm sunflower (tile {crops.SUNFLOWER_PRODUCE})' if crop == 'sunflower' else f'Tiny Farm `{crop}` harvest picture (see the crop table)' if crop in crops.FARM else f'CC0 crop `{crop}` harvest picture (see the crop table)'
     return f
 
 
@@ -393,6 +426,15 @@ def static(fn, *a):
     f = lambda src, _t: fn(*a)
     f.note = f'drawn here: `icons.{fn.__name__}`'
     return f
+
+
+def farm_tile(index, recipe=None):
+    """A Tiny Farm tile as an object-sheet picture."""
+    def fn(src, _town):
+        pic = tile_of(src.sheet('farm'), index)
+        return pic.map_pixels(recipe) if recipe else pic
+    fn.note = f'Tiny Farm tile {index}' + (' recoloured' if recipe else '')
+    return fn
 
 
 def tiny_town_fence(src, town):
@@ -406,7 +448,7 @@ OBJECTS = {
     # crop produce
     25: produce('parsnip'), 26: produce('radish'), 27: static(cauliflower), 28: produce('potato'), 29: produce('green_bean'),
     30: produce('kale'), 31: produce('garlic'), 32: produce('strawberry'), 33: produce('tomato'), 34: produce('blueberry'),
-    35: produce('melon'), 36: produce('hot_pepper'), 37: produce('corn'), 38: static(wheat), 39: produce('sunflower'),
+    35: produce('melon'), 36: produce('hot_pepper'), 37: produce('corn'), 38: produce('wheat'), 39: produce('sunflower'),
     40: produce('pumpkin'), 41: produce('cranberries'), 42: produce('eggplant'), 43: produce('yam'), 44: produce('bok_choy'), 45: produce('grape'),
     # seed packets
     1: seeds_of('parsnip'), 5: seeds_of('green_bean'), 3: seeds_of('cauliflower'), 4: seeds_of('potato'), 7: seeds_of('garlic'),
@@ -419,10 +461,10 @@ OBJECTS = {
     69: static(berries, RED, 4), 71: static(berries, PURPLE, 5), 72: static(nut), 73: static(plum), 74: static(mushroom),
     75: static(root, ((120, 50, 60), (170, 90, 100), (215, 140, 150))), 76: static(crystal_fruit), 77: static(root, ((150, 110, 60), (210, 170, 110), (245, 220, 170))),
     # animal products and food
-    57: static(egg), 58: static(egg, True, True), 59: static(bottle), 60: static(bottle, True), 61: static(hay),
+    57: static(egg), 58: farm_tile(125), 59: farm_tile(123), 60: farm_tile(124), 61: farm_tile(96),
     62: static(bowl, GREENS, ((5, 5), (9, 4), (7, 6), (11, 5))), 63: static(baked_potato), 64: static(bowl, ORANGE, ((6, 5), (10, 5))),
     # resources
-    46: static(log), 47: static(rock, GREY), 49: static(rock, COAL, [(5, 8, (150, 150, 170)), (9, 9, (150, 150, 170))]),
+    46: static(log), 47: farm_tile(89), 49: static(rock, COAL, [(5, 8, (150, 150, 170)), (9, 9, (150, 150, 170))]),
     50: static(rock, GREY, [(5, 9, COPPER[1]), (9, 8, COPPER[2]), (8, 11, COPPER[1])]),
     51: static(rock, GREY, [(5, 9, (210, 120, 100)), (9, 8, (170, 190, 235)), (8, 11, (210, 120, 100))]),
     52: static(bar, COPPER), 53: static(bar, GREY), 48: static(grass_tuft),

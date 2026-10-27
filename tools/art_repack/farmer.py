@@ -27,6 +27,7 @@ OUT = draw.OUT
 SKIN = (246, 206, 168)
 SKIN_D = (226, 170, 134)
 SKIN_X = (200, 124, 106)
+SKIN_L = (255, 232, 204)
 EYE = (63, 38, 49)
 CHEEK = (240, 160, 150)
 
@@ -95,6 +96,7 @@ def body(direction, column):
         c.rect(x0, y + b, x1 - x0 + 1, 1, SKIN)
     # light from the top left: shade the right edge and chin
     c.rect(12, 7 + b, 1, 6, SKIN_D)
+    c.rect(4, 6 + b, 4, 1, SKIN_L)                                       # forehead highlight
     c.rect(5, 13 + b, 6, 1, SKIN_D)
     c.rect(7, 14 + b, 2, 3 + 0, SKIN_D)                                  # neck
     c.rect(5, 15 + b, 6, 8, SKIN)                                         # torso under the shirt (hidden by it)

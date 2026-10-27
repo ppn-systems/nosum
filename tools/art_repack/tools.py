@@ -7,46 +7,107 @@ from pngio import Image
 
 ROW = re.compile(r'\[ItemCatalog\.(\w+)\] = (Tool|Weapon)\((\d+), (\d+)\)')
 
-# Tool material tiers: the steel greys of the source art are swapped for the tier's colours.
+# Tool material tiers: (shadow, body, light, glint) of the metal head.
 TIERS = {
-    'basic': {draw.STEEL_D: (94, 76, 66), draw.STEEL: (150, 128, 108), draw.STEEL_L: (190, 168, 140), (139, 155, 180): (150, 128, 108), (193, 204, 221): (190, 168, 140)},
-    'copper': {draw.STEEL_D: (140, 70, 40), draw.STEEL: (216, 128, 64), draw.STEEL_L: (244, 180, 110), (139, 155, 180): (216, 128, 64), (193, 204, 221): (244, 180, 110)},
-    'iron': {},
+    'basic': ((84, 70, 64), (136, 120, 106), (186, 170, 146), (232, 224, 204)),
+    'copper': ((128, 60, 38), (208, 116, 58), (244, 170, 98), (255, 226, 160)),
+    'iron': ((70, 82, 112), (128, 144, 172), (180, 194, 214), (240, 246, 255)),
 }
+WOOD = ((119, 56, 51), (176, 100, 66), (226, 150, 96))      # handle: shadow, body, light
 
 
-def hoe():
+def handle(c, x0, y0, n):
+    """A wooden handle of n steps rising to the right from (x0, y0): light on its upper edge, shadow on its lower."""
+    for i in range(n):
+        x, y = x0 + i, y0 - i
+        c.dot(x, y, WOOD[2])
+        c.dot(x + 1, y, WOOD[1])
+        c.dot(x + 1, y + 1, WOOD[0])
+    return c
+
+
+def head(c, rows, tier, x, y):
+    """ASCII head: W glint, L light, M body, D shadow."""
+    d, m, l, w = TIERS[tier]
+    c.art(rows, {'W': w, 'L': l, 'M': m, 'D': d}, x, y)
+
+
+def hoe(tier):
     c = Canvas()
-    c.line(2, 14, 11, 4, draw.WOOD)         # diagonal handle
-    c.line(3, 14, 12, 4, draw.WOOD)
-    c.line(2, 14, 10, 5, draw.WOOD_L)
-    c.rect(9, 2, 6, 3, draw.STEEL)          # blade bar at the top
-    c.rect(9, 2, 6, 1, draw.STEEL_L)
-    c.rect(12, 5, 3, 4, draw.STEEL)         # blade tip bending down
-    c.rect(12, 5, 1, 4, draw.STEEL_L)
-    c.dot(14, 4, draw.STEEL_D)
-    c.dot(14, 8, draw.STEEL_D)
-    c.dot(13, 8, draw.STEEL_D)
+    handle(c, 2, 13, 8)
+    head(c, ['LLLLLL',
+             'WLMMMMD',
+             '.MMDDD.',
+             '.MD....',
+             '.D.....'], tier, 8, 2)
+    c.rect(9, 5, 2, 2, WOOD[1])
     return c.outline()
 
 
-def watering_can():
+def axe(tier):
     c = Canvas()
-    c.rect(3, 6, 8, 8, draw.STEEL)          # body
-    c.rect(3, 6, 8, 1, draw.STEEL_L)
-    c.rect(3, 12, 8, 2, draw.STEEL_D)
-    c.rect(4, 5, 6, 1, draw.STEEL_L)        # rim
-    c.line(11, 11, 14, 5, draw.STEEL)       # spout
-    c.line(12, 11, 15, 5, draw.STEEL)
-    c.rect(13, 3, 3, 2, draw.STEEL_L)       # rose
-    c.dot(14, 4, draw.BLUE)
-    c.dot(15, 4, draw.BLUE_L)
-    c.line(3, 7, 1, 8, draw.WOOD)           # handle on the left
-    c.line(1, 8, 1, 12, draw.WOOD)
-    c.line(1, 12, 3, 13, draw.WOOD)
-    c.rect(5, 8, 4, 2, draw.BLUE)           # water window
-    c.dot(5, 8, draw.BLUE_L)
+    handle(c, 2, 14, 9)
+    head(c, ['..LL...',
+             '.WLMM..',
+             '.LMMMD.',
+             '.LMMMMD',
+             '..MMMDD',
+             '..MDDD.'], tier, 7, 1)
+    c.dot(10, 7, WOOD[1])
     return c.outline()
+
+
+def pickaxe(tier):
+    c = Canvas()
+    handle(c, 2, 14, 9)
+    head(c, ['..LLLLL..',
+             '.WLMMMMDD',
+             'LLM...MDD',
+             'LM.....DD',
+             'M.......D'], tier, 5, 0)
+    c.rect(9, 3, 2, 2, WOOD[1])
+    return c.outline()
+
+
+def scythe(tier):
+    c = Canvas()
+    handle(c, 5, 15, 7)
+    c.rect(11, 6, 2, 3, WOOD[1])
+    head(c, ['..WLLLLLLL.',
+             '.LLMMMMMMDD',
+             'LLMDDDDDD..',
+             'LMD........',
+             'MD.........',
+             'D..........'], tier, 1, 2)
+    return c.outline()
+
+
+def watering_can(tier):
+    d, m, l, w = TIERS[tier]
+    c = Canvas()
+    c.rect(2, 7, 8, 7, m)                   # body
+    c.rect(2, 7, 8, 1, l)
+    c.rect(2, 8, 1, 6, l)
+    c.rect(9, 8, 1, 6, d)
+    c.rect(2, 13, 8, 1, d)
+    c.rect(3, 9, 1, 2, w)                   # glint on the shoulder
+    c.rect(4, 6, 4, 1, d)                   # rim
+    c.dot(10, 11, m)                        # spout, rising to the right to its rose
+    c.line(10, 11, 13, 6, m)
+    c.line(10, 12, 13, 7, d)
+    c.rect(12, 4, 3, 2, l)                  # rose
+    c.dot(13, 4, w)
+    c.dot(14, 5, d)
+    c.line(2, 8, 0, 9, WOOD[2])             # handle on the left
+    c.line(0, 9, 0, 12, WOOD[1])
+    c.line(0, 12, 2, 13, WOOD[0])
+    c.rect(4, 9, 4, 3, BLUE_D)              # water window
+    c.rect(4, 9, 4, 1, BLUE)
+    c.dot(5, 9, BLUE_L)
+    return c.outline()
+
+
+BLUE_D, BLUE, BLUE_L = (40, 100, 170), (70, 160, 230), (170, 225, 255)
 
 
 def blueprint():
@@ -62,15 +123,10 @@ def blueprint():
 
 
 def build(src, repo, tools_size, weapons_size):
-    town = src.sheet('town')
-
-    def tile(i):
-        return town.cell(i % 12, i // 12)
-    from draw import swap
-    base = {
-        'Hoe': hoe(), 'WateringCan': watering_can(), 'Axe': tile(127), 'Pickaxe': tile(115),
-        'Scythe': tile(129), 'MilkPail': tile(130), 'CoopBlueprint': blueprint(), 'BarnBlueprint': blueprint(),
-    }
+    farm = src.sheet('farm')
+    pail = farm.cell(124 % 12, 124 // 12)
+    drawn = {'Hoe': hoe, 'WateringCan': watering_can, 'Axe': axe, 'Pickaxe': pickaxe, 'Scythe': scythe}
+    fixed = {'MilkPail': pail, 'CoopBlueprint': blueprint(), 'BarnBlueprint': blueprint()}
     tools = Image(*tools_size)
     weapons = Image(*weapons_size)
     with open(f'{repo}/wasm/Nosum.Wasm/Game/ItemIcons.cs', encoding='utf-8') as f:
@@ -80,6 +136,6 @@ def build(src, repo, tools_size, weapons_size):
     for name, kind, a, b in rows:
         tier = 'copper' if name.startswith('Copper') else 'iron' if name.startswith('Iron') else 'basic'
         key = name.removeprefix('Copper').removeprefix('Iron')
-        pic = swap(base[key], TIERS[tier]) if key not in ('MilkPail', 'CoopBlueprint', 'BarnBlueprint') else base[key]
+        pic = drawn[key](tier) if key in drawn else fixed[key]
         (tools if kind == 'Tool' else weapons).paste(pic, int(a) * 16, int(b) * 16)
     return tools, weapons
