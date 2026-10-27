@@ -84,3 +84,50 @@
 .blazor-error-boundary::after {
     content: "An error has occurred.";
 }
+
+/* The device gate (Components/DeviceGuard.razor): a full-screen notice for phones and tablets, and the same over a window that is too narrow. */
+.device-block {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nosum-gutter);
+    background: #2b1608;
+}
+
+.device-text {
+    margin: 0;
+    text-align: center;
+}
+
+/* Page behaviour of a game (page-guard.js does the rest): no selection, no pull-to-refresh or rubber band, no browser touch gestures
+   (pan only: no pinch and no double-tap zoom), no image drag. Text fields and data-selectable text (the chat log) stay normal. */
+html,
+body {
+    overscroll-behavior: none;
+    touch-action: pan-x pan-y;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+img,
+canvas {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+input,
+textarea,
+[contenteditable=""],
+[contenteditable="true"],
+[data-selectable],
+[data-selectable] * {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
