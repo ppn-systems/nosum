@@ -2,8 +2,13 @@
     display: flex;
     align-items: center;
     gap: calc(var(--u) * 2);
-    min-width: calc(var(--u) * 26);
+    min-width: calc(var(--u) * 18);
     white-space: nowrap;
+}
+
+.coin-line ::deep .game-icon.coin {
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 8);
 }
 
 .coin-amount {

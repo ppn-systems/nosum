@@ -15,15 +15,18 @@
 }
 
 .calendar-time {
-    color: var(--nosum-ink-soft);
+    padding: 0 calc(var(--u) * 2);
+    background: var(--nosum-slot-bg);
+    clip-path: var(--nosum-pill-clip);
+    color: var(--nosum-heading);
 }
 
 /* Pixel-art season icon: sprout/blossom for spring, radiant sun for summer, maple leaf for fall, frost snowflake for winter. */
 .season-icon {
     display: inline-block;
     flex: none;
-    width: calc(var(--u) * 6);
-    height: calc(var(--u) * 6);
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 8);
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-position: center;
@@ -40,6 +43,8 @@
     display: inline-flex;
     align-items: center;
     gap: calc(var(--u) * 2);
+    padding-left: calc(var(--u) * 2);
+    border-left: var(--u) solid var(--nosum-slot-bg);
 }
 
 .calendar-forecast-next {

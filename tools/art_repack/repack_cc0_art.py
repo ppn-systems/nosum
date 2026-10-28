@@ -47,6 +47,9 @@ def build_all(src, repo, only=None):
     out = {}
     if only == 'ui':
         return ui.build(repo, size)
+    if only == 'tools':
+        out['sprites/tools.png'], out['sprites/weapons.png'] = tools.build(src, repo, size('sprites/tools.png'), size('sprites/weapons.png'))
+        return out
     out.update(farmer.build(size))
     if only == 'farmer':
         return out
@@ -69,7 +72,7 @@ def build_all(src, repo, only=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--sources')
-    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui'])
+    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui', 'tools'])
     parser.add_argument('--repo', default=os.path.abspath(os.path.join(HERE, '..', '..')))
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--docs', action='store_true')

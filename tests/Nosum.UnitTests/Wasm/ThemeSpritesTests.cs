@@ -90,16 +90,63 @@ public sealed partial class ThemeSpritesTests
     }
 
     [Fact]
-    public void KeyStrips_UseGameButtonChipVariant_InsteadOfRawButtonsOrHeavyStoneButtons()
+    public void KeyStrips_UseGameButtonChipVariant_AndHotbarSkillsAreCompactKeyCapsWithoutTextClutter()
     {
         string root = RepositoryRoot();
         string hotbar = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor"));
+        string hotbarCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor.css"));
         string placement = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Placement", "PlacementPanel.razor"));
 
         hotbar.Should().Contain("Variant=\"chip\"");
         hotbar.Should().NotContain("Variant=\"plain\"");
+        hotbar.Should().Contain("class=\"hotbar-skills\"");
+        hotbar.Should().NotContain("<span>@Progress.WhirlwindLabel</span>");
+        hotbarCss.Should().Contain(".hotbar-skills");
         placement.Should().Contain("Variant=\"chip\"");
         placement.Should().NotContain("<button");
+    }
+
+    [Fact]
+    public void GameHud_PlayerBar_IsStackedVerticallyOnRightEdge_ToSaveScreenSpace()
+    {
+        string hudCss = File.ReadAllText(Path.Combine(RepositoryRoot(), "wasm", "Nosum.Wasm.Controls", "Layout", "GameHud.razor.css"));
+
+        hudCss.Should().NotContain("grid-template-columns: repeat(3, max-content)");
+        hudCss.Should().Contain(".hud-top-right ::deep .hud-player-bar");
+    }
+
+    [Fact]
+    public void FarmerSprite_SupportsHeldItemsAndSwingAnimations_AndSheetHasActionPose()
+    {
+        string root = RepositoryRoot();
+        string farmerSprite = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Game", "FarmerSprite.cs"));
+
+        farmerSprite.Should().Contain("DrawHeldItem");
+        farmerSprite.Should().Contain("DrawSkillEffect");
+        farmerSprite.Should().Contain("DrawFootstepDust");
+    }
+
+    [Fact]
+    public void CoinBadge_And_CalendarClock_UseMatchedEightUnitIcons_AndDistinctTimePill()
+    {
+        string root = RepositoryRoot();
+        string coinCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Wallet", "CoinBadge.razor.css"));
+        string clockCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Calendar", "CalendarClock.razor.css"));
+        string weatherCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Calendar", "WeatherIcon.razor.css"));
+
+        coinCss.Should().Contain("calc(var(--u) * 8)");
+        clockCss.Should().Contain("calc(var(--u) * 8)");
+        clockCss.Should().Contain("--nosum-pill-clip");
+        weatherCss.Should().Contain("calc(var(--u) * 8)");
+    }
+
+    [Fact]
+    public void NodeSprites_RendersHitImpactParticles_WhenTreeOrRockIsStruck()
+    {
+        string root = RepositoryRoot();
+        string nodeSprites = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Game", "NodeSprites.cs"));
+
+        nodeSprites.Should().Contain("AddHitParticles");
     }
 
     [Fact]

@@ -1,8 +1,8 @@
 .weather-icon {
     display: inline-block;
     flex: none;
-    width: calc(var(--u) * 6);
-    height: calc(var(--u) * 6);
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 8);
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-position: center;

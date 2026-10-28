@@ -62,7 +62,8 @@ internal static class NodeSprites
     /// <param name="textures">The sheets.</param>
     /// <param name="tileSize">Map tile size, pixels.</param>
     /// <param name="shakeX">Horizontal shake offset, pixels.</param>
-    public static void Add(WorldSpriteBatch world, in NodeInfo node, in NodeTextures textures, int tileSize, int shakeX)
+    /// <param name="nowMs">Client clock in milliseconds, for hit particle animations.</param>
+    public static void Add(WorldSpriteBatch world, in NodeInfo node, in NodeTextures textures, int tileSize, int shakeX, long nowMs = 0)
     {
         int left = (node.X * tileSize) + shakeX;
         int baseY = (node.Y + 1) * tileSize;
@@ -123,6 +124,78 @@ internal static class NodeSprites
 
             default:
                 break;
+        }
+
+        long hitElapsed = nowMs - node.HitAtMs;
+        if (node.HitAtMs > 0 && hitElapsed is >= 0 and < 320)
+        {
+            AddHitParticles(world, node, left, baseY, sortX, tileSize, hitElapsed / 320f);
+        }
+    }
+
+    private static void AddHitParticles(WorldSpriteBatch world, in NodeInfo node, int left, int baseY, int sortX, int tileSize, float progress)
+    {
+        int centerX = left + (tileSize / 2);
+        int burst = 2 + (int)(progress * 10f);
+        int fall = (int)(progress * 14f);
+        int sortY = baseY + tileSize + 2;
+
+        switch ((NodeKind)node.Kind)
+        {
+            case NodeKind.Tree:
+            case NodeKind.Stump:
+            case NodeKind.LargeStump:
+            case NodeKind.Twig:
+            {
+                int chipTint = unchecked((int)0xd4a359f0);
+                int barkTint = unchecked((int)0x8d5524f0);
+                int leafTint = node.Variant == TreeVariant.Maple ? unchecked((int)0xff7043f0) : unchecked((int)0x66bb6af0);
+                int flashTint = unchecked((int)0xffffffdc);
+
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 8, 2, centerX - 4, baseY - 10, sortY, sortX, node.Id + 5000, tint: flashTint);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX - burst - 2, baseY - 12 - (burst / 2), sortY, sortX, node.Id + 5001, tint: chipTint);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX + burst, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5002, tint: chipTint);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, centerX - (burst / 2), baseY - 6 + (fall / 2), sortY, sortX, node.Id + 5003, tint: barkTint);
+
+                if ((NodeKind)node.Kind == NodeKind.Tree)
+                {
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX - 10 - (burst / 2), baseY - 48 + fall, sortY, sortX, node.Id + 5004, tint: leafTint);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX + 8 + (burst / 2), baseY - 44 + fall, sortY, sortX, node.Id + 5005, tint: leafTint);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 3, centerX - 2, baseY - 54 + fall, sortY, sortX, node.Id + 5006, tint: leafTint);
+                }
+
+                break;
+            }
+
+            case NodeKind.Stone:
+            case NodeKind.CopperOre:
+            case NodeKind.IronOre:
+            {
+                int sparkTint = unchecked((int)0xffd54ff0);
+                int shardTint = (NodeKind)node.Kind == NodeKind.CopperOre
+                    ? unchecked((int)0xff8a65f0)
+                    : (NodeKind)node.Kind == NodeKind.IronOre
+                        ? unchecked((int)0xcfd8dcf0)
+                        : unchecked((int)0x90a4aef0);
+
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 4, 4, centerX - 2, baseY - 10, sortY, sortX, node.Id + 5010, tint: unchecked((int)0xffffffeb));
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX - burst, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5011, tint: shardTint);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX + burst - 2, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5012, tint: shardTint);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, centerX - (burst / 2), baseY - 14 - (burst / 2), sortY, sortX, node.Id + 5013, tint: sparkTint);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, centerX + (burst / 2), baseY - 6 + (fall / 3), sortY, sortX, node.Id + 5014, tint: sparkTint);
+                break;
+            }
+
+            case NodeKind.Weed:
+            case NodeKind.Grass:
+            {
+                int grassTint = unchecked((int)0x66bb6af0);
+                int bladeTint = unchecked((int)0xa5d6a7f0);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 4, centerX - burst, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5020, tint: grassTint);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 4, centerX + burst - 1, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5021, tint: grassTint);
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 3, centerX, baseY - 12 - burst, sortY, sortX, node.Id + 5022, tint: bladeTint);
+                break;
+            }
         }
     }
 

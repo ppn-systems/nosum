@@ -80,9 +80,15 @@
 }
 
 .hud-top-right ::deep .hud-player-bar {
-    display: grid;
-    grid-template-columns: repeat(3, max-content);
-    gap: calc(var(--u) * 2);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: calc(var(--u) * 1);
+}
+
+.hud-top-right ::deep .hud-player-bar .game-icon-button {
+    width: calc(var(--u) * 14);
+    height: calc(var(--u) * 14);
 }
 
 /* The standalone window: centred below the top HUD row so it never overlaps the HUD buttons. */

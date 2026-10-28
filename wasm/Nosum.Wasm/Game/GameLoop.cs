@@ -265,7 +265,10 @@ internal static partial class GameLoop
             textures.LoadAsync(FarmerUrl + "pants.png"),
             textures.LoadAsync(FarmerUrl + "shirts.png"),
             textures.LoadAsync(FarmerUrl + "hair.png"),
-            textures.LoadAsync(FarmerUrl + "hats.png"));
+            textures.LoadAsync(FarmerUrl + "hats.png"),
+            textures.LoadAsync(ItemIcons.ToolsSheet),
+            textures.LoadAsync(ItemIcons.WeaponsSheet),
+            textures.LoadAsync(ItemIcons.ObjectsSheet));
 
         MapEntry? entry = await WaitForEntryAsync(cancellationToken).ConfigureAwait(false);
         MapSpec spec = entry is { } answered && GameMaps.TryGet(answered.MapId, out MapSpec? chosen)
@@ -275,7 +278,7 @@ internal static partial class GameLoop
 
         MapContent content = await loader.LoadAsync(spec.Id, cancellationToken).ConfigureAwait(false);
         int[] sheets = await farmerSheets.ConfigureAwait(false);
-        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4]);
+        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7]);
 
         // Until the server's look arrives (and without a server) the default look is drawn, never one made up from an id.
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);

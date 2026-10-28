@@ -10,6 +10,16 @@
     padding: var(--u) var(--u) calc(var(--u) * 7);
 }
 
+.hotbar-skills {
+    display: flex;
+    flex-direction: column;
+    gap: var(--u);
+}
+
+.hotbar-skills ::deep .game-button.chip {
+    padding: 0;
+}
+
 /* Narrow screens (a phone held upright): the slots make two rows of five instead of one row that does not fit (docs/adr/ADR-033 D2). */
 @media (max-width: 640px) {
     .hotbar-slots {
