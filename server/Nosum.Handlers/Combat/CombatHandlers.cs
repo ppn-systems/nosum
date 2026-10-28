@@ -105,6 +105,7 @@ public static partial class CombatHandlers
             r.MaxMp = (ushort)outcome.Vitals.MaxMp;
             r.CombatXp = outcome.Vitals.CombatXp;
             r.KnockedOut = outcome.KnockedOut;
+            r.ComboCount = outcome.ComboCount;
         }).ConfigureAwait(false);
     }
 
@@ -160,6 +161,7 @@ public static partial class CombatHandlers
             r.MaxMp = (ushort)outcome.Vitals.MaxMp;
             r.CombatXp = outcome.Vitals.CombatXp;
             r.CooldownMs = (ushort)outcome.CooldownMs;
+            r.ComboCount = outcome.ComboCount;
         }).ConfigureAwait(false);
     }
 }

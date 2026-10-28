@@ -195,6 +195,34 @@ public static class CombatRules
         return baseDamage + (Math.Clamp(combatLevel, 0, SkillRules.MaxLevel) * 2);
     }
 
+    /// <summary>Maximum duration in milliseconds to maintain a combat combo streak.</summary>
+    public const int ComboTimeoutMs = 3500;
+
+    /// <summary>Maximum combo streak multiplier.</summary>
+    public const int MaxComboCount = 10;
+
+    /// <summary>Calculates bonus damage percent for a given combo count (e.g. 5 combo = +20% bonus).</summary>
+    /// <param name="comboCount">Active combo streak.</param>
+    /// <returns>Multiplier bonus fraction (0.0 to 0.45).</returns>
+    public static float ComboBonusPercent(int comboCount) => Math.Clamp(Math.Max(0, comboCount - 1) * 0.05f, 0f, 0.45f);
+
+    /// <summary>Calculates total damage dealt by a player attack, including Combat level bonus and combo streak (docs/adr/ADR-060).</summary>
+    /// <param name="itemId">Held weapon item id.</param>
+    /// <param name="combatLevel">Player's Combat skill level (0..10).</param>
+    /// <param name="comboCount">Active combo streak (1..10).</param>
+    /// <returns>Total damage dealt.</returns>
+    public static int CalculateDamage(int itemId, int combatLevel, int comboCount)
+    {
+        int baseDmg = CalculateDamage(itemId, combatLevel);
+        if (baseDmg <= 0 || comboCount <= 1)
+        {
+            return baseDmg;
+        }
+
+        float bonus = ComboBonusPercent(comboCount);
+        return Math.Max(1, (int)MathF.Round(baseDmg * (1f + bonus)));
+    }
+
     /// <summary>Returns the HP and MP restored when consuming a potion or food item.</summary>
     /// <param name="itemId">The food/potion item id.</param>
     /// <returns>A tuple of <c>(HpRestore, MpRestore)</c>.</returns>

@@ -31,6 +31,15 @@
                 <span class="skill-cost">20</span>
             </button>
         </div>
+        @if (Progress is not null && Progress.CurrentCombo > 1)
+        {
+            <div class="combat-combo-badge" role="status" aria-live="polite" title="Combat Combo Streak!">
+                <span class="combo-icon">🔥</span>
+                <span class="combo-val">@Progress.CurrentCombo x</span>
+                <span class="combo-label">COMBO!</span>
+                <span class="combo-bonus">+@Progress.ComboBonusPercent%</span>
+            </div>
+        }
         @if (Progress is not null)
         {
             @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@

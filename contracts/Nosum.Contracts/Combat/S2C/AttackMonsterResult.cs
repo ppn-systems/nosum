@@ -47,4 +47,7 @@ public sealed partial class AttackMonsterResult : PacketBase<AttackMonsterResult
 
     /// <summary>Whether the player was knocked out and revived at 50% HP.</summary>
     [SerializeOrder(10)] public bool KnockedOut { get; set; }
+
+    /// <summary>Active combat combo streak count (docs/adr/ADR-060).</summary>
+    [SerializeOrder(11)] public byte ComboCount { get; set; }
 }

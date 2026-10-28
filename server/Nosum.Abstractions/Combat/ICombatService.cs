@@ -32,6 +32,7 @@ public sealed record MonstersView(string MapId, IReadOnlyList<MonsterSpawn> Mons
 /// <param name="DamageTaken">Counter-attack damage taken by the player.</param>
 /// <param name="Vitals">Updated player vitals.</param>
 /// <param name="KnockedOut">Whether the player was knocked out and revived.</param>
+/// <param name="ComboCount">Active combat combo streak count (docs/adr/ADR-060).</param>
 public readonly record struct AttackOutcome(
     CombatStatus Status,
     int MonsterId,
@@ -39,7 +40,8 @@ public readonly record struct AttackOutcome(
     int MonsterHp,
     int DamageTaken,
     VitalsView Vitals,
-    bool KnockedOut);
+    bool KnockedOut,
+    byte ComboCount = 0);
 
 /// <summary>Outcome of drinking a potion.</summary>
 /// <param name="Status">Combat status.</param>
@@ -54,6 +56,7 @@ public readonly record struct DrinkPotionOutcome(CombatStatus Status, VitalsView
 /// <param name="HealAmount">Health points restored.</param>
 /// <param name="Vitals">Updated player vitals.</param>
 /// <param name="CooldownMs">Skill cooldown duration.</param>
+/// <param name="ComboCount">Active combat combo streak count (docs/adr/ADR-060).</param>
 public readonly record struct CastSkillOutcome(
     CombatStatus Status,
     byte SkillId,
@@ -61,7 +64,8 @@ public readonly record struct CastSkillOutcome(
     byte TargetsHit,
     int HealAmount,
     VitalsView Vitals,
-    int CooldownMs);
+    int CooldownMs,
+    byte ComboCount = 0);
 
 /// <summary>
 /// Server-authoritative MMORPG vitals (HP &amp; MP), monster encounters, weapon/staff attacks, and potion drinking

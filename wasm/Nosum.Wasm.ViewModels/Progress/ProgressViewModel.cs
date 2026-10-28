@@ -64,6 +64,7 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         if (combat is not null)
         {
             combat.Changed += this.Raise;
+            combat.ComboChanged += this.Raise;
         }
     }
 
@@ -169,6 +170,12 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         _ => string.Empty,
     };
 
+    /// <summary>Gets the current combat combo streak (docs/adr/ADR-060).</summary>
+    public int CurrentCombo => _combat?.CurrentCombo ?? 0;
+
+    /// <summary>Gets the combo damage bonus percentage (e.g. 20 for +20%).</summary>
+    public int ComboBonusPercent => (int)(CombatRules.ComboBonusPercent(this.CurrentCombo) * 100);
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -176,6 +183,7 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         if (_combat is not null)
         {
             _combat.Changed -= this.Raise;
+            _combat.ComboChanged -= this.Raise;
         }
     }
 

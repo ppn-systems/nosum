@@ -92,10 +92,11 @@ public sealed class CombatPacketTests
             MaxMp = 50,
             CombatXp = 15,
             KnockedOut = false,
+            ComboCount = 5,
         };
         AttackMonsterResult attackResultCopy = AttackMonsterResult.Deserialize(attackResult.Serialize());
-        (attackResultCopy.Status, attackResultCopy.MonsterId, attackResultCopy.DamageDealt, attackResultCopy.MonsterHp, attackResultCopy.DamageTaken, attackResultCopy.Hp, attackResultCopy.MaxHp, attackResultCopy.Mp, attackResultCopy.MaxMp, attackResultCopy.CombatXp, attackResultCopy.KnockedOut)
-            .Should().Be((CombatStatus.Ok, 7, (ushort)12, (ushort)0, (ushort)4, (ushort)96, (ushort)100, (ushort)42, (ushort)50, 15, false));
+        (attackResultCopy.Status, attackResultCopy.MonsterId, attackResultCopy.DamageDealt, attackResultCopy.MonsterHp, attackResultCopy.DamageTaken, attackResultCopy.Hp, attackResultCopy.MaxHp, attackResultCopy.Mp, attackResultCopy.MaxMp, attackResultCopy.CombatXp, attackResultCopy.KnockedOut, attackResultCopy.ComboCount)
+            .Should().Be((CombatStatus.Ok, 7, (ushort)12, (ushort)0, (ushort)4, (ushort)96, (ushort)100, (ushort)42, (ushort)50, 15, false, (byte)5));
 
         using DrinkPotionResult drinkResult = new()
         {
@@ -122,10 +123,11 @@ public sealed class CombatPacketTests
             MaxMp = 50,
             CombatXp = 50,
             CooldownMs = 3000,
+            ComboCount = 3,
         };
         CastSkillResult skillResultCopy = CastSkillResult.Deserialize(skillResult.Serialize());
-        (skillResultCopy.Status, skillResultCopy.SkillId, skillResultCopy.DamageDealt, skillResultCopy.TargetsHit, skillResultCopy.HealAmount, skillResultCopy.Hp, skillResultCopy.MaxHp, skillResultCopy.Mp, skillResultCopy.MaxMp, skillResultCopy.CombatXp, skillResultCopy.CooldownMs)
-            .Should().Be((CombatStatus.Ok, (byte)1, (ushort)36, (byte)2, (ushort)0, (ushort)90, (ushort)100, (ushort)35, (ushort)50, 50, (ushort)3000));
+        (skillResultCopy.Status, skillResultCopy.SkillId, skillResultCopy.DamageDealt, skillResultCopy.TargetsHit, skillResultCopy.HealAmount, skillResultCopy.Hp, skillResultCopy.MaxHp, skillResultCopy.Mp, skillResultCopy.MaxMp, skillResultCopy.CombatXp, skillResultCopy.CooldownMs, skillResultCopy.ComboCount)
+            .Should().Be((CombatStatus.Ok, (byte)1, (ushort)36, (byte)2, (ushort)0, (ushort)90, (ushort)100, (ushort)35, (ushort)50, 50, (ushort)3000, (byte)3));
     }
 
     [Fact]

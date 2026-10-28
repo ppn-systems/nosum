@@ -117,7 +117,26 @@ public sealed class CombatChannel : IDisposable
     private int _maxMp = 50;
     private int _combatXp;
     private int _statusEffect;
+    private int _comboCount;
+    private long _comboExpireTick;
     private string _mapId = string.Empty;
+
+    /// <summary>Invoked when the player's active combo streak changes (docs/adr/ADR-060).</summary>
+    public event Action? ComboChanged;
+
+    /// <summary>Gets the current active combat combo count.</summary>
+    public int CurrentCombo
+    {
+        get
+        {
+            if (Environment.TickCount64 > _comboExpireTick)
+            {
+                return 0;
+            }
+
+            return _comboCount;
+        }
+    }
 
     /// <summary>Initializes the combat channel.</summary>
     /// <param name="socket">The game connection.</param>
@@ -477,9 +496,16 @@ public sealed class CombatChannel : IDisposable
 
             if (reply.Status == CombatStatus.Ok)
             {
+                if (reply.ComboCount > 0)
+                {
+                    _comboCount = reply.ComboCount;
+                    _comboExpireTick = Environment.TickCount64 + 3500;
+                    this.ComboChanged?.Invoke();
+                }
+
                 if (this.TryGetMonster(reply.MonsterId, out MonsterClientRow m))
                 {
-                    byte style = (byte)(reply.DamageDealt >= 18 ? 1 : 0);
+                    byte style = (byte)(reply.DamageDealt >= 18 || reply.ComboCount >= 3 ? 1 : 0);
                     this.SpawnFloatingText((m.X * 16) + 8, (m.Y * 16) - 6, reply.DamageDealt, style);
                 }
 
@@ -567,6 +593,13 @@ public sealed class CombatChannel : IDisposable
                 else if (reply.SkillId == 1 && reply.DamageDealt > 0)
                 {
                     this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 10, reply.DamageDealt, 1);
+                }
+
+                if (reply.ComboCount > 0)
+                {
+                    _comboCount = reply.ComboCount;
+                    _comboExpireTick = Environment.TickCount64 + 3500;
+                    this.ComboChanged?.Invoke();
                 }
 
                 if (reply.MaxHp > 0)

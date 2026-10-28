@@ -47,4 +47,7 @@ public sealed partial class CastSkillResult : PacketBase<CastSkillResult>, IPack
 
     /// <summary>Cooldown duration in milliseconds.</summary>
     [SerializeOrder(10)] public ushort CooldownMs { get; set; }
+
+    /// <summary>Active combat combo streak count (docs/adr/ADR-060).</summary>
+    [SerializeOrder(11)] public byte ComboCount { get; set; }
 }

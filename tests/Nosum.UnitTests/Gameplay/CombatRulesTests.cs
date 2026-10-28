@@ -211,4 +211,20 @@ public sealed class CombatRulesTests
         CombatRules.AggroRadius.Should().Be(4);
         CombatRules.BossAggroRadius.Should().Be(6);
     }
+
+    [Fact]
+    public void ComboSystem_ScalesDamage_WithinTimeoutAndCap()
+    {
+        CombatRules.ComboTimeoutMs.Should().Be(3500);
+        CombatRules.MaxComboCount.Should().Be(10);
+
+        CombatRules.ComboBonusPercent(1).Should().Be(0f);
+        CombatRules.ComboBonusPercent(2).Should().Be(0.05f);
+        CombatRules.ComboBonusPercent(5).Should().Be(0.20f);
+        CombatRules.ComboBonusPercent(10).Should().Be(0.45f);
+
+        int baseDmg = CombatRules.CalculateDamage(ItemCatalog.IronSword, 0, 1);
+        int comboDmg = CombatRules.CalculateDamage(ItemCatalog.IronSword, 0, 5);
+        comboDmg.Should().BeGreaterThan(baseDmg);
+    }
 }

@@ -69,3 +69,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-057](ADR-057-wilderness-dungeon-rift-portal-and-warps.md) | Wilderness Ancient Dungeon rift portal and boss room warps | Accepted |
 | [ADR-058](ADR-058-elite-monster-modifiers-and-affixes.md) | Elite monster modifiers, affixes, and enhanced rewards | Accepted |
 | [ADR-059](ADR-059-monster-bestiary-and-hunting-log.md) | Monster bestiary and hunting log in journal UI | Accepted |
+| [ADR-060](ADR-060-combat-combo-streaks-and-damage-scaling.md) | Combat combo streaks and critical damage scaling | Accepted |

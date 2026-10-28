@@ -45,6 +45,16 @@ public sealed class CombatService : ICombatService, IDisposable
     private readonly ConcurrentDictionary<Guid, PlayerVitalsState> _vitals = new();
     private readonly ConcurrentDictionary<string, InstanceMonsters> _instances = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<(Guid PlayerId, byte SkillId), long> _skillCooldowns = new();
+    private readonly ConcurrentDictionary<Guid, (int Count, long LastHitTick)> _playerCombos = new();
+
+    private int RegisterHitCombo(Guid playerId)
+    {
+        long now = Environment.TickCount64;
+        return _playerCombos.AddOrUpdate(
+            playerId,
+            _ => (1, now),
+            (_, current) => (now - current.LastHitTick <= CombatRules.ComboTimeoutMs ? Math.Min(CombatRules.MaxComboCount, current.Count + 1) : 1, now)).Count;
+    }
 
     /// <summary>Initializes a new instance of the <see cref="CombatService"/> class.</summary>
     public CombatService(
@@ -394,6 +404,7 @@ public sealed class CombatService : ICombatService, IDisposable
         MonsterSpawn updatedMonster;
         int damageDealt;
         int damageTaken = 0;
+        int comboCount = 0;
         bool knockedOut = false;
         bool defeated = false;
         int oldLevel;
@@ -443,7 +454,8 @@ public sealed class CombatService : ICombatService, IDisposable
 
                 vitals.Mp -= mpCost;
                 oldLevel = SkillRules.LevelOf(vitals.CombatXp);
-                damageDealt = CombatRules.CalculateDamage(held.ItemId, oldLevel);
+                comboCount = this.RegisterHitCombo(player.AccountId);
+                damageDealt = CombatRules.CalculateDamage(held.ItemId, oldLevel, comboCount);
                 if (target.Modifier == MonsterModifier.Shielded)
                 {
                     damageDealt = Math.Max(1, (int)(damageDealt * 0.75f));
@@ -600,7 +612,8 @@ public sealed class CombatService : ICombatService, IDisposable
             updatedMonster.Hp,
             damageTaken,
             updatedVitals,
-            knockedOut);
+            knockedOut,
+            (byte)comboCount);
     }
 
     /// <inheritdoc/>
@@ -857,6 +870,12 @@ public sealed class CombatService : ICombatService, IDisposable
             resultVitals = vitals.ToView();
         }
 
+        byte skillCombo = 0;
+        if (targetsHit > 0)
+        {
+            skillCombo = (byte)this.RegisterHitCombo(player.AccountId);
+        }
+
         return new CastSkillOutcome(
             CombatStatus.Ok,
             skillId,
@@ -864,7 +883,8 @@ public sealed class CombatService : ICombatService, IDisposable
             targetsHit,
             healAmount,
             resultVitals,
-            skill.CooldownMs);
+            skill.CooldownMs,
+            skillCombo);
     }
 
     private PlayerVitalsState GetOrCreateVitals(Guid playerId)
