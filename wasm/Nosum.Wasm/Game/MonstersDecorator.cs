@@ -248,13 +248,16 @@ internal sealed class MonstersDecorator : IMapDecorator
                     8700,
                     tint: unchecked((int)0xf59e0bff));
             }
-            else if (h.Kind is 4 or 5 or 6) // Dungeon Blessing Shrines (docs/adr/ADR-063)
+            else if (h.Kind is >= 4 and <= 9) // Dungeon Blessing Shrines & Elemental Resonance Pylons (docs/adr/ADR-063, ADR-064)
             {
-                // Carved stone / golden sanctuary pedestal base (14x14)
+                // Carved stone / elemental sanctuary pedestal base (14x14)
                 int baseTint = h.Kind switch
                 {
                     4 => unchecked((int)0x064e3bee), // Deep emerald stone
                     5 => unchecked((int)0x0f172aee), // Obsidian arcane stone
+                    7 => unchecked((int)0x312e81ee), // Indigo storm monolith stone
+                    8 => unchecked((int)0x7c2d12ee), // Amber solar sandstone
+                    9 => unchecked((int)0x0c4a6eee), // Glacial frost granite
                     _ => unchecked((int)0x78350fee), // Royal sanctuary bronze-gold
                 };
                 world.Add(
@@ -270,6 +273,33 @@ internal sealed class MonstersDecorator : IMapDecorator
                     8410,
                     tint: baseTint);
 
+                // Expanding elemental resonance shockwave ring for pylons (kinds 7..9)
+                if (h.Kind >= 7)
+                {
+                    float wavePhase = ((now + (h.HazardId * 310)) % 1800) / 1800f;
+                    int ringSize = 14 + (int)(wavePhase * 12f);
+                    int ringOffset = (16 - ringSize) / 2;
+                    int ringRgb = h.Kind switch
+                    {
+                        7 => 0xa855f7, // Violet-gold thunder resonance
+                        8 => 0xf97316, // Solar radiance wave
+                        _ => 0x38bdf8, // Glacial frost wave
+                    };
+                    int ringAlpha = Math.Clamp((int)((1f - wavePhase) * 140f), 25, 140);
+                    world.Add(
+                        RenderCommandBuffer.FillTexture,
+                        0,
+                        0,
+                        ringSize,
+                        ringSize,
+                        hWorldX + ringOffset,
+                        hWorldY + ringOffset,
+                        hWorldY + 2,
+                        hWorldX,
+                        8420,
+                        tint: (ringRgb << 8) | ringAlpha);
+                }
+
                 // Pulsing sanctuary blessing aura ring
                 float shrinePulse = MathF.Sin((now * 0.005f) + h.HazardId);
                 int auraSize = 12 + (int)(shrinePulse * 2f);
@@ -278,6 +308,9 @@ internal sealed class MonstersDecorator : IMapDecorator
                 {
                     4 => 0x10b981, // Emerald vitality glow
                     5 => 0x06b6d4, // Cyan arcane mana glow
+                    7 => 0xeab308, // Electric lightning gold glow
+                    8 => 0xf59e0b, // Solar amber glow
+                    9 => 0x38bdf8, // Glacial ice blue glow
                     _ => 0xfbbf24, // Radiant gold sanctuary glow
                 };
                 int auraAlpha = Math.Clamp(185 + (int)(shrinePulse * 45f), 130, 235);
@@ -296,16 +329,19 @@ internal sealed class MonstersDecorator : IMapDecorator
 
                 // Levitating crystal / star relic from items.png bobbing above the altar
                 int bobY = (int)(MathF.Sin((now * 0.006f) + h.HazardId) * 2f);
-                int iconSrcX = h.Kind switch
+                (int iconSrcX, int iconSrcY) = h.Kind switch
                 {
-                    4 => 80,  // Ruby/vitality potion relic
-                    5 => 96,  // Arcane mana relic
-                    _ => 112, // Golden star relic
+                    4 => (80, 64),  // Ruby vitality core relic
+                    5 => (96, 64),  // Emerald arcane mana crystal
+                    7 => (336, 64), // Thunder crystal cluster relic
+                    8 => (320, 64), // Solar fire crystal cluster relic
+                    9 => (64, 48),  // Glacial frost crystal relic
+                    _ => (112, 64), // Golden sanctuary relic
                 };
                 world.Add(
                     _itemsTexture,
                     iconSrcX,
-                    64,
+                    iconSrcY,
                     16,
                     16,
                     hWorldX,
@@ -325,6 +361,9 @@ internal sealed class MonstersDecorator : IMapDecorator
                     4 => _labels.ShrineVitalityLabelId,
                     5 => _labels.ShrineArcaneLabelId,
                     6 => _labels.ShrineEmpowermentLabelId,
+                    7 => _labels.ShrineThunderLabelId,
+                    8 => _labels.ShrineSolarLabelId,
+                    9 => _labels.ShrineFrostLabelId,
                     _ => 0,
                 };
                 if (hLabelId > 0)

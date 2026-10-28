@@ -54,6 +54,15 @@ internal sealed class CombatLabels
     /// <summary>Gets the pre-interned label id for Sanctuary Empowerment Altars (docs/adr/ADR-063).</summary>
     public int ShrineEmpowermentLabelId { get; }
 
+    /// <summary>Gets the pre-interned label id for Ancient Thunder Pylons (docs/adr/ADR-064).</summary>
+    public int ShrineThunderLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for Sylvan Solar Wayshrines (docs/adr/ADR-064).</summary>
+    public int ShrineSolarLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for Glacial Frost Monoliths (docs/adr/ADR-064).</summary>
+    public int ShrineFrostLabelId { get; }
+
     public CombatLabels(LabelRegistry registry, IStringLocalizer<Language>? text = null)
     {
         ArgumentNullException.ThrowIfNull(registry);
@@ -71,6 +80,9 @@ internal sealed class CombatLabels
         this.ShrineVitalityLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Vitality"), 3);
         this.ShrineArcaneLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Arcane"), 1);
         this.ShrineEmpowermentLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Empowerment"), 1);
+        this.ShrineThunderLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Thunder"), 1);
+        this.ShrineSolarLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Solar"), 2);
+        this.ShrineFrostLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Frost"), 0);
 
         // Pre-intern common values 1..50 for all 5 styles
         for (int i = 1; i <= 50; i++)

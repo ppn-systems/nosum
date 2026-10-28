@@ -232,7 +232,7 @@ public sealed class CombatService : ICombatService, IDisposable
                                         int shrineDist = Math.Max(Math.Abs(pTileX - h.X), Math.Abs(pTileY - h.Y));
                                         if (shrineDist <= 1)
                                         {
-                                            _ = this.ApplyShrineBlessingAsync(p.AccountId, h.HazardId, h.Kind, now, cancellationToken);
+                                            _ = this.ApplyShrineBlessingAsync(p.AccountId, instanceKey, instance, h, now, cancellationToken);
                                         }
                                     }
                                     else if (pTileX == h.X && pTileY == h.Y)
@@ -410,16 +410,60 @@ public sealed class CombatService : ICombatService, IDisposable
         }
     }
 
-    private async Task ApplyShrineBlessingAsync(Guid playerId, byte shrineId, DungeonHazardKind shrineKind, long now, CancellationToken cancellationToken)
+    private async Task ApplyShrineBlessingAsync(
+        Guid playerId,
+        string instanceKey,
+        InstanceMonsters instance,
+        DungeonHazard shrine,
+        long now,
+        CancellationToken cancellationToken)
     {
-        if (_shrineCooldowns.TryGetValue((playerId, shrineId), out long readyAt) && now < readyAt)
+        if (_shrineCooldowns.TryGetValue((playerId, shrine.HazardId), out long readyAt) && now < readyAt)
         {
             return;
         }
 
-        _shrineCooldowns[(playerId, shrineId)] = now + CombatRules.ShrineCooldownMs;
+        _shrineCooldowns[(playerId, shrine.HazardId)] = now + CombatRules.ShrineCooldownMs;
         PlayerVitalsState state = this.GetOrCreateVitals(playerId);
-        (int healHp, int restoreMp, int bonusXp, StatusEffectKind buff) = CombatRules.ShrineBlessing(shrineKind);
+        (int healHp, int restoreMp, int bonusXp, StatusEffectKind buff) = CombatRules.ShrineBlessing(shrine.Kind);
+
+        List<MonsterSpawn>? struckMonsters = null;
+        if (CombatRules.IsResonancePylon(shrine.Kind))
+        {
+            (int monsterDamage, int radiusTiles, _) = CombatRules.PylonDischarge(shrine.Kind);
+            if (monsterDamage > 0 && radiusTiles > 0)
+            {
+                lock (instance.Gate)
+                {
+                    for (int i = 0; i < instance.Monsters.Count; i++)
+                    {
+                        MonsterSpawn m = instance.Monsters[i];
+                        if (m.Hp <= 0)
+                        {
+                            continue;
+                        }
+
+                        int dist = Math.Max(Math.Abs(m.X - shrine.X), Math.Abs(m.Y - shrine.Y));
+                        if (dist > radiusTiles)
+                        {
+                            continue;
+                        }
+
+                        int nextHp = Math.Max(0, m.Hp - monsterDamage);
+                        MonsterSpawn updatedMonster = m with { Hp = nextHp };
+                        instance.Monsters[i] = updatedMonster;
+                        struckMonsters ??= [];
+                        struckMonsters.Add(updatedMonster);
+
+                        if (nextHp == 0 && MonsterCatalog.TryGet(m.Kind, out MonsterDefinition? def))
+                        {
+                            bonusXp += def.XpReward;
+                        }
+                    }
+                }
+            }
+        }
+
         VitalsView updated;
         int oldLevel;
         int newLevel;
@@ -460,6 +504,14 @@ public sealed class CombatService : ICombatService, IDisposable
             }
 
             updated = state.ToView();
+        }
+
+        if (struckMonsters is not null)
+        {
+            for (int i = 0; i < struckMonsters.Count; i++)
+            {
+                await this.BroadcastMonsterChangedAsync(instanceKey, struckMonsters[i], cancellationToken).ConfigureAwait(false);
+            }
         }
 
         if (_notifier is not null)

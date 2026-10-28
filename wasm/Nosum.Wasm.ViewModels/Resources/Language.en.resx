@@ -854,4 +854,7 @@
   <data name="Combat_Label_Shrine_Vitality" xml:space="preserve"><value>VITALITY SHRINE</value></data>
   <data name="Combat_Label_Shrine_Arcane" xml:space="preserve"><value>ARCANE OBELISK</value></data>
   <data name="Combat_Label_Shrine_Empowerment" xml:space="preserve"><value>SANCTUARY ALTAR</value></data>
+  <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>THUNDER PYLON</value></data>
+  <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>SOLAR WAYSHRINE</value></data>
+  <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>FROST MONOLITH</value></data>
 </root>

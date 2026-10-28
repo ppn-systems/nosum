@@ -27,4 +27,13 @@ public enum DungeonHazardKind : byte
 
     /// <summary>Ancient Sanctuary Altar: restores HP and MP, grants Swiftness, and awards Combat XP on milestone floors (docs/adr/ADR-063).</summary>
     EmpowermentAltar = 6,
+
+    /// <summary>Ancient Thunder Pylon: restores HP/MP, grants Swiftness, awards Combat XP, and zaps nearby monsters (docs/adr/ADR-064).</summary>
+    ThunderPylon = 7,
+
+    /// <summary>Sylvan Solar Wayshrine: restores HP/MP, grants Regeneration, awards Combat XP, and sears nearby monsters (docs/adr/ADR-064).</summary>
+    SolarWayshrine = 8,
+
+    /// <summary>Glacial Frost Monolith: restores HP/MP, grants Regeneration, awards Combat XP, and freezes nearby monsters (docs/adr/ADR-064).</summary>
+    FrostMonolith = 9,
 }

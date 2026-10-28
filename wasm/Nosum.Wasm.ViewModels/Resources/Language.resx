@@ -854,4 +854,7 @@
   <data name="Combat_Label_Shrine_Vitality" xml:space="preserve"><value>ĐÀI SINH LỰC</value></data>
   <data name="Combat_Label_Shrine_Arcane" xml:space="preserve"><value>TRỤ MA LỰC</value></data>
   <data name="Combat_Label_Shrine_Empowerment" xml:space="preserve"><value>ĐÀN THÁNH QUANG</value></data>
+  <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>TRỤ LÔI ĐIỆN</value></data>
+  <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>ĐÀI NHẬT QUANG</value></data>
+  <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>BIA BĂNG HÀN</value></data>
 </root>

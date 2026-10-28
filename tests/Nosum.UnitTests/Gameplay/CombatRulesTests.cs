@@ -260,27 +260,39 @@ public sealed class CombatRulesTests
         HashSet<(int X, int Y)> occupied = [(10, 6), (9, 6)];
 
         List<DungeonHazard> floor3Shrines = CombatRules.PlanShrines("mine3", 98765, grid, 10, 9, occupied);
-        floor3Shrines.Should().HaveCount(1);
-        CombatRules.IsShrine(floor3Shrines[0].Kind).Should().BeTrue();
-        floor3Shrines[0].Damage.Should().Be(0);
-        occupied.Contains((floor3Shrines[0].X, floor3Shrines[0].Y)).Should().BeFalse();
+        floor3Shrines.Should().HaveCount(2);
+        floor3Shrines.All(s => CombatRules.IsShrine(s.Kind)).Should().BeTrue();
+        floor3Shrines.Should().Contain(s => CombatRules.IsResonancePylon(s.Kind));
+        floor3Shrines.All(s => s.Damage == 0 && !occupied.Contains((s.X, s.Y))).Should().BeTrue();
 
         List<DungeonHazard> bossFloorShrines = CombatRules.PlanShrines("mine10", 98765, grid, 10, 9, occupied);
-        bossFloorShrines.Should().HaveCount(2);
+        bossFloorShrines.Should().HaveCount(3);
         bossFloorShrines.Should().Contain(s => s.Kind == DungeonHazardKind.EmpowermentAltar);
         bossFloorShrines.Should().Contain(s => s.Kind == DungeonHazardKind.VitalityShrine);
+        bossFloorShrines.Should().Contain(s => CombatRules.IsResonancePylon(s.Kind));
         bossFloorShrines.All(s => !occupied.Contains((s.X, s.Y))).Should().BeTrue();
+
+        // Wilderness combat maps spawn overworld wayshrines and resonance pylons
+        List<DungeonHazard> forestShrines = CombatRules.PlanShrines("forest", 98765, grid, 10, 9, occupied);
+        forestShrines.Should().HaveCount(2);
+        forestShrines.Should().Contain(s => s.Kind == DungeonHazardKind.SolarWayshrine);
+        forestShrines.Should().Contain(s => s.Kind == DungeonHazardKind.ThunderPylon);
+
+        List<DungeonHazard> mountainShrines = CombatRules.PlanShrines("mountain", 98765, grid, 10, 9, occupied);
+        mountainShrines.Should().HaveCount(2);
+        mountainShrines.Should().Contain(s => s.Kind == DungeonHazardKind.FrostMonolith);
+        mountainShrines.Should().Contain(s => s.Kind == DungeonHazardKind.ThunderPylon);
 
         // Deterministic across identical seeds
         List<DungeonHazard> bossFloorShrinesRepeat = CombatRules.PlanShrines("mine10", 98765, grid, 10, 9, occupied);
         bossFloorShrinesRepeat.Should().Equal(bossFloorShrines);
 
-        // Non-mine maps have no dungeon shrines
+        // Safe non-combat maps have no shrines
         CombatRules.PlanShrines("town", 98765, grid, 10, 9, occupied).Should().BeEmpty();
     }
 
     [Fact]
-    public void ShrineBlessing_ReturnsExpectedHealManaXpAndBuffByKind()
+    public void ShrineBlessing_AndPylonDischarge_ReturnExpectedValuesByKind()
     {
         (int vHp, int vMp, int vXp, StatusEffectKind vBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.VitalityShrine);
         vHp.Should().Be(25);
@@ -299,5 +311,28 @@ public sealed class CombatRulesTests
         eMp.Should().Be(20);
         eXp.Should().Be(15);
         eBuff.Should().Be(StatusEffectKind.Swiftness);
+
+        (int tHp, int tMp, int tXp, StatusEffectKind tBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.ThunderPylon);
+        tHp.Should().Be(10);
+        tMp.Should().Be(20);
+        tXp.Should().Be(12);
+        tBuff.Should().Be(StatusEffectKind.Swiftness);
+
+        (int sHp, int sMp, int sXp, StatusEffectKind sBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.SolarWayshrine);
+        sHp.Should().Be(30);
+        sMp.Should().Be(15);
+        sXp.Should().Be(12);
+        sBuff.Should().Be(StatusEffectKind.Regeneration);
+
+        (int fHp, int fMp, int fXp, StatusEffectKind fBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.FrostMonolith);
+        fHp.Should().Be(20);
+        fMp.Should().Be(20);
+        fXp.Should().Be(12);
+        fBuff.Should().Be(StatusEffectKind.Regeneration);
+
+        CombatRules.PylonDischarge(DungeonHazardKind.ThunderPylon).Should().Be((18, 3, CombatSkillKind.Fireball));
+        CombatRules.PylonDischarge(DungeonHazardKind.SolarWayshrine).Should().Be((14, 3, CombatSkillKind.Whirlwind));
+        CombatRules.PylonDischarge(DungeonHazardKind.FrostMonolith).Should().Be((16, 3, CombatSkillKind.Fireball));
+        CombatRules.PylonDischarge(DungeonHazardKind.VitalityShrine).Should().Be((0, 0, CombatSkillKind.None));
     }
 }
