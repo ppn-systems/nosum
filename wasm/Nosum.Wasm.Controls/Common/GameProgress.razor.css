@@ -22,6 +22,18 @@
     background: linear-gradient(to bottom, #a08c7c 0 20%, #846e60 20% 100%);
 }
 
+.game-progress.hp .game-progress-fill {
+    background: linear-gradient(to bottom, #ff6b57 0 20%, #e03c32 20% 55%, #b4232c 55% 85%, #7a1c24 85% 100%);
+}
+
+.game-progress.mp .game-progress-fill {
+    background: linear-gradient(to bottom, #73b3ff 0 20%, #4287f5 20% 55%, #2a5db0 55% 85%, #1d3c78 85% 100%);
+}
+
+.game-progress.low .game-progress-fill {
+    background: linear-gradient(to bottom, #ff6b57 0 20%, #e94334 20% 60%, #961e28 60% 100%);
+}
+
 .game-progress-text {
     position: absolute;
     inset: 0;

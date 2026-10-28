@@ -6,32 +6,13 @@
 }
 
 .skill-name {
-    min-width: calc(var(--u) * 28);
+    min-width: calc(var(--u) * 40);
+    color: var(--nosum-heading);
 }
 
-.skill-bar {
-    position: relative;
-    flex: 1 1 calc(var(--u) * 40);
-    height: calc(var(--u) * 4);
-    background: var(--nosum-ink);
-}
-
-.skill-fill {
-    display: block;
-    height: 100%;
-    background: var(--nosum-ok);
-}
-
-.skill-fill.hp {
-    background: var(--nosum-danger);
-}
-
-.skill-fill.mp {
-    background: var(--nosum-warn);
-}
-
-.skill-fill.low {
-    background: var(--nosum-danger);
+.skill-meter {
+    flex: 1 1 calc(var(--u) * 48);
+    min-width: calc(var(--u) * 48);
 }
 
 .skill-caption {
@@ -39,6 +20,14 @@
     font-variant-numeric: tabular-nums;
 }
 
+.bestiary-row {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 1);
+    padding-bottom: calc(var(--u) * 2);
+}
+
 .skill-hint {
+    margin: 0;
     color: var(--nosum-ink-soft);
 }

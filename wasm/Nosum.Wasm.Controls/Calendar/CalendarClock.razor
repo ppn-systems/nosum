@@ -6,10 +6,10 @@
     <GamePanel Class="hud calendar" Title="">
         <p class="calendar-line" role="status" aria-label="@Vm.Summary">
             <span class="season-icon @Vm.SeasonKey" aria-hidden="true"></span>
-            <strong class="calendar-season">@Vm.SeasonName</strong>
+            <span class="calendar-season">@Vm.SeasonName</span>
             <span class="calendar-day">@Vm.DayText</span>
             <span class="calendar-time">@Vm.TimeText</span>
-            <span class="calendar-forecast" title="@Vm.ForecastText" aria-label="@Vm.ForecastText">
+            <span class="calendar-forecast" data-tip="@Vm.ForecastText" aria-label="@Vm.ForecastText">
                 <WeatherIcon Kind="@Vm.TodayKey" />
                 <span class="calendar-forecast-next"><WeatherIcon Kind="@Vm.TomorrowKey" /></span>
             </span>

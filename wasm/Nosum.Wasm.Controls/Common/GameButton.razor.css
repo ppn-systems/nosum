@@ -134,3 +134,18 @@
 .game-button.link:hover:not(:disabled) {
     color: var(--nosum-danger);
 }
+
+.game-button.chip {
+    padding: 0 calc(var(--u) * 1);
+    color: var(--nosum-ink);
+    text-shadow: none;
+}
+
+.game-button.chip::before,
+.game-button.chip::after {
+    display: none;
+}
+
+.game-button.chip:hover:not(:disabled) {
+    color: var(--nosum-danger);
+}

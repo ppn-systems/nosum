@@ -9,9 +9,9 @@
     <GamePanel Class="hud strip" Role="toolbar" Title="">
         <div class="strip-row">
             <span class="chip"><GameKey Text="E" /><span>@Vm.StripPlaceLabel</span></span>
-            <button type="button" class="chip" tabindex="-1" @onmousedown:preventDefault @onclick="() => Vm.Request(PlacementRequests.Rotate)"><GameKey Text="R" /><span>@Vm.StripRotateLabel</span></button>
-            <button type="button" class="chip" tabindex="-1" @onmousedown:preventDefault @onclick="() => Vm.Request(PlacementRequests.Grab)"><GameKey Text="F" /><span>@Vm.StripMoveLabel</span></button>
-            <button type="button" class="chip" tabindex="-1" @onmousedown:preventDefault @onclick="() => Vm.Request(PlacementRequests.PickUp)"><GameKey Text="Q" /><span>@Vm.StripStowLabel</span></button>
+            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Rotate)"><GameKey Text="R" /><span>@Vm.StripRotateLabel</span></GameButton>
+            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Grab)"><GameKey Text="F" /><span>@Vm.StripMoveLabel</span></GameButton>
+            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.PickUp)"><GameKey Text="Q" /><span>@Vm.StripStowLabel</span></GameButton>
         </div>
     </GamePanel>
 }

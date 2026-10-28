@@ -18,9 +18,9 @@
         {
             <GamePanel Class="hud strip" Role="toolbar" Title="">
                 <GameRow Class="center">
-                    <GameButton Variant="plain" Title="@Progress.WhirlwindTip" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /> @Progress.WhirlwindLabel</GameButton>
-                    <GameButton Variant="plain" Title="@Progress.FireballTip" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /> @Progress.FireballLabel</GameButton>
-                    <GameButton Variant="plain" Title="@Progress.DivineHealTip" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /> @Progress.DivineHealLabel</GameButton>
+                    <GameButton Variant="chip" Title="@Progress.WhirlwindTip" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /><span>@Progress.WhirlwindLabel</span></GameButton>
+                    <GameButton Variant="chip" Title="@Progress.FireballTip" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /><span>@Progress.FireballLabel</span></GameButton>
+                    <GameButton Variant="chip" Title="@Progress.DivineHealTip" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /><span>@Progress.DivineHealLabel</span></GameButton>
                     @if (Progress.CurrentCombo > 1)
                     {
                         <GameBadge Kind="warn" Text="@Progress.ComboBadgeText" />

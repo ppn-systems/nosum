@@ -15,6 +15,10 @@
     white-space: nowrap;
 }
 
+.game-badge.info {
+    --badge-light: var(--nosum-gold-light);
+}
+
 .game-badge.warn {
     --badge-light: var(--nosum-warn);
 }

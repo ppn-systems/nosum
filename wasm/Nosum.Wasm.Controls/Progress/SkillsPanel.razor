@@ -7,22 +7,19 @@
     <GameStack>
         <GameSection Title="@Vm.Text("Energy_Heading")">
             <div class="skill-row">
-                <div class="skill-bar" role="meter" aria-label="@Vm.HpLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxHp" aria-valuenow="@Vm.Hp">
-                    <span class="skill-fill hp" style="width: @Percent(Vm.HpFraction)%"></span>
-                </div>
-                <span class="skill-caption">@Vm.HpLabel</span>
+                <span class="skill-meter">
+                    <GameProgress Percent="@PercentInt(Vm.HpFraction)" Text="@Vm.HpLabel" Label="@Vm.HpLabel" Class="hp" />
+                </span>
             </div>
             <div class="skill-row">
-                <div class="skill-bar" role="meter" aria-label="@Vm.MpLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxMp" aria-valuenow="@Vm.Mp">
-                    <span class="skill-fill mp" style="width: @Percent(Vm.MpFraction)%"></span>
-                </div>
-                <span class="skill-caption">@Vm.MpLabel</span>
+                <span class="skill-meter">
+                    <GameProgress Percent="@PercentInt(Vm.MpFraction)" Text="@Vm.MpLabel" Label="@Vm.MpLabel" Class="mp" />
+                </span>
             </div>
             <div class="skill-row">
-                <div class="skill-bar" role="meter" aria-label="@Vm.EnergyLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxEnergy" aria-valuenow="@Vm.Energy">
-                    <span class="@(Vm.EnergyLow ? "skill-fill low" : "skill-fill")" style="width: @Percent(Vm.EnergyFraction)%"></span>
-                </div>
-                <span class="skill-caption">@Vm.EnergyLabel</span>
+                <span class="skill-meter">
+                    <GameProgress Percent="@PercentInt(Vm.EnergyFraction)" Text="@Vm.EnergyLabel" Label="@Vm.EnergyLabel" Class="@(Vm.EnergyLow ? "low" : null)" />
+                </span>
             </div>
             <p class="skill-hint">@Vm.Text("Energy_Hint")</p>
         </GameSection>
@@ -31,11 +28,10 @@
             {
                 <div class="skill-row">
                     <span class="skill-name">@skill.Name</span>
-                    <GameBadge Kind="ok" Text="@Vm.Text("Skill_Level", skill.Level)" />
-                    <div class="skill-bar" role="meter" aria-label="@skill.Name" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Percent(skill.Fraction)">
-                        <span class="skill-fill" style="width: @Percent(skill.Fraction)%"></span>
-                    </div>
-                    <span class="skill-caption">@skill.Caption</span>
+                    <GameBadge Kind="@(skill.Level >= 10 ? "warn" : "ok")" Text="@Vm.Text("Skill_Level", skill.Level)" />
+                    <span class="skill-meter">
+                        <GameProgress Percent="@PercentInt(skill.Fraction)" Text="@skill.Caption" Label="@skill.Name" Class="@(skill.Level >= 10 ? "done" : null)" />
+                    </span>
                 </div>
             }
             @{
@@ -43,11 +39,10 @@
             }
             <div class="skill-row">
                 <span class="skill-name">@combat.Name</span>
-                <GameBadge Kind="ok" Text="@Vm.Text("Skill_Level", combat.Level)" />
-                <div class="skill-bar" role="meter" aria-label="@combat.Name" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Percent(combat.Fraction)">
-                    <span class="skill-fill hp" style="width: @Percent(combat.Fraction)%"></span>
-                </div>
-                <span class="skill-caption">@combat.Caption</span>
+                <GameBadge Kind="@(combat.Level >= 10 ? "warn" : "ok")" Text="@Vm.Text("Skill_Level", combat.Level)" />
+                <span class="skill-meter">
+                    <GameProgress Percent="@PercentInt(combat.Fraction)" Text="@combat.Caption" Label="@combat.Name" Class="@(combat.Level >= 10 ? "done" : "hp")" />
+                </span>
             </div>
             <p class="skill-hint">@Vm.Text("Skills_Hint")</p>
         </GameSection>
@@ -55,11 +50,13 @@
             <GameStack>
                 @foreach (BestiaryEntryDisplay entry in Vm.BestiaryEntries)
                 {
-                    <div class="skill-row">
-                        <span class="skill-name">@entry.Name</span>
-                        <GameBadge Kind="@(entry.IsBoss ? "warn" : "ok")" Text="@entry.Category" />
-                        <span class="skill-caption">@entry.Location</span>
-                        <span class="skill-caption">@Vm.Text("Bestiary_Stats", entry.Hp, entry.Attack, entry.Xp)</span>
+                    <div class="bestiary-row">
+                        <div class="skill-row">
+                            <span class="skill-name">@entry.Name</span>
+                            <GameBadge Kind="@(entry.IsBoss ? "warn" : "ok")" Text="@entry.Category" />
+                            <GameBadge Kind="info" Text="@entry.Location" />
+                            <span class="skill-caption">@Vm.Text("Bestiary_Stats", entry.Hp, entry.Attack, entry.Xp)</span>
+                        </div>
                         <span class="skill-hint">@Vm.Text("Bestiary_Drops", entry.PrimaryDrop, entry.RareDrop)</span>
                     </div>
                 }
@@ -69,5 +66,5 @@
 </MenuPage>
 
 @code {
-    private static string Percent(double fraction) => Math.Round(Math.Clamp(fraction, 0, 1) * 100).ToString(System.Globalization.CultureInfo.InvariantCulture);
+    private static int PercentInt(double fraction) => (int)Math.Round(Math.Clamp(fraction, 0, 1) * 100);
 }
