@@ -122,43 +122,31 @@ def blueprint():
     return c.outline()
 
 
-def rotate_ccw(src):
-    """Rotates a 16x16 sprite 90 degrees counter-clockwise (overhead wind-up frame)."""
-    out = Image(src.width, src.height)
-    for j in range(src.height):
-        for i in range(src.width):
-            out.px[src.width - 1 - i][j] = src.px[j][i]
-    return out
-
-
-def rotate_cw(src):
-    """Rotates a 16x16 sprite 90 degrees clockwise (forward/downward strike frame with motion glint)."""
-    out = Image(src.width, src.height)
-    for j in range(src.height):
-        for i in range(src.width):
-            out.px[i][src.height - 1 - j] = src.px[j][i]
-    glint = (255, 248, 210, 255)
-    for gx, gy in ((11, 2), (12, 3), (13, 4), (13, 5)):
-        if out.px[gy][gx][3] == 0:
-            out.px[gy][gx] = glint
-    return out
-
-
 def build(src, repo, tools_size, weapons_size):
     drawn = {'Hoe': hoe, 'WateringCan': watering_can, 'Axe': axe, 'Pickaxe': pickaxe, 'Scythe': scythe}
+    cc0_tools = {}
     if src is not None:
         farm = src.sheet('farm')
         dungeon = src.sheet('dungeon')
         pail = farm.cell(124 % 12, 124 // 12)
+        tier_sheets = {
+            'basic': src.sheet('weapons_iron'),
+            'copper': src.sheet('weapons_bronze'),
+            'iron': src.sheet('weapons_steel'),
+        }
+        tool_cells = {'Hoe': (12, 10), 'Axe': (0, 10), 'Pickaxe': (13, 10), 'Scythe': (15, 10)}
+        for tier_name, sheet in tier_sheets.items():
+            for tool_key, (cx, cy) in tool_cells.items():
+                cc0_tools[(tier_name, tool_key)] = sheet.cell(cx, cy).flip_h()
         fixed = {
             'MilkPail': pail,
             'CoopBlueprint': blueprint(),
             'BarnBlueprint': blueprint(),
             'WoodenSword': dungeon.cell(8, 8),
-            'BronzeSword': src.sheet('weapons_bronze').cell(1, 0),
-            'IronSword': src.sheet('weapons_iron').cell(2, 0),
-            'SteelSword': src.sheet('weapons_steel').cell(3, 0),
-            'GoldSword': src.sheet('weapons_gold').cell(5, 0),
+            'BronzeSword': src.sheet('weapons_bronze').cell(1, 0).flip_h(),
+            'IronSword': src.sheet('weapons_iron').cell(2, 0).flip_h(),
+            'SteelSword': src.sheet('weapons_steel').cell(3, 0).flip_h(),
+            'GoldSword': src.sheet('weapons_gold').cell(5, 0).flip_h(),
             'ArcaneStaff': dungeon.cell(9, 10),
         }
         extra_weapons = [
@@ -195,18 +183,15 @@ def build(src, repo, tools_size, weapons_size):
         else:
             tier = 'copper' if name.startswith('Copper') else 'iron' if name.startswith('Iron') else 'basic'
             key = name.removeprefix('Copper').removeprefix('Iron')
-            pic = drawn[key](tier) if key in drawn else fixed[key]
+            if (tier, key) in cc0_tools:
+                pic = cc0_tools[(tier, key)]
+            else:
+                pic = drawn[key](tier) if key in drawn else fixed[key]
         col, row = int(a), int(b)
         if kind == 'Tool':
             tools.paste(pic, col * 16, row * 16)
-            if name not in ('CoopBlueprint', 'BarnBlueprint', 'MilkPail') and row + 2 < tools.height // 16:
-                tools.paste(rotate_ccw(pic), col * 16, (row + 1) * 16)
-                tools.paste(rotate_cw(pic), col * 16, (row + 2) * 16)
         else:
             weapons.paste(pic, col * 16, row * 16)
-            if row + 2 < weapons.height // 16:
-                weapons.paste(rotate_ccw(pic), col * 16, (row + 1) * 16)
-                weapons.paste(rotate_cw(pic), col * 16, (row + 2) * 16)
     for pic, col, row in extra_weapons:
         weapons.paste(pic, col * 16, row * 16)
     return tools, weapons

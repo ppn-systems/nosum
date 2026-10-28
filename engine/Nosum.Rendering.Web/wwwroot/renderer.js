@@ -329,11 +329,18 @@ export function submitFrame(view) {
         if (!image) {
             continue;
         }
-        if (flags & 1) {
+        const flip = (flags & 1) !== 0;
+        const deg = flags >> 8;
+        if (flip || deg !== 0) {
             ctx.save();
-            ctx.translate(dx + w, dy);
-            ctx.scale(-1, 1);
-            ctx.drawImage(image, sx, sy, w, h, 0, 0, w, h);
+            ctx.translate(dx + w / 2, dy + h / 2);
+            if (deg !== 0) {
+                ctx.rotate((deg * Math.PI) / 180);
+            }
+            if (flip) {
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(image, sx, sy, w, h, -w / 2, -h / 2, w, h);
             ctx.restore();
         } else {
             ctx.drawImage(image, sx, sy, w, h, dx, dy, w, h);

@@ -36,6 +36,19 @@
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js" autostart="false"></script>
     <script>
         Blazor.start({ configureRuntime: dotnet => { dotnet.withConfig({ loadAllSatelliteResources: true }); } });
+        if ('serviceWorker' in navigator) {
+            const hadController = Boolean(navigator.serviceWorker.controller);
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (hadController && !refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
+            navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
+                .then(reg => reg.update().catch(() => {}))
+                .catch(() => {});
+        }
     </script>
 </body>
 

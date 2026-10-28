@@ -1,7 +1,14 @@
 .hotbar-dock {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--nosum-gap);
+}
+
+.hotbar-row {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 2);
 }
 
 .hotbar-slots {
@@ -14,6 +21,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--u);
+    padding: 0 var(--u) 0 calc(var(--u) * 2);
+    border-left: var(--u) solid var(--nosum-line);
 }
 
 .hotbar-skills ::deep .game-button.chip {
@@ -24,8 +33,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: calc(var(--u) * 10);
-    height: calc(var(--u) * 10);
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 7);
     box-shadow: inset 0 var(--u) 0 var(--nosum-wood-light);
     color: var(--nosum-gold-light);
 }
@@ -37,8 +46,19 @@
 }
 
 .hotbar-skills ::deep .game-button.chip:disabled .game-key {
-    opacity: 0.45;
+    background: var(--nosum-slot-bg);
+    border-color: var(--nosum-line);
+    color: var(--nosum-ink-faint);
     box-shadow: none;
+}
+
+.hotbar-badges {
+    position: absolute;
+    bottom: calc(100% + var(--u) * 2);
+    right: 0;
+    display: flex;
+    gap: var(--u);
+    pointer-events: none;
 }
 
 /* Narrow screens (a phone held upright): the slots make two rows of five instead of one row that does not fit (docs/adr/ADR-033 D2). */

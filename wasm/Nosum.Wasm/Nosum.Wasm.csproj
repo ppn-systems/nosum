@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Description>Nosum Blazor WebAssembly host: the game canvas page plus the UI overlay (inventory, shop, chat).</Description>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
     <!-- Required by the [JSExport] source generator (Game/GameLoop.cs). -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -36,6 +37,7 @@
 
   <ItemGroup>
     <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
+    <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
   <ItemGroup>
