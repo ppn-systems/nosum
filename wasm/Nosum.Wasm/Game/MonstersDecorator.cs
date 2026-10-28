@@ -31,6 +31,7 @@ internal sealed class MonstersDecorator : IMapDecorator
     private readonly List<ProjectileClientRow> _projectilesScratch = new(16);
     private readonly List<DeathEffectClientRow> _deathEffectsScratch = new(16);
     private readonly List<FloatingTextClientRow> _floatingTextsScratch = new(32);
+    private readonly List<HazardClientRow> _hazardsScratch = new(8);
 
     /// <summary>Initializes the decorator.</summary>
     /// <param name="mapId">Map id being decorated.</param>
@@ -120,6 +121,157 @@ internal sealed class MonstersDecorator : IMapDecorator
                     pWorldY + FrameSize + 20,
                     pWorldX,
                     8804);
+            }
+        }
+
+        // Environmental Hazards (docs/adr/ADR-061):
+        _combat.CopyHazards(_hazardsScratch);
+        for (int i = 0; i < _hazardsScratch.Count; i++)
+        {
+            HazardClientRow h = _hazardsScratch[i];
+            int hWorldX = h.X * FrameSize;
+            int hWorldY = h.Y * FrameSize;
+
+            if (h.Kind == 1) // SporeVent (poison gas vent)
+            {
+                // Dark mossy vent base (14x14)
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    14,
+                    14,
+                    hWorldX + 1,
+                    hWorldY + 1,
+                    hWorldY + 1,
+                    hWorldX + 1,
+                    8400,
+                    tint: unchecked((int)0x14532dcc));
+
+                // Pulsing toxic spore vapor (0xRRGGBBAA)
+                float pulse = MathF.Sin((now * 0.005f) + (h.HazardId * 1.5f));
+                int alpha = Math.Clamp(160 + (int)(pulse * 45f), 100, 220);
+                int vaporTint = (0x22c55e << 8) | alpha;
+                int vaporSize = 12 + (int)(pulse * 2f);
+                int vaporOffset = (16 - vaporSize) / 2;
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    vaporSize,
+                    vaporSize,
+                    hWorldX + vaporOffset,
+                    hWorldY + vaporOffset,
+                    hWorldY + FrameSize,
+                    hWorldX,
+                    8700,
+                    tint: vaporTint);
+
+                // Bright toxic spore core
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    6,
+                    6,
+                    hWorldX + 5,
+                    hWorldY + 5,
+                    hWorldY + FrameSize,
+                    hWorldX,
+                    8701,
+                    tint: unchecked((int)0x86efacee));
+            }
+            else if (h.Kind == 2) // SpikeTrap (floor spikes)
+            {
+                // Steel plate base
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    14,
+                    14,
+                    hWorldX + 1,
+                    hWorldY + 1,
+                    hWorldY + 1,
+                    hWorldX + 1,
+                    8400,
+                    tint: unchecked((int)0x475569cc));
+
+                // Periodic spike thrust cycle (2.4s period)
+                float spikeCycle = ((now + (h.HazardId * 700)) % 2400) / 2400f;
+                if (spikeCycle > 0.65f)
+                {
+                    world.Add(
+                        RenderCommandBuffer.FillTexture,
+                        0,
+                        0,
+                        10,
+                        10,
+                        hWorldX + 3,
+                        hWorldY + 3,
+                        hWorldY + FrameSize,
+                        hWorldX,
+                        8750,
+                        tint: unchecked((int)0xf1f5f9ee));
+                }
+            }
+            else if (h.Kind == 3) // MagmaFissure (molten crack)
+            {
+                // Fiery molten fissure
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    14,
+                    14,
+                    hWorldX + 1,
+                    hWorldY + 1,
+                    hWorldY + 1,
+                    hWorldX + 1,
+                    8400,
+                    tint: unchecked((int)0x991b1bee));
+
+                // Boiling eruptive flame core
+                float magmaPulse = MathF.Sin((now * 0.008f) + (h.HazardId * 2f));
+                int flameSize = 8 + (int)(magmaPulse * 3f);
+                int flameOffset = (16 - flameSize) / 2;
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    flameSize,
+                    flameSize,
+                    hWorldX + flameOffset,
+                    hWorldY + flameOffset,
+                    hWorldY + FrameSize,
+                    hWorldX,
+                    8700,
+                    tint: unchecked((int)0xf59e0bff));
+            }
+
+            if (_labels is not null)
+            {
+                int hLabelId = h.Kind switch
+                {
+                    1 => _labels.HazardSporeLabelId,
+                    2 => _labels.HazardSpikeLabelId,
+                    3 => _labels.HazardMagmaLabelId,
+                    _ => 0,
+                };
+                if (hLabelId > 0)
+                {
+                    world.Add(
+                        RenderCommandBuffer.LabelTexture,
+                        hLabelId,
+                        0,
+                        0,
+                        0,
+                        hWorldX + 8,
+                        hWorldY - 4,
+                        hWorldY + FrameSize + 10,
+                        hWorldX,
+                        8790);
+                }
             }
         }
 

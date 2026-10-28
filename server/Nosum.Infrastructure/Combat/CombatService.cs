@@ -195,6 +195,44 @@ public sealed class CombatService : ICombatService, IDisposable
                                 }
                             }
                         }
+
+                        if (instance.Hazards.Count > 0)
+                        {
+                            long now = Environment.TickCount64;
+                            for (int hIdx = 0; hIdx < instance.Hazards.Count; hIdx++)
+                            {
+                                DungeonHazard h = instance.Hazards[hIdx];
+                                bool isActive = h.Kind switch
+                                {
+                                    DungeonHazardKind.SpikeTrap => ((now + (h.HazardId * 700)) % 2400) > 1560,
+                                    _ => true,
+                                };
+
+                                if (!isActive)
+                                {
+                                    continue;
+                                }
+
+                                for (int pIdx = 0; pIdx < players.Count; pIdx++)
+                                {
+                                    PlayerPresence p = players[pIdx];
+                                    double px;
+                                    double py;
+                                    lock (p.Gate)
+                                    {
+                                        px = p.Motion.X;
+                                        py = p.Motion.Y;
+                                    }
+
+                                    int pTileX = (int)Math.Floor(px / tileSize);
+                                    int pTileY = (int)Math.Floor(py / tileSize);
+                                    if (pTileX == h.X && pTileY == h.Y)
+                                    {
+                                        _ = this.ApplyHazardContactAsync(p.AccountId, h.Damage, h.Kind, cancellationToken);
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     for (int mIdx = 0; mIdx < moved.Count; mIdx++)
@@ -315,6 +353,54 @@ public sealed class CombatService : ICombatService, IDisposable
         }
     }
 
+    private async Task ApplyHazardContactAsync(Guid playerId, int damage, DungeonHazardKind hazardKind, CancellationToken cancellationToken)
+    {
+        if (!_vitals.TryGetValue(playerId, out PlayerVitalsState? state))
+        {
+            return;
+        }
+
+        int defense = 0;
+        if (_looks is not null)
+        {
+            PlayerLook look = await _looks.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+            defense = CombatRules.CalculateDefense(look.HatItemId, look.ShirtItemId, look.PantsItemId);
+        }
+
+        int finalDamage = CombatRules.MitigateDamage(damage, defense);
+        VitalsView updated;
+        lock (state.Gate)
+        {
+            state.Hp = Math.Max(0, state.Hp - finalDamage);
+            if (state.Hp == 0)
+            {
+                state.Hp = Math.Max(1, state.MaxHp / 2);
+                state.ActiveEffect = StatusEffectKind.None;
+                state.EffectRemainingTicks = 0;
+            }
+            else if (hazardKind == DungeonHazardKind.SporeVent)
+            {
+                state.ActiveEffect = StatusEffectKind.Poison;
+                state.EffectRemainingTicks = 4;
+                state.EffectMagnitude = 3;
+            }
+
+            updated = state.ToView();
+        }
+
+        if (_notifier is not null)
+        {
+            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
+            lease.Value.Hp = (ushort)updated.Hp;
+            lease.Value.MaxHp = (ushort)updated.MaxHp;
+            lease.Value.Mp = (ushort)updated.Mp;
+            lease.Value.MaxMp = (ushort)updated.MaxMp;
+            lease.Value.CombatXp = updated.CombatXp;
+            lease.Value.StatusEffect = updated.StatusEffect;
+            _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     /// <inheritdoc/>
     public void Dispose() => _presence.PlayerLeft -= this.OnPlayerLeftAsync;
 
@@ -350,7 +436,7 @@ public sealed class CombatService : ICombatService, IDisposable
                 }
             }
 
-            return ValueTask.FromResult(new MonstersView(player.MapId, alive));
+            return ValueTask.FromResult(new MonstersView(player.MapId, alive, instance.Hazards));
         }
     }
 
@@ -894,11 +980,11 @@ public sealed class CombatService : ICombatService, IDisposable
     {
         long today = _dayClock.Today;
         string key = $"{player.Key}:{today}";
-        return _instances.GetOrAdd(key, _ =>
+        return _instances.GetOrAdd(key, k =>
         {
             if (!_maps.TryGet(player.MapId, out MapDefinition? map))
             {
-                return new InstanceMonsters([]);
+                return new InstanceMonsters([], []);
             }
 
             int floor = GameMaps.TryGet(player.MapId, out MapSpec? spec) ? spec.MineFloor : 0;
@@ -910,8 +996,23 @@ public sealed class CombatService : ICombatService, IDisposable
             int tileSize = Math.Max(1, map.Grid.TileSize);
             int spawnX = (int)(map.SpawnX / tileSize);
             int spawnY = (int)(map.SpawnY / tileSize);
+            if (floor >= 1)
+            {
+                MineFloorPlanner.Plan nodePlan = MineFloorPlanner.Build(floor, seed, map.Grid, map.ReservedTiles, spawnX, spawnY);
+                foreach (Nosum.Gameplay.Nodes.NodePlacement node in nodePlan.Nodes)
+                {
+                    _ = occupied.Add((node.X, node.Y));
+                }
+            }
+
             List<MonsterSpawn> planned = CombatRules.PlanMonsters(player.MapId, seed, map.Grid, occupied, spawnX, spawnY);
-            return new InstanceMonsters(planned);
+            foreach (MonsterSpawn m in planned)
+            {
+                _ = occupied.Add((m.X, m.Y));
+            }
+
+            List<DungeonHazard> hazards = CombatRules.PlanHazards(player.MapId, seed, map.Grid, spawnX, spawnY, occupied);
+            return new InstanceMonsters(planned, hazards);
         });
     }
 
@@ -981,10 +1082,16 @@ public sealed class CombatService : ICombatService, IDisposable
 
     private sealed class InstanceMonsters
     {
-        public InstanceMonsters(List<MonsterSpawn> monsters) => Monsters = monsters;
+        public InstanceMonsters(List<MonsterSpawn> monsters, List<DungeonHazard> hazards)
+        {
+            Monsters = monsters;
+            Hazards = hazards;
+        }
 
         public object Gate { get; } = new();
 
         public List<MonsterSpawn> Monsters { get; }
+
+        public List<DungeonHazard> Hazards { get; }
     }
 }

@@ -29,6 +29,15 @@ internal sealed class CombatLabels
     /// <summary>Gets the pre-interned label id for Vampiric Elite monsters (docs/adr/ADR-058).</summary>
     public int EliteVampiricLabelId { get; }
 
+    /// <summary>Gets the pre-interned label id for SporeVent dungeon hazards (docs/adr/ADR-061).</summary>
+    public int HazardSporeLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for SpikeTrap dungeon hazards (docs/adr/ADR-061).</summary>
+    public int HazardSpikeLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for MagmaFissure dungeon hazards (docs/adr/ADR-061).</summary>
+    public int HazardMagmaLabelId { get; }
+
     public CombatLabels(LabelRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);
@@ -38,6 +47,9 @@ internal sealed class CombatLabels
         this.EliteSwiftLabelId = registry.Intern("★ TỐC BIẾN ★", 0);
         this.EliteShieldedLabelId = registry.Intern("★ HỘ GIÁP ★", 1);
         this.EliteVampiricLabelId = registry.Intern("★ HUYẾT THỆ ★", 4);
+        this.HazardSporeLabelId = registry.Intern("BẪY ĐỘC", 3);
+        this.HazardSpikeLabelId = registry.Intern("BẪY GAI", 0);
+        this.HazardMagmaLabelId = registry.Intern("DUNG NHAM", 2);
 
         // Pre-intern common values 1..50 for all 5 styles
         for (int i = 1; i <= 50; i++)

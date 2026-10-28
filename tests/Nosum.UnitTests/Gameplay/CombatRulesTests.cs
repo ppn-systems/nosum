@@ -227,4 +227,29 @@ public sealed class CombatRulesTests
         int comboDmg = CombatRules.CalculateDamage(ItemCatalog.IronSword, 0, 5);
         comboDmg.Should().BeGreaterThan(baseDmg);
     }
+
+    [Fact]
+    public void PlanHazards_GeneratesAppropriateHazardsByFloorTier()
+    {
+        WalkGrid grid = new(32, 32, 16, new bool[32 * 32]);
+
+        List<DungeonHazard> floor5Hazards = CombatRules.PlanHazards("mine5", 12345, grid, 4, 4);
+        floor5Hazards.Should().NotBeEmpty();
+        floor5Hazards.All(h => h.Kind == DungeonHazardKind.SporeVent).Should().BeTrue();
+        floor5Hazards.All(h => h.Damage == 4).Should().BeTrue();
+
+        List<DungeonHazard> floor15Hazards = CombatRules.PlanHazards("mine15", 12345, grid, 4, 4);
+        floor15Hazards.Should().NotBeEmpty();
+        floor15Hazards.All(h => h.Kind == DungeonHazardKind.SpikeTrap).Should().BeTrue();
+        floor15Hazards.All(h => h.Damage == 8).Should().BeTrue();
+
+        List<DungeonHazard> floor30Hazards = CombatRules.PlanHazards("mine30", 12345, grid, 4, 4);
+        floor30Hazards.Should().NotBeEmpty();
+        floor30Hazards.All(h => h.Kind == DungeonHazardKind.MagmaFissure).Should().BeTrue();
+        floor30Hazards.All(h => h.Damage == 14).Should().BeTrue();
+
+        // Non-mine maps have no dungeon hazards
+        List<DungeonHazard> townHazards = CombatRules.PlanHazards("town", 12345, grid, 4, 4);
+        townHazards.Should().BeEmpty();
+    }
 }

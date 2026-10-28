@@ -21,4 +21,7 @@ public sealed partial class MonstersSnapshot : PacketBase<MonstersSnapshot>, IPa
 
     /// <summary>Live monsters on the map.</summary>
     [SerializeOrder(1)] public List<MonsterRow> Monsters { get; set; } = [];
+
+    /// <summary>Environmental hazards on the map (docs/adr/ADR-061).</summary>
+    [SerializeOrder(2)] public List<HazardRow> Hazards { get; set; } = [];
 }

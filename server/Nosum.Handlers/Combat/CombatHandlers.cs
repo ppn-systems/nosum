@@ -74,6 +74,18 @@ public static partial class CombatHandlers
                 row.Modifier = (byte)m.Modifier;
                 r.Monsters.Add(row);
             }
+
+            r.Hazards.Clear();
+            foreach (DungeonHazard h in view.Hazards)
+            {
+                HazardRow row = HazardRow.Create();
+                row.HazardId = h.HazardId;
+                row.Kind = (byte)h.Kind;
+                row.X = (ushort)h.X;
+                row.Y = (ushort)h.Y;
+                row.Damage = h.Damage;
+                r.Hazards.Add(row);
+            }
         }).ConfigureAwait(false);
     }
 

@@ -58,12 +58,20 @@ public sealed class CombatPacketTests
                 new MonsterRow { MonsterId = 1, Kind = 5, X = 12, Y = 14, Hp = 55, MaxHp = 55, Modifier = 1 },
                 new MonsterRow { MonsterId = 2, Kind = 6, X = 18, Y = 20, Hp = 45, MaxHp = 60, Modifier = 0 },
             ],
+            Hazards =
+            [
+                new HazardRow { HazardId = 1, Kind = 1, X = 15, Y = 16, Damage = 4 },
+                new HazardRow { HazardId = 2, Kind = 2, X = 20, Y = 22, Damage = 8 },
+            ],
         };
         MonstersSnapshot snapshotCopy = MonstersSnapshot.Deserialize(snapshot.Serialize());
         snapshotCopy.MapId.Should().Be("woods");
         snapshotCopy.Monsters.Should().HaveCount(2);
         snapshotCopy.Monsters[0].Should().BeEquivalentTo(new MonsterRow { MonsterId = 1, Kind = 5, X = 12, Y = 14, Hp = 55, MaxHp = 55, Modifier = 1 });
         snapshotCopy.Monsters[1].Should().BeEquivalentTo(new MonsterRow { MonsterId = 2, Kind = 6, X = 18, Y = 20, Hp = 45, MaxHp = 60, Modifier = 0 });
+        snapshotCopy.Hazards.Should().HaveCount(2);
+        snapshotCopy.Hazards[0].Should().BeEquivalentTo(new HazardRow { HazardId = 1, Kind = 1, X = 15, Y = 16, Damage = 4 });
+        snapshotCopy.Hazards[1].Should().BeEquivalentTo(new HazardRow { HazardId = 2, Kind = 2, X = 20, Y = 22, Damage = 8 });
 
         using MonsterChanged changed = new()
         {

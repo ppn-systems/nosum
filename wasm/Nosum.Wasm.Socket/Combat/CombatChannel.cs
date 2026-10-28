@@ -22,6 +22,14 @@ namespace Nosum.Wasm.Socket.Combat;
 /// <param name="Modifier">Elite affix modifier (docs/adr/ADR-058).</param>
 public readonly record struct MonsterClientRow(int MonsterId, byte Kind, int X, int Y, int Hp, int MaxHp, byte Modifier = 0);
 
+/// <summary>One environmental hazard on the current map or dungeon floor (docs/adr/ADR-061).</summary>
+/// <param name="HazardId">Hazard id.</param>
+/// <param name="Kind">Hazard kind (1=SporeVent, 2=SpikeTrap, 3=MagmaFissure).</param>
+/// <param name="X">Tile X.</param>
+/// <param name="Y">Tile Y.</param>
+/// <param name="Damage">Base damage per tick.</param>
+public readonly record struct HazardClientRow(byte HazardId, byte Kind, ushort X, ushort Y, byte Damage);
+
 /// <summary>Outcome of a client attack intent.</summary>
 /// <param name="Status">Combat status.</param>
 /// <param name="MonsterId">Target monster id.</param>
@@ -107,6 +115,7 @@ public sealed class CombatChannel : IDisposable
     private readonly List<ProjectileClientRow> _projectiles = [];
     private readonly List<DeathEffectClientRow> _deathEffects = [];
     private readonly List<FloatingTextClientRow> _floatingTexts = [];
+    private readonly List<HazardClientRow> _hazards = [];
     private readonly Dictionary<byte, long> _skillReadyAt = new();
     private int _playerX;
     private int _playerY;
@@ -213,6 +222,18 @@ public sealed class CombatChannel : IDisposable
                     destination.Add(row);
                 }
             }
+        }
+    }
+
+    /// <summary>Copies active environmental hazards into <paramref name="destination"/> without allocating.</summary>
+    /// <param name="destination">Destination list to populate.</param>
+    public void CopyHazards(List<HazardClientRow> destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        destination.Clear();
+        lock (_gate)
+        {
+            destination.AddRange(_hazards);
         }
     }
 
@@ -668,6 +689,15 @@ public sealed class CombatChannel : IDisposable
                 if (row.Hp > 0)
                 {
                     _monsters.Add(new MonsterClientRow(row.MonsterId, row.Kind, row.X, row.Y, row.Hp, row.MaxHp, row.Modifier));
+                }
+            }
+
+            _hazards.Clear();
+            if (packet.Hazards is not null)
+            {
+                foreach (HazardRow h in packet.Hazards)
+                {
+                    _hazards.Add(new HazardClientRow(h.HazardId, h.Kind, h.X, h.Y, h.Damage));
                 }
             }
         }

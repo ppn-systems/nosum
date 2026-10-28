@@ -19,10 +19,15 @@ namespace Nosum.Abstractions.Combat;
 /// <param name="StatusEffect">Active status effect kind (docs/adr/ADR-051).</param>
 public readonly record struct VitalsView(int Hp, int MaxHp, int Mp, int MaxMp, int CombatXp, byte StatusEffect = 0);
 
-/// <summary>Snapshot of the monsters on a map or mine floor.</summary>
+/// <summary>Snapshot of the monsters and environmental hazards on a map or mine floor (docs/adr/ADR-061).</summary>
 /// <param name="MapId">The map id.</param>
 /// <param name="Monsters">Live monsters on the map.</param>
-public sealed record MonstersView(string MapId, IReadOnlyList<MonsterSpawn> Monsters);
+/// <param name="Hazards">Environmental hazards on the map.</param>
+public sealed record MonstersView(string MapId, IReadOnlyList<MonsterSpawn> Monsters, IReadOnlyList<DungeonHazard>? Hazards = null)
+{
+    /// <summary>Environmental hazards on the map.</summary>
+    public IReadOnlyList<DungeonHazard> Hazards { get; init; } = Hazards ?? [];
+}
 
 /// <summary>Outcome of attacking a monster.</summary>
 /// <param name="Status">Combat status.</param>
