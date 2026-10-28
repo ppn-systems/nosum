@@ -29,7 +29,7 @@ Y terrain 122
 Z terrain 123
 0 terrain 124
 1 terrain 125
-o nature 10
+o nature 14
 + nature 26
 2 Paths 9
 3 Paths 10

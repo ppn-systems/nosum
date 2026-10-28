@@ -30,7 +30,8 @@ internal static class NatureSheet
         Bush(Area.Of(canvas, 8), 2);
 
         Area.Of(canvas, 9).Canopy([(6.5, 11, 3.5), (10.5, 10, 4.5)], Palette.StoneRamp, 9);
-        Area.Of(canvas, 10, 2).Canopy([(9, 9, 6), (18, 8, 7), (25, 10, 5.5), (15, 10, 5.5)], Palette.StoneRamp, 10);
+        Area.Of(canvas, 10).Canopy([(5.5, 10, 4.8), (10, 9.5, 5), (8, 7.5, 4.5)], Palette.StoneRamp, 10);
+        Area.Of(canvas, 11).Canopy([(6, 10.5, 4.5), (10.5, 9, 4.8), (7.5, 8, 4.2)], Palette.StoneRamp, 11);
         Stump(Area.Of(canvas, 12));
         Log(Area.Of(canvas, 13));
 
