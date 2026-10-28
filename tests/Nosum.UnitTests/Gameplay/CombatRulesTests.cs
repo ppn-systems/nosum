@@ -154,4 +154,26 @@ public sealed class CombatRulesTests
         // High defense still allows minimum 1 damage
         CombatRules.MitigateDamage(10, 50).Should().Be(1);
     }
+
+    [Fact]
+    public void StatusEffectSystem_InflictsPoisonAndPotionRegeneration()
+    {
+        (StatusEffectKind elixirEffect, int elixirDur, int elixirMag) = CombatRules.PotionEffect(ItemCatalog.Elixir);
+        elixirEffect.Should().Be(StatusEffectKind.Regeneration);
+        elixirDur.Should().Be(30);
+        elixirMag.Should().Be(5);
+
+        (StatusEffectKind soupEffect, int soupDur, int soupMag) = CombatRules.PotionEffect(ItemCatalog.PumpkinSoup);
+        soupEffect.Should().Be(StatusEffectKind.Swiftness);
+        soupDur.Should().Be(20);
+        soupMag.Should().Be(1);
+
+        (StatusEffectKind shroomDebuff, int shroomDur, int shroomMag) = CombatRules.MonsterStatusOnHit(MonsterKind.SporeShroom);
+        shroomDebuff.Should().Be(StatusEffectKind.Poison);
+        shroomDur.Should().Be(10);
+        shroomMag.Should().Be(3);
+
+        (StatusEffectKind slimeDebuff, _, _) = CombatRules.MonsterStatusOnHit(MonsterKind.GreenSlime);
+        slimeDebuff.Should().Be(StatusEffectKind.None);
+    }
 }

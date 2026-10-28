@@ -29,4 +29,7 @@ public sealed partial class VitalsState : PacketBase<VitalsState>, IPacketStatic
 
     /// <summary>Cumulative Combat skill experience.</summary>
     [SerializeOrder(4)] public int CombatXp { get; set; }
+
+    /// <summary>Active status effect kind (0 = None, 1 = Regen, 2 = Poison, 3 = Swiftness, docs/adr/ADR-051).</summary>
+    [SerializeOrder(5)] public byte StatusEffect { get; set; }
 }

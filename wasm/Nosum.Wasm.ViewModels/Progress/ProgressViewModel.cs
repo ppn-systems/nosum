@@ -79,6 +79,18 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the localized label of the MP bar: <c>MP 50 / 50</c>.</summary>
     public string MpLabel => this.Text("Mp_Label", Number(this.Mp), Number(this.MaxMp));
 
+    /// <summary>Gets the active status effect kind (0 = None, 1 = Regen, 2 = Poison, 3 = Swiftness, docs/adr/ADR-051).</summary>
+    public int StatusEffect => _combat?.StatusEffect ?? 0;
+
+    /// <summary>Gets the badge identifier for active status effects.</summary>
+    public string StatusEffectBadge => this.StatusEffect switch
+    {
+        1 => "regen",
+        2 => "poison",
+        3 => "swift",
+        _ => string.Empty,
+    };
+
     /// <summary>Gets the energy now.</summary>
     public int Energy => _progress.Energy;
 

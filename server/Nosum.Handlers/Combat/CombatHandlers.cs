@@ -41,6 +41,7 @@ public static partial class CombatHandlers
             r.Mp = (ushort)view.Mp;
             r.MaxMp = (ushort)view.MaxMp;
             r.CombatXp = view.CombatXp;
+            r.StatusEffect = view.StatusEffect;
         }).ConfigureAwait(false);
     }
 

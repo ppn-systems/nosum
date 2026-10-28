@@ -85,6 +85,7 @@ public sealed class CombatChannel : IDisposable
     private int _mp = 50;
     private int _maxMp = 50;
     private int _combatXp;
+    private int _statusEffect;
     private string _mapId = string.Empty;
 
     /// <summary>Initializes the combat channel.</summary>
@@ -128,6 +129,9 @@ public sealed class CombatChannel : IDisposable
 
     /// <summary>Gets cumulative Combat XP.</summary>
     public int CombatXp => Volatile.Read(ref _combatXp);
+
+    /// <summary>Gets the active status effect kind (0 = None, 1 = Regen, 2 = Poison, 3 = Swiftness, docs/adr/ADR-051).</summary>
+    public int StatusEffect => Volatile.Read(ref _statusEffect);
 
     /// <summary>Gets the map id of the current monster roster.</summary>
     public string MapId
@@ -387,6 +391,7 @@ public sealed class CombatChannel : IDisposable
         Volatile.Write(ref _mp, packet.Mp);
         Volatile.Write(ref _maxMp, packet.MaxMp);
         Volatile.Write(ref _combatXp, packet.CombatXp);
+        Volatile.Write(ref _statusEffect, (int)packet.StatusEffect);
         this.Changed?.Invoke();
     }
 

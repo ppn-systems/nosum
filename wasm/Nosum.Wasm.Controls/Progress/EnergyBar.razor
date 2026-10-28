@@ -5,7 +5,7 @@
 @if (Vm.HasEnergy)
 {
     <GamePanel Class="hud bare energy" Title="">
-        <div class="vitals-bars">
+        <div class="vitals-bars @Vm.StatusEffectBadge">
             <div class="energy-bar hp-bar @(Vm.HpLow ? "low" : null)" role="meter" aria-label="@Vm.HpLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxHp" aria-valuenow="@Vm.Hp" data-tip="@Vm.HpLabel">
                 <span class="energy-fill hp-fill" style="height: @(Math.Round(Vm.HpFraction * 100).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span>
             </div>

@@ -214,6 +214,27 @@ public static class CombatRules
         return hp > 0 || mp > 0;
     }
 
+    /// <summary>Returns the status effect granted by a potion or elixir (docs/adr/ADR-051).</summary>
+    /// <param name="itemId">The item id.</param>
+    /// <returns>Status effect kind, duration in seconds, and magnitude per tick.</returns>
+    public static (StatusEffectKind Effect, int DurationSeconds, int TickMagnitude) PotionEffect(int itemId) => itemId switch
+    {
+        ItemCatalog.Elixir => (StatusEffectKind.Regeneration, 30, 5),
+        ItemCatalog.PumpkinSoup => (StatusEffectKind.Swiftness, 20, 1),
+        _ => (StatusEffectKind.None, 0, 0),
+    };
+
+    /// <summary>Returns the debuff status effect inflicted by monster contact attacks (docs/adr/ADR-051).</summary>
+    /// <param name="kind">Monster species.</param>
+    /// <returns>Status effect kind, duration in seconds, and damage per tick.</returns>
+    public static (StatusEffectKind Effect, int DurationSeconds, int TickMagnitude) MonsterStatusOnHit(MonsterKind kind) => kind switch
+    {
+        MonsterKind.CaveBat => (StatusEffectKind.Poison, 6, 2),
+        MonsterKind.SporeShroom => (StatusEffectKind.Poison, 10, 3),
+        MonsterKind.BossBroodmother => (StatusEffectKind.Poison, 12, 4),
+        _ => (StatusEffectKind.None, 0, 0),
+    };
+
     /// <summary>Selects a monster species for a given mine floor and spawn index.</summary>
     /// <param name="floor">Mine floor (1..40).</param>
     /// <param name="index">Spawn slot index.</param>

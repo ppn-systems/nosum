@@ -16,7 +16,8 @@ namespace Nosum.Abstractions.Combat;
 /// <param name="Mp">Current MP.</param>
 /// <param name="MaxMp">Maximum MP.</param>
 /// <param name="CombatXp">Cumulative Combat experience.</param>
-public readonly record struct VitalsView(int Hp, int MaxHp, int Mp, int MaxMp, int CombatXp);
+/// <param name="StatusEffect">Active status effect kind (docs/adr/ADR-051).</param>
+public readonly record struct VitalsView(int Hp, int MaxHp, int Mp, int MaxMp, int CombatXp, byte StatusEffect = 0);
 
 /// <summary>Snapshot of the monsters on a map or mine floor.</summary>
 /// <param name="MapId">The map id.</param>

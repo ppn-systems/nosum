@@ -156,7 +156,7 @@ public sealed class CombatService : ICombatService, IDisposable
                                 if (bestDist <= 1)
                                 {
                                     int damage = CombatRules.MonsterDamage(m.Kind);
-                                    _ = this.ApplyMonsterContactAttackAsync(nearest.AccountId, damage, cancellationToken);
+                                    _ = this.ApplyMonsterContactAttackAsync(nearest.AccountId, damage, m.Kind, cancellationToken);
                                 }
                                 else
                                 {
@@ -190,6 +190,58 @@ public sealed class CombatService : ICombatService, IDisposable
                         await this.BroadcastMonsterChangedAsync(instanceKey, moved[mIdx], cancellationToken).ConfigureAwait(false);
                     }
                 }
+
+                foreach (KeyValuePair<Guid, PlayerVitalsState> kvp in _vitals)
+                {
+                    PlayerVitalsState state = kvp.Value;
+                    bool changed = false;
+                    VitalsView view;
+                    lock (state.Gate)
+                    {
+                        if (state.EffectRemainingTicks > 0)
+                        {
+                            state.EffectRemainingTicks--;
+                            if (state.ActiveEffect == StatusEffectKind.Regeneration)
+                            {
+                                int nextHp = Math.Min(state.MaxHp, state.Hp + state.EffectMagnitude);
+                                if (nextHp != state.Hp)
+                                {
+                                    state.Hp = nextHp;
+                                    changed = true;
+                                }
+                            }
+                            else if (state.ActiveEffect == StatusEffectKind.Poison)
+                            {
+                                int nextHp = Math.Max(1, state.Hp - state.EffectMagnitude);
+                                if (nextHp != state.Hp)
+                                {
+                                    state.Hp = nextHp;
+                                    changed = true;
+                                }
+                            }
+
+                            if (state.EffectRemainingTicks <= 0)
+                            {
+                                state.ActiveEffect = StatusEffectKind.None;
+                                changed = true;
+                            }
+                        }
+
+                        view = state.ToView();
+                    }
+
+                    if (changed && _notifier is not null)
+                    {
+                        using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
+                        lease.Value.Hp = (ushort)view.Hp;
+                        lease.Value.MaxHp = (ushort)view.MaxHp;
+                        lease.Value.Mp = (ushort)view.Mp;
+                        lease.Value.MaxMp = (ushort)view.MaxMp;
+                        lease.Value.CombatXp = view.CombatXp;
+                        lease.Value.StatusEffect = view.StatusEffect;
+                        _ = await _notifier.TrySendAsync(kvp.Key, lease.Value, cancellationToken).ConfigureAwait(false);
+                    }
+                }
             }
             catch (OperationCanceledException)
             {
@@ -202,7 +254,7 @@ public sealed class CombatService : ICombatService, IDisposable
         }
     }
 
-    private async Task ApplyMonsterContactAttackAsync(Guid playerId, int damage, CancellationToken cancellationToken)
+    private async Task ApplyMonsterContactAttackAsync(Guid playerId, int damage, MonsterKind monsterKind, CancellationToken cancellationToken)
     {
         if (!_vitals.TryGetValue(playerId, out PlayerVitalsState? state))
         {
@@ -217,6 +269,7 @@ public sealed class CombatService : ICombatService, IDisposable
         }
 
         int finalDamage = CombatRules.MitigateDamage(damage, defense);
+        (StatusEffectKind debuff, int durationSecs, int tickMag) = CombatRules.MonsterStatusOnHit(monsterKind);
         VitalsView updated;
         lock (state.Gate)
         {
@@ -224,6 +277,14 @@ public sealed class CombatService : ICombatService, IDisposable
             if (state.Hp == 0)
             {
                 state.Hp = Math.Max(1, state.MaxHp / 2);
+                state.ActiveEffect = StatusEffectKind.None;
+                state.EffectRemainingTicks = 0;
+            }
+            else if (debuff != StatusEffectKind.None)
+            {
+                state.ActiveEffect = debuff;
+                state.EffectRemainingTicks = durationSecs / 2;
+                state.EffectMagnitude = tickMag;
             }
 
             updated = state.ToView();
@@ -237,6 +298,7 @@ public sealed class CombatService : ICombatService, IDisposable
             lease.Value.Mp = (ushort)updated.Mp;
             lease.Value.MaxMp = (ushort)updated.MaxMp;
             lease.Value.CombatXp = updated.CombatXp;
+            lease.Value.StatusEffect = updated.StatusEffect;
             _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
     }
@@ -502,11 +564,19 @@ public sealed class CombatService : ICombatService, IDisposable
             }
         }
 
+        (StatusEffectKind effect, int durationSeconds, int magnitude) = CombatRules.PotionEffect(held.ItemId);
         VitalsView updated;
         lock (vitals.Gate)
         {
             vitals.Hp = Math.Min(vitals.MaxHp, vitals.Hp + hpRestore);
             vitals.Mp = Math.Min(vitals.MaxMp, vitals.Mp + mpRestore);
+            if (effect != StatusEffectKind.None)
+            {
+                vitals.ActiveEffect = effect;
+                vitals.EffectRemainingTicks = durationSeconds / 2;
+                vitals.EffectMagnitude = magnitude;
+            }
+
             updated = vitals.ToView();
         }
 
@@ -595,7 +665,13 @@ public sealed class CombatService : ICombatService, IDisposable
 
         public int CombatXp { get; set; }
 
-        public VitalsView ToView() => new(Hp, MaxHp, Mp, MaxMp, CombatXp);
+        public StatusEffectKind ActiveEffect { get; set; }
+
+        public int EffectRemainingTicks { get; set; }
+
+        public int EffectMagnitude { get; set; }
+
+        public VitalsView ToView() => new(Hp, MaxHp, Mp, MaxMp, CombatXp, (byte)ActiveEffect);
     }
 
     private sealed class InstanceMonsters

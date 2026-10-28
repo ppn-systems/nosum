@@ -60,3 +60,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-048](ADR-048-arcane-magic-projectiles-and-impact-effects.md) | Arcane magic projectiles, trajectory interpolation, and impact sparkles | Accepted |
 | [ADR-049](ADR-049-armor-equipment-defense-and-battle-gear.md) | Armor equipment paperdoll, defense mitigation, and craftable battle gear | Accepted |
 | [ADR-050](ADR-050-monster-defeat-death-poof-and-particles.md) | Monster defeat death poof animations, defeat particles, and sprite packing | Accepted |
+| [ADR-051](ADR-051-status-effects-regeneration-and-poison.md) | Status effects (regeneration, poison, swiftness), periodic ticks, and HUD aura | Accepted |
