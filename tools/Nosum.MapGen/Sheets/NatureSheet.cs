@@ -285,7 +285,7 @@ internal static class NatureSheet
         area.Fill(x, y + height, 3, 1, Palette.Shadow);
     }
 
-    // A straight run: two horizontal rails across the tile between posts, or a centered vertical rail with a post.
+    // A straight run: two horizontal rails across the tile between posts, or a continuous vertical rail with a wider post.
     private static void Straight(Area area, bool horizontal)
     {
         if (horizontal)
@@ -298,7 +298,7 @@ internal static class NatureSheet
         }
 
         Rail(area, 6, 0, 16, false, 142);
-        FencePost(area, 6, 2, 12);
+        CenterPost(area, north: true, south: true);
     }
 
     // A corner post at the middle with rails to the sides named.
@@ -306,18 +306,18 @@ internal static class NatureSheet
     {
         if (north)
         {
-            Rail(area, 6, 0, 10, false, 144);
+            Rail(area, 6, 0, 9, false, 144);
         }
 
         if (south)
         {
-            Rail(area, 6, 6, 10, false, 145);
+            Rail(area, 6, 7, 9, false, 145);
         }
 
         if (east)
         {
-            Rail(area, 7, 4, 9, true, 146);
-            Rail(area, 7, 9, 9, true, 152);
+            Rail(area, 8, 4, 8, true, 146);
+            Rail(area, 8, 9, 8, true, 152);
         }
 
         if (west)
@@ -326,7 +326,34 @@ internal static class NatureSheet
             Rail(area, 0, 9, 8, true, 153);
         }
 
-        FencePost(area, 6, 2, 12);
+        CenterPost(area, north, south);
+    }
+
+    // A 5px-wide post centered on x = 5..9 (over the 3px vertical rail at x = 6..8) that keeps vertical rails continuous.
+    private static void CenterPost(Area area, bool north, bool south)
+    {
+        area.Wood(5, 2, 5, 11, false, 136);
+        area.Fill(5, 2, 5, 1, Palette.Outline);
+        area.Fill(6, 3, 3, 2, Palette.Wood.Light);
+        area.Fill(5, 13, 5, 1, Palette.Outline);
+        if (!south)
+        {
+            area.Fill(5, 14, 5, 1, Palette.Shadow);
+        }
+        else
+        {
+            // Keep the vertical rail flowing cleanly into the south neighbour without a black cut across x = 6..8.
+            area.Put(6, 13, Palette.Wood.Light);
+            area.Put(7, 13, Palette.Wood.Base);
+            area.Put(8, 13, Palette.Wood.Shade);
+        }
+
+        if (north)
+        {
+            area.Put(6, 2, Palette.Wood.Light);
+            area.Put(7, 2, Palette.Wood.Base);
+            area.Put(8, 2, Palette.Wood.Shade);
+        }
     }
 
     private static void Gate(Area area)
