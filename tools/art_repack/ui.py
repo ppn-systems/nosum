@@ -151,8 +151,28 @@ def close_button(repo):
 
 
 def plate(repo):
-    """The tab plate, 16 x 16: the Ancient tan button, a bright edge on the top and left, a dark one on the bottom and right and a short shadow."""
-    return nine(sources.ui_image(repo, 'tan'), 16, 16, 2, 2, 3, 2)
+    """The tab plate, 16 x 16: built on the Ancient tan 9-slice, framed in warm wood with gold corner rivets and a recessed parchment face so
+    every HUD and menu icon button matches the wooden plaques and windows."""
+    base = nine(sources.ui_image(repo, 'tan'), 16, 16, 2, 2, 3, 2)
+    c = Canvas(16, 16)
+    c.paste(base, 0, 0)
+    for y in range(16):
+        for x in range(16):
+            if (x in (0, 15) and y in (0, 15)) or (x in (0, 15) and y == 14):
+                c.px[y][x] = (0, 0, 0, 0)
+            elif x in (0, 15) or y == 0 or y >= 14:
+                c.dot(x, y, OUT if y < 15 else P.WOOD_DD)
+            elif (x, y) in ((1, 1), (14, 1), (1, 13), (14, 13)):
+                c.dot(x, y, OUT)
+            elif y == 1 or x == 1:
+                c.dot(x, y, P.WOOD_HI if y == 1 and x < 14 else P.WOOD_L)
+            elif y == 13 or x == 14:
+                c.dot(x, y, P.WOOD_D)
+            else:
+                c.dot(x, y, P.PARCH_HI if y <= 4 else P.PARCH if y <= 9 else P.PARCH_LO)
+    for rx, ry in ((2, 2), (13, 2), (2, 12), (13, 12)):
+        c.dot(rx, ry, P.GOLD_L if ry == 2 else P.WOOD)
+    return c
 
 
 def cursor_arrow(repo):
@@ -243,147 +263,154 @@ def coin():
 def tab_art(rows, pal):
     w = max(len(r) for r in rows)
     h = len(rows)
-    c = Canvas(w, h)
-    c.art(rows, pal)
+    c = Canvas(w + 2, h + 2)
+    c.art(rows, pal, 1, 1)
     return c.outline()
 
 
 TAB_PICTURES = {
     'inventory': ([
-        '...LLLL...',
-        '..LLLLLL..',
-        '.LLBBBBLL.',
-        'LLLLLLLLLL',
-        'LLggLLggLL',
-        'LLggGGggLL',
-        'LLLLGGLLLL',
-        '.LLLLLLLL.',
-    ], {'L': P.WOOD_HI, 'B': P.WOOD_D, 'g': P.WOOD_DD, 'G': P.GOLD_HI}),
+        '..HHHHHH..',
+        '.HLLLLLLH.',
+        'HLLBBBBLLH',
+        'HLLgGGgLLH',
+        'HLLgGGgLLH',
+        'HLLLLLLLLH',
+        'DDDDDDDDDD',
+        '.DDDDDDDD.',
+    ], {'H': P.WOOD_HI, 'L': P.WOOD_L, 'B': P.WOOD_D, 'D': P.WOOD_DD, 'g': P.GOLD_D, 'G': P.GOLD_HI}),
 
     'wardrobe': ([
         '..CC..CC..',
-        '.CCCCCCCC.',
-        'BBBBBBBBBB',
-        'BBGG..GGBB',
-        'BBGG..GGBB',
-        '..GG..GG..',
-        '..DD..DD..',
-        '..DD..DD..',
-    ], {'C': (255, 255, 255), 'B': (60, 130, 220), 'G': (40, 90, 180), 'D': (30, 50, 90)}),
+        '.CHH..HHC.',
+        'LLBBBBBBLL',
+        'LBBBBBBBBL',
+        '.DBBGGGBD.',
+        '..BBBBBB..',
+        '..DDDDDD..',
+        '..DDDDDD..',
+    ], {'C': P.PARCH_HI, 'H': P.GOLD_HI, 'L': P.BLUE_L, 'B': P.BLUE, 'D': P.BLUE_D, 'G': P.GOLD}),
+
+    'coop': ([
+        '...RRR....',
+        '..WHHHW...',
+        '.WHHOHHW..',
+        '.WHHHHGG..',
+        'WWHHHHHWW.',
+        'WHHLLLHWW.',
+        '.WLLLLLW..',
+        '..GG.GG...',
+    ], {'R': P.RED, 'H': P.PARCH_HI, 'W': P.PARCH, 'L': P.PARCH_SH, 'O': OUT, 'G': P.GOLD}),
 
     'trade': ([
-        '..GGGG....',
-        '.GGGGGG...',
-        'GGG..GGG..',
-        '.GG.GGGG..',
+        '....HH....',
+        '.HHHHHG...',
+        'GGGGGGGG..',
         '....GG....',
         '....EE....',
-        '..EEEE.EE.',
-        '..EEE..EEE',
-        '...EEEEEE.',
-        '....EEEE..',
-    ], {'G': P.GOLD_HI, 'E': (62, 180, 80)}),
+        '..EEEEEEEE',
+        '...GLLLLL.',
+        '....LL....',
+    ], {'H': P.GOLD_HI, 'G': P.GOLD, 'L': P.GREEN_L, 'E': P.GREEN}),
 
     'visitors': ([
-        '...YYYY...',
-        '..YYYYYY..',
-        'YYYYYYYYYY',
-        '...ffff...',
-        '..ffffff..',
-        '..f.ff.f..',
-        '..ffffff..',
-        '..BBBBBB..',
-    ], {'Y': P.GOLD, 'f': (255, 205, 160), 'B': (40, 120, 210)}),
+        '..HHHHHH..',
+        '.HLLLLLLH.',
+        'HLLGGGGLLH',
+        '.DD.GG.DD.',
+        '.LD.EE.DL.',
+        '.LD.EE.DL.',
+        '.LD.EE.DL.',
+        'DDDDDDDDDD',
+    ], {'H': P.WOOD_HI, 'L': P.WOOD_L, 'D': P.WOOD_D, 'G': P.GOLD_HI, 'E': P.GREEN_L}),
 
     'market': ([
         'RRWWWRRWWW',
-        'RRWWWRRWWW',
-        '.RRWWWRRW.',
-        '..DDDDDD..',
-        '.BBBBBBBB.',
-        '.B.GG.GG.B.',
-        '.B.GG.GG.B.',
-        '.BBBBBBBB.',
-    ], {'R': P.RED, 'W': (255, 255, 255), 'D': P.WOOD_D, 'B': P.WOOD, 'G': (62, 180, 80)}),
+        'rrdddrrddd',
+        'LLLLLLLLLL',
+        'DBBBBBBBBD',
+        'DBGGEEGGD.',
+        'DBBBBBBBBD',
+        'DDDDDDDDDD',
+        '.DD....DD.',
+    ], {'R': P.RED_L, 'r': P.RED, 'W': P.PARCH_HI, 'd': P.PARCH_LO, 'L': P.WOOD_HI, 'B': P.WOOD, 'D': P.WOOD_D, 'G': P.GOLD_HI, 'E': P.GREEN_L}),
 
     'friends': ([
-        '.RR..RR...',
-        'RRRRRRRR..',
-        'RRHRRRRR..',
-        '.RRRRRR.pp',
-        '..RRRR.ppp',
-        '...RR..ppp',
-        '........p.',
-    ], {'R': (235, 60, 75), 'H': (255, 180, 190), 'p': (255, 140, 170)}),
+        '.HH..HH...',
+        'HLLRRLLR..',
+        'HRRRRRRRpp',
+        '.RRRRRRppp',
+        '..RRRRpppp',
+        '...RR.ppp.',
+        '.......p..',
+        '..........',
+    ], {'H': P.RED_HI, 'L': P.RED_L, 'R': P.RED, 'p': (255, 130, 165)}),
 
     'mail': ([
-        'WWWWWWWWWW',
-        'WW..WW..WW',
-        'W.W.WW.W.W',
-        'W..W..W..W',
+        'HHHHHHHHHH',
+        'HWwwwwwwWH',
+        'H.WwwwwW.H',
+        'H..WwwW..H',
         'W...RR...W',
+        'W..RRRR..W',
         'W...RR...W',
-        'WWWWWWWWWW',
-    ], {'W': (255, 250, 240), 'R': (200, 45, 45)}),
+        'DDDDDDDDDD',
+    ], {'H': P.PARCH_HI, 'W': P.PARCH, 'w': P.PARCH_LO, 'D': P.PARCH_DK, 'R': P.RED}),
 
     'skills': ([
-        '....GG....',
-        '...GGGG...',
-        'GGGGGGGGGG',
-        '.GGGHHGGG.',
-        '..GGHHGG..',
-        '..GGGGGG..',
-        '.GGg..gGG.',
+        '....HH....',
+        '...HGGH...',
+        'HHGGGGGGHH',
+        '.HGGWWGGH.',
+        '..GGWWGG..',
+        '.GGGGGGGG.',
+        '.GGd..dGG.',
         'GG......GG',
-    ], {'G': P.GOLD, 'H': P.GOLD_HI, 'g': P.GOLD_D}),
+    ], {'H': P.GOLD_HI, 'G': P.GOLD, 'W': P.PARCH_HI, 'd': P.GOLD_D}),
 
     'profile': ([
-        '..BBBBBB..',
-        '.BBBBBBBB.',
-        '...ffff...',
-        '..ffffff..',
-        '..f.ff.f..',
-        '..ffffff..',
+        '..HHHHHH..',
         '.GGGGGGGG.',
-        'GGGGGGGGGG',
-    ], {'B': (40, 120, 210), 'f': (255, 205, 160), 'G': P.GOLD}),
+        '..ffffff..',
+        '.ffOffOff.',
+        '..ffffff..',
+        '.LLBBBBLL.',
+        'LLBBBBBBLL',
+        'DDDDDDDDDD',
+    ], {'H': P.GOLD_HI, 'G': P.GOLD, 'f': (252, 214, 176), 'O': OUT, 'L': P.BLUE_L, 'B': P.BLUE, 'D': P.BLUE_D}),
 
     'settings': ([
-        '...SSSS...',
-        '..S.SS.S..',
-        '.SSSSSSSS.',
-        'SSS.DD.SSS',
-        'SS.DDDD.SS',
-        'SS.DDDD.SS',
-        'SSS.DD.SSS',
-        '.SSSSSSSS.',
-        '..S.SS.S..',
-        '...SSSS...',
-    ], {'S': (200, 205, 215), 'D': (80, 85, 95)}),
+        '...HHHH...',
+        '.HHSllSHH.',
+        '.HSSGGSSH.',
+        'HSSGddGSSH',
+        'SSSGGGGSSS',
+        '.SSD..DSS.',
+        '.DDSSSSDD.',
+        '...DDDD...',
+    ], {'H': P.STONE_HI, 'S': P.STONE_L, 'D': P.STONE_D, 'l': P.GOLD_HI, 'G': P.GOLD, 'd': P.GOLD_D}),
 
     'goals': ([
-        'GGGGGGGGGG',
-        'GG.GGGG.GG',
-        'GG.GGGG.GG',
-        '.GGGGGGGG.',
-        '..GGDDGG..',
-        '...GGGG...',
+        'HHHHHHHHHH',
+        'HG.GGGG.GH',
+        '.G.GRRG.G.',
+        '..GGGGGG..',
+        '...GddG...',
         '....GG....',
-        '...GGGG...',
-        '..GGDDGG..',
-        'GGGGGGGGGG',
-    ], {'G': P.GOLD_HI, 'D': P.GOLD_D}),
+        '..GGGGGG..',
+        '.DDDDDDDD.',
+    ], {'H': P.GOLD_HI, 'G': P.GOLD, 'd': P.GOLD_D, 'R': P.RED_L, 'D': P.WOOD_D}),
 
     'shop': ([
-        '...WWWW...',
-        '..W....W..',
-        '.W......W.',
+        '.HHHHHHHH.',
+        'HLLLLLLLLH',
+        'GGGGGGGGGG',
+        'BBBBGGBBBB',
+        'BBBBRRBBBB',
         'BBBBBBBBBB',
-        'BRRGGAABBB',
-        'BRRGGAABBB',
-        '.BBBBBBBB.',
-        '..BBBBBB..',
-    ], {'W': P.WOOD_HI, 'B': P.WOOD, 'R': P.RED, 'G': (62, 180, 80), 'A': P.GOLD_HI}),
+        'DDDDDDDDDD',
+        '.DDDDDDDD.',
+    ], {'H': P.WOOD_HI, 'L': P.WOOD_L, 'B': P.WOOD, 'D': P.WOOD_D, 'G': P.GOLD_HI, 'R': P.RED_L}),
 }
 
 
@@ -392,185 +419,110 @@ def tab(repo, name):
     rows, pal = TAB_PICTURES[name]
     pic = tab_art(rows, pal)
     ox = (16 - pic.width) // 2
-    oy = (14 - pic.height) // 2
+    oy = (15 - pic.height) // 2
     c.paste(pic, ox, oy)
     return c
 
 
 def tab_coop(repo):
-    c = plate(repo)
-    pic = animals.chicken('down', 0)
-    c.paste(pic.crop(1, 1, 14, 14), 1, 1)
-    return c
+    return tab(repo, 'coop')
 
 
-# --- Season, weather, and HUD icons -----------------------------------------------------------------------------------------
+# --- Season, weather, and HUD icons (drawn at 8 x 8 and scaled 2x to 16 x 16 so 8u HUD icons stay 1:1 pixel-crisp) ----------
 
 def season_icon(season):
-    c = Canvas(16, 16)
+    c = Canvas(8, 8)
     if season == 'spring':
         c.art([
-            '.....pp.........',
-            '....pppp..GG....',
-            '.....pp..GGGG...',
-            '....GG..GGGG....',
-            '...GGGG..GG.....',
-            '..GGGGG..d......',
-            '...GGG..dd......',
-            '....d...d.......',
-            '....d..dd.......',
-            '....dd.d........',
-            '.....d.d........',
-            '.....ddd........',
-            '......d.........',
-        ], {'p': (255, 170, 200), 'G': (99, 199, 77), 'd': (38, 92, 66)}, 0, 1)
+            '..pp.G..',
+            '.pp.GGG.',
+            '..G.GG..',
+            '.GGG.d..',
+            '..d.d...',
+            '...dd...',
+        ], {'p': (255, 170, 200), 'G': P.GREEN_L, 'd': P.GREEN_D}, 0, 1)
     elif season == 'summer':
         c.art([
-            '.......H........',
-            '..H....H....H...',
-            '...H..HHH..H....',
-            '....HHHHHHH.....',
-            '..HHHHGGGHHHH...',
-            '.HHHGGGGGGGHHH..',
-            'HHHGGGGGGGGGHHH.',
-            '..HGGGGGGGGGH...',
-            'HHHGGGGGGGGGHHH.',
-            '.HHHGGGGGGGHHH..',
-            '..HHHHGGGHHHH...',
-            '....HHHHHHH.....',
-            '...H..HHH..H....',
-            '..H....H....H...',
-            '.......H........',
-        ], {'H': P.GOLD_HI, 'G': P.GOLD}, 0, 0)
+            '.H.HH.H.',
+            '..HHHH..',
+            'HHGGGGHH',
+            'HHGGGGHH',
+            '..HHHH..',
+            '.H.HH.H.',
+        ], {'H': P.GOLD_HI, 'G': P.GOLD}, 0, 1)
     elif season == 'fall':
         c.art([
-            '.......R........',
-            '......RRR.......',
-            '..R..RRORR..R...',
-            '..RR.RRORR.RR...',
-            '..RRRRROORRRR...',
-            '..RRRRROORRRR...',
-            '...RRROOOORRR...',
-            '....RROOOORR....',
-            '..RRRROOOORRRR..',
-            '..RRRROOOORRRR..',
-            '..RR..dOOd..RR..',
-            '.......dd.......',
-            '.......dd.......',
-            '.......d........',
+            '...RR...',
+            '.RROORR.',
+            'RRROOORR',
+            '.RROORR.',
+            '..dOOd..',
+            '...dd...',
         ], {'R': (220, 75, 35), 'O': (245, 140, 45), 'd': (130, 50, 25)}, 0, 1)
     elif season == 'winter':
         c.art([
-            '.......W........',
-            '..W....W....W...',
-            '...W...W...W....',
-            '....W..W..W.....',
-            '.....CWCWC......',
-            '..WWCCWCCWW.....',
-            '...WWWWWWWW.....',
-            'WWWWWWCWWWWWW...',
-            '...WWWWWWWW.....',
-            '..WWCCWCCWW.....',
-            '.....CWCWC......',
-            '....W..W..W.....',
-            '...W...W...W....',
-            '..W....W....W...',
-            '.......W........',
-        ], {'W': (255, 255, 255), 'C': (140, 220, 255)}, 0, 0)
-    return c.outline()
+            '.W.WW.W.',
+            '..CWWC..',
+            'WWCWWCWW',
+            'WWCWWCWW',
+            '..CWWC..',
+            '.W.WW.W.',
+        ], {'W': (255, 255, 255), 'C': (140, 220, 255)}, 0, 1)
+    return c.outline().scale(2)
 
 
 def weather_icon(kind):
-    c = Canvas(16, 16)
+    c = Canvas(8, 8)
     if kind == 'sun':
         c.art([
-            '.......H........',
-            '..H....H....H...',
-            '...H..HHH..H....',
-            '....HHHHHHH.....',
-            '...HHGGGGGHH....',
-            '..HHGGGGGGGHH...',
-            '.HHGGGGGGGGGHH..',
-            'HHGGGGGGGGGGGHH.',
-            '.HHGGGGGGGGGHH..',
-            '..HHGGGGGGGHH...',
-            '...HHGGGGGHH....',
-            '....HHHHHHH.....',
-            '...H..HHH..H....',
-            '..H....H....H...',
-            '.......H........',
-        ], {'H': P.GOLD_HI, 'G': P.GOLD}, 0, 0)
+            '.H.HH.H.',
+            '..HHHH..',
+            'HHGGGGHH',
+            'HHGGGGHH',
+            '..HHHH..',
+            '.H.HH.H.',
+        ], {'H': P.GOLD_HI, 'G': P.GOLD}, 0, 1)
     elif kind == 'rain':
         c.art([
-            '....WWWW........',
-            '..WWCCCCWW......',
-            '.WCCCCCCCCW.WW..',
-            'WCCCCCCCCCCWCCW.',
-            'WCCCCCCCCCCCCW..',
-            '.WWWWWWWWWWWW...',
-            '................',
-            '...b....b...b...',
-            '..bb...bb..bb...',
-            '..b....b...b....',
-            '................',
-            '....b....b...b..',
-            '...bb...bb..bb..',
-            '...b....b...b...',
-        ], {'W': (210, 225, 240), 'C': (145, 170, 195), 'b': (60, 150, 245)}, 0, 1)
+            '..WWWW..',
+            '.WCCCCW.',
+            'WCCCCCCW',
+            '.b..b..b',
+            'b..b..b.',
+            '.b..b..b',
+        ], {'W': (220, 235, 250), 'C': (150, 180, 210), 'b': (70, 160, 250)}, 0, 1)
     elif kind == 'storm':
         c.art([
-            '....DDDD........',
-            '..DDMMMMDD......',
-            '.DMMMMMMMMD.DD..',
-            'DMMMMMMMMMMDMMD.',
-            'DMMMMMMMMMMMMD..',
-            '.DDDDDDDDDDDD...',
-            '......YYY.......',
-            '.....YYYY.......',
-            '....YYYY........',
-            '....YYYYYY......',
-            '......YYYY......',
-            '......YY........',
-            '.....YY.........',
-            '.....Y..........',
-        ], {'D': (90, 95, 110), 'M': (55, 60, 75), 'Y': P.GOLD_HI}, 0, 1)
+            '..DDDD..',
+            '.DMMMMD.',
+            'DMMMMMMD',
+            '...YYY..',
+            '..YYY...',
+            '...Y....',
+        ], {'D': (105, 112, 130), 'M': (65, 70, 88), 'Y': P.GOLD_HI}, 0, 1)
     elif kind == 'snow':
         c.art([
-            '....WWWW........',
-            '..WWCCCCWW......',
-            '.WCCCCCCCCW.WW..',
-            'WCCCCCCCCCCWCCW.',
-            'WCCCCCCCCCCCCW..',
-            '.WWWWWWWWWWWW...',
-            '................',
-            '...w....w...w...',
-            '..www..www.www..',
-            '...w....w...w...',
-            '................',
-            '....w....w...w..',
-            '...www..www.www.',
-            '....w....w...w..',
-        ], {'W': (220, 230, 245), 'C': (165, 185, 205), 'w': (255, 255, 255)}, 0, 1)
-    return c.outline()
+            '..WWWW..',
+            '.WCCCCW.',
+            'WCCCCCCW',
+            '.w..w..w',
+            '..w..w..',
+            '.w..w..w',
+        ], {'W': (225, 235, 250), 'C': (165, 185, 210), 'w': (255, 255, 255)}, 0, 1)
+    return c.outline().scale(2)
 
 
 def quest_scroll():
-    c = Canvas(16, 16)
+    c = Canvas(8, 8)
     c.art([
-        '.wWWWWWWWWWWw.',
-        '..PPPPPPPPPP..',
-        '..PLLLLLLLLP..',
-        '..PLLwwwwLLP..',
-        '..PLLLLLLLLP..',
-        '..PLLwwwLLLP..',
-        '..PLLLLLLLLP..',
-        '..PLLLRRLLLP..',
-        '..PLLRRRRLLP..',
-        '..PLLLRRLLLP..',
-        '..PPPPPPPPPP..',
-        '.wWWWWWWWWWWw.',
-    ], {'w': P.GOLD_L, 'W': P.WOOD_L, 'P': P.GOLD_D, 'L': P.PARCH_HI, 'R': P.RED}, 1, 2)
-    return c.outline()
+        '.wWWWWw.',
+        '..LLLL..',
+        '..LwwL..',
+        '..LLLL..',
+        '..LRRL..',
+        '.wWWWWw.',
+    ], {'w': P.GOLD_HI, 'W': P.GOLD, 'L': P.PARCH_HI, 'R': P.RED}, 0, 1)
+    return c.outline().scale(2)
 
 
 def sound_icon(kind):
@@ -651,22 +603,16 @@ def coin_pouch():
 
 
 def coin_rich():
-    c = Canvas(16, 16)
+    c = Canvas(8, 8)
     c.art([
-        '...GGGGGG...',
-        '..GHHHHHHG..',
-        '.GHWWWWWWHG.',
-        'GHWWggWWWWgG',
-        'GHWggggWWWWG',
-        'GHWggggWWWWG',
-        'GHWggggWWWWG',
-        'GHWggggWWWWG',
-        'GHWWggWWWWgG',
-        '.GHWWWWWWHG.',
-        '..GGgggggG..',
-        '...GGGGGG...',
-    ], {'G': P.WOOD_DD, 'H': P.GOLD_HI, 'W': P.GOLD_L, 'g': P.GOLD_D}, 2, 2)
-    return c
+        '..HHHH..',
+        '.HWWWWH.',
+        '.HWggWg.',
+        '.HWggWg.',
+        '.HWggWg.',
+        '..gggg..',
+    ], {'H': P.GOLD_HI, 'W': P.GOLD_L, 'g': P.GOLD_D}, 0, 1)
+    return c.outline().scale(2)
 
 
 # --- the sheets ------------------------------------------------------------------------------------------------------------

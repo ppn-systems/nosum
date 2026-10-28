@@ -31,7 +31,7 @@ internal static class FarmerSprite
     private const int HatSize = 20;
     private const int HatOffsetY = 0;
 
-    private static readonly int[] s_walkColumns = [0, 1, 0, 2];
+    private static readonly int[] s_walkColumns = [4, 1, 4, 0, 5, 2, 5, 0];
 
     /// <summary>
     /// Adds the farmer's layers (and optionally their held item and tool/weapon swing animation) to the world batch, sorted by the feet.
@@ -62,15 +62,23 @@ internal static class FarmerSprite
         int row = facing switch { Facing.Down => 0, Facing.Up => 2, _ => 1 };
         int flags = facing == Facing.Left ? RenderCommandBuffer.FlipX : 0;
         bool swinging = swingProgress is >= 0f and < 1f;
-        int column = swinging ? ActionColumn : s_walkColumns[walkFrame & 3];
-        int bob = column is 1 or 2 ? 1 : 0;
-        int x = feetX - (Width / 2);
-        int y = feetY - Height;
+        int column = swinging
+            ? (swingProgress < 0.25f ? 4 : ActionColumn)
+            : (walkFrame <= 0 ? 0 : s_walkColumns[(walkFrame - 1) & 7]);
+        int bob = column is 1 or 2 or 3 ? 1 : 0;
+        int lungeX = swinging && swingProgress is >= 0.25f and < 0.75f
+            ? (facing == Facing.Right ? 1 : facing == Facing.Left ? -1 : 0)
+            : 0;
+        int lungeY = swinging && swingProgress is >= 0.25f and < 0.75f
+            ? (facing == Facing.Down ? 1 : facing == Facing.Up ? -1 : 0)
+            : 0;
+        int x = feetX - (Width / 2) + lungeX;
+        int y = feetY - Height + lungeY;
         int frameX = column * Width;
         int frameY = row * Height;
         int sortY = feetY;
 
-        if ( column is 1 or 2 )
+        if (column is 1 or 2)
         {
             DrawFootstepDust(batch, facing, column, feetX, feetY, sortY - 1, id);
         }
@@ -268,7 +276,7 @@ internal static class FarmerSprite
 
             if (!swinging)
             {
-                int stride = column == 1 ? -2 : column == 2 ? 2 : 0;
+                int stride = column switch { 1 => -2, 4 => -1, 5 => 1, 2 => 2, _ => 0 };
                 (drawX, drawY) = facing switch
                 {
                     Facing.Down => (bodyX + 6, bodyY + 11 + bob - (stride / 2)),
@@ -279,31 +287,23 @@ internal static class FarmerSprite
             }
             else
             {
-                int stage = swingProgress < 0.28f ? 0 : swingProgress < 0.68f ? 1 : 2;
+                // 3-step sprite rotation: stage 0 (overhead wind-up, row+1), stage 1 (diagonal mid-cleave, row+0), stage 2 (full strike, row+2)
+                int stage = swingProgress < 0.28f ? 0 : swingProgress < 0.58f ? 1 : 2;
                 bool hasRotatedSwingRows = (sheetTex == textures.Tools || sheetTex == textures.Weapons)
                     && heldItemId is not (ItemCatalog.CoopBlueprint or ItemCatalog.BarnBlueprint or ItemCatalog.MilkPail);
                 if (hasRotatedSwingRows)
                 {
-                    srcY += stage == 0 ? 16 : 32;
+                    srcY += stage == 0 ? 16 : stage == 1 ? 0 : 32;
                 }
 
-                (drawX, drawY) = (facing, stage) switch
+                // Smooth 60 FPS circular swing arc around the farmer's shoulder
+                float arc = MathF.Sin(Math.Clamp(swingProgress, 0f, 1f) * MathF.PI * 0.85f);
+                (drawX, drawY) = facing switch
                 {
-                    (Facing.Down, 0) => (bodyX - 4, bodyY + 2),
-                    (Facing.Down, 1) => (bodyX + 3, bodyY + 18),
-                    (Facing.Down, _) => (bodyX + 7, bodyY + 21),
-
-                    (Facing.Up, 0) => (bodyX + 5, bodyY + 8),
-                    (Facing.Up, 1) => (bodyX, bodyY - 6),
-                    (Facing.Up, _) => (bodyX - 6, bodyY - 4),
-
-                    (Facing.Right, 0) => (bodyX + 1, bodyY + 1),
-                    (Facing.Right, 1) => (bodyX + 12, bodyY + 12),
-                    (Facing.Right, _) => (bodyX + 10, bodyY + 19),
-
-                    (_, 0) => (bodyX - 1, bodyY + 1),
-                    (_, 1) => (bodyX - 12, bodyY + 12),
-                    (_, _) => (bodyX - 10, bodyY + 19),
+                    Facing.Down => (bodyX - 4 + (int)(arc * 11f), bodyY + 2 + (int)(arc * 19f)),
+                    Facing.Up => (bodyX + 5 - (int)(arc * 11f), bodyY + 8 - (int)(arc * 13f)),
+                    Facing.Right => (bodyX + 1 + (int)(arc * 11f), bodyY + 1 + (int)(arc * 17f)),
+                    _ => (bodyX - 1 - (int)(arc * 11f), bodyY + 1 + (int)(arc * 17f)),
                 };
             }
 
