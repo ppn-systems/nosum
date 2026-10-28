@@ -188,7 +188,7 @@ public sealed class ProgressTests
     [Fact]
     public void Toolbar_HasASkillsTab_WithItsOwnIcon_BeforeTheProfile()
     {
-        ToolbarViewModel toolbar = new(Localizer<Language>());
+        using ToolbarViewModel toolbar = new(Localizer<Language>());
 
         ToolbarItem skills = toolbar.Items.Should().ContainSingle(i => i.Kind == PanelKind.Skills).Subject;
         skills.Icon.Should().Be("tab-skills");

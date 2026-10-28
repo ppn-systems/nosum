@@ -87,18 +87,18 @@ public static class PacketBounds
             Type t = property.PropertyType;
             if (property.GetCustomAttribute<WireMaxLengthAttribute>() is { } length && t == typeof(string))
             {
-                tests.Add(Expression.OrElse(
-                    Expression.Equal(member, Expression.Constant(null, typeof(string))),
+                tests.Add(Expression.AndAlso(
+                    Expression.NotEqual(member, Expression.Constant(null, typeof(string))),
                     Expression.LessThanOrEqual(Expression.Property(member, nameof(string.Length)), Expression.Constant(length.MaxLength))));
             }
             else if (property.GetCustomAttribute<WireMaxLengthAttribute>() is { } count && IsList(t, out Type? element))
             {
-                Expression isNull = Expression.Equal(member, Expression.Constant(null, t));
+                Expression notNull = Expression.NotEqual(member, Expression.Constant(null, t));
                 Expression within = Expression.LessThanOrEqual(Expression.Property(member, "Count"), Expression.Constant(count.MaxLength));
                 Func<object, bool>? elementCheck = element is { IsClass: true } && element != typeof(string) ? CheckFor(element) : null;
                 tests.Add(elementCheck is null
-                    ? Expression.OrElse(isNull, within)
-                    : Expression.OrElse(isNull, Expression.AndAlso(within, Expression.Call(typeof(PacketBounds), nameof(ElementsOk), [element!], member))));
+                    ? Expression.AndAlso(notNull, within)
+                    : Expression.AndAlso(notNull, Expression.AndAlso(within, Expression.Call(typeof(PacketBounds), nameof(ElementsOk), [element!], member))));
             }
             else if (property.GetCustomAttribute<WireRangeAttribute>() is { } range && IsRangeType(t))
             {

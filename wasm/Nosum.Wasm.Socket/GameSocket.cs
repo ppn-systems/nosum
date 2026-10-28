@@ -25,6 +25,7 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
     private readonly CancellationTokenSource _stop = new();
     private readonly Lock _gate = new();
     private readonly List<ISubscription> _subscriptions = [];
+    private readonly Dictionary<Type, List<PendingReply>> _pendingReplies = [];
     [SuppressMessage("Usage", "CA2213", Justification = "Borrowed: the run loop owns the session and disposes it when the connection ends.")]
     private WebSocketSession? _session;
     private Task _loop = Task.CompletedTask;
@@ -73,12 +74,24 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
     }
 
     /// <inheritdoc/>
-    public ValueTask<TResponse> RequestAsync<TResponse>(IPacket request, CancellationToken cancellationToken = default)
+    public async ValueTask<TResponse> RequestAsync<TResponse>(IPacket request, CancellationToken cancellationToken = default)
         where TResponse : class, IPacket, IPacketStaticOpcode
     {
         ArgumentNullException.ThrowIfNull(request);
-        // Requests are encrypted: account packets carry passwords and tokens, and the server refuses them in plaintext.
-        return this.ReadySession().RequestAsync<TResponse>(request, RequestOptions.Default.WithEncrypt(), ct: cancellationToken);
+        WebSocketSession session = this.ReadySession();
+        PendingReply? token = this.RegisterPendingReply(typeof(TResponse));
+        try
+        {
+            // Requests are encrypted: account packets carry passwords and tokens, and the server refuses them in plaintext.
+            return await session.RequestAsync<TResponse>(request, RequestOptions.Default.WithEncrypt(), ct: cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (token is not null)
+            {
+                this.ReleasePendingReply(typeof(TResponse), token);
+            }
+        }
     }
 
     /// <inheritdoc/>
@@ -184,6 +197,7 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
                 lock (_gate)
                 {
                     _session = null;
+                    _pendingReplies.Clear();
                     if (_ready.Task.IsCompleted)
                     {
                         _ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -352,8 +366,84 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
         }
     }
 
+    private PendingReply? RegisterPendingReply(Type packetType)
+    {
+        lock (_gate)
+        {
+            bool hasSubscriber = false;
+            foreach (ISubscription sub in _subscriptions)
+            {
+                if (sub.PacketType == packetType)
+                {
+                    hasSubscriber = true;
+                    break;
+                }
+            }
+
+            if (!hasSubscriber)
+            {
+                return null;
+            }
+
+            PendingReply token = new();
+            if (!_pendingReplies.TryGetValue(packetType, out List<PendingReply>? list))
+            {
+                list = [];
+                _pendingReplies[packetType] = list;
+            }
+
+            list.Add(token);
+            return token;
+        }
+    }
+
+    private bool TryConsumePendingReply(Type packetType)
+    {
+        lock (_gate)
+        {
+            if (!_pendingReplies.TryGetValue(packetType, out List<PendingReply>? list) || list.Count == 0)
+            {
+                return false;
+            }
+
+            PendingReply token = list[0];
+            list.RemoveAt(0);
+            token.Consumed = true;
+            if (list.Count == 0)
+            {
+                _ = _pendingReplies.Remove(packetType);
+            }
+
+            return true;
+        }
+    }
+
+    private void ReleasePendingReply(Type packetType, PendingReply token)
+    {
+        lock (_gate)
+        {
+            if (token.Consumed || !_pendingReplies.TryGetValue(packetType, out List<PendingReply>? list))
+            {
+                return;
+            }
+
+            _ = list.Remove(token);
+            if (list.Count == 0)
+            {
+                _ = _pendingReplies.Remove(packetType);
+            }
+        }
+    }
+
+    private sealed class PendingReply
+    {
+        public bool Consumed { get; set; }
+    }
+
     private interface ISubscription
     {
+        Type PacketType { get; }
+
         void Attach(WebSocketSession session);
 
         void Detach();
@@ -373,10 +463,12 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
             _handler = handler;
         }
 
+        public Type PacketType => typeof(TPacket);
+
         public void Attach(WebSocketSession session)
         {
             _inner?.Dispose();
-            _inner = session.On(_handler);
+            _inner = session.On<TPacket>(this.OnPacket);
         }
 
         public void Detach()
@@ -386,5 +478,15 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
         }
 
         public void Dispose() => _owner.Remove(this);
+
+        private void OnPacket(TPacket packet)
+        {
+            if (_owner.TryConsumePendingReply(typeof(TPacket)))
+            {
+                return;
+            }
+
+            _handler(packet);
+        }
     }
 }

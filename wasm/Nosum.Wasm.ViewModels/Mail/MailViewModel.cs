@@ -40,6 +40,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
     private readonly ItemDescriber _items;
     private readonly NicknameFormatter _names;
     private readonly Func<long> _nowMs;
+    private readonly HashSet<Guid> _collecting = [];
     private bool _open;
 
     /// <summary>Initializes the view model.</summary>
@@ -59,7 +60,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
         _items = items;
         _names = names;
         _nowMs = serverNowMs ?? (() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-        mail.Changed += this.Raise;
+        mail.Changed += this.OnMailChanged;
         mail.UnreadChanged += this.OnUnreadChanged;
         mail.Completed += this.OnCompleted;
     }
@@ -131,7 +132,26 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
 
     /// <summary>Collects the attachment of a mail.</summary>
     /// <param name="mailId">The mail.</param>
-    public void Collect(Guid mailId) => _mail.Collect(mailId);
+    public void Collect(Guid mailId)
+    {
+        if (_collecting.Contains(mailId))
+        {
+            return;
+        }
+
+        long now = _nowMs();
+        foreach (MailInfo mail in _mail.Mails)
+        {
+            if (mail.Id == mailId && (mail.Collected || mail.ExpiresAtMs <= now))
+            {
+                return;
+            }
+        }
+
+        _ = _collecting.Add(mailId);
+        _mail.Collect(mailId);
+        this.Raise();
+    }
 
     /// <summary>Deletes a mail.</summary>
     /// <param name="mailId">The mail.</param>
@@ -142,15 +162,22 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
             this.Selected = null;
         }
 
+        _ = _collecting.Remove(mailId);
         _mail.Delete(mailId);
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        _mail.Changed -= this.Raise;
+        _mail.Changed -= this.OnMailChanged;
         _mail.UnreadChanged -= this.OnUnreadChanged;
         _mail.Completed -= this.OnCompleted;
+    }
+
+    private void OnMailChanged()
+    {
+        _collecting.Clear();
+        this.Raise();
     }
 
     // A mail arrived or changed while the page is open: read the box again so the list is not stale.
@@ -164,6 +191,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
 
     private void OnCompleted(MailAction action, MailStatus status)
     {
+        _collecting.Clear();
         if (status != MailStatus.Ok)
         {
             this.SetStatus(this.StatusText(status));
@@ -184,7 +212,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
             slots.Add(_items.Describe(i, mail.Items[i].ItemId, mail.Items[i].Quantity));
         }
 
-        bool canCollect = hasAttachment && !mail.Collected && mail.ExpiresAtMs > now;
+        bool canCollect = hasAttachment && !mail.Collected && mail.ExpiresAtMs > now && !_collecting.Contains(mail.Id);
         return new MailDisplay(
             mail.Id,
             title,

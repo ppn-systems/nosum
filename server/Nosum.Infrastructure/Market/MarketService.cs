@@ -26,6 +26,7 @@ using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
 using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Market;
@@ -95,8 +96,8 @@ public sealed class MarketService : IMarketService
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        // The bin is on the farm map; the position is the server's own record.
-        if (!_presence.TryGet(connection, out PlayerPresence? player) || !_maps.TryGet(player.MapId, out MapDefinition? map) || map.Tillable is null)
+        // The bin is on the personal farm map; the position is the server's own record.
+        if (!_presence.TryGet(connection, out PlayerPresence? player) || !_maps.TryGet(player.MapId, out MapDefinition? map) || map.Tillable is null || map.IsCoop)
         {
             return new ShipOutcome(MarketStatus.NotAtBin, 0);
         }
@@ -138,11 +139,10 @@ public sealed class MarketService : IMarketService
         }
 
         long earned = (long)each * count;
-        TransferStatus status = await _transfers.ExecuteAsync(
-            [new TransferLeg(TransferParty.Player(playerId), itemId, -count, earned)],
-            "shipping.sell",
-            null,
-            cancellationToken).ConfigureAwait(false);
+        TransferLeg[] shipLegs = [new TransferLeg(TransferParty.Player(playerId), itemId, -count, earned)];
+        TransferStatus status = _transfers is TransferService slotShipping
+            ? await slotShipping.ExecuteFromSlotAsync(slot, shipLegs, "shipping.sell", null, cancellationToken).ConfigureAwait(false)
+            : await _transfers.ExecuteAsync(shipLegs, "shipping.sell", null, cancellationToken).ConfigureAwait(false);
         if (status != TransferStatus.Ok)
         {
             return new ShipOutcome(ToStatus(status), 0);
@@ -180,37 +180,37 @@ public sealed class MarketService : IMarketService
         }
 
         MarketStatus refusal = MarketStatus.Ok;
-        TransferStatus status = await _transfers.ExecuteAsync(
-            [new TransferLeg(TransferParty.Player(playerId), itemId, -quantity)],
-            "market.list",
-            async (unit, token) =>
+        TransferLeg[] listingLegs = [new TransferLeg(TransferParty.Player(playerId), itemId, -quantity)];
+        TransferEnlistment enlistListing = async (unit, token) =>
+        {
+            DateTimeOffset now = _time.GetUtcNow();
+            IRepository<MarketListing> listings = unit.Repository<MarketListing>();
+            int active = await listings.CountAsync(l => l.SellerId == playerId && l.Status == ListingStatus.Active, token).ConfigureAwait(false);
+
+            // The seller's lock (the transfer holds it) orders two listings of one player, so the sum of units is exact (docs/adr/ADR-030 D4).
+            List<MarketListing> sameItem = await listings.ListAsync(l => l.SellerId == playerId && l.Status == ListingStatus.Active && l.ItemId == itemId, token).ConfigureAwait(false);
+            int listedUnits = sameItem.Sum(l => l.Quantity);
+            if (MarketRules.ValidateListing(itemId, quantity, price, active, listedUnits) is { } found and not MarketVerdict.Ok)
             {
-                DateTimeOffset now = _time.GetUtcNow();
-                IRepository<MarketListing> listings = unit.Repository<MarketListing>();
-                int active = await listings.CountAsync(l => l.SellerId == playerId && l.Status == ListingStatus.Active, token).ConfigureAwait(false);
+                refusal = ToStatus(found);
+                return TransferStatus.Refused;
+            }
 
-                // The seller's lock (the transfer holds it) orders two listings of one player, so the sum of units is exact (docs/adr/ADR-030 D4).
-                List<MarketListing> sameItem = await listings.ListAsync(l => l.SellerId == playerId && l.Status == ListingStatus.Active && l.ItemId == itemId, token).ConfigureAwait(false);
-                int listedUnits = sameItem.Sum(l => l.Quantity);
-                if (MarketRules.ValidateListing(itemId, quantity, price, active, listedUnits) is { } found and not MarketVerdict.Ok)
-                {
-                    refusal = ToStatus(found);
-                    return TransferStatus.Refused;
-                }
-
-                listings.Add(new MarketListing
-                {
-                    SellerId = playerId,
-                    ItemId = itemId,
-                    Quantity = quantity,
-                    Price = price,
-                    Status = ListingStatus.Active,
-                    CreatedAt = now,
-                    ExpiresAt = now.AddHours(CoinRules.ListingHours),
-                });
-                return TransferStatus.Ok;
-            },
-            cancellationToken).ConfigureAwait(false);
+            listings.Add(new MarketListing
+            {
+                SellerId = playerId,
+                ItemId = itemId,
+                Quantity = quantity,
+                Price = price,
+                Status = ListingStatus.Active,
+                CreatedAt = now,
+                ExpiresAt = now.AddHours(CoinRules.ListingHours),
+            });
+            return TransferStatus.Ok;
+        };
+        TransferStatus status = _transfers is TransferService slotListing
+            ? await slotListing.ExecuteFromSlotAsync(slot, listingLegs, "market.list", enlistListing, cancellationToken).ConfigureAwait(false)
+            : await _transfers.ExecuteAsync(listingLegs, "market.list", enlistListing, cancellationToken).ConfigureAwait(false);
         return status == TransferStatus.Refused ? refusal : ToStatus(status);
     }
 

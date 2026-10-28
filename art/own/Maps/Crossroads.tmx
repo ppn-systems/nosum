@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="65" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="1">
   <properties>
-    <property name="Warp" type="string" value="44 22 Town 0 54 44 23 Town 0 54 44 24 Town 0 54 44 25 Town 0 54 65 22 Town 0 54 65 23 Town 0 54 65 24 Town 0 54 65 25 Town 0 54 9 22 Farm 79 17 9 23 Farm 79 17 9 24 Farm 79 17 9 25 Farm 79 17 -1 22 Farm 79 17 -1 23 Farm 79 17 -1 24 Farm 79 17 -1 25 Farm 79 17 -1 26 Farm 79 17 11 6 Backwoods 49 30 11 7 Backwoods 49 30 11 8 Backwoods 49 30 11 9 Backwoods 49 30" />
+    <property name="Warp" type="string" value="44 22 Town 0 54 44 23 Town 0 54 44 24 Town 0 54 44 25 Town 0 54 65 22 Town 0 54 65 23 Town 0 54 65 24 Town 0 54 65 25 Town 0 54 9 22 Farm 79 17 9 23 Farm 79 17 9 24 Farm 79 17 9 25 Farm 79 17 -1 22 Farm 79 17 -1 23 Farm 79 17 -1 24 Farm 79 17 -1 25 Farm 79 17 -1 26 Farm 79 17 11 6 Backwoods 49 30 11 7 Backwoods 49 30 11 8 Backwoods 49 30 11 9 Backwoods 49 30 12 5 Backwoods 49 30 13 5 Backwoods 49 30 14 5 Backwoods 49 30 15 5 Backwoods 49 30 16 5 Backwoods 49 30" />
   </properties>
   <tileset firstgid="1" name="terrain" tilewidth="16" tileheight="16" tilecount="126" columns="16">
     <image source="terrain.png" width="256" height="128" />

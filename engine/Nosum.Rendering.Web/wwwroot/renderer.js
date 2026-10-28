@@ -359,6 +359,9 @@ function tintedTexture(id, tint) {
     if (!source) {
         return null;
     }
+    if (tinted.size >= 256) {
+        tinted.delete(tinted.keys().next().value);
+    }
     result = new OffscreenCanvas(source.width, source.height);
     const c = result.getContext("2d");
     const u = tint >>> 0;
@@ -367,7 +370,9 @@ function tintedTexture(id, tint) {
     c.fillStyle = `rgb(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255})`;
     c.fillRect(0, 0, source.width, source.height);
     c.globalCompositeOperation = "destination-in";
+    c.globalAlpha = (u & 255) / 255;
     c.drawImage(source, 0, 0);
+    c.globalAlpha = 1;
     tinted.set(key, result);
     return result;
 }

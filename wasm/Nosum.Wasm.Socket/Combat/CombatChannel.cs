@@ -9,6 +9,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Combat;
 using Nosum.Contracts.Combat.C2S;
 using Nosum.Contracts.Combat.S2C;
+using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Skills;
 
 namespace Nosum.Wasm.Socket.Combat;
@@ -345,11 +346,29 @@ public sealed class CombatChannel : IDisposable
         }
     }
 
+    /// <summary>Returns whether the given skill is off cooldown and the player has enough MP to cast it.</summary>
+    /// <param name="skillId">Skill kind.</param>
+    /// <returns><see langword="true"/> if the skill can be cast right now.</returns>
+    public bool CanCastSkill(byte skillId)
+    {
+        if (this.GetSkillCooldownRemaining(skillId) > 0f)
+        {
+            return false;
+        }
+
+        return !SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition def) || this.Mp >= def.MpCost;
+    }
+
     /// <summary>Casts a combat skill (1 = Whirlwind, 2 = Fireball, 3 = DivineHeal) (docs/adr/ADR-056).</summary>
     /// <param name="skillId">Skill kind.</param>
     /// <param name="targetMonsterId">Target monster id (0 for self/AoE, or auto-targets nearest within range 6).</param>
     public void CastSkill(byte skillId, int targetMonsterId = 0)
     {
+        if (!this.CanCastSkill(skillId))
+        {
+            return;
+        }
+
         if (skillId == 2 && targetMonsterId == 0)
         {
             if (this.TryFindTarget(_playerX, _playerY, 6, out MonsterClientRow m))
@@ -667,7 +686,7 @@ public sealed class CombatChannel : IDisposable
             req.Value.TargetMonsterId = targetMonsterId;
             CastSkillResult reply = await _socket.RequestAsync<CastSkillResult>(req.Value).ConfigureAwait(false);
 
-            if (reply.Status == CombatStatus.Ok)
+            if (reply.CooldownMs > 0)
             {
                 long readyAt = Environment.TickCount64 + reply.CooldownMs;
                 lock (_gate)
@@ -675,11 +694,11 @@ public sealed class CombatChannel : IDisposable
                     _skillReadyAt[reply.SkillId] = readyAt;
                 }
 
-                if (reply.CooldownMs > 0)
-                {
-                    _ = this.ExpireSkillCooldownAsync(reply.SkillId, reply.CooldownMs, readyAt);
-                }
+                _ = this.ExpireSkillCooldownAsync(reply.SkillId, reply.CooldownMs, readyAt);
+            }
 
+            if (reply.Status == CombatStatus.Ok)
+            {
                 if (reply.SkillId == 3 && reply.HealAmount > 0)
                 {
                     this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, reply.HealAmount, 3);
@@ -688,7 +707,6 @@ public sealed class CombatChannel : IDisposable
                 {
                     if (this.TryGetMonster(targetMonsterId, out MonsterClientRow tm))
                     {
-                        this.SpawnProjectile(_playerX, _playerY, tm.X, tm.Y, 1);
                         this.SpawnFloatingText((tm.X * 16) + 8, (tm.Y * 16) - 6, reply.DamageDealt, 1);
                     }
                 }
@@ -702,6 +720,20 @@ public sealed class CombatChannel : IDisposable
                     this.RecordCombo(reply.ComboCount);
                 }
 
+                if (reply.MaxHp > 0)
+                {
+                    Volatile.Write(ref _hp, reply.Hp);
+                    Volatile.Write(ref _maxHp, reply.MaxHp);
+                    Volatile.Write(ref _mp, reply.Mp);
+                    Volatile.Write(ref _maxMp, reply.MaxMp);
+                    Volatile.Write(ref _combatXp, reply.CombatXp);
+                    this.CheckCombatLevelUp(reply.CombatXp);
+                }
+
+                this.Changed?.Invoke();
+            }
+            else
+            {
                 if (reply.MaxHp > 0)
                 {
                     Volatile.Write(ref _hp, reply.Hp);
@@ -735,11 +767,12 @@ public sealed class CombatChannel : IDisposable
             return;
         }
 
+        bool hadInitialVitals = _hasInitialVitals;
         int oldHp = Volatile.Read(ref _hp);
         int oldMp = Volatile.Read(ref _mp);
         int diff = packet.Hp - oldHp;
         int mpDiff = packet.Mp - oldMp;
-        if (oldHp > 0 && diff != 0)
+        if (hadInitialVitals && oldHp > 0 && diff != 0)
         {
             if (diff > 0)
             {
@@ -751,7 +784,7 @@ public sealed class CombatChannel : IDisposable
                 this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, -diff, style);
             }
         }
-        else if (oldMp > 0 && mpDiff > 0)
+        else if (hadInitialVitals && oldMp > 0 && mpDiff > 0)
         {
             this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, mpDiff, 3);
         }
@@ -771,16 +804,18 @@ public sealed class CombatChannel : IDisposable
         this.Changed?.Invoke();
     }
 
+    /// <summary>Gets whether the currently firing <see cref="LevelledUp"/> event originated from Combat XP rather than an external skill.</summary>
+    public bool IsCombatSkillLevelUp { get; private set; }
+
     /// <summary>Triggers the celebratory level-up radiance beacon and banner (docs/adr/ADR-062).</summary>
     /// <param name="level">New level reached.</param>
     public void TriggerLevelUp(int level)
     {
-        if (level <= 0 || level <= _lastCelebratedLevel)
+        if (level <= 0)
         {
             return;
         }
 
-        _lastCelebratedLevel = level;
         Volatile.Write(ref _levelUpValue, level);
         Volatile.Write(ref _levelUpTick, Environment.TickCount64);
         this.LevelledUp?.Invoke(level);
@@ -822,7 +857,16 @@ public sealed class CombatChannel : IDisposable
 
         if (newLevel > _lastCelebratedLevel)
         {
-            this.TriggerLevelUp(newLevel);
+            _lastCelebratedLevel = newLevel;
+            this.IsCombatSkillLevelUp = true;
+            try
+            {
+                this.TriggerLevelUp(newLevel);
+            }
+            finally
+            {
+                this.IsCombatSkillLevelUp = false;
+            }
         }
     }
 
@@ -848,7 +892,34 @@ public sealed class CombatChannel : IDisposable
 
     private async Task ExpireSkillCooldownAsync(byte skillId, int cooldownMs, long readyAt)
     {
-        await Task.Delay(cooldownMs + 50).ConfigureAwait(false);
+        _ = cooldownMs;
+        while (true)
+        {
+            long remainingMs = readyAt - Environment.TickCount64;
+            if (remainingMs <= 0)
+            {
+                break;
+            }
+
+            int delayMs = (int)Math.Min(remainingMs + 25, 500);
+            await Task.Delay(delayMs).ConfigureAwait(false);
+            bool stillActive = false;
+            lock (_gate)
+            {
+                if (_skillReadyAt.TryGetValue(skillId, out long current) && current == readyAt)
+                {
+                    stillActive = true;
+                }
+            }
+
+            if (!stillActive)
+            {
+                return;
+            }
+
+            this.Changed?.Invoke();
+        }
+
         bool notify = false;
         lock (_gate)
         {
@@ -874,7 +945,18 @@ public sealed class CombatChannel : IDisposable
     {
         lock (_gate)
         {
-            _mapId = packet.MapId ?? string.Empty;
+            string incomingMapId = packet.MapId ?? string.Empty;
+            bool mapChanged = !string.Equals(_mapId, incomingMapId, StringComparison.Ordinal);
+            _mapId = incomingMapId;
+            if (mapChanged)
+            {
+                _projectiles.Clear();
+                _deathEffects.Clear();
+                _floatingTexts.Clear();
+                Volatile.Write(ref _activeSkillId, 0);
+                Volatile.Write(ref _activeSkillTick, 0);
+            }
+
             _monsters.Clear();
             foreach (MonsterRow row in packet.Monsters)
             {

@@ -103,7 +103,9 @@ public static class GameMaps
             extraWarps:
             [
                 new MapWarp(22, 14, RoomOfFloor(10), 10, 6),
-            ]),
+                new MapWarp(65, 26, Town, 0, 54),
+            ],
+            dropFileWarps: [(9, 22), (9, 23), (9, 24), (9, 25), (44, 22), (44, 23), (44, 24), (44, 25)]),
         new(Forest, "Forest.tmx", 68, 0),
         new(Town, "Town.tmx", 4, 54, shops:
         [
@@ -116,8 +118,15 @@ public static class GameMaps
             new ShopPoint(MarketRules.MarketCounterId, s_townMarketTile.X, s_townMarketTile.Y),
         ],
         extraWarps: [new MapWarp(CoopLand.TownGate.X, CoopLand.TownGate.Y, CoopFarm, CoopLand.LandArrival.X, CoopLand.LandArrival.Y)],
-        dropFileWarps: [(94, 110)]),
-        new(Backwoods, "Hillside.tmx", 14, 38),
+        dropFileWarps: [(94, 110), (90, -1), (98, -1)]),
+        new(Backwoods, "Hillside.tmx", 14, 38,
+            extraWarps:
+            [
+                new MapWarp(50, 9, Mountain, 0, 13),
+                new MapWarp(50, 18, Mountain, 0, 13),
+                new MapWarp(50, 27, BusStop, 14, 6),
+                new MapWarp(50, 33, BusStop, 14, 6),
+            ]),
 
         // The mine's entrance cave: the file's two exits to the Mountain are replaced by one of ours (the cave mouth of the Mountain, docs/adr/ADR-037 D1); the other leads down the shaft.
         new(Mine, "Mine.tmx", MineWorld.CaveShaftFront.X, MineWorld.CaveShaftFront.Y,
@@ -139,7 +148,7 @@ public static class GameMaps
         new(Mountain, "Mountain.tmx", 15, 38,
             extraWarps: [new MapWarp(MineWorld.MountainGate.X, MineWorld.MountainGate.Y, Mine, MineWorld.CaveArrival.X, MineWorld.CaveArrival.Y)],
             openTiles: [.. OutdoorWorld.MountainBridges],
-            dropFileWarps: [(MineWorld.MountainGate.X, MineWorld.MountainGate.Y), (103, 15)],
+            dropFileWarps: [(MineWorld.MountainGate.X, MineWorld.MountainGate.Y), (103, 15), (57, 41), (85, 41)],
             scatter: [.. OutdoorWorld.MountainNodes]),
         new(Beach, "Beach.tmx", 39, 2,
             gates: [OutdoorWorld.BeachBridge],

@@ -1,3 +1,4 @@
+@using Nosum.Gameplay.Items
 @using Nosum.Wasm.ViewModels.Crafting
 @using Nosum.Wasm.Controls.Menu
 @inherits ObservingComponent<CraftingViewModel>
@@ -37,7 +38,10 @@
             }
             <GameRow>
                 <GameButton Text="@Vm.CraftLabel" Disabled="@(!Vm.CanCraft(1))" OnClick="@(() => Vm.Craft(1))" />
-                <GameButton Variant="plain" Text="@Vm.CraftManyLabel" Disabled="@(!Vm.CanCraft(CraftingViewModel.BatchSize))" OnClick="@(() => Vm.Craft(CraftingViewModel.BatchSize))" />
+                @if (!ItemCatalog.TryGet(selected.Output.ItemId, out ItemDefinition? outputDef) || outputDef.MaxStack > 1)
+                {
+                    <GameButton Variant="plain" Text="@Vm.CraftManyLabel" Disabled="@(!Vm.CanCraft(CraftingViewModel.BatchSize))" OnClick="@(() => Vm.Craft(CraftingViewModel.BatchSize))" />
+                }
             </GameRow>
         </GameSection>
     </GameStack>

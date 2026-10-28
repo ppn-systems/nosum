@@ -16,6 +16,7 @@ public sealed class PropLayer
     private readonly PropPlacement[] _placements;
     private readonly int[] _textures;
     private readonly int _tileSize;
+    private bool _batched;
 
     /// <summary>Initializes the layer.</summary>
     /// <param name="placements">The props.</param>
@@ -38,11 +39,12 @@ public sealed class PropLayer
     /// <summary>Gets the props.</summary>
     public IReadOnlyList<PropPlacement> Placements => _placements;
 
-    /// <summary>Adds each prop's base (the image below its roof part) to the world batch.</summary>
+    /// <summary>Adds each prop's base and roof to the depth-sorted world batch anchored at the footprint bottom.</summary>
     /// <param name="batch">The world batch.</param>
     public void AddToBatch(WorldSpriteBatch batch)
     {
         ArgumentNullException.ThrowIfNull(batch);
+        _batched = true;
 
         for (int i = 0; i < _placements.Length; i++)
         {
@@ -53,16 +55,26 @@ public sealed class PropLayer
 
             PropDefinition d = _placements[i].Definition;
             Origin(_placements[i], out int left, out int top, out int anchorY);
-            batch.Add(_textures[i], d.SrcX, d.SrcY + d.FrontHeight, d.Width, d.Height - d.FrontHeight, left, top + d.FrontHeight, anchorY, left + (d.Width / 2), id: i);
+            int sortX = left + (d.Width / 2);
+            batch.Add(_textures[i], d.SrcX, d.SrcY + d.FrontHeight, d.Width, d.Height - d.FrontHeight, left, top + d.FrontHeight, anchorY, sortX, id: i * 2);
+            if (d.FrontHeight > 0)
+            {
+                batch.Add(_textures[i], d.SrcX, d.SrcY, d.Width, d.FrontHeight, left, top, anchorY, sortX, id: (i * 2) + 1);
+            }
         }
     }
 
-    /// <summary>Records the roof parts that draw over the player.</summary>
+    /// <summary>Records the roof parts when <see cref="AddToBatch"/> was not used for the frame.</summary>
     /// <param name="commands">Where draws are recorded.</param>
     /// <param name="camera">The camera.</param>
     public void DrawFront(RenderCommandBuffer commands, in Camera2D camera)
     {
         ArgumentNullException.ThrowIfNull(commands);
+        if (_batched)
+        {
+            _batched = false;
+            return;
+        }
 
         for (int i = 0; i < _placements.Length; i++)
         {

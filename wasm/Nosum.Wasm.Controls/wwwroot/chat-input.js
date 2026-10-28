@@ -11,11 +11,26 @@
 let host = null;
 let enabled = false;
 let attached = null;
+let pointerInChat = false;
 
 function wantsEnter(target) {
     if (!target) { return true; }
     const tag = target.tagName;
-    return !(tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A" || target.isContentEditable);
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A" || target.isContentEditable) {
+        return false;
+    }
+    if (typeof document !== "undefined" && document.querySelector("[role='dialog'], .hud-center > *, .hud-overlay > *")) {
+        return false;
+    }
+    return true;
+}
+
+function onWindowPointerDown(e) {
+    const t = e.target;
+    pointerInChat = Boolean(t && typeof t.closest === "function" && t.closest(".game-panel.chat, .chat-log"));
+    if (!pointerInChat && attached && typeof document !== "undefined" && document.activeElement !== attached) {
+        setTimeout(() => { if (host) { host.invokeMethodAsync("CloseFromKey"); } }, 0);
+    }
 }
 
 function onWindowKey(e) {
@@ -44,13 +59,19 @@ function onInputKey(e) {
 
 // The blur also fires when Blazor removes the focused box while it applies a render batch (closing the box, sending a line); the .NET heap is locked
 // then and a call into .NET throws "heap is currently locked". Calling back after the batch (a macrotask) is safe, and closing an already closed box is a no-op.
-function onInputBlur() {
+function onInputBlur(e) {
+    const related = e && e.relatedTarget;
+    if (pointerInChat || (related && typeof related.closest === "function" && related.closest(".game-panel.chat, .chat-log"))) {
+        pointerInChat = false;
+        return;
+    }
     setTimeout(() => { if (host) { host.invokeMethodAsync("CloseFromKey"); } }, 0);
 }
 
 export function init(reference) {
     host = reference;
     window.addEventListener("keydown", onWindowKey);
+    window.addEventListener("pointerdown", onWindowPointerDown, true);
 }
 
 export function setEnabled(value) {
@@ -76,10 +97,12 @@ function detach() {
         attached.removeEventListener("blur", onInputBlur);
         attached = null;
     }
+    pointerInChat = false;
 }
 
 export function dispose() {
     window.removeEventListener("keydown", onWindowKey);
+    window.removeEventListener("pointerdown", onWindowPointerDown, true);
     detach();
     host = null;
 }

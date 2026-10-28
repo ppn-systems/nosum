@@ -24,7 +24,7 @@ public sealed class GameMenuTabsTests
     [Fact]
     public void Items_EveryTabHasKindLabelIconAndAUniqueKind()
     {
-        ToolbarViewModel vm = new(Localizer<Language>());
+        using ToolbarViewModel vm = new(Localizer<Language>());
 
         vm.Items.Should().OnlyContain(i => i.Kind != PanelKind.None && i.Label.Length > 0 && !i.Label.StartsWith("Toolbar_", System.StringComparison.Ordinal) && i.Icon.StartsWith("tab-", System.StringComparison.Ordinal));
         vm.Items.Select(i => i.Kind).Should().OnlyHaveUniqueItems();
@@ -34,7 +34,7 @@ public sealed class GameMenuTabsTests
     [Fact]
     public void Items_SettingsIsTheLastTabAndHOpensIt()
     {
-        ToolbarViewModel vm = new(Localizer<Language>());
+        using ToolbarViewModel vm = new(Localizer<Language>());
 
         vm.Items[^1].Kind.Should().Be(PanelKind.Settings);
         vm.Items[^1].Hotkey.Should().Be("H");
@@ -43,7 +43,7 @@ public sealed class GameMenuTabsTests
     [Fact]
     public void Items_HoldOnlyPlayerThings_NoShopMarketBoardChestOrFurnaceTab()
     {
-        ToolbarViewModel vm = new(Localizer<Language>());
+        using ToolbarViewModel vm = new(Localizer<Language>());
 
         vm.Items.Select(i => i.Kind).Should().BeEquivalentTo(
         [
@@ -58,7 +58,7 @@ public sealed class GameMenuTabsTests
     [Fact]
     public void Items_MailIsATabOfItsOwn()
     {
-        ToolbarViewModel vm = new(Localizer<Language>());
+        using ToolbarViewModel vm = new(Localizer<Language>());
 
         ToolbarItem mail = vm.Items.Single(i => i.Kind == PanelKind.Mail);
 
@@ -69,7 +69,7 @@ public sealed class GameMenuTabsTests
     [Fact]
     public void MailTip_ShowsTheUnreadCountOnlyWhenThereIsUnreadMail_AndTheCogTipIsOnlySettings()
     {
-        ToolbarViewModel vm = new(Localizer<Language>());
+        using ToolbarViewModel vm = new(Localizer<Language>());
 
         vm.MailTip(0).Should().Be(vm.Text("Toolbar_Mail"));
         vm.MailTip(3).Should().StartWith(vm.Text("Toolbar_Mail")).And.Contain("3");
@@ -80,7 +80,7 @@ public sealed class GameMenuTabsTests
     [Fact]
     public void TitleOf_ReturnsLocalizedTitleForEveryToolbarItem_AndEmptyForNonToolbarKind()
     {
-        ToolbarViewModel vm = new(Localizer<Language>());
+        using ToolbarViewModel vm = new(Localizer<Language>());
 
         foreach (ToolbarItem item in vm.Items)
         {

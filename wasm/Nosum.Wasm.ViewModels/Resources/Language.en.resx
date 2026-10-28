@@ -871,5 +871,7 @@
   <data name="MapName_woods" xml:space="preserve"><value>Secret Woods</value></data>
   <data name="MapName_mine" xml:space="preserve"><value>Mine Entrance</value></data>
   <data name="MapName_mine1" xml:space="preserve"><value>Mine Floor 1</value></data>
+  <data name="MapName_mine10" xml:space="preserve"><value>Mine Floor 10</value></data>
   <data name="MapName_coop_farm" xml:space="preserve"><value>Co-op Land</value></data>
+  <data name="MapName_coopfarm" xml:space="preserve"><value>Co-op Land</value></data>
 </root>

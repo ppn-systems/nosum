@@ -6,62 +6,64 @@
    delivery are the server's; this page only asks and shows. Opened at the board counter, so it opens its own view model by itself.
    A second tab holds today's delivery requests (docs/adr/ADR-036 D5). *@
 <MenuPage Status="@Vm.ActiveStatus" Good="Vm.ActiveStatusIsGood">
-    <GameStack>
-        <TabBar Active="(int)Vm.Tab" OnSelect="@(id => Vm.SetTab((BoardTab)id))"
-                Tabs="@(new (int, string)[] { ((int)BoardTab.Goals, Vm.Text("Board_Tab_Goals")), ((int)BoardTab.Requests, Vm.Text("Board_Tab_Requests")) })" />
-        @if (Vm.Tab == BoardTab.Requests)
-        {
-            <RequestsSection Vm="Vm.Requests" />
-        }
-        else
-        {
-        <p class="goals-hint">@Vm.Text("Goals_Hint")</p>
-        @if (Vm.SeasonEndText.Length > 0)
-        {
-            <p class="goals-season">@Vm.SeasonEndText</p>
-        }
-        @if (!Vm.IsLoaded)
-        {
-            <p class="goals-hint">@Vm.Text("Goals_Loading") <GameSpinner /></p>
-        }
-        else if (Vm.Goals.Count == 0)
-        {
-            <p class="goals-hint">@Vm.Text("Goals_None")</p>
-        }
+    <div class="goals-wrap">
+        <GameStack>
+            <TabBar Active="(int)Vm.Tab" OnSelect="@(id => Vm.SetTab((BoardTab)id))"
+                    Tabs="@(new (int, string)[] { ((int)BoardTab.Goals, Vm.Text("Board_Tab_Goals")), ((int)BoardTab.Requests, Vm.Text("Board_Tab_Requests")) })" />
+            @if (Vm.Tab == BoardTab.Requests)
+            {
+                <RequestsSection Vm="Vm.Requests" />
+            }
+            else
+            {
+            <p class="goals-hint">@Vm.Text("Goals_Hint")</p>
+            @if (Vm.SeasonEndText.Length > 0)
+            {
+                <p class="goals-season">@Vm.SeasonEndText</p>
+            }
+            @if (!Vm.IsLoaded)
+            {
+                <p class="goals-hint">@Vm.Text("Goals_Loading") <GameSpinner /></p>
+            }
+            else if (Vm.Goals.Count == 0)
+            {
+                <p class="goals-hint">@Vm.Text("Goals_None")</p>
+            }
 
-        @foreach (GoalDisplay goal in Vm.Goals)
-        {
-            int goalId = goal.GoalId;
-            <GameSection Title="@goal.Name">
-                <GameStack>
-                    <GameRow Class="center goal-head">
-                        <ItemSlotButton Slot="goal.Item" />
-                        <span class="goal-reward">@goal.RewardText</span>
-                    </GameRow>
-                    <GameProgress Percent="goal.Percent" Text="@goal.ProgressText" Label="@(goal.Name + ": " + goal.ProgressText)"
-                                  Class="@(goal.State == GoalState.Completed ? "done" : goal.State == GoalState.Expired ? "faded" : null)" />
-                    <GameRow Class="spread goal-numbers">
-                        <span>@goal.MineText</span>
-                        <span>@goal.ContributorsText</span>
-                    </GameRow>
-                    @if (goal.State == GoalState.Active)
-                    {
-                        <GameRow Class="center">
-                            <span>@Vm.Text("Goals_Amount")</span>
-                            <span class="goal-amount"><GameInput Type="number" Value="@goal.AmountText" ValueChanged="@(v => Vm.SetAmount(goalId, v))" OnEnter="@(() => Vm.Deliver(goalId))" Label="@Vm.Text("Goals_Amount")" MaxLength="4" /></span>
-                            <GameButton Text="@Vm.Text("Goals_Deliver")" Disabled="!goal.CanDeliver" OnClick="@(() => Vm.Deliver(goalId))" />
-                            <span class="goal-held">@Vm.Text("Goals_Held", goal.Held)</span>
+            @foreach (GoalDisplay goal in Vm.Goals)
+            {
+                int goalId = goal.GoalId;
+                <GameSection Title="@goal.Name">
+                    <GameStack>
+                        <GameRow Class="center goal-head">
+                            <ItemSlotButton Slot="goal.Item" />
+                            <span class="goal-reward">@goal.RewardText</span>
                         </GameRow>
-                    }
-                    else
-                    {
-                        <p class="goal-state @(goal.State == GoalState.Completed ? "done" : null)">@goal.StateText</p>
-                    }
-                </GameStack>
-            </GameSection>
-        }
-        }
-    </GameStack>
+                        <GameProgress Percent="goal.Percent" Text="@goal.ProgressText" Label="@(goal.Name + ": " + goal.ProgressText)"
+                                      Class="@(goal.State == GoalState.Completed ? "done" : goal.State == GoalState.Expired ? "faded" : null)" />
+                        <GameRow Class="spread goal-numbers">
+                            <span>@goal.MineText</span>
+                            <span>@goal.ContributorsText</span>
+                        </GameRow>
+                        @if (goal.State == GoalState.Active)
+                        {
+                            <GameRow Class="center">
+                                <span>@Vm.Text("Goals_Amount")</span>
+                                <span class="goal-amount"><GameInput Type="number" Value="@goal.AmountText" ValueChanged="@(v => Vm.SetAmount(goalId, v))" OnEnter="@(() => Vm.Deliver(goalId))" Label="@Vm.Text("Goals_Amount")" MaxLength="4" /></span>
+                                <GameButton Text="@Vm.Text("Goals_Deliver")" Disabled="!goal.CanDeliver" OnClick="@(() => Vm.Deliver(goalId))" />
+                                <span class="goal-held">@Vm.Text("Goals_Held", goal.Held)</span>
+                            </GameRow>
+                        }
+                        else
+                        {
+                            <p class="goal-state @(goal.State == GoalState.Completed ? "done" : null)">@goal.StateText</p>
+                        }
+                    </GameStack>
+                </GameSection>
+            }
+            }
+        </GameStack>
+    </div>
 </MenuPage>
 
 @code {

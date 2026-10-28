@@ -445,8 +445,8 @@ def season_icon(season):
         c.art([
             '.H.HH.H.',
             '..HHHH..',
-            'HHGGGGHH',
-            'HHGGGGHH',
+            '.HGGGGH.',
+            '.HGGGGH.',
             '..HHHH..',
             '.H.HH.H.',
         ], {'H': P.GOLD_HI, 'G': P.GOLD}, 0, 1)
@@ -454,7 +454,7 @@ def season_icon(season):
         c.art([
             '...RR...',
             '.RROORR.',
-            'RRROOORR',
+            '.RROOOR.',
             '.RROORR.',
             '..dOOd..',
             '...dd...',
@@ -463,8 +463,8 @@ def season_icon(season):
         c.art([
             '.W.WW.W.',
             '..CWWC..',
-            'WWCWWCWW',
-            'WWCWWCWW',
+            '.WCWWCW.',
+            '.WCWWCW.',
             '..CWWC..',
             '.W.WW.W.',
         ], {'W': (255, 255, 255), 'C': (140, 220, 255)}, 0, 1)
@@ -477,8 +477,8 @@ def weather_icon(kind):
         c.art([
             '.H.HH.H.',
             '..HHHH..',
-            'HHGGGGHH',
-            'HHGGGGHH',
+            '.HGGGGH.',
+            '.HGGGGH.',
             '..HHHH..',
             '.H.HH.H.',
         ], {'H': P.GOLD_HI, 'G': P.GOLD}, 0, 1)
@@ -486,16 +486,16 @@ def weather_icon(kind):
         c.art([
             '..WWWW..',
             '.WCCCCW.',
-            'WCCCCCCW',
-            '.b..b..b',
-            'b..b..b.',
-            '.b..b..b',
+            '.CCCCCC.',
+            '..b..b..',
+            '.b..b...',
+            '..b..b..',
         ], {'W': (220, 235, 250), 'C': (150, 180, 210), 'b': (70, 160, 250)}, 0, 1)
     elif kind == 'storm':
         c.art([
             '..DDDD..',
             '.DMMMMD.',
-            'DMMMMMMD',
+            '.MMMMMM.',
             '...YYY..',
             '..YYY...',
             '...Y....',
@@ -504,10 +504,10 @@ def weather_icon(kind):
         c.art([
             '..WWWW..',
             '.WCCCCW.',
-            'WCCCCCCW',
-            '.w..w..w',
-            '..w..w..',
-            '.w..w..w',
+            '.CCCCCC.',
+            '.w..w...',
+            '...w..w.',
+            '.w..w...',
         ], {'W': (225, 235, 250), 'C': (165, 185, 210), 'w': (255, 255, 255)}, 0, 1)
     return c.outline().scale(2)
 

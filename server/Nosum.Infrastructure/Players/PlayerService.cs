@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -50,6 +51,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     private readonly IGroundItems? _groundItems;
     private readonly IBuildingDirectory? _buildings;
     private readonly ICommunityUnlocks? _unlocks;
+    private readonly ConcurrentDictionary<uint, (int X, int Y)> _disarmedTiles = new();
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands on which map.</param>
@@ -108,14 +110,14 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         (MapDefinition map, MotionState start, MapInstance instance) = await this.StartingPlaceAsync(accountId, cancellationToken).ConfigureAwait(false);
         await _world.PrepareAsync(instance, cancellationToken).ConfigureAwait(false);
 
-        // A mine floor is built afresh for the player when they come back (docs/adr/ADR-026 D3), so the tile they logged out on may hold a stone now: they start at the arrival tile.
-        if (map.IsMineFloor && MoveValidator.FootBlocked(_world.GridFor(instance, map), start.X, start.Y))
+        // A mine floor or instance world may hold a node, building, or placed object on the tile the player logged out on: they start at the arrival tile.
+        if (MoveValidator.FootBlocked(_world.GridFor(instance, map), start.X, start.Y))
         {
             start = new MotionState(map.SpawnX, map.SpawnY, this.NowSeconds());
         }
 
         PlayerPresence player = await _presence.JoinAsync(connection, accountId, instance, start, cancellationToken: cancellationToken).ConfigureAwait(false);
-        ArmWarps(player, map);
+        this.ArmWarps(player, map, isInitialPlacement: true);
         this.SubscribeToChunks(player, map);
 
         this.EnsureSnapshotLoop();
@@ -174,13 +176,14 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                 return new MoveOutcome(MoveStatus.Refused, reason, (float)player.Motion.X, (float)player.Motion.Y);
             }
 
+            this.ArmWarps(player, map, isInitialPlacement: false);
+
             // The exit is looked up from the position the server keeps, never from what the client says about doors.
             if (!WarpRule.TryFind(map.Warps, map.Grid, player.Motion.X, player.Motion.Y, player.Motion.Facing, player.Motion.Moving, out warp))
             {
                 // No exit of the map's own: standing on a farm building's door goes into its interior (docs/adr/ADR-028 D2).
                 if (!this.TryFindDoor(player, map, out door))
                 {
-                    ArmWarps(player, map);
                     return new MoveOutcome(MoveStatus.Accepted, 0, x, y);
                 }
 
@@ -268,14 +271,44 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
             && row.Y < map.Grid.Height * map.Grid.TileSize
             && !MoveValidator.FootBlocked(map.Grid, row.X, row.Y);
 
-    // A player may use an exit only after standing off every exit tile since they arrived (or they would bounce straight back).
-    private static void ArmWarps(PlayerPresence player, MapDefinition map)
+    // A player may use an exit once they have either stepped off every exit tile or moved onto a different tile than the exit tile they arrived on.
+    private void ArmWarps(PlayerPresence player, MapDefinition map, bool isInitialPlacement)
     {
         lock (player.Gate)
         {
-            if (!player.WarpArmed && !WarpRule.IsOnExitTile(map.Warps, map.Grid, player.Motion.X, player.Motion.Y))
+            if (player.WarpArmed)
+            {
+                return;
+            }
+
+            int tileSize = Math.Max(1, map.Grid.TileSize);
+            int curTileX = WarpRule.TileX(player.Motion.X, tileSize);
+            int curTileY = WarpRule.TileY(player.Motion.Y, tileSize);
+
+            if (!WarpRule.IsOnExitTile(map.Warps, map.Grid, player.Motion.X, player.Motion.Y))
             {
                 player.WarpArmed = true;
+                _ = _disarmedTiles.TryRemove(player.PlayerId, out _);
+                return;
+            }
+
+            if (isInitialPlacement)
+            {
+                _disarmedTiles[player.PlayerId] = (curTileX, curTileY);
+                return;
+            }
+
+            if (_disarmedTiles.TryGetValue(player.PlayerId, out (int X, int Y) disarmedTile))
+            {
+                if (curTileX != disarmedTile.X || curTileY != disarmedTile.Y)
+                {
+                    player.WarpArmed = true;
+                    _ = _disarmedTiles.TryRemove(player.PlayerId, out _);
+                }
+            }
+            else
+            {
+                _disarmedTiles[player.PlayerId] = (curTileX, curTileY);
             }
         }
     }
@@ -315,6 +348,16 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                 {
                     targetInstance = InstanceFor(found, from);
                     allowed = await _access.CanEnterAsync(targetInstance, from.AccountId, CancellationToken.None).ConfigureAwait(false);
+                    if (!allowed && VisitRules.IsVisitor(from.Instance, from.AccountId) && found.IsPrivate
+                        && GameMaps.TryGet(GameMaps.Town, out MapSpec? townSpec)
+                        && _maps.TryGet(GameMaps.Town, out MapDefinition? townMap))
+                    {
+                        // A visitor leaving a host's Farmhouse after visit permission was revoked is sent back to Town instead of being trapped indoors.
+                        found = townMap;
+                        targetInstance = MapInstance.Shared(GameMaps.Town);
+                        warp = warp with { TargetMap = GameMaps.Town, TargetX = townSpec.SpawnTileX, TargetY = townSpec.SpawnTileY };
+                        allowed = true;
+                    }
                 }
             }
         }
@@ -335,6 +378,12 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
             {
                 from.InTransit = false;
                 from.WarpArmed = false;
+                if (_maps.TryGet(from.MapId, out MapDefinition? curMap))
+                {
+                    int ts = Math.Max(1, curMap.Grid.TileSize);
+                    _disarmedTiles[from.PlayerId] = (WarpRule.TileX(from.Motion.X, ts), WarpRule.TileY(from.Motion.Y, ts));
+                }
+
                 return new MoveOutcome(MoveStatus.Accepted, 0, (float)from.Motion.X, (float)from.Motion.Y);
             }
         }
@@ -426,7 +475,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         }
 
         PlayerPresence arrived = await _presence.JoinAsync(connection, from.AccountId, targetInstance, new MotionState(x, y, this.NowSeconds(), facing), from.PlayerId, CancellationToken.None).ConfigureAwait(false);
-        ArmWarps(arrived, target);
+        this.ArmWarps(arrived, target, isInitialPlacement: true);
         this.SubscribeToChunks(arrived, target);
         this.EnsureSnapshotLoop();
 
@@ -437,13 +486,17 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
             return;
         }
 
-        try
+        if (!VisitRules.IsVisitor(targetInstance, from.AccountId)
+            && !(GameMaps.TryGet(target.Id, out MapSpec? targetSpec) && targetSpec.IsInterior))
         {
-            await _states.SaveAsync(from.AccountId, new PlayerStateRow(target.Id, x, y, (Facing)facing), CancellationToken.None).ConfigureAwait(false);
-        }
-        catch (Exception)
-        {
-            // The leave above saved the old place; the next leave saves the new one.
+            try
+            {
+                await _states.SaveAsync(from.AccountId, new PlayerStateRow(target.Id, x, y, (Facing)facing), CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // The leave above saved the old place; the next leave saves the new one.
+            }
         }
 
         // The owner may have taken the permission away while the player was on the way: the revoke looks at the players already inside, so ask once more now that this one is.
@@ -508,22 +561,65 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
 
     private double NowSeconds() => _time.GetTimestamp() / (double)_time.TimestampFrequency;
 
+    /// <summary>Saves the live positions of all currently connected non-visitor players before shutdown.</summary>
+    [SuppressMessage("Design", "CA1031", Justification = "Shutdown position flush is best-effort per player.")]
+    public async ValueTask FlushPositionsAsync(CancellationToken cancellationToken = default)
+    {
+        List<string> keys = [];
+        _presence.CopyActiveMapIds(keys);
+        List<PlayerPresence> players = [];
+        foreach (string key in keys)
+        {
+            players.Clear();
+            _presence.CopyPlayers(key, players);
+            foreach (PlayerPresence player in players)
+            {
+                if (VisitRules.IsVisitor(player.Instance, player.AccountId)
+                    || (GameMaps.TryGet(player.MapId, out MapSpec? spec) && spec.IsInterior))
+                {
+                    continue;
+                }
+
+                PlayerStateRow state;
+                lock (player.Gate)
+                {
+                    state = new PlayerStateRow(player.MapId, player.Motion.X, player.Motion.Y, (Facing)player.Motion.Facing);
+                }
+
+                try
+                {
+                    await _states.LeaveAsync(player.AccountId, state, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // Best-effort flush on shutdown.
+                }
+            }
+        }
+    }
+
     [SuppressMessage("Design", "CA1031", Justification = "Saving is best effort on the disconnect path; the leave notice to the map must still go out.")]
     private async ValueTask OnPlayerLeftAsync(PlayerPresence player)
     {
-        try
-        {
-            PlayerStateRow state;
-            lock (player.Gate)
-            {
-                state = new PlayerStateRow(player.MapId, player.Motion.X, player.Motion.Y, (Facing)player.Motion.Facing);
-            }
+        _ = _disarmedTiles.TryRemove(player.PlayerId, out _);
 
-            await _states.LeaveAsync(player.AccountId, state, CancellationToken.None).ConfigureAwait(false);
-        }
-        catch (Exception)
+        if (!VisitRules.IsVisitor(player.Instance, player.AccountId)
+            && !(GameMaps.TryGet(player.MapId, out MapSpec? leftSpec) && leftSpec.IsInterior))
         {
-            // The player keeps their previously saved place.
+            try
+            {
+                PlayerStateRow state;
+                lock (player.Gate)
+                {
+                    state = new PlayerStateRow(player.MapId, player.Motion.X, player.Motion.Y, (Facing)player.Motion.Facing);
+                }
+
+                await _states.LeaveAsync(player.AccountId, state, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // The player keeps their previously saved place.
+            }
         }
 
         // The players who can see the leaver hear at once; anyone the notice misses loses them from the next snapshot (docs/adr/ADR-022 D3).

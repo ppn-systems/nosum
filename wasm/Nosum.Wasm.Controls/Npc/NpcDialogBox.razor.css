@@ -1,5 +1,9 @@
 /* The box sits at the bottom of the screen where the hotbar is, as wide as a menu page so a line of talk fits on two rows. */
-.game-panel.npc-box {
+.npc-box-wrap {
+    display: contents;
+}
+
+.npc-box-wrap ::deep .game-panel.npc-box {
     width: calc(var(--u) * 200);
     max-width: 100%;
 }
@@ -51,7 +55,7 @@
     50% { transform: translateY(calc(var(--u) * 1)); }
 }
 
-.npc-actions {
+.npc-box-wrap ::deep .npc-actions {
     justify-content: flex-end;
     flex-wrap: wrap;
 }

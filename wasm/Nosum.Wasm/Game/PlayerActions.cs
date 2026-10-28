@@ -4,6 +4,7 @@ using System;
 using Nosum.Core;
 using Nosum.Gameplay.Animals;
 using Nosum.Gameplay.Buildings;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
@@ -11,6 +12,7 @@ using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Socket.Building;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Farm;
@@ -44,6 +46,8 @@ internal sealed class PlayerActions
     private readonly BuildingChannel? _buildings;
     private readonly GameAudio? _audio;
     private readonly CombatChannel? _combat;
+    private readonly CalendarChannel? _calendar;
+    private GameCalendar? _rules;
     private double _lastUseSeconds = double.NegativeInfinity;
     private double _swingStartSeconds = double.NegativeInfinity;
     private int _swingItemId;
@@ -57,7 +61,8 @@ internal sealed class PlayerActions
     /// <param name="buildings">Sends feeding, petting and collecting inside a coop or a barn; <see langword="null"/> when buildings are not wired.</param>
     /// <param name="audio">Plays the swing of the tool in hand (docs/adr/ADR-039); <see langword="null"/> for no sound.</param>
     /// <param name="combat">Sends monster attacks and potion drinking; <see langword="null"/> when combat is not wired.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null)
+    /// <param name="calendar">The server calendar, so withered crops do not block eating or drinking potions.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null, CalendarChannel? calendar = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -70,6 +75,7 @@ internal sealed class PlayerActions
         _buildings = buildings;
         _audio = audio;
         _combat = combat;
+        _calendar = calendar;
     }
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
@@ -198,13 +204,13 @@ internal sealed class PlayerActions
 
         if (_combat is not null)
         {
-            if ((edges & InputEdges.Skill1) != 0)
+            if ((edges & InputEdges.Skill1) != 0 && this.CanCastSkill(1))
             {
                 _swingStartSeconds = nowSeconds;
                 _swingItemId = this.HeldItemId;
                 _combat.CastSkill(1);
             }
-            else if ((edges & InputEdges.Skill2) != 0)
+            else if ((edges & InputEdges.Skill2) != 0 && this.CanCastSkill(2))
             {
                 int targetId = 0;
                 if (_combat.TryFindTarget(x, y, 6, out MonsterClientRow tm))
@@ -216,7 +222,7 @@ internal sealed class PlayerActions
                 _swingItemId = this.HeldItemId;
                 _combat.CastSkill(2, targetId);
             }
-            else if ((edges & InputEdges.Skill3) != 0)
+            else if ((edges & InputEdges.Skill3) != 0 && this.CanCastSkill(3))
             {
                 _swingStartSeconds = nowSeconds;
                 _swingItemId = this.HeldItemId;
@@ -304,9 +310,6 @@ internal sealed class PlayerActions
                 return;
             }
 
-            _swingStartSeconds = nowSeconds;
-            _swingItemId = held.ItemId;
-
             if (IsShippingBin(this.TargetX, this.TargetY) && ShippingPrices.TryGet(held.ItemId, out _))
             {
                 // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
@@ -314,6 +317,8 @@ internal sealed class PlayerActions
             }
             else if (CombatRules.WeaponDamage(held.ItemId) > 0)
             {
+                _swingStartSeconds = nowSeconds;
+                _swingItemId = held.ItemId;
                 if (ItemCatalog.TryGet(held.ItemId, out ItemDefinition? weaponDef))
                 {
                     this.PlaySwing(weaponDef.Tool);
@@ -329,13 +334,10 @@ internal sealed class PlayerActions
                     _combat.Attack(targetMonster.MonsterId, selected);
                 }
             }
-            else if (_combat is not null
-                && held.ItemId is ItemCatalog.HealthPotion or ItemCatalog.ManaPotion or ItemCatalog.Elixir or ItemCatalog.ArcaneGrimoire or ItemCatalog.HeartCrystal
-                && (_combat.Hp < _combat.MaxHp || _combat.Mp < _combat.MaxMp)
-                && !this.FacesCrop())
+            else if (this.CanUsePotion(held.ItemId) && !this.FacesCrop())
             {
                 _audio?.Play(SoundIds.Pickup);
-                _combat.DrinkPotion(selected);
+                _combat?.DrinkPotion(selected);
             }
             else if (_progress is { MaxEnergy: > 0 } && _progress.Energy < _progress.MaxEnergy && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? food) && food.IsEdible
                 && !this.FacesCrop())
@@ -348,12 +350,51 @@ internal sealed class PlayerActions
             {
                 if (ItemCatalog.TryGet(held.ItemId, out ItemDefinition? swung))
                 {
+                    if (swung.Tool != ToolKind.None)
+                    {
+                        _swingStartSeconds = nowSeconds;
+                        _swingItemId = held.ItemId;
+                    }
+
                     this.PlaySwing(swung.Tool);
                 }
 
                 _farm.Use(selected, this.TargetX, this.TargetY);
             }
         }
+    }
+
+    private bool CanCastSkill(byte skillId)
+    {
+        if (_combat is null || !SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition skill))
+        {
+            return false;
+        }
+
+        if (_combat.GetSkillCooldownRemaining(skillId) > 0f || _combat.Mp < skill.MpCost)
+        {
+            return false;
+        }
+
+        return skillId != (byte)CombatSkillKind.DivineHeal || _combat.Hp < _combat.MaxHp;
+    }
+
+    private bool CanUsePotion(int itemId)
+    {
+        if (_combat is null || !CombatRules.IsPotion(itemId))
+        {
+            return false;
+        }
+
+        if (itemId is ItemCatalog.ArcaneGrimoire or ItemCatalog.HeartCrystal)
+        {
+            return true;
+        }
+
+        (int hpRestore, int mpRestore) = CombatRules.PotionRestore(itemId);
+        bool healsHp = hpRestore > 0 && _combat.Hp < _combat.MaxHp;
+        bool restoresMp = mpRestore > 0 && _combat.Mp < _combat.MaxMp;
+        return healsHp || restoresMp;
     }
 
     // The swing sounds when the key is pressed, not when the server answers: the sound is feedback for the key, the server still decides what the swing did.
@@ -399,13 +440,44 @@ internal sealed class PlayerActions
         }
     }
 
-    // Whether the tile in front holds a crop: the action key then works the crop, whatever is held.
+    // Whether the tile in front holds a live crop: the action key then works the crop, whatever is held.
     private bool FacesCrop()
     {
+        GameCalendar? rules = this.Rules();
+        long nowMs = _farm.ServerNowMs();
         using (_farm.Read())
         {
-            return _farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo tile) && tile.CropId != 0;
+            if (!_farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo info) || info.CropId == 0)
+            {
+                return false;
+            }
+
+            if (rules is not null)
+            {
+                FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, 0);
+                if (FarmRules.IsWithered(tile, nowMs, rules))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
+    }
+
+    private GameCalendar? Rules()
+    {
+        if (_calendar is not { IsLoaded: true })
+        {
+            return null;
+        }
+
+        if (_rules is null || _rules.EpochMs != _calendar.EpochMs || _rules.DayLengthMs != _calendar.DayLengthMs)
+        {
+            _rules = new GameCalendar(_calendar.EpochMs, _calendar.DayLengthMs);
+        }
+
+        return _rules;
     }
 
     // Whether a tile is one of the shipping bin's footprint tiles on the standard farm layout.

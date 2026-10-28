@@ -229,13 +229,14 @@ public sealed class MapSpec
         ArgumentNullException.ThrowIfNull(grid);
 
         List<NodeSite> sites = NodeSites.ReadForage(map);
+        HashSet<(int X, int Y)> taken = [.. sites.Select(s => (s.X, s.Y))];
         foreach (ForageArea area in this.ForageAreas)
         {
             for (int y = area.Y0; y <= area.Y1; y++)
             {
                 for (int x = area.X0; x <= area.X1; x++)
                 {
-                    if (!grid.IsBlocked(x, y))
+                    if (!grid.IsBlocked(x, y) && taken.Add((x, y)))
                     {
                         sites.Add(new NodeSite(x, y, NodeKind.Forage, area.Pool));
                     }

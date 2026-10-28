@@ -17,12 +17,12 @@ public static class MonsterCatalog
         new(MonsterKind.CaveBat, "cave_bat", maxHp: 30, attackDamage: 7, xpReward: 15, ItemCatalog.BatWing, ItemCatalog.CopperOre),
         new(MonsterKind.SporeShroom, "spore_shroom", maxHp: 40, attackDamage: 8, xpReward: 20, ItemCatalog.SporeCap, ItemCatalog.ManaCrystal),
         new(MonsterKind.GoblinScout, "goblin_scout", maxHp: 60, attackDamage: 12, xpReward: 30, ItemCatalog.GoblinEar, ItemCatalog.CopperBar),
-        new(MonsterKind.SkeletonWarrior, "skeleton_warrior", maxHp: 90, attackDamage: 16, xpReward: 45, ItemCatalog.MonsterBone, ItemCatalog.IronOre),
-        new(MonsterKind.StoneGolem, "stone_golem", maxHp: 140, attackDamage: 22, xpReward: 70, ItemCatalog.GolemCore, ItemCatalog.TreasureGem),
-        new(MonsterKind.BossBroodmother, "boss_broodmother", maxHp: 180, attackDamage: 15, xpReward: 150, ItemCatalog.AncientScroll, ItemCatalog.BatWing),
+        new(MonsterKind.SkeletonWarrior, "skeleton_warrior", maxHp: 90, attackDamage: 16, xpReward: 45, ItemCatalog.MonsterBone, ItemCatalog.NecromancerSkull),
+        new(MonsterKind.StoneGolem, "stone_golem", maxHp: 140, attackDamage: 22, xpReward: 70, ItemCatalog.GolemCore, ItemCatalog.RunestoneTablet),
+        new(MonsterKind.BossBroodmother, "boss_broodmother", maxHp: 180, attackDamage: 15, xpReward: 150, ItemCatalog.AncientScroll, ItemCatalog.NecromancerSkull),
         new(MonsterKind.BossGoblinChieftain, "boss_goblin_chieftain", maxHp: 280, attackDamage: 22, xpReward: 250, ItemCatalog.GoldenKey, ItemCatalog.GoblinEar),
         new(MonsterKind.BossMagmaColossus, "boss_magma_colossus", maxHp: 420, attackDamage: 30, xpReward: 400, ItemCatalog.ColossusCore, ItemCatalog.TreasureGem),
-        new(MonsterKind.BossGolemKing, "boss_golem_king", maxHp: 600, attackDamage: 40, xpReward: 600, ItemCatalog.BossCrown, ItemCatalog.GolemCore),
+        new(MonsterKind.BossGolemKing, "boss_golem_king", maxHp: 600, attackDamage: 40, xpReward: 600, ItemCatalog.BossCrown, ItemCatalog.RunestoneTablet),
     ];
 
     private static readonly Dictionary<MonsterKind, MonsterDefinition> s_byKind = Index();

@@ -202,6 +202,11 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("player_id");
 
+                    b.Property<int>("CombatXp")
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("combat_xp");
+
                     b.Property<int>("Energy")
                         .HasColumnType("integer")
                         .HasColumnName("energy");
@@ -223,6 +228,11 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("foraging_xp");
 
+                    b.Property<int>("Hp")
+                        .HasColumnType("integer")
+                        .HasDefaultValue(100)
+                        .HasColumnName("hp");
+
                     b.Property<string>("MapName")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -232,6 +242,11 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<int>("MiningXp")
                         .HasColumnType("integer")
                         .HasColumnName("mining_xp");
+
+                    b.Property<int>("Mp")
+                        .HasColumnType("integer")
+                        .HasDefaultValue(50)
+                        .HasColumnName("mp");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")

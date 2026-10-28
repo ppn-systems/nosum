@@ -207,7 +207,15 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
 
     /// <summary>Takes the item worn in a slot off.</summary>
     /// <param name="wearSlot">1 shirt, 2 trousers, 3 hat.</param>
-    public void TakeOff(int wearSlot) => _looks.Unequip(wearSlot);
+    public void TakeOff(int wearSlot)
+    {
+        if (wearSlot is < (int)WearSlot.Shirt or > (int)WearSlot.Hat)
+        {
+            return;
+        }
+
+        _looks.Unequip(wearSlot);
+    }
 
     /// <inheritdoc/>
     public void Dispose()

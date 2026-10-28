@@ -85,10 +85,10 @@ def cow(direction, frame):
         blob(c, 11, 12 + bob, 3.6, 3, spot)
         blob(c, 19, 17 + bob, 3.2, 2.6, spot)
         blob(c, 26, 11 + bob, 4.4, 4.2, WHITE)
-        c.rect(28, 12 + bob, 4, 4, PINK)
-        c.rect(28, 15 + bob, 4, 1, (214, 130, 140))
+        c.rect(27, 12 + bob, 4, 4, PINK)
+        c.rect(27, 15 + bob, 4, 1, (214, 130, 140))
+        c.dot(28, 13 + bob, draw.OUT)
         c.dot(29, 13 + bob, draw.OUT)
-        c.dot(30, 13 + bob, draw.OUT)
         c.rect(15, 19 + bob, 4, 2, PINK)                        # udder
         c.dot(16, 21 + bob, (214, 130, 140))
         c.rect(24, 7 + bob, 2, 3, (230, 210, 170))
@@ -133,18 +133,24 @@ CHICKEN = (0, 15)       # column, row of tilemap_packed.png
 BOB = [0, 1, 0, 1]      # pixels each walk frame lifts the picture
 
 
-def chicken_frames(picture):
-    """The 4 x 3 sheet of the chicken: the 16 x 16 Tiny Creatures picture for rows down, right (flipped) and up, lifted 1 px on frames 1 and 3."""
+def chicken_frames(picture, right_pic=None):
+    """The 4 x 3 sheet of a creature: the 16 x 16 Tiny Creatures picture for rows down, right and up, lifted 1 px on frames 1 and 3 when row 0 is clear."""
     sheet = Image(64, 48)
-    for row, pic in enumerate((picture, picture.flip_h(), picture)):
+    right = right_pic if right_pic is not None else picture.flip_h()
+    top_clear = all(p[3] == 0 for p in picture.px[0])
+    for row, pic in enumerate((picture, right, picture)):
         for column in range(4):
-            sheet.paste(pic, column * 16, row * 16 - BOB[column])
+            bob = BOB[column] if top_clear else 0
+            cell = Image(16, 16)
+            cell.paste(pic, 0, -bob)
+            sheet.paste(cell, column * 16, row * 16)
     return sheet
 
 
 def build(src, size):
     chick = Image(*size('sprites/animals/chicken.png'))
-    chick.paste(chicken_frames(src.sheet('creatures').cell(*CHICKEN)), 0, 0)
+    cell = src.sheet('creatures').cell(*CHICKEN)
+    chick.paste(chicken_frames(cell, right_pic=cell), 0, 0)
     cows = Image(*size('sprites/animals/cow.png'))
     for r, d in enumerate(['down', 'right', 'up']):
         for f in range(4):

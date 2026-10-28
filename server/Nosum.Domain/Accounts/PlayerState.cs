@@ -38,6 +38,15 @@ public sealed class PlayerState
     /// <summary>Gets or sets the cumulative mining experience.</summary>
     public int MiningXp { get; set; }
 
+    /// <summary>Gets or sets the cumulative combat experience.</summary>
+    public int CombatXp { get; set; }
+
+    /// <summary>Gets or sets the current health points.</summary>
+    public int Hp { get; set; } = 100;
+
+    /// <summary>Gets or sets the current mana points.</summary>
+    public int Mp { get; set; } = 50;
+
     /// <summary>Gets or sets when the state was last saved.</summary>
     public DateTimeOffset UpdatedAt { get; set; }
 }

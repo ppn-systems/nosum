@@ -73,6 +73,8 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         {
             combat.Changed += this.Raise;
             combat.ComboChanged += this.Raise;
+            combat.KnockedOut += this.Raise;
+            combat.LevelledUp += this.OnCombatLevelUp;
         }
     }
 
@@ -263,7 +265,15 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         {
             _combat.Changed -= this.Raise;
             _combat.ComboChanged -= this.Raise;
+            _combat.KnockedOut -= this.Raise;
+            _combat.LevelledUp -= this.OnCombatLevelUp;
         }
+    }
+
+    private void OnCombatLevelUp(int level)
+    {
+        _ = level;
+        this.Raise();
     }
 
     private SkillDisplay Describe(string nameKey, int xp)

@@ -108,17 +108,42 @@ public readonly record struct ChatCommand(ChatCommandKind Kind, ChatChannel Chan
     private static ChatCommand Moderation(ChatCommandKind kind, string rest, ChatChannel current)
     {
         (string target, string extra) = SplitNickname(rest);
-        return target.Length == 0 || extra.Length > 0
-            ? new ChatCommand(ChatCommandKind.Usage, current, target, extra)
-            : new ChatCommand(kind, current, target, string.Empty);
+        if (target.Length > 0 && extra.Length == 0)
+        {
+            return new ChatCommand(kind, current, target, string.Empty);
+        }
+
+        if (target.Length > 0 && extra.Length > 0 && NicknameRules.Validate(rest) == NicknameVerdict.Ok)
+        {
+            return new ChatCommand(kind, current, NicknameRules.Normalize(rest), string.Empty);
+        }
+
+        return new ChatCommand(ChatCommandKind.Usage, current, target, extra);
     }
 
-    // The first word is the nickname; a guest is shown as two words ("Guest 1234"), which are the one stored name guest-1234.
+    // The first word (or a quoted string) is the nickname; a guest is shown as two words ("Guest 1234"), which are the one stored name guest-1234.
     private static (string Target, string Text) SplitNickname(string rest)
     {
         if (rest.Length == 0)
         {
             return (string.Empty, string.Empty);
+        }
+
+        if (rest[0] == '"')
+        {
+            int close = rest.IndexOf('"', 1);
+            if (close > 1)
+            {
+                string quoted = rest[1..close].Trim();
+                string afterQuote = rest[(close + 1)..].Trim();
+                string[] guestWords = quoted.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
+                if (guestWords.Length == 2 && IsGuestWord(guestWords[0]) && IsDigits(guestWords[1]))
+                {
+                    quoted = NicknameRules.GuestPrefix + guestWords[1];
+                }
+
+                return (quoted, afterQuote);
+            }
         }
 
         string[] words = rest.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);

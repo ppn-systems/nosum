@@ -82,11 +82,33 @@ public static class MoveValidator
     }
 
     // A walker slides along walls one axis at a time, so its real path can bend. Accept the
-    // straight line or either of the two one-bend paths; a wall thinner than the step cannot be jumped.
+    // straight line, either one-bend path, or a two-bend corner slide; a wall thinner than the step cannot be jumped.
     private static bool PathClear(WalkGrid grid, double x0, double y0, double x1, double y1)
         => LegClear(grid, x0, y0, x1, y1)
         || (LegClear(grid, x0, y0, x1, y0) && LegClear(grid, x1, y0, x1, y1))
-        || (LegClear(grid, x0, y0, x0, y1) && LegClear(grid, x0, y1, x1, y1));
+        || (LegClear(grid, x0, y0, x0, y1) && LegClear(grid, x0, y1, x1, y1))
+        || TwoBendClear(grid, x0, y0, x1, y1);
+
+    private static bool TwoBendClear(WalkGrid grid, double x0, double y0, double x1, double y1)
+    {
+        for (int i = 1; i <= 7; i++)
+        {
+            double t = i * 0.125;
+            double midX = x0 + ((x1 - x0) * t);
+            if (LegClear(grid, x0, y0, midX, y0) && LegClear(grid, midX, y0, midX, y1) && LegClear(grid, midX, y1, x1, y1))
+            {
+                return true;
+            }
+
+            double midY = y0 + ((y1 - y0) * t);
+            if (LegClear(grid, x0, y0, x0, midY) && LegClear(grid, x0, midY, x1, midY) && LegClear(grid, x1, midY, x1, y1))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static bool LegClear(WalkGrid grid, double x0, double y0, double x1, double y1)
     {

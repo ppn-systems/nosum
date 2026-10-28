@@ -621,6 +621,16 @@ public static class ItemCatalog
     /// <returns><see langword="true"/> when the id names an item.</returns>
     public static bool TryGet(int itemId, [NotNullWhen(true)] out ItemDefinition? item) => s_byId.TryGetValue(itemId, out item);
 
+    /// <summary>Tells whether two item ids belong to the same non-none <see cref="ToolKind"/> family (for example <see cref="Hoe"/> and <see cref="CopperHoe"/>).</summary>
+    /// <param name="firstItemId">First item id.</param>
+    /// <param name="secondItemId">Second item id.</param>
+    /// <returns><see langword="true"/> when both items are tools of the same <see cref="ToolKind"/>.</returns>
+    public static bool IsSameToolFamily(int firstItemId, int secondItemId)
+        => TryGet(firstItemId, out ItemDefinition? first)
+        && TryGet(secondItemId, out ItemDefinition? second)
+        && first.Tool != ToolKind.None
+        && first.Tool == second.Tool;
+
     private static Dictionary<int, ItemDefinition> Index()
     {
         Dictionary<int, ItemDefinition> index = new(s_all.Length);

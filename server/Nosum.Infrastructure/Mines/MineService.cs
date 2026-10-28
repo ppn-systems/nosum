@@ -110,7 +110,7 @@ public sealed class MineService : IMineService, IDisposable
         }
 
         bool atElevator = this.IsAtElevator(player);
-        bool atWayUp = floor == MineRules.EntranceFloor && this.IsAtFloorWayUp(player);
+        bool atWayUp = this.IsAtFloorWayUp(player);
         if (!atElevator && !atWayUp)
         {
             return new MineView(MineStatus.NotAtElevator, 0, 0);

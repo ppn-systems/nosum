@@ -128,6 +128,7 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
 
         // Coins, wood, stone and the blueprint change hands in one transaction: either the player has the blueprint and paid, or nothing happened.
         TransferParty party = TransferParty.Player(player.AccountId);
+        bool limitReached = false;
         TransferStatus status = await _transfers.ExecuteAsync(
             [
                 new TransferLeg(party, ItemCatalog.Wood, -definition.Wood, -definition.Coins),
@@ -135,11 +136,25 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
                 new TransferLeg(party, definition.BlueprintItemId, 1),
             ],
             CommissionReason,
-            null,
+            async (unit, ct) =>
+            {
+                CoopMembershipInfo? member = _coops is not null ? await _coops.FindAsync(player.AccountId, ct).ConfigureAwait(false) : null;
+                int maxBuildings = member is not null ? BuildingRules.MaxPerLand * 2 : BuildingRules.MaxPerLand;
+                int count = member is not null
+                    ? await unit.Repository<FarmBuilding>().CountAsync(b => b.OwnerId == player.AccountId || b.OwnerId == member.CoopId, ct).ConfigureAwait(false)
+                    : await unit.Repository<FarmBuilding>().CountAsync(b => b.OwnerId == player.AccountId, ct).ConfigureAwait(false);
+                if (count >= maxBuildings)
+                {
+                    limitReached = true;
+                    return TransferStatus.Refused;
+                }
+
+                return TransferStatus.Ok;
+            },
             cancellationToken).ConfigureAwait(false);
         return status == TransferStatus.Ok
             ? new BuildingOutcome(BuildingStatus.Ok, Guid.Empty, definition.BlueprintItemId, 1)
-            : BuildingOutcome.Refused(ToStatus(status));
+            : BuildingOutcome.Refused(limitReached ? BuildingStatus.LimitReached : ToStatus(status));
     }
 
     /// <inheritdoc/>

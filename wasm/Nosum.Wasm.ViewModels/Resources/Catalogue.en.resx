@@ -308,7 +308,7 @@
   <data name="Item_elixir_Name" xml:space="preserve"><value>Golden elixir</value></data>
   <data name="Item_elixir_Description" xml:space="preserve"><value>Restores 100 HP, 50 MP and 60 energy.</value></data>
   <data name="Item_boss_crown_Name" xml:space="preserve"><value>Boss crown</value></data>
-  <data name="Item_boss_crown_Description" xml:space="preserve"><value>A glittering golden crown dropped by the Golem King on floor 40.</value></data>
+  <data name="Item_boss_crown_Description" xml:space="preserve"><value>A glittering golden crown dropped by the Golem King on floor 40 (+8 Defense).</value></data>
   <data name="Item_ancient_scroll_Name" xml:space="preserve"><value>Ancient scroll</value></data>
   <data name="Item_ancient_scroll_Description" xml:space="preserve"><value>An ancient parchment containing forgotten magical wisdom from the Broodmother on floor 10.</value></data>
   <data name="Item_golden_key_Name" xml:space="preserve"><value>Golden key</value></data>
@@ -344,21 +344,21 @@
   <data name="Recipe_heart_crystal_Name" xml:space="preserve"><value>Heart crystal</value></data>
   <data name="Recipe_sanctuary_candelabra_Name" xml:space="preserve"><value>Sanctuary candelabra</value></data>
   <data name="Monster_green_slime_Name" xml:space="preserve"><value>Green slime</value></data>
-  <data name="Monster_green_slime_Location" xml:space="preserve"><value>Mine 1–9, Woods</value></data>
+  <data name="Monster_green_slime_Location" xml:space="preserve"><value>Mine 1–10, Woods, Forest</value></data>
   <data name="Monster_frost_slime_Name" xml:space="preserve"><value>Frost slime</value></data>
-  <data name="Monster_frost_slime_Location" xml:space="preserve"><value>Mine 11–19</value></data>
+  <data name="Monster_frost_slime_Location" xml:space="preserve"><value>Mine 11–25, Mountain, Backwoods</value></data>
   <data name="Monster_magma_slime_Name" xml:space="preserve"><value>Magma slime</value></data>
-  <data name="Monster_magma_slime_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_magma_slime_Location" xml:space="preserve"><value>Mine 26–40</value></data>
   <data name="Monster_cave_bat_Name" xml:space="preserve"><value>Cave bat</value></data>
-  <data name="Monster_cave_bat_Location" xml:space="preserve"><value>Mine 1–9</value></data>
+  <data name="Monster_cave_bat_Location" xml:space="preserve"><value>Mine 1–10</value></data>
   <data name="Monster_spore_shroom_Name" xml:space="preserve"><value>Spore shroom</value></data>
-  <data name="Monster_spore_shroom_Location" xml:space="preserve"><value>Mine 1–19, Woods</value></data>
+  <data name="Monster_spore_shroom_Location" xml:space="preserve"><value>Mine 1–25, Woods, Forest</value></data>
   <data name="Monster_goblin_scout_Name" xml:space="preserve"><value>Goblin scout</value></data>
-  <data name="Monster_goblin_scout_Location" xml:space="preserve"><value>Mine 11–19</value></data>
+  <data name="Monster_goblin_scout_Location" xml:space="preserve"><value>Mine 11–25, Mountain, Backwoods</value></data>
   <data name="Monster_skeleton_warrior_Name" xml:space="preserve"><value>Skeleton warrior</value></data>
-  <data name="Monster_skeleton_warrior_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_skeleton_warrior_Location" xml:space="preserve"><value>Mine 26–40</value></data>
   <data name="Monster_stone_golem_Name" xml:space="preserve"><value>Stone golem</value></data>
-  <data name="Monster_stone_golem_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_stone_golem_Location" xml:space="preserve"><value>Mine 26–40</value></data>
   <data name="Monster_boss_broodmother_Name" xml:space="preserve"><value>Broodmother</value></data>
   <data name="Monster_boss_broodmother_Location" xml:space="preserve"><value>Mine floor 10</value></data>
   <data name="Monster_boss_goblin_chieftain_Name" xml:space="preserve"><value>Goblin chieftain</value></data>

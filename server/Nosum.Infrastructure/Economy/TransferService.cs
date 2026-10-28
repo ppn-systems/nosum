@@ -49,7 +49,13 @@ public sealed class TransferService : ITransferService
     }
 
     /// <inheritdoc/>
-    public async Task<TransferStatus> ExecuteAsync(IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
+    public Task<TransferStatus> ExecuteAsync(IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
+        => this.ExecuteFromSlotAsync(-1, legs, reason, enlist, cancellationToken);
+
+    /// <summary>
+    /// Runs a transfer whose negative player item leg is taken from a specific inventory slot when <paramref name="sourceSlot"/> is non-negative.
+    /// </summary>
+    internal async Task<TransferStatus> ExecuteFromSlotAsync(int sourceSlot, IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(legs);
         ArgumentException.ThrowIfNullOrEmpty(reason);
@@ -57,7 +63,7 @@ public sealed class TransferService : ITransferService
         // Group the legs: per player the inventory operations and the net coins; per co-op the stock changes.
         Dictionary<Guid, List<InventoryOperation>> adds = [];
         Dictionary<Guid, List<InventoryOperation>> removes = [];
-        Dictionary<Guid, long> coins = [];
+        Dictionary<Guid, Int128> coins = [];
         Dictionary<(Guid Coop, int Item), int> stock = [];
         List<Guid> players = [];
 
@@ -83,7 +89,10 @@ public sealed class TransferService : ITransferService
                 }
                 else if (leg.Items < 0)
                 {
-                    removes[leg.Party.Id].Add(InventoryOperation.Remove(leg.ItemId, -leg.Items));
+                    removes[leg.Party.Id].Add(
+                        sourceSlot >= 0
+                            ? InventoryOperation.RemoveFromSlot(sourceSlot, leg.ItemId, -leg.Items)
+                            : InventoryOperation.Remove(leg.ItemId, -leg.Items));
                 }
 
                 coins[leg.Party.Id] = coins.GetValueOrDefault(leg.Party.Id) + leg.Coins;
@@ -127,7 +136,7 @@ public sealed class TransferService : ITransferService
         TransferStatus result = status switch
         {
             InventoryStatus.Ok => TransferStatus.Ok,
-            InventoryStatus.NotEnough => TransferStatus.NotEnoughItems,
+            InventoryStatus.NotEnough or InventoryStatus.EmptySlot or InventoryStatus.InvalidSlot => TransferStatus.NotEnoughItems,
             InventoryStatus.NoSpace => TransferStatus.NoSpace,
             InventoryStatus.Conflict when failure != TransferStatus.Ok => failure,
             InventoryStatus.Conflict => TransferStatus.Conflict,
@@ -163,11 +172,11 @@ public sealed class TransferService : ITransferService
         return balance;
     }
 
-    private async Task<TransferStatus> JoinAsync(IUnitOfWork unit, Dictionary<Guid, long> coins, Dictionary<(Guid Coop, int Item), int> stock, Dictionary<Guid, long> balances, string reason, CancellationToken cancellationToken)
+    private async Task<TransferStatus> JoinAsync(IUnitOfWork unit, Dictionary<Guid, Int128> coins, Dictionary<(Guid Coop, int Item), int> stock, Dictionary<Guid, long> balances, string reason, CancellationToken cancellationToken)
     {
         DateTimeOffset now = _time.GetUtcNow();
 
-        foreach ((Guid player, long delta) in coins)
+        foreach ((Guid player, Int128 delta) in coins)
         {
             // The wallet is created (and the starting coins logged) even by a transfer that moves no coins for this player:
             // the balance row must exist before anything reads it.
@@ -177,20 +186,21 @@ public sealed class TransferService : ITransferService
                 continue;
             }
 
-            long next = wallet.Coins + delta;
+            Int128 next = (Int128)wallet.Coins + delta;
             if (next < 0)
             {
                 return TransferStatus.NotEnoughCoins;
             }
 
-            if (next > CoinRules.MaxBalance)
+            if (next > CoinRules.MaxBalance || delta < long.MinValue || delta > long.MaxValue)
             {
                 return TransferStatus.TooBig;
             }
 
-            wallet.Coins = next;
-            balances[player] = next;
-            unit.Repository<CoinLogEntry>().Add(new CoinLogEntry { PlayerId = player, Delta = delta, Reason = reason, OccurredAt = now });
+            long nextCoins = (long)next;
+            wallet.Coins = nextCoins;
+            balances[player] = nextCoins;
+            unit.Repository<CoinLogEntry>().Add(new CoinLogEntry { PlayerId = player, Delta = (long)delta, Reason = reason, OccurredAt = now });
         }
 
         foreach (((Guid coopId, int itemId), int delta) in stock)

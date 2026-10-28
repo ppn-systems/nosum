@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Nosum.Abstractions.Data;
 using Nosum.Core;
 using Nosum.Domain.Accounts;
+using Nosum.Gameplay.Combat;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Progress;
@@ -101,7 +102,21 @@ public sealed class PlayerStateCache
             PlayerState? row = await unit.Repository<PlayerState>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
             return row is null
                 ? Snapshot.Missing
-                : new Snapshot(true, row.MapName, row.X, row.Y, row.Facing, row.Energy, row.EnergyRefilledDay, row.FarmingXp, row.ForagingXp, row.MiningXp, row.UpdatedAt);
+                : new Snapshot(
+                    true,
+                    row.MapName,
+                    row.X,
+                    row.Y,
+                    row.Facing,
+                    row.Energy,
+                    row.EnergyRefilledDay,
+                    row.FarmingXp,
+                    row.ForagingXp,
+                    row.MiningXp,
+                    row.UpdatedAt,
+                    row.CombatXp,
+                    row.Hp > 0 ? row.Hp : CombatRules.BaseMaxHp,
+                    row.Mp);
         }
     }
 
@@ -142,10 +157,27 @@ public sealed class PlayerStateCache
     /// <param name="ForagingXp">Foraging experience.</param>
     /// <param name="MiningXp">Mining experience.</param>
     /// <param name="UpdatedAt">When the row was last written.</param>
-    internal sealed record Snapshot(bool Exists, string MapName, double X, double Y, Facing Facing, int Energy, long EnergyRefilledDay, int FarmingXp, int ForagingXp, int MiningXp, DateTimeOffset UpdatedAt)
+    /// <param name="CombatXp">Combat experience.</param>
+    /// <param name="Hp">Current health points.</param>
+    /// <param name="Mp">Current mana points.</param>
+    internal sealed record Snapshot(
+        bool Exists,
+        string MapName,
+        double X,
+        double Y,
+        Facing Facing,
+        int Energy,
+        long EnergyRefilledDay,
+        int FarmingXp,
+        int ForagingXp,
+        int MiningXp,
+        DateTimeOffset UpdatedAt,
+        int CombatXp = 0,
+        int Hp = CombatRules.BaseMaxHp,
+        int Mp = CombatRules.BaseMaxMp)
     {
         /// <summary>Gets the snapshot of a player with no row, with the defaults a new row gets.</summary>
-        public static Snapshot Missing { get; } = new(false, string.Empty, 0, 0, default, 0, -1, 0, 0, 0, default);
+        public static Snapshot Missing { get; } = new(false, string.Empty, 0, 0, default, 0, -1, 0, 0, 0, default, 0, CombatRules.BaseMaxHp, CombatRules.BaseMaxMp);
     }
 
     private sealed class Entry

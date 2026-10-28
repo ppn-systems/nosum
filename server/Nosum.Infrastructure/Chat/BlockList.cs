@@ -32,6 +32,12 @@ public sealed class BlockList : IBlockList
     private readonly ConcurrentDictionary<Guid, HashSet<Guid>> _cache = new();
     private long _epoch;
 
+    /// <summary>Gets or sets the optional semaphore shared with <see cref="FriendService"/> to serialize friend/block mutations.</summary>
+    internal SemaphoreSlim? FriendGate { get; set; }
+
+    /// <summary>Raised after a player blocks another player so active friend visits and friend snapshots can be updated.</summary>
+    internal event Func<Guid, Guid, CancellationToken, ValueTask>? PlayerBlocked;
+
     /// <summary>Initializes the block list.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="nicknames">Resolves the nicknames shown in the list.</param>
@@ -83,63 +89,91 @@ public sealed class BlockList : IBlockList
         }
 
         Guid targetId = Guid.Empty;
-        IUnitOfWork unit = _unitOfWork.Create();
-        await using (unit.ConfigureAwait(false))
+        bool hadFriendOrRequest = false;
+        SemaphoreSlim? gate = this.FriendGate;
+        if (gate is not null)
         {
-            PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
-            if (target is null)
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        try
+        {
+            IUnitOfWork unit = _unitOfWork.Create();
+            await using (unit.ConfigureAwait(false))
             {
-                return ChatStatus.UnknownPlayer;
+                PlayerFact? target = await _nicknames.FindByKeyAsync(key, cancellationToken).ConfigureAwait(false);
+                if (target is null)
+                {
+                    return ChatStatus.UnknownPlayer;
+                }
+
+                targetId = target.Id;
+                if (targetId == ownerId)
+                {
+                    return ChatStatus.SelfBlock;
+                }
+
+                IRepository<BlockedPlayer> blocks = unit.Repository<BlockedPlayer>();
+                if (await blocks.AnyAsync(b => b.OwnerId == ownerId && b.BlockedId == targetId, cancellationToken).ConfigureAwait(false))
+                {
+                    return ChatStatus.AlreadyBlocked;
+                }
+
+                if (await blocks.CountAsync(b => b.OwnerId == ownerId, cancellationToken).ConfigureAwait(false) >= ChatRules.MaxBlocked)
+                {
+                    return ChatStatus.BlockListFull;
+                }
+
+                blocks.Add(new BlockedPlayer { OwnerId = ownerId, BlockedId = targetId, CreatedAt = _time.GetUtcNow() });
+
+                // A blocked player is no friend: both sides of the friendship and any open request go in the same save.
+                IRepository<Friendship> friendships = unit.Repository<Friendship>();
+                foreach (Friendship row in await friendships.ListAsync(f => (f.PlayerId == ownerId && f.FriendId == targetId) || (f.PlayerId == targetId && f.FriendId == ownerId), cancellationToken).ConfigureAwait(false))
+                {
+                    friendships.Remove(row);
+                    hadFriendOrRequest = true;
+                }
+
+                IRepository<FriendRequest> requests = unit.Repository<FriendRequest>();
+                foreach (FriendRequest row in await requests.ListAsync(r => (r.FromId == ownerId && r.ToId == targetId) || (r.FromId == targetId && r.ToId == ownerId), cancellationToken).ConfigureAwait(false))
+                {
+                    requests.Remove(row);
+                    hadFriendOrRequest = true;
+                }
+
+                try
+                {
+                    _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (unit.IsUniqueViolation(ex))
+                {
+                    return ChatStatus.AlreadyBlocked;
+                }
+                finally
+                {
+                    _friends?.Changed(ownerId, targetId);
+                }
             }
 
-            targetId = target.Id;
-            if (targetId == ownerId)
+            _ = Interlocked.Increment(ref _epoch);
+            _ = _cache.TryRemove(ownerId, out _);
+        }
+        finally
+        {
+            if (gate is not null)
             {
-                return ChatStatus.SelfBlock;
-            }
-
-            IRepository<BlockedPlayer> blocks = unit.Repository<BlockedPlayer>();
-            if (await blocks.AnyAsync(b => b.OwnerId == ownerId && b.BlockedId == targetId, cancellationToken).ConfigureAwait(false))
-            {
-                return ChatStatus.AlreadyBlocked;
-            }
-
-            if (await blocks.CountAsync(b => b.OwnerId == ownerId, cancellationToken).ConfigureAwait(false) >= ChatRules.MaxBlocked)
-            {
-                return ChatStatus.BlockListFull;
-            }
-
-            blocks.Add(new BlockedPlayer { OwnerId = ownerId, BlockedId = targetId, CreatedAt = _time.GetUtcNow() });
-
-            // A blocked player is no friend: both sides of the friendship and any open request go in the same save.
-            IRepository<Friendship> friendships = unit.Repository<Friendship>();
-            foreach (Friendship row in await friendships.ListAsync(f => (f.PlayerId == ownerId && f.FriendId == targetId) || (f.PlayerId == targetId && f.FriendId == ownerId), cancellationToken).ConfigureAwait(false))
-            {
-                friendships.Remove(row);
-            }
-
-            IRepository<FriendRequest> requests = unit.Repository<FriendRequest>();
-            foreach (FriendRequest row in await requests.ListAsync(r => (r.FromId == ownerId && r.ToId == targetId) || (r.FromId == targetId && r.ToId == ownerId), cancellationToken).ConfigureAwait(false))
-            {
-                requests.Remove(row);
-            }
-
-            try
-            {
-                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (unit.IsUniqueViolation(ex))
-            {
-                return ChatStatus.AlreadyBlocked;
-            }
-            finally
-            {
-                _friends?.Changed(ownerId, targetId);
+                _ = gate.Release();
             }
         }
 
-        _ = Interlocked.Increment(ref _epoch);
-        _ = _cache.TryRemove(ownerId, out _);
+        if (hadFriendOrRequest && this.PlayerBlocked is { } handlers)
+        {
+            foreach (Func<Guid, Guid, CancellationToken, ValueTask> handler in handlers.GetInvocationList())
+            {
+                await handler(ownerId, targetId, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         return ChatStatus.Ok;
     }
 

@@ -232,7 +232,7 @@ public sealed class GoalsViewModelTests
     [Fact]
     public void Toolbar_TheBoardIsNotAMenuButton_ItIsADialogOfTheBoardKeeper()
     {
-        ToolbarViewModel toolbar = new(Localizer<Language>());
+        using ToolbarViewModel toolbar = new(Localizer<Language>());
 
         toolbar.Items.Should().NotContain(i => i.Kind == PanelKind.Goals);
         ((int)PanelKind.Goals).Should().Be(17, "11 to 16 are Skills, Crafting, Chest, Furnace, Friends and Mail");

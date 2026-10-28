@@ -3,10 +3,14 @@
 using System;
 using System.Collections.Generic;
 using Nosum.Core;
+using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Placeables;
+using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
 
@@ -25,6 +29,8 @@ internal sealed class PlacementActions
     private readonly PlaceableChannel _placed;
     private readonly InventoryChannel _inventory;
     private readonly PlacementViewModel _view;
+    private readonly FarmChannel? _farm;
+    private readonly NodeChannel? _nodes;
     private readonly HashSet<(int X, int Y)> _noReserved = [];
     private double _lastActionSeconds = double.NegativeInfinity;
     private int _rotation;
@@ -33,7 +39,9 @@ internal sealed class PlacementActions
     /// <param name="placed">Sends the requests.</param>
     /// <param name="inventory">Says what is held.</param>
     /// <param name="view">The panel: shows or hides with the map and relays its buttons.</param>
-    public PlacementActions(PlaceableChannel placed, InventoryChannel inventory, PlacementViewModel view)
+    /// <param name="farm">Optional farm mirror so tilled soil shows as invalid for placement.</param>
+    /// <param name="nodes">Optional resource nodes mirror so stones/weeds/wood show as invalid for placement.</param>
+    public PlacementActions(PlaceableChannel placed, InventoryChannel inventory, PlacementViewModel view, FarmChannel? farm = null, NodeChannel? nodes = null)
     {
         ArgumentNullException.ThrowIfNull(placed);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -41,6 +49,8 @@ internal sealed class PlacementActions
         _placed = placed;
         _inventory = inventory;
         _view = view;
+        _farm = farm;
+        _nodes = nodes;
     }
 
     /// <summary>Gets whether a ghost is to be drawn.</summary>
@@ -76,7 +86,8 @@ internal sealed class PlacementActions
     /// <param name="feetY">Farmer's feet y, world pixels.</param>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     /// <param name="alwaysShowPanel">Whether the arrange key strip is always shown (a room) rather than only while a piece is held or carried (the farm, so tools keep the screen clean).</param>
-    public void Update(bool active, InputEdges edges, int targetX, int targetY, Facing facing, PlacedSet placedSet, WalkGrid mapGrid, double feetX, double feetY, double nowSeconds, bool alwaysShowPanel = true)
+    /// <param name="content">Optional loaded map content used to check building rules and reserved spawn/warp tiles.</param>
+    public void Update(bool active, InputEdges edges, int targetX, int targetY, Facing facing, PlacedSet placedSet, WalkGrid mapGrid, double feetX, double feetY, double nowSeconds, bool alwaysShowPanel = true, MapContent? content = null)
     {
         _view.SetActive(active && (alwaysShowPanel || this.CarryingId != 0 || PlaceableCatalog.TryGet(_inventory.SlotAt(_inventory.SelectedSlot).ItemId, out _)));
         if (!active)
@@ -94,7 +105,7 @@ internal sealed class PlacementActions
         bool pickUp = (edges & InputEdges.PickUp) != 0 || (requests & PlacementRequests.PickUp) != 0;
         bool act = (edges & InputEdges.Action) != 0;
 
-        // Grab starts carrying the piece in front, or puts a carried piece back (cancels).
+        // Grab starts carrying the piece in front (except unmovable buildings), or puts a carried piece back (cancels).
         if (grab)
         {
             if (this.CarryingId != 0)
@@ -102,7 +113,9 @@ internal sealed class PlacementActions
                 this.CarryingId = 0;
                 _view.SetCarrying(0);
             }
-            else if (placedSet.TryFindAt(targetX, targetY, out PlacedItem piece))
+            else if (placedSet.TryFindAt(targetX, targetY, out PlacedItem piece)
+                && PlaceableCatalog.TryGet(piece.ItemId, out PlaceableDefinition? grabDef)
+                && grabDef.Kind != PlaceableKind.Building)
             {
                 this.CarryingId = piece.Id;
                 _rotation = piece.Rotation;
@@ -162,7 +175,8 @@ internal sealed class PlacementActions
         this.GhostTileY = tileY;
         this.GhostRotation = _rotation;
         this.GhostValid = placedSet.Check(definition, _rotation, tileX, tileY, mapGrid, _noReserved, this.CarryingId) == PlacementVerdict.Ok
-            && !PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, mapGrid.TileSize);
+            && !PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, mapGrid.TileSize)
+            && this.IsGroundAndBuildingValid(definition, view, tileX, tileY, placedSet, content);
         this.GhostVisible = true;
 
         if (act && Throttle(nowSeconds, ref _lastActionSeconds))
@@ -178,6 +192,103 @@ internal sealed class PlacementActions
                 _placed.Place(slot, tileX, tileY, _rotation);
             }
         }
+    }
+
+    private bool IsGroundAndBuildingValid(PlaceableDefinition definition, PlaceableView view, int tileX, int tileY, PlacedSet placedSet, MapContent? content)
+    {
+        if (definition.Kind == PlaceableKind.Building)
+        {
+            if ((content is not null && !content.Spec.Farmable) || CountBuildings(placedSet) >= BuildingRules.MaxPerLand)
+            {
+                return false;
+            }
+        }
+
+        if (content is not null)
+        {
+            for (int dy = 0; dy < view.FootprintHeight; dy++)
+            {
+                for (int dx = 0; dx < view.FootprintWidth; dx++)
+                {
+                    if (Math.Abs(tileX + dx - content.Spec.SpawnTileX) <= 1 && Math.Abs(tileY + dy - content.Spec.SpawnTileY) <= 1)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            IReadOnlyList<MapWarp> warps = content.Warps;
+            for (int w = 0; w < warps.Count; w++)
+            {
+                MapWarp warp = warps[w];
+                for (int dy = 0; dy < view.FootprintHeight; dy++)
+                {
+                    for (int dx = 0; dx < view.FootprintWidth; dx++)
+                    {
+                        if (Math.Abs(tileX + dx - warp.FromX) <= 1 && Math.Abs(tileY + dy - warp.FromY) <= 1)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (_farm is not null)
+        {
+            using (_farm.Read())
+            {
+                if (content is null || string.Equals(_farm.MapId, content.Spec.Id, StringComparison.Ordinal))
+                {
+                    for (int dy = 0; dy < view.FootprintHeight; dy++)
+                    {
+                        for (int dx = 0; dx < view.FootprintWidth; dx++)
+                        {
+                            if (_farm.TryGetTile(tileX + dx, tileY + dy, out _))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (_nodes is not null)
+        {
+            using (_nodes.Read())
+            {
+                if (content is null || string.Equals(_nodes.MapId, content.Spec.Id, StringComparison.Ordinal))
+                {
+                    for (int i = 0; i < _nodes.Count; i++)
+                    {
+                        NodeInfo node = _nodes.At(i);
+                        if (node.X >= tileX && node.X < tileX + view.FootprintWidth
+                            && node.Y >= tileY && node.Y < tileY + view.FootprintHeight)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static int CountBuildings(PlacedSet placedSet)
+    {
+        int count = 0;
+        IReadOnlyList<PlacedItem> items = placedSet.Items;
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (PlaceableCatalog.TryGet(items[i].ItemId, out PlaceableDefinition? d) && d.Kind == PlaceableKind.Building)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     // The footprint is centred on the tile in front of the farmer sideways, and extends away from them: a wide piece in front of

@@ -105,6 +105,66 @@ public sealed class InventoryGrid
         return InventoryVerdict.NoSpace;
     }
 
+    /// <summary>Returns the total quantity of <paramref name="itemId"/> that can currently fit into this grid across existing stacks and empty slots.</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <returns>The available room, or zero when the item is unknown or the grid is full.</returns>
+    public int AvailableRoomFor(int itemId)
+    {
+        if (!ItemCatalog.TryGet(itemId, out ItemDefinition? item))
+        {
+            return 0;
+        }
+
+        long room = 0;
+        foreach (ItemSlot stack in _slots)
+        {
+            room += stack.IsEmpty ? item.MaxStack : stack.ItemId == itemId ? item.MaxStack - stack.Quantity : 0;
+            if (room >= int.MaxValue)
+            {
+                return int.MaxValue;
+            }
+        }
+
+        return (int)room;
+    }
+
+    /// <summary>Adds as many of <paramref name="quantity"/> items as fit into the grid and returns how many were added.</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="quantity">Desired quantity to add.</param>
+    /// <returns>The quantity actually added (between 0 and <paramref name="quantity"/>).</returns>
+    public int AddUpToCapacity(int itemId, int quantity)
+    {
+        if (quantity <= 0 || !ItemCatalog.TryGet(itemId, out ItemDefinition? item))
+        {
+            return 0;
+        }
+
+        int fitting = Math.Min(quantity, this.AvailableRoomFor(itemId));
+        if (fitting <= 0)
+        {
+            return 0;
+        }
+
+        int left = fitting;
+        for (int i = 0; i < _slots.Length && left > 0; i++)
+        {
+            if (_slots[i].ItemId == itemId)
+            {
+                left -= this.Fill(i, itemId, item.MaxStack, left);
+            }
+        }
+
+        for (int i = 0; i < _slots.Length && left > 0; i++)
+        {
+            if (_slots[i].IsEmpty)
+            {
+                left -= this.Fill(i, itemId, item.MaxStack, left);
+            }
+        }
+
+        return fitting - left;
+    }
+
     /// <summary>Adds items: tops up existing stacks first (lowest slot first), then fills empty slots.</summary>
     /// <param name="itemId">Item id.</param>
     /// <param name="quantity">How many; all of them are added or none.</param>

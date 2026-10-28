@@ -205,7 +205,7 @@ internal static partial class GameLoop
         ArgumentNullException.ThrowIfNull(http);
 
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
-        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat) : null;
+        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat, s_calendar) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
@@ -231,7 +231,7 @@ internal static partial class GameLoop
         PlacementActions? placement = null;
         if (s_placeable is not null && s_placement is not null && s_inventory is not null)
         {
-            placement = new PlacementActions(s_placeable, s_inventory, s_placement);
+            placement = new PlacementActions(s_placeable, s_inventory, s_placement, s_farm, s_nodes);
             providers.Add(new PlacedObjectsDecoratorProvider(s_placeable, placement, s_furnaces, s_buildings));
         }
 
@@ -306,7 +306,7 @@ internal static partial class GameLoop
         long deadline = Environment.TickCount64 + (long)s_entryTimeout.TotalMilliseconds;
         while (Environment.TickCount64 < deadline)
         {
-            if (s_network.TryPeekEntry(out MapEntry entry))
+            if (s_network.TryTakeEntry(out MapEntry entry))
             {
                 return entry;
             }

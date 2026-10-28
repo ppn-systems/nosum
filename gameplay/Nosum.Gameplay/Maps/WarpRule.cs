@@ -46,8 +46,10 @@ public static class WarpRule
         ArgumentNullException.ThrowIfNull(warps);
         ArgumentNullException.ThrowIfNull(grid);
 
-        int tx = TileX(feetX, grid.TileSize);
-        int ty = TileY(feetY, grid.TileSize);
+        int tx = feetX >= 0 && feetX <= grid.Width * grid.TileSize
+            ? Math.Clamp(TileX(feetX, grid.TileSize), 0, Math.Max(0, grid.Width - 1))
+            : TileX(feetX, grid.TileSize);
+        int ty = feetY >= 0 && feetY <= FeetEpsilon ? 0 : TileY(feetY, grid.TileSize);
         for (int i = 0; i < warps.Count; i++)
         {
             MapWarp candidate = warps[i];
@@ -73,8 +75,10 @@ public static class WarpRule
         ArgumentNullException.ThrowIfNull(warps);
         ArgumentNullException.ThrowIfNull(grid);
 
-        int tx = TileX(feetX, grid.TileSize);
-        int ty = TileY(feetY, grid.TileSize);
+        int tx = feetX >= 0 && feetX <= grid.Width * grid.TileSize
+            ? Math.Clamp(TileX(feetX, grid.TileSize), 0, Math.Max(0, grid.Width - 1))
+            : TileX(feetX, grid.TileSize);
+        int ty = feetY >= 0 && feetY <= FeetEpsilon ? 0 : TileY(feetY, grid.TileSize);
         for (int i = 0; i < warps.Count; i++)
         {
             if (!TryEdge(warps[i], grid, out int edgeX, out int edgeY, out _))

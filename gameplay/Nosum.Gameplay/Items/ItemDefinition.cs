@@ -81,8 +81,11 @@ public sealed class ItemDefinition
     public bool IsEdible => this.FoodEnergy > 0;
 
     /// <summary>
-    /// Gets whether the item may be sold, traded or put in a co-op warehouse. Tools are bound to their owner so nobody can
-    /// lose the means to farm.
+    /// Gets whether the item may be sold, traded or put in a co-op warehouse. Farming/foraging/mining tools are bound to their owner so nobody can
+    /// lose the means to farm, whereas weapons and the milk pail may be stored in chests or traded.
     /// </summary>
-    public bool IsTradable => this.Kind != ItemKind.Tool;
+    public bool IsTradable => this.Kind != ItemKind.Tool || this.Tool is ToolKind.Sword or ToolKind.Staff or ToolKind.MilkPail;
+
+    /// <summary>Gets whether the item belongs to the core bound starter tool families (hoe, watering can, axe, pickaxe, scythe).</summary>
+    public bool IsStarterToolFamily => this.Kind == ItemKind.Tool && this.Tool is ToolKind.Hoe or ToolKind.WateringCan or ToolKind.Axe or ToolKind.Pickaxe or ToolKind.Scythe;
 }

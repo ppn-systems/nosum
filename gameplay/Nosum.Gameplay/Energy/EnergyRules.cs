@@ -38,6 +38,23 @@ public static class EnergyRules
         return baseCost == 0 ? 0 : System.Math.Max(1, baseCost - (System.Math.Max(0, skillLevel) / LevelsPerDiscount));
     }
 
+    /// <summary>Gets what one successful use of a tool of a given <paramref name="tier"/> costs a player with a skill level.</summary>
+    /// <param name="tool">The tool.</param>
+    /// <param name="skillLevel">The level of the skill the tool belongs to.</param>
+    /// <param name="tier">The tool tier; upgraded tiers grant an additional efficiency discount down to the minimum of one energy.</param>
+    /// <returns>Energy to spend.</returns>
+    public static int Cost(ToolKind tool, int skillLevel, ToolTier tier)
+    {
+        int baseCost = BaseCost(tool);
+        if (baseCost == 0)
+        {
+            return 0;
+        }
+
+        int tierDiscount = tier >= ToolTier.Copper ? 1 : 0;
+        return System.Math.Max(1, baseCost - tierDiscount - (System.Math.Max(0, skillLevel) / LevelsPerDiscount));
+    }
+
     /// <summary>Applies the daily refill: energy is full again once a game day has passed since the last refill.</summary>
     /// <param name="energy">The stored energy.</param>
     /// <param name="refilledDay">The game day of the last refill, or <see cref="NeverRefilled"/>.</param>

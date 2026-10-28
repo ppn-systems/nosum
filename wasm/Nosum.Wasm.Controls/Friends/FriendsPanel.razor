@@ -66,7 +66,7 @@
                     </div>
                 }
                 <GameRow Class="center">
-                    <GameButton Variant="plain" Active="Vm.FriendsMayVisit" Text="@(Vm.FriendsMayVisit ? Vm.Text("Friends_Visit_On") : Vm.Text("Friends_Visit_Off"))" OnClick="@(() => Vm.ToggleVisit())" />
+                    <GameButton Variant="plain" Active="Vm.FriendsMayVisit" aria-pressed="@(Vm.FriendsMayVisit ? "true" : "false")" Text="@(Vm.FriendsMayVisit ? Vm.Text("Friends_Visit_On") : Vm.Text("Friends_Visit_Off"))" OnClick="@(() => Vm.ToggleVisit())" />
                 </GameRow>
                 <p class="friends-hint">@Vm.Text("Friends_Visit_Hint")</p>
             </GameSection>

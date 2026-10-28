@@ -1,3 +1,4 @@
+@using Nosum.Gameplay.Items
 @using Nosum.Wasm.ViewModels.Looks
 @inherits ObservingComponent<WardrobeViewModel>
 
@@ -38,8 +39,16 @@
         int picked = Inventory.MovingFrom;
         if (picked >= 0)
         {
-            Vm.Wear(picked);
-            Inventory.Click(picked);
+            foreach (SlotDisplay candidate in Vm.Wardrobe)
+            {
+                if (candidate.Index == picked && ItemCatalog.TryGet(candidate.ItemId, out ItemDefinition? def) && (int)def.Wear == slot)
+                {
+                    Vm.Wear(picked);
+                    Inventory.Click(picked);
+                    return;
+                }
+            }
+
             return;
         }
 

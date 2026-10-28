@@ -198,12 +198,18 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
     {
         if (!_presence.TryGet(connection, out PlayerPresence? player) || !_maps.TryGet(player.MapId, out MapDefinition? map) || !map.Placeable)
         {
+            if (player is not null)
+            {
+                this.RemoveViewer(player.AccountId, objectId);
+            }
+
             return (ChestStatus.UnknownObject, null);
         }
 
         PlacedItem? found = await _placeables.FindAsync(player.Instance, objectId, cancellationToken).ConfigureAwait(false);
         if (found is not { } chest || !PlaceableCatalog.TryGet(chest.ItemId, out PlaceableDefinition? definition) || definition.Kind != PlaceableKind.Chest)
         {
+            this.RemoveViewer(player.AccountId, objectId);
             return (ChestStatus.UnknownObject, null);
         }
 
@@ -229,7 +235,13 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
         }
 
         PlaceableView view = definition.View(Math.Min(chest.Rotation, definition.Rotations - 1));
-        return PlacedAccess.Reaches(view, chest.TileX, chest.TileY, feetX, feetY, map.Grid.TileSize) ? (ChestStatus.Ok, player) : (ChestStatus.OutOfReach, null);
+        if (!PlacedAccess.Reaches(view, chest.TileX, chest.TileY, feetX, feetY, map.Grid.TileSize))
+        {
+            this.RemoveViewer(player.AccountId, objectId);
+            return (ChestStatus.OutOfReach, null);
+        }
+
+        return (ChestStatus.Ok, player);
     }
 
     // A stack between the player and the chest: peek both slots, then one atomic change of both inventories plus the log line. The operations name their slots and

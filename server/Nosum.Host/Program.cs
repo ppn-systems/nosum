@@ -233,6 +233,10 @@ internal static class Program
         await using (app.ConfigureAwait(false))
         {
             await app.RunAsync(shutdown.Token).ConfigureAwait(false);
+            if (InstanceManager.Instance.GetExistingInstance<IPlayerService>() is PlayerService activePlayers)
+            {
+                await activePlayers.FlushPositionsAsync(CancellationToken.None).ConfigureAwait(false);
+            }
         }
 
         // Whatever waits for its write goes to the database before the process ends (docs/adr/ADR-035 D7).
@@ -576,8 +580,14 @@ internal static class Program
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2, ADR-049 D3).
-        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players);
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress);
         InstanceManager.Instance.Register<ICombatService>(combat);
+        sessions.SessionEnded += id =>
+        {
+            combat.OnPlayerDisconnected(id);
+            return ValueTask.CompletedTask;
+        };
+
         InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress, combat), quests));
 
         // The mine (docs/adr/ADR-026): floors are per-player instances built in memory, dropped when the player leaves; a tool use that ends at a ladder takes the player down,
@@ -604,7 +614,11 @@ internal static class Program
         dayClock.DayEnded += ended =>
         {
             _ = ended;
-            _ = communityGoals.CloseEndedSeasonsAsync().ContinueWith(
+            _ = Task.Run(async () =>
+            {
+                _ = await communityGoals.CloseEndedSeasonsAsync().ConfigureAwait(false);
+                _ = await communityGoals.SettlePendingAsync().ConfigureAwait(false);
+            }).ContinueWith(
                 static t => Console.Error.WriteLine("Community goal season sweep failed: " + t.Exception?.GetBaseException().Message),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted,
@@ -635,7 +649,7 @@ internal static class Program
         // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
         FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock, friendFacts, visitFacts);
         InstanceManager.Instance.Register<IFriendService>(friends);
-        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory, visitFacts));
+        InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory, visitFacts, blocks));
         InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
 
         // Armed last: every subscriber is in place before the first boundary.

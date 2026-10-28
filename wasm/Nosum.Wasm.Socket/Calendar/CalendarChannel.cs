@@ -20,6 +20,7 @@ public sealed class CalendarChannel
     private long _epochMs;
     private long _dayLengthMs;
     private long _clockOffsetMs;
+    private int _loadGeneration;
 
     /// <summary>Initializes the channel.</summary>
     /// <param name="socket">The game connection.</param>
@@ -51,10 +52,16 @@ public sealed class CalendarChannel
     [SuppressMessage("Design", "CA1031", Justification = "A failed read is retried at the next sign-in; there is no caller to report to.")]
     private async Task LoadAsync()
     {
+        int generation = Interlocked.Increment(ref _loadGeneration);
         try
         {
             using PacketScope<GetCalendar> request = PacketFactory<GetCalendar>.Acquire();
             CalendarInfo info = await _socket.RequestAsync<CalendarInfo>(request.Value).ConfigureAwait(false);
+            if (generation != Volatile.Read(ref _loadGeneration))
+            {
+                return;
+            }
+
             Interlocked.Exchange(ref _epochMs, info.EpochMs);
             Interlocked.Exchange(ref _clockOffsetMs, info.ServerNowMs - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             Interlocked.Exchange(ref _dayLengthMs, info.DayLengthMs);

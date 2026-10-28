@@ -1,13 +1,13 @@
 @* The one button of the game UI. Looks come only from the shared "game-button" class and its variants (primary, danger, plain, tab, link);
    text comes from the caller (already localized). Keyboard users reach it with Tab (docs/adr/ADR-033 D4); a click in the game does not take focus (the canvas keeps the keyboard), on a form (Focusable) it does. *@
-<button @attributes="Extra"
-        type="@(Submit ? "submit" : "button")"
+<button type="@(Submit ? "submit" : "button")"
         class="game-button @Variant @(Active ? "active" : null)"
         disabled="@Disabled"
         data-tip="@Title"
-        aria-pressed="@(Variant == "tab" ? (Active ? "true" : "false") : null)"
+        aria-pressed="@(Variant == "tab" ? (Active ? "true" : "false") : Active ? "true" : null)"
         @onmousedown:preventDefault="@(!Focusable)"
-        @onclick="OnClick"><span class="game-button-label">@Text@ChildContent</span></button>
+        @onclick="OnClick"
+        @attributes="Extra"><span class="game-button-label">@Text@ChildContent</span></button>
 
 @code {
     /// <summary>Gets or sets extra HTML attributes and event handlers for the button (for example <c>data-capture-key</c> and <c>@onkeydown</c> on the key binding rows).</summary>

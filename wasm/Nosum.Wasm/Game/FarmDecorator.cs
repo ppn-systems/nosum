@@ -142,16 +142,14 @@ internal sealed class FarmDecorator : IMapDecorator
 
                 FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, 0);
 
-                // A crop that withered at the season change is gone from the picture; the soil stays and can be planted over (docs/adr/ADR-018).
-                if (FarmRules.IsWithered(tile, _nowMs, rules))
-                {
-                    continue;
-                }
-
-                if (CropSprites.TryGetFrame(info.CropId, FarmRules.StageAt(tile, _nowMs, rules, _outdoors, this.IsSprinkled(info.X, info.Y)), out int sourceX, out int sourceY))
+                // A crop that withered at the season change shows as a wilted brown stalk until cleared with a tool or replanted over (docs/adr/ADR-018).
+                bool withered = FarmRules.IsWithered(tile, _nowMs, rules);
+                int stage = withered ? 1 : FarmRules.StageAt(tile, _nowMs, rules, _outdoors, this.IsSprinkled(info.X, info.Y));
+                int cropTint = withered ? unchecked((int)0x8b6b4aff) : RenderCommandBuffer.NoTint;
+                if (CropSprites.TryGetFrame(info.CropId, stage, out int sourceX, out int sourceY))
                 {
                     // Anchored at the tile's centre so a farmer walking over it is ordered by which half they stand on.
-                    world.Add(_cropsTexture, sourceX, sourceY, CropSprites.FrameWidth, CropSprites.FrameHeight, worldX, worldY, (info.Y * _tileSize) + (_tileSize / 2), worldX);
+                    world.Add(_cropsTexture, sourceX, sourceY, CropSprites.FrameWidth, CropSprites.FrameHeight, worldX, worldY, (info.Y * _tileSize) + (_tileSize / 2), worldX, tint: cropTint);
                 }
             }
         }

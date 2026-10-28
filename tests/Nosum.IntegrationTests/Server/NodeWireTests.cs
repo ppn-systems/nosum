@@ -421,7 +421,7 @@ public sealed class NodeWireTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task DayRollover_OnAPublicMap_RegrowsABoundedNumberOfWeedsStonesAndTwigs_AndOnceADay()
     {
-        await using TestHost host = await TestHost.StartAsync(_database);
+        await using TestHost host = await TestHost.StartAsync(_database, new FakeTimeProvider(s_start));
         await using ToolClient player = await host.ConnectAsync();
         IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
         _ = maps.TryGet(GameMaps.Forest, out MapDefinition? forest);

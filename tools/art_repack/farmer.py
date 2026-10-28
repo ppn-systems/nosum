@@ -47,9 +47,9 @@ HAND = SKIN
 
 FRAME_W, FRAME_H = 16, 32
 HAIR_STYLES = 8
-SHIRTS = {1: 'red', 3: 'straw', 7: 'blue', 11: 'green'}      # sheet index -> colour (LookPalette.cs: ShirtRed, PlainShirt, ShirtBlue, ShirtGreen)
+SHIRTS = {1: 'red', 2: 'grey', 3: 'grey', 4: 'grey', 7: 'blue', 11: 'green'}  # sheet index -> colour (LookPalette.cs: ShirtRed, PlainShirt/armors, ShirtBlue, ShirtGreen; 0 stays empty)
 SHIRT_PIECES = {'down': 0, 'right': 8, 'up': 24}               # y offset of the 8 x 8 piece inside a shirt's 32 px band
-HATS = {3: 'straw', 5: 'cap'}                                  # sheet index -> hat (HatStraw, HatCap)
+HATS = {2: 'crown', 3: 'straw', 4: 'helmet', 5: 'cap'}         # sheet index -> hat (HatStraw, HatCap, plus greyscale crown/helmet slots; 0 stays empty)
 HAT_ROWS = ['down', 'right', 'left', 'up']
 DIRECTIONS = ['down', 'right', 'up']
 WALK_COLUMNS = [0, 1, 2, 3, 4, 5]
@@ -242,6 +242,7 @@ def boots(c, direction, column):
 # ---- shirt pieces (8 x 8, untinted) ------------------------------------------------------------------------------------------------------
 
 SHIRT_COLORS = {
+    'grey': (G_X, G_B, G_L),
     'red': ((150, 40, 40), (214, 72, 60), (240, 120, 96)),
     'straw': ((190, 146, 70), (236, 202, 112), (252, 232, 160)),
     'blue': ((30, 90, 150), (60, 130, 205), (110, 180, 240)),
@@ -448,10 +449,52 @@ def _cap(direction):
     return c.outline(OUT)
 
 
+def _helmet(direction):
+    c = _hat_canvas()
+    d, m, l = G_D, G_B, G_L
+    if direction in ('down', 'up'):
+        c.ellipse(9.5, 4.2, 6.5, 3.6, m)
+        c.rect(4, 3, 12, 4, m)
+        c.rect(6, 1, 8, 2, l)
+        c.rect(4, 6, 12, 1, d)
+        if direction == 'down':
+            c.rect(9, 4, 2, 4, d)                               # nasal guard
+        else:
+            c.rect(5, 7, 10, 1, d)                              # neck guard
+    else:
+        c.ellipse(9.5, 4.2, 6.5, 3.6, m)
+        c.rect(4, 3, 12, 4, m)
+        c.rect(6, 1, 7, 2, l)
+        c.rect(4, 6, 12, 1, d)
+        c.rect(14, 5, 2, 3, d)                                  # visor / nasal edge
+    return c.outline(G_OUT_HAIR)
+
+
+def _crown(direction):
+    c = _hat_canvas()
+    d, m, l = G_D, G_B, G_L
+    c.rect(4, 4, 12, 3, m)
+    c.rect(4, 6, 12, 1, d)
+    for px in (4, 9, 14):
+        c.rect(px, 2, 2, 2, l)
+        c.dot(px, 1, l)
+    if direction == 'down':
+        c.dot(9, 5, l)
+        c.dot(10, 5, l)
+    return c.outline(G_OUT_HAIR)
+
+
 def hat(kind, row):
-    """kind 'straw' or 'cap'; row in HAT_ROWS. Left is the right picture mirrored here because the game does not mirror hats."""
+    """kind 'straw', 'cap', 'helmet' or 'crown'; row in HAT_ROWS. Left is the right picture mirrored here because the game does not mirror hats."""
     direction = 'right' if row == 'left' else row
-    img = _straw_hat(direction) if kind == 'straw' else _cap(direction)
+    if kind == 'straw':
+        img = _straw_hat(direction)
+    elif kind == 'cap':
+        img = _cap(direction)
+    elif kind == 'helmet':
+        img = _helmet(direction)
+    else:
+        img = _crown(direction)
     return img.flip_h() if row == 'left' else img
 
 

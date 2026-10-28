@@ -70,7 +70,9 @@ public sealed class AccountSessionKeeper : IDisposable
     public void UpdateSession(AccountSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        _session = session;
+        _session = string.IsNullOrWhiteSpace(session.SessionToken) && _session is not null
+            ? session with { SessionToken = _session.SessionToken }
+            : session;
     }
 
     /// <summary>Forgets the session (after logout) so a reconnect no longer signs in.</summary>
@@ -91,13 +93,25 @@ public sealed class AccountSessionKeeper : IDisposable
     [SuppressMessage("Design", "CA1031", Justification = "A failed resume leaves the player signed out; the next reconnect tries again.")]
     private async Task ResumeAsync(AccountSession session)
     {
+        if (string.IsNullOrWhiteSpace(session.SessionToken))
+        {
+            return;
+        }
+
         try
         {
             AccountReply reply = await _client.ResumeAsync(session.SessionToken, CancellationToken.None).ConfigureAwait(false);
             if (reply is { Status: AccountStatus.Ok, Session: { } fresh })
             {
-                _session = fresh;
+                _session = string.IsNullOrWhiteSpace(fresh.SessionToken)
+                    ? fresh with { SessionToken = session.SessionToken }
+                    : fresh;
                 this.Authenticated?.Invoke();
+            }
+            else if (reply.Status != AccountStatus.Ok)
+            {
+                _session = null;
+                this.SessionEnded?.Invoke(reply.Status);
             }
         }
         catch (Exception)

@@ -48,6 +48,7 @@ public readonly record struct CoopInviteInfo(Guid InviteId, string CoopName, str
 /// <param name="Invites">Open invitations.</param>
 /// <param name="WarehouseLevel">The warehouse upgrade level (docs/adr/ADR-038).</param>
 /// <param name="LandLevel">The land upgrade level (docs/adr/ADR-038).</param>
+[SuppressMessage("Performance", "CA1859", Justification = "Public record contract exposes IReadOnlyList.")]
 public sealed record CoopInfo(bool HasCoop, string Name, CoopRole Role, IReadOnlyList<CoopMemberInfo> Members, IReadOnlyList<CoopStockInfo> Stock, IReadOnlyList<CoopLogInfo> Log, IReadOnlyList<CoopInviteInfo> Invites, int WarehouseLevel = 0, int LandLevel = 0)
 {
     /// <summary>Gets the state before the first read.</summary>
@@ -97,11 +98,7 @@ public sealed class CoopChannel : IDisposable
     /// <summary>Answers an invitation.</summary>
     /// <param name="inviteId">The invitation.</param>
     /// <param name="accept">Whether to join.</param>
-    public void Respond(Guid inviteId, bool accept) => _ = this.SendAsync<RespondInvite>(r =>
-    {
-        r.InviteId = inviteId;
-        r.Accept = accept;
-    });
+    public void Respond(Guid inviteId, bool accept) => _ = this.RespondAsync(inviteId, accept);
 
     /// <summary>Leaves the co-op.</summary>
     public void Leave() => _ = this.SendAsync<LeaveCoop>(_ => { });
@@ -186,6 +183,43 @@ public sealed class CoopChannel : IDisposable
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
+    private async Task RespondAsync(Guid inviteId, bool accept)
+    {
+        try
+        {
+            using PacketScope<RespondInvite> request = PacketFactory<RespondInvite>.Acquire();
+            request.Value.InviteId = inviteId;
+            request.Value.Accept = accept;
+            CoopResult reply = await _socket.RequestAsync<CoopResult>(request.Value).ConfigureAwait(false);
+            if (reply.Status != CoopStatus.Ok)
+            {
+                List<CoopInviteInfo> remaining = [];
+                foreach (CoopInviteInfo invite in this.Current.Invites)
+                {
+                    if (invite.InviteId != inviteId)
+                    {
+                        remaining.Add(invite);
+                    }
+                }
+
+                if (remaining.Count != this.Current.Invites.Count)
+                {
+                    this.Current = this.Current with { Invites = remaining.ToArray() };
+                    this.Changed?.Invoke();
+                }
+
+                await this.LoadAsync().ConfigureAwait(false);
+            }
+
+            this.Completed?.Invoke(reply.Status);
+        }
+        catch (Exception)
+        {
+            // Connection dropped.
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
     private async Task SendAsync<TRequest>(Action<TRequest> fill)
         where TRequest : Nalix.Codec.DataFrames.PacketBase<TRequest>, Nalix.Abstractions.Networking.Packets.IPacketStaticOpcode, new()
     {
@@ -194,6 +228,11 @@ public sealed class CoopChannel : IDisposable
             using PacketScope<TRequest> request = PacketFactory<TRequest>.Acquire();
             fill(request.Value);
             CoopResult reply = await _socket.RequestAsync<CoopResult>(request.Value).ConfigureAwait(false);
+            if (reply.Status != CoopStatus.Ok)
+            {
+                await this.LoadAsync().ConfigureAwait(false);
+            }
+
             this.Completed?.Invoke(reply.Status);
         }
         catch (Exception)

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -23,6 +24,7 @@ public sealed class SessionRegistry : ISessionRegistry
     private readonly Lock _gate = new();
     private readonly Dictionary<Guid, IConnection> _active = [];
     private readonly Dictionary<ulong, Guid> _playerOf = [];
+    private readonly ConcurrentDictionary<Guid, Task> _closing = new();
     private readonly EventHandler<IConnectionEventArgs> _onClosed;
 
     /// <summary>Initializes the registry.</summary>
@@ -45,6 +47,18 @@ public sealed class SessionRegistry : ISessionRegistry
     public async ValueTask ActivateAsync(Guid playerId, IConnection connection, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
+
+        if (_closing.TryRemove(playerId, out Task? pendingClose))
+        {
+            try
+            {
+                await pendingClose.ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // Best effort completion of prior session teardown.
+            }
+        }
 
         IConnection? previous;
         Guid? ended = null;
@@ -77,7 +91,16 @@ public sealed class SessionRegistry : ISessionRegistry
 
         if (ended is { } left)
         {
-            this.RaiseEnded(left);
+            try
+            {
+                await _presence.LeaveAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // Best effort leave when switching accounts on the same connection.
+            }
+
+            await this.InvokeEndedHandlersAsync(left).ConfigureAwait(false);
         }
 
         if (previous is null)
@@ -104,7 +127,7 @@ public sealed class SessionRegistry : ISessionRegistry
         }
 
         await this.CloseAsync(connection, reason, "session ended by the server", cancellationToken).ConfigureAwait(false);
-        this.RaiseEnded(playerId);
+        await this.InvokeEndedHandlersAsync(playerId).ConfigureAwait(false);
         return true;
     }
 
@@ -136,6 +159,7 @@ public sealed class SessionRegistry : ISessionRegistry
     }
 
     /// <inheritdoc/>
+    [SuppressMessage("Design", "CA1031", Justification = "Release runs from logout or close event; cleanup is tracked in _closing and best-effort.")]
     public void Release(IConnection connection)
     {
         ArgumentNullException.ThrowIfNull(connection);
@@ -155,7 +179,23 @@ public sealed class SessionRegistry : ISessionRegistry
         connection.ConnectionClosed -= _onClosed;
         if (ended is { } left)
         {
-            this.RaiseEnded(left);
+            Task closeTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await _presence.LeaveAsync(connection).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // Best effort leave before SessionEnded handlers.
+                }
+
+                await this.InvokeEndedHandlersAsync(left).ConfigureAwait(false);
+            });
+            _closing[left] = closeTask;
+            _ = closeTask.ContinueWith(
+                t => _closing.TryRemove(new KeyValuePair<Guid, Task>(left, t)),
+                TaskScheduler.Default);
         }
     }
 
@@ -168,28 +208,24 @@ public sealed class SessionRegistry : ISessionRegistry
         }
     }
 
-    // Off the closing path: the handlers only let go of in-memory state, and a failing one must not stop the others or the close.
     [SuppressMessage("Design", "CA1031", Justification = "Raised from a close; there is no caller to report to and the other handlers must still run.")]
-    private void RaiseEnded(Guid playerId)
+    private async ValueTask InvokeEndedHandlersAsync(Guid playerId)
     {
         if (this.SessionEnded is not { } handlers)
         {
             return;
         }
 
-        _ = Task.Run(async () =>
+        foreach (Func<Guid, ValueTask> handler in handlers.GetInvocationList())
         {
-            foreach (Func<Guid, ValueTask> handler in handlers.GetInvocationList())
+            try
             {
-                try
-                {
-                    await handler(playerId).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                    // Best effort.
-                }
+                await handler(playerId).ConfigureAwait(false);
             }
-        });
+            catch (Exception)
+            {
+                // Best effort.
+            }
+        }
     }
 }

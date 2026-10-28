@@ -16,10 +16,12 @@ using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Domain.Accounts;
 using PlayerState = Nosum.Domain.Accounts.PlayerState;
+using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Skills;
+using Nosum.Infrastructure.Combat;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Progress;
@@ -43,6 +45,9 @@ public sealed class PlayerProgressService : IPlayerProgress
     private readonly TimeProvider _time;
     private readonly IPlayerNotifier? _notifier;
     private readonly PlayerStateCache _cache;
+
+    /// <summary>Gets or sets the optional combat service used to unify potion/elixir effects across EatFood and DrinkPotion.</summary>
+    internal CombatService? Combat { get; set; }
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -155,6 +160,8 @@ public sealed class PlayerProgressService : IPlayerProgress
         bool staged = false;
         PlayerStateCache.Snapshot? saved = null;
         int energyAfter = 0;
+        bool isPotion = Combat is not null && CombatRules.IsPotion(held.ItemId);
+        bool canRestoreVitals = isPotion && await Combat!.CanBenefitFromPotionAsync(playerId, held.ItemId, cancellationToken).ConfigureAwait(false);
         try
         {
             InventoryChange change = await _inventory.ApplyAsync(
@@ -167,7 +174,7 @@ public sealed class PlayerProgressService : IPlayerProgress
                     locked = true;
                     PlayerStateCache.Snapshot row = await _cache.GetAsync(_unitOfWork, playerId, ct).ConfigureAwait(false);
                     (int energy, long day) = EnergyRules.Refill(row.Energy, row.EnergyRefilledDay, _days.Today);
-                    if (energy >= EnergyRules.MaxEnergy)
+                    if (energy >= EnergyRules.MaxEnergy && !canRestoreVitals)
                     {
                         refused = EatStatus.EnergyFull;
                         return false;
@@ -207,8 +214,53 @@ public sealed class PlayerProgressService : IPlayerProgress
             }
         }
 
+        if (isPotion)
+        {
+            await Combat!.ApplyConsumedPotionEffectsAsync(playerId, held.ItemId, cancellationToken).ConfigureAwait(false);
+        }
+
         await this.PushEnergyAsync(playerId, energyAfter, cancellationToken).ConfigureAwait(false);
         return new EatOutcome(EatStatus.Ok);
+    }
+
+    /// <summary>Checks whether the player's current energy is below <see cref="EnergyRules.MaxEnergy"/>.</summary>
+    internal async ValueTask<bool> IsEnergyBelowMaxAsync(Guid playerId, CancellationToken cancellationToken = default)
+    {
+        PlayerProgressView view = await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+        return view.Energy < EnergyRules.MaxEnergy;
+    }
+
+    /// <summary>Restores energy when a potion with <c>FoodEnergy &gt; 0</c> is consumed via <c>DrinkPotion</c>.</summary>
+    internal async ValueTask RestoreEnergyFromPotionAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
+    {
+        if (foodEnergy <= 0)
+        {
+            return;
+        }
+
+        int energyAfter;
+        using (await _cache.Locks.EnterAsync(playerId, cancellationToken).ConfigureAwait(false))
+        {
+            PlayerStateCache.Snapshot row = await _cache.GetAsync(_unitOfWork, playerId, cancellationToken).ConfigureAwait(false);
+            (int energy, long day) = EnergyRules.Refill(row.Energy, row.EnergyRefilledDay, _days.Today);
+            if (energy >= EnergyRules.MaxEnergy)
+            {
+                return;
+            }
+
+            energyAfter = EnergyRules.Eat(energy, foodEnergy);
+            PlayerStateCache.Snapshot next = row with { Exists = true, Energy = energyAfter, EnergyRefilledDay = day, UpdatedAt = _time.GetUtcNow() };
+            IUnitOfWork unit = _unitOfWork.Create();
+            await using (unit.ConfigureAwait(false))
+            {
+                this.Stage(unit, playerId, row.Exists, next);
+                _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            _cache.Apply(playerId, s => s with { Exists = true, Energy = next.Energy, EnergyRefilledDay = next.EnergyRefilledDay, UpdatedAt = next.UpdatedAt });
+        }
+
+        await this.PushEnergyAsync(playerId, energyAfter, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

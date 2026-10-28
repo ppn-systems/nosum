@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Buildings;
+using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Friends;
@@ -21,6 +22,7 @@ using Nosum.Domain.Visits;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Players;
 using Nosum.Gameplay.Visits;
+using Nosum.Infrastructure.Chat;
 
 namespace Nosum.Infrastructure.Visits;
 
@@ -45,6 +47,7 @@ public sealed class VisitService : IVisitService, IDisposable
     private readonly TimeProvider _time;
     private readonly IBuildingDirectory? _buildings;
     private readonly VisitFacts _facts;
+    private readonly IBlockList? _blocks;
 
     /// <summary>Initializes the service and starts listening for co-op members who leave.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -54,10 +57,11 @@ public sealed class VisitService : IVisitService, IDisposable
     /// <param name="nicknames">Resolves nicknames for the list.</param>
     /// <param name="coops">Tells when a member's co-op membership ends.</param>
     /// <param name="time">The clock for the audit timestamps; tests pass a fake one.</param>
-    /// <param name="buildings">The farm buildings of the owner's land: a visitor inside one is in the owner's place too (docs/adr/ADR-028 D2); <see langword="null"/> for none.</param>
     /// <param name="friends">Tells when visiting rights through friendship end (docs/adr/ADR-029 D4); <see langword="null"/> to ignore friends.</param>
+    /// <param name="buildings">The farm buildings of the owner's land: a visitor inside one is in the owner's place too (docs/adr/ADR-028 D2); <see langword="null"/> for none.</param>
     /// <param name="facts">The owners' allow-lists and settings, held in memory (docs/adr/ADR-035 D5); this service drops what it changed. <see langword="null"/> reads the rows every time.</param>
-    public VisitService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, IPlayerService players, IInstanceAccessPolicy access, INicknameDirectory nicknames, ICoopService coops, TimeProvider time, IFriendService? friends = null, IBuildingDirectory? buildings = null, VisitFacts? facts = null)
+    /// <param name="blocks">Optional block list: blocked players may not be added or visit.</param>
+    public VisitService(IUnitOfWorkFactory unitOfWork, IMapPresence presence, IPlayerService players, IInstanceAccessPolicy access, INicknameDirectory nicknames, ICoopService coops, TimeProvider time, IFriendService? friends = null, IBuildingDirectory? buildings = null, VisitFacts? facts = null, IBlockList? blocks = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(presence);
@@ -77,10 +81,16 @@ public sealed class VisitService : IVisitService, IDisposable
         _buildings = buildings;
         _friends = friends;
         _facts = facts ?? new VisitFacts(unitOfWork, cached: false);
+        _blocks = blocks;
         _coops.MembershipEnded += this.OnMembershipEndedAsync;
         if (_friends is not null)
         {
             _friends.FriendVisitsRevoked += this.OnFriendVisitsRevokedAsync;
+        }
+
+        if (_blocks is BlockList blockList)
+        {
+            blockList.PlayerBlocked += this.OnPlayerBlockedAsync;
         }
     }
 
@@ -91,6 +101,11 @@ public sealed class VisitService : IVisitService, IDisposable
         if (_friends is not null)
         {
             _friends.FriendVisitsRevoked -= this.OnFriendVisitsRevokedAsync;
+        }
+
+        if (_blocks is BlockList blockList)
+        {
+            blockList.PlayerBlocked -= this.OnPlayerBlockedAsync;
         }
     }
 
@@ -139,6 +154,11 @@ public sealed class VisitService : IVisitService, IDisposable
         if (target.Id == ownerId)
         {
             return VisitStatus.Self;
+        }
+
+        if (_blocks is not null && await _blocks.IsBlockedEitherWayAsync(ownerId, target.Id, cancellationToken).ConfigureAwait(false))
+        {
+            return VisitStatus.UnknownPlayer;
         }
 
         IReadOnlyList<Guid> listed = await _facts.GetListedAsync(ownerId, cancellationToken).ConfigureAwait(false);
@@ -300,6 +320,11 @@ public sealed class VisitService : IVisitService, IDisposable
             return VisitStatus.Self;
         }
 
+        if (_blocks is not null && await _blocks.IsBlockedEitherWayAsync(ownerId, visitorId, cancellationToken).ConfigureAwait(false))
+        {
+            return VisitStatus.NotAllowed;
+        }
+
         MapInstance destination = new(GameMaps.Farm, ownerId);
         if (!await _access.CanEnterAsync(destination, visitorId, cancellationToken).ConfigureAwait(false))
         {
@@ -385,6 +410,21 @@ public sealed class VisitService : IVisitService, IDisposable
         try
         {
             await this.SweepAsync(ownerId, visitorId).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // See above.
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "The block is committed; a failing sweep must not undo it. The visitor is re-checked at their next entry.")]
+    private async ValueTask OnPlayerBlockedAsync(Guid ownerId, Guid targetId, CancellationToken cancellationToken)
+    {
+        _ = cancellationToken;
+        try
+        {
+            await this.SweepAsync(ownerId, targetId).ConfigureAwait(false);
+            await this.SweepAsync(targetId, ownerId).ConfigureAwait(false);
         }
         catch (Exception)
         {
