@@ -19,7 +19,8 @@ namespace Nosum.Wasm.Socket.Combat;
 /// <param name="Y">Tile Y.</param>
 /// <param name="Hp">Current HP.</param>
 /// <param name="MaxHp">Maximum HP.</param>
-public readonly record struct MonsterClientRow(int MonsterId, byte Kind, int X, int Y, int Hp, int MaxHp);
+/// <param name="Modifier">Elite affix modifier (docs/adr/ADR-058).</param>
+public readonly record struct MonsterClientRow(int MonsterId, byte Kind, int X, int Y, int Hp, int MaxHp, byte Modifier = 0);
 
 /// <summary>Outcome of a client attack intent.</summary>
 /// <param name="Status">Combat status.</param>
@@ -633,7 +634,7 @@ public sealed class CombatChannel : IDisposable
             {
                 if (row.Hp > 0)
                 {
-                    _monsters.Add(new MonsterClientRow(row.MonsterId, row.Kind, row.X, row.Y, row.Hp, row.MaxHp));
+                    _monsters.Add(new MonsterClientRow(row.MonsterId, row.Kind, row.X, row.Y, row.Hp, row.MaxHp, row.Modifier));
                 }
             }
         }
@@ -659,7 +660,7 @@ public sealed class CombatChannel : IDisposable
                     }
                     else
                     {
-                        _monsters[i] = new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp);
+                        _monsters[i] = new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier);
                     }
 
                     found = true;
@@ -669,7 +670,7 @@ public sealed class CombatChannel : IDisposable
 
             if (!found && packet.Hp > 0)
             {
-                _monsters.Add(new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp));
+                _monsters.Add(new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier));
             }
         }
 

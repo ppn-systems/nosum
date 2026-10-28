@@ -137,6 +137,33 @@ internal sealed class MonstersDecorator : IMapDecorator
             int worldX = (m.X * FrameSize) + swayX;
             int worldY = m.Y * FrameSize;
 
+            // Elite monster radiant aura (docs/adr/ADR-058)
+            if (m.Modifier > 0)
+            {
+                int auraTint = m.Modifier switch
+                {
+                    1 => unchecked((int)0xff450077), // Flame Aura (fiery orange-red)
+                    2 => unchecked((int)0x06b6d477), // Swift (cyan electric)
+                    3 => unchecked((int)0xfacc1588), // Shielded (gold diamond)
+                    4 => unchecked((int)0xb91c1c88), // Vampiric (crimson)
+                    _ => unchecked((int)0xffffff55),
+                };
+
+                int pulse = (int)(((now / 150) + m.MonsterId) & 3);
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    FrameSize + 4 + pulse,
+                    FrameSize + 4 + pulse,
+                    worldX - 2 - (pulse / 2),
+                    worldY - 4 - (pulse / 2),
+                    worldY + FrameSize - 1,
+                    worldX,
+                    8700 + m.MonsterId,
+                    tint: auraTint);
+            }
+
             world.Add(
                 _sheetTexture,
                 srcX,
@@ -149,9 +176,37 @@ internal sealed class MonstersDecorator : IMapDecorator
                 worldX + (FrameSize / 2),
                 m.MonsterId);
 
-            // Overhead mini-health bar (docs/adr/ADR-055):
-            // Displayed if the monster is damaged (Hp < MaxHp) or is a floor boss (Kind >= 9).
-            if (m.MaxHp > 0 && (m.Hp < m.MaxHp || m.Kind >= 9))
+            // Elite title badge (docs/adr/ADR-058)
+            if (m.Modifier > 0 && _labels is not null)
+            {
+                int eliteLabelId = m.Modifier switch
+                {
+                    1 => _labels.EliteFlameLabelId,
+                    2 => _labels.EliteSwiftLabelId,
+                    3 => _labels.EliteShieldedLabelId,
+                    4 => _labels.EliteVampiricLabelId,
+                    _ => 0,
+                };
+
+                if (eliteLabelId > 0)
+                {
+                    world.Add(
+                        RenderCommandBuffer.LabelTexture,
+                        0,
+                        0,
+                        eliteLabelId,
+                        0,
+                        worldX - 10,
+                        worldY - 14,
+                        worldY + FrameSize + 15,
+                        worldX,
+                        8750 + m.MonsterId);
+                }
+            }
+
+            // Overhead mini-health bar (docs/adr/ADR-055, ADR-058):
+            // Displayed if the monster is damaged (Hp < MaxHp), a floor boss (Kind >= 9), or an elite monster.
+            if (m.MaxHp > 0 && (m.Hp < m.MaxHp || m.Kind >= 9 || m.Modifier > 0))
             {
                 int barW = 14;
                 int barH = 3;

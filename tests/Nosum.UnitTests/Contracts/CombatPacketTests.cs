@@ -55,15 +55,15 @@ public sealed class CombatPacketTests
             MapId = "woods",
             Monsters =
             [
-                new MonsterRow { MonsterId = 1, Kind = 5, X = 12, Y = 14, Hp = 55, MaxHp = 55 },
-                new MonsterRow { MonsterId = 2, Kind = 6, X = 18, Y = 20, Hp = 45, MaxHp = 60 },
+                new MonsterRow { MonsterId = 1, Kind = 5, X = 12, Y = 14, Hp = 55, MaxHp = 55, Modifier = 1 },
+                new MonsterRow { MonsterId = 2, Kind = 6, X = 18, Y = 20, Hp = 45, MaxHp = 60, Modifier = 0 },
             ],
         };
         MonstersSnapshot snapshotCopy = MonstersSnapshot.Deserialize(snapshot.Serialize());
         snapshotCopy.MapId.Should().Be("woods");
         snapshotCopy.Monsters.Should().HaveCount(2);
-        snapshotCopy.Monsters[0].Should().BeEquivalentTo(new MonsterRow { MonsterId = 1, Kind = 5, X = 12, Y = 14, Hp = 55, MaxHp = 55 });
-        snapshotCopy.Monsters[1].Should().BeEquivalentTo(new MonsterRow { MonsterId = 2, Kind = 6, X = 18, Y = 20, Hp = 45, MaxHp = 60 });
+        snapshotCopy.Monsters[0].Should().BeEquivalentTo(new MonsterRow { MonsterId = 1, Kind = 5, X = 12, Y = 14, Hp = 55, MaxHp = 55, Modifier = 1 });
+        snapshotCopy.Monsters[1].Should().BeEquivalentTo(new MonsterRow { MonsterId = 2, Kind = 6, X = 18, Y = 20, Hp = 45, MaxHp = 60, Modifier = 0 });
 
         using MonsterChanged changed = new()
         {
@@ -73,10 +73,11 @@ public sealed class CombatPacketTests
             Y = 11,
             Hp = 20,
             MaxHp = 30,
+            Modifier = 3,
         };
         MonsterChanged changedCopy = MonsterChanged.Deserialize(changed.Serialize());
-        (changedCopy.MonsterId, changedCopy.Kind, changedCopy.X, changedCopy.Y, changedCopy.Hp, changedCopy.MaxHp)
-            .Should().Be((7, (byte)1, (ushort)10, (ushort)11, (ushort)20, (ushort)30));
+        (changedCopy.MonsterId, changedCopy.Kind, changedCopy.X, changedCopy.Y, changedCopy.Hp, changedCopy.MaxHp, changedCopy.Modifier)
+            .Should().Be((7, (byte)1, (ushort)10, (ushort)11, (ushort)20, (ushort)30, (byte)3));
 
         using AttackMonsterResult attackResult = new()
         {

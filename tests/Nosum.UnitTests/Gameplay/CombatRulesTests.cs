@@ -91,6 +91,33 @@ public sealed class CombatRulesTests
     }
 
     [Fact]
+    public void PlanMonsters_CanGenerateEliteModifiers_WithExpandedVitals()
+    {
+        WalkGrid grid = new(32, 32, 16, new bool[32 * 32]);
+        HashSet<(int X, int Y)> occupied = [];
+
+        bool foundElite = false;
+        for (ulong seed = 100; seed < 120; seed++)
+        {
+            List<MonsterSpawn> spawns = CombatRules.PlanMonsters("mine5", seed, grid, occupied, 4, 4);
+            foreach (MonsterSpawn m in spawns)
+            {
+                if (m.Modifier != MonsterModifier.None)
+                {
+                    foundElite = true;
+                    if (m.Modifier == MonsterModifier.Shielded)
+                    {
+                        MonsterCatalog.TryGet(m.Kind, out MonsterDefinition? def);
+                        m.MaxHp.Should().Be((int)(def!.MaxHp * 1.5));
+                    }
+                }
+            }
+        }
+
+        foundElite.Should().BeTrue("mine floors should spawn elite monsters with affixes");
+    }
+
+    [Fact]
     public void MonsterDamage_AllSpeciesHaveNonZeroContactDamage()
     {
         CombatRules.AggroRadius.Should().Be(4);

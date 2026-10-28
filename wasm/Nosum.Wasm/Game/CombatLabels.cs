@@ -17,11 +17,27 @@ internal sealed class CombatLabels
     /// <summary>Gets the pre-interned label id for the Ancient Dungeon portal (docs/adr/ADR-057).</summary>
     public int PortalLabelId { get; }
 
+    /// <summary>Gets the pre-interned label id for Flame-Aura Elite monsters (docs/adr/ADR-058).</summary>
+    public int EliteFlameLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for Swift Elite monsters (docs/adr/ADR-058).</summary>
+    public int EliteSwiftLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for Shielded Elite monsters (docs/adr/ADR-058).</summary>
+    public int EliteShieldedLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for Vampiric Elite monsters (docs/adr/ADR-058).</summary>
+    public int EliteVampiricLabelId { get; }
+
     public CombatLabels(LabelRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);
         _registry = registry;
         this.PortalLabelId = registry.Intern("HẦM NGỤC CỔ ĐẠI (TẦNG 10)", 1);
+        this.EliteFlameLabelId = registry.Intern("★ CUỒNG HỎA ★", 2);
+        this.EliteSwiftLabelId = registry.Intern("★ TỐC BIẾN ★", 0);
+        this.EliteShieldedLabelId = registry.Intern("★ HỘ GIÁP ★", 1);
+        this.EliteVampiricLabelId = registry.Intern("★ HUYẾT THỆ ★", 4);
 
         // Pre-intern common values 1..50 for all 5 styles
         for (int i = 1; i <= 50; i++)

@@ -20,6 +20,7 @@ using Nosum.Contracts.Combat.S2C;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Inventory;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Looks;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Mines;
@@ -443,13 +444,29 @@ public sealed class CombatService : ICombatService, IDisposable
                 vitals.Mp -= mpCost;
                 oldLevel = SkillRules.LevelOf(vitals.CombatXp);
                 damageDealt = CombatRules.CalculateDamage(held.ItemId, oldLevel);
+                if (target.Modifier == MonsterModifier.Shielded)
+                {
+                    damageDealt = Math.Max(1, (int)(damageDealt * 0.75f));
+                }
+
+                if (target.Modifier == MonsterModifier.FlameAura && range <= CombatRules.MeleeRange)
+                {
+                    vitals.Hp = Math.Max(1, vitals.Hp - 3);
+                }
+
                 int remainingHp = Math.Max(0, target.Hp - damageDealt);
                 updatedMonster = target with { Hp = remainingHp };
                 instance.Monsters[idx] = updatedMonster;
                 defeated = remainingHp == 0;
 
                 _ = MonsterCatalog.TryGet(target.Kind, out MonsterDefinition? def);
-                int xpGain = defeated ? (def?.XpReward ?? 15) : SkillRules.HitXp;
+                int baseXp = def?.XpReward ?? 15;
+                if (target.Modifier != MonsterModifier.None)
+                {
+                    baseXp = (int)(baseXp * 2.5);
+                }
+
+                int xpGain = defeated ? baseXp : SkillRules.HitXp;
                 vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + xpGain);
                 newLevel = SkillRules.LevelOf(vitals.CombatXp);
 
@@ -488,7 +505,20 @@ public sealed class CombatService : ICombatService, IDisposable
                 new GroundDrop(player.Instance, dropPixelX, dropPixelY, defeatedDef.PrimaryDropItemId, 1, player.AccountId),
                 cancellationToken).ConfigureAwait(false);
 
-            if (((updatedMonster.MonsterId + updatedMonster.X + updatedMonster.Y) & 1) == 0 && defeatedDef.RareDropItemId > 0)
+            if (updatedMonster.Modifier != MonsterModifier.None)
+            {
+                if (defeatedDef.RareDropItemId > 0)
+                {
+                    _ = await _groundItems.DropAsync(
+                        new GroundDrop(player.Instance, dropPixelX + 4, dropPixelY, defeatedDef.RareDropItemId, 1, player.AccountId),
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                _ = await _groundItems.DropAsync(
+                    new GroundDrop(player.Instance, dropPixelX - 4, dropPixelY + 4, ItemCatalog.TreasureGem, 1, player.AccountId),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            else if (((updatedMonster.MonsterId + updatedMonster.X + updatedMonster.Y) & 1) == 0 && defeatedDef.RareDropItemId > 0)
             {
                 _ = await _groundItems.DropAsync(
                     new GroundDrop(player.Instance, dropPixelX + 4, dropPixelY, defeatedDef.RareDropItemId, 1, player.AccountId),
@@ -730,6 +760,11 @@ public sealed class CombatService : ICombatService, IDisposable
                         if (dist <= skill.Range)
                         {
                             int dmg = Math.Min(m.Hp, scaledPower);
+                            if (m.Modifier == MonsterModifier.Shielded)
+                            {
+                                dmg = Math.Max(1, (int)(dmg * 0.75f));
+                            }
+
                             int remaining = m.Hp - dmg;
                             MonsterSpawn updated = m with { Hp = remaining };
                             instance.Monsters[i] = updated;
@@ -741,6 +776,11 @@ public sealed class CombatService : ICombatService, IDisposable
                             {
                                 _ = MonsterCatalog.TryGet(m.Kind, out MonsterDefinition? mDef);
                                 int xp = mDef?.XpReward ?? 15;
+                                if (m.Modifier != MonsterModifier.None)
+                                {
+                                    xp = (int)(xp * 2.5);
+                                }
+
                                 vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + xp);
                             }
                         }
@@ -765,6 +805,11 @@ public sealed class CombatService : ICombatService, IDisposable
                         if (dist <= skill.Range)
                         {
                             int dmg = Math.Min(target.Hp, scaledPower);
+                            if (target.Modifier == MonsterModifier.Shielded)
+                            {
+                                dmg = Math.Max(1, (int)(dmg * 0.75f));
+                            }
+
                             int remaining = target.Hp - dmg;
                             MonsterSpawn updated = target with { Hp = remaining };
                             instance.Monsters[targetIdx] = updated;
@@ -776,6 +821,11 @@ public sealed class CombatService : ICombatService, IDisposable
                             {
                                 _ = MonsterCatalog.TryGet(target.Kind, out MonsterDefinition? tDef);
                                 int xp = tDef?.XpReward ?? 15;
+                                if (target.Modifier != MonsterModifier.None)
+                                {
+                                    xp = (int)(xp * 2.5);
+                                }
+
                                 vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + xp);
                             }
                         }
@@ -863,6 +913,7 @@ public sealed class CombatService : ICombatService, IDisposable
             lease.Value.Y = (ushort)monster.Y;
             lease.Value.Hp = (ushort)monster.Hp;
             lease.Value.MaxHp = (ushort)monster.MaxHp;
+            lease.Value.Modifier = (byte)monster.Modifier;
             _ = await _notifier.TrySendAsync(p.AccountId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
     }

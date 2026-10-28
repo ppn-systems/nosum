@@ -29,4 +29,7 @@ public sealed partial class MonsterRow
 
     /// <summary>Maximum HP.</summary>
     [SerializeOrder(5)] public ushort MaxHp { get; set; }
+
+    /// <summary>Elite affix modifier (docs/adr/ADR-058).</summary>
+    [SerializeOrder(6)] public byte Modifier { get; set; }
 }

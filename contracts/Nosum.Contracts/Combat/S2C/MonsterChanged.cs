@@ -32,4 +32,7 @@ public sealed partial class MonsterChanged : PacketBase<MonsterChanged>, IPacket
 
     /// <summary>Maximum HP.</summary>
     [SerializeOrder(5)] public ushort MaxHp { get; set; }
+
+    /// <summary>Elite affix modifier (docs/adr/ADR-058).</summary>
+    [SerializeOrder(6)] public byte Modifier { get; set; }
 }

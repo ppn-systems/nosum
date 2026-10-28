@@ -18,7 +18,8 @@ namespace Nosum.Gameplay.Combat;
 /// <param name="Y">Tile Y.</param>
 /// <param name="Hp">Current HP.</param>
 /// <param name="MaxHp">Maximum HP.</param>
-public readonly record struct MonsterSpawn(int MonsterId, MonsterKind Kind, int X, int Y, int Hp, int MaxHp);
+/// <param name="Modifier">Elite affix modifier (docs/adr/ADR-058).</param>
+public readonly record struct MonsterSpawn(int MonsterId, MonsterKind Kind, int X, int Y, int Hp, int MaxHp, MonsterModifier Modifier = MonsterModifier.None);
 
 /// <summary>
 /// Pure rules for player HP &amp; MP vitals, weapon/staff combat damage, potion restoration, and deterministic monster spawning
@@ -354,8 +355,28 @@ public static class CombatRules
                 continue;
             }
 
+            MonsterModifier modifier = MonsterModifier.None;
+            if (!IsBoss(kind) && random.Next(100) < 35)
+            {
+                modifier = (MonsterModifier)(1 + random.Next(4));
+            }
+
+            int maxHp = def.MaxHp;
+            if (modifier == MonsterModifier.Shielded)
+            {
+                maxHp = (int)(maxHp * 1.5);
+            }
+            else if (modifier == MonsterModifier.FlameAura)
+            {
+                maxHp = (int)(maxHp * 1.25);
+            }
+            else if (modifier == MonsterModifier.Vampiric)
+            {
+                maxHp = (int)(maxHp * 1.2);
+            }
+
             (int x, int y) = candidates[i];
-            spawns.Add(new MonsterSpawn(i + 1, kind, x, y, def.MaxHp, def.MaxHp));
+            spawns.Add(new MonsterSpawn(i + 1, kind, x, y, maxHp, maxHp, modifier));
         }
 
         return spawns;

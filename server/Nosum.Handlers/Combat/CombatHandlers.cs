@@ -71,6 +71,7 @@ public static partial class CombatHandlers
                 row.Y = (ushort)m.Y;
                 row.Hp = (ushort)m.Hp;
                 row.MaxHp = (ushort)m.MaxHp;
+                row.Modifier = (byte)m.Modifier;
                 r.Monsters.Add(row);
             }
         }).ConfigureAwait(false);
