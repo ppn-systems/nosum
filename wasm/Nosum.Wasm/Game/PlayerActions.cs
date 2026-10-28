@@ -225,6 +225,11 @@ internal sealed class PlayerActions
                     this.PlaySwing(weaponDef.Tool);
                 }
 
+                if (held.ItemId == ItemCatalog.ArcaneStaff)
+                {
+                    _combat.SpawnProjectile(x, y, targetMonster.X, targetMonster.Y, 1);
+                }
+
                 _combat.Attack(targetMonster.MonsterId, selected);
             }
             else if (_combat is not null

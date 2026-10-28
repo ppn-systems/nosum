@@ -36,6 +36,23 @@ public readonly record struct AttackInfo(
     int DamageTaken,
     bool KnockedOut);
 
+/// <summary>Active in-flight spell or ranged projectile (docs/adr/ADR-048).</summary>
+/// <param name="StartX">Origin tile X.</param>
+/// <param name="StartY">Origin tile Y.</param>
+/// <param name="TargetX">Destination tile X.</param>
+/// <param name="TargetY">Destination tile Y.</param>
+/// <param name="StartTime">Timestamp in milliseconds.</param>
+/// <param name="DurationMs">Flight duration in milliseconds.</param>
+/// <param name="Kind">Projectile kind (1 = Arcane, 2 = Fire, 3 = Spore).</param>
+public readonly record struct ProjectileClientRow(
+    float StartX,
+    float StartY,
+    float TargetX,
+    float TargetY,
+    long StartTime,
+    float DurationMs,
+    byte Kind);
+
 /// <summary>
 /// Client mirror of player HP &amp; MP vitals, Combat XP, and live monsters on the active map (docs/adr/ADR-045 D3).
 /// </summary>
@@ -45,6 +62,7 @@ public sealed class CombatChannel : IDisposable
     private readonly IDisposable[] _subscriptions;
     private readonly object _gate = new();
     private readonly List<MonsterClientRow> _monsters = [];
+    private readonly List<ProjectileClientRow> _projectiles = [];
 
     private int _hp = 100;
     private int _maxHp = 100;
@@ -173,6 +191,50 @@ public sealed class CombatChannel : IDisposable
     /// <summary>Drinks a potion in <paramref name="slot"/>.</summary>
     /// <param name="slot">Hotbar/inventory slot.</param>
     public void DrinkPotion(int slot) => _ = this.DrinkPotionAsync(slot);
+
+    /// <summary>Spawns a client-side magic projectile along a trajectory (docs/adr/ADR-048).</summary>
+    /// <param name="fromX">Starting tile X.</param>
+    /// <param name="fromY">Starting tile Y.</param>
+    /// <param name="toX">Target tile X.</param>
+    /// <param name="toY">Target tile Y.</param>
+    /// <param name="kind">Projectile visual kind.</param>
+    /// <param name="durationMs">Travel duration in ms.</param>
+    public void SpawnProjectile(float fromX, float fromY, float toX, float toY, byte kind = 1, float durationMs = 260f)
+    {
+        lock (_gate)
+        {
+            if (_projectiles.Count >= 32)
+            {
+                _projectiles.RemoveAt(0);
+            }
+
+            _projectiles.Add(new ProjectileClientRow(fromX, fromY, toX, toY, Environment.TickCount64, durationMs, kind));
+        }
+    }
+
+    /// <summary>Copies currently active or impacting projectiles without heap allocation.</summary>
+    /// <param name="destination">Destination list to populate.</param>
+    /// <param name="now">Current tick timestamp.</param>
+    public void CopyProjectiles(List<ProjectileClientRow> destination, long now)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        destination.Clear();
+        lock (_gate)
+        {
+            for (int i = _projectiles.Count - 1; i >= 0; i--)
+            {
+                ProjectileClientRow p = _projectiles[i];
+                if (now - p.StartTime > p.DurationMs + 200)
+                {
+                    _projectiles.RemoveAt(i);
+                }
+                else
+                {
+                    destination.Add(p);
+                }
+            }
+        }
+    }
 
     /// <inheritdoc/>
     public void Dispose()

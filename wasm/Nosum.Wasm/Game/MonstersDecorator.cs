@@ -18,23 +18,28 @@ namespace Nosum.Wasm.Game;
 internal sealed class MonstersDecorator : IMapDecorator
 {
     internal const string SheetUrl = "assets/sprites/monsters.png";
+    internal const string ItemsSheetUrl = "assets/sprites/items.png";
     private const int FrameSize = 16;
     private const int BlockHeight = 48;
 
     private readonly string _mapId;
     private readonly CombatChannel _combat;
     private readonly int _sheetTexture;
+    private readonly int _itemsTexture;
     private readonly List<MonsterClientRow> _scratch = new(16);
+    private readonly List<ProjectileClientRow> _projectilesScratch = new(16);
 
     /// <summary>Initializes the decorator.</summary>
     /// <param name="mapId">Map id being decorated.</param>
     /// <param name="combat">The client combat channel.</param>
     /// <param name="sheetTexture">Texture id of <c>assets/sprites/monsters.png</c>.</param>
-    public MonstersDecorator(string mapId, CombatChannel combat, int sheetTexture)
+    /// <param name="itemsTexture">Texture id of <c>assets/sprites/items.png</c>.</param>
+    public MonstersDecorator(string mapId, CombatChannel combat, int sheetTexture, int itemsTexture)
     {
         _mapId = mapId;
         _combat = combat;
         _sheetTexture = sheetTexture;
+        _itemsTexture = itemsTexture;
     }
 
     /// <inheritdoc/>
@@ -46,12 +51,8 @@ internal sealed class MonstersDecorator : IMapDecorator
         }
 
         _combat.CopyMonsters(_scratch);
-        if (_scratch.Count == 0)
-        {
-            return;
-        }
-
         long now = Environment.TickCount64;
+
         for (int i = 0; i < _scratch.Count; i++)
         {
             MonsterClientRow m = _scratch[i];
@@ -78,6 +79,44 @@ internal sealed class MonstersDecorator : IMapDecorator
                 worldX + (FrameSize / 2),
                 m.MonsterId);
         }
+
+        _combat.CopyProjectiles(_projectilesScratch, now);
+        for (int i = 0; i < _projectilesScratch.Count; i++)
+        {
+            ProjectileClientRow p = _projectilesScratch[i];
+            float progress = Math.Clamp((now - p.StartTime) / p.DurationMs, 0f, 1f);
+            if (progress < 1.0f)
+            {
+                float px = p.StartX + ((p.TargetX - p.StartX) * progress);
+                float py = p.StartY + ((p.TargetY - p.StartY) * progress);
+                int pWorldX = (int)(px * FrameSize);
+                int pWorldY = (int)(py * FrameSize);
+
+                world.Add(
+                    _itemsTexture,
+                    96,
+                    64,
+                    FrameSize,
+                    FrameSize,
+                    pWorldX,
+                    pWorldY,
+                    pWorldY + FrameSize,
+                    pWorldX + (FrameSize / 2),
+                    9000);
+            }
+            else
+            {
+                float impact = (now - (p.StartTime + (long)p.DurationMs)) / 200f;
+                int off = (int)(impact * 8f);
+                int twX = (int)(p.TargetX * FrameSize);
+                int twY = (int)(p.TargetY * FrameSize);
+
+                world.Add(_itemsTexture, 96, 64, 8, 8, twX + off, twY + off, twY + FrameSize, twX, 9001);
+                world.Add(_itemsTexture, 96, 64, 8, 8, twX - off, twY - off, twY + FrameSize, twX, 9002);
+                world.Add(_itemsTexture, 96, 64, 8, 8, twX - off, twY + off, twY + FrameSize, twX, 9003);
+                world.Add(_itemsTexture, 96, 64, 8, 8, twX + off, twY - off, twY + FrameSize, twX, 9004);
+            }
+        }
     }
 }
 
@@ -97,8 +136,9 @@ internal sealed class MonstersDecoratorProvider : IMapDecoratorProvider
         ArgumentNullException.ThrowIfNull(textures);
 
         int sheet = await textures.LoadAsync(MonstersDecorator.SheetUrl).ConfigureAwait(false);
+        int itemsSheet = await textures.LoadAsync(MonstersDecorator.ItemsSheetUrl).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         _combat.LoadMonsters();
-        return new MonstersDecorator(spec.Id, _combat, sheet);
+        return new MonstersDecorator(spec.Id, _combat, sheet, itemsSheet);
     }
 }
