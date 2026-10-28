@@ -71,6 +71,16 @@ public interface IMapPresence
     /// <returns><see langword="true"/> when found.</returns>
     bool TryGet(IConnection connection, [NotNullWhen(true)] out PlayerPresence? player);
 
+    /// <summary>Finds the presence of an account by id.</summary>
+    /// <param name="playerId">The signed-in account id.</param>
+    /// <param name="presence">The record when the player is on a map.</param>
+    /// <returns><see langword="true"/> when found.</returns>
+    bool TryGetPlayer(Guid playerId, [NotNullWhen(true)] out PlayerPresence? presence)
+    {
+        presence = null;
+        return false;
+    }
+
     /// <summary>Appends the keys of instances that have at least one player to a caller-owned list.</summary>
     /// <param name="into">List that receives the ids.</param>
     void CopyActiveMapIds(List<string> into);

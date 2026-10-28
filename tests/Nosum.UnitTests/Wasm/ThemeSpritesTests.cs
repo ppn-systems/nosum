@@ -119,7 +119,8 @@ public sealed partial class ThemeSpritesTests
     public void FarmerSprite_SupportsHeldItemsAndSwingAnimations_AndSheetHasActionPose()
     {
         string root = RepositoryRoot();
-        string farmerSprite = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Game", "FarmerSprite.cs"));
+        string farmerSprite = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Game", "FarmerSprite.cs"))
+            + File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Game", "FarmerSprite.Vfx.cs"));
 
         farmerSprite.Should().Contain("DrawHeldItem");
         farmerSprite.Should().Contain("DrawSkillEffect");

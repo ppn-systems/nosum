@@ -1,10 +1,9 @@
-@using Nosum.Gameplay.Npcs
 @using Nosum.Wasm.ViewModels.Npc
 @inherits ObservingComponent<NpcDialogViewModel>
 
 @* The merchant's dialog box (docs/adr/ADR-043 D3), at the bottom of the screen: the portrait, the name and what the merchant does, a line of talk and one button per
    thing the merchant offers, then Leave. Buy, Sell and the others open a dialog of their own over the game; nothing here talks to the server. *@
-@if (Vm.Stage == NpcStage.Speaking && Vm.Npc is not null)
+@if (Vm.IsSpeaking && Vm.Npc is not null)
 {
     <div class="npc-box-wrap">
         <GamePanel Title="@Vm.Name" Class="npc-box" Role="dialog">
@@ -18,8 +17,8 @@
             <GameRow Class="npc-actions">
                 @foreach (NpcChoice choice in Vm.Choices)
                 {
-                    NpcActions action = choice.Action;
-                    <GameButton Text="@choice.Label" OnClick="@(() => Vm.Choose(action))" />
+                    NpcChoice current = choice;
+                    <GameButton Text="@current.Label" OnClick="@(() => Vm.Choose(current.Action))" />
                 }
                 <GameButton Variant="plain" Text="@Vm.LeaveLabel" OnClick="@(() => Vm.Leave())" />
             </GameRow>

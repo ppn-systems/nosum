@@ -26,7 +26,7 @@ public enum RecoveryStep
 /// View model of the "forgot password" form (docs/adr/ADR-032 D4): e-mail, then the e-mailed code with a new password. The server answers with
 /// status codes only; every visible string comes from <c>Language.resx</c>.
 /// </summary>
-public sealed class PasswordRecoveryViewModel
+public sealed class PasswordRecoveryViewModel : IObservableViewModel
 {
     private const int CodeLength = 8;
 
@@ -52,6 +52,24 @@ public sealed class PasswordRecoveryViewModel
 
     /// <summary>Gets the current step.</summary>
     public RecoveryStep Step { get; private set; }
+
+    /// <summary>Gets whether the form is on the e-mail request step.</summary>
+    public bool IsRequestStep => this.Step == RecoveryStep.Request;
+
+    /// <summary>Gets whether the form is on the code and new-password confirmation step.</summary>
+    public bool IsConfirmStep => this.Step == RecoveryStep.Confirm;
+
+    /// <summary>Gets whether the recovery flow is complete.</summary>
+    public bool IsDoneStep => this.Step == RecoveryStep.Done;
+
+    /// <summary>Gets the maximum allowed length for an e-mail input.</summary>
+    public static int EmailMaxLength => AccountLimits.EmailMaxLength;
+
+    /// <summary>Gets the maximum allowed length for a password input.</summary>
+    public static int PasswordMaxLength => AccountLimits.PasswordMaxLength;
+
+    /// <summary>Gets the maximum allowed length for a recovery code input.</summary>
+    public static int CodeMaxLength => CodeLength;
 
     /// <summary>Gets or sets the typed account e-mail.</summary>
     public string Email { get; set; } = string.Empty;
@@ -141,7 +159,7 @@ public sealed class PasswordRecoveryViewModel
     /// <summary>Validates the step, sends the request and moves on or shows the refusal. Does nothing while a request is in flight.</summary>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>A task that completes when the reply has been handled.</returns>
-    public async Task SubmitAsync(CancellationToken cancellationToken)
+    public async Task SubmitAsync(CancellationToken cancellationToken = default)
     {
         if (this.IsBusy)
         {

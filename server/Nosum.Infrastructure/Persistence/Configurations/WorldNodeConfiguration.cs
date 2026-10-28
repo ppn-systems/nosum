@@ -19,15 +19,3 @@ internal sealed class WorldNodeConfiguration : IEntityTypeConfiguration<WorldNod
         _ = builder.HasIndex(n => new { n.MapId, n.OwnerId, n.TileX, n.TileY }).IsUnique();
     }
 }
-
-internal sealed class NodeInstanceStateConfiguration : IEntityTypeConfiguration<NodeInstanceState>
-{
-    public void Configure(EntityTypeBuilder<NodeInstanceState> builder)
-    {
-        _ = builder.ToTable("node_instances");
-        _ = builder.HasKey(n => n.Id);
-        _ = builder.Property(n => n.Id).ValueGeneratedOnAdd();
-        _ = builder.Property(n => n.MapId).HasMaxLength(64).IsRequired();
-        _ = builder.HasIndex(n => new { n.MapId, n.OwnerId }).IsUnique();
-    }
-}

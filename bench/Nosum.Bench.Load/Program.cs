@@ -55,7 +55,6 @@ internal static class Program
         List<string> targets = world.TravelTargets();
         List<Task> bots = [];
         Console.WriteLine($"Connecting {options.Clients} clients to {(options.Tls ? "wss" : "ws")}://{options.Host}:{options.Port}{options.Path} over {options.Ramp.TotalSeconds:0.#} s ...");
-        Stopwatch clock = Stopwatch.StartNew();
         try
         {
             for (int i = 0; i < options.Clients && !stop.IsCancellationRequested; i++)

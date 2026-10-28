@@ -15,7 +15,7 @@ nosum/
 ├── contracts/                    # Nosum.Contracts.slnx
 │   └── Nosum.Contracts/          # opcodes, Nalix packets, DTOs, enums, NosumProtocol.Version — no logic
 ├── gameplay/                     # Nosum.Gameplay.slnx
-│   └── Nosum.Gameplay/           # rules shared by server and client: the map catalogue, warps and instances (Maps/), farm buildings and animals (Buildings/, Animals/), walking (Movement/), farm (Farm/), resource nodes and tools (Nodes/), the server calendar and seasons (Calendar/), placeable objects, sprinklers, furnaces and chest rules (Placeables/), recipes (Crafting/), ground items (GroundItems/), the Town's merchants (Npcs/)
+│   └── Nosum.Gameplay/           # rules shared by server and client: maps, warps, chunks and instances (Maps/), movement (Movement/), farming (Farm/), resource nodes and tools (Nodes/), items and tiers (Items/, Blacksmith/), inventory (Inventory/), calendar and seasons (Calendar/), weather and day/night (Weather/), placeables, sprinklers, chests and furnaces (Placeables/), crafting (Crafting/), ground items (GroundItems/), buildings and animals (Buildings/, Animals/), economy, shops and trade (Economy/, Shops/, Trade/), co-ops and upgrades (Coops/), looks (Looks/), quests, requests and community goals (Quests/, Requests/, Community/), chat, friends, mail and visits (Chat/, Friends/, Mail/, Visits/), energy and skills (Energy/, Skills/), combat, monsters, bosses and dungeon hazards (Combat/, Mines/), Town merchants (Npcs/), audio cues (Audio/)
 ├── server/                       # Nosum.slnx
 │   ├── Nosum.Domain/             # persisted entities and enums
 │   ├── Nosum.Abstractions/       # service interfaces, DTO rows
@@ -25,12 +25,13 @@ nosum/
 ├── wasm/                         # Nosum.Wasm.slnx — own Directory.Build.props (trimmed, no AOT)
 │   ├── Nosum.Wasm/               # Blazor host: canvas page + UI overlay
 │   ├── Nosum.Wasm.ViewModels/    # MVVM view models (no .razor)
-│   ├── Nosum.Wasm.Controls/      # reusable Razor controls and the pixel-art theme (ADR-016, ADR-017): the game menu, panel frame, button, input, item grid, dialogs, hotbar, HUD dock layout, help, arrange panel, market/wardrobe/trade/co-op panels
-│   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession
-├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests
+│   ├── Nosum.Wasm.Controls/      # reusable Razor controls and the pixel-art theme (ADR-016, ADR-017, ADR-044): standalone panel windows, buttons, inputs, item grids, dialogs, hotbar, HUD dock layout, panels by domain
+│   └── Nosum.Wasm.Socket/        # the single Nalix WebSocketSession and domain channels
+├── tests/                        # Nosum.Tests.slnx — Nosum.UnitTests, Nosum.IntegrationTests, browser Playwright checks (tests/browser/)
 ├── bench/                        # Nosum.Bench.slnx — Nosum.Bench.Interop (browser benchmark, same WASM settings as wasm/) and Nosum.Bench.Load (headless load test of a running server, ADR-031 D8)
-├── assets/                       # the replacement sprite sheets the game loads (own or CC0, 16 px); maps live in art/own/Maps — ADR-040
-├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker, Nosum.MapGen); only area allowed an image package
+├── art/                          # source art and maps (ADR-040): art/own/Maps/ (Tiled .tmx maps and MineLayouts), art/own/source/ (authored layouts), art/source/ (CC0/CC-BY raw packs)
+├── assets/                       # the runtime sprite sheets and synthesized audio the game loads (own or CC0, 16 px; ADR-040)
+├── tools/                        # Nosum.Tools.slnx — developer tools (Nosum.AtlasPacker, Nosum.MapGen) and Python asset generators (tools/art_repack/, synth_music.py, synth_sounds.py)
 ├── deploy/                       # host image, compose (PostgreSQL, host, Cloudflare Tunnel, backups); runbook in docs/ops/
 ├── docs/                         # design/pillars.md (game identity) · adr/ (architecture decisions) · art/ (own maps and tilesheets, ADR-040) · ops/ (operations runbook)
 └── Directory.Build.props · Directory.Packages.props · Version.props · global.json
@@ -65,9 +66,9 @@ Nosum.Host              → Handlers, Infrastructure, Nalix.Hosting
 Nosum.Wasm.Socket       → Contracts, Gameplay, Nalix.SDK        (Gameplay for the chunk math that files client mirrors)
 Nosum.Wasm.ViewModels   → Wasm.Socket, Gameplay                (catalogue keys: item, crop and quest ids to localization keys)
 Nosum.Wasm.Controls     → Wasm.ViewModels                      (reusable Razor controls; no socket, no text of their own)
-Nosum.Wasm              → Wasm.Controls, Wasm.ViewModels, Wasm.Socket, Contracts, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
+Nosum.Wasm              → Wasm.Controls, Wasm.ViewModels, Wasm.Socket, Contracts, Core, Rendering.Web, Gameplay   (Game/ code, not .razor, uses the socket for the frame loop)
 Nosum.AtlasPacker       → SkiaSharp                            (tools/ only; nothing references it)
-Nosum.MapGen           → Core, Gameplay                       (tools/ only; compiles art/own layouts to .tmx, generates the mine floors; tools/README.md)
+Nosum.MapGen           → Core, Gameplay, SkiaSharp            (tools/ only; compiles art/own layouts to .tmx, generates the mine floors; tools/README.md)
 ```
 
 Two boundaries matter most:
@@ -224,14 +225,27 @@ client ──GetAnimals / FeedAnimals / PetAnimal / CollectProduce──► Buil
 AnimalWanderService (1 s tick, only rooms with a player inside) ──► AnimalsMoved (chunk): straight walks the client follows from their start time
 ```
 
+## Runtime path 7 — combat, dungeons and vitals
+
+Combat, monsters, floor bosses and dungeon hazards follow the same server-authoritative loop ([ADR-045](docs/adr/ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md), [ADR-046](docs/adr/ADR-046-monster-ai-aggro-and-dungeon-combat.md), [ADR-047](docs/adr/ADR-047-dungeon-floor-bosses-and-combat-ai.md)):
+
+```text
+CombatService.PlanMonsters / PlanHazards / PlanShrines (CombatRules, seeded per instance/day)
+client E/Space (sword/staff/potion) or Z/X/V (skills) ──AttackMonster / CastSkill / DrinkPotion──► CombatHandlers ─► CombatService
+  │ range, cooldown, MP, weapon/skill damage + combo bonus (CombatRules) · loot drops via IGroundItems · co-op proximity Combat XP sharing
+  └─► VitalsState (to player) + MonsterChanged (to map instance)
+CombatService.RunAiAsync (tick loop) ──aggro, chase, contact damage mitigated by worn armor (LookService), status effects, hazard/shrine triggers──► MonsterChanged + VitalsState
+client CombatChannel ◄── MonstersSnapshot / MonsterChanged / VitalsState ──► MonstersDecorator (sprites, projectiles, floating numbers, shrines) + VitalsHud
+```
+
 ## Organize by game domain
 
 Inside each area, code is grouped by game domain (`Farm`, `Inventory`, `Market`, `Social`,
-`Player`, `World`, `Placeable`), the same axis in every area:
+`Player`, `World`, `Placeable`, `Combat`), the same axis in every area:
 
 - `contracts/Nosum.Contracts/{Domain}/{C2S,S2C}/`
-- `server/Nosum.Handlers/{Domain}/`
-- `wasm/Nosum.Wasm/Pages/{Domain}/` and `wasm/Nosum.Wasm.ViewModels/{Domain}/`
+- `server/Nosum.Handlers/{Domain}/`, `server/Nosum.Abstractions/{Domain}/`, `server/Nosum.Infrastructure/{Domain}/`
+- `wasm/Nosum.Wasm.Controls/{Domain}/`, `wasm/Nosum.Wasm.ViewModels/{Domain}/`, `wasm/Nosum.Wasm.Socket/{Domain}/`
 
 The wire format is the opcode plus `[SerializeOrder]`, not the type name, so renaming a type
 or folder is wire-safe. Never change an opcode value or a `[SerializeOrder]` value, and never

@@ -4,7 +4,7 @@ using FluentAssertions;
 using Nosum.Contracts.Common;
 using Xunit;
 
-namespace Nosum.UnitTests.Server;
+namespace Nosum.UnitTests.Contracts;
 
 public sealed class GameLanguagesTests
 {

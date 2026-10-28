@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Nalix.Abstractions.Networking.Packets;
@@ -127,7 +126,12 @@ public static class PacketBounds
             return null;
         }
 
-        Expression all = tests.Aggregate(Expression.AndAlso);
+        Expression all = tests[0];
+        for (int i = 1; i < tests.Count; i++)
+        {
+            all = Expression.AndAlso(all, tests[i]);
+        }
+
         BlockExpression body = Expression.Block([typed], Expression.Assign(typed, Expression.Convert(input, type)), all);
         return Expression.Lambda<Func<object, bool>>(body, input).Compile();
     }
@@ -155,8 +159,19 @@ public static class PacketBounds
     }
 
     private static IEnumerable<PropertyInfo> WireMembers(Type type)
-        => type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(static p => p.GetCustomAttributes().Any(static a => a.GetType().Name == "SerializeOrderAttribute"));
+    {
+        foreach (PropertyInfo p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            foreach (Attribute a in p.GetCustomAttributes())
+            {
+                if (a.GetType().Name == "SerializeOrderAttribute")
+                {
+                    yield return p;
+                    break;
+                }
+            }
+        }
+    }
 
     private static bool IsList(Type type, out Type? element)
     {

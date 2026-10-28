@@ -32,7 +32,9 @@ Frame loop and drawing: `render-interop`. Transport internals: `nalix-client-sdk
 ## Files
 
 - `wasm/Nosum.Wasm/Program.cs` — root components and DI registration.
-- `wasm/Nosum.Wasm/App.razor`, `Layout/`, `Pages/{Domain}/` — UI.
+- `wasm/Nosum.Wasm/App.razor`, `Pages/Home.razor`, `Components/` — host page and start/guard screens.
+- `wasm/Nosum.Wasm.Controls/{Domain}/`, `Controls/Common/`, `Controls/Layout/` — reusable UI controls, HUD dock layout and standalone panel windows.
+- `wasm/Nosum.Wasm.ViewModels/{Domain}/` — MVVM view models and `.resx` localization resources.
 - `wasm/Nosum.Wasm/wwwroot/index.html` — host page; `<base href="/">` must match the deploy path
   because the render module is imported by absolute URL.
 

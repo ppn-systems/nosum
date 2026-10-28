@@ -17,6 +17,12 @@ internal interface IMapDecorator
     {
     }
 
+    /// <summary>Provides the unified frame clock before drawing or adding world sprites.</summary>
+    /// <param name="clock">The frame clock snapshot.</param>
+    void SetClock(in FrameClock clock)
+    {
+    }
+
     /// <summary>Draws over the ground layers and below the characters (soil, crops lying on the ground).</summary>
     /// <param name="commands">Where draws are recorded.</param>
     /// <param name="camera">The camera.</param>

@@ -1,74 +1,47 @@
 @page "/"
+@using System
 @using System.IO
 @using System.Net.Http
 @using System.Runtime.InteropServices.JavaScript
-@using System.Threading
 @using System.Runtime.Versioning
+@using System.Threading
+@using System.Threading.Tasks
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
-@using Nosum.Wasm.Controls.Common
-@using Nosum.Wasm.Controls.Building
 @using Nosum.Wasm.Controls.Chat
-@using Nosum.Wasm.Controls.Chest
-@using Nosum.Wasm.Controls.Coop
-@using Nosum.Wasm.Controls.Crafting
-@using Nosum.Wasm.Controls.Friends
-@using Nosum.Wasm.Controls.Furnace
-@using Nosum.Wasm.Controls.Mail
+@using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.Controls.Feedback
-@using Nosum.Wasm.Controls.Goals
-@using Nosum.Wasm.Controls.Menu
-@using Nosum.Wasm.Controls.Npc
-@using Nosum.Wasm.Controls.Settings
-@using Nosum.Wasm.Controls.Touch
 @using Nosum.Wasm.Controls.Hints
-@using Nosum.Wasm.ViewModels.Settings
-@using Nosum.Wasm.Controls.Layout
 @using Nosum.Wasm.Controls.Inventory
-@using Nosum.Wasm.Controls.Looks
-@using Nosum.Wasm.Controls.Market
-@using Nosum.Wasm.Controls.Placement
-@using Nosum.Wasm.Controls.Profile
-@using Nosum.Wasm.Controls.Progress
-@using Nosum.Wasm.ViewModels.Progress
-@using Nosum.Wasm.Controls.Shop
+@using Nosum.Wasm.Controls.Layout
 @using Nosum.Wasm.Controls.Mine
+@using Nosum.Wasm.Controls.Npc
+@using Nosum.Wasm.Controls.Placement
 @using Nosum.Wasm.Controls.Quest
-@using Nosum.Wasm.Controls.Trade
-@using Nosum.Wasm.Controls.Wallet
-@using Nosum.Wasm.Controls.Calendar
-@using Nosum.Wasm.ViewModels.Calendar
-@using Nosum.Gameplay.Community
-@using Nosum.Gameplay.Economy
+@using Nosum.Wasm.Controls.Touch
 @using Nosum.Wasm.Game
-@using Nosum.Contracts.Account
-@using Nosum.Gameplay.Shops
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
 @using Nosum.Wasm.ViewModels.Building
+@using Nosum.Wasm.ViewModels.Calendar
 @using Nosum.Wasm.ViewModels.Chat
 @using Nosum.Wasm.ViewModels.Chest
 @using Nosum.Wasm.ViewModels.Coop
 @using Nosum.Wasm.ViewModels.Crafting
-@using Nosum.Wasm.ViewModels.Friends
-@using Nosum.Wasm.ViewModels.Furnace
-@using Nosum.Wasm.ViewModels.Mail
-@using Nosum.Wasm.ViewModels.Visit
-@using Nosum.Wasm.Controls.Visit
-@using Nosum.Wasm.ViewModels.Looks
-@using Nosum.Wasm.ViewModels.Market
-@using Nosum.Wasm.ViewModels.Wallet
-@using Nosum.Wasm.ViewModels.Trade
 @using Nosum.Wasm.ViewModels.Feedback
+@using Nosum.Wasm.ViewModels.Furnace
 @using Nosum.Wasm.ViewModels.Inventory
-@using Nosum.Wasm.ViewModels.Placement
-@using Nosum.Wasm.ViewModels.Profile
-@using Nosum.Wasm.ViewModels.Goals
-@using Nosum.Wasm.ViewModels.Shop
-@using Nosum.Wasm.ViewModels.Blacksmith
+@using Nosum.Wasm.ViewModels.Mail
+@using Nosum.Wasm.ViewModels.Market
 @using Nosum.Wasm.ViewModels.Mine
 @using Nosum.Wasm.ViewModels.Npc
+@using Nosum.Wasm.ViewModels.Placement
+@using Nosum.Wasm.ViewModels.Profile
+@using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.ViewModels.Quest
+@using Nosum.Wasm.ViewModels.Settings
+@using Nosum.Wasm.ViewModels.Trade
+@using Nosum.Wasm.ViewModels.Wallet
 @attribute [SupportedOSPlatform("browser")]
 @implements IDisposable
 @inject HttpClient Http
@@ -82,20 +55,13 @@
 @inject WalletViewModel Wallet
 @inject CalendarViewModel Calendar
 @inject MarketViewModel Market
-@inject WardrobeViewModel Wardrobe
 @inject TradeViewModel Trade
 @inject CoopViewModel Coop
-@inject VisitorsViewModel Visitors
 @inject ChatViewModel Chat
-@inject FriendsViewModel Friends
 @inject MailViewModel Mail
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
-@inject ShopViewModel Shop
-@inject BlacksmithViewModel Blacksmith
 @inject ElevatorViewModel Elevator
-@inject GoalsViewModel Goals
-@inject SettingsViewModel Settings
 @inject OnboardingViewModel Onboarding
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
@@ -135,89 +101,14 @@ else
         <TopRight>
             @if (_started)
             {
-                <div class="hud-bar">
-                    <CalendarClock Vm="Calendar" />
-                    <CoinBadge Vm="Wallet" />
-                    @* Mail and Settings are standalone windows of their own (docs/adr/ADR-043 D4, ADR-044). *@
-                    <GameIconButton Icon="tab-mail" Active="@(_panel == PanelKind.Mail)" Tip="@Toolbar.MailTip(Mail.Unread)" Badge="Mail.Unread" OnClick="@(() => TogglePanel(PanelKind.Mail))" />
-                    <GameIconButton Icon="tab-settings" Active="@(_panel == PanelKind.Settings)" Tip="@Toolbar.SettingsTip" OnClick="@(() => TogglePanel(PanelKind.Settings))" />
-                </div>
-                <div class="hud-bar hud-player-bar" role="toolbar" aria-label="@Toolbar.Label">
-                    @foreach (ToolbarItem item in Toolbar.Items)
-                    {
-                        if (item.Kind is not (PanelKind.Mail or PanelKind.Settings))
-                        {
-                            PanelKind kind = item.Kind;
-                            <GameIconButton Icon="@item.Icon" Active="@(_panel == kind)" Tip="@(item.Hotkey.Length > 0 ? item.Label + " [" + item.Hotkey + "]" : item.Label)" OnClick="@(() => TogglePanel(kind))" />
-                        }
-                    }
-                </div>
+                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Toolbar="Toolbar" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
             }
         </TopRight>
         <Center>
             @* Every open panel is a standalone window of its own, never crammed into a shared multi-tab menu (docs/adr/ADR-044). *@
             @if (_started && _panel != PanelKind.None && !Form.ShowsForm)
             {
-                <TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" OnClose="OnDialogClose">
-                    @switch (_panel)
-                    {
-                        case PanelKind.Market:
-                            <MarketPanel Vm="Market" />
-                            break;
-                        case PanelKind.Shop:
-                            <ShopPanel Vm="Shop" ShopId="_shopId" Smith="Blacksmith" ShowOffers="@(Npc.Page != NpcPage.Build && Npc.Page != NpcPage.Upgrade)" ShowExtras="@(Npc.Page != NpcPage.Shop)">
-                                <Extra>
-                                    @if (_shopId == ShopCatalog.CarpenterShop)
-                                    {
-                                        <CarpenterSections Vm="Carpenter" />
-                                    }
-                                </Extra>
-                            </ShopPanel>
-                            break;
-                        case PanelKind.Goals:
-                            <GoalsPanel Vm="Goals" />
-                            break;
-                        case PanelKind.Chest:
-                            <ChestPanel Vm="Chest" />
-                            break;
-                        case PanelKind.Furnace:
-                            <FurnacePanel Vm="Furnace" />
-                            break;
-                        case PanelKind.Inventory:
-                            <InventoryPanel Vm="Inventory" Wardrobe="Wardrobe" />
-                            break;
-                        case PanelKind.Wardrobe:
-                            <WardrobePanel Vm="Wardrobe" />
-                            break;
-                        case PanelKind.Trade:
-                            <TradePanel Vm="Trade" />
-                            break;
-                        case PanelKind.Coop:
-                            <CoopPanel Vm="Coop" />
-                            break;
-                        case PanelKind.Profile:
-                            <ProfilePanel Vm="Profile" Account="Form" />
-                            break;
-                        case PanelKind.Visitors:
-                            <VisitorsPanel Vm="Visitors" OnClose="ClosePanel" />
-                            break;
-                        case PanelKind.Friends:
-                            <FriendsPanel Vm="Friends" />
-                            break;
-                        case PanelKind.Mail:
-                            <MailPanel Vm="Mail" />
-                            break;
-                        case PanelKind.Skills:
-                            <SkillsPanel Vm="Progress" />
-                            break;
-                        case PanelKind.Settings:
-                            <SettingsPanel Vm="Form" Settings="Settings" />
-                            break;
-                        case PanelKind.Crafting:
-                            <CraftingPanel Vm="Crafting" />
-                            break;
-                    }
-                </TradeDialog>
+                <GameMenuWindow Panel="_panel" ShopId="_shopId" OnDialogClose="OnDialogClose" OnClosePanel="ClosePanel" />
             }
         </Center>
         <BottomCenter>
@@ -260,19 +151,7 @@ else
                 @* Upgrade form over the running game. *@
                 <AccountForm Vm="Form" />
             }
-            @if (Trade.Phase == TradePhase.Invited)
-            {
-                <ConfirmDialog Title="@Trade.Text("Trade_InviteTitle")" Message="@Trade.Text("Trade_InviteMessage", Trade.InviterLabel)"
-                               ConfirmText="@Trade.Text("Coop_Accept")" CancelText="@Trade.Text("Coop_Decline")"
-                               OnConfirm="@(() => Trade.Respond(true))" OnCancel="@(() => Trade.Respond(false))" />
-            }
-            else if (_panel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0)
-            {
-                (Guid inviteId, string coopName, string inviter) = Coop.Invites[0];
-                <ConfirmDialog Title="@Coop.Text("Coop_InviteTitle")" Message="@(inviter.Length > 0 ? Coop.Text("Coop_InviteMessageFrom", coopName, inviter) : Coop.Text("Coop_InviteMessage", coopName))"
-                               ConfirmText="@Coop.Text("Coop_Accept")" CancelText="@Coop.Text("Coop_Decline")"
-                               OnConfirm="@(() => Coop.Respond(inviteId, true))" OnCancel="@(() => Coop.Respond(inviteId, false))" />
-            }
+            <InviteOverlay Trade="Trade" Coop="Coop" ActivePanel="_panel" />
         </Overlay>
     </GameHud>
     @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
@@ -288,16 +167,26 @@ else
     private PanelKind _lastTab = PanelKind.Inventory;
     private int _shopId;
     private string? _error;
+    private Action? _unwireSession;
 
     protected override void OnInitialized()
     {
-        Form.SignedIn += OnSignedIn;
         Form.SessionUpdated += Keeper.UpdateSession;
-        Form.SessionUpdated += OnSessionUpdated;
         Form.SignedOut += OnSignedOut;
         Form.Changed += OnFormChanged;
-        Keeper.SessionEnded += OnSessionEnded;
         Keeper.RegistrationPromptUnlocked += OnPromptUnlocked;
+        var keeperSignedIn = Keeper.SignedIn;
+        var showEnded = Form.ShowSessionEnded;
+        WireSessionEvents(
+            keeperSignedIn,
+            showEnded,
+            h => Form.SignedIn += h,
+            h => Form.SignedIn -= h,
+            h => Form.SessionUpdated += h,
+            h => Form.SessionUpdated -= h,
+            h => Keeper.SessionEnded += h,
+            h => Keeper.SessionEnded -= h,
+            s => (s.Nickname, s.IsGuest));
         GameLoop.PanelToggleRequested += OnPanelKey;
         GameLoop.ShopRequested += OnShopRequested;
         GameLoop.CounterLeft += OnCounterLeft;
@@ -312,15 +201,6 @@ else
         Trade.Changed += OnViewModelChanged;
         Coop.Changed += OnViewModelChanged;
         Mail.Changed += OnViewModelChanged;
-
-        // Back from a session the server ended: say why on the account form.
-        string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
-        if (query.StartsWith("?ended=", StringComparison.Ordinal)
-            && Enum.TryParse(query["?ended=".Length..], out AccountStatus reason)
-            && reason is AccountStatus.SessionReplaced or AccountStatus.SessionKicked or AccountStatus.Banned)
-        {
-            Form.ShowSessionEnded(reason);
-        }
     }
 
     protected override void OnAfterRender(bool firstRender) => SyncModalState();
@@ -328,12 +208,10 @@ else
     public void Dispose()
     {
         GameLoop.SetModalState(false, false);
-        Form.SignedIn -= OnSignedIn;
+        _unwireSession?.Invoke();
         Form.SessionUpdated -= Keeper.UpdateSession;
-        Form.SessionUpdated -= OnSessionUpdated;
         Form.SignedOut -= OnSignedOut;
         Form.Changed -= OnFormChanged;
-        Keeper.SessionEnded -= OnSessionEnded;
         Keeper.RegistrationPromptUnlocked -= OnPromptUnlocked;
         GameLoop.PanelToggleRequested -= OnPanelKey;
         GameLoop.ShopRequested -= OnShopRequested;
@@ -351,8 +229,59 @@ else
         Mail.Changed -= OnViewModelChanged;
     }
 
-    // A guest registered under a nickname: the profile shows it.
-    private void OnSessionUpdated(AccountSession session) => Profile.Begin(session.Nickname, session.IsGuest);
+    private void WireSessionEvents<TSession, TStatus>(
+        Action<TSession> keeperSignedIn,
+        Action<TStatus> showEnded,
+        Action<Action<TSession>> addSignedIn,
+        Action<Action<TSession>> removeSignedIn,
+        Action<Action<TSession>> addUpdated,
+        Action<Action<TSession>> removeUpdated,
+        Action<Action<TStatus>> addEnded,
+        Action<Action<TStatus>> removeEnded,
+        Func<TSession, (string Nickname, bool IsGuest)> profileOf)
+        where TStatus : struct, Enum
+    {
+        void SignedInHandler(TSession session)
+        {
+            keeperSignedIn(session);
+            (string nickname, bool isGuest) = profileOf(session);
+            Profile.Begin(nickname, isGuest);
+            _signedIn = true;
+            _ = InvokeAsync(async () =>
+            {
+                StateHasChanged();
+                await StartGameAsync();
+            });
+        }
+
+        void SessionUpdatedHandler(TSession session)
+        {
+            (string nickname, bool isGuest) = profileOf(session);
+            Profile.Begin(nickname, isGuest);
+        }
+
+        void SessionEndedHandler(TStatus reason)
+            => _ = InvokeAsync(() => Navigation.NavigateTo("/?ended=" + reason, forceLoad: true));
+
+        addSignedIn(SignedInHandler);
+        addUpdated(SessionUpdatedHandler);
+        addEnded(SessionEndedHandler);
+        _unwireSession = () =>
+        {
+            removeSignedIn(SignedInHandler);
+            removeUpdated(SessionUpdatedHandler);
+            removeEnded(SessionEndedHandler);
+        };
+
+        // Back from a session the server ended: say why on the account form.
+        string query = Navigation.ToAbsoluteUri(Navigation.Uri).Query;
+        if (query.StartsWith("?ended=", StringComparison.Ordinal)
+            && query["?ended=".Length..] is ("SessionReplaced" or "SessionKicked" or "Banned") and var ended
+            && Enum.TryParse(ended, out TStatus endedReason))
+        {
+            showEnded(endedReason);
+        }
+    }
 
     // The first quest was finished: the session bar now offers the registration (the form's session is the one it shows).
     private void OnPromptUnlocked() => Form.UnlockRegistrationPrompt();
@@ -411,14 +340,6 @@ else
             GameLoop.PointerClicked((int)e.OffsetX, (int)e.OffsetY);
         }
     }
-
-    private string DialogTitle() => _panel switch
-    {
-        PanelKind.Shop or PanelKind.Market or PanelKind.Goals => Npc.PageTitle.Length > 0 ? Npc.PageTitle : Toolbar.Text("Toolbar_Shop"),
-        PanelKind.Chest => Toolbar.Text("Chest_Title"),
-        PanelKind.Furnace => Toolbar.Text("Furnace_Title"),
-        _ => Toolbar.TitleOf(_panel),
-    };
 
     // The close button of a dialog: back to the merchant's box, or away for a chest or a furnace.
     private void OnDialogClose()
@@ -612,29 +533,12 @@ else
     // The overlay shows or hides with the form's mode (upgrade form over the running game).
     private void OnFormChanged() => _ = InvokeAsync(StateHasChanged);
 
-    // Another connection of this player took over: reload to the account form with the reason (the game cannot be stopped in place).
-    private void OnSessionEnded(AccountStatus reason)
-        => _ = InvokeAsync(() => Navigation.NavigateTo("/?ended=" + reason, forceLoad: true));
-
     // Signing out reloads the page: the game loop and its input handlers are torn down with it, and the
     // account form is the first thing the fresh page shows.
     private void OnSignedOut()
     {
         Keeper.SignedOut();
         _ = InvokeAsync(() => Navigation.NavigateTo(Navigation.Uri, forceLoad: true));
-    }
-
-    // Raised by the form's view model after a successful register or login.
-    private void OnSignedIn(AccountSession session)
-    {
-        Keeper.SignedIn(session);
-        Profile.Begin(session.Nickname, session.IsGuest);
-        _signedIn = true;
-        _ = InvokeAsync(async () =>
-        {
-            StateHasChanged();
-            await StartGameAsync();
-        });
     }
 
     private async Task StartGameAsync()

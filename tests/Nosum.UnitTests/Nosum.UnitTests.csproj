@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\contracts\Nosum.Contracts\Nosum.Contracts.csproj" />
     <ProjectReference Include="..\..\wasm\Nosum.Wasm.ViewModels\Nosum.Wasm.ViewModels.csproj" />
     <ProjectReference Include="..\..\server\Nosum.Abstractions\Nosum.Abstractions.csproj" />
+    <ProjectReference Include="..\..\server\Nosum.Handlers\Nosum.Handlers.csproj" />
     <ProjectReference Include="..\..\server\Nosum.Infrastructure\Nosum.Infrastructure.csproj" />
     <ProjectReference Include="..\..\tools\Nosum.AtlasPacker\Nosum.AtlasPacker.csproj" />
     <ProjectReference Include="..\..\tools\Nosum.MapGen\Nosum.MapGen.csproj" />

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Coop;
 using Nosum.Gameplay.Coops;
@@ -50,7 +51,11 @@ public sealed record UpgradeCostDisplay(string ItemName, int Needed, int Have)
 /// <param name="IsMax">Whether the track is complete.</param>
 /// <param name="Costs">The price of the next level; empty when complete.</param>
 /// <param name="CanBuy">Whether the player is the founder and the warehouse holds the whole price.</param>
-public sealed record UpgradeDisplay(CoopUpgradeTrack Track, string Title, int Level, string Summary, string LevelText, bool IsMax, IReadOnlyList<UpgradeCostDisplay> Costs, bool CanBuy);
+public sealed record UpgradeDisplay(CoopUpgradeTrack Track, string Title, int Level, string Summary, string LevelText, bool IsMax, IReadOnlyList<UpgradeCostDisplay> Costs, bool CanBuy)
+{
+    /// <summary>Gets the next level along this track.</summary>
+    public int NextLevel => this.Level + 1;
+}
 
 /// <summary>View model of the co-op panel: found a co-op, answer invitations, invite players on the map, manage members, and use the shared warehouse. The server decides every outcome, including who may withdraw what.</summary>
 public sealed class CoopViewModel : PanelViewModel, IDisposable
@@ -259,6 +264,31 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         int level = track == CoopUpgradeTrack.Land ? _coop.Current.LandLevel : _coop.Current.WarehouseLevel;
         _coop.Upgrade(track, level + 1);
     }
+
+    /// <summary>Buys the next level of the given upgrade track display.</summary>
+    /// <param name="upgrade">The upgrade track display.</param>
+    public void Upgrade(UpgradeDisplay upgrade)
+    {
+        ArgumentNullException.ThrowIfNull(upgrade);
+        _coop.Upgrade(upgrade.Track, upgrade.NextLevel);
+    }
+
+    /// <summary>Buys the next level of the given upgrade track display.</summary>
+    /// <param name="upgrade">The upgrade track display.</param>
+    /// <returns>A completed task.</returns>
+    public Task UpgradeAsync(UpgradeDisplay upgrade)
+    {
+        this.Upgrade(upgrade);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Accepts an invitation to join a co-op.</summary>
+    /// <param name="inviteId">The invitation id.</param>
+    public void AcceptInvite(Guid inviteId) => this.Respond(inviteId, accept: true);
+
+    /// <summary>Declines an invitation to join a co-op.</summary>
+    /// <param name="inviteId">The invitation id.</param>
+    public void DeclineInvite(Guid inviteId) => this.Respond(inviteId, accept: false);
 
     /// <summary>Picks the inventory stack to deposit.</summary>
     /// <param name="slot">The inventory slot.</param>

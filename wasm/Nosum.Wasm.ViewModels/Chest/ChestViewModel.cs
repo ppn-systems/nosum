@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Placeable;
 using Nosum.Wasm.Socket.Chest;
@@ -65,6 +66,15 @@ public sealed class ChestViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets the slot of the picked stack, or -1.</summary>
     public int PickedSlot => _pickedSlot;
+
+    /// <summary>Gets the picked slot index within the chest grid, or -1 when no chest slot is picked.</summary>
+    public int PickedChestSlot => _pickedSlot >= 0 && _pickedSide == ChestSide.Chest ? _pickedSlot : -1;
+
+    /// <summary>Gets the picked slot index within the player grid, or -1 when no player slot is picked.</summary>
+    public int PickedPlayerSlot => _pickedSlot >= 0 && _pickedSide == ChestSide.Player ? _pickedSlot : -1;
+
+    /// <summary>Gets the localized close button text.</summary>
+    public string CloseLabel => this.Text("Inventory_Close");
 
     /// <summary>Gets the chest's slots as displays.</summary>
     public IReadOnlyList<SlotDisplay> ChestSlots
@@ -144,6 +154,58 @@ public sealed class ChestViewModel : PanelViewModel, IDisposable
         }
 
         this.Raise();
+    }
+
+    /// <summary>Handles a click on a chest grid slot.</summary>
+    /// <param name="slot">The chest slot index.</param>
+    public void ClickChest(int slot) => this.Click(ChestSide.Chest, slot);
+
+    /// <summary>Handles a click on a player inventory or hotbar slot.</summary>
+    /// <param name="slot">The player slot index.</param>
+    public void ClickPlayer(int slot) => this.Click(ChestSide.Player, slot);
+
+    /// <summary>Shift-click on a chest grid slot: sends the stack to the player's inventory.</summary>
+    /// <param name="slot">The chest slot index.</param>
+    public void QuickMoveChest(int slot) => this.QuickMove(ChestSide.Chest, slot);
+
+    /// <summary>Shift-click on a player slot: sends the stack to the chest.</summary>
+    /// <param name="slot">The player slot index.</param>
+    public void QuickMovePlayer(int slot) => this.QuickMove(ChestSide.Player, slot);
+
+    /// <summary>Handles a click on a chest grid slot.</summary>
+    /// <param name="slot">The chest slot index.</param>
+    /// <returns>A completed task.</returns>
+    public Task ClickChestAsync(int slot)
+    {
+        this.Click(ChestSide.Chest, slot);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Handles a click on a player inventory or hotbar slot.</summary>
+    /// <param name="slot">The player slot index.</param>
+    /// <returns>A completed task.</returns>
+    public Task ClickPlayerAsync(int slot)
+    {
+        this.Click(ChestSide.Player, slot);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Shift-click on a chest grid slot: sends the stack to the player's inventory.</summary>
+    /// <param name="slot">The chest slot index.</param>
+    /// <returns>A completed task.</returns>
+    public Task QuickMoveChestAsync(int slot)
+    {
+        this.QuickMove(ChestSide.Chest, slot);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Shift-click on a player slot: sends the stack to the chest.</summary>
+    /// <param name="slot">The player slot index.</param>
+    /// <returns>A completed task.</returns>
+    public Task QuickMovePlayerAsync(int slot)
+    {
+        this.QuickMove(ChestSide.Player, slot);
+        return Task.CompletedTask;
     }
 
     /// <summary>Closes the chest (the page's close button, Escape, or leaving).</summary>

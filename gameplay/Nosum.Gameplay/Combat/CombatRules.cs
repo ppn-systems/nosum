@@ -3,27 +3,14 @@
 using System;
 using System.Collections.Generic;
 using Nosum.Gameplay.Items;
-using Nosum.Gameplay.Maps;
-using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Movement;
-using Nosum.Gameplay.Nodes;
 using Nosum.Gameplay.Skills;
 
 namespace Nosum.Gameplay.Combat;
 
-/// <summary>A spawned monster on a map or mine floor.</summary>
-/// <param name="MonsterId">Stable id within the map/floor instance (1..N).</param>
-/// <param name="Kind">The monster species.</param>
-/// <param name="X">Tile X.</param>
-/// <param name="Y">Tile Y.</param>
-/// <param name="Hp">Current HP.</param>
-/// <param name="MaxHp">Maximum HP.</param>
-/// <param name="Modifier">Elite affix modifier (docs/adr/ADR-058).</param>
-public readonly record struct MonsterSpawn(int MonsterId, MonsterKind Kind, int X, int Y, int Hp, int MaxHp, MonsterModifier Modifier = MonsterModifier.None);
-
 /// <summary>
-/// Pure rules for player HP &amp; MP vitals, weapon/staff combat damage, potion restoration, and deterministic monster spawning
-/// (docs/adr/ADR-045 D2, D3).
+/// Pure rules for player HP &amp; MP vitals, weapon/staff combat damage, potion restoration, elite modifiers, and monster encounters
+/// (docs/adr/ADR-045 D2, D3, ADR-058, ADR-060).
 /// </summary>
 public static class CombatRules
 {
@@ -66,30 +53,59 @@ public static class CombatRules
     /// <summary>Boss aggro detection radius in tiles (Chebyshev) for boss encounters (docs/adr/ADR-047).</summary>
     public const int BossAggroRadius = 6;
 
+    /// <summary>Experience multiplier awarded for defeating an elite monster with a non-none <see cref="MonsterModifier"/> (docs/adr/ADR-058).</summary>
+    public const double EliteXpMultiplier = 2.5;
+
+    /// <summary>Damage multiplier applied when striking a <see cref="MonsterModifier.Shielded"/> monster (docs/adr/ADR-058).</summary>
+    public const double ShieldedDamageMultiplier = 0.75;
+
+    /// <summary>Reflected fire damage dealt to the attacker when striking a <see cref="MonsterModifier.FlameAura"/> monster in melee (docs/adr/ADR-058).</summary>
+    public const int FlameAuraReflectDamage = 3;
+
+    /// <summary>Cooldown in milliseconds per player per sanctuary shrine blessing (docs/adr/ADR-063).</summary>
+    public const int ShrineCooldownMs = ShrineRules.ShrineCooldownMs;
+
+    /// <summary>Maximum duration in milliseconds to maintain a combat combo streak.</summary>
+    public const int ComboTimeoutMs = 3500;
+
+    /// <summary>Maximum combo streak multiplier.</summary>
+    public const int MaxComboCount = 10;
+
+    /// <summary>Calculates HP healed by a <see cref="MonsterModifier.Vampiric"/> monster when it deals <paramref name="damage"/> to a player.</summary>
+    /// <param name="damage">Damage dealt to the player.</param>
+    /// <returns>HP restored to the monster (minimum 1).</returns>
+    public static int CalculateVampiricHeal(int damage) => Math.Max(1, damage / 2);
+
+    /// <summary>Calculates reduced damage dealt to a <see cref="MonsterModifier.Shielded"/> monster.</summary>
+    /// <param name="rawDamage">Incoming player attack damage.</param>
+    /// <returns>Mitigated damage (minimum 1).</returns>
+    public static int CalculateShieldedDamage(int rawDamage)
+        => Math.Max(1, (int)MathF.Round(rawDamage * (float)ShieldedDamageMultiplier));
+
+    /// <summary>Calculates total XP awarded when defeating an elite monster.</summary>
+    /// <param name="baseXp">Base XP reward of the species.</param>
+    /// <returns>Scaled elite XP reward.</returns>
+    public static int CalculateEliteXp(int baseXp) => (int)Math.Round(baseXp * EliteXpMultiplier);
+
+    /// <summary>Calculates shared Combat XP awarded to nearby party/co-op allies.</summary>
+    /// <param name="baseXp">XP awarded to the killer.</param>
+    /// <returns>Shared ally XP (minimum 1).</returns>
+    public static int CalculatePartySharedXp(int baseXp) => Math.Max(1, baseXp / 2);
+
     /// <summary>Returns whether a monster species is a dungeon floor boss (docs/adr/ADR-047).</summary>
     /// <param name="kind">Monster species.</param>
     /// <returns><see langword="true"/> when the monster is a boss.</returns>
-    public static bool IsBoss(MonsterKind kind) => kind is MonsterKind.BossBroodmother
-        or MonsterKind.BossGoblinChieftain
-        or MonsterKind.BossMagmaColossus
-        or MonsterKind.BossGolemKing;
+    public static bool IsBoss(MonsterKind kind) => MonsterSpawnPlanner.IsBoss(kind);
 
     /// <summary>Returns whether a mine floor is a milestone boss floor (10, 20, 30, 40).</summary>
     /// <param name="floor">Mine floor (1..40).</param>
     /// <returns><see langword="true"/> when a floor holds a boss encounter.</returns>
-    public static bool IsBossFloor(int floor) => floor is 10 or 20 or 30 or 40;
+    public static bool IsBossFloor(int floor) => MonsterSpawnPlanner.IsBossFloor(floor);
 
     /// <summary>Returns the designated boss species for a milestone mine floor.</summary>
     /// <param name="floor">Mine floor (1..40).</param>
     /// <returns>The boss species or <see cref="MonsterKind.None"/>.</returns>
-    public static MonsterKind BossForFloor(int floor) => floor switch
-    {
-        10 => MonsterKind.BossBroodmother,
-        20 => MonsterKind.BossGoblinChieftain,
-        30 => MonsterKind.BossMagmaColossus,
-        40 => MonsterKind.BossGolemKing,
-        _ => MonsterKind.None,
-    };
+    public static MonsterKind BossForFloor(int floor) => MonsterSpawnPlanner.BossForFloor(floor);
 
     /// <summary>Contact damage dealt by a monster species when it attacks a player (docs/adr/ADR-046 D1).</summary>
     /// <param name="kind">Monster species.</param>
@@ -188,12 +204,6 @@ public static class CombatRules
         return baseDamage + (Math.Clamp(combatLevel, 0, SkillRules.MaxLevel) * 2);
     }
 
-    /// <summary>Maximum duration in milliseconds to maintain a combat combo streak.</summary>
-    public const int ComboTimeoutMs = 3500;
-
-    /// <summary>Maximum combo streak multiplier.</summary>
-    public const int MaxComboCount = 10;
-
     /// <summary>Calculates bonus damage percent for a given combo count (e.g. 5 combo = +20% bonus).</summary>
     /// <param name="comboCount">Active combo streak.</param>
     /// <returns>Multiplier bonus fraction (0.0 to 0.45).</returns>
@@ -241,6 +251,28 @@ public static class CombatRules
         return hp > 0 || mp > 0;
     }
 
+    /// <summary>Returns whether a player with current vitals <paramref name="hp"/>/<paramref name="maxHp"/> and <paramref name="mp"/>/<paramref name="maxMp"/> may consume <paramref name="itemId"/> now.</summary>
+    /// <param name="itemId">The item id to consume.</param>
+    /// <param name="hp">Current player HP.</param>
+    /// <param name="maxHp">Maximum player HP.</param>
+    /// <param name="mp">Current player MP.</param>
+    /// <param name="maxMp">Maximum player MP.</param>
+    /// <returns><see langword="true"/> when the item is a valid potion/food and provides restoration or a status buff.</returns>
+    public static bool CanConsumePotion(int itemId, int hp, int maxHp, int mp, int maxMp)
+    {
+        if (!ItemCatalog.TryGet(itemId, out ItemDefinition? item) || item.Kind != ItemKind.Food || !IsPotion(itemId))
+        {
+            return false;
+        }
+
+        (int healHp, int restoreMp) = PotionRestore(itemId);
+        (StatusEffectKind effect, _, _) = PotionEffect(itemId);
+        return itemId is ItemCatalog.ArcaneGrimoire or ItemCatalog.HeartCrystal
+            || effect != StatusEffectKind.None
+            || (healHp > 0 && hp < maxHp)
+            || (restoreMp > 0 && mp < maxMp);
+    }
+
     /// <summary>Returns the status effect granted by a potion or elixir (docs/adr/ADR-051, ADR-065).</summary>
     /// <param name="itemId">The item id.</param>
     /// <returns>Status effect kind, duration in seconds, and magnitude per tick.</returns>
@@ -269,39 +301,7 @@ public static class CombatRules
     /// <param name="index">Spawn slot index.</param>
     /// <returns>The monster species.</returns>
     public static MonsterKind SpeciesForMineFloor(int floor, int index)
-    {
-        if (index == 0 && IsBossFloor(floor))
-        {
-            return BossForFloor(floor);
-        }
-
-        if (floor <= 10)
-        {
-            return (index % 3) switch
-            {
-                0 => MonsterKind.GreenSlime,
-                1 => MonsterKind.CaveBat,
-                _ => MonsterKind.SporeShroom,
-            };
-        }
-
-        if (floor <= 25)
-        {
-            return (index % 3) switch
-            {
-                0 => MonsterKind.FrostSlime,
-                1 => MonsterKind.GoblinScout,
-                _ => MonsterKind.SporeShroom,
-            };
-        }
-
-        return (index % 3) switch
-        {
-            0 => MonsterKind.MagmaSlime,
-            1 => MonsterKind.SkeletonWarrior,
-            _ => MonsterKind.StoneGolem,
-        };
-    }
+        => MonsterSpawnPlanner.SpeciesForMineFloor(floor, index);
 
     /// <summary>Plans deterministic monster spawns for a mine floor or wilderness map.</summary>
     /// <param name="mapId">The map id (<c>mine1</c>..<c>mine40</c>, <c>Woods</c>, <c>Mountain</c>, <c>Backwoods</c>).</param>
@@ -310,6 +310,7 @@ public static class CombatRules
     /// <param name="occupied">Tiles already occupied by nodes or arrival points.</param>
     /// <param name="spawnX">Player arrival X to keep clear.</param>
     /// <param name="spawnY">Player arrival Y to keep clear.</param>
+    /// <param name="reachableMask">Optional precomputed reachability mask.</param>
     /// <returns>The spawned monsters.</returns>
     public static List<MonsterSpawn> PlanMonsters(
         string mapId,
@@ -317,115 +318,25 @@ public static class CombatRules
         WalkGrid grid,
         IReadOnlySet<(int X, int Y)> occupied,
         int spawnX,
-        int spawnY)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(mapId);
-        ArgumentNullException.ThrowIfNull(grid);
-        ArgumentNullException.ThrowIfNull(occupied);
+        int spawnY,
+        bool[,]? reachableMask = null)
+        => MonsterSpawnPlanner.PlanMonsters(mapId, seed, grid, occupied, spawnX, spawnY, reachableMask);
 
-        int floor = 0;
-        bool isMine = mapId.StartsWith("mine", StringComparison.OrdinalIgnoreCase)
-            && int.TryParse(mapId.AsSpan(4), out floor)
-            && floor >= 1
-            && floor <= MineRules.MaxFloor;
-        bool isWoods = string.Equals(mapId, GameMaps.Woods, StringComparison.OrdinalIgnoreCase) || string.Equals(mapId, GameMaps.Forest, StringComparison.OrdinalIgnoreCase);
-        bool isMountain = string.Equals(mapId, GameMaps.Mountain, StringComparison.OrdinalIgnoreCase) || string.Equals(mapId, GameMaps.Backwoods, StringComparison.OrdinalIgnoreCase);
+    /// <summary>Determines whether a rhythmic <see cref="DungeonHazardKind.SpikeTrap"/> is extended and dealing damage at <paramref name="nowMs"/>.</summary>
+    /// <param name="hazardId">Hazard id within the floor instance.</param>
+    /// <param name="nowMs">Server or client timestamp in Unix milliseconds.</param>
+    /// <returns><see langword="true"/> when the spikes are extended.</returns>
+    public static bool IsSpikeTrapActive(int hazardId, long nowMs)
+        => DungeonHazardRules.IsSpikeTrapActive(hazardId, nowMs);
 
-        if (!isMine && !isWoods && !isMountain)
-        {
-            return [];
-        }
-
-        HashSet<(int X, int Y)>? reachable = ReachableFromSpawn(grid, spawnX, spawnY);
-        List<(int X, int Y)> nearCandidates = [];
-        List<(int X, int Y)> allCandidates = [];
-        for (int y = 2; y < grid.Height - 2; y++)
-        {
-            for (int x = 2; x < grid.Width - 2; x++)
-            {
-                int dist = Math.Max(Math.Abs(x - spawnX), Math.Abs(y - spawnY));
-                if (!grid.IsBlocked(x, y)
-                    && !occupied.Contains((x, y))
-                    && (reachable is null || reachable.Contains((x, y)))
-                    && dist >= 3)
-                {
-                    if (isMine && dist <= 7)
-                    {
-                        nearCandidates.Add((x, y));
-                    }
-
-                    allCandidates.Add((x, y));
-                }
-            }
-        }
-
-        List<(int X, int Y)> candidates = nearCandidates.Count >= 4 ? nearCandidates : allCandidates;
-        if (candidates.Count == 0)
-        {
-            return [];
-        }
-
-        NodeRandom random = new(NodeRandom.Mix(seed, 0x4D4F4E53, floor));
-        for (int i = candidates.Count - 1; i > 0; i--)
-        {
-            int j = random.Next(i + 1);
-            (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
-        }
-
-        int count = isMine
-            ? Math.Clamp(3 + (floor / 8), 3, 8)
-            : 5;
-
-        List<MonsterSpawn> spawns = new(Math.Min(count, candidates.Count));
-        for (int i = 0; i < count && i < candidates.Count; i++)
-        {
-            MonsterKind kind = isMine
-                ? SpeciesForMineFloor(floor, i)
-                : isWoods
-                    ? (i % 2 == 0 ? MonsterKind.GreenSlime : MonsterKind.SporeShroom)
-                    : (i % 2 == 0 ? MonsterKind.GoblinScout : MonsterKind.FrostSlime);
-
-            if (!MonsterCatalog.TryGet(kind, out MonsterDefinition? def))
-            {
-                continue;
-            }
-
-            MonsterModifier modifier = MonsterModifier.None;
-            if (!IsBoss(kind) && random.Next(100) < 35)
-            {
-                modifier = (MonsterModifier)(1 + random.Next(4));
-            }
-
-            int maxHp = def.MaxHp;
-            if (modifier == MonsterModifier.Shielded)
-            {
-                maxHp = (int)(maxHp * 1.5);
-            }
-            else if (modifier == MonsterModifier.FlameAura)
-            {
-                maxHp = (int)(maxHp * 1.25);
-            }
-            else if (modifier == MonsterModifier.Vampiric)
-            {
-                maxHp = (int)(maxHp * 1.2);
-            }
-
-            (int x, int y) = candidates[i];
-            spawns.Add(new MonsterSpawn(i + 1, kind, x, y, maxHp, maxHp, modifier));
-        }
-
-        return spawns;
-    }
-
-    /// <summary>
-    /// Plans deterministic environmental hazards for a dungeon floor or map (docs/adr/ADR-061).
-    /// </summary>
+    /// <summary>Plans deterministic environmental hazards for a dungeon floor or map (docs/adr/ADR-061).</summary>
     /// <param name="mapId">Map or floor identifier.</param>
     /// <param name="seed">Deterministic world seed.</param>
     /// <param name="grid">Collision grid of the map.</param>
     /// <param name="spawnX">Player arrival tile X.</param>
     /// <param name="spawnY">Player arrival tile Y.</param>
     /// <param name="occupied">Optional set of tiles already occupied by resource nodes or monsters.</param>
+    /// <param name="reachableMask">Optional precomputed reachability mask.</param>
     /// <returns>A list of planned hazards.</returns>
     public static List<DungeonHazard> PlanHazards(
         string mapId,
@@ -433,144 +344,40 @@ public static class CombatRules
         WalkGrid grid,
         int spawnX,
         int spawnY,
-        IReadOnlySet<(int X, int Y)>? occupied = null)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(mapId);
-        ArgumentNullException.ThrowIfNull(grid);
-
-        int floor = 0;
-        bool isMine = mapId.StartsWith("mine", StringComparison.OrdinalIgnoreCase)
-            && int.TryParse(mapId.AsSpan(4), out floor)
-            && floor >= 1
-            && floor <= MineRules.MaxFloor;
-
-        if (!isMine)
-        {
-            return [];
-        }
-
-        HashSet<(int X, int Y)>? reachable = ReachableFromSpawn(grid, spawnX, spawnY);
-        List<(int X, int Y)> nearCandidates = [];
-        List<(int X, int Y)> allCandidates = [];
-        for (int y = 2; y < grid.Height - 2; y++)
-        {
-            for (int x = 2; x < grid.Width - 2; x++)
-            {
-                int dist = Math.Max(Math.Abs(x - spawnX), Math.Abs(y - spawnY));
-                if (!grid.IsBlocked(x, y)
-                    && (occupied is null || !occupied.Contains((x, y)))
-                    && (reachable is null || reachable.Contains((x, y)))
-                    && dist >= 2)
-                {
-                    if (dist <= 6)
-                    {
-                        nearCandidates.Add((x, y));
-                    }
-
-                    allCandidates.Add((x, y));
-                }
-            }
-        }
-
-        List<(int X, int Y)> candidates = nearCandidates.Count >= 2 ? nearCandidates : allCandidates;
-        if (candidates.Count == 0)
-        {
-            return [];
-        }
-
-        NodeRandom random = new(NodeRandom.Mix(seed, 0x48415A44, floor));
-        for (int i = candidates.Count - 1; i > 0; i--)
-        {
-            int j = random.Next(i + 1);
-            (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
-        }
-
-        int count = Math.Clamp(2 + (floor / 10), 2, 6);
-        DungeonHazardKind kind = floor switch
-        {
-            <= 10 => DungeonHazardKind.SporeVent,
-            <= 20 => DungeonHazardKind.SpikeTrap,
-            _ => DungeonHazardKind.MagmaFissure,
-        };
-
-        byte damage = kind switch
-        {
-            DungeonHazardKind.SporeVent => 4,
-            DungeonHazardKind.SpikeTrap => 8,
-            DungeonHazardKind.MagmaFissure => 14,
-            _ => 0,
-        };
-
-        List<DungeonHazard> hazards = new(Math.Min(count, candidates.Count));
-        for (int i = 0; i < count && i < candidates.Count; i++)
-        {
-            (int x, int y) = candidates[i];
-            hazards.Add(new DungeonHazard((byte)(i + 1), kind, (short)x, (short)y, damage));
-        }
-
-        return hazards;
-    }
-
-    /// <summary>Cooldown in milliseconds per player per sanctuary shrine blessing (docs/adr/ADR-063).</summary>
-    public const int ShrineCooldownMs = 45000;
+        IReadOnlySet<(int X, int Y)>? occupied = null,
+        bool[,]? reachableMask = null)
+        => DungeonHazardRules.PlanHazards(mapId, seed, grid, spawnX, spawnY, occupied, reachableMask);
 
     /// <summary>Returns <see langword="true"/> when <paramref name="kind"/> is a beneficial dungeon blessing shrine or elemental resonance pylon (docs/adr/ADR-063, ADR-064).</summary>
     /// <param name="kind">Hazard or shrine kind.</param>
     /// <returns><see langword="true"/> for sanctuary shrines and resonance pylons; <see langword="false"/> for damaging traps.</returns>
-    public static bool IsShrine(DungeonHazardKind kind) => kind switch
-    {
-        DungeonHazardKind.VitalityShrine or
-        DungeonHazardKind.ArcaneObelisk or
-        DungeonHazardKind.EmpowermentAltar or
-        DungeonHazardKind.ThunderPylon or
-        DungeonHazardKind.SolarWayshrine or
-        DungeonHazardKind.FrostMonolith => true,
-        _ => false,
-    };
+    public static bool IsShrine(DungeonHazardKind kind) => ShrineRules.IsShrine(kind);
 
     /// <summary>Returns <see langword="true"/> when <paramref name="kind"/> is an elemental resonance pylon that also discharges damage against nearby monsters (docs/adr/ADR-064).</summary>
     /// <param name="kind">Hazard or shrine kind.</param>
     /// <returns><see langword="true"/> for elemental resonance pylons and wayshrines.</returns>
-    public static bool IsResonancePylon(DungeonHazardKind kind) => kind switch
-    {
-        DungeonHazardKind.ThunderPylon or DungeonHazardKind.SolarWayshrine or DungeonHazardKind.FrostMonolith => true,
-        _ => false,
-    };
+    public static bool IsResonancePylon(DungeonHazardKind kind) => ShrineRules.IsResonancePylon(kind);
 
     /// <summary>Returns the elemental discharge parameters against nearby monsters when a resonance pylon is triggered (docs/adr/ADR-064).</summary>
     /// <param name="kind">Pylon kind.</param>
     /// <returns>Tuple of <c>(MonsterDamage, RadiusTiles, SkillKind)</c>.</returns>
-    public static (int MonsterDamage, int RadiusTiles, CombatSkillKind SkillKind) PylonDischarge(DungeonHazardKind kind) => kind switch
-    {
-        DungeonHazardKind.ThunderPylon => (18, 3, CombatSkillKind.Fireball),
-        DungeonHazardKind.SolarWayshrine => (14, 3, CombatSkillKind.Whirlwind),
-        DungeonHazardKind.FrostMonolith => (16, 3, CombatSkillKind.Fireball),
-        _ => (0, 0, CombatSkillKind.None),
-    };
+    public static (int MonsterDamage, int RadiusTiles, CombatSkillKind SkillKind) PylonDischarge(DungeonHazardKind kind)
+        => ShrineRules.PylonDischarge(kind);
 
     /// <summary>Returns the blessing rewards granted by a sanctuary shrine or resonance pylon (docs/adr/ADR-063, ADR-064).</summary>
     /// <param name="kind">Shrine kind.</param>
     /// <returns>Tuple of <c>(HealHp, RestoreMp, BonusXp, Buff)</c>.</returns>
-    public static (int HealHp, int RestoreMp, int BonusXp, StatusEffectKind Buff) ShrineBlessing(DungeonHazardKind kind) => kind switch
-    {
-        DungeonHazardKind.VitalityShrine => (10, 0, 0, StatusEffectKind.Regeneration),
-        DungeonHazardKind.ArcaneObelisk => (0, 15, 10, StatusEffectKind.None),
-        DungeonHazardKind.EmpowermentAltar => (12, 12, 15, StatusEffectKind.Swiftness),
-        DungeonHazardKind.ThunderPylon => (5, 12, 12, StatusEffectKind.Swiftness),
-        DungeonHazardKind.SolarWayshrine => (12, 10, 12, StatusEffectKind.Regeneration),
-        DungeonHazardKind.FrostMonolith => (8, 12, 12, StatusEffectKind.Regeneration),
-        _ => (0, 0, 0, StatusEffectKind.None),
-    };
+    public static (int HealHp, int RestoreMp, int BonusXp, StatusEffectKind Buff) ShrineBlessing(DungeonHazardKind kind)
+        => ShrineRules.ShrineBlessing(kind);
 
-    /// <summary>
-    /// Deterministically plans beneficial Dungeon Blessing Shrines, Overworld Wayshrines, and Elemental Resonance Pylons on a combat map (docs/adr/ADR-063, ADR-064).
-    /// </summary>
+    /// <summary>Deterministically plans beneficial Dungeon Blessing Shrines, Overworld Wayshrines, and Elemental Resonance Pylons on a combat map (docs/adr/ADR-063, ADR-064).</summary>
     /// <param name="mapId">Map id (e.g., <c>mine10</c>, <c>forest</c>, <c>mountain</c>).</param>
     /// <param name="seed">Deterministic instance seed.</param>
     /// <param name="grid">Map walkability grid.</param>
     /// <param name="spawnX">Player arrival tile X.</param>
     /// <param name="spawnY">Player arrival tile Y.</param>
     /// <param name="occupied">Optional set of already-occupied tiles to avoid.</param>
+    /// <param name="reachableMask">Optional precomputed reachability mask.</param>
     /// <returns>Planned shrines and resonance pylons for the map.</returns>
     public static List<DungeonHazard> PlanShrines(
         string mapId,
@@ -578,145 +385,7 @@ public static class CombatRules
         WalkGrid grid,
         int spawnX,
         int spawnY,
-        IReadOnlySet<(int X, int Y)>? occupied = null)
-    {
-        ArgumentNullException.ThrowIfNull(mapId);
-        ArgumentNullException.ThrowIfNull(grid);
-
-        int floor = 0;
-        bool isMine = mapId.StartsWith("mine", StringComparison.OrdinalIgnoreCase)
-            && int.TryParse(mapId.AsSpan(4), out floor)
-            && floor >= 1
-            && floor <= MineRules.MaxFloor;
-        bool isWoods = string.Equals(mapId, GameMaps.Woods, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(mapId, GameMaps.Forest, StringComparison.OrdinalIgnoreCase);
-        bool isMountain = string.Equals(mapId, GameMaps.Mountain, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(mapId, GameMaps.Backwoods, StringComparison.OrdinalIgnoreCase);
-
-        if (!isMine && !isWoods && !isMountain)
-        {
-            return [];
-        }
-
-        int centerX = Math.Clamp(spawnX, 2, Math.Max(2, grid.Width - 3));
-        int centerY = Math.Clamp(spawnY, 2, Math.Max(2, grid.Height - 3));
-
-        HashSet<(int X, int Y)>? reachable = ReachableFromSpawn(grid, spawnX, spawnY);
-        List<(int X, int Y)> chamberCandidates = [];
-        List<(int X, int Y)> fallbackCandidates = [];
-        for (int y = 2; y < grid.Height - 2; y++)
-        {
-            for (int x = 2; x < grid.Width - 2; x++)
-            {
-                if (grid.IsBlocked(x, y)
-                    || (occupied is not null && occupied.Contains((x, y)))
-                    || (reachable is not null && !reachable.Contains((x, y))))
-                {
-                    continue;
-                }
-
-                if (x == spawnX && y == spawnY)
-                {
-                    continue;
-                }
-
-                int chamberDist = Math.Max(Math.Abs(x - centerX), Math.Abs(y - centerY));
-                int maxDist = isMine ? 6 : 8;
-                if (chamberDist >= 3 && chamberDist <= maxDist)
-                {
-                    chamberCandidates.Add((x, y));
-                }
-
-                fallbackCandidates.Add((x, y));
-            }
-        }
-
-        List<(int X, int Y)> candidates = chamberCandidates.Count >= 3 ? chamberCandidates : fallbackCandidates;
-        if (candidates.Count == 0)
-        {
-            return [];
-        }
-
-        NodeRandom random = new(NodeRandom.Mix(seed, 0x5348524E, floor));
-        for (int i = candidates.Count - 1; i > 0; i--)
-        {
-            int j = random.Next(i + 1);
-            (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
-        }
-
-        if (!isMine)
-        {
-            int wildCount = Math.Min(2, candidates.Count);
-            List<DungeonHazard> wildShrines = new(wildCount);
-            for (int i = 0; i < wildCount; i++)
-            {
-                (int x, int y) = candidates[i];
-                DungeonHazardKind kind = i == 0
-                    ? (isWoods ? DungeonHazardKind.SolarWayshrine : DungeonHazardKind.FrostMonolith)
-                    : DungeonHazardKind.ThunderPylon;
-                wildShrines.Add(new DungeonHazard((byte)(100 + i + 1), kind, (short)x, (short)y, 0));
-            }
-
-            return wildShrines;
-        }
-
-        bool isBossFloor = (floor % 10) == 0;
-        int sanctuaryCount = isBossFloor ? 2 : 1;
-        int totalCount = sanctuaryCount + 1;
-        List<DungeonHazard> shrines = new(Math.Min(totalCount, candidates.Count));
-        for (int i = 0; i < totalCount && i < candidates.Count; i++)
-        {
-            (int x, int y) = candidates[i];
-            DungeonHazardKind kind;
-            if (i < sanctuaryCount)
-            {
-                kind = isBossFloor
-                    ? (i == 0 ? DungeonHazardKind.EmpowermentAltar : DungeonHazardKind.VitalityShrine)
-                    : ((floor % 2 == 0) ? DungeonHazardKind.ArcaneObelisk : DungeonHazardKind.VitalityShrine);
-            }
-            else
-            {
-                kind = (floor % 3) switch
-                {
-                    1 => DungeonHazardKind.ThunderPylon,
-                    2 => DungeonHazardKind.SolarWayshrine,
-                    _ => DungeonHazardKind.FrostMonolith,
-                };
-            }
-
-            shrines.Add(new DungeonHazard((byte)(100 + i + 1), kind, (short)x, (short)y, 0));
-        }
-
-        return shrines;
-    }
-
-    private static HashSet<(int X, int Y)>? ReachableFromSpawn(WalkGrid grid, int spawnX, int spawnY)
-    {
-        int startX = Math.Clamp(spawnX, 0, Math.Max(0, grid.Width - 1));
-        int startY = Math.Clamp(spawnY, 0, Math.Max(0, grid.Height - 1));
-        if (grid.IsBlocked(startX, startY))
-        {
-            return null;
-        }
-
-        HashSet<(int X, int Y)> visited = [(startX, startY)];
-        Queue<(int X, int Y)> queue = new();
-        queue.Enqueue((startX, startY));
-        ReadOnlySpan<(int Dx, int Dy)> dirs = [(0, -1), (1, 0), (0, 1), (-1, 0)];
-        while (queue.Count > 0)
-        {
-            (int cx, int cy) = queue.Dequeue();
-            foreach ((int dx, int dy) in dirs)
-            {
-                int nx = cx + dx;
-                int ny = cy + dy;
-                if (nx >= 0 && nx < grid.Width && ny >= 0 && ny < grid.Height && !grid.IsBlocked(nx, ny) && visited.Add((nx, ny)))
-                {
-                    queue.Enqueue((nx, ny));
-                }
-            }
-        }
-
-        return visited.Count > 4 ? visited : null;
-    }
+        IReadOnlySet<(int X, int Y)>? occupied = null,
+        bool[,]? reachableMask = null)
+        => ShrineRules.PlanShrines(mapId, seed, grid, spawnX, spawnY, occupied, reachableMask);
 }

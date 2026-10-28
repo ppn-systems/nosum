@@ -1,7 +1,7 @@
 @* The one button of the game UI. Looks come only from the shared "game-button" class and its variants (primary, danger, plain, tab, link);
    text comes from the caller (already localized). Keyboard users reach it with Tab (docs/adr/ADR-033 D4); a click in the game does not take focus (the canvas keeps the keyboard), on a form (Focusable) it does. *@
 <button type="@(Submit ? "submit" : "button")"
-        class="game-button @Variant @(Active ? "active" : null)"
+        class="game-button @Variant @(Active ? "active" : null) @Class"
         disabled="@Disabled"
         data-tip="@Title"
         aria-pressed="@(Variant == "tab" ? (Active ? "true" : "false") : Active ? "true" : null)"
@@ -33,6 +33,10 @@
     /// <summary>Gets or sets the look: <c>primary</c>, <c>danger</c>, <c>plain</c>, <c>tab</c>, <c>link</c> or <c>chip</c>.</summary>
     [Parameter]
     public string Variant { get; set; } = "primary";
+
+    /// <summary>Gets or sets an optional extra CSS class.</summary>
+    [Parameter]
+    public string? Class { get; set; }
 
     /// <summary>Gets or sets whether the button is the active tab.</summary>
     [Parameter]

@@ -1,5 +1,4 @@
 @using System.Threading
-@using Nosum.Contracts.Placeable
 @using Nosum.Wasm.ViewModels.Furnace
 @using Nosum.Wasm.Controls.Menu
 @inherits ObservingComponent<FurnaceViewModel>
@@ -9,7 +8,7 @@
     <GameStack>
         <GameSection Title="@Vm.Text("Furnace_Title")">
             <p class="furnace-line">@Vm.StateText</p>
-            @if (Vm.State == FurnaceStateCode.Ready)
+            @if (Vm.IsReady)
             {
                 <GameButton Text="@Vm.CollectLabel" OnClick="@(() => Vm.Collect())" />
             }

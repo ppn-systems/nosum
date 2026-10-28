@@ -45,24 +45,16 @@ public static partial class PlayerHandlers
 
         JoinOutcome outcome = await s_players.JoinAsync(context.Connection, player.PlayerId, mapId, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<JoinMapResult> lease = PacketFactory<JoinMapResult>.Acquire();
-        try
+        await Replies.ReplyAsync<JoinMap, JoinMapResult>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = outcome.Status;
-            lease.Value.PlayerId = outcome.PlayerId;
-            lease.Value.SpawnX = outcome.SpawnX;
-            lease.Value.SpawnY = outcome.SpawnY;
-            lease.Value.MapId = outcome.MapId;
-            lease.Value.Facing = outcome.Facing;
-            lease.Value.Unlocks = CommunityUnlockWire.Pack(s_unlocks.IsUnlocked);
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+            r.Status = outcome.Status;
+            r.PlayerId = outcome.PlayerId;
+            r.SpawnX = outcome.SpawnX;
+            r.SpawnY = outcome.SpawnY;
+            r.MapId = outcome.MapId;
+            r.Facing = outcome.Facing;
+            r.Unlocks = CommunityUnlockWire.Pack(s_unlocks.IsUnlocked);
+        }).ConfigureAwait(false);
 
         if (outcome.Status != JoinStatus.Ok)
         {
@@ -90,18 +82,7 @@ public static partial class PlayerHandlers
 
         EatOutcome outcome = await s_progress.EatAsync(player.PlayerId, slot, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<EatResult> lease = PacketFactory<EatResult>.Acquire();
-        try
-        {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = outcome.Status;
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        await Replies.ReplyAsync<Eat, EatResult>(context, sequence, r => r.Status = outcome.Status).ConfigureAwait(false);
     }
 
     /// <summary>Validates the claimed position; on refusal, pushes the position the server keeps.</summary>

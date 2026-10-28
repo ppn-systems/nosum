@@ -5,14 +5,12 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Nodes;
 using Nosum.Contracts.Node;
 using Nosum.Contracts.Node.C2S;
 using Nosum.Contracts.Node.S2C;
 using Nosum.Gameplay.Nodes;
+using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.Node;
 
@@ -38,11 +36,8 @@ public static partial class NodeHandlers
         ushort sequence = context.Packet.SequenceId;
         NodeSnapshotView view = await s_nodes.GetAsync(context.Connection, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<NodeSnapshot> lease = PacketFactory<NodeSnapshot>.Acquire();
-        try
+        await Replies.ReplyAsync<GetNodes, NodeSnapshot>(context, sequence, snapshot =>
         {
-            NodeSnapshot snapshot = lease.Value;
-            snapshot.SequenceId = sequence;
             snapshot.MapId = view.MapId;
             snapshot.WaterLeft = (byte)view.WaterLeft;
             snapshot.WaterCapacity = (byte)view.WaterCapacity;
@@ -59,13 +54,6 @@ public static partial class NodeHandlers
                 row.Hits = node.Hits;
                 snapshot.Nodes.Add(row);
             }
-
-            await context.Sender.ReplyAsync(snapshot).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        }).ConfigureAwait(false);
     }
 }

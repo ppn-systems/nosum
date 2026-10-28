@@ -147,7 +147,8 @@ internal static class MineGenerator
             return problems;
         }
 
-        int cave = Reachable(grid, ax, ay).Count(r => r);
+        bool[] reachable = Reachable(grid, ax, ay);
+        int cave = reachable.Count(r => r);
         if (cave < MinCave)
         {
             problems.Add($"floor {floor}: the arrival's cave has {cave} tiles, it needs {MinCave}");
@@ -168,7 +169,6 @@ internal static class MineGenerator
         foreach (long day in s_days)
         {
             MineFloorPlanner.Plan plan = MineFloorPlanner.Build(floor, MineRules.FloorSeed(Guid.Empty, day, floor), grid, reserved, ax, ay);
-            bool[] reachable = Reachable(grid, ax, ay);
             string where = $"floor {floor}, day {day}";
             if (plan.Nodes.Count(n => n.Kind == NodeKind.Stone) < MinStones)
             {

@@ -1,5 +1,4 @@
 @using Nosum.Wasm.Controls.Menu
-@using Nosum.Gameplay.Shops
 @using Nosum.Wasm.ViewModels.Blacksmith
 @using Nosum.Wasm.ViewModels.Shop
 @inherits ObservingComponent<ShopViewModel>
@@ -34,7 +33,7 @@
         }
         @if (ShowExtras)
         {
-            @if (ShopId == ShopCatalog.Blacksmith && Smith is not null)
+            @if (Vm.IsBlacksmithShop && Smith is not null)
             {
                 <BlacksmithSection Vm="Smith" />
             }
@@ -68,7 +67,7 @@
         {
             _openedShop = ShopId;
             Vm.Open(ShopId);
-            if (ShopId == ShopCatalog.Blacksmith)
+            if (Vm.IsBlacksmithShop)
             {
                 Smith?.Open();
             }

@@ -16,16 +16,3 @@ public sealed class Friendship
     /// <summary>Gets or sets when the two became friends.</summary>
     public DateTimeOffset CreatedAt { get; set; }
 }
-
-/// <summary>An open friend request.</summary>
-public sealed class FriendRequest
-{
-    /// <summary>Gets or sets the player who asked.</summary>
-    public Guid FromId { get; set; }
-
-    /// <summary>Gets or sets the player who was asked.</summary>
-    public Guid ToId { get; set; }
-
-    /// <summary>Gets or sets when the request was sent.</summary>
-    public DateTimeOffset CreatedAt { get; set; }
-}

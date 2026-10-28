@@ -1,5 +1,4 @@
 @using Nosum.Wasm.Controls.Menu
-@using Nosum.Contracts.Coop
 @using Nosum.Wasm.ViewModels.Coop
 @inherits ObservingComponent<CoopViewModel>
 
@@ -81,7 +80,7 @@
             <GameSection Title="@Vm.Text("Coop_Upgrades_Heading")">
                 @foreach (UpgradeDisplay upgrade in Vm.Upgrades)
                 {
-                    CoopUpgradeTrack track = upgrade.Track;
+                    UpgradeDisplay u = upgrade;
                     <div class="upgrade-row">
                         <span class="upgrade-title">@upgrade.Title</span>
                         <span class="upgrade-level">@upgrade.LevelText</span>
@@ -99,7 +98,7 @@
                             }
                             @if (Vm.IsFounder)
                             {
-                                <GameButton Text="@Vm.Text("Coop_Upgrade_Buy")" Disabled="@(!upgrade.CanBuy)" OnClick="@(() => Vm.Upgrade(track))" />
+                                <GameButton Text="@Vm.Text("Coop_Upgrade_Buy")" Disabled="@(!upgrade.CanBuy)" OnClick="@(() => Vm.UpgradeAsync(u))" />
                             }
                         }
                     </div>

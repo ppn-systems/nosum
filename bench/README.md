@@ -7,7 +7,9 @@ Benchmarks that back performance decisions with numbers.
 | `Nosum.Bench.Interop` | Per-frame JS interop cost: `IJSRuntime` per sprite vs one batched `[JSImport]` call per frame. Its result decides [ADR-002](../docs/adr/ADR-002-batched-render-interop.md). Browser project: same WASM build settings as `wasm/` (`Directory.Build.props`). |
 | `Nosum.Bench.Load` | Headless load test of a running server ([ADR-031](../docs/adr/ADR-031-deployment-and-operations.md) D8): N guests over real WebSockets that walk through the exits to public maps, farm and chat; the report puts what the clients saw next to the server's own snapshot tick time and bandwidth from its `/metrics`. A console program (it ignores the WASM settings). |
 
-`Nosum.Bench.Interop`: only the project shell exists; the benchmark itself is the next step.
+## Nosum.Bench.Interop
+
+_Planned — not yet implemented._ Only the project shell exists; the benchmark itself is the next step.
 
 ```bash
 dotnet run --project bench/Nosum.Bench.Interop -c Release

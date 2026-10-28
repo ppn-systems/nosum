@@ -112,4 +112,36 @@ public interface ICombatService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The skill cast outcome.</returns>
     Task<CastSkillOutcome> CastSkillAsync(IConnection connection, byte skillId, int targetMonsterId, CancellationToken cancellationToken = default);
+
+    /// <summary>Checks whether a player can benefit from consuming a potion item.</summary>
+    /// <param name="playerId">Player account id.</param>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns><see langword="true"/> when consuming the potion would restore vitals or cure a status effect.</returns>
+    Task<bool> CanBenefitFromPotionAsync(Guid playerId, int itemId, CancellationToken cancellationToken = default)
+        => Task.FromResult(false);
+
+    /// <summary>Applies the HP, MP and status cure effects of an already-consumed potion item.</summary>
+    /// <param name="playerId">Player account id.</param>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that completes when the effects have been applied and pushed.</returns>
+    Task ApplyConsumedPotionEffectsAsync(Guid playerId, int itemId, CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
+    /// <summary>Attempts to validate and apply a potion item's combat effects.</summary>
+    /// <param name="playerId">Player account id.</param>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns><see langword="true"/> when the potion was applied.</returns>
+    Task<bool> TryConsumePotionAsync(Guid playerId, int itemId, CancellationToken cancellationToken = default)
+        => Task.FromResult(false);
+
+    /// <summary>Runs the monster AI tick loop until <paramref name="cancellationToken"/> is cancelled.</summary>
+    /// <param name="interval">Time between ticks.</param>
+    /// <param name="onError">Error callback for unhandled tick exceptions.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that completes when the loop stops.</returns>
+    Task RunAiAsync(TimeSpan interval, Action<Exception>? onError = null, CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
 }

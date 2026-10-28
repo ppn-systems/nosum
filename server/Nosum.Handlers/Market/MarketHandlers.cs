@@ -1,7 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
@@ -75,10 +74,9 @@ public static partial class MarketHandlers
 
         ushort sequence = context.Packet.SequenceId;
         int page = context.Packet.Page;
-        List<int> itemIds = [.. context.Packet.ItemIds];
         PlayerIdentity player = context.Connection.GetPlayer();
 
-        ListingsPageView view = await s_market.BrowseAsync(page, itemIds, context.CancellationToken).ConfigureAwait(false);
+        ListingsPageView view = await s_market.BrowseAsync(page, context.Packet.ItemIds, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<BrowseListings, ListingsPage>(context, sequence, r => FillPage(r, view, player.PlayerId)).ConfigureAwait(false);
     }
 

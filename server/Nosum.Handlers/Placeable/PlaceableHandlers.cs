@@ -5,13 +5,11 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Placeables;
 using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Placeable.S2C;
 using Nosum.Gameplay.Placeables;
+using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.Placeable;
 
@@ -37,11 +35,8 @@ public static partial class PlaceableHandlers
         ushort sequence = context.Packet.SequenceId;
         PlacedSnapshotView view = await s_placeables.GetAsync(context.Connection, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<PlacedSnapshot> lease = PacketFactory<PlacedSnapshot>.Acquire();
-        try
+        await Replies.ReplyAsync<GetPlaced, PlacedSnapshot>(context, sequence, snapshot =>
         {
-            PlacedSnapshot snapshot = lease.Value;
-            snapshot.SequenceId = sequence;
             snapshot.MapId = view.MapId;
             snapshot.Objects.Clear();
             foreach (PlacedItem item in view.Objects)
@@ -54,14 +49,7 @@ public static partial class PlaceableHandlers
                 row.Rotation = (byte)item.Rotation;
                 snapshot.Objects.Add(row);
             }
-
-            await context.Sender.ReplyAsync(snapshot).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        }).ConfigureAwait(false);
     }
 
     /// <summary>Places the item in an inventory slot.</summary>
@@ -109,21 +97,11 @@ public static partial class PlaceableHandlers
         await ReplyAsync(context, sequence, outcome).ConfigureAwait(false);
     }
 
-    private static async ValueTask ReplyAsync<TRequest>(IPacketContext<TRequest> context, ushort sequence, PlaceOutcome outcome)
-        where TRequest : IPacket
-    {
-        PacketScope<PlaceResult> lease = PacketFactory<PlaceResult>.Acquire();
-        try
+    private static ValueTask ReplyAsync<TRequest>(IPacketContext<TRequest> context, ushort sequence, PlaceOutcome outcome)
+        where TRequest : class, IPacket
+        => Replies.ReplyAsync<TRequest, PlaceResult>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = outcome.Status;
-            lease.Value.ObjectId = outcome.ObjectId;
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
-    }
+            r.Status = outcome.Status;
+            r.ObjectId = outcome.ObjectId;
+        });
 }

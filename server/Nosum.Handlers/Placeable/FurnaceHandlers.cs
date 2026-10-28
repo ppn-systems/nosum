@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Placeables;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Placeable.S2C;
+using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.Placeable;
 
@@ -65,11 +63,9 @@ public static partial class FurnaceHandlers
         ushort sequence = context.Packet.SequenceId;
         IReadOnlyList<FurnaceView> views = await s_furnaces.GetAsync(context.Connection, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<FurnaceSnapshot> lease = PacketFactory<FurnaceSnapshot>.Acquire();
-        try
+        await Replies.ReplyAsync<GetFurnaces, FurnaceSnapshot>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Furnaces.Clear();
+            r.Furnaces.Clear();
             foreach (FurnaceView view in views)
             {
                 FurnaceRow row = FurnaceRow.Create();
@@ -77,35 +73,18 @@ public static partial class FurnaceHandlers
                 row.State = view.State;
                 row.OreItemId = view.OreItemId;
                 row.RemainingMs = view.RemainingMs;
-                lease.Value.Furnaces.Add(row);
+                r.Furnaces.Add(row);
             }
-
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        }).ConfigureAwait(false);
     }
 
-    private static async ValueTask ReplyAsync<TRequest>(IPacketContext<TRequest> context, ushort sequence, FurnaceOutcome outcome)
-        where TRequest : IPacket
-    {
-        PacketScope<FurnaceResult> lease = PacketFactory<FurnaceResult>.Acquire();
-        try
+    private static ValueTask ReplyAsync<TRequest>(IPacketContext<TRequest> context, ushort sequence, FurnaceOutcome outcome)
+        where TRequest : class, IPacket
+        => Replies.ReplyAsync<TRequest, FurnaceResult>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = outcome.Status;
-            lease.Value.ObjectId = outcome.ObjectId;
-            lease.Value.ItemId = outcome.ItemId;
-            lease.Value.Quantity = outcome.Quantity;
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
-    }
+            r.Status = outcome.Status;
+            r.ObjectId = outcome.ObjectId;
+            r.ItemId = outcome.ItemId;
+            r.Quantity = outcome.Quantity;
+        });
 }

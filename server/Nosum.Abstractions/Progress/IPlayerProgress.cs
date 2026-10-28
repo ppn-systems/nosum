@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Nosum.Abstractions.Combat;
 using Nosum.Abstractions.Data;
 using Nosum.Contracts.Player;
 using Nosum.Gameplay.Items;
@@ -36,26 +37,17 @@ public enum ChargeStatus
 public readonly record struct EatOutcome(EatStatus Status);
 
 /// <summary>
-/// Energy and experience of one tool use, charged inside the unit of work that carries the tool's effect. Holds the player's progress lock until it is disposed,
-/// so dispose it after the unit saved (or after the effect was refused).
-/// </summary>
-public interface IProgressCharge : IDisposable
-{
-    /// <summary>Gets whether the player had the energy. When <see langword="false"/> nothing was changed and the tool use must be refused.</summary>
-    bool Allowed { get; }
-
-    /// <summary>Tells the player the new energy, experience and any level reached. Call it after the unit of work was saved.</summary>
-    /// <param name="cancellationToken">Cancels the pushes.</param>
-    /// <returns>A task that completes when the pushes were sent.</returns>
-    ValueTask PublishAsync(CancellationToken cancellationToken = default);
-}
-
-/// <summary>
 /// Per-player energy and skills (docs/adr/ADR-023). The stored truth is on the player's state row; every tool use charges it through
 /// <see cref="ChargeAsync"/> in the same transaction as its effect (the one <c>TrySpend</c> of the farm and node paths).
 /// </summary>
 public interface IPlayerProgress
 {
+    /// <summary>Gets or sets the optional combat service used to apply potion effects when eating potion items.</summary>
+    ICombatService? Combat
+    {
+        get => null;
+        set { }
+    }
     /// <summary>Reads a player's energy (refilled when a game day has passed) and experience.</summary>
     /// <param name="playerId">The player's account id.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
@@ -96,4 +88,19 @@ public interface IPlayerProgress
     /// <param name="cancellationToken">Cancels the pushes.</param>
     /// <returns>A task that completes when the pushes were sent.</returns>
     Task PushAsync(Guid playerId, CancellationToken cancellationToken = default);
+
+    /// <summary>Checks whether the player's current energy is below maximum.</summary>
+    /// <param name="playerId">The player's account id.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns><see langword="true"/> when the player's energy is below maximum.</returns>
+    ValueTask<bool> IsEnergyBelowMaxAsync(Guid playerId, CancellationToken cancellationToken = default)
+        => ValueTask.FromResult(false);
+
+    /// <summary>Restores energy when a potion with food energy is consumed.</summary>
+    /// <param name="playerId">The player's account id.</param>
+    /// <param name="foodEnergy">Food energy to restore.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when energy is restored and pushed.</returns>
+    ValueTask RestoreEnergyFromPotionAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
+        => ValueTask.CompletedTask;
 }

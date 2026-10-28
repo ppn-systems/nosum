@@ -125,16 +125,11 @@ public static class FarmRules
         return FarmVerdict.Ok;
     }
 
-    private static readonly (int Dx, int Dy)[] s_cardinalOffsets = [(0, -1), (1, 0), (0, 1), (-1, 0)];
-
     /// <summary>Returns the tile offsets watered by a sprinkler item (<c>ItemCatalog.Sprinkler</c> waters 4 orthogonal tiles).</summary>
     /// <param name="itemId">Placed item id.</param>
     /// <returns>The relative tile offsets watered by that sprinkler, or an empty span when the item is not a sprinkler.</returns>
-    public static ReadOnlySpan<(int Dx, int Dy)> GetSprinklerOffsets(int itemId) => itemId switch
-    {
-        Items.ItemCatalog.Sprinkler => s_cardinalOffsets,
-        _ => [],
-    };
+    public static ReadOnlySpan<(int Dx, int Dy)> GetSprinklerOffsets(int itemId)
+        => Placeables.SprinklerRules.GetSprinklerOffsets(itemId);
 
     /// <summary>Clears tilled soil that holds no crop (a pickaxe), so the tile is plain ground again.</summary>
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>

@@ -5,7 +5,7 @@ description: Use when writing or debugging wasm/Nosum.Wasm.Socket or any client 
 
 # Nalix client SDK (wasm/Nosum.Wasm.Socket)
 
-**Version: Nalix 14.3.7.** Server side: `nalix-server-hosting`.
+**Version: Nalix 14.3.8.** Server side: `nalix-server-hosting`.
 
 ## Non-negotiables
 
@@ -30,7 +30,7 @@ description: Use when writing or debugging wasm/Nosum.Wasm.Socket or any client 
   `InvokeAsync(StateHasChanged)` or their own change notification.
 - `OnConnected` is the raw socket open (before handshake); `OnReady` fires after handshake or
   resume. `OnDisconnected` fires once per real close, before teardown completes.
-- A 14.3.7 peer cannot read a 14.3.6-or-older peer's encrypted frames: server and client
+- A 14.3.8 peer cannot read a 14.3.6-or-older peer's encrypted frames: server and client
   always use the same `Nalix.*` version.
 
 ## Shape

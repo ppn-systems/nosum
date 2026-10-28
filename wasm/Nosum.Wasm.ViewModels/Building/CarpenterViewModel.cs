@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Building;
 using Nosum.Gameplay.Animals;
@@ -73,6 +74,9 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the maximum allowed length for an animal's name.</summary>
+    public static int MaxAnimalNameLength => Nosum.Gameplay.Players.NicknameRules.MaxLength;
+
     /// <summary>Gets the buildings the carpenter makes blueprints of.</summary>
     public IReadOnlyList<BuildingOrder> Orders
     {
@@ -81,7 +85,7 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
             List<BuildingOrder> orders = [];
             foreach (BuildingDefinition building in BuildingCatalog.All)
             {
-                bool canOrder = _wallet.Coins >= building.Coins && this.Count(ItemCatalog.Wood) >= building.Wood && this.Count(ItemCatalog.Stone) >= building.Stone;
+                bool canOrder = _wallet.Coins >= building.Coins && _inventory.CountOf(ItemCatalog.Wood) >= building.Wood && _inventory.CountOf(ItemCatalog.Stone) >= building.Stone;
                 orders.Add(new BuildingOrder(building.Kind, this.Text("Building_" + building.Key + "_Name"), this.Text("Carpenter_Cost", Number(building.Coins), building.Wood, building.Stone), canOrder));
             }
 
@@ -130,6 +134,23 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
         _buildings.Commission((byte)kind);
     }
 
+    /// <summary>Orders the blueprint of a building from its display row.</summary>
+    /// <param name="order">The building order row.</param>
+    public void Order(BuildingOrder order)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        this.Order(order.Kind);
+    }
+
+    /// <summary>Orders the blueprint of a building from its display row.</summary>
+    /// <param name="order">The building order row.</param>
+    /// <returns>A completed task.</returns>
+    public Task OrderAsync(BuildingOrder order)
+    {
+        this.Order(order);
+        return Task.CompletedTask;
+    }
+
     /// <summary>Buys an animal for a building, with the typed name.</summary>
     /// <param name="buildingId">The building.</param>
     /// <param name="kind">The species.</param>
@@ -145,6 +166,23 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
         _buildings.BuyAnimal(buildingId, (byte)kind, NicknameRulesNormalize(_animalName));
     }
 
+    /// <summary>Buys an animal from its offer row, with the typed name.</summary>
+    /// <param name="offer">The animal offer row.</param>
+    public void BuyAnimal(AnimalOffer offer)
+    {
+        ArgumentNullException.ThrowIfNull(offer);
+        this.BuyAnimal(offer.BuildingId, offer.Kind);
+    }
+
+    /// <summary>Buys an animal from its offer row, with the typed name.</summary>
+    /// <param name="offer">The animal offer row.</param>
+    /// <returns>A completed task.</returns>
+    public Task BuyAnimalAsync(AnimalOffer offer)
+    {
+        this.BuyAnimal(offer);
+        return Task.CompletedTask;
+    }
+
     /// <summary>Stops listening to the channels.</summary>
     public void Dispose()
     {
@@ -155,21 +193,6 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
     }
 
     private static string NicknameRulesNormalize(string typed) => Nosum.Gameplay.Players.NicknameRules.Normalize(typed);
-
-    private int Count(int itemId)
-    {
-        int total = 0;
-        for (int i = 0; i < _inventory.Capacity; i++)
-        {
-            SlotInfo slot = _inventory.SlotAt(i);
-            if (slot.ItemId == itemId)
-            {
-                total += slot.Quantity;
-            }
-        }
-
-        return total;
-    }
 
     private void OnCompleted(BuildingResultInfo result)
     {

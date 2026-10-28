@@ -5,13 +5,11 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Contracts.GroundItem;
 using Nosum.Contracts.GroundItem.C2S;
 using Nosum.Contracts.GroundItem.S2C;
+using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.GroundItem;
 
@@ -37,11 +35,8 @@ public static partial class GroundItemHandlers
         ushort sequence = context.Packet.SequenceId;
         GroundItemsView view = await s_items.GetAsync(context.Connection, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<GroundItemsSnapshot> lease = PacketFactory<GroundItemsSnapshot>.Acquire();
-        try
+        await Replies.ReplyAsync<GetGroundItems, GroundItemsSnapshot>(context, sequence, snapshot =>
         {
-            GroundItemsSnapshot snapshot = lease.Value;
-            snapshot.SequenceId = sequence;
             snapshot.MapId = view.MapId;
             snapshot.Items.Clear();
             foreach (GroundItemView item in view.Items)
@@ -54,13 +49,6 @@ public static partial class GroundItemHandlers
                 row.Y = (ushort)item.Y;
                 snapshot.Items.Add(row);
             }
-
-            await context.Sender.ReplyAsync(snapshot).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        }).ConfigureAwait(false);
     }
 }

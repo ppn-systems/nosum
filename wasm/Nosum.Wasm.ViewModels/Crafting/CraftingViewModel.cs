@@ -126,6 +126,18 @@ public sealed class CraftingViewModel : PanelViewModel, IDisposable
     /// <summary>Gets how many crafts the batch button asks for.</summary>
     public static int BatchSize => 5;
 
+    /// <summary>Gets whether the selected recipe can be crafted once right now.</summary>
+    public bool CanCraftOne => this.CanCraft(1);
+
+    /// <summary>Gets whether the selected recipe can be crafted <see cref="BatchSize"/> times right now.</summary>
+    public bool CanCraftBatch => this.CanCraft(BatchSize);
+
+    /// <summary>Crafts the selected recipe once.</summary>
+    public void CraftOne() => this.Craft(1);
+
+    /// <summary>Crafts the selected recipe <see cref="BatchSize"/> times.</summary>
+    public void CraftBatch() => this.Craft(BatchSize);
+
     /// <summary>Called when the page opens: reads the recipe book.</summary>
     public void Open()
     {

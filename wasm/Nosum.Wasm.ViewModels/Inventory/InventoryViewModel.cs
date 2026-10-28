@@ -125,6 +125,11 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the localized text of the close button.</summary>
     public string CloseText => _text["Inventory_Close"];
 
+    /// <summary>Counts the total quantity of <paramref name="itemId"/> across all inventory slots.</summary>
+    /// <param name="itemId">Item id from the item catalogue.</param>
+    /// <returns>Total stacked quantity of the item carried by the player.</returns>
+    public int CountOf(int itemId) => _channel.CountOf(itemId);
+
     /// <summary>Selects a hotbar slot (a click on the hotbar or a number key).</summary>
     /// <param name="slot">Hotbar slot, zero to eight.</param>
     public void Select(int slot) => _channel.Select(slot);

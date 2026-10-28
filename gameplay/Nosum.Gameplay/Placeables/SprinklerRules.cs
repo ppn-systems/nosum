@@ -11,6 +11,17 @@ namespace Nosum.Gameplay.Placeables;
 /// </summary>
 public static class SprinklerRules
 {
+    private static readonly (int Dx, int Dy)[] s_cardinalOffsets = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+
+    /// <summary>Returns the tile offsets watered by a sprinkler item (<c>ItemCatalog.Sprinkler</c> waters 4 orthogonal tiles).</summary>
+    /// <param name="itemId">Placed item id.</param>
+    /// <returns>The relative tile offsets watered by that sprinkler, or an empty span when the item is not a sprinkler.</returns>
+    public static ReadOnlySpan<(int Dx, int Dy)> GetSprinklerOffsets(int itemId) => itemId switch
+    {
+        Items.ItemCatalog.Sprinkler => s_cardinalOffsets,
+        _ => [],
+    };
+
     /// <summary>Tells whether one sprinkler waters a tile.</summary>
     /// <param name="sprinklerX">The sprinkler's tile x.</param>
     /// <param name="sprinklerY">The sprinkler's tile y.</param>

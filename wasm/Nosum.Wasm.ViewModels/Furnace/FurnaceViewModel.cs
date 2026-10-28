@@ -68,6 +68,15 @@ public sealed class FurnaceViewModel : PanelViewModel, IDisposable
     /// <summary>Gets where the furnace stands now (idle, working or ready).</summary>
     public FurnaceStateCode State => _furnaces.StateOf(_objectId, out _, out _);
 
+    /// <summary>Gets whether the furnace has a finished bar ready to collect.</summary>
+    public bool IsReady => this.State == FurnaceStateCode.Ready;
+
+    /// <summary>Gets the localized title of the furnace panel.</summary>
+    public string Title => this.Text("Furnace_Title");
+
+    /// <summary>Gets the localized close button label.</summary>
+    public string CloseLabel => this.Text("Inventory_Close");
+
     /// <summary>Gets the localized one-line description of the furnace's state, with the countdown while working.</summary>
     public string StateText
     {
@@ -89,11 +98,11 @@ public sealed class FurnaceViewModel : PanelViewModel, IDisposable
         get
         {
             bool idle = this.State == FurnaceStateCode.Idle;
-            int coal = this.Count(ItemCatalog.Coal);
+            int coal = _inventory.CountOf(ItemCatalog.Coal);
             List<OreChoice> choices = [];
             foreach (int ore in s_ores)
             {
-                int have = this.Count(ore);
+                int have = _inventory.CountOf(ore);
                 choices.Add(new OreChoice(_describer.Describe(ore, ore, have), this.Text("Furnace_Start", _describer.NameOf(ore)), idle && have >= FurnaceRules.OreCost && coal >= FurnaceRules.CoalCost));
             }
 
@@ -169,21 +178,6 @@ public sealed class FurnaceViewModel : PanelViewModel, IDisposable
     {
         int seconds = (remainingMs + 999) / 1000;
         return string.Create(System.Globalization.CultureInfo.CurrentCulture, $"{seconds / 60}:{seconds % 60:00}");
-    }
-
-    private int Count(int itemId)
-    {
-        int total = 0;
-        for (int i = 0; i < _inventory.Capacity; i++)
-        {
-            SlotInfo slot = _inventory.SlotAt(i);
-            if (slot.ItemId == itemId)
-            {
-                total += slot.Quantity;
-            }
-        }
-
-        return total;
     }
 
     private void OnCompleted(FurnaceStatus status)

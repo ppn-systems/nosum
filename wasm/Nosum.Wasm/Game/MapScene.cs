@@ -1,25 +1,19 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
-using System.Collections.Generic;
 using Nosum.Core;
-using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
-using Nosum.Gameplay.Npcs;
-using Nosum.Gameplay.Nodes;
-using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Shops;
 using Nosum.Gameplay.Weather;
 using Nosum.Rendering;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Placeable;
-using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Player;
-using Nosum.Wasm.ViewModels.Audio;
 
 namespace Nosum.Wasm.Game;
 
@@ -31,7 +25,7 @@ namespace Nosum.Wasm.Game;
 /// are interpolated and depth-sorted with it (docs/adr/ADR-008), and the server changes the map: the scene fades out, waits
 /// (without blocking the frame) until <see cref="MapLoader"/> has the new map, swaps, and fades in (docs/adr/ADR-012).
 /// </summary>
-internal sealed class MapScene
+internal sealed partial class MapScene
 {
     private const double StepSeconds = 1.0 / 60.0;
     private const double MaxFrameSeconds = 0.25;
@@ -63,21 +57,11 @@ internal sealed class MapScene
     private readonly int[] _labelX = new int[RemotePlayers.MaxPlayers + 1];
     private readonly int[] _labelY = new int[RemotePlayers.MaxPlayers + 1];
     private int _labelCount;
-    private readonly PlaceableChannel? _placed;
     private readonly SkyLayer _sky;
     private readonly GameAudio? _audio;
     private readonly PlacementActions? _placement;
-    private readonly PlacedSet _placedSet = new();
-    private readonly NodeChannel? _nodes;
-    private WalkGrid? _nodeGrid;
-    private MapContent? _nodeGridContent;
-    private int _nodeGridVersion = -1;
-    private WalkGrid? _joinedGrid;
-    private WalkGrid? _joinedNodes;
-    private WalkGrid? _joinedPlaced;
-    private WalkGrid? _placedGrid;
-    private MapContent? _placedGridContent;
-    private int _placedGridVersion = -1;
+    private readonly CompositeWalkGrid _compositeGrid;
+    private readonly CalendarChannel? _calendar;
     private FixedTimestep _clock = new(StepSeconds, 0.25);
     private MapContent _content;
     private Walker _farmer;
@@ -110,11 +94,11 @@ internal sealed class MapScene
     public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null)
     {
         _sky = new SkyLayer(calendar, placed);
+        _calendar = calendar;
         _audio = audio;
         _actions = actions;
-        _nodes = nodes;
-        _placed = placed;
         _placement = placement;
+        _compositeGrid = new CompositeWalkGrid(nodes, placed);
         _looks = looks;
         _labels = labels;
         ArgumentNullException.ThrowIfNull(loader);
@@ -169,9 +153,12 @@ internal sealed class MapScene
 
         MapContent content = _content;
         TileMap map = content.Map;
-        WalkGrid grid = this.GridOf(content);
+        WalkGrid grid = _compositeGrid.GridOf(content);
         _clockSeconds += frameSeconds;
         long timeMs = (long)(_clockSeconds * 1000);
+        long localMs = Environment.TickCount64;
+        long serverMs = _calendar is { IsLoaded: true } ? _calendar.ServerNowMs() : localMs;
+        FrameClock frameClock = new(localMs, serverMs, _clockSeconds);
 
         if (_phase == Phase.FadingOut)
         {
@@ -221,12 +208,12 @@ internal sealed class MapScene
         bool placeableMap = content.Spec.Placeable;
         InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~(InputEdges.Rotate | InputEdges.Action) : liveEdges;
         BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
-        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear, interior, grid);
+        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _compositeGrid.PlacedSet : null, elevatorNear, interior, grid);
         if (_actions is not null)
         {
             // The action key that opened a chest or a furnace is not also a placement.
             InputEdges placementEdges = _actions.ActionConsumed ? liveEdges & ~InputEdges.Action : liveEdges;
-            _placement?.Update(placeableMap && _phase == Phase.Playing, placementEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds, !content.Spec.Farmable, content);
+            _placement?.Update(placeableMap && _phase == Phase.Playing, placementEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _compositeGrid.PlacedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds, !content.Spec.Farmable, content);
         }
 
         int scale = ScaleFor(map, canvasWidth, canvasHeight);
@@ -258,6 +245,7 @@ internal sealed class MapScene
         for (int i = 0; i < decorators.Length; i++)
         {
             decorators[i].SetView(_camera);
+            decorators[i].SetClock(frameClock);
             decorators[i].DrawOnGround(_commands, _camera, timeMs);
         }
 
@@ -285,7 +273,7 @@ internal sealed class MapScene
         Facing effectiveFacing = _farmer.Facing;
         byte activeSkillId = 0;
         float skillProgress = 0f;
-        bool hasSkillEffect = _actions is not null && _actions.TryGetActiveSkillEffect(Environment.TickCount64, out activeSkillId, out skillProgress, out _, out _);
+        bool hasSkillEffect = _actions is not null && _actions.TryGetActiveSkillEffect(localMs, out activeSkillId, out skillProgress, out _, out _);
         if (hasSkillEffect && activeSkillId == 1)
         {
             if (effectiveFacing == Facing.Up)
@@ -335,49 +323,6 @@ internal sealed class MapScene
         backend.Submit(_commands.Encode());
     }
 
-    // A click on a merchant standing within reach of their counter is the action key at that counter. The camera and zoom are the previous frame's, which is what the player clicked on.
-    private void TalkToMerchantAt(MapSpec spec, int tileSize, int scale)
-    {
-        if (_actions is null)
-        {
-            return;
-        }
-
-        IReadOnlyList<NpcDefinition> merchants = NpcCatalog.OnMap(spec.Id);
-        double worldX = _camera.Left + ((double)_pointerX / scale);
-        double worldY = _camera.Top + ((double)_pointerY / scale);
-        for (int i = 0; i < merchants.Count; i++)
-        {
-            NpcDefinition npc = merchants[i];
-            double left = (npc.TileX * tileSize) - NpcSprites.ClickSlack;
-            double right = ((npc.TileX + 1) * tileSize) + NpcSprites.ClickSlack;
-            double bottom = (npc.TileY + 1) * tileSize;
-            double top = bottom - NpcSprites.Height - NpcSprites.ClickSlack;
-            if (worldX >= left && worldX < right && worldY >= top && worldY < bottom + NpcSprites.ClickSlack && ShopRules.IsAtCounter(spec, npc.CounterId, _farmer.X, _farmer.Y, tileSize))
-            {
-                _actions.RequestShop(npc.CounterId);
-                return;
-            }
-        }
-
-        int clickTileX = (int)Math.Floor(worldX / tileSize);
-        int clickTileY = (int)Math.Floor(worldY / tileSize);
-        if (spec.Elevator is { } lift
-            && Math.Abs(clickTileX - lift.TileX) <= 1 && Math.Abs(clickTileY - lift.TileY) <= 1
-            && ShopRules.InReach(new ShopPoint(0, lift.TileX, lift.TileY), _farmer.X, _farmer.Y, tileSize))
-        {
-            _actions.RequestElevator();
-            return;
-        }
-
-        if (spec.MineFloor >= 1
-            && Math.Abs(clickTileX - spec.SpawnTileX) <= 1 && Math.Abs(clickTileY - spec.SpawnTileY) <= 1
-            && ShopRules.InReach(new ShopPoint(0, spec.SpawnTileX, spec.SpawnTileY), _farmer.X, _farmer.Y, tileSize))
-        {
-            _actions.RequestElevator();
-        }
-    }
-
     /// <summary>
     /// Picks the whole-number zoom: about <see cref="TargetTilesAcross"/> tiles across, and for a map smaller than that
     /// (a room) as large as still shows all of it.
@@ -416,241 +361,6 @@ internal sealed class MapScene
 
         // Narrow screens show the hotbar in two rows (Hotbar.razor.css, max-width 640px), so the strip is taller.
         return (canvasWidth <= NarrowCanvasWidth ? 64 : 40) * Math.Min(world, fits);
-    }
-
-    // The grid the farmer walks on: the map's own, plus the footprints of the pieces the server says are placed here. Rebuilt only
-    // when the mirror or the map changed (never per frame), with the same PlacedSet rule the server uses.
-    private WalkGrid GridOf(MapContent content)
-    {
-        WalkGrid nodes = this.NodeGridOf(content);
-        if (_placed is null || !content.Spec.Placeable)
-        {
-            return nodes;
-        }
-
-        int version = _placed.Version;
-        if (version != _placedGridVersion || !ReferenceEquals(content, _placedGridContent) || _placedGrid is null)
-        {
-            _placedSet.Clear();
-            using (_placed.Read())
-            {
-                if (string.Equals(_placed.MapId, content.Spec.Id, StringComparison.Ordinal))
-                {
-                    for (int i = 0; i < _placed.Count; i++)
-                    {
-                        PlacedObjectInfo piece = _placed.At(i);
-                        _placedSet.Add(new PlacedItem(piece.Id, piece.ItemId, piece.TileX, piece.TileY, piece.Rotation));
-                    }
-                }
-            }
-
-            _placedGrid = _placedSet.BuildGrid(content.Grid);
-            _placedGridContent = content;
-            _placedGridVersion = version;
-        }
-
-        // The farm has both layers: the grid is the nodes' joined with the placed footprints (the server's InstanceWorld does the same). Built again only when either layer replaced its grid.
-        if (ReferenceEquals(nodes, content.Grid))
-        {
-            return _placedGrid;
-        }
-
-        if (_joinedGrid is null || !ReferenceEquals(_joinedNodes, nodes) || !ReferenceEquals(_joinedPlaced, _placedGrid))
-        {
-            WalkGrid joined = nodes.Clone();
-            joined.BlockWhereBlocked(_placedGrid);
-            _joinedGrid = joined;
-            _joinedNodes = nodes;
-            _joinedPlaced = _placedGrid;
-        }
-
-        return _joinedGrid;
-    }
-
-    // The map's own grid plus the tiles of the nodes that block walking (docs/adr/ADR-021 D3), the same rule the server builds with NodeField.
-    // Rebuilt only when the mirror or the map changed.
-    private WalkGrid NodeGridOf(MapContent content)
-    {
-        if (_nodes is null)
-        {
-            return content.Grid;
-        }
-
-        int version = _nodes.Version;
-        if (version != _nodeGridVersion || !ReferenceEquals(content, _nodeGridContent) || _nodeGrid is null)
-        {
-            NodeField field = new();
-            using (_nodes.Read())
-            {
-                if (string.Equals(_nodes.MapId, content.Spec.Id, StringComparison.Ordinal))
-                {
-                    for (int i = 0; i < _nodes.Count; i++)
-                    {
-                        NodeInfo node = _nodes.At(i);
-                        field.Add(new ResourceNode(node.Id, node.X, node.Y, (NodeKind)node.Kind, node.Variant, node.Stage, node.Hits));
-                    }
-                }
-            }
-
-            _nodeGrid = field.BuildGrid(content.Grid);
-            _nodeGridContent = content;
-            _nodeGridVersion = version;
-        }
-
-        return _nodeGrid;
-    }
-
-    private static Walker StartWalker(MapContent content, MapStart start)
-    {
-        if (start.Exact)
-        {
-            return new Walker(start.X, start.Y, (Facing)(start.Facing & 3));
-        }
-
-        (double x, double y) = SpawnPoint.Find(content.Grid, start.TileX, start.TileY);
-        return new Walker(x, y);
-    }
-
-    // Takes what the server decided: where to stand after a join or a map change, and corrections of refused moves.
-    private void ApplyServerAnswers()
-    {
-        if (_channel is null)
-        {
-            return;
-        }
-
-        if (_channel.TryTakeEntry(out MapEntry entry))
-        {
-            // Intents already in flight when the place changes are refused too; ignore their corrections.
-            _ignoreCorrectionsBefore = _channel.LastSentSequence + 1;
-            if (_phase == Phase.Playing && string.Equals(entry.MapId, _content.Spec.Id, StringComparison.Ordinal))
-            {
-                // Same map (a join after a reconnect): stand where the server says.
-                _farmer = new Walker(entry.X, entry.Y, (Facing)(entry.Facing & 3));
-                _remote?.Reset();
-            }
-            else
-            {
-                // Another map: black out, load it in the background, swap when it is there.
-                _pending = entry;
-                _phase = Phase.FadingOut;
-                _remote?.Reset();
-                _loader.Prefetch(entry.MapId);
-            }
-        }
-
-        if (_phase != Phase.FadingOut && _channel.TryTakeCorrection(out MoveCorrectionInfo correction) && correction.Sequence >= _ignoreCorrectionsBefore)
-        {
-            _farmer = new Walker(correction.X, correction.Y, _farmer.Facing);
-        }
-    }
-
-    private void AdvanceFade(double frameSeconds)
-    {
-        switch (_phase)
-        {
-            case Phase.FadingOut:
-                _fade = Math.Min(1, _fade + (frameSeconds / FadeOutSeconds));
-                if (_fade >= 1)
-                {
-                    // Keep asking: a failed load is retried by the loader after a pause. Never wait here.
-                    _loader.Prefetch(_pending.MapId);
-                    if (_loader.TryGet(_pending.MapId, out MapContent? next))
-                    {
-                        this.SwapTo(next);
-                    }
-                }
-
-                break;
-
-            case Phase.FadingIn:
-                _fade = Math.Max(0, _fade - (frameSeconds / FadeInSeconds));
-                if (_fade <= 0)
-                {
-                    _phase = Phase.Playing;
-                }
-
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    private void SwapTo(MapContent next)
-    {
-        _content = next;
-        _farmer = new Walker(_pending.X, _pending.Y, (Facing)(_pending.Facing & 3));
-        _walkTime = 0;
-        _phase = Phase.FadingIn;
-        _audio?.Play(SoundIds.Door);
-        this.PrefetchNeighbours();
-    }
-
-    // Loads the maps the exits of this one lead to while the player is busy here, so the next change fades only briefly.
-    private void PrefetchNeighbours()
-    {
-        foreach (MapWarp warp in _content.Warps)
-        {
-            _loader.Prefetch(warp.TargetMap);
-        }
-    }
-
-    // Adds the other farmers to the same batch as the local one, buildings and props, so one
-    // depth sort orders them all (docs/adr/ADR-005 D4). Allocation-free: poses are structs.
-    private void AddRemoteFarmers()
-    {
-        if (_remote is null)
-        {
-            return;
-        }
-
-        double now = RemotePlayers.LocalNow();
-        double animation = _remote.AnimationTime(now);
-        for (int i = 0; i < _remote.Count; i++)
-        {
-            uint id = _remote.IdAt(i);
-            if (!_remote.TryGetPose(id, now, out EntityPose pose))
-            {
-                continue;
-            }
-
-            bool moving = (pose.State & 4) != 0 && !pose.Held;
-            int walk = moving ? 1 + (int)(animation / WalkFrameSeconds) : 0;
-            LookInfo known = default;
-            FarmerLook look = _looks is not null && _looks.TryGet(id, out known) ? LookSprites.Resolve(known) : this.Look;
-            int rx = (int)Math.Round(pose.X);
-            int ry = (int)Math.Round(pose.Y);
-            FarmerSprite.Draw(_world, _farmerTextures, look, (Facing)(pose.State & 3), walk, rx, ry, (int)id);
-            this.AddLabel(known.Nickname, rx, ry);
-        }
-    }
-
-    // Remembers where a nickname goes; the labels are recorded after everything else so no sprite or roof covers them.
-    private void AddLabel(string? nickname, int feetX, int feetY)
-    {
-        if (!ViewOptions.ShowNames)
-        {
-            return;
-        }
-
-        int id = _labels?.IdOf(nickname) ?? 0;
-        if (id > 0 && _labelCount < _labelIds.Length)
-        {
-            _labelIds[_labelCount] = id;
-            _labelX[_labelCount] = feetX;
-            _labelY[_labelCount] = feetY;
-            _labelCount++;
-        }
-    }
-
-    // One label command per player: the bitmap was uploaded when the name arrived, so the frame still crosses to the browser once.
-    private void DrawLabels()
-    {
-        for (int i = 0; i < _labelCount; i++)
-        {
-            _commands.DrawLabel(_labelIds[i], _labelX[i] - _camera.Left, _labelY[i] - FarmerSprite.Height - _camera.Top - 1);
-        }
     }
 }
 

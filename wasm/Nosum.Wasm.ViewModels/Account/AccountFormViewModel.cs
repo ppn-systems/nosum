@@ -33,7 +33,7 @@ public enum AccountFormMode
 /// <see cref="SignedIn"/>, <see cref="SessionUpdated"/> and <see cref="SignedOut"/>. Every visible
 /// string comes from <c>Language.resx</c>; the server only ever sends status codes.
 /// </summary>
-public sealed class AccountFormViewModel
+public sealed class AccountFormViewModel : IObservableViewModel
 {
     private const string EmailSuffix = "@" + AccountLimits.EmailDomain;
 
@@ -89,6 +89,21 @@ public sealed class AccountFormViewModel
 
     /// <summary>Gets whether the form asks for a password confirmation (register and upgrade).</summary>
     public bool IsRegister => this.Mode != AccountFormMode.Login;
+
+    /// <summary>Gets whether the login form is currently shown.</summary>
+    public bool IsLoginMode => this.Mode == AccountFormMode.Login;
+
+    /// <summary>Gets whether the guest-upgrade form is currently shown.</summary>
+    public bool IsUpgradeMode => this.Mode == AccountFormMode.Upgrade;
+
+    /// <summary>Gets the maximum allowed length for an e-mail input.</summary>
+    public static int EmailMaxLength => AccountLimits.EmailMaxLength;
+
+    /// <summary>Gets the maximum allowed length for a password input.</summary>
+    public static int PasswordMaxLength => AccountLimits.PasswordMaxLength;
+
+    /// <summary>Gets the maximum allowed length for a nickname input.</summary>
+    public static int NicknameMaxLength => NicknameRules.MaxLength;
 
     /// <summary>Gets whether the account form must be shown: signed out, or upgrading.</summary>
     public bool ShowsForm => this.CurrentSession is null || this.Mode == AccountFormMode.Upgrade;
@@ -218,7 +233,7 @@ public sealed class AccountFormViewModel
     /// <summary>Starts playing as a guest in the current UI language.</summary>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>A task that completes when the reply has been handled.</returns>
-    public Task PlayAsGuestAsync(CancellationToken cancellationToken)
+    public Task PlayAsGuestAsync(CancellationToken cancellationToken = default)
         => this.RunAsync(() => _client.StartGuestAsync(UiCulture.Current, cancellationToken), isUpgrade: false);
 
     /// <summary>
@@ -227,7 +242,7 @@ public sealed class AccountFormViewModel
     /// </summary>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>A task that completes when the reply has been handled.</returns>
-    public async Task SubmitAsync(CancellationToken cancellationToken)
+    public async Task SubmitAsync(CancellationToken cancellationToken = default)
     {
         if (this.IsBusy)
         {
@@ -258,8 +273,29 @@ public sealed class AccountFormViewModel
     /// <summary>Gets the language the UI is in now (the signed-in session's, which every switch updates; before sign-in the UI culture's).</summary>
     public GameLanguage Language => GameLanguages.Resolve(this.CurrentSession?.Language ?? UiCulture.Current);
 
+    /// <summary>Gets the preferred UI language (alias for <see cref="Language"/>).</summary>
+    public GameLanguage PreferredLanguage => this.Language;
+
+    /// <summary>Gets whether the active UI language is Vietnamese.</summary>
+    public bool IsVietnamese => this.Language == GameLanguage.Vietnamese;
+
+    /// <summary>Gets whether the active UI language is English.</summary>
+    public bool IsEnglish => this.Language == GameLanguage.English;
+
     /// <summary>Gets the localized note under the language buttons when the server could not store the choice, or <see langword="null"/>.</summary>
     public string? LanguageNote { get; private set; }
+
+    /// <summary>Switches the UI language to Vietnamese.</summary>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the server has answered.</returns>
+    public Task SetVietnameseAsync(CancellationToken cancellationToken = default)
+        => this.SetLanguageAsync(GameLanguage.Vietnamese, cancellationToken);
+
+    /// <summary>Switches the UI language to English.</summary>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the server has answered.</returns>
+    public Task SetEnglishAsync(CancellationToken cancellationToken = default)
+        => this.SetLanguageAsync(GameLanguage.English, cancellationToken);
 
     /// <summary>
     /// Switches the UI language now, then stores it on the account so it applies at every later sign-in. The UI does not wait for the
@@ -268,7 +304,7 @@ public sealed class AccountFormViewModel
     /// <param name="language">The wanted language.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>A task that completes when the server has answered.</returns>
-    public async Task SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken)
+    public async Task SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken = default)
     {
         language = GameLanguages.Resolve(language);
         if (language == this.Language)
@@ -309,7 +345,7 @@ public sealed class AccountFormViewModel
     /// <summary>Signs out: the server revokes the session, then <see cref="SignedOut"/> is raised.</summary>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>A task that completes when the player is signed out (or the request failed).</returns>
-    public async Task LogoutAsync(CancellationToken cancellationToken)
+    public async Task LogoutAsync(CancellationToken cancellationToken = default)
     {
         if (this.IsBusy || this.CurrentSession is null)
         {

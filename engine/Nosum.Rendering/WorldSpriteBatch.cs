@@ -54,7 +54,36 @@ public sealed class WorldSpriteBatch
             return;
         }
 
-        _sprites[_count] = new Sprite(texture, srcX, srcY, width, height, worldX, worldY, flags, tint);
+        bool overlay = id is >= 8900 and <= 9999;
+        _sprites[_count] = new Sprite(texture, srcX, srcY, width, height, worldX, worldY, flags, tint, overlay);
+        _keys[_count] = new SortKey(sortY, sortX, id, _count);
+        _count++;
+    }
+
+    /// <summary>
+    /// Adds a high-priority overlay sprite that is deferred until <see cref="FlushLabels"/> when <c>deferLabels</c> is enabled,
+    /// drawing above roofs and ambient darkness without relying on magic sort-key id ranges.
+    /// </summary>
+    /// <param name="texture">Backend texture id.</param>
+    /// <param name="srcX">Source left.</param>
+    /// <param name="srcY">Source top.</param>
+    /// <param name="width">Width.</param>
+    /// <param name="height">Height.</param>
+    /// <param name="worldX">Destination left, world pixels.</param>
+    /// <param name="worldY">Destination top, world pixels.</param>
+    /// <param name="sortY">Anchor y, world pixels.</param>
+    /// <param name="sortX">Anchor x, world pixels, breaking ties in y.</param>
+    /// <param name="id">Stable id breaking remaining ties.</param>
+    /// <param name="flags">Draw flags such as <see cref="RenderCommandBuffer.FlipX"/>.</param>
+    /// <param name="tint">Multiply tint or <see cref="RenderCommandBuffer.NoTint"/>.</param>
+    public void AddOverlay(int texture, int srcX, int srcY, int width, int height, int worldX, int worldY, int sortY, int sortX = 0, int id = 0, int flags = 0, int tint = RenderCommandBuffer.NoTint)
+    {
+        if (_count == _sprites.Length)
+        {
+            return;
+        }
+
+        _sprites[_count] = new Sprite(texture, srcX, srcY, width, height, worldX, worldY, flags, tint, Overlay: true);
         _keys[_count] = new SortKey(sortY, sortX, id, _count);
         _count++;
     }
@@ -71,7 +100,7 @@ public sealed class WorldSpriteBatch
         for (int i = 0; i < _count; i++)
         {
             ref readonly Sprite s = ref _sprites[_keys[i].Index];
-            if (deferLabels && (s.Texture == RenderCommandBuffer.LabelTexture || _keys[i].Id >= 8900))
+            if (deferLabels && (s.Texture == RenderCommandBuffer.LabelTexture || s.Overlay))
             {
                 continue;
             }
@@ -100,7 +129,7 @@ public sealed class WorldSpriteBatch
         for (int i = 0; i < _count; i++)
         {
             ref readonly Sprite s = ref _sprites[_keys[i].Index];
-            if (s.Texture == RenderCommandBuffer.LabelTexture || _keys[i].Id < 8900)
+            if (s.Texture == RenderCommandBuffer.LabelTexture || !s.Overlay)
             {
                 continue;
             }
@@ -134,7 +163,7 @@ public sealed class WorldSpriteBatch
         _count = 0;
     }
 
-    private readonly record struct Sprite(int Texture, int SrcX, int SrcY, int Width, int Height, int X, int Y, int Flags, int Tint);
+    private readonly record struct Sprite(int Texture, int SrcX, int SrcY, int Width, int Height, int X, int Y, int Flags, int Tint, bool Overlay = false);
 
     private readonly record struct SortKey(int Y, int X, int Id, int Index) : IComparable<SortKey>
     {

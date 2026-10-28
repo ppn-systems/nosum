@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Shop;
 using Nosum.Gameplay.Calendar;
@@ -62,6 +63,12 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets the id of the opened shop, or zero before one was opened.</summary>
     public int ShopId => _shopId;
+
+    /// <summary>Gets whether the currently opened shop is the carpenter shop.</summary>
+    public bool IsCarpenterShop => _shopId == ShopCatalog.CarpenterShop;
+
+    /// <summary>Gets whether the currently opened shop is the blacksmith shop.</summary>
+    public bool IsBlacksmithShop => _shopId == ShopCatalog.Blacksmith;
 
     /// <summary>Gets or sets the quantity typed for the next purchase.</summary>
     public string QuantityText { get; set; } = "1";
@@ -126,6 +133,23 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     {
         this.ClearStatus();
         _channel.Buy(_shopId, itemId, this.Quantity);
+    }
+
+    /// <summary>Buys the typed quantity of an item from its offer display row.</summary>
+    /// <param name="offer">The offer display row.</param>
+    public void Buy(ShopOfferDisplay offer)
+    {
+        ArgumentNullException.ThrowIfNull(offer);
+        this.Buy(offer.ItemId);
+    }
+
+    /// <summary>Buys the typed quantity of an item from its offer display row.</summary>
+    /// <param name="offer">The offer display row.</param>
+    /// <returns>A completed task.</returns>
+    public Task BuyAsync(ShopOfferDisplay offer)
+    {
+        this.Buy(offer);
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>

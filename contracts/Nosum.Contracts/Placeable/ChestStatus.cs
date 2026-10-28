@@ -2,16 +2,6 @@
 
 namespace Nosum.Contracts.Placeable;
 
-/// <summary>Where a stack is, in a <see cref="C2S.ChestMove"/>. Values are append-only.</summary>
-public enum ChestSide : byte
-{
-    /// <summary>The player's own inventory.</summary>
-    Player = 0,
-
-    /// <summary>The open chest.</summary>
-    Chest = 1,
-}
-
 /// <summary>Outcome code of a chest request. Clients map it to text. Values are append-only.</summary>
 public enum ChestStatus : byte
 {

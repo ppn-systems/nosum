@@ -19,16 +19,3 @@ internal sealed class PlayerWalletConfiguration : IEntityTypeConfiguration<Playe
         _ = builder.ToTable(t => t.HasCheckConstraint("ck_player_wallets_coins", "coins >= 0"));
     }
 }
-
-internal sealed class CoinLogEntryConfiguration : IEntityTypeConfiguration<CoinLogEntry>
-{
-    public void Configure(EntityTypeBuilder<CoinLogEntry> builder)
-    {
-        _ = builder.ToTable("coin_log");
-        _ = builder.HasKey(e => e.Id);
-        _ = builder.Property(e => e.Id).ValueGeneratedNever();
-        _ = builder.Property(e => e.Reason).HasMaxLength(64).IsRequired();
-        _ = builder.HasIndex(e => new { e.PlayerId, e.OccurredAt });
-        _ = builder.HasOne<Player>().WithMany().HasForeignKey(e => e.PlayerId).OnDelete(DeleteBehavior.Cascade);
-    }
-}

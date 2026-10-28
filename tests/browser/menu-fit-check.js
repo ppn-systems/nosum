@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
-const base = process.argv[2] || 'http://localhost:8080/';
+const base = process.argv[2] || 'http://localhost:5080/';
 const shots = process.argv[3] || '.';
 const SIZES = [[802, 293], [393, 727], [1280, 720], [1920, 1080]];
 const LANGS = ['vi', 'en'];

@@ -13,10 +13,12 @@
     else
     {
         <GamePanel Class="hud quest" Title="">
-            <button type="button" class="quest-head" tabindex="-1" aria-expanded="@(_open ? "true" : "false")" data-tip="@(Vm.Heading + ": " + Vm.Title + (Vm.Hint.Length > 0 ? "\n" + Vm.Hint : string.Empty))"
-                    @onmousedown:preventDefault @onclick="() => _open = !_open">
-                <GameIcon Name="quest-scroll" /><span class="quest-title">@Vm.Title</span><span class="quest-fold">@(_open ? "-" : "+")</span>
-            </button>
+            <div class="quest-wrap">
+                <GameButton Variant="chip" Class="quest-head" tabindex="-1" aria-expanded="@(_open ? "true" : "false")" Title="@(Vm.Heading + ": " + Vm.Title + (Vm.Hint.Length > 0 ? "\n" + Vm.Hint : string.Empty))"
+                            OnClick="() => _open = !_open">
+                    <GameIcon Name="quest-scroll" /><span class="quest-title">@Vm.Title</span><span class="quest-fold">@(_open ? "-" : "+")</span>
+                </GameButton>
+            </div>
             @if (_open)
             {
                 <ul class="objectives">

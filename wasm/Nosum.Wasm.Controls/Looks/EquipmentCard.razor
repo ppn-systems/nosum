@@ -1,4 +1,3 @@
-@using Nosum.Gameplay.Items
 @using Nosum.Wasm.ViewModels.Looks
 @inherits ObservingComponent<WardrobeViewModel>
 
@@ -34,6 +33,14 @@
 
     private static string GhostOf(int slot) => slot switch { 3 => "glyph-hat", 1 => "glyph-shirt", _ => "glyph-pants" };
 
+    private static int WearSlotOf(int itemId) => itemId switch
+    {
+        >= 400 and < 420 => 1,
+        >= 420 and < 440 => 2,
+        >= 440 and < 460 or 518 => 3,
+        _ => 0,
+    };
+
     private void Click(int slot)
     {
         int picked = Inventory.MovingFrom;
@@ -41,7 +48,7 @@
         {
             foreach (SlotDisplay candidate in Vm.Wardrobe)
             {
-                if (candidate.Index == picked && ItemCatalog.TryGet(candidate.ItemId, out ItemDefinition? def) && (int)def.Wear == slot)
+                if (candidate.Index == picked && WearSlotOf(candidate.ItemId) == slot)
                 {
                     Vm.Wear(picked);
                     Inventory.Click(picked);

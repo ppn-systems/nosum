@@ -5,7 +5,7 @@ description: Use when changing server/Nosum.Host — NetworkApplication.CreateBu
 
 # Nalix hosting (server/Nosum.Host)
 
-**Version: Nalix 14.3.7.** Handler bodies: `nalix-handlers`.
+**Version: Nalix 14.3.8.** Handler bodies: `nalix-handlers`.
 
 ## Non-negotiables
 
@@ -24,12 +24,21 @@ description: Use when changing server/Nosum.Host — NetworkApplication.CreateBu
 
 ```csharp
 NetworkApplication.CreateBuilder()
+    .UseGroups()                 // connection groups (map instances)
     .UseTimeSync()               // PING/PONG + time sync handlers
     .UseSystemControl()          // DISCONNECT, CIPHER_UPDATE, REKEY …
-    // .UseSecureConnections()   // X25519 handshake + server certificate — required before clients can HandshakeAsync()
-    // .UseSessions()            // session save/resume
-    // .MapHandlers(typeof(FarmHandlers))
-    // .ConfigureDispatchOptions(o => o.WithMiddleware(new PermissionMiddleware(...)))
+    .UseSecureConnections(ServerKey.ConfiguredPath()) // X25519 handshake + server certificate
+    .Configure<ConnectionQuotaOptions>(AbuseLimits.Apply)
+    .MapHandlers(typeof(PlayerHandlers))
+    .MapHandlers(typeof(AccountHandlers))
+    // ... all domain handler classes (Inventory, Farm, Quest, Market, Look, Trade, Coop, Placeable, Crafting, Chest, Furnace, Building, Node, Visit, Shop, Blacksmith, Mine, Combat, Goal, Calendar, GroundItem, Chat, Friend, Mail, Admin, Request; plus DevHandlers in Development)
+    .ConfigureDispatchOptions(o =>
+    {
+        o.WithMiddleware(new MetricsMiddleware(...));
+        o.WithMiddleware(new InputBoundsMiddleware());
+        o.WithMiddleware(new PermissionMiddleware());
+        if (!LoadTestMode()) o.WithMiddleware(new RateLimitMiddleware());
+    })
     .MapWebSocket<DefaultProtocol>()
         .OnPort(webSocketPort)
         .WithPath("/ws/")
@@ -38,13 +47,16 @@ NetworkApplication.CreateBuilder()
 ```
 
 Usings: `Nalix.Hosting` (`NetworkApplication`) · `Nalix.Hosting.Protocols` (`DefaultProtocol`)
-· `Nalix.Runtime.Middleware.Standard` (standard middleware).
+· `Nalix.Runtime.Groups` (`UseGroups`) · `Nalix.Runtime.Middleware.Standard` (standard middleware).
 
-Current state: time sync, system control, account handlers (with `PermissionMiddleware` and
-`RateLimitMiddleware`) and the WebSocket listener. Services handlers `[Inject]` are registered in
-`HostServices.Register` before `BuildApplication`. Adding
-`UseSecureConnections()` brings a certificate store; decide where its key lives before
-enabling it (never in the repository).
+Current state: `UseGroups()`, time sync, system control, `UseSecureConnections(ServerKey.ConfiguredPath())`,
+`ConnectionQuotaOptions` abuse limits, all domain handlers (`PlayerHandlers`, `AccountHandlers`, `InventoryHandlers`,
+`FarmHandlers`, `QuestHandlers`, `MarketHandlers`, `LookHandlers`, `TradeHandlers`, `CoopHandlers`, `PlaceableHandlers`,
+`CraftingHandlers`, `ChestHandlers`, `FurnaceHandlers`, `BuildingHandlers`, `NodeHandlers`, `VisitHandlers`,
+`ShopHandlers`, `BlacksmithHandlers`, `MineHandlers`, `CombatHandlers`, `GoalHandlers`, `CalendarHandlers`,
+`GroundItemHandlers`, `ChatHandlers`, `FriendHandlers`, `MailHandlers`, `AdminHandlers`, `RequestHandlers`, and `DevHandlers` in Development),
+`MetricsMiddleware`, `InputBoundsMiddleware`, `PermissionMiddleware`, `RateLimitMiddleware` and the WebSocket listener.
+Services handlers `[Inject]` are registered in `HostServices.Register` and `Program.RegisterServices` before the builder runs.
 
 ## Gotchas
 

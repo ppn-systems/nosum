@@ -1,0 +1,46 @@
+@using Nosum.Wasm.Controls.Calendar
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Wallet
+@using Nosum.Wasm.ViewModels
+@using Nosum.Wasm.ViewModels.Calendar
+@using Nosum.Wasm.ViewModels.Mail
+@using Nosum.Wasm.ViewModels.Wallet
+
+@* Top-right HUD bars: calendar clock, coin balance, standalone Mail/Settings window buttons, and the player toolbar. *@
+<div class="hud-bar">
+    <CalendarClock Vm="Calendar" />
+    <CoinBadge Vm="Wallet" />
+    @* Mail and Settings are standalone windows of their own (docs/adr/ADR-043 D4, ADR-044). *@
+    <GameIconButton Icon="tab-mail" Active="@(ActivePanel == PanelKind.Mail)" Tip="@Toolbar.MailTip(Mail.Unread)" Badge="Mail.Unread" OnClick="@(() => OnTogglePanel.InvokeAsync(PanelKind.Mail))" />
+    <GameIconButton Icon="tab-settings" Active="@(ActivePanel == PanelKind.Settings)" Tip="@Toolbar.SettingsTip" OnClick="@(() => OnTogglePanel.InvokeAsync(PanelKind.Settings))" />
+</div>
+<div class="hud-bar hud-player-bar" role="toolbar" aria-label="@Toolbar.Label">
+    @foreach (ToolbarItem item in Toolbar.Items)
+    {
+        if (item.Kind is not (PanelKind.Mail or PanelKind.Settings))
+        {
+            PanelKind kind = item.Kind;
+            <GameIconButton Icon="@item.Icon" Active="@(ActivePanel == kind)" Tip="@(item.Hotkey.Length > 0 ? item.Label + " [" + item.Hotkey + "]" : item.Label)" OnClick="@(() => OnTogglePanel.InvokeAsync(kind))" />
+        }
+    }
+</div>
+
+@code {
+    /// <summary>The calendar view model.</summary>
+    [Parameter, EditorRequired] public CalendarViewModel Calendar { get; set; } = default!;
+
+    /// <summary>The wallet view model.</summary>
+    [Parameter, EditorRequired] public WalletViewModel Wallet { get; set; } = default!;
+
+    /// <summary>The mail view model.</summary>
+    [Parameter, EditorRequired] public MailViewModel Mail { get; set; } = default!;
+
+    /// <summary>The toolbar view model.</summary>
+    [Parameter, EditorRequired] public ToolbarViewModel Toolbar { get; set; } = default!;
+
+    /// <summary>The currently open panel, or <see cref="PanelKind.None"/>.</summary>
+    [Parameter] public PanelKind ActivePanel { get; set; }
+
+    /// <summary>Raised when a toolbar or top-right button is clicked to toggle a panel.</summary>
+    [Parameter] public EventCallback<PanelKind> OnTogglePanel { get; set; }
+}

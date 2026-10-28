@@ -140,29 +140,7 @@ public sealed class InventoryGrid
         }
 
         int fitting = Math.Min(quantity, this.AvailableRoomFor(itemId));
-        if (fitting <= 0)
-        {
-            return 0;
-        }
-
-        int left = fitting;
-        for (int i = 0; i < _slots.Length && left > 0; i++)
-        {
-            if (_slots[i].ItemId == itemId)
-            {
-                left -= this.Fill(i, itemId, item.MaxStack, left);
-            }
-        }
-
-        for (int i = 0; i < _slots.Length && left > 0; i++)
-        {
-            if (_slots[i].IsEmpty)
-            {
-                left -= this.Fill(i, itemId, item.MaxStack, left);
-            }
-        }
-
-        return fitting - left;
+        return fitting <= 0 ? 0 : this.FillIntoSlots(itemId, item.MaxStack, fitting);
     }
 
     /// <summary>Adds items: tops up existing stacks first (lowest slot first), then fills empty slots.</summary>
@@ -178,12 +156,18 @@ public sealed class InventoryGrid
         }
 
         _ = ItemCatalog.TryGet(itemId, out ItemDefinition? item);
+        _ = this.FillIntoSlots(itemId, item!.MaxStack, quantity);
+        return InventoryVerdict.Ok;
+    }
+
+    private int FillIntoSlots(int itemId, int maxStack, int quantity)
+    {
         int left = quantity;
         for (int i = 0; i < _slots.Length && left > 0; i++)
         {
             if (_slots[i].ItemId == itemId)
             {
-                left -= this.Fill(i, itemId, item!.MaxStack, left);
+                left -= this.Fill(i, itemId, maxStack, left);
             }
         }
 
@@ -191,11 +175,11 @@ public sealed class InventoryGrid
         {
             if (_slots[i].IsEmpty)
             {
-                left -= this.Fill(i, itemId, item!.MaxStack, left);
+                left -= this.Fill(i, itemId, maxStack, left);
             }
         }
 
-        return InventoryVerdict.Ok;
+        return quantity - left;
     }
 
     /// <summary>Adds items to one named slot: it must be empty or hold the same item with room for them all.</summary>

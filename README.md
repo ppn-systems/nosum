@@ -20,9 +20,10 @@ Client and server talk over one Nalix WebSocket channel and share the same C# co
 | [`server/`](server/) | Realtime server (Nalix) | `Nosum.slnx` |
 | [`wasm/`](wasm/) | Blazor WebAssembly client | `Nosum.Wasm.slnx` |
 | [`tests/`](tests/) | Unit and integration tests | `Nosum.Tests.slnx` |
-| [`bench/`](bench/) | Browser performance benchmarks | `Nosum.Bench.slnx` |
-| [`assets/`](assets/) | The replacement sprite sheets the game loads (own or CC0, 16 px; ADR-040) | — |
-| [`tools/`](tools/) | Developer tools (atlas packer) | `Nosum.Tools.slnx` |
+| [`bench/`](bench/) | Browser and server load performance benchmarks | `Nosum.Bench.slnx` |
+| [`art/`](art/) | Tiled `.tmx` maps (`art/own/Maps/`), map layouts (`art/own/source/`) and raw CC0/CC-BY source packs (`art/source/`; ADR-040) | — |
+| [`assets/`](assets/) | The runtime sprite sheets and synthesized audio the game loads (own or CC0, 16 px; ADR-040) | — |
+| [`tools/`](tools/) | Developer tools (`Nosum.AtlasPacker`, `Nosum.MapGen`, `tools/art_repack/` Python asset pipeline, audio synthesizers) | `Nosum.Tools.slnx` |
 | [`deploy/`](deploy/) | Deployment configuration | — |
 | [`docs/`](docs/) | Game pillars (`docs/design/pillars.md`), architecture decision records | — |
 

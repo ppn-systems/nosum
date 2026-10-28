@@ -5,15 +5,13 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Placeables;
 using Nosum.Contracts.Inventory.S2C;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Placeable.S2C;
+using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.Placeable;
 
@@ -36,11 +34,8 @@ public static partial class ChestHandlers
         ushort sequence = context.Packet.SequenceId;
         ChestOpenOutcome outcome = await s_chests.OpenAsync(context.Connection, context.Packet.ObjectId, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<ChestSnapshot> lease = PacketFactory<ChestSnapshot>.Acquire();
-        try
+        await Replies.ReplyAsync<OpenChest, ChestSnapshot>(context, sequence, snapshot =>
         {
-            ChestSnapshot snapshot = lease.Value;
-            snapshot.SequenceId = sequence;
             snapshot.Status = outcome.Status;
             snapshot.ObjectId = outcome.ObjectId;
             snapshot.Capacity = (byte)outcome.Capacity;
@@ -53,14 +48,7 @@ public static partial class ChestHandlers
                 row.Quantity = slot.Quantity;
                 snapshot.Slots.Add(row);
             }
-
-            await context.Sender.ReplyAsync(snapshot).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        }).ConfigureAwait(false);
     }
 
     /// <summary>Stops watching a chest. No reply.</summary>
@@ -88,21 +76,14 @@ public static partial class ChestHandlers
 
         ushort sequence = context.Packet.SequenceId;
         ChestMove request = context.Packet;
+        int objectId = request.ObjectId;
         int toSlot = request.ToSlot == byte.MaxValue ? -1 : request.ToSlot;
-        ChestStatus status = await s_chests.MoveAsync(context.Connection, request.ObjectId, request.FromSide, request.FromSlot, request.ToSide, toSlot, request.Quantity, context.CancellationToken).ConfigureAwait(false);
+        ChestStatus status = await s_chests.MoveAsync(context.Connection, objectId, request.FromSide, request.FromSlot, request.ToSide, toSlot, request.Quantity, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<ChestResult> lease = PacketFactory<ChestResult>.Acquire();
-        try
+        await Replies.ReplyAsync<ChestMove, ChestResult>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = status;
-            lease.Value.ObjectId = request.ObjectId;
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+            r.Status = status;
+            r.ObjectId = objectId;
+        }).ConfigureAwait(false);
     }
 }

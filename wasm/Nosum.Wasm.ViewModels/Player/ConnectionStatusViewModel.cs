@@ -14,7 +14,7 @@ namespace Nosum.Wasm.ViewModels.Player;
 /// localization resources. Raises <see cref="Changed"/> on any thread; a component marshals with
 /// <c>InvokeAsync(StateHasChanged)</c>.
 /// </summary>
-public sealed class ConnectionStatusViewModel : IDisposable
+public sealed class ConnectionStatusViewModel : IObservableViewModel, IDisposable
 {
     private readonly IGameSocket _socket;
     private readonly IStringLocalizer<Language> _text;
@@ -39,6 +39,22 @@ public sealed class ConnectionStatusViewModel : IDisposable
 
     /// <summary>Gets the connection state.</summary>
     public GameSocketState State => _socket.State;
+
+    /// <summary>Gets whether the connection badge should be visible (not ready, or a join rejection is active).</summary>
+    public bool IsVisible => _rejection is not null || this.State != GameSocketState.Ready;
+
+    /// <summary>Gets the visual severity kind of the badge (<c>"ok"</c>, <c>"warn"</c>, or <c>"error"</c>).</summary>
+    public string BadgeKind => _rejection is not null
+        ? "error"
+        : this.State switch
+        {
+            GameSocketState.Ready => "ok",
+            GameSocketState.Connecting or GameSocketState.Reconnecting => "warn",
+            _ => "error",
+        };
+
+    /// <summary>Gets the visual severity kind of the badge (alias for <see cref="BadgeKind"/>).</summary>
+    public string Kind => this.BadgeKind;
 
     /// <summary>Gets the text to show: a join refusal if there is one, otherwise the connection state.</summary>
     public string Text => _rejection switch

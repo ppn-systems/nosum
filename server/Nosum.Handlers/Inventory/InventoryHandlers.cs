@@ -5,9 +5,6 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Inventory;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.C2S;
@@ -37,11 +34,8 @@ public static partial class InventoryHandlers
 
         InventoryView view = await s_inventory.GetAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<InventorySnapshot> lease = PacketFactory<InventorySnapshot>.Acquire();
-        try
+        await Replies.ReplyAsync<GetInventory, InventorySnapshot>(context, sequence, snapshot =>
         {
-            InventorySnapshot snapshot = lease.Value;
-            snapshot.SequenceId = sequence;
             snapshot.Capacity = (byte)view.Capacity;
             snapshot.SelectedSlot = (byte)view.SelectedSlot;
             snapshot.Slots.Clear();
@@ -53,14 +47,7 @@ public static partial class InventoryHandlers
                 row.Quantity = slot.Quantity;
                 snapshot.Slots.Add(row);
             }
-
-            await context.Sender.ReplyAsync(snapshot).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        }).ConfigureAwait(false);
     }
 
     /// <summary>Moves, splits, merges or swaps stacks; the changed slots follow as an inventory update.</summary>
@@ -110,18 +97,10 @@ public static partial class InventoryHandlers
             selected = (await s_inventory.GetAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false)).SelectedSlot;
         }
 
-        PacketScope<InventoryResult> lease = PacketFactory<InventoryResult>.Acquire();
-        try
+        await Replies.ReplyAsync<TRequest, InventoryResult>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = status;
-            lease.Value.SelectedSlot = (byte)selected;
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+            r.Status = status;
+            r.SelectedSlot = (byte)selected;
+        }).ConfigureAwait(false);
     }
 }
