@@ -61,7 +61,7 @@ SHEETS = {
     'slime_green': ('oga_animated-slimes', 'Slime_Small_Green.png', '9a5bad4dda4ac370430d814dbe20dcd164aa7e42bd1ab1cabf9235aec2efb254', 32, 0),
     'slime_blue': ('oga_animated-slimes', 'Slime_Small_Blue.png', 'f1d75d3c35fc4a6ec81735c24a0355f4e34c00c7f68728eb0044e65e1bdcdfea', 32, 0),
     'slime_red': ('oga_animated-slimes', 'Slime_Small_Red.png', '9f19829aacae6cdd8fee9ab97c514a33b8babb878463a9141793c5a729c2450b', 32, 0),
-    'dungeon_diamond': ('oga_16x16-dungeon-tiles', 'diamond_1.png', '8ecc7e434b59d0f77c0065c54e873498c498ec604de639d9daa168983e2bf9b7', 16, 0, (14, 12, 16)),
+    'dungeon_diamond': ('oga_16x16-dungeon-tiles', 'diamond_1.png', '8ecc7e434b59d0f77c0065c54e873498c498ec604de639d9daa168983e2bf9b7', 16, 0, lambda p: max(p[:3]) < 50),
     'puny_dungeon': ('oga_puny-dungeon', 'PUNY_DUNGEON_v1/punyworld-dungeon-tileset.png', '0bec8a1262360c8828e450760551754d7cb734ae51b952df9e7100a656b656a8', 16, 0),
     'rpg_potions': ('oga_assorted-rpg-icons', '16x16 Assorted RPG Icons/potions.png', 'd3fc2937aec92152f071597c194c9fb8ad8303d6739805770490a3b1c747b937', 16, 0),
     'rpg_books': ('oga_assorted-rpg-icons', '16x16 Assorted RPG Icons/books.png', 'afa280ed05c1e2392d5872e1734c82d60562b3787b9b9e3d2df56eb0f6e7046c', 16, 0),
@@ -76,6 +76,8 @@ SHEETS = {
     'six_color_dungeon': ('oga_6-color-dungeon', 'oga_6-color-dungeon.png', '6ce8628fb4337669fbd4346d6e2ded3908982a3cc9aa100f9f1df5bee9ade92d', 16, 0, (46, 36, 64)),
     'tiny16_dungeon': ('tiny16', 'dungeon.png', '272a421c38b3f0f7da77cd59975d6ceeb7d14cdbb3f0fd082f9d35d2dac698db', 16, 0, (117, 113, 97)),
     'dawn_armor': ('dawnlike', 'Items/Armor.png', '633032aafe520932c71802da6e9abfee0be711fa2e3313a60a45f71689a5e256', 16, 0),
+    'dawn_boot': ('dawnlike', 'Items/Boot.png', '2ebe6219da69b08178c9f9c245a7867d57796646c964f1634960405dda3d95bf', 16, 0),
+    'dawn_hat': ('dawnlike', 'Items/Hat.png', '5a6711126aac733ca3886d46cb5581911a2b2185c3936b6dc03359edb46c2555', 16, 0),
     'dawn_effects': ('dawnlike', 'Objects/Effect0.png', '8fc48d4b8982c7c1356ab402da6d94da316424b6d15bfcf4b5547708ad2739a7', 16, 0),
 }
 
@@ -139,6 +141,7 @@ class Sources:
                 raise SystemExit(f'{full}: SHA-256 {actual} differs from the pinned {digest}; the pack changed or is not the one in docs/art/sourcing.md')
             img = pngio.read_png(full)
             if key_color is not None:
-                img = img.map_pixels(lambda p: pngio.TRANSPARENT if p[:3] == key_color else p)
+                pred = key_color if callable(key_color) else (lambda p: p[:3] == key_color)
+                img = img.map_pixels(lambda p: pngio.TRANSPARENT if pred(p) else p)
             self._sheets[key] = Sheet(img, size, margin)
         return self._sheets[key]
