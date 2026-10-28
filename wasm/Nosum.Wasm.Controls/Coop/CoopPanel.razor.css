@@ -41,7 +41,7 @@
 }
 
 .upgrade-title {
-    font-weight: bold;
+    color: var(--nosum-heading);
 }
 
 .upgrade-level {

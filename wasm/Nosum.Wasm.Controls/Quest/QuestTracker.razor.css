@@ -23,7 +23,6 @@
 
 .quest-title {
     min-width: 0;
-    font-weight: bold;
     color: var(--nosum-heading);
 }
 

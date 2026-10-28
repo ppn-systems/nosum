@@ -8,7 +8,5 @@
 
 .coin-amount {
     font-variant-numeric: tabular-nums;
-    font-weight: bold;
     color: var(--nosum-heading);
-    text-shadow: 0 var(--u) 0 var(--nosum-parchment-light);
 }

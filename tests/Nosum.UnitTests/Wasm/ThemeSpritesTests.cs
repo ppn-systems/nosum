@@ -52,6 +52,56 @@ public sealed partial class ThemeSpritesTests
         }
     }
 
+    [Fact]
+    public void RazorFiles_NeverUseRawHtmlTitleAttribute_UseDataTipInstead()
+    {
+        string wasmRoot = Path.Combine(RepositoryRoot(), "wasm");
+        string[] razorFiles = Directory.GetFiles(wasmRoot, "*.razor", SearchOption.AllDirectories);
+
+        razorFiles.Should().NotBeEmpty();
+        foreach (string file in razorFiles)
+        {
+            string content = File.ReadAllText(file);
+            content.Should().NotContain(" title=", $"{Path.GetFileName(file)} must use data-tip instead of raw HTML title attribute (blazor-ui)");
+        }
+    }
+
+    [Fact]
+    public void CssFiles_NeverUseFontWeightBold_SoPixelFontStaysCrisp()
+    {
+        string wasmRoot = Path.Combine(RepositoryRoot(), "wasm");
+        string[] cssFiles = Directory.GetFiles(wasmRoot, "*.razor.css", SearchOption.AllDirectories);
+
+        cssFiles.Should().NotBeEmpty();
+        foreach (string file in cssFiles)
+        {
+            string content = File.ReadAllText(file);
+            content.Should().NotContain("font-weight: bold", $"{Path.GetFileName(file)} must not use font-weight: bold on VT323 (blazor-ui)");
+        }
+    }
+
+    [Fact]
+    public void SkillsPanel_UsesSharedGameProgressControl_InsteadOfHandRolledBars()
+    {
+        string skillsPanel = File.ReadAllText(Path.Combine(RepositoryRoot(), "wasm", "Nosum.Wasm.Controls", "Progress", "SkillsPanel.razor"));
+
+        skillsPanel.Should().Contain("<GameProgress");
+        skillsPanel.Should().NotContain("class=\"skill-bar\"");
+    }
+
+    [Fact]
+    public void KeyStrips_UseGameButtonChipVariant_InsteadOfRawButtonsOrHeavyStoneButtons()
+    {
+        string root = RepositoryRoot();
+        string hotbar = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor"));
+        string placement = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Placement", "PlacementPanel.razor"));
+
+        hotbar.Should().Contain("Variant=\"chip\"");
+        hotbar.Should().NotContain("Variant=\"plain\"");
+        placement.Should().Contain("Variant=\"chip\"");
+        placement.Should().NotContain("<button");
+    }
+
     private static int Number(Match row, int group) => int.Parse(row.Groups[group].Value, System.Globalization.CultureInfo.InvariantCulture);
 
     private static (int Width, int Height) PngSize(string path)

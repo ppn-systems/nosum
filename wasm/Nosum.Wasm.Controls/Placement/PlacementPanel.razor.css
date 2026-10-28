@@ -8,15 +8,4 @@
     display: inline-flex;
     align-items: center;
     gap: calc(var(--u) * 2);
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--nosum-ink);
-    font: inherit;
-    cursor: var(--nosum-cursor-pointer, pointer);
-}
-
-button.chip:hover {
-    color: var(--nosum-danger);
 }

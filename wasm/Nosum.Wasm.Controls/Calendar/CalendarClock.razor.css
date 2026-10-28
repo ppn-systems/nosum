@@ -5,6 +5,10 @@
     white-space: nowrap;
 }
 
+.calendar-season {
+    color: var(--nosum-heading);
+}
+
 .calendar-day,
 .calendar-time {
     font-variant-numeric: tabular-nums;
