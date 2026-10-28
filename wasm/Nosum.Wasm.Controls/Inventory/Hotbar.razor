@@ -16,21 +16,19 @@
         </GamePanel>
         @if (Progress is not null)
         {
-            <GamePanel Class="hud strip" Role="toolbar" Title="">
-                <GameRow Class="center">
-                    <GameButton Variant="chip" Title="@Progress.WhirlwindTip" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /><span>@Progress.WhirlwindLabel</span></GameButton>
-                    <GameButton Variant="chip" Title="@Progress.FireballTip" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /><span>@Progress.FireballLabel</span></GameButton>
-                    <GameButton Variant="chip" Title="@Progress.DivineHealTip" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /><span>@Progress.DivineHealLabel</span></GameButton>
-                    @if (Progress.CurrentCombo > 1)
-                    {
-                        <GameBadge Kind="warn" Text="@Progress.ComboBadgeText" />
-                    }
-                    @if (Progress.IsLevelUpActive)
-                    {
-                        <GameBadge Kind="ok" Text="@Progress.LevelUpBadgeText" />
-                    }
-                </GameRow>
-            </GamePanel>
+            <div class="hotbar-skills" role="toolbar">
+                <GameButton Variant="chip" Title="@($"{Progress.WhirlwindLabel}\n{Progress.WhirlwindTip}")" aria-label="@Progress.WhirlwindLabel" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /></GameButton>
+                <GameButton Variant="chip" Title="@($"{Progress.FireballLabel}\n{Progress.FireballTip}")" aria-label="@Progress.FireballLabel" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /></GameButton>
+                <GameButton Variant="chip" Title="@($"{Progress.DivineHealLabel}\n{Progress.DivineHealTip}")" aria-label="@Progress.DivineHealLabel" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /></GameButton>
+                @if (Progress.CurrentCombo > 1)
+                {
+                    <GameBadge Kind="warn" Text="@Progress.ComboBadgeText" />
+                }
+                @if (Progress.IsLevelUpActive)
+                {
+                    <GameBadge Kind="ok" Text="@Progress.LevelUpBadgeText" />
+                }
+            </div>
             @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@
             <EnergyBar Vm="Progress" />
         }

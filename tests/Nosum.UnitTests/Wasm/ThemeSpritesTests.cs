@@ -90,14 +90,18 @@ public sealed partial class ThemeSpritesTests
     }
 
     [Fact]
-    public void KeyStrips_UseGameButtonChipVariant_InsteadOfRawButtonsOrHeavyStoneButtons()
+    public void KeyStrips_UseGameButtonChipVariant_AndHotbarSkillsAreCompactKeyCapsWithoutTextClutter()
     {
         string root = RepositoryRoot();
         string hotbar = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor"));
+        string hotbarCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor.css"));
         string placement = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Placement", "PlacementPanel.razor"));
 
         hotbar.Should().Contain("Variant=\"chip\"");
         hotbar.Should().NotContain("Variant=\"plain\"");
+        hotbar.Should().Contain("class=\"hotbar-skills\"");
+        hotbar.Should().NotContain("<span>@Progress.WhirlwindLabel</span>");
+        hotbarCss.Should().Contain(".hotbar-skills");
         placement.Should().Contain("Variant=\"chip\"");
         placement.Should().NotContain("<button");
     }
