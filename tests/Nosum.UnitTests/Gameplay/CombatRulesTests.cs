@@ -335,4 +335,28 @@ public sealed class CombatRulesTests
         CombatRules.PylonDischarge(DungeonHazardKind.FrostMonolith).Should().Be((16, 3, CombatSkillKind.Fireball));
         CombatRules.PylonDischarge(DungeonHazardKind.VitalityShrine).Should().Be((0, 0, CombatSkillKind.None));
     }
+
+    [Fact]
+    public void AncientRelics_AndRangerTunic_HaveExpectedDefenseRestoreEffectAndSprites()
+    {
+        CombatRules.ArmorDefense(ItemCatalog.RangerTunic).Should().Be(4);
+        CombatRules.CalculateDefense(ItemCatalog.IronHelmet, ItemCatalog.RangerTunic, ItemCatalog.IronGreaves).Should().Be(4 + 4 + 5);
+
+        CombatRules.IsPotion(ItemCatalog.ArcaneGrimoire).Should().BeTrue();
+        CombatRules.PotionRestore(ItemCatalog.ArcaneGrimoire).Should().Be((20, 80));
+        CombatRules.PotionEffect(ItemCatalog.ArcaneGrimoire).Should().Be((StatusEffectKind.Swiftness, 30, 1));
+
+        CombatRules.IsPotion(ItemCatalog.HeartCrystal).Should().BeTrue();
+        CombatRules.PotionRestore(ItemCatalog.HeartCrystal).Should().Be((80, 25));
+        CombatRules.PotionEffect(ItemCatalog.HeartCrystal).Should().Be((StatusEffectKind.Regeneration, 40, 8));
+
+        ItemCatalog.TryGet(ItemCatalog.NecromancerSkull, out ItemDefinition? skull).Should().BeTrue();
+        skull!.ObjectIcon.Should().Be(105);
+
+        ItemCatalog.TryGet(ItemCatalog.RunestoneTablet, out ItemDefinition? tablet).Should().BeTrue();
+        tablet!.ObjectIcon.Should().Be(110);
+
+        ItemCatalog.TryGet(ItemCatalog.SanctuaryCandelabra, out ItemDefinition? candelabra).Should().BeTrue();
+        candelabra!.ObjectIcon.Should().Be(107);
+    }
 }

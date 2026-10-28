@@ -76,6 +76,18 @@ public static class RecipeCatalog
     /// <summary>Iron greaves.</summary>
     public const int IronGreaves = 21;
 
+    /// <summary>Ranger tunic (docs/adr/ADR-065).</summary>
+    public const int RangerTunic = 22;
+
+    /// <summary>Arcane grimoire (docs/adr/ADR-065).</summary>
+    public const int ArcaneGrimoire = 23;
+
+    /// <summary>Heart crystal (docs/adr/ADR-065).</summary>
+    public const int HeartCrystal = 24;
+
+    /// <summary>Sanctuary candelabra (docs/adr/ADR-065).</summary>
+    public const int SanctuaryCandelabra = 25;
+
     /// <summary>Most items one craft request may make in a batch (so a request cannot ask for an absurd amount).</summary>
     public const int MaxBatch = 99;
 
@@ -102,6 +114,10 @@ public static class RecipeCatalog
         new(IronHelmet, "iron_helmet", ItemCatalog.IronHelmet, 1, RecipeUnlock.Of(CraftSkill.Combat, 2), new RecipeInput(ItemCatalog.IronBar, 3), new RecipeInput(ItemCatalog.MonsterBone, 2)),
         new(IronChestplate, "iron_chestplate", ItemCatalog.IronChestplate, 1, RecipeUnlock.Of(CraftSkill.Combat, 3), new RecipeInput(ItemCatalog.IronBar, 5), new RecipeInput(ItemCatalog.Coal, 2)),
         new(IronGreaves, "iron_greaves", ItemCatalog.IronGreaves, 1, RecipeUnlock.Of(CraftSkill.Combat, 2), new RecipeInput(ItemCatalog.IronBar, 4), new RecipeInput(ItemCatalog.CopperBar, 2)),
+        new(RangerTunic, "ranger_tunic", ItemCatalog.RangerTunic, 1, RecipeUnlock.Of(CraftSkill.Combat, 2), new RecipeInput(ItemCatalog.LeatherArmor, 1), new RecipeInput(ItemCatalog.BatWing, 2), new RecipeInput(ItemCatalog.Fiber, 5)),
+        new(ArcaneGrimoire, "arcane_grimoire", ItemCatalog.ArcaneGrimoire, 1, RecipeUnlock.Of(CraftSkill.Combat, 3), new RecipeInput(ItemCatalog.ManaCrystal, 2), new RecipeInput(ItemCatalog.SporeCap, 2), new RecipeInput(ItemCatalog.Wood, 5)),
+        new(HeartCrystal, "heart_crystal", ItemCatalog.HeartCrystal, 1, RecipeUnlock.Of(CraftSkill.Combat, 3), new RecipeInput(ItemCatalog.HealthPotion, 1), new RecipeInput(ItemCatalog.GolemCore, 1), new RecipeInput(ItemCatalog.SlimeGel, 2)),
+        new(SanctuaryCandelabra, "sanctuary_candelabra", ItemCatalog.SanctuaryCandelabra, 1, RecipeUnlock.Of(CraftSkill.Combat, 4), new RecipeInput(ItemCatalog.IronBar, 2), new RecipeInput(ItemCatalog.ManaCrystal, 2), new RecipeInput(ItemCatalog.Coal, 2)),
     ];
 
     private static readonly Dictionary<int, RecipeDefinition> s_byId = Index();

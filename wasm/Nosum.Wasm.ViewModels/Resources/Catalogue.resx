@@ -323,10 +323,26 @@
   <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Giáp bảo vệ chân bằng sắt chống quái vật cắn (+5 Phòng thủ).</value></data>
   <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
   <data name="Item_iron_helmet_Description" xml:space="preserve"><value>Mũ sắt bảo vệ đầu khỏi các đòn chí mạng (+4 Phòng thủ).</value></data>
+  <data name="Item_ranger_tunic_Name" xml:space="preserve"><value>Áo chiến binh tuần rừng</value></data>
+  <data name="Item_ranger_tunic_Description" xml:space="preserve"><value>Áo giáp da dơi linh hoạt gia cố sợi bền (+4 Phòng thủ).</value></data>
+  <data name="Item_necromancer_skull_Name" xml:space="preserve"><value>Hộp sọ Hắc pháp sư</value></data>
+  <data name="Item_necromancer_skull_Description" xml:space="preserve"><value>Chiến lợi phẩm cổ vật hắc ám từ hầm ngục sâu.</value></data>
+  <data name="Item_runestone_tablet_Name" xml:space="preserve"><value>Bia đá Cổ ngữ</value></data>
+  <data name="Item_runestone_tablet_Description" xml:space="preserve"><value>Phiến đá khắc ký tự ma thuật thời cổ đại.</value></data>
+  <data name="Item_sanctuary_candelabra_Name" xml:space="preserve"><value>Chân nến Thánh đường</value></data>
+  <data name="Item_sanctuary_candelabra_Description" xml:space="preserve"><value>Chân nến bạc ba ngọn lửa rèn từ sắt và tinh thể mana.</value></data>
+  <data name="Item_arcane_grimoire_Name" xml:space="preserve"><value>Ma đạo thư Hồng ngọc</value></data>
+  <data name="Item_arcane_grimoire_Description" xml:space="preserve"><value>Sách phép cổ hồi phục 20 HP, 80 MP, 40 thể lực và tăng tốc chạy.</value></data>
+  <data name="Item_heart_crystal_Name" xml:space="preserve"><value>Pha lê Trái tim</value></data>
+  <data name="Item_heart_crystal_Description" xml:space="preserve"><value>Tinh thể huyết ngọc hồi phục 80 HP, 25 MP, 50 thể lực và hồi máu liên tục.</value></data>
   <data name="Recipe_leather_armor_Name" xml:space="preserve"><value>Giáp da thú</value></data>
   <data name="Recipe_iron_chestplate_Name" xml:space="preserve"><value>Giáp ngực sắt</value></data>
   <data name="Recipe_iron_greaves_Name" xml:space="preserve"><value>Xà cạp sắt</value></data>
   <data name="Recipe_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
+  <data name="Recipe_ranger_tunic_Name" xml:space="preserve"><value>Áo chiến binh tuần rừng</value></data>
+  <data name="Recipe_arcane_grimoire_Name" xml:space="preserve"><value>Ma đạo thư Hồng ngọc</value></data>
+  <data name="Recipe_heart_crystal_Name" xml:space="preserve"><value>Pha lê Trái tim</value></data>
+  <data name="Recipe_sanctuary_candelabra_Name" xml:space="preserve"><value>Chân nến Thánh đường</value></data>
   <data name="Monster_green_slime_Name" xml:space="preserve"><value>Slime xanh</value></data>
   <data name="Monster_green_slime_Location" xml:space="preserve"><value>Hầm mỏ 1–9, Rừng</value></data>
   <data name="Monster_frost_slime_Name" xml:space="preserve"><value>Slime băng</value></data>

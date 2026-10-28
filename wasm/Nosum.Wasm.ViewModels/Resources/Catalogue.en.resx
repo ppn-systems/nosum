@@ -323,10 +323,26 @@
   <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Iron leg guards preventing monster bite wounds (+5 Defense).</value></data>
   <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Iron helmet</value></data>
   <data name="Item_iron_helmet_Description" xml:space="preserve"><value>A battle helmet protecting the head from critical blows (+4 Defense).</value></data>
+  <data name="Item_ranger_tunic_Name" xml:space="preserve"><value>Ranger tunic</value></data>
+  <data name="Item_ranger_tunic_Description" xml:space="preserve"><value>Agile battle tunic reinforced with bat leather and fiber (+4 Defense).</value></data>
+  <data name="Item_necromancer_skull_Name" xml:space="preserve"><value>Necromancer skull</value></data>
+  <data name="Item_necromancer_skull_Description" xml:space="preserve"><value>A dark undead trophy relic recovered from deep dungeon crypts.</value></data>
+  <data name="Item_runestone_tablet_Name" xml:space="preserve"><value>Runestone tablet</value></data>
+  <data name="Item_runestone_tablet_Description" xml:space="preserve"><value>A carved stone slab inscribed with ancient arcane runes.</value></data>
+  <data name="Item_sanctuary_candelabra_Name" xml:space="preserve"><value>Sanctuary candelabra</value></data>
+  <data name="Item_sanctuary_candelabra_Description" xml:space="preserve"><value>An ornate three-flame silver candelabra forged from iron and mana crystals.</value></data>
+  <data name="Item_arcane_grimoire_Name" xml:space="preserve"><value>Arcane grimoire</value></data>
+  <data name="Item_arcane_grimoire_Description" xml:space="preserve"><value>An ancient ruby-bound spell tome that restores 20 HP, 80 MP, 40 energy and grants Swiftness.</value></data>
+  <data name="Item_heart_crystal_Name" xml:space="preserve"><value>Heart crystal</value></data>
+  <data name="Item_heart_crystal_Description" xml:space="preserve"><value>A crimson vitality crystal that restores 80 HP, 25 MP, 50 energy and grants strong Regeneration.</value></data>
   <data name="Recipe_leather_armor_Name" xml:space="preserve"><value>Leather armor</value></data>
   <data name="Recipe_iron_chestplate_Name" xml:space="preserve"><value>Iron chestplate</value></data>
   <data name="Recipe_iron_greaves_Name" xml:space="preserve"><value>Iron greaves</value></data>
   <data name="Recipe_iron_helmet_Name" xml:space="preserve"><value>Iron helmet</value></data>
+  <data name="Recipe_ranger_tunic_Name" xml:space="preserve"><value>Ranger tunic</value></data>
+  <data name="Recipe_arcane_grimoire_Name" xml:space="preserve"><value>Arcane grimoire</value></data>
+  <data name="Recipe_heart_crystal_Name" xml:space="preserve"><value>Heart crystal</value></data>
+  <data name="Recipe_sanctuary_candelabra_Name" xml:space="preserve"><value>Sanctuary candelabra</value></data>
   <data name="Monster_green_slime_Name" xml:space="preserve"><value>Green slime</value></data>
   <data name="Monster_green_slime_Location" xml:space="preserve"><value>Mine 1–9, Woods</value></data>
   <data name="Monster_frost_slime_Name" xml:space="preserve"><value>Frost slime</value></data>

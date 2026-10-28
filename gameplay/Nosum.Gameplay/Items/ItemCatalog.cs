@@ -351,6 +351,12 @@ public static class ItemCatalog
     /// <summary>A golden elixir that restores HP, MP and energy (docs/adr/ADR-045).</summary>
     public const int Elixir = 712;
 
+    /// <summary>An ancient ruby-bound spell grimoire that restores mana and grants Swiftness (docs/adr/ADR-065).</summary>
+    public const int ArcaneGrimoire = 713;
+
+    /// <summary>A radiant crimson vitality crystal that restores HP, MP, and grants enhanced Regeneration (docs/adr/ADR-065).</summary>
+    public const int HeartCrystal = 714;
+
     /// <summary>An egg, a chicken's produce (docs/adr/ADR-028 D3; animal produce is ids 900-949).</summary>
     public const int Egg = 900;
 
@@ -402,6 +408,15 @@ public static class ItemCatalog
     /// <summary>A blazing molten core dropped by the Magma Colossus.</summary>
     public const int ColossusCore = 521;
 
+    /// <summary>An undead necromancer skull trophy relic (docs/adr/ADR-065).</summary>
+    public const int NecromancerSkull = 522;
+
+    /// <summary>An engraved ancient runestone tablet (docs/adr/ADR-065).</summary>
+    public const int RunestoneTablet = 523;
+
+    /// <summary>An ornate three-flame silver sanctuary candelabra relic (docs/adr/ADR-065).</summary>
+    public const int SanctuaryCandelabra = 524;
+
     /// <summary>Largest stack of furniture.</summary>
     public const int FurnitureStack = 20;
 
@@ -419,6 +434,9 @@ public static class ItemCatalog
 
     /// <summary>Reinforced iron chestplate offering heavy physical protection.</summary>
     public const int IronChestplate = 406;
+
+    /// <summary>Agile ranger battle tunic reinforced with bat leather (docs/adr/ADR-065).</summary>
+    public const int RangerTunic = 407;
 
     /// <summary>Blue trousers.</summary>
     public const int PantsBlue = 420;
@@ -541,8 +559,12 @@ public static class ItemCatalog
         new(AncientScroll, "ancient_scroll", ItemKind.Resource, DefaultStack) { SellPrice = 800, ObjectIcon = 106 },
         new(GoldenKey, "golden_key", ItemKind.Resource, DefaultStack) { SellPrice = 1200, ObjectIcon = 114 },
         new(ColossusCore, "colossus_core", ItemKind.Resource, DefaultStack) { SellPrice = 1800, ObjectIcon = 115 },
+        new(NecromancerSkull, "necromancer_skull", ItemKind.Resource, DefaultStack) { SellPrice = 450, ObjectIcon = 105 },
+        new(RunestoneTablet, "runestone_tablet", ItemKind.Resource, DefaultStack) { SellPrice = 500, ObjectIcon = 110 },
+        new(SanctuaryCandelabra, "sanctuary_candelabra", ItemKind.Resource, DefaultStack) { SellPrice = 950, ObjectIcon = 107 },
         new(LeatherArmor, "leather_armor", ItemKind.Clothing, 1, wear: WearSlot.Shirt) { SellPrice = 200, ObjectIcon = 116 },
         new(IronChestplate, "iron_chestplate", ItemKind.Clothing, 1, wear: WearSlot.Shirt) { SellPrice = 600, ObjectIcon = 117 },
+        new(RangerTunic, "ranger_tunic", ItemKind.Clothing, 1, wear: WearSlot.Shirt) { SellPrice = 350, ObjectIcon = 111 },
         new(IronGreaves, "iron_greaves", ItemKind.Clothing, 1, wear: WearSlot.Pants) { SellPrice = 400, ObjectIcon = 118 },
         new(IronHelmet, "iron_helmet", ItemKind.Clothing, 1, wear: WearSlot.Hat) { SellPrice = 350, ObjectIcon = 119 },
         new(Salad, "salad", ItemKind.Food, DefaultStack, foodEnergy: 90),
@@ -551,6 +573,8 @@ public static class ItemCatalog
         new(HealthPotion, "health_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 93 },
         new(ManaPotion, "mana_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 94 },
         new(Elixir, "elixir", ItemKind.Food, DefaultStack, foodEnergy: 60) { ObjectIcon = 95 },
+        new(ArcaneGrimoire, "arcane_grimoire", ItemKind.Food, DefaultStack, foodEnergy: 40) { SellPrice = 650, ObjectIcon = 104 },
+        new(HeartCrystal, "heart_crystal", ItemKind.Food, DefaultStack, foodEnergy: 50) { SellPrice = 750, ObjectIcon = 112 },
         new(OakChair, "oak_chair", ItemKind.Furniture, FurnitureStack),
         new(BlueArmchair, "blue_armchair", ItemKind.Furniture, FurnitureStack),
         new(BlueCouch, "blue_couch", ItemKind.Furniture, FurnitureStack),

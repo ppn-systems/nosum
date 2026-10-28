@@ -128,6 +128,7 @@ public static class CombatRules
         ItemCatalog.IronChestplate => 7,
         ItemCatalog.IronGreaves => 5,
         ItemCatalog.IronHelmet => 4,
+        ItemCatalog.RangerTunic => 4,
         ItemCatalog.LeatherArmor => 3,
         _ => 0,
     };
@@ -231,6 +232,8 @@ public static class CombatRules
         ItemCatalog.HealthPotion => (50, 0),
         ItemCatalog.ManaPotion => (0, 35),
         ItemCatalog.Elixir => (100, 50),
+        ItemCatalog.ArcaneGrimoire => (20, 80),
+        ItemCatalog.HeartCrystal => (80, 25),
         ItemCatalog.Salad => (20, 5),
         ItemCatalog.BakedPotato => (15, 0),
         ItemCatalog.PumpkinSoup => (35, 15),
@@ -246,12 +249,14 @@ public static class CombatRules
         return hp > 0 || mp > 0;
     }
 
-    /// <summary>Returns the status effect granted by a potion or elixir (docs/adr/ADR-051).</summary>
+    /// <summary>Returns the status effect granted by a potion or elixir (docs/adr/ADR-051, ADR-065).</summary>
     /// <param name="itemId">The item id.</param>
     /// <returns>Status effect kind, duration in seconds, and magnitude per tick.</returns>
     public static (StatusEffectKind Effect, int DurationSeconds, int TickMagnitude) PotionEffect(int itemId) => itemId switch
     {
         ItemCatalog.Elixir => (StatusEffectKind.Regeneration, 30, 5),
+        ItemCatalog.ArcaneGrimoire => (StatusEffectKind.Swiftness, 30, 1),
+        ItemCatalog.HeartCrystal => (StatusEffectKind.Regeneration, 40, 8),
         ItemCatalog.PumpkinSoup => (StatusEffectKind.Swiftness, 20, 1),
         _ => (StatusEffectKind.None, 0, 0),
     };

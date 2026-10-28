@@ -261,7 +261,7 @@ internal sealed class PlayerActions
                 }
             }
             else if (_combat is not null
-                && held.ItemId is ItemCatalog.HealthPotion or ItemCatalog.ManaPotion or ItemCatalog.Elixir
+                && held.ItemId is ItemCatalog.HealthPotion or ItemCatalog.ManaPotion or ItemCatalog.Elixir or ItemCatalog.ArcaneGrimoire or ItemCatalog.HeartCrystal
                 && (_combat.Hp < _combat.MaxHp || _combat.Mp < _combat.MaxMp)
                 && !this.FacesCrop())
             {
