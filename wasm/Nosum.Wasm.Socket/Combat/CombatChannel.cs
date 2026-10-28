@@ -671,7 +671,9 @@ public sealed class CombatChannel : IDisposable
         }
 
         int oldHp = Volatile.Read(ref _hp);
+        int oldMp = Volatile.Read(ref _mp);
         int diff = packet.Hp - oldHp;
+        int mpDiff = packet.Mp - oldMp;
         if (oldHp > 0 && diff != 0)
         {
             if (diff > 0)
@@ -683,6 +685,10 @@ public sealed class CombatChannel : IDisposable
                 byte style = (byte)(packet.StatusEffect == 2 ? 4 : 2);
                 this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, -diff, style);
             }
+        }
+        else if (oldMp > 0 && mpDiff > 0)
+        {
+            this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, mpDiff, 3);
         }
 
         Volatile.Write(ref _hp, packet.Hp);

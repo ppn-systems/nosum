@@ -72,3 +72,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-060](ADR-060-combat-combo-streaks-and-damage-scaling.md) | Combat combo streaks and critical damage scaling | Accepted |
 | [ADR-061](ADR-061-dungeon-environmental-hazards-and-elemental-traps.md) | Dungeon environmental hazards and elemental traps | Accepted |
 | [ADR-062](ADR-062-level-up-radiance-beacon-and-fanfare-audio.md) | Level-up radiance beacon, full vitality surge, celebratory fanfare audio, and strict Blazor UI / i18n alignment | Accepted |
+| [ADR-063](ADR-063-dungeon-blessing-shrines-and-sanctuary-altars.md) | Dungeon blessing shrines, ancient sanctuary altars, proximity vitality/mana/XP blessings, and localized world labels | Accepted |

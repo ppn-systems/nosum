@@ -851,4 +851,7 @@
   <data name="Combat_Label_Hazard_Magma" xml:space="preserve"><value>MAGMA FISSURE</value></data>
   <data name="Combat_Label_LevelUp" xml:space="preserve"><value>LEVEL UP!</value></data>
   <data name="Combat_Label_Crit" xml:space="preserve"><value>CRIT -{0}</value></data>
+  <data name="Combat_Label_Shrine_Vitality" xml:space="preserve"><value>VITALITY SHRINE</value></data>
+  <data name="Combat_Label_Shrine_Arcane" xml:space="preserve"><value>ARCANE OBELISK</value></data>
+  <data name="Combat_Label_Shrine_Empowerment" xml:space="preserve"><value>SANCTUARY ALTAR</value></data>
 </root>

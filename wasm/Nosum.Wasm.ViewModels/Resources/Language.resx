@@ -851,4 +851,7 @@
   <data name="Combat_Label_Hazard_Magma" xml:space="preserve"><value>DUNG NHAM</value></data>
   <data name="Combat_Label_LevelUp" xml:space="preserve"><value>THĂNG CẤP!</value></data>
   <data name="Combat_Label_Crit" xml:space="preserve"><value>CHÍ MẠNG -{0}</value></data>
+  <data name="Combat_Label_Shrine_Vitality" xml:space="preserve"><value>ĐÀI SINH LỰC</value></data>
+  <data name="Combat_Label_Shrine_Arcane" xml:space="preserve"><value>TRỤ MA LỰC</value></data>
+  <data name="Combat_Label_Shrine_Empowerment" xml:space="preserve"><value>ĐÀN THÁNH QUANG</value></data>
 </root>

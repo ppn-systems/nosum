@@ -69,6 +69,21 @@ internal static partial class GameLoop
     private static double s_lastTime = -1;
     private static bool s_moved;
     private static bool s_acted;
+    private static volatile bool s_modalOpen;
+    private static volatile bool s_overlayOpen;
+
+    private const InputEdges PanelKeysMask =
+        InputEdges.Inventory | InputEdges.Wardrobe | InputEdges.Trade |
+        InputEdges.Coop | InputEdges.Help | InputEdges.Close | InputEdges.Profile;
+
+    /// <summary>Updates whether a modal panel, NPC conversation, or blocking overlay dialog is open on screen.</summary>
+    /// <param name="modalOpen">Whether any standalone panel, NPC dialog box, or overlay dialog is open.</param>
+    /// <param name="overlayOpen">Whether a top-level overlay dialog (such as the elevator picker or account form) is open.</param>
+    public static void SetModalState(bool modalOpen, bool overlayOpen)
+    {
+        s_modalOpen = modalOpen;
+        s_overlayOpen = overlayOpen;
+    }
 
     /// <summary>Connects the game to the server; call before <see cref="StartAsync"/>. Without it the farm is played offline.</summary>
     /// <param name="channel">The player channel.</param>
@@ -314,6 +329,17 @@ internal static partial class GameLoop
         double seconds = s_lastTime < 0 ? 0 : (timeMs - s_lastTime) / 1000.0;
         s_lastTime = timeMs;
         InputPacking.Unpack(keys, out InputState held, out InputEdges edges);
+        if (s_overlayOpen)
+        {
+            held = InputState.None;
+            edges &= InputEdges.Close;
+        }
+        else if (s_modalOpen)
+        {
+            held = InputState.None;
+            edges &= PanelKeysMask;
+        }
+
         if (!s_moved && held != InputState.None)
         {
             s_moved = true;

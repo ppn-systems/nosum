@@ -52,7 +52,6 @@ using Nosum.Wasm.ViewModels.Furnace;
 using Nosum.Wasm.ViewModels.Mail;
 using Nosum.Wasm.ViewModels.Visit;
 using Nosum.Wasm.ViewModels.Feedback;
-using Nosum.Wasm.ViewModels.Help;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Looks;
@@ -158,7 +157,6 @@ internal static class Program
         builder.Services.AddSingleton<ElevatorViewModel>();
         builder.Services.AddSingleton<RequestsViewModel>();
         builder.Services.AddSingleton<GoalsViewModel>();
-        builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton(sp => new ProgressViewModel(
             sp.GetRequiredService<ProgressChannel>(),
             sp.GetRequiredService<IStringLocalizer<Language>>(),

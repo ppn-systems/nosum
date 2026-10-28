@@ -18,4 +18,13 @@ public enum DungeonHazardKind : byte
 
     /// <summary>Magma geyser fissure: erupts fiery bursts in deep subterranean depths (floors 21-40).</summary>
     MagmaFissure = 3,
+
+    /// <summary>Ancient Vitality Fountain: restores HP and grants Regeneration aura (docs/adr/ADR-063).</summary>
+    VitalityShrine = 4,
+
+    /// <summary>Ancient Arcane Obelisk: restores MP and awards Combat XP (docs/adr/ADR-063).</summary>
+    ArcaneObelisk = 5,
+
+    /// <summary>Ancient Sanctuary Altar: restores HP and MP, grants Swiftness, and awards Combat XP on milestone floors (docs/adr/ADR-063).</summary>
+    EmpowermentAltar = 6,
 }

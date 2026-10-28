@@ -248,6 +248,72 @@ internal sealed class MonstersDecorator : IMapDecorator
                     8700,
                     tint: unchecked((int)0xf59e0bff));
             }
+            else if (h.Kind is 4 or 5 or 6) // Dungeon Blessing Shrines (docs/adr/ADR-063)
+            {
+                // Carved stone / golden sanctuary pedestal base (14x14)
+                int baseTint = h.Kind switch
+                {
+                    4 => unchecked((int)0x064e3bee), // Deep emerald stone
+                    5 => unchecked((int)0x0f172aee), // Obsidian arcane stone
+                    _ => unchecked((int)0x78350fee), // Royal sanctuary bronze-gold
+                };
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    14,
+                    14,
+                    hWorldX + 1,
+                    hWorldY + 1,
+                    hWorldY + 1,
+                    hWorldX + 1,
+                    8410,
+                    tint: baseTint);
+
+                // Pulsing sanctuary blessing aura ring
+                float shrinePulse = MathF.Sin((now * 0.005f) + h.HazardId);
+                int auraSize = 12 + (int)(shrinePulse * 2f);
+                int auraOffset = (16 - auraSize) / 2;
+                int auraRgb = h.Kind switch
+                {
+                    4 => 0x10b981, // Emerald vitality glow
+                    5 => 0x06b6d4, // Cyan arcane mana glow
+                    _ => 0xfbbf24, // Radiant gold sanctuary glow
+                };
+                int auraAlpha = Math.Clamp(185 + (int)(shrinePulse * 45f), 130, 235);
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    auraSize,
+                    auraSize,
+                    hWorldX + auraOffset,
+                    hWorldY + auraOffset,
+                    hWorldY + FrameSize,
+                    hWorldX,
+                    8710,
+                    tint: (auraRgb << 8) | auraAlpha);
+
+                // Levitating crystal / star relic from items.png bobbing above the altar
+                int bobY = (int)(MathF.Sin((now * 0.006f) + h.HazardId) * 2f);
+                int iconSrcX = h.Kind switch
+                {
+                    4 => 80,  // Ruby/vitality potion relic
+                    5 => 96,  // Arcane mana relic
+                    _ => 112, // Golden star relic
+                };
+                world.Add(
+                    _itemsTexture,
+                    iconSrcX,
+                    64,
+                    16,
+                    16,
+                    hWorldX,
+                    hWorldY - 4 + bobY,
+                    hWorldY + FrameSize,
+                    hWorldX,
+                    8720);
+            }
 
             if (_labels is not null)
             {
@@ -256,6 +322,9 @@ internal sealed class MonstersDecorator : IMapDecorator
                     1 => _labels.HazardSporeLabelId,
                     2 => _labels.HazardSpikeLabelId,
                     3 => _labels.HazardMagmaLabelId,
+                    4 => _labels.ShrineVitalityLabelId,
+                    5 => _labels.ShrineArcaneLabelId,
+                    6 => _labels.ShrineEmpowermentLabelId,
                     _ => 0,
                 };
                 if (hLabelId > 0)

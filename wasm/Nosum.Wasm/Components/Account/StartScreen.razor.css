@@ -19,6 +19,15 @@
     image-rendering: pixelated;
 }
 
+.start-screen ::deep > * {
+    flex-shrink: 0;
+}
+
+.start-screen ::deep .game-panel.account {
+    flex-shrink: 0;
+    max-height: none;
+}
+
 /* Title: the UI font at 3 font pixels per u, cream with a brown outline and a hard shadow. */
 .start-logo {
     --logo-px: calc(var(--u) * 2);

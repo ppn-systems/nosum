@@ -45,6 +45,7 @@ public sealed class CombatService : ICombatService, IDisposable
     private readonly ConcurrentDictionary<Guid, PlayerVitalsState> _vitals = new();
     private readonly ConcurrentDictionary<string, InstanceMonsters> _instances = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<(Guid PlayerId, byte SkillId), long> _skillCooldowns = new();
+    private readonly ConcurrentDictionary<(Guid PlayerId, byte ShrineId), long> _shrineCooldowns = new();
     private readonly ConcurrentDictionary<Guid, (int Count, long LastHitTick)> _playerCombos = new();
 
     private int RegisterHitCombo(Guid playerId)
@@ -226,7 +227,15 @@ public sealed class CombatService : ICombatService, IDisposable
 
                                     int pTileX = (int)Math.Floor(px / tileSize);
                                     int pTileY = (int)Math.Floor(py / tileSize);
-                                    if (pTileX == h.X && pTileY == h.Y)
+                                    if (CombatRules.IsShrine(h.Kind))
+                                    {
+                                        int shrineDist = Math.Max(Math.Abs(pTileX - h.X), Math.Abs(pTileY - h.Y));
+                                        if (shrineDist <= 1)
+                                        {
+                                            _ = this.ApplyShrineBlessingAsync(p.AccountId, h.HazardId, h.Kind, now, cancellationToken);
+                                        }
+                                    }
+                                    else if (pTileX == h.X && pTileY == h.Y)
                                     {
                                         _ = this.ApplyHazardContactAsync(p.AccountId, h.Damage, h.Kind, cancellationToken);
                                     }
@@ -398,6 +407,79 @@ public sealed class CombatService : ICombatService, IDisposable
             lease.Value.CombatXp = updated.CombatXp;
             lease.Value.StatusEffect = updated.StatusEffect;
             _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async Task ApplyShrineBlessingAsync(Guid playerId, byte shrineId, DungeonHazardKind shrineKind, long now, CancellationToken cancellationToken)
+    {
+        if (_shrineCooldowns.TryGetValue((playerId, shrineId), out long readyAt) && now < readyAt)
+        {
+            return;
+        }
+
+        _shrineCooldowns[(playerId, shrineId)] = now + CombatRules.ShrineCooldownMs;
+        PlayerVitalsState state = this.GetOrCreateVitals(playerId);
+        (int healHp, int restoreMp, int bonusXp, StatusEffectKind buff) = CombatRules.ShrineBlessing(shrineKind);
+        VitalsView updated;
+        int oldLevel;
+        int newLevel;
+        lock (state.Gate)
+        {
+            oldLevel = SkillRules.LevelOf(state.CombatXp);
+            if (healHp > 0)
+            {
+                state.Hp = Math.Min(state.MaxHp, state.Hp + healHp);
+            }
+
+            if (restoreMp > 0)
+            {
+                state.Mp = Math.Min(state.MaxMp, state.Mp + restoreMp);
+            }
+
+            if (bonusXp > 0)
+            {
+                state.CombatXp = Math.Min(SkillRules.XpCap, state.CombatXp + bonusXp);
+            }
+
+            if (buff != StatusEffectKind.None)
+            {
+                state.ActiveEffect = buff;
+                state.EffectRemainingTicks = 5;
+                state.EffectMagnitude = buff == StatusEffectKind.Regeneration ? 5 : 0;
+            }
+
+            newLevel = SkillRules.LevelOf(state.CombatXp);
+            if (newLevel > oldLevel)
+            {
+                int nextMaxHp = CombatRules.MaxHpForLevel(newLevel);
+                int nextMaxMp = CombatRules.MaxMpForLevel(newLevel);
+                state.MaxHp = nextMaxHp;
+                state.MaxMp = nextMaxMp;
+                state.Hp = nextMaxHp;
+                state.Mp = nextMaxMp;
+            }
+
+            updated = state.ToView();
+        }
+
+        if (_notifier is not null)
+        {
+            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
+            lease.Value.Hp = (ushort)updated.Hp;
+            lease.Value.MaxHp = (ushort)updated.MaxHp;
+            lease.Value.Mp = (ushort)updated.Mp;
+            lease.Value.MaxMp = (ushort)updated.MaxMp;
+            lease.Value.CombatXp = updated.CombatXp;
+            lease.Value.StatusEffect = updated.StatusEffect;
+            _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
+
+            if (newLevel > oldLevel)
+            {
+                using PacketScope<LevelUp> levelLease = PacketFactory<LevelUp>.Acquire();
+                levelLease.Value.Skill = (byte)SkillKind.Combat;
+                levelLease.Value.Level = (byte)newLevel;
+                _ = await _notifier.TrySendAsync(playerId, levelLease.Value, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 
@@ -1037,6 +1119,13 @@ public sealed class CombatService : ICombatService, IDisposable
             }
 
             List<DungeonHazard> hazards = CombatRules.PlanHazards(player.MapId, seed, map.Grid, spawnX, spawnY, occupied);
+            foreach (DungeonHazard h in hazards)
+            {
+                _ = occupied.Add((h.X, h.Y));
+            }
+
+            List<DungeonHazard> shrines = CombatRules.PlanShrines(player.MapId, seed, map.Grid, spawnX, spawnY, occupied);
+            hazards.AddRange(shrines);
             return new InstanceMonsters(planned, hazards);
         });
     }

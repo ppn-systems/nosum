@@ -24,7 +24,6 @@
 @using Nosum.Wasm.Controls.Hints
 @using Nosum.Wasm.ViewModels.Settings
 @using Nosum.Wasm.Controls.Layout
-@using Nosum.Wasm.ViewModels.Help
 @using Nosum.Wasm.Controls.Inventory
 @using Nosum.Wasm.Controls.Looks
 @using Nosum.Wasm.Controls.Market
@@ -308,6 +307,7 @@ else
         GameLoop.PanelCloseRequested += OnCloseKey;
         Chest.OpenChanged += OnContainerOpenChanged;
         Furnace.OpenChanged += OnContainerOpenChanged;
+        Elevator.Changed += OnViewModelChanged;
         Trade.WantsOpen += OnTradeWantsOpen;
         Trade.Changed += OnViewModelChanged;
         Coop.Changed += OnViewModelChanged;
@@ -323,8 +323,11 @@ else
         }
     }
 
+    protected override void OnAfterRender(bool firstRender) => SyncModalState();
+
     public void Dispose()
     {
+        GameLoop.SetModalState(false, false);
         Form.SignedIn -= OnSignedIn;
         Form.SessionUpdated -= Keeper.UpdateSession;
         Form.SessionUpdated -= OnSessionUpdated;
@@ -341,6 +344,7 @@ else
         GameLoop.PanelCloseRequested -= OnCloseKey;
         Chest.OpenChanged -= OnContainerOpenChanged;
         Furnace.OpenChanged -= OnContainerOpenChanged;
+        Elevator.Changed -= OnViewModelChanged;
         Trade.WantsOpen -= OnTradeWantsOpen;
         Trade.Changed -= OnViewModelChanged;
         Coop.Changed -= OnViewModelChanged;
@@ -357,7 +361,14 @@ else
     private void OnPanelKey(PanelKind kind) => _ = InvokeAsync(() => TogglePanel(kind == PanelKind.Help ? PanelKind.Settings : kind));
 
     // The action key next to a counter, or a click on its merchant (raised from the frame): the merchant's dialog box opens (docs/adr/ADR-043 D3).
-    private void OnShopRequested(int counterId) => _ = InvokeAsync(() => Npc.Interact(counterId));
+    private void OnShopRequested(int counterId) => _ = InvokeAsync(() =>
+    {
+        if (_panel == PanelKind.None && !Form.ShowsForm && !Elevator.IsOpen && !IsInviteOpen())
+        {
+            Npc.Interact(counterId);
+            SyncModalState();
+        }
+    });
 
     // The farmer walked out of reach of a counter (raised from the frame): the conversation with its merchant ends, and with it the dialog it opened.
     private void OnCounterLeft(int counterId) => _ = InvokeAsync(() => Npc.CounterLeft(counterId));
@@ -368,18 +379,18 @@ else
         PanelKind want = Npc.Stage == NpcStage.Trading ? Npc.Panel : PanelKind.None;
         if (want != PanelKind.None)
         {
+            _shopId = Npc.ShopId;
+            if (Npc.Page == NpcPage.Build)
+            {
+                Carpenter.Open();
+            }
+            else if (Npc.Page is NpcPage.MarketBuy or NpcPage.MarketSell)
+            {
+                Market.SetTab(Npc.Page == NpcPage.MarketSell ? MarketTab.Sell : MarketTab.Browse);
+            }
+
             if (_panel != want)
             {
-                _shopId = Npc.ShopId;
-                if (Npc.Page == NpcPage.Build)
-                {
-                    Carpenter.Open();
-                }
-                else if (Npc.Page is NpcPage.MarketBuy or NpcPage.MarketSell)
-                {
-                    Market.SetTab(Npc.Page == NpcPage.MarketSell ? MarketTab.Sell : MarketTab.Browse);
-                }
-
                 Show(want);
             }
         }
@@ -388,13 +399,14 @@ else
             ClosePanel();
         }
 
+        SyncModalState();
         StateHasChanged();
     });
 
     // A click on the world: the frame checks it against the merchants.
     private void OnCanvasClick(MouseEventArgs e)
     {
-        if (_started && _panel == PanelKind.None && !Form.ShowsForm)
+        if (_started && _panel == PanelKind.None && !Form.ShowsForm && !Elevator.IsOpen && Npc.Stage == NpcStage.Closed && !IsInviteOpen())
         {
             GameLoop.PointerClicked((int)e.OffsetX, (int)e.OffsetY);
         }
@@ -425,15 +437,22 @@ else
     // The action key next to the mine elevator (raised from the frame): show the picker.
     private void OnElevatorRequested() => _ = InvokeAsync(() =>
     {
-        if (!Elevator.IsOpen)
+        if (_panel == PanelKind.None && Npc.Stage == NpcStage.Closed && !Form.ShowsForm && !Elevator.IsOpen && !IsInviteOpen())
         {
             Elevator.Open();
+            SyncModalState();
             StateHasChanged();
         }
     });
 
     // The action key facing a furnace (raised from the frame): the furnace page opens when the view model says so.
-    private void OnFurnaceRequested(int objectId) => _ = InvokeAsync(() => Furnace.Open(objectId));
+    private void OnFurnaceRequested(int objectId) => _ = InvokeAsync(() =>
+    {
+        if (_panel == PanelKind.None && Npc.Stage == NpcStage.Closed && !Form.ShowsForm && !Elevator.IsOpen && !IsInviteOpen())
+        {
+            Furnace.Open(objectId);
+        }
+    });
 
     // A chest or a furnace page opened (the server said Ok) or closed (the server closed it, or the player walked away): show or hide its menu page.
     private void OnContainerOpenChanged(bool open) => _ = InvokeAsync(() =>
@@ -475,6 +494,7 @@ else
             Show(_lastTab);
         }
 
+        SyncModalState();
         StateHasChanged();
     });
 
@@ -489,11 +509,17 @@ else
             Show(kind);
         }
 
+        SyncModalState();
         StateHasChanged();
     }
 
     private void Show(PanelKind kind)
     {
+        if (Elevator.IsOpen)
+        {
+            Elevator.Close();
+        }
+
         // Anything but the page the merchant opened ends the conversation, so it cannot be left half open behind another page.
         if (Npc.Stage != NpcStage.Closed && kind != Npc.Panel)
         {
@@ -522,6 +548,7 @@ else
         }
 
         Toolbar.Active = _panel;
+        SyncModalState();
     }
 
     private void ClosePanel()
@@ -537,6 +564,16 @@ else
 
         _panel = PanelKind.None;
         Toolbar.Active = _panel;
+        SyncModalState();
+    }
+
+    private bool IsInviteOpen() => Trade.Phase == TradePhase.Invited || (_panel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0);
+
+    private void SyncModalState()
+    {
+        bool overlayOpen = !_started || Form.ShowsForm || Elevator.IsOpen || IsInviteOpen();
+        bool modalOpen = overlayOpen || _panel != PanelKind.None || Npc.Stage != NpcStage.Closed;
+        GameLoop.SetModalState(modalOpen, overlayOpen);
     }
 
     // A trade began: show its window.

@@ -45,6 +45,15 @@ internal sealed class CombatLabels
     /// <summary>Gets the pre-interned label id for the celebratory level-up overhead banner (docs/adr/ADR-062).</summary>
     public int LevelUpLabelId { get; }
 
+    /// <summary>Gets the pre-interned label id for Vitality Shrines (docs/adr/ADR-063).</summary>
+    public int ShrineVitalityLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for Arcane Obelisks (docs/adr/ADR-063).</summary>
+    public int ShrineArcaneLabelId { get; }
+
+    /// <summary>Gets the pre-interned label id for Sanctuary Empowerment Altars (docs/adr/ADR-063).</summary>
+    public int ShrineEmpowermentLabelId { get; }
+
     public CombatLabels(LabelRegistry registry, IStringLocalizer<Language>? text = null)
     {
         ArgumentNullException.ThrowIfNull(registry);
@@ -59,6 +68,9 @@ internal sealed class CombatLabels
         this.HazardSpikeLabelId = registry.Intern(this.Lookup("Combat_Label_Hazard_Spike"), 0);
         this.HazardMagmaLabelId = registry.Intern(this.Lookup("Combat_Label_Hazard_Magma"), 2);
         this.LevelUpLabelId = registry.Intern(this.Lookup("Combat_Label_LevelUp"), 1);
+        this.ShrineVitalityLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Vitality"), 3);
+        this.ShrineArcaneLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Arcane"), 1);
+        this.ShrineEmpowermentLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Empowerment"), 1);
 
         // Pre-intern common values 1..50 for all 5 styles
         for (int i = 1; i <= 50; i++)

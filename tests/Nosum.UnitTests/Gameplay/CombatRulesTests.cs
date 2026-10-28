@@ -252,4 +252,52 @@ public sealed class CombatRulesTests
         List<DungeonHazard> townHazards = CombatRules.PlanHazards("town", 12345, grid, 4, 4);
         townHazards.Should().BeEmpty();
     }
+
+    [Fact]
+    public void PlanShrines_GeneratesSanctuaryShrinesOnMineFloors_AndAvoidsOccupiedTiles()
+    {
+        WalkGrid grid = new(20, 20, 16, new bool[20 * 20]);
+        HashSet<(int X, int Y)> occupied = [(10, 6), (9, 6)];
+
+        List<DungeonHazard> floor3Shrines = CombatRules.PlanShrines("mine3", 98765, grid, 10, 9, occupied);
+        floor3Shrines.Should().HaveCount(1);
+        CombatRules.IsShrine(floor3Shrines[0].Kind).Should().BeTrue();
+        floor3Shrines[0].Damage.Should().Be(0);
+        occupied.Contains((floor3Shrines[0].X, floor3Shrines[0].Y)).Should().BeFalse();
+
+        List<DungeonHazard> bossFloorShrines = CombatRules.PlanShrines("mine10", 98765, grid, 10, 9, occupied);
+        bossFloorShrines.Should().HaveCount(2);
+        bossFloorShrines.Should().Contain(s => s.Kind == DungeonHazardKind.EmpowermentAltar);
+        bossFloorShrines.Should().Contain(s => s.Kind == DungeonHazardKind.VitalityShrine);
+        bossFloorShrines.All(s => !occupied.Contains((s.X, s.Y))).Should().BeTrue();
+
+        // Deterministic across identical seeds
+        List<DungeonHazard> bossFloorShrinesRepeat = CombatRules.PlanShrines("mine10", 98765, grid, 10, 9, occupied);
+        bossFloorShrinesRepeat.Should().Equal(bossFloorShrines);
+
+        // Non-mine maps have no dungeon shrines
+        CombatRules.PlanShrines("town", 98765, grid, 10, 9, occupied).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ShrineBlessing_ReturnsExpectedHealManaXpAndBuffByKind()
+    {
+        (int vHp, int vMp, int vXp, StatusEffectKind vBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.VitalityShrine);
+        vHp.Should().Be(25);
+        vMp.Should().Be(0);
+        vXp.Should().Be(0);
+        vBuff.Should().Be(StatusEffectKind.Regeneration);
+
+        (int aHp, int aMp, int aXp, StatusEffectKind aBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.ArcaneObelisk);
+        aHp.Should().Be(0);
+        aMp.Should().Be(20);
+        aXp.Should().Be(10);
+        aBuff.Should().Be(StatusEffectKind.None);
+
+        (int eHp, int eMp, int eXp, StatusEffectKind eBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.EmpowermentAltar);
+        eHp.Should().Be(25);
+        eMp.Should().Be(20);
+        eXp.Should().Be(15);
+        eBuff.Should().Be(StatusEffectKind.Swiftness);
+    }
 }
