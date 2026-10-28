@@ -118,6 +118,18 @@ def build():
         w = i / fade
         loop[i] = loop[i] * w + loop[len(loop) - fade + i] * (1.0 - w)
     sounds["rain_loop"] = normalise(loop[: len(loop) - fade], 0.5)
+
+    # Celebratory level-up fanfare (docs/adr/ADR-062): ascending four-note major arpeggio (C5 - E5 - G5 - C6).
+    sounds["level_up"] = normalise(
+        mix(
+            sine(523.25, 0.14, 0.75, release=0.6),
+            sine(659.25, 0.14, 0.80, release=0.6),
+            sine(783.99, 0.14, 0.85, release=0.6),
+            sine(1046.50, 0.36, 0.95, release=0.7),
+            offsets=[0.0, 0.09, 0.18, 0.27],
+        ),
+        0.85,
+    )
     return sounds
 
 

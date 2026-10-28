@@ -14,34 +14,23 @@
                 }
             </div>
         </GamePanel>
-        <div class="combat-skills-dock" role="toolbar" aria-label="Combat Skills">
-            <button type="button" class="skill-btn skill-whirlwind" title="Whirlwind Cleave [Z] (15 MP)" @onclick="() => OnSkill?.Invoke(1)">
-                <span class="skill-key">Z</span>
-                <span class="skill-glyph">⚔️</span>
-                <span class="skill-cost">15</span>
-            </button>
-            <button type="button" class="skill-btn skill-fireball" title="Fireball Pyromancy [X] (25 MP)" @onclick="() => OnSkill?.Invoke(2)">
-                <span class="skill-key">X</span>
-                <span class="skill-glyph">🔥</span>
-                <span class="skill-cost">25</span>
-            </button>
-            <button type="button" class="skill-btn skill-divine-heal" title="Divine Heal [V] (20 MP)" @onclick="() => OnSkill?.Invoke(3)">
-                <span class="skill-key">V</span>
-                <span class="skill-glyph">✨</span>
-                <span class="skill-cost">20</span>
-            </button>
-        </div>
-        @if (Progress is not null && Progress.CurrentCombo > 1)
-        {
-            <div class="combat-combo-badge" role="status" aria-live="polite" title="Combat Combo Streak!">
-                <span class="combo-icon">🔥</span>
-                <span class="combo-val">@Progress.CurrentCombo x</span>
-                <span class="combo-label">COMBO!</span>
-                <span class="combo-bonus">+@Progress.ComboBonusPercent%</span>
-            </div>
-        }
         @if (Progress is not null)
         {
+            <GamePanel Class="hud strip" Role="toolbar" Title="">
+                <GameRow Class="center">
+                    <GameButton Variant="plain" Title="@Progress.WhirlwindTip" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /> @Progress.WhirlwindLabel</GameButton>
+                    <GameButton Variant="plain" Title="@Progress.FireballTip" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /> @Progress.FireballLabel</GameButton>
+                    <GameButton Variant="plain" Title="@Progress.DivineHealTip" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /> @Progress.DivineHealLabel</GameButton>
+                    @if (Progress.CurrentCombo > 1)
+                    {
+                        <GameBadge Kind="warn" Text="@Progress.ComboBadgeText" />
+                    }
+                    @if (Progress.IsLevelUpActive)
+                    {
+                        <GameBadge Kind="ok" Text="@Progress.LevelUpBadgeText" />
+                    }
+                </GameRow>
+            </GamePanel>
             @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@
             <EnergyBar Vm="Progress" />
         }
@@ -51,7 +40,4 @@
 @code {
     /// <summary>The energy view model; when given, its bar stands beside the slots.</summary>
     [Parameter] public Nosum.Wasm.ViewModels.Progress.ProgressViewModel? Progress { get; set; }
-
-    /// <summary>Invoked when a combat skill button is triggered (docs/adr/ADR-056).</summary>
-    [Parameter] public Action<byte>? OnSkill { get; set; }
 }

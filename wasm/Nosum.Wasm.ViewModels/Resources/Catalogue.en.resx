@@ -327,4 +327,28 @@
   <data name="Recipe_iron_chestplate_Name" xml:space="preserve"><value>Iron chestplate</value></data>
   <data name="Recipe_iron_greaves_Name" xml:space="preserve"><value>Iron greaves</value></data>
   <data name="Recipe_iron_helmet_Name" xml:space="preserve"><value>Iron helmet</value></data>
+  <data name="Monster_green_slime_Name" xml:space="preserve"><value>Green slime</value></data>
+  <data name="Monster_green_slime_Location" xml:space="preserve"><value>Mine 1–9, Woods</value></data>
+  <data name="Monster_frost_slime_Name" xml:space="preserve"><value>Frost slime</value></data>
+  <data name="Monster_frost_slime_Location" xml:space="preserve"><value>Mine 11–19</value></data>
+  <data name="Monster_magma_slime_Name" xml:space="preserve"><value>Magma slime</value></data>
+  <data name="Monster_magma_slime_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_cave_bat_Name" xml:space="preserve"><value>Cave bat</value></data>
+  <data name="Monster_cave_bat_Location" xml:space="preserve"><value>Mine 1–9</value></data>
+  <data name="Monster_spore_shroom_Name" xml:space="preserve"><value>Spore shroom</value></data>
+  <data name="Monster_spore_shroom_Location" xml:space="preserve"><value>Mine 1–19, Woods</value></data>
+  <data name="Monster_goblin_scout_Name" xml:space="preserve"><value>Goblin scout</value></data>
+  <data name="Monster_goblin_scout_Location" xml:space="preserve"><value>Mine 11–19</value></data>
+  <data name="Monster_skeleton_warrior_Name" xml:space="preserve"><value>Skeleton warrior</value></data>
+  <data name="Monster_skeleton_warrior_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_stone_golem_Name" xml:space="preserve"><value>Stone golem</value></data>
+  <data name="Monster_stone_golem_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_boss_broodmother_Name" xml:space="preserve"><value>Broodmother</value></data>
+  <data name="Monster_boss_broodmother_Location" xml:space="preserve"><value>Mine floor 10</value></data>
+  <data name="Monster_boss_goblin_chieftain_Name" xml:space="preserve"><value>Goblin chieftain</value></data>
+  <data name="Monster_boss_goblin_chieftain_Location" xml:space="preserve"><value>Mine floor 20</value></data>
+  <data name="Monster_boss_magma_colossus_Name" xml:space="preserve"><value>Magma colossus</value></data>
+  <data name="Monster_boss_magma_colossus_Location" xml:space="preserve"><value>Mine floor 30</value></data>
+  <data name="Monster_boss_golem_king_Name" xml:space="preserve"><value>Golem king</value></data>
+  <data name="Monster_boss_golem_king_Location" xml:space="preserve"><value>Mine floor 40</value></data>
 </root>

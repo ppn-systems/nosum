@@ -104,7 +104,6 @@
 @inject CarpenterViewModel Carpenter
 @inject ProgressViewModel Progress
 @inject NpcDialogViewModel Npc
-@inject Nosum.Wasm.Socket.Combat.CombatChannel Combat
 
 <PageTitle>Nosum</PageTitle>
 
@@ -235,7 +234,7 @@ else
                 {
                     <OnboardingHint Vm="Onboarding" />
                     <GameMessage Vm="Messages" />
-                    <Hotbar Vm="Inventory" Progress="Progress" OnSkill="skillId => Combat.CastSkill(skillId)" />
+                    <Hotbar Vm="Inventory" Progress="Progress" />
                 }
             }
         </BottomCenter>

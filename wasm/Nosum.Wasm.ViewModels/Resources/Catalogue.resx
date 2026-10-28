@@ -327,4 +327,28 @@
   <data name="Recipe_iron_chestplate_Name" xml:space="preserve"><value>Giáp ngực sắt</value></data>
   <data name="Recipe_iron_greaves_Name" xml:space="preserve"><value>Xà cạp sắt</value></data>
   <data name="Recipe_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
+  <data name="Monster_green_slime_Name" xml:space="preserve"><value>Slime xanh</value></data>
+  <data name="Monster_green_slime_Location" xml:space="preserve"><value>Hầm mỏ 1–9, Rừng</value></data>
+  <data name="Monster_frost_slime_Name" xml:space="preserve"><value>Slime băng</value></data>
+  <data name="Monster_frost_slime_Location" xml:space="preserve"><value>Hầm mỏ 11–19</value></data>
+  <data name="Monster_magma_slime_Name" xml:space="preserve"><value>Slime dung nham</value></data>
+  <data name="Monster_magma_slime_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_cave_bat_Name" xml:space="preserve"><value>Dơi hang động</value></data>
+  <data name="Monster_cave_bat_Location" xml:space="preserve"><value>Hầm mỏ 1–9</value></data>
+  <data name="Monster_spore_shroom_Name" xml:space="preserve"><value>Nấm bào tử</value></data>
+  <data name="Monster_spore_shroom_Location" xml:space="preserve"><value>Hầm mỏ 1–19, Rừng</value></data>
+  <data name="Monster_goblin_scout_Name" xml:space="preserve"><value>Yêu tinh trinh sát</value></data>
+  <data name="Monster_goblin_scout_Location" xml:space="preserve"><value>Hầm mỏ 11–19</value></data>
+  <data name="Monster_skeleton_warrior_Name" xml:space="preserve"><value>Chiến binh xương</value></data>
+  <data name="Monster_skeleton_warrior_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_stone_golem_Name" xml:space="preserve"><value>Người đá cổ đại</value></data>
+  <data name="Monster_stone_golem_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_boss_broodmother_Name" xml:space="preserve"><value>Chúa nhện hang sâu</value></data>
+  <data name="Monster_boss_broodmother_Location" xml:space="preserve"><value>Hầm mỏ tầng 10</value></data>
+  <data name="Monster_boss_goblin_chieftain_Name" xml:space="preserve"><value>Thủ lĩnh yêu tinh</value></data>
+  <data name="Monster_boss_goblin_chieftain_Location" xml:space="preserve"><value>Hầm mỏ tầng 20</value></data>
+  <data name="Monster_boss_magma_colossus_Name" xml:space="preserve"><value>Hỏa thần khổng lồ</value></data>
+  <data name="Monster_boss_magma_colossus_Location" xml:space="preserve"><value>Hầm mỏ tầng 30</value></data>
+  <data name="Monster_boss_golem_king_Name" xml:space="preserve"><value>Vua người đá</value></data>
+  <data name="Monster_boss_golem_king_Location" xml:space="preserve"><value>Hầm mỏ tầng 40</value></data>
 </root>

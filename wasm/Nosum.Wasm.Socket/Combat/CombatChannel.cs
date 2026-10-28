@@ -9,6 +9,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Combat;
 using Nosum.Contracts.Combat.C2S;
 using Nosum.Contracts.Combat.S2C;
+using Nosum.Gameplay.Skills;
 
 namespace Nosum.Wasm.Socket.Combat;
 
@@ -128,10 +129,23 @@ public sealed class CombatChannel : IDisposable
     private int _statusEffect;
     private int _comboCount;
     private long _comboExpireTick;
+    private bool _hasInitialVitals;
+    private int _lastCelebratedLevel;
+    private int _levelUpValue;
+    private long _levelUpTick;
     private string _mapId = string.Empty;
 
     /// <summary>Invoked when the player's active combo streak changes (docs/adr/ADR-060).</summary>
     public event Action? ComboChanged;
+
+    /// <summary>Invoked when the player reaches a new Combat level (docs/adr/ADR-062).</summary>
+    public event Action<int>? LevelledUp;
+
+    /// <summary>Gets whether the celebratory level-up radiance banner is currently active.</summary>
+    public bool IsLevelUpActive => Volatile.Read(ref _levelUpValue) > 0 && (Environment.TickCount64 - Volatile.Read(ref _levelUpTick)) < 3800;
+
+    /// <summary>Gets the level currently being celebrated.</summary>
+    public int ActiveLevelUpValue => Volatile.Read(ref _levelUpValue);
 
     /// <summary>Gets the current active combat combo count.</summary>
     public int CurrentCombo
@@ -512,6 +526,7 @@ public sealed class CombatChannel : IDisposable
                 Volatile.Write(ref _mp, reply.Mp);
                 Volatile.Write(ref _maxMp, reply.MaxMp);
                 Volatile.Write(ref _combatXp, reply.CombatXp);
+                this.CheckCombatLevelUp(reply.CombatXp);
                 this.Changed?.Invoke();
             }
 
@@ -630,6 +645,7 @@ public sealed class CombatChannel : IDisposable
                     Volatile.Write(ref _mp, reply.Mp);
                     Volatile.Write(ref _maxMp, reply.MaxMp);
                     Volatile.Write(ref _combatXp, reply.CombatXp);
+                    this.CheckCombatLevelUp(reply.CombatXp);
                     this.Changed?.Invoke();
                 }
             }
@@ -675,6 +691,68 @@ public sealed class CombatChannel : IDisposable
         Volatile.Write(ref _maxMp, packet.MaxMp);
         Volatile.Write(ref _combatXp, packet.CombatXp);
         Volatile.Write(ref _statusEffect, (int)packet.StatusEffect);
+        this.CheckCombatLevelUp(packet.CombatXp);
+        this.Changed?.Invoke();
+    }
+
+    /// <summary>Triggers the celebratory level-up radiance beacon and banner (docs/adr/ADR-062).</summary>
+    /// <param name="level">New level reached.</param>
+    public void TriggerLevelUp(int level)
+    {
+        if (level <= 0 || level <= _lastCelebratedLevel)
+        {
+            return;
+        }
+
+        _lastCelebratedLevel = level;
+        Volatile.Write(ref _levelUpValue, level);
+        Volatile.Write(ref _levelUpTick, Environment.TickCount64);
+        this.LevelledUp?.Invoke(level);
+        this.Changed?.Invoke();
+        _ = this.ExpireLevelUpBannerAsync();
+    }
+
+    /// <summary>Queries the active level-up celebration progress for zero-allocation world rendering (docs/adr/ADR-062).</summary>
+    public bool TryGetActiveLevelUp(long now, out float progress, out int level, out int playerX, out int playerY)
+    {
+        long start = Volatile.Read(ref _levelUpTick);
+        int lvl = Volatile.Read(ref _levelUpValue);
+        long elapsed = now - start;
+        if (lvl > 0 && elapsed >= 0 && elapsed < 3800)
+        {
+            progress = elapsed / 3800f;
+            level = lvl;
+            playerX = _playerX;
+            playerY = _playerY;
+            return true;
+        }
+
+        progress = 0f;
+        level = 0;
+        playerX = 0;
+        playerY = 0;
+        return false;
+    }
+
+    private void CheckCombatLevelUp(int newCombatXp)
+    {
+        int newLevel = SkillRules.LevelOf(newCombatXp);
+        if (!_hasInitialVitals)
+        {
+            _hasInitialVitals = true;
+            _lastCelebratedLevel = newLevel;
+            return;
+        }
+
+        if (newLevel > _lastCelebratedLevel)
+        {
+            this.TriggerLevelUp(newLevel);
+        }
+    }
+
+    private async Task ExpireLevelUpBannerAsync()
+    {
+        await Task.Delay(3900).ConfigureAwait(false);
         this.Changed?.Invoke();
     }
 

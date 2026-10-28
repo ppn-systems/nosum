@@ -207,7 +207,7 @@ public sealed class GameMapsTests
         GameMaps.TryGet(GameMaps.BusStop, out MapSpec? busStop).Should().BeTrue();
         TileMap map = Load(busStop!);
         IReadOnlyList<MapWarp> warps = busStop!.ResolveWarps(map);
-        warps.Should().Contain(w => w.FromX == 22 && w.FromY == 14 && w.TargetMap == "mine10" && w.TargetX == 10 && w.TargetY == 9);
+        warps.Should().Contain(w => w.FromX == 22 && w.FromY == 14 && w.TargetMap == "mine10" && w.TargetX == 10 && w.TargetY == 6);
     }
 
     [Theory]

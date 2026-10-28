@@ -7,6 +7,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Localization;
 using Nosum.Core;
 using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Building;
@@ -28,6 +29,7 @@ using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.ViewModels.Player;
+using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.Game;
 
@@ -60,6 +62,7 @@ internal static partial class GameLoop
     private static MarketChannel? s_market;
     private static ProgressChannel? s_progress;
     private static CombatChannel? s_combat;
+    private static IStringLocalizer<Language>? s_text;
     private static LookChannel? s_looks;
     private static NicknameFormatter? s_names;
     private static GameAudio? s_audio;
@@ -88,7 +91,12 @@ internal static partial class GameLoop
 
     /// <summary>Connects MMORPG combat and monsters to the game (docs/adr/ADR-045). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="combat">The combat channel.</param>
-    public static void UseCombat(CombatChannel combat) => s_combat = combat;
+    /// <param name="text">Localized UI strings for world combat labels.</param>
+    public static void UseCombat(CombatChannel combat, IStringLocalizer<Language>? text = null)
+    {
+        s_combat = combat;
+        s_text = text;
+    }
 
     /// <summary>Connects the resource nodes to the game: the mirror that is drawn and that blocks walking. Call before <see cref="StartAsync"/>.</summary>
     /// <param name="nodes">The mirror of the nodes of the player's place.</param>
@@ -223,7 +231,7 @@ internal static partial class GameLoop
         }
 
         LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel);
-        CombatLabels? combatLabels = s_combat is not null ? new CombatLabels(labelRegistry) : null;
+        CombatLabels? combatLabels = s_combat is not null ? new CombatLabels(labelRegistry, s_text) : null;
 
         if (s_combat is not null)
         {

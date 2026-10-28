@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Combat;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Player;
@@ -48,18 +49,25 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
 {
     private readonly ProgressChannel _progress;
     private readonly CombatChannel? _combat;
+    private readonly IStringLocalizer<Catalogue>? _catalogue;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="progress">The energy and experience mirror.</param>
     /// <param name="text">UI text.</param>
     /// <param name="combat">Optional combat vitals and Combat XP mirror.</param>
-    public ProgressViewModel(ProgressChannel progress, IStringLocalizer<Language> text, CombatChannel? combat = null)
+    /// <param name="catalogue">Optional item and monster catalogue localizer.</param>
+    public ProgressViewModel(
+        ProgressChannel progress,
+        IStringLocalizer<Language> text,
+        CombatChannel? combat = null,
+        IStringLocalizer<Catalogue>? catalogue = null)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(progress);
 
         _progress = progress;
         _combat = combat;
+        _catalogue = catalogue;
         progress.Changed += this.Raise;
         if (combat is not null)
         {
@@ -139,24 +147,57 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the Combat skill progression display.</summary>
     public SkillDisplay CombatSkill => this.Describe("Skill_Combat", _combat?.CombatXp ?? 0);
 
-    private static readonly BestiaryEntryDisplay[] s_bestiary =
-    [
-        new("Chất Nhờn Xanh (Green Slime)", "Quái vật Thường", "Tầng 1-9 & Rừng (Forest)", 24, 5, 12, "Chất nhờn", "Hạt củ cải", false),
-        new("Dơi Hang Động (Cave Bat)", "Quái vật Độc", "Tầng 1-9 (Mines)", 30, 7, 15, "Cánh dơi", "Quặng đồng", false),
-        new("Nấm Bào Tử (Spore Shroom)", "Quái vật Độc", "Tầng 1-19 & Rừng (Woods)", 40, 8, 20, "Mũ nấm", "Tinh thể Mana", false),
-        new("Chất Nhờn Băng (Frost Slime)", "Quái vật Thường", "Tầng 11-19 (Frozen Mines)", 45, 9, 22, "Chất nhờn", "Tinh thể Mana", false),
-        new("Yêu Tinh Trinh Sát (Goblin Scout)", "Quái vật Chiến binh", "Tầng 11-19 (Goblin Mines)", 60, 12, 30, "Tai yêu tinh", "Thỏi đồng", false),
-        new("Chất Nhờn Nham Thạch (Magma Slime)", "Quái vật Thường", "Tầng 21-39 (Magma Mines)", 75, 14, 35, "Chất nhờn", "Than đá", false),
-        new("Chiến Binh Xương (Skeleton Warrior)", "Quái vật Bất tử", "Tầng 21-39 (Deep Mines)", 90, 16, 45, "Xương quái", "Quặng sắt", false),
-        new("Người Đá Cổ Đại (Stone Golem)", "Quái vật Thiết giáp", "Tầng 21-39 (Ancient Ruins)", 140, 22, 70, "Lõi người đá", "Đá quý", false),
-        new("Chúa Nhện Hang Sâu (Broodmother)", "TRÙM TẦNG 10 (Boss)", "Hầm Ngục Cổ Đại (mine10)", 180, 15, 150, "Cổ thư ma pháp", "Cánh dơi", true),
-        new("Thủ Lĩnh Yêu Tinh (Goblin Chieftain)", "TRÙM TẦNG 20 (Boss)", "Đại Sảnh Yêu Tinh (mine20)", 280, 22, 250, "Chìa khóa vàng", "Tai yêu tinh", true),
-        new("Hỏa Thần Khổng Lồ (Magma Colossus)", "TRÙM TẦNG 30 (Boss)", "Lò Lửa Nham Thạch (mine30)", 420, 30, 400, "Lõi nham thạch", "Đá quý", true),
-        new("Vua Người Đá (Golem King)", "TRÙM TẦNG 40 (Boss)", "Cung Điện Vua Đá (mine40)", 600, 40, 600, "Vương miện Trùm", "Lõi người đá", true),
-    ];
+    /// <summary>Gets the localized Monster Bestiary &amp; Hunting Log entries (docs/adr/ADR-059).</summary>
+    public IReadOnlyList<BestiaryEntryDisplay> BestiaryEntries
+    {
+        get
+        {
+            List<BestiaryEntryDisplay> list = new(MonsterCatalog.All.Count);
+            foreach (MonsterDefinition def in MonsterCatalog.All)
+            {
+                bool isBoss = CombatRules.IsBoss(def.Kind);
+                string name = _catalogue is not null ? _catalogue[$"Monster_{def.Key}_Name"].Value : def.Key;
+                string location = _catalogue is not null ? _catalogue[$"Monster_{def.Key}_Location"].Value : def.Key;
+                string category = this.Text(isBoss ? "Bestiary_Category_Boss" : "Bestiary_Category_Regular");
+                string primaryDrop = this.ItemNameOf(def.PrimaryDropItemId);
+                string rareDrop = this.ItemNameOf(def.RareDropItemId);
+                list.Add(new BestiaryEntryDisplay(name, category, location, def.MaxHp, def.AttackDamage, def.XpReward, primaryDrop, rareDrop, isBoss));
+            }
 
-    /// <summary>Gets the Monster Bestiary &amp; Hunting Log entries (docs/adr/ADR-059).</summary>
-    public static IReadOnlyList<BestiaryEntryDisplay> Bestiary => s_bestiary;
+            return list;
+        }
+    }
+
+    /// <summary>Gets the localized aria-label of the combat skills strip.</summary>
+    public string CombatSkillsAriaLabel => this.Text("Combat_Skills_Aria");
+
+    /// <summary>Gets the localized Whirlwind skill label.</summary>
+    public string WhirlwindLabel => this.Text("Combat_Skill_Whirlwind");
+
+    /// <summary>Gets the localized Whirlwind skill tooltip.</summary>
+    public string WhirlwindTip => this.Text("Combat_Skill_Whirlwind_Tip");
+
+    /// <summary>Gets the localized Fireball skill label.</summary>
+    public string FireballLabel => this.Text("Combat_Skill_Fireball");
+
+    /// <summary>Gets the localized Fireball skill tooltip.</summary>
+    public string FireballTip => this.Text("Combat_Skill_Fireball_Tip");
+
+    /// <summary>Gets the localized Divine Heal skill label.</summary>
+    public string DivineHealLabel => this.Text("Combat_Skill_DivineHeal");
+
+    /// <summary>Gets the localized Divine Heal skill tooltip.</summary>
+    public string DivineHealTip => this.Text("Combat_Skill_DivineHeal_Tip");
+
+    /// <summary>Gets the localized combo streak badge text.</summary>
+    public string ComboBadgeText => this.Text("Combat_Combo_Badge", Number(this.CurrentCombo), Number(this.ComboBonusPercent));
+
+    /// <summary>Gets the localized level-up badge text.</summary>
+    public string LevelUpBadgeText => this.Text("Combat_LevelUp_Badge", Number(this.ActiveLevelUpValue));
+
+    /// <summary>Casts a combat skill (1 = Whirlwind, 2 = Fireball, 3 = DivineHeal) (docs/adr/ADR-056).</summary>
+    /// <param name="skillId">Skill kind.</param>
+    public void CastSkill(byte skillId) => _combat?.CastSkill(skillId);
 
     /// <summary>Gets the localized name of a skill by its wire number.</summary>
     /// <param name="skill">1 farming, 2 foraging, 3 mining, 4 combat.</param>
@@ -175,6 +216,12 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets the combo damage bonus percentage (e.g. 20 for +20%).</summary>
     public int ComboBonusPercent => (int)(CombatRules.ComboBonusPercent(this.CurrentCombo) * 100);
+
+    /// <summary>Gets whether the celebratory level-up radiance banner is currently active (docs/adr/ADR-062).</summary>
+    public bool IsLevelUpActive => _combat?.IsLevelUpActive ?? false;
+
+    /// <summary>Gets the level currently being celebrated.</summary>
+    public int ActiveLevelUpValue => _combat?.ActiveLevelUpValue ?? 0;
 
     /// <inheritdoc/>
     public void Dispose()
@@ -199,5 +246,15 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         int to = SkillRules.XpForLevel(level + 1);
         double fraction = Math.Clamp((double)(xp - from) / (to - from), 0, 1);
         return new SkillDisplay(this.Text(nameKey), level, xp, fraction, string.Format(CultureInfo.CurrentCulture, "{0} / {1}", Number(xp - from), Number(to - from)));
+    }
+
+    private string ItemNameOf(int itemId)
+    {
+        if (itemId <= 0 || !ItemCatalog.TryGet(itemId, out ItemDefinition? item))
+        {
+            return string.Empty;
+        }
+
+        return _catalogue is not null ? _catalogue[$"Item_{item.Key}_Name"].Value : item.Key;
     }
 }

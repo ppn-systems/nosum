@@ -102,7 +102,7 @@ public static class GameMaps
         new(BusStop, "Crossroads.tmx", 11, 23,
             extraWarps:
             [
-                new MapWarp(22, 14, RoomOfFloor(10), MineLayouts.For(10).SpawnX, MineLayouts.For(10).SpawnY),
+                new MapWarp(22, 14, RoomOfFloor(10), 10, 6),
             ]),
         new(Forest, "Forest.tmx", 68, 0),
         new(Town, "Town.tmx", 4, 54, shops:

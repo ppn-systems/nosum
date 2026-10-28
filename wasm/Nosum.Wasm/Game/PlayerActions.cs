@@ -172,7 +172,10 @@ internal sealed class PlayerActions
             return;
         }
 
-        if ((edges & InputEdges.Action) != 0 && elevatorNear)
+        SlotInfo heldForElevator = _inventory.SlotAt(_inventory.SelectedSlot);
+        bool holdingCombatOrPickaxe = CombatRules.WeaponDamage(heldForElevator.ItemId) > 0
+            || (ItemCatalog.TryGet(heldForElevator.ItemId, out ItemDefinition? elevatorTool) && elevatorTool.Tool == ToolKind.Pickaxe);
+        if ((edges & InputEdges.Action) != 0 && elevatorNear && !holdingCombatOrPickaxe)
         {
             this.ElevatorRequested?.Invoke();
             return;
@@ -240,20 +243,22 @@ internal sealed class PlayerActions
                 // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
                 _market.Ship(selected, held.ItemId, 0);
             }
-            else if (_combat is not null && CombatRules.WeaponDamage(held.ItemId) > 0
-                && _combat.TryFindTarget(x, y, CombatRules.AttackRange(held.ItemId), out MonsterClientRow targetMonster))
+            else if (CombatRules.WeaponDamage(held.ItemId) > 0)
             {
                 if (ItemCatalog.TryGet(held.ItemId, out ItemDefinition? weaponDef))
                 {
                     this.PlaySwing(weaponDef.Tool);
                 }
 
-                if (held.ItemId == ItemCatalog.ArcaneStaff)
+                if (_combat is not null && _combat.TryFindTarget(x, y, CombatRules.AttackRange(held.ItemId), out MonsterClientRow targetMonster))
                 {
-                    _combat.SpawnProjectile(x, y, targetMonster.X, targetMonster.Y, 1);
-                }
+                    if (held.ItemId == ItemCatalog.ArcaneStaff)
+                    {
+                        _combat.SpawnProjectile(x, y, targetMonster.X, targetMonster.Y, 1);
+                    }
 
-                _combat.Attack(targetMonster.MonsterId, selected);
+                    _combat.Attack(targetMonster.MonsterId, selected);
+                }
             }
             else if (_combat is not null
                 && held.ItemId is ItemCatalog.HealthPotion or ItemCatalog.ManaPotion or ItemCatalog.Elixir

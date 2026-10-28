@@ -572,10 +572,10 @@ public sealed class CombatService : ICombatService, IDisposable
                 {
                     int nextMaxHp = CombatRules.MaxHpForLevel(newLevel);
                     int nextMaxMp = CombatRules.MaxMpForLevel(newLevel);
-                    vitals.Hp = Math.Min(nextMaxHp, vitals.Hp + (nextMaxHp - vitals.MaxHp));
-                    vitals.Mp = Math.Min(nextMaxMp, vitals.Mp + (nextMaxMp - vitals.MaxMp));
                     vitals.MaxHp = nextMaxHp;
                     vitals.MaxMp = nextMaxMp;
+                    vitals.Hp = nextMaxHp;
+                    vitals.Mp = nextMaxMp;
                 }
 
                 if (!defeated && def is not null && def.AttackDamage > 0)
@@ -882,6 +882,10 @@ public sealed class CombatService : ICombatService, IDisposable
 
                                 vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + xp);
                             }
+                            else
+                            {
+                                vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + SkillRules.HitXp);
+                            }
                         }
                     }
                 }
@@ -927,11 +931,24 @@ public sealed class CombatService : ICombatService, IDisposable
 
                                 vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + xp);
                             }
+                            else
+                            {
+                                vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + SkillRules.HitXp);
+                            }
                         }
                     }
                 }
 
                 newLevel = SkillRules.LevelOf(vitals.CombatXp);
+                if (newLevel > oldLevel)
+                {
+                    int nextMaxHp = CombatRules.MaxHpForLevel(newLevel);
+                    int nextMaxMp = CombatRules.MaxMpForLevel(newLevel);
+                    vitals.MaxHp = nextMaxHp;
+                    vitals.MaxMp = nextMaxMp;
+                    vitals.Hp = nextMaxHp;
+                    vitals.Mp = nextMaxMp;
+                }
             }
         }
 
@@ -940,6 +957,14 @@ public sealed class CombatService : ICombatService, IDisposable
         foreach (MonsterSpawn m in broadcastChanges)
         {
             await this.BroadcastMonsterChangedAsync(player.Key, m, cancellationToken).ConfigureAwait(false);
+            if (m.Hp == 0 && MonsterCatalog.TryGet(m.Kind, out MonsterDefinition? defeatedDef))
+            {
+                int dropPixelX = (m.X * tileSize) + (tileSize / 2);
+                int dropPixelY = (m.Y * tileSize) + (tileSize / 2);
+                _ = await _groundItems.DropAsync(
+                    new GroundDrop(player.Instance, dropPixelX, dropPixelY, defeatedDef.PrimaryDropItemId, 1, player.AccountId),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
         if (_notifier is not null && newLevel > oldLevel)

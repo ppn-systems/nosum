@@ -162,7 +162,8 @@ internal static class Program
         builder.Services.AddSingleton(sp => new ProgressViewModel(
             sp.GetRequiredService<ProgressChannel>(),
             sp.GetRequiredService<IStringLocalizer<Language>>(),
-            sp.GetRequiredService<CombatChannel>()));
+            sp.GetRequiredService<CombatChannel>(),
+            sp.GetRequiredService<IStringLocalizer<Catalogue>>()));
         builder.Services.AddSingleton<WalletViewModel>();
         builder.Services.AddSingleton<CalendarViewModel>();
         builder.Services.AddSingleton<MarketViewModel>();
@@ -221,7 +222,7 @@ internal static class Program
         GameLoop.UseCoop(coop);
         GameLoop.UseProgress(host.Services.GetRequiredService<ProgressChannel>());
         CombatChannel combat = host.Services.GetRequiredService<CombatChannel>();
-        GameLoop.UseCombat(combat);
+        GameLoop.UseCombat(combat, host.Services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(host.Services.GetRequiredService<CalendarChannel>());
         GameLoop.UseLooks(looks, host.Services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS

@@ -488,6 +488,97 @@ internal sealed class MonstersDecorator : IMapDecorator
                     9800 + i);
             }
         }
+
+        // Celebratory Level-Up Radiance Beacon & Overhead Title Banner (docs/adr/ADR-062)
+        if (_combat.TryGetActiveLevelUp(now, out float lvlProgress, out _, out int pTileX, out int pTileY))
+        {
+            int pWorldX = pTileX * FrameSize;
+            int pWorldY = pTileY * FrameSize;
+            float fade = lvlProgress < 0.8f ? 1f : (1f - lvlProgress) * 5f;
+            int outerAlpha = Math.Clamp((int)(fade * 120f), 20, 140);
+            int innerAlpha = Math.Clamp((int)(fade * 200f), 40, 220);
+
+            // Expanding golden ground halo
+            int haloSize = 24 + (int)(MathF.Sin(now * 0.012f) * 4f);
+            int haloOff = (FrameSize - haloSize) / 2;
+            world.Add(
+                RenderCommandBuffer.FillTexture,
+                0,
+                0,
+                haloSize,
+                haloSize,
+                pWorldX + haloOff,
+                pWorldY + haloOff + 2,
+                pWorldY + FrameSize - 1,
+                pWorldX,
+                8850,
+                tint: unchecked((int)((0xfacc15 << 8) | outerAlpha)));
+
+            // Outer celestial golden pillar of light
+            world.Add(
+                RenderCommandBuffer.FillTexture,
+                0,
+                0,
+                14,
+                48,
+                pWorldX + 1,
+                pWorldY - 34,
+                pWorldY + FrameSize + 20,
+                pWorldX,
+                9750,
+                tint: unchecked((int)((0xfde047 << 8) | outerAlpha)));
+
+            // Inner radiant core beam
+            world.Add(
+                RenderCommandBuffer.FillTexture,
+                0,
+                0,
+                6,
+                52,
+                pWorldX + 5,
+                pWorldY - 38,
+                pWorldY + FrameSize + 21,
+                pWorldX,
+                9751,
+                tint: unchecked((int)((0xfef9c3 << 8) | innerAlpha)));
+
+            // 4 ascending starlight sparkles spiraling up the beacon
+            for (int s = 0; s < 4; s++)
+            {
+                float sPhase = ((now * 0.003f) + (s * 0.25f)) % 1f;
+                float angle = (now * 0.008f) + (s * 1.57f);
+                int sx = pWorldX + 6 + (int)(MathF.Cos(angle) * 10f);
+                int sy = pWorldY + 10 - (int)(sPhase * 44f);
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    4,
+                    4,
+                    sx,
+                    sy,
+                    pWorldY + FrameSize + 22,
+                    sx,
+                    9752 + s,
+                    tint: unchecked((int)((0xffffff << 8) | innerAlpha)));
+            }
+
+            if (_labels is not null)
+            {
+                int bannerRise = (int)(MathF.Min(1f, lvlProgress * 2.5f) * 14f);
+                world.Add(
+                    RenderCommandBuffer.LabelTexture,
+                    _labels.LevelUpLabelId,
+                    0,
+                    0,
+                    0,
+                    pWorldX + 8,
+                    pWorldY - 16 - bannerRise,
+                    pWorldY + FrameSize + 35,
+                    pWorldX,
+                    9900);
+            }
+        }
     }
 }
 

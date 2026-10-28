@@ -8,6 +8,7 @@ using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Audio;
 
@@ -74,6 +75,13 @@ internal static class AudioWiring
             {
                 audio.Play(SoundIds.PotionDrink);
             }
+        };
+
+        combat.LevelledUp += _ => audio.Play(SoundIds.LevelUp);
+        services.GetRequiredService<ProgressChannel>().LevelledUp += (_, level) =>
+        {
+            audio.Play(SoundIds.LevelUp);
+            combat.TriggerLevelUp(level);
         };
     }
 }

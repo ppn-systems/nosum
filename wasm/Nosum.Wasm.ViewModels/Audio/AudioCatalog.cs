@@ -88,6 +88,9 @@ public static class SoundIds
 
     /// <summary>A potion is drunk.</summary>
     public const int PotionDrink = 19;
+
+    /// <summary>A celebratory level-up fanfare (docs/adr/ADR-062).</summary>
+    public const int LevelUp = 20;
 }
 
 /// <summary>The ambient loop ids.</summary>
@@ -166,6 +169,7 @@ public static class AudioCatalog
         new(AudioKind.Sound, SoundIds.MonsterHit, "monster_hit.wav", 0.1),
         new(AudioKind.Sound, SoundIds.MonsterDefeat, "monster_defeat.wav", 0.1),
         new(AudioKind.Sound, SoundIds.PotionDrink, "potion_drink.wav", 0.1),
+        new(AudioKind.Sound, SoundIds.LevelUp, "level_up.wav", 0.2),
         new(AudioKind.Loop, LoopIds.Rain, "rain_loop.wav"),
         new(AudioKind.Track, MusicTrackIds.For(Season.Spring, false), "music_spring_day.wav"),
         new(AudioKind.Track, MusicTrackIds.For(Season.Spring, true), "music_spring_night.wav"),
