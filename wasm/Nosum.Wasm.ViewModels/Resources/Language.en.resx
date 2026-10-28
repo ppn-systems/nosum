@@ -821,4 +821,10 @@
   <data name="Settings_CreditsNote" xml:space="preserve"><value>The pictures in the game come from these open-licensed packs. Pack, author, license.</value></data>
   <data name="Credits_Back" xml:space="preserve"><value>Back</value></data>
   <data name="Start_ArtCredits" xml:space="preserve"><value>Art credits</value></data>
+  <data name="Hp_Label" xml:space="preserve"><value>HP {0} / {1}</value></data>
+  <data name="Mp_Label" xml:space="preserve"><value>MP {0} / {1}</value></data>
+  <data name="Skill_Combat" xml:space="preserve"><value>Combat</value></data>
+  <data name="Craft_Skill_Combat" xml:space="preserve"><value>Combat</value></data>
+  <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Not enough MP to cast!</value></data>
+  <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and revived at half HP!</value></data>
 </root>

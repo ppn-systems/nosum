@@ -22,6 +22,14 @@
     background: var(--nosum-ok);
 }
 
+.skill-fill.hp {
+    background: #d93832;
+}
+
+.skill-fill.mp {
+    background: #3b7be0;
+}
+
 .skill-fill.low {
     background: var(--nosum-danger);
 }

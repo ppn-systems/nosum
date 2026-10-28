@@ -16,4 +16,7 @@ public enum SkillKind : byte
 
     /// <summary>Breaking stones and ore.</summary>
     Mining = 3,
+
+    /// <summary>Fighting monsters in the mine and wilderness (docs/adr/ADR-045).</summary>
+    Combat = 4,
 }

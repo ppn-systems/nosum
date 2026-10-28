@@ -12,6 +12,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Chest;
+using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Furnace;
@@ -58,6 +59,7 @@ internal static partial class GameLoop
     private static CoopChannel? s_coop;
     private static MarketChannel? s_market;
     private static ProgressChannel? s_progress;
+    private static CombatChannel? s_combat;
     private static LookChannel? s_looks;
     private static NicknameFormatter? s_names;
     private static GameAudio? s_audio;
@@ -83,6 +85,10 @@ internal static partial class GameLoop
     /// <summary>Connects energy and skills to the game: with it the action key eats the food in hand while the player is not full of energy (docs/adr/ADR-023). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="progress">The energy mirror and eat sender.</param>
     public static void UseProgress(ProgressChannel progress) => s_progress = progress;
+
+    /// <summary>Connects MMORPG combat and monsters to the game (docs/adr/ADR-045). Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="combat">The combat channel.</param>
+    public static void UseCombat(CombatChannel combat) => s_combat = combat;
 
     /// <summary>Connects the resource nodes to the game: the mirror that is drawn and that blocks walking. Call before <see cref="StartAsync"/>.</summary>
     /// <param name="nodes">The mirror of the nodes of the player's place.</param>
@@ -176,7 +182,7 @@ internal static partial class GameLoop
         ArgumentNullException.ThrowIfNull(http);
 
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
-        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio) : null;
+        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
@@ -214,6 +220,11 @@ internal static partial class GameLoop
         if (s_buildings is not null)
         {
             providers.Add(new AnimalsDecoratorProvider(s_buildings));
+        }
+
+        if (s_combat is not null)
+        {
+            providers.Add(new MonstersDecoratorProvider(s_combat));
         }
 
         if (s_network is not null)

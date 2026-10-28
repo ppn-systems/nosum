@@ -72,4 +72,10 @@ public enum ToolKind
 
     /// <summary>Collects milk from a cow (docs/adr/ADR-028); costs no energy.</summary>
     MilkPail = 6,
+
+    /// <summary>Strikes a nearby monster with a melee slash (docs/adr/ADR-045).</summary>
+    Sword = 7,
+
+    /// <summary>Casts an arcane bolt at a monster using mana (docs/adr/ADR-045).</summary>
+    Staff = 8,
 }

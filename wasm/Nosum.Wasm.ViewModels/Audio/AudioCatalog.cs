@@ -166,7 +166,7 @@ public static class AudioCatalog
         ToolKind.WateringCan => SoundIds.ToolWater,
         ToolKind.Axe => SoundIds.ToolAxe,
         ToolKind.Pickaxe => SoundIds.ToolPickaxe,
-        ToolKind.Scythe or ToolKind.MilkPail => SoundIds.ToolScythe,
+        ToolKind.Scythe or ToolKind.MilkPail or ToolKind.Sword or ToolKind.Staff => SoundIds.ToolScythe,
         _ => 0,
     };
 

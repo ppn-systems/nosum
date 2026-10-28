@@ -40,6 +40,12 @@ internal sealed class ItemIcons : IItemIconSource
             [ItemCatalog.IronWateringCan] = Tool(14, 14),
             [ItemCatalog.IronAxe] = Tool(19, 10),
             [ItemCatalog.IronPickaxe] = Tool(19, 6),
+            [ItemCatalog.WoodenSword] = Weapon(0, 0),
+            [ItemCatalog.BronzeSword] = Weapon(1, 0),
+            [ItemCatalog.IronSword] = Weapon(2, 0),
+            [ItemCatalog.SteelSword] = Weapon(3, 0),
+            [ItemCatalog.GoldSword] = Weapon(4, 0),
+            [ItemCatalog.ArcaneStaff] = Weapon(5, 0),
             [ItemCatalog.MilkPail] = Tool(6, 0),
             // Blueprints are the rolled plan at the start of the tools sheet, both buildings alike (early art, docs/adr/ADR-007).
             [ItemCatalog.CoopBlueprint] = Tool(0, 0),
@@ -117,8 +123,8 @@ internal sealed class ItemIcons : IItemIconSource
         return false;
     }
 
-    // items.png is 384 x 64 (24 x 4 cells). Object ids are cell numbers in compact order from 1 (0 means no picture).
-    private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 64);
+    // items.png is 384 x 80 (24 x 5 cells). Object ids are cell numbers in compact order from 1 (0 means no picture).
+    private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 80);
 
     // Object ids are the cell number on items.png (compact order, 24 cells to a row).
     private static ItemIcon ObjectId(int id) => Object(id % 24, id / 24);

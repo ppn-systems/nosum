@@ -14,8 +14,28 @@ The two Kenney UI packs' files are also committed under [`art/source/ui/`](../..
 | `kenney_tiny-town` | Kenney Tiny Town 1.1 | <https://kenney.nl/assets/tiny-town> | CC0 1.0 (License.txt inside the archive) | Kenney |
 | `kenney_tiny-farm` | Kenney Tiny Farm 1.0 | <https://kenney.nl/assets/tiny-farm> | CC0 1.0 (License.txt inside the archive) | Kenney |
 | `kenney_tiny-dungeon` | Kenney Tiny Dungeon 1.0 | <https://kenney.nl/assets/tiny-dungeon> | CC0 1.0 (License.txt inside the archive) | Kenney |
+| `kenney_tiny-battle` | Kenney Tiny Battle | <https://kenney.nl/assets/tiny-battle> | CC0 1.0 (License.txt inside the archive) | Kenney |
+| `kenney_roguelike-rpg-pack` | Kenney Roguelike/RPG Pack | <https://kenney.nl/assets/roguelike-rpg-pack> | CC0 1.0 (License.txt inside the archive) | Kenney |
+| `kenney_roguelike-characters` | Kenney Roguelike Characters | <https://kenney.nl/assets/roguelike-characters> | CC0 1.0 (License.txt inside the archive) | Kenney |
+| `kenney_roguelike-indoors` | Kenney Roguelike Indoors | <https://kenney.nl/assets/roguelike-indoors> | CC0 1.0 (License.txt inside the archive) | Kenney |
+| `kenney_roguelike-caves-dungeons` | Kenney Roguelike Caves & Dungeons | <https://kenney.nl/assets/roguelike-caves-dungeons> | CC0 1.0 (License.txt inside the archive) | Kenney |
+| `kenney_roguelike-modern-city` | Kenney Roguelike Modern City | <https://kenney.nl/assets/roguelike-modern-city> | CC0 1.0 (License.txt inside the archive) | Kenney |
+| `kenney_rpg-urban-pack` | Kenney RPG Urban Pack | <https://kenney.nl/assets/rpg-urban-pack> | CC0 1.0 (License.txt inside the archive) | Kenney |
+| `kenney_1-bit-pack` | Kenney 1-Bit Pack | <https://kenney.nl/assets/1-bit-pack> | CC0 1.0 (License.txt inside the archive) | Kenney |
 | `oga_tiny-creatures` | Tiny Creatures 1.0 | <https://opengameart.org/content/tiny-creatures> | CC0 1.0 (License.txt inside the archive) | Clint Bellanger |
+| `oga_trash-mobs` | 16x16 Fantasy RPG Trash Mobs (animated) | <https://opengameart.org/content/16x16-fantasy-rpg-trash-mobs-animated> | CC0 (stated on the OpenGameArt page) | Emcee Flesher |
+| `oga_animated-slimes` | 16x16 Animated Slimes | <https://opengameart.org/content/16x16-animated-slimes> | CC0 (stated on the OpenGameArt page) | stealthix |
+| `oga_16x16-dungeon-tiles` | 16x16 Dungeon Tiles | <https://opengameart.org/content/16x16-dungeon-tiles> | CC0 (stated on the OpenGameArt page) | ETTiNGRiNDER |
+| `oga_puny-dungeon` | 16x16 Puny Dungeon Tileset v1 | <https://opengameart.org/content/16x16-puny-dungeon-tileset> | CC0 (stated on the OpenGameArt page) | Shade |
+| `oga_assorted-rpg-icons` | 16x16 Assorted RPG Icons | <https://opengameart.org/content/16x16-assorted-rpg-icons> | CC0 (stated on the OpenGameArt page) | Shade |
+| `oga_weapon-rpg-icons` | 16x16 Weapon RPG Icons | <https://opengameart.org/content/16x16-weapon-rpg-icons> | CC0 (stated on the OpenGameArt page) | Shade |
+| `oga_gold-treasure-icons` | Gold treasure icons 16x16 | <https://opengameart.org/content/gold-treasure-icons-16x16> | CC0 (stated on the OpenGameArt page) | Bonsaiheldin |
+| `oga_16x16-rpg-items` | 16x16 RPG items | <https://opengameart.org/content/16x16-rpg-items> | CC0 (stated on the OpenGameArt page) | Jetrel |
+| `oga_random-animals` | Random animals | <https://opengameart.org/content/random-animals> | CC0 (stated on the OpenGameArt page) | hdst |
+| `oga_pixel-animals-16x16` | Pixel Animals 16x16 | <https://opengameart.org/content/pixel-animals-16x16> | CC0 (stated on the OpenGameArt page) | GrumpyDiamond |
+| `oga_6-color-dungeon` | 6 Color Dungeon 16x16 | <https://opengameart.org/content/6-color-dungeon-16x16> | CC0 (stated on the OpenGameArt page) | HorusKDI |
 | `dawnlike` | DawnLike 16x16 Universal Rogue-like tileset v1.81 | <https://opengameart.org/content/dawnlike-16x16-universal-rogue-like-tileset-v181> | CC-BY 4.0 (README.txt inside the archive); credit DragonDePlatino and DawnBringer (palette) | DragonDePlatino (palette: DawnBringer) |
+| `tiny16` | Tiny 16 (Basic, Dungeon, Overworld sheets) | <https://opengameart.org/content/tiny-16-basic> | CC-BY 4.0 (stated on the OpenGameArt page); credit Sharm (Lanea Zimmerman) | Sharm (Lanea Zimmerman) |
 | `kenney_ui-pack-pixel-adventure` | Kenney UI Pack - Pixel Adventure 2.0 | <https://kenney.nl/assets/ui-pack-pixel-adventure> | CC0 1.0 (License.txt inside the archive; archive SHA-256 0b0ed4802ebcfff5e44e370f394baa1d751862a5a4a7612ac4ce84e85faa0627) | Kenney |
 | `kenney_pixel-ui-pack` | Kenney Pixel UI pack | <https://kenney.nl/assets/pixel-ui-pack> | CC0 1.0 (License.txt inside the archive; archive SHA-256 b76f2f60f2be76eb8e66511038fa4d48faec11e638316fa37d06084878cdf0c7) | Kenney, with Lynn Evers |
 | `josehzz_farming-crops-16x16` | Farming crops 16x16 | <https://opengameart.org/content/farming-crops-16x16> | CC0 (stated on the OpenGameArt page; the archive holds no license file) | josehzz |
@@ -23,7 +43,7 @@ The two Kenney UI packs' files are also committed under [`art/source/ui/`](../..
 
 ## Credits
 
-DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDePlatino, palette by DawnBringer, CC-BY 4.0", <https://opengameart.org/content/dawnlike-16x16-universal-rogue-like-tileset-v181>. CC0 packs need no credit; Kenney and Clint Bellanger are named as a courtesy.
+DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDePlatino, palette by DawnBringer, CC-BY 4.0", <https://opengameart.org/content/dawnlike-16x16-universal-rogue-like-tileset-v181>. Tiny 16 (CC-BY 4.0) is used for the bat wing icon: "Tiny 16 tileset by Sharm (Lanea Zimmerman), CC-BY 4.0", <https://opengameart.org/content/tiny-16-basic>. CC0 packs need no credit; Kenney, Clint Bellanger, Shade, stealthix, Emcee Flesher, Bonsaiheldin, Jetrel, ETTiNGRiNDER, HorusKDI, hdst and GrumpyDiamond are named as a courtesy.
 
 ## Files
 
@@ -44,7 +64,8 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `sprites/craftables.png` | 3 Items | `kenney_tiny-dungeon`, Nosum original (drawn in tools/art_repack, no outside source) | Scarecrow and furnace drawn here (`furniture.py`); the chest is Tiny Dungeon's closed chest (tile 5, 7), standing at the foot of its 16 x 32 cell |
 | `sprites/crops.png` | 4 Crops and soil | `kenney_tiny-farm`, `josehzz_farming-crops-16x16` | 21 crops, 5-6 growth frames each: Tiny Farm's stages for the 8 crops it covers, the crops pack's six pictures (seed, three stages, ripe) for the rest, placed in the catalogue's frames at the bottom of each 16 x 32 cell; recolours in the crop table |
 | `sprites/furniture.png` | 3 Items | Nosum original (drawn in tools/art_repack, no outside source) | Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`) |
-| `sprites/items.png` | 3 Items, 6 Resource nodes | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, `kenney_tiny-town`, `dawnlike`, Nosum original (drawn in tools/art_repack, no outside source) | The 92 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), everything else drawn here (table below); unused cells are transparent |
+| `sprites/items.png` | 3 Items, 6 Resource nodes | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, `kenney_tiny-town`, `dawnlike`, `oga_assorted-rpg-icons`, `oga_animated-slimes`, `tiny16`, `oga_trash-mobs`, `oga_16x16-rpg-items`, `kenney_roguelike-caves-dungeons`, `oga_16x16-dungeon-tiles`, `oga_puny-dungeon`, `oga_gold-treasure-icons`, `oga_6-color-dungeon`, `kenney_roguelike-rpg-pack`, `kenney_roguelike-indoors`, `oga_random-animals`, `oga_pixel-animals-16x16`, `kenney_roguelike-modern-city`, `kenney_rpg-urban-pack`, `kenney_1-bit-pack`, Nosum original (drawn in tools/art_repack, no outside source) | The 112 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), potions and spell tome from Assorted RPG Icons, monster drops and RPG relics from Animated Slimes, Tiny 16 (CC-BY), Trash Mobs, 16x16 RPG Items, Roguelike Caves & Dungeons, 16x16 Dungeon Tiles, Puny Dungeon, Gold Treasure Icons, 6 Color Dungeon, Roguelike/RPG Pack, Roguelike Indoors, Random Animals, Pixel Animals 16x16, Roguelike Modern City, RPG Urban Pack and 1-Bit Pack, everything else drawn here (table below); unused cells are transparent |
+| `sprites/monsters.png` | 11 Monsters | `oga_animated-slimes`, `oga_trash-mobs`, `oga_tiny-creatures` | Eight 4-column x 3-row (Down, Right, Up) monster animation blocks (64 x 384): GreenSlime, FrostSlime and MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior and StoneGolem from Tiny Creatures (`monsters.py`) |
 | `sprites/npcs/blacksmith.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Blacksmith (bald, beard, bare arms, leather apron, hammer); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
 | `sprites/npcs/blacksmith_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
 | `sprites/npcs/board_keeper.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Board keeper (green visor, glasses, blue shawl, scroll); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
@@ -64,7 +85,7 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `sprites/trees/maple.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Maple, same layout in autumn orange (`trees.py`) |
 | `sprites/trees/oak.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Oak: 48 x 96 tree, bush, sapling, seed mound and stump at the cells `NodeSprites` reads (`trees.py`) |
 | `sprites/trees/pine.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Pine, same layout (`trees.py`) |
-| `sprites/weapons.png` | 5 Tools and weapons | Nosum original (drawn in tools/art_repack, no outside source) | The scythe drawn here (`tools.scythe`), cell (7, 5) |
+| `sprites/weapons.png` | 5 Tools and weapons | `kenney_tiny-dungeon`, `oga_weapon-rpg-icons`, `kenney_roguelike-characters`, `kenney_tiny-battle`, Nosum original (drawn in tools/art_repack, no outside source) | The scythe drawn here (`tools.scythe`), cell (7, 5); wooden sword and arcane staff from Tiny Dungeon (8, 8 and 9, 10); bronze, iron, steel and gold swords from Weapon RPG Icons; round shield from Kenney Roguelike Characters (35, 1); battle emblem from Kenney Tiny Battle (15, 10) |
 | `ui/cursors.png` | 9 UI | `kenney_pixel-ui-pack`, Nosum original (drawn in tools/art_repack, no outside source) | From the Pixel UI pack: the eight block-button frames (9 x 11, normal and pressed; Ancient brown, grey, Colored yellow and red 9-slice buttons assembled to a 3 / 3 / 5 / 3 slice, the wood, stone and red faces darkened for text contrast, at y 432 and 444), the twelve tab plates (Ancient tan), the close button (cell 21, 6) and the arrow and hand cursors (cells 3, 32 and 0, 25). Drawn here: the gold selection frame with glow (80 x 80 at 448, 128), title strip, gauge frame, tab pictograms, pager arrows and coin (`ui.py`) |
 | `ui/menu.png` | 9 UI | `kenney_ui-pack-pixel-adventure`, Nosum original (drawn in tools/art_repack, no outside source) | Window frame (16 x 16 at 0, 256, 5 px slice) and the small plaque frame (16 x 16 at 32, 256, 4 px slice): Pixel Adventure small tiles (15, 1) and (10, 0), three transparent edge pixels of the first filled in; the 3 x 3 slot bevel at (128, 128) is drawn here (`ui.py`) |
 | `ui/start_background.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`) |
@@ -196,6 +217,26 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 | 90 | resource node | drawn here: `icons.rock` |
 | 91 | resource node | DawnLike Rock (2, 1), the copper boulder |
 | 92 | resource node | drawn here: `icons.rock` |
+| 93 | `health_potion` | Assorted RPG Icons `potions.png` (3, 2), crimson health potion |
+| 94 | `mana_potion` | Assorted RPG Icons `potions.png` (11, 2), sapphire mana potion |
+| 95 | `elixir` | Assorted RPG Icons `potions.png` (5, 4), golden elixir |
+| 96 | `slime_gel` | 16x16 Animated Slimes (`Slime_Small_Green.png` cell 0, 0 cropped at +8, +4) |
+| 97 | `bat_wing` | Tiny 16 `dungeon.png` (10, 9), bat wing |
+| 98 | `spore_cap` | Fantasy RPG Trash Mobs (6, 0), spore cap |
+| 99 | `goblin_ear` | 16x16 RPG items (6, 5), goblin trophy |
+| 100 | `monster_bone` | Kenney Roguelike Caves & Dungeons (1, 2), monster bone |
+| 101 | `golem_core` | 16x16 Dungeon Tiles `diamond_1.png`, golem core |
+| 102 | `mana_crystal` | Puny Dungeon `punyworld-dungeon-tileset.png` (16, 10), mana crystal |
+| 103 | `treasure_gem` | Gold treasure icons `sheet.png` (1, 2), treasure gem |
+| 104 | resource node | Assorted RPG Icons `books.png` (3, 0), spell tome |
+| 105 | resource node | 6 Color Dungeon (19, 2), dungeon skull |
+| 106 | resource node | Kenney Roguelike/RPG Pack (44, 15), ancient scroll |
+| 107 | resource node | Kenney Roguelike Indoors (19, 0), candelabra |
+| 108 | resource node | Random animals `bee.png`, honey bee |
+| 109 | resource node | Pixel Animals 16x16 (0, 0), pocket cat |
+| 110 | resource node | Kenney Roguelike Modern City (18, 0), tonic can |
+| 111 | resource node | Kenney RPG Urban Pack (4, 10), apple crate |
+| 112 | resource node | Kenney 1-Bit Pack (39, 10), heart emblem |
 
 ## Map tilesheets (art/own/Maps)
 

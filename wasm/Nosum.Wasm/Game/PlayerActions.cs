@@ -4,12 +4,14 @@ using System;
 using Nosum.Core;
 using Nosum.Gameplay.Animals;
 using Nosum.Gameplay.Buildings;
+using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Chest;
+using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
@@ -39,17 +41,19 @@ internal sealed class PlayerActions
     private readonly ProgressChannel? _progress;
     private readonly BuildingChannel? _buildings;
     private readonly GameAudio? _audio;
+    private readonly CombatChannel? _combat;
     private double _lastUseSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
     /// <param name="inventory">Holds the selected slot.</param>
     /// <param name="market">Sends the shipping of the held stack at the bin.</param>
-    /// <param name="chests">Opens the chest the farmer faces; <see langword="null"/> when chests are not wired.</param>
     /// <param name="progress">Sends eating when the action key is pressed with food in hand; <see langword="null"/> to never eat.</param>
+    /// <param name="chests">Opens the chest the farmer faces; <see langword="null"/> when chests are not wired.</param>
     /// <param name="buildings">Sends feeding, petting and collecting inside a coop or a barn; <see langword="null"/> when buildings are not wired.</param>
     /// <param name="audio">Plays the swing of the tool in hand (docs/adr/ADR-039); <see langword="null"/> for no sound.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null)
+    /// <param name="combat">Sends monster attacks and potion drinking; <see langword="null"/> when combat is not wired.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -61,6 +65,7 @@ internal sealed class PlayerActions
         _progress = progress;
         _buildings = buildings;
         _audio = audio;
+        _combat = combat;
     }
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
@@ -211,6 +216,23 @@ internal sealed class PlayerActions
             {
                 // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
                 _market.Ship(selected, held.ItemId, 0);
+            }
+            else if (_combat is not null && CombatRules.WeaponDamage(held.ItemId) > 0
+                && _combat.TryFindTarget(x, y, CombatRules.AttackRange(held.ItemId), out MonsterClientRow targetMonster))
+            {
+                if (ItemCatalog.TryGet(held.ItemId, out ItemDefinition? weaponDef))
+                {
+                    this.PlaySwing(weaponDef.Tool);
+                }
+
+                _combat.Attack(targetMonster.MonsterId, selected);
+            }
+            else if (_combat is not null
+                && held.ItemId is ItemCatalog.HealthPotion or ItemCatalog.ManaPotion or ItemCatalog.Elixir
+                && (_combat.Hp < _combat.MaxHp || _combat.Mp < _combat.MaxMp)
+                && !this.FacesCrop())
+            {
+                _combat.DrinkPotion(selected);
             }
             else if (_progress is { MaxEnergy: > 0 } && _progress.Energy < _progress.MaxEnergy && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? food) && food.IsEdible
                 && !this.FacesCrop())

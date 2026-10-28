@@ -62,6 +62,7 @@ public static class SkillRules
         ToolKind.Hoe or ToolKind.WateringCan => SkillKind.Farming,
         ToolKind.Axe or ToolKind.Scythe => SkillKind.Foraging,
         ToolKind.Pickaxe => SkillKind.Mining,
+        ToolKind.Sword or ToolKind.Staff => SkillKind.Combat,
         _ => SkillKind.None,
     };
 

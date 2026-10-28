@@ -19,6 +19,7 @@ using Nosum.Abstractions.Blacksmith;
 using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Chat;
+using Nosum.Abstractions.Combat;
 using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Crafting;
@@ -51,6 +52,7 @@ using Nosum.Handlers.Blacksmith;
 using Nosum.Handlers.Building;
 using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Chat;
+using Nosum.Handlers.Combat;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
@@ -78,6 +80,7 @@ using Nosum.Infrastructure.Caching;
 using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Chat;
+using Nosum.Infrastructure.Combat;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Crafting;
 using Nosum.Infrastructure.Dev;
@@ -163,7 +166,8 @@ internal static class Program
             ex => Console.Error.WriteLine("Guest cleanup failed: " + ex.Message),
             shutdown.Token);
 
-        NetworkApplication app = BuildApplication(WebSocketPort, null, IsDevelopment());
+        ushort wsPort = WsPort();
+        NetworkApplication app = BuildApplication(wsPort, null, IsDevelopment());
         await OpsServices.LoadMutesAsync(shutdown.Token).ConfigureAwait(false);
 
         // Goals of seasons that ended while the server was down expire now, and rewards a crash left unpaid are paid (docs/adr/ADR-030 D3).
@@ -216,7 +220,7 @@ internal static class Program
             OpsLog.Warning("host.load_test_mode", "NOSUM_LOAD_TEST is on: the per-address rate limits are OFF. Never run players on this server.");
         }
 
-        OpsLog.Information("host.started", "The server is accepting connections.", new LogField("ws_port", (int)WebSocketPort));
+        OpsLog.Information("host.started", "The server is accepting connections.", new LogField("ws_port", (int)wsPort));
         Task keyAnnouncement = ServerKey.AnnounceAsync(Console.WriteLine, shutdown.Token);
         await using (app.ConfigureAwait(false))
         {
@@ -259,6 +263,11 @@ internal static class Program
 
         return true;
     }
+
+    /// <summary>Reads <c>NOSUM_WS_PORT</c>, the port of the WebSocket listener; <see cref="WebSocketPort"/> when unset.</summary>
+    /// <returns>The port.</returns>
+    private static ushort WsPort()
+        => ushort.TryParse(Environment.GetEnvironmentVariable("NOSUM_WS_PORT"), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out ushort port) ? port : WebSocketPort;
 
     /// <summary>Reads <c>NOSUM_OPS_PORT</c>, the port of the health and metrics endpoint; <see cref="OpsEndpoint.DefaultPort"/> when unset.</summary>
     /// <returns>The port.</returns>
@@ -361,6 +370,7 @@ internal static class Program
             .MapHandlers(typeof(ShopHandlers))
             .MapHandlers(typeof(BlacksmithHandlers))
             .MapHandlers(typeof(MineHandlers))
+            .MapHandlers(typeof(CombatHandlers))
             .MapHandlers(typeof(GoalHandlers))
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers))
@@ -550,8 +560,10 @@ internal static class Program
         BuildingService buildings = new(presence, publisher, maps, inventory, transfers, buildingDirectory, animalWander, unitOfWork, coopMembership, calendar, clock);
         InstanceManager.Instance.Register<IBuildingService>(buildings);
         placeables.Attach(buildings);
-        // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1).
-        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress), quests));
+        // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2).
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier);
+        InstanceManager.Instance.Register<ICombatService>(combat);
+        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress, combat), quests));
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
         InstanceManager.Instance.Register<ILookService>(looks);
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);

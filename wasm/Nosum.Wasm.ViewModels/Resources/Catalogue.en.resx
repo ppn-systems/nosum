@@ -273,4 +273,38 @@
   <data name="Quest_craft_chest_Hint" xml:space="preserve"><value>Open the crafting page in the menu and make a chest from 50 wood. Place the chest to store things.</value></data>
   <data name="Quest_craft_chest_Tip" xml:space="preserve"><value>Open the menu, go to crafting and make a chest from wood.</value></data>
   <data name="Quest_craft_chest_Objective_0" xml:space="preserve"><value>Craft a chest</value></data>
+  <data name="Item_wooden_sword_Name" xml:space="preserve"><value>Wooden sword</value></data>
+  <data name="Item_wooden_sword_Description" xml:space="preserve"><value>A sturdy wooden practice blade for fighting nearby monsters (12 damage).</value></data>
+  <data name="Item_bronze_sword_Name" xml:space="preserve"><value>Bronze sword</value></data>
+  <data name="Item_bronze_sword_Description" xml:space="preserve"><value>A sharp bronze blade forged from copper bars and wood (20 damage).</value></data>
+  <data name="Item_iron_sword_Name" xml:space="preserve"><value>Iron sword</value></data>
+  <data name="Item_iron_sword_Description" xml:space="preserve"><value>A balanced iron blade for mine explorers (32 damage).</value></data>
+  <data name="Item_steel_sword_Name" xml:space="preserve"><value>Steel broadsword</value></data>
+  <data name="Item_steel_sword_Description" xml:space="preserve"><value>A heavy steel broadsword tempered with monster bone (48 damage).</value></data>
+  <data name="Item_gold_sword_Name" xml:space="preserve"><value>Golden blade</value></data>
+  <data name="Item_gold_sword_Description" xml:space="preserve"><value>A legendary gilded blade set with golem cores and gems (68 damage).</value></data>
+  <data name="Item_arcane_staff_Name" xml:space="preserve"><value>Arcane staff</value></data>
+  <data name="Item_arcane_staff_Description" xml:space="preserve"><value>Fires a ranged arcane bolt at monsters (45 magic damage, costs 10 MP).</value></data>
+  <data name="Item_slime_gel_Name" xml:space="preserve"><value>Slime gel</value></data>
+  <data name="Item_slime_gel_Description" xml:space="preserve"><value>Translucent gel dropped by slimes, used to brew health potions.</value></data>
+  <data name="Item_bat_wing_Name" xml:space="preserve"><value>Bat wing</value></data>
+  <data name="Item_bat_wing_Description" xml:space="preserve"><value>Tough wing membrane from a cave bat, used in weapon forging.</value></data>
+  <data name="Item_spore_cap_Name" xml:space="preserve"><value>Spore cap</value></data>
+  <data name="Item_spore_cap_Description" xml:space="preserve"><value>A glowing mushroom cap rich in arcane spores.</value></data>
+  <data name="Item_goblin_ear_Name" xml:space="preserve"><value>Goblin trophy</value></data>
+  <data name="Item_goblin_ear_Description" xml:space="preserve"><value>A scout badge taken from a defeated goblin patrol.</value></data>
+  <data name="Item_monster_bone_Name" xml:space="preserve"><value>Monster bone</value></data>
+  <data name="Item_monster_bone_Description" xml:space="preserve"><value>Dense bone used to reinforce steel blades.</value></data>
+  <data name="Item_golem_core_Name" xml:space="preserve"><value>Golem core</value></data>
+  <data name="Item_golem_core_Description" xml:space="preserve"><value>An ancient stone heart pulsing with earth magic.</value></data>
+  <data name="Item_mana_crystal_Name" xml:space="preserve"><value>Mana crystal</value></data>
+  <data name="Item_mana_crystal_Description" xml:space="preserve"><value>Pure azure crystal used for mana potions and arcane staves.</value></data>
+  <data name="Item_treasure_gem_Name" xml:space="preserve"><value>Treasure gem</value></data>
+  <data name="Item_treasure_gem_Description" xml:space="preserve"><value>A faceted gemstone dropped by deep dungeon guardians.</value></data>
+  <data name="Item_health_potion_Name" xml:space="preserve"><value>Health potion</value></data>
+  <data name="Item_health_potion_Description" xml:space="preserve"><value>Restores 50 HP and 15 energy.</value></data>
+  <data name="Item_mana_potion_Name" xml:space="preserve"><value>Mana potion</value></data>
+  <data name="Item_mana_potion_Description" xml:space="preserve"><value>Restores 35 MP and 15 energy.</value></data>
+  <data name="Item_elixir_Name" xml:space="preserve"><value>Golden elixir</value></data>
+  <data name="Item_elixir_Description" xml:space="preserve"><value>Restores 100 HP, 50 MP and 60 energy.</value></data>
 </root>

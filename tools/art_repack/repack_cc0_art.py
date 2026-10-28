@@ -22,6 +22,7 @@ import crops  # noqa: E402
 import farmer  # noqa: E402
 import furniture  # noqa: E402
 import icons  # noqa: E402
+import monsters  # noqa: E402
 import npcs  # noqa: E402
 import trees  # noqa: E402
 import ui  # noqa: E402
@@ -59,6 +60,7 @@ def build_all(src, repo, only=None):
     out.update(furniture.build(src, size))
     out['sprites/items.png'] = icons.build(src, size)
     out.update(animals.build(src, size))
+    out.update(monsters.build(src))
     out.update(ui.build(repo, size))
     out.update(npcs.build())
     return out

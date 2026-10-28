@@ -821,4 +821,10 @@
   <data name="Settings_CreditsNote" xml:space="preserve"><value>Hình ảnh trong game lấy từ các bộ tranh mã nguồn mở này. Bộ tranh, tác giả, giấy phép.</value></data>
   <data name="Credits_Back" xml:space="preserve"><value>Quay lại</value></data>
   <data name="Start_ArtCredits" xml:space="preserve"><value>Ghi công hình ảnh</value></data>
+  <data name="Hp_Label" xml:space="preserve"><value>Máu (HP) {0} / {1}</value></data>
+  <data name="Mp_Label" xml:space="preserve"><value>Năng lượng phép (MP) {0} / {1}</value></data>
+  <data name="Skill_Combat" xml:space="preserve"><value>Chiến đấu</value></data>
+  <data name="Craft_Skill_Combat" xml:space="preserve"><value>Chiến đấu</value></data>
+  <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Không đủ MP để thi triển phép!</value></data>
+  <data name="Combat_KnockedOut" xml:space="preserve"><value>Bạn đã bị hạ gục và được hồi phục một nửa HP!</value></data>
 </root>

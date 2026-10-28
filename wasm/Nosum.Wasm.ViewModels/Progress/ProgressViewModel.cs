@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Extensions.Localization;
+using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Skills;
+using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -19,27 +21,63 @@ namespace Nosum.Wasm.ViewModels.Progress;
 public sealed record SkillDisplay(string Name, int Level, int Xp, double Fraction, string Caption);
 
 /// <summary>
-/// View model of the energy bar beside the hotbar and of the Skills page (docs/adr/ADR-023 D6). It shows what the server pushed; levels are derived
-/// from the experience with the same table the server uses (<see cref="SkillRules"/>), so nothing is stored twice.
+/// View model of the HUD vitals bars (HP, MP, Energy) beside the hotbar and of the Skills page (docs/adr/ADR-023 D6, docs/adr/ADR-045 D2).
 /// </summary>
 public sealed class ProgressViewModel : PanelViewModel, IDisposable
 {
     private readonly ProgressChannel _progress;
+    private readonly CombatChannel? _combat;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="progress">The energy and experience mirror.</param>
     /// <param name="text">UI text.</param>
-    public ProgressViewModel(ProgressChannel progress, IStringLocalizer<Language> text)
+    /// <param name="combat">Optional combat vitals and Combat XP mirror.</param>
+    public ProgressViewModel(ProgressChannel progress, IStringLocalizer<Language> text, CombatChannel? combat = null)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(progress);
 
         _progress = progress;
+        _combat = combat;
         progress.Changed += this.Raise;
+        if (combat is not null)
+        {
+            combat.Changed += this.Raise;
+        }
     }
 
     /// <summary>Gets whether the server has told the player their energy yet; the bar is hidden before.</summary>
     public bool HasEnergy => _progress.MaxEnergy > 0;
+
+    /// <summary>Gets current HP.</summary>
+    public int Hp => _combat is { MaxHp: > 0 } c ? c.Hp : CombatRules.BaseMaxHp;
+
+    /// <summary>Gets maximum HP.</summary>
+    public int MaxHp => _combat is { MaxHp: > 0 } c ? c.MaxHp : CombatRules.BaseMaxHp;
+
+    /// <summary>Gets how full the HP bar is, zero to one.</summary>
+    public double HpFraction => this.MaxHp > 0 ? Math.Clamp((double)this.Hp / this.MaxHp, 0, 1) : 0;
+
+    /// <summary>Gets whether HP is critically low.</summary>
+    public bool HpLow => this.HpFraction <= 0.25;
+
+    /// <summary>Gets the localized label of the HP bar: <c>HP 100 / 100</c>.</summary>
+    public string HpLabel => this.Text("Hp_Label", Number(this.Hp), Number(this.MaxHp));
+
+    /// <summary>Gets current MP.</summary>
+    public int Mp => _combat is { MaxMp: > 0 } c ? c.Mp : CombatRules.BaseMaxMp;
+
+    /// <summary>Gets maximum MP.</summary>
+    public int MaxMp => _combat is { MaxMp: > 0 } c ? c.MaxMp : CombatRules.BaseMaxMp;
+
+    /// <summary>Gets how full the MP bar is, zero to one.</summary>
+    public double MpFraction => this.MaxMp > 0 ? Math.Clamp((double)this.Mp / this.MaxMp, 0, 1) : 0;
+
+    /// <summary>Gets whether MP is low.</summary>
+    public bool MpLow => this.MpFraction <= 0.2;
+
+    /// <summary>Gets the localized label of the MP bar: <c>MP 50 / 50</c>.</summary>
+    public string MpLabel => this.Text("Mp_Label", Number(this.Mp), Number(this.MaxMp));
 
     /// <summary>Gets the energy now.</summary>
     public int Energy => _progress.Energy;
@@ -56,7 +94,7 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the localized label of the bar, for the tooltip and the screen reader: <c>Energy 268 / 270</c>.</summary>
     public string EnergyLabel => this.Text("Energy_Label", Number(_progress.Energy), Number(_progress.MaxEnergy));
 
-    /// <summary>Gets the three skills in the page's order: farming, foraging, mining.</summary>
+    /// <summary>Gets the three gathering skills in the page's order: farming, foraging, mining.</summary>
     public IReadOnlyList<SkillDisplay> Skills =>
     [
         this.Describe("Skill_Farming", _progress.FarmingXp),
@@ -64,19 +102,30 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         this.Describe("Skill_Mining", _progress.MiningXp),
     ];
 
+    /// <summary>Gets the Combat skill progression display.</summary>
+    public SkillDisplay CombatSkill => this.Describe("Skill_Combat", _combat?.CombatXp ?? 0);
+
     /// <summary>Gets the localized name of a skill by its wire number.</summary>
-    /// <param name="skill">1 farming, 2 foraging, 3 mining.</param>
+    /// <param name="skill">1 farming, 2 foraging, 3 mining, 4 combat.</param>
     /// <returns>The name, or an empty string for an unknown skill.</returns>
     public string SkillName(byte skill) => (SkillKind)skill switch
     {
         SkillKind.Farming => this.Text("Skill_Farming"),
         SkillKind.Foraging => this.Text("Skill_Foraging"),
         SkillKind.Mining => this.Text("Skill_Mining"),
+        SkillKind.Combat => this.Text("Skill_Combat"),
         _ => string.Empty,
     };
 
     /// <inheritdoc/>
-    public void Dispose() => _progress.Changed -= this.Raise;
+    public void Dispose()
+    {
+        _progress.Changed -= this.Raise;
+        if (_combat is not null)
+        {
+            _combat.Changed -= this.Raise;
+        }
+    }
 
     private SkillDisplay Describe(string nameKey, int xp)
     {

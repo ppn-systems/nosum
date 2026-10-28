@@ -40,6 +40,30 @@ public static class RecipeCatalog
     /// <summary>Pumpkin soup.</summary>
     public const int PumpkinSoup = 9;
 
+    /// <summary>Health potion.</summary>
+    public const int HealthPotion = 10;
+
+    /// <summary>Mana potion.</summary>
+    public const int ManaPotion = 11;
+
+    /// <summary>Golden elixir.</summary>
+    public const int Elixir = 12;
+
+    /// <summary>Bronze sword.</summary>
+    public const int BronzeSword = 13;
+
+    /// <summary>Iron sword.</summary>
+    public const int IronSword = 14;
+
+    /// <summary>Steel sword.</summary>
+    public const int SteelSword = 15;
+
+    /// <summary>Gold sword.</summary>
+    public const int GoldSword = 16;
+
+    /// <summary>Arcane staff.</summary>
+    public const int ArcaneStaff = 17;
+
     /// <summary>Most items one craft request may make in a batch (so a request cannot ask for an absurd amount).</summary>
     public const int MaxBatch = 99;
 
@@ -54,6 +78,14 @@ public static class RecipeCatalog
         new(Salad, "salad", ItemCatalog.Salad, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.Radish, 1), new RecipeInput(ItemCatalog.Cauliflower, 1)),
         new(BakedPotato, "baked_potato", ItemCatalog.BakedPotato, 1, RecipeUnlock.Of(CraftSkill.Farming, 1), new RecipeInput(ItemCatalog.Parsnip, 2), new RecipeInput(ItemCatalog.Wood, 1)),
         new(PumpkinSoup, "pumpkin_soup", ItemCatalog.PumpkinSoup, 1, RecipeUnlock.Of(CraftSkill.Farming, 3), new RecipeInput(ItemCatalog.Cauliflower, 2), new RecipeInput(ItemCatalog.Radish, 1), new RecipeInput(ItemCatalog.Wood, 1)),
+        new(HealthPotion, "health_potion", ItemCatalog.HealthPotion, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.SlimeGel, 2), new RecipeInput(ItemCatalog.Fiber, 1)),
+        new(ManaPotion, "mana_potion", ItemCatalog.ManaPotion, 1, RecipeUnlock.Of(CraftSkill.Combat, 1), new RecipeInput(ItemCatalog.SporeCap, 1), new RecipeInput(ItemCatalog.ManaCrystal, 1)),
+        new(Elixir, "elixir", ItemCatalog.Elixir, 1, RecipeUnlock.Of(CraftSkill.Combat, 4), new RecipeInput(ItemCatalog.HealthPotion, 1), new RecipeInput(ItemCatalog.ManaPotion, 1), new RecipeInput(ItemCatalog.TreasureGem, 1)),
+        new(BronzeSword, "bronze_sword", ItemCatalog.BronzeSword, 1, RecipeUnlock.Of(CraftSkill.Combat, 1), new RecipeInput(ItemCatalog.CopperBar, 2), new RecipeInput(ItemCatalog.Wood, 5)),
+        new(IronSword, "iron_sword", ItemCatalog.IronSword, 1, RecipeUnlock.Of(CraftSkill.Combat, 2), new RecipeInput(ItemCatalog.IronBar, 2), new RecipeInput(ItemCatalog.BatWing, 2)),
+        new(SteelSword, "steel_sword", ItemCatalog.SteelSword, 1, RecipeUnlock.Of(CraftSkill.Combat, 4), new RecipeInput(ItemCatalog.IronBar, 4), new RecipeInput(ItemCatalog.MonsterBone, 3), new RecipeInput(ItemCatalog.Coal, 2)),
+        new(GoldSword, "gold_sword", ItemCatalog.GoldSword, 1, RecipeUnlock.Of(CraftSkill.Combat, 6), new RecipeInput(ItemCatalog.GolemCore, 2), new RecipeInput(ItemCatalog.TreasureGem, 2), new RecipeInput(ItemCatalog.IronBar, 4)),
+        new(ArcaneStaff, "arcane_staff", ItemCatalog.ArcaneStaff, 1, RecipeUnlock.Of(CraftSkill.Combat, 3), new RecipeInput(ItemCatalog.ManaCrystal, 3), new RecipeInput(ItemCatalog.SporeCap, 2), new RecipeInput(ItemCatalog.Wood, 10)),
     ];
 
     private static readonly Dictionary<int, RecipeDefinition> s_byId = Index();

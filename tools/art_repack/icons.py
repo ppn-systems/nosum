@@ -451,6 +451,12 @@ def tiny_town_fence(src, town):
 
 tiny_town_fence.note = 'Kenney Tiny Town tile 81 (horizontal fence)'
 
+def slime_gel_icon(src, _town):
+    return src.sheet('slime_green').cell(0, 0).crop(8, 4, 16, 16)
+
+
+slime_gel_icon.note = '16x16 Animated Slimes (`Slime_Small_Green.png` cell 0, 0 cropped at +8, +4)'
+
 # sheet index -> picture(src, town sheet)
 OBJECTS = {
     # crop produce
@@ -486,6 +492,27 @@ OBJECTS = {
     89: static(rock, ((120, 125, 140), (190, 195, 205), (230, 232, 240))), 90: static(rock, BROWN),
     84: static(twig, False), 85: static(twig, True), 86: static(weed, 0), 87: static(weed, 1), 88: static(weed, 2),
     54: tiny_town_fence, 55: static(stone_path), 56: static(sprinkler),
+    # potions, monster drops, and RPG relics (ADR-045)
+    93: library_tile('rpg_potions', 3, 2, 'Assorted RPG Icons `potions.png` (3, 2), crimson health potion'),
+    94: library_tile('rpg_potions', 11, 2, 'Assorted RPG Icons `potions.png` (11, 2), sapphire mana potion'),
+    95: library_tile('rpg_potions', 5, 4, 'Assorted RPG Icons `potions.png` (5, 4), golden elixir'),
+    96: slime_gel_icon,
+    97: library_tile('tiny16_dungeon', 10, 9, 'Tiny 16 `dungeon.png` (10, 9), bat wing'),
+    98: library_tile('trash_mobs', 6, 0, 'Fantasy RPG Trash Mobs (6, 0), spore cap'),
+    99: library_tile('rpg_items', 6, 5, '16x16 RPG items (6, 5), goblin trophy'),
+    100: library_tile('roguelike_caves', 1, 2, 'Kenney Roguelike Caves & Dungeons (1, 2), monster bone'),
+    101: library_tile('dungeon_diamond', 0, 0, '16x16 Dungeon Tiles `diamond_1.png`, golem core'),
+    102: library_tile('puny_dungeon', 16, 10, 'Puny Dungeon `punyworld-dungeon-tileset.png` (16, 10), mana crystal'),
+    103: library_tile('gold_treasure', 1, 2, 'Gold treasure icons `sheet.png` (1, 2), treasure gem'),
+    104: library_tile('rpg_books', 3, 0, 'Assorted RPG Icons `books.png` (3, 0), spell tome'),
+    105: library_tile('six_color_dungeon', 19, 2, '6 Color Dungeon (19, 2), dungeon skull'),
+    106: library_tile('roguelike_rpg', 44, 15, 'Kenney Roguelike/RPG Pack (44, 15), ancient scroll'),
+    107: library_tile('roguelike_indoors', 19, 0, 'Kenney Roguelike Indoors (19, 0), candelabra'),
+    108: library_tile('animal_bee', 0, 0, 'Random animals `bee.png`, honey bee'),
+    109: library_tile('pixel_animals', 0, 0, 'Pixel Animals 16x16 (0, 0), pocket cat'),
+    110: library_tile('modern_city', 18, 0, 'Kenney Roguelike Modern City (18, 0), tonic can'),
+    111: library_tile('rpg_urban', 4, 10, 'Kenney RPG Urban Pack (4, 10), apple crate'),
+    112: library_tile('one_bit', 39, 10, 'Kenney 1-Bit Pack (39, 10), heart emblem'),
 }
 
 

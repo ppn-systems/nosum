@@ -1,5 +1,12 @@
 /* The energy gauge: a tube framed in wood with gold end caps (cursors.png "gauge", 3 px edge) round a dark track, filled from the bottom with a
    stepped gradient (the fill keeps one gradient for the whole tube, so a half-full bar shows the lower half of it) and a lit edge on the left. */
+.vitals-bars {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: calc(var(--u) * 1.5);
+}
+
 .energy-bar {
     position: relative;
     box-sizing: border-box;
@@ -19,6 +26,18 @@
     background:
         linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
         linear-gradient(to top, #265c42 0 20%, #3e8948 20% 45%, #63c74d 45% 75%, #b8e04a 75% 100%) bottom / 100% calc(var(--u) * 20) no-repeat;
+}
+
+.hp-fill {
+    background:
+        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
+        linear-gradient(to top, #7a1c24 0 20%, #b4232c 20% 45%, #e03c32 45% 75%, #ff6b57 75% 100%) bottom / 100% calc(var(--u) * 20) no-repeat;
+}
+
+.mp-fill {
+    background:
+        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
+        linear-gradient(to top, #1d3c78 0 20%, #2a5db0 20% 45%, #4287f5 45% 75%, #73b3ff 75% 100%) bottom / 100% calc(var(--u) * 20) no-repeat;
 }
 
 .energy-bar.low .energy-fill {

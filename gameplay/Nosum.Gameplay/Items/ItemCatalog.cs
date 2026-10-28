@@ -54,6 +54,24 @@ public static class ItemCatalog
     /// <summary>The iron pickaxe: three hits' worth of damage per swing.</summary>
     public const int IronPickaxe = 23;
 
+    /// <summary>A wooden sword for basic melee combat (docs/adr/ADR-045).</summary>
+    public const int WoodenSword = 30;
+
+    /// <summary>A bronze sword forged from copper and wood.</summary>
+    public const int BronzeSword = 31;
+
+    /// <summary>An iron sword forged from iron and coal.</summary>
+    public const int IronSword = 32;
+
+    /// <summary>A steel broadsword forged from iron and monster bone.</summary>
+    public const int SteelSword = 33;
+
+    /// <summary>A gilded blade forged from golem cores and treasure gems.</summary>
+    public const int GoldSword = 34;
+
+    /// <summary>An arcane staff that channels mana into magical bolts.</summary>
+    public const int ArcaneStaff = 35;
+
     /// <summary>Parsnip seeds.</summary>
     public const int ParsnipSeeds = 100;
 
@@ -324,6 +342,15 @@ public static class ItemCatalog
     /// <summary>A bowl of pumpkin soup.</summary>
     public const int PumpkinSoup = 702;
 
+    /// <summary>A health potion brewed from slime gel and berries; restores HP (docs/adr/ADR-045).</summary>
+    public const int HealthPotion = 710;
+
+    /// <summary>A mana potion brewed from spore caps and mana crystals; restores MP (docs/adr/ADR-045).</summary>
+    public const int ManaPotion = 711;
+
+    /// <summary>A golden elixir that restores HP, MP and energy (docs/adr/ADR-045).</summary>
+    public const int Elixir = 712;
+
     /// <summary>An egg, a chicken's produce (docs/adr/ADR-028 D3; animal produce is ids 900-949).</summary>
     public const int Egg = 900;
 
@@ -338,6 +365,30 @@ public static class ItemCatalog
 
     /// <summary>Hay, the feed the carpenter sells for the feeding bench (fiber works too).</summary>
     public const int Hay = 508;
+
+    /// <summary>Translucent slime gel dropped by slimes (docs/adr/ADR-045).</summary>
+    public const int SlimeGel = 510;
+
+    /// <summary>A leathery bat wing dropped by cave bats.</summary>
+    public const int BatWing = 511;
+
+    /// <summary>A glowing spore cap dropped by spore shrooms.</summary>
+    public const int SporeCap = 512;
+
+    /// <summary>A trophy goblin ear dropped by goblin scouts.</summary>
+    public const int GoblinEar = 513;
+
+    /// <summary>A sturdy monster bone dropped by skeleton warriors.</summary>
+    public const int MonsterBone = 514;
+
+    /// <summary>An enchanted stone heart dropped by stone golems.</summary>
+    public const int GolemCore = 515;
+
+    /// <summary>A raw mana crystal dropped by magical creatures.</summary>
+    public const int ManaCrystal = 516;
+
+    /// <summary>A cut treasure gem dropped by deep dungeon monsters.</summary>
+    public const int TreasureGem = 517;
 
     /// <summary>Largest stack of furniture.</summary>
     public const int FurnitureStack = 20;
@@ -382,6 +433,12 @@ public static class ItemCatalog
         new(IronWateringCan, "iron_watering_can", ItemKind.Tool, 1, ToolKind.WateringCan, tier: ToolTier.Iron),
         new(IronAxe, "iron_axe", ItemKind.Tool, 1, ToolKind.Axe, tier: ToolTier.Iron),
         new(IronPickaxe, "iron_pickaxe", ItemKind.Tool, 1, ToolKind.Pickaxe, tier: ToolTier.Iron),
+        new(WoodenSword, "wooden_sword", ItemKind.Tool, 1, ToolKind.Sword),
+        new(BronzeSword, "bronze_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Copper),
+        new(IronSword, "iron_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Iron),
+        new(SteelSword, "steel_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Iron),
+        new(GoldSword, "gold_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Iron),
+        new(ArcaneStaff, "arcane_staff", ItemKind.Tool, 1, ToolKind.Staff, tier: ToolTier.Iron),
         new(ParsnipSeeds, "parsnip_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Parsnip) { ObjectIcon = 1 },
         new(RadishSeeds, "radish_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Radish) { ObjectIcon = 2 },
         new(CauliflowerSeeds, "cauliflower_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Cauliflower) { ObjectIcon = 3 },
@@ -448,9 +505,20 @@ public static class ItemCatalog
         new(Milk, "milk", ItemKind.Produce, DefaultStack, foodEnergy: 25) { SellPrice = 125, ObjectIcon = 59 },
         new(LargeMilk, "large_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 190, ObjectIcon = 60 },
         new(Hay, "hay", ItemKind.Resource, DefaultStack) { ObjectIcon = 61 },
+        new(SlimeGel, "slime_gel", ItemKind.Resource, DefaultStack) { ObjectIcon = 96 },
+        new(BatWing, "bat_wing", ItemKind.Resource, DefaultStack) { ObjectIcon = 97 },
+        new(SporeCap, "spore_cap", ItemKind.Resource, DefaultStack) { ObjectIcon = 98 },
+        new(GoblinEar, "goblin_ear", ItemKind.Resource, DefaultStack) { ObjectIcon = 99 },
+        new(MonsterBone, "monster_bone", ItemKind.Resource, DefaultStack) { ObjectIcon = 100 },
+        new(GolemCore, "golem_core", ItemKind.Resource, DefaultStack) { ObjectIcon = 101 },
+        new(ManaCrystal, "mana_crystal", ItemKind.Resource, DefaultStack) { ObjectIcon = 102 },
+        new(TreasureGem, "treasure_gem", ItemKind.Resource, DefaultStack) { ObjectIcon = 103 },
         new(Salad, "salad", ItemKind.Food, DefaultStack, foodEnergy: 90),
         new(BakedPotato, "baked_potato", ItemKind.Food, DefaultStack, foodEnergy: 60),
         new(PumpkinSoup, "pumpkin_soup", ItemKind.Food, DefaultStack, foodEnergy: 120),
+        new(HealthPotion, "health_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 93 },
+        new(ManaPotion, "mana_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 94 },
+        new(Elixir, "elixir", ItemKind.Food, DefaultStack, foodEnergy: 60) { ObjectIcon = 95 },
         new(OakChair, "oak_chair", ItemKind.Furniture, FurnitureStack),
         new(BlueArmchair, "blue_armchair", ItemKind.Furniture, FurnitureStack),
         new(BlueCouch, "blue_couch", ItemKind.Furniture, FurnitureStack),
