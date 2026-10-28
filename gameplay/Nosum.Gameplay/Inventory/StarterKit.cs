@@ -21,5 +21,6 @@ public static class StarterKit
         new(ItemCatalog.Axe, 1),
         new(ItemCatalog.Pickaxe, 1),
         new(ItemCatalog.Scythe, 1),
+        new(ItemCatalog.WoodenSword, 1),
     ];
 }

@@ -821,4 +821,40 @@
   <data name="Settings_CreditsNote" xml:space="preserve"><value>The pictures in the game come from these open-licensed packs. Pack, author, license.</value></data>
   <data name="Credits_Back" xml:space="preserve"><value>Back</value></data>
   <data name="Start_ArtCredits" xml:space="preserve"><value>Art credits</value></data>
+  <data name="Hp_Label" xml:space="preserve"><value>HP {0} / {1}</value></data>
+  <data name="Mp_Label" xml:space="preserve"><value>MP {0} / {1}</value></data>
+  <data name="Skill_Combat" xml:space="preserve"><value>Combat</value></data>
+  <data name="Craft_Skill_Combat" xml:space="preserve"><value>Combat</value></data>
+  <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Not enough MP to cast!</value></data>
+  <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and revived at half HP!</value></data>
+  <data name="Combat_Skills_Aria" xml:space="preserve"><value>Combat skills</value></data>
+  <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Whirlwind</value></data>
+  <data name="Combat_Skill_Whirlwind_Tip" xml:space="preserve"><value>Whirlwind cleave (15 MP)</value></data>
+  <data name="Combat_Skill_Fireball" xml:space="preserve"><value>Fireball</value></data>
+  <data name="Combat_Skill_Fireball_Tip" xml:space="preserve"><value>Cast ranged fireball (25 MP)</value></data>
+  <data name="Combat_Skill_DivineHeal" xml:space="preserve"><value>Divine heal</value></data>
+  <data name="Combat_Skill_DivineHeal_Tip" xml:space="preserve"><value>Cast divine heal (20 MP)</value></data>
+  <data name="Combat_Combo_Badge" xml:space="preserve"><value>Combo {0}x (+{1}%)</value></data>
+  <data name="Combat_LevelUp_Badge" xml:space="preserve"><value>Level {0}!</value></data>
+  <data name="Bestiary_Heading" xml:space="preserve"><value>Monster bestiary</value></data>
+  <data name="Bestiary_Category_Regular" xml:space="preserve"><value>Regular</value></data>
+  <data name="Bestiary_Category_Boss" xml:space="preserve"><value>Boss</value></data>
+  <data name="Bestiary_Stats" xml:space="preserve"><value>HP {0} · Atk {1} · +{2} XP</value></data>
+  <data name="Bestiary_Drops" xml:space="preserve"><value>Drops: {0}, {1}</value></data>
+  <data name="Combat_Label_Portal" xml:space="preserve"><value>ANCIENT DUNGEON (FLOOR 10)</value></data>
+  <data name="Combat_Label_Elite_Flame" xml:space="preserve"><value>FLAME AURA</value></data>
+  <data name="Combat_Label_Elite_Swift" xml:space="preserve"><value>SWIFT</value></data>
+  <data name="Combat_Label_Elite_Shielded" xml:space="preserve"><value>SHIELDED</value></data>
+  <data name="Combat_Label_Elite_Vampiric" xml:space="preserve"><value>VAMPIRIC</value></data>
+  <data name="Combat_Label_Hazard_Spore" xml:space="preserve"><value>SPORE VENT</value></data>
+  <data name="Combat_Label_Hazard_Spike" xml:space="preserve"><value>SPIKE TRAP</value></data>
+  <data name="Combat_Label_Hazard_Magma" xml:space="preserve"><value>MAGMA FISSURE</value></data>
+  <data name="Combat_Label_LevelUp" xml:space="preserve"><value>LEVEL UP!</value></data>
+  <data name="Combat_Label_Crit" xml:space="preserve"><value>CRIT -{0}</value></data>
+  <data name="Combat_Label_Shrine_Vitality" xml:space="preserve"><value>VITALITY SHRINE</value></data>
+  <data name="Combat_Label_Shrine_Arcane" xml:space="preserve"><value>ARCANE OBELISK</value></data>
+  <data name="Combat_Label_Shrine_Empowerment" xml:space="preserve"><value>SANCTUARY ALTAR</value></data>
+  <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>THUNDER PYLON</value></data>
+  <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>SOLAR WAYSHRINE</value></data>
+  <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>FROST MONOLITH</value></data>
 </root>

@@ -22,6 +22,14 @@
     background: var(--nosum-ok);
 }
 
+.skill-fill.hp {
+    background: var(--nosum-danger);
+}
+
+.skill-fill.mp {
+    background: var(--nosum-warn);
+}
+
 .skill-fill.low {
     background: var(--nosum-danger);
 }

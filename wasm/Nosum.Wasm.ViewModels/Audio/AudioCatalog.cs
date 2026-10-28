@@ -73,6 +73,24 @@ public static class SoundIds
 
     /// <summary>A footstep.</summary>
     public const int Footstep = 14;
+
+    /// <summary>A sword slash (docs/adr/ADR-053).</summary>
+    public const int SwordSlash = 15;
+
+    /// <summary>An arcane staff spell cast.</summary>
+    public const int StaffCast = 16;
+
+    /// <summary>A monster takes damage.</summary>
+    public const int MonsterHit = 17;
+
+    /// <summary>A monster is defeated.</summary>
+    public const int MonsterDefeat = 18;
+
+    /// <summary>A potion is drunk.</summary>
+    public const int PotionDrink = 19;
+
+    /// <summary>A celebratory level-up fanfare (docs/adr/ADR-062).</summary>
+    public const int LevelUp = 20;
 }
 
 /// <summary>The ambient loop ids.</summary>
@@ -146,6 +164,12 @@ public static class AudioCatalog
         new(AudioKind.Sound, SoundIds.UiOpen, "ui_open.wav", 0.12),
         new(AudioKind.Sound, SoundIds.UiClose, "ui_close.wav", 0.12),
         new(AudioKind.Sound, SoundIds.Footstep, "footstep.wav", 0.2),
+        new(AudioKind.Sound, SoundIds.SwordSlash, "sword_slash.wav", 0.08),
+        new(AudioKind.Sound, SoundIds.StaffCast, "staff_cast.wav", 0.1),
+        new(AudioKind.Sound, SoundIds.MonsterHit, "monster_hit.wav", 0.1),
+        new(AudioKind.Sound, SoundIds.MonsterDefeat, "monster_defeat.wav", 0.1),
+        new(AudioKind.Sound, SoundIds.PotionDrink, "potion_drink.wav", 0.1),
+        new(AudioKind.Sound, SoundIds.LevelUp, "level_up.wav", 0.2),
         new(AudioKind.Loop, LoopIds.Rain, "rain_loop.wav"),
         new(AudioKind.Track, MusicTrackIds.For(Season.Spring, false), "music_spring_day.wav"),
         new(AudioKind.Track, MusicTrackIds.For(Season.Spring, true), "music_spring_night.wav"),
@@ -166,6 +190,8 @@ public static class AudioCatalog
         ToolKind.WateringCan => SoundIds.ToolWater,
         ToolKind.Axe => SoundIds.ToolAxe,
         ToolKind.Pickaxe => SoundIds.ToolPickaxe,
+        ToolKind.Sword => SoundIds.SwordSlash,
+        ToolKind.Staff => SoundIds.StaffCast,
         ToolKind.Scythe or ToolKind.MilkPail => SoundIds.ToolScythe,
         _ => 0,
     };

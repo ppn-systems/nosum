@@ -1,12 +1,15 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Placeables;
+using Nosum.UnitTests.Maps;
+using SkiaSharp;
 using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
@@ -182,6 +185,62 @@ public sealed class PlacedSetTests
                 view.Height.Should().BeGreaterThanOrEqualTo(view.FootprintHeight * 16, "the sprite covers its footprint");
             }
         }
+    }
+
+    [Fact]
+    public void Catalogue_EveryPlaceableView_LiesInsideItsSheetAndHasVisiblePixels()
+    {
+        foreach (PlaceableDefinition definition in PlaceableCatalog.All)
+        {
+            string sheetPath = RepoFiles.Path("assets", "sprites", definition.Sheet + ".png");
+            File.Exists(sheetPath).Should().BeTrue($"sheet {definition.Sheet}.png must exist for item {definition.ItemId}");
+            using SKBitmap bitmap = SKBitmap.Decode(sheetPath);
+            bitmap.Should().NotBeNull($"sheet {definition.Sheet}.png must decode");
+
+            for (int rotation = 0; rotation < definition.Rotations; rotation++)
+            {
+                PlaceableView view = definition.View(rotation);
+                AssertRectHasVisiblePixels(bitmap, view.SourceX, view.SourceY, view.Width, view.Height, $"item {definition.ItemId} rotation {rotation}");
+
+                if (definition.Kind == PlaceableKind.Furnace)
+                {
+                    // A working (smelting) furnace draws the next cell to the right (PlacedObjectsDecorator).
+                    AssertRectHasVisiblePixels(bitmap, view.SourceX + view.Width, view.SourceY, view.Width, view.Height, $"working furnace {definition.ItemId}");
+                }
+                else if (definition.Kind == PlaceableKind.Fence)
+                {
+                    // A placed fence auto-tiles across 16 cardinal neighbour masks in an 8 x 2 strip (PlacedObjectsDecorator).
+                    for (int mask = 0; mask < 16; mask++)
+                    {
+                        int cellX = view.SourceX + ((mask & 7) * view.Width);
+                        int cellY = view.SourceY + ((mask >> 3) * view.Height);
+                        AssertRectHasVisiblePixels(bitmap, cellX, cellY, view.Width, view.Height, $"fence {definition.ItemId} mask {mask}");
+                    }
+                }
+            }
+        }
+    }
+
+    private static void AssertRectHasVisiblePixels(SKBitmap bitmap, int sourceX, int sourceY, int width, int height, string label)
+    {
+        sourceX.Should().BeGreaterThanOrEqualTo(0, label);
+        sourceY.Should().BeGreaterThanOrEqualTo(0, label);
+        (sourceX + width).Should().BeLessThanOrEqualTo(bitmap.Width, label);
+        (sourceY + height).Should().BeLessThanOrEqualTo(bitmap.Height, label);
+
+        int visiblePixels = 0;
+        for (int y = sourceY; y < sourceY + height; y++)
+        {
+            for (int x = sourceX; x < sourceX + width; x++)
+            {
+                if (bitmap.GetPixel(x, y).Alpha > 0)
+                {
+                    visiblePixels++;
+                }
+            }
+        }
+
+        visiblePixels.Should().BeGreaterThan(0, $"{label} at ({sourceX}, {sourceY}, {width}, {height}) must not be empty");
     }
 
     [Fact]

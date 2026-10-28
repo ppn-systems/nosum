@@ -11,8 +11,8 @@ Co-author: `Co-authored-by: phcnguyen <phcnguyenz@proton.me>`
 Following the initial UI asset overhaul, a full UI/UX and code audit revealed two major classes of issues:
 
 1. **Everything Was Hidden Behind or Crammed Into Settings (`ADR-044`)**:
-   - Only `Mail` and `Settings` had icon buttons on the HUD (`Home.razor`), forcing players who did not know keyboard shortcuts (`E`, `O`, `C`, `T`, `G`, `V`, `F`, `K`, `P`) to click `Settings` (`Cài đặt`) just to access the 11-tab `GameMenu` (`Inventory`, `Wardrobe`, `Crafting`, `Trade`, `Coop`, `Visitors`, `Friends`, `Mail`, `Skills`, `Profile`, `Settings`).
-   - Inside `SettingsPanel.razor` (`Chung` / `General`), `Account` management (`Tài khoản`: signed-in status, guest upgrade, sign out) and `ArtCreditsList` (`Ghi công hình ảnh`: 9 open-licensed asset packs) were crammed together with language and tutorial settings.
+   - Only `Mail` and `Settings` had icon buttons on the HUD (`Home.razor`), forcing players who did not know keyboard shortcuts (`I`, `C`, `T`, `G`, `N`, `H`) to click `Settings` (`Cài đặt`) just to access the 11-tab `GameMenu` (`Inventory`, `Wardrobe`, `Crafting`, `Trade`, `Coop`, `Visitors`, `Friends`, `Mail`, `Skills`, `Profile`, `Settings`).
+   - Inside `SettingsPanel.razor` (`Chung` / `General`), `Account` management (`Tài khoản`: signed-in status, guest upgrade, sign out) and `ArtCreditsList` (`Ghi công hình ảnh`: 26 open-licensed asset packs) were crammed together with language and tutorial settings.
 2. **UI Layout & Visual Bugs**:
    - **`GameSlider.razor` 3-Column Grid Misalignment**: Adding `<GameIcon>` as a direct child of `.game-slider` (`grid-template-columns: minmax(calc(var(--u) * 44), auto) 1fr calc(var(--u) * 18)`) created 4 grid items in a 3-column grid, pushing the percentage value (`70%`) onto a second row.
    - **Obsolete Sound Placeholder Note**: `SettingsPanel.razor` still rendered `Settings_SoundNote` (*"Âm thanh sẽ có ở bản sau. Mức âm lượng bạn chọn được lưu sẵn trên máy này."*), even though Web Audio (`SoundBank` / `audio.js`) is already live.
@@ -37,7 +37,7 @@ All screenshots below were captured from the live Chromium browser instance via 
 
 | Separated Window / Tab | Screenshot (1280 × 720) | What Changed |
 | :--- | :--- | :--- |
-| **Standalone Crafting (`Chế tạo`)** | ![Crafting 1280x720](ui-overhaul-panel-crafting-1280x720.png) | Opens as its own standalone `TradeDialog` window directly from the HUD crafting button (`C`), with active gold frame highlight on the HUD icon. |
+| **Standalone Crafting (`Chế tạo`)** | ![Crafting 1280x720](ui-overhaul-panel-crafting-1280x720.png) | Opens as its own standalone `TradeDialog` window directly from the HUD crafting button, with active gold frame highlight on the HUD icon. |
 | **Standalone Profile & Account (`Hồ sơ` & `Tài khoản`)** | ![Profile 1280x720](ui-overhaul-panel-profile-1280x720.png) | `Tài khoản` (signed-in status, guest `Đăng ký ngay` upgrade button, `Đăng xuất` sign-out button) moved out of `Settings` into `Hồ sơ`. |
 | **Standalone Mail (`Thư`)** | ![Mail 1280x720](ui-overhaul-panel-mail-1280x720.png) | Opens as its own standalone `TradeDialog` window (`Thư`) without any multi-tab menu bar. |
 | **Settings — General (`Chung`)** | ![Settings General 1280x720](ui-overhaul-settings-general-1280x720.png) | Holds only `Ngôn ngữ` (`Tiếng Việt` / `English`) and `Gợi ý cho người mới` (`Hiện gợi ý khi chơi` / `Xem lại từ đầu`). All 5 sub-tabs fit on 1 row. |

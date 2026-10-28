@@ -36,13 +36,13 @@ Frame loop and drawing: `render-interop`. Transport internals: `nalix-client-sdk
 - `wasm/Nosum.Wasm/wwwroot/index.html` — host page; `<base href="/">` must match the deploy path
   because the render module is imported by absolute URL.
 
-## Theme and layout (ADR-016, amended by ADR-017)
+## Theme and layout (ADR-016, amended by ADR-017 and ADR-044)
 
 - **Use the shared controls; never hand-roll UI.** Frames, buttons, fields, slots, tabs, sections, swatches, key caps, notices, badges, icons and spinners are the controls in
-  `Nosum.Wasm.Controls/Common` (`GamePanel`, `GameButton`, `GameInput` in a `GameField`, `GameSection` (a recessed card), `ItemGrid`/`ItemSlotButton`, `GameSwatch`, `GameKey`, `GameIcon`, `GameIconButton`,
-  `GameNotice`, `GameBadge`, `GameSpinner`) and `Controls/Menu` (`GameMenu`, `MenuPage`). No raw `<button>`, `<input>` or styled `<div>` panel in a page or panel. Need something new? Add a shared control.
-- **One game menu.** Features are pages of the menu, not windows: a page is a `MenuPage` (content + status line); the window, title and close button are `GameMenu`'s. A new tab = one entry in `ToolbarViewModel.Items`
-  (kind, label, key, `tab-*` sprite), one `case` in `Home.razor`, one sprite in `nosum-theme.js`. The HUD stays near-empty: coins, gear, quest tracker, hotbar, a fading one-line message, the arrange key strip.
+  `Nosum.Wasm.Controls/Common` (`GamePanel`, `TradeDialog`, `GameButton`, `GameInput` in a `GameField`, `GameSection` (a recessed card), `ItemGrid`/`ItemSlotButton`, `GameSwatch`, `GameKey`, `GameIcon`, `GameIconButton`,
+  `GameNotice`, `GameBadge`, `GameSpinner`) and `Controls/Menu` (`MenuPage`). No raw `<button>`, `<input>` or styled `<div>` panel in a page or panel. Need something new? Add a shared control.
+- **Standalone windows.** Every feature opens in `Center` as its own standalone `TradeDialog` window wrapping a `MenuPage` (content + status line), never crammed into a shared multi-tab menu (`ADR-044`). A new panel = one entry in `ToolbarViewModel.Items`
+  (kind, label, key, `tab-*` sprite), one `case` in `Home.razor`, one sprite in `nosum-theme.js`.
 - **No colours, fonts or borders in panel or page CSS.** Panel CSS is layout only, in UI pixels: `calc(var(--u) * n)`; spacing on the grid (2 u inside a group, 4 u between groups). Colours and sizes come from the `--nosum-*`
   variables in `wwwroot/nosum-theme.css`; sprites from `--nosum-img-*` (the rectangle table is in `wwwroot/nosum-theme.js`, art is linked from `assets/`, ADR-007).
 - **Pixel rule.** `--u` = one world pixel (`round(width / 416)`, set by `nosum-theme.js`), never a fractional multiple; art is `image-rendering: pixelated`. Text is VT323 at `12.5 * --tp` px (title `tp + 1`, body `tp`, small),

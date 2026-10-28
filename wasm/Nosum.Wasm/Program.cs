@@ -18,6 +18,7 @@ using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Chat;
 using Nosum.Wasm.Socket.Chest;
+using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Crafting;
 using Nosum.Wasm.Socket.Friends;
@@ -51,7 +52,6 @@ using Nosum.Wasm.ViewModels.Furnace;
 using Nosum.Wasm.ViewModels.Mail;
 using Nosum.Wasm.ViewModels.Visit;
 using Nosum.Wasm.ViewModels.Feedback;
-using Nosum.Wasm.ViewModels.Help;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Localization;
 using Nosum.Wasm.ViewModels.Looks;
@@ -119,6 +119,7 @@ internal static class Program
         builder.Services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton<GroundItemChannel>();
         builder.Services.AddSingleton(sp => new ProgressChannel(sp.GetRequiredService<IGameSocket>()));
+        builder.Services.AddSingleton(sp => new CombatChannel(sp.GetRequiredService<IGameSocket>()));
         builder.Services.AddSingleton<QuestChannel>();
         builder.Services.AddSingleton<WalletChannel>();
         builder.Services.AddSingleton<CalendarChannel>();
@@ -156,8 +157,11 @@ internal static class Program
         builder.Services.AddSingleton<ElevatorViewModel>();
         builder.Services.AddSingleton<RequestsViewModel>();
         builder.Services.AddSingleton<GoalsViewModel>();
-        builder.Services.AddSingleton<HelpViewModel>();
-        builder.Services.AddSingleton<ProgressViewModel>();
+        builder.Services.AddSingleton(sp => new ProgressViewModel(
+            sp.GetRequiredService<ProgressChannel>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>(),
+            sp.GetRequiredService<CombatChannel>(),
+            sp.GetRequiredService<IStringLocalizer<Catalogue>>()));
         builder.Services.AddSingleton<WalletViewModel>();
         builder.Services.AddSingleton<CalendarViewModel>();
         builder.Services.AddSingleton<MarketViewModel>();
@@ -215,6 +219,8 @@ internal static class Program
         GameLoop.UseFarming(farm, inventory, market);
         GameLoop.UseCoop(coop);
         GameLoop.UseProgress(host.Services.GetRequiredService<ProgressChannel>());
+        CombatChannel combat = host.Services.GetRequiredService<CombatChannel>();
+        GameLoop.UseCombat(combat, host.Services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(host.Services.GetRequiredService<CalendarChannel>());
         GameLoop.UseLooks(looks, host.Services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
@@ -239,6 +245,7 @@ internal static class Program
         keeper.Authenticated += coop.Load;
         // The unread-mail badge on the gear is live from sign-in: read the mailbox once, then the server pushes every change.
         keeper.Authenticated += host.Services.GetRequiredService<MailChannel>().Load;
+        keeper.Authenticated += combat.LoadVitals;
         channel.Joined += _ =>
         {
             farm.Load();
@@ -246,6 +253,8 @@ internal static class Program
             furnaces.Load();
             nodes.Load();
             groundItems.Load();
+            combat.LoadVitals();
+            combat.LoadMonsters();
         };
         channel.Joined += _ => looks.Load();
         // Farm buildings (docs/adr/ADR-028): a farm lists its buildings (those still under construction are drawn dull); inside one, the animals are read.

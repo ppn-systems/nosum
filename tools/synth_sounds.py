@@ -104,6 +104,13 @@ def build():
     sounds["ui_open"] = normalise(sine(500, 0.14, 1.0, release=0.8, glide=0.9), 0.4)
     sounds["ui_close"] = normalise(sine(800, 0.14, 1.0, release=0.8, glide=-0.5), 0.4)
 
+    # Combat (docs/adr/ADR-053): sword slash, arcane staff cast, monster damage hit, monster defeat poof burst, potion drink.
+    sounds["sword_slash"] = normalise(mix(noise(0.12, rng, release=0.8, attack=0.005, lowpass=0.45, highpass=0.15), sine(800, 0.14, 0.9, release=0.8, glide=-0.6)), 0.75)
+    sounds["staff_cast"] = normalise(mix(sine(440, 0.22, 0.8, release=0.7, glide=0.8), sine(880, 0.18, 0.6, release=0.8, glide=-0.3), noise(0.18, rng, release=0.7, lowpass=0.25)), 0.7)
+    sounds["monster_hit"] = normalise(mix(noise(0.15, rng, release=0.7, lowpass=0.2), sine(130, 0.16, 0.9, release=0.7, glide=-0.5)), 0.8)
+    sounds["monster_defeat"] = normalise(mix(noise(0.35, rng, release=0.6, attack=0.01, lowpass=0.3), sine(160, 0.28, 0.9, release=0.6, glide=-0.7)), 0.85)
+    sounds["potion_drink"] = normalise(mix(sine(360, 0.1, 0.7, release=0.7, glide=0.4), sine(480, 0.14, 0.8, release=0.7, glide=0.3), offsets=[0.0, 0.08]), 0.65)
+
     # Rain: soft filtered noise, a few seconds long; the tail is cross-faded into the head so the loop has no seam.
     loop = noise(3.0, rng, release=None, attack=0.0, lowpass=0.55, highpass=0.08)
     fade = seconds(0.25)
@@ -111,6 +118,18 @@ def build():
         w = i / fade
         loop[i] = loop[i] * w + loop[len(loop) - fade + i] * (1.0 - w)
     sounds["rain_loop"] = normalise(loop[: len(loop) - fade], 0.5)
+
+    # Celebratory level-up fanfare (docs/adr/ADR-062): ascending four-note major arpeggio (C5 - E5 - G5 - C6).
+    sounds["level_up"] = normalise(
+        mix(
+            sine(523.25, 0.14, 0.75, release=0.6),
+            sine(659.25, 0.14, 0.80, release=0.6),
+            sine(783.99, 0.14, 0.85, release=0.6),
+            sine(1046.50, 0.36, 0.95, release=0.7),
+            offsets=[0.0, 0.09, 0.18, 0.27],
+        ),
+        0.85,
+    )
     return sounds
 
 

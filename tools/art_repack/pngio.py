@@ -94,8 +94,8 @@ def read_png(path):
         pos += 12 + length
         if kind == b'IHDR':
             width, height, depth, ctype, _, _, interlace = struct.unpack('>IIBBBBB', body)
-            if depth != 8 or interlace != 0:
-                raise ValueError(path + ': only 8-bit non-interlaced PNGs are supported')
+            if interlace != 0 or not (depth == 8 or (ctype == 3 and depth in (1, 2, 4))):
+                raise ValueError(path + ': only non-interlaced 8-bit (or 1/2/4-bit palette) PNGs are supported')
         elif kind == b'PLTE':
             palette = [tuple(body[i:i + 3]) for i in range(0, len(body), 3)]
         elif kind == b'tRNS':
@@ -106,7 +106,7 @@ def read_png(path):
             break
     channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[ctype]
     raw = zlib.decompress(idat)
-    stride = width * channels
+    stride = (width * depth + 7) // 8 if depth < 8 else width * channels
     rows = []
     prev = bytearray(stride)
     p = 0
@@ -131,6 +131,7 @@ def read_png(path):
         rows.append(line)
         prev = line
     img = Image(width, height)
+    mask = (1 << depth) - 1
     for y, line in enumerate(rows):
         for x in range(width):
             o = x * channels
@@ -143,8 +144,9 @@ def read_png(path):
             elif ctype == 4:
                 px = (line[o], line[o], line[o], line[o + 1])
             else:
-                r, g, b = palette[line[o]]
-                px = (r, g, b, trns[line[o]] if line[o] < len(trns) else 255)
+                idx = line[o] if depth == 8 else (line[(x * depth) >> 3] >> (8 - depth - ((x * depth) & 7))) & mask
+                r, g, b = palette[idx]
+                px = (r, g, b, trns[idx] if idx < len(trns) else 255)
             img.px[y][x] = px if px[3] else TRANSPARENT
     return img
 

@@ -99,7 +99,11 @@ public static class GameMaps
     [
         new(Farm, "Farm.tmx", FarmProps.FarmhouseDoorFront.X, FarmProps.FarmhouseDoorFront.Y, FarmProps.Placements, [s_farmhouseDoor], [new MapWarp(s_farmhouseDoor.X, s_farmhouseDoor.Y, FarmHouse, 3, 11)], farmable: true, isPrivate: true, placeable: true),
         new(FarmHouse, "Farmhouse.tmx", 3, 11, isPrivate: true, placeable: true, indoors: true),
-        new(BusStop, "Crossroads.tmx", 11, 23),
+        new(BusStop, "Crossroads.tmx", 11, 23,
+            extraWarps:
+            [
+                new MapWarp(22, 14, RoomOfFloor(10), 10, 6),
+            ]),
         new(Forest, "Forest.tmx", 68, 0),
         new(Town, "Town.tmx", 4, 54, shops:
         [

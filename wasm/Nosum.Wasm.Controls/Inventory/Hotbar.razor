@@ -16,6 +16,21 @@
         </GamePanel>
         @if (Progress is not null)
         {
+            <GamePanel Class="hud strip" Role="toolbar" Title="">
+                <GameRow Class="center">
+                    <GameButton Variant="plain" Title="@Progress.WhirlwindTip" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /> @Progress.WhirlwindLabel</GameButton>
+                    <GameButton Variant="plain" Title="@Progress.FireballTip" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /> @Progress.FireballLabel</GameButton>
+                    <GameButton Variant="plain" Title="@Progress.DivineHealTip" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /> @Progress.DivineHealLabel</GameButton>
+                    @if (Progress.CurrentCombo > 1)
+                    {
+                        <GameBadge Kind="warn" Text="@Progress.ComboBadgeText" />
+                    }
+                    @if (Progress.IsLevelUpActive)
+                    {
+                        <GameBadge Kind="ok" Text="@Progress.LevelUpBadgeText" />
+                    }
+                </GameRow>
+            </GamePanel>
             @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@
             <EnergyBar Vm="Progress" />
         }

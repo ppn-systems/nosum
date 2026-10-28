@@ -54,6 +54,11 @@
     align-items: flex-start;
 }
 
+.hud-top-left:empty,
+.game-hud:has(.hud-center > *) .hud-top-left {
+    display: none;
+}
+
 .hud-top-center {
     flex: 1 1 0;
     align-items: center;
@@ -91,14 +96,14 @@
     z-index: 1;
     align-items: center;
     justify-content: flex-start;
-    padding: max(var(--nosum-gutter), calc(var(--nosum-gutter) + var(--u) * 24), calc((100vh - var(--nosum-menu-h)) / 2)) var(--nosum-gutter) var(--nosum-gutter);
+    padding: max(calc(var(--nosum-gutter) + var(--nosum-hud-top-h)), calc((100vh - var(--nosum-menu-h)) / 2)) var(--nosum-gutter) var(--nosum-gutter);
     box-sizing: border-box;
     pointer-events: none;
 }
 
 @media (max-height: 500px) {
     .hud-center {
-        padding-top: var(--nosum-gutter);
+        padding-top: calc(var(--nosum-gutter) + var(--nosum-hud-top-h));
     }
 }
 

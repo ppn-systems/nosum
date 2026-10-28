@@ -68,8 +68,22 @@ console errors.
   of the public release branch.
 - Own music and sound effects.
 
-**Status (2026-10-26): the art is done in the repository (ADR-042); the audio is not.** The repository holds no early art, but its git
-history still does. A public release needs a history without it: the owner's decision (`docs/ops/README.md`).
+## M7 — MMORPG Combat, Monsters, and Wilderness Co-op (Complete — ADR-045..054)
+
+- Real-time server-authoritative combat with zero allocations in the frame loop (ADR-045).
+- Player HP & MP vitals gauges, Combat skill XP progression, weapons, and potions (ADR-045).
+- Monster species: Green/Frost/Magma Slimes, Cave Bat, Spore Shroom, Goblin Scout, Skeleton Warrior, Stone Golem (ADR-045).
+- Monster AI roaming, aggro pursuit, and contact attack damage (ADR-046).
+- Milestone dungeon floor bosses (Cave Broodmother, Goblin Chieftain, Magma Colossus, Golem King) with multi-phase vitals, enrage AI, and legendary trophies (ADR-047).
+- Arcane magic projectiles with zero-allocation trajectory interpolation and sparkle bursts (ADR-048).
+- Armor equipment paperdoll defense mitigation and craftable battle gear (LeatherArmor, IronChestplate, Greaves, Helmet, BossCrown) (ADR-049).
+- Defeat death poof smoke, dust, and explosion particle animations (ADR-050).
+- Status effects: Elixir health regeneration, monster poison debuffs, and dynamic HUD visual auras (ADR-051).
+- Co-op party combat and proximity shared Combat XP across shared instances (ADR-052).
+- Synthesized 16-bit PCM combat sound effects (slashes, spell blasts, hits, defeat poofs, potions) (ADR-053).
+- Full system audit, stress verification, and comprehensive test suite validation (ADR-054).
+
+**Status (2026-10-28): Art, audio, and MMORPG combat systems are complete and verified across 10 rounds.**
 
 ## Rules for every wave
 

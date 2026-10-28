@@ -69,6 +69,9 @@ public static class LookPalette
         ItemCatalog.ShirtRed => new(1, White),
         ItemCatalog.ShirtGreen => new(11, White),
         ItemCatalog.ShirtBlue => new(7, White),
+        ItemCatalog.LeatherArmor => new(3, unchecked((int)0x8B5A2BFF)),
+        ItemCatalog.RangerTunic => new(11, unchecked((int)0x92400EFF)),
+        ItemCatalog.IronChestplate => new(7, unchecked((int)0x94A3B8FF)),
         _ => PlainShirt,
     };
 
@@ -79,6 +82,7 @@ public static class LookPalette
     {
         ItemCatalog.PantsBlue => new(0, unchecked((int)0x3E5F8AFF)),
         ItemCatalog.PantsKhaki => new(0, unchecked((int)0xC2B280FF)),
+        ItemCatalog.IronGreaves => new(0, unchecked((int)0x64748BFF)),
         _ => PlainPants,
     };
 
@@ -95,6 +99,12 @@ public static class LookPalette
                 return true;
             case ItemCatalog.HatCap:
                 sprite = new ClothingSprite(5, White);
+                return true;
+            case ItemCatalog.IronHelmet:
+                sprite = new ClothingSprite(5, unchecked((int)0x94A3B8FF));
+                return true;
+            case ItemCatalog.BossCrown:
+                sprite = new ClothingSprite(3, unchecked((int)0xFACC15FF));
                 return true;
             default:
                 sprite = default;

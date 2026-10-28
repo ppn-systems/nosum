@@ -26,11 +26,11 @@ internal static class TownSheet
         Door(Area.Of(canvas, 3));
 
         Roof(Area.Of(canvas, 4), true, false, true, false);
-        Roof(Area.Of(canvas, 5), true, false, false, false);
-        Roof(Area.Of(canvas, 6), true, true, false, false);
-        Roof(Area.Of(canvas, 7), false, false, true, true);
-        Roof(Area.Of(canvas, 8), false, false, false, true);
-        Roof(Area.Of(canvas, 9), false, true, false, true);
+        Roof(Area.Of(canvas, 5), false, false, true, false);
+        Roof(Area.Of(canvas, 6), true, false, false, true);
+        Roof(Area.Of(canvas, 7), false, false, false, true);
+        Roof(Area.Of(canvas, 8), false, true, false, true);
+        Roof(Area.Of(canvas, 9), false, true, true, false);
 
         Chimney(Area.Of(canvas, 10));
         Sign(Area.Of(canvas, 11));
@@ -229,6 +229,7 @@ internal static class TownSheet
     // A signboard on two hooks, with painted lines.
     private static void Sign(Area area)
     {
+        Plaster(area);
         area.Wood(1, 4, 14, 9, true, 50);
         area.Fill(4, 6, 8, 1, Palette.Yellow.Base);
         area.Fill(3, 9, 6, 1, Palette.Yellow.Base);
@@ -242,6 +243,7 @@ internal static class TownSheet
 
     private static void Counter(Area area, int end)
     {
+        Plaster(area);
         area.Wood(0, 9, 16, 7, true, 60);
         for (int x = 3; x < 16; x += 5)
         {
@@ -344,6 +346,8 @@ internal static class TownSheet
 
         area.Fill(7, 6, 2, 10, Palette.Stone.Shade);
         area.Fill(7, 6, 1, 10, Palette.Stone.Base);
+        area.Bevel(5, 13, 6, 3, Palette.Stone);
+        area.Frame(5, 13, 6, 3, Palette.Outline);
         area.Bevel(5, 1, 6, 5, Palette.Stone);
         area.Frame(5, 1, 6, 5, Palette.Outline);
         area.Fill(6, 2, 4, 3, lit ? Palette.Yellow.Light : Palette.Yellow.Shade);
@@ -469,14 +473,12 @@ internal static class TownSheet
 
     private static void Pillar(Area area)
     {
-        area.Bevel(5, 0, 6, 16, Palette.Stone);
-        area.Fill(6, 0, 1, 16, Palette.Stone.Light);
-        area.Fill(8, 0, 2, 16, Shading.Mix(Palette.Stone.Base, Palette.Stone.Shade, 90));
-        area.Fill(4, 0, 8, 2, Palette.Stone.Light);
-        area.Fill(4, 14, 8, 2, Palette.Stone.Base);
-        area.Frame(5, 2, 6, 12, Palette.Outline);
-        area.Frame(4, 0, 8, 2, Palette.Outline);
-        area.Frame(4, 14, 8, 2, Palette.Outline);
+        Plaster(area);
+        Door(area);
+        area.Bevel(0, 0, 2, 16, Palette.Stone);
+        area.Bevel(14, 0, 2, 16, Palette.Stone);
+        area.Frame(0, 0, 2, 16, Palette.Outline);
+        area.Frame(14, 0, 2, 16, Palette.Outline);
     }
 
     // A hanging shop sign on its bracket.

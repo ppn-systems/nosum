@@ -30,7 +30,7 @@
     <Content Include="..\..\assets\sprites\buildings\farmhouse.png;..\..\assets\sprites\buildings\greenhouse.png;..\..\assets\sprites\buildings\shipping_bin.png;..\..\assets\sprites\buildings\coop.png;..\..\assets\sprites\buildings\barn.png" Link="wwwroot\assets\sprites\buildings\%(Filename)%(Extension)" />
     <Content Include="..\..\assets\sprites\animals\chicken.png;..\..\assets\sprites\animals\cow.png" Link="wwwroot\assets\sprites\animals\%(Filename)%(Extension)" />
     <Content Include="..\..\assets\sprites\npcs\*.png" Link="wwwroot\assets\sprites\npcs\%(Filename)%(Extension)" />
-    <Content Include="..\..\assets\sprites\crops.png;..\..\assets\sprites\tools.png;..\..\assets\sprites\weapons.png;..\..\assets\sprites\furniture.png;..\..\assets\sprites\craftables.png;..\..\assets\sprites\soil.png" Link="wwwroot\assets\sprites\%(Filename)%(Extension)" />
+    <Content Include="..\..\assets\sprites\crops.png;..\..\assets\sprites\tools.png;..\..\assets\sprites\weapons.png;..\..\assets\sprites\monsters.png;..\..\assets\sprites\furniture.png;..\..\assets\sprites\craftables.png;..\..\assets\sprites\soil.png" Link="wwwroot\assets\sprites\%(Filename)%(Extension)" />
     <Content Include="..\..\assets\sprites\trees\oak.png;..\..\assets\sprites\trees\maple.png;..\..\assets\sprites\trees\pine.png" Link="wwwroot\assets\sprites\trees\%(Filename)%(Extension)" />
   </ItemGroup>
 

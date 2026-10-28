@@ -30,7 +30,8 @@ internal static class NatureSheet
         Bush(Area.Of(canvas, 8), 2);
 
         Area.Of(canvas, 9).Canopy([(6.5, 11, 3.5), (10.5, 10, 4.5)], Palette.StoneRamp, 9);
-        Area.Of(canvas, 10, 2).Canopy([(9, 9, 6), (18, 8, 7), (25, 10, 5.5), (15, 10, 5.5)], Palette.StoneRamp, 10);
+        Area.Of(canvas, 10).Canopy([(5.5, 10, 4.8), (10, 9.5, 5), (8, 7.5, 4.5)], Palette.StoneRamp, 10);
+        Area.Of(canvas, 11).Canopy([(6, 10.5, 4.5), (10.5, 9, 4.8), (7.5, 8, 4.2)], Palette.StoneRamp, 11);
         Stump(Area.Of(canvas, 12));
         Log(Area.Of(canvas, 13));
 
@@ -285,7 +286,7 @@ internal static class NatureSheet
         area.Fill(x, y + height, 3, 1, Palette.Shadow);
     }
 
-    // A straight run: two rails across the tile between posts at its ends.
+    // A straight run: two horizontal rails across the tile between posts, or a continuous vertical rail with a wider post.
     private static void Straight(Area area, bool horizontal)
     {
         if (horizontal)
@@ -297,12 +298,8 @@ internal static class NatureSheet
             return;
         }
 
-        Rail(area, 3, 0, 16, false, 142);
-        Rail(area, 10, 0, 16, false, 143);
-        FencePost(area, 3, 1, 3);
-        FencePost(area, 10, 1, 3);
-        FencePost(area, 3, 12, 3);
-        FencePost(area, 10, 12, 3);
+        Rail(area, 6, 0, 16, false, 142);
+        CenterPost(area, north: true, south: true);
     }
 
     // A corner post at the middle with rails to the sides named.
@@ -310,29 +307,60 @@ internal static class NatureSheet
     {
         if (north)
         {
-            Rail(area, 6, 0, 8, false, 144);
+            Rail(area, 6, 0, 9, false, 144);
         }
 
         if (south)
         {
-            Rail(area, 6, 8, 8, false, 145);
+            Rail(area, 6, 7, 9, false, 145);
         }
 
         if (east)
         {
-            Rail(area, 8, 5, 8, true, 146);
+            Rail(area, 8, 4, 8, true, 146);
+            Rail(area, 8, 9, 8, true, 152);
         }
 
         if (west)
         {
-            Rail(area, 0, 5, 8, true, 147);
+            Rail(area, 0, 4, 8, true, 147);
+            Rail(area, 0, 9, 8, true, 153);
         }
 
-        FencePost(area, 5, 3, 8);
+        CenterPost(area, north, south);
+    }
+
+    // A 5px-wide post centered on x = 5..9 (over the 3px vertical rail at x = 6..8) that keeps vertical rails continuous.
+    private static void CenterPost(Area area, bool north, bool south)
+    {
+        area.Wood(5, 2, 5, 11, false, 136);
+        area.Fill(5, 2, 5, 1, Palette.Outline);
+        area.Fill(6, 3, 3, 2, Palette.Wood.Light);
+        area.Fill(5, 13, 5, 1, Palette.Outline);
+        if (!south)
+        {
+            area.Fill(5, 14, 5, 1, Palette.Shadow);
+        }
+        else
+        {
+            // Keep the vertical rail flowing cleanly into the south neighbour without a black cut across x = 6..8.
+            area.Put(6, 13, Palette.Wood.Light);
+            area.Put(7, 13, Palette.Wood.Base);
+            area.Put(8, 13, Palette.Wood.Shade);
+        }
+
+        if (north)
+        {
+            area.Put(6, 2, Palette.Wood.Light);
+            area.Put(7, 2, Palette.Wood.Base);
+            area.Put(8, 2, Palette.Wood.Shade);
+        }
     }
 
     private static void Gate(Area area)
     {
+        Rail(area, 6, 0, 3, false, 154);
+        Rail(area, 6, 13, 3, false, 155);
         FencePost(area, 1, 2, 12);
         FencePost(area, 12, 2, 12);
         Rail(area, 0, 4, 4, true, 148);

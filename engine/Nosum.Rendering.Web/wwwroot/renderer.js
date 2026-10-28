@@ -31,6 +31,7 @@ const FIXED_EDGES = {
     Digit1: 2, Digit2: 4, Digit3: 8, Digit4: 16, Digit5: 32, Digit6: 64, Digit7: 128, Digit8: 256, Digit9: 512,
     Numpad1: 2, Numpad2: 4, Numpad3: 8, Numpad4: 16, Numpad5: 32, Numpad6: 64, Numpad7: 128, Numpad8: 256, Numpad9: 512,
     Escape: 262144,
+    KeyZ: 2097152, KeyX: 4194304, KeyV: 8388608,
 };
 
 // The names are Nosum.Wasm.ViewModels.Settings.GameAction.
@@ -173,7 +174,7 @@ export async function loadTexture(id, url) {
 // Renders a text label once into a bitmap: the glyph shape is thresholded to hard pixels (no soft edges) and
 // outlined in black, so a nickname stays crisp when the world scale magnifies it. Called when a name arrives,
 // never from the frame; the frame only draws the bitmap by id (command texture -3).
-const LABEL_FILL = ["#ffffff", "#ffe08a"];
+const LABEL_FILL = ["#ffffff", "#ffe08a", "#ff5757", "#63c74d", "#c084fc"];
 const LABEL_FONT = "bold 11px 'Segoe UI', system-ui, sans-serif";
 
 export function registerLabel(id, text, style) {

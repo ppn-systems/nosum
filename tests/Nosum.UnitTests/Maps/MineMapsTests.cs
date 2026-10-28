@@ -60,6 +60,12 @@ public sealed class MineMapsTests
         warps.Should().Contain(new MapWarp(MineWorld.CaveShaft.X, MineWorld.CaveShaft.Y, "mine1", MineLayouts.For(1).SpawnX, MineLayouts.For(1).SpawnY));
         warps.Should().Contain(w => w.TargetMap == GameMaps.Mountain && w.TargetX == MineWorld.MountainArrival.X && w.TargetY == MineWorld.MountainArrival.Y && w.FromX == MineWorld.CaveMountainExit.X && w.FromY == MineWorld.CaveMountainExit.Y);
         warps.Where(w => w.TargetMap == GameMaps.Mountain).Should().ContainSingle("the file's own two exits to the Mountain are replaced by one of ours");
+
+        // The shaft tile displays the ladder (cave tile 32, GID 33) and cave walls bordering the floor use directional edge tiles (cave 16..31).
+        int[] back = map.FindLayer("Back")!.Gids;
+        int[] walls = map.FindLayer("Buildings")!.Gids;
+        back[(MineWorld.CaveShaft.Y * map.Width) + MineWorld.CaveShaft.X].Should().Be(33, "the shaft to Floor 1 must display the cave ladder tile");
+        walls.Where(g => g != 0).Select(g => g - 1).Should().Contain(t => t >= 16 && t <= 31, "cave walls next to open floor use directional bevelled edge tiles");
     }
 
     [Fact]

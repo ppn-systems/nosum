@@ -69,6 +69,7 @@
     --nosum-menu-w: calc(var(--u) * 200);
     --nosum-menu-h: calc(var(--u) * 186);
     --nosum-menu-min-h: calc(var(--u) * 64);
+    --nosum-hud-top-h: calc(var(--u) * 28 + clamp(0px, calc((var(--u) * 312 - 100vw) * 999), calc(var(--u) * 54)) + clamp(0px, calc((var(--u) * 200 - 100vw) * 999), calc(var(--u) * 28)));
 }
 
 html,

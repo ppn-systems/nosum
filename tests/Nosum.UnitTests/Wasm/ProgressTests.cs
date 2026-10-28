@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -209,6 +210,48 @@ public sealed class ProgressTests
         FakeGameSocket socket = new();
         (GameMessagesViewModel messages, _, _, _) = CreateMessages(socket);
         return (messages, socket);
+    }
+
+    [Theory]
+    [InlineData("en", "Broodmother", "Green slime", "Boss")]
+    [InlineData("vi", "Chúa nhện hang sâu", "Slime xanh", "Thủ lĩnh")]
+    public void Bestiary_ContainsAllMonsterCatalogSpecies_AndFollowsTheLanguage(string culture, string expectedBoss, string expectedRegular, string expectedBossCategory)
+    {
+        using CultureScope scope = new(culture);
+        FakeGameSocket socket = new();
+        using ProgressChannel channel = new(socket);
+        using ProgressViewModel vm = new(channel, Localizer<Language>(), null, Localizer<Catalogue>());
+
+        IReadOnlyList<BestiaryEntryDisplay> bestiary = vm.BestiaryEntries;
+        bestiary.Should().HaveCount(12);
+        bestiary.Count(b => b.IsBoss).Should().Be(4);
+        bestiary.Should().Contain(b => b.Name == expectedBoss && b.Category == expectedBossCategory && b.IsBoss);
+        bestiary.Should().Contain(b => b.Name == expectedRegular && !b.IsBoss);
+        bestiary.Should().OnlyContain(b => !b.Name.StartsWith("Monster_", StringComparison.Ordinal) && !b.PrimaryDrop.StartsWith("Item_", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CombatChannel_TriggerLevelUp_ActivatesRadianceBeaconAndHudBadge()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        using ProgressChannel progress = new(socket);
+        using Nosum.Wasm.Socket.Combat.CombatChannel combat = new(socket);
+        using ProgressViewModel vm = new(progress, Localizer<Language>(), combat, Localizer<Catalogue>());
+
+        int celebrated = 0;
+        combat.LevelledUp += lvl => celebrated = lvl;
+        combat.SetLocalPosition(10, 9);
+        combat.TriggerLevelUp(2);
+
+        celebrated.Should().Be(2);
+        vm.IsLevelUpActive.Should().BeTrue();
+        vm.ActiveLevelUpValue.Should().Be(2);
+        vm.LevelUpBadgeText.Should().Be("Level 2!");
+        combat.TryGetActiveLevelUp(Environment.TickCount64, out float prog, out int lvlOut, out int px, out int py).Should().BeTrue();
+        lvlOut.Should().Be(2);
+        (px, py).Should().Be((10, 9));
+        prog.Should().BeInRange(0f, 1f);
     }
 
     [SuppressMessage("Reliability", "CA2000", Justification = "The channels live as long as the test; the view model that owns the subscriptions is disposed by the test.")]

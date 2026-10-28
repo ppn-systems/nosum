@@ -54,6 +54,24 @@ public static class ItemCatalog
     /// <summary>The iron pickaxe: three hits' worth of damage per swing.</summary>
     public const int IronPickaxe = 23;
 
+    /// <summary>A wooden sword for basic melee combat (docs/adr/ADR-045).</summary>
+    public const int WoodenSword = 30;
+
+    /// <summary>A bronze sword forged from copper and wood.</summary>
+    public const int BronzeSword = 31;
+
+    /// <summary>An iron sword forged from iron and coal.</summary>
+    public const int IronSword = 32;
+
+    /// <summary>A steel broadsword forged from iron and monster bone.</summary>
+    public const int SteelSword = 33;
+
+    /// <summary>A gilded blade forged from golem cores and treasure gems.</summary>
+    public const int GoldSword = 34;
+
+    /// <summary>An arcane staff that channels mana into magical bolts.</summary>
+    public const int ArcaneStaff = 35;
+
     /// <summary>Parsnip seeds.</summary>
     public const int ParsnipSeeds = 100;
 
@@ -324,6 +342,21 @@ public static class ItemCatalog
     /// <summary>A bowl of pumpkin soup.</summary>
     public const int PumpkinSoup = 702;
 
+    /// <summary>A health potion brewed from slime gel and berries; restores HP (docs/adr/ADR-045).</summary>
+    public const int HealthPotion = 710;
+
+    /// <summary>A mana potion brewed from spore caps and mana crystals; restores MP (docs/adr/ADR-045).</summary>
+    public const int ManaPotion = 711;
+
+    /// <summary>A golden elixir that restores HP, MP and energy (docs/adr/ADR-045).</summary>
+    public const int Elixir = 712;
+
+    /// <summary>An ancient ruby-bound spell grimoire that restores mana and grants Swiftness (docs/adr/ADR-065).</summary>
+    public const int ArcaneGrimoire = 713;
+
+    /// <summary>A radiant crimson vitality crystal that restores HP, MP, and grants enhanced Regeneration (docs/adr/ADR-065).</summary>
+    public const int HeartCrystal = 714;
+
     /// <summary>An egg, a chicken's produce (docs/adr/ADR-028 D3; animal produce is ids 900-949).</summary>
     public const int Egg = 900;
 
@@ -339,6 +372,51 @@ public static class ItemCatalog
     /// <summary>Hay, the feed the carpenter sells for the feeding bench (fiber works too).</summary>
     public const int Hay = 508;
 
+    /// <summary>Translucent slime gel dropped by slimes (docs/adr/ADR-045).</summary>
+    public const int SlimeGel = 510;
+
+    /// <summary>A leathery bat wing dropped by cave bats.</summary>
+    public const int BatWing = 511;
+
+    /// <summary>A glowing spore cap dropped by spore shrooms.</summary>
+    public const int SporeCap = 512;
+
+    /// <summary>A trophy goblin ear dropped by goblin scouts.</summary>
+    public const int GoblinEar = 513;
+
+    /// <summary>A sturdy monster bone dropped by skeleton warriors.</summary>
+    public const int MonsterBone = 514;
+
+    /// <summary>An enchanted stone heart dropped by stone golems.</summary>
+    public const int GolemCore = 515;
+
+    /// <summary>A raw mana crystal dropped by magical creatures.</summary>
+    public const int ManaCrystal = 516;
+
+    /// <summary>A cut treasure gem dropped by deep dungeon monsters.</summary>
+    public const int TreasureGem = 517;
+
+    /// <summary>A glittering dungeon boss crown dropped by the Golem King (docs/adr/ADR-047).</summary>
+    public const int BossCrown = 518;
+
+    /// <summary>An ancient magical scroll dropped by the Cave Broodmother.</summary>
+    public const int AncientScroll = 519;
+
+    /// <summary>A golden skeleton key dropped by the Goblin Chieftain.</summary>
+    public const int GoldenKey = 520;
+
+    /// <summary>A blazing molten core dropped by the Magma Colossus.</summary>
+    public const int ColossusCore = 521;
+
+    /// <summary>An undead necromancer skull trophy relic (docs/adr/ADR-065).</summary>
+    public const int NecromancerSkull = 522;
+
+    /// <summary>An engraved ancient runestone tablet (docs/adr/ADR-065).</summary>
+    public const int RunestoneTablet = 523;
+
+    /// <summary>An ornate three-flame silver sanctuary candelabra relic (docs/adr/ADR-065).</summary>
+    public const int SanctuaryCandelabra = 524;
+
     /// <summary>Largest stack of furniture.</summary>
     public const int FurnitureStack = 20;
 
@@ -351,17 +429,32 @@ public static class ItemCatalog
     /// <summary>A blue shirt.</summary>
     public const int ShirtBlue = 402;
 
+    /// <summary>Sturdy leather armor (docs/adr/ADR-049).</summary>
+    public const int LeatherArmor = 405;
+
+    /// <summary>Reinforced iron chestplate offering heavy physical protection.</summary>
+    public const int IronChestplate = 406;
+
+    /// <summary>Agile ranger battle tunic reinforced with bat leather (docs/adr/ADR-065).</summary>
+    public const int RangerTunic = 407;
+
     /// <summary>Blue trousers.</summary>
     public const int PantsBlue = 420;
 
     /// <summary>Khaki trousers.</summary>
     public const int PantsKhaki = 421;
 
+    /// <summary>Iron greaves protecting legs against monster bites.</summary>
+    public const int IronGreaves = 422;
+
     /// <summary>A straw hat.</summary>
     public const int HatStraw = 440;
 
     /// <summary>A cap.</summary>
     public const int HatCap = 441;
+
+    /// <summary>A forged iron battle helmet.</summary>
+    public const int IronHelmet = 442;
 
     /// <summary>Largest stack of seeds and produce.</summary>
     public const int DefaultStack = 99;
@@ -382,6 +475,12 @@ public static class ItemCatalog
         new(IronWateringCan, "iron_watering_can", ItemKind.Tool, 1, ToolKind.WateringCan, tier: ToolTier.Iron),
         new(IronAxe, "iron_axe", ItemKind.Tool, 1, ToolKind.Axe, tier: ToolTier.Iron),
         new(IronPickaxe, "iron_pickaxe", ItemKind.Tool, 1, ToolKind.Pickaxe, tier: ToolTier.Iron),
+        new(WoodenSword, "wooden_sword", ItemKind.Tool, 1, ToolKind.Sword),
+        new(BronzeSword, "bronze_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Copper),
+        new(IronSword, "iron_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Iron),
+        new(SteelSword, "steel_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Iron),
+        new(GoldSword, "gold_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Iron),
+        new(ArcaneStaff, "arcane_staff", ItemKind.Tool, 1, ToolKind.Staff, tier: ToolTier.Iron),
         new(ParsnipSeeds, "parsnip_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Parsnip) { ObjectIcon = 1 },
         new(RadishSeeds, "radish_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Radish) { ObjectIcon = 2 },
         new(CauliflowerSeeds, "cauliflower_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Cauliflower) { ObjectIcon = 3 },
@@ -448,9 +547,34 @@ public static class ItemCatalog
         new(Milk, "milk", ItemKind.Produce, DefaultStack, foodEnergy: 25) { SellPrice = 125, ObjectIcon = 59 },
         new(LargeMilk, "large_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 190, ObjectIcon = 60 },
         new(Hay, "hay", ItemKind.Resource, DefaultStack) { ObjectIcon = 61 },
+        new(SlimeGel, "slime_gel", ItemKind.Resource, DefaultStack) { ObjectIcon = 96 },
+        new(BatWing, "bat_wing", ItemKind.Resource, DefaultStack) { ObjectIcon = 97 },
+        new(SporeCap, "spore_cap", ItemKind.Resource, DefaultStack) { ObjectIcon = 98 },
+        new(GoblinEar, "goblin_ear", ItemKind.Resource, DefaultStack) { ObjectIcon = 99 },
+        new(MonsterBone, "monster_bone", ItemKind.Resource, DefaultStack) { ObjectIcon = 100 },
+        new(GolemCore, "golem_core", ItemKind.Resource, DefaultStack) { ObjectIcon = 101 },
+        new(ManaCrystal, "mana_crystal", ItemKind.Resource, DefaultStack) { ObjectIcon = 102 },
+        new(TreasureGem, "treasure_gem", ItemKind.Resource, DefaultStack) { ObjectIcon = 103 },
+        new(BossCrown, "boss_crown", ItemKind.Clothing, 1, wear: WearSlot.Hat) { SellPrice = 2500, ObjectIcon = 113 },
+        new(AncientScroll, "ancient_scroll", ItemKind.Resource, DefaultStack) { SellPrice = 800, ObjectIcon = 106 },
+        new(GoldenKey, "golden_key", ItemKind.Resource, DefaultStack) { SellPrice = 1200, ObjectIcon = 114 },
+        new(ColossusCore, "colossus_core", ItemKind.Resource, DefaultStack) { SellPrice = 1800, ObjectIcon = 115 },
+        new(NecromancerSkull, "necromancer_skull", ItemKind.Resource, DefaultStack) { SellPrice = 450, ObjectIcon = 105 },
+        new(RunestoneTablet, "runestone_tablet", ItemKind.Resource, DefaultStack) { SellPrice = 500, ObjectIcon = 110 },
+        new(SanctuaryCandelabra, "sanctuary_candelabra", ItemKind.Resource, DefaultStack) { SellPrice = 950, ObjectIcon = 107 },
+        new(LeatherArmor, "leather_armor", ItemKind.Clothing, 1, wear: WearSlot.Shirt) { SellPrice = 200, ObjectIcon = 116 },
+        new(IronChestplate, "iron_chestplate", ItemKind.Clothing, 1, wear: WearSlot.Shirt) { SellPrice = 600, ObjectIcon = 117 },
+        new(RangerTunic, "ranger_tunic", ItemKind.Clothing, 1, wear: WearSlot.Shirt) { SellPrice = 350, ObjectIcon = 111 },
+        new(IronGreaves, "iron_greaves", ItemKind.Clothing, 1, wear: WearSlot.Pants) { SellPrice = 400, ObjectIcon = 118 },
+        new(IronHelmet, "iron_helmet", ItemKind.Clothing, 1, wear: WearSlot.Hat) { SellPrice = 350, ObjectIcon = 119 },
         new(Salad, "salad", ItemKind.Food, DefaultStack, foodEnergy: 90),
         new(BakedPotato, "baked_potato", ItemKind.Food, DefaultStack, foodEnergy: 60),
         new(PumpkinSoup, "pumpkin_soup", ItemKind.Food, DefaultStack, foodEnergy: 120),
+        new(HealthPotion, "health_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 93 },
+        new(ManaPotion, "mana_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 94 },
+        new(Elixir, "elixir", ItemKind.Food, DefaultStack, foodEnergy: 60) { ObjectIcon = 95 },
+        new(ArcaneGrimoire, "arcane_grimoire", ItemKind.Food, DefaultStack, foodEnergy: 40) { SellPrice = 650, ObjectIcon = 104 },
+        new(HeartCrystal, "heart_crystal", ItemKind.Food, DefaultStack, foodEnergy: 50) { SellPrice = 750, ObjectIcon = 112 },
         new(OakChair, "oak_chair", ItemKind.Furniture, FurnitureStack),
         new(BlueArmchair, "blue_armchair", ItemKind.Furniture, FurnitureStack),
         new(BlueCouch, "blue_couch", ItemKind.Furniture, FurnitureStack),

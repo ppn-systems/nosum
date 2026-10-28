@@ -273,4 +273,98 @@
   <data name="Quest_craft_chest_Hint" xml:space="preserve"><value>Mở trang chế tạo trong menu và làm một cái rương từ 50 gỗ. Đặt rương xuống để cất đồ.</value></data>
   <data name="Quest_craft_chest_Tip" xml:space="preserve"><value>Mở menu, vào trang chế tạo và làm một cái rương từ gỗ.</value></data>
   <data name="Quest_craft_chest_Objective_0" xml:space="preserve"><value>Chế tạo một cái rương</value></data>
+  <data name="Item_wooden_sword_Name" xml:space="preserve"><value>Kiếm gỗ</value></data>
+  <data name="Item_wooden_sword_Description" xml:space="preserve"><value>Kiếm tập luyện bằng gỗ dùng để đánh quái vật ở gần (12 sát thương).</value></data>
+  <data name="Item_bronze_sword_Name" xml:space="preserve"><value>Kiếm đồng</value></data>
+  <data name="Item_bronze_sword_Description" xml:space="preserve"><value>Lưỡi kiếm đồng sắc bén rèn từ thỏi đồng và gỗ (20 sát thương).</value></data>
+  <data name="Item_iron_sword_Name" xml:space="preserve"><value>Kiếm sắt</value></data>
+  <data name="Item_iron_sword_Description" xml:space="preserve"><value>Kiếm sắt cân bằng dành cho thợ săn hầm mỏ (32 sát thương).</value></data>
+  <data name="Item_steel_sword_Name" xml:space="preserve"><value>Kiếm thép</value></data>
+  <data name="Item_steel_sword_Description" xml:space="preserve"><value>Trọng kiếm thép tôi luyện cùng xương quái vật (48 sát thương).</value></data>
+  <data name="Item_gold_sword_Name" xml:space="preserve"><value>Kiếm hoàng kim</value></data>
+  <data name="Item_gold_sword_Description" xml:space="preserve"><value>Thanh kiếm huyền thoại khảm lõi người đá và ngọc quý (68 sát thương).</value></data>
+  <data name="Item_arcane_staff_Name" xml:space="preserve"><value>Trượng ma thuật</value></data>
+  <data name="Item_arcane_staff_Description" xml:space="preserve"><value>Phóng tia phép tầm xa vào quái vật (45 sát thương phép, tốn 10 MP).</value></data>
+  <data name="Item_slime_gel_Name" xml:space="preserve"><value>Chất nhờn Slime</value></data>
+  <data name="Item_slime_gel_Description" xml:space="preserve"><value>Keo trong suốt thu được từ Slime, dùng để pha thuốc máu.</value></data>
+  <data name="Item_bat_wing_Name" xml:space="preserve"><value>Cánh dơi</value></data>
+  <data name="Item_bat_wing_Description" xml:space="preserve"><value>Cánh dơi dai bền từ dơi hang động, dùng khi rèn vũ khí.</value></data>
+  <data name="Item_spore_cap_Name" xml:space="preserve"><value>Mũ nấm bào tử</value></data>
+  <data name="Item_spore_cap_Description" xml:space="preserve"><value>Mũ nấm phát sáng chứa năng lượng ma thuật.</value></data>
+  <data name="Item_goblin_ear_Name" xml:space="preserve"><value>Chiến lợi phẩm Yêu tinh</value></data>
+  <data name="Item_goblin_ear_Description" xml:space="preserve"><value>Chiến lợi phẩm thu được từ yêu tinh tuần tra.</value></data>
+  <data name="Item_monster_bone_Name" xml:space="preserve"><value>Xương quái vật</value></data>
+  <data name="Item_monster_bone_Description" xml:space="preserve"><value>Khúc xương cứng chắc dùng để gia cố vũ khí thép.</value></data>
+  <data name="Item_golem_core_Name" xml:space="preserve"><value>Lõi Người đá</value></data>
+  <data name="Item_golem_core_Description" xml:space="preserve"><value>Trái tim đá cổ đại phát ra ma lực mạnh mẽ.</value></data>
+  <data name="Item_mana_crystal_Name" xml:space="preserve"><value>Tinh thể Mana</value></data>
+  <data name="Item_mana_crystal_Description" xml:space="preserve"><value>Tinh thể lam thuần khiết dùng để pha thuốc Mana và chế tạo trượng.</value></data>
+  <data name="Item_treasure_gem_Name" xml:space="preserve"><value>Ngọc bảo vật</value></data>
+  <data name="Item_treasure_gem_Description" xml:space="preserve"><value>Viên ngọc quý lấp lánh rơi ra từ quái vật tầng sâu.</value></data>
+  <data name="Item_health_potion_Name" xml:space="preserve"><value>Thuốc hồi máu (HP)</value></data>
+  <data name="Item_health_potion_Description" xml:space="preserve"><value>Hồi phục ngay 50 HP và 15 thể lực.</value></data>
+  <data name="Item_mana_potion_Name" xml:space="preserve"><value>Thuốc hồi năng lượng (MP)</value></data>
+  <data name="Item_mana_potion_Description" xml:space="preserve"><value>Hồi phục ngay 35 MP và 15 thể lực.</value></data>
+  <data name="Item_elixir_Name" xml:space="preserve"><value>Linh dược Hoàng kim</value></data>
+  <data name="Item_elixir_Description" xml:space="preserve"><value>Hồi phục 100 HP, 50 MP và 60 thể lực.</value></data>
+  <data name="Item_boss_crown_Name" xml:space="preserve"><value>Vương miện Thủ lĩnh</value></data>
+  <data name="Item_boss_crown_Description" xml:space="preserve"><value>Vương miện hoàng kim rơi ra từ Vua Người Đá tầng 40.</value></data>
+  <data name="Item_ancient_scroll_Name" xml:space="preserve"><value>Cuộn kinh Cổ đại</value></data>
+  <data name="Item_ancient_scroll_Description" xml:space="preserve"><value>Bí kíp cổ xưa chứa đầy tri thức ma thuật từ Mẹ Nhện tầng 10.</value></data>
+  <data name="Item_golden_key_Name" xml:space="preserve"><value>Chìa khóa Hoàng kim</value></data>
+  <data name="Item_golden_key_Description" xml:space="preserve"><value>Chìa khóa quý giá mở rương kho báu từ Tù trưởng Yêu tinh tầng 20.</value></data>
+  <data name="Item_colossus_core_Name" xml:space="preserve"><value>Lõi Nham thạch Khổng lồ</value></data>
+  <data name="Item_colossus_core_Description" xml:space="preserve"><value>Lõi rực lửa tỏa nhiệt cực đại từ Người Đá Dung Nham tầng 30.</value></data>
+  <data name="Item_leather_armor_Name" xml:space="preserve"><value>Giáp da thú</value></data>
+  <data name="Item_leather_armor_Description" xml:space="preserve"><value>Áo giáp da bền chắc khâu từ sợi xơ và keo slime (+3 Phòng thủ).</value></data>
+  <data name="Item_iron_chestplate_Name" xml:space="preserve"><value>Giáp ngực sắt</value></data>
+  <data name="Item_iron_chestplate_Description" xml:space="preserve"><value>Tấm giáp ngực bằng sắt tôi luyện chống đòn chém (+7 Phòng thủ).</value></data>
+  <data name="Item_iron_greaves_Name" xml:space="preserve"><value>Xà cạp sắt</value></data>
+  <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Giáp bảo vệ chân bằng sắt chống quái vật cắn (+5 Phòng thủ).</value></data>
+  <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
+  <data name="Item_iron_helmet_Description" xml:space="preserve"><value>Mũ sắt bảo vệ đầu khỏi các đòn chí mạng (+4 Phòng thủ).</value></data>
+  <data name="Item_ranger_tunic_Name" xml:space="preserve"><value>Áo chiến binh tuần rừng</value></data>
+  <data name="Item_ranger_tunic_Description" xml:space="preserve"><value>Áo giáp da dơi linh hoạt gia cố sợi bền (+4 Phòng thủ).</value></data>
+  <data name="Item_necromancer_skull_Name" xml:space="preserve"><value>Hộp sọ Hắc pháp sư</value></data>
+  <data name="Item_necromancer_skull_Description" xml:space="preserve"><value>Chiến lợi phẩm cổ vật hắc ám từ hầm ngục sâu.</value></data>
+  <data name="Item_runestone_tablet_Name" xml:space="preserve"><value>Bia đá Cổ ngữ</value></data>
+  <data name="Item_runestone_tablet_Description" xml:space="preserve"><value>Phiến đá khắc ký tự ma thuật thời cổ đại.</value></data>
+  <data name="Item_sanctuary_candelabra_Name" xml:space="preserve"><value>Chân nến Thánh đường</value></data>
+  <data name="Item_sanctuary_candelabra_Description" xml:space="preserve"><value>Chân nến bạc ba ngọn lửa rèn từ sắt và tinh thể mana.</value></data>
+  <data name="Item_arcane_grimoire_Name" xml:space="preserve"><value>Ma đạo thư Hồng ngọc</value></data>
+  <data name="Item_arcane_grimoire_Description" xml:space="preserve"><value>Sách phép cổ hồi phục 20 HP, 80 MP, 40 thể lực và tăng tốc chạy.</value></data>
+  <data name="Item_heart_crystal_Name" xml:space="preserve"><value>Pha lê Trái tim</value></data>
+  <data name="Item_heart_crystal_Description" xml:space="preserve"><value>Tinh thể huyết ngọc hồi phục 80 HP, 25 MP, 50 thể lực và hồi máu liên tục.</value></data>
+  <data name="Recipe_leather_armor_Name" xml:space="preserve"><value>Giáp da thú</value></data>
+  <data name="Recipe_iron_chestplate_Name" xml:space="preserve"><value>Giáp ngực sắt</value></data>
+  <data name="Recipe_iron_greaves_Name" xml:space="preserve"><value>Xà cạp sắt</value></data>
+  <data name="Recipe_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
+  <data name="Recipe_ranger_tunic_Name" xml:space="preserve"><value>Áo chiến binh tuần rừng</value></data>
+  <data name="Recipe_arcane_grimoire_Name" xml:space="preserve"><value>Ma đạo thư Hồng ngọc</value></data>
+  <data name="Recipe_heart_crystal_Name" xml:space="preserve"><value>Pha lê Trái tim</value></data>
+  <data name="Recipe_sanctuary_candelabra_Name" xml:space="preserve"><value>Chân nến Thánh đường</value></data>
+  <data name="Monster_green_slime_Name" xml:space="preserve"><value>Slime xanh</value></data>
+  <data name="Monster_green_slime_Location" xml:space="preserve"><value>Hầm mỏ 1–9, Rừng</value></data>
+  <data name="Monster_frost_slime_Name" xml:space="preserve"><value>Slime băng</value></data>
+  <data name="Monster_frost_slime_Location" xml:space="preserve"><value>Hầm mỏ 11–19</value></data>
+  <data name="Monster_magma_slime_Name" xml:space="preserve"><value>Slime dung nham</value></data>
+  <data name="Monster_magma_slime_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_cave_bat_Name" xml:space="preserve"><value>Dơi hang động</value></data>
+  <data name="Monster_cave_bat_Location" xml:space="preserve"><value>Hầm mỏ 1–9</value></data>
+  <data name="Monster_spore_shroom_Name" xml:space="preserve"><value>Nấm bào tử</value></data>
+  <data name="Monster_spore_shroom_Location" xml:space="preserve"><value>Hầm mỏ 1–19, Rừng</value></data>
+  <data name="Monster_goblin_scout_Name" xml:space="preserve"><value>Yêu tinh trinh sát</value></data>
+  <data name="Monster_goblin_scout_Location" xml:space="preserve"><value>Hầm mỏ 11–19</value></data>
+  <data name="Monster_skeleton_warrior_Name" xml:space="preserve"><value>Chiến binh xương</value></data>
+  <data name="Monster_skeleton_warrior_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_stone_golem_Name" xml:space="preserve"><value>Người đá cổ đại</value></data>
+  <data name="Monster_stone_golem_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_boss_broodmother_Name" xml:space="preserve"><value>Chúa nhện hang sâu</value></data>
+  <data name="Monster_boss_broodmother_Location" xml:space="preserve"><value>Hầm mỏ tầng 10</value></data>
+  <data name="Monster_boss_goblin_chieftain_Name" xml:space="preserve"><value>Thủ lĩnh yêu tinh</value></data>
+  <data name="Monster_boss_goblin_chieftain_Location" xml:space="preserve"><value>Hầm mỏ tầng 20</value></data>
+  <data name="Monster_boss_magma_colossus_Name" xml:space="preserve"><value>Hỏa thần khổng lồ</value></data>
+  <data name="Monster_boss_magma_colossus_Location" xml:space="preserve"><value>Hầm mỏ tầng 30</value></data>
+  <data name="Monster_boss_golem_king_Name" xml:space="preserve"><value>Vua người đá</value></data>
+  <data name="Monster_boss_golem_king_Location" xml:space="preserve"><value>Hầm mỏ tầng 40</value></data>
 </root>

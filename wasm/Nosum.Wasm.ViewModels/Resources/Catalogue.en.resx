@@ -273,4 +273,98 @@
   <data name="Quest_craft_chest_Hint" xml:space="preserve"><value>Open the crafting page in the menu and make a chest from 50 wood. Place the chest to store things.</value></data>
   <data name="Quest_craft_chest_Tip" xml:space="preserve"><value>Open the menu, go to crafting and make a chest from wood.</value></data>
   <data name="Quest_craft_chest_Objective_0" xml:space="preserve"><value>Craft a chest</value></data>
+  <data name="Item_wooden_sword_Name" xml:space="preserve"><value>Wooden sword</value></data>
+  <data name="Item_wooden_sword_Description" xml:space="preserve"><value>A sturdy wooden practice blade for fighting nearby monsters (12 damage).</value></data>
+  <data name="Item_bronze_sword_Name" xml:space="preserve"><value>Bronze sword</value></data>
+  <data name="Item_bronze_sword_Description" xml:space="preserve"><value>A sharp bronze blade forged from copper bars and wood (20 damage).</value></data>
+  <data name="Item_iron_sword_Name" xml:space="preserve"><value>Iron sword</value></data>
+  <data name="Item_iron_sword_Description" xml:space="preserve"><value>A balanced iron blade for mine explorers (32 damage).</value></data>
+  <data name="Item_steel_sword_Name" xml:space="preserve"><value>Steel broadsword</value></data>
+  <data name="Item_steel_sword_Description" xml:space="preserve"><value>A heavy steel broadsword tempered with monster bone (48 damage).</value></data>
+  <data name="Item_gold_sword_Name" xml:space="preserve"><value>Golden blade</value></data>
+  <data name="Item_gold_sword_Description" xml:space="preserve"><value>A legendary gilded blade set with golem cores and gems (68 damage).</value></data>
+  <data name="Item_arcane_staff_Name" xml:space="preserve"><value>Arcane staff</value></data>
+  <data name="Item_arcane_staff_Description" xml:space="preserve"><value>Fires a ranged arcane bolt at monsters (45 magic damage, costs 10 MP).</value></data>
+  <data name="Item_slime_gel_Name" xml:space="preserve"><value>Slime gel</value></data>
+  <data name="Item_slime_gel_Description" xml:space="preserve"><value>Translucent gel dropped by slimes, used to brew health potions.</value></data>
+  <data name="Item_bat_wing_Name" xml:space="preserve"><value>Bat wing</value></data>
+  <data name="Item_bat_wing_Description" xml:space="preserve"><value>Tough wing membrane from a cave bat, used in weapon forging.</value></data>
+  <data name="Item_spore_cap_Name" xml:space="preserve"><value>Spore cap</value></data>
+  <data name="Item_spore_cap_Description" xml:space="preserve"><value>A glowing mushroom cap rich in arcane spores.</value></data>
+  <data name="Item_goblin_ear_Name" xml:space="preserve"><value>Goblin trophy</value></data>
+  <data name="Item_goblin_ear_Description" xml:space="preserve"><value>A scout badge taken from a defeated goblin patrol.</value></data>
+  <data name="Item_monster_bone_Name" xml:space="preserve"><value>Monster bone</value></data>
+  <data name="Item_monster_bone_Description" xml:space="preserve"><value>Dense bone used to reinforce steel blades.</value></data>
+  <data name="Item_golem_core_Name" xml:space="preserve"><value>Golem core</value></data>
+  <data name="Item_golem_core_Description" xml:space="preserve"><value>An ancient stone heart pulsing with earth magic.</value></data>
+  <data name="Item_mana_crystal_Name" xml:space="preserve"><value>Mana crystal</value></data>
+  <data name="Item_mana_crystal_Description" xml:space="preserve"><value>Pure azure crystal used for mana potions and arcane staves.</value></data>
+  <data name="Item_treasure_gem_Name" xml:space="preserve"><value>Treasure gem</value></data>
+  <data name="Item_treasure_gem_Description" xml:space="preserve"><value>A faceted gemstone dropped by deep dungeon guardians.</value></data>
+  <data name="Item_health_potion_Name" xml:space="preserve"><value>Health potion</value></data>
+  <data name="Item_health_potion_Description" xml:space="preserve"><value>Restores 50 HP and 15 energy.</value></data>
+  <data name="Item_mana_potion_Name" xml:space="preserve"><value>Mana potion</value></data>
+  <data name="Item_mana_potion_Description" xml:space="preserve"><value>Restores 35 MP and 15 energy.</value></data>
+  <data name="Item_elixir_Name" xml:space="preserve"><value>Golden elixir</value></data>
+  <data name="Item_elixir_Description" xml:space="preserve"><value>Restores 100 HP, 50 MP and 60 energy.</value></data>
+  <data name="Item_boss_crown_Name" xml:space="preserve"><value>Boss crown</value></data>
+  <data name="Item_boss_crown_Description" xml:space="preserve"><value>A glittering golden crown dropped by the Golem King on floor 40.</value></data>
+  <data name="Item_ancient_scroll_Name" xml:space="preserve"><value>Ancient scroll</value></data>
+  <data name="Item_ancient_scroll_Description" xml:space="preserve"><value>An ancient parchment containing forgotten magical wisdom from the Broodmother on floor 10.</value></data>
+  <data name="Item_golden_key_Name" xml:space="preserve"><value>Golden key</value></data>
+  <data name="Item_golden_key_Description" xml:space="preserve"><value>A rare ornate key dropped by the Goblin Chieftain on floor 20.</value></data>
+  <data name="Item_colossus_core_Name" xml:space="preserve"><value>Colossus core</value></data>
+  <data name="Item_colossus_core_Description" xml:space="preserve"><value>A blazing molten core dropped by the Magma Colossus on floor 30.</value></data>
+  <data name="Item_leather_armor_Name" xml:space="preserve"><value>Leather armor</value></data>
+  <data name="Item_leather_armor_Description" xml:space="preserve"><value>Tough leather armor stitched with fiber and slime gel (+3 Defense).</value></data>
+  <data name="Item_iron_chestplate_Name" xml:space="preserve"><value>Iron chestplate</value></data>
+  <data name="Item_iron_chestplate_Description" xml:space="preserve"><value>Forged iron breastplate protecting against heavy strikes (+7 Defense).</value></data>
+  <data name="Item_iron_greaves_Name" xml:space="preserve"><value>Iron greaves</value></data>
+  <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Iron leg guards preventing monster bite wounds (+5 Defense).</value></data>
+  <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Iron helmet</value></data>
+  <data name="Item_iron_helmet_Description" xml:space="preserve"><value>A battle helmet protecting the head from critical blows (+4 Defense).</value></data>
+  <data name="Item_ranger_tunic_Name" xml:space="preserve"><value>Ranger tunic</value></data>
+  <data name="Item_ranger_tunic_Description" xml:space="preserve"><value>Agile battle tunic reinforced with bat leather and fiber (+4 Defense).</value></data>
+  <data name="Item_necromancer_skull_Name" xml:space="preserve"><value>Necromancer skull</value></data>
+  <data name="Item_necromancer_skull_Description" xml:space="preserve"><value>A dark undead trophy relic recovered from deep dungeon crypts.</value></data>
+  <data name="Item_runestone_tablet_Name" xml:space="preserve"><value>Runestone tablet</value></data>
+  <data name="Item_runestone_tablet_Description" xml:space="preserve"><value>A carved stone slab inscribed with ancient arcane runes.</value></data>
+  <data name="Item_sanctuary_candelabra_Name" xml:space="preserve"><value>Sanctuary candelabra</value></data>
+  <data name="Item_sanctuary_candelabra_Description" xml:space="preserve"><value>An ornate three-flame silver candelabra forged from iron and mana crystals.</value></data>
+  <data name="Item_arcane_grimoire_Name" xml:space="preserve"><value>Arcane grimoire</value></data>
+  <data name="Item_arcane_grimoire_Description" xml:space="preserve"><value>An ancient ruby-bound spell tome that restores 20 HP, 80 MP, 40 energy and grants Swiftness.</value></data>
+  <data name="Item_heart_crystal_Name" xml:space="preserve"><value>Heart crystal</value></data>
+  <data name="Item_heart_crystal_Description" xml:space="preserve"><value>A crimson vitality crystal that restores 80 HP, 25 MP, 50 energy and grants strong Regeneration.</value></data>
+  <data name="Recipe_leather_armor_Name" xml:space="preserve"><value>Leather armor</value></data>
+  <data name="Recipe_iron_chestplate_Name" xml:space="preserve"><value>Iron chestplate</value></data>
+  <data name="Recipe_iron_greaves_Name" xml:space="preserve"><value>Iron greaves</value></data>
+  <data name="Recipe_iron_helmet_Name" xml:space="preserve"><value>Iron helmet</value></data>
+  <data name="Recipe_ranger_tunic_Name" xml:space="preserve"><value>Ranger tunic</value></data>
+  <data name="Recipe_arcane_grimoire_Name" xml:space="preserve"><value>Arcane grimoire</value></data>
+  <data name="Recipe_heart_crystal_Name" xml:space="preserve"><value>Heart crystal</value></data>
+  <data name="Recipe_sanctuary_candelabra_Name" xml:space="preserve"><value>Sanctuary candelabra</value></data>
+  <data name="Monster_green_slime_Name" xml:space="preserve"><value>Green slime</value></data>
+  <data name="Monster_green_slime_Location" xml:space="preserve"><value>Mine 1–9, Woods</value></data>
+  <data name="Monster_frost_slime_Name" xml:space="preserve"><value>Frost slime</value></data>
+  <data name="Monster_frost_slime_Location" xml:space="preserve"><value>Mine 11–19</value></data>
+  <data name="Monster_magma_slime_Name" xml:space="preserve"><value>Magma slime</value></data>
+  <data name="Monster_magma_slime_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_cave_bat_Name" xml:space="preserve"><value>Cave bat</value></data>
+  <data name="Monster_cave_bat_Location" xml:space="preserve"><value>Mine 1–9</value></data>
+  <data name="Monster_spore_shroom_Name" xml:space="preserve"><value>Spore shroom</value></data>
+  <data name="Monster_spore_shroom_Location" xml:space="preserve"><value>Mine 1–19, Woods</value></data>
+  <data name="Monster_goblin_scout_Name" xml:space="preserve"><value>Goblin scout</value></data>
+  <data name="Monster_goblin_scout_Location" xml:space="preserve"><value>Mine 11–19</value></data>
+  <data name="Monster_skeleton_warrior_Name" xml:space="preserve"><value>Skeleton warrior</value></data>
+  <data name="Monster_skeleton_warrior_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_stone_golem_Name" xml:space="preserve"><value>Stone golem</value></data>
+  <data name="Monster_stone_golem_Location" xml:space="preserve"><value>Mine 21–39</value></data>
+  <data name="Monster_boss_broodmother_Name" xml:space="preserve"><value>Broodmother</value></data>
+  <data name="Monster_boss_broodmother_Location" xml:space="preserve"><value>Mine floor 10</value></data>
+  <data name="Monster_boss_goblin_chieftain_Name" xml:space="preserve"><value>Goblin chieftain</value></data>
+  <data name="Monster_boss_goblin_chieftain_Location" xml:space="preserve"><value>Mine floor 20</value></data>
+  <data name="Monster_boss_magma_colossus_Name" xml:space="preserve"><value>Magma colossus</value></data>
+  <data name="Monster_boss_magma_colossus_Location" xml:space="preserve"><value>Mine floor 30</value></data>
+  <data name="Monster_boss_golem_king_Name" xml:space="preserve"><value>Golem king</value></data>
+  <data name="Monster_boss_golem_king_Location" xml:space="preserve"><value>Mine floor 40</value></data>
 </root>

@@ -102,7 +102,7 @@ internal sealed class NodeDecoratorProvider : IMapDecoratorProvider
         ArgumentNullException.ThrowIfNull(textures);
 
         // Maps without a Paths layer (a room) have no nodes, except the floors of the mine, whose nodes the server builds (docs/adr/ADR-026 D3).
-        if (spec.Placeable || (map.FindLayer(Nosum.Gameplay.Nodes.NodeSites.LayerName) is null && !spec.IsMineFloor))
+        if (map.FindLayer(Nosum.Gameplay.Nodes.NodeSites.LayerName) is null && !spec.IsMineFloor)
         {
             return null;
         }

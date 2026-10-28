@@ -7,6 +7,18 @@
     <GameStack>
         <GameSection Title="@Vm.Text("Energy_Heading")">
             <div class="skill-row">
+                <div class="skill-bar" role="meter" aria-label="@Vm.HpLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxHp" aria-valuenow="@Vm.Hp">
+                    <span class="skill-fill hp" style="width: @Percent(Vm.HpFraction)%"></span>
+                </div>
+                <span class="skill-caption">@Vm.HpLabel</span>
+            </div>
+            <div class="skill-row">
+                <div class="skill-bar" role="meter" aria-label="@Vm.MpLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxMp" aria-valuenow="@Vm.Mp">
+                    <span class="skill-fill mp" style="width: @Percent(Vm.MpFraction)%"></span>
+                </div>
+                <span class="skill-caption">@Vm.MpLabel</span>
+            </div>
+            <div class="skill-row">
                 <div class="skill-bar" role="meter" aria-label="@Vm.EnergyLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxEnergy" aria-valuenow="@Vm.Energy">
                     <span class="@(Vm.EnergyLow ? "skill-fill low" : "skill-fill")" style="width: @Percent(Vm.EnergyFraction)%"></span>
                 </div>
@@ -26,7 +38,32 @@
                     <span class="skill-caption">@skill.Caption</span>
                 </div>
             }
+            @{
+                SkillDisplay combat = Vm.CombatSkill;
+            }
+            <div class="skill-row">
+                <span class="skill-name">@combat.Name</span>
+                <GameBadge Kind="ok" Text="@Vm.Text("Skill_Level", combat.Level)" />
+                <div class="skill-bar" role="meter" aria-label="@combat.Name" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Percent(combat.Fraction)">
+                    <span class="skill-fill hp" style="width: @Percent(combat.Fraction)%"></span>
+                </div>
+                <span class="skill-caption">@combat.Caption</span>
+            </div>
             <p class="skill-hint">@Vm.Text("Skills_Hint")</p>
+        </GameSection>
+        <GameSection Title="@Vm.Text("Bestiary_Heading")">
+            <GameStack>
+                @foreach (BestiaryEntryDisplay entry in Vm.BestiaryEntries)
+                {
+                    <div class="skill-row">
+                        <span class="skill-name">@entry.Name</span>
+                        <GameBadge Kind="@(entry.IsBoss ? "warn" : "ok")" Text="@entry.Category" />
+                        <span class="skill-caption">@entry.Location</span>
+                        <span class="skill-caption">@Vm.Text("Bestiary_Stats", entry.Hp, entry.Attack, entry.Xp)</span>
+                        <span class="skill-hint">@Vm.Text("Bestiary_Drops", entry.PrimaryDrop, entry.RareDrop)</span>
+                    </div>
+                }
+            </GameStack>
         </GameSection>
     </GameStack>
 </MenuPage>

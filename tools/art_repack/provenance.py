@@ -21,9 +21,19 @@ ENTRIES = {
     'sprites/soil.png': ('4 Crops and soil', [NOSUM], 'Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator: lit ridges, furrows, clods and a dark lip (`crops.soil_tile`)'),
     'sprites/tools.png': ('5 Tools and weapons', ['kenney_tiny-farm', NOSUM],
                              'Hoe, axe, pickaxe and watering can drawn here in three material tiers (a three-tone metal head with a glint, a shaded wooden handle, a 1 px outline: `tools.py`); the milk pail is Tiny Farm tile 124; the blueprints are drawn'),
-    'sprites/weapons.png': ('5 Tools and weapons', [NOSUM], 'The scythe drawn here (`tools.scythe`), cell (7, 5)'),
-    'sprites/items.png': ('3 Items, 6 Resource nodes', ['kenney_tiny-farm', 'josehzz_farming-crops-16x16', 'kenney_tiny-town', 'dawnlike', NOSUM],
-                               'The 92 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), everything else drawn here (table below); unused cells are transparent'),
+    'sprites/weapons.png': ('5 Tools and weapons', ['kenney_tiny-dungeon', 'oga_weapon-rpg-icons', 'kenney_roguelike-characters', 'kenney_tiny-battle', NOSUM],
+                             'The scythe drawn here (`tools.scythe`), cell (7, 5); wooden sword and arcane staff from Tiny Dungeon (8, 8 and 9, 10); bronze, iron, steel and gold swords from Weapon RPG Icons; round shield from Kenney Roguelike Characters (35, 1); battle emblem from Kenney Tiny Battle (15, 10)'),
+    'sprites/monsters.png': ('11 Monsters', ['oga_animated-slimes', 'oga_trash-mobs', 'oga_tiny-creatures'],
+                              'Twelve 4-column x 3-row (Down, Right, Up) monster and boss animation blocks (64 x 576): GreenSlime, FrostSlime, MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior, StoneGolem from Tiny Creatures; BossBroodmother, BossGoblinChieftain, BossMagmaColossus, BossGolemKing (`monsters.py`, ADR-047)'),
+    'sprites/items.png': ('3 Items, 6 Resource nodes', [
+        'kenney_tiny-farm', 'josehzz_farming-crops-16x16', 'kenney_tiny-town', 'dawnlike',
+        'oga_assorted-rpg-icons', 'oga_animated-slimes', 'tiny16', 'oga_trash-mobs',
+        'oga_16x16-rpg-items', 'kenney_roguelike-caves-dungeons', 'oga_16x16-dungeon-tiles',
+        'oga_puny-dungeon', 'oga_gold-treasure-icons', 'oga_6-color-dungeon',
+        'kenney_roguelike-rpg-pack', 'kenney_roguelike-indoors', 'oga_random-animals',
+        'oga_pixel-animals-16x16', 'kenney_roguelike-modern-city', 'kenney_rpg-urban-pack',
+        'kenney_1-bit-pack', NOSUM],
+        'The 112 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), potions and spell tome from Assorted RPG Icons, monster drops and RPG relics from Animated Slimes, Tiny 16 (CC-BY), Trash Mobs, 16x16 RPG Items, Roguelike Caves & Dungeons, 16x16 Dungeon Tiles, Puny Dungeon, Gold Treasure Icons, 6 Color Dungeon, Roguelike/RPG Pack, Roguelike Indoors, Random Animals, Pixel Animals 16x16, Roguelike Modern City, RPG Urban Pack and 1-Bit Pack, everything else drawn here (table below); unused cells are transparent'),
     'sprites/furniture.png': ('3 Items', [NOSUM], 'Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`)'),
     'sprites/craftables.png': ('3 Items', ['kenney_tiny-dungeon', NOSUM], 'Scarecrow and furnace drawn here (`furniture.py`); the chest is Tiny Dungeon\'s closed chest (tile 5, 7), standing at the foot of its 16 x 32 cell'),
     'sprites/trees/oak.png': ('6 Resource nodes', [NOSUM], 'Oak: 48 x 96 tree, bush, sapling, seed mound and stump at the cells `NodeSprites` reads (`trees.py`)'),
@@ -81,7 +91,7 @@ def write(repo, replaced):
     for key, (title, page, lic, author) in sources.PACKS.items():
         lines.append(f'| `{key}` | {title} | <{page}> | {lic} | {author} |\n')
     lines.append('| `tools/art_repack` | Nosum original | - | Own work of the project: shapes drawn by the code in this folder, no outside art | PPN Systems |\n')
-    lines += ['\n## Credits\n\n', 'DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDePlatino, palette by DawnBringer, CC-BY 4.0", <https://opengameart.org/content/dawnlike-16x16-universal-rogue-like-tileset-v181>. CC0 packs need no credit; Kenney and Clint Bellanger are named as a courtesy.\n']
+    lines += ['\n## Credits\n\n', 'DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDePlatino, palette by DawnBringer, CC-BY 4.0", <https://opengameart.org/content/dawnlike-16x16-universal-rogue-like-tileset-v181>. Tiny 16 (CC-BY 4.0) is used for the bat wing icon: "Tiny 16 tileset by Sharm (Lanea Zimmerman), CC-BY 4.0", <https://opengameart.org/content/tiny-16-basic>. CC0 packs need no credit; Kenney, Clint Bellanger, Shade, stealthix, Emcee Flesher, Bonsaiheldin, Jetrel, ETTiNGRiNDER, HorusKDI, hdst and GrumpyDiamond are named as a courtesy.\n']
     lines += ['\n## Files\n\n', '| File (under `assets/`) | Package | Sources | What it is |\n', '| :-- | :-- | :-- | :-- |\n']
     for path in replaced:
         package, keys, what = ENTRIES[path]

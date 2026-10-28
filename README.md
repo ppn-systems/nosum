@@ -4,9 +4,11 @@ A browser-based multiplayer farming game in 3/4 top-down pixel art. The client i
 2D engine; the server is a .NET 10 realtime server on the Nalix networking framework.
 Client and server talk over one Nalix WebSocket channel and share the same C# contracts.
 
-> Status: single-player slice. The client loads the farm map and a layered farmer you can walk
-> around (Canvas2D, 60 FPS); the server accepts WebSocket connections but has no game handlers
-> yet. Art and maps are Nosum's own or CC0 art; the early content is gone from the repository ([ADR-007](docs/adr/ADR-007-own-art-16px.md), [ADR-040](docs/adr/ADR-040-own-art-plan.md)), though its git history is not (`docs/ops/README.md`).
+> **Status**: Full multiplayer MMORPG farming & dungeon-crawler. Real-time WebSocket networking,
+> Canvas2D 60 FPS rendering, server-authoritative combat, HP/MP vitals, 8 monster species + 4 dungeon floor bosses,
+> arcane magic projectiles, craftable armor defense mitigation, defeat death poofs, status effects (regen/poison),
+> co-op party proximity Combat XP sharing, and synthesized 16-bit sound effects. Art and sound assets are 100% CC0/CC-BY
+> repacked ([ADR-045](docs/adr/ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md) through [ADR-054](docs/adr/ADR-054-mmorpg-expansion-system-audit-and-completion.md)).
 
 ## Layout
 

@@ -90,6 +90,8 @@ public sealed class AudioCatalogTests
     [InlineData(ToolKind.Pickaxe, SoundIds.ToolPickaxe)]
     [InlineData(ToolKind.Scythe, SoundIds.ToolScythe)]
     [InlineData(ToolKind.MilkPail, SoundIds.ToolScythe)]
+    [InlineData(ToolKind.Sword, SoundIds.SwordSlash)]
+    [InlineData(ToolKind.Staff, SoundIds.StaffCast)]
     [InlineData(ToolKind.None, 0)]
     public void ToolSound_PerTool(ToolKind tool, int expected)
     {

@@ -126,6 +126,113 @@ public sealed class MapGenSheetsTests
         sources.Should().Contain("drawn in code by tools/Nosum.MapGen sheets");
     }
 
+    [Fact]
+    public void Town_RoofTiles_HaveCorrectEdgeOutlines()
+    {
+        Canvas town = SheetCatalog.ByTileSet("town")!.Render();
+
+        // Top row of roof: 4 (top-left), 5 (top-middle), 9 (top-right).
+        HasOutlineEdge(town, 4, top: true, bottom: false, left: true, right: false);
+        HasOutlineEdge(town, 5, top: true, bottom: false, left: false, right: false);
+        HasOutlineEdge(town, 9, top: true, bottom: false, left: false, right: true);
+
+        // Bottom row of roof: 6 (bottom-left), 7 (bottom-middle), 8 (bottom-right).
+        HasOutlineEdge(town, 6, top: false, bottom: true, left: true, right: false);
+        HasOutlineEdge(town, 7, top: false, bottom: true, left: false, right: false);
+        HasOutlineEdge(town, 8, top: false, bottom: true, left: false, right: true);
+    }
+
+    [Theory]
+    [InlineData(11)]
+    [InlineData(13)]
+    [InlineData(14)]
+    [InlineData(15)]
+    [InlineData(36)]
+    public void Town_WallBaseAndEntranceTiles_AreFullyOpaque(int tileIndex)
+    {
+        Canvas town = SheetCatalog.ByTileSet("town")!.Render();
+
+        TileIsFullyOpaque(town, tileIndex).Should().BeTrue($"town tile {tileIndex} sits on building walls and must not leak grass through transparent pixels");
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(11)]
+    public void Nature_LargeRockTiles_AreSelfContainedWithClosedRightEdge(int tileIndex)
+    {
+        Canvas nature = SheetCatalog.ByTileSet("nature")!.Render();
+        int left = tileIndex % SheetInfo.Columns * SheetInfo.TileSize;
+        int top = tileIndex / SheetInfo.Columns * SheetInfo.TileSize;
+
+        for (int y = top; y < top + SheetInfo.TileSize; y++)
+        {
+            int idx = (((y * nature.Width) + left + SheetInfo.TileSize - 1) * 4);
+            byte a = nature.Pixels[idx + 3];
+            if (a == 255)
+            {
+                Rgb pixel = new(nature.Pixels[idx], nature.Pixels[idx + 1], nature.Pixels[idx + 2]);
+                pixel.Should().Be(Palette.Outline, $"rock tile {tileIndex} must not be sliced open at its right edge (row {y - top})");
+            }
+        }
+    }
+
+    private static void HasOutlineEdge(Canvas canvas, int index, bool top, bool bottom, bool left, bool right)
+    {
+        int tileLeft = index % SheetInfo.Columns * SheetInfo.TileSize;
+        int tileTop = index / SheetInfo.Columns * SheetInfo.TileSize;
+
+        IsFullOutlineRow(canvas, tileLeft, tileTop).Should().Be(top, $"tile {index} top edge");
+        IsFullOutlineRow(canvas, tileLeft, tileTop + SheetInfo.TileSize - 1).Should().Be(bottom, $"tile {index} bottom edge");
+        IsFullOutlineCol(canvas, tileLeft, tileTop).Should().Be(left, $"tile {index} left edge");
+        IsFullOutlineCol(canvas, tileLeft + SheetInfo.TileSize - 1, tileTop).Should().Be(right, $"tile {index} right edge");
+    }
+
+    private static bool IsFullOutlineRow(Canvas canvas, int left, int y)
+    {
+        for (int x = left + 1; x < left + SheetInfo.TileSize - 1; x++)
+        {
+            int idx = ((y * canvas.Width) + x) * 4;
+            if (new Rgb(canvas.Pixels[idx], canvas.Pixels[idx + 1], canvas.Pixels[idx + 2]) != Palette.Outline)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsFullOutlineCol(Canvas canvas, int x, int top)
+    {
+        for (int y = top + 1; y < top + SheetInfo.TileSize - 1; y++)
+        {
+            int idx = ((y * canvas.Width) + x) * 4;
+            if (new Rgb(canvas.Pixels[idx], canvas.Pixels[idx + 1], canvas.Pixels[idx + 2]) != Palette.Outline)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool TileIsFullyOpaque(Canvas canvas, int index)
+    {
+        int left = index % SheetInfo.Columns * SheetInfo.TileSize;
+        int top = index / SheetInfo.Columns * SheetInfo.TileSize;
+        for (int y = top; y < top + SheetInfo.TileSize; y++)
+        {
+            for (int x = left; x < left + SheetInfo.TileSize; x++)
+            {
+                if (canvas.Pixels[(((y * canvas.Width) + x) * 4) + 3] != 255)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     // The width and height of a PNG, read from its IHDR chunk.
     private static (int Width, int Height) PngSize(string path)
     {

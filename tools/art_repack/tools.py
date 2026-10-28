@@ -124,9 +124,20 @@ def blueprint():
 
 def build(src, repo, tools_size, weapons_size):
     farm = src.sheet('farm')
+    dungeon = src.sheet('dungeon')
     pail = farm.cell(124 % 12, 124 // 12)
     drawn = {'Hoe': hoe, 'WateringCan': watering_can, 'Axe': axe, 'Pickaxe': pickaxe, 'Scythe': scythe}
-    fixed = {'MilkPail': pail, 'CoopBlueprint': blueprint(), 'BarnBlueprint': blueprint()}
+    fixed = {
+        'MilkPail': pail,
+        'CoopBlueprint': blueprint(),
+        'BarnBlueprint': blueprint(),
+        'WoodenSword': dungeon.cell(8, 8),
+        'BronzeSword': src.sheet('weapons_bronze').cell(1, 0),
+        'IronSword': src.sheet('weapons_iron').cell(2, 0),
+        'SteelSword': src.sheet('weapons_steel').cell(3, 0),
+        'GoldSword': src.sheet('weapons_gold').cell(5, 0),
+        'ArcaneStaff': dungeon.cell(9, 10),
+    }
     tools = Image(*tools_size)
     weapons = Image(*weapons_size)
     with open(f'{repo}/wasm/Nosum.Wasm/Game/ItemIcons.cs', encoding='utf-8') as f:
@@ -134,8 +145,13 @@ def build(src, repo, tools_size, weapons_size):
     if not rows:
         raise SystemExit('ItemIcons.cs: no Tool(...) rows found; update tools/art_repack/tools.py')
     for name, kind, a, b in rows:
-        tier = 'copper' if name.startswith('Copper') else 'iron' if name.startswith('Iron') else 'basic'
-        key = name.removeprefix('Copper').removeprefix('Iron')
-        pic = drawn[key](tier) if key in drawn else fixed[key]
+        if name in fixed:
+            pic = fixed[name]
+        else:
+            tier = 'copper' if name.startswith('Copper') else 'iron' if name.startswith('Iron') else 'basic'
+            key = name.removeprefix('Copper').removeprefix('Iron')
+            pic = drawn[key](tier) if key in drawn else fixed[key]
         (tools if kind == 'Tool' else weapons).paste(pic, int(a) * 16, int(b) * 16)
+    weapons.paste(src.sheet('roguelike_chars').cell(35, 1), 6 * 16, 0)
+    weapons.paste(src.sheet('battle').cell(15, 10), 7 * 16, 0)
     return tools, weapons

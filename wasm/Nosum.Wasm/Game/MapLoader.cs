@@ -20,6 +20,7 @@ internal sealed class MapLoader
 {
     private const string MapsUrl = "assets/Maps/";
     private static readonly TimeSpan s_retryAfter = TimeSpan.FromSeconds(2);
+    private static readonly HttpRequestOptionsKey<bool> s_streamingResponseOption = new("WebAssemblyEnableStreamingResponse");
 
     private readonly HttpClient _http;
     private readonly TextureCache _textures;
@@ -112,7 +113,11 @@ internal sealed class MapLoader
 
     private async Task<MapContent> ReadAsync(MapSpec spec, CancellationToken cancellationToken)
     {
-        string xml = await _http.GetStringAsync(new Uri(MapsUrl + spec.TmxFile, UriKind.Relative), cancellationToken).ConfigureAwait(false);
+        using HttpRequestMessage request = new(HttpMethod.Get, new Uri(MapsUrl + spec.TmxFile, UriKind.Relative));
+        request.Options.Set(s_streamingResponseOption, false);
+        using HttpResponseMessage response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        _ = response.EnsureSuccessStatusCode();
+        string xml = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         TileMap map = TmxReader.Parse(xml);
 
         // A sheet is named relative to the folder of the map file (the mine's floor plans live in Mines/ and name "mine").

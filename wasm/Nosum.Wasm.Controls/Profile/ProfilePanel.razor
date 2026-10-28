@@ -28,12 +28,12 @@
         {
             <GameSection Title="@Vm.Text("Settings_Account")">
                 <p>@Account.SignedInText</p>
-                @if (Account.CurrentSession.IsGuest)
+                @if (Account.CanUpgrade)
                 {
                     <p>@Account.UpgradePromptText</p>
                 }
                 <GameRow>
-                    @if (Account.CurrentSession.IsGuest)
+                    @if (Account.CanUpgrade)
                     {
                         <GameButton OnClick="Account.BeginUpgrade" Disabled="@Account.IsBusy" Text="@Account.UpgradeText" />
                     }
@@ -45,6 +45,41 @@
 </MenuPage>
 
 @code {
+    private AccountFormViewModel? _subscribedAccount;
+
     /// <summary>The account view model for guest registration and sign-out.</summary>
     [Parameter] public AccountFormViewModel? Account { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (ReferenceEquals(_subscribedAccount, Account))
+        {
+            return;
+        }
+
+        if (_subscribedAccount is not null)
+        {
+            _subscribedAccount.Changed -= OnAccountChanged;
+        }
+
+        _subscribedAccount = Account;
+        if (_subscribedAccount is not null)
+        {
+            _subscribedAccount.Changed += OnAccountChanged;
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && _subscribedAccount is not null)
+        {
+            _subscribedAccount.Changed -= OnAccountChanged;
+            _subscribedAccount = null;
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private void OnAccountChanged() => _ = InvokeAsync(StateHasChanged);
 }

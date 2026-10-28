@@ -201,6 +201,39 @@ public sealed class GameMapsTests
         grid.IsBlocked(64, 12).Should().BeTrue();
     }
 
+    [Fact]
+    public void BusStop_ContainsDungeonRiftWarp_ToMine10()
+    {
+        GameMaps.TryGet(GameMaps.BusStop, out MapSpec? busStop).Should().BeTrue();
+        TileMap map = Load(busStop!);
+        IReadOnlyList<MapWarp> warps = busStop!.ResolveWarps(map);
+        warps.Should().Contain(w => w.FromX == 22 && w.FromY == 14 && w.TargetMap == "mine10" && w.TargetX == 10 && w.TargetY == 6);
+    }
+
+    [Fact]
+    public void NodeSites_EveryMapWithNodeSites_HasPathsLayerOrIsMineFloor_EvenWhenPlaceable()
+    {
+        foreach (MapSpec spec in GameMaps.All)
+        {
+            TileMap map = Load(spec);
+            WalkGrid grid = spec.BuildWalkGrid(map);
+            int nodeSites = spec.ResolveNodeSites(map, grid).Count + spec.ResolveForageSites(map, grid).Count;
+            if (nodeSites > 0 || spec.IsMineFloor)
+            {
+                (map.FindLayer(Nosum.Gameplay.Nodes.NodeSites.LayerName) is not null || spec.IsMineFloor)
+                    .Should().BeTrue($"{spec.Id} (Placeable={spec.Placeable}) has {nodeSites} node sites and must be decorated by NodeDecoratorProvider");
+            }
+        }
+
+        _ = GameMaps.TryGet(GameMaps.Farm, out MapSpec? farm);
+        farm!.Placeable.Should().BeTrue();
+        farm.ResolveNodeSites(Load(farm), farm.BuildWalkGrid(Load(farm))).Should().NotBeEmpty();
+
+        _ = GameMaps.TryGet(GameMaps.CoopFarm, out MapSpec? coopFarm);
+        coopFarm!.Placeable.Should().BeTrue();
+        coopFarm.ResolveNodeSites(Load(coopFarm), coopFarm.BuildWalkGrid(Load(coopFarm))).Should().NotBeEmpty();
+    }
+
     [Theory]
     [MemberData(nameof(MapIds))]
     public void Assets_EveryTilesheetAndMapFile_IsLinkedIntoClientAndServer(string id)

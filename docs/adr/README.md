@@ -53,4 +53,25 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-041](ADR-041-deploy-cloudflare-pages-and-tunnel.md) | Deployment: web client on Cloudflare Pages, server behind a Cloudflare Tunnel, deploy by SSH (amends ADR-031) | Accepted |
 | [ADR-042](ADR-042-own-maps-and-provenance-cleanup.md) | Own map layouts, own sheet names and removal of the former early-content traces before the public release; fresh public history | Accepted |
 | [ADR-043](ADR-043-npc-merchants-and-the-menu-split.md) | NPC merchants at the counters with a dialog box, shop/market/board pages as standalone dialogs, mail with its own HUD icon, the menu holds player things only (amends ADR-034 D4) | Accepted |
-| [ADR-044](ADR-044-standalone-panels-and-hud-separation.md) | Standalone windows for every panel, separated HUD action bar, Account in Profile and Credits in its own Settings tab (amends ADR-017, ADR-033, ADR-043) | Proposed |
+| [ADR-044](ADR-044-standalone-panels-and-hud-separation.md) | Standalone windows for every panel, separated HUD action bar, Account in Profile and Credits in its own Settings tab (amends ADR-017, ADR-033, ADR-043) | Accepted |
+| [ADR-045](ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md) | MMORPG combat, HP & MP vitals, monster encounters, weapons, potions, and full art library repack (amends ADR-021, ADR-023, ADR-026, ADR-040) | Accepted |
+| [ADR-046](ADR-046-monster-ai-roaming-and-combat-effects.md) | Monster AI roaming, aggro, real-time combat effects and boss encounters (amends ADR-045) | Accepted |
+| [ADR-047](ADR-047-dungeon-floor-bosses-and-legendary-loot.md) | Dungeon floor bosses (10/20/30/40), multi-phase vitals, enrage AI, and legendary trophy loot | Accepted |
+| [ADR-048](ADR-048-arcane-magic-projectiles-and-impact-effects.md) | Arcane magic projectiles, trajectory interpolation, and impact sparkles | Accepted |
+| [ADR-049](ADR-049-armor-equipment-defense-and-battle-gear.md) | Armor equipment paperdoll, defense mitigation, and craftable battle gear | Accepted |
+| [ADR-050](ADR-050-monster-defeat-death-poof-and-particles.md) | Monster defeat death poof animations, defeat particles, and sprite packing | Accepted |
+| [ADR-051](ADR-051-status-effects-regeneration-and-poison.md) | Status effects (regeneration, poison, swiftness), periodic ticks, and HUD aura | Accepted |
+| [ADR-052](ADR-052-coop-party-combat-and-proximity-xp.md) | Co-op party combat and proximity shared Combat XP | Accepted |
+| [ADR-053](ADR-053-combat-audio-sound-effects.md) | Combat audio sound effects synthesis and event wiring | Accepted |
+| [ADR-054](ADR-054-mmorpg-expansion-system-audit-and-completion.md) | MMORPG expansion system audit, stress verification, and completion | Accepted |
+| [ADR-055](ADR-055-floating-combat-text-and-overhead-health-bars.md) | Floating combat text and monster overhead mini-health bars | Accepted |
+| [ADR-056](ADR-056-special-combat-skills-cooldowns-and-hud.md) | Special combat skills, server-authoritative cooldowns, and skills HUD | Accepted |
+| [ADR-057](ADR-057-wilderness-dungeon-rift-portal-and-warps.md) | Wilderness Ancient Dungeon rift portal and boss room warps | Accepted |
+| [ADR-058](ADR-058-elite-monster-modifiers-and-affixes.md) | Elite monster modifiers, affixes, and enhanced rewards | Accepted |
+| [ADR-059](ADR-059-monster-bestiary-and-hunting-log.md) | Monster bestiary and hunting log in journal UI | Accepted |
+| [ADR-060](ADR-060-combat-combo-streaks-and-damage-scaling.md) | Combat combo streaks and critical damage scaling | Accepted |
+| [ADR-061](ADR-061-dungeon-environmental-hazards-and-elemental-traps.md) | Dungeon environmental hazards and elemental traps | Accepted |
+| [ADR-062](ADR-062-level-up-radiance-beacon-and-fanfare-audio.md) | Level-up radiance beacon, full vitality surge, celebratory fanfare audio, and strict Blazor UI / i18n alignment | Accepted |
+| [ADR-063](ADR-063-dungeon-blessing-shrines-and-sanctuary-altars.md) | Dungeon blessing shrines, ancient sanctuary altars, proximity vitality/mana/XP blessings, and localized world labels | Accepted |
+| [ADR-064](ADR-064-elemental-resonance-pylons-and-overworld-wayshrines.md) | Elemental resonance pylons, overworld wilderness wayshrines, and AoE monster discharge | Accepted |
+| [ADR-065](ADR-065-ancient-relics-ranger-tunic-heart-crystal-and-arcane-grimoire.md) | Ancient relics, ranger tunic, heart crystal, arcane grimoire crafting, and armor paperdoll | Accepted |
