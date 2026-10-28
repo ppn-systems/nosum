@@ -70,16 +70,18 @@ def _legs(direction, column):
     if direction == 'right':
         if column == 0:
             return [(6, 9, 31, 0)]
-        if column == 1:   # near leg forward, far leg back and lifted
-            return [(4, 6, 30, 1), (8, 10, 31, 0)]
+        if column == 1:   # near leg forward, far leg back and lifted 2px
+            return [(3, 5, 29, 1), (8, 10, 31, 0)]
         if column == 3:   # planted wide action lunge stance
             return [(4, 6, 31, 1), (8, 11, 31, 0)]
-        return [(4, 6, 30, 0), (8, 10, 31, 1)]
+        return [(3, 5, 29, 0), (8, 10, 31, 1)]
     if column == 3:
         return [(4, 6, 31, 0), (9, 11, 31, 0)]
-    left_up = column == 2
-    right_up = column == 1
-    return [(5, 7, 30 if left_up else 31, 0), (8, 10, 30 if right_up else 31, 0)]
+    if column == 1:
+        return [(4, 6, 31, 0), (9, 11, 29, 1)]
+    if column == 2:
+        return [(4, 6, 29, 1), (9, 11, 31, 0)]
+    return [(5, 7, 31, 0), (8, 10, 31, 0)]
 
 
 def _fill_legs(c, direction, column, color, dark, top, shrink=0, lower=2):
@@ -175,11 +177,13 @@ def arms(direction, column):
             c.rect(8, 17 + b, 5, 1, SKIN_D)
             c.rect(12, 15 + b, 2, 3, HAND)
         else:
-            # one visible arm; it swings opposite the near leg
-            sx = {0: 7, 1: 5, 2: 9}[column]
-            c.rect(sx, 16 + b, 2, 6, SKIN)
-            c.rect(sx + 1, 16 + b, 1, 6, SKIN_D)
-            c.rect(sx, 21 + b, 2, 2, HAND)
+            # one visible arm; it swings dynamically opposite the near leg
+            sx = {0: 7, 1: 4, 2: 9}[column]
+            sy = 16 + b - (1 if column != 0 else 0)
+            c.rect(sx, sy, 2, 6, SKIN)
+            c.rect(sx + 1, sy, 1, 6, SKIN_D)
+            c.rect(sx, sy + 5, 2, 2, HAND)
+            c.dot(sx, sy + 5, SKIN_L)
     elif column == 3:
         # Action swing / cast pose for down/up: left arm braced, right arm raised/extended
         c.rect(3, 16 + b, 2, 5, SKIN)
@@ -196,13 +200,14 @@ def arms(direction, column):
         for side, x in ((-1, 3), (1, 11)):
             dy = 0
             if column == 1:
-                dy = 1 if side < 0 else -1
+                dy = 2 if side < 0 else -2
             elif column == 2:
-                dy = -1 if side < 0 else 1
+                dy = -2 if side < 0 else 2
             top = 16 + b + dy
             c.rect(x, top, 2, 6, SKIN)
             c.rect(x + 1 if side < 0 else x, top, 1, 6, SKIN_D)
             c.rect(x, top + 5, 2, 2, HAND)
+            c.dot(x, top + 5, SKIN_L)
     boots(c, direction, column)
     return c.outline(OUT)
 

@@ -123,6 +123,30 @@ public sealed partial class ThemeSpritesTests
 
         farmerSprite.Should().Contain("DrawHeldItem");
         farmerSprite.Should().Contain("DrawSkillEffect");
+        farmerSprite.Should().Contain("DrawFootstepDust");
+    }
+
+    [Fact]
+    public void CoinBadge_And_CalendarClock_UseMatchedEightUnitIcons_AndDistinctTimePill()
+    {
+        string root = RepositoryRoot();
+        string coinCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Wallet", "CoinBadge.razor.css"));
+        string clockCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Calendar", "CalendarClock.razor.css"));
+        string weatherCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Calendar", "WeatherIcon.razor.css"));
+
+        coinCss.Should().Contain("calc(var(--u) * 8)");
+        clockCss.Should().Contain("calc(var(--u) * 8)");
+        clockCss.Should().Contain("--nosum-pill-clip");
+        weatherCss.Should().Contain("calc(var(--u) * 8)");
+    }
+
+    [Fact]
+    public void NodeSprites_RendersHitImpactParticles_WhenTreeOrRockIsStruck()
+    {
+        string root = RepositoryRoot();
+        string nodeSprites = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Game", "NodeSprites.cs"));
+
+        nodeSprites.Should().Contain("AddHitParticles");
     }
 
     private static int Number(Match row, int group) => int.Parse(row.Groups[group].Value, System.Globalization.CultureInfo.InvariantCulture);
