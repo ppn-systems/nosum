@@ -56,6 +56,9 @@ public static class CombatRules
     /// <summary>Maximum number of monsters on a single map or floor.</summary>
     public const int MaxMonstersPerMap = 16;
 
+    /// <summary>Maximum tile distance for party members to receive shared Combat XP from monster defeats (docs/adr/ADR-052).</summary>
+    public const int CoopShareRadius = 12;
+
     /// <summary>Aggro detection radius in tiles (Chebyshev) for monsters (docs/adr/ADR-046 D1).</summary>
     public const int AggroRadius = 4;
 

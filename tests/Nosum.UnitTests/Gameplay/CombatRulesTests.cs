@@ -176,4 +176,12 @@ public sealed class CombatRulesTests
         (StatusEffectKind slimeDebuff, _, _) = CombatRules.MonsterStatusOnHit(MonsterKind.GreenSlime);
         slimeDebuff.Should().Be(StatusEffectKind.None);
     }
+
+    [Fact]
+    public void CoopCombatRules_ProximityAndPartyParameters_AreConfigured()
+    {
+        CombatRules.CoopShareRadius.Should().Be(12);
+        CombatRules.AggroRadius.Should().Be(4);
+        CombatRules.BossAggroRadius.Should().Be(6);
+    }
 }

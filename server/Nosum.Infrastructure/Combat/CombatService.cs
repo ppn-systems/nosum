@@ -493,6 +493,65 @@ public sealed class CombatService : ICombatService, IDisposable
                     new GroundDrop(player.Instance, dropPixelX + 4, dropPixelY, defeatedDef.RareDropItemId, 1, player.AccountId),
                     cancellationToken).ConfigureAwait(false);
             }
+
+            // Co-op party proximity Combat XP distribution (docs/adr/ADR-052)
+            List<PlayerPresence> coPlayers = [];
+            _presence.CopyPlayers(player.Key, coPlayers);
+            int partyXp = defeatedDef.XpReward / 2;
+            if (partyXp > 0)
+            {
+                for (int pIdx = 0; pIdx < coPlayers.Count; pIdx++)
+                {
+                    PlayerPresence ally = coPlayers[pIdx];
+                    if (ally.AccountId == player.AccountId)
+                    {
+                        continue;
+                    }
+
+                    double ax;
+                    double ay;
+                    lock (ally.Gate)
+                    {
+                        ax = ally.Motion.X;
+                        ay = ally.Motion.Y;
+                    }
+
+                    int allyTileX = (int)Math.Floor(ax / tileSize);
+                    int allyTileY = (int)Math.Floor(ay / tileSize);
+                    int allyDist = Math.Max(Math.Abs(allyTileX - updatedMonster.X), Math.Abs(allyTileY - updatedMonster.Y));
+                    if (allyDist <= CombatRules.CoopShareRadius)
+                    {
+                        PlayerVitalsState allyVitals = this.GetOrCreateVitals(ally.AccountId);
+                        VitalsView allyView;
+                        lock (allyVitals.Gate)
+                        {
+                            allyVitals.CombatXp = Math.Min(SkillRules.XpCap, allyVitals.CombatXp + partyXp);
+                            int allyLevel = SkillRules.LevelOf(allyVitals.CombatXp);
+                            int allyMaxHp = CombatRules.MaxHpForLevel(allyLevel);
+                            int allyMaxMp = CombatRules.MaxMpForLevel(allyLevel);
+                            if (allyMaxHp > allyVitals.MaxHp)
+                            {
+                                allyVitals.MaxHp = allyMaxHp;
+                                allyVitals.MaxMp = allyMaxMp;
+                            }
+
+                            allyView = allyVitals.ToView();
+                        }
+
+                        if (_notifier is not null)
+                        {
+                            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
+                            lease.Value.Hp = (ushort)allyView.Hp;
+                            lease.Value.MaxHp = (ushort)allyView.MaxHp;
+                            lease.Value.Mp = (ushort)allyView.Mp;
+                            lease.Value.MaxMp = (ushort)allyView.MaxMp;
+                            lease.Value.CombatXp = allyView.CombatXp;
+                            lease.Value.StatusEffect = allyView.StatusEffect;
+                            _ = await _notifier.TrySendAsync(ally.AccountId, lease.Value, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
         }
 
         if (_notifier is not null && newLevel > oldLevel)
