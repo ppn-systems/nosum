@@ -52,7 +52,7 @@ SHIRT_PIECES = {'down': 0, 'right': 8, 'up': 24}               # y offset of the
 HATS = {3: 'straw', 5: 'cap'}                                  # sheet index -> hat (HatStraw, HatCap)
 HAT_ROWS = ['down', 'right', 'left', 'up']
 DIRECTIONS = ['down', 'right', 'up']
-WALK_COLUMNS = [0, 1, 2, 3]
+WALK_COLUMNS = [0, 1, 2, 3, 4, 5]
 
 HAIR_OFFSET_Y = 2          # FarmerSprite.HairOffsetY
 SHIRT_OFFSET = (4, 15)     # FarmerSprite.ShirtOffsetX / ShirtOffsetY
@@ -60,7 +60,7 @@ HAT_OFFSET_X = 2           # (HatSize - Width) / 2
 
 
 def _bob(column):
-    return 0 if column == 0 else 1
+    return 1 if column in (1, 2, 3) else 0
 
 
 # ---- legs: one pose table shared by body, pants and boots so the three layers always agree ----------------------------------------------
@@ -72,15 +72,23 @@ def _legs(direction, column):
             return [(6, 9, 31, 0)]
         if column == 1:   # near leg forward, far leg back and lifted 2px
             return [(3, 5, 29, 1), (8, 10, 31, 0)]
+        if column == 2:   # far leg forward, near leg back and lifted 2px
+            return [(3, 5, 29, 0), (8, 10, 31, 1)]
         if column == 3:   # planted wide action lunge stance
             return [(4, 6, 31, 1), (8, 11, 31, 0)]
-        return [(3, 5, 29, 0), (8, 10, 31, 1)]
+        if column == 4:   # passing mid-stride A (1px lift, half stride)
+            return [(4, 6, 30, 1), (7, 9, 31, 0)]
+        return [(4, 6, 30, 0), (7, 9, 31, 1)]   # column 5: passing mid-stride B
     if column == 3:
         return [(4, 6, 31, 0), (9, 11, 31, 0)]
     if column == 1:
         return [(4, 6, 31, 0), (9, 11, 29, 1)]
     if column == 2:
         return [(4, 6, 29, 1), (9, 11, 31, 0)]
+    if column == 4:       # passing mid-stride A: left foot planted, right foot lifting 1px
+        return [(4, 6, 31, 0), (8, 10, 30, 1)]
+    if column == 5:       # passing mid-stride B: left foot lifting 1px, right foot planted
+        return [(5, 7, 30, 1), (9, 11, 31, 0)]
     return [(5, 7, 31, 0), (8, 10, 31, 0)]
 
 
@@ -144,7 +152,8 @@ def body(direction, column):
 
 def pants(direction, column):
     c = Canvas(FRAME_W, FRAME_H)
-    c.rect(5, 20, 6, 4, G_B)                    # hips and waist (the shirt hides the top rows)
+    b = _bob(column)
+    c.rect(5, 20, 6, 4 + b, G_B)                # hips and waist (the shirt hides the top rows)
     c.rect(4, 23, 8, 2, G_B) if direction != 'right' else c.rect(5, 23, 6, 2, G_B)
     c.rect(4, 24, 8, 1, G_X) if direction != 'right' else c.rect(5, 24, 6, 1, G_X)      # belt
     c.dot(7, 24, G_L)                                                                     # buckle
@@ -177,9 +186,9 @@ def arms(direction, column):
             c.rect(8, 17 + b, 5, 1, SKIN_D)
             c.rect(12, 15 + b, 2, 3, HAND)
         else:
-            # one visible arm; it swings dynamically opposite the near leg
-            sx = {0: 7, 1: 4, 2: 9}[column]
-            sy = 16 + b - (1 if column != 0 else 0)
+            # one visible arm; it swings dynamically opposite the near leg (with intermediate passing frames 4 and 5)
+            sx = {0: 7, 1: 4, 2: 9, 4: 5, 5: 8}[column]
+            sy = 16 + b - (1 if column in (1, 2) else 0)
             c.rect(sx, sy, 2, 6, SKIN)
             c.rect(sx + 1, sy, 1, 6, SKIN_D)
             c.rect(sx, sy + 5, 2, 2, HAND)
@@ -203,6 +212,10 @@ def arms(direction, column):
                 dy = 2 if side < 0 else -2
             elif column == 2:
                 dy = -2 if side < 0 else 2
+            elif column == 4:
+                dy = 1 if side < 0 else -1
+            elif column == 5:
+                dy = -1 if side < 0 else 1
             top = 16 + b + dy
             c.rect(x, top, 2, 6, SKIN)
             c.rect(x + 1 if side < 0 else x, top, 1, 6, SKIN_D)

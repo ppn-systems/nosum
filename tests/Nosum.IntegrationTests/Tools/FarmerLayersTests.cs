@@ -32,7 +32,7 @@ public sealed class FarmerLayersTests
         TheoryData<int, int> data = [];
         for (int row = 0; row < 3; row++)
         {
-            for (int column = 0; column < 3; column++)
+            for (int column = 0; column < 6; column++)
             {
                 data.Add(row, column);
             }
@@ -45,7 +45,7 @@ public sealed class FarmerLayersTests
     [MemberData(nameof(Frames))]
     public void Stack_EveryWalkFrame_HasNoGapBetweenBodyAndPantsOrHeadAndHair(int row, int column)
     {
-        int bob = column == 0 ? 0 : 1;
+        int bob = column is 1 or 2 or 3 ? 1 : 0;
         for (int style = 0; style < 8; style++)
         {
             bool[,] body = Cell("body.png", column * W, row * H, W, H);
@@ -90,7 +90,7 @@ public sealed class FarmerLayersTests
     [MemberData(nameof(Frames))]
     public void Hats_EveryDirection_SitOnTheHead(int row, int column)
     {
-        int bob = column == 0 ? 0 : 1;
+        int bob = column is 1 or 2 or 3 ? 1 : 0;
         bool[,] body = Cell("body.png", column * W, row * H, W, H);
         Box head = Box.Of(body, 0, 0, W, 17 + bob);
         int[] hatRows = row == 0 ? [0] : row == 1 ? [1, 2] : [3];
@@ -119,7 +119,7 @@ public sealed class FarmerLayersTests
 
     private static bool[,] Compose(int row, int column, int shirt, int style, int hat, out int bob)
     {
-        bob = column == 0 ? 0 : 1;
+        bob = column is 1 or 2 or 3 ? 1 : 0;
         bool[,] image = new bool[Canvas, Canvas + 16];
         Stamp(image, Cell("body.png", column * W, row * H, W, H), 0, 0);
         Stamp(image, Cell("pants.png", column * W, row * H, W, H), 0, 0);

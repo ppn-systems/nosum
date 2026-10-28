@@ -13,6 +13,11 @@
     cursor: var(--nosum-cursor-pointer, pointer);
 }
 
+.quest-head ::deep .game-icon.quest-scroll {
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 8);
+}
+
 .quest-fold {
     flex: none;
     width: calc(var(--u) * 4);

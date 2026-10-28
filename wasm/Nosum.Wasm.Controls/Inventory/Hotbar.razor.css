@@ -1,6 +1,6 @@
 .hotbar-dock {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: var(--nosum-gap);
 }
 
@@ -18,6 +18,27 @@
 
 .hotbar-skills ::deep .game-button.chip {
     padding: 0;
+}
+
+.hotbar-skills ::deep .game-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--u) * 10);
+    height: calc(var(--u) * 10);
+    box-shadow: inset 0 var(--u) 0 var(--nosum-wood-light);
+    color: var(--nosum-gold-light);
+}
+
+.hotbar-skills ::deep .game-button.chip:hover:not(:disabled) .game-key {
+    background: var(--nosum-wood-dark);
+    border-color: var(--nosum-gold-light);
+    color: var(--nosum-ink-on-dark);
+}
+
+.hotbar-skills ::deep .game-button.chip:disabled .game-key {
+    opacity: 0.45;
+    box-shadow: none;
 }
 
 /* Narrow screens (a phone held upright): the slots make two rows of five instead of one row that does not fit (docs/adr/ADR-033 D2). */

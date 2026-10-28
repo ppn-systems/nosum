@@ -133,11 +133,15 @@ public sealed partial class ThemeSpritesTests
         string coinCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Wallet", "CoinBadge.razor.css"));
         string clockCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Calendar", "CalendarClock.razor.css"));
         string weatherCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Calendar", "WeatherIcon.razor.css"));
+        string questCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Quest", "QuestTracker.razor.css"));
+        string hudCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Layout", "GameHud.razor.css"));
 
         coinCss.Should().Contain("calc(var(--u) * 8)");
         clockCss.Should().Contain("calc(var(--u) * 8)");
         clockCss.Should().Contain("--nosum-pill-clip");
         weatherCss.Should().Contain("calc(var(--u) * 8)");
+        questCss.Should().Contain("calc(var(--u) * 8)");
+        hudCss.Should().Contain("calc(var(--u) * 16)");
     }
 
     [Fact]
