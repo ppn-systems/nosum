@@ -14,10 +14,14 @@ internal sealed class CombatLabels
     private readonly LabelRegistry _registry;
     private readonly Dictionary<(int Value, byte Style), int> _cache = new(256);
 
+    /// <summary>Gets the pre-interned label id for the Ancient Dungeon portal (docs/adr/ADR-057).</summary>
+    public int PortalLabelId { get; }
+
     public CombatLabels(LabelRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);
         _registry = registry;
+        this.PortalLabelId = registry.Intern("HẦM NGỤC CỔ ĐẠI (TẦNG 10)", 1);
 
         // Pre-intern common values 1..50 for all 5 styles
         for (int i = 1; i <= 50; i++)

@@ -58,6 +58,71 @@ internal sealed class MonstersDecorator : IMapDecorator
         _combat.CopyMonsters(_scratch);
         long now = Environment.TickCount64;
 
+        // Ancient Dungeon Rift Portal on Crossroads map (docs/adr/ADR-057):
+        if (string.Equals(_mapId, GameMaps.BusStop, StringComparison.Ordinal))
+        {
+            const int portalTileX = 22;
+            const int portalTileY = 14;
+            int pWorldX = portalTileX * FrameSize;
+            int pWorldY = portalTileY * FrameSize;
+
+            // Outer dark rift aura (16x16)
+            world.Add(
+                RenderCommandBuffer.FillTexture,
+                0,
+                0,
+                16,
+                16,
+                pWorldX,
+                pWorldY,
+                pWorldY + FrameSize,
+                pWorldX,
+                8800,
+                tint: unchecked((int)0x6b21a8cc));
+
+            // Inner swirling core (10x10)
+            float corePhase = now * 0.006f;
+            int pulseSize = 8 + (int)(MathF.Sin(corePhase) * 2f);
+            int coreOffset = (16 - pulseSize) / 2;
+            world.Add(
+                RenderCommandBuffer.FillTexture,
+                0,
+                0,
+                pulseSize,
+                pulseSize,
+                pWorldX + coreOffset,
+                pWorldY + coreOffset,
+                pWorldY + FrameSize,
+                pWorldX,
+                8801,
+                tint: unchecked((int)0x06b6d4ee));
+
+            // Swirling orbiting particles
+            float r = 9f + (MathF.Sin(corePhase * 1.5f) * 3f);
+            int ox1 = (int)(pWorldX + 8 + (MathF.Cos(corePhase) * r));
+            int oy1 = (int)(pWorldY + 8 + (MathF.Sin(corePhase) * r));
+            int ox2 = (int)(pWorldX + 8 - (MathF.Cos(corePhase) * r));
+            int oy2 = (int)(pWorldY + 8 - (MathF.Sin(corePhase) * r));
+            world.Add(_itemsTexture, 96, 64, 8, 8, ox1 - 4, oy1 - 4, pWorldY + FrameSize, pWorldX, 8802);
+            world.Add(_itemsTexture, 96, 64, 8, 8, ox2 - 4, oy2 - 4, pWorldY + FrameSize, pWorldX, 8803);
+
+            // Overhead portal title label
+            if (_labels is not null)
+            {
+                world.Add(
+                    RenderCommandBuffer.LabelTexture,
+                    _labels.PortalLabelId,
+                    0,
+                    0,
+                    0,
+                    pWorldX + 8,
+                    pWorldY - 6,
+                    pWorldY + FrameSize + 20,
+                    pWorldX,
+                    8804);
+            }
+        }
+
         for (int i = 0; i < _scratch.Count; i++)
         {
             MonsterClientRow m = _scratch[i];

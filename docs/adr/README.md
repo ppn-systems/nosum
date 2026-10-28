@@ -66,3 +66,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-054](ADR-054-mmorpg-expansion-system-audit-and-completion.md) | MMORPG expansion system audit, stress verification, and completion | Accepted |
 | [ADR-055](ADR-055-floating-combat-text-and-overhead-health-bars.md) | Floating combat text and monster overhead mini-health bars | Accepted |
 | [ADR-056](ADR-056-special-combat-skills-cooldowns-and-hud.md) | Special combat skills, server-authoritative cooldowns, and skills HUD | Accepted |
+| [ADR-057](ADR-057-wilderness-dungeon-rift-portal-and-warps.md) | Wilderness Ancient Dungeon rift portal and boss room warps | Accepted |

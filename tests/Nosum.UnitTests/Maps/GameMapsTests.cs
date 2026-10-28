@@ -201,6 +201,15 @@ public sealed class GameMapsTests
         grid.IsBlocked(64, 12).Should().BeTrue();
     }
 
+    [Fact]
+    public void BusStop_ContainsDungeonRiftWarp_ToMine10()
+    {
+        GameMaps.TryGet(GameMaps.BusStop, out MapSpec? busStop).Should().BeTrue();
+        TileMap map = Load(busStop!);
+        IReadOnlyList<MapWarp> warps = busStop!.ResolveWarps(map);
+        warps.Should().Contain(w => w.FromX == 22 && w.FromY == 14 && w.TargetMap == "mine10" && w.TargetX == 10 && w.TargetY == 9);
+    }
+
     [Theory]
     [MemberData(nameof(MapIds))]
     public void Assets_EveryTilesheetAndMapFile_IsLinkedIntoClientAndServer(string id)
