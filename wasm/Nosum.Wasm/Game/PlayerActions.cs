@@ -144,6 +144,28 @@ internal sealed class PlayerActions
 
         this.RaisePanelKeys(edges);
 
+        if (_combat is not null)
+        {
+            if ((edges & InputEdges.Skill1) != 0)
+            {
+                _combat.CastSkill(1);
+            }
+            else if ((edges & InputEdges.Skill2) != 0)
+            {
+                int targetId = 0;
+                if (_combat.TryFindTarget(x, y, 6, out MonsterClientRow tm))
+                {
+                    targetId = tm.MonsterId;
+                }
+
+                _combat.CastSkill(2, targetId);
+            }
+            else if ((edges & InputEdges.Skill3) != 0)
+            {
+                _combat.CastSkill(3);
+            }
+        }
+
         if ((edges & InputEdges.Action) != 0 && shopId != 0)
         {
             this.ShopRequested?.Invoke(shopId);

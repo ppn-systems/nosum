@@ -77,6 +77,15 @@ public enum InputEdges
 
     /// <summary>The profile key (N): show or hide the profile panel (change nickname).</summary>
     Profile = 1 << 20,
+
+    /// <summary>Skill 1 key (Z): Whirlwind Cleave (docs/adr/ADR-056).</summary>
+    Skill1 = 1 << 21,
+
+    /// <summary>Skill 2 key (X): Fireball (docs/adr/ADR-056).</summary>
+    Skill2 = 1 << 22,
+
+    /// <summary>Skill 3 key (V): Divine Heal (docs/adr/ADR-056).</summary>
+    Skill3 = 1 << 23,
 }
 
 /// <summary>Helpers for the packed input integer the platform passes to the frame.</summary>

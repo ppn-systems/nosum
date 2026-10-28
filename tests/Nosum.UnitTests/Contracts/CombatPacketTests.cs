@@ -20,6 +20,7 @@ public sealed class CombatPacketTests
         using GetMonsters getMonsters = new();
         using AttackMonster attack = new() { MonsterId = 42, Slot = 8 };
         using DrinkPotion drink = new() { Slot = 5 };
+        using CastSkill skill = new() { SkillId = 1, TargetMonsterId = 42 };
 
         GetVitals.Deserialize(getVitals.Serialize()).Should().NotBeNull();
         GetMonsters.Deserialize(getMonsters.Serialize()).Should().NotBeNull();
@@ -29,6 +30,9 @@ public sealed class CombatPacketTests
 
         DrinkPotion drinkCopy = DrinkPotion.Deserialize(drink.Serialize());
         drinkCopy.Slot.Should().Be(5);
+
+        CastSkill skillCopy = CastSkill.Deserialize(skill.Serialize());
+        (skillCopy.SkillId, skillCopy.TargetMonsterId).Should().Be((1, 42));
     }
 
     [Fact]
@@ -103,6 +107,24 @@ public sealed class CombatPacketTests
         DrinkPotionResult drinkResultCopy = DrinkPotionResult.Deserialize(drinkResult.Serialize());
         (drinkResultCopy.Status, drinkResultCopy.Hp, drinkResultCopy.MaxHp, drinkResultCopy.Mp, drinkResultCopy.MaxMp)
             .Should().Be((CombatStatus.Ok, (ushort)100, (ushort)100, (ushort)50, (ushort)50));
+
+        using CastSkillResult skillResult = new()
+        {
+            Status = CombatStatus.Ok,
+            SkillId = 1,
+            DamageDealt = 36,
+            TargetsHit = 2,
+            HealAmount = 0,
+            Hp = 90,
+            MaxHp = 100,
+            Mp = 35,
+            MaxMp = 50,
+            CombatXp = 50,
+            CooldownMs = 3000,
+        };
+        CastSkillResult skillResultCopy = CastSkillResult.Deserialize(skillResult.Serialize());
+        (skillResultCopy.Status, skillResultCopy.SkillId, skillResultCopy.DamageDealt, skillResultCopy.TargetsHit, skillResultCopy.HealAmount, skillResultCopy.Hp, skillResultCopy.MaxHp, skillResultCopy.Mp, skillResultCopy.MaxMp, skillResultCopy.CombatXp, skillResultCopy.CooldownMs)
+            .Should().Be((CombatStatus.Ok, (byte)1, (ushort)36, (byte)2, (ushort)0, (ushort)90, (ushort)100, (ushort)35, (ushort)50, 50, (ushort)3000));
     }
 
     [Fact]

@@ -46,6 +46,23 @@ public readonly record struct AttackOutcome(
 /// <param name="Vitals">Updated player vitals.</param>
 public readonly record struct DrinkPotionOutcome(CombatStatus Status, VitalsView Vitals);
 
+/// <summary>Outcome of executing a special combat skill (docs/adr/ADR-056).</summary>
+/// <param name="Status">Combat status outcome.</param>
+/// <param name="SkillId">Skill kind.</param>
+/// <param name="DamageDealt">Total damage dealt.</param>
+/// <param name="TargetsHit">Count of monsters struck.</param>
+/// <param name="HealAmount">Health points restored.</param>
+/// <param name="Vitals">Updated player vitals.</param>
+/// <param name="CooldownMs">Skill cooldown duration.</param>
+public readonly record struct CastSkillOutcome(
+    CombatStatus Status,
+    byte SkillId,
+    int DamageDealt,
+    byte TargetsHit,
+    int HealAmount,
+    VitalsView Vitals,
+    int CooldownMs);
+
 /// <summary>
 /// Server-authoritative MMORPG vitals (HP &amp; MP), monster encounters, weapon/staff attacks, and potion drinking
 /// (docs/adr/ADR-045 D3).
@@ -78,4 +95,12 @@ public interface ICombatService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The potion outcome.</returns>
     Task<DrinkPotionOutcome> DrinkPotionAsync(IConnection connection, int slot, CancellationToken cancellationToken = default);
+
+    /// <summary>Casts a special combat skill (docs/adr/ADR-056).</summary>
+    /// <param name="connection">Player connection.</param>
+    /// <param name="skillId">Skill kind.</param>
+    /// <param name="targetMonsterId">Target monster id for targeted skills.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The skill cast outcome.</returns>
+    Task<CastSkillOutcome> CastSkillAsync(IConnection connection, byte skillId, int targetMonsterId, CancellationToken cancellationToken = default);
 }

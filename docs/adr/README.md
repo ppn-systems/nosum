@@ -65,3 +65,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-053](ADR-053-combat-audio-sound-effects.md) | Combat audio sound effects synthesis and event wiring | Accepted |
 | [ADR-054](ADR-054-mmorpg-expansion-system-audit-and-completion.md) | MMORPG expansion system audit, stress verification, and completion | Accepted |
 | [ADR-055](ADR-055-floating-combat-text-and-overhead-health-bars.md) | Floating combat text and monster overhead mini-health bars | Accepted |
+| [ADR-056](ADR-056-special-combat-skills-cooldowns-and-hud.md) | Special combat skills, server-authoritative cooldowns, and skills HUD | Accepted |

@@ -36,6 +36,15 @@ public readonly record struct AttackInfo(
     int DamageTaken,
     bool KnockedOut);
 
+/// <summary>Summary of a cast skill result (docs/adr/ADR-056).</summary>
+public readonly record struct SkillInfo(
+    CombatStatus Status,
+    byte SkillId,
+    ushort DamageDealt,
+    byte TargetsHit,
+    ushort HealAmount,
+    ushort CooldownMs);
+
 /// <summary>Active in-flight spell or ranged projectile (docs/adr/ADR-048).</summary>
 /// <param name="StartX">Origin tile X.</param>
 /// <param name="StartY">Origin tile Y.</param>
@@ -97,6 +106,7 @@ public sealed class CombatChannel : IDisposable
     private readonly List<ProjectileClientRow> _projectiles = [];
     private readonly List<DeathEffectClientRow> _deathEffects = [];
     private readonly List<FloatingTextClientRow> _floatingTexts = [];
+    private readonly Dictionary<byte, long> _skillReadyAt = new();
     private int _playerX;
     private int _playerY;
 
@@ -134,6 +144,9 @@ public sealed class CombatChannel : IDisposable
 
     /// <summary>Raised when a potion drink request completes.</summary>
     public event Action<CombatStatus>? PotionCompleted;
+
+    /// <summary>Raised when a skill cast request completes (docs/adr/ADR-056).</summary>
+    public event Action<SkillInfo>? SkillCompleted;
 
     /// <summary>Gets current HP.</summary>
     public int Hp => Volatile.Read(ref _hp);
@@ -253,6 +266,39 @@ public sealed class CombatChannel : IDisposable
     /// <summary>Drinks a potion in <paramref name="slot"/>.</summary>
     /// <param name="slot">Hotbar/inventory slot.</param>
     public void DrinkPotion(int slot) => _ = this.DrinkPotionAsync(slot);
+
+    /// <summary>Gets the remaining cooldown in seconds for a skill (0 when ready) (docs/adr/ADR-056).</summary>
+    /// <param name="skillId">The skill kind.</param>
+    /// <returns>Seconds remaining until ready.</returns>
+    public float GetSkillCooldownRemaining(byte skillId)
+    {
+        lock (_gate)
+        {
+            if (_skillReadyAt.TryGetValue(skillId, out long readyAt))
+            {
+                long diff = readyAt - Environment.TickCount64;
+                return diff > 0 ? diff / 1000f : 0f;
+            }
+
+            return 0f;
+        }
+    }
+
+    /// <summary>Casts a combat skill (1 = Whirlwind, 2 = Fireball, 3 = DivineHeal) (docs/adr/ADR-056).</summary>
+    /// <param name="skillId">Skill kind.</param>
+    /// <param name="targetMonsterId">Target monster id (0 for self/AoE, or auto-targets nearest within range 6).</param>
+    public void CastSkill(byte skillId, int targetMonsterId = 0)
+    {
+        if (skillId == 2 && targetMonsterId == 0)
+        {
+            if (this.TryFindTarget(_playerX, _playerY, 6, out MonsterClientRow m))
+            {
+                targetMonsterId = m.MonsterId;
+            }
+        }
+
+        _ = this.CastSkillAsync(skillId, targetMonsterId);
+    }
 
     /// <summary>Spawns a client-side magic projectile along a trajectory (docs/adr/ADR-048).</summary>
     /// <param name="fromX">Starting tile X.</param>
@@ -482,6 +528,64 @@ public sealed class CombatChannel : IDisposable
             }
 
             this.PotionCompleted?.Invoke(reply.Status);
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "Network errors are ignored.")]
+    private async Task CastSkillAsync(byte skillId, int targetMonsterId)
+    {
+        try
+        {
+            using PacketScope<CastSkill> req = PacketFactory<CastSkill>.Acquire();
+            req.Value.SkillId = skillId;
+            req.Value.TargetMonsterId = targetMonsterId;
+            CastSkillResult reply = await _socket.RequestAsync<CastSkillResult>(req.Value).ConfigureAwait(false);
+
+            if (reply.Status == CombatStatus.Ok)
+            {
+                lock (_gate)
+                {
+                    _skillReadyAt[reply.SkillId] = Environment.TickCount64 + reply.CooldownMs;
+                }
+
+                if (reply.SkillId == 3 && reply.HealAmount > 0)
+                {
+                    this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, reply.HealAmount, 3);
+                }
+                else if (reply.SkillId == 2 && reply.DamageDealt > 0)
+                {
+                    if (this.TryGetMonster(targetMonsterId, out MonsterClientRow tm))
+                    {
+                        this.SpawnProjectile(_playerX, _playerY, tm.X, tm.Y, 1);
+                        this.SpawnFloatingText((tm.X * 16) + 8, (tm.Y * 16) - 6, reply.DamageDealt, 1);
+                    }
+                }
+                else if (reply.SkillId == 1 && reply.DamageDealt > 0)
+                {
+                    this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 10, reply.DamageDealt, 1);
+                }
+
+                if (reply.MaxHp > 0)
+                {
+                    Volatile.Write(ref _hp, reply.Hp);
+                    Volatile.Write(ref _maxHp, reply.MaxHp);
+                    Volatile.Write(ref _mp, reply.Mp);
+                    Volatile.Write(ref _maxMp, reply.MaxMp);
+                    Volatile.Write(ref _combatXp, reply.CombatXp);
+                    this.Changed?.Invoke();
+                }
+            }
+
+            this.SkillCompleted?.Invoke(new SkillInfo(
+                reply.Status,
+                reply.SkillId,
+                reply.DamageDealt,
+                reply.TargetsHit,
+                reply.HealAmount,
+                reply.CooldownMs));
         }
         catch (Exception)
         {

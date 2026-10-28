@@ -25,4 +25,10 @@ public enum CombatStatus : byte
 
     /// <summary>The player's HP and MP are already full.</summary>
     AlreadyFull = 6,
+
+    /// <summary>The requested combat skill is currently on cooldown (docs/adr/ADR-056).</summary>
+    OnCooldown = 7,
+
+    /// <summary>The requested combat skill does not exist (docs/adr/ADR-056).</summary>
+    UnknownSkill = 8,
 }

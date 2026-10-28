@@ -14,6 +14,23 @@
                 }
             </div>
         </GamePanel>
+        <div class="combat-skills-dock" role="toolbar" aria-label="Combat Skills">
+            <button type="button" class="skill-btn skill-whirlwind" title="Whirlwind Cleave [Z] (15 MP)" @onclick="() => OnSkill?.Invoke(1)">
+                <span class="skill-key">Z</span>
+                <span class="skill-glyph">⚔️</span>
+                <span class="skill-cost">15</span>
+            </button>
+            <button type="button" class="skill-btn skill-fireball" title="Fireball Pyromancy [X] (25 MP)" @onclick="() => OnSkill?.Invoke(2)">
+                <span class="skill-key">X</span>
+                <span class="skill-glyph">🔥</span>
+                <span class="skill-cost">25</span>
+            </button>
+            <button type="button" class="skill-btn skill-divine-heal" title="Divine Heal [V] (20 MP)" @onclick="() => OnSkill?.Invoke(3)">
+                <span class="skill-key">V</span>
+                <span class="skill-glyph">✨</span>
+                <span class="skill-cost">20</span>
+            </button>
+        </div>
         @if (Progress is not null)
         {
             @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@
@@ -25,4 +42,7 @@
 @code {
     /// <summary>The energy view model; when given, its bar stands beside the slots.</summary>
     [Parameter] public Nosum.Wasm.ViewModels.Progress.ProgressViewModel? Progress { get; set; }
+
+    /// <summary>Invoked when a combat skill button is triggered (docs/adr/ADR-056).</summary>
+    [Parameter] public Action<byte>? OnSkill { get; set; }
 }

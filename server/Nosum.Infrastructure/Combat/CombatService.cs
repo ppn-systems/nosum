@@ -43,6 +43,7 @@ public sealed class CombatService : ICombatService, IDisposable
 
     private readonly ConcurrentDictionary<Guid, PlayerVitalsState> _vitals = new();
     private readonly ConcurrentDictionary<string, InstanceMonsters> _instances = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<(Guid PlayerId, byte SkillId), long> _skillCooldowns = new();
 
     /// <summary>Initializes a new instance of the <see cref="CombatService"/> class.</summary>
     public CombatService(
@@ -640,6 +641,180 @@ public sealed class CombatService : ICombatService, IDisposable
         }
 
         return new DrinkPotionOutcome(CombatStatus.Ok, updated);
+    }
+
+    /// <inheritdoc/>
+    public async Task<CastSkillOutcome> CastSkillAsync(IConnection connection, byte skillId, int targetMonsterId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        if (!_presence.TryGet(connection, out PlayerPresence? player) || !_maps.TryGet(player.MapId, out MapDefinition? map))
+        {
+            return new CastSkillOutcome(CombatStatus.NotJoined, skillId, 0, 0, 0, default, 0);
+        }
+
+        if (!SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition? skill))
+        {
+            return new CastSkillOutcome(CombatStatus.UnknownSkill, skillId, 0, 0, 0, default, 0);
+        }
+
+        long now = Environment.TickCount64;
+        if (_skillCooldowns.TryGetValue((player.AccountId, skillId), out long readyAt) && now < readyAt)
+        {
+            PlayerVitalsState v = this.GetOrCreateVitals(player.AccountId);
+            lock (v.Gate)
+            {
+                return new CastSkillOutcome(CombatStatus.OnCooldown, skillId, 0, 0, 0, v.ToView(), (int)Math.Max(0, readyAt - now));
+            }
+        }
+
+        PlayerVitalsState vitals = this.GetOrCreateVitals(player.AccountId);
+        lock (vitals.Gate)
+        {
+            if (vitals.Mp < skill.MpCost)
+            {
+                return new CastSkillOutcome(CombatStatus.NotEnoughMp, skillId, 0, 0, 0, vitals.ToView(), 0);
+            }
+        }
+
+        double feetX;
+        double feetY;
+        lock (player.Gate)
+        {
+            feetX = player.Motion.X;
+            feetY = player.Motion.Y;
+        }
+
+        int tileSize = Math.Max(1, map.Grid.TileSize);
+        int playerTileX = (int)Math.Floor(feetX / tileSize);
+        int playerTileY = (int)Math.Floor(feetY / tileSize);
+
+        InstanceMonsters instance = this.GetOrCreateInstance(player);
+        int totalDamage = 0;
+        byte targetsHit = 0;
+        int healAmount = 0;
+        List<MonsterSpawn> broadcastChanges = new(8);
+        int oldLevel;
+        int newLevel;
+
+        lock (instance.Gate)
+        {
+            lock (vitals.Gate)
+            {
+                if (vitals.Mp < skill.MpCost)
+                {
+                    return new CastSkillOutcome(CombatStatus.NotEnoughMp, skillId, 0, 0, 0, vitals.ToView(), 0);
+                }
+
+                vitals.Mp -= skill.MpCost;
+                oldLevel = SkillRules.LevelOf(vitals.CombatXp);
+                int scaledPower = skill.BasePower + (oldLevel * 2);
+
+                if (skill.Kind == CombatSkillKind.DivineHeal)
+                {
+                    int oldHp = vitals.Hp;
+                    vitals.Hp = Math.Min(vitals.MaxHp, vitals.Hp + scaledPower);
+                    healAmount = vitals.Hp - oldHp;
+                }
+                else if (skill.Kind == CombatSkillKind.Whirlwind)
+                {
+                    for (int i = 0; i < instance.Monsters.Count; i++)
+                    {
+                        MonsterSpawn m = instance.Monsters[i];
+                        if (m.Hp <= 0)
+                        {
+                            continue;
+                        }
+
+                        int dist = Math.Max(Math.Abs(playerTileX - m.X), Math.Abs(playerTileY - m.Y));
+                        if (dist <= skill.Range)
+                        {
+                            int dmg = Math.Min(m.Hp, scaledPower);
+                            int remaining = m.Hp - dmg;
+                            MonsterSpawn updated = m with { Hp = remaining };
+                            instance.Monsters[i] = updated;
+                            broadcastChanges.Add(updated);
+                            totalDamage += dmg;
+                            targetsHit++;
+
+                            if (remaining == 0)
+                            {
+                                _ = MonsterCatalog.TryGet(m.Kind, out MonsterDefinition? mDef);
+                                int xp = mDef?.XpReward ?? 15;
+                                vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + xp);
+                            }
+                        }
+                    }
+                }
+                else if (skill.Kind == CombatSkillKind.Fireball)
+                {
+                    int targetIdx = -1;
+                    for (int i = 0; i < instance.Monsters.Count; i++)
+                    {
+                        if (instance.Monsters[i].MonsterId == targetMonsterId && instance.Monsters[i].Hp > 0)
+                        {
+                            targetIdx = i;
+                            break;
+                        }
+                    }
+
+                    if (targetIdx >= 0)
+                    {
+                        MonsterSpawn target = instance.Monsters[targetIdx];
+                        int dist = Math.Max(Math.Abs(playerTileX - target.X), Math.Abs(playerTileY - target.Y));
+                        if (dist <= skill.Range)
+                        {
+                            int dmg = Math.Min(target.Hp, scaledPower);
+                            int remaining = target.Hp - dmg;
+                            MonsterSpawn updated = target with { Hp = remaining };
+                            instance.Monsters[targetIdx] = updated;
+                            broadcastChanges.Add(updated);
+                            totalDamage += dmg;
+                            targetsHit = 1;
+
+                            if (remaining == 0)
+                            {
+                                _ = MonsterCatalog.TryGet(target.Kind, out MonsterDefinition? tDef);
+                                int xp = tDef?.XpReward ?? 15;
+                                vitals.CombatXp = Math.Min(SkillRules.XpCap, vitals.CombatXp + xp);
+                            }
+                        }
+                    }
+                }
+
+                newLevel = SkillRules.LevelOf(vitals.CombatXp);
+            }
+        }
+
+        _skillCooldowns[(player.AccountId, skillId)] = now + skill.CooldownMs;
+
+        foreach (MonsterSpawn m in broadcastChanges)
+        {
+            await this.BroadcastMonsterChangedAsync(player.Key, m, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (_notifier is not null && newLevel > oldLevel)
+        {
+            using PacketScope<LevelUp> levelLease = PacketFactory<LevelUp>.Acquire();
+            levelLease.Value.Skill = (byte)Nosum.Gameplay.Skills.SkillKind.Combat;
+            levelLease.Value.Level = (byte)newLevel;
+            _ = await _notifier.TrySendAsync(player.AccountId, levelLease.Value, cancellationToken).ConfigureAwait(false);
+        }
+
+        VitalsView resultVitals;
+        lock (vitals.Gate)
+        {
+            resultVitals = vitals.ToView();
+        }
+
+        return new CastSkillOutcome(
+            CombatStatus.Ok,
+            skillId,
+            totalDamage,
+            targetsHit,
+            healAmount,
+            resultVitals,
+            skill.CooldownMs);
     }
 
     private PlayerVitalsState GetOrCreateVitals(Guid playerId)

@@ -23,6 +23,9 @@ public static class CombatOpCode
     /// <summary>Drinks a potion from a hotbar/inventory slot to restore HP and MP. Reply: <see cref="S2C.DrinkPotionResult"/>.</summary>
     public const ushort DrinkPotion = 0xC203;
 
+    /// <summary>Casts a combat skill (Whirlwind, Fireball, Divine Heal). Reply: <see cref="S2C.CastSkillResult"/> (docs/adr/ADR-056).</summary>
+    public const ushort CastSkill = 0xC204;
+
     // -- S2C (0xC240-0xC27F) --------------------------------------------------
 
     /// <summary>Current player vitals (HP, MaxHp, MP, MaxMp, CombatXp).</summary>
@@ -39,4 +42,7 @@ public static class CombatOpCode
 
     /// <summary>Reply to <see cref="DrinkPotion"/>.</summary>
     public const ushort DrinkPotionResult = 0xC244;
+
+    /// <summary>Reply to <see cref="CastSkill"/> (docs/adr/ADR-056).</summary>
+    public const ushort CastSkillResult = 0xC245;
 }

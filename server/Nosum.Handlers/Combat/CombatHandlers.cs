@@ -130,4 +130,35 @@ public static partial class CombatHandlers
             r.MaxMp = (ushort)outcome.Vitals.MaxMp;
         }).ConfigureAwait(false);
     }
+
+    /// <summary>Casts a combat skill (Whirlwind, Fireball, Divine Heal) (docs/adr/ADR-056).</summary>
+    /// <param name="context">The request context.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(CombatOpCode.CastSkill)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(12, 3, PolicyId = "combat-skill")]
+    public static async ValueTask HandleCastSkillAsync(IPacketContext<CastSkill> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        byte skillId = context.Packet.SkillId;
+        int targetMonsterId = context.Packet.TargetMonsterId;
+        CastSkillOutcome outcome = await s_combat.CastSkillAsync(context.Connection, skillId, targetMonsterId, context.CancellationToken).ConfigureAwait(false);
+
+        await Replies.ReplyAsync<CastSkill, CastSkillResult>(context, sequence, r =>
+        {
+            r.Status = outcome.Status;
+            r.SkillId = outcome.SkillId;
+            r.DamageDealt = (ushort)outcome.DamageDealt;
+            r.TargetsHit = outcome.TargetsHit;
+            r.HealAmount = (ushort)outcome.HealAmount;
+            r.Hp = (ushort)outcome.Vitals.Hp;
+            r.MaxHp = (ushort)outcome.Vitals.MaxHp;
+            r.Mp = (ushort)outcome.Vitals.Mp;
+            r.MaxMp = (ushort)outcome.Vitals.MaxMp;
+            r.CombatXp = outcome.Vitals.CombatXp;
+            r.CooldownMs = (ushort)outcome.CooldownMs;
+        }).ConfigureAwait(false);
+    }
 }
