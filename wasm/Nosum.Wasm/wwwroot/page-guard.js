@@ -75,7 +75,7 @@
     }
 
     window.addEventListener("beforeunload", e => {
-        if (window.nosumPage.unloadGuard) {
+        if (window.nosumPage.unloadGuard && !window.__nosumSwReload) {
             e.preventDefault();
             e.returnValue = "";
         }

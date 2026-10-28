@@ -8,7 +8,6 @@
     <base href="/" />
     <!-- Page behaviour of a game and the device signals; first, so it also covers the boot screen (wasm/README.md). -->
     <script src="page-guard.js"></script>
-    <link rel="preload" id="webassembly" />
     <!-- The UI theme: variables, then the sprite cutter (docs/adr/ADR-016); the controls' scoped CSS comes with Nosum.Wasm.styles.css. -->
     <link rel="stylesheet" href="_content/Nosum.Wasm.Controls/nosum-theme.css" />
     <link rel="stylesheet" href="css/app.css" />
@@ -35,20 +34,62 @@
     <!-- Started by hand so the satellite resources (Language.en.resx) are downloaded: the account's language is only known after sign-in (docs/adr/ADR-010 D6). -->
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js" autostart="false"></script>
     <script>
-        Blazor.start({ configureRuntime: dotnet => { dotnet.withConfig({ loadAllSatelliteResources: true }); } });
-        if ('serviceWorker' in navigator) {
-            const hadController = Boolean(navigator.serviceWorker.controller);
-            let refreshing = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (hadController && !refreshing) {
-                    refreshing = true;
-                    window.location.reload();
-                }
+        (function () {
+            window.nosumSw = { _reg: null, _regPromise: null };
+            if (window.caches && caches.keys) {
+                caches.keys().then(function (keys) {
+                    keys.forEach(function (k) {
+                        if (k.indexOf('offline-cache-') === 0) {
+                            caches.delete(k);
+                        }
+                    });
+                }).catch(function () {});
+            }
+            if (!('serviceWorker' in navigator)) { return; }
+            var hadController = !!navigator.serviceWorker.controller;
+            var reloadedForController = false;
+            navigator.serviceWorker.addEventListener('controllerchange', function () {
+                if (!hadController || reloadedForController) { return; }
+                reloadedForController = true;
+                window.__nosumSwReload = true;
+                location.reload();
             });
-            navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
-                .then(reg => reg.update().catch(() => {}))
-                .catch(() => {});
-        }
+            var regPromise = navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' });
+            window.nosumSw._regPromise = regPromise;
+            regPromise.then(function (reg) { window.nosumSw._reg = reg; }).catch(function () {});
+            navigator.serviceWorker.ready.then(function (reg) {
+                var fireWarm = function () {
+                    if (reg.active) {
+                        reg.active.postMessage({ type: 'WARM_OFFLINE_CACHE' });
+                    }
+                };
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(fireWarm, { timeout: 5000 });
+                } else {
+                    setTimeout(fireWarm, 3000);
+                }
+            }).catch(function () {});
+        })();
+        Blazor.start({ configureRuntime: dotnet => { dotnet.withConfig({ loadAllSatelliteResources: true }); } }).catch(function (reason) {
+            try {
+                if (!navigator.serviceWorker || !navigator.serviceWorker.controller || navigator.onLine === false) { return; }
+                var key = 'nosum-boot-recover';
+                if (sessionStorage.getItem(key)) { return; }
+                sessionStorage.setItem(key, '1');
+                navigator.serviceWorker.getRegistration().then(function (reg) {
+                    return reg ? reg.unregister() : null;
+                }).catch(function () {}).then(function () {
+                    return window.caches && caches.keys ? caches.keys().then(function (keys) {
+                        return Promise.all(keys.filter(function (k) {
+                            return k.indexOf('nosum-offline-cache-') === 0 || k.indexOf('offline-cache-') === 0;
+                        }).map(function (k) { return caches.delete(k); }));
+                    }) : null;
+                }).catch(function () {}).then(function () {
+                    window.__nosumSwReload = true;
+                    location.reload();
+                });
+            } catch (e) {}
+        });
     </script>
 </body>
 
