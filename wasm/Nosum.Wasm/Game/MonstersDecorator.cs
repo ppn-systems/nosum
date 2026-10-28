@@ -28,6 +28,7 @@ internal sealed class MonstersDecorator : IMapDecorator
     private readonly int _itemsTexture;
     private readonly List<MonsterClientRow> _scratch = new(16);
     private readonly List<ProjectileClientRow> _projectilesScratch = new(16);
+    private readonly List<DeathEffectClientRow> _deathEffectsScratch = new(16);
 
     /// <summary>Initializes the decorator.</summary>
     /// <param name="mapId">Map id being decorated.</param>
@@ -116,6 +117,30 @@ internal sealed class MonstersDecorator : IMapDecorator
                 world.Add(_itemsTexture, 96, 64, 8, 8, twX - off, twY + off, twY + FrameSize, twX, 9003);
                 world.Add(_itemsTexture, 96, 64, 8, 8, twX + off, twY - off, twY + FrameSize, twX, 9004);
             }
+        }
+
+        _combat.CopyDeathEffects(_deathEffectsScratch, now);
+        for (int i = 0; i < _deathEffectsScratch.Count; i++)
+        {
+            DeathEffectClientRow d = _deathEffectsScratch[i];
+            float elapsed = now - d.StartTime;
+            int frameCol = Math.Clamp((int)(elapsed / (d.DurationMs / 4f)), 0, 3);
+            int srcX = frameCol * FrameSize;
+            int srcY = (12 * BlockHeight) + (d.Kind * FrameSize);
+            int worldX = d.X * FrameSize;
+            int worldY = d.Y * FrameSize;
+
+            world.Add(
+                _sheetTexture,
+                srcX,
+                srcY,
+                FrameSize,
+                FrameSize,
+                worldX,
+                worldY - 2,
+                worldY + FrameSize,
+                worldX + (FrameSize / 2),
+                9500 + i);
         }
     }
 }

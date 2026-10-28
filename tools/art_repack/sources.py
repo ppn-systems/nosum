@@ -76,6 +76,7 @@ SHEETS = {
     'six_color_dungeon': ('oga_6-color-dungeon', 'oga_6-color-dungeon.png', '6ce8628fb4337669fbd4346d6e2ded3908982a3cc9aa100f9f1df5bee9ade92d', 16, 0, (46, 36, 64)),
     'tiny16_dungeon': ('tiny16', 'dungeon.png', '272a421c38b3f0f7da77cd59975d6ceeb7d14cdbb3f0fd082f9d35d2dac698db', 16, 0, (117, 113, 97)),
     'dawn_armor': ('dawnlike', 'Items/Armor.png', '633032aafe520932c71802da6e9abfee0be711fa2e3313a60a45f71689a5e256', 16, 0),
+    'dawn_effects': ('dawnlike', 'Objects/Effect0.png', '8fc48d4b8982c7c1356ab402da6d94da316424b6d15bfcf4b5547708ad2739a7', 16, 0),
 }
 
 

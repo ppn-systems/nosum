@@ -18,7 +18,7 @@ from animals import chicken_frames
 from pngio import Image
 
 WIDTH = 64
-HEIGHT = 576
+HEIGHT = 624
 
 
 def slime_block(sheet):
@@ -47,10 +47,25 @@ def trash_mob_block(sheet, base_col):
     return block
 
 
+def poof_block(sheet):
+    """Extracts a 64 x 48 4-column x 3-row block of death effects from Effect0:
+    Row 0: smoke poof (row 9, cols 0..3)
+    Row 1: dust burst (row 10, cols 0..3)
+    Row 2: fire/spark explosion (row 6, cols 0..3)
+    """
+    block = Image(64, 48)
+    for col in range(4):
+        block.paste(sheet.cell(col, 9), col * 16, 0)
+        block.paste(sheet.cell(col, 10), col * 16, 16)
+        block.paste(sheet.cell(col, 6), col * 16, 32)
+    return block
+
+
 def build(src):
     out = Image(WIDTH, HEIGHT)
     creatures = src.sheet('creatures')
     trash = src.sheet('trash_mobs')
+    effects = src.sheet('dawn_effects')
     blocks = [
         slime_block(src.sheet('slime_green')),
         slime_block(src.sheet('slime_blue')),
@@ -64,6 +79,7 @@ def build(src):
         chicken_frames(creatures.cell(2, 1)),
         trash_mob_block(trash, 12),
         chicken_frames(creatures.cell(4, 2)),
+        poof_block(effects),
     ]
     for i, block in enumerate(blocks):
         out.paste(block, 0, i * 48)

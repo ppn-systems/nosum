@@ -54,6 +54,21 @@ public readonly record struct ProjectileClientRow(
     byte Kind);
 
 /// <summary>
+/// Client-side animated death poof / defeat particle effect (docs/adr/ADR-050).
+/// </summary>
+/// <param name="X">Tile X.</param>
+/// <param name="Y">Tile Y.</param>
+/// <param name="StartTime">Millisecond timestamp.</param>
+/// <param name="DurationMs">Total lifetime of the poof.</param>
+/// <param name="Kind">Poof visual row (0 = smoke, 1 = dust, 2 = explosion).</param>
+public readonly record struct DeathEffectClientRow(
+    int X,
+    int Y,
+    long StartTime,
+    float DurationMs = 400f,
+    byte Kind = 0);
+
+/// <summary>
 /// Client mirror of player HP &amp; MP vitals, Combat XP, and live monsters on the active map (docs/adr/ADR-045 D3).
 /// </summary>
 public sealed class CombatChannel : IDisposable
@@ -63,6 +78,7 @@ public sealed class CombatChannel : IDisposable
     private readonly object _gate = new();
     private readonly List<MonsterClientRow> _monsters = [];
     private readonly List<ProjectileClientRow> _projectiles = [];
+    private readonly List<DeathEffectClientRow> _deathEffects = [];
 
     private int _hp = 100;
     private int _maxHp = 100;
@@ -236,6 +252,31 @@ public sealed class CombatChannel : IDisposable
         }
     }
 
+    /// <summary>Copies active monster death poofs without heap allocation.</summary>
+    /// <param name="destination">Destination list to populate.</param>
+    /// <param name="now">Current tick timestamp.</param>
+    public void CopyDeathEffects(List<DeathEffectClientRow> destination, long now)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        destination.Clear();
+
+        lock (_gate)
+        {
+            for (int i = _deathEffects.Count - 1; i >= 0; i--)
+            {
+                DeathEffectClientRow effect = _deathEffects[i];
+                if ((now - effect.StartTime) >= effect.DurationMs)
+                {
+                    _deathEffects.RemoveAt(i);
+                }
+                else
+                {
+                    destination.Add(effect);
+                }
+            }
+        }
+    }
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -378,6 +419,9 @@ public sealed class CombatChannel : IDisposable
                 {
                     if (packet.Hp == 0)
                     {
+                        MonsterClientRow old = _monsters[i];
+                        byte poofKind = (byte)(old.Kind >= 9 ? 2 : (old.Kind == 3 ? 2 : 0));
+                        _deathEffects.Add(new DeathEffectClientRow(old.X, old.Y, Environment.TickCount64, 400f, poofKind));
                         _monsters.RemoveAt(i);
                     }
                     else
@@ -409,6 +453,9 @@ public sealed class CombatChannel : IDisposable
                 {
                     if (remainingHp <= 0)
                     {
+                        MonsterClientRow old = _monsters[i];
+                        byte poofKind = (byte)(old.Kind >= 9 ? 2 : (old.Kind == 3 ? 2 : 0));
+                        _deathEffects.Add(new DeathEffectClientRow(old.X, old.Y, Environment.TickCount64, 400f, poofKind));
                         _monsters.RemoveAt(i);
                     }
                     else
