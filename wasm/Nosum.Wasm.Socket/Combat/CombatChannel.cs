@@ -152,12 +152,12 @@ public sealed class CombatChannel : IDisposable
     {
         get
         {
-            if (Environment.TickCount64 > _comboExpireTick)
+            if (Environment.TickCount64 > Volatile.Read(ref _comboExpireTick))
             {
                 return 0;
             }
 
-            return _comboCount;
+            return Volatile.Read(ref _comboCount);
         }
     }
 
@@ -534,9 +534,7 @@ public sealed class CombatChannel : IDisposable
             {
                 if (reply.ComboCount > 0)
                 {
-                    _comboCount = reply.ComboCount;
-                    _comboExpireTick = Environment.TickCount64 + 3500;
-                    this.ComboChanged?.Invoke();
+                    this.RecordCombo(reply.ComboCount);
                 }
 
                 if (this.TryGetMonster(reply.MonsterId, out MonsterClientRow m))
@@ -609,9 +607,15 @@ public sealed class CombatChannel : IDisposable
 
             if (reply.Status == CombatStatus.Ok)
             {
+                long readyAt = Environment.TickCount64 + reply.CooldownMs;
                 lock (_gate)
                 {
-                    _skillReadyAt[reply.SkillId] = Environment.TickCount64 + reply.CooldownMs;
+                    _skillReadyAt[reply.SkillId] = readyAt;
+                }
+
+                if (reply.CooldownMs > 0)
+                {
+                    _ = this.ExpireSkillCooldownAsync(reply.SkillId, reply.CooldownMs, readyAt);
                 }
 
                 if (reply.SkillId == 3 && reply.HealAmount > 0)
@@ -633,9 +637,7 @@ public sealed class CombatChannel : IDisposable
 
                 if (reply.ComboCount > 0)
                 {
-                    _comboCount = reply.ComboCount;
-                    _comboExpireTick = Environment.TickCount64 + 3500;
-                    this.ComboChanged?.Invoke();
+                    this.RecordCombo(reply.ComboCount);
                 }
 
                 if (reply.MaxHp > 0)
@@ -646,8 +648,9 @@ public sealed class CombatChannel : IDisposable
                     Volatile.Write(ref _maxMp, reply.MaxMp);
                     Volatile.Write(ref _combatXp, reply.CombatXp);
                     this.CheckCombatLevelUp(reply.CombatXp);
-                    this.Changed?.Invoke();
                 }
+
+                this.Changed?.Invoke();
             }
 
             this.SkillCompleted?.Invoke(new SkillInfo(
@@ -753,6 +756,44 @@ public sealed class CombatChannel : IDisposable
         if (newLevel > _lastCelebratedLevel)
         {
             this.TriggerLevelUp(newLevel);
+        }
+    }
+
+    private void RecordCombo(byte comboCount)
+    {
+        long expireAt = Environment.TickCount64 + 3500;
+        Volatile.Write(ref _comboCount, comboCount);
+        Volatile.Write(ref _comboExpireTick, expireAt);
+        this.ComboChanged?.Invoke();
+        _ = this.ExpireComboAsync(expireAt);
+    }
+
+    private async Task ExpireComboAsync(long expireAt)
+    {
+        await Task.Delay(3550).ConfigureAwait(false);
+        if (Volatile.Read(ref _comboExpireTick) == expireAt && Volatile.Read(ref _comboCount) > 0)
+        {
+            Volatile.Write(ref _comboCount, 0);
+            this.ComboChanged?.Invoke();
+            this.Changed?.Invoke();
+        }
+    }
+
+    private async Task ExpireSkillCooldownAsync(byte skillId, int cooldownMs, long readyAt)
+    {
+        await Task.Delay(cooldownMs + 50).ConfigureAwait(false);
+        bool notify = false;
+        lock (_gate)
+        {
+            if (_skillReadyAt.TryGetValue(skillId, out long current) && current == readyAt)
+            {
+                notify = true;
+            }
+        }
+
+        if (notify)
+        {
+            this.Changed?.Invoke();
         }
     }
 

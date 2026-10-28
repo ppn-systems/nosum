@@ -240,7 +240,7 @@ else
         <BottomLeft>
             @if (_started)
             {
-                <ChatLine Vm="Chat" Enabled="@(_panel == PanelKind.None && !Form.ShowsForm)" />
+                <ChatLine Vm="Chat" Enabled="@(_panel == PanelKind.None && !Form.ShowsForm && !Elevator.IsOpen && Npc.Stage == NpcStage.Closed && !IsInviteOpen())" />
             }
         </BottomLeft>
         <Overlay>
