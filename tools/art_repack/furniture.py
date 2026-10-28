@@ -181,17 +181,25 @@ def scarecrow():
     return c.outline()
 
 
-def furnace():
+def furnace(lit=False):
     c = Canvas(16, 32)
     c.rect(5, 6, 6, 8, draw.STEEL_D)        # chimney
     c.rect(5, 6, 6, 2, draw.STEEL)
+    if lit:
+        c.rect(6, 2, 4, 4, draw.GOLD_L)     # chimney glow
+        c.rect(7, 0, 2, 3, draw.GOLD)
     c.rect(1, 12, 14, 18, draw.STEEL)
     c.rect(1, 12, 14, 3, draw.STEEL_L)
     c.rect(1, 27, 14, 3, draw.STEEL_D)
     c.rect(4, 17, 8, 8, draw.OUT)
-    c.rect(5, 18, 6, 6, (230, 90, 40))
-    c.rect(6, 20, 4, 4, draw.GOLD)
-    c.rect(7, 22, 2, 2, draw.GOLD_L)
+    if lit:
+        c.rect(5, 18, 6, 6, (255, 120, 40))
+        c.rect(5, 19, 6, 5, draw.GOLD)
+        c.rect(6, 20, 4, 4, draw.GOLD_L)
+    else:
+        c.rect(5, 18, 6, 6, (230, 90, 40))
+        c.rect(6, 20, 4, 4, draw.GOLD)
+        c.rect(7, 22, 2, 2, draw.GOLD_L)
     for x in (3, 12):
         c.rect(x, 14, 1, 12, draw.STEEL_D)
     return c.outline()
@@ -204,7 +212,7 @@ FURNITURE_VIEWS = [
     ((0, 208), couch('front')), ((48, 208), couch('side')), ((80, 208), couch('back')),
     ((0, 569), table()), ((48, 640), bookcase()), ((48, 733), lamp()), ((0, 688), plant()),
 ]
-CRAFTABLES = [((0, 32), scarecrow()), ((80, 32), furnace())]
+CRAFTABLES = [((0, 32), scarecrow()), ((80, 32), furnace()), ((96, 32), furnace(lit=True))]
 CHEST = (32, 512)    # the chest is Tiny Dungeon's closed chest (tile 5, 7), standing at the foot of the 16 x 32 cell
 
 
