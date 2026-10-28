@@ -51,6 +51,35 @@
             </div>
             <p class="skill-hint">@Vm.Text("Skills_Hint")</p>
         </GameSection>
+        <GameSection Title="SỔ TAY SĂN BẮT QUÁI VẬT (MONSTER BESTIARY)">
+            <div class="bestiary-grid">
+                @foreach (BestiaryEntryDisplay entry in ProgressViewModel.Bestiary)
+                {
+                    <div class="bestiary-card @(entry.IsBoss ? "boss-card" : null)">
+                        <div class="bestiary-header">
+                            <span class="bestiary-name">@entry.Name</span>
+                            <GameBadge Kind="@(entry.IsBoss ? "warn" : "ok")" Text="@entry.Category" />
+                        </div>
+                        <div class="bestiary-details">
+                            <span class="bestiary-loc">📍 @entry.Location</span>
+                            <div class="bestiary-stats">
+                                <span class="stat-hp">❤️ HP: @entry.Hp</span>
+                                <span class="stat-atk">⚔️ Công: @entry.Attack</span>
+                                <span class="stat-xp">⭐ XP: +@entry.Xp</span>
+                            </div>
+                            <div class="bestiary-drops">
+                                <span class="drop-label">Chiến lợi phẩm:</span>
+                                <span class="drop-item">📦 @entry.PrimaryDrop</span>
+                                @if (!string.IsNullOrEmpty(entry.RareDrop))
+                                {
+                                    <span class="drop-item rare">✨ @entry.RareDrop</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </GameSection>
     </GameStack>
 </MenuPage>
 

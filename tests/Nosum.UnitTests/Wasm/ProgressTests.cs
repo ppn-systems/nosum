@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -209,6 +210,16 @@ public sealed class ProgressTests
         FakeGameSocket socket = new();
         (GameMessagesViewModel messages, _, _, _) = CreateMessages(socket);
         return (messages, socket);
+    }
+
+    [Fact]
+    public void Bestiary_ContainsAllMonsterCatalogSpecies_WithBossIdentification()
+    {
+        IReadOnlyList<BestiaryEntryDisplay> bestiary = ProgressViewModel.Bestiary;
+        bestiary.Should().HaveCount(12);
+        bestiary.Count(b => b.IsBoss).Should().Be(4);
+        bestiary.Should().Contain(b => b.Name.Contains("Broodmother", StringComparison.OrdinalIgnoreCase) && b.IsBoss);
+        bestiary.Should().Contain(b => b.Name.Contains("Green Slime", StringComparison.OrdinalIgnoreCase) && !b.IsBoss);
     }
 
     [SuppressMessage("Reliability", "CA2000", Justification = "The channels live as long as the test; the view model that owns the subscriptions is disposed by the test.")]

@@ -20,6 +20,27 @@ namespace Nosum.Wasm.ViewModels.Progress;
 /// <param name="Caption">The localized line under the bar, for example <c>45 / 100</c> or the max-level text.</param>
 public sealed record SkillDisplay(string Name, int Level, int Xp, double Fraction, string Caption);
 
+/// <summary>One monster entry in the bestiary and hunting log (docs/adr/ADR-059).</summary>
+/// <param name="Name">Monster species display name.</param>
+/// <param name="Category">Monster classification (e.g. Regular, Boss).</param>
+/// <param name="Location">Encounter locations and mine floors.</param>
+/// <param name="Hp">Base health points.</param>
+/// <param name="Attack">Base attack power.</param>
+/// <param name="Xp">Combat experience rewarded.</param>
+/// <param name="PrimaryDrop">Primary loot item.</param>
+/// <param name="RareDrop">Rare loot item.</param>
+/// <param name="IsBoss">Whether the monster is a floor milestone boss.</param>
+public sealed record BestiaryEntryDisplay(
+    string Name,
+    string Category,
+    string Location,
+    int Hp,
+    int Attack,
+    int Xp,
+    string PrimaryDrop,
+    string RareDrop,
+    bool IsBoss);
+
 /// <summary>
 /// View model of the HUD vitals bars (HP, MP, Energy) beside the hotbar and of the Skills page (docs/adr/ADR-023 D6, docs/adr/ADR-045 D2).
 /// </summary>
@@ -116,6 +137,25 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets the Combat skill progression display.</summary>
     public SkillDisplay CombatSkill => this.Describe("Skill_Combat", _combat?.CombatXp ?? 0);
+
+    private static readonly BestiaryEntryDisplay[] s_bestiary =
+    [
+        new("Chất Nhờn Xanh (Green Slime)", "Quái vật Thường", "Tầng 1-9 & Rừng (Forest)", 24, 5, 12, "Chất nhờn", "Hạt củ cải", false),
+        new("Dơi Hang Động (Cave Bat)", "Quái vật Độc", "Tầng 1-9 (Mines)", 30, 7, 15, "Cánh dơi", "Quặng đồng", false),
+        new("Nấm Bào Tử (Spore Shroom)", "Quái vật Độc", "Tầng 1-19 & Rừng (Woods)", 40, 8, 20, "Mũ nấm", "Tinh thể Mana", false),
+        new("Chất Nhờn Băng (Frost Slime)", "Quái vật Thường", "Tầng 11-19 (Frozen Mines)", 45, 9, 22, "Chất nhờn", "Tinh thể Mana", false),
+        new("Yêu Tinh Trinh Sát (Goblin Scout)", "Quái vật Chiến binh", "Tầng 11-19 (Goblin Mines)", 60, 12, 30, "Tai yêu tinh", "Thỏi đồng", false),
+        new("Chất Nhờn Nham Thạch (Magma Slime)", "Quái vật Thường", "Tầng 21-39 (Magma Mines)", 75, 14, 35, "Chất nhờn", "Than đá", false),
+        new("Chiến Binh Xương (Skeleton Warrior)", "Quái vật Bất tử", "Tầng 21-39 (Deep Mines)", 90, 16, 45, "Xương quái", "Quặng sắt", false),
+        new("Người Đá Cổ Đại (Stone Golem)", "Quái vật Thiết giáp", "Tầng 21-39 (Ancient Ruins)", 140, 22, 70, "Lõi người đá", "Đá quý", false),
+        new("Chúa Nhện Hang Sâu (Broodmother)", "TRÙM TẦNG 10 (Boss)", "Hầm Ngục Cổ Đại (mine10)", 180, 15, 150, "Cổ thư ma pháp", "Cánh dơi", true),
+        new("Thủ Lĩnh Yêu Tinh (Goblin Chieftain)", "TRÙM TẦNG 20 (Boss)", "Đại Sảnh Yêu Tinh (mine20)", 280, 22, 250, "Chìa khóa vàng", "Tai yêu tinh", true),
+        new("Hỏa Thần Khổng Lồ (Magma Colossus)", "TRÙM TẦNG 30 (Boss)", "Lò Lửa Nham Thạch (mine30)", 420, 30, 400, "Lõi nham thạch", "Đá quý", true),
+        new("Vua Người Đá (Golem King)", "TRÙM TẦNG 40 (Boss)", "Cung Điện Vua Đá (mine40)", 600, 40, 600, "Vương miện Trùm", "Lõi người đá", true),
+    ];
+
+    /// <summary>Gets the Monster Bestiary &amp; Hunting Log entries (docs/adr/ADR-059).</summary>
+    public static IReadOnlyList<BestiaryEntryDisplay> Bestiary => s_bestiary;
 
     /// <summary>Gets the localized name of a skill by its wire number.</summary>
     /// <param name="skill">1 farming, 2 foraging, 3 mining, 4 combat.</param>
