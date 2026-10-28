@@ -17,7 +17,7 @@ public sealed partial class AttackMonster : PacketBase<AttackMonster>, IPacketSt
     public static ushort StaticOpCode => CombatOpCode.AttackMonster;
 
     /// <summary>Target monster id on the map.</summary>
-    [WireRange(1, WireLimits.MaxId)]
+    [WireRange(0, WireLimits.MaxId)]
     [SerializeOrder(0)] public int MonsterId { get; set; }
 
     /// <summary>Hotbar/inventory slot holding the weapon or staff.</summary>

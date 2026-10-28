@@ -3,6 +3,7 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Combat.C2S;
 
@@ -19,5 +20,6 @@ public sealed partial class CastSkill : PacketBase<CastSkill>, IPacketStaticOpco
     [SerializeOrder(0)] public byte SkillId { get; set; }
 
     /// <summary>Target monster id on the map (0 for AoE/Self skills).</summary>
+    [WireRange(0, WireLimits.MaxId)]
     [SerializeOrder(1)] public int TargetMonsterId { get; set; }
 }
