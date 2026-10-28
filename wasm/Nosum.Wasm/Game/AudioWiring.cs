@@ -3,6 +3,8 @@
 using System;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.DependencyInjection;
+using Nosum.Contracts.Combat;
+using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Market;
@@ -53,6 +55,24 @@ internal static class AudioWiring
             {
                 audio.Play(now == PanelKind.None ? SoundIds.UiClose : SoundIds.UiOpen);
                 open = now;
+            }
+        };
+
+        // Combat sounds (docs/adr/ADR-053): strikes, monster damage grunts, defeat bursts, and potion drinking.
+        CombatChannel combat = services.GetRequiredService<CombatChannel>();
+        combat.AttackCompleted += attack =>
+        {
+            if (attack.Status == CombatStatus.Ok)
+            {
+                audio.Play(attack.MonsterHp == 0 ? SoundIds.MonsterDefeat : SoundIds.MonsterHit);
+            }
+        };
+
+        combat.PotionCompleted += status =>
+        {
+            if (status == CombatStatus.Ok)
+            {
+                audio.Play(SoundIds.PotionDrink);
             }
         };
     }

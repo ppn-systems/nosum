@@ -62,3 +62,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-050](ADR-050-monster-defeat-death-poof-and-particles.md) | Monster defeat death poof animations, defeat particles, and sprite packing | Accepted |
 | [ADR-051](ADR-051-status-effects-regeneration-and-poison.md) | Status effects (regeneration, poison, swiftness), periodic ticks, and HUD aura | Accepted |
 | [ADR-052](ADR-052-coop-party-combat-and-proximity-xp.md) | Co-op party combat and proximity shared Combat XP | Accepted |
+| [ADR-053](ADR-053-combat-audio-sound-effects.md) | Combat audio sound effects synthesis and event wiring | Accepted |
