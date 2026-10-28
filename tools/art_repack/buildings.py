@@ -113,12 +113,12 @@ def barn(src):
     b.roof(0, 0, 7, 3, 'red')
     b.board_row(0, 3, 7, 90)
     b.board_row(0, 4, 7, 102)
-    b.put_farm(128, 3, 4)
+    for col in (1, 3, 5):
+        b.put_farm(128, col, 4)                 # windows
     b.board_row(0, 5, 7, 114)
     b.board_row(0, 6, 7, 114)
-    for col in (1, 4):
-        b.put_farm(126, col, 6)
-        b.put_farm(126, col + 1, 6)
+    b.put_farm(127, 1, 6)                       # the door (DoorX = 1)
+    b.put_farm(128, 4, 6)
     return b.img
 
 
@@ -135,7 +135,7 @@ def coop(src):
     for col in (1, 4):
         b.put_farm(128, col, 4, COOP_WOOD)      # windows
     b.put_farm(128, 4, 6, COOP_WOOD)
-    b.put_farm(127, 2, 6, COOP_WOOD)            # the door
+    b.put_farm(127, 1, 6, COOP_WOOD)            # the door (DoorX = 1)
     return b.img
 
 

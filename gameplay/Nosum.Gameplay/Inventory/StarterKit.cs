@@ -21,6 +21,29 @@ public static class StarterKit
         new(ItemCatalog.Axe, 1),
         new(ItemCatalog.Pickaxe, 1),
         new(ItemCatalog.Scythe, 1),
-        new(ItemCatalog.WoodenSword, 1),
     ];
+
+    /// <summary>Checks whether the inventory already holds any tier of the given tool family (so an upgraded tool does not cause a basic duplicate to be re-issued).</summary>
+    /// <param name="grid">The player's inventory grid.</param>
+    /// <param name="tool">The tool family to look for.</param>
+    /// <returns><see langword="true"/> when at least one item of <paramref name="tool"/> is present in <paramref name="grid"/>.</returns>
+    public static bool HasToolFamily(InventoryGrid grid, ToolKind tool)
+    {
+        System.ArgumentNullException.ThrowIfNull(grid);
+        if (tool == ToolKind.None)
+        {
+            return false;
+        }
+
+        for (int slot = 0; slot < grid.Capacity; slot++)
+        {
+            ItemSlot entry = grid[slot];
+            if (!entry.IsEmpty && ItemCatalog.TryGet(entry.ItemId, out ItemDefinition? def) && def.Tool == tool)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

@@ -33,11 +33,10 @@ public static class OutdoorWorld
     /// <summary>The Beach bridge: four tiles that stay blocked until the <see cref="CommunityUnlockKeys.BeachBridge"/> unlock is set.</summary>
     public static MapGate BeachBridge { get; } = new(CommunityUnlockKeys.BeachBridge, [(BridgeFromX, BridgeY), (BridgeFromX + 1, BridgeY), (BridgeFromX + 2, BridgeY), (BridgeToX, BridgeY)]);
 
-    /// <summary>The Beach's shore forage: the sand west of the river and east of it (the file marks no forage spot there).</summary>
+    /// <summary>The Beach's shore forage: the sand west of the river (always reachable before the bridge is repaired).</summary>
     public static IReadOnlyList<ForageArea> BeachForage { get; } =
     [
         new(9, 6, 56, 24, ForagePools.Shore),
-        new(63, 5, 92, 24, ForagePools.Shore),
     ];
 
     /// <summary>Driftwood and rocks on the Beach (the file marks none).</summary>

@@ -46,6 +46,41 @@
 }
 
 @code {
+    private Nosum.Wasm.ViewModels.Progress.ProgressViewModel? _subscribedProgress;
+
     /// <summary>The energy view model; when given, its bar stands beside the slots.</summary>
     [Parameter] public Nosum.Wasm.ViewModels.Progress.ProgressViewModel? Progress { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (ReferenceEquals(_subscribedProgress, Progress))
+        {
+            return;
+        }
+
+        if (_subscribedProgress is not null)
+        {
+            _subscribedProgress.Changed -= OnProgressChanged;
+        }
+
+        _subscribedProgress = Progress;
+        if (_subscribedProgress is not null)
+        {
+            _subscribedProgress.Changed += OnProgressChanged;
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && _subscribedProgress is not null)
+        {
+            _subscribedProgress.Changed -= OnProgressChanged;
+            _subscribedProgress = null;
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private void OnProgressChanged() => _ = InvokeAsync(StateHasChanged);
 }

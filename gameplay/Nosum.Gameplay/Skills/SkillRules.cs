@@ -69,7 +69,7 @@ public static class SkillRules
     /// <summary>Gets the skill that working on a node trains.</summary>
     /// <param name="kind">The node kind.</param>
     /// <returns>Mining for stone and ore, foraging for everything else.</returns>
-    public static SkillKind SkillOf(NodeKind kind) => kind is NodeKind.Stone or NodeKind.CopperOre ? SkillKind.Mining : SkillKind.Foraging;
+    public static SkillKind SkillOf(NodeKind kind) => kind is NodeKind.Stone or NodeKind.CopperOre or NodeKind.IronOre ? SkillKind.Mining : SkillKind.Foraging;
 
     /// <summary>Gets the experience the hit that breaks a node gives.</summary>
     /// <param name="kind">The node kind.</param>
@@ -84,6 +84,7 @@ public static class SkillRules
         NodeKind.Grass => 1,
         NodeKind.Stone => 4,
         NodeKind.CopperOre => 10,
+        NodeKind.IronOre => 15,
         NodeKind.Forage => 7,
         _ => 0,
     };

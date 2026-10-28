@@ -73,6 +73,13 @@ public sealed partial class BuildingService
         BuildingStatus failure = BuildingStatus.Ok;
         using (await _locks.EnterAsync(building.Id, cancellationToken).ConfigureAwait(false))
         {
+            // Settle prior nights before adding the new resident so overnight rations only feed animals that were already housed.
+            IUnitOfWork settleUnit = _unitOfWork.Create();
+            await using (settleUnit.ConfigureAwait(false))
+            {
+                _ = await this.LoadRoomAsync(settleUnit, building.Id, nowMs, cancellationToken).ConfigureAwait(false);
+            }
+
             TransferStatus status = await _transfers.ExecuteAsync(
                 [new TransferLeg(TransferParty.Player(player.AccountId), 0, 0, -animal.Coins)],
                 AnimalBuyReason,

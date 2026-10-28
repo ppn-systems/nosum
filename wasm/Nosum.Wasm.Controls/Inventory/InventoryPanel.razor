@@ -5,7 +5,7 @@
 
 @* The inventory page: what the character wears and holds on top, the bag below with the hotbar row (the same nine slots as the toolbar) under it.
    Click a stack to pick it up, click another slot to move it there (empty slot: move, same item: merge, other item: swap). *@
-<MenuPage>
+<MenuPage Status="@Wardrobe.Status" Good="Wardrobe.StatusIsGood">
     <div class="inv-top">
         <EquipmentCard Vm="Wardrobe" Inventory="Vm" />
         <GameSection Title="@Vm.HandTitle">
@@ -38,10 +38,51 @@
 </MenuPage>
 
 @code {
+    private WardrobeViewModel? _subscribedWardrobe;
+
     /// <summary>The wardrobe view model: the worn pieces and the preview.</summary>
     [Parameter, EditorRequired] public WardrobeViewModel Wardrobe { get; set; } = default!;
 
     private IReadOnlyList<SlotDisplay> Storage => [.. Vm.Storage];
 
     private IReadOnlyList<SlotDisplay> Hotbar => [.. Vm.Hotbar];
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Wardrobe?.ClearStatus();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (ReferenceEquals(_subscribedWardrobe, Wardrobe))
+        {
+            return;
+        }
+
+        if (_subscribedWardrobe is not null)
+        {
+            _subscribedWardrobe.Changed -= OnWardrobeChanged;
+        }
+
+        _subscribedWardrobe = Wardrobe;
+        if (_subscribedWardrobe is not null)
+        {
+            _subscribedWardrobe.Changed += OnWardrobeChanged;
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && _subscribedWardrobe is not null)
+        {
+            _subscribedWardrobe.Changed -= OnWardrobeChanged;
+            _subscribedWardrobe = null;
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private void OnWardrobeChanged() => _ = InvokeAsync(StateHasChanged);
 }

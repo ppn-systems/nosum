@@ -495,6 +495,10 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
             }
 
             List<NodePlacement> placements = NodePlacements.Regrowth(state.Map.NodeSites, state.Field, state.Map.Grid, state.Map.ReservedTiles, occupied, NodeRandom.Mix(state.Seed, day, 2), state.Instance.IsPrivate, seasonChanged);
+            foreach (NodePlacement regrown in placements)
+            {
+                _ = occupied.Add((regrown.X, regrown.Y));
+            }
 
             // Forage (docs/adr/ADR-025 D4): public places only. What is left of another season is taken away, then a few of this season's items appear.
             if (!state.Instance.IsPrivate && state.Map.ForageSites.Count > 0)
@@ -519,7 +523,13 @@ public sealed class ResourceNodeService : IResourceNodeService, IChunkStateContr
                     }
                 }
 
-                placements.AddRange(NodePlacements.Forage(state.Map.ForageSites, state.Field, state.Map.Grid, state.Map.ReservedTiles, occupied, NodeRandom.Mix(state.Seed, day, 3), season, standing));
+                foreach (NodePlacement foraged in NodePlacements.Forage(state.Map.ForageSites, state.Field, state.Map.Grid, state.Map.ReservedTiles, occupied, NodeRandom.Mix(state.Seed, day, 3), season, standing))
+                {
+                    if (occupied.Add((foraged.X, foraged.Y)))
+                    {
+                        placements.Add(foraged);
+                    }
+                }
             }
 
             List<(NodePlacement Placement, WorldNode Row)> inserted = [];

@@ -225,6 +225,11 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
 
         if (await _nodes.TryUseAsync(new NodeUseRequest(player, map, hotbarSlot, held, tileX, tileY, worked), cancellationToken).ConfigureAwait(false) is { } handled)
         {
+            if (tail && handled.Status != FarmStatus.Blocked)
+            {
+                return Refused(FarmStatus.Blocked);
+            }
+
             if (handled is { Status: FarmStatus.Ok, Action: FarmAction.Broke })
             {
                 await this.ReportAsync(playerId, new QuestEvent(QuestEventKind.NodeBroken, handled.Subject), cancellationToken).ConfigureAwait(false);
@@ -267,7 +272,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             // Ground the co-op has not unlocked cannot be tilled yet, though it is walkable (docs/adr/ADR-038 D4); soil tilled before stays workable.
             bool ground = tillable.IsTillable(tileX, tileY);
             bool locked = ground && member is not null && !CoopUpgrades.IsLandUnlocked(member.LandLevel, tileX, tileY);
-            Plan plan = PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.IsSprinklerWatered(player.Instance, tileX, tileY) == true);
+            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.IsSprinklerWatered(player.Instance, tileX, tileY) == true, tail);
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 return Refused(locked && plan.Verdict == FarmVerdict.NotTillable ? FarmStatus.LockedLand : ToStatus(plan.Verdict));
@@ -472,14 +477,14 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
     };
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
-    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, bool sprinkled)
+    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, bool sprinkled, bool tail = false)
     {
         bool hasItem = held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out _);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item);
 
-        // A mature crop is harvested whatever is held (bare hands included).
+        // A mature crop is harvested whatever is held (bare hands included), except on the trailing tiles of a wide tool swing.
         bool withered = current is { HasCrop: true } standing && FarmRules.IsWithered(standing, nowMs, _calendar);
-        if (current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinkled))
+        if (!tail && current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinkled))
         {
             FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested, outdoors, sprinkled);
             return harvest != FarmVerdict.Ok
@@ -502,14 +507,26 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
+                    int today = _calendar.DayNumberAt(nowMs);
+                    if (current is { } alreadyWatered && alreadyWatered.WateredDay == today)
+                    {
+                        return Plan.Refuse(FarmVerdict.NothingToDo);
+                    }
+
                     FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinkled);
-                    return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", new QuestEvent(QuestEventKind.CropWatered), item.Id, 0) : Plan.Refuse(water);
+                    QuestEvent? quest = current is { HasCrop: true } && !withered ? new QuestEvent(QuestEventKind.CropWatered) : null;
+                    return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", quest, item.Id, 0) : Plan.Refuse(water);
                 }
 
             case ItemKind.Tool when item.Tool == ToolKind.Pickaxe:
                 {
-                    FarmVerdict clear = FarmRules.Clear(current);
+                    FarmVerdict clear = withered ? FarmVerdict.Ok : FarmRules.Clear(current);
                     return clear == FarmVerdict.Ok ? new Plan(clear, FarmAction.Cleared, default, [], "farm.clear", null, item.Id, 0) : Plan.Refuse(clear);
+                }
+
+            case ItemKind.Tool when item.Tool == ToolKind.Scythe && withered:
+                {
+                    return new Plan(FarmVerdict.Ok, FarmAction.Cleared, default, [], "farm.clear", null, item.Id, 0);
                 }
 
             case ItemKind.Seed:
@@ -832,21 +849,41 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
     {
         MapInstance instance = farm.Instance;
         List<(int X, int Y)> gone = [];
+        Dictionary<(int X, int Y), FarmTile> settled = [];
         using (await _mapLocks.EnterAsync(instance.Key, CancellationToken.None).ConfigureAwait(false))
         {
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+            int endedDay = _calendar.DayNumberAt(nowMs) - 1;
             foreach (KeyValuePair<ChunkCoord, Dictionary<(int X, int Y), FarmTile>> chunk in farm.Chunks)
             {
                 foreach (KeyValuePair<(int X, int Y), FarmTile> tile in chunk.Value)
                 {
-                    if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar, instance.IsOutdoors, _placed?.IsSprinklerWatered(instance, tile.Key.X, tile.Key.Y) == true))
+                    bool sprinkled = _placed?.IsSprinklerWatered(instance, tile.Key.X, tile.Key.Y) == true;
+                    if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar, instance.IsOutdoors, sprinkled))
                     {
                         gone.Add(tile.Key);
+                        continue;
+                    }
+
+                    if (instance.IsOutdoors && sprinkled && endedDay > 0 && tile.Value.WateredDay < endedDay)
+                    {
+                        if (tile.Value.HasCrop)
+                        {
+                            int growth = FarmRules.GrowthDaysAt(tile.Value, nowMs, _calendar, outdoors: true, sprinkled: true);
+                            if (growth > 0)
+                            {
+                                settled[tile.Key] = tile.Value with { GrowthDays = growth - 1, WateredDay = endedDay };
+                            }
+                        }
+                        else
+                        {
+                            settled[tile.Key] = tile.Value with { WateredDay = endedDay };
+                        }
                     }
                 }
             }
 
-            if (gone.Count == 0)
+            if (gone.Count == 0 && settled.Count == 0)
             {
                 return;
             }
@@ -861,6 +898,12 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
                     {
                         plots.Remove(row);
                     }
+                    else if (settled.TryGetValue((row.X, row.Y), out FarmTile updated))
+                    {
+                        row.GrowthDays = updated.GrowthDays;
+                        row.WateredDay = updated.WateredDay;
+                        plots.Update(row);
+                    }
                 }
 
                 _ = await unit.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
@@ -870,6 +913,16 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             {
                 _ = farm.Remove(key.X, key.Y);
             }
+
+            foreach (KeyValuePair<(int X, int Y), FarmTile> pair in settled)
+            {
+                farm.Set(pair.Key.X, pair.Key.Y, pair.Value);
+            }
+        }
+
+        if (gone.Count == 0)
+        {
+            return;
         }
 
         // The removed rows go to the subscribers of each tile's chunk, one batch per chunk (docs/adr/ADR-022 D4).

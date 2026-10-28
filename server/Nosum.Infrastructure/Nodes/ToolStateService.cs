@@ -84,6 +84,7 @@ public sealed class ToolStateService : IToolState
     {
         Entry entry = _players.GetOrAdd(playerId, static _ => new Entry());
         int left;
+        int capacity;
         lock (entry)
         {
             if (entry.Water <= 0)
@@ -92,9 +93,10 @@ public sealed class ToolStateService : IToolState
             }
 
             left = --entry.Water;
+            capacity = entry.Capacity;
         }
 
-        await this.PushAsync(playerId, left, cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(playerId, left, capacity, cancellationToken).ConfigureAwait(false);
         return left;
     }
 
@@ -115,12 +117,12 @@ public sealed class ToolStateService : IToolState
             entry.Water = capacity;
         }
 
-        await this.PushAsync(playerId, capacity, cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(playerId, capacity, capacity, cancellationToken).ConfigureAwait(false);
         return capacity;
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "The change is made; a failed push only delays the display until the next one.")]
-    private async ValueTask PushAsync(Guid playerId, int left, CancellationToken cancellationToken)
+    private async ValueTask PushAsync(Guid playerId, int left, int capacity, CancellationToken cancellationToken)
     {
         if (_notifier is null)
         {
@@ -131,7 +133,7 @@ public sealed class ToolStateService : IToolState
         {
             using PacketScope<ToolState> lease = PacketFactory<ToolState>.Acquire();
             lease.Value.WaterLeft = (byte)left;
-            lease.Value.WaterCapacity = (byte)this.CapacityOf(playerId);
+            lease.Value.WaterCapacity = (byte)capacity;
             _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

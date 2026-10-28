@@ -252,10 +252,11 @@ public sealed class ChatViewModel : PanelViewModel, IDisposable
             return;
         }
 
+        string formatted = nickname.Contains(' ', StringComparison.Ordinal) ? "\"" + nickname + "\"" : nickname;
         lock (_gate)
         {
             _open = true;
-            _draft = "/w " + nickname + " ";
+            _draft = "/w " + formatted + " ";
         }
 
         this.Raise();

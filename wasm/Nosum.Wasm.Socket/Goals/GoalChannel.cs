@@ -138,7 +138,7 @@ public sealed class GoalChannel : IDisposable
             List<GoalInfo> goals = [.. _goals.Goals];
             for (int i = 0; i < goals.Count; i++)
             {
-                if (goals[i].GoalId == push.GoalId)
+                if (goals[i].GoalId == push.GoalId && goals[i].SeasonNumber == push.SeasonNumber)
                 {
                     goals[i] = goals[i] with { SeasonNumber = push.SeasonNumber, Total = push.Total, State = push.State, Contributors = push.Contributors };
                     known = true;

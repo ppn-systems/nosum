@@ -51,6 +51,32 @@ public static class CoinRules
     /// <param name="price">The listing price.</param>
     /// <returns>The price minus the fee.</returns>
     public static long SellerProceeds(long price) => price - MarketFee(price);
+
+    /// <summary>Adds <paramref name="delta"/> to <paramref name="current"/>, clamped between 0 and <see cref="MaxBalance"/>.</summary>
+    /// <param name="current">Current coin balance.</param>
+    /// <param name="delta">Signed change in coins.</param>
+    /// <returns>Clamped coin balance.</returns>
+    public static long ClampedAdd(long current, long delta)
+    {
+        if (delta >= 0)
+        {
+            long headroom = MaxBalance - Math.Clamp(current, 0, MaxBalance);
+            return Math.Clamp(current, 0, MaxBalance) + Math.Min(delta, headroom);
+        }
+
+        long next = current + delta;
+        return Math.Clamp(next, 0, MaxBalance);
+    }
+
+    /// <summary>Adds <paramref name="delta"/> to <paramref name="current"/>, clamped to a 32-bit unsigned wire coin count.</summary>
+    /// <param name="current">Current wire coin balance.</param>
+    /// <param name="delta">Signed change in coins.</param>
+    /// <returns>Clamped <see cref="uint"/> coin balance.</returns>
+    public static uint ClampedAdd(uint current, long delta)
+    {
+        long next = ClampedAdd((long)current, delta);
+        return (uint)Math.Clamp(next, 0L, uint.MaxValue);
+    }
 }
 
 /// <summary>
@@ -66,6 +92,16 @@ public static class ShippingPrices
     public static bool TryGet(int itemId, out int coinsEach)
     {
         coinsEach = ItemCatalog.TryGet(itemId, out ItemDefinition? item) && item.Kind == ItemKind.Produce ? item.SellPrice : 0;
+        return coinsEach > 0;
+    }
+
+    /// <summary>Looks up the sell value of any item with a positive <see cref="ItemDefinition.SellPrice"/> (including relics, trophies and gear).</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="coinsEach">Coins for one item.</param>
+    /// <returns><see langword="true"/> when the item has a positive sell price.</returns>
+    public static bool TryGetSellPrice(int itemId, out int coinsEach)
+    {
+        coinsEach = ItemCatalog.TryGet(itemId, out ItemDefinition? item) && item.SellPrice > 0 ? item.SellPrice : 0;
         return coinsEach > 0;
     }
 }

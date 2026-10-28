@@ -64,6 +64,13 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         // The tester tools exist only in Development builds and are never mapped in Production.
         _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevGrant, "DevGrant", "tester tool, Development only; its cost is test set-up");
         _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevAdvanceClock, "DevAdvanceClock", "tester tool, Development only; the day rollover it triggers is the DayClock row");
+
+        // Combat opcodes operate on in-memory instance monsters and cached player vitals (docs/adr/ADR-045 D3, ADR-056).
+        _rig.Skip("Combat", Nosum.Contracts.Combat.CombatOpCode.GetVitals, "GetVitals", "reads in-memory vitals seeded from the shared player_states cache");
+        _rig.Skip("Combat", Nosum.Contracts.Combat.CombatOpCode.GetMonsters, "GetMonsters", "reads in-memory monster and hazard spawns for the active map instance");
+        _rig.Skip("Combat", Nosum.Contracts.Combat.CombatOpCode.AttackMonster, "AttackMonster", "validates weapon from cached inventory and updates vitals in player_states");
+        _rig.Skip("Combat", Nosum.Contracts.Combat.CombatOpCode.DrinkPotion, "DrinkPotion", "removes one potion from cached inventory and updates vitals in player_states");
+        _rig.Skip("Combat", Nosum.Contracts.Combat.CombatOpCode.CastSkill, "CastSkill", "spends MP on in-memory instance monsters and updates vitals in player_states");
     }
 
     /// <inheritdoc/>

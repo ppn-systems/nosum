@@ -1,10 +1,14 @@
+.requests-wrap {
+    display: contents;
+}
+
 .requests-hint,
 .requests-next {
     margin: 0;
     color: var(--nosum-ink-soft);
 }
 
-.request-row ::deep .slot {
+.requests-wrap ::deep .request-row .slot {
     flex: none;
 }
 

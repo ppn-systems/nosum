@@ -94,22 +94,8 @@ public static class CombatRules
     /// <summary>Contact damage dealt by a monster species when it attacks a player (docs/adr/ADR-046 D1).</summary>
     /// <param name="kind">Monster species.</param>
     /// <returns>Contact damage.</returns>
-    public static int MonsterDamage(MonsterKind kind) => kind switch
-    {
-        MonsterKind.GreenSlime => 4,
-        MonsterKind.CaveBat => 6,
-        MonsterKind.SporeShroom => 5,
-        MonsterKind.FrostSlime => 8,
-        MonsterKind.GoblinScout => 10,
-        MonsterKind.SkeletonWarrior => 14,
-        MonsterKind.MagmaSlime => 15,
-        MonsterKind.StoneGolem => 20,
-        MonsterKind.BossBroodmother => 15,
-        MonsterKind.BossGoblinChieftain => 22,
-        MonsterKind.BossMagmaColossus => 30,
-        MonsterKind.BossGolemKing => 40,
-        _ => 5,
-    };
+    public static int MonsterDamage(MonsterKind kind)
+        => MonsterCatalog.TryGet(kind, out MonsterDefinition? def) ? def.AttackDamage : 5;
 
     /// <summary>Calculates defense provided by worn armor and helmet items (docs/adr/ADR-049).</summary>
     /// <param name="hatItemId">Worn hat/crown item id.</param>
@@ -350,6 +336,7 @@ public static class CombatRules
             return [];
         }
 
+        HashSet<(int X, int Y)>? reachable = ReachableFromSpawn(grid, spawnX, spawnY);
         List<(int X, int Y)> nearCandidates = [];
         List<(int X, int Y)> allCandidates = [];
         for (int y = 2; y < grid.Height - 2; y++)
@@ -359,6 +346,7 @@ public static class CombatRules
                 int dist = Math.Max(Math.Abs(x - spawnX), Math.Abs(y - spawnY));
                 if (!grid.IsBlocked(x, y)
                     && !occupied.Contains((x, y))
+                    && (reachable is null || reachable.Contains((x, y)))
                     && dist >= 3)
                 {
                     if (isMine && dist <= 7)
@@ -461,6 +449,7 @@ public static class CombatRules
             return [];
         }
 
+        HashSet<(int X, int Y)>? reachable = ReachableFromSpawn(grid, spawnX, spawnY);
         List<(int X, int Y)> nearCandidates = [];
         List<(int X, int Y)> allCandidates = [];
         for (int y = 2; y < grid.Height - 2; y++)
@@ -470,6 +459,7 @@ public static class CombatRules
                 int dist = Math.Max(Math.Abs(x - spawnX), Math.Abs(y - spawnY));
                 if (!grid.IsBlocked(x, y)
                     && (occupied is null || !occupied.Contains((x, y)))
+                    && (reachable is null || reachable.Contains((x, y)))
                     && dist >= 2)
                 {
                     if (dist <= 6)
@@ -609,17 +599,18 @@ public static class CombatRules
         }
 
         int centerX = Math.Clamp(spawnX, 2, Math.Max(2, grid.Width - 3));
-        int centerY = isMine
-            ? Math.Clamp(Math.Min(spawnY, 6), 2, Math.Max(2, grid.Height - 3))
-            : Math.Clamp(spawnY, 2, Math.Max(2, grid.Height - 3));
+        int centerY = Math.Clamp(spawnY, 2, Math.Max(2, grid.Height - 3));
 
+        HashSet<(int X, int Y)>? reachable = ReachableFromSpawn(grid, spawnX, spawnY);
         List<(int X, int Y)> chamberCandidates = [];
         List<(int X, int Y)> fallbackCandidates = [];
         for (int y = 2; y < grid.Height - 2; y++)
         {
             for (int x = 2; x < grid.Width - 2; x++)
             {
-                if (grid.IsBlocked(x, y) || (occupied is not null && occupied.Contains((x, y))))
+                if (grid.IsBlocked(x, y)
+                    || (occupied is not null && occupied.Contains((x, y)))
+                    || (reachable is not null && !reachable.Contains((x, y))))
                 {
                     continue;
                 }
@@ -697,5 +688,35 @@ public static class CombatRules
         }
 
         return shrines;
+    }
+
+    private static HashSet<(int X, int Y)>? ReachableFromSpawn(WalkGrid grid, int spawnX, int spawnY)
+    {
+        int startX = Math.Clamp(spawnX, 0, Math.Max(0, grid.Width - 1));
+        int startY = Math.Clamp(spawnY, 0, Math.Max(0, grid.Height - 1));
+        if (grid.IsBlocked(startX, startY))
+        {
+            return null;
+        }
+
+        HashSet<(int X, int Y)> visited = [(startX, startY)];
+        Queue<(int X, int Y)> queue = new();
+        queue.Enqueue((startX, startY));
+        ReadOnlySpan<(int Dx, int Dy)> dirs = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+        while (queue.Count > 0)
+        {
+            (int cx, int cy) = queue.Dequeue();
+            foreach ((int dx, int dy) in dirs)
+            {
+                int nx = cx + dx;
+                int ny = cy + dy;
+                if (nx >= 0 && nx < grid.Width && ny >= 0 && ny < grid.Height && !grid.IsBlocked(nx, ny) && visited.Add((nx, ny)))
+                {
+                    queue.Enqueue((nx, ny));
+                }
+            }
+        }
+
+        return visited.Count > 4 ? visited : null;
     }
 }

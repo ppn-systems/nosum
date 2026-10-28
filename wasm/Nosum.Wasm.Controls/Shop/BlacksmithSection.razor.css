@@ -1,11 +1,14 @@
+.smith-wrap {
+    display: contents;
+}
+
 .smith-list {
     display: flex;
     flex-direction: column;
     gap: calc(var(--u) * 2);
 }
 
-.smith-list ::deep .smith-row,
-::deep .smith-row {
+.smith-wrap ::deep .smith-row {
     display: grid;
     grid-template-columns: auto 1fr auto auto;
     gap: calc(var(--u) * 3);

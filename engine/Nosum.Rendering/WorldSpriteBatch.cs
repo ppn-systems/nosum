@@ -71,7 +71,7 @@ public sealed class WorldSpriteBatch
         for (int i = 0; i < _count; i++)
         {
             ref readonly Sprite s = ref _sprites[_keys[i].Index];
-            if (deferLabels && s.Texture == RenderCommandBuffer.LabelTexture)
+            if (deferLabels && (s.Texture == RenderCommandBuffer.LabelTexture || _keys[i].Id >= 8900))
             {
                 continue;
             }
@@ -90,7 +90,7 @@ public sealed class WorldSpriteBatch
         }
     }
 
-    /// <summary>Records any <see cref="RenderCommandBuffer.LabelTexture"/> entries deferred by <see cref="Flush"/> and empties the batch.</summary>
+    /// <summary>Records any <see cref="RenderCommandBuffer.LabelTexture"/> and high-priority overlay entries deferred by <see cref="Flush"/> and empties the batch.</summary>
     /// <param name="commands">Where draws are recorded.</param>
     /// <param name="camera">The camera.</param>
     public void FlushLabels(RenderCommandBuffer commands, in Camera2D camera)
@@ -100,12 +100,30 @@ public sealed class WorldSpriteBatch
         for (int i = 0; i < _count; i++)
         {
             ref readonly Sprite s = ref _sprites[_keys[i].Index];
-            if (s.Texture != RenderCommandBuffer.LabelTexture)
+            if (s.Texture == RenderCommandBuffer.LabelTexture || _keys[i].Id < 8900)
             {
                 continue;
             }
 
             if (s.X >= camera.Left + camera.Width || s.Y >= camera.Top + camera.Height || s.X + s.Width <= camera.Left || s.Y + s.Height <= camera.Top)
+            {
+                continue;
+            }
+
+            commands.Draw(s.Texture, s.SrcX, s.SrcY, s.Width, s.Height, s.X - camera.Left, s.Y - camera.Top, s.Flags, s.Tint);
+        }
+
+        const int padX = 64;
+        const int padY = 16;
+        for (int i = 0; i < _count; i++)
+        {
+            ref readonly Sprite s = ref _sprites[_keys[i].Index];
+            if (s.Texture != RenderCommandBuffer.LabelTexture)
+            {
+                continue;
+            }
+
+            if (s.X - padX >= camera.Left + camera.Width || s.Y - padY >= camera.Top + camera.Height || s.X + s.Width + padX <= camera.Left || s.Y + s.Height + padY <= camera.Top)
             {
                 continue;
             }

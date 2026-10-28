@@ -19,9 +19,11 @@ using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Coop;
 using Nosum.Contracts.Coop.S2C;
+using Nosum.Domain.Buildings;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
 using Nosum.Domain.Inventory;
+using Nosum.Domain.Nodes;
 using Nosum.Domain.Placeables;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Inventory;
@@ -178,9 +180,7 @@ public sealed class CoopService : ICoopService, IDisposable
     /// <inheritdoc/>
     public async Task<CoopStatus> CreateAsync(Guid playerId, string name, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(name);
-
-        if (CoopRules.ValidateName(name) != CoopVerdict.Ok)
+        if (name is null || CoopRules.ValidateName(name) != CoopVerdict.Ok)
         {
             return CoopStatus.InvalidName;
         }
@@ -418,6 +418,7 @@ public sealed class CoopService : ICoopService, IDisposable
                     }
                     else
                     {
+                        await _eviction.EvictAsync(playerId, cancellationToken).ConfigureAwait(false);
                         Coop? coop = await unit.Repository<Coop>().FindAsync(me.CoopId, cancellationToken).ConfigureAwait(false);
                         if (coop is not null)
                         {
@@ -445,7 +446,11 @@ public sealed class CoopService : ICoopService, IDisposable
                 _farm.Forget(land);
             }
 
-            await _eviction.EvictAsync(playerId, cancellationToken).ConfigureAwait(false);
+            if (dissolvedLand.Count == 0)
+            {
+                await _eviction.EvictAsync(playerId, cancellationToken).ConfigureAwait(false);
+            }
+
             await this.PushToAsync(toPush, cancellationToken).ConfigureAwait(false);
             await this.RaiseMembershipEndedAsync(playerId).ConfigureAwait(false);
             return CoopStatus.Ok;
@@ -771,14 +776,26 @@ public sealed class CoopService : ICoopService, IDisposable
         }
     }
 
-    // Items must not vanish with the land (docs/adr/ADR-024): a co-op whose chests hold items, or whose furnaces hold a job, is not dissolved, like one whose warehouse holds items.
+    // Items must not vanish with the land (docs/adr/ADR-024): a co-op whose chests hold items, or whose furnaces hold a job, or whose buildings hold animals or rations, is not dissolved, like one whose warehouse holds items.
     private async Task<bool> LandHoldsItemsAsync(IUnitOfWork unit, Guid coopId, CancellationToken cancellationToken)
     {
         List<PlacedObject> pieces = await unit.Repository<PlacedObject>().ListAsync(p => p.OwnerId == coopId, cancellationToken).ConfigureAwait(false);
         int[] furnaces = [.. pieces.Where(p => p.ItemId == ItemCatalog.Furnace).Select(p => p.Id)];
         Guid[] chests = [.. pieces.Where(p => p.ItemId == ItemCatalog.Chest).Select(p => ContainerIds.ForChest(p.Id))];
-        return (chests.Length > 0 && await _inventory.AnyContainerHoldsItemsAsync(unit, chests, cancellationToken).ConfigureAwait(false))
-            || (furnaces.Length > 0 && await unit.Repository<FurnaceJob>().AnyAsync(j => furnaces.Contains(j.ObjectId), cancellationToken).ConfigureAwait(false));
+        if ((chests.Length > 0 && await _inventory.AnyContainerHoldsItemsAsync(unit, chests, cancellationToken).ConfigureAwait(false))
+            || (furnaces.Length > 0 && await unit.Repository<FurnaceJob>().AnyAsync(j => furnaces.Contains(j.ObjectId), cancellationToken).ConfigureAwait(false)))
+        {
+            return true;
+        }
+
+        List<FarmBuilding> buildings = await unit.Repository<FarmBuilding>().ListAsync(b => b.OwnerId == coopId, cancellationToken).ConfigureAwait(false);
+        if (buildings.Exists(b => b.Rations > 0))
+        {
+            return true;
+        }
+
+        Guid[] buildingIds = [.. buildings.Select(b => b.Id)];
+        return buildingIds.Length > 0 && await unit.Repository<FarmAnimal>().AnyAsync(a => buildingIds.Contains(a.BuildingId), cancellationToken).ConfigureAwait(false);
     }
 
     // A dissolved co-op's land is wiped with the co-op (docs/adr/ADR-020 D6): the plots, the placed objects (their furnace jobs go by cascade) and the empty chests' inventories go in the same transaction as the co-op row.
@@ -799,7 +816,18 @@ public sealed class CoopService : ICoopService, IDisposable
             }
 
             IRepository<PlacedObject> pieces = unit.Repository<PlacedObject>();
-            foreach (PlacedObject piece in await pieces.ListAsync(p => p.MapId == spec.Id && p.OwnerId == coopId, cancellationToken).ConfigureAwait(false))
+            List<PlacedObject> placed = await pieces.ListAsync(p => p.MapId == spec.Id && p.OwnerId == coopId, cancellationToken).ConfigureAwait(false);
+            int[] chestIds = [.. placed.Where(p => p.ItemId == ItemCatalog.Chest).Select(p => p.Id)];
+            if (chestIds.Length > 0)
+            {
+                IRepository<ChestLogEntry> chestLogs = unit.Repository<ChestLogEntry>();
+                foreach (ChestLogEntry log in await chestLogs.ListAsync(l => chestIds.Contains(l.ObjectId), cancellationToken).ConfigureAwait(false))
+                {
+                    chestLogs.Remove(log);
+                }
+            }
+
+            foreach (PlacedObject piece in placed)
             {
                 if (piece.ItemId == ItemCatalog.Chest)
                 {
@@ -807,6 +835,18 @@ public sealed class CoopService : ICoopService, IDisposable
                 }
 
                 pieces.Remove(piece);
+            }
+
+            IRepository<WorldNode> nodes = unit.Repository<WorldNode>();
+            foreach (WorldNode node in await nodes.ListAsync(n => n.MapId == spec.Id && n.OwnerId == coopId, cancellationToken).ConfigureAwait(false))
+            {
+                nodes.Remove(node);
+            }
+
+            IRepository<NodeInstanceState> nodeStates = unit.Repository<NodeInstanceState>();
+            foreach (NodeInstanceState state in await nodeStates.ListAsync(s => s.MapId == spec.Id && s.OwnerId == coopId, cancellationToken).ConfigureAwait(false))
+            {
+                nodeStates.Remove(state);
             }
 
             wiped.Add(MapInstance.OfCoop(spec.Id, coopId));

@@ -125,11 +125,37 @@ public static class FarmRules
         return FarmVerdict.Ok;
     }
 
+    private static readonly (int Dx, int Dy)[] s_cardinalOffsets = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+
+    /// <summary>Returns the tile offsets watered by a sprinkler item (<c>ItemCatalog.Sprinkler</c> waters 4 orthogonal tiles).</summary>
+    /// <param name="itemId">Placed item id.</param>
+    /// <returns>The relative tile offsets watered by that sprinkler, or an empty span when the item is not a sprinkler.</returns>
+    public static ReadOnlySpan<(int Dx, int Dy)> GetSprinklerOffsets(int itemId) => itemId switch
+    {
+        Items.ItemCatalog.Sprinkler => s_cardinalOffsets,
+        _ => [],
+    };
+
     /// <summary>Clears tilled soil that holds no crop (a pickaxe), so the tile is plain ground again.</summary>
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
     /// <returns>The verdict.</returns>
     public static FarmVerdict Clear(FarmTile? current)
         => current is not { } tile ? FarmVerdict.NotTilled : tile.HasCrop ? FarmVerdict.HasCrop : FarmVerdict.Ok;
+
+    /// <summary>Clears tilled soil that holds no live crop (bare soil or a withered crop), so the tile is plain ground again.</summary>
+    /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <returns>The verdict.</returns>
+    public static FarmVerdict Clear(FarmTile? current, long nowMs, GameCalendar calendar)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+        return current is not { } tile
+            ? FarmVerdict.NotTilled
+            : tile.HasCrop && !IsWithered(tile, nowMs, calendar)
+                ? FarmVerdict.HasCrop
+                : FarmVerdict.Ok;
+    }
 
     /// <summary>
     /// Harvests a mature crop that has not withered; the soil stays tilled. A regrowing crop (<see cref="CropDefinition.RegrowDays"/>) stays

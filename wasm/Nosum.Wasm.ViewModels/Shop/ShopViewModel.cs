@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Shop;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Shops;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Shop;
 using Nosum.Wasm.ViewModels.Inventory;
@@ -31,6 +33,7 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     private readonly ShopChannel _channel;
     private readonly WalletChannel _wallet;
     private readonly ItemDescriber _describer;
+    private readonly CalendarChannel? _calendar;
     private int _shopId;
 
     /// <summary>Initializes the view model.</summary>
@@ -38,7 +41,8 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// <param name="wallet">The coin balance.</param>
     /// <param name="describer">Describes items.</param>
     /// <param name="text">UI text.</param>
-    public ShopViewModel(ShopChannel channel, WalletChannel wallet, ItemDescriber describer, IStringLocalizer<Language> text)
+    /// <param name="calendar">Optional calendar channel for filtering seasonal seed offers.</param>
+    public ShopViewModel(ShopChannel channel, WalletChannel wallet, ItemDescriber describer, IStringLocalizer<Language> text, CalendarChannel? calendar = null)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(channel);
@@ -47,8 +51,13 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
         _channel = channel;
         _wallet = wallet;
         _describer = describer;
+        _calendar = calendar;
         channel.Completed += this.OnCompleted;
         wallet.Changed += this.Raise;
+        if (calendar is not null)
+        {
+            calendar.Changed += this.Raise;
+        }
     }
 
     /// <summary>Gets the id of the opened shop, or zero before one was opened.</summary>
@@ -74,9 +83,16 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
                 return rows;
             }
 
+            GameCalendar? calendar = _calendar is { IsLoaded: true } ? new GameCalendar(_calendar.EpochMs, _calendar.DayLengthMs) : null;
+            long nowMs = calendar is not null ? _calendar!.ServerNowMs() : 0;
             int quantity = this.Quantity;
             foreach (ShopOffer offer in shop.Offers)
             {
+                if (calendar is not null && !ShopRules.IsInSeason(offer.ItemId, calendar, nowMs))
+                {
+                    continue;
+                }
+
                 rows.Add(new ShopOfferDisplay(
                     offer.ItemId,
                     _describer.Describe(0, offer.ItemId, 1),
@@ -117,6 +133,10 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     {
         _channel.Completed -= this.OnCompleted;
         _wallet.Changed -= this.Raise;
+        if (_calendar is not null)
+        {
+            _calendar.Changed -= this.Raise;
+        }
     }
 
     private void OnCompleted(ShopStatus status, long spent)

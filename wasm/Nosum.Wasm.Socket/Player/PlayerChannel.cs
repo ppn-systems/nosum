@@ -110,7 +110,7 @@ public sealed class PlayerChannel : IDisposable
                 return;
             }
 
-            if (_x != x || _y != y || _facing != facing || _moving != moving)
+            if (moving || _x != x || _y != y || _facing != facing || _moving != moving)
             {
                 _x = x;
                 _y = y;
@@ -190,6 +190,8 @@ public sealed class PlayerChannel : IDisposable
         {
             _entry = entry;
             _entryPending = true;
+            _correctionPending = false;
+            _correction = default;
             _x = entry.X;
             _y = entry.Y;
             _dirty = false;

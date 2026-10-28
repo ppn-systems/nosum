@@ -52,9 +52,12 @@ public struct Camera2D
         this.Height = viewHeight;
         this.Left = Axis(centerX, viewWidth, worldWidth);
         int free = viewHeight - Math.Max(0, bottomInset);
-        this.Top = worldHeight <= free ? (worldHeight - free) / 2 : Axis(centerY, viewHeight, worldHeight);
+        this.Top = worldHeight <= free ? (worldHeight - free) / 2 : ClampAxis(centerY, viewHeight, worldHeight, free > 0 ? free : viewHeight);
     }
 
     private static int Axis(int center, int view, int world)
         => world <= view ? (world - view) / 2 : Math.Clamp(center - (view / 2), 0, world - view);
+
+    private static int ClampAxis(int center, int view, int world, int visible)
+        => world <= visible ? (world - visible) / 2 : Math.Clamp(center - (view / 2), 0, world - visible);
 }

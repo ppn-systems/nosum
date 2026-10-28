@@ -54,7 +54,7 @@ public sealed partial class FarmService
         // The first tile starts the swing and is the only one that has to be within reach; the others follow it in a straight line, so they are at most
         // length - 1 tiles beyond it. A tile that cannot be worked (a stone, the map's edge) is skipped, the rest are still worked.
         FarmUseOutcome result = await this.UseCoreAsync(connection, hotbarSlot, tileX, tileY, tail: false, cancellationToken).ConfigureAwait(false);
-        if (result.Status is FarmStatus.Cooldown or FarmStatus.InvalidSlot or FarmStatus.NotOnFarm or FarmStatus.OutOfReach or FarmStatus.NotYourFarm or FarmStatus.ItemMissing or FarmStatus.NoEnergy)
+        if (result.Status is FarmStatus.Cooldown or FarmStatus.InvalidSlot or FarmStatus.NotOnFarm or FarmStatus.OutOfReach or FarmStatus.NotYourFarm or FarmStatus.ItemMissing or FarmStatus.NoEnergy or FarmStatus.CanEmpty)
         {
             return result;
         }

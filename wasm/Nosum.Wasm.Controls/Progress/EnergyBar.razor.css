@@ -65,7 +65,7 @@
 .vitals-bars.poison .hp-fill {
     background:
         linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
-        linear-gradient(to top, #4c1d95 0 20%, #6d28d9 20% 45%, #8b5cf6 45% 75%, #c084fc 75% 100%) bottom / 100% calc(var(--u) * 20) no-repeat;
+        linear-gradient(to top, #4c1d95 0 20%, #6d28d9 20% 45%, #8b5cf6 45% 75%, #c084fc 75% 100%) bottom / 100% calc(var(--u) * 26) no-repeat;
 }
 
 .vitals-bars.swift {

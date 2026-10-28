@@ -391,7 +391,9 @@ internal sealed class MonstersDecorator : IMapDecorator
             int frameCol = (int)(((now / 220) + m.MonsterId) & 3);
             float phase = (now + (m.MonsterId * 313)) * 0.0035f;
             int swayX = (int)MathF.Round(MathF.Sin(phase) * 3f);
-            int dirRow = swayX > 1 ? 1 : 0;
+            int swayY = (int)MathF.Round(MathF.Cos(phase) * 2f);
+            int dirRow = swayX is > 1 or < -1 ? 1 : swayY < -1 ? 2 : 0;
+            int monsterFlags = swayX < -1 ? RenderCommandBuffer.FlipX : 0;
 
             int srcX = frameCol * FrameSize;
             int srcY = (kindIndex * BlockHeight) + (dirRow * FrameSize);
@@ -435,7 +437,8 @@ internal sealed class MonstersDecorator : IMapDecorator
                 worldY - 2,
                 worldY + FrameSize,
                 worldX + (FrameSize / 2),
-                m.MonsterId);
+                m.MonsterId,
+                flags: monsterFlags);
 
             // Elite title badge (docs/adr/ADR-058)
             if (m.Modifier > 0 && _labels is not null)
@@ -485,7 +488,7 @@ internal sealed class MonstersDecorator : IMapDecorator
                     barY,
                     worldY + FrameSize,
                     worldX,
-                    8900 + m.MonsterId,
+                    8900 + (m.MonsterId * 2),
                     tint: unchecked((int)0x111111ee));
 
                 // Health fill:
@@ -507,7 +510,7 @@ internal sealed class MonstersDecorator : IMapDecorator
                     barY + 1,
                     worldY + FrameSize,
                     worldX,
-                    8901 + m.MonsterId,
+                    8901 + (m.MonsterId * 2),
                     tint: hpTint);
             }
         }
@@ -559,11 +562,12 @@ internal sealed class MonstersDecorator : IMapDecorator
                 int off = (int)(impact * (p.Kind == 2 ? 12f : 8f));
                 int twX = (int)(p.TargetX * FrameSize);
                 int twY = (int)(p.TargetY * FrameSize);
+                int shrapnelSrcX = p.Kind == 2 ? 64 : 96;
 
-                world.Add(_itemsTexture, 96, 64, 8, 8, twX + off, twY + off, twY + FrameSize, twX, 9001);
-                world.Add(_itemsTexture, 96, 64, 8, 8, twX - off, twY - off, twY + FrameSize, twX, 9002);
-                world.Add(_itemsTexture, 96, 64, 8, 8, twX - off, twY + off, twY + FrameSize, twX, 9003);
-                world.Add(_itemsTexture, 96, 64, 8, 8, twX + off, twY - off, twY + FrameSize, twX, 9004);
+                world.Add(_itemsTexture, shrapnelSrcX, 64, 8, 8, twX + off, twY + off, twY + FrameSize, twX, 9001);
+                world.Add(_itemsTexture, shrapnelSrcX, 64, 8, 8, twX - off, twY - off, twY + FrameSize, twX, 9002);
+                world.Add(_itemsTexture, shrapnelSrcX, 64, 8, 8, twX - off, twY + off, twY + FrameSize, twX, 9003);
+                world.Add(_itemsTexture, shrapnelSrcX, 64, 8, 8, twX + off, twY - off, twY + FrameSize, twX, 9004);
                 if (p.Kind == 2)
                 {
                     int burstTint = unchecked((int)0xff7043e0);
@@ -580,11 +584,13 @@ internal sealed class MonstersDecorator : IMapDecorator
         {
             DeathEffectClientRow d = _deathEffectsScratch[i];
             float elapsed = now - d.StartTime;
-            int frameCol = Math.Clamp((int)(elapsed / (d.DurationMs / 4f)), 0, 3);
+            int frameCol = Math.Clamp((int)(elapsed / (d.DurationMs / 3f)), 0, 2);
             int srcX = frameCol * FrameSize;
             int srcY = (12 * BlockHeight) + (d.Kind * FrameSize);
             int worldX = d.X * FrameSize;
             int worldY = d.Y * FrameSize;
+            int alpha = Math.Clamp(255 - (int)(elapsed * 200f / Math.Max(1f, d.DurationMs)), 40, 255);
+            int deathTint = unchecked((int)0xffffff00) | alpha;
 
             world.Add(
                 _sheetTexture,
@@ -596,7 +602,8 @@ internal sealed class MonstersDecorator : IMapDecorator
                 worldY - 2,
                 worldY + FrameSize,
                 worldX + (FrameSize / 2),
-                9500 + i);
+                9500 + i,
+                tint: deathTint);
         }
 
         if (_labels is not null)

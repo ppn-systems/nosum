@@ -53,7 +53,7 @@ internal sealed class MapScene
     private readonly MapLoader _loader;
     private readonly FarmerTextures _farmerTextures;
     private readonly RenderCommandBuffer _commands = new(8192);
-    private readonly WorldSpriteBatch _world = new(1024);
+    private readonly WorldSpriteBatch _world = new(4096);
     private readonly PlayerChannel? _channel;
     private readonly RemotePlayers? _remote;
     private readonly PlayerActions? _actions;
@@ -217,16 +217,16 @@ internal sealed class MapScene
                 && ShopRules.InReach(new ShopPoint(0, content.Spec.SpawnTileX, content.Spec.SpawnTileY), _farmer.X, _farmer.Y, map.TileWidth));
 
         // Tools work wherever the ground can be farmed or nothing can be placed; in a room the action key places furniture instead.
-        // The rotate key turns a piece being carried and is not a wide swing then.
+        // While carrying a piece, the rotate key turns it and the action key sets it down rather than swinging a tool or opening a container.
         bool placeableMap = content.Spec.Placeable;
-        InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~InputEdges.Rotate : liveEdges;
+        InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~(InputEdges.Rotate | InputEdges.Action) : liveEdges;
         BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
         _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear, interior, grid);
         if (_actions is not null)
         {
             // The action key that opened a chest or a furnace is not also a placement.
             InputEdges placementEdges = _actions.ActionConsumed ? liveEdges & ~InputEdges.Action : liveEdges;
-            _placement?.Update(placeableMap && _phase == Phase.Playing, placementEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds, !content.Spec.Farmable);
+            _placement?.Update(placeableMap && _phase == Phase.Playing, placementEdges, _actions.TargetX, _actions.TargetY, _farmer.Facing, _placedSet, content.Grid, _farmer.X, _farmer.Y, _clockSeconds, !content.Spec.Farmable, content);
         }
 
         int scale = ScaleFor(map, canvasWidth, canvasHeight);
@@ -542,7 +542,6 @@ internal sealed class MapScene
         if (_phase != Phase.FadingOut && _channel.TryTakeCorrection(out MoveCorrectionInfo correction) && correction.Sequence >= _ignoreCorrectionsBefore)
         {
             _farmer = new Walker(correction.X, correction.Y, _farmer.Facing);
-            _ignoreCorrectionsBefore = _channel.LastSentSequence + 1;
         }
     }
 

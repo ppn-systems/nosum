@@ -5,16 +5,29 @@
    player reached. The server checks that the player stands at an elevator and has been that deep. *@
 @if (Vm.IsOpen)
 {
+    IReadOnlyList<ElevatorStopDisplay> stops = Vm.Stops;
+    bool atElevator = false;
+    foreach (ElevatorStopDisplay s in stops)
+    {
+        if (s.IsHere)
+        {
+            atElevator = true;
+            break;
+        }
+    }
     <GamePanel Title="@Vm.Text("Elevator_Title")" Class="dialog" Role="dialog" OnClose="@(() => Vm.Close())" CloseText="@Vm.Text("Panel_Close")" Status="@Vm.Status">
         <GameStack>
             <p>@Vm.Text("Elevator_Hint")</p>
             <p>@Vm.DeepestText</p>
             <div class="elevator-stops">
                 <GameButton Text="@Vm.Text("Elevator_ReturnHome")" OnClick="@(() => Vm.RideHome())" />
-                @foreach (ElevatorStopDisplay stop in Vm.Stops)
+                @foreach (ElevatorStopDisplay stop in stops)
                 {
-                    int floor = stop.Floor;
-                    <GameButton Text="@(stop.IsHere ? stop.Label + " " + Vm.Text("Elevator_Here") : stop.Label)" Disabled="stop.IsHere" OnClick="@(() => Vm.Ride(floor))" />
+                    if (atElevator || stop.Floor == 0)
+                    {
+                        int floor = stop.Floor;
+                        <GameButton Text="@(stop.IsHere ? stop.Label + " " + Vm.Text("Elevator_Here") : stop.Label)" Disabled="stop.IsHere" OnClick="@(() => Vm.Ride(floor))" />
+                    }
                 }
             </div>
         </GameStack>

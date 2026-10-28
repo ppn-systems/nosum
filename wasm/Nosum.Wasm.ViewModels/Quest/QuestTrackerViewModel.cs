@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Quest;
 using Nosum.Gameplay.Quests;
@@ -25,9 +27,15 @@ public sealed record ObjectiveLine(string Text, string Progress, bool IsDone);
 /// </summary>
 public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
 {
+    private static readonly TimeSpan CompletedBannerDuration = TimeSpan.FromSeconds(5);
+
     private readonly QuestChannel _channel;
     private readonly IStringLocalizer<Catalogue> _catalogue;
     private readonly IStringLocalizer<Language> _text;
+    private int _completedQuestId;
+    private int _completedToken;
+    private bool _completedDismissed;
+    private bool _disposed;
 
     /// <summary>Initializes the view model and starts following the channel.</summary>
     /// <param name="channel">The quest mirror.</param>
@@ -77,6 +85,8 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        _disposed = true;
+        _ = Interlocked.Increment(ref _completedToken);
         _channel.Changed -= this.OnChanged;
         UiCulture.Changed -= this.OnChanged;
     }
@@ -89,7 +99,7 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
 
     private void Rebuild()
     {
-        // The first unfinished quest in the order of the tutorial chain (docs/adr/ADR-036 D1); when all are finished, the last finished one (its banner stays).
+        // The first unfinished quest in the order of the tutorial chain (docs/adr/ADR-036 D1); when all are finished, the last finished one (its banner stays briefly then dismisses).
         List<QuestInfo> ordered = [.. _channel.Quests()];
         ordered.Sort(static (a, b) => QuestCatalog.PositionOf(a.QuestId).CompareTo(QuestCatalog.PositionOf(b.QuestId)));
         QuestInfo? shown = null;
@@ -109,6 +119,9 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
 
         if (shown is null || !QuestCatalog.TryGet(shown.QuestId, out QuestDefinition? definition))
         {
+            _completedQuestId = 0;
+            _completedDismissed = false;
+            _ = Interlocked.Increment(ref _completedToken);
             this.IsVisible = false;
             this.Objectives = [];
             return;
@@ -126,12 +139,44 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
                 done >= target));
         }
 
-        this.IsVisible = true;
         this.IsCompleted = shown.State == QuestState.Completed;
+        if (this.IsCompleted)
+        {
+            if (_completedQuestId != shown.QuestId)
+            {
+                _completedQuestId = shown.QuestId;
+                _completedDismissed = false;
+                int token = Interlocked.Increment(ref _completedToken);
+                _ = this.DismissCompletedBannerAsync(shown.QuestId, token);
+            }
+
+            this.IsVisible = !_completedDismissed;
+        }
+        else
+        {
+            _completedQuestId = 0;
+            _completedDismissed = false;
+            _ = Interlocked.Increment(ref _completedToken);
+            this.IsVisible = true;
+        }
+
         this.Title = _catalogue[prefix + "Title"];
         this.Hint = this.IsCompleted ? string.Empty : _catalogue[prefix + "Hint"].Value;
         this.RewardText = this.IsCompleted || definition.RewardCoins <= 0 ? string.Empty : string.Format(CultureInfo.CurrentCulture, _text["Quest_Reward"].Value, definition.RewardCoins.ToString("N0", CultureInfo.CurrentCulture));
         this.CompletedText = this.IsCompleted ? string.Format(CultureInfo.CurrentCulture, _text["Quest_Banner"].Value, this.Title) : string.Empty;
         this.Objectives = lines;
+    }
+
+    private async Task DismissCompletedBannerAsync(int questId, int token)
+    {
+        await Task.Delay(CompletedBannerDuration).ConfigureAwait(false);
+        if (_disposed || Volatile.Read(ref _completedToken) != token || _completedQuestId != questId)
+        {
+            return;
+        }
+
+        _completedDismissed = true;
+        this.IsVisible = false;
+        this.Changed?.Invoke();
     }
 }

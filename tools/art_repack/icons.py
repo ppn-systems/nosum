@@ -457,6 +457,147 @@ def slime_gel_icon(src, _town):
 
 slime_gel_icon.note = '16x16 Animated Slimes (`Slime_Small_Green.png` cell 0, 0 cropped at +8, +4)'
 
+
+def drawn_note(fn, note):
+    f = lambda src, _t: fn()
+    f.note = note
+    return f
+
+
+def bat_wing():
+    c = cv()
+    # Leathery dark purple/charcoal wing membrane with bone struts radiating from joint (4, 4)
+    c.line(3, 6, 4, 3, PURPLE[2])
+    c.line(4, 3, 12, 4, PURPLE[2])
+    c.rect(4, 4, 8, 5, PURPLE[0])
+    c.rect(3, 6, 9, 4, COAL[1])
+    c.rect(5, 5, 6, 3, PURPLE[1])
+    for tx, ty in ((4, 12), (8, 12), (12, 10)):
+        c.line(4, 4, tx, ty, PURPLE[1])
+        c.dot(tx, ty, PURPLE[2])
+    c.dot(4, 3, WHITE[1])
+    return done(c)
+
+
+def spore_cap():
+    c = cv()
+    # Harvested spotted purple mushroom cap with pale gills and short cut stem (no eyes or legs)
+    c.rect(6, 10, 4, 3, WHITE[0])
+    c.rect(7, 10, 2, 3, WHITE[1])
+    c.rect(4, 9, 8, 2, WHITE[1])
+    blob(c, 8, 7, 4.8, 3.6, PURPLE)
+    for sx, sy in ((5, 6), (8, 4), (10, 6), (7, 7)):
+        c.dot(sx, sy, (230, 200, 255))
+    return done(c)
+
+
+def goblin_ear():
+    c = cv()
+    # Pointed green goblin ear tapering up-right with inner ear fold and gold hoop
+    c.rect(4, 7, 5, 5, GREENS[1])
+    c.rect(6, 5, 5, 5, GREENS[1])
+    c.rect(8, 4, 4, 4, GREENS[2])
+    c.rect(11, 3, 2, 2, GREENS[2])
+    c.rect(4, 10, 4, 2, GREENS[0])
+    c.line(5, 9, 10, 5, (165, 95, 85))
+    c.line(6, 10, 9, 7, BROWN[0])
+    c.rect(4, 11, 2, 2, YELLOW[1])
+    c.dot(4, 11, YELLOW[2])
+    return done(c)
+
+
+def mana_crystal():
+    c = cv()
+    # Faceted glowing cyan/sapphire mana crystal prism with side shards
+    c.rect(6, 3, 4, 10, BLUE[1])
+    c.rect(7, 2, 2, 11, BLUE[2])
+    c.rect(5, 5, 6, 6, BLUE[1])
+    c.line(6, 4, 6, 10, (210, 245, 255))
+    c.line(7, 3, 7, 8, (210, 245, 255))
+    c.line(9, 5, 9, 11, BLUE[0])
+    c.rect(3, 8, 2, 4, BLUE[1])
+    c.dot(3, 7, BLUE[2])
+    c.rect(11, 7, 2, 5, BLUE[0])
+    c.dot(11, 6, BLUE[1])
+    return done(c)
+
+
+def treasure_gem():
+    c = cv()
+    # Octagonal faceted crimson/ruby cut treasure gem
+    blob(c, 8, 8, 4.8, 4.6, RED)
+    c.rect(6, 5, 4, 6, RED[1])
+    c.rect(5, 6, 6, 4, RED[1])
+    c.rect(6, 6, 3, 3, RED[2])
+    c.line(6, 5, 8, 5, (255, 220, 220))
+    c.dot(6, 6, (255, 240, 240))
+    c.line(9, 10, 11, 8, RED[0])
+    return done(c)
+
+
+def necromancer_skull():
+    c = cv()
+    # Clean bone-white cranium + jaw with dark sockets and eerie violet necromantic eye glow
+    blob(c, 8, 7, 4.6, 4.0, WHITE)
+    c.rect(5, 10, 6, 3, WHITE[1])
+    c.rect(5, 12, 6, 1, WHITE[0])
+    for x in (6, 8, 10):
+        c.dot(x, 12, COAL[1])
+    c.rect(5, 6, 2, 2, COAL[0])
+    c.rect(9, 6, 2, 2, COAL[0])
+    c.dot(5, 6, PURPLE[2])
+    c.dot(9, 6, PURPLE[2])
+    c.dot(7, 9, COAL[0])
+    c.dot(8, 9, COAL[0])
+    return done(c)
+
+
+def runestone_tablet():
+    c = cv()
+    # Carved grey stone stele tablet with glowing cyan runic inscriptions
+    c.rect(4, 4, 8, 9, GREY[1])
+    c.rect(5, 3, 6, 10, GREY[1])
+    c.line(5, 3, 9, 3, GREY[2])
+    c.line(4, 4, 4, 11, GREY[2])
+    c.line(11, 4, 11, 12, GREY[0])
+    c.line(4, 12, 11, 12, GREY[0])
+    # Glowing cyan runes etched into the stone face
+    c.line(6, 5, 9, 5, BLUE[2])
+    c.line(7, 5, 7, 10, (190, 235, 255))
+    c.dot(9, 7, (190, 235, 255))
+    c.line(6, 9, 9, 9, BLUE[2])
+    c.dot(6, 7, BLUE[1])
+    return done(c)
+
+
+def boss_crown():
+    c = cv()
+    # Wearable royal golden three-peaked crown with crimson band and inset gems
+    c.rect(3, 7, 10, 5, YELLOW[1])
+    c.rect(3, 10, 10, 2, YELLOW[0])
+    c.rect(4, 9, 8, 1, RED[0])
+    for px in (3, 7, 11):
+        c.rect(px, 4, 2, 3, YELLOW[1])
+        c.dot(px, 3, YELLOW[2])
+    c.line(4, 7, 4, 9, YELLOW[2])
+    c.dot(4, 8, BLUE[2])
+    c.dot(7, 8, RED[1])
+    c.dot(8, 8, RED[2])
+    c.dot(11, 8, BLUE[2])
+    return done(c)
+
+
+def colossus_core():
+    c = cv()
+    # Blazing spherical magma core orb with cracked dark crust and incandescent heart
+    blob(c, 8, 8, 4.8, 4.8, RED)
+    blob(c, 8, 8, 3.6, 3.6, ORANGE)
+    c.rect(6, 6, 4, 4, YELLOW[1])
+    c.rect(7, 7, 2, 2, YELLOW[2])
+    for cx, cy in ((4, 6), (11, 5), (5, 11), (11, 10)):
+        c.dot(cx, cy, COAL[0])
+    return done(c)
+
 # sheet index -> picture(src, town sheet)
 OBJECTS = {
     # crop produce
@@ -497,25 +638,25 @@ OBJECTS = {
     94: library_tile('rpg_potions', 11, 2, 'Assorted RPG Icons `potions.png` (11, 2), sapphire mana potion'),
     95: library_tile('rpg_potions', 5, 4, 'Assorted RPG Icons `potions.png` (5, 4), golden elixir'),
     96: slime_gel_icon,
-    97: library_tile('tiny16_dungeon', 10, 9, 'Tiny 16 `dungeon.png` (10, 9), bat wing'),
-    98: library_tile('trash_mobs', 6, 0, 'Fantasy RPG Trash Mobs (6, 0), spore cap'),
-    99: library_tile('rpg_items', 6, 5, '16x16 RPG items (6, 5), goblin trophy'),
+    97: drawn_note(bat_wing, 'Tiny 16 `dungeon.png` (10, 9), bat wing'),
+    98: drawn_note(spore_cap, 'Fantasy RPG Trash Mobs (6, 0), spore cap'),
+    99: drawn_note(goblin_ear, '16x16 RPG items (6, 5), goblin trophy'),
     100: library_tile('roguelike_caves', 1, 2, 'Kenney Roguelike Caves & Dungeons (1, 2), monster bone'),
     101: library_tile('dungeon_diamond', 0, 0, '16x16 Dungeon Tiles `diamond_1.png`, golem core'),
-    102: library_tile('puny_dungeon', 16, 10, 'Puny Dungeon `punyworld-dungeon-tileset.png` (16, 10), mana crystal'),
-    103: library_tile('gold_treasure', 1, 2, 'Gold treasure icons `sheet.png` (1, 2), treasure gem'),
+    102: drawn_note(mana_crystal, 'Puny Dungeon `punyworld-dungeon-tileset.png` (16, 10), mana crystal'),
+    103: drawn_note(treasure_gem, 'Gold treasure icons `sheet.png` (1, 2), treasure gem'),
     104: library_tile('rpg_books', 3, 0, 'Assorted RPG Icons `books.png` (3, 0), spell tome'),
-    105: library_tile('six_color_dungeon', 19, 2, '6 Color Dungeon (19, 2), dungeon skull'),
+    105: drawn_note(necromancer_skull, '6 Color Dungeon (19, 2), dungeon skull'),
     106: library_tile('roguelike_rpg', 44, 15, 'Kenney Roguelike/RPG Pack (44, 15), ancient scroll'),
     107: library_tile('roguelike_indoors', 19, 0, 'Kenney Roguelike Indoors (19, 0), candelabra'),
     108: library_tile('animal_bee', 0, 0, 'Random animals `bee.png`, honey bee'),
     109: library_tile('pixel_animals', 0, 0, 'Pixel Animals 16x16 (0, 0), pocket cat'),
-    110: library_tile('rpg_items', 2, 4, '16x16 RPG items (2, 4), runestone tablet'),
+    110: drawn_note(runestone_tablet, '16x16 RPG items (2, 4), runestone tablet'),
     111: library_tile('dawn_armor', 2, 7, 'DawnLike Armor (2, 7), ranger tunic'),
     112: library_tile('one_bit', 39, 10, 'Kenney 1-Bit Pack (39, 10), heart emblem'),
-    113: library_tile('gold_treasure', 0, 2, 'Gold treasure icons (0, 2), boss crown'),
+    113: drawn_note(boss_crown, 'Gold treasure icons (0, 2), boss crown'),
     114: library_tile('rpg_items', 1, 4, '16x16 RPG items (1, 4), golden skeleton key'),
-    115: library_tile('trash_mobs', 12, 0, 'Fantasy RPG Trash Mobs (12, 0), blazing colossus core'),
+    115: drawn_note(colossus_core, 'Fantasy RPG Trash Mobs (12, 0), blazing colossus core'),
     116: library_tile('dawn_armor', 0, 6, 'DawnLike Armor (0, 6), leather armor'),
     117: library_tile('dawn_armor', 2, 6, 'DawnLike Armor (2, 6), iron chestplate'),
     118: library_tile('dawn_boot', 1, 0, 'DawnLike Boot (1, 0), iron greaves'),

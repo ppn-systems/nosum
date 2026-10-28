@@ -30,6 +30,8 @@
 }
 
 .game-icon-button.active .game-icon-button-art {
+    outline: var(--u) solid var(--nosum-gold-light);
+    outline-offset: calc(var(--u) * -1);
     filter: brightness(1.12);
 }
 

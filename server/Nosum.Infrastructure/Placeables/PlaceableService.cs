@@ -246,7 +246,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
                 return Refused(PlaceStatus.LimitReached);
             }
 
-            PlaceStatus status = Validate(state, map, player, definition, rotation, tileX, tileY, ignoreId: 0, layers);
+            PlaceStatus status = this.Validate(state, map, player, definition, rotation, tileX, tileY, ignoreId: 0, layers);
             if (status != PlaceStatus.Ok)
             {
                 return Refused(status);
@@ -317,13 +317,19 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
                 return Refused(PlaceStatus.Fixed);
             }
 
+            PlaceableView currentView = definition.View(Math.Min(current.Rotation, definition.Rotations - 1));
+            if (!Reaches(player, map, current.TileX, current.TileY, currentView))
+            {
+                return Refused(PlaceStatus.OutOfReach);
+            }
+
             if (mover is not null && !FootprintUnlocked(mover, definition, rotation, tileX, tileY))
             {
                 return Refused(PlaceStatus.LockedLand);
             }
 
             IGroundLayers? layers = await this.LayersAsync(player.Instance, definition, rotation, tileX, tileY, cancellationToken).ConfigureAwait(false);
-            PlaceStatus status = Validate(state, map, player, definition, rotation, tileX, tileY, ignoreId: objectId, layers);
+            PlaceStatus status = this.Validate(state, map, player, definition, rotation, tileX, tileY, ignoreId: objectId, layers);
             if (status != PlaceStatus.Ok)
             {
                 return Refused(status);
@@ -491,8 +497,8 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         _ => PlaceStatus.Overlaps,
     };
 
-    // The footprint must be free, within the player's reach, and not on the player's own feet.
-    private static PlaceStatus Validate(InstanceState state, MapDefinition map, PlayerPresence player, PlaceableDefinition definition, int rotation, int tileX, int tileY, int ignoreId, IGroundLayers? layers)
+    // The footprint must be free, within the player's reach, and not on any present player's feet.
+    private PlaceStatus Validate(InstanceState state, MapDefinition map, PlayerPresence player, PlaceableDefinition definition, int rotation, int tileX, int tileY, int ignoreId, IGroundLayers? layers)
     {
         PlacementVerdict verdict = state.Set.Check(definition, rotation, tileX, tileY, map.Grid, map.ReservedTiles, ignoreId, layers);
         if (verdict != PlacementVerdict.Ok)
@@ -514,7 +520,38 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             feetY = player.Motion.Y;
         }
 
-        return PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, map.Grid.TileSize) ? PlaceStatus.PlayerInTheWay : PlaceStatus.Ok;
+        if (PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, map.Grid.TileSize))
+        {
+            return PlaceStatus.PlayerInTheWay;
+        }
+
+        if (definition.BlocksWalking)
+        {
+            List<PlayerPresence> present = [];
+            _presence.CopyPlayers(player.Key, present);
+            foreach (PlayerPresence other in present)
+            {
+                if (other.AccountId == player.AccountId)
+                {
+                    continue;
+                }
+
+                double otherX;
+                double otherY;
+                lock (other.Gate)
+                {
+                    otherX = other.Motion.X;
+                    otherY = other.Motion.Y;
+                }
+
+                if (PlacedSet.CoversFeet(view, tileX, tileY, otherX, otherY, map.Grid.TileSize))
+                {
+                    return PlaceStatus.PlayerInTheWay;
+                }
+            }
+        }
+
+        return PlaceStatus.Ok;
     }
 
     // Whether the whole footprint lies on land the co-op has unlocked (docs/adr/ADR-038); a rotation out of range is left to the placement check.

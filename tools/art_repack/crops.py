@@ -75,7 +75,20 @@ def farm_stages(sheet, first, recipe, unripe):
         pics = [p.map_pixels(recipe) for p in pics]
     if unripe is None:
         return dict(produce=pics[4], ripe=pics[4], s3=pics[2], s2=pics[1], s1=pics[0])
-    return dict(produce=pics[4], ripe=pics[2], s3=pics[2].map_pixels(unripe), s2=pics[1], s1=pics[0])
+    return dict(produce=pics[4], ripe=pics[2], s3=pics[2].map_pixels(unripe), s2=pics[1].map_pixels(unripe), s1=pics[0])
+
+
+def _early_stage(pic):
+    """A 1 px shorter intermediate growth stage with the root anchored at the same bottom row."""
+    out = Image(pic.width, pic.height)
+    opaque_rows = [y for y in range(pic.height) if any(p[3] > 0 for p in pic.px[y])]
+    if not opaque_rows:
+        return pic
+    bot = max(opaque_rows)
+    for y in range(1, bot):
+        out.px[y] = list(pic.px[y - 1])
+    out.px[bot] = list(pic.px[bot])
+    return out
 
 
 def stages(src, crop_name):
@@ -108,7 +121,12 @@ def build_crops(src, repo):
         n = len(frames)
         for k, frame in enumerate(frames):
             # The frame ids are the game's: 7 is the grown plant without fruit that a regrowing crop returns to.
-            pic = st['s3'] if frame == 7 and k != n - 1 else ladder[round(k * 4 / (n - 1))]
+            if frame == 7 and k != n - 1:
+                pic = st['s3']
+            elif n == 6 and k == 2:
+                pic = _early_stage(st['s2'])
+            else:
+                pic = ladder[round(k * 4 / (n - 1))]
             out.paste(pic, (row % 2 * 128) + frame * 16, (row // 2) * 32 + 16)
     return out
 

@@ -156,6 +156,18 @@ def build(src, repo, tools_size, weapons_size):
     else:
         old_tools = read_png(f'{repo}/assets/sprites/tools.png')
         old_weapons = read_png(f'{repo}/assets/sprites/weapons.png')
+        cc0_tools = {
+            ('basic', 'Hoe'): old_tools.crop(0 * 16, 2 * 16, 16, 16),
+            ('copper', 'Hoe'): old_tools.crop(7 * 16, 2 * 16, 16, 16),
+            ('iron', 'Hoe'): old_tools.crop(14 * 16, 2 * 16, 16, 16),
+            ('basic', 'Axe'): old_tools.crop(5 * 16, 10 * 16, 16, 16),
+            ('copper', 'Axe'): old_tools.crop(12 * 16, 10 * 16, 16, 16),
+            ('iron', 'Axe'): old_tools.crop(19 * 16, 10 * 16, 16, 16),
+            ('basic', 'Pickaxe'): old_tools.crop(5 * 16, 6 * 16, 16, 16),
+            ('copper', 'Pickaxe'): old_tools.crop(12 * 16, 6 * 16, 16, 16),
+            ('iron', 'Pickaxe'): old_tools.crop(19 * 16, 6 * 16, 16, 16),
+            ('basic', 'Scythe'): old_weapons.crop(7 * 16, 5 * 16, 16, 16),
+        }
         fixed = {
             'MilkPail': old_tools.crop(6 * 16, 0, 16, 16),
             'CoopBlueprint': blueprint(),

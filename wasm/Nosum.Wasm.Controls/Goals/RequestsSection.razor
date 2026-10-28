@@ -3,40 +3,42 @@
 
 @* The requests tab of the Town board (docs/adr/ADR-036): today's delivery requests with what each asks and pays. The requests, the rewards and every
    delivery are the server's; this only asks and shows. *@
-<GameStack>
-    <p class="requests-hint">@Vm.Text("Requests_Hint")</p>
-    @if (Vm.NextText.Length > 0)
-    {
-        <p class="requests-next">@Vm.NextText</p>
-    }
-    @if (!Vm.IsLoaded)
-    {
-        <p class="requests-hint">@Vm.Text("Requests_Loading") <GameSpinner /></p>
-    }
-    else if (Vm.Requests.Count == 0)
-    {
-        <p class="requests-hint">@Vm.Text("Requests_None")</p>
-    }
+<div class="requests-wrap">
+    <GameStack>
+        <p class="requests-hint">@Vm.Text("Requests_Hint")</p>
+        @if (Vm.NextText.Length > 0)
+        {
+            <p class="requests-next">@Vm.NextText</p>
+        }
+        @if (!Vm.IsLoaded)
+        {
+            <p class="requests-hint">@Vm.Text("Requests_Loading") <GameSpinner /></p>
+        }
+        else if (Vm.Requests.Count == 0)
+        {
+            <p class="requests-hint">@Vm.Text("Requests_None")</p>
+        }
 
-    @foreach (RequestDisplay request in Vm.Requests)
-    {
-        int slot = request.Slot;
-        <GameSection Title="@request.AskText">
-            <GameRow Class="center request-row">
-                <ItemSlotButton Slot="request.Item" />
-                <span class="request-info">
-                    <span class="request-reward">@request.RewardText</span>
-                    <span class="request-held">@request.HeldText</span>
-                </span>
-                @if (request.Filled)
-                {
-                    <span class="request-filled">@request.FilledText</span>
-                }
-                else
-                {
-                    <GameButton Text="@Vm.Text("Requests_Deliver")" Disabled="!request.CanDeliver" OnClick="@(() => Vm.Deliver(slot))" />
-                }
-            </GameRow>
-        </GameSection>
-    }
-</GameStack>
+        @foreach (RequestDisplay request in Vm.Requests)
+        {
+            int slot = request.Slot;
+            <GameSection Title="@request.AskText">
+                <GameRow Class="center request-row">
+                    <ItemSlotButton Slot="request.Item" />
+                    <span class="request-info">
+                        <span class="request-reward">@request.RewardText</span>
+                        <span class="request-held">@request.HeldText</span>
+                    </span>
+                    @if (request.Filled)
+                    {
+                        <span class="request-filled">@request.FilledText</span>
+                    }
+                    else
+                    {
+                        <GameButton Text="@Vm.Text("Requests_Deliver")" Disabled="!request.CanDeliver" OnClick="@(() => Vm.Deliver(slot))" />
+                    }
+                </GameRow>
+            </GameSection>
+        }
+    </GameStack>
+</div>

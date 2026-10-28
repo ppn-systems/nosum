@@ -97,7 +97,7 @@ public sealed class TradeService : ITradeService, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            this.DropExpiredInvites();
+            await this.DropExpiredInvitesAsync(cancellationToken).ConfigureAwait(false);
             if (this.IsBusy(playerId))
             {
                 return TradeStatus.AlreadyTrading;
@@ -127,7 +127,7 @@ public sealed class TradeService : ITradeService, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            this.DropExpiredInvites();
+            await this.DropExpiredInvitesAsync(cancellationToken).ConfigureAwait(false);
             if (!_invitesByInvitee.Remove(playerId, out Invite? invite))
             {
                 return TradeStatus.NoInvite;
@@ -259,7 +259,7 @@ public sealed class TradeService : ITradeService, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            this.DropExpiredInvites();
+            await this.DropExpiredInvitesAsync(cancellationToken).ConfigureAwait(false);
             if (_open.TryGetValue(playerId, out Open? open))
             {
                 this.Remove(open);
@@ -278,6 +278,7 @@ public sealed class TradeService : ITradeService, IDisposable
             if (_inviteeByInviter.Remove(playerId, out Guid invitee))
             {
                 _ = _invitesByInvitee.Remove(invitee);
+                await this.PushEndedAsync(playerId, TradeEndReason.Cancelled, cancellationToken).ConfigureAwait(false);
                 await this.PushEndedAsync(invitee, TradeEndReason.CancelledByOther, cancellationToken).ConfigureAwait(false);
                 return TradeStatus.Ok;
             }
@@ -332,7 +333,7 @@ public sealed class TradeService : ITradeService, IDisposable
         _ = _open.Remove(open.Session.B);
     }
 
-    private void DropExpiredInvites()
+    private async Task DropExpiredInvitesAsync(CancellationToken cancellationToken)
     {
         DateTimeOffset now = _time.GetUtcNow();
         List<Guid>? expired = null;
@@ -354,6 +355,8 @@ public sealed class TradeService : ITradeService, IDisposable
             if (_invitesByInvitee.Remove(invitee, out Invite? invite))
             {
                 _ = _inviteeByInviter.Remove(invite.Inviter);
+                await this.PushEndedAsync(invite.Inviter, TradeEndReason.InviteExpired, cancellationToken).ConfigureAwait(false);
+                await this.PushEndedAsync(invitee, TradeEndReason.InviteExpired, cancellationToken).ConfigureAwait(false);
             }
         }
     }

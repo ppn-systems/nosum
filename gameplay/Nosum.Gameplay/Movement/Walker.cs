@@ -73,15 +73,27 @@ public struct Walker
         double distance = Speed * seconds * (dx != 0 && dy != 0 ? Math.Sqrt(0.5) : 1);
 
         double nextX = this.X + (dx * distance);
-        if (!Blocked(grid, nextX, this.Y))
+        bool movedX = !Blocked(grid, nextX, this.Y);
+        if (movedX)
         {
             this.X = nextX;
         }
 
         double nextY = this.Y + (dy * distance);
-        if (!Blocked(grid, this.X, nextY))
+        bool movedY = !Blocked(grid, this.X, nextY);
+        if (movedY)
         {
             this.Y = nextY;
+        }
+
+        if (dx != 0 && dy != 0)
+        {
+            bool atWestBorder = dx < 0 && this.X < grid.TileSize;
+            bool atEastBorder = dx > 0 && this.X >= (grid.Width - 1) * grid.TileSize;
+            if (atWestBorder || atEastBorder || (movedX && !movedY))
+            {
+                this.Facing = dx > 0 ? Facing.Right : Facing.Left;
+            }
         }
     }
 

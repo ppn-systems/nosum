@@ -37,6 +37,8 @@ public sealed class PlaceableChannel : IDisposable
     private readonly List<PlacedObjectInfo> _items = [];
     private string _mapId = string.Empty;
     private int _version;
+    private int _loadGeneration;
+    private int _inFlightLoads;
 
     /// <summary>Initializes the channel and starts listening for pushed changes.</summary>
     /// <param name="socket">The game connection.</param>
@@ -113,10 +115,17 @@ public sealed class PlaceableChannel : IDisposable
     [SuppressMessage("Design", "CA1031", Justification = "A failed load is retried when the next join completes; there is no caller to report to.")]
     private async Task LoadAsync()
     {
+        int gen = Interlocked.Increment(ref _loadGeneration);
+        _ = Interlocked.Increment(ref _inFlightLoads);
         try
         {
             using PacketScope<GetPlaced> request = PacketFactory<GetPlaced>.Acquire();
             PlacedSnapshot snapshot = await _socket.RequestAsync<PlacedSnapshot>(request.Value).ConfigureAwait(false);
+            if (gen != Volatile.Read(ref _loadGeneration))
+            {
+                return;
+            }
+
             lock (_gate)
             {
                 _items.Clear();
@@ -134,6 +143,10 @@ public sealed class PlaceableChannel : IDisposable
         catch (Exception)
         {
             // Connection dropped mid-load.
+        }
+        finally
+        {
+            _ = Interlocked.Decrement(ref _inFlightLoads);
         }
     }
 
@@ -195,10 +208,17 @@ public sealed class PlaceableChannel : IDisposable
     {
         lock (_gate)
         {
-            // A chunk of another map (a late push after a map change, or one that beat the load of this map) is not ours; the load covers it.
             if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
             {
-                return;
+                if ((Volatile.Read(ref _inFlightLoads) > 0 || _mapId.Length == 0) && !string.IsNullOrEmpty(packet.MapId))
+                {
+                    _items.Clear();
+                    _mapId = packet.MapId;
+                }
+                else
+                {
+                    return;
+                }
             }
 
             ChunkCoord chunk = new(packet.ChunkX, packet.ChunkY);

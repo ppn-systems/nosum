@@ -106,6 +106,7 @@
     padding-inline: calc(var(--button-edge) + var(--u));
 }
 
+.game-button.plain.active,
 .game-button.tab.active {
     --button-frame: var(--nosum-img-button-hot);
     --button-frame-down: var(--nosum-img-button-hot-down);
@@ -114,6 +115,7 @@
     text-shadow: var(--tp) var(--tp) 0 rgba(255, 244, 214, 0.55);
 }
 
+.game-button.plain.active:disabled,
 .game-button.tab.active:disabled {
     color: var(--nosum-ink);
 }
@@ -135,6 +137,12 @@
     color: var(--nosum-danger);
 }
 
+.game-button.link:disabled {
+    color: var(--nosum-ink-faint);
+    opacity: 0.45;
+    filter: saturate(0.3);
+}
+
 .game-button.chip {
     padding: 0 calc(var(--u) * 1);
     color: var(--nosum-ink);
@@ -148,4 +156,14 @@
 
 .game-button.chip:hover:not(:disabled) {
     color: var(--nosum-danger);
+}
+
+.game-button.chip:disabled {
+    color: var(--nosum-ink-faint);
+    opacity: 0.45;
+    filter: saturate(0.3);
+}
+
+.game-button.chip:disabled ::deep .game-key {
+    opacity: 0.45;
 }

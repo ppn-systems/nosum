@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Core;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Movement;
 using Nosum.Rendering;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -187,13 +188,26 @@ internal sealed class WayfindingDecoratorProvider : IMapDecoratorProvider
                 IsMineWayUp: false));
         }
 
-        // Group warp tiles that lead to the same destination map so contiguous exit strips share one centered beacon and label.
+        // Group walkable warp tiles that lead to the same destination map so contiguous exit strips share one centered beacon and label.
+        WalkGrid grid = spec.BuildWalkGrid(map);
         Dictionary<string, (int MinX, int MaxX, int MinY, int MaxY)> grouped = new(StringComparer.Ordinal);
         for (int i = 0; i < warps.Count; i++)
         {
             MapWarp w = warps[i];
+            if (string.Equals(spec.Id, GameMaps.BusStop, StringComparison.Ordinal)
+                && string.Equals(w.TargetMap, "mine10", StringComparison.Ordinal))
+            {
+                // The BusStop dungeon rift portal is already rendered and labeled by MonstersDecorator.
+                continue;
+            }
+
             int tx = Math.Clamp(w.FromX, 0, Math.Max(0, map.Width - 1));
             int ty = Math.Clamp(w.FromY, 0, Math.Max(0, map.Height - 1));
+            if (grid.IsBlocked(tx, ty))
+            {
+                continue;
+            }
+
             if (grouped.TryGetValue(w.TargetMap, out (int MinX, int MaxX, int MinY, int MaxY) bounds))
             {
                 grouped[w.TargetMap] = (
@@ -240,27 +254,24 @@ internal sealed class WayfindingDecoratorProvider : IMapDecoratorProvider
 
     private static string PickArrow(int tileX, int tileY, int width, int height)
     {
-        if (tileX <= 2)
+        int distLeft = tileX;
+        int distRight = Math.Max(0, width - 1 - tileX);
+        int distTop = tileY;
+        int distBottom = Math.Max(0, height - 1 - tileY);
+        int minH = Math.Min(distLeft, distRight);
+        int minV = Math.Min(distTop, distBottom);
+
+        if (minV <= minH && minV <= 3)
         {
-            return "←";
+            return distBottom <= distTop ? "↓" : "↑";
         }
 
-        if (tileX >= width - 3)
+        if (minH <= 3)
         {
-            return "→";
+            return distLeft <= distRight ? "←" : "→";
         }
 
-        if (tileY <= 2)
-        {
-            return "↑";
-        }
-
-        if (tileY >= height - 3)
-        {
-            return "↓";
-        }
-
-        return "↑";
+        return distBottom <= distTop ? "↓" : "↑";
     }
 
     private string TargetDisplayName(string targetMap)
@@ -268,6 +279,11 @@ internal sealed class WayfindingDecoratorProvider : IMapDecoratorProvider
         if (string.Equals(targetMap, "mine1", StringComparison.Ordinal))
         {
             return this.Localize("MapName_mine1", "Tầng hầm 1");
+        }
+
+        if (string.Equals(targetMap, GameMaps.CoopFarm, StringComparison.Ordinal))
+        {
+            return this.Localize("MapName_coopfarm", this.Localize("MapName_coop_farm", "Đất hợp tác xã"));
         }
 
         return this.Localize("MapName_" + targetMap, targetMap);

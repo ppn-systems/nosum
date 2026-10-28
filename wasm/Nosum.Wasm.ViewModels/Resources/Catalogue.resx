@@ -308,7 +308,7 @@
   <data name="Item_elixir_Name" xml:space="preserve"><value>Linh dược Hoàng kim</value></data>
   <data name="Item_elixir_Description" xml:space="preserve"><value>Hồi phục 100 HP, 50 MP và 60 thể lực.</value></data>
   <data name="Item_boss_crown_Name" xml:space="preserve"><value>Vương miện Thủ lĩnh</value></data>
-  <data name="Item_boss_crown_Description" xml:space="preserve"><value>Vương miện hoàng kim rơi ra từ Vua Người Đá tầng 40.</value></data>
+  <data name="Item_boss_crown_Description" xml:space="preserve"><value>Vương miện hoàng kim rơi ra từ Vua Người Đá tầng 40 (+8 Phòng thủ).</value></data>
   <data name="Item_ancient_scroll_Name" xml:space="preserve"><value>Cuộn kinh Cổ đại</value></data>
   <data name="Item_ancient_scroll_Description" xml:space="preserve"><value>Bí kíp cổ xưa chứa đầy tri thức ma thuật từ Mẹ Nhện tầng 10.</value></data>
   <data name="Item_golden_key_Name" xml:space="preserve"><value>Chìa khóa Hoàng kim</value></data>
@@ -344,21 +344,21 @@
   <data name="Recipe_heart_crystal_Name" xml:space="preserve"><value>Pha lê Trái tim</value></data>
   <data name="Recipe_sanctuary_candelabra_Name" xml:space="preserve"><value>Chân nến Thánh đường</value></data>
   <data name="Monster_green_slime_Name" xml:space="preserve"><value>Slime xanh</value></data>
-  <data name="Monster_green_slime_Location" xml:space="preserve"><value>Hầm mỏ 1–9, Rừng</value></data>
+  <data name="Monster_green_slime_Location" xml:space="preserve"><value>Hầm mỏ 1–10, Rừng sâu, Cánh rừng</value></data>
   <data name="Monster_frost_slime_Name" xml:space="preserve"><value>Slime băng</value></data>
-  <data name="Monster_frost_slime_Location" xml:space="preserve"><value>Hầm mỏ 11–19</value></data>
+  <data name="Monster_frost_slime_Location" xml:space="preserve"><value>Hầm mỏ 11–25, Sườn núi, Đường rừng</value></data>
   <data name="Monster_magma_slime_Name" xml:space="preserve"><value>Slime dung nham</value></data>
-  <data name="Monster_magma_slime_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_magma_slime_Location" xml:space="preserve"><value>Hầm mỏ 26–40</value></data>
   <data name="Monster_cave_bat_Name" xml:space="preserve"><value>Dơi hang động</value></data>
-  <data name="Monster_cave_bat_Location" xml:space="preserve"><value>Hầm mỏ 1–9</value></data>
+  <data name="Monster_cave_bat_Location" xml:space="preserve"><value>Hầm mỏ 1–10</value></data>
   <data name="Monster_spore_shroom_Name" xml:space="preserve"><value>Nấm bào tử</value></data>
-  <data name="Monster_spore_shroom_Location" xml:space="preserve"><value>Hầm mỏ 1–19, Rừng</value></data>
+  <data name="Monster_spore_shroom_Location" xml:space="preserve"><value>Hầm mỏ 1–25, Rừng sâu, Cánh rừng</value></data>
   <data name="Monster_goblin_scout_Name" xml:space="preserve"><value>Yêu tinh trinh sát</value></data>
-  <data name="Monster_goblin_scout_Location" xml:space="preserve"><value>Hầm mỏ 11–19</value></data>
+  <data name="Monster_goblin_scout_Location" xml:space="preserve"><value>Hầm mỏ 11–25, Sườn núi, Đường rừng</value></data>
   <data name="Monster_skeleton_warrior_Name" xml:space="preserve"><value>Chiến binh xương</value></data>
-  <data name="Monster_skeleton_warrior_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_skeleton_warrior_Location" xml:space="preserve"><value>Hầm mỏ 26–40</value></data>
   <data name="Monster_stone_golem_Name" xml:space="preserve"><value>Người đá cổ đại</value></data>
-  <data name="Monster_stone_golem_Location" xml:space="preserve"><value>Hầm mỏ 21–39</value></data>
+  <data name="Monster_stone_golem_Location" xml:space="preserve"><value>Hầm mỏ 26–40</value></data>
   <data name="Monster_boss_broodmother_Name" xml:space="preserve"><value>Chúa nhện hang sâu</value></data>
   <data name="Monster_boss_broodmother_Location" xml:space="preserve"><value>Hầm mỏ tầng 10</value></data>
   <data name="Monster_boss_goblin_chieftain_Name" xml:space="preserve"><value>Thủ lĩnh yêu tinh</value></data>

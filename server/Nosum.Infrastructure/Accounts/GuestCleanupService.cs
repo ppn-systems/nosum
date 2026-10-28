@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
@@ -54,10 +55,28 @@ public sealed class GuestCleanupService
         NosumDbContext db = new(_options);
         await using (db.ConfigureAwait(false))
         {
-            // States and tokens go with the player (ON DELETE CASCADE).
-            int guests = await db.Players
-                .Where(p => p.IsGuest && p.LastActiveAt < cutoff)
-                .ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+            List<Guid> guestIds = await db.Players
+                .Where(p => p.IsGuest && p.LastActiveAt < cutoff && !db.PlayerStates.Any(s => s.PlayerId == p.Id && s.UpdatedAt >= cutoff))
+                .Select(p => p.Id)
+                .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+            int guests = 0;
+            if (guestIds.Count > 0)
+            {
+                _ = await db.FarmPlots.Where(f => guestIds.Contains(f.OwnerId)).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+                _ = await db.PlacedObjects.Where(o => guestIds.Contains(o.OwnerId)).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+                _ = await db.WorldNodes.Where(n => guestIds.Contains(n.OwnerId)).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+                _ = await db.NodeInstances.Where(n => guestIds.Contains(n.OwnerId)).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+                _ = await db.GroundItems.Where(g => guestIds.Contains(g.OwnerId)).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+                _ = await db.BlockedPlayers.Where(b => guestIds.Contains(b.OwnerId) || guestIds.Contains(b.BlockedId)).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+                _ = await db.Friendships.Where(f => guestIds.Contains(f.PlayerId) || guestIds.Contains(f.FriendId)).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+                _ = await db.FriendRequests.Where(r => guestIds.Contains(r.FromId) || guestIds.Contains(r.ToId)).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+
+                // States and tokens go with the player (ON DELETE CASCADE).
+                guests = await db.Players
+                    .Where(p => guestIds.Contains(p.Id))
+                    .ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+            }
 
             // Session rotation leaves a revoked row behind at every resume, and recovery codes are single use: both are swept after a week and a day (docs/adr/ADR-032 D5).
             DateTimeOffset now = _time.GetUtcNow();

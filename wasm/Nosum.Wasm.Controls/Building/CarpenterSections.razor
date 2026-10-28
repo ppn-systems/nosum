@@ -5,43 +5,45 @@
 
 @* The building and animal sections of the carpenter's page, under its supplies (docs/adr/ADR-028): order a blueprint for a coop or a barn, and buy an animal for a finished
    building with a name. The server prices and checks everything; the buttons only follow the same rules so a player is not offered what they cannot afford. *@
-<GameSection Title="@Vm.Text("Carpenter_Buildings")">
-    <p class="carpenter-line">@Vm.Text("Carpenter_Hint")</p>
-    @foreach (BuildingOrder order in Vm.Orders)
-    {
-        BuildingKind kind = order.Kind;
-        <GameRow Class="center carpenter-row">
-            <span>@order.Name</span>
-            <span class="carpenter-cost">@order.CostText</span>
-            <GameButton Text="@Vm.Text("Carpenter_Order")" Disabled="@(!order.CanOrder)" OnClick="@(() => Vm.Order(kind))" />
-        </GameRow>
-    }
-</GameSection>
-<GameSection Title="@Vm.Text("Carpenter_Animals")">
-    @{
-        IReadOnlyList<AnimalOffer> offers = Vm.Offers;
-    }
-    @if (offers.Count == 0)
-    {
-        <p class="carpenter-line">@Vm.Text("Carpenter_NoHome")</p>
-    }
-    else
-    {
-        <GameField Label="@Vm.Text("Carpenter_Name")" Hint="@Vm.Text("Carpenter_NameHint")">
-            <GameInput Value="@Vm.AnimalName" ValueChanged="@(v => Vm.AnimalName = v)" Label="@Vm.Text("Carpenter_Name")" MaxLength="16" />
-        </GameField>
-        @foreach (AnimalOffer offer in offers)
+<div class="carpenter-wrap">
+    <GameSection Title="@Vm.Text("Carpenter_Buildings")">
+        <p class="carpenter-line">@Vm.Text("Carpenter_Hint")</p>
+        @foreach (BuildingOrder order in Vm.Orders)
         {
-            Guid buildingId = offer.BuildingId;
-            AnimalKind kind = offer.Kind;
+            BuildingKind kind = order.Kind;
             <GameRow Class="center carpenter-row">
-                <span>@offer.Title</span>
-                <GameButton Text="@offer.BuyLabel" Disabled="@(!offer.CanBuy)" OnClick="@(() => Vm.BuyAnimal(buildingId, kind))" />
+                <span>@order.Name</span>
+                <span class="carpenter-cost">@order.CostText</span>
+                <GameButton Text="@Vm.Text("Carpenter_Order")" Disabled="@(!order.CanOrder)" OnClick="@(() => Vm.Order(kind))" />
             </GameRow>
         }
+    </GameSection>
+    <GameSection Title="@Vm.Text("Carpenter_Animals")">
+        @{
+            IReadOnlyList<AnimalOffer> offers = Vm.Offers;
+        }
+        @if (offers.Count == 0)
+        {
+            <p class="carpenter-line">@Vm.Text("Carpenter_NoHome")</p>
+        }
+        else
+        {
+            <GameField Label="@Vm.Text("Carpenter_Name")" Hint="@Vm.Text("Carpenter_NameHint")">
+                <GameInput Value="@Vm.AnimalName" ValueChanged="@(v => Vm.AnimalName = v)" Label="@Vm.Text("Carpenter_Name")" MaxLength="16" />
+            </GameField>
+            @foreach (AnimalOffer offer in offers)
+            {
+                Guid buildingId = offer.BuildingId;
+                AnimalKind kind = offer.Kind;
+                <GameRow Class="center carpenter-row">
+                    <span>@offer.Title</span>
+                    <GameButton Text="@offer.BuyLabel" Disabled="@(!offer.CanBuy)" OnClick="@(() => Vm.BuyAnimal(buildingId, kind))" />
+                </GameRow>
+            }
+        }
+    </GameSection>
+    @if (Vm.Status.Length > 0)
+    {
+        <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />
     }
-</GameSection>
-@if (Vm.Status.Length > 0)
-{
-    <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />
-}
+</div>

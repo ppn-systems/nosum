@@ -63,7 +63,7 @@ internal static class FarmerSprite
         int flags = facing == Facing.Left ? RenderCommandBuffer.FlipX : 0;
         bool swinging = swingProgress is >= 0f and < 1f;
         int column = swinging
-            ? (swingProgress < 0.25f ? 4 : ActionColumn)
+            ? ActionColumn
             : (walkFrame <= 0 ? 0 : s_walkColumns[(walkFrame - 1) & 7]);
         int bob = column is 1 or 2 or 3 ? 1 : 0;
         int lungeX = swinging && swingProgress is >= 0.25f and < 0.75f
@@ -394,6 +394,23 @@ internal static class FarmerSprite
         int heldItemId,
         float swingProgress)
     {
+        if (heldItemId <= 0)
+        {
+            return;
+        }
+
+        ToolKind tool = ToolKind.None;
+        if (ItemCatalog.TryGet(heldItemId, out ItemDefinition? def))
+        {
+            tool = def.Tool;
+        }
+
+        bool isWeapon = CombatRules.WeaponDamage(heldItemId) > 0 || tool == ToolKind.Scythe;
+        if (!isWeapon && tool == ToolKind.None)
+        {
+            return;
+        }
+
         float t = Math.Clamp((swingProgress - 0.16f) / 0.84f, 0f, 1f);
         int reach = 14;
         (int tx, int ty) = facing switch
@@ -414,13 +431,6 @@ internal static class FarmerSprite
             batch.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, ax - 1, ay - 1, sortY, feetX, 9190 + s, tint: arcTint);
         }
 
-        ToolKind tool = ToolKind.None;
-        if (ItemCatalog.TryGet(heldItemId, out ItemDefinition? def))
-        {
-            tool = def.Tool;
-        }
-
-        bool isWeapon = CombatRules.WeaponDamage(heldItemId) > 0 || tool == ToolKind.Scythe;
         if (isWeapon)
         {
             int goldSlash = unchecked((int)0xfff3b0f0);

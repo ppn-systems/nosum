@@ -74,7 +74,7 @@ public enum PanelKind
 public sealed record ToolbarItem(PanelKind Kind, string Label, string Hotkey, string Icon = "");
 
 /// <summary>View model of the toolbar of panel buttons; knows which panel is open.</summary>
-public sealed class ToolbarViewModel : PanelViewModel
+public sealed class ToolbarViewModel : PanelViewModel, IDisposable
 {
     private readonly SettingsViewModel? _settings;
     private PanelKind _active;
@@ -89,6 +89,15 @@ public sealed class ToolbarViewModel : PanelViewModel
         if (settings is not null)
         {
             settings.Changed += this.Raise;
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (_settings is not null)
+        {
+            _settings.Changed -= this.Raise;
         }
     }
 

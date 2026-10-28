@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Nosum.Domain.Accounts;
+using Nosum.Gameplay.Combat;
 
 namespace Nosum.Infrastructure.Persistence.Configurations;
 
@@ -16,5 +17,8 @@ internal sealed class PlayerStateConfiguration : IEntityTypeConfiguration<Player
         _ = builder.Property(s => s.MapName).HasMaxLength(64).IsRequired();
         // The default is for rows that existed before the column; a new row always writes its own value, day zero included.
         _ = builder.Property(s => s.EnergyRefilledDay).HasDefaultValue(-1L).ValueGeneratedNever();
+        _ = builder.Property(s => s.CombatXp).HasDefaultValue(0).ValueGeneratedNever();
+        _ = builder.Property(s => s.Hp).HasDefaultValue(CombatRules.BaseMaxHp).ValueGeneratedNever();
+        _ = builder.Property(s => s.Mp).HasDefaultValue(CombatRules.BaseMaxMp).ValueGeneratedNever();
     }
 }

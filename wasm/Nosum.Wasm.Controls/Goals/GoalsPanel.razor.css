@@ -1,3 +1,7 @@
+.goals-wrap {
+    display: contents;
+}
+
 .goals-hint,
 .goals-season,
 .goal-state {
@@ -7,7 +11,7 @@
 .goals-hint,
 .goals-season,
 .goal-held,
-.goal-numbers {
+.goals-wrap ::deep .goal-numbers {
     color: var(--nosum-ink-soft);
 }
 
@@ -15,7 +19,7 @@
     color: var(--nosum-ok);
 }
 
-.goal-head ::deep .slot {
+.goals-wrap ::deep .goal-head .slot {
     flex: none;
 }
 

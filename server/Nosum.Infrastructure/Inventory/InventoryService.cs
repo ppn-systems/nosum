@@ -170,8 +170,12 @@ public sealed class InventoryService : IInventoryService
             {
                 foreach (ItemSlot starter in StarterKit.Items)
                 {
-                    // A tool with no room is skipped; the next join tries again.
-                    if (ItemCatalog.TryGet(starter.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Tool && loaded.Grid.CountOf(item.Id) == 0 && loaded.Grid.Add(item.Id, 1) == InventoryVerdict.Ok)
+                    // A tool is skipped when the player already holds any tier of that tool kind; a tool with no room is tried again on the next join.
+                    if (ItemCatalog.TryGet(starter.ItemId, out ItemDefinition? item)
+                        && item.Kind == ItemKind.Tool
+                        && loaded.Grid.CountOf(item.Id) == 0
+                        && (item.Tool == ToolKind.None || !HasToolOfKind(loaded.Grid, loaded.Capacity, item.Tool))
+                        && loaded.Grid.Add(item.Id, 1) == InventoryVerdict.Ok)
                     {
                         deltas.Add((item.Id, 1));
                     }
@@ -184,6 +188,20 @@ public sealed class InventoryService : IInventoryService
             push: true,
             cancellationToken).ConfigureAwait(false);
         return new InventoryChange(outcome.Status, outcome.Changed);
+    }
+
+    private static bool HasToolOfKind(InventoryGrid grid, int capacity, ToolKind kind)
+    {
+        for (int i = 0; i < capacity; i++)
+        {
+            ItemSlot slot = grid[i];
+            if (!slot.IsEmpty && ItemCatalog.TryGet(slot.ItemId, out ItemDefinition? existing) && existing.Kind == ItemKind.Tool && existing.Tool == kind)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <inheritdoc/>

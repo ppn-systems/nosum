@@ -78,6 +78,12 @@ public sealed class FriendService : IFriendService, IDisposable
         _time = time;
         _friends = friends ?? new FriendFacts(unitOfWork, cached: false);
         _visits = visits ?? new VisitFacts(unitOfWork, cached: false);
+        if (_blocks is BlockList blockList)
+        {
+            blockList.FriendGate = _gate;
+            blockList.PlayerBlocked += this.OnPlayerBlockedAsync;
+        }
+
         _presence.PlayerJoined += this.OnJoinedAsync;
         _presence.PlayerLeft += this.OnLeftAsync;
     }
@@ -88,9 +94,23 @@ public sealed class FriendService : IFriendService, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (_blocks is BlockList blockList)
+        {
+            blockList.PlayerBlocked -= this.OnPlayerBlockedAsync;
+        }
+
         _presence.PlayerJoined -= this.OnJoinedAsync;
         _presence.PlayerLeft -= this.OnLeftAsync;
         _gate.Dispose();
+    }
+
+    private async ValueTask OnPlayerBlockedAsync(Guid ownerId, Guid targetId, CancellationToken cancellationToken)
+    {
+        _friends.Changed(ownerId, targetId);
+        await this.RaiseRevokedAsync(ownerId, targetId).ConfigureAwait(false);
+        await this.RaiseRevokedAsync(targetId, ownerId).ConfigureAwait(false);
+        await this.PushSnapshotAsync(ownerId, cancellationToken).ConfigureAwait(false);
+        await this.PushSnapshotAsync(targetId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

@@ -66,16 +66,17 @@ public static class GroundItemRules
     /// <param name="priorityUntilMs">Until when the cause has priority (shared maps).</param>
     /// <param name="playerId">The player who wants it.</param>
     /// <param name="nowMs">Now, Unix milliseconds.</param>
+    /// <param name="isAuthorizedOnInstance">Whether the player is an authorized owner or co-op member of the instance (for example inside their own or their co-op's building interior).</param>
     /// <returns><see langword="true"/> when the player may take it.</returns>
-    public static bool CanPickUp(bool isPrivateInstance, Guid instanceOwner, Guid? causedBy, long priorityUntilMs, Guid playerId, long nowMs)
+    public static bool CanPickUp(bool isPrivateInstance, Guid instanceOwner, Guid? causedBy, long priorityUntilMs, Guid playerId, long nowMs, bool isAuthorizedOnInstance = false)
     {
         if (isPrivateInstance)
         {
-            // Nobody walks off with a farm's harvest: only the owner and whoever caused the drop may take it.
-            return playerId == instanceOwner || (causedBy is { } cause && cause == playerId);
+            // Nobody walks off with a farm's harvest: only the owner, an authorized member of the instance, or whoever caused the drop may take it.
+            return playerId == instanceOwner || isAuthorizedOnInstance || (causedBy is { } cause && cause == playerId);
         }
 
-        return causedBy is not { } owner || owner == playerId || nowMs >= priorityUntilMs;
+        return isAuthorizedOnInstance || causedBy is not { } owner || owner == playerId || nowMs >= priorityUntilMs;
     }
 
     /// <summary>Tells whether an item has lain too long.</summary>

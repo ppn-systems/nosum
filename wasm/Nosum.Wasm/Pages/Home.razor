@@ -477,6 +477,15 @@ else
         {
             Form.CancelUpgrade();
         }
+        else if (Trade.Phase == TradePhase.Invited)
+        {
+            Trade.Respond(false);
+        }
+        else if (_panel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0)
+        {
+            (Guid inviteId, _, _) = Coop.Invites[0];
+            Coop.Respond(inviteId, false);
+        }
         else if (Elevator.IsOpen)
         {
             Elevator.Close();
@@ -535,6 +544,10 @@ else
         {
             Furnace.Close();
         }
+        else if (_panel == PanelKind.Trade && kind != PanelKind.Trade && Trade.Phase is TradePhase.Open or TradePhase.Waiting)
+        {
+            Trade.Cancel();
+        }
 
         _panel = kind;
         if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals or PanelKind.Market))
@@ -560,6 +573,10 @@ else
         else if (_panel == PanelKind.Furnace)
         {
             Furnace.Close();
+        }
+        else if (_panel == PanelKind.Trade && Trade.Phase is TradePhase.Open or TradePhase.Waiting)
+        {
+            Trade.Cancel();
         }
 
         _panel = PanelKind.None;
