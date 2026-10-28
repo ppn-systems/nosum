@@ -294,39 +294,43 @@ public sealed class CombatRulesTests
     [Fact]
     public void ShrineBlessing_AndPylonDischarge_ReturnExpectedValuesByKind()
     {
+        CombatRules.ReviveHp(100).Should().Be(25);
+        CombatRules.ReviveHp(3).Should().Be(1);
+        CombatRules.ShrineCooldownMs.Should().Be(45000);
+
         (int vHp, int vMp, int vXp, StatusEffectKind vBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.VitalityShrine);
-        vHp.Should().Be(25);
+        vHp.Should().Be(10);
         vMp.Should().Be(0);
         vXp.Should().Be(0);
         vBuff.Should().Be(StatusEffectKind.Regeneration);
 
         (int aHp, int aMp, int aXp, StatusEffectKind aBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.ArcaneObelisk);
         aHp.Should().Be(0);
-        aMp.Should().Be(20);
+        aMp.Should().Be(15);
         aXp.Should().Be(10);
         aBuff.Should().Be(StatusEffectKind.None);
 
         (int eHp, int eMp, int eXp, StatusEffectKind eBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.EmpowermentAltar);
-        eHp.Should().Be(25);
-        eMp.Should().Be(20);
+        eHp.Should().Be(12);
+        eMp.Should().Be(12);
         eXp.Should().Be(15);
         eBuff.Should().Be(StatusEffectKind.Swiftness);
 
         (int tHp, int tMp, int tXp, StatusEffectKind tBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.ThunderPylon);
-        tHp.Should().Be(10);
-        tMp.Should().Be(20);
+        tHp.Should().Be(5);
+        tMp.Should().Be(12);
         tXp.Should().Be(12);
         tBuff.Should().Be(StatusEffectKind.Swiftness);
 
         (int sHp, int sMp, int sXp, StatusEffectKind sBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.SolarWayshrine);
-        sHp.Should().Be(30);
-        sMp.Should().Be(15);
+        sHp.Should().Be(12);
+        sMp.Should().Be(10);
         sXp.Should().Be(12);
         sBuff.Should().Be(StatusEffectKind.Regeneration);
 
         (int fHp, int fMp, int fXp, StatusEffectKind fBuff) = CombatRules.ShrineBlessing(DungeonHazardKind.FrostMonolith);
-        fHp.Should().Be(20);
-        fMp.Should().Be(20);
+        fHp.Should().Be(8);
+        fMp.Should().Be(12);
         fXp.Should().Be(12);
         fBuff.Should().Be(StatusEffectKind.Regeneration);
 

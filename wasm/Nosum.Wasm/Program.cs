@@ -281,7 +281,16 @@ internal static class Program
         // The view models subscribe to their channels when they are built: build them before the first push can arrive.
         _ = host.Services.GetRequiredService<InventoryViewModel>();
         _ = host.Services.GetRequiredService<QuestTrackerViewModel>();
-        _ = host.Services.GetRequiredService<GameMessagesViewModel>();
+        GameMessagesViewModel messages = host.Services.GetRequiredService<GameMessagesViewModel>();
+        IStringLocalizer<Language> localizer = host.Services.GetRequiredService<IStringLocalizer<Language>>();
+        combat.KnockedOut += () => messages.Notify(localizer["Combat_KnockedOut"].Value);
+        combat.AttackCompleted += attack =>
+        {
+            if (attack.KnockedOut)
+            {
+                messages.Notify(localizer["Combat_KnockedOut"].Value);
+            }
+        };
         _ = host.Services.GetRequiredService<NearbyPlayers>();
         _ = host.Services.GetRequiredService<ProgressViewModel>();
         _ = host.Services.GetRequiredService<WalletViewModel>();

@@ -8,6 +8,7 @@ using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Chest;
@@ -146,6 +147,9 @@ internal sealed class PlayerActions
     /// <param name="shopId">The counter's id.</param>
     public void RequestShop(int shopId) => this.ShopRequested?.Invoke(shopId);
 
+    /// <summary>Opens the mine elevator / way-up dialog as if the action key had been pressed next to it.</summary>
+    public void RequestElevator() => this.ElevatorRequested?.Invoke();
+
     /// <summary>Handles the keys pressed this frame.</summary>
     /// <param name="edges">Keys pressed since the previous frame.</param>
     /// <param name="feetX">Farmer's feet x, world pixels.</param>
@@ -155,10 +159,11 @@ internal sealed class PlayerActions
     /// <param name="mapAllowsTools">Whether tools may be used on the map being shown (not in a room where the action key places furniture); the server decides what a swing does.</param>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     /// <param name="shopId">The id of the shop whose counter is within reach, or zero; the action key then opens that shop instead of using an item.</param>
-    /// <param name="elevatorNear">Whether the mine elevator is within reach; the action key then opens its picker instead of using an item.</param>
     /// <param name="placed">The pieces placed here; the action key facing a chest or a furnace opens it (the server decides whether the player may), or <see langword="null"/> where nothing is placed.</param>
+    /// <param name="elevatorNear">Whether the mine elevator is within reach; the action key then opens its picker instead of using an item.</param>
     /// <param name="interior">The building the player is inside, or <see langword="null"/> outside: there the action key feeds the bench, pets an animal or collects its produce (docs/adr/ADR-028 D3).</param>
-    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0, PlacedSet? placed = null, bool elevatorNear = false, BuildingDefinition? interior = null)
+    /// <param name="walkGrid">Current walk grid including blocking nodes; used to let pickaxe swings break adjacent stones before opening the elevator.</param>
+    public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0, PlacedSet? placed = null, bool elevatorNear = false, BuildingDefinition? interior = null, WalkGrid? walkGrid = null)
     {
         this.ActionConsumed = false;
         if (_counterId != 0 && shopId != _counterId)
@@ -226,9 +231,14 @@ internal sealed class PlayerActions
         }
 
         SlotInfo heldForElevator = _inventory.SlotAt(_inventory.SelectedSlot);
-        bool holdingCombatOrPickaxe = CombatRules.WeaponDamage(heldForElevator.ItemId) > 0
-            || (ItemCatalog.TryGet(heldForElevator.ItemId, out ItemDefinition? elevatorTool) && elevatorTool.Tool == ToolKind.Pickaxe);
-        if ((edges & InputEdges.Action) != 0 && elevatorNear && !holdingCombatOrPickaxe)
+        bool monsterInRange = CombatRules.WeaponDamage(heldForElevator.ItemId) > 0
+            && _combat is not null
+            && _combat.TryFindTarget(x, y, CombatRules.AttackRange(heldForElevator.ItemId), out _);
+        bool pickaxeFacingObstacle = ItemCatalog.TryGet(heldForElevator.ItemId, out ItemDefinition? elevatorTool)
+            && elevatorTool.Tool == ToolKind.Pickaxe
+            && walkGrid is not null
+            && walkGrid.IsBlocked(this.TargetX, this.TargetY);
+        if ((edges & InputEdges.Action) != 0 && elevatorNear && !monsterInRange && !pickaxeFacingObstacle)
         {
             this.ElevatorRequested?.Invoke();
             return;

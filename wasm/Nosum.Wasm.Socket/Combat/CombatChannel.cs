@@ -194,6 +194,9 @@ public sealed class CombatChannel : IDisposable
     /// <summary>Raised when a skill cast request completes (docs/adr/ADR-056).</summary>
     public event Action<SkillInfo>? SkillCompleted;
 
+    /// <summary>Raised when the player is knocked out and revived at the farmhouse.</summary>
+    public event Action? KnockedOut;
+
     /// <summary>Gets current HP.</summary>
     public int Hp => Volatile.Read(ref _hp);
 
@@ -759,6 +762,11 @@ public sealed class CombatChannel : IDisposable
         Volatile.Write(ref _maxMp, packet.MaxMp);
         Volatile.Write(ref _combatXp, packet.CombatXp);
         Volatile.Write(ref _statusEffect, (int)packet.StatusEffect);
+        if (packet.Hp == 0)
+        {
+            this.KnockedOut?.Invoke();
+        }
+
         this.CheckCombatLevelUp(packet.CombatXp);
         this.Changed?.Invoke();
     }

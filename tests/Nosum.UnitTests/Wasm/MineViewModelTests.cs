@@ -171,6 +171,13 @@ public sealed class MineViewModelTests
 
         ((RideElevator)lift.Socket.Requests.Last()).Floor.Should().Be(5);
         lift.Vm.IsOpen.Should().BeFalse("the player is on their way");
+
+        lift.Vm.Open();
+        lift.Reply = new LiftAnswer(MineStatus.Ok, 0, 5);
+        lift.Vm.RideHome();
+
+        ((RideElevator)lift.Socket.Requests.Last()).Floor.Should().Be(Nosum.Gameplay.Mines.MineRules.ReturnHomeStop);
+        lift.Vm.IsOpen.Should().BeFalse("returning home closes the elevator dialog");
     }
 
     [Fact]

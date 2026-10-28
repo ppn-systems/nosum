@@ -246,6 +246,7 @@ internal static partial class GameLoop
         }
 
         LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel);
+        providers.Add(new WayfindingDecoratorProvider(labelRegistry, s_text));
         CombatLabels? combatLabels = s_combat is not null ? new CombatLabels(labelRegistry, s_text) : null;
 
         if (s_combat is not null)

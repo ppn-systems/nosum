@@ -28,6 +28,9 @@ public static class MineRules
     /// <summary>The "floor" of the entrance cave: the elevator stop that leads out to the first floor's shaft.</summary>
     public const int EntranceFloor = 0;
 
+    /// <summary>Special stop id sent from the mine elevator / way-up dialog to return directly to the player's farmhouse.</summary>
+    public const int ReturnHomeStop = 255;
+
     /// <summary>Returns the map id of a floor, for example <c>mine7</c>.</summary>
     /// <param name="floor">The floor, 1 to <see cref="MaxFloor"/>.</param>
     /// <returns>The id.</returns>
