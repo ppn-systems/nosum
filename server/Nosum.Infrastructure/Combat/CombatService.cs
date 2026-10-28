@@ -14,6 +14,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
+using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Combat;
 using Nosum.Contracts.Combat.S2C;
@@ -41,6 +42,7 @@ public sealed class CombatService : ICombatService, IDisposable
     private readonly IGameDayClock _dayClock;
     private readonly IPlayerNotifier? _notifier;
     private readonly ILookService? _looks;
+    private readonly IPlayerService? _players;
 
     private readonly ConcurrentDictionary<Guid, PlayerVitalsState> _vitals = new();
     private readonly ConcurrentDictionary<string, InstanceMonsters> _instances = new(StringComparer.Ordinal);
@@ -65,7 +67,8 @@ public sealed class CombatService : ICombatService, IDisposable
         IGroundItems groundItems,
         IGameDayClock dayClock,
         IPlayerNotifier? notifier = null,
-        ILookService? looks = null)
+        ILookService? looks = null,
+        IPlayerService? players = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -80,6 +83,7 @@ public sealed class CombatService : ICombatService, IDisposable
         _dayClock = dayClock;
         _notifier = notifier;
         _looks = looks;
+        _players = players;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
     }
 
@@ -169,7 +173,7 @@ public sealed class CombatService : ICombatService, IDisposable
                                 if (bestDist <= 1)
                                 {
                                     int damage = CombatRules.MonsterDamage(m.Kind);
-                                    _ = this.ApplyMonsterContactAttackAsync(nearest.AccountId, damage, m.Kind, cancellationToken);
+                                    _ = this.ApplyMonsterContactAttackAsync(nearest, damage, m.Kind, cancellationToken);
                                 }
                                 else
                                 {
@@ -229,15 +233,14 @@ public sealed class CombatService : ICombatService, IDisposable
                                     int pTileY = (int)Math.Floor(py / tileSize);
                                     if (CombatRules.IsShrine(h.Kind))
                                     {
-                                        int shrineDist = Math.Max(Math.Abs(pTileX - h.X), Math.Abs(pTileY - h.Y));
-                                        if (shrineDist <= 1)
+                                        if (pTileX == h.X && pTileY == h.Y)
                                         {
                                             _ = this.ApplyShrineBlessingAsync(p.AccountId, instanceKey, instance, h, now, cancellationToken);
                                         }
                                     }
                                     else if (pTileX == h.X && pTileY == h.Y)
                                     {
-                                        _ = this.ApplyHazardContactAsync(p.AccountId, h.Damage, h.Kind, cancellationToken);
+                                        _ = this.ApplyHazardContactAsync(p, h.Damage, h.Kind, cancellationToken);
                                     }
                                 }
                             }
@@ -254,6 +257,7 @@ public sealed class CombatService : ICombatService, IDisposable
                 {
                     PlayerVitalsState state = kvp.Value;
                     bool changed = false;
+                    bool knockedOut = false;
                     VitalsView view;
                     lock (state.Gate)
                     {
@@ -271,15 +275,24 @@ public sealed class CombatService : ICombatService, IDisposable
                             }
                             else if (state.ActiveEffect == StatusEffectKind.Poison)
                             {
-                                int nextHp = Math.Max(1, state.Hp - state.EffectMagnitude);
+                                int nextHp = Math.Max(0, state.Hp - state.EffectMagnitude);
                                 if (nextHp != state.Hp)
                                 {
                                     state.Hp = nextHp;
                                     changed = true;
                                 }
+
+                                if (state.Hp == 0)
+                                {
+                                    knockedOut = true;
+                                    state.Hp = CombatRules.ReviveHp(state.MaxHp);
+                                    state.ActiveEffect = StatusEffectKind.None;
+                                    state.EffectRemainingTicks = 0;
+                                    state.EffectMagnitude = 0;
+                                }
                             }
 
-                            if (state.EffectRemainingTicks <= 0)
+                            if (!knockedOut && state.EffectRemainingTicks <= 0)
                             {
                                 state.ActiveEffect = StatusEffectKind.None;
                                 changed = true;
@@ -289,7 +302,11 @@ public sealed class CombatService : ICombatService, IDisposable
                         view = state.ToView();
                     }
 
-                    if (changed && _notifier is not null)
+                    if (knockedOut)
+                    {
+                        await this.CompleteKnockoutAsync(this.FindPresence(kvp.Key), kvp.Key, view, cancellationToken).ConfigureAwait(false);
+                    }
+                    else if (changed && _notifier is not null)
                     {
                         using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
                         lease.Value.Hp = (ushort)view.Hp;
@@ -313,8 +330,64 @@ public sealed class CombatService : ICombatService, IDisposable
         }
     }
 
-    private async Task ApplyMonsterContactAttackAsync(Guid playerId, int damage, MonsterKind monsterKind, CancellationToken cancellationToken)
+    private PlayerPresence? FindPresence(Guid accountId)
     {
+        List<string> keys = [];
+        _presence.CopyActiveMapIds(keys);
+        List<PlayerPresence> list = [];
+        foreach (string key in keys)
+        {
+            list.Clear();
+            _presence.CopyPlayers(key, list);
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].AccountId == accountId)
+                {
+                    return list[i];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private async Task CompleteKnockoutAsync(PlayerPresence? player, Guid playerId, VitalsView revivedView, CancellationToken cancellationToken)
+    {
+        _ = _playerCombos.TryRemove(playerId, out _);
+
+        if (_notifier is not null)
+        {
+            using PacketScope<VitalsState> zeroLease = PacketFactory<VitalsState>.Acquire();
+            zeroLease.Value.Hp = 0;
+            zeroLease.Value.MaxHp = (ushort)revivedView.MaxHp;
+            zeroLease.Value.Mp = (ushort)revivedView.Mp;
+            zeroLease.Value.MaxMp = (ushort)revivedView.MaxMp;
+            zeroLease.Value.CombatXp = revivedView.CombatXp;
+            zeroLease.Value.StatusEffect = 0;
+            _ = await _notifier.TrySendAsync(playerId, zeroLease.Value, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (_players is not null && player is not null && !string.Equals(player.MapId, GameMaps.FarmHouse, StringComparison.Ordinal))
+        {
+            _ = await _players.TravelAsync(player.Connection, new MapInstance(GameMaps.FarmHouse, player.AccountId), cancellationToken).ConfigureAwait(false);
+        }
+
+        if (_notifier is not null)
+        {
+            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
+            lease.Value.Hp = (ushort)revivedView.Hp;
+            lease.Value.MaxHp = (ushort)revivedView.MaxHp;
+            lease.Value.Mp = (ushort)revivedView.Mp;
+            lease.Value.MaxMp = (ushort)revivedView.MaxMp;
+            lease.Value.CombatXp = revivedView.CombatXp;
+            lease.Value.StatusEffect = revivedView.StatusEffect;
+            _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async Task ApplyMonsterContactAttackAsync(PlayerPresence player, int damage, MonsterKind monsterKind, CancellationToken cancellationToken)
+    {
+        Guid playerId = player.AccountId;
         if (!_vitals.TryGetValue(playerId, out PlayerVitalsState? state))
         {
             return;
@@ -330,14 +403,17 @@ public sealed class CombatService : ICombatService, IDisposable
         int finalDamage = CombatRules.MitigateDamage(damage, defense);
         (StatusEffectKind debuff, int durationSecs, int tickMag) = CombatRules.MonsterStatusOnHit(monsterKind);
         VitalsView updated;
+        bool knockedOut = false;
         lock (state.Gate)
         {
             state.Hp = Math.Max(0, state.Hp - finalDamage);
             if (state.Hp == 0)
             {
-                state.Hp = Math.Max(1, state.MaxHp / 2);
+                knockedOut = true;
+                state.Hp = CombatRules.ReviveHp(state.MaxHp);
                 state.ActiveEffect = StatusEffectKind.None;
                 state.EffectRemainingTicks = 0;
+                state.EffectMagnitude = 0;
             }
             else if (debuff != StatusEffectKind.None)
             {
@@ -347,6 +423,12 @@ public sealed class CombatService : ICombatService, IDisposable
             }
 
             updated = state.ToView();
+        }
+
+        if (knockedOut)
+        {
+            await this.CompleteKnockoutAsync(player, playerId, updated, cancellationToken).ConfigureAwait(false);
+            return;
         }
 
         if (_notifier is not null)
@@ -362,8 +444,9 @@ public sealed class CombatService : ICombatService, IDisposable
         }
     }
 
-    private async Task ApplyHazardContactAsync(Guid playerId, int damage, DungeonHazardKind hazardKind, CancellationToken cancellationToken)
+    private async Task ApplyHazardContactAsync(PlayerPresence player, int damage, DungeonHazardKind hazardKind, CancellationToken cancellationToken)
     {
+        Guid playerId = player.AccountId;
         if (!_vitals.TryGetValue(playerId, out PlayerVitalsState? state))
         {
             return;
@@ -378,14 +461,17 @@ public sealed class CombatService : ICombatService, IDisposable
 
         int finalDamage = CombatRules.MitigateDamage(damage, defense);
         VitalsView updated;
+        bool knockedOut = false;
         lock (state.Gate)
         {
             state.Hp = Math.Max(0, state.Hp - finalDamage);
             if (state.Hp == 0)
             {
-                state.Hp = Math.Max(1, state.MaxHp / 2);
+                knockedOut = true;
+                state.Hp = CombatRules.ReviveHp(state.MaxHp);
                 state.ActiveEffect = StatusEffectKind.None;
                 state.EffectRemainingTicks = 0;
+                state.EffectMagnitude = 0;
             }
             else if (hazardKind == DungeonHazardKind.SporeVent)
             {
@@ -395,6 +481,12 @@ public sealed class CombatService : ICombatService, IDisposable
             }
 
             updated = state.ToView();
+        }
+
+        if (knockedOut)
+        {
+            await this.CompleteKnockoutAsync(player, playerId, updated, cancellationToken).ConfigureAwait(false);
+            return;
         }
 
         if (_notifier is not null)
@@ -488,8 +580,8 @@ public sealed class CombatService : ICombatService, IDisposable
             if (buff != StatusEffectKind.None)
             {
                 state.ActiveEffect = buff;
-                state.EffectRemainingTicks = 5;
-                state.EffectMagnitude = buff == StatusEffectKind.Regeneration ? 5 : 0;
+                state.EffectRemainingTicks = 3;
+                state.EffectMagnitude = buff == StatusEffectKind.Regeneration ? 2 : 0;
             }
 
             newLevel = SkillRules.LevelOf(state.CombatXp);
@@ -497,10 +589,12 @@ public sealed class CombatService : ICombatService, IDisposable
             {
                 int nextMaxHp = CombatRules.MaxHpForLevel(newLevel);
                 int nextMaxMp = CombatRules.MaxMpForLevel(newLevel);
+                int hpBonus = Math.Max(0, nextMaxHp - state.MaxHp);
+                int mpBonus = Math.Max(0, nextMaxMp - state.MaxMp);
                 state.MaxHp = nextMaxHp;
                 state.MaxMp = nextMaxMp;
-                state.Hp = nextMaxHp;
-                state.Mp = nextMaxMp;
+                state.Hp = Math.Min(nextMaxHp, state.Hp + hpBonus);
+                state.Mp = Math.Min(nextMaxMp, state.Mp + mpBonus);
             }
 
             updated = state.ToView();
@@ -683,7 +777,7 @@ public sealed class CombatService : ICombatService, IDisposable
 
                 if (target.Modifier == MonsterModifier.FlameAura && range <= CombatRules.MeleeRange)
                 {
-                    vitals.Hp = Math.Max(1, vitals.Hp - 3);
+                    vitals.Hp = Math.Max(0, vitals.Hp - 3);
                 }
 
                 int remainingHp = Math.Max(0, target.Hp - damageDealt);
@@ -706,21 +800,27 @@ public sealed class CombatService : ICombatService, IDisposable
                 {
                     int nextMaxHp = CombatRules.MaxHpForLevel(newLevel);
                     int nextMaxMp = CombatRules.MaxMpForLevel(newLevel);
+                    int hpBonus = Math.Max(0, nextMaxHp - vitals.MaxHp);
+                    int mpBonus = Math.Max(0, nextMaxMp - vitals.MaxMp);
                     vitals.MaxHp = nextMaxHp;
                     vitals.MaxMp = nextMaxMp;
-                    vitals.Hp = nextMaxHp;
-                    vitals.Mp = nextMaxMp;
+                    vitals.Hp = Math.Min(nextMaxHp, vitals.Hp + hpBonus);
+                    vitals.Mp = Math.Min(nextMaxMp, vitals.Mp + mpBonus);
                 }
 
                 if (!defeated && def is not null && def.AttackDamage > 0)
                 {
                     damageTaken = CombatRules.MitigateDamage(def.AttackDamage, playerDefense);
                     vitals.Hp -= damageTaken;
-                    if (vitals.Hp <= 0)
-                    {
-                        knockedOut = true;
-                        vitals.Hp = Math.Max(1, vitals.MaxHp / 2);
-                    }
+                }
+
+                if (vitals.Hp <= 0)
+                {
+                    knockedOut = true;
+                    vitals.Hp = CombatRules.ReviveHp(vitals.MaxHp);
+                    vitals.ActiveEffect = StatusEffectKind.None;
+                    vitals.EffectRemainingTicks = 0;
+                    vitals.EffectMagnitude = 0;
                 }
 
                 updatedVitals = vitals.ToView();
@@ -728,6 +828,18 @@ public sealed class CombatService : ICombatService, IDisposable
         }
 
         await this.BroadcastMonsterChangedAsync(player.Key, updatedMonster, cancellationToken).ConfigureAwait(false);
+
+        if (knockedOut)
+        {
+            _ = _playerCombos.TryRemove(player.AccountId, out _);
+            if (_players is not null && !string.Equals(player.MapId, GameMaps.FarmHouse, StringComparison.Ordinal))
+            {
+                _ = await _players.TravelAsync(
+                    connection,
+                    new MapInstance(GameMaps.FarmHouse, player.AccountId),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
 
         if (defeated && MonsterCatalog.TryGet(updatedMonster.Kind, out MonsterDefinition? defeatedDef))
         {
@@ -1078,10 +1190,12 @@ public sealed class CombatService : ICombatService, IDisposable
                 {
                     int nextMaxHp = CombatRules.MaxHpForLevel(newLevel);
                     int nextMaxMp = CombatRules.MaxMpForLevel(newLevel);
+                    int hpBonus = Math.Max(0, nextMaxHp - vitals.MaxHp);
+                    int mpBonus = Math.Max(0, nextMaxMp - vitals.MaxMp);
                     vitals.MaxHp = nextMaxHp;
                     vitals.MaxMp = nextMaxMp;
-                    vitals.Hp = nextMaxHp;
-                    vitals.Mp = nextMaxMp;
+                    vitals.Hp = Math.Min(nextMaxHp, vitals.Hp + hpBonus);
+                    vitals.Mp = Math.Min(nextMaxMp, vitals.Mp + mpBonus);
                 }
             }
         }

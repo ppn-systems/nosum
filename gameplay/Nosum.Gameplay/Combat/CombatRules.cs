@@ -152,6 +152,12 @@ public static class CombatRules
     public static int MaxMpForLevel(int combatLevel)
         => BaseMaxMp + (Math.Clamp(combatLevel, 0, SkillRules.MaxLevel) * MpPerLevel);
 
+    /// <summary>Calculates the HP restored when a player is knocked out and wakes up at the farmhouse (25% of maximum HP, minimum 1).</summary>
+    /// <param name="maxHp">Player's maximum HP.</param>
+    /// <returns>Revived HP amount.</returns>
+    public static int ReviveHp(int maxHp)
+        => Math.Max(1, maxHp / 4);
+
     /// <summary>Returns the base weapon damage of an item, or 0 if it is not a combat weapon.</summary>
     /// <param name="itemId">The held item id.</param>
     /// <returns>Base damage.</returns>
@@ -516,7 +522,7 @@ public static class CombatRules
     }
 
     /// <summary>Cooldown in milliseconds per player per sanctuary shrine blessing (docs/adr/ADR-063).</summary>
-    public const int ShrineCooldownMs = 12000;
+    public const int ShrineCooldownMs = 45000;
 
     /// <summary>Returns <see langword="true"/> when <paramref name="kind"/> is a beneficial dungeon blessing shrine or elemental resonance pylon (docs/adr/ADR-063, ADR-064).</summary>
     /// <param name="kind">Hazard or shrine kind.</param>
@@ -557,12 +563,12 @@ public static class CombatRules
     /// <returns>Tuple of <c>(HealHp, RestoreMp, BonusXp, Buff)</c>.</returns>
     public static (int HealHp, int RestoreMp, int BonusXp, StatusEffectKind Buff) ShrineBlessing(DungeonHazardKind kind) => kind switch
     {
-        DungeonHazardKind.VitalityShrine => (25, 0, 0, StatusEffectKind.Regeneration),
-        DungeonHazardKind.ArcaneObelisk => (0, 20, 10, StatusEffectKind.None),
-        DungeonHazardKind.EmpowermentAltar => (25, 20, 15, StatusEffectKind.Swiftness),
-        DungeonHazardKind.ThunderPylon => (10, 20, 12, StatusEffectKind.Swiftness),
-        DungeonHazardKind.SolarWayshrine => (30, 15, 12, StatusEffectKind.Regeneration),
-        DungeonHazardKind.FrostMonolith => (20, 20, 12, StatusEffectKind.Regeneration),
+        DungeonHazardKind.VitalityShrine => (10, 0, 0, StatusEffectKind.Regeneration),
+        DungeonHazardKind.ArcaneObelisk => (0, 15, 10, StatusEffectKind.None),
+        DungeonHazardKind.EmpowermentAltar => (12, 12, 15, StatusEffectKind.Swiftness),
+        DungeonHazardKind.ThunderPylon => (5, 12, 12, StatusEffectKind.Swiftness),
+        DungeonHazardKind.SolarWayshrine => (12, 10, 12, StatusEffectKind.Regeneration),
+        DungeonHazardKind.FrostMonolith => (8, 12, 12, StatusEffectKind.Regeneration),
         _ => (0, 0, 0, StatusEffectKind.None),
     };
 
@@ -624,8 +630,8 @@ public static class CombatRules
                 }
 
                 int chamberDist = Math.Max(Math.Abs(x - centerX), Math.Abs(y - centerY));
-                int maxDist = isMine ? 3 : 6;
-                if (chamberDist >= 1 && chamberDist <= maxDist)
+                int maxDist = isMine ? 6 : 8;
+                if (chamberDist >= 3 && chamberDist <= maxDist)
                 {
                     chamberCandidates.Add((x, y));
                 }

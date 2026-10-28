@@ -826,7 +826,7 @@
   <data name="Skill_Combat" xml:space="preserve"><value>Combat</value></data>
   <data name="Craft_Skill_Combat" xml:space="preserve"><value>Combat</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Not enough MP to cast!</value></data>
-  <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and revived at half HP!</value></data>
+  <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and carried back to the Farmhouse with low HP!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Combat skills</value></data>
   <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Whirlwind</value></data>
   <data name="Combat_Skill_Whirlwind_Tip" xml:space="preserve"><value>Whirlwind cleave (15 MP)</value></data>
@@ -857,4 +857,19 @@
   <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>THUNDER PYLON</value></data>
   <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>SOLAR WAYSHRINE</value></data>
   <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>FROST MONOLITH</value></data>
+  <data name="Elevator_ReturnHome" xml:space="preserve"><value>Return Home (Farmhouse)</value></data>
+  <data name="Wayfinding_MineExit" xml:space="preserve"><value>↑ Way Up · [E] Home</value></data>
+  <data name="Wayfinding_MineElevator" xml:space="preserve"><value>[E] Elevator · Home</value></data>
+  <data name="MapName_farm" xml:space="preserve"><value>Farm</value></data>
+  <data name="MapName_farmhouse" xml:space="preserve"><value>Farmhouse</value></data>
+  <data name="MapName_busstop" xml:space="preserve"><value>Bus Stop</value></data>
+  <data name="MapName_town" xml:space="preserve"><value>Town</value></data>
+  <data name="MapName_forest" xml:space="preserve"><value>Forest</value></data>
+  <data name="MapName_backwoods" xml:space="preserve"><value>Backwoods</value></data>
+  <data name="MapName_mountain" xml:space="preserve"><value>Mountain</value></data>
+  <data name="MapName_beach" xml:space="preserve"><value>Beach</value></data>
+  <data name="MapName_woods" xml:space="preserve"><value>Secret Woods</value></data>
+  <data name="MapName_mine" xml:space="preserve"><value>Mine Entrance</value></data>
+  <data name="MapName_mine1" xml:space="preserve"><value>Mine Floor 1</value></data>
+  <data name="MapName_coop_farm" xml:space="preserve"><value>Co-op Land</value></data>
 </root>

@@ -68,6 +68,7 @@ internal static class AudioWiring
                 audio.Play(attack.MonsterHp == 0 ? SoundIds.MonsterDefeat : SoundIds.MonsterHit);
             }
         };
+        combat.KnockedOut += () => audio.Play(SoundIds.MonsterHit);
 
         combat.PotionCompleted += status =>
         {

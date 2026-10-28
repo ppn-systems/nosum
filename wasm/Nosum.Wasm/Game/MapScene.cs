@@ -206,15 +206,17 @@ internal sealed class MapScene
             }
         }
 
-        bool elevatorNear = content.Spec.Elevator is { } elevator
-            && ShopRules.InReach(new ShopPoint(0, elevator.TileX, elevator.TileY), _farmer.X, _farmer.Y, map.TileWidth);
+        bool elevatorNear = (content.Spec.Elevator is { } elevator
+                && ShopRules.InReach(new ShopPoint(0, elevator.TileX, elevator.TileY), _farmer.X, _farmer.Y, map.TileWidth))
+            || (content.Spec.MineFloor >= 1
+                && ShopRules.InReach(new ShopPoint(0, content.Spec.SpawnTileX, content.Spec.SpawnTileY), _farmer.X, _farmer.Y, map.TileWidth));
 
         // Tools work wherever the ground can be farmed or nothing can be placed; in a room the action key places furniture instead.
         // The rotate key turns a piece being carried and is not a wide swing then.
         bool placeableMap = content.Spec.Placeable;
         InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~InputEdges.Rotate : liveEdges;
         BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
-        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear, interior);
+        _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _placedSet : null, elevatorNear, interior, grid);
         if (_actions is not null)
         {
             // The action key that opened a chest or a furnace is not also a placement.
@@ -345,6 +347,23 @@ internal sealed class MapScene
                 _actions.RequestShop(npc.CounterId);
                 return;
             }
+        }
+
+        int clickTileX = (int)Math.Floor(worldX / tileSize);
+        int clickTileY = (int)Math.Floor(worldY / tileSize);
+        if (spec.Elevator is { } lift
+            && Math.Abs(clickTileX - lift.TileX) <= 1 && Math.Abs(clickTileY - lift.TileY) <= 1
+            && ShopRules.InReach(new ShopPoint(0, lift.TileX, lift.TileY), _farmer.X, _farmer.Y, tileSize))
+        {
+            _actions.RequestElevator();
+            return;
+        }
+
+        if (spec.MineFloor >= 1
+            && Math.Abs(clickTileX - spec.SpawnTileX) <= 1 && Math.Abs(clickTileY - spec.SpawnTileY) <= 1
+            && ShopRules.InReach(new ShopPoint(0, spec.SpawnTileX, spec.SpawnTileY), _farmer.X, _farmer.Y, tileSize))
+        {
+            _actions.RequestElevator();
         }
     }
 

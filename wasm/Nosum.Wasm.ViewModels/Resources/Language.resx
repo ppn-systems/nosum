@@ -826,7 +826,7 @@
   <data name="Skill_Combat" xml:space="preserve"><value>Chiến đấu</value></data>
   <data name="Craft_Skill_Combat" xml:space="preserve"><value>Chiến đấu</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Không đủ MP để thi triển phép!</value></data>
-  <data name="Combat_KnockedOut" xml:space="preserve"><value>Bạn đã bị hạ gục và được hồi phục một nửa HP!</value></data>
+  <data name="Combat_KnockedOut" xml:space="preserve"><value>Bạn đã kiệt sức và được đưa về Nhà nông trại với lượng máu yếu!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Kỹ năng chiến đấu</value></data>
   <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Xoay kiếm</value></data>
   <data name="Combat_Skill_Whirlwind_Tip" xml:space="preserve"><value>Xoay kiếm chém vòng tròn (15 MP)</value></data>
@@ -857,4 +857,19 @@
   <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>TRỤ LÔI ĐIỆN</value></data>
   <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>ĐÀI NHẬT QUANG</value></data>
   <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>BIA BĂNG HÀN</value></data>
+  <data name="Elevator_ReturnHome" xml:space="preserve"><value>Về nhà (Nhà nông trại)</value></data>
+  <data name="Wayfinding_MineExit" xml:space="preserve"><value>↑ Lối lên · [E] Về nhà</value></data>
+  <data name="Wayfinding_MineElevator" xml:space="preserve"><value>[E] Thang máy · Về nhà</value></data>
+  <data name="MapName_farm" xml:space="preserve"><value>Nông trại</value></data>
+  <data name="MapName_farmhouse" xml:space="preserve"><value>Nhà nông trại</value></data>
+  <data name="MapName_busstop" xml:space="preserve"><value>Trạm xe buýt</value></data>
+  <data name="MapName_town" xml:space="preserve"><value>Thị trấn</value></data>
+  <data name="MapName_forest" xml:space="preserve"><value>Cánh rừng</value></data>
+  <data name="MapName_backwoods" xml:space="preserve"><value>Đường rừng</value></data>
+  <data name="MapName_mountain" xml:space="preserve"><value>Sườn núi</value></data>
+  <data name="MapName_beach" xml:space="preserve"><value>Bãi biển</value></data>
+  <data name="MapName_woods" xml:space="preserve"><value>Rừng sâu</value></data>
+  <data name="MapName_mine" xml:space="preserve"><value>Cửa hầm mỏ</value></data>
+  <data name="MapName_mine1" xml:space="preserve"><value>Tầng hầm 1</value></data>
+  <data name="MapName_coop_farm" xml:space="preserve"><value>Đất hợp tác xã</value></data>
 </root>

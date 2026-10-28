@@ -10,6 +10,7 @@
             <p>@Vm.Text("Elevator_Hint")</p>
             <p>@Vm.DeepestText</p>
             <div class="elevator-stops">
+                <GameButton Text="@Vm.Text("Elevator_ReturnHome")" OnClick="@(() => Vm.RideHome())" />
                 @foreach (ElevatorStopDisplay stop in Vm.Stops)
                 {
                     int floor = stop.Floor;

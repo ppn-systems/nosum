@@ -87,7 +87,31 @@ public sealed class MineService : IMineService, IDisposable
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        if (!_presence.TryGet(connection, out PlayerPresence? player) || !this.IsAtElevator(player))
+        if (!_presence.TryGet(connection, out PlayerPresence? player))
+        {
+            return new MineView(MineStatus.NotAtElevator, 0, 0);
+        }
+
+        if (floor == MineRules.ReturnHomeStop)
+        {
+            if (!this.IsAtElevator(player) && !this.IsAtFloorWayUp(player))
+            {
+                return new MineView(MineStatus.NotAtElevator, 0, 0);
+            }
+
+            int homeDeepest = await this.DeepestAsync(player.AccountId, cancellationToken).ConfigureAwait(false);
+            TravelStatus homeTravel = await _players.TravelAsync(
+                connection,
+                new MapInstance(GameMaps.FarmHouse, player.AccountId),
+                cancellationToken).ConfigureAwait(false);
+            return homeTravel == TravelStatus.Arrived
+                ? new MineView(MineStatus.Ok, MineRules.EntranceFloor, homeDeepest)
+                : new MineView(MineStatus.Busy, FloorOf(player), homeDeepest);
+        }
+
+        bool atElevator = this.IsAtElevator(player);
+        bool atWayUp = floor == MineRules.EntranceFloor && this.IsAtFloorWayUp(player);
+        if (!atElevator && !atWayUp)
         {
             return new MineView(MineStatus.NotAtElevator, 0, 0);
         }
@@ -153,6 +177,25 @@ public sealed class MineService : IMineService, IDisposable
         }
 
         return ShopRules.InReach(new ShopPoint(0, elevator.TileX, elevator.TileY), feetX, feetY, map.Grid.TileSize);
+    }
+
+    // Every mine floor (mine1..mine40) has its way-up ladder/shaft at the floor's arrival tile.
+    private bool IsAtFloorWayUp(PlayerPresence player)
+    {
+        if (!GameMaps.TryGet(player.MapId, out MapSpec? spec) || spec.MineFloor < 1 || !_maps.TryGet(player.MapId, out MapDefinition? map))
+        {
+            return false;
+        }
+
+        double feetX;
+        double feetY;
+        lock (player.Gate)
+        {
+            feetX = player.Motion.X;
+            feetY = player.Motion.Y;
+        }
+
+        return ShopRules.InReach(new ShopPoint(0, spec.SpawnTileX, spec.SpawnTileY), feetX, feetY, map.Grid.TileSize);
     }
 
     private async Task<int> DeepestAsync(Guid playerId, CancellationToken cancellationToken)

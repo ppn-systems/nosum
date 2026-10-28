@@ -87,6 +87,9 @@ public sealed class ElevatorViewModel : PanelViewModel, IDisposable
         _channel.Ride(floor);
     }
 
+    /// <summary>Returns directly from the mine elevator or way-up ladder to the player's farmhouse.</summary>
+    public void RideHome() => this.Ride(MineRules.ReturnHomeStop);
+
     /// <inheritdoc/>
     public void Dispose() => _channel.Updated -= this.OnUpdated;
 
