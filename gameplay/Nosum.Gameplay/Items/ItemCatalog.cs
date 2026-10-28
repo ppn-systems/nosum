@@ -414,17 +414,29 @@ public static class ItemCatalog
     /// <summary>A blue shirt.</summary>
     public const int ShirtBlue = 402;
 
+    /// <summary>Sturdy leather armor (docs/adr/ADR-049).</summary>
+    public const int LeatherArmor = 405;
+
+    /// <summary>Reinforced iron chestplate offering heavy physical protection.</summary>
+    public const int IronChestplate = 406;
+
     /// <summary>Blue trousers.</summary>
     public const int PantsBlue = 420;
 
     /// <summary>Khaki trousers.</summary>
     public const int PantsKhaki = 421;
 
+    /// <summary>Iron greaves protecting legs against monster bites.</summary>
+    public const int IronGreaves = 422;
+
     /// <summary>A straw hat.</summary>
     public const int HatStraw = 440;
 
     /// <summary>A cap.</summary>
     public const int HatCap = 441;
+
+    /// <summary>A forged iron battle helmet.</summary>
+    public const int IronHelmet = 442;
 
     /// <summary>Largest stack of seeds and produce.</summary>
     public const int DefaultStack = 99;
@@ -525,10 +537,14 @@ public static class ItemCatalog
         new(GolemCore, "golem_core", ItemKind.Resource, DefaultStack) { ObjectIcon = 101 },
         new(ManaCrystal, "mana_crystal", ItemKind.Resource, DefaultStack) { ObjectIcon = 102 },
         new(TreasureGem, "treasure_gem", ItemKind.Resource, DefaultStack) { ObjectIcon = 103 },
-        new(BossCrown, "boss_crown", ItemKind.Resource, DefaultStack) { SellPrice = 2500, ObjectIcon = 113 },
+        new(BossCrown, "boss_crown", ItemKind.Clothing, 1, wear: WearSlot.Hat) { SellPrice = 2500, ObjectIcon = 113 },
         new(AncientScroll, "ancient_scroll", ItemKind.Resource, DefaultStack) { SellPrice = 800, ObjectIcon = 106 },
         new(GoldenKey, "golden_key", ItemKind.Resource, DefaultStack) { SellPrice = 1200, ObjectIcon = 114 },
         new(ColossusCore, "colossus_core", ItemKind.Resource, DefaultStack) { SellPrice = 1800, ObjectIcon = 115 },
+        new(LeatherArmor, "leather_armor", ItemKind.Clothing, 1, wear: WearSlot.Shirt) { SellPrice = 200, ObjectIcon = 116 },
+        new(IronChestplate, "iron_chestplate", ItemKind.Clothing, 1, wear: WearSlot.Shirt) { SellPrice = 600, ObjectIcon = 117 },
+        new(IronGreaves, "iron_greaves", ItemKind.Clothing, 1, wear: WearSlot.Pants) { SellPrice = 400, ObjectIcon = 118 },
+        new(IronHelmet, "iron_helmet", ItemKind.Clothing, 1, wear: WearSlot.Hat) { SellPrice = 350, ObjectIcon = 119 },
         new(Salad, "salad", ItemKind.Food, DefaultStack, foodEnergy: 90),
         new(BakedPotato, "baked_potato", ItemKind.Food, DefaultStack, foodEnergy: 60),
         new(PumpkinSoup, "pumpkin_soup", ItemKind.Food, DefaultStack, foodEnergy: 120),

@@ -569,12 +569,12 @@ internal static class Program
         BuildingService buildings = new(presence, publisher, maps, inventory, transfers, buildingDirectory, animalWander, unitOfWork, coopMembership, calendar, clock);
         InstanceManager.Instance.Register<IBuildingService>(buildings);
         placeables.Attach(buildings);
-        // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2).
-        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier);
-        InstanceManager.Instance.Register<ICombatService>(combat);
-        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress, combat), quests));
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
         InstanceManager.Instance.Register<ILookService>(looks);
+        // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2, ADR-049 D3).
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks);
+        InstanceManager.Instance.Register<ICombatService>(combat);
+        InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress, combat), quests));
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
         PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks);
         InstanceManager.Instance.Register<IPlayerService>(players);

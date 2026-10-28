@@ -7,6 +7,7 @@ using FluentAssertions;
 using Nosum.Core;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Community;
+using Nosum.Gameplay.Crafting;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
@@ -52,7 +53,7 @@ public sealed class ShopRulesTests
         // Everything the old starter kit gave away for free is for sale, and no item is sold by two shops.
         int[] sold = [.. ShopCatalog.All.SelectMany(s => s.Offers.Select(o => o.ItemId))];
         sold.Should().OnlyHaveUniqueItems();
-        foreach (ItemDefinition item in ItemCatalog.All.Where(i => i.Kind is ItemKind.Furniture or ItemKind.Clothing))
+        foreach (ItemDefinition item in ItemCatalog.All.Where(i => i.Kind is ItemKind.Furniture || (i.Kind is ItemKind.Clothing && !RecipeCatalog.All.Any(r => r.OutputItemId == i.Id) && i.Id != ItemCatalog.BossCrown)))
         {
             sold.Should().Contain(item.Id, $"{item.Key} is bought at a shop");
         }

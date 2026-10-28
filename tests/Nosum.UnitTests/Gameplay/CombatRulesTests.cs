@@ -134,4 +134,24 @@ public sealed class CombatRulesTests
         MonsterCatalog.TryGet(MonsterKind.BossGolemKing, out MonsterDefinition? golemKing).Should().BeTrue();
         golemKing!.PrimaryDropItemId.Should().Be(ItemCatalog.BossCrown);
     }
+
+    [Fact]
+    public void DefenseAndArmorSystem_CalculatesDefenseAndMitigatesDamage()
+    {
+        CombatRules.ArmorDefense(ItemCatalog.BossCrown).Should().Be(8);
+        CombatRules.ArmorDefense(ItemCatalog.IronChestplate).Should().Be(7);
+        CombatRules.ArmorDefense(ItemCatalog.IronGreaves).Should().Be(5);
+        CombatRules.ArmorDefense(ItemCatalog.IronHelmet).Should().Be(4);
+        CombatRules.ArmorDefense(ItemCatalog.LeatherArmor).Should().Be(3);
+        CombatRules.ArmorDefense(ItemCatalog.Wood).Should().Be(0);
+
+        int totalDefense = CombatRules.CalculateDefense(ItemCatalog.IronHelmet, ItemCatalog.IronChestplate, ItemCatalog.IronGreaves);
+        totalDefense.Should().Be(4 + 7 + 5);
+
+        // Raw damage 20 mitigated by 16 defense -> 4 damage
+        CombatRules.MitigateDamage(20, totalDefense).Should().Be(4);
+
+        // High defense still allows minimum 1 damage
+        CombatRules.MitigateDamage(10, 50).Should().Be(1);
+    }
 }

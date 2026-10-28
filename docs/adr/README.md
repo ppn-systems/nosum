@@ -58,3 +58,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-046](ADR-046-monster-ai-roaming-and-combat-effects.md) | Monster AI roaming, aggro, real-time combat effects and boss encounters (amends ADR-045) | Accepted |
 | [ADR-047](ADR-047-dungeon-floor-bosses-and-legendary-loot.md) | Dungeon floor bosses (10/20/30/40), multi-phase vitals, enrage AI, and legendary trophy loot | Accepted |
 | [ADR-048](ADR-048-arcane-magic-projectiles-and-impact-effects.md) | Arcane magic projectiles, trajectory interpolation, and impact sparkles | Accepted |
+| [ADR-049](ADR-049-armor-equipment-defense-and-battle-gear.md) | Armor equipment paperdoll, defense mitigation, and craftable battle gear | Accepted |

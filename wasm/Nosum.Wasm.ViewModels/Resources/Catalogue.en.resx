@@ -315,4 +315,16 @@
   <data name="Item_golden_key_Description" xml:space="preserve"><value>A rare ornate key dropped by the Goblin Chieftain on floor 20.</value></data>
   <data name="Item_colossus_core_Name" xml:space="preserve"><value>Colossus core</value></data>
   <data name="Item_colossus_core_Description" xml:space="preserve"><value>A blazing molten core dropped by the Magma Colossus on floor 30.</value></data>
+  <data name="Item_leather_armor_Name" xml:space="preserve"><value>Leather armor</value></data>
+  <data name="Item_leather_armor_Description" xml:space="preserve"><value>Tough leather armor stitched with fiber and slime gel (+3 Defense).</value></data>
+  <data name="Item_iron_chestplate_Name" xml:space="preserve"><value>Iron chestplate</value></data>
+  <data name="Item_iron_chestplate_Description" xml:space="preserve"><value>Forged iron breastplate protecting against heavy strikes (+7 Defense).</value></data>
+  <data name="Item_iron_greaves_Name" xml:space="preserve"><value>Iron greaves</value></data>
+  <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Iron leg guards preventing monster bite wounds (+5 Defense).</value></data>
+  <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Iron helmet</value></data>
+  <data name="Item_iron_helmet_Description" xml:space="preserve"><value>A battle helmet protecting the head from critical blows (+4 Defense).</value></data>
+  <data name="Recipe_leather_armor_Name" xml:space="preserve"><value>Leather armor</value></data>
+  <data name="Recipe_iron_chestplate_Name" xml:space="preserve"><value>Iron chestplate</value></data>
+  <data name="Recipe_iron_greaves_Name" xml:space="preserve"><value>Iron greaves</value></data>
+  <data name="Recipe_iron_helmet_Name" xml:space="preserve"><value>Iron helmet</value></data>
 </root>

@@ -107,6 +107,34 @@ public static class CombatRules
         _ => 5,
     };
 
+    /// <summary>Calculates defense provided by worn armor and helmet items (docs/adr/ADR-049).</summary>
+    /// <param name="hatItemId">Worn hat/crown item id.</param>
+    /// <param name="shirtItemId">Worn armor/chestplate item id.</param>
+    /// <param name="pantsItemId">Worn greaves/pants item id.</param>
+    /// <returns>Total damage reduction defense.</returns>
+    public static int CalculateDefense(int hatItemId, int shirtItemId, int pantsItemId)
+        => ArmorDefense(hatItemId) + ArmorDefense(shirtItemId) + ArmorDefense(pantsItemId);
+
+    /// <summary>Returns the defense rating of an equipment piece.</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <returns>Defense rating.</returns>
+    public static int ArmorDefense(int itemId) => itemId switch
+    {
+        ItemCatalog.BossCrown => 8,
+        ItemCatalog.IronChestplate => 7,
+        ItemCatalog.IronGreaves => 5,
+        ItemCatalog.IronHelmet => 4,
+        ItemCatalog.LeatherArmor => 3,
+        _ => 0,
+    };
+
+    /// <summary>Mitigates raw incoming attack damage using player defense.</summary>
+    /// <param name="rawDamage">Raw incoming monster attack damage.</param>
+    /// <param name="defense">Player defense rating.</param>
+    /// <returns>Mitigated damage (minimum 1).</returns>
+    public static int MitigateDamage(int rawDamage, int defense)
+        => Math.Max(1, rawDamage - defense);
+
     /// <summary>Calculates maximum HP for a given Combat skill level.</summary>
     /// <param name="combatLevel">Combat level (0..10).</param>
     /// <returns>Maximum HP.</returns>

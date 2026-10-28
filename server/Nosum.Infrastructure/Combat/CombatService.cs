@@ -11,6 +11,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Combat;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
+using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
@@ -19,6 +20,7 @@ using Nosum.Contracts.Combat.S2C;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Inventory;
+using Nosum.Gameplay.Looks;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Nodes;
@@ -37,6 +39,7 @@ public sealed class CombatService : ICombatService, IDisposable
     private readonly IGroundItems _groundItems;
     private readonly IGameDayClock _dayClock;
     private readonly IPlayerNotifier? _notifier;
+    private readonly ILookService? _looks;
 
     private readonly ConcurrentDictionary<Guid, PlayerVitalsState> _vitals = new();
     private readonly ConcurrentDictionary<string, InstanceMonsters> _instances = new(StringComparer.Ordinal);
@@ -48,7 +51,8 @@ public sealed class CombatService : ICombatService, IDisposable
         IInventoryService inventory,
         IGroundItems groundItems,
         IGameDayClock dayClock,
-        IPlayerNotifier? notifier = null)
+        IPlayerNotifier? notifier = null,
+        ILookService? looks = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -62,6 +66,7 @@ public sealed class CombatService : ICombatService, IDisposable
         _groundItems = groundItems;
         _dayClock = dayClock;
         _notifier = notifier;
+        _looks = looks;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
     }
 
@@ -204,10 +209,18 @@ public sealed class CombatService : ICombatService, IDisposable
             return;
         }
 
+        int defense = 0;
+        if (_looks is not null)
+        {
+            PlayerLook look = await _looks.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+            defense = CombatRules.CalculateDefense(look.HatItemId, look.ShirtItemId, look.PantsItemId);
+        }
+
+        int finalDamage = CombatRules.MitigateDamage(damage, defense);
         VitalsView updated;
         lock (state.Gate)
         {
-            state.Hp = Math.Max(0, state.Hp - damage);
+            state.Hp = Math.Max(0, state.Hp - finalDamage);
             if (state.Hp == 0)
             {
                 state.Hp = Math.Max(1, state.MaxHp / 2);
@@ -306,6 +319,13 @@ public sealed class CombatService : ICombatService, IDisposable
         int playerTileX = (int)Math.Floor(feetX / tileSize);
         int playerTileY = (int)Math.Floor(feetY / tileSize);
 
+        int playerDefense = 0;
+        if (_looks is not null)
+        {
+            PlayerLook look = await _looks.GetAsync(player.AccountId, cancellationToken).ConfigureAwait(false);
+            playerDefense = CombatRules.CalculateDefense(look.HatItemId, look.ShirtItemId, look.PantsItemId);
+        }
+
         InstanceMonsters instance = this.GetOrCreateInstance(player);
         MonsterSpawn updatedMonster;
         int damageDealt;
@@ -382,7 +402,7 @@ public sealed class CombatService : ICombatService, IDisposable
 
                 if (!defeated && def is not null && def.AttackDamage > 0)
                 {
-                    damageTaken = def.AttackDamage;
+                    damageTaken = CombatRules.MitigateDamage(def.AttackDamage, playerDefense);
                     vitals.Hp -= damageTaken;
                     if (vitals.Hp <= 0)
                     {

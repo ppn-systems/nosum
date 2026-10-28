@@ -516,6 +516,10 @@ OBJECTS = {
     113: library_tile('gold_treasure', 0, 2, 'Gold treasure icons (0, 2), boss crown'),
     114: library_tile('gold_treasure', 0, 1, 'Gold treasure icons (0, 1), golden skeleton key'),
     115: library_tile('trash_mobs', 12, 0, 'Fantasy RPG Trash Mobs (12, 0), blazing colossus core'),
+    116: library_tile('dawn_armor', 0, 2, 'DawnLike Armor (0, 2), leather armor'),
+    117: library_tile('dawn_armor', 2, 2, 'DawnLike Armor (2, 2), iron chestplate'),
+    118: library_tile('dawn_armor', 1, 4, 'DawnLike Armor (1, 4), iron greaves'),
+    119: library_tile('dawn_armor', 1, 0, 'DawnLike Armor (1, 0), iron helmet'),
 }
 
 

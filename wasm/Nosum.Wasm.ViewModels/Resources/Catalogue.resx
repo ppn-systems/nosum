@@ -315,4 +315,16 @@
   <data name="Item_golden_key_Description" xml:space="preserve"><value>Chìa khóa quý giá mở rương kho báu từ Tù trưởng Yêu tinh tầng 20.</value></data>
   <data name="Item_colossus_core_Name" xml:space="preserve"><value>Lõi Nham thạch Khổng lồ</value></data>
   <data name="Item_colossus_core_Description" xml:space="preserve"><value>Lõi rực lửa tỏa nhiệt cực đại từ Người Đá Dung Nham tầng 30.</value></data>
+  <data name="Item_leather_armor_Name" xml:space="preserve"><value>Giáp da thú</value></data>
+  <data name="Item_leather_armor_Description" xml:space="preserve"><value>Áo giáp da bền chắc khâu từ sợi xơ và keo slime (+3 Phòng thủ).</value></data>
+  <data name="Item_iron_chestplate_Name" xml:space="preserve"><value>Giáp ngực sắt</value></data>
+  <data name="Item_iron_chestplate_Description" xml:space="preserve"><value>Tấm giáp ngực bằng sắt tôi luyện chống đòn chém (+7 Phòng thủ).</value></data>
+  <data name="Item_iron_greaves_Name" xml:space="preserve"><value>Xà cạp sắt</value></data>
+  <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Giáp bảo vệ chân bằng sắt chống quái vật cắn (+5 Phòng thủ).</value></data>
+  <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
+  <data name="Item_iron_helmet_Description" xml:space="preserve"><value>Mũ sắt bảo vệ đầu khỏi các đòn chí mạng (+4 Phòng thủ).</value></data>
+  <data name="Recipe_leather_armor_Name" xml:space="preserve"><value>Giáp da thú</value></data>
+  <data name="Recipe_iron_chestplate_Name" xml:space="preserve"><value>Giáp ngực sắt</value></data>
+  <data name="Recipe_iron_greaves_Name" xml:space="preserve"><value>Xà cạp sắt</value></data>
+  <data name="Recipe_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
 </root>

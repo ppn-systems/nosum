@@ -64,6 +64,18 @@ public static class RecipeCatalog
     /// <summary>Arcane staff.</summary>
     public const int ArcaneStaff = 17;
 
+    /// <summary>Iron helmet (docs/adr/ADR-049).</summary>
+    public const int IronHelmet = 18;
+
+    /// <summary>Leather armor.</summary>
+    public const int LeatherArmor = 19;
+
+    /// <summary>Iron chestplate.</summary>
+    public const int IronChestplate = 20;
+
+    /// <summary>Iron greaves.</summary>
+    public const int IronGreaves = 21;
+
     /// <summary>Most items one craft request may make in a batch (so a request cannot ask for an absurd amount).</summary>
     public const int MaxBatch = 99;
 
@@ -86,6 +98,10 @@ public static class RecipeCatalog
         new(SteelSword, "steel_sword", ItemCatalog.SteelSword, 1, RecipeUnlock.Of(CraftSkill.Combat, 4), new RecipeInput(ItemCatalog.IronBar, 4), new RecipeInput(ItemCatalog.MonsterBone, 3), new RecipeInput(ItemCatalog.Coal, 2)),
         new(GoldSword, "gold_sword", ItemCatalog.GoldSword, 1, RecipeUnlock.Of(CraftSkill.Combat, 6), new RecipeInput(ItemCatalog.GolemCore, 2), new RecipeInput(ItemCatalog.TreasureGem, 2), new RecipeInput(ItemCatalog.IronBar, 4)),
         new(ArcaneStaff, "arcane_staff", ItemCatalog.ArcaneStaff, 1, RecipeUnlock.Of(CraftSkill.Combat, 3), new RecipeInput(ItemCatalog.ManaCrystal, 3), new RecipeInput(ItemCatalog.SporeCap, 2), new RecipeInput(ItemCatalog.Wood, 10)),
+        new(LeatherArmor, "leather_armor", ItemCatalog.LeatherArmor, 1, RecipeUnlock.Of(CraftSkill.Combat, 1), new RecipeInput(ItemCatalog.SlimeGel, 4), new RecipeInput(ItemCatalog.Fiber, 10)),
+        new(IronHelmet, "iron_helmet", ItemCatalog.IronHelmet, 1, RecipeUnlock.Of(CraftSkill.Combat, 2), new RecipeInput(ItemCatalog.IronBar, 3), new RecipeInput(ItemCatalog.MonsterBone, 2)),
+        new(IronChestplate, "iron_chestplate", ItemCatalog.IronChestplate, 1, RecipeUnlock.Of(CraftSkill.Combat, 3), new RecipeInput(ItemCatalog.IronBar, 5), new RecipeInput(ItemCatalog.Coal, 2)),
+        new(IronGreaves, "iron_greaves", ItemCatalog.IronGreaves, 1, RecipeUnlock.Of(CraftSkill.Combat, 2), new RecipeInput(ItemCatalog.IronBar, 4), new RecipeInput(ItemCatalog.CopperBar, 2)),
     ];
 
     private static readonly Dictionary<int, RecipeDefinition> s_byId = Index();
