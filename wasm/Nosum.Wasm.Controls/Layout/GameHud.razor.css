@@ -123,16 +123,16 @@
     align-items: center;
 }
 
-/* Bottom-left: the chat line. Fixed so it never moves the hotbar row; it stays left of the hotbar and under the menu. */
+/* Bottom-left: the chat line. Fixed above the hotbar strip so it never moves or overlaps the hotbar row and stays under the menu. */
 .hud-bottom-left {
     position: fixed;
     left: var(--nosum-gutter);
-    bottom: var(--nosum-gutter);
+    bottom: calc(var(--nosum-gutter) + var(--u) * 40);
     z-index: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    width: min(calc(var(--u) * 120), calc(50vw - var(--u) * 92));
+    width: min(calc(var(--u) * 120), calc(100vw - var(--nosum-gutter) * 2));
     max-height: calc(var(--u) * 100);
     pointer-events: none;
 }

@@ -149,6 +149,23 @@ public sealed partial class ThemeSpritesTests
         nodeSprites.Should().Contain("AddHitParticles");
     }
 
+    [Fact]
+    public void EnergyBarAndHudStyles_KeepLowMpBlueAndStyleStatusEffects()
+    {
+        string root = RepositoryRoot();
+        string energyCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Progress", "EnergyBar.razor.css"));
+        string hudCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Layout", "GameHud.razor.css"));
+        string homeRazor = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Pages", "Home.razor"));
+
+        energyCss.Should().Contain(".energy-bar.low .energy-fill:not(.mp-fill)");
+        energyCss.Should().Contain(".energy-bar.mp-bar.low .mp-fill");
+        energyCss.Should().Contain(".vitals-bars.regen");
+        energyCss.Should().Contain(".vitals-bars.poison");
+        energyCss.Should().Contain(".vitals-bars.swift");
+        hudCss.Should().Contain("bottom: calc(var(--nosum-gutter) + var(--u) * 40)");
+        homeRazor.Should().Contain("!Elevator.IsOpen && Npc.Stage == NpcStage.Closed && !IsInviteOpen()");
+    }
+
     private static int Number(Match row, int group) => int.Parse(row.Groups[group].Value, System.Globalization.CultureInfo.InvariantCulture);
 
     private static (int Width, int Height) PngSize(string path)

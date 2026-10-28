@@ -277,6 +277,44 @@ public sealed class ProgressTests
         skillId.Should().Be(3);
     }
 
+    [Fact]
+    public async System.Threading.Tasks.Task CombatSkills_ReflectCooldownAndMpReadiness()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        socket.ReplyWith(req =>
+        {
+            Nosum.Contracts.Combat.C2S.CastSkill cast = (Nosum.Contracts.Combat.C2S.CastSkill)req;
+            return new Nosum.Contracts.Combat.S2C.CastSkillResult
+            {
+                Status = Nosum.Contracts.Combat.CombatStatus.Ok,
+                SkillId = cast.SkillId,
+                CooldownMs = 120,
+                Hp = 100,
+                MaxHp = 100,
+                Mp = 10,
+                MaxMp = 50,
+            };
+        });
+        using ProgressChannel progress = new(socket);
+        using Nosum.Wasm.Socket.Combat.CombatChannel combat = new(socket);
+        using ProgressViewModel vm = new(progress, Localizer<Language>(), combat, Localizer<Catalogue>());
+
+        vm.CanCastSkill(1).Should().BeTrue();
+        vm.WhirlwindDisabled.Should().BeFalse();
+
+        vm.CastSkill(1);
+
+        vm.GetSkillCooldown(1).Should().BeGreaterThan(0f);
+        vm.WhirlwindDisabled.Should().BeTrue("the skill is on cooldown and MP dropped to 10");
+        vm.WhirlwindLabel.Should().Contain("(1s)");
+        vm.FireballDisabled.Should().BeTrue("MP (10) is below Fireball's cost (20)");
+
+        await System.Threading.Tasks.Task.Delay(220);
+
+        vm.GetSkillCooldown(1).Should().Be(0f);
+    }
+
     [SuppressMessage("Reliability", "CA2000", Justification = "The channels live as long as the test; the view model that owns the subscriptions is disposed by the test.")]
     private static (GameMessagesViewModel Messages, FakeGameSocket Socket, ProgressChannel Progress, FarmChannel Farm) CreateMessages(FakeGameSocket socket)
     {

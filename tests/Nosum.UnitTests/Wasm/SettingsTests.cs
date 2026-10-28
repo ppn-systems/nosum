@@ -94,6 +94,9 @@ public sealed class SettingsTests
     [InlineData("ArrowUp")]
     [InlineData("Enter")]
     [InlineData("Tab")]
+    [InlineData("KeyZ")]
+    [InlineData("KeyX")]
+    [InlineData("KeyV")]
     public void Rebind_ReservedKey_ChangesNothing(string code)
     {
         KeyBindings.Default.TryRebind(GameAction.Use, code, out KeyBindings keys).Should().Be(RebindResult.Reserved);
@@ -107,7 +110,7 @@ public sealed class SettingsTests
         KeyBindings keys = KeyBindings.Default;
         foreach (GameAction action in Enum.GetValues<GameAction>())
         {
-            _ = keys.TryRebind(action, "KeyZ", out keys);
+            _ = keys.TryRebind(action, "KeyJ", out keys);
         }
 
         Enum.GetValues<GameAction>().Select(keys.CodeOf).Should().OnlyHaveUniqueItems();
@@ -147,11 +150,12 @@ public sealed class SettingsTests
 
         vm.BeginRebind(GameAction.Rotate);
         vm.Capture("Digit1").Should().Be(RebindResult.Reserved);
+        vm.Capture("KeyX").Should().Be(RebindResult.Reserved);
         vm.Listening.Should().Be(GameAction.Rotate);
-        vm.Capture("KeyX").Should().Be(RebindResult.Bound);
+        vm.Capture("KeyJ").Should().Be(RebindResult.Bound);
 
         vm.Listening.Should().BeNull();
-        vm.CapOf(GameAction.Rotate).Should().Be("X");
+        vm.CapOf(GameAction.Rotate).Should().Be("J");
     }
 
     [Fact]

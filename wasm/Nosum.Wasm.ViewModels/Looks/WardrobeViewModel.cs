@@ -88,7 +88,7 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
             [
                 new(Farmer + "body.png", 0, 0, 16, 32, 288, 672, 0, 0, Tint(LookPalette.SkinTint(look.SkinId))),
                 new(Farmer + "pants.png", pants.SheetIndex % 10 * 192, pants.SheetIndex / 10 * 672, 16, 32, 1920, 1376, 0, 0, Tint(pants.Tint)),
-                new(Farmer + "shirts.png", shirt.SheetIndex % 16 * 8, shirt.SheetIndex / 16 * 32, 8, 8, 256, 608, 4, 15, null),
+                new(Farmer + "shirts.png", shirt.SheetIndex % 16 * 8, shirt.SheetIndex / 16 * 32, 8, 8, 256, 608, 4, 15, Tint(shirt.Tint)),
                 new(Farmer + "body.png", 6 * 16, 0, 16, 32, 288, 672, 0, 0, null),
                 new(Farmer + "hair.png", hair % 8 * 16, hair / 8 * 96, 16, 32, 128, 672, 0, 2, Tint(LookPalette.DyeTint(look.HairDyeId))),
             ];

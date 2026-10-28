@@ -59,10 +59,11 @@ public sealed class WorldSpriteBatch
         _count++;
     }
 
-    /// <summary>Sorts and records the sprites that intersect the camera, then empties the batch.</summary>
+    /// <summary>Sorts and records the sprites that intersect the camera, then empties the batch (unless labels are deferred to <see cref="FlushLabels"/>).</summary>
     /// <param name="commands">Where draws are recorded.</param>
     /// <param name="camera">The camera.</param>
-    public void Flush(RenderCommandBuffer commands, in Camera2D camera)
+    /// <param name="deferLabels">When <see langword="true"/>, <see cref="RenderCommandBuffer.LabelTexture"/> entries are held until <see cref="FlushLabels"/> so they draw above front layers and ambient darkness.</param>
+    public void Flush(RenderCommandBuffer commands, in Camera2D camera, bool deferLabels = false)
     {
         ArgumentNullException.ThrowIfNull(commands);
 
@@ -70,6 +71,40 @@ public sealed class WorldSpriteBatch
         for (int i = 0; i < _count; i++)
         {
             ref readonly Sprite s = ref _sprites[_keys[i].Index];
+            if (deferLabels && s.Texture == RenderCommandBuffer.LabelTexture)
+            {
+                continue;
+            }
+
+            if (s.X >= camera.Left + camera.Width || s.Y >= camera.Top + camera.Height || s.X + s.Width <= camera.Left || s.Y + s.Height <= camera.Top)
+            {
+                continue;
+            }
+
+            commands.Draw(s.Texture, s.SrcX, s.SrcY, s.Width, s.Height, s.X - camera.Left, s.Y - camera.Top, s.Flags, s.Tint);
+        }
+
+        if (!deferLabels)
+        {
+            _count = 0;
+        }
+    }
+
+    /// <summary>Records any <see cref="RenderCommandBuffer.LabelTexture"/> entries deferred by <see cref="Flush"/> and empties the batch.</summary>
+    /// <param name="commands">Where draws are recorded.</param>
+    /// <param name="camera">The camera.</param>
+    public void FlushLabels(RenderCommandBuffer commands, in Camera2D camera)
+    {
+        ArgumentNullException.ThrowIfNull(commands);
+
+        for (int i = 0; i < _count; i++)
+        {
+            ref readonly Sprite s = ref _sprites[_keys[i].Index];
+            if (s.Texture != RenderCommandBuffer.LabelTexture)
+            {
+                continue;
+            }
+
             if (s.X >= camera.Left + camera.Width || s.Y >= camera.Top + camera.Height || s.X + s.Width <= camera.Left || s.Y + s.Height <= camera.Top)
             {
                 continue;

@@ -510,16 +510,16 @@ OBJECTS = {
     107: library_tile('roguelike_indoors', 19, 0, 'Kenney Roguelike Indoors (19, 0), candelabra'),
     108: library_tile('animal_bee', 0, 0, 'Random animals `bee.png`, honey bee'),
     109: library_tile('pixel_animals', 0, 0, 'Pixel Animals 16x16 (0, 0), pocket cat'),
-    110: library_tile('modern_city', 18, 0, 'Kenney Roguelike Modern City (18, 0), tonic can'),
-    111: library_tile('rpg_urban', 4, 10, 'Kenney RPG Urban Pack (4, 10), apple crate'),
+    110: library_tile('rpg_items', 2, 4, '16x16 RPG items (2, 4), runestone tablet'),
+    111: library_tile('dawn_armor', 2, 7, 'DawnLike Armor (2, 7), ranger tunic'),
     112: library_tile('one_bit', 39, 10, 'Kenney 1-Bit Pack (39, 10), heart emblem'),
     113: library_tile('gold_treasure', 0, 2, 'Gold treasure icons (0, 2), boss crown'),
-    114: library_tile('gold_treasure', 0, 1, 'Gold treasure icons (0, 1), golden skeleton key'),
+    114: library_tile('rpg_items', 1, 4, '16x16 RPG items (1, 4), golden skeleton key'),
     115: library_tile('trash_mobs', 12, 0, 'Fantasy RPG Trash Mobs (12, 0), blazing colossus core'),
-    116: library_tile('dawn_armor', 0, 2, 'DawnLike Armor (0, 2), leather armor'),
-    117: library_tile('dawn_armor', 2, 2, 'DawnLike Armor (2, 2), iron chestplate'),
-    118: library_tile('dawn_armor', 1, 4, 'DawnLike Armor (1, 4), iron greaves'),
-    119: library_tile('dawn_armor', 1, 0, 'DawnLike Armor (1, 0), iron helmet'),
+    116: library_tile('dawn_armor', 0, 6, 'DawnLike Armor (0, 6), leather armor'),
+    117: library_tile('dawn_armor', 2, 6, 'DawnLike Armor (2, 6), iron chestplate'),
+    118: library_tile('dawn_boot', 1, 0, 'DawnLike Boot (1, 0), iron greaves'),
+    119: library_tile('dawn_hat', 1, 0, 'DawnLike Hat (1, 0), iron helmet'),
 }
 
 

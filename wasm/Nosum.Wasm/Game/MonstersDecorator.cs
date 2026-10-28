@@ -329,14 +329,14 @@ internal sealed class MonstersDecorator : IMapDecorator
 
                 // Levitating crystal / star relic from items.png bobbing above the altar
                 int bobY = (int)(MathF.Sin((now * 0.006f) + h.HazardId) * 2f);
-                (int iconSrcX, int iconSrcY) = h.Kind switch
+                (int iconSrcX, int iconSrcY, int iconTint) = h.Kind switch
                 {
-                    4 => (80, 64),  // Ruby vitality core relic
-                    5 => (96, 64),  // Emerald arcane mana crystal
-                    7 => (336, 64), // Thunder crystal cluster relic
-                    8 => (320, 64), // Solar fire crystal cluster relic
-                    9 => (64, 48),  // Glacial frost crystal relic
-                    _ => (112, 64), // Golden sanctuary relic
+                    4 => (80, 64, RenderCommandBuffer.NoTint),          // Ruby vitality diamond relic
+                    5 => (96, 64, RenderCommandBuffer.NoTint),          // Sapphire arcane mana crystal
+                    7 => (96, 64, unchecked((int)0xfde047ff)),          // Thunder crystal cluster relic
+                    8 => (304, 64, RenderCommandBuffer.NoTint),         // Solar fire core relic
+                    9 => (80, 64, unchecked((int)0x7dd3fcff)),          // Glacial frost diamond relic
+                    _ => (272, 64, RenderCommandBuffer.NoTint),         // Golden sanctuary crown relic
                 };
                 world.Add(
                     _itemsTexture,
@@ -348,7 +348,8 @@ internal sealed class MonstersDecorator : IMapDecorator
                     hWorldY - 4 + bobY,
                     hWorldY + FrameSize,
                     hWorldX,
-                    8720);
+                    8720,
+                    tint: iconTint);
             }
 
             if (_labels is not null)
@@ -452,11 +453,11 @@ internal sealed class MonstersDecorator : IMapDecorator
                 {
                     world.Add(
                         RenderCommandBuffer.LabelTexture,
-                        0,
-                        0,
                         eliteLabelId,
                         0,
-                        worldX - 10,
+                        0,
+                        0,
+                        worldX + 8,
                         worldY - 14,
                         worldY + FrameSize + 15,
                         worldX,

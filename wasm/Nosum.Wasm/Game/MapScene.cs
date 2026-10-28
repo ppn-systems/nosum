@@ -298,7 +298,7 @@ internal sealed class MapScene
             this.AddRemoteFarmers();
         }
 
-        _world.Flush(_commands, _camera);
+        _world.Flush(_commands, _camera, deferLabels: true);
         for (int i = 0; i < decorators.Length; i++)
         {
             decorators[i].DrawInFront(_commands, _camera);
@@ -316,6 +316,7 @@ internal sealed class MapScene
         {
             _sky.DrawPrecipitation(_commands);
         }
+        _world.FlushLabels(_commands, _camera);
         this.DrawLabels();
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
         backend.Submit(_commands.Encode());
