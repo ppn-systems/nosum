@@ -30,7 +30,7 @@ A nature 8
 B nature 10
 C nature 12
 D nature 13
-E nature 22
+E nature 14
 F Paths 9
 G Paths 10
 H Paths 13

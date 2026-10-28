@@ -285,7 +285,7 @@ internal static class NatureSheet
         area.Fill(x, y + height, 3, 1, Palette.Shadow);
     }
 
-    // A straight run: two rails across the tile between posts at its ends.
+    // A straight run: two horizontal rails across the tile between posts, or a centered vertical rail with a post.
     private static void Straight(Area area, bool horizontal)
     {
         if (horizontal)
@@ -297,12 +297,8 @@ internal static class NatureSheet
             return;
         }
 
-        Rail(area, 3, 0, 16, false, 142);
-        Rail(area, 10, 0, 16, false, 143);
-        FencePost(area, 3, 1, 3);
-        FencePost(area, 10, 1, 3);
-        FencePost(area, 3, 12, 3);
-        FencePost(area, 10, 12, 3);
+        Rail(area, 6, 0, 16, false, 142);
+        FencePost(area, 6, 2, 12);
     }
 
     // A corner post at the middle with rails to the sides named.
@@ -310,29 +306,33 @@ internal static class NatureSheet
     {
         if (north)
         {
-            Rail(area, 6, 0, 8, false, 144);
+            Rail(area, 6, 0, 10, false, 144);
         }
 
         if (south)
         {
-            Rail(area, 6, 8, 8, false, 145);
+            Rail(area, 6, 6, 10, false, 145);
         }
 
         if (east)
         {
-            Rail(area, 8, 5, 8, true, 146);
+            Rail(area, 7, 4, 9, true, 146);
+            Rail(area, 7, 9, 9, true, 152);
         }
 
         if (west)
         {
-            Rail(area, 0, 5, 8, true, 147);
+            Rail(area, 0, 4, 8, true, 147);
+            Rail(area, 0, 9, 8, true, 153);
         }
 
-        FencePost(area, 5, 3, 8);
+        FencePost(area, 6, 2, 12);
     }
 
     private static void Gate(Area area)
     {
+        Rail(area, 6, 0, 3, false, 154);
+        Rail(area, 6, 13, 3, false, 155);
         FencePost(area, 1, 2, 12);
         FencePost(area, 12, 2, 12);
         Rail(area, 0, 4, 4, true, 148);

@@ -205,6 +205,36 @@ def furnace(lit=False):
     return c.outline()
 
 
+def fence_tile(mask):
+    c = Canvas(16, 16)
+    north = (mask & 1) != 0
+    east = (mask & 2) != 0
+    south = (mask & 4) != 0
+    west = (mask & 8) != 0
+    if north:
+        c.rect(6, 0, 4, 9, draw.WOOD_D)
+        c.rect(7, 0, 2, 9, draw.WOOD)
+    if south:
+        c.rect(6, 6, 4, 10, draw.WOOD_D)
+        c.rect(7, 6, 2, 10, draw.WOOD)
+    if west:
+        for ry in (4, 9):
+            c.rect(0, ry, 8, 3, draw.WOOD)
+            c.rect(0, ry, 8, 1, draw.WOOD_L)
+    if east:
+        for ry in (4, 9):
+            c.rect(8, ry, 8, 3, draw.WOOD)
+            c.rect(8, ry, 8, 1, draw.WOOD_L)
+    if mask == 0:
+        for ry in (5, 10):
+            c.rect(2, ry, 12, 2, draw.WOOD)
+            c.rect(2, ry, 12, 1, draw.WOOD_L)
+    c.rect(5, 2, 6, 12, draw.WOOD)
+    c.rect(5, 2, 6, 2, draw.WOOD_L)
+    c.rect(5, 12, 6, 2, draw.WOOD_D)
+    return c.outline()
+
+
 # (rectangle the placed picture occupies: x, y) -> picture
 FURNITURE_VIEWS = [
     ((0, 0), chair_front()), ((16, 0), chair_side()), ((32, 0), chair_back()),
@@ -212,7 +242,8 @@ FURNITURE_VIEWS = [
     ((0, 208), couch('front')), ((48, 208), couch('side')), ((80, 208), couch('back')),
     ((0, 569), table()), ((48, 640), bookcase()), ((48, 733), lamp()), ((0, 688), plant()),
 ]
-CRAFTABLES = [((0, 32), scarecrow()), ((80, 32), furnace()), ((96, 32), furnace(lit=True))]
+FENCE_TILES = [(((m % 8) * 16, 64 + (m // 8) * 16), fence_tile(m)) for m in range(16)]
+CRAFTABLES = [((0, 32), scarecrow()), ((80, 32), furnace()), ((96, 32), furnace(lit=True))] + FENCE_TILES
 CHEST = (32, 512)    # the chest is Tiny Dungeon's closed chest (tile 5, 7), standing at the foot of the 16 x 32 cell
 
 

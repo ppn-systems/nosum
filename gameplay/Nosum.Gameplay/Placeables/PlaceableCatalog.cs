@@ -51,7 +51,7 @@ public static class PlaceableCatalog
         new(ItemCatalog.Chest, CraftedSheet, new PlaceableView(32, 512, 16, 32, 1, 1)) { Kind = PlaceableKind.Chest },
         new(ItemCatalog.Scarecrow, CraftedSheet, new PlaceableView(0, 32, 16, 32, 1, 1)),
         new(ItemCatalog.Furnace, CraftedSheet, new PlaceableView(80, 32, 16, 32, 1, 1)) { Kind = PlaceableKind.Furnace },
-        new(ItemCatalog.WoodFence, ObjectsSheet, new PlaceableView(96, 32, 16, 16, 1, 1)) { Kind = PlaceableKind.Fence },
+        new(ItemCatalog.WoodFence, CraftedSheet, new PlaceableView(0, 64, 16, 16, 1, 1)) { Kind = PlaceableKind.Fence },
         new(ItemCatalog.StonePath, ObjectsSheet, new PlaceableView(112, 32, 16, 16, 1, 1)) { Kind = PlaceableKind.Path, BlocksWalking = false },
         new(ItemCatalog.Sprinkler, ObjectsSheet, new PlaceableView(128, 32, 16, 16, 1, 1)) { Kind = PlaceableKind.Sprinkler },
     ];

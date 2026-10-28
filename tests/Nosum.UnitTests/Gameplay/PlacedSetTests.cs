@@ -207,6 +207,16 @@ public sealed class PlacedSetTests
                     // A working (smelting) furnace draws the next cell to the right (PlacedObjectsDecorator).
                     AssertRectHasVisiblePixels(bitmap, view.SourceX + view.Width, view.SourceY, view.Width, view.Height, $"working furnace {definition.ItemId}");
                 }
+                else if (definition.Kind == PlaceableKind.Fence)
+                {
+                    // A placed fence auto-tiles across 16 cardinal neighbour masks in an 8 x 2 strip (PlacedObjectsDecorator).
+                    for (int mask = 0; mask < 16; mask++)
+                    {
+                        int cellX = view.SourceX + ((mask & 7) * view.Width);
+                        int cellY = view.SourceY + ((mask >> 3) * view.Height);
+                        AssertRectHasVisiblePixels(bitmap, cellX, cellY, view.Width, view.Height, $"fence {definition.ItemId} mask {mask}");
+                    }
+                }
             }
         }
     }

@@ -69,11 +69,11 @@ internal sealed class PlacedObjectsDecorator : IMapDecorator
                 PlacedObjectInfo piece = _placed.At(i);
                 this.Add(world, piece.ItemId, piece.TileX, piece.TileY, piece.Rotation, placedId: piece.Id, ghost: false, valid: true);
             }
-        }
 
-        if (_actions.GhostVisible)
-        {
-            this.Add(world, _actions.GhostItemId, _actions.GhostTileX, _actions.GhostTileY, _actions.GhostRotation, placedId: 0, ghost: true, _actions.GhostValid);
+            if (_actions.GhostVisible)
+            {
+                this.Add(world, _actions.GhostItemId, _actions.GhostTileX, _actions.GhostTileY, _actions.GhostRotation, placedId: 0, ghost: true, _actions.GhostValid);
+            }
         }
     }
 
@@ -91,13 +91,47 @@ internal sealed class PlacedObjectsDecorator : IMapDecorator
             : definition.Kind == PlaceableKind.Building && !ghost && _buildings is not null && _buildings.IsUnderConstruction(placedId) ? s_scaffoldTint
             : RenderCommandBuffer.NoTint;
 
-        // A working furnace is the next cell of its sheet (lit); a path is flat ground, sorted by its own top so everything walks over it.
-        int sourceX = view.SourceX + (definition.Kind == PlaceableKind.Furnace && !ghost && _furnaces is not null && _furnaces.IsWorking(placedId) ? view.Width : 0);
+        // A fence joins its four cardinal fence neighbours (16 auto-tile cells in an 8 x 2 strip); a working furnace is the next cell of its sheet (lit).
+        int fenceMask = definition.Kind == PlaceableKind.Fence ? this.FenceMask(tileX, tileY) : 0;
+        int sourceX = definition.Kind == PlaceableKind.Fence
+            ? view.SourceX + ((fenceMask & 7) * view.Width)
+            : view.SourceX + (definition.Kind == PlaceableKind.Furnace && !ghost && _furnaces is not null && _furnaces.IsWorking(placedId) ? view.Width : 0);
+        int sourceY = definition.Kind == PlaceableKind.Fence
+            ? view.SourceY + ((fenceMask >> 3) * view.Height)
+            : view.SourceY;
         int sortY = !definition.BlocksWalking ? tileY * _tileSize : ghost ? baseY + _tileSize : baseY;
 
         // A ghost is drawn in front of everything at its spot; a carried piece's old place keeps drawing until it is set down.
-        world.Add(texture, sourceX, view.SourceY, view.Width, view.Height, left, baseY - view.Height, sortY, left, placedId, view.FlipX ? RenderCommandBuffer.FlipX : 0, tint);
+        world.Add(texture, sourceX, sourceY, view.Width, view.Height, left, baseY - view.Height, sortY, left, placedId, view.FlipX ? RenderCommandBuffer.FlipX : 0, tint);
     }
+
+    private int FenceMask(int tileX, int tileY)
+    {
+        int mask = 0;
+        for (int i = 0; i < _placed.Count; i++)
+        {
+            PlacedObjectInfo other = _placed.At(i);
+            if (!PlaceableCatalog.TryGet(other.ItemId, out PlaceableDefinition? def) || def.Kind != PlaceableKind.Fence)
+            {
+                continue;
+            }
+
+            mask |= NeighborBit(tileX, tileY, other.TileX, other.TileY);
+        }
+
+        if (_actions.GhostVisible && _actions.GhostValid && PlaceableCatalog.TryGet(_actions.GhostItemId, out PlaceableDefinition? ghostDef) && ghostDef.Kind == PlaceableKind.Fence)
+        {
+            mask |= NeighborBit(tileX, tileY, _actions.GhostTileX, _actions.GhostTileY);
+        }
+
+        return mask;
+    }
+
+    private static int NeighborBit(int x, int y, int ox, int oy)
+        => ox == x && oy == y - 1 ? 1
+            : ox == x + 1 && oy == y ? 2
+            : ox == x && oy == y + 1 ? 4
+            : ox == x - 1 && oy == y ? 8 : 0;
 }
 
 /// <summary>Builds the <see cref="PlacedObjectsDecorator"/> of every map where pieces can be placed.</summary>
