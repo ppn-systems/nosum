@@ -254,6 +254,29 @@ public sealed class ProgressTests
         prog.Should().BeInRange(0f, 1f);
     }
 
+    [Fact]
+    public void CombatChannel_TriggerSkillEffect_ActivatesImmediateVisualAnimationForAllThreeSkills()
+    {
+        FakeGameSocket socket = new();
+        using Nosum.Wasm.Socket.Combat.CombatChannel combat = new(socket);
+        combat.SetLocalPosition(12, 15, 1);
+
+        combat.TriggerSkillEffect(1);
+        combat.TryGetActiveSkillEffect(Environment.TickCount64, out byte skillId, out float progress, out int px, out int py).Should().BeTrue();
+        skillId.Should().Be(1);
+        (px, py).Should().Be((12, 15));
+        progress.Should().BeInRange(0f, 1f);
+
+        combat.TriggerSkillEffect(2);
+        List<Nosum.Wasm.Socket.Combat.ProjectileClientRow> projectiles = [];
+        combat.CopyProjectiles(projectiles, Environment.TickCount64);
+        projectiles.Should().Contain(p => p.Kind == 2);
+
+        combat.TriggerSkillEffect(3);
+        combat.TryGetActiveSkillEffect(Environment.TickCount64, out skillId, out _, out _, out _).Should().BeTrue();
+        skillId.Should().Be(3);
+    }
+
     [SuppressMessage("Reliability", "CA2000", Justification = "The channels live as long as the test; the view model that owns the subscriptions is disposed by the test.")]
     private static (GameMessagesViewModel Messages, FakeGameSocket Socket, ProgressChannel Progress, FarmChannel Farm) CreateMessages(FakeGameSocket socket)
     {

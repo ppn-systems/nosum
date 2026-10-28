@@ -120,6 +120,9 @@ public sealed class CombatChannel : IDisposable
     private readonly Dictionary<byte, long> _skillReadyAt = new();
     private int _playerX;
     private int _playerY;
+    private byte _playerFacing;
+    private int _activeSkillId;
+    private long _activeSkillTick;
 
     private int _hp = 100;
     private int _maxHp = 100;
@@ -352,7 +355,62 @@ public sealed class CombatChannel : IDisposable
             }
         }
 
+        this.TriggerSkillEffect(skillId, targetMonsterId);
         _ = this.CastSkillAsync(skillId, targetMonsterId);
+    }
+
+    /// <summary>Immediately activates the client-side visual animation for a cast skill.</summary>
+    /// <param name="skillId">Skill id (1 = Whirlwind, 2 = Fireball, 3 = DivineHeal).</param>
+    /// <param name="targetMonsterId">Optional target monster id for Fireball trajectory.</param>
+    public void TriggerSkillEffect(byte skillId, int targetMonsterId = 0)
+    {
+        Volatile.Write(ref _activeSkillId, skillId);
+        Volatile.Write(ref _activeSkillTick, Environment.TickCount64);
+
+        if (skillId == 2)
+        {
+            if (targetMonsterId != 0 && this.TryGetMonster(targetMonsterId, out MonsterClientRow tm))
+            {
+                this.SpawnProjectile(_playerX, _playerY, tm.X, tm.Y, 2, 320f);
+            }
+            else if (this.TryFindTarget(_playerX, _playerY, 6, out MonsterClientRow near))
+            {
+                this.SpawnProjectile(_playerX, _playerY, near.X, near.Y, 2, 320f);
+            }
+            else
+            {
+                (int dx, int dy) = (_playerFacing & 3) switch
+                {
+                    1 => (5, 0),
+                    2 => (0, -5),
+                    3 => (-5, 0),
+                    _ => (0, 5),
+                };
+                this.SpawnProjectile(_playerX, _playerY, _playerX + dx, _playerY + dy, 2, 320f);
+            }
+        }
+    }
+
+    /// <summary>Queries the currently active skill animation for zero-allocation world rendering.</summary>
+    public bool TryGetActiveSkillEffect(long now, out byte skillId, out float progress, out int playerX, out int playerY)
+    {
+        long start = Volatile.Read(ref _activeSkillTick);
+        int id = Volatile.Read(ref _activeSkillId);
+        long elapsed = now - start;
+        if (id > 0 && elapsed >= 0 && elapsed < 550)
+        {
+            skillId = (byte)id;
+            progress = elapsed / 550f;
+            playerX = _playerX;
+            playerY = _playerY;
+            return true;
+        }
+
+        skillId = 0;
+        progress = 0f;
+        playerX = 0;
+        playerY = 0;
+        return false;
     }
 
     /// <summary>Spawns a client-side magic projectile along a trajectory (docs/adr/ADR-048).</summary>
@@ -424,11 +482,12 @@ public sealed class CombatChannel : IDisposable
         }
     }
 
-    /// <summary>Updates local player coordinates for floating combat text positioning.</summary>
-    public void SetLocalPosition(int tileX, int tileY)
+    /// <summary>Updates local player coordinates and facing for floating combat text and skill animations.</summary>
+    public void SetLocalPosition(int tileX, int tileY, byte facing = 0)
     {
         _playerX = tileX;
         _playerY = tileY;
+        _playerFacing = facing;
     }
 
     /// <summary>Spawns a floating combat number in world pixels (docs/adr/ADR-055).</summary>

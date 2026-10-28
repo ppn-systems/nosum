@@ -12,9 +12,9 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal sealed class ItemIcons : IItemIconSource
 {
-    private const string ObjectsSheet = "assets/sprites/items.png";
-    private const string ToolsSheet = "assets/sprites/tools.png";
-    private const string WeaponsSheet = "assets/sprites/weapons.png";
+    internal const string ObjectsSheet = "assets/sprites/items.png";
+    internal const string ToolsSheet = "assets/sprites/tools.png";
+    internal const string WeaponsSheet = "assets/sprites/weapons.png";
     private const string FurnitureSheet = "assets/sprites/furniture.png";
     private const string CraftedSheet = "assets/sprites/craftables.png";
     private const int Cell = 16;
@@ -103,6 +103,12 @@ internal sealed class ItemIcons : IItemIconSource
 
     /// <inheritdoc/>
     public bool TryGet(int itemId, out ItemIcon icon) => s_icons.TryGetValue(itemId, out icon!);
+
+    /// <summary>Looks up the sprite cell of an item without allocating.</summary>
+    /// <param name="itemId">Item id.</param>
+    /// <param name="icon">Icon cell when found.</param>
+    /// <returns><see langword="true"/> when the item has an icon entry.</returns>
+    internal static bool TryGetIcon(int itemId, out ItemIcon icon) => s_icons.TryGetValue(itemId, out icon!);
 
     /// <summary>Finds the cell of an item on the objects sheet, for drawing it lying on the ground; items pictured on other sheets (tools, clothes, furniture) have none.</summary>
     /// <param name="itemId">Item id.</param>

@@ -34,7 +34,7 @@ namespace Nosum.Wasm.Game;
 internal sealed class MapScene
 {
     private const double StepSeconds = 1.0 / 60.0;
-    private const double WalkFrameSeconds = 0.15;
+    private const double WalkFrameSeconds = 0.12;
     private const int TargetTilesAcross = 26;
     private const int MaxScale = 6;
     private const int MenuUnitsTall = 204;
@@ -262,7 +262,36 @@ internal sealed class MapScene
         _labelCount = 0;
         LookInfo ownLook = default;
         bool hasOwn = _looks is not null && _looks.TryGetLocal(out ownLook);
-        FarmerSprite.Draw(_world, _farmerTextures, hasOwn ? LookSprites.Resolve(ownLook) : this.Look, _farmer.Facing, walkFrame, (int)_farmer.X, (int)_farmer.Y);
+        int heldItemId = _actions?.HeldItemId ?? 0;
+        float swingProgress = -1f;
+        if (_actions is not null && _actions.TryGetActiveSwing(_clockSeconds, out float activeSwing, out int swungItem))
+        {
+            swingProgress = activeSwing;
+            if (swungItem > 0)
+            {
+                heldItemId = swungItem;
+            }
+        }
+
+        Facing effectiveFacing = _farmer.Facing;
+        byte activeSkillId = 0;
+        float skillProgress = 0f;
+        bool hasSkillEffect = _actions is not null && _actions.TryGetActiveSkillEffect(Environment.TickCount64, out activeSkillId, out skillProgress, out _, out _);
+        if (hasSkillEffect && activeSkillId == 1)
+        {
+            effectiveFacing = (Facing)((int)(skillProgress * 8f) & 3);
+            if (swingProgress < 0f)
+            {
+                swingProgress = skillProgress;
+            }
+        }
+
+        FarmerSprite.Draw(_world, _farmerTextures, hasOwn ? LookSprites.Resolve(ownLook) : this.Look, effectiveFacing, walkFrame, (int)_farmer.X, (int)_farmer.Y, 0, heldItemId, swingProgress);
+        if (hasSkillEffect)
+        {
+            FarmerSprite.DrawSkillEffect(_world, _farmerTextures, activeSkillId, skillProgress, (int)_farmer.X, (int)_farmer.Y);
+        }
+
         this.AddLabel(ownLook.Nickname, (int)_farmer.X, (int)_farmer.Y);
         if (_phase != Phase.FadingOut)
         {

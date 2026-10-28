@@ -102,6 +102,25 @@ public sealed partial class ThemeSpritesTests
         placement.Should().NotContain("<button");
     }
 
+    [Fact]
+    public void GameHud_PlayerBar_IsStackedVerticallyOnRightEdge_ToSaveScreenSpace()
+    {
+        string hudCss = File.ReadAllText(Path.Combine(RepositoryRoot(), "wasm", "Nosum.Wasm.Controls", "Layout", "GameHud.razor.css"));
+
+        hudCss.Should().NotContain("grid-template-columns: repeat(3, max-content)");
+        hudCss.Should().Contain(".hud-top-right ::deep .hud-player-bar");
+    }
+
+    [Fact]
+    public void FarmerSprite_SupportsHeldItemsAndSwingAnimations_AndSheetHasActionPose()
+    {
+        string root = RepositoryRoot();
+        string farmerSprite = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Game", "FarmerSprite.cs"));
+
+        farmerSprite.Should().Contain("DrawHeldItem");
+        farmerSprite.Should().Contain("DrawSkillEffect");
+    }
+
     private static int Number(Match row, int group) => int.Parse(row.Groups[group].Value, System.Globalization.CultureInfo.InvariantCulture);
 
     private static (int Width, int Height) PngSize(string path)

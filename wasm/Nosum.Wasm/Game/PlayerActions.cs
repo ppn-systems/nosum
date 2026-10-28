@@ -32,6 +32,7 @@ internal sealed class PlayerActions
 {
     // A cooldown just over the server's 300 ms swing keeps a mashed key from being refused (docs/adr/ADR-021 D8) and inside its rate limit.
     private const double UseCooldownSeconds = 0.32;
+    private const double SwingDurationSeconds = 0.30;
 
     private readonly FarmChannel _farm;
     private readonly InventoryChannel _inventory;
@@ -43,6 +44,8 @@ internal sealed class PlayerActions
     private readonly GameAudio? _audio;
     private readonly CombatChannel? _combat;
     private double _lastUseSeconds = double.NegativeInfinity;
+    private double _swingStartSeconds = double.NegativeInfinity;
+    private int _swingItemId;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
@@ -95,6 +98,50 @@ internal sealed class PlayerActions
     /// <summary>Gets the tile y in front of the farmer.</summary>
     public int TargetY { get; private set; }
 
+    /// <summary>Gets the item id currently held in the selected hotbar slot, or 0 when empty.</summary>
+    public int HeldItemId => _inventory.SlotAt(_inventory.SelectedSlot).ItemId;
+
+    /// <summary>Gets the active tool/weapon swing animation progress in <c>[0, 1)</c>, if a swing is playing.</summary>
+    /// <param name="nowSeconds">Current scene clock in seconds.</param>
+    /// <param name="progress">Normalized progress from 0 (wind-up) to 1 (complete).</param>
+    /// <param name="itemId">Item id being swung.</param>
+    /// <returns><see langword="true"/> while a swing animation is active.</returns>
+    public bool TryGetActiveSwing(double nowSeconds, out float progress, out int itemId)
+    {
+        double elapsed = nowSeconds - _swingStartSeconds;
+        if (elapsed >= 0.0 && elapsed < SwingDurationSeconds)
+        {
+            progress = (float)(elapsed / SwingDurationSeconds);
+            itemId = _swingItemId;
+            return true;
+        }
+
+        progress = -1f;
+        itemId = 0;
+        return false;
+    }
+
+    /// <summary>Gets the active combat skill visual effect, if any skill was recently triggered.</summary>
+    /// <param name="nowMs">Current tick count in milliseconds.</param>
+    /// <param name="skillId">Skill id (<c>1..3</c>).</param>
+    /// <param name="progress">Normalized animation progress in <c>[0, 1)</c>.</param>
+    /// <param name="playerX">Farmer tile X when cast.</param>
+    /// <param name="playerY">Farmer tile Y when cast.</param>
+    /// <returns><see langword="true"/> while a skill effect animation is active.</returns>
+    public bool TryGetActiveSkillEffect(long nowMs, out byte skillId, out float progress, out int playerX, out int playerY)
+    {
+        if (_combat is not null)
+        {
+            return _combat.TryGetActiveSkillEffect(nowMs, out skillId, out progress, out playerX, out playerY);
+        }
+
+        skillId = 0;
+        progress = 0f;
+        playerX = 0;
+        playerY = 0;
+        return false;
+    }
+
     /// <summary>Asks for a counter as if the action key had been pressed at it: a click on its merchant (docs/adr/ADR-043 D3). The caller has checked the farmer is within reach.</summary>
     /// <param name="shopId">The counter's id.</param>
     public void RequestShop(int shopId) => this.ShopRequested?.Invoke(shopId);
@@ -122,7 +169,7 @@ internal sealed class PlayerActions
         _counterId = shopId;
         int x = (int)(feetX / tileSize);
         int y = (int)(feetY / tileSize);
-        _combat?.SetLocalPosition(x, y);
+        _combat?.SetLocalPosition(x, y, (byte)facing);
         (this.TargetX, this.TargetY) = facing switch
         {
             Facing.Up => (x, y - 1),
@@ -148,6 +195,8 @@ internal sealed class PlayerActions
         {
             if ((edges & InputEdges.Skill1) != 0)
             {
+                _swingStartSeconds = nowSeconds;
+                _swingItemId = this.HeldItemId;
                 _combat.CastSkill(1);
             }
             else if ((edges & InputEdges.Skill2) != 0)
@@ -158,10 +207,14 @@ internal sealed class PlayerActions
                     targetId = tm.MonsterId;
                 }
 
+                _swingStartSeconds = nowSeconds;
+                _swingItemId = this.HeldItemId;
                 _combat.CastSkill(2, targetId);
             }
             else if ((edges & InputEdges.Skill3) != 0)
             {
+                _swingStartSeconds = nowSeconds;
+                _swingItemId = this.HeldItemId;
                 _combat.CastSkill(3);
             }
         }
@@ -219,9 +272,12 @@ internal sealed class PlayerActions
         if ((edges & InputEdges.Rotate) != 0 && mapAllowsTools && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
         {
             int wideSlot = _inventory.SelectedSlot;
-            if (ItemCatalog.TryGet(_inventory.SlotAt(wideSlot).ItemId, out ItemDefinition? tool) && tool.Tool is ToolKind.Hoe or ToolKind.WateringCan && ToolRules.AreaLength(tool.Tier) > 1)
+            int wideItemId = _inventory.SlotAt(wideSlot).ItemId;
+            if (ItemCatalog.TryGet(wideItemId, out ItemDefinition? tool) && tool.Tool is ToolKind.Hoe or ToolKind.WateringCan && ToolRules.AreaLength(tool.Tier) > 1)
             {
                 _lastUseSeconds = nowSeconds;
+                _swingStartSeconds = nowSeconds;
+                _swingItemId = wideItemId;
                 this.PlaySwing(tool.Tool);
                 _farm.UseArea(wideSlot, this.TargetX, this.TargetY, ToolRules.AreaLength(tool.Tier));
             }
@@ -237,6 +293,9 @@ internal sealed class PlayerActions
                 // A placeable in hand is set down by the placement actions, never swung at a tile.
                 return;
             }
+
+            _swingStartSeconds = nowSeconds;
+            _swingItemId = held.ItemId;
 
             if (IsShippingBin(this.TargetX, this.TargetY) && ShippingPrices.TryGet(held.ItemId, out _))
             {

@@ -523,22 +523,39 @@ internal sealed class MonstersDecorator : IMapDecorator
                 int pWorldX = (int)(px * FrameSize);
                 int pWorldY = (int)(py * FrameSize);
 
-                world.Add(
-                    _itemsTexture,
-                    96,
-                    64,
-                    FrameSize,
-                    FrameSize,
-                    pWorldX,
-                    pWorldY,
-                    pWorldY + FrameSize,
-                    pWorldX + (FrameSize / 2),
-                    9000);
+                if (p.Kind == 2)
+                {
+                    int flameOuter = unchecked((int)0xe64a19e8);
+                    int flameMid = unchecked((int)0xff9800f4);
+                    int flameCore = unchecked((int)0xfff59dff);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 12, 12, pWorldX + 2, pWorldY + 2, pWorldY + FrameSize, pWorldX + 8, 8997, tint: flameOuter);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 8, 8, pWorldX + 4, pWorldY + 4, pWorldY + FrameSize + 1, pWorldX + 8, 8998, tint: flameMid);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 4, 4, pWorldX + 6, pWorldY + 6, pWorldY + FrameSize + 2, pWorldX + 8, 8999, tint: flameCore);
+
+                    float tailProgress = Math.Max(0f, progress - 0.14f);
+                    int tailX = (int)((p.StartX + ((p.TargetX - p.StartX) * tailProgress)) * FrameSize);
+                    int tailY = (int)((p.StartY + ((p.TargetY - p.StartY) * tailProgress)) * FrameSize);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 5, 5, tailX + 5, tailY + 5, tailY + FrameSize, tailX + 8, 9000, tint: flameOuter);
+                }
+                else
+                {
+                    world.Add(
+                        _itemsTexture,
+                        96,
+                        64,
+                        FrameSize,
+                        FrameSize,
+                        pWorldX,
+                        pWorldY,
+                        pWorldY + FrameSize,
+                        pWorldX + (FrameSize / 2),
+                        9000);
+                }
             }
             else
             {
                 float impact = (now - (p.StartTime + (long)p.DurationMs)) / 200f;
-                int off = (int)(impact * 8f);
+                int off = (int)(impact * (p.Kind == 2 ? 12f : 8f));
                 int twX = (int)(p.TargetX * FrameSize);
                 int twY = (int)(p.TargetY * FrameSize);
 
@@ -546,6 +563,14 @@ internal sealed class MonstersDecorator : IMapDecorator
                 world.Add(_itemsTexture, 96, 64, 8, 8, twX - off, twY - off, twY + FrameSize, twX, 9002);
                 world.Add(_itemsTexture, 96, 64, 8, 8, twX - off, twY + off, twY + FrameSize, twX, 9003);
                 world.Add(_itemsTexture, 96, 64, 8, 8, twX + off, twY - off, twY + FrameSize, twX, 9004);
+                if (p.Kind == 2)
+                {
+                    int burstTint = unchecked((int)0xff7043e0);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 6, 6, twX + off + 4, twY + 4, twY + FrameSize + 1, twX, 9005, tint: burstTint);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 6, 6, twX - off + 4, twY + 4, twY + FrameSize + 1, twX, 9006, tint: burstTint);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 6, 6, twX + 4, twY + off + 4, twY + FrameSize + 1, twX, 9007, tint: burstTint);
+                    world.Add(RenderCommandBuffer.FillTexture, 0, 0, 6, 6, twX + 4, twY - off + 4, twY + FrameSize + 1, twX, 9008, tint: burstTint);
+                }
             }
         }
 

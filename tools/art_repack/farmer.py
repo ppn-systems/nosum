@@ -52,7 +52,7 @@ SHIRT_PIECES = {'down': 0, 'right': 8, 'up': 24}               # y offset of the
 HATS = {3: 'straw', 5: 'cap'}                                  # sheet index -> hat (HatStraw, HatCap)
 HAT_ROWS = ['down', 'right', 'left', 'up']
 DIRECTIONS = ['down', 'right', 'up']
-WALK_COLUMNS = [0, 1, 2]
+WALK_COLUMNS = [0, 1, 2, 3]
 
 HAIR_OFFSET_Y = 2          # FarmerSprite.HairOffsetY
 SHIRT_OFFSET = (4, 15)     # FarmerSprite.ShirtOffsetX / ShirtOffsetY
@@ -72,7 +72,11 @@ def _legs(direction, column):
             return [(6, 9, 31, 0)]
         if column == 1:   # near leg forward, far leg back and lifted
             return [(4, 6, 30, 1), (8, 10, 31, 0)]
+        if column == 3:   # planted wide action lunge stance
+            return [(4, 6, 31, 1), (8, 11, 31, 0)]
         return [(4, 6, 30, 0), (8, 10, 31, 1)]
+    if column == 3:
+        return [(4, 6, 31, 0), (9, 11, 31, 0)]
     left_up = column == 2
     right_up = column == 1
     return [(5, 7, 30 if left_up else 31, 0), (8, 10, 30 if right_up else 31, 0)]
@@ -96,28 +100,35 @@ def body(direction, column):
         c.rect(x0, y + b, x1 - x0 + 1, 1, SKIN)
     # light from the top left: shade the right edge and chin
     c.rect(12, 7 + b, 1, 6, SKIN_D)
-    c.rect(4, 6 + b, 4, 1, SKIN_L)                                       # forehead highlight
+    c.rect(4, 6 + b, 5, 1, SKIN_L)                                       # forehead highlight
     c.rect(5, 13 + b, 6, 1, SKIN_D)
-    c.rect(7, 14 + b, 2, 3 + 0, SKIN_D)                                  # neck
+    c.rect(7, 14 + b, 2, 3, SKIN_D)                                      # neck
     c.rect(5, 15 + b, 6, 8, SKIN)                                         # torso under the shirt (hidden by it)
     _fill_legs(c, direction, column, SKIN_D, SKIN_D, 22, shrink=1)        # legs under the pants, inside their outline
     if direction == 'down':
-        c.rect(5, 10 + b, 1, 2, EYE)
-        c.rect(10, 10 + b, 1, 2, EYE)
-        c.dot(4, 12 + b, CHEEK)
-        c.dot(11, 12 + b, CHEEK)
+        # Expressive 2x2 eyes with brow shade and upper-left catchlight
+        c.rect(4, 9 + b, 2, 1, SKIN_X)                                    # eyebrows
+        c.rect(10, 9 + b, 2, 1, SKIN_X)
+        c.rect(4, 10 + b, 2, 2, EYE)
+        c.rect(10, 10 + b, 2, 2, EYE)
+        c.dot(4, 10 + b, SKIN_L)                                          # eye shine
+        c.dot(10, 10 + b, SKIN_L)
+        c.dot(3, 12 + b, CHEEK)
+        c.dot(12, 12 + b, CHEEK)
         c.rect(7, 13 + b, 2, 1, SKIN_X)
         c.dot(2, 9 + b, SKIN)                                             # ears
         c.dot(2, 10 + b, SKIN)
         c.dot(13, 9 + b, SKIN_D)
         c.dot(13, 10 + b, SKIN_D)
     elif direction == 'right':
-        c.rect(10, 10 + b, 1, 2, EYE)
+        c.rect(10, 9 + b, 2, 1, SKIN_X)                                   # eyebrow
+        c.rect(10, 10 + b, 2, 2, EYE)
+        c.dot(10, 10 + b, SKIN_L)                                         # eye shine
         c.rect(13, 11 + b, 1, 2, SKIN)                                    # nose
         c.dot(9, 12 + b, CHEEK)
         c.dot(12, 13 + b, SKIN_X)
-        c.rect(6, 9 + b, 2, 2, SKIN_D)                                    # ear
-        c.dot(6, 9 + b, SKIN)
+        c.rect(5, 9 + b, 2, 2, SKIN_D)                                    # ear
+        c.dot(5, 9 + b, SKIN)
     else:
         c.rect(6, 13 + b, 4, 1, SKIN_D)                                   # nape
         c.dot(2, 9 + b, SKIN)
@@ -158,11 +169,29 @@ def arms(direction, column):
     c = Canvas(FRAME_W, FRAME_H)
     b = _bob(column)
     if direction == 'right':
-        # one visible arm; it swings opposite the near leg
-        sx = {0: 7, 1: 5, 2: 9}[column]
-        c.rect(sx, 16 + b, 2, 6, SKIN)
-        c.rect(sx + 1, 16 + b, 1, 6, SKIN_D)
-        c.rect(sx, 21 + b, 2, 2, HAND)
+        if column == 3:
+            # Action swing / cast pose: arm extended forward to hold/swing tool or cast spell
+            c.rect(8, 16 + b, 5, 2, SKIN)
+            c.rect(8, 17 + b, 5, 1, SKIN_D)
+            c.rect(12, 15 + b, 2, 3, HAND)
+        else:
+            # one visible arm; it swings opposite the near leg
+            sx = {0: 7, 1: 5, 2: 9}[column]
+            c.rect(sx, 16 + b, 2, 6, SKIN)
+            c.rect(sx + 1, 16 + b, 1, 6, SKIN_D)
+            c.rect(sx, 21 + b, 2, 2, HAND)
+    elif column == 3:
+        # Action swing / cast pose for down/up: left arm braced, right arm raised/extended
+        c.rect(3, 16 + b, 2, 5, SKIN)
+        c.rect(3, 20 + b, 2, 2, HAND)
+        if direction == 'down':
+            c.rect(11, 14 + b, 2, 6, SKIN)
+            c.rect(12, 14 + b, 1, 6, SKIN_D)
+            c.rect(11, 19 + b, 3, 2, HAND)
+        else:
+            c.rect(11, 12 + b, 2, 6, SKIN)
+            c.rect(12, 12 + b, 1, 6, SKIN_D)
+            c.rect(11, 11 + b, 2, 2, HAND)
     else:
         for side, x in ((-1, 3), (1, 11)):
             dy = 0
