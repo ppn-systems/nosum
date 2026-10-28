@@ -390,6 +390,18 @@ public static class ItemCatalog
     /// <summary>A cut treasure gem dropped by deep dungeon monsters.</summary>
     public const int TreasureGem = 517;
 
+    /// <summary>A glittering dungeon boss crown dropped by the Golem King (docs/adr/ADR-047).</summary>
+    public const int BossCrown = 518;
+
+    /// <summary>An ancient magical scroll dropped by the Cave Broodmother.</summary>
+    public const int AncientScroll = 519;
+
+    /// <summary>A golden skeleton key dropped by the Goblin Chieftain.</summary>
+    public const int GoldenKey = 520;
+
+    /// <summary>A blazing molten core dropped by the Magma Colossus.</summary>
+    public const int ColossusCore = 521;
+
     /// <summary>Largest stack of furniture.</summary>
     public const int FurnitureStack = 20;
 
@@ -513,6 +525,10 @@ public static class ItemCatalog
         new(GolemCore, "golem_core", ItemKind.Resource, DefaultStack) { ObjectIcon = 101 },
         new(ManaCrystal, "mana_crystal", ItemKind.Resource, DefaultStack) { ObjectIcon = 102 },
         new(TreasureGem, "treasure_gem", ItemKind.Resource, DefaultStack) { ObjectIcon = 103 },
+        new(BossCrown, "boss_crown", ItemKind.Resource, DefaultStack) { SellPrice = 2500, ObjectIcon = 113 },
+        new(AncientScroll, "ancient_scroll", ItemKind.Resource, DefaultStack) { SellPrice = 800, ObjectIcon = 106 },
+        new(GoldenKey, "golden_key", ItemKind.Resource, DefaultStack) { SellPrice = 1200, ObjectIcon = 114 },
+        new(ColossusCore, "colossus_core", ItemKind.Resource, DefaultStack) { SellPrice = 1800, ObjectIcon = 115 },
         new(Salad, "salad", ItemKind.Food, DefaultStack, foodEnergy: 90),
         new(BakedPotato, "baked_potato", ItemKind.Food, DefaultStack, foodEnergy: 60),
         new(PumpkinSoup, "pumpkin_soup", ItemKind.Food, DefaultStack, foodEnergy: 120),

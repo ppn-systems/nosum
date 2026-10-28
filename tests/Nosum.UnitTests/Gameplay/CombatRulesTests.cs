@@ -27,7 +27,7 @@ public sealed class CombatRulesTests
     [Fact]
     public void MonsterCatalog_EveryMonsterHasValidStatsAndExistingDrops()
     {
-        MonsterCatalog.All.Should().HaveCount(8);
+        MonsterCatalog.All.Should().HaveCount(12);
         MonsterCatalog.All.Select(m => m.Kind).Should().OnlyHaveUniqueItems();
         MonsterCatalog.All.Select(m => m.Key).Should().OnlyHaveUniqueItems();
 
@@ -94,9 +94,44 @@ public sealed class CombatRulesTests
     public void MonsterDamage_AllSpeciesHaveNonZeroContactDamage()
     {
         CombatRules.AggroRadius.Should().Be(4);
+        CombatRules.BossAggroRadius.Should().Be(6);
         foreach (MonsterKind kind in System.Enum.GetValues<MonsterKind>())
         {
             CombatRules.MonsterDamage(kind).Should().BeGreaterThan(0, $"{kind} deals contact damage");
         }
+    }
+
+    [Fact]
+    public void BossSystem_IdentifiesBossesAndMilestoneSpawns()
+    {
+        CombatRules.IsBoss(MonsterKind.BossBroodmother).Should().BeTrue();
+        CombatRules.IsBoss(MonsterKind.BossGoblinChieftain).Should().BeTrue();
+        CombatRules.IsBoss(MonsterKind.BossMagmaColossus).Should().BeTrue();
+        CombatRules.IsBoss(MonsterKind.BossGolemKing).Should().BeTrue();
+        CombatRules.IsBoss(MonsterKind.GreenSlime).Should().BeFalse();
+
+        CombatRules.IsBossFloor(10).Should().BeTrue();
+        CombatRules.IsBossFloor(20).Should().BeTrue();
+        CombatRules.IsBossFloor(30).Should().BeTrue();
+        CombatRules.IsBossFloor(40).Should().BeTrue();
+        CombatRules.IsBossFloor(5).Should().BeFalse();
+        CombatRules.IsBossFloor(15).Should().BeFalse();
+
+        CombatRules.SpeciesForMineFloor(10, 0).Should().Be(MonsterKind.BossBroodmother);
+        CombatRules.SpeciesForMineFloor(20, 0).Should().Be(MonsterKind.BossGoblinChieftain);
+        CombatRules.SpeciesForMineFloor(30, 0).Should().Be(MonsterKind.BossMagmaColossus);
+        CombatRules.SpeciesForMineFloor(40, 0).Should().Be(MonsterKind.BossGolemKing);
+
+        MonsterCatalog.TryGet(MonsterKind.BossBroodmother, out MonsterDefinition? broodmother).Should().BeTrue();
+        broodmother!.PrimaryDropItemId.Should().Be(ItemCatalog.AncientScroll);
+
+        MonsterCatalog.TryGet(MonsterKind.BossGoblinChieftain, out MonsterDefinition? chieftain).Should().BeTrue();
+        chieftain!.PrimaryDropItemId.Should().Be(ItemCatalog.GoldenKey);
+
+        MonsterCatalog.TryGet(MonsterKind.BossMagmaColossus, out MonsterDefinition? colossus).Should().BeTrue();
+        colossus!.PrimaryDropItemId.Should().Be(ItemCatalog.ColossusCore);
+
+        MonsterCatalog.TryGet(MonsterKind.BossGolemKing, out MonsterDefinition? golemKing).Should().BeTrue();
+        golemKing!.PrimaryDropItemId.Should().Be(ItemCatalog.BossCrown);
     }
 }

@@ -55,7 +55,7 @@ internal sealed class MonstersDecorator : IMapDecorator
         for (int i = 0; i < _scratch.Count; i++)
         {
             MonsterClientRow m = _scratch[i];
-            int kindIndex = Math.Clamp(m.Kind - 1, 0, 7);
+            int kindIndex = Math.Clamp(m.Kind - 1, 0, 11);
             int frameCol = (int)(((now / 220) + m.MonsterId) & 3);
             float phase = (now + (m.MonsterId * 313)) * 0.0035f;
             int swayX = (int)MathF.Round(MathF.Sin(phase) * 3f);

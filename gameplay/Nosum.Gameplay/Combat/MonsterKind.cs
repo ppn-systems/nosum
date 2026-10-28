@@ -34,4 +34,16 @@ public enum MonsterKind : byte
 
     /// <summary>Stone golem animated by ancient mana cores.</summary>
     StoneGolem = 8,
+
+    /// <summary>Cave broodmother: boss of mine floor 10 (docs/adr/ADR-047).</summary>
+    BossBroodmother = 9,
+
+    /// <summary>Goblin chieftain: boss of mine floor 20.</summary>
+    BossGoblinChieftain = 10,
+
+    /// <summary>Magma colossus: boss of mine floor 30.</summary>
+    BossMagmaColossus = 11,
+
+    /// <summary>Stone golem king: sovereign boss of mine floor 40.</summary>
+    BossGolemKing = 12,
 }

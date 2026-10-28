@@ -59,6 +59,34 @@ public static class CombatRules
     /// <summary>Aggro detection radius in tiles (Chebyshev) for monsters (docs/adr/ADR-046 D1).</summary>
     public const int AggroRadius = 4;
 
+    /// <summary>Boss aggro detection radius in tiles (Chebyshev) for boss encounters (docs/adr/ADR-047).</summary>
+    public const int BossAggroRadius = 6;
+
+    /// <summary>Returns whether a monster species is a dungeon floor boss (docs/adr/ADR-047).</summary>
+    /// <param name="kind">Monster species.</param>
+    /// <returns><see langword="true"/> when the monster is a boss.</returns>
+    public static bool IsBoss(MonsterKind kind) => kind is MonsterKind.BossBroodmother
+        or MonsterKind.BossGoblinChieftain
+        or MonsterKind.BossMagmaColossus
+        or MonsterKind.BossGolemKing;
+
+    /// <summary>Returns whether a mine floor is a milestone boss floor (10, 20, 30, 40).</summary>
+    /// <param name="floor">Mine floor (1..40).</param>
+    /// <returns><see langword="true"/> when a floor holds a boss encounter.</returns>
+    public static bool IsBossFloor(int floor) => floor is 10 or 20 or 30 or 40;
+
+    /// <summary>Returns the designated boss species for a milestone mine floor.</summary>
+    /// <param name="floor">Mine floor (1..40).</param>
+    /// <returns>The boss species or <see cref="MonsterKind.None"/>.</returns>
+    public static MonsterKind BossForFloor(int floor) => floor switch
+    {
+        10 => MonsterKind.BossBroodmother,
+        20 => MonsterKind.BossGoblinChieftain,
+        30 => MonsterKind.BossMagmaColossus,
+        40 => MonsterKind.BossGolemKing,
+        _ => MonsterKind.None,
+    };
+
     /// <summary>Contact damage dealt by a monster species when it attacks a player (docs/adr/ADR-046 D1).</summary>
     /// <param name="kind">Monster species.</param>
     /// <returns>Contact damage.</returns>
@@ -72,6 +100,10 @@ public static class CombatRules
         MonsterKind.SkeletonWarrior => 14,
         MonsterKind.MagmaSlime => 15,
         MonsterKind.StoneGolem => 20,
+        MonsterKind.BossBroodmother => 15,
+        MonsterKind.BossGoblinChieftain => 22,
+        MonsterKind.BossMagmaColossus => 30,
+        MonsterKind.BossGolemKing => 40,
         _ => 5,
     };
 
@@ -160,6 +192,11 @@ public static class CombatRules
     /// <returns>The monster species.</returns>
     public static MonsterKind SpeciesForMineFloor(int floor, int index)
     {
+        if (index == 0 && IsBossFloor(floor))
+        {
+            return BossForFloor(floor);
+        }
+
         if (floor <= 10)
         {
             return (index % 3) switch

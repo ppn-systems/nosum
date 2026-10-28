@@ -24,7 +24,7 @@ ENTRIES = {
     'sprites/weapons.png': ('5 Tools and weapons', ['kenney_tiny-dungeon', 'oga_weapon-rpg-icons', 'kenney_roguelike-characters', 'kenney_tiny-battle', NOSUM],
                              'The scythe drawn here (`tools.scythe`), cell (7, 5); wooden sword and arcane staff from Tiny Dungeon (8, 8 and 9, 10); bronze, iron, steel and gold swords from Weapon RPG Icons; round shield from Kenney Roguelike Characters (35, 1); battle emblem from Kenney Tiny Battle (15, 10)'),
     'sprites/monsters.png': ('11 Monsters', ['oga_animated-slimes', 'oga_trash-mobs', 'oga_tiny-creatures'],
-                              'Eight 4-column x 3-row (Down, Right, Up) monster animation blocks (64 x 384): GreenSlime, FrostSlime and MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior and StoneGolem from Tiny Creatures (`monsters.py`)'),
+                              'Twelve 4-column x 3-row (Down, Right, Up) monster and boss animation blocks (64 x 576): GreenSlime, FrostSlime, MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior, StoneGolem from Tiny Creatures; BossBroodmother, BossGoblinChieftain, BossMagmaColossus, BossGolemKing (`monsters.py`, ADR-047)'),
     'sprites/items.png': ('3 Items, 6 Resource nodes', [
         'kenney_tiny-farm', 'josehzz_farming-crops-16x16', 'kenney_tiny-town', 'dawnlike',
         'oga_assorted-rpg-icons', 'oga_animated-slimes', 'tiny16', 'oga_trash-mobs',

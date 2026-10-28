@@ -145,7 +145,8 @@ public sealed class CombatService : ICombatService, IDisposable
                                 }
                             }
 
-                            if (nearest is not null && bestDist <= CombatRules.AggroRadius)
+                            int aggroLimit = CombatRules.IsBoss(m.Kind) ? CombatRules.BossAggroRadius : CombatRules.AggroRadius;
+                            if (nearest is not null && bestDist <= aggroLimit)
                             {
                                 if (bestDist <= 1)
                                 {

@@ -513,6 +513,9 @@ OBJECTS = {
     110: library_tile('modern_city', 18, 0, 'Kenney Roguelike Modern City (18, 0), tonic can'),
     111: library_tile('rpg_urban', 4, 10, 'Kenney RPG Urban Pack (4, 10), apple crate'),
     112: library_tile('one_bit', 39, 10, 'Kenney 1-Bit Pack (39, 10), heart emblem'),
+    113: library_tile('gold_treasure', 0, 2, 'Gold treasure icons (0, 2), boss crown'),
+    114: library_tile('gold_treasure', 0, 1, 'Gold treasure icons (0, 1), golden skeleton key'),
+    115: library_tile('trash_mobs', 12, 0, 'Fantasy RPG Trash Mobs (12, 0), blazing colossus core'),
 }
 
 

@@ -307,4 +307,12 @@
   <data name="Item_mana_potion_Description" xml:space="preserve"><value>Restores 35 MP and 15 energy.</value></data>
   <data name="Item_elixir_Name" xml:space="preserve"><value>Golden elixir</value></data>
   <data name="Item_elixir_Description" xml:space="preserve"><value>Restores 100 HP, 50 MP and 60 energy.</value></data>
+  <data name="Item_boss_crown_Name" xml:space="preserve"><value>Boss crown</value></data>
+  <data name="Item_boss_crown_Description" xml:space="preserve"><value>A glittering golden crown dropped by the Golem King on floor 40.</value></data>
+  <data name="Item_ancient_scroll_Name" xml:space="preserve"><value>Ancient scroll</value></data>
+  <data name="Item_ancient_scroll_Description" xml:space="preserve"><value>An ancient parchment containing forgotten magical wisdom from the Broodmother on floor 10.</value></data>
+  <data name="Item_golden_key_Name" xml:space="preserve"><value>Golden key</value></data>
+  <data name="Item_golden_key_Description" xml:space="preserve"><value>A rare ornate key dropped by the Goblin Chieftain on floor 20.</value></data>
+  <data name="Item_colossus_core_Name" xml:space="preserve"><value>Colossus core</value></data>
+  <data name="Item_colossus_core_Description" xml:space="preserve"><value>A blazing molten core dropped by the Magma Colossus on floor 30.</value></data>
 </root>

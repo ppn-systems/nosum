@@ -19,6 +19,10 @@ public static class MonsterCatalog
         new(MonsterKind.GoblinScout, "goblin_scout", maxHp: 60, attackDamage: 12, xpReward: 30, ItemCatalog.GoblinEar, ItemCatalog.CopperBar),
         new(MonsterKind.SkeletonWarrior, "skeleton_warrior", maxHp: 90, attackDamage: 16, xpReward: 45, ItemCatalog.MonsterBone, ItemCatalog.IronOre),
         new(MonsterKind.StoneGolem, "stone_golem", maxHp: 140, attackDamage: 22, xpReward: 70, ItemCatalog.GolemCore, ItemCatalog.TreasureGem),
+        new(MonsterKind.BossBroodmother, "boss_broodmother", maxHp: 180, attackDamage: 15, xpReward: 150, ItemCatalog.AncientScroll, ItemCatalog.BatWing),
+        new(MonsterKind.BossGoblinChieftain, "boss_goblin_chieftain", maxHp: 280, attackDamage: 22, xpReward: 250, ItemCatalog.GoldenKey, ItemCatalog.GoblinEar),
+        new(MonsterKind.BossMagmaColossus, "boss_magma_colossus", maxHp: 420, attackDamage: 30, xpReward: 400, ItemCatalog.ColossusCore, ItemCatalog.TreasureGem),
+        new(MonsterKind.BossGolemKing, "boss_golem_king", maxHp: 600, attackDamage: 40, xpReward: 600, ItemCatalog.BossCrown, ItemCatalog.GolemCore),
     ];
 
     private static readonly Dictionary<MonsterKind, MonsterDefinition> s_byKind = Index();
