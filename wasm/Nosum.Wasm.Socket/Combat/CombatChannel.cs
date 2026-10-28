@@ -69,6 +69,23 @@ public readonly record struct DeathEffectClientRow(
     byte Kind = 0);
 
 /// <summary>
+/// Client-side floating combat text (damage, crits, heals) rising above characters (docs/adr/ADR-055).
+/// </summary>
+/// <param name="WorldX">World pixel X.</param>
+/// <param name="WorldY">World pixel Y.</param>
+/// <param name="Amount">Combat numeric value.</param>
+/// <param name="Style">0 = White, 1 = Gold/Crit, 2 = Red/DamageTaken, 3 = Green/Heal, 4 = Purple/Poison.</param>
+/// <param name="StartTime">Millisecond timestamp.</param>
+/// <param name="DurationMs">Total floating duration.</param>
+public readonly record struct FloatingTextClientRow(
+    int WorldX,
+    int WorldY,
+    int Amount,
+    byte Style,
+    long StartTime,
+    float DurationMs = 650f);
+
+/// <summary>
 /// Client mirror of player HP &amp; MP vitals, Combat XP, and live monsters on the active map (docs/adr/ADR-045 D3).
 /// </summary>
 public sealed class CombatChannel : IDisposable
@@ -79,6 +96,9 @@ public sealed class CombatChannel : IDisposable
     private readonly List<MonsterClientRow> _monsters = [];
     private readonly List<ProjectileClientRow> _projectiles = [];
     private readonly List<DeathEffectClientRow> _deathEffects = [];
+    private readonly List<FloatingTextClientRow> _floatingTexts = [];
+    private int _playerX;
+    private int _playerY;
 
     private int _hp = 100;
     private int _maxHp = 100;
@@ -197,6 +217,28 @@ public sealed class CombatChannel : IDisposable
         }
     }
 
+    /// <summary>Finds a monster by its id.</summary>
+    /// <param name="monsterId">Monster id to find.</param>
+    /// <param name="monster">The monster if found.</param>
+    /// <returns><see langword="true"/> when the monster is present.</returns>
+    public bool TryGetMonster(int monsterId, out MonsterClientRow monster)
+    {
+        lock (_gate)
+        {
+            foreach (MonsterClientRow row in _monsters)
+            {
+                if (row.MonsterId == monsterId)
+                {
+                    monster = row;
+                    return true;
+                }
+            }
+
+            monster = default;
+            return false;
+        }
+    }
+
     /// <summary>Requests current player vitals from the server.</summary>
     public void LoadVitals() => _ = this.LoadVitalsAsync();
 
@@ -281,6 +323,55 @@ public sealed class CombatChannel : IDisposable
         }
     }
 
+    /// <summary>Updates local player coordinates for floating combat text positioning.</summary>
+    public void SetLocalPosition(int tileX, int tileY)
+    {
+        _playerX = tileX;
+        _playerY = tileY;
+    }
+
+    /// <summary>Spawns a floating combat number in world pixels (docs/adr/ADR-055).</summary>
+    public void SpawnFloatingText(int worldX, int worldY, int amount, byte style = 0, float durationMs = 650f)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        lock (_gate)
+        {
+            if (_floatingTexts.Count >= 32)
+            {
+                _floatingTexts.RemoveAt(0);
+            }
+
+            _floatingTexts.Add(new FloatingTextClientRow(worldX, worldY, amount, style, Environment.TickCount64, durationMs));
+        }
+    }
+
+    /// <summary>Copies active floating combat numbers without allocation.</summary>
+    public void CopyFloatingTexts(List<FloatingTextClientRow> destination, long now)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        destination.Clear();
+
+        lock (_gate)
+        {
+            for (int i = _floatingTexts.Count - 1; i >= 0; i--)
+            {
+                FloatingTextClientRow f = _floatingTexts[i];
+                if ((now - f.StartTime) >= f.DurationMs)
+                {
+                    _floatingTexts.RemoveAt(i);
+                }
+                else
+                {
+                    destination.Add(f);
+                }
+            }
+        }
+    }
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -339,6 +430,17 @@ public sealed class CombatChannel : IDisposable
 
             if (reply.Status == CombatStatus.Ok)
             {
+                if (this.TryGetMonster(reply.MonsterId, out MonsterClientRow m))
+                {
+                    byte style = (byte)(reply.DamageDealt >= 18 ? 1 : 0);
+                    this.SpawnFloatingText((m.X * 16) + 8, (m.Y * 16) - 6, reply.DamageDealt, style);
+                }
+
+                if (reply.DamageTaken > 0)
+                {
+                    this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, reply.DamageTaken, 2);
+                }
+
                 this.UpdateMonsterHp(reply.MonsterId, reply.MonsterHp);
             }
 
@@ -365,6 +467,13 @@ public sealed class CombatChannel : IDisposable
             DrinkPotionResult reply = await _socket.RequestAsync<DrinkPotionResult>(req.Value).ConfigureAwait(false);
             if (reply.MaxHp > 0)
             {
+                int oldHp = Volatile.Read(ref _hp);
+                int hpDiff = reply.Hp - oldHp;
+                if (hpDiff > 0)
+                {
+                    this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, hpDiff, 3);
+                }
+
                 Volatile.Write(ref _hp, reply.Hp);
                 Volatile.Write(ref _maxHp, reply.MaxHp);
                 Volatile.Write(ref _mp, reply.Mp);
@@ -384,6 +493,21 @@ public sealed class CombatChannel : IDisposable
         if (packet.MaxHp <= 0)
         {
             return;
+        }
+
+        int oldHp = Volatile.Read(ref _hp);
+        int diff = packet.Hp - oldHp;
+        if (oldHp > 0 && diff != 0)
+        {
+            if (diff > 0)
+            {
+                this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, diff, 3);
+            }
+            else
+            {
+                byte style = (byte)(packet.StatusEffect == 2 ? 4 : 2);
+                this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, -diff, style);
+            }
         }
 
         Volatile.Write(ref _hp, packet.Hp);

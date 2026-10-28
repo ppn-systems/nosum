@@ -173,7 +173,7 @@ export async function loadTexture(id, url) {
 // Renders a text label once into a bitmap: the glyph shape is thresholded to hard pixels (no soft edges) and
 // outlined in black, so a nickname stays crisp when the world scale magnifies it. Called when a name arrives,
 // never from the frame; the frame only draws the bitmap by id (command texture -3).
-const LABEL_FILL = ["#ffffff", "#ffe08a"];
+const LABEL_FILL = ["#ffffff", "#ffe08a", "#ff5757", "#63c74d", "#c084fc"];
 const LABEL_FONT = "bold 11px 'Segoe UI', system-ui, sans-serif";
 
 export function registerLabel(id, text, style) {

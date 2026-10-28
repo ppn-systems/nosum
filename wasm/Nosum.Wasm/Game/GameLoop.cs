@@ -222,9 +222,12 @@ internal static partial class GameLoop
             providers.Add(new AnimalsDecoratorProvider(s_buildings));
         }
 
+        LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel);
+        CombatLabels? combatLabels = s_combat is not null ? new CombatLabels(labelRegistry) : null;
+
         if (s_combat is not null)
         {
-            providers.Add(new MonstersDecoratorProvider(s_combat));
+            providers.Add(new MonstersDecoratorProvider(s_combat, combatLabels));
         }
 
         if (s_network is not null)
@@ -254,7 +257,7 @@ internal static partial class GameLoop
         // Until the server's look arrives (and without a server) the default look is drawn, never one made up from an id.
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
-        NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(new LabelRegistry(WebRenderBackend.UploadLabel), s_looks, s_names) : null;
+        NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(labelRegistry, s_looks, s_names) : null;
         s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio);
         if (s_audio is not null)
         {

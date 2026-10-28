@@ -24,23 +24,27 @@ internal sealed class MonstersDecorator : IMapDecorator
 
     private readonly string _mapId;
     private readonly CombatChannel _combat;
+    private readonly CombatLabels? _labels;
     private readonly int _sheetTexture;
     private readonly int _itemsTexture;
     private readonly List<MonsterClientRow> _scratch = new(16);
     private readonly List<ProjectileClientRow> _projectilesScratch = new(16);
     private readonly List<DeathEffectClientRow> _deathEffectsScratch = new(16);
+    private readonly List<FloatingTextClientRow> _floatingTextsScratch = new(32);
 
     /// <summary>Initializes the decorator.</summary>
     /// <param name="mapId">Map id being decorated.</param>
     /// <param name="combat">The client combat channel.</param>
     /// <param name="sheetTexture">Texture id of <c>assets/sprites/monsters.png</c>.</param>
     /// <param name="itemsTexture">Texture id of <c>assets/sprites/items.png</c>.</param>
-    public MonstersDecorator(string mapId, CombatChannel combat, int sheetTexture, int itemsTexture)
+    /// <param name="labels">Pre-interned floating combat labels; <see langword="null"/> to skip floating combat text.</param>
+    public MonstersDecorator(string mapId, CombatChannel combat, int sheetTexture, int itemsTexture, CombatLabels? labels = null)
     {
         _mapId = mapId;
         _combat = combat;
         _sheetTexture = sheetTexture;
         _itemsTexture = itemsTexture;
+        _labels = labels;
     }
 
     /// <inheritdoc/>
@@ -79,6 +83,52 @@ internal sealed class MonstersDecorator : IMapDecorator
                 worldY + FrameSize,
                 worldX + (FrameSize / 2),
                 m.MonsterId);
+
+            // Overhead mini-health bar (docs/adr/ADR-055):
+            // Displayed if the monster is damaged (Hp < MaxHp) or is a floor boss (Kind >= 9).
+            if (m.MaxHp > 0 && (m.Hp < m.MaxHp || m.Kind >= 9))
+            {
+                int barW = 14;
+                int barH = 3;
+                int barX = worldX + 1;
+                int barY = worldY - 6;
+
+                // Background & border (dark slate):
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    barW,
+                    barH,
+                    barX,
+                    barY,
+                    worldY + FrameSize,
+                    worldX,
+                    8900 + m.MonsterId,
+                    tint: unchecked((int)0x111111ee));
+
+                // Health fill:
+                int fillW = Math.Clamp((m.Hp * (barW - 2)) / m.MaxHp, 1, barW - 2);
+                int hpTint = (m.Hp * 100 / m.MaxHp) switch
+                {
+                    > 50 => unchecked((int)0x44cc44ff), // Green
+                    > 25 => unchecked((int)0xe5b82eff), // Yellow
+                    _ => unchecked((int)0xe53935ff),    // Red
+                };
+
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    fillW,
+                    barH - 2,
+                    barX + 1,
+                    barY + 1,
+                    worldY + FrameSize,
+                    worldX,
+                    8901 + m.MonsterId,
+                    tint: hpTint);
+            }
         }
 
         _combat.CopyProjectiles(_projectilesScratch, now);
@@ -142,6 +192,30 @@ internal sealed class MonstersDecorator : IMapDecorator
                 worldX + (FrameSize / 2),
                 9500 + i);
         }
+
+        if (_labels is not null)
+        {
+            _combat.CopyFloatingTexts(_floatingTextsScratch, now);
+            for (int i = 0; i < _floatingTextsScratch.Count; i++)
+            {
+                FloatingTextClientRow f = _floatingTextsScratch[i];
+                float progress = Math.Clamp((now - f.StartTime) / f.DurationMs, 0f, 1f);
+                int floatY = (int)(f.WorldY - (progress * 18f));
+                int labelId = _labels.GetLabelId(f.Amount, f.Style);
+
+                world.Add(
+                    RenderCommandBuffer.LabelTexture,
+                    labelId,
+                    0,
+                    0,
+                    0,
+                    f.WorldX,
+                    floatY,
+                    f.WorldY + FrameSize + 30,
+                    f.WorldX,
+                    9800 + i);
+            }
+        }
     }
 }
 
@@ -149,10 +223,16 @@ internal sealed class MonstersDecorator : IMapDecorator
 internal sealed class MonstersDecoratorProvider : IMapDecoratorProvider
 {
     private readonly CombatChannel _combat;
+    private readonly CombatLabels? _labels;
 
     /// <summary>Initializes the provider.</summary>
     /// <param name="combat">The combat channel.</param>
-    public MonstersDecoratorProvider(CombatChannel combat) => _combat = combat;
+    /// <param name="labels">Pre-interned floating combat labels.</param>
+    public MonstersDecoratorProvider(CombatChannel combat, CombatLabels? labels = null)
+    {
+        _combat = combat;
+        _labels = labels;
+    }
 
     /// <inheritdoc/>
     public async Task<IMapDecorator?> CreateAsync(MapSpec spec, TileMap map, TextureCache textures, CancellationToken cancellationToken)
@@ -164,6 +244,6 @@ internal sealed class MonstersDecoratorProvider : IMapDecoratorProvider
         int itemsSheet = await textures.LoadAsync(MonstersDecorator.ItemsSheetUrl).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         _combat.LoadMonsters();
-        return new MonstersDecorator(spec.Id, _combat, sheet, itemsSheet);
+        return new MonstersDecorator(spec.Id, _combat, sheet, itemsSheet, _labels);
     }
 }

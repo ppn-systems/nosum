@@ -122,6 +122,7 @@ internal sealed class PlayerActions
         _counterId = shopId;
         int x = (int)(feetX / tileSize);
         int y = (int)(feetY / tileSize);
+        _combat?.SetLocalPosition(x, y);
         (this.TargetX, this.TargetY) = facing switch
         {
             Facing.Up => (x, y - 1),
