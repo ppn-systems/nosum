@@ -55,3 +55,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-043](ADR-043-npc-merchants-and-the-menu-split.md) | NPC merchants at the counters with a dialog box, shop/market/board pages as standalone dialogs, mail with its own HUD icon, the menu holds player things only (amends ADR-034 D4) | Accepted |
 | [ADR-044](ADR-044-standalone-panels-and-hud-separation.md) | Standalone windows for every panel, separated HUD action bar, Account in Profile and Credits in its own Settings tab (amends ADR-017, ADR-033, ADR-043) | Accepted |
 | [ADR-045](ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md) | MMORPG combat, HP & MP vitals, monster encounters, weapons, potions, and full art library repack (amends ADR-021, ADR-023, ADR-026, ADR-040) | Accepted |
+| [ADR-046](ADR-046-monster-ai-roaming-and-combat-effects.md) | Monster AI roaming, aggro, real-time combat effects and boss encounters (amends ADR-045) | Accepted |

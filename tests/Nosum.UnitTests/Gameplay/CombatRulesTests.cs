@@ -89,4 +89,14 @@ public sealed class CombatRulesTests
         List<MonsterSpawn> farm = CombatRules.PlanMonsters("Farm", 12345UL, grid, occupied, 4, 4);
         farm.Should().BeEmpty("the player's farm does not spawn hostile monsters");
     }
+
+    [Fact]
+    public void MonsterDamage_AllSpeciesHaveNonZeroContactDamage()
+    {
+        CombatRules.AggroRadius.Should().Be(4);
+        foreach (MonsterKind kind in System.Enum.GetValues<MonsterKind>())
+        {
+            CombatRules.MonsterDamage(kind).Should().BeGreaterThan(0, $"{kind} deals contact damage");
+        }
+    }
 }

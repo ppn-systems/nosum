@@ -232,6 +232,7 @@ internal sealed class PlayerActions
                 && (_combat.Hp < _combat.MaxHp || _combat.Mp < _combat.MaxMp)
                 && !this.FacesCrop())
             {
+                _audio?.Play(SoundIds.Pickup);
                 _combat.DrinkPotion(selected);
             }
             else if (_progress is { MaxEnergy: > 0 } && _progress.Energy < _progress.MaxEnergy && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? food) && food.IsEdible

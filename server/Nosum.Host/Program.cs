@@ -215,6 +215,14 @@ internal static class Program
             ex => Console.Error.WriteLine("Mail expiry failed: " + ex.Message),
             shutdown.Token);
 
+        // Monsters roam and aggro towards players (docs/adr/ADR-046 D1).
+        CombatService combatService = (InstanceManager.Instance.GetExistingInstance<ICombatService>() as CombatService)
+            ?? throw new InvalidOperationException("The combat service is not registered.");
+        Task monsterAi = combatService.RunAiAsync(
+            CombatService.DefaultAiInterval,
+            ex => Console.Error.WriteLine("Monster AI failed: " + ex.Message),
+            shutdown.Token);
+
         if (LoadTestMode())
         {
             OpsLog.Warning("host.load_test_mode", "NOSUM_LOAD_TEST is on: the per-address rate limits are OFF. Never run players on this server.");
@@ -232,6 +240,7 @@ internal static class Program
 
         await keyAnnouncement.ConfigureAwait(false);
         await animalWander.ConfigureAwait(false);
+        await monsterAi.ConfigureAwait(false);
 
         await guestCleanup.ConfigureAwait(false);
         await marketExpiry.ConfigureAwait(false);

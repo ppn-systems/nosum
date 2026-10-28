@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
@@ -62,6 +63,168 @@ public sealed class CombatService : ICombatService, IDisposable
         _dayClock = dayClock;
         _notifier = notifier;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
+    }
+
+    /// <summary>The time between monster AI decisions (docs/adr/ADR-046 D1).</summary>
+    public static readonly TimeSpan DefaultAiInterval = TimeSpan.FromMilliseconds(1500);
+
+    /// <summary>Runs the monster AI tick on active map instances with players (docs/adr/ADR-046 D1).</summary>
+    /// <param name="interval">Tick interval.</param>
+    /// <param name="onError">Error callback.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that runs until cancelled.</returns>
+    [SuppressMessage("Design", "CA1031", Justification = "AI loop runs indefinitely and reports unexpected errors to callback.")]
+    public async Task RunAiAsync(TimeSpan interval, Action<Exception>? onError = null, CancellationToken cancellationToken = default)
+    {
+        using PeriodicTimer timer = new(interval);
+        List<PlayerPresence> players = new(16);
+        List<MonsterSpawn> moved = new(8);
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false);
+                foreach (KeyValuePair<string, InstanceMonsters> entry in _instances)
+                {
+                    string instanceKeyWithDate = entry.Key;
+                    int colon = instanceKeyWithDate.IndexOf(':', StringComparison.Ordinal);
+                    string instanceKey = colon > 0 ? instanceKeyWithDate[..colon] : instanceKeyWithDate;
+
+                    players.Clear();
+                    _presence.CopyPlayers(instanceKey, players);
+                    if (players.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    string mapId = players[0].MapId;
+                    if (!_maps.TryGet(mapId, out MapDefinition? map))
+                    {
+                        continue;
+                    }
+
+                    InstanceMonsters instance = entry.Value;
+                    moved.Clear();
+                    lock (instance.Gate)
+                    {
+                        int tileSize = Math.Max(1, map.Grid.TileSize);
+                        for (int i = 0; i < instance.Monsters.Count; i++)
+                        {
+                            MonsterSpawn m = instance.Monsters[i];
+                            if (m.Hp <= 0)
+                            {
+                                continue;
+                            }
+
+                            int bestDist = int.MaxValue;
+                            PlayerPresence? nearest = null;
+                            int targetTileX = 0;
+                            int targetTileY = 0;
+
+                            for (int pIdx = 0; pIdx < players.Count; pIdx++)
+                            {
+                                PlayerPresence p = players[pIdx];
+                                double px;
+                                double py;
+                                lock (p.Gate)
+                                {
+                                    px = p.Motion.X;
+                                    py = p.Motion.Y;
+                                }
+
+                                int pTileX = (int)Math.Floor(px / tileSize);
+                                int pTileY = (int)Math.Floor(py / tileSize);
+                                int d = Math.Max(Math.Abs(pTileX - m.X), Math.Abs(pTileY - m.Y));
+                                if (d < bestDist)
+                                {
+                                    bestDist = d;
+                                    nearest = p;
+                                    targetTileX = pTileX;
+                                    targetTileY = pTileY;
+                                }
+                            }
+
+                            if (nearest is not null && bestDist <= CombatRules.AggroRadius)
+                            {
+                                if (bestDist <= 1)
+                                {
+                                    int damage = CombatRules.MonsterDamage(m.Kind);
+                                    _ = this.ApplyMonsterContactAttackAsync(nearest.AccountId, damage, cancellationToken);
+                                }
+                                else
+                                {
+                                    int stepX = m.X + Math.Sign(targetTileX - m.X);
+                                    int stepY = m.Y + Math.Sign(targetTileY - m.Y);
+                                    if (!map.Grid.IsBlocked(stepX, stepY))
+                                    {
+                                        MonsterSpawn updated = m with { X = stepX, Y = stepY };
+                                        instance.Monsters[i] = updated;
+                                        moved.Add(updated);
+                                    }
+                                }
+                            }
+                            else if (Random.Shared.Next(4) == 0)
+                            {
+                                int dir = Random.Shared.Next(4);
+                                int wx = m.X + (dir == 0 ? 1 : dir == 1 ? -1 : 0);
+                                int wy = m.Y + (dir == 2 ? 1 : dir == 3 ? -1 : 0);
+                                if (!map.Grid.IsBlocked(wx, wy))
+                                {
+                                    MonsterSpawn updated = m with { X = wx, Y = wy };
+                                    instance.Monsters[i] = updated;
+                                    moved.Add(updated);
+                                }
+                            }
+                        }
+                    }
+
+                    for (int mIdx = 0; mIdx < moved.Count; mIdx++)
+                    {
+                        await this.BroadcastMonsterChangedAsync(instanceKey, moved[mIdx], cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                onError?.Invoke(ex);
+            }
+        }
+    }
+
+    private async Task ApplyMonsterContactAttackAsync(Guid playerId, int damage, CancellationToken cancellationToken)
+    {
+        if (!_vitals.TryGetValue(playerId, out PlayerVitalsState? state))
+        {
+            return;
+        }
+
+        VitalsView updated;
+        lock (state.Gate)
+        {
+            state.Hp = Math.Max(0, state.Hp - damage);
+            if (state.Hp == 0)
+            {
+                state.Hp = Math.Max(1, state.MaxHp / 2);
+            }
+
+            updated = state.ToView();
+        }
+
+        if (_notifier is not null)
+        {
+            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
+            lease.Value.Hp = (ushort)updated.Hp;
+            lease.Value.MaxHp = (ushort)updated.MaxHp;
+            lease.Value.Mp = (ushort)updated.Mp;
+            lease.Value.MaxMp = (ushort)updated.MaxMp;
+            lease.Value.CombatXp = updated.CombatXp;
+            _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc/>

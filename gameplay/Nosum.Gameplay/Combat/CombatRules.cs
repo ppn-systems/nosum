@@ -56,6 +56,25 @@ public static class CombatRules
     /// <summary>Maximum number of monsters on a single map or floor.</summary>
     public const int MaxMonstersPerMap = 16;
 
+    /// <summary>Aggro detection radius in tiles (Chebyshev) for monsters (docs/adr/ADR-046 D1).</summary>
+    public const int AggroRadius = 4;
+
+    /// <summary>Contact damage dealt by a monster species when it attacks a player (docs/adr/ADR-046 D1).</summary>
+    /// <param name="kind">Monster species.</param>
+    /// <returns>Contact damage.</returns>
+    public static int MonsterDamage(MonsterKind kind) => kind switch
+    {
+        MonsterKind.GreenSlime => 4,
+        MonsterKind.CaveBat => 6,
+        MonsterKind.SporeShroom => 5,
+        MonsterKind.FrostSlime => 8,
+        MonsterKind.GoblinScout => 10,
+        MonsterKind.SkeletonWarrior => 14,
+        MonsterKind.MagmaSlime => 15,
+        MonsterKind.StoneGolem => 20,
+        _ => 5,
+    };
+
     /// <summary>Calculates maximum HP for a given Combat skill level.</summary>
     /// <param name="combatLevel">Combat level (0..10).</param>
     /// <returns>Maximum HP.</returns>
