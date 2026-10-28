@@ -65,7 +65,7 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `sprites/crops.png` | 4 Crops and soil | `kenney_tiny-farm`, `josehzz_farming-crops-16x16` | 21 crops, 5-6 growth frames each: Tiny Farm's stages for the 8 crops it covers, the crops pack's six pictures (seed, three stages, ripe) for the rest, placed in the catalogue's frames at the bottom of each 16 x 32 cell; recolours in the crop table |
 | `sprites/furniture.png` | 3 Items | Nosum original (drawn in tools/art_repack, no outside source) | Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`) |
 | `sprites/items.png` | 3 Items, 6 Resource nodes | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, `kenney_tiny-town`, `dawnlike`, `oga_assorted-rpg-icons`, `oga_animated-slimes`, `tiny16`, `oga_trash-mobs`, `oga_16x16-rpg-items`, `kenney_roguelike-caves-dungeons`, `oga_16x16-dungeon-tiles`, `oga_puny-dungeon`, `oga_gold-treasure-icons`, `oga_6-color-dungeon`, `kenney_roguelike-rpg-pack`, `kenney_roguelike-indoors`, `oga_random-animals`, `oga_pixel-animals-16x16`, `kenney_roguelike-modern-city`, `kenney_rpg-urban-pack`, `kenney_1-bit-pack`, Nosum original (drawn in tools/art_repack, no outside source) | The 112 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), potions and spell tome from Assorted RPG Icons, monster drops and RPG relics from Animated Slimes, Tiny 16 (CC-BY), Trash Mobs, 16x16 RPG Items, Roguelike Caves & Dungeons, 16x16 Dungeon Tiles, Puny Dungeon, Gold Treasure Icons, 6 Color Dungeon, Roguelike/RPG Pack, Roguelike Indoors, Random Animals, Pixel Animals 16x16, Roguelike Modern City, RPG Urban Pack and 1-Bit Pack, everything else drawn here (table below); unused cells are transparent |
-| `sprites/monsters.png` | 11 Monsters | `oga_animated-slimes`, `oga_trash-mobs`, `oga_tiny-creatures` | Eight 4-column x 3-row (Down, Right, Up) monster animation blocks (64 x 384): GreenSlime, FrostSlime and MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior and StoneGolem from Tiny Creatures (`monsters.py`) |
+| `sprites/monsters.png` | 11 Monsters | `oga_animated-slimes`, `oga_trash-mobs`, `oga_tiny-creatures` | Twelve 4-column x 3-row (Down, Right, Up) monster and boss animation blocks (64 x 576): GreenSlime, FrostSlime, MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior, StoneGolem from Tiny Creatures; BossBroodmother, BossGoblinChieftain, BossMagmaColossus, BossGolemKing (`monsters.py`, ADR-047) |
 | `sprites/npcs/blacksmith.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Blacksmith (bald, beard, bare arms, leather apron, hammer); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
 | `sprites/npcs/blacksmith_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
 | `sprites/npcs/board_keeper.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Board keeper (green visor, glasses, blue shawl, scroll); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
@@ -228,15 +228,22 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 | 101 | `golem_core` | 16x16 Dungeon Tiles `diamond_1.png`, golem core |
 | 102 | `mana_crystal` | Puny Dungeon `punyworld-dungeon-tileset.png` (16, 10), mana crystal |
 | 103 | `treasure_gem` | Gold treasure icons `sheet.png` (1, 2), treasure gem |
-| 104 | resource node | Assorted RPG Icons `books.png` (3, 0), spell tome |
-| 105 | resource node | 6 Color Dungeon (19, 2), dungeon skull |
-| 106 | resource node | Kenney Roguelike/RPG Pack (44, 15), ancient scroll |
-| 107 | resource node | Kenney Roguelike Indoors (19, 0), candelabra |
+| 104 | `arcane_grimoire` | Assorted RPG Icons `books.png` (3, 0), spell tome |
+| 105 | `necromancer_skull` | 6 Color Dungeon (19, 2), dungeon skull |
+| 106 | `ancient_scroll` | Kenney Roguelike/RPG Pack (44, 15), ancient scroll |
+| 107 | `sanctuary_candelabra` | Kenney Roguelike Indoors (19, 0), candelabra |
 | 108 | resource node | Random animals `bee.png`, honey bee |
 | 109 | resource node | Pixel Animals 16x16 (0, 0), pocket cat |
-| 110 | resource node | Kenney Roguelike Modern City (18, 0), tonic can |
-| 111 | resource node | Kenney RPG Urban Pack (4, 10), apple crate |
-| 112 | resource node | Kenney 1-Bit Pack (39, 10), heart emblem |
+| 110 | `runestone_tablet` | 16x16 RPG items (2, 4), runestone tablet |
+| 111 | `ranger_tunic` | DawnLike Armor (2, 7), ranger tunic |
+| 112 | `heart_crystal` | Kenney 1-Bit Pack (39, 10), heart emblem |
+| 113 | `boss_crown` | Gold treasure icons (0, 2), boss crown |
+| 114 | `golden_key` | 16x16 RPG items (1, 4), golden skeleton key |
+| 115 | `colossus_core` | Fantasy RPG Trash Mobs (12, 0), blazing colossus core |
+| 116 | `leather_armor` | DawnLike Armor (0, 6), leather armor |
+| 117 | `iron_chestplate` | DawnLike Armor (2, 6), iron chestplate |
+| 118 | `iron_greaves` | DawnLike Boot (1, 0), iron greaves |
+| 119 | `iron_helmet` | DawnLike Hat (1, 0), iron helmet |
 
 ## Map tilesheets (art/own/Maps)
 

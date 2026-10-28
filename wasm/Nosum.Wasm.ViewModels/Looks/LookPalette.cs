@@ -70,8 +70,8 @@ public static class LookPalette
         ItemCatalog.ShirtGreen => new(11, White),
         ItemCatalog.ShirtBlue => new(7, White),
         ItemCatalog.LeatherArmor => new(3, unchecked((int)0x8B5A2BFF)),
-        ItemCatalog.RangerTunic => new(11, unchecked((int)0x92400EFF)),
-        ItemCatalog.IronChestplate => new(7, unchecked((int)0x94A3B8FF)),
+        ItemCatalog.RangerTunic => new(3, unchecked((int)0x92400EFF)),
+        ItemCatalog.IronChestplate => new(3, unchecked((int)0x94A3B8FF)),
         _ => PlainShirt,
     };
 

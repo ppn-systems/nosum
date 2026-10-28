@@ -172,22 +172,54 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     public string CombatSkillsAriaLabel => this.Text("Combat_Skills_Aria");
 
     /// <summary>Gets the localized Whirlwind skill label.</summary>
-    public string WhirlwindLabel => this.Text("Combat_Skill_Whirlwind");
+    public string WhirlwindLabel => this.FormatSkillLabel("Combat_Skill_Whirlwind", (byte)CombatSkillKind.Whirlwind);
 
     /// <summary>Gets the localized Whirlwind skill tooltip.</summary>
     public string WhirlwindTip => this.Text("Combat_Skill_Whirlwind_Tip");
 
+    /// <summary>Gets whether the Whirlwind skill button should be disabled.</summary>
+    public bool WhirlwindDisabled => !this.CanCastSkill((byte)CombatSkillKind.Whirlwind);
+
     /// <summary>Gets the localized Fireball skill label.</summary>
-    public string FireballLabel => this.Text("Combat_Skill_Fireball");
+    public string FireballLabel => this.FormatSkillLabel("Combat_Skill_Fireball", (byte)CombatSkillKind.Fireball);
 
     /// <summary>Gets the localized Fireball skill tooltip.</summary>
     public string FireballTip => this.Text("Combat_Skill_Fireball_Tip");
 
+    /// <summary>Gets whether the Fireball skill button should be disabled.</summary>
+    public bool FireballDisabled => !this.CanCastSkill((byte)CombatSkillKind.Fireball);
+
     /// <summary>Gets the localized Divine Heal skill label.</summary>
-    public string DivineHealLabel => this.Text("Combat_Skill_DivineHeal");
+    public string DivineHealLabel => this.FormatSkillLabel("Combat_Skill_DivineHeal", (byte)CombatSkillKind.DivineHeal);
 
     /// <summary>Gets the localized Divine Heal skill tooltip.</summary>
     public string DivineHealTip => this.Text("Combat_Skill_DivineHeal_Tip");
+
+    /// <summary>Gets whether the Divine Heal skill button should be disabled.</summary>
+    public bool DivineHealDisabled => !this.CanCastSkill((byte)CombatSkillKind.DivineHeal);
+
+    /// <summary>Gets the remaining cooldown in seconds for a combat skill (0 when ready) (docs/adr/ADR-056).</summary>
+    /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
+    /// <returns>Seconds remaining until ready.</returns>
+    public float GetSkillCooldown(byte skillId) => _combat?.GetSkillCooldownRemaining(skillId) ?? 0f;
+
+    /// <summary>Gets whether a combat skill is ready to cast (off cooldown and sufficient MP).</summary>
+    /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
+    /// <returns><see langword="true"/> when the skill can be cast.</returns>
+    public bool CanCastSkill(byte skillId)
+    {
+        if (this.GetSkillCooldown(skillId) > 0f)
+        {
+            return false;
+        }
+
+        if (!SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition def))
+        {
+            return false;
+        }
+
+        return this.Mp >= def.MpCost;
+    }
 
     /// <summary>Gets the localized combo streak badge text.</summary>
     public string ComboBadgeText => this.Text("Combat_Combo_Badge", Number(this.CurrentCombo), Number(this.ComboBonusPercent));
@@ -256,5 +288,18 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         }
 
         return _catalogue is not null ? _catalogue[$"Item_{item.Key}_Name"].Value : item.Key;
+    }
+
+    private string FormatSkillLabel(string key, byte skillId)
+    {
+        string label = this.Text(key);
+        float cd = this.GetSkillCooldown(skillId);
+        if (cd > 0f)
+        {
+            int seconds = (int)Math.Ceiling(cd);
+            return string.Create(CultureInfo.InvariantCulture, $"{label} ({seconds}s)");
+        }
+
+        return label;
     }
 }

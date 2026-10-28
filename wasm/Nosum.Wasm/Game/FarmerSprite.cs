@@ -55,7 +55,7 @@ internal static class FarmerSprite
         batch.Add(textures.Pants, (look.Pants % 10 * PantsStyleWidth) + frameX, (look.Pants / 10 * 672) + frameY, Width, Height, x, y, sortY, feetX, id, flags, look.PantsTint);
 
         int shirtRow = facing == Facing.Up ? 24 : facing == Facing.Down ? 0 : 8;
-        batch.Add(textures.Shirts, look.Shirt % 16 * ShirtSize, (look.Shirt / 16 * 32) + shirtRow, ShirtSize, ShirtSize, x + ShirtOffsetX, y + ShirtOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
+        batch.Add(textures.Shirts, look.Shirt % 16 * ShirtSize, (look.Shirt / 16 * 32) + shirtRow, ShirtSize, ShirtSize, x + ShirtOffsetX, y + ShirtOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, flags, look.ShirtTint);
 
         batch.Add(textures.Body, frameX + (ArmsColumnOffset * Width), frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
         batch.Add(textures.Hair, look.Hairstyle % 8 * Width, (look.Hairstyle / 8 * 96) + (row * Height), Width, Height, x, y + HairOffsetY + (column == 0 ? 0 : 1), sortY, feetX, id, flags, look.HairTint);

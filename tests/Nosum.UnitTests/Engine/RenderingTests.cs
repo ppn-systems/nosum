@@ -155,6 +155,30 @@ public sealed class RenderingTests
     }
 
     [Fact]
+    public void Flush_DeferLabels_EmitsLabelsOnlyOnFlushLabelsAfterFrontDraws()
+    {
+        WorldSpriteBatch batch = new(8);
+        Camera2D camera = default;
+        camera.Follow(50, 50, 100, 100, 100, 100);
+        RenderCommandBuffer buffer = new(8);
+        buffer.Begin(1);
+        batch.Begin();
+        batch.Add(RenderCommandBuffer.LabelTexture, 42, 0, 0, 0, 20, 10, sortY: 15, sortX: 20, id: 1);
+        batch.Add(7, 0, 0, 16, 16, 16, 16, sortY: 32, sortX: 16, id: 2);
+
+        batch.Flush(buffer, camera, deferLabels: true);
+        buffer.Draw(99, 0, 0, 16, 16, 0, 0); // Front layer / ambient darkness draw
+        batch.FlushLabels(buffer, camera);
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        buffer.Count.Should().Be(3);
+        int[] textures = [ints[2], ints[11], ints[20]];
+        textures.Should().Equal(7, 99, RenderCommandBuffer.LabelTexture);
+        ints[21].Should().Be(42, "the label id is preserved in srcX");
+        batch.Count.Should().Be(0);
+    }
+
+    [Fact]
     public void Flush_OffscreenSprite_IsSkipped()
     {
         WorldSpriteBatch batch = new(2);
