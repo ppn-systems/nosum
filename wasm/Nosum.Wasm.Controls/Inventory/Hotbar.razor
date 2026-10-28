@@ -6,29 +6,39 @@
 {
     <div class="hotbar-dock">
         <GamePanel Class="hud hotbar" Role="toolbar" Title="">
-            <div class="hotbar-slots" aria-label="@Vm.HotbarLabel">
-                @foreach (SlotDisplay slot in Vm.Hotbar)
+            <div class="hotbar-row">
+                <div class="hotbar-slots" aria-label="@Vm.HotbarLabel">
+                    @foreach (SlotDisplay slot in Vm.Hotbar)
+                    {
+                        int index = slot.Index;
+                        <ItemSlotButton Slot="slot" Hotkey="@((index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture))" OnClick="() => Vm.Select(index)" />
+                    }
+                </div>
+                @if (Progress is not null)
                 {
-                    int index = slot.Index;
-                    <ItemSlotButton Slot="slot" Hotkey="@((index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture))" OnClick="() => Vm.Select(index)" />
+                    <div class="hotbar-skills" role="toolbar" aria-label="@Progress.CombatSkillsAriaLabel">
+                        <GameButton Variant="chip" Disabled="@Progress.WhirlwindDisabled" Title="@($"{Progress.WhirlwindLabel}\n{Progress.WhirlwindTip}")" aria-label="@Progress.WhirlwindLabel" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /></GameButton>
+                        <GameButton Variant="chip" Disabled="@Progress.FireballDisabled" Title="@($"{Progress.FireballLabel}\n{Progress.FireballTip}")" aria-label="@Progress.FireballLabel" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /></GameButton>
+                        <GameButton Variant="chip" Disabled="@Progress.DivineHealDisabled" Title="@($"{Progress.DivineHealLabel}\n{Progress.DivineHealTip}")" aria-label="@Progress.DivineHealLabel" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /></GameButton>
+                    </div>
                 }
             </div>
         </GamePanel>
         @if (Progress is not null)
         {
-            <div class="hotbar-skills" role="toolbar">
-                <GameButton Variant="chip" Disabled="@Progress.WhirlwindDisabled" Title="@($"{Progress.WhirlwindLabel}\n{Progress.WhirlwindTip}")" aria-label="@Progress.WhirlwindLabel" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /></GameButton>
-                <GameButton Variant="chip" Disabled="@Progress.FireballDisabled" Title="@($"{Progress.FireballLabel}\n{Progress.FireballTip}")" aria-label="@Progress.FireballLabel" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /></GameButton>
-                <GameButton Variant="chip" Disabled="@Progress.DivineHealDisabled" Title="@($"{Progress.DivineHealLabel}\n{Progress.DivineHealTip}")" aria-label="@Progress.DivineHealLabel" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /></GameButton>
-                @if (Progress.CurrentCombo > 1)
-                {
-                    <GameBadge Kind="warn" Text="@Progress.ComboBadgeText" />
-                }
-                @if (Progress.IsLevelUpActive)
-                {
-                    <GameBadge Kind="ok" Text="@Progress.LevelUpBadgeText" />
-                }
-            </div>
+            @if (Progress.CurrentCombo > 1 || Progress.IsLevelUpActive)
+            {
+                <div class="hotbar-badges">
+                    @if (Progress.CurrentCombo > 1)
+                    {
+                        <GameBadge Kind="warn" Text="@Progress.ComboBadgeText" />
+                    }
+                    @if (Progress.IsLevelUpActive)
+                    {
+                        <GameBadge Kind="ok" Text="@Progress.LevelUpBadgeText" />
+                    }
+                </div>
+            }
             @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@
             <EnergyBar Vm="Progress" />
         }

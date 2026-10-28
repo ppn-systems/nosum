@@ -31,7 +31,7 @@ internal static class FarmerSprite
     private const int HatSize = 20;
     private const int HatOffsetY = 0;
 
-    private static readonly int[] s_walkColumns = [4, 1, 4, 0, 5, 2, 5, 0];
+    private static readonly int[] s_walkColumns = [4, 1, 1, 0, 5, 2, 2, 0];
 
     /// <summary>
     /// Adds the farmer's layers (and optionally their held item and tool/weapon swing animation) to the world batch, sorted by the feet.
@@ -124,14 +124,14 @@ internal static class FarmerSprite
         int side = column == 1 ? -3 : 3;
         (int dx, int dy) = facing switch
         {
-            Facing.Left => (4, -1),
-            Facing.Right => (-4, -1),
+            Facing.Left => (5, -1),
+            Facing.Right => (-5, -1),
             Facing.Up => (side, 2),
             _ => (side, -2),
         };
 
         batch.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, feetX + dx - 1, feetY + dy - 1, sortY, feetX, id + 80, tint: dustLight);
-        batch.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 1, feetX - dx, feetY + dy, sortY, feetX, id + 81, tint: dustWarm);
+        batch.Add(RenderCommandBuffer.FillTexture, 0, 0, 1, 1, feetX + dx + (facing == Facing.Left ? 2 : -2), feetY + dy - 2, sortY, feetX, id + 81, tint: dustWarm);
     }
 
     /// <summary>
@@ -161,14 +161,14 @@ internal static class FarmerSprite
         {
             case CombatSkillKind.Whirlwind:
             {
-                // 360-degree crimson-gold spinning blade vortex + 4 orbiting spectral blades.
+                // 360-degree crimson-gold ground vortex ring + 4 orbiting spectral blades.
                 int radius = 14 + (int)(progress * 8f);
                 int goldTint = unchecked((int)0xffd54fe6);
                 int crimsonTint = unchecked((int)0xff5252d8);
                 int whiteTint = unchecked((int)0xffffffeb);
 
-                batch.Add(RenderCommandBuffer.FillTexture, 0, 0, radius * 2, 3, feetX - radius, centerY - 1, feetY + 1, feetX, 9300, tint: crimsonTint);
-                batch.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, radius, feetX - 1, centerY - (radius / 2), feetY + 1, feetX, 9301, tint: crimsonTint);
+                batch.Add(RenderCommandBuffer.FillTexture, 0, 0, radius * 2, 2, feetX - radius, feetY - 2, feetY - 1, feetX, 9300, tint: crimsonTint);
+                batch.Add(RenderCommandBuffer.FillTexture, 0, 0, (radius * 2) - 6, 2, feetX - radius + 3, feetY + 1, feetY + 1, feetX, 9301, tint: goldTint);
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -179,8 +179,8 @@ internal static class FarmerSprite
 
                     if (textures.Weapons > 0)
                     {
-                        int flip = MathF.Cos(angle) < 0f ? RenderCommandBuffer.FlipX : 0;
-                        batch.Add(textures.Weapons, 32, 0, 16, 16, ox - 8, oy - 8, sortY, ox, 9310 + i, flip, RenderCommandBuffer.NoTint);
+                        int bladeDeg = (int)MathF.Round((angle * 180f / MathF.PI) + 45f);
+                        batch.Add(textures.Weapons, 32, 0, 16, 16, ox - 8, oy - 8, sortY, ox, 9310 + i, RenderCommandBuffer.RotateDegrees(bladeDeg), RenderCommandBuffer.NoTint);
                     }
 
                     batch.Add(RenderCommandBuffer.FillTexture, 0, 0, 6, 2, ox - 3, oy - 1, sortY, ox, 9320 + i, tint: goldTint);
@@ -270,44 +270,113 @@ internal static class FarmerSprite
 
         if (sheetTex > 0)
         {
+            ToolKind heldTool = ToolKind.None;
+            if (ItemCatalog.TryGet(heldItemId, out ItemDefinition? heldDef))
+            {
+                heldTool = heldDef.Tool;
+            }
+
             int itemFlags = facing == Facing.Left ? RenderCommandBuffer.FlipX : 0;
             int drawX;
             int drawY;
+            int deg = 0;
 
-            if (!swinging)
+            if (sheetTex == textures.Items || heldItemId is ItemCatalog.CoopBlueprint or ItemCatalog.BarnBlueprint or ItemCatalog.MilkPail)
             {
-                int stride = column switch { 1 => -2, 4 => -1, 5 => 1, 2 => 2, _ => 0 };
+                int sway = column switch { 1 or 4 => -1, 2 or 5 => 1, _ => 0 };
                 (drawX, drawY) = facing switch
                 {
-                    Facing.Down => (bodyX + 6, bodyY + 11 + bob - (stride / 2)),
-                    Facing.Up => (bodyX - 5, bodyY + 8 + bob + (stride / 2)),
-                    Facing.Right => (bodyX + 6 + stride, bodyY + 10 + bob),
-                    _ => (bodyX - 6 - stride, bodyY + 10 + bob),
+                    Facing.Down => (bodyX + 9, bodyY + 14 + bob),
+                    Facing.Up => (bodyX - 6, bodyY + 10 + bob),
+                    Facing.Right => (bodyX + 8 + sway, bodyY + 12 + bob),
+                    _ => (bodyX - 8 - sway, bodyY + 12 + bob),
                 };
+            }
+            else if (heldTool == ToolKind.WateringCan)
+            {
+                float tilt = swinging ? MathF.Sin(Math.Clamp(swingProgress, 0f, 1f) * MathF.PI) : 0f;
+                int sway = swinging ? 0 : (column switch { 1 or 4 => -1, 2 or 5 => 1, _ => 0 });
+                (int handX, int handY, int rawDeg) = facing switch
+                {
+                    Facing.Down => (bodyX + 11, bodyY + 20 + bob + (int)(tilt * 2f), 16 + (int)(tilt * 34f)),
+                    Facing.Up => (bodyX + 11, bodyY + 15 + bob - (int)(tilt * 2f), -12 - (int)(tilt * 26f)),
+                    Facing.Right => (bodyX + 11 + sway + (int)(tilt * 2f), bodyY + 19 + bob + (int)(tilt * 2f), 8 + (int)(tilt * 36f)),
+                    _ => (bodyX + 5 - sway - (int)(tilt * 2f), bodyY + 19 + bob + (int)(tilt * 2f), -8 - (int)(tilt * 36f)),
+                };
+                deg = rawDeg;
+                float vx = (itemFlags & RenderCommandBuffer.FlipX) != 0 ? 6f : -6f;
+                float vy = 2f;
+                PlaceByGrip(handX, handY, vx, vy, deg, out drawX, out drawY);
             }
             else
             {
-                // 3-step sprite rotation: stage 0 (overhead wind-up, row+1), stage 1 (diagonal mid-cleave, row+0), stage 2 (full strike, row+2)
-                int stage = swingProgress < 0.28f ? 0 : swingProgress < 0.58f ? 1 : 2;
-                bool hasRotatedSwingRows = (sheetTex == textures.Tools || sheetTex == textures.Weapons)
-                    && heldItemId is not (ItemCatalog.CoopBlueprint or ItemCatalog.BarnBlueprint or ItemCatalog.MilkPail);
-                if (hasRotatedSwingRows)
+                bool verticalSprite = heldItemId is ItemCatalog.WoodenSword or ItemCatalog.ArcaneStaff;
+                int baseOffset = verticalSprite ? ((itemFlags & RenderCommandBuffer.FlipX) != 0 ? -45 : 45) : 0;
+                float vx = verticalSprite ? 0f : ((itemFlags & RenderCommandBuffer.FlipX) != 0 ? 5f : -5f);
+                float vy = 5f;
+                int handX;
+                int handY;
+                int swingDeg;
+
+                if (!swinging)
                 {
-                    srcY += stage == 0 ? 16 : stage == 1 ? 0 : 32;
+                    int sway = column switch { 1 or 4 => -1, 2 or 5 => 1, _ => 0 };
+                    (handX, handY, swingDeg) = facing switch
+                    {
+                        Facing.Down => (bodyX + 12, bodyY + 19 + bob, 22),
+                        Facing.Up => (bodyX + 12, bodyY + 17 + bob, 15),
+                        Facing.Right => (bodyX + 11 + sway, bodyY + 18 + bob, 16),
+                        _ => (bodyX + 5 - sway, bodyY + 18 + bob, -16),
+                    };
+                }
+                else
+                {
+                    // Smooth 60 FPS cleave curve: brief wind-up (0..0.18), fast power cleave (0.18..0.72), follow-through settle (0.72..1.0).
+                    float p = Math.Clamp(swingProgress, 0f, 1f);
+                    float s01 = p < 0.18f
+                        ? (p / 0.18f) * 0.15f
+                        : p < 0.72f
+                            ? 0.15f + (MathF.Sin(((p - 0.18f) / 0.54f) * (MathF.PI * 0.5f)) * 0.85f)
+                            : 1f - (((p - 0.72f) / 0.28f) * 0.12f);
+
+                    (handX, handY, swingDeg) = facing switch
+                    {
+                        Facing.Down => (
+                            bodyX + 13 - (int)(s01 * 4f),
+                            bodyY + 18 + bob + (int)(s01 * 4f),
+                            (int)MathF.Round(s01 * 135f)),
+                        Facing.Up => (
+                            bodyX + 13 - (int)(s01 * 5f),
+                            bodyY + 14 + bob - (int)(s01 * 3f),
+                            15 - (int)MathF.Round(s01 * 70f)),
+                        Facing.Right => (
+                            bodyX + 12 + (int)(s01 * 2f),
+                            bodyY + 16 + bob + (int)(s01 * 3f),
+                            -15 + (int)MathF.Round(s01 * 110f)),
+                        _ => (
+                            bodyX + 4 - (int)(s01 * 2f),
+                            bodyY + 16 + bob + (int)(s01 * 3f),
+                            15 - (int)MathF.Round(s01 * 110f)),
+                    };
                 }
 
-                // Smooth 60 FPS circular swing arc around the farmer's shoulder
-                float arc = MathF.Sin(Math.Clamp(swingProgress, 0f, 1f) * MathF.PI * 0.85f);
-                (drawX, drawY) = facing switch
-                {
-                    Facing.Down => (bodyX - 4 + (int)(arc * 11f), bodyY + 2 + (int)(arc * 19f)),
-                    Facing.Up => (bodyX + 5 - (int)(arc * 11f), bodyY + 8 - (int)(arc * 13f)),
-                    Facing.Right => (bodyX + 1 + (int)(arc * 11f), bodyY + 1 + (int)(arc * 17f)),
-                    _ => (bodyX - 1 - (int)(arc * 11f), bodyY + 1 + (int)(arc * 17f)),
-                };
+                deg = swingDeg + baseOffset;
+                PlaceByGrip(handX, handY, vx, vy, deg, out drawX, out drawY);
             }
 
-            batch.Add(sheetTex, srcX, srcY, srcSize, srcSize, drawX, drawY, sortY, feetX, id + 100, itemFlags, RenderCommandBuffer.NoTint);
+            batch.Add(
+                sheetTex,
+                srcX,
+                srcY,
+                srcSize,
+                srcSize,
+                drawX,
+                drawY,
+                sortY,
+                feetX,
+                id + 100,
+                itemFlags | RenderCommandBuffer.RotateDegrees(deg),
+                RenderCommandBuffer.NoTint);
         }
 
         if (swinging && swingProgress >= 0.16f)
@@ -439,6 +508,17 @@ internal static class FarmerSprite
                 break;
             }
         }
+    }
+
+    private static void PlaceByGrip(int handX, int handY, float vx, float vy, int deg, out int drawX, out int drawY)
+    {
+        float rad = deg * (MathF.PI / 180f);
+        float cos = MathF.Cos(rad);
+        float sin = MathF.Sin(rad);
+        float rx = (vx * cos) - (vy * sin);
+        float ry = (vx * sin) + (vy * cos);
+        drawX = (int)MathF.Round(handX - 8f - rx);
+        drawY = (int)MathF.Round(handY - 8f - ry);
     }
 
     private static int ResolveItemSheetTexture(in FarmerTextures textures, string sheetUrl)

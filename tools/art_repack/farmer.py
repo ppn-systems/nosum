@@ -72,23 +72,23 @@ def _legs(direction, column):
             return [(6, 9, 31, 0)]
         if column == 1:   # near leg forward, far leg back and lifted 2px
             return [(3, 5, 29, 1), (8, 10, 31, 0)]
-        if column == 2:   # far leg forward, near leg back and lifted 2px
-            return [(3, 5, 29, 0), (8, 10, 31, 1)]
+        if column == 2:   # far leg forward and lifted 2px, near leg planted back
+            return [(4, 6, 31, 0), (8, 10, 29, 1)]
         if column == 3:   # planted wide action lunge stance
             return [(4, 6, 31, 1), (8, 11, 31, 0)]
         if column == 4:   # passing mid-stride A (1px lift, half stride)
-            return [(4, 6, 30, 1), (7, 9, 31, 0)]
-        return [(4, 6, 30, 0), (7, 9, 31, 1)]   # column 5: passing mid-stride B
+            return [(4, 6, 30, 1), (8, 10, 31, 0)]
+        return [(4, 6, 31, 0), (8, 10, 30, 1)]   # column 5: passing mid-stride B
     if column == 3:
         return [(4, 6, 31, 0), (9, 11, 31, 0)]
     if column == 1:
-        return [(4, 6, 31, 0), (9, 11, 29, 1)]
+        return [(5, 7, 31, 0), (8, 10, 29, 1)]
     if column == 2:
-        return [(4, 6, 29, 1), (9, 11, 31, 0)]
+        return [(5, 7, 29, 1), (8, 10, 31, 0)]
     if column == 4:       # passing mid-stride A: left foot planted, right foot lifting 1px
-        return [(4, 6, 31, 0), (8, 10, 30, 1)]
+        return [(5, 7, 31, 0), (8, 10, 30, 1)]
     if column == 5:       # passing mid-stride B: left foot lifting 1px, right foot planted
-        return [(5, 7, 30, 1), (9, 11, 31, 0)]
+        return [(5, 7, 30, 1), (8, 10, 31, 0)]
     return [(5, 7, 31, 0), (8, 10, 31, 0)]
 
 
@@ -188,7 +188,7 @@ def arms(direction, column):
         else:
             # one visible arm; it swings dynamically opposite the near leg (with intermediate passing frames 4 and 5)
             sx = {0: 7, 1: 4, 2: 9, 4: 5, 5: 8}[column]
-            sy = 16 + b - (1 if column in (1, 2) else 0)
+            sy = 16 + b
             c.rect(sx, sy, 2, 6, SKIN)
             c.rect(sx + 1, sy, 1, 6, SKIN_D)
             c.rect(sx, sy + 5, 2, 2, HAND)

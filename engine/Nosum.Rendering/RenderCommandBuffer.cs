@@ -70,6 +70,11 @@ public sealed class RenderCommandBuffer
     /// <summary>Flag: mirror the sprite horizontally.</summary>
     public const int FlipX = 1;
 
+    /// <summary>Packs a clockwise rotation in degrees into draw <c>flags</c> above <see cref="FlipX"/>.</summary>
+    /// <param name="degrees">Clockwise rotation angle in degrees.</param>
+    /// <returns>The encoded flag bits to combine with <see cref="FlipX"/>.</returns>
+    public static int RotateDegrees(int degrees) => degrees << 8;
+
     private readonly int[] _data;
     private int _lights;
 

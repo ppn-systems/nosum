@@ -11,18 +11,18 @@ NOSUM = 'Nosum original (drawn in tools/art_repack, no outside source)'
 
 # path under assets/ -> (package, [pack directories or NOSUM], what the file is and how it is made)
 ENTRIES = {
-    'farmer/body.png': ('1 Player farmer layers', [NOSUM], 'Body (head, neck, torso, legs; skin tint) in columns 0-2 and arms with boots (no tint) in columns 6-8; rows down, right, up, three walk frames; the step columns carry the 1 px bob the code gives shirt, hair and hat (`farmer.body`, `farmer.arms`)'),
-    'farmer/pants.png': ('1 Player farmer layers', [NOSUM], 'Trousers style 0, grey-scale for the pants tint, same walk frames as the body (`farmer.pants`)'),
+    'farmer/body.png': ('1 Player farmer layers', [NOSUM], 'Body (head, neck, torso, legs; skin tint) in columns 0-5 (idle, walk steps and swing stances) and arms with boots (no tint) in columns 6-11; rows down, right, up (`farmer.body`, `farmer.arms`)'),
+    'farmer/pants.png': ('1 Player farmer layers', [NOSUM], 'Trousers style 0, grey-scale for the pants tint, same walk and swing columns as the body (`farmer.pants`)'),
     'farmer/hair.png': ('1 Player farmer layers', [NOSUM], 'Eight hair styles in grey-scale for the hair dye, rows down, right, up (`farmer.hair`)'),
     'farmer/shirts.png': ('1 Player farmer layers', [NOSUM], '8 x 8 shirt pieces (front, right, back) of shirts 1 red, 3 straw, 7 blue, 11 green; the front piece is also the inventory icon (`farmer.shirt`)'),
     'farmer/hats.png': ('1 Player farmer layers', [NOSUM], '20 x 20 hats 3 (straw) and 5 (cap), rows down, right, left, up; the down frame is the inventory icon (`farmer.hat`)'),
     'sprites/crops.png': ('4 Crops and soil', ['kenney_tiny-farm', 'josehzz_farming-crops-16x16'],
                              '21 crops, 5-6 growth frames each: Tiny Farm\'s stages for the 8 crops it covers, the crops pack\'s six pictures (seed, three stages, ripe) for the rest, placed in the catalogue\'s frames at the bottom of each 16 x 32 cell; recolours in the crop table'),
     'sprites/soil.png': ('4 Crops and soil', [NOSUM], 'Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator: lit ridges, furrows, clods and a dark lip (`crops.soil_tile`)'),
-    'sprites/tools.png': ('5 Tools and weapons', ['kenney_tiny-farm', NOSUM],
-                             'Hoe, axe, pickaxe and watering can drawn here in three material tiers (a three-tone metal head with a glint, a shaded wooden handle, a 1 px outline: `tools.py`); the milk pail is Tiny Farm tile 124; the blueprints are drawn'),
+    'sprites/tools.png': ('5 Tools and weapons', ['oga_weapon-rpg-icons', 'kenney_tiny-farm', NOSUM],
+                             'Hoe, axe and pickaxe in three material tiers (iron, bronze/copper, steel) from Weapon RPG Icons (row 10, cells 12, 0 and 13, flipped so the blade faces right); watering can and blueprints drawn here (`tools.py`); the milk pail is Tiny Farm tile 124'),
     'sprites/weapons.png': ('5 Tools and weapons', ['kenney_tiny-dungeon', 'oga_weapon-rpg-icons', 'kenney_roguelike-characters', 'kenney_tiny-battle', NOSUM],
-                             'The scythe drawn here (`tools.scythe`), cell (7, 5); wooden sword and arcane staff from Tiny Dungeon (8, 8 and 9, 10); bronze, iron, steel and gold swords from Weapon RPG Icons; round shield from Kenney Roguelike Characters (35, 1); battle emblem from Kenney Tiny Battle (15, 10)'),
+                             'The scythe from Weapon RPG Icons (cell 15, 10, flipped), cell (7, 5); wooden sword and arcane staff from Tiny Dungeon (8, 8 and 9, 10); bronze, iron, steel and gold swords from Weapon RPG Icons (flipped); round shield from Kenney Roguelike Characters (35, 1); battle emblem from Kenney Tiny Battle (15, 10)'),
     'sprites/monsters.png': ('11 Monsters', ['oga_animated-slimes', 'oga_trash-mobs', 'oga_tiny-creatures'],
                               'Twelve 4-column x 3-row (Down, Right, Up) monster and boss animation blocks (64 x 576): GreenSlime, FrostSlime, MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior, StoneGolem from Tiny Creatures; BossBroodmother, BossGoblinChieftain, BossMagmaColossus, BossGolemKing (`monsters.py`, ADR-047)'),
     'sprites/items.png': ('3 Items, 6 Resource nodes', [

@@ -34,7 +34,8 @@ namespace Nosum.Wasm.Game;
 internal sealed class MapScene
 {
     private const double StepSeconds = 1.0 / 60.0;
-    private const double WalkFrameSeconds = 0.065;
+    private const double MaxFrameSeconds = 0.25;
+    private const double WalkFrameSeconds = 0.085;
     private const int TargetTilesAcross = 26;
     private const int MaxScale = 6;
     private const int MenuUnitsTall = 204;
@@ -179,11 +180,15 @@ internal sealed class MapScene
         }
         else
         {
-            int steps = _clock.Advance(frameSeconds);
-            for (int i = 0; i < steps; i++)
+            _clock.Advance(frameSeconds);
+            double remaining = Math.Clamp(frameSeconds, 0, MaxFrameSeconds);
+            do
             {
-                _farmer.Step(input, StepSeconds, grid);
+                double dt = Math.Min(remaining, StepSeconds);
+                _farmer.Step(input, dt, grid);
+                remaining -= dt;
             }
+            while (remaining > 1e-9);
 
             _walkTime = _farmer.IsMoving ? _walkTime + frameSeconds : 0;
             _channel?.Report((float)_farmer.X, (float)_farmer.Y, (byte)_farmer.Facing, _farmer.IsMoving);
@@ -283,7 +288,11 @@ internal sealed class MapScene
         bool hasSkillEffect = _actions is not null && _actions.TryGetActiveSkillEffect(Environment.TickCount64, out activeSkillId, out skillProgress, out _, out _);
         if (hasSkillEffect && activeSkillId == 1)
         {
-            effectiveFacing = (Facing)((int)(skillProgress * 8f) & 3);
+            if (effectiveFacing == Facing.Up)
+            {
+                effectiveFacing = Facing.Down;
+            }
+
             if (swingProgress < 0f)
             {
                 swingProgress = skillProgress;
@@ -532,7 +541,7 @@ internal sealed class MapScene
 
         if (_phase != Phase.FadingOut && _channel.TryTakeCorrection(out MoveCorrectionInfo correction) && correction.Sequence >= _ignoreCorrectionsBefore)
         {
-            _farmer = new Walker(correction.X, correction.Y);
+            _farmer = new Walker(correction.X, correction.Y, _farmer.Facing);
             _ignoreCorrectionsBefore = _channel.LastSentSequence + 1;
         }
     }

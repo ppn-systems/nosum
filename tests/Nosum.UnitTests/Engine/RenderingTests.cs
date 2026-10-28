@@ -26,6 +26,20 @@ public sealed class RenderingTests
         ints.Should().Equal(2, 3, 7, 1, 2, 16, 32, 100, 200, 1, 0x11223344, 8, 0, 0, 16, 16, -5, 6, 0, RenderCommandBuffer.NoTint);
     }
 
+    [Theory]
+    [InlineData(-75, false)]
+    [InlineData(-75, true)]
+    [InlineData(0, false)]
+    [InlineData(45, true)]
+    [InlineData(110, false)]
+    public void RotateDegrees_PacksSignedAngleAboveFlipX(int degrees, bool flipX)
+    {
+        int flags = (flipX ? RenderCommandBuffer.FlipX : 0) | RenderCommandBuffer.RotateDegrees(degrees);
+
+        ((flags & RenderCommandBuffer.FlipX) != 0).Should().Be(flipX);
+        (flags >> 8).Should().Be(degrees);
+    }
+
     [Fact]
     public void Draw_PastCapacity_IsDropped()
     {
