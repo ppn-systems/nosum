@@ -349,6 +349,8 @@ internal sealed partial class MapScene
         {
             _sky.DrawPrecipitation(_commands);
         }
+        _sky.DrawLightning(_commands, _audio, (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
+        EatFeedback.Draw(_commands, farmerPx - _camera.Left, farmerPy - (FarmerSprite.Height / 2) - _camera.Top, timeMs);
         _world.FlushLabels(_commands, _camera);
         this.DrawLabels();
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);

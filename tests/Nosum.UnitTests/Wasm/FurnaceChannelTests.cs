@@ -1,8 +1,10 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.C2S;
@@ -21,6 +23,10 @@ public sealed class FurnaceChannelTests
         public DateTimeOffset Now { get; set; } = new(2026, 11, 2, 12, 0, 0, TimeSpan.Zero);
 
         public override DateTimeOffset GetUtcNow() => this.Now;
+
+        // Timers run on the real clock, so a test that waits for a batch to finish waits a few real milliseconds.
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) =>
+            TimeProvider.System.CreateTimer(callback, state, dueTime, period);
     }
 
     [Fact]
@@ -112,5 +118,21 @@ public sealed class FurnaceChannelTests
         channel.Collect(4);
 
         ((CollectFurnace)socket.Requests[0]).ObjectId.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task Finished_RaisedOnceTheBatchReachesItsReadyTime()
+    {
+        ManualTime time = new();
+        FakeGameSocket socket = new();
+        using FurnaceChannel channel = new(socket, time);
+        TaskCompletionSource<int> finished = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        channel.Finished += id => finished.TrySetResult(id);
+        FurnaceChanged push = new() { ObjectId = 7, State = FurnaceStateCode.Working, OreItemId = ItemCatalog.CopperOre, RemainingMs = 50 };
+
+        socket.Push(push);
+
+        (await finished.Task.WaitAsync(TimeSpan.FromSeconds(5))).Should().Be(7);
+        push.Dispose();
     }
 }

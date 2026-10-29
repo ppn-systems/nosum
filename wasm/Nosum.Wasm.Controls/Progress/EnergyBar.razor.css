@@ -77,3 +77,26 @@
     border-bottom: calc(var(--u) * 2) solid var(--nosum-status-brotherhood);
     padding-bottom: var(--u);
 }
+
+/* Food restored energy: the bar swells and glows once (ProgressViewModel.EnergyPulsing). Motion is off when the system asks for less. */
+.energy-bar.pulse {
+    animation: energy-pulse 0.7s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .energy-bar.pulse {
+        animation: none;
+    }
+}
+
+@keyframes energy-pulse {
+    0% {
+        filter: brightness(1.8);
+        transform: scaleX(1.25);
+    }
+
+    100% {
+        filter: none;
+        transform: none;
+    }
+}
