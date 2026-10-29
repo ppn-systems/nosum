@@ -18,6 +18,9 @@ public enum Precipitation
 
     /// <summary>Snow: slow drifting flakes.</summary>
     Snow = 3,
+
+    /// <summary>Autumn leaves: slow, swaying, in orange, red and gold (docs/adr/ADR-071 D5).</summary>
+    Leaves = 4,
 }
 
 /// <summary>
@@ -69,6 +72,7 @@ public sealed class PrecipitationLayer
         {
             Precipitation.Storm => wanted,
             Precipitation.Rain => wanted * 2 / 3,
+            Precipitation.Leaves => wanted / 3,
             _ => wanted / 2,
         };
 
@@ -77,6 +81,7 @@ public sealed class PrecipitationLayer
         {
             Precipitation.Storm => (330f, -90f),
             Precipitation.Rain => (260f, -40f),
+            Precipitation.Leaves => (48f, -20f),
             _ => (22f, 0f),
         };
 
@@ -84,7 +89,12 @@ public sealed class PrecipitationLayer
         {
             // Nearer particles (greater depth) move faster, which gives the layer some parallax.
             float speed = 0.6f + (0.4f * _depth[i]);
-            float sway = kind == Precipitation.Snow ? MathF.Sin((_y[i] * 0.05f) + i) * 14f : drift;
+            float sway = kind switch
+            {
+                Precipitation.Snow => MathF.Sin((_y[i] * 0.05f) + i) * 14f,
+                Precipitation.Leaves => MathF.Sin((_y[i] * 0.03f) + i) * 26f,
+                _ => drift,
+            };
             _x[i] += sway * speed * dt;
             _y[i] += fall * speed * dt;
             if (_y[i] >= _height)
@@ -119,12 +129,30 @@ public sealed class PrecipitationLayer
             {
                 commands.FillRect(x, y, 1, 1, _depth[i] > 0.5f ? unchecked((int)0xFFFFFFE0) : unchecked((int)0xDCE8FFB0));
             }
+            else if (kind == Precipitation.Leaves)
+            {
+                commands.FillRect(x, y, 2, 2, LeafColor(i));
+            }
             else
             {
                 commands.FillRect(x, y, 1, kind == Precipitation.Storm ? 5 : 4, _depth[i] > 0.5f ? unchecked((int)0xB4CCFFC0) : unchecked((int)0x8CAAE090));
+
+                // A drop that reaches the bottom of the view leaves a short splash.
+                if (_y[i] >= _height - 6)
+                {
+                    commands.FillRect(Math.Max(0, x - 1), _height - 1, 3, 1, unchecked((int)0x90C8E8D0));
+                }
             }
         }
     }
+
+    // Autumn colours, orange, red and gold, in turn; packed like the other rectangles, red in the top byte and alpha in the low byte.
+    private static int LeafColor(int i) => (i % 3) switch
+    {
+        0 => unchecked((int)0xD9783AFFU),
+        1 => unchecked((int)0xB8432AFFU),
+        _ => unchecked((int)0xE0B040FFU),
+    };
 
     private void Scatter()
     {

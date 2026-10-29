@@ -17,6 +17,7 @@
        only the files the client loads, linked so assets/ stays the single copy. -->
   <ItemGroup>
     <Content Include="..\..\assets\sprites\items.png" Link="wwwroot\assets\sprites\%(Filename)%(Extension)" />
+    <Content Include="..\..\assets\sprites\ambient.png" Link="wwwroot\assets\sprites\%(Filename)%(Extension)" />
     <!-- Maps of Nosum.Gameplay.Maps.GameMaps and the tilesheets they name; GameMapsTests checks that every one is listed. -->
     <!-- Every hosted map has an own file (art/README.md): it and the own sheets it draws are linked from art/own/Maps/ to the same paths. -->
     <Content Include="..\..\art\own\Maps\Farm.tmx;..\..\art\own\Maps\terrain.png;..\..\art\own\Maps\town.png;..\..\art\own\Maps\nature.png;..\..\art\own\Maps\markers.png" Link="wwwroot\assets\Maps\%(Filename)%(Extension)" />
