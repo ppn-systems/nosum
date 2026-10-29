@@ -22,7 +22,9 @@ and modified by the player. Nalix ships a WebSocket listener on the server
 - **D4** — Crop growth and other timers are computed from stored timestamps on demand, not
   simulated per tick on the server.
 - **D5** — The client keeps exactly one `WebSocketSession` for the app's lifetime, owned by
-  `wasm/Nosum.Wasm.Socket`; UI code reaches it only through ViewModels.
+  `wasm/Nosum.Wasm.Socket`; UI code reaches it only through ViewModels. The reconnect wait doubles per failed attempt, is capped, and carries a ±25%
+  spread so clients that lost the server together do not retry together. Only a session that stays up for `ReconnectStableAfter` (10 s) resets
+  the backoff; a handshake that succeeds and is then closed at once does not (amended by issues #150 and #151; `ReconnectSchedule`).
 
 ## Alternatives considered
 

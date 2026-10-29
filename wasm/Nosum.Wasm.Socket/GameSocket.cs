@@ -22,6 +22,7 @@ namespace Nosum.Wasm.Socket;
 public sealed class GameSocket : IGameSocket, IAsyncDisposable
 {
     private readonly GameSocketOptions _options;
+    private readonly ReconnectSchedule _schedule;
     private readonly CancellationTokenSource _stop = new();
     private readonly Lock _gate = new();
     private readonly List<ISubscription> _subscriptions = [];
@@ -43,11 +44,13 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
 
     /// <summary>Initializes the socket; nothing connects until <see cref="Start"/>.</summary>
     /// <param name="options">Where the server is.</param>
-    public GameSocket(GameSocketOptions options)
+    /// <param name="time">The clock the reconnect backoff reads; the system clock when <see langword="null"/>.</param>
+    public GameSocket(GameSocketOptions options, TimeProvider? time = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         _options = options;
         _pins = PinnedKeys(options);
+        _schedule = new ReconnectSchedule(options.ReconnectBaseDelay, options.ReconnectMaxDelay, options.ReconnectStableAfter, time);
     }
 
     /// <inheritdoc/>
@@ -174,10 +177,9 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
     [SuppressMessage("Design", "CA1031", Justification = "Any connect failure (DNS, refused, handshake, dropped) means the same thing: wait and try again.")]
     private async Task RunAsync(CancellationToken ct)
     {
-        int failures = 0;
         while (!ct.IsCancellationRequested)
         {
-            this.SetState(_keyMismatch ? GameSocketState.KeyMismatch : failures == 0 ? GameSocketState.Connecting : GameSocketState.Reconnecting);
+            this.SetState(_keyMismatch ? GameSocketState.KeyMismatch : _schedule.Failures == 0 ? GameSocketState.Connecting : GameSocketState.Reconnecting);
             TaskCompletionSource closed = new(TaskCreationOptions.RunContinuationsAsynchronously);
             WebSocketSession? session = null;
             try
@@ -194,14 +196,14 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
                     }
                 }
 
-                failures = 0;
+                _schedule.Connected();
                 _keyMismatch = false;
                 this.SetState(GameSocketState.Ready);
                 this.Ready?.Invoke();
                 await closed.Task.WaitAsync(ct).ConfigureAwait(false);
 
-                // A lost connection is the first failed attempt: the retry waits the base delay, then doubles.
-                failures = 1;
+                // Only a session that stayed up counts as a success; a quick close keeps the backoff growing (issue #150).
+                _schedule.Lost();
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
@@ -209,7 +211,7 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
             }
             catch (Exception)
             {
-                failures++;
+                _schedule.Failed();
             }
             finally
             {
@@ -233,7 +235,7 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
             this.SetState(_keyMismatch ? GameSocketState.KeyMismatch : GameSocketState.Reconnecting);
             try
             {
-                await this.WaitBeforeAttemptAsync(_keyMismatch ? _options.ReconnectMaxDelay : this.Backoff(failures), ct).ConfigureAwait(false);
+                await this.WaitBeforeAttemptAsync(_keyMismatch ? _options.ReconnectMaxDelay : _schedule.NextDelay(), ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -376,8 +378,6 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
 
         return pins.Count <= ServerKeys.MaxPinned ? [.. pins] : throw new FormatException("At most " + ServerKeys.MaxPinned + " server public keys may be pinned.");
     }
-
-    private TimeSpan Backoff(int failures) => ReconnectBackoff.Delay(failures, _options.ReconnectBaseDelay, _options.ReconnectMaxDelay);
 
     private WebSocketSession CreateSession(string? pinnedKey) => new(this.TransportFor(pinnedKey), this.WebSocketOptions());
 

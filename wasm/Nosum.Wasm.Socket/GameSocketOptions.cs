@@ -63,8 +63,14 @@ public sealed class GameSocketOptions
     /// <summary>Gets or sets the first delay before a reconnect attempt; each failed attempt doubles it (1 s, 2 s, 4 s, …).</summary>
     public TimeSpan ReconnectBaseDelay { get; set; } = TimeSpan.FromSeconds(1);
 
-    /// <summary>Gets or sets the longest delay between reconnect attempts.</summary>
+    /// <summary>Gets or sets the longest delay between reconnect attempts, before the ±25% spread that keeps clients from retrying together.</summary>
     public TimeSpan ReconnectMaxDelay { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Gets or sets how long a connection must stay up before it counts as stable and resets the reconnect backoff. A session the server closes
+    /// sooner (an expired token, a server that accepts and then refuses) keeps the backoff growing (docs/adr/ADR-003 D5).
+    /// </summary>
+    public TimeSpan ReconnectStableAfter { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// Applies the boot configuration the deploy publishes (<c>wwwroot/appsettings.json</c>): <c>Server:Url</c>, when set, is the full
