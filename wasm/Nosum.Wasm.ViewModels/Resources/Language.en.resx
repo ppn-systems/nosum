@@ -852,6 +852,8 @@
   <data name="Mp_Label" xml:space="preserve"><value>MP {0} / {1}</value></data>
   <data name="Skill_Combat" xml:space="preserve"><value>Combat</value></data>
   <data name="Craft_Skill_Combat" xml:space="preserve"><value>Combat</value></data>
+  <data name="Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
+  <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Not enough MP to cast!</value></data>
   <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and carried back to the Farmhouse with low HP!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Combat skills</value></data>
