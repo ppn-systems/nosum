@@ -115,6 +115,49 @@ internal static partial class FarmerSprite
         }
     }
 
+    // Flecks from the tile the tool struck: dirt for the hoe, droplets for the can, chips for the axe, sparks for the pickaxe, leaves for the scythe, soil for seeds.
+    // Five pixels fan out and fall while they fade; the tints are 0xRRGGBBAA and the alpha follows the hit's age.
+    private static void DrawToolHitParticles(WorldSpriteBatch batch, ToolKind tool, Facing facing, int feetX, int feetY, int sortY, float hitT)
+    {
+        (int tx, int ty) = facing switch
+        {
+            Facing.Up => (feetX, feetY - 16),
+            Facing.Left => (feetX - 16, feetY - 4),
+            Facing.Right => (feetX + 16, feetY - 4),
+            _ => (feetX, feetY + 12),
+        };
+
+        int rgb = tool switch
+        {
+            ToolKind.Hoe => 0x8d6e63,
+            ToolKind.WateringCan => 0x64b5f6,
+            ToolKind.Axe => 0xd7a86e,
+            ToolKind.Pickaxe => 0xfff59d,
+            ToolKind.Scythe => 0x81c784,
+            _ => 0x8bc34a,
+        };
+        int alpha = Math.Clamp((int)((1f - hitT) * 255f), 0, 255);
+        int tint = unchecked((rgb << 8) | alpha);
+        float lift = MathF.Sin(hitT * MathF.PI) * 12f;
+        for (int i = 0; i < 5; i++)
+        {
+            int px = tx + (int)((i - 2) * 5f * hitT);
+            int py = ty + (int)(4f * hitT) - (int)(lift * (1f - (0.15f * i)));
+            batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, px - 1, py - 1, sortY + 2, feetX, 9400 + i, tint: tint);
+        }
+    }
+
+    // The sweat bubble of an exhausted farmer: a drop above the head, drawn while energy is low (docs/adr/ADR-071 D4).
+    private static void DrawSweatBubble(WorldSpriteBatch batch, int feetX, int feetY, int sortY, int id)
+    {
+        int drop = unchecked((int)0x90caf9ff);
+        int shine = unchecked((int)0xffffffff);
+        int x = feetX + 9;
+        int y = feetY - 30;
+        batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 4, 5, x - 1, y, sortY + 2, feetX, id + 90, tint: drop);
+        batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 1, 1, x, y + 1, sortY + 2, feetX, id + 91, tint: shine);
+    }
+
     private static void DrawSwingImpactVfx(
         WorldSpriteBatch batch,
         Facing facing,
@@ -136,9 +179,19 @@ internal static partial class FarmerSprite
         }
 
         bool isWeapon = CombatRules.WeaponDamage(heldItemId) > 0 || tool == ToolKind.Scythe;
-        if (!isWeapon && tool == ToolKind.None)
+        float hitT = Math.Clamp((swingProgress - (float)ToolPacing.HitFraction) / (1f - (float)ToolPacing.HitFraction), 0f, 1f);
+        if (!isWeapon)
         {
-            return;
+            // Farm tools and seeds: what the hit throws up from the tile (docs/adr/ADR-071 D5). Reduced motion keeps the swing and drops the flecks.
+            if (!ViewOptions.ReduceMotion)
+            {
+                DrawToolHitParticles(batch, tool, facing, feetX, feetY, sortY, hitT);
+            }
+
+            if (tool == ToolKind.None)
+            {
+                return;
+            }
         }
 
         float t = Math.Clamp((swingProgress - 0.16f) / 0.84f, 0f, 1f);
