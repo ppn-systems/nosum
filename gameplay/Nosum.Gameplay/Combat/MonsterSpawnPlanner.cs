@@ -6,6 +6,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
+using Nosum.Gameplay.Weather;
 
 namespace Nosum.Gameplay.Combat;
 
@@ -15,6 +16,12 @@ namespace Nosum.Gameplay.Combat;
 /// </summary>
 public static class MonsterSpawnPlanner
 {
+    /// <summary>Chance, in percent, that a non-boss monster spawns as an elite on any map.</summary>
+    public const int EliteChancePercent = 35;
+
+    /// <summary>Chance, in percent, that a non-boss monster spawns as an elite on a wilderness map during a storm (docs/adr/ADR-027).</summary>
+    public const int StormEliteChancePercent = 60;
+
     /// <summary>Returns whether a monster species is a dungeon floor boss (docs/adr/ADR-047).</summary>
     /// <param name="kind">Monster species.</param>
     /// <returns><see langword="true"/> when the monster is a boss.</returns>
@@ -128,6 +135,7 @@ public static class MonsterSpawnPlanner
     /// <param name="spawnX">Player arrival X to keep clear.</param>
     /// <param name="spawnY">Player arrival Y to keep clear.</param>
     /// <param name="reachableMask">Optional precomputed reachability mask from <see cref="ComputeReachableMask"/>.</param>
+    /// <param name="weather">The weather of the instance's game day. A storm on a wilderness map raises the elite chance and makes the elites swift (docs/adr/ADR-058). Mines are underground and ignore it.</param>
     /// <returns>The spawned monsters.</returns>
     public static List<MonsterSpawn> PlanMonsters(
         string mapId,
@@ -136,7 +144,8 @@ public static class MonsterSpawnPlanner
         IReadOnlySet<(int X, int Y)> occupied,
         int spawnX,
         int spawnY,
-        bool[,]? reachableMask = null)
+        bool[,]? reachableMask = null,
+        WeatherKind weather = WeatherKind.Sun)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(mapId);
         ArgumentNullException.ThrowIfNull(grid);
@@ -195,6 +204,10 @@ public static class MonsterSpawnPlanner
             ? Math.Clamp(3 + (floor / 8), 3, 8)
             : 5;
 
+        // Outdoors, a storm makes the elites swift instead of rolling a random affix (docs/adr/ADR-058, ADR-027).
+        bool stormy = !isMine && weather == WeatherKind.Storm;
+        int eliteChance = stormy ? StormEliteChancePercent : EliteChancePercent;
+
         List<MonsterSpawn> spawns = new(Math.Min(count, candidates.Count));
         for (int i = 0; i < count && i < candidates.Count; i++)
         {
@@ -210,9 +223,9 @@ public static class MonsterSpawnPlanner
             }
 
             MonsterModifier modifier = MonsterModifier.None;
-            if (!IsBoss(kind) && random.Next(100) < 35)
+            if (!IsBoss(kind) && random.Next(100) < eliteChance)
             {
-                modifier = (MonsterModifier)(1 + random.Next(4));
+                modifier = stormy ? MonsterModifier.Swift : (MonsterModifier)(1 + random.Next(4));
             }
 
             int maxHp = def.MaxHp;
