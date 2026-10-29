@@ -17,6 +17,31 @@ public enum AnimalKind : byte
 
     /// <summary>A cow: gives milk to a pail, lives in a barn.</summary>
     Cow = 2,
+
+    /// <summary>A duck: lays duck eggs, lives in a coop.</summary>
+    Duck = 3,
+
+    /// <summary>A goat: gives goat milk to a pail, lives in a barn.</summary>
+    Goat = 4,
+
+    /// <summary>A sheep: grows wool, shorn once every third game day, lives in a barn.</summary>
+    Sheep = 5,
+
+    /// <summary>A pig: digs up truffles on sunny days, lives in a barn.</summary>
+    Pig = 6,
+}
+
+/// <summary>When a species gives its produce, on top of having been fed the night before (docs/adr/ADR-028 amendment 2). Values are stored in the definitions only: append only.</summary>
+public enum ProduceSchedule : byte
+{
+    /// <summary>Every game day.</summary>
+    Daily = 0,
+
+    /// <summary>Every third game day: the day number divides by three.</summary>
+    EveryThirdDay = 1,
+
+    /// <summary>Only on a sunny game day.</summary>
+    SunnyDays = 2,
 }
 
 /// <summary>One species as data: price, produce and the early sheet it is drawn from.</summary>
@@ -30,11 +55,12 @@ public sealed class AnimalDefinition
     /// <param name="largeProduct">The large produce item a well-loved animal gives more often.</param>
     /// <param name="goldProduct">The gold-quality produce item an animal with four hearts or more sometimes gives.</param>
     /// <param name="needsPail">Whether collecting the produce takes a milk pail in hand.</param>
+    /// <param name="schedule">On which days the produce comes.</param>
     /// <param name="sheet">File in <c>sprites/animals/</c> without extension (early art, docs/adr/ADR-007).</param>
     /// <param name="frameWidth">Width of one frame, pixels.</param>
     /// <param name="frameHeight">Height of one frame, pixels.</param>
     /// <param name="walkPixelsPerSecond">How fast it walks inside its building.</param>
-    public AnimalDefinition(AnimalKind kind, string key, long coins, int product, int largeProduct, int goldProduct, bool needsPail, string sheet, int frameWidth, int frameHeight, int walkPixelsPerSecond)
+    public AnimalDefinition(AnimalKind kind, string key, long coins, int product, int largeProduct, int goldProduct, bool needsPail, ProduceSchedule schedule, string sheet, int frameWidth, int frameHeight, int walkPixelsPerSecond)
     {
         this.Kind = kind;
         this.Key = key;
@@ -43,6 +69,7 @@ public sealed class AnimalDefinition
         this.LargeProduct = largeProduct;
         this.GoldProduct = goldProduct;
         this.NeedsPail = needsPail;
+        this.Schedule = schedule;
         this.Sheet = sheet;
         this.FrameWidth = frameWidth;
         this.FrameHeight = frameHeight;
@@ -70,6 +97,9 @@ public sealed class AnimalDefinition
     /// <summary>Gets whether collecting takes a milk pail.</summary>
     public bool NeedsPail { get; }
 
+    /// <summary>Gets on which days the produce comes.</summary>
+    public ProduceSchedule Schedule { get; }
+
     /// <summary>Gets the sheet: a file in <c>sprites/animals/</c>, without extension.</summary>
     public string Sheet { get; }
 
@@ -83,13 +113,17 @@ public sealed class AnimalDefinition
     public int WalkPixelsPerSecond { get; }
 }
 
-/// <summary>The animals of the game: a white chicken (800 coins) and a white cow (1 500 coins).</summary>
+/// <summary>The animals of the game (docs/adr/ADR-028 D3 and amendment 2): a chicken (800 coins), a duck (1 100), a cow (1 500), a sheep (1 600), a goat (1 800) and a pig (2 000).</summary>
 public static class AnimalCatalog
 {
     private static readonly AnimalDefinition[] s_all =
     [
-        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, ItemCatalog.GoldenEgg, false, "chicken", 16, 16, 22),
-        new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, ItemCatalog.CreamMilk, true, "cow", 32, 32, 14),
+        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, ItemCatalog.GoldenEgg, false, ProduceSchedule.Daily, "chicken", 16, 16, 22),
+        new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, ItemCatalog.CreamMilk, true, ProduceSchedule.Daily, "cow", 32, 32, 14),
+        new(AnimalKind.Duck, "duck", 1_100, ItemCatalog.DuckEgg, ItemCatalog.LargeDuckEgg, ItemCatalog.GoldenDuckEgg, false, ProduceSchedule.Daily, "duck", 16, 16, 24),
+        new(AnimalKind.Goat, "goat", 1_800, ItemCatalog.GoatMilk, ItemCatalog.LargeGoatMilk, ItemCatalog.CreamGoatMilk, true, ProduceSchedule.Daily, "goat", 16, 16, 18),
+        new(AnimalKind.Sheep, "sheep", 1_600, ItemCatalog.Wool, ItemCatalog.FineWool, ItemCatalog.GoldenFleece, false, ProduceSchedule.EveryThirdDay, "sheep", 16, 16, 16),
+        new(AnimalKind.Pig, "pig", 2_000, ItemCatalog.Truffle, ItemCatalog.LargeTruffle, ItemCatalog.GoldenTruffle, false, ProduceSchedule.SunnyDays, "pig", 16, 16, 20),
     ];
 
     /// <summary>Gets every species.</summary>

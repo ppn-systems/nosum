@@ -1,4 +1,4 @@
-"""Package 8: sprites/animals/chicken.png (16 x 16 frames) and sprites/animals/cow.png (32 x 32 frames), cut from Tiny Creatures (CC0).
+"""Package 8: sprites/animals/chicken.png, goat.png and sheep.png (16 x 16 frames) cut from Tiny Creatures (CC0); duck.png and pig.png (16 x 16) drawn here; cow.png (32 x 32 frames) drawn here.
 
 Layout (AnimalsDecorator): four walk columns, rows down, right, up; left is the right row mirrored by the game. Tiny Creatures has one picture
 per animal, facing left, so the right row is that picture flipped, the down and up rows use it as it is, and the walk frames 1 and 3 lift it 1 px
@@ -147,6 +147,110 @@ def chicken_frames(picture, right_pic=None):
     return sheet
 
 
+DUCK_WHITE = ((196, 178, 120), (246, 236, 170), (255, 252, 226))     # a white duck with a yellow cast: shaded, base, lit
+DUCK_BILL = (240, 150, 50)
+DUCK_BILL_D = (200, 104, 36)
+PIG = ((200, 104, 124), (244, 176, 184), (255, 214, 218))          # pink: shaded, base, lit
+PIG_SNOUT = (222, 130, 146)
+PIG_EYE = (60, 30, 40)
+GOAT = (2, 15)          # column, row of tilemap_packed.png (Tiny Creatures' goat)
+SHEEP = (3, 15)         # Tiny Creatures' sheep
+
+
+def duck(direction, frame):
+    """A 16 x 16 duck facing the way of its row; legs and bob follow the chicken's walk."""
+    c = Canvas(16, 16)
+    shift, lift = LEGS[frame]
+    bob = 1 if frame in (1, 3) else 0
+    if direction == 'right':
+        for x, up in ((6, lift), (9 + shift, 0)):
+            c.rect(x, 13 + up, 1, 2 - up, DUCK_BILL)
+            c.rect(x - 1, 14, 3, 1, DUCK_BILL)
+        blob(c, 7, 9 + bob, 5, 3.6, DUCK_WHITE)
+        blob(c, 11, 5 + bob, 2.6, 2.6, DUCK_WHITE)             # head
+        c.rect(3, 6 + bob, 2, 2, DUCK_WHITE[1])                # tail
+        c.dot(2, 6 + bob, DUCK_WHITE[1])
+        c.rect(13, 4 + bob, 3, 2, DUCK_BILL)                   # flat bill
+        c.dot(15, 5 + bob, DUCK_BILL_D)
+        c.dot(11, 4 + bob, draw.OUT)                           # eye
+        c.line(5, 9 + bob, 9, 9 + bob, DUCK_WHITE[0])          # wing line
+    elif direction == 'down':
+        for x, up in ((5, lift), (10 + shift, 0)):
+            c.rect(x, 13 + up, 1, 2 - up, DUCK_BILL)
+            c.rect(x - 1, 14, 3, 1, DUCK_BILL)
+        blob(c, 8, 9 + bob, 5, 4.4, DUCK_WHITE)
+        blob(c, 8, 5 + bob, 3, 3, DUCK_WHITE)
+        c.rect(6, 6 + bob, 4, 2, DUCK_BILL)                    # bill
+        c.dot(7, 7 + bob, DUCK_BILL_D)
+        c.dot(6, 4 + bob, draw.OUT)
+        c.dot(9, 4 + bob, draw.OUT)
+        c.line(4, 9 + bob, 4, 11 + bob, DUCK_WHITE[0])         # wings
+        c.line(11, 9 + bob, 11, 11 + bob, DUCK_WHITE[0])
+    else:
+        for x, up in ((5, lift), (10 + shift, 0)):
+            c.rect(x, 13 + up, 1, 2 - up, DUCK_BILL)
+            c.rect(x - 1, 14, 3, 1, DUCK_BILL)
+        blob(c, 8, 9 + bob, 5, 4.4, DUCK_WHITE)
+        blob(c, 8, 5 + bob, 2.8, 2.8, DUCK_WHITE)
+        blob(c, 8, 12 + bob, 2, 1.6, DUCK_WHITE)            # tail
+        c.line(8, 8 + bob, 8, 12 + bob, DUCK_WHITE[0])         # back seam
+    return c.outline()
+
+
+def pig(direction, frame):
+    """A 16 x 16 pink pig facing the way of its row, with a snout, small ears and four legs."""
+    c = Canvas(16, 16)
+    shift, lift = LEGS[frame]
+    bob = 1 if frame in (1, 3) else 0
+    if direction == 'right':
+        for x, up in ((4, lift), (9 + shift, 0), (11, lift)):
+            c.rect(x, 12 + up, 2, 3 - up, PIG[0])
+        blob(c, 7, 9 + bob, 5.2, 4, PIG)
+        blob(c, 12, 7 + bob, 3, 3.2, PIG)                      # head
+        c.rect(14, 7 + bob, 2, 3, PIG_SNOUT)                   # snout
+        c.dot(14, 8 + bob, PIG[0])                             # nostril
+        c.dot(12, 5 + bob, PIG[0])                             # ear
+        c.dot(11, 6 + bob, PIG[0])
+        c.dot(12, 6 + bob, PIG_EYE)                            # eye
+        c.dot(2, 8 + bob, PIG[2])                              # curly tail
+        c.dot(1, 7 + bob, PIG[0])
+    elif direction == 'down':
+        for x, up in ((4, lift), (9 + shift, 0)):
+            c.rect(x, 13 + up, 2, 2 - up, PIG[0])
+        blob(c, 8, 9 + bob, 5, 4.5, PIG)
+        blob(c, 8, 5 + bob, 3.8, 3.2, PIG)
+        c.rect(4, 2 + bob, 2, 3, PIG[1])                       # ears
+        c.rect(10, 2 + bob, 2, 3, PIG[1])
+        c.dot(4, 2 + bob, PIG[0])
+        c.dot(11, 2 + bob, PIG[0])
+        c.rect(6, 6 + bob, 4, 2, PIG_SNOUT)                    # snout
+        c.dot(6, 6 + bob, PIG[0])
+        c.dot(9, 6 + bob, PIG[0])
+        c.dot(6, 4 + bob, PIG_EYE)
+        c.dot(9, 4 + bob, PIG_EYE)
+    else:
+        for x, up in ((4, lift), (9 + shift, 0)):
+            c.rect(x, 13 + up, 2, 2 - up, PIG[0])
+        blob(c, 8, 9 + bob, 5, 4.5, PIG)
+        blob(c, 8, 5 + bob, 3.8, 3.2, PIG)
+        c.rect(4, 2 + bob, 2, 3, PIG[1])                       # ears
+        c.rect(10, 2 + bob, 2, 3, PIG[1])
+        c.dot(4, 2 + bob, PIG[0])
+        c.dot(11, 2 + bob, PIG[0])
+        c.dot(13, 11 + bob, PIG[0])                            # curly tail
+        c.dot(14, 10 + bob, PIG[2])
+    return c.outline()
+
+
+def sheet_of(picture):
+    """The 4 x 3 sheet of a procedurally drawn creature: picture(direction, frame) for every cell."""
+    sheet = Image(64, 48)
+    for row, d in enumerate(['down', 'right', 'up']):
+        for column in range(4):
+            sheet.paste(picture(d, column), column * 16, row * 16)
+    return sheet
+
+
 def build(src, size):
     chick = Image(*size('sprites/animals/chicken.png'))
     cell = src.sheet('creatures').cell(*CHICKEN)
@@ -155,4 +259,12 @@ def build(src, size):
     for r, d in enumerate(['down', 'right', 'up']):
         for f in range(4):
             cows.paste(cow(d, f), f * 32, r * 32)
-    return {'sprites/animals/chicken.png': chick, 'sprites/animals/cow.png': cows}
+    creatures = src.sheet('creatures')
+    return {
+        'sprites/animals/chicken.png': chick,
+        'sprites/animals/cow.png': cows,
+        'sprites/animals/goat.png': chicken_frames(creatures.cell(*GOAT)),
+        'sprites/animals/sheep.png': chicken_frames(creatures.cell(*SHEEP)),
+        'sprites/animals/duck.png': sheet_of(duck),
+        'sprites/animals/pig.png': sheet_of(pig),
+    }

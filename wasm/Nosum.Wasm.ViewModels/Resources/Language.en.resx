@@ -922,4 +922,8 @@
   <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Wear title</value></data>
   <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Take off title</value></data>
   <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Unlocks at {0} slain</value></data>
+  <data name="Animal_duck_Name" xml:space="preserve"><value>Duck</value></data>
+  <data name="Animal_goat_Name" xml:space="preserve"><value>Goat</value></data>
+  <data name="Animal_sheep_Name" xml:space="preserve"><value>Sheep</value></data>
+  <data name="Animal_pig_Name" xml:space="preserve"><value>Pig</value></data>
 </root>

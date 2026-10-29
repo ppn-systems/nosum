@@ -121,13 +121,15 @@ public sealed class CarpenterViewModelTests
             new BuildingRow { Id = barn, ObjectId = 2, Kind = (byte)BuildingKind.Barn, MapId = "farm", RemainingMs = 5_000, Animals = 0, Capacity = 4 },
             new BuildingRow { Id = Guid.NewGuid(), ObjectId = 3, Kind = (byte)BuildingKind.Coop, MapId = "farm", RemainingMs = 0, Animals = 4, Capacity = 4 });
 
-        AnimalOffer offer = vm.Offers.Should().ContainSingle("the barn is still being built and the other coop is full").Which;
+        // The barn is still being built and the other coop is full: only this coop's two species are offered.
+        AnimalOffer[] offers = vm.Offers.ToArray();
+        offers.Should().HaveCount(2, "a coop takes chickens and ducks");
+        offers.Should().OnlyContain(o => o.BuildingId == s_coop && o.Title == "Coop (3/4)");
 
-        offer.BuildingId.Should().Be(s_coop);
-        offer.Kind.Should().Be(AnimalKind.Chicken);
-        offer.Title.Should().Be("Coop (3/4)");
+        AnimalOffer offer = offers.Single(o => o.Kind == AnimalKind.Chicken);
         offer.BuyLabel.Should().Be("Buy Chicken · 800 coins");
         offer.CanBuy.Should().BeTrue();
+        offers.Should().Contain(o => o.Kind == AnimalKind.Duck && !o.CanBuy, "a duck costs 1 100 and the wallet holds 1 000");
     }
 
     [Fact]
@@ -136,7 +138,7 @@ public sealed class CarpenterViewModelTests
         (CarpenterViewModel vm, FakeGameSocket socket, BuildingChannel buildings) = Create(799);
         ListMine(socket, buildings, new BuildingRow { Id = s_coop, ObjectId = 1, Kind = (byte)BuildingKind.Coop, MapId = "farm", Capacity = 4 });
 
-        vm.Offers.Single().CanBuy.Should().BeFalse();
+        vm.Offers.Should().OnlyContain(o => !o.CanBuy, "neither a chicken (800) nor a duck (1 100) is affordable with 799 coins");
     }
 
     [Fact]
