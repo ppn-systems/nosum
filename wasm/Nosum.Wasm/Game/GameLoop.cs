@@ -254,7 +254,7 @@ internal static partial class GameLoop
 
         if (s_buildings is not null)
         {
-            providers.Add(new AnimalsDecoratorProvider(s_buildings));
+            providers.Add(new AnimalsDecoratorProvider(s_buildings, s_calendar));
         }
 
         LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel, capacity: 2048);
