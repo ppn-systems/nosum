@@ -72,6 +72,7 @@ internal static class DbBudgetBaseline
         ["GetVisitors / no visitors"] = new(1, 0, 0, 0),
         ["GetVisitors / no visitors, asked again"] = new(0, 0, 0, 0),
         ["GetVisitors / one visitor on the farm"] = new(0, 0, 0, 0),
+        ["GetGuestbook / read the guestbook"] = new(2, 0, 0, 1),
         ["GetWallet / wallet"] = new(1, 1, 1, 1),
         ["GetWallet / wallet, asked again"] = new(1, 0, 0, 1),
         ["InvitePlayer / invite a neighbour"] = new(7, 2, 0, 2),

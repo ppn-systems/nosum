@@ -247,7 +247,10 @@ internal static partial class Program
                 TaskScheduler.Default);
         };
         InstanceManager.Instance.Register<IResourceNodeService>(nodes);
-        FarmService farm = new(presence, presence, publisher, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock, placedTiles);
+        // The farm guestbook (docs/adr/ADR-066): a visitor's watering on a farm with a guestbook is counted for the owner.
+        GuestbookService guestbook = new(unitOfWork, nicknames, clock);
+        InstanceManager.Instance.Register<IGuestbookService>(guestbook);
+        FarmService farm = new(presence, presence, publisher, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock, placedTiles, guestbook);
 
         // Placing objects, chests and furnaces (docs/adr/ADR-024): a chest and a furnace refuse to be picked up while they hold something, so they attach to the placeables.
         PlaceableService placeables = new(presence, presence, publisher, maps, inventory, unitOfWork, clock, farm, nodes, coopMembership, placedTiles);

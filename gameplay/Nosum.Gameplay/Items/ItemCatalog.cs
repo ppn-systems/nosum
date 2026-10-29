@@ -327,6 +327,9 @@ public static class ItemCatalog
     /// <summary>A furnace: smelts ore into bars.</summary>
     public const int Furnace = 605;
 
+    /// <summary>Farm guestbook: a placeable that keeps a log of visitors who water the farm (docs/adr/ADR-066).</summary>
+    public const int Guestbook = 606;
+
     /// <summary>The coop blueprint: handed over by the carpenter, set down on the farm or co-op land to start building (docs/adr/ADR-028 D1).</summary>
     public const int CoopBlueprint = 610;
 
@@ -538,6 +541,7 @@ public static class ItemCatalog
         new(WoodFence, "wood_fence", ItemKind.Placeable, DefaultStack),
         new(StonePath, "stone_path", ItemKind.Placeable, DefaultStack),
         new(Scarecrow, "scarecrow", ItemKind.Placeable, FurnitureStack),
+        new(Guestbook, "guestbook", ItemKind.Placeable, FurnitureStack),
         new(Sprinkler, "sprinkler", ItemKind.Placeable, FurnitureStack),
         new(Furnace, "furnace", ItemKind.Placeable, FurnitureStack),
         new(CoopBlueprint, "coop_blueprint", ItemKind.Placeable, 1),

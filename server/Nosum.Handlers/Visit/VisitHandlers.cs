@@ -21,6 +21,7 @@ namespace Nosum.Handlers.Visit;
 public static partial class VisitHandlers
 {
     [Inject] private static IVisitService s_visits = null!;
+    [Inject] private static IGuestbookService s_guestbook = null!;
 
     /// <summary>Replies with the player's allow-list and who is in their place.</summary>
     /// <param name="context">The request.</param>
@@ -37,6 +38,23 @@ public static partial class VisitHandlers
 
         VisitorsView view = await s_visits.GetAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<GetVisitors, VisitorsSnapshot>(context, sequence, view.FillSnapshot).ConfigureAwait(false);
+    }
+
+    /// <summary>Replies with the farm guestbook: the newest visitors' watering days. Reading it clears the "new" marks (docs/adr/ADR-066).</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(VisitOpCode.GetGuestbook)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(4, 5, PolicyId = "visit-read")]
+    public static async ValueTask HandleGetGuestbookAsync(IPacketContext<GetGuestbook> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        PlayerIdentity player = context.Connection.GetPlayer();
+
+        GuestbookView view = await s_guestbook.ReadAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
+        await Replies.ReplyAsync<GetGuestbook, GuestbookSnapshot>(context, sequence, view.FillSnapshot).ConfigureAwait(false);
     }
 
     /// <summary>Adds a player to the allow-list.</summary>

@@ -55,6 +55,32 @@
             }
             <p class="visit-hint">@Vm.Text("Visit_Rules_Hint")</p>
         </GameSection>
+        @if (!Vm.IsGuest)
+        {
+            <GameSection Title="@Vm.Text("Guestbook_Heading")">
+                @if (Vm.GuestbookUnread > 0)
+                {
+                    <GameBadge Kind="ok" Text="@Vm.Text("Guestbook_Unread", Vm.GuestbookUnread)" />
+                }
+                @if (Vm.Guestbook.Count == 0)
+                {
+                    <p class="visit-hint">@Vm.Text("Guestbook_Empty")</p>
+                }
+                <div class="visitor-list">
+                    @foreach (GuestbookDisplay entry in Vm.Guestbook)
+                    {
+                        <GameRow Class="visitor-row">
+                            <span class="visitor-name">@Vm.Text("Guestbook_Line", entry.Visitor, entry.Waters, entry.DayNumber)</span>
+                            @if (entry.Unread)
+                            {
+                                <GameBadge Kind="ok" Text="@Vm.Text("Guestbook_New")" />
+                            }
+                        </GameRow>
+                    }
+                </div>
+                <p class="visit-hint">@Vm.Text("Guestbook_Hint")</p>
+            </GameSection>
+        }
     </GameStack>
 </MenuPage>
 

@@ -3,7 +3,7 @@
 namespace Nosum.Contracts.Visit;
 
 /// <summary>
-/// Opcodes of the Visit domain: the allow-list of players who may enter an owner's farm and farmhouse, and the request to visit one (docs/adr/ADR-019).
+/// Opcodes of the Visit domain: the allow-list of players who may enter an owner's farm and farmhouse, the request to visit one (docs/adr/ADR-019), and the farm guestbook (docs/adr/ADR-066).
 /// <para>Band <c>0xE000-0xE0FF</c> is reserved for this domain. C2S requests use <c>0xE000-0xE03F</c>,
 /// S2C replies use <c>0xE040-0xE07F</c>. Never reassign or reuse a value.</para>
 /// </summary>
@@ -29,6 +29,9 @@ public static class VisitOpCode
     /// <summary>Asks to visit another player's farm, by nickname. The server checks the allow-list; on success the player is moved and gets a <c>MapChanged</c> push. Reply: <see cref="S2C.VisitResult"/>.</summary>
     public const ushort VisitPlayer = 0xE005;
 
+    /// <summary>Asks for the owner's farm guestbook: the visitors' watering days, newest first. Reading it clears the "new" marks. Reply: <see cref="S2C.GuestbookSnapshot"/>.</summary>
+    public const ushort GetGuestbook = 0xE006;
+
     // -- S2C (0xE040-0xE07F) --------------------------------------------------
 
     /// <summary>Reply to every Visit request except <see cref="GetVisitors"/>.</summary>
@@ -36,4 +39,7 @@ public static class VisitOpCode
 
     /// <summary>Reply to <see cref="GetVisitors"/>.</summary>
     public const ushort VisitorsSnapshot = 0xE041;
+
+    /// <summary>Reply to <see cref="GetGuestbook"/>.</summary>
+    public const ushort GuestbookSnapshot = 0xE042;
 }

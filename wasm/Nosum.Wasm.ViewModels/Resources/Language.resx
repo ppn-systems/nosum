@@ -900,4 +900,10 @@
   <data name="Wayfinding_CommunityBoard" xml:space="preserve"><value>Bảng tin làng</value></data>
   <data name="Wayfinding_Objective" xml:space="preserve"><value>Mục tiêu</value></data>
   <data name="Wayfinding_DistanceMeters" xml:space="preserve"><value>{0} ({1}m)</value></data>
+  <data name="Guestbook_Heading" xml:space="preserve"><value>Sổ lưu bút</value></data>
+  <data name="Guestbook_Line" xml:space="preserve"><value>{0} đã tưới {1} luống vào ngày {2}</value></data>
+  <data name="Guestbook_New" xml:space="preserve"><value>Mới</value></data>
+  <data name="Guestbook_Unread" xml:space="preserve"><value>{0} mục mới</value></data>
+  <data name="Guestbook_Empty" xml:space="preserve"><value>Chưa có khách nào tưới cây trên nông trại của bạn.</value></data>
+  <data name="Guestbook_Hint" xml:space="preserve"><value>Lượt tưới của khách được ghi lại khi có sổ lưu bút đặt trên nông trại.</value></data>
 </root>

@@ -174,6 +174,46 @@ public sealed class VisitorsTests
     }
 
     [SuppressMessage("Reliability", "CA2000", Justification = "The look channel only subscribes to the fake socket, which dies with the test.")]
+    private static GuestbookSnapshot GuestbookReply()
+    {
+        GuestbookSnapshot snapshot = new() { UnreadCount = 2 };
+        snapshot.Rows.Add(new GuestbookRow { VisitorId = s_lan, Nickname = "Lan Anh", DayNumber = 12, Waters = 7, Unread = true });
+        snapshot.Rows.Add(new GuestbookRow { VisitorId = s_guest, Nickname = "guest-0042", DayNumber = 11, Waters = 2, Unread = false });
+        return snapshot;
+    }
+
+    [Fact]
+    public void LoadGuestbook_StoresTheRowsAndHowManyWereNew()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => GuestbookReply());
+        VisitChannel channel = new(socket);
+        int changed = 0;
+        channel.Changed += () => changed++;
+
+        channel.LoadGuestbook();
+
+        changed.Should().Be(1);
+        channel.Guestbook.UnreadCount.Should().Be(2);
+        channel.Guestbook.Entries.Should().Equal(new GuestbookEntryInfo(s_lan, "Lan Anh", 12, 7, true), new GuestbookEntryInfo(s_guest, "guest-0042", 11, 2, false));
+    }
+
+    [Fact]
+    public void Guestbook_ShowsEachVisitorsNameAndWaters()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => GuestbookReply());
+        VisitChannel channel = new(socket);
+        channel.LoadGuestbook();
+        using VisitorsViewModel vm = Create(socket, channel);
+
+        vm.GuestbookUnread.Should().Be(2);
+        vm.Guestbook.Should().HaveCount(2);
+        vm.Guestbook[0].Should().BeEquivalentTo(new GuestbookDisplay("Lan Anh", 12, 7, true));
+        vm.Guestbook[1].Visitor.Should().Contain("0042").And.NotContain("guest-");
+    }
+
+    [SuppressMessage("Reliability", "CA2000", Justification = "The look channel only listens to the fake socket; nothing to dispose.")]
     private static VisitorsViewModel Create(FakeGameSocket socket, VisitChannel channel)
     {
         ResourceManagerStringLocalizerFactory factory = new(Options.Create(new LocalizationOptions()), NullLoggerFactory.Instance);
