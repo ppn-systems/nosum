@@ -215,6 +215,7 @@ else
         Trade.Changed += OnViewModelChanged;
         Coop.Changed += OnViewModelChanged;
         Mail.Changed += OnViewModelChanged;
+        Chat.Changed += OnChatChanged;
     }
 
     protected override void OnAfterRender(bool firstRender) => SyncModalState();
@@ -241,6 +242,7 @@ else
         Trade.Changed -= OnViewModelChanged;
         Coop.Changed -= OnViewModelChanged;
         Mail.Changed -= OnViewModelChanged;
+        Chat.Changed -= OnChatChanged;
     }
 
     private void WireSessionEvents<TSession, TStatus>(
@@ -524,9 +526,12 @@ else
     private void SyncModalState()
     {
         bool overlayOpen = !_started || Form.ShowsForm || Elevator.IsOpen || IsInviteOpen();
-        bool modalOpen = overlayOpen || _panel != PanelKind.None || Npc.Stage != NpcStage.Closed;
+        bool modalOpen = overlayOpen || _panel != PanelKind.None || Npc.Stage != NpcStage.Closed || Chat.InputOpen;
         GameLoop.SetModalState(modalOpen, overlayOpen);
     }
+
+    // Opening the chat box does not re-render this page, so the game is told here: while the box is open, the keys are typing (issue #144).
+    private void OnChatChanged() => _ = InvokeAsync(SyncModalState);
 
     // A trade began: show its window.
     private void OnTradeWantsOpen(bool open)

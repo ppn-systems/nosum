@@ -61,6 +61,7 @@
     private DotNetObjectReference<ChatLine>? _self;
     private bool _focused;
     private bool _enabledSent;
+    private bool _textEntrySent;
 
     /// <summary>Whether Enter may open the input box: true while the game has the keyboard (no menu or dialog is open).</summary>
     [Parameter] public bool Enabled { get; set; } = true;
@@ -114,6 +115,13 @@
             }
 
             bool open = Vm.InputOpen;
+            if (open != _textEntrySent)
+            {
+                // The page is typing while the box is open; chat-input.js sets this already on Enter, this keeps it right when the box closes.
+                _textEntrySent = open;
+                await _module.InvokeVoidAsync("setTextEntry", open);
+            }
+
             if (open && !_focused)
             {
                 _focused = true;

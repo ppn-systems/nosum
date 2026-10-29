@@ -5,6 +5,9 @@
 //    handler (renderer.js) already ignores WASD, the number keys and the panel keys while it has focus; Escape is the exception it acts on
 //    from a field, so the box stops that one here, or closing the box would also open the game menu.
 // 3. Focus: the box takes focus when it opens.
+// 4. Text entry: the moment Enter opens the box, the page is marked as typing (data-text-entry on <html>), before the render and the focus that
+//    follow. The engine's key handler (renderer.js) reads that mark on every key, so the WASD keys typed in that gap do not move the farmer
+//    (docs/adr/ADR-029 D7, issue #144). ChatLine clears it when the box closes.
 //
 // The component passes itself in (a DotNetObjectReference) and gets Open / Submit / Close / NextChannel calls back.
 
@@ -12,6 +15,7 @@ let host = null;
 let enabled = false;
 let attached = null;
 let pointerInChat = false;
+const TEXT_ENTRY_ATTRIBUTE = "data-text-entry";
 
 function wantsEnter(target) {
     if (!target) { return true; }
@@ -37,6 +41,7 @@ function onWindowKey(e) {
     if (!enabled || !host || e.key !== "Enter" || e.repeat || e.ctrlKey || e.altKey || e.metaKey || e.isComposing) { return; }
     if (!wantsEnter(e.target)) { return; }
     e.preventDefault();
+    setTextEntry(true);
     host.invokeMethodAsync("OpenFromKey");
 }
 
@@ -78,6 +83,15 @@ export function setEnabled(value) {
     enabled = value;
 }
 
+// Marks the page as typing in the chat box, or clears the mark. Set synchronously on Enter, so the game ignores the keys before the box has focus.
+export function setTextEntry(open) {
+    if (open) {
+        document.documentElement.setAttribute(TEXT_ENTRY_ATTRIBUTE, "chat");
+    } else {
+        document.documentElement.removeAttribute(TEXT_ENTRY_ATTRIBUTE);
+    }
+}
+
 // Focuses the box (found by id) and listens to its keys; called after the render that opened it.
 export function focusInput(id) {
     const input = document.getElementById(id);
@@ -104,5 +118,6 @@ export function dispose() {
     window.removeEventListener("keydown", onWindowKey);
     window.removeEventListener("pointerdown", onWindowPointerDown, true);
     detach();
+    setTextEntry(false);
     host = null;
 }
