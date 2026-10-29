@@ -506,7 +506,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
 
         if (foodEnergy > 0 && _progress is not null)
         {
-            await _progress.RestoreEnergyFromPotionAsync(player.AccountId, foodEnergy, cancellationToken).ConfigureAwait(false);
+            await _progress.RestoreEnergyAsync(player.AccountId, foodEnergy, cancellationToken).ConfigureAwait(false);
         }
 
         if (_notifier is not null && effect != StatusEffectKind.None)

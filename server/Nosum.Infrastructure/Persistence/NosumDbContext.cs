@@ -17,6 +17,7 @@ using Nosum.Domain.Mail;
 using Nosum.Domain.Market;
 using Nosum.Domain.Mines;
 using Nosum.Domain.Nodes;
+using Nosum.Domain.Pets;
 using Nosum.Domain.Placeables;
 using Nosum.Domain.Quests;
 using Nosum.Domain.Requests;
@@ -41,6 +42,9 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the saved player states.</summary>
     public DbSet<PlayerState> PlayerStates => this.Set<PlayerState>();
+
+    /// <summary>The pet companion of each farmer (docs/adr/ADR-071).</summary>
+    public DbSet<PlayerPet> PlayerPets => this.Set<PlayerPet>();
 
     /// <summary>Gets the issued session tokens.</summary>
     public DbSet<PlayerSessionToken> PlayerSessionTokens => this.Set<PlayerSessionToken>();

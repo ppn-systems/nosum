@@ -1339,6 +1339,40 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("resource_nodes", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Pets.PlayerPet", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<DateTimeOffset>("AdoptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("adopted_at");
+
+                    b.Property<byte>("Kind")
+                        .HasColumnType("smallint")
+                        .HasColumnName("kind");
+
+                    b.Property<long>("LastPettedDay")
+                        .HasColumnType("bigint")
+                        .HasColumnName("last_petted_day");
+
+                    b.Property<int>("Mood")
+                        .HasColumnType("integer")
+                        .HasColumnName("mood");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("name");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_player_pets");
+
+                    b.ToTable("player_pets", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Placeables.ChestLogEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2042,6 +2076,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_mines_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Pets.PlayerPet", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_pets_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Placeables.ChestLogEntry", b =>

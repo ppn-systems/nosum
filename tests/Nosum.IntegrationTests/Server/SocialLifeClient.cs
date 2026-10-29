@@ -19,6 +19,13 @@ using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Chat;
 using Nosum.Contracts.Chat.C2S;
 using Nosum.Contracts.Chat.S2C;
+using Nosum.Contracts.Emote;
+using Nosum.Contracts.Emote.C2S;
+using Nosum.Contracts.Emote.S2C;
+using Nosum.Contracts.Look.S2C;
+using Nosum.Contracts.Pet;
+using Nosum.Contracts.Pet.C2S;
+using Nosum.Contracts.Pet.S2C;
 using Nosum.Contracts.Coop;
 using Nosum.Contracts.Coop.C2S;
 using Nosum.Contracts.Coop.S2C;
@@ -80,6 +87,8 @@ internal sealed class SocialLifeClient : IAsyncDisposable
             session.On<WalletUpdate>(w => this.Wallet.Add(w.Coins)),
             session.On<MapChanged>(m => this.MapChanges.Add(m.MapId)),
             session.On<TradeInvite>(t => this.TradeInvites.Add(t.FromPlayerId)),
+            session.On<EmoteShown>(e => this.Emotes.Add((e.PlayerId, e.Emote))),
+            session.On<LookChanged>(l => this.PetLooks.Add((l.Look.PlayerId, l.Look.PetKind, l.Look.PetName))),
         ];
     }
 
@@ -101,6 +110,10 @@ internal sealed class SocialLifeClient : IAsyncDisposable
     public VisitClient.Inbox<string> MapChanges { get; } = new();
 
     public VisitClient.Inbox<uint> TradeInvites { get; } = new();
+
+    public VisitClient.Inbox<(uint PlayerId, byte Emote)> Emotes { get; } = new();
+
+    public VisitClient.Inbox<(uint PlayerId, byte Kind, string Name)> PetLooks { get; } = new();
 
     public static async Task<SocialLifeClient> ConnectAsync(ushort port, string sessionToken, CancellationToken ct)
     {
@@ -143,6 +156,30 @@ internal sealed class SocialLifeClient : IAsyncDisposable
     {
         using SendChat request = new() { Channel = channel, Target = target, Text = text };
         return (await this.RequestAsync<ChatResult>(request, ct)).Status;
+    }
+
+    public async Task<EmoteStatus> SendEmoteAsync(byte emote, CancellationToken ct)
+    {
+        using SendEmote request = new() { Emote = emote };
+        return (await this.RequestAsync<EmoteResult>(request, ct)).Status;
+    }
+
+    public async Task<PetCopy> GetPetAsync(CancellationToken ct)
+    {
+        using GetPet request = new();
+        return PetCopy.Of(await this.RequestAsync<PetState>(request, ct));
+    }
+
+    public async Task<PetCopy> AdoptPetAsync(byte kind, string name, CancellationToken ct)
+    {
+        using AdoptPet request = new() { Kind = kind, Name = name };
+        return PetCopy.Of(await this.RequestAsync<PetState>(request, ct));
+    }
+
+    public async Task<PetCopy> PetPetAsync(CancellationToken ct)
+    {
+        using PetPet request = new();
+        return PetCopy.Of(await this.RequestAsync<PetState>(request, ct));
     }
 
     public async Task<ChatStatus> BlockAsync(string nickname, CancellationToken ct)
@@ -305,4 +342,10 @@ internal sealed class SocialLifeClient : IAsyncDisposable
         await WaitAsync(Request, 380, ct);
         return await _session.RequestAsync<TReply>(request, ct: ct);
     }
+}
+
+/// <summary>A copy of a pet reply, read at once so no test holds a pooled packet.</summary>
+internal sealed record PetCopy(PetStatus Status, byte Kind, string Name, int Mood, bool PettedToday)
+{
+    public static PetCopy Of(PetState state) => new(state.Status, state.Kind, state.Name, state.Mood, state.PettedToday);
 }

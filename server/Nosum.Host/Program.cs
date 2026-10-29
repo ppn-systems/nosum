@@ -19,6 +19,8 @@ using Nosum.Handlers.Blacksmith;
 using Nosum.Handlers.Building;
 using Nosum.Handlers.Calendar;
 using Nosum.Handlers.Chat;
+using Nosum.Handlers.Emotes;
+using Nosum.Handlers.Pets;
 using Nosum.Handlers.Combat;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
@@ -192,6 +194,8 @@ internal static partial class Program
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers))
             .MapHandlers(typeof(ChatHandlers))
+            .MapHandlers(typeof(EmoteHandlers))
+            .MapHandlers(typeof(PetHandlers))
             .MapHandlers(typeof(FriendHandlers))
             .MapHandlers(typeof(MailHandlers))
             .MapHandlers(typeof(AdminHandlers))

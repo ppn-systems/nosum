@@ -96,11 +96,11 @@ public interface IPlayerProgress
     ValueTask<bool> IsEnergyBelowMaxAsync(Guid playerId, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(false);
 
-    /// <summary>Restores energy when a potion with food energy is consumed.</summary>
+    /// <summary>Restores energy: a potion's food energy, or a pet's petting bonus (docs/adr/ADR-071 D4). Capped at the maximum.</summary>
     /// <param name="playerId">The player's account id.</param>
-    /// <param name="foodEnergy">Food energy to restore.</param>
+    /// <param name="foodEnergy">Energy to restore; zero or less does nothing.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when energy is restored and pushed.</returns>
-    ValueTask RestoreEnergyFromPotionAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
+    ValueTask RestoreEnergyAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
         => ValueTask.CompletedTask;
 }
