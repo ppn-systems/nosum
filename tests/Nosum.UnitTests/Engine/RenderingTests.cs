@@ -146,6 +146,38 @@ public sealed class RenderingTests
     }
 
     [Fact]
+    public void TileLayerRenderer_Draw_Tint_IsGivenToEveryTile()
+    {
+        TileMap map = new(2, 1, 16, 16, [new TileSet(1, "t", "t", 2, 4)], [new TileLayer("Back", [1, 2])]);
+        Camera2D camera = default;
+        camera.Follow(16, 8, 32, 16, 32, 16);
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(1);
+
+        TileLayerRenderer.Draw(map, map.Layers[0], [0], camera, buffer, 0, default, unchecked((int)0x80FFFFFF));
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        buffer.Count.Should().Be(2);
+        ints[10].Should().Be(unchecked((int)0x80FFFFFF));
+        ints[19].Should().Be(unchecked((int)0x80FFFFFF));
+    }
+
+    [Fact]
+    public void TileLayerRenderer_Draw_NoTintByDefault_DrawsUnchanged()
+    {
+        TileMap map = new(1, 1, 16, 16, [new TileSet(1, "t", "t", 2, 4)], [new TileLayer("Back", [1])]);
+        Camera2D camera = default;
+        camera.Follow(8, 8, 16, 16, 16, 16);
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(1);
+
+        TileLayerRenderer.Draw(map, map.Layers[0], [0], camera, buffer);
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        ints[10].Should().Be(RenderCommandBuffer.NoTint);
+    }
+
+    [Fact]
     public void Flush_Sprites_DrawInAscendingYThenXThenId()
     {
         WorldSpriteBatch batch = new(8);
@@ -270,6 +302,29 @@ public sealed class RenderingTests
         // Footprint bottom = (4 + 2) * 16 = 96, image top = 96 - 64 = 32, left = 32.
         ints[2..9].Should().Equal(9, 16, 16, 48, 48, 32, 48); // base: below the roof
         ints[11..18].Should().Equal(9, 16, 0, 48, 16, 32, 32); // roof: top 16 rows
+    }
+
+    [Fact]
+    public void PropLayer_Farmhouse_RoofIsDrawnAfterAWorldSpriteInFrontOfTheHouse()
+    {
+        PropDefinition house = new("house", "sheet", 16, 0, 48, 64, 3, 2, FrontHeight: 16);
+        PropLayer layer = new([new PropPlacement(house, 2, 4)], _ => 9, 16);
+        Camera2D camera = default;
+        camera.Follow(50, 50, 200, 200, 200, 200);
+        WorldSpriteBatch batch = new(4);
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(1);
+        batch.Begin();
+
+        layer.AddToBatch(batch);
+        batch.Add(2, 0, 0, 4, 4, 40, 40, 200, 40); // a player whose feet are south of the house
+        batch.Flush(buffer, camera);
+        layer.DrawFront(buffer, camera);
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        ints[0].Should().Be(3);
+        ints[11].Should().Be(2); // the player is depth-sorted after the house base
+        ints[20..27].Should().Equal(9, 16, 0, 48, 16, 32, 32); // the roof is last, over the player
     }
 
     [Fact]

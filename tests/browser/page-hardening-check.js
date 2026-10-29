@@ -1,9 +1,9 @@
 // Browser check for the device gate and the game-like page behaviour (wasm/README.md "Device gate and page behaviour").
 // Run: NODE_PATH=$(npm root -g) node tests/browser/page-hardening-check.js <page url> [screenshot dir]
-// Needs the published client served on <page url> (default http://localhost:5080/) and the host on :57300; registers one throw-away account.
+// Needs the published client served on <page url> (default http://localhost:5080/) and the host on :57300; plays one throw-away guest (no password sign-in exists, docs/adr/ADR-069).
 //   1. iPhone 14 profile: the block screen (vi, then en), no WebSocket opened, no canvas, no touch controls.
 //   2. 800 px wide desktop window: the "widen the window" overlay, gone again at 1280 px.
-//   3. 1280x720 desktop: the start screen and a WebSocket; after sign-in: right-click on the canvas opens no menu, selection on the HUD is empty,
+//   3. 1280x720 desktop: the start screen (Google and Microsoft buttons, no e-mail or password field) and a WebSocket; as a guest: right-click on the canvas opens no menu, selection on the HUD is empty,
 //      copy / cut / F5 / Backspace / middle button / drag are prevented outside fields, typing and pasting in the chat input still works,
 //      the close-tab prompt is armed, the canvas is pixelated, and nothing logged a console error.
 const { chromium, devices } = require('playwright');
@@ -75,28 +75,19 @@ async function withContext(browser, options, language, fn) {
   // 3. A desktop plays; the page behaves like a game.
   await withContext(browser, { viewport: { width: 1280, height: 720 }, locale: 'en-US', permissions: ['clipboard-read', 'clipboard-write'] }, 2, async (page, seen) => {
     await page.goto(base, { waitUntil: 'load' });
-    await page.waitForSelector('input', { timeout: 90000 });
+    await page.waitForSelector('button', { timeout: 90000 });
     await page.waitForTimeout(2500);
     check('desktop 1280x720: sees the sign-in screen, not the block screen', await page.locator('.device-block').count() === 0);
     check('desktop: the WebSocket opens', seen.sockets.length >= 1, seen.sockets);
 
-    // Pasting works in the sign-in fields while everything else is locked down.
-    await page.evaluate(() => navigator.clipboard.writeText('pasted@gmail.com'));
-    const email = page.locator('input[type=email]');
-    await email.click();
-    await page.keyboard.press('Control+V');
-    check('sign-in: paste into the email field', await email.inputValue() === 'pasted@gmail.com');
-    await email.fill('');
+    // The start screen signs in only with Google or Microsoft (docs/adr/ADR-069): no e-mail or password field, one button per provider.
+    check('sign-in: no e-mail or password field on the start screen', await page.locator('input[type=email], input[type=password]').count() === 0);
+    const providers = await page.getByRole('button', { name: /Google|Microsoft/ }).count();
+    check('sign-in: one Google and one Microsoft button', providers === 2, providers);
 
-    await page.getByRole('button', { name: /register|sign up|create/i }).first().click();
-    const stamp = Date.now() % 1000000;
-    await email.fill(`pagecheck${stamp}@gmail.com`);
-    const passwords = page.locator('input[type=password]');
-    await passwords.nth(0).fill('Hardening-123');
-    await passwords.nth(1).fill('Hardening-123');
-    await page.locator('form input:not([type=email]):not([type=password])').first().fill(`check${stamp}`);
-    await page.locator('form button[type=submit]').click();
-    await page.waitForFunction(() => document.querySelector('canvas.game-canvas') && !document.querySelector('form'), null, { timeout: 60000 });
+    // Playing as a guest needs no provider, so the game checks below run as a guest.
+    await page.getByRole('button', { name: /as a guest|tư cách khách/i }).first().click();
+    await page.waitForSelector('canvas.game-canvas', { timeout: 60000 });
     await page.waitForSelector('.game-hud .hud-top-right *', { timeout: 60000 });
     await page.waitForTimeout(5000);
     await shot(page, 'game-desktop-1280.png');

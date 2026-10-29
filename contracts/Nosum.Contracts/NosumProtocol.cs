@@ -16,8 +16,10 @@ public static class NosumProtocol
     /// 6: market trends - <c>Average</c> appended to <c>PriceHistory</c> (docs/adr/ADR-030 D4).
     /// 7: co-op objectives - <c>Objectives</c> appended to <c>CoopSnapshot</c> (docs/adr/ADR-067).
     /// 8: bestiary - new packets <c>GetBestiary</c>, <c>BestiarySnapshot</c>, <c>EquipBestiaryTitle</c>, <c>EquipBestiaryTitleResult</c> (docs/adr/ADR-068).
+    /// 9: Google and Microsoft sign-in only (docs/adr/ADR-069) - new packets <c>ExternalSignIn</c> and <c>LinkExternalIdentity</c>; <c>Register</c>,
+    /// <c>Login</c>, <c>UpgradeGuest</c>, <c>ChangePassword</c> and <c>PasswordResult</c> retired (no fields); <c>AccountStatus</c> codes 20-21 added.
     /// 15: held tool, trade lock, hotbar sort lock - <c>HeldItemId</c> appended to <c>PlayerState</c>; <c>ConfirmLockMs</c> appended to <c>TradeState</c>;
-    /// <c>TradeStatus.TooSoon</c> (value 12); <c>LockHotbar</c> appended to <c>SortInventory</c>. This bump covers every wire change since 8.
+    /// <c>TradeStatus.TooSoon</c> (value 12); <c>LockHotbar</c> appended to <c>SortInventory</c>. This bump covers every wire change since 9.
     /// </summary>
     public const ushort Version = 15;
 }

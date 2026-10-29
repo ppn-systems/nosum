@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Nosum.Contracts.Farm;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Weather;
 
 namespace Nosum.Wasm.ViewModels.Audio;
@@ -117,6 +118,20 @@ public static class MusicTrackIds
     /// <param name="night">Whether it is night.</param>
     /// <returns>A track id, 1 to 8: 1 spring day, 2 spring night, 3 summer day, and so on.</returns>
     public static int For(Season season, bool night) => 1 + ((int)season * 2) + (night ? 1 : 0);
+
+    /// <summary>
+    /// Returns the track of a mine biome (docs/adr/ADR-070 D3): the four existing tracks that differ most from one another, so each depth tier has
+    /// its own theme without a new file. Earth plays spring day, Frost winter day, Magma summer night and Ruins fall night.
+    /// </summary>
+    /// <param name="biome">The biome of the floor.</param>
+    /// <returns>A track id, 1 to 8.</returns>
+    public static int ForMine(MineBiome biome) => biome switch
+    {
+        MineBiome.Frost => For(Season.Winter, false),
+        MineBiome.Magma => For(Season.Summer, true),
+        MineBiome.Ruins => For(Season.Fall, true),
+        _ => For(Season.Spring, false),
+    };
 }
 
 /// <summary>

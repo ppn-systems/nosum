@@ -1,20 +1,19 @@
 // Browser check for the merchants (docs/adr/ADR-043): at the carpenter's counter in Town the action key opens the merchant's dialog box, Buy and Build open
 // standalone dialogs (not menu tabs), the close button goes back to the box, Escape ends the conversation, the menu holds 11 player tabs and the mail icon opens
 // the mail tab. Takes a screenshot at each step and logs which pieces are on screen.
-// Needs a registered account standing on the carpenter's counter (Town tile (10, 86), saved place x = 168, y = 1391 in player_states, server restarted after the edit).
-// Run: NODE_PATH=$(npm root -g) NOSUM_QA_EMAIL=... NOSUM_QA_PASSWORD=... node tests/browser/npc-merchants-check.js <vi|en> <screenshot prefix> [page url]
+// Needs a QA account standing on the carpenter's counter (Town tile (10, 86), saved place x = 168, y = 1391 in player_states, server restarted after the edit).
+// The account signs in with Google or Microsoft (docs/adr/ADR-069), which a script cannot do: the browser opens headed and the operator signs in by hand;
+// the check starts when the game canvas appears (up to five minutes).
+// Run: NODE_PATH=$(npm root -g) node tests/browser/npc-merchants-check.js <vi|en> <screenshot prefix> [page url]
 const { chromium } = require('playwright');
 const lang = process.argv[2] || 'vi';
 const prefix = process.argv[3] || 'out';
 const base = process.argv[4] || 'http://localhost:5080/';
-const email = process.env.NOSUM_QA_EMAIL;
-const password = process.env.NOSUM_QA_PASSWORD;
-if (!email || !password) { console.error('Set NOSUM_QA_EMAIL and NOSUM_QA_PASSWORD (a registered account).'); process.exit(2); }
 const T = lang === 'en'
-  ? { email: 'Gmail address', pw: 'Password', login: /^Log in$|^Sign in$/i, buy: /^Buy$/, build: /^Build$/, talk: /^Talk$/, leave: /^Leave$/ }
-  : { email: 'Địa chỉ Gmail', pw: 'Mật khẩu', login: /^Đăng nhập$/, buy: /^Mua$/, build: /^Xây dựng$/, talk: /^Trò chuyện$/, leave: /^Tạm biệt$/ };
+  ? { buy: /^Buy$/, build: /^Build$/, talk: /^Talk$/, leave: /^Leave$/ }
+  : { buy: /^Mua$/, build: /^Xây dựng$/, talk: /^Trò chuyện$/, leave: /^Tạm biệt$/ };
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ headless: false });
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, locale: 'vi-VN' });
   const page = await ctx.newPage();
   const errors = [];
@@ -22,10 +21,8 @@ const T = lang === 'en'
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   await page.goto(base, { waitUntil: 'load' });
   await page.waitForSelector('button');
-  await page.getByLabel('Địa chỉ Gmail').fill(email);
-  await page.getByLabel('Mật khẩu', { exact: true }).fill(password);
-  await page.locator('button[type=submit]').click();
-  await page.waitForSelector('canvas', { timeout: 60000 });
+  console.log('Sign in with the QA account in the browser window (Google or Microsoft); the check starts when the game is up.');
+  await page.waitForSelector('canvas', { timeout: 300000 });
   await page.waitForTimeout(6000);
   // language: the settings page holds it
   await page.keyboard.press('KeyH');

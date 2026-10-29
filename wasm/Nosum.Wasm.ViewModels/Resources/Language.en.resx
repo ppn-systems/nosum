@@ -5,19 +5,8 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Account_Title_Login" xml:space="preserve"><value>Sign in</value></data>
-  <data name="Account_Title_Register" xml:space="preserve"><value>Create account</value></data>
-  <data name="Account_Password" xml:space="preserve"><value>Password</value></data>
-  <data name="Account_ConfirmPassword" xml:space="preserve"><value>Confirm password</value></data>
-  <data name="Account_Submit_Login" xml:space="preserve"><value>Sign in</value></data>
-  <data name="Account_Submit_Register" xml:space="preserve"><value>Register</value></data>
-  <data name="Account_Switch_ToRegister" xml:space="preserve"><value>No account yet? Register</value></data>
-  <data name="Account_Switch_ToLogin" xml:space="preserve"><value>Already have an account? Sign in</value></data>
-  <data name="Account_Busy" xml:space="preserve"><value>Working…</value></data>
-  <data name="Account_PasswordHint" xml:space="preserve"><value>{0} to {1} characters.</value></data>
-  <data name="Account_Error_PasswordMismatch" xml:space="preserve"><value>The two passwords do not match.</value></data>
+  <data name="Account_Busy" xml:space="preserve"><value>Waiting for you to finish signing in…</value></data>
   <data name="Account_Error_Connection" xml:space="preserve"><value>Could not reach the server. Please try again.</value></data>
-  <data name="Account_Status_InvalidPassword" xml:space="preserve"><value>That password is not valid.</value></data>
-  <data name="Account_Status_InvalidCredentials" xml:space="preserve"><value>Wrong email or password.</value></data>
   <data name="Account_Status_InvalidToken" xml:space="preserve"><value>Your session has expired. Please sign in again.</value></data>
   <data name="Account_Status_InvalidLanguage" xml:space="preserve"><value>That language is not valid.</value></data>
   <data name="Connection_Connecting" xml:space="preserve"><value>Connecting…</value></data>
@@ -31,18 +20,25 @@
   <data name="Connection_Paused" xml:space="preserve"><value>The game is paused until the connection is back.</value></data>
   <data name="Connection_RetryNow" xml:space="preserve"><value>Retry now</value></data>
   <data name="Join_UnknownMap" xml:space="preserve"><value>Map not found</value></data>
-  <data name="Account_Email" xml:space="preserve"><value>Gmail address</value></data>
-  <data name="Account_EmailHint" xml:space="preserve"><value>Only @{0} addresses are accepted.</value></data>
-  <data name="Account_Status_InvalidEmail" xml:space="preserve"><value>That Gmail address is not valid.</value></data>
-  <data name="Account_Status_EmailTaken" xml:space="preserve"><value>That Gmail address is already registered.</value></data>
   <data name="Account_Status_NotGuest" xml:space="preserve"><value>This account is not a guest account.</value></data>
   <data name="Account_PlayAsGuest" xml:space="preserve"><value>Play now as a guest</value></data>
   <data name="Account_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Account_Guest" xml:space="preserve"><value>Guest</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Signed in as {0}</value></data>
-  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Register with Gmail.</value></data>
-  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Register now</value></data>
+  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Link a Google or Microsoft account.</value></data>
+  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Link account</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Account_SignIn_Google" xml:space="preserve"><value>Sign in with Google</value></data>
+  <data name="Account_SignIn_Microsoft" xml:space="preserve"><value>Sign in with Microsoft</value></data>
+  <data name="Account_Link_Google" xml:space="preserve"><value>Link Google account</value></data>
+  <data name="Account_Link_Microsoft" xml:space="preserve"><value>Link Microsoft account</value></data>
+  <data name="Account_Provider_NotConfigured" xml:space="preserve"><value>Sign-in with this provider is not set up on the server yet.</value></data>
+  <data name="Account_Error_Cancelled" xml:space="preserve"><value>Sign-in was cancelled.</value></data>
+  <data name="Account_Error_PopupBlocked" xml:space="preserve"><value>Your browser blocked the sign-in window. Allow pop-ups for this site and try again.</value></data>
+  <data name="Account_Error_NotDisplayed" xml:space="preserve"><value>Google could not show its sign-in prompt. Check your browser settings and try again.</value></data>
+  <data name="Account_Error_ProviderFailed" xml:space="preserve"><value>Sign-in did not succeed. Please try again.</value></data>
+  <data name="Account_Status_InvalidIdToken" xml:space="preserve"><value>We could not verify your account. Please try again.</value></data>
+  <data name="Account_Status_IdentityTaken" xml:space="preserve"><value>That Google or Microsoft account is already linked to another player.</value></data>
   <data name="Account_Title_Upgrade" xml:space="preserve"><value>Save your account</value></data>
   <data name="Account_Status_SessionReplaced" xml:space="preserve"><value>Your session ended because this account signed in somewhere else.</value></data>
   <data name="Farm_Status_NotOnFarm" xml:space="preserve"><value>You can't farm here.</value></data>
@@ -166,6 +162,10 @@
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Shirt</value></data>
   <data name="Wardrobe_Slot_Pants" xml:space="preserve"><value>Trousers</value></data>
   <data name="Wardrobe_Slot_Hat" xml:space="preserve"><value>Hat</value></data>
+  <data name="Wardrobe_Worn" xml:space="preserve"><value>Worn</value></data>
+  <data name="Wardrobe_Bag" xml:space="preserve"><value>In your bag</value></data>
+  <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>You have no clothes in your bag.</value></data>
+  <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Take off</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Done.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Invalid skin tone.</value></data>
   <data name="Wardrobe_Status_InvalidHairStyle" xml:space="preserve"><value>Invalid hair style.</value></data>
@@ -292,7 +292,7 @@
   <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} characters: letters without accents (a-z) and digits, with a single space or underscore between words. No profanity.</value></data>
   <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>That nickname is not valid. Use letters without accents (a-z) and digits only.</value></data>
   <data name="Account_Status_NicknameProfane" xml:space="preserve"><value>That nickname is not allowed: it contains offensive language.</value></data>
-  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Register an account to choose a nickname.</value></data>
+  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Link a Google or Microsoft account to choose a nickname.</value></data>
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>That nickname is not allowed.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>That nickname is already taken.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>You changed your nickname recently. Try again later.</value></data>
@@ -303,7 +303,7 @@
   <data name="Profile_NewLabel" xml:space="preserve"><value>New nickname</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Change nickname</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>You can change your nickname once every 24 hours.</value></data>
-  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep their generated name. Register an account to choose your own nickname.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep their generated name. Link a Google or Microsoft account to choose your own nickname.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Your nickname is now {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>You can change it again at {0}.</value></data>
   <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Seed shop</value></data>
@@ -768,9 +768,7 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Hold the milk pail to milk a cow.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>The bench is full.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>The land already has as many buildings as it can hold.</value></data>
-  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>The recovery code is wrong, expired or already used.</value></data>
   <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Too many requests. Please try again later.</value></data>
-  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Your session ended because the account password was reset.</value></data>
   <data name="Connection_KeyMismatch" xml:space="preserve"><value>The server identity has changed. It may be an impostor, so the game refuses to connect. Wait for an official announcement, or clear this site's data if you are running a development build.</value></data>
   <data name="Board_Tab_Goals" xml:space="preserve"><value>Goals</value></data>
   <data name="Board_Tab_Requests" xml:space="preserve"><value>Requests</value></data>

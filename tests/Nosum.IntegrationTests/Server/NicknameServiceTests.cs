@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -26,7 +25,7 @@ namespace Nosum.IntegrationTests.Server;
 public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
 {
     private static readonly DateTimeOffset s_start = new(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);
-    private static int s_email;
+    private static int s_subject;
 
     private readonly PostgresFixture _database;
     private readonly FakeTimeProvider _clock = new(s_start);
@@ -38,11 +37,11 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
         _database = database;
         EfUnitOfWorkFactory units = new(database.Options);
         _directory = new NicknameDirectory(units);
-        _accounts = new AccountService(units, new Pbkdf2PasswordHasher(iterations: 1000), new SessionTokenService(), _clock, nicknames: _directory);
+        _accounts = new AccountService(units, FakeExternalTokenVerifier.All(), new SessionTokenService(), _clock, nicknames: _directory);
     }
 
     [Fact]
-    public async Task Register_UnaccentedNickname_IsStoredAndReturned()
+    public async Task LinkExternalIdentity_UnaccentedNickname_IsStoredAndReturned()
     {
         AccountOutcome outcome = await RegisterAsync("  Nguyen Van_An  ");
 
@@ -64,19 +63,21 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     [InlineData("Fuck", AccountStatus.NicknameProfane)]
     [InlineData("VCL_77", AccountStatus.NicknameProfane)]
     [InlineData("d1t me", AccountStatus.NicknameProfane)]
-    public async Task Register_InvalidReservedOrProfane_IsRefusedWithMatchingCodeAndCreatesNothing(string nickname, AccountStatus expected)
+    public async Task LinkExternalIdentity_InvalidReservedOrProfane_IsRefusedWithMatchingCodeAndTheGuestStays(string nickname, AccountStatus expected)
     {
-        string email = NextEmail();
+        AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
+        string subject = NextSubject();
 
-        AccountOutcome outcome = await _accounts.RegisterAsync(email, "password-1", nickname, GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome outcome = await LinkAsync(guest, subject, nickname);
 
         outcome.Status.Should().Be(expected);
+        (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).IsGuest.Should().BeTrue();
         await using NosumDbContext context = new(_database.Options);
-        (await context.Players.AnyAsync(p => p.NormalizedEmail == email)).Should().BeFalse();
+        (await context.ExternalLogins.AnyAsync(l => l.Subject == subject)).Should().BeFalse();
     }
 
     [Fact]
-    public async Task Register_SameNicknameDifferentCase_IsTaken()
+    public async Task LinkExternalIdentity_SameNicknameDifferentCase_IsTaken()
     {
         string name = "Name" + Guid.NewGuid().ToString("N")[..6];
         (await RegisterAsync(name)).Status.Should().Be(AccountStatus.Ok);
@@ -86,7 +87,7 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task Register_SameNicknameConcurrently_CreatesExactlyOne_AndTheLoserSeesNicknameTaken()
+    public async Task LinkExternalIdentity_SameNicknameConcurrently_CreatesExactlyOne_AndTheLoserSeesNicknameTaken()
     {
         string name = "Race" + Guid.NewGuid().ToString("N")[..8];
 
@@ -96,17 +97,6 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
         results.Where(r => r.Status != AccountStatus.Ok).Should().OnlyContain(r => r.Status == AccountStatus.NicknameTaken);
         await using NosumDbContext context = new(_database.Options);
         (await context.Players.CountAsync(p => p.NormalizedNickname == NicknameRules.Key(name))).Should().Be(1);
-    }
-
-    [Fact]
-    public async Task Register_SameEmailAndNickname_ReportsTheEmailWhenOnlyTheEmailClashes()
-    {
-        string email = NextEmail();
-        (await _accounts.RegisterAsync(email, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None)).Status.Should().Be(AccountStatus.Ok);
-
-        AccountOutcome again = await _accounts.RegisterAsync(email, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
-
-        again.Status.Should().Be(AccountStatus.EmailTaken);
     }
 
     [Fact]
@@ -120,37 +110,22 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task UpgradeGuest_TakesTheChosenNickname_AndRefusesATakenOneLeavingTheGuest()
+    public async Task LinkExternalIdentity_TakesTheChosenNickname_AndRefusesATakenOneLeavingTheGuest()
     {
         string taken = TestNicknames.Next();
-        (await _accounts.RegisterAsync(NextEmail(), "password-1", taken, GameLanguage.Unspecified, CancellationToken.None)).Status.Should().Be(AccountStatus.Ok);
+        (await RegisterAsync(taken)).Status.Should().Be(AccountStatus.Ok);
         AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
 
-        AccountOutcome refused = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, NextEmail(), "password-1", taken.ToLowerInvariant(), CancellationToken.None);
+        AccountOutcome refused = await LinkAsync(guest, NextSubject(), taken.ToLowerInvariant());
         refused.Status.Should().Be(AccountStatus.NicknameTaken);
         (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).Nickname.Should().Be(guest.Nickname, "still a guest with the same name");
 
         string chosen = TestNicknames.Next();
-        AccountOutcome upgraded = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, NextEmail(), "password-1", chosen, CancellationToken.None);
+        AccountOutcome linked = await LinkAsync(guest, NextSubject(), chosen);
 
-        upgraded.Status.Should().Be(AccountStatus.Ok);
-        upgraded.Nickname.Should().Be(chosen);
+        linked.Status.Should().Be(AccountStatus.Ok);
+        linked.Nickname.Should().Be(chosen);
         (await _directory.GetAsync(guest.PlayerId)).Should().Be(chosen, "the cache follows the change");
-    }
-
-    [Fact]
-    public async Task UpgradeGuest_WithAnInvalidReservedOrProfaneNickname_IsRefused_AndTheGuestStaysAGuest()
-    {
-        AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
-
-        foreach ((string nickname, AccountStatus expected) in new[] { ("Nguyễn", AccountStatus.InvalidNickname), ("Admin", AccountStatus.NicknameReserved), ("Cai_Lon", AccountStatus.NicknameProfane) })
-        {
-            (await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, NextEmail(), "password-1", nickname, CancellationToken.None)).Status.Should().Be(expected);
-        }
-
-        AccountOutcome resumed = await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None);
-        resumed.IsGuest.Should().BeTrue();
-        resumed.Nickname.Should().Be(guest.Nickname);
     }
 
     [Fact]
@@ -175,7 +150,7 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
         Guid id;
         await using (NosumDbContext seed = new(_database.Options))
         {
-            Player player = new() { NormalizedEmail = NextEmail(), Email = NextEmail(), PasswordHash = "x", Nickname = legacy, NormalizedNickname = NicknameRules.Key(legacy), CreatedAt = s_start, LastActiveAt = s_start };
+            Player player = new() { Nickname = legacy, NormalizedNickname = NicknameRules.Key(legacy), CreatedAt = s_start, LastActiveAt = s_start };
             seed.Players.Add(player);
             _ = await seed.SaveChangesAsync();
             id = player.Id;
@@ -303,8 +278,15 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
 
     private static bool IsGuest(string nickname) => NicknameRules.IsGuestName(nickname, out string _);
 
-    private Task<AccountOutcome> RegisterAsync(string nickname)
-        => _accounts.RegisterAsync(NextEmail(), "password-1", nickname, GameLanguage.Unspecified, CancellationToken.None);
+    // A new guest that links a fresh Google identity with the wanted nickname: the registration of these tests.
+    private async Task<AccountOutcome> RegisterAsync(string nickname)
+    {
+        AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
+        return await LinkAsync(guest, NextSubject(), nickname);
+    }
 
-    private static string NextEmail() => "nick" + Interlocked.Increment(ref s_email) + Guid.NewGuid().ToString("N")[..8] + "@gmail.com";
+    private Task<AccountOutcome> LinkAsync(AccountOutcome guest, string subject, string nickname)
+        => _accounts.LinkExternalIdentityAsync(guest.PlayerId, guest.SessionId, ExternalProvider.Google, FakeExternalTokenVerifier.Token(ExternalProvider.Google, subject), nickname, CancellationToken.None);
+
+    private static string NextSubject() => "nick" + Interlocked.Increment(ref s_subject) + Guid.NewGuid().ToString("N")[..8];
 }

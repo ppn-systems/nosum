@@ -58,6 +58,7 @@ public sealed class ChunkLoadTests : IClassFixture<PostgresFixture>
     {
         ushort port = FreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -285,6 +286,7 @@ public sealed class ChunkLoadTests : IClassFixture<PostgresFixture>
 
         public async Task JoinAsync(CancellationToken ct)
         {
+            await WirePace.JoinAsync(ct);
             using JoinMap request = new() { MapId = Program.FarmMapId };
             JoinMapResult result = await _session.RequestAsync<JoinMapResult>(request, ct: ct);
             result.Status.Should().Be(JoinStatus.Ok);

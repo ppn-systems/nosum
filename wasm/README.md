@@ -18,8 +18,11 @@ Skills: [`blazor-ui`](../.claude/skills/blazor-ui/SKILL.md),
 [`render-interop`](../.claude/skills/render-interop/SKILL.md),
 [`nalix-client-sdk`](../.claude/skills/nalix-client-sdk/SKILL.md).
 
-Account UI: `Components/Account/AccountForm.razor` is a reusable login/register form bound to
-`AccountFormViewModel` (`Nosum.Wasm.ViewModels/Account`). Its text is in
+Account UI: `Components/Account/AccountForm.razor` shows two sign-in buttons, Google and Microsoft, and a guest
+start; a guest links one of the two identities to become a registered player. There are no password or e-mail fields
+(docs/adr/ADR-069). The buttons are bound to `AccountFormViewModel` (`Nosum.Wasm.ViewModels/Account`); the ID token comes from
+`wwwroot/external-sign-in.js` (Google Identity Services, MSAL popup through `wwwroot/msal-redirect.html`), and the two
+client ids are read from `ExternalSignIn` in `wwwroot/appsettings.json`. Its text is in
 `Nosum.Wasm.ViewModels/Resources/Language.resx` (Vietnamese) and `Language.en.resx`. `Pages/Home.razor`
 shows it first; the game starts after sign-in (the canvas listens to the whole window's keys).
 `GameSocketAccountClient` implements `IAccountClient` over `IGameSocket`; `AccountSessionKeeper`

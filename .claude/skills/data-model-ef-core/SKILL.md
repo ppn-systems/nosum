@@ -1,6 +1,6 @@
 ---
 name: data-model-ef-core
-description: Use when creating or changing a persisted entity, NosumDbContext, IEntityTypeConfiguration, EF Core migration, repository/unit-of-work use, password or token handling, or the player-account flow. PostgreSQL, snake_case, generate-never-hand-write migrations, current-player accessor.
+description: Use when creating or changing a persisted entity, NosumDbContext, IEntityTypeConfiguration, EF Core migration, repository/unit-of-work use, identity or session token handling, or the player-account flow. PostgreSQL, snake_case, generate-never-hand-write migrations, current-player accessor.
 ---
 
 # Data model and EF Core (server/)
@@ -35,8 +35,8 @@ is stored: `gameplay-rules`. Handler mechanics: `nalix-handlers`.
 - **Unique rules are enforced by the database** (unique index) and a lost race is mapped to a
   normal refusal with `IUnitOfWork.IsUniqueViolation`, not an exception to the client.
 - **Time comes from `TimeProvider`**, passed to services; tests use a fake clock.
-- **Secrets**: passwords only as `IPasswordHasher` output (PBKDF2-SHA256, self-describing
-  string), session tokens only as `ISessionTokenService` hashes. Never log or return a hash.
+- **Secrets**: session tokens only as `ISessionTokenService` hashes. Provider ID tokens are
+  verified by `IExternalTokenVerifier` and never stored (docs/adr/ADR-069). Never log or return a hash.
   Never invent crypto.
 - **Connection string** comes from `ConnectionStrings__Default`. Production without it refuses
   to start (`NosumDatabase.ResolveConnectionString`); only non-Production falls back to the
@@ -63,7 +63,7 @@ is stored: `gameplay-rules`. Handler mechanics: `nalix-handlers`.
   (`Nosum.Handlers/Session`), which stores the identity and raises `Level` to `USER`.
 - **Any other handler reads the player with `context.Connection.GetPlayer()`**, gated by
   `[PacketPermission(PermissionLevel.USER)]`. A player id inside a packet is never trusted.
-- Public handlers (register, login, resume) declare `PermissionLevel.NONE` and a
+- Public handlers (sign-in, guest, resume) declare `PermissionLevel.NONE` and a
   `[PacketRateLimit]`; `PermissionMiddleware` and `RateLimitMiddleware` are registered in
   `Program.BuildApplication`.
 
@@ -74,5 +74,5 @@ is stored: `gameplay-rules`. Handler mechanics: `nalix-handlers`.
   `NOSUM_TEST_POSTGRES`, default the local dev server. No server = failing tests, not skipped.
 - Local server: `service postgresql start`, role `nosum`, databases `nosum_dev` (see
   `NosumDatabase.DevelopmentConnectionString`).
-- Hashing/validation rules are unit tests (`tests/Nosum.UnitTests/Server/`); use a small
-  iteration count for the hasher there.
+- Token verification rules are unit tests (`tests/Nosum.UnitTests/Server/Identity/`), with locally
+  generated RSA keys and a stub key set: no network.

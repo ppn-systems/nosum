@@ -44,6 +44,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -79,6 +80,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -105,6 +107,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -135,6 +138,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -145,6 +149,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
                 new WebSocketTransportOptions { Path = Program.WebSocketPath });
             await session.ConnectAsync(ct: timeout.Token);
             await session.HandshakeAsync(timeout.Token);
+            await WirePace.JoinAsync(CancellationToken.None);
             using JoinMap request = new() { MapId = Program.FarmMapId };
 
             Func<Task> join = async () => _ = await session.RequestAsync<JoinMapResult>(request, RequestOptions.Default.WithTimeout(1500), ct: timeout.Token);
@@ -162,6 +167,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -206,6 +212,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -291,7 +298,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
 
         private async Task SignInAsync(CancellationToken ct)
         {
-            using Register request = new() { Email = "m" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com", Password = "password-1", Nickname = TestNicknames.Next() };
+            using ExternalSignIn request = new() { Provider = ExternalProvider.Google, IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, Guid.NewGuid().ToString("N")) };
             AccountResult result = await _session.RequestAsync<AccountResult>(request, ct: ct);
             result.Status.Should().Be(AccountStatus.Ok);
             this.AccountId = result.PlayerId;
@@ -315,6 +322,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
 
         public async Task<JoinMapResult> JoinAsync(CancellationToken ct, string mapId = Program.FarmMapId)
         {
+            await WirePace.JoinAsync(ct);
             using JoinMap request = new() { MapId = mapId };
             return await _session.RequestAsync<JoinMapResult>(request, ct: ct);
         }

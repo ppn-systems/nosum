@@ -33,6 +33,7 @@ Set these in GitHub → repository → **Settings → Environments → productio
 | `NOSUM_SERVER_PUBLIC_KEY` | variable | The server's public key: see "Read the server key" below. Public, so a variable, not a secret. |
 | `NOSUM_SERVER_URL` | variable, optional | Default `wss://nosum.ppnsys.com/ws/`. |
 | `NOSUM_CALENDAR_EPOCH` | variable, optional | The start of the server calendar (ISO 8601 UTC). Default: the built-in epoch. |
+| `NOSUM_GOOGLE_CLIENT_ID`, `NOSUM_MICROSOFT_CLIENT_ID`, `NOSUM_MICROSOFT_TENANT` | variables, optional | The public client ids of the Google and Microsoft sign-in apps, and the Microsoft tenant (`common` by default). They must match the web client's `ExternalSignIn` settings. An empty id turns that provider off (docs/adr/ADR-069). |
 
 `deploy/.env` is written on the host by the deploy and is never committed (`.gitignore`). Compose requires `POSTGRES_PASSWORD`,
 `CLOUDFLARE_TUNNEL_TOKEN`, `NOSUM_ORIGIN` and `NOSUM_TAG`; `deploy/.env.example` lists every name.

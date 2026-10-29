@@ -72,7 +72,7 @@ the client never decides a contribution, a trade or a goal outcome.
 
 - Farming happens on the player's own private farm: till with a hoe, plant a seed, water, wait, harvest into the inventory. Crops grow only while the soil is wet.
 - Every item change is one atomic, logged server transaction, the base the market, trades and the co-op warehouse will use.
-- The first quest (plant and harvest one crop) is the tutorial and invites a guest to register. Durations, starter items and inventory size (36) are defaults, not balance.
+- The first quest (plant and harvest one crop) is the tutorial and invites a guest to link a Google or Microsoft account. Durations, starter items and inventory size (36) are defaults, not balance.
 
 ## Built so far (social layer, [ADR-013](../adr/ADR-013-economy-coins-escrow-market-trade.md), [ADR-014](../adr/ADR-014-coops-and-looks.md); proposed defaults, owner to confirm)
 
@@ -81,7 +81,7 @@ the client never decides a contribution, a trade or a goal outcome.
 - Direct trade: same map, both sides set an offer, any change clears both confirmations, both confirm, one atomic swap; leaving the map aborts with nothing moved.
 - Co-ops: one per player, founder and member roles, invitations, shared warehouse with an audit trail; the founder takes anything, a member takes back what they put in. Co-op land ([ADR-020](../adr/ADR-020-coop-land.md), proposed): every co-op has its own shared farm, entered through a gate on Town's west plaza by members only; members till, plant, water and harvest together, the harvester keeps the produce and every action is audited; leaving or being removed ends access at once. Co-op upgrades ([ADR-038](../adr/ADR-038-coop-upgrades.md)): the founder buys up to three levels of a bigger warehouse (more item kinds) and of more usable land, paid in wood, stone and bars taken from the warehouse; locked land is shaded and refuses tilling and placing.
 - Looks: skin, hair style, hair dye and worn shirt, trousers and hat, saved by the server and shown to everyone on the map as ids; clothes are bought, nobody starts with any.
-- Nicknames: every registered player has a unique display nickname (unaccented letters and digits, no profanity), chosen when registering, changeable once a day (guests keep a generated name), drawn above their head and shown in the market, trades and co-ops; guests show as "Khách 1234".
+- Nicknames: every registered player has a unique display nickname (unaccented letters and digits, no profanity), chosen when a guest links a Google or Microsoft account (a new account keeps its generated name until its first free rename), changeable once a day (guests keep a generated name), drawn above their head and shown in the market, trades and co-ops; guests show as "Khách 1234".
 
 - Visiting: the owner keeps an allow-list of registered players (by nickname, up to 50) and a switch for co-op members (on by default); a listed player or co-op member visits by typing the owner's nickname on a public map, even while the owner is offline; a visitor walks, looks, trades and waters crops, and cannot till, plant, harvest, move furniture or use the shipping bin; removing a player, switching co-op visits off or leaving the co-op sends them to the Town at once. Guests can visit when invited but keep no list and cannot be visited. Proposed defaults, owner to confirm.
 
