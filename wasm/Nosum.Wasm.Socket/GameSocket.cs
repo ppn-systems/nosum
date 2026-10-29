@@ -88,7 +88,8 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
     {
         lock (_gate)
         {
-            return _session is not null ? Task.CompletedTask : _ready.Task.WaitAsync(cancellationToken);
+            // Completes once the state is Ready (IGameSocket.WaitReadyAsync), not merely once the session exists.
+            return this.State == GameSocketState.Ready ? Task.CompletedTask : _ready.Task.WaitAsync(cancellationToken);
         }
     }
 
@@ -189,7 +190,6 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
                 lock (_gate)
                 {
                     _session = session;
-                    _ready.TrySetResult();
                     foreach (ISubscription subscription in _subscriptions)
                     {
                         subscription.Attach(session);
@@ -199,6 +199,11 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
                 _schedule.Connected();
                 _keyMismatch = false;
                 this.SetState(GameSocketState.Ready);
+                lock (_gate)
+                {
+                    _ready.TrySetResult();
+                }
+
                 this.Ready?.Invoke();
                 await closed.Task.WaitAsync(ct).ConfigureAwait(false);
 
