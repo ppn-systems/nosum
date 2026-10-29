@@ -239,10 +239,15 @@ internal sealed partial class SocialClient : IAsyncDisposable
         return (result.Status, result.Spent);
     }
 
-    /// <summary>Registers the guest in place (the nickname is chosen here). On success this client carries the new token and nickname.</summary>
+    /// <summary>Links a new Google identity to the guest in place (the nickname is chosen here). On success this client carries the new token and nickname.</summary>
     public async Task<AccountResult> UpgradeAsync(string nickname, CancellationToken ct)
     {
-        using UpgradeGuest request = new() { Email = "u" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com", Password = "password-1", Nickname = nickname };
+        using LinkExternalIdentity request = new()
+        {
+            Provider = ExternalProvider.Google,
+            IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, Guid.NewGuid().ToString("N")),
+            Nickname = nickname,
+        };
         AccountResult result = await this.RequestAsync<AccountResult>(request, ct);
         if (result.Status == AccountStatus.Ok)
         {

@@ -320,13 +320,14 @@ public sealed class AccountFormViewModelTests
     public void Resources_EveryStatusTheServerSendsHasTextInBothLanguages()
     {
         // Codes the server still sends (docs/adr/ADR-069). Ok is a success and has no text.
-        string[] expected =
+        AccountStatus[] live =
         [
             AccountStatus.InvalidToken, AccountStatus.InvalidLanguage, AccountStatus.NotGuest, AccountStatus.SessionReplaced,
             AccountStatus.InvalidNickname, AccountStatus.NicknameReserved, AccountStatus.NicknameTaken, AccountStatus.NicknameTooSoon,
             AccountStatus.NicknameProfane, AccountStatus.NicknameRequiresAccount, AccountStatus.TooManyRequests, AccountStatus.Banned,
             AccountStatus.SessionKicked, AccountStatus.InvalidIdToken, AccountStatus.IdentityTaken,
-        ].Select(s => "Account_Status_" + s).ToArray();
+        ];
+        string[] expected = live.Select(s => "Account_Status_" + s).ToArray();
 
         Keys("Language.resx").Should().Contain(expected);
         Keys("Language.en.resx").Should().Contain(expected);
@@ -336,11 +337,12 @@ public sealed class AccountFormViewModelTests
     public void Resources_RetiredStatusesHaveNoText()
     {
         // Retired with the password accounts and account recovery (docs/adr/ADR-069): never sent, so never shown.
-        string[] retired =
+        AccountStatus[] removed =
         [
             AccountStatus.InvalidEmail, AccountStatus.InvalidPassword, AccountStatus.EmailTaken, AccountStatus.InvalidCredentials,
             AccountStatus.InvalidResetCode, AccountStatus.SessionRevoked,
-        ].Select(s => "Account_Status_" + s).ToArray();
+        ];
+        string[] retired = removed.Select(s => "Account_Status_" + s).ToArray();
 
         Keys("Language.resx").Should().NotContain(retired);
         Keys("Language.en.resx").Should().NotContain(retired);

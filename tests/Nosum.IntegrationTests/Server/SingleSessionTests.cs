@@ -40,7 +40,7 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task SecondLogin_EndsTheFirstConnection_AndItsPositionIsSavedOnceAndFollowedByTheNewOne()
     {
-        string email = "s" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
+        string subject = Guid.NewGuid().ToString("N");
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
         CountingStates states = new(InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!);
@@ -54,8 +54,8 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
             BlockingCollection<AccountStatus> ended = [];
             using IDisposable subscription = first.On<SessionEnded>(p => ended.Add(p.Reason));
 
-            using Register register = new() { Email = email, Password = "password-1", Nickname = TestNicknames.Next() };
-            AccountResult registered = await first.RequestAsync<AccountResult>(register, ct: timeout.Token);
+            using ExternalSignIn signIn = new() { Provider = ExternalProvider.Google, IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, subject) };
+            AccountResult registered = await first.RequestAsync<AccountResult>(signIn, ct: timeout.Token);
             using JoinMap join = new() { MapId = Program.FarmMapId };
             JoinMapResult joined = await first.RequestAsync<JoinMapResult>(join, ct: timeout.Token);
             float targetX = joined.SpawnX + 3;
@@ -64,8 +64,8 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
             await WaitUntilAsync(() => PlayerAt(registered.PlayerId, targetX), timeout.Token);
 
             using WebSocketSession second = await ConnectAsync(port, timeout.Token);
-            using Login login = new() { Email = email, Password = "password-1" };
-            AccountResult relogin = await second.RequestAsync<AccountResult>(login, ct: timeout.Token);
+            using ExternalSignIn again = new() { Provider = ExternalProvider.Google, IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, subject) };
+            AccountResult relogin = await second.RequestAsync<AccountResult>(again, ct: timeout.Token);
             using JoinMap joinAgain = new() { MapId = Program.FarmMapId };
             JoinMapResult rejoined = await second.RequestAsync<JoinMapResult>(joinAgain, ct: timeout.Token);
 
