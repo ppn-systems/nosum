@@ -55,6 +55,7 @@ public sealed class ProgressSkillLevels : ISkillLevels
             CraftSkill.Farming => view.FarmingXp,
             CraftSkill.Foraging => view.ForagingXp,
             CraftSkill.Mining => view.MiningXp,
+            CraftSkill.Fishing => view.FishingXp,
             _ => 0,
         };
 

@@ -206,6 +206,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("farming_xp");
 
+                    b.Property<int>("FishingXp")
+                        .HasColumnType("integer")
+                        .HasColumnName("fishing_xp");
+
                     b.Property<int>("ForagingXp")
                         .HasColumnType("integer")
                         .HasColumnName("foraging_xp");
