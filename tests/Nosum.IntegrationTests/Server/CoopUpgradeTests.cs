@@ -144,8 +144,30 @@ public sealed class CoopUpgradeTests : IClassFixture<PostgresFixture>, IDisposab
             CoopUpgrades.Cost(CoopTrack.Warehouse, 1).Select(c => (founderMember, c.ItemId, -c.Quantity)));
         CoopView view = await _coops.GetAsync(member);
         view.WarehouseLevel.Should().Be(1);
-        view.Log.Should().HaveCount(2, "the two deposits of the test; the upgrade lines are persisted but not shown in the member log");
-        view.Log.Should().OnlyContain(l => l.Delta > 0);
+        view.Log.Should().HaveCount(4, "the two deposits of the test and the two lines the upgrade paid");
+        view.Log.Where(l => l.Delta < 0).Select(l => (l.ItemId, l.Delta)).Should().BeEquivalentTo(
+            CoopUpgrades.Cost(CoopTrack.Warehouse, 1).Select(c => (c.ItemId, -c.Quantity)), "every item the upgrade consumed is shown, so members can see where it went");
+    }
+
+    [Fact]
+    public async Task LeaveAsync_ThenRejoin_KeepsTheContributions_SoTheMemberCanWithdrawThem()
+    {
+        (_, Guid member, Guid coop) = await CoopWithMemberAsync();
+        _ = await _inventory.AddAsync(member, ItemCatalog.Wood, 100, "test.setup");
+        (await _coops.DepositAsync(member, ItemCatalog.Wood, 100)).Should().Be(CoopStatus.Ok);
+
+        (await _coops.LeaveAsync(member)).Should().Be(CoopStatus.Ok);
+        CoopInvite invite = new() { CoopId = coop, PlayerId = member, CreatedAt = s_start, ExpiresAt = s_start.AddDays(1) };
+        await using (NosumDbContext db = new(_database.Options))
+        {
+            db.CoopInvites.Add(invite);
+            _ = await db.SaveChangesAsync();
+        }
+
+        (await _coops.RespondAsync(member, invite.Id, accept: true)).Should().Be(CoopStatus.Ok);
+
+        (await _coops.WithdrawAsync(member, ItemCatalog.Wood, 100)).Should().Be(CoopStatus.Ok, "the 100 wood the member put in are theirs again");
+        (await StockOfAsync(coop, ItemCatalog.Wood)).Should().Be(0);
     }
 
     [Fact]

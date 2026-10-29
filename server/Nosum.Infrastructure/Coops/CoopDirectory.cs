@@ -104,7 +104,7 @@ public sealed class CoopDirectory
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            CoopMember? me = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
+            CoopMember? me = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.PlayerId == playerId && m.LeftAt == null, cancellationToken).ConfigureAwait(false);
             if (me is null)
             {
                 return s_none;
@@ -112,7 +112,7 @@ public sealed class CoopDirectory
 
             Guid coopId = me.CoopId;
             Coop? coop = await unit.Repository<Coop>().FindAsync(coopId, cancellationToken).ConfigureAwait(false);
-            List<CoopMember> members = await unit.Repository<CoopMember>().ListAsync(m => m.CoopId == coopId, cancellationToken).ConfigureAwait(false);
+            List<CoopMember> members = await unit.Repository<CoopMember>().ListAsync(m => m.CoopId == coopId && m.LeftAt == null, cancellationToken).ConfigureAwait(false);
             return new CoopRecord(
                 coopId,
                 coop?.Name ?? string.Empty,

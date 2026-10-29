@@ -40,11 +40,11 @@ public static class CoinRules
 
     /// <summary>Calculates the market fee of a sale.</summary>
     /// <param name="price">The listing price.</param>
-    /// <returns>The fee, rounded down; never more than the price.</returns>
+    /// <returns>The fee, rounded up: never less than the exact share, so a sale split into micro-listings pays no less; never more than the price.</returns>
     public static long MarketFee(long price)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(price);
-        return price / 100 * MarketFeePercent + (price % 100 * MarketFeePercent / 100);
+        return (price * MarketFeePercent + 99) / 100;
     }
 
     /// <summary>Calculates what the seller receives.</summary>
