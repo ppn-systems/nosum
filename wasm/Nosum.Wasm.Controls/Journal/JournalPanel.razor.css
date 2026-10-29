@@ -1,0 +1,20 @@
+/* The collection journal: a grid of item slots; an undiscovered item is its picture in black, faint, with no count. */
+.journal-summary {
+    margin: 0 0 calc(var(--u) * 3);
+    font-weight: 700;
+}
+
+.journal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 20), 1fr));
+    gap: calc(var(--u) * 2);
+}
+
+.journal-cell.undiscovered ::deep .icon {
+    filter: brightness(0);
+    opacity: 0.4;
+}
+
+.journal-cell.undiscovered ::deep .quantity {
+    display: none;
+}

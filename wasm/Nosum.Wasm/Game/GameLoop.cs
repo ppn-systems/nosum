@@ -55,6 +55,7 @@ internal static partial class GameLoop
     private static InventoryChannel? s_inventory;
     private static PlaceableChannel? s_placeable;
     private static NodeChannel? s_nodes;
+    private static WorldMapViewModel? s_worldMap;
     private static GroundItemChannel? s_groundItems;
     private static PlacementViewModel? s_placement;
     private static ChestChannel? s_chests;
@@ -79,7 +80,8 @@ internal static partial class GameLoop
 
     private const InputEdges PanelKeysMask =
         InputEdges.Inventory | InputEdges.Wardrobe | InputEdges.Trade |
-        InputEdges.Coop | InputEdges.Help | InputEdges.Close | InputEdges.Profile;
+        InputEdges.Coop | InputEdges.Help | InputEdges.Close | InputEdges.Profile |
+        InputEdges.WorldMap | InputEdges.Journal;
 
     /// <summary>Updates whether a modal panel, NPC conversation, or blocking overlay dialog is open on screen.</summary>
     /// <param name="modalOpen">Whether any standalone panel, NPC dialog box, or overlay dialog is open.</param>
@@ -129,6 +131,10 @@ internal static partial class GameLoop
     /// <summary>Connects the server calendar, so crops that withered at a season change are not drawn; call before <see cref="StartAsync"/>.</summary>
     /// <param name="calendar">The server calendar.</param>
     public static void UseCalendar(CalendarChannel calendar) => s_calendar = calendar;
+
+    /// <summary>Gives the world map the maps' connections and the farmer's current map; the loader is made in <see cref="StartAsync"/>.</summary>
+    /// <param name="worldMap">The world map panel's view model.</param>
+    public static void UseWorldMap(WorldMapViewModel worldMap) => s_worldMap = worldMap;
 
     /// <summary>Connects the looks the server sent to the farmers drawn; call before <see cref="StartAsync"/>.</summary>
     /// <param name="looks">The mirror of the looks on the map.</param>
@@ -275,6 +281,15 @@ internal static partial class GameLoop
         }
 
         MapLoader loader = new(http, textures, providers, s_network is null ? null : s_network.IsUnlocked);
+        if (s_worldMap is not null)
+        {
+            // The world map's connections are the warps of each map, known once the map is loaded: the public maps load in the background.
+            s_worldMap.ConnectionsOf = id => loader.TryGet(id, out MapContent? loaded) ? TargetsOf(loaded.Warps) : null;
+            foreach (string id in WorldMapViewModel.PublicMapIds)
+            {
+                loader.Prefetch(id);
+            }
+        }
 
         Task<int[]> farmerSheets = Task.WhenAll(
             textures.LoadAsync(FarmerUrl + "body.png"),
@@ -409,6 +424,27 @@ internal static partial class GameLoop
 
         // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.
         s_scene.SetPointer(pointerX, pointerY, pointerHeld != 0 && !s_connectionBlocked && !s_overlayOpen && !s_modalOpen);
+        if (s_worldMap is not null)
+        {
+            // Only a change raises the view model's event, so the world map is told about a new map once, not every frame.
+            s_worldMap.CurrentMapId = s_scene.MapId;
+        }
+
         s_scene.Frame(seconds, held, edges, width, height, s_backend);
+    }
+
+    // The distinct maps the warps of a map lead to, in the order the map lists them.
+    private static IReadOnlyList<string> TargetsOf(IReadOnlyList<MapWarp> warps)
+    {
+        List<string> targets = new(warps.Count);
+        for (int i = 0; i < warps.Count; i++)
+        {
+            if (!targets.Contains(warps[i].TargetMap))
+            {
+                targets.Add(warps[i].TargetMap);
+            }
+        }
+
+        return targets;
     }
 }

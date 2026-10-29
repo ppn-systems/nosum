@@ -48,7 +48,7 @@ public sealed class GameMenuTabsTests
         vm.Items.Select(i => i.Kind).Should().BeEquivalentTo(
         [
             PanelKind.Inventory, PanelKind.Wardrobe, PanelKind.Crafting, PanelKind.Trade, PanelKind.Coop, PanelKind.Visitors,
-            PanelKind.Friends, PanelKind.Mail, PanelKind.Skills, PanelKind.Profile, PanelKind.Settings,
+            PanelKind.Friends, PanelKind.Mail, PanelKind.Skills, PanelKind.Profile, PanelKind.WorldMap, PanelKind.Journal, PanelKind.Settings,
         ]);
         vm.Items.Select(i => i.Kind).Should().NotContain([PanelKind.Shop, PanelKind.Market, PanelKind.Goals, PanelKind.Chest, PanelKind.Furnace, PanelKind.Help]);
         vm.Items.Should().NotContain(i => i.Hotkey == "M", "the market opens at the trader, not with a key");

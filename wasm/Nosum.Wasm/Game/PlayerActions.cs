@@ -457,5 +457,15 @@ internal sealed partial class PlayerActions
         {
             this.PanelToggleRequested?.Invoke(PanelKind.Profile);
         }
+
+        if ((edges & InputEdges.WorldMap) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.WorldMap);
+        }
+
+        if ((edges & InputEdges.Journal) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Journal);
+        }
     }
 }

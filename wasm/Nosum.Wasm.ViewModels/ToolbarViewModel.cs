@@ -64,6 +64,12 @@ public enum PanelKind
 
     /// <summary>The Town board's goals page, opened from the board keeper's dialog box (docs/adr/ADR-030, ADR-043); not a menu tab.</summary>
     Goals = 17,
+
+    /// <summary>The world map: every public map as a card, the current one highlighted (Tab or the HUD button).</summary>
+    WorldMap = 18,
+
+    /// <summary>The collection journal: every item discovered so far, silhouettes for the rest (the J key or the menu).</summary>
+    Journal = 19,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -131,6 +137,8 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         new ToolbarItem(PanelKind.Mail, this.Text("Toolbar_Mail"), string.Empty, "tab-mail"),
         new ToolbarItem(PanelKind.Skills, this.Text("Toolbar_Skills"), string.Empty, "tab-skills"),
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), Key(GameAction.Profile), "tab-profile"),
+        new ToolbarItem(PanelKind.WorldMap, this.Text("Toolbar_WorldMap"), Key(GameAction.WorldMap), "tab-market"),
+        new ToolbarItem(PanelKind.Journal, this.Text("Toolbar_Journal"), Key(GameAction.Journal), "tab-goals"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), Key(GameAction.Help), "tab-settings"),
     ];
 
