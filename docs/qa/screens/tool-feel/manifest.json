@@ -1,0 +1,69 @@
+[
+  {
+    "file": "hoe-1.png",
+    "elapsedMs": 194
+  },
+  {
+    "file": "hoe-2.png",
+    "elapsedMs": 378
+  },
+  {
+    "file": "hoe-3.png",
+    "elapsedMs": 495
+  },
+  {
+    "file": "hoe-4.png",
+    "elapsedMs": 763
+  },
+  {
+    "file": "water-1.png",
+    "elapsedMs": 152
+  },
+  {
+    "file": "water-2.png",
+    "elapsedMs": 349
+  },
+  {
+    "file": "water-3.png",
+    "elapsedMs": 466
+  },
+  {
+    "file": "water-4.png",
+    "elapsedMs": 732
+  },
+  {
+    "file": "drag-1.png",
+    "elapsedMs": 1977
+  },
+  {
+    "file": "drag-2.png",
+    "elapsedMs": 2085
+  },
+  {
+    "file": "drag-3.png",
+    "elapsedMs": 2230
+  },
+  {
+    "note": "energy 64 of 270 when the exhausted frames were taken"
+  },
+  {
+    "file": "exhausted-1-idle.png",
+    "note": "idle, sweat bubble above the head"
+  },
+  {
+    "file": "exhausted-hoe-1.png",
+    "elapsedMs": 193
+  },
+  {
+    "file": "exhausted-hoe-2.png",
+    "elapsedMs": 360
+  },
+  {
+    "file": "exhausted-hoe-3.png",
+    "elapsedMs": 564
+  },
+  {
+    "file": "exhausted-hoe-4.png",
+    "elapsedMs": 1011
+  }
+]
