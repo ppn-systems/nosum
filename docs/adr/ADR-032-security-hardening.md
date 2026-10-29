@@ -63,7 +63,7 @@ Choices made where the decision above is silent (simplest safe option each time)
   `NOSUM_SMTP_*` settings and the client form are gone. The opcodes and packet classes stay reserved and are never reused. `ChangePassword`
   (`0x11EE`) and its `PasswordResult` reply (`0x11E0`) are unaffected. Per-address abuse limits for recovery went with the handlers.
 - **D5 — sessions.** Every `ResumeSession` issues a new token and a fresh 30-day window (idle expiry is simply expiry without a resume); the replaced
-  token keeps working for 2 minutes so a lost reply can be retried, then dies. One account keeps at most 10 live tokens; issuing another revokes the
+  token keeps working for 15 minutes (amended by issue #171: the grace was 2 minutes, which locked out a guest whose rotation reply was lost) so a lost reply can be retried, then dies. One account keeps at most 10 live tokens; issuing another revokes the
   oldest. `ChangePassword` revokes the other tokens. Revoked and expired token rows are swept by the hourly `GuestCleanupService`. The client already replaces its in-memory token with the one a resume returns (`AccountSessionKeeper`).
 - **D6 — abuse.** `ConnectionQuotaOptions` (the Nalix connection guard) is set from `AbuseLimits` (20 connections per address, 20 per 5 s, 200 per subnet,
   each overridable by `NOSUM_MAX_CONNECTIONS_PER_IP`, `…_PER_WINDOW`, `…_PER_SUBNET`, `NOSUM_MAX_SUBNET_CONNECTIONS_PER_WINDOW`); new accounts
