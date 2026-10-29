@@ -149,16 +149,23 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the localized label of the MP bar: <c>MP 50 / 50</c>.</summary>
     public string MpLabel => this.Text("Mp_Label", Number(this.Mp), Number(this.MaxMp));
 
-    /// <summary>Gets the active status effect kind (0 = None, 1 = Regen, 2 = Poison, 3 = Swiftness, docs/adr/ADR-051).</summary>
+    /// <summary>Gets the active status effect kind (0 = None, 1 = Regen, 2 = Poison, docs/adr/ADR-051).</summary>
     public int StatusEffect => _combat?.StatusEffect ?? 0;
 
-    /// <summary>Gets the badge identifier for active status effects.</summary>
+    /// <summary>Gets the active speed buff kind (0 = None, 3 = Swiftness, 4 = Brotherhood in Arms; issue #146).</summary>
+    public int Buff => _combat?.Buff ?? 0;
+
+    /// <summary>Gets the badge identifier for the active effect, or else the active buff.</summary>
     public string StatusEffectBadge => this.StatusEffect switch
     {
         1 => "regen",
         2 => "poison",
-        3 => "swift",
-        _ => string.Empty,
+        _ => this.Buff switch
+        {
+            3 => "swift",
+            4 => "brotherhood",
+            _ => string.Empty,
+        },
     };
 
     /// <summary>Gets the energy now.</summary>

@@ -91,6 +91,7 @@
     --nosum-gauge-poison: linear-gradient(to top, #4c1d95 0 20%, #6d28d9 20% 45%, #8b5cf6 45% 75%, #c084fc 75% 100%);
     --nosum-status-poison: #a855f7;
     --nosum-status-swift: #38bdf8;
+    --nosum-status-brotherhood: #f59e0b;
     --nosum-touch-stick-bg: rgba(253, 188, 110, 0.55);
 
     /* A rounded corner one UI pixel deep, for a plain box (the hotkey and count badges): clip-path with the four corner pixels cut off. */
