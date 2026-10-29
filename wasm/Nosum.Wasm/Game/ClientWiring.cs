@@ -16,6 +16,7 @@ using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Chat;
 using Nosum.Wasm.Socket.Chest;
+using Nosum.Wasm.Socket.Bestiary;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Crafting;
@@ -142,11 +143,13 @@ internal static class ClientWiring
         services.AddSingleton<MapLoadingViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<GoalsViewModel>();
+        services.AddSingleton<BestiaryChannel>();
         services.AddSingleton(sp => new ProgressViewModel(
             sp.GetRequiredService<ProgressChannel>(),
             sp.GetRequiredService<IStringLocalizer<Language>>(),
             sp.GetRequiredService<CombatChannel>(),
-            sp.GetRequiredService<IStringLocalizer<Catalogue>>()));
+            sp.GetRequiredService<IStringLocalizer<Catalogue>>(),
+            sp.GetRequiredService<BestiaryChannel>()));
         services.AddSingleton<WalletViewModel>();
         services.AddSingleton<CalendarViewModel>();
         services.AddSingleton<MarketViewModel>();

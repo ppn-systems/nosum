@@ -912,4 +912,9 @@
   <data name="Guestbook_Unread" xml:space="preserve"><value>{0} mục mới</value></data>
   <data name="Guestbook_Empty" xml:space="preserve"><value>Chưa có khách nào tưới cây trên nông trại của bạn.</value></data>
   <data name="Guestbook_Hint" xml:space="preserve"><value>Lượt tưới của khách được ghi lại khi có sổ lưu bút đặt trên nông trại.</value></data>
+  <data name="Bestiary_Progress" xml:space="preserve"><value>Đã hạ {0} · mốc kế tiếp {1}</value></data>
+  <data name="Bestiary_Milestones_Done" xml:space="preserve"><value>Đã hạ {0} · đã đạt mọi mốc</value></data>
+  <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Đeo danh hiệu</value></data>
+  <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Gỡ danh hiệu</value></data>
+  <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Mở khi hạ {0} con</value></data>
 </root>

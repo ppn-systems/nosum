@@ -912,4 +912,9 @@
   <data name="Guestbook_Unread" xml:space="preserve"><value>{0} new</value></data>
   <data name="Guestbook_Empty" xml:space="preserve"><value>No visitor has watered your farm yet.</value></data>
   <data name="Guestbook_Hint" xml:space="preserve"><value>A visitor's watering is written here while a guestbook stands on your farm.</value></data>
+  <data name="Bestiary_Progress" xml:space="preserve"><value>Slain {0} · next milestone {1}</value></data>
+  <data name="Bestiary_Milestones_Done" xml:space="preserve"><value>Slain {0} · all milestones reached</value></data>
+  <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Wear title</value></data>
+  <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Take off title</value></data>
+  <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Unlocks at {0} slain</value></data>
 </root>

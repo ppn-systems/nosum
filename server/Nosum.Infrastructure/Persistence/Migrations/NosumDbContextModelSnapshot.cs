@@ -265,6 +265,52 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("admin_audit", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Bestiary.EquippedBestiaryTitle", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<byte>("Species")
+                        .HasColumnType("smallint")
+                        .HasColumnName("species");
+
+                    b.HasKey("PlayerId")
+                        .HasName("pk_equipped_bestiary_titles");
+
+                    b.ToTable("equipped_bestiary_titles", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_equipped_bestiary_titles_species", "species > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Bestiary.PlayerBestiaryEntry", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<byte>("Species")
+                        .HasColumnType("smallint")
+                        .HasColumnName("species");
+
+                    b.Property<int>("Kills")
+                        .HasColumnType("integer")
+                        .HasColumnName("kills");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("PlayerId", "Species")
+                        .HasName("pk_player_bestiary");
+
+                    b.ToTable("player_bestiary", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_player_bestiary_kills_positive", "kills > 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Blacksmith.ToolUpgrade", b =>
                 {
                     b.Property<Guid>("PlayerId")
@@ -1734,6 +1780,26 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_states_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Bestiary.EquippedBestiaryTitle", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_equipped_bestiary_titles_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Bestiary.PlayerBestiaryEntry", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_bestiary_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Blacksmith.ToolUpgrade", b =>

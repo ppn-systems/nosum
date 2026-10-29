@@ -187,6 +187,7 @@ internal static partial class Program
             .MapHandlers(typeof(BlacksmithHandlers))
             .MapHandlers(typeof(MineHandlers))
             .MapHandlers(typeof(CombatHandlers))
+            .MapHandlers(typeof(BestiaryHandlers))
             .MapHandlers(typeof(GoalHandlers))
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers))

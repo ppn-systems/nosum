@@ -281,6 +281,12 @@ public sealed partial class CombatService
             return;
         }
 
+        // Every kill counts into the hunting log (docs/adr/ADR-067).
+        if (_bestiary is not null)
+        {
+            await _bestiary.RecordKillAsync(killerId, defeatedMonster.Kind, cancellationToken).ConfigureAwait(false);
+        }
+
         int dropPixelX = (defeatedMonster.X * tileSize) + (tileSize / 2);
         int dropPixelY = (defeatedMonster.Y * tileSize) + (tileSize / 2);
         _ = await _groundItems.DropAsync(
