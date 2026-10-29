@@ -102,7 +102,6 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
             foreach (BuildingEntry entry in _buildings.MyBuildings())
             {
                 if (!BuildingCatalog.TryGet((BuildingKind)entry.Kind, out BuildingDefinition? building)
-                    || !AnimalCatalog.TryGet(building.Residents, out AnimalDefinition? species)
                     || !_buildings.IsFinished(entry)
                     || entry.Animals >= entry.Capacity)
                 {
@@ -110,7 +109,15 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
                 }
 
                 string title = this.Text("Carpenter_Home", this.Text("Building_" + building.Key + "_Name"), entry.Animals, entry.Capacity);
-                offers.Add(new AnimalOffer(entry.Id, title, species.Kind, this.Text("Carpenter_BuyAnimal", this.Text("Animal_" + species.Key + "_Name"), Number(species.Coins)), _wallet.Coins >= species.Coins));
+                foreach (AnimalKind resident in building.Residents)
+                {
+                    if (!AnimalCatalog.TryGet(resident, out AnimalDefinition? species))
+                    {
+                        continue;
+                    }
+
+                    offers.Add(new AnimalOffer(entry.Id, title, species.Kind, this.Text("Carpenter_BuyAnimal", this.Text("Animal_" + species.Key + "_Name"), Number(species.Coins)), _wallet.Coins >= species.Coins));
+                }
             }
 
             return offers;

@@ -385,4 +385,29 @@
   <data name="Monster_boss_goblin_chieftain_Title" xml:space="preserve"><value>Chieftain Bane</value></data>
   <data name="Monster_boss_magma_colossus_Title" xml:space="preserve"><value>Colossus Bane</value></data>
   <data name="Monster_boss_golem_king_Title" xml:space="preserve"><value>Kingbreaker</value></data>
+  <data name="Item_duck_egg_Name" xml:space="preserve"><value>Duck egg</value></data>
+  <data name="Item_duck_egg_Description" xml:space="preserve"><value>A fresh egg from a duck. Eat it to restore energy.</value></data>
+  <data name="Item_large_duck_egg_Name" xml:space="preserve"><value>Large duck egg</value></data>
+  <data name="Item_large_duck_egg_Description" xml:space="preserve"><value>A friendly duck gives this bigger egg more often. Sells for more.</value></data>
+  <data name="Item_golden_duck_egg_Name" xml:space="preserve"><value>Golden duck egg</value></data>
+  <data name="Item_golden_duck_egg_Description" xml:space="preserve"><value>A golden egg from a duck loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Item_goat_milk_Name" xml:space="preserve"><value>Goat milk</value></data>
+  <data name="Item_goat_milk_Description" xml:space="preserve"><value>A bottle of fresh milk from a goat.</value></data>
+  <data name="Item_large_goat_milk_Name" xml:space="preserve"><value>Large goat milk</value></data>
+  <data name="Item_large_goat_milk_Description" xml:space="preserve"><value>A friendly goat gives this rich milk more often. Sells for more.</value></data>
+  <data name="Item_cream_goat_milk_Name" xml:space="preserve"><value>Cream goat milk</value></data>
+  <data name="Item_cream_goat_milk_Description" xml:space="preserve"><value>Thick cream milk from a goat loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Item_wool_Name" xml:space="preserve"><value>Wool</value></data>
+  <data name="Item_wool_Description" xml:space="preserve"><value>A fleece shorn from a sheep. Stuffs a scarecrow.</value></data>
+  <data name="Item_fine_wool_Name" xml:space="preserve"><value>Fine wool</value></data>
+  <data name="Item_fine_wool_Description" xml:space="preserve"><value>The long soft fleece of a well-loved sheep. Sells for more.</value></data>
+  <data name="Item_golden_fleece_Name" xml:space="preserve"><value>Golden fleece</value></data>
+  <data name="Item_golden_fleece_Description" xml:space="preserve"><value>The golden fleece of a sheep loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Item_truffle_Name" xml:space="preserve"><value>Truffle</value></data>
+  <data name="Item_truffle_Description" xml:space="preserve"><value>A truffle a pig digs up on a sunny day. Eat it to restore energy.</value></data>
+  <data name="Item_large_truffle_Name" xml:space="preserve"><value>Large truffle</value></data>
+  <data name="Item_large_truffle_Description" xml:space="preserve"><value>A well-loved pig digs up larger truffles more often. Sells for more.</value></data>
+  <data name="Item_golden_truffle_Name" xml:space="preserve"><value>Golden truffle</value></data>
+  <data name="Item_golden_truffle_Description" xml:space="preserve"><value>A golden truffle from a pig loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Recipe_scarecrow_wool_Name" xml:space="preserve"><value>Wool scarecrow</value></data>
 </root>

@@ -922,4 +922,8 @@
   <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Đeo danh hiệu</value></data>
   <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Gỡ danh hiệu</value></data>
   <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Mở khi hạ {0} con</value></data>
+  <data name="Animal_duck_Name" xml:space="preserve"><value>Vịt</value></data>
+  <data name="Animal_goat_Name" xml:space="preserve"><value>Dê</value></data>
+  <data name="Animal_sheep_Name" xml:space="preserve"><value>Cừu</value></data>
+  <data name="Animal_pig_Name" xml:space="preserve"><value>Heo</value></data>
 </root>

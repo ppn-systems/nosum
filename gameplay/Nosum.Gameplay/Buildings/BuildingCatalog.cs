@@ -58,7 +58,7 @@ public sealed class BuildingDefinition
         int wood,
         int stone,
         int capacity,
-        AnimalKind residents,
+        AnimalKind[] residents,
         string sheet,
         PlaceableView view,
         int doorX,
@@ -117,8 +117,24 @@ public sealed class BuildingDefinition
     /// <summary>Gets how many animals live here.</summary>
     public int Capacity { get; }
 
-    /// <summary>Gets the species that live here.</summary>
-    public AnimalKind Residents { get; }
+    /// <summary>Gets the species that may live here (docs/adr/ADR-028 amendment 2: a coop takes chickens and ducks, a barn cows, goats, sheep and pigs).</summary>
+    public IReadOnlyList<AnimalKind> Residents { get; }
+
+    /// <summary>Tells whether a species may live here.</summary>
+    /// <param name="species">The species.</param>
+    /// <returns><see langword="true"/> when it is one of <see cref="Residents"/>.</returns>
+    public bool Houses(AnimalKind species)
+    {
+        foreach (AnimalKind resident in this.Residents)
+        {
+            if (resident == species)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>Gets the picture's sheet name (<c>buildings/Name</c>, a file in <c>sprites/</c>).</summary>
     public string Sheet { get; }
@@ -192,10 +208,10 @@ public static class BuildingCatalog
     [
         // The coop body is 96 x 112 (6 x 7 tiles); the bottom three rows are the footprint and the door is the bottom row's second tile.
         // Interior Coop.tmx (12 x 10): the door is the open tile (2, 9) of the bottom wall; animals walk on tiles 2-9 x 4-7 and eat at the bench on row 3, tiles 6-9.
-        new(BuildingKind.Coop, "coop", ItemCatalog.CoopBlueprint, 4_000, 300, 100, 4, AnimalKind.Chicken, CoopSheet, new PlaceableView(0, 0, 96, 112, 6, 3), 1, 2, 2, 8, 2, 4, 8, 4, 6, 3, 4),
+        new(BuildingKind.Coop, "coop", ItemCatalog.CoopBlueprint, 4_000, 300, 100, 4, [AnimalKind.Chicken, AnimalKind.Duck], CoopSheet, new PlaceableView(0, 0, 96, 112, 6, 3), 1, 2, 2, 8, 2, 4, 8, 4, 6, 3, 4),
 
         // The barn body is 112 x 112 (7 x 7 tiles). Interior Barn.tmx (18 x 15): the door is the open tile (11, 14); animals walk on tiles 6-13 x 4-10; the bench is row 3, tiles 8-11.
-        new(BuildingKind.Barn, "barn", ItemCatalog.BarnBlueprint, 6_000, 350, 150, 4, AnimalKind.Cow, BarnSheet, new PlaceableView(0, 0, 112, 112, 7, 3), 1, 2, 11, 13, 6, 4, 8, 7, 8, 3, 4),
+        new(BuildingKind.Barn, "barn", ItemCatalog.BarnBlueprint, 6_000, 350, 150, 4, [AnimalKind.Cow, AnimalKind.Goat, AnimalKind.Sheep, AnimalKind.Pig], BarnSheet, new PlaceableView(0, 0, 112, 112, 7, 3), 1, 2, 11, 13, 6, 4, 8, 7, 8, 3, 4),
     ];
 
     /// <summary>Gets every building.</summary>
