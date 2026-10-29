@@ -130,7 +130,7 @@ public sealed class OpsDatabaseTests : IClassFixture<PostgresFixture>, IAsyncLif
     [Fact]
     public async Task AdminGrant_UnknownNicknameOrGuest_FailsAndChangesNothing()
     {
-        AccountService accounts = new AccountService(new EfUnitOfWorkFactory(_database.Options), new Pbkdf2PasswordHasher(iterations: 1000), new SessionTokenService(), TimeProvider.System);
+        AccountService accounts = new AccountService(new EfUnitOfWorkFactory(_database.Options), FakeExternalTokenVerifier.All(), new SessionTokenService(), TimeProvider.System);
         Nosum.Abstractions.Accounts.AccountOutcome guest = await accounts.StartGuestAsync(GameLanguage.English, CancellationToken.None);
         using StringWriter output = new();
 
@@ -160,8 +160,8 @@ public sealed class OpsDatabaseTests : IClassFixture<PostgresFixture>, IAsyncLif
 
     private async Task<string> CreateAsync()
     {
-        AccountService accounts = new AccountService(new EfUnitOfWorkFactory(_database.Options), new Pbkdf2PasswordHasher(iterations: 1000), new SessionTokenService(), TimeProvider.System);
-        Nosum.Abstractions.Accounts.AccountOutcome outcome = await accounts.RegisterAsync("op" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com", "password-1", TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
+        AccountService accounts = new AccountService(new EfUnitOfWorkFactory(_database.Options), FakeExternalTokenVerifier.All(), new SessionTokenService(), TimeProvider.System);
+        Nosum.Abstractions.Accounts.AccountOutcome outcome = await TestAccounts.RegisterAsync(accounts, Guid.NewGuid().ToString("N"), TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
         outcome.Status.Should().Be(AccountStatus.Ok);
         return outcome.Nickname;
     }

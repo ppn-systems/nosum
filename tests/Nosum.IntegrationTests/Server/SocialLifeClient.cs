@@ -122,6 +122,7 @@ internal sealed class SocialLifeClient : IAsyncDisposable
 
     public async Task<JoinMapResult> JoinAsync(CancellationToken ct)
     {
+        await WirePace.JoinAsync(ct);
         using JoinMap request = new() { MapId = Program.FarmMapId };
         JoinMapResult result = await this.RequestAsync<JoinMapResult>(request, ct);
         result.Status.Should().Be(JoinStatus.Ok);

@@ -10,19 +10,20 @@ using Nalix.Codec.Extensions;
 using Nalix.Codec.Pooling;
 using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Security;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Common;
 using Nosum.Handlers.Session;
-using Nosum.Abstractions.Look;
 
 namespace Nosum.Handlers.Account;
 
 /// <summary>
-/// Frames that carry a password or a session token are refused unless they are encrypted (<see cref="PacketEncryptionAttribute"/>).
-/// Guest, register, login, resume, upgrade, logout and language preference. Guest, register, login and resume are public; the rest need a signed-in player.
+/// Frames that carry an identity token or a session token are refused unless they are encrypted (<see cref="PacketEncryptionAttribute"/>).
+/// Google or Microsoft sign-in, guest, resume, identity link, logout and language preference (docs/adr/ADR-069). Sign-in, guest and resume are public;
+/// the rest need a signed-in player.
 /// </summary>
 [PacketHandler("Nosum.Account")]
 public static partial class AccountHandlers
@@ -32,31 +33,30 @@ public static partial class AccountHandlers
     [Inject] private static ILookService s_looks = null!;
     [Inject] private static IAbuseGuard s_abuse = null!;
 
-    /// <summary>New accounts (registered or guest) one address may create per day; more are refused with <see cref="AccountStatus.TooManyRequests"/> (docs/adr/ADR-032 D6).</summary>
+    /// <summary>New guest accounts one address may create per day; more are refused with <see cref="AccountStatus.TooManyRequests"/> (docs/adr/ADR-032 D6).</summary>
     public static int NewAccountsPerAddressPerDay { get; set; } = 30;
 
-    /// <summary>Creates an account and signs the connection in.</summary>
+    /// <summary>Sign-in attempts one address may make per minute (each one costs a key check); more are refused with <see cref="AccountStatus.TooManyRequests"/>.</summary>
+    public const int SignInsPerAddressPerMinute = 15;
+
+    /// <summary>Signs the connection in with a Google or Microsoft ID token, creating the account on first use.</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply is sent.</returns>
-    [PacketOpcode(AccountOpCode.Register)]
+    [PacketOpcode(AccountOpCode.ExternalSignIn)]
     [PacketEncryption(true)]
     [PacketPermission(PermissionLevel.NONE)]
     [PacketRateLimit(1, 5, PolicyId = "account-credential", HardLockoutSeconds = 60, MaxSoftViolations = 10)]
-    public static async ValueTask HandleRegisterAsync(IPacketContext<Register> context)
+    public static async ValueTask HandleExternalSignInAsync(IPacketContext<ExternalSignIn> context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        string email = context.Packet.Email;
-        string password = context.Packet.Password;
-        GameLanguage language = context.Packet.PreferredLanguage;
-        string nickname = context.Packet.Nickname;
-
-        if (!s_abuse.TryAcquire("new-account", AddressOf(context.Connection), NewAccountsPerAddressPerDay, TimeSpan.FromDays(1)))
+        if (!s_abuse.TryAcquire("sign-in-attempt", AddressOf(context.Connection), SignInsPerAddressPerMinute, TimeSpan.FromMinutes(1)))
         {
             await ReplyOutcomeAsync(context.Sender, AccountOutcome.Refused(AccountStatus.TooManyRequests)).ConfigureAwait(false);
             return;
         }
 
-        AccountOutcome outcome = await s_accounts.RegisterAsync(email, password, nickname, language, context.CancellationToken).ConfigureAwait(false);
+        AccountOutcome outcome = await s_accounts
+            .SignInWithExternalAsync(context.Packet.Provider, context.Packet.IdToken, context.Packet.PreferredLanguage, context.CancellationToken).ConfigureAwait(false);
         await CompleteAsync(context.Connection, context.Sender, outcome).ConfigureAwait(false);
     }
 
@@ -82,27 +82,25 @@ public static partial class AccountHandlers
         await CompleteAsync(context.Connection, context.Sender, outcome).ConfigureAwait(false);
     }
 
-    /// <summary>Turns the signed-in guest into a registered player, in place.</summary>
+    /// <summary>Turns the signed-in guest into a registered player by linking a Google or Microsoft identity, in place.</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply is sent.</returns>
-    [PacketOpcode(AccountOpCode.UpgradeGuest)]
+    [PacketOpcode(AccountOpCode.LinkExternalIdentity)]
     [PacketEncryption(true)]
     [PacketPermission(PermissionLevel.USER)]
     [PacketRateLimit(1, 5, PolicyId = "account-credential", HardLockoutSeconds = 60, MaxSoftViolations = 10)]
-    public static async ValueTask HandleUpgradeGuestAsync(IPacketContext<UpgradeGuest> context)
+    public static async ValueTask HandleLinkExternalIdentityAsync(IPacketContext<LinkExternalIdentity> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         PlayerIdentity player = context.Connection.GetPlayer();
-        string email = context.Packet.Email;
-        string password = context.Packet.Password;
-        string nickname = context.Packet.Nickname;
 
         AccountOutcome outcome = await s_accounts
-            .UpgradeGuestAsync(player.PlayerId, player.SessionId, email, password, nickname, context.CancellationToken).ConfigureAwait(false);
+            .LinkExternalIdentityAsync(player.PlayerId, player.SessionId, context.Packet.Provider, context.Packet.IdToken, context.Packet.Nickname, context.CancellationToken)
+            .ConfigureAwait(false);
         await CompleteAsync(context.Connection, context.Sender, outcome).ConfigureAwait(false);
         if (outcome.Status == AccountStatus.Ok)
         {
-            // The guest chose a nickname by registering: everyone on the map learns it through the look row, like after a rename.
+            // The guest chose a nickname by linking: everyone on the map learns it through the look row, like after a rename.
             await s_looks.AnnounceAsync(context.Connection, outcome.PlayerId, context.CancellationToken).ConfigureAwait(false);
         }
     }
@@ -122,32 +120,6 @@ public static partial class AccountHandlers
         s_sessions.Release(context.Connection);
         context.Connection.DetachPlayer();
         await ReplyOutcomeAsync(context.Sender, new AccountOutcome(AccountStatus.Ok, Guid.Empty, string.Empty, string.Empty, Guid.Empty, default, GameLanguage.Unspecified, false, false, string.Empty)).ConfigureAwait(false);
-    }
-
-    /// <summary>Failed login attempts one address may try per minute before soft throttle.</summary>
-    public const int LoginsPerAddressPerMinute = 15;
-
-    /// <summary>Signs the connection in with an e-mail and password.</summary>
-    /// <param name="context">The request.</param>
-    /// <returns>A task that completes when the reply is sent.</returns>
-    [PacketOpcode(AccountOpCode.Login)]
-    [PacketEncryption(true)]
-    [PacketPermission(PermissionLevel.NONE)]
-    [PacketRateLimit(1, 5, PolicyId = "account-credential", HardLockoutSeconds = 60, MaxSoftViolations = 10)]
-    public static async ValueTask HandleLoginAsync(IPacketContext<Login> context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        if (!s_abuse.TryAcquire("login-attempt", AddressOf(context.Connection), LoginsPerAddressPerMinute, TimeSpan.FromMinutes(1)))
-        {
-            await ReplyOutcomeAsync(context.Sender, AccountOutcome.Refused(AccountStatus.TooManyRequests)).ConfigureAwait(false);
-            return;
-        }
-
-        string email = context.Packet.Email;
-        string password = context.Packet.Password;
-
-        AccountOutcome outcome = await s_accounts.LoginAsync(email, password, context.CancellationToken).ConfigureAwait(false);
-        await CompleteAsync(context.Connection, context.Sender, outcome).ConfigureAwait(false);
     }
 
     /// <summary>Signs the connection in again with a session token.</summary>
@@ -229,41 +201,8 @@ public static partial class AccountHandlers
         }
     }
 
-    /// <summary>Changes the signed-in player's password; every other session token of the account stops working.</summary>
-    /// <param name="context">The request.</param>
-    /// <returns>A task that completes when the reply is sent.</returns>
-    [PacketOpcode(AccountOpCode.ChangePassword)]
-    [PacketEncryption(true)]
-    [PacketPermission(PermissionLevel.USER)]
-    [PacketRateLimit(1, 5, PolicyId = "account-credential", HardLockoutSeconds = 60, MaxSoftViolations = 10)]
-    public static async ValueTask HandleChangePasswordAsync(IPacketContext<ChangePassword> context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        PlayerIdentity player = context.Connection.GetPlayer();
-        string current = context.Packet.CurrentPassword;
-        string next = context.Packet.NewPassword;
-
-        AccountStatus status = await s_accounts.ChangePasswordAsync(player.PlayerId, player.SessionId, current, next, context.CancellationToken).ConfigureAwait(false);
-        await ReplyPasswordAsync(context.Sender, status).ConfigureAwait(false);
-    }
-
     // The address limits are keyed by (a loopback address is exempt in the guard); an unreadable endpoint shares one key rather than skipping the limit.
     private static string AddressOf(IConnection connection) => connection.NetworkEndpoint?.Address ?? "unknown";
-
-    private static async ValueTask ReplyPasswordAsync(IPacketSender sender, AccountStatus status)
-    {
-        PacketScope<PasswordResult> lease = PacketFactory<PasswordResult>.Acquire();
-        try
-        {
-            lease.Value.Status = status;
-            await sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
-    }
 
     // Signs the connection in on success (identity from the server's own outcome, never from the packet), then replies.
     private static async ValueTask CompleteAsync(IConnection connection, IPacketSender sender, AccountOutcome outcome)

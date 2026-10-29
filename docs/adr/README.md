@@ -78,3 +78,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-066](ADR-066-farm-guestbook.md) | Farm guestbook and watering recognition | Proposed |
 | [ADR-067](ADR-067-coop-shared-objectives-and-trophies.md) | Co-op shared objectives and guild trophies | Proposed |
 | [ADR-068](ADR-068-monster-hunting-log-and-slayer-titles.md) | Monster hunting log and slayer titles | Accepted |
+| [ADR-069](ADR-069-google-and-microsoft-sign-in-only.md) | Google and Microsoft sign-in only (passwords removed) | Accepted |

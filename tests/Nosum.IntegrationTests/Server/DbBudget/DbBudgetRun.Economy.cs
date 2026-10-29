@@ -41,7 +41,7 @@ public sealed partial class DbBudgetRun
         if (registered)
         {
             string nick = this.NextNickname();
-            string token = await _rig.RegisteredAccountAsync(nick, "budget." + nick + "@gmail.com");
+            string token = await _rig.RegisteredAccountAsync(nick, "budget." + nick);
             p = await _rig.ConnectAsync();
             _ = await p.ResumeAsync(token);
         }

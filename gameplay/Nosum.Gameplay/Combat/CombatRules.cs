@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Skills;
+using Nosum.Gameplay.Weather;
 
 namespace Nosum.Gameplay.Combat;
 
@@ -336,6 +337,7 @@ public static class CombatRules
     /// <param name="spawnX">Player arrival X to keep clear.</param>
     /// <param name="spawnY">Player arrival Y to keep clear.</param>
     /// <param name="reachableMask">Optional precomputed reachability mask.</param>
+    /// <param name="weather">The weather of the instance's game day (docs/adr/ADR-058).</param>
     /// <returns>The spawned monsters.</returns>
     public static List<MonsterSpawn> PlanMonsters(
         string mapId,
@@ -344,8 +346,9 @@ public static class CombatRules
         IReadOnlySet<(int X, int Y)> occupied,
         int spawnX,
         int spawnY,
-        bool[,]? reachableMask = null)
-        => MonsterSpawnPlanner.PlanMonsters(mapId, seed, grid, occupied, spawnX, spawnY, reachableMask);
+        bool[,]? reachableMask = null,
+        WeatherKind weather = WeatherKind.Sun)
+        => MonsterSpawnPlanner.PlanMonsters(mapId, seed, grid, occupied, spawnX, spawnY, reachableMask, weather);
 
     /// <summary>Determines whether a rhythmic <see cref="DungeonHazardKind.SpikeTrap"/> is extended and dealing damage at <paramref name="nowMs"/>.</summary>
     /// <param name="hazardId">Hazard id within the floor instance.</param>

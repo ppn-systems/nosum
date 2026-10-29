@@ -36,9 +36,9 @@ public sealed class ProfileViewModelTests
 
         vm.IsGuest.Should().BeTrue();
         vm.CanRename.Should().BeFalse();
-        vm.GuestNoticeText.Should().Be("Guests keep their generated name. Register an account to choose your own nickname.");
+        vm.GuestNoticeText.Should().Be("Guests keep their generated name. Link a Google or Microsoft account to choose your own nickname.");
         vm.CurrentText.Should().Be("Current nickname: Guest 0042");
-        vm.Status.Should().Be("Register an account to choose a nickname.");
+        vm.Status.Should().Be("Link a Google or Microsoft account to choose a nickname.");
         client.Sent.Should().BeEmpty();
     }
 
@@ -125,13 +125,11 @@ public sealed class ProfileViewModelTests
             return Task.FromResult(new NicknameReply(AccountStatus.Ok, nickname, null));
         }
 
-        public Task<AccountReply> RegisterAsync(string email, string password, string nickname, GameLanguage language, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<AccountReply> SignInWithExternalAsync(ExternalProvider provider, string idToken, GameLanguage language, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task<AccountReply> LoginAsync(string email, string password, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<AccountReply> LinkExternalIdentityAsync(ExternalProvider provider, string idToken, string nickname, CancellationToken cancellationToken) => throw new NotSupportedException();
 
         public Task<AccountReply> StartGuestAsync(GameLanguage language, CancellationToken cancellationToken) => throw new NotSupportedException();
-
-        public Task<AccountReply> UpgradeGuestAsync(string email, string password, string nickname, CancellationToken cancellationToken) => throw new NotSupportedException();
 
         public Task<AccountStatus> SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken) => throw new NotSupportedException();
 

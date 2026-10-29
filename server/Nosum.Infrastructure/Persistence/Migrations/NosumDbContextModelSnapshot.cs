@@ -22,6 +22,43 @@ namespace Nosum.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Nosum.Domain.Accounts.ExternalLogin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("linked_at");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<short>("Provider")
+                        .HasColumnType("smallint")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("subject");
+
+                    b.HasKey("Id")
+                        .HasName("pk_external_logins");
+
+                    b.HasIndex("PlayerId")
+                        .HasDatabaseName("ix_external_logins_player_id");
+
+                    b.HasIndex("Provider", "Subject")
+                        .IsUnique()
+                        .HasDatabaseName("ix_external_logins_provider_subject");
+
+                    b.ToTable("external_logins", (string)null);
+                });
+
             modelBuilder.Entity("Nosum.Domain.Accounts.Player", b =>
                 {
                     b.Property<Guid>("Id")
@@ -37,8 +74,8 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
                         .HasColumnName("email");
 
                     b.Property<bool>("IsGuest")
@@ -71,21 +108,11 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("nickname_changed_at");
 
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("normalized_email");
-
                     b.Property<string>("NormalizedNickname")
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)")
                         .HasColumnName("normalized_nickname");
-
-                    b.Property<string>("PasswordHash")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
-                        .HasColumnName("password_hash");
 
                     b.Property<DateTimeOffset?>("RegistrationPromptUnlockedAt")
                         .HasColumnType("timestamp with time zone")
@@ -99,10 +126,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_players");
-
-                    b.HasIndex("NormalizedEmail")
-                        .IsUnique()
-                        .HasDatabaseName("ix_players_normalized_email");
 
                     b.HasIndex("NormalizedNickname")
                         .IsUnique()
@@ -1767,6 +1790,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_ground_items_map_id_owner_id");
 
                     b.ToTable("ground_items", (string)null);
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Accounts.ExternalLogin", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_external_logins_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Accounts.PlayerSessionToken", b =>

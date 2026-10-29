@@ -53,7 +53,6 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         await this.GuardAsync("walk", this.WalkAsync);
         await this.GuardAsync("warp", this.WarpAsync);
         await this.GuardAsync("admin", this.AdminAsync);
-        await this.GuardAsync("password", this.PasswordAsync);
         await this.GuardAsync("blacksmith", this.BlacksmithAsync);
         await this.GuardAsync("mine", this.MineAsync);
         await this.GuardAsync("area", this.AreaAsync);
@@ -99,8 +98,6 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
 
     // A nickname the rules accept and no other scenario used.
     private string NextNickname() => "budget" + Interlocked.Increment(ref _nickname).ToString(System.Globalization.CultureInfo.InvariantCulture);
-
-    private string NextEmail() => "budget.player" + _nickname.ToString(System.Globalization.CultureInfo.InvariantCulture) + "@gmail.com";
 
     // The nearest tillable tile within reach of where the player stands on the farm.
     private static (int X, int Y) TileInReachOf(float feetX, float feetY)

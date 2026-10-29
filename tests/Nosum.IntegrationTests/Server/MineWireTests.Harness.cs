@@ -159,6 +159,7 @@ public sealed partial class MineWireTests
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
 
             // Development, so the tester clock can skip game days; the fake clock sits after the calendar epoch.
             NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start), development: true);
@@ -323,6 +324,7 @@ public sealed partial class MineWireTests
 
         public async Task<JoinMapResult> JoinAsync(CancellationToken ct)
         {
+            await WirePace.JoinAsync(ct);
             using JoinMap request = new() { MapId = Program.FarmMapId };
             JoinMapResult result = await _session.RequestAsync<JoinMapResult>(request, ct: ct);
             result.Status.Should().Be(JoinStatus.Ok);

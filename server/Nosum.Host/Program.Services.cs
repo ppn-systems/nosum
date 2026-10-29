@@ -279,7 +279,7 @@ internal static partial class Program
         // The hunting log (docs/adr/ADR-068): the defeat path counts each kill into it.
         BestiaryService bestiary = new(unitOfWork, clock);
         InstanceManager.Instance.Register<IBestiaryService>(bestiary);
-        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary);
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>
         {
