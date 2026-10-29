@@ -65,6 +65,38 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
     public FarmWireTests(PostgresFixture database) => _database = database;
 
     [Fact]
+    public async Task Farming_UseSentSoonerThanTheInterval_IsRefusedWithCooldownAndChangesNothing()
+    {
+        await ResetFarmAsync();
+        FakeTimeProvider clock = new(s_start);
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = TileInReachOf(join);
+
+            // The first use lands: the hoe tills the tile.
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Status.Should().Be(FarmStatus.Ok);
+
+            // A second use with no wait comes inside the server's interval (docs/adr/ADR-071 D2): refused, with no reply text, and the tile is untouched.
+            (await farmer.UseWithoutWaitAsync(0, x, y, timeout.Token)).Status.Should().Be(FarmStatus.Cooldown);
+
+            // Once the interval has passed the same hoe is told what the tile already is, which proves the refused use changed nothing.
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Status.Should().Be(FarmStatus.AlreadyTilled);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
     public async Task Farming_TillPlantWaterWaitHarvest_DropsTheCropBesideTheHarvesterWhoTakesIt()
     {
         await ResetFarmAsync();
