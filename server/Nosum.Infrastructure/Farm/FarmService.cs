@@ -271,16 +271,18 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             }
 
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
-            FarmTile? current = this.LiveTile(farm, player.Instance, tileX, tileY, nowMs);
-            if (current is null && _placed?.IsCovered(player.Instance, tileX, tileY) == true)
+            // Nothing is worked under a placed piece, whether soil, a crop or bare ground: a crop that ends up beneath furniture cannot be picked (docs/adr/ADR-024 D3).
+            if (_placed?.IsCovered(player.Instance, tileX, tileY) == true)
             {
                 return Refused(FarmStatus.Blocked);
             }
 
+            FarmTile? current = this.LiveTile(farm, player.Instance, tileX, tileY, nowMs);
+
             // Ground the co-op has not unlocked cannot be tilled yet, though it is walkable (docs/adr/ADR-038 D4); soil tilled before stays workable.
             bool ground = tillable.IsTillable(tileX, tileY);
             bool locked = ground && member is not null && !CoopUpgrades.IsLandUnlocked(member.LandLevel, tileX, tileY);
-            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.IsSprinklerWatered(player.Instance, tileX, tileY) == true, tail);
+            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(player.Instance, tileX, tileY), tail);
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 return Refused(locked && plan.Verdict == FarmVerdict.NotTillable ? FarmStatus.LockedLand : ToStatus(plan.Verdict));
@@ -376,16 +378,16 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
     };
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
-    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, bool sprinkled, bool tail = false)
+    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, long? sprinklerSinceMs, bool tail = false)
     {
         bool hasItem = held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out _);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item);
 
         // A mature crop is harvested whatever is held (bare hands included), except on the trailing tiles of a wide tool swing.
         bool withered = current is { HasCrop: true } standing && FarmRules.IsWithered(standing, nowMs, _calendar);
-        if (!tail && current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinkled))
+        if (!tail && current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinklerSinceMs))
         {
-            FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested, outdoors, sprinkled);
+            FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested, outdoors, sprinklerSinceMs);
             return harvest != FarmVerdict.Ok
                 ? Plan.Refuse(harvest)
                 : new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested!.Id), harvested.HarvestItemId, harvested.HarvestQuantity, new PlannedDrop(harvested.HarvestItemId, harvested.HarvestQuantity));
@@ -406,13 +408,13 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
-                    int today = _calendar.DayNumberAt(nowMs);
-                    if (current is { } alreadyWatered && alreadyWatered.WateredDay == today)
+                    // Soil that is wet already (from the can today, a rainy day outdoors or a sprinkler) takes no more water: the can keeps its water and the player their energy.
+                    if (current is { } wet && FarmRules.IsWet(wet, nowMs, _calendar, outdoors, sprinklerSinceMs))
                     {
                         return Plan.Refuse(FarmVerdict.NothingToDo);
                     }
 
-                    FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinkled);
+                    FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinklerSinceMs);
                     QuestEvent? quest = current is { HasCrop: true } && !withered ? new QuestEvent(QuestEventKind.CropWatered) : null;
                     return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", quest, item.Id, 0) : Plan.Refuse(water);
                 }
@@ -425,7 +427,9 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
 
             case ItemKind.Tool when item.Tool == ToolKind.Scythe && withered:
                 {
-                    return new Plan(FarmVerdict.Ok, FarmAction.Cleared, default, [], "farm.clear", null, item.Id, 0);
+                    // The dead plant goes; the tilled soil under it stays (docs/adr/ADR-018).
+                    FarmVerdict cut = FarmRules.CutWithered(current, nowMs, _calendar, out FarmTile bare);
+                    return cut == FarmVerdict.Ok ? new Plan(cut, FarmAction.CutWithered, bare, [], "farm.cut", null, item.Id, 0) : Plan.Refuse(cut);
                 }
 
             case ItemKind.Seed:
@@ -569,6 +573,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         FarmAction.Watered => (ToolKind.WateringCan, SkillKind.Farming, SkillRules.WaterXp),
         FarmAction.Cleared => (ToolKind.Pickaxe, SkillKind.Mining, SkillRules.ClearXp),
         FarmAction.Harvested => (ToolKind.Scythe, SkillKind.Farming, SkillRules.HarvestXp),
+        FarmAction.CutWithered => (ToolKind.Scythe, SkillKind.Farming, SkillRules.ClearXp),
         _ => null,
     };
 

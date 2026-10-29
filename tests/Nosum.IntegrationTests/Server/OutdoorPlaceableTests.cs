@@ -8,10 +8,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Nalix.Abstractions.Networking;
+using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Placeables;
 using Nosum.Contracts.Farm;
+using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.S2C;
 using Nosum.Domain.Coops;
@@ -63,7 +66,8 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         PlacedChanged push = world.Presence.Sent<PlacedChanged>().Single(p => p.Upserted.Any(u => u.Id == outcome.ObjectId));
         push.MapId.Should().Be(GameMaps.Farm);
         PlacedSnapshotView view = await world.Placeables.GetAsync(world.Presence.ConnectionOf(player));
-        view.Objects.Should().ContainSingle().Which.Should().Be(new PlacedItem(outcome.ObjectId, ItemCatalog.Chest, x, y, 0));
+        view.Objects.Should().ContainSingle().Which.Should().BeEquivalentTo(new PlacedItem(outcome.ObjectId, ItemCatalog.Chest, x, y, 0), o => o.Excluding(p => p.PlacedAtMs));
+        view.Objects.Single().PlacedAtMs.Should().BeGreaterThan(0, "the placement time is kept for the sprinkler rule");
     }
 
     [Fact]
@@ -176,15 +180,15 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
 
         int sprinkler = await world.PlaceOnFarmAsync(player, ItemCatalog.Sprinkler, x, y);
 
-        world.Tiles.IsSprinklerWatered(instance, x + 1, y).Should().BeTrue();
-        world.Tiles.IsSprinklerWatered(instance, x, y + 1).Should().BeTrue();
-        world.Tiles.IsSprinklerWatered(instance, x, y).Should().BeFalse();
-        world.Tiles.IsSprinklerWatered(instance, x + 1, y + 1).Should().BeFalse();
-        world.Tiles.IsSprinklerWatered(new MapInstance(GameMaps.Farm, Guid.NewGuid()), x + 1, y).Should().BeFalse("another farm is another instance");
+        world.Tiles.SprinklerWateredSinceMs(instance, x + 1, y).Should().NotBeNull();
+        world.Tiles.SprinklerWateredSinceMs(instance, x, y + 1).Should().NotBeNull();
+        world.Tiles.SprinklerWateredSinceMs(instance, x, y).Should().BeNull();
+        world.Tiles.SprinklerWateredSinceMs(instance, x + 1, y + 1).Should().BeNull();
+        world.Tiles.SprinklerWateredSinceMs(new MapInstance(GameMaps.Farm, Guid.NewGuid()), x + 1, y).Should().BeNull("another farm is another instance");
 
         _ = await world.Placeables.PickUpAsync(world.Presence.ConnectionOf(player), sprinkler);
 
-        world.Tiles.IsSprinklerWatered(instance, x + 1, y).Should().BeFalse();
+        world.Tiles.SprinklerWateredSinceMs(instance, x + 1, y).Should().BeNull();
         (await world.CountAsync(player, ItemCatalog.Sprinkler)).Should().Be(1);
     }
 
@@ -203,7 +207,7 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         (await world.Placeables.MoveAsync(world.Presence.ConnectionOf(player), 987_654, x + 2, y, 0)).Status.Should().Be(PlaceStatus.UnknownObject);
 
         PlacedSnapshotView view = await world.Placeables.GetAsync(world.Presence.ConnectionOf(player));
-        view.Objects.Should().BeEquivalentTo([new PlacedItem(a, ItemCatalog.Chest, x + 2, y, 0), new PlacedItem(b, ItemCatalog.Chest, x + 1, y, 0)]);
+        view.Objects.Should().BeEquivalentTo([new PlacedItem(a, ItemCatalog.Chest, x + 2, y, 0), new PlacedItem(b, ItemCatalog.Chest, x + 1, y, 0)], o => o.Excluding(p => p.PlacedAtMs));
     }
 
     [Fact]
@@ -290,6 +294,96 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         int slot = await world.GiveAsync(player, ItemCatalog.WoodFence, 1);
         (await world.Placeables.PlaceAsync(world.Presence.ConnectionOf(player), slot, x, y, 0)).Status.Should().Be(PlaceStatus.Tilled);
         (await world.CountAsync(player, ItemCatalog.WoodFence)).Should().Be(2, "the refused piece stays in the bag next to the one picked up");
+    }
+
+    [Fact]
+    public async Task RealFarmLayer_APieceOverAPlantedCrop_BlocksEveryFarmAction_UntilThePieceIsGone()
+    {
+        FarmService? farm = null;
+        using PlacementHarness world = new(_database, farmFactory: h =>
+        {
+            farm = NewFarm(h, dayClock: null);
+            return farm;
+        });
+        Guid player = await world.CreatePlayerAsync();
+        (int x, int y) = world.TillableSpot(GameMaps.Farm);
+        world.StandOnFarm(player, x + 1, y);
+        MapInstance instance = new(GameMaps.Farm, player);
+        IConnection connection = world.Presence.ConnectionOf(player);
+        int hoe = (await world.Inventory.GetAsync(player)).Slots.First(s => s.ItemId == ItemCatalog.Hoe).Slot;
+        int can = (await world.Inventory.GetAsync(player)).Slots.First(s => s.ItemId == ItemCatalog.WateringCan).Slot;
+        int seeds = await world.GiveAsync(player, ItemCatalog.ParsnipSeeds, 1);
+        (await farm!.UseAsync(connection, hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled));
+        (await farm.UseAsync(connection, seeds, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Planted));
+
+        // A piece ends up over the planted tile: the crop is neither watered nor harvested, nor hoed, from under it.
+        world.Tiles.Publish(instance, [new PlacedItem(900, ItemCatalog.Chest, x, y, 0)]);
+        (await farm.UseAsync(connection, can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Blocked, FarmAction.None));
+        (await farm.UseAsync(connection, hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Blocked, FarmAction.None));
+
+        // Once the piece is gone the crop can be tended again.
+        world.Tiles.Publish(instance, []);
+        (await farm.UseAsync(connection, can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Watered));
+    }
+
+    [Fact]
+    public async Task Sweep_ASprinklerWateringBareSoilOvernight_SendsTheTileToThePlayersWhoCanSeeIt()
+    {
+        ManualDayClock dayClock = new();
+        FarmService? farm = null;
+        using PlacementHarness world = new(_database, farmFactory: h =>
+        {
+            farm = NewFarm(h, dayClock);
+            return farm;
+        });
+        // The calendar starts on 2 November 2026: the test plays from noon of game day three, so the days it ends are real game days.
+        long dayThreeNoon = GameCalendar.Default.DayStartMs(3) + (GameCalendar.Default.DayLengthMs / 2);
+        world.Clock.Advance(TimeSpan.FromMilliseconds(dayThreeNoon - PlacementHarness.Start.ToUnixTimeMilliseconds()));
+        Guid player = await world.CreatePlayerAsync();
+        (int x, int y) = world.TillableSpot(GameMaps.Farm);
+        world.StandOnFarm(player, x + 1, y);
+        IConnection connection = world.Presence.ConnectionOf(player);
+        int hoe = (await world.Inventory.GetAsync(player)).Slots.First(s => s.ItemId == ItemCatalog.Hoe).Slot;
+        (await farm!.UseAsync(connection, hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled));
+
+        // A sprinkler placed on day three waters the tile from day four on, so day three ending does not water it.
+        world.StandOnFarm(player, x, y + 1);
+        _ = await world.PlaceOnFarmAsync(player, ItemCatalog.Sprinkler, x + 1, y);
+        world.Clock.Advance(TimeSpan.FromMilliseconds(GameCalendar.Default.DayLengthMs));
+        dayClock.End(3);
+
+        // Day four ends: the sprinkler waters the bare soil, the watering is saved and every player who sees the tile is told of it.
+        world.Clock.Advance(TimeSpan.FromMilliseconds(GameCalendar.Default.DayLengthMs));
+        dayClock.End(4);
+
+        FarmTileRow? watered = null;
+        for (int attempt = 0; attempt < 500 && watered is null; attempt++)
+        {
+            watered = world.Presence.Sent<FarmTilesChanged>().SelectMany(p => p.Tiles).FirstOrDefault(t => t.X == x && t.Y == y && t.WateredDay == 4);
+            if (watered is null)
+            {
+                await Task.Delay(10);
+            }
+        }
+
+        watered.Should().NotBeNull("the sweep's change is pushed, not only written to the database");
+        watered!.Removed.Should().BeFalse();
+    }
+
+    private static FarmService NewFarm(PlacementHarness h, IDayClock? dayClock)
+    {
+        GroundItemService groundItems = new(h.Presence, NoChunks.Instance, NoChunks.Instance, Maps, new TransferService(h.Inventory, h.Clock), h.Units, h.Clock);
+        return new FarmService(h.Presence, NoChunks.Instance, new InstanceWidePublisher(h.Presence), Maps, h.Inventory, new QuestService(h.Units, h.Clock), h.Coops, new NoNodes(), new NoCooldownTools(), h.Units, h.Clock, GameCalendar.Default, groundItems, new PlayerProgressService(h.Units, new CalendarGameDayClock(GameCalendar.Default, h.Clock), h.Inventory, h.Clock), dayClock: dayClock, placed: h.Tiles);
+    }
+
+    // A day clock the test ends by hand, so the sweep runs when the test says a day has ended.
+    private sealed class ManualDayClock : IDayClock
+    {
+        public event Action<GameDayEnded>? DayEnded;
+
+        public int CurrentDay { get; set; }
+
+        public void End(int day) => DayEnded?.Invoke(new GameDayEnded(day, 0));
     }
 
     private static readonly TmxMapCatalog Maps = new(GameMaps.All, System.IO.Path.Combine(AppContext.BaseDirectory, "maps"));

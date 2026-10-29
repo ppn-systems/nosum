@@ -136,6 +136,7 @@ public sealed partial class FarmService
         row.PlantedAtMs = tile.PlantedAtMs;
         row.GrowthDays = tile.GrowthDays;
         row.WateredDay = tile.WateredDay;
+        row.TendedDay = tile.TendedDay;
         return row;
     }
 
@@ -192,7 +193,7 @@ public sealed partial class FarmService
     // A tile as the player sees it: null when it was never tilled or its bare soil has reverted. A reverted tile may still sit in memory and in
     // PostgreSQL until the next day sweep; whoever tills it again overwrites it.
     private FarmTile? LiveTile(MapFarm farm, MapInstance instance, int x, int y, long nowMs)
-        => farm.TryGet(x, y, out FarmTile found) && !FarmRules.IsReverted(found, instance.Key, x, y, nowMs, _calendar, instance.IsOutdoors, _placed?.IsSprinklerWatered(instance, x, y) == true) ? found : null;
+        => farm.TryGet(x, y, out FarmTile found) && !FarmRules.IsReverted(found, instance.Key, x, y, nowMs, _calendar, instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(instance, x, y)) ? found : null;
 
     private void OnDayEnded(GameDayEnded ended)
     {
@@ -233,18 +234,19 @@ public sealed partial class FarmService
             {
                 foreach (KeyValuePair<(int X, int Y), FarmTile> tile in chunk.Value)
                 {
-                    bool sprinkled = _placed?.IsSprinklerWatered(instance, tile.Key.X, tile.Key.Y) == true;
-                    if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar, instance.IsOutdoors, sprinkled))
+                    long? sinceMs = _placed?.SprinklerWateredSinceMs(instance, tile.Key.X, tile.Key.Y);
+                    if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar, instance.IsOutdoors, sinceMs))
                     {
                         gone.Add(tile.Key);
                         continue;
                     }
 
-                    if (instance.IsOutdoors && sprinkled && endedDay > 0 && tile.Value.WateredDay < endedDay)
+                    // A sprinkler that stood through the day that ended waters the tile; that is settled into the growth now, so it is saved and sent with the rest.
+                    if (endedDay > 0 && tile.Value.WateredDay < endedDay && FarmRules.IsWateredOn(tile.Value, endedDay, _calendar, outdoors: false, sinceMs))
                     {
                         if (tile.Value.HasCrop)
                         {
-                            int growth = FarmRules.GrowthDaysAt(tile.Value, nowMs, _calendar, outdoors: true, sprinkled: true);
+                            int growth = FarmRules.GrowthDaysAt(tile.Value, nowMs, _calendar, instance.IsOutdoors, sinceMs);
                             if (growth > 0)
                             {
                                 settled[tile.Key] = tile.Value with { GrowthDays = growth - 1, WateredDay = endedDay };
@@ -295,20 +297,26 @@ public sealed partial class FarmService
             }
         }
 
-        if (gone.Count == 0)
+        // Every tile the sweep changed goes to the subscribers of its chunk, removed or watered alike, one batch per chunk (docs/adr/ADR-022 D4).
+        List<(ChunkCoord Chunk, FarmTileRow Row)> changes = [];
+        foreach ((int X, int Y) key in gone)
         {
-            return;
+            changes.Add((ChunkCoord.OfTile(key.X, key.Y), ToRemovedRow(key.X, key.Y)));
         }
 
-        // The removed rows go to the subscribers of each tile's chunk, one batch per chunk (docs/adr/ADR-022 D4).
-        const int BatchSize = 64;
-        gone.Sort(static (a, b) => ChunkCoord.OfTile(a.X, a.Y).SortKey.CompareTo(ChunkCoord.OfTile(b.X, b.Y).SortKey));
-        int from = 0;
-        while (from < gone.Count)
+        foreach (KeyValuePair<(int X, int Y), FarmTile> pair in settled)
         {
-            ChunkCoord chunk = ChunkCoord.OfTile(gone[from].X, gone[from].Y);
+            changes.Add((ChunkCoord.OfTile(pair.Key.X, pair.Key.Y), ToRow(pair.Key.X, pair.Key.Y, pair.Value)));
+        }
+
+        const int BatchSize = 64;
+        changes.Sort(static (a, b) => a.Chunk.SortKey.CompareTo(b.Chunk.SortKey));
+        int from = 0;
+        while (from < changes.Count)
+        {
+            ChunkCoord chunk = changes[from].Chunk;
             int to = from;
-            while (to < gone.Count && ChunkCoord.OfTile(gone[to].X, gone[to].Y) == chunk)
+            while (to < changes.Count && changes[to].Chunk == chunk)
             {
                 to++;
             }
@@ -322,7 +330,7 @@ public sealed partial class FarmService
                 packet.Tiles.Clear();
                 for (int i = start; i < Math.Min(to, start + BatchSize); i++)
                 {
-                    packet.Tiles.Add(ToRemovedRow(gone[i].X, gone[i].Y));
+                    packet.Tiles.Add(changes[i].Row);
                 }
 
                 await _publisher.PublishAsync(instance, chunk, packet, null, CancellationToken.None).ConfigureAwait(false);

@@ -26,4 +26,7 @@ public sealed partial class PlacedObjectRow
 
     /// <summary>Rotation: 0 down, 1 right, 2 up, 3 left.</summary>
     [SerializeOrder(4)] public byte Rotation { get; set; }
+
+    /// <summary>When it was placed, Unix milliseconds; a sprinkler waters the crops beside it from the day after (docs/adr/ADR-024 D4).</summary>
+    [SerializeOrder(5)] public long PlacedAtMs { get; set; }
 }

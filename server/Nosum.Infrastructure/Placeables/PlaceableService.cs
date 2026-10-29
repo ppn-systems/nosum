@@ -271,7 +271,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
                 return Refused(ToStatus(change.Status));
             }
 
-            placed = new PlacedItem(row.Id, row.ItemId, tileX, tileY, rotation);
+            placed = new PlacedItem(row.Id, row.ItemId, tileX, tileY, rotation, row.PlacedAt.ToUnixTimeMilliseconds());
             state.Set.Add(placed);
             this.Rebuild(state, player.Instance, map);
         }
@@ -679,7 +679,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             List<PlacedObject> rows = await unit.Repository<PlacedObject>().ListAsync(p => p.MapId == instance.MapId && p.OwnerId == instance.OwnerId, CancellationToken.None).ConfigureAwait(false);
             foreach (PlacedObject row in rows)
             {
-                state.Set.Add(new PlacedItem(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation));
+                state.Set.Add(new PlacedItem(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation, row.PlacedAt.ToUnixTimeMilliseconds()));
             }
         }
 
@@ -719,6 +719,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         row.TileX = (ushort)item.TileX;
         row.TileY = (ushort)item.TileY;
         row.Rotation = (byte)item.Rotation;
+        row.PlacedAtMs = item.PlacedAtMs;
         return row;
     }
 

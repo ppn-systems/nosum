@@ -8,7 +8,8 @@ namespace Nosum.Gameplay.Placeables;
 /// <param name="TileX">Left tile of its footprint.</param>
 /// <param name="TileY">Top tile of its footprint.</param>
 /// <param name="Rotation">Rotation, zero to the definition's rotations minus one.</param>
-public readonly record struct PlacedItem(int Id, int ItemId, int TileX, int TileY, int Rotation);
+/// <param name="PlacedAtMs">When it was placed, Unix milliseconds; a sprinkler waters the game days after the day it was placed (docs/adr/ADR-024 D4).</param>
+public readonly record struct PlacedItem(int Id, int ItemId, int TileX, int TileY, int Rotation, long PlacedAtMs = 0);
 
 /// <summary>Why a placement is allowed or not. The server maps it to a wire status.</summary>
 public enum PlacementVerdict

@@ -21,7 +21,8 @@ namespace Nosum.Wasm.Socket.Placeable;
 /// <param name="TileX">Left tile of the footprint.</param>
 /// <param name="TileY">Top tile of the footprint.</param>
 /// <param name="Rotation">Rotation, zero to three.</param>
-public readonly record struct PlacedObjectInfo(int Id, int ItemId, int TileX, int TileY, int Rotation);
+/// <param name="PlacedAtMs">When it was placed, Unix milliseconds: a sprinkler waters the crops beside it from the day after.</param>
+public readonly record struct PlacedObjectInfo(int Id, int ItemId, int TileX, int TileY, int Rotation, long PlacedAtMs);
 
 /// <summary>
 /// The client's mirror of the objects placed in the player's current place, plus the three actions that change them. The server sends the objects of a chunk once, when the chunk
@@ -131,7 +132,7 @@ public sealed class PlaceableChannel : IDisposable
                 _mapId = snapshot.MapId;
                 foreach (PlacedObjectRow row in snapshot.Objects)
                 {
-                    _items.Add(new PlacedObjectInfo(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation));
+                    _items.Add(new PlacedObjectInfo(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation, row.PlacedAtMs));
                 }
 
                 _ = Interlocked.Increment(ref _version);
@@ -216,7 +217,7 @@ public sealed class PlaceableChannel : IDisposable
             _ = _items.RemoveAll(o => ChunkCoord.OfTile(o.TileX, o.TileY) == chunk);
             foreach (PlacedObjectRow row in packet.Placed)
             {
-                _items.Add(new PlacedObjectInfo(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation));
+                _items.Add(new PlacedObjectInfo(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation, row.PlacedAtMs));
             }
 
             _ = Interlocked.Increment(ref _version);
@@ -261,7 +262,7 @@ public sealed class PlaceableChannel : IDisposable
 
             foreach (PlacedObjectRow row in packet.Upserted)
             {
-                PlacedObjectInfo item = new(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation);
+                PlacedObjectInfo item = new(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation, row.PlacedAtMs);
                 int at = _items.FindIndex(o => o.Id == row.Id);
                 if (at >= 0)
                 {

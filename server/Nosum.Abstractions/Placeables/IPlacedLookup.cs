@@ -30,10 +30,10 @@ public interface IPlacedLookup
     /// <returns><see langword="true"/> when a piece stands on the tile.</returns>
     bool IsCovered(MapInstance instance, int tileX, int tileY);
 
-    /// <summary>Tells whether a sprinkler waters a tile (<see cref="SprinklerRules"/>).</summary>
+    /// <summary>Returns when the first sprinkler that waters a tile was placed (<see cref="SprinklerRules"/>).</summary>
     /// <param name="instance">The place.</param>
     /// <param name="tileX">Tile x.</param>
     /// <param name="tileY">Tile y.</param>
-    /// <returns><see langword="true"/> when a sprinkler stands on one of the tile's four orthogonal neighbours.</returns>
-    bool IsSprinklerWatered(MapInstance instance, int tileX, int tileY);
+    /// <returns>The earliest placement time, Unix milliseconds, of a sprinkler on one of the tile's four orthogonal neighbours; <see langword="null"/> when none stands there.</returns>
+    long? SprinklerWateredSinceMs(MapInstance instance, int tileX, int tileY);
 }

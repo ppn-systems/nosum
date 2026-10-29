@@ -132,4 +132,20 @@ public sealed class GameCalendarTests
     [Fact]
     public void WitherAt_CropPlantedOutOfItsSeason_HasWitheredAlready()
         => s_calendar.WitherAtMs(Epoch + SeasonMs, SeasonSet.Spring).Should().Be(Epoch + SeasonMs);
+
+    [Fact]
+    public void SeasonBeganBetween_ACatchUpThatCrossesADayStartingASeason_IsTrue()
+        => GameCalendar.SeasonBeganBetween(GameCalendar.DaysPerSeason - 1, GameCalendar.DaysPerSeason).Should().BeTrue("the season began on that day");
+
+    [Fact]
+    public void SeasonBeganBetween_ACatchUpWithinOneSeason_IsFalse()
+        => GameCalendar.SeasonBeganBetween(5, 9).Should().BeFalse("no season began in those days");
+
+    [Fact]
+    public void SeasonBeganBetween_ACatchUpAcrossSeveralSeasons_IsTrue()
+        => GameCalendar.SeasonBeganBetween(3, 3 * GameCalendar.DaysPerSeason + 2).Should().BeTrue("several seasons began while the farm was not loaded");
+
+    [Fact]
+    public void SeasonBeganBetween_NoDaysPassed_IsFalse()
+        => GameCalendar.SeasonBeganBetween(GameCalendar.DaysPerSeason, GameCalendar.DaysPerSeason).Should().BeFalse("the season began before the instance was brought up to date");
 }

@@ -46,4 +46,7 @@ public sealed partial class FarmTileRow
 
     /// <summary>True when the tile is no longer tilled (bare soil reverted): the client removes it and ignores the other fields.</summary>
     [SerializeOrder(9)] public bool Removed { get; set; }
+
+    /// <summary>The game day the bare soil was tilled or its crop harvested or cut; with <see cref="WateredDay"/> it decides when bare soil reverts (docs/adr/ADR-021 D7).</summary>
+    [SerializeOrder(10)] public int TendedDay { get; set; }
 }

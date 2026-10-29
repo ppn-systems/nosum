@@ -99,7 +99,7 @@ internal sealed class FarmDecorator : IMapDecorator
                     | (_farm.TryGetTile(tile.X, tile.Y + 1, out _) ? 4 : 0)
                     | (_farm.TryGetTile(tile.X - 1, tile.Y, out _) ? 8 : 0);
                 int cell = s_soilCell[mask];
-                int sourceX = ((cell & 3) * 16) + (rules is not null && FarmRules.IsWet(new FarmTile(tile.CropId, tile.PlantedAtMs, tile.GrowthDays, tile.WateredDay, 0), _nowMs, rules, _outdoors, this.IsSprinkled(tile.X, tile.Y)) ? WetSheetOffset : 0);
+                int sourceX = ((cell & 3) * 16) + (rules is not null && FarmRules.IsWet(new FarmTile(tile.CropId, tile.PlantedAtMs, tile.GrowthDays, tile.WateredDay, tile.TendedDay), _nowMs, rules, _outdoors, this.SprinklerSinceMs(tile.X, tile.Y)) ? WetSheetOffset : 0);
                 int sourceY = (cell >> 2) * 16;
                 commands.Draw(_soilTexture, sourceX, sourceY, 16, 16, worldX - camera.Left, worldY - camera.Top);
             }
@@ -140,11 +140,11 @@ internal sealed class FarmDecorator : IMapDecorator
                     continue;
                 }
 
-                FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, 0);
+                FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay);
 
                 // A crop that withered at the season change shows as a wilted brown stalk until cleared with a tool or replanted over (docs/adr/ADR-018).
                 bool withered = FarmRules.IsWithered(tile, _nowMs, rules);
-                int stage = withered ? 1 : FarmRules.StageAt(tile, _nowMs, rules, _outdoors, this.IsSprinkled(info.X, info.Y));
+                int stage = withered ? 1 : FarmRules.StageAt(tile, _nowMs, rules, _outdoors, this.SprinklerSinceMs(info.X, info.Y));
                 int cropTint = withered ? unchecked((int)0x8b6b4aff) : RenderCommandBuffer.NoTint;
                 if (CropSprites.TryGetFrame(info.CropId, stage, out int sourceX, out int sourceY))
                 {
@@ -155,32 +155,33 @@ internal sealed class FarmDecorator : IMapDecorator
         }
     }
 
-    // Whether a placed sprinkler stands on one of the tile's four orthogonal neighbours (the rule of SprinklerRules, read from the mirror without allocating).
-    private bool IsSprinkled(int tileX, int tileY)
+    // When the first placed sprinkler that waters the tile was placed, or null (SprinklerRules.WateredSinceMs, read from the mirror without allocating).
+    private long? SprinklerSinceMs(int tileX, int tileY)
     {
-        if (_placed is null || !_outdoors)
+        if (_placed is null)
         {
-            return false;
+            return null;
         }
 
         using (_placed.Read())
         {
             if (!string.Equals(_placed.MapId, _mapId, StringComparison.Ordinal))
             {
-                return false;
+                return null;
             }
 
+            long? since = null;
             for (int i = 0; i < _placed.Count; i++)
             {
                 PlacedObjectInfo piece = _placed.At(i);
                 if (SprinklerRules.Waters(piece.TileX, piece.TileY, tileX, tileY) && PlaceableCatalog.TryGet(piece.ItemId, out PlaceableDefinition? definition) && definition.Kind == PlaceableKind.Sprinkler)
                 {
-                    return true;
+                    since = since is { } earlier ? Math.Min(earlier, piece.PlacedAtMs) : piece.PlacedAtMs;
                 }
             }
-        }
 
-        return false;
+            return since;
+        }
     }
 
     // The calendar the server sent, rebuilt only when its numbers change (once, at sign-in); null until it is known.
