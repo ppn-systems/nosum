@@ -144,4 +144,23 @@ public sealed class CombatPacketTests
         ushort[] opcodes = [.. typeof(CombatOpCode).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => (ushort)f.GetRawConstantValue()!)];
         opcodes.Should().OnlyHaveUniqueItems().And.OnlyContain(o => o >= 0xC200 && o <= 0xC2FF);
     }
+
+    [Fact]
+    public void MonsterChanged_RoundTrip_PreservesEnragedFlag()
+    {
+        using MonsterChanged changed = new() { MonsterId = 3, Kind = 9, X = 4, Y = 5, Hp = 50, MaxHp = 180, Enraged = 1 };
+
+        MonsterChanged changedCopy = MonsterChanged.Deserialize(changed.Serialize());
+        (changedCopy.MonsterId, changedCopy.Hp, changedCopy.Enraged).Should().Be((3, (ushort)50, (byte)1));
+    }
+
+    [Fact]
+    public void GroundTelegraph_RoundTrip_PreservesFieldsAndOpCode()
+    {
+        using GroundTelegraph telegraph = new() { X = 12, Y = 30, RadiusTiles = 1, DelayMs = 1000 };
+
+        GroundTelegraph telegraphCopy = GroundTelegraph.Deserialize(telegraph.Serialize());
+        (telegraphCopy.X, telegraphCopy.Y, telegraphCopy.RadiusTiles, telegraphCopy.DelayMs).Should().Be(((ushort)12, (ushort)30, (byte)1, (ushort)1000));
+        GroundTelegraph.StaticOpCode.Should().Be(CombatOpCode.GroundTelegraph);
+    }
 }

@@ -73,6 +73,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
         long now = _clockMs != 0 ? _clockMs : Environment.TickCount64;
         this.DrawRiftPortal(world, now);
         this.DrawHazardsAndShrines(world, now);
+        this.DrawGroundTelegraphs(world, now);
         this.DrawMonsters(world, now);
         this.DrawProjectiles(world, now);
         this.DrawDeathEffects(world, now);
@@ -143,6 +144,24 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                     worldX,
                     8700 + m.MonsterId,
                     tint: auraTint);
+            }
+
+            // Enraged boss glow: a pulsing red aura at or below the species HP threshold (docs/adr/ADR-047)
+            if (m.Enraged)
+            {
+                int enragePulse = (int)(((now / 120) + m.MonsterId) & 3);
+                world.Add(
+                    RenderCommandBuffer.FillTexture,
+                    0,
+                    0,
+                    FrameSize + 6 + enragePulse,
+                    FrameSize + 6 + enragePulse,
+                    worldX - 3 - (enragePulse / 2),
+                    worldY - 5 - (enragePulse / 2),
+                    worldY + FrameSize - 1,
+                    worldX,
+                    8700 + m.MonsterId,
+                    tint: unchecked((int)0xdc262699));
             }
 
             world.Add(

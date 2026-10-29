@@ -12,7 +12,16 @@ namespace Nosum.Wasm.Socket.Combat;
 /// <param name="Hp">Current HP.</param>
 /// <param name="MaxHp">Maximum HP.</param>
 /// <param name="Modifier">Elite affix modifier (docs/adr/ADR-058).</param>
-public readonly record struct MonsterClientRow(int MonsterId, byte Kind, int X, int Y, int Hp, int MaxHp, byte Modifier = 0);
+/// <param name="Enraged">Whether a boss is enraged at or below its HP threshold (docs/adr/ADR-047).</param>
+public readonly record struct MonsterClientRow(int MonsterId, byte Kind, int X, int Y, int Hp, int MaxHp, byte Modifier = 0, bool Enraged = false);
+
+/// <summary>One boss ground slam telegraph: the area shown until its impact (docs/adr/ADR-047).</summary>
+/// <param name="X">Centre tile X.</param>
+/// <param name="Y">Centre tile Y.</param>
+/// <param name="RadiusTiles">Struck radius in tiles.</param>
+/// <param name="StartMs">Local tick time when the telegraph was received.</param>
+/// <param name="DelayMs">Milliseconds from receipt until the impact.</param>
+public readonly record struct GroundTelegraphClientRow(int X, int Y, int RadiusTiles, long StartMs, int DelayMs);
 
 /// <summary>One environmental hazard on the current map or dungeon floor (docs/adr/ADR-061).</summary>
 /// <param name="HazardId">Hazard id.</param>

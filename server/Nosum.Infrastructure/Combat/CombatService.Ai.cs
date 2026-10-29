@@ -35,6 +35,7 @@ public sealed partial class CombatService
         using PeriodicTimer timer = new(interval);
         List<PlayerPresence> players = new(16);
         List<MonsterSpawn> moved = new(8);
+        List<(int X, int Y, int MonsterId, MonsterKind Kind)> slams = new(2);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -69,6 +70,8 @@ public sealed partial class CombatService
 
                     InstanceMonsters instance = entry.Value;
                     moved.Clear();
+                    slams.Clear();
+                    long slamNow = Environment.TickCount64;
                     lock (instance.Gate)
                     {
                         int tileSize = Math.Max(1, map.Grid.TileSize);
@@ -111,6 +114,13 @@ public sealed partial class CombatService
                             int aggroLimit = CombatRules.IsBoss(m.Kind) ? CombatRules.BossAggroRadius : CombatRules.AggroRadius;
                             if (nearest is not null && bestDist <= aggroLimit)
                             {
+                                bool enraged = CombatRules.IsEnraged(m);
+                                if (CombatRules.IsBoss(m.Kind) && (!instance.SlamReadyAt.TryGetValue(m.MonsterId, out long slamReadyAt) || slamNow >= slamReadyAt))
+                                {
+                                    instance.SlamReadyAt[m.MonsterId] = slamNow + CombatRules.GroundSlamTelegraphMs + CombatRules.GroundSlamCooldownMs;
+                                    slams.Add((targetTileX, targetTileY, m.MonsterId, m.Kind));
+                                }
+
                                 if (bestDist <= 1)
                                 {
                                     int damage = CombatRules.MonsterDamage(m.Kind);
@@ -123,7 +133,7 @@ public sealed partial class CombatService
                                     if (!map.Grid.IsBlocked(stepX, stepY))
                                     {
                                         MonsterSpawn updated = m with { X = stepX, Y = stepY };
-                                        if (m.Modifier == MonsterModifier.Swift)
+                                        if (m.Modifier == MonsterModifier.Swift || enraged)
                                         {
                                             int distAfterFirstStep = Math.Max(Math.Abs(targetTileX - updated.X), Math.Abs(targetTileY - updated.Y));
                                             if (distAfterFirstStep > 1)
@@ -206,6 +216,13 @@ public sealed partial class CombatService
                     {
                         await this.BroadcastMonsterChangedAsync(instanceKey, moved[mIdx], cancellationToken).ConfigureAwait(false);
                     }
+
+                    for (int sIdx = 0; sIdx < slams.Count; sIdx++)
+                    {
+                        (int slamX, int slamY, int slamMonsterId, MonsterKind slamKind) = slams[sIdx];
+                        await this.BroadcastGroundTelegraphAsync(instanceKey, slamX, slamY, cancellationToken).ConfigureAwait(false);
+                        _ = this.ResolveGroundSlamAsync(instanceKey, instance, slamX, slamY, slamMonsterId, slamKind, cancellationToken);
+                    }
                 }
 
                 foreach (KeyValuePair<Guid, PlayerVitalsState> kvp in _vitals)
@@ -287,6 +304,78 @@ public sealed partial class CombatService
             {
                 onError?.Invoke(ex);
             }
+        }
+    }
+
+    /// <summary>
+    /// Waits out the telegraph, then strikes every player still inside the slam radius around the telegraphed tile (docs/adr/ADR-047).
+    /// </summary>
+    private async Task ResolveGroundSlamAsync(
+        string instanceKey,
+        InstanceMonsters instance,
+        int centerX,
+        int centerY,
+        int monsterId,
+        MonsterKind kind,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(CombatRules.GroundSlamTelegraphMs, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        List<PlayerPresence> present = [];
+        _presence.CopyPlayers(instanceKey, present);
+        if (present.Count == 0 || !_maps.TryGet(present[0].MapId, out MapDefinition? map))
+        {
+            return;
+        }
+
+        int tileSize = Math.Max(1, map.Grid.TileSize);
+        int damage = CombatRules.GroundSlamDamage(kind);
+        for (int i = 0; i < present.Count; i++)
+        {
+            PlayerPresence p = present[i];
+            double px;
+            double py;
+            lock (p.Gate)
+            {
+                px = p.Motion.X;
+                py = p.Motion.Y;
+            }
+
+            int pTileX = (int)Math.Floor(px / tileSize);
+            int pTileY = (int)Math.Floor(py / tileSize);
+            if (Math.Max(Math.Abs(pTileX - centerX), Math.Abs(pTileY - centerY)) > CombatRules.GroundSlamRadiusTiles)
+            {
+                continue;
+            }
+
+            await this.ApplyMonsterContactAttackAsync(p, damage, kind, instanceKey, instance, monsterId, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async ValueTask BroadcastGroundTelegraphAsync(string instanceKey, int centerX, int centerY, CancellationToken cancellationToken)
+    {
+        List<PlayerPresence> present = [];
+        _presence.CopyPlayers(instanceKey, present);
+        if (present.Count == 0 || _notifier is null)
+        {
+            return;
+        }
+
+        foreach (PlayerPresence p in present)
+        {
+            using PacketScope<GroundTelegraph> lease = PacketFactory<GroundTelegraph>.Acquire();
+            lease.Value.X = (ushort)centerX;
+            lease.Value.Y = (ushort)centerY;
+            lease.Value.RadiusTiles = (byte)CombatRules.GroundSlamRadiusTiles;
+            lease.Value.DelayMs = (ushort)CombatRules.GroundSlamTelegraphMs;
+            _ = await _notifier.TrySendAsync(p.AccountId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
     }
 
