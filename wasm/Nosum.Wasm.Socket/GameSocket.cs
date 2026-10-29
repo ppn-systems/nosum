@@ -37,6 +37,10 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
     private string? _goodKey;
     private string? _firstUseKey;
 
+    // The wait before the next attempt, cut short by RetryNow. Guarded by _gate; only set while a wait runs.
+    [SuppressMessage("Usage", "CA2213", Justification = "Borrowed: the wait that creates it disposes it when the wait ends.")]
+    private CancellationTokenSource? _skipWait;
+
     /// <summary>Initializes the socket; nothing connects until <see cref="Start"/>.</summary>
     /// <param name="options">Where the server is.</param>
     public GameSocket(GameSocketOptions options)
@@ -53,6 +57,9 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
     public event Action? Ready;
 
     /// <inheritdoc/>
+    public event Action<TimeSpan>? ReconnectScheduled;
+
+    /// <inheritdoc/>
     public GameSocketState State => (GameSocketState)Volatile.Read(ref _state);
 
     /// <inheritdoc/>
@@ -61,6 +68,15 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
         if (Interlocked.Exchange(ref _started, 1) == 0)
         {
             _loop = Task.Run(() => this.RunAsync(_stop.Token));
+        }
+    }
+
+    /// <inheritdoc/>
+    public void RetryNow()
+    {
+        lock (_gate)
+        {
+            _skipWait?.Cancel();
         }
     }
 
@@ -183,6 +199,9 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
                 this.SetState(GameSocketState.Ready);
                 this.Ready?.Invoke();
                 await closed.Task.WaitAsync(ct).ConfigureAwait(false);
+
+                // A lost connection is the first failed attempt: the retry waits the base delay, then doubles.
+                failures = 1;
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
@@ -214,11 +233,38 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
             this.SetState(_keyMismatch ? GameSocketState.KeyMismatch : GameSocketState.Reconnecting);
             try
             {
-                await Task.Delay(_keyMismatch ? _options.ReconnectMaxDelay : this.Backoff(failures), ct).ConfigureAwait(false);
+                await this.WaitBeforeAttemptAsync(_keyMismatch ? _options.ReconnectMaxDelay : this.Backoff(failures), ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
                 break;
+            }
+        }
+    }
+
+    // Announces the wait, then waits for it or for RetryNow, whichever comes first. Cancelling the whole loop throws out of here.
+    private async Task WaitBeforeAttemptAsync(TimeSpan delay, CancellationToken ct)
+    {
+        using CancellationTokenSource skip = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        lock (_gate)
+        {
+            _skipWait = skip;
+        }
+
+        try
+        {
+            this.ReconnectScheduled?.Invoke(delay);
+            await Task.Delay(delay, skip.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            // RetryNow ended the wait early.
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                _skipWait = null;
             }
         }
     }
@@ -331,11 +377,7 @@ public sealed class GameSocket : IGameSocket, IAsyncDisposable
         return pins.Count <= ServerKeys.MaxPinned ? [.. pins] : throw new FormatException("At most " + ServerKeys.MaxPinned + " server public keys may be pinned.");
     }
 
-    private TimeSpan Backoff(int failures)
-    {
-        double factor = Math.Pow(2, Math.Min(Math.Max(failures - 1, 0), 10));
-        return TimeSpan.FromMilliseconds(Math.Min(_options.ReconnectBaseDelay.TotalMilliseconds * factor, _options.ReconnectMaxDelay.TotalMilliseconds));
-    }
+    private TimeSpan Backoff(int failures) => ReconnectBackoff.Delay(failures, _options.ReconnectBaseDelay, _options.ReconnectMaxDelay);
 
     private WebSocketSession CreateSession(string? pinnedKey) => new(this.TransportFor(pinnedKey), this.WebSocketOptions());
 

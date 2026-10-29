@@ -38,6 +38,7 @@
 @using Nosum.Wasm.ViewModels.Mine
 @using Nosum.Wasm.ViewModels.Npc
 @using Nosum.Wasm.ViewModels.Placement
+@using Nosum.Wasm.ViewModels.Player
 @using Nosum.Wasm.ViewModels.Profile
 @using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.ViewModels.Quest
@@ -73,6 +74,7 @@
 @inject CarpenterViewModel Carpenter
 @inject ProgressViewModel Progress
 @inject NpcDialogViewModel Npc
+@inject ConnectionStatusViewModel ConnectionStatus
 
 <PageTitle>Nosum</PageTitle>
 
@@ -140,6 +142,11 @@ else
             }
         </BottomLeft>
         <Overlay>
+            @if (!Form.ShowsForm)
+            {
+                @* The reconnect overlay; the sign-in form shows the connection state itself, so the two never stack. *@
+                <ConnectionOverlay Vm="ConnectionStatus" />
+            }
             @if (!_started)
             {
                 <GamePanel Class="dialog" Title="" Role="status">

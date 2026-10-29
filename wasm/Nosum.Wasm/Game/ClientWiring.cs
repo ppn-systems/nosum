@@ -291,7 +291,9 @@ internal static class ClientWiring
         _ = services.GetRequiredService<FurnaceViewModel>();
         _ = services.GetRequiredService<CarpenterViewModel>();
         _ = services.GetRequiredService<AnimalCareViewModel>();
-        _ = services.GetRequiredService<ConnectionStatusViewModel>();
+        ConnectionStatusViewModel connection = services.GetRequiredService<ConnectionStatusViewModel>();
+        GameLoop.SetConnectionBlocked(connection.BlocksInput);
+        connection.Changed += () => GameLoop.SetConnectionBlocked(connection.BlocksInput);
 
         DeviceGuardViewModel device = services.GetRequiredService<DeviceGuardViewModel>();
         BrowserDevice.WatchWidth(devicePolicy.MinimumWidth, _ => device.UpdateWidth(BrowserDevice.ViewportWidth()));
