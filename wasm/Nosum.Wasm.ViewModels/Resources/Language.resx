@@ -781,11 +781,16 @@
   <data name="Npc_seed_keeper_Name" xml:space="preserve"><value>Cô Mai</value></data>
   <data name="Npc_seed_keeper_Role" xml:space="preserve"><value>Chủ tiệm hạt giống</value></data>
   <data name="Npc_seed_keeper_Greeting" xml:space="preserve"><value>Chào bạn! Hạt giống mùa này tươi lắm, bạn xem thử nhé.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Spring" xml:space="preserve"><value>Xuân về rồi, hạt giống mới đã đủ cả. Gieo sớm thì được mùa lớn.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Rain" xml:space="preserve"><value>Mưa thế này đất mềm lắm. Gieo hạt hôm nay là hợp nhất đấy, bạn vào xem nhé!</value></data>
+  <data name="Npc_seed_keeper_Greeting_Snow" xml:space="preserve"><value>Tuyết trắng thế này thì ngoài đồng chẳng trồng được gì. Vào sưởi ấm rồi xem hạt giống mùa sau nhé.</value></data>
   <data name="Npc_seed_keeper_Talk1" xml:space="preserve"><value>Gieo đúng mùa thì hạt nào cũng lên tốt. Trái mùa là cây héo hết đấy.</value></data>
   <data name="Npc_seed_keeper_Talk2" xml:space="preserve"><value>Tôi bán hạt giống ở đây từ hồi bé tí. Mùi đất ẩm là mùi tôi thích nhất.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Chị Hạnh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Thợ may</value></data>
   <data name="Npc_tailor_Greeting" xml:space="preserve"><value>Mời bạn vào xem! Áo mới, mũ mới, vừa vặn cả.</value></data>
+  <data name="Npc_tailor_Greeting_Rain" xml:space="preserve"><value>Ướt hết áo rồi phải không! Áo mưa mới của tôi về đúng lúc, bạn vào thử nhé.</value></data>
+  <data name="Npc_tailor_Greeting_Snow" xml:space="preserve"><value>Lạnh cắt da thế này, khoác thêm áo ấm đi bạn. Áo len mới về, vừa vặn cả.</value></data>
   <data name="Npc_tailor_Talk1" xml:space="preserve"><value>Ra đồng thì nên đội mũ rơm cho đỡ nắng, bạn nhé.</value></data>
   <data name="Npc_tailor_Talk2" xml:space="preserve"><value>Tôi may từng đường kim mũi chỉ, bền lắm. Mặc đi cày cũng không sờn.</value></data>
   <data name="Npc_furnisher_Name" xml:space="preserve"><value>Chú Tâm</value></data>

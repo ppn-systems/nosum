@@ -4,10 +4,14 @@ using System;
 using System.Globalization;
 using System.Linq;
 using FluentAssertions;
+using Nosum.Contracts.Season.S2C;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Npcs;
 using Nosum.Gameplay.Shops;
+using Nosum.Gameplay.Weather;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Npc;
 using Nosum.Wasm.ViewModels.Resources;
@@ -22,7 +26,38 @@ namespace Nosum.UnitTests.Wasm;
 [Collection(SharedUiCulture.Name)]
 public sealed class NpcDialogViewModelTests
 {
-    private static NpcDialogViewModel Create() => new(WasmTestSupport.Localizer<Language>());
+    private static NpcDialogViewModel Create() => new(WasmTestSupport.Localizer<Language>(), new CalendarChannel(new FakeGameSocket()));
+
+    [Fact]
+    public void Line_OnARainySpringDayWithTheCalendarKnown_SaysTheRainGreeting()
+    {
+        using CultureScope scope = new("en");
+        GameCalendar calendar = GameCalendar.Default;
+        int rainyDay = 0;
+        for (int day = 1; rainyDay == 0 && day <= GameCalendar.DaysPerSeason; day++)
+        {
+            if (WeatherRules.ForDay(calendar, day) == WeatherKind.Rain)
+            {
+                rainyDay = day;
+            }
+        }
+
+        rainyDay.Should().BeGreaterThan(0, "the default calendar has a rainy spring day");
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new CalendarInfo
+        {
+            EpochMs = calendar.EpochMs,
+            DayLengthMs = calendar.DayLengthMs,
+            ServerNowMs = calendar.DayStartMs(rainyDay) + (calendar.DayLengthMs / 2),
+        });
+        CalendarChannel channel = new(socket);
+        channel.Load();
+        NpcDialogViewModel vm = new(WasmTestSupport.Localizer<Language>(), channel);
+
+        vm.Interact(ShopCatalog.SeedShop).Should().BeTrue();
+
+        vm.Line.Should().Be(vm.Text("Npc_seed_keeper_Greeting_Rain"));
+    }
 
     [Fact]
     public void Interact_AtACounter_OpensTheDialogBoxOfItsMerchantWithTheGreeting()

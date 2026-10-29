@@ -3,9 +3,12 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Localization;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Npcs;
 using Nosum.Gameplay.Shops;
+using Nosum.Gameplay.Weather;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Npc;
@@ -63,14 +66,21 @@ public sealed class NpcDialogViewModel : PanelViewModel
     // The order of the buttons; Talk comes last before Leave.
     private static readonly NpcActions[] s_order = [NpcActions.Buy, NpcActions.Sell, NpcActions.Build, NpcActions.Upgrade, NpcActions.Goals, NpcActions.Talk];
 
+    private readonly IStringLocalizer<Language> _localizer;
+    private readonly CalendarChannel _calendar;
     private int _talkIndex;
     private bool _talking;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="text">UI text.</param>
-    public NpcDialogViewModel(IStringLocalizer<Language> text)
+    /// <param name="calendar">The server calendar, for the season and weather a greeting may mention.</param>
+    public NpcDialogViewModel(IStringLocalizer<Language> text, CalendarChannel calendar)
         : base(text)
     {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        _localizer = text;
+        _calendar = calendar;
     }
 
     /// <summary>Gets the merchant being spoken to, or <see langword="null"/> when no conversation is open.</summary>
@@ -107,7 +117,7 @@ public sealed class NpcDialogViewModel : PanelViewModel
     public string Role => this.Npc is null ? string.Empty : this.Text(this.Npc.TextKey("Role"));
 
     /// <summary>Gets the line the merchant says now: the greeting, or the last thing said by Talk.</summary>
-    public string Line => this.Npc is null ? string.Empty : this.Text(this.Npc.TextKey(_talking ? (_talkIndex == 0 ? "Talk1" : "Talk2") : "Greeting"));
+    public string Line => this.Npc is null ? string.Empty : this.Text(_talking ? this.Npc.TextKey(_talkIndex == 0 ? "Talk1" : "Talk2") : this.GreetingKey(this.Npc));
 
     /// <summary>Gets the portrait's picture, a path under the app root.</summary>
     public string PortraitUrl => this.Npc is null ? string.Empty : "assets/sprites/npcs/" + this.Npc.PortraitKey + ".png";
@@ -261,4 +271,19 @@ public sealed class NpcDialogViewModel : PanelViewModel
         this.Stage = NpcStage.Trading;
         this.Page = page;
     }
+
+    // The greeting for today's weather and season. Until the calendar is read the plain greeting is shown.
+    private string GreetingKey(NpcDefinition npc)
+    {
+        if (!_calendar.IsLoaded)
+        {
+            return NpcGreeting.KeyFor(npc, null, null, this.HasText);
+        }
+
+        GameCalendar calendar = new(_calendar.EpochMs, _calendar.DayLengthMs);
+        long now = _calendar.ServerNowMs();
+        return NpcGreeting.KeyFor(npc, WeatherRules.At(calendar, now), calendar.SeasonAt(now), this.HasText);
+    }
+
+    private bool HasText(string key) => !_localizer[key].ResourceNotFound;
 }
