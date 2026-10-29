@@ -24,7 +24,7 @@ never the result. The timing must not be a way to cheat, so the server judges th
   (`SkillKind.Fishing`, value 5) and is bound to its owner like the other farming tools (`ItemDefinition.IsTradable` stays false).
   The rod never goes through the farm's `UseItem` intent: casting has its own packets, so the farm handler is unchanged.
 - **D3 — Ten species, data in the rules.** `FishCatalog` holds ten species, each with a rarity (common, uncommon, rare, legendary), a weight, the
-  seasons it is caught in (`SeasonSet`), its waters, a day or night rule and a weather rule. The fish are items `820` to `829` (sold to the shipping
+  seasons it is caught in (`SeasonSet`), its waters, a day or night rule and a weather rule. The fish are items `950` to `959` (sold to the shipping
   bin at their `SellPrice`, 30 to 500 coins). A fish stew (item `703`, recipe `28`, cooked from two anchovies and a potato) is the cooking use.
   The numbers are balance data and may change without an ADR.
 - **D4 — The bite and the press are timed by the server.** `CastRod` starts a cast: the server stores it with its own clock reading, draws the bite

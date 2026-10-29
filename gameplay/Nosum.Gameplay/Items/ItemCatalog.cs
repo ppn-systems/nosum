@@ -9,7 +9,7 @@ namespace Nosum.Gameplay.Items;
 
 /// <summary>
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
-/// put in an inventory. Ids are append-only. Ids below 100 are tools (the five basic ones, then the copper tier from 10 and the iron tier from 20, docs/adr/ADR-026), 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources and bars, 600-699 crafted placeables, 700-799 food (dishes, ADR-024), 800-899 forage (docs/adr/ADR-025); raw produce is edible through its <see cref="ItemDefinition.FoodEnergy"/>.
+/// put in an inventory. Ids are append-only. Ids below 100 are tools (the five basic ones, then the copper tier from 10 and the iron tier from 20, docs/adr/ADR-026), 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources and bars, 600-699 crafted placeables, 700-799 food (dishes, ADR-024), 800-899 forage (docs/adr/ADR-025), 900-949 animal produce (docs/adr/ADR-028), 950-959 fish (docs/adr/ADR-071); raw produce is edible through its <see cref="ItemDefinition.FoodEnergy"/>.
 /// </summary>
 public static class ItemCatalog
 {
@@ -268,34 +268,34 @@ public static class ItemCatalog
     public const int RainbowShell = 818;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int Anchovy = 820;
+    public const int Anchovy = 950;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int SeaBass = 821;
+    public const int SeaBass = 951;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int Mackerel = 822;
+    public const int Mackerel = 952;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int Pufferfish = 823;
+    public const int Pufferfish = 953;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int Carp = 824;
+    public const int Carp = 954;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int Trout = 825;
+    public const int Trout = 955;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int Bass = 826;
+    public const int Bass = 956;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int Pike = 827;
+    public const int Pike = 957;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int Eel = 828;
+    public const int Eel = 958;
 
     /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
-    public const int GoldenKoi = 829;
+    public const int GoldenKoi = 959;
 
     /// <summary>An oak chair.</summary>
     public const int OakChair = 300;
