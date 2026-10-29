@@ -183,13 +183,13 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     public string Title => this.Text("Wardrobe_Title");
 
     /// <summary>Gets the localized skin section heading.</summary>
-    public string SkinTitle => this.Text("Wardrobe_Skin_Title");
+    public string SkinTitle => this.Text("Wardrobe_Skin_Heading");
 
     /// <summary>Gets the localized hair style section heading.</summary>
-    public string HairStyleTitle => this.Text("Wardrobe_HairStyle_Title");
+    public string HairStyleTitle => this.Text("Wardrobe_HairStyle_Heading");
 
     /// <summary>Gets the localized hair dye section heading.</summary>
-    public string HairDyeTitle => this.Text("Wardrobe_HairDye_Title");
+    public string HairDyeTitle => this.Text("Wardrobe_HairDye_Heading");
 
     /// <summary>Gets the localized worn-items section heading.</summary>
     public string WornTitle => this.Text("Wardrobe_Worn");
