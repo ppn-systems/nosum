@@ -1606,6 +1606,46 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Visits.GuestbookEntry", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid>("VisitorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("visitor_id");
+
+                    b.Property<int>("DayNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("day_number");
+
+                    b.Property<bool>("Unread")
+                        .HasColumnType("boolean")
+                        .HasColumnName("unread");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Waters")
+                        .HasColumnType("integer")
+                        .HasColumnName("waters");
+
+                    b.HasKey("OwnerId", "VisitorId", "DayNumber")
+                        .HasName("pk_guestbook_entries");
+
+                    b.HasIndex("VisitorId")
+                        .HasDatabaseName("ix_guestbook_entries_visitor_id");
+
+                    b.ToTable("guestbook_entries", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_guestbook_entries_not_self", "owner_id <> visitor_id");
+
+                            t.HasCheckConstraint("ck_guestbook_entries_waters_positive", "waters > 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Visits.VisitGrant", b =>
                 {
                     b.Property<Guid>("OwnerId")
@@ -2063,6 +2103,23 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_friendships_players_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Visits.GuestbookEntry", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_guestbook_entries_players_owner_id");
+
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("VisitorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_guestbook_entries_players_visitor_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Visits.VisitGrant", b =>

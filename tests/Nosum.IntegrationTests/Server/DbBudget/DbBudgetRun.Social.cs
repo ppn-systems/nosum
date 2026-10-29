@@ -62,6 +62,7 @@ public sealed partial class DbBudgetRun
         // Visiting: B walks into A's farm as A's friend; A then manages the list.
         _ = await _rig.ProbeAsync<VisitResult>(b, "Visit", VisitOpCode.VisitPlayer, "VisitPlayer", "friend visits the farm", () => new VisitPlayer { Nickname = a.Nickname });
         _ = await _rig.ProbeAsync<VisitorsSnapshot>(a, "Visit", VisitOpCode.GetVisitors, "GetVisitors", "one visitor on the farm", () => new GetVisitors());
+        _ = await _rig.ProbeAsync<GuestbookSnapshot>(a, "Visit", VisitOpCode.GetGuestbook, "GetGuestbook", "read the guestbook", () => new GetGuestbook());
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.KickVisitor, "KickVisitor", "send the visitor away", () => new KickVisitor { PlayerId = b.AccountId });
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.AddVisitor, "AddVisitor", "allow-list by nickname", () => new AddVisitor { Nickname = b.Nickname });
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.RemoveVisitor, "RemoveVisitor", "take off the allow-list", () => new RemoveVisitor { PlayerId = b.AccountId });

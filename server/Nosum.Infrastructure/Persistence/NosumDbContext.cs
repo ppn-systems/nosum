@@ -137,6 +137,9 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the owners' visiting settings.</summary>
     public DbSet<VisitSettings> VisitSettings => this.Set<VisitSettings>();
 
+    /// <summary>The farm guestbook: one row per visitor and game day (docs/adr/ADR-066).</summary>
+    public DbSet<GuestbookEntry> GuestbookEntries => this.Set<GuestbookEntry>();
+
     /// <summary>Gets how deep each player has been in the mine.</summary>
     public DbSet<PlayerMine> PlayerMines => this.Set<PlayerMine>();
 
