@@ -118,6 +118,10 @@ internal sealed partial class MapScene
                     {
                         this.SwapTo(next);
                     }
+                    else
+                    {
+                        this.SetWaiting(_pending.MapId);
+                    }
                 }
 
                 break;
@@ -136,8 +140,22 @@ internal sealed partial class MapScene
         }
     }
 
+    // Tells the page when the black screen waits on a map to load, and which one, so it can show progress instead of a blank canvas.
+    // Edge-triggered: raised once when the wait starts and once with null when it ends, never per frame.
+    private void SetWaiting(string? mapId)
+    {
+        if (string.Equals(_waitingMapId, mapId, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _waitingMapId = mapId;
+        this.WaitingChanged?.Invoke(mapId);
+    }
+
     private void SwapTo(MapContent next)
     {
+        this.SetWaiting(null);
         _content = next;
         _farmer = new Walker(_pending.X, _pending.Y, (Facing)(_pending.Facing & 3));
         _walkTime = 0;

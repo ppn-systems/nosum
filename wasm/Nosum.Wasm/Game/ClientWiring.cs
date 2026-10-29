@@ -54,6 +54,7 @@ using Nosum.Wasm.ViewModels.Furnace;
 using Nosum.Wasm.ViewModels.Goals;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Looks;
+using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Mail;
 using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Mine;
@@ -138,6 +139,7 @@ internal static class ClientWiring
         services.AddSingleton<NpcDialogViewModel>();
         services.AddSingleton<BlacksmithViewModel>();
         services.AddSingleton<ElevatorViewModel>();
+        services.AddSingleton<MapLoadingViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<GoalsViewModel>();
         services.AddSingleton(sp => new ProgressViewModel(
@@ -205,6 +207,7 @@ internal static class ClientWiring
         CombatChannel combat = services.GetRequiredService<CombatChannel>();
         GameLoop.UseCombat(combat, services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(services.GetRequiredService<CalendarChannel>());
+        GameLoop.UseMapLoading(services.GetRequiredService<MapLoadingViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
         DevTools.Use(services.GetRequiredService<DevChannel>());

@@ -69,6 +69,7 @@ internal sealed partial class MapScene
     private Phase _phase;
     private double _fade;
     private MapEntry _pending;
+    private string? _waitingMapId;
     private uint _ignoreCorrectionsBefore;
     private double _walkTime;
     private double _clockSeconds;
@@ -126,6 +127,12 @@ internal sealed partial class MapScene
 
     /// <summary>Gets the id of the map being shown (the old one until a map change has faded out).</summary>
     public string MapId => _content.Spec.Id;
+
+    /// <summary>
+    /// Raised when the screen is black and waits for a map the server sent the player to: the map's id, then <see langword="null"/> once the map is shown.
+    /// Raised on the frame thread, only when the wait starts or ends.
+    /// </summary>
+    public event Action<string?>? WaitingChanged;
 
     /// <summary>Remembers a click or tap on the canvas; the next <see cref="Frame"/> checks whether it hit a merchant. Allocation-free.</summary>
     /// <param name="x">Click x, canvas CSS pixels.</param>

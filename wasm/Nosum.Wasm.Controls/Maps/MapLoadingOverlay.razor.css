@@ -1,0 +1,16 @@
+/* Layout only: the panel, the bar and the text take their colours and fonts from the theme. */
+.map-loading {
+    box-sizing: border-box;
+    width: calc(var(--u) * 120);
+    text-align: center;
+}
+
+.map-loading-title {
+    margin: 0 0 calc(var(--u) * 3);
+}
+
+/* A tip wraps to two lines at most; the box keeps its height so the panel does not jump when the tip changes. */
+.map-loading-tip {
+    min-height: calc(var(--u) * 16);
+    margin: calc(var(--u) * 3) 0 0;
+}

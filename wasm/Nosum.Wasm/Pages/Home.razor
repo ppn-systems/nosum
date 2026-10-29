@@ -14,6 +14,7 @@
 @using Nosum.Wasm.Controls.Hints
 @using Nosum.Wasm.Controls.Inventory
 @using Nosum.Wasm.Controls.Layout
+@using Nosum.Wasm.Controls.Maps
 @using Nosum.Wasm.Controls.Mine
 @using Nosum.Wasm.Controls.Npc
 @using Nosum.Wasm.Controls.Placement
@@ -32,6 +33,7 @@
 @using Nosum.Wasm.ViewModels.Furnace
 @using Nosum.Wasm.ViewModels.Inventory
 @using Nosum.Wasm.ViewModels.Mail
+@using Nosum.Wasm.ViewModels.Maps
 @using Nosum.Wasm.ViewModels.Market
 @using Nosum.Wasm.ViewModels.Mine
 @using Nosum.Wasm.ViewModels.Npc
@@ -63,6 +65,7 @@
 @inject PlacementViewModel Placement
 @inject ProfileViewModel Profile
 @inject ElevatorViewModel Elevator
+@inject MapLoadingViewModel MapLoading
 @inject OnboardingViewModel Onboarding
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
@@ -148,6 +151,8 @@ else
                 @* The mine elevator's picker, a small dialog over the game. *@
                 <ElevatorDialog Vm="Elevator" />
             }
+            @* The black screen while a map the server sent the player to loads. *@
+            <MapLoadingOverlay Vm="MapLoading" />
             @if (Form.ShowsForm)
             {
                 @* Upgrade form over the running game. *@
