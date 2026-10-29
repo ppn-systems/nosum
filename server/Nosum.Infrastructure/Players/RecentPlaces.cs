@@ -7,9 +7,10 @@ using Nosum.Abstractions.Accounts;
 namespace Nosum.Infrastructure.Players;
 
 /// <summary>
-/// The place a player left a moment ago, kept in memory for <see cref="Window"/> (issue #172). A quick reconnect (a browser refresh) must resume where the
-/// player stood, not at an older database copy: the leave's write runs behind the connection close, so a join can start before it lands. The record is
-/// written the moment the player leaves the map, and it is handed out once.
+/// The place a player left, kept in memory while the leave's database write is in flight (issue #172). A quick reconnect (a browser refresh) must
+/// resume where the player stood, not at an older database copy: the leave's write runs behind the connection close, so a join can start before it
+/// lands. The record is written the moment the player leaves, dropped once the write has landed, and handed out once. It never outlives
+/// <see cref="Window"/>, so a later database write (a warp, an admin change) is not overridden by a stale record.
 /// </summary>
 public sealed class RecentPlaces
 {
@@ -31,6 +32,10 @@ public sealed class RecentPlaces
     /// <param name="accountId">The player's account.</param>
     /// <param name="place">The place the player stood in.</param>
     public void Remember(Guid accountId, PlayerStateRow place) => _places[accountId] = (place, _time.GetUtcNow());
+
+    /// <summary>Drops the record once the leave's write has landed: from then on the database copy is the truth.</summary>
+    /// <param name="accountId">The player's account.</param>
+    public void Forget(Guid accountId) => _ = _places.TryRemove(accountId, out _);
 
     /// <summary>Takes the place the player left within <see cref="Window"/>; the record is removed either way.</summary>
     /// <param name="accountId">The player's account.</param>

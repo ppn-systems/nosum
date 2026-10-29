@@ -65,6 +65,19 @@ public sealed class RecentPlacesTests
     }
 
     [Fact]
+    public void Forget_AfterTheWriteLanded_TryTakeReturnsFalse()
+    {
+        // Once the database holds the leave, a later database write must not be overridden by the in-memory copy.
+        ManualClock clock = new();
+        RecentPlaces places = new(clock);
+        places.Remember(Account, Field);
+
+        places.Forget(Account);
+
+        places.TryTake(Account, out _).Should().BeFalse();
+    }
+
+    [Fact]
     public void TryTake_UnknownAccount_ReturnsFalse()
     {
         RecentPlaces places = new(new ManualClock());

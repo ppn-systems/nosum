@@ -620,9 +620,16 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                     state = new PlayerStateRow(player.MapId, player.Motion.X, player.Motion.Y, (Facing)player.Motion.Facing);
                 }
 
-                // Remembered before the write: a quick reconnect that overtakes the write still resumes here (issue #172).
+                // Remembered while the write is in flight: a quick reconnect that overtakes the write still resumes here (issue #172).
                 _recent.Remember(player.AccountId, state);
-                await _states.LeaveAsync(player.AccountId, state, CancellationToken.None).ConfigureAwait(false);
+                try
+                {
+                    await _states.LeaveAsync(player.AccountId, state, CancellationToken.None).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _recent.Forget(player.AccountId);
+                }
             }
             catch (Exception)
             {
