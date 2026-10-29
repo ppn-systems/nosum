@@ -43,6 +43,12 @@ internal static partial class Program
         NetworkApplication app = BuildApplication(wsPort, null, IsDevelopment());
         await OpsServices.LoadMutesAsync(shutdown.Token).ConfigureAwait(false);
 
+        // Preload community unlock flags so handlers / map questions do not block on DB query
+        if (InstanceManager.Instance.GetExistingInstance<ICommunityUnlocks>() is CommunityUnlocks unlockService)
+        {
+            await unlockService.LoadAsync(shutdown.Token).ConfigureAwait(false);
+        }
+
         // Goals of seasons that ended while the server was down expire now, and rewards a crash left unpaid are paid (docs/adr/ADR-030 D3).
         ICommunityGoalService goals = InstanceManager.Instance.GetExistingInstance<ICommunityGoalService>()
             ?? throw new InvalidOperationException("The community goal service is not registered.");

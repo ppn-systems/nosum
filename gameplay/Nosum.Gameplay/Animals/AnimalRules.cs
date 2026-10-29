@@ -57,7 +57,7 @@ public static class AnimalRules
         ArgumentOutOfRangeException.ThrowIfNegative(rations);
         ArgumentOutOfRangeException.ThrowIfNegative(animals);
 
-        if (today <= settledDay)
+        if (today <= settledDay || animals == 0)
         {
             return new FeedingSettlement(rations, 0);
         }

@@ -130,6 +130,9 @@ public static partial class AccountHandlers
         await ReplyOutcomeAsync(context.Sender, new AccountOutcome(AccountStatus.Ok, Guid.Empty, string.Empty, string.Empty, Guid.Empty, default, GameLanguage.Unspecified, false, false, string.Empty)).ConfigureAwait(false);
     }
 
+    /// <summary>Failed login attempts one address may try per minute before soft throttle.</summary>
+    public const int LoginsPerAddressPerMinute = 15;
+
     /// <summary>Signs the connection in with an e-mail and password.</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply is sent.</returns>
@@ -140,6 +143,12 @@ public static partial class AccountHandlers
     public static async ValueTask HandleLoginAsync(IPacketContext<Login> context)
     {
         ArgumentNullException.ThrowIfNull(context);
+        if (!s_abuse.TryAcquire("login-attempt", AddressOf(context.Connection), LoginsPerAddressPerMinute, TimeSpan.FromMinutes(1)))
+        {
+            await ReplyOutcomeAsync(context.Sender, AccountOutcome.Refused(AccountStatus.TooManyRequests)).ConfigureAwait(false);
+            return;
+        }
+
         string email = context.Packet.Email;
         string password = context.Packet.Password;
 
