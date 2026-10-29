@@ -41,8 +41,9 @@ const ACTION_BITS = {
     Use: { edge: 1 }, Inventory: { edge: 1024 }, Rotate: { edge: 2048 }, Grab: { edge: 4096 }, PickUp: { edge: 8192 },
     Wardrobe: { edge: 32768 }, Trade: { edge: 65536 }, Coop: { edge: 131072 },
     Help: { edge: 524288 }, Profile: { edge: 1048576 },
+    Minimap: { edge: 16777216 }, WorldMap: { edge: 33554432 }, Journal: { edge: 67108864 },
 };
-const DEFAULT_BINDINGS = "MoveUp=KeyW;MoveDown=KeyS;MoveLeft=KeyA;MoveRight=KeyD;Use=KeyE;Inventory=KeyI;Wardrobe=KeyC;Trade=KeyT;Coop=KeyG;Profile=KeyN;Help=KeyH;Rotate=KeyR;Grab=KeyF;PickUp=KeyQ";
+const DEFAULT_BINDINGS = "MoveUp=KeyW;MoveDown=KeyS;MoveLeft=KeyA;MoveRight=KeyD;Use=KeyE;Inventory=KeyI;Wardrobe=KeyC;Trade=KeyT;Coop=KeyG;Profile=KeyN;Help=KeyH;Rotate=KeyR;Grab=KeyF;PickUp=KeyQ;Minimap=KeyM;WorldMap=Tab;Journal=KeyJ";
 
 let KEY_BITS = {};
 let EDGE_BITS = {};
@@ -251,7 +252,7 @@ export async function start(canvasId, assemblyName, exportPath) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
         const pressed = edges;
         edges = 0;
-        frame(time, (keys | touchHeld) | (pressed << 8), w, h, mouseX, mouseY, mouseHeld);
+        frame(time, (keys | touchHeld) | (pressed << 4), w, h, mouseX, mouseY, mouseHeld);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);

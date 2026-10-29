@@ -299,6 +299,32 @@
   <data name="Account_Status_Banned" xml:space="preserve"><value>Tài khoản này đã bị khóa. Hãy liên hệ quản trị viên nếu bạn cho rằng đây là nhầm lẫn.</value></data>
   <data name="Account_Status_SessionKicked" xml:space="preserve"><value>Quản trị viên đã đưa bạn ra khỏi trò chơi. Bạn có thể đăng nhập lại.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Hồ sơ</value></data>
+  <data name="Toolbar_WorldMap" xml:space="preserve"><value>Bản đồ thế giới</value></data>
+  <data name="Toolbar_Journal" xml:space="preserve"><value>Sổ sưu tập</value></data>
+  <data name="Action_Minimap" xml:space="preserve"><value>Bản đồ nhỏ</value></data>
+  <data name="Action_WorldMap" xml:space="preserve"><value>Bản đồ thế giới</value></data>
+  <data name="Action_Journal" xml:space="preserve"><value>Sổ sưu tập</value></data>
+  <data name="Map_farm_Name" xml:space="preserve"><value>Nông trại</value></data>
+  <data name="Map_town_Name" xml:space="preserve"><value>Thị trấn</value></data>
+  <data name="Map_beach_Name" xml:space="preserve"><value>Bờ biển</value></data>
+  <data name="Map_woods_Name" xml:space="preserve"><value>Rừng</value></data>
+  <data name="Map_mountain_Name" xml:space="preserve"><value>Núi</value></data>
+  <data name="Map_mine_Name" xml:space="preserve"><value>Lối vào hầm mỏ</value></data>
+  <data name="Map_busstop_Name" xml:space="preserve"><value>Trạm xe buýt</value></data>
+  <data name="Map_forest_Name" xml:space="preserve"><value>Khu rừng</value></data>
+  <data name="Map_backwoods_Name" xml:space="preserve"><value>Rừng sâu</value></data>
+  <data name="Map_farmhouse_Name" xml:space="preserve"><value>Nhà nông trại</value></data>
+  <data name="Map_coopfarm_Name" xml:space="preserve"><value>Đất hợp tác</value></data>
+  <data name="WorldMap_Here" xml:space="preserve"><value>Bạn đang ở đây</value></data>
+  <data name="WorldMap_Shops" xml:space="preserve"><value>Cửa hàng: {0}</value></data>
+  <data name="WorldMap_HoursUnknown" xml:space="preserve"><value>Giờ mở cửa: chưa có thông tin</value></data>
+  <data name="WorldMap_Connections" xml:space="preserve"><value>Nối tới:</value></data>
+  <data name="WorldMap_Loading" xml:space="preserve"><value>Đang tải…</value></data>
+  <data name="WorldMap_NoConnections" xml:space="preserve"><value>Chưa có lối đi nào</value></data>
+  <data name="Journal_Summary" xml:space="preserve"><value>Đã khám phá {0} / {1} món</value></data>
+  <data name="Journal_Unknown" xml:space="preserve"><value>???</value></data>
+  <data name="Journal_Undiscovered" xml:space="preserve"><value>Chưa nhận được món này</value></data>
+  <data name="Journal_Tip" xml:space="preserve"><value>{0}&#10;Đã nhận: {1}&#10;Lần đầu: {2}</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Biệt danh hiện tại: {0}</value></data>
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>

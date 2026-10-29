@@ -15,7 +15,9 @@ using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.S2C;
 using Nosum.Infrastructure.Caching;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Journal;
 using Nosum.Domain.Inventory;
+using Nosum.Domain.Journal;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Placeables;
@@ -310,6 +312,15 @@ public sealed partial class InventoryService : IInventoryService
             changed[i] = this.WriteRows(unit, loaded[i], changedSlots, deltas[i], reason, ref wrote);
         }
 
+        // The collection journal: the items this change obtained are discovered in the same transaction, so they are saved if and only if the items are.
+        for (int i = 0; i < playerIds.Length; i++)
+        {
+            if (await this.RecordObtainedAsync(unit, loaded[i], deltas[i], cancellationToken).ConfigureAwait(false))
+            {
+                wrote = true;
+            }
+        }
+
         if (enlist is not null && !await enlist(unit, cancellationToken).ConfigureAwait(false))
         {
             this.Forget(playerIds);
@@ -408,6 +419,27 @@ public sealed partial class InventoryService : IInventoryService
         // A choice that is still waiting for its write is the truth (the row is older).
         int selected = _writeBehind is not null && _writeBehind.TryPeek(playerId, SelectedSlotKey, out int waiting) ? waiting : header.SelectedSlot;
         return new Loaded(playerId, header.Capacity, selected, header.CreatedAt, grid, header, bySlot, isNew: false, before: null);
+    }
+
+    // Counts what one player obtained in this change into their collection journal: the positive changes, plus the starter kit when this change created the inventory.
+    // Moves and sorts pass no changes, so they obtain nothing; containers have no journal.
+    private async Task<bool> RecordObtainedAsync(IUnitOfWork unit, Loaded loaded, List<(int ItemId, int Delta)> deltas, CancellationToken cancellationToken)
+    {
+        if (ContainerIds.IsContainer(loaded.PlayerId))
+        {
+            return false;
+        }
+
+        List<(int ItemId, int Delta)> gained = [.. deltas];
+        if (loaded.IsNew)
+        {
+            foreach (ItemSlot item in StarterKit.Items)
+            {
+                gained.Add((item.ItemId, item.Quantity));
+            }
+        }
+
+        return await JournalRecorder.RecordAsync(unit, loaded.PlayerId, JournalRules.ObtainedTotals(gained), _time.GetUtcNow(), cancellationToken).ConfigureAwait(false);
     }
 
     // Brings the slot rows in line with the grid for the changed slots and adds the audit entries.
