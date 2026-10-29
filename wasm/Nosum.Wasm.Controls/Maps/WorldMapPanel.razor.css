@@ -1,0 +1,63 @@
+/* The world map: cards in a grid that wraps to one column on a phone, the current map outlined in gold. Colours are the theme's. */
+.world-map-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    gap: calc(var(--u) * 3);
+}
+
+.world-map-card {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+    padding: calc(var(--u) * 3);
+    border: calc(var(--u) * 1) solid var(--nosum-line);
+    background: var(--nosum-parchment-light);
+    color: var(--nosum-ink);
+}
+
+.world-map-card.current {
+    border-color: var(--nosum-gold);
+    box-shadow: 0 0 0 calc(var(--u) * 1) var(--nosum-gold);
+}
+
+.world-map-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--u) * 2);
+}
+
+.world-map-name {
+    font-weight: 700;
+}
+
+.world-map-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--u) * 2);
+    margin: 0;
+    font-size: var(--nosum-fs-small);
+    color: var(--nosum-ink-soft);
+}
+
+.world-map-meta span + span::before {
+    content: "· ";
+}
+
+.world-map-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--u) * 1);
+}
+
+.world-map-label {
+    font-size: var(--nosum-fs-small);
+    margin-right: calc(var(--u) * 1);
+}
+
+.world-map-hint {
+    font-size: var(--nosum-fs-small);
+    font-style: italic;
+    color: var(--nosum-ink-soft);
+}

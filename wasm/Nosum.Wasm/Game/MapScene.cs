@@ -350,6 +350,9 @@ internal sealed partial class MapScene
         }
         _world.FlushLabels(_commands, _camera);
         this.DrawLabels();
+
+        // The minimap sits in the HUD corner, above the world and the labels, and below the fade.
+        this.DrawMinimap(content, edges, canvasWidth, canvasHeight, scale);
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
         backend.Submit(_commands.Encode());
     }
