@@ -1,4 +1,4 @@
-// Captures the tool feel of docs/adr/ADR-071 at 1280x720 against a running client (the published wasm, served statically) and game server.
+// Captures the tool feel of docs/adr/ADR-072 at 1280x720 against a running client (the published wasm, served statically) and game server.
 // Writes the frames and a manifest (elapsed milliseconds from the key press, as measured) to docs/qa/screens/tool-feel/.
 // Usage: node tests/browser/tool-feel-capture.cjs [http://localhost:5080/]
 const { chromium } = require('playwright');
@@ -65,7 +65,7 @@ async function use(page, name, digitKey, offsets) {
   await page.mouse.up();
   await page.waitForTimeout(800);
 
-  // Exhaustion: till and clear the same tile until energy is at a quarter of its maximum (docs/adr/ADR-071 D4). Each pair costs four energy.
+  // Exhaustion: till and clear the same tile until energy is at a quarter of its maximum (docs/adr/ADR-072 D4). Each pair costs four energy.
   let spent = await energy(page);
   let guard = 0;
   while (spent > 67 && guard++ < 160) {

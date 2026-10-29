@@ -205,7 +205,7 @@ internal sealed partial class MapScene
     }
 
     // Remembers where a nickname goes; the labels are recorded after everything else so no sprite or roof covers them.
-    // The energy a tool just spent floats above the tile it worked (docs/adr/ADR-071 D4): the combat numbers serve as the label, and reduced motion keeps it still.
+    // The energy a tool just spent floats above the tile it worked (docs/adr/ADR-072 D4): the combat numbers serve as the label, and reduced motion keeps it still.
     private void AddEnergyFloats()
     {
         if (_actions is null || _combatLabels is null)

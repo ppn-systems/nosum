@@ -45,7 +45,7 @@ internal static partial class FarmerSprite
     /// <param name="id">Stable sort id of this character.</param>
     /// <param name="heldItemId">Item id currently held in hand, or 0 for empty hands.</param>
     /// <param name="swingProgress">Active tool/weapon swing progress in <c>[0, 1)</c>, or negative when not swinging.</param>
-    /// <param name="exhausted">Whether the farmer is exhausted: a sweat bubble shows above the head (docs/adr/ADR-071 D4).</param>
+    /// <param name="exhausted">Whether the farmer is exhausted: a sweat bubble shows above the head (docs/adr/ADR-072 D4).</param>
     public static void Draw(
         WorldSpriteBatch batch,
         in FarmerTextures textures,

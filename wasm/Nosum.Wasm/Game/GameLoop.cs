@@ -258,6 +258,7 @@ internal static partial class GameLoop
         }
 
         LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel, capacity: 2048);
+        providers.Add(new CritterDecoratorProvider(s_calendar));
         providers.Add(new WayfindingDecoratorProvider(labelRegistry, s_text));
         CombatLabels? combatLabels = s_combat is not null ? new CombatLabels(labelRegistry, s_text) : null;
 

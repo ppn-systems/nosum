@@ -17,7 +17,7 @@ public sealed class CropRosterTests
 {
     // crops.png is 256 x 352: two rows of eight 16 x 32 frames per 32 px band, 21 crop rows in catalogue order. items.png is 24 x 5 cells.
     private const int CropSheetRows = 22;
-    private const int ObjectCells = 24 * 5;
+    private const int ObjectCells = 24 * 6;
 
     private static readonly GameCalendar s_calendar = GameCalendar.Default;
 

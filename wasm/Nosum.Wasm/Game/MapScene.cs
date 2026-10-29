@@ -96,7 +96,7 @@ internal sealed partial class MapScene
     /// <param name="nodes">The mirror of the resource nodes of the player's place; the ones that block walk like the server's grid does.</param>
     /// <param name="calendar">The server calendar: it gives the time of day and the weather for the sky (docs/adr/ADR-027); <see langword="null"/> keeps plain daylight.</param>
     /// <param name="audio">The audio director: sounds queued by the hooks are written into the frame, and the footsteps, music and rain loop are decided here (docs/adr/ADR-039); <see langword="null"/> plays no sound.</param>
-    /// <param name="combatLabels">Pre-interned combat numbers, used as the energy labels that float above a tool's tile (docs/adr/ADR-071 D4); <see langword="null"/> shows none.</param>
+    /// <param name="combatLabels">Pre-interned combat numbers, used as the energy labels that float above a tool's tile (docs/adr/ADR-072 D4); <see langword="null"/> shows none.</param>
     public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null)
     {
         _sky = new SkyLayer(calendar, placed);
@@ -197,7 +197,7 @@ internal sealed partial class MapScene
             do
             {
                 double dt = Math.Min(remaining, StepSeconds);
-                // A swing holds the farmer in place until it is over (docs/adr/ADR-071 D1).
+                // A swing holds the farmer in place until it is over (docs/adr/ADR-072 D1).
                 _farmer.Step(swinging ? default : input, dt, grid, _actions?.MoveSpeedFactor ?? 1);
                 remaining -= dt;
             }
@@ -288,6 +288,7 @@ internal sealed partial class MapScene
         {
             decorators[i].SetView(_camera);
             decorators[i].SetClock(frameClock);
+            decorators[i].SetFarmer(farmerPx, farmerPy);
             decorators[i].DrawOnGround(_commands, _camera, timeMs);
         }
 

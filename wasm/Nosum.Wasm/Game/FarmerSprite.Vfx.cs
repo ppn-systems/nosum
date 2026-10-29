@@ -147,7 +147,7 @@ internal static partial class FarmerSprite
         }
     }
 
-    // The sweat bubble of an exhausted farmer: a drop above the head, drawn while energy is low (docs/adr/ADR-071 D4).
+    // The sweat bubble of an exhausted farmer: a drop above the head, drawn while energy is low (docs/adr/ADR-072 D4).
     private static void DrawSweatBubble(WorldSpriteBatch batch, int feetX, int feetY, int sortY, int id)
     {
         int drop = unchecked((int)0x90caf9ff);
@@ -182,7 +182,7 @@ internal static partial class FarmerSprite
         float hitT = Math.Clamp((swingProgress - (float)ToolPacing.HitFraction) / (1f - (float)ToolPacing.HitFraction), 0f, 1f);
         if (!isWeapon)
         {
-            // Farm tools and seeds: what the hit throws up from the tile (docs/adr/ADR-071 D5). Reduced motion keeps the swing and drops the flecks.
+            // Farm tools and seeds: what the hit throws up from the tile (docs/adr/ADR-072 D5). Reduced motion keeps the swing and drops the flecks.
             if (!ViewOptions.ReduceMotion)
             {
                 DrawToolHitParticles(batch, tool, facing, feetX, feetY, sortY, hitT);

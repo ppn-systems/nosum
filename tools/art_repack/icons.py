@@ -598,6 +598,76 @@ def colossus_core():
         c.dot(cx, cy, COAL[0])
     return done(c)
 
+DUCK_EGG_TONES = ((96, 150, 140), (150, 200, 186), (206, 236, 222))      # a pale blue-green duck shell
+GOLD_TONES = ((190, 120, 30), (255, 200, 70), (255, 240, 150))             # gold: shaded, base, lit
+FLEECE_TONES = ((160, 170, 190), (216, 226, 240), (252, 254, 255))        # fine wool: a cool silver-white
+TRUFFLE_TONES = ((46, 30, 28), (88, 60, 44), (126, 90, 64))                # dark brown, lumpy
+SPARKLE = (255, 255, 255)
+
+
+def duck_egg(big=False, tones=DUCK_EGG_TONES):
+    c = cv()
+    blob(c, 8, 8 if big else 9, 4.6 if big else 3.8, 6 if big else 4.9, tones)
+    return done(c)
+
+
+def sparkle(c, x, y, col=SPARKLE):
+    """A four-point glint centred on (x, y)."""
+    c.dot(x, y, col)
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        c.dot(x + dx, y + dy, col)
+    return c
+
+
+def golden_duck_egg():
+    c = cv()
+    blob(c, 8, 9, 3.8, 4.9, GOLD_TONES)
+    sparkle(c, 11, 4)
+    return done(c)
+
+
+def recoloured_milk(index, mapping, note):
+    """A Tiny Farm milk pot (a cell of the object sheet's source) with the fill swapped to another tone."""
+    def fn(src, _town):
+        return tile_of(src.sheet('farm'), index).map_pixels(lambda p: mapping.get(p[:3], p[:3]) + (p[3],))
+    fn.note = note
+    return fn
+
+
+GOAT_FILL = (250, 240, 214)      # goat milk: an ivory fill
+CREAM_FILL = (255, 226, 140)     # cream: a thick yellow fill
+
+
+def wool(tones=WHITE, big=False, ribbon=False):
+    c = cv()
+    blob(c, 8, 8, 5.6, 5.0, tones)
+    blob(c, 3, 6, 2.4, 2.4, tones)                 # fleece curls along the top and sides
+    blob(c, 13, 6, 2.4, 2.4, tones)
+    blob(c, 8, 12, 3.4, 2.2, tones)
+    if ribbon:
+        c.rect(4, 8, 8, 2, draw.BLUE)
+        c.rect(7, 8, 2, 2, draw.BLUE_L)
+    if big:
+        c.dot(10, 4, tones[2])
+    return done(c)
+
+
+def truffle(big=False, tones=TRUFFLE_TONES, gold=False):
+    c = cv()
+    if big:
+        blob(c, 8, 8, 5.4, 5.0, tones)
+        blob(c, 4, 10, 2.2, 2.2, tones)
+    else:
+        blob(c, 8, 9, 4.4, 4.2, tones)
+        blob(c, 4, 7, 2, 2, tones)
+    c.dot(6, 6, tones[2])
+    c.dot(10, 10, tones[2])
+    if gold:
+        sparkle(c, 12, 4, GOLD_TONES[2])
+        c.dot(12, 4, SPARKLE)
+    return done(c)
+
+
 # sheet index -> picture(src, town sheet)
 OBJECTS = {
     # crop produce
@@ -661,6 +731,19 @@ OBJECTS = {
     117: library_tile('dawn_armor', 2, 6, 'DawnLike Armor (2, 6), iron chestplate'),
     118: library_tile('dawn_boot', 1, 0, 'DawnLike Boot (1, 0), iron greaves'),
     119: library_tile('dawn_hat', 1, 0, 'DawnLike Hat (1, 0), iron helmet'),
+    # animal produce and wool and truffles (ids 906-917 in ItemCatalog; appended, the sheet index is row x 24 + column)
+    120: drawn_note(duck_egg, 'Drawn here: duck egg (`icons.duck_egg`), pale blue-green shell'),
+    121: drawn_note(lambda: duck_egg(big=True), 'Drawn here: large duck egg (`icons.duck_egg`, big), pale blue-green shell'),
+    122: drawn_note(golden_duck_egg, 'Drawn here: golden duck egg (`icons.golden_duck_egg`), gold shell with a glint'),
+    123: recoloured_milk(123, {(255, 255, 255): GOAT_FILL}, 'Tiny Farm milk pot (tile 123, the object sheet cell 59) with the white fill swapped to goat milk ivory'),
+    124: recoloured_milk(124, {(255, 255, 255): GOAT_FILL}, 'Tiny Farm large milk pot (tile 124, the object sheet cell 60) with the white fill swapped to goat milk ivory'),
+    125: recoloured_milk(124, {(255, 255, 255): CREAM_FILL}, 'Tiny Farm large milk pot (tile 124, the object sheet cell 60) with the white fill swapped to cream yellow'),
+    126: drawn_note(wool, 'Drawn here: wool (`icons.wool`), a fluffy white fleece'),
+    127: drawn_note(lambda: wool(FLEECE_TONES, ribbon=True), 'Drawn here: fine wool (`icons.wool`, silver tones with a blue tie)'),
+    128: drawn_note(lambda: wool(GOLD_TONES, big=True), 'Drawn here: golden fleece (`icons.wool`, gold tones with a glint)'),
+    129: drawn_note(truffle, 'Drawn here: truffle (`icons.truffle`), dark brown lumpy ball'),
+    130: drawn_note(lambda: truffle(big=True), 'Drawn here: large truffle (`icons.truffle`, big), dark brown lumpy ball'),
+    131: drawn_note(lambda: truffle(gold=True), 'Drawn here: golden truffle (`icons.truffle`, gold glint)'),
 }
 
 

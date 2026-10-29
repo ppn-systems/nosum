@@ -98,6 +98,31 @@ public static class AnimalRules
     /// <returns><see langword="true"/> when it produced today and nobody collected it yet.</returns>
     public static bool HasProduce(int produceDay, int collectedDay, int today) => produceDay == today && collectedDay != today;
 
+    /// <summary>Tells whether an animal's produce is due on a game day, from its species' schedule and the weather (docs/adr/ADR-028 amendment 2).</summary>
+    /// <param name="schedule">The species' schedule.</param>
+    /// <param name="today">The game day.</param>
+    /// <param name="sunny">Whether the day is sunny.</param>
+    /// <returns><see langword="true"/> when the schedule lets the produce come on that day.</returns>
+    public static bool ScheduleAllows(ProduceSchedule schedule, int today, bool sunny) => schedule switch
+    {
+        ProduceSchedule.EveryThirdDay => today % 3 == 0,
+        ProduceSchedule.SunnyDays => sunny,
+        _ => true,
+    };
+
+    /// <summary>Tells whether an animal has produce to collect today, counting its species' schedule and the weather.</summary>
+    /// <param name="definition">The species.</param>
+    /// <param name="produceDay">The game day the animal last ate at the start of.</param>
+    /// <param name="collectedDay">The game day its produce was last collected.</param>
+    /// <param name="today">The game day now.</param>
+    /// <param name="sunny">Whether today is sunny.</param>
+    /// <returns><see langword="true"/> when <see cref="HasProduce"/> and <see cref="ScheduleAllows"/> both hold.</returns>
+    public static bool Yields(AnimalDefinition definition, int produceDay, int collectedDay, int today, bool sunny)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        return HasProduce(produceDay, collectedDay, today) && ScheduleAllows(definition.Schedule, today, sunny);
+    }
+
     /// <summary>Tells whether an animal may be petted today.</summary>
     /// <param name="pettedDay">The game day it was last petted.</param>
     /// <param name="today">The game day now.</param>

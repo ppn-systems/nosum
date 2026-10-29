@@ -205,7 +205,7 @@ public sealed partial class FarmWireTests
             return await _session.RequestAsync<UseItemResult>(request, ct: ct);
         }
 
-        // Sent with no wait: the server's interval refuses it (docs/adr/ADR-071 D2).
+        // Sent with no wait: the server's interval refuses it (docs/adr/ADR-072 D2).
         public async Task<UseItemResult> UseWithoutWaitAsync(int slot, int x, int y, CancellationToken ct)
         {
             using UseItem request = new() { Slot = (byte)slot, TileX = x, TileY = y };

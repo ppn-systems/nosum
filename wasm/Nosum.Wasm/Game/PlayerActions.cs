@@ -267,7 +267,7 @@ internal sealed partial class PlayerActions
             }
         }
 
-        bool cow = animal.Kind == (byte)AnimalKind.Cow;
+        bool cow = AnimalCatalog.TryGet((AnimalKind)animal.Kind, out AnimalDefinition? species) && species.NeedsPail;
         bool pail = held.ItemId == ItemCatalog.MilkPail;
         if (animal.HasProduce && (!cow || pail || animal.Petted))
         {
@@ -281,7 +281,7 @@ internal sealed partial class PlayerActions
     }
 
     /// <summary>
-    /// Drag-to-sow (docs/adr/ADR-071 D3): while the mouse button is held over the world, the held seed, hoe or watering can works each tile the drag
+    /// Drag-to-sow (docs/adr/ADR-072 D3): while the mouse button is held over the world, the held seed, hoe or watering can works each tile the drag
     /// reaches. Each tile is one swing, so a drag repeats at the animation rate: the next tile is taken only when the farmer is free again. The server
     /// checks reach, seeds, energy and the tile of every use, so a refused tile changes nothing.
     /// </summary>

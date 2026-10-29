@@ -1,4 +1,4 @@
-# ADR-071: Tool action pacing and feel
+# ADR-072: Tool action pacing and feel
 
 ## Status
 
@@ -45,7 +45,7 @@ The engine stays platform-free, the frame keeps one interop crossing (docs/adr/A
   the rise of the energy label.
 - **D6 — What does not change.** Combat strikes (sword, staff, skills) keep their immediate request: combat has its own timing rules (docs/adr/ADR-055 to ADR-064),
   and only their swing animation and the lock follow this ADR. No wire field, opcode or status code is added: `FarmStatus.Cooldown` already exists, so
-  `NosumProtocol.Version` stays at 12. No new art is drawn: the farmer's action column, the tool sheets and the existing impact overlays are reused, so no
+  `NosumProtocol.Version` stays at 14 (its value on master). No new art is drawn: the farmer's action column, the tool sheets and the existing impact overlays are reused, so no
   asset provenance changes (docs/adr/ADR-040). No display text is added: the cost is a number and the bubble is a shape, so the i18n files are unchanged.
 
 ## Consequences

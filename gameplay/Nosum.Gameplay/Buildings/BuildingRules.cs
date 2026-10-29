@@ -115,7 +115,7 @@ public static class BuildingRules
             return BuildingVerdict.NotFinished;
         }
 
-        if (definition.Residents != species)
+        if (!definition.Houses(species))
         {
             return BuildingVerdict.WrongResident;
         }

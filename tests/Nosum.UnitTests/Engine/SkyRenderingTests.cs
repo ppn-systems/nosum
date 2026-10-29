@@ -133,14 +133,15 @@ public sealed class SkyRenderingTests
     public void Precipitation_Falling_DrawsParticlesInsideTheViewAndNeverOverflowsThePool(Precipitation kind)
     {
         PrecipitationLayer layer = new();
-        RenderCommandBuffer buffer = new(PrecipitationLayer.Capacity);
 
+        // A drop that reaches the bottom also draws a splash (docs/adr/ADR-071 D5), so a frame holds the particles and at most as many splashes.
+        RenderCommandBuffer buffer = new(PrecipitationLayer.Capacity * 2);
         for (int frame = 0; frame < 600; frame++)
         {
             layer.Update(kind, 1.0 / 60, 416, 234);
             buffer.Begin(2);
             layer.Draw(kind, buffer);
-            buffer.Count.Should().Be(layer.ActiveCount).And.BeLessThanOrEqualTo(PrecipitationLayer.Capacity);
+            buffer.Count.Should().BeGreaterThanOrEqualTo(layer.ActiveCount).And.BeLessThanOrEqualTo(2 * layer.ActiveCount);
         }
 
         int[] ints = Ints(buffer);
