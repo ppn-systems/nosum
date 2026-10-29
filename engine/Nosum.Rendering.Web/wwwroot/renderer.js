@@ -249,9 +249,20 @@ export async function start(canvasId, assemblyName, exportPath) {
     requestAnimationFrame(tick);
 }
 
+let frameScratch = new Int32Array(16384);
+
 export function submitFrame(view) {
-    const bytes = view.slice();
-    const data = new Int32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >> 2);
+    let data;
+    if ((view.byteOffset & 3) === 0) {
+        data = new Int32Array(view.buffer, view.byteOffset, view.byteLength >> 2);
+    } else {
+        const words = view.byteLength >> 2;
+        if (frameScratch.length < words) {
+            frameScratch = new Int32Array(Math.max(words, frameScratch.length * 2));
+        }
+        new Uint8Array(frameScratch.buffer, 0, view.byteLength).set(view);
+        data = frameScratch;
+    }
     const count = data[0], scale = data[1];
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
