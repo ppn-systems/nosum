@@ -8,6 +8,7 @@ using FluentAssertions;
 using Nosum.Contracts.Farm;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Weather;
 using Nosum.UnitTests.Maps;
 using Nosum.Wasm.ViewModels.Audio;
@@ -218,5 +219,22 @@ public sealed class AudioCatalogTests
         bool immediately = timer.Advance(true, 1.0 / 60);
 
         immediately.Should().BeFalse();
+    }
+
+    [Fact]
+    public void MusicTrack_EachMineBiomeHasADistinctExistingTrack()
+    {
+        int[] tracks = [.. System.Enum.GetValues<MineBiome>().Select(MusicTrackIds.ForMine)];
+
+        tracks.Should().OnlyHaveUniqueItems();
+        tracks.Should().OnlyContain(id => id >= 1 && id <= 8);
+    }
+
+    [Fact]
+    public void MusicTrack_ForMineEarth_IsSpringDay()
+    {
+        int track = MusicTrackIds.ForMine(MineBiome.Earth);
+
+        track.Should().Be(MusicTrackIds.For(Season.Spring, false));
     }
 }

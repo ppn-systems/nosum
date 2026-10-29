@@ -146,6 +146,38 @@ public sealed class RenderingTests
     }
 
     [Fact]
+    public void TileLayerRenderer_Draw_Tint_IsGivenToEveryTile()
+    {
+        TileMap map = new(2, 1, 16, 16, [new TileSet(1, "t", "t", 2, 4)], [new TileLayer("Back", [1, 2])]);
+        Camera2D camera = default;
+        camera.Follow(16, 8, 32, 16, 32, 16);
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(1);
+
+        TileLayerRenderer.Draw(map, map.Layers[0], [0], camera, buffer, 0, default, unchecked((int)0x80FFFFFF));
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        buffer.Count.Should().Be(2);
+        ints[10].Should().Be(unchecked((int)0x80FFFFFF));
+        ints[19].Should().Be(unchecked((int)0x80FFFFFF));
+    }
+
+    [Fact]
+    public void TileLayerRenderer_Draw_NoTintByDefault_DrawsUnchanged()
+    {
+        TileMap map = new(1, 1, 16, 16, [new TileSet(1, "t", "t", 2, 4)], [new TileLayer("Back", [1])]);
+        Camera2D camera = default;
+        camera.Follow(8, 8, 16, 16, 16, 16);
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(1);
+
+        TileLayerRenderer.Draw(map, map.Layers[0], [0], camera, buffer);
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        ints[10].Should().Be(RenderCommandBuffer.NoTint);
+    }
+
+    [Fact]
     public void Flush_Sprites_DrawInAscendingYThenXThenId()
     {
         WorldSpriteBatch batch = new(8);
