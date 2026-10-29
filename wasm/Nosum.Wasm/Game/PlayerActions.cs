@@ -35,6 +35,9 @@ internal sealed partial class PlayerActions
     private const double UseCooldownSeconds = 0.32;
     private const double SwingDurationSeconds = 0.30;
 
+    // A drag sends one farm use per tile it reaches, at most this often, so a fast drag makes a steady line of tiles and not a flood.
+    private const double DragStepSeconds = 0.12;
+
     private readonly FarmChannel _farm;
     private readonly InventoryChannel _inventory;
     private readonly MarketChannel _market;
@@ -49,6 +52,10 @@ internal sealed partial class PlayerActions
     private double _lastUseSeconds = double.NegativeInfinity;
     private double _swingStartSeconds = double.NegativeInfinity;
     private int _swingItemId;
+    private int _dragTileX;
+    private int _dragTileY;
+    private bool _dragging;
+    private double _lastDragSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
@@ -103,6 +110,12 @@ internal sealed partial class PlayerActions
     /// <summary>Gets the tile y in front of the farmer.</summary>
     public int TargetY { get; private set; }
 
+    /// <summary>
+    /// Gets whether the held farm item (a seed, a hoe or a watering can) would do nothing on the tile in front: the reticle is then drawn
+    /// tinted. A prediction for the reticle only; the server decides every outcome.
+    /// </summary>
+    public bool TargetDenied { get; private set; }
+
     /// <summary>Gets the item id currently held in the selected hotbar slot, or 0 when empty.</summary>
     public int HeldItemId => _inventory.SlotAt(_inventory.SelectedSlot).ItemId;
 
@@ -145,6 +158,8 @@ internal sealed partial class PlayerActions
             Facing.Right => (x + 1, y),
             _ => (x, y + 1),
         };
+
+        this.TargetDenied = IsFarmTool(this.HeldItemId) && !this.TargetWorks(mapAllowsTools);
 
         if (edges == InputEdges.None)
         {
@@ -272,6 +287,81 @@ internal sealed partial class PlayerActions
         else
         {
             _buildings.Pet(animal.Id);
+        }
+    }
+
+    /// <summary>
+    /// Drag-to-sow: while the mouse button is held over the world, the held seed, hoe or watering can works each tile the drag reaches, one farm
+    /// use per tile. The server checks reach, seeds, energy and the tile of every use, so a refused tile changes nothing.
+    /// </summary>
+    /// <param name="feetX">Farmer's feet x, world pixels.</param>
+    /// <param name="feetY">Farmer's feet y, world pixels.</param>
+    /// <param name="tileSize">Tile size, pixels.</param>
+    /// <param name="tileX">The tile under the mouse.</param>
+    /// <param name="tileY">The tile under the mouse.</param>
+    /// <param name="pointerHeld">Whether the drag is on.</param>
+    /// <param name="mapAllowsTools">Whether tools may be used on the map being shown.</param>
+    /// <param name="nowSeconds">Scene clock, seconds.</param>
+    public void DragSow(double feetX, double feetY, int tileSize, int tileX, int tileY, bool pointerHeld, bool mapAllowsTools, double nowSeconds)
+    {
+        if (!pointerHeld || !mapAllowsTools || !IsFarmTool(this.HeldItemId))
+        {
+            _dragging = false;
+            return;
+        }
+
+        if ((_dragging && tileX == _dragTileX && tileY == _dragTileY) || !FarmRules.InReach(feetX, feetY, tileX, tileY, tileSize))
+        {
+            return;
+        }
+
+        if (_dragging && nowSeconds - _lastDragSeconds < DragStepSeconds)
+        {
+            return;
+        }
+
+        _dragging = true;
+        _dragTileX = tileX;
+        _dragTileY = tileY;
+        _lastDragSeconds = nowSeconds;
+        _farm.Use(_inventory.SelectedSlot, tileX, tileY);
+    }
+
+    // The items a drag works a tile with: seeds, a hoe and a watering can.
+    private static bool IsFarmTool(int itemId)
+        => ItemCatalog.TryGet(itemId, out ItemDefinition? item) && (item.Kind == ItemKind.Seed || (item.Kind == ItemKind.Tool && item.Tool is ToolKind.Hoe or ToolKind.WateringCan));
+
+    // Whether the held item, or bare hands, would do something on the tile in front by the rules the server runs; the reticle is drawn from it.
+    private bool TargetWorks(bool mapAllowsTools)
+    {
+        GameCalendar? rules = this.Rules();
+        if (rules is null || !mapAllowsTools || !ItemCatalog.TryGet(this.HeldItemId, out ItemDefinition? held))
+        {
+            return false;
+        }
+
+        long nowMs = _farm.ServerNowMs();
+        using (_farm.Read())
+        {
+            FarmTile? current = _farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo info)
+                ? new FarmTile(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay)
+                : null;
+            if (current is { HasCrop: true } && FarmRules.Harvest(current, nowMs, rules, out _, out _) == FarmVerdict.Ok)
+            {
+                return true;
+            }
+
+            if (held.Kind == ItemKind.Seed)
+            {
+                return FarmRules.Plant(current, held.CropId, nowMs, rules, out _) == FarmVerdict.Ok;
+            }
+
+            return held.Tool switch
+            {
+                ToolKind.Hoe => FarmRules.Till(true, current, nowMs, rules, out _) == FarmVerdict.Ok,
+                ToolKind.WateringCan => !(current is { } wet && FarmRules.IsWet(wet, nowMs, rules)) && FarmRules.Water(current, nowMs, rules, out _) == FarmVerdict.Ok,
+                _ => false,
+            };
         }
     }
 

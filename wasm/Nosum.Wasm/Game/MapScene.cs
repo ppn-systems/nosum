@@ -76,6 +76,9 @@ internal sealed partial class MapScene
     private int _pointerX;
     private int _pointerY;
     private bool _pointerPending;
+    private int _dragX;
+    private int _dragY;
+    private bool _dragHeld;
 
     /// <summary>Initializes the scene.</summary>
     /// <param name="loader">Loads the maps the server sends the player to.</param>
@@ -142,6 +145,17 @@ internal sealed partial class MapScene
         _pointerX = x;
         _pointerY = y;
         _pointerPending = true;
+    }
+
+    /// <summary>Tells the scene where the mouse is and whether a drag is on; the next <see cref="Frame"/> works the tiles it crosses (drag-to-sow). Allocation-free.</summary>
+    /// <param name="x">Mouse x, canvas CSS pixels.</param>
+    /// <param name="y">Mouse y, canvas CSS pixels.</param>
+    /// <param name="held">Whether the drag is on: the mouse button is down over the world.</param>
+    public void SetPointer(int x, int y, bool held)
+    {
+        _dragX = x;
+        _dragY = y;
+        _dragHeld = held;
     }
 
     /// <summary>
@@ -234,6 +248,14 @@ internal sealed partial class MapScene
             map.Width * map.TileWidth,
             map.Height * map.TileHeight,
             HudBottomInset(canvasWidth, canvasHeight) / scale);
+
+        // Drag-to-sow: the tile under the held mouse, in this frame's camera. The server checks each tile the drag reaches.
+        if (_actions is not null && _phase == Phase.Playing)
+        {
+            double dragWorldX = _camera.Left + ((double)_dragX / scale);
+            double dragWorldY = _camera.Top + ((double)_dragY / scale);
+            _actions.DragSow(_farmer.X, _farmer.Y, map.TileWidth, (int)Math.Floor(dragWorldX / map.TileWidth), (int)Math.Floor(dragWorldY / map.TileWidth), _dragHeld, content.Spec.Farmable || !placeableMap, _clockSeconds);
+        }
 
         if (_audio is not null)
         {

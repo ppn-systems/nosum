@@ -358,8 +358,11 @@ internal static partial class GameLoop
     /// <param name="keys">Held directions (<see cref="InputState"/> bits) and the keys pressed since the last frame, packed by <see cref="InputPacking"/>.</param>
     /// <param name="width">Canvas width, CSS pixels.</param>
     /// <param name="height">Canvas height, CSS pixels.</param>
+    /// <param name="pointerX">Mouse x over the canvas, CSS pixels (drag-to-sow).</param>
+    /// <param name="pointerY">Mouse y over the canvas, CSS pixels (drag-to-sow).</param>
+    /// <param name="pointerHeld">1 while the mouse button is down over the canvas, otherwise 0.</param>
     [JSExport]
-    internal static void Frame(double timeMs, int keys, int width, int height)
+    internal static void Frame(double timeMs, int keys, int width, int height, int pointerX, int pointerY, int pointerHeld)
     {
         if (s_scene is null || width <= 0 || height <= 0)
         {
@@ -397,6 +400,8 @@ internal static partial class GameLoop
             FirstActed?.Invoke();
         }
 
+        // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.
+        s_scene.SetPointer(pointerX, pointerY, pointerHeld != 0 && !s_connectionBlocked && !s_overlayOpen && !s_modalOpen);
         s_scene.Frame(seconds, held, edges, width, height, s_backend);
     }
 }
