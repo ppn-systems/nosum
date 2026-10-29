@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Weather;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
@@ -96,7 +97,8 @@ internal sealed class GameAudio
     /// <param name="season">The server season.</param>
     /// <param name="minuteOfDay">The server game minute of the day.</param>
     /// <param name="weather">Today's weather.</param>
-    public void Frame(double frameSeconds, int farmerX, int farmerY, bool walking, bool indoors, bool hasSky, Season season, int minuteOfDay, WeatherKind weather)
+    /// <param name="mineFloor">The mine floor shown, zero when the map is not one; a mine floor plays its biome's track instead of the season's (docs/adr/ADR-070 D3).</param>
+    public void Frame(double frameSeconds, int farmerX, int farmerY, bool walking, bool indoors, bool hasSky, Season season, int minuteOfDay, WeatherKind weather, int mineFloor)
     {
         _now += frameSeconds;
         _listenerX = farmerX;
@@ -106,7 +108,10 @@ internal sealed class GameAudio
             this.Play(SoundIds.Footstep, FootstepVolume);
         }
 
-        _queue.SetMusic(hasSky ? MusicTrackIds.For(season, AudioCatalog.IsNight(minuteOfDay)) : MusicTrackIds.None);
+        int track = mineFloor >= 1
+            ? MusicTrackIds.ForMine(MineBiomeRules.Of(mineFloor))
+            : hasSky ? MusicTrackIds.For(season, AudioCatalog.IsNight(minuteOfDay)) : MusicTrackIds.None;
+        _queue.SetMusic(track);
         int loopVolume = 0;
         int loop = hasSky ? AudioCatalog.AmbientLoopFor(weather, indoors, out loopVolume) : LoopIds.None;
         _queue.SetAmbientLoop(loop, loopVolume);

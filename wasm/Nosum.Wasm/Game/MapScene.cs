@@ -238,14 +238,16 @@ internal sealed partial class MapScene
         if (_audio is not null)
         {
             bool hasSky = _sky.TryGetState(out Season season, out int minuteOfDay, out WeatherKind weather);
-            _audio.Frame(frameSeconds, farmerPx, farmerPy, _phase != Phase.FadingOut && _farmer.IsMoving, content.Spec.Indoors, hasSky, season, minuteOfDay, weather);
+            _audio.Frame(frameSeconds, farmerPx, farmerPy, _phase != Phase.FadingOut && _farmer.IsMoving, content.Spec.Indoors, hasSky, season, minuteOfDay, weather, content.Spec.MineFloor);
         }
 
+        // A mine floor's cave tiles take its biome's palette (docs/adr/ADR-070 D2); every other map is drawn unchanged.
+        int biomeTint = MineBiomeLook.TintForFloor(content.Spec.MineFloor);
         _commands.Begin(scale);
         _audio?.Flush(_commands);
         foreach (TileLayer layer in content.Layers.Ground)
         {
-            TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave);
+            TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave, biomeTint);
         }
 
         IMapDecorator[] decorators = content.Decorators;
@@ -314,7 +316,7 @@ internal sealed partial class MapScene
 
         foreach (TileLayer layer in content.Layers.Front)
         {
-            TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave);
+            TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave, biomeTint);
         }
 
         // The sky: the night tint with the lamps cut out of it over the whole world, then the rain or snow, then the names and the fade.

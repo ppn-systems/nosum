@@ -20,7 +20,8 @@ public static class TileLayerRenderer
     /// <param name="commands">Where draws are recorded.</param>
     /// <param name="timeMs">Animation clock, milliseconds; animated tiles show the frame for this time.</param>
     /// <param name="wave">Optional ripple over tiles with a trait; <see cref="TileWave.None"/> for none.</param>
-    public static void Draw(TileMap map, TileLayer layer, ReadOnlySpan<int> tileSetTextures, in Camera2D camera, RenderCommandBuffer commands, long timeMs = 0, TileWave wave = default)
+    /// <param name="tint">Multiply tint of every tile as <c>0xRRGGBBAA</c>, or <see cref="RenderCommandBuffer.NoTint"/> to draw them unchanged (docs/adr/ADR-070 D2).</param>
+    public static void Draw(TileMap map, TileLayer layer, ReadOnlySpan<int> tileSetTextures, in Camera2D camera, RenderCommandBuffer commands, long timeMs = 0, TileWave wave = default, int tint = RenderCommandBuffer.NoTint)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(layer);
@@ -62,7 +63,7 @@ public static class TileLayerRenderer
                 int srcY = local / set.Columns * th;
                 int dstX = (x * tw) - camera.Left;
                 int dstY = (y * th) - camera.Top;
-                commands.Draw(tileSetTextures[setIndex], srcX, srcY, tw, th, dstX, dstY);
+                commands.Draw(tileSetTextures[setIndex], srcX, srcY, tw, th, dstX, dstY, 0, tint);
                 if (ripples)
                 {
                     for (int strip = 0; strip < th; strip += wave.StripHeight)
@@ -72,7 +73,7 @@ public static class TileLayerRenderer
                         {
                             // Shift the strip's pixels inside the tile so nothing bleeds onto neighbouring land.
                             int span = tw - Math.Abs(shift);
-                            commands.Draw(tileSetTextures[setIndex], srcX + Math.Max(0, -shift), srcY + strip, span, wave.StripHeight, dstX + Math.Max(0, shift), dstY + strip);
+                            commands.Draw(tileSetTextures[setIndex], srcX + Math.Max(0, -shift), srcY + strip, span, wave.StripHeight, dstX + Math.Max(0, shift), dstY + strip, 0, tint);
                         }
                     }
                 }
