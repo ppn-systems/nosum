@@ -81,6 +81,7 @@ public sealed class PacketBoundsTests
 
             using (IDisposable baseline = (IDisposable)Activator.CreateInstance(type)!)
             {
+                DefineUndefinedEnums(baseline);
                 PacketBounds.IsWithinBounds(baseline).Should().BeTrue(type.Name + " with default values");
             }
 
@@ -89,6 +90,7 @@ public sealed class PacketBoundsTests
                 foreach (object hostile in Hostile(property))
                 {
                     using IDisposable packet = (IDisposable)Activator.CreateInstance(type)!;
+                    DefineUndefinedEnums(packet);
                     property.SetValue(packet, hostile);
                     PacketBounds.IsWithinBounds(packet).Should().BeFalse("{0}.{1} = {2}", type.Name, property.Name, Describe(hostile));
                     violations++;
@@ -104,6 +106,19 @@ public sealed class PacketBoundsTests
     {
         using T packet = make();
         return PacketBounds.IsWithinBounds(packet);
+    }
+
+    // A well-formed packet holds a defined value in every enum that declares WireDefined. The default 0 is not always a member (ExternalProvider has none),
+    // so such an enum takes its first member here; a packet left at 0 is refused by the bounds check, as the undefined-enum cases above show.
+    private static void DefineUndefinedEnums(object packet)
+    {
+        foreach (PropertyInfo property in packet.GetType().GetProperties())
+        {
+            if (property.PropertyType.IsEnum && property.GetCustomAttribute<WireDefinedAttribute>() is not null && !Enum.IsDefined(property.PropertyType, property.GetValue(packet)!))
+            {
+                property.SetValue(packet, Enum.GetValues(property.PropertyType).GetValue(0));
+            }
+        }
     }
 
     private static Type[] ClientPackets()

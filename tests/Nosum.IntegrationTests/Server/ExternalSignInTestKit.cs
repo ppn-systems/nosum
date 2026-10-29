@@ -1,11 +1,17 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Nalix.Framework.Injection;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Identity;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
+using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Persistence;
+using Nosum.Infrastructure.Security;
 
 namespace Nosum.IntegrationTests.Server;
 
@@ -44,6 +50,20 @@ internal sealed class FakeExternalTokenVerifier(ExternalProvider provider) : IEx
 /// <summary>Account helpers for integration tests, on top of <see cref="FakeExternalTokenVerifier"/>.</summary>
 internal static class TestAccounts
 {
+    /// <summary>
+    /// Replaces the host's account service with one that accepts the fake tokens. The host registers the real verifiers, which need the
+    /// provider keys over the network; a test that signs in or links over the wire, or through the instance, calls this after <c>HostServices.Register</c>.
+    /// </summary>
+    /// <param name="options">The database the host uses.</param>
+    public static void UseFakeVerifiers(DbContextOptions<NosumDbContext> options)
+        => InstanceManager.Instance.Register<IAccountService>(new AccountService(
+            new EfUnitOfWorkFactory(options),
+            FakeExternalTokenVerifier.All(),
+            new SessionTokenService(),
+            TimeProvider.System,
+            nicknames: InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()));
+
+
     /// <summary>Signs in (creating on first use) the account of a Google subject, as the start screen does.</summary>
     /// <param name="accounts">The service under test.</param>
     /// <param name="subject">The Google subject; the account's identity.</param>

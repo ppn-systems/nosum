@@ -635,6 +635,7 @@ public sealed class VisitWireTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
 
             // Development, so the tester grant can hand out furniture.
             NetworkApplication app = Program.BuildApplication(port, clock, development: true);

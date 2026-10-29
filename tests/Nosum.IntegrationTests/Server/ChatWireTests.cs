@@ -456,6 +456,7 @@ public sealed class ChatWireTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
             NetworkApplication app = Program.BuildApplication(port, clock);
             TestHost host = new(app, port);
             await app.ActivateAsync(host.Timeout);

@@ -75,6 +75,7 @@ internal sealed class ChunkHost : IAsyncDisposable
         probe.Stop();
 
         HostServices.Register(database.Options);
+        TestAccounts.UseFakeVerifiers(database.Options);
         NetworkApplication app = Program.BuildApplication(port, null, development);
         ChunkHost host = new(app, port, timeout);
         await app.ActivateAsync(host.Timeout);

@@ -220,6 +220,26 @@ public sealed class AccountFormViewModel : IObservableViewModel
             isUpgrade: false,
             cancellationToken);
 
+    /// <summary>Signs in with Google (the Google button).</summary>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the attempt is over.</returns>
+    public Task SignInWithGoogleAsync(CancellationToken cancellationToken = default) => this.SignInWithAsync(ExternalProvider.Google, cancellationToken);
+
+    /// <summary>Signs in with Microsoft (the Microsoft button).</summary>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the attempt is over.</returns>
+    public Task SignInWithMicrosoftAsync(CancellationToken cancellationToken = default) => this.SignInWithAsync(ExternalProvider.Microsoft, cancellationToken);
+
+    /// <summary>Links a Google identity to the guest (the Google button in upgrade mode).</summary>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the attempt is over.</returns>
+    public Task LinkGoogleAsync(CancellationToken cancellationToken = default) => this.LinkIdentityAsync(ExternalProvider.Google, cancellationToken);
+
+    /// <summary>Links a Microsoft identity to the guest (the Microsoft button in upgrade mode).</summary>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the attempt is over.</returns>
+    public Task LinkMicrosoftAsync(CancellationToken cancellationToken = default) => this.LinkIdentityAsync(ExternalProvider.Microsoft, cancellationToken);
+
     /// <summary>
     /// Links a Google or Microsoft identity to the signed-in guest, with the nickname typed in the form. The nickname is checked first, so
     /// nothing opens when it is not valid. Does nothing while a request is in flight.

@@ -434,6 +434,7 @@ public sealed class WorldInstanceTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
 
             // Development, so the tester grant can hand out the furniture that new players no longer start with.
             NetworkApplication app = Program.BuildApplication(port, null, development: true);

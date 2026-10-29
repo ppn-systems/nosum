@@ -43,6 +43,7 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
         string subject = Guid.NewGuid().ToString("N");
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         CountingStates states = new(InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!);
         InstanceManager.Instance.Register<IPlayerStateService>(states);
         await using NetworkApplication app = Program.BuildApplication(port);
@@ -88,6 +89,7 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -117,6 +119,7 @@ public sealed class SingleSessionTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);

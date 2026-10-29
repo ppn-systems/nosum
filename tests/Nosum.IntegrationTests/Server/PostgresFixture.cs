@@ -43,7 +43,21 @@ public sealed class PostgresFixture : IAsyncLifetime
     public async Task DisposeAsync()
     {
         NpgsqlConnection.ClearAllPools();
-        await ExecuteAdminAsync("DROP DATABASE IF EXISTS \"" + _databaseName + "\" WITH (FORCE)");
+
+        // An autovacuum worker is a superuser backend: while it works in a fresh database, WITH (FORCE) is refused with 42501 (insufficient privilege)
+        // and the drop succeeds once the worker has finished. Only that refusal is retried; any other error fails the teardown at once.
+        for (int attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await ExecuteAdminAsync("DROP DATABASE IF EXISTS \"" + _databaseName + "\" WITH (FORCE)");
+                return;
+            }
+            catch (PostgresException ex) when (ex.SqlState == "42501" && attempt < 40)
+            {
+                await Task.Delay(250);
+            }
+        }
     }
 
     private async Task ExecuteAdminAsync(string sql)

@@ -44,6 +44,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -79,6 +80,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -105,6 +107,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -135,6 +138,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -162,6 +166,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -206,6 +211,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);

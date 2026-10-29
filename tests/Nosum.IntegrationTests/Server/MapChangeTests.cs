@@ -364,6 +364,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
             NetworkApplication app = Program.BuildApplication(port);
             Host host = new(app, port);
             await app.ActivateAsync(host.Timeout);
@@ -480,7 +481,8 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
         public async Task<JoinMapResult> JoinAsync(CancellationToken ct)
         {
             using JoinMap request = new() { MapId = Program.FarmMapId };
-            return await _session.RequestAsync<JoinMapResult>(request, ct: ct);
+            // The first join of a fresh player loads its farm from the database; the SDK's 5 s default is too tight with the whole suite running.
+            return await _session.RequestAsync<JoinMapResult>(request, RequestOptions.Default.WithTimeout(15_000), ct: ct);
         }
 
         public async Task SendMoveAsync(uint sequence, float x, float y, byte facing, CancellationToken ct)

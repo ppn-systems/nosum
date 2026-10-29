@@ -1,4 +1,3 @@
-@using Nosum.Contracts.Account
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.ViewModels.Account
 @using System.Threading
@@ -19,14 +18,14 @@
 
             <GameStack>
                 <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.GoogleEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)"
-                            OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkIdentityAsync(ExternalProvider.Google) : Vm.SignInWithAsync(ExternalProvider.Google))" />
+                            OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkGoogleAsync() : Vm.SignInWithGoogleAsync())" />
                 @if (Vm.GoogleHint is { } googleHint)
                 {
                     <GameNotice Kind="info" Text="@googleHint" />
                 }
 
                 <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.MicrosoftEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkMicrosoftText : Vm.SignInMicrosoftText)"
-                            OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkIdentityAsync(ExternalProvider.Microsoft) : Vm.SignInWithAsync(ExternalProvider.Microsoft))" />
+                            OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkMicrosoftAsync() : Vm.SignInWithMicrosoftAsync())" />
                 @if (Vm.MicrosoftHint is { } microsoftHint)
                 {
                     <GameNotice Kind="info" Text="@microsoftHint" />

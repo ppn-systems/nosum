@@ -58,6 +58,7 @@ public sealed class ChunkLoadTests : IClassFixture<PostgresFixture>
     {
         ushort port = FreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);

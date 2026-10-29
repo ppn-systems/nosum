@@ -202,6 +202,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
     private async Task<NetworkApplication> StartAsync()
     {
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         _port = GetFreePort();
         NetworkApplication app = Program.BuildApplication(_port);
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(15));

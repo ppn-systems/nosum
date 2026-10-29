@@ -122,6 +122,7 @@ internal sealed class BudgetRig : IAsyncDisposable
         FakeTimeProvider clock = new(start);
 
         HostServices.Register(options);
+        TestAccounts.UseFakeVerifiers(options);
         NetworkApplication app = Program.BuildApplication(port, clock, development: true);
         BudgetRig rig = new(app, port, counter, clock, options, timeout);
         await app.ActivateAsync(rig.Timeout);

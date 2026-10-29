@@ -172,6 +172,7 @@ public sealed partial class NodeWireTests
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
 
             // Development, so the tester grant can hand out tree seeds.
             NetworkApplication app = Program.BuildApplication(port, clock, development: true);

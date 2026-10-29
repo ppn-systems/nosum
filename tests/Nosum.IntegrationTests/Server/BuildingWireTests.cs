@@ -217,6 +217,7 @@ public sealed class BuildingWireTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
 
             // Development: the tester tools hand out coins and items and move the game clock by whole days.
             NetworkApplication app = Program.BuildApplication(port, clock, development: true);
