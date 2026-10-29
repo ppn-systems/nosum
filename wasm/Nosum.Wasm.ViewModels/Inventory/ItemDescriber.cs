@@ -1,7 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
-using System.Globalization;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.ViewModels.Resources;
@@ -51,10 +50,7 @@ public sealed class ItemDescriber
 
         string name = _catalogue["Item_" + item.Key + "_Name"];
         string description = _catalogue["Item_" + item.Key + "_Description"];
-        string tooltip = item.MaxStack > 1
-            ? string.Join('\n', name, description, string.Format(CultureInfo.CurrentCulture, _text["Inventory_Quantity"].Value, quantity))
-            : string.Join('\n', name, description);
-        return new SlotDisplay(index, itemId, quantity, name, tooltip, icon, selected);
+        return new SlotDisplay(index, itemId, quantity, name, ItemTooltip.Build(item, name, description, quantity, _text), icon, selected);
     }
 
     /// <summary>Returns an item's localized name.</summary>

@@ -209,9 +209,7 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
 
         string name = _catalogue["Item_" + item.Key + "_Name"];
         string description = _catalogue["Item_" + item.Key + "_Description"];
-        string tooltip = item.MaxStack > 1
-            ? string.Join('\n', name, description, string.Format(CultureInfo.CurrentCulture, _text["Inventory_Quantity"].Value, info.Quantity))
-            : string.Join('\n', name, description);
+        string tooltip = ItemTooltip.Build(item, name, description, info.Quantity, _text);
         if (item.Tool == ToolKind.WateringCan && _nodes is { } can)
         {
             int left = can.WaterLeft;
