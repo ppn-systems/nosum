@@ -45,10 +45,11 @@ public readonly record struct PriceDayInfo(int Day, long Min, long Median, long 
 /// <param name="ItemId">The item.</param>
 /// <param name="Today">The game day number when read.</param>
 /// <param name="Days">The days that had sales, oldest first.</param>
-public sealed record PriceHistoryInfo(int ItemId, int Today, IReadOnlyList<PriceDayInfo> Days)
+/// <param name="Average">The mean unit price of the last seven game days, coins; zero when nothing sold in them.</param>
+public sealed record PriceHistoryInfo(int ItemId, int Today, IReadOnlyList<PriceDayInfo> Days, long Average)
 {
     /// <summary>Gets the state before any read.</summary>
-    public static readonly PriceHistoryInfo Empty = new(0, 0, []);
+    public static readonly PriceHistoryInfo Empty = new(0, 0, [], 0);
 }
 
 /// <summary>Which request a result answers.</summary>
@@ -185,7 +186,7 @@ public sealed class MarketChannel
                 days.Add(new PriceDayInfo(row.Day, row.Min, row.Median, row.Max, row.Sales));
             }
 
-            this.History = new PriceHistoryInfo(reply.ItemId, reply.Today, days);
+            this.History = new PriceHistoryInfo(reply.ItemId, reply.Today, days, reply.Average);
             this.HistoryChanged?.Invoke();
         }
         catch (Exception)

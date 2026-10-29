@@ -400,7 +400,10 @@ public sealed class MarketService : IMarketService
                 days.Add(new PriceDayView(day.Key, summary.Min, summary.Median, summary.Max, summary.Sales));
             }
 
-            return new PriceHistoryView(itemId, today, days);
+            int averageFirst = today - PriceHistoryRules.AverageDays + 1;
+            List<long> recent = [.. sales.Where(s => s.Day >= averageFirst).Select(s => s.UnitPrice)];
+            long average = recent.Count == 0 ? 0 : PriceHistoryRules.Average(recent);
+            return new PriceHistoryView(itemId, today, days, average);
         }
     }
 

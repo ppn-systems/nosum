@@ -59,6 +59,21 @@ public sealed class PriceHistoryRulesTests
     public void Summarize_OddCount_MedianIsTheMiddleOne_RegardlessOfOrder()
         => PriceHistoryRules.Summarize([30, 10, 50, 20, 40]).Should().Be(new PriceSummary(10, 30, 50, 5));
 
+    public static void Average_TheMeanOfTheUnitPrices_RoundedToTheNearestCoin_HalvesUp()
+    {
+        PriceHistoryRules.Average([7]).Should().Be(7);
+        PriceHistoryRules.Average([10, 11]).Should().Be(11, "10.5 rounds up");
+        PriceHistoryRules.Average([10, 20, 25]).Should().Be(18, "18.33 rounds down");
+        PriceHistoryRules.Average([10, 30, 20, 25, 40]).Should().Be(25);
+    }
+
+    [Fact]
+    public void Average_NoSales_Throws()
+    {
+        Action act = () => PriceHistoryRules.Average([]);
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
     [Fact]
     public void Summarize_EvenCount_MedianIsTheMeanOfTheMiddleTwo_RoundedDown()
     {

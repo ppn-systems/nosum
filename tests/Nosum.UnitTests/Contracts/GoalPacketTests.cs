@@ -142,7 +142,7 @@ public sealed class GoalPacketTests
     [Fact]
     public void PriceHistory_RoundTripsEveryDay()
     {
-        using PriceHistory packet = new() { ItemId = 101, Today = 80 };
+        using PriceHistory packet = new() { ItemId = 101, Today = 80, Average = 11 };
         packet.Days.Add(new PriceDayRow { Day = 78, Min = 9, Median = 10, Max = 12, Sales = 3 });
         packet.Days.Add(new PriceDayRow { Day = 80, Min = 11, Median = 11, Max = 11, Sales = 1 });
 
@@ -150,6 +150,7 @@ public sealed class GoalPacketTests
 
         copy.ItemId.Should().Be(101);
         copy.Today.Should().Be(80);
+        copy.Average.Should().Be(11);
         copy.Days.Should().BeEquivalentTo(packet.Days);
 
         using GetPriceHistory request = new() { ItemId = 101 };

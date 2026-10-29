@@ -610,6 +610,7 @@
   <data name="Market_History_Title" xml:space="preserve"><value>Price history: {0}</value></data>
   <data name="Market_History_Chart" xml:space="preserve"><value>Median price of each game day</value></data>
   <data name="Market_History_Latest" xml:space="preserve"><value>Latest day: lowest {0}, median {1}, highest {2} coins each; sales: {3}</value></data>
+  <data name="Market_History_Average" xml:space="preserve"><value>Average of the last {0} days: {1} coins each</value></data>
   <data name="Market_History_Range" xml:space="preserve"><value>Last {0} days: from {1} to {2} coins each</value></data>
   <data name="Market_History_None" xml:space="preserve"><value>Nothing was sold in the last {0} days.</value></data>
   <data name="Market_History_Hide" xml:space="preserve"><value>Hide</value></data>

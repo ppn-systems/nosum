@@ -46,6 +46,42 @@ public sealed class PriceHistoryViewModelTests
     }
 
     [Fact]
+    public void ShowHistory_WithSalesInTheLastSevenDays_ShowsTheirAverageLine()
+    {
+        using CultureScope scope = new("en", "en-US");
+        (MarketViewModel vm, _) = CreateWithAverage(9, new PriceDayRow { Day = 80, Min = 8, Median = 9, Max = 10, Sales = 4 });
+
+        vm.ShowHistory(ItemCatalog.Parsnip);
+
+        vm.HistoryLines.Should().Equal(
+            "Latest day: lowest 8, median 9, highest 10 coins each; sales: 4",
+            "Average of the last 7 days: 9 coins each",
+            "Last 14 days: from 8 to 10 coins each");
+    }
+
+    [Fact]
+    public void ShowHistory_InVietnamese_TheAverageLineIsVietnamese()
+    {
+        using CultureScope scope = new("vi", "vi-VN");
+        (MarketViewModel vm, _) = CreateWithAverage(9, new PriceDayRow { Day = 80, Min = 8, Median = 9, Max = 10, Sales = 4 });
+
+        vm.ShowHistory(ItemCatalog.Parsnip);
+
+        vm.HistoryLines[1].Should().Be("Trung bình 7 ngày qua: 9 xu mỗi món");
+    }
+
+    [Fact]
+    public void ShowHistory_SalesOnlyBeforeTheLastSevenDays_HasNoAverageLine()
+    {
+        using CultureScope scope = new("en", "en-US");
+        (MarketViewModel vm, _) = Create(new PriceDayRow { Day = 80, Min = 8, Median = 9, Max = 10, Sales = 4 });
+
+        vm.ShowHistory(ItemCatalog.Parsnip);
+
+        vm.HistoryLines.Should().NotContain(line => line.StartsWith("Average", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void ShowHistory_AnItemThatNeverSold_SaysSo_AndHasNoLine()
     {
         using CultureScope scope = new("en", "en-US");
@@ -111,13 +147,15 @@ public sealed class PriceHistoryViewModelTests
         vi.Text("Market_Status_" + Nosum.Contracts.Market.MarketStatus.TooManyOfItem).Should().Contain("500");
     }
 
+    private static (MarketViewModel Vm, FakeGameSocket Socket) Create(params PriceDayRow[] days) => CreateWithAverage(0, days);
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The channels live as long as the test.")]
-    private static (MarketViewModel Vm, FakeGameSocket Socket) Create(params PriceDayRow[] days)
+    private static (MarketViewModel Vm, FakeGameSocket Socket) CreateWithAverage(long average, params PriceDayRow[] days)
     {
         FakeGameSocket socket = new();
         socket.ReplyWith(request =>
         {
-            PriceHistory history = new() { ItemId = ((GetPriceHistory)request).ItemId, Today = 80 };
+            PriceHistory history = new() { ItemId = ((GetPriceHistory)request).ItemId, Today = 80, Average = average };
             history.Days.AddRange(days);
             return history;
         });

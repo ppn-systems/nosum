@@ -610,6 +610,7 @@
   <data name="Market_History_Title" xml:space="preserve"><value>Lịch sử giá: {0}</value></data>
   <data name="Market_History_Chart" xml:space="preserve"><value>Giá trung vị mỗi ngày trong game</value></data>
   <data name="Market_History_Latest" xml:space="preserve"><value>Ngày gần nhất: thấp nhất {0}, trung vị {1}, cao nhất {2} xu mỗi món; số giao dịch: {3}</value></data>
+  <data name="Market_History_Average" xml:space="preserve"><value>Trung bình {0} ngày qua: {1} xu mỗi món</value></data>
   <data name="Market_History_Range" xml:space="preserve"><value>{0} ngày qua: từ {1} đến {2} xu mỗi món</value></data>
   <data name="Market_History_None" xml:space="preserve"><value>Chưa có giao dịch nào trong {0} ngày qua.</value></data>
   <data name="Market_History_Hide" xml:space="preserve"><value>Ẩn</value></data>
