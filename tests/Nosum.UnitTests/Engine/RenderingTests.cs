@@ -273,6 +273,29 @@ public sealed class RenderingTests
     }
 
     [Fact]
+    public void PropLayer_Farmhouse_RoofIsDrawnAfterAWorldSpriteInFrontOfTheHouse()
+    {
+        PropDefinition house = new("house", "sheet", 16, 0, 48, 64, 3, 2, FrontHeight: 16);
+        PropLayer layer = new([new PropPlacement(house, 2, 4)], _ => 9, 16);
+        Camera2D camera = default;
+        camera.Follow(50, 50, 200, 200, 200, 200);
+        WorldSpriteBatch batch = new(4);
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(1);
+        batch.Begin();
+
+        layer.AddToBatch(batch);
+        batch.Add(2, 0, 0, 4, 4, 40, 40, 200, 40); // a player whose feet are south of the house
+        batch.Flush(buffer, camera);
+        layer.DrawFront(buffer, camera);
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        ints[0].Should().Be(3);
+        ints[11].Should().Be(2); // the player is depth-sorted after the house base
+        ints[20..27].Should().Equal(9, 16, 0, 48, 16, 32, 32); // the roof is last, over the player
+    }
+
+    [Fact]
     public void TileLayerRenderer_Draw_WaterWave_RedrawsShiftedStripsOnlyOnWaterTiles()
     {
         Dictionary<int, KeyValuePair<string, string>[]> props = new() { [0] = [new("Water", "T")] };
