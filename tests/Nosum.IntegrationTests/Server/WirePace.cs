@@ -19,6 +19,8 @@ internal static class WirePace
     private static readonly SemaphoreSlim s_resumeGate = new(1, 1);
     private static readonly SemaphoreSlim s_requestGate = new(1, 1);
     private static readonly SemaphoreSlim s_credentialGate = new(1, 1);
+    private static readonly SemaphoreSlim s_joinGate = new(1, 1);
+    private static DateTime s_lastJoin = DateTime.MinValue;
     private static DateTime s_lastCredential = DateTime.MinValue;
     private static DateTime s_lastResume = DateTime.MinValue;
     private static DateTime s_lastRequest = DateTime.MinValue;
@@ -62,6 +64,26 @@ internal static class WirePace
         finally
         {
             _ = s_credentialGate.Release();
+        }
+    }
+
+    /// <summary>Spaces the map joins: the server allows four per address every five seconds (<c>player-join</c>), and the loopback bucket is shared by the whole suite.</summary>
+    public static async Task JoinAsync(CancellationToken ct)
+    {
+        await s_joinGate.WaitAsync(ct);
+        try
+        {
+            TimeSpan wait = TimeSpan.FromSeconds(1.3) - (DateTime.UtcNow - s_lastJoin);
+            if (wait > TimeSpan.Zero)
+            {
+                await Task.Delay(wait, ct);
+            }
+
+            s_lastJoin = DateTime.UtcNow;
+        }
+        finally
+        {
+            _ = s_joinGate.Release();
         }
     }
 

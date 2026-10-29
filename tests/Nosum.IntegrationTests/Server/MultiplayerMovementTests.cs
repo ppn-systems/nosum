@@ -149,6 +149,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
                 new WebSocketTransportOptions { Path = Program.WebSocketPath });
             await session.ConnectAsync(ct: timeout.Token);
             await session.HandshakeAsync(timeout.Token);
+            await WirePace.JoinAsync(CancellationToken.None);
             using JoinMap request = new() { MapId = Program.FarmMapId };
 
             Func<Task> join = async () => _ = await session.RequestAsync<JoinMapResult>(request, RequestOptions.Default.WithTimeout(1500), ct: timeout.Token);
@@ -321,6 +322,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
 
         public async Task<JoinMapResult> JoinAsync(CancellationToken ct, string mapId = Program.FarmMapId)
         {
+            await WirePace.JoinAsync(ct);
             using JoinMap request = new() { MapId = mapId };
             return await _session.RequestAsync<JoinMapResult>(request, ct: ct);
         }

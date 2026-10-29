@@ -422,6 +422,7 @@ internal sealed class BudgetPlayer : IAsyncDisposable
     /// <returns>The reply.</returns>
     public async Task<JoinMapResult> JoinAsync(string mapId)
     {
+        await WirePace.JoinAsync(CancellationToken.None);
         using JoinMap request = new() { MapId = mapId };
         JoinMapResult result = await this.RequestAsync<JoinMapResult>(request);
         if (result.Status != JoinStatus.Ok)

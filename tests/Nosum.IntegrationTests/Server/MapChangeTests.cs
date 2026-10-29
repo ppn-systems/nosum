@@ -480,6 +480,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
 
         public async Task<JoinMapResult> JoinAsync(CancellationToken ct)
         {
+            await WirePace.JoinAsync(ct);
             using JoinMap request = new() { MapId = Program.FarmMapId };
             // The first join of a fresh player loads its farm from the database; the SDK's 5 s default is too tight with the whole suite running.
             return await _session.RequestAsync<JoinMapResult>(request, RequestOptions.Default.WithTimeout(15_000), ct: ct);
