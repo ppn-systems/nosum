@@ -128,10 +128,11 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             // The produce pops onto the ground beside the plot (docs/adr/ADR-021 D5), within reach of the harvester, who takes it
             // at once without stepping (D6).
             GroundItemRow dropped = await farmer.WaitForGroundItemAsync(g => g.ItemId == ItemCatalog.Parsnip, timeout.Token);
-            dropped.Quantity.Should().Be(1);
+            // One parsnip, or two on a rainy harvest (docs/adr/ADR-027 D8).
+            dropped.Quantity.Should().BeInRange(1, 2);
             InventorySlotRow produce = await farmer.WaitForSlotAsync(s => s.ItemId == ItemCatalog.Parsnip, timeout.Token);
-            produce.Quantity.Should().Be(1);
-            (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().Contain(s => s.ItemId == ItemCatalog.Parsnip && s.Quantity == 1);
+            produce.Quantity.Should().Be(dropped.Quantity);
+            (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().Contain(s => s.ItemId == ItemCatalog.Parsnip && s.Quantity == dropped.Quantity);
             (await farmer.GetGroundItemsAsync(timeout.Token)).Items.Should().BeEmpty();
 
             // The first quest is complete and the guest is invited to register; tilling and watering finished their own steps of the tutorial chain on the way (docs/adr/ADR-036).

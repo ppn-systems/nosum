@@ -281,7 +281,8 @@ public sealed partial class NodeWireTests : IClassFixture<PostgresFixture>
         await Task.Delay(330, host.Timeout);
         UseItemResult harvested = await player.UseAsync(s_scythe, x, y, host.Timeout);
         harvested.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Harvested });
-        (await player.Slots.WaitAsync(s => s.ItemId == ItemCatalog.Parsnip, host.Timeout)).Quantity.Should().Be(1);
+        // One parsnip, or two on a rainy harvest (docs/adr/ADR-027 D8).
+        (await player.Slots.WaitAsync(s => s.ItemId == ItemCatalog.Parsnip, host.Timeout)).Quantity.Should().BeInRange(1, 2);
     }
 
     [Fact]
