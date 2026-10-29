@@ -72,3 +72,8 @@
     border-bottom: calc(var(--u) * 2) solid var(--nosum-status-swift);
     padding-bottom: var(--u);
 }
+
+.vitals-bars.brotherhood {
+    border-bottom: calc(var(--u) * 2) solid var(--nosum-status-brotherhood);
+    padding-bottom: var(--u);
+}

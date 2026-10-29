@@ -46,6 +46,7 @@ public sealed partial class CombatChannel : IDisposable
     private int _maxMp = 50;
     private int _combatXp;
     private int _statusEffect;
+    private int _buff;
     private int _comboCount;
     private long _comboExpireTick;
     private bool _hasInitialVitals;
@@ -135,8 +136,11 @@ public sealed partial class CombatChannel : IDisposable
     /// <summary>Gets cumulative Combat XP.</summary>
     public int CombatXp => Volatile.Read(ref _combatXp);
 
-    /// <summary>Gets the active status effect kind (0 = None, 1 = Regen, 2 = Poison, 3 = Swiftness, docs/adr/ADR-051).</summary>
+    /// <summary>Gets the active status effect kind (0 = None, 1 = Regen, 2 = Poison, docs/adr/ADR-051).</summary>
     public int StatusEffect => Volatile.Read(ref _statusEffect);
+
+    /// <summary>Gets the active speed buff kind in its own slot (0 = None, 3 = Swiftness, 4 = Brotherhood in Arms; issue #146).</summary>
+    public int Buff => Volatile.Read(ref _buff);
 
     /// <summary>Gets the map id of the current monster roster.</summary>
     public string MapId

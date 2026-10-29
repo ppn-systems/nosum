@@ -403,6 +403,7 @@ public sealed partial class CombatChannel
         Volatile.Write(ref _maxMp, packet.MaxMp);
         Volatile.Write(ref _combatXp, packet.CombatXp);
         Volatile.Write(ref _statusEffect, (int)packet.StatusEffect);
+        Volatile.Write(ref _buff, (int)packet.Buff);
         if (packet.Hp == 0)
         {
             this.KnockedOut?.Invoke();
