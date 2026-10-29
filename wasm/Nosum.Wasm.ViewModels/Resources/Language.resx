@@ -762,6 +762,8 @@
   <data name="Requests_Deliver" xml:space="preserve"><value>Giao hàng</value></data>
   <data name="Requests_Filled" xml:space="preserve"><value>Đã xong hôm nay</value></data>
   <data name="Requests_Done" xml:space="preserve"><value>Đã giao! Bạn nhận được {0} xu.</value></data>
+  <data name="Requests_Bonus" xml:space="preserve"><value>Thưởng giao sớm +{0}%: còn {1} giờ {2} phút.</value></data>
+  <data name="Requests_DoneBonus" xml:space="preserve"><value>Giao sớm, được thưởng thêm! Bạn nhận được {0} xu.</value></data>
   <data name="Requests_Status_UnknownRequest" xml:space="preserve"><value>Không có yêu cầu này.</value></data>
   <data name="Requests_Status_NotToday" xml:space="preserve"><value>Yêu cầu đã đổi sang ngày mới. Đã tải lại bảng.</value></data>
   <data name="Requests_Status_AlreadyFilled" xml:space="preserve"><value>Hôm nay bạn đã làm yêu cầu này rồi.</value></data>

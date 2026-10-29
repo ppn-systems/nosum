@@ -762,6 +762,8 @@
   <data name="Requests_Deliver" xml:space="preserve"><value>Deliver</value></data>
   <data name="Requests_Filled" xml:space="preserve"><value>Done for today</value></data>
   <data name="Requests_Done" xml:space="preserve"><value>Delivered! You received {0} coins.</value></data>
+  <data name="Requests_Bonus" xml:space="preserve"><value>Early bonus +{0}%: {1} h {2} min left.</value></data>
+  <data name="Requests_DoneBonus" xml:space="preserve"><value>Delivered early, with the bonus! You received {0} coins.</value></data>
   <data name="Requests_Status_UnknownRequest" xml:space="preserve"><value>There is no such request.</value></data>
   <data name="Requests_Status_NotToday" xml:space="preserve"><value>The requests changed with the new day. The board was reloaded.</value></data>
   <data name="Requests_Status_AlreadyFilled" xml:space="preserve"><value>You already filled this request today.</value></data>

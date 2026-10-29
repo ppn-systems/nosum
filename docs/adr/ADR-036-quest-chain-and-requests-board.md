@@ -45,6 +45,11 @@ community goals; nothing there gives a player a reason to visit it every day.
   0x6140, `RequestResult` 0x6141. Status codes only; names, hints and rewards are text in the resx pair (vi default, en). The client reads
   the board when the tab opens and again after any non-Ok answer, so a board left open over midnight refreshes itself.
 - **D9 — Data.** Two tables, `daily_requests (day, slot)` and `request_fills (day, slot, player_id)`, one generated migration.
+- **D10 — Early bonus.** A delivery made in the first four in-game hours of its game day (`RequestRules.EarlyWindowMs`: 4/24 of the day
+  length, two real hours at the default twelve-hour day) is paid 20 % more on the base reward, rounded down (`RequestRules.PaidFor`). The
+  server decides the window from its own clock; the fill row records the amount paid. The snapshot tells the client when the window ends
+  (`EarlyUntilMs`) and the share (`EarlyBonusPercent`), and the result says whether the bonus was paid (`RequestResult.Bonus`). The wire
+  change is appended only: `RequestsSnapshot` 4–5, `RequestResult` 2. Stored requests keep their base reward.
 
 ## Alternatives considered
 
@@ -61,6 +66,7 @@ community goals; nothing there gives a player a reason to visit it every day.
 - Coins enter the economy at a fixed rate: seven small rewards once per account and at most three requests a day per player at +30 % of the
   bin price. The premium is a balance value in `RequestRules` and may change; stored rows keep their reward.
 - Quest-reward coin legs have audit reason `quest.reward`, requests `request.deliver`.
+- The early bonus adds at most 20 % of a request's base reward, and only for deliveries in the first four in-game hours of the day.
 - A board left open across midnight shows yesterday's list until the next action; the first non-Ok answer refreshes it.
 
 ## Revisit when

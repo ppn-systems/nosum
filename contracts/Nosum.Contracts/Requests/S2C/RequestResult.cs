@@ -18,6 +18,9 @@ public sealed partial class RequestResult : PacketBase<RequestResult>, IPacketSt
     /// <summary>Outcome code.</summary>
     [SerializeOrder(0)] public RequestStatus Status { get; set; }
 
-    /// <summary>The coins that were paid; zero unless the status is Ok.</summary>
+    /// <summary>The coins that were paid, the early bonus included; zero unless the status is Ok.</summary>
     [SerializeOrder(1)] public long Reward { get; set; }
+
+    /// <summary>Whether the delivery was in the early window and was paid the bonus; false unless the status is Ok.</summary>
+    [SerializeOrder(2)] public bool Bonus { get; set; }
 }

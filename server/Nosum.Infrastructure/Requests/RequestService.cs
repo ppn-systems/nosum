@@ -87,7 +87,8 @@ public sealed class RequestService : IRequestService
                 requests.Add(new RequestView(row.Slot, row.ItemId, row.Quantity, row.RewardCoins, fills.Exists(f => f.Slot == row.Slot)));
             }
 
-            return new RequestsView(nowMs, day, _calendar.NextDayStartMs(nowMs), requests);
+            long earlyUntilMs = _calendar.DayStartMs(day) + RequestRules.EarlyWindowMs(_calendar.DayLengthMs);
+            return new RequestsView(nowMs, day, _calendar.NextDayStartMs(nowMs), requests, earlyUntilMs, RequestRules.EarlyBonusPercent);
         }
     }
 
@@ -101,7 +102,8 @@ public sealed class RequestService : IRequestService
             return new RequestOutcome(RequestStatus.UnknownRequest, 0);
         }
 
-        int today = _calendar.DayNumberAt(_time.GetUtcNow().ToUnixTimeMilliseconds());
+        long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+        int today = _calendar.DayNumberAt(nowMs);
         if (day != today)
         {
             return new RequestOutcome(RequestStatus.NotToday, 0);
@@ -135,7 +137,8 @@ public sealed class RequestService : IRequestService
                 return new RequestOutcome(RequestStatus.AlreadyFilled, 0);
             }
 
-            long reward = request.RewardCoins;
+            bool early = RequestRules.IsEarly(nowMs - _calendar.DayStartMs(today), _calendar.DayLengthMs);
+            long reward = RequestRules.PaidFor(request.RewardCoins, early);
             TransferStatus status = await _transfers.ExecuteAsync(
                 [new TransferLeg(TransferParty.Player(playerId), request.ItemId, -request.Quantity, reward)],
                 DeliverReason,
@@ -154,7 +157,7 @@ public sealed class RequestService : IRequestService
 
             return status switch
             {
-                TransferStatus.Ok => new RequestOutcome(RequestStatus.Ok, reward),
+                TransferStatus.Ok => new RequestOutcome(RequestStatus.Ok, reward, early),
                 TransferStatus.NotEnoughItems => new RequestOutcome(RequestStatus.NotEnough, 0),
                 TransferStatus.TooBig => new RequestOutcome(RequestStatus.PurseFull, 0),
                 TransferStatus.Refused => new RequestOutcome(RequestStatus.AlreadyFilled, 0),

@@ -109,6 +109,40 @@ public sealed class RequestsViewModelTests
         f.Socket.Requests.OfType<GetRequests>().Should().HaveCount(2, "the board is read when the tab opens and again after a delivery");
     }
 
+    [Fact]
+    public void BonusText_WhileTheEarlyWindowIsOpen_ShowsThePercentAndTheTimeLeft()
+    {
+        using CultureScope scope = new("en");
+        Fixture f = Fixture.Create(parsnips: 0, earlyBonusOpen: true);
+
+        f.Vm.Open();
+
+        f.Vm.BonusText.Should().Be("Early bonus +20%: 0 h 30 min left.");
+    }
+
+    [Fact]
+    public void BonusText_AfterTheEarlyWindow_IsEmpty()
+    {
+        Fixture f = Fixture.Create(parsnips: 0);
+
+        f.Vm.Open();
+
+        f.Vm.BonusText.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Deliver_PaidTheEarlyBonus_SaysSo()
+    {
+        using CultureScope scope = new("en");
+        Fixture f = Fixture.Create(parsnips: 7, earlyBonusOpen: true, bonusPaid: true);
+        f.Vm.Open();
+
+        f.Vm.Deliver(0);
+
+        f.Vm.Status.Should().Be("Delivered early, with the bonus! You received 156 coins.");
+        f.Vm.StatusIsGood.Should().BeTrue();
+    }
+
     [Theory]
     [InlineData(RequestStatus.AlreadyFilled, "You already filled this request today.")]
     [InlineData(RequestStatus.NotAtBoard, "You are too far from the board.")]
@@ -150,7 +184,7 @@ public sealed class RequestsViewModelTests
     public void Text_EveryRequestOutcomeAndLabelHasATextInBothLanguages()
     {
         List<string> language = [.. System.Enum.GetValues<RequestStatus>().Where(s => s != RequestStatus.Ok).Select(s => "Requests_Status_" + s)];
-        language.AddRange(["Board_Tab_Goals", "Board_Tab_Requests", "Requests_Hint", "Requests_Loading", "Requests_None", "Requests_NewIn", "Requests_Ask", "Requests_Reward", "Requests_Held", "Requests_Deliver", "Requests_Filled", "Requests_Done", "Quest_Reward", "Hint_Quest"]);
+        language.AddRange(["Board_Tab_Goals", "Board_Tab_Requests", "Requests_Hint", "Requests_Loading", "Requests_None", "Requests_NewIn", "Requests_Ask", "Requests_Reward", "Requests_Held", "Requests_Deliver", "Requests_Filled", "Requests_Done", "Requests_Bonus", "Requests_DoneBonus", "Quest_Reward", "Hint_Quest"]);
 
         Keys("Language.resx").Should().Contain(language);
         Keys("Language.en.resx").Should().Contain(language);
@@ -166,13 +200,20 @@ public sealed class RequestsViewModelTests
 
         public required List<(int Day, int Slot)> Delivered { get; init; }
 
-        public static Fixture Create(int parsnips, RequestStatus deliverStatus = RequestStatus.Ok)
+        public static Fixture Create(int parsnips, RequestStatus deliverStatus = RequestStatus.Ok, bool earlyBonusOpen = false, bool bonusPaid = false)
         {
             FakeGameSocket socket = new();
             List<(int, int)> delivered = [];
             socket.ReplyWith(_ =>
             {
-                RequestsSnapshot snapshot = new() { ServerNowMs = 1_000_000, Day = Day, DayEndsAtMs = 1_000_000 + (90 * 60_000L) };
+                RequestsSnapshot snapshot = new()
+                {
+                    ServerNowMs = 1_000_000,
+                    Day = Day,
+                    DayEndsAtMs = 1_000_000 + (90 * 60_000L),
+                    EarlyUntilMs = earlyBonusOpen ? 1_000_000 + (30 * 60_000L) : 0,
+                    EarlyBonusPercent = 20,
+                };
                 snapshot.Rows.Add(new RequestRow { Slot = 0, ItemId = ItemCatalog.Parsnip, Quantity = 5, RewardCoins = 130, Filled = false });
                 snapshot.Rows.Add(new RequestRow { Slot = 1, ItemId = ItemCatalog.Radish, Quantity = 3, RewardCoins = 117, Filled = true });
                 return snapshot;
@@ -181,7 +222,7 @@ public sealed class RequestsViewModelTests
             {
                 DeliverRequest deliver = (DeliverRequest)request;
                 delivered.Add((deliver.Day, deliver.Slot));
-                return new RequestResult { Status = deliverStatus, Reward = deliverStatus == RequestStatus.Ok ? 130 : 0 };
+                return new RequestResult { Status = deliverStatus, Reward = deliverStatus == RequestStatus.Ok ? (bonusPaid ? 156 : 130) : 0, Bonus = bonusPaid };
             });
             socket.ReplyWith(_ => new CalendarInfo { EpochMs = 0, DayLengthMs = 43_200_000, ServerNowMs = 1_000_000 });
 

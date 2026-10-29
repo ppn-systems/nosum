@@ -154,4 +154,31 @@ public sealed class RequestRulesTests
     [InlineData(2, true)]
     [InlineData(3, false)]
     public void IsValidSlot_AcceptsOnlyTheSlotsOfADay(int slot, bool valid) => RequestRules.IsValidSlot(slot).Should().Be(valid);
+
+    [Fact]
+    public void EarlyWindowMs_IsTheFirstFourInGameHoursOfTheDay()
+    {
+        // A game day is 24 in-game hours, so 1 000 ms of real time is one in-game hour in this 24 000 ms day.
+        RequestRules.EarlyWindowMs(24_000).Should().Be(4_000);
+        RequestRules.EarlyWindowMs(GameCalendar.DefaultDayLengthMs).Should().Be(2 * 60 * 60 * 1000, "four of twelve real hours");
+    }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(3_999, true)]
+    [InlineData(4_000, false)]
+    [InlineData(-1, false)]
+    public void IsEarly_OnlyInTheFirstFourInGameHours(long msIntoDay, bool early) => RequestRules.IsEarly(msIntoDay, 24_000).Should().Be(early);
+
+    [Theory]
+    [InlineData(false, 130)]
+    [InlineData(true, 156)]
+    public void PaidFor_EarlyAddsTheBonusPercent_AndLateLeavesTheReward(bool early, long paid) => RequestRules.PaidFor(130, early).Should().Be(paid);
+
+    [Fact]
+    public void PaidFor_EarlyRoundsDown()
+    {
+        // 121 × 1.2 = 145.2, which is paid as 145.
+        RequestRules.PaidFor(121, early: true).Should().Be(145);
+    }
 }
