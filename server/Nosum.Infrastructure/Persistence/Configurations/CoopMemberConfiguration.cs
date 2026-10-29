@@ -14,7 +14,8 @@ internal sealed class CoopMemberConfiguration : IEntityTypeConfiguration<CoopMem
         _ = builder.ToTable("coop_members");
         _ = builder.HasKey(m => m.Id);
         _ = builder.Property(m => m.Id).ValueGeneratedNever();
-        _ = builder.HasIndex(m => m.PlayerId).IsUnique();
+        _ = builder.HasIndex(m => m.PlayerId).IsUnique().HasFilter("left_at IS NULL");
+        _ = builder.HasIndex(m => new { m.CoopId, m.PlayerId }).IsUnique();
         _ = builder.HasIndex(m => m.CoopId);
         _ = builder.HasOne<Coop>().WithMany().HasForeignKey(m => m.CoopId).OnDelete(DeleteBehavior.Cascade);
         _ = builder.HasOne<Player>().WithMany().HasForeignKey(m => m.PlayerId).OnDelete(DeleteBehavior.Cascade);

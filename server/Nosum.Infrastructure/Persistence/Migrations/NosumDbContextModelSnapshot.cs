@@ -695,6 +695,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("joined_at");
 
+                    b.Property<DateTimeOffset?>("LeftAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("left_at");
+
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid")
                         .HasColumnName("player_id");
@@ -711,7 +715,12 @@ namespace Nosum.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PlayerId")
                         .IsUnique()
-                        .HasDatabaseName("ix_coop_members_player_id");
+                        .HasDatabaseName("ix_coop_members_player_id")
+                        .HasFilter("left_at IS NULL");
+
+                    b.HasIndex("CoopId", "PlayerId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_coop_members_coop_id_player_id");
 
                     b.ToTable("coop_members", (string)null);
                 });
