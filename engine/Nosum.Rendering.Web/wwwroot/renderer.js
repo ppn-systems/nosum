@@ -22,6 +22,7 @@ let lightCount = 0;
 let ambientLayer = null;      // full-canvas offscreen layer the ambient tint is built on (command -4)
 let lightSprite = null;       // white-to-transparent radial gradient, scaled per light
 let edges = 0;  // one-shot keys pressed since the last frame, packed above the held bits (Nosum.Core.InputEdges)
+let mouseX = 0, mouseY = 0, mouseHeld = 0;  // the mouse over the canvas, CSS pixels, and 1 while its button is down (drag-to-sow)
 
 // Keys that never change: the arrows, Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
 // so the maps below are built from both. Bit values match Nosum.Core.InputState (held) and Nosum.Core.InputEdges (pressed once).
@@ -163,6 +164,11 @@ function installTouch() {
         press = { id: e.pointerId, x: e.clientX, y: e.clientY, timer: setTimeout(() => { edges |= 1; press = null; }, LONG_PRESS_MS) };
     });
     canvas.addEventListener("contextmenu", e => e.preventDefault());
+    // The mouse over the world: where it is and whether its button is down. The frame reads both for drag-to-sow (GameLoop.Frame).
+    canvas.addEventListener("pointermove", e => { if (e.pointerType === "mouse") { mouseX = e.offsetX; mouseY = e.offsetY; } });
+    canvas.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" && e.button === 0) { mouseHeld = 1; mouseX = e.offsetX; mouseY = e.offsetY; } });
+    canvas.addEventListener("pointerleave", () => { mouseHeld = 0; });
+    document.addEventListener("pointerup", e => { if (e.pointerType === "mouse") { mouseHeld = 0; } });
 }
 
 export async function loadTexture(id, url) {
@@ -245,7 +251,7 @@ export async function start(canvasId, assemblyName, exportPath) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
         const pressed = edges;
         edges = 0;
-        frame(time, (keys | touchHeld) | (pressed << 8), w, h);
+        frame(time, (keys | touchHeld) | (pressed << 8), w, h, mouseX, mouseY, mouseHeld);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);

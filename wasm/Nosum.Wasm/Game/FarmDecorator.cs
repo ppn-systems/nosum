@@ -29,6 +29,9 @@ internal sealed class FarmDecorator : IMapDecorator
 
     private const int WetSheetOffset = 64;
 
+    // The reticle's multiply tint when the held item would do nothing on the tile in front (0xRRGGBBAA): red, the rest dimmed.
+    private static readonly int s_deniedTint = unchecked((int)0xFF7070FF);
+
     private readonly string _mapId;
     private readonly FarmChannel _farm;
     private readonly PlayerActions _actions;
@@ -105,7 +108,9 @@ internal sealed class FarmDecorator : IMapDecorator
             }
         }
 
-        commands.Draw(_cursorTexture, 0, 0, 16, 16, (_actions.TargetX * _tileSize) - camera.Left, (_actions.TargetY * _tileSize) - camera.Top);
+        // The reticle turns red when the held seed, hoe or watering can would do nothing on the tile in front (PlayerActions.TargetDenied).
+        int reticleTint = _actions.TargetDenied ? s_deniedTint : RenderCommandBuffer.NoTint;
+        commands.Draw(_cursorTexture, 0, 0, 16, 16, (_actions.TargetX * _tileSize) - camera.Left, (_actions.TargetY * _tileSize) - camera.Top, 0, reticleTint);
     }
 
     /// <inheritdoc/>

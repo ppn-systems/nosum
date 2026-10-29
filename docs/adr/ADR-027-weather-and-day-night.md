@@ -27,8 +27,16 @@ reward, and the calendar already gives every player the same day.
   disabled indoors.
 - **D7 — The day rollover stays the calendar's day boundary (ADR-018).** Night lighting runs from 20:00 to the boundary;
   players are never forced to sleep (no fainting); energy refills at the boundary (ADR-023).
+- **D8 (amendment, #134) — Rain bonus on harvest.** An outdoor crop harvested on a rainy day (rain or storm), or on the
+  day after rain, may yield one more unit. The roll is a deterministic SplitMix64 over the map instance key, the tile
+  and the harvest day, salted apart from the revert roll; 20 percent of such harvests get the bonus. The server adds it
+  in `FarmRules.IsBonusHarvest` and the drop, the audit and the reply all count the same units. Indoor tiles never get
+  it. No new item ids (no separate "quality" crop), no stored field, and no wire change: the reply already carries the
+  quantity. A separate quality item with a higher sell value was the larger alternative and is not built; it can
+  replace this later with its own item ids (ADR-011 stable ids) if the design calls for it.
 
 ## Consequences
 
 One new render command (append-only in the command-buffer contract, both sides updated together). No new wire
-packets: weather derives from `CalendarInfo`.
+packets: weather derives from `CalendarInfo`. The rain bonus adds no packets and no stored state; the server rule is
+authoritative and the client never computes it.
