@@ -7,16 +7,18 @@ using System.Threading.Tasks;
 using Nosum.Core;
 using Nosum.Gameplay.Animals;
 using Nosum.Gameplay.Buildings;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Building;
+using Nosum.Wasm.Socket.Calendar;
 
 namespace Nosum.Wasm.Game;
 
 /// <summary>
 /// Draws the animals of the building the player is inside (docs/adr/ADR-028 D4) as depth-sorted world sprites, so the farmer walks in front of and behind them. The server chose each walk;
 /// this only follows it, taking the position from the walk's start time every frame, and the walking frame from the clock. An animal with produce to collect shows the produce above its
-/// head. Reads the channel under its lock and draws structs; allocation-free.
+/// head: the item the animal gives today, large or gold quality included (the server rolls it when collected, from the same seed). Reads the channel under its lock and draws structs; allocation-free.
 /// </summary>
 internal sealed class AnimalsDecorator : IMapDecorator
 {
@@ -30,18 +32,22 @@ internal sealed class AnimalsDecorator : IMapDecorator
     private readonly Dictionary<byte, (int Texture, AnimalDefinition Definition)> _sheets;
     private readonly int _objectsTexture;
     private readonly int _heartsTexture;
+    private readonly CalendarChannel? _calendar;
+    private GameCalendar? _rules;
 
     /// <summary>Initializes the decorator.</summary>
     /// <param name="buildings">The animals of the room.</param>
     /// <param name="sheets">Texture and data of every species.</param>
     /// <param name="objectsTexture">Texture of the objects sheet, where produce is pictured.</param>
     /// <param name="heartsTexture">Texture of the hearts sheet: a filled heart at column 0, an empty one at column 8.</param>
-    public AnimalsDecorator(BuildingChannel buildings, Dictionary<byte, (int Texture, AnimalDefinition Definition)> sheets, int objectsTexture, int heartsTexture)
+    /// <param name="calendar">The server's calendar, for the game day the produce is rolled on; null uses the everyday produce until it is known.</param>
+    public AnimalsDecorator(BuildingChannel buildings, Dictionary<byte, (int Texture, AnimalDefinition Definition)> sheets, int objectsTexture, int heartsTexture, CalendarChannel? calendar = null)
     {
         _buildings = buildings;
         _sheets = sheets;
         _objectsTexture = objectsTexture;
         _heartsTexture = heartsTexture;
+        _calendar = calendar;
     }
 
     /// <inheritdoc/>
@@ -49,6 +55,8 @@ internal sealed class AnimalsDecorator : IMapDecorator
     {
         long now = _buildings.NowMs;
         long clock = Environment.TickCount64;
+        GameCalendar? rules = this.Rules();
+        int today = rules?.DayNumberAt(now) ?? 0;
         using (_buildings.Read())
         {
             AnimalPetting petting = _buildings.LastPetting;
@@ -75,7 +83,8 @@ internal sealed class AnimalsDecorator : IMapDecorator
                 int stableId = pose.Id.GetHashCode() & 0x1FFF;
                 world.Add(sheet.Texture, column * animal.FrameWidth, row * animal.FrameHeight, animal.FrameWidth, animal.FrameHeight, left, top, y, x, stableId, pose.Facing == 3 ? RenderCommandBuffer.FlipX : 0);
 
-                if (pose.HasProduce && ItemIcons.TryGetGroundCell(animal.Product, out int srcX, out int srcY))
+                int produce = rules is null ? animal.Product : AnimalRules.ProduceOf(animal, pose.Id, today, pose.Friendship);
+                if (pose.HasProduce && ItemIcons.TryGetGroundCell(produce, out int srcX, out int srcY))
                 {
                     // The egg or the milk bobs above the animal, in front of everything in the room.
                     int bob = (int)(2 * Math.Sin((clock + (i * 311)) * 0.005));
@@ -96,6 +105,22 @@ internal sealed class AnimalsDecorator : IMapDecorator
             }
         }
     }
+
+    // The calendar the server sent, rebuilt only when its numbers change (once, at sign-in); null until it is known.
+    private GameCalendar? Rules()
+    {
+        if (_calendar is not { IsLoaded: true })
+        {
+            return null;
+        }
+
+        if (_rules is null || _rules.EpochMs != _calendar.EpochMs || _rules.DayLengthMs != _calendar.DayLengthMs)
+        {
+            _rules = new GameCalendar(_calendar.EpochMs, _calendar.DayLengthMs);
+        }
+
+        return _rules;
+    }
 }
 
 /// <summary>Builds the <see cref="AnimalsDecorator"/> of the inside of every farm building.</summary>
@@ -105,10 +130,16 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
     private const string HeartsUrl = "assets/sprites/hearts.png";
 
     private readonly BuildingChannel _buildings;
+    private readonly CalendarChannel? _calendar;
 
     /// <summary>Initializes the provider.</summary>
     /// <param name="buildings">The animals of the room.</param>
-    public AnimalsDecoratorProvider(BuildingChannel buildings) => _buildings = buildings;
+    /// <param name="calendar">The server's calendar, for the day's produce.</param>
+    public AnimalsDecoratorProvider(BuildingChannel buildings, CalendarChannel? calendar = null)
+    {
+        _buildings = buildings;
+        _calendar = calendar;
+    }
 
     /// <inheritdoc/>
     public async Task<IMapDecorator?> CreateAsync(MapSpec spec, TileMap map, TextureCache textures, CancellationToken cancellationToken)
@@ -133,6 +164,6 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
         cancellationToken.ThrowIfCancellationRequested();
         int hearts = await textures.LoadAsync(HeartsUrl).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        return new AnimalsDecorator(_buildings, sheets, objects, hearts);
+        return new AnimalsDecorator(_buildings, sheets, objects, hearts, _calendar);
     }
 }
