@@ -385,4 +385,28 @@
   <data name="Monster_boss_goblin_chieftain_Title" xml:space="preserve"><value>Chieftain Bane</value></data>
   <data name="Monster_boss_magma_colossus_Title" xml:space="preserve"><value>Colossus Bane</value></data>
   <data name="Monster_boss_golem_king_Title" xml:space="preserve"><value>Kingbreaker</value></data>
+  <data name="Item_fishing_rod_Name" xml:space="preserve"><value>Fishing rod</value></data>
+  <data name="Item_fishing_rod_Description" xml:space="preserve"><value>Cast it at water to catch fish.</value></data>
+  <data name="Item_fish_stew_Name" xml:space="preserve"><value>Fish stew</value></data>
+  <data name="Item_fish_stew_Description" xml:space="preserve"><value>A warm stew of fish and potato. Eat it to restore a good amount of energy.</value></data>
+  <data name="Item_anchovy_Name" xml:space="preserve"><value>Anchovy</value></data>
+  <data name="Item_anchovy_Description" xml:space="preserve"><value>A small fish, caught all year at the sea.</value></data>
+  <data name="Item_sea_bass_Name" xml:space="preserve"><value>Sea bass</value></data>
+  <data name="Item_sea_bass_Description" xml:space="preserve"><value>A long sea fish, caught by day from spring to fall.</value></data>
+  <data name="Item_mackerel_Name" xml:space="preserve"><value>Mackerel</value></data>
+  <data name="Item_mackerel_Description" xml:space="preserve"><value>A sea fish, caught only in fall and winter.</value></data>
+  <data name="Item_pufferfish_Name" xml:space="preserve"><value>Pufferfish</value></data>
+  <data name="Item_pufferfish_Description" xml:space="preserve"><value>A rare sea fish that turns up in summer. Worth a lot.</value></data>
+  <data name="Item_carp_Name" xml:space="preserve"><value>Carp</value></data>
+  <data name="Item_carp_Description" xml:space="preserve"><value>A pond fish, caught all year in the farm pond.</value></data>
+  <data name="Item_trout_Name" xml:space="preserve"><value>Trout</value></data>
+  <data name="Item_trout_Description" xml:space="preserve"><value>A stream fish of the woods pond. It bites only when it rains.</value></data>
+  <data name="Item_bass_Name" xml:space="preserve"><value>Bass</value></data>
+  <data name="Item_bass_Description" xml:space="preserve"><value>A strong freshwater fish, caught in the farm and woods ponds in summer and fall.</value></data>
+  <data name="Item_pike_Name" xml:space="preserve"><value>Pike</value></data>
+  <data name="Item_pike_Description" xml:space="preserve"><value>A fierce predator of the woods pond, caught at night in winter.</value></data>
+  <data name="Item_eel_Name" xml:space="preserve"><value>Eel</value></data>
+  <data name="Item_eel_Description" xml:space="preserve"><value>A slippery eel, caught at night in the woods pond in fall.</value></data>
+  <data name="Item_golden_koi_Name" xml:space="preserve"><value>Golden koi</value></data>
+  <data name="Item_golden_koi_Description" xml:space="preserve"><value>A rare golden koi. Only seen in the farm pond in spring, when it rains.</value></data>
 </root>

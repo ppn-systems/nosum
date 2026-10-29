@@ -852,6 +852,8 @@
   <data name="Mp_Label" xml:space="preserve"><value>MP {0} / {1}</value></data>
   <data name="Skill_Combat" xml:space="preserve"><value>Combat</value></data>
   <data name="Craft_Skill_Combat" xml:space="preserve"><value>Combat</value></data>
+  <data name="Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
+  <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Not enough MP to cast!</value></data>
   <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and carried back to the Farmhouse with low HP!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Combat skills</value></data>
@@ -922,4 +924,22 @@
   <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Wear title</value></data>
   <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Take off title</value></data>
   <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Unlocks at {0} slain</value></data>
+  <data name="Fishing_Title" xml:space="preserve"><value>Fishing</value></data>
+  <data name="Fishing_Casting" xml:space="preserve"><value>Casting the line...</value></data>
+  <data name="Fishing_Waiting" xml:space="preserve"><value>Waiting for a bite...</value></data>
+  <data name="Fishing_Bite" xml:space="preserve"><value>Something is biting!</value></data>
+  <data name="Fishing_Press" xml:space="preserve"><value>Press Space or click to reel in!</value></data>
+  <data name="Fishing_Reeling" xml:space="preserve"><value>Reeling in...</value></data>
+  <data name="Fishing_NotYet" xml:space="preserve"><value>Not yet. Wait for the bite.</value></data>
+  <data name="Fishing_Caught" xml:space="preserve"><value>You caught {0}!</value></data>
+  <data name="Fishing_Status_Nothing" xml:space="preserve"><value>The line came up with nothing but weeds.</value></data>
+  <data name="Fishing_Status_TooEarly" xml:space="preserve"><value>The fish has not bitten yet. Wait a moment.</value></data>
+  <data name="Fishing_Status_Escaped" xml:space="preserve"><value>The fish got away!</value></data>
+  <data name="Fishing_Status_NoRod" xml:space="preserve"><value>You are not holding a fishing rod.</value></data>
+  <data name="Fishing_Status_NotWater" xml:space="preserve"><value>The line can only go into water.</value></data>
+  <data name="Fishing_Status_NoCast" xml:space="preserve"><value>That cast is over.</value></data>
+  <data name="Fishing_Status_TooFar" xml:space="preserve"><value>You are too far from that water.</value></data>
+  <data name="Fishing_Status_OutOfEnergy" xml:space="preserve"><value>You are out of energy to fish.</value></data>
+  <data name="Fishing_Status_NoSpace" xml:space="preserve"><value>Your bag is full; there is no room for the catch.</value></data>
+  <data name="Fishing_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
 </root>

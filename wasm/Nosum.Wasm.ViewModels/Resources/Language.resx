@@ -852,6 +852,8 @@
   <data name="Mp_Label" xml:space="preserve"><value>Năng lượng phép (MP) {0} / {1}</value></data>
   <data name="Skill_Combat" xml:space="preserve"><value>Chiến đấu</value></data>
   <data name="Craft_Skill_Combat" xml:space="preserve"><value>Chiến đấu</value></data>
+  <data name="Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
+  <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Không đủ MP để thi triển phép!</value></data>
   <data name="Combat_KnockedOut" xml:space="preserve"><value>Bạn đã kiệt sức và được đưa về Nhà nông trại với lượng máu yếu!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Kỹ năng chiến đấu</value></data>
@@ -922,4 +924,22 @@
   <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Đeo danh hiệu</value></data>
   <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Gỡ danh hiệu</value></data>
   <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Mở khi hạ {0} con</value></data>
+  <data name="Fishing_Title" xml:space="preserve"><value>Câu cá</value></data>
+  <data name="Fishing_Casting" xml:space="preserve"><value>Đang quăng cần...</value></data>
+  <data name="Fishing_Waiting" xml:space="preserve"><value>Đang chờ cá cắn câu...</value></data>
+  <data name="Fishing_Bite" xml:space="preserve"><value>Cá đang cắn câu!</value></data>
+  <data name="Fishing_Press" xml:space="preserve"><value>Nhấn Space hoặc bấm chuột để kéo cần!</value></data>
+  <data name="Fishing_Reeling" xml:space="preserve"><value>Đang kéo cần...</value></data>
+  <data name="Fishing_NotYet" xml:space="preserve"><value>Chưa phải lúc. Chờ cá cắn câu đã.</value></data>
+  <data name="Fishing_Caught" xml:space="preserve"><value>Bạn câu được {0}!</value></data>
+  <data name="Fishing_Status_Nothing" xml:space="preserve"><value>Lưỡi câu chỉ kéo lên được rong rêu.</value></data>
+  <data name="Fishing_Status_TooEarly" xml:space="preserve"><value>Cá chưa cắn câu, chờ thêm chút nữa.</value></data>
+  <data name="Fishing_Status_Escaped" xml:space="preserve"><value>Cá đã thoát mất!</value></data>
+  <data name="Fishing_Status_NoRod" xml:space="preserve"><value>Bạn chưa cầm cần câu.</value></data>
+  <data name="Fishing_Status_NotWater" xml:space="preserve"><value>Chỉ quăng cần được xuống mặt nước.</value></data>
+  <data name="Fishing_Status_NoCast" xml:space="preserve"><value>Lần câu này đã kết thúc.</value></data>
+  <data name="Fishing_Status_TooFar" xml:space="preserve"><value>Bạn đứng quá xa mặt nước đó.</value></data>
+  <data name="Fishing_Status_OutOfEnergy" xml:space="preserve"><value>Bạn đã hết năng lượng để câu.</value></data>
+  <data name="Fishing_Status_NoSpace" xml:space="preserve"><value>Túi đồ đã đầy, không còn chỗ cho cá.</value></data>
+  <data name="Fishing_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
 </root>
