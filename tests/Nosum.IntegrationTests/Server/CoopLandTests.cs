@@ -106,7 +106,10 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         (await UseAsync(member, FarmItem.Can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Watered), "a member may water what another planted");
         (await UseAsync(member, FarmItem.Hoe, x, y)).Status.Should().NotBe(FarmStatus.Ok, "an unripe crop is not harvested");
         await GrowParsnipAsync(member, x, y);
-        (await UseAsync(member, FarmItem.Hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Harvested, ItemCatalog.Parsnip, 1), "a member may harvest what another planted");
+        FarmUseOutcome harvest = await UseAsync(member, FarmItem.Hoe, x, y);
+        harvest.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Harvested, Subject = ItemCatalog.Parsnip }, "a member may harvest what another planted");
+        // One parsnip, or two on a rainy harvest (docs/adr/ADR-027 D8).
+        harvest.Quantity.Should().BeInRange(1, 2);
 
         (await CountAsync(member, ItemCatalog.Parsnip)).Should().BePositive("the harvester takes the produce");
         (await CountAsync(founder, ItemCatalog.Parsnip)).Should().Be(0);
@@ -260,7 +263,8 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         wins.Should().Be(plots);
         int harvested = (await CountAsync(founder, ItemCatalog.Parsnip)) + (await CountAsync(member, ItemCatalog.Parsnip));
         _ = CropCatalog.TryGet(CropCatalog.Parsnip, out CropDefinition? parsnip);
-        harvested.Should().Be(plots * parsnip!.HarvestQuantity, "every plot paid out exactly once");
+        // Each plot pays out once: its yield, plus at most one rain bonus unit on a rainy day (docs/adr/ADR-027 D8). Exactly-once is pinned by the wins above.
+        harvested.Should().BeInRange(plots * parsnip!.HarvestQuantity, plots * (parsnip.HarvestQuantity + 1), "every plot paid out exactly once");
         await using NosumDbContext context = new(_database.Options);
         (await context.CoopLog.CountAsync(e => e.CoopId == coop && e.Reason == CoopLand.HarvestReason)).Should().Be(plots);
     }

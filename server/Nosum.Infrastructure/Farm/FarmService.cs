@@ -282,7 +282,8 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             // Ground the co-op has not unlocked cannot be tilled yet, though it is walkable (docs/adr/ADR-038 D4); soil tilled before stays workable.
             bool ground = tillable.IsTillable(tileX, tileY);
             bool locked = ground && member is not null && !CoopUpgrades.IsLandUnlocked(member.LandLevel, tileX, tileY);
-            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(player.Instance, tileX, tileY), tail);
+            int harvestBonus = FarmRules.IsBonusHarvest(player.Instance.Key, tileX, tileY, nowMs, _calendar, player.Instance.IsOutdoors) ? 1 : 0;
+            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(player.Instance, tileX, tileY), harvestBonus, tail);
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 return Refused(locked && plan.Verdict == FarmVerdict.NotTillable ? FarmStatus.LockedLand : ToStatus(plan.Verdict));
@@ -378,7 +379,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
     };
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
-    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, long? sprinklerSinceMs, bool tail = false)
+    private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, long? sprinklerSinceMs, int harvestBonus, bool tail = false)
     {
         bool hasItem = held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out _);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item);
@@ -388,9 +389,14 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         if (!tail && current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinklerSinceMs))
         {
             FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested, outdoors, sprinklerSinceMs);
-            return harvest != FarmVerdict.Ok
-                ? Plan.Refuse(harvest)
-                : new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested!.Id), harvested.HarvestItemId, harvested.HarvestQuantity, new PlannedDrop(harvested.HarvestItemId, harvested.HarvestQuantity));
+            if (harvest != FarmVerdict.Ok)
+            {
+                return Plan.Refuse(harvest);
+            }
+
+            // One more unit on a rainy harvest (docs/adr/ADR-027 D8); the audit and the drop count the same units.
+            int quantity = harvested!.HarvestQuantity + harvestBonus;
+            return new Plan(FarmVerdict.Ok, FarmAction.Harvested, bare, [], "farm.harvest", new QuestEvent(QuestEventKind.CropHarvested, harvested.Id), harvested.HarvestItemId, quantity, new PlannedDrop(harvested.HarvestItemId, quantity));
         }
 
         if (!hasItem || item is null)

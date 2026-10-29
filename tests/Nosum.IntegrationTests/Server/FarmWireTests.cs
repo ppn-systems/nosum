@@ -451,7 +451,8 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             harvested.Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Harvested });
             _ = await farmer.WaitForTileAsync(x, y, t => t.CropId == 0 && !t.Removed, timeout.Token);
             GroundItemRow dropped = await farmer.WaitForGroundItemAsync(g => g.ItemId == ItemCatalog.Parsnip, timeout.Token);
-            dropped.Quantity.Should().Be(1);
+            // One parsnip, or two on a rainy harvest (docs/adr/ADR-027 D8).
+            dropped.Quantity.Should().BeInRange(1, 2);
             (await farmer.GetInventoryAsync(timeout.Token)).Slots.Should().NotContain(s => s.ItemId == ItemCatalog.Parsnip);
             (await farmer.GetGroundItemsAsync(timeout.Token)).Items.Should().ContainSingle(g => g.ItemId == ItemCatalog.Parsnip, "the crop waits on the ground for the player");
             await using NosumDbContext context = new(_database.Options);

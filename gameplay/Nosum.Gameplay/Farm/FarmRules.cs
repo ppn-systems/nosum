@@ -18,6 +18,12 @@ public static class FarmRules
     /// <summary>Chance, in percent, that tilled soil without a crop reverts to untilled at the end of a dry game day.</summary>
     public const int RevertChancePercent = 30;
 
+    /// <summary>Chance, in percent, that a harvest of an outdoor crop on a rainy day, or the day after rain, yields one more unit (docs/adr/ADR-027 D8).</summary>
+    public const int BonusHarvestChancePercent = 20;
+
+    // Keeps the bonus roll apart from the revert roll for the same tile and day.
+    private const ulong BonusSalt = 0xB0BA5E5A17UL;
+
     /// <summary>Farthest distance from the player's feet to the centre of the target tile, world pixels.</summary>
     public const double MaxReachPixels = 32;
 
@@ -357,20 +363,62 @@ public static class FarmRules
     /// <returns>A number from 0 to 99, evenly spread.</returns>
     public static int RevertRoll(string instanceKey, int tileX, int tileY, int dayNumber)
     {
+        unchecked
+        {
+            ulong hash = Mix(TileHash(instanceKey, tileX, tileY) ^ ((ulong)(uint)dayNumber * 0x9E3779B97F4A7C15UL));
+            return (int)(hash % 100UL);
+        }
+    }
+
+    /// <summary>
+    /// Returns whether a harvest on this tile yields one bonus unit (docs/adr/ADR-027 D8): an outdoor tile harvested on a rainy day or the day
+    /// after rain, and a deterministic roll for the tile and the day under <see cref="BonusHarvestChancePercent"/>. Nothing is stored.
+    /// </summary>
+    /// <param name="instanceKey">The key of the map instance.</param>
+    /// <param name="tileX">Tile x.</param>
+    /// <param name="tileY">Tile y.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
+    /// <returns><see langword="true"/> when the harvest yields one more unit.</returns>
+    public static bool IsBonusHarvest(string instanceKey, int tileX, int tileY, long nowMs, GameCalendar calendar, bool outdoors)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        if (!outdoors)
+        {
+            return false;
+        }
+
+        int today = calendar.DayNumberAt(nowMs);
+        bool rainy = WeatherRules.WatersOn(calendar, today) || (today > 1 && WeatherRules.WatersOn(calendar, today - 1));
+        return rainy && BonusRoll(instanceKey, tileX, tileY, today) < BonusHarvestChancePercent;
+    }
+
+    // 0 to 99, the roll behind IsBonusHarvest; salted so it never matches RevertRoll for the same tile and day.
+    private static int BonusRoll(string instanceKey, int tileX, int tileY, int dayNumber)
+    {
+        unchecked
+        {
+            ulong hash = Mix(TileHash(instanceKey, tileX, tileY) ^ ((ulong)(uint)dayNumber * 0x9E3779B97F4A7C15UL) ^ BonusSalt);
+            return (int)(hash % 100UL);
+        }
+    }
+
+    // FNV-1a over the key (string.GetHashCode is randomized per process), then a SplitMix64 round over the tile.
+    private static ulong TileHash(string instanceKey, int tileX, int tileY)
+    {
         ArgumentNullException.ThrowIfNull(instanceKey);
 
         unchecked
         {
-            // FNV-1a over the key (string.GetHashCode is randomized per process), then SplitMix64 rounds over the tile and the day.
             ulong hash = 14695981039346656037UL;
             foreach (char c in instanceKey)
             {
                 hash = (hash ^ c) * 1099511628211UL;
             }
 
-            hash = Mix(hash ^ (((ulong)(uint)tileX << 32) | (uint)tileY));
-            hash = Mix(hash ^ ((ulong)(uint)dayNumber * 0x9E3779B97F4A7C15UL));
-            return (int)(hash % 100UL);
+            return Mix(hash ^ (((ulong)(uint)tileX << 32) | (uint)tileY));
         }
     }
 
