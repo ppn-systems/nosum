@@ -32,6 +32,7 @@
     <GameSection>
         <div class="inv-tools">
             <GameButton Variant="plain" Text="@Vm.SortLabel" OnClick="Vm.Sort" />
+            <label class="inv-lock"><input type="checkbox" checked="@Vm.LockHotbar" @onchange="e => Vm.SetLockHotbar((bool)(e.Value ?? false))" />@Vm.LockHotbarLabel</label>
         </div>
         <div class="inv-grids">
             <ItemGrid Slots="Storage" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" />

@@ -16,6 +16,8 @@ public static class NosumProtocol
     /// 6: market trends - <c>Average</c> appended to <c>PriceHistory</c> (docs/adr/ADR-030 D4).
     /// 7: co-op objectives - <c>Objectives</c> appended to <c>CoopSnapshot</c> (docs/adr/ADR-067).
     /// 8: bestiary - new packets <c>GetBestiary</c>, <c>BestiarySnapshot</c>, <c>EquipBestiaryTitle</c>, <c>EquipBestiaryTitleResult</c> (docs/adr/ADR-068).
+    /// 15: held tool, trade lock, hotbar sort lock - <c>HeldItemId</c> appended to <c>PlayerState</c>; <c>ConfirmLockMs</c> appended to <c>TradeState</c>;
+    /// <c>TradeStatus.TooSoon</c> (value 12); <c>LockHotbar</c> appended to <c>SortInventory</c>. This bump covers every wire change since 8.
     /// </summary>
-    public const ushort Version = 8;
+    public const ushort Version = 15;
 }

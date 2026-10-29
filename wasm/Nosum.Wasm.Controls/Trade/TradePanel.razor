@@ -44,7 +44,7 @@
 
 @code {
     private RenderFragment Actions() => @<GameRow>
-        <GameButton Text="@Vm.Text("Trade_Confirm")" Disabled="Vm.MyConfirmed" OnClick="@(() => Vm.Confirm())" />
+        <GameButton Text="@Vm.ConfirmLabel" Disabled="Vm.MyConfirmed || Vm.ConfirmLocked" OnClick="@(() => Vm.Confirm())" />
         <GameButton Variant="danger" Text="@Vm.Text("Trade_Cancel")" OnClick="@(() => Vm.Cancel())" />
     </GameRow>;
 }

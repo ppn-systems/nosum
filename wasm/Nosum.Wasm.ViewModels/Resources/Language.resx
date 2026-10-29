@@ -70,6 +70,7 @@
   <data name="Inventory_Close" xml:space="preserve"><value>Đóng</value></data>
   <data name="Inventory_Sort" xml:space="preserve"><value>Sắp xếp</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Thanh vật phẩm</value></data>
+  <data name="Inventory_LockHotbar" xml:space="preserve"><value>Giữ thanh vật phẩm khi sắp xếp</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Số lượng: {0}</value></data>
   <data name="Tooltip_Tier" xml:space="preserve"><value>Bậc: {0}</value></data>
   <data name="Tooltip_Tier_Basic" xml:space="preserve"><value>Cơ bản</value></data>
@@ -187,6 +188,7 @@
   <data name="Trade_SetCoins" xml:space="preserve"><value>Cập nhật xu</value></data>
   <data name="Trade_PickItems" xml:space="preserve"><value>Bấm một món trong túi để đưa ra; bấm món đã đưa để rút lại.</value></data>
   <data name="Trade_Confirm" xml:space="preserve"><value>Xác nhận</value></data>
+  <data name="Trade_ConfirmWait" xml:space="preserve"><value>Chờ {0} giây để xác nhận</value></data>
   <data name="Trade_Cancel" xml:space="preserve"><value>Hủy giao dịch</value></data>
   <data name="Trade_InviteTitle" xml:space="preserve"><value>Lời mời giao dịch</value></data>
   <data name="Trade_InviteMessage" xml:space="preserve"><value>{0} muốn giao dịch với bạn.</value></data>
@@ -202,6 +204,7 @@
   <data name="Trade_Status_NotEnoughItems" xml:space="preserve"><value>Bạn không có đủ vật phẩm.</value></data>
   <data name="Trade_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
   <data name="Trade_Status_NothingOffered" xml:space="preserve"><value>Cả hai bên chưa đưa gì ra.</value></data>
+  <data name="Trade_Status_TooSoon" xml:space="preserve"><value>Đề nghị vừa đổi, chờ vài giây rồi xác nhận.</value></data>
   <data name="Trade_Ended_Completed" xml:space="preserve"><value>Giao dịch hoàn tất.</value></data>
   <data name="Trade_Ended_Cancelled" xml:space="preserve"><value>Bạn đã hủy giao dịch.</value></data>
   <data name="Trade_Ended_CancelledByOther" xml:space="preserve"><value>Đối phương đã hủy giao dịch.</value></data>

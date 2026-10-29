@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Inventory;
 using Nosum.Contracts.Inventory;
+using Nosum.Domain.Blacksmith;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Placeables;
@@ -50,12 +52,12 @@ public sealed partial class InventoryService
     }
 
     /// <inheritdoc/>
-    public async Task<InventoryChange> SortAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    public async Task<InventoryChange> SortAsync(Guid ownerId, int firstSlot, CancellationToken cancellationToken = default)
     {
         // A sort changes no totals either: the same items end up in other slots, so there is nothing to audit.
         Outcome outcome = await this.ExecuteAsync(
             ownerId,
-            static (loaded, _) => ToStatus(loaded.Grid.Sort()),
+            (loaded, _) => ToStatus(loaded.Grid.Sort(firstSlot)),
             string.Empty,
             null,
             push: true,
@@ -66,9 +68,29 @@ public sealed partial class InventoryService
     /// <inheritdoc/>
     public async Task<InventoryChange> BackfillStarterToolsAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
+        // A read-only pass first: most joins have the whole kit, and those cost no write and no job read.
+        bool lacking = false;
+        Outcome probe = await this.ExecuteAsync(
+            playerId,
+            (loaded, _) =>
+            {
+                lacking = StarterToolLacking(loaded);
+                return InventoryStatus.Ok;
+            },
+            string.Empty,
+            null,
+            push: false,
+            cancellationToken).ConfigureAwait(false);
+        if (!lacking)
+        {
+            return new InventoryChange(probe.Status, probe.Changed);
+        }
+
+        // A tool being upgraded at the Blacksmith is out of the bag on purpose: its kind is held by the job, so no free tool replaces it (docs/adr/ADR-026).
+        HashSet<ToolKind> upgrading = await this.UpgradingKindsAsync(playerId, cancellationToken).ConfigureAwait(false);
         Outcome outcome = await this.ExecuteAsync(
             playerId,
-            static (loaded, deltas) =>
+            (loaded, deltas) =>
             {
                 foreach (ItemSlot starter in StarterKit.Items)
                 {
@@ -76,7 +98,7 @@ public sealed partial class InventoryService
                     if (ItemCatalog.TryGet(starter.ItemId, out ItemDefinition? item)
                         && item.Kind == ItemKind.Tool
                         && loaded.Grid.CountOf(item.Id) == 0
-                        && (item.Tool == ToolKind.None || !HasToolOfKind(loaded.Grid, loaded.Capacity, item.Tool))
+                        && (item.Tool == ToolKind.None || (!upgrading.Contains(item.Tool) && !HasToolOfKind(loaded.Grid, loaded.Capacity, item.Tool)))
                         && loaded.Grid.Add(item.Id, 1) == InventoryVerdict.Ok)
                     {
                         deltas.Add((item.Id, 1));
@@ -90,6 +112,40 @@ public sealed partial class InventoryService
             push: true,
             cancellationToken).ConfigureAwait(false);
         return new InventoryChange(outcome.Status, outcome.Changed);
+    }
+
+    // True when a starter tool is absent from the bag by the grant's own test; the grant pass decides again, this only saves the job read.
+    private static bool StarterToolLacking(Loaded loaded)
+    {
+        foreach (ItemSlot starter in StarterKit.Items)
+        {
+            if (ItemCatalog.TryGet(starter.ItemId, out ItemDefinition? item)
+                && item.Kind == ItemKind.Tool
+                && loaded.Grid.CountOf(item.Id) == 0
+                && (item.Tool == ToolKind.None || !HasToolOfKind(loaded.Grid, loaded.Capacity, item.Tool)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The kinds held by the player's Blacksmith job, read from the row the upgrade wrote with the old tool's removal.
+    private async Task<HashSet<ToolKind>> UpgradingKindsAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        HashSet<ToolKind> kinds = [];
+        IUnitOfWork unit = _unitOfWork.Create();
+        await using (unit.ConfigureAwait(false))
+        {
+            ToolUpgrade? job = await unit.Repository<ToolUpgrade>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+            if (job is not null && ItemCatalog.TryGet(job.ToolItemId, out ItemDefinition? target) && target.Tool != ToolKind.None)
+            {
+                _ = kinds.Add(target.Tool);
+            }
+        }
+
+        return kinds;
     }
 
     private static bool HasToolOfKind(InventoryGrid grid, int capacity, ToolKind kind)
@@ -130,6 +186,10 @@ public sealed partial class InventoryService
     /// <param name="ownerId">The player or container.</param>
     /// <returns>The copy as text, or <see langword="null"/> when none is held.</returns>
     public string? DescribeHeld(Guid ownerId) => _cache.TryGetValue(ownerId, out Entry? entry) ? Describe(entry.View()) : null;
+
+    /// <inheritdoc/>
+    public int PeekHeldItemId(Guid ownerId)
+        => _cache.TryGetValue(ownerId, out Entry? entry) ? entry.Peek(entry.SelectedSlot).ItemId : 0;
 
     /// <summary>Describes an inventory as a service with nothing held reads it from the rows.</summary>
     /// <param name="view">The inventory.</param>

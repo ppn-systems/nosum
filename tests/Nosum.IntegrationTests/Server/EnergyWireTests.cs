@@ -341,7 +341,14 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
 
         _ = await player.JoinAsync(host.Timeout);
 
+        // The backfill runs after the join's reply, so the grant is awaited rather than read at once.
         InventoryView after = await inventory.GetAsync(player.AccountId);
+        for (int wait = 0; wait < 200 && !newTools.All(tool => after.Slots.Any(s => s.ItemId == tool)); wait++)
+        {
+            await Task.Delay(25, host.Timeout);
+            after = await inventory.GetAsync(player.AccountId);
+        }
+
         after.Slots.Select(s => s.ItemId).Should().Contain(newTools);
         after.Slots.Count(s => newTools.Contains(s.ItemId)).Should().Be(3);
         await using (NosumDbContext db = new(_database.Options))

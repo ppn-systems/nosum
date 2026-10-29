@@ -30,7 +30,15 @@
 .inv-tools {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     padding: 0 calc(var(--u) * 2) calc(var(--u) * 2);
+}
+
+.inv-lock {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--u);
+    margin-left: calc(var(--u) * 2);
 }
 
 /* The bag, then the hotbar row after one slot-sized gap in the same card. */

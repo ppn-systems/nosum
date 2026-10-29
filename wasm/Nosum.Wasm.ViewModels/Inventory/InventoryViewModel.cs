@@ -166,11 +166,25 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
         this.Changed?.Invoke();
     }
 
-    /// <summary>Asks the server to sort the bag. A stack picked up for a move is put down first.</summary>
+    /// <summary>Gets whether sorting keeps the hotbar as it is. On by default, so a sort never moves the tools a player has set up.</summary>
+    public bool LockHotbar { get; private set; } = true;
+
+    /// <summary>Gets the text of the hotbar lock toggle.</summary>
+    public string LockHotbarLabel => _text["Inventory_LockHotbar"];
+
+    /// <summary>Sets whether sorting keeps the hotbar as it is.</summary>
+    /// <param name="locked">Whether the hotbar is locked.</param>
+    public void SetLockHotbar(bool locked)
+    {
+        this.LockHotbar = locked;
+        this.Changed?.Invoke();
+    }
+
+    /// <summary>Asks the server to sort the bag, keeping the hotbar when it is locked. A stack picked up for a move is put down first.</summary>
     public void Sort()
     {
         _movingFrom = -1;
-        _channel.Sort();
+        _channel.Sort(this.LockHotbar);
         this.Changed?.Invoke();
     }
 

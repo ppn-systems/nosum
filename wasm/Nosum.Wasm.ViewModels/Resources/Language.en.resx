@@ -70,6 +70,7 @@
   <data name="Inventory_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Inventory_Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
+  <data name="Inventory_LockHotbar" xml:space="preserve"><value>Keep hotbar when sorting</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
   <data name="Tooltip_Tier" xml:space="preserve"><value>Tier: {0}</value></data>
   <data name="Tooltip_Tier_Basic" xml:space="preserve"><value>Basic</value></data>
@@ -187,6 +188,7 @@
   <data name="Trade_SetCoins" xml:space="preserve"><value>Set coins</value></data>
   <data name="Trade_PickItems" xml:space="preserve"><value>Click an item in your bag to offer it; click an offered item to take it back.</value></data>
   <data name="Trade_Confirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Trade_ConfirmWait" xml:space="preserve"><value>Confirm in {0}s</value></data>
   <data name="Trade_Cancel" xml:space="preserve"><value>Cancel trade</value></data>
   <data name="Trade_InviteTitle" xml:space="preserve"><value>Trade invitation</value></data>
   <data name="Trade_InviteMessage" xml:space="preserve"><value>{0} wants to trade with you.</value></data>
@@ -202,6 +204,7 @@
   <data name="Trade_Status_NotEnoughItems" xml:space="preserve"><value>You do not have those items.</value></data>
   <data name="Trade_Status_NotEnoughCoins" xml:space="preserve"><value>You do not have enough coins.</value></data>
   <data name="Trade_Status_NothingOffered" xml:space="preserve"><value>Neither side offers anything.</value></data>
+  <data name="Trade_Status_TooSoon" xml:space="preserve"><value>The offer just changed; confirm in a moment.</value></data>
   <data name="Trade_Ended_Completed" xml:space="preserve"><value>Trade complete.</value></data>
   <data name="Trade_Ended_Cancelled" xml:space="preserve"><value>You cancelled the trade.</value></data>
   <data name="Trade_Ended_CancelledByOther" xml:space="preserve"><value>The other player cancelled the trade.</value></data>

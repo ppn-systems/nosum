@@ -13,6 +13,7 @@ using Nosum.Abstractions.Buildings;
 using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.GroundItems;
+using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Observability;
 using Nosum.Abstractions.Placeables;
@@ -51,6 +52,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     private readonly IGroundItems? _groundItems;
     private readonly IBuildingDirectory? _buildings;
     private readonly ICommunityUnlocks? _unlocks;
+    private readonly IInventoryService? _inventory;
     private readonly ConcurrentDictionary<uint, (int X, int Y)> _disarmedTiles = new();
 
     /// <summary>Initializes the service.</summary>
@@ -67,7 +69,8 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     /// <param name="groundItems">Told after every accepted move so items within reach are picked up (docs/adr/ADR-021 D6); <see langword="null"/> for none.</param>
     /// <param name="buildings">The farm buildings: walking onto a building's door enters its interior, and leaving the interior returns to the door (docs/adr/ADR-028 D2); <see langword="null"/> for none.</param>
     /// <param name="unlocks">The community unlocks; a map change tells the client those that change what it may walk on (docs/adr/ADR-037 D4); <see langword="null"/> tells it none.</param>
-    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null, IBuildingDirectory? buildings = null, ICommunityUnlocks? unlocks = null)
+    /// <param name="inventory">Tells each snapshot the item every player holds in hand; <see langword="null"/> sends empty hands.</param>
+    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null, IBuildingDirectory? buildings = null, ICommunityUnlocks? unlocks = null, IInventoryService? inventory = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
@@ -92,6 +95,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         _groundItems = groundItems;
         _buildings = buildings;
         _unlocks = unlocks;
+        _inventory = inventory;
         _snapshotInterval = snapshotInterval;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
     }
