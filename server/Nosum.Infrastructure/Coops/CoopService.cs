@@ -139,7 +139,8 @@ public sealed partial class CoopService : ICoopService, IDisposable
                 Guid[] asking = [.. group.Select(g => g.Me.Id)];
                 List<CoopLogEntry> logs = await unit.Repository<CoopLogEntry>().ListAsync(e => e.CoopId == coopId && asking.Contains(e.MemberId), cancellationToken).ConfigureAwait(false);
                 List<CoopStockItem> stock = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == coopId, cancellationToken).ConfigureAwait(false);
-                List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == coopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw"), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
+                // The upgrades that paid from the stock are shown too, so members can see where the materials went.
+                List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == coopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw" || e.Reason == CoopUpgrades.WarehouseReason || e.Reason == CoopUpgrades.LandReason), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
                 List<CoopLogView> logViews = [.. recent.Select(e => new CoopLogView(memberIds.Contains(e.MemberId) ? e.MemberId : Guid.Empty, e.ItemId, e.Delta, e.OccurredAt))];
                 List<CoopObjectiveView> objectiveViews = [.. CoopObjectiveCatalog.All.Select(o => coop.Objectives.TryGetValue(o.Id, out CoopObjectiveProgress? row)
                     ? new CoopObjectiveView(o.Id, row.Contributed, row.CompletedAt is not null)
@@ -171,7 +172,7 @@ public sealed partial class CoopService : ICoopService, IDisposable
             Coop? offered = await unit.Repository<Coop>().FindAsync(invite.CoopId, cancellationToken).ConfigureAwait(false);
             if (offered is not null)
             {
-                CoopMember? founder = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.CoopId == offered.Id && m.Role == CoopRole.Founder, cancellationToken).ConfigureAwait(false);
+                CoopMember? founder = await unit.Repository<CoopMember>().FirstOrDefaultAsync(m => m.CoopId == offered.Id && m.Role == CoopRole.Founder && m.LeftAt == null, cancellationToken).ConfigureAwait(false);
                 string inviter = founder is null ? string.Empty : await _nicknames.GetAsync(founder.PlayerId, cancellationToken).ConfigureAwait(false);
                 views.Add(new CoopInviteView(invite.Id, offered.Name, inviter));
             }
@@ -195,7 +196,7 @@ public sealed partial class CoopService : ICoopService, IDisposable
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
-                if (await unit.Repository<CoopMember>().AnyAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false))
+                if (await unit.Repository<CoopMember>().AnyAsync(m => m.PlayerId == playerId && m.LeftAt == null, cancellationToken).ConfigureAwait(false))
                 {
                     return CoopStatus.AlreadyInCoop;
                 }
@@ -338,7 +339,8 @@ public sealed partial class CoopService : ICoopService, IDisposable
             await using (unit.ConfigureAwait(false))
             {
                 IRepository<CoopInvite> invites = unit.Repository<CoopInvite>();
-                CoopInvite? invite = await invites.FirstOrDefaultAsync(i => i.Id == inviteId && i.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
+                List<CoopInvite> mine = await invites.ListAsync(i => i.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
+                CoopInvite? invite = mine.Find(i => i.Id == inviteId);
                 if (invite is null || invite.ExpiresAt <= now)
                 {
                     return CoopStatus.InviteNotFound;
@@ -351,17 +353,33 @@ public sealed partial class CoopService : ICoopService, IDisposable
                 }
                 else
                 {
-                    if (await _directory.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false) is not null)
+                    // The player's rows: an active one means they are in a co-op already; a departed row of this co-op is the one they take up again.
+                    IRepository<CoopMember> memberships = unit.Repository<CoopMember>();
+                    List<CoopMember> rows = await memberships.ListAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
+                    if (rows.Exists(m => m.LeftAt == null))
                     {
                         return CoopStatus.AlreadyInCoop;
                     }
 
-                    foreach (CoopInvite open in await invites.ListAsync(i => i.PlayerId == playerId, cancellationToken).ConfigureAwait(false))
+                    foreach (CoopInvite open in mine)
                     {
                         invites.Remove(open);
                     }
 
-                    unit.Repository<CoopMember>().Add(new CoopMember { CoopId = invite.CoopId, PlayerId = playerId, Role = CoopRole.Member, JoinedAt = now });
+                    // A former member takes up their own row again: the membership id, and with it their warehouse contributions, is the one they had before.
+                    CoopMember? former = rows.Find(m => m.CoopId == invite.CoopId);
+                    if (former is null)
+                    {
+                        memberships.Add(new CoopMember { CoopId = invite.CoopId, PlayerId = playerId, Role = CoopRole.Member, JoinedAt = now });
+                    }
+                    else
+                    {
+                        former.Role = CoopRole.Member;
+                        former.JoinedAt = now;
+                        former.LeftAt = null;
+                        memberships.Update(former);
+                    }
+
                     try
                     {
                         _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -396,17 +414,18 @@ public sealed partial class CoopService : ICoopService, IDisposable
         {
             List<Guid> toPush = [playerId];
             List<MapInstance> dissolvedLand = [];
+            bool dissolved = false;
             IUnitOfWork unit = _unitOfWork.Create();
             await using (unit.ConfigureAwait(false))
             {
                 IRepository<CoopMember> memberRepository = unit.Repository<CoopMember>();
-                CoopMember? me = await memberRepository.FirstOrDefaultAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
+                CoopMember? me = await memberRepository.FirstOrDefaultAsync(m => m.PlayerId == playerId && m.LeftAt == null, cancellationToken).ConfigureAwait(false);
                 if (me is null)
                 {
                     return CoopStatus.NotInCoop;
                 }
 
-                List<CoopMember> others = [.. (await memberRepository.ListAsync(m => m.CoopId == me.CoopId && m.Id != me.Id, cancellationToken).ConfigureAwait(false)).OrderBy(m => m.JoinedAt)];
+                List<CoopMember> others = [.. (await memberRepository.ListAsync(m => m.CoopId == me.CoopId && m.Id != me.Id && m.LeftAt == null, cancellationToken).ConfigureAwait(false)).OrderBy(m => m.JoinedAt)];
                 if (me.Role == CoopRole.Founder)
                 {
                     if (others.Count > 0)
@@ -427,11 +446,21 @@ public sealed partial class CoopService : ICoopService, IDisposable
                         {
                             unit.Repository<Coop>().Remove(coop);
                             dissolvedLand = await this.WipeLandAsync(unit, coop.Id, cancellationToken).ConfigureAwait(false);
+                            dissolved = true;
                         }
                     }
                 }
 
-                memberRepository.Remove(me);
+                // A dissolved co-op goes with its rows; otherwise the leaver keeps theirs, so a rejoin takes up the same membership and its contributions.
+                if (dissolved)
+                {
+                    memberRepository.Remove(me);
+                }
+                else
+                {
+                    me.LeftAt = _time.GetUtcNow();
+                    memberRepository.Update(me);
+                }
                 try
                 {
                     _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -477,7 +506,7 @@ public sealed partial class CoopService : ICoopService, IDisposable
             await using (unit.ConfigureAwait(false))
             {
                 IRepository<CoopMember> members = unit.Repository<CoopMember>();
-                CoopMember? me = await members.FirstOrDefaultAsync(m => m.PlayerId == playerId, cancellationToken).ConfigureAwait(false);
+                CoopMember? me = await members.FirstOrDefaultAsync(m => m.PlayerId == playerId && m.LeftAt == null, cancellationToken).ConfigureAwait(false);
                 if (me is null)
                 {
                     return CoopStatus.NotInCoop;
@@ -493,13 +522,15 @@ public sealed partial class CoopService : ICoopService, IDisposable
                     return CoopStatus.SelfKick;
                 }
 
-                CoopMember? target = await members.FirstOrDefaultAsync(m => m.Id == memberId && m.CoopId == me.CoopId, cancellationToken).ConfigureAwait(false);
+                CoopMember? target = await members.FirstOrDefaultAsync(m => m.Id == memberId && m.CoopId == me.CoopId && m.LeftAt == null, cancellationToken).ConfigureAwait(false);
                 if (target is null)
                 {
                     return CoopStatus.MemberNotFound;
                 }
 
-                members.Remove(target);
+                // The row stays (with LeftAt set) so that a rejoin takes up the same membership and its contributions.
+                target.LeftAt = _time.GetUtcNow();
+                members.Update(target);
                 try
                 {
                     _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

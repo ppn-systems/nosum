@@ -22,6 +22,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Players;
 using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
+using Nosum.Gameplay.Trade;
 using Nosum.Contracts.Look;
 using Nosum.Contracts.Look.S2C;
 using Nosum.Contracts.Market;
@@ -196,9 +197,9 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         seenByB.OtherItems.Should().Equal([(ItemCatalog.Parsnip, 5)]);
         (await b.TradeOfferAsync([(ItemCatalog.Radish, 3)], 0, ct)).Should().Be(TradeStatus.Ok);
 
-        (await a.TradeConfirmAsync(ct)).Should().Be(TradeStatus.Ok);
+        (await ConfirmWhenUnlockedAsync(a, server, ct)).Should().Be(TradeStatus.Ok);
         (await b.TradeStates.WaitAsync(s => s.OtherConfirmed, ct)).MyConfirmed.Should().BeFalse();
-        (await b.TradeConfirmAsync(ct)).Should().Be(TradeStatus.Ok);
+        (await ConfirmWhenUnlockedAsync(b, server, ct)).Should().Be(TradeStatus.Ok);
 
         (await a.TradeEnds.WaitAsync(_ => true, ct)).Should().Be(TradeEndReason.Completed);
         (await b.TradeEnds.WaitAsync(_ => true, ct)).Should().Be(TradeEndReason.Completed);
@@ -208,7 +209,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         (await b.CountAsync(ItemCatalog.Radish, ct)).Should().Be(7);
         (await a.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins - 50);
         (await b.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins + 50);
-        (await a.TradeConfirmAsync(ct)).Should().Be(TradeStatus.NoSession);
+        (await ConfirmWhenUnlockedAsync(a, server, ct)).Should().Be(TradeStatus.NoSession);
     }
 
     [Fact]
@@ -220,14 +221,14 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         await using SocialClient disposeA = a;
         await using SocialClient disposeB = b;
 
-        (await a.TradeConfirmAsync(ct)).Should().Be(TradeStatus.NothingOffered);
+        (await ConfirmWhenUnlockedAsync(a, server, ct)).Should().Be(TradeStatus.NothingOffered);
         (await a.TradeOfferAsync([(ItemCatalog.Parsnip, 11)], 0, ct)).Should().Be(TradeStatus.NotEnoughItems);
         (await a.TradeOfferAsync([], CoinRules.StartingCoins + 1, ct)).Should().Be(TradeStatus.NotEnoughCoins);
         (await a.TradeOfferAsync([(ItemCatalog.Hoe, 1)], 0, ct)).Should().Be(TradeStatus.InvalidOffer);
         (await a.TradeOfferAsync([(ItemCatalog.Parsnip, 2)], 0, ct)).Should().Be(TradeStatus.Ok);
         (await b.TradeOfferAsync([(ItemCatalog.Radish, 2)], 0, ct)).Should().Be(TradeStatus.Ok);
-        (await a.TradeConfirmAsync(ct)).Should().Be(TradeStatus.Ok);
-        (await b.TradeConfirmAsync(ct)).Should().Be(TradeStatus.Ok);
+        (await ConfirmWhenUnlockedAsync(a, server, ct)).Should().Be(TradeStatus.Ok);
+        (await ConfirmWhenUnlockedAsync(b, server, ct)).Should().Be(TradeStatus.Ok);
         // The second confirmation completed the trade; start a fresh one to test clearing.
         (await a.TradeEnds.WaitAsync(_ => true, ct)).Should().Be(TradeEndReason.Completed);
         (await b.TradeEnds.WaitAsync(_ => true, ct)).Should().Be(TradeEndReason.Completed);
@@ -236,7 +237,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         _ = await b.Invites.WaitAsync(_ => true, ct);
         (await b.TradeRespondAsync(true, ct)).Should().Be(TradeStatus.Ok);
         (await a.TradeOfferAsync([(ItemCatalog.Parsnip, 1)], 0, ct)).Should().Be(TradeStatus.Ok);
-        (await a.TradeConfirmAsync(ct)).Should().Be(TradeStatus.Ok);
+        (await ConfirmWhenUnlockedAsync(a, server, ct)).Should().Be(TradeStatus.Ok);
         _ = await b.TradeStates.WaitAsync(s => s.OtherConfirmed, ct);
 
         // B changes the offer: A's confirmation is gone on both screens.
@@ -259,14 +260,14 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         (SocialClient a, SocialClient b) = await TradersAsync(server);
         await using SocialClient disposeA = a;
         (await a.TradeOfferAsync([(ItemCatalog.Parsnip, 4)], 10, ct)).Should().Be(TradeStatus.Ok);
-        (await a.TradeConfirmAsync(ct)).Should().Be(TradeStatus.Ok);
+        (await ConfirmWhenUnlockedAsync(a, server, ct)).Should().Be(TradeStatus.Ok);
 
         await b.DisposeAsync();
 
         (await a.TradeEnds.WaitAsync(_ => true, ct)).Should().Be(TradeEndReason.OtherLeft);
         (await a.CountAsync(ItemCatalog.Parsnip, ct)).Should().Be(10);
         (await a.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins);
-        (await a.TradeConfirmAsync(ct)).Should().Be(TradeStatus.NoSession);
+        (await ConfirmWhenUnlockedAsync(a, server, ct)).Should().Be(TradeStatus.NoSession);
     }
 
     [Fact]
@@ -279,12 +280,12 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         await using SocialClient disposeB = b;
         (await a.TradeOfferAsync([(ItemCatalog.Parsnip, 10)], 0, ct)).Should().Be(TradeStatus.Ok);
         (await b.TradeOfferAsync([(ItemCatalog.Radish, 1)], 100, ct)).Should().Be(TradeStatus.Ok);
-        (await a.TradeConfirmAsync(ct)).Should().Be(TradeStatus.Ok);
+        (await ConfirmWhenUnlockedAsync(a, server, ct)).Should().Be(TradeStatus.Ok);
 
         // After offering, A puts the whole stack on the market: the claim is stale by the time B confirms.
         int slot = await a.SlotOfAsync(ItemCatalog.Parsnip, ct);
         (await a.ListAsync(slot, ItemCatalog.Parsnip, 10, 50, ct)).Should().Be(MarketStatus.Ok);
-        (await b.TradeConfirmAsync(ct)).Should().Be(TradeStatus.Ok);
+        (await ConfirmWhenUnlockedAsync(b, server, ct)).Should().Be(TradeStatus.Ok);
 
         (await b.TradeEnds.WaitAsync(_ => true, ct)).Should().Be(TradeEndReason.NotEnoughItems);
         (await b.CountAsync(ItemCatalog.Radish, ct)).Should().Be(10);
@@ -343,6 +344,20 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     }
 
     // Two players on the farm, A holding 10 parsnips and B 10 radishes, with a trade open between them.
+    // Confirming waits out the lock after the last change of an offer (TradeSession.ConfirmLock), on the server's clock: a refused confirm moves the
+    // clock past the lock and tries once more, so the test does not sleep.
+    private static async Task<TradeStatus> ConfirmWhenUnlockedAsync(SocialClient client, Server server, CancellationToken ct)
+    {
+        TradeStatus status = await client.TradeConfirmAsync(ct);
+        if (status == TradeStatus.TooSoon)
+        {
+            server.Clock.Advance(TradeSession.ConfirmLock);
+            status = await client.TradeConfirmAsync(ct);
+        }
+
+        return status;
+    }
+
     private async Task<(SocialClient A, SocialClient B)> TradersAsync(Server server, (string Map, double X, double Y)? startAt = null)
     {
         CancellationToken ct = server.Token;
@@ -560,13 +575,16 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         private readonly NetworkApplication _app;
         private readonly CancellationTokenSource _timeout = new(s_timeout);
 
-        private Server(NetworkApplication app, ushort port)
+        private Server(NetworkApplication app, ushort port, FakeTimeProvider clock)
         {
             _app = app;
             this.Port = port;
+            this.Clock = clock;
         }
 
         public ushort Port { get; }
+
+        public FakeTimeProvider Clock { get; }
 
         public CancellationToken Token => _timeout.Token;
 
@@ -578,8 +596,9 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
             TestAccounts.UseFakeVerifiers(database.Options);
-            NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start), development);
-            Server server = new(app, port);
+            FakeTimeProvider clock = new(s_start);
+            NetworkApplication app = Program.BuildApplication(port, clock, development);
+            Server server = new(app, port, clock);
             await app.ActivateAsync(server.Token);
             return server;
         }

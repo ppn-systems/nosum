@@ -33,7 +33,7 @@ question.
   the items and pays in one transfer. The client sends it when the action key is pressed facing the bin with a crop held.
 - **D5 — Consignment market.** `MarketListing` rows are the escrow: listing removes the stack from the seller's inventory and inserts an
   `Active` row in one transfer; a listing is paid out of, or returned from, escrow only by the transfer that closes it.
-  - Fee 5 % of the price, rounded down, taken from the seller's proceeds (`CoinRules.MarketFee`); the fee leaves the economy.
+  - Fee 5 % of the price, rounded up (never less than the exact share, so micro-listings pay it too; #159), taken from the seller's proceeds (`CoinRules.MarketFee`); the fee leaves the economy.
     Price is for the whole stack (1 to 1 000 000 000 coins); a seller has at most 20 active listings; a listing lasts 48 hours.
   - **Buy** = buyer coins out, seller coins in (minus the fee), items to the buyer, listing `Sold`, in one transfer. The seller is paid whether
     online or not. A buyer with too few coins or no room changes nothing and the listing stays for sale.

@@ -18,15 +18,18 @@ public sealed class SocialRulesTests
 {
     private static readonly Guid s_a = Guid.CreateVersion7();
     private static readonly Guid s_b = Guid.CreateVersion7();
+    private static readonly DateTimeOffset s_t0 = new(2026, 10, 29, 12, 0, 0, TimeSpan.Zero);
 
     [Theory]
     [InlineData(0, 0)]
-    [InlineData(19, 0)]
+    [InlineData(1, 1)]
+    [InlineData(19, 1)]
     [InlineData(20, 1)]
+    [InlineData(21, 2)]
     [InlineData(100, 5)]
-    [InlineData(999, 49)]
+    [InlineData(999, 50)]
     [InlineData(1_000_000_000, 50_000_000)]
-    public void MarketFee_IsFivePercentRoundedDown(long price, long fee)
+    public void MarketFee_IsFivePercentRoundedUp_SoAMicroListingPaysAtLeastItsShare(long price, long fee)
     {
         CoinRules.MarketFee(price).Should().Be(fee);
         CoinRules.SellerProceeds(price).Should().Be(price - fee);
@@ -96,13 +99,13 @@ public sealed class SocialRulesTests
     public void TradeSession_ChangingAnOfferClearsBothConfirmations()
     {
         TradeSession session = new(s_a, s_b);
-        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 5, 0)).Should().Be(TradeVerdict.Ok);
-        session.SetOffer(s_b, Offer(ItemCatalog.Radish, 0, 100)).Should().Be(TradeVerdict.Ok);
-        session.Confirm(s_a);
-        session.Confirm(s_b);
+        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 5, 0), s_t0).Should().Be(TradeVerdict.Ok);
+        session.SetOffer(s_b, Offer(ItemCatalog.Radish, 0, 100), s_t0).Should().Be(TradeVerdict.Ok);
+        session.Confirm(s_a, s_t0 + TradeSession.ConfirmLock);
+        session.Confirm(s_b, s_t0 + TradeSession.ConfirmLock);
         session.IsReady.Should().BeTrue();
 
-        session.SetOffer(s_b, Offer(ItemCatalog.Radish, 0, 150));
+        session.SetOffer(s_b, Offer(ItemCatalog.Radish, 0, 150), s_t0);
 
         session.IsConfirmed(s_a).Should().BeFalse();
         session.IsConfirmed(s_b).Should().BeFalse();
@@ -110,13 +113,39 @@ public sealed class SocialRulesTests
     }
 
     [Fact]
+    public void TradeSession_ConfirmWithinTheLockAfterAnOfferChanged_IsTooSoonUntilTheLockPasses()
+    {
+        TradeSession session = new(s_a, s_b);
+        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 5, 0), s_t0).Should().Be(TradeVerdict.Ok);
+        session.SetOffer(s_b, Offer(ItemCatalog.Radish, 0, 100), s_t0).Should().Be(TradeVerdict.Ok);
+
+        session.Confirm(s_a, s_t0 + TradeSession.ConfirmLock - TimeSpan.FromMilliseconds(1)).Should().Be(TradeVerdict.TooSoon);
+        session.IsConfirmed(s_a).Should().BeFalse();
+        session.ConfirmLockRemaining(s_t0 + TimeSpan.FromSeconds(1)).Should().Be(TradeSession.ConfirmLock - TimeSpan.FromSeconds(1));
+
+        session.Confirm(s_a, s_t0 + TradeSession.ConfirmLock).Should().Be(TradeVerdict.Ok);
+        session.IsConfirmed(s_a).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TradeSession_ALatestChangeRestartsTheLockForBothParties()
+    {
+        TradeSession session = new(s_a, s_b);
+        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 5, 0), s_t0);
+        session.SetOffer(s_b, Offer(ItemCatalog.Radish, 0, 100), s_t0 + TimeSpan.FromSeconds(2));
+
+        session.Confirm(s_a, s_t0 + TradeSession.ConfirmLock).Should().Be(TradeVerdict.TooSoon, "B changed the offer a second ago");
+        session.Confirm(s_b, s_t0 + TimeSpan.FromSeconds(2) + TradeSession.ConfirmLock).Should().Be(TradeVerdict.Ok);
+    }
+
+    [Fact]
     public void TradeSession_SettingTheSameOfferAgain_KeepsTheConfirmations()
     {
         TradeSession session = new(s_a, s_b);
-        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 5, 0));
-        session.Confirm(s_a);
+        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 5, 0), s_t0);
+        session.Confirm(s_a, s_t0 + TradeSession.ConfirmLock);
 
-        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 5, 0));
+        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 5, 0), s_t0);
 
         session.IsConfirmed(s_a).Should().BeTrue();
     }
@@ -125,11 +154,11 @@ public sealed class SocialRulesTests
     public void TradeSession_ReadyOnlyWhenBothConfirmedTheCurrentOffers()
     {
         TradeSession session = new(s_a, s_b);
-        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 1, 0));
+        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 1, 0), s_t0);
 
-        session.Confirm(s_a);
+        session.Confirm(s_a, s_t0 + TradeSession.ConfirmLock);
         session.IsReady.Should().BeFalse();
-        session.Confirm(s_b);
+        session.Confirm(s_b, s_t0 + TradeSession.ConfirmLock);
         session.IsReady.Should().BeTrue();
     }
 
@@ -138,10 +167,10 @@ public sealed class SocialRulesTests
     {
         TradeSession session = new(s_a, s_b);
 
-        session.Confirm(s_a).Should().Be(TradeVerdict.NothingOffered);
-        session.SetOffer(Guid.NewGuid(), TradeOffer.Empty).Should().Be(TradeVerdict.NotParticipant);
+        session.Confirm(s_a, s_t0 + TradeSession.ConfirmLock).Should().Be(TradeVerdict.NothingOffered);
+        session.SetOffer(Guid.NewGuid(), TradeOffer.Empty, s_t0).Should().Be(TradeVerdict.NotParticipant);
         session.Close();
-        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 1, 0)).Should().Be(TradeVerdict.Closed);
+        session.SetOffer(s_a, Offer(ItemCatalog.Parsnip, 1, 0), s_t0).Should().Be(TradeVerdict.Closed);
         session.IsReady.Should().BeFalse();
     }
 

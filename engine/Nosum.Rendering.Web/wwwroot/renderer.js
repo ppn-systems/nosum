@@ -257,20 +257,19 @@ export async function start(canvasId, assemblyName, exportPath) {
     requestAnimationFrame(tick);
 }
 
-let frameScratch = new Int32Array(16384);
+// A MemoryView has no buffer or byteOffset (it is a .NET Span, not a typed array), so its bytes are copied into this scratch with copyTo, which
+// allocates nothing once the scratch is big enough. The Int32 view shares the scratch's buffer.
+let frameBytes = new Uint8Array(65536);
+let frameWords = new Int32Array(frameBytes.buffer);
 
 export function submitFrame(view) {
-    let data;
-    if ((view.byteOffset & 3) === 0) {
-        data = new Int32Array(view.buffer, view.byteOffset, view.byteLength >> 2);
-    } else {
-        const words = view.byteLength >> 2;
-        if (frameScratch.length < words) {
-            frameScratch = new Int32Array(Math.max(words, frameScratch.length * 2));
-        }
-        new Uint8Array(frameScratch.buffer, 0, view.byteLength).set(view);
-        data = frameScratch;
+    const size = view.byteLength;
+    if (frameBytes.length < size) {
+        frameBytes = new Uint8Array(Math.max(size, frameBytes.length * 2));
+        frameWords = new Int32Array(frameBytes.buffer);
     }
+    view.copyTo(frameBytes);
+    const data = frameWords;
     const count = data[0], scale = data[1];
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);

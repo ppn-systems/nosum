@@ -36,4 +36,7 @@ public sealed partial class TradeState : PacketBase<TradeState>, IPacketStaticOp
 
     /// <summary>Whether the other party confirmed.</summary>
     [SerializeOrder(6)] public bool OtherConfirmed { get; set; }
+
+    /// <summary>Milliseconds until either party may confirm again after the last change of an offer; zero when confirming is open.</summary>
+    [SerializeOrder(7)] public int ConfirmLockMs { get; set; }
 }

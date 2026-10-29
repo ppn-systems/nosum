@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Nosum.Contracts.Player.S2C;
 using Nosum.Core.Interpolation;
@@ -24,6 +25,7 @@ internal sealed class RemotePlayers : IDisposable
     private readonly PlayerChannel _channel;
     private readonly SnapshotBuffer _buffer = new(MaxPlayers + 1);
     private readonly IDisposable[] _subscriptions;
+    private readonly Dictionary<uint, int> _held = [];
     private ServerClock _clock;
     private uint _knownLocalId;
 
@@ -56,8 +58,14 @@ internal sealed class RemotePlayers : IDisposable
     public void Reset()
     {
         _buffer.Clear();
+        _held.Clear();
         _knownLocalId = 0;
     }
+
+    /// <summary>Returns the item a remote farmer holds in hand, from the newest snapshot.</summary>
+    /// <param name="id">Player id.</param>
+    /// <returns>The item id, or zero for empty hands or an unknown player.</returns>
+    public int HeldItemOf(uint id) => _held.TryGetValue(id, out int item) ? item : 0;
 
     /// <summary>Returns the id of the remote farmer at an index below <see cref="Count"/>.</summary>
     /// <param name="index">Index.</param>
@@ -105,6 +113,7 @@ internal sealed class RemotePlayers : IDisposable
         if (localId != _knownLocalId)
         {
             _buffer.Clear();
+            _held.Clear();
             _knownLocalId = localId;
         }
 
@@ -117,6 +126,7 @@ internal sealed class RemotePlayers : IDisposable
             if (p.PlayerId != localId)
             {
                 _buffer.Push(p.PlayerId, serverTime, p.X, p.Y, PackState(p.Facing, p.Moving));
+                _held[p.PlayerId] = p.HeldItemId;
             }
         }
 
@@ -127,11 +137,16 @@ internal sealed class RemotePlayers : IDisposable
             if (!Contains(snapshot, id))
             {
                 _ = _buffer.Remove(id);
+                _ = _held.Remove(id);
             }
         }
     }
 
-    private void OnPlayerLeft(PlayerLeft left) => _ = _buffer.Remove(left.PlayerId);
+    private void OnPlayerLeft(PlayerLeft left)
+    {
+        _ = _buffer.Remove(left.PlayerId);
+        _ = _held.Remove(left.PlayerId);
+    }
 
     private static bool Contains(MapSnapshot snapshot, uint id)
     {

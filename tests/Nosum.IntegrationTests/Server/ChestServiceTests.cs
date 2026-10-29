@@ -397,6 +397,30 @@ public sealed class ChestServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task CoopLand_AStranger_CannotTakeFromOrSortTheChest_AndTheStockStays()
+    {
+        using PlacementHarness world = new(_database);
+        Guid founder = await world.CreatePlayerAsync();
+        Guid stranger = await world.CreatePlayerAsync();
+        Guid coop = await world.CreateCoopAsync(founder);
+        MapInstance land = MapInstance.OfCoop(GameMaps.CoopFarm, coop);
+        (int x, int y, _) = world.OpenRow(GameMaps.CoopFarm, 4);
+        foreach (Guid who in new[] { founder, stranger })
+        {
+            world.Stand(who, land, x + 1, y);
+        }
+
+        int chest = await world.PlaceOnFarmAsync(founder, ItemCatalog.Chest, x, y);
+        int slot = await world.GiveAsync(founder, ItemCatalog.Stone, 9);
+        (await world.Chests.OpenAsync(world.Presence.ConnectionOf(founder), chest)).Status.Should().Be(ChestStatus.Ok);
+        (await world.Chests.MoveAsync(world.Presence.ConnectionOf(founder), chest, ChestSide.Player, slot, ChestSide.Chest, 0, 0)).Should().Be(ChestStatus.Ok);
+
+        (await world.Chests.MoveAsync(world.Presence.ConnectionOf(stranger), chest, ChestSide.Chest, 0, ChestSide.Player, -1, 9)).Should().Be(ChestStatus.NotYours);
+        (await world.Chests.SortAsync(world.Presence.ConnectionOf(stranger), chest)).Should().Be(ChestStatus.NotYours);
+        (await world.Chests.MoveAsync(world.Presence.ConnectionOf(founder), chest, ChestSide.Chest, 0, ChestSide.Player, -1, 9)).Should().Be(ChestStatus.Ok, "the stone never left the chest");
+    }
+
+    [Fact]
     public async Task CoopLand_ChestMovesAreLoggedPerPlayer()
     {
         using PlacementHarness world = new(_database);

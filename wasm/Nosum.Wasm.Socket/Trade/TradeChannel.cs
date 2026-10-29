@@ -24,7 +24,8 @@ public readonly record struct TradeLineInfo(int ItemId, int Quantity);
 /// <param name="OtherCoins">The other party's offered coins.</param>
 /// <param name="MyConfirmed">Whether the player confirmed.</param>
 /// <param name="OtherConfirmed">Whether the other party confirmed.</param>
-public sealed record TradeInfo(uint OtherPlayerId, IReadOnlyList<TradeLineInfo> MyItems, long MyCoins, IReadOnlyList<TradeLineInfo> OtherItems, long OtherCoins, bool MyConfirmed, bool OtherConfirmed);
+/// <param name="ConfirmUnlocksAt">The local tick count (<see cref="Environment.TickCount64"/>) when confirming opens again; zero or earlier when it is open.</param>
+public sealed record TradeInfo(uint OtherPlayerId, IReadOnlyList<TradeLineInfo> MyItems, long MyCoins, IReadOnlyList<TradeLineInfo> OtherItems, long OtherCoins, bool MyConfirmed, bool OtherConfirmed, long ConfirmUnlocksAt);
 
 /// <summary>The trade's side of the connection: invitations, the open session, and how it ended. The server owns every offer and decides the swap.</summary>
 public sealed class TradeChannel : IDisposable
@@ -127,7 +128,7 @@ public sealed class TradeChannel : IDisposable
 
     private void OnState(TradeState state)
     {
-        this.Open = new TradeInfo(state.OtherPlayerId, Lines(state.MyItems), state.MyCoins, Lines(state.OtherItems), state.OtherCoins, state.MyConfirmed, state.OtherConfirmed);
+        this.Open = new TradeInfo(state.OtherPlayerId, Lines(state.MyItems), state.MyCoins, Lines(state.OtherItems), state.OtherCoins, state.MyConfirmed, state.OtherConfirmed, Environment.TickCount64 + state.ConfirmLockMs);
         this.Waiting = false;
         this.Invite = 0;
         this.Changed?.Invoke();

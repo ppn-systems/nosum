@@ -26,4 +26,7 @@ public sealed partial class PlayerState
 
     /// <summary>Whether the player is walking.</summary>
     [SerializeOrder(4)] public bool Moving { get; set; }
+
+    /// <summary>Item in the hotbar slot the player holds, drawn in hand; zero for empty hands or when the server does not hold the bag in memory.</summary>
+    [SerializeOrder(5)] public int HeldItemId { get; set; }
 }

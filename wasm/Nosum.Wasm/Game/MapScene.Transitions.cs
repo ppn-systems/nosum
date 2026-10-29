@@ -198,7 +198,7 @@ internal sealed partial class MapScene
             FarmerLook look = _looks is not null && _looks.TryGet(id, out known) ? LookSprites.Resolve(known) : this.Look;
             int rx = (int)Math.Round(pose.X);
             int ry = (int)Math.Round(pose.Y);
-            FarmerSprite.Draw(_world, _farmerTextures, look, (Facing)(pose.State & 3), walk, rx, ry, (int)id);
+            FarmerSprite.Draw(_world, _farmerTextures, look, (Facing)(pose.State & 3), walk, rx, ry, (int)id, _remote.HeldItemOf(id));
             this.AddLabel(known.Nickname, rx, ry);
         }
     }
