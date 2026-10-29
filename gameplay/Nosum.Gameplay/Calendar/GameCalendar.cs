@@ -15,6 +15,15 @@ public sealed class GameCalendar
     /// <summary>Game days in one season.</summary>
     public const int DaysPerSeason = 28;
 
+    /// <summary>
+    /// Tells whether a season begins after <paramref name="fromDay"/> and no later than <paramref name="toDay"/>. A season begins on every day number
+    /// that is a multiple of <see cref="DaysPerSeason"/>, so a catch-up across several days sees a season change exactly when the live day rollover would.
+    /// </summary>
+    /// <param name="fromDay">The day the state was last brought up to.</param>
+    /// <param name="toDay">The day to bring it up to.</param>
+    /// <returns><see langword="true"/> when a season began in between.</returns>
+    public static bool SeasonBeganBetween(long fromDay, long toDay) => toDay / DaysPerSeason > fromDay / DaysPerSeason;
+
     /// <summary>Seasons in one year.</summary>
     public const int SeasonsPerYear = 4;
 

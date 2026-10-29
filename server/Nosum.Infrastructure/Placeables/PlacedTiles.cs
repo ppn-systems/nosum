@@ -30,7 +30,7 @@ public sealed class PlacedTiles : IPlacedLookup
     public bool IsCovered(MapInstance instance, int tileX, int tileY) => _instances.TryGetValue(instance.Key, out Snapshot? snapshot) && snapshot.Covered.Contains((tileX, tileY));
 
     /// <inheritdoc/>
-    public bool IsSprinklerWatered(MapInstance instance, int tileX, int tileY) => _instances.TryGetValue(instance.Key, out Snapshot? snapshot) && SprinklerRules.IsWatered(snapshot.Items, tileX, tileY);
+    public long? SprinklerWateredSinceMs(MapInstance instance, int tileX, int tileY) => _instances.TryGetValue(instance.Key, out Snapshot? snapshot) ? SprinklerRules.WateredSinceMs(snapshot.Items, tileX, tileY) : null;
 
     /// <summary>Replaces what is known about an instance.</summary>
     /// <param name="instance">The place.</param>

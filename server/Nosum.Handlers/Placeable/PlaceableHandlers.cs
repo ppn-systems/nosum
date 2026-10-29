@@ -47,6 +47,7 @@ public static partial class PlaceableHandlers
                 row.TileX = (ushort)item.TileX;
                 row.TileY = (ushort)item.TileY;
                 row.Rotation = (byte)item.Rotation;
+                row.PlacedAtMs = item.PlacedAtMs;
                 snapshot.Objects.Add(row);
             }
         }).ConfigureAwait(false);

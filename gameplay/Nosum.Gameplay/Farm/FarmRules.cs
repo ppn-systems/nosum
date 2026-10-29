@@ -108,9 +108,9 @@ public static class FarmRules
     /// <param name="calendar">The server calendar.</param>
     /// <param name="next">The watered tile when allowed.</param>
     /// <param name="outdoors">Whether the tile is outdoors, where rain waters it too (<see cref="IsWateredOn"/>).</param>
-    /// <param name="sprinkled">Whether a sprinkler stands beside the tile.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
     /// <returns>The verdict.</returns>
-    public static FarmVerdict Water(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next, bool outdoors = true, bool sprinkled = false)
+    public static FarmVerdict Water(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
@@ -121,7 +121,7 @@ public static class FarmRules
         }
 
         int today = calendar.DayNumberAt(nowMs);
-        next = tile with { GrowthDays = tile.HasCrop ? GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinkled) : 0, WateredDay = today };
+        next = tile with { GrowthDays = tile.HasCrop ? GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinklerSinceMs) : 0, WateredDay = today };
         return FarmVerdict.Ok;
     }
 
@@ -153,6 +153,35 @@ public static class FarmRules
     }
 
     /// <summary>
+    /// Cuts a withered crop down with a scythe (docs/adr/ADR-018): the dead plant goes and the soil stays tilled, bare, ready for a new seed. The day
+    /// it was cut counts as tended, like a harvest, so the bare soil starts its dry days again from there.
+    /// </summary>
+    /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="next">The tilled bare soil left behind when allowed.</param>
+    /// <returns>The verdict: <see cref="FarmVerdict.NothingToDo"/> when no withered crop stands there.</returns>
+    public static FarmVerdict CutWithered(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        next = default;
+        if (current is not { } tile)
+        {
+            return FarmVerdict.NotTilled;
+        }
+
+        if (!IsWithered(tile, nowMs, calendar))
+        {
+            return FarmVerdict.NothingToDo;
+        }
+
+        int today = calendar.DayNumberAt(nowMs);
+        next = new FarmTile(0, 0, 0, tile.WateredDay == today ? today : 0, today);
+        return FarmVerdict.Ok;
+    }
+
+    /// <summary>
     /// Harvests a mature crop that has not withered; the soil stays tilled. A regrowing crop (<see cref="CropDefinition.RegrowDays"/>) stays
     /// planted and needs its regrow days of watering before it bears again; any other crop leaves bare soil.
     /// </summary>
@@ -162,9 +191,9 @@ public static class FarmRules
     /// <param name="next">The tile after the harvest when allowed: bare soil, or the regrowing plant.</param>
     /// <param name="crop">The crop that was harvested when allowed.</param>
     /// <param name="outdoors">Whether the tile is outdoors, so rain waters it.</param>
-    /// <param name="sprinkled">Whether a sprinkler waters the tile every day.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
     /// <returns>The verdict.</returns>
-    public static FarmVerdict Harvest(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next, out CropDefinition? crop, bool outdoors = true, bool sprinkled = false)
+    public static FarmVerdict Harvest(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next, out CropDefinition? crop, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
@@ -185,7 +214,7 @@ public static class FarmRules
             return FarmVerdict.Withered;
         }
 
-        if (!IsMature(tile, nowMs, calendar, outdoors, sprinkled))
+        if (!IsMature(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
         {
             return FarmVerdict.NotMature;
         }
@@ -208,9 +237,9 @@ public static class FarmRules
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
     /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
-    /// <param name="sprinkled">Whether a sprinkler stands beside the tile (<c>SprinklerRules</c>); outdoors it waters the tile every day.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
     /// <returns>Watered game days; zero for bare soil.</returns>
-    public static int GrowthDaysAt(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, bool sprinkled = false)
+    public static int GrowthDaysAt(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
@@ -226,12 +255,12 @@ public static class FarmRules
 
         // Days up to the last watering are already settled (watering settles rain with it); later ones, or all of them since planting when the soil
         // was never watered, count when it rained. Stops as soon as the crop is mature, so a long gap costs nothing.
-        if (outdoors && days < crop.TotalGrowthDays)
+        if ((outdoors || sprinklerSinceMs is not null) && days < crop.TotalGrowthDays)
         {
             int first = tile.WateredDay > 0 ? tile.WateredDay + 1 : calendar.DayNumberAt(tile.PlantedAtMs);
             for (int day = first; day < today && days < crop.TotalGrowthDays; day++)
             {
-                if (IsWateredOn(tile, day, calendar, outdoors, sprinkled))
+                if (IsWateredOn(tile, day, calendar, outdoors, sprinklerSinceMs))
                 {
                     days++;
                 }
@@ -242,43 +271,46 @@ public static class FarmRules
     }
 
     /// <summary>
-    /// Returns whether a game day counts as a watered day for a tile that was not hand-watered on it: outdoors, a rainy day waters every tilled tile
-    /// (docs/adr/ADR-027 D2) and a sprinkler beside the tile waters it every day (docs/adr/ADR-024); indoors nothing does. This is the single place that decides it, so other sources (a sprinkler's reach) extend it here and the
-    /// growth, the wet look and the reverting of bare soil all follow, on the server and the client alike.
+    /// Returns whether a game day counts as a watered day for a tile that was not hand-watered on it: a rainy day waters every tilled tile outdoors
+    /// (docs/adr/ADR-027 D2), and a sprinkler beside the tile waters it every day after the one it was placed on (docs/adr/ADR-024), indoors too. This is the single place that decides it, so the growth, the wet look and the reverting of bare soil all follow, on the server and the client alike.
     /// </summary>
     /// <param name="tile">The tile.</param>
     /// <param name="dayNumber">The game day number.</param>
     /// <param name="calendar">The calendar.</param>
     /// <param name="outdoors">Whether the tile is outdoors.</param>
-    /// <param name="sprinkled">Whether a sprinkler stands beside the tile. A sprinkler waters its four orthogonal tiles every day it stands; the state is read as it is now, not as it was on that day.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
     /// <returns><see langword="true"/> when the day waters the tile without anyone's hand.</returns>
-    public static bool IsWateredOn(in FarmTile tile, int dayNumber, GameCalendar calendar, bool outdoors = true, bool sprinkled = false)
+    public static bool IsWateredOn(in FarmTile tile, int dayNumber, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
         _ = tile;
-        return outdoors && (sprinkled || WeatherRules.WatersOn(calendar, dayNumber));
+        return SprinklerWatersOn(sprinklerSinceMs, dayNumber, calendar) || (outdoors && WeatherRules.WatersOn(calendar, dayNumber));
     }
+
+    // A sprinkler placed on day N waters the days after N, from the start of each (docs/adr/ADR-024 D4): a day it was not standing through is never watered by it.
+    private static bool SprinklerWatersOn(long? sprinklerSinceMs, int dayNumber, GameCalendar calendar)
+        => sprinklerSinceMs is { } since && dayNumber > calendar.DayNumberAt(since);
 
     /// <summary>Returns the stage a tile's crop shows, from 0 (just planted) to mature.</summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
     /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
-    /// <param name="sprinkled">Whether a sprinkler stands beside the tile (<c>SprinklerRules</c>); outdoors it waters the tile every day.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
     /// <returns>The stage, or -1 for bare soil.</returns>
-    public static int StageAt(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, bool sprinkled = false)
-        => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) ? crop.StageAt(GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinkled)) : -1;
+    public static int StageAt(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
+        => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) ? crop.StageAt(GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinklerSinceMs)) : -1;
 
     /// <summary>Returns whether a tile's crop can be harvested.</summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
     /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
-    /// <param name="sprinkled">Whether a sprinkler stands beside the tile (<c>SprinklerRules</c>); outdoors it waters the tile every day.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
     /// <returns><see langword="true"/> when a mature crop grows there.</returns>
-    public static bool IsMature(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, bool sprinkled = false)
-        => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinkled) >= crop.TotalGrowthDays;
+    public static bool IsMature(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
+        => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinklerSinceMs) >= crop.TotalGrowthDays;
 
     /// <summary>
     /// Returns whether bare tilled soil has reverted to untilled: each game day that ended while the soil held no crop and was not watered
@@ -293,9 +325,9 @@ public static class FarmRules
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
     /// <param name="outdoors">Whether the tile is outdoors: a rainy day then counts as watered and does not roll.</param>
-    /// <param name="sprinkled">Whether a sprinkler stands beside the tile: every day is then watered.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
     /// <returns><see langword="true"/> when the tile is no longer tilled.</returns>
-    public static bool IsReverted(in FarmTile tile, string instanceKey, int tileX, int tileY, long nowMs, GameCalendar calendar, bool outdoors = true, bool sprinkled = false)
+    public static bool IsReverted(in FarmTile tile, string instanceKey, int tileX, int tileY, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(instanceKey);
         ArgumentNullException.ThrowIfNull(calendar);
@@ -308,7 +340,7 @@ public static class FarmRules
         int today = calendar.DayNumberAt(nowMs);
         for (int day = Math.Max(tile.TendedDay, tile.WateredDay) + 1; day < today; day++)
         {
-            if (!IsWateredOn(tile, day, calendar, outdoors, sprinkled) && RevertRoll(instanceKey, tileX, tileY, day) < RevertChancePercent)
+            if (!IsWateredOn(tile, day, calendar, outdoors, sprinklerSinceMs) && RevertRoll(instanceKey, tileX, tileY, day) < RevertChancePercent)
             {
                 return true;
             }
@@ -363,14 +395,14 @@ public static class FarmRules
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
     /// <param name="outdoors">Whether the tile is outdoors, where a rainy day wets it.</param>
-    /// <param name="sprinkled">Whether a sprinkler stands beside the tile.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
     /// <returns><see langword="true"/> until the day ends.</returns>
-    public static bool IsWet(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, bool sprinkled = false)
+    public static bool IsWet(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
         int today = calendar.DayNumberAt(nowMs);
-        return (tile.WateredDay > 0 && tile.WateredDay == today) || IsWateredOn(tile, today, calendar, outdoors, sprinkled);
+        return (tile.WateredDay > 0 && tile.WateredDay == today) || IsWateredOn(tile, today, calendar, outdoors, sprinklerSinceMs);
     }
 
     private static ulong Mix(ulong value)

@@ -35,7 +35,7 @@ public sealed class PlaceableChannelTests
         channel.Count.Should().Be(1);
         using (channel.Read())
         {
-            channel.At(0).Should().Be(new PlacedObjectInfo(4, ItemCatalog.OakChair, 5, 6, 2));
+            channel.At(0).Should().Be(new PlacedObjectInfo(4, ItemCatalog.OakChair, 5, 6, 2, 0));
         }
 
         channel.Version.Should().NotBe(before);
@@ -74,8 +74,8 @@ public sealed class PlaceableChannelTests
 
         items.Should().BeEquivalentTo(
         [
-            new PlacedObjectInfo(1, ItemCatalog.OakChair, 7, 7, 1),
-            new PlacedObjectInfo(3, ItemCatalog.FloorLamp, 8, 8, 0),
+            new PlacedObjectInfo(1, ItemCatalog.OakChair, 7, 7, 1, 0),
+            new PlacedObjectInfo(3, ItemCatalog.FloorLamp, 8, 8, 0, 0),
         ]);
         push.Dispose();
     }

@@ -23,7 +23,8 @@ namespace Nosum.Wasm.Socket.Farm;
 /// <param name="PlantedAtMs">When the crop was planted, Unix milliseconds on the server's clock.</param>
 /// <param name="GrowthDays">Watered game days settled so far, not counting <paramref name="WateredDay"/>.</param>
 /// <param name="WateredDay">The last game day the soil was watered; zero when never.</param>
-public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, int GrowthDays, int WateredDay);
+/// <param name="TendedDay">The game day the bare soil was tilled or its crop harvested; zero with a crop.</param>
+public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, int GrowthDays, int WateredDay, int TendedDay);
 
 /// <summary>
 /// The client's mirror of the worked tiles of the player's map, plus an estimate of the server's clock. The server sends a chunk's tiles once, when the chunk joins the player's
@@ -345,7 +346,7 @@ public sealed class FarmChannel : IDisposable
             return;
         }
 
-        FarmTileInfo tile = new(row.X, row.Y, row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay);
+        FarmTileInfo tile = new(row.X, row.Y, row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay, row.TendedDay);
         if (_index.TryGetValue(key, out int at))
         {
             _tiles[at] = tile;

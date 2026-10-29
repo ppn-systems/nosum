@@ -33,7 +33,7 @@ public sealed class PlacedTilesTests
         tiles.ItemsOf(Farm).Should().BeEmpty();
         tiles.CoveredTiles(Farm).Should().BeEmpty();
         tiles.IsCovered(Farm, 1, 1).Should().BeFalse();
-        tiles.IsSprinklerWatered(Farm, 1, 1).Should().BeFalse();
+        tiles.SprinklerWateredSinceMs(Farm, 1, 1).Should().BeNull();
     }
 
     [Fact]
@@ -79,14 +79,14 @@ public sealed class PlacedTilesTests
     }
 
     [Fact]
-    public void IsSprinklerWatered_ReadsThePublishedPieces()
+    public void SprinklerWateredSinceMs_ReadsThePublishedPieces()
     {
         PlacedTiles tiles = new();
         tiles.Publish(Farm, [new PlacedItem(1, ItemCatalog.Sprinkler, 5, 5, 0), new PlacedItem(2, ItemCatalog.Chest, 9, 9, 0)]);
 
-        tiles.IsSprinklerWatered(Farm, 5, 6).Should().BeTrue();
-        tiles.IsSprinklerWatered(Farm, 5, 5).Should().BeFalse();
-        tiles.IsSprinklerWatered(Farm, 9, 10).Should().BeFalse();
+        tiles.SprinklerWateredSinceMs(Farm, 5, 6).Should().NotBeNull();
+        tiles.SprinklerWateredSinceMs(Farm, 5, 5).Should().BeNull();
+        tiles.SprinklerWateredSinceMs(Farm, 9, 10).Should().BeNull();
     }
 
     [Fact]

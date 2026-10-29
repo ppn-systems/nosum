@@ -36,7 +36,7 @@ public sealed class FarmChannelTests
         using (channel.Read())
         {
             channel.TryGetTile(61, 17, out FarmTileInfo tile).Should().BeTrue();
-            tile.Should().Be(new FarmTileInfo(61, 17, 1, 10, 2, 3));
+            tile.Should().Be(new FarmTileInfo(61, 17, 1, 10, 2, 3, 0));
             channel.TryGetTile(63, 17, out _).Should().BeFalse();
         }
 
@@ -72,6 +72,28 @@ public sealed class FarmChannelTests
         }
 
         changed.Should().Be(1);
+        push.Dispose();
+    }
+
+    [Fact]
+    public void PushedChange_KeepsTheTendedDayOfBareSoil_SoItRevertsOnTheSameDayAsOnTheServer()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new FarmSnapshot { MapId = "farm", ServerNowMs = 1 });
+        using FarmChannel channel = new(socket);
+        channel.Load();
+        FarmTilesChanged push = new() { MapId = "farm", ServerNowMs = 2 };
+        push.Tiles.Add(new FarmTileRow { X = 61, Y = 17, WateredDay = 4, TendedDay = 9 });
+
+        socket.Push(push);
+
+        using (channel.Read())
+        {
+            channel.TryGetTile(61, 17, out FarmTileInfo tile).Should().BeTrue();
+            tile.TendedDay.Should().Be(9);
+            tile.WateredDay.Should().Be(4);
+        }
+
         push.Dispose();
     }
 
