@@ -44,5 +44,8 @@ public sealed partial class CombatService
         public List<MonsterSpawn> Monsters { get; }
 
         public List<DungeonHazard> Hazards { get; }
+
+        /// <summary>Tick time (ms) before which each boss may start its next ground slam, keyed by monster id. Guarded by <see cref="Gate"/>.</summary>
+        public Dictionary<int, long> SlamReadyAt { get; } = [];
     }
 }

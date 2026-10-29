@@ -24,6 +24,7 @@ public sealed partial class CombatChannel : IDisposable
     private readonly List<MonsterClientRow> _monsters = [];
     private readonly List<ProjectileClientRow> _projectiles = [];
     private readonly List<DeathEffectClientRow> _deathEffects = [];
+    private readonly List<GroundTelegraphClientRow> _telegraphs = [];
     private readonly List<FloatingTextClientRow> _floatingTexts = [];
     private readonly List<HazardClientRow> _hazards = [];
     private readonly Dictionary<byte, long> _skillReadyAt = new();
@@ -59,6 +60,7 @@ public sealed partial class CombatChannel : IDisposable
             socket.Subscribe<VitalsState>(this.OnVitals),
             socket.Subscribe<MonstersSnapshot>(this.OnMonstersSnapshot),
             socket.Subscribe<MonsterChanged>(this.OnMonsterChanged),
+            socket.Subscribe<GroundTelegraph>(this.OnGroundTelegraph),
         ];
     }
 
@@ -151,6 +153,18 @@ public sealed partial class CombatChannel : IDisposable
                     destination.Add(row);
                 }
             }
+        }
+    }
+
+    /// <summary>Copies the active boss ground slam telegraphs into <paramref name="destination"/> without allocating.</summary>
+    /// <param name="destination">Destination list to populate.</param>
+    public void CopyGroundTelegraphs(List<GroundTelegraphClientRow> destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        destination.Clear();
+        lock (_gate)
+        {
+            destination.AddRange(_telegraphs);
         }
     }
 
@@ -492,6 +506,7 @@ public sealed partial class CombatChannel : IDisposable
             {
                 _projectiles.Clear();
                 _deathEffects.Clear();
+                _telegraphs.Clear();
                 _floatingTexts.Clear();
                 Volatile.Write(ref _activeSkillId, 0);
                 Volatile.Write(ref _activeSkillTick, 0);
@@ -502,7 +517,7 @@ public sealed partial class CombatChannel : IDisposable
             {
                 if (row.Hp > 0)
                 {
-                    _monsters.Add(new MonsterClientRow(row.MonsterId, row.Kind, row.X, row.Y, row.Hp, row.MaxHp, row.Modifier));
+                    _monsters.Add(new MonsterClientRow(row.MonsterId, row.Kind, row.X, row.Y, row.Hp, row.MaxHp, row.Modifier, row.Enraged != 0));
                 }
             }
 

@@ -363,4 +363,26 @@ public sealed class CombatRulesTests
         ItemCatalog.TryGet(ItemCatalog.SanctuaryCandelabra, out ItemDefinition? candelabra).Should().BeTrue();
         candelabra!.ObjectIcon.Should().Be(107);
     }
+
+    [Fact]
+    public void IsEnraged_BossAtOrBelowThirtyPercentHp_ReturnsTrue()
+    {
+        // 30% of 180 HP is 54: the boss enrages at 54 and stays calm at 55.
+        CombatRules.IsEnraged(new MonsterSpawn(1, MonsterKind.BossBroodmother, 0, 0, 54, 180)).Should().BeTrue();
+        CombatRules.IsEnraged(new MonsterSpawn(1, MonsterKind.BossBroodmother, 0, 0, 55, 180)).Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsEnraged_RegularMonstersAndDefeatedBosses_ReturnFalse()
+    {
+        CombatRules.IsEnraged(new MonsterSpawn(1, MonsterKind.GreenSlime, 0, 0, 1, 24)).Should().BeFalse();
+        CombatRules.IsEnraged(new MonsterSpawn(1, MonsterKind.BossGolemKing, 0, 0, 0, 600)).Should().BeFalse();
+    }
+
+    [Fact]
+    public void GroundSlamDamage_IsTwiceTheContactDamageOfTheSpecies()
+    {
+        CombatRules.GroundSlamDamage(MonsterKind.BossMagmaColossus).Should().Be(CombatRules.MonsterDamage(MonsterKind.BossMagmaColossus) * 2);
+        CombatRules.GroundSlamTelegraphMs.Should().Be(1000);
+    }
 }

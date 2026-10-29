@@ -45,4 +45,7 @@ public static class CombatOpCode
 
     /// <summary>Reply to <see cref="CastSkill"/> (docs/adr/ADR-056).</summary>
     public const ushort CastSkillResult = 0xC245;
+
+    /// <summary>Push when a boss telegraphs a ground slam on a tile; the impact follows after <c>DelayMs</c> (docs/adr/ADR-047).</summary>
+    public const ushort GroundTelegraph = 0xC246;
 }

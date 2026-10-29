@@ -35,4 +35,7 @@ public sealed partial class MonsterChanged : PacketBase<MonsterChanged>, IPacket
 
     /// <summary>Elite affix modifier (docs/adr/ADR-058).</summary>
     [SerializeOrder(6)] public byte Modifier { get; set; }
+
+    /// <summary>Whether the monster is enraged (1) at or below its species HP threshold (docs/adr/ADR-047).</summary>
+    [SerializeOrder(7)] public byte Enraged { get; set; }
 }

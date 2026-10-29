@@ -280,6 +280,7 @@ public sealed partial class CombatService
             lease.Value.Hp = (ushort)monster.Hp;
             lease.Value.MaxHp = (ushort)monster.MaxHp;
             lease.Value.Modifier = (byte)monster.Modifier;
+            lease.Value.Enraged = (byte)(CombatRules.IsEnraged(monster) ? 1 : 0);
             _ = await _notifier.TrySendAsync(p.AccountId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
     }

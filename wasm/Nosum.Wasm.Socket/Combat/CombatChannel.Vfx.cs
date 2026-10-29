@@ -14,6 +14,8 @@ namespace Nosum.Wasm.Socket.Combat;
 /// </summary>
 public sealed partial class CombatChannel
 {
+    private const int MaxGroundTelegraphs = 8;
+
     /// <summary>Gets whether the currently firing <see cref="LevelledUp"/> event originated from Combat XP rather than an external skill.</summary>
     public bool IsCombatSkillLevelUp { get; private set; }
 
@@ -386,7 +388,7 @@ public sealed partial class CombatChannel
                     }
                     else
                     {
-                        _monsters[i] = new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier);
+                        _monsters[i] = new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier, packet.Enraged != 0);
                     }
 
                     found = true;
@@ -396,11 +398,33 @@ public sealed partial class CombatChannel
 
             if (!found && packet.Hp > 0)
             {
-                _monsters.Add(new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier));
+                _monsters.Add(new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier, packet.Enraged != 0));
             }
         }
 
         this.MonstersUpdated?.Invoke();
+    }
+
+    private void OnGroundTelegraph(GroundTelegraph packet)
+    {
+        long now = Environment.TickCount64;
+        lock (_gate)
+        {
+            for (int i = _telegraphs.Count - 1; i >= 0; i--)
+            {
+                if (now - _telegraphs[i].StartMs >= _telegraphs[i].DelayMs)
+                {
+                    _telegraphs.RemoveAt(i);
+                }
+            }
+
+            if (_telegraphs.Count >= MaxGroundTelegraphs)
+            {
+                _telegraphs.RemoveAt(0);
+            }
+
+            _telegraphs.Add(new GroundTelegraphClientRow(packet.X, packet.Y, packet.RadiusTiles, now, packet.DelayMs));
+        }
     }
 
     private void UpdateMonsterHp(int monsterId, int remainingHp)
