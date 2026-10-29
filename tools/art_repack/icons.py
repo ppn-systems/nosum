@@ -10,6 +10,7 @@ import draw
 from draw import Canvas
 from trees import blob
 import crops
+import fishing
 from pngio import Image, recolor
 
 GREY = ((82, 96, 124), (140, 156, 181), (192, 203, 220))
@@ -662,6 +663,7 @@ OBJECTS = {
     118: library_tile('dawn_boot', 1, 0, 'DawnLike Boot (1, 0), iron greaves'),
     119: library_tile('dawn_hat', 1, 0, 'DawnLike Hat (1, 0), iron helmet'),
 }
+OBJECTS.update(fishing.OBJECTS)    # 120-131: the fishing rod, the stew and the ten fish (fishing.py, ADR-071)
 
 
 COLUMNS = 24
