@@ -7,7 +7,7 @@ using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Account.C2S;
 
-/// <summary>Sets a new password with the one-time code received by e-mail.</summary>
+/// <summary>Retired: set a new password with the e-mailed recovery code (account recovery was removed). The class and its opcode stay reserved and are never reused; the server has no handler.</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]

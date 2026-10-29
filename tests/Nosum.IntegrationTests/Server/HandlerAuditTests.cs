@@ -28,8 +28,6 @@ public sealed class HandlerAuditTests
         AccountOpCode.Login,
         AccountOpCode.ResumeSession,
         AccountOpCode.StartGuest,
-        AccountOpCode.RequestPasswordReset,
-        AccountOpCode.ConfirmPasswordReset,
     ];
 
     private static readonly string[] s_secretMembers = ["Password", "CurrentPassword", "NewPassword", "SessionToken", "Code"];
@@ -96,6 +94,7 @@ public sealed class HandlerAuditTests
         HashSet<Type> handled = handlers.Select(h => h.Packet).ToHashSet();
         Type[] clientPackets = typeof(AccountOpCode).Assembly.GetTypes()
             .Where(t => t.Namespace is not null && t.Namespace.EndsWith(".C2S", StringComparison.Ordinal) && t is { IsClass: true, IsAbstract: false })
+            .Where(t => !RetiredPackets.Types.Contains(t))
             .ToArray();
 
         clientPackets.Should().NotBeEmpty();

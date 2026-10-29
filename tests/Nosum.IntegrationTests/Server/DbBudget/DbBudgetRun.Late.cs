@@ -89,9 +89,6 @@ public sealed partial class DbBudgetRun
         await using BudgetPlayer p = await _rig.ConnectAsync();
         _ = await p.ResumeAsync(token);
         _ = await _rig.ProbeAsync<PasswordResult>(p, "Account", AccountOpCode.ChangePassword, "ChangePassword", "right current password", () => new ChangePassword { CurrentPassword = "correct horse battery", NewPassword = "another horse battery" });
-        await using BudgetPlayer anonymous = await _rig.ConnectAsync();
-        _ = await _rig.ProbeAsync<PasswordResult>(anonymous, "Account", AccountOpCode.RequestPasswordReset, "RequestPasswordReset", "registered address", () => new RequestPasswordReset { Email = email });
-        _ = await _rig.ProbeAsync<PasswordResult>(anonymous, "Account", AccountOpCode.ConfirmPasswordReset, "ConfirmPasswordReset", "wrong code (refused)", () => new ConfirmPasswordReset { Email = email, Code = "000000", NewPassword = "yet another horse battery" });
     }
 
     // The blacksmith upgrades a tool in two game days.

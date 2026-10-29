@@ -43,8 +43,3 @@ public readonly record struct AccountOutcome(
 /// <param name="Nickname">The player's nickname after the request.</param>
 /// <param name="NextChangeAt">When the next change is allowed; null when one is allowed now.</param>
 public readonly record struct NicknameOutcome(AccountStatus Status, string Nickname, DateTimeOffset? NextChangeAt);
-
-/// <summary>Result of finishing an account recovery.</summary>
-/// <param name="Status">Ok, or the refusal code.</param>
-/// <param name="PlayerId">The recovered account's player; empty on a refusal.</param>
-public readonly record struct PasswordResetOutcome(AccountStatus Status, Guid PlayerId);

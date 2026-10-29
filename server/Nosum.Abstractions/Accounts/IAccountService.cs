@@ -75,25 +75,6 @@ public interface IAccountService
     /// <returns>Ok, or <see cref="AccountStatus.NicknameRequiresAccount"/>, <see cref="AccountStatus.InvalidNickname"/>, <see cref="AccountStatus.NicknameReserved"/>, <see cref="AccountStatus.NicknameProfane"/>, <see cref="AccountStatus.NicknameTaken"/>, <see cref="AccountStatus.NicknameTooSoon"/>.</returns>
     Task<NicknameOutcome> SetNicknameAsync(Guid playerId, string nickname, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Starts account recovery (docs/adr/ADR-032 D4): for a registered account, creates an 8-digit one-time code (hashed at rest, valid 15 minutes,
-    /// 5 attempts) and sends it through <c>IEmailSender</c>. An unknown address, a guest and a real account look the same to the caller.
-    /// </summary>
-    /// <param name="email">The e-mail the player typed.</param>
-    /// <param name="cancellationToken">Cancels the operation.</param>
-    /// <returns>Ok (also when nothing was sent), <see cref="AccountStatus.InvalidEmail"/> for a malformed address. An account that already asked three times this hour is answered Ok too and nothing is sent, so the answer never reveals whether an address has an account.</returns>
-    Task<AccountStatus> RequestPasswordResetAsync(string email, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Finishes account recovery: checks the code, sets the new password and ends every session of the account (tokens revoked).
-    /// </summary>
-    /// <param name="email">The account e-mail.</param>
-    /// <param name="code">The code from the e-mail.</param>
-    /// <param name="newPassword">The new password.</param>
-    /// <param name="cancellationToken">Cancels the operation.</param>
-    /// <returns>Ok with the account's player id (so live connections can be ended), <see cref="AccountStatus.InvalidPassword"/>, or <see cref="AccountStatus.InvalidResetCode"/>.</returns>
-    Task<PasswordResetOutcome> ConfirmPasswordResetAsync(string email, string code, string newPassword, CancellationToken cancellationToken);
-
     /// <summary>Changes a registered player's password and revokes every session token except the one in use (docs/adr/ADR-032 D5).</summary>
     /// <param name="playerId">The player, taken from the connection identity.</param>
     /// <param name="sessionId">The session in use, taken from the connection identity; it stays valid.</param>

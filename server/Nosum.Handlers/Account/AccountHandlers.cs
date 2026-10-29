@@ -35,12 +35,6 @@ public static partial class AccountHandlers
     /// <summary>New accounts (registered or guest) one address may create per day; more are refused with <see cref="AccountStatus.TooManyRequests"/> (docs/adr/ADR-032 D6).</summary>
     public static int NewAccountsPerAddressPerDay { get; set; } = 30;
 
-    /// <summary>Recovery codes one address may ask for per hour.</summary>
-    public const int ResetRequestsPerAddressPerHour = 5;
-
-    /// <summary>Recovery codes one address may try per hour, across all accounts.</summary>
-    public const int ResetConfirmsPerAddressPerHour = 20;
-
     /// <summary>Creates an account and signs the connection in.</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply is sent.</returns>
@@ -233,54 +227,6 @@ public static partial class AccountHandlers
             lease.Dispose();
             throw;
         }
-    }
-
-    /// <summary>Starts account recovery: e-mails a one-time code to a registered account. Answers Ok whether or not the address has an account.</summary>
-    /// <param name="context">The request.</param>
-    /// <returns>A task that completes when the reply is sent.</returns>
-    [PacketOpcode(AccountOpCode.RequestPasswordReset)]
-    [PacketEncryption(true)]
-    [PacketPermission(PermissionLevel.NONE)]
-    [PacketRateLimit(1, 3, PolicyId = "account-recovery", HardLockoutSeconds = 60, MaxSoftViolations = 5)]
-    public static async ValueTask HandleRequestPasswordResetAsync(IPacketContext<RequestPasswordReset> context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        string email = context.Packet.Email;
-
-        AccountStatus status = s_abuse.TryAcquire("reset-request", AddressOf(context.Connection), ResetRequestsPerAddressPerHour, TimeSpan.FromHours(1))
-            ? await s_accounts.RequestPasswordResetAsync(email, context.CancellationToken).ConfigureAwait(false)
-            : AccountStatus.TooManyRequests;
-        await ReplyPasswordAsync(context.Sender, status).ConfigureAwait(false);
-    }
-
-    /// <summary>Sets a new password with the e-mailed code and ends every session of the account, including a live connection.</summary>
-    /// <param name="context">The request.</param>
-    /// <returns>A task that completes when the reply is sent.</returns>
-    [PacketOpcode(AccountOpCode.ConfirmPasswordReset)]
-    [PacketEncryption(true)]
-    [PacketPermission(PermissionLevel.NONE)]
-    [PacketRateLimit(1, 3, PolicyId = "account-recovery-confirm", HardLockoutSeconds = 60, MaxSoftViolations = 5)]
-    public static async ValueTask HandleConfirmPasswordResetAsync(IPacketContext<ConfirmPasswordReset> context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        string email = context.Packet.Email;
-        string code = context.Packet.Code;
-        string newPassword = context.Packet.NewPassword;
-
-        if (!s_abuse.TryAcquire("reset-confirm", AddressOf(context.Connection), ResetConfirmsPerAddressPerHour, TimeSpan.FromHours(1)))
-        {
-            await ReplyPasswordAsync(context.Sender, AccountStatus.TooManyRequests).ConfigureAwait(false);
-            return;
-        }
-
-        PasswordResetOutcome outcome = await s_accounts.ConfirmPasswordResetAsync(email, code, newPassword, context.CancellationToken).ConfigureAwait(false);
-        if (outcome.Status == AccountStatus.Ok)
-        {
-            // Every session ends, a connection that is still open included.
-            _ = await s_sessions.EndAsync(outcome.PlayerId, AccountStatus.SessionRevoked, context.CancellationToken).ConfigureAwait(false);
-        }
-
-        await ReplyPasswordAsync(context.Sender, outcome.Status).ConfigureAwait(false);
     }
 
     /// <summary>Changes the signed-in player's password; every other session token of the account stops working.</summary>
