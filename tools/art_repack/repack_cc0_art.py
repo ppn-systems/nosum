@@ -25,6 +25,7 @@ import hearts  # noqa: E402
 import icons  # noqa: E402
 import monsters  # noqa: E402
 import npcs  # noqa: E402
+import pets_emotes  # noqa: E402
 import trees  # noqa: E402
 import ui  # noqa: E402
 import pngio  # noqa: E402
@@ -58,6 +59,8 @@ def build_all(src, repo, only=None):
         return npcs.build()
     if only == 'hearts':
         return hearts.build()
+    if only == 'pets':
+        return pets_emotes.build()
     out['sprites/crops.png'] = crops.build_crops(src, repo)
     out['sprites/soil.png'] = crops.build_soil(*size('sprites/soil.png'))
     out['sprites/tools.png'], out['sprites/weapons.png'] = tools.build(src, repo, size('sprites/tools.png'), size('sprites/weapons.png'))
@@ -70,13 +73,14 @@ def build_all(src, repo, only=None):
     out.update(monsters.build(src))
     out.update(ui.build(repo, size))
     out.update(npcs.build())
+    out.update(pets_emotes.build())
     return out
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--sources')
-    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui', 'tools', 'hearts'])
+    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui', 'tools', 'hearts', 'pets'])
     parser.add_argument('--repo', default=os.path.abspath(os.path.join(HERE, '..', '..')))
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--docs', action='store_true')
