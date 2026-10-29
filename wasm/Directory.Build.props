@@ -6,6 +6,7 @@
     <IsAotCompatible>false</IsAotCompatible>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
+    <WasmEnableSIMD>true</WasmEnableSIMD>
   </PropertyGroup>
 
   <!-- Web deploy only (docs/adr/ADR-002 D5): `dotnet publish -c Release -p:NosumWebDeploy=true`
