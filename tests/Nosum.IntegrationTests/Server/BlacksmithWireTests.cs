@@ -99,6 +99,7 @@ public sealed class BlacksmithWireTests : IClassFixture<PostgresFixture>
             await using MineWireTests.Client smith = await restarted.ConnectAsync(token);
             smith.AccountId.Should().Be(playerId);
             (await smith.JoinAsync(restarted.Timeout)).MapId.Should().Be(GameMaps.Town);
+            (await MineWireTests.CountAsync(smith.AccountId, ItemCatalog.Hoe)).Should().Be(0, "the join does not hand out a free hoe while the upgrade holds that kind");
 
             BlacksmithState held = await smith.GetBlacksmithAsync(restarted.Timeout);
             held.Should().BeEquivalentTo(new { Status = BlacksmithStatus.Ok, ToolItemId = ItemCatalog.CopperHoe, ReadyDay = ready });

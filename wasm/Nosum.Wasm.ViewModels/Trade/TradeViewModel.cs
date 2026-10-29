@@ -47,6 +47,7 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
     private readonly ItemDescriber _describer;
     private readonly NicknameFormatter _names;
     private TradeEndReason? _ended;
+    private System.Threading.Timer? _lockTick;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="trade">The trade channel.</param>
@@ -124,6 +125,22 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
     /// <summary>Gets whether the other party confirmed.</summary>
     public bool OtherConfirmed => _trade.Open?.OtherConfirmed ?? false;
 
+    /// <summary>Gets the whole seconds left before the offers may be confirmed after a change; zero when they may.</summary>
+    public int ConfirmSecondsLeft
+    {
+        get
+        {
+            long left = (_trade.Open?.ConfirmUnlocksAt ?? 0) - Environment.TickCount64;
+            return left > 0 ? (int)Math.Ceiling(left / 1000.0) : 0;
+        }
+    }
+
+    /// <summary>Gets whether confirming is locked after a recent change to either offer.</summary>
+    public bool ConfirmLocked => this.ConfirmSecondsLeft > 0;
+
+    /// <summary>Gets the confirm button's text: the countdown while locked.</summary>
+    public string ConfirmLabel => this.ConfirmLocked ? this.Text("Trade_ConfirmWait", this.ConfirmSecondsLeft) : this.Text("Trade_Confirm");
+
     /// <summary>Gets the inventory, for choosing what to offer.</summary>
     public IReadOnlyList<SlotDisplay> InventorySlots => _inventory.Slots;
 
@@ -142,8 +159,17 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
     /// <summary>Cancels the trade or the invitation.</summary>
     public void Cancel() => _trade.Cancel();
 
-    /// <summary>Confirms the offers.</summary>
-    public void Confirm() => _trade.Confirm();
+    /// <summary>Confirms the offers, unless a recent change still locks them.</summary>
+    public void Confirm()
+    {
+        if (this.ConfirmLocked)
+        {
+            this.SetStatus(this.Text("Trade_ConfirmWait", this.ConfirmSecondsLeft));
+            return;
+        }
+
+        _trade.Confirm();
+    }
 
     /// <summary>Adds a whole inventory stack to the offer (or more of an item already in it).</summary>
     /// <param name="inventorySlot">The inventory slot.</param>
@@ -210,6 +236,7 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
         _trade.Completed -= this.OnCompleted;
         _nearby.Changed -= this.Raise;
         _inventory.Changed -= this.Raise;
+        this.StopLockTick();
     }
 
     private long ParseCoins(long fallback)
@@ -244,7 +271,32 @@ public sealed class TradeViewModel : PanelViewModel, IDisposable
             this.WantsOpen?.Invoke(true);
         }
 
+        this.SyncLockTick();
         this.Raise();
+    }
+
+    // While the lock runs the window repaints once a second, so the countdown and the button stay true without a new trade state.
+    private void SyncLockTick()
+    {
+        if (this.ConfirmLocked)
+        {
+            _lockTick ??= new System.Threading.Timer(_ => this.OnLockTick(), null, 1000, 1000);
+        }
+    }
+
+    private void OnLockTick()
+    {
+        this.Raise();
+        if (!this.ConfirmLocked)
+        {
+            this.StopLockTick();
+        }
+    }
+
+    private void StopLockTick()
+    {
+        _lockTick?.Dispose();
+        _lockTick = null;
     }
 
     private void OnEnded(TradeEndReason reason)

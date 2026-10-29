@@ -196,7 +196,7 @@ public sealed class TradeService : ITradeService, IDisposable
                 return TradeStatus.NotEnoughCoins;
             }
 
-            if (open.Session.SetOffer(playerId, offer) != TradeVerdict.Ok)
+            if (open.Session.SetOffer(playerId, offer, _time.GetUtcNow()) != TradeVerdict.Ok)
             {
                 return TradeStatus.InvalidOffer;
             }
@@ -221,10 +221,15 @@ public sealed class TradeService : ITradeService, IDisposable
                 return TradeStatus.NoSession;
             }
 
-            TradeVerdict verdict = open.Session.Confirm(playerId);
+            TradeVerdict verdict = open.Session.Confirm(playerId, _time.GetUtcNow());
             if (verdict != TradeVerdict.Ok)
             {
-                return verdict == TradeVerdict.NothingOffered ? TradeStatus.NothingOffered : TradeStatus.NoSession;
+                return verdict switch
+                {
+                    TradeVerdict.NothingOffered => TradeStatus.NothingOffered,
+                    TradeVerdict.TooSoon => TradeStatus.TooSoon,
+                    _ => TradeStatus.NoSession,
+                };
             }
 
             if (!open.Session.IsReady)
@@ -426,6 +431,7 @@ public sealed class TradeService : ITradeService, IDisposable
         state.OtherCoins = session.OfferOf(other).Coins;
         state.MyConfirmed = session.IsConfirmed(receiver);
         state.OtherConfirmed = session.IsConfirmed(other);
+        state.ConfirmLockMs = (int)Math.Ceiling(session.ConfirmLockRemaining(_time.GetUtcNow()).TotalMilliseconds);
         _ = await _notifier.TrySendAsync(receiver, state, cancellationToken).ConfigureAwait(false);
     }
 

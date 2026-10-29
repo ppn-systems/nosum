@@ -173,7 +173,7 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
         }
 
         // Inside the chest nothing is added or removed, so there is nothing to audit; the viewers see the new layout.
-        ChestStatus result = ToStatus((await _inventory.SortAsync(ContainerIds.ForChest(objectId), cancellationToken).ConfigureAwait(false)).Status);
+        ChestStatus result = ToStatus((await _inventory.SortAsync(ContainerIds.ForChest(objectId), 0, cancellationToken).ConfigureAwait(false)).Status);
         if (result == ChestStatus.Ok)
         {
             await this.PushAsync(player.Instance, objectId, cancellationToken).ConfigureAwait(false);
