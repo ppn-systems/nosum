@@ -16,6 +16,7 @@ public static class NosumProtocol
     /// 6: market trends - <c>Average</c> appended to <c>PriceHistory</c> (docs/adr/ADR-030 D4).
     /// 7: co-op objectives - <c>Objectives</c> appended to <c>CoopSnapshot</c> (docs/adr/ADR-067).
     /// 8: bestiary - new packets <c>GetBestiary</c>, <c>BestiarySnapshot</c>, <c>EquipBestiaryTitle</c>, <c>EquipBestiaryTitleResult</c> (docs/adr/ADR-068).
+    /// 11: buff slot - <c>Buff</c> appended to <c>VitalsState</c>; speed buffs (Swiftness, Brotherhood in Arms) live in their own slot apart from Regeneration and Poison (issues #132, #146).
     /// </summary>
-    public const ushort Version = 8;
+    public const ushort Version = 11;
 }

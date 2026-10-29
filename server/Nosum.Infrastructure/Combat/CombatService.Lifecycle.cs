@@ -40,6 +40,14 @@ public sealed partial class CombatService
                 _ = _skillCooldowns.TryRemove(key, out _);
             }
         }
+
+        foreach ((Guid PlayerId, string InstanceKey, int HazardId) key in _hazardContacts.Keys)
+        {
+            if (key.PlayerId == playerId)
+            {
+                _ = _hazardContacts.TryRemove(key, out _);
+            }
+        }
     }
 
     /// <inheritdoc/>
@@ -282,6 +290,95 @@ public sealed partial class CombatService
             lease.Value.Modifier = (byte)monster.Modifier;
             lease.Value.Enraged = (byte)(CombatRules.IsEnraged(monster) ? 1 : 0);
             _ = await _notifier.TrySendAsync(p.AccountId, lease.Value, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Puts a speed buff in the buff slot. The slot holds one buff: a buff replaces the current one only when it is at least
+    /// as fast or the current one has run out, so a Brotherhood bonus never shortens a stronger Swiftness.
+    /// </summary>
+    private static void ApplyBuffLocked(PlayerVitalsState state, StatusEffectKind buff, int durationSeconds)
+    {
+        long now = Environment.TickCount64;
+        bool currentHolds = state.ActiveBuff != StatusEffectKind.None && now < state.BuffExpiresAt;
+        if (currentHolds && StatusEffectRules.MoveSpeedFactor(state.ActiveBuff) > StatusEffectRules.MoveSpeedFactor(buff))
+        {
+            return;
+        }
+
+        state.ActiveBuff = buff;
+        state.BuffExpiresAt = now + (durationSeconds * 1000L);
+    }
+
+    /// <summary>
+    /// Routes a potion or elixir effect (issue #146): speed buffs go to the buff slot, Regeneration uses the effect slot,
+    /// and a potion never cleanses an active Poison.
+    /// </summary>
+    private static void ApplyPotionEffectLocked(PlayerVitalsState state, StatusEffectKind effect, int durationSeconds, int magnitude)
+    {
+        if (effect == StatusEffectKind.None)
+        {
+            return;
+        }
+
+        if (StatusEffectRules.IsBuff(effect))
+        {
+            ApplyBuffLocked(state, effect, durationSeconds);
+            return;
+        }
+
+        // Never cleanse active debuff (e.g. Poison) when consuming a potion buff
+        if (state.ActiveEffect != StatusEffectKind.Poison)
+        {
+            state.ActiveEffect = effect;
+            state.EffectRemainingTicks = durationSeconds / 2;
+            state.EffectMagnitude = magnitude;
+        }
+    }
+
+    /// <summary>
+    /// Mirrors a player's speed buff onto their presence so the move validator honors it (issue #146). Call without holding a vitals gate.
+    /// </summary>
+    private void SyncMoveSpeed(Guid accountId, byte buff) => this.SyncMoveSpeed(accountId, (StatusEffectKind)buff);
+
+    private void SyncMoveSpeed(Guid accountId, StatusEffectKind buff)
+    {
+        PlayerPresence? presence = this.FindPresence(accountId);
+        if (presence is null)
+        {
+            return;
+        }
+
+        lock (presence.Gate)
+        {
+            presence.MoveSpeedFactor = StatusEffectRules.MoveSpeedFactor(buff);
+        }
+    }
+
+    /// <summary>Grants Brotherhood in Arms (docs/adr/ADR-052, issue #132) and tells the player at once; the buff is not persisted.</summary>
+    private async Task GrantBrotherhoodInArmsAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        PlayerVitalsState state = await this.GetOrCreateVitalsAsync(playerId, cancellationToken).ConfigureAwait(false);
+        VitalsView view;
+        lock (state.Gate)
+        {
+            ApplyBuffLocked(state, StatusEffectKind.BrotherhoodInArms, StatusEffectRules.BrotherhoodInArmsSeconds);
+            view = state.ToView();
+        }
+
+        this.SyncMoveSpeed(playerId, view.Buff);
+        if (_notifier is not null)
+        {
+            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
+            lease.Value.Hp = (ushort)view.Hp;
+            lease.Value.MaxHp = (ushort)view.MaxHp;
+            lease.Value.Mp = (ushort)view.Mp;
+            lease.Value.MaxMp = (ushort)view.MaxMp;
+            lease.Value.CombatXp = view.CombatXp;
+            lease.Value.StatusEffect = view.StatusEffect;
+            lease.Value.Buff = view.Buff;
+            lease.Value.Buff = view.Buff;
+            _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
     }
 

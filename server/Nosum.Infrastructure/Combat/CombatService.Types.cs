@@ -1,7 +1,9 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using Nosum.Abstractions.Combat;
+using Nosum.Abstractions.Presence;
 using Nosum.Gameplay.Combat;
 
 namespace Nosum.Infrastructure.Combat;
@@ -28,8 +30,23 @@ public sealed partial class CombatService
 
         public int EffectMagnitude { get; set; }
 
-        public VitalsView ToView() => new(Hp, MaxHp, Mp, MaxMp, CombatXp, (byte)ActiveEffect);
+        /// <summary>Speed buff in its own slot, separate from <see cref="ActiveEffect"/> (issue #146). Guarded by <see cref="Gate"/>.</summary>
+        public StatusEffectKind ActiveBuff { get; set; }
+
+        /// <summary>Tick count (ms) at which <see cref="ActiveBuff"/> runs out.</summary>
+        public long BuffExpiresAt { get; set; }
+
+        public VitalsView ToView() => new(Hp, MaxHp, Mp, MaxMp, CombatXp, (byte)ActiveEffect, (byte)ActiveBuff);
     }
+
+    /// <summary>A monster contact strike collected under the instance gate and applied after it is released (issue #149).</summary>
+    private readonly record struct PendingContact(PlayerPresence Player, int Damage, MonsterKind Kind, int MonsterId);
+
+    /// <summary>A hazard hit collected under the instance gate and applied after it is released (issue #149).</summary>
+    private readonly record struct PendingHazard(PlayerPresence Player, int Damage, DungeonHazardKind Kind);
+
+    /// <summary>A shrine blessing collected under the instance gate and applied after it is released (issue #149).</summary>
+    private readonly record struct PendingShrine(Guid PlayerId, DungeonHazard Shrine, long Now);
 
     private sealed class InstanceMonsters
     {

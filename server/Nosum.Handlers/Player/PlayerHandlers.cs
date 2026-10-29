@@ -8,6 +8,7 @@ using Nalix.Abstractions.Security;
 using Nalix.Codec.Extensions;
 using Nalix.Codec.Pooling;
 using Nalix.Runtime.Extensions;
+using Nosum.Abstractions.Combat;
 using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Player;
@@ -26,6 +27,7 @@ public static partial class PlayerHandlers
 {
     [Inject] private static IPlayerService s_players = null!;
     [Inject] private static IPlayerProgress s_progress = null!;
+    [Inject] private static ICombatService s_combat = null!;
     [Inject] private static IInventoryService s_inventory = null!;
     [Inject] private static ICommunityUnlocks s_unlocks = null!;
 
@@ -99,6 +101,12 @@ public static partial class PlayerHandlers
         uint sequence = intent.Sequence;
 
         MoveOutcome outcome = await s_players.MoveAsync(context.Connection, intent.X, intent.Y, intent.Facing, intent.Moving, context.CancellationToken).ConfigureAwait(false);
+        if (outcome.Status == MoveStatus.Accepted)
+        {
+            await s_combat.OnPlayerMovedAsync(context.Connection, context.CancellationToken).ConfigureAwait(false);
+            return;
+        }
+
         if (outcome.Status != MoveStatus.Refused)
         {
             return;

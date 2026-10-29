@@ -75,4 +75,10 @@ public sealed class PlayerPresence
 
     /// <summary>Gets or sets whether the server is already moving the player to another map; later moves are ignored. Use only while holding <see cref="Gate"/>.</summary>
     public bool InTransit { get; set; }
+
+    /// <summary>
+    /// Gets or sets the movement speed multiplier of the player's active speed buffs (1 for none), which the move validator
+    /// honors (issue #146). Use only while holding <see cref="Gate"/>.
+    /// </summary>
+    public double MoveSpeedFactor { get; set; } = 1;
 }
