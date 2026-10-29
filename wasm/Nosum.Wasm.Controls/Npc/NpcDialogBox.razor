@@ -8,10 +8,11 @@
     <div class="npc-box-wrap">
         <GamePanel Title="@Vm.Name" Class="npc-box" Role="dialog">
             <div class="npc-box-body">
-                <img class="npc-portrait" src="@Vm.PortraitUrl" alt="" />
+                <img class="npc-portrait @(Vm.PortraitTalking ? "npc-portrait-talking" : null)" src="@Vm.PortraitUrl" alt="" />
                 <div class="npc-box-text">
                     <p class="npc-role">@Vm.Role</p>
-                    <p class="npc-line">@Vm.Line<span class="npc-prompt" aria-hidden="true"><GameIcon Name="dialog-arrow" /></span></p>
+                    @* A click on the line finishes it while it types out (issue #214); once it is done the arrow shows the choices are next. *@
+                    <p class="npc-line @(Vm.IsRevealing ? "npc-line-typing" : null)" @onclick="@(() => Vm.Skip())">@Vm.Line<span class="npc-prompt" aria-hidden="true"><GameIcon Name="dialog-arrow" /></span></p>
                 </div>
             </div>
             <GameRow Class="npc-actions">

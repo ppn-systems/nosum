@@ -19,18 +19,15 @@
             <GameStack>
                 <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.GoogleEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)"
                             OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkGoogleAsync() : Vm.SignInWithGoogleAsync())" />
-                @if (Vm.GoogleHint is { } googleHint)
-                {
-                    <GameNotice Kind="info" Text="@googleHint" />
-                }
-
                 <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.MicrosoftEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkMicrosoftText : Vm.SignInMicrosoftText)"
                             OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkMicrosoftAsync() : Vm.SignInWithMicrosoftAsync())" />
-                @if (Vm.MicrosoftHint is { } microsoftHint)
-                {
-                    <GameNotice Kind="info" Text="@microsoftHint" />
-                }
             </GameStack>
+
+            @* One line for a provider that is off on this server, instead of a notice under each button (issue #207). *@
+            @if (Vm.ProviderHint is { } providerHint)
+            {
+                <GameNotice Kind="info" Text="@providerHint" />
+            }
 
             @if (Vm.IsAwaitingProvider)
             {

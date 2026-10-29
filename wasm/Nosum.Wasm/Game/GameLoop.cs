@@ -31,6 +31,7 @@ using Nosum.Rendering.Web;
 using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
+using Nosum.Wasm.ViewModels.Startup;
 
 namespace Nosum.Wasm.Game;
 
@@ -211,8 +212,9 @@ internal static partial class GameLoop
     /// <param name="http">Client whose base address is the app root.</param>
     /// <param name="canvasId">Id of the canvas element.</param>
     /// <param name="cancellationToken">Cancels loading.</param>
+    /// <param name="progress">Told each step of the start as it begins, for the start-up overlay (issue #208); optional.</param>
     /// <returns>A task that completes once the loop is running.</returns>
-    public static async Task StartAsync(HttpClient http, string canvasId, CancellationToken cancellationToken)
+    public static async Task StartAsync(HttpClient http, string canvasId, CancellationToken cancellationToken, Action<GameStartStep>? progress = null)
     {
         ArgumentNullException.ThrowIfNull(http);
 
@@ -284,13 +286,16 @@ internal static partial class GameLoop
             textures.LoadAsync(ItemIcons.WeaponsSheet),
             textures.LoadAsync(ItemIcons.ObjectsSheet));
 
+        progress?.Invoke(GameStartStep.Connect);
         MapEntry? entry = await WaitForEntryAsync(cancellationToken).ConfigureAwait(false);
         MapSpec spec = entry is { } answered && GameMaps.TryGet(answered.MapId, out MapSpec? chosen)
             ? chosen
             : GameMaps.TryGet(GameMaps.DefaultId, out MapSpec? fallback) ? fallback : throw new InvalidOperationException("The default map is not in the catalogue.");
         MapStart start = entry is { } place && spec.Id == place.MapId ? MapStart.At(place) : MapStart.NearTile(spec.SpawnTileX, spec.SpawnTileY);
 
+        progress?.Invoke(GameStartStep.Map);
         MapContent content = await loader.LoadAsync(spec.Id, cancellationToken).ConfigureAwait(false);
+        progress?.Invoke(GameStartStep.Sprites);
         int[] sheets = await farmerSheets.ConfigureAwait(false);
         FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7]);
 
@@ -307,6 +312,7 @@ internal static partial class GameLoop
             _ = GameAudio.LoadAsync();
         }
 
+        progress?.Invoke(GameStartStep.Draw);
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }
 

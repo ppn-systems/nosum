@@ -391,4 +391,17 @@ public sealed class SettingsTests
         double la = Luminance(a), lb = Luminance(b);
         return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
     }
+
+    [Fact]
+    public void TouchAndHaptics_DefaultOn_AndRoundTripWhenTurnedOff()
+    {
+        ClientSettings.Default.TouchControls.Should().BeTrue();
+        ClientSettings.Default.Haptics.Should().BeTrue();
+
+        ClientSettings off = ClientSettings.Default with { TouchControls = false, Haptics = false };
+        ClientSettings back = ClientSettings.Parse(off.Serialize());
+
+        back.TouchControls.Should().BeFalse();
+        back.Haptics.Should().BeFalse();
+    }
 }

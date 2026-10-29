@@ -926,4 +926,17 @@
   <data name="Animal_goat_Name" xml:space="preserve"><value>Dê</value></data>
   <data name="Animal_sheep_Name" xml:space="preserve"><value>Cừu</value></data>
   <data name="Animal_pig_Name" xml:space="preserve"><value>Heo</value></data>
+  <data name="Shop_Qty_Less" xml:space="preserve"><value>Bớt</value></data>
+  <data name="Shop_Qty_More" xml:space="preserve"><value>Thêm</value></data>
+  <data name="Shop_Confirm_Text" xml:space="preserve"><value>Mua {0} × {1} với giá {2} xu? Số dư còn lại: {3} xu.</value></data>
+  <data name="Shop_Confirm_Yes" xml:space="preserve"><value>Xác nhận</value></data>
+  <data name="Shop_Confirm_No" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Settings_TouchControls" xml:space="preserve"><value>Nút cảm ứng trên màn hình</value></data>
+  <data name="Settings_Haptics" xml:space="preserve"><value>Rung khi mua và bán</value></data>
+  <data name="Account_Provider_Guidance" xml:space="preserve"><value>Chưa bật Google và Microsoft trên máy chủ này. Hãy chơi với tư cách khách.</value></data>
+  <data name="Game_Start_Step_Connect" xml:space="preserve"><value>Đang kết nối máy chủ…</value></data>
+  <data name="Game_Start_Step_Assets" xml:space="preserve"><value>Đang tải hình ảnh và âm thanh…</value></data>
+  <data name="Game_Start_Step_World" xml:space="preserve"><value>Đang vào khu vực…</value></data>
+  <data name="Game_Start_Slow" xml:space="preserve"><value>Vẫn đang tải. Nếu chờ quá lâu, hãy thử lại.</value></data>
+  <data name="Game_Start_Retry" xml:space="preserve"><value>Thử lại</value></data>
 </root>

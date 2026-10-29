@@ -926,4 +926,17 @@
   <data name="Animal_goat_Name" xml:space="preserve"><value>Goat</value></data>
   <data name="Animal_sheep_Name" xml:space="preserve"><value>Sheep</value></data>
   <data name="Animal_pig_Name" xml:space="preserve"><value>Pig</value></data>
+  <data name="Shop_Qty_Less" xml:space="preserve"><value>Less</value></data>
+  <data name="Shop_Qty_More" xml:space="preserve"><value>More</value></data>
+  <data name="Shop_Confirm_Text" xml:space="preserve"><value>Buy {0} × {1} for {2} coins? Balance after: {3} coins.</value></data>
+  <data name="Shop_Confirm_Yes" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Shop_Confirm_No" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Settings_TouchControls" xml:space="preserve"><value>On-screen touch controls</value></data>
+  <data name="Settings_Haptics" xml:space="preserve"><value>Vibrate on purchases and sales</value></data>
+  <data name="Account_Provider_Guidance" xml:space="preserve"><value>Google and Microsoft sign-in is off on this server. Play as a guest instead.</value></data>
+  <data name="Game_Start_Step_Connect" xml:space="preserve"><value>Connecting to the server…</value></data>
+  <data name="Game_Start_Step_Assets" xml:space="preserve"><value>Loading graphics and sound…</value></data>
+  <data name="Game_Start_Step_World" xml:space="preserve"><value>Entering the area…</value></data>
+  <data name="Game_Start_Slow" xml:space="preserve"><value>Still loading. If it takes too long, try again.</value></data>
+  <data name="Game_Start_Retry" xml:space="preserve"><value>Try again</value></data>
 </root>
