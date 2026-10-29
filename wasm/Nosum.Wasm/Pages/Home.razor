@@ -57,6 +57,7 @@
 @inject QuestTrackerViewModel Quest
 @inject GameMessagesViewModel Messages
 @inject LevelUpBannerViewModel LevelUps
+@inject SeasonBannerViewModel Seasons
 @inject ToolbarViewModel Toolbar
 @inject WalletViewModel Wallet
 @inject CalendarViewModel Calendar
@@ -109,6 +110,7 @@ else
                 </GamePanel>
             }
             <LevelUpBanner Vm="LevelUps" />
+            <SeasonBanner Vm="Seasons" />
             <ConnectionBadge />
         </TopCenter>
         <TopRight>
