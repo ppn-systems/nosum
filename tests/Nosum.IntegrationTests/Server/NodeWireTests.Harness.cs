@@ -29,6 +29,8 @@ using Nosum.Contracts.Dev.C2S;
 using Nosum.Contracts.Dev.S2C;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
+using Nosum.Contracts.Fishing.C2S;
+using Nosum.Contracts.Fishing.S2C;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.C2S;
@@ -122,7 +124,7 @@ public sealed partial class NodeWireTests
     }
 
     // A water tile with a walkable tile beside it, and that walkable tile.
-    private static (int WaterX, int WaterY, int StandX, int StandY) ShoreOf(MapDefinition map)
+    internal static (int WaterX, int WaterY, int StandX, int StandY) ShoreOf(MapDefinition map)
     {
         for (int y = 1; y < map.Grid.Height - 1; y++)
         {
@@ -367,6 +369,24 @@ public sealed partial class NodeWireTests
         {
             using UseItem request = new() { Slot = (byte)slot, TileX = x, TileY = y };
             return await _session.RequestAsync<UseItemResult>(request, ct: ct);
+        }
+
+        public async Task<InventoryStatus> SelectSlotAsync(int slot, CancellationToken ct)
+        {
+            using SelectSlot request = new() { Slot = (byte)slot };
+            return (await _session.RequestAsync<InventoryResult>(request, ct: ct)).Status;
+        }
+
+        public async Task<CastResult> CastRodAsync(int tileX, int tileY, CancellationToken ct)
+        {
+            using CastRod request = new() { TileX = tileX, TileY = tileY };
+            return await _session.RequestAsync<CastResult>(request, ct: ct);
+        }
+
+        public async Task<ReelResult> ReelInAsync(uint castId, CancellationToken ct)
+        {
+            using ReelIn request = new() { CastId = castId };
+            return await _session.RequestAsync<ReelResult>(request, ct: ct);
         }
 
         public async Task<bool> GrantAsync(int itemId, int quantity, CancellationToken ct)

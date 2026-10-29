@@ -64,6 +64,12 @@ public static class FishingRules
     /// <summary>How much later than the window the server still accepts a press, to absorb network delay, in milliseconds.</summary>
     public const int LateToleranceMs = 400;
 
+    /// <summary>How far a player may stand from the water tile they cast at, in tiles (centre to feet). Docs/adr/ADR-071 D1.</summary>
+    public const int CastReachTiles = 3;
+
+    /// <summary>How long an open cast waits for its reel-in before it is dropped, in milliseconds (docs/adr/ADR-071 D7).</summary>
+    public const int CastLifetimeMs = 60_000;
+
     /// <summary>Chance, in permille, that a cast brings nothing up at level zero.</summary>
     public const int BaseNothingPermille = 300;
 
@@ -125,6 +131,21 @@ public static class FishingRules
         }
 
         return elapsedMs > (long)biteDelayMs + windowMs + LateToleranceMs ? HookVerdict.Escaped : HookVerdict.Hooked;
+    }
+
+    /// <summary>Tells whether a player may cast at a tile from where their feet are (docs/adr/ADR-071 D1).</summary>
+    /// <param name="feetX">Feet x in world pixels.</param>
+    /// <param name="feetY">Feet y in world pixels.</param>
+    /// <param name="tileX">Target tile x.</param>
+    /// <param name="tileY">Target tile y.</param>
+    /// <param name="tileSize">Pixels per tile.</param>
+    /// <returns><see langword="true"/> when the tile centre is within <see cref="CastReachTiles"/> tiles.</returns>
+    public static bool InCastReach(double feetX, double feetY, int tileX, int tileY, int tileSize)
+    {
+        double dx = ((tileX + 0.5) * tileSize) - feetX;
+        double dy = ((tileY + 0.5) * tileSize) - feetY;
+        double reach = (double)CastReachTiles * tileSize;
+        return (dx * dx) + (dy * dy) <= reach * reach;
     }
 
     /// <summary>Rolls what a hooked line brings up. The same spot and seed always give the same result.</summary>

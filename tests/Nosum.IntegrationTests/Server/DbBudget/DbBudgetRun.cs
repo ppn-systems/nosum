@@ -50,6 +50,7 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         await this.GuardAsync("placeables", this.PlaceablesAsync);
         await this.GuardAsync("buildings", this.BuildingsAsync);
         await this.GuardAsync("nodes", this.NodesAsync);
+        await this.GuardAsync("fishing", this.FishingAsync);
         await this.GuardAsync("walk", this.WalkAsync);
         await this.GuardAsync("warp", this.WarpAsync);
         await this.GuardAsync("admin", this.AdminAsync);
