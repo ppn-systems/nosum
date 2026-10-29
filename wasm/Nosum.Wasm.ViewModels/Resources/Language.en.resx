@@ -275,6 +275,10 @@
   <data name="Coop_Upgrade_Buy" xml:space="preserve"><value>Buy next level</value></data>
   <data name="Coop_Upgrade_Max" xml:space="preserve"><value>Fully upgraded.</value></data>
   <data name="Coop_Upgrade_FounderOnly" xml:space="preserve"><value>Only the founder can buy upgrades.</value></data>
+  <data name="Coop_Objectives_Heading" xml:space="preserve"><value>Shared objectives</value></data>
+  <data name="Coop_Objective_Harvest" xml:space="preserve"><value>The co-op harvests {0} together</value></data>
+  <data name="Coop_Objective_Progress" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Coop_Trophy_Earned" xml:space="preserve"><value>Trophy earned</value></data>
   <data name="Coop_Status_WarehouseFull" xml:space="preserve"><value>The warehouse holds as many kinds of item as it can. Upgrade it, or deposit a kind it already has.</value></data>
   <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>That upgrade is already at its highest level.</value></data>
   <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>That upgrade was already bought.</value></data>

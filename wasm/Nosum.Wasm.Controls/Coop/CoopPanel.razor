@@ -108,6 +108,20 @@
                     <p class="coop-empty">@Vm.Text("Coop_Upgrade_FounderOnly")</p>
                 }
             </GameSection>
+            <GameSection Title="@Vm.Text("Coop_Objectives_Heading")">
+                @foreach (ObjectiveDisplay objective in Vm.Objectives)
+                {
+                    <div class="objective-row">
+                        <span class="objective-title">@objective.Title</span>
+                        <progress class="objective-bar" value="@objective.Contributed" max="@objective.Target"></progress>
+                        <span class="objective-count">@Vm.Text("Coop_Objective_Progress", objective.Contributed, objective.Target)</span>
+                        @if (objective.Completed)
+                        {
+                            <span class="objective-trophy">@Vm.Text("Coop_Trophy_Earned")</span>
+                        }
+                    </div>
+                }
+            </GameSection>
             <GameSection Title="@Vm.Text("Coop_Log_Heading")">
                 @foreach (string line in Vm.Log)
                 {
