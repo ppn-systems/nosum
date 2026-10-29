@@ -317,6 +317,9 @@ public sealed partial class CombatService : ICombatService, IDisposable
         await this.SaveVitalsAsync(player.AccountId, updatedVitals, cancellationToken).ConfigureAwait(false);
         await this.BroadcastMonsterChangedAsync(player.Key, updatedMonster, cancellationToken).ConfigureAwait(false);
 
+        MapInstance dropInstance = player.Instance;
+        string dropKey = player.Key;
+
         if (knockedOut)
         {
             await this.CompleteKnockoutAsync(player, player.AccountId, updatedVitals, cancellationToken).ConfigureAwait(false);
@@ -324,7 +327,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
 
         if (defeated)
         {
-            await this.HandleMonsterDefeatedAsync(player, player.AccountId, player.Key, player.Instance, tileSize, updatedMonster, cancellationToken).ConfigureAwait(false);
+            await this.HandleMonsterDefeatedAsync(knockedOut ? null : player, player.AccountId, dropKey, dropInstance, tileSize, updatedMonster, cancellationToken).ConfigureAwait(false);
         }
 
         if (_notifier is not null && newLevel > oldLevel)
@@ -381,9 +384,13 @@ public sealed partial class CombatService : ICombatService, IDisposable
             vitals.Mp = Math.Min(vitals.MaxMp, vitals.Mp + mpRestore);
             if (effect != StatusEffectKind.None)
             {
-                vitals.ActiveEffect = effect;
-                vitals.EffectRemainingTicks = durationSeconds / 2;
-                vitals.EffectMagnitude = magnitude;
+                // Never cleanse active debuff (e.g. Poison) when consuming a potion buff
+                if (vitals.ActiveEffect != StatusEffectKind.Poison)
+                {
+                    vitals.ActiveEffect = effect;
+                    vitals.EffectRemainingTicks = durationSeconds / 2;
+                    vitals.EffectMagnitude = magnitude;
+                }
             }
 
             updated = vitals.ToView();
@@ -482,9 +489,13 @@ public sealed partial class CombatService : ICombatService, IDisposable
             vitals.Mp = Math.Min(vitals.MaxMp, vitals.Mp + mpRestore);
             if (effect != StatusEffectKind.None)
             {
-                vitals.ActiveEffect = effect;
-                vitals.EffectRemainingTicks = durationSeconds / 2;
-                vitals.EffectMagnitude = magnitude;
+                // Never cleanse active debuff (e.g. Poison) when consuming a potion buff
+                if (vitals.ActiveEffect != StatusEffectKind.Poison)
+                {
+                    vitals.ActiveEffect = effect;
+                    vitals.EffectRemainingTicks = durationSeconds / 2;
+                    vitals.EffectMagnitude = magnitude;
+                }
             }
 
             updated = vitals.ToView();
