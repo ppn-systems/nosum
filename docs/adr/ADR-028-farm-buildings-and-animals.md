@@ -55,3 +55,12 @@ How the decisions above were built, and where the build fills in the text.
 - **D6 — wire.** `Nosum.Contracts.Building`, opcodes `0x3100-0x3106` (C2S) and `0x3140-0x3145` (S2C), one `BuildingStatus` for every refusal; `PlaceStatus.Fixed = 19` is appended. Nothing is renumbered and `NosumProtocol.Version` is not changed. The list of a land's buildings (`BuildingsSnapshot`) is also pushed to everybody on the land when a building is placed (instance-wide: it is small and replaces the client's list).
 - **Client.** The carpenter is the Town counter at the blue house in the south-west of the map (door tile (10, 85), doormat (10, 86)) and its page is the shop page with the building and animal sections under the supplies. Buildings under construction are drawn dull. Front and back of a building are one depth-sorted sprite anchored at the bottom of its footprint, so the farmer is behind the roof and in front of the door without
   the extra front layer the farmhouse needs. The early art (ADR-007) was replaced by own pictures in `assets/sprites/buildings/` and `assets/sprites/animals/`.
+
+## Amendment 1 — hearts and gold-quality produce
+
+Affection is shown as hearts and rewards a chance at gold-quality produce. This amends D3 and adds no wire or persistence change: friendship is already stored and the items are plain ids.
+
+- **Hearts.** An animal shows one heart per 200 friendship, five at the maximum (`AnimalRules.HeartsOf`). The hearts float above the animal the player petted, for about a second and a half (`AnimalsDecorator`, sheet `assets/sprites/hearts.png`). Nothing is stored for the display; it follows the petting answer.
+- **Gold quality.** An animal with four hearts or more (friendship 800) gives gold-quality produce on 25 % of days (`AnimalRules.IsGold`): a golden egg (904) from a chicken, cream milk (905) from a cow. The roll uses the same seed as the large roll (animal and day) with a salt, so it cannot be re-rolled. Gold is decided first; a day that does not roll gold is decided by the large roll as in D3.
+- **Sell value.** Gold produce sells for one and a half times its everyday kind: golden egg 75 (egg 50), cream milk 187 (milk 125, rounded down).
+- **Not done.** A large truffle is not part of this amendment; no species gives truffles yet.
