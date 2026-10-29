@@ -42,6 +42,7 @@ using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Host.Ops;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Bestiary;
 using Nosum.Infrastructure.Blacksmith;
 using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Caching;
@@ -275,7 +276,10 @@ internal static partial class Program
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2, ADR-049 D3).
-        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress);
+        // The hunting log (docs/adr/ADR-068): the defeat path counts each kill into it.
+        BestiaryService bestiary = new(unitOfWork, clock);
+        InstanceManager.Instance.Register<IBestiaryService>(bestiary);
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>
         {

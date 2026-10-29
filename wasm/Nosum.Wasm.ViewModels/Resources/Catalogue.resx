@@ -373,4 +373,16 @@
   <data name="Monster_boss_golem_king_Location" xml:space="preserve"><value>Hầm mỏ tầng 40</value></data>
   <data name="Item_guestbook_Name" xml:space="preserve"><value>Sổ lưu bút nông trại</value></data>
   <data name="Item_guestbook_Description" xml:space="preserve"><value>Đặt trên nông trại: khách ghé thăm tưới cây sẽ được ghi lại cho bạn xem.</value></data>
+  <data name="Monster_green_slime_Title" xml:space="preserve"><value>Kẻ nghiền slime</value></data>
+  <data name="Monster_frost_slime_Title" xml:space="preserve"><value>Kẻ phá băng</value></data>
+  <data name="Monster_magma_slime_Title" xml:space="preserve"><value>Kẻ dập lửa</value></data>
+  <data name="Monster_cave_bat_Title" xml:space="preserve"><value>Diệt dơi hang</value></data>
+  <data name="Monster_spore_shroom_Title" xml:space="preserve"><value>Trừ nấm bào tử</value></data>
+  <data name="Monster_goblin_scout_Title" xml:space="preserve"><value>Thợ săn goblin</value></data>
+  <data name="Monster_skeleton_warrior_Title" xml:space="preserve"><value>Kẻ đập xương</value></data>
+  <data name="Monster_stone_golem_Title" xml:space="preserve"><value>Kẻ đập đá</value></data>
+  <data name="Monster_boss_broodmother_Title" xml:space="preserve"><value>Khắc tinh mẫu hang</value></data>
+  <data name="Monster_boss_goblin_chieftain_Title" xml:space="preserve"><value>Khắc tinh thủ lĩnh goblin</value></data>
+  <data name="Monster_boss_magma_colossus_Title" xml:space="preserve"><value>Khắc tinh cự nham</value></data>
+  <data name="Monster_boss_golem_king_Title" xml:space="preserve"><value>Phá vương golem</value></data>
 </root>

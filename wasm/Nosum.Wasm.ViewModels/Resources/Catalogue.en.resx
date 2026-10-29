@@ -373,4 +373,16 @@
   <data name="Monster_boss_golem_king_Location" xml:space="preserve"><value>Mine floor 40</value></data>
   <data name="Item_guestbook_Name" xml:space="preserve"><value>Farm guestbook</value></data>
   <data name="Item_guestbook_Description" xml:space="preserve"><value>Place it on your farm: a visitor who waters your crops is logged here for you.</value></data>
+  <data name="Monster_green_slime_Title" xml:space="preserve"><value>Slime Crusher</value></data>
+  <data name="Monster_frost_slime_Title" xml:space="preserve"><value>Frost Breaker</value></data>
+  <data name="Monster_magma_slime_Title" xml:space="preserve"><value>Ember Quencher</value></data>
+  <data name="Monster_cave_bat_Title" xml:space="preserve"><value>Bat Exterminator</value></data>
+  <data name="Monster_spore_shroom_Title" xml:space="preserve"><value>Spore Scourge</value></data>
+  <data name="Monster_goblin_scout_Title" xml:space="preserve"><value>Goblin Hunter</value></data>
+  <data name="Monster_skeleton_warrior_Title" xml:space="preserve"><value>Bone Breaker</value></data>
+  <data name="Monster_stone_golem_Title" xml:space="preserve"><value>Stonefall</value></data>
+  <data name="Monster_boss_broodmother_Title" xml:space="preserve"><value>Broodmother Bane</value></data>
+  <data name="Monster_boss_goblin_chieftain_Title" xml:space="preserve"><value>Chieftain Bane</value></data>
+  <data name="Monster_boss_magma_colossus_Title" xml:space="preserve"><value>Colossus Bane</value></data>
+  <data name="Monster_boss_golem_king_Title" xml:space="preserve"><value>Kingbreaker</value></data>
 </root>

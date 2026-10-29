@@ -58,6 +58,22 @@
                             <span class="skill-caption">@Vm.Text("Bestiary_Stats", entry.Hp, entry.Attack, entry.Xp)</span>
                         </div>
                         <span class="skill-hint">@Vm.Text("Bestiary_Drops", entry.PrimaryDrop, entry.RareDrop)</span>
+                        <div class="skill-row">
+                            <span class="skill-meter">
+                                <GameProgress Percent="@PercentInt(entry.Fraction)" Text="@entry.Progress" Label="@entry.Name" Class="@(entry.TitleEarned ? "done" : null)" />
+                            </span>
+                        </div>
+                        <div class="skill-row">
+                            <span class="skill-name">@entry.TitleName</span>
+                            @if (entry.TitleEarned)
+                            {
+                                <GameButton Variant="chip" Active="entry.TitleEquipped" Text="@Vm.Text(entry.TitleEquipped ? "Bestiary_Title_Unequip" : "Bestiary_Title_Equip")" OnClick="@(() => Vm.ToggleTitle(entry))" />
+                            }
+                            else
+                            {
+                                <span class="skill-hint">@Vm.Text("Bestiary_Title_Locked", ProgressViewModel.TitleGoal)</span>
+                            }
+                        </div>
                     </div>
                 }
             </GameStack>
@@ -66,5 +82,7 @@
 </MenuPage>
 
 @code {
+    protected override void OnInitialized() => Vm.LoadBestiary();
+
     private static int PercentInt(double fraction) => (int)Math.Round(Math.Clamp(fraction, 0, 1) * 100);
 }

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Skills;
+using Nosum.Wasm.Socket.Bestiary;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels.Resources;
@@ -31,6 +32,13 @@ public sealed record SkillDisplay(string Name, int Level, int Xp, double Fractio
 /// <param name="PrimaryDrop">Primary loot item.</param>
 /// <param name="RareDrop">Rare loot item.</param>
 /// <param name="IsBoss">Whether the monster is a floor milestone boss.</param>
+/// <param name="Species">The species, to equip its title.</param>
+/// <param name="Kills">How many of the species the player has slain.</param>
+/// <param name="Fraction">How far the player is to the next hunting milestone, zero to one; one once every milestone is reached.</param>
+/// <param name="Progress">The localized line under the bar, for example <c>12 / 50 slain</c>.</param>
+/// <param name="TitleName">The localized slayer title of the species.</param>
+/// <param name="TitleEarned">Whether the slayer title is earned (the last milestone is reached).</param>
+/// <param name="TitleEquipped">Whether the slayer title is the one the player wears.</param>
 public sealed record BestiaryEntryDisplay(
     string Name,
     string Category,
@@ -40,7 +48,14 @@ public sealed record BestiaryEntryDisplay(
     int Xp,
     string PrimaryDrop,
     string RareDrop,
-    bool IsBoss);
+    bool IsBoss,
+    MonsterKind Species,
+    int Kills,
+    double Fraction,
+    string Progress,
+    string TitleName,
+    bool TitleEarned,
+    bool TitleEquipped);
 
 /// <summary>
 /// View model of the HUD vitals bars (HP, MP, Energy) beside the hotbar and of the Skills page (docs/adr/ADR-023 D6, docs/adr/ADR-045 D2).
@@ -49,6 +64,7 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
 {
     private readonly ProgressChannel _progress;
     private readonly CombatChannel? _combat;
+    private readonly BestiaryChannel? _bestiary;
     private readonly IStringLocalizer<Catalogue>? _catalogue;
 
     /// <summary>Initializes the view model.</summary>
@@ -56,17 +72,20 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <param name="text">UI text.</param>
     /// <param name="combat">Optional combat vitals and Combat XP mirror.</param>
     /// <param name="catalogue">Optional item and monster catalogue localizer.</param>
+    /// <param name="bestiary">Optional hunting log (kill counts and slayer titles, docs/adr/ADR-068).</param>
     public ProgressViewModel(
         ProgressChannel progress,
         IStringLocalizer<Language> text,
         CombatChannel? combat = null,
-        IStringLocalizer<Catalogue>? catalogue = null)
+        IStringLocalizer<Catalogue>? catalogue = null,
+        BestiaryChannel? bestiary = null)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(progress);
 
         _progress = progress;
         _combat = combat;
+        _bestiary = bestiary;
         _catalogue = catalogue;
         progress.Changed += this.Raise;
         if (combat is not null)
@@ -76,6 +95,25 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
             combat.KnockedOut += this.Raise;
             combat.LevelledUp += this.OnCombatLevelUp;
         }
+
+        if (bestiary is not null)
+        {
+            bestiary.Changed += this.Raise;
+        }
+    }
+
+    /// <summary>Asks the server for the hunting log; the Skills page calls it when it opens.</summary>
+    public void LoadBestiary() => _bestiary?.Load();
+
+    /// <summary>Gets the kill count that earns a slayer title: the last milestone.</summary>
+    public static int TitleGoal => BestiaryRules.Milestones[^1];
+
+    /// <summary>Equips the slayer title of an entry, or takes it off when the player wears it already.</summary>
+    /// <param name="entry">The entry whose title is toggled; only an earned title may be equipped.</param>
+    public void ToggleTitle(BestiaryEntryDisplay entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        _bestiary?.Equip(entry.TitleEquipped ? MonsterKind.None : entry.Species);
     }
 
     /// <summary>Gets whether the server has told the player their energy yet; the bar is hidden before.</summary>
@@ -163,11 +201,33 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
                 string category = this.Text(isBoss ? "Bestiary_Category_Boss" : "Bestiary_Category_Regular");
                 string primaryDrop = this.ItemNameOf(def.PrimaryDropItemId);
                 string rareDrop = this.ItemNameOf(def.RareDropItemId);
-                list.Add(new BestiaryEntryDisplay(name, category, location, def.MaxHp, def.AttackDamage, def.XpReward, primaryDrop, rareDrop, isBoss));
+                int kills = _bestiary?.Current.KillsOf(def.Kind) ?? 0;
+                (double fraction, string progress) = this.MilestoneOf(kills);
+                string titleName = _catalogue is not null ? _catalogue[$"Monster_{def.Key}_Title"].Value : def.Key;
+                bool earned = BestiaryRules.EarnsTitle(kills);
+                bool equipped = _bestiary?.Current.Equipped == def.Kind;
+                list.Add(new BestiaryEntryDisplay(name, category, location, def.MaxHp, def.AttackDamage, def.XpReward, primaryDrop, rareDrop, isBoss, def.Kind, kills, fraction, progress, titleName, earned, equipped));
             }
 
             return list;
         }
+    }
+
+    /// <summary>Gets the localized line of the bestiary progress bar for a kill count: how far to the next milestone, or that every milestone is reached.</summary>
+    /// <param name="kills">How many of the species were slain.</param>
+    /// <returns>The bar's fraction and its caption.</returns>
+    private (double Fraction, string Caption) MilestoneOf(int kills)
+    {
+        int next = BestiaryRules.NextMilestone(kills);
+        if (next == 0)
+        {
+            return (1, this.Text("Bestiary_Milestones_Done", Number(kills)));
+        }
+
+        int tier = BestiaryRules.TierOf(kills);
+        int from = tier == 0 ? 0 : BestiaryRules.Milestones[tier - 1];
+        double fraction = Math.Clamp((double)(kills - from) / (next - from), 0, 1);
+        return (fraction, this.Text("Bestiary_Progress", Number(kills), Number(next)));
     }
 
     /// <summary>Gets the localized aria-label of the combat skills strip.</summary>
@@ -261,6 +321,11 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     public void Dispose()
     {
         _progress.Changed -= this.Raise;
+        if (_bestiary is not null)
+        {
+            _bestiary.Changed -= this.Raise;
+        }
+
         if (_combat is not null)
         {
             _combat.Changed -= this.Raise;

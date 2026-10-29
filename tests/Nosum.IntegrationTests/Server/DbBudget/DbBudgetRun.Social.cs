@@ -4,6 +4,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Nosum.Contracts.Chat;
+using Nosum.Contracts.Combat;
+using Nosum.Contracts.Combat.C2S;
+using Nosum.Contracts.Combat.S2C;
 using Nosum.Contracts.Chat.C2S;
 using Nosum.Contracts.Chat.S2C;
 using Nosum.Contracts.Coop;
@@ -63,6 +66,8 @@ public sealed partial class DbBudgetRun
         _ = await _rig.ProbeAsync<VisitResult>(b, "Visit", VisitOpCode.VisitPlayer, "VisitPlayer", "friend visits the farm", () => new VisitPlayer { Nickname = a.Nickname });
         _ = await _rig.ProbeAsync<VisitorsSnapshot>(a, "Visit", VisitOpCode.GetVisitors, "GetVisitors", "one visitor on the farm", () => new GetVisitors());
         _ = await _rig.ProbeAsync<GuestbookSnapshot>(a, "Visit", VisitOpCode.GetGuestbook, "GetGuestbook", "read the guestbook", () => new GetGuestbook());
+        _ = await _rig.ProbeAsync<BestiarySnapshot>(a, "Bestiary", CombatOpCode.GetBestiary, "GetBestiary", "read the hunting log", () => new GetBestiary());
+        _ = await _rig.ProbeAsync<EquipBestiaryTitleResult>(a, "Bestiary", CombatOpCode.EquipBestiaryTitle, "EquipBestiaryTitle", "equip a title not earned yet", () => new EquipBestiaryTitle { Species = 4 });
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.KickVisitor, "KickVisitor", "send the visitor away", () => new KickVisitor { PlayerId = b.AccountId });
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.AddVisitor, "AddVisitor", "allow-list by nickname", () => new AddVisitor { Nickname = b.Nickname });
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.RemoveVisitor, "RemoveVisitor", "take off the allow-list", () => new RemoveVisitor { PlayerId = b.AccountId });

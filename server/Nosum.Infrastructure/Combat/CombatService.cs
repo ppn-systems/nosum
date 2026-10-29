@@ -48,6 +48,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
     private readonly PlayerStateCache? _stateCache;
     private readonly ICoopMembership? _coops;
     private readonly IPlayerProgress? _progress;
+    private readonly IBestiaryService? _bestiary;
 
     private readonly ConcurrentDictionary<Guid, PlayerVitalsState> _vitals = new();
     private readonly ConcurrentDictionary<string, InstanceMonsters> _instances = new(StringComparer.Ordinal);
@@ -77,7 +78,8 @@ public sealed partial class CombatService : ICombatService, IDisposable
         IUnitOfWorkFactory? unitOfWork = null,
         PlayerStateCache? stateCache = null,
         ICoopMembership? coops = null,
-        IPlayerProgress? progress = null)
+        IPlayerProgress? progress = null,
+        IBestiaryService? bestiary = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -97,6 +99,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
         _stateCache = stateCache;
         _coops = coops;
         _progress = progress;
+        _bestiary = bestiary;
         if (_progress is not null)
         {
             _progress.Combat = this;
