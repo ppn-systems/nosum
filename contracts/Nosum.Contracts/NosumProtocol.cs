@@ -22,6 +22,7 @@ public static class NosumProtocol
     /// 11: buff slot - <c>Buff</c> appended to <c>VitalsState</c>; speed buffs (Swiftness, Brotherhood in Arms) live in their own slot apart from Regeneration and Poison (issues #132, #146).
     /// 12: held tool, trade lock, hotbar sort lock - <c>HeldItemId</c> appended to <c>PlayerState</c>; <c>ConfirmLockMs</c> appended to <c>TradeState</c>;
     /// <c>TradeStatus.TooSoon</c> (value 12); <c>LockHotbar</c> appended to <c>SortInventory</c>.
+    /// 17: collection journal - new packets <c>GetJournal</c> and <c>JournalReply</c> (with <c>JournalEntry</c> rows), discoveries recorded on every item grant.
     /// </summary>
-    public const ushort Version = 12;
+    public const ushort Version = 17;
 }
