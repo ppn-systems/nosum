@@ -10,6 +10,10 @@
         {
             <p class="requests-next">@Vm.NextText</p>
         }
+        @if (Vm.BonusText.Length > 0)
+        {
+            <p class="requests-bonus">@Vm.BonusText</p>
+        }
         @if (!Vm.IsLoaded)
         {
             <p class="requests-hint">@Vm.Text("Requests_Loading") <GameSpinner /></p>

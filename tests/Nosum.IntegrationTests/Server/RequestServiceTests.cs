@@ -101,6 +101,18 @@ public sealed class RequestServiceTests : IClassFixture<PostgresFixture>, IAsync
     }
 
     [Fact]
+    public async Task Get_ReportsWhenTheEarlyBonusEnds_AndItsPercent()
+    {
+        Guid player = await NewPlayerAsync();
+
+        RequestsView view = await _requests.GetAsync(player);
+
+        // Day 10 starts six real hours before the test clock; four in-game hours of a twelve-hour day are two of those real hours.
+        view.EarlyUntilMs.Should().Be(_calendar.DayStartMs(10) + (2 * 60 * 60 * 1000));
+        view.EarlyBonusPercent.Should().Be(RequestRules.EarlyBonusPercent);
+    }
+
+    [Fact]
     public async Task Get_EveryPlayerSeesTheSameRequests()
     {
         Guid a = await NewPlayerAsync();
@@ -142,6 +154,23 @@ public sealed class RequestServiceTests : IClassFixture<PostgresFixture>, IAsync
         (await context.RequestFills.SingleAsync(f => f.PlayerId == player)).Should().Match<RequestFill>(f => f.Day == 10 && f.Slot == request.Slot && f.RewardCoins == request.RewardCoins);
         RequestsView view = await _requests.GetAsync(player);
         view.Requests.Where(r => r.Filled).Select(r => r.Slot).Should().Equal(request.Slot);
+    }
+
+    [Fact]
+    public async Task Deliver_InTheEarlyWindow_PaysTheBonusOnTop_AndRecordsIt()
+    {
+        Guid player = await NewPlayerAsync();
+        RequestView request = (await _requests.GetAsync(player)).Requests[0];
+        await GiveAsync(player, request.ItemId, request.Quantity);
+        _clock.Advance(TimeSpan.FromHours(-5)); // back to one real hour into game day 10, inside the early window
+        long expected = request.RewardCoins * (100 + RequestRules.EarlyBonusPercent) / 100;
+
+        RequestOutcome outcome = await _requests.DeliverAsync(_connection, player, 10, request.Slot);
+
+        outcome.Should().Be(new RequestOutcome(RequestStatus.Ok, expected, Bonus: true));
+        await using NosumDbContext context = new(_database.Options);
+        (await context.RequestFills.SingleAsync(f => f.PlayerId == player)).RewardCoins.Should().Be(expected);
+        (await context.CoinLog.Where(e => e.PlayerId == player && e.Reason == "request.deliver").ToListAsync()).Should().ContainSingle().Which.Delta.Should().Be(expected);
     }
 
     [Fact]

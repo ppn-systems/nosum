@@ -63,7 +63,7 @@ public sealed class RequestPacketTests
     [Fact]
     public void RequestsSnapshot_RoundTripsWithEveryRow()
     {
-        using RequestsSnapshot packet = new() { ServerNowMs = 1_700_000_000_000, Day = 99, DayEndsAtMs = 1_700_043_200_000 };
+        using RequestsSnapshot packet = new() { ServerNowMs = 1_700_000_000_000, Day = 99, DayEndsAtMs = 1_700_043_200_000, EarlyUntilMs = 1_700_014_400_000, EarlyBonusPercent = 20 };
         packet.Rows.Add(new RequestRow { Slot = 0, ItemId = 200, Quantity = 5, RewardCoins = 130, Filled = false });
         packet.Rows.Add(new RequestRow { Slot = 1, ItemId = 201, Quantity = 3, RewardCoins = 117, Filled = true });
 
@@ -72,6 +72,8 @@ public sealed class RequestPacketTests
         copy.ServerNowMs.Should().Be(1_700_000_000_000);
         copy.Day.Should().Be(99);
         copy.DayEndsAtMs.Should().Be(1_700_043_200_000);
+        copy.EarlyUntilMs.Should().Be(1_700_014_400_000);
+        copy.EarlyBonusPercent.Should().Be(20);
         copy.Rows.Should().BeEquivalentTo(packet.Rows, o => o.WithStrictOrdering());
     }
 
@@ -81,9 +83,9 @@ public sealed class RequestPacketTests
         using RequestResult packet = new() { Status = RequestStatus.AlreadyFilled, Reward = 0 };
         RequestResult.Deserialize(packet.Serialize()).Status.Should().Be(RequestStatus.AlreadyFilled);
 
-        using RequestResult paid = new() { Status = RequestStatus.Ok, Reward = 130 };
+        using RequestResult paid = new() { Status = RequestStatus.Ok, Reward = 156, Bonus = true };
         RequestResult copy = RequestResult.Deserialize(paid.Serialize());
-        (copy.Status, copy.Reward).Should().Be((RequestStatus.Ok, 130L));
+        (copy.Status, copy.Reward, copy.Bonus).Should().Be((RequestStatus.Ok, 156L, true));
 
         using GetRequests request = new();
         GetRequests.Deserialize(request.Serialize()).Should().NotBeNull();

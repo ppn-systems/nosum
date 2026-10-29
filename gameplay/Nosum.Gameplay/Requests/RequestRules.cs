@@ -33,6 +33,12 @@ public static class RequestRules
     /// <summary>The most items one request asks for.</summary>
     public const int MaxQuantity = 40;
 
+    /// <summary>The share added to a delivery made in the early window of its game day, in percent (docs/adr/ADR-036 D10).</summary>
+    public const int EarlyBonusPercent = 20;
+
+    /// <summary>How many in-game hours from the start of a game day the early bonus lasts.</summary>
+    public const int EarlyWindowHours = 4;
+
     // The base value a slot asks for, in coins at the bin price: an easy, a medium and a hard request.
     private static readonly int[] s_valueTargets = [100, 180, 300];
 
@@ -115,6 +121,23 @@ public static class RequestRules
 
         return (long)each * quantity * (100 + PremiumPercent) / 100;
     }
+
+    /// <summary>Tells how long the early window of a game day lasts, in milliseconds: <see cref="EarlyWindowHours"/> of the day's in-game hours.</summary>
+    /// <param name="dayLengthMs">The length of a game day in real time.</param>
+    /// <returns>The window in milliseconds.</returns>
+    public static long EarlyWindowMs(long dayLengthMs) => dayLengthMs * EarlyWindowHours * 60 / GameCalendar.MinutesPerDay;
+
+    /// <summary>Tells whether a moment falls in the early window of its game day.</summary>
+    /// <param name="msIntoDay">Milliseconds since the day started (the server clock minus <c>GameCalendar.DayStartMs</c>).</param>
+    /// <param name="dayLengthMs">The length of a game day in real time.</param>
+    /// <returns><see langword="true"/> from the start of the day until the window ends.</returns>
+    public static bool IsEarly(long msIntoDay, long dayLengthMs) => msIntoDay >= 0 && msIntoDay < EarlyWindowMs(dayLengthMs);
+
+    /// <summary>Tells what a delivery pays once the early bonus is applied: the base reward, plus <see cref="EarlyBonusPercent"/> when early, rounded down.</summary>
+    /// <param name="reward">The base reward of the request.</param>
+    /// <param name="early">Whether the delivery is in the early window.</param>
+    /// <returns>The coins paid.</returns>
+    public static long PaidFor(long reward, bool early) => early ? reward * (100 + EarlyBonusPercent) / 100 : reward;
 
     /// <summary>Returns whether a slot number names a request of a day.</summary>
     /// <param name="slot">The slot as sent by a client; not trusted.</param>
