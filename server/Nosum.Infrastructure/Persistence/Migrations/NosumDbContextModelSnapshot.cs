@@ -517,6 +517,13 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("name");
 
+                    b.Property<string>("Objectives")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("objectives")
+                        .HasDefaultValueSql("'{}'::jsonb");
+
                     b.Property<int>("WarehouseLevel")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")

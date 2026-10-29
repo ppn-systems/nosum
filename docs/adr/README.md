@@ -76,3 +76,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-064](ADR-064-elemental-resonance-pylons-and-overworld-wayshrines.md) | Elemental resonance pylons, overworld wilderness wayshrines, and AoE monster discharge | Accepted |
 | [ADR-065](ADR-065-ancient-relics-ranger-tunic-heart-crystal-and-arcane-grimoire.md) | Ancient relics, ranger tunic, heart crystal, arcane grimoire crafting, and armor paperdoll | Accepted |
 | [ADR-066](ADR-066-farm-guestbook.md) | Farm guestbook and watering recognition | Proposed |
+| [ADR-067](ADR-067-coop-shared-objectives-and-trophies.md) | Co-op shared objectives and guild trophies | Proposed |

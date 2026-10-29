@@ -106,7 +106,7 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         (await UseAsync(member, FarmItem.Can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Watered), "a member may water what another planted");
         (await UseAsync(member, FarmItem.Hoe, x, y)).Status.Should().NotBe(FarmStatus.Ok, "an unripe crop is not harvested");
         await GrowParsnipAsync(member, x, y);
-        (await UseAsync(member, FarmItem.Hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Harvested), "a member may harvest what another planted");
+        (await UseAsync(member, FarmItem.Hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Harvested, ItemCatalog.Parsnip, 1), "a member may harvest what another planted");
 
         (await CountAsync(member, ItemCatalog.Parsnip)).Should().BePositive("the harvester takes the produce");
         (await CountAsync(founder, ItemCatalog.Parsnip)).Should().Be(0);

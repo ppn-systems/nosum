@@ -37,6 +37,12 @@ public sealed record CoopLogView(Guid MemberId, int ItemId, int Delta, DateTimeO
 /// <param name="InviterNickname">The nickname of the co-op's founder, who invites; empty when unknown.</param>
 public sealed record CoopInviteView(Guid InviteId, string CoopName, string InviterNickname);
 
+/// <summary>One shared objective of the viewer's co-op (docs/adr/ADR-067).</summary>
+/// <param name="ObjectiveId">The objective id.</param>
+/// <param name="Contributed">How many the members have harvested toward it.</param>
+/// <param name="Completed">Whether the co-op has earned the trophy.</param>
+public sealed record CoopObjectiveView(int ObjectiveId, int Contributed, bool Completed);
+
 /// <summary>A viewer's co-op as the service reports it.</summary>
 /// <param name="HasCoop">Whether the viewer belongs to a co-op.</param>
 /// <param name="Name">The authored name.</param>
@@ -48,6 +54,7 @@ public sealed record CoopInviteView(Guid InviteId, string CoopName, string Invit
 /// <param name="ServerNow">The server clock when read.</param>
 /// <param name="WarehouseLevel">The warehouse upgrade level (docs/adr/ADR-038).</param>
 /// <param name="LandLevel">The land upgrade level (docs/adr/ADR-038).</param>
+/// <param name="Objectives">The shared objectives and their progress (docs/adr/ADR-067); empty when none is read.</param>
 public sealed record CoopView(
     bool HasCoop,
     string Name,
@@ -58,7 +65,8 @@ public sealed record CoopView(
     IReadOnlyList<CoopInviteView> Invites,
     DateTimeOffset ServerNow,
     int WarehouseLevel = 0,
-    int LandLevel = 0)
+    int LandLevel = 0,
+    IReadOnlyList<CoopObjectiveView>? Objectives = null)
 {
     /// <summary>Copies the view into a snapshot packet (the packet's lists are cleared first).</summary>
     /// <param name="packet">The packet to fill.</param>
@@ -76,6 +84,7 @@ public sealed record CoopView(
         packet.Stock.Clear();
         packet.Log.Clear();
         packet.Invites.Clear();
+        packet.Objectives.Clear();
         foreach (CoopMemberView member in this.Members)
         {
             CoopMemberRow row = CoopMemberRow.Create();
@@ -113,6 +122,15 @@ public sealed record CoopView(
             row.CoopName = invite.CoopName;
             row.InviterNickname = invite.InviterNickname;
             packet.Invites.Add(row);
+        }
+
+        foreach (CoopObjectiveView objective in this.Objectives ?? [])
+        {
+            CoopObjectiveRow row = CoopObjectiveRow.Create();
+            row.ObjectiveId = objective.ObjectiveId;
+            row.Contributed = objective.Contributed;
+            row.Completed = objective.Completed;
+            packet.Objectives.Add(row);
         }
     }
 }
@@ -198,4 +216,15 @@ public interface ICoopService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The status.</returns>
     Task<CoopStatus> UpgradeAsync(Guid playerId, CoopUpgradeTrack track, int targetLevel, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Counts a harvest by a member toward the co-op's shared objectives (docs/adr/ADR-067 D2). A player in no co-op, or a harvest no objective counts, changes
+    /// nothing. Every online member gets the new snapshot when the ledger moved. Called after the harvest is committed; a failure here never undoes it.
+    /// </summary>
+    /// <param name="playerId">The harvester.</param>
+    /// <param name="itemId">The harvested item.</param>
+    /// <param name="quantity">How many were harvested.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the ledger was updated and pushed.</returns>
+    Task ContributeAsync(Guid playerId, int itemId, int quantity, CancellationToken cancellationToken = default);
 }

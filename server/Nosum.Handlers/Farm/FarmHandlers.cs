@@ -1,10 +1,12 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
+using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Farm;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
@@ -21,6 +23,7 @@ namespace Nosum.Handlers.Farm;
 public static partial class FarmHandlers
 {
     [Inject] private static IFarmService s_farm = null!;
+    [Inject] private static ICoopService s_coops = null!;
 
     /// <summary>Uses the item in a hotbar slot on a tile.</summary>
     /// <param name="context">The request.</param>
@@ -44,6 +47,26 @@ public static partial class FarmHandlers
             r.Status = outcome.Status;
             r.Action = outcome.Action;
         }).ConfigureAwait(false);
+
+        // Only a harvest on co-op land carries a count (FarmService); anywhere else there is nothing to credit and no lookup is made.
+        if (outcome.Status == FarmStatus.Ok && outcome.Quantity > 0)
+        {
+            await CreditCoopAsync(context, outcome).ConfigureAwait(false);
+        }
+    }
+
+    // A harvest on co-op land counts toward the co-op's shared objectives (docs/adr/ADR-067). The harvest is committed and answered already, so a failing co-op update must not turn it into an error.
+    [SuppressMessage("Design", "CA1031", Justification = "The harvest is committed and answered; a failing co-op ledger must not turn it into an error reply.")]
+    private static async ValueTask CreditCoopAsync(IPacketContext<UseItem> context, FarmUseOutcome outcome)
+    {
+        try
+        {
+            await s_coops.ContributeAsync(context.Connection.GetPlayer().PlayerId, outcome.Subject, outcome.Quantity, context.CancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // The shared objective is best effort here; the next harvest counts again.
+        }
     }
 
     /// <summary>Uses a hoe or a watering can on a line of tiles with one swing (docs/adr/ADR-026 D1); the server checks the claim against the item in the slot.</summary>
