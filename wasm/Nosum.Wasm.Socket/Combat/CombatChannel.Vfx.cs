@@ -255,13 +255,55 @@ public sealed partial class CombatChannel
         }
     }
 
-    private void RecordCombo(byte comboCount)
+    private void RecordCombo(byte comboCount, int monsterId)
     {
         long expireAt = Environment.TickCount64 + 3500;
         Volatile.Write(ref _comboCount, comboCount);
         Volatile.Write(ref _comboExpireTick, expireAt);
         this.ComboChanged?.Invoke();
+        if (comboCount == FinisherComboCount)
+        {
+            // The finisher bursts on the struck monster, or on the player when the hit has no single target (docs/adr/ADR-060).
+            int tileX = _playerX;
+            int tileY = _playerY;
+            if (this.TryGetMonster(monsterId, out MonsterClientRow m))
+            {
+                tileX = m.X;
+                tileY = m.Y;
+            }
+
+            Volatile.Write(ref _finisherTileX, tileX);
+            Volatile.Write(ref _finisherTileY, tileY);
+            Volatile.Write(ref _finisherTick, Environment.TickCount64);
+            this.ComboFinished?.Invoke();
+        }
+
         _ = this.ExpireComboAsync(expireAt);
+    }
+
+    /// <summary>Gets the player's tile column, for world-space combat feedback that follows the player.</summary>
+    public int PlayerTileX => _playerX;
+
+    /// <summary>Gets the player's tile row, for world-space combat feedback that follows the player.</summary>
+    public int PlayerTileY => _playerY;
+
+    /// <summary>Queries the active combo finisher burst for zero-allocation world rendering (docs/adr/ADR-060).</summary>
+    public bool TryGetActiveFinisher(long now, out float progress, out int tileX, out int tileY)
+    {
+        long start = Volatile.Read(ref _finisherTick);
+        long elapsed = now - start;
+        if (start > 0 && elapsed >= 0 && elapsed < FinisherDurationMs)
+        {
+            progress = elapsed / (float)FinisherDurationMs;
+            tileX = Volatile.Read(ref _finisherTileX);
+            tileY = Volatile.Read(ref _finisherTileY);
+            return true;
+        }
+
+        progress = 0f;
+        tileX = 0;
+        tileY = 0;
+        return false;
     }
 
     private async Task ExpireComboAsync(long expireAt)

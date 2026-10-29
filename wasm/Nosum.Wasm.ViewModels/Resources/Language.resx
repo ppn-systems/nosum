@@ -871,6 +871,8 @@
   <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>TRỤ LÔI ĐIỆN</value></data>
   <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>ĐÀI NHẬT QUANG</value></data>
   <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>BIA BĂNG HÀN</value></data>
+  <data name="Combat_Label_Combo" xml:space="preserve"><value>{0}x LIÊN ĐÒN!</value></data>
+  <data name="Combat_Label_Finisher" xml:space="preserve"><value>KẾT LIỄU!</value></data>
   <data name="Elevator_ReturnHome" xml:space="preserve"><value>Về nhà (Nhà nông trại)</value></data>
   <data name="Wayfinding_MineExit" xml:space="preserve"><value>↑ Lối lên · [E] Về nhà</value></data>
   <data name="Wayfinding_MineElevator" xml:space="preserve"><value>[E] Thang máy · Về nhà</value></data>

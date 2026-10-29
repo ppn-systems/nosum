@@ -79,6 +79,8 @@ internal sealed partial class MonstersDecorator : IMapDecorator
         this.DrawDeathEffects(world, now);
         this.DrawFloatingTexts(world, now);
         this.DrawLevelUpBeacon(world, now);
+        this.DrawComboCounter(world);
+        this.DrawComboFinisher(world, now);
     }
 
     private bool IsVisible(int worldX, int worldY, int width = FrameSize, int height = FrameSize)

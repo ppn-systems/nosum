@@ -79,6 +79,7 @@ internal static class AudioWiring
         };
 
         combat.LevelledUp += _ => audio.Play(SoundIds.LevelUp);
+        combat.ComboFinished += () => audio.Play(SoundIds.ComboFinisher);
         services.GetRequiredService<ProgressChannel>().LevelledUp += (_, level) => combat.TriggerLevelUp(level);
     }
 }

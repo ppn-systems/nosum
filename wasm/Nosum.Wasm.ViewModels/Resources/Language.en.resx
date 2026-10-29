@@ -871,6 +871,8 @@
   <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>THUNDER PYLON</value></data>
   <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>SOLAR WAYSHRINE</value></data>
   <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>FROST MONOLITH</value></data>
+  <data name="Combat_Label_Combo" xml:space="preserve"><value>{0}x COMBO!</value></data>
+  <data name="Combat_Label_Finisher" xml:space="preserve"><value>FINISHER!</value></data>
   <data name="Elevator_ReturnHome" xml:space="preserve"><value>Return Home (Farmhouse)</value></data>
   <data name="Wayfinding_MineExit" xml:space="preserve"><value>↑ Way Up · [E] Home</value></data>
   <data name="Wayfinding_MineElevator" xml:space="preserve"><value>[E] Elevator · Home</value></data>

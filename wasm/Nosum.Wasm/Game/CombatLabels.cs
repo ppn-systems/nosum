@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Extensions.Localization;
+using Nosum.Gameplay.Combat;
 using Nosum.Rendering;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -18,6 +19,10 @@ internal sealed class CombatLabels
 
     private readonly IStringLocalizer<Language>? _text;
     private readonly Dictionary<(int Value, byte Style), int> _cache = new(MaxPreInternedValue * 5);
+    private readonly int[] _comboLabelIds = new int[CombatRules.MaxComboCount + 1];
+
+    /// <summary>Gets the pre-interned label id for the 5x combo finisher banner (docs/adr/ADR-060).</summary>
+    public int FinisherLabelId { get; }
 
     /// <summary>Gets the pre-interned label id for the Ancient Dungeon portal (docs/adr/ADR-057).</summary>
     public int PortalLabelId { get; }
@@ -69,6 +74,7 @@ internal sealed class CombatLabels
         ArgumentNullException.ThrowIfNull(registry);
         _text = text;
         this.PortalLabelId = registry.Intern(this.Lookup("Combat_Label_Portal"), 1);
+        this.FinisherLabelId = registry.Intern(this.Lookup("Combat_Label_Finisher"), 1);
         this.EliteFlameLabelId = registry.Intern(this.Lookup("Combat_Label_Elite_Flame"), 2);
         this.EliteSwiftLabelId = registry.Intern(this.Lookup("Combat_Label_Elite_Swift"), 0);
         this.EliteShieldedLabelId = registry.Intern(this.Lookup("Combat_Label_Elite_Shielded"), 1);
@@ -94,6 +100,12 @@ internal sealed class CombatLabels
             _cache[(i, 3)] = registry.Intern("+" + num, 3);
             _cache[(i, 4)] = registry.Intern("-" + num, 4);
         }
+
+        // Pre-intern the floating combo counter ("3x COMBO!") for every streak length that shows it (docs/adr/ADR-060).
+        for (int c = 2; c <= CombatRules.MaxComboCount; c++)
+        {
+            _comboLabelIds[c] = registry.Intern(this.FormatCombo(c.ToString(CultureInfo.InvariantCulture)), 1);
+        }
     }
 
     /// <summary>Returns the pre-rendered label id for a combat number without allocating or crossing JS interop.</summary>
@@ -104,7 +116,17 @@ internal sealed class CombatLabels
         return _cache.TryGetValue((clamped, clampedStyle), out int id) ? id : 0;
     }
 
+    /// <summary>Returns the pre-interned floating combo counter for a streak length, or 0 when the streak is too short to show it.</summary>
+    public int GetComboLabelId(int comboCount)
+    {
+        return comboCount >= 2 && comboCount <= CombatRules.MaxComboCount ? _comboLabelIds[comboCount] : 0;
+    }
+
     private string Lookup(string key) => _text is not null ? _text[key].Value : key;
+
+    private string FormatCombo(string num) => _text is not null
+        ? string.Format(CultureInfo.CurrentCulture, _text["Combat_Label_Combo"].Value, num)
+        : num + "x COMBO!";
 
     private string FormatCrit(string num) => _text is not null
         ? string.Format(CultureInfo.CurrentCulture, _text["Combat_Label_Crit"].Value, num)

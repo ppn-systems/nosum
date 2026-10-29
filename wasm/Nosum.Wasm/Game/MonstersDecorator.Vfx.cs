@@ -247,4 +247,95 @@ internal sealed partial class MonstersDecorator
                 9900);
         }
     }
+
+    private void DrawComboCounter(WorldSpriteBatch world)
+    {
+        // Floating combo counter above the player while a streak is live (docs/adr/ADR-060).
+        int comboLabelId = _labels?.GetComboLabelId(_combat.CurrentCombo) ?? 0;
+        if (comboLabelId == 0)
+        {
+            return;
+        }
+
+        int pWorldX = _combat.PlayerTileX * FrameSize;
+        int pWorldY = _combat.PlayerTileY * FrameSize;
+        world.AddOverlay(
+            RenderCommandBuffer.LabelTexture,
+            comboLabelId,
+            0,
+            0,
+            0,
+            pWorldX + 8,
+            pWorldY - 6,
+            pWorldY + FrameSize + 35,
+            pWorldX,
+            9905);
+    }
+
+    private void DrawComboFinisher(WorldSpriteBatch world, long now)
+    {
+        // 5x combo finisher: a gold flash and a ring of sparks on the struck target, with a banner (docs/adr/ADR-060).
+        if (!_combat.TryGetActiveFinisher(now, out float progress, out int tileX, out int tileY))
+        {
+            return;
+        }
+
+        int pWorldX = tileX * FrameSize;
+        int pWorldY = tileY * FrameSize;
+        int cx = pWorldX + (FrameSize / 2);
+        int cy = pWorldY + (FrameSize / 2);
+        int alpha = Math.Clamp((int)((1f - progress) * 255f), 0, 255);
+
+        // Bright flash that expands and fades over the target
+        int flashSize = 10 + (int)(progress * 24f);
+        world.AddOverlay(
+            RenderCommandBuffer.FillTexture,
+            0,
+            0,
+            flashSize,
+            flashSize,
+            cx - (flashSize / 2),
+            cy - (flashSize / 2),
+            pWorldY + FrameSize - 1,
+            pWorldX,
+            9753,
+            tint: unchecked((int)((0xfef9c3 << 8) | alpha)));
+
+        // Eight gold sparks flung outward from the impact
+        for (int s = 0; s < 8; s++)
+        {
+            float angle = s * (MathF.PI / 4f);
+            float dist = 4f + (progress * 20f);
+            int sx = cx + (int)(MathF.Cos(angle) * dist) - 1;
+            int sy = cy + (int)(MathF.Sin(angle) * dist) - 1;
+            world.AddOverlay(
+                RenderCommandBuffer.FillTexture,
+                0,
+                0,
+                3,
+                3,
+                sx,
+                sy,
+                pWorldY + FrameSize + 22,
+                sx,
+                9760 + s,
+                tint: unchecked((int)((0xffe08a << 8) | alpha)));
+        }
+
+        if (_labels is not null)
+        {
+            int bannerRise = (int)(MathF.Min(1f, progress * 2.5f) * 14f);
+            world.AddOverlay(
+                RenderCommandBuffer.LabelTexture,
+                _labels.FinisherLabelId,
+                0,
+                0,
+                0,
+                pWorldX + 8,
+                pWorldY - 26 - bannerRise,
+                pWorldY + FrameSize + 35,
+                pWorldX,
+                9770);
+        }
+    }
 }

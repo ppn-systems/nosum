@@ -34,6 +34,12 @@ public sealed partial class CombatChannel : IDisposable
     private int _activeSkillId;
     private long _activeSkillTick;
 
+    /// <summary>The combo streak length that lands the finisher burst and thump (docs/adr/ADR-060).</summary>
+    public const int FinisherComboCount = 5;
+
+    /// <summary>How long the finisher burst stays on screen, in milliseconds.</summary>
+    public const int FinisherDurationMs = 700;
+
     private int _hp = 100;
     private int _maxHp = 100;
     private int _mp = 50;
@@ -46,6 +52,9 @@ public sealed partial class CombatChannel : IDisposable
     private int _lastCelebratedLevel;
     private int _levelUpValue;
     private long _levelUpTick;
+    private long _finisherTick;
+    private int _finisherTileX;
+    private int _finisherTileY;
     private string _mapId = string.Empty;
 
     /// <summary>Initializes the combat channel.</summary>
@@ -66,6 +75,9 @@ public sealed partial class CombatChannel : IDisposable
 
     /// <summary>Invoked when the player's active combo streak changes (docs/adr/ADR-060).</summary>
     public event Action? ComboChanged;
+
+    /// <summary>Invoked when a combo streak reaches the finisher length (docs/adr/ADR-060).</summary>
+    public event Action? ComboFinished;
 
     /// <summary>Invoked when the player reaches a new Combat level (docs/adr/ADR-062).</summary>
     public event Action<int>? LevelledUp;
@@ -364,7 +376,7 @@ public sealed partial class CombatChannel : IDisposable
             {
                 if (reply.ComboCount > 0)
                 {
-                    this.RecordCombo(reply.ComboCount);
+                    this.RecordCombo(reply.ComboCount, reply.MonsterId);
                 }
 
                 if (this.TryGetMonster(reply.MonsterId, out MonsterClientRow m))
@@ -466,7 +478,7 @@ public sealed partial class CombatChannel : IDisposable
 
                 if (reply.ComboCount > 0)
                 {
-                    this.RecordCombo(reply.ComboCount);
+                    this.RecordCombo(reply.ComboCount, targetMonsterId);
                 }
             }
 
