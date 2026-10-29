@@ -1,0 +1,13 @@
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Maps
+@inherits ObservingComponent<MapLoadingViewModel>
+
+@* The black screen while a map the server sent the player to loads: what is loading, how far it is and a tip that rotates. Shown in the HUD overlay. *@
+@if (Vm.IsVisible)
+{
+    <GamePanel Class="dialog map-loading" Title="" Role="status">
+        <p class="map-loading-title">@Vm.Title <GameSpinner /></p>
+        <GameProgress Percent="@Vm.Percent" Label="@Vm.Title" />
+        <p class="map-loading-tip">@Vm.Tip</p>
+    </GamePanel>
+}

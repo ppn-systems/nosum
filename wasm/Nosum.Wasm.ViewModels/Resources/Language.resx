@@ -304,6 +304,13 @@
   <data name="Game_Title" xml:space="preserve"><value>Nosum</value></data>
   <data name="Game_Tagline" xml:space="preserve"><value>Nông trại trực tuyến để cùng nhau vun trồng</value></data>
   <data name="Game_Loading" xml:space="preserve"><value>Đang vào thế giới…</value></data>
+  <data name="Map_Loading" xml:space="preserve"><value>Đang tải khu vực…</value></data>
+  <data name="Map_Tip_Merchant" xml:space="preserve"><value>Đứng trước quầy của người bán rồi nhấn phím hành động để mở cửa hàng.</value></data>
+  <data name="Map_Tip_Elevator" xml:space="preserve"><value>Đứng cạnh thang máy của mỏ rồi nhấn phím hành động để chọn tầng.</value></data>
+  <data name="Map_Tip_Sell" xml:space="preserve"><value>Đứng cạnh thùng bán hàng để bán nông sản.</value></data>
+  <data name="Map_Tip_Use" xml:space="preserve"><value>Cầm một vật phẩm rồi nhấn phím hành động để dùng nó lên ô phía trước.</value></data>
+  <data name="Map_Tip_Energy" xml:space="preserve"><value>Ăn nông sản để hồi thêm sức khi đã mệt.</value></data>
+  <data name="Map_Tip_Town" xml:space="preserve"><value>Rời nông trại để ghé thăm Thị trấn.</value></data>
   <data name="Game_StartFailed" xml:space="preserve"><value>Không thể bắt đầu trò chơi: {0}</value></data>
   <data name="Help_Title" xml:space="preserve"><value>Phím tắt</value></data>
   <data name="Help_Section_Play" xml:space="preserve"><value>Chơi</value></data>

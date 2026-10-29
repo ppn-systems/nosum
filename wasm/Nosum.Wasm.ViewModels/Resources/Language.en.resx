@@ -304,6 +304,13 @@
   <data name="Game_Title" xml:space="preserve"><value>Nosum</value></data>
   <data name="Game_Tagline" xml:space="preserve"><value>An online farm to grow together</value></data>
   <data name="Game_Loading" xml:space="preserve"><value>Entering the world…</value></data>
+  <data name="Map_Loading" xml:space="preserve"><value>Loading the area…</value></data>
+  <data name="Map_Tip_Merchant" xml:space="preserve"><value>Stand at a merchant's counter and press the action key to open their shop.</value></data>
+  <data name="Map_Tip_Elevator" xml:space="preserve"><value>Stand by the mine elevator and press the action key to pick a floor.</value></data>
+  <data name="Map_Tip_Sell" xml:space="preserve"><value>Stand by the sell bin to sell your crops.</value></data>
+  <data name="Map_Tip_Use" xml:space="preserve"><value>Hold an item and press the action key to use it on the tile in front of you.</value></data>
+  <data name="Map_Tip_Energy" xml:space="preserve"><value>Eat crops to restore energy when you run low.</value></data>
+  <data name="Map_Tip_Town" xml:space="preserve"><value>Leave your farm to visit the Town.</value></data>
   <data name="Game_StartFailed" xml:space="preserve"><value>Could not start the game: {0}</value></data>
   <data name="Help_Title" xml:space="preserve"><value>Keyboard shortcuts</value></data>
   <data name="Help_Section_Play" xml:space="preserve"><value>Playing</value></data>
