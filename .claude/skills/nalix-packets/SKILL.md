@@ -24,7 +24,7 @@ Facts from the Nalix source (`src/Nalix.Codec`, generators) as used by Nalix 14.
 - **Every client-supplied member of a `…/C2S` packet declares its bounds** (`Nosum.Contracts.Validation`, docs/adr/ADR-032 D3): `[WireMaxLength(n)]` on
   strings and lists, `[WireRange(min, max)]` on `int`/`long`/`float`/`double`, `[WireDefined]` on enums (constants in `WireLimits`). Booleans, bytes, GUIDs
   and unsigned numbers are exempt. `HandlerAuditTests` and `PacketBoundsTests` fail on a missing declaration; the server drops a packet that breaks one.
-- New account-recovery style opcodes come from the top of the free range above a band (Account recovery: `0x11F0` downward; operations: `0x1100` upward).
+- Retiring a packet: keep its class and opcode reserved, document it as retired, and remove its handler and client use. Do not mark the class `[Obsolete]`: the generated formatter then fails the build under `TreatWarningsAsErrors`. The Account opcodes `0x11F0` and `0x11EF` (account recovery, ADR-032) are retired this way. New operations opcodes take `0x1100` upward.
 
 ## Define a packet
 
@@ -70,7 +70,7 @@ XML doc and in `contracts/README.md`. Never reassign or reuse a value.
 
 | Domain | Band |
 | :--- | :--- |
-| Account / Recovery | `0x1000-0x10FF`, `0x11E0-0x11F0` |
+| Account | `0x1000-0x10FF`, `0x11E0-0x11F0` (`0x11EF-0x11F0` retired, reserved) |
 | Admin | `0x1100-0x11FF` |
 | Player (presence, movement, energy/skills) | `0x2000-0x20FF` |
 | Farm | `0x3000-0x30FF` |

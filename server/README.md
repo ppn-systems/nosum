@@ -168,7 +168,6 @@ refuses to start) leaves out `RateLimitMiddleware` so `bench/Nosum.Bench.Load` i
 | Variable | Effect |
 | :--- | :--- |
 | `NOSUM_SERVER_KEY_PATH` | File holding the server's private identity key (created on first start). Default `~/.local/share/Nalix/config/certificate.private`. Mount it on a volume: a new key makes every pinned client refuse the server. The host prints the matching public key at start-up. |
-| `NOSUM_SMTP_HOST`, `NOSUM_SMTP_PORT` (587), `NOSUM_SMTP_USER`, `NOSUM_SMTP_PASSWORD`, `NOSUM_SMTP_FROM`, `NOSUM_SMTP_SSL` (true) | Mail provider for password recovery codes. Without `NOSUM_SMTP_HOST` nothing is sent and the host warns at start-up. |
 | `NOSUM_MAX_CONNECTIONS_PER_IP` (20), `NOSUM_MAX_CONNECTIONS_PER_WINDOW` (20 per 5 s), `NOSUM_MAX_CONNECTIONS_PER_SUBNET` (200), `NOSUM_MAX_SUBNET_CONNECTIONS_PER_WINDOW` (200) | Per-address connection limits of the Nalix connection guard. |
 | `NOSUM_NEW_ACCOUNTS_PER_IP_PER_DAY` (30) | New accounts (registered or guest) one address may create per day. |
 | `NOSUM_ABUSE_ENFORCE_LOOPBACK` (false) | Also limit loopback addresses; set it when a reverse proxy on the same host fronts the server and the real client address is not forwarded. |
