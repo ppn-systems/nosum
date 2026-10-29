@@ -82,3 +82,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-070](ADR-070-mine-biome-tiers-and-music-themes.md) | Mine biome tiers: tinted cave palettes and music themes per ten floors (uses ADR-039 track ids, amends ADR-026 for the look) | Accepted |
 | [ADR-071](ADR-071-ambient-wildlife-and-weather-polish.md) | Ambient wildlife (birds, butterflies, fireflies, frogs, squirrels) seeded per chunk and day, and autumn leaves and rain splashes; client only | Accepted |
 | [ADR-072](ADR-072-minimap-world-map-and-collection-journal.md) | HUD minimap drawn by the engine, world map panel, collection journal (server discoveries, protocol 17), input edges narrowed to four held bits | Accepted |
+| [ADR-073](ADR-073-furniture-catalogue-and-decorating.md) | Furniture catalogue: thirty-two more pieces, catalogue groups, seasonal stock and the decorating panel (no wire change) | Proposed |
