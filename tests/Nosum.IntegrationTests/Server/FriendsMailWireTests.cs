@@ -302,8 +302,7 @@ public sealed class FriendsMailWireTests : IClassFixture<PostgresFixture>
     private static async Task<Account> RegisterAsync()
     {
         IAccountService accounts = InstanceManager.Instance.GetExistingInstance<IAccountService>()!;
-        string email = "f" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
-        AccountOutcome outcome = await accounts.RegisterAsync(email, "password-1", TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
+        AccountOutcome outcome = await TestAccounts.RegisterAsync(accounts, Guid.NewGuid().ToString("N"), TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
         outcome.Status.Should().Be(AccountStatus.Ok);
         return new Account(outcome.PlayerId, outcome.SessionToken, outcome.Nickname);
     }
@@ -350,6 +349,7 @@ public sealed class FriendsMailWireTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
             NetworkApplication app = Program.BuildApplication(port);
             TestHost host = new(app, port);
             await app.ActivateAsync(host.Timeout);

@@ -11,6 +11,17 @@ namespace Nosum.IntegrationTests.Server;
 /// </summary>
 internal static class RetiredPackets
 {
-    /// <summary>The retired account recovery packets (docs/adr/ADR-032 D4, removed).</summary>
-    public static readonly Type[] Types = [typeof(RequestPasswordReset), typeof(ConfirmPasswordReset)];
+    /// <summary>
+    /// The retired password packets (docs/adr/ADR-069): registration, login, guest upgrade by password, password change, and the account recovery pair
+    /// (docs/adr/ADR-032 D4). Sign-in is by Google or Microsoft only.
+    /// </summary>
+    public static readonly Type[] Types =
+    [
+        typeof(Register),
+        typeof(Login),
+        typeof(UpgradeGuest),
+        typeof(ChangePassword),
+        typeof(RequestPasswordReset),
+        typeof(ConfirmPasswordReset),
+    ];
 }

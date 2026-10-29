@@ -12,14 +12,11 @@ public static class WireLimits
     /// <summary>Longest short text: e-mail address, nickname, map id, co-op name.</summary>
     public const int ShortText = 64;
 
-    /// <summary>Longest password (equal to the account rule).</summary>
-    public const int Password = 128;
+    /// <summary>Longest provider ID token (a signed JWT: Microsoft's are about 2 KB).</summary>
+    public const int IdToken = 8192;
 
     /// <summary>Longest session token (a 32-byte token is 43 characters in base64url).</summary>
     public const int Token = 128;
-
-    /// <summary>Longest one-time recovery code.</summary>
-    public const int RecoveryCode = 16;
 
     /// <summary>Longest chat line.</summary>
     public const int ChatText = 400;

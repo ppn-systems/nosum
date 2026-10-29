@@ -45,6 +45,9 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the issued session tokens.</summary>
     public DbSet<PlayerSessionToken> PlayerSessionTokens => this.Set<PlayerSessionToken>();
 
+    /// <summary>Google and Microsoft identities linked to players (docs/adr/ADR-069).</summary>
+    public DbSet<ExternalLogin> ExternalLogins => this.Set<ExternalLogin>();
+
     /// <summary>Gets the inventory headers.</summary>
     public DbSet<PlayerInventory> PlayerInventories => this.Set<PlayerInventory>();
 

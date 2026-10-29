@@ -200,6 +200,7 @@ public sealed class ServerKeyPinningTests : IClassFixture<PostgresFixture>
     private async Task<NetworkApplication> StartOnPortAsync()
     {
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         NetworkApplication app = Program.BuildApplication(_port);
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(15));
         await app.ActivateAsync(timeout.Token);

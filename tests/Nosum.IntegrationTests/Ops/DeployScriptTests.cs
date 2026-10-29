@@ -13,6 +13,7 @@ using Nosum.Contracts.Common;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Security;
+using Nosum.IntegrationTests.Server;
 using Xunit;
 
 namespace Nosum.IntegrationTests.Ops;
@@ -54,6 +55,21 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
         services.GetProperty("cloudflared").GetProperty("environment").GetProperty("TUNNEL_TOKEN").GetString().Should().NotBeNullOrEmpty();
         services.GetProperty("cloudflared").GetProperty("depends_on").GetProperty("host").GetProperty("condition").GetString()
             .Should().Be("service_healthy");
+    }
+
+    [Fact]
+    public async Task Compose_HostReceivesTheSignInClientIds_AndTheMicrosoftTenantDefaultsToCommon()
+    {
+        JsonElement services = await ComposeServicesAsync(new Dictionary<string, string>
+        {
+            ["NOSUM_GOOGLE_CLIENT_ID"] = "google-client.example",
+            ["NOSUM_MICROSOFT_CLIENT_ID"] = "microsoft-client.example",
+        });
+        JsonElement environment = services.GetProperty("host").GetProperty("environment");
+
+        environment.GetProperty("NOSUM_GOOGLE_CLIENT_ID").GetString().Should().Be("google-client.example");
+        environment.GetProperty("NOSUM_MICROSOFT_CLIENT_ID").GetString().Should().Be("microsoft-client.example");
+        environment.GetProperty("NOSUM_MICROSOFT_TENANT").GetString().Should().Be("common");
     }
 
     // ---- host entrypoint ----
@@ -110,9 +126,9 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     [Fact]
     public async Task BackupThenRestore_IntoAScratchDatabase_GivesTheSameRowsAndHonoursTheRetention()
     {
-        // Real rows to compare: an account, its player row and the rows registration adds.
-        AccountService accounts = new(new EfUnitOfWorkFactory(_database.Options), new Pbkdf2PasswordHasher(iterations: 1000), new SessionTokenService(), TimeProvider.System);
-        AccountOutcome outcome = await accounts.RegisterAsync("bk" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com", "password-1", "Test" + Guid.NewGuid().ToString("N")[..10], GameLanguage.English, default);
+        // Real rows to compare: an account, its player row, its external login and the rows sign-in adds.
+        AccountService accounts = new(new EfUnitOfWorkFactory(_database.Options), FakeExternalTokenVerifier.All(), new SessionTokenService(), TimeProvider.System);
+        AccountOutcome outcome = await TestAccounts.RegisterAsync(accounts, Guid.NewGuid().ToString("N"), "Test" + Guid.NewGuid().ToString("N")[..10], GameLanguage.English, default);
         outcome.Status.Should().Be(Nosum.Contracts.Account.AccountStatus.Ok);
         NpgsqlConnectionStringBuilder connection = new(_database.ConnectionString);
         Dictionary<string, string> environment = new()
@@ -133,7 +149,7 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
     // ---- helpers ----
 
     // The services of deploy/compose.yaml as Docker Compose resolves them; the variables it requires are set to dummies.
-    private static async Task<JsonElement> ComposeServicesAsync()
+    private static async Task<JsonElement> ComposeServicesAsync(Dictionary<string, string>? extra = null)
     {
         Dictionary<string, string> environment = new()
         {
@@ -142,6 +158,10 @@ public sealed class DeployScriptTests : IClassFixture<Server.PostgresFixture>, I
             ["NOSUM_TAG"] = "test",
             ["CLOUDFLARE_TUNNEL_TOKEN"] = "test",
         };
+        foreach ((string key, string value) in extra ?? [])
+        {
+            environment[key] = value;
+        }
 
         (int code, string output) = await RunAsync("docker", ["compose", "-f", DeployFile("compose.yaml"), "config", "--format", "json"], environment);
 

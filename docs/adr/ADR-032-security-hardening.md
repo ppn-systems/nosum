@@ -1,6 +1,6 @@
 # ADR-032 — Security hardening before production
 
-**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M5. Builds on ADR-003 (Nalix handshake and
+**Status:** Accepted (coordinator, 2026-10-25, owner delegation). Roadmap M5. Password sign-in and the password rules of D6 are replaced by docs/adr/ADR-069. Builds on ADR-003 (Nalix handshake and
 encryption), ADR-009 (accounts), ADR-029 (moderation), ADR-031 (operations).
 
 ## Context

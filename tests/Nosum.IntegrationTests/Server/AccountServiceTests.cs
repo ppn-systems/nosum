@@ -1,15 +1,19 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Identity;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
+using Nosum.Contracts.Validation;
 using Nosum.Core;
 using Nosum.Domain.Accounts;
+using Nosum.Gameplay.Players;
 using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Security;
@@ -17,7 +21,7 @@ using Xunit;
 
 namespace Nosum.IntegrationTests.Server;
 
-/// <summary>Account services against a real PostgreSQL database.</summary>
+/// <summary>Account services (docs/adr/ADR-069) against a real PostgreSQL database.</summary>
 public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
 {
     private static readonly DateTimeOffset s_start = new(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);
@@ -31,156 +35,175 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
         _database = database;
         _accounts = new AccountService(
             new EfUnitOfWorkFactory(database.Options),
-            new Pbkdf2PasswordHasher(iterations: 1000),
+            FakeExternalTokenVerifier.All(),
             new SessionTokenService(),
             _clock);
     }
 
     [Fact]
-    public async Task RegisterAsync_ValidRequest_CreatesPlayerWithSessionAndDefaultLanguage()
+    public async Task SignInWithExternalAsync_NewSubject_CreatesRegisteredPlayerWithNeutralName()
     {
-        string name = Unique();
-
-        AccountOutcome outcome = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome outcome = await TestAccounts.SignInAsync(_accounts, Unique(), GameLanguage.English);
 
         outcome.Status.Should().Be(AccountStatus.Ok);
         outcome.PlayerId.Should().NotBeEmpty();
-        outcome.Email.Should().Be(name);
         outcome.SessionToken.Should().NotBeEmpty();
         outcome.ExpiresAt.Should().Be(s_start + AccountService.DefaultSessionLifetime);
-        outcome.Language.Should().Be(GameLanguage.Vietnamese);
         outcome.IsGuest.Should().BeFalse();
+        outcome.Language.Should().Be(GameLanguage.English);
+        NicknameRules.IsGuestName(outcome.Nickname, out _).Should().BeTrue();
     }
 
     [Fact]
-    public async Task RegisterAsync_Stored_KeepsOnlyHashesNeverPasswordOrToken()
+    public async Task SignInWithExternalAsync_UnspecifiedLanguage_UsesVietnamese()
     {
-        string name = Unique();
+        AccountOutcome outcome = await TestAccounts.SignInAsync(_accounts, Unique(), GameLanguage.Unspecified);
 
-        AccountOutcome outcome = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
+        outcome.Language.Should().Be(GameLanguage.Vietnamese);
+    }
+
+    [Fact]
+    public async Task SignInWithExternalAsync_Stored_LinksTheSubjectAndKeepsOnlyTheSessionHash()
+    {
+        string subject = Unique();
+
+        AccountOutcome outcome = await TestAccounts.SignInAsync(_accounts, subject, GameLanguage.English);
 
         await using NosumDbContext db = new(_database.Options);
-        Player player = await db.Players.SingleAsync(p => p.Id == outcome.PlayerId);
-        player.PasswordHash!.Should().StartWith("PBKDF2-SHA256$").And.NotContain("password-1");
-        player.Language.Should().Be(GameLanguage.English);
+        ExternalLogin link = await db.ExternalLogins.SingleAsync(l => l.PlayerId == outcome.PlayerId);
+        link.Provider.Should().Be(ExternalProvider.Google);
+        link.Subject.Should().Be(subject);
         PlayerSessionToken stored = await db.PlayerSessionTokens.SingleAsync(t => t.PlayerId == outcome.PlayerId);
         stored.TokenHash.Should().NotBe(outcome.SessionToken).And.NotContain(outcome.SessionToken);
     }
 
     [Fact]
-    public async Task RegisterAsync_MixedCaseEmail_IsStoredAndReturnedInLowerCase()
+    public async Task SignInWithExternalAsync_SameSubjectAgain_SignsInTheSamePlayer()
     {
-        string name = Unique();
+        string subject = Unique();
+        AccountOutcome first = await TestAccounts.SignInAsync(_accounts, subject);
+        _clock.Advance(TimeSpan.FromHours(1));
 
-        AccountOutcome outcome = await _accounts.RegisterAsync(name.ToUpperInvariant(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
-        AccountOutcome login = await _accounts.LoginAsync(name, "password-1", CancellationToken.None);
+        AccountOutcome again = await TestAccounts.SignInAsync(_accounts, subject);
 
-        outcome.Status.Should().Be(AccountStatus.Ok);
-        outcome.Email.Should().Be(name);
-        login.PlayerId.Should().Be(outcome.PlayerId);
+        again.Status.Should().Be(AccountStatus.Ok);
+        again.PlayerId.Should().Be(first.PlayerId);
+        again.SessionToken.Should().NotBe(first.SessionToken);
+        await using NosumDbContext db = new(_database.Options);
+        (await db.Players.SingleAsync(p => p.Id == again.PlayerId)).LastLoginAt.Should().Be(s_start.AddHours(1));
     }
 
     [Fact]
-    public async Task RegisterAsync_SameUsernameDifferentCase_IsUsernameTaken()
+    public async Task SignInWithExternalAsync_SameSubjectConcurrently_CreatesExactlyOnePlayer()
     {
-        string name = Unique();
-        _ = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
-
-        AccountOutcome second = await _accounts.RegisterAsync(name.ToUpperInvariant(), "password-2", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
-
-        second.Status.Should().Be(AccountStatus.EmailTaken);
-        second.SessionToken.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task RegisterAsync_SameUsernameConcurrently_CreatesExactlyOne()
-    {
-        string name = Unique();
+        string subject = Unique();
 
         AccountOutcome[] results = await Task.WhenAll(
-            _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None),
-            _accounts.RegisterAsync(name, "password-2", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None),
-            _accounts.RegisterAsync(name, "password-3", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None));
+            TestAccounts.SignInAsync(_accounts, subject),
+            TestAccounts.SignInAsync(_accounts, subject),
+            TestAccounts.SignInAsync(_accounts, subject));
 
-        results.Should().ContainSingle(r => r.Status == AccountStatus.Ok);
-        results.Should().OnlyContain(r => r.Status == AccountStatus.Ok || r.Status == AccountStatus.EmailTaken);
+        results.Should().OnlyContain(r => r.Status == AccountStatus.Ok);
+        results.Select(r => r.PlayerId).Distinct().Should().ContainSingle();
+        await using NosumDbContext db = new(_database.Options);
+        (await db.ExternalLogins.CountAsync(l => l.Subject == subject)).Should().Be(1);
     }
 
-    [Theory]
-    [InlineData("farmer", "password-1", GameLanguage.Vietnamese, AccountStatus.InvalidEmail)]
-    [InlineData("farmer@yahoo.com", "password-1", GameLanguage.Vietnamese, AccountStatus.InvalidEmail)]
-    [InlineData("abc@gmail.com", "password-1", GameLanguage.Vietnamese, AccountStatus.InvalidEmail)]
-    [InlineData("validname@gmail.com", "short", GameLanguage.Vietnamese, AccountStatus.InvalidPassword)]
-    [InlineData("validname@gmail.com", "password-1", (GameLanguage)99, AccountStatus.InvalidLanguage)]
-    public async Task RegisterAsync_BreaksARule_IsRefusedWithMatchingCode(string name, string password, GameLanguage language, AccountStatus expected)
+    [Fact]
+    public async Task SignInWithExternalAsync_SameSubjectUnderOtherProvider_IsAnotherPlayer()
     {
-        AccountOutcome outcome = await _accounts.RegisterAsync(name, password, TestNicknames.Next(), language, CancellationToken.None);
+        string subject = Unique();
+        AccountOutcome google = await TestAccounts.SignInAsync(_accounts, subject);
 
-        outcome.Status.Should().Be(expected);
+        AccountOutcome microsoft = await _accounts.SignInWithExternalAsync(ExternalProvider.Microsoft, FakeExternalTokenVerifier.Token(ExternalProvider.Microsoft, subject), GameLanguage.English, CancellationToken.None);
+
+        microsoft.Status.Should().Be(AccountStatus.Ok);
+        microsoft.PlayerId.Should().NotBe(google.PlayerId);
+    }
+
+    [Fact]
+    public async Task SignInWithExternalAsync_BannedAccount_IsRefusedAsBanned()
+    {
+        string subject = Unique();
+        AccountOutcome account = await TestAccounts.SignInAsync(_accounts, subject);
+        await using (NosumDbContext db = new(_database.Options))
+        {
+            Player player = await db.Players.SingleAsync(p => p.Id == account.PlayerId);
+            player.BannedAt = s_start;
+            _ = await db.SaveChangesAsync();
+        }
+
+        AccountOutcome outcome = await TestAccounts.SignInAsync(_accounts, subject);
+
+        outcome.Status.Should().Be(AccountStatus.Banned);
         outcome.SessionToken.Should().BeEmpty();
     }
 
-    [Fact]
-    public async Task LoginAsync_CorrectPassword_IssuesNewTokenAndRecordsLastLogin()
+    [Theory]
+    [InlineData("")]
+    [InlineData("not-a-real-token")]
+    [InlineData("fake:Google:")]
+    [InlineData("fake:Microsoft:someone")]
+    public async Task SignInWithExternalAsync_TokenTheVerifierRejects_IsInvalidIdToken(string idToken)
     {
-        string name = Unique();
-        AccountOutcome registered = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
-        _clock.Advance(TimeSpan.FromHours(1));
+        AccountOutcome outcome = await _accounts.SignInWithExternalAsync(ExternalProvider.Google, idToken, GameLanguage.English, CancellationToken.None);
 
-        AccountOutcome login = await _accounts.LoginAsync(name.ToUpperInvariant(), "password-1", CancellationToken.None);
-
-        login.Status.Should().Be(AccountStatus.Ok);
-        login.PlayerId.Should().Be(registered.PlayerId);
-        login.SessionToken.Should().NotBe(registered.SessionToken);
-        await using NosumDbContext db = new(_database.Options);
-        (await db.Players.SingleAsync(p => p.Id == login.PlayerId)).LastLoginAt.Should().Be(s_start.AddHours(1));
+        outcome.Should().Be(AccountOutcome.Refused(AccountStatus.InvalidIdToken));
     }
 
     [Fact]
-    public async Task LoginAsync_WrongPasswordOrUnknownUser_IsTheSameRefusal()
+    public async Task SignInWithExternalAsync_TokenLongerThanTheWireLimit_IsInvalidIdToken()
     {
-        string name = Unique();
-        _ = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        string tooLong = "fake:Google:" + new string('a', WireLimits.IdToken);
 
-        AccountOutcome wrongPassword = await _accounts.LoginAsync(name, "password-2", CancellationToken.None);
-        AccountOutcome unknownUser = await _accounts.LoginAsync(Unique(), "password-1", CancellationToken.None);
+        AccountOutcome outcome = await _accounts.SignInWithExternalAsync(ExternalProvider.Google, tooLong, GameLanguage.English, CancellationToken.None);
 
-        wrongPassword.Should().Be(AccountOutcome.Refused(AccountStatus.InvalidCredentials));
-        unknownUser.Should().Be(AccountOutcome.Refused(AccountStatus.InvalidCredentials));
+        outcome.Should().Be(AccountOutcome.Refused(AccountStatus.InvalidIdToken));
     }
 
     [Fact]
-    public async Task ResumeAsync_TokenFromRegister_SignsInSamePlayer()
+    public async Task SignInWithExternalAsync_ProviderWithoutVerifier_IsInvalidIdToken()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountService googleOnly = new(
+            new EfUnitOfWorkFactory(_database.Options),
+            [new FakeExternalTokenVerifier(ExternalProvider.Google)],
+            new SessionTokenService(),
+            _clock);
+        string subject = Unique();
 
-        AccountOutcome resumed = await _accounts.ResumeAsync(registered.SessionToken, CancellationToken.None);
+        AccountOutcome outcome = await googleOnly.SignInWithExternalAsync(ExternalProvider.Microsoft, FakeExternalTokenVerifier.Token(ExternalProvider.Microsoft, subject), GameLanguage.English, CancellationToken.None);
+
+        outcome.Should().Be(AccountOutcome.Refused(AccountStatus.InvalidIdToken));
+    }
+
+    [Fact]
+    public async Task SignInWithExternalAsync_UnknownLanguage_IsInvalidLanguage()
+    {
+        AccountOutcome outcome = await TestAccounts.SignInAsync(_accounts, Unique(), (GameLanguage)99);
+
+        outcome.Should().Be(AccountOutcome.Refused(AccountStatus.InvalidLanguage));
+    }
+
+    [Fact]
+    public async Task ResumeAsync_TokenFromSignIn_SignsInSamePlayer()
+    {
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());
+
+        AccountOutcome resumed = await _accounts.ResumeAsync(signedIn.SessionToken, CancellationToken.None);
 
         resumed.Status.Should().Be(AccountStatus.Ok);
-        resumed.PlayerId.Should().Be(registered.PlayerId);
-        resumed.Email.Should().Be(registered.Email);
-        resumed.ExpiresAt.Should().Be(registered.ExpiresAt);
-    }
-
-    [Fact]
-    public async Task ResumeAsync_TokenFromLogin_SignsIn()
-    {
-        string name = Unique();
-        _ = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
-        AccountOutcome login = await _accounts.LoginAsync(name, "password-1", CancellationToken.None);
-
-        AccountOutcome resumed = await _accounts.ResumeAsync(login.SessionToken, CancellationToken.None);
-
-        resumed.Status.Should().Be(AccountStatus.Ok);
+        resumed.PlayerId.Should().Be(signedIn.PlayerId);
+        resumed.Nickname.Should().Be(signedIn.Nickname);
+        resumed.IsGuest.Should().BeFalse();
     }
 
     [Fact]
     public async Task ResumeAsync_AfterExpiry_IsInvalidToken()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());
         _clock.Advance(AccountService.DefaultSessionLifetime + TimeSpan.FromSeconds(1));
 
-        AccountOutcome resumed = await _accounts.ResumeAsync(registered.SessionToken, CancellationToken.None);
+        AccountOutcome resumed = await _accounts.ResumeAsync(signedIn.SessionToken, CancellationToken.None);
 
         resumed.Status.Should().Be(AccountStatus.InvalidToken);
     }
@@ -188,15 +211,15 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task ResumeAsync_RevokedToken_IsInvalidToken()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());
         await using (NosumDbContext db = new(_database.Options))
         {
-            PlayerSessionToken stored = await db.PlayerSessionTokens.SingleAsync(t => t.PlayerId == registered.PlayerId);
+            PlayerSessionToken stored = await db.PlayerSessionTokens.SingleAsync(t => t.PlayerId == signedIn.PlayerId);
             stored.RevokedAt = s_start;
             _ = await db.SaveChangesAsync();
         }
 
-        AccountOutcome resumed = await _accounts.ResumeAsync(registered.SessionToken, CancellationToken.None);
+        AccountOutcome resumed = await _accounts.ResumeAsync(signedIn.SessionToken, CancellationToken.None);
 
         resumed.Status.Should().Be(AccountStatus.InvalidToken);
     }
@@ -212,31 +235,31 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task SetLanguageAsync_ValidTag_IsStoredAndReturnedByNextLogin()
+    public async Task SetLanguageAsync_ValidTag_IsStoredAndReturnedByNextSignIn()
     {
-        string name = Unique();
-        AccountOutcome registered = await _accounts.RegisterAsync(name, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        string subject = Unique();
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, subject);
 
-        AccountStatus status = await _accounts.SetLanguageAsync(registered.PlayerId, GameLanguage.English, CancellationToken.None);
-        AccountOutcome login = await _accounts.LoginAsync(name, "password-1", CancellationToken.None);
+        AccountStatus status = await _accounts.SetLanguageAsync(signedIn.PlayerId, GameLanguage.English, CancellationToken.None);
+        AccountOutcome again = await TestAccounts.SignInAsync(_accounts, subject, GameLanguage.Vietnamese);
 
         status.Should().Be(AccountStatus.Ok);
-        login.Language.Should().Be(GameLanguage.English);
+        again.Language.Should().Be(GameLanguage.English);
     }
 
     [Fact]
     public async Task SetLanguageAsync_MalformedTag_IsRefusedAndKeepsOldValue()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique(), GameLanguage.English);
 
-        AccountStatus status = await _accounts.SetLanguageAsync(registered.PlayerId, (GameLanguage)7, CancellationToken.None);
+        AccountStatus status = await _accounts.SetLanguageAsync(signedIn.PlayerId, (GameLanguage)7, CancellationToken.None);
 
         status.Should().Be(AccountStatus.InvalidLanguage);
-        (await _accounts.ResumeAsync(registered.SessionToken, CancellationToken.None)).Language.Should().Be(GameLanguage.Vietnamese);
+        (await _accounts.ResumeAsync(signedIn.SessionToken, CancellationToken.None)).Language.Should().Be(GameLanguage.English);
     }
 
     [Fact]
-    public async Task StartGuestAsync_CreatesGuestWithoutEmailAndTheTokenResumes()
+    public async Task StartGuestAsync_CreatesGuestWithoutIdentityAndTheTokenResumes()
     {
         AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.English, CancellationToken.None);
         AccountOutcome resumed = await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None);
@@ -248,9 +271,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
         resumed.PlayerId.Should().Be(guest.PlayerId);
         resumed.IsGuest.Should().BeTrue();
         await using NosumDbContext db = new(_database.Options);
-        Player stored = await db.Players.SingleAsync(p => p.Id == guest.PlayerId);
-        stored.Email.Should().BeNull();
-        stored.PasswordHash.Should().BeNull();
+        (await db.ExternalLogins.AnyAsync(l => l.PlayerId == guest.PlayerId)).Should().BeFalse();
     }
 
     [Fact]
@@ -263,71 +284,95 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task UpgradeGuestAsync_KeepsPlayerIdAndStateAndRevokesGuestToken()
+    public async Task LinkExternalIdentityAsync_Guest_KeepsPlayerIdAndStateAndRevokesGuestToken()
     {
-        string email = Unique();
+        string subject = Unique();
+        string nickname = TestNicknames.Next();
         AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
         PlayerStateService states = new(new EfUnitOfWorkFactory(_database.Options), _clock);
         await states.SaveAsync(guest.PlayerId, new PlayerStateRow("Farm", 5, 6, Facing.Right), CancellationToken.None);
 
-        AccountOutcome upgraded = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, email, "password-1", TestNicknames.Next(), CancellationToken.None);
+        AccountOutcome linked = await _accounts.LinkExternalIdentityAsync(guest.PlayerId, guest.SessionId, ExternalProvider.Google, FakeExternalTokenVerifier.Token(ExternalProvider.Google, subject), nickname, CancellationToken.None);
         AccountOutcome guestToken = await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None);
-        AccountOutcome newToken = await _accounts.ResumeAsync(upgraded.SessionToken, CancellationToken.None);
-        AccountOutcome login = await _accounts.LoginAsync(email, "password-1", CancellationToken.None);
+        AccountOutcome newToken = await _accounts.ResumeAsync(linked.SessionToken, CancellationToken.None);
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, subject);
 
-        upgraded.Status.Should().Be(AccountStatus.Ok);
-        upgraded.PlayerId.Should().Be(guest.PlayerId);
-        upgraded.IsGuest.Should().BeFalse();
-        upgraded.Email.Should().Be(email);
-        upgraded.SessionToken.Should().NotBe(guest.SessionToken);
+        linked.Status.Should().Be(AccountStatus.Ok);
+        linked.PlayerId.Should().Be(guest.PlayerId);
+        linked.IsGuest.Should().BeFalse();
+        linked.Nickname.Should().Be(nickname);
+        linked.SessionToken.Should().NotBe(guest.SessionToken);
         guestToken.Status.Should().Be(AccountStatus.InvalidToken);
         newToken.PlayerId.Should().Be(guest.PlayerId);
-        login.PlayerId.Should().Be(guest.PlayerId);
+        signedIn.PlayerId.Should().Be(guest.PlayerId);
         (await states.LoadAsync(guest.PlayerId, CancellationToken.None)).Should().Be(new PlayerStateRow("Farm", 5, 6, Facing.Right));
     }
 
     [Fact]
-    public async Task UpgradeGuestAsync_RegisteredPlayer_IsRefusedAsNotGuest()
+    public async Task LinkExternalIdentityAsync_RegisteredPlayer_IsRefusedAsNotGuest()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());
 
-        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(registered.PlayerId, registered.SessionId, Unique(), "password-2", TestNicknames.Next(), CancellationToken.None);
+        AccountOutcome outcome = await _accounts.LinkExternalIdentityAsync(signedIn.PlayerId, signedIn.SessionId, ExternalProvider.Google, FakeExternalTokenVerifier.Token(ExternalProvider.Google, Unique()), TestNicknames.Next(), CancellationToken.None);
 
-        outcome.Status.Should().Be(AccountStatus.NotGuest);
+        outcome.Should().Be(AccountOutcome.Refused(AccountStatus.NotGuest));
     }
 
     [Fact]
-    public async Task UpgradeGuestAsync_EmailAlreadyRegistered_IsRefusedAndStaysGuest()
+    public async Task LinkExternalIdentityAsync_SubjectOfAnotherAccount_IsIdentityTakenAndStaysGuest()
     {
         string taken = Unique();
-        _ = await _accounts.RegisterAsync(taken, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        _ = await TestAccounts.SignInAsync(_accounts, taken);
         AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
 
-        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, taken, "password-2", TestNicknames.Next(), CancellationToken.None);
+        AccountOutcome outcome = await _accounts.LinkExternalIdentityAsync(guest.PlayerId, guest.SessionId, ExternalProvider.Google, FakeExternalTokenVerifier.Token(ExternalProvider.Google, taken), TestNicknames.Next(), CancellationToken.None);
 
-        outcome.Status.Should().Be(AccountStatus.EmailTaken);
+        outcome.Should().Be(AccountOutcome.Refused(AccountStatus.IdentityTaken));
         (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).IsGuest.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("nope", "password-1", AccountStatus.InvalidEmail)]
-    [InlineData("validname@gmail.com", "short", AccountStatus.InvalidPassword)]
-    public async Task UpgradeGuestAsync_InvalidInput_IsRefusedAndStaysGuest(string email, string password, AccountStatus expected)
+    [Fact]
+    public async Task LinkExternalIdentityAsync_NicknameTaken_IsNicknameTakenAndStaysGuest()
+    {
+        string nickname = TestNicknames.Next();
+        _ = await TestAccounts.RegisterAsync(_accounts, Unique(), nickname);
+        AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
+
+        AccountOutcome outcome = await _accounts.LinkExternalIdentityAsync(guest.PlayerId, guest.SessionId, ExternalProvider.Google, FakeExternalTokenVerifier.Token(ExternalProvider.Google, Unique()), nickname.ToUpperInvariant(), CancellationToken.None);
+
+        outcome.Should().Be(AccountOutcome.Refused(AccountStatus.NicknameTaken));
+        (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).IsGuest.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LinkExternalIdentityAsync_TokenTheVerifierRejects_IsInvalidIdTokenAndStaysGuest()
     {
         AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
 
-        AccountOutcome outcome = await _accounts.UpgradeGuestAsync(guest.PlayerId, guest.SessionId, email, password, TestNicknames.Next(), CancellationToken.None);
+        AccountOutcome outcome = await _accounts.LinkExternalIdentityAsync(guest.PlayerId, guest.SessionId, ExternalProvider.Google, "not-a-real-token", TestNicknames.Next(), CancellationToken.None);
 
-        outcome.Status.Should().Be(expected);
-        (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).Status.Should().Be(AccountStatus.Ok);
+        outcome.Should().Be(AccountOutcome.Refused(AccountStatus.InvalidIdToken));
+        (await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None)).IsGuest.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SetNicknameAsync_FirstChangeAfterSignIn_IsAllowedNow()
+    {
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());
+        string nickname = TestNicknames.Next();
+
+        NicknameOutcome outcome = await _accounts.SetNicknameAsync(signedIn.PlayerId, nickname, CancellationToken.None);
+
+        outcome.Status.Should().Be(AccountStatus.Ok);
+        outcome.Nickname.Should().Be(nickname);
     }
 
     [Fact]
     public async Task LogoutAsync_RevokesOnlyThatSession()
     {
-        string email = Unique();
-        AccountOutcome first = await _accounts.RegisterAsync(email, "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
-        AccountOutcome second = await _accounts.LoginAsync(email, "password-1", CancellationToken.None);
+        string subject = Unique();
+        AccountOutcome first = await TestAccounts.SignInAsync(_accounts, subject);
+        AccountOutcome second = await TestAccounts.SignInAsync(_accounts, subject);
 
         await _accounts.LogoutAsync(first.SessionId, CancellationToken.None);
 
@@ -357,9 +402,9 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     public async Task UnlockAsync_RegisteredPlayer_DoesNothing()
     {
         PlayerLifecycleService lifecycle = new(new EfUnitOfWorkFactory(_database.Options), _clock);
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());
 
-        (await lifecycle.UnlockAsync(registered.PlayerId, CancellationToken.None)).Should().BeFalse();
+        (await lifecycle.UnlockAsync(signedIn.PlayerId, CancellationToken.None)).Should().BeFalse();
     }
 
     [Fact]
@@ -368,7 +413,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
         PlayerStateService states = new(new EfUnitOfWorkFactory(_database.Options), _clock);
         PlayerLifecycleService lifecycle = new(new EfUnitOfWorkFactory(_database.Options), _clock);
         AccountOutcome oldGuest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
-        AccountOutcome oldRegistered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome oldRegistered = await TestAccounts.SignInAsync(_accounts, Unique());
         await states.SaveAsync(oldGuest.PlayerId, new PlayerStateRow("Farm", 1, 2, Facing.Down), CancellationToken.None);
 
         _clock.Advance(TimeSpan.FromDays(31));
@@ -407,17 +452,17 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task PlayerStateService_SaveThenLoad_RoundTripsAndOverwrites()
     {
-        AccountOutcome registered = await _accounts.RegisterAsync(Unique(), "password-1", TestNicknames.Next(), GameLanguage.Unspecified, CancellationToken.None);
+        AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());
         PlayerStateService states = new(new EfUnitOfWorkFactory(_database.Options), _clock);
 
-        PlayerStateRow? before = await states.LoadAsync(registered.PlayerId, CancellationToken.None);
-        await states.SaveAsync(registered.PlayerId, new PlayerStateRow("Farm", 12.5, 40, Facing.Left), CancellationToken.None);
-        await states.SaveAsync(registered.PlayerId, new PlayerStateRow("Town", 3, 4.25, Facing.Up), CancellationToken.None);
-        PlayerStateRow? after = await states.LoadAsync(registered.PlayerId, CancellationToken.None);
+        PlayerStateRow? before = await states.LoadAsync(signedIn.PlayerId, CancellationToken.None);
+        await states.SaveAsync(signedIn.PlayerId, new PlayerStateRow("Farm", 12.5, 40, Facing.Left), CancellationToken.None);
+        await states.SaveAsync(signedIn.PlayerId, new PlayerStateRow("Town", 3, 4.25, Facing.Up), CancellationToken.None);
+        PlayerStateRow? after = await states.LoadAsync(signedIn.PlayerId, CancellationToken.None);
 
         before.Should().BeNull();
         after.Should().Be(new PlayerStateRow("Town", 3, 4.25, Facing.Up));
     }
 
-    private static string Unique() => "p" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
+    private static string Unique() => Guid.NewGuid().ToString("N");
 }

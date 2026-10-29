@@ -24,13 +24,12 @@ public sealed class HandlerAuditTests
     // Handlers a caller may reach without being signed in. Adding to this list is a security review decision.
     private static readonly HashSet<ushort> s_publicOpcodes =
     [
-        AccountOpCode.Register,
-        AccountOpCode.Login,
+        AccountOpCode.ExternalSignIn,
         AccountOpCode.ResumeSession,
         AccountOpCode.StartGuest,
     ];
 
-    private static readonly string[] s_secretMembers = ["Password", "CurrentPassword", "NewPassword", "SessionToken", "Code"];
+    private static readonly string[] s_secretMembers = ["IdToken", "SessionToken"];
 
     [Fact]
     public void EveryHandler_DeclaresPermissionRateLimitAndBoundedPacket()

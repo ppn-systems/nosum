@@ -160,7 +160,8 @@ async function onFetch(event) {
         return fetch(request);
     }
 
-    const shouldServeIndexHtml = request.mode === 'navigate';
+    // The Microsoft sign-in popup returns to msal-redirect.html: that page is served as itself, never as the app shell.
+    const shouldServeIndexHtml = request.mode === 'navigate' && !requestUrl.pathname.endsWith('/msal-redirect.html');
     if (shouldServeIndexHtml) {
         cachedResponse = await caches.match(shellAssetUrl, { cacheName });
     }

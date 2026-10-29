@@ -47,7 +47,7 @@ public sealed class AdminServiceTests : IClassFixture<PostgresFixture>
     {
         _database = database;
         _units = new EfUnitOfWorkFactory(database.Options);
-        _accounts = new AccountService(_units, new Pbkdf2PasswordHasher(iterations: 1000), new SessionTokenService(), _clock, nicknames: new NicknameDirectory(_units));
+        _accounts = new AccountService(_units, FakeExternalTokenVerifier.All(), new SessionTokenService(), _clock, nicknames: new NicknameDirectory(_units));
         _mutes = new MuteList(_clock);
         _admin = new AdminService(_units, _sessions, _mutes, _transfers, _clock);
     }
@@ -106,20 +106,20 @@ public sealed class AdminServiceTests : IClassFixture<PostgresFixture>
         status.Should().Be(AdminStatus.Ok);
         (await LoadAsync(target)).BannedAt.Should().Be(s_start);
         _sessions.Ended.Should().Equal((target.Id, AccountStatus.Banned));
-        (await _accounts.LoginAsync(target.Email, "password-1", CancellationToken.None)).Status.Should().Be(AccountStatus.Banned);
+        (await TestAccounts.SignInAsync(_accounts, target.Subject)).Status.Should().Be(AccountStatus.Banned);
         (await _accounts.ResumeAsync(target.Token, CancellationToken.None)).Status.Should().Be(AccountStatus.Banned);
     }
 
     [Fact]
-    public async Task Ban_WrongPassword_DoesNotRevealTheBan()
+    public async Task Ban_UnverifiedToken_DoesNotRevealTheBan()
     {
         Account admin = await CreateAdminAsync();
         Account target = await CreateAsync();
         _ = await _admin.BanAsync(admin.Id, target.Nickname, CancellationToken.None);
 
-        AccountOutcome outcome = await _accounts.LoginAsync(target.Email, "not-the-password", CancellationToken.None);
+        AccountOutcome outcome = await _accounts.SignInWithExternalAsync(ExternalProvider.Google, "not-a-real-token", GameLanguage.English, CancellationToken.None);
 
-        outcome.Status.Should().Be(AccountStatus.InvalidCredentials);
+        outcome.Status.Should().Be(AccountStatus.InvalidIdToken);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class AdminServiceTests : IClassFixture<PostgresFixture>
 
         status.Should().Be(AdminStatus.Ok);
         (await LoadAsync(target)).BannedAt.Should().BeNull();
-        (await _accounts.LoginAsync(target.Email, "password-1", CancellationToken.None)).Status.Should().Be(AccountStatus.Ok);
+        (await TestAccounts.SignInAsync(_accounts, target.Subject)).Status.Should().Be(AccountStatus.Ok);
     }
 
     [Fact]
@@ -390,10 +390,10 @@ public sealed class AdminServiceTests : IClassFixture<PostgresFixture>
 
     private async Task<Account> CreateAsync()
     {
-        string email = "a" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
-        AccountOutcome outcome = await _accounts.RegisterAsync(email, "password-1", TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
+        string subject = Guid.NewGuid().ToString("N");
+        AccountOutcome outcome = await TestAccounts.RegisterAsync(_accounts, subject, TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
         outcome.Status.Should().Be(AccountStatus.Ok);
-        return new Account(outcome.PlayerId, email, outcome.SessionToken, outcome.Nickname);
+        return new Account(outcome.PlayerId, subject, outcome.SessionToken, outcome.Nickname);
     }
 
     private async Task<Account> CreateAdminAsync()
@@ -435,7 +435,7 @@ public sealed class AdminServiceTests : IClassFixture<PostgresFixture>
         return report.Id;
     }
 
-    private sealed record Account(Guid Id, string Email, string Token, string Nickname);
+    private sealed record Account(Guid Id, string Subject, string Token, string Nickname);
 
     private sealed class RecordingSessions : ISessionRegistry
     {

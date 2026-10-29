@@ -206,6 +206,7 @@ public sealed class CraftingWireTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
 
             // Development, so the tester grant can hand out wood, stone and ore.
             NetworkApplication app = Program.BuildApplication(port, clock, development: true);
@@ -335,6 +336,7 @@ public sealed class CraftingWireTests : IClassFixture<PostgresFixture>
 
         public async Task<JoinMapResult> JoinAsync(CancellationToken ct)
         {
+            await WirePace.JoinAsync(ct);
             using JoinMap request = new() { MapId = Program.FarmMapId };
             JoinMapResult result = await _session.RequestAsync<JoinMapResult>(request, ct: ct);
             result.Status.Should().Be(JoinStatus.Ok);

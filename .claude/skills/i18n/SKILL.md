@@ -9,7 +9,7 @@ Decision: `docs/adr/ADR-010-internationalization.md`.
 
 ## Non-negotiables
 
-- **No display text on the wire.** Replies carry an enum code (`AccountStatus.InvalidPassword`),
+- **No display text on the wire.** Replies carry an enum code (`AccountStatus.InvalidIdToken`),
   ids and keys; the client maps them to text. Never put a sentence in a packet or a DB column.
 - **Every visible string through `.resx`.** `Resources/Language.resx` (Vietnamese, neutral) and
   `Resources/Language.en.resx` in the project that owns the component; read via
