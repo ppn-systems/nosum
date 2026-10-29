@@ -265,13 +265,38 @@ public sealed class InventoryServiceTests : IClassFixture<PostgresFixture>
         InventoryView before = await _inventory.GetAsync(player);
         _ = await _inventory.MoveAsync(player, 0, 30, 0);
 
-        InventoryChange change = await _inventory.SortAsync(player);
+        InventoryChange change = await _inventory.SortAsync(player, 0);
 
         change.Status.Should().Be(InventoryStatus.Ok);
         InventoryView after = await new InventoryService(_units, _clock).GetAsync(player);
         after.Slots.Single(s => s.ItemId == ItemCatalog.Hoe).Slot.Should().Be(0, "tools come first, the hoe before the watering can");
         after.Slots.Should().OnlyContain(s => s.Slot < after.Slots.Count, "the stacks are packed from the first slot without gaps");
         after.Slots.Where(s => s.ItemId != 0).Sum(s => s.Quantity).Should().Be(before.Slots.Where(s => s.ItemId != 0).Sum(s => s.Quantity));
+    }
+
+    [Fact]
+    public async Task SortAsync_WithTheHotbarLocked_KeepsTheHotbarAsItWas()
+    {
+        Guid player = await CreatePlayerAsync();
+        _ = await _inventory.MoveAsync(player, 0, 30, 0);
+        InventoryView held = await _inventory.GetAsync(player);
+
+        InventoryChange change = await _inventory.SortAsync(player, InventoryLimits.HotbarSlots);
+
+        change.Status.Should().Be(InventoryStatus.Ok);
+        InventoryView after = await new InventoryService(_units, _clock).GetAsync(player);
+        after.Slots.Where(s => s.Slot < InventoryLimits.HotbarSlots).Should().BeEquivalentTo(held.Slots.Where(s => s.Slot < InventoryLimits.HotbarSlots));
+    }
+
+    [Fact]
+    public async Task PeekHeldItemId_IsTheItemInTheHeldHotbarSlot_AndZeroForEmptyHandsOrAnUnknownPlayer()
+    {
+        Guid player = await CreatePlayerAsync();
+
+        (await _inventory.SelectSlotAsync(player, 0)).Status.Should().Be(InventoryStatus.Ok);
+        int inHand = (await _inventory.GetAsync(player)).Slots.SingleOrDefault(s => s.Slot == 0).ItemId;
+        _inventory.PeekHeldItemId(player).Should().Be(inHand);
+        _inventory.PeekHeldItemId(Guid.NewGuid()).Should().Be(0);
     }
 
     private async Task<Guid> CreatePlayerAsync()

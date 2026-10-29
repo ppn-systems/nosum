@@ -40,4 +40,7 @@ public enum TradeStatus : byte
 
     /// <summary>Both sides offer nothing.</summary>
     NothingOffered = 11,
+
+    /// <summary>The offer changed too recently to confirm; retry when the lock in the trade state has passed.</summary>
+    TooSoon = 12,
 }

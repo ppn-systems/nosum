@@ -21,6 +21,9 @@ public enum TradeVerdict
 
     /// <summary>The session has finished.</summary>
     Closed = 4,
+
+    /// <summary>An offer changed too recently to confirm: the confirmations wait out <see cref="TradeSession.ConfirmLock"/>.</summary>
+    TooSoon = 5,
 }
 
 /// <summary>
@@ -34,6 +37,13 @@ public sealed class TradeSession
     private TradeOffer _offerB = TradeOffer.Empty;
     private bool _confirmedA;
     private bool _confirmedB;
+    private DateTimeOffset? _changedAt;
+
+    /// <summary>
+    /// How long confirming waits after the last change of either offer. A party cannot swap the terms under a partner who is already
+    /// confirming: the partner gets this long to look at what changed.
+    /// </summary>
+    public static readonly TimeSpan ConfirmLock = TimeSpan.FromSeconds(3);
 
     /// <summary>Initializes a session between two players.</summary>
     /// <param name="a">The player who asked for the trade.</param>
@@ -81,11 +91,12 @@ public sealed class TradeSession
     /// <returns><see langword="true"/> when confirmed.</returns>
     public bool IsConfirmed(Guid player) => player == this.A ? _confirmedA : _confirmedB;
 
-    /// <summary>Replaces a player's offer. A different offer clears both confirmations.</summary>
+    /// <summary>Replaces a player's offer. A different offer clears both confirmations and starts the <see cref="ConfirmLock"/>.</summary>
     /// <param name="player">The party who changes their offer.</param>
     /// <param name="offer">The new offer.</param>
+    /// <param name="now">The server time of the change.</param>
     /// <returns><see cref="TradeVerdict.Ok"/> or the reason.</returns>
-    public TradeVerdict SetOffer(Guid player, TradeOffer offer)
+    public TradeVerdict SetOffer(Guid player, TradeOffer offer, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(offer);
 
@@ -121,13 +132,15 @@ public sealed class TradeSession
 
         _confirmedA = false;
         _confirmedB = false;
+        _changedAt = now;
         return TradeVerdict.Ok;
     }
 
     /// <summary>Confirms the offers as they now stand.</summary>
     /// <param name="player">The confirming party.</param>
+    /// <param name="now">The server time of the confirmation.</param>
     /// <returns><see cref="TradeVerdict.Ok"/> or the reason; check <see cref="IsReady"/> afterwards.</returns>
-    public TradeVerdict Confirm(Guid player)
+    public TradeVerdict Confirm(Guid player, DateTimeOffset now)
     {
         if (this.IsClosed)
         {
@@ -144,6 +157,11 @@ public sealed class TradeSession
             return TradeVerdict.NothingOffered;
         }
 
+        if (this.ConfirmLockRemaining(now) > TimeSpan.Zero)
+        {
+            return TradeVerdict.TooSoon;
+        }
+
         if (player == this.A)
         {
             _confirmedA = true;
@@ -154,6 +172,20 @@ public sealed class TradeSession
         }
 
         return TradeVerdict.Ok;
+    }
+
+    /// <summary>Returns how long confirming is still locked after the last change of an offer.</summary>
+    /// <param name="now">The server time.</param>
+    /// <returns>The time left; zero when confirming is open.</returns>
+    public TimeSpan ConfirmLockRemaining(DateTimeOffset now)
+    {
+        if (_changedAt is not { } changed)
+        {
+            return TimeSpan.Zero;
+        }
+
+        TimeSpan left = changed + ConfirmLock - now;
+        return left > TimeSpan.Zero ? left : TimeSpan.Zero;
     }
 
     /// <summary>Ends the session; nothing can change afterwards.</summary>

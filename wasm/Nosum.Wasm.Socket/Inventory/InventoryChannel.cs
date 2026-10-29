@@ -134,7 +134,8 @@ public sealed class InventoryChannel : IDisposable
     public void Move(int from, int to, int quantity = 0) => _ = this.MoveAsync(from, to, quantity);
 
     /// <summary>Asks the server to sort the bag: merged stacks, laid out by kind and id. The new layout arrives as an update.</summary>
-    public void Sort() => _ = this.SortAsync();
+    /// <param name="lockHotbar">Whether the hotbar keeps its contents while the rest of the bag is sorted.</param>
+    public void Sort(bool lockHotbar) => _ = this.SortAsync(lockHotbar);
 
     /// <inheritdoc/>
     public void Dispose() => _updates.Dispose();
@@ -215,11 +216,12 @@ public sealed class InventoryChannel : IDisposable
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "A lost sort changes nothing; the player tries again.")]
-    private async Task SortAsync()
+    private async Task SortAsync(bool lockHotbar)
     {
         try
         {
             using PacketScope<SortInventory> request = PacketFactory<SortInventory>.Acquire();
+            request.Value.LockHotbar = lockHotbar;
             InventoryResult result = await _socket.RequestAsync<InventoryResult>(request.Value).ConfigureAwait(false);
             if (result.Status != InventoryStatus.Ok)
             {

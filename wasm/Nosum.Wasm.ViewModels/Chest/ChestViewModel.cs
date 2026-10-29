@@ -226,7 +226,7 @@ public sealed class ChestViewModel : PanelViewModel, IDisposable
     public void SortBag()
     {
         _pickedSlot = -1;
-        _inventory.Sort();
+        _inventory.Sort(lockHotbar: false);
         this.Raise();
     }
 

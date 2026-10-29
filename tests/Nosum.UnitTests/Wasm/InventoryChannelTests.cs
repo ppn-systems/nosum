@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.C2S;
@@ -133,10 +134,24 @@ public sealed class InventoryChannelTests
         using InventoryChannel channel = new(socket);
         channel.Load();
 
-        channel.Sort();
+        channel.Sort(lockHotbar: true);
 
         socket.Requests.Should().ContainSingle(r => r is SortInventory);
         channel.SlotAt(2).Quantity.Should().Be(8);
+    }
+
+    [Fact]
+    public void Sort_SendsTheHotbarLockChoice()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Snapshot());
+        socket.ReplyWith(_ => new InventoryResult { Status = InventoryStatus.Ok });
+        using InventoryChannel channel = new(socket);
+        channel.Load();
+
+        channel.Sort(lockHotbar: false);
+
+        socket.Requests.OfType<SortInventory>().Single().LockHotbar.Should().BeFalse();
     }
 
     [Fact]
@@ -150,7 +165,7 @@ public sealed class InventoryChannelTests
         InventoryStatus? refused = null;
         channel.Refused += status => refused = status;
 
-        channel.Sort();
+        channel.Sort(lockHotbar: true);
 
         refused.Should().Be(InventoryStatus.NoSpace);
     }

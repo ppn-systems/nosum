@@ -9,6 +9,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.C2S;
 using Nosum.Contracts.Inventory.S2C;
+using Nosum.Gameplay.Inventory;
 using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.Inventory;
@@ -83,7 +84,9 @@ public static partial class InventoryHandlers
         ushort sequence = context.Packet.SequenceId;
         PlayerIdentity player = context.Connection.GetPlayer();
 
-        InventoryChange change = await s_inventory.SortAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
+        // The hotbar is kept as it is when the player asked for it; the server decides which slots the sort may touch.
+        int firstSlot = context.Packet.LockHotbar ? InventoryLimits.HotbarSlots : 0;
+        InventoryChange change = await s_inventory.SortAsync(player.PlayerId, firstSlot, context.CancellationToken).ConfigureAwait(false);
         await ReplyResultAsync(context, sequence, change.Status, -1, player).ConfigureAwait(false);
     }
 

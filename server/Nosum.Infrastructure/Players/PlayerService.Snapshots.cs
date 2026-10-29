@@ -169,6 +169,8 @@ public sealed partial class PlayerService
                 row.Moving = player.Motion.Moving;
             }
 
+            row.HeldItemId = _inventory is null ? 0 : _inventory.PeekHeldItemId(player.AccountId);
+
             ViewerState viewer = player.Viewer!;
             ChunkCoord chunk = viewer.Interest.Bounds.Clamp(ChunkCoord.OfPixels(x, y, tileSize));
             viewer.Chunk = chunk;

@@ -245,6 +245,24 @@ public sealed class InventoryGridTests
     }
 
     [Fact]
+    public void Sort_FromAFirstSlot_LeavesTheEarlierSlotsAsTheyWere()
+    {
+        InventoryGrid grid = new(6);
+        grid.Load(0, new ItemSlot(Seeds, 5));
+        grid.Load(1, new ItemSlot(Seeds, 7));
+        grid.Load(4, new ItemSlot(Seeds, 3));
+
+        InventoryVerdict verdict = grid.Sort(2);
+
+        verdict.Should().Be(InventoryVerdict.Ok);
+        grid[0].Should().Be(new ItemSlot(Seeds, 5));
+        grid[1].Should().Be(new ItemSlot(Seeds, 7));
+        grid[2].Should().Be(new ItemSlot(Seeds, 3));
+        grid[3].IsEmpty.Should().BeTrue();
+        grid[4].IsEmpty.Should().BeTrue();
+    }
+
+    [Fact]
     public void Sort_SplitsTheTotalIntoFullStacksAndOneRemainder()
     {
         InventoryGrid grid = new(6);

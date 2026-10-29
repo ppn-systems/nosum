@@ -92,9 +92,10 @@ public interface IInventoryService
 
     /// <summary>Sorts an inventory: stacks of one item are merged, then laid out by item kind and id. Works for a player's inventory and for a chest's.</summary>
     /// <param name="ownerId">The inventory's owner: a player, or a chest (<c>ContainerIds.ForChest</c>).</param>
+    /// <param name="firstSlot">The first slot the sort may touch; zero sorts the whole inventory, the hotbar size keeps the hotbar as it is.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The status and the changed slots.</returns>
-    Task<InventoryChange> SortAsync(Guid ownerId, CancellationToken cancellationToken = default);
+    Task<InventoryChange> SortAsync(Guid ownerId, int firstSlot, CancellationToken cancellationToken = default);
 
     /// <summary>Selects the hotbar slot the player holds.</summary>
     /// <param name="playerId">The player.</param>
@@ -102,6 +103,13 @@ public interface IInventoryService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The status and the slot held afterwards.</returns>
     Task<(InventoryStatus Status, int SelectedSlot)> SelectSlotAsync(Guid playerId, int slot, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads the item in the hotbar slot a player holds from memory, for the map snapshot: no database read and no command. Zero when the bag is not held in memory.
+    /// </summary>
+    /// <param name="ownerId">The player.</param>
+    /// <returns>The item id, or zero for empty hands.</returns>
+    int PeekHeldItemId(Guid ownerId);
 
     /// <summary>
     /// Grants the starter tools a player lacks, once each, with the audit reason <c>starter.backfill</c>. Accounts made before a tool joined the starter kit

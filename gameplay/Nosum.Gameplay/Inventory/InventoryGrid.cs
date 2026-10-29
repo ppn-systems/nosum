@@ -344,25 +344,30 @@ public sealed class InventoryGrid
     }
 
     /// <summary>
-    /// Sorts the whole grid: the stacks of one item are merged up to the stack limit, then laid out from the first slot by item kind and then item id.
+    /// Sorts the grid from <paramref name="firstSlot"/> to its end: the stacks of one item are merged up to the stack limit, then laid out from
+    /// <paramref name="firstSlot"/> by item kind and then item id. Slots before <paramref name="firstSlot"/> (a locked hotbar) keep their contents.
     /// Nothing is added or removed, so the layout fits whenever the grid held the items before; if it would not fit, nothing changes.
     /// </summary>
+    /// <param name="firstSlot">The first slot the sort may touch; zero sorts the whole grid.</param>
     /// <returns><see cref="InventoryVerdict.Ok"/>, or <see cref="InventoryVerdict.NoSpace"/> when the layout would not fit (then nothing changed).</returns>
-    public InventoryVerdict Sort()
+    public InventoryVerdict Sort(int firstSlot = 0)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(firstSlot);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(firstSlot, _slots.Length);
+
         List<(int ItemId, int Quantity)> totals = [];
-        foreach (ItemSlot stack in _slots)
+        for (int i = firstSlot; i < _slots.Length; i++)
         {
-            if (!stack.IsEmpty)
+            if (!_slots[i].IsEmpty)
             {
-                AddTotal(totals, stack);
+                AddTotal(totals, _slots[i]);
             }
         }
 
         totals.Sort(CompareForSort);
 
         ItemSlot[] layout = new ItemSlot[_slots.Length];
-        int next = 0;
+        int next = firstSlot;
         foreach ((int itemId, int quantity) in totals)
         {
             _ = ItemCatalog.TryGet(itemId, out ItemDefinition? item);
@@ -378,7 +383,7 @@ public sealed class InventoryGrid
             }
         }
 
-        for (int i = 0; i < _slots.Length; i++)
+        for (int i = firstSlot; i < _slots.Length; i++)
         {
             if (_slots[i] != layout[i])
             {

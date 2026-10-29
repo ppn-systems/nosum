@@ -20,6 +20,8 @@ public static class NosumProtocol
     /// <c>Login</c>, <c>UpgradeGuest</c>, <c>ChangePassword</c> and <c>PasswordResult</c> retired (no fields); <c>AccountStatus</c> codes 20-21 added.
     /// 10: farm sprinklers and tended soil - <c>TendedDay</c> appended to <c>FarmTileRow</c>, <c>PlacedAtMs</c> appended to <c>PlacedObjectRow</c>, <c>FarmAction.CutWithered</c> (docs/adr/ADR-018, ADR-021, ADR-024).
     /// 11: buff slot - <c>Buff</c> appended to <c>VitalsState</c>; speed buffs (Swiftness, Brotherhood in Arms) live in their own slot apart from Regeneration and Poison (issues #132, #146).
+    /// 12: held tool, trade lock, hotbar sort lock - <c>HeldItemId</c> appended to <c>PlayerState</c>; <c>ConfirmLockMs</c> appended to <c>TradeState</c>;
+    /// <c>TradeStatus.TooSoon</c> (value 12); <c>LockHotbar</c> appended to <c>SortInventory</c>.
     /// </summary>
-    public const ushort Version = 11;
+    public const ushort Version = 12;
 }
