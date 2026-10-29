@@ -27,6 +27,15 @@ public static class DungeonHazardRules
         => ((nowMs + (hazardId * 700L)) % 2400L) > 1560L;
 
     /// <summary>
+    /// Minimum time in milliseconds between two contact hits from the same hazard on the same player (issue #168). A spike
+    /// trap hits once per extension cycle, so a player who crosses an open spike during its extended window is struck
+    /// once and never on every move; other hazards keep the one-hit-per-AI-tick cadence.
+    /// </summary>
+    /// <param name="kind">Hazard kind.</param>
+    /// <returns>Cooldown in milliseconds.</returns>
+    public static int ContactCooldownMs(DungeonHazardKind kind) => kind == DungeonHazardKind.SpikeTrap ? 2400 : 1500;
+
+    /// <summary>
     /// Plans deterministic environmental hazards for a dungeon floor or map (docs/adr/ADR-061).
     /// </summary>
     /// <param name="mapId">Map or floor identifier.</param>

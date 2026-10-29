@@ -57,9 +57,11 @@ public struct Walker
     /// <param name="input">Held directions.</param>
     /// <param name="seconds">Step length in seconds.</param>
     /// <param name="grid">Walkable tiles.</param>
-    public void Step(InputState input, double seconds, WalkGrid grid)
+    /// <param name="speedFactor">Speed multiplier of the active speed buffs (1 for none); the server validates with the same factor.</param>
+    public void Step(InputState input, double seconds, WalkGrid grid, double speedFactor = 1)
     {
         ArgumentNullException.ThrowIfNull(grid);
+        ArgumentOutOfRangeException.ThrowIfLessThan(speedFactor, 1);
 
         int dx = (input.HasFlag(InputState.Right) ? 1 : 0) - (input.HasFlag(InputState.Left) ? 1 : 0);
         int dy = (input.HasFlag(InputState.Down) ? 1 : 0) - (input.HasFlag(InputState.Up) ? 1 : 0);
@@ -70,7 +72,7 @@ public struct Walker
         }
 
         this.Facing = dy > 0 ? Facing.Down : dy < 0 ? Facing.Up : dx > 0 ? Facing.Right : Facing.Left;
-        double distance = Speed * seconds * (dx != 0 && dy != 0 ? Math.Sqrt(0.5) : 1);
+        double distance = Speed * speedFactor * seconds * (dx != 0 && dy != 0 ? Math.Sqrt(0.5) : 1);
 
         double nextX = this.X + (dx * distance);
         bool movedX = !Blocked(grid, nextX, this.Y);
