@@ -100,6 +100,10 @@ public sealed class ChunkStreamer
             lease.Value.ChunkX = (ushort)chunk.X;
             lease.Value.ChunkY = (ushort)chunk.Y;
             await _presence.SendAsync(player.Connection, lease.Value, cancellationToken).ConfigureAwait(false);
+            foreach (IChunkStateContributor contributor in _contributors)
+            {
+                await contributor.LeftAsync(player, chunk, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 

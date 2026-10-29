@@ -26,15 +26,17 @@ public sealed class OutdoorRulesTests
         ((byte)NodeKind.LargeStump).Should().Be(11, "the kind is stored as a number: append-only");
 
         ResourceNode stump = new(1, 5, 5, NodeKind.LargeStump, 0, 0, NodeCatalog.HitsFor(NodeKind.LargeStump, 0));
+        definition.RequiredTier.Should().Be(ToolTier.Iron, "a starter axe bounces off it");
         for (int swing = 1; swing < 6; swing++)
         {
-            NodeHit hit = NodeRules.Hit(stump, ToolKind.Axe);
+            NodeHit hit = NodeRules.Hit(stump, ToolKind.Axe, 1, ToolTier.Iron);
             hit.Outcome.Should().Be(NodeHitOutcome.Damaged, $"swing {swing}");
             stump = hit.Next!.Value;
         }
 
-        NodeRules.Hit(stump, ToolKind.Axe).Should().Be(new NodeHit(NodeHitOutcome.Broke, null));
+        NodeRules.Hit(stump, ToolKind.Axe, 1, ToolTier.Iron).Should().Be(new NodeHit(NodeHitOutcome.Broke, null));
         NodeRules.Hit(stump, ToolKind.Pickaxe).Outcome.Should().Be(NodeHitOutcome.WrongTool);
+        NodeRules.Hit(stump, ToolKind.Axe, 1, ToolTier.Basic).Outcome.Should().Be(NodeHitOutcome.WrongTool, "a starter axe does nothing to a large stump");
         NodeRules.RollYield(stump, 3).Single().Quantity.Should().BeInRange(8, 12);
         SkillRules.BreakXp(NodeKind.LargeStump).Should().BeGreaterThan(SkillRules.BreakXp(NodeKind.Stump));
     }

@@ -26,7 +26,8 @@ public readonly record struct PlacedObjectInfo(int Id, int ItemId, int TileX, in
 /// <summary>
 /// The client's mirror of the objects placed in the player's current place, plus the three actions that change them. The server sends the objects of a chunk once, when the chunk
 /// joins the player's interest set (<see cref="ChunkState"/>), and then only changes in it; when the chunk leaves the set (<see cref="ChunkLeft"/>) its objects are dropped
-/// (docs/adr/ADR-022 D6). An object belongs to the chunk of its first tile. The server owns the
+/// (docs/adr/ADR-022 D6). An object is sent with every chunk its footprint overlaps, and the server sends it again when one of those chunks leaves while another it
+/// overlaps stays in the set. The server owns the
 /// objects: an action shows only once its <see cref="PlacedChanged"/> push arrives. The frame loop reads the mirror with <see cref="Read"/>
 /// and <see cref="Count"/> / <see cref="At"/> and never allocates or awaits; <see cref="Version"/> says when it changed, so the scene can rebuild its collision grid then.
 /// </summary>
@@ -216,6 +217,8 @@ public sealed class PlaceableChannel : IDisposable
             _ = _items.RemoveAll(o => ChunkCoord.OfTile(o.TileX, o.TileY) == chunk);
             foreach (PlacedObjectRow row in packet.Placed)
             {
+                // A piece that crosses into this chunk from a neighbour is already mirrored: replace it, never list it twice.
+                _ = _items.RemoveAll(o => o.Id == row.Id);
                 _items.Add(new PlacedObjectInfo(row.Id, row.ItemId, row.TileX, row.TileY, row.Rotation));
             }
 

@@ -221,7 +221,7 @@ public sealed partial class ResourceNodeService : IResourceNodeService, IChunkSt
 
                 // An upgraded axe or pickaxe does more damage per swing (docs/adr/ADR-026 D1); the scythe has one tier.
                 return nodeTool && item is not null
-                    ? await this.HitAsync(player, state, node, item.Tool, item.Tool is ToolKind.Axe or ToolKind.Pickaxe ? ToolRules.DamagePerHit(item.Tier) : 1, cancellationToken).ConfigureAwait(false)
+                    ? await this.HitAsync(player, state, node, item.Tool, item.Tool is ToolKind.Axe or ToolKind.Pickaxe ? ToolRules.DamagePerHit(item.Tier) : 1, item.Tier, cancellationToken).ConfigureAwait(false)
                     : Refused(item is null ? FarmStatus.NothingToDo : FarmStatus.Blocked);
             }
 
@@ -277,9 +277,9 @@ public sealed partial class ResourceNodeService : IResourceNodeService, IChunkSt
 
     // One swing at a node, under the instance lock. A hit that does not break the node only changes memory and tells the instance; the
     // hit that breaks it delivers the yield and changes the row in one transaction.
-    private async Task<FarmUseOutcome> HitAsync(PlayerPresence player, InstanceNodes state, ResourceNode node, ToolKind tool, int damage, CancellationToken cancellationToken)
+    private async Task<FarmUseOutcome> HitAsync(PlayerPresence player, InstanceNodes state, ResourceNode node, ToolKind tool, int damage, ToolTier tier, CancellationToken cancellationToken)
     {
-        NodeHit hit = NodeRules.Hit(node, tool, damage);
+        NodeHit hit = NodeRules.Hit(node, tool, damage, tier);
         switch (hit.Outcome)
         {
             case NodeHitOutcome.WrongTool:
@@ -388,7 +388,7 @@ public sealed partial class ResourceNodeService : IResourceNodeService, IChunkSt
     private async Task<FarmUseOutcome> PickForageAsync(PlayerPresence player, InstanceNodes state, ResourceNode node, CancellationToken cancellationToken)
     {
         // Breaking a node charges its skill's experience in the same transaction (docs/adr/ADR-023): forage is a foraging node, and a hand costs no energy.
-        return await this.HitAsync(player, state, node, ToolKind.None, 1, cancellationToken).ConfigureAwait(false);
+        return await this.HitAsync(player, state, node, ToolKind.None, 1, ToolTier.Basic, cancellationToken).ConfigureAwait(false);
     }
 
     // Planting a tree seed, under the instance lock: free, walkable, unreserved ground that no player stands on; the seed and the new node commit together.

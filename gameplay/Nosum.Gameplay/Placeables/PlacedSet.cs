@@ -232,7 +232,7 @@ public sealed class PlacedSet
 
     /// <summary>
     /// Returns whether a character standing at a point would have a piece's footprint under their feet (same feet box as
-    /// <see cref="MoveValidator.FootBlocked"/>): a piece is never placed on the person placing it.
+    /// <see cref="MoveValidator.FootBlocked"/>): a piece that blocks walking is never placed on the person placing it.
     /// </summary>
     /// <param name="view">The piece's view in its rotation.</param>
     /// <param name="tileX">Left tile of the footprint.</param>

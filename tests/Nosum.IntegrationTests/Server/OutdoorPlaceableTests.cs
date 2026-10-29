@@ -97,6 +97,23 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         (await world.Placeables.PlaceAsync(world.Presence.ConnectionOf(player), slot, x + 1, y, 0)).Status.Should().Be(PlaceStatus.Ok);
     }
 
+    // Regression for #155: a path does not block walking, so it may be laid under the placer's own feet; a chest, which blocks, may not.
+    [Fact]
+    public async Task Place_AWalkablePathUnderTheFeetOfThePlacer_IsAllowedAndABlockingPieceIsNot()
+    {
+        using PlacementHarness world = new(_database);
+        Guid player = await world.CreatePlayerAsync();
+        (int x, int y, _) = world.OpenRow(GameMaps.Farm, 5);
+        world.StandOnFarm(player, x, y);
+        int pathSlot = await world.GiveAsync(player, ItemCatalog.StonePath, 1);
+        int chestSlot = await world.GiveAsync(player, ItemCatalog.Chest, 1);
+
+        (await PlaceStatusAsync(world, player, chestSlot, x, y)).Should().Be(PlaceStatus.PlayerInTheWay, "a chest blocks walking");
+        (await PlaceStatusAsync(world, player, pathSlot, x, y)).Should().Be(PlaceStatus.Ok, "a path is walked over");
+        (await world.CountAsync(player, ItemCatalog.StonePath)).Should().Be(0);
+        (await world.CountAsync(player, ItemCatalog.Chest)).Should().Be(1, "only the refused chest stayed in the bag");
+    }
+
     [Fact]
     public async Task Place_RefusalsAreReportedWithTheirOwnCodes()
     {

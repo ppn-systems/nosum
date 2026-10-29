@@ -21,4 +21,14 @@ public interface IChunkStateContributor
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when the rows were appended.</returns>
     ValueTask FillAsync(MapInstance instance, ChunkCoord chunk, ChunkState state, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Brings a player's copy of this feature up to date after a chunk left their interest set (sent right after the chunk's leave notice). A feature whose
+    /// entries span chunks sends again the ones that are still visible through another chunk and removes the rest. The default sends nothing.
+    /// </summary>
+    /// <param name="player">The player; their interest set is already the new one.</param>
+    /// <param name="chunk">The chunk that left.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when the correction was sent.</returns>
+    ValueTask LeftAsync(PlayerPresence player, ChunkCoord chunk, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
 }

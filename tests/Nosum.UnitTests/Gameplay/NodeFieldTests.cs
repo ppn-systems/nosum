@@ -90,14 +90,14 @@ public sealed class NodeFieldTests
     {
         WalkGrid map = OpenGrid();
         NodeField field = new();
-        field.Add(Node(1, 3, 4, NodeKind.Tree));
+        field.Add(new ResourceNode(1, 3, 4, NodeKind.Tree, TreeVariant.Oak, TreeStage.Grown, NodeCatalog.HitsFor(NodeKind.Tree, TreeStage.Grown)));
         field.Add(Node(2, 5, 4, NodeKind.Stone));
         field.Add(Node(3, 7, 4, NodeKind.Weed));
         field.Add(Node(4, 9, 4, NodeKind.Grass));
 
         WalkGrid grid = field.BuildGrid(map);
 
-        grid.IsBlocked(3, 4).Should().BeTrue();
+        grid.IsBlocked(3, 4).Should().BeTrue("a grown tree blocks");
         grid.IsBlocked(5, 4).Should().BeTrue();
         grid.IsBlocked(7, 4).Should().BeFalse("a weed never blocks");
         grid.IsBlocked(9, 4).Should().BeFalse("grass never blocks");
@@ -112,6 +112,24 @@ public sealed class NodeFieldTests
         field.Add(Node(1, 7, 4, NodeKind.Weed));
 
         field.BuildGrid(map).Should().BeSameAs(map);
+    }
+
+    // Regression for #154: a planted tree stands in the walk grid as nothing until it is grown, and then it blocks.
+    [Fact]
+    public void BuildGrid_APlantedTree_IsWalkableUntilItIsGrown()
+    {
+        WalkGrid map = OpenGrid();
+        NodeField field = new();
+        ResourceNode seed = NodeRules.PlantedTree(1, 4, 4, TreeVariant.Oak);
+        field.Add(seed);
+
+        field.BuildGrid(map).Should().BeSameAs(map, "a seed blocks nothing");
+        MoveValidator.FootBlocked(field.BuildGrid(map), (4 * 16) + 8, (4 * 16) + 8).Should().BeFalse();
+
+        _ = field.Replace(NodeRules.Age(seed, NodeLimits.DaysPerTreeStage * 3));
+
+        field.BuildGrid(map).IsBlocked(4, 4).Should().BeTrue("a grown tree blocks");
+        map.IsBlocked(4, 4).Should().BeFalse("the shared map grid is never changed");
     }
 
     [Fact]

@@ -282,6 +282,22 @@ public sealed class BlacksmithWireTests : IClassFixture<PostgresFixture>
         }
     }
 
+    // Regression for #153: a starter pickaxe does nothing to iron ore, on the wire too. The server refuses with the tool's status and the ore stands.
+    [Fact]
+    public async Task Pickaxe_BasicOnIronOre_IsRefusedWithWrongTool()
+    {
+        await using MineWireTests.TestHost host = await MineWireTests.TestHost.StartAsync(_database);
+        await using MineWireTests.Client basic = await host.ConnectAsync();
+        (NodePlacement ore, _) = await MineWireTests.StandNextToAsync(host, basic, floor: 20, n => n.Kind == NodeKind.IronOre);
+        int slot = await basic.SlotOfAsync(ItemCatalog.Pickaxe);
+
+        UseItemResult first = await basic.UseAsync(slot, ore.X, ore.Y, host.Timeout);
+        UseItemResult second = await basic.UseAsync(slot, ore.X, ore.Y, host.Timeout);
+
+        first.Should().BeEquivalentTo(new { Status = FarmStatus.WrongTool, Action = FarmAction.None });
+        second.Should().BeEquivalentTo(new { Status = FarmStatus.WrongTool, Action = FarmAction.None });
+    }
+
     private async Task<List<(int X, int Y)>> TilledAsync(Guid playerId)
     {
         await using NosumDbContext db = new(_database.Options);

@@ -58,7 +58,7 @@ internal sealed class PlacementHarness : IDisposable
 
     private readonly PostgresFixture _database;
 
-    public PlacementHarness(PostgresFixture database, INodeTiles? nodes = null, IFarmTiles? farm = null, ISkillLevels? skills = null, Func<PlacementHarness, IFarmTiles>? farmFactory = null)
+    public PlacementHarness(PostgresFixture database, INodeTiles? nodes = null, IFarmTiles? farm = null, ISkillLevels? skills = null, Func<PlacementHarness, IFarmTiles>? farmFactory = null, IChunkMap? chunks = null, IChunkPublisher? publisher = null)
     {
         _database = database;
         this.Clock = new FakeTimeProvider(Start);
@@ -68,7 +68,7 @@ internal sealed class PlacementHarness : IDisposable
         this.Tiles = new PlacedTiles();
         this.Coops = new CoopMembership(this.Units);
         farm = farmFactory?.Invoke(this) ?? farm;
-        this.Placeables = new PlaceableService(this.Presence, NoChunks.Instance, new InstanceWidePublisher(this.Presence), s_maps, this.Inventory, this.Units, this.Clock, farm, nodes, this.Coops, this.Tiles);
+        this.Placeables = new PlaceableService(this.Presence, chunks ?? NoChunks.Instance, publisher ?? new InstanceWidePublisher(this.Presence), s_maps, this.Inventory, this.Units, this.Clock, farm, nodes, this.Coops, this.Tiles);
         this.Chests = new ChestService(this.Presence, s_maps, this.Placeables, this.Inventory, this.Coops, this.Clock);
         this.Placeables.Attach(this.Chests);
         this.Furnaces = new FurnaceService(this.Presence, s_maps, this.Placeables, this.Tiles, this.Placeables, this.Inventory, this.Units, this.Coops, GameCalendar.Default, this.Clock);
