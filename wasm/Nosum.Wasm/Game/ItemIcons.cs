@@ -63,6 +63,7 @@ internal sealed class ItemIcons : IItemIconSource
             [ItemCatalog.IronBar] = ObjectId(53),
             [ItemCatalog.Chest] = Craftable(32, 528),
             [ItemCatalog.Scarecrow] = Craftable(0, 32),
+            [ItemCatalog.Guestbook] = Craftable(0, 32),
             [ItemCatalog.Furnace] = Craftable(80, 40),
             [ItemCatalog.WoodFence] = ObjectId(54),
             [ItemCatalog.StonePath] = ObjectId(55),

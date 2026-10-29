@@ -367,4 +367,6 @@
   <data name="Monster_boss_magma_colossus_Location" xml:space="preserve"><value>Mine floor 30</value></data>
   <data name="Monster_boss_golem_king_Name" xml:space="preserve"><value>Golem king</value></data>
   <data name="Monster_boss_golem_king_Location" xml:space="preserve"><value>Mine floor 40</value></data>
+  <data name="Item_guestbook_Name" xml:space="preserve"><value>Farm guestbook</value></data>
+  <data name="Item_guestbook_Description" xml:space="preserve"><value>Place it on your farm: a visitor who waters your crops is logged here for you.</value></data>
 </root>

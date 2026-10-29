@@ -28,6 +28,9 @@ public static class RecipeCatalog
     /// <summary>Sprinkler.</summary>
     public const int Sprinkler = 5;
 
+    /// <summary>Farm guestbook.</summary>
+    public const int Guestbook = 26;
+
     /// <summary>Furnace.</summary>
     public const int Furnace = 6;
 
@@ -98,6 +101,7 @@ public static class RecipeCatalog
         new(StonePath, "stone_path", ItemCatalog.StonePath, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.Stone, 1)),
         new(Scarecrow, "scarecrow", ItemCatalog.Scarecrow, 1, RecipeUnlock.Of(CraftSkill.Farming, 1), new RecipeInput(ItemCatalog.Wood, 50), new RecipeInput(ItemCatalog.Coal, 1), new RecipeInput(ItemCatalog.Fiber, 20)),
         new(Sprinkler, "sprinkler", ItemCatalog.Sprinkler, 1, RecipeUnlock.Of(CraftSkill.Farming, 2), new RecipeInput(ItemCatalog.CopperBar, 1), new RecipeInput(ItemCatalog.IronBar, 1)),
+        new(Guestbook, "guestbook", ItemCatalog.Guestbook, 1, RecipeUnlock.Of(CraftSkill.Farming, 1), new RecipeInput(ItemCatalog.Wood, 30), new RecipeInput(ItemCatalog.Fiber, 10)),
         new(Furnace, "furnace", ItemCatalog.Furnace, 1, RecipeUnlock.Of(CraftSkill.Mining, 1), new RecipeInput(ItemCatalog.CopperOre, 20), new RecipeInput(ItemCatalog.Stone, 25)),
         new(Salad, "salad", ItemCatalog.Salad, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.Radish, 1), new RecipeInput(ItemCatalog.Cauliflower, 1)),
         new(BakedPotato, "baked_potato", ItemCatalog.BakedPotato, 1, RecipeUnlock.Of(CraftSkill.Farming, 1), new RecipeInput(ItemCatalog.Potato, 2), new RecipeInput(ItemCatalog.Wood, 1)),
