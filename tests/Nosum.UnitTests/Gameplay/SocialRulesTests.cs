@@ -21,12 +21,14 @@ public sealed class SocialRulesTests
 
     [Theory]
     [InlineData(0, 0)]
-    [InlineData(19, 0)]
+    [InlineData(1, 1)]
+    [InlineData(19, 1)]
     [InlineData(20, 1)]
+    [InlineData(21, 2)]
     [InlineData(100, 5)]
-    [InlineData(999, 49)]
+    [InlineData(999, 50)]
     [InlineData(1_000_000_000, 50_000_000)]
-    public void MarketFee_IsFivePercentRoundedDown(long price, long fee)
+    public void MarketFee_IsFivePercentRoundedUp_SoAMicroListingPaysAtLeastItsShare(long price, long fee)
     {
         CoinRules.MarketFee(price).Should().Be(fee);
         CoinRules.SellerProceeds(price).Should().Be(price - fee);
