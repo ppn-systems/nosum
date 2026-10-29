@@ -5,6 +5,7 @@ using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Placeables;
 
 namespace Nosum.Gameplay.Shops;
 
@@ -58,14 +59,22 @@ public static class ShopRules
         return ShopVerdict.Ok;
     }
 
-    /// <summary>Tells whether an item can be sold now: a seed only while its crop grows in the current season, anything else always.</summary>
+    /// <summary>
+    /// Tells whether an item can be sold now: a seed only while its crop grows in the current season, a seasonal piece of furniture only in its
+    /// season (<see cref="PlaceableDefinition.SoldIn"/>), anything else always.
+    /// </summary>
     /// <param name="itemId">The item.</param>
     /// <param name="calendar">The server calendar.</param>
     /// <param name="nowMs">Server time, Unix milliseconds.</param>
-    /// <returns><see langword="false"/> for a seed that cannot be planted in the current season.</returns>
+    /// <returns><see langword="false"/> for a seed that cannot be planted, or a seasonal piece outside its season, in the current season.</returns>
     public static bool IsInSeason(int itemId, GameCalendar calendar, long nowMs)
     {
         ArgumentNullException.ThrowIfNull(calendar);
+
+        if (PlaceableCatalog.TryGet(itemId, out PlaceableDefinition? piece) && piece.SoldIn is { } season)
+        {
+            return calendar.SeasonAt(nowMs) == season;
+        }
 
         return !ItemCatalog.TryGet(itemId, out ItemDefinition? item)
             || item.Kind != ItemKind.Seed

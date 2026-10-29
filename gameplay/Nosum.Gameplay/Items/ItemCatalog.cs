@@ -285,6 +285,102 @@ public static class ItemCatalog
     /// <summary>A house plant.</summary>
     public const int HousePlant = 306;
 
+    /// <summary>A wooden stool.</summary>
+    public const int WoodenStool = 307;
+
+    /// <summary>A chair with a cushion.</summary>
+    public const int CushionedChair = 308;
+
+    /// <summary>A wooden bench, two tiles long.</summary>
+    public const int WoodenBench = 309;
+
+    /// <summary>A green armchair.</summary>
+    public const int GreenArmchair = 310;
+
+    /// <summary>A round table, two tiles across.</summary>
+    public const int RoundTable = 311;
+
+    /// <summary>A small side table.</summary>
+    public const int SideTable = 312;
+
+    /// <summary>A long table, three tiles wide.</summary>
+    public const int LongTable = 313;
+
+    /// <summary>A single bed.</summary>
+    public const int SingleBed = 314;
+
+    /// <summary>A double bed.</summary>
+    public const int DoubleBed = 315;
+
+    /// <summary>A wardrobe.</summary>
+    public const int Wardrobe = 316;
+
+    /// <summary>A chest of drawers.</summary>
+    public const int ChestOfDrawers = 317;
+
+    /// <summary>A kitchen cabinet.</summary>
+    public const int KitchenCabinet = 318;
+
+    /// <summary>A wall shelf.</summary>
+    public const int WallShelf = 319;
+
+    /// <summary>A candelabra; it gives light at night.</summary>
+    public const int Candelabra = 320;
+
+    /// <summary>A table lamp; it gives light at night.</summary>
+    public const int TableLamp = 321;
+
+    /// <summary>A wall sconce; it gives light at night.</summary>
+    public const int WallSconce = 322;
+
+    /// <summary>A paper lantern, sold in fall; it gives light at night.</summary>
+    public const int PaperLantern = 323;
+
+    /// <summary>A potted fern.</summary>
+    public const int PottedFern = 324;
+
+    /// <summary>A cactus in a pot.</summary>
+    public const int CactusPot = 325;
+
+    /// <summary>A box of flowers, sold in spring.</summary>
+    public const int FlowerBox = 326;
+
+    /// <summary>A bonsai tree.</summary>
+    public const int Bonsai = 327;
+
+    /// <summary>A landscape painting for a wall.</summary>
+    public const int LandscapePainting = 328;
+
+    /// <summary>A portrait painting for a wall.</summary>
+    public const int PortraitPainting = 329;
+
+    /// <summary>A window for a wall.</summary>
+    public const int Window = 330;
+
+    /// <summary>A wall clock.</summary>
+    public const int WallClock = 331;
+
+    /// <summary>A mirror for a wall.</summary>
+    public const int Mirror = 332;
+
+    /// <summary>A red rug, two tiles across. Walked over.</summary>
+    public const int RedRug = 333;
+
+    /// <summary>A blue rug, three tiles wide. Walked over.</summary>
+    public const int BlueRug = 334;
+
+    /// <summary>A round rug, two tiles across. Walked over.</summary>
+    public const int RoundRug = 335;
+
+    /// <summary>A doormat. Walked over.</summary>
+    public const int Doormat = 336;
+
+    /// <summary>A carved pumpkin, sold in fall.</summary>
+    public const int PumpkinDecor = 337;
+
+    /// <summary>A winter wreath, sold in winter, for a wall.</summary>
+    public const int WinterWreath = 338;
+
     /// <summary>Wood, from trees, stumps and twigs.</summary>
     public const int Wood = 500;
 
@@ -594,6 +690,38 @@ public static class ItemCatalog
         new(Bookcase, "bookcase", ItemKind.Furniture, FurnitureStack),
         new(FloorLamp, "floor_lamp", ItemKind.Furniture, FurnitureStack),
         new(HousePlant, "house_plant", ItemKind.Furniture, FurnitureStack),
+        new(WoodenStool, "wooden_stool", ItemKind.Furniture, FurnitureStack),
+        new(CushionedChair, "cushioned_chair", ItemKind.Furniture, FurnitureStack),
+        new(WoodenBench, "wooden_bench", ItemKind.Furniture, FurnitureStack),
+        new(GreenArmchair, "green_armchair", ItemKind.Furniture, FurnitureStack),
+        new(RoundTable, "round_table", ItemKind.Furniture, FurnitureStack),
+        new(SideTable, "side_table", ItemKind.Furniture, FurnitureStack),
+        new(LongTable, "long_table", ItemKind.Furniture, FurnitureStack),
+        new(SingleBed, "single_bed", ItemKind.Furniture, FurnitureStack),
+        new(DoubleBed, "double_bed", ItemKind.Furniture, FurnitureStack),
+        new(Wardrobe, "wardrobe", ItemKind.Furniture, FurnitureStack),
+        new(ChestOfDrawers, "chest_of_drawers", ItemKind.Furniture, FurnitureStack),
+        new(KitchenCabinet, "kitchen_cabinet", ItemKind.Furniture, FurnitureStack),
+        new(WallShelf, "wall_shelf", ItemKind.Furniture, FurnitureStack),
+        new(Candelabra, "candelabra", ItemKind.Furniture, FurnitureStack),
+        new(TableLamp, "table_lamp", ItemKind.Furniture, FurnitureStack),
+        new(WallSconce, "wall_sconce", ItemKind.Furniture, FurnitureStack),
+        new(PaperLantern, "paper_lantern", ItemKind.Furniture, FurnitureStack),
+        new(PottedFern, "potted_fern", ItemKind.Furniture, FurnitureStack),
+        new(CactusPot, "cactus_pot", ItemKind.Furniture, FurnitureStack),
+        new(FlowerBox, "flower_box", ItemKind.Furniture, FurnitureStack),
+        new(Bonsai, "bonsai", ItemKind.Furniture, FurnitureStack),
+        new(LandscapePainting, "landscape_painting", ItemKind.Furniture, FurnitureStack),
+        new(PortraitPainting, "portrait_painting", ItemKind.Furniture, FurnitureStack),
+        new(Window, "window", ItemKind.Furniture, FurnitureStack),
+        new(WallClock, "wall_clock", ItemKind.Furniture, FurnitureStack),
+        new(Mirror, "mirror", ItemKind.Furniture, FurnitureStack),
+        new(RedRug, "red_rug", ItemKind.Furniture, FurnitureStack),
+        new(BlueRug, "blue_rug", ItemKind.Furniture, FurnitureStack),
+        new(RoundRug, "round_rug", ItemKind.Furniture, FurnitureStack),
+        new(Doormat, "doormat", ItemKind.Furniture, FurnitureStack),
+        new(PumpkinDecor, "pumpkin_decor", ItemKind.Furniture, FurnitureStack),
+        new(WinterWreath, "winter_wreath", ItemKind.Furniture, FurnitureStack),
         new(ShirtRed, "shirt_red", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
         new(ShirtGreen, "shirt_green", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
         new(ShirtBlue, "shirt_blue", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
