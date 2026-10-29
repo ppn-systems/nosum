@@ -10,8 +10,6 @@ using Nosum.Contracts.Combat;
 using Nosum.Contracts.Combat.C2S;
 using Nosum.Contracts.Combat.S2C;
 using Nosum.Gameplay.Combat;
-using Nosum.Gameplay.Inventory;
-using Nosum.Handlers.Security;
 using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.Combat;
@@ -104,19 +102,6 @@ public static partial class CombatHandlers
         ushort sequence = context.Packet.SequenceId;
         int monsterId = context.Packet.MonsterId;
         int slot = context.Packet.Slot;
-        if (!PacketBounds.IsWithinBounds(context.Packet))
-        {
-            CombatStatus badStatus = (uint)slot >= (uint)InventoryLimits.DefaultCapacity
-                ? CombatStatus.WrongItem
-                : CombatStatus.UnknownMonster;
-            await Replies.ReplyAsync<AttackMonster, AttackMonsterResult>(context, sequence, r =>
-            {
-                r.Status = badStatus;
-                r.MonsterId = monsterId;
-            }).ConfigureAwait(false);
-            return;
-        }
-
         AttackOutcome outcome = await s_combat.AttackMonsterAsync(context.Connection, monsterId, slot, context.CancellationToken).ConfigureAwait(false);
 
         await Replies.ReplyAsync<AttackMonster, AttackMonsterResult>(context, sequence, r =>
@@ -148,12 +133,6 @@ public static partial class CombatHandlers
 
         ushort sequence = context.Packet.SequenceId;
         int slot = context.Packet.Slot;
-        if (!PacketBounds.IsWithinBounds(context.Packet))
-        {
-            await Replies.ReplyAsync<DrinkPotion, DrinkPotionResult>(context, sequence, r => r.Status = CombatStatus.WrongItem).ConfigureAwait(false);
-            return;
-        }
-
         DrinkPotionOutcome outcome = await s_combat.DrinkPotionAsync(context.Connection, slot, context.CancellationToken).ConfigureAwait(false);
 
         await Replies.ReplyAsync<DrinkPotion, DrinkPotionResult>(context, sequence, r =>
@@ -179,19 +158,6 @@ public static partial class CombatHandlers
         ushort sequence = context.Packet.SequenceId;
         byte skillId = context.Packet.SkillId;
         int targetMonsterId = context.Packet.TargetMonsterId;
-        if (!PacketBounds.IsWithinBounds(context.Packet))
-        {
-            CombatStatus badStatus = !SkillCatalog.TryGet((CombatSkillKind)skillId, out _)
-                ? CombatStatus.UnknownSkill
-                : CombatStatus.UnknownMonster;
-            await Replies.ReplyAsync<CastSkill, CastSkillResult>(context, sequence, r =>
-            {
-                r.Status = badStatus;
-                r.SkillId = skillId;
-            }).ConfigureAwait(false);
-            return;
-        }
-
         CastSkillOutcome outcome = await s_combat.CastSkillAsync(context.Connection, skillId, targetMonsterId, context.CancellationToken).ConfigureAwait(false);
 
         await Replies.ReplyAsync<CastSkill, CastSkillResult>(context, sequence, r =>

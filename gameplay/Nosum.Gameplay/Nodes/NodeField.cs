@@ -23,6 +23,14 @@ public sealed class NodeField
     /// <summary>Gets every node, in no particular order.</summary>
     public IEnumerable<ResourceNode> All => _byId.Values;
 
+    /// <summary>Removes every node from the field in-place without allocating a new instance.</summary>
+    public void Clear()
+    {
+        _byId.Clear();
+        _byTile.Clear();
+        _chunks.Clear();
+    }
+
     /// <summary>Returns the chunk coordinate of a tile coordinate.</summary>
     /// <param name="tile">Tile x or y.</param>
     /// <returns>The chunk x or y.</returns>

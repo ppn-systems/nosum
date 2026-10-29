@@ -14,9 +14,10 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal sealed class CombatLabels
 {
-    private readonly LabelRegistry _registry;
+    private const int MaxPreInternedValue = 250;
+
     private readonly IStringLocalizer<Language>? _text;
-    private readonly Dictionary<(int Value, byte Style), int> _cache = new(256);
+    private readonly Dictionary<(int Value, byte Style), int> _cache = new(MaxPreInternedValue * 5);
 
     /// <summary>Gets the pre-interned label id for the Ancient Dungeon portal (docs/adr/ADR-057).</summary>
     public int PortalLabelId { get; }
@@ -66,7 +67,6 @@ internal sealed class CombatLabels
     public CombatLabels(LabelRegistry registry, IStringLocalizer<Language>? text = null)
     {
         ArgumentNullException.ThrowIfNull(registry);
-        _registry = registry;
         _text = text;
         this.PortalLabelId = registry.Intern(this.Lookup("Combat_Label_Portal"), 1);
         this.EliteFlameLabelId = registry.Intern(this.Lookup("Combat_Label_Elite_Flame"), 2);
@@ -84,8 +84,8 @@ internal sealed class CombatLabels
         this.ShrineSolarLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Solar"), 2);
         this.ShrineFrostLabelId = registry.Intern(this.Lookup("Combat_Label_Shrine_Frost"), 0);
 
-        // Pre-intern common values 1..50 for all 5 styles
-        for (int i = 1; i <= 50; i++)
+        // Pre-intern combat numbers 1..MaxPreInternedValue for all 5 styles outside the frame loop so GetLabelId never allocates or calls JS mid-frame.
+        for (int i = 1; i <= MaxPreInternedValue; i++)
         {
             string num = i.ToString(CultureInfo.InvariantCulture);
             _cache[(i, 0)] = registry.Intern("-" + num, 0);
@@ -96,25 +96,12 @@ internal sealed class CombatLabels
         }
     }
 
-    /// <summary>Returns the pre-rendered label id for a combat number.</summary>
+    /// <summary>Returns the pre-rendered label id for a combat number without allocating or crossing JS interop.</summary>
     public int GetLabelId(int value, byte style)
     {
-        if (_cache.TryGetValue((value, style), out int id))
-        {
-            return id;
-        }
-
-        string num = value.ToString(CultureInfo.InvariantCulture);
-        string text = style switch
-        {
-            1 => this.FormatCrit(num),
-            3 => "+" + num,
-            _ => "-" + num,
-        };
-
-        id = _registry.Intern(text, style);
-        _cache[(value, style)] = id;
-        return id;
+        int clamped = Math.Clamp(value, 1, MaxPreInternedValue);
+        byte clampedStyle = style <= 4 ? style : (byte)0;
+        return _cache.TryGetValue((clamped, clampedStyle), out int id) ? id : 0;
     }
 
     private string Lookup(string key) => _text is not null ? _text[key].Value : key;

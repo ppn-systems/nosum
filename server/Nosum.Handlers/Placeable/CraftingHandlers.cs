@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Crafting;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Placeable.S2C;
+using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.Placeable;
 
@@ -33,22 +31,15 @@ public static partial class CraftingHandlers
         ArgumentNullException.ThrowIfNull(context);
 
         ushort sequence = context.Packet.SequenceId;
-        CraftOutcome outcome = await s_crafting.CraftAsync(context.Connection, context.Packet.RecipeId, context.Packet.Times, context.CancellationToken).ConfigureAwait(false);
+        ushort recipeId = context.Packet.RecipeId;
+        CraftOutcome outcome = await s_crafting.CraftAsync(context.Connection, recipeId, context.Packet.Times, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<CraftResult> lease = PacketFactory<CraftResult>.Acquire();
-        try
+        await Replies.ReplyAsync<Craft, CraftResult>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = outcome.Status;
-            lease.Value.RecipeId = context.Packet.RecipeId;
-            lease.Value.Times = (byte)outcome.Times;
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+            r.Status = outcome.Status;
+            r.RecipeId = recipeId;
+            r.Times = (byte)outcome.Times;
+        }).ConfigureAwait(false);
     }
 
     /// <summary>Replies with the ids of the recipes the player can craft now.</summary>
@@ -64,18 +55,10 @@ public static partial class CraftingHandlers
         ushort sequence = context.Packet.SequenceId;
         IReadOnlyList<int> unlocked = await s_crafting.UnlockedAsync(context.Connection, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<RecipeBook> lease = PacketFactory<RecipeBook>.Acquire();
-        try
+        await Replies.ReplyAsync<GetRecipeBook, RecipeBook>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Unlocked.Clear();
-            lease.Value.Unlocked.AddRange(unlocked);
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+            r.Unlocked.Clear();
+            r.Unlocked.AddRange(unlocked);
+        }).ConfigureAwait(false);
     }
 }

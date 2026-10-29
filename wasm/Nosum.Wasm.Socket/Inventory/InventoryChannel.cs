@@ -81,6 +81,31 @@ public sealed class InventoryChannel : IDisposable
         }
     }
 
+    /// <summary>Counts the total quantity of <paramref name="itemId"/> across all inventory slots.</summary>
+    /// <param name="itemId">Item id from the item catalogue.</param>
+    /// <returns>Total stacked quantity of the item carried by the player.</returns>
+    public int CountOf(int itemId)
+    {
+        if (itemId <= 0)
+        {
+            return 0;
+        }
+
+        lock (_gate)
+        {
+            int total = 0;
+            for (int i = 0; i < _capacity; i++)
+            {
+                if (_slots[i].ItemId == itemId)
+                {
+                    total += _slots[i].Quantity;
+                }
+            }
+
+            return total;
+        }
+    }
+
     /// <summary>Loads the whole inventory. Call it whenever the connection is signed in; a new player gets the starter kit.</summary>
     public void Load() => _ = this.LoadAsync();
 

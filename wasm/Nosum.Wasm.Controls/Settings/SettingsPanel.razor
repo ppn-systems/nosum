@@ -1,5 +1,3 @@
-@using System.Threading
-@using Nosum.Contracts.Common
 @using Nosum.Wasm.ViewModels.Account
 @using Nosum.Wasm.ViewModels.Settings
 @implements IDisposable
@@ -79,8 +77,8 @@
                 <GameSection Title="@Settings.Text("Settings_Language")">
                     <div class="set-body">
                         <div class="set-lang" role="group" aria-label="@Settings.Text("Settings_Language")">
-                            <GameButton Variant="tab" Active="@(Vm.Language == GameLanguage.Vietnamese)" Text="@Settings.Text("Settings_LanguageVi")" OnClick="@(() => SetLanguageAsync(GameLanguage.Vietnamese))" />
-                            <GameButton Variant="tab" Active="@(Vm.Language == GameLanguage.English)" Text="@Settings.Text("Settings_LanguageEn")" OnClick="@(() => SetLanguageAsync(GameLanguage.English))" />
+                            <GameButton Variant="tab" Active="@Vm.IsVietnamese" Text="@Settings.Text("Settings_LanguageVi")" OnClick="@(() => Vm.SetVietnameseAsync())" />
+                            <GameButton Variant="tab" Active="@Vm.IsEnglish" Text="@Settings.Text("Settings_LanguageEn")" OnClick="@(() => Vm.SetEnglishAsync())" />
                         </div>
                         @if (Vm.LanguageNote is not null)
                         {
@@ -168,8 +166,6 @@
     ];
 
     private string Percent(int value) => Settings.Text("Settings_Percent", value);
-
-    private Task SetLanguageAsync(GameLanguage language) => Vm.SetLanguageAsync(language, CancellationToken.None);
 
     // The key pressed while a row waits for one: Escape gives up, anything else is bound (or refused with the reason on the status line).
     private void Capture(KeyboardEventArgs e)

@@ -1,6 +1,4 @@
 @using Nosum.Wasm.ViewModels.Building
-@using Nosum.Gameplay.Animals
-@using Nosum.Gameplay.Buildings
 @inherits ObservingComponent<CarpenterViewModel>
 
 @* The building and animal sections of the carpenter's page, under its supplies (docs/adr/ADR-028): order a blueprint for a coop or a barn, and buy an animal for a finished
@@ -10,11 +8,11 @@
         <p class="carpenter-line">@Vm.Text("Carpenter_Hint")</p>
         @foreach (BuildingOrder order in Vm.Orders)
         {
-            BuildingKind kind = order.Kind;
+            BuildingOrder b = order;
             <GameRow Class="center carpenter-row">
                 <span>@order.Name</span>
                 <span class="carpenter-cost">@order.CostText</span>
-                <GameButton Text="@Vm.Text("Carpenter_Order")" Disabled="@(!order.CanOrder)" OnClick="@(() => Vm.Order(kind))" />
+                <GameButton Text="@Vm.Text("Carpenter_Order")" Disabled="@(!order.CanOrder)" OnClick="@(() => Vm.OrderAsync(b))" />
             </GameRow>
         }
     </GameSection>
@@ -33,11 +31,10 @@
             </GameField>
             @foreach (AnimalOffer offer in offers)
             {
-                Guid buildingId = offer.BuildingId;
-                AnimalKind kind = offer.Kind;
+                AnimalOffer a = offer;
                 <GameRow Class="center carpenter-row">
                     <span>@offer.Title</span>
-                    <GameButton Text="@offer.BuyLabel" Disabled="@(!offer.CanBuy)" OnClick="@(() => Vm.BuyAnimal(buildingId, kind))" />
+                    <GameButton Text="@offer.BuyLabel" Disabled="@(!offer.CanBuy)" OnClick="@(() => Vm.BuyAnimalAsync(a))" />
                 </GameRow>
             }
         }

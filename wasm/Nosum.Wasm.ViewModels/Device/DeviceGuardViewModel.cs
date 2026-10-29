@@ -7,7 +7,7 @@ using Nosum.Wasm.ViewModels.Resources;
 namespace Nosum.Wasm.ViewModels.Device;
 
 /// <summary>The device gate's screens: the verdict for this browser and the text of the notice that goes with it.</summary>
-public sealed class DeviceGuardViewModel
+public sealed class DeviceGuardViewModel : IObservableViewModel
 {
     private readonly IStringLocalizer<Language> _text;
     private readonly DeviceSignals _signals;
@@ -33,6 +33,15 @@ public sealed class DeviceGuardViewModel
 
     /// <summary>Gets the current verdict.</summary>
     public DeviceVerdict Verdict => DeviceGate.Evaluate(_signals with { ViewportWidth = _width }, _policy);
+
+    /// <summary>Gets whether the device is blocked (phone or tablet).</summary>
+    public bool IsBlocked => this.Verdict == DeviceVerdict.TouchBlocked;
+
+    /// <summary>Gets whether the browser window is narrower than <see cref="MinimumWidth"/>.</summary>
+    public bool IsTooNarrow => this.Verdict == DeviceVerdict.TooNarrow;
+
+    /// <summary>Gets whether the device and viewport are allowed to run the game.</summary>
+    public bool IsAllowed => this.Verdict == DeviceVerdict.Allowed;
 
     /// <summary>Gets the minimum window width the layout supports, in CSS pixels.</summary>
     public int MinimumWidth => _policy.MinimumWidth;

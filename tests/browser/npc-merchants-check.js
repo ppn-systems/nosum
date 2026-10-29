@@ -73,4 +73,5 @@ const T = lang === 'en'
   console.log('mail', JSON.stringify(await page.evaluate(() => ({ tabs: [...document.querySelectorAll('.menu-tab')].map(t => t.getAttribute('aria-label') + (t.classList.contains('active') ? '*' : '')), title: document.querySelector('.menu-window .game-panel-title')?.textContent }))));
   console.log('errors', JSON.stringify(errors));
   await browser.close();
+  if (errors.length > 0) { process.exitCode = 1; throw new Error(errors.join('; ')); }
 })();

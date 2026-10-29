@@ -99,7 +99,7 @@ public sealed class BlacksmithViewModel : PanelViewModel, IDisposable
                 }
 
                 UpgradeQuote quote = found.Value;
-                bool affordable = _wallet.Coins >= quote.Coins && Carried(quote.BarItemId) >= quote.BarCount;
+                bool affordable = _wallet.Coins >= quote.Coins && _inventory.CountOf(quote.BarItemId) >= quote.BarCount;
                 offers.Add(new UpgradeOfferDisplay(
                     quote.FromItemId,
                     _describer.Describe(0, quote.FromItemId, 1),
@@ -180,20 +180,5 @@ public sealed class BlacksmithViewModel : PanelViewModel, IDisposable
         }
 
         return best;
-    }
-
-    private int Carried(int itemId)
-    {
-        int count = 0;
-        for (int slot = 0; slot < _inventory.Capacity; slot++)
-        {
-            SlotInfo info = _inventory.SlotAt(slot);
-            if (info.ItemId == itemId)
-            {
-                count += info.Quantity;
-            }
-        }
-
-        return count;
     }
 }

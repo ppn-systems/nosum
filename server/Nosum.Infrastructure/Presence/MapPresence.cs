@@ -23,6 +23,7 @@ public sealed class MapPresence : IMapPresence, IChunkMap
 {
     private readonly IConnectionGroupRegistry _groups;
     private readonly ConcurrentDictionary<ulong, PlayerPresence> _byConnection = new();
+    private readonly ConcurrentDictionary<Guid, PlayerPresence> _byAccount = new();
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<uint, PlayerPresence>> _byMap = new(StringComparer.Ordinal);
     private readonly ChunkIndex _chunks = new();
     private readonly EventHandler<IConnectionEventArgs> _onClosed;
@@ -58,6 +59,7 @@ public sealed class MapPresence : IMapPresence, IChunkMap
         uint id = playerId ?? (uint)Interlocked.Increment(ref _nextPlayerId);
         PlayerPresence player = new(id, accountId, instance, connection, motion);
         _byConnection[connection.ConnectionId] = player;
+        _byAccount[accountId] = player;
         _byMap.GetOrAdd(instance.Key, static _ => new ConcurrentDictionary<uint, PlayerPresence>())[id] = player;
 
         connection.ConnectionClosed += _onClosed;
@@ -89,6 +91,7 @@ public sealed class MapPresence : IMapPresence, IChunkMap
             return;
         }
 
+        _ = _byAccount.TryRemove(new KeyValuePair<Guid, PlayerPresence>(player.AccountId, player));
         connection.ConnectionClosed -= _onClosed;
         _chunks.Remove(player);
         if (_byMap.TryGetValue(player.Key, out ConcurrentDictionary<uint, PlayerPresence>? members))
@@ -117,6 +120,10 @@ public sealed class MapPresence : IMapPresence, IChunkMap
         ArgumentNullException.ThrowIfNull(connection);
         return _byConnection.TryGetValue(connection.ConnectionId, out player);
     }
+
+    /// <inheritdoc/>
+    public bool TryGetPlayer(Guid playerId, [NotNullWhen(true)] out PlayerPresence? presence)
+        => _byAccount.TryGetValue(playerId, out presence);
 
     /// <inheritdoc/>
     public void CopyActiveMapIds(List<string> into)

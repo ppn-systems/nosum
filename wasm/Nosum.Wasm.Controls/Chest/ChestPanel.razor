@@ -1,4 +1,3 @@
-@using Nosum.Contracts.Placeable
 @using Nosum.Wasm.ViewModels.Chest
 @using Nosum.Wasm.Controls.Menu
 @inherits ObservingComponent<ChestViewModel>
@@ -8,20 +7,15 @@
     <GameStack>
         <GameSection Title="@Vm.ChestLabel">
             <div class="chest-grid">
-                <ItemGrid Slots="Vm.ChestSlots" Columns="9" Picked="@Picked(ChestSide.Chest)" OnSlotClick="@(i => Vm.Click(ChestSide.Chest, i))" OnSlotShiftClick="@(i => Vm.QuickMove(ChestSide.Chest, i))" />
+                <ItemGrid Slots="Vm.ChestSlots" Columns="9" Picked="@Vm.PickedChestSlot" OnSlotClick="@(i => Vm.ClickChestAsync(i))" OnSlotShiftClick="@(i => Vm.QuickMoveChestAsync(i))" />
             </div>
         </GameSection>
         <GameSection Title="@Vm.BagLabel">
             <div class="chest-grid">
-                <ItemGrid Slots="Vm.BagSlots" Columns="9" Picked="@Picked(ChestSide.Player)" OnSlotClick="@(i => Vm.Click(ChestSide.Player, i))" OnSlotShiftClick="@(i => Vm.QuickMove(ChestSide.Player, i))" />
-                <ItemGrid Slots="Vm.HotbarSlots" Columns="9" Picked="@Picked(ChestSide.Player)" OnSlotClick="@(i => Vm.Click(ChestSide.Player, i))" OnSlotShiftClick="@(i => Vm.QuickMove(ChestSide.Player, i))" />
+                <ItemGrid Slots="Vm.BagSlots" Columns="9" Picked="@Vm.PickedPlayerSlot" OnSlotClick="@(i => Vm.ClickPlayerAsync(i))" OnSlotShiftClick="@(i => Vm.QuickMovePlayerAsync(i))" />
+                <ItemGrid Slots="Vm.HotbarSlots" Columns="9" Picked="@Vm.PickedPlayerSlot" OnSlotClick="@(i => Vm.ClickPlayerAsync(i))" OnSlotShiftClick="@(i => Vm.QuickMovePlayerAsync(i))" />
             </div>
         </GameSection>
         <p class="chest-hint">@Vm.Hint</p>
     </GameStack>
 </MenuPage>
-
-@code {
-    // The picked slot of a grid, or -1 when the picked stack is on the other side.
-    private int Picked(ChestSide side) => Vm.PickedSlot >= 0 && Vm.PickedSide == side ? Vm.PickedSlot : -1;
-}

@@ -11,6 +11,7 @@ using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Placeable.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Maps;
+using Nosum.Wasm.Socket.Chunks;
 
 namespace Nosum.Wasm.Socket.Placeable;
 
@@ -37,8 +38,7 @@ public sealed class PlaceableChannel : IDisposable
     private readonly List<PlacedObjectInfo> _items = [];
     private string _mapId = string.Empty;
     private int _version;
-    private int _loadGeneration;
-    private int _inFlightLoads;
+    private readonly ChunkLoadGate _loads = new();
 
     /// <summary>Initializes the channel and starts listening for pushed changes.</summary>
     /// <param name="socket">The game connection.</param>
@@ -115,13 +115,12 @@ public sealed class PlaceableChannel : IDisposable
     [SuppressMessage("Design", "CA1031", Justification = "A failed load is retried when the next join completes; there is no caller to report to.")]
     private async Task LoadAsync()
     {
-        int gen = Interlocked.Increment(ref _loadGeneration);
-        _ = Interlocked.Increment(ref _inFlightLoads);
+        int gen = _loads.BeginLoad();
         try
         {
             using PacketScope<GetPlaced> request = PacketFactory<GetPlaced>.Acquire();
             PlacedSnapshot snapshot = await _socket.RequestAsync<PlacedSnapshot>(request.Value).ConfigureAwait(false);
-            if (gen != Volatile.Read(ref _loadGeneration))
+            if (!_loads.IsCurrent(gen))
             {
                 return;
             }
@@ -146,7 +145,7 @@ public sealed class PlaceableChannel : IDisposable
         }
         finally
         {
-            _ = Interlocked.Decrement(ref _inFlightLoads);
+            _loads.EndLoad();
         }
     }
 
@@ -208,17 +207,9 @@ public sealed class PlaceableChannel : IDisposable
     {
         lock (_gate)
         {
-            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            if (!_loads.TryAcceptChunkMap(ref _mapId, packet.MapId, _items.Clear))
             {
-                if ((Volatile.Read(ref _inFlightLoads) > 0 || _mapId.Length == 0) && !string.IsNullOrEmpty(packet.MapId))
-                {
-                    _items.Clear();
-                    _mapId = packet.MapId;
-                }
-                else
-                {
-                    return;
-                }
+                return;
             }
 
             ChunkCoord chunk = new(packet.ChunkX, packet.ChunkY);

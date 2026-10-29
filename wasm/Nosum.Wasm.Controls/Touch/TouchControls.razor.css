@@ -14,13 +14,13 @@
 }
 
 .touch-stick,
-.touch-use {
+.touch-controls ::deep .touch-use {
     position: absolute;
     bottom: calc(var(--u) * 8);
     box-sizing: border-box;
     border: calc(var(--u) * 2) solid var(--nosum-edge);
     border-radius: 50%;
-    background: rgba(253, 188, 110, 0.55);
+    background: var(--nosum-touch-stick-bg);
     color: var(--nosum-ink);
     pointer-events: auto;
     touch-action: none;
@@ -44,7 +44,7 @@
     pointer-events: none;
 }
 
-.touch-use {
+.touch-controls ::deep .touch-use {
     right: calc(var(--u) * 8);
     width: calc(var(--u) * 28);
     height: calc(var(--u) * 28);
@@ -53,14 +53,21 @@
     font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
 }
 
-.touch-use.down {
+.touch-controls ::deep .touch-use .game-button-label {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: inherit;
+}
+
+.touch-controls ::deep .touch-use.down {
     filter: brightness(0.8);
 }
 
 /* Narrow screens: the hotbar takes two rows at the bottom, so the stick and the button stand above it. */
 @media (pointer: coarse) and (max-width: 640px) {
     .touch-stick,
-    .touch-use {
+    .touch-controls ::deep .touch-use {
         bottom: calc(var(--u) * 76);
     }
 }

@@ -24,32 +24,32 @@
     bottom: 0;
     max-height: 100%;
     background:
-        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
-        linear-gradient(to top, #265c42 0 20%, #3e8948 20% 45%, #63c74d 45% 75%, #b8e04a 75% 100%) bottom / 100% calc(var(--u) * 26) no-repeat;
+        var(--nosum-gauge-sheen),
+        var(--nosum-gauge-energy) bottom / 100% calc(var(--u) * 26) no-repeat;
 }
 
 .hp-fill {
     background:
-        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
-        linear-gradient(to top, #7a1c24 0 20%, #b4232c 20% 45%, #e03c32 45% 75%, #ff6b57 75% 100%) bottom / 100% calc(var(--u) * 26) no-repeat;
+        var(--nosum-gauge-sheen),
+        var(--nosum-gauge-hp) bottom / 100% calc(var(--u) * 26) no-repeat;
 }
 
 .mp-fill {
     background:
-        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
-        linear-gradient(to top, #1d3c78 0 20%, #2a5db0 20% 45%, #4287f5 45% 75%, #73b3ff 75% 100%) bottom / 100% calc(var(--u) * 26) no-repeat;
+        var(--nosum-gauge-sheen),
+        var(--nosum-gauge-mp) bottom / 100% calc(var(--u) * 26) no-repeat;
 }
 
 .energy-bar.low .energy-fill:not(.mp-fill) {
     background:
-        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
-        linear-gradient(to top, #961e28 0 40%, #e94334 40% 100%) bottom / 100% calc(var(--u) * 26) no-repeat;
+        var(--nosum-gauge-sheen),
+        var(--nosum-gauge-low) bottom / 100% calc(var(--u) * 26) no-repeat;
 }
 
 .energy-bar.mp-bar.low .mp-fill {
     background:
-        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
-        linear-gradient(to top, #172554 0 40%, #2563eb 40% 100%) bottom / 100% calc(var(--u) * 26) no-repeat;
+        var(--nosum-gauge-sheen),
+        var(--nosum-gauge-mp-low) bottom / 100% calc(var(--u) * 26) no-repeat;
 }
 
 .vitals-bars.regen {
@@ -58,17 +58,17 @@
 }
 
 .vitals-bars.poison {
-    border-bottom: calc(var(--u) * 2) solid #a855f7;
+    border-bottom: calc(var(--u) * 2) solid var(--nosum-status-poison);
     padding-bottom: var(--u);
 }
 
 .vitals-bars.poison .hp-fill {
     background:
-        linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%),
-        linear-gradient(to top, #4c1d95 0 20%, #6d28d9 20% 45%, #8b5cf6 45% 75%, #c084fc 75% 100%) bottom / 100% calc(var(--u) * 26) no-repeat;
+        var(--nosum-gauge-sheen),
+        var(--nosum-gauge-poison) bottom / 100% calc(var(--u) * 26) no-repeat;
 }
 
 .vitals-bars.swift {
-    border-bottom: calc(var(--u) * 2) solid #38bdf8;
+    border-bottom: calc(var(--u) * 2) solid var(--nosum-status-swift);
     padding-bottom: var(--u);
 }

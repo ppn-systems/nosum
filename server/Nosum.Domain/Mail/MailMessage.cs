@@ -36,16 +36,3 @@ public sealed class MailMessage : Entity
     /// <summary>Gets or sets when the attachment was collected; <see langword="null"/> while it waits (or when there is none).</summary>
     public DateTimeOffset? CollectedAt { get; set; }
 }
-
-/// <summary>One item line attached to a <see cref="MailMessage"/>.</summary>
-public sealed class MailAttachmentItem
-{
-    /// <summary>Gets or sets the mail.</summary>
-    public Guid MailId { get; set; }
-
-    /// <summary>Gets or sets the item id.</summary>
-    public int ItemId { get; set; }
-
-    /// <summary>Gets or sets how many.</summary>
-    public int Quantity { get; set; }
-}

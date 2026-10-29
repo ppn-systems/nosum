@@ -56,6 +56,40 @@
     --nosum-shine: rgba(255, 244, 214, 0.55);
     /* palette:end */
 
+    --nosum-notice-bg: rgba(255, 244, 214, 0.35);
+    --nosum-danger-bg: rgba(150, 30, 40, 0.12);
+    --nosum-ok-bg: rgba(38, 92, 66, 0.12);
+    --nosum-track-bg: #30202a;
+    --nosum-track-shadow: #18080e;
+    --nosum-thumb-bg: #977148;
+    --nosum-thumb-hi: #b7916a;
+    --nosum-thumb-lo: #6d543a;
+    --nosum-toggle-off-bg: #7e7e8e;
+    --nosum-toggle-off-hi: #b4b4c0;
+    --nosum-toggle-off-lo: #4e4e5c;
+    --nosum-toggle-on-bg: #ffcc00;
+    --nosum-toggle-on-hi: #ffe248;
+    --nosum-toggle-on-lo: #a88600;
+    --nosum-slot-shadow: inset 0 var(--u) 0 rgba(70, 45, 25, 0.4), inset var(--u) 0 0 rgba(70, 45, 25, 0.25), inset 0 calc(var(--u) * -1) 0 rgba(255, 255, 255, 0.25), inset calc(var(--u) * -1) 0 0 rgba(255, 255, 255, 0.2);
+    --nosum-slot-shadow-hover: inset 0 var(--u) 0 rgba(70, 45, 25, 0.2), inset 0 calc(var(--u) * -1) 0 rgba(255, 255, 255, 0.4);
+    --nosum-water-fill: linear-gradient(to bottom, #76e4ff 0 50%, #009adc 50% 100%);
+    --nosum-progress-fill: linear-gradient(to bottom, #b8e04a 0 20%, #63c74d 20% 55%, #3e8948 55% 85%, var(--nosum-ok) 85% 100%);
+    --nosum-progress-done: linear-gradient(to bottom, #fff6be 0 20%, var(--nosum-gold-light) 20% 55%, var(--nosum-gold) 55% 85%, #c4701c 85% 100%);
+    --nosum-progress-faded: linear-gradient(to bottom, #a08c7c 0 20%, #846e60 20% 100%);
+    --nosum-progress-hp: linear-gradient(to bottom, #ff6b57 0 20%, #e03c32 20% 55%, #b4232c 55% 85%, #7a1c24 85% 100%);
+    --nosum-progress-mp: linear-gradient(to bottom, #73b3ff 0 20%, #4287f5 20% 55%, #2a5db0 55% 85%, #1d3c78 85% 100%);
+    --nosum-progress-low: linear-gradient(to bottom, #ff6b57 0 20%, #e94334 20% 60%, var(--nosum-danger) 60% 100%);
+    --nosum-gauge-sheen: linear-gradient(to right, rgba(255, 255, 255, 0.4) 0 var(--u), transparent var(--u) calc(var(--u) * 3), rgba(0, 0, 0, 0.3) calc(var(--u) * 3) 100%);
+    --nosum-gauge-energy: linear-gradient(to top, var(--nosum-ok) 0 20%, #3e8948 20% 45%, #63c74d 45% 75%, #b8e04a 75% 100%);
+    --nosum-gauge-hp: linear-gradient(to top, #7a1c24 0 20%, #b4232c 20% 45%, #e03c32 45% 75%, #ff6b57 75% 100%);
+    --nosum-gauge-mp: linear-gradient(to top, #1d3c78 0 20%, #2a5db0 20% 45%, #4287f5 45% 75%, #73b3ff 75% 100%);
+    --nosum-gauge-low: linear-gradient(to top, var(--nosum-danger) 0 40%, #e94334 40% 100%);
+    --nosum-gauge-mp-low: linear-gradient(to top, #172554 0 40%, #2563eb 40% 100%);
+    --nosum-gauge-poison: linear-gradient(to top, #4c1d95 0 20%, #6d28d9 20% 45%, #8b5cf6 45% 75%, #c084fc 75% 100%);
+    --nosum-status-poison: #a855f7;
+    --nosum-status-swift: #38bdf8;
+    --nosum-touch-stick-bg: rgba(253, 188, 110, 0.55);
+
     /* A rounded corner one UI pixel deep, for a plain box (the hotkey and count badges): clip-path with the four corner pixels cut off. */
     --nosum-pill-clip: polygon(0 var(--u), var(--u) var(--u), var(--u) 0, calc(100% - var(--u)) 0, calc(100% - var(--u)) var(--u), 100% var(--u), 100% calc(100% - var(--u)), calc(100% - var(--u)) calc(100% - var(--u)), calc(100% - var(--u)) 100%, var(--u) 100%, var(--u) calc(100% - var(--u)), 0 calc(100% - var(--u)));
 

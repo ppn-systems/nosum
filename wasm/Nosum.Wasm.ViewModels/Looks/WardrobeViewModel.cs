@@ -179,6 +179,30 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the localized title of the wardrobe panel.</summary>
+    public string Title => this.Text("Wardrobe_Title");
+
+    /// <summary>Gets the localized skin section heading.</summary>
+    public string SkinTitle => this.Text("Wardrobe_Skin_Title");
+
+    /// <summary>Gets the localized hair style section heading.</summary>
+    public string HairStyleTitle => this.Text("Wardrobe_HairStyle_Title");
+
+    /// <summary>Gets the localized hair dye section heading.</summary>
+    public string HairDyeTitle => this.Text("Wardrobe_HairDye_Title");
+
+    /// <summary>Gets the localized worn-items section heading.</summary>
+    public string WornTitle => this.Text("Wardrobe_Worn");
+
+    /// <summary>Gets the localized wearable-bag section heading.</summary>
+    public string BagTitle => this.Text("Wardrobe_Bag");
+
+    /// <summary>Gets the localized empty-bag text when the player carries no clothing.</summary>
+    public string EmptyBagText => this.Text("Wardrobe_BagEmpty");
+
+    /// <summary>Gets the localized text of the take-off button.</summary>
+    public string TakeOffText => this.Text("Wardrobe_TakeOff");
+
     /// <summary>Chooses a skin tone.</summary>
     /// <param name="id">The tone id.</param>
     public void SetSkin(int id) => _looks.SetAppearance(id, this.Look.HairStyleId, this.Look.HairDyeId);

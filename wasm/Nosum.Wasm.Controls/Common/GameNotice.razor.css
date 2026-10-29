@@ -1,6 +1,6 @@
 .game-notice {
     --notice-colour: var(--nosum-ink-soft);
-    --notice-bg: rgba(255, 244, 214, 0.35);
+    --notice-bg: var(--nosum-notice-bg);
 
     margin: 0;
     padding: var(--u) calc(var(--u) * 3);

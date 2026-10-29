@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Nalix.Codec.Pooling;
+using Nosum.Abstractions.Combat;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Nodes;
@@ -21,7 +22,6 @@ using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Skills;
-using Nosum.Infrastructure.Combat;
 using Nosum.Infrastructure.Concurrency;
 
 namespace Nosum.Infrastructure.Progress;
@@ -46,8 +46,8 @@ public sealed class PlayerProgressService : IPlayerProgress
     private readonly IPlayerNotifier? _notifier;
     private readonly PlayerStateCache _cache;
 
-    /// <summary>Gets or sets the optional combat service used to unify potion/elixir effects across EatFood and DrinkPotion.</summary>
-    internal CombatService? Combat { get; set; }
+    /// <inheritdoc/>
+    public ICombatService? Combat { get; set; }
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -223,15 +223,15 @@ public sealed class PlayerProgressService : IPlayerProgress
         return new EatOutcome(EatStatus.Ok);
     }
 
-    /// <summary>Checks whether the player's current energy is below <see cref="EnergyRules.MaxEnergy"/>.</summary>
-    internal async ValueTask<bool> IsEnergyBelowMaxAsync(Guid playerId, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async ValueTask<bool> IsEnergyBelowMaxAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
         PlayerProgressView view = await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
         return view.Energy < EnergyRules.MaxEnergy;
     }
 
-    /// <summary>Restores energy when a potion with <c>FoodEnergy &gt; 0</c> is consumed via <c>DrinkPotion</c>.</summary>
-    internal async ValueTask RestoreEnergyFromPotionAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async ValueTask RestoreEnergyFromPotionAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
     {
         if (foodEnergy <= 0)
         {

@@ -19,15 +19,3 @@ internal sealed class VisitGrantConfiguration : IEntityTypeConfiguration<VisitGr
         _ = builder.ToTable(t => t.HasCheckConstraint("ck_visit_grants_not_self", "owner_id <> visitor_id"));
     }
 }
-
-internal sealed class VisitSettingsConfiguration : IEntityTypeConfiguration<VisitSettings>
-{
-    public void Configure(EntityTypeBuilder<VisitSettings> builder)
-    {
-        _ = builder.ToTable("visit_settings");
-        _ = builder.HasKey(s => s.OwnerId);
-        _ = builder.Property(s => s.OwnerId).ValueGeneratedNever();
-        _ = builder.Property(s => s.FriendsMayVisit).HasDefaultValue(true).ValueGeneratedNever();
-        _ = builder.HasOne<Player>().WithMany().HasForeignKey(s => s.OwnerId).OnDelete(DeleteBehavior.Cascade);
-    }
-}

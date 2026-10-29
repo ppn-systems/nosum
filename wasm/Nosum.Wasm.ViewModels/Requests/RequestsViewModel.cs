@@ -85,7 +85,7 @@ public sealed class RequestsViewModel : PanelViewModel, IDisposable
             List<RequestDisplay> rows = [];
             foreach (RequestInfo info in _channel.Requests.Requests)
             {
-                int held = this.HeldOf(info.ItemId);
+                int held = _inventory.CountOf(info.ItemId);
                 SlotDisplay item = _describer.Describe(0, info.ItemId, info.Quantity);
                 rows.Add(new RequestDisplay(
                     info.Slot,
@@ -129,20 +129,6 @@ public sealed class RequestsViewModel : PanelViewModel, IDisposable
         _channel.Changed -= this.Raise;
         _channel.Delivered -= this.OnDelivered;
         _inventory.Changed -= this.Raise;
-    }
-
-    private int HeldOf(int itemId)
-    {
-        int count = 0;
-        foreach (SlotDisplay slot in _inventory.Slots)
-        {
-            if (slot.ItemId == itemId)
-            {
-                count += slot.Quantity;
-            }
-        }
-
-        return count;
     }
 
     private void OnDelivered(RequestStatus status, long reward)

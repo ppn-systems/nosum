@@ -11,23 +11,23 @@
             <div class="account-fields">
                 <GameField Label="@Vm.EmailLabel" Hint="@(Vm.IsRegister ? Vm.EmailHint : null)">
                     <GameInput Type="email" Value="@Vm.Email" ValueChanged="@(v => Vm.Email = v)" Label="@Vm.EmailLabel" AutoComplete="email"
-                               MaxLength="@Nosum.Contracts.Account.AccountLimits.EmailMaxLength" Disabled="@Vm.IsBusy" />
+                               MaxLength="@AccountFormViewModel.EmailMaxLength" Disabled="@Vm.IsBusy" />
                 </GameField>
 
                 <GameField Label="@Vm.PasswordLabel" Hint="@(Vm.IsRegister ? Vm.PasswordHint : null)">
                     <GameInput Type="password" Value="@Vm.Password" ValueChanged="@(v => Vm.Password = v)" Label="@Vm.PasswordLabel" AutoComplete="@(Vm.IsRegister ? "new-password" : "current-password")"
-                               MaxLength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" Disabled="@Vm.IsBusy" />
+                               MaxLength="@AccountFormViewModel.PasswordMaxLength" Disabled="@Vm.IsBusy" />
                 </GameField>
 
                 @if (Vm.IsRegister)
                 {
                     <GameField Label="@Vm.ConfirmPasswordLabel">
                         <GameInput Type="password" Value="@Vm.ConfirmPassword" ValueChanged="@(v => Vm.ConfirmPassword = v)" Label="@Vm.ConfirmPasswordLabel" AutoComplete="new-password"
-                                   MaxLength="@Nosum.Contracts.Account.AccountLimits.PasswordMaxLength" Disabled="@Vm.IsBusy" />
+                                   MaxLength="@AccountFormViewModel.PasswordMaxLength" Disabled="@Vm.IsBusy" />
                     </GameField>
 
                     <GameField Label="@Vm.NicknameLabel" Hint="@Vm.NicknameHint">
-                        <GameInput Value="@Vm.Nickname" ValueChanged="@(v => Vm.Nickname = v)" Label="@Vm.NicknameLabel" AutoComplete="nickname" MaxLength="24" Disabled="@Vm.IsBusy" />
+                        <GameInput Value="@Vm.Nickname" ValueChanged="@(v => Vm.Nickname = v)" Label="@Vm.NicknameLabel" AutoComplete="nickname" MaxLength="@AccountFormViewModel.NicknameMaxLength" Disabled="@Vm.IsBusy" />
                     </GameField>
                 }
 

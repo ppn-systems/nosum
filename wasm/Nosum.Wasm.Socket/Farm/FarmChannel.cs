@@ -12,6 +12,7 @@ using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Node.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Maps;
+using Nosum.Wasm.Socket.Chunks;
 
 namespace Nosum.Wasm.Socket.Farm;
 
@@ -37,6 +38,7 @@ public sealed class FarmChannel : IDisposable
     private readonly IGameSocket _socket;
     private readonly IDisposable[] _subscriptions;
     private readonly Lock _gate = new();
+    private readonly ChunkLoadGate _loads = new();
     private readonly List<FarmTileInfo> _tiles = [];
     private readonly Dictionary<int, int> _index = [];
     private string _mapId = string.Empty;
@@ -135,10 +137,16 @@ public sealed class FarmChannel : IDisposable
     [SuppressMessage("Design", "CA1031", Justification = "A failed load is retried when the next join completes; there is no caller to report to.")]
     private async Task LoadAsync()
     {
+        int gen = _loads.BeginLoad();
         try
         {
             using PacketScope<GetFarm> request = PacketFactory<GetFarm>.Acquire();
             FarmSnapshot snapshot = await _socket.RequestAsync<FarmSnapshot>(request.Value).ConfigureAwait(false);
+            if (!_loads.IsCurrent(gen))
+            {
+                return;
+            }
+
             lock (_gate)
             {
                 _tiles.Clear();
@@ -156,6 +164,10 @@ public sealed class FarmChannel : IDisposable
         catch (Exception)
         {
             // Connection dropped mid-load.
+        }
+        finally
+        {
+            _loads.EndLoad();
         }
     }
 
@@ -200,8 +212,11 @@ public sealed class FarmChannel : IDisposable
     {
         lock (_gate)
         {
-            // A chunk of another map (a late push after a map change, or one that beat the load of this map) is not ours; the load covers it.
-            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            if (!_loads.TryAcceptChunkMap(ref _mapId, packet.MapId, () =>
+            {
+                _tiles.Clear();
+                _index.Clear();
+            }))
             {
                 return;
             }

@@ -89,6 +89,12 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the tab that is showing.</summary>
     public BoardTab Tab { get; private set; }
 
+    /// <summary>Gets whether the community goals tab is active.</summary>
+    public bool IsGoalsTab => this.Tab == BoardTab.Goals;
+
+    /// <summary>Gets whether today's requests tab is active.</summary>
+    public bool IsRequestsTab => this.Tab == BoardTab.Requests;
+
     /// <summary>Gets the requests tab's view model.</summary>
     public RequestsViewModel Requests => _requests;
 
@@ -169,6 +175,12 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Switches to the community goals tab.</summary>
+    public void ShowGoalsTab() => this.SetTab(BoardTab.Goals);
+
+    /// <summary>Switches to today's requests tab.</summary>
+    public void ShowRequestsTab() => this.SetTab(BoardTab.Requests);
+
     /// <summary>Sets the amount typed for a goal.</summary>
     /// <param name="goalId">The goal.</param>
     /// <param name="text">The typed text.</param>
@@ -206,7 +218,7 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
     {
         long target = goal.Target;
         int percent = (int)Math.Clamp(info.Total * 100 / Math.Max(1, target), 0, 100);
-        int held = this.HeldOf(goal.ItemId);
+        int held = _inventory.CountOf(goal.ItemId);
         bool open = info.State == GoalState.Active;
         string amount = _amounts.TryGetValue(goal.Id, out string? typed) ? typed : this.DefaultAmount(goal.Id);
         return new GoalDisplay(
@@ -242,22 +254,8 @@ public sealed class GoalsViewModel : PanelViewModel, IDisposable
             }
         }
 
-        long fit = Math.Min(this.HeldOf(goal.ItemId), CommunityGoalRules.Remaining(goal, total));
+        long fit = Math.Min(_inventory.CountOf(goal.ItemId), CommunityGoalRules.Remaining(goal, total));
         return Math.Max(1, Math.Min(fit, CommunityGoalRules.MaxDeliveryPerRequest)).ToString(CultureInfo.InvariantCulture);
-    }
-
-    private int HeldOf(int itemId)
-    {
-        int count = 0;
-        foreach (SlotDisplay slot in _inventory.Slots)
-        {
-            if (slot.ItemId == itemId)
-            {
-                count += slot.Quantity;
-            }
-        }
-
-        return count;
     }
 
     private void OnDelivered(GoalStatus status, int delivered)

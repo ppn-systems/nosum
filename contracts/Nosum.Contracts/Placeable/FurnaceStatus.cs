@@ -2,19 +2,6 @@
 
 namespace Nosum.Contracts.Placeable;
 
-/// <summary>Where a furnace stands. Values are append-only.</summary>
-public enum FurnaceStateCode : byte
-{
-    /// <summary>Nothing is smelting and nothing waits to be collected.</summary>
-    Idle = 0,
-
-    /// <summary>Smelting; the bar is not ready yet.</summary>
-    Working = 1,
-
-    /// <summary>The bar is ready to be collected.</summary>
-    Ready = 2,
-}
-
 /// <summary>Outcome code of a furnace request. Clients map it to text. Values are append-only.</summary>
 public enum FurnaceStatus : byte
 {

@@ -100,7 +100,7 @@ internal sealed class WayfindingDecorator : IMapDecorator
             WayfindingMarker m = _markers[i];
             if (m.LabelId > 0)
             {
-                world.Add(
+                world.AddOverlay(
                     RenderCommandBuffer.LabelTexture,
                     m.LabelId,
                     0,
@@ -288,6 +288,17 @@ internal sealed class WayfindingDecoratorProvider : IMapDecoratorProvider
 
         return this.Localize("MapName_" + targetMap, targetMap);
     }
+
+    internal string ShopDisplayName(int shopId) => shopId switch
+    {
+        1 => this.Localize("Wayfinding_SeedShop", "Tiệm hạt giống"),
+        2 => this.Localize("Wayfinding_Blacksmith", "Lò rèn"),
+        3 => this.Localize("Wayfinding_Carpenter", "Xưởng mộc"),
+        4 => this.Localize("Wayfinding_ClothingShop", "Tiệm may"),
+        5 => this.Localize("Wayfinding_FurnitureShop", "Tiệm nội thất"),
+        6 => this.Localize("Wayfinding_CommunityBoard", "Bảng thông báo"),
+        _ => this.Localize("Wayfinding_Objective", "Mục tiêu"),
+    };
 
     private string Localize(string key, string fallback)
     {

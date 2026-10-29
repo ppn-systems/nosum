@@ -5,7 +5,7 @@ description: Use when defining or changing a packet class or opcode in contracts
 
 # Nalix packets (contracts/)
 
-**Version: Nalix 14.3.7** (`Directory.Packages.props`; all `Nalix.*` packages move together).
+**Version: Nalix 14.3.8** (`Directory.Packages.props`; all `Nalix.*` packages move together).
 Facts from the Nalix source (`src/Nalix.Codec`, generators) as used by Nalix 14.3.x clients.
 
 ## Non-negotiables
@@ -66,7 +66,31 @@ public sealed partial class PlantSeed : PacketBase<PlantSeed>, IPacketStaticOpco
 
 One static class per domain, `contracts/Nosum.Contracts/{Domain}/{Domain}OpCode.cs`, holding
 `public const ushort` values in a band reserved for that domain. Record the band in the class's
-XML doc. Never reassign or reuse a value.
+XML doc and in `contracts/README.md`. Never reassign or reuse a value.
+
+| Domain | Band |
+| :--- | :--- |
+| Account / Recovery | `0x1000-0x10FF`, `0x11E0-0x11F0` |
+| Admin | `0x1100-0x11FF` |
+| Player (presence, movement, energy/skills) | `0x2000-0x20FF` |
+| Farm | `0x3000-0x30FF` |
+| Building (buildings & animals) | `0x3100-0x31FF` |
+| Market | `0x4000-0x40FF` |
+| Goals (community goals) | `0x4100-0x41FF` |
+| Inventory | `0x5000-0x50FF` |
+| Quest | `0x6000-0x60FF` |
+| Requests (daily board) | `0x6100-0x61FF` |
+| World / Node / GroundItem / Chunks | `0x7000-0x73FF` |
+| Look (wardrobe) | `0x8000-0x80FF` |
+| Trade / Chat / Friends / Mail | `0x9000-0x93FF` |
+| Coop | `0xA000-0xA0FF` |
+| Placeable / Crafting / Chest / Furnace | `0xB000-0xB1FF` |
+| Shop / Blacksmith | `0xC000-0xC0FF` |
+| Mine | `0xC100-0xC1FF` |
+| Combat | `0xC200-0xC2FF` (`0xE100-0xE1FF` reserved) |
+| Season (calendar) | `0xD000-0xD0FF` |
+| Visit | `0xE000-0xE0FF` |
+| Dev (Development only) | `0xF000-0xF0FF` |
 
 ## Rent and return
 

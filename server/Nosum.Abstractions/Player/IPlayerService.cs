@@ -50,6 +50,12 @@ public interface IPlayerService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Whether the player arrived, and when not why.</returns>
     ValueTask<TravelStatus> TravelAsync(IConnection connection, MapInstance destination, CancellationToken cancellationToken = default);
+
+    /// <summary>Writes the current map and position of every connected player to storage.</summary>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>A task that completes when every player's position is saved.</returns>
+    ValueTask FlushPositionsAsync(CancellationToken cancellationToken = default)
+        => ValueTask.CompletedTask;
 }
 
 /// <summary>How <see cref="IPlayerService.TravelAsync"/> ended.</summary>

@@ -62,7 +62,8 @@ internal sealed class AnimalsDecorator : IMapDecorator
                 int y = (int)Math.Round(pose.Y);
                 int left = x - (animal.FrameWidth / 2);
                 int top = y - animal.FrameHeight + 3;
-                world.Add(sheet.Texture, column * animal.FrameWidth, row * animal.FrameHeight, animal.FrameWidth, animal.FrameHeight, left, top, y, x, pose.Id.GetHashCode(), pose.Facing == 3 ? RenderCommandBuffer.FlipX : 0);
+                int stableId = pose.Id.GetHashCode() & 0x1FFF;
+                world.Add(sheet.Texture, column * animal.FrameWidth, row * animal.FrameHeight, animal.FrameWidth, animal.FrameHeight, left, top, y, x, stableId, pose.Facing == 3 ? RenderCommandBuffer.FlipX : 0);
 
                 if (pose.HasProduce && ItemIcons.TryGetGroundCell(animal.Product, out int srcX, out int srcY))
                 {

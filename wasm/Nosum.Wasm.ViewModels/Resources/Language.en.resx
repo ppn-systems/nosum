@@ -874,4 +874,12 @@
   <data name="MapName_mine10" xml:space="preserve"><value>Mine Floor 10</value></data>
   <data name="MapName_coop_farm" xml:space="preserve"><value>Co-op Land</value></data>
   <data name="MapName_coopfarm" xml:space="preserve"><value>Co-op Land</value></data>
+  <data name="Wayfinding_SeedShop" xml:space="preserve"><value>Seed Shop</value></data>
+  <data name="Wayfinding_Blacksmith" xml:space="preserve"><value>Blacksmith</value></data>
+  <data name="Wayfinding_Carpenter" xml:space="preserve"><value>Carpenter</value></data>
+  <data name="Wayfinding_ClothingShop" xml:space="preserve"><value>Clothing Shop</value></data>
+  <data name="Wayfinding_FurnitureShop" xml:space="preserve"><value>Furniture Shop</value></data>
+  <data name="Wayfinding_CommunityBoard" xml:space="preserve"><value>Community Board</value></data>
+  <data name="Wayfinding_Objective" xml:space="preserve"><value>Objective</value></data>
+  <data name="Wayfinding_DistanceMeters" xml:space="preserve"><value>{0} ({1}m)</value></data>
 </root>

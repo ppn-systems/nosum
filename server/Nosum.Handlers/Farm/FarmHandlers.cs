@@ -5,13 +5,11 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Farm;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
+using Nosum.Handlers.Session;
 
 namespace Nosum.Handlers.Farm;
 
@@ -41,19 +39,11 @@ public static partial class FarmHandlers
 
         FarmUseOutcome outcome = await s_farm.UseAsync(context.Connection, slot, tileX, tileY, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<UseItemResult> lease = PacketFactory<UseItemResult>.Acquire();
-        try
+        await Replies.ReplyAsync<UseItem, UseItemResult>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = outcome.Status;
-            lease.Value.Action = outcome.Action;
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+            r.Status = outcome.Status;
+            r.Action = outcome.Action;
+        }).ConfigureAwait(false);
     }
 
     /// <summary>Uses a hoe or a watering can on a line of tiles with one swing (docs/adr/ADR-026 D1); the server checks the claim against the item in the slot.</summary>
@@ -74,19 +64,11 @@ public static partial class FarmHandlers
 
         FarmUseOutcome outcome = await s_farm.UseAreaAsync(context.Connection, slot, tileX, tileY, tiles, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<UseItemResult> lease = PacketFactory<UseItemResult>.Acquire();
-        try
+        await Replies.ReplyAsync<UseItemArea, UseItemResult>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Status = outcome.Status;
-            lease.Value.Action = outcome.Action;
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+            r.Status = outcome.Status;
+            r.Action = outcome.Action;
+        }).ConfigureAwait(false);
     }
 
     /// <summary>Replies with the worked tiles of the map the player stands on.</summary>
@@ -102,11 +84,8 @@ public static partial class FarmHandlers
         ushort sequence = context.Packet.SequenceId;
         FarmSnapshotView view = await s_farm.GetFarmAsync(context.Connection, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<FarmSnapshot> lease = PacketFactory<FarmSnapshot>.Acquire();
-        try
+        await Replies.ReplyAsync<GetFarm, FarmSnapshot>(context, sequence, snapshot =>
         {
-            FarmSnapshot snapshot = lease.Value;
-            snapshot.SequenceId = sequence;
             snapshot.MapId = view.MapId;
             snapshot.ServerNowMs = view.ServerNowMs;
             snapshot.Tiles.Clear();
@@ -121,13 +100,6 @@ public static partial class FarmHandlers
                 row.WateredDay = tile.State.WateredDay;
                 snapshot.Tiles.Add(row);
             }
-
-            await context.Sender.ReplyAsync(snapshot).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        }).ConfigureAwait(false);
     }
 }

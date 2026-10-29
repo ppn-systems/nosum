@@ -10,6 +10,7 @@ using Nosum.Contracts.Node.C2S;
 using Nosum.Contracts.Node.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Maps;
+using Nosum.Wasm.Socket.Chunks;
 
 namespace Nosum.Wasm.Socket.Node;
 
@@ -43,8 +44,7 @@ public sealed class NodeChannel : IDisposable
     private int _version;
     private int _waterLeft = 40;
     private int _waterCapacity = 40;
-    private int _loadGeneration;
-    private int _inFlightLoads;
+    private readonly ChunkLoadGate _loads = new();
 
     /// <summary>Initializes the channel and starts listening for pushes.</summary>
     /// <param name="socket">The game connection.</param>
@@ -118,13 +118,12 @@ public sealed class NodeChannel : IDisposable
     [SuppressMessage("Design", "CA1031", Justification = "A failed load is retried when the next join completes; there is no caller to report to.")]
     private async Task LoadAsync()
     {
-        int gen = Interlocked.Increment(ref _loadGeneration);
-        _ = Interlocked.Increment(ref _inFlightLoads);
+        int gen = _loads.BeginLoad();
         try
         {
             using PacketScope<GetNodes> request = PacketFactory<GetNodes>.Acquire();
             NodeSnapshot snapshot = await _socket.RequestAsync<NodeSnapshot>(request.Value).ConfigureAwait(false);
-            if (gen != Volatile.Read(ref _loadGeneration))
+            if (!_loads.IsCurrent(gen))
             {
                 return;
             }
@@ -151,7 +150,7 @@ public sealed class NodeChannel : IDisposable
         }
         finally
         {
-            _ = Interlocked.Decrement(ref _inFlightLoads);
+            _loads.EndLoad();
         }
     }
 
@@ -185,18 +184,13 @@ public sealed class NodeChannel : IDisposable
     {
         lock (_gate)
         {
-            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            if (!_loads.TryAcceptChunkMap(ref _mapId, packet.MapId, () =>
             {
-                if ((Volatile.Read(ref _inFlightLoads) > 0 || _mapId.Length == 0) && !string.IsNullOrEmpty(packet.MapId))
-                {
-                    _nodes.Clear();
-                    _index.Clear();
-                    _mapId = packet.MapId;
-                }
-                else
-                {
-                    return;
-                }
+                _nodes.Clear();
+                _index.Clear();
+            }))
+            {
+                return;
             }
 
             _ = this.RemoveChunk(new ChunkCoord(packet.ChunkX, packet.ChunkY));

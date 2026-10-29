@@ -1,0 +1,31 @@
+@using System
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels
+@using Nosum.Wasm.ViewModels.Coop
+@using Nosum.Wasm.ViewModels.Trade
+
+@* Trade and co-op invitation confirmation dialogs shown in the HUD overlay. *@
+@if (Trade.Phase == TradePhase.Invited)
+{
+    <ConfirmDialog Title="@Trade.Text("Trade_InviteTitle")" Message="@Trade.Text("Trade_InviteMessage", Trade.InviterLabel)"
+                   ConfirmText="@Trade.Text("Coop_Accept")" CancelText="@Trade.Text("Coop_Decline")"
+                   OnConfirm="@(() => Trade.Respond(true))" OnCancel="@(() => Trade.Respond(false))" />
+}
+else if (ActivePanel != PanelKind.Coop && !Coop.HasCoop && Coop.Invites.Count > 0)
+{
+    (Guid inviteId, string coopName, string inviter) = Coop.Invites[0];
+    <ConfirmDialog Title="@Coop.Text("Coop_InviteTitle")" Message="@(inviter.Length > 0 ? Coop.Text("Coop_InviteMessageFrom", coopName, inviter) : Coop.Text("Coop_InviteMessage", coopName))"
+                   ConfirmText="@Coop.Text("Coop_Accept")" CancelText="@Coop.Text("Coop_Decline")"
+                   OnConfirm="@(() => Coop.Respond(inviteId, true))" OnCancel="@(() => Coop.Respond(inviteId, false))" />
+}
+
+@code {
+    /// <summary>The trade view model.</summary>
+    [Parameter, EditorRequired] public TradeViewModel Trade { get; set; } = default!;
+
+    /// <summary>The co-op view model.</summary>
+    [Parameter, EditorRequired] public CoopViewModel Coop { get; set; } = default!;
+
+    /// <summary>The currently active panel.</summary>
+    [Parameter] public PanelKind ActivePanel { get; set; }
+}

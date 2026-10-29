@@ -11,6 +11,7 @@ using Nosum.Contracts.GroundItem.C2S;
 using Nosum.Contracts.GroundItem.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Maps;
+using Nosum.Wasm.Socket.Chunks;
 
 namespace Nosum.Wasm.Socket.GroundItem;
 
@@ -51,6 +52,7 @@ public sealed class GroundItemChannel : IDisposable
     private readonly IGameSocket _socket;
     private readonly IDisposable[] _subscriptions;
     private readonly Lock _gate = new();
+    private readonly ChunkLoadGate _loads = new();
     private readonly List<GroundItemInfo> _items = [];
     private readonly FlyingItem[] _flights = new FlyingItem[FlyCapacity];
     private string _mapId = string.Empty;
@@ -119,10 +121,16 @@ public sealed class GroundItemChannel : IDisposable
     [SuppressMessage("Design", "CA1031", Justification = "A failed load is retried when the next join completes; there is no caller to report to.")]
     private async Task LoadAsync()
     {
+        int gen = _loads.BeginLoad();
         try
         {
             using PacketScope<GetGroundItems> request = PacketFactory<GetGroundItems>.Acquire();
             GroundItemsSnapshot snapshot = await _socket.RequestAsync<GroundItemsSnapshot>(request.Value).ConfigureAwait(false);
+            if (!_loads.IsCurrent(gen))
+            {
+                return;
+            }
+
             long now = Environment.TickCount64;
             lock (_gate)
             {
@@ -144,14 +152,21 @@ public sealed class GroundItemChannel : IDisposable
         {
             // Connection dropped mid-load.
         }
+        finally
+        {
+            _loads.EndLoad();
+        }
     }
 
     private void OnChunkState(ChunkState packet)
     {
         lock (_gate)
         {
-            // A chunk of another map (a late push after a map change, or one that beat the load of this map) is not ours; the load covers it.
-            if (!string.Equals(packet.MapId, _mapId, StringComparison.Ordinal))
+            if (!_loads.TryAcceptChunkMap(ref _mapId, packet.MapId, () =>
+            {
+                _items.Clear();
+                Array.Clear(_flights);
+            }))
             {
                 return;
             }

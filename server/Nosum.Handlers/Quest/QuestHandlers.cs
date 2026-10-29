@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Injection;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Security;
-using Nalix.Codec.Extensions;
-using Nalix.Codec.Pooling;
-using Nalix.Runtime.Extensions;
 using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Quest;
 using Nosum.Contracts.Quest.C2S;
@@ -38,11 +35,9 @@ public static partial class QuestHandlers
 
         IReadOnlyList<QuestView> quests = await s_quests.GetAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
 
-        PacketScope<QuestLog> lease = PacketFactory<QuestLog>.Acquire();
-        try
+        await Replies.ReplyAsync<GetQuests, QuestLog>(context, sequence, r =>
         {
-            lease.Value.SequenceId = sequence;
-            lease.Value.Quests.Clear();
+            r.Quests.Clear();
             foreach (QuestView quest in quests)
             {
                 QuestRow row = QuestRow.Create();
@@ -53,15 +48,8 @@ public static partial class QuestHandlers
                     row.Progress.Add(count);
                 }
 
-                lease.Value.Quests.Add(row);
+                r.Quests.Add(row);
             }
-
-            await context.Sender.ReplyAsync(lease.Value).DisposeOnCompletionAsync(lease).ConfigureAwait(false);
-        }
-        catch
-        {
-            lease.Dispose();
-            throw;
-        }
+        }).ConfigureAwait(false);
     }
 }

@@ -79,8 +79,26 @@ public sealed class NpcDialogViewModel : PanelViewModel
     /// <summary>Gets where the conversation is.</summary>
     public NpcStage Stage { get; private set; }
 
+    /// <summary>Gets whether the merchant dialog box is currently speaking at the bottom of the screen.</summary>
+    public bool IsSpeaking => this.Stage == NpcStage.Speaking;
+
+    /// <summary>Gets whether a standalone trading dialog opened from the merchant is currently showing.</summary>
+    public bool IsTrading => this.Stage == NpcStage.Trading;
+
     /// <summary>Gets the page of the standalone dialog; <see cref="NpcPage.None"/> unless <see cref="Stage"/> is <see cref="NpcStage.Trading"/>.</summary>
     public NpcPage Page { get; private set; }
+
+    /// <summary>Gets whether the standalone dialog is showing a shop, carpenter, or blacksmith page.</summary>
+    public bool IsShopPage => this.Page is NpcPage.Shop or NpcPage.Build or NpcPage.Upgrade;
+
+    /// <summary>Gets whether the standalone dialog is showing the market buy page.</summary>
+    public bool IsMarketBuyPage => this.Page == NpcPage.MarketBuy;
+
+    /// <summary>Gets whether the standalone dialog is showing the market sell page.</summary>
+    public bool IsMarketSellPage => this.Page == NpcPage.MarketSell;
+
+    /// <summary>Gets whether the standalone dialog is showing the Town board goals page.</summary>
+    public bool IsGoalsPage => this.Page == NpcPage.Goals;
 
     /// <summary>Gets the merchant's name, localized.</summary>
     public string Name => this.Npc is null ? string.Empty : this.Text(this.Npc.TextKey("Name"));

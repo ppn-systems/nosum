@@ -1,4 +1,3 @@
-@using Nosum.Contracts.Goals
 @using Nosum.Wasm.ViewModels.Goals
 @inherits ObservingComponent<GoalsViewModel>
 
@@ -10,7 +9,7 @@
         <GameStack>
             <TabBar Active="(int)Vm.Tab" OnSelect="@(id => Vm.SetTab((BoardTab)id))"
                     Tabs="@(new (int, string)[] { ((int)BoardTab.Goals, Vm.Text("Board_Tab_Goals")), ((int)BoardTab.Requests, Vm.Text("Board_Tab_Requests")) })" />
-            @if (Vm.Tab == BoardTab.Requests)
+            @if (Vm.IsRequestsTab)
             {
                 <RequestsSection Vm="Vm.Requests" />
             }
@@ -33,6 +32,7 @@
             @foreach (GoalDisplay goal in Vm.Goals)
             {
                 int goalId = goal.GoalId;
+                byte stateCode = (byte)goal.State;
                 <GameSection Title="@goal.Name">
                     <GameStack>
                         <GameRow Class="center goal-head">
@@ -40,12 +40,12 @@
                             <span class="goal-reward">@goal.RewardText</span>
                         </GameRow>
                         <GameProgress Percent="goal.Percent" Text="@goal.ProgressText" Label="@(goal.Name + ": " + goal.ProgressText)"
-                                      Class="@(goal.State == GoalState.Completed ? "done" : goal.State == GoalState.Expired ? "faded" : null)" />
+                                      Class="@(stateCode == 1 ? "done" : stateCode == 2 ? "faded" : null)" />
                         <GameRow Class="spread goal-numbers">
                             <span>@goal.MineText</span>
                             <span>@goal.ContributorsText</span>
                         </GameRow>
-                        @if (goal.State == GoalState.Active)
+                        @if (stateCode == 0)
                         {
                             <GameRow Class="center">
                                 <span>@Vm.Text("Goals_Amount")</span>
@@ -56,7 +56,7 @@
                         }
                         else
                         {
-                            <p class="goal-state @(goal.State == GoalState.Completed ? "done" : null)">@goal.StateText</p>
+                            <p class="goal-state @(stateCode == 1 ? "done" : null)">@goal.StateText</p>
                         }
                     </GameStack>
                 </GameSection>
