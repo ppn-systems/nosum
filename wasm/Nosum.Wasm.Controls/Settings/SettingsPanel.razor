@@ -2,8 +2,8 @@
 @using Nosum.Wasm.ViewModels.Settings
 @implements IDisposable
 
-@* The settings page (docs/adr/ADR-033 D1, ADR-044), five focused tabs so each fits the window: General (language, hints), Display (zoom, names, motion, contrast),
-   Sound (volumes, mute), Controls (key bindings) and Credits (open-licensed art). Account management lives in the Profile panel. *@
+@* The settings page (docs/adr/ADR-033 D1, ADR-044), four focused tabs: General (language, hints), Display (zoom, names, motion, contrast),
+   Sound (volumes, mute) and Controls (key bindings). Account management lives in the Profile panel. *@
 <MenuPage Status="@Settings.Status" Good="Settings.StatusIsGood" Footer="@(_tab == TabControls ? ResetFooter : null)">
     <div class="set-page">
         <nav aria-label="@Settings.Text("Settings_TabsLabel")">
@@ -65,14 +65,6 @@
                     </div>
                 </GameSection>
                 break;
-            case TabCredits:
-                <GameSection Title="@Settings.Text("Settings_Credits")">
-                    <div class="set-body">
-                        <p class="set-note">@Settings.Text("Settings_CreditsNote")</p>
-                        <ArtCreditsList />
-                    </div>
-                </GameSection>
-                break;
             default:
                 <GameSection Title="@Settings.Text("Settings_Language")">
                     <div class="set-body">
@@ -109,7 +101,6 @@
     private const int TabDisplay = 1;
     private const int TabSound = 2;
     private const int TabControls = 3;
-    private const int TabCredits = 4;
 
     /// <summary>The account view model (the same instance the sign-in form uses).</summary>
     [Parameter, EditorRequired] public AccountFormViewModel Vm { get; set; } = default!;
@@ -162,7 +153,6 @@
         (TabDisplay, Settings.Text("Settings_TabDisplay")),
         (TabSound, Settings.Text("Settings_TabSound")),
         (TabControls, Settings.Text("Settings_TabControls")),
-        (TabCredits, Settings.Text("Settings_TabCredits")),
     ];
 
     private string Percent(int value) => Settings.Text("Settings_Percent", value);
