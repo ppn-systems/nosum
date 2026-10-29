@@ -25,7 +25,8 @@ public sealed record CoopMemberRecord(Guid Id, Guid PlayerId, CoopRole Role, Dat
 /// <param name="WarehouseLevel">Warehouse upgrade level.</param>
 /// <param name="LandLevel">Land upgrade level.</param>
 /// <param name="Members">The members, longest-standing first.</param>
-public sealed record CoopRecord(Guid Id, string Name, int WarehouseLevel, int LandLevel, IReadOnlyList<CoopMemberRecord> Members)
+/// <param name="Objectives">The shared objective ledger by objective id (docs/adr/ADR-067).</param>
+public sealed record CoopRecord(Guid Id, string Name, int WarehouseLevel, int LandLevel, IReadOnlyList<CoopMemberRecord> Members, IReadOnlyDictionary<int, CoopObjectiveProgress> Objectives)
 {
     /// <summary>Finds the membership of a player.</summary>
     /// <param name="playerId">The player.</param>
@@ -40,7 +41,7 @@ public sealed record CoopRecord(Guid Id, string Name, int WarehouseLevel, int La
 /// </summary>
 public sealed class CoopDirectory
 {
-    private static readonly CoopRecord s_none = new(Guid.Empty, string.Empty, 0, 0, []);
+    private static readonly CoopRecord s_none = new(Guid.Empty, string.Empty, 0, 0, [], new Dictionary<int, CoopObjectiveProgress>());
 
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly ReadThroughCache<Guid, CoopRecord> _byPlayer;
@@ -91,7 +92,8 @@ public sealed class CoopDirectory
         => Describe(await this.OfPlayerAsync(playerId, cancellationToken).ConfigureAwait(false));
 
     private static string Describe(CoopRecord? coop)
-        => coop is null ? "none" : $"{coop.Id}:{coop.Name}:{coop.WarehouseLevel}:{coop.LandLevel}:" + string.Join(',', coop.Members.Select(m => $"{m.Id}/{m.PlayerId}/{m.Role}").Order(StringComparer.Ordinal));
+        => coop is null ? "none" : $"{coop.Id}:{coop.Name}:{coop.WarehouseLevel}:{coop.LandLevel}:" + string.Join(',', coop.Members.Select(m => $"{m.Id}/{m.PlayerId}/{m.Role}").Order(StringComparer.Ordinal))
+            + ":" + string.Join(',', coop.Objectives.OrderBy(o => o.Key).Select(o => $"{o.Key}={o.Value.Contributed}/{o.Value.CompletedAt?.ToUnixTimeMilliseconds()}"));
 
     /// <summary>Lets go of a signed-out player's entry.</summary>
     /// <param name="playerId">The player.</param>
@@ -116,7 +118,8 @@ public sealed class CoopDirectory
                 coop?.Name ?? string.Empty,
                 coop?.WarehouseLevel ?? 0,
                 coop?.LandLevel ?? 0,
-                [.. members.OrderBy(m => m.JoinedAt).Select(m => new CoopMemberRecord(m.Id, m.PlayerId, m.Role, m.JoinedAt))]);
+                [.. members.OrderBy(m => m.JoinedAt).Select(m => new CoopMemberRecord(m.Id, m.PlayerId, m.Role, m.JoinedAt))],
+                coop?.Objectives ?? new Dictionary<int, CoopObjectiveProgress>());
         }
     }
 }

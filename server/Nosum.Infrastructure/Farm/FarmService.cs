@@ -252,6 +252,8 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         FarmTile changedTile;
         FarmAction action;
         QuestEvent? report;
+        int harvestedItem = 0;
+        int harvestedQuantity = 0;
         bool cleared;
         PendingGroundDrop? pending;
 
@@ -322,6 +324,14 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             changedTile = plan.Next;
             action = plan.Action;
             report = plan.Report;
+
+            // A harvest on co-op land names the crop and its count, so the handler can credit the co-op whose land it was (docs/adr/ADR-067 D2). The membership is
+            // already verified above, so no lookup is added to a harvest anywhere else.
+            if (action == FarmAction.Harvested && member is not null)
+            {
+                harvestedItem = plan.AuditItemId;
+                harvestedQuantity = plan.AuditDelta;
+            }
         }
 
         if (action == FarmAction.Watered)
@@ -349,7 +359,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         }
 
         await this.ReportAsync(playerId, report, cancellationToken).ConfigureAwait(false);
-        return new FarmUseOutcome(FarmStatus.Ok, action);
+        return new FarmUseOutcome(FarmStatus.Ok, action, harvestedItem, harvestedQuantity);
     }
 
     private static FarmUseOutcome Refused(FarmStatus status) => new(status, FarmAction.None);

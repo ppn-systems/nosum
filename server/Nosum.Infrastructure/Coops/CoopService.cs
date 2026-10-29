@@ -141,6 +141,9 @@ public sealed partial class CoopService : ICoopService, IDisposable
                 List<CoopStockItem> stock = await unit.Repository<CoopStockItem>().ListAsync(s => s.CoopId == coopId, cancellationToken).ConfigureAwait(false);
                 List<CoopLogEntry> recent = await unit.Repository<CoopLogEntry>().PageAsync(e => e.CoopId == coopId && (e.Reason == "coop.deposit" || e.Reason == "coop.withdraw"), e => e.OccurredAt, 0, CoopRules.RecentLogLines, cancellationToken).ConfigureAwait(false);
                 List<CoopLogView> logViews = [.. recent.Select(e => new CoopLogView(memberIds.Contains(e.MemberId) ? e.MemberId : Guid.Empty, e.ItemId, e.Delta, e.OccurredAt))];
+                List<CoopObjectiveView> objectiveViews = [.. CoopObjectiveCatalog.All.Select(o => coop.Objectives.TryGetValue(o.Id, out CoopObjectiveProgress? row)
+                    ? new CoopObjectiveView(o.Id, row.Contributed, row.CompletedAt is not null)
+                    : new CoopObjectiveView(o.Id, 0, false))];
 
                 foreach ((Guid playerId, CoopRecord mine, CoopMemberRecord me) in group)
                 {
@@ -150,7 +153,7 @@ public sealed partial class CoopService : ICoopService, IDisposable
                     List<CoopStockView> stockViews = [.. stock
                         .OrderBy(s => s.ItemId)
                         .Select(s => new CoopStockView(s.ItemId, s.Quantity, CoopRules.Withdrawable(me.Role == CoopRole.Founder, s.Quantity, contributed.GetValueOrDefault(s.ItemId))))];
-                    views[playerId] = new CoopView(true, mine.Name, me.Role, memberViews, stockViews, logViews, [], now, mine.WarehouseLevel, mine.LandLevel);
+                    views[playerId] = new CoopView(true, mine.Name, me.Role, memberViews, stockViews, logViews, [], now, mine.WarehouseLevel, mine.LandLevel, objectiveViews);
                 }
             }
         }
