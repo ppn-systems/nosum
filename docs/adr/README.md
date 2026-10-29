@@ -75,3 +75,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-063](ADR-063-dungeon-blessing-shrines-and-sanctuary-altars.md) | Dungeon blessing shrines, ancient sanctuary altars, proximity vitality/mana/XP blessings, and localized world labels | Accepted |
 | [ADR-064](ADR-064-elemental-resonance-pylons-and-overworld-wayshrines.md) | Elemental resonance pylons, overworld wilderness wayshrines, and AoE monster discharge | Accepted |
 | [ADR-065](ADR-065-ancient-relics-ranger-tunic-heart-crystal-and-arcane-grimoire.md) | Ancient relics, ranger tunic, heart crystal, arcane grimoire crafting, and armor paperdoll | Accepted |
+| [ADR-066](ADR-066-farm-guestbook.md) | Farm guestbook and watering recognition | Proposed |
