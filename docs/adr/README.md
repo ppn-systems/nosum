@@ -80,3 +80,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-068](ADR-068-monster-hunting-log-and-slayer-titles.md) | Monster hunting log and slayer titles | Accepted |
 | [ADR-069](ADR-069-google-and-microsoft-sign-in-only.md) | Google and Microsoft sign-in only (passwords removed) | Accepted |
 | [ADR-070](ADR-070-mine-biome-tiers-and-music-themes.md) | Mine biome tiers: tinted cave palettes and music themes per ten floors (uses ADR-039 track ids, amends ADR-026 for the look) | Accepted |
+| [ADR-071](ADR-071-fishing-rod-casts-and-server-rolled-catches.md) | Fishing with a rod: a timed reel-in judged on the server clock, catches rolled on the server from a seed it made, ten fish species, protocol 13 | Accepted |
