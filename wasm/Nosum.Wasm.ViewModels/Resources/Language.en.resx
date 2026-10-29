@@ -781,11 +781,16 @@
   <data name="Npc_seed_keeper_Name" xml:space="preserve"><value>Mai</value></data>
   <data name="Npc_seed_keeper_Role" xml:space="preserve"><value>Seed shopkeeper</value></data>
   <data name="Npc_seed_keeper_Greeting" xml:space="preserve"><value>Hello there! This season's seeds are fresh. Have a look.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Spring" xml:space="preserve"><value>Spring is here, and the new seeds have just come in. Sow early for a big harvest.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Rain" xml:space="preserve"><value>Rain all day, so the soil is soft and easy to work. Best day to sow, come in and look.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Snow" xml:space="preserve"><value>Snow everywhere, nothing will grow in the fields today. Come in and warm up, and have a look at next season's seeds.</value></data>
   <data name="Npc_seed_keeper_Talk1" xml:space="preserve"><value>Sow in the right season and every seed comes up strong. Out of season, the plants just wither.</value></data>
   <data name="Npc_seed_keeper_Talk2" xml:space="preserve"><value>I have sold seeds here since I was small. Damp soil is my favourite smell.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Hanh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Tailor</value></data>
   <data name="Npc_tailor_Greeting" xml:space="preserve"><value>Come in and look around! New shirts, new hats, all cut to fit.</value></data>
+  <data name="Npc_tailor_Greeting_Rain" xml:space="preserve"><value>Soaked through out there! My new raincoats just came in, come and try one on.</value></data>
+  <data name="Npc_tailor_Greeting_Snow" xml:space="preserve"><value>Bitter cold out there, put on something warmer. New wool jumpers just arrived, and they fit well.</value></data>
   <data name="Npc_tailor_Talk1" xml:space="preserve"><value>Wear a straw hat out in the fields, it keeps the sun off.</value></data>
   <data name="Npc_tailor_Talk2" xml:space="preserve"><value>I sew every stitch myself, so it lasts. You can plough in it and it will not wear through.</value></data>
   <data name="Npc_furnisher_Name" xml:space="preserve"><value>Tam</value></data>
