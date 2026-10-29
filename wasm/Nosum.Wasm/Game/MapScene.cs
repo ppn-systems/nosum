@@ -179,7 +179,7 @@ internal sealed partial class MapScene
             do
             {
                 double dt = Math.Min(remaining, StepSeconds);
-                _farmer.Step(input, dt, grid);
+                _farmer.Step(input, dt, grid, _actions?.MoveSpeedFactor ?? 1);
                 remaining -= dt;
             }
             while (remaining > 1e-9);

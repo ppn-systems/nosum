@@ -17,7 +17,8 @@ namespace Nosum.Abstractions.Combat;
 /// <param name="MaxMp">Maximum MP.</param>
 /// <param name="CombatXp">Cumulative Combat experience.</param>
 /// <param name="StatusEffect">Active status effect kind (docs/adr/ADR-051).</param>
-public readonly record struct VitalsView(int Hp, int MaxHp, int Mp, int MaxMp, int CombatXp, byte StatusEffect = 0);
+/// <param name="Buff">Active speed buff kind in its own slot (issue #146); 0 = None.</param>
+public readonly record struct VitalsView(int Hp, int MaxHp, int Mp, int MaxMp, int CombatXp, byte StatusEffect = 0, byte Buff = 0);
 
 /// <summary>Snapshot of the monsters and environmental hazards on a map or mine floor (docs/adr/ADR-061).</summary>
 /// <param name="MapId">The map id.</param>
@@ -104,6 +105,15 @@ public interface ICombatService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The potion outcome.</returns>
     Task<DrinkPotionOutcome> DrinkPotionAsync(IConnection connection, int slot, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resolves the hazards a player stands on after an accepted move (issue #168): a spike trap struck while its spikes
+    /// are extended hits the player on the move, not only on the next monster AI tick.
+    /// </summary>
+    /// <param name="connection">Player connection.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that completes when any hazard contact was applied.</returns>
+    ValueTask OnPlayerMovedAsync(IConnection connection, CancellationToken cancellationToken = default);
 
     /// <summary>Casts a special combat skill (docs/adr/ADR-056).</summary>
     /// <param name="connection">Player connection.</param>

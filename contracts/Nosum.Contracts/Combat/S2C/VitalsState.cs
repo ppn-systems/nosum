@@ -32,4 +32,7 @@ public sealed partial class VitalsState : PacketBase<VitalsState>, IPacketStatic
 
     /// <summary>Active status effect kind (0 = None, 1 = Regen, 2 = Poison, 3 = Swiftness, docs/adr/ADR-051).</summary>
     [SerializeOrder(5)] public byte StatusEffect { get; set; }
+
+    /// <summary>Active speed buff kind in its own slot (0 = None, 3 = Swiftness, 4 = Brotherhood in Arms; docs/adr/ADR-051, issue #146).</summary>
+    [SerializeOrder(6)] public byte Buff { get; set; }
 }

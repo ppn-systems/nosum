@@ -36,6 +36,9 @@ public sealed partial class CombatService
         List<PlayerPresence> players = new(16);
         List<MonsterSpawn> moved = new(8);
         List<(int X, int Y, int MonsterId, MonsterKind Kind)> slams = new(2);
+        List<PendingContact> contacts = new(4);
+        List<PendingHazard> hazardHits = new(4);
+        List<PendingShrine> shrineHits = new(2);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -71,6 +74,9 @@ public sealed partial class CombatService
                     InstanceMonsters instance = entry.Value;
                     moved.Clear();
                     slams.Clear();
+                    contacts.Clear();
+                    hazardHits.Clear();
+                    shrineHits.Clear();
                     long slamNow = Environment.TickCount64;
                     lock (instance.Gate)
                     {
@@ -123,33 +129,25 @@ public sealed partial class CombatService
 
                                 if (bestDist <= 1)
                                 {
-                                    int damage = CombatRules.MonsterDamage(m.Kind);
-                                    _ = this.ApplyMonsterContactAttackAsync(nearest, damage, m.Kind, instanceKey, instance, m.MonsterId, cancellationToken);
+                                    // Strikes are collected under the gate and awaited after it is released (issue #149).
+                                    contacts.Add(new PendingContact(nearest, CombatRules.MonsterDamage(m.Kind), m.Kind, m.MonsterId));
                                 }
-                                else
+                                else if (MonsterStepRules.TryStepToward(map.Grid, instance.Monsters, m.MonsterId, m.X, m.Y, targetTileX, targetTileY, out int stepX, out int stepY))
                                 {
-                                    int stepX = m.X + Math.Sign(targetTileX - m.X);
-                                    int stepY = m.Y + Math.Sign(targetTileY - m.Y);
-                                    if (!map.Grid.IsBlocked(stepX, stepY))
+                                    // No corner clipping and no stacking on another monster (issue #166).
+                                    MonsterSpawn updated = m with { X = stepX, Y = stepY };
+                                    if (m.Modifier == MonsterModifier.Swift || enraged)
                                     {
-                                        MonsterSpawn updated = m with { X = stepX, Y = stepY };
-                                        if (m.Modifier == MonsterModifier.Swift || enraged)
+                                        int distAfterFirstStep = Math.Max(Math.Abs(targetTileX - updated.X), Math.Abs(targetTileY - updated.Y));
+                                        if (distAfterFirstStep > 1
+                                            && MonsterStepRules.TryStepToward(map.Grid, instance.Monsters, m.MonsterId, updated.X, updated.Y, targetTileX, targetTileY, out int step2X, out int step2Y))
                                         {
-                                            int distAfterFirstStep = Math.Max(Math.Abs(targetTileX - updated.X), Math.Abs(targetTileY - updated.Y));
-                                            if (distAfterFirstStep > 1)
-                                            {
-                                                int step2X = updated.X + Math.Sign(targetTileX - updated.X);
-                                                int step2Y = updated.Y + Math.Sign(targetTileY - updated.Y);
-                                                if (!map.Grid.IsBlocked(step2X, step2Y))
-                                                {
-                                                    updated = updated with { X = step2X, Y = step2Y };
-                                                }
-                                            }
+                                            updated = updated with { X = step2X, Y = step2Y };
                                         }
-
-                                        instance.Monsters[i] = updated;
-                                        moved.Add(updated);
                                     }
+
+                                    instance.Monsters[i] = updated;
+                                    moved.Add(updated);
                                 }
                             }
                             else if (Random.Shared.Next(4) == 0)
@@ -157,7 +155,7 @@ public sealed partial class CombatService
                                 int dir = Random.Shared.Next(4);
                                 int wx = m.X + (dir == 0 ? 1 : dir == 1 ? -1 : 0);
                                 int wy = m.Y + (dir == 2 ? 1 : dir == 3 ? -1 : 0);
-                                if (!map.Grid.IsBlocked(wx, wy))
+                                if (MonsterStepRules.CanStep(map.Grid, m.X, m.Y, wx, wy) && !MonsterStepRules.IsOccupied(instance.Monsters, m.MonsterId, wx, wy))
                                 {
                                     MonsterSpawn updated = m with { X = wx, Y = wy };
                                     instance.Monsters[i] = updated;
@@ -172,11 +170,7 @@ public sealed partial class CombatService
                             for (int hIdx = 0; hIdx < instance.Hazards.Count; hIdx++)
                             {
                                 DungeonHazard h = instance.Hazards[hIdx];
-                                bool isActive = h.Kind switch
-                                {
-                                    DungeonHazardKind.SpikeTrap => ((now + (h.HazardId * 700)) % 2400) > 1560,
-                                    _ => true,
-                                };
+                                bool isActive = h.Kind != DungeonHazardKind.SpikeTrap || DungeonHazardRules.IsSpikeTrapActive(h.HazardId, now);
 
                                 if (!isActive)
                                 {
@@ -196,16 +190,18 @@ public sealed partial class CombatService
 
                                     int pTileX = (int)Math.Floor(px / tileSize);
                                     int pTileY = (int)Math.Floor(py / tileSize);
+                                    if (pTileX != h.X || pTileY != h.Y)
+                                    {
+                                        continue;
+                                    }
+
                                     if (CombatRules.IsShrine(h.Kind))
                                     {
-                                        if (pTileX == h.X && pTileY == h.Y)
-                                        {
-                                            _ = this.ApplyShrineBlessingAsync(p.AccountId, instanceKey, instance, h, now, cancellationToken);
-                                        }
+                                        shrineHits.Add(new PendingShrine(p.AccountId, h, now));
                                     }
-                                    else if (pTileX == h.X && pTileY == h.Y)
+                                    else if (this.TryClaimHazardContact(p.AccountId, instanceKey, h, now))
                                     {
-                                        _ = this.ApplyHazardContactAsync(p, h.Damage, h.Kind, cancellationToken);
+                                        hazardHits.Add(new PendingHazard(p, h.Damage, h.Kind));
                                     }
                                 }
                             }
@@ -217,11 +213,30 @@ public sealed partial class CombatService
                         await this.BroadcastMonsterChangedAsync(instanceKey, moved[mIdx], cancellationToken).ConfigureAwait(false);
                     }
 
+                    for (int cIdx = 0; cIdx < contacts.Count; cIdx++)
+                    {
+                        PendingContact c = contacts[cIdx];
+                        await this.ApplyMonsterContactAttackAsync(c.Player, c.Damage, c.Kind, instanceKey, instance, c.MonsterId, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    for (int hIdx = 0; hIdx < hazardHits.Count; hIdx++)
+                    {
+                        PendingHazard hit = hazardHits[hIdx];
+                        await this.ApplyHazardContactAsync(hit.Player, hit.Damage, hit.Kind, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    for (int shIdx = 0; shIdx < shrineHits.Count; shIdx++)
+                    {
+                        PendingShrine shrine = shrineHits[shIdx];
+                        await this.ApplyShrineBlessingAsync(shrine.PlayerId, instanceKey, instance, shrine.Shrine, shrine.Now, cancellationToken).ConfigureAwait(false);
+                    }
+
                     for (int sIdx = 0; sIdx < slams.Count; sIdx++)
                     {
                         (int slamX, int slamY, int slamMonsterId, MonsterKind slamKind) = slams[sIdx];
                         await this.BroadcastGroundTelegraphAsync(instanceKey, slamX, slamY, cancellationToken).ConfigureAwait(false);
-                        _ = this.ResolveGroundSlamAsync(instanceKey, instance, slamX, slamY, slamMonsterId, slamKind, cancellationToken);
+                        // Detached on purpose: the telegraph delay outlives the tick. Its failures are reported, never dropped (issue #149).
+                        _ = this.ResolveGroundSlamAsync(instanceKey, instance, slamX, slamY, slamMonsterId, slamKind, onError, cancellationToken);
                     }
                 }
 
@@ -230,9 +245,17 @@ public sealed partial class CombatService
                     PlayerVitalsState state = kvp.Value;
                     bool changed = false;
                     bool knockedOut = false;
+                    bool buffExpired = false;
                     VitalsView view;
                     lock (state.Gate)
                     {
+                        if (state.ActiveBuff != StatusEffectKind.None && Environment.TickCount64 >= state.BuffExpiresAt)
+                        {
+                            state.ActiveBuff = StatusEffectKind.None;
+                            buffExpired = true;
+                            changed = true;
+                        }
+
                         if (state.EffectRemainingTicks > 0)
                         {
                             state.EffectRemainingTicks--;
@@ -261,6 +284,7 @@ public sealed partial class CombatService
                                     state.ActiveEffect = StatusEffectKind.None;
                                     state.EffectRemainingTicks = 0;
                                     state.EffectMagnitude = 0;
+                                    state.ActiveBuff = StatusEffectKind.None;
                                 }
                             }
 
@@ -272,6 +296,11 @@ public sealed partial class CombatService
                         }
 
                         view = state.ToView();
+                    }
+
+                    if (buffExpired)
+                    {
+                        this.SyncMoveSpeed(kvp.Key, StatusEffectKind.None);
                     }
 
                     if (knockedOut)
@@ -291,6 +320,7 @@ public sealed partial class CombatService
                             lease.Value.MaxMp = (ushort)view.MaxMp;
                             lease.Value.CombatXp = view.CombatXp;
                             lease.Value.StatusEffect = view.StatusEffect;
+                            lease.Value.Buff = view.Buff;
                             _ = await _notifier.TrySendAsync(kvp.Key, lease.Value, cancellationToken).ConfigureAwait(false);
                         }
                     }
@@ -310,7 +340,31 @@ public sealed partial class CombatService
     /// <summary>
     /// Waits out the telegraph, then strikes every player still inside the slam radius around the telegraphed tile (docs/adr/ADR-047).
     /// </summary>
+    [SuppressMessage("Design", "CA1031", Justification = "A detached slam must report every failure to the AI error callback instead of leaking it unobserved.")]
     private async Task ResolveGroundSlamAsync(
+        string instanceKey,
+        InstanceMonsters instance,
+        int centerX,
+        int centerY,
+        int monsterId,
+        MonsterKind kind,
+        Action<Exception>? onError,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await this.ResolveGroundSlamCoreAsync(instanceKey, instance, centerX, centerY, monsterId, kind, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            onError?.Invoke(ex);
+        }
+    }
+
+    private async Task ResolveGroundSlamCoreAsync(
         string instanceKey,
         InstanceMonsters instance,
         int centerX,
@@ -319,14 +373,7 @@ public sealed partial class CombatService
         MonsterKind kind,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await Task.Delay(CombatRules.GroundSlamTelegraphMs, cancellationToken).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            return;
-        }
+        await Task.Delay(CombatRules.GroundSlamTelegraphMs, cancellationToken).ConfigureAwait(false);
 
         List<PlayerPresence> present = [];
         _presence.CopyPlayers(instanceKey, present);
@@ -408,6 +455,7 @@ public sealed partial class CombatService
     private async Task CompleteKnockoutAsync(PlayerPresence? player, Guid playerId, VitalsView revivedView, CancellationToken cancellationToken)
     {
         _ = _playerCombos.TryRemove(playerId, out _);
+        this.SyncMoveSpeed(playerId, StatusEffectKind.None);
 
         if (_notifier is not null)
         {
@@ -418,6 +466,7 @@ public sealed partial class CombatService
             zeroLease.Value.MaxMp = (ushort)revivedView.MaxMp;
             zeroLease.Value.CombatXp = revivedView.CombatXp;
             zeroLease.Value.StatusEffect = 0;
+            zeroLease.Value.Buff = 0;
             _ = await _notifier.TrySendAsync(playerId, zeroLease.Value, cancellationToken).ConfigureAwait(false);
         }
 
@@ -439,294 +488,8 @@ public sealed partial class CombatService
             lease.Value.MaxMp = (ushort)revivedView.MaxMp;
             lease.Value.CombatXp = revivedView.CombatXp;
             lease.Value.StatusEffect = revivedView.StatusEffect;
+            lease.Value.Buff = revivedView.Buff;
             _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private async Task ApplyMonsterContactAttackAsync(
-        PlayerPresence player,
-        int damage,
-        MonsterKind monsterKind,
-        string instanceKey,
-        InstanceMonsters instance,
-        int monsterId,
-        CancellationToken cancellationToken)
-    {
-        Guid playerId = player.AccountId;
-        PlayerVitalsState state = await this.GetOrCreateVitalsAsync(playerId, cancellationToken).ConfigureAwait(false);
-
-        int defense = 0;
-        if (_looks is not null)
-        {
-            PlayerLook look = await _looks.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
-            defense = CombatRules.CalculateDefense(look.HatItemId, look.ShirtItemId, look.PantsItemId);
-        }
-
-        int finalDamage = CombatRules.MitigateDamage(damage, defense);
-        (StatusEffectKind debuff, int durationSecs, int tickMag) = CombatRules.MonsterStatusOnHit(monsterKind);
-        VitalsView updated;
-        bool knockedOut = false;
-        lock (state.Gate)
-        {
-            state.Hp = Math.Max(0, state.Hp - finalDamage);
-            if (state.Hp == 0)
-            {
-                knockedOut = true;
-                state.Hp = CombatRules.ReviveHp(state.MaxHp);
-                state.ActiveEffect = StatusEffectKind.None;
-                state.EffectRemainingTicks = 0;
-                state.EffectMagnitude = 0;
-            }
-            else if (debuff != StatusEffectKind.None)
-            {
-                state.ActiveEffect = debuff;
-                state.EffectRemainingTicks = durationSecs / 2;
-                state.EffectMagnitude = tickMag;
-            }
-
-            updated = state.ToView();
-        }
-
-        if (finalDamage > 0)
-        {
-            MonsterSpawn? vampiricHealed = null;
-            lock (instance.Gate)
-            {
-                for (int i = 0; i < instance.Monsters.Count; i++)
-                {
-                    MonsterSpawn m = instance.Monsters[i];
-                    if (m.MonsterId == monsterId && m.Hp > 0 && m.Modifier == MonsterModifier.Vampiric && m.Hp < m.MaxHp)
-                    {
-                        int heal = Math.Max(1, finalDamage / 2);
-                        MonsterSpawn nextM = m with { Hp = Math.Min(m.MaxHp, m.Hp + heal) };
-                        instance.Monsters[i] = nextM;
-                        vampiricHealed = nextM;
-                        break;
-                    }
-                }
-            }
-
-            if (vampiricHealed is { } healedMonster)
-            {
-                await this.BroadcastMonsterChangedAsync(instanceKey, healedMonster, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        await this.SaveVitalsAsync(playerId, updated, cancellationToken).ConfigureAwait(false);
-
-        if (knockedOut)
-        {
-            await this.CompleteKnockoutAsync(player, playerId, updated, cancellationToken).ConfigureAwait(false);
-            return;
-        }
-
-        if (_notifier is not null)
-        {
-            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
-            lease.Value.Hp = (ushort)updated.Hp;
-            lease.Value.MaxHp = (ushort)updated.MaxHp;
-            lease.Value.Mp = (ushort)updated.Mp;
-            lease.Value.MaxMp = (ushort)updated.MaxMp;
-            lease.Value.CombatXp = updated.CombatXp;
-            lease.Value.StatusEffect = updated.StatusEffect;
-            _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private async Task ApplyHazardContactAsync(PlayerPresence player, int damage, DungeonHazardKind hazardKind, CancellationToken cancellationToken)
-    {
-        Guid playerId = player.AccountId;
-        PlayerVitalsState state = await this.GetOrCreateVitalsAsync(playerId, cancellationToken).ConfigureAwait(false);
-
-        int defense = 0;
-        if (_looks is not null)
-        {
-            PlayerLook look = await _looks.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
-            defense = CombatRules.CalculateDefense(look.HatItemId, look.ShirtItemId, look.PantsItemId);
-        }
-
-        int finalDamage = CombatRules.MitigateDamage(damage, defense);
-        VitalsView updated;
-        bool knockedOut = false;
-        lock (state.Gate)
-        {
-            state.Hp = Math.Max(0, state.Hp - finalDamage);
-            if (state.Hp == 0)
-            {
-                knockedOut = true;
-                state.Hp = CombatRules.ReviveHp(state.MaxHp);
-                state.ActiveEffect = StatusEffectKind.None;
-                state.EffectRemainingTicks = 0;
-                state.EffectMagnitude = 0;
-            }
-            else if (hazardKind == DungeonHazardKind.SporeVent)
-            {
-                state.ActiveEffect = StatusEffectKind.Poison;
-                state.EffectRemainingTicks = 4;
-                state.EffectMagnitude = 3;
-            }
-
-            updated = state.ToView();
-        }
-
-        await this.SaveVitalsAsync(playerId, updated, cancellationToken).ConfigureAwait(false);
-
-        if (knockedOut)
-        {
-            await this.CompleteKnockoutAsync(player, playerId, updated, cancellationToken).ConfigureAwait(false);
-            return;
-        }
-
-        if (_notifier is not null)
-        {
-            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
-            lease.Value.Hp = (ushort)updated.Hp;
-            lease.Value.MaxHp = (ushort)updated.MaxHp;
-            lease.Value.Mp = (ushort)updated.Mp;
-            lease.Value.MaxMp = (ushort)updated.MaxMp;
-            lease.Value.CombatXp = updated.CombatXp;
-            lease.Value.StatusEffect = updated.StatusEffect;
-            _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private async Task ApplyShrineBlessingAsync(
-        Guid playerId,
-        string instanceKey,
-        InstanceMonsters instance,
-        DungeonHazard shrine,
-        long now,
-        CancellationToken cancellationToken)
-    {
-        if (_shrineCooldowns.TryGetValue((playerId, instanceKey, shrine.HazardId), out long readyAt) && now < readyAt)
-        {
-            return;
-        }
-
-        _shrineCooldowns[(playerId, instanceKey, shrine.HazardId)] = now + CombatRules.ShrineCooldownMs;
-        PlayerVitalsState state = await this.GetOrCreateVitalsAsync(playerId, cancellationToken).ConfigureAwait(false);
-        (int healHp, int restoreMp, int bonusXp, StatusEffectKind buff) = CombatRules.ShrineBlessing(shrine.Kind);
-
-        List<MonsterSpawn>? struckMonsters = null;
-        if (CombatRules.IsResonancePylon(shrine.Kind))
-        {
-            (int monsterDamage, int radiusTiles, _) = CombatRules.PylonDischarge(shrine.Kind);
-            if (monsterDamage > 0 && radiusTiles > 0)
-            {
-                lock (instance.Gate)
-                {
-                    for (int i = 0; i < instance.Monsters.Count; i++)
-                    {
-                        MonsterSpawn m = instance.Monsters[i];
-                        if (m.Hp <= 0)
-                        {
-                            continue;
-                        }
-
-                        int dist = Math.Max(Math.Abs(m.X - shrine.X), Math.Abs(m.Y - shrine.Y));
-                        if (dist > radiusTiles)
-                        {
-                            continue;
-                        }
-
-                        int nextHp = Math.Max(0, m.Hp - monsterDamage);
-                        MonsterSpawn updatedMonster = m with { Hp = nextHp };
-                        instance.Monsters[i] = updatedMonster;
-                        struckMonsters ??= [];
-                        struckMonsters.Add(updatedMonster);
-
-                        if (nextHp == 0 && MonsterCatalog.TryGet(m.Kind, out MonsterDefinition? def))
-                        {
-                            int killXp = m.Modifier != MonsterModifier.None ? (int)(def.XpReward * 2.5) : def.XpReward;
-                            bonusXp += killXp;
-                        }
-                    }
-                }
-            }
-        }
-
-        VitalsView updated;
-        int oldLevel;
-        int newLevel;
-        lock (state.Gate)
-        {
-            oldLevel = SkillRules.LevelOf(state.CombatXp);
-            if (healHp > 0)
-            {
-                state.Hp = Math.Min(state.MaxHp, state.Hp + healHp);
-            }
-
-            if (restoreMp > 0)
-            {
-                state.Mp = Math.Min(state.MaxMp, state.Mp + restoreMp);
-            }
-
-            if (bonusXp > 0)
-            {
-                state.CombatXp = Math.Min(SkillRules.XpCap, state.CombatXp + bonusXp);
-            }
-
-            if (buff != StatusEffectKind.None)
-            {
-                state.ActiveEffect = buff;
-                state.EffectRemainingTicks = 3;
-                state.EffectMagnitude = buff == StatusEffectKind.Regeneration ? 2 : 0;
-            }
-
-            newLevel = SkillRules.LevelOf(state.CombatXp);
-            if (newLevel > oldLevel)
-            {
-                int nextMaxHp = CombatRules.MaxHpForLevel(newLevel);
-                int nextMaxMp = CombatRules.MaxMpForLevel(newLevel);
-                int hpBonus = Math.Max(0, nextMaxHp - state.MaxHp);
-                int mpBonus = Math.Max(0, nextMaxMp - state.MaxMp);
-                state.MaxHp = nextMaxHp;
-                state.MaxMp = nextMaxMp;
-                state.Hp = Math.Min(nextMaxHp, state.Hp + hpBonus);
-                state.Mp = Math.Min(nextMaxMp, state.Mp + mpBonus);
-            }
-
-            updated = state.ToView();
-        }
-
-        await this.SaveVitalsAsync(playerId, updated, cancellationToken).ConfigureAwait(false);
-
-        if (struckMonsters is not null)
-        {
-            PlayerPresence? killerPresence = this.FindPresence(playerId);
-            int tileSize = killerPresence is not null && _maps.TryGet(killerPresence.MapId, out MapDefinition? killerMap)
-                ? Math.Max(1, killerMap.Grid.TileSize)
-                : 16;
-            MapInstance mapInst = killerPresence?.Instance ?? MapInstance.Shared(instanceKey);
-            for (int i = 0; i < struckMonsters.Count; i++)
-            {
-                MonsterSpawn struck = struckMonsters[i];
-                await this.BroadcastMonsterChangedAsync(instanceKey, struck, cancellationToken).ConfigureAwait(false);
-                if (struck.Hp == 0)
-                {
-                    await this.HandleMonsterDefeatedAsync(killerPresence, playerId, instanceKey, mapInst, tileSize, struck, cancellationToken).ConfigureAwait(false);
-                }
-            }
-        }
-
-        if (_notifier is not null)
-        {
-            using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
-            lease.Value.Hp = (ushort)updated.Hp;
-            lease.Value.MaxHp = (ushort)updated.MaxHp;
-            lease.Value.Mp = (ushort)updated.Mp;
-            lease.Value.MaxMp = (ushort)updated.MaxMp;
-            lease.Value.CombatXp = updated.CombatXp;
-            lease.Value.StatusEffect = updated.StatusEffect;
-            _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
-
-            if (newLevel > oldLevel)
-            {
-                using PacketScope<LevelUp> levelLease = PacketFactory<LevelUp>.Acquire();
-                levelLease.Value.Skill = (byte)SkillKind.Combat;
-                levelLease.Value.Level = (byte)newLevel;
-                _ = await _notifier.TrySendAsync(playerId, levelLease.Value, cancellationToken).ConfigureAwait(false);
-            }
         }
     }
 }
