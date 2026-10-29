@@ -23,11 +23,20 @@ public interface IGameSocket
     /// </summary>
     event Action? Ready;
 
+    /// <summary>
+    /// Raised when the socket has scheduled its next reconnect attempt, with the wait before it. Raised before the wait starts, so a view can count it
+    /// down. May run on any thread.
+    /// </summary>
+    event Action<TimeSpan>? ReconnectScheduled;
+
     /// <summary>Gets the current state.</summary>
     GameSocketState State { get; }
 
     /// <summary>Starts connecting in the background and keeps the connection alive. Calling it again does nothing.</summary>
     void Start();
+
+    /// <summary>Ends the wait before the next reconnect attempt, so the attempt starts now. Does nothing while an attempt is running or the socket is ready.</summary>
+    void RetryNow();
 
     /// <summary>Completes when the socket is ready, immediately if it already is.</summary>
     /// <param name="cancellationToken">Cancels the wait.</param>

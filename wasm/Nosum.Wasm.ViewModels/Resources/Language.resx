@@ -24,6 +24,12 @@
   <data name="Connection_Online" xml:space="preserve"><value>Trực tuyến</value></data>
   <data name="Connection_Reconnecting" xml:space="preserve"><value>Mất kết nối, đang thử lại…</value></data>
   <data name="Connection_Offline" xml:space="preserve"><value>Ngoại tuyến</value></data>
+  <data name="Connection_LostTitle" xml:space="preserve"><value>Mất kết nối</value></data>
+  <data name="Connection_OfflineMessage" xml:space="preserve"><value>Chưa kết nối được tới máy chủ.</value></data>
+  <data name="Connection_RetryIn" xml:space="preserve"><value>Kết nối lại sau {0} giây…</value></data>
+  <data name="Connection_Retrying" xml:space="preserve"><value>Đang kết nối lại…</value></data>
+  <data name="Connection_Paused" xml:space="preserve"><value>Trò chơi tạm dừng cho đến khi kết nối lại.</value></data>
+  <data name="Connection_RetryNow" xml:space="preserve"><value>Thử lại ngay</value></data>
   <data name="Join_UnknownMap" xml:space="preserve"><value>Không tìm thấy bản đồ</value></data>
   <data name="Account_Email" xml:space="preserve"><value>Địa chỉ Gmail</value></data>
   <data name="Account_EmailHint" xml:space="preserve"><value>Chỉ chấp nhận địa chỉ @{0}.</value></data>

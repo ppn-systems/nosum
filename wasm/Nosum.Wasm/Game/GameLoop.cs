@@ -71,6 +71,7 @@ internal static partial class GameLoop
     private static bool s_acted;
     private static volatile bool s_modalOpen;
     private static volatile bool s_overlayOpen;
+    private static volatile bool s_connectionBlocked;
 
     private const InputEdges PanelKeysMask =
         InputEdges.Inventory | InputEdges.Wardrobe | InputEdges.Trade |
@@ -84,6 +85,10 @@ internal static partial class GameLoop
         s_modalOpen = modalOpen;
         s_overlayOpen = overlayOpen;
     }
+
+    /// <summary>Holds back all game input while the server connection is not ready; the reconnect overlay covers the game meanwhile.</summary>
+    /// <param name="blocked">Whether the connection is down, so no input reaches the game.</param>
+    public static void SetConnectionBlocked(bool blocked) => s_connectionBlocked = blocked;
 
     /// <summary>Connects the game to the server; call before <see cref="StartAsync"/>. Without it the farm is played offline.</summary>
     /// <param name="channel">The player channel.</param>
@@ -333,7 +338,12 @@ internal static partial class GameLoop
         double seconds = s_lastTime < 0 ? 0 : (timeMs - s_lastTime) / 1000.0;
         s_lastTime = timeMs;
         InputPacking.Unpack(keys, out InputState held, out InputEdges edges);
-        if (s_overlayOpen)
+        if (s_connectionBlocked)
+        {
+            held = InputState.None;
+            edges = InputEdges.None;
+        }
+        else if (s_overlayOpen)
         {
             held = InputState.None;
             edges &= InputEdges.Close;

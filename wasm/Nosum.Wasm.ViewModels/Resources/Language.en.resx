@@ -24,6 +24,12 @@
   <data name="Connection_Online" xml:space="preserve"><value>Online</value></data>
   <data name="Connection_Reconnecting" xml:space="preserve"><value>Connection lost, retrying…</value></data>
   <data name="Connection_Offline" xml:space="preserve"><value>Offline</value></data>
+  <data name="Connection_LostTitle" xml:space="preserve"><value>Connection lost</value></data>
+  <data name="Connection_OfflineMessage" xml:space="preserve"><value>Not connected to the server.</value></data>
+  <data name="Connection_RetryIn" xml:space="preserve"><value>Reconnecting in {0} s…</value></data>
+  <data name="Connection_Retrying" xml:space="preserve"><value>Reconnecting…</value></data>
+  <data name="Connection_Paused" xml:space="preserve"><value>The game is paused until the connection is back.</value></data>
+  <data name="Connection_RetryNow" xml:space="preserve"><value>Retry now</value></data>
   <data name="Join_UnknownMap" xml:space="preserve"><value>Map not found</value></data>
   <data name="Account_Email" xml:space="preserve"><value>Gmail address</value></data>
   <data name="Account_EmailHint" xml:space="preserve"><value>Only @{0} addresses are accepted.</value></data>
