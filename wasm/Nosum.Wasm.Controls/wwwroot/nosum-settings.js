@@ -33,3 +33,17 @@ export function applyDisplay(highContrast, reduceMotion) {
 export function applyScale(scale) {
     setUnitChoice(scale);
 }
+
+// The panel and HUD scale: nosum-theme.css reads --nosum-ui-scale on the HUD (GameHud.razor.css); the world is not affected.
+export function applyPanelScale(percent) {
+    document.documentElement.style.setProperty("--nosum-ui-scale", String(percent / 100));
+}
+
+// The system's reduced-motion request, read once at start; a blocked media query reads as "no preference".
+export function prefersReducedMotion() {
+    try {
+        return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch {
+        return false;
+    }
+}

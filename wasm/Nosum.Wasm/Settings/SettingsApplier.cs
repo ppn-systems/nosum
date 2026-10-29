@@ -13,6 +13,7 @@ namespace Nosum.Wasm.Settings;
 internal sealed class SettingsApplier
 {
     private int _scale = -1;
+    private int _panelScale = -1;
     private bool? _contrast;
     private bool? _motion;
     private string? _keys;
@@ -20,21 +21,28 @@ internal sealed class SettingsApplier
 
     /// <summary>Applies settings; only what changed since the last call reaches the browser.</summary>
     /// <param name="settings">The settings.</param>
-    public void Apply(ClientSettings settings)
+    /// <param name="reduceMotion">Whether motion is reduced now (the player's choice, or the system's preference; see <see cref="ClientSettings.ReducesMotion"/>).</param>
+    public void Apply(ClientSettings settings, bool reduceMotion)
     {
-        ViewOptions.Set(settings.UiScale, settings.ShowNames, settings.ReduceMotion);
+        ViewOptions.Set(settings.UiScale, settings.ShowNames, reduceMotion);
 
-        if (_contrast != settings.HighContrast || _motion != settings.ReduceMotion)
+        if (_contrast != settings.HighContrast || _motion != reduceMotion)
         {
             _contrast = settings.HighContrast;
-            _motion = settings.ReduceMotion;
-            BrowserSettings.ApplyDisplay(settings.HighContrast, settings.ReduceMotion);
+            _motion = reduceMotion;
+            BrowserSettings.ApplyDisplay(settings.HighContrast, reduceMotion);
         }
 
         if (_scale != settings.UiScale)
         {
             _scale = settings.UiScale;
             BrowserSettings.ApplyScale(settings.UiScale);
+        }
+
+        if (_panelScale != settings.PanelScale)
+        {
+            _panelScale = settings.PanelScale;
+            BrowserSettings.ApplyPanelScale(settings.PanelScale);
         }
 
         (int, int, bool) volumes = (settings.MusicVolume, settings.SoundVolume, settings.Muted);

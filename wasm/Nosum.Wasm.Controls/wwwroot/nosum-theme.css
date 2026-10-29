@@ -16,6 +16,9 @@
        these are the values it would pick for common sizes, used until the script ran. */
     --u: 3px;
 
+    /* The panel and HUD scale as a factor, 0.75 to 1.5 (settings page, SettingsPanel); the HUD zooms by it (GameHud.razor.css). */
+    --nosum-ui-scale: 1;
+
     /* One pixel of the UI font in CSS pixels (about 2/3 of --u, whole numbers only). A VT323 pixel is 0.08 em, so a size is 12.5 * --tp. */
     --tp: 2px;
 

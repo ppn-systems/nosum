@@ -206,13 +206,113 @@ public sealed class SettingsTests
     }
 
     [Fact]
+    public void Parse_PanelScaleOutOfRange_KeepsDefault()
+    {
+        ClientSettings.Parse("panel=60").PanelScale.Should().Be(100);
+        ClientSettings.Parse("panel=160").PanelScale.Should().Be(100);
+        ClientSettings.Parse("panel=125").PanelScale.Should().Be(125);
+    }
+
+    [Fact]
+    public void Serialize_AutoMotion_IsStoredAsAuto()
+    {
+        ClientSettings settings = new() { ReduceMotion = null };
+
+        settings.Serialize().Should().Contain("calm=auto\n");
+        ClientSettings.Parse(settings.Serialize()).ReduceMotion.Should().BeNull();
+        ClientSettings.Parse("calm=0").ReduceMotion.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ReducesMotion_NoChoice_FollowsTheSystem()
+    {
+        ClientSettings.Default.ReducesMotion(systemPrefers: true).Should().BeTrue();
+        ClientSettings.Default.ReducesMotion(systemPrefers: false).Should().BeFalse();
+    }
+
+    [Fact]
+    public void ReducesMotion_ChoiceOverridesTheSystem()
+    {
+        new ClientSettings { ReduceMotion = false }.ReducesMotion(systemPrefers: true).Should().BeFalse();
+        new ClientSettings { ReduceMotion = true }.ReducesMotion(systemPrefers: false).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetSystemReducesMotion_NoChoice_ChangesTheEffectiveValue()
+    {
+        using SettingsViewModel vm = new(Text(), new MemoryStore());
+        List<ClientSettings> seen = [];
+        vm.Applied += seen.Add;
+
+        vm.SetSystemReducesMotion(true);
+
+        vm.ReducesMotion.Should().BeTrue();
+        seen.Should().ContainSingle();
+        vm.Current.ReduceMotion.Should().BeNull("the player has not chosen yet");
+    }
+
+    [Fact]
+    public void SetSystemReducesMotion_SameValueAgain_AnnouncesNothing()
+    {
+        using SettingsViewModel vm = new(Text(), new MemoryStore());
+        vm.SetSystemReducesMotion(true);
+        List<ClientSettings> seen = [];
+        vm.Applied += seen.Add;
+
+        vm.SetSystemReducesMotion(true);
+
+        seen.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void SetReduceMotion_OverridesTheSystemAndIsStored()
+    {
+        MemoryStore store = new();
+        using SettingsViewModel vm = new(Text(), store);
+        vm.SetSystemReducesMotion(true);
+
+        vm.SetReduceMotion(false);
+
+        vm.ReducesMotion.Should().BeFalse();
+        ClientSettings.Parse(store.Text).ReduceMotion.Should().BeFalse();
+    }
+
+    [Fact]
+    public void FollowSystemMotion_ClearsTheChoice()
+    {
+        using SettingsViewModel vm = new(Text(), new MemoryStore());
+        vm.SetReduceMotion(false);
+        vm.SetSystemReducesMotion(true);
+
+        vm.FollowSystemMotion();
+
+        vm.Current.ReduceMotion.Should().BeNull();
+        vm.ReducesMotion.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetPanelScale_OutsideTheRange_ClampsToIt()
+    {
+        using SettingsViewModel vm = new(Text(), new MemoryStore());
+
+        vm.SetPanelScale(40);
+        vm.Current.PanelScale.Should().Be(ClientSettings.MinPanelScale);
+
+        vm.SetPanelScale(400);
+        vm.Current.PanelScale.Should().Be(ClientSettings.MaxPanelScale);
+
+        vm.SetPanelScale(125);
+        vm.Current.PanelScale.Should().Be(125);
+    }
+
+    [Fact]
     public void Text_EveryNewKeyExistsInBothLanguages()
     {
         string root = FindRoot();
         string[] files = [Path.Combine(root, "wasm/Nosum.Wasm.ViewModels/Resources/Language.resx"), Path.Combine(root, "wasm/Nosum.Wasm.ViewModels/Resources/Language.en.resx")];
         string[] needed = Enum.GetValues<GameAction>().Select(a => "Action_" + a)
             .Concat(Enum.GetValues<TutorialStep>().Select(s => "Hint_" + s))
-            .Concat(["Settings_TabGeneral", "Settings_TabDisplay", "Settings_TabSound", "Settings_TabControls", "Settings_TabCredits", "Settings_KeySwapped", "Settings_KeyReserved", "Touch_Use", "Touch_UseLabel", "Touch_Stick"]).ToArray();
+            .Concat(["Settings_TabGeneral", "Settings_TabDisplay", "Settings_TabSound", "Settings_TabControls", "Settings_TabCredits", "Settings_KeySwapped", "Settings_KeyReserved", "Touch_Use", "Touch_UseLabel", "Touch_Stick", "Settings_PanelScale", "Settings_PanelScaleLabel", "Settings_MotionAuto"]).ToArray();
 
         foreach (string file in files)
         {

@@ -343,8 +343,11 @@
   <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
   <data name="Settings_ScaleHint" xml:space="preserve"><value>Screen pixels per world pixel. Auto picks it from the window size.</value></data>
   <data name="Settings_ShowNames" xml:space="preserve"><value>Show names over heads</value></data>
-  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Reduce motion (no rain, snow or effects)</value></data>
-  <data name="Settings_HighContrast" xml:space="preserve"><value>High contrast</value></data>
+  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Reduce motion (no rain, snow, shakes or hit effects)</value></data>
+  <data name="Settings_MotionAuto" xml:space="preserve"><value>Follow the system setting</value></data>
+  <data name="Settings_HighContrast" xml:space="preserve"><value>High-contrast text</value></data>
+  <data name="Settings_PanelScale" xml:space="preserve"><value>Panel and HUD size</value></data>
+  <data name="Settings_PanelScaleLabel" xml:space="preserve"><value>Scale</value></data>
   <data name="Settings_Display" xml:space="preserve"><value>Display</value></data>
   <data name="Settings_Music" xml:space="preserve"><value>Music</value></data>
   <data name="Settings_SoundFx" xml:space="preserve"><value>Sound effects</value></data>

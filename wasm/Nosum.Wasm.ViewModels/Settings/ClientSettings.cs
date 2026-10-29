@@ -16,6 +16,12 @@ public sealed record ClientSettings
     /// <summary>The name of the browser storage entry the settings live in.</summary>
     public const string StorageKey = "nosum.settings.v1";
 
+    /// <summary>The smallest panel and HUD scale, in percent.</summary>
+    public const int MinPanelScale = 75;
+
+    /// <summary>The largest panel and HUD scale, in percent.</summary>
+    public const int MaxPanelScale = 150;
+
     /// <summary>Gets the default settings.</summary>
     public static ClientSettings Default { get; } = new();
 
@@ -37,8 +43,11 @@ public sealed record ClientSettings
     /// <summary>Gets whether names are drawn over the farmers' heads.</summary>
     public bool ShowNames { get; init; } = true;
 
-    /// <summary>Gets whether motion is reduced: no weather particles, no animated UI.</summary>
-    public bool ReduceMotion { get; init; }
+    /// <summary>Gets the panel and HUD scale in percent, <see cref="MinPanelScale"/> to <see cref="MaxPanelScale"/>; the theme reads it as a CSS variable.</summary>
+    public int PanelScale { get; init; } = 100;
+
+    /// <summary>Gets whether motion is reduced, or <see langword="null"/> to follow the system's reduced-motion preference until the player chooses.</summary>
+    public bool? ReduceMotion { get; init; }
 
     /// <summary>Gets whether the high contrast theme is used.</summary>
     public bool HighContrast { get; init; }
@@ -52,6 +61,11 @@ public sealed record ClientSettings
     /// <summary>Gets the hint steps that are done, one bit per <see cref="TutorialStep"/>.</summary>
     public int TutorialDone { get; init; }
 
+    /// <summary>Gets whether motion is reduced, given the system's <c>prefers-reduced-motion</c> setting; the player's own choice wins.</summary>
+    /// <param name="systemPrefers">Whether the system asks for reduced motion.</param>
+    /// <returns>True when weather, hit shakes and particle bursts are left out.</returns>
+    public bool ReducesMotion(bool systemPrefers) => this.ReduceMotion ?? systemPrefers;
+
     /// <summary>Writes the settings.</summary>
     /// <returns>The text to store.</returns>
     public string Serialize()
@@ -62,8 +76,9 @@ public sealed record ClientSettings
         Line(text, "sound", this.SoundVolume.ToString(CultureInfo.InvariantCulture));
         Line(text, "muted", Flag(this.Muted));
         Line(text, "scale", this.UiScale.ToString(CultureInfo.InvariantCulture));
+        Line(text, "panel", this.PanelScale.ToString(CultureInfo.InvariantCulture));
         Line(text, "names", Flag(this.ShowNames));
-        Line(text, "calm", Flag(this.ReduceMotion));
+        Line(text, "calm", this.ReduceMotion is { } calm ? Flag(calm) : "auto");
         Line(text, "contrast", Flag(this.HighContrast));
         Line(text, "keys", this.Bindings.Serialize());
         Line(text, "tutorial", Flag(this.TutorialEnabled));
@@ -99,8 +114,9 @@ public sealed record ClientSettings
                 "sound" when TryInt(value, out int sound) => result with { SoundVolume = Math.Clamp(sound, 0, 100) },
                 "muted" => result with { Muted = value == "1" },
                 "scale" when TryInt(value, out int scale) => result with { UiScale = scale is >= 2 and <= 6 ? scale : 0 },
+                "panel" when TryInt(value, out int panel) => result with { PanelScale = panel is >= MinPanelScale and <= MaxPanelScale ? panel : 100 },
                 "names" => result with { ShowNames = value != "0" },
-                "calm" => result with { ReduceMotion = value == "1" },
+                "calm" => result with { ReduceMotion = value switch { "1" => true, "0" => false, _ => null } },
                 "contrast" => result with { HighContrast = value == "1" },
                 "keys" => result with { Bindings = KeyBindings.Parse(value) },
                 "tutorial" => result with { TutorialEnabled = value != "0" },
