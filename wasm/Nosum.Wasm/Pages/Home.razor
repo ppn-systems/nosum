@@ -64,6 +64,7 @@
 @inject ChatViewModel Chat
 @inject MailViewModel Mail
 @inject PlacementViewModel Placement
+@inject FurnitureCatalogViewModel Furniture
 @inject ProfileViewModel Profile
 @inject ElevatorViewModel Elevator
 @inject MapLoadingViewModel MapLoading
@@ -93,6 +94,7 @@ else
             {
                 <QuestTracker Vm="Quest" />
                 <PlacementPanel Vm="Placement" />
+                <FurniturePanel Vm="Furniture" />
             }
         </TopLeft>
         <TopCenter>

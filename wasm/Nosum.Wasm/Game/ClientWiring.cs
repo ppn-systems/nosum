@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.JSInterop;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Device;
 using Nosum.Wasm.Security;
 using Nosum.Wasm.Settings;
@@ -130,6 +131,13 @@ internal static class ClientWiring
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<QuestTrackerViewModel>();
         services.AddSingleton<PlacementViewModel>();
+        services.AddSingleton(sp => new FurnitureCatalogViewModel(
+            PlaceableCatalog.All,
+            sp.GetRequiredService<InventoryChannel>(),
+            sp.GetRequiredService<PlacementViewModel>(),
+            sp.GetRequiredService<ItemDescriber>(),
+            sp.GetRequiredService<IStringLocalizer<Catalogue>>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>()));
         services.AddSingleton<GameMessagesViewModel>();
         services.AddSingleton<LevelUpBannerViewModel>();
         services.AddSingleton<ItemDescriber>();

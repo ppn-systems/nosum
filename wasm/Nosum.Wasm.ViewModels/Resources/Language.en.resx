@@ -922,4 +922,23 @@
   <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Wear title</value></data>
   <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Take off title</value></data>
   <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Unlocks at {0} slain</value></data>
+  <data name="Furniture_Title" xml:space="preserve"><value>Furniture</value></data>
+  <data name="Furniture_Category_All" xml:space="preserve"><value>All</value></data>
+  <data name="Furniture_Category_Seating" xml:space="preserve"><value>Seating</value></data>
+  <data name="Furniture_Category_Tables" xml:space="preserve"><value>Tables</value></data>
+  <data name="Furniture_Category_Beds" xml:space="preserve"><value>Beds</value></data>
+  <data name="Furniture_Category_Storage" xml:space="preserve"><value>Storage</value></data>
+  <data name="Furniture_Category_Lighting" xml:space="preserve"><value>Lighting</value></data>
+  <data name="Furniture_Category_Plants" xml:space="preserve"><value>Plants</value></data>
+  <data name="Furniture_Category_Decor" xml:space="preserve"><value>Decor</value></data>
+  <data name="Furniture_Category_Rugs" xml:space="preserve"><value>Rugs</value></data>
+  <data name="Furniture_Search" xml:space="preserve"><value>Search furniture...</value></data>
+  <data name="Furniture_Place" xml:space="preserve"><value>Place</value></data>
+  <data name="Furniture_PickUp" xml:space="preserve"><value>Pick up</value></data>
+  <data name="Furniture_Empty" xml:space="preserve"><value>You have no furniture yet. The furnisher sells it.</value></data>
+  <data name="Furniture_NoMatch" xml:space="preserve"><value>No furniture matches.</value></data>
+  <data name="Furniture_Owned" xml:space="preserve"><value>Owned: {0}</value></data>
+  <data name="Furniture_BlocksWalking" xml:space="preserve"><value>Blocks walking</value></data>
+  <data name="Furniture_WalkOver" xml:space="preserve"><value>Walk over</value></data>
+  <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
 </root>
