@@ -378,6 +378,42 @@ public static class ItemCatalog
     /// <summary>A bottle of cream milk, the gold-quality produce of a cow loved by four hearts or more (docs/adr/ADR-028 D3).</summary>
     public const int CreamMilk = 905;
 
+    /// <summary>A duck egg, a duck's produce (docs/adr/ADR-028 amendment 2).</summary>
+    public const int DuckEgg = 906;
+
+    /// <summary>A large duck egg.</summary>
+    public const int LargeDuckEgg = 907;
+
+    /// <summary>A golden duck egg, the gold-quality produce of a duck loved by four hearts or more.</summary>
+    public const int GoldenDuckEgg = 908;
+
+    /// <summary>A bottle of goat milk, a goat's produce.</summary>
+    public const int GoatMilk = 909;
+
+    /// <summary>A bottle of large goat milk.</summary>
+    public const int LargeGoatMilk = 910;
+
+    /// <summary>A bottle of cream goat milk, the gold-quality produce of a goat loved by four hearts or more.</summary>
+    public const int CreamGoatMilk = 911;
+
+    /// <summary>Wool, a sheep's fleece. Spins into the scarecrow's stuffing and sells well.</summary>
+    public const int Wool = 912;
+
+    /// <summary>Fine wool, the long soft fleece of a sheep that is well loved.</summary>
+    public const int FineWool = 913;
+
+    /// <summary>A golden fleece, the gold-quality fleece of a sheep loved by four hearts or more.</summary>
+    public const int GoldenFleece = 914;
+
+    /// <summary>A truffle a pig digs up on a sunny day.</summary>
+    public const int Truffle = 915;
+
+    /// <summary>A large truffle, dug up more often by a pig that is well loved.</summary>
+    public const int LargeTruffle = 916;
+
+    /// <summary>A golden truffle, the gold-quality truffle of a pig loved by four hearts or more.</summary>
+    public const int GoldenTruffle = 917;
+
     /// <summary>Hay, the feed the carpenter sells for the feeding bench (fiber works too).</summary>
     public const int Hay = 508;
 
@@ -558,6 +594,18 @@ public static class ItemCatalog
         new(LargeMilk, "large_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 190, ObjectIcon = 60 },
         new(GoldenEgg, "golden_egg", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 75, ObjectIcon = 58 },
         new(CreamMilk, "cream_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 187, ObjectIcon = 60 },
+        new(DuckEgg, "duck_egg", ItemKind.Produce, DefaultStack, foodEnergy: 25) { SellPrice = 70, ObjectIcon = 120 },
+        new(LargeDuckEgg, "large_duck_egg", ItemKind.Produce, DefaultStack, foodEnergy: 35) { SellPrice = 130, ObjectIcon = 121 },
+        new(GoldenDuckEgg, "golden_duck_egg", ItemKind.Produce, DefaultStack, foodEnergy: 35) { SellPrice = 105, ObjectIcon = 122 },
+        new(GoatMilk, "goat_milk", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 150, ObjectIcon = 123 },
+        new(LargeGoatMilk, "large_goat_milk", ItemKind.Produce, DefaultStack, foodEnergy: 45) { SellPrice = 230, ObjectIcon = 124 },
+        new(CreamGoatMilk, "cream_goat_milk", ItemKind.Produce, DefaultStack, foodEnergy: 45) { SellPrice = 225, ObjectIcon = 125 },
+        new(Wool, "wool", ItemKind.Produce, DefaultStack) { SellPrice = 60, ObjectIcon = 126 },
+        new(FineWool, "fine_wool", ItemKind.Produce, DefaultStack) { SellPrice = 110, ObjectIcon = 127 },
+        new(GoldenFleece, "golden_fleece", ItemKind.Produce, DefaultStack) { SellPrice = 165, ObjectIcon = 128 },
+        new(Truffle, "truffle", ItemKind.Produce, DefaultStack, foodEnergy: 20) { SellPrice = 250, ObjectIcon = 129 },
+        new(LargeTruffle, "large_truffle", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 400, ObjectIcon = 130 },
+        new(GoldenTruffle, "golden_truffle", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 375, ObjectIcon = 131 },
         new(Hay, "hay", ItemKind.Resource, DefaultStack) { ObjectIcon = 61 },
         new(SlimeGel, "slime_gel", ItemKind.Resource, DefaultStack) { ObjectIcon = 96 },
         new(BatWing, "bat_wing", ItemKind.Resource, DefaultStack) { ObjectIcon = 97 },

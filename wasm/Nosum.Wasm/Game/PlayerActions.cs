@@ -277,7 +277,7 @@ internal sealed partial class PlayerActions
             }
         }
 
-        bool cow = animal.Kind == (byte)AnimalKind.Cow;
+        bool cow = AnimalCatalog.TryGet((AnimalKind)animal.Kind, out AnimalDefinition? species) && species.NeedsPail;
         bool pail = held.ItemId == ItemCatalog.MilkPail;
         if (animal.HasProduce && (!cow || pail || animal.Petted))
         {

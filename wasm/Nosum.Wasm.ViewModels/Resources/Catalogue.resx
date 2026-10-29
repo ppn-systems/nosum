@@ -385,4 +385,29 @@
   <data name="Monster_boss_goblin_chieftain_Title" xml:space="preserve"><value>Khắc tinh thủ lĩnh goblin</value></data>
   <data name="Monster_boss_magma_colossus_Title" xml:space="preserve"><value>Khắc tinh cự nham</value></data>
   <data name="Monster_boss_golem_king_Title" xml:space="preserve"><value>Phá vương golem</value></data>
+  <data name="Item_duck_egg_Name" xml:space="preserve"><value>Trứng vịt</value></data>
+  <data name="Item_duck_egg_Description" xml:space="preserve"><value>Trứng tươi do vịt đẻ. Ăn để hồi năng lượng.</value></data>
+  <data name="Item_large_duck_egg_Name" xml:space="preserve"><value>Trứng vịt lớn</value></data>
+  <data name="Item_large_duck_egg_Description" xml:space="preserve"><value>Vịt thân thiện đẻ quả trứng to này thường xuyên hơn. Bán được giá hơn.</value></data>
+  <data name="Item_golden_duck_egg_Name" xml:space="preserve"><value>Trứng vịt vàng</value></data>
+  <data name="Item_golden_duck_egg_Description" xml:space="preserve"><value>Trứng vàng óng của vịt được quý chủ chiều đến bốn trái tim. Bán được giá cao hơn nhiều.</value></data>
+  <data name="Item_goat_milk_Name" xml:space="preserve"><value>Sữa dê</value></data>
+  <data name="Item_goat_milk_Description" xml:space="preserve"><value>Một chai sữa tươi vắt từ con dê.</value></data>
+  <data name="Item_large_goat_milk_Name" xml:space="preserve"><value>Sữa dê đặc biệt</value></data>
+  <data name="Item_large_goat_milk_Description" xml:space="preserve"><value>Dê thân thiện cho loại sữa đậm đà này thường xuyên hơn. Bán được giá hơn.</value></data>
+  <data name="Item_cream_goat_milk_Name" xml:space="preserve"><value>Sữa dê béo</value></data>
+  <data name="Item_cream_goat_milk_Description" xml:space="preserve"><value>Sữa dê đặc béo của dê được quý chủ chiều đến bốn trái tim. Bán được giá cao hơn nhiều.</value></data>
+  <data name="Item_wool_Name" xml:space="preserve"><value>Len</value></data>
+  <data name="Item_wool_Description" xml:space="preserve"><value>Lông cừu cắt được. Dùng để nhồi bù nhìn.</value></data>
+  <data name="Item_fine_wool_Name" xml:space="preserve"><value>Len mịn</value></data>
+  <data name="Item_fine_wool_Description" xml:space="preserve"><value>Bộ lông mềm dài của cừu được yêu quý. Bán được giá hơn.</value></data>
+  <data name="Item_golden_fleece_Name" xml:space="preserve"><value>Bộ lông vàng</value></data>
+  <data name="Item_golden_fleece_Description" xml:space="preserve"><value>Bộ lông vàng óng của cừu được quý chủ chiều đến bốn trái tim. Bán được giá cao hơn nhiều.</value></data>
+  <data name="Item_truffle_Name" xml:space="preserve"><value>Nấm truffle</value></data>
+  <data name="Item_truffle_Description" xml:space="preserve"><value>Nấm truffle heo đào được vào ngày nắng. Ăn để hồi năng lượng.</value></data>
+  <data name="Item_large_truffle_Name" xml:space="preserve"><value>Nấm truffle lớn</value></data>
+  <data name="Item_large_truffle_Description" xml:space="preserve"><value>Heo được yêu quý đào được nấm to hơn thường xuyên hơn. Bán được giá hơn.</value></data>
+  <data name="Item_golden_truffle_Name" xml:space="preserve"><value>Nấm truffle vàng</value></data>
+  <data name="Item_golden_truffle_Description" xml:space="preserve"><value>Nấm truffle vàng từ heo được quý chủ chiều đến bốn trái tim. Bán được giá cao hơn nhiều.</value></data>
+  <data name="Recipe_scarecrow_wool_Name" xml:space="preserve"><value>Bù nhìn nhồi len</value></data>
 </root>

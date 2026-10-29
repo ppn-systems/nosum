@@ -21,6 +21,7 @@ using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Weather;
 using Nosum.Infrastructure.Persistence;
 using Xunit;
 
@@ -669,5 +670,105 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
         await using NosumDbContext db = world.Db();
         db.VisitGrants.Add(new VisitGrant { OwnerId = owner, VisitorId = visitor, CreatedAt = PlacementHarness.Start });
         _ = await db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task BuyAnimal_ACoopTakesDucks_ABarnTakesGoatsSheepAndPigs()
+    {
+        using PlacementHarness world = new(_database);
+        Guid owner = await world.CreatePlayerAsync();
+        _ = await Place(world, owner);
+        BuildingInfo coop = await world.BuildAsync(owner, BuildingKind.Coop);
+        BuildingInfo barn = await world.BuildAsync(owner, BuildingKind.Barn, skip: 1);
+        await world.GiveCoinsAsync(owner, 10_000);
+        IConnection me = world.Presence.ConnectionOf(owner);
+
+        (await world.Buildings.BuyAnimalAsync(me, coop.Id, AnimalKind.Duck, "Quack")).Status.Should().Be(BuildingStatus.Ok);
+        (await world.Buildings.BuyAnimalAsync(me, coop.Id, AnimalKind.Goat, "Billy")).Status.Should().Be(BuildingStatus.WrongResident, "goats live in barns");
+        (await world.Buildings.BuyAnimalAsync(me, barn.Id, AnimalKind.Duck, "Quack")).Status.Should().Be(BuildingStatus.WrongResident, "ducks live in coops");
+        (await world.Buildings.BuyAnimalAsync(me, barn.Id, AnimalKind.Goat, "Billy")).Status.Should().Be(BuildingStatus.Ok);
+        (await world.Buildings.BuyAnimalAsync(me, barn.Id, AnimalKind.Pig, "Truffle")).Status.Should().Be(BuildingStatus.Ok);
+        (await world.Buildings.BuyAnimalAsync(me, barn.Id, AnimalKind.Sheep, "Dolly")).Status.Should().Be(BuildingStatus.Ok);
+    }
+
+    [Fact]
+    public async Task Collect_APig_DigsTruffles_OnlyOnSunnyDays()
+    {
+        using PlacementHarness world = new(_database);
+        Guid owner = await world.CreatePlayerAsync();
+        _ = await Place(world, owner);
+        BuildingInfo barn = await world.BuildAsync(owner, BuildingKind.Barn);
+        await world.GiveCoinsAsync(owner, 2_000);
+        IConnection me = world.Presence.ConnectionOf(owner);
+        Guid pig = (await world.Buildings.BuyAnimalAsync(me, barn.Id, AnimalKind.Pig, "Truffle")).Id;
+        BuildingDefinition definition = BuildingCatalog.All.Single(b => b.Kind == BuildingKind.Barn);
+        int hay = await world.GiveAsync(owner, ItemCatalog.Hay, 2);
+
+        // Fed the night before a sunny day: the pig digs up a truffle.
+        AdvanceToDay(world, day => WeatherRules.ForDay(world.Calendar, day + 1) == WeatherKind.Sun);
+        world.StandInside(owner, barn, definition.TroughLeft + 1, definition.TroughTop + 1);
+        _ = await world.Buildings.FeedAsync(me, hay, 1);
+        world.Clock.Advance(TimeSpan.FromMilliseconds(s_dayMs));
+        world.StandAt(owner, barn, pig);
+        AnimalOutcome dug = await world.Buildings.CollectAsync(me, pig, 0);
+        dug.Status.Should().Be(BuildingStatus.Ok);
+        dug.ItemId.Should().BeOneOf(ItemCatalog.Truffle, ItemCatalog.LargeTruffle, ItemCatalog.GoldenTruffle);
+
+        // Fed the night before a day that is not sunny: nothing to dig.
+        AdvanceToDay(world, day => WeatherRules.ForDay(world.Calendar, day + 1) != WeatherKind.Sun);
+        world.StandInside(owner, barn, definition.TroughLeft + 1, definition.TroughTop + 1);
+        _ = await world.Buildings.FeedAsync(me, hay, 1);
+        world.Clock.Advance(TimeSpan.FromMilliseconds(s_dayMs));
+        world.StandAt(owner, barn, pig);
+        (await world.Buildings.CollectAsync(me, pig, 0)).Status.Should().Be(BuildingStatus.NoProduce, "a pig digs only on sunny days");
+    }
+
+    [Fact]
+    public async Task Collect_ASheep_IsShornOnlyEveryThirdDay()
+    {
+        using PlacementHarness world = new(_database);
+        Guid owner = await world.CreatePlayerAsync();
+        _ = await Place(world, owner);
+        BuildingInfo barn = await world.BuildAsync(owner, BuildingKind.Barn);
+        await world.GiveCoinsAsync(owner, 1_600);
+        IConnection me = world.Presence.ConnectionOf(owner);
+        Guid sheep = (await world.Buildings.BuyAnimalAsync(me, barn.Id, AnimalKind.Sheep, "Dolly")).Id;
+        BuildingDefinition definition = BuildingCatalog.All.Single(b => b.Kind == BuildingKind.Barn);
+        int hay = await world.GiveAsync(owner, ItemCatalog.Hay, 2);
+
+        // Fed the night before the third day: a fleece.
+        AdvanceToDay(world, day => (day + 1) % 3 == 0);
+        world.StandInside(owner, barn, definition.TroughLeft + 1, definition.TroughTop + 1);
+        _ = await world.Buildings.FeedAsync(me, hay, 1);
+        world.Clock.Advance(TimeSpan.FromMilliseconds(s_dayMs));
+        world.StandAt(owner, barn, sheep);
+        AnimalOutcome shorn = await world.Buildings.CollectAsync(me, sheep, 0);
+        shorn.Status.Should().Be(BuildingStatus.Ok);
+        shorn.ItemId.Should().BeOneOf(ItemCatalog.Wool, ItemCatalog.FineWool, ItemCatalog.GoldenFleece);
+
+        // Fed the night before a day that is not a third day: no wool yet.
+        AdvanceToDay(world, day => (day + 1) % 3 != 0);
+        world.StandInside(owner, barn, definition.TroughLeft + 1, definition.TroughTop + 1);
+        _ = await world.Buildings.FeedAsync(me, hay, 1);
+        world.Clock.Advance(TimeSpan.FromMilliseconds(s_dayMs));
+        world.StandAt(owner, barn, sheep);
+        (await world.Buildings.CollectAsync(me, sheep, 0)).Status.Should().Be(BuildingStatus.NoProduce, "a sheep is shorn every third day");
+    }
+
+    // Moves the clock one game day at a time until the day satisfies the test, so a test can feed the animal on a chosen weather or cadence.
+    private static void AdvanceToDay(PlacementHarness world, Func<int, bool> wanted)
+    {
+        for (int i = 0; i < 400; i++)
+        {
+            int day = world.Calendar.DayNumberAt(world.Clock.GetUtcNow().ToUnixTimeMilliseconds());
+            if (wanted(day))
+            {
+                return;
+            }
+
+            world.Clock.Advance(TimeSpan.FromMilliseconds(s_dayMs));
+        }
+
+        throw new InvalidOperationException("No game day in 400 days matched the test.");
     }
 }
