@@ -72,6 +72,7 @@ public sealed partial class CombatService
         int totalDamage = 0;
         byte targetsHit = 0;
         int healAmount = 0;
+        int comboCount = 0;
         List<MonsterSpawn> broadcastChanges = new(8);
         int oldLevel;
         int newLevel;
@@ -107,7 +108,9 @@ public sealed partial class CombatService
                     for (int i = 0; i < instance.Monsters.Count; i++)
                     {
                         MonsterSpawn mCheck = instance.Monsters[i];
-                        if (mCheck.Hp > 0 && Math.Max(Math.Abs(playerTileX - mCheck.X), Math.Abs(playerTileY - mCheck.Y)) <= skill.Range)
+                        if (mCheck.Hp > 0
+                            && Math.Max(Math.Abs(playerTileX - mCheck.X), Math.Abs(playerTileY - mCheck.Y)) <= skill.Range
+                            && LineOfSight.IsClear(map.Grid, playerTileX, playerTileY, mCheck.X, mCheck.Y))
                         {
                             anyInRange = true;
                             break;
@@ -120,6 +123,9 @@ public sealed partial class CombatService
                     }
 
                     vitals.Mp -= skill.MpCost;
+                    // Skill casts scale with the combo streak just like weapon swings (issue #167).
+                    comboCount = this.RegisterHitCombo(player.AccountId);
+                    scaledPower = CombatRules.ApplyComboMultiplier(scaledPower, comboCount);
                     for (int i = 0; i < instance.Monsters.Count; i++)
                     {
                         MonsterSpawn m = instance.Monsters[i];
@@ -129,7 +135,7 @@ public sealed partial class CombatService
                         }
 
                         int dist = Math.Max(Math.Abs(playerTileX - m.X), Math.Abs(playerTileY - m.Y));
-                        if (dist <= skill.Range)
+                        if (dist <= skill.Range && LineOfSight.IsClear(map.Grid, playerTileX, playerTileY, m.X, m.Y))
                         {
                             int effectivePower = m.Modifier == MonsterModifier.Shielded
                                 ? Math.Max(1, (int)(scaledPower * 0.75f))
@@ -179,12 +185,14 @@ public sealed partial class CombatService
 
                     MonsterSpawn target = instance.Monsters[targetIdx];
                     int dist = Math.Max(Math.Abs(playerTileX - target.X), Math.Abs(playerTileY - target.Y));
-                    if (dist > skill.Range)
+                    if (dist > skill.Range || !LineOfSight.IsClear(map.Grid, playerTileX, playerTileY, target.X, target.Y))
                     {
                         return new CastSkillOutcome(CombatStatus.OutOfRange, skillId, 0, 0, 0, vitals.ToView(), 0);
                     }
 
                     vitals.Mp -= skill.MpCost;
+                    comboCount = this.RegisterHitCombo(player.AccountId);
+                    scaledPower = CombatRules.ApplyComboMultiplier(scaledPower, comboCount);
                     int effectivePower = target.Modifier == MonsterModifier.Shielded
                         ? Math.Max(1, (int)(scaledPower * 0.75f))
                         : scaledPower;
@@ -242,6 +250,12 @@ public sealed partial class CombatService
             }
         }
 
+        // Skill kills may grant the same party buff as weapon kills (docs/adr/ADR-052); the reply carries the vitals as they are now.
+        lock (vitals.Gate)
+        {
+            resultVitals = vitals.ToView();
+        }
+
         if (_notifier is not null && newLevel > oldLevel)
         {
             using PacketScope<LevelUp> levelLease = PacketFactory<LevelUp>.Acquire();
@@ -250,11 +264,7 @@ public sealed partial class CombatService
             _ = await _notifier.TrySendAsync(player.AccountId, levelLease.Value, cancellationToken).ConfigureAwait(false);
         }
 
-        byte skillCombo = 0;
-        if (targetsHit > 0)
-        {
-            skillCombo = (byte)this.RegisterHitCombo(player.AccountId);
-        }
+        byte skillCombo = (byte)comboCount;
 
         return new CastSkillOutcome(
             CombatStatus.Ok,
@@ -339,6 +349,13 @@ public sealed partial class CombatService
             return;
         }
 
+        // A milestone boss kill together brings Brotherhood in Arms to the killer and to co-op allies in reach (issue #132).
+        bool brotherhood = CombatRules.IsBoss(defeatedMonster.Kind);
+        if (brotherhood && killerPresence is not null)
+        {
+            await this.GrantBrotherhoodInArmsAsync(killerId, cancellationToken).ConfigureAwait(false);
+        }
+
         for (int pIdx = 0; pIdx < coPlayers.Count; pIdx++)
         {
             PlayerPresence ally = coPlayers[pIdx];
@@ -370,6 +387,11 @@ public sealed partial class CombatService
                 {
                     continue;
                 }
+            }
+
+            if (brotherhood)
+            {
+                await this.GrantBrotherhoodInArmsAsync(ally.AccountId, cancellationToken).ConfigureAwait(false);
             }
 
             if (sharesBossLoot)
@@ -420,6 +442,7 @@ public sealed partial class CombatService
                 lease.Value.MaxMp = (ushort)allyView.MaxMp;
                 lease.Value.CombatXp = allyView.CombatXp;
                 lease.Value.StatusEffect = allyView.StatusEffect;
+                lease.Value.Buff = allyView.Buff;
                 _ = await _notifier.TrySendAsync(ally.AccountId, lease.Value, cancellationToken).ConfigureAwait(false);
 
                 if (newAllyLevel > oldAllyLevel)

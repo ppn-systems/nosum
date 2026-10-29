@@ -158,7 +158,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                 return new MoveOutcome(MoveStatus.NotJoined, 0, 0, 0);
             }
 
-            MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, _world.GridFor(player.Instance, map));
+            MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, _world.GridFor(player.Instance, map), player.MoveSpeedFactor);
             if (verdict != MoveVerdict.Accepted)
             {
                 MoveRefusal reason = verdict switch

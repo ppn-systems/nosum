@@ -56,6 +56,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
     private readonly ConcurrentDictionary<string, InstanceMonsters> _instances = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<(Guid PlayerId, byte SkillId), long> _skillCooldowns = new();
     private readonly ConcurrentDictionary<(Guid PlayerId, string InstanceKey, byte ShrineId), long> _shrineCooldowns = new();
+    private readonly ConcurrentDictionary<(Guid PlayerId, string InstanceKey, int HazardId), long> _hazardContacts = new();
     private readonly ConcurrentDictionary<Guid, (int Count, long LastHitTick)> _playerCombos = new();
 
     private int RegisterHitCombo(Guid playerId)
@@ -237,7 +238,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
 
             MonsterSpawn target = instance.Monsters[idx];
             int dist = Math.Max(Math.Abs(playerTileX - target.X), Math.Abs(playerTileY - target.Y));
-            if (dist > range)
+            if (dist > range || !LineOfSight.IsClear(map.Grid, playerTileX, playerTileY, target.X, target.Y))
             {
                 lock (vitals.Gate)
                 {
@@ -295,7 +296,8 @@ public sealed partial class CombatService : ICombatService, IDisposable
                     vitals.Mp = Math.Min(nextMaxMp, vitals.Mp + mpBonus);
                 }
 
-                if (!defeated && def is not null && def.AttackDamage > 0)
+                // A monster strikes back only from its own contact reach: a staff bolt from range draws no counter-attack (issue #147).
+                if (!defeated && def is not null && def.AttackDamage > 0 && CombatRules.MonsterStrikesBack(dist))
                 {
                     damageTaken = CombatRules.MitigateDamage(def.AttackDamage, playerDefense);
                     vitals.Hp -= damageTaken;
@@ -315,6 +317,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
                     vitals.ActiveEffect = StatusEffectKind.None;
                     vitals.EffectRemainingTicks = 0;
                     vitals.EffectMagnitude = 0;
+                    vitals.ActiveBuff = StatusEffectKind.None;
                 }
 
                 updatedVitals = vitals.ToView();
@@ -335,6 +338,12 @@ public sealed partial class CombatService : ICombatService, IDisposable
         if (defeated)
         {
             await this.HandleMonsterDefeatedAsync(knockedOut ? null : player, player.AccountId, dropKey, dropInstance, tileSize, updatedMonster, cancellationToken).ConfigureAwait(false);
+        }
+
+        // A boss kill can grant a buff to this player (docs/adr/ADR-052), so the reply carries the vitals as they are now.
+        lock (vitals.Gate)
+        {
+            updatedVitals = vitals.ToView();
         }
 
         if (_notifier is not null && newLevel > oldLevel)
@@ -389,21 +398,13 @@ public sealed partial class CombatService : ICombatService, IDisposable
         {
             vitals.Hp = Math.Min(vitals.MaxHp, vitals.Hp + hpRestore);
             vitals.Mp = Math.Min(vitals.MaxMp, vitals.Mp + mpRestore);
-            if (effect != StatusEffectKind.None)
-            {
-                // Never cleanse active debuff (e.g. Poison) when consuming a potion buff
-                if (vitals.ActiveEffect != StatusEffectKind.Poison)
-                {
-                    vitals.ActiveEffect = effect;
-                    vitals.EffectRemainingTicks = durationSeconds / 2;
-                    vitals.EffectMagnitude = magnitude;
-                }
-            }
+            ApplyPotionEffectLocked(vitals, effect, durationSeconds, magnitude);
 
             updated = vitals.ToView();
         }
 
         await this.SaveVitalsAsync(playerId, updated, cancellationToken).ConfigureAwait(false);
+        this.SyncMoveSpeed(playerId, updated.Buff);
         if (_notifier is not null)
         {
             using PacketScope<VitalsState> lease = PacketFactory<VitalsState>.Acquire();
@@ -413,6 +414,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
             lease.Value.MaxMp = (ushort)updated.MaxMp;
             lease.Value.CombatXp = updated.CombatXp;
             lease.Value.StatusEffect = updated.StatusEffect;
+            lease.Value.Buff = updated.Buff;
             _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
     }
@@ -494,21 +496,13 @@ public sealed partial class CombatService : ICombatService, IDisposable
         {
             vitals.Hp = Math.Min(vitals.MaxHp, vitals.Hp + hpRestore);
             vitals.Mp = Math.Min(vitals.MaxMp, vitals.Mp + mpRestore);
-            if (effect != StatusEffectKind.None)
-            {
-                // Never cleanse active debuff (e.g. Poison) when consuming a potion buff
-                if (vitals.ActiveEffect != StatusEffectKind.Poison)
-                {
-                    vitals.ActiveEffect = effect;
-                    vitals.EffectRemainingTicks = durationSeconds / 2;
-                    vitals.EffectMagnitude = magnitude;
-                }
-            }
+            ApplyPotionEffectLocked(vitals, effect, durationSeconds, magnitude);
 
             updated = vitals.ToView();
         }
 
         await this.SaveVitalsAsync(player.AccountId, updated, cancellationToken).ConfigureAwait(false);
+        this.SyncMoveSpeed(player.AccountId, updated.Buff);
 
         if (foodEnergy > 0 && _progress is not null)
         {
@@ -524,6 +518,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
             lease.Value.MaxMp = (ushort)updated.MaxMp;
             lease.Value.CombatXp = updated.CombatXp;
             lease.Value.StatusEffect = updated.StatusEffect;
+            lease.Value.Buff = updated.Buff;
             _ = await _notifier.TrySendAsync(player.AccountId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
 

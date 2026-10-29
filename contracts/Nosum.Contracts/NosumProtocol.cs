@@ -19,6 +19,7 @@ public static class NosumProtocol
     /// 9: Google and Microsoft sign-in only (docs/adr/ADR-069) - new packets <c>ExternalSignIn</c> and <c>LinkExternalIdentity</c>; <c>Register</c>,
     /// <c>Login</c>, <c>UpgradeGuest</c>, <c>ChangePassword</c> and <c>PasswordResult</c> retired (no fields); <c>AccountStatus</c> codes 20-21 added.
     /// 10: farm sprinklers and tended soil - <c>TendedDay</c> appended to <c>FarmTileRow</c>, <c>PlacedAtMs</c> appended to <c>PlacedObjectRow</c>, <c>FarmAction.CutWithered</c> (docs/adr/ADR-018, ADR-021, ADR-024).
+    /// 11: buff slot - <c>Buff</c> appended to <c>VitalsState</c>; speed buffs (Swiftness, Brotherhood in Arms) live in their own slot apart from Regeneration and Poison (issues #132, #146).
     /// </summary>
-    public const ushort Version = 10;
+    public const ushort Version = 11;
 }
