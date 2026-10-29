@@ -177,7 +177,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         }
     }
 
-    /// <summary>Gets the lines under the sparkline: the latest day's lowest, median and highest price, then the range of the whole period; or a note that nothing sold.</summary>
+    /// <summary>Gets the lines under the sparkline: the latest day's lowest, median and highest price, the seven-day average when there were sales in it, then the range of the whole period; or a note that nothing sold.</summary>
     public IReadOnlyList<string> HistoryLines
     {
         get
@@ -202,11 +202,14 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
                 high = Math.Max(high, day.Max);
             }
 
-            return
-            [
-                this.Text("Market_History_Latest", Number(latest.Min), Number(latest.Median), Number(latest.Max), latest.Sales),
-                this.Text("Market_History_Range", PriceHistoryRules.HistoryDays, Number(low), Number(high)),
-            ];
+            List<string> lines = [this.Text("Market_History_Latest", Number(latest.Min), Number(latest.Median), Number(latest.Max), latest.Sales)];
+            if (history.Average != 0)
+            {
+                lines.Add(this.Text("Market_History_Average", PriceHistoryRules.AverageDays, Number(history.Average)));
+            }
+
+            lines.Add(this.Text("Market_History_Range", PriceHistoryRules.HistoryDays, Number(low), Number(high)));
+            return lines;
         }
     }
 

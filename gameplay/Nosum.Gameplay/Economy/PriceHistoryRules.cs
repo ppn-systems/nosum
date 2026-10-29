@@ -18,6 +18,9 @@ public static class PriceHistoryRules
     /// <summary>How many game days of history the market page asks for and the server returns at most.</summary>
     public const int HistoryDays = 14;
 
+    /// <summary>How many game days the rolling average unit price looks back over (the newest day included).</summary>
+    public const int AverageDays = 7;
+
     /// <summary>Prices a unit of a sold stack: the stack price divided by its quantity, rounded to the nearest coin (at least 1).</summary>
     /// <param name="stackPrice">The price of the whole stack.</param>
     /// <param name="quantity">How many items were in the stack.</param>
@@ -42,5 +45,22 @@ public static class PriceHistoryRules
         int middle = sorted.Length / 2;
         long median = sorted.Length % 2 == 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
         return new PriceSummary(sorted[0], median, sorted[^1], sorted.Length);
+    }
+
+    /// <summary>Averages the unit prices of some sales, rounded to the nearest coin (halves up).</summary>
+    /// <param name="unitPrices">The unit prices, in any order; at least one.</param>
+    /// <returns>The mean unit price.</returns>
+    public static long Average(IReadOnlyCollection<long> unitPrices)
+    {
+        ArgumentNullException.ThrowIfNull(unitPrices);
+        ArgumentOutOfRangeException.ThrowIfZero(unitPrices.Count);
+
+        long sum = 0;
+        foreach (long price in unitPrices)
+        {
+            sum += price;
+        }
+
+        return (sum + (unitPrices.Count / 2)) / unitPrices.Count;
     }
 }

@@ -47,5 +47,7 @@ Rewards that unlock content need content: the Beach map (M3) is the first unlock
 - **Market.** A listing is refused with `MarketStatus.TooManyOfItem` when the seller's active listings of that item id plus the new one exceed 500 units (checked inside the
   listing transaction, so parallel listings cannot slip past). Every purchase writes a `market_sales` row in the buy transaction (item, quantity, price, unit price, game day);
   the history groups the last 14 game days that had sales into min, median (mean of the two middle prices when even) and max of the unit price.
+- **Seven-day average (2026-10-29, issue #136).** `PriceHistory` carries `Average` (field 3, appended; protocol version 5): the mean unit price of the sales of the
+  last 7 game days, rounded to the nearest coin, zero when none. The market page shows it as a line under the sparkline; the sparkline stays the daily median.
 - **Weak spots.** `market_sales` grows by one small row per sale and is not pruned yet. Goal progress is pushed to the Town only; players elsewhere see the totals when they open the board.
 

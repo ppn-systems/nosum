@@ -115,6 +115,7 @@ public static partial class MarketHandlers
         {
             r.ItemId = view.ItemId;
             r.Today = view.Today;
+            r.Average = view.Average;
             r.Days.Clear();
             foreach (PriceDayView day in view.Days)
             {
