@@ -64,6 +64,8 @@ public enum PanelKind
 
     /// <summary>The Town board's goals page, opened from the board keeper's dialog box (docs/adr/ADR-030, ADR-043); not a menu tab.</summary>
     Goals = 17,
+    /// <summary>The pet panel: the companion's name, mood and petting, or the adoption form on the own farm (docs/adr/ADR-071 D3-D4).</summary>
+    Pet = 18,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -130,6 +132,7 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         new ToolbarItem(PanelKind.Friends, this.Text("Toolbar_Friends"), string.Empty, "tab-friends"),
         new ToolbarItem(PanelKind.Mail, this.Text("Toolbar_Mail"), string.Empty, "tab-mail"),
         new ToolbarItem(PanelKind.Skills, this.Text("Toolbar_Skills"), string.Empty, "tab-skills"),
+        new ToolbarItem(PanelKind.Pet, this.Text("Toolbar_Pet"), string.Empty, "tab-pet"),
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), Key(GameAction.Profile), "tab-profile"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), Key(GameAction.Help), "tab-settings"),
     ];

@@ -62,6 +62,7 @@ internal sealed partial class MapScene
     private readonly PlacementActions? _placement;
     private readonly CompositeWalkGrid _compositeGrid;
     private readonly CalendarChannel? _calendar;
+    private readonly FarmerFeed? _feed;
     private FixedTimestep _clock = new(StepSeconds, 0.25);
     private MapContent _content;
     private Walker _farmer;
@@ -95,10 +96,12 @@ internal sealed partial class MapScene
     /// <param name="nodes">The mirror of the resource nodes of the player's place; the ones that block walk like the server's grid does.</param>
     /// <param name="calendar">The server calendar: it gives the time of day and the weather for the sky (docs/adr/ADR-027); <see langword="null"/> keeps plain daylight.</param>
     /// <param name="audio">The audio director: sounds queued by the hooks are written into the frame, and the footsteps, music and rain loop are decided here (docs/adr/ADR-039); <see langword="null"/> plays no sound.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null)
+    /// <param name="feed">The farmers of each frame, for the decorators that follow them (pets, emote bubbles); <see langword="null"/> keeps the feed empty.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, FarmerFeed? feed = null)
     {
         _sky = new SkyLayer(calendar, placed);
         _calendar = calendar;
+        _feed = feed;
         _audio = audio;
         _actions = actions;
         _placement = placement;
@@ -281,6 +284,7 @@ internal sealed partial class MapScene
         }
 
         int walkFrame = _farmer.IsMoving ? 1 + (int)(_walkTime / WalkFrameSeconds) : 0;
+        this.CollectFarmers();
         _world.Begin();
         for (int i = 0; i < decorators.Length; i++)
         {

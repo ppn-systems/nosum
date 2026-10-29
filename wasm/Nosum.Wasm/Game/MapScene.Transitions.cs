@@ -175,6 +175,34 @@ internal sealed partial class MapScene
 
     // Adds the other farmers to the same batch as the local one, buildings and props, so one
     // depth sort orders them all (docs/adr/ADR-005 D4). Allocation-free: poses are structs.
+    // The farmers on the map this frame, before the decorators add their sprites: the local farmer, then the remote ones in sight
+    // (the same poses AddRemoteFarmers draws). A farmer who is fading out with the map is not in the feed.
+    private void CollectFarmers()
+    {
+        if (_feed is null)
+        {
+            return;
+        }
+
+        _feed.Begin();
+        _feed.Add(new FarmerEntry(_channel?.LocalPlayerId ?? 0, (float)_farmer.X, (float)_farmer.Y, (byte)_farmer.Facing, _farmer.IsMoving, true));
+        if (_remote is null || _phase == Phase.FadingOut)
+        {
+            return;
+        }
+
+        double now = RemotePlayers.LocalNow();
+        for (int i = 0; i < _remote.Count; i++)
+        {
+            uint id = _remote.IdAt(i);
+            if (_remote.TryGetPose(id, now, out EntityPose pose))
+            {
+                bool moving = (pose.State & 4) != 0 && !pose.Held;
+                _feed.Add(new FarmerEntry(id, pose.X, pose.Y, (byte)(pose.State & 3), moving, false));
+            }
+        }
+    }
+
     private void AddRemoteFarmers()
     {
         if (_remote is null)

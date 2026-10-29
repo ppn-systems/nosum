@@ -1,0 +1,49 @@
+@using Nosum.Gameplay.Pets
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Pets
+@inherits ObservingComponent<PetViewModel>
+
+@* The pet panel (docs/adr/ADR-071 D3-D4): with a pet, its name, its mood and the petting button (once a game day); with none, the adoption form on the
+   player's own farm (a cat or a dog, a name, Adopt). The status line under it shows the server's answer. *@
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
+    <GameStack>
+        @if (Vm.HasPet)
+        {
+            <GameSection Title="@Vm.Pet.Name">
+                <p>@Vm.KindName</p>
+                <GameField Label="@Vm.Text("Pet_Mood")">
+                    <GameProgress Percent="@Vm.MoodPercent" Text="@Vm.MoodPercent.ToString()" Label="@Vm.Text("Pet_Mood")" />
+                </GameField>
+                <GameRow>
+                    <GameButton Text="@Vm.Text("Pet_Pet")" Disabled="@(!Vm.CanPet)" OnClick="@(() => Vm.PetIt())" />
+                </GameRow>
+                @if (Vm.Pet.PettedToday)
+                {
+                    <GameNotice Kind="info" Text="@Vm.Text("Pet_AlreadyPetted")" />
+                }
+            </GameSection>
+        }
+        else if (Vm.CanAdopt)
+        {
+            <GameSection Title="@Vm.Text("Pet_AdoptTitle")">
+                <p>@Vm.Text("Pet_AdoptHint")</p>
+                <GameRow>
+                    <GameButton Variant="tab" Active="@(Vm.ChosenKind == (byte)PetKind.Cat)" Text="@Vm.KindNameOf(PetKind.Cat)" OnClick="@(() => Vm.ChosenKind = (byte)PetKind.Cat)" />
+                    <GameButton Variant="tab" Active="@(Vm.ChosenKind == (byte)PetKind.Dog)" Text="@Vm.KindNameOf(PetKind.Dog)" OnClick="@(() => Vm.ChosenKind = (byte)PetKind.Dog)" />
+                </GameRow>
+                <GameField Label="@Vm.Text("Pet_NameLabel")">
+                    <GameInput Value="@Vm.Name" ValueChanged="@(v => Vm.Name = v)" OnEnter="@(() => Vm.Adopt())"
+                               Placeholder="@Vm.Text("Pet_NameLabel")" Label="@Vm.Text("Pet_NameLabel")" MaxLength="@PetViewModel.MaxNameLength" />
+                </GameField>
+                <GameRow>
+                    <GameButton Text="@Vm.Text("Pet_Adopt")" OnClick="@(() => Vm.Adopt())" />
+                </GameRow>
+            </GameSection>
+        }
+        else if (Vm.IsLoaded)
+        {
+            <GameNotice Kind="info" Text="@Vm.Text("Pet_OnlyAtHome")" />
+        }
+    </GameStack>
+</MenuPage>

@@ -24,6 +24,8 @@ Players can talk to each other with chat, but they cannot show a feeling without
 
 ## Consequences
 
+- **Database budget (ADR-035).** The pet is read once per player on the first look, through the same cache path as the appearance. `GetLooks` (own and seen players) therefore measures 2 reads, 1 write, 1 SaveChanges, up from 1 read; the next look is served from the cache at 0. The new rows (`GetPet`, `AdoptPet`, `PetPet`, `SendEmote`) are measured on the branch that adds them. `GetPet` reads the pet row on every call (1 read), because the pet is not yet in the session state; moving it there is the follow-up that would bring it to 0, as ADR-035 asks for own-state reads.
+
 - Visitors see a player's pet without a new fan-out: it rides the look path that already reaches every visible player.
 - Protocol 13 is a breaking wire change for older clients in the sense of `LookRow` fields, so the server and client ship together as before.
 - The energy restore was renamed from `RestoreEnergyFromPotionAsync` to `RestoreEnergyAsync`, because the petting bonus uses the same operation.
