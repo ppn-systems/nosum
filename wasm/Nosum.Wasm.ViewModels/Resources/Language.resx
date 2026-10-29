@@ -161,6 +161,10 @@
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Áo</value></data>
   <data name="Wardrobe_Slot_Pants" xml:space="preserve"><value>Quần</value></data>
   <data name="Wardrobe_Slot_Hat" xml:space="preserve"><value>Mũ</value></data>
+  <data name="Wardrobe_Worn" xml:space="preserve"><value>Đang mặc</value></data>
+  <data name="Wardrobe_Bag" xml:space="preserve"><value>Trong túi</value></data>
+  <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>Trong túi không có đồ mặc nào.</value></data>
+  <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Cởi ra</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Màu da không hợp lệ.</value></data>
   <data name="Wardrobe_Status_InvalidHairStyle" xml:space="preserve"><value>Kiểu tóc không hợp lệ.</value></data>
