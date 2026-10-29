@@ -1,4 +1,4 @@
-// Google and Microsoft sign-in for the account form (docs/adr/ADR-071). Loaded by C# on the first click, through the JS import.
+// Google and Microsoft sign-in for the account form (docs/adr/ADR-069). Loaded by C# on the first click, through the JS import.
 //
 // signIn(provider, clientId, tenant) resolves with the provider's ID token. It rejects with an Error whose message is one of:
 //   "cancelled"       the player closed or dismissed the sign-in

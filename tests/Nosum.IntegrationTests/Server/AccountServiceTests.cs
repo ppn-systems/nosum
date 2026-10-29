@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Nosum.IntegrationTests.Server;
 
-/// <summary>Account services (docs/adr/ADR-071) against a real PostgreSQL database.</summary>
+/// <summary>Account services (docs/adr/ADR-069) against a real PostgreSQL database.</summary>
 public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
 {
     private static readonly DateTimeOffset s_start = new(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);

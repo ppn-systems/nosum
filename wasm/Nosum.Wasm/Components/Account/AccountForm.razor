@@ -33,9 +33,9 @@
                 }
             </GameStack>
 
-            @if (Vm.IsBusy)
+            @if (Vm.IsAwaitingProvider)
             {
-                <GameNotice Kind="info" Text="@Vm.BusyText"><GameSpinner /></GameNotice>
+                <GameNotice Kind="info" Text="@Vm.AwaitingProviderText"><GameSpinner /></GameNotice>
             }
 
             @if (Vm.ErrorText is not null)

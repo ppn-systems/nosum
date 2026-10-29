@@ -291,7 +291,7 @@ public sealed class MultiplayerMovementTests : IClassFixture<PostgresFixture>
 
         private async Task SignInAsync(CancellationToken ct)
         {
-            using Register request = new() { Email = "m" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com", Password = "password-1", Nickname = TestNicknames.Next() };
+            using ExternalSignIn request = new() { Provider = ExternalProvider.Google, IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, Guid.NewGuid().ToString("N")) };
             AccountResult result = await _session.RequestAsync<AccountResult>(request, ct: ct);
             result.Status.Should().Be(AccountStatus.Ok);
             this.AccountId = result.PlayerId;

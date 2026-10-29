@@ -2,7 +2,7 @@
 // standalone dialogs (not menu tabs), the close button goes back to the box, Escape ends the conversation, the menu holds 11 player tabs and the mail icon opens
 // the mail tab. Takes a screenshot at each step and logs which pieces are on screen.
 // Needs a QA account standing on the carpenter's counter (Town tile (10, 86), saved place x = 168, y = 1391 in player_states, server restarted after the edit).
-// The account signs in with Google or Microsoft (docs/adr/ADR-071), which a script cannot do: the browser opens headed and the operator signs in by hand;
+// The account signs in with Google or Microsoft (docs/adr/ADR-069), which a script cannot do: the browser opens headed and the operator signs in by hand;
 // the check starts when the game canvas appears (up to five minutes).
 // Run: NODE_PATH=$(npm root -g) node tests/browser/npc-merchants-check.js <vi|en> <screenshot prefix> [page url]
 const { chromium } = require('playwright');

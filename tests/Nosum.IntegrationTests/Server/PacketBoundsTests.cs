@@ -30,7 +30,7 @@ public sealed class PacketBoundsTests
     [Fact]
     public void IsWithinBounds_OrdinaryPackets_Pass()
     {
-        Within(() => new Login { Email = "player123@gmail.com", Password = "password-1" }).Should().BeTrue();
+        Within(() => new ExternalSignIn { Provider = ExternalProvider.Google, IdToken = "fake:Google:player123" }).Should().BeTrue();
         Within(() => new SendChat { Channel = ChatChannel.Local, Text = "hello", Target = string.Empty }).Should().BeTrue();
         Within(() => new MoveIntent { X = 120.5f, Y = -3f }).Should().BeTrue();
         Within(() => new CreateListing { Slot = 3, ItemId = 4, Quantity = 20, Price = 5_000 }).Should().BeTrue();
@@ -39,8 +39,8 @@ public sealed class PacketBoundsTests
     [Fact]
     public void IsWithinBounds_OversizedString_Fails()
     {
-        Within(() => new Login { Email = new string('a', WireLimits.ShortText + 1), Password = "x" }).Should().BeFalse();
-        Within(() => new Login { Email = "a", Password = new string('p', WireLimits.Password + 1) }).Should().BeFalse();
+        Within(() => new ExternalSignIn { Provider = ExternalProvider.Google, IdToken = new string('a', WireLimits.IdToken + 1) }).Should().BeFalse();
+        Within(() => new LinkExternalIdentity { Provider = ExternalProvider.Google, IdToken = "x", Nickname = new string('n', WireLimits.ShortText + 1) }).Should().BeFalse();
         Within(() => new SendChat { Text = new string('t', WireLimits.ChatText + 1) }).Should().BeFalse();
     }
 
@@ -109,6 +109,7 @@ public sealed class PacketBoundsTests
     private static Type[] ClientPackets()
         => typeof(AccountOpCode).Assembly.GetTypes()
             .Where(t => t.Namespace is not null && t.Namespace.EndsWith(".C2S", StringComparison.Ordinal) && t is { IsClass: true, IsAbstract: false })
+            .Where(t => !RetiredPackets.Types.Contains(t))
             .ToArray();
 
     // Values that break the declared bound of a member; empty for members that declare none.

@@ -47,6 +47,7 @@ public sealed class AccountFormViewModelTests
         signedIn.Should().Be(s_session);
         vm.ErrorText.Should().BeNull();
         vm.IsBusy.Should().BeFalse();
+        vm.IsAwaitingProvider.Should().BeFalse();
     }
 
     [Fact]

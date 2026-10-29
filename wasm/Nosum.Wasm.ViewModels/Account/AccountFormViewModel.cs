@@ -79,6 +79,9 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets the localized error to show, or null.</summary>
     public string? ErrorText { get; private set; }
 
+    /// <summary>Gets whether the Google or Microsoft sign-in window is open and the form waits for the player to finish in it.</summary>
+    public bool IsAwaitingProvider { get; private set; }
+
     /// <summary>Gets whether the guest-upgrade form is currently shown.</summary>
     public bool IsUpgradeMode => this.Mode == AccountFormMode.Upgrade;
 
@@ -133,8 +136,8 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets the text of the Microsoft button on the link form.</summary>
     public string LinkMicrosoftText => _text["Account_Link_Microsoft"];
 
-    /// <summary>Gets the text shown while a provider's sign-in or the server's reply is awaited.</summary>
-    public string BusyText => _text["Account_Busy"];
+    /// <summary>Gets the text shown while the provider's sign-in window is open.</summary>
+    public string AwaitingProviderText => _text["Account_Busy"];
 
     /// <summary>Gets the text of the "play as guest" button.</summary>
     public string PlayAsGuestText => _text["Account_PlayAsGuest"];
@@ -399,7 +402,10 @@ public sealed class AccountFormViewModel : IObservableViewModel
         AccountReply? reply = null;
         try
         {
+            this.IsAwaitingProvider = true;
+            this.Changed?.Invoke();
             string idToken = await _externalSignIn.GetIdTokenAsync(provider, cancellationToken).ConfigureAwait(false);
+            this.IsAwaitingProvider = false;
             reply = await send(idToken).ConfigureAwait(false);
         }
         catch (ExternalSignInException ex)
@@ -412,6 +418,7 @@ public sealed class AccountFormViewModel : IObservableViewModel
         }
         finally
         {
+            this.IsAwaitingProvider = false;
             this.IsBusy = false;
         }
 

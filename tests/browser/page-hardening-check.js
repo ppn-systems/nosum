@@ -1,6 +1,6 @@
 // Browser check for the device gate and the game-like page behaviour (wasm/README.md "Device gate and page behaviour").
 // Run: NODE_PATH=$(npm root -g) node tests/browser/page-hardening-check.js <page url> [screenshot dir]
-// Needs the published client served on <page url> (default http://localhost:5080/) and the host on :57300; plays one throw-away guest (no password sign-in exists, docs/adr/ADR-071).
+// Needs the published client served on <page url> (default http://localhost:5080/) and the host on :57300; plays one throw-away guest (no password sign-in exists, docs/adr/ADR-069).
 //   1. iPhone 14 profile: the block screen (vi, then en), no WebSocket opened, no canvas, no touch controls.
 //   2. 800 px wide desktop window: the "widen the window" overlay, gone again at 1280 px.
 //   3. 1280x720 desktop: the start screen (Google and Microsoft buttons, no e-mail or password field) and a WebSocket; as a guest: right-click on the canvas opens no menu, selection on the HUD is empty,
@@ -80,7 +80,7 @@ async function withContext(browser, options, language, fn) {
     check('desktop 1280x720: sees the sign-in screen, not the block screen', await page.locator('.device-block').count() === 0);
     check('desktop: the WebSocket opens', seen.sockets.length >= 1, seen.sockets);
 
-    // The start screen signs in only with Google or Microsoft (docs/adr/ADR-071): no e-mail or password field, one button per provider.
+    // The start screen signs in only with Google or Microsoft (docs/adr/ADR-069): no e-mail or password field, one button per provider.
     check('sign-in: no e-mail or password field on the start screen', await page.locator('input[type=email], input[type=password]').count() === 0);
     const providers = await page.getByRole('button', { name: /Google|Microsoft/ }).count();
     check('sign-in: one Google and one Microsoft button', providers === 2, providers);

@@ -181,13 +181,13 @@ public sealed class AdminWireTests : IClassFixture<PostgresFixture>
             using WebSocketSession fresh = host.NewSession();
             await fresh.ConnectAsync();
             await fresh.HandshakeAsync();
-            using Login login = new() { Email = target.Email, Password = "password-1" };
+            using ExternalSignIn login = new() { Provider = ExternalProvider.Google, IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, target.Subject) };
             _ = await fresh.RequestAsync<AccountResult>(login, ct: host.Timeout);
 
             string output = logs.ToString();
             output.Should().Contain("\"event\":\"admin.mute\"").And.Contain("\"event\":\"admin.ban\"");
             output.Should().Contain(admin.Id.ToString()).And.Contain(target.Id.ToString());
-            foreach (string secret in new[] { admin.Email, target.Email, admin.Token, target.Token, "password-1", secretChat, "gmail.com" })
+            foreach (string secret in new[] { admin.Subject, target.Subject, admin.Token, target.Token, FakeExternalTokenVerifier.Token(ExternalProvider.Google, target.Subject), secretChat, "gmail.com" })
             {
                 output.Should().NotContain(secret);
             }
@@ -252,10 +252,10 @@ public sealed class AdminWireTests : IClassFixture<PostgresFixture>
     private static async Task<Account> RegisterAsync()
     {
         IAccountService accounts = InstanceManager.Instance.GetExistingInstance<IAccountService>()!;
-        string email = "ad" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
-        AccountOutcome outcome = await accounts.RegisterAsync(email, "password-1", TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
+        string subject = Guid.NewGuid().ToString("N");
+        AccountOutcome outcome = await TestAccounts.RegisterAsync(accounts, subject, TestNicknames.Next(), GameLanguage.English, CancellationToken.None);
         outcome.Status.Should().Be(AccountStatus.Ok);
-        return new Account(outcome.PlayerId, email, outcome.SessionToken, outcome.Nickname);
+        return new Account(outcome.PlayerId, subject, outcome.SessionToken, outcome.Nickname);
     }
 
     private static async Task PutOnAsync(Account account, string mapId)
@@ -271,7 +271,7 @@ public sealed class AdminWireTests : IClassFixture<PostgresFixture>
         return (ushort)((IPEndPoint)probe.LocalEndpoint).Port;
     }
 
-    private sealed record Account(Guid Id, string Email, string Token, string Nickname);
+    private sealed record Account(Guid Id, string Subject, string Token, string Nickname);
 
     private sealed class TestHost : IAsyncDisposable
     {
