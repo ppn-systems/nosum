@@ -18,6 +18,7 @@ using Nosum.Infrastructure.Accounts;
 using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Caching;
 using Nosum.Infrastructure.Combat;
+using Nosum.Infrastructure.Community;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Mail;
 using Nosum.Infrastructure.Market;
