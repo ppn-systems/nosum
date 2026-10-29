@@ -22,6 +22,7 @@ using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Crafting;
 using Nosum.Wasm.Socket.Dev;
 using Nosum.Wasm.Socket.Farm;
+using Nosum.Wasm.Socket.Fishing;
 using Nosum.Wasm.Socket.Friends;
 using Nosum.Wasm.Socket.Furnace;
 using Nosum.Wasm.Socket.Goals;
@@ -50,6 +51,7 @@ using Nosum.Wasm.ViewModels.Coop;
 using Nosum.Wasm.ViewModels.Crafting;
 using Nosum.Wasm.ViewModels.Device;
 using Nosum.Wasm.ViewModels.Feedback;
+using Nosum.Wasm.ViewModels.Fishing;
 using Nosum.Wasm.ViewModels.Friends;
 using Nosum.Wasm.ViewModels.Furnace;
 using Nosum.Wasm.ViewModels.Goals;
@@ -115,6 +117,7 @@ internal static class ClientWiring
         services.AddSingleton<FriendsChannel>();
         services.AddSingleton<MailChannel>();
         services.AddSingleton<ShopChannel>();
+        services.AddSingleton<FishingChannel>();
         services.AddSingleton<BlacksmithChannel>();
         services.AddSingleton<MineChannel>();
         services.AddSingleton<GoalChannel>();
@@ -140,6 +143,10 @@ internal static class ClientWiring
         services.AddSingleton<NpcDialogViewModel>();
         services.AddSingleton<BlacksmithViewModel>();
         services.AddSingleton<ElevatorViewModel>();
+        services.AddSingleton(sp => new FishingViewModel(
+            sp.GetRequiredService<FishingChannel>(),
+            sp.GetRequiredService<ItemDescriber>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>()));
         services.AddSingleton<MapLoadingViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<GoalsViewModel>();
@@ -211,6 +218,7 @@ internal static class ClientWiring
         GameLoop.UseCombat(combat, services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(services.GetRequiredService<CalendarChannel>());
         GameLoop.UseMapLoading(services.GetRequiredService<MapLoadingViewModel>());
+        GameLoop.UseFishing(services.GetRequiredService<FishingViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
         DevTools.Use(services.GetRequiredService<DevChannel>());

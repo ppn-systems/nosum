@@ -28,6 +28,7 @@ using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
+using Nosum.Wasm.ViewModels.Fishing;
 using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
@@ -68,6 +69,7 @@ internal static partial class GameLoop
     private static NicknameFormatter? s_names;
     private static GameAudio? s_audio;
     private static MapLoadingViewModel? s_loading;
+    private static FishingViewModel? s_fishing;
     private static string? s_waitingMapId;
     private static double s_lastTime = -1;
     private static bool s_moved;
@@ -176,10 +178,24 @@ internal static partial class GameLoop
     /// <param name="loading">The loading overlay's view model.</param>
     public static void UseMapLoading(MapLoadingViewModel loading) => s_loading = loading;
 
-    /// <summary>Tells the scene the player clicked or tapped the canvas; the next frame checks whether a merchant was hit (docs/adr/ADR-043 D3). Called from the page, not from the frame.</summary>
+    /// <summary>Connects fishing to the game: a click on water with a rod casts, and a press reels the line in (docs/adr/ADR-071). Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="fishing">The fishing banner's view model.</param>
+    public static void UseFishing(FishingViewModel fishing) => s_fishing = fishing;
+
+    /// <summary>Tells the scene the player clicked or tapped the canvas; the next frame checks whether a merchant was hit (docs/adr/ADR-043 D3). Called from the page, not from the frame.
+    /// While a line is out a click is the press that reels it in, and the scene does not see it (docs/adr/ADR-071 D9).</summary>
     /// <param name="x">Click x, canvas CSS pixels.</param>
     /// <param name="y">Click y, canvas CSS pixels.</param>
-    public static void PointerClicked(int x, int y) => s_scene?.Pointer(x, y);
+    public static void PointerClicked(int x, int y)
+    {
+        if (s_fishing is { LineOut: true })
+        {
+            s_fishing.Press();
+            return;
+        }
+
+        s_scene?.Pointer(x, y);
+    }
 
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
@@ -223,6 +239,7 @@ internal static partial class GameLoop
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
         actions?.FurnaceRequested += objectId => FurnaceRequested?.Invoke(objectId);
+        actions?.CastRequested += (tileX, tileY) => s_fishing?.Cast(tileX, tileY);
         actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider(), new NpcDecoratorProvider()];
         if (actions is not null && s_farm is not null)
@@ -398,6 +415,12 @@ internal static partial class GameLoop
         {
             s_acted = true;
             FirstActed?.Invoke();
+        }
+
+        // The action key reels in a line that is out, as a click does; the scene still gets the key, which a rod never uses on a tile.
+        if ((edges & InputEdges.Action) != 0 && s_fishing is { LineOut: true })
+        {
+            s_fishing.Press();
         }
 
         // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.
