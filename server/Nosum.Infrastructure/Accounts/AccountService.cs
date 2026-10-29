@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
-using Nosum.Abstractions.Email;
 using Nosum.Abstractions.Security;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
@@ -29,15 +28,6 @@ public sealed partial class AccountService : IAccountService
     /// <summary>How long a token that was just replaced by a resume still works, so a lost reply can be retried.</summary>
     public static readonly TimeSpan RotationGrace = TimeSpan.FromMinutes(2);
 
-    /// <summary>How long a recovery code is accepted.</summary>
-    public static readonly TimeSpan ResetCodeLifetime = TimeSpan.FromMinutes(15);
-
-    /// <summary>Wrong tries a recovery code survives.</summary>
-    public const int ResetMaxAttempts = 5;
-
-    /// <summary>Recovery codes one account may be sent per hour; more requests are ignored without telling the caller.</summary>
-    public const int ResetRequestsPerHour = 3;
-
     private const int MaxTokenLength = 128;
     private const int MaxGuestNameAttempts = 12;
 
@@ -50,7 +40,6 @@ public sealed partial class AccountService : IAccountService
     private readonly INicknameDirectory? _nicknames;
     private readonly StripedAsyncLock _renameLocks = new(64);
     private readonly StripedAsyncLock _credentialLocks = new(64);
-    private readonly IEmailSender? _email;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -59,15 +48,13 @@ public sealed partial class AccountService : IAccountService
     /// <param name="time">The clock; tests pass a fake one.</param>
     /// <param name="sessionLifetime">Session token lifetime; defaults to <see cref="DefaultSessionLifetime"/>.</param>
     /// <param name="nicknames">The nickname cache to keep current, or null when nothing caches nicknames.</param>
-    /// <param name="email">Sends recovery codes; with null a recovery request is accepted but nothing is sent.</param>
     public AccountService(
         IUnitOfWorkFactory unitOfWork,
         IPasswordHasher hasher,
         ISessionTokenService tokens,
         TimeProvider time,
         TimeSpan? sessionLifetime = null,
-        INicknameDirectory? nicknames = null,
-        IEmailSender? email = null)
+        INicknameDirectory? nicknames = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(hasher);
@@ -79,7 +66,6 @@ public sealed partial class AccountService : IAccountService
         _time = time;
         _sessionLifetime = sessionLifetime ?? DefaultSessionLifetime;
         _nicknames = nicknames;
-        _email = email;
         _decoyHash = new Lazy<string>(() => hasher.Hash(Guid.NewGuid().ToString("N")));
     }
 

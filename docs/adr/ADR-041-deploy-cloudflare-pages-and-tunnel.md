@@ -41,7 +41,7 @@ Cloudflare Tunnel, deployed by SSH from a manual workflow. Nosum adopts the same
   by milestone M6 (ADR-040), not by this decision.
 - **D9 — Retired.** `NOSUM_ALLOW_IPS`, `deploy/access.d/`, the Caddy configuration and `deploy/web.Dockerfile` are removed.
 - **D10 — Secrets.** Secrets are GitHub environment secrets (`production`): `PROD_HOST`, `PROD_SSH_USER`, `PROD_SSH_KEY`,
-  `CLOUDFLARE_TUNNEL_TOKEN`, `POSTGRES_PASSWORD`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and, optionally, the `NOSUM_SMTP_*` values.
+  `CLOUDFLARE_TUNNEL_TOKEN`, `POSTGRES_PASSWORD`, `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
   The server public key is a repository variable (`NOSUM_SERVER_PUBLIC_KEY`): a public key is not a secret. No secret enters the repository.
   Names and where each comes from: `docs/ops/README.md`.
 - **D11 — Server identity.** The Nalix server key stays on the `nalix_data` volume. Pinned clients keep trusting it across deploys.

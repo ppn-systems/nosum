@@ -13,7 +13,7 @@ Do these once, in this order. The runbook has the details of each step.
    Public hostname `nosum.ppnsys.com` → service HTTP → `host:57300`.
 2. **Cloudflare Pages** project `nosum` (Direct Upload, production branch `main`). Note its `https://nosum.pages.dev` address.
 3. **GitHub secrets** (environment `production`): `PROD_HOST`, `PROD_SSH_USER`, `PROD_SSH_KEY`, `CLOUDFLARE_TUNNEL_TOKEN`,
-   `POSTGRES_PASSWORD`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. Optional: `NOSUM_SMTP_*`.
+   `POSTGRES_PASSWORD`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 4. **GitHub variables**: `NOSUM_ORIGIN` (the Pages origin), `NOSUM_SERVER_PUBLIC_KEY` (read it from the host after the first start, see the runbook).
 5. **One-time server bootstrap** (as the deploy user):
 

@@ -6,7 +6,7 @@ using Nalix.Codec.DataFrames;
 
 namespace Nosum.Contracts.Account.S2C;
 
-/// <summary>The server's reply to <see cref="C2S.RequestPasswordReset"/>, <see cref="C2S.ConfirmPasswordReset"/> and <see cref="C2S.ChangePassword"/>.</summary>
+/// <summary>The server's reply to <see cref="C2S.ChangePassword"/>. The replies to the retired recovery packets are gone with them.</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]
@@ -15,6 +15,6 @@ public sealed partial class PasswordResult : PacketBase<PasswordResult>, IPacket
     /// <inheritdoc/>
     public static ushort StaticOpCode => AccountOpCode.PasswordResult;
 
-    /// <summary>Outcome. A recovery request answers Ok whether or not the address has an account.</summary>
+    /// <summary>Outcome of the password change.</summary>
     [SerializeOrder(0)] public AccountStatus Status { get; set; }
 }

@@ -172,8 +172,6 @@ internal static class ClientWiring
         services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         services.AddSingleton<AccountSessionKeeper>();
         services.AddTransient<AccountFormViewModel>();
-        services.AddSingleton<IRecoveryClient, GameSocketRecoveryClient>();
-        services.AddSingleton<PasswordRecoveryViewModel>();
         services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());

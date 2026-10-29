@@ -19,10 +19,8 @@ written by many agents in parallel. Before strangers connect, the trust model mu
   no state change and no reply beyond the documented status.
 - **D3 — Input bounds.** Every C2S packet with strings or collections declares maximum lengths, enforced before the
   handler (a shared validator); tests fuzz each packet with oversized and malformed values.
-- **D4 — Account recovery.** Registered (Gmail) accounts can reset their password with a one-time code sent by email
-  through an `IEmailSender` seam (an SMTP implementation configured by environment; a logging fake in development).
-  Codes are 8 digits, hashed at rest, valid 15 minutes, 5 attempts, rate-limited per account and per IP; a reset
-  ends every session of the account.
+- **D4 — Account recovery (removed).** Originally: a one-time e-mailed reset code for Gmail accounts. Removed on
+  2026-10-29 by the owner's decision; see the amendment at the end of this record.
 - **D5 — Session hardening.** Session tokens rotate on resume; idle sessions expire after 30 days (as guests); a
   password change revokes every other token.
 - **D6 — Abuse.** Per-IP connection caps and handshake rate limits (Nalix `ConnectionGuard` tiers) configured for
@@ -32,8 +30,8 @@ written by many agents in parallel. Before strangers connect, the trust model mu
 
 ## Consequences
 
-One new opcode slice for recovery (Account band append-only). The email provider is the only new external dependency
-and stays behind the seam.
+Account recovery added one opcode slice and an e-mail provider dependency. Both were removed again on 2026-10-29 (D4); the
+opcodes stay reserved.
 
 ## Implementation notes
 
@@ -60,21 +58,13 @@ Choices made where the decision above is silent (simplest safe option each time)
   characters, the bound is 64): the rules keep answering with status codes, the middleware only drops what no real client sends, silently, and counts an
   error on the connection. `PacketBoundsTests` fuzzes every `…C2S` packet member with oversized, out-of-range, NaN and undefined values. Booleans, bytes,
   GUIDs and unsigned numbers cannot be out of bounds and need no declaration; every other string, collection, signed or floating number and enum does.
-- **D4 — recovery.** Opcodes `0x11F0` (`RequestPasswordReset`), `0x11EF` (`ConfirmPasswordReset`), `0x11EE` (`ChangePassword`) and reply `0x11E0`
-  (`PasswordResult`), taken downward from the top of the free range above the Account band while operations take theirs upward from `0x1100`.
-  `AccountStatus` gained `InvalidResetCode`, `TooManyRequests` and `SessionRevoked`. The code is 8 random digits, stored as a salted PBKDF2 hash
-  (`password_reset_codes`), valid 15 minutes, 5 wrong tries, single use, and a newer request replaces the older code. A request always answers `Ok`
-  for a well-formed address — unknown address, guest, provider failure and the account's own limit (3 codes per hour) included — so the answer never
-  reveals whether an address has an account; an unknown address pays for the same hash so the timing does not either. Per address: 5 requests and 20
-  confirmations per hour (`TooManyRequests`). A confirmed reset revokes every token and closes a live connection with `SessionEnded(SessionRevoked)`.
-  `IEmailSender` carries only kind, recipient, language and code; `SmtpEmailSender` (the framework's SMTP client, configured by `NOSUM_SMTP_*`)
-  renders the text from `Resources/EmailText.resx` (Vietnamese neutral, English); `LoggingEmailSender` (used when `NOSUM_SMTP_HOST` is unset) logs
-  the kind and a masked address, never the code, and the host warns at start-up that codes are not delivered. Because of that rule a development server
-  cannot show the code to a tester; use a real SMTP sink (for example a local MailHog) to try the flow by hand.
+- **D4 — recovery (removed, 2026-10-29).** The `RequestPasswordReset` (`0x11F0`) and `ConfirmPasswordReset` (`0x11EF`) packets, their handlers,
+  the `password_reset_codes` table (dropped by migration `RemovePasswordRecovery`), `IEmailSender` with its SMTP and logging senders, the
+  `NOSUM_SMTP_*` settings and the client form are gone. The opcodes and packet classes stay reserved and are never reused. `ChangePassword`
+  (`0x11EE`) and its `PasswordResult` reply (`0x11E0`) are unaffected. Per-address abuse limits for recovery went with the handlers.
 - **D5 — sessions.** Every `ResumeSession` issues a new token and a fresh 30-day window (idle expiry is simply expiry without a resume); the replaced
   token keeps working for 2 minutes so a lost reply can be retried, then dies. One account keeps at most 10 live tokens; issuing another revokes the
-  oldest. `ChangePassword` and a reset revoke the other tokens. Revoked and expired token rows and used recovery codes are swept by the hourly
-  `GuestCleanupService`. The client already replaces its in-memory token with the one a resume returns (`AccountSessionKeeper`).
+  oldest. `ChangePassword` revokes the other tokens. Revoked and expired token rows are swept by the hourly `GuestCleanupService`. The client already replaces its in-memory token with the one a resume returns (`AccountSessionKeeper`).
 - **D6 — abuse.** `ConnectionQuotaOptions` (the Nalix connection guard) is set from `AbuseLimits` (20 connections per address, 20 per 5 s, 200 per subnet,
   each overridable by `NOSUM_MAX_CONNECTIONS_PER_IP`, `…_PER_WINDOW`, `…_PER_SUBNET`, `NOSUM_MAX_SUBNET_CONNECTIONS_PER_WINDOW`); new accounts
   (registered and guest) are capped at 30 per address per day by `IAbuseGuard` (`NOSUM_NEW_ACCOUNTS_PER_IP_PER_DAY`). Loopback is exempt unless
@@ -83,6 +73,6 @@ Choices made where the decision above is silent (simplest safe option each time)
 - **D7 — hygiene.** `.github/workflows/security.yml` runs `.github/scripts/audit-packages.sh` (`dotnet list package --vulnerable --include-transitive`
   for every solution, failing on High or Critical) and gitleaks over the full history (`.gitleaks.toml` allows only the local development password);
   both also run weekly.
-- **Not done here.** A settings-page form for `ChangePassword` (the packet, handler and `IRecoveryClient.ChangePasswordAsync` exist; the screen
+- **Not done here.** A settings-page form for `ChangePassword` (the packet and handler exist; the screen
   belongs with the settings work of ADR-033); per-account failed-login lockout (the per-address `account-credential` rate limit is the only brake
   on password guessing today); e-mail change; two-factor sign-in.

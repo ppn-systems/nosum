@@ -44,9 +44,6 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the issued session tokens.</summary>
     public DbSet<PlayerSessionToken> PlayerSessionTokens => this.Set<PlayerSessionToken>();
 
-    /// <summary>Gets the one-time password recovery codes (docs/adr/ADR-032 D4).</summary>
-    public DbSet<PasswordResetCode> PasswordResetCodes => this.Set<PasswordResetCode>();
-
     /// <summary>Gets the inventory headers.</summary>
     public DbSet<PlayerInventory> PlayerInventories => this.Set<PlayerInventory>();
 

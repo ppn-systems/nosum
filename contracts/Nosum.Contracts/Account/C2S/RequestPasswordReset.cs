@@ -7,7 +7,7 @@ using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Account.C2S;
 
-/// <summary>Asks the server to e-mail a one-time recovery code to a registered account.</summary>
+/// <summary>Retired: asked the server to e-mail a one-time recovery code (account recovery was removed). The class and its opcode stay reserved and are never reused; the server has no handler.</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]
