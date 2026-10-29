@@ -6,7 +6,13 @@ self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') {
         return;
     }
-    if (new URL(event.request.url).origin !== self.origin) {
+    const url = new URL(event.request.url);
+    if (url.origin !== self.origin) {
+        return;
+    }
+    // The Microsoft sign-in popup lands on msal-redirect.html, which the host redirects (308) to /msal-redirect. A worker that answers a
+    // navigation with a redirected response fails it (ERR_FAILED), so the browser loads that page itself, following the redirect.
+    if (url.pathname.endsWith('/msal-redirect.html') || url.pathname.endsWith('/msal-redirect')) {
         return;
     }
     event.respondWith(onFetch(event));
