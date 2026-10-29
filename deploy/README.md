@@ -44,6 +44,24 @@ Do these once, in this order. The runbook has the details of each step.
 The workflows that use these files: `.github/workflows/deploy-server.yml` (image, copy, compose on the host, readiness gate, rollback) and
 `.github/workflows/deploy-web.yml` (the client to Pages). Both are manual.
 
+## Sign-in settings (ADR-069)
+
+The client ids are public values, not secrets. They are set in two places and must match:
+
+- **Server:** `NOSUM_GOOGLE_CLIENT_ID`, `NOSUM_MICROSOFT_CLIENT_ID`, `NOSUM_MICROSOFT_TENANT` in `deploy/.env` (the defaults in `.env.example` are the owner's apps; `common` is the tenant).
+- **Web client:** the `ExternalSignIn` section of `wasm/Nosum.Wasm/wwwroot/appsettings.json`, which holds the same two ids.
+
+The workflow does not yet override the web client's ids from GitHub variables. Changing the ids means editing `appsettings.json` and redeploying the web client.
+
+Register these in the owner's OAuth apps:
+
+| Provider | Setting | Value |
+| :--- | :--- | :--- |
+| Google (Google Cloud, OAuth client) | Authorized JavaScript origins | the web origin (`NOSUM_ORIGIN`, for example `https://nosum.pages.dev` or the custom domain) and `http://localhost:<dev port>` for a local run |
+| Microsoft (Entra app, SPA platform) | Redirect URI | `<web origin>/msal-redirect.html`, for example `https://nosum.pages.dev/msal-redirect.html`, and `http://localhost:<dev port>/msal-redirect.html` |
+
+Google sign-in uses Google Identity Services, which needs origins, not redirect URIs. The Microsoft popup returns to `msal-redirect.html` on the same origin the player loads.
+
 ## Building the host image by hand
 
 From the repository root:
