@@ -46,12 +46,12 @@ The workflows that use these files: `.github/workflows/deploy-server.yml` (image
 
 ## Sign-in settings (ADR-069)
 
-The client ids are public values, not secrets. They are set in two places and must match:
+The client ids are public values, not secrets, and they are kept out of the code. The owner sets them as GitHub Actions variables `NOSUM_GOOGLE_CLIENT_ID`, `NOSUM_MICROSOFT_CLIENT_ID` and `NOSUM_MICROSOFT_TENANT`. They must match in two places:
 
-- **Server:** `NOSUM_GOOGLE_CLIENT_ID`, `NOSUM_MICROSOFT_CLIENT_ID`, `NOSUM_MICROSOFT_TENANT` in `deploy/.env` (the defaults in `.env.example` are the owner's apps; `common` is the tenant).
+- **Server:** `NOSUM_GOOGLE_CLIENT_ID`, `NOSUM_MICROSOFT_CLIENT_ID`, `NOSUM_MICROSOFT_TENANT` in `deploy/.env` (`common` is the tenant).
 - **Web client:** the `ExternalSignIn` section of `wasm/Nosum.Wasm/wwwroot/appsettings.json`, which holds the same two ids.
 
-The workflow does not yet override the web client's ids from GitHub variables. Changing the ids means editing `appsettings.json` and redeploying the web client.
+The web client's `appsettings.json` ships with empty ids. Until the deploy-web workflow writes the variables into the published `appsettings.json`, the provider buttons stay disabled in the deployed client.
 
 Register these in the owner's OAuth apps:
 
