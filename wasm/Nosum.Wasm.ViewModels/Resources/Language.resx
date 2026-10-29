@@ -64,6 +64,15 @@
   <data name="Inventory_Close" xml:space="preserve"><value>Đóng</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Thanh vật phẩm</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Số lượng: {0}</value></data>
+  <data name="Tooltip_Tier" xml:space="preserve"><value>Bậc: {0}</value></data>
+  <data name="Tooltip_Tier_Basic" xml:space="preserve"><value>Cơ bản</value></data>
+  <data name="Tooltip_Tier_Copper" xml:space="preserve"><value>Đồng</value></data>
+  <data name="Tooltip_Tier_Iron" xml:space="preserve"><value>Sắt</value></data>
+  <data name="Tooltip_Damage" xml:space="preserve"><value>Sát thương: {0}</value></data>
+  <data name="Tooltip_NodeDamage" xml:space="preserve"><value>Sát thương tài nguyên: {0} mỗi nhát</value></data>
+  <data name="Tooltip_WaterCapacity" xml:space="preserve"><value>Sức chứa nước: {0}</value></data>
+  <data name="Tooltip_Energy" xml:space="preserve"><value>Hồi sức lực: +{0}</value></data>
+  <data name="Tooltip_Sell" xml:space="preserve"><value>Giá bán: {0} xu</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Nhiệm vụ</value></data>
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>

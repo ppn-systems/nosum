@@ -64,6 +64,15 @@
   <data name="Inventory_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
+  <data name="Tooltip_Tier" xml:space="preserve"><value>Tier: {0}</value></data>
+  <data name="Tooltip_Tier_Basic" xml:space="preserve"><value>Basic</value></data>
+  <data name="Tooltip_Tier_Copper" xml:space="preserve"><value>Copper</value></data>
+  <data name="Tooltip_Tier_Iron" xml:space="preserve"><value>Iron</value></data>
+  <data name="Tooltip_Damage" xml:space="preserve"><value>Damage: {0}</value></data>
+  <data name="Tooltip_NodeDamage" xml:space="preserve"><value>Resource damage: {0} per swing</value></data>
+  <data name="Tooltip_WaterCapacity" xml:space="preserve"><value>Water capacity: {0}</value></data>
+  <data name="Tooltip_Energy" xml:space="preserve"><value>Restores energy: +{0}</value></data>
+  <data name="Tooltip_Sell" xml:space="preserve"><value>Sells for {0} coins</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Quest</value></data>
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Completed</value></data>
