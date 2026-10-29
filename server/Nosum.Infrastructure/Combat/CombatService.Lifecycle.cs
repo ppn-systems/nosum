@@ -40,14 +40,6 @@ public sealed partial class CombatService
                 _ = _skillCooldowns.TryRemove(key, out _);
             }
         }
-
-        foreach ((Guid PlayerId, string InstanceKey, byte ShrineId) key in _shrineCooldowns.Keys)
-        {
-            if (key.PlayerId == playerId)
-            {
-                _ = _shrineCooldowns.TryRemove(key, out _);
-            }
-        }
     }
 
     /// <inheritdoc/>
