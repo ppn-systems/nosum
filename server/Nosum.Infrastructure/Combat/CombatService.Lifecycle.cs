@@ -19,6 +19,7 @@ using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Nodes;
 using Nosum.Gameplay.Skills;
+using Nosum.Gameplay.Weather;
 using Nosum.Infrastructure.Concurrency;
 using Nosum.Infrastructure.Progress;
 
@@ -203,7 +204,9 @@ public sealed partial class CombatService
 
             ExcludeUnreachableTiles(map.Grid, spawnX, spawnY, occupied);
 
-            List<MonsterSpawn> planned = CombatRules.PlanMonsters(player.MapId, seed, map.Grid, occupied, spawnX, spawnY);
+            // The instance is keyed by game day, so the weather is fixed for its whole life (docs/adr/ADR-027).
+            WeatherKind weather = _calendar is null ? WeatherKind.Sun : WeatherRules.ForDay(_calendar, (int)today);
+            List<MonsterSpawn> planned = CombatRules.PlanMonsters(player.MapId, seed, map.Grid, occupied, spawnX, spawnY, weather: weather);
             foreach (MonsterSpawn m in planned)
             {
                 _ = occupied.Add((m.X, m.Y));
