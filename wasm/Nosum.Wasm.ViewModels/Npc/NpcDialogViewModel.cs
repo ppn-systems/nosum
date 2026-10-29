@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Economy;
@@ -10,6 +11,7 @@ using Nosum.Gameplay.Shops;
 using Nosum.Gameplay.Weather;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.ViewModels.Resources;
+using Nosum.Wasm.ViewModels.Settings;
 
 namespace Nosum.Wasm.ViewModels.Npc;
 
@@ -61,26 +63,36 @@ public sealed record NpcChoice(NpcActions Action, string Label);
 /// shop, market, carpenter, blacksmith or board page as a dialog of their own, never as a tab of the game menu. Nothing here is sent to the server: the
 /// merchant is how the client presents a counter, and the server still checks where the player stands for every purchase.
 /// </summary>
-public sealed class NpcDialogViewModel : PanelViewModel
+public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
 {
+    /// <summary>How long one character of a line takes to appear (issue #214).</summary>
+    public static readonly TimeSpan RevealInterval = TimeSpan.FromMilliseconds(30);
+
     // The order of the buttons; Talk comes last before Leave.
     private static readonly NpcActions[] s_order = [NpcActions.Buy, NpcActions.Sell, NpcActions.Build, NpcActions.Upgrade, NpcActions.Goals, NpcActions.Talk];
 
     private readonly IStringLocalizer<Language> _localizer;
     private readonly CalendarChannel _calendar;
+    private readonly SettingsViewModel? _settings;
+    private readonly Timer _reveal;
     private int _talkIndex;
     private bool _talking;
+    private string _lineText = string.Empty;
+    private int _revealed;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="text">UI text.</param>
     /// <param name="calendar">The server calendar, for the season and weather a greeting may mention.</param>
-    public NpcDialogViewModel(IStringLocalizer<Language> text, CalendarChannel calendar)
+    /// <param name="settings">The player's settings: with reduced motion on, a line appears at once instead of typing out. None means the full typewriter.</param>
+    public NpcDialogViewModel(IStringLocalizer<Language> text, CalendarChannel calendar, SettingsViewModel? settings = null)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
         _localizer = text;
         _calendar = calendar;
+        _settings = settings;
+        _reveal = new Timer(_ => this.RevealNext(), null, Timeout.Infinite, Timeout.Infinite);
     }
 
     /// <summary>Gets the merchant being spoken to, or <see langword="null"/> when no conversation is open.</summary>
@@ -116,8 +128,14 @@ public sealed class NpcDialogViewModel : PanelViewModel
     /// <summary>Gets what the merchant does ("Seed shop keeper"), localized.</summary>
     public string Role => this.Npc is null ? string.Empty : this.Text(this.Npc.TextKey("Role"));
 
-    /// <summary>Gets the line the merchant says now: the greeting, or the last thing said by Talk.</summary>
-    public string Line => this.Npc is null ? string.Empty : this.Text(_talking ? this.Npc.TextKey(_talkIndex == 0 ? "Talk1" : "Talk2") : this.GreetingKey(this.Npc));
+    /// <summary>Gets the part of the line the merchant has said so far: the greeting, or the last thing said by Talk, typed out a character at a time.</summary>
+    public string Line => _lineText[.._revealed];
+
+    /// <summary>Gets whether the line is still typing out. The choices wait until it is done; a click on the line finishes it (<see cref="Skip"/>).</summary>
+    public bool IsRevealing => _revealed < _lineText.Length;
+
+    /// <summary>Gets whether the portrait speaks (bobs) while the line types out. Off with reduced motion, where the line is never typed.</summary>
+    public bool PortraitTalking => this.IsRevealing;
 
     /// <summary>Gets the portrait's picture, a path under the app root.</summary>
     public string PortraitUrl => this.Npc is null ? string.Empty : "assets/sprites/npcs/" + this.Npc.PortraitKey + ".png";
@@ -125,13 +143,13 @@ public sealed class NpcDialogViewModel : PanelViewModel
     /// <summary>Gets the text of the Leave button.</summary>
     public string LeaveLabel => this.Text("Npc_Leave");
 
-    /// <summary>Gets the buttons the merchant offers, besides Leave.</summary>
+    /// <summary>Gets the buttons the merchant offers, besides Leave. None while the line is still typing out.</summary>
     public IReadOnlyList<NpcChoice> Choices
     {
         get
         {
             List<NpcChoice> choices = [];
-            if (this.Npc is null)
+            if (this.Npc is null || this.IsRevealing)
             {
                 return choices;
             }
@@ -184,6 +202,7 @@ public sealed class NpcDialogViewModel : PanelViewModel
         this.Page = NpcPage.None;
         _talking = false;
         _talkIndex = 0;
+        this.SpeakCurrentLine();
         this.Raise();
         return true;
     }
@@ -204,6 +223,7 @@ public sealed class NpcDialogViewModel : PanelViewModel
                 this.Page = NpcPage.None;
                 _talkIndex = _talking ? 1 - _talkIndex : 0;
                 _talking = true;
+                this.SpeakCurrentLine();
                 break;
             case NpcActions.Buy:
                 this.Show(this.Npc.CounterId == MarketRules.MarketCounterId ? NpcPage.MarketBuy : NpcPage.Shop);
@@ -238,6 +258,20 @@ public sealed class NpcDialogViewModel : PanelViewModel
         this.Stage = NpcStage.Speaking;
         this.Page = NpcPage.None;
         _talking = false;
+        this.SpeakCurrentLine();
+        this.Raise();
+    }
+
+    /// <summary>Finishes the line at once, so the choices show (a click on the line).</summary>
+    public void Skip()
+    {
+        if (!this.IsRevealing)
+        {
+            return;
+        }
+
+        _reveal.Change(Timeout.Infinite, Timeout.Infinite);
+        _revealed = _lineText.Length;
         this.Raise();
     }
 
@@ -249,12 +283,18 @@ public sealed class NpcDialogViewModel : PanelViewModel
             return;
         }
 
+        _reveal.Change(Timeout.Infinite, Timeout.Infinite);
+        _lineText = string.Empty;
+        _revealed = 0;
         this.Npc = null;
         this.Stage = NpcStage.Closed;
         this.Page = NpcPage.None;
         _talking = false;
         this.Raise();
     }
+
+    /// <inheritdoc/>
+    public void Dispose() => _reveal.Dispose();
 
     /// <summary>The farmer walked out of reach of a counter: the conversation with its merchant ends.</summary>
     /// <param name="counterId">The counter that was left.</param>
@@ -265,6 +305,40 @@ public sealed class NpcDialogViewModel : PanelViewModel
             this.Leave();
         }
     }
+
+    // Starts the line the merchant now says. With reduced motion it appears whole; otherwise one character per RevealInterval.
+    private void SpeakCurrentLine()
+    {
+        _reveal.Change(Timeout.Infinite, Timeout.Infinite);
+        _lineText = this.CurrentLine();
+        _revealed = _lineText.Length;
+        if (_lineText.Length > 0 && this.Npc is not null && _settings?.ReducesMotion != true)
+        {
+            _revealed = 0;
+            _reveal.Change(RevealInterval, RevealInterval);
+        }
+    }
+
+    private void RevealNext()
+    {
+        if (!this.IsRevealing)
+        {
+            _reveal.Change(Timeout.Infinite, Timeout.Infinite);
+            return;
+        }
+
+        _revealed++;
+        if (!this.IsRevealing)
+        {
+            _reveal.Change(Timeout.Infinite, Timeout.Infinite);
+        }
+
+        this.Raise();
+    }
+
+    private string CurrentLine() => this.Npc is null
+        ? string.Empty
+        : this.Text(_talking ? this.Npc.TextKey(_talkIndex == 0 ? "Talk1" : "Talk2") : this.GreetingKey(this.Npc));
 
     private void Show(NpcPage page)
     {

@@ -86,6 +86,14 @@ public sealed class SettingsViewModel : PanelViewModel, IDisposable
     /// <param name="show">Whether to show them.</param>
     public void SetShowNames(bool show) => this.Update(c => c with { ShowNames = show });
 
+    /// <summary>Turns the on-screen touch controls on or off.</summary>
+    /// <param name="on">Whether to show them on touch devices.</param>
+    public void SetTouchControls(bool on) => this.Update(c => c with { TouchControls = on });
+
+    /// <summary>Turns vibration feedback on or off.</summary>
+    /// <param name="on">Whether to vibrate on purchases, sales and refusals.</param>
+    public void SetHaptics(bool on) => this.Update(c => c with { Haptics = on });
+
     /// <summary>Turns reduced motion on or off, overriding the system's preference.</summary>
     /// <param name="reduce">Whether motion is reduced.</param>
     public void SetReduceMotion(bool reduce) => this.Update(c => c with { ReduceMotion = reduce });
