@@ -24,6 +24,18 @@ public static class AnimalRules
     /// <summary>Friendship a day's petting adds.</summary>
     public const int PettingGain = 40;
 
+    /// <summary>Friendship per heart: an animal shows one heart per 200, five at the maximum.</summary>
+    public const int FriendshipPerHeart = 200;
+
+    /// <summary>Friendship from which an animal can give gold-quality produce (four hearts).</summary>
+    public const int GoldFriendship = 4 * FriendshipPerHeart;
+
+    /// <summary>Chance, in percent, that an animal with at least <see cref="GoldFriendship"/> gives gold-quality produce on a day.</summary>
+    public const int GoldChancePercent = 25;
+
+    /// <summary>Mixed into the seed of the gold roll so it is independent of the large roll.</summary>
+    private const ulong GoldSalt = 0x9E37_79B9_7F4A_7C15;
+
     /// <summary>Rations the feeding bench holds.</summary>
     public const int MaxRations = 24;
 
@@ -107,25 +119,45 @@ public static class AnimalRules
     /// <param name="day">The game day.</param>
     /// <param name="friendship">Friendship at the time of collecting.</param>
     /// <returns><see langword="true"/> for the large produce.</returns>
-    public static bool IsLarge(Guid animalId, int day, int friendship)
-    {
-        Span<byte> bytes = stackalloc byte[16];
-        _ = animalId.TryWriteBytes(bytes);
-        ulong seed = GameRandom.Mix(BitConverter.ToUInt64(bytes), (ulong)day);
-        return new GameRandom(seed).Range(0, 99) < LargeChancePercent(friendship);
-    }
+    public static bool IsLarge(Guid animalId, int day, int friendship) => new GameRandom(SeedOf(animalId, day)).Range(0, 99) < LargeChancePercent(friendship);
 
-    /// <summary>Returns the item an animal gives.</summary>
+    /// <summary>Tells how many hearts an animal shows for its friendship: one per <see cref="FriendshipPerHeart"/>, from zero to five.</summary>
+    /// <param name="friendship">Friendship, zero to <see cref="MaxFriendship"/>.</param>
+    /// <returns>Zero to five.</returns>
+    public static int HeartsOf(int friendship) => Math.Clamp(friendship, 0, MaxFriendship) / FriendshipPerHeart;
+
+    /// <summary>Decides, from the same seed as <see cref="IsLarge"/> but a salted roll, whether the produce of that day is gold quality. Only an animal with four hearts or more can give gold, on <see cref="GoldChancePercent"/> of days.</summary>
+    /// <param name="animalId">The animal's id.</param>
+    /// <param name="day">The game day.</param>
+    /// <param name="friendship">Friendship at the time of collecting.</param>
+    /// <returns><see langword="true"/> for the gold produce.</returns>
+    public static bool IsGold(Guid animalId, int day, int friendship) =>
+        friendship >= GoldFriendship && new GameRandom(GameRandom.Mix(SeedOf(animalId, day), GoldSalt)).Range(0, 99) < GoldChancePercent;
+
+    /// <summary>Returns the item an animal gives: gold quality first, then large, then the everyday produce.</summary>
     /// <param name="definition">The species.</param>
     /// <param name="animalId">The animal's id.</param>
     /// <param name="day">The game day.</param>
     /// <param name="friendship">Friendship at the time of collecting.</param>
-    /// <returns>The produce or large produce item id.</returns>
+    /// <returns>The produce, large produce or gold produce item id.</returns>
     public static int ProduceOf(AnimalDefinition definition, Guid animalId, int day, int friendship)
     {
         ArgumentNullException.ThrowIfNull(definition);
 
+        if (IsGold(animalId, day, friendship))
+        {
+            return definition.GoldProduct;
+        }
+
         return IsLarge(animalId, day, friendship) ? definition.LargeProduct : definition.Product;
+    }
+
+    // The seed of the day's rolls: depends on the animal and the day only, so asking again cannot re-roll them.
+    private static ulong SeedOf(Guid animalId, int day)
+    {
+        Span<byte> bytes = stackalloc byte[16];
+        _ = animalId.TryWriteBytes(bytes);
+        return GameRandom.Mix(BitConverter.ToUInt64(bytes), (ulong)day);
     }
 
     /// <summary>Tells whether a player's feet are close enough to an animal.</summary>

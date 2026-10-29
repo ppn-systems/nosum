@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Linq;
 using FluentAssertions;
 using Nosum.Gameplay.Animals;
 using Nosum.Gameplay.Economy;
@@ -159,7 +160,7 @@ public sealed class AnimalRulesTests
     [Fact]
     public void ProduceItems_AreEdibleProduceThatShipsForCoins()
     {
-        foreach (int itemId in new[] { ItemCatalog.Egg, ItemCatalog.LargeEgg, ItemCatalog.Milk, ItemCatalog.LargeMilk })
+        foreach (int itemId in new[] { ItemCatalog.Egg, ItemCatalog.LargeEgg, ItemCatalog.Milk, ItemCatalog.LargeMilk, ItemCatalog.GoldenEgg, ItemCatalog.CreamMilk })
         {
             ItemCatalog.TryGet(itemId, out ItemDefinition? item).Should().BeTrue();
             item!.Kind.Should().Be(ItemKind.Produce);
@@ -171,6 +172,95 @@ public sealed class AnimalRulesTests
         ShippingPrices.TryGet(ItemCatalog.LargeEgg, out int large).Should().BeTrue();
         ShippingPrices.TryGet(ItemCatalog.Egg, out int small).Should().BeTrue();
         large.Should().BeGreaterThan(small);
+    }
+
+    [Fact]
+    public void GoldProduce_SellsForHalfMoreThanTheEverydayKind()
+    {
+        ShippingPrices.TryGet(ItemCatalog.GoldenEgg, out int goldEgg).Should().BeTrue();
+        ShippingPrices.TryGet(ItemCatalog.CreamMilk, out int goldMilk).Should().BeTrue();
+        ShippingPrices.TryGet(ItemCatalog.Egg, out int egg).Should().BeTrue();
+        ShippingPrices.TryGet(ItemCatalog.Milk, out int milk).Should().BeTrue();
+
+        goldEgg.Should().Be(egg * 3 / 2);
+        goldMilk.Should().Be(milk * 3 / 2);
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(199, 0)]
+    [InlineData(200, 1)]
+    [InlineData(799, 3)]
+    [InlineData(800, 4)]
+    [InlineData(1000, 5)]
+    [InlineData(5000, 5)]
+    [InlineData(-5, 0)]
+    public void HeartsOf_OneHeartPerTwoHundredFriendship(int friendship, int expected)
+    {
+        AnimalRules.HeartsOf(friendship).Should().Be(expected);
+    }
+
+    [Fact]
+    public void IsGold_BelowFourHearts_IsNeverGold()
+    {
+        for (int day = 1; day <= 500; day++)
+        {
+            AnimalRules.IsGold(s_animal, day, AnimalRules.GoldFriendship - 1).Should().BeFalse();
+        }
+    }
+
+    [Fact]
+    public void IsGold_SameAnimalSameDay_AlwaysGivesTheSameAnswer()
+    {
+        bool first = AnimalRules.IsGold(s_animal, 42, AnimalRules.MaxFriendship);
+
+        for (int i = 0; i < 10; i++)
+        {
+            AnimalRules.IsGold(s_animal, 42, AnimalRules.MaxFriendship).Should().Be(first);
+        }
+    }
+
+    [Fact]
+    public void IsGold_FourHeartsOverManyDays_FollowsTheChance()
+    {
+        int gold = 0;
+        const int days = 10_000;
+        for (int day = 1; day <= days; day++)
+        {
+            if (AnimalRules.IsGold(s_animal, day, AnimalRules.GoldFriendship))
+            {
+                gold++;
+            }
+        }
+
+        double share = gold / (double)days;
+        share.Should().BeInRange(0.22, 0.28);
+    }
+
+    [Fact]
+    public void ProduceOf_FourHearts_CanGiveGoldProduce_AndNeverBelowFourHearts()
+    {
+        _ = AnimalCatalog.TryGet(AnimalKind.Chicken, out AnimalDefinition? chicken).Should().BeTrue();
+
+        int[] atFour = Enumerable.Range(1, 500).Select(day => AnimalRules.ProduceOf(chicken!, s_animal, day, AnimalRules.GoldFriendship)).ToArray();
+        int[] belowFour = Enumerable.Range(1, 500).Select(day => AnimalRules.ProduceOf(chicken!, s_animal, day, AnimalRules.GoldFriendship - 1)).ToArray();
+
+        atFour.Should().Contain(ItemCatalog.GoldenEgg);
+        belowFour.Should().NotContain(ItemCatalog.GoldenEgg);
+    }
+
+    [Fact]
+    public void ProduceOf_GoldWinsOverLarge_WhenTheGoldRollHits()
+    {
+        _ = AnimalCatalog.TryGet(AnimalKind.Cow, out AnimalDefinition? cow).Should().BeTrue();
+
+        for (int day = 1; day <= 500; day++)
+        {
+            if (AnimalRules.IsGold(s_animal, day, AnimalRules.MaxFriendship))
+            {
+                AnimalRules.ProduceOf(cow!, s_animal, day, AnimalRules.MaxFriendship).Should().Be(ItemCatalog.CreamMilk);
+            }
+        }
     }
 
     [Theory]

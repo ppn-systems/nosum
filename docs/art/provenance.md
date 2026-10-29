@@ -64,6 +64,7 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `sprites/craftables.png` | 3 Items | `kenney_tiny-dungeon`, Nosum original (drawn in tools/art_repack, no outside source) | Scarecrow and furnace drawn here (`furniture.py`); the chest is Tiny Dungeon's closed chest (tile 5, 7), standing at the foot of its 16 x 32 cell |
 | `sprites/crops.png` | 4 Crops and soil | `kenney_tiny-farm`, `josehzz_farming-crops-16x16` | 21 crops, 5-6 growth frames each: Tiny Farm's stages for the 8 crops it covers, the crops pack's six pictures (seed, three stages, ripe) for the rest, placed in the catalogue's frames at the bottom of each 16 x 32 cell; recolours in the crop table |
 | `sprites/furniture.png` | 3 Items | Nosum original (drawn in tools/art_repack, no outside source) | Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`) |
+| `sprites/hearts.png` | 8 Animals | Nosum original (drawn in tools/art_repack, no outside source) | Affection hearts, 8 x 8 each: filled (cell 0, 0) and empty (cell 8, 0), drawn in the Kenney palette (`hearts.py`) |
 | `sprites/items.png` | 3 Items, 6 Resource nodes | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, `kenney_tiny-town`, `dawnlike`, `oga_assorted-rpg-icons`, `oga_animated-slimes`, `tiny16`, `oga_trash-mobs`, `oga_16x16-rpg-items`, `kenney_roguelike-caves-dungeons`, `oga_16x16-dungeon-tiles`, `oga_puny-dungeon`, `oga_gold-treasure-icons`, `oga_6-color-dungeon`, `kenney_roguelike-rpg-pack`, `kenney_roguelike-indoors`, `oga_random-animals`, `oga_pixel-animals-16x16`, `kenney_roguelike-modern-city`, `kenney_rpg-urban-pack`, `kenney_1-bit-pack`, Nosum original (drawn in tools/art_repack, no outside source) | The 112 object cells the game draws: seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), potions and spell tome from Assorted RPG Icons, monster drops and RPG relics from Animated Slimes, Tiny 16 (CC-BY), Trash Mobs, 16x16 RPG Items, Roguelike Caves & Dungeons, 16x16 Dungeon Tiles, Puny Dungeon, Gold Treasure Icons, 6 Color Dungeon, Roguelike/RPG Pack, Roguelike Indoors, Random Animals, Pixel Animals 16x16, Roguelike Modern City, RPG Urban Pack and 1-Bit Pack, everything else drawn here (table below); unused cells are transparent |
 | `sprites/monsters.png` | 11 Monsters | `oga_animated-slimes`, `oga_trash-mobs`, `oga_tiny-creatures` | Twelve 4-column x 3-row (Down, Right, Up) monster and boss animation blocks (64 x 576): GreenSlime, FrostSlime, MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior, StoneGolem from Tiny Creatures; BossBroodmother, BossGoblinChieftain, BossMagmaColossus, BossGolemKing (`monsters.py`, ADR-047) |
 | `sprites/npcs/blacksmith.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Blacksmith (bald, beard, bare arms, leather apron, hammer); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
@@ -182,9 +183,9 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 | 55 | `StonePath` | drawn here: `icons.stone_path` |
 | 56 | `Sprinkler` | drawn here: `icons.sprinkler` |
 | 57 | `egg` | drawn here: `icons.egg` |
-| 58 | `large_egg` | Tiny Farm tile 125 |
+| 58 | `large_egg`, `golden_egg` | Tiny Farm tile 125 |
 | 59 | `milk` | Tiny Farm tile 123 |
-| 60 | `large_milk` | Tiny Farm tile 124 |
+| 60 | `large_milk`, `cream_milk` | Tiny Farm tile 124 |
 | 61 | `hay` | Tiny Farm tile 96 |
 | 62 | `Salad` | drawn here: `icons.bowl` |
 | 63 | `BakedPotato` | drawn here: `icons.baked_potato` |

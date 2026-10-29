@@ -28,18 +28,20 @@ public sealed class AnimalDefinition
     /// <param name="coins">What the carpenter charges.</param>
     /// <param name="product">The everyday produce item.</param>
     /// <param name="largeProduct">The large produce item a well-loved animal gives more often.</param>
+    /// <param name="goldProduct">The gold-quality produce item an animal with four hearts or more sometimes gives.</param>
     /// <param name="needsPail">Whether collecting the produce takes a milk pail in hand.</param>
     /// <param name="sheet">File in <c>sprites/animals/</c> without extension (early art, docs/adr/ADR-007).</param>
     /// <param name="frameWidth">Width of one frame, pixels.</param>
     /// <param name="frameHeight">Height of one frame, pixels.</param>
     /// <param name="walkPixelsPerSecond">How fast it walks inside its building.</param>
-    public AnimalDefinition(AnimalKind kind, string key, long coins, int product, int largeProduct, bool needsPail, string sheet, int frameWidth, int frameHeight, int walkPixelsPerSecond)
+    public AnimalDefinition(AnimalKind kind, string key, long coins, int product, int largeProduct, int goldProduct, bool needsPail, string sheet, int frameWidth, int frameHeight, int walkPixelsPerSecond)
     {
         this.Kind = kind;
         this.Key = key;
         this.Coins = coins;
         this.Product = product;
         this.LargeProduct = largeProduct;
+        this.GoldProduct = goldProduct;
         this.NeedsPail = needsPail;
         this.Sheet = sheet;
         this.FrameWidth = frameWidth;
@@ -62,6 +64,9 @@ public sealed class AnimalDefinition
     /// <summary>Gets the large produce item.</summary>
     public int LargeProduct { get; }
 
+    /// <summary>Gets the gold-quality produce item, given to an animal with four hearts or more.</summary>
+    public int GoldProduct { get; }
+
     /// <summary>Gets whether collecting takes a milk pail.</summary>
     public bool NeedsPail { get; }
 
@@ -83,8 +88,8 @@ public static class AnimalCatalog
 {
     private static readonly AnimalDefinition[] s_all =
     [
-        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, false, "chicken", 16, 16, 22),
-        new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, true, "cow", 32, 32, 14),
+        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, ItemCatalog.GoldenEgg, false, "chicken", 16, 16, 22),
+        new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, ItemCatalog.CreamMilk, true, "cow", 32, 32, 14),
     ];
 
     /// <summary>Gets every species.</summary>
