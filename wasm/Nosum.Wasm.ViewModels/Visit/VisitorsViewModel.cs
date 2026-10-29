@@ -17,6 +17,13 @@ namespace Nosum.Wasm.ViewModels.Visit;
 /// <param name="Present">Whether they are in the owner's place now (can be sent out).</param>
 public sealed record VisitorDisplay(Guid PlayerId, string Label, bool Listed, bool Present);
 
+/// <summary>One line of the farm guestbook: a visitor's watering on one day.</summary>
+/// <param name="Visitor">The visitor's localized name.</param>
+/// <param name="DayNumber">The game day number.</param>
+/// <param name="Waters">How many crops the visitor watered.</param>
+/// <param name="Unread">Whether the entry was new when the guestbook was read.</param>
+public sealed record GuestbookDisplay(string Visitor, int DayNumber, int Waters, bool Unread);
+
 /// <summary>
 /// View model of the visitors panel (docs/adr/ADR-019): edit who may visit the player's own farm, and visit somebody else. The server checks the
 /// allow-list on every visit and decides every outcome; this only types nicknames, shows the list and the answers.
@@ -74,11 +81,31 @@ public sealed class VisitorsViewModel : PanelViewModel, IDisposable
         }
     }
 
-    /// <summary>Called when the panel opens: reads the list.</summary>
+    /// <summary>Gets how many guestbook entries were new when the guestbook was last read.</summary>
+    public int GuestbookUnread => _visits.Guestbook.UnreadCount;
+
+    /// <summary>Gets the newest guestbook entries, newest day first.</summary>
+    public IReadOnlyList<GuestbookDisplay> Guestbook
+    {
+        get
+        {
+            List<GuestbookDisplay> rows = [];
+            foreach (GuestbookEntryInfo entry in _visits.Guestbook.Entries)
+            {
+                string label = _names.Display(entry.Nickname);
+                rows.Add(new GuestbookDisplay(label.Length > 0 ? label : this.Text("Visit_UnknownPlayer"), entry.DayNumber, entry.Waters, entry.Unread));
+            }
+
+            return rows;
+        }
+    }
+
+    /// <summary>Called when the panel opens: reads the list and the guestbook.</summary>
     public void Open()
     {
         this.ClearStatus();
         _visits.Load();
+        _visits.LoadGuestbook();
     }
 
     /// <summary>Lets the typed player visit.</summary>

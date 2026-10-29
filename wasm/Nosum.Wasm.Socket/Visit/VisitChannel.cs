@@ -28,6 +28,23 @@ public sealed record VisitorsInfo(bool CoopMembersMayVisit, bool IsGuest, IReadO
     public static readonly VisitorsInfo None = new(true, false, []);
 }
 
+/// <summary>One visitor's watering on one day of the player's farm.</summary>
+/// <param name="VisitorId">The visitor's account id.</param>
+/// <param name="Nickname">The visitor's nickname as the server sent it.</param>
+/// <param name="DayNumber">The game day number.</param>
+/// <param name="Waters">How many crops the visitor watered that day.</param>
+/// <param name="Unread">Whether the entry was new before the last read.</param>
+public readonly record struct GuestbookEntryInfo(Guid VisitorId, string Nickname, int DayNumber, int Waters, bool Unread);
+
+/// <summary>The player's farm guestbook as the server last sent it.</summary>
+/// <param name="UnreadCount">How many entries were new before the last read, not only the ones listed.</param>
+/// <param name="Entries">The newest days, newest first.</param>
+public sealed record GuestbookInfo(int UnreadCount, IReadOnlyList<GuestbookEntryInfo> Entries)
+{
+    /// <summary>Gets the state before the first read.</summary>
+    public static readonly GuestbookInfo None = new(0, []);
+}
+
 /// <summary>
 /// The visiting side of the connection: reads the player's allow-list and sends the requests that edit it or ask to visit someone.
 /// The server decides every outcome. A visit that was accepted arrives as the usual map-change push, which the map scene already handles.
@@ -56,8 +73,14 @@ public sealed class VisitChannel
     /// <summary>Gets the player's own visiting settings and visitors.</summary>
     public VisitorsInfo Current { get; private set; } = VisitorsInfo.None;
 
+    /// <summary>Gets the player's farm guestbook as the server last sent it.</summary>
+    public GuestbookInfo Guestbook { get; private set; } = GuestbookInfo.None;
+
     /// <summary>Reads the allow-list.</summary>
     public void Load() => _ = this.LoadAsync();
+
+    /// <summary>Reads the farm guestbook. The server marks the entries it sends as read.</summary>
+    public void LoadGuestbook() => _ = this.LoadGuestbookAsync();
 
     /// <summary>Lets a player visit.</summary>
     /// <param name="nickname">Their nickname as typed.</param>
@@ -101,6 +124,28 @@ public sealed class VisitChannel
             }
 
             this.Current = new VisitorsInfo(snapshot.CoopMembersMayVisit, snapshot.IsGuest, visitors);
+            this.Changed?.Invoke();
+        }
+        catch (Exception)
+        {
+            // Connection dropped mid-load.
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "A failed load is retried when the panel opens again; there is no caller to report to.")]
+    private async Task LoadGuestbookAsync()
+    {
+        try
+        {
+            using PacketScope<GetGuestbook> request = PacketFactory<GetGuestbook>.Acquire();
+            GuestbookSnapshot snapshot = await _socket.RequestAsync<GuestbookSnapshot>(request.Value).ConfigureAwait(false);
+            List<GuestbookEntryInfo> entries = new(snapshot.Rows.Count);
+            foreach (GuestbookRow row in snapshot.Rows)
+            {
+                entries.Add(new GuestbookEntryInfo(row.VisitorId, row.Nickname, row.DayNumber, row.Waters, row.Unread));
+            }
+
+            this.Guestbook = new GuestbookInfo(snapshot.UnreadCount, entries);
             this.Changed?.Invoke();
         }
         catch (Exception)

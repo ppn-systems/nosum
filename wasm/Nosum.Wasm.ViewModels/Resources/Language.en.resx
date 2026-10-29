@@ -882,4 +882,10 @@
   <data name="Wayfinding_CommunityBoard" xml:space="preserve"><value>Community Board</value></data>
   <data name="Wayfinding_Objective" xml:space="preserve"><value>Objective</value></data>
   <data name="Wayfinding_DistanceMeters" xml:space="preserve"><value>{0} ({1}m)</value></data>
+  <data name="Guestbook_Heading" xml:space="preserve"><value>Farm guestbook</value></data>
+  <data name="Guestbook_Line" xml:space="preserve"><value>{0} watered {1} crops on day {2}</value></data>
+  <data name="Guestbook_New" xml:space="preserve"><value>New</value></data>
+  <data name="Guestbook_Unread" xml:space="preserve"><value>{0} new</value></data>
+  <data name="Guestbook_Empty" xml:space="preserve"><value>No visitor has watered your farm yet.</value></data>
+  <data name="Guestbook_Hint" xml:space="preserve"><value>A visitor's watering is written here while a guestbook stands on your farm.</value></data>
 </root>
