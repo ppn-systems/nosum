@@ -42,7 +42,7 @@ internal sealed class SkyLayer
     public void Update(MapSpec spec, double frameSeconds, int viewWidth, int viewHeight)
     {
         GameCalendar? rules = this.Rules();
-        _falling = rules is null || spec.Indoors ? Precipitation.None : PrecipitationOf(WeatherRules.At(rules, _calendar!.ServerNowMs()));
+        _falling = rules is null || spec.Indoors ? Precipitation.None : FallingOf(rules, _calendar!.ServerNowMs());
         _precipitation.Update(_falling, frameSeconds, viewWidth, viewHeight);
     }
 
@@ -97,6 +97,18 @@ internal sealed class SkyLayer
     /// <summary>Records the rain or snow of this frame.</summary>
     /// <param name="commands">Where the rectangles are recorded.</param>
     public void DrawPrecipitation(RenderCommandBuffer commands) => _precipitation.Draw(_falling, commands);
+
+    // Autumn leaves drift down on clear days; the weather's own precipitation otherwise.
+    private static Precipitation FallingOf(GameCalendar rules, long now)
+    {
+        WeatherKind weather = WeatherRules.At(rules, now);
+        if (weather == WeatherKind.Sun && rules.At(now).Season == Season.Fall)
+        {
+            return Precipitation.Leaves;
+        }
+
+        return PrecipitationOf(weather);
+    }
 
     internal static Precipitation PrecipitationOf(WeatherKind weather) => weather switch
     {

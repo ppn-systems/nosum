@@ -53,6 +53,8 @@ drawing plugs in as an `IMapDecorator` made by an `IMapDecoratorProvider` regist
 and tilesheets the client can load are linked from `art/own/Maps/` in `Nosum.Wasm.csproj`; building sheets from
 `assets/sprites/buildings/`. Without a server the farm still plays offline (no map changes).
 
+Outdoor maps also have wildlife (ADR-071): `CritterDecorator` draws the chunks in view from `Nosum.Gameplay.Ambient.CritterPlanner`, so every player sees the same birds, butterflies, fireflies, frogs and squirrels for the day. Each critter is culled to the camera and moves only by the clock and the farmer's distance; with reduced motion nothing moves. Needs the server calendar, so it is absent offline.
+
 Farming ([ADR-011](../docs/adr/ADR-011-inventory-farming-data-model.md)): `Nosum.Wasm.Socket` has `InventoryChannel`, `FarmChannel` and `QuestChannel`, client mirrors of the
 server's state loaded after sign-in (inventory, quests) and after every join or map change (farm) and kept current by pushes. `FarmChannel` also estimates the server clock; the
 farm decorator computes each crop's stage with `FarmRules` from the mirrored timestamps. Keys reach the frame as batched edges (`InputEdges`, packed with the held directions by `InputPacking`;

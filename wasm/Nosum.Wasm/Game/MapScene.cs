@@ -277,6 +277,7 @@ internal sealed partial class MapScene
         {
             decorators[i].SetView(_camera);
             decorators[i].SetClock(frameClock);
+            decorators[i].SetFarmer(farmerPx, farmerPy);
             decorators[i].DrawOnGround(_commands, _camera, timeMs);
         }
 
