@@ -72,7 +72,8 @@ public sealed class ServerKeyPinningTests : IClassFixture<PostgresFixture>
         }
 
         // The announced wait carries the ±25% spread (issue #151): RetryNow ends it, the spread only shapes its length.
-        delay.Should().BeInRange(TimeSpan.FromSeconds(22.5), TimeSpan.FromSeconds(37.5));
+        delay.Should().BeGreaterOrEqualTo(TimeSpan.FromSeconds(22.5));
+        delay.Should().BeLessOrEqualTo(TimeSpan.FromSeconds(37.5));
     }
 
     [Fact]
