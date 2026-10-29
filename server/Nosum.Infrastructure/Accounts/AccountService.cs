@@ -243,7 +243,9 @@ public sealed partial class AccountService : IAccountService
     public async Task<AccountOutcome> LoginAsync(string email, string password, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password)
-            || email.Length > AccountLimits.EmailMaxLength || password.Length > AccountLimits.PasswordMaxLength)
+            || email.Length > AccountLimits.EmailMaxLength
+            || password.Length < AccountLimits.PasswordMinLength
+            || password.Length > AccountLimits.PasswordMaxLength)
         {
             return AccountOutcome.Refused(AccountStatus.InvalidCredentials);
         }

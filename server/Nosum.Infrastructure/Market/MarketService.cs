@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -404,6 +405,7 @@ public sealed class MarketService : IMarketService
     }
 
     /// <inheritdoc/>
+    [SuppressMessage("Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Fault isolation: one corrupt listing must not block subsequent expired listings.")]
     public async Task<int> ExpireDueAsync(CancellationToken cancellationToken = default)
     {
         DateTimeOffset now = _time.GetUtcNow();
@@ -423,13 +425,24 @@ public sealed class MarketService : IMarketService
         int returned = 0;
         foreach (Guid id in due)
         {
-            using (await _listingLocks.EnterAsync(id, cancellationToken).ConfigureAwait(false))
+            try
             {
-                MarketListing? listing = await this.ReadAsync(id, cancellationToken).ConfigureAwait(false);
-                if (listing is { Status: ListingStatus.Active } && await this.ReturnAsync(listing, ListingStatus.Expired, "market.expire", cancellationToken).ConfigureAwait(false) == TransferStatus.Ok)
+                using (await _listingLocks.EnterAsync(id, cancellationToken).ConfigureAwait(false))
                 {
-                    returned++;
+                    MarketListing? listing = await this.ReadAsync(id, cancellationToken).ConfigureAwait(false);
+                    if (listing is { Status: ListingStatus.Active } && await this.ReturnAsync(listing, ListingStatus.Expired, "market.expire", cancellationToken).ConfigureAwait(false) == TransferStatus.Ok)
+                    {
+                        returned++;
+                    }
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                // Fault isolation: one corrupt listing must not block subsequent expired listings.
             }
         }
 
