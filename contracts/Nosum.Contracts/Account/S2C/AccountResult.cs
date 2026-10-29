@@ -8,7 +8,7 @@ using Nosum.Contracts.Common;
 
 namespace Nosum.Contracts.Account.S2C;
 
-/// <summary>The server's reply to <see cref="C2S.Register"/>, <see cref="C2S.Login"/> <see cref="C2S.ResumeSession"/>, <see cref="C2S.StartGuest"/>, <see cref="C2S.UpgradeGuest"/> and <see cref="C2S.Logout"/> (Ok, empty session fields).</summary>
+/// <summary>The server's reply to <see cref="C2S.ExternalSignIn"/>, <see cref="C2S.LinkExternalIdentity"/>, <see cref="C2S.ResumeSession"/>, <see cref="C2S.StartGuest"/> and <see cref="C2S.Logout"/> (Ok, empty session fields).</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]
@@ -23,7 +23,7 @@ public sealed partial class AccountResult : PacketBase<AccountResult>, IPacketSt
     /// <summary>The signed-in player's id.</summary>
     [SerializeOrder(1)] public Guid PlayerId { get; set; }
 
-    /// <summary>The login e-mail in lower case; empty for a guest.</summary>
+    /// <summary>The e-mail the identity provider reported, for display only (never an identity key); empty for a guest or when the provider sent none.</summary>
     [SerializeOrder(2)] public string Email { get; set; } = string.Empty;
 
     /// <summary>Session token for <see cref="C2S.ResumeSession"/>. Keep it secret; empty unless the status is Ok.</summary>
@@ -35,7 +35,7 @@ public sealed partial class AccountResult : PacketBase<AccountResult>, IPacketSt
     /// <summary>The player's stored language; the client applies it after sign-in.</summary>
     [SerializeOrder(5)] public GameLanguage PreferredLanguage { get; set; }
 
-    /// <summary>True while the player is a guest (no e-mail or password yet).</summary>
+    /// <summary>True while the player is a guest (no provider identity linked yet).</summary>
     [SerializeOrder(6)] public bool IsGuest { get; set; }
 
     /// <summary>True once the game has unlocked the invitation to register (a guest who finished the first quest).</summary>

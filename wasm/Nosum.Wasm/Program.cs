@@ -11,6 +11,7 @@ using Microsoft.Extensions.Localization;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.Device;
 using Nosum.Wasm.Game;
+using Nosum.Wasm.Security;
 using Nosum.Wasm.Settings;
 using Nosum.Wasm.ViewModels.Device;
 using Nosum.Wasm.ViewModels.Localization;
@@ -41,6 +42,8 @@ internal static class Program
         DeviceSignals deviceSignals = BrowserDevice.ReadSignals();
         builder.Services.AddSingleton(sp => new DeviceGuardViewModel(sp.GetRequiredService<IStringLocalizer<Language>>(), deviceSignals, devicePolicy));
         builder.Services.AddClientSettings();
+        // Google and Microsoft sign-in: the public client ids come from appsettings.json (docs/adr/ADR-069).
+        builder.Services.AddExternalSignIn(builder.Configuration);
         builder.Services.AddGameServices(baseAddress, builder.Configuration);
 
         await WebRenderBackend.ImportModuleAsync().ConfigureAwait(false);

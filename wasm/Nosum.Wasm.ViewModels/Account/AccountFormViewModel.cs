@@ -1,5 +1,3 @@
-// Copyright (c) 2026 PPN Systems. All rights reserved.
-
 using System;
 using System.Globalization;
 using System.Threading;
@@ -17,37 +15,40 @@ namespace Nosum.Wasm.ViewModels.Account;
 /// <summary>Which form the account component shows.</summary>
 public enum AccountFormMode
 {
-    /// <summary>E-mail and password of an existing account.</summary>
+    /// <summary>Sign in with Google or Microsoft, or play as a guest.</summary>
     Login,
 
-    /// <summary>A new account.</summary>
-    Register,
-
-    /// <summary>Registration for the signed-in guest: the same player gets an e-mail and password.</summary>
+    /// <summary>The signed-in guest links a Google or Microsoft identity and chooses a nickname.</summary>
     Upgrade,
 }
 
 /// <summary>
-/// View model of the account UI: login, register, play as guest, upgrade a guest, sign out. Reusable:
-/// any page binds <c>AccountForm</c> and <c>SessionBar</c> to one instance and listens to
+/// View model of the account UI: sign in with Google or Microsoft, play as guest, link a guest to Google or Microsoft, sign out (docs/adr/ADR-069).
+/// Reusable: any page binds <c>AccountForm</c> and <c>SessionBar</c> to one instance and listens to
 /// <see cref="SignedIn"/>, <see cref="SessionUpdated"/> and <see cref="SignedOut"/>. Every visible
 /// string comes from <c>Language.resx</c>; the server only ever sends status codes.
 /// </summary>
 public sealed class AccountFormViewModel : IObservableViewModel
 {
-    private const string EmailSuffix = "@" + AccountLimits.EmailDomain;
-
     private readonly IAccountClient _client;
+    private readonly IExternalSignIn _externalSignIn;
+    private readonly ExternalSignInOptions _options;
     private readonly IStringLocalizer<Language> _text;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="client">The network access.</param>
+    /// <param name="externalSignIn">Runs the Google or Microsoft sign-in in the browser.</param>
+    /// <param name="options">Which providers have a client id on this client.</param>
     /// <param name="text">The localizer for <c>Language.resx</c>.</param>
-    public AccountFormViewModel(IAccountClient client, IStringLocalizer<Language> text)
+    public AccountFormViewModel(IAccountClient client, IExternalSignIn externalSignIn, ExternalSignInOptions options, IStringLocalizer<Language> text)
     {
         ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(externalSignIn);
+        ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(text);
         _client = client;
+        _externalSignIn = externalSignIn;
+        _options = options;
         _text = text;
     }
 
@@ -69,17 +70,8 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets the current session, or null while signed out.</summary>
     public AccountSession? CurrentSession { get; private set; }
 
-    /// <summary>Gets or sets the typed e-mail.</summary>
-    public string Email { get; set; } = string.Empty;
-
-    /// <summary>Gets or sets the typed nickname (register and upgrade).</summary>
+    /// <summary>Gets or sets the typed nickname (link only).</summary>
     public string Nickname { get; set; } = string.Empty;
-
-    /// <summary>Gets or sets the typed password. Cleared after every submit.</summary>
-    public string Password { get; set; } = string.Empty;
-
-    /// <summary>Gets or sets the repeated password (register and upgrade).</summary>
-    public string ConfirmPassword { get; set; } = string.Empty;
 
     /// <summary>Gets whether a request is in flight.</summary>
     public bool IsBusy { get; private set; }
@@ -87,20 +79,8 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets the localized error to show, or null.</summary>
     public string? ErrorText { get; private set; }
 
-    /// <summary>Gets whether the form asks for a password confirmation (register and upgrade).</summary>
-    public bool IsRegister => this.Mode != AccountFormMode.Login;
-
-    /// <summary>Gets whether the login form is currently shown.</summary>
-    public bool IsLoginMode => this.Mode == AccountFormMode.Login;
-
     /// <summary>Gets whether the guest-upgrade form is currently shown.</summary>
     public bool IsUpgradeMode => this.Mode == AccountFormMode.Upgrade;
-
-    /// <summary>Gets the maximum allowed length for an e-mail input.</summary>
-    public static int EmailMaxLength => AccountLimits.EmailMaxLength;
-
-    /// <summary>Gets the maximum allowed length for a password input.</summary>
-    public static int PasswordMaxLength => AccountLimits.PasswordMaxLength;
 
     /// <summary>Gets the maximum allowed length for a nickname input.</summary>
     public static int NicknameMaxLength => NicknameRules.MaxLength;
@@ -114,6 +94,18 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets whether the session bar offers the upgrade: a guest whose invitation to register is unlocked.</summary>
     public bool CanUpgrade => this.CurrentSession is { IsGuest: true, RegistrationPromptUnlocked: true } && this.Mode != AccountFormMode.Upgrade;
 
+    /// <summary>Gets whether the Google button can be used on this client.</summary>
+    public bool GoogleEnabled => _options.IsConfigured(ExternalProvider.Google);
+
+    /// <summary>Gets whether the Microsoft button can be used on this client.</summary>
+    public bool MicrosoftEnabled => _options.IsConfigured(ExternalProvider.Microsoft);
+
+    /// <summary>Gets the hint under the Google button when it is disabled, or null.</summary>
+    public string? GoogleHint => this.GoogleEnabled ? null : _text["Account_Provider_NotConfigured"].Value;
+
+    /// <summary>Gets the hint under the Microsoft button when it is disabled, or null.</summary>
+    public string? MicrosoftHint => this.MicrosoftEnabled ? null : _text["Account_Provider_NotConfigured"].Value;
+
     /// <summary>Gets the name of the game, shown as the logo of the start screen.</summary>
     public string GameTitle => _text["Game_Title"];
 
@@ -121,42 +113,28 @@ public sealed class AccountFormViewModel : IObservableViewModel
     public string Tagline => _text["Game_Tagline"];
 
     /// <summary>Gets the form title.</summary>
-    public string Title => _text[this.Mode switch
-    {
-        AccountFormMode.Register => "Account_Title_Register",
-        AccountFormMode.Upgrade => "Account_Title_Upgrade",
-        _ => "Account_Title_Login",
-    }];
-
-    /// <summary>Gets the e-mail field label.</summary>
-    public string EmailLabel => _text["Account_Email"];
+    public string Title => _text[this.Mode == AccountFormMode.Upgrade ? "Account_Title_Upgrade" : "Account_Title_Login"];
 
     /// <summary>Gets the nickname field label.</summary>
     public string NicknameLabel => _text["Account_Nickname"];
 
-    /// <summary>Gets the nickname rules, shown under the field when registering.</summary>
+    /// <summary>Gets the nickname rules, shown under the field when linking.</summary>
     public string NicknameHint => string.Format(CultureInfo.CurrentCulture, _text["Account_NicknameHint"].Value, NicknameRules.MinLength, NicknameRules.MaxLength);
 
-    /// <summary>Gets the password field label.</summary>
-    public string PasswordLabel => _text["Account_Password"];
+    /// <summary>Gets the text of the Google button on the sign-in form.</summary>
+    public string SignInGoogleText => _text["Account_SignIn_Google"];
 
-    /// <summary>Gets the repeat-password field label.</summary>
-    public string ConfirmPasswordLabel => _text["Account_ConfirmPassword"];
+    /// <summary>Gets the text of the Microsoft button on the sign-in form.</summary>
+    public string SignInMicrosoftText => _text["Account_SignIn_Microsoft"];
 
-    /// <summary>Gets the e-mail rules, shown under the field when registering.</summary>
-    public string EmailHint => string.Format(CultureInfo.CurrentCulture, _text["Account_EmailHint"].Value, AccountLimits.EmailDomain);
+    /// <summary>Gets the text of the Google button on the link form.</summary>
+    public string LinkGoogleText => _text["Account_Link_Google"];
 
-    /// <summary>Gets the password rules, shown under the field when registering.</summary>
-    public string PasswordHint => string.Format(
-        CultureInfo.CurrentCulture, _text["Account_PasswordHint"].Value, AccountLimits.PasswordMinLength, AccountLimits.PasswordMaxLength);
+    /// <summary>Gets the text of the Microsoft button on the link form.</summary>
+    public string LinkMicrosoftText => _text["Account_Link_Microsoft"];
 
-    /// <summary>Gets the submit button text; the busy text while a request is in flight.</summary>
-    public string SubmitText => this.IsBusy
-        ? _text["Account_Busy"]
-        : _text[this.IsRegister ? "Account_Submit_Register" : "Account_Submit_Login"];
-
-    /// <summary>Gets the text of the link that switches between login and register.</summary>
-    public string SwitchModeText => _text[this.Mode == AccountFormMode.Register ? "Account_Switch_ToLogin" : "Account_Switch_ToRegister"];
+    /// <summary>Gets the text shown while a provider's sign-in or the server's reply is awaited.</summary>
+    public string BusyText => _text["Account_Busy"];
 
     /// <summary>Gets the text of the "play as guest" button.</summary>
     public string PlayAsGuestText => _text["Account_PlayAsGuest"];
@@ -164,12 +142,12 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets the text of the button that leaves the upgrade form.</summary>
     public string CancelText => _text["Account_Cancel"];
 
-    /// <summary>Gets the signed-in line of the session bar: the e-mail, or "Guest".</summary>
+    /// <summary>Gets the signed-in line of the session bar: the nickname, the provider's e-mail, or "Guest".</summary>
     public string SignedInText => this.CurrentSession is null
         ? string.Empty
         : this.CurrentSession.IsGuest
             ? _text["Account_Guest"]
-            : string.Format(CultureInfo.CurrentCulture, _text["Account_SignedInAs"].Value, this.CurrentSession.Email);
+            : string.Format(CultureInfo.CurrentCulture, _text["Account_SignedInAs"].Value, string.IsNullOrEmpty(this.CurrentSession.Email) ? this.CurrentSession.Nickname : this.CurrentSession.Email);
 
     /// <summary>Gets the invitation shown to a guest whose registration prompt is unlocked.</summary>
     public string UpgradePromptText => _text["Account_Upgrade_Prompt"];
@@ -201,17 +179,6 @@ public sealed class AccountFormViewModel : IObservableViewModel
         }
     }
 
-    /// <summary>Switches between the login and register forms and clears the error and the typed passwords.</summary>
-    public void SwitchMode()
-    {
-        if (this.Mode == AccountFormMode.Upgrade)
-        {
-            return;
-        }
-
-        this.ChangeMode(this.Mode == AccountFormMode.Register ? AccountFormMode.Login : AccountFormMode.Register);
-    }
-
     /// <summary>Shows the upgrade form to the signed-in guest. Does nothing for a registered player.</summary>
     public void BeginUpgrade()
     {
@@ -237,37 +204,46 @@ public sealed class AccountFormViewModel : IObservableViewModel
         => this.RunAsync(() => _client.StartGuestAsync(UiCulture.Current, cancellationToken), isUpgrade: false);
 
     /// <summary>
-    /// Checks the form for the current mode, sends the request and either raises the matching event or
-    /// sets <see cref="ErrorText"/>. Does nothing while a request is in flight.
+    /// Signs in with Google or Microsoft: the provider's sign-in runs, then the server is asked to sign the account in (creating it on first use).
+    /// Does nothing while a request is in flight. A provider without a client id is refused here, before any window opens.
     /// </summary>
+    /// <param name="provider">The provider the player picked.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>A task that completes when the reply has been handled.</returns>
-    public async Task SubmitAsync(CancellationToken cancellationToken = default)
+    public Task SignInWithAsync(ExternalProvider provider, CancellationToken cancellationToken = default)
+        => this.RunExternalAsync(
+            provider,
+            token => _client.SignInWithExternalAsync(provider, token, UiCulture.Current, cancellationToken),
+            isUpgrade: false,
+            cancellationToken);
+
+    /// <summary>
+    /// Links a Google or Microsoft identity to the signed-in guest, with the nickname typed in the form. The nickname is checked first, so
+    /// nothing opens when it is not valid. Does nothing while a request is in flight.
+    /// </summary>
+    /// <param name="provider">The provider the player picked.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the reply has been handled.</returns>
+    public Task LinkIdentityAsync(ExternalProvider provider, CancellationToken cancellationToken = default)
     {
         if (this.IsBusy)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        string? localError = this.Validate();
-        if (localError is not null)
-        {
-            this.ErrorText = localError;
-            this.Changed?.Invoke();
-            return;
-        }
-
-        string email = this.Email.Trim();
-        string password = this.Password;
         string nickname = NicknameRules.Normalize(this.Nickname);
-        await this.RunAsync(
-            () => this.Mode switch
-            {
-                AccountFormMode.Register => _client.RegisterAsync(email, password, nickname, UiCulture.Current, cancellationToken),
-                AccountFormMode.Upgrade => _client.UpgradeGuestAsync(email, password, nickname, cancellationToken),
-                _ => _client.LoginAsync(email, password, cancellationToken),
-            },
-            isUpgrade: this.Mode == AccountFormMode.Upgrade).ConfigureAwait(false);
+        if (NicknameVerdictStatus.From(NicknameRules.Validate(nickname)) is { } invalid)
+        {
+            this.ErrorText = StatusText(invalid);
+            this.Changed?.Invoke();
+            return Task.CompletedTask;
+        }
+
+        return this.RunExternalAsync(
+            provider,
+            token => _client.LinkExternalIdentityAsync(provider, token, nickname, cancellationToken),
+            isUpgrade: true,
+            cancellationToken);
     }
 
     /// <summary>Gets the language the UI is in now (the signed-in session's, which every switch updates; before sign-in the UI culture's).</summary>
@@ -397,14 +373,58 @@ public sealed class AccountFormViewModel : IObservableViewModel
         finally
         {
             this.IsBusy = false;
-            this.Password = string.Empty;
-            this.ConfirmPassword = string.Empty;
         }
 
+        this.ApplyReply(reply, isUpgrade);
+    }
+
+    private async Task RunExternalAsync(ExternalProvider provider, Func<string, Task<AccountReply>> send, bool isUpgrade, CancellationToken cancellationToken)
+    {
+        if (this.IsBusy)
+        {
+            return;
+        }
+
+        if (!_options.IsConfigured(provider))
+        {
+            this.ErrorText = _text["Account_Provider_NotConfigured"];
+            this.Changed?.Invoke();
+            return;
+        }
+
+        this.IsBusy = true;
+        this.ErrorText = null;
+        this.Changed?.Invoke();
+
+        AccountReply? reply = null;
+        try
+        {
+            string idToken = await _externalSignIn.GetIdTokenAsync(provider, cancellationToken).ConfigureAwait(false);
+            reply = await send(idToken).ConfigureAwait(false);
+        }
+        catch (ExternalSignInException ex)
+        {
+            this.ErrorText = ProviderFailureText(ex.Failure);
+        }
+        catch (AccountConnectionException)
+        {
+            this.ErrorText = _text["Account_Error_Connection"];
+        }
+        finally
+        {
+            this.IsBusy = false;
+        }
+
+        this.ApplyReply(reply, isUpgrade);
+    }
+
+    private void ApplyReply(AccountReply? reply, bool isUpgrade)
+    {
         if (reply is { Status: AccountStatus.Ok, Session: { } session })
         {
             this.CurrentSession = session;
             this.Mode = AccountFormMode.Login;
+            this.Nickname = string.Empty;
             this.Changed?.Invoke();
             if (isUpgrade)
             {
@@ -430,51 +450,17 @@ public sealed class AccountFormViewModel : IObservableViewModel
     {
         this.Mode = mode;
         this.ErrorText = null;
-        this.Password = string.Empty;
-        this.ConfirmPassword = string.Empty;
         this.Changed?.Invoke();
     }
 
-    private string? Validate()
+    private string ProviderFailureText(ExternalSignInFailure failure) => failure switch
     {
-        string email = this.Email.Trim();
-        if (!IsPlausibleEmail(email))
-        {
-            // On login any unknown address is simply a failed sign-in.
-            return this.IsRegister ? StatusText(AccountStatus.InvalidEmail) : StatusText(AccountStatus.InvalidCredentials);
-        }
-
-        if (this.Password.Length < AccountLimits.PasswordMinLength || this.Password.Length > AccountLimits.PasswordMaxLength)
-        {
-            // On login any wrong password is simply a failed sign-in; the length rules are a register concern.
-            return this.IsRegister ? StatusText(AccountStatus.InvalidPassword) : StatusText(AccountStatus.InvalidCredentials);
-        }
-
-        if (this.IsRegister && !string.Equals(this.Password, this.ConfirmPassword, StringComparison.Ordinal))
-        {
-            return _text["Account_Error_PasswordMismatch"];
-        }
-
-        if (this.IsRegister)
-        {
-            // Early feedback only; the server applies the same rules and checks that the name is free.
-            return NicknameVerdictStatus.From(NicknameRules.Validate(this.Nickname)) is { } status ? StatusText(status) : null;
-        }
-
-        return null;
-    }
-
-    // Early feedback only; the server applies the full rule (AccountRules.IsValidEmail).
-    internal static bool IsPlausibleEmail(string email)
-    {
-        if (email.Length > AccountLimits.EmailMaxLength || !email.EndsWith(EmailSuffix, StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        int local = email.Length - EmailSuffix.Length;
-        return local >= AccountLimits.EmailLocalMinLength && local <= AccountLimits.EmailLocalMaxLength;
-    }
+        ExternalSignInFailure.Cancelled => _text["Account_Error_Cancelled"],
+        ExternalSignInFailure.PopupBlocked => _text["Account_Error_PopupBlocked"],
+        ExternalSignInFailure.NotDisplayed => _text["Account_Error_NotDisplayed"],
+        ExternalSignInFailure.NotConfigured => _text["Account_Provider_NotConfigured"],
+        _ => _text["Account_Error_ProviderFailed"],
+    };
 
     private string StatusText(AccountStatus status) => _text["Account_Status_" + status.ToString()];
 }

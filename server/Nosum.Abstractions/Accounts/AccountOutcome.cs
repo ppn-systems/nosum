@@ -9,7 +9,7 @@ namespace Nosum.Abstractions.Accounts;
 /// <summary>Result of an account operation. Only <see cref="Status"/> is set unless it is <see cref="AccountStatus.Ok"/>.</summary>
 /// <param name="Status">The outcome code.</param>
 /// <param name="PlayerId">The signed-in player.</param>
-/// <param name="Email">The login e-mail in lower case; empty for a guest.</param>
+/// <param name="Email">The e-mail the identity provider reported, for display only; empty for a guest or when none was sent.</param>
 /// <param name="SessionToken">The session token; empty when the operation issues none.</param>
 /// <param name="SessionId">The id of the stored session (what logout revokes); empty when none.</param>
 /// <param name="ExpiresAt">When the session token expires.</param>

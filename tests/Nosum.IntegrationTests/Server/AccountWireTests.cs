@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Nosum.IntegrationTests.Server;
 
-/// <summary>Register, login and resume over a real WebSocket against the real host and a real PostgreSQL database.</summary>
+/// <summary>Sign-in, link, resume and logout over a real WebSocket against the real host and a real PostgreSQL database.</summary>
 [Collection(NalixHostSerial.Name)]
 public sealed class AccountWireTests : IClassFixture<PostgresFixture>
 {
@@ -29,28 +29,29 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
     public AccountWireTests(PostgresFixture database) => _database = database;
 
     [Fact]
-    public async Task RegisterThenLoginThenResume_OverWebSocket_SignsTheSamePlayerInEachTime()
+    public async Task ExternalSignInThenResume_OverWebSocket_SignsTheSamePlayerInEachTime()
     {
         await using NetworkApplication app = await StartAsync();
-        string name = "w" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
+        string subject = NewSubject();
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
         try
         {
             AccountResult registered = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new Register { Email = name, Password = "password-1", PreferredLanguage = GameLanguage.English, Nickname = TestNicknames.Next() }, ct: timeout.Token));
-            AccountResult loggedIn = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new Login { Email = name, Password = "password-1" }, ct: timeout.Token));
+                NewSignIn(subject, GameLanguage.English), ct: timeout.Token));
+            AccountResult signedInAgain = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
+                NewSignIn(subject, GameLanguage.English), ct: timeout.Token));
             AccountResult resumed = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
                 new ResumeSession { SessionToken = registered.SessionToken }, ct: timeout.Token));
 
             registered.Status.Should().Be(AccountStatus.Ok);
             registered.PreferredLanguage.Should().Be(GameLanguage.English);
-            loggedIn.Status.Should().Be(AccountStatus.Ok);
-            loggedIn.PlayerId.Should().Be(registered.PlayerId);
-            loggedIn.SessionToken.Should().NotBeEmpty();
+            registered.IsGuest.Should().BeFalse();
+            signedInAgain.Status.Should().Be(AccountStatus.Ok);
+            signedInAgain.PlayerId.Should().Be(registered.PlayerId);
+            signedInAgain.SessionToken.Should().NotBeEmpty();
             resumed.Status.Should().Be(AccountStatus.Ok);
             resumed.PlayerId.Should().Be(registered.PlayerId);
-            resumed.Email.Should().Be(name);
+            resumed.Nickname.Should().Be(registered.Nickname);
         }
         finally
         {
@@ -59,20 +60,16 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task Login_WrongPassword_RepliesInvalidCredentialsCodeWithoutSession()
+    public async Task ExternalSignIn_TokenTheVerifierRejects_RepliesInvalidIdTokenWithoutSession()
     {
         await using NetworkApplication app = await StartAsync();
-        string name = "w" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
         try
         {
-            _ = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new Register { Email = name, Password = "password-1", Nickname = TestNicknames.Next() }, ct: timeout.Token));
-
             AccountResult result = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new Login { Email = name, Password = "wrong-password" }, ct: timeout.Token));
+                new ExternalSignIn { Provider = ExternalProvider.Google, IdToken = "not-a-real-token" }, ct: timeout.Token));
 
-            result.Status.Should().Be(AccountStatus.InvalidCredentials);
+            result.Status.Should().Be(AccountStatus.InvalidIdToken);
             result.SessionToken.Should().BeEmpty();
         }
         finally
@@ -85,29 +82,29 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
     public async Task SetLanguage_BeforeSignIn_IsDeniedAndAfterSignInIsStored()
     {
         await using NetworkApplication app = await StartAsync();
-        string name = "w" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
+        string subject = NewSubject();
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
         try
         {
-            // Same connection: the permission level rises only after register succeeds.
+            // Same connection: the permission level rises only after sign-in succeeds.
             using WebSocketSession session = NewSession();
             await session.ConnectAsync();
-        await session.HandshakeAsync();
+            await session.HandshakeAsync();
 
             Func<Task> denied = async () => _ = await session.RequestAsync<LanguageResult>(
                 new SetLanguage { Language = GameLanguage.English }, RequestOptions.Default.WithTimeout(1500), ct: timeout.Token);
             _ = await denied.Should().ThrowAsync<Exception>();
 
-            using Register register = new() { Email = name, Password = "password-1", Nickname = TestNicknames.Next() };
-            AccountResult registered = await session.RequestAsync<AccountResult>(register, ct: timeout.Token);
+            using ExternalSignIn signIn = NewSignIn(subject, GameLanguage.Unspecified);
+            AccountResult signedIn = await session.RequestAsync<AccountResult>(signIn, ct: timeout.Token);
             using SetLanguage setLanguage = new() { Language = GameLanguage.English };
             LanguageResult allowed = await session.RequestAsync<LanguageResult>(setLanguage, ct: timeout.Token);
 
-            registered.PreferredLanguage.Should().Be(GameLanguage.Vietnamese);
+            signedIn.PreferredLanguage.Should().Be(GameLanguage.Vietnamese);
             allowed.Status.Should().Be(AccountStatus.Ok);
             allowed.Language.Should().Be(GameLanguage.English);
             AccountResult next = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new Login { Email = name, Password = "password-1" }, ct: timeout.Token));
+                NewSignIn(subject, GameLanguage.Unspecified), ct: timeout.Token));
             next.PreferredLanguage.Should().Be(GameLanguage.English);
         }
         finally
@@ -117,33 +114,33 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task GuestThenUpgrade_OverWebSocket_KeepsThePlayerAndRevokesTheGuestToken()
+    public async Task GuestThenLink_OverWebSocket_KeepsThePlayerAndRevokesTheGuestToken()
     {
         await using NetworkApplication app = await StartAsync();
-        string email = "w" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
+        string subject = NewSubject();
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
         try
         {
             using WebSocketSession session = NewSession();
             await session.ConnectAsync();
-        await session.HandshakeAsync();
+            await session.HandshakeAsync();
 
             using StartGuest start = new() { PreferredLanguage = GameLanguage.English };
             AccountResult guest = await session.RequestAsync<AccountResult>(start, ct: timeout.Token);
-            using UpgradeGuest upgrade = new() { Email = email, Password = "password-1", Nickname = TestNicknames.Next() };
-            AccountResult upgraded = await session.RequestAsync<AccountResult>(upgrade, ct: timeout.Token);
-            using UpgradeGuest again = new() { Email = "x" + email, Password = "password-1", Nickname = TestNicknames.Next() };
+            using LinkExternalIdentity link = NewLink(subject, TestNicknames.Next());
+            AccountResult linked = await session.RequestAsync<AccountResult>(link, ct: timeout.Token);
+            using LinkExternalIdentity again = NewLink(NewSubject(), TestNicknames.Next());
             AccountResult second = await session.RequestAsync<AccountResult>(again, ct: timeout.Token);
             AccountResult guestToken = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
                 new ResumeSession { SessionToken = guest.SessionToken }, ct: timeout.Token));
             AccountResult newToken = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new ResumeSession { SessionToken = upgraded.SessionToken }, ct: timeout.Token));
+                new ResumeSession { SessionToken = linked.SessionToken }, ct: timeout.Token));
 
             guest.IsGuest.Should().BeTrue();
             guest.Email.Should().BeEmpty();
-            upgraded.Status.Should().Be(AccountStatus.Ok);
-            upgraded.PlayerId.Should().Be(guest.PlayerId);
-            upgraded.IsGuest.Should().BeFalse();
+            linked.Status.Should().Be(AccountStatus.Ok);
+            linked.PlayerId.Should().Be(guest.PlayerId);
+            linked.IsGuest.Should().BeFalse();
             second.Status.Should().Be(AccountStatus.NotGuest);
             guestToken.Status.Should().Be(AccountStatus.InvalidToken);
             newToken.PlayerId.Should().Be(guest.PlayerId);
@@ -158,20 +155,20 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
     public async Task Logout_OverWebSocket_RevokesTheTokenAndSignsTheConnectionOut()
     {
         await using NetworkApplication app = await StartAsync();
-        string email = "w" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
+        string subject = NewSubject();
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
         try
         {
             using WebSocketSession session = NewSession();
             await session.ConnectAsync();
-        await session.HandshakeAsync();
-            using Register register = new() { Email = email, Password = "password-1", Nickname = TestNicknames.Next() };
-            AccountResult registered = await session.RequestAsync<AccountResult>(register, ct: timeout.Token);
+            await session.HandshakeAsync();
+            using ExternalSignIn signIn = NewSignIn(subject, GameLanguage.Unspecified);
+            AccountResult signedIn = await session.RequestAsync<AccountResult>(signIn, ct: timeout.Token);
 
             using Logout logout = new();
             AccountResult loggedOut = await session.RequestAsync<AccountResult>(logout, ct: timeout.Token);
             AccountResult resumed = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
-                new ResumeSession { SessionToken = registered.SessionToken }, ct: timeout.Token));
+                new ResumeSession { SessionToken = signedIn.SessionToken }, ct: timeout.Token));
             using SetLanguage setLanguage = new() { Language = GameLanguage.English };
             Func<Task> denied = async () => _ = await session.RequestAsync<LanguageResult>(
                 setLanguage, RequestOptions.Default.WithTimeout(1500), ct: timeout.Token);
@@ -185,6 +182,22 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
             await app.DeactivateAsync(CancellationToken.None);
         }
     }
+
+    private static string NewSubject() => Guid.NewGuid().ToString("N");
+
+    private static ExternalSignIn NewSignIn(string subject, GameLanguage language) => new()
+    {
+        Provider = ExternalProvider.Google,
+        IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, subject),
+        PreferredLanguage = language,
+    };
+
+    private static LinkExternalIdentity NewLink(string subject, string nickname) => new()
+    {
+        Provider = ExternalProvider.Google,
+        IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, subject),
+        Nickname = nickname,
+    };
 
     private async Task<NetworkApplication> StartAsync()
     {

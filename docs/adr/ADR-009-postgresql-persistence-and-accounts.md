@@ -1,6 +1,6 @@
 # ADR-009 — PostgreSQL persistence and player accounts
 
-**Status:** Accepted (owner decisions, 2026-10-25)
+**Status:** Accepted (owner decisions, 2026-10-25). Password sign-in is replaced by Google and Microsoft sign-in (docs/adr/ADR-069).
 
 ## Context
 

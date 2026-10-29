@@ -3,11 +3,10 @@
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Abstractions.Serialization;
 using Nalix.Codec.DataFrames;
-using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Account.C2S;
 
-/// <summary>Changes the signed-in player's password; every other session of the account ends.</summary>
+/// <summary>Retired: password change. Retired (docs/adr/ADR-069): the class and its opcode stay reserved and are never reused; it has no fields and the server has no handler.</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]
@@ -15,12 +14,4 @@ public sealed partial class ChangePassword : PacketBase<ChangePassword>, IPacket
 {
     /// <inheritdoc/>
     public static ushort StaticOpCode => AccountOpCode.ChangePassword;
-
-    /// <summary>The current password in plain text. Never logged.</summary>
-    [WireMaxLength(WireLimits.Password)]
-    [SerializeOrder(0)] public string CurrentPassword { get; set; } = string.Empty;
-
-    /// <summary>The new password in plain text. Never logged.</summary>
-    [WireMaxLength(WireLimits.Password)]
-    [SerializeOrder(1)] public string NewPassword { get; set; } = string.Empty;
 }

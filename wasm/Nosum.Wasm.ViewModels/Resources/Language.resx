@@ -5,19 +5,8 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Account_Title_Login" xml:space="preserve"><value>Đăng nhập</value></data>
-  <data name="Account_Title_Register" xml:space="preserve"><value>Tạo tài khoản</value></data>
-  <data name="Account_Password" xml:space="preserve"><value>Mật khẩu</value></data>
-  <data name="Account_ConfirmPassword" xml:space="preserve"><value>Nhập lại mật khẩu</value></data>
-  <data name="Account_Submit_Login" xml:space="preserve"><value>Đăng nhập</value></data>
-  <data name="Account_Submit_Register" xml:space="preserve"><value>Đăng ký</value></data>
-  <data name="Account_Switch_ToRegister" xml:space="preserve"><value>Chưa có tài khoản? Đăng ký</value></data>
-  <data name="Account_Switch_ToLogin" xml:space="preserve"><value>Đã có tài khoản? Đăng nhập</value></data>
-  <data name="Account_Busy" xml:space="preserve"><value>Đang xử lý…</value></data>
-  <data name="Account_PasswordHint" xml:space="preserve"><value>Từ {0} đến {1} ký tự.</value></data>
-  <data name="Account_Error_PasswordMismatch" xml:space="preserve"><value>Hai mật khẩu không khớp.</value></data>
+  <data name="Account_Busy" xml:space="preserve"><value>Đang chờ bạn hoàn tất đăng nhập…</value></data>
   <data name="Account_Error_Connection" xml:space="preserve"><value>Không thể kết nối tới máy chủ. Vui lòng thử lại.</value></data>
-  <data name="Account_Status_InvalidPassword" xml:space="preserve"><value>Mật khẩu không hợp lệ.</value></data>
-  <data name="Account_Status_InvalidCredentials" xml:space="preserve"><value>Sai email hoặc mật khẩu.</value></data>
   <data name="Account_Status_InvalidToken" xml:space="preserve"><value>Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.</value></data>
   <data name="Account_Status_InvalidLanguage" xml:space="preserve"><value>Ngôn ngữ không hợp lệ.</value></data>
   <data name="Connection_Connecting" xml:space="preserve"><value>Đang kết nối…</value></data>
@@ -31,18 +20,25 @@
   <data name="Connection_Paused" xml:space="preserve"><value>Trò chơi tạm dừng cho đến khi kết nối lại.</value></data>
   <data name="Connection_RetryNow" xml:space="preserve"><value>Thử lại ngay</value></data>
   <data name="Join_UnknownMap" xml:space="preserve"><value>Không tìm thấy bản đồ</value></data>
-  <data name="Account_Email" xml:space="preserve"><value>Địa chỉ Gmail</value></data>
-  <data name="Account_EmailHint" xml:space="preserve"><value>Chỉ chấp nhận địa chỉ @{0}.</value></data>
-  <data name="Account_Status_InvalidEmail" xml:space="preserve"><value>Địa chỉ Gmail không hợp lệ.</value></data>
-  <data name="Account_Status_EmailTaken" xml:space="preserve"><value>Địa chỉ Gmail này đã được đăng ký.</value></data>
   <data name="Account_Status_NotGuest" xml:space="preserve"><value>Tài khoản này không phải tài khoản khách.</value></data>
   <data name="Account_PlayAsGuest" xml:space="preserve"><value>Chơi ngay với tư cách khách</value></data>
   <data name="Account_Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Account_Guest" xml:space="preserve"><value>Khách</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Đã đăng nhập: {0}</value></data>
-  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy đăng ký bằng Gmail.</value></data>
-  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Đăng ký ngay</value></data>
+  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy liên kết tài khoản Google hoặc Microsoft.</value></data>
+  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Liên kết tài khoản</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="Account_SignIn_Google" xml:space="preserve"><value>Đăng nhập bằng Google</value></data>
+  <data name="Account_SignIn_Microsoft" xml:space="preserve"><value>Đăng nhập bằng Microsoft</value></data>
+  <data name="Account_Link_Google" xml:space="preserve"><value>Liên kết tài khoản Google</value></data>
+  <data name="Account_Link_Microsoft" xml:space="preserve"><value>Liên kết tài khoản Microsoft</value></data>
+  <data name="Account_Provider_NotConfigured" xml:space="preserve"><value>Đăng nhập này chưa được bật trên máy chủ.</value></data>
+  <data name="Account_Error_Cancelled" xml:space="preserve"><value>Bạn đã hủy đăng nhập.</value></data>
+  <data name="Account_Error_PopupBlocked" xml:space="preserve"><value>Trình duyệt đã chặn cửa sổ đăng nhập. Hãy cho phép cửa sổ bật lên của trang này rồi thử lại.</value></data>
+  <data name="Account_Error_NotDisplayed" xml:space="preserve"><value>Không hiển thị được màn hình đăng nhập Google. Hãy kiểm tra cài đặt trình duyệt rồi thử lại.</value></data>
+  <data name="Account_Error_ProviderFailed" xml:space="preserve"><value>Đăng nhập không thành công. Vui lòng thử lại.</value></data>
+  <data name="Account_Status_InvalidIdToken" xml:space="preserve"><value>Không xác minh được tài khoản của bạn. Vui lòng thử lại.</value></data>
+  <data name="Account_Status_IdentityTaken" xml:space="preserve"><value>Tài khoản Google hoặc Microsoft này đã được liên kết với người chơi khác.</value></data>
   <data name="Account_Title_Upgrade" xml:space="preserve"><value>Lưu tài khoản của bạn</value></data>
   <data name="Account_Status_SessionReplaced" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì tài khoản được đăng nhập ở nơi khác.</value></data>
   <data name="Farm_Status_NotOnFarm" xml:space="preserve"><value>Bạn không thể làm ruộng ở đây.</value></data>
@@ -289,7 +285,7 @@
   <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} ký tự: chữ cái không dấu (a-z) và chữ số, giữa các từ là một dấu cách hoặc gạch dưới. Không dùng từ tục tĩu.</value></data>
   <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>Biệt danh không hợp lệ. Chỉ dùng chữ cái không dấu (a-z) và chữ số.</value></data>
   <data name="Account_Status_NicknameProfane" xml:space="preserve"><value>Biệt danh này không được phép dùng: chứa từ ngữ thô tục.</value></data>
-  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Hãy đăng ký tài khoản để chọn biệt danh.</value></data>
+  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Hãy liên kết tài khoản Google hoặc Microsoft để chọn biệt danh.</value></data>
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>Biệt danh này không được phép dùng.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>Biệt danh này đã có người dùng.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>Bạn vừa đổi biệt danh. Hãy thử lại sau.</value></data>
@@ -300,7 +296,7 @@
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>Bạn chỉ đổi được biệt danh mỗi 24 giờ một lần.</value></data>
-  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách giữ tên được tạo sẵn. Hãy đăng ký tài khoản để chọn biệt danh của riêng bạn.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách giữ tên được tạo sẵn. Hãy liên kết tài khoản Google hoặc Microsoft để chọn biệt danh của riêng bạn.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Đã đổi biệt danh thành {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>Có thể đổi lại lúc {0}.</value></data>
   <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Cửa hàng hạt giống</value></data>
@@ -765,9 +761,7 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Cần cầm xô vắt sữa trên tay.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>Máng đã đầy.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>Khu đất đã có tối đa số công trình.</value></data>
-  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>Mã khôi phục không đúng, đã hết hạn hoặc đã được dùng.</value></data>
   <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Quá nhiều yêu cầu. Hãy thử lại sau.</value></data>
-  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì mật khẩu tài khoản đã được đặt lại.</value></data>
   <data name="Connection_KeyMismatch" xml:space="preserve"><value>Danh tính máy chủ đã thay đổi. Có thể đây là máy chủ giả mạo nên trò chơi từ chối kết nối. Hãy chờ thông báo chính thức hoặc xóa dữ liệu trang web nếu bạn đang chạy bản phát triển.</value></data>
   <data name="Board_Tab_Goals" xml:space="preserve"><value>Mục tiêu</value></data>
   <data name="Board_Tab_Requests" xml:space="preserve"><value>Yêu cầu</value></data>

@@ -15,21 +15,13 @@ namespace Nosum.Wasm.ViewModels.Account;
 /// </summary>
 public interface IAccountClient
 {
-    /// <summary>Creates an account and signs in.</summary>
-    /// <param name="email">Wanted login, a @gmail.com address.</param>
-    /// <param name="password">Wanted password.</param>
-    /// <param name="nickname">Wanted display nickname.</param>
-    /// <param name="language">The current UI language.</param>
+    /// <summary>Signs in with a Google or Microsoft ID token; the server creates the account on first use.</summary>
+    /// <param name="provider">The provider that issued <paramref name="idToken"/>.</param>
+    /// <param name="idToken">The provider's ID token. Never logged.</param>
+    /// <param name="language">The current UI language, stored when the account is created.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>The server's status code and, when Ok, the session.</returns>
-    Task<AccountReply> RegisterAsync(string email, string password, string nickname, GameLanguage language, CancellationToken cancellationToken);
-
-    /// <summary>Signs in with a username and password.</summary>
-    /// <param name="email">The login e-mail.</param>
-    /// <param name="password">The password.</param>
-    /// <param name="cancellationToken">Cancels the request.</param>
-    /// <returns>The server's status code and, when Ok, the session.</returns>
-    Task<AccountReply> LoginAsync(string email, string password, CancellationToken cancellationToken);
+    Task<AccountReply> SignInWithExternalAsync(ExternalProvider provider, string idToken, GameLanguage language, CancellationToken cancellationToken);
 
     /// <summary>Starts playing as a guest: the server creates a guest player and a session.</summary>
     /// <param name="language">The current UI language.</param>
@@ -37,13 +29,13 @@ public interface IAccountClient
     /// <returns>The server's status code and, when Ok, the guest session.</returns>
     Task<AccountReply> StartGuestAsync(GameLanguage language, CancellationToken cancellationToken);
 
-    /// <summary>Turns the signed-in guest into a registered player in place (same player, new session token).</summary>
-    /// <param name="email">Wanted login, a @gmail.com address.</param>
-    /// <param name="password">Wanted password.</param>
+    /// <summary>Turns the signed-in guest into a registered player by linking a Google or Microsoft identity (same player, new session token).</summary>
+    /// <param name="provider">The provider that issued <paramref name="idToken"/>.</param>
+    /// <param name="idToken">The provider's ID token. Never logged.</param>
     /// <param name="nickname">Wanted display nickname, replacing the guest's neutral one.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>The server's status code and, when Ok, the new session.</returns>
-    Task<AccountReply> UpgradeGuestAsync(string email, string password, string nickname, CancellationToken cancellationToken);
+    Task<AccountReply> LinkExternalIdentityAsync(ExternalProvider provider, string idToken, string nickname, CancellationToken cancellationToken);
 
     /// <summary>Changes the signed-in player's nickname (allowed once every 24 hours).</summary>
     /// <param name="nickname">The wanted nickname.</param>
@@ -71,7 +63,7 @@ public interface IAccountClient
 
 /// <summary>A signed-in session as the client sees it.</summary>
 /// <param name="PlayerId">The player's id.</param>
-/// <param name="Email">The login e-mail; empty for a guest.</param>
+/// <param name="Email">The e-mail the identity provider reported, for display only; empty for a guest or when none was sent.</param>
 /// <param name="SessionToken">Token for <see cref="IAccountClient.ResumeAsync"/>; keep it out of logs.</param>
 /// <param name="ExpiresAt">When the token expires.</param>
 /// <param name="Language">The stored language to apply to the UI.</param>

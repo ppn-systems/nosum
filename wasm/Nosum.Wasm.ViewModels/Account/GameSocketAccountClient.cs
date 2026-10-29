@@ -32,22 +32,12 @@ public sealed class GameSocketAccountClient : IAccountClient
     }
 
     /// <inheritdoc/>
-    public async Task<AccountReply> RegisterAsync(string email, string password, string nickname, GameLanguage language, CancellationToken cancellationToken)
+    public async Task<AccountReply> SignInWithExternalAsync(ExternalProvider provider, string idToken, GameLanguage language, CancellationToken cancellationToken)
     {
-        using PacketScope<Register> lease = PacketFactory<Register>.Acquire();
-        lease.Value.Email = email;
-        lease.Value.Password = password;
+        using PacketScope<ExternalSignIn> lease = PacketFactory<ExternalSignIn>.Acquire();
+        lease.Value.Provider = provider;
+        lease.Value.IdToken = idToken;
         lease.Value.PreferredLanguage = language;
-        lease.Value.Nickname = nickname;
-        return await this.SendAsync(lease.Value, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc/>
-    public async Task<AccountReply> LoginAsync(string email, string password, CancellationToken cancellationToken)
-    {
-        using PacketScope<Login> lease = PacketFactory<Login>.Acquire();
-        lease.Value.Email = email;
-        lease.Value.Password = password;
         return await this.SendAsync(lease.Value, cancellationToken).ConfigureAwait(false);
     }
 
@@ -60,11 +50,11 @@ public sealed class GameSocketAccountClient : IAccountClient
     }
 
     /// <inheritdoc/>
-    public async Task<AccountReply> UpgradeGuestAsync(string email, string password, string nickname, CancellationToken cancellationToken)
+    public async Task<AccountReply> LinkExternalIdentityAsync(ExternalProvider provider, string idToken, string nickname, CancellationToken cancellationToken)
     {
-        using PacketScope<UpgradeGuest> lease = PacketFactory<UpgradeGuest>.Acquire();
-        lease.Value.Email = email;
-        lease.Value.Password = password;
+        using PacketScope<LinkExternalIdentity> lease = PacketFactory<LinkExternalIdentity>.Acquire();
+        lease.Value.Provider = provider;
+        lease.Value.IdToken = idToken;
         lease.Value.Nickname = nickname;
         return await this.SendAsync(lease.Value, cancellationToken).ConfigureAwait(false);
     }

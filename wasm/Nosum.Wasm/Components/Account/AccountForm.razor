@@ -1,63 +1,58 @@
+@using Nosum.Contracts.Account
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.ViewModels.Account
 @using System.Threading
 @implements IDisposable
 
-@* Reusable login / register form, built only from the shared controls. All text and behaviour come from the view model; no network code here.
-   The fields and buttons are Focusable: this form is shown while the game does not own the keyboard (before sign-in, or over the game on upgrade). *@
+@* Reusable account form, built only from the shared controls: sign in with Google or Microsoft, or play as a guest; a guest links one of the two
+   identities and chooses a nickname. All text and behaviour come from the view model; no network code here. The buttons are Focusable: this form
+   is shown while the game does not own the keyboard (before sign-in, or over the game on upgrade). *@
 <GamePanel Title="@Vm.Title" Class="account" Role="form">
-    <form class="account-form @(Vm.IsRegister ? "register" : null)" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+    <div class="account-form">
         <GameStack>
-            <div class="account-fields">
-                <GameField Label="@Vm.EmailLabel" Hint="@(Vm.IsRegister ? Vm.EmailHint : null)">
-                    <GameInput Type="email" Value="@Vm.Email" ValueChanged="@(v => Vm.Email = v)" Label="@Vm.EmailLabel" AutoComplete="email"
-                               MaxLength="@AccountFormViewModel.EmailMaxLength" Disabled="@Vm.IsBusy" />
+            @if (Vm.IsUpgradeMode)
+            {
+                <GameField Label="@Vm.NicknameLabel" Hint="@Vm.NicknameHint">
+                    <GameInput Value="@Vm.Nickname" ValueChanged="@(v => Vm.Nickname = v)" Label="@Vm.NicknameLabel" AutoComplete="nickname" MaxLength="@AccountFormViewModel.NicknameMaxLength" Disabled="@Vm.IsBusy" />
                 </GameField>
+            }
 
-                <GameField Label="@Vm.PasswordLabel" Hint="@(Vm.IsRegister ? Vm.PasswordHint : null)">
-                    <GameInput Type="password" Value="@Vm.Password" ValueChanged="@(v => Vm.Password = v)" Label="@Vm.PasswordLabel" AutoComplete="@(Vm.IsRegister ? "new-password" : "current-password")"
-                               MaxLength="@AccountFormViewModel.PasswordMaxLength" Disabled="@Vm.IsBusy" />
-                </GameField>
-
-                @if (Vm.IsRegister)
+            <GameStack>
+                <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.GoogleEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)"
+                            OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkIdentityAsync(ExternalProvider.Google) : Vm.SignInWithAsync(ExternalProvider.Google))" />
+                @if (Vm.GoogleHint is { } googleHint)
                 {
-                    <GameField Label="@Vm.ConfirmPasswordLabel">
-                        <GameInput Type="password" Value="@Vm.ConfirmPassword" ValueChanged="@(v => Vm.ConfirmPassword = v)" Label="@Vm.ConfirmPasswordLabel" AutoComplete="new-password"
-                                   MaxLength="@AccountFormViewModel.PasswordMaxLength" Disabled="@Vm.IsBusy" />
-                    </GameField>
-
-                    <GameField Label="@Vm.NicknameLabel" Hint="@Vm.NicknameHint">
-                        <GameInput Value="@Vm.Nickname" ValueChanged="@(v => Vm.Nickname = v)" Label="@Vm.NicknameLabel" AutoComplete="nickname" MaxLength="@AccountFormViewModel.NicknameMaxLength" Disabled="@Vm.IsBusy" />
-                    </GameField>
+                    <GameNotice Kind="info" Text="@googleHint" />
                 }
 
-            </div>
+                <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.MicrosoftEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkMicrosoftText : Vm.SignInMicrosoftText)"
+                            OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkIdentityAsync(ExternalProvider.Microsoft) : Vm.SignInWithAsync(ExternalProvider.Microsoft))" />
+                @if (Vm.MicrosoftHint is { } microsoftHint)
+                {
+                    <GameNotice Kind="info" Text="@microsoftHint" />
+                }
+            </GameStack>
+
+            @if (Vm.IsBusy)
+            {
+                <GameNotice Kind="info" Text="@Vm.BusyText"><GameSpinner /></GameNotice>
+            }
 
             @if (Vm.ErrorText is not null)
             {
                 <GameNotice Kind="error" Text="@Vm.ErrorText" />
             }
 
-            <GameButton Submit="true" Focusable="true" Disabled="@Vm.IsBusy">@Vm.SubmitText@if (Vm.IsBusy)
-                {
-                    <GameSpinner />
-                }</GameButton>
-
-            @if (Vm.Mode == AccountFormMode.Upgrade)
+            @if (Vm.IsUpgradeMode)
             {
                 <GameButton Variant="plain" Focusable="true" OnClick="Vm.CancelUpgrade" Disabled="@Vm.IsBusy" Text="@Vm.CancelText" />
             }
-            else
-            {
-                <GameButton Variant="link" Focusable="true" OnClick="Vm.SwitchMode" Disabled="@Vm.IsBusy" Text="@Vm.SwitchModeText" />
-            }
-
-            @if (Vm.CanPlayAsGuest)
+            else if (Vm.CanPlayAsGuest)
             {
                 <GameButton Variant="plain" Focusable="true" OnClick="PlayAsGuestAsync" Disabled="@Vm.IsBusy" Text="@Vm.PlayAsGuestText" />
             }
         </GameStack>
-    </form>
+    </div>
 </GamePanel>
 
 @code {
@@ -84,8 +79,6 @@
 
     // The view model can raise Changed from a socket callback; marshal back to the render context.
     private void OnChanged() => _ = InvokeAsync(StateHasChanged);
-
-    private Task SubmitAsync() => Vm.SubmitAsync(CancellationToken.None);
 
     private Task PlayAsGuestAsync() => Vm.PlayAsGuestAsync(CancellationToken.None);
 
