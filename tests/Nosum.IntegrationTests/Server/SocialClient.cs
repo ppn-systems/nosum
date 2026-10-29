@@ -248,6 +248,7 @@ internal sealed partial class SocialClient : IAsyncDisposable
             IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, Guid.NewGuid().ToString("N")),
             Nickname = nickname,
         };
+        await WirePace.CredentialAsync(ct);
         AccountResult result = await this.RequestAsync<AccountResult>(request, ct);
         if (result.Status == AccountStatus.Ok)
         {

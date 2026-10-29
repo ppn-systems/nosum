@@ -18,6 +18,8 @@ internal static class WirePace
 {
     private static readonly SemaphoreSlim s_resumeGate = new(1, 1);
     private static readonly SemaphoreSlim s_requestGate = new(1, 1);
+    private static readonly SemaphoreSlim s_credentialGate = new(1, 1);
+    private static DateTime s_lastCredential = DateTime.MinValue;
     private static DateTime s_lastResume = DateTime.MinValue;
     private static DateTime s_lastRequest = DateTime.MinValue;
 
@@ -37,6 +39,29 @@ internal static class WirePace
         finally
         {
             _ = s_resumeGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Spaces the Google/Microsoft sign-in and link requests: the server allows one per address every five seconds, and a burst on loopback
+    /// is locked out for a minute (docs/adr/ADR-069 D7, <c>account-credential</c>).
+    /// </summary>
+    public static async Task CredentialAsync(CancellationToken ct)
+    {
+        await s_credentialGate.WaitAsync(ct);
+        try
+        {
+            TimeSpan wait = TimeSpan.FromSeconds(5.2) - (DateTime.UtcNow - s_lastCredential);
+            if (wait > TimeSpan.Zero)
+            {
+                await Task.Delay(wait, ct);
+            }
+
+            s_lastCredential = DateTime.UtcNow;
+        }
+        finally
+        {
+            _ = s_credentialGate.Release();
         }
     }
 

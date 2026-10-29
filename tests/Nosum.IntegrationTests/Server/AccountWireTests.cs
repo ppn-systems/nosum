@@ -36,8 +36,10 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
         try
         {
+            await WirePace.CredentialAsync(timeout.Token);
             AccountResult registered = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
                 NewSignIn(subject, GameLanguage.English), ct: timeout.Token));
+            await WirePace.CredentialAsync(timeout.Token);
             AccountResult signedInAgain = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
                 NewSignIn(subject, GameLanguage.English), ct: timeout.Token));
             AccountResult resumed = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
@@ -66,6 +68,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
         try
         {
+            await WirePace.CredentialAsync(timeout.Token);
             AccountResult result = await WithSessionAsync(app, s => s.RequestAsync<AccountResult>(
                 new ExternalSignIn { Provider = ExternalProvider.Google, IdToken = "not-a-real-token" }, ct: timeout.Token));
 
@@ -96,6 +99,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
             _ = await denied.Should().ThrowAsync<Exception>();
 
             using ExternalSignIn signIn = NewSignIn(subject, GameLanguage.Unspecified);
+            await WirePace.CredentialAsync(timeout.Token);
             AccountResult signedIn = await session.RequestAsync<AccountResult>(signIn, ct: timeout.Token);
             using SetLanguage setLanguage = new() { Language = GameLanguage.English };
             LanguageResult allowed = await session.RequestAsync<LanguageResult>(setLanguage, ct: timeout.Token);
@@ -128,6 +132,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
             using StartGuest start = new() { PreferredLanguage = GameLanguage.English };
             AccountResult guest = await session.RequestAsync<AccountResult>(start, ct: timeout.Token);
             using LinkExternalIdentity link = NewLink(subject, TestNicknames.Next());
+            await WirePace.CredentialAsync(timeout.Token);
             AccountResult linked = await session.RequestAsync<AccountResult>(link, ct: timeout.Token);
             using LinkExternalIdentity again = NewLink(NewSubject(), TestNicknames.Next());
             AccountResult second = await session.RequestAsync<AccountResult>(again, ct: timeout.Token);
@@ -163,6 +168,7 @@ public sealed class AccountWireTests : IClassFixture<PostgresFixture>
             await session.ConnectAsync();
             await session.HandshakeAsync();
             using ExternalSignIn signIn = NewSignIn(subject, GameLanguage.Unspecified);
+            await WirePace.CredentialAsync(timeout.Token);
             AccountResult signedIn = await session.RequestAsync<AccountResult>(signIn, ct: timeout.Token);
 
             using Logout logout = new();
