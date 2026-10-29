@@ -56,6 +56,7 @@ public sealed partial class DbBudgetRun
             int slot = await this.SlotOfAsync(p, ItemCatalog.Parsnip);
             _ = await _rig.ProbeAsync<ChestResult>(p, "Chest", PlaceableOpCode.ChestMove, "ChestMove", "five parsnips into the chest", () => new ChestMove { ObjectId = chestId, FromSide = ChestSide.Player, FromSlot = (byte)slot, ToSide = ChestSide.Chest, ToSlot = 0, Quantity = 5 });
             _ = await _rig.ProbeAsync<ChestResult>(p, "Chest", PlaceableOpCode.ChestMove, "ChestMove", "one parsnip back out", () => new ChestMove { ObjectId = chestId, FromSide = ChestSide.Chest, FromSlot = 0, ToSide = ChestSide.Player, ToSlot = (byte)slot, Quantity = 1 });
+            _ = await _rig.ProbeAsync<ChestResult>(p, "Chest", PlaceableOpCode.ChestSort, "ChestSort", "sort the chest", () => new ChestSort { ObjectId = chestId });
             await _rig.MeasureAsync("Chest", PlaceableOpCode.CloseChest, "CloseChest", "close", async () =>
             {
                 using CloseChest close = new() { ObjectId = chestId };

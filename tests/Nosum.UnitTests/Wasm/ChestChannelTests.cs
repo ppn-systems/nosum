@@ -193,4 +193,29 @@ public sealed class ChestChannelTests
         closed.Should().Be(1);
         channel.Dispose();
     }
+
+    [Fact]
+    public void Sort_SendsTheOpenChestId()
+    {
+        FakeGameSocket socket = new();
+        ChestChannel channel = Opened(socket);
+        socket.ReplyWith(_ => new ChestResult { Status = ChestStatus.Ok, ObjectId = 7 });
+
+        channel.Sort();
+
+        ChestSort request = (ChestSort)socket.Requests[^1];
+        request.ObjectId.Should().Be(7);
+        channel.Dispose();
+    }
+
+    [Fact]
+    public void Sort_WithNothingOpen_SendsNothing()
+    {
+        FakeGameSocket socket = new();
+        using ChestChannel channel = new(socket);
+
+        channel.Sort();
+
+        socket.Requests.Should().BeEmpty();
+    }
 }

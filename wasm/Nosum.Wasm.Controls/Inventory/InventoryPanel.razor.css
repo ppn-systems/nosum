@@ -26,6 +26,13 @@
     color: var(--nosum-ink-soft);
 }
 
+/* The sort button sits above the bag, at its right edge. */
+.inv-tools {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 calc(var(--u) * 2) calc(var(--u) * 2);
+}
+
 /* The bag, then the hotbar row after one slot-sized gap in the same card. */
 .inv-grids {
     display: flex;

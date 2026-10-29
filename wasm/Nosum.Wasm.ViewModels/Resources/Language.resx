@@ -62,6 +62,7 @@
   <data name="Inventory_Status_Failed" xml:space="preserve"><value>Không thể di chuyển vật phẩm.</value></data>
   <data name="Inventory_Title" xml:space="preserve"><value>Túi đồ</value></data>
   <data name="Inventory_Close" xml:space="preserve"><value>Đóng</value></data>
+  <data name="Inventory_Sort" xml:space="preserve"><value>Sắp xếp</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Thanh vật phẩm</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Số lượng: {0}</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Nhiệm vụ</value></data>
@@ -650,6 +651,8 @@
   <data name="Craft_Skill_Mining" xml:space="preserve"><value>Khai khoáng</value></data>
   <data name="Chest_Title" xml:space="preserve"><value>Rương</value></data>
   <data name="Chest_YourBag" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Chest_SortChest" xml:space="preserve"><value>Sắp xếp rương</value></data>
+  <data name="Chest_SortBag" xml:space="preserve"><value>Sắp xếp túi</value></data>
   <data name="Chest_Hint" xml:space="preserve"><value>Bấm một chồng đồ rồi bấm ô đích. Shift + bấm: chuyển nhanh sang bên kia.</value></data>
   <data name="Furnace_Title" xml:space="preserve"><value>Lò nung</value></data>
   <data name="Furnace_Idle" xml:space="preserve"><value>Lò đang trống. Mỗi mẻ cần {0} quặng và {1} than đá, nung trong {2} phút trong game.</value></data>

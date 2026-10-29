@@ -90,6 +90,12 @@ public interface IInventoryService
     /// <returns>The status and the changed slots.</returns>
     Task<InventoryChange> MoveAsync(Guid playerId, int fromSlot, int toSlot, int quantity, CancellationToken cancellationToken = default);
 
+    /// <summary>Sorts an inventory: stacks of one item are merged, then laid out by item kind and id. Works for a player's inventory and for a chest's.</summary>
+    /// <param name="ownerId">The inventory's owner: a player, or a chest (<c>ContainerIds.ForChest</c>).</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The status and the changed slots.</returns>
+    Task<InventoryChange> SortAsync(Guid ownerId, CancellationToken cancellationToken = default);
+
     /// <summary>Selects the hotbar slot the player holds.</summary>
     /// <param name="playerId">The player.</param>
     /// <param name="slot">Hotbar slot, zero to eight.</param>

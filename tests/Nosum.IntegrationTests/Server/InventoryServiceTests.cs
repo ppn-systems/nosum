@@ -258,6 +258,22 @@ public sealed class InventoryServiceTests : IClassFixture<PostgresFixture>
         (await _inventory.AddAsync(player, 4242, 1, "test.unknown")).Status.Should().Be(InventoryStatus.UnknownItem);
     }
 
+    [Fact]
+    public async Task SortAsync_LaysTheStacksOutFromTheFirstSlotAndPersistsIt()
+    {
+        Guid player = await CreatePlayerAsync();
+        InventoryView before = await _inventory.GetAsync(player);
+        _ = await _inventory.MoveAsync(player, 0, 30, 0);
+
+        InventoryChange change = await _inventory.SortAsync(player);
+
+        change.Status.Should().Be(InventoryStatus.Ok);
+        InventoryView after = await new InventoryService(_units, _clock).GetAsync(player);
+        after.Slots.Single(s => s.ItemId == ItemCatalog.Hoe).Slot.Should().Be(0, "tools come first, the hoe before the watering can");
+        after.Slots.Should().OnlyContain(s => s.Slot < after.Slots.Count, "the stacks are packed from the first slot without gaps");
+        after.Slots.Where(s => s.ItemId != 0).Sum(s => s.Quantity).Should().Be(before.Slots.Where(s => s.ItemId != 0).Sum(s => s.Quantity));
+    }
+
     private async Task<Guid> CreatePlayerAsync()
     {
         IUnitOfWork unit = _units.Create();

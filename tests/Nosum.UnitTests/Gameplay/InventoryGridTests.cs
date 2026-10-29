@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Nosum.Gameplay.Inventory;
@@ -226,5 +227,126 @@ public sealed class InventoryGridTests
         grid[0].ItemId.Should().Be(ItemCatalog.Hoe);
         grid[1].ItemId.Should().Be(ItemCatalog.WateringCan);
         grid.CountOf(ItemCatalog.ParsnipSeeds).Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void Sort_MergesPartialStacksOfOneItemIntoOne()
+    {
+        InventoryGrid grid = new(6);
+        grid.Load(0, new ItemSlot(Seeds, 30));
+        grid.Load(4, new ItemSlot(Seeds, 40));
+
+        InventoryVerdict verdict = grid.Sort();
+
+        verdict.Should().Be(InventoryVerdict.Ok);
+        grid[0].Should().Be(new ItemSlot(Seeds, 70));
+        grid[1].IsEmpty.Should().BeTrue();
+        grid.CountOf(Seeds).Should().Be(70);
+    }
+
+    [Fact]
+    public void Sort_SplitsTheTotalIntoFullStacksAndOneRemainder()
+    {
+        InventoryGrid grid = new(6);
+        grid.Load(1, new ItemSlot(Seeds, 90));
+        grid.Load(5, new ItemSlot(Seeds, 90));
+
+        grid.Sort();
+
+        grid[0].Should().Be(new ItemSlot(Seeds, ItemCatalog.DefaultStack));
+        grid[1].Should().Be(new ItemSlot(Seeds, 2 * 90 - ItemCatalog.DefaultStack));
+        grid[2].IsEmpty.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Sort_OrdersByKindThenItemId()
+    {
+        InventoryGrid grid = new(4);
+        grid.Load(0, new ItemSlot(ItemCatalog.Parsnip, 2));
+        grid.Load(1, new ItemSlot(Seeds, 5));
+        grid.Load(3, new ItemSlot(ItemCatalog.Hoe, 1));
+
+        grid.Sort();
+
+        grid[0].Should().Be(new ItemSlot(ItemCatalog.Hoe, 1), "tools come before seeds, and seeds before produce");
+        grid[1].Should().Be(new ItemSlot(Seeds, 5));
+        grid[2].Should().Be(new ItemSlot(ItemCatalog.Parsnip, 2));
+        grid[3].IsEmpty.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Sort_WithinOneKind_OrdersByItemId()
+    {
+        InventoryGrid grid = new(3);
+        grid.Load(0, new ItemSlot(Other, 1));
+        grid.Load(1, new ItemSlot(Seeds, 1));
+
+        grid.Sort();
+
+        grid[0].ItemId.Should().Be(Math.Min(Seeds, Other));
+        grid[1].ItemId.Should().Be(Math.Max(Seeds, Other));
+    }
+
+    [Fact]
+    public void Sort_KeepsEveryItemsTotal()
+    {
+        InventoryGrid grid = new(8);
+        grid.Load(0, new ItemSlot(ItemCatalog.Parsnip, 7));
+        grid.Load(2, new ItemSlot(Seeds, 50));
+        grid.Load(5, new ItemSlot(Seeds, 60));
+        grid.Load(6, new ItemSlot(ItemCatalog.Parsnip, 95));
+
+        grid.Sort();
+
+        grid.CountOf(ItemCatalog.Parsnip).Should().Be(102);
+        grid.CountOf(Seeds).Should().Be(110);
+    }
+
+    [Fact]
+    public void Sort_TwiceGivesTheSameLayout()
+    {
+        InventoryGrid grid = new(6);
+        grid.Load(0, new ItemSlot(ItemCatalog.Parsnip, 3));
+        grid.Load(4, new ItemSlot(Seeds, 20));
+        grid.Load(5, new ItemSlot(ItemCatalog.Parsnip, 4));
+        grid.Sort();
+        ItemSlot[] once = [grid[0], grid[1], grid[2], grid[3], grid[4], grid[5]];
+
+        grid.Sort();
+
+        for (int i = 0; i < once.Length; i++)
+        {
+            grid[i].Should().Be(once[i]);
+        }
+    }
+
+    [Fact]
+    public void Sort_ReportsOnlyTheSlotsThatChanged()
+    {
+        InventoryGrid grid = new(4);
+        grid.Load(0, new ItemSlot(ItemCatalog.Hoe, 1));
+        grid.Load(2, new ItemSlot(Seeds, 5));
+
+        grid.Sort();
+
+        List<int> changed = [];
+        grid.TakeChanged(changed);
+        // Slot 0 keeps the hoe; the seeds move from slot 2 to slot 1, so slots 1 and 2 changed.
+        changed.Should().Equal(1, 2);
+    }
+
+    [Fact]
+    public void Sort_OfAGridAlreadyInOrder_ChangesNothing()
+    {
+        InventoryGrid grid = new(3);
+        grid.Load(0, new ItemSlot(ItemCatalog.Hoe, 1));
+        grid.Load(1, new ItemSlot(Seeds, 9));
+
+        InventoryVerdict verdict = grid.Sort();
+
+        verdict.Should().Be(InventoryVerdict.Ok);
+        List<int> changed = [];
+        grid.TakeChanged(changed);
+        changed.Should().BeEmpty();
     }
 }

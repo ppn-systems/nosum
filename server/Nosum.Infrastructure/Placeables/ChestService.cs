@@ -157,6 +157,32 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
     }
 
     /// <inheritdoc/>
+    public async Task<ChestStatus> SortAsync(IConnection connection, int objectId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        (ChestStatus status, PlayerPresence? player) = await this.AuthorizeAsync(connection, objectId, cancellationToken).ConfigureAwait(false);
+        if (status != ChestStatus.Ok || player is null)
+        {
+            return status;
+        }
+
+        if (!this.IsViewer(player.AccountId, objectId))
+        {
+            return ChestStatus.NotOpen;
+        }
+
+        // Inside the chest nothing is added or removed, so there is nothing to audit; the viewers see the new layout.
+        ChestStatus result = ToStatus((await _inventory.SortAsync(ContainerIds.ForChest(objectId), cancellationToken).ConfigureAwait(false)).Status);
+        if (result == ChestStatus.Ok)
+        {
+            await this.PushAsync(player.Instance, objectId, cancellationToken).ConfigureAwait(false);
+        }
+
+        return result;
+    }
+
+    /// <inheritdoc/>
     IReadOnlyList<Guid> IPlacedBehaviour.OwnersOf(PlacedItem item) => [ContainerIds.ForChest(item.Id)];
 
     /// <inheritdoc/>

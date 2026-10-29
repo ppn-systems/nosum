@@ -5,6 +5,12 @@
     padding: calc(var(--u) * 1) calc(var(--u) * 3);
 }
 
+.chest-tools {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 calc(var(--u) * 3);
+}
+
 .chest-hint {
     margin: 0;
     color: var(--nosum-ink-soft);

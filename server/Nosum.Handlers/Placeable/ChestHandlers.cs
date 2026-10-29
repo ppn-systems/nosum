@@ -86,4 +86,25 @@ public static partial class ChestHandlers
             r.ObjectId = objectId;
         }).ConfigureAwait(false);
     }
+
+    /// <summary>Sorts an open chest; replies with the outcome. The changed slots follow as pushes to the viewers.</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(PlaceableOpCode.ChestSort)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(3, 5, PolicyId = "chest-sort")]
+    public static async ValueTask HandleChestSortAsync(IPacketContext<ChestSort> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        int objectId = context.Packet.ObjectId;
+        ChestStatus status = await s_chests.SortAsync(context.Connection, objectId, context.CancellationToken).ConfigureAwait(false);
+
+        await Replies.ReplyAsync<ChestSort, ChestResult>(context, sequence, r =>
+        {
+            r.Status = status;
+            r.ObjectId = objectId;
+        }).ConfigureAwait(false);
+    }
 }

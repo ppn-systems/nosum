@@ -62,6 +62,7 @@
   <data name="Inventory_Status_Failed" xml:space="preserve"><value>That item can't be moved.</value></data>
   <data name="Inventory_Title" xml:space="preserve"><value>Inventory</value></data>
   <data name="Inventory_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Inventory_Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Quest</value></data>
@@ -650,6 +651,8 @@
   <data name="Craft_Skill_Mining" xml:space="preserve"><value>Mining</value></data>
   <data name="Chest_Title" xml:space="preserve"><value>Chest</value></data>
   <data name="Chest_YourBag" xml:space="preserve"><value>Your bag</value></data>
+  <data name="Chest_SortChest" xml:space="preserve"><value>Sort chest</value></data>
+  <data name="Chest_SortBag" xml:space="preserve"><value>Sort bag</value></data>
   <data name="Chest_Hint" xml:space="preserve"><value>Click a stack, then a slot. Shift+click sends it to the other side.</value></data>
   <data name="Furnace_Title" xml:space="preserve"><value>Furnace</value></data>
   <data name="Furnace_Idle" xml:space="preserve"><value>The furnace is empty. Each batch takes {0} ore and {1} coal and smelts for {2} game minutes.</value></data>
