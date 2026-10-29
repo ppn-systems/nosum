@@ -1,0 +1,23 @@
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Startup
+@inherits ObservingComponent<GameStartViewModel>
+
+@* "Entering the world" (issue #208): the step that is running with a bar, a tip that rotates and, when the start is slow, the reason and a Try again action. *@
+@if (Vm.IsVisible)
+{
+    <GamePanel Class="dialog game-start" Title="" Role="status">
+        <p class="game-start-title">@Vm.Title <GameSpinner /></p>
+        <GameProgress Percent="@Vm.Percent" Text="@Vm.StepText" Label="@Vm.Title" />
+        <p class="game-start-tip">@Vm.Tip</p>
+        @if (Vm.IsSlow)
+        {
+            <GameNotice Kind="info" Text="@Vm.SlowText" />
+            <GameButton Text="@Vm.RetryText" OnClick="OnRetry" />
+        }
+    </GamePanel>
+}
+
+@code {
+    /// <summary>What Try again does: the host reloads the page, which starts the game again from sign-in.</summary>
+    [Parameter] public EventCallback OnRetry { get; set; }
+}

@@ -19,6 +19,7 @@
 @using Nosum.Wasm.Controls.Npc
 @using Nosum.Wasm.Controls.Placement
 @using Nosum.Wasm.Controls.Quest
+@using Nosum.Wasm.Controls.Startup
 @using Nosum.Wasm.Controls.Touch
 @using Nosum.Wasm.Game
 @using Nosum.Wasm.ViewModels
@@ -37,6 +38,7 @@
 @using Nosum.Wasm.ViewModels.Market
 @using Nosum.Wasm.ViewModels.Mine
 @using Nosum.Wasm.ViewModels.Npc
+@using Nosum.Wasm.ViewModels.Startup
 @using Nosum.Wasm.ViewModels.Placement
 @using Nosum.Wasm.ViewModels.Player
 @using Nosum.Wasm.ViewModels.Profile
@@ -67,6 +69,8 @@
 @inject ProfileViewModel Profile
 @inject ElevatorViewModel Elevator
 @inject MapLoadingViewModel MapLoading
+@inject GameStartViewModel Starting
+@inject SettingsViewModel AppSettings
 @inject OnboardingViewModel Onboarding
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
@@ -149,9 +153,7 @@ else
             }
             @if (!_started)
             {
-                <GamePanel Class="dialog" Title="" Role="status">
-                    <p class="home-loading">@Toolbar.Text("Game_Loading") <GameSpinner /></p>
-                </GamePanel>
+                <GameStartOverlay Vm="Starting" OnRetry="RetryStart" />
             }
             @if (_started)
             {
@@ -170,7 +172,7 @@ else
     </GameHud>
     @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
     {
-        <TouchControls StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" />
+        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" />
     }
 }
 
@@ -562,18 +564,24 @@ else
 
     private async Task StartGameAsync()
     {
+        Starting.Begin();
         try
         {
-            await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None);
+            await GameLoop.StartAsync(Http, "game-canvas", CancellationToken.None, Starting.SetStep);
+            Starting.End();
             _started = true;
             Onboarding.Start();
             StateHasChanged();
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or JSException)
         {
+            Starting.End();
             _error = Toolbar.Text("Game_StartFailed", ex.Message);
             _started = true;
             StateHasChanged();
         }
     }
+
+    // Try again on a stalled start: the page reloads, and the game starts again from sign-in with a fresh client.
+    private void RetryStart() => Navigation.Refresh(forceReload: true);
 }

@@ -28,7 +28,7 @@ internal static partial class BrowserDevice
         ArgumentNullException.ThrowIfNull(configuration);
 
         DevicePolicy shipped = DevicePolicy.Default;
-        bool block = !bool.TryParse(configuration["Device:BlockTouchDevices"], out bool parsedBlock) || parsedBlock;
+        bool block = bool.TryParse(configuration["Device:BlockTouchDevices"], out bool parsedBlock) && parsedBlock;
         int minimum = int.TryParse(configuration["Device:MinimumWidth"], out int parsedMinimum) && parsedMinimum > 0 ? parsedMinimum : shipped.MinimumWidth;
         return new DevicePolicy(block, minimum);
     }
@@ -61,6 +61,11 @@ internal static partial class BrowserDevice
     /// <param name="onChange">The callback.</param>
     [JSImport("globalThis.nosumPage.watchWidth")]
     public static partial void WatchWidth(int minWidth, [JSMarshalAs<JSType.Function<JSType.Boolean>>] Action<bool> onChange);
+
+    /// <summary>Vibrates for a <see cref="ViewModels.Device.HapticKind"/> where the browser supports it; a no-op elsewhere.</summary>
+    /// <param name="kind">The kind's number.</param>
+    [JSImport("globalThis.nosumPage.vibrate")]
+    public static partial void Vibrate(int kind);
 
     /// <summary>Turns the "really leave this page?" prompt on or off.</summary>
     /// <param name="on"><see langword="true"/> while the player is in the game.</param>

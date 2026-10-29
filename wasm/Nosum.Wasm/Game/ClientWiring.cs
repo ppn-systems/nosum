@@ -70,6 +70,7 @@ using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Shop;
 using Nosum.Wasm.ViewModels.Trade;
 using Nosum.Wasm.ViewModels.Visit;
+using Nosum.Wasm.ViewModels.Startup;
 using Nosum.Wasm.ViewModels.Wallet;
 
 namespace Nosum.Wasm.Game;
@@ -136,11 +137,13 @@ internal static class ClientWiring
         services.AddSingleton<ToolbarViewModel>();
         services.AddSingleton<NicknameFormatter>();
         services.AddSingleton<ProfileViewModel>();
+        services.AddSingleton<IHaptics, BrowserHaptics>();
         services.AddSingleton<ShopViewModel>();
         services.AddSingleton<NpcDialogViewModel>();
         services.AddSingleton<BlacksmithViewModel>();
         services.AddSingleton<ElevatorViewModel>();
         services.AddSingleton<MapLoadingViewModel>();
+        services.AddSingleton<GameStartViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<GoalsViewModel>();
         services.AddSingleton<BestiaryChannel>();

@@ -1,6 +1,6 @@
 /* The shared button: the Pixel UI pack's chunky block (cursors.png: a 3 u outline and bevel, a flat face, a 5 u foot that holds the shadow). Primary is
    wood, plain and tab are stone, the active tab is gold, danger is red. Hover lightens the face and adds a thin highlight border; pressed swaps in the
-   frame without the shadow and sinks the label 2 u. A disabled button keeps its palette (paler, flatter). */
+   frame without the shadow and sinks the label 2 u. A disabled button is greyed and darker, with its label still readable (issue #207). */
 .game-button {
     --button-edge: calc(var(--u) * 3);
     --button-foot: calc(var(--u) * 5);
@@ -74,16 +74,12 @@
     transform: translateY(calc(var(--u) * 2));
 }
 
+/* Disabled keeps the label readable (issue #207): the face is greyed and darkened, not lightened, so the cream label keeps its shadow and contrast. */
 .game-button:disabled {
-    --button-state: saturate(0.5) brightness(1.1);
+    --button-state: saturate(0.4) brightness(0.8);
 
     color: var(--nosum-ink-on-dark);
-    text-shadow: none;
     cursor: default;
-}
-
-.game-button:disabled .game-button-label {
-    opacity: 0.9;
 }
 
 .game-button:focus-visible {
