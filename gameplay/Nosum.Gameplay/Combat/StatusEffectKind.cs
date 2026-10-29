@@ -14,6 +14,9 @@ public enum StatusEffectKind : byte
     /// <summary>Gradually deals poison/corrosive damage over time.</summary>
     Poison = 2,
 
-    /// <summary>Enhances agility and movement speed.</summary>
+    /// <summary>Enhances agility and movement speed. A buff: held in the buff slot, never in the regeneration/poison slot.</summary>
     Swiftness = 3,
+
+    /// <summary>Party bonus of a milestone boss kill: +5% movement speed (docs/adr/ADR-052). A buff, like <see cref="Swiftness"/>.</summary>
+    BrotherhoodInArms = 4,
 }

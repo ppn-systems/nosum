@@ -39,6 +39,9 @@ public static class CombatRules
     /// <summary>Maximum tile distance (Chebyshev) for a melee sword strike.</summary>
     public const int MeleeRange = 2;
 
+    /// <summary>Maximum tile distance (Chebyshev) at which a monster can strike back: its contact reach (docs/adr/ADR-046 D1).</summary>
+    public const int MonsterMeleeRange = 1;
+
     /// <summary>Maximum tile distance (Chebyshev) for an arcane staff bolt.</summary>
     public const int StaffRange = 4;
 
@@ -80,6 +83,11 @@ public static class CombatRules
 
     /// <summary>Maximum combo streak multiplier.</summary>
     public const int MaxComboCount = 10;
+
+    /// <summary>Returns whether a monster strikes back when hit from <paramref name="distanceTiles"/> away (issue #147).</summary>
+    /// <param name="distanceTiles">Chebyshev tile distance between the attacker and the monster.</param>
+    /// <returns><see langword="true"/> when the attacker stands within the monster's contact reach.</returns>
+    public static bool MonsterStrikesBack(int distanceTiles) => distanceTiles <= MonsterMeleeRange;
 
     /// <summary>Calculates HP healed by a <see cref="MonsterModifier.Vampiric"/> monster when it deals <paramref name="damage"/> to a player.</summary>
     /// <param name="damage">Damage dealt to the player.</param>
@@ -248,8 +256,22 @@ public static class CombatRules
             return baseDmg;
         }
 
+        return ApplyComboMultiplier(baseDmg, comboCount);
+    }
+
+    /// <summary>Scales any player hit (weapon swing or skill) by the combo streak bonus (docs/adr/ADR-060).</summary>
+    /// <param name="baseDamage">Damage before the combo bonus.</param>
+    /// <param name="comboCount">Active combo streak (1..10).</param>
+    /// <returns>Damage with the combo bonus applied (minimum 1 when the base is positive).</returns>
+    public static int ApplyComboMultiplier(int baseDamage, int comboCount)
+    {
+        if (baseDamage <= 0 || comboCount <= 1)
+        {
+            return baseDamage;
+        }
+
         float bonus = ComboBonusPercent(comboCount);
-        return Math.Max(1, (int)MathF.Round(baseDmg * (1f + bonus)));
+        return Math.Max(1, (int)MathF.Round(baseDamage * (1f + bonus)));
     }
 
     /// <summary>Returns the HP and MP restored when consuming a potion or food item.</summary>

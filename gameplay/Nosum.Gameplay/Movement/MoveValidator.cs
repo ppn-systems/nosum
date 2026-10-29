@@ -13,7 +13,7 @@ namespace Nosum.Gameplay.Movement;
 /// </summary>
 public static class MoveValidator
 {
-    /// <summary>Longest stretch of walking, in seconds, that the budget can store.</summary>
+    /// <summary>Longest stretch of walking, in seconds, that the budget can store (at normal speed).</summary>
     public const double MaxBudgetSeconds = 0.5;
 
     /// <summary>Extra pixels allowed on top of the budget for rounding and the client's fixed step.</summary>
@@ -32,14 +32,17 @@ public static class MoveValidator
     /// <param name="moving">Claimed walking flag.</param>
     /// <param name="nowSeconds">Current time, seconds, on the clock used for <see cref="MotionState"/>.</param>
     /// <param name="grid">Walkable tiles of the map.</param>
+    /// <param name="speedFactor">Movement speed multiplier of the player's active speed buffs (1 for none); the budget scales with it.</param>
     /// <returns>The verdict; the state changes only for <see cref="MoveVerdict.Accepted"/>.</returns>
-    public static MoveVerdict Validate(ref MotionState state, double x, double y, int facing, bool moving, double nowSeconds, WalkGrid grid)
+    public static MoveVerdict Validate(ref MotionState state, double x, double y, int facing, bool moving, double nowSeconds, WalkGrid grid, double speedFactor = 1)
     {
         ArgumentNullException.ThrowIfNull(grid);
+        ArgumentOutOfRangeException.ThrowIfLessThan(speedFactor, 1);
 
+        double speed = Walker.Speed * speedFactor;
         double elapsed = Math.Max(0, nowSeconds - state.LastSeconds);
         state.LastSeconds = nowSeconds;
-        state.Budget = Math.Min(MaxBudgetSeconds * Walker.Speed, state.Budget + (Walker.Speed * elapsed));
+        state.Budget = Math.Min(MaxBudgetSeconds * speed, state.Budget + (speed * elapsed));
 
         if (!double.IsFinite(x) || !double.IsFinite(y) || facing is < 0 or > 3)
         {
