@@ -19,6 +19,9 @@ public sealed class FarmRulesRainTests
     private static readonly GameCalendar s_calendar = GameCalendar.Default;
     private static readonly CropDefinition s_slowCrop = CropCatalog.All.Where(c => c.GrowsIn(Season.Spring)).OrderByDescending(c => c.TotalGrowthDays).First();
 
+    // A sprinkler standing since the first game day: it waters every day from the second on, which is every day these tests look at.
+    private static readonly long s_sprinklerSince = s_calendar.DayStartMs(1);
+
     private static long Noon(int day) => s_calendar.DayStartMs(day) + (s_calendar.DayLengthMs / 2);
 
     private static long Midnight(int day) => s_calendar.DayStartMs(day);
@@ -165,12 +168,12 @@ public sealed class FarmRulesRainTests
         int dry = FirstDay(d => Enumerable.Range(d, 6).All(x => !Rains(x)));
         FarmTile tile = PlantedOn(dry);
 
-        FarmRules.GrowthDaysAt(tile, Midnight(dry + 3), s_calendar, outdoors: true, sprinkled: true).Should().Be(3);
-        FarmRules.GrowthDaysAt(tile, Midnight(dry + 3), s_calendar, outdoors: true, sprinkled: false).Should().Be(0, "an uncovered, unwatered crop does not grow on dry days");
-        FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinkled: true).Should().BeTrue();
-        FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinkled: false).Should().BeFalse();
-        FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinkled: true).Should().Be(FarmVerdict.Ok, "the harvest sees the same water as the growth");
-        FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinkled: false).Should().Be(FarmVerdict.NotMature);
+        FarmRules.GrowthDaysAt(tile, Midnight(dry + 3), s_calendar, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().Be(3);
+        FarmRules.GrowthDaysAt(tile, Midnight(dry + 3), s_calendar, outdoors: true, sprinklerSinceMs: null).Should().Be(0, "an uncovered, unwatered crop does not grow on dry days");
+        FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().BeTrue();
+        FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinklerSinceMs: null).Should().BeFalse();
+        FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().Be(FarmVerdict.Ok, "the harvest sees the same water as the growth");
+        FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinklerSinceMs: null).Should().Be(FarmVerdict.NotMature);
     }
 
     [Fact]
@@ -178,18 +181,18 @@ public sealed class FarmRulesRainTests
     {
         int rainy = FirstDay(Rains);
         FarmTile tile = PlantedOn(rainy);
-        FarmRules.Water(tile, Noon(rainy), s_calendar, out FarmTile watered, outdoors: true, sprinkled: true).Should().Be(FarmVerdict.Ok);
+        FarmRules.Water(tile, Noon(rainy), s_calendar, out FarmTile watered, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().Be(FarmVerdict.Ok);
 
-        FarmRules.GrowthDaysAt(watered, Midnight(rainy + 1), s_calendar, outdoors: true, sprinkled: true).Should().Be(1);
+        FarmRules.GrowthDaysAt(watered, Midnight(rainy + 1), s_calendar, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().Be(1);
     }
 
     [Fact]
-    public void GrowthDaysAt_SprinkledButIndoors_IsStillDry()
+    public void GrowthDaysAt_SprinkledIndoors_IsWatered()
     {
         int dry = FirstDay(d => !Rains(d) && !Rains(d + 1));
         FarmTile tile = PlantedOn(dry);
 
-        FarmRules.GrowthDaysAt(tile, Midnight(dry + 1), s_calendar, outdoors: false, sprinkled: true).Should().Be(0);
+        FarmRules.GrowthDaysAt(tile, Midnight(dry + 1), s_calendar, outdoors: false, sprinklerSinceMs: s_sprinklerSince).Should().Be(1, "a sprinkler waters indoors too (docs/adr/ADR-024 D4)");
     }
 
     [Fact]
@@ -197,8 +200,8 @@ public sealed class FarmRulesRainTests
     {
         int dry = FirstDay(d => !Rains(d));
 
-        FarmRules.IsWet(FarmTile.Bare, Noon(dry), s_calendar, outdoors: true, sprinkled: true).Should().BeTrue();
-        FarmRules.IsWet(FarmTile.Bare, Noon(dry), s_calendar, outdoors: true, sprinkled: false).Should().BeFalse();
+        FarmRules.IsWet(FarmTile.Bare, Noon(dry), s_calendar, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().BeTrue();
+        FarmRules.IsWet(FarmTile.Bare, Noon(dry), s_calendar, outdoors: true, sprinklerSinceMs: null).Should().BeFalse();
     }
 
     [Fact]
@@ -208,8 +211,8 @@ public sealed class FarmRulesRainTests
         int tileX = Enumerable.Range(0, 2000).First(x => FarmRules.RevertRoll("farm@x", x, 0, day) < FarmRules.RevertChancePercent);
         FarmTile tilled = FarmTile.Bare with { TendedDay = day - 1 };
 
-        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinkled: true).Should().BeFalse();
-        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinkled: false).Should().Be(!Rains(day));
+        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().BeFalse();
+        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinklerSinceMs: null).Should().Be(!Rains(day));
     }
 
     [Fact]

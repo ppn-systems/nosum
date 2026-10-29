@@ -36,20 +36,28 @@ public static class SprinklerRules
     /// <param name="tileX">Tile x.</param>
     /// <param name="tileY">Tile y.</param>
     /// <returns><see langword="true"/> when a sprinkler stands on one of the tile's four orthogonal neighbours.</returns>
-    public static bool IsWatered(IEnumerable<PlacedItem> placed, int tileX, int tileY)
+    public static bool IsWatered(IEnumerable<PlacedItem> placed, int tileX, int tileY) => WateredSinceMs(placed, tileX, tileY) is not null;
+
+    /// <summary>Returns when the first sprinkler that waters a tile was placed.</summary>
+    /// <param name="placed">The pieces standing in the instance.</param>
+    /// <param name="tileX">Tile x.</param>
+    /// <param name="tileY">Tile y.</param>
+    /// <returns>The earliest placement time, Unix milliseconds, of a sprinkler on one of the tile's four orthogonal neighbours; <see langword="null"/> when none does.</returns>
+    public static long? WateredSinceMs(IEnumerable<PlacedItem> placed, int tileX, int tileY)
     {
         ArgumentNullException.ThrowIfNull(placed);
 
+        long? since = null;
         foreach (PlacedItem item in placed)
         {
             if (PlaceableCatalog.TryGet(item.ItemId, out PlaceableDefinition? definition)
                 && definition.Kind == PlaceableKind.Sprinkler
                 && Waters(item.TileX, item.TileY, tileX, tileY))
             {
-                return true;
+                since = since is { } earlier ? Math.Min(earlier, item.PlacedAtMs) : item.PlacedAtMs;
             }
         }
 
-        return false;
+        return since;
     }
 }

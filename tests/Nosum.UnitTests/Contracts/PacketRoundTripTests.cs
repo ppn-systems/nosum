@@ -64,13 +64,13 @@ public sealed class PacketRoundTripTests
     public void FarmTilesChanged_RoundTrips()
     {
         using FarmTilesChanged packet = new() { MapId = "farm", ServerNowMs = 1_790_000_000_123 };
-        packet.Tiles.Add(new FarmTileRow { X = 61, Y = 17, CropId = 3, PlantedAtMs = 5, GrowthMs = 6, SettledAtMs = 7, WetUntilMs = 8, GrowthDays = 9, WateredDay = 10, Removed = true });
+        packet.Tiles.Add(new FarmTileRow { X = 61, Y = 17, CropId = 3, PlantedAtMs = 5, GrowthMs = 6, SettledAtMs = 7, WetUntilMs = 8, GrowthDays = 9, WateredDay = 10, Removed = true, TendedDay = 11 });
 
         FarmTilesChanged copy = FarmTilesChanged.Deserialize(packet.Serialize());
 
         copy.MapId.Should().Be("farm");
         copy.ServerNowMs.Should().Be(1_790_000_000_123);
-        copy.Tiles.Should().ContainSingle().Which.Should().BeEquivalentTo(new FarmTileRow { X = 61, Y = 17, CropId = 3, PlantedAtMs = 5, GrowthMs = 6, SettledAtMs = 7, WetUntilMs = 8, GrowthDays = 9, WateredDay = 10, Removed = true });
+        copy.Tiles.Should().ContainSingle().Which.Should().BeEquivalentTo(new FarmTileRow { X = 61, Y = 17, CropId = 3, PlantedAtMs = 5, GrowthMs = 6, SettledAtMs = 7, WetUntilMs = 8, GrowthDays = 9, WateredDay = 10, Removed = true, TendedDay = 11 });
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public sealed class PacketRoundTripTests
     {
         using ChunkState packet = new() { MapId = "town", ChunkX = 8, ChunkY = 6, ServerNowMs = 1_700_000_000_123 };
         packet.FarmTiles.Add(new FarmTileRow { X = 130, Y = 100, CropId = 2, PlantedAtMs = 5, GrowthMs = 6, SettledAtMs = 7, WetUntilMs = 8 });
-        packet.Placed.Add(new PlacedObjectRow { Id = 41, ItemId = 301, TileX = 128, TileY = 96, Rotation = 2 });
+        packet.Placed.Add(new PlacedObjectRow { Id = 41, ItemId = 301, TileX = 128, TileY = 96, Rotation = 2, PlacedAtMs = 1_790_000_000_456 });
 
         ChunkState copy = ChunkState.Deserialize(packet.Serialize());
 

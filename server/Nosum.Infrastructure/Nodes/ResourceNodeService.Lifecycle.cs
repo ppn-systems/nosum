@@ -252,9 +252,10 @@ public sealed partial class ResourceNodeService
         state.Rebuild();
 
         // Days that passed while the instance was not loaded (the server was down, or nobody went there): trees grew, a public place regrew once.
+        // A private place regrows its weeds only at a season change, so a season that began in the gap counts as that change (docs/adr/ADR-021 D4).
         if (today > markedDay)
         {
-            await this.AdvanceInstanceAsync(state, today, seasonChanged: false, publish: false, CancellationToken.None).ConfigureAwait(false);
+            await this.AdvanceInstanceAsync(state, today, GameCalendar.SeasonBeganBetween(markedDay, today), publish: false, CancellationToken.None).ConfigureAwait(false);
         }
 
         return state;

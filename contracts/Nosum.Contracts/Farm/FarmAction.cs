@@ -37,4 +37,7 @@ public enum FarmAction : byte
 
     /// <summary>A ladder was used: the player went down to the next mine floor (docs/adr/ADR-026 D3); the map change arrives as <c>MapChanged</c>.</summary>
     Descended = 10,
+
+    /// <summary>A withered crop was cut down with a scythe; the tilled soil stays (docs/adr/ADR-018).</summary>
+    CutWithered = 11,
 }

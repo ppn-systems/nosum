@@ -23,6 +23,7 @@ using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Skills;
 using Nosum.Contracts.Building.S2C;
 using Nosum.Contracts.Coop;
+using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory.S2C;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.S2C;
@@ -517,6 +518,18 @@ internal sealed class StandingPresence : IMapPresence
         return ValueTask.CompletedTask;
     }
 
+    // The tiles are copied out of the pooled packet, like the other copies below.
+    private static FarmTilesChanged CopyFarmTiles(FarmTilesChanged packet)
+    {
+        FarmTilesChanged copy = new() { MapId = packet.MapId, ServerNowMs = packet.ServerNowMs };
+        foreach (FarmTileRow row in packet.Tiles)
+        {
+            copy.Tiles.Add(new FarmTileRow { X = row.X, Y = row.Y, CropId = row.CropId, PlantedAtMs = row.PlantedAtMs, GrowthDays = row.GrowthDays, WateredDay = row.WateredDay, TendedDay = row.TendedDay, Removed = row.Removed });
+        }
+
+        return copy;
+    }
+
     [SuppressMessage("Reliability", "CA2000", Justification = "The copies are plain data kept for the test to read; their pooled buffers are never rented.")]
     private void Record(Guid? account, IPacket packet)
     {
@@ -528,7 +541,8 @@ internal sealed class StandingPresence : IMapPresence
             AnimalsMoved m => new AnimalsMoved { BuildingId = m.BuildingId, Moves = [.. m.Moves.Select(r => new AnimalMoveRow { Id = r.Id, FromX = r.FromX, FromY = r.FromY, ToX = r.ToX, ToY = r.ToY, DurationMs = r.DurationMs })] },
             BuildingsSnapshot b => new BuildingsSnapshot { Mine = b.Mine, Buildings = [.. b.Buildings.Select(r => new BuildingRow { Id = r.Id, ObjectId = r.ObjectId, Kind = r.Kind, MapId = r.MapId, RemainingMs = r.RemainingMs, Animals = r.Animals, Capacity = r.Capacity })] },
             FurnaceChanged f => new FurnaceChanged { ObjectId = f.ObjectId, State = f.State, OreItemId = f.OreItemId, RemainingMs = f.RemainingMs },
-            PlacedChanged p => new PlacedChanged { MapId = p.MapId, Upserted = [.. p.Upserted.Select(r => new PlacedObjectRow { Id = r.Id, ItemId = r.ItemId, TileX = r.TileX, TileY = r.TileY, Rotation = r.Rotation })], Removed = [.. p.Removed] },
+            PlacedChanged p => new PlacedChanged { MapId = p.MapId, Upserted = [.. p.Upserted.Select(r => new PlacedObjectRow { Id = r.Id, ItemId = r.ItemId, TileX = r.TileX, TileY = r.TileY, Rotation = r.Rotation, PlacedAtMs = r.PlacedAtMs })], Removed = [.. p.Removed] },
+            FarmTilesChanged f => CopyFarmTiles(f),
             _ => null,
         };
         if (copy is not null)

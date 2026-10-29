@@ -66,7 +66,7 @@ internal sealed class CompositeWalkGrid
                     for (int i = 0; i < _placed.Count; i++)
                     {
                         PlacedObjectInfo piece = _placed.At(i);
-                        _placedSet.Add(new PlacedItem(piece.Id, piece.ItemId, piece.TileX, piece.TileY, piece.Rotation));
+                        _placedSet.Add(new PlacedItem(piece.Id, piece.ItemId, piece.TileX, piece.TileY, piece.Rotation, piece.PlacedAtMs));
                     }
                 }
             }

@@ -247,6 +247,45 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task Rain_WateringSoilThatTheRainAlreadyWetIsRefused_AndTheCanIsKept()
+    {
+        await ResetFarmAsync();
+        GameCalendar calendar = GameCalendar.Default;
+        int needed = CropCatalog.All[0].TotalGrowthDays;
+
+        // A rainy spring-like day, so the parsnip can be planted on it.
+        int rainy = Enumerable.Range(3, 400).First(day =>
+        {
+            int dayOfSeason = ((day - 1) % GameCalendar.DaysPerSeason) + 1;
+            Season season = (Season)(((day - 1) / GameCalendar.DaysPerSeason) % GameCalendar.SeasonsPerYear);
+            return WeatherRules.WatersOn(calendar, day) && season != Season.Summer && dayOfSeason + needed <= GameCalendar.DaysPerSeason;
+        });
+        FakeTimeProvider clock = new(s_start);
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = TileInReachOf(join);
+
+            clock.Advance(TimeSpan.FromTicks(s_gameDay.Ticks * (rainy - 1)));
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Action.Should().Be(FarmAction.Tilled);
+            (await farmer.UseAsync(2, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
+
+            // The rain has wet the soil today already: the can would add nothing, so it is refused before any water or energy is spent.
+            (await farmer.UseAsync(1, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NothingToDo);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
     public async Task Rain_OnAnUnwateredOutdoorCrop_CountsAsAWateredDayOnTheServer()
     {
         await ResetFarmAsync();
@@ -315,6 +354,22 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
             JoinMapResult join = await farmer.JoinAsync(timeout.Token);
             (int x, int y) = TileInReachOf(join);
+            // On a rainy day the can is refused: the rain has watered the soil already, and it counts toward the growth as a hand watering would (docs/adr/ADR-027 D2).
+            async Task WaterAsync()
+            {
+                // The dev clock moves the server's time, not the test's clock: the server's own time tells the day.
+                long serverNowMs = (await farmer.GetFarmAsync(timeout.Token)).ServerNowMs;
+                var watering = await farmer.UseAsync(1, x, y, timeout.Token);
+                if (WeatherRules.WatersOn(GameCalendar.Default, GameCalendar.Default.DayNumberAt(serverNowMs)))
+                {
+                    watering.Status.Should().Be(FarmStatus.NothingToDo, "the rain watered it today");
+                }
+                else
+                {
+                    watering.Action.Should().Be(FarmAction.Watered, "status " + watering.Status);
+                }
+            }
+
             CropDefinition berry = CropCatalog.All.Single(c => c.Id == CropCatalog.Strawberry);
             (await farmer.GrantAsync(ItemCatalog.StrawberrySeeds, 1, timeout.Token)).Should().BeTrue();
             int seeds = (await farmer.GetInventoryAsync(timeout.Token)).Slots.Single(s => s.ItemId == ItemCatalog.StrawberrySeeds).Slot;
@@ -325,7 +380,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             (await farmer.UseAsync(seeds, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
             for (int day = 0; day < berry.TotalGrowthDays; day++)
             {
-                (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+                await WaterAsync();
                 (await farmer.AdvanceClockAsync(1, timeout.Token)).Ok.Should().BeTrue();
             }
 
@@ -341,7 +396,8 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             for (int day = 0; day < berry.RegrowDays; day++)
             {
                 (await farmer.UseAsync(seeds, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NotMature, $"{day} of {berry.RegrowDays} regrow days");
-                (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+
+                await WaterAsync();
                 (await farmer.AdvanceClockAsync(1, timeout.Token)).Ok.Should().BeTrue();
             }
 
