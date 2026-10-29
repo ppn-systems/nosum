@@ -51,6 +51,7 @@
 @inject InventoryViewModel Inventory
 @inject QuestTrackerViewModel Quest
 @inject GameMessagesViewModel Messages
+@inject LevelUpBannerViewModel LevelUps
 @inject ToolbarViewModel Toolbar
 @inject WalletViewModel Wallet
 @inject CalendarViewModel Calendar
@@ -96,6 +97,7 @@ else
                     <GameNotice Kind="error" Text="@_error" />
                 </GamePanel>
             }
+            <LevelUpBanner Vm="LevelUps" />
             <ConnectionBadge />
         </TopCenter>
         <TopRight>

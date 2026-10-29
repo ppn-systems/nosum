@@ -129,6 +129,7 @@ internal static class ClientWiring
         services.AddSingleton<QuestTrackerViewModel>();
         services.AddSingleton<PlacementViewModel>();
         services.AddSingleton<GameMessagesViewModel>();
+        services.AddSingleton<LevelUpBannerViewModel>();
         services.AddSingleton<ItemDescriber>();
         services.AddSingleton<ToolbarViewModel>();
         services.AddSingleton<NicknameFormatter>();
@@ -264,6 +265,7 @@ internal static class ClientWiring
         // The view models subscribe to their channels when they are built: build them before the first push can arrive.
         _ = services.GetRequiredService<InventoryViewModel>();
         _ = services.GetRequiredService<QuestTrackerViewModel>();
+        _ = services.GetRequiredService<LevelUpBannerViewModel>();
         GameMessagesViewModel messages = services.GetRequiredService<GameMessagesViewModel>();
         IStringLocalizer<Language> localizer = services.GetRequiredService<IStringLocalizer<Language>>();
         combat.KnockedOut += () => messages.Notify(localizer["Combat_KnockedOut"].Value);
