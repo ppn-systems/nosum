@@ -23,17 +23,32 @@ jobs:
           global-json-file: global.json
       - name: Install the WebAssembly workload
         run: dotnet workload install wasm-tools
-      - name: Write the boot configuration (server address and pinned key)
+      - name: Write the boot configuration (server address, pinned key and sign-in client ids)
         env:
           SERVER_URL: ${{ vars.NOSUM_SERVER_URL || 'wss://nosum.ppnsys.com/ws/' }}
           SERVER_PUBLIC_KEY: ${{ vars.NOSUM_SERVER_PUBLIC_KEY }}
+          GOOGLE_CLIENT_ID: ${{ vars.NOSUM_GOOGLE_CLIENT_ID }}
+          MICROSOFT_CLIENT_ID: ${{ vars.NOSUM_MICROSOFT_CLIENT_ID }}
+          MICROSOFT_TENANT: ${{ vars.NOSUM_MICROSOFT_TENANT || 'common' }}
         run: |
           if [ -z "$SERVER_PUBLIC_KEY" ]; then
             echo "::error::Set the repository variable NOSUM_SERVER_PUBLIC_KEY to the server's public key (the host prints it at start-up)."
             exit 1
           fi
+          # A missing client id turns that provider's sign-in button off in the game, so say so here rather than let it ship silently.
+          if [ -z "$GOOGLE_CLIENT_ID" ]; then
+            echo "::warning::NOSUM_GOOGLE_CLIENT_ID is not set: the Google sign-in button will be off."
+          fi
+          if [ -z "$MICROSOFT_CLIENT_ID" ]; then
+            echo "::warning::NOSUM_MICROSOFT_CLIENT_ID is not set: the Microsoft sign-in button will be off."
+          fi
+          # The whole file is rewritten, so every section the client reads must be listed here: Server, and ExternalSignIn (docs/adr/ADR-069).
           jq -n --arg url "$SERVER_URL" --arg key "$SERVER_PUBLIC_KEY" \
-            '{Server: {Url: $url, PublicKeys: [$key], RequirePin: true}}' > wasm/Nosum.Wasm/wwwroot/appsettings.json
+            --arg google "$GOOGLE_CLIENT_ID" --arg microsoft "$MICROSOFT_CLIENT_ID" --arg tenant "$MICROSOFT_TENANT" \
+            '{
+              Server: {Url: $url, PublicKeys: [$key], RequirePin: true},
+              ExternalSignIn: {GoogleClientId: $google, MicrosoftClientId: $microsoft, MicrosoftTenant: $tenant}
+            }' > wasm/Nosum.Wasm/wwwroot/appsettings.json
       - name: Publish the client ahead-of-time compiled
         run: dotnet publish wasm/Nosum.Wasm/Nosum.Wasm.csproj -c Release -p:NosumWebDeploy=true -o out
       - name: Deploy to Cloudflare Pages
