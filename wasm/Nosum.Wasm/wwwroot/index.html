@@ -70,7 +70,33 @@
                 }
             }).catch(function () {});
         })();
-        Blazor.start({ configureRuntime: dotnet => { dotnet.withConfig({ loadAllSatelliteResources: true }); } }).catch(function (reason) {
+        // Boot progress (before .NET starts, so no .resx): every boot resource is counted when Blazor requests it and again when it arrives.
+        // The label is Vietnamese unless the browser asks for English.
+        var bootLoad = (function () {
+            var en = (navigator.language || '').toLowerCase().indexOf('en') === 0;
+            var label = en ? 'Loading' : 'Đang tải';
+            var requested = 0;
+            var arrived = 0;
+            var root = document.documentElement.style;
+            var text = document.querySelector('.boot-text');
+            function show() {
+                var pct = requested ? Math.floor(arrived * 100 / requested) : 0;
+                root.setProperty('--nosum-boot-progress', pct + '%');
+                if (text) { text.textContent = label + '… ' + pct + '%'; }
+            }
+            show();
+            return function (type, name, defaultUri, integrity) {
+                // The runtime imports its JavaScript modules by URL, so those keep the default loader (undefined); the manifest is not counted.
+                if (type === 'dotnetjs') { return undefined; }
+                var counted = type !== 'manifest';
+                if (counted) { requested++; show(); }
+                return fetch(defaultUri, { cache: 'no-cache', integrity: integrity }).then(function (response) {
+                    if (counted) { arrived++; show(); }
+                    return response;
+                });
+            };
+        })();
+        Blazor.start({ loadBootResource: bootLoad, configureRuntime: dotnet => { dotnet.withConfig({ loadAllSatelliteResources: true }); } }).catch(function (reason) {
             try {
                 if (!navigator.serviceWorker || !navigator.serviceWorker.controller || navigator.onLine === false) { return; }
                 var key = 'nosum-boot-recover';
