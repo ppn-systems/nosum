@@ -123,4 +123,35 @@ public sealed class InventoryChannelTests
         (sent.From, sent.To, sent.Quantity).Should().Be(((byte)2, (byte)10, 3));
         channel.SlotAt(2).Quantity.Should().Be(8);
     }
+
+    [Fact]
+    public void Sort_SendsTheRequestAndLeavesTheSlotsToTheServersUpdate()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Snapshot());
+        socket.ReplyWith(_ => new InventoryResult { Status = InventoryStatus.Ok });
+        using InventoryChannel channel = new(socket);
+        channel.Load();
+
+        channel.Sort();
+
+        socket.Requests.Should().ContainSingle(r => r is SortInventory);
+        channel.SlotAt(2).Quantity.Should().Be(8);
+    }
+
+    [Fact]
+    public void Sort_WhenTheServerRefuses_RaisesRefused()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Snapshot());
+        socket.ReplyWith(_ => new InventoryResult { Status = InventoryStatus.NoSpace });
+        using InventoryChannel channel = new(socket);
+        channel.Load();
+        InventoryStatus? refused = null;
+        channel.Refused += status => refused = status;
+
+        channel.Sort();
+
+        refused.Should().Be(InventoryStatus.NoSpace);
+    }
 }

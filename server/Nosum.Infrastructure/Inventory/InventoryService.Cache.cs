@@ -50,6 +50,20 @@ public sealed partial class InventoryService
     }
 
     /// <inheritdoc/>
+    public async Task<InventoryChange> SortAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        // A sort changes no totals either: the same items end up in other slots, so there is nothing to audit.
+        Outcome outcome = await this.ExecuteAsync(
+            ownerId,
+            static (loaded, _) => ToStatus(loaded.Grid.Sort()),
+            string.Empty,
+            null,
+            push: true,
+            cancellationToken).ConfigureAwait(false);
+        return new InventoryChange(outcome.Status, outcome.Changed);
+    }
+
+    /// <inheritdoc/>
     public async Task<InventoryChange> BackfillStarterToolsAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
         Outcome outcome = await this.ExecuteAsync(

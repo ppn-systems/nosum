@@ -343,6 +343,53 @@ public sealed class InventoryGrid
         return InventoryVerdict.Ok;
     }
 
+    /// <summary>
+    /// Sorts the whole grid: the stacks of one item are merged up to the stack limit, then laid out from the first slot by item kind and then item id.
+    /// Nothing is added or removed, so the layout fits whenever the grid held the items before; if it would not fit, nothing changes.
+    /// </summary>
+    /// <returns><see cref="InventoryVerdict.Ok"/>, or <see cref="InventoryVerdict.NoSpace"/> when the layout would not fit (then nothing changed).</returns>
+    public InventoryVerdict Sort()
+    {
+        List<(int ItemId, int Quantity)> totals = [];
+        foreach (ItemSlot stack in _slots)
+        {
+            if (!stack.IsEmpty)
+            {
+                AddTotal(totals, stack);
+            }
+        }
+
+        totals.Sort(CompareForSort);
+
+        ItemSlot[] layout = new ItemSlot[_slots.Length];
+        int next = 0;
+        foreach ((int itemId, int quantity) in totals)
+        {
+            _ = ItemCatalog.TryGet(itemId, out ItemDefinition? item);
+            int maxStack = item!.MaxStack;
+            for (int left = quantity; left > 0; left -= Math.Min(left, maxStack))
+            {
+                if (next == layout.Length)
+                {
+                    return InventoryVerdict.NoSpace;
+                }
+
+                layout[next++] = new ItemSlot(itemId, Math.Min(left, maxStack));
+            }
+        }
+
+        for (int i = 0; i < _slots.Length; i++)
+        {
+            if (_slots[i] != layout[i])
+            {
+                _slots[i] = layout[i];
+                _changed[i] = true;
+            }
+        }
+
+        return InventoryVerdict.Ok;
+    }
+
     /// <summary>Appends the slots changed since the last call to a caller-owned list and forgets them.</summary>
     /// <param name="into">List that receives the slot numbers, ascending.</param>
     public void TakeChanged(List<int> into)
@@ -383,4 +430,28 @@ public sealed class InventoryGrid
         _changed[slot] = true;
         return take;
     }
+
+    // Adds a stack's quantity to the running total of its item, creating the entry on first sight.
+    private static void AddTotal(List<(int ItemId, int Quantity)> totals, ItemSlot stack)
+    {
+        for (int i = 0; i < totals.Count; i++)
+        {
+            if (totals[i].ItemId == stack.ItemId)
+            {
+                totals[i] = (stack.ItemId, totals[i].Quantity + stack.Quantity);
+                return;
+            }
+        }
+
+        totals.Add((stack.ItemId, stack.Quantity));
+    }
+
+    // Kind first (tools before seeds before produce, as the enum orders them), then id; an unknown item sorts last.
+    private static int CompareForSort((int ItemId, int Quantity) a, (int ItemId, int Quantity) b)
+    {
+        int byKind = KindOf(a.ItemId).CompareTo(KindOf(b.ItemId));
+        return byKind != 0 ? byKind : a.ItemId.CompareTo(b.ItemId);
+    }
+
+    private static int KindOf(int itemId) => ItemCatalog.TryGet(itemId, out ItemDefinition? item) ? (int)item.Kind : int.MaxValue;
 }

@@ -53,6 +53,9 @@ public static class PlaceableOpCode
     /// <summary>Moves a stack between the inventory and an open chest. Reply: <see cref="S2C.ChestResult"/>.</summary>
     public const ushort ChestMove = 0xB112;
 
+    /// <summary>Sorts an open chest: merges partial stacks and lays the stacks out by item kind and id. Reply: <see cref="S2C.ChestResult"/>; the viewers get <see cref="S2C.ChestUpdate"/>.</summary>
+    public const ushort ChestSort = 0xB113;
+
     /// <summary>Starts a furnace job. Reply: <see cref="S2C.FurnaceResult"/>.</summary>
     public const ushort StartSmelting = 0xB120;
 

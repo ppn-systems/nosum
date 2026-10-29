@@ -208,6 +208,28 @@ public sealed class ChestViewModel : PanelViewModel, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <summary>Gets the localized label of the button that sorts the open chest.</summary>
+    public string SortChestLabel => this.Text("Chest_SortChest");
+
+    /// <summary>Gets the localized label of the button that sorts the player's bag.</summary>
+    public string SortBagLabel => this.Text("Chest_SortBag");
+
+    /// <summary>Sorts the open chest. A stack picked up on the page is put down first.</summary>
+    public void SortChest()
+    {
+        _pickedSlot = -1;
+        _chest.Sort();
+        this.Raise();
+    }
+
+    /// <summary>Sorts the player's bag. A stack picked up on the page is put down first.</summary>
+    public void SortBag()
+    {
+        _pickedSlot = -1;
+        _inventory.Sort();
+        this.Raise();
+    }
+
     /// <summary>Closes the chest (the page's close button, Escape, or leaving).</summary>
     public void Close()
     {

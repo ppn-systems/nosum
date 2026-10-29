@@ -30,6 +30,9 @@
         </GameSection>
     </div>
     <GameSection>
+        <div class="inv-tools">
+            <GameButton Variant="plain" Text="@Vm.SortLabel" OnClick="Vm.Sort" />
+        </div>
         <div class="inv-grids">
             <ItemGrid Slots="Storage" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" />
             <ItemGrid Slots="Hotbar" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" />
