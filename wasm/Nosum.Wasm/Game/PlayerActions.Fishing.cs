@@ -2,6 +2,7 @@
 
 using System;
 using Nosum.Gameplay.Items;
+using Nosum.Wasm.ViewModels.Audio;
 
 namespace Nosum.Wasm.Game;
 
@@ -24,6 +25,8 @@ internal sealed partial class PlayerActions
     {
         if (this.HoldsRod)
         {
+            // The line goes into the water with a splash, the sound the watering can makes.
+            _audio?.Play(SoundIds.ToolWater);
             this.CastRequested?.Invoke(tileX, tileY);
         }
     }
