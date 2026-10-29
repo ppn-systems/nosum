@@ -44,7 +44,8 @@ internal static class SettingsWiring
     {
         SettingsViewModel settings = services.GetRequiredService<SettingsViewModel>();
         SettingsApplier applier = services.GetRequiredService<SettingsApplier>();
-        settings.Applied += applier.Apply;
+        settings.Applied += current => applier.Apply(current, settings.ReducesMotion);
+        settings.SetSystemReducesMotion(BrowserSettings.PrefersReducedMotion());
         settings.Apply();
 
         OnboardingViewModel hints = services.GetRequiredService<OnboardingViewModel>();

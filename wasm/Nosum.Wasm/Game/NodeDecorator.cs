@@ -74,7 +74,7 @@ internal sealed class NodeDecorator : IMapDecorator
                     continue;
                 }
 
-                NodeSprites.Add(world, node, _textures, _tileSize, NodeSprites.ShakeOffset(node.HitAtMs, now), now);
+                NodeSprites.Add(world, node, _textures, _tileSize, ViewOptions.ReduceMotion ? 0 : NodeSprites.ShakeOffset(node.HitAtMs, now), now);
             }
         }
     }

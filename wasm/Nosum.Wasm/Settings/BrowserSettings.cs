@@ -30,4 +30,10 @@ internal static partial class BrowserSettings
 
     [JSImport("applyScale", ModuleName)]
     public static partial void ApplyScale(int scale);
+
+    [JSImport("applyPanelScale", ModuleName)]
+    public static partial void ApplyPanelScale(int percent);
+
+    [JSImport("prefersReducedMotion", ModuleName)]
+    public static partial bool PrefersReducedMotion();
 }

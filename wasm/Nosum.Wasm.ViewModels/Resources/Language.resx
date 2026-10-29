@@ -352,8 +352,11 @@
   <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
   <data name="Settings_ScaleHint" xml:space="preserve"><value>Số điểm ảnh màn hình cho mỗi điểm ảnh của thế giới. Tự động chọn theo cỡ cửa sổ.</value></data>
   <data name="Settings_ShowNames" xml:space="preserve"><value>Hiện tên trên đầu nhân vật</value></data>
-  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Giảm chuyển động (không mưa, tuyết, hiệu ứng)</value></data>
-  <data name="Settings_HighContrast" xml:space="preserve"><value>Tương phản cao</value></data>
+  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Giảm chuyển động (không mưa, tuyết, rung lắc hay hiệu ứng đánh trúng)</value></data>
+  <data name="Settings_MotionAuto" xml:space="preserve"><value>Theo cài đặt của hệ thống</value></data>
+  <data name="Settings_HighContrast" xml:space="preserve"><value>Chữ tương phản cao</value></data>
+  <data name="Settings_PanelScale" xml:space="preserve"><value>Kích thước bảng và HUD</value></data>
+  <data name="Settings_PanelScaleLabel" xml:space="preserve"><value>Tỉ lệ</value></data>
   <data name="Settings_Display" xml:space="preserve"><value>Hiển thị</value></data>
   <data name="Settings_Music" xml:space="preserve"><value>Nhạc nền</value></data>
   <data name="Settings_SoundFx" xml:space="preserve"><value>Hiệu ứng âm thanh</value></data>

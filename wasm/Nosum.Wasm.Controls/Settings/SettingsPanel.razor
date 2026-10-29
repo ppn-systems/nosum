@@ -24,10 +24,22 @@
                         <p class="set-note">@Settings.Text("Settings_ScaleHint")</p>
                     </div>
                 </GameSection>
+                <GameSection Title="@Settings.Text("Settings_PanelScale")">
+                    <div class="set-body">
+                        <GameSlider Label="@Settings.Text("Settings_PanelScaleLabel")" Value="Settings.Current.PanelScale" ValueChanged="Settings.SetPanelScale"
+                                    Min="ClientSettings.MinPanelScale" Max="ClientSettings.MaxPanelScale" Step="5" Format="Percent" />
+                    </div>
+                </GameSection>
                 <GameSection Title="@Settings.Text("Settings_Display")">
                     <div class="set-body">
                         <GameToggle Label="@Settings.Text("Settings_ShowNames")" Value="Settings.Current.ShowNames" ValueChanged="Settings.SetShowNames" />
-                        <GameToggle Label="@Settings.Text("Settings_ReduceMotion")" Value="Settings.Current.ReduceMotion" ValueChanged="Settings.SetReduceMotion" />
+                        <GameToggle Label="@Settings.Text("Settings_ReduceMotion")" Value="Settings.ReducesMotion" ValueChanged="Settings.SetReduceMotion" />
+                        @if (Settings.Current.ReduceMotion is not null)
+                        {
+                            <GameRow>
+                                <GameButton Variant="plain" Text="@Settings.Text("Settings_MotionAuto")" OnClick="Settings.FollowSystemMotion" />
+                            </GameRow>
+                        }
                         <GameToggle Label="@Settings.Text("Settings_HighContrast")" Value="Settings.Current.HighContrast" ValueChanged="Settings.SetHighContrast" />
                     </div>
                 </GameSection>
