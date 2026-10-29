@@ -36,10 +36,10 @@ namespace Nosum.Infrastructure.Placeables;
 /// Every rule is <see cref="PlacedSet.Check"/> plus the server's own record of the player (position, instance, inventory slot);
 /// the placed set of an instance is loaded once, kept in memory and written through to PostgreSQL in the same transaction as the
 /// inventory change, so an item is never both in the inventory and in the room (docs/adr/ADR-015). One lock per instance serializes changes.
-/// An object belongs to the chunk of its first (top-left) tile: the instance keeps them in per-chunk buckets, a change is published to that chunk's subscribers and
-/// the chunk's objects are sent once when the chunk joins a player's interest set (docs/adr/ADR-022).
+/// An object belongs to every chunk its footprint overlaps (<see cref="PlacedChunks"/>): the instance keeps them in per-chunk buckets, a change is published to each of
+/// those chunks' subscribers and a chunk's objects are sent once when the chunk joins a player's interest set (docs/adr/ADR-022).
 /// </summary>
-public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunkStateContributor, IInstanceLock
+public sealed partial class PlaceableService : IPlaceableService, IInstanceWorld, IChunkStateContributor, IInstanceLock
 {
     private readonly IMapPresence _presence;
     private readonly IChunkMap _chunks;
@@ -162,11 +162,11 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         InstanceState state = await this.StateOfAsync(player.Instance, map, cancellationToken).ConfigureAwait(false);
         using (await _locks.EnterAsync(player.Key, cancellationToken).ConfigureAwait(false))
         {
-            // Only what the player can see: the objects of the chunks in their interest set (all of them before the player has one).
+            // Only what the player can see: the objects that stand in a chunk of their interest set (all of them before the player has one).
             List<PlacedItem> visible = new(state.Set.Count);
             foreach (PlacedItem item in state.Set.Items)
             {
-                if (player.Viewer is null || _chunks.IsInterested(player, ChunkCoord.OfTile(item.TileX, item.TileY)))
+                if (player.Viewer is null || this.AnyInterested(player, PlacedChunks.RangeOf(item)))
                 {
                     visible.Add(item);
                 }
@@ -281,7 +281,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             await behaviour.PlacedAsync(player.Instance, placed, cancellationToken).ConfigureAwait(false);
         }
 
-        await this.PushAsync(player.Instance, ChunkOf(placed), [placed], [], cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(player.Instance, PlacedChunks.RangeOf(placed).Chunks(), [placed], [], cancellationToken).ConfigureAwait(false);
         return new PlaceOutcome(PlaceStatus.Ok, placed.Id);
     }
 
@@ -356,13 +356,20 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             this.Rebuild(state, player.Instance, map);
         }
 
-        // A move across a chunk border is a removal for the old chunk's subscribers and an upsert for the new one's (each sees only the half it holds). Removal first.
-        if (ChunkOf(current) != ChunkOf(moved))
+        // A move removes the piece from the chunks it left and upserts it in every chunk it now overlaps. Removal first.
+        ChunkRange before = PlacedChunks.RangeOf(current);
+        ChunkRange after = PlacedChunks.RangeOf(moved);
+        List<ChunkCoord> left = [];
+        foreach (ChunkCoord chunk in before.Chunks())
         {
-            await this.PushAsync(player.Instance, ChunkOf(current), [], [objectId], cancellationToken).ConfigureAwait(false);
+            if (!after.Contains(chunk))
+            {
+                left.Add(chunk);
+            }
         }
 
-        await this.PushAsync(player.Instance, ChunkOf(moved), [moved], [], cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(player.Instance, left, [], [objectId], cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(player.Instance, after.Chunks(), [moved], [], cancellationToken).ConfigureAwait(false);
         return new PlaceOutcome(PlaceStatus.Ok, objectId);
     }
 
@@ -456,7 +463,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             await behaviour.PickedUpAsync(player.Instance, current, cancellationToken).ConfigureAwait(false);
         }
 
-        await this.PushAsync(player.Instance, ChunkOf(current), [], [objectId], cancellationToken).ConfigureAwait(false);
+        await this.PushAsync(player.Instance, PlacedChunks.RangeOf(current).Chunks(), [], [objectId], cancellationToken).ConfigureAwait(false);
         return new PlaceOutcome(PlaceStatus.Ok, objectId);
     }
 
@@ -497,7 +504,7 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         _ => PlaceStatus.Overlaps,
     };
 
-    // The footprint must be free, within the player's reach, and not on any present player's feet.
+    // The footprint must be free and within the player's reach; a piece that blocks walking is also not on any present player's feet.
     private PlaceStatus Validate(InstanceState state, MapDefinition map, PlayerPresence player, PlaceableDefinition definition, int rotation, int tileX, int tileY, int ignoreId, IGroundLayers? layers)
     {
         PlacementVerdict verdict = state.Set.Check(definition, rotation, tileX, tileY, map.Grid, map.ReservedTiles, ignoreId, layers);
@@ -520,13 +527,14 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             feetY = player.Motion.Y;
         }
 
-        if (PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, map.Grid.TileSize))
-        {
-            return PlaceStatus.PlayerInTheWay;
-        }
-
+        // A piece that does not block walking (a path) may go under anyone's feet, the placer's included; only a blocking one must stand clear.
         if (definition.BlocksWalking)
         {
+            if (PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, map.Grid.TileSize))
+            {
+                return PlaceStatus.PlayerInTheWay;
+            }
+
             List<PlayerPresence> present = [];
             _presence.CopyPlayers(player.Key, present);
             foreach (PlayerPresence other in present)
@@ -688,29 +696,6 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         return state;
     }
 
-    // An object lives in the chunk of its first (top-left) tile.
-    private static ChunkCoord ChunkOf(PlacedItem item) => ChunkCoord.OfTile(item.TileX, item.TileY);
-
-    private async Task PushAsync(MapInstance instance, ChunkCoord chunk, IReadOnlyList<PlacedItem> upserted, IReadOnlyList<int> removed, CancellationToken cancellationToken)
-    {
-        using PacketScope<PlacedChanged> lease = PacketFactory<PlacedChanged>.Acquire();
-        PlacedChanged packet = lease.Value;
-        packet.MapId = instance.MapId;
-        packet.Upserted.Clear();
-        packet.Removed.Clear();
-        foreach (PlacedItem item in upserted)
-        {
-            packet.Upserted.Add(ToRow(item));
-        }
-
-        foreach (int id in removed)
-        {
-            packet.Removed.Add(id);
-        }
-
-        await _publisher.PublishAsync(instance, chunk, packet, null, cancellationToken).ConfigureAwait(false);
-    }
-
     private static PlacedObjectRow ToRow(PlacedItem item)
     {
         PlacedObjectRow row = PlacedObjectRow.Create();
@@ -747,7 +732,8 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
         // Replaced as a whole under the instance lock; movement validation reads it without one.
         public WalkGrid Grid;
 
-        // The objects of each chunk, for "everything in chunk (cx, cy)" without a scan of the room. Rebuilt with the grid, under the instance lock.
+        // The objects of each chunk, for "everything in chunk (cx, cy)" without a scan of the room. A piece is in every chunk its footprint overlaps.
+        // Rebuilt with the grid, under the instance lock.
         public Dictionary<ChunkCoord, List<PlacedItem>> ByChunk { get; } = [];
 
         public void Rebuild(MapDefinition map)
@@ -756,14 +742,16 @@ public sealed class PlaceableService : IPlaceableService, IInstanceWorld, IChunk
             this.ByChunk.Clear();
             foreach (PlacedItem item in this.Set.Items)
             {
-                ChunkCoord chunk = ChunkOf(item);
-                if (!this.ByChunk.TryGetValue(chunk, out List<PlacedItem>? bucket))
+                foreach (ChunkCoord chunk in PlacedChunks.RangeOf(item).Chunks())
                 {
-                    bucket = [];
-                    this.ByChunk[chunk] = bucket;
-                }
+                    if (!this.ByChunk.TryGetValue(chunk, out List<PlacedItem>? bucket))
+                    {
+                        bucket = [];
+                        this.ByChunk[chunk] = bucket;
+                    }
 
-                bucket.Add(item);
+                    bucket.Add(item);
+                }
             }
         }
     }

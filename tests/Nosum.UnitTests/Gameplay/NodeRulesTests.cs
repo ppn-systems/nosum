@@ -186,6 +186,55 @@ public sealed class NodeRulesTests
         NodeRules.Age(Fresh(NodeKind.Stone), 30).Should().Be(Fresh(NodeKind.Stone));
     }
 
+    // Regression for #153: a starter tool bounces off a node that needs a higher tier, and the node is left exactly as it was.
+    [Theory]
+    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe)]
+    [InlineData(NodeKind.LargeStump, ToolKind.Axe)]
+    public void Hit_AStarterToolBelowTheNodesTier_IsWrongToolAndTheNodeStands(NodeKind kind, ToolKind tool)
+    {
+        ResourceNode node = Fresh(kind);
+
+        NodeRules.Hit(node, tool, 1, ToolTier.Basic).Should().Be(new NodeHit(NodeHitOutcome.WrongTool, node));
+        NodeRules.Hit(node, tool).Should().Be(new NodeHit(NodeHitOutcome.WrongTool, node), "the default tool is a starter tool");
+    }
+
+    [Theory]
+    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe)]
+    [InlineData(NodeKind.LargeStump, ToolKind.Axe)]
+    public void Hit_AToolOfTheNodesTier_Works(NodeKind kind, ToolKind tool)
+    {
+        NodeHit hit = NodeRules.Hit(Fresh(kind), tool, 1, ToolTier.Iron);
+
+        hit.Outcome.Should().NotBe(NodeHitOutcome.WrongTool);
+    }
+
+    [Fact]
+    public void Hit_ACopperOreWithABasicPickaxe_StillWorks()
+    {
+        NodeHit hit = NodeRules.Hit(Fresh(NodeKind.CopperOre), ToolKind.Pickaxe, 1, ToolTier.Basic);
+
+        hit.Outcome.Should().Be(NodeHitOutcome.Damaged, "only iron ore and the large stump ask for more than a starter tool");
+    }
+
+    // Regression for #154: a planted seed, a sapling and a bush are walked over; only the grown tree blocks.
+    [Theory]
+    [InlineData(TreeStage.Seed)]
+    [InlineData(TreeStage.Sapling)]
+    [InlineData(TreeStage.Bush)]
+    public void Blocks_AYoungTree_IsWalkedOver(byte stage)
+    {
+        ResourceNode tree = new(1, 4, 5, NodeKind.Tree, TreeVariant.Oak, stage, NodeCatalog.HitsFor(NodeKind.Tree, stage));
+
+        tree.Blocks.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Blocks_AGrownTreeAndItsStump_Block()
+    {
+        Fresh(NodeKind.Tree).Blocks.Should().BeTrue();
+        Fresh(NodeKind.Stump).Blocks.Should().BeTrue();
+    }
+
     [Fact]
     public void NodeRandom_ForTheSameSeed_IsStableAcrossRuns()
     {
@@ -219,14 +268,14 @@ public sealed class NodeRulesTests
     }
 
     [Theory]
-    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 1, 3)]
-    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 2, 2)]
-    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 3, 1)]
-    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 1, 4)]
-    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 2, 2)]
-    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 3, 2)]
-    [InlineData(NodeKind.Stump, ToolKind.Axe, 2, 1)]
-    public void Hit_AnUpgradedTool_TakesFewerSwings(NodeKind kind, ToolKind tool, int damage, int swingsToBreak)
+    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 1, 3, ToolTier.Basic)]
+    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 2, 2, ToolTier.Copper)]
+    [InlineData(NodeKind.CopperOre, ToolKind.Pickaxe, 3, 1, ToolTier.Iron)]
+    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 1, 4, ToolTier.Iron)]
+    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 2, 2, ToolTier.Iron)]
+    [InlineData(NodeKind.IronOre, ToolKind.Pickaxe, 3, 2, ToolTier.Iron)]
+    [InlineData(NodeKind.Stump, ToolKind.Axe, 2, 1, ToolTier.Basic)]
+    public void Hit_AnUpgradedTool_TakesFewerSwings(NodeKind kind, ToolKind tool, int damage, int swingsToBreak, ToolTier tier)
     {
         ResourceNode node = Fresh(kind);
         int swings = 0;
@@ -234,7 +283,7 @@ public sealed class NodeRulesTests
         while (current is { } standing)
         {
             swings++;
-            NodeHit hit = NodeRules.Hit(standing, tool, damage);
+            NodeHit hit = NodeRules.Hit(standing, tool, damage, tier);
             if (hit.Outcome == NodeHitOutcome.Broke)
             {
                 break;

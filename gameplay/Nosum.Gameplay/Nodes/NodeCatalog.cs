@@ -7,8 +7,9 @@ using Nosum.Gameplay.Items;
 namespace Nosum.Gameplay.Nodes;
 
 /// <summary>
-/// The resource-node catalogue (docs/adr/ADR-021 D3 and D5): hits to break, tool, blocking and yields per kind. Hits: twig 1, stone 1, weed 1,
+/// The resource-node catalogue (docs/adr/ADR-021 D3 and D5): hits to break, tool, tool tier, blocking and yields per kind. Hits: twig 1, stone 1, weed 1,
 /// grass 1, forage 1 (picked up by any hand, docs/adr/ADR-025), stump 2, large stump 6 (docs/adr/ADR-037), grown tree 10, copper ore 3, iron ore 4. A ladder is not broken: facing it takes a player down. A tree younger than <see cref="TreeStage.Grown"/> falls to one hit and leaves nothing behind.
+/// The large stump needs an iron axe and iron ore an iron pickaxe (<see cref="NodeDefinition.RequiredTier"/>, docs/adr/ADR-026 D1); a starter tool bounces off them.
 /// </summary>
 public static class NodeCatalog
 {
@@ -16,11 +17,11 @@ public static class NodeCatalog
     [
         new(NodeKind.Tree, "tree", ToolKind.Axe, 10, true, [new NodeYield(ItemCatalog.Wood, 6, 10)]),
         new(NodeKind.Stump, "stump", ToolKind.Axe, 2, true, [new NodeYield(ItemCatalog.Wood, 2, 4)]),
-        new(NodeKind.LargeStump, "large_stump", ToolKind.Axe, 6, true, [new NodeYield(ItemCatalog.Wood, 8, 12)]),
+        new(NodeKind.LargeStump, "large_stump", ToolKind.Axe, 6, true, [new NodeYield(ItemCatalog.Wood, 8, 12)]) { RequiredTier = ToolTier.Iron },
         new(NodeKind.Twig, "twig", ToolKind.Axe, 1, true, [new NodeYield(ItemCatalog.Wood, 1, 1)]),
         new(NodeKind.Stone, "stone", ToolKind.Pickaxe, 1, true, [new NodeYield(ItemCatalog.Stone, 1, 2), new NodeYield(ItemCatalog.Coal, 1, 1, 50)]),
         new(NodeKind.CopperOre, "copper_ore", ToolKind.Pickaxe, 3, true, [new NodeYield(ItemCatalog.CopperOre, 1, 3)]),
-        new(NodeKind.IronOre, "iron_ore", ToolKind.Pickaxe, 4, true, [new NodeYield(ItemCatalog.IronOre, 1, 3)]),
+        new(NodeKind.IronOre, "iron_ore", ToolKind.Pickaxe, 4, true, [new NodeYield(ItemCatalog.IronOre, 1, 3)]) { RequiredTier = ToolTier.Iron },
         new(NodeKind.Ladder, "ladder", ToolKind.None, 1, true, []),
         new(NodeKind.Weed, "weed", ToolKind.Scythe, 1, false, [new NodeYield(ItemCatalog.Fiber, 1, 1)]),
         new(NodeKind.Grass, "grass", ToolKind.Scythe, 1, false, [new NodeYield(ItemCatalog.Fiber, 1, 1, 400)]),

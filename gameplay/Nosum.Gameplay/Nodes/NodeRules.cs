@@ -10,7 +10,7 @@ namespace Nosum.Gameplay.Nodes;
 /// <summary>Result of using a tool on a node.</summary>
 public enum NodeHitOutcome
 {
-    /// <summary>The held tool does not work on this node.</summary>
+    /// <summary>The held tool does not work on this node: it is the wrong kind, or of too low a tier for it. The node is unchanged.</summary>
     WrongTool = 0,
 
     /// <summary>The node took a hit and still stands (<see cref="NodeHit.Next"/> has fewer hits).</summary>
@@ -28,23 +28,19 @@ public readonly record struct NodeHit(NodeHitOutcome Outcome, ResourceNode? Next
 /// <summary>The pure node rules: hits, breaking, yields and tree growth. Randomness is a parameter, so a test can pin every outcome.</summary>
 public static class NodeRules
 {
-    /// <summary>Applies one tool swing to a node. A grown tree that breaks becomes a stump of the same id and species; every other node that breaks is removed.</summary>
-    /// <param name="node">The node.</param>
-    /// <param name="tool">The held tool.</param>
-    /// <returns>What happened.</returns>
-    public static NodeHit Hit(in ResourceNode node, ToolKind tool) => Hit(node, tool, 1);
-
     /// <summary>
-    /// Applies one tool swing of a given strength (docs/adr/ADR-026 D1: an upgraded axe or pickaxe does more than one hit of damage). A stone
-    /// that hides a mine ladder (<see cref="NodeVariants.LadderStone"/>) leaves the ladder behind when it breaks.
+    /// Applies one tool swing (docs/adr/ADR-026 D1: an upgraded axe or pickaxe does more than one hit of damage). A grown tree that breaks becomes a
+    /// stump of the same id and species; every other node that breaks is removed. A stone that hides a mine ladder
+    /// (<see cref="NodeVariants.LadderStone"/>) leaves the ladder behind when it breaks.
     /// </summary>
     /// <param name="node">The node.</param>
     /// <param name="tool">The held tool.</param>
     /// <param name="damage">Hits' worth of damage this swing does, at least one (<see cref="ToolRules.DamagePerHit"/>).</param>
+    /// <param name="tier">The held tool's tier; a tool below <see cref="NodeDefinition.RequiredTier"/> does nothing to the node.</param>
     /// <returns>What happened.</returns>
-    public static NodeHit Hit(in ResourceNode node, ToolKind tool, int damage)
+    public static NodeHit Hit(in ResourceNode node, ToolKind tool, int damage = 1, ToolTier tier = ToolTier.Basic)
     {
-        if (!NodeCatalog.TryGet(node.Kind, out NodeDefinition? definition) || definition.Tool != tool || node.Kind == NodeKind.Ladder)
+        if (!NodeCatalog.TryGet(node.Kind, out NodeDefinition? definition) || definition.Tool != tool || tier < definition.RequiredTier || node.Kind == NodeKind.Ladder)
         {
             return new NodeHit(NodeHitOutcome.WrongTool, node);
         }

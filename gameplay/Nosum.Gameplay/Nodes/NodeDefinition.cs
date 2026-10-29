@@ -54,4 +54,7 @@ public sealed class NodeDefinition
 
     /// <summary>Gets what the node gives when it breaks.</summary>
     public IReadOnlyList<NodeYield> Yield { get; }
+
+    /// <summary>Gets the lowest tool tier that breaks the node (docs/adr/ADR-026 D1): a tool of a lower tier does nothing to it. Basic for anything a starter tool can break.</summary>
+    public ToolTier RequiredTier { get; init; } = ToolTier.Basic;
 }
