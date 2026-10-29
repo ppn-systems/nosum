@@ -14,6 +14,8 @@ namespace Nosum.Wasm.Socket.Combat;
 /// </summary>
 public sealed partial class CombatChannel
 {
+    private const int MaxGroundTelegraphs = 8;
+
     /// <summary>Gets whether the currently firing <see cref="LevelledUp"/> event originated from Combat XP rather than an external skill.</summary>
     public bool IsCombatSkillLevelUp { get; private set; }
 
@@ -253,13 +255,55 @@ public sealed partial class CombatChannel
         }
     }
 
-    private void RecordCombo(byte comboCount)
+    private void RecordCombo(byte comboCount, int monsterId)
     {
         long expireAt = Environment.TickCount64 + 3500;
         Volatile.Write(ref _comboCount, comboCount);
         Volatile.Write(ref _comboExpireTick, expireAt);
         this.ComboChanged?.Invoke();
+        if (comboCount == FinisherComboCount)
+        {
+            // The finisher bursts on the struck monster, or on the player when the hit has no single target (docs/adr/ADR-060).
+            int tileX = _playerX;
+            int tileY = _playerY;
+            if (this.TryGetMonster(monsterId, out MonsterClientRow m))
+            {
+                tileX = m.X;
+                tileY = m.Y;
+            }
+
+            Volatile.Write(ref _finisherTileX, tileX);
+            Volatile.Write(ref _finisherTileY, tileY);
+            Volatile.Write(ref _finisherTick, Environment.TickCount64);
+            this.ComboFinished?.Invoke();
+        }
+
         _ = this.ExpireComboAsync(expireAt);
+    }
+
+    /// <summary>Gets the player's tile column, for world-space combat feedback that follows the player.</summary>
+    public int PlayerTileX => _playerX;
+
+    /// <summary>Gets the player's tile row, for world-space combat feedback that follows the player.</summary>
+    public int PlayerTileY => _playerY;
+
+    /// <summary>Queries the active combo finisher burst for zero-allocation world rendering (docs/adr/ADR-060).</summary>
+    public bool TryGetActiveFinisher(long now, out float progress, out int tileX, out int tileY)
+    {
+        long start = Volatile.Read(ref _finisherTick);
+        long elapsed = now - start;
+        if (start > 0 && elapsed >= 0 && elapsed < FinisherDurationMs)
+        {
+            progress = elapsed / (float)FinisherDurationMs;
+            tileX = Volatile.Read(ref _finisherTileX);
+            tileY = Volatile.Read(ref _finisherTileY);
+            return true;
+        }
+
+        progress = 0f;
+        tileX = 0;
+        tileY = 0;
+        return false;
     }
 
     private async Task ExpireComboAsync(long expireAt)
@@ -386,7 +430,7 @@ public sealed partial class CombatChannel
                     }
                     else
                     {
-                        _monsters[i] = new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier);
+                        _monsters[i] = new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier, packet.Enraged != 0);
                     }
 
                     found = true;
@@ -396,11 +440,33 @@ public sealed partial class CombatChannel
 
             if (!found && packet.Hp > 0)
             {
-                _monsters.Add(new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier));
+                _monsters.Add(new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier, packet.Enraged != 0));
             }
         }
 
         this.MonstersUpdated?.Invoke();
+    }
+
+    private void OnGroundTelegraph(GroundTelegraph packet)
+    {
+        long now = Environment.TickCount64;
+        lock (_gate)
+        {
+            for (int i = _telegraphs.Count - 1; i >= 0; i--)
+            {
+                if (now - _telegraphs[i].StartMs >= _telegraphs[i].DelayMs)
+                {
+                    _telegraphs.RemoveAt(i);
+                }
+            }
+
+            if (_telegraphs.Count >= MaxGroundTelegraphs)
+            {
+                _telegraphs.RemoveAt(0);
+            }
+
+            _telegraphs.Add(new GroundTelegraphClientRow(packet.X, packet.Y, packet.RadiusTiles, now, packet.DelayMs));
+        }
     }
 
     private void UpdateMonsterHp(int monsterId, int remainingHp)

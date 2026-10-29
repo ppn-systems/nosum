@@ -55,3 +55,16 @@
 .upgrade-cost.short {
     color: var(--nosum-ink-soft);
 }
+
+.objective-row {
+    display: grid;
+    gap: 4px;
+}
+
+.objective-bar {
+    width: 100%;
+}
+
+.objective-trophy {
+    color: var(--nosum-ink-soft);
+}

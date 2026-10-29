@@ -1,0 +1,50 @@
+@using System
+@using System.Threading
+@using System.Threading.Tasks
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Player
+@inherits ObservingComponent<ConnectionStatusViewModel>
+
+@* The reconnect overlay: covers the game while the connection is lost, counts down to the next attempt and offers to try now. It goes in the
+   overlay region of GameHud, which dims the screen and takes the mouse, so the game cannot be played underneath. *@
+@if (Vm.IsOverlayVisible)
+{
+    <GamePanel Class="dialog connection-overlay" Title="@Vm.OverlayTitle" Role="alertdialog">
+        <GameStack>
+            <p class="connection-message">@Vm.OverlayMessage</p>
+            <p class="connection-detail">@Vm.OverlayDetail</p>
+            <GameRow Class="end">
+                <GameButton Variant="primary" Text="@Vm.RetryNowText" OnClick="OnRetryNow" />
+            </GameRow>
+        </GameStack>
+    </GamePanel>
+}
+
+@code {
+    // Once a second, so the countdown reads right. The view model raises Changed on each tick, which re-renders this control only.
+    private readonly PeriodicTimer _second = new(TimeSpan.FromSeconds(1));
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => _ = this.TickAsync();
+
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _second.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private async Task TickAsync()
+    {
+        while (await _second.WaitForNextTickAsync())
+        {
+            Vm.Tick();
+        }
+    }
+
+    private void OnRetryNow() => Vm.RetryNow();
+}

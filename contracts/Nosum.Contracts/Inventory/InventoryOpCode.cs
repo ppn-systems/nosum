@@ -20,6 +20,9 @@ public static class InventoryOpCode
     /// <summary>Selects the hotbar slot the player holds. Reply: <see cref="S2C.InventoryResult"/>.</summary>
     public const ushort SelectSlot = 0x5002;
 
+    /// <summary>Sorts the player's inventory: merges partial stacks and lays the stacks out by item kind and id. Reply: <see cref="S2C.InventoryResult"/>; the changed slots follow as <see cref="S2C.InventoryUpdate"/>.</summary>
+    public const ushort SortInventory = 0x5003;
+
     // -- S2C (0x5040-0x507F) --------------------------------------------------
 
     /// <summary>Reply to <see cref="GetInventory"/>.</summary>

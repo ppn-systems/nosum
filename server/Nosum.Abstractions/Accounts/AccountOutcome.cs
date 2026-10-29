@@ -9,7 +9,7 @@ namespace Nosum.Abstractions.Accounts;
 /// <summary>Result of an account operation. Only <see cref="Status"/> is set unless it is <see cref="AccountStatus.Ok"/>.</summary>
 /// <param name="Status">The outcome code.</param>
 /// <param name="PlayerId">The signed-in player.</param>
-/// <param name="Email">The login e-mail in lower case; empty for a guest.</param>
+/// <param name="Email">The e-mail the identity provider reported, for display only; empty for a guest or when none was sent.</param>
 /// <param name="SessionToken">The session token; empty when the operation issues none.</param>
 /// <param name="SessionId">The id of the stored session (what logout revokes); empty when none.</param>
 /// <param name="ExpiresAt">When the session token expires.</param>
@@ -43,8 +43,3 @@ public readonly record struct AccountOutcome(
 /// <param name="Nickname">The player's nickname after the request.</param>
 /// <param name="NextChangeAt">When the next change is allowed; null when one is allowed now.</param>
 public readonly record struct NicknameOutcome(AccountStatus Status, string Nickname, DateTimeOffset? NextChangeAt);
-
-/// <summary>Result of finishing an account recovery.</summary>
-/// <param name="Status">Ok, or the refusal code.</param>
-/// <param name="PlayerId">The recovered account's player; empty on a refusal.</param>
-public readonly record struct PasswordResetOutcome(AccountStatus Status, Guid PlayerId);

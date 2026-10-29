@@ -24,6 +24,7 @@ public sealed partial class CombatChannel : IDisposable
     private readonly List<MonsterClientRow> _monsters = [];
     private readonly List<ProjectileClientRow> _projectiles = [];
     private readonly List<DeathEffectClientRow> _deathEffects = [];
+    private readonly List<GroundTelegraphClientRow> _telegraphs = [];
     private readonly List<FloatingTextClientRow> _floatingTexts = [];
     private readonly List<HazardClientRow> _hazards = [];
     private readonly Dictionary<byte, long> _skillReadyAt = new();
@@ -32,6 +33,12 @@ public sealed partial class CombatChannel : IDisposable
     private byte _playerFacing;
     private int _activeSkillId;
     private long _activeSkillTick;
+
+    /// <summary>The combo streak length that lands the finisher burst and thump (docs/adr/ADR-060).</summary>
+    public const int FinisherComboCount = 5;
+
+    /// <summary>How long the finisher burst stays on screen, in milliseconds.</summary>
+    public const int FinisherDurationMs = 700;
 
     private int _hp = 100;
     private int _maxHp = 100;
@@ -45,6 +52,9 @@ public sealed partial class CombatChannel : IDisposable
     private int _lastCelebratedLevel;
     private int _levelUpValue;
     private long _levelUpTick;
+    private long _finisherTick;
+    private int _finisherTileX;
+    private int _finisherTileY;
     private string _mapId = string.Empty;
 
     /// <summary>Initializes the combat channel.</summary>
@@ -59,11 +69,15 @@ public sealed partial class CombatChannel : IDisposable
             socket.Subscribe<VitalsState>(this.OnVitals),
             socket.Subscribe<MonstersSnapshot>(this.OnMonstersSnapshot),
             socket.Subscribe<MonsterChanged>(this.OnMonsterChanged),
+            socket.Subscribe<GroundTelegraph>(this.OnGroundTelegraph),
         ];
     }
 
     /// <summary>Invoked when the player's active combo streak changes (docs/adr/ADR-060).</summary>
     public event Action? ComboChanged;
+
+    /// <summary>Invoked when a combo streak reaches the finisher length (docs/adr/ADR-060).</summary>
+    public event Action? ComboFinished;
 
     /// <summary>Invoked when the player reaches a new Combat level (docs/adr/ADR-062).</summary>
     public event Action<int>? LevelledUp;
@@ -151,6 +165,18 @@ public sealed partial class CombatChannel : IDisposable
                     destination.Add(row);
                 }
             }
+        }
+    }
+
+    /// <summary>Copies the active boss ground slam telegraphs into <paramref name="destination"/> without allocating.</summary>
+    /// <param name="destination">Destination list to populate.</param>
+    public void CopyGroundTelegraphs(List<GroundTelegraphClientRow> destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        destination.Clear();
+        lock (_gate)
+        {
+            destination.AddRange(_telegraphs);
         }
     }
 
@@ -350,7 +376,7 @@ public sealed partial class CombatChannel : IDisposable
             {
                 if (reply.ComboCount > 0)
                 {
-                    this.RecordCombo(reply.ComboCount);
+                    this.RecordCombo(reply.ComboCount, reply.MonsterId);
                 }
 
                 if (this.TryGetMonster(reply.MonsterId, out MonsterClientRow m))
@@ -452,7 +478,7 @@ public sealed partial class CombatChannel : IDisposable
 
                 if (reply.ComboCount > 0)
                 {
-                    this.RecordCombo(reply.ComboCount);
+                    this.RecordCombo(reply.ComboCount, targetMonsterId);
                 }
             }
 
@@ -492,6 +518,7 @@ public sealed partial class CombatChannel : IDisposable
             {
                 _projectiles.Clear();
                 _deathEffects.Clear();
+                _telegraphs.Clear();
                 _floatingTexts.Clear();
                 Volatile.Write(ref _activeSkillId, 0);
                 Volatile.Write(ref _activeSkillTick, 0);
@@ -502,7 +529,7 @@ public sealed partial class CombatChannel : IDisposable
             {
                 if (row.Hp > 0)
                 {
-                    _monsters.Add(new MonsterClientRow(row.MonsterId, row.Kind, row.X, row.Y, row.Hp, row.MaxHp, row.Modifier));
+                    _monsters.Add(new MonsterClientRow(row.MonsterId, row.Kind, row.X, row.Y, row.Hp, row.MaxHp, row.Modifier, row.Enraged != 0));
                 }
             }
 

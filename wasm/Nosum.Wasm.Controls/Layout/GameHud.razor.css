@@ -1,6 +1,11 @@
+/* The panel and HUD scale (settings, --nosum-ui-scale): the HUD is zoomed by it and its box shrinks by the same factor, so it still fills the window. */
 .game-hud {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: calc(100% / var(--nosum-ui-scale));
+    height: calc(100% / var(--nosum-ui-scale));
+    zoom: var(--nosum-ui-scale);
     z-index: 10;
     display: flex;
     flex-direction: column;

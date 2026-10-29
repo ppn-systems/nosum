@@ -55,7 +55,7 @@ console errors.
 - Deployment: container images for the host, reverse proxy with TLS in front of the WebSocket, PostgreSQL backups,
   migrations run at deploy, health checks (`deploy/`).
 - Security: server key pinning on the client (TOFU) before production; audit of every handler's permission and rate
-  limits; account recovery by email for Gmail accounts.
+  limits.
 - Operations: structured logs without secrets, metrics (players online, tick time, bytes sent), admin commands
   (kick, ban, mute, grant) behind an admin role.
 - Load test: 200 simulated players across maps with tick time and bandwidth inside budget.

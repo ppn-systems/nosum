@@ -27,4 +27,10 @@ public sealed partial class RequestsSnapshot : PacketBase<RequestsSnapshot>, IPa
 
     /// <summary>The requests, by slot.</summary>
     [SerializeOrder(3)] public List<RequestRow> Rows { get; set; } = [];
+
+    /// <summary>When the early bonus of the day ends, Unix milliseconds on the server clock (docs/adr/ADR-036 D10); a delivery before it is paid the bonus.</summary>
+    [SerializeOrder(4)] public long EarlyUntilMs { get; set; }
+
+    /// <summary>The share the early bonus adds, in percent.</summary>
+    [SerializeOrder(5)] public int EarlyBonusPercent { get; set; }
 }

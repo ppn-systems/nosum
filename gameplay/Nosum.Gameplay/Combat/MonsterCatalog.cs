@@ -19,10 +19,10 @@ public static class MonsterCatalog
         new(MonsterKind.GoblinScout, "goblin_scout", maxHp: 60, attackDamage: 12, xpReward: 30, ItemCatalog.GoblinEar, ItemCatalog.CopperBar),
         new(MonsterKind.SkeletonWarrior, "skeleton_warrior", maxHp: 90, attackDamage: 16, xpReward: 45, ItemCatalog.MonsterBone, ItemCatalog.NecromancerSkull),
         new(MonsterKind.StoneGolem, "stone_golem", maxHp: 140, attackDamage: 22, xpReward: 70, ItemCatalog.GolemCore, ItemCatalog.RunestoneTablet),
-        new(MonsterKind.BossBroodmother, "boss_broodmother", maxHp: 180, attackDamage: 15, xpReward: 150, ItemCatalog.AncientScroll, ItemCatalog.NecromancerSkull),
-        new(MonsterKind.BossGoblinChieftain, "boss_goblin_chieftain", maxHp: 280, attackDamage: 22, xpReward: 250, ItemCatalog.GoldenKey, ItemCatalog.GoblinEar),
-        new(MonsterKind.BossMagmaColossus, "boss_magma_colossus", maxHp: 420, attackDamage: 30, xpReward: 400, ItemCatalog.ColossusCore, ItemCatalog.TreasureGem),
-        new(MonsterKind.BossGolemKing, "boss_golem_king", maxHp: 600, attackDamage: 40, xpReward: 600, ItemCatalog.BossCrown, ItemCatalog.RunestoneTablet),
+        new(MonsterKind.BossBroodmother, "boss_broodmother", maxHp: 180, attackDamage: 15, xpReward: 150, ItemCatalog.AncientScroll, ItemCatalog.NecromancerSkull, enrageThresholdPercent: 30),
+        new(MonsterKind.BossGoblinChieftain, "boss_goblin_chieftain", maxHp: 280, attackDamage: 22, xpReward: 250, ItemCatalog.GoldenKey, ItemCatalog.GoblinEar, enrageThresholdPercent: 30),
+        new(MonsterKind.BossMagmaColossus, "boss_magma_colossus", maxHp: 420, attackDamage: 30, xpReward: 400, ItemCatalog.ColossusCore, ItemCatalog.TreasureGem, enrageThresholdPercent: 30),
+        new(MonsterKind.BossGolemKing, "boss_golem_king", maxHp: 600, attackDamage: 40, xpReward: 600, ItemCatalog.BossCrown, ItemCatalog.RunestoneTablet, enrageThresholdPercent: 30),
     ];
 
     private static readonly Dictionary<MonsterKind, MonsterDefinition> s_byKind = Index();

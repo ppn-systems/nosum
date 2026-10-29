@@ -41,7 +41,7 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-029](ADR-029-chat-friends-mail.md) | Chat channels with moderation, friends list, mailbox for system messages | Accepted |
 | [ADR-030](ADR-030-community-goals-and-market-limits.md) | Seasonal community goals with server-wide rewards; market cornering limit and price history | Accepted |
 | [ADR-031](ADR-031-deployment-and-operations.md) | Deployment and operations: images, Caddy TLS, migrations and backups, health, logs, metrics, admin role, load test | Accepted |
-| [ADR-032](ADR-032-security-hardening.md) | Security hardening: server key pinning, handler audit tests, input bounds, account recovery, session and abuse limits | Accepted |
+| [ADR-032](ADR-032-security-hardening.md) | Security hardening: server key pinning, handler audit tests, input bounds, session and abuse limits (account recovery later removed) | Accepted |
 | [ADR-033](ADR-033-client-settings-touch-onboarding.md) | Client settings, touch controls, onboarding hints, accessibility | Accepted |
 | [ADR-034](ADR-034-market-at-the-trader-counter.md) | The consignment market is a counter in Town: no market tab or key, listing/buying/cancelling need the counter | Accepted |
 | [ADR-035](ADR-035-database-round-trip-budget.md) | Database round-trip budget: per-packet budgets, state held in memory, what stays transactional, write-behind limits | Accepted |
@@ -75,3 +75,7 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-063](ADR-063-dungeon-blessing-shrines-and-sanctuary-altars.md) | Dungeon blessing shrines, ancient sanctuary altars, proximity vitality/mana/XP blessings, and localized world labels | Accepted |
 | [ADR-064](ADR-064-elemental-resonance-pylons-and-overworld-wayshrines.md) | Elemental resonance pylons, overworld wilderness wayshrines, and AoE monster discharge | Accepted |
 | [ADR-065](ADR-065-ancient-relics-ranger-tunic-heart-crystal-and-arcane-grimoire.md) | Ancient relics, ranger tunic, heart crystal, arcane grimoire crafting, and armor paperdoll | Accepted |
+| [ADR-066](ADR-066-farm-guestbook.md) | Farm guestbook and watering recognition | Proposed |
+| [ADR-067](ADR-067-coop-shared-objectives-and-trophies.md) | Co-op shared objectives and guild trophies | Proposed |
+| [ADR-068](ADR-068-monster-hunting-log-and-slayer-titles.md) | Monster hunting log and slayer titles | Accepted |
+| [ADR-069](ADR-069-google-and-microsoft-sign-in-only.md) | Google and Microsoft sign-in only (passwords removed) | Accepted |

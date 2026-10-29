@@ -45,4 +45,7 @@ public sealed partial class CoopSnapshot : PacketBase<CoopSnapshot>, IPacketStat
 
     /// <summary>The land upgrade level (docs/adr/ADR-038); zero for a player with no co-op.</summary>
     [SerializeOrder(9)] public byte LandLevel { get; set; }
+
+    /// <summary>The shared objectives and their progress, in catalogue order (docs/adr/ADR-067); empty for a player with no co-op.</summary>
+    [SerializeOrder(10)] public List<CoopObjectiveRow> Objectives { get; set; } = [];
 }

@@ -5,38 +5,40 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Account_Title_Login" xml:space="preserve"><value>Đăng nhập</value></data>
-  <data name="Account_Title_Register" xml:space="preserve"><value>Tạo tài khoản</value></data>
-  <data name="Account_Password" xml:space="preserve"><value>Mật khẩu</value></data>
-  <data name="Account_ConfirmPassword" xml:space="preserve"><value>Nhập lại mật khẩu</value></data>
-  <data name="Account_Submit_Login" xml:space="preserve"><value>Đăng nhập</value></data>
-  <data name="Account_Submit_Register" xml:space="preserve"><value>Đăng ký</value></data>
-  <data name="Account_Switch_ToRegister" xml:space="preserve"><value>Chưa có tài khoản? Đăng ký</value></data>
-  <data name="Account_Switch_ToLogin" xml:space="preserve"><value>Đã có tài khoản? Đăng nhập</value></data>
-  <data name="Account_Busy" xml:space="preserve"><value>Đang xử lý…</value></data>
-  <data name="Account_PasswordHint" xml:space="preserve"><value>Từ {0} đến {1} ký tự.</value></data>
-  <data name="Account_Error_PasswordMismatch" xml:space="preserve"><value>Hai mật khẩu không khớp.</value></data>
+  <data name="Account_Busy" xml:space="preserve"><value>Đang chờ bạn hoàn tất đăng nhập…</value></data>
   <data name="Account_Error_Connection" xml:space="preserve"><value>Không thể kết nối tới máy chủ. Vui lòng thử lại.</value></data>
-  <data name="Account_Status_InvalidPassword" xml:space="preserve"><value>Mật khẩu không hợp lệ.</value></data>
-  <data name="Account_Status_InvalidCredentials" xml:space="preserve"><value>Sai email hoặc mật khẩu.</value></data>
   <data name="Account_Status_InvalidToken" xml:space="preserve"><value>Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.</value></data>
   <data name="Account_Status_InvalidLanguage" xml:space="preserve"><value>Ngôn ngữ không hợp lệ.</value></data>
   <data name="Connection_Connecting" xml:space="preserve"><value>Đang kết nối…</value></data>
   <data name="Connection_Online" xml:space="preserve"><value>Trực tuyến</value></data>
   <data name="Connection_Reconnecting" xml:space="preserve"><value>Mất kết nối, đang thử lại…</value></data>
   <data name="Connection_Offline" xml:space="preserve"><value>Ngoại tuyến</value></data>
+  <data name="Connection_LostTitle" xml:space="preserve"><value>Mất kết nối</value></data>
+  <data name="Connection_OfflineMessage" xml:space="preserve"><value>Chưa kết nối được tới máy chủ.</value></data>
+  <data name="Connection_RetryIn" xml:space="preserve"><value>Kết nối lại sau {0} giây…</value></data>
+  <data name="Connection_Retrying" xml:space="preserve"><value>Đang kết nối lại…</value></data>
+  <data name="Connection_Paused" xml:space="preserve"><value>Trò chơi tạm dừng cho đến khi kết nối lại.</value></data>
+  <data name="Connection_RetryNow" xml:space="preserve"><value>Thử lại ngay</value></data>
   <data name="Join_UnknownMap" xml:space="preserve"><value>Không tìm thấy bản đồ</value></data>
-  <data name="Account_Email" xml:space="preserve"><value>Địa chỉ Gmail</value></data>
-  <data name="Account_EmailHint" xml:space="preserve"><value>Chỉ chấp nhận địa chỉ @{0}.</value></data>
-  <data name="Account_Status_InvalidEmail" xml:space="preserve"><value>Địa chỉ Gmail không hợp lệ.</value></data>
-  <data name="Account_Status_EmailTaken" xml:space="preserve"><value>Địa chỉ Gmail này đã được đăng ký.</value></data>
   <data name="Account_Status_NotGuest" xml:space="preserve"><value>Tài khoản này không phải tài khoản khách.</value></data>
   <data name="Account_PlayAsGuest" xml:space="preserve"><value>Chơi ngay với tư cách khách</value></data>
   <data name="Account_Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Account_Guest" xml:space="preserve"><value>Khách</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Đã đăng nhập: {0}</value></data>
-  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy đăng ký bằng Gmail.</value></data>
-  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Đăng ký ngay</value></data>
+  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy liên kết tài khoản Google hoặc Microsoft.</value></data>
+  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Liên kết tài khoản</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="Account_SignIn_Google" xml:space="preserve"><value>Đăng nhập bằng Google</value></data>
+  <data name="Account_SignIn_Microsoft" xml:space="preserve"><value>Đăng nhập bằng Microsoft</value></data>
+  <data name="Account_Link_Google" xml:space="preserve"><value>Liên kết tài khoản Google</value></data>
+  <data name="Account_Link_Microsoft" xml:space="preserve"><value>Liên kết tài khoản Microsoft</value></data>
+  <data name="Account_Provider_NotConfigured" xml:space="preserve"><value>Đăng nhập này chưa được bật trên máy chủ.</value></data>
+  <data name="Account_Error_Cancelled" xml:space="preserve"><value>Bạn đã hủy đăng nhập.</value></data>
+  <data name="Account_Error_PopupBlocked" xml:space="preserve"><value>Trình duyệt đã chặn cửa sổ đăng nhập. Hãy cho phép cửa sổ bật lên của trang này rồi thử lại.</value></data>
+  <data name="Account_Error_NotDisplayed" xml:space="preserve"><value>Không hiển thị được màn hình đăng nhập Google. Hãy kiểm tra cài đặt trình duyệt rồi thử lại.</value></data>
+  <data name="Account_Error_ProviderFailed" xml:space="preserve"><value>Đăng nhập không thành công. Vui lòng thử lại.</value></data>
+  <data name="Account_Status_InvalidIdToken" xml:space="preserve"><value>Không xác minh được tài khoản của bạn. Vui lòng thử lại.</value></data>
+  <data name="Account_Status_IdentityTaken" xml:space="preserve"><value>Tài khoản Google hoặc Microsoft này đã được liên kết với người chơi khác.</value></data>
   <data name="Account_Title_Upgrade" xml:space="preserve"><value>Lưu tài khoản của bạn</value></data>
   <data name="Account_Status_SessionReplaced" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì tài khoản được đăng nhập ở nơi khác.</value></data>
   <data name="Farm_Status_NotOnFarm" xml:space="preserve"><value>Bạn không thể làm ruộng ở đây.</value></data>
@@ -62,8 +64,18 @@
   <data name="Inventory_Status_Failed" xml:space="preserve"><value>Không thể di chuyển vật phẩm.</value></data>
   <data name="Inventory_Title" xml:space="preserve"><value>Túi đồ</value></data>
   <data name="Inventory_Close" xml:space="preserve"><value>Đóng</value></data>
+  <data name="Inventory_Sort" xml:space="preserve"><value>Sắp xếp</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Thanh vật phẩm</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Số lượng: {0}</value></data>
+  <data name="Tooltip_Tier" xml:space="preserve"><value>Bậc: {0}</value></data>
+  <data name="Tooltip_Tier_Basic" xml:space="preserve"><value>Cơ bản</value></data>
+  <data name="Tooltip_Tier_Copper" xml:space="preserve"><value>Đồng</value></data>
+  <data name="Tooltip_Tier_Iron" xml:space="preserve"><value>Sắt</value></data>
+  <data name="Tooltip_Damage" xml:space="preserve"><value>Sát thương: {0}</value></data>
+  <data name="Tooltip_NodeDamage" xml:space="preserve"><value>Sát thương tài nguyên: {0} mỗi nhát</value></data>
+  <data name="Tooltip_WaterCapacity" xml:space="preserve"><value>Sức chứa nước: {0}</value></data>
+  <data name="Tooltip_Energy" xml:space="preserve"><value>Hồi sức lực: +{0}</value></data>
+  <data name="Tooltip_Sell" xml:space="preserve"><value>Giá bán: {0} xu</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Nhiệm vụ</value></data>
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
@@ -259,6 +271,10 @@
   <data name="Coop_Upgrade_Buy" xml:space="preserve"><value>Mua cấp tiếp theo</value></data>
   <data name="Coop_Upgrade_Max" xml:space="preserve"><value>Đã nâng cấp tối đa.</value></data>
   <data name="Coop_Upgrade_FounderOnly" xml:space="preserve"><value>Chỉ người sáng lập mới mua được nâng cấp.</value></data>
+  <data name="Coop_Objectives_Heading" xml:space="preserve"><value>Mục tiêu chung</value></data>
+  <data name="Coop_Objective_Harvest" xml:space="preserve"><value>Cả hợp tác xã cùng thu hoạch {0}</value></data>
+  <data name="Coop_Objective_Progress" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Coop_Trophy_Earned" xml:space="preserve"><value>Đã đạt cúp</value></data>
   <data name="Coop_Status_WarehouseFull" xml:space="preserve"><value>Kho đã chứa đủ số loại vật phẩm. Hãy nâng cấp kho, hoặc gửi loại vật phẩm kho đã có.</value></data>
   <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>Nâng cấp này đã ở cấp cao nhất.</value></data>
   <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>Nâng cấp này đã được mua rồi.</value></data>
@@ -269,7 +285,7 @@
   <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} ký tự: chữ cái không dấu (a-z) và chữ số, giữa các từ là một dấu cách hoặc gạch dưới. Không dùng từ tục tĩu.</value></data>
   <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>Biệt danh không hợp lệ. Chỉ dùng chữ cái không dấu (a-z) và chữ số.</value></data>
   <data name="Account_Status_NicknameProfane" xml:space="preserve"><value>Biệt danh này không được phép dùng: chứa từ ngữ thô tục.</value></data>
-  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Hãy đăng ký tài khoản để chọn biệt danh.</value></data>
+  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Hãy liên kết tài khoản Google hoặc Microsoft để chọn biệt danh.</value></data>
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>Biệt danh này không được phép dùng.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>Biệt danh này đã có người dùng.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>Bạn vừa đổi biệt danh. Hãy thử lại sau.</value></data>
@@ -280,7 +296,7 @@
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>Bạn chỉ đổi được biệt danh mỗi 24 giờ một lần.</value></data>
-  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách giữ tên được tạo sẵn. Hãy đăng ký tài khoản để chọn biệt danh của riêng bạn.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách giữ tên được tạo sẵn. Hãy liên kết tài khoản Google hoặc Microsoft để chọn biệt danh của riêng bạn.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Đã đổi biệt danh thành {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>Có thể đổi lại lúc {0}.</value></data>
   <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Cửa hàng hạt giống</value></data>
@@ -304,6 +320,13 @@
   <data name="Game_Title" xml:space="preserve"><value>Nosum</value></data>
   <data name="Game_Tagline" xml:space="preserve"><value>Nông trại trực tuyến để cùng nhau vun trồng</value></data>
   <data name="Game_Loading" xml:space="preserve"><value>Đang vào thế giới…</value></data>
+  <data name="Map_Loading" xml:space="preserve"><value>Đang tải khu vực…</value></data>
+  <data name="Map_Tip_Merchant" xml:space="preserve"><value>Đứng trước quầy của người bán rồi nhấn phím hành động để mở cửa hàng.</value></data>
+  <data name="Map_Tip_Elevator" xml:space="preserve"><value>Đứng cạnh thang máy của mỏ rồi nhấn phím hành động để chọn tầng.</value></data>
+  <data name="Map_Tip_Sell" xml:space="preserve"><value>Đứng cạnh thùng bán hàng để bán nông sản.</value></data>
+  <data name="Map_Tip_Use" xml:space="preserve"><value>Cầm một vật phẩm rồi nhấn phím hành động để dùng nó lên ô phía trước.</value></data>
+  <data name="Map_Tip_Energy" xml:space="preserve"><value>Ăn nông sản để hồi thêm sức khi đã mệt.</value></data>
+  <data name="Map_Tip_Town" xml:space="preserve"><value>Rời nông trại để ghé thăm Thị trấn.</value></data>
   <data name="Game_StartFailed" xml:space="preserve"><value>Không thể bắt đầu trò chơi: {0}</value></data>
   <data name="Help_Title" xml:space="preserve"><value>Phím tắt</value></data>
   <data name="Help_Section_Play" xml:space="preserve"><value>Chơi</value></data>
@@ -343,8 +366,11 @@
   <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
   <data name="Settings_ScaleHint" xml:space="preserve"><value>Số điểm ảnh màn hình cho mỗi điểm ảnh của thế giới. Tự động chọn theo cỡ cửa sổ.</value></data>
   <data name="Settings_ShowNames" xml:space="preserve"><value>Hiện tên trên đầu nhân vật</value></data>
-  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Giảm chuyển động (không mưa, tuyết, hiệu ứng)</value></data>
-  <data name="Settings_HighContrast" xml:space="preserve"><value>Tương phản cao</value></data>
+  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Giảm chuyển động (không mưa, tuyết, rung lắc hay hiệu ứng đánh trúng)</value></data>
+  <data name="Settings_MotionAuto" xml:space="preserve"><value>Theo cài đặt của hệ thống</value></data>
+  <data name="Settings_HighContrast" xml:space="preserve"><value>Chữ tương phản cao</value></data>
+  <data name="Settings_PanelScale" xml:space="preserve"><value>Kích thước bảng và HUD</value></data>
+  <data name="Settings_PanelScaleLabel" xml:space="preserve"><value>Tỉ lệ</value></data>
   <data name="Settings_Display" xml:space="preserve"><value>Hiển thị</value></data>
   <data name="Settings_Music" xml:space="preserve"><value>Nhạc nền</value></data>
   <data name="Settings_SoundFx" xml:space="preserve"><value>Hiệu ứng âm thanh</value></data>
@@ -584,6 +610,7 @@
   <data name="Market_History_Title" xml:space="preserve"><value>Lịch sử giá: {0}</value></data>
   <data name="Market_History_Chart" xml:space="preserve"><value>Giá trung vị mỗi ngày trong game</value></data>
   <data name="Market_History_Latest" xml:space="preserve"><value>Ngày gần nhất: thấp nhất {0}, trung vị {1}, cao nhất {2} xu mỗi món; số giao dịch: {3}</value></data>
+  <data name="Market_History_Average" xml:space="preserve"><value>Trung bình {0} ngày qua: {1} xu mỗi món</value></data>
   <data name="Market_History_Range" xml:space="preserve"><value>{0} ngày qua: từ {1} đến {2} xu mỗi món</value></data>
   <data name="Market_History_None" xml:space="preserve"><value>Chưa có giao dịch nào trong {0} ngày qua.</value></data>
   <data name="Market_History_Hide" xml:space="preserve"><value>Ẩn</value></data>
@@ -650,6 +677,8 @@
   <data name="Craft_Skill_Mining" xml:space="preserve"><value>Khai khoáng</value></data>
   <data name="Chest_Title" xml:space="preserve"><value>Rương</value></data>
   <data name="Chest_YourBag" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Chest_SortChest" xml:space="preserve"><value>Sắp xếp rương</value></data>
+  <data name="Chest_SortBag" xml:space="preserve"><value>Sắp xếp túi</value></data>
   <data name="Chest_Hint" xml:space="preserve"><value>Bấm một chồng đồ rồi bấm ô đích. Shift + bấm: chuyển nhanh sang bên kia.</value></data>
   <data name="Furnace_Title" xml:space="preserve"><value>Lò nung</value></data>
   <data name="Furnace_Idle" xml:space="preserve"><value>Lò đang trống. Mỗi mẻ cần {0} quặng và {1} than đá, nung trong {2} phút trong game.</value></data>
@@ -732,24 +761,8 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Cần cầm xô vắt sữa trên tay.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>Máng đã đầy.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>Khu đất đã có tối đa số công trình.</value></data>
-  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>Mã khôi phục không đúng, đã hết hạn hoặc đã được dùng.</value></data>
   <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Quá nhiều yêu cầu. Hãy thử lại sau.</value></data>
-  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Phiên đăng nhập của bạn đã kết thúc vì mật khẩu tài khoản đã được đặt lại.</value></data>
   <data name="Connection_KeyMismatch" xml:space="preserve"><value>Danh tính máy chủ đã thay đổi. Có thể đây là máy chủ giả mạo nên trò chơi từ chối kết nối. Hãy chờ thông báo chính thức hoặc xóa dữ liệu trang web nếu bạn đang chạy bản phát triển.</value></data>
-  <data name="Recovery_Link" xml:space="preserve"><value>Quên mật khẩu?</value></data>
-  <data name="Recovery_Title_Request" xml:space="preserve"><value>Khôi phục tài khoản</value></data>
-  <data name="Recovery_Title_Confirm" xml:space="preserve"><value>Nhập mã khôi phục</value></data>
-  <data name="Recovery_Title_Done" xml:space="preserve"><value>Đã đổi mật khẩu</value></data>
-  <data name="Recovery_RequestHint" xml:space="preserve"><value>Chúng tôi sẽ gửi một mã đến địa chỉ e-mail của tài khoản.</value></data>
-  <data name="Recovery_CodeSent" xml:space="preserve"><value>Nếu địa chỉ này có tài khoản, một mã đã được gửi. Mã có hiệu lực trong 15 phút.</value></data>
-  <data name="Recovery_Code" xml:space="preserve"><value>Mã khôi phục</value></data>
-  <data name="Recovery_CodeHint" xml:space="preserve"><value>8 chữ số trong thư</value></data>
-  <data name="Recovery_NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
-  <data name="Recovery_Submit_Request" xml:space="preserve"><value>Gửi mã</value></data>
-  <data name="Recovery_Submit_Confirm" xml:space="preserve"><value>Đổi mật khẩu</value></data>
-  <data name="Recovery_Done" xml:space="preserve"><value>Mật khẩu đã được đổi và mọi thiết bị đã bị đăng xuất. Hãy đăng nhập bằng mật khẩu mới.</value></data>
-  <data name="Recovery_Back" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
-  <data name="Recovery_Error_Code" xml:space="preserve"><value>Hãy nhập 8 chữ số trong thư.</value></data>
   <data name="Board_Tab_Goals" xml:space="preserve"><value>Mục tiêu</value></data>
   <data name="Board_Tab_Requests" xml:space="preserve"><value>Yêu cầu</value></data>
   <data name="Requests_Hint" xml:space="preserve"><value>Mỗi ngày trong game bảng tin có ba yêu cầu giao hàng. Mỗi người chỉ làm mỗi yêu cầu một lần trong ngày và được trả cao hơn giá thùng bán hàng.</value></data>
@@ -762,6 +775,8 @@
   <data name="Requests_Deliver" xml:space="preserve"><value>Giao hàng</value></data>
   <data name="Requests_Filled" xml:space="preserve"><value>Đã xong hôm nay</value></data>
   <data name="Requests_Done" xml:space="preserve"><value>Đã giao! Bạn nhận được {0} xu.</value></data>
+  <data name="Requests_Bonus" xml:space="preserve"><value>Thưởng giao sớm +{0}%: còn {1} giờ {2} phút.</value></data>
+  <data name="Requests_DoneBonus" xml:space="preserve"><value>Giao sớm, được thưởng thêm! Bạn nhận được {0} xu.</value></data>
   <data name="Requests_Status_UnknownRequest" xml:space="preserve"><value>Không có yêu cầu này.</value></data>
   <data name="Requests_Status_NotToday" xml:space="preserve"><value>Yêu cầu đã đổi sang ngày mới. Đã tải lại bảng.</value></data>
   <data name="Requests_Status_AlreadyFilled" xml:space="preserve"><value>Hôm nay bạn đã làm yêu cầu này rồi.</value></data>
@@ -781,11 +796,16 @@
   <data name="Npc_seed_keeper_Name" xml:space="preserve"><value>Cô Mai</value></data>
   <data name="Npc_seed_keeper_Role" xml:space="preserve"><value>Chủ tiệm hạt giống</value></data>
   <data name="Npc_seed_keeper_Greeting" xml:space="preserve"><value>Chào bạn! Hạt giống mùa này tươi lắm, bạn xem thử nhé.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Spring" xml:space="preserve"><value>Xuân về rồi, hạt giống mới đã đủ cả. Gieo sớm thì được mùa lớn.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Rain" xml:space="preserve"><value>Mưa thế này đất mềm lắm. Gieo hạt hôm nay là hợp nhất đấy, bạn vào xem nhé!</value></data>
+  <data name="Npc_seed_keeper_Greeting_Snow" xml:space="preserve"><value>Tuyết trắng thế này thì ngoài đồng chẳng trồng được gì. Vào sưởi ấm rồi xem hạt giống mùa sau nhé.</value></data>
   <data name="Npc_seed_keeper_Talk1" xml:space="preserve"><value>Gieo đúng mùa thì hạt nào cũng lên tốt. Trái mùa là cây héo hết đấy.</value></data>
   <data name="Npc_seed_keeper_Talk2" xml:space="preserve"><value>Tôi bán hạt giống ở đây từ hồi bé tí. Mùi đất ẩm là mùi tôi thích nhất.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Chị Hạnh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Thợ may</value></data>
   <data name="Npc_tailor_Greeting" xml:space="preserve"><value>Mời bạn vào xem! Áo mới, mũ mới, vừa vặn cả.</value></data>
+  <data name="Npc_tailor_Greeting_Rain" xml:space="preserve"><value>Ướt hết áo rồi phải không! Áo mưa mới của tôi về đúng lúc, bạn vào thử nhé.</value></data>
+  <data name="Npc_tailor_Greeting_Snow" xml:space="preserve"><value>Lạnh cắt da thế này, khoác thêm áo ấm đi bạn. Áo len mới về, vừa vặn cả.</value></data>
   <data name="Npc_tailor_Talk1" xml:space="preserve"><value>Ra đồng thì nên đội mũ rơm cho đỡ nắng, bạn nhé.</value></data>
   <data name="Npc_tailor_Talk2" xml:space="preserve"><value>Tôi may từng đường kim mũi chỉ, bền lắm. Mặc đi cày cũng không sờn.</value></data>
   <data name="Npc_furnisher_Name" xml:space="preserve"><value>Chú Tâm</value></data>
@@ -857,6 +877,8 @@
   <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>TRỤ LÔI ĐIỆN</value></data>
   <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>ĐÀI NHẬT QUANG</value></data>
   <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>BIA BĂNG HÀN</value></data>
+  <data name="Combat_Label_Combo" xml:space="preserve"><value>{0}x LIÊN ĐÒN!</value></data>
+  <data name="Combat_Label_Finisher" xml:space="preserve"><value>KẾT LIỄU!</value></data>
   <data name="Elevator_ReturnHome" xml:space="preserve"><value>Về nhà (Nhà nông trại)</value></data>
   <data name="Wayfinding_MineExit" xml:space="preserve"><value>↑ Lối lên · [E] Về nhà</value></data>
   <data name="Wayfinding_MineElevator" xml:space="preserve"><value>[E] Thang máy · Về nhà</value></data>
@@ -882,4 +904,15 @@
   <data name="Wayfinding_CommunityBoard" xml:space="preserve"><value>Bảng tin làng</value></data>
   <data name="Wayfinding_Objective" xml:space="preserve"><value>Mục tiêu</value></data>
   <data name="Wayfinding_DistanceMeters" xml:space="preserve"><value>{0} ({1}m)</value></data>
+  <data name="Guestbook_Heading" xml:space="preserve"><value>Sổ lưu bút</value></data>
+  <data name="Guestbook_Line" xml:space="preserve"><value>{0} đã tưới {1} luống vào ngày {2}</value></data>
+  <data name="Guestbook_New" xml:space="preserve"><value>Mới</value></data>
+  <data name="Guestbook_Unread" xml:space="preserve"><value>{0} mục mới</value></data>
+  <data name="Guestbook_Empty" xml:space="preserve"><value>Chưa có khách nào tưới cây trên nông trại của bạn.</value></data>
+  <data name="Guestbook_Hint" xml:space="preserve"><value>Lượt tưới của khách được ghi lại khi có sổ lưu bút đặt trên nông trại.</value></data>
+  <data name="Bestiary_Progress" xml:space="preserve"><value>Đã hạ {0} · mốc kế tiếp {1}</value></data>
+  <data name="Bestiary_Milestones_Done" xml:space="preserve"><value>Đã hạ {0} · đã đạt mọi mốc</value></data>
+  <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Đeo danh hiệu</value></data>
+  <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Gỡ danh hiệu</value></data>
+  <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Mở khi hạ {0} con</value></data>
 </root>

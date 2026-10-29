@@ -24,4 +24,7 @@ public sealed partial class PriceHistory : PacketBase<PriceHistory>, IPacketStat
 
     /// <summary>The days that had sales, oldest first.</summary>
     [SerializeOrder(2)] public List<PriceDayRow> Days { get; set; } = [];
+
+    /// <summary>The mean unit price of the sales of the last seven game days, coins; zero when none (docs/adr/ADR-030 D4).</summary>
+    [SerializeOrder(3)] public long Average { get; set; }
 }

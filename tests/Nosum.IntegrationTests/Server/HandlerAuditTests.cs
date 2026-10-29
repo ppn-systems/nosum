@@ -24,15 +24,12 @@ public sealed class HandlerAuditTests
     // Handlers a caller may reach without being signed in. Adding to this list is a security review decision.
     private static readonly HashSet<ushort> s_publicOpcodes =
     [
-        AccountOpCode.Register,
-        AccountOpCode.Login,
+        AccountOpCode.ExternalSignIn,
         AccountOpCode.ResumeSession,
         AccountOpCode.StartGuest,
-        AccountOpCode.RequestPasswordReset,
-        AccountOpCode.ConfirmPasswordReset,
     ];
 
-    private static readonly string[] s_secretMembers = ["Password", "CurrentPassword", "NewPassword", "SessionToken", "Code"];
+    private static readonly string[] s_secretMembers = ["IdToken", "SessionToken"];
 
     [Fact]
     public void EveryHandler_DeclaresPermissionRateLimitAndBoundedPacket()
@@ -96,6 +93,7 @@ public sealed class HandlerAuditTests
         HashSet<Type> handled = handlers.Select(h => h.Packet).ToHashSet();
         Type[] clientPackets = typeof(AccountOpCode).Assembly.GetTypes()
             .Where(t => t.Namespace is not null && t.Namespace.EndsWith(".C2S", StringComparison.Ordinal) && t is { IsClass: true, IsAbstract: false })
+            .Where(t => !RetiredPackets.Types.Contains(t))
             .ToArray();
 
         clientPackets.Should().NotBeEmpty();

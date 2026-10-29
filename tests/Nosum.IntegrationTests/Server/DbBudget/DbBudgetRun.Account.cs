@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Threading.Tasks;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
@@ -27,18 +28,17 @@ public sealed partial class DbBudgetRun
 
         await anonymous.DisposeAsync();
 
-        // Registered players: created through the service, signed in over the wire.
-        string email = this.NextEmail();
+        // Registered players: created through the service, signed in over the wire with their Google identity.
         string nickname = this.NextNickname();
-        email = "budget.player.login" + nickname + "@gmail.com";
-        string token = await _rig.RegisteredAccountAsync(nickname, email);
+        string subject = Guid.NewGuid().ToString("N");
+        string token = await _rig.RegisteredAccountAsync(nickname, subject);
         BudgetPlayer loginSocket = await _rig.ConnectAsync();
-        using (Login login = new() { Email = email, Password = "correct horse battery" })
+        using (ExternalSignIn signIn = NewSignIn(subject))
         {
-            AccountResult result = await _rig.MeasureAsync("Account", AccountOpCode.Login, "Login", "e-mail and password", () => loginSocket.RequestAsync<AccountResult>(login));
+            AccountResult result = await _rig.MeasureAsync("Account", AccountOpCode.ExternalSignIn, "ExternalSignIn", "Google identity, registered player", () => loginSocket.RequestAsync<AccountResult>(signIn));
             if (result.Status != AccountStatus.Ok)
             {
-                throw new System.InvalidOperationException("Login refused: " + result.Status);
+                throw new System.InvalidOperationException("Sign-in refused: " + result.Status);
             }
         }
 
@@ -93,32 +93,39 @@ public sealed partial class DbBudgetRun
 
         await again.DisposeAsync();
 
-        // Sign-up on a bare socket.
+        // Sign-up on a bare socket: the first sign-in of a Google identity creates the account.
         BudgetPlayer signingUp = await _rig.ConnectAsync();
-        string newNick = this.NextNickname();
-        using (Register register = new() { Email = "budget.register." + newNick + "@gmail.com", Password = "correct horse battery", PreferredLanguage = GameLanguage.English, Nickname = newNick })
+        using (ExternalSignIn register = NewSignIn(Guid.NewGuid().ToString("N")))
         {
-            AccountResult result = await _rig.MeasureAsync("Account", AccountOpCode.Register, "Register", "new account", () => signingUp.RequestAsync<AccountResult>(register));
+            AccountResult result = await _rig.MeasureAsync("Account", AccountOpCode.ExternalSignIn, "ExternalSignIn", "Google identity, new account", () => signingUp.RequestAsync<AccountResult>(register));
             if (result.Status != AccountStatus.Ok)
             {
-                throw new System.InvalidOperationException("Register refused: " + result.Status);
+                throw new System.InvalidOperationException("Sign-up refused: " + result.Status);
             }
         }
 
         await signingUp.DisposeAsync();
 
-        // A guest turning into a registered player.
+        // A guest turning into a registered player by linking a Google identity.
         BudgetPlayer guestPlayer = await _rig.SignedInGuestAsync();
         string upNick = this.NextNickname();
-        using (UpgradeGuest upgrade = new() { Email = "budget.upgrade." + upNick + "@gmail.com", Password = "correct horse battery", Nickname = upNick })
+        using (LinkExternalIdentity link = new() { Provider = ExternalProvider.Google, IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, Guid.NewGuid().ToString("N")), Nickname = upNick })
         {
-            AccountResult result = await _rig.MeasureAsync("Account", AccountOpCode.UpgradeGuest, "UpgradeGuest", "guest to registered", () => guestPlayer.RequestAsync<AccountResult>(upgrade));
+            AccountResult result = await _rig.MeasureAsync("Account", AccountOpCode.LinkExternalIdentity, "LinkExternalIdentity", "guest to registered", () => guestPlayer.RequestAsync<AccountResult>(link));
             if (result.Status != AccountStatus.Ok)
             {
-                throw new System.InvalidOperationException("Upgrade refused: " + result.Status);
+                throw new System.InvalidOperationException("Link refused: " + result.Status);
             }
         }
 
         await guestPlayer.DisposeAsync();
     }
+
+    // The Google sign-in of one subject, as the start screen sends it.
+    private static ExternalSignIn NewSignIn(string subject) => new()
+    {
+        Provider = ExternalProvider.Google,
+        IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, subject),
+        PreferredLanguage = GameLanguage.English,
+    };
 }

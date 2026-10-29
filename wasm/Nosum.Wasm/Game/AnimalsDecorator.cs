@@ -22,20 +22,26 @@ internal sealed class AnimalsDecorator : IMapDecorator
 {
     private const int FrameMs = 160;
     private const int ProduceIcon = 16;
+    private const int HeartSize = 8;
+    private const int HeartCount = 5;
+    private const long HeartsShownMs = 1_500;
 
     private readonly BuildingChannel _buildings;
     private readonly Dictionary<byte, (int Texture, AnimalDefinition Definition)> _sheets;
     private readonly int _objectsTexture;
+    private readonly int _heartsTexture;
 
     /// <summary>Initializes the decorator.</summary>
     /// <param name="buildings">The animals of the room.</param>
     /// <param name="sheets">Texture and data of every species.</param>
     /// <param name="objectsTexture">Texture of the objects sheet, where produce is pictured.</param>
-    public AnimalsDecorator(BuildingChannel buildings, Dictionary<byte, (int Texture, AnimalDefinition Definition)> sheets, int objectsTexture)
+    /// <param name="heartsTexture">Texture of the hearts sheet: a filled heart at column 0, an empty one at column 8.</param>
+    public AnimalsDecorator(BuildingChannel buildings, Dictionary<byte, (int Texture, AnimalDefinition Definition)> sheets, int objectsTexture, int heartsTexture)
     {
         _buildings = buildings;
         _sheets = sheets;
         _objectsTexture = objectsTexture;
+        _heartsTexture = heartsTexture;
     }
 
     /// <inheritdoc/>
@@ -45,6 +51,10 @@ internal sealed class AnimalsDecorator : IMapDecorator
         long clock = Environment.TickCount64;
         using (_buildings.Read())
         {
+            AnimalPetting petting = _buildings.LastPetting;
+            bool showHearts = petting.AtMs > 0 && now - petting.AtMs < HeartsShownMs;
+            int filledHearts = AnimalRules.HeartsOf(petting.Friendship);
+
             for (int i = 0; i < _buildings.AnimalCount; i++)
             {
                 AnimalPose pose = _buildings.AnimalAt(i, now);
@@ -71,6 +81,18 @@ internal sealed class AnimalsDecorator : IMapDecorator
                     int bob = (int)(2 * Math.Sin((clock + (i * 311)) * 0.005));
                     world.Add(_objectsTexture, srcX, srcY, ProduceIcon, ProduceIcon, x - (ProduceIcon / 2), top - ProduceIcon + bob, y + 64, x);
                 }
+
+                if (showHearts && pose.Id == petting.AnimalId)
+                {
+                    // The hearts float above the animal, above its produce when it has some, for a moment after the petting.
+                    int heartsTop = top - (pose.HasProduce ? ProduceIcon : 0) - HeartSize - 2;
+                    int heartsLeft = x - ((HeartCount * HeartSize) / 2);
+                    for (int h = 0; h < HeartCount; h++)
+                    {
+                        int heartX = h < filledHearts ? 0 : HeartSize;
+                        world.Add(_heartsTexture, heartX, 0, HeartSize, HeartSize, heartsLeft + (h * HeartSize), heartsTop, y + 64, x);
+                    }
+                }
             }
         }
     }
@@ -80,6 +102,7 @@ internal sealed class AnimalsDecorator : IMapDecorator
 internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
 {
     private const string AnimalsUrl = "assets/sprites/animals/";
+    private const string HeartsUrl = "assets/sprites/hearts.png";
 
     private readonly BuildingChannel _buildings;
 
@@ -108,6 +131,8 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
 
         int objects = await textures.LoadAsync(ItemIcons.GroundSheetUrl).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        return new AnimalsDecorator(_buildings, sheets, objects);
+        int hearts = await textures.LoadAsync(HeartsUrl).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return new AnimalsDecorator(_buildings, sheets, objects, hearts);
     }
 }

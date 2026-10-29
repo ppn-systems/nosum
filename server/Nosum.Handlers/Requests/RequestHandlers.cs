@@ -38,6 +38,8 @@ public static partial class RequestHandlers
             r.ServerNowMs = view.ServerNowMs;
             r.Day = view.Day;
             r.DayEndsAtMs = view.DayEndsAtMs;
+            r.EarlyUntilMs = view.EarlyUntilMs;
+            r.EarlyBonusPercent = view.EarlyBonusPercent;
             r.Rows.Clear();
             foreach (RequestView request in view.Requests)
             {
@@ -73,6 +75,7 @@ public static partial class RequestHandlers
         {
             r.Status = outcome.Status;
             r.Reward = outcome.Reward;
+            r.Bonus = outcome.Bonus;
         }).ConfigureAwait(false);
     }
 }

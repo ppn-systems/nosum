@@ -15,6 +15,7 @@ public sealed class MonsterDefinition
     /// <param name="xpReward">Combat experience awarded when defeated.</param>
     /// <param name="primaryDropItemId">Primary item dropped on defeat.</param>
     /// <param name="rareDropItemId">Secondary/rare item dropped on defeat.</param>
+    /// <param name="enrageThresholdPercent">HP percentage at or below which the monster enrages (0 disables enrage).</param>
     public MonsterDefinition(
         MonsterKind kind,
         string key,
@@ -22,12 +23,15 @@ public sealed class MonsterDefinition
         int attackDamage,
         int xpReward,
         int primaryDropItemId,
-        int rareDropItemId)
+        int rareDropItemId,
+        int enrageThresholdPercent = 0)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(maxHp, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(attackDamage, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(xpReward, 0);
+        ArgumentOutOfRangeException.ThrowIfNegative(enrageThresholdPercent);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(enrageThresholdPercent, 100);
 
         Kind = kind;
         Key = key;
@@ -36,6 +40,7 @@ public sealed class MonsterDefinition
         XpReward = xpReward;
         PrimaryDropItemId = primaryDropItemId;
         RareDropItemId = rareDropItemId;
+        EnrageThresholdPercent = enrageThresholdPercent;
     }
 
     /// <summary>Gets the monster species.</summary>
@@ -58,4 +63,7 @@ public sealed class MonsterDefinition
 
     /// <summary>Gets the bonus drop item id.</summary>
     public int RareDropItemId { get; }
+
+    /// <summary>Gets the HP percentage at or below which the monster enrages; 0 means the species never enrages.</summary>
+    public int EnrageThresholdPercent { get; }
 }

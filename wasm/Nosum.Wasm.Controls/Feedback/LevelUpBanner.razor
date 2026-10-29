@@ -1,0 +1,11 @@
+@using Nosum.Wasm.ViewModels.Progress
+@inherits ObservingComponent<LevelUpBannerViewModel>
+
+@* A fanfare banner across the top of the screen when a skill levels up; it goes away by itself. *@
+@if (Vm.Message is { } message)
+{
+    <div class="level-up-banner" role="status">
+        <strong class="level-up-title">@Vm.Title</strong>
+        <span class="level-up-message">@message</span>
+    </div>
+}

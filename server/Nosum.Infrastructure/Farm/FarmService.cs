@@ -22,6 +22,7 @@ using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Quests;
+using Nosum.Abstractions.Visits;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Inventory;
@@ -36,6 +37,7 @@ using Nosum.Gameplay.GroundItems;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Skills;
 using Nosum.Gameplay.Visits;
@@ -72,6 +74,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
     private readonly TimeProvider _time;
     private readonly GameCalendar _calendar;
     private readonly IPlacedLookup? _placed;
+    private readonly IGuestbookService? _guestbook;
     private readonly ConcurrentDictionary<string, Task<MapFarm>> _farms = new(StringComparer.Ordinal);
     private readonly StripedAsyncLock _mapLocks = new(16);
 
@@ -92,6 +95,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
     /// <param name="progress">Every successful tool use spends energy and earns experience through it, in the transaction of its effect (docs/adr/ADR-023).</param>
     /// <param name="dayClock">Told when a game day ends, to sweep tiles whose bare soil reverted; <see langword="null"/> leaves the lazy rule alone.</param>
     /// <param name="placed">What players placed on the ground: soil under a piece cannot be worked (docs/adr/ADR-024 D3). <see langword="null"/> when nothing can be placed.</param>
+    /// <param name="guestbook">Counts a visitor's watering into the owner's guestbook (docs/adr/ADR-066); <see langword="null"/> logs nothing.</param>
     public FarmService(
         IMapPresence presence,
         IChunkMap chunks,
@@ -108,7 +112,8 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         IGroundItems groundItems,
         IPlayerProgress progress,
         IDayClock? dayClock = null,
-        IPlacedLookup? placed = null)
+        IPlacedLookup? placed = null,
+        IGuestbookService? guestbook = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
@@ -140,6 +145,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         _groundItems = groundItems;
         _progress = progress;
         _placed = placed;
+        _guestbook = guestbook;
         if (dayClock is not null)
         {
             dayClock.DayEnded += this.OnDayEnded;
@@ -246,6 +252,8 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         FarmTile changedTile;
         FarmAction action;
         QuestEvent? report;
+        int harvestedItem = 0;
+        int harvestedQuantity = 0;
         bool cleared;
         PendingGroundDrop? pending;
 
@@ -316,11 +324,23 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             changedTile = plan.Next;
             action = plan.Action;
             report = plan.Report;
+
+            // A harvest on co-op land names the crop and its count, so the handler can credit the co-op whose land it was (docs/adr/ADR-067 D2). The membership is
+            // already verified above, so no lookup is added to a harvest anywhere else.
+            if (action == FarmAction.Harvested && member is not null)
+            {
+                harvestedItem = plan.AuditItemId;
+                harvestedQuantity = plan.AuditDelta;
+            }
         }
 
         if (action == FarmAction.Watered)
         {
             _ = await _tools.UseWaterAsync(playerId, cancellationToken).ConfigureAwait(false);
+            if (_guestbook is not null && GuestbookRules.Logs(player.Instance, playerId, this.GuestbookStands(player.Instance)))
+            {
+                await LogWateringAsync(_guestbook, playerId, player.Instance, _calendar.DayNumberAt(_time.GetUtcNow().ToUnixTimeMilliseconds()), cancellationToken).ConfigureAwait(false);
+            }
         }
 
         if (cleared)
@@ -339,7 +359,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         }
 
         await this.ReportAsync(playerId, report, cancellationToken).ConfigureAwait(false);
-        return new FarmUseOutcome(FarmStatus.Ok, action);
+        return new FarmUseOutcome(FarmStatus.Ok, action, harvestedItem, harvestedQuantity);
     }
 
     private static FarmUseOutcome Refused(FarmStatus status) => new(status, FarmAction.None);
@@ -632,6 +652,22 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         tile.Y = (ushort)y;
         packet.Tiles.Add(tile);
         await _publisher.PublishAsync(instance, ChunkCoord.OfTile(x, y), packet, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    private bool GuestbookStands(MapInstance instance) =>
+        _placed is not null && _placed.ItemsOf(instance).Any(piece => PlaceableCatalog.TryGet(piece.ItemId, out PlaceableDefinition? definition) && definition.Kind == PlaceableKind.Guestbook);
+
+    [SuppressMessage("Design", "CA1031", Justification = "The watering is committed; a failing guestbook write must not turn it into an error reply.")]
+    private static async Task LogWateringAsync(IGuestbookService guestbook, Guid playerId, MapInstance instance, int day, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await guestbook.RecordWateringAsync(instance.OwnerId, playerId, day, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // The guestbook is a log: the next watering counts again.
+        }
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "The action is committed and pushed; a failing quest update must not turn it into an error reply.")]

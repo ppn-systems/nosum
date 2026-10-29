@@ -41,6 +41,13 @@ public interface IChestService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Ok, or why nothing moved.</returns>
     Task<ChestStatus> MoveAsync(IConnection connection, int objectId, ChestSide fromSide, int fromSlot, ChestSide toSide, int toSlot, int quantity, CancellationToken cancellationToken = default);
+
+    /// <summary>Sorts an open chest: merges partial stacks and lays the stacks out by item kind and id.</summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="objectId">Id of the open chest.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>Ok, or why the chest was not sorted.</returns>
+    Task<ChestStatus> SortAsync(IConnection connection, int objectId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Outcome of <see cref="IChestService.OpenAsync"/>.</summary>

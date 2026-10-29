@@ -1,0 +1,47 @@
+.level-up-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 0.5);
+    padding: calc(var(--u) * 2) calc(var(--u) * 4);
+    border: var(--u) solid #facc15;
+    background: rgba(24, 18, 4, 0.9);
+    color: #fef9c3;
+    box-shadow: 0 0 calc(var(--u) * 6) rgba(250, 204, 21, 0.55);
+    animation: level-up-rise 3.8s ease-out both;
+    pointer-events: none;
+}
+
+.level-up-title {
+    font-size: calc(var(--u) * 4);
+    letter-spacing: calc(var(--u) * 0.5);
+    color: #facc15;
+}
+
+.level-up-message {
+    font-size: calc(var(--u) * 2.5);
+}
+
+@keyframes level-up-rise {
+    0% {
+        opacity: 0;
+        transform: translateY(calc(var(--u) * -8)) scale(0.9);
+    }
+
+    12% {
+        opacity: 1;
+        transform: translateY(0) scale(1.05);
+    }
+
+    20% {
+        transform: scale(1);
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

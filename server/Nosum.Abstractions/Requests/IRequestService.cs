@@ -22,12 +22,15 @@ public sealed record RequestView(int Slot, int ItemId, int Quantity, long Reward
 /// <param name="Day">The game day number the requests belong to.</param>
 /// <param name="DayEndsAtMs">When the day ends, Unix milliseconds.</param>
 /// <param name="Requests">Today's requests, by slot.</param>
-public sealed record RequestsView(long ServerNowMs, int Day, long DayEndsAtMs, IReadOnlyList<RequestView> Requests);
+/// <param name="EarlyUntilMs">When the early bonus of today ends, Unix milliseconds (docs/adr/ADR-036 D10).</param>
+/// <param name="EarlyBonusPercent">The share the early bonus adds, in percent.</param>
+public sealed record RequestsView(long ServerNowMs, int Day, long DayEndsAtMs, IReadOnlyList<RequestView> Requests, long EarlyUntilMs, int EarlyBonusPercent);
 
 /// <summary>Result of a delivery.</summary>
 /// <param name="Status">Ok, or why nothing was taken.</param>
-/// <param name="Reward">The coins that were paid; zero unless Ok.</param>
-public readonly record struct RequestOutcome(RequestStatus Status, long Reward);
+/// <param name="Reward">The coins that were paid, the early bonus included; zero unless Ok.</param>
+/// <param name="Bonus">Whether the delivery was in the early window and was paid the bonus.</param>
+public readonly record struct RequestOutcome(RequestStatus Status, long Reward, bool Bonus = false);
 
 /// <summary>
 /// The Town requests board (docs/adr/ADR-036): a few server-wide delivery requests per game day, each fillable once per player. A delivery moves the items

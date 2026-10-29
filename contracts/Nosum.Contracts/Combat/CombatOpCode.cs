@@ -4,7 +4,7 @@ namespace Nosum.Contracts.Combat;
 
 /// <summary>
 /// Opcodes of the Combat domain: player HP &amp; MP vitals, monster spawns, weapon/staff attacks, and potion drinking
-/// (docs/adr/ADR-045 D3).
+/// (docs/adr/ADR-045 D3), and the hunting log with its slayer titles (docs/adr/ADR-068).
 /// <para>Band <c>0xC200-0xC2FF</c> is reserved for this domain, next to the Mine band (<c>0xC100-0xC1FF</c>). C2S requests use <c>0xC200-0xC23F</c>, S2C replies and pushes use <c>0xC240-0xC27F</c>. Never reassign or reuse a value.</para>
 /// </summary>
 public static class CombatOpCode
@@ -26,6 +26,12 @@ public static class CombatOpCode
     /// <summary>Casts a combat skill (Whirlwind, Fireball, Divine Heal). Reply: <see cref="S2C.CastSkillResult"/> (docs/adr/ADR-056).</summary>
     public const ushort CastSkill = 0xC204;
 
+    /// <summary>Asks for the player's kill counts per species and the equipped slayer title (docs/adr/ADR-068). Reply: <see cref="S2C.BestiarySnapshot"/>.</summary>
+    public const ushort GetBestiary = 0xC205;
+
+    /// <summary>Equips or takes off a slayer title (docs/adr/ADR-068). Reply: <see cref="S2C.EquipBestiaryTitleResult"/>.</summary>
+    public const ushort EquipBestiaryTitle = 0xC206;
+
     // -- S2C (0xC240-0xC27F) --------------------------------------------------
 
     /// <summary>Current player vitals (HP, MaxHp, MP, MaxMp, CombatXp).</summary>
@@ -45,4 +51,13 @@ public static class CombatOpCode
 
     /// <summary>Reply to <see cref="CastSkill"/> (docs/adr/ADR-056).</summary>
     public const ushort CastSkillResult = 0xC245;
+
+    /// <summary>Push when a boss telegraphs a ground slam on a tile; the impact follows after <c>DelayMs</c> (docs/adr/ADR-047).</summary>
+    public const ushort GroundTelegraph = 0xC246;
+
+    /// <summary>Reply to <see cref="GetBestiary"/> (docs/adr/ADR-068).</summary>
+    public const ushort BestiarySnapshot = 0xC247;
+
+    /// <summary>Reply to <see cref="EquipBestiaryTitle"/> (docs/adr/ADR-068).</summary>
+    public const ushort EquipBestiaryTitleResult = 0xC248;
 }

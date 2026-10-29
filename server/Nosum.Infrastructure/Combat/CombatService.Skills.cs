@@ -281,6 +281,12 @@ public sealed partial class CombatService
             return;
         }
 
+        // Every kill counts into the hunting log (docs/adr/ADR-068).
+        if (_bestiary is not null)
+        {
+            await _bestiary.RecordKillAsync(killerId, defeatedMonster.Kind, cancellationToken).ConfigureAwait(false);
+        }
+
         int dropPixelX = (defeatedMonster.X * tileSize) + (tileSize / 2);
         int dropPixelY = (defeatedMonster.Y * tileSize) + (tileSize / 2);
         _ = await _groundItems.DropAsync(
@@ -319,7 +325,8 @@ public sealed partial class CombatService
             ? (int)(defeatedDef.XpReward * 2.5)
             : defeatedDef.XpReward;
         int partyXp = baseReward / 2;
-        if (partyXp <= 0)
+        bool sharesBossLoot = CombatRules.IsBoss(defeatedMonster.Kind) && defeatedDef.PrimaryDropItemId > 0;
+        if (partyXp <= 0 && !sharesBossLoot)
         {
             return;
         }
@@ -363,6 +370,19 @@ public sealed partial class CombatService
                 {
                     continue;
                 }
+            }
+
+            if (sharesBossLoot)
+            {
+                // A boss pouch for each nearby co-op member; the 5 s priority window favours its owner (docs/adr/ADR-052).
+                _ = await _groundItems.DropAsync(
+                    new GroundDrop(mapInstance, dropPixelX - 8, dropPixelY - 6, defeatedDef.PrimaryDropItemId, 1, ally.AccountId),
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            if (partyXp <= 0)
+            {
+                continue;
             }
 
             PlayerVitalsState allyVitals = await this.GetOrCreateVitalsAsync(ally.AccountId, cancellationToken).ConfigureAwait(false);

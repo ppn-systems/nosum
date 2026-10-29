@@ -70,6 +70,23 @@ public static partial class InventoryHandlers
         await ReplyResultAsync(context, sequence, change.Status, -1, player).ConfigureAwait(false);
     }
 
+    /// <summary>Sorts the player's inventory; the changed slots follow as an inventory update.</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(InventoryOpCode.SortInventory)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(3, 5, PolicyId = "inventory-sort")]
+    public static async ValueTask HandleSortInventoryAsync(IPacketContext<SortInventory> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        PlayerIdentity player = context.Connection.GetPlayer();
+
+        InventoryChange change = await s_inventory.SortAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
+        await ReplyResultAsync(context, sequence, change.Status, -1, player).ConfigureAwait(false);
+    }
+
     /// <summary>Selects the hotbar slot the player holds.</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply was sent.</returns>

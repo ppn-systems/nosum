@@ -91,6 +91,9 @@ public static class SoundIds
 
     /// <summary>A celebratory level-up fanfare (docs/adr/ADR-062).</summary>
     public const int LevelUp = 20;
+
+    /// <summary>A deep bass thump when a combat combo reaches its finisher (docs/adr/ADR-060).</summary>
+    public const int ComboFinisher = 21;
 }
 
 /// <summary>The ambient loop ids.</summary>
@@ -170,6 +173,7 @@ public static class AudioCatalog
         new(AudioKind.Sound, SoundIds.MonsterDefeat, "monster_defeat.wav", 0.1),
         new(AudioKind.Sound, SoundIds.PotionDrink, "potion_drink.wav", 0.1),
         new(AudioKind.Sound, SoundIds.LevelUp, "level_up.wav", 0.2),
+        new(AudioKind.Sound, SoundIds.ComboFinisher, "combo_finisher.wav", 0.25),
         new(AudioKind.Loop, LoopIds.Rain, "rain_loop.wav"),
         new(AudioKind.Track, MusicTrackIds.For(Season.Spring, false), "music_spring_day.wav"),
         new(AudioKind.Track, MusicTrackIds.For(Season.Spring, true), "music_spring_night.wav"),

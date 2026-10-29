@@ -25,10 +25,12 @@ public readonly record struct RequestInfo(int Slot, int ItemId, int Quantity, lo
 /// <param name="Day">The game day number; zero before the first read.</param>
 /// <param name="DayEndsAtMs">When the day ends, Unix milliseconds on the server clock.</param>
 /// <param name="Requests">The requests, by slot.</param>
-public sealed record RequestsInfo(long ServerNowMs, int Day, long DayEndsAtMs, IReadOnlyList<RequestInfo> Requests)
+/// <param name="EarlyUntilMs">When the early bonus of the day ends, Unix milliseconds on the server clock.</param>
+/// <param name="EarlyBonusPercent">The share the early bonus adds, in percent.</param>
+public sealed record RequestsInfo(long ServerNowMs, int Day, long DayEndsAtMs, IReadOnlyList<RequestInfo> Requests, long EarlyUntilMs, int EarlyBonusPercent)
 {
     /// <summary>Gets the state before the first read.</summary>
-    public static readonly RequestsInfo Empty = new(0, 0, 0, []);
+    public static readonly RequestsInfo Empty = new(0, 0, 0, [], 0, 0);
 }
 
 /// <summary>
@@ -52,8 +54,8 @@ public sealed class RequestChannel
     /// <summary>Raised when the requests changed (a read). May run on any thread.</summary>
     public event Action? Changed;
 
-    /// <summary>Raised with the server's answer to a delivery: the status and the coins paid. May run on any thread.</summary>
-    public event Action<RequestStatus, long>? Delivered;
+    /// <summary>Raised with the server's answer to a delivery: the status, the coins paid and whether the early bonus was paid. May run on any thread.</summary>
+    public event Action<RequestStatus, long, bool>? Delivered;
 
     /// <summary>Gets today's requests as last read.</summary>
     public RequestsInfo Requests
@@ -90,7 +92,7 @@ public sealed class RequestChannel
 
             lock (_gate)
             {
-                _requests = new RequestsInfo(reply.ServerNowMs, reply.Day, reply.DayEndsAtMs, rows);
+                _requests = new RequestsInfo(reply.ServerNowMs, reply.Day, reply.DayEndsAtMs, rows, reply.EarlyUntilMs, reply.EarlyBonusPercent);
             }
 
             this.Changed?.Invoke();
@@ -110,7 +112,7 @@ public sealed class RequestChannel
             request.Value.Day = day;
             request.Value.Slot = slot;
             RequestResult reply = await _socket.RequestAsync<RequestResult>(request.Value).ConfigureAwait(false);
-            this.Delivered?.Invoke(reply.Status, reply.Reward);
+            this.Delivered?.Invoke(reply.Status, reply.Reward, reply.Bonus);
 
             // Ok changed this player's fills; NotToday, AlreadyFilled and Conflict mean the board was stale. Anything else leaves it as it was.
             if (reply.Status is RequestStatus.Ok or RequestStatus.NotToday or RequestStatus.AlreadyFilled or RequestStatus.Conflict)

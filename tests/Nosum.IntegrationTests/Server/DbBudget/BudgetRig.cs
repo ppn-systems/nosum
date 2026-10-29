@@ -122,6 +122,7 @@ internal sealed class BudgetRig : IAsyncDisposable
         FakeTimeProvider clock = new(start);
 
         HostServices.Register(options);
+        TestAccounts.UseFakeVerifiers(options);
         NetworkApplication app = Program.BuildApplication(port, clock, development: true);
         BudgetRig rig = new(app, port, counter, clock, options, timeout);
         await app.ActivateAsync(rig.Timeout);
@@ -153,13 +154,13 @@ internal sealed class BudgetRig : IAsyncDisposable
         return player;
     }
 
-    /// <summary>Creates a registered account straight through the account service (a nickname, an e-mail, a password).</summary>
+    /// <summary>Creates a registered account straight through the account service (a guest that links a Google identity with a nickname).</summary>
     /// <param name="nickname">The wanted nickname.</param>
-    /// <param name="email">The wanted login.</param>
+    /// <param name="subject">The Google subject the account is linked to; signing in with the same subject reaches this account.</param>
     /// <returns>The session token.</returns>
-    public async Task<string> RegisteredAccountAsync(string nickname, string email)
+    public async Task<string> RegisteredAccountAsync(string nickname, string subject)
     {
-        AccountOutcome created = await Service<IAccountService>().RegisterAsync(email, "correct horse battery", nickname, GameLanguage.English, this.Timeout);
+        AccountOutcome created = await TestAccounts.RegisterAsync(Service<IAccountService>(), subject, nickname, GameLanguage.English, this.Timeout);
         if (created.Status != AccountStatus.Ok)
         {
             throw new InvalidOperationException("Could not register " + nickname + ": " + created.Status);
@@ -421,6 +422,7 @@ internal sealed class BudgetPlayer : IAsyncDisposable
     /// <returns>The reply.</returns>
     public async Task<JoinMapResult> JoinAsync(string mapId)
     {
+        await WirePace.JoinAsync(CancellationToken.None);
         using JoinMap request = new() { MapId = mapId };
         JoinMapResult result = await this.RequestAsync<JoinMapResult>(request);
         if (result.Status != JoinStatus.Ok)

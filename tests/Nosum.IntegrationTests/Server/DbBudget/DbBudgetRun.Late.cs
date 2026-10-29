@@ -37,7 +37,7 @@ public sealed partial class DbBudgetRun
     private async Task AdminAsync()
     {
         string adminNick = this.NextNickname();
-        string adminToken = await _rig.RegisteredAccountAsync(adminNick, "budget." + adminNick + "@gmail.com");
+        string adminToken = await _rig.RegisteredAccountAsync(adminNick, "budget." + adminNick);
         Guid adminId;
         await using (BudgetPlayer first = await _rig.ConnectAsync())
         {
@@ -78,20 +78,6 @@ public sealed partial class DbBudgetRun
         _ = await _rig.ProbeAsync<AdminResult>(admin, "Admin", AdminOpCode.Kick, "Kick", "a connected player", () => new AdminKick { Nickname = talker.Nickname });
         _ = await _rig.ProbeAsync<AdminResult>(admin, "Admin", AdminOpCode.Ban, "Ban", "a player", () => new AdminBan { Nickname = talker.Nickname });
         _ = await _rig.ProbeAsync<AdminResult>(admin, "Admin", AdminOpCode.Unban, "Unban", "a banned player", () => new AdminUnban { Nickname = talker.Nickname });
-    }
-
-    // Changing and recovering a password (ADR-032). The reset code goes out by e-mail, so the confirm is measured with a wrong code (a refusal).
-    private async Task PasswordAsync()
-    {
-        string nick = this.NextNickname();
-        string email = "budget." + nick + "@gmail.com";
-        string token = await _rig.RegisteredAccountAsync(nick, email);
-        await using BudgetPlayer p = await _rig.ConnectAsync();
-        _ = await p.ResumeAsync(token);
-        _ = await _rig.ProbeAsync<PasswordResult>(p, "Account", AccountOpCode.ChangePassword, "ChangePassword", "right current password", () => new ChangePassword { CurrentPassword = "correct horse battery", NewPassword = "another horse battery" });
-        await using BudgetPlayer anonymous = await _rig.ConnectAsync();
-        _ = await _rig.ProbeAsync<PasswordResult>(anonymous, "Account", AccountOpCode.RequestPasswordReset, "RequestPasswordReset", "registered address", () => new RequestPasswordReset { Email = email });
-        _ = await _rig.ProbeAsync<PasswordResult>(anonymous, "Account", AccountOpCode.ConfirmPasswordReset, "ConfirmPasswordReset", "wrong code (refused)", () => new ConfirmPasswordReset { Email = email, Code = "000000", NewPassword = "yet another horse battery" });
     }
 
     // The blacksmith upgrades a tool in two game days.

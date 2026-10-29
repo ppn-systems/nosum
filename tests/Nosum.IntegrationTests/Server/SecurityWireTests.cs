@@ -19,12 +19,12 @@ using Nalix.SDK.Transport;
 using Nalix.SDK.Transport.Extensions;
 using Npgsql;
 using Nosum.Abstractions.Accounts;
-using Nosum.Abstractions.Email;
 using Nosum.Abstractions.Security;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
 using Nosum.Contracts.Common;
+using Nosum.Contracts.Validation;
 using Nosum.Handlers.Account;
 using Nosum.Handlers.Security;
 using Nosum.Host;
@@ -40,7 +40,6 @@ namespace Nosum.IntegrationTests.Server;
 public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
 {
     private readonly PostgresFixture _database;
-    private readonly RecordingSender _mail = new();
     private ushort _port;
 
     public SecurityWireTests(PostgresFixture database) => _database = database;
@@ -54,16 +53,28 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
         {
             using WebSocketSession session = await ConnectAsync();
             long before = InputBoundsMiddleware.Dropped;
-            using Login oversized = new() { Email = new string('a', 5_000) + "@gmail.com", Password = "password-1" };
-            using Register badChest = new() { Email = Unique(), Password = "password-1", Nickname = new string('n', 500) };
+            using ExternalSignIn oversized = new()
+            {
+                Provider = ExternalProvider.Google,
+                IdToken = "fake:Google:" + new string('a', WireLimits.IdToken),
+            };
+            using ExternalSignIn undefinedProvider = new()
+            {
+                Provider = (ExternalProvider)99,
+                IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, NewSubject()),
+            };
 
             Func<Task> first = async () => _ = await session.RequestAsync<AccountResult>(oversized, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: timeout.Token);
-            Func<Task> second = async () => _ = await session.RequestAsync<AccountResult>(badChest, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: timeout.Token);
-            _ = await first.Should().ThrowAsync<Exception>("an oversized packet gets no reply");
-            _ = await second.Should().ThrowAsync<Exception>("an oversized nickname gets no reply");
+            Func<Task> second = async () => _ = await session.RequestAsync<AccountResult>(undefinedProvider, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: timeout.Token);
+            _ = await first.Should().ThrowAsync<Exception>("an oversized token gets no reply");
+            _ = await second.Should().ThrowAsync<Exception>("an undefined provider gets no reply");
 
             InputBoundsMiddleware.Dropped.Should().Be(before + 2);
-            using Register fine = new() { Email = Unique(), Password = "password-1", Nickname = TestNicknames.Next() };
+            using ExternalSignIn fine = new()
+            {
+                Provider = ExternalProvider.Google,
+                IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, NewSubject()),
+            };
             AccountResult ok = await session.RequestAsync<AccountResult>(fine, ct: timeout.Token);
             ok.Status.Should().Be(AccountStatus.Ok);
         }
@@ -82,9 +93,10 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
         {
             Type[] packets = typeof(AccountOpCode).Assembly.GetTypes()
                 .Where(t => t.Namespace is not null && t.Namespace.EndsWith(".C2S", StringComparison.Ordinal) && t is { IsClass: true, IsAbstract: false })
+                .Where(t => !RetiredPackets.Types.Contains(t))
                 .OrderBy(t => t.FullName, StringComparer.Ordinal)
                 .ToArray();
-            HashSet<Type> publicPackets = [typeof(Register), typeof(Login), typeof(ResumeSession), typeof(StartGuest), typeof(RequestPasswordReset), typeof(ConfirmPasswordReset)];
+            HashSet<Type> publicPackets = [typeof(ExternalSignIn), typeof(ResumeSession), typeof(StartGuest)];
             Dictionary<string, long> rowsBefore = await CountRowsAsync();
 
             int replies = 0;
@@ -136,90 +148,11 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
 
             // The public ones answer with a documented refusal and still change nothing.
             using WebSocketSession open = await ConnectAsync();
-            using Login login = new();
-            using Register register = new();
+            using ExternalSignIn signIn = new() { Provider = ExternalProvider.Google, IdToken = string.Empty };
             using ResumeSession resume = new();
-            using RequestPasswordReset request = new();
-            using ConfirmPasswordReset confirm = new();
-            (await open.RequestAsync<AccountResult>(login, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidCredentials);
-            (await open.RequestAsync<AccountResult>(register, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidEmail);
+            (await open.RequestAsync<AccountResult>(signIn, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidIdToken);
             (await open.RequestAsync<AccountResult>(resume, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidToken);
-            (await open.RequestAsync<PasswordResult>(request, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidEmail);
-            (await open.RequestAsync<PasswordResult>(confirm, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidResetCode);
             (await CountRowsAsync()).Should().BeEquivalentTo(rowsBefore);
-        }
-        finally
-        {
-            await app.DeactivateAsync(CancellationToken.None);
-        }
-    }
-
-    [Fact]
-    public async Task PasswordRecovery_OverWebSocket_ResetsThePasswordAndEndsTheLiveSession()
-    {
-        await using NetworkApplication app = await StartAsync();
-        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(60));
-        try
-        {
-            string email = Unique();
-            using WebSocketSession live = await ConnectAsync();
-            using Register register = new() { Email = email, Password = "password-1", Nickname = TestNicknames.Next() };
-            AccountResult registered = await live.RequestAsync<AccountResult>(register, ct: timeout.Token);
-            TaskCompletionSource<AccountStatus> ended = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            using IDisposable subscription = live.On<SessionEnded>(p => ended.TrySetResult(p.Reason));
-
-            using WebSocketSession forgotten = await ConnectAsync();
-            using RequestPasswordReset request = new() { Email = email };
-            PasswordResult requested = await forgotten.RequestAsync<PasswordResult>(request, ct: timeout.Token);
-            requested.Status.Should().Be(AccountStatus.Ok);
-            string code = _mail.Sent.Should().ContainSingle().Subject.Code;
-
-            string wrong = code == "00000000" ? "11111111" : "00000000";
-            using ConfirmPasswordReset bad = new() { Email = email, Code = wrong, NewPassword = "new-password-2" };
-            (await forgotten.RequestAsync<PasswordResult>(bad, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidResetCode);
-            using ConfirmPasswordReset good = new() { Email = email, Code = code, NewPassword = "new-password-2" };
-            (await forgotten.RequestAsync<PasswordResult>(good, ct: timeout.Token)).Status.Should().Be(AccountStatus.Ok);
-
-            AccountStatus reason = await ended.Task.WaitAsync(TimeSpan.FromSeconds(10), timeout.Token);
-            reason.Should().Be(AccountStatus.SessionRevoked);
-            using Login oldPassword = new() { Email = email, Password = "password-1" };
-            using Login newPassword = new() { Email = email, Password = "new-password-2" };
-            (await forgotten.RequestAsync<AccountResult>(oldPassword, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidCredentials);
-            (await forgotten.RequestAsync<AccountResult>(newPassword, ct: timeout.Token)).Status.Should().Be(AccountStatus.Ok);
-            using ResumeSession stale = new() { SessionToken = registered.SessionToken };
-            (await forgotten.RequestAsync<AccountResult>(stale, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidToken);
-        }
-        finally
-        {
-            await app.DeactivateAsync(CancellationToken.None);
-        }
-    }
-
-    [Fact]
-    public async Task ChangePassword_OverWebSocket_KeepsTheCallersSessionAndRevokesTheOthers()
-    {
-        await using NetworkApplication app = await StartAsync();
-        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(60));
-        try
-        {
-            string email = Unique();
-            using WebSocketSession a = await ConnectAsync();
-            using Register register = new() { Email = email, Password = "password-1", Nickname = TestNicknames.Next() };
-            AccountResult first = await a.RequestAsync<AccountResult>(register, ct: timeout.Token);
-            using WebSocketSession b = await ConnectAsync();
-            using Login login = new() { Email = email, Password = "password-1" };
-            AccountResult second = await b.RequestAsync<AccountResult>(login, ct: timeout.Token);
-
-            using ChangePassword wrong = new() { CurrentPassword = "nope-nope-1", NewPassword = "new-password-2" };
-            (await b.RequestAsync<PasswordResult>(wrong, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidCredentials);
-            using ChangePassword change = new() { CurrentPassword = "password-1", NewPassword = "new-password-2" };
-            (await b.RequestAsync<PasswordResult>(change, ct: timeout.Token)).Status.Should().Be(AccountStatus.Ok);
-
-            using WebSocketSession c = await ConnectAsync();
-            using ResumeSession firstToken = new() { SessionToken = first.SessionToken };
-            using ResumeSession secondToken = new() { SessionToken = second.SessionToken };
-            (await c.RequestAsync<AccountResult>(firstToken, ct: timeout.Token)).Status.Should().Be(AccountStatus.InvalidToken);
-            (await c.RequestAsync<AccountResult>(secondToken, ct: timeout.Token)).Status.Should().Be(AccountStatus.Ok);
         }
         finally
         {
@@ -269,8 +202,6 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
 
             using StartGuest over = new() { PreferredLanguage = GameLanguage.English };
             (await session.RequestAsync<AccountResult>(over, ct: timeout.Token)).Status.Should().Be(AccountStatus.TooManyRequests);
-            using Register register = new() { Email = Unique(), Password = "password-1", Nickname = TestNicknames.Next() };
-            (await session.RequestAsync<AccountResult>(register, ct: timeout.Token)).Status.Should().Be(AccountStatus.TooManyRequests);
         }
         finally
         {
@@ -310,10 +241,9 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
     private async Task<NetworkApplication> StartAsync(bool enforceLoopback = false)
     {
         HostServices.Register(_database.Options);
-        // The tests read the code from a recording sender instead of an inbox.
         InstanceManager.Instance.Register<IAccountService>(new AccountService(
-            new EfUnitOfWorkFactory(_database.Options), new Pbkdf2PasswordHasher(iterations: 1000), new SessionTokenService(), TimeProvider.System,
-            nicknames: InstanceManager.Instance.GetExistingInstance<INicknameDirectory>(), email: _mail));
+            new EfUnitOfWorkFactory(_database.Options), FakeExternalTokenVerifier.All(), new SessionTokenService(), TimeProvider.System,
+            nicknames: InstanceManager.Instance.GetExistingInstance<INicknameDirectory>()));
         InstanceManager.Instance.Register<IAbuseGuard>(new SlidingWindowAbuseGuard(TimeProvider.System, exemptLoopback: !enforceLoopback));
         _port = GetFreePort();
         NetworkApplication app = Program.BuildApplication(_port);
@@ -361,27 +291,12 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
         return counts;
     }
 
-    private static string Unique() => "w" + Guid.NewGuid().ToString("N")[..12] + "@gmail.com";
+    private static string NewSubject() => Guid.NewGuid().ToString("N");
 
     private static ushort GetFreePort()
     {
         using TcpListener probe = new(IPAddress.Loopback, 0);
         probe.Start();
         return (ushort)((IPEndPoint)probe.LocalEndpoint).Port;
-    }
-
-    private sealed class RecordingSender : IEmailSender
-    {
-        public List<EmailMessage> Sent { get; } = [];
-
-        public Task SendAsync(EmailMessage message, CancellationToken cancellationToken)
-        {
-            lock (this.Sent)
-            {
-                this.Sent.Add(message);
-            }
-
-            return Task.CompletedTask;
-        }
     }
 }

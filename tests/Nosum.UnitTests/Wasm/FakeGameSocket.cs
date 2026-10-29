@@ -27,11 +27,21 @@ internal sealed class FakeGameSocket : IGameSocket
         remove { }
     }
 
+    public event Action<TimeSpan>? ReconnectScheduled
+    {
+        add { }
+        remove { }
+    }
+
     public GameSocketState State => GameSocketState.Ready;
 
     public List<IPacket> Requests { get; } = [];
 
     public void Start()
+    {
+    }
+
+    public void RetryNow()
     {
     }
 

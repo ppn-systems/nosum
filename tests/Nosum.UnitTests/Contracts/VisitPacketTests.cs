@@ -26,8 +26,10 @@ public sealed class VisitPacketTests
         VisitOpCode.KickVisitor.Should().Be(0xE003);
         VisitOpCode.SetCoopVisits.Should().Be(0xE004);
         VisitOpCode.VisitPlayer.Should().Be(0xE005);
+        VisitOpCode.GetGuestbook.Should().Be(0xE006);
         VisitOpCode.VisitResult.Should().Be(0xE040);
         VisitOpCode.VisitorsSnapshot.Should().Be(0xE041);
+        VisitOpCode.GuestbookSnapshot.Should().Be(0xE042);
     }
 
     [Fact]
@@ -37,7 +39,7 @@ public sealed class VisitPacketTests
 
         values.Should().OnlyHaveUniqueItems();
         values.Should().OnlyContain(v => v >= 0xE000 && v <= 0xE0FF);
-        values.Where(v => v <= 0xE03F).Should().HaveCount(6, "requests use the lower half");
+        values.Where(v => v <= 0xE03F).Should().HaveCount(7, "requests use the lower half");
     }
 
     [Fact]
@@ -51,6 +53,24 @@ public sealed class VisitPacketTests
         VisitPlayer.StaticOpCode.Should().Be(VisitOpCode.VisitPlayer);
         VisitResult.StaticOpCode.Should().Be(VisitOpCode.VisitResult);
         VisitorsSnapshot.StaticOpCode.Should().Be(VisitOpCode.VisitorsSnapshot);
+        GetGuestbook.StaticOpCode.Should().Be(VisitOpCode.GetGuestbook);
+        GuestbookSnapshot.StaticOpCode.Should().Be(VisitOpCode.GuestbookSnapshot);
+    }
+
+    [Fact]
+    public void GuestbookSnapshot_WithRows_RoundTrips()
+    {
+        Guid visitor = Guid.NewGuid();
+        using GuestbookSnapshot packet = new() { UnreadCount = 3 };
+        packet.Rows.Add(new GuestbookRow { VisitorId = visitor, Nickname = "Hoàng Yến", DayNumber = 12, Waters = 7, Unread = true });
+        packet.Rows.Add(new GuestbookRow { VisitorId = visitor, Nickname = "Hoàng Yến", DayNumber = 11, Waters = 2, Unread = false });
+
+        GuestbookSnapshot copy = GuestbookSnapshot.Deserialize(packet.Serialize());
+
+        copy.UnreadCount.Should().Be(3);
+        copy.Rows.Should().HaveCount(2);
+        (copy.Rows[0].VisitorId, copy.Rows[0].Nickname, copy.Rows[0].DayNumber, copy.Rows[0].Waters, copy.Rows[0].Unread).Should().Be((visitor, "Hoàng Yến", 12, 7, true));
+        copy.Rows[1].Unread.Should().BeFalse();
     }
 
     [Fact]

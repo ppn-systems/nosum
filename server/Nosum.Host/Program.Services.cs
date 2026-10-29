@@ -42,6 +42,7 @@ using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Host.Ops;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Bestiary;
 using Nosum.Infrastructure.Blacksmith;
 using Nosum.Infrastructure.Buildings;
 using Nosum.Infrastructure.Caching;
@@ -247,7 +248,10 @@ internal static partial class Program
                 TaskScheduler.Default);
         };
         InstanceManager.Instance.Register<IResourceNodeService>(nodes);
-        FarmService farm = new(presence, presence, publisher, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock, placedTiles);
+        // The farm guestbook (docs/adr/ADR-066): a visitor's watering on a farm with a guestbook is counted for the owner.
+        GuestbookService guestbook = new(unitOfWork, nicknames, clock);
+        InstanceManager.Instance.Register<IGuestbookService>(guestbook);
+        FarmService farm = new(presence, presence, publisher, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock, placedTiles, guestbook);
 
         // Placing objects, chests and furnaces (docs/adr/ADR-024): a chest and a furnace refuse to be picked up while they hold something, so they attach to the placeables.
         PlaceableService placeables = new(presence, presence, publisher, maps, inventory, unitOfWork, clock, farm, nodes, coopMembership, placedTiles);
@@ -272,7 +276,10 @@ internal static partial class Program
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2, ADR-049 D3).
-        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress);
+        // The hunting log (docs/adr/ADR-068): the defeat path counts each kill into it.
+        BestiaryService bestiary = new(unitOfWork, clock);
+        InstanceManager.Instance.Register<IBestiaryService>(bestiary);
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>
         {

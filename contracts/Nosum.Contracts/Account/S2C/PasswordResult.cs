@@ -6,7 +6,7 @@ using Nalix.Codec.DataFrames;
 
 namespace Nosum.Contracts.Account.S2C;
 
-/// <summary>The server's reply to <see cref="C2S.RequestPasswordReset"/>, <see cref="C2S.ConfirmPasswordReset"/> and <see cref="C2S.ChangePassword"/>.</summary>
+/// <summary>Retired: the reply to the password change. Retired (docs/adr/ADR-069): the class and its opcode stay reserved and are never reused; it has no fields and the server has no handler.</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]
@@ -14,7 +14,4 @@ public sealed partial class PasswordResult : PacketBase<PasswordResult>, IPacket
 {
     /// <inheritdoc/>
     public static ushort StaticOpCode => AccountOpCode.PasswordResult;
-
-    /// <summary>Outcome. A recovery request answers Ok whether or not the address has an account.</summary>
-    [SerializeOrder(0)] public AccountStatus Status { get; set; }
 }

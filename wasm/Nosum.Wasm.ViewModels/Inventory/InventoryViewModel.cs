@@ -119,6 +119,9 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the localized label of the hotbar.</summary>
     public string HotbarLabel => _text["Inventory_Hotbar"];
 
+    /// <summary>Gets the localized label of the button that sorts the bag.</summary>
+    public string SortLabel => _text["Inventory_Sort"];
+
     /// <summary>Gets the localized title of the inventory panel.</summary>
     public string Title => _text["Inventory_Title"];
 
@@ -160,6 +163,14 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
             _channel.Move(from, slot);
         }
 
+        this.Changed?.Invoke();
+    }
+
+    /// <summary>Asks the server to sort the bag. A stack picked up for a move is put down first.</summary>
+    public void Sort()
+    {
+        _movingFrom = -1;
+        _channel.Sort();
         this.Changed?.Invoke();
     }
 
@@ -209,9 +220,7 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
 
         string name = _catalogue["Item_" + item.Key + "_Name"];
         string description = _catalogue["Item_" + item.Key + "_Description"];
-        string tooltip = item.MaxStack > 1
-            ? string.Join('\n', name, description, string.Format(CultureInfo.CurrentCulture, _text["Inventory_Quantity"].Value, info.Quantity))
-            : string.Join('\n', name, description);
+        string tooltip = ItemTooltip.Build(item, name, description, info.Quantity, _text);
         if (item.Tool == ToolKind.WateringCan && _nodes is { } can)
         {
             int left = can.WaterLeft;

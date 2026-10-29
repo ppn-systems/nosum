@@ -38,7 +38,8 @@ public sealed record PriceDayView(int Day, long Min, long Median, long Max, int 
 /// <param name="ItemId">The item.</param>
 /// <param name="Today">The game day number now.</param>
 /// <param name="Days">The days that had sales, oldest first.</param>
-public sealed record PriceHistoryView(int ItemId, int Today, IReadOnlyList<PriceDayView> Days);
+/// <param name="Average">The mean unit price of the sales of the last seven game days, coins; zero when none.</param>
+public sealed record PriceHistoryView(int ItemId, int Today, IReadOnlyList<PriceDayView> Days, long Average);
 
 /// <summary>Outcome of shipping items at the bin.</summary>
 /// <param name="Status">Ok, or why nothing was sold.</param>

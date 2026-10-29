@@ -222,6 +222,26 @@ public sealed class MarketLimitsTests : IClassFixture<PostgresFixture>, IAsyncLi
     }
 
     [Fact]
+    public async Task GetPriceHistory_AverageCoversTheLastSevenGameDaysOnly()
+    {
+        Guid seller = await NewPlayerAsync();
+        Guid buyer = await NewPlayerAsync();
+        _ = await _inventory.AddAsync(seller, ItemCatalog.Parsnip, 30, "test.setup");
+        await SellAsync(seller, buyer, ItemCatalog.Parsnip, 1, 20);
+        int first = _calendar.DayNumberAt(_clock.GetUtcNow().ToUnixTimeMilliseconds());
+
+        _clock.Advance(TimeSpan.FromHours(12 * 2));
+        await SellAsync(seller, buyer, ItemCatalog.Parsnip, 1, 30);
+        _clock.Advance(TimeSpan.FromHours(12 * 6));
+
+        // Now is 8 game days after the first sale: it is outside the seven-day window, the sale of two days ago is inside it.
+        PriceHistoryView history = await _market.GetPriceHistoryAsync(ItemCatalog.Parsnip);
+        history.Today.Should().Be(first + 8);
+        history.Days.Select(d => d.Day).Should().Equal(first, first + 2);
+        history.Average.Should().Be(30);
+    }
+
+    [Fact]
     public async Task BuyTheSameListingFromManyBuyers_RecordsExactlyOneSale()
     {
         Guid seller = await NewPlayerAsync();

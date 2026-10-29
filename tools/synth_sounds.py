@@ -130,6 +130,16 @@ def build():
         ),
         0.85,
     )
+
+    # Combo finisher (docs/adr/ADR-060 client feedback): a deep bass thump with a short knock and a falling sub. Added last so the seeded noise of the sounds above is unchanged.
+    sounds["combo_finisher"] = normalise(
+        mix(
+            sine(92, 0.34, 1.0, release=0.55, glide=-0.45),
+            noise(0.09, rng, release=0.8, lowpass=0.12),
+            sine(240, 0.10, 0.45, release=0.8, glide=-0.6),
+        ),
+        0.9,
+    )
     return sounds
 
 

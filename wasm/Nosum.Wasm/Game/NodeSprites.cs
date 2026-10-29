@@ -127,7 +127,7 @@ internal static class NodeSprites
         }
 
         long hitElapsed = nowMs - node.HitAtMs;
-        if (node.HitAtMs > 0 && hitElapsed is >= 0 and < 320)
+        if (!ViewOptions.ReduceMotion && node.HitAtMs > 0 && hitElapsed is >= 0 and < 320)
         {
             AddHitParticles(world, node, left, baseY, sortX, tileSize, hitElapsed / 320f);
         }

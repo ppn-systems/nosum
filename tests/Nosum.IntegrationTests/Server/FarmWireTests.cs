@@ -70,6 +70,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -167,6 +168,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         GameCalendar calendar = GameCalendar.Default;
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -211,6 +213,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         GameCalendar calendar = GameCalendar.Default;
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -260,6 +263,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -302,6 +306,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock, development: true);
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(90));
         await app.ActivateAsync(timeout.Token);
@@ -357,6 +362,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock, development: true);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -409,6 +415,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         GameCalendar calendar = GameCalendar.Default;
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock, development: true);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -464,6 +471,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -498,6 +506,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -524,6 +533,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, clock);
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);
@@ -553,6 +563,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         int y;
         ushort firstPort = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using (NetworkApplication first = Program.BuildApplication(firstPort, clock))
         {
             using CancellationTokenSource timeout = new(s_timeout);
@@ -575,6 +586,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
 
         ushort secondPort = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication second = Program.BuildApplication(secondPort, clock);
         using CancellationTokenSource timeout2 = new(s_timeout);
         await second.ActivateAsync(timeout2.Token);
@@ -608,6 +620,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
     {
         ushort port = GetFreePort();
         HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
         await using NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start));
         using CancellationTokenSource timeout = new(s_timeout);
         await app.ActivateAsync(timeout.Token);

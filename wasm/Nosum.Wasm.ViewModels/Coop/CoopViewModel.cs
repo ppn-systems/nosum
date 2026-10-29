@@ -57,6 +57,17 @@ public sealed record UpgradeDisplay(CoopUpgradeTrack Track, string Title, int Le
     public int NextLevel => this.Level + 1;
 }
 
+/// <summary>One shared objective of the co-op panel (docs/adr/ADR-067).</summary>
+/// <param name="Title">The localized objective, named after the crop.</param>
+/// <param name="Contributed">How many the members have harvested toward it.</param>
+/// <param name="Target">How many complete it.</param>
+/// <param name="Completed">Whether the co-op has earned the trophy.</param>
+public sealed record ObjectiveDisplay(string Title, int Contributed, int Target, bool Completed)
+{
+    /// <summary>Gets the progress as a fraction of the target, at most one.</summary>
+    public double Fraction => Math.Min(1.0, (double)this.Contributed / this.Target);
+}
+
 /// <summary>View model of the co-op panel: found a co-op, answer invitations, invite players on the map, manage members, and use the shared warehouse. The server decides every outcome, including who may withdraw what.</summary>
 public sealed class CoopViewModel : PanelViewModel, IDisposable
 {
@@ -187,6 +198,34 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
                 this.UpgradeOf(CoopUpgradeTrack.Warehouse, CoopTrack.Warehouse, info.WarehouseLevel, this.Text("Coop_Upgrade_Warehouse_Now", CoopUpgrades.WarehouseSlots(info.WarehouseLevel), info.Stock.Count)),
                 this.UpgradeOf(CoopUpgradeTrack.Land, CoopTrack.Land, info.LandLevel, this.Text("Coop_Upgrade_Land_Now", info.LandLevel + 1, CoopUpgrades.MaxLevel + 1)),
             ];
+        }
+    }
+
+    /// <summary>Gets the shared objectives with the co-op's progress (docs/adr/ADR-067). The completed ones are the co-op's trophies; the server counts the harvests.</summary>
+    public IReadOnlyList<ObjectiveDisplay> Objectives
+    {
+        get
+        {
+            IReadOnlyList<CoopObjectiveInfo> progress = _coop.Current.Objectives ?? [];
+            List<ObjectiveDisplay> rows = [];
+            foreach (CoopObjectiveDefinition objective in CoopObjectiveCatalog.All)
+            {
+                int contributed = 0;
+                bool completed = false;
+                foreach (CoopObjectiveInfo info in progress)
+                {
+                    if (info.ObjectiveId == objective.Id)
+                    {
+                        contributed = info.Contributed;
+                        completed = info.Completed;
+                        break;
+                    }
+                }
+
+                rows.Add(new ObjectiveDisplay(this.Text("Coop_Objective_Harvest", _describer.NameOf(objective.ItemId)), contributed, objective.Target, completed));
+            }
+
+            return rows;
         }
     }
 

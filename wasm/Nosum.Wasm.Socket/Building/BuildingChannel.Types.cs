@@ -54,3 +54,9 @@ public readonly record struct BuildingEntry(Guid Id, int ObjectId, byte Kind, st
 /// <param name="Facing">0 down, 1 right, 2 up, 3 left: the way the walk goes.</param>
 /// <param name="Walking">Whether it is on a walk now.</param>
 public readonly record struct AnimalPose(Guid Id, byte Kind, string Name, int Friendship, bool Petted, bool HasProduce, double X, double Y, int Facing, bool Walking);
+
+/// <summary>The last animal the player petted, so its hearts can float up for a moment.</summary>
+/// <param name="AnimalId">The animal's id; empty before the first petting.</param>
+/// <param name="Friendship">Its friendship after the petting.</param>
+/// <param name="AtMs">When the petting was answered, from <c>BuildingChannel.NowMs</c>; zero before the first petting.</param>
+public readonly record struct AnimalPetting(Guid AnimalId, int Friendship, long AtMs);

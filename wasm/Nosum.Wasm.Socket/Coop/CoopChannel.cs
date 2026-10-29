@@ -38,6 +38,12 @@ public readonly record struct CoopLogInfo(Guid MemberId, int ItemId, int Delta, 
 /// <param name="InviterNickname">The founder's nickname; empty when unknown.</param>
 public readonly record struct CoopInviteInfo(Guid InviteId, string CoopName, string InviterNickname);
 
+/// <summary>One shared objective of the co-op (docs/adr/ADR-067).</summary>
+/// <param name="ObjectiveId">The objective id.</param>
+/// <param name="Contributed">How many the members have harvested toward it.</param>
+/// <param name="Completed">Whether the co-op has earned the trophy.</param>
+public readonly record struct CoopObjectiveInfo(int ObjectiveId, int Contributed, bool Completed);
+
 /// <summary>The player's co-op as the server last sent it.</summary>
 /// <param name="HasCoop">Whether the player belongs to a co-op.</param>
 /// <param name="Name">The authored name.</param>
@@ -48,11 +54,12 @@ public readonly record struct CoopInviteInfo(Guid InviteId, string CoopName, str
 /// <param name="Invites">Open invitations.</param>
 /// <param name="WarehouseLevel">The warehouse upgrade level (docs/adr/ADR-038).</param>
 /// <param name="LandLevel">The land upgrade level (docs/adr/ADR-038).</param>
+/// <param name="Objectives">The shared objectives and their progress (docs/adr/ADR-067); null when none was read.</param>
 [SuppressMessage("Performance", "CA1859", Justification = "Public record contract exposes IReadOnlyList.")]
-public sealed record CoopInfo(bool HasCoop, string Name, CoopRole Role, IReadOnlyList<CoopMemberInfo> Members, IReadOnlyList<CoopStockInfo> Stock, IReadOnlyList<CoopLogInfo> Log, IReadOnlyList<CoopInviteInfo> Invites, int WarehouseLevel = 0, int LandLevel = 0)
+public sealed record CoopInfo(bool HasCoop, string Name, CoopRole Role, IReadOnlyList<CoopMemberInfo> Members, IReadOnlyList<CoopStockInfo> Stock, IReadOnlyList<CoopLogInfo> Log, IReadOnlyList<CoopInviteInfo> Invites, int WarehouseLevel = 0, int LandLevel = 0, IReadOnlyList<CoopObjectiveInfo>? Objectives = null)
 {
     /// <summary>Gets the state before the first read.</summary>
-    public static readonly CoopInfo None = new(false, string.Empty, CoopRole.None, [], [], [], []);
+    public static readonly CoopInfo None = new(false, string.Empty, CoopRole.None, [], [], [], [], 0, 0, []);
 }
 
 /// <summary>The co-op's side of the connection: reads and receives the snapshot, and sends membership and warehouse requests. The server decides every outcome.</summary>
@@ -163,7 +170,13 @@ public sealed class CoopChannel : IDisposable
             invites.Add(new CoopInviteInfo(row.InviteId, row.CoopName, row.InviterNickname));
         }
 
-        this.Current = new CoopInfo(snapshot.HasCoop, snapshot.Name, snapshot.Role, members, stock, log, invites, snapshot.WarehouseLevel, snapshot.LandLevel);
+        List<CoopObjectiveInfo> objectives = [];
+        foreach (CoopObjectiveRow row in snapshot.Objectives)
+        {
+            objectives.Add(new CoopObjectiveInfo(row.ObjectiveId, row.Contributed, row.Completed));
+        }
+
+        this.Current = new CoopInfo(snapshot.HasCoop, snapshot.Name, snapshot.Role, members, stock, log, invites, snapshot.WarehouseLevel, snapshot.LandLevel, objectives);
         this.Changed?.Invoke();
     }
 

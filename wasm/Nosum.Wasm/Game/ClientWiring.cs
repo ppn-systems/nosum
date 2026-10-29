@@ -16,6 +16,7 @@ using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Chat;
 using Nosum.Wasm.Socket.Chest;
+using Nosum.Wasm.Socket.Bestiary;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Coop;
 using Nosum.Wasm.Socket.Crafting;
@@ -54,6 +55,7 @@ using Nosum.Wasm.ViewModels.Furnace;
 using Nosum.Wasm.ViewModels.Goals;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Looks;
+using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Mail;
 using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Mine;
@@ -129,6 +131,7 @@ internal static class ClientWiring
         services.AddSingleton<QuestTrackerViewModel>();
         services.AddSingleton<PlacementViewModel>();
         services.AddSingleton<GameMessagesViewModel>();
+        services.AddSingleton<LevelUpBannerViewModel>();
         services.AddSingleton<ItemDescriber>();
         services.AddSingleton<ToolbarViewModel>();
         services.AddSingleton<NicknameFormatter>();
@@ -137,13 +140,16 @@ internal static class ClientWiring
         services.AddSingleton<NpcDialogViewModel>();
         services.AddSingleton<BlacksmithViewModel>();
         services.AddSingleton<ElevatorViewModel>();
+        services.AddSingleton<MapLoadingViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<GoalsViewModel>();
+        services.AddSingleton<BestiaryChannel>();
         services.AddSingleton(sp => new ProgressViewModel(
             sp.GetRequiredService<ProgressChannel>(),
             sp.GetRequiredService<IStringLocalizer<Language>>(),
             sp.GetRequiredService<CombatChannel>(),
-            sp.GetRequiredService<IStringLocalizer<Catalogue>>()));
+            sp.GetRequiredService<IStringLocalizer<Catalogue>>(),
+            sp.GetRequiredService<BestiaryChannel>()));
         services.AddSingleton<WalletViewModel>();
         services.AddSingleton<CalendarViewModel>();
         services.AddSingleton<MarketViewModel>();
@@ -171,8 +177,6 @@ internal static class ClientWiring
         services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         services.AddSingleton<AccountSessionKeeper>();
         services.AddTransient<AccountFormViewModel>();
-        services.AddSingleton<IRecoveryClient, GameSocketRecoveryClient>();
-        services.AddSingleton<PasswordRecoveryViewModel>();
         services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());
@@ -206,6 +210,7 @@ internal static class ClientWiring
         CombatChannel combat = services.GetRequiredService<CombatChannel>();
         GameLoop.UseCombat(combat, services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(services.GetRequiredService<CalendarChannel>());
+        GameLoop.UseMapLoading(services.GetRequiredService<MapLoadingViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
         DevTools.Use(services.GetRequiredService<DevChannel>());
@@ -264,6 +269,7 @@ internal static class ClientWiring
         // The view models subscribe to their channels when they are built: build them before the first push can arrive.
         _ = services.GetRequiredService<InventoryViewModel>();
         _ = services.GetRequiredService<QuestTrackerViewModel>();
+        _ = services.GetRequiredService<LevelUpBannerViewModel>();
         GameMessagesViewModel messages = services.GetRequiredService<GameMessagesViewModel>();
         IStringLocalizer<Language> localizer = services.GetRequiredService<IStringLocalizer<Language>>();
         combat.KnockedOut += () => messages.Notify(localizer["Combat_KnockedOut"].Value);
@@ -288,7 +294,9 @@ internal static class ClientWiring
         _ = services.GetRequiredService<FurnaceViewModel>();
         _ = services.GetRequiredService<CarpenterViewModel>();
         _ = services.GetRequiredService<AnimalCareViewModel>();
-        _ = services.GetRequiredService<ConnectionStatusViewModel>();
+        ConnectionStatusViewModel connection = services.GetRequiredService<ConnectionStatusViewModel>();
+        GameLoop.SetConnectionBlocked(connection.BlocksInput);
+        connection.Changed += () => GameLoop.SetConnectionBlocked(connection.BlocksInput);
 
         DeviceGuardViewModel device = services.GetRequiredService<DeviceGuardViewModel>();
         BrowserDevice.WatchWidth(devicePolicy.MinimumWidth, _ => device.UpdateWidth(BrowserDevice.ViewportWidth()));

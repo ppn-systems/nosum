@@ -18,8 +18,11 @@ Skills: [`blazor-ui`](../.claude/skills/blazor-ui/SKILL.md),
 [`render-interop`](../.claude/skills/render-interop/SKILL.md),
 [`nalix-client-sdk`](../.claude/skills/nalix-client-sdk/SKILL.md).
 
-Account UI: `Components/Account/AccountForm.razor` is a reusable login/register form bound to
-`AccountFormViewModel` (`Nosum.Wasm.ViewModels/Account`). Its text is in
+Account UI: `Components/Account/AccountForm.razor` shows two sign-in buttons, Google and Microsoft, and a guest
+start; a guest links one of the two identities to become a registered player. There are no password or e-mail fields
+(docs/adr/ADR-069). The buttons are bound to `AccountFormViewModel` (`Nosum.Wasm.ViewModels/Account`); the ID token comes from
+`wwwroot/external-sign-in.js` (Google Identity Services, MSAL popup through `wwwroot/msal-redirect.html`), and the two
+client ids are read from `ExternalSignIn` in `wwwroot/appsettings.json`. Its text is in
 `Nosum.Wasm.ViewModels/Resources/Language.resx` (Vietnamese) and `Language.en.resx`. `Pages/Home.razor`
 shows it first; the game starts after sign-in (the canvas listens to the whole window's keys).
 `GameSocketAccountClient` implements `IAccountClient` over `IGameSocket`; `AccountSessionKeeper`
@@ -94,7 +97,7 @@ it reads the mirror under its lock and allocates nothing. No UI panel.
 UI theme and layout ([ADR-016](../docs/adr/ADR-016-ui-theme-and-hud-layout.md), amended by [ADR-017](../docs/adr/ADR-017-game-menu-and-world-pixel-ui.md)): one pixel-art theme lives in `Nosum.Wasm.Controls`.
 `wwwroot/nosum-theme.css` holds the variables and the font (`--u` is one UI pixel and equals the world pixel: `round(width / 416)` like `MapScene.ScaleFor`, computed by `nosum-theme.js`; `--tp` is one pixel of the VT323 UI font,
 `fonts/`, OFL; colours `--nosum-*`, generated from the art palette in `tools/art_repack/palette.py`; type scale title, body, small) and `wwwroot/nosum-theme.js` cuts the sprites listed in its table out of `menu.png`, `cursors.png` and `text_box.png` (linked from `assets/` in the Controls csproj, built by `tools/art_repack/ui.py` from the CC0 UI packs in `art/source/ui/`) into `--nosum-img-*` variables used as `border-image`, adds a few own glyphs, and shows the one tooltip for any element with `data-tip`. `index.html` links both and starts Blazor by hand with `loadAllSatelliteResources` (so English
-appears after sign-in); the controls' scoped CSS comes through `Nosum.Wasm.styles.css`. Every screen element is a shared control (`GamePanel`, `GameButton`, `GameInput`/`GameField`, `ItemSlotButton`/`ItemGrid`, `GameSection`, `GameSwatch`, `GameKey`,
+appears after sign-in); the controls' scoped CSS comes through `Nosum.Wasm.styles.css`. The boot screen's bar counts the boot resources through `loadBootResource` (requested and arrived; the JS modules keep the default loader), and its label is Vietnamese unless `navigator.language` is English: it runs before .NET starts, so it cannot use `.resx`. A map change that waits for the new map shows `MapLoadingOverlay` with that map's progress and rotating tips (`MapLoadingViewModel`, `MapScene.WaitingChanged`). Every screen element is a shared control (`GamePanel`, `GameButton`, `GameInput`/`GameField`, `ItemSlotButton`/`ItemGrid`, `GameSection`, `GameSwatch`, `GameKey`,
 `GameIcon`, `GameIconButton`, `GameNotice`, `GameBadge`, `GameSpinner`, `TradeDialog`/`MenuPage`, `CharacterPreview`, ...); panels add layout only, no colours. `Layout/GameHud` is the layout: dock regions (top-left quest tracker, top-center notices,
 top-right coins, the mail icon with its unread badge, the settings gear and the player action bar, center = the active standalone window `TradeDialog`, bottom-center hotbar with the message line (or a merchant's dialog box), overlay for dialogs). **Standalone panels** ([ADR-044](../docs/adr/ADR-044-standalone-panels-and-hud-separation.md)): the inventory, wardrobe, crafting, trade, co-op, visitors, friends, mail, skills, profile and settings pages each open in `Center` as a standalone `TradeDialog` window (`Controls/Menu/MenuPage` inside `Controls/Common/TradeDialog`); `Pages/Home.razor` maps `PanelKind` to a page, `ToolbarViewModel.Items` lists the HUD action bar items (a new panel = one entry there, one `case` in `Home.razor`, one sprite in `nosum-theme.js`). `Esc` closes the open window or opens the last player panel, `I C T G N` open a panel (`ProfilePanel` holds nickname and account management / guest upgrade / sign out), `H` / `?` and the gear open settings (`Controls/Settings/SettingsPanel`: General, Display, Sound, Controls, Credits). The window is as tall as its page (64 to 186 UI pixels); a page may pin controls with `MenuPage Footer`. The start screen (`Components/Account/StartScreen`) wraps the account form; the loading
 state is an overlay panel until `GameLoop.StartAsync` returns, and the HUD appears after it.
@@ -130,8 +133,7 @@ and pets it otherwise; `AnimalCareViewModel` turns the answers into one-line mes
 Server key pinning ([ADR-032](../docs/adr/ADR-032-security-hardening.md) D1): the deploy writes the server's public key (printed by the host at start-up) into
 `Nosum.Wasm/wwwroot/appsettings.json` as `Server:PublicKeys` (one key, or two during a rotation) and sets `Server:RequirePin` to `true`; the client then
 refuses any server that cannot prove it holds one of them (`GameSocketState.KeyMismatch`, shown by `ConnectionBadge`). Without a pin a development build trusts the
-server on first use and remembers the key in `localStorage` (`BrowserServerKeyStore`). Password recovery: the "forgot password" link of the sign-in form opens
-`PasswordRecoveryForm` (`PasswordRecoveryViewModel`, `IRecoveryClient`).
+server on first use and remembers the key in `localStorage` (`BrowserServerKeyStore`). 
 
 ## Device gate and page behaviour
 

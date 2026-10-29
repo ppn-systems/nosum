@@ -60,11 +60,11 @@ public sealed class GameSocketOptions
     /// </summary>
     public Security.IServerKeyStore? KeyStore { get; set; }
 
-    /// <summary>Gets or sets the first delay before a reconnect attempt.</summary>
-    public TimeSpan ReconnectBaseDelay { get; set; } = TimeSpan.FromMilliseconds(500);
+    /// <summary>Gets or sets the first delay before a reconnect attempt; each failed attempt doubles it (1 s, 2 s, 4 s, …).</summary>
+    public TimeSpan ReconnectBaseDelay { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>Gets or sets the longest delay between reconnect attempts.</summary>
-    public TimeSpan ReconnectMaxDelay { get; set; } = TimeSpan.FromSeconds(10);
+    public TimeSpan ReconnectMaxDelay { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Applies the boot configuration the deploy publishes (<c>wwwroot/appsettings.json</c>): <c>Server:Url</c>, when set, is the full

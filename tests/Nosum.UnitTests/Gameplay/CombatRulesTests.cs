@@ -6,6 +6,7 @@ using FluentAssertions;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Movement;
+using Nosum.Gameplay.Weather;
 using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
@@ -115,6 +116,51 @@ public sealed class CombatRulesTests
         }
 
         foundElite.Should().BeTrue("mine floors should spawn elite monsters with affixes");
+    }
+
+    [Fact]
+    public void PlanMonsters_SunWeather_MatchesTheDefaultPlan()
+    {
+        WalkGrid grid = new(32, 32, 16, new bool[32 * 32]);
+        HashSet<(int X, int Y)> occupied = [];
+
+        for (ulong seed = 1; seed <= 20; seed++)
+        {
+            CombatRules.PlanMonsters("Woods", seed, grid, occupied, 4, 4, weather: WeatherKind.Sun)
+                .Should().Equal(CombatRules.PlanMonsters("Woods", seed, grid, occupied, 4, 4));
+        }
+    }
+
+    [Fact]
+    public void PlanMonsters_StormOnWilderness_MakesEliteMonstersSwiftAndMoreFrequent()
+    {
+        WalkGrid grid = new(32, 32, 16, new bool[32 * 32]);
+        HashSet<(int X, int Y)> occupied = [];
+
+        int sunElites = 0;
+        int stormElites = 0;
+        for (ulong seed = 1; seed <= 100; seed++)
+        {
+            List<MonsterSpawn> storm = CombatRules.PlanMonsters("Woods", seed, grid, occupied, 4, 4, weather: WeatherKind.Storm);
+            sunElites += CombatRules.PlanMonsters("Woods", seed, grid, occupied, 4, 4).Count(m => m.Modifier != MonsterModifier.None);
+            stormElites += storm.Count(m => m.Modifier != MonsterModifier.None);
+            storm.Where(m => m.Modifier != MonsterModifier.None).Should().OnlyContain(m => m.Modifier == MonsterModifier.Swift);
+        }
+
+        stormElites.Should().BeGreaterThan(sunElites, "a storm raises the elite chance on wilderness maps (docs/adr/ADR-058)");
+    }
+
+    [Fact]
+    public void PlanMonsters_StormUnderground_IsIgnored()
+    {
+        WalkGrid grid = new(32, 32, 16, new bool[32 * 32]);
+        HashSet<(int X, int Y)> occupied = [];
+
+        for (ulong seed = 1; seed <= 20; seed++)
+        {
+            CombatRules.PlanMonsters("mine5", seed, grid, occupied, 4, 4, weather: WeatherKind.Storm)
+                .Should().Equal(CombatRules.PlanMonsters("mine5", seed, grid, occupied, 4, 4));
+        }
     }
 
     [Fact]
@@ -362,5 +408,27 @@ public sealed class CombatRulesTests
 
         ItemCatalog.TryGet(ItemCatalog.SanctuaryCandelabra, out ItemDefinition? candelabra).Should().BeTrue();
         candelabra!.ObjectIcon.Should().Be(107);
+    }
+
+    [Fact]
+    public void IsEnraged_BossAtOrBelowThirtyPercentHp_ReturnsTrue()
+    {
+        // 30% of 180 HP is 54: the boss enrages at 54 and stays calm at 55.
+        CombatRules.IsEnraged(new MonsterSpawn(1, MonsterKind.BossBroodmother, 0, 0, 54, 180)).Should().BeTrue();
+        CombatRules.IsEnraged(new MonsterSpawn(1, MonsterKind.BossBroodmother, 0, 0, 55, 180)).Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsEnraged_RegularMonstersAndDefeatedBosses_ReturnFalse()
+    {
+        CombatRules.IsEnraged(new MonsterSpawn(1, MonsterKind.GreenSlime, 0, 0, 1, 24)).Should().BeFalse();
+        CombatRules.IsEnraged(new MonsterSpawn(1, MonsterKind.BossGolemKing, 0, 0, 0, 600)).Should().BeFalse();
+    }
+
+    [Fact]
+    public void GroundSlamDamage_IsTwiceTheContactDamageOfTheSpecies()
+    {
+        CombatRules.GroundSlamDamage(MonsterKind.BossMagmaColossus).Should().Be(CombatRules.MonsterDamage(MonsterKind.BossMagmaColossus) * 2);
+        CombatRules.GroundSlamTelegraphMs.Should().Be(1000);
     }
 }

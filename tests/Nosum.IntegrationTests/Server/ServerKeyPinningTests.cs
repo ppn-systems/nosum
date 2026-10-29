@@ -44,6 +44,37 @@ public sealed class ServerKeyPinningTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task RetryNow_DuringTheWait_ConnectsWithoutWaitingOutTheBackoff()
+    {
+        // The server is down when the socket first tries: the wait is the 30 s base delay, so reaching Ready within 10 s proves RetryNow ended it.
+        _port = FreePort();
+        GameSocketOptions options = Options();
+        options.ServerPublicKeys.Add(ServerKey());
+        options.ReconnectBaseDelay = TimeSpan.FromSeconds(30);
+        options.ReconnectMaxDelay = TimeSpan.FromSeconds(30);
+        await using GameSocket socket = new(options);
+        TaskCompletionSource<TimeSpan> waiting = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        socket.ReconnectScheduled += delay => waiting.TrySetResult(delay);
+
+        socket.Start();
+        TimeSpan delay = await waiting.Task.WaitAsync(TimeSpan.FromSeconds(15));
+        NetworkApplication app = await StartOnPortAsync();
+        try
+        {
+            socket.RetryNow();
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+            await socket.WaitReadyAsync(timeout.Token);
+            socket.State.Should().Be(GameSocketState.Ready);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+
+        delay.Should().Be(TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
     public async Task Connect_WithAKeyThatIsNotTheServers_IsRefusedAndReportsAMismatch()
     {
         await using NetworkApplication app = await StartAsync();
@@ -162,15 +193,27 @@ public sealed class ServerKeyPinningTests : IClassFixture<PostgresFixture>
 
     private async Task<NetworkApplication> StartAsync()
     {
+        _port = FreePort();
+        return await StartOnPortAsync();
+    }
+
+    private async Task<NetworkApplication> StartOnPortAsync()
+    {
         HostServices.Register(_database.Options);
-        using TcpListener probe = new(IPAddress.Loopback, 0);
-        probe.Start();
-        _port = (ushort)((IPEndPoint)probe.LocalEndpoint).Port;
-        probe.Stop();
+        TestAccounts.UseFakeVerifiers(_database.Options);
         NetworkApplication app = Program.BuildApplication(_port);
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(15));
         await app.ActivateAsync(timeout.Token);
         return app;
+    }
+
+    private static ushort FreePort()
+    {
+        using TcpListener probe = new(IPAddress.Loopback, 0);
+        probe.Start();
+        ushort port = (ushort)((IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        return port;
     }
 
     private GameSocketOptions Options()

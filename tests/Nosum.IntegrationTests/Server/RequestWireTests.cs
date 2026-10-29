@@ -74,14 +74,16 @@ public sealed class RequestWireTests : IClassFixture<PostgresFixture>, IAsyncLif
         (await elsewhere.DeliverRequestAsync(board.Day, request.Slot, ct)).Status.Should().Be(RequestStatus.NotAtBoard, "the bus stop is not the board");
         (await elsewhere.CountAsync(request.ItemId, ct)).Should().Be(request.Quantity);
 
-        // At the board with the items: they are taken and the coins arrive.
+        // At the board with the items: they are taken and the coins arrive. The board says whether the early bonus is open at its clock; the delivery is paid it then.
+        bool early = board.EarlyUntilMs > board.ServerNowMs;
+        long paid = RequestRules.PaidFor(request.RewardCoins, early);
         (await farmer.GrantAsync(request.ItemId, request.Quantity + 2, 0, ct)).Should().BeTrue();
-        (await farmer.DeliverRequestAsync(board.Day, request.Slot, ct)).Should().Be((RequestStatus.Ok, request.RewardCoins));
+        (await farmer.DeliverRequestAsync(board.Day, request.Slot, ct)).Should().Be((RequestStatus.Ok, paid, early));
         (await farmer.CountAsync(request.ItemId, ct)).Should().Be(2);
-        (await farmer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins + request.RewardCoins);
+        (await farmer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins + paid);
 
         // The second time on the same day is refused and the board says so.
-        (await farmer.DeliverRequestAsync(board.Day, request.Slot, ct)).Should().Be((RequestStatus.AlreadyFilled, 0));
+        (await farmer.DeliverRequestAsync(board.Day, request.Slot, ct)).Should().Be((RequestStatus.AlreadyFilled, 0L, false));
         (await farmer.CountAsync(request.ItemId, ct)).Should().Be(2);
         (await farmer.GetRequestsAsync(ct)).Rows.Where(r => r.Filled).Select(r => r.Slot).Should().Equal(request.Slot);
         (await elsewhere.GetRequestsAsync(ct)).Rows.Should().OnlyContain(r => !r.Filled, "fills are per player");
@@ -122,6 +124,7 @@ public sealed class RequestWireTests : IClassFixture<PostgresFixture>, IAsyncLif
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
             NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start), development: true);
             Server server = new(app, port);
             await app.ActivateAsync(server.Token);

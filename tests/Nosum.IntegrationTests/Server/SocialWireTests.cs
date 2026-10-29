@@ -577,6 +577,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
+            TestAccounts.UseFakeVerifiers(database.Options);
             NetworkApplication app = Program.BuildApplication(port, new FakeTimeProvider(s_start), development);
             Server server = new(app, port);
             await app.ActivateAsync(server.Token);

@@ -116,6 +116,16 @@ public sealed class ChestChannel : IDisposable
         }
     }
 
+    /// <summary>Asks the server to sort the open chest; the new layout arrives as an update. Nothing happens with no chest open.</summary>
+    public void Sort()
+    {
+        int id = this.ObjectId;
+        if (id != 0)
+        {
+            _ = this.SortAsync(id);
+        }
+    }
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -203,6 +213,27 @@ public sealed class ChestChannel : IDisposable
         catch (Exception)
         {
             // Connection dropped; nothing moved.
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
+    private async Task SortAsync(int objectId)
+    {
+        try
+        {
+            using PacketScope<ChestSort> request = PacketFactory<ChestSort>.Acquire();
+            request.Value.ObjectId = objectId;
+            ChestResult result = await _socket.RequestAsync<ChestResult>(request.Value).ConfigureAwait(false);
+            if (result.Status is ChestStatus.OutOfReach or ChestStatus.NotYours or ChestStatus.UnknownObject)
+            {
+                this.Forget(objectId);
+            }
+
+            this.Completed?.Invoke(result.Status);
+        }
+        catch (Exception)
+        {
+            // Connection dropped; nothing sorted.
         }
     }
 

@@ -77,6 +77,29 @@ public sealed class RequestsViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the line that says how long the early bonus of today lasts, or an empty string once it is over or before the server has said.</summary>
+    public string BonusText
+    {
+        get
+        {
+            RequestsInfo info = _channel.Requests;
+            if (info.Day <= 0 || !_calendar.IsLoaded)
+            {
+                return string.Empty;
+            }
+
+            long leftMs = info.EarlyUntilMs - _calendar.ServerNowMs();
+            if (leftMs <= 0)
+            {
+                return string.Empty;
+            }
+
+            // Rounded up to the minute, as NextText is.
+            int minutes = (int)Math.Ceiling(leftMs / 60_000.0);
+            return this.Text("Requests_Bonus", info.EarlyBonusPercent, minutes / 60, minutes % 60);
+        }
+    }
+
     /// <summary>Gets today's requests, by slot.</summary>
     public IReadOnlyList<RequestDisplay> Requests
     {
@@ -131,11 +154,11 @@ public sealed class RequestsViewModel : PanelViewModel, IDisposable
         _inventory.Changed -= this.Raise;
     }
 
-    private void OnDelivered(RequestStatus status, long reward)
+    private void OnDelivered(RequestStatus status, long reward, bool bonus)
     {
         if (status == RequestStatus.Ok)
         {
-            this.SetStatus(this.Text("Requests_Done", Number(reward)), good: true);
+            this.SetStatus(this.Text(bonus ? "Requests_DoneBonus" : "Requests_Done", Number(reward)), good: true);
         }
         else
         {

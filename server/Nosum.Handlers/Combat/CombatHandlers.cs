@@ -72,6 +72,7 @@ public static partial class CombatHandlers
                 row.Hp = (ushort)m.Hp;
                 row.MaxHp = (ushort)m.MaxHp;
                 row.Modifier = (byte)m.Modifier;
+                row.Enraged = (byte)(CombatRules.IsEnraged(m) ? 1 : 0);
                 r.Monsters.Add(row);
             }
 

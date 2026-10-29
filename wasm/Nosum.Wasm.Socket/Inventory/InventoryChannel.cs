@@ -133,6 +133,9 @@ public sealed class InventoryChannel : IDisposable
     /// <param name="quantity">How many; zero moves the whole stack.</param>
     public void Move(int from, int to, int quantity = 0) => _ = this.MoveAsync(from, to, quantity);
 
+    /// <summary>Asks the server to sort the bag: merged stacks, laid out by kind and id. The new layout arrives as an update.</summary>
+    public void Sort() => _ = this.SortAsync();
+
     /// <inheritdoc/>
     public void Dispose() => _updates.Dispose();
 
@@ -199,6 +202,24 @@ public sealed class InventoryChannel : IDisposable
             request.Value.From = (byte)from;
             request.Value.To = (byte)to;
             request.Value.Quantity = quantity;
+            InventoryResult result = await _socket.RequestAsync<InventoryResult>(request.Value).ConfigureAwait(false);
+            if (result.Status != InventoryStatus.Ok)
+            {
+                this.Refused?.Invoke(result.Status);
+            }
+        }
+        catch (Exception)
+        {
+            // See above.
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "A lost sort changes nothing; the player tries again.")]
+    private async Task SortAsync()
+    {
+        try
+        {
+            using PacketScope<SortInventory> request = PacketFactory<SortInventory>.Acquire();
             InventoryResult result = await _socket.RequestAsync<InventoryResult>(request.Value).ConfigureAwait(false);
             if (result.Status != InventoryStatus.Ok)
             {

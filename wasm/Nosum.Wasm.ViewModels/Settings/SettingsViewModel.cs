@@ -20,6 +20,7 @@ public sealed class SettingsViewModel : PanelViewModel, IDisposable
     private readonly ISettingsStore _store;
     private ClientSettings _current;
     private GameAction? _listening;
+    private bool _systemReducesMotion;
 
     /// <summary>Initializes the view model and reads the stored settings.</summary>
     /// <param name="text">UI text.</param>
@@ -39,6 +40,9 @@ public sealed class SettingsViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the settings.</summary>
     public ClientSettings Current => _current;
 
+    /// <summary>Gets whether motion is reduced now: the player's choice, or the system's preference while the player has not chosen.</summary>
+    public bool ReducesMotion => _current.ReducesMotion(_systemReducesMotion);
+
     /// <summary>Gets the action whose key is being chosen (the next key pressed is bound to it), or <see langword="null"/>.</summary>
     public GameAction? Listening => _listening;
 
@@ -47,6 +51,20 @@ public sealed class SettingsViewModel : PanelViewModel, IDisposable
 
     /// <summary>Raises <see cref="Applied"/> with the current settings, so the page picks them up at start.</summary>
     public void Apply() => this.Applied?.Invoke(_current);
+
+    /// <summary>Tells the view model whether the system asks for reduced motion; it changes what <see cref="ReducesMotion"/> gives while the player has not chosen.</summary>
+    /// <param name="prefers">The system's <c>prefers-reduced-motion</c> setting.</param>
+    public void SetSystemReducesMotion(bool prefers)
+    {
+        if (_systemReducesMotion == prefers)
+        {
+            return;
+        }
+
+        _systemReducesMotion = prefers;
+        this.Applied?.Invoke(_current);
+        this.Raise();
+    }
 
     /// <summary>Sets the music volume.</summary>
     /// <param name="percent">0 to 100.</param>
@@ -68,9 +86,16 @@ public sealed class SettingsViewModel : PanelViewModel, IDisposable
     /// <param name="show">Whether to show them.</param>
     public void SetShowNames(bool show) => this.Update(c => c with { ShowNames = show });
 
-    /// <summary>Turns reduced motion on or off.</summary>
+    /// <summary>Turns reduced motion on or off, overriding the system's preference.</summary>
     /// <param name="reduce">Whether motion is reduced.</param>
     public void SetReduceMotion(bool reduce) => this.Update(c => c with { ReduceMotion = reduce });
+
+    /// <summary>Lets the system's reduced-motion preference decide again.</summary>
+    public void FollowSystemMotion() => this.Update(c => c with { ReduceMotion = null });
+
+    /// <summary>Sets the panel and HUD scale.</summary>
+    /// <param name="percent"><see cref="ClientSettings.MinPanelScale"/> to <see cref="ClientSettings.MaxPanelScale"/>; other values are clamped.</param>
+    public void SetPanelScale(int percent) => this.Update(c => c with { PanelScale = Math.Clamp(percent, ClientSettings.MinPanelScale, ClientSettings.MaxPanelScale) });
 
     /// <summary>Turns the high contrast theme on or off.</summary>
     /// <param name="high">Whether it is on.</param>

@@ -327,6 +327,9 @@ public static class ItemCatalog
     /// <summary>A furnace: smelts ore into bars.</summary>
     public const int Furnace = 605;
 
+    /// <summary>Farm guestbook: a placeable that keeps a log of visitors who water the farm (docs/adr/ADR-066).</summary>
+    public const int Guestbook = 606;
+
     /// <summary>The coop blueprint: handed over by the carpenter, set down on the farm or co-op land to start building (docs/adr/ADR-028 D1).</summary>
     public const int CoopBlueprint = 610;
 
@@ -368,6 +371,12 @@ public static class ItemCatalog
 
     /// <summary>A bottle of large milk.</summary>
     public const int LargeMilk = 903;
+
+    /// <summary>A golden egg, the gold-quality produce of a chicken loved by four hearts or more (docs/adr/ADR-028 D3).</summary>
+    public const int GoldenEgg = 904;
+
+    /// <summary>A bottle of cream milk, the gold-quality produce of a cow loved by four hearts or more (docs/adr/ADR-028 D3).</summary>
+    public const int CreamMilk = 905;
 
     /// <summary>Hay, the feed the carpenter sells for the feeding bench (fiber works too).</summary>
     public const int Hay = 508;
@@ -538,6 +547,7 @@ public static class ItemCatalog
         new(WoodFence, "wood_fence", ItemKind.Placeable, DefaultStack),
         new(StonePath, "stone_path", ItemKind.Placeable, DefaultStack),
         new(Scarecrow, "scarecrow", ItemKind.Placeable, FurnitureStack),
+        new(Guestbook, "guestbook", ItemKind.Placeable, FurnitureStack),
         new(Sprinkler, "sprinkler", ItemKind.Placeable, FurnitureStack),
         new(Furnace, "furnace", ItemKind.Placeable, FurnitureStack),
         new(CoopBlueprint, "coop_blueprint", ItemKind.Placeable, 1),
@@ -546,6 +556,8 @@ public static class ItemCatalog
         new(LargeEgg, "large_egg", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 95, ObjectIcon = 58 },
         new(Milk, "milk", ItemKind.Produce, DefaultStack, foodEnergy: 25) { SellPrice = 125, ObjectIcon = 59 },
         new(LargeMilk, "large_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 190, ObjectIcon = 60 },
+        new(GoldenEgg, "golden_egg", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 75, ObjectIcon = 58 },
+        new(CreamMilk, "cream_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 187, ObjectIcon = 60 },
         new(Hay, "hay", ItemKind.Resource, DefaultStack) { ObjectIcon = 61 },
         new(SlimeGel, "slime_gel", ItemKind.Resource, DefaultStack) { ObjectIcon = 96 },
         new(BatWing, "bat_wing", ItemKind.Resource, DefaultStack) { ObjectIcon = 97 },

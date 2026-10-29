@@ -29,6 +29,7 @@ internal sealed class MapLoader
     private readonly Dictionary<string, MapContent> _loaded = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Task> _loading = new(StringComparer.Ordinal);
     private readonly Dictionary<string, long> _retryAt = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, LoadSteps> _steps = new(StringComparer.Ordinal);
 
     /// <summary>Initializes the loader.</summary>
     /// <param name="http">Client whose base address is the app root.</param>
@@ -52,6 +53,22 @@ internal sealed class MapLoader
     /// <param name="content">The map when it is loaded.</param>
     /// <returns><see langword="true"/> when the map is ready to show.</returns>
     public bool TryGet(string mapId, [NotNullWhen(true)] out MapContent? content) => _loaded.TryGetValue(mapId, out content);
+
+    /// <summary>Raised on the async side each time one step of a map's load finishes (its file, a tilesheet, a decorator), with the map id.</summary>
+    public event Action<string>? Progressed;
+
+    /// <summary>How far a map has loaded, 0 to 100, for the loading overlay.</summary>
+    /// <param name="mapId">Map id from the catalogue.</param>
+    /// <returns>100 once the map is loaded, 0 while it has not started, and the share of finished steps in between.</returns>
+    public int PercentOf(string mapId)
+    {
+        if (_loaded.ContainsKey(mapId))
+        {
+            return 100;
+        }
+
+        return _steps.TryGetValue(mapId, out LoadSteps? steps) && steps.Total > 0 ? steps.Done * 100 / steps.Total : 0;
+    }
 
     /// <summary>Starts loading a map in the background if it is neither loaded nor loading; a failed load is retried after a pause.</summary>
     /// <param name="mapId">Map id; ids the catalogue does not know are ignored.</param>
@@ -89,6 +106,7 @@ internal sealed class MapLoader
 
         MapContent content = await this.ReadAsync(spec, cancellationToken).ConfigureAwait(false);
         _loaded[mapId] = content;
+        _ = _steps.Remove(mapId);
         return content;
     }
 
@@ -108,7 +126,26 @@ internal sealed class MapLoader
         finally
         {
             _ = _loading.Remove(spec.Id);
+            _ = _steps.Remove(spec.Id);
         }
+    }
+
+    // Counts one finished step of a map's load and tells the overlay.
+    private void Step(string mapId)
+    {
+        if (_steps.TryGetValue(mapId, out LoadSteps? steps))
+        {
+            steps.Done++;
+        }
+
+        this.Progressed?.Invoke(mapId);
+    }
+
+    private async Task<int> LoadSheetAsync(string mapId, string path)
+    {
+        int texture = await _textures.LoadAsync(path).ConfigureAwait(false);
+        this.Step(mapId);
+        return texture;
     }
 
     private async Task<MapContent> ReadAsync(MapSpec spec, CancellationToken cancellationToken)
@@ -123,11 +160,13 @@ internal sealed class MapLoader
         // A sheet is named relative to the folder of the map file (the mine's floor plans live in Mines/ and name "mine").
         int slash = spec.TmxFile.LastIndexOf('/');
         string folder = slash < 0 ? string.Empty : spec.TmxFile[..(slash + 1)];
+        // The steps the overlay counts: the file, each tilesheet and each provider.
+        _steps[spec.Id] = new LoadSteps { Done = 1, Total = 1 + map.TileSets.Count + _providers.Count };
         Task<int>[] sheets = new Task<int>[map.TileSets.Count];
         for (int i = 0; i < sheets.Length; i++)
         {
             string source = map.TileSets[i].ImageSource.Replace('\\', '/');
-            sheets[i] = _textures.LoadAsync(MapsUrl + folder + (source.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? source : source + ".png"));
+            sheets[i] = this.LoadSheetAsync(spec.Id, MapsUrl + folder + (source.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? source : source + ".png"));
         }
 
         List<IMapDecorator> decorators = [];
@@ -137,9 +176,19 @@ internal sealed class MapLoader
             {
                 decorators.Add(decorator);
             }
+
+            this.Step(spec.Id);
         }
 
         int[] tileSetTextures = await Task.WhenAll(sheets).ConfigureAwait(false);
         return new MapContent(spec, map, tileSetTextures, Nosum.Rendering.TileLayerPlan.For(map), spec.BuildWalkGrid(map, _unlocked), spec.ResolveWarps(map), [.. decorators]);
+    }
+
+    // Steps of one map's load: the total is fixed once the file is read, the done count grows as each step finishes.
+    private sealed class LoadSteps
+    {
+        public int Done { get; set; }
+
+        public int Total { get; set; }
     }
 }

@@ -5,38 +5,40 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Account_Title_Login" xml:space="preserve"><value>Sign in</value></data>
-  <data name="Account_Title_Register" xml:space="preserve"><value>Create account</value></data>
-  <data name="Account_Password" xml:space="preserve"><value>Password</value></data>
-  <data name="Account_ConfirmPassword" xml:space="preserve"><value>Confirm password</value></data>
-  <data name="Account_Submit_Login" xml:space="preserve"><value>Sign in</value></data>
-  <data name="Account_Submit_Register" xml:space="preserve"><value>Register</value></data>
-  <data name="Account_Switch_ToRegister" xml:space="preserve"><value>No account yet? Register</value></data>
-  <data name="Account_Switch_ToLogin" xml:space="preserve"><value>Already have an account? Sign in</value></data>
-  <data name="Account_Busy" xml:space="preserve"><value>Working…</value></data>
-  <data name="Account_PasswordHint" xml:space="preserve"><value>{0} to {1} characters.</value></data>
-  <data name="Account_Error_PasswordMismatch" xml:space="preserve"><value>The two passwords do not match.</value></data>
+  <data name="Account_Busy" xml:space="preserve"><value>Waiting for you to finish signing in…</value></data>
   <data name="Account_Error_Connection" xml:space="preserve"><value>Could not reach the server. Please try again.</value></data>
-  <data name="Account_Status_InvalidPassword" xml:space="preserve"><value>That password is not valid.</value></data>
-  <data name="Account_Status_InvalidCredentials" xml:space="preserve"><value>Wrong email or password.</value></data>
   <data name="Account_Status_InvalidToken" xml:space="preserve"><value>Your session has expired. Please sign in again.</value></data>
   <data name="Account_Status_InvalidLanguage" xml:space="preserve"><value>That language is not valid.</value></data>
   <data name="Connection_Connecting" xml:space="preserve"><value>Connecting…</value></data>
   <data name="Connection_Online" xml:space="preserve"><value>Online</value></data>
   <data name="Connection_Reconnecting" xml:space="preserve"><value>Connection lost, retrying…</value></data>
   <data name="Connection_Offline" xml:space="preserve"><value>Offline</value></data>
+  <data name="Connection_LostTitle" xml:space="preserve"><value>Connection lost</value></data>
+  <data name="Connection_OfflineMessage" xml:space="preserve"><value>Not connected to the server.</value></data>
+  <data name="Connection_RetryIn" xml:space="preserve"><value>Reconnecting in {0} s…</value></data>
+  <data name="Connection_Retrying" xml:space="preserve"><value>Reconnecting…</value></data>
+  <data name="Connection_Paused" xml:space="preserve"><value>The game is paused until the connection is back.</value></data>
+  <data name="Connection_RetryNow" xml:space="preserve"><value>Retry now</value></data>
   <data name="Join_UnknownMap" xml:space="preserve"><value>Map not found</value></data>
-  <data name="Account_Email" xml:space="preserve"><value>Gmail address</value></data>
-  <data name="Account_EmailHint" xml:space="preserve"><value>Only @{0} addresses are accepted.</value></data>
-  <data name="Account_Status_InvalidEmail" xml:space="preserve"><value>That Gmail address is not valid.</value></data>
-  <data name="Account_Status_EmailTaken" xml:space="preserve"><value>That Gmail address is already registered.</value></data>
   <data name="Account_Status_NotGuest" xml:space="preserve"><value>This account is not a guest account.</value></data>
   <data name="Account_PlayAsGuest" xml:space="preserve"><value>Play now as a guest</value></data>
   <data name="Account_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Account_Guest" xml:space="preserve"><value>Guest</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Signed in as {0}</value></data>
-  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Register with Gmail.</value></data>
-  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Register now</value></data>
+  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Link a Google or Microsoft account.</value></data>
+  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Link account</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Account_SignIn_Google" xml:space="preserve"><value>Sign in with Google</value></data>
+  <data name="Account_SignIn_Microsoft" xml:space="preserve"><value>Sign in with Microsoft</value></data>
+  <data name="Account_Link_Google" xml:space="preserve"><value>Link Google account</value></data>
+  <data name="Account_Link_Microsoft" xml:space="preserve"><value>Link Microsoft account</value></data>
+  <data name="Account_Provider_NotConfigured" xml:space="preserve"><value>Sign-in with this provider is not set up on the server yet.</value></data>
+  <data name="Account_Error_Cancelled" xml:space="preserve"><value>Sign-in was cancelled.</value></data>
+  <data name="Account_Error_PopupBlocked" xml:space="preserve"><value>Your browser blocked the sign-in window. Allow pop-ups for this site and try again.</value></data>
+  <data name="Account_Error_NotDisplayed" xml:space="preserve"><value>Google could not show its sign-in prompt. Check your browser settings and try again.</value></data>
+  <data name="Account_Error_ProviderFailed" xml:space="preserve"><value>Sign-in did not succeed. Please try again.</value></data>
+  <data name="Account_Status_InvalidIdToken" xml:space="preserve"><value>We could not verify your account. Please try again.</value></data>
+  <data name="Account_Status_IdentityTaken" xml:space="preserve"><value>That Google or Microsoft account is already linked to another player.</value></data>
   <data name="Account_Title_Upgrade" xml:space="preserve"><value>Save your account</value></data>
   <data name="Account_Status_SessionReplaced" xml:space="preserve"><value>Your session ended because this account signed in somewhere else.</value></data>
   <data name="Farm_Status_NotOnFarm" xml:space="preserve"><value>You can't farm here.</value></data>
@@ -62,8 +64,18 @@
   <data name="Inventory_Status_Failed" xml:space="preserve"><value>That item can't be moved.</value></data>
   <data name="Inventory_Title" xml:space="preserve"><value>Inventory</value></data>
   <data name="Inventory_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Inventory_Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
+  <data name="Tooltip_Tier" xml:space="preserve"><value>Tier: {0}</value></data>
+  <data name="Tooltip_Tier_Basic" xml:space="preserve"><value>Basic</value></data>
+  <data name="Tooltip_Tier_Copper" xml:space="preserve"><value>Copper</value></data>
+  <data name="Tooltip_Tier_Iron" xml:space="preserve"><value>Iron</value></data>
+  <data name="Tooltip_Damage" xml:space="preserve"><value>Damage: {0}</value></data>
+  <data name="Tooltip_NodeDamage" xml:space="preserve"><value>Resource damage: {0} per swing</value></data>
+  <data name="Tooltip_WaterCapacity" xml:space="preserve"><value>Water capacity: {0}</value></data>
+  <data name="Tooltip_Energy" xml:space="preserve"><value>Restores energy: +{0}</value></data>
+  <data name="Tooltip_Sell" xml:space="preserve"><value>Sells for {0} coins</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Quest</value></data>
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Completed</value></data>
@@ -259,6 +271,10 @@
   <data name="Coop_Upgrade_Buy" xml:space="preserve"><value>Buy next level</value></data>
   <data name="Coop_Upgrade_Max" xml:space="preserve"><value>Fully upgraded.</value></data>
   <data name="Coop_Upgrade_FounderOnly" xml:space="preserve"><value>Only the founder can buy upgrades.</value></data>
+  <data name="Coop_Objectives_Heading" xml:space="preserve"><value>Shared objectives</value></data>
+  <data name="Coop_Objective_Harvest" xml:space="preserve"><value>The co-op harvests {0} together</value></data>
+  <data name="Coop_Objective_Progress" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Coop_Trophy_Earned" xml:space="preserve"><value>Trophy earned</value></data>
   <data name="Coop_Status_WarehouseFull" xml:space="preserve"><value>The warehouse holds as many kinds of item as it can. Upgrade it, or deposit a kind it already has.</value></data>
   <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>That upgrade is already at its highest level.</value></data>
   <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>That upgrade was already bought.</value></data>
@@ -269,7 +285,7 @@
   <data name="Account_NicknameHint" xml:space="preserve"><value>{0}-{1} characters: letters without accents (a-z) and digits, with a single space or underscore between words. No profanity.</value></data>
   <data name="Account_Status_InvalidNickname" xml:space="preserve"><value>That nickname is not valid. Use letters without accents (a-z) and digits only.</value></data>
   <data name="Account_Status_NicknameProfane" xml:space="preserve"><value>That nickname is not allowed: it contains offensive language.</value></data>
-  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Register an account to choose a nickname.</value></data>
+  <data name="Account_Status_NicknameRequiresAccount" xml:space="preserve"><value>Link a Google or Microsoft account to choose a nickname.</value></data>
   <data name="Account_Status_NicknameReserved" xml:space="preserve"><value>That nickname is not allowed.</value></data>
   <data name="Account_Status_NicknameTaken" xml:space="preserve"><value>That nickname is already taken.</value></data>
   <data name="Account_Status_NicknameTooSoon" xml:space="preserve"><value>You changed your nickname recently. Try again later.</value></data>
@@ -280,7 +296,7 @@
   <data name="Profile_NewLabel" xml:space="preserve"><value>New nickname</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Change nickname</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>You can change your nickname once every 24 hours.</value></data>
-  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep their generated name. Register an account to choose your own nickname.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep their generated name. Link a Google or Microsoft account to choose your own nickname.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Your nickname is now {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>You can change it again at {0}.</value></data>
   <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Seed shop</value></data>
@@ -304,6 +320,13 @@
   <data name="Game_Title" xml:space="preserve"><value>Nosum</value></data>
   <data name="Game_Tagline" xml:space="preserve"><value>An online farm to grow together</value></data>
   <data name="Game_Loading" xml:space="preserve"><value>Entering the world…</value></data>
+  <data name="Map_Loading" xml:space="preserve"><value>Loading the area…</value></data>
+  <data name="Map_Tip_Merchant" xml:space="preserve"><value>Stand at a merchant's counter and press the action key to open their shop.</value></data>
+  <data name="Map_Tip_Elevator" xml:space="preserve"><value>Stand by the mine elevator and press the action key to pick a floor.</value></data>
+  <data name="Map_Tip_Sell" xml:space="preserve"><value>Stand by the sell bin to sell your crops.</value></data>
+  <data name="Map_Tip_Use" xml:space="preserve"><value>Hold an item and press the action key to use it on the tile in front of you.</value></data>
+  <data name="Map_Tip_Energy" xml:space="preserve"><value>Eat crops to restore energy when you run low.</value></data>
+  <data name="Map_Tip_Town" xml:space="preserve"><value>Leave your farm to visit the Town.</value></data>
   <data name="Game_StartFailed" xml:space="preserve"><value>Could not start the game: {0}</value></data>
   <data name="Help_Title" xml:space="preserve"><value>Keyboard shortcuts</value></data>
   <data name="Help_Section_Play" xml:space="preserve"><value>Playing</value></data>
@@ -343,8 +366,11 @@
   <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
   <data name="Settings_ScaleHint" xml:space="preserve"><value>Screen pixels per world pixel. Auto picks it from the window size.</value></data>
   <data name="Settings_ShowNames" xml:space="preserve"><value>Show names over heads</value></data>
-  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Reduce motion (no rain, snow or effects)</value></data>
-  <data name="Settings_HighContrast" xml:space="preserve"><value>High contrast</value></data>
+  <data name="Settings_ReduceMotion" xml:space="preserve"><value>Reduce motion (no rain, snow, shakes or hit effects)</value></data>
+  <data name="Settings_MotionAuto" xml:space="preserve"><value>Follow the system setting</value></data>
+  <data name="Settings_HighContrast" xml:space="preserve"><value>High-contrast text</value></data>
+  <data name="Settings_PanelScale" xml:space="preserve"><value>Panel and HUD size</value></data>
+  <data name="Settings_PanelScaleLabel" xml:space="preserve"><value>Scale</value></data>
   <data name="Settings_Display" xml:space="preserve"><value>Display</value></data>
   <data name="Settings_Music" xml:space="preserve"><value>Music</value></data>
   <data name="Settings_SoundFx" xml:space="preserve"><value>Sound effects</value></data>
@@ -584,6 +610,7 @@
   <data name="Market_History_Title" xml:space="preserve"><value>Price history: {0}</value></data>
   <data name="Market_History_Chart" xml:space="preserve"><value>Median price of each game day</value></data>
   <data name="Market_History_Latest" xml:space="preserve"><value>Latest day: lowest {0}, median {1}, highest {2} coins each; sales: {3}</value></data>
+  <data name="Market_History_Average" xml:space="preserve"><value>Average of the last {0} days: {1} coins each</value></data>
   <data name="Market_History_Range" xml:space="preserve"><value>Last {0} days: from {1} to {2} coins each</value></data>
   <data name="Market_History_None" xml:space="preserve"><value>Nothing was sold in the last {0} days.</value></data>
   <data name="Market_History_Hide" xml:space="preserve"><value>Hide</value></data>
@@ -650,6 +677,8 @@
   <data name="Craft_Skill_Mining" xml:space="preserve"><value>Mining</value></data>
   <data name="Chest_Title" xml:space="preserve"><value>Chest</value></data>
   <data name="Chest_YourBag" xml:space="preserve"><value>Your bag</value></data>
+  <data name="Chest_SortChest" xml:space="preserve"><value>Sort chest</value></data>
+  <data name="Chest_SortBag" xml:space="preserve"><value>Sort bag</value></data>
   <data name="Chest_Hint" xml:space="preserve"><value>Click a stack, then a slot. Shift+click sends it to the other side.</value></data>
   <data name="Furnace_Title" xml:space="preserve"><value>Furnace</value></data>
   <data name="Furnace_Idle" xml:space="preserve"><value>The furnace is empty. Each batch takes {0} ore and {1} coal and smelts for {2} game minutes.</value></data>
@@ -732,24 +761,8 @@
   <data name="Building_Status_NeedsPail" xml:space="preserve"><value>Hold the milk pail to milk a cow.</value></data>
   <data name="Building_Status_BenchFull" xml:space="preserve"><value>The bench is full.</value></data>
   <data name="Building_Status_LimitReached" xml:space="preserve"><value>The land already has as many buildings as it can hold.</value></data>
-  <data name="Account_Status_InvalidResetCode" xml:space="preserve"><value>The recovery code is wrong, expired or already used.</value></data>
   <data name="Account_Status_TooManyRequests" xml:space="preserve"><value>Too many requests. Please try again later.</value></data>
-  <data name="Account_Status_SessionRevoked" xml:space="preserve"><value>Your session ended because the account password was reset.</value></data>
   <data name="Connection_KeyMismatch" xml:space="preserve"><value>The server identity has changed. It may be an impostor, so the game refuses to connect. Wait for an official announcement, or clear this site's data if you are running a development build.</value></data>
-  <data name="Recovery_Link" xml:space="preserve"><value>Forgot your password?</value></data>
-  <data name="Recovery_Title_Request" xml:space="preserve"><value>Recover your account</value></data>
-  <data name="Recovery_Title_Confirm" xml:space="preserve"><value>Enter the recovery code</value></data>
-  <data name="Recovery_Title_Done" xml:space="preserve"><value>Password changed</value></data>
-  <data name="Recovery_RequestHint" xml:space="preserve"><value>We will e-mail a code to the address of your account.</value></data>
-  <data name="Recovery_CodeSent" xml:space="preserve"><value>If this address has an account, a code was sent. It is valid for 15 minutes.</value></data>
-  <data name="Recovery_Code" xml:space="preserve"><value>Recovery code</value></data>
-  <data name="Recovery_CodeHint" xml:space="preserve"><value>8 digits from the e-mail</value></data>
-  <data name="Recovery_NewPassword" xml:space="preserve"><value>New password</value></data>
-  <data name="Recovery_Submit_Request" xml:space="preserve"><value>Send code</value></data>
-  <data name="Recovery_Submit_Confirm" xml:space="preserve"><value>Change password</value></data>
-  <data name="Recovery_Done" xml:space="preserve"><value>Your password was changed and every device was signed out. Sign in with the new password.</value></data>
-  <data name="Recovery_Back" xml:space="preserve"><value>Back to sign in</value></data>
-  <data name="Recovery_Error_Code" xml:space="preserve"><value>Enter the 8 digits from the e-mail.</value></data>
   <data name="Board_Tab_Goals" xml:space="preserve"><value>Goals</value></data>
   <data name="Board_Tab_Requests" xml:space="preserve"><value>Requests</value></data>
   <data name="Requests_Hint" xml:space="preserve"><value>The board posts three delivery requests every game day. You can fill each one once a day, and they pay more than the shipping bin.</value></data>
@@ -762,6 +775,8 @@
   <data name="Requests_Deliver" xml:space="preserve"><value>Deliver</value></data>
   <data name="Requests_Filled" xml:space="preserve"><value>Done for today</value></data>
   <data name="Requests_Done" xml:space="preserve"><value>Delivered! You received {0} coins.</value></data>
+  <data name="Requests_Bonus" xml:space="preserve"><value>Early bonus +{0}%: {1} h {2} min left.</value></data>
+  <data name="Requests_DoneBonus" xml:space="preserve"><value>Delivered early, with the bonus! You received {0} coins.</value></data>
   <data name="Requests_Status_UnknownRequest" xml:space="preserve"><value>There is no such request.</value></data>
   <data name="Requests_Status_NotToday" xml:space="preserve"><value>The requests changed with the new day. The board was reloaded.</value></data>
   <data name="Requests_Status_AlreadyFilled" xml:space="preserve"><value>You already filled this request today.</value></data>
@@ -781,11 +796,16 @@
   <data name="Npc_seed_keeper_Name" xml:space="preserve"><value>Mai</value></data>
   <data name="Npc_seed_keeper_Role" xml:space="preserve"><value>Seed shopkeeper</value></data>
   <data name="Npc_seed_keeper_Greeting" xml:space="preserve"><value>Hello there! This season's seeds are fresh. Have a look.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Spring" xml:space="preserve"><value>Spring is here, and the new seeds have just come in. Sow early for a big harvest.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Rain" xml:space="preserve"><value>Rain all day, so the soil is soft and easy to work. Best day to sow, come in and look.</value></data>
+  <data name="Npc_seed_keeper_Greeting_Snow" xml:space="preserve"><value>Snow everywhere, nothing will grow in the fields today. Come in and warm up, and have a look at next season's seeds.</value></data>
   <data name="Npc_seed_keeper_Talk1" xml:space="preserve"><value>Sow in the right season and every seed comes up strong. Out of season, the plants just wither.</value></data>
   <data name="Npc_seed_keeper_Talk2" xml:space="preserve"><value>I have sold seeds here since I was small. Damp soil is my favourite smell.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Hanh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Tailor</value></data>
   <data name="Npc_tailor_Greeting" xml:space="preserve"><value>Come in and look around! New shirts, new hats, all cut to fit.</value></data>
+  <data name="Npc_tailor_Greeting_Rain" xml:space="preserve"><value>Soaked through out there! My new raincoats just came in, come and try one on.</value></data>
+  <data name="Npc_tailor_Greeting_Snow" xml:space="preserve"><value>Bitter cold out there, put on something warmer. New wool jumpers just arrived, and they fit well.</value></data>
   <data name="Npc_tailor_Talk1" xml:space="preserve"><value>Wear a straw hat out in the fields, it keeps the sun off.</value></data>
   <data name="Npc_tailor_Talk2" xml:space="preserve"><value>I sew every stitch myself, so it lasts. You can plough in it and it will not wear through.</value></data>
   <data name="Npc_furnisher_Name" xml:space="preserve"><value>Tam</value></data>
@@ -857,6 +877,8 @@
   <data name="Combat_Label_Shrine_Thunder" xml:space="preserve"><value>THUNDER PYLON</value></data>
   <data name="Combat_Label_Shrine_Solar" xml:space="preserve"><value>SOLAR WAYSHRINE</value></data>
   <data name="Combat_Label_Shrine_Frost" xml:space="preserve"><value>FROST MONOLITH</value></data>
+  <data name="Combat_Label_Combo" xml:space="preserve"><value>{0}x COMBO!</value></data>
+  <data name="Combat_Label_Finisher" xml:space="preserve"><value>FINISHER!</value></data>
   <data name="Elevator_ReturnHome" xml:space="preserve"><value>Return Home (Farmhouse)</value></data>
   <data name="Wayfinding_MineExit" xml:space="preserve"><value>↑ Way Up · [E] Home</value></data>
   <data name="Wayfinding_MineElevator" xml:space="preserve"><value>[E] Elevator · Home</value></data>
@@ -882,4 +904,15 @@
   <data name="Wayfinding_CommunityBoard" xml:space="preserve"><value>Community Board</value></data>
   <data name="Wayfinding_Objective" xml:space="preserve"><value>Objective</value></data>
   <data name="Wayfinding_DistanceMeters" xml:space="preserve"><value>{0} ({1}m)</value></data>
+  <data name="Guestbook_Heading" xml:space="preserve"><value>Farm guestbook</value></data>
+  <data name="Guestbook_Line" xml:space="preserve"><value>{0} watered {1} crops on day {2}</value></data>
+  <data name="Guestbook_New" xml:space="preserve"><value>New</value></data>
+  <data name="Guestbook_Unread" xml:space="preserve"><value>{0} new</value></data>
+  <data name="Guestbook_Empty" xml:space="preserve"><value>No visitor has watered your farm yet.</value></data>
+  <data name="Guestbook_Hint" xml:space="preserve"><value>A visitor's watering is written here while a guestbook stands on your farm.</value></data>
+  <data name="Bestiary_Progress" xml:space="preserve"><value>Slain {0} · next milestone {1}</value></data>
+  <data name="Bestiary_Milestones_Done" xml:space="preserve"><value>Slain {0} · all milestones reached</value></data>
+  <data name="Bestiary_Title_Equip" xml:space="preserve"><value>Wear title</value></data>
+  <data name="Bestiary_Title_Unequip" xml:space="preserve"><value>Take off title</value></data>
+  <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Unlocks at {0} slain</value></data>
 </root>

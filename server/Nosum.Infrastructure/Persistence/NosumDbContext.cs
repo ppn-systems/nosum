@@ -4,6 +4,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Admin;
+using Nosum.Domain.Bestiary;
 using Nosum.Domain.Blacksmith;
 using Nosum.Domain.Buildings;
 using Nosum.Domain.Community;
@@ -44,8 +45,8 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the issued session tokens.</summary>
     public DbSet<PlayerSessionToken> PlayerSessionTokens => this.Set<PlayerSessionToken>();
 
-    /// <summary>Gets the one-time password recovery codes (docs/adr/ADR-032 D4).</summary>
-    public DbSet<PasswordResetCode> PasswordResetCodes => this.Set<PasswordResetCode>();
+    /// <summary>Google and Microsoft identities linked to players (docs/adr/ADR-069).</summary>
+    public DbSet<ExternalLogin> ExternalLogins => this.Set<ExternalLogin>();
 
     /// <summary>Gets the inventory headers.</summary>
     public DbSet<PlayerInventory> PlayerInventories => this.Set<PlayerInventory>();
@@ -136,6 +137,15 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>Gets the owners' visiting settings.</summary>
     public DbSet<VisitSettings> VisitSettings => this.Set<VisitSettings>();
+
+    /// <summary>The hunting log: how many monsters of each species a player has slain (docs/adr/ADR-068).</summary>
+    public DbSet<PlayerBestiaryEntry> PlayerBestiaryEntries => this.Set<PlayerBestiaryEntry>();
+
+    /// <summary>The slayer title a player has equipped, if any (docs/adr/ADR-068).</summary>
+    public DbSet<EquippedBestiaryTitle> EquippedBestiaryTitles => this.Set<EquippedBestiaryTitle>();
+
+    /// <summary>The farm guestbook: one row per visitor and game day (docs/adr/ADR-066).</summary>
+    public DbSet<GuestbookEntry> GuestbookEntries => this.Set<GuestbookEntry>();
 
     /// <summary>Gets how deep each player has been in the mine.</summary>
     public DbSet<PlayerMine> PlayerMines => this.Set<PlayerMine>();

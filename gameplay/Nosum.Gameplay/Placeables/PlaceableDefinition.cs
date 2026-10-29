@@ -40,6 +40,9 @@ public enum PlaceableKind : byte
 
     /// <summary>A farm building (coop, barn): large, with a door into its own interior; placed from a blueprint, built over two game days, never moved or picked up (docs/adr/ADR-028).</summary>
     Building = 6,
+
+    /// <summary>A farm guestbook: while it stands on a farm, visitors who water it are logged for the owner (docs/adr/ADR-066).</summary>
+    Guestbook = 7,
 }
 
 /// <summary>

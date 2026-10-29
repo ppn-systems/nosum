@@ -40,12 +40,10 @@ services:
       # The tunnel connector is the only peer that reaches the host from the network; its X-Forwarded-For is trusted.
       NOSUM_TRUSTED_PROXIES: 172.28.0.0/24
       NOSUM_CALENDAR_EPOCH: ${NOSUM_CALENDAR_EPOCH:-}
-      NOSUM_SMTP_HOST: ${NOSUM_SMTP_HOST:-}
-      NOSUM_SMTP_PORT: ${NOSUM_SMTP_PORT:-587}
-      NOSUM_SMTP_USER: ${NOSUM_SMTP_USER:-}
-      NOSUM_SMTP_PASSWORD: ${NOSUM_SMTP_PASSWORD:-}
-      NOSUM_SMTP_FROM: ${NOSUM_SMTP_FROM:-}
-      NOSUM_SMTP_SSL: ${NOSUM_SMTP_SSL:-true}
+      # Public OAuth/app client ids that accept Google and Microsoft ID tokens (docs/adr/ADR-069). Empty turns that provider off; they must match the web client's appsettings.
+      NOSUM_GOOGLE_CLIENT_ID: ${NOSUM_GOOGLE_CLIENT_ID:-}
+      NOSUM_MICROSOFT_CLIENT_ID: ${NOSUM_MICROSOFT_CLIENT_ID:-}
+      NOSUM_MICROSOFT_TENANT: ${NOSUM_MICROSOFT_TENANT:-common}
     volumes:
       # The Nalix server key, server.ini and block lists: losing this volume changes the server key, and every pinned client then refuses the server (docs/ops/README.md, "Rotate keys").
       - nalix_data:/data

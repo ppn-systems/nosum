@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Skills;
+using Nosum.Gameplay.Weather;
 
 namespace Nosum.Gameplay.Combat;
 
@@ -65,6 +66,15 @@ public static class CombatRules
     /// <summary>Cooldown in milliseconds per player per sanctuary shrine blessing (docs/adr/ADR-063).</summary>
     public const int ShrineCooldownMs = ShrineRules.ShrineCooldownMs;
 
+    /// <summary>Radius in tiles (Chebyshev) struck by a boss ground slam around its telegraphed tile.</summary>
+    public const int GroundSlamRadiusTiles = 1;
+
+    /// <summary>Warning time in milliseconds between a ground slam telegraph and its impact (the dodge window).</summary>
+    public const int GroundSlamTelegraphMs = 1000;
+
+    /// <summary>Cooldown in milliseconds between one boss ground slam and the next from the same boss.</summary>
+    public const int GroundSlamCooldownMs = 6000;
+
     /// <summary>Maximum duration in milliseconds to maintain a combat combo streak.</summary>
     public const int ComboTimeoutMs = 3500;
 
@@ -112,6 +122,22 @@ public static class CombatRules
     /// <returns>Contact damage.</returns>
     public static int MonsterDamage(MonsterKind kind)
         => MonsterCatalog.TryGet(kind, out MonsterDefinition? def) ? def.AttackDamage : 5;
+
+    /// <summary>
+    /// Whether a monster is enraged: alive, its species enrages, and its HP is at or below the species threshold (docs/adr/ADR-047).
+    /// </summary>
+    /// <param name="monster">The monster state to check.</param>
+    /// <returns><see langword="true"/> when the monster is enraged.</returns>
+    public static bool IsEnraged(MonsterSpawn monster)
+        => monster.Hp > 0
+            && MonsterCatalog.TryGet(monster.Kind, out MonsterDefinition? def)
+            && def.EnrageThresholdPercent > 0
+            && monster.Hp * 100 <= monster.MaxHp * def.EnrageThresholdPercent;
+
+    /// <summary>Damage dealt by a boss ground slam to each player inside its radius (heavy attack, twice the contact damage).</summary>
+    /// <param name="kind">Monster species.</param>
+    /// <returns>Slam damage before defense mitigation.</returns>
+    public static int GroundSlamDamage(MonsterKind kind) => MonsterDamage(kind) * 2;
 
     /// <summary>Calculates defense provided by worn armor and helmet items (docs/adr/ADR-049).</summary>
     /// <param name="hatItemId">Worn hat/crown item id.</param>
@@ -311,6 +337,7 @@ public static class CombatRules
     /// <param name="spawnX">Player arrival X to keep clear.</param>
     /// <param name="spawnY">Player arrival Y to keep clear.</param>
     /// <param name="reachableMask">Optional precomputed reachability mask.</param>
+    /// <param name="weather">The weather of the instance's game day (docs/adr/ADR-058).</param>
     /// <returns>The spawned monsters.</returns>
     public static List<MonsterSpawn> PlanMonsters(
         string mapId,
@@ -319,8 +346,9 @@ public static class CombatRules
         IReadOnlySet<(int X, int Y)> occupied,
         int spawnX,
         int spawnY,
-        bool[,]? reachableMask = null)
-        => MonsterSpawnPlanner.PlanMonsters(mapId, seed, grid, occupied, spawnX, spawnY, reachableMask);
+        bool[,]? reachableMask = null,
+        WeatherKind weather = WeatherKind.Sun)
+        => MonsterSpawnPlanner.PlanMonsters(mapId, seed, grid, occupied, spawnX, spawnY, reachableMask, weather);
 
     /// <summary>Determines whether a rhythmic <see cref="DungeonHazardKind.SpikeTrap"/> is extended and dealing damage at <paramref name="nowMs"/>.</summary>
     /// <param name="hazardId">Hazard id within the floor instance.</param>

@@ -19,6 +19,11 @@ public sealed partial class BuildingChannel
     /// <summary>Gets how many animals the building the player is inside holds. Read under <see cref="Read"/>.</summary>
     public int AnimalCount => _animals.Count;
 
+    private AnimalPetting _lastPetting;
+
+    /// <summary>Gets the last animal petted. Read under <see cref="Read"/>; allocates nothing.</summary>
+    public AnimalPetting LastPetting => _lastPetting;
+
     /// <summary>Returns an animal with its position at a time. Read under <see cref="Read"/>; allocates nothing.</summary>
     /// <param name="index">Zero to <see cref="AnimalCount"/> minus one.</param>
     /// <param name="nowMs">The time, from <see cref="NowMs"/>.</param>
@@ -167,6 +172,14 @@ public sealed partial class BuildingChannel
             using PacketScope<PetAnimal> request = PacketFactory<PetAnimal>.Acquire();
             request.Value.AnimalId = animalId;
             AnimalResult result = await _socket.RequestAsync<AnimalResult>(request.Value).ConfigureAwait(false);
+            if (result.Status == BuildingStatus.Ok)
+            {
+                using (_gate.EnterScope())
+                {
+                    _lastPetting = new AnimalPetting(animalId, result.Friendship, this.NowMs);
+                }
+            }
+
             this.Completed?.Invoke(new BuildingResultInfo(BuildingAction.Pet, result.Status, 0, result.Friendship, animalId));
         }
         catch (Exception)
