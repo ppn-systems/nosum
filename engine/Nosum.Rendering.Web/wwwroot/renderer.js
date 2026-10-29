@@ -63,9 +63,11 @@ export function setKeyBindings(text) {
 
 setKeyBindings(DEFAULT_BINDINGS);
 
-// Typing in a form field (the upgrade form) must not move the farmer or select slots.
+// Typing in a form field (the upgrade form) must not move the farmer or select slots. So must typing in the chat box, which marks the page the
+// moment Enter opens it, before the box has focus (chat-input.js, issue #144).
 function isTyping(e) {
     const t = e.target;
+    if (document.documentElement.hasAttribute("data-text-entry")) { return true; }
     return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
 }
 

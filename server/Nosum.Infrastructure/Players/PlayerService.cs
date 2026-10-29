@@ -52,6 +52,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     private readonly IBuildingDirectory? _buildings;
     private readonly ICommunityUnlocks? _unlocks;
     private readonly ConcurrentDictionary<uint, (int X, int Y)> _disarmedTiles = new();
+    private readonly RecentPlaces _recent;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who stands on which map.</param>
@@ -89,6 +90,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         _access = access;
         _coops = coops;
         _time = time;
+        _recent = new RecentPlaces(time);
         _groundItems = groundItems;
         _buildings = buildings;
         _unlocks = unlocks;
@@ -224,7 +226,11 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     private async ValueTask<(MapDefinition Map, MotionState Start, MapInstance Instance)> StartingPlaceAsync(Guid accountId, CancellationToken cancellationToken)
     {
         double now = this.NowSeconds();
-        PlayerStateRow? saved = await _states.LoadAsync(accountId, cancellationToken).ConfigureAwait(false);
+
+        // A player who left a moment ago resumes where they stood: the database copy may still hold the place from before (issue #172).
+        PlayerStateRow? saved = _recent.TryTake(accountId, out PlayerStateRow recent)
+            ? recent
+            : await _states.LoadAsync(accountId, cancellationToken).ConfigureAwait(false);
         // The inside of a farm building belongs to the building, not to the player: a player who left the game in there starts on the farm.
         if (saved is { } row && !(GameMaps.TryGet(row.MapName, out MapSpec? savedSpec) && savedSpec.IsInterior) && _maps.TryGet(row.MapName, out MapDefinition? savedMap)
             && await this.InstanceOfAsync(savedMap, accountId, cancellationToken).ConfigureAwait(false) is { } savedInstance)
@@ -614,7 +620,16 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                     state = new PlayerStateRow(player.MapId, player.Motion.X, player.Motion.Y, (Facing)player.Motion.Facing);
                 }
 
-                await _states.LeaveAsync(player.AccountId, state, CancellationToken.None).ConfigureAwait(false);
+                // Remembered while the write is in flight: a quick reconnect that overtakes the write still resumes here (issue #172).
+                _recent.Remember(player.AccountId, state);
+                try
+                {
+                    await _states.LeaveAsync(player.AccountId, state, CancellationToken.None).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _recent.Forget(player.AccountId);
+                }
             }
             catch (Exception)
             {

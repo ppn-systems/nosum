@@ -32,8 +32,12 @@ public sealed class AccountService : IAccountService
     /// <summary>Most live session tokens one account keeps; issuing one more revokes the oldest (docs/adr/ADR-032 D5).</summary>
     public const int MaxSessionsPerAccount = 10;
 
-    /// <summary>How long a token that was just replaced by a resume still works, so a lost reply can be retried.</summary>
-    public static readonly TimeSpan RotationGrace = TimeSpan.FromMinutes(2);
+    /// <summary>
+    /// How long a token that was just replaced by a resume still works. A rotation whose reply never reached the client leaves the client with
+    /// the old token, so the grace must outlast a dropped connection and the reconnect after it (issue #171). Fifteen minutes is the window the
+    /// audit asked for; a copied token still stops being useful soon after the real owner comes back.
+    /// </summary>
+    public static readonly TimeSpan RotationGrace = TimeSpan.FromMinutes(15);
 
     private const int MaxGuestNameAttempts = 12;
 

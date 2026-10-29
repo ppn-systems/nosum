@@ -47,16 +47,56 @@
             }
             if (!('serviceWorker' in navigator)) { return; }
             var hadController = !!navigator.serviceWorker.controller;
-            var reloadedForController = false;
+            var reloadRequested = false;
+            // A new worker waits until the player asks for it (the banner below). A reload that happens on its own would lose unsaved game
+            // state mid-game (issue #161), so the page reloads only after the player confirmed.
             navigator.serviceWorker.addEventListener('controllerchange', function () {
-                if (!hadController || reloadedForController) { return; }
-                reloadedForController = true;
+                if (!hadController || !reloadRequested) { return; }
                 window.__nosumSwReload = true;
                 location.reload();
             });
+            function showUpdateBanner(reg) {
+                if (document.getElementById('nosum-update')) { return; }
+                var en = (navigator.language || '').toLowerCase().indexOf('en') === 0;
+                var bar = document.createElement('div');
+                bar.id = 'nosum-update';
+                bar.setAttribute('role', 'status');
+                bar.style.cssText = 'position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:10000;display:flex;gap:12px;align-items:center;'
+                    + 'background:#2b2118;color:#fff;font:14px/1.4 system-ui,sans-serif;padding:8px 14px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.4);';
+                var text = document.createElement('span');
+                text.textContent = en
+                    ? 'Update available. Save your progress, then reload to get the latest version.'
+                    : 'Có bản cập nhật. Hãy lưu tiến trình rồi tải lại để dùng phiên bản mới.';
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = en ? 'Reload' : 'Tải lại';
+                button.style.cssText = 'font:inherit;padding:4px 10px;cursor:pointer;';
+                button.addEventListener('click', function () {
+                    reloadRequested = true;
+                    if (reg.waiting) {
+                        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    } else {
+                        window.__nosumSwReload = true;
+                        location.reload();
+                    }
+                });
+                bar.appendChild(text);
+                bar.appendChild(button);
+                document.body.appendChild(bar);
+            }
+            function watchForUpdate(reg) {
+                if (reg.waiting && hadController) { showUpdateBanner(reg); }
+                reg.addEventListener('updatefound', function () {
+                    var worker = reg.installing;
+                    if (!worker) { return; }
+                    worker.addEventListener('statechange', function () {
+                        if (worker.state === 'installed' && navigator.serviceWorker.controller) { showUpdateBanner(reg); }
+                    });
+                });
+            }
             var regPromise = navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' });
             window.nosumSw._regPromise = regPromise;
-            regPromise.then(function (reg) { window.nosumSw._reg = reg; }).catch(function () {});
+            regPromise.then(function (reg) { window.nosumSw._reg = reg; watchForUpdate(reg); }).catch(function () {});
             navigator.serviceWorker.ready.then(function (reg) {
                 var fireWarm = function () {
                     if (reg.active) {

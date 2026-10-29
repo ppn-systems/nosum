@@ -81,7 +81,7 @@ async function toCleanResponse(response) {
 
 async function onInstall(event) {
     console.info('Service worker: Install');
-    self.skipWaiting();
+    // No skipWaiting here: a new version waits until the page asks for it (the update banner in index.html), so an open game is not reloaded.
     const shellAsset = self.assetsManifest.assets.find(asset => asset.url === shellAssetUrl);
     if (!shellAsset) {
         console.error('[nosum-sw] shell asset missing from assets manifest, offline navigation will not work:', shellAssetUrl);

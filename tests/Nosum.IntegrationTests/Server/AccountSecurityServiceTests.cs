@@ -59,6 +59,24 @@ public sealed class AccountSecurityServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task ResumeAsync_RotationReplyLost_OldTokenStillResumesAFewMinutesLater()
+    {
+        AccountOutcome account = await SignInAsync();
+
+        // The reply to this resume never reached the client, so it keeps the token it had: a reconnect a few minutes later must still work (issue #171).
+        _ = await _accounts.ResumeAsync(account.SessionToken, CancellationToken.None);
+
+        _clock.Advance(TimeSpan.FromMinutes(10));
+        (await _accounts.ResumeAsync(account.SessionToken, CancellationToken.None)).Status.Should().Be(AccountStatus.Ok);
+    }
+
+    [Fact]
+    public void RotationGrace_IsFifteenMinutes()
+    {
+        AccountService.RotationGrace.Should().Be(TimeSpan.FromMinutes(15));
+    }
+
+    [Fact]
     public async Task ResumeAsync_EachResumeStartsAFreshThirtyDayIdleWindow()
     {
         AccountOutcome account = await SignInAsync();

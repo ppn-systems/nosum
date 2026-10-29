@@ -1,6 +1,12 @@
 // In development, never intercept fetch requests so every network/internal call goes straight through the browser.
 // On activate, evict any leftover offline caches from a previous published run on the same origin.
-self.addEventListener('install', () => self.skipWaiting());
+// A new version waits for the page to ask for it (SKIP_WAITING, from the update banner in index.html); see service-worker.published.js.
+self.addEventListener('install', () => {});
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
 self.addEventListener('activate', event => event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(
