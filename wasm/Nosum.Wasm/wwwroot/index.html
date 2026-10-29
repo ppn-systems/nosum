@@ -78,6 +78,11 @@
             var requested = 0;
             var arrived = 0;
             var root = document.documentElement.style;
+            // The failure is named for the console; a stale page is replaced first (recoverFromStaleBoot, declared below).
+            function refuse(message) {
+                recoverFromStaleBoot();
+                return new Error(message);
+            }
             var text = document.querySelector('.boot-text');
             function show() {
                 var pct = requested ? Math.floor(arrived * 100 / requested) : 0;
@@ -91,12 +96,23 @@
                 var counted = type !== 'manifest';
                 if (counted) { requested++; show(); }
                 return fetch(defaultUri, { cache: 'no-cache', integrity: integrity }).then(function (response) {
+                    // A file the deploy does not have comes back as the host's index page (Cloudflare Pages answers 200 text/html). Refuse it here, by
+                    // name, instead of letting the runtime try to compile HTML and stop part way (the bar stalls at its last percentage).
+                    var html = (response.headers.get('Content-Type') || '').indexOf('text/html') !== -1;
+                    if (!response.ok || html) {
+                        throw refuse('Could not load ' + name + ' (HTTP ' + response.status + (html ? ', page instead of file' : '') + ').');
+                    }
                     if (counted) { arrived++; show(); }
                     return response;
+                }, function (error) {
+                    // The integrity check runs inside fetch, so a missing file fails here, not above: name it for the console too.
+                    throw refuse('Could not load ' + name + ': ' + (error && error.message ? error.message : error));
                 });
             };
         })();
-        Blazor.start({ loadBootResource: bootLoad, configureRuntime: dotnet => { dotnet.withConfig({ loadAllSatelliteResources: true }); } }).catch(function (reason) {
+        // A page the service worker serves can hold the shell of an older deploy whose files are gone: the one fix is the current build, so the
+        // worker and its cache are dropped and the page reloaded, once per tab session (the guard stops a loop when the file really is missing).
+        function recoverFromStaleBoot() {
             try {
                 if (!navigator.serviceWorker || !navigator.serviceWorker.controller || navigator.onLine === false) { return; }
                 var key = 'nosum-boot-recover';
@@ -115,7 +131,8 @@
                     location.reload();
                 });
             } catch (e) {}
-        });
+        }
+        Blazor.start({ loadBootResource: bootLoad, configureRuntime: dotnet => { dotnet.withConfig({ loadAllSatelliteResources: true }); } }).catch(recoverFromStaleBoot);
     </script>
 </body>
 

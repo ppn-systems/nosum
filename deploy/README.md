@@ -15,6 +15,20 @@ Do these once, in this order. The runbook has the details of each step.
 3. **GitHub secrets** (environment `production`): `PROD_HOST`, `PROD_SSH_USER`, `PROD_SSH_KEY`, `CLOUDFLARE_TUNNEL_TOKEN`,
    `POSTGRES_PASSWORD`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 4. **GitHub variables**: `NOSUM_ORIGIN` (the Pages origin), `NOSUM_SERVER_PUBLIC_KEY` (read it from the host after the first start, see the runbook).
+   The sign-in client ids are public values, not secrets, and go in variables too (docs/adr/ADR-069):
+   - `NOSUM_GOOGLE_CLIENT_ID`, `NOSUM_MICROSOFT_CLIENT_ID`: an empty one turns that provider's button off. `deploy-web` warns about each empty one.
+   - `NOSUM_MICROSOFT_TENANT`: optional, `common` when unset.
+
+   `deploy-web` writes all of them into `wwwroot/appsettings.json` (the `Server` and `ExternalSignIn` sections) on every run. Anything else the
+   file should carry must be added to that step, or the next deploy drops it.
+
+   Register the web client's address with each provider, for the production origin `https://farm.ppnsys.com` (and `https://nosum.pages.dev`
+   too while that address is used):
+   - **Google** (OAuth client of type *Web application*): *Authorized JavaScript origins* `https://farm.ppnsys.com`. Google Identity Services
+     returns the credential to the page, so no redirect URI is needed.
+   - **Microsoft** (Entra app registration, platform *Single-page application*): redirect URI `https://farm.ppnsys.com/msal-redirect.html`.
+     The sign-in popup returns to that exact address (`external-sign-in.js` sends it), which Pages answers with a 308 to `/msal-redirect`;
+     register the `.html` form, not the redirected one.
 5. **One-time server bootstrap** (as the deploy user):
 
    ```bash
