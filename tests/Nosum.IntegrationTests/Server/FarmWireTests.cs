@@ -39,6 +39,7 @@ using Nosum.Contracts.Season.S2C;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Weather;
 using Nosum.Host;
@@ -385,9 +386,11 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
                 (await farmer.AdvanceClockAsync(1, timeout.Token)).Ok.Should().BeTrue();
             }
 
-            // First harvest: the berries drop, the plant stays, back at its regrow stage.
+            // First harvest: the berries drop, the plant stays, back at its regrow stage. A rainy harvest adds one berry (docs/adr/ADR-027 D8).
+            long harvestNowMs = (await farmer.GetFarmAsync(timeout.Token)).ServerNowMs;
             (await farmer.UseAsync(seeds, x, y, timeout.Token)).Action.Should().Be(FarmAction.Harvested);
-            (await farmer.WaitForGroundItemAsync(i => i.ItemId == ItemCatalog.Strawberry, timeout.Token)).Quantity.Should().Be(berry.HarvestQuantity);
+            int bonus = await BonusHarvestAsync(x, y, harvestNowMs, timeout.Token);
+            (await farmer.WaitForGroundItemAsync(i => i.ItemId == ItemCatalog.Strawberry, timeout.Token)).Quantity.Should().Be(berry.HarvestQuantity + bonus);
             FarmTileRow standing = (await farmer.GetFarmAsync(timeout.Token)).Tiles.Single(t => t.X == x && t.Y == y);
             standing.CropId.Should().Be(CropCatalog.Strawberry, "the plant is still there");
             standing.GrowthDays.Should().Be(berry.GrowthDaysAfterHarvest);
@@ -549,6 +552,20 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
     }
 
     private static FarmTile ToTile(FarmTileRow row) => new(row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay, 0);
+
+    // The rain bonus roll is seeded by the farm's instance key, which contains the owner's id: every run creates a new player,
+    // so the bonus for a tile and day differs from run to run. The expected bonus is the rule's answer for this owner's farm.
+    private async Task<int> BonusHarvestAsync(int x, int y, long nowMs, CancellationToken ct)
+    {
+        Guid player;
+        await using (NosumDbContext lookup = new(_database.Options))
+        {
+            player = (await lookup.Players.OrderByDescending(p => p.CreatedAt).FirstAsync(ct)).Id;
+        }
+
+        MapInstance farm = new(Program.FarmMapId, player);
+        return FarmRules.IsBonusHarvest(farm.Key, x, y, nowMs, GameCalendar.Default, farm.IsOutdoors) ? 1 : 0;
+    }
 
     private static bool IsTillable((int X, int Y) tile)
     {
