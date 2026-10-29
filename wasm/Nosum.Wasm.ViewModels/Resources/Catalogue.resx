@@ -124,6 +124,10 @@
   <data name="Item_egg_Description" xml:space="preserve"><value>Trứng tươi do gà đẻ. Ăn để hồi năng lượng.</value></data>
   <data name="Item_large_egg_Name" xml:space="preserve"><value>Trứng gà to</value></data>
   <data name="Item_large_egg_Description" xml:space="preserve"><value>Gà quý chủ hay đẻ loại trứng to này. Bán được giá hơn.</value></data>
+  <data name="Item_golden_egg_Name" xml:space="preserve"><value>Trứng vàng</value></data>
+  <data name="Item_golden_egg_Description" xml:space="preserve"><value>Trứng vàng óng của gà được quý chủ chiều đến bốn trái tim. Bán được giá cao hơn nhiều.</value></data>
+  <data name="Item_cream_milk_Name" xml:space="preserve"><value>Sữa kem</value></data>
+  <data name="Item_cream_milk_Description" xml:space="preserve"><value>Sữa béo sánh như kem của bò được quý chủ chiều đến bốn trái tim. Bán được giá cao hơn nhiều.</value></data>
   <data name="Item_milk_Name" xml:space="preserve"><value>Sữa bò</value></data>
   <data name="Item_milk_Description" xml:space="preserve"><value>Một chai sữa tươi vắt từ con bò.</value></data>
   <data name="Item_large_milk_Name" xml:space="preserve"><value>Sữa bò đặc biệt</value></data>

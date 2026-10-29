@@ -124,6 +124,10 @@
   <data name="Item_egg_Description" xml:space="preserve"><value>A fresh egg from a chicken. Eat it to restore energy.</value></data>
   <data name="Item_large_egg_Name" xml:space="preserve"><value>Large egg</value></data>
   <data name="Item_large_egg_Description" xml:space="preserve"><value>A well-loved chicken lays these more often. Sells for more.</value></data>
+  <data name="Item_golden_egg_Name" xml:space="preserve"><value>Golden egg</value></data>
+  <data name="Item_golden_egg_Description" xml:space="preserve"><value>A golden egg from a chicken loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Item_cream_milk_Name" xml:space="preserve"><value>Cream milk</value></data>
+  <data name="Item_cream_milk_Description" xml:space="preserve"><value>Thick, creamy milk from a cow loved by four hearts or more. Sells for much more.</value></data>
   <data name="Item_milk_Name" xml:space="preserve"><value>Milk</value></data>
   <data name="Item_milk_Description" xml:space="preserve"><value>A bottle of fresh milk from a cow.</value></data>
   <data name="Item_large_milk_Name" xml:space="preserve"><value>Large milk</value></data>
