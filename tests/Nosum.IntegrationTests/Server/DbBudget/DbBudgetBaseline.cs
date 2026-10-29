@@ -54,6 +54,7 @@ internal static class DbBudgetBaseline
         ["GetGroundItems / nothing on the ground, asked again"] = new(0, 0, 0, 0),
         ["GetInventory / starter kit"] = new(0, 0, 0, 0),
         ["GetInventory / starter kit, asked again"] = new(0, 0, 0, 0),
+        ["GetJournal / read the journal"] = new(1, 0, 0, 0),
         ["GetLooks / own and seen players"] = new(1, 1, 0, 1),
         ["GetLooks / own and seen players, asked again"] = new(0, 0, 0, 0),
         ["GetMine / in the entrance cave"] = new(1, 0, 0, 0),

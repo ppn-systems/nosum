@@ -23,6 +23,7 @@ public static class NosumProtocol
     /// 12: held tool, trade lock, hotbar sort lock - <c>HeldItemId</c> appended to <c>PlayerState</c>; <c>ConfirmLockMs</c> appended to <c>TradeState</c>;
     /// <c>TradeStatus.TooSoon</c> (value 12); <c>LockHotbar</c> appended to <c>SortInventory</c>.
     /// 14: farm animals - <c>AnimalKind</c> values 3-6 (duck, goat, sheep, pig) appended; their produce items 906-917 appended to the item catalogue (docs/adr/ADR-028 amendment 2). No packet or field changed.
+    /// 17: collection journal - new packets <c>GetJournal</c> and <c>JournalReply</c> (with <c>JournalEntry</c> rows), discoveries recorded on every item grant.
     /// </summary>
-    public const ushort Version = 14;
+    public const ushort Version = 17;
 }
