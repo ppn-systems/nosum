@@ -85,6 +85,18 @@ function installAudioUnlock() {
     };
     for (const type of GESTURES) { window.addEventListener(type, unlock, { capture: true, passive: true }); }
 
+    // A hidden tab or a sleeping machine suspends the context, and nothing resumes it by itself: resume it when the page is shown again (the browser allows that once the page has run).
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && ctx && ctx.state !== "running") {
+            ctx.resume().then(() => {
+                if (ctx.state === "running") {
+                    syncLayer(music);
+                    syncLayer(ambient);
+                }
+            }, () => { /* refused: the next gesture unlocks it */ });
+        }
+    });
+
     // A click on any button of the interface ticks. Plain DOM event: the sound does not enter .NET.
     document.addEventListener("click", e => {
         const t = e.target;
