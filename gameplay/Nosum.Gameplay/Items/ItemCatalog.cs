@@ -72,6 +72,9 @@ public static class ItemCatalog
     /// <summary>An arcane staff that channels mana into magical bolts.</summary>
     public const int ArcaneStaff = 35;
 
+    /// <summary>A fishing rod, cast at water (docs/adr/ADR-071).</summary>
+    public const int FishingRod = 40;
+
     /// <summary>Parsnip seeds.</summary>
     public const int ParsnipSeeds = 100;
 
@@ -264,6 +267,36 @@ public static class ItemCatalog
     /// <summary>A rainbow shell, picked up on the beach.</summary>
     public const int RainbowShell = 818;
 
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int Anchovy = 820;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int SeaBass = 821;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int Mackerel = 822;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int Pufferfish = 823;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int Carp = 824;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int Trout = 825;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int Bass = 826;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int Pike = 827;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int Eel = 828;
+
+    /// <summary>A fish caught with a fishing rod (docs/adr/ADR-071).</summary>
+    public const int GoldenKoi = 829;
+
     /// <summary>An oak chair.</summary>
     public const int OakChair = 300;
 
@@ -344,6 +377,9 @@ public static class ItemCatalog
 
     /// <summary>A bowl of pumpkin soup.</summary>
     public const int PumpkinSoup = 702;
+
+    /// <summary>Fish stew, cooked from fish and a potato (docs/adr/ADR-071).</summary>
+    public const int FishStew = 703;
 
     /// <summary>A health potion brewed from slime gel and berries; restores HP (docs/adr/ADR-045).</summary>
     public const int HealthPotion = 710;
@@ -490,6 +526,7 @@ public static class ItemCatalog
         new(SteelSword, "steel_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Iron),
         new(GoldSword, "gold_sword", ItemKind.Tool, 1, ToolKind.Sword, tier: ToolTier.Iron),
         new(ArcaneStaff, "arcane_staff", ItemKind.Tool, 1, ToolKind.Staff, tier: ToolTier.Iron),
+        new(FishingRod, "fishing_rod", ItemKind.Tool, 1, ToolKind.FishingRod),
         new(ParsnipSeeds, "parsnip_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Parsnip) { ObjectIcon = 1 },
         new(RadishSeeds, "radish_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Radish) { ObjectIcon = 2 },
         new(CauliflowerSeeds, "cauliflower_seeds", ItemKind.Seed, DefaultStack, cropId: CropCatalog.Cauliflower) { ObjectIcon = 3 },
@@ -582,6 +619,7 @@ public static class ItemCatalog
         new(Salad, "salad", ItemKind.Food, DefaultStack, foodEnergy: 90),
         new(BakedPotato, "baked_potato", ItemKind.Food, DefaultStack, foodEnergy: 60),
         new(PumpkinSoup, "pumpkin_soup", ItemKind.Food, DefaultStack, foodEnergy: 120),
+        new(FishStew, "fish_stew", ItemKind.Food, DefaultStack, foodEnergy: 110) { SellPrice = 120 },
         new(HealthPotion, "health_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 93 },
         new(ManaPotion, "mana_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 94 },
         new(Elixir, "elixir", ItemKind.Food, DefaultStack, foodEnergy: 60) { ObjectIcon = 95 },
@@ -620,6 +658,16 @@ public static class ItemCatalog
         new(SeaUrchin, "sea_urchin", ItemKind.Produce, DefaultStack) { SellPrice = 160, ObjectIcon = 81 },
         new(NautilusShell, "nautilus_shell", ItemKind.Produce, DefaultStack) { SellPrice = 120, ObjectIcon = 82 },
         new(RainbowShell, "rainbow_shell", ItemKind.Produce, DefaultStack) { SellPrice = 300, ObjectIcon = 83 },
+        new(Anchovy, "anchovy", ItemKind.Produce, DefaultStack) { SellPrice = 30 },
+        new(SeaBass, "sea_bass", ItemKind.Produce, DefaultStack) { SellPrice = 60 },
+        new(Mackerel, "mackerel", ItemKind.Produce, DefaultStack) { SellPrice = 80 },
+        new(Pufferfish, "pufferfish", ItemKind.Produce, DefaultStack) { SellPrice = 200 },
+        new(Carp, "carp", ItemKind.Produce, DefaultStack) { SellPrice = 40 },
+        new(Trout, "trout", ItemKind.Produce, DefaultStack) { SellPrice = 70 },
+        new(Bass, "bass", ItemKind.Produce, DefaultStack) { SellPrice = 90 },
+        new(Pike, "pike", ItemKind.Produce, DefaultStack) { SellPrice = 150 },
+        new(Eel, "eel", ItemKind.Produce, DefaultStack) { SellPrice = 160 },
+        new(GoldenKoi, "golden_koi", ItemKind.Produce, DefaultStack) { SellPrice = 500 },
     ];
 
     private static readonly Dictionary<int, ItemDefinition> s_byId = Index();

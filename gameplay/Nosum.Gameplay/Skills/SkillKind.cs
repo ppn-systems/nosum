@@ -19,4 +19,7 @@ public enum SkillKind : byte
 
     /// <summary>Fighting monsters in the mine and wilderness (docs/adr/ADR-045).</summary>
     Combat = 4,
+
+    /// <summary>Casting a line and reeling in fish at water (docs/adr/ADR-071).</summary>
+    Fishing = 5,
 }

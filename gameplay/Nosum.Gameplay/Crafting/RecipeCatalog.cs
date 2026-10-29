@@ -91,6 +91,12 @@ public static class RecipeCatalog
     /// <summary>Sanctuary candelabra (docs/adr/ADR-065).</summary>
     public const int SanctuaryCandelabra = 25;
 
+    /// <summary>Fishing rod (docs/adr/ADR-071).</summary>
+    public const int FishingRod = 27;
+
+    /// <summary>Fish stew (docs/adr/ADR-071).</summary>
+    public const int FishStew = 28;
+
     /// <summary>Most items one craft request may make in a batch (so a request cannot ask for an absurd amount).</summary>
     public const int MaxBatch = 99;
 
@@ -106,6 +112,8 @@ public static class RecipeCatalog
         new(Salad, "salad", ItemCatalog.Salad, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.Radish, 1), new RecipeInput(ItemCatalog.Cauliflower, 1)),
         new(BakedPotato, "baked_potato", ItemCatalog.BakedPotato, 1, RecipeUnlock.Of(CraftSkill.Farming, 1), new RecipeInput(ItemCatalog.Potato, 2), new RecipeInput(ItemCatalog.Wood, 1)),
         new(PumpkinSoup, "pumpkin_soup", ItemCatalog.PumpkinSoup, 1, RecipeUnlock.Of(CraftSkill.Farming, 3), new RecipeInput(ItemCatalog.Pumpkin, 2), new RecipeInput(ItemCatalog.Radish, 1), new RecipeInput(ItemCatalog.Wood, 1)),
+        new(FishingRod, "fishing_rod", ItemCatalog.FishingRod, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.Wood, 5), new RecipeInput(ItemCatalog.Fiber, 4)),
+        new(FishStew, "fish_stew", ItemCatalog.FishStew, 1, RecipeUnlock.Of(CraftSkill.Fishing, 2), new RecipeInput(ItemCatalog.Anchovy, 2), new RecipeInput(ItemCatalog.Potato, 1)),
         new(HealthPotion, "health_potion", ItemCatalog.HealthPotion, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.SlimeGel, 2), new RecipeInput(ItemCatalog.Fiber, 1)),
         new(ManaPotion, "mana_potion", ItemCatalog.ManaPotion, 1, RecipeUnlock.Of(CraftSkill.Combat, 1), new RecipeInput(ItemCatalog.SporeCap, 1), new RecipeInput(ItemCatalog.ManaCrystal, 1)),
         new(Elixir, "elixir", ItemCatalog.Elixir, 1, RecipeUnlock.Of(CraftSkill.Combat, 4), new RecipeInput(ItemCatalog.HealthPotion, 1), new RecipeInput(ItemCatalog.ManaPotion, 1), new RecipeInput(ItemCatalog.TreasureGem, 1)),
