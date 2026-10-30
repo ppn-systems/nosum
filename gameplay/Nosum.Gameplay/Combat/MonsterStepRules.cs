@@ -101,6 +101,51 @@ public static class MonsterStepRules
         return false;
     }
 
+    /// <summary>
+    /// Picks the one-tile knockback step for a monster struck from a tile: directly away from the attacker, on each axis the
+    /// attacker is offset along. The step is refused when the grid blocks it (including a diagonal past a wall corner) or
+    /// another living monster holds it (docs/adr/ADR-072).
+    /// </summary>
+    /// <param name="grid">Walkable tiles of the map.</param>
+    /// <param name="monsters">Monsters on the map instance; the struck monster itself is recognised by <paramref name="monsterId"/>.</param>
+    /// <param name="monsterId">Id of the struck monster.</param>
+    /// <param name="x">Its tile X.</param>
+    /// <param name="y">Its tile Y.</param>
+    /// <param name="attackerX">Tile X of the attacker.</param>
+    /// <param name="attackerY">Tile Y of the attacker.</param>
+    /// <param name="knockedX">The tile X it is pushed to when a push exists.</param>
+    /// <param name="knockedY">The tile Y it is pushed to when a push exists.</param>
+    /// <returns><see langword="true"/> when the monster can be pushed one tile.</returns>
+    public static bool TryKnockback(
+        WalkGrid grid,
+        IReadOnlyList<MonsterSpawn> monsters,
+        int monsterId,
+        int x,
+        int y,
+        int attackerX,
+        int attackerY,
+        out int knockedX,
+        out int knockedY)
+    {
+        ArgumentNullException.ThrowIfNull(grid);
+        ArgumentNullException.ThrowIfNull(monsters);
+
+        int sx = Math.Sign(x - attackerX);
+        int sy = Math.Sign(y - attackerY);
+        int tx = x + sx;
+        int ty = y + sy;
+        if ((sx == 0 && sy == 0) || !CanStep(grid, x, y, tx, ty) || IsOccupied(monsters, monsterId, tx, ty))
+        {
+            knockedX = x;
+            knockedY = y;
+            return false;
+        }
+
+        knockedX = tx;
+        knockedY = ty;
+        return true;
+    }
+
     /// <summary>Returns whether another living monster stands on a tile.</summary>
     /// <param name="monsters">Monsters on the map instance.</param>
     /// <param name="monsterId">The monster asking; it does not block itself.</param>
