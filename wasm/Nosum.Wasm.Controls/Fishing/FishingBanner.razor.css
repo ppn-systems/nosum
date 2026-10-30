@@ -1,4 +1,4 @@
-/* The fishing banner: layout only, in UI pixels. Colours and frames come from the shared controls and the theme. */
+/* The fishing banner and the catch card: layout only, in UI pixels. Colours and frames come from the shared controls and the theme. */
 .fishing-banner {
     width: calc(var(--u) * 120);
     max-width: 100%;
@@ -18,22 +18,78 @@
     text-align: center;
 }
 
-/* The bite window: the bar starts full when the window opens and empties over the server's window length, once. The length is set on the wrapper
-   by the banner; the animation is the only thing that runs. */
-.fishing-window {
-    margin-top: calc(var(--u) * 2);
+/* The catch card: pops in, holds for a moment, then flies down into the hotbar and fades. It stays in the page with opacity 0 until the next cast;
+   reduced motion (data-motion="reduced", set by the settings) turns the animation off and the card stays put. */
+.fishing-card {
+    --rarity: #b8c0cc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    width: calc(var(--u) * 96);
+    max-width: 100%;
+    margin-bottom: calc(var(--u) * 3);
+    padding: calc(var(--u) * 3);
+    border: calc(var(--u) * 1) solid var(--rarity);
+    background: #2a2233;
+    color: #f4efe4;
+    image-rendering: pixelated;
+    animation: fishing-card-pop 280ms ease-out both, fishing-card-fly 800ms ease-in 2600ms forwards;
+    pointer-events: none;
 }
 
-.fishing-window ::deep .game-progress-fill {
-    animation: fishing-drain var(--fishing-ms) linear forwards;
+.fishing-card.rarity-uncommon {
+    --rarity: #6ccf5a;
 }
 
-@keyframes fishing-drain {
+.fishing-card.rarity-rare {
+    --rarity: #5aa9ff;
+}
+
+.fishing-card.rarity-legendary {
+    --rarity: #ffc64a;
+}
+
+.fishing-card-title,
+.fishing-card-rarity {
+    margin: 0;
+    text-align: center;
+}
+
+.fishing-card-rarity {
+    color: var(--rarity);
+}
+
+.fishing-card-body {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 3);
+}
+
+.fishing-card-text p {
+    margin: 0;
+}
+
+@keyframes fishing-card-pop {
     from {
-        width: 100%;
+        opacity: 0;
+        transform: scale(0.6);
     }
 
     to {
-        width: 0;
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fishing-card-fly {
+    from {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: translate(calc(var(--u) * 40), calc(var(--u) * 60)) scale(0.4);
     }
 }

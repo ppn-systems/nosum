@@ -11,6 +11,7 @@ using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Device;
 using Nosum.Wasm.Security;
 using Nosum.Wasm.Settings;
+using Nosum.Wasm.ViewModels.Settings;
 using Nosum.Wasm.Socket;
 using Nosum.Wasm.Socket.Blacksmith;
 using Nosum.Wasm.Socket.Building;
@@ -252,7 +253,7 @@ internal static class ClientWiring
         GameLoop.UseWorldMap(services.GetRequiredService<WorldMapViewModel>());
         GameLoop.UseMinimap(services.GetRequiredService<MinimapViewModel>());
         GameLoop.UseMapLoading(services.GetRequiredService<MapLoadingViewModel>());
-        GameLoop.UseFishing(services.GetRequiredService<FishingViewModel>());
+        GameLoop.UseFishing(services.GetRequiredService<FishingViewModel>(), services.GetRequiredService<SettingsViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
         DevTools.Use(services.GetRequiredService<DevChannel>());

@@ -195,6 +195,7 @@ public sealed class FishingService : IFishingService
             SkillRules.LevelOf(progress.FishingXp));
         FishSpecies? species = FishingRules.Roll(spot, cast.Seed);
         int xp = FishingRules.CatchXp(species);
+        int sizeCm = species is null ? 0 : FishingRules.SizeCm(species.Rarity, cast.Seed);
 
         IReadOnlyList<InventoryOperation> operations = species is null ? [] : [InventoryOperation.Add(species.ItemId, 1)];
         IProgressCharge? charge = null;
@@ -219,8 +220,8 @@ public sealed class FishingService : IFishingService
 
             await charge!.PublishAsync(cancellationToken).ConfigureAwait(false);
             return species is null
-                ? new ReelOutcome(FishingStatus.Nothing, 0, 0, xp)
-                : new ReelOutcome(FishingStatus.Ok, species.ItemId, 1, xp);
+                ? new ReelOutcome(FishingStatus.Nothing, 0, 0, xp, 0)
+                : new ReelOutcome(FishingStatus.Ok, species.ItemId, 1, xp, sizeCm);
         }
         finally
         {

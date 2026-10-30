@@ -29,6 +29,7 @@ public static class NosumProtocol
     /// 20: fishing (docs/adr/ADR-078) - new packets <c>CastRod</c>, <c>ReelIn</c> (C2S <c>0xC300-0xC301</c>), <c>CastResult</c>, <c>ReelResult</c>
     /// (S2C <c>0xC340-0xC341</c>) and <c>FishingStatus</c>; <c>ToolKind.FishingRod</c>, <c>SkillKind.Fishing</c> and <c>CraftSkill.Fishing</c> are
     /// appended values, and <c>FishingXp</c> is stored on the player state. No existing packet changed. Version 19 is left unused.
+    /// 21: fish size - <c>SizeCm</c> appended to <c>ReelResult</c> (docs/adr/ADR-078 amendment).
     /// </summary>
-    public const ushort Version = 20;
+    public const ushort Version = 21;
 }

@@ -115,6 +115,14 @@ public sealed class FishingWireTests : IClassFixture<PostgresFixture>
         ReelResult pressed = await player.ReelInAsync(cast.CastId, host.Timeout);
         pressed.Status.Should().BeOneOf(new[] { FishingStatus.Ok, FishingStatus.Nothing }, "the press is in the window, so the roll decides");
         pressed.XpGained.Should().BeOneOf(1, 5, 10, 20, 40);
+        if (pressed.Status == FishingStatus.Ok)
+        {
+            pressed.SizeCm.Should().BeInRange(10, 100, "a caught fish is between the smallest common and the largest legendary size");
+        }
+        else
+        {
+            pressed.SizeCm.Should().Be(0, "nothing was caught");
+        }
     }
 
     [Fact]

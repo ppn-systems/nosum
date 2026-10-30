@@ -65,3 +65,11 @@ never the result. The timing must not be a way to cheat, so the server judges th
 
 - docs/adr/ADR-003 (server-authoritative), ADR-010 (i18n), ADR-011 (inventory), ADR-021 (tools and nodes), ADR-023 (energy and skills).
 - Rules: `gameplay/Nosum.Gameplay/Fishing/`. Wire: `contracts/Nosum.Contracts/Fishing/`. Protocol: `NosumProtocol.Version` 13.
+
+## Amendments
+
+### 2026-10-30 - fish size (protocol 21)
+
+- The reel result carries the fish's size in centimetres: `ReelResult.SizeCm` (appended field, `NosumProtocol.Version` 21). Zero when nothing was caught.
+- The server rolls the size from the same cast seed as the catch (`FishingRules.SizeCm`, its own stream), so the size is fixed by the server and repeats for the same seed.
+- Ranges by rarity, inclusive, in centimetres: Common 10-30, Uncommon 20-45, Rare 40-70, Legendary 60-100. They are balance data in `FishingRules`.

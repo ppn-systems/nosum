@@ -2,6 +2,7 @@
 import os
 
 import crops
+import fishing_ui
 import icons
 import npcs
 import pets_emotes
@@ -62,6 +63,7 @@ ENTRIES = {
 
 ENTRIES.update(npcs.provenance_entries(NOSUM))
 ENTRIES.update(pets_emotes.provenance_entries(NOSUM))
+ENTRIES.update(fishing_ui.provenance_entries(NOSUM))
 
 HEADER = '''# Provenance of the art under assets/
 
