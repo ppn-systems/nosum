@@ -10,7 +10,7 @@ namespace Nosum.Gameplay.Placeables;
 
 /// <summary>
 /// The placeables of the game, keyed by the item they are made from. The furniture art is <c>sprites/furniture.png</c>: the early pieces
-/// (docs/adr/ADR-007) and the decorating pieces cut from the Kenney packs (docs/adr/ADR-071), at the rectangles named here.
+/// (docs/adr/ADR-007) and the decorating pieces cut from the Kenney packs (docs/adr/ADR-073), at the rectangles named here.
 /// </summary>
 public static class PlaceableCatalog
 {
@@ -54,7 +54,7 @@ public static class PlaceableCatalog
         new(ItemCatalog.FloorLamp, FurnitureSheet, FloorLampLightRadius, new PlaceableView(48, 733, 16, 34, 1, 1)) { Category = FurnitureCategory.Lighting },
         new(ItemCatalog.HousePlant, FurnitureSheet, new PlaceableView(0, 688, 16, 32, 1, 1)) { Category = FurnitureCategory.Plants },
 
-        // Decorating pieces (docs/adr/ADR-071). Standing pieces block walking; rugs, paintings and wall pieces do not.
+        // Decorating pieces (docs/adr/ADR-073). Standing pieces block walking; rugs, paintings and wall pieces do not.
         // Chairs and benches: down, right and up are drawn, left mirrors right.
         new(ItemCatalog.WoodenStool, FurnitureSheet, new PlaceableView(32, 1632, 16, 16, 1, 1)) { Category = FurnitureCategory.Seating },
         new(ItemCatalog.CushionedChair, FurnitureSheet, new PlaceableView(224, 1552, 16, 32, 1, 1), new PlaceableView(256, 1552, 16, 32, 1, 1), new PlaceableView(288, 1552, 16, 32, 1, 1), new PlaceableView(256, 1552, 16, 32, 1, 1, FlipX: true)) { Category = FurnitureCategory.Seating },

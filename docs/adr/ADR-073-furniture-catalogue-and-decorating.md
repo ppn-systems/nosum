@@ -1,4 +1,4 @@
-# ADR-071: Furniture catalogue, seasonal stock and the decorating panel
+# ADR-073: Furniture catalogue, seasonal stock and the decorating panel
 
 **Status:** Proposed (agent-written, 2026-10-29; owner approval pending). Builds on [ADR-015](ADR-015-private-instances-and-placeables.md) (private instances and placeables), [ADR-018](ADR-018-seasons-and-server-calendar.md) (seasons), [ADR-024](ADR-024-crafting-and-outdoor-placeables.md) (placeables) and [ADR-027](ADR-027-weather-and-day-night.md) (night light).
 

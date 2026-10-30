@@ -168,7 +168,7 @@ public sealed class FarmRulesRainTests
                 Nosum.Gameplay.Items.ItemCatalog.WallSconce,
                 Nosum.Gameplay.Items.ItemCatalog.PaperLantern,
             },
-            "the lamps of the decorating update give night light (docs/adr/ADR-071 D4)");
+            "the lamps of the decorating update give night light (docs/adr/ADR-073 D4)");
     }
 
     [Fact]
