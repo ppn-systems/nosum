@@ -40,6 +40,15 @@ public sealed partial class CombatChannel : IDisposable
     /// <summary>How long the finisher burst stays on screen, in milliseconds.</summary>
     public const int FinisherDurationMs = 700;
 
+    /// <summary>Impact of a landed hit: a light strike, the heavy strike whose damage number is crit-styled, or the combo finisher (docs/adr/ADR-076).</summary>
+    public const int ImpactLight = 0;
+
+    /// <summary>See <see cref="ImpactLight"/>.</summary>
+    public const int ImpactHeavy = 1;
+
+    /// <summary>See <see cref="ImpactLight"/>.</summary>
+    public const int ImpactFinisher = 2;
+
     private int _hp = 100;
     private int _maxHp = 100;
     private int _mp = 50;
@@ -56,6 +65,16 @@ public sealed partial class CombatChannel : IDisposable
     private long _finisherTick;
     private int _finisherTileX;
     private int _finisherTileY;
+    private int _hitMonsterId;
+    private long _hitTick;
+    private int _hitImpact;
+    private int _slideMonsterId;
+    private int _slideFromX;
+    private int _slideFromY;
+    private long _slideTick;
+    private long _shakeTick;
+    private int _shakeAmplitude;
+    private int _shakeDurationMs;
     private string _mapId = string.Empty;
 
     /// <summary>Initializes the combat channel.</summary>
@@ -383,9 +402,11 @@ public sealed partial class CombatChannel : IDisposable
                     this.RecordCombo(reply.ComboCount, reply.MonsterId);
                 }
 
+                // The damage number's style and the impact feel read the same rule, so a crit-styled number always shakes the screen.
+                byte style = (byte)(reply.DamageDealt >= 18 || reply.ComboCount >= 3 ? 1 : 0);
+                int impact = reply.ComboCount == FinisherComboCount ? ImpactFinisher : style == 1 ? ImpactHeavy : ImpactLight;
                 if (this.TryGetMonster(reply.MonsterId, out MonsterClientRow m))
                 {
-                    byte style = (byte)(reply.DamageDealt >= 18 || reply.ComboCount >= 3 ? 1 : 0);
                     this.SpawnFloatingText((m.X * 16) + 8, (m.Y * 16) - 6, reply.DamageDealt, style);
                 }
 
@@ -394,6 +415,7 @@ public sealed partial class CombatChannel : IDisposable
                     this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, reply.DamageTaken, 2);
                 }
 
+                this.RecordMonsterHit(reply.MonsterId, impact);
                 this.UpdateMonsterHp(reply.MonsterId, reply.MonsterHp);
             }
 
