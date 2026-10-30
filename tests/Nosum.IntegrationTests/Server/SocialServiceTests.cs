@@ -293,11 +293,14 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
 
         _clock.Advance(TimeSpan.FromHours(CoinRules.ListingHours + 1));
 
-        (await _market.ExpireDueAsync()).Should().Be(0);
+        // ExpireDueAsync sweeps every due listing in the shared database, so the count includes other tests' leftovers. This test checks only its own seller and listing.
+        _ = await _market.ExpireDueAsync();
         (await ListingAsync(listing)).Status.Should().Be(ListingStatus.Active);
+        (await ParsnipsOfAsync(seller)).Should().Be(0);
 
         _ = await _inventory.RemoveAsync(seller, ItemCatalog.ShirtGreen, 1, "test.room");
-        (await _market.ExpireDueAsync()).Should().Be(1);
+        _ = await _market.ExpireDueAsync();
+        (await ListingAsync(listing)).Status.Should().Be(ListingStatus.Expired);
         (await ParsnipsOfAsync(seller)).Should().Be(1);
     }
 
