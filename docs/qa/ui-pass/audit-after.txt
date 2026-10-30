@@ -1,0 +1,42 @@
+1280x720 | Thư | ok | {"box":[340,96,600,192],"issues":[],"covers":[],"off":false}
+1280x720 | Cài đặt | ok | {"box":[340,96,600,365],"issues":[],"covers":[],"off":false}
+1280x720 | Túi đồ [I] | ok | {"box":[259,96,762,543],"issues":[],"covers":[],"off":false}
+1280x720 | Tủ đồ [C] | ok | {"box":[340,96,600,379],"issues":[],"covers":[],"off":false}
+1280x720 | Chế tạo | ok | {"box":[340,96,600,515],"issues":[],"covers":[],"off":false}
+1280x720 | Giao dịch [T] | ok | {"box":[340,96,600,192],"issues":[],"covers":[],"off":false}
+1280x720 | Hợp tác xã [G] | ok | {"box":[340,96,600,262],"issues":[],"covers":[],"off":false}
+1280x720 | Khách | ok | {"box":[340,96,600,396],"issues":[],"covers":[],"off":false}
+1280x720 | Bạn bè | ok | {"box":[340,96,600,362],"issues":[],"covers":[],"off":false}
+1280x720 | Kỹ năng | FAIL | {"box":[340,96,600,558],"issues":["scroll menu-page-body 2769/471"],"covers":[],"off":false}
+1280x720 | Hồ sơ [N] | ok | {"box":[340,96,600,245],"issues":[],"covers":[],"off":false}
+1280x720 | Bản đồ thế giới [Tab] | FAIL | {"box":[340,96,600,558],"issues":["scroll menu-page-body 869/471"],"covers":[],"off":false}
+1280x720 | Sổ sưu tập [J] | FAIL | {"box":[340,96,600,558],"issues":["scroll menu-page-body 1528/471"],"covers":[],"off":false}
+1280x720 | errors: none
+1920x1080 | Thư | ok | {"box":[460,160,1000,320],"issues":[],"covers":[],"off":false}
+1920x1080 | Cài đặt | ok | {"box":[460,160,1000,590],"issues":[],"covers":[],"off":false}
+1920x1080 | Túi đồ [I] | ok | {"box":[325,160,1270,839],"issues":[],"covers":[],"off":false}
+1920x1080 | Tủ đồ [C] | ok | {"box":[460,160,1000,617],"issues":[],"covers":[],"off":false}
+1920x1080 | Chế tạo | ok | {"box":[460,160,1000,840],"issues":[],"covers":[],"off":false}
+1920x1080 | Giao dịch [T] | ok | {"box":[460,160,1000,320],"issues":[],"covers":[],"off":false}
+1920x1080 | Hợp tác xã [G] | ok | {"box":[460,160,1000,422],"issues":[],"covers":[],"off":false}
+1920x1080 | Khách | ok | {"box":[460,160,1000,627],"issues":[],"covers":[],"off":false}
+1920x1080 | Bạn bè | ok | {"box":[460,160,1000,508],"issues":[],"covers":[],"off":false}
+1920x1080 | Kỹ năng | FAIL | {"box":[460,160,1000,900],"issues":["scroll menu-page-body 4298/755"],"covers":[],"off":false}
+1920x1080 | Hồ sơ [N] | ok | {"box":[460,160,1000,357],"issues":[],"covers":[],"off":false}
+1920x1080 | Bản đồ thế giới [Tab] | FAIL | {"box":[460,160,1000,900],"issues":["scroll menu-page-body 1375/755"],"covers":[],"off":false}
+1920x1080 | Sổ sưu tập [J] | FAIL | {"box":[460,160,1000,900],"issues":["scroll menu-page-body 2543/755"],"covers":[],"off":false}
+1920x1080 | errors: none
+390x844 | Thư | ok | {"box":[8,120,374,104],"issues":[],"covers":[],"off":false}
+390x844 | Cài đặt | ok | {"box":[8,120,374,225],"issues":[],"covers":[],"off":false}
+390x844 | Túi đồ [I] | ok | {"box":[8,120,374,389],"issues":[],"covers":[],"off":false}
+390x844 | Tủ đồ [C] | ok | {"box":[8,120,374,238],"issues":[],"covers":[],"off":false}
+390x844 | Chế tạo | ok | {"box":[8,120,374,325],"issues":[],"covers":[],"off":false}
+390x844 | Giao dịch [T] | ok | {"box":[8,120,374,100],"issues":[],"covers":[],"off":false}
+390x844 | Hợp tác xã [G] | ok | {"box":[8,120,374,160],"issues":[],"covers":[],"off":false}
+390x844 | Khách | ok | {"box":[8,120,374,231],"issues":[],"covers":[],"off":false}
+390x844 | Bạn bè | ok | {"box":[8,120,374,190],"issues":[],"covers":[],"off":false}
+390x844 | Kỹ năng | FAIL | {"box":[8,120,374,716],"issues":["scroll menu-page-body 1555/658"],"covers":[],"off":false}
+390x844 | Hồ sơ [N] | ok | {"box":[8,120,374,134],"issues":[],"covers":[],"off":false}
+390x844 | Bản đồ thế giới [Tab] | ok | {"box":[8,120,374,662],"issues":[],"covers":[],"off":false}
+390x844 | Sổ sưu tập [J] | FAIL | {"box":[8,120,374,716],"issues":["scroll menu-page-body 1135/658"],"covers":[],"off":false}
+390x844 | errors: none

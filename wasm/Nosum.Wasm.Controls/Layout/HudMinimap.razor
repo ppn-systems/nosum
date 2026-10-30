@@ -1,0 +1,14 @@
+@using Nosum.Wasm.ViewModels.Minimap
+@inherits ObservingComponent<MinimapViewModel>
+
+@* The minimap frame in the HUD's top-right corner: the same 9-slice wood frame as the panels. The canvas draws the map inside it (MapScene.Minimap);
+   a click opens the world map. Shown only while the game draws the map: not under a panel, and the M key may hide it (off on a narrow screen, where the world map button stands in). *@
+@if (Vm.Drawn)
+{
+    <button type="button" class="hud-minimap" aria-label="@Vm.Tip" data-tip="@Vm.Tip" @onmousedown:preventDefault @onclick="OnOpen"></button>
+}
+
+@code {
+    /// <summary>Raised by a click on the frame: opens the world map.</summary>
+    [Parameter] public EventCallback OnOpen { get; set; }
+}

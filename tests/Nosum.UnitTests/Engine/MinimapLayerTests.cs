@@ -37,7 +37,7 @@ public sealed class MinimapLayerTests
         RenderCommandBuffer buffer = new(64);
         buffer.Begin(1);
 
-        minimap.Draw(buffer, 320, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
 
         // The border, the backing and one run per row.
         buffer.Count.Should().Be(4);
@@ -51,7 +51,7 @@ public sealed class MinimapLayerTests
         RenderCommandBuffer buffer = new(64);
         buffer.Begin(1);
 
-        minimap.Draw(buffer, 320, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
 
         TintsOf(Draws(buffer), buffer.Count).Should().Contain(MinimapPalette.Default.Water);
     }
@@ -64,7 +64,7 @@ public sealed class MinimapLayerTests
         RenderCommandBuffer buffer = new(64);
         buffer.Begin(1);
 
-        minimap.Draw(buffer, 320, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
 
         buffer.Count.Should().Be(0);
     }
@@ -76,38 +76,42 @@ public sealed class MinimapLayerTests
         RenderCommandBuffer buffer = new(64);
         buffer.Begin(1);
 
-        minimap.Draw(buffer, 320, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
 
         buffer.Count.Should().Be(0);
     }
 
     [Fact]
-    public void Draw_RightInset_KeepsTheBoxClearOfTheHudColumn()
+    public void Draw_AtACorner_PutsTheBorderAtThatCorner()
     {
         MinimapLayer minimap = new() { Visible = true };
         minimap.Build(Map(4, 2, 1, 1, 1, 1, 1, 1, 1, 1), "town", MinimapPalette.Default);
         RenderCommandBuffer buffer = new(64);
         buffer.Begin(1);
 
-        minimap.Draw(buffer, 320, 240, 50, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(buffer, 50, 30, 0, 0x0B0D10FF);
 
-        // The first draw is the border; its right edge stops the inset and the margin short of the screen's edge.
+        // The first draw is the border: its destination is the corner it was given.
         int[] ints = Draws(buffer);
-        int borderLeft = ints[2 + 5];
-        borderLeft.Should().Be(320 - 50 - MinimapLayer.Margin - minimap.BoxWidth);
+        ints[2 + 5].Should().Be(50);
+        ints[2 + 6].Should().Be(30);
     }
 
     [Fact]
-    public void Draw_ScreenTooNarrowForTheBox_RecordsNothing()
+    public void Build_LargeMap_IsSampledSoTheBoxStaysInsideTheFrame()
     {
         MinimapLayer minimap = new() { Visible = true };
-        minimap.Build(Map(4, 2, 1, 1, 1, 1, 1, 1, 1, 1), "town", MinimapPalette.Default);
-        RenderCommandBuffer buffer = new(64);
-        buffer.Begin(1);
+        int[] tiles = new int[150 * 100];
+        for (int i = 0; i < tiles.Length; i++)
+        {
+            tiles[i] = 1;
+        }
 
-        minimap.Draw(buffer, 20, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Build(Map(150, 100, tiles), "big", MinimapPalette.Default).Should().BeTrue();
 
-        buffer.Count.Should().Be(0);
+        minimap.Stride.Should().BeGreaterThan(1);
+        minimap.BoxWidth.Should().BeLessThanOrEqualTo(MinimapLayer.MaxWidth + 2);
+        minimap.BoxHeight.Should().BeLessThanOrEqualTo(MinimapLayer.MaxHeight + 2);
     }
 
     [Fact]
@@ -120,7 +124,7 @@ public sealed class MinimapLayerTests
         RenderCommandBuffer buffer = new(64);
         buffer.Begin(1);
 
-        minimap.Draw(buffer, 320, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
 
         // Two for the box, two runs, and the dot.
         buffer.Count.Should().Be(5);
@@ -136,11 +140,11 @@ public sealed class MinimapLayerTests
         minimap.BeginDots();
         RenderCommandBuffer first = new(64);
         first.Begin(1);
-        minimap.Draw(first, 320, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(first, 10, 10, 0x14171CCC, 0x0B0D10FF);
 
         RenderCommandBuffer second = new(64);
         second.Begin(1);
-        minimap.Draw(second, 320, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(second, 10, 10, 0x14171CCC, 0x0B0D10FF);
 
         TintsOf(Draws(second), second.Count).Should().Contain(unchecked((int)0xFF9F43FFu));
         first.Count.Should().Be(second.Count);
@@ -157,7 +161,7 @@ public sealed class MinimapLayerTests
         rebuilt.Should().BeTrue();
         RenderCommandBuffer buffer = new(64);
         buffer.Begin(1);
-        minimap.Draw(buffer, 320, 240, 0, 0, 0x14171CCC, 0x0B0D10FF);
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
         TintsOf(Draws(buffer), buffer.Count).Should().NotContain(MinimapPalette.Default.Water);
     }
 
