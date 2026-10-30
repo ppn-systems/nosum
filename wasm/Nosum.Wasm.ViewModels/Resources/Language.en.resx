@@ -300,6 +300,7 @@
   <data name="Account_Status_SessionKicked" xml:space="preserve"><value>An administrator removed you from the game. You can sign in again.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Profile</value></data>
   <data name="Toolbar_WorldMap" xml:space="preserve"><value>World map</value></data>
+  <data name="Minimap_Tip" xml:space="preserve"><value>Minimap: click to open the world map</value></data>
   <data name="Toolbar_Journal" xml:space="preserve"><value>Journal</value></data>
   <data name="Action_Minimap" xml:space="preserve"><value>Minimap</value></data>
   <data name="Action_WorldMap" xml:space="preserve"><value>World map</value></data>

@@ -86,15 +86,14 @@
     gap: calc(var(--u) * 2);
 }
 
+/* The system column: two columns of 16 u buttons at every size, so its place is fixed in UI pixels (the minimap frame sits left of it, HudMinimap.razor.css). */
 .hud-top-right ::deep .hud-player-bar {
     position: absolute;
     top: calc(100% + var(--u) * 2);
     right: 0;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-items: flex-end;
-    gap: calc(var(--u) * 1);
+    display: grid;
+    grid-template-columns: repeat(2, calc(var(--u) * 16));
+    gap: calc(var(--u) * 2);
 }
 
 .hud-top-right ::deep .hud-player-bar .game-icon-button {
@@ -118,7 +117,8 @@
     pointer-events: none;
 }
 
-@media (max-height: 500px) {
+/* A short or narrow screen: the window starts right under the HUD bar, not in the middle of the screen. */
+@media (max-height: 500px), (max-width: 640px) {
     .hud-center {
         padding-top: calc(var(--nosum-gutter) + var(--nosum-hud-top-h));
     }
@@ -162,12 +162,10 @@
     pointer-events: none;
 }
 
-/* Narrow screens (a phone held upright, docs/adr/ADR-033 D2): the coins and the gear take the first row so they are always on screen, the quest tracker the next. */
-@media (max-width: 640px), (max-height: 780px), (pointer: coarse) {
+/* Narrow and touch screens (a phone held upright, docs/adr/ADR-033 D2): the system column takes 14 u buttons so it fits a thumb's reach. */
+@media (max-width: 640px), (pointer: coarse) {
     .hud-top-right ::deep .hud-player-bar {
-        display: grid;
-        grid-template-columns: repeat(2, auto);
-        justify-items: end;
+        grid-template-columns: repeat(2, calc(var(--u) * 14));
     }
 
     .hud-top-right ::deep .hud-player-bar .game-icon-button {

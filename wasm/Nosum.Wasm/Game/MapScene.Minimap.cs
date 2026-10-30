@@ -11,8 +11,9 @@ using Nosum.Rendering;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// The minimap of the playable world (the M key): the map downscaled into the top-right corner of the same frame, with dots for the farmer,
-/// the other players, the NPCs and the exits. Hidden by default on a narrow screen (a touch device); the M key shows or hides it.
+/// The minimap of the playable world (the M key): the map downscaled into the frame in the top-right corner of the HUD, with dots for the farmer,
+/// the other players, the NPCs and the exits. The frame is HUD markup (HudMinimap.razor); this draws the map inside it. Hidden by default on a narrow
+/// screen, where the world map button stands in for it; the M key shows or hides it.
 /// </summary>
 internal sealed partial class MapScene
 {
@@ -23,9 +24,15 @@ internal sealed partial class MapScene
     private const int NpcDotColour = unchecked((int)0xFF9F43FFu);
     private const int ExitDotColour = unchecked((int)0xC084FCFFu);
 
-    // From this canvas width the HUD's system column sits at the right edge; its width (about 96 CSS pixels with the buttons) is measured by eye, not by layout.
-    private const int WideCanvasWidth = 1600;
-    private const int HudRightColumnCssPixels = 96;
+    // The HUD frame of the minimap, in UI pixels (one u is one world pixel, the scale of the map). It sits in the top-right corner: the screen
+    // gutter, then the calendar bar, then a gap; the frame runs left of the system column, which is two 16 u buttons and a gap wide, with the same
+    // gap between them. HudMinimap.razor.css places the frame with these numbers; change both together.
+    private const int HudEdge = 4;
+    private const int HudBarHeight = 18;
+    private const int HudGap = 2;
+    private const int HudColumnWidth = 34;
+    private const int HudFrameWidth = 60;
+    private const int HudFrameEdge = 5;
 
     private readonly MinimapLayer _minimap = new();
 
@@ -40,7 +47,14 @@ internal sealed partial class MapScene
             _minimapChoice = !(_minimapChoice ?? !narrow);
         }
 
-        _minimap.Visible = _minimapChoice ?? !narrow;
+        bool shown = _minimapChoice ?? !narrow;
+        if (_minimapFrame is not null)
+        {
+            _minimapFrame.Shown = shown;
+        }
+
+        // A panel over the corner hides the map too (MinimapViewModel.Covered).
+        _minimap.Visible = shown && _minimapFrame?.Covered != true;
         if (!_minimap.Visible)
         {
             return;
@@ -77,8 +91,14 @@ internal sealed partial class MapScene
             }
         }
 
-        // On a wide window the HUD's system buttons wrap into a column at the right edge (GameHud); the box keeps clear of it.
-        int rightInset = canvasWidth >= WideCanvasWidth ? HudRightColumnCssPixels / scale : 0;
-        _minimap.Draw(_commands, (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale, rightInset, HudBottomInset(canvasWidth, canvasHeight) / scale, MinimapFrameColour, MinimapBorderColour);
+        // The frame's inside (MinimapLayer.MaxWidth by MaxHeight) is the dark backing; the map is centred on it.
+        int worldWidth = (canvasWidth + scale - 1) / scale;
+        int frameRight = worldWidth - HudEdge - HudColumnWidth - HudGap;
+        int contentLeft = frameRight - HudFrameWidth + HudFrameEdge;
+        int contentTop = HudEdge + HudBarHeight + HudGap + HudFrameEdge;
+        _commands.FillRect(contentLeft, contentTop, MinimapLayer.MaxWidth, MinimapLayer.MaxHeight, MinimapFrameColour);
+        int left = contentLeft + ((MinimapLayer.MaxWidth - _minimap.BoxWidth) / 2);
+        int top = contentTop + ((MinimapLayer.MaxHeight - _minimap.BoxHeight) / 2);
+        _minimap.Draw(_commands, left, top, MinimapFrameColour, MinimapBorderColour);
     }
 }
