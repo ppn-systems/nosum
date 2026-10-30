@@ -32,3 +32,6 @@ deploy/.env
 # Test run output (vstest blame and hang dumps)
 TestResults/
 __pycache__/
+
+# Build-time copies of the linked assets/ files (wasm/Nosum.Wasm.csproj Content Link; docs/adr/ADR-007)
+wasm/Nosum.Wasm/wwwroot/assets/
