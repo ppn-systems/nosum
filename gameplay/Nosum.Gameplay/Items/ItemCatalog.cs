@@ -11,7 +11,7 @@ namespace Nosum.Gameplay.Items;
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
 /// put in an inventory. Ids are append-only. Ids below 100 are tools (the five basic ones, then the copper tier from 10 and the iron tier from 20, docs/adr/ADR-026), 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources and bars, 600-699 crafted placeables, 700-799 food (dishes, ADR-024), 800-899 forage (docs/adr/ADR-025); raw produce is edible through its <see cref="ItemDefinition.FoodEnergy"/>.
 /// </summary>
-public static class ItemCatalog
+public static partial class ItemCatalog
 {
     /// <summary>The hoe.</summary>
     public const int Hoe = 1;
@@ -263,123 +263,6 @@ public static class ItemCatalog
 
     /// <summary>A rainbow shell, picked up on the beach.</summary>
     public const int RainbowShell = 818;
-
-    /// <summary>An oak chair.</summary>
-    public const int OakChair = 300;
-
-    /// <summary>A blue armchair.</summary>
-    public const int BlueArmchair = 301;
-
-    /// <summary>A blue couch.</summary>
-    public const int BlueCouch = 302;
-
-    /// <summary>An oak table.</summary>
-    public const int OakTable = 303;
-
-    /// <summary>A bookcase.</summary>
-    public const int Bookcase = 304;
-
-    /// <summary>A floor lamp.</summary>
-    public const int FloorLamp = 305;
-
-    /// <summary>A house plant.</summary>
-    public const int HousePlant = 306;
-
-    /// <summary>A wooden stool.</summary>
-    public const int WoodenStool = 307;
-
-    /// <summary>A chair with a cushion.</summary>
-    public const int CushionedChair = 308;
-
-    /// <summary>A wooden bench, two tiles long.</summary>
-    public const int WoodenBench = 309;
-
-    /// <summary>A green armchair.</summary>
-    public const int GreenArmchair = 310;
-
-    /// <summary>A round table, two tiles across.</summary>
-    public const int RoundTable = 311;
-
-    /// <summary>A small side table.</summary>
-    public const int SideTable = 312;
-
-    /// <summary>A long table, three tiles wide.</summary>
-    public const int LongTable = 313;
-
-    /// <summary>A single bed.</summary>
-    public const int SingleBed = 314;
-
-    /// <summary>A double bed.</summary>
-    public const int DoubleBed = 315;
-
-    /// <summary>A wardrobe.</summary>
-    public const int Wardrobe = 316;
-
-    /// <summary>A chest of drawers.</summary>
-    public const int ChestOfDrawers = 317;
-
-    /// <summary>A kitchen cabinet.</summary>
-    public const int KitchenCabinet = 318;
-
-    /// <summary>A wall shelf.</summary>
-    public const int WallShelf = 319;
-
-    /// <summary>A candelabra; it gives light at night.</summary>
-    public const int Candelabra = 320;
-
-    /// <summary>A table lamp; it gives light at night.</summary>
-    public const int TableLamp = 321;
-
-    /// <summary>A wall sconce; it gives light at night.</summary>
-    public const int WallSconce = 322;
-
-    /// <summary>A paper lantern, sold in fall; it gives light at night.</summary>
-    public const int PaperLantern = 323;
-
-    /// <summary>A potted fern.</summary>
-    public const int PottedFern = 324;
-
-    /// <summary>A cactus in a pot.</summary>
-    public const int CactusPot = 325;
-
-    /// <summary>A box of flowers, sold in spring.</summary>
-    public const int FlowerBox = 326;
-
-    /// <summary>A bonsai tree.</summary>
-    public const int Bonsai = 327;
-
-    /// <summary>A landscape painting for a wall.</summary>
-    public const int LandscapePainting = 328;
-
-    /// <summary>A portrait painting for a wall.</summary>
-    public const int PortraitPainting = 329;
-
-    /// <summary>A window for a wall.</summary>
-    public const int Window = 330;
-
-    /// <summary>A wall clock.</summary>
-    public const int WallClock = 331;
-
-    /// <summary>A mirror for a wall.</summary>
-    public const int Mirror = 332;
-
-    /// <summary>A red rug, two tiles across. Walked over.</summary>
-    public const int RedRug = 333;
-
-    /// <summary>A blue rug, three tiles wide. Walked over.</summary>
-    public const int BlueRug = 334;
-
-    /// <summary>A round rug, two tiles across. Walked over.</summary>
-    public const int RoundRug = 335;
-
-    /// <summary>A doormat. Walked over.</summary>
-    public const int Doormat = 336;
-
-    /// <summary>A carved pumpkin, sold in fall.</summary>
-    public const int PumpkinDecor = 337;
-
-    /// <summary>A winter wreath, sold in winter, for a wall.</summary>
-    public const int WinterWreath = 338;
 
     /// <summary>Wood, from trees, stumps and twigs.</summary>
     public const int Wood = 500;
