@@ -143,6 +143,7 @@ internal static class ClientWiring
             sp.GetRequiredService<IStringLocalizer<Language>>()));
         services.AddSingleton<GameMessagesViewModel>();
         services.AddSingleton<LevelUpBannerViewModel>();
+        services.AddSingleton<SeasonBannerViewModel>();
         services.AddSingleton<ItemDescriber>();
         services.AddSingleton<ToolbarViewModel>();
         services.AddSingleton<WorldMapViewModel>();
@@ -301,6 +302,7 @@ internal static class ClientWiring
         _ = services.GetRequiredService<ProgressViewModel>();
         _ = services.GetRequiredService<WalletViewModel>();
         _ = services.GetRequiredService<CalendarViewModel>();
+        _ = services.GetRequiredService<SeasonBannerViewModel>();
         _ = services.GetRequiredService<GoalChannel>();
         _ = services.GetRequiredService<TradeViewModel>();
         _ = services.GetRequiredService<CoopViewModel>();

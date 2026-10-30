@@ -12,7 +12,7 @@
             <div class="energy-bar mp-bar @(Vm.MpLow ? "low" : null)" role="meter" aria-label="@Vm.MpLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxMp" aria-valuenow="@Vm.Mp" data-tip="@Vm.MpLabel">
                 <span class="energy-fill mp-fill" style="height: @(Math.Round(Vm.MpFraction * 100).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span>
             </div>
-            <div class="energy-bar @(Vm.EnergyLow ? "low" : null)" role="meter" aria-label="@Vm.EnergyLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxEnergy" aria-valuenow="@Vm.Energy" data-tip="@Vm.EnergyLabel">
+            <div class="energy-bar @(Vm.EnergyLow ? "low" : null) @(Vm.EnergyPulsing ? "pulse" : null)" role="meter" aria-label="@Vm.EnergyLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxEnergy" aria-valuenow="@Vm.Energy" data-tip="@Vm.EnergyLabel">
                 <span class="energy-fill" style="height: @(Math.Round(Vm.EnergyFraction * 100).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span>
             </div>
         </div>

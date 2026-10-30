@@ -140,6 +140,14 @@ def build():
         ),
         0.9,
     )
+
+    # Storms and the world's small events (docs/adr/ADR-039 D3): a low thunder rumble, a double anvil clink for a finished craft, a soft crunch for
+    # eating, a doorbell for a visitor, a mail chime. Added after the sounds above so their seeded noise is unchanged.
+    sounds["thunder"] = normalise(mix(noise(1.6, rng, release=0.55, attack=0.01, lowpass=0.04), sine(55, 1.4, 0.7, release=0.6, glide=-0.35)), 0.9)
+    sounds["craft"] = normalise(mix(sine(1480, 0.11, 0.7, release=0.9), sine(2220, 0.08, 0.4, release=0.9), sine(1480, 0.09, 0.6, release=0.9), offsets=[0.0, 0.0, 0.1]), 0.7)
+    sounds["eat"] = normalise(mix(noise(0.05, rng, release=0.9, lowpass=0.35), noise(0.05, rng, release=0.9, lowpass=0.35), sine(300, 0.08, 0.4, release=0.8, glide=-0.4), offsets=[0.0, 0.09, 0.0]), 0.6)
+    sounds["doorbell"] = normalise(mix(sine(880, 0.5, 0.6, release=0.6), sine(660, 0.7, 0.6, release=0.6), offsets=[0.0, 0.35]), 0.7)
+    sounds["mail_chime"] = normalise(mix(sine(1046, 0.25, 0.5, release=0.7), sine(1318, 0.35, 0.4, release=0.7), offsets=[0.0, 0.12]), 0.55)
     return sounds
 
 

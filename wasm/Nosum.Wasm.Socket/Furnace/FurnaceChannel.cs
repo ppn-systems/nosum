@@ -49,6 +49,9 @@ public sealed class FurnaceChannel : IDisposable
     /// <summary>Raised with the server's answer to a start or collect request. May run on any thread.</summary>
     public event Action<FurnaceStatus>? Completed;
 
+    /// <summary>Raised when a running batch reaches its ready time on this client's clock, with the furnace's object id. May run on any thread.</summary>
+    public event Action<int>? Finished;
+
     /// <summary>Gets a number that changes whenever the mirror does.</summary>
     public int Version => Volatile.Read(ref _version);
 
@@ -176,6 +179,35 @@ public sealed class FurnaceChannel : IDisposable
             return;
         }
 
-        _jobs[objectId] = new FurnaceJobInfo(objectId, oreItemId, now.AddMilliseconds(remainingMs), state == FurnaceStateCode.Ready);
+        DateTimeOffset readyAt = now.AddMilliseconds(remainingMs);
+        _jobs[objectId] = new FurnaceJobInfo(objectId, oreItemId, readyAt, state == FurnaceStateCode.Ready);
+        if (state != FurnaceStateCode.Ready)
+        {
+            _ = this.FinishAsync(objectId, readyAt);
+        }
+    }
+
+    // Waits for the batch's ready time on the client's clock, then raises Finished unless the batch was replaced or collected meanwhile.
+    [SuppressMessage("Design", "CA1031", Justification = "A timer that cannot run changes nothing; the bar shows its state on the next read.")]
+    private async Task FinishAsync(int objectId, DateTimeOffset readyAt)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(0, (readyAt - _time.GetUtcNow()).TotalMilliseconds)), _time).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            return;
+        }
+
+        lock (_gate)
+        {
+            if (!_jobs.TryGetValue(objectId, out FurnaceJobInfo job) || job.ReadyAt != readyAt)
+            {
+                return;
+            }
+        }
+
+        this.Finished?.Invoke(objectId);
     }
 }
