@@ -1,4 +1,4 @@
-# ADR-071: Tool action pacing and feel
+# ADR-074: Tool action pacing and feel
 
 ## Status
 

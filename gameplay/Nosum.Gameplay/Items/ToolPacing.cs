@@ -5,7 +5,7 @@ using Nosum.Gameplay.Nodes;
 namespace Nosum.Gameplay.Items;
 
 /// <summary>
-/// The pacing of every farm, node and tool action (docs/adr/ADR-071). The server refuses a use that comes sooner than
+/// The pacing of every farm, node and tool action (docs/adr/ADR-074). The server refuses a use that comes sooner than
 /// <see cref="MinIntervalMs"/> after the player's previous one; the client plays a swing of <see cref="SwingMs(ToolKind)"/> per action and
 /// never sends sooner, so a mashed key or a fast drag repeats at the animation rate and is never refused.
 /// </summary>

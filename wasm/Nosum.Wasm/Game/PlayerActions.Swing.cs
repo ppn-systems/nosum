@@ -11,7 +11,7 @@ using Nosum.Wasm.ViewModels.Audio;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// The pacing and feel of a use (docs/adr/ADR-071): a swing starts when the key or the mouse asks, the farmer is locked into it, the use reaches the
+/// The pacing and feel of a use (docs/adr/ADR-074): a swing starts when the key or the mouse asks, the farmer is locked into it, the use reaches the
 /// server at its hit frame, and the next action waits for the swing and a short recovery. Energy spent on a successful use floats above the tile.
 /// Allocation-free: the floats live in a fixed ring; the server still decides every outcome.
 /// </summary>
@@ -46,7 +46,7 @@ internal sealed partial class PlayerActions
     private int _firedFloatY;
     private int _nextFloat;
 
-    /// <summary>Gets whether the farmer is exhausted: low energy makes every swing slower and shows a sweat bubble (docs/adr/ADR-071 D4).</summary>
+    /// <summary>Gets whether the farmer is exhausted: low energy makes every swing slower and shows a sweat bubble (docs/adr/ADR-074 D4).</summary>
     public bool Exhausted => _progress is { MaxEnergy: > 0 } progress && ToolPacing.IsExhausted(progress.Energy, progress.MaxEnergy);
 
     /// <summary>Gets whether a swing holds the farmer in place at <paramref name="nowSeconds"/>: no walking until the swing is over.</summary>

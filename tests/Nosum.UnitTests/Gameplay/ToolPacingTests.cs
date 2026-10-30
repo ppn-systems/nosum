@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>Pacing of farm, node and tool actions (docs/adr/ADR-071): the client's swing never undercuts the server's interval.</summary>
+/// <summary>Pacing of farm, node and tool actions (docs/adr/ADR-074): the client's swing never undercuts the server's interval.</summary>
 public sealed class ToolPacingTests
 {
     [Theory]

@@ -84,7 +84,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             // The first use lands: the hoe tills the tile.
             (await farmer.UseAsync(0, x, y, timeout.Token)).Status.Should().Be(FarmStatus.Ok);
 
-            // A second use with no wait comes inside the server's interval (docs/adr/ADR-071 D2): refused, with no reply text, and the tile is untouched.
+            // A second use with no wait comes inside the server's interval (docs/adr/ADR-074 D2): refused, with no reply text, and the tile is untouched.
             (await farmer.UseWithoutWaitAsync(0, x, y, timeout.Token)).Status.Should().Be(FarmStatus.Cooldown);
 
             // Once the interval has passed the same hoe is told what the tile already is, which proves the refused use changed nothing.
