@@ -12,7 +12,11 @@
                 {
                     int id = row.RecipeId;
                     <span class="cell @(row.Unlocked ? null : "locked")">
-                        <ItemSlotButton Slot="@(row.Output with { Index = id, Quantity = 0, IsSelected = false })" Picked="@(id == Vm.SelectedId)" OnClick="@(() => Vm.Select(id))" />
+                        <ItemSlotButton Slot="@(row.Output with { Index = id, Quantity = 0, IsSelected = false })" Tip="@(row.Unlocked ? null : LockedTip(row))" Picked="@(id == Vm.SelectedId)" OnClick="@(() => Vm.Select(id))" />
+                        @if (!row.Unlocked)
+                        {
+                            <span class="lock-badge" aria-hidden="true"></span>
+                        }
                     </span>
                 }
             </div>
@@ -45,3 +49,8 @@
         </GameSection>
     </GameStack>
 </MenuPage>
+
+@code {
+    // A locked recipe's tooltip: the item's name, then what unlocks it (the tooltip's first line is the name, the rest is the description).
+    private string LockedTip(RecipeRow row) => row.Output.Name + "\n" + (row.UnlockText.Length > 0 ? row.UnlockText : Vm.Text("Craft_Locked"));
+}

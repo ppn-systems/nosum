@@ -5,8 +5,40 @@
     justify-content: center;
 }
 
+/* A locked recipe keeps its real picture, greyed, with a padlock on its corner (the tooltip says what unlocks it). */
+.cell {
+    position: relative;
+}
+
 .cell.locked {
-    opacity: 0.45;
+    filter: grayscale(1) brightness(0.8);
+}
+
+.lock-badge {
+    position: absolute;
+    right: calc(var(--u) * -2);
+    bottom: calc(var(--u) * -2);
+    box-sizing: border-box;
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 7);
+    background: var(--nosum-ink);
+    border: var(--u) solid var(--nosum-gold);
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* The shackle of the padlock, standing on the body. */
+.lock-badge::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--u) * 1);
+    top: calc(var(--u) * -4);
+    box-sizing: border-box;
+    width: calc(var(--u) * 4);
+    height: calc(var(--u) * 4);
+    border: var(--u) solid var(--nosum-gold);
+    border-bottom: none;
+    border-radius: calc(var(--u) * 2) calc(var(--u) * 2) 0 0;
 }
 
 .recipe-line,
