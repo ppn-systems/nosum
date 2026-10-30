@@ -144,6 +144,34 @@ public sealed class JournalServiceTests : IClassFixture<PostgresFixture>
         (await LineOfAsync(alice, ItemCatalog.Parsnip)).Count.Should().Be(2);
     }
 
+    [Fact]
+    public async Task Grant_AfterTheCopyIsForgotten_CountsOnTopOfTheRows()
+    {
+        Guid player = await CreatePlayerAsync();
+        await _inventory.AddAsync(player, ItemCatalog.Parsnip, 3, "test.grant");
+        _inventory.Forget(player);
+
+        await _inventory.AddAsync(player, ItemCatalog.Parsnip, 2, "test.grant");
+
+        JournalLine line = await LineOfAsync(player, ItemCatalog.Parsnip);
+        line.Count.Should().Be(5);
+        line.FirstObtainedAt.Should().Be(s_start);
+    }
+
+    [Fact]
+    public async Task RefusedSave_LeavesTheCountAsTheRowsHaveIt()
+    {
+        Guid player = await CreatePlayerAsync();
+        await _inventory.AddAsync(player, ItemCatalog.Parsnip, 3, "test.grant");
+
+        InventoryChange refused = await _inventory.ApplyAsync(player, [InventoryOperation.Add(ItemCatalog.Parsnip, 4)], "test.grant", (_, _) => Task.FromResult(false));
+
+        refused.IsOk.Should().BeFalse();
+        (await LineOfAsync(player, ItemCatalog.Parsnip)).Count.Should().Be(3);
+        await _inventory.AddAsync(player, ItemCatalog.Parsnip, 1, "test.grant");
+        (await LineOfAsync(player, ItemCatalog.Parsnip)).Count.Should().Be(4);
+    }
+
     // The journal of a player holds the starter kit too, so a test reads the one item it grants.
     private async Task<JournalLine> LineOfAsync(Guid player, int itemId) =>
         (await _journal.GetAsync(player)).Single(l => l.ItemId == itemId);

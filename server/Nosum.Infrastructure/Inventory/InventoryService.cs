@@ -49,6 +49,7 @@ public sealed partial class InventoryService : IInventoryService
     private readonly StripedAsyncLock _locks = new();
     private readonly WriteBehind? _writeBehind;
     private readonly ConcurrentDictionary<Guid, Entry> _cache = new();
+    private readonly JournalRecorder _journal;
     private int _operations;
 
     /// <summary>Initializes the service.</summary>
@@ -65,6 +66,7 @@ public sealed partial class InventoryService : IInventoryService
         _time = time;
         _notifier = notifier;
         _writeBehind = writeBehind;
+        _journal = new JournalRecorder(unitOfWork);
     }
 
     /// <inheritdoc/>
@@ -313,12 +315,11 @@ public sealed partial class InventoryService : IInventoryService
         }
 
         // The collection journal: the items this change obtained are discovered in the same transaction, so they are saved if and only if the items are.
+        JournalRecorder.Plan?[] journal = new JournalRecorder.Plan?[playerIds.Length];
         for (int i = 0; i < playerIds.Length; i++)
         {
-            if (await this.RecordObtainedAsync(unit, loaded[i], deltas[i], cancellationToken).ConfigureAwait(false))
-            {
-                wrote = true;
-            }
+            journal[i] = await this.PlanJournalAsync(unit, loaded[i], deltas[i], cancellationToken).ConfigureAwait(false);
+            wrote |= journal[i] is not null;
         }
 
         if (enlist is not null && !await enlist(unit, cancellationToken).ConfigureAwait(false))
@@ -345,6 +346,11 @@ public sealed partial class InventoryService : IInventoryService
         for (int i = 0; i < loaded.Length; i++)
         {
             this.Store(playerIds[i], loaded[i]);
+            if (journal[i] is { } saved)
+            {
+                _journal.Commit(saved);
+            }
+
             if (push && changed[i].Count > 0)
             {
                 await this.PushAsync(playerIds[i], changed[i], cancellationToken).ConfigureAwait(false);
@@ -421,13 +427,13 @@ public sealed partial class InventoryService : IInventoryService
         return new Loaded(playerId, header.Capacity, selected, header.CreatedAt, grid, header, bySlot, isNew: false, before: null);
     }
 
-    // Counts what one player obtained in this change into their collection journal: the positive changes, plus the starter kit when this change created the inventory.
-    // Moves and sorts pass no changes, so they obtain nothing; containers have no journal.
-    private async Task<bool> RecordObtainedAsync(IUnitOfWork unit, Loaded loaded, List<(int ItemId, int Delta)> deltas, CancellationToken cancellationToken)
+    // Plans what one player obtained in this change into their collection journal: the positive changes, plus the starter kit when this change created the inventory.
+    // Moves and sorts pass no changes, so they obtain nothing; containers have no journal. The plan is kept only after the save (see ExecuteManyAsync).
+    private async Task<JournalRecorder.Plan?> PlanJournalAsync(IUnitOfWork unit, Loaded loaded, List<(int ItemId, int Delta)> deltas, CancellationToken cancellationToken)
     {
         if (ContainerIds.IsContainer(loaded.PlayerId))
         {
-            return false;
+            return null;
         }
 
         List<(int ItemId, int Delta)> gained = [.. deltas];
@@ -439,7 +445,7 @@ public sealed partial class InventoryService : IInventoryService
             }
         }
 
-        return await JournalRecorder.RecordAsync(unit, loaded.PlayerId, JournalRules.ObtainedTotals(gained), _time.GetUtcNow(), cancellationToken).ConfigureAwait(false);
+        return await _journal.PlanAsync(unit, loaded.PlayerId, JournalRules.ObtainedTotals(gained), _time.GetUtcNow(), loaded.IsNew, cancellationToken).ConfigureAwait(false);
     }
 
     // Brings the slot rows in line with the grid for the changed slots and adds the audit entries.

@@ -187,6 +187,8 @@ code differs from the text above:
   `FriendFacts` (`FriendService` replaces the entries of the two players it changed under one gate; a block drops them) and the allow-list and visit settings in `VisitFacts` (`VisitService` and
   `FriendService`). `VisitAccess` reads only these, so the access decision costs no command once they are warm and the ADR-019 re-check after a move reads the same memory. The co-op snapshot is built once
   per push for all online members (the stock and the log are shared state and stay uncached, D6).
+  The collection journal (ADR-072) is the same kind of cache in `JournalRecorder`, owned by `InventoryService`: a player's discovered items are read once, on their first grant that
+  needs them, a grant of a known item updates its count only, and the copy is dropped with the inventory copy (a failed save, a player leaving).
 - **D6.** Nothing keeps a balance. `TransferService` pushes `WalletUpdate` with the balance its own transaction saved instead of reading the wallet again.
 - **D7, write-behind.** `WriteBehind` holds a staged write per player and key for five seconds from the first change (constant clicking costs one write per window). Built for the two rows of the
   table that are written on a request: the selected hotbar slot and the read flag of a mail (the list and the unread count see it at once). It flushes when a player leaves a map (map change and
