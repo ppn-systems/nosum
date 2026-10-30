@@ -971,6 +971,12 @@
   <data name="Fishing_Status_OutOfEnergy" xml:space="preserve"><value>Bạn đã hết năng lượng để câu.</value></data>
   <data name="Fishing_Status_NoSpace" xml:space="preserve"><value>Túi đồ đã đầy, không còn chỗ cho cá.</value></data>
   <data name="Fishing_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Fishing_CatchTitle" xml:space="preserve"><value>Bạn câu được cá!</value></data>
+  <data name="Fishing_Size" xml:space="preserve"><value>Dài {0} cm</value></data>
+  <data name="Fishing_Rarity_Common" xml:space="preserve"><value>Thường gặp</value></data>
+  <data name="Fishing_Rarity_Uncommon" xml:space="preserve"><value>Khá hiếm</value></data>
+  <data name="Fishing_Rarity_Rare" xml:space="preserve"><value>Hiếm</value></data>
+  <data name="Fishing_Rarity_Legendary" xml:space="preserve"><value>Huyền thoại</value></data>
   <data name="Toolbar_Pet" xml:space="preserve"><value>Thú cưng</value></data>
   <data name="Emote_Open" xml:space="preserve"><value>Biểu cảm</value></data>
   <data name="Emote_Wheel" xml:space="preserve"><value>Vòng biểu cảm</value></data>

@@ -36,6 +36,7 @@ using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Minimap;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
+using Nosum.Wasm.ViewModels.Settings;
 using Nosum.Wasm.ViewModels.Startup;
 
 namespace Nosum.Wasm.Game;
@@ -80,6 +81,7 @@ internal static partial class GameLoop
     private static GameAudio? s_audio;
     private static MapLoadingViewModel? s_loading;
     private static FishingViewModel? s_fishing;
+    private static SettingsViewModel? s_settings;
     private static string? s_waitingMapId;
     private static double s_lastTime = -1;
     private static bool s_moved;
@@ -206,7 +208,12 @@ internal static partial class GameLoop
 
     /// <summary>Connects fishing to the game: a click on water with a rod casts, and a press reels the line in (docs/adr/ADR-078). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="fishing">The fishing banner's view model.</param>
-    public static void UseFishing(FishingViewModel fishing) => s_fishing = fishing;
+    /// <param name="settings">The player's settings, for reduced motion on the line and the bobber.</param>
+    public static void UseFishing(FishingViewModel fishing, SettingsViewModel settings)
+    {
+        s_fishing = fishing;
+        s_settings = settings;
+    }
 
     /// <summary>Tells the scene the player clicked or tapped the canvas; the next frame checks whether a merchant was hit (docs/adr/ADR-043 D3). Called from the page, not from the frame.
     /// While a line is out a click is the press that reels it in, and the scene does not see it (docs/adr/ADR-078 D9).</summary>
@@ -304,6 +311,11 @@ internal static partial class GameLoop
         if (s_bubbles is not null)
         {
             providers.Add(new EmoteBubbleDecoratorProvider(s_feed, s_bubbles));
+        }
+
+        if (s_fishing is not null && s_settings is not null)
+        {
+            providers.Add(new FishingDecoratorProvider(s_fishing, s_settings));
         }
 
         if (s_pets is not null)

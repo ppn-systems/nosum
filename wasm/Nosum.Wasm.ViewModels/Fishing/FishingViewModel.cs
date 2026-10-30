@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Fishing;
 using Nosum.Contracts.Fishing.S2C;
+using Nosum.Gameplay.Fishing;
 using Nosum.Wasm.Socket.Fishing;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Resources;
@@ -46,6 +47,9 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
     private long _biteAtMs;
     private int _windowMs;
     private int _barMs;
+    private int _castTileX;
+    private int _castTileY;
+    private FishCatch? _catch;
     private string _result = string.Empty;
     private string _note = string.Empty;
 
@@ -104,11 +108,52 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the fish of the last catch, for the catch card; null until a fish is reeled in and again after the next cast starts.</summary>
+    public FishCatch? Catch
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _catch;
+            }
+        }
+    }
+
+    /// <summary>Reads what the fishing scene draws this frame, in one lock.</summary>
+    /// <returns>The phase, the window's time left and length, and the tile the line went into.</returns>
+    public FishingFrame Read()
+    {
+        lock (_gate)
+        {
+            return new FishingFrame(_phase, _barMs, _windowMs, _castTileX, _castTileY);
+        }
+    }
+
     /// <summary>Gets the banner heading, <c>Fishing</c>.</summary>
     public string Title => this.Text("Fishing_Title");
 
     /// <summary>Gets the prompt shown while the bite window is open.</summary>
     public string PressPrompt => this.Text("Fishing_Press");
+
+    /// <summary>Gets the heading of the catch card, <c>You caught a fish!</c>.</summary>
+    public string CatchTitle => this.Text("Fishing_CatchTitle");
+
+    /// <summary>Gets the size line of a catch card, such as <c>32 cm long</c>.</summary>
+    /// <param name="fish">The catch.</param>
+    public string SizeOf(FishCatch fish)
+    {
+        ArgumentNullException.ThrowIfNull(fish);
+        return string.Format(CultureInfo.CurrentCulture, this.Text("Fishing_Size"), fish.SizeCm);
+    }
+
+    /// <summary>Gets the rarity name of a catch card, such as <c>Rare</c>.</summary>
+    /// <param name="fish">The catch.</param>
+    public string RarityOf(FishCatch fish)
+    {
+        ArgumentNullException.ThrowIfNull(fish);
+        return this.Text("Fishing_Rarity_" + fish.Rarity);
+    }
 
     /// <summary>Gets the line for the current phase: casting, waiting, the bite, reeling, or the result.</summary>
     public string Message
@@ -164,6 +209,9 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
             _result = string.Empty;
             _note = string.Empty;
             _barMs = 0;
+            _castTileX = tileX;
+            _castTileY = tileY;
+            _catch = null;
         }
 
         this.Changed?.Invoke();
@@ -294,6 +342,7 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
         switch (reply.Status)
         {
             case FishingStatus.Ok when reply.ItemId > 0:
+                _catch = this.CatchOf(reply);
                 this.Finish(string.Format(CultureInfo.CurrentCulture, this.Text("Fishing_Caught"), _items.NameOf(reply.ItemId)));
                 break;
             case FishingStatus.Ok:
@@ -326,6 +375,13 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
         _note = string.Empty;
         _barMs = (int)(end - now);
         this.Arm(Step.Close, end - now);
+    }
+
+    // Call under the lock. The fish of a catch, with its name, size and rarity; a fish the catalogue does not know is shown as common.
+    private FishCatch CatchOf(ReelResult reply)
+    {
+        FishRarity rarity = FishCatalog.TryGet(reply.ItemId, out FishSpecies? species) ? species.Rarity : FishRarity.Common;
+        return new FishCatch(reply.ItemId, _items.NameOf(reply.ItemId), reply.SizeCm, rarity);
     }
 
     // Call under the lock. Ends the cast on a result, which stays for a while before the banner clears.

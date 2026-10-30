@@ -164,6 +164,55 @@ public sealed class FishingViewModelTests
     }
 
     [Fact]
+    public void Reel_Caught_KeepsTheFishForTheCatchCard()
+    {
+        using CultureScope scope = new("en");
+        Rig rig = Create(CastOk(castId: 7), new ReelResult { Status = FishingStatus.Ok, ItemId = ItemCatalog.Carp, Quantity = 1, XpGained = 10, SizeCm = 32 });
+        rig.Vm.Cast(3, 4);
+        rig.Time.Advance(TimeSpan.FromMilliseconds(BiteMs));
+
+        rig.Vm.Press();
+
+        FishCatch? fish = rig.Vm.Catch;
+        fish.Should().NotBeNull();
+        fish!.ItemId.Should().Be(ItemCatalog.Carp);
+        fish.SizeCm.Should().Be(32);
+        fish.Name.Should().Be("Carp");
+        rig.Vm.SizeOf(fish).Should().Be("32 cm long");
+    }
+
+    [Fact]
+    public void Cast_AfterACatch_ClearsTheCatchCard()
+    {
+        using CultureScope scope = new("en");
+        Rig rig = Create(CastOk(castId: 7), new ReelResult { Status = FishingStatus.Ok, ItemId = ItemCatalog.Carp, Quantity = 1, XpGained = 10, SizeCm = 32 });
+        rig.Vm.Cast(3, 4);
+        rig.Time.Advance(TimeSpan.FromMilliseconds(BiteMs));
+        rig.Vm.Press();
+
+        rig.Vm.Cast(5, 6);
+
+        rig.Vm.Catch.Should().BeNull("a new cast starts with no fish on the card");
+    }
+
+    [Fact]
+    public void Read_DuringTheBite_ReportsTheCastTileAndTheWindow()
+    {
+        using CultureScope scope = new("en");
+        Rig rig = Create(CastOk(castId: 7));
+        rig.Vm.Cast(3, 4);
+        rig.Time.Advance(TimeSpan.FromMilliseconds(BiteMs));
+
+        FishingFrame frame = rig.Vm.Read();
+
+        frame.Phase.Should().Be(FishingPhase.Biting);
+        frame.CastTileX.Should().Be(3);
+        frame.CastTileY.Should().Be(4);
+        frame.WindowMs.Should().Be(WindowMs);
+        frame.BarMs.Should().Be(WindowMs);
+    }
+
+    [Fact]
     public void Cast_RefusedWithNoRod_EndsWithItsText()
     {
         using CultureScope scope = new("en");
