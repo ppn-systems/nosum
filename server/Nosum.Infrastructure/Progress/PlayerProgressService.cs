@@ -238,7 +238,7 @@ public sealed class PlayerProgressService : IPlayerProgress
     }
 
     /// <inheritdoc/>
-    public async ValueTask RestoreEnergyFromPotionAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
+    public async ValueTask RestoreEnergyAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
     {
         if (foodEnergy <= 0)
         {

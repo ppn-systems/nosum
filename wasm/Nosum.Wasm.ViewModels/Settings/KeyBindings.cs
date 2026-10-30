@@ -66,11 +66,11 @@ public sealed class KeyBindings
 
     /// <summary>Gets whether a key can never be bound.</summary>
     /// <param name="code">The browser key code.</param>
-    /// <returns><see langword="true"/> for anything that is not a letter or a punctuation key: Escape, Enter, Tab, the arrows, Space, the number keys, function keys, and the fixed combat skill hotkeys (<c>KeyZ</c>, <c>KeyX</c>, <c>KeyV</c>).</returns>
+    /// <returns><see langword="true"/> for anything that is not a letter or a punctuation key: Escape, Enter, Tab, the arrows, Space, the number keys, function keys, the fixed combat skill hotkeys (<c>KeyZ</c>, <c>KeyX</c>, <c>KeyV</c>), and the emote wheel's hotkey (<c>KeyB</c>, docs/adr/ADR-075 D1).</returns>
     public static bool IsReserved(string code)
     {
         ArgumentNullException.ThrowIfNull(code);
-        if (code is "KeyZ" or "KeyX" or "KeyV")
+        if (code is "KeyZ" or "KeyX" or "KeyV" or "KeyB")
         {
             return true;
         }
