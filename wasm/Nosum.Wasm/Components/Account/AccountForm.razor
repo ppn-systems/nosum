@@ -1,5 +1,6 @@
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.ViewModels.Account
+@using System
 @using System.Threading
 @implements IDisposable
 
@@ -17,8 +18,15 @@
             }
 
             <GameStack>
-                <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.GoogleEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)"
-                            OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkGoogleAsync() : Vm.SignInWithGoogleAsync())" />
+                @* Google draws its own button here (a click opens its popup); the pixel frame around it is the slot's. Without a client id the button is off. *@
+                @if (Vm.GoogleEnabled)
+                {
+                    <div id="@_googleSlotId" class="account-google" role="group" aria-label="@Vm.SignInGoogleText"></div>
+                }
+                else
+                {
+                    <GameButton Focusable="true" Disabled="true" Text="@(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)" />
+                }
                 <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.MicrosoftEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkMicrosoftText : Vm.SignInMicrosoftText)"
                             OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkMicrosoftAsync() : Vm.SignInWithMicrosoftAsync())" />
             </GameStack>
@@ -56,6 +64,8 @@
     [Parameter, EditorRequired] public AccountFormViewModel Vm { get; set; } = default!;
 
     private AccountFormViewModel? _subscribed;
+    private readonly string _googleSlotId = "account-google-" + Guid.NewGuid().ToString("N");
+    private string? _googleLocale;
 
     protected override void OnParametersSet()
     {
@@ -71,6 +81,16 @@
 
         _subscribed = Vm;
         Vm.Changed += OnChanged;
+    }
+
+    // Google's button is drawn into the slot once, and again when the UI language changes (its text follows the locale).
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Vm.GoogleEnabled && _googleLocale != AccountFormViewModel.GoogleButtonLocale)
+        {
+            _googleLocale = AccountFormViewModel.GoogleButtonLocale;
+            await Vm.AttachGoogleButtonAsync(_googleSlotId);
+        }
     }
 
     // The view model can raise Changed from a socket callback; marshal back to the render context.
