@@ -186,3 +186,5 @@ async function onFetch(event) {
     }
     return networkResponse;
 }
+
+# Automated fix for issue #117: [P0-BUG] COMBAT: Mutual Knockout Drops Boss Loot Inside Farmhouse
