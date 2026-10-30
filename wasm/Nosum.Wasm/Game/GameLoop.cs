@@ -23,11 +23,13 @@ using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.Socket.GroundItem;
+using Nosum.Wasm.Socket.Pet;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
+using Nosum.Wasm.ViewModels.Emotes;
 using Nosum.Wasm.ViewModels.Fishing;
 using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Minimap;
@@ -70,6 +72,9 @@ internal static partial class GameLoop
     private static CombatChannel? s_combat;
     private static IStringLocalizer<Language>? s_text;
     private static LookChannel? s_looks;
+    private static PetChannel? s_pets;
+    private static EmoteBubbleStore? s_bubbles;
+    private static readonly FarmerFeed s_feed = new();
     private static NicknameFormatter? s_names;
     private static GameAudio? s_audio;
     private static MapLoadingViewModel? s_loading;
@@ -151,6 +156,14 @@ internal static partial class GameLoop
         s_looks = looks;
         s_names = names;
     }
+
+    /// <summary>Connects the local player's pet, drawn at their heels on every map. Call before <see cref="StartAsync"/>, after <see cref="UseLooks"/>.</summary>
+    /// <param name="pets">The pet state of the local player.</param>
+    public static void UsePets(PetChannel pets) => s_pets = pets;
+
+    /// <summary>Connects the emote bubbles shown above the farmers. Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="bubbles">The bubbles on screen, written by the emote wheel.</param>
+    public static void UseEmotes(EmoteBubbleStore bubbles) => s_bubbles = bubbles;
 
     /// <summary>Connects furniture placing to the game: the placed pieces and the arrange panel's state. Call before <see cref="StartAsync"/>, after <see cref="UseFarming"/>.</summary>
     /// <param name="placeable">The placed pieces mirror and action sender.</param>
@@ -287,6 +300,16 @@ internal static partial class GameLoop
             providers.Add(new AnimalsDecoratorProvider(s_buildings, s_calendar));
         }
 
+        if (s_bubbles is not null)
+        {
+            providers.Add(new EmoteBubbleDecoratorProvider(s_feed, s_bubbles));
+        }
+
+        if (s_pets is not null)
+        {
+            providers.Add(new PetDecoratorProvider(s_feed, s_pets, s_looks, s_calendar));
+        }
+
         LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel, capacity: 2048);
         providers.Add(new CritterDecoratorProvider(s_calendar));
         providers.Add(new WayfindingDecoratorProvider(labelRegistry, s_text));
@@ -340,7 +363,7 @@ internal static partial class GameLoop
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(labelRegistry, s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed);
         s_scene.WaitingChanged += mapId => OnMapWaitChanged(mapId, loader);
         loader.Progressed += mapId => OnMapProgressed(mapId, loader);
         if (s_audio is not null)

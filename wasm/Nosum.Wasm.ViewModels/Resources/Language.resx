@@ -971,6 +971,41 @@
   <data name="Fishing_Status_OutOfEnergy" xml:space="preserve"><value>Bạn đã hết năng lượng để câu.</value></data>
   <data name="Fishing_Status_NoSpace" xml:space="preserve"><value>Túi đồ đã đầy, không còn chỗ cho cá.</value></data>
   <data name="Fishing_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Toolbar_Pet" xml:space="preserve"><value>Thú cưng</value></data>
+  <data name="Emote_Open" xml:space="preserve"><value>Biểu cảm</value></data>
+  <data name="Emote_Wheel" xml:space="preserve"><value>Vòng biểu cảm</value></data>
+  <data name="Emote_0" xml:space="preserve"><value>Trái tim</value></data>
+  <data name="Emote_1" xml:space="preserve"><value>Cười lớn</value></data>
+  <data name="Emote_2" xml:space="preserve"><value>Vẫy tay</value></data>
+  <data name="Emote_3" xml:space="preserve"><value>Dấu hỏi</value></data>
+  <data name="Emote_4" xml:space="preserve"><value>Dấu chấm than</value></data>
+  <data name="Emote_5" xml:space="preserve"><value>Buồn ngủ</value></data>
+  <data name="Emote_6" xml:space="preserve"><value>Nốt nhạc</value></data>
+  <data name="Emote_7" xml:space="preserve"><value>Giận dữ</value></data>
+  <data name="Emote_8" xml:space="preserve"><value>Buồn bã</value></data>
+  <data name="Emote_9" xml:space="preserve"><value>Giơ ngón cái</value></data>
+  <data name="Emote_10" xml:space="preserve"><value>Đồng xu</value></data>
+  <data name="Emote_11" xml:space="preserve"><value>Bông hoa</value></data>
+  <data name="Emote_Cooldown" xml:space="preserve"><value>Đợi một chút rồi hãy biểu cảm tiếp.</value></data>
+  <data name="Emote_NotOnMap" xml:space="preserve"><value>Bạn chưa ở trên bản đồ nào.</value></data>
+  <data name="Emote_Invalid" xml:space="preserve"><value>Biểu cảm này không có trên vòng.</value></data>
+  <data name="Pet_Cat" xml:space="preserve"><value>Mèo</value></data>
+  <data name="Pet_Dog" xml:space="preserve"><value>Chó</value></data>
+  <data name="Pet_AdoptTitle" xml:space="preserve"><value>Nhận thú cưng</value></data>
+  <data name="Pet_AdoptHint" xml:space="preserve"><value>Chọn một bạn đồng hành và đặt tên cho bạn ấy (tối đa 12 ký tự).</value></data>
+  <data name="Pet_NameLabel" xml:space="preserve"><value>Tên</value></data>
+  <data name="Pet_Adopt" xml:space="preserve"><value>Nhận nuôi</value></data>
+  <data name="Pet_Mood" xml:space="preserve"><value>Tâm trạng</value></data>
+  <data name="Pet_Pet" xml:space="preserve"><value>Vuốt ve</value></data>
+  <data name="Pet_AlreadyPetted" xml:space="preserve"><value>Hôm nay bạn đã vuốt ve bạn ấy rồi.</value></data>
+  <data name="Pet_OnlyAtHome" xml:space="preserve"><value>Bạn chỉ có thể nhận thú cưng khi ở trang trại của mình.</value></data>
+  <data name="Pet_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
+  <data name="Pet_Status_NoPet" xml:space="preserve"><value>Bạn chưa có thú cưng.</value></data>
+  <data name="Pet_Status_AlreadyHasPet" xml:space="preserve"><value>Bạn đã có một thú cưng rồi.</value></data>
+  <data name="Pet_Status_InvalidKind" xml:space="preserve"><value>Hãy chọn mèo hoặc chó.</value></data>
+  <data name="Pet_Status_InvalidName" xml:space="preserve"><value>Hãy đặt một cái tên (tối đa 12 ký tự).</value></data>
+  <data name="Pet_Status_AlreadyPetted" xml:space="preserve"><value>Hôm nay bạn đã vuốt ve bạn ấy rồi.</value></data>
+  <data name="Pet_Status_Unavailable" xml:space="preserve"><value>Chưa thể thực hiện lúc này.</value></data>
   <data name="Animal_duck_Name" xml:space="preserve"><value>Vịt</value></data>
   <data name="Animal_goat_Name" xml:space="preserve"><value>Dê</value></data>
   <data name="Animal_sheep_Name" xml:space="preserve"><value>Cừu</value></data>

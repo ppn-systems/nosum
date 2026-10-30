@@ -22,7 +22,9 @@
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Startup
 @using Nosum.Wasm.Controls.Touch
+@using Nosum.Wasm.Controls.Emotes
 @using Nosum.Wasm.Game
+@using Nosum.Wasm.ViewModels.Emotes
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
 @using Nosum.Wasm.ViewModels.Building
@@ -62,6 +64,7 @@
 @inject LevelUpBannerViewModel LevelUps
 @inject SeasonBannerViewModel Seasons
 @inject ToolbarViewModel Toolbar
+@inject EmoteWheelViewModel Emotes
 @inject WalletViewModel Wallet
 @inject MinimapViewModel Minimap
 @inject CalendarViewModel Calendar
@@ -121,7 +124,7 @@ else
         <TopRight>
             @if (_started)
             {
-                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Minimap="Minimap" Toolbar="Toolbar" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
+                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Minimap="Minimap" Toolbar="Toolbar" Emotes="Emotes" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
             }
         </TopRight>
         <Center>
@@ -178,6 +181,11 @@ else
                 <AccountForm Vm="Form" />
             }
             <InviteOverlay Trade="Trade" Coop="Coop" ActivePanel="_panel" />
+            @if (_started && !Form.ShowsForm)
+            {
+                @* The emote wheel, over the world; B or the HUD button opens it (docs/adr/ADR-075 D1). *@
+                <EmoteWheel Vm="Emotes" />
+            }
         </Overlay>
     </GameHud>
     @if (_started && _panel == PanelKind.None && !Form.ShowsForm)

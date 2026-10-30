@@ -15,6 +15,12 @@ internal static class DbBudgetBaseline
     public static IReadOnlyDictionary<string, Limit> HotPaths { get; } = new Dictionary<string, Limit>
     {
         ["AddVisitor / allow-list by nickname"] = new(0, 1, 0, 1),
+        ["AdoptPet / adopt a cat"] = new(1, 1, 0, 1),
+        ["PetPet / pet the cat"] = new(1, 1, 0, 1),
+        ["PetPet / pet the cat, asked again"] = new(1, 0, 0, 0),
+        ["GetPet / no pet"] = new(1, 0, 0, 0),
+        ["GetPet / no pet, asked again"] = new(1, 0, 0, 0),
+        ["SendEmote / wave"] = new(0, 0, 0, 0),
         ["BlockPlayer / block by nickname"] = new(4, 1, 0, 1),
         ["BrowseListings / empty market, page 0"] = new(2, 0, 0, 0),
         ["BrowseListings / empty market, page 0, asked again"] = new(2, 0, 0, 0),
@@ -56,7 +62,8 @@ internal static class DbBudgetBaseline
         ["GetInventory / starter kit"] = new(0, 0, 0, 0),
         ["GetInventory / starter kit, asked again"] = new(0, 0, 0, 0),
         ["GetJournal / read the journal"] = new(1, 0, 0, 0),
-        ["GetLooks / own and seen players"] = new(1, 1, 0, 1),
+        ["GetLooks / own and seen players"] = new(2, 1, 0, 1),
+
         ["GetLooks / own and seen players, asked again"] = new(0, 0, 0, 0),
         ["GetMine / in the entrance cave"] = new(1, 0, 0, 0),
         ["GetMyListings / none"] = new(1, 0, 0, 0),

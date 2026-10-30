@@ -70,6 +70,9 @@ public enum PanelKind
 
     /// <summary>The collection journal: every item discovered so far, silhouettes for the rest (the J key or the menu).</summary>
     Journal = 19,
+
+    /// <summary>The pet panel: the companion's name, mood and petting, or the adoption form on the own farm (docs/adr/ADR-075 D3-D4).</summary>
+    Pet = 20,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -136,6 +139,7 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         new ToolbarItem(PanelKind.Friends, this.Text("Toolbar_Friends"), string.Empty, "tab-friends"),
         new ToolbarItem(PanelKind.Mail, this.Text("Toolbar_Mail"), string.Empty, "tab-mail"),
         new ToolbarItem(PanelKind.Skills, this.Text("Toolbar_Skills"), string.Empty, "tab-skills"),
+        new ToolbarItem(PanelKind.Pet, this.Text("Toolbar_Pet"), string.Empty, "tab-pet"),
         new ToolbarItem(PanelKind.Profile, this.Text("Toolbar_Profile"), Key(GameAction.Profile), "tab-profile"),
         new ToolbarItem(PanelKind.WorldMap, this.Text("Toolbar_WorldMap"), Key(GameAction.WorldMap), "tab-market"),
         new ToolbarItem(PanelKind.Journal, this.Text("Toolbar_Journal"), Key(GameAction.Journal), "tab-goals"),

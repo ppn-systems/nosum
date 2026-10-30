@@ -12,6 +12,7 @@ using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Look;
+using Nosum.Abstractions.Pets;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Look;
@@ -37,6 +38,7 @@ public sealed class LookService : ILookService
     private readonly IChunkMap _chunks;
     private readonly IChunkPublisher _publisher;
     private readonly TimeProvider _time;
+    private readonly IPetService? _pets;
     private readonly ConcurrentDictionary<Guid, PlayerLook> _cache = new();
     private readonly StripedAsyncLock _locks = new();
 
@@ -48,7 +50,8 @@ public sealed class LookService : ILookService
     /// <param name="chunks">Who can see whom: the looks sent on a join are the ones in sight.</param>
     /// <param name="publisher">Delivers a look change to the players who can see the player (docs/adr/ADR-022).</param>
     /// <param name="time">The clock for the saved timestamp; tests pass a fake one.</param>
-    public LookService(IUnitOfWorkFactory unitOfWork, IInventoryService inventory, IMapPresence presence, INicknameDirectory nicknames, IChunkMap chunks, IChunkPublisher publisher, TimeProvider time)
+    /// <param name="pets">The pets, so every look carries its player's pet kind and name (docs/adr/ADR-075 D3); <see langword="null"/> sends none.</param>
+    public LookService(IUnitOfWorkFactory unitOfWork, IInventoryService inventory, IMapPresence presence, INicknameDirectory nicknames, IChunkMap chunks, IChunkPublisher publisher, TimeProvider time, IPetService? pets = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -64,6 +67,7 @@ public sealed class LookService : ILookService
         _nicknames = nicknames;
         _chunks = chunks;
         _publisher = publisher;
+        _pets = pets;
         _time = time;
     }
 
@@ -87,7 +91,7 @@ public sealed class LookService : ILookService
         foreach (PlayerPresence other in players)
         {
             PlayerLook look = other.AccountId == playerId ? mine : await this.GetAsync(other.AccountId, cancellationToken).ConfigureAwait(false);
-            looks.Add(new PlayerLookView(other.PlayerId, look, names.GetValueOrDefault(other.AccountId, string.Empty)));
+            looks.Add(new PlayerLookView(other.PlayerId, look, names.GetValueOrDefault(other.AccountId, string.Empty), await this.PetOfAsync(other.AccountId, cancellationToken).ConfigureAwait(false)));
         }
 
         return looks;
@@ -98,7 +102,7 @@ public sealed class LookService : ILookService
     {
         PlayerLook look = await this.GetAsync(accountId, cancellationToken).ConfigureAwait(false);
         string nickname = await _nicknames.GetAsync(accountId, cancellationToken).ConfigureAwait(false);
-        return new PlayerLookView(playerId, look, nickname);
+        return new PlayerLookView(playerId, look, nickname, await this.PetOfAsync(accountId, cancellationToken).ConfigureAwait(false));
     }
 
     /// <inheritdoc/>
@@ -287,6 +291,10 @@ public sealed class LookService : ILookService
         return look;
     }
 
+    // The pet a look carries: none without a pet service (tests, and the host before the pets are wired).
+    private async Task<PetLook> PetOfAsync(Guid accountId, CancellationToken cancellationToken)
+        => _pets is null ? PetLook.None : await _pets.LookOfAsync(accountId, cancellationToken).ConfigureAwait(false);
+
     private async Task BroadcastAsync(IConnection connection, PlayerLook look, CancellationToken cancellationToken)
     {
         if (_presence.TryGet(connection, out PlayerPresence? me))
@@ -301,7 +309,7 @@ public sealed class LookService : ILookService
         // A pooled packet may come back with its nested row reset: always give it a fresh one.
         LookRow row = LookRow.Create();
         string nickname = await _nicknames.GetAsync(me.AccountId, cancellationToken).ConfigureAwait(false);
-        new PlayerLookView(me.PlayerId, look, nickname).FillRow(row);
+        new PlayerLookView(me.PlayerId, look, nickname, await this.PetOfAsync(me.AccountId, cancellationToken).ConfigureAwait(false)).FillRow(row);
         lease.Value.Look = row;
 
         // A player's look is about one place: it reaches the players who can see them (docs/adr/ADR-022 D4). Before the first snapshot tick the player is in no interest set yet.
