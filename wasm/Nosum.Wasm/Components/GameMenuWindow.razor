@@ -67,7 +67,7 @@
 @inject JournalViewModel Journal
 
 @* Standalone window hosting the currently active game panel (docs/adr/ADR-044). *@
-<TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" OnClose="OnDialogClose">
+<TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" Wide="@(Panel == PanelKind.Inventory)" OnClose="OnDialogClose">
     @switch (Panel)
     {
         case PanelKind.Market:

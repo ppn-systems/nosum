@@ -1,8 +1,32 @@
-.inv-top {
+/* The toolbar row over the page: the sort button and the hotbar lock. */
+.inv-tools {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: calc(var(--u) * 3);
+    padding: 0 calc(var(--u) * 1) calc(var(--u) * 2);
+}
+
+.inv-lock {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--u);
+}
+
+/* The body: the paperdoll and what the hand holds in a side column, the bag and the hotbar in the wide column beside it. */
+.inv-body {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
     gap: var(--nosum-gap-group);
-    align-items: stretch;
+}
+
+.inv-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nosum-gap-group);
+    width: calc(var(--u) * 60);
+    min-width: 0;
 }
 
 .inv-hand {
@@ -26,25 +50,25 @@
     color: var(--nosum-ink-soft);
 }
 
-/* The sort button sits above the bag, at its right edge. */
-.inv-tools {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 0 calc(var(--u) * 2) calc(var(--u) * 2);
-}
-
-.inv-lock {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--u);
-    margin-left: calc(var(--u) * 2);
-}
-
-/* The bag, then the hotbar row after one slot-sized gap in the same card. */
+/* The bag, then the hotbar row after one slot-sized gap. */
 .inv-grids {
     display: flex;
     flex-direction: column;
     gap: calc(var(--u) * 4);
-    padding: calc(var(--u) * 1) calc(var(--u) * 3);
+    min-width: 0;
+    /* The count badges of the slots hang under them; the room keeps them inside the page instead of a needless scroll. */
+    padding-bottom: calc(var(--u) * 2);
+}
+
+/* A phone: the side column takes a row above the grids; the slots keep their size (they are the touch targets). */
+@media (max-width: 640px) {
+    .inv-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .inv-side {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: auto;
+    }
 }
