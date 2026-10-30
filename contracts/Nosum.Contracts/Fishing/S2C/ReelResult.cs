@@ -29,4 +29,7 @@ public sealed partial class ReelResult : PacketBase<ReelResult>, IPacketStaticOp
 
     /// <summary>Fishing experience the attempt gave.</summary>
     [SerializeOrder(3)] public int XpGained { get; set; }
+
+    /// <summary>The fish's size in centimetres, rolled by the server from the cast seed; zero when nothing was caught.</summary>
+    [SerializeOrder(4)] public int SizeCm { get; set; }
 }

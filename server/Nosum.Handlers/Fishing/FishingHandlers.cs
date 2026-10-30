@@ -66,6 +66,7 @@ public static partial class FishingHandlers
             reply.ItemId = outcome.ItemId;
             reply.Quantity = outcome.Quantity;
             reply.XpGained = outcome.XpGained;
+            reply.SizeCm = outcome.SizeCm;
         }).ConfigureAwait(false);
     }
 }

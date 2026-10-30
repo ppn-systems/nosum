@@ -200,4 +200,22 @@ public sealed class FishingRulesTests
     [InlineData(18, FishTime.Day)]
     [InlineData(19, FishTime.Night)]
     public void TimeOf_Hour_SplitsDayFromNight(int hour, FishTime expected) => FishingRules.TimeOf(hour).Should().Be(expected);
+
+    [Theory]
+    [InlineData(FishRarity.Common, 10, 30)]
+    [InlineData(FishRarity.Uncommon, 20, 45)]
+    [InlineData(FishRarity.Rare, 40, 70)]
+    [InlineData(FishRarity.Legendary, 60, 100)]
+    public void SizeCm_ForAnySeed_StaysInItsRarityRange(FishRarity rarity, int min, int max)
+    {
+        for (ulong seed = 1; seed <= 2000; seed++)
+        {
+            int size = FishingRules.SizeCm(rarity, seed);
+
+            size.Should().BeInRange(min, max);
+        }
+    }
+
+    [Fact]
+    public void SizeCm_SameSeed_IsTheSameSize() => FishingRules.SizeCm(FishRarity.Rare, 42).Should().Be(FishingRules.SizeCm(FishRarity.Rare, 42));
 }

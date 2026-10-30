@@ -84,6 +84,19 @@ public static class FishingRules
 
     private const int StreamBite = 1;
     private const int StreamRoll = 2;
+    private const int StreamSize = 3;
+
+    /// <summary>
+    /// Balance data: the size range of a caught fish in centimetres, inclusive, by rarity (index = <see cref="FishRarity"/> value).
+    /// Change these numbers to rebalance; the code reads them, nothing else states them.
+    /// </summary>
+    private static readonly (int Min, int Max)[] s_sizeRangeCm =
+    [
+        (10, 30),   // Common
+        (20, 45),   // Uncommon
+        (40, 70),   // Rare
+        (60, 100),  // Legendary
+    ];
 
     /// <summary>Gets the part of the day for a game hour.</summary>
     /// <param name="hour">Game hour, 0 to 23.</param>
@@ -107,6 +120,17 @@ public static class FishingRules
     {
         NodeRandom bite = new(NodeRandom.Mix(seed, StreamBite, 0));
         return BiteMinMs + bite.Next(BiteSpreadMs);
+    }
+
+    /// <summary>Rolls the size of a caught fish, in centimetres, inside its rarity's range (balance data in <c>s_sizeRangeCm</c>).</summary>
+    /// <param name="rarity">The rarity of the fish caught.</param>
+    /// <param name="seed">The cast seed.</param>
+    /// <returns>The size in centimetres, inclusive of the rarity's minimum and maximum.</returns>
+    public static int SizeCm(FishRarity rarity, ulong seed)
+    {
+        (int min, int max) = s_sizeRangeCm[(int)rarity];
+        NodeRandom size = new(NodeRandom.Mix(seed, StreamSize, 0));
+        return min + size.Next(max - min + 1);
     }
 
     /// <summary>Gets how long the press window is; a better fisher has a shorter one.</summary>

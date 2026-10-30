@@ -46,4 +46,5 @@ public readonly record struct CastOutcome(FishingStatus Status, uint CastId = 0,
 /// <param name="ItemId">The fish caught; zero unless Ok.</param>
 /// <param name="Quantity">How many were caught: one for Ok, otherwise zero.</param>
 /// <param name="XpGained">Fishing experience the attempt gave; zero when the cast was not judged.</param>
-public readonly record struct ReelOutcome(FishingStatus Status, int ItemId = 0, int Quantity = 0, int XpGained = 0);
+/// <param name="SizeCm">The fish's size in centimetres, rolled from the cast seed; zero unless Ok.</param>
+public readonly record struct ReelOutcome(FishingStatus Status, int ItemId = 0, int Quantity = 0, int XpGained = 0, int SizeCm = 0);
