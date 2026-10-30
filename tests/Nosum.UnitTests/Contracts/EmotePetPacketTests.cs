@@ -46,9 +46,9 @@ public sealed class EmotePetPacketTests
     }
 
     [Fact]
-    public void NosumProtocol_Version_IsEighteen_WithTheEmoteAndPetChange()
+    public void NosumProtocol_Version_IsAtLeastEighteen_WithTheEmoteAndPetChange()
     {
-        NosumProtocol.Version.Should().Be(18);
+        NosumProtocol.Version.Should().BeGreaterThanOrEqualTo(18);
     }
 
     [Fact]

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261030004319_PetCompanion")]
+    [Migration("20261030033513_PetCompanion")]
     partial class PetCompanion
     {
         /// <inheritdoc />
@@ -208,6 +208,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.Property<int>("FarmingXp")
                         .HasColumnType("integer")
                         .HasColumnName("farming_xp");
+
+                    b.Property<int>("FishingXp")
+                        .HasColumnType("integer")
+                        .HasColumnName("fishing_xp");
 
                     b.Property<int>("ForagingXp")
                         .HasColumnType("integer")
