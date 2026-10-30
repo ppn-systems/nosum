@@ -3,40 +3,13 @@
 @using Nosum.Wasm.ViewModels.Looks
 @inherits ObservingComponent<InventoryViewModel>
 
-@* The inventory page: a toolbar row (sort, hotbar lock), then a full-width strip for the item in hand, then the character's paperdoll beside the bag. The bag's grid
-   is the four rows of nine, with the hotbar row (the same nine slots as the toolbar) under it. A phone stacks the side column above the grids.
+@* The inventory page: a toolbar row (sort, hotbar lock), then the character's paperdoll beside the bag, then a full-width strip for the item in hand along the bottom.
+   The bag's grid is the four rows of nine, with the hotbar row (the same nine slots as the toolbar) under it. A phone stacks the side column above the grids.
    Click a stack to pick it up, click another slot to move it there (empty slot: move, same item: merge, other item: swap). *@
 <MenuPage Status="@Wardrobe.Status" Good="Wardrobe.StatusIsGood">
     <div class="inv-tools">
         <GameButton Variant="plain" Text="@Vm.SortLabel" OnClick="Vm.Sort" />
         <label class="inv-lock"><input type="checkbox" checked="@Vm.LockHotbar" @onchange="e => Vm.SetLockHotbar((bool)(e.Value ?? false))" />@Vm.LockHotbarLabel</label>
-    </div>
-    <div class="inv-hand-strip">
-        <GameSection Title="@Vm.HandTitle">
-            @if (Vm.Held is { } held)
-            {
-                // The tooltip's lines: the name, the description, then the stats (the tier among them), shown on one line each.
-                string[] lines = held.Tooltip.Split('\n');
-                <div class="inv-hand">
-                    <ItemSlotButton Slot="held" Tip="@string.Empty" />
-                    <div class="inv-hand-text">
-                        <p class="hand-name">@lines[0]</p>
-                        @if (lines.Length > 1)
-                        {
-                            <p class="hand-line">@lines[1]</p>
-                        }
-                        @if (lines.Length > 2)
-                        {
-                            <p class="hand-stats">@string.Join(" · ", lines, 2, lines.Length - 2)</p>
-                        }
-                    </div>
-                </div>
-            }
-            else
-            {
-                <p class="hand-line">@Vm.HandEmptyText</p>
-            }
-        </GameSection>
     </div>
     <div class="inv-body">
         <div class="inv-side">
@@ -46,6 +19,32 @@
             <ItemGrid Slots="Storage" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" />
             <ItemGrid Slots="Hotbar" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" />
         </div>
+    </div>
+    <div class="inv-hand-strip">
+        <GameSection Title="@Vm.HandTitle">
+            @if (Vm.Held is { } held)
+            {
+                // The tooltip's lines: the name, the description, then the stats (the tier among them). The name and stats share a line.
+                string[] lines = held.Tooltip.Split('\n');
+                <div class="inv-hand">
+                    <ItemSlotButton Slot="held" Tip="@string.Empty" />
+                    <div class="inv-hand-text">
+                        <p class="hand-title"><span class="hand-name">@lines[0]</span>@if (lines.Length > 2)
+                        {
+                            <span class="hand-stats">@string.Join(" · ", lines, 2, lines.Length - 2)</span>
+                        }</p>
+                        @if (lines.Length > 1)
+                        {
+                            <p class="hand-line">@lines[1]</p>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="hand-line">@Vm.HandEmptyText</p>
+            }
+        </GameSection>
     </div>
 </MenuPage>
 

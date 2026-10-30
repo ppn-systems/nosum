@@ -29,10 +29,10 @@
     min-width: 0;
 }
 
-/* The item in hand: a full-width strip under the toolbar, its picture then its name, description and stats. */
+/* The item in hand: a full-width strip along the bottom, its picture, then the name and stats on one line and the description under them. */
 .inv-hand-strip {
     min-width: 0;
-    padding-bottom: var(--nosum-gap-group);
+    margin-top: var(--nosum-gap-group);
 }
 
 .inv-hand {
@@ -47,8 +47,15 @@
     min-width: 0;
 }
 
-.hand-name {
+.hand-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: calc(var(--u) * 3);
     margin: 0;
+}
+
+.hand-name {
     color: var(--nosum-heading);
 }
 
