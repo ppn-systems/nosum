@@ -3,7 +3,7 @@
 namespace Nosum.Rendering;
 
 /// <summary>
-/// Camera shake for combat impacts (docs/adr/ADR-072): a decaying offset that re-jitters every <see cref="BeatMs"/>. Pure and
+/// Camera shake for combat impacts (docs/adr/ADR-076): a decaying offset that re-jitters every <see cref="BeatMs"/>. Pure and
 /// allocation-free; the same inputs always give the same offset, so a frame can be reproduced and tested.
 /// </summary>
 public static class CameraShake

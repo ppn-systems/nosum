@@ -308,7 +308,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
                     }
                 }
 
-                // A landed hit shoves an ordinary monster one tile away from the attacker; bosses stand their ground (docs/adr/ADR-072).
+                // A landed hit shoves an ordinary monster one tile away from the attacker; bosses stand their ground (docs/adr/ADR-076).
                 if (!defeated && !CombatRules.IsBoss(updatedMonster.Kind)
                     && MonsterStepRules.TryKnockback(map.Grid, instance.Monsters, monsterId, updatedMonster.X, updatedMonster.Y, playerTileX, playerTileY, out int knockedX, out int knockedY))
                 {

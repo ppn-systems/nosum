@@ -72,7 +72,7 @@ public sealed class RenderCommandBuffer
 
     /// <summary>
     /// Flag: wash the sprite toward white over its own silhouette, by the alpha byte of its <c>tint</c> (the monster hit flash,
-    /// docs/adr/ADR-072). The colour bytes of the tint are ignored.
+    /// docs/adr/ADR-076). The colour bytes of the tint are ignored.
     /// </summary>
     public const int Whiten = 2;
 

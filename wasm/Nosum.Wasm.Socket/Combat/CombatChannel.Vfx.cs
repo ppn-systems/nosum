@@ -289,7 +289,7 @@ public sealed partial class CombatChannel
 
     /// <summary>
     /// Records a landed hit on a monster, for the white flash and the hit-stop. A heavy hit or a finisher also starts a light
-    /// screen shake (docs/adr/ADR-072).
+    /// screen shake (docs/adr/ADR-076).
     /// </summary>
     private void RecordMonsterHit(int monsterId, int impact)
     {
@@ -307,7 +307,7 @@ public sealed partial class CombatChannel
         Volatile.Write(ref _shakeTick, now);
     }
 
-    /// <summary>Records where a monster stood before it moved, so its sprite slides from there to its new tile (docs/adr/ADR-072).</summary>
+    /// <summary>Records where a monster stood before it moved, so its sprite slides from there to its new tile (docs/adr/ADR-076).</summary>
     private void RecordMonsterSlide(int monsterId, int fromX, int fromY)
     {
         Volatile.Write(ref _slideMonsterId, monsterId);
@@ -316,7 +316,7 @@ public sealed partial class CombatChannel
         Volatile.Write(ref _slideTick, Environment.TickCount64);
     }
 
-    /// <summary>Queries the last landed hit on a monster for zero-allocation world rendering (docs/adr/ADR-072).</summary>
+    /// <summary>Queries the last landed hit on a monster for zero-allocation world rendering (docs/adr/ADR-076).</summary>
     /// <param name="monsterId">The monster being drawn.</param>
     /// <param name="hitTick">Local tick count of the hit.</param>
     /// <param name="impact">The hit's impact, one of the <c>Impact</c> constants.</param>
@@ -328,7 +328,7 @@ public sealed partial class CombatChannel
         return hitTick > 0 && Volatile.Read(ref _hitMonsterId) == monsterId;
     }
 
-    /// <summary>Queries the last tile move of a monster, so its sprite can slide from the tile it left (docs/adr/ADR-072).</summary>
+    /// <summary>Queries the last tile move of a monster, so its sprite can slide from the tile it left (docs/adr/ADR-076).</summary>
     /// <param name="monsterId">The monster being drawn.</param>
     /// <param name="slideTick">Local tick count of the move.</param>
     /// <param name="fromX">Tile X it left.</param>
@@ -342,7 +342,7 @@ public sealed partial class CombatChannel
         return slideTick > 0 && Volatile.Read(ref _slideMonsterId) == monsterId;
     }
 
-    /// <summary>Queries the active screen shake for zero-allocation world rendering (docs/adr/ADR-072).</summary>
+    /// <summary>Queries the active screen shake for zero-allocation world rendering (docs/adr/ADR-076).</summary>
     /// <param name="amplitude">Largest offset in world pixels.</param>
     /// <param name="elapsedMs">Milliseconds since the impact.</param>
     /// <param name="durationMs">How long the shake lasts.</param>

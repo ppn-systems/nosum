@@ -396,7 +396,7 @@ function tintedTexture(id, tint) {
     return result;
 }
 
-// Washes a sheet toward white by the alpha byte of the tint, over the sprite's own silhouette (the monster hit flash, docs/adr/ADR-072).
+// Washes a sheet toward white by the alpha byte of the tint, over the sprite's own silhouette (the monster hit flash, docs/adr/ADR-076).
 function whitenedTexture(id, tint) {
     const alpha = tint & 255;
     const key = `w${id}:${alpha}`;

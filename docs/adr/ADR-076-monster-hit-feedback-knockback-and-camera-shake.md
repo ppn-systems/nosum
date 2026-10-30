@@ -1,4 +1,4 @@
-# ADR-072: Monster hit feedback: white flash, knockback, hit-stop and camera shake
+# ADR-076: Monster hit feedback: white flash, knockback, hit-stop and camera shake
 
 ## Status
 

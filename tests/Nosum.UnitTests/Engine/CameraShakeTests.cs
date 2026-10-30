@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Engine;
 
-/// <summary>Tests for the combat camera shake (docs/adr/ADR-072).</summary>
+/// <summary>Tests for the combat camera shake (docs/adr/ADR-076).</summary>
 public sealed class CameraShakeTests
 {
     [Fact]

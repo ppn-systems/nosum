@@ -104,7 +104,7 @@ public static class MonsterStepRules
     /// <summary>
     /// Picks the one-tile knockback step for a monster struck from a tile: directly away from the attacker, on each axis the
     /// attacker is offset along. The step is refused when the grid blocks it (including a diagonal past a wall corner) or
-    /// another living monster holds it (docs/adr/ADR-072).
+    /// another living monster holds it (docs/adr/ADR-076).
     /// </summary>
     /// <param name="grid">Walkable tiles of the map.</param>
     /// <param name="monsters">Monsters on the map instance; the struck monster itself is recognised by <paramref name="monsterId"/>.</param>

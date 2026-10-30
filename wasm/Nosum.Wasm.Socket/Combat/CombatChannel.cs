@@ -40,7 +40,7 @@ public sealed partial class CombatChannel : IDisposable
     /// <summary>How long the finisher burst stays on screen, in milliseconds.</summary>
     public const int FinisherDurationMs = 700;
 
-    /// <summary>Impact of a landed hit: a light strike, the heavy strike whose damage number is crit-styled, or the combo finisher (docs/adr/ADR-072).</summary>
+    /// <summary>Impact of a landed hit: a light strike, the heavy strike whose damage number is crit-styled, or the combo finisher (docs/adr/ADR-076).</summary>
     public const int ImpactLight = 0;
 
     /// <summary>See <see cref="ImpactLight"/>.</summary>

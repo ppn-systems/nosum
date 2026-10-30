@@ -23,7 +23,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     private const int BlockHeight = 48;
     private const int CullMargin = 32;
 
-    // Hit feedback durations (docs/adr/ADR-072): the white flash, the hit-stop that holds the sprite's pose, and the slide to a new tile.
+    // Hit feedback durations (docs/adr/ADR-076): the white flash, the hit-stop that holds the sprite's pose, and the slide to a new tile.
     private const int HitFlashMs = 90;
     private const int HitStopMs = 60;
     private const int KnockSlideMs = 100;
@@ -130,7 +130,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                 continue;
             }
 
-            // A landed hit flashes the sprite white (docs/adr/ADR-072). A heavy hit or a finisher flashes brighter; the hit-stop holds the
+            // A landed hit flashes the sprite white (docs/adr/ADR-076). A heavy hit or a finisher flashes brighter; the hit-stop holds the
             // sprite's pose for a moment, and reduced motion keeps it moving.
             int flashAlpha = 0;
             long motionNow = now;
