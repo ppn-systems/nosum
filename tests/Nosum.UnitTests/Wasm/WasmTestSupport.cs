@@ -24,7 +24,7 @@ namespace Nosum.UnitTests.Wasm;
 internal static class WasmTestSupport
 {
     /// <summary>The icon every item gets in tests.</summary>
-    public static readonly ItemIcon Icon = new("sheet.png", 0, 0, 16, 64, 64);
+    public static readonly ItemIcon Icon = new("sheet.png", 0, 0, 16, 16, 64, 64);
 
     public static StringLocalizer<T> Localizer<T>()
     {

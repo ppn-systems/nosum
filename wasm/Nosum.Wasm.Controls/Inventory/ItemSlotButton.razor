@@ -57,9 +57,16 @@
     private Task Clicked(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
         => e.ShiftKey && OnShiftClick.HasDelegate ? OnShiftClick.InvokeAsync() : OnClick.InvokeAsync();
 
-    // The picture is a window onto the item sheet; every length is a whole number of UI pixels (--u), set in the CSS.
+    // The picture is the sprite itself, scaled to fit the slot's picture and centred by the slot. The box is exactly the scaled sprite, so no
+    // neighbouring art shows through. Lengths are UI pixels (--u), set here so each slot carries its own geometry.
     private static string IconStyle(ItemIcon icon)
-        => icon.ThemeImage is { } name
-            ? FormattableString.Invariant($"background-image:var(--nosum-img-{name});--is:16;--sw:16;--sh:16;--ix:0;--iy:0")
-            : FormattableString.Invariant($"background-image:url('{icon.SheetUrl}');--is:{icon.Size};--sw:{icon.SheetWidth};--sh:{icon.SheetHeight};--ix:{icon.X};--iy:{icon.Y}");
+    {
+        if (icon.ThemeImage is { } name)
+        {
+            return FormattableString.Invariant($"background-image:var(--nosum-img-{name});width:calc({ItemIcon.PictureSize} * var(--u));height:calc({ItemIcon.PictureSize} * var(--u));background-size:calc({ItemIcon.PictureSize} * var(--u)) calc({ItemIcon.PictureSize} * var(--u))");
+        }
+
+        double scale = icon.FitScale;
+        return FormattableString.Invariant($"background-image:url('{icon.SheetUrl}');width:calc({icon.Width * scale} * var(--u));height:calc({icon.Height * scale} * var(--u));background-size:calc({icon.SheetWidth * scale} * var(--u)) calc({icon.SheetHeight * scale} * var(--u));background-position:calc({-icon.X * scale} * var(--u)) calc({-icon.Y * scale} * var(--u))");
+    }
 }

@@ -12,6 +12,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Calendar;
+using Nosum.Wasm.ViewModels.Inventory;
 
 namespace Nosum.Wasm.Game;
 

@@ -53,14 +53,11 @@
     animation: nosum-blink 0.9s steps(2, jump-none) infinite;
 }
 
+/* The picture: its size, sheet scale and window come inline (ItemSlotButton.IconStyle), so it is the sprite and nothing else. */
 .icon {
     display: block;
     flex: none;
-    width: calc(var(--is, 16) * var(--u));
-    height: calc(var(--is, 16) * var(--u));
     background-repeat: no-repeat;
-    background-size: calc(var(--sw, 16) * var(--u)) calc(var(--sh, 16) * var(--u));
-    background-position: calc(var(--ix, 0) * var(--u) * -1) calc(var(--iy, 0) * var(--u) * -1);
     image-rendering: pixelated;
 }
 
