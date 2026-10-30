@@ -246,7 +246,7 @@ public sealed class ShopViewModelTests
     {
         public bool TryGet(int itemId, out ItemIcon icon)
         {
-            icon = new ItemIcon("sheet.png", 0, 0, 16, 64, 64);
+            icon = new ItemIcon("sheet.png", 0, 0, 16, 16, 64, 64);
             return true;
         }
     }

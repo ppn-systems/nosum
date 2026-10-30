@@ -35,7 +35,7 @@ namespace Nosum.UnitTests.Wasm;
 [Collection(SharedUiCulture.Name)]
 public sealed class InventoryViewModelTests
 {
-    private static readonly ItemIcon s_icon = new("sheet.png", 16, 32, 16, 64, 64);
+    private static readonly ItemIcon s_icon = new("sheet.png", 16, 32, 16, 16, 64, 64);
 
     [Theory]
     [InlineData("en", "Hoe")]

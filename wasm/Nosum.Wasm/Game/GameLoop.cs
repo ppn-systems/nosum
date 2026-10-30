@@ -31,6 +31,7 @@ using Nosum.Rendering;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.ViewModels.Emotes;
 using Nosum.Wasm.ViewModels.Fishing;
+using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Minimap;
 using Nosum.Wasm.ViewModels.Player;

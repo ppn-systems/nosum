@@ -7,6 +7,7 @@ using Nosum.Core;
 using Nosum.Gameplay.Maps;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.GroundItem;
+using Nosum.Wasm.ViewModels.Inventory;
 
 namespace Nosum.Wasm.Game;
 

@@ -29,25 +29,45 @@
     min-width: 0;
 }
 
+/* The item in hand: a full-width strip along the bottom, its picture, then the name and stats on one line and the description under them. */
+.inv-hand-strip {
+    min-width: 0;
+    margin-top: var(--nosum-gap-group);
+}
+
 .inv-hand {
     display: flex;
-    gap: calc(var(--u) * 3);
-    align-items: flex-start;
+    gap: calc(var(--u) * 4);
+    align-items: center;
     padding: 0 calc(var(--u) * 2);
 }
 
 .inv-hand-text {
+    flex: 1 1 auto;
     min-width: 0;
 }
 
-.hand-name {
+.hand-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: calc(var(--u) * 3);
     margin: 0;
+}
+
+.hand-name {
     color: var(--nosum-heading);
 }
 
-.hand-line {
+.hand-line,
+.hand-stats {
     margin: 0;
     color: var(--nosum-ink-soft);
+    overflow-wrap: anywhere;
+}
+
+.hand-stats {
+    color: var(--nosum-ink);
 }
 
 /* The bag, then the hotbar row after one slot-sized gap. */

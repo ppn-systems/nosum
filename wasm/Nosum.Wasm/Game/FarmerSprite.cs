@@ -166,7 +166,7 @@ internal static partial class FarmerSprite
             sheetTex = ResolveItemSheetTexture(textures, icon.SheetUrl);
             srcX = icon.X;
             srcY = icon.Y;
-            srcSize = icon.Size > 0 ? icon.Size : 16;
+            srcSize = icon.Width > 0 ? icon.Width : 16;
         }
 
         if (sheetTex > 0)
