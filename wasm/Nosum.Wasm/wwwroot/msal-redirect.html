@@ -4,29 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nosum sign-in</title>
-    <!-- Landing page of the Microsoft sign-in popup (external-sign-in.js). Same pinned MSAL version as external-sign-in.js, and the same client
-         settings as the game: the client id and tenant come from appsettings.json. It only completes the popup and closes itself. -->
-    <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script>
-    <script>
-        (async function () {
-            try {
-                var response = await fetch(new URL("appsettings.json", location.href), { cache: "no-cache" });
-                var settings = (await response.json()).ExternalSignIn || {};
-                var app = new msal.PublicClientApplication({
-                    auth: {
-                        clientId: settings.MicrosoftClientId || "",
-                        authority: "https://login.microsoftonline.com/" + encodeURIComponent(settings.MicrosoftTenant || "common"),
-                        redirectUri: new URL("msal-redirect.html", location.href).href
-                    },
-                    cache: { cacheLocation: "sessionStorage" }
-                });
-                await app.initialize();
-                await app.handleRedirectPromise();
-            } catch (error) {
-                console.error("Sign-in window could not complete.", error);
-            }
-        })();
-    </script>
+    <!-- Landing page of the Microsoft sign-in popup (external-sign-in.js). It is deliberately empty: MSAL in the game window watches this
+         popup, reads the #code from its address and closes it. Running MSAL here (handleRedirectPromise) would consume and clear that hash
+         first, and the game window would time out and report the sign-in as cancelled. -->
 </head>
 <body></body>
 </html>
