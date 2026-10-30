@@ -1,13 +1,15 @@
 @using Nosum.Wasm.Controls.Calendar
 @using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Layout
 @using Nosum.Wasm.Controls.Wallet
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Calendar
 @using Nosum.Wasm.ViewModels.Emotes
 @using Nosum.Wasm.ViewModels.Mail
+@using Nosum.Wasm.ViewModels.Minimap
 @using Nosum.Wasm.ViewModels.Wallet
 
-@* Top-right HUD bars: calendar clock, coin balance, standalone Mail/Settings window buttons, and the player toolbar. *@
+@* Top-right HUD: the calendar clock and coin balance, the standalone Mail/Settings buttons and the player toolbar, with the minimap frame under the bar. *@
 <div class="hud-bar">
     <CalendarClock Vm="Calendar" />
     <CoinBadge Vm="Wallet" />
@@ -17,6 +19,7 @@
     @* The emote wheel's button: the same as the B key, and the touch way to open the wheel (docs/adr/ADR-075 D1). *@
     <GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" />
 </div>
+<HudMinimap Vm="Minimap" OnOpen="@(() => OnTogglePanel.InvokeAsync(PanelKind.WorldMap))" />
 <div class="hud-bar hud-player-bar" role="toolbar" aria-label="@Toolbar.Label">
     @foreach (ToolbarItem item in Toolbar.Items)
     {
@@ -40,6 +43,8 @@
 
     /// <summary>The emote wheel's view model.</summary>
     [Parameter, EditorRequired] public EmoteWheelViewModel Emotes { get; set; } = default!;
+    /// <summary>The minimap frame view model.</summary>
+    [Parameter, EditorRequired] public MinimapViewModel Minimap { get; set; } = default!;
 
     /// <summary>The toolbar view model.</summary>
     [Parameter, EditorRequired] public ToolbarViewModel Toolbar { get; set; } = default!;
@@ -49,4 +54,6 @@
 
     /// <summary>Raised when a toolbar or top-right button is clicked to toggle a panel.</summary>
     [Parameter] public EventCallback<PanelKind> OnTogglePanel { get; set; }
+
+    protected override void OnParametersSet() => Minimap.Covered = ActivePanel != PanelKind.None;
 }

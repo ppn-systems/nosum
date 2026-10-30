@@ -36,6 +36,7 @@
 @using Nosum.Wasm.ViewModels.Furnace
 @using Nosum.Wasm.ViewModels.Inventory
 @using Nosum.Wasm.ViewModels.Mail
+@using Nosum.Wasm.ViewModels.Minimap
 @using Nosum.Wasm.ViewModels.Maps
 @using Nosum.Wasm.ViewModels.Market
 @using Nosum.Wasm.ViewModels.Mine
@@ -63,6 +64,7 @@
 @inject ToolbarViewModel Toolbar
 @inject EmoteWheelViewModel Emotes
 @inject WalletViewModel Wallet
+@inject MinimapViewModel Minimap
 @inject CalendarViewModel Calendar
 @inject MarketViewModel Market
 @inject TradeViewModel Trade
@@ -119,7 +121,7 @@ else
         <TopRight>
             @if (_started)
             {
-                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Toolbar="Toolbar" Emotes="Emotes" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
+                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Minimap="Minimap" Toolbar="Toolbar" Emotes="Emotes" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
             }
         </TopRight>
         <Center>

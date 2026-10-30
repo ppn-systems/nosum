@@ -31,6 +31,7 @@ using Nosum.Rendering;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.ViewModels.Emotes;
 using Nosum.Wasm.ViewModels.Maps;
+using Nosum.Wasm.ViewModels.Minimap;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Startup;
@@ -53,6 +54,7 @@ internal static partial class GameLoop
     private static MapScene? s_scene;
     private static PlayerChannel? s_network;
     private static CalendarChannel? s_calendar;
+    private static MinimapViewModel? s_minimap;
     private static FarmChannel? s_farm;
     private static InventoryChannel? s_inventory;
     private static PlaceableChannel? s_placeable;
@@ -136,6 +138,9 @@ internal static partial class GameLoop
     /// <summary>Connects the server calendar, so crops that withered at a season change are not drawn; call before <see cref="StartAsync"/>.</summary>
     /// <param name="calendar">The server calendar.</param>
     public static void UseCalendar(CalendarChannel calendar) => s_calendar = calendar;
+
+    /// <summary>Sets the minimap frame the canvas keeps in step with (the M key, and hidden on a narrow screen).</summary>
+    public static void UseMinimap(MinimapViewModel minimap) => s_minimap = minimap;
 
     /// <summary>Gives the world map the maps' connections and the farmer's current map; the loader is made in <see cref="StartAsync"/>.</summary>
     /// <param name="worldMap">The world map panel's view model.</param>
@@ -341,7 +346,7 @@ internal static partial class GameLoop
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(labelRegistry, s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_feed);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed);
         s_scene.WaitingChanged += mapId => OnMapWaitChanged(mapId, loader);
         loader.Progressed += mapId => OnMapProgressed(mapId, loader);
         if (s_audio is not null)

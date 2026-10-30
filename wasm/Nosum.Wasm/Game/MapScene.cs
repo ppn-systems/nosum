@@ -10,10 +10,12 @@ using Nosum.Gameplay.Shops;
 using Nosum.Gameplay.Weather;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Calendar;
+using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
+using Nosum.Wasm.ViewModels.Minimap;
 
 namespace Nosum.Wasm.Game;
 
@@ -64,6 +66,8 @@ internal sealed partial class MapScene
     private readonly CompositeWalkGrid _compositeGrid;
     private readonly CalendarChannel? _calendar;
     private readonly FarmerFeed? _feed;
+    private readonly CombatChannel? _combat;
+    private readonly MinimapViewModel? _minimapFrame;
     private FixedTimestep _clock = new(StepSeconds, 0.25);
     private MapContent _content;
     private Walker _farmer;
@@ -99,11 +103,16 @@ internal sealed partial class MapScene
     /// <param name="audio">The audio director: sounds queued by the hooks are written into the frame, and the footsteps, music and rain loop are decided here (docs/adr/ADR-039); <see langword="null"/> plays no sound.</param>
     /// <param name="combatLabels">Pre-interned combat numbers, used as the energy labels that float above a tool's tile (docs/adr/ADR-071 D4); <see langword="null"/> shows none.</param>
     /// <param name="feed">The farmers of each frame, for the decorators that follow them (pets, emote bubbles); <see langword="null"/> keeps the feed empty.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, FarmerFeed? feed = null)
+    /// <param name="combat">The combat channel whose impacts shake the view (docs/adr/ADR-076); <see langword="null"/> never shakes.</param>
+    /// <param name="minimap">The minimap frame in the HUD, told whenever the canvas shows or hides the map; <see langword="null"/> has no frame.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null)
     {
         _sky = new SkyLayer(calendar, placed);
         _calendar = calendar;
+        _combat = combat;
+        _minimapFrame = minimap;
         _feed = feed;
+
         _audio = audio;
         _actions = actions;
         _placement = placement;
@@ -262,6 +271,13 @@ internal sealed partial class MapScene
             map.Width * map.TileWidth,
             map.Height * map.TileHeight,
             HudBottomInset(canvasWidth, canvasHeight) / scale);
+
+        // A crit or a finisher shakes the view for a moment (docs/adr/ADR-076); reduced motion keeps it still.
+        if (!ViewOptions.ReduceMotion && _combat is not null && _combat.TryGetActiveShake(out int shakeAmplitude, out int shakeElapsedMs, out int shakeDurationMs))
+        {
+            CameraShake.Offset(shakeElapsedMs, shakeDurationMs, shakeAmplitude, out int shakeX, out int shakeY);
+            _camera.Nudge(shakeX, shakeY);
+        }
 
         // Drag-to-sow: the tile under the held mouse, in this frame's camera. The server checks each tile the drag reaches.
         if (_actions is not null && _phase == Phase.Playing)

@@ -17,17 +17,14 @@ namespace Nosum.Rendering;
 /// </remarks>
 public sealed class MinimapLayer
 {
-    /// <summary>Widest the minimap box may be, unscaled pixels, when the map fits (larger maps are clamped to one pixel per tile).</summary>
-    public const int MaxWidth = 96;
+    /// <summary>Widest the minimap ground may be, unscaled pixels. A larger map is sampled: one pixel stands for several tiles.</summary>
+    public const int MaxWidth = 50;
 
-    /// <summary>Tallest the minimap box may be, unscaled pixels.</summary>
-    public const int MaxHeight = 64;
+    /// <summary>Tallest the minimap ground may be, unscaled pixels; the HUD frame around it is sized to these (HudMinimap).</summary>
+    public const int MaxHeight = 34;
 
     /// <summary>Largest size of one tile in the minimap, unscaled pixels: a room shows its tiles large, a big map small.</summary>
     public const int MaxCell = 4;
-
-    /// <summary>Gap between the minimap and the screen corner, unscaled pixels.</summary>
-    public const int Margin = 6;
 
     /// <summary>Dots one frame may carry; further ones are dropped.</summary>
     public const int MaxDots = 128;
@@ -56,6 +53,7 @@ public sealed class MinimapLayer
     private int _markerCount;
     private int _dotCount;
     private int _cell = 1;
+    private int _stride = 1;
     private int _mapWidth;
     private int _mapHeight;
     private string? _key;
@@ -79,13 +77,16 @@ public sealed class MinimapLayer
     /// <summary>Gets the key of the map the runs were built for, or <see langword="null"/> before the first <see cref="Build"/>.</summary>
     public string? Key => _key;
 
-    /// <summary>Gets the size of one tile in the minimap, unscaled pixels.</summary>
+    /// <summary>Gets the size of one tile in the minimap, unscaled pixels (one pixel when the map is sampled).</summary>
     public int Cell => _cell;
 
-    /// <summary>Gets the width of the minimap box, unscaled pixels, including the border.</summary>
+    /// <summary>Gets how many tiles one minimap cell covers along each axis: 1 when the whole map fits, more for a large map.</summary>
+    public int Stride => _stride;
+
+    /// <summary>Gets the width of the minimap box, unscaled pixels, including the border. Never wider than <see cref="MaxWidth"/> plus the border.</summary>
     public int BoxWidth => (_mapWidth * _cell) + (Border * 2);
 
-    /// <summary>Gets the height of the minimap box, unscaled pixels, including the border.</summary>
+    /// <summary>Gets the height of the minimap box, unscaled pixels, including the border. Never taller than <see cref="MaxHeight"/> plus the border.</summary>
     public int BoxHeight => (_mapHeight * _cell) + (Border * 2);
 
     /// <summary>Caches the ground of a map. Does nothing when <paramref name="key"/> is the map already built.</summary>
@@ -110,28 +111,31 @@ public sealed class MinimapLayer
             return false;
         }
 
-        _mapWidth = map.Width;
-        _mapHeight = map.Height;
-        _cell = Math.Clamp(Math.Min(MaxWidth / map.Width, MaxHeight / map.Height), 1, MaxCell);
+        // A map that fits the box at one pixel per tile or more keeps its tiles; a larger one is sampled, so the box never outgrows the HUD frame.
+        int fit = Math.Min(MaxWidth / map.Width, MaxHeight / map.Height);
+        _stride = fit >= 1 ? 1 : Math.Max(CeilDiv(map.Width, MaxWidth), CeilDiv(map.Height, MaxHeight));
+        _cell = fit >= 1 ? Math.Min(fit, MaxCell) : 1;
+        _mapWidth = CeilDiv(map.Width, _stride);
+        _mapHeight = CeilDiv(map.Height, _stride);
         _markerCount = 0;
-        for (int y = 0; y < map.Height; y++)
+        for (int y = 0; y < _mapHeight; y++)
         {
-            for (int x = 0; x < map.Width; x++)
+            for (int x = 0; x < _mapWidth; x++)
             {
-                _cellColor[(y * map.Width) + x] = ColourOf(map, x, y, palette);
+                _cellColor[(y * _mapWidth) + x] = ColourOf(map, x * _stride, y * _stride, palette);
             }
         }
 
         _runCount = 0;
-        for (int y = 0; y < map.Height; y++)
+        for (int y = 0; y < _mapHeight; y++)
         {
-            int row = y * map.Width;
+            int row = y * _mapWidth;
             int x = 0;
-            while (x < map.Width)
+            while (x < _mapWidth)
             {
                 int colour = _cellColor[row + x];
                 int start = x;
-                while (x < map.Width && _cellColor[row + x] == colour)
+                while (x < _mapWidth && _cellColor[row + x] == colour)
                 {
                     x++;
                 }
@@ -189,35 +193,33 @@ public sealed class MinimapLayer
         _dotCount++;
     }
 
+    private static int CeilDiv(int value, int divisor) => (value + divisor - 1) / divisor;
+
     // The dot is centred on its tile's cell and kept inside the ground, so a player at the edge still shows.
     private (int X, int Y) CellOrigin(double tileX, double tileY, int size)
     {
-        int px = Math.Clamp((int)Math.Floor(tileX * _cell) + (_cell / 2) - (size / 2), 0, Math.Max(0, (_mapWidth * _cell) - size));
-        int py = Math.Clamp((int)Math.Floor(tileY * _cell) + (_cell / 2) - (size / 2), 0, Math.Max(0, (_mapHeight * _cell) - size));
+        int px = Math.Clamp((int)Math.Floor(tileX / _stride * _cell) + (_cell / 2) - (size / 2), 0, Math.Max(0, (_mapWidth * _cell) - size));
+        int py = Math.Clamp((int)Math.Floor(tileY / _stride * _cell) + (_cell / 2) - (size / 2), 0, Math.Max(0, (_mapHeight * _cell) - size));
         return (px, py);
     }
 
     /// <summary>
-    /// Draws the minimap in the bottom-right corner of the screen, above the hotbar's strip: the box, the cached ground runs and this frame's dots.
-    /// Nothing is drawn while <see cref="Visible"/> is off, before a map is built, or when the screen is too small to hold the box.
+    /// Draws the minimap box with its top-left corner at (<paramref name="left"/>, <paramref name="top"/>): the border, the cached ground runs and this
+    /// frame's dots. The caller places the box inside the HUD frame. Nothing is drawn while <see cref="Visible"/> is off or before a map is built.
     /// </summary>
     /// <param name="commands">Where draws are recorded.</param>
-    /// <param name="screenWidth">Screen width, unscaled pixels.</param>
-    /// <param name="screenHeight">Screen height, unscaled pixels.</param>
-    /// <param name="rightInset">Unscaled pixels the HUD takes at the right edge (its system column), kept clear beside the box.</param>
-    /// <param name="bottomInset">Unscaled pixels the HUD takes at the bottom (the hotbar), kept clear above the box.</param>
+    /// <param name="left">Left edge of the box, unscaled pixels.</param>
+    /// <param name="top">Top edge of the box, unscaled pixels.</param>
     /// <param name="frameColour">Colour of the box's backing, <c>0xRRGGBBAA</c>.</param>
     /// <param name="borderColour">Colour of the border, <c>0xRRGGBBAA</c>.</param>
-    public void Draw(RenderCommandBuffer commands, int screenWidth, int screenHeight, int rightInset, int bottomInset, int frameColour, int borderColour)
+    public void Draw(RenderCommandBuffer commands, int left, int top, int frameColour, int borderColour)
     {
         ArgumentNullException.ThrowIfNull(commands);
-        if (!this.Visible || _key is null || _runCount == 0 || screenWidth < this.BoxWidth + rightInset + (Margin * 2) || screenHeight < this.BoxHeight + bottomInset + (Margin * 2))
+        if (!this.Visible || _key is null || _runCount == 0)
         {
             return;
         }
 
-        int left = screenWidth - rightInset - Margin - this.BoxWidth;
-        int top = screenHeight - bottomInset - Margin - this.BoxHeight;
         commands.FillRect(left, top, this.BoxWidth, this.BoxHeight, borderColour);
         commands.FillRect(left + Border, top + Border, this.BoxWidth - (Border * 2), this.BoxHeight - (Border * 2), frameColour);
         int originX = left + Border;

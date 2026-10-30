@@ -70,6 +70,12 @@ public sealed class RenderCommandBuffer
     /// <summary>Flag: mirror the sprite horizontally.</summary>
     public const int FlipX = 1;
 
+    /// <summary>
+    /// Flag: wash the sprite toward white over its own silhouette, by the alpha byte of its <c>tint</c> (the monster hit flash,
+    /// docs/adr/ADR-076). The colour bytes of the tint are ignored.
+    /// </summary>
+    public const int Whiten = 2;
+
     /// <summary>Packs a clockwise rotation in degrees into draw <c>flags</c> above <see cref="FlipX"/>.</summary>
     /// <param name="degrees">Clockwise rotation angle in degrees.</param>
     /// <returns>The encoded flag bits to combine with <see cref="FlipX"/>.</returns>

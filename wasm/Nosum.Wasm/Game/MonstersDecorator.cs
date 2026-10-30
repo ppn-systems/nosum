@@ -23,6 +23,11 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     private const int BlockHeight = 48;
     private const int CullMargin = 32;
 
+    // Hit feedback durations (docs/adr/ADR-076): the white flash, the hit-stop that holds the sprite's pose, and the slide to a new tile.
+    private const int HitFlashMs = 90;
+    private const int HitStopMs = 60;
+    private const int KnockSlideMs = 100;
+
     private readonly string _mapId;
     private readonly CombatChannel _combat;
     private readonly CombatLabels? _labels;
@@ -102,16 +107,51 @@ internal sealed partial class MonstersDecorator : IMapDecorator
         for (int i = 0; i < _scratch.Count; i++)
         {
             MonsterClientRow m = _scratch[i];
-            int baseWorldX = m.X * FrameSize;
-            int worldY = m.Y * FrameSize;
+            bool reduceMotion = ViewOptions.ReduceMotion;
+
+            // A monster that just moved (a knockback or a step) slides from the tile it left; reduced motion snaps it there.
+            int offsetX = 0;
+            int offsetY = 0;
+            if (!reduceMotion && _combat.TryGetMonsterSlide(m.MonsterId, out long slideTick, out int fromX, out int fromY))
+            {
+                long sinceSlide = now - slideTick;
+                if (sinceSlide >= 0 && sinceSlide < KnockSlideMs)
+                {
+                    int left = (int)(KnockSlideMs - sinceSlide);
+                    offsetX = (fromX - m.X) * FrameSize * left / KnockSlideMs;
+                    offsetY = (fromY - m.Y) * FrameSize * left / KnockSlideMs;
+                }
+            }
+
+            int baseWorldX = (m.X * FrameSize) + offsetX;
+            int worldY = (m.Y * FrameSize) + offsetY;
             if (!this.IsVisible(baseWorldX, worldY))
             {
                 continue;
             }
 
+            // A landed hit flashes the sprite white (docs/adr/ADR-076). A heavy hit or a finisher flashes brighter; the hit-stop holds the
+            // sprite's pose for a moment, and reduced motion keeps it moving.
+            int flashAlpha = 0;
+            long motionNow = now;
+            if (_combat.TryGetMonsterHit(m.MonsterId, out long hitTick, out int impact))
+            {
+                long sinceHit = now - hitTick;
+                if (sinceHit >= 0 && sinceHit < HitFlashMs)
+                {
+                    int peak = impact == CombatChannel.ImpactLight ? 128 : 192;
+                    flashAlpha = ((peak * (HitFlashMs - (int)sinceHit)) / HitFlashMs) & ~63;
+                }
+
+                if (!reduceMotion && sinceHit >= 0 && sinceHit < HitStopMs)
+                {
+                    motionNow = hitTick;
+                }
+            }
+
             int kindIndex = Math.Clamp(m.Kind - 1, 0, 11);
-            int frameCol = (int)(((now / 220) + m.MonsterId) & 3);
-            float phase = (now + (m.MonsterId * 313)) * 0.0035f;
+            int frameCol = (int)(((motionNow / 220) + m.MonsterId) & 3);
+            float phase = (motionNow + (m.MonsterId * 313)) * 0.0035f;
             int swayX = (int)MathF.Round(MathF.Sin(phase) * 3f);
             int swayY = (int)MathF.Round(MathF.Cos(phase) * 2f);
             int dirRow = swayX is > 1 or < -1 ? 1 : swayY < -1 ? 2 : 0;
@@ -133,7 +173,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                     _ => unchecked((int)0xffffff55),
                 };
 
-                int pulse = (int)(((now / 150) + m.MonsterId) & 3);
+                int pulse = (int)(((motionNow / 150) + m.MonsterId) & 3);
                 world.Add(
                     RenderCommandBuffer.FillTexture,
                     0,
@@ -151,7 +191,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
             // Enraged boss glow: a pulsing red aura at or below the species HP threshold (docs/adr/ADR-047)
             if (m.Enraged)
             {
-                int enragePulse = (int)(((now / 120) + m.MonsterId) & 3);
+                int enragePulse = (int)(((motionNow / 120) + m.MonsterId) & 3);
                 world.Add(
                     RenderCommandBuffer.FillTexture,
                     0,
@@ -177,7 +217,8 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                 worldY + FrameSize,
                 worldX + (FrameSize / 2),
                 m.MonsterId,
-                flags: monsterFlags);
+                flags: flashAlpha > 0 ? monsterFlags | RenderCommandBuffer.Whiten : monsterFlags,
+                tint: flashAlpha > 0 ? unchecked((int)0xffffff00) | flashAlpha : RenderCommandBuffer.NoTint);
 
             // Elite title badge (docs/adr/ADR-058)
             if (m.Modifier > 0 && _labels is not null)

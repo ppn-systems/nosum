@@ -300,6 +300,7 @@
   <data name="Account_Status_SessionKicked" xml:space="preserve"><value>Quản trị viên đã đưa bạn ra khỏi trò chơi. Bạn có thể đăng nhập lại.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Hồ sơ</value></data>
   <data name="Toolbar_WorldMap" xml:space="preserve"><value>Bản đồ thế giới</value></data>
+  <data name="Minimap_Tip" xml:space="preserve"><value>Bản đồ nhỏ: bấm để mở bản đồ thế giới</value></data>
   <data name="Toolbar_Journal" xml:space="preserve"><value>Sổ sưu tập</value></data>
   <data name="Action_Minimap" xml:space="preserve"><value>Bản đồ nhỏ</value></data>
   <data name="Action_WorldMap" xml:space="preserve"><value>Bản đồ thế giới</value></data>

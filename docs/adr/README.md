@@ -85,3 +85,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-073](ADR-073-furniture-catalogue-and-decorating.md) | Furniture catalogue: thirty-two more pieces, catalogue groups, seasonal stock and the decorating panel (no wire change) | Proposed |
 | [ADR-074](ADR-074-tool-action-pacing-and-feel.md) | Tool action pacing and feel: swing before the hit, server interval on every farm action, drag at the animation rate, exhaustion and impact feedback | Accepted |
 | [ADR-075](ADR-075-emotes-and-pet-companion.md) | Emote wheel (twelve codes, nearby fan-out, cooldown) and a pet companion (one cat or dog, named with the chat mask, petted once a day; kind and name in the look) | Accepted |
+| [ADR-077](ADR-077-hud-minimap-frame-and-top-right-grid.md) | HUD minimap frame in the top-right grid, a fixed two-column system column, the minimap view model, and sampling for large maps (no wire change) | Accepted |
+

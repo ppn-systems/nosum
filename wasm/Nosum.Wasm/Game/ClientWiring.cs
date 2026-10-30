@@ -65,6 +65,7 @@ using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Mail;
 using Nosum.Wasm.ViewModels.Market;
 using Nosum.Wasm.ViewModels.Mine;
+using Nosum.Wasm.ViewModels.Minimap;
 using Nosum.Wasm.ViewModels.Npc;
 using Nosum.Wasm.ViewModels.Pets;
 using Nosum.Wasm.ViewModels.Placement;
@@ -154,6 +155,7 @@ internal static class ClientWiring
         services.AddSingleton<ItemDescriber>();
         services.AddSingleton<ToolbarViewModel>();
         services.AddSingleton<WorldMapViewModel>();
+        services.AddSingleton<MinimapViewModel>();
         services.AddSingleton<JournalChannel>();
         services.AddSingleton<JournalViewModel>();
         services.AddSingleton<NicknameFormatter>();
@@ -241,6 +243,7 @@ internal static class ClientWiring
         GameLoop.UseCombat(combat, services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(services.GetRequiredService<CalendarChannel>());
         GameLoop.UseWorldMap(services.GetRequiredService<WorldMapViewModel>());
+        GameLoop.UseMinimap(services.GetRequiredService<MinimapViewModel>());
         GameLoop.UseMapLoading(services.GetRequiredService<MapLoadingViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS

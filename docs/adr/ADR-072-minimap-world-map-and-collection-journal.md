@@ -21,8 +21,8 @@ The keys for the new panels need input bits. The frame's `int` packs four held d
 - **D1 — The minimap is drawn by the engine into the same frame.** `MinimapLayer` (`engine/Nosum.Rendering`) caches the ground of a map once
   per map: one colour per tile from the topmost tile's traits (water, blocked, tilled, ground), merged into horizontal runs in preallocated
   arrays. Each frame it draws those runs and the dots (the farmer, other players, NPCs and exits) as colour rectangles in the command buffer, so
-  it costs no crossing and allocates nothing. The box sits in the bottom-right corner above the hotbar; on a wide window it keeps clear of the
-  HUD's system column (`MapScene.Minimap.cs`). It is hidden on a narrow canvas (under 640 pixels) until the M key shows it.
+  it costs no crossing and allocates nothing. The box sits inside the minimap's HUD frame in the top-right corner (ADR-077 D1, which
+  superseded the bottom-right corner of this decision). It is hidden on a narrow canvas (under 640 pixels) until the M key shows it.
 - **D2 — The input layout narrows the held field to four bits.** The held directions use four bits, so `InputEdges.HeldBits` becomes 4 and
   `renderer.js` packs `pressed << 4`. Three edges are added: `Minimap` (M), `WorldMap` (Tab) and `Journal` (J). The packing is a shared contract
   (`InputPackingTests` mirror the JavaScript values).
