@@ -1,0 +1,24 @@
+elapsed 1009 reached-candidate true
+BODY: Đang vào thế giới… 
+
+Đang vào khu vực…
+
+Đứng trước quầy của người bán rồi nhấn phím hành động để mở cửa hàng.
+
+An unhandled error has occurred. Reload
+🗙
+--- CONSOLE
+[warning] Nosum theme sprites unavailable: Error: theme sheet http://localhost:5080/_content/Nosum.Wasm.Controls/ui/menu.png
+    at image.onerror (http://localhost:5080/_content/Nosum.Wasm.Controls/nosum-theme.js:235:38)
+[error] Failed to load resource: the server responded with a status of 404 (Not Found)
+[info] Debugging hotkey: Shift+Alt+D (when application has focus)
+[warning] Nosum theme sprites unavailable: Error: theme sheet http://localhost:5080/_content/Nosum.Wasm.Controls/ui/menu.png
+    at image.onerror (http://localhost:5080/_content/Nosum.Wasm.Controls/nosum-theme.739uth9e00.js:235:38)
+[error] Could not load map 'farm': Xml_MissingRoot
+[error] Could not load map 'woods': Xml_MissingRoot
+[error] Could not load map 'beach': Xml_MissingRoot
+[error] Could not load map 'mountain': Xml_MissingRoot
+[error] Could not load map 'mine': Xml_MissingRoot
+[error] Could not load map 'town': Xml_MissingRoot
+--- FAILED
+--- HTTP>=400
