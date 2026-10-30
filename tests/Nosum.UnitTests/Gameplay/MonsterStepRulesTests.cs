@@ -82,4 +82,65 @@ public sealed class MonsterStepRulesTests
         MonsterStepRules.IsOccupied(monsters, 1, 3, 3).Should().BeFalse("a monster does not block its own tile");
         MonsterStepRules.IsOccupied(monsters, 3, 6, 6).Should().BeFalse("a dead monster does not block");
     }
+
+    [Fact]
+    public void TryKnockback_StruckFromWest_PushesOneTileEast()
+    {
+        List<MonsterSpawn> monsters = [new(1, MonsterKind.CaveBat, 5, 4, 10, 10)];
+
+        bool pushed = MonsterStepRules.TryKnockback(Open(), monsters, 1, 5, 4, 4, 4, out int x, out int y);
+
+        pushed.Should().BeTrue();
+        (x, y).Should().Be((6, 4));
+    }
+
+    [Fact]
+    public void TryKnockback_StruckDiagonally_PushesOnBothAxes()
+    {
+        List<MonsterSpawn> monsters = [new(1, MonsterKind.CaveBat, 5, 5, 10, 10)];
+
+        bool pushed = MonsterStepRules.TryKnockback(Open(), monsters, 1, 5, 5, 4, 4, out int x, out int y);
+
+        pushed.Should().BeTrue();
+        (x, y).Should().Be((6, 6));
+    }
+
+    [Fact]
+    public void TryKnockback_WallBehind_DoesNotMove()
+    {
+        bool[] blocked = new bool[100];
+        blocked[(4 * 10) + 6] = true;
+        List<MonsterSpawn> monsters = [new(1, MonsterKind.CaveBat, 5, 4, 10, 10)];
+
+        bool pushed = MonsterStepRules.TryKnockback(new WalkGrid(10, 10, 16, blocked), monsters, 1, 5, 4, 4, 4, out int x, out int y);
+
+        pushed.Should().BeFalse();
+        (x, y).Should().Be((5, 4));
+    }
+
+    [Fact]
+    public void TryKnockback_TileBehindHeldByAnotherMonster_DoesNotMove()
+    {
+        List<MonsterSpawn> monsters =
+        [
+            new(1, MonsterKind.CaveBat, 5, 4, 10, 10),
+            new(2, MonsterKind.CaveBat, 6, 4, 10, 10),
+        ];
+
+        bool pushed = MonsterStepRules.TryKnockback(Open(), monsters, 1, 5, 4, 4, 4, out int x, out int y);
+
+        pushed.Should().BeFalse();
+        (x, y).Should().Be((5, 4));
+    }
+
+    [Fact]
+    public void TryKnockback_AttackerOnSameTile_DoesNotMove()
+    {
+        List<MonsterSpawn> monsters = [new(1, MonsterKind.CaveBat, 5, 4, 10, 10)];
+
+        bool pushed = MonsterStepRules.TryKnockback(Open(), monsters, 1, 5, 4, 5, 4, out int x, out int y);
+
+        pushed.Should().BeFalse();
+        (x, y).Should().Be((5, 4));
+    }
 }

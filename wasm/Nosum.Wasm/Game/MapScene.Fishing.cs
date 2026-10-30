@@ -7,7 +7,7 @@ using Nosum.Gameplay.Maps;
 
 namespace Nosum.Wasm.Game;
 
-/// <summary>The fishing rod's click on the map (docs/adr/ADR-071 D1, D9).</summary>
+/// <summary>The fishing rod's click on the map (docs/adr/ADR-078 D1, D9).</summary>
 internal sealed partial class MapScene
 {
     // The water of the map on screen. Built on the first click with a rod, and again when the map changes; the walk grid is not enough, because

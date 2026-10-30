@@ -1,4 +1,4 @@
-// QA walk of the fishing feature in the running game (docs/adr/ADR-071): sign in as a guest, gather 5 Wood and 4 Fiber, craft the Fishing rod
+// QA walk of the fishing feature in the running game (docs/adr/ADR-078): sign in as a guest, gather 5 Wood and 4 Fiber, craft the Fishing rod
 // from the crafting panel, hold it in the hotbar, cast at the water next to the Woods pond, press at the bite, and keep casting until a fish is
 // caught. Screenshots at 1280x720: fishing-cast.png (the line is out, the banner shows Waiting), fishing-catch.png (the result of a catch).
 // Any step that does not work writes fishing-failure-<step>.png and exits with code 1. Nothing here changes the game: it only plays it.

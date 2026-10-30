@@ -30,8 +30,10 @@ using Nosum.Rendering;
 using Nosum.Rendering.Web;
 using Nosum.Wasm.ViewModels.Fishing;
 using Nosum.Wasm.ViewModels.Maps;
+using Nosum.Wasm.ViewModels.Minimap;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
+using Nosum.Wasm.ViewModels.Startup;
 
 namespace Nosum.Wasm.Game;
 
@@ -51,10 +53,12 @@ internal static partial class GameLoop
     private static MapScene? s_scene;
     private static PlayerChannel? s_network;
     private static CalendarChannel? s_calendar;
+    private static MinimapViewModel? s_minimap;
     private static FarmChannel? s_farm;
     private static InventoryChannel? s_inventory;
     private static PlaceableChannel? s_placeable;
     private static NodeChannel? s_nodes;
+    private static WorldMapViewModel? s_worldMap;
     private static GroundItemChannel? s_groundItems;
     private static PlacementViewModel? s_placement;
     private static ChestChannel? s_chests;
@@ -80,7 +84,8 @@ internal static partial class GameLoop
 
     private const InputEdges PanelKeysMask =
         InputEdges.Inventory | InputEdges.Wardrobe | InputEdges.Trade |
-        InputEdges.Coop | InputEdges.Help | InputEdges.Close | InputEdges.Profile;
+        InputEdges.Coop | InputEdges.Help | InputEdges.Close | InputEdges.Profile |
+        InputEdges.WorldMap | InputEdges.Journal;
 
     /// <summary>Updates whether a modal panel, NPC conversation, or blocking overlay dialog is open on screen.</summary>
     /// <param name="modalOpen">Whether any standalone panel, NPC dialog box, or overlay dialog is open.</param>
@@ -131,6 +136,13 @@ internal static partial class GameLoop
     /// <param name="calendar">The server calendar.</param>
     public static void UseCalendar(CalendarChannel calendar) => s_calendar = calendar;
 
+    /// <summary>Sets the minimap frame the canvas keeps in step with (the M key, and hidden on a narrow screen).</summary>
+    public static void UseMinimap(MinimapViewModel minimap) => s_minimap = minimap;
+
+    /// <summary>Gives the world map the maps' connections and the farmer's current map; the loader is made in <see cref="StartAsync"/>.</summary>
+    /// <param name="worldMap">The world map panel's view model.</param>
+    public static void UseWorldMap(WorldMapViewModel worldMap) => s_worldMap = worldMap;
+
     /// <summary>Connects the looks the server sent to the farmers drawn; call before <see cref="StartAsync"/>.</summary>
     /// <param name="looks">The mirror of the looks on the map.</param>
     /// <param name="names">Formats the nicknames drawn above the farmers.</param>
@@ -178,12 +190,12 @@ internal static partial class GameLoop
     /// <param name="loading">The loading overlay's view model.</param>
     public static void UseMapLoading(MapLoadingViewModel loading) => s_loading = loading;
 
-    /// <summary>Connects fishing to the game: a click on water with a rod casts, and a press reels the line in (docs/adr/ADR-071). Call before <see cref="StartAsync"/>.</summary>
+    /// <summary>Connects fishing to the game: a click on water with a rod casts, and a press reels the line in (docs/adr/ADR-078). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="fishing">The fishing banner's view model.</param>
     public static void UseFishing(FishingViewModel fishing) => s_fishing = fishing;
 
     /// <summary>Tells the scene the player clicked or tapped the canvas; the next frame checks whether a merchant was hit (docs/adr/ADR-043 D3). Called from the page, not from the frame.
-    /// While a line is out a click is the press that reels it in, and the scene does not see it (docs/adr/ADR-071 D9).</summary>
+    /// While a line is out a click is the press that reels it in, and the scene does not see it (docs/adr/ADR-078 D9).</summary>
     /// <param name="x">Click x, canvas CSS pixels.</param>
     /// <param name="y">Click y, canvas CSS pixels.</param>
     public static void PointerClicked(int x, int y)
@@ -227,8 +239,9 @@ internal static partial class GameLoop
     /// <param name="http">Client whose base address is the app root.</param>
     /// <param name="canvasId">Id of the canvas element.</param>
     /// <param name="cancellationToken">Cancels loading.</param>
+    /// <param name="progress">Told each step of the start as it begins, for the start-up overlay (issue #208); optional.</param>
     /// <returns>A task that completes once the loop is running.</returns>
-    public static async Task StartAsync(HttpClient http, string canvasId, CancellationToken cancellationToken)
+    public static async Task StartAsync(HttpClient http, string canvasId, CancellationToken cancellationToken, Action<GameStartStep>? progress = null)
     {
         ArgumentNullException.ThrowIfNull(http);
 
@@ -275,6 +288,7 @@ internal static partial class GameLoop
         }
 
         LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel, capacity: 2048);
+        providers.Add(new CritterDecoratorProvider(s_calendar));
         providers.Add(new WayfindingDecoratorProvider(labelRegistry, s_text));
         CombatLabels? combatLabels = s_combat is not null ? new CombatLabels(labelRegistry, s_text) : null;
 
@@ -289,6 +303,15 @@ internal static partial class GameLoop
         }
 
         MapLoader loader = new(http, textures, providers, s_network is null ? null : s_network.IsUnlocked);
+        if (s_worldMap is not null)
+        {
+            // The world map's connections are the warps of each map, known once the map is loaded: the public maps load in the background.
+            s_worldMap.ConnectionsOf = id => loader.TryGet(id, out MapContent? loaded) ? TargetsOf(loaded.Warps) : null;
+            foreach (string id in WorldMapViewModel.PublicMapIds)
+            {
+                loader.Prefetch(id);
+            }
+        }
 
         Task<int[]> farmerSheets = Task.WhenAll(
             textures.LoadAsync(FarmerUrl + "body.png"),
@@ -300,13 +323,16 @@ internal static partial class GameLoop
             textures.LoadAsync(ItemIcons.WeaponsSheet),
             textures.LoadAsync(ItemIcons.ObjectsSheet));
 
+        progress?.Invoke(GameStartStep.Connect);
         MapEntry? entry = await WaitForEntryAsync(cancellationToken).ConfigureAwait(false);
         MapSpec spec = entry is { } answered && GameMaps.TryGet(answered.MapId, out MapSpec? chosen)
             ? chosen
             : GameMaps.TryGet(GameMaps.DefaultId, out MapSpec? fallback) ? fallback : throw new InvalidOperationException("The default map is not in the catalogue.");
         MapStart start = entry is { } place && spec.Id == place.MapId ? MapStart.At(place) : MapStart.NearTile(spec.SpawnTileX, spec.SpawnTileY);
 
+        progress?.Invoke(GameStartStep.Map);
         MapContent content = await loader.LoadAsync(spec.Id, cancellationToken).ConfigureAwait(false);
+        progress?.Invoke(GameStartStep.Sprites);
         int[] sheets = await farmerSheets.ConfigureAwait(false);
         FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7]);
 
@@ -314,7 +340,7 @@ internal static partial class GameLoop
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(labelRegistry, s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap);
         s_scene.WaitingChanged += mapId => OnMapWaitChanged(mapId, loader);
         loader.Progressed += mapId => OnMapProgressed(mapId, loader);
         if (s_audio is not null)
@@ -323,6 +349,7 @@ internal static partial class GameLoop
             _ = GameAudio.LoadAsync();
         }
 
+        progress?.Invoke(GameStartStep.Draw);
         await WebRenderBackend.StartAsync(canvasId, "Nosum.Wasm.dll", "Nosum.Wasm.Game.GameLoop.Frame").ConfigureAwait(false);
     }
 
@@ -425,6 +452,27 @@ internal static partial class GameLoop
 
         // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.
         s_scene.SetPointer(pointerX, pointerY, pointerHeld != 0 && !s_connectionBlocked && !s_overlayOpen && !s_modalOpen);
+        if (s_worldMap is not null)
+        {
+            // Only a change raises the view model's event, so the world map is told about a new map once, not every frame.
+            s_worldMap.CurrentMapId = s_scene.MapId;
+        }
+
         s_scene.Frame(seconds, held, edges, width, height, s_backend);
+    }
+
+    // The distinct maps the warps of a map lead to, in the order the map lists them.
+    private static IReadOnlyList<string> TargetsOf(IReadOnlyList<MapWarp> warps)
+    {
+        List<string> targets = new(warps.Count);
+        for (int i = 0; i < warps.Count; i++)
+        {
+            if (!targets.Contains(warps[i].TargetMap))
+            {
+                targets.Add(warps[i].TargetMap);
+            }
+        }
+
+        return targets;
     }
 }

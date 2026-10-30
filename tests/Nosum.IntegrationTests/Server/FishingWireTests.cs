@@ -24,7 +24,7 @@ using Xunit;
 namespace Nosum.IntegrationTests.Server;
 
 /// <summary>
-/// Casting a fishing rod and reeling in (docs/adr/ADR-071) over real Nalix WebSocket sessions against the real host and PostgreSQL: the refusals of a cast in
+/// Casting a fishing rod and reeling in (docs/adr/ADR-078) over real Nalix WebSocket sessions against the real host and PostgreSQL: the refusals of a cast in
 /// their order, the energy charged, the bite that comes later than the reel-in, the press that is too early and keeps the cast open, and the press that
 /// comes after the window and loses the fish. The clock is a <see cref="FakeTimeProvider"/>, so every timing outcome is exact.
 /// </summary>

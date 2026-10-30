@@ -23,7 +23,7 @@ using Nosum.Gameplay.Weather;
 namespace Nosum.Infrastructure.Fishing;
 
 /// <summary>
-/// <see cref="IFishingService"/> (docs/adr/ADR-071). Every rule is in <c>Nosum.Gameplay.Fishing</c>; this class only reads the state the rules need
+/// <see cref="IFishingService"/> (docs/adr/ADR-078). Every rule is in <c>Nosum.Gameplay.Fishing</c>; this class only reads the state the rules need
 /// (the held item, the water of the map, the reach, the room, the clock and the calendar) and commits the result in one unit of work. The energy is
 /// charged when the cast opens and the catch goes into the inventory with its experience when the line is reeled in; a refusal changes nothing.
 /// </summary>
@@ -228,7 +228,7 @@ public sealed class FishingService : IFishingService
         }
     }
 
-    // The first 64 bits of the account id: a stable key of the player for the seed (docs/adr/ADR-071 D5).
+    // The first 64 bits of the account id: a stable key of the player for the seed (docs/adr/ADR-078 D5).
     private static ulong PlayerKeyOf(Guid playerId)
         => BinaryPrimitives.ReadUInt64LittleEndian(playerId.ToByteArray());
 

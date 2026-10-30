@@ -9,6 +9,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Node.S2C;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Nodes;
 
 namespace Nosum.Infrastructure.Nodes;
@@ -41,7 +42,7 @@ public sealed class ToolStateService : IToolState
         Entry entry = _players.GetOrAdd(playerId, static _ => new Entry());
         lock (entry)
         {
-            if (entry.LastSwingMs != long.MinValue && now - entry.LastSwingMs < NodeLimits.SwingCooldownMs)
+            if (ToolPacing.IsTooSoon(entry.LastSwingMs, now))
             {
                 return false;
             }

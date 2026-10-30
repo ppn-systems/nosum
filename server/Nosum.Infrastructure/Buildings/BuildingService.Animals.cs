@@ -26,6 +26,7 @@ using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Players;
+using Nosum.Gameplay.Weather;
 
 namespace Nosum.Infrastructure.Buildings;
 
@@ -314,7 +315,7 @@ public sealed partial class BuildingService
                 return AnimalOutcome.Refused(BuildingStatus.OutOfReach);
             }
 
-            if (!AnimalRules.HasProduce(animal.ProduceDay, animal.CollectedDay, room.Today))
+            if (!AnimalRules.Yields(species, animal.ProduceDay, animal.CollectedDay, room.Today, this.IsSunny(room.Today)))
             {
                 return AnimalOutcome.Refused(BuildingStatus.NoProduce);
             }
@@ -340,7 +341,7 @@ public sealed partial class BuildingService
                 {
                     // The row is read again inside the transaction: whoever collected first has set the day, and this one finds nothing left.
                     FarmAnimal? row = await unit.Repository<FarmAnimal>().FindAsync(animalId, ct).ConfigureAwait(false);
-                    if (row is null || !AnimalRules.HasProduce(row.ProduceDay, row.CollectedDay, today))
+                    if (row is null || !AnimalRules.Yields(species, row.ProduceDay, row.CollectedDay, today, this.IsSunny(today)))
                     {
                         failure = BuildingStatus.NoProduce;
                         return false;
@@ -488,10 +489,20 @@ public sealed partial class BuildingService
         return views;
     }
 
+    // Whether the game day is sunny: the pig's truffles come only on those days (docs/adr/ADR-028 amendment 2).
+    private bool IsSunny(int today) => WeatherRules.ForDay(_calendar, today) == WeatherKind.Sun;
+
+    // The produce flag of an animal, counting its species' schedule. An unknown species has none.
+    private bool YieldsOn(FarmAnimal animal, int today)
+    {
+        return AnimalCatalog.TryGet((AnimalKind)animal.Kind, out AnimalDefinition? species)
+            && AnimalRules.Yields(species, animal.ProduceDay, animal.CollectedDay, today, this.IsSunny(today));
+    }
+
     private AnimalView ViewOf(BuildingKind kind, FarmAnimal animal, int today, long nowMs)
     {
         AnimalMotionView where = _wander.Where(kind, animal.Id, nowMs);
-        byte flags = (byte)((animal.PettedDay == today ? AnimalView.PettedFlag : 0) | (AnimalRules.HasProduce(animal.ProduceDay, animal.CollectedDay, today) ? AnimalView.ProduceFlag : 0));
+        byte flags = (byte)((animal.PettedDay == today ? AnimalView.PettedFlag : 0) | (this.YieldsOn(animal, today) ? AnimalView.ProduceFlag : 0));
         return new AnimalView(animal.Id, (AnimalKind)animal.Kind, animal.Name, animal.Friendship, flags, where.X, where.Y, where.TargetX, where.TargetY, where.MoveMs);
     }
 

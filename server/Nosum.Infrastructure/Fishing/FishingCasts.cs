@@ -8,7 +8,7 @@ using Nosum.Gameplay.Fishing;
 
 namespace Nosum.Infrastructure.Fishing;
 
-/// <summary>An open cast: the server's record of one line in the water (docs/adr/ADR-071 D4, D7). Never sent to the client.</summary>
+/// <summary>An open cast: the server's record of one line in the water (docs/adr/ADR-078 D4, D7). Never sent to the client.</summary>
 /// <param name="Id">The cast id handed out; never zero.</param>
 /// <param name="PlayerId">The player who cast.</param>
 /// <param name="InstanceKey">The place the line was cast in (<see cref="Nosum.Gameplay.Maps.MapInstance.Key"/>).</param>
@@ -20,7 +20,7 @@ namespace Nosum.Infrastructure.Fishing;
 internal sealed record OpenCast(uint Id, Guid PlayerId, string InstanceKey, string MapId, long CastAtMs, int BiteDelayMs, int WindowMs, ulong Seed);
 
 /// <summary>
-/// The open casts, one per player, held in memory (docs/adr/ADR-071 D7). A restart loses them and nothing else: nothing is charged or added before the
+/// The open casts, one per player, held in memory (docs/adr/ADR-078 D7). A restart loses them and nothing else: nothing is charged or added before the
 /// reel-in. Guarded by one lock; the lock is never held across an await.
 /// </summary>
 internal sealed class FishingCasts

@@ -6,7 +6,7 @@ using Nosum.Gameplay.Maps;
 namespace Nosum.Gameplay.Fishing;
 
 /// <summary>
-/// The places a line can be cast into (docs/adr/ADR-071 D2). Each flag is a map whose water tiles the rod reaches: the Beach sea, the
+/// The places a line can be cast into (docs/adr/ADR-078 D2). Each flag is a map whose water tiles the rod reaches: the Beach sea, the
 /// Woods pond and the farm pond. The numbers are wire values of the fishing packets; append-only.
 /// </summary>
 [Flags]

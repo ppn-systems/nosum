@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Wasm;
 
-/// <summary>The fishing rod, the fish stew and the ten fish have a name and a description in both languages, under their item keys (docs/adr/ADR-071 D3, i18n).</summary>
+/// <summary>The fishing rod, the fish stew and the ten fish have a name and a description in both languages, under their item keys (docs/adr/ADR-078 D3, i18n).</summary>
 public sealed class FishingCatalogueTextTests
 {
     [Fact]

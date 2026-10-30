@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Bestiary;
+using Nosum.Contracts.Player;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels.Resources;
@@ -62,10 +64,14 @@ public sealed record BestiaryEntryDisplay(
 /// </summary>
 public sealed class ProgressViewModel : PanelViewModel, IDisposable
 {
+    /// <summary>How long the energy bar pulses after food restored energy.</summary>
+    public static readonly TimeSpan EnergyPulseDuration = TimeSpan.FromMilliseconds(700);
+
     private readonly ProgressChannel _progress;
     private readonly CombatChannel? _combat;
     private readonly BestiaryChannel? _bestiary;
     private readonly IStringLocalizer<Catalogue>? _catalogue;
+    private int _pulseVersion;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="progress">The energy and experience mirror.</param>
@@ -88,6 +94,7 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         _bestiary = bestiary;
         _catalogue = catalogue;
         progress.Changed += this.Raise;
+        progress.EatCompleted += this.OnEatCompleted;
         if (combat is not null)
         {
             combat.Changed += this.Raise;
@@ -179,6 +186,9 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets whether the energy is low enough for the bar to warn.</summary>
     public bool EnergyLow => this.HasEnergy && this.EnergyFraction <= 0.2;
+
+    /// <summary>Gets whether the energy bar is pulsing after food restored energy; it stops by itself after <see cref="EnergyPulseDuration"/>.</summary>
+    public bool EnergyPulsing { get; private set; }
 
     /// <summary>Gets the localized label of the bar, for the tooltip and the screen reader: <c>Energy 268 / 270</c>.</summary>
     public string EnergyLabel => this.Text("Energy_Label", Number(_progress.Energy), Number(_progress.MaxEnergy));
@@ -329,6 +339,7 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     public void Dispose()
     {
         _progress.Changed -= this.Raise;
+        _progress.EatCompleted -= this.OnEatCompleted;
         if (_bestiary is not null)
         {
             _bestiary.Changed -= this.Raise;
@@ -340,6 +351,29 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
             _combat.ComboChanged -= this.Raise;
             _combat.KnockedOut -= this.Raise;
             _combat.LevelledUp -= this.OnCombatLevelUp;
+        }
+    }
+
+    private void OnEatCompleted(EatStatus status)
+    {
+        if (status != EatStatus.Ok)
+        {
+            return;
+        }
+
+        int version = ++_pulseVersion;
+        this.EnergyPulsing = true;
+        this.Raise();
+        _ = this.EndPulseAsync(version);
+    }
+
+    private async Task EndPulseAsync(int version)
+    {
+        await Task.Delay(EnergyPulseDuration).ConfigureAwait(false);
+        if (version == _pulseVersion)
+        {
+            this.EnergyPulsing = false;
+            this.Raise();
         }
     }
 

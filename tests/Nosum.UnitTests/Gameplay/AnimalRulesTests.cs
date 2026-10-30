@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using FluentAssertions;
 using Nosum.Gameplay.Animals;
+using Nosum.Gameplay.Crafting;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Xunit;
@@ -289,5 +290,52 @@ public sealed class AnimalRulesTests
     public void InReach_IsADistanceCheck(double feetX, double feetY, double animalX, double animalY, bool expected)
     {
         AnimalRules.InReach(feetX, feetY, animalX, animalY).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(ProduceSchedule.Daily, 7, false, true)]
+    [InlineData(ProduceSchedule.EveryThirdDay, 9, false, true)]
+    [InlineData(ProduceSchedule.EveryThirdDay, 10, true, false)]
+    [InlineData(ProduceSchedule.SunnyDays, 10, true, true)]
+    [InlineData(ProduceSchedule.SunnyDays, 10, false, false)]
+    public void ScheduleAllows_FollowsTheSpeciesRhythmAndTheWeather(ProduceSchedule schedule, int today, bool sunny, bool expected)
+    {
+        AnimalRules.ScheduleAllows(schedule, today, sunny).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Yields_NeedsFeedingTodayAndTheScheduleToo()
+    {
+        _ = AnimalCatalog.TryGet(AnimalKind.Pig, out AnimalDefinition? pig).Should().BeTrue();
+        _ = AnimalCatalog.TryGet(AnimalKind.Sheep, out AnimalDefinition? sheep).Should().BeTrue();
+
+        AnimalRules.Yields(pig!, produceDay: 10, collectedDay: 0, today: 10, sunny: true).Should().BeTrue("fed yesterday, sunny, not collected");
+        AnimalRules.Yields(pig!, produceDay: 10, collectedDay: 0, today: 10, sunny: false).Should().BeFalse("a pig digs only on sunny days");
+        AnimalRules.Yields(pig!, produceDay: 10, collectedDay: 10, today: 10, sunny: true).Should().BeFalse("already collected");
+        AnimalRules.Yields(pig!, produceDay: 9, collectedDay: 0, today: 10, sunny: true).Should().BeFalse("not fed the night before");
+        AnimalRules.Yields(sheep!, produceDay: 10, collectedDay: 0, today: 10, sunny: true).Should().BeFalse("a sheep is shorn every third day only");
+        AnimalRules.Yields(sheep!, produceDay: 9, collectedDay: 0, today: 9, sunny: true).Should().BeTrue("9 is a third day");
+    }
+
+    [Fact]
+    public void Catalog_HasTheSixSpeciesWithTheirProduce()
+    {
+        AnimalCatalog.All.Select(a => a.Kind).Should().Equal(AnimalKind.Chicken, AnimalKind.Cow, AnimalKind.Duck, AnimalKind.Goat, AnimalKind.Sheep, AnimalKind.Pig);
+        _ = AnimalCatalog.TryGet(AnimalKind.Duck, out AnimalDefinition? duck).Should().BeTrue();
+        (duck!.Product, duck.NeedsPail).Should().Be((ItemCatalog.DuckEgg, false));
+        _ = AnimalCatalog.TryGet(AnimalKind.Goat, out AnimalDefinition? goat).Should().BeTrue();
+        (goat!.Product, goat.NeedsPail).Should().Be((ItemCatalog.GoatMilk, true));
+        _ = AnimalCatalog.TryGet(AnimalKind.Sheep, out AnimalDefinition? sheep).Should().BeTrue();
+        (sheep!.Product, sheep.Schedule).Should().Be((ItemCatalog.Wool, ProduceSchedule.EveryThirdDay));
+        _ = AnimalCatalog.TryGet(AnimalKind.Pig, out AnimalDefinition? pig).Should().BeTrue();
+        (pig!.Product, pig.Schedule).Should().Be((ItemCatalog.Truffle, ProduceSchedule.SunnyDays));
+    }
+
+    [Fact]
+    public void Wool_IsUsableInTheWoolScarecrowRecipe()
+    {
+        RecipeCatalog.TryGet(RecipeCatalog.ScarecrowWool, out RecipeDefinition? recipe).Should().BeTrue();
+        recipe!.Inputs.Should().Contain(i => i.ItemId == ItemCatalog.Wool && i.Quantity == 5);
+        recipe.OutputItemId.Should().Be(ItemCatalog.Scarecrow);
     }
 }

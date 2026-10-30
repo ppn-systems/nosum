@@ -2,7 +2,7 @@
 
 namespace Nosum.Contracts.Fishing;
 
-/// <summary>Outcome codes of casting and reeling in (docs/adr/ADR-071). Values are append-only.</summary>
+/// <summary>Outcome codes of casting and reeling in (docs/adr/ADR-078). Values are append-only.</summary>
 public enum FishingStatus : byte
 {
     /// <summary>A cast is open (<see cref="S2C.CastResult"/>), or a fish was caught (<see cref="S2C.ReelResult"/>).</summary>

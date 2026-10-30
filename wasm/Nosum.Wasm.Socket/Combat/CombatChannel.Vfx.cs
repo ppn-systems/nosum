@@ -287,6 +287,82 @@ public sealed partial class CombatChannel
     /// <summary>Gets the player's tile row, for world-space combat feedback that follows the player.</summary>
     public int PlayerTileY => _playerY;
 
+    /// <summary>
+    /// Records a landed hit on a monster, for the white flash and the hit-stop. A heavy hit or a finisher also starts a light
+    /// screen shake (docs/adr/ADR-076).
+    /// </summary>
+    private void RecordMonsterHit(int monsterId, int impact)
+    {
+        long now = Environment.TickCount64;
+        Volatile.Write(ref _hitMonsterId, monsterId);
+        Volatile.Write(ref _hitImpact, impact);
+        Volatile.Write(ref _hitTick, now);
+        if (impact == ImpactLight)
+        {
+            return;
+        }
+
+        Volatile.Write(ref _shakeAmplitude, impact == ImpactFinisher ? 3 : 2);
+        Volatile.Write(ref _shakeDurationMs, impact == ImpactFinisher ? 220 : 140);
+        Volatile.Write(ref _shakeTick, now);
+    }
+
+    /// <summary>Records where a monster stood before it moved, so its sprite slides from there to its new tile (docs/adr/ADR-076).</summary>
+    private void RecordMonsterSlide(int monsterId, int fromX, int fromY)
+    {
+        Volatile.Write(ref _slideMonsterId, monsterId);
+        Volatile.Write(ref _slideFromX, fromX);
+        Volatile.Write(ref _slideFromY, fromY);
+        Volatile.Write(ref _slideTick, Environment.TickCount64);
+    }
+
+    /// <summary>Queries the last landed hit on a monster for zero-allocation world rendering (docs/adr/ADR-076).</summary>
+    /// <param name="monsterId">The monster being drawn.</param>
+    /// <param name="hitTick">Local tick count of the hit.</param>
+    /// <param name="impact">The hit's impact, one of the <c>Impact</c> constants.</param>
+    /// <returns><see langword="true"/> when the last landed hit was on this monster.</returns>
+    public bool TryGetMonsterHit(int monsterId, out long hitTick, out int impact)
+    {
+        hitTick = Volatile.Read(ref _hitTick);
+        impact = Volatile.Read(ref _hitImpact);
+        return hitTick > 0 && Volatile.Read(ref _hitMonsterId) == monsterId;
+    }
+
+    /// <summary>Queries the last tile move of a monster, so its sprite can slide from the tile it left (docs/adr/ADR-076).</summary>
+    /// <param name="monsterId">The monster being drawn.</param>
+    /// <param name="slideTick">Local tick count of the move.</param>
+    /// <param name="fromX">Tile X it left.</param>
+    /// <param name="fromY">Tile Y it left.</param>
+    /// <returns><see langword="true"/> when the last move was by this monster.</returns>
+    public bool TryGetMonsterSlide(int monsterId, out long slideTick, out int fromX, out int fromY)
+    {
+        slideTick = Volatile.Read(ref _slideTick);
+        fromX = Volatile.Read(ref _slideFromX);
+        fromY = Volatile.Read(ref _slideFromY);
+        return slideTick > 0 && Volatile.Read(ref _slideMonsterId) == monsterId;
+    }
+
+    /// <summary>Queries the active screen shake for zero-allocation world rendering (docs/adr/ADR-076).</summary>
+    /// <param name="amplitude">Largest offset in world pixels.</param>
+    /// <param name="elapsedMs">Milliseconds since the impact.</param>
+    /// <param name="durationMs">How long the shake lasts.</param>
+    /// <returns><see langword="true"/> while a shake is running.</returns>
+    public bool TryGetActiveShake(out int amplitude, out int elapsedMs, out int durationMs)
+    {
+        long start = Volatile.Read(ref _shakeTick);
+        long elapsed = Environment.TickCount64 - start;
+        amplitude = Volatile.Read(ref _shakeAmplitude);
+        durationMs = Volatile.Read(ref _shakeDurationMs);
+        if (start > 0 && elapsed >= 0 && elapsed < durationMs)
+        {
+            elapsedMs = (int)elapsed;
+            return true;
+        }
+
+        elapsedMs = 0;
+        return false;
+    }
+
     /// <summary>Queries the active combo finisher burst for zero-allocation world rendering (docs/adr/ADR-060).</summary>
     public bool TryGetActiveFinisher(long now, out float progress, out int tileX, out int tileY)
     {
@@ -431,6 +507,12 @@ public sealed partial class CombatChannel
                     }
                     else
                     {
+                        MonsterClientRow previous = _monsters[i];
+                        if (previous.X != packet.X || previous.Y != packet.Y)
+                        {
+                            this.RecordMonsterSlide(packet.MonsterId, previous.X, previous.Y);
+                        }
+
                         _monsters[i] = new MonsterClientRow(packet.MonsterId, packet.Kind, packet.X, packet.Y, packet.Hp, packet.MaxHp, packet.Modifier, packet.Enraged != 0);
                     }
 

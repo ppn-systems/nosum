@@ -46,7 +46,7 @@ public enum FishWeather : byte
 }
 
 /// <summary>
-/// One fish species (docs/adr/ADR-071 D3). The id is the item id of the fish, so a catch is an ordinary inventory item. Balance data:
+/// One fish species (docs/adr/ADR-078 D3). The id is the item id of the fish, so a catch is an ordinary inventory item. Balance data:
 /// the numbers may change without an ADR.
 /// </summary>
 public sealed class FishSpecies

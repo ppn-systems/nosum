@@ -2,7 +2,7 @@
 
 namespace Nosum.Wasm.ViewModels.Fishing;
 
-/// <summary>Where the fishing banner is in a cast (docs/adr/ADR-071 D4). The server decides every outcome; these only say what is shown.</summary>
+/// <summary>Where the fishing banner is in a cast (docs/adr/ADR-078 D4). The server decides every outcome; these only say what is shown.</summary>
 public enum FishingPhase : byte
 {
     /// <summary>No line is out and no result is shown: the banner is hidden.</summary>

@@ -28,6 +28,7 @@ using Nosum.Handlers.Friends;
 using Nosum.Handlers.Goals;
 using Nosum.Handlers.GroundItem;
 using Nosum.Handlers.Inventory;
+using Nosum.Handlers.Journal;
 using Nosum.Handlers.Look;
 using Nosum.Handlers.Mail;
 using Nosum.Handlers.Market;
@@ -190,6 +191,7 @@ internal static partial class Program
             .MapHandlers(typeof(MineHandlers))
             .MapHandlers(typeof(CombatHandlers))
             .MapHandlers(typeof(BestiaryHandlers))
+            .MapHandlers(typeof(JournalHandlers))
             .MapHandlers(typeof(GoalHandlers))
             .MapHandlers(typeof(CalendarHandlers))
             .MapHandlers(typeof(GroundItemHandlers))

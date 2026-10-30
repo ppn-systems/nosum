@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>The catch rules: timing judged on the server clock, and the seeded roll (docs/adr/ADR-071 D4, D5).</summary>
+/// <summary>The catch rules: timing judged on the server clock, and the seeded roll (docs/adr/ADR-078 D4, D5).</summary>
 public sealed class FishingRulesTests
 {
     private const int Bite = 4000;

@@ -15,7 +15,7 @@ using Nosum.Wasm.ViewModels.Resources;
 namespace Nosum.Wasm.ViewModels.Fishing;
 
 /// <summary>
-/// The fishing banner over the hotbar (docs/adr/ADR-071 D4, D9). The client decides nothing that counts: it sends the cast, shows the bite and the
+/// The fishing banner over the hotbar (docs/adr/ADR-078 D4, D9). The client decides nothing that counts: it sends the cast, shows the bite and the
 /// press window the server reported, sends the reel-in on the press and shows the reply. The one timer only moves the banner from step to step; the
 /// server judges the press on its own clock, so a late timer never changes a catch.
 /// </summary>

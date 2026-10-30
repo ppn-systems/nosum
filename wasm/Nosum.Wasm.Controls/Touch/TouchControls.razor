@@ -1,13 +1,20 @@
+@using Nosum.Wasm.ViewModels.Settings
+@inherits ObservingComponent<SettingsViewModel>
+
 @* The touch controls (docs/adr/ADR-033 D2): a stick bottom-left and the use button bottom-right. They are drawn only where the main pointer is coarse (a phone or
-   tablet; the style sheet hides them otherwise). The page script (renderer.js) handles their pointer events and feeds the same input the keyboard does, so
-   this component only draws and labels them: it never handles an event, and nothing here calls .NET while the player touches. *@
-<div class="touch-controls">
-    <div class="touch-stick" data-touch="stick" role="group" aria-label="@StickLabel">
-        <div class="touch-knob" data-touch="knob"></div>
+   tablet; the style sheet hides them otherwise), and only while the player's touch-controls setting is on (issue #216). The page script (renderer.js) handles their
+   pointer events and feeds the same input the keyboard does, so this component only draws and labels them: it never handles an event, and nothing here calls .NET
+   while the player touches. *@
+@if (Vm.Current.TouchControls)
+{
+    <div class="touch-controls">
+        <div class="touch-stick" data-touch="stick" role="group" aria-label="@StickLabel">
+            <div class="touch-knob" data-touch="knob"></div>
+        </div>
+        @* data-touch-edge is the bit of Nosum.Core.InputEdges.Action. *@
+        <GameButton Variant="chip" Class="touch-use" data-touch-edge="1" aria-label="@UseLabel" tabindex="-1" Text="@UseText" />
     </div>
-    @* data-touch-edge is the bit of Nosum.Core.InputEdges.Action. *@
-    <GameButton Variant="chip" Class="touch-use" data-touch-edge="1" aria-label="@UseLabel" tabindex="-1" Text="@UseText" />
-</div>
+}
 
 @code {
     /// <summary>The accessible name of the stick (already localized).</summary>

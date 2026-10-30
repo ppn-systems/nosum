@@ -10,7 +10,7 @@ using Nosum.Contracts.Fishing.S2C;
 namespace Nosum.Wasm.Socket.Fishing;
 
 /// <summary>
-/// Sends casts and reel-ins to the server (docs/adr/ADR-071 D9). The server starts a cast on its own clock and answers with the bite delay and the
+/// Sends casts and reel-ins to the server (docs/adr/ADR-078 D9). The server starts a cast on its own clock and answers with the bite delay and the
 /// press window; the reel-in carries only the cast id. Each call waits for the reply that carries its sequence id. A lost connection throws; the view
 /// model says the line did not go through.
 /// </summary>

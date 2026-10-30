@@ -38,7 +38,7 @@ public sealed class PlayerState
     /// <summary>Gets or sets the cumulative mining experience.</summary>
     public int MiningXp { get; set; }
 
-    /// <summary>Gets or sets the cumulative fishing experience (docs/adr/ADR-071 D6).</summary>
+    /// <summary>Gets or sets the cumulative fishing experience (docs/adr/ADR-078 D6).</summary>
     public int FishingXp { get; set; }
 
     /// <summary>Gets or sets the cumulative combat experience.</summary>

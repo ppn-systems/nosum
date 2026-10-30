@@ -1,0 +1,20 @@
+/* The minimap frame: 60 u by 44 u, the panels' wood frame (5 u thick, GamePanel.razor.css) around the map the canvas draws. It sits in the top-right
+   corner, under the calendar bar and left of the system column; the numbers are GameHud's (see MapScene.Minimap for the same ones). */
+.hud-minimap {
+    --frame-edge: calc(var(--u) * 5);
+
+    position: absolute;
+    top: calc(var(--u) * 20);
+    right: calc(var(--u) * 36);
+    box-sizing: border-box;
+    width: calc(var(--u) * 60);
+    height: calc(var(--u) * 44);
+    margin: 0;
+    padding: 0;
+    border: var(--frame-edge) solid var(--nosum-edge);
+    border-image: var(--nosum-img-panel) 5 / var(--frame-edge) stretch;
+    background: none;
+    image-rendering: pixelated;
+    cursor: var(--nosum-cursor-pointer, pointer);
+    pointer-events: auto;
+}

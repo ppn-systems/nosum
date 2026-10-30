@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>The reach of a cast: how far the player may stand from the water tile (docs/adr/ADR-071 D1).</summary>
+/// <summary>The reach of a cast: how far the player may stand from the water tile (docs/adr/ADR-078 D1).</summary>
 public sealed class FishingReachTests
 {
     private const int TileSize = 16;

@@ -3,7 +3,7 @@
 namespace Nosum.Contracts.Fishing;
 
 /// <summary>
-/// Opcodes of fishing (docs/adr/ADR-071): casting a fishing rod at water and reeling the line in. Band <c>0xC300-0xC3FF</c> (the Shop, Mine and
+/// Opcodes of fishing (docs/adr/ADR-078): casting a fishing rod at water and reeling the line in. Band <c>0xC300-0xC3FF</c> (the Shop, Mine and
 /// Combat bands sit below it). C2S requests use <c>0xC300-0xC33F</c>, S2C replies use <c>0xC340-0xC37F</c>. Never reassign or reuse a value.
 /// </summary>
 public static class FishingOpCode

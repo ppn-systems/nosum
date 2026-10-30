@@ -299,6 +299,33 @@
   <data name="Account_Status_Banned" xml:space="preserve"><value>Tài khoản này đã bị khóa. Hãy liên hệ quản trị viên nếu bạn cho rằng đây là nhầm lẫn.</value></data>
   <data name="Account_Status_SessionKicked" xml:space="preserve"><value>Quản trị viên đã đưa bạn ra khỏi trò chơi. Bạn có thể đăng nhập lại.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Hồ sơ</value></data>
+  <data name="Toolbar_WorldMap" xml:space="preserve"><value>Bản đồ thế giới</value></data>
+  <data name="Minimap_Tip" xml:space="preserve"><value>Bản đồ nhỏ: bấm để mở bản đồ thế giới</value></data>
+  <data name="Toolbar_Journal" xml:space="preserve"><value>Sổ sưu tập</value></data>
+  <data name="Action_Minimap" xml:space="preserve"><value>Bản đồ nhỏ</value></data>
+  <data name="Action_WorldMap" xml:space="preserve"><value>Bản đồ thế giới</value></data>
+  <data name="Action_Journal" xml:space="preserve"><value>Sổ sưu tập</value></data>
+  <data name="Map_farm_Name" xml:space="preserve"><value>Nông trại</value></data>
+  <data name="Map_town_Name" xml:space="preserve"><value>Thị trấn</value></data>
+  <data name="Map_beach_Name" xml:space="preserve"><value>Bờ biển</value></data>
+  <data name="Map_woods_Name" xml:space="preserve"><value>Rừng</value></data>
+  <data name="Map_mountain_Name" xml:space="preserve"><value>Núi</value></data>
+  <data name="Map_mine_Name" xml:space="preserve"><value>Lối vào hầm mỏ</value></data>
+  <data name="Map_busstop_Name" xml:space="preserve"><value>Trạm xe buýt</value></data>
+  <data name="Map_forest_Name" xml:space="preserve"><value>Khu rừng</value></data>
+  <data name="Map_backwoods_Name" xml:space="preserve"><value>Rừng sâu</value></data>
+  <data name="Map_farmhouse_Name" xml:space="preserve"><value>Nhà nông trại</value></data>
+  <data name="Map_coopfarm_Name" xml:space="preserve"><value>Đất hợp tác</value></data>
+  <data name="WorldMap_Here" xml:space="preserve"><value>Bạn đang ở đây</value></data>
+  <data name="WorldMap_Shops" xml:space="preserve"><value>Cửa hàng: {0}</value></data>
+  <data name="WorldMap_HoursUnknown" xml:space="preserve"><value>Giờ mở cửa: chưa có thông tin</value></data>
+  <data name="WorldMap_Connections" xml:space="preserve"><value>Nối tới:</value></data>
+  <data name="WorldMap_Loading" xml:space="preserve"><value>Đang tải…</value></data>
+  <data name="WorldMap_NoConnections" xml:space="preserve"><value>Chưa có lối đi nào</value></data>
+  <data name="Journal_Summary" xml:space="preserve"><value>Đã khám phá {0} / {1} món</value></data>
+  <data name="Journal_Unknown" xml:space="preserve"><value>???</value></data>
+  <data name="Journal_Undiscovered" xml:space="preserve"><value>Chưa nhận được món này</value></data>
+  <data name="Journal_Tip" xml:space="preserve"><value>{0}&#10;Đã nhận: {1}&#10;Lần đầu: {2}</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Biệt danh hiện tại: {0}</value></data>
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>
@@ -463,6 +490,8 @@
   <data name="Season_Summer" xml:space="preserve"><value>Hè</value></data>
   <data name="Season_Fall" xml:space="preserve"><value>Thu</value></data>
   <data name="Season_Winter" xml:space="preserve"><value>Đông</value></data>
+  <data name="Season_Banner_Title" xml:space="preserve"><value>MÙA MỚI</value></data>
+  <data name="Season_Banner_Message" xml:space="preserve"><value>Mùa {0} đã đến!</value></data>
   <data name="Calendar_Day" xml:space="preserve"><value>Ngày {0}</value></data>
   <data name="Calendar_Year" xml:space="preserve"><value>Năm {0}</value></data>
   <data name="Calendar_Summary" xml:space="preserve"><value>{0}, {1}, {2} ({3})</value></data>
@@ -942,4 +971,40 @@
   <data name="Fishing_Status_OutOfEnergy" xml:space="preserve"><value>Bạn đã hết năng lượng để câu.</value></data>
   <data name="Fishing_Status_NoSpace" xml:space="preserve"><value>Túi đồ đã đầy, không còn chỗ cho cá.</value></data>
   <data name="Fishing_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Animal_duck_Name" xml:space="preserve"><value>Vịt</value></data>
+  <data name="Animal_goat_Name" xml:space="preserve"><value>Dê</value></data>
+  <data name="Animal_sheep_Name" xml:space="preserve"><value>Cừu</value></data>
+  <data name="Animal_pig_Name" xml:space="preserve"><value>Heo</value></data>
+  <data name="Shop_Qty_Less" xml:space="preserve"><value>Bớt</value></data>
+  <data name="Shop_Qty_More" xml:space="preserve"><value>Thêm</value></data>
+  <data name="Shop_Confirm_Text" xml:space="preserve"><value>Mua {0} × {1} với giá {2} xu? Số dư còn lại: {3} xu.</value></data>
+  <data name="Shop_Confirm_Yes" xml:space="preserve"><value>Xác nhận</value></data>
+  <data name="Shop_Confirm_No" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Settings_TouchControls" xml:space="preserve"><value>Nút cảm ứng trên màn hình</value></data>
+  <data name="Settings_Haptics" xml:space="preserve"><value>Rung khi mua và bán</value></data>
+  <data name="Account_Provider_Guidance" xml:space="preserve"><value>Chưa bật Google và Microsoft trên máy chủ này. Hãy chơi với tư cách khách.</value></data>
+  <data name="Game_Start_Step_Connect" xml:space="preserve"><value>Đang kết nối máy chủ…</value></data>
+  <data name="Game_Start_Step_Assets" xml:space="preserve"><value>Đang tải hình ảnh và âm thanh…</value></data>
+  <data name="Game_Start_Step_World" xml:space="preserve"><value>Đang vào khu vực…</value></data>
+  <data name="Game_Start_Slow" xml:space="preserve"><value>Vẫn đang tải. Nếu chờ quá lâu, hãy thử lại.</value></data>
+  <data name="Game_Start_Retry" xml:space="preserve"><value>Thử lại</value></data>
+  <data name="Furniture_Title" xml:space="preserve"><value>Nội thất</value></data>
+  <data name="Furniture_Category_All" xml:space="preserve"><value>Tất cả</value></data>
+  <data name="Furniture_Category_Seating" xml:space="preserve"><value>Ghế</value></data>
+  <data name="Furniture_Category_Tables" xml:space="preserve"><value>Bàn</value></data>
+  <data name="Furniture_Category_Beds" xml:space="preserve"><value>Giường</value></data>
+  <data name="Furniture_Category_Storage" xml:space="preserve"><value>Tủ kệ</value></data>
+  <data name="Furniture_Category_Lighting" xml:space="preserve"><value>Đèn</value></data>
+  <data name="Furniture_Category_Plants" xml:space="preserve"><value>Cây cảnh</value></data>
+  <data name="Furniture_Category_Decor" xml:space="preserve"><value>Trang trí</value></data>
+  <data name="Furniture_Category_Rugs" xml:space="preserve"><value>Thảm</value></data>
+  <data name="Furniture_Search" xml:space="preserve"><value>Tìm nội thất...</value></data>
+  <data name="Furniture_Place" xml:space="preserve"><value>Cầm để đặt</value></data>
+  <data name="Furniture_PickUp" xml:space="preserve"><value>Cất vào túi</value></data>
+  <data name="Furniture_Empty" xml:space="preserve"><value>Bạn chưa có món nội thất nào. Tiệm nội thất có bán.</value></data>
+  <data name="Furniture_NoMatch" xml:space="preserve"><value>Không có món nào khớp.</value></data>
+  <data name="Furniture_Owned" xml:space="preserve"><value>Đang có: {0}</value></data>
+  <data name="Furniture_BlocksWalking" xml:space="preserve"><value>Chặn lối đi</value></data>
+  <data name="Furniture_WalkOver" xml:space="preserve"><value>Có thể đi qua</value></data>
+  <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
 </root>

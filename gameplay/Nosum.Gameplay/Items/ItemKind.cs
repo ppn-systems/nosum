@@ -79,6 +79,6 @@ public enum ToolKind
     /// <summary>Casts an arcane bolt at a monster using mana (docs/adr/ADR-045).</summary>
     Staff = 8,
 
-    /// <summary>Casts a line at water (docs/adr/ADR-071). Used with the fishing cast packets, not the farm's use-item intent.</summary>
+    /// <summary>Casts a line at water (docs/adr/ADR-078). Used with the fishing cast packets, not the farm's use-item intent.</summary>
     FishingRod = 9,
 }

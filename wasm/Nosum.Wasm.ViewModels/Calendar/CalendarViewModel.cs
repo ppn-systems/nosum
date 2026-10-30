@@ -23,7 +23,14 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
     private readonly CalendarChannel _channel;
     private readonly Timer _tick;
     private GameCalendar? _calendar;
+    private Season? _season;
     private string _shown = string.Empty;
+
+    /// <summary>
+    /// Raised when the season turns on the server calendar, with the new season. Found by the same five-second refresh as the widget, so it can be up
+    /// to five real seconds late. Not raised for the first season read.
+    /// </summary>
+    public event Action<Season>? SeasonChanged;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="channel">The server calendar.</param>
@@ -111,6 +118,13 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
             return;
         }
 
+        Season season = this.Season;
+        if (_season is { } previous && season != previous)
+        {
+            this.SeasonChanged?.Invoke(season);
+        }
+
+        _season = season;
         string now = this.Summary + "|" + this.ForecastText;
         if (string.Equals(now, _shown, StringComparison.Ordinal))
         {

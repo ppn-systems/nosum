@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -15,6 +16,7 @@ using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Npc;
 using Nosum.Wasm.ViewModels.Resources;
+using Nosum.Wasm.ViewModels.Settings;
 using Xunit;
 
 namespace Nosum.UnitTests.Wasm;
@@ -24,9 +26,78 @@ namespace Nosum.UnitTests.Wasm;
 /// dialog of their own, and nothing is ever a tab of the game menu.
 /// </summary>
 [Collection(SharedUiCulture.Name)]
+[SuppressMessage("Reliability", "CA2000", Justification = "Short-lived test fixtures: the view model and its reveal timer die with the test.")]
 public sealed class NpcDialogViewModelTests
 {
-    private static NpcDialogViewModel Create() => new(WasmTestSupport.Localizer<Language>(), new CalendarChannel(new FakeGameSocket()));
+    // Reduced motion by default, so a line is whole at once; the typewriter tests turn it off.
+    private static NpcDialogViewModel Create(bool reduceMotion = true) => new(WasmTestSupport.Localizer<Language>(), new CalendarChannel(new FakeGameSocket()), Settings(reduceMotion));
+
+    private static SettingsViewModel Settings(bool reduceMotion) => new(WasmTestSupport.Text(), new FixedStore(reduceMotion ? "calm=1" : "calm=0"));
+
+    private sealed class FixedStore(string text) : ISettingsStore
+    {
+        public string? Read() => text;
+
+        public void Write(string value)
+        {
+            _ = value;
+        }
+    }
+
+    [Fact]
+    public void Interact_WithMotion_TypesTheLineOutAndHoldsTheChoices()
+    {
+        using CultureScope scope = new("en");
+        NpcDialogViewModel vm = Create(reduceMotion: false);
+
+        vm.Interact(ShopCatalog.SeedShop);
+
+        vm.IsRevealing.Should().BeTrue();
+        vm.PortraitTalking.Should().BeTrue("the portrait speaks while the line types out");
+        vm.Choices.Should().BeEmpty("the choices come once the line is done");
+    }
+
+    [Fact]
+    public void Skip_WhileTyping_ShowsTheWholeLineAndTheChoices()
+    {
+        using CultureScope scope = new("en");
+        NpcDialogViewModel vm = Create(reduceMotion: false);
+        vm.Interact(ShopCatalog.SeedShop);
+
+        vm.Skip();
+
+        vm.IsRevealing.Should().BeFalse();
+        vm.PortraitTalking.Should().BeFalse();
+        vm.Line.Should().Be(vm.Text("Npc_seed_keeper_Greeting"));
+        vm.Choices.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void Interact_WithReducedMotion_ShowsTheWholeLineAtOnce()
+    {
+        using CultureScope scope = new("en");
+        NpcDialogViewModel vm = Create(reduceMotion: true);
+
+        vm.Interact(ShopCatalog.SeedShop);
+
+        vm.IsRevealing.Should().BeFalse();
+        vm.Line.Should().Be(vm.Text("Npc_seed_keeper_Greeting"));
+        vm.Choices.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void Skip_WithNothingTyping_DoesNothing()
+    {
+        using CultureScope scope = new("en");
+        NpcDialogViewModel vm = Create(reduceMotion: true);
+        vm.Interact(ShopCatalog.SeedShop);
+        int changes = 0;
+        vm.Changed += () => changes++;
+
+        vm.Skip();
+
+        changes.Should().Be(0);
+    }
 
     [Fact]
     public void Line_OnARainySpringDayWithTheCalendarKnown_SaysTheRainGreeting()
@@ -52,7 +123,7 @@ public sealed class NpcDialogViewModelTests
         });
         CalendarChannel channel = new(socket);
         channel.Load();
-        NpcDialogViewModel vm = new(WasmTestSupport.Localizer<Language>(), channel);
+        NpcDialogViewModel vm = new(WasmTestSupport.Localizer<Language>(), channel, Settings(reduceMotion: true));
 
         vm.Interact(ShopCatalog.SeedShop).Should().BeTrue();
 

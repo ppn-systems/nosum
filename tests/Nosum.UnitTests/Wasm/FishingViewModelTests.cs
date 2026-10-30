@@ -22,7 +22,7 @@ using static Nosum.UnitTests.Wasm.WasmTestSupport;
 namespace Nosum.UnitTests.Wasm;
 
 /// <summary>
-/// The fishing banner's state machine (docs/adr/ADR-071 D4, D9): the bite comes after the server's delay, the press reels in during the window, the
+/// The fishing banner's state machine (docs/adr/ADR-078 D4, D9): the bite comes after the server's delay, the press reels in during the window, the
 /// replies end or keep the cast, and the banner's timers run on an injected clock.
 /// </summary>
 [Collection(SharedUiCulture.Name)]

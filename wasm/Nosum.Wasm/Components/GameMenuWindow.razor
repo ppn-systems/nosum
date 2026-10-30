@@ -8,6 +8,10 @@
 @using Nosum.Wasm.Controls.Goals
 @using Nosum.Wasm.Controls.Inventory
 @using Nosum.Wasm.Controls.Looks
+@using Nosum.Wasm.Controls.Journal
+@using Nosum.Wasm.Controls.Maps
+@using Nosum.Wasm.ViewModels.Journal
+@using Nosum.Wasm.ViewModels.Maps
 @using Nosum.Wasm.Controls.Mail
 @using Nosum.Wasm.Controls.Market
 @using Nosum.Wasm.Controls.Npc
@@ -59,9 +63,11 @@
 @inject SettingsViewModel Settings
 @inject CraftingViewModel Crafting
 @inject NpcDialogViewModel Npc
+@inject WorldMapViewModel WorldMap
+@inject JournalViewModel Journal
 
 @* Standalone window hosting the currently active game panel (docs/adr/ADR-044). *@
-<TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" OnClose="OnDialogClose">
+<TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" Wide="@(Panel == PanelKind.Inventory)" OnClose="OnDialogClose">
     @switch (Panel)
     {
         case PanelKind.Market:
@@ -118,6 +124,12 @@
             break;
         case PanelKind.Crafting:
             <CraftingPanel Vm="Crafting" />
+            break;
+        case PanelKind.WorldMap:
+            <WorldMapPanel Vm="WorldMap" />
+            break;
+        case PanelKind.Journal:
+            <JournalPanel Vm="Journal" />
             break;
     }
 </TradeDialog>

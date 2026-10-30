@@ -1003,6 +1003,33 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_inventories", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Journal.PlayerDiscovery", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer")
+                        .HasColumnName("count");
+
+                    b.Property<DateTimeOffset>("FirstObtainedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_obtained_at");
+
+                    b.HasKey("PlayerId", "ItemId")
+                        .HasName("pk_player_discoveries");
+
+                    b.ToTable("player_discoveries", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_player_discoveries_count_positive", "count > 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Looks.PlayerAppearance", b =>
                 {
                     b.Property<Guid>("PlayerId")
@@ -1996,6 +2023,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_inventory_slots_player_inventories_player_id");
+                });
+
+            modelBuilder.Entity("Nosum.Domain.Journal.PlayerDiscovery", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_discoveries_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Looks.PlayerAppearance", b =>

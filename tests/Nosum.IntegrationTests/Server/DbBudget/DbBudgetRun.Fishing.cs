@@ -15,7 +15,7 @@ namespace Nosum.IntegrationTests.Server.DbBudget;
 
 public sealed partial class DbBudgetRun
 {
-    // A player with a rod on the Beach casts at the sea and reels in before the bite (docs/adr/ADR-071): the energy and the cast are one write.
+    // A player with a rod on the Beach casts at the sea and reels in before the bite (docs/adr/ADR-078): the energy and the cast are one write.
     private async Task FishingAsync()
     {
         _ = BudgetRig.Service<IMapCatalog>().TryGet(GameMaps.Beach, out MapDefinition? beach);

@@ -8,7 +8,7 @@ using Nosum.Contracts.Fishing;
 namespace Nosum.Abstractions.Fishing;
 
 /// <summary>
-/// Casting a fishing rod at water and reeling the line in (docs/adr/ADR-071). The server starts the cast on its own clock, judges the press on
+/// Casting a fishing rod at water and reeling the line in (docs/adr/ADR-078). The server starts the cast on its own clock, judges the press on
 /// the same clock and rolls the catch from a seed it made; the client only shows what these return.
 /// </summary>
 public interface IFishingService

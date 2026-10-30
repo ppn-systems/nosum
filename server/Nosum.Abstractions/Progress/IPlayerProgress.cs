@@ -17,7 +17,7 @@ namespace Nosum.Abstractions.Progress;
 /// <param name="FarmingXp">Cumulative farming experience.</param>
 /// <param name="ForagingXp">Cumulative foraging experience.</param>
 /// <param name="MiningXp">Cumulative mining experience.</param>
-/// <param name="FishingXp">Cumulative fishing experience (docs/adr/ADR-071 D6).</param>
+/// <param name="FishingXp">Cumulative fishing experience (docs/adr/ADR-078 D6).</param>
 public readonly record struct PlayerProgressView(int Energy, int MaxEnergy, int FarmingXp, int ForagingXp, int MiningXp, int FishingXp = 0);
 
 /// <summary>Result of <see cref="IPlayerProgress.TryChargeAsync"/>.</summary>

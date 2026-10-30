@@ -7,7 +7,7 @@ using Nosum.Wasm.ViewModels.Audio;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// The fishing rod in hand (docs/adr/ADR-071 D2, D9). A rod is cast at water by a click, never used on a tile: the action key does nothing with it.
+/// The fishing rod in hand (docs/adr/ADR-078 D2, D9). A rod is cast at water by a click, never used on a tile: the action key does nothing with it.
 /// The scene decides which tile was water; the fishing view model decides whether a line can go out now; the server checks the rest.
 /// </summary>
 internal sealed partial class PlayerActions

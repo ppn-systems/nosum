@@ -1,0 +1,11 @@
+@using Nosum.Wasm.ViewModels.Calendar
+@inherits ObservingComponent<SeasonBannerViewModel>
+
+@* A banner across the top of the screen when the season turns; it goes away by itself. *@
+@if (Vm.Message is { } message)
+{
+    <div class="season-banner" role="status">
+        <strong class="season-banner-title">@Vm.Title</strong>
+        <span class="season-banner-message">@message</span>
+    </div>
+}

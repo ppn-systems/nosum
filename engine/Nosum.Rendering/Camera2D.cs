@@ -55,6 +55,18 @@ public struct Camera2D
         this.Top = worldHeight <= free ? (worldHeight - free) / 2 : ClampAxis(centerY, viewHeight, worldHeight, free > 0 ? free : viewHeight);
     }
 
+    /// <summary>
+    /// Offsets the view by whole world pixels, for camera shake. Called after <see cref="Follow(int, int, int, int, int, int)"/>
+    /// each frame, so the offset never accumulates.
+    /// </summary>
+    /// <param name="dx">Horizontal offset, world pixels.</param>
+    /// <param name="dy">Vertical offset, world pixels.</param>
+    public void Nudge(int dx, int dy)
+    {
+        this.Left += dx;
+        this.Top += dy;
+    }
+
     private static int Axis(int center, int view, int world)
         => world <= view ? (world - view) / 2 : Math.Clamp(center - (view / 2), 0, world - view);
 

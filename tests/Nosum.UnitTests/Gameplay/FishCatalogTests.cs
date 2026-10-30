@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>The fish species, the rod and the fishing recipes (docs/adr/ADR-071 D2, D3).</summary>
+/// <summary>The fish species, the rod and the fishing recipes (docs/adr/ADR-078 D2, D3).</summary>
 public sealed class FishCatalogTests
 {
     [Fact]

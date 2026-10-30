@@ -23,6 +23,6 @@ public enum CraftSkill : byte
     /// <summary>Fighting monsters in the mine and wilderness (docs/adr/ADR-045).</summary>
     Combat = 4,
 
-    /// <summary>Casting a line and reeling in fish (docs/adr/ADR-071).</summary>
+    /// <summary>Casting a line and reeling in fish (docs/adr/ADR-078).</summary>
     Fishing = 5,
 }

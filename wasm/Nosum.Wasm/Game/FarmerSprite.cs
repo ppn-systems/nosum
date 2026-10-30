@@ -45,6 +45,7 @@ internal static partial class FarmerSprite
     /// <param name="id">Stable sort id of this character.</param>
     /// <param name="heldItemId">Item id currently held in hand, or 0 for empty hands.</param>
     /// <param name="swingProgress">Active tool/weapon swing progress in <c>[0, 1)</c>, or negative when not swinging.</param>
+    /// <param name="exhausted">Whether the farmer is exhausted: a sweat bubble shows above the head (docs/adr/ADR-074 D4).</param>
     public static void Draw(
         WorldSpriteBatch batch,
         in FarmerTextures textures,
@@ -55,7 +56,8 @@ internal static partial class FarmerSprite
         int feetY,
         int id = 0,
         int heldItemId = 0,
-        float swingProgress = -1f)
+        float swingProgress = -1f,
+        bool exhausted = false)
     {
         // Sheet rows: 0 down, 1 right, 2 up; left is right mirrored.
         int row = facing switch { Facing.Down => 0, Facing.Up => 2, _ => 1 };
@@ -106,6 +108,11 @@ internal static partial class FarmerSprite
         if (facing != Facing.Up && (heldItemId > 0 || swinging))
         {
             DrawHeldItemAndSwing(batch, textures, facing, column, bob, x, y, feetX, feetY, sortY + 1, id, heldItemId, swingProgress);
+        }
+
+        if (exhausted)
+        {
+            DrawSweatBubble(batch, feetX, feetY, sortY, id);
         }
     }
 
@@ -225,12 +232,13 @@ internal static partial class FarmerSprite
                 }
                 else
                 {
-                    // Smooth 60 FPS cleave curve: brief wind-up (0..0.18), fast power cleave (0.18..0.72), follow-through settle (0.72..1.0).
+                    // Wind-up back to the hit frame (0..HitFraction), fast strike through it (HitFraction..0.72), follow-through settle (0.72..1.0).
+                    const float hit = (float)ToolPacing.HitFraction;
                     float p = Math.Clamp(swingProgress, 0f, 1f);
-                    float s01 = p < 0.18f
-                        ? (p / 0.18f) * 0.15f
+                    float s01 = p < hit
+                        ? (p / hit) * 0.15f
                         : p < 0.72f
-                            ? 0.15f + (MathF.Sin(((p - 0.18f) / 0.54f) * (MathF.PI * 0.5f)) * 0.85f)
+                            ? 0.15f + (MathF.Sin(((p - hit) / (0.72f - hit)) * (MathF.PI * 0.5f)) * 0.85f)
                             : 1f - (((p - 0.72f) / 0.28f) * 0.12f);
 
                     (handX, handY, swingDeg) = facing switch
@@ -273,7 +281,7 @@ internal static partial class FarmerSprite
                 RenderCommandBuffer.NoTint);
         }
 
-        if (swinging && swingProgress >= 0.16f)
+        if (swinging && swingProgress >= (float)ToolPacing.HitFraction)
         {
             DrawSwingImpactVfx(batch, facing, feetX, feetY, sortY, heldItemId, swingProgress);
         }

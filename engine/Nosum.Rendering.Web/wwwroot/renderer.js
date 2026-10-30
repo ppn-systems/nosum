@@ -41,8 +41,9 @@ const ACTION_BITS = {
     Use: { edge: 1 }, Inventory: { edge: 1024 }, Rotate: { edge: 2048 }, Grab: { edge: 4096 }, PickUp: { edge: 8192 },
     Wardrobe: { edge: 32768 }, Trade: { edge: 65536 }, Coop: { edge: 131072 },
     Help: { edge: 524288 }, Profile: { edge: 1048576 },
+    Minimap: { edge: 16777216 }, WorldMap: { edge: 33554432 }, Journal: { edge: 67108864 },
 };
-const DEFAULT_BINDINGS = "MoveUp=KeyW;MoveDown=KeyS;MoveLeft=KeyA;MoveRight=KeyD;Use=KeyE;Inventory=KeyI;Wardrobe=KeyC;Trade=KeyT;Coop=KeyG;Profile=KeyN;Help=KeyH;Rotate=KeyR;Grab=KeyF;PickUp=KeyQ";
+const DEFAULT_BINDINGS = "MoveUp=KeyW;MoveDown=KeyS;MoveLeft=KeyA;MoveRight=KeyD;Use=KeyE;Inventory=KeyI;Wardrobe=KeyC;Trade=KeyT;Coop=KeyG;Profile=KeyN;Help=KeyH;Rotate=KeyR;Grab=KeyF;PickUp=KeyQ;Minimap=KeyM;WorldMap=Tab;Journal=KeyJ";
 
 let KEY_BITS = {};
 let EDGE_BITS = {};
@@ -251,7 +252,7 @@ export async function start(canvasId, assemblyName, exportPath) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
         const pressed = edges;
         edges = 0;
-        frame(time, (keys | touchHeld) | (pressed << 8), w, h, mouseX, mouseY, mouseHeld);
+        frame(time, (keys | touchHeld) | (pressed << 4), w, h, mouseX, mouseY, mouseHeld);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -343,7 +344,7 @@ export function submitFrame(view) {
             }
             continue;
         }
-        const image = tint === -1 ? textures[id] : tintedTexture(id, tint);
+        const image = (flags & 2) !== 0 ? whitenedTexture(id, tint) : tint === -1 ? textures[id] : tintedTexture(id, tint);
         if (!image) {
             continue;
         }
@@ -391,6 +392,34 @@ function tintedTexture(id, tint) {
     c.globalAlpha = (u & 255) / 255;
     c.drawImage(source, 0, 0);
     c.globalAlpha = 1;
+    tinted.set(key, result);
+    return result;
+}
+
+// Washes a sheet toward white by the alpha byte of the tint, over the sprite's own silhouette (the monster hit flash, docs/adr/ADR-076).
+function whitenedTexture(id, tint) {
+    const alpha = tint & 255;
+    const key = `w${id}:${alpha}`;
+    let result = tinted.get(key);
+    if (result) {
+        return result;
+    }
+    const source = textures[id];
+    if (!source) {
+        return null;
+    }
+    if (tinted.size >= 256) {
+        tinted.delete(tinted.keys().next().value);
+    }
+    result = new OffscreenCanvas(source.width, source.height);
+    const c = result.getContext("2d");
+    c.drawImage(source, 0, 0);
+    c.globalCompositeOperation = "source-atop";
+    c.globalAlpha = alpha / 255;
+    c.fillStyle = "#fff";
+    c.fillRect(0, 0, source.width, source.height);
+    c.globalAlpha = 1;
+    c.globalCompositeOperation = "source-over";
     tinted.set(key, result);
     return result;
 }

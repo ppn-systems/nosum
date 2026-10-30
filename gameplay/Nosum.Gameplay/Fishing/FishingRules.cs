@@ -9,7 +9,7 @@ using Nosum.Gameplay.Weather;
 
 namespace Nosum.Gameplay.Fishing;
 
-/// <summary>What the hook did at the moment the player reeled in (docs/adr/ADR-071 D4).</summary>
+/// <summary>What the hook did at the moment the player reeled in (docs/adr/ADR-078 D4).</summary>
 public enum HookVerdict : byte
 {
     /// <summary>Too early: the fish has not bitten yet. The cast stays open.</summary>
@@ -22,7 +22,7 @@ public enum HookVerdict : byte
     Escaped = 2,
 }
 
-/// <summary>The conditions a cast is rolled under: where, when and how skilled (docs/adr/ADR-071 D3).</summary>
+/// <summary>The conditions a cast is rolled under: where, when and how skilled (docs/adr/ADR-078 D3).</summary>
 /// <param name="Water">The water the line is cast into.</param>
 /// <param name="Season">The season now.</param>
 /// <param name="Weather">The weather now.</param>
@@ -31,7 +31,7 @@ public enum HookVerdict : byte
 public readonly record struct FishingSpot(FishingWater Water, Season Season, WeatherKind Weather, int Hour, int Level);
 
 /// <summary>
-/// The fishing rules (docs/adr/ADR-071). Pure: the server passes the clock readings and the seed, the client runs the same rules to
+/// The fishing rules (docs/adr/ADR-078). Pure: the server passes the clock readings and the seed, the client runs the same rules to
 /// show the bite window. The server decides every catch from its own timestamps and a seed it made itself, so a client can neither
 /// choose the fish nor reel in early or late by reporting its own time.
 /// </summary>
@@ -64,10 +64,10 @@ public static class FishingRules
     /// <summary>How much later than the window the server still accepts a press, to absorb network delay, in milliseconds.</summary>
     public const int LateToleranceMs = 400;
 
-    /// <summary>How far a player may stand from the water tile they cast at, in tiles (centre to feet). Docs/adr/ADR-071 D1.</summary>
+    /// <summary>How far a player may stand from the water tile they cast at, in tiles (centre to feet). Docs/adr/ADR-078 D1.</summary>
     public const int CastReachTiles = 3;
 
-    /// <summary>How long an open cast waits for its reel-in before it is dropped, in milliseconds (docs/adr/ADR-071 D7).</summary>
+    /// <summary>How long an open cast waits for its reel-in before it is dropped, in milliseconds (docs/adr/ADR-078 D7).</summary>
     public const int CastLifetimeMs = 60_000;
 
     /// <summary>Chance, in permille, that a cast brings nothing up at level zero.</summary>
@@ -133,7 +133,7 @@ public static class FishingRules
         return elapsedMs > (long)biteDelayMs + windowMs + LateToleranceMs ? HookVerdict.Escaped : HookVerdict.Hooked;
     }
 
-    /// <summary>Tells whether a player may cast at a tile from where their feet are (docs/adr/ADR-071 D1).</summary>
+    /// <summary>Tells whether a player may cast at a tile from where their feet are (docs/adr/ADR-078 D1).</summary>
     /// <param name="feetX">Feet x in world pixels.</param>
     /// <param name="feetY">Feet y in world pixels.</param>
     /// <param name="tileX">Target tile x.</param>

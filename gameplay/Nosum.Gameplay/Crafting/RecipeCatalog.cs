@@ -28,6 +28,9 @@ public static class RecipeCatalog
     /// <summary>Sprinkler.</summary>
     public const int Sprinkler = 5;
 
+    /// <summary>Scarecrow stuffed with wool instead of fiber (docs/adr/ADR-028 amendment 2).</summary>
+    public const int ScarecrowWool = 27;
+
     /// <summary>Farm guestbook.</summary>
     public const int Guestbook = 26;
 
@@ -91,11 +94,11 @@ public static class RecipeCatalog
     /// <summary>Sanctuary candelabra (docs/adr/ADR-065).</summary>
     public const int SanctuaryCandelabra = 25;
 
-    /// <summary>Fishing rod (docs/adr/ADR-071).</summary>
-    public const int FishingRod = 27;
+    /// <summary>Fishing rod (docs/adr/ADR-078).</summary>
+    public const int FishingRod = 29;
 
-    /// <summary>Fish stew (docs/adr/ADR-071).</summary>
-    public const int FishStew = 28;
+    /// <summary>Fish stew (docs/adr/ADR-078).</summary>
+    public const int FishStew = 30;
 
     /// <summary>Most items one craft request may make in a batch (so a request cannot ask for an absurd amount).</summary>
     public const int MaxBatch = 99;
@@ -106,6 +109,7 @@ public static class RecipeCatalog
         new(WoodFence, "wood_fence", ItemCatalog.WoodFence, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.Wood, 2)),
         new(StonePath, "stone_path", ItemCatalog.StonePath, 1, RecipeUnlock.Known, new RecipeInput(ItemCatalog.Stone, 1)),
         new(Scarecrow, "scarecrow", ItemCatalog.Scarecrow, 1, RecipeUnlock.Of(CraftSkill.Farming, 1), new RecipeInput(ItemCatalog.Wood, 50), new RecipeInput(ItemCatalog.Coal, 1), new RecipeInput(ItemCatalog.Fiber, 20)),
+        new(ScarecrowWool, "scarecrow_wool", ItemCatalog.Scarecrow, 1, RecipeUnlock.Of(CraftSkill.Farming, 1), new RecipeInput(ItemCatalog.Wood, 50), new RecipeInput(ItemCatalog.Coal, 1), new RecipeInput(ItemCatalog.Wool, 5)),
         new(Sprinkler, "sprinkler", ItemCatalog.Sprinkler, 1, RecipeUnlock.Of(CraftSkill.Farming, 2), new RecipeInput(ItemCatalog.CopperBar, 1), new RecipeInput(ItemCatalog.IronBar, 1)),
         new(Guestbook, "guestbook", ItemCatalog.Guestbook, 1, RecipeUnlock.Of(CraftSkill.Farming, 1), new RecipeInput(ItemCatalog.Wood, 30), new RecipeInput(ItemCatalog.Fiber, 10)),
         new(Furnace, "furnace", ItemCatalog.Furnace, 1, RecipeUnlock.Of(CraftSkill.Mining, 1), new RecipeInput(ItemCatalog.CopperOre, 20), new RecipeInput(ItemCatalog.Stone, 25)),

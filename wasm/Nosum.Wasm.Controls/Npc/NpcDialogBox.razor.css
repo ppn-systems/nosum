@@ -43,6 +43,26 @@
     min-height: calc(var(--nosum-lh) * 2);
 }
 
+.npc-line-typing {
+    cursor: pointer;
+}
+
+/* The portrait bobs while its line types out (issue #214). With reduced motion the line is never typed, so the bob never starts. */
+.npc-portrait-talking {
+    animation: npc-portrait-talk 0.4s steps(2, jump-none) infinite;
+}
+
+@keyframes npc-portrait-talk {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(calc(var(--u) * -1)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .npc-portrait-talking {
+        animation: none;
+    }
+}
+
 .npc-prompt {
     display: inline-block;
     margin-left: calc(var(--u) * 2);

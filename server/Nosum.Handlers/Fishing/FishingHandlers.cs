@@ -14,7 +14,7 @@ using Nosum.Handlers.Session;
 namespace Nosum.Handlers.Fishing;
 
 /// <summary>
-/// Casting a fishing rod and reeling the line in (docs/adr/ADR-071). The packets carry the intent only: the tile of the cast, and the cast id
+/// Casting a fishing rod and reeling the line in (docs/adr/ADR-078). The packets carry the intent only: the tile of the cast, and the cast id
 /// on the reel-in. The server times both presses on its own clock and rolls the catch.
 /// </summary>
 [PacketHandler("Nosum.Fishing")]

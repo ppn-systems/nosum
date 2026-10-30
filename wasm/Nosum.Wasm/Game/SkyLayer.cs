@@ -9,6 +9,7 @@ using Nosum.Gameplay.Weather;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Placeable;
+using Nosum.Wasm.ViewModels.Audio;
 
 namespace Nosum.Wasm.Game;
 
@@ -19,11 +20,18 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal sealed class SkyLayer
 {
+    // The flash's colour, warm white, before its alpha (0xRRGGBBAA).
+    private const int FlashRgba = unchecked((int)0xFFFAF000);
+
+    // The thunder's volume, 0 to 100: loud enough to be heard over the rain loop.
+    private const int ThunderVolume = 80;
+
     private readonly CalendarChannel? _calendar;
     private readonly PlaceableChannel? _placed;
     private readonly PrecipitationLayer _precipitation = new();
     private GameCalendar? _rules;
     private Precipitation _falling;
+    private long _lastThunderSlot = long.MinValue;
 
     /// <summary>Initializes the layer.</summary>
     /// <param name="calendar">The server calendar; without it (offline) the sky stays plain daylight.</param>
@@ -42,7 +50,7 @@ internal sealed class SkyLayer
     public void Update(MapSpec spec, double frameSeconds, int viewWidth, int viewHeight)
     {
         GameCalendar? rules = this.Rules();
-        _falling = rules is null || spec.Indoors ? Precipitation.None : PrecipitationOf(WeatherRules.At(rules, _calendar!.ServerNowMs()));
+        _falling = rules is null || spec.Indoors ? Precipitation.None : FallingOf(rules, _calendar!.ServerNowMs());
         _precipitation.Update(_falling, frameSeconds, viewWidth, viewHeight);
     }
 
@@ -68,6 +76,43 @@ internal sealed class SkyLayer
 
         this.AddLights(commands, spec, camera, tileSize);
         commands.SetAmbient(tint.R, tint.G, tint.B, tint.A);
+    }
+
+    /// <summary>
+    /// Draws the white flash of a storm's lightning over the whole view and plays its thunder when it is due (docs/adr/ADR-039 for the sounds).
+    /// The strikes come from the server clock, so every player sees the same flash. Call after <see cref="DrawPrecipitation"/>.
+    /// </summary>
+    /// <param name="commands">Where the flash is recorded.</param>
+    /// <param name="audio">The audio director for the thunder; <see langword="null"/> for none.</param>
+    /// <param name="viewWidth">View width, unscaled screen pixels.</param>
+    /// <param name="viewHeight">View height, unscaled screen pixels.</param>
+    public void DrawLightning(RenderCommandBuffer commands, GameAudio? audio, int viewWidth, int viewHeight)
+    {
+        if (_falling != Precipitation.Storm || _calendar is not { IsLoaded: true })
+        {
+            return;
+        }
+
+        long now = _calendar.ServerNowMs();
+        long slot = LightningRules.SlotOf(now);
+        bool reduced = ViewOptions.ReduceMotion;
+        int alpha = 0;
+
+        // The strike of the previous window can still be flashing or due in this one.
+        for (long k = slot - 1; k <= slot; k++)
+        {
+            alpha = Math.Max(alpha, LightningRules.FlashAlpha(now - LightningRules.StrikeAtMs(k), reduced));
+            if (k > _lastThunderSlot && LightningRules.ThunderDue(now, k))
+            {
+                _lastThunderSlot = k;
+                audio?.Play(SoundIds.Thunder, ThunderVolume);
+            }
+        }
+
+        if (alpha > 0)
+        {
+            commands.FillRect(0, 0, viewWidth, viewHeight, FlashRgba | alpha);
+        }
     }
 
     /// <summary>Reads the season, the game minute and the weather the sky is computed from, for the music and the rain loop (docs/adr/ADR-039).</summary>
@@ -97,6 +142,18 @@ internal sealed class SkyLayer
     /// <summary>Records the rain or snow of this frame.</summary>
     /// <param name="commands">Where the rectangles are recorded.</param>
     public void DrawPrecipitation(RenderCommandBuffer commands) => _precipitation.Draw(_falling, commands);
+
+    // Autumn leaves drift down on clear days; the weather's own precipitation otherwise.
+    private static Precipitation FallingOf(GameCalendar rules, long now)
+    {
+        WeatherKind weather = WeatherRules.At(rules, now);
+        if (weather == WeatherKind.Sun && rules.At(now).Season == Season.Fall)
+        {
+            return Precipitation.Leaves;
+        }
+
+        return PrecipitationOf(weather);
+    }
 
     internal static Precipitation PrecipitationOf(WeatherKind weather) => weather switch
     {

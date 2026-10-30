@@ -24,6 +24,7 @@ using Nosum.Abstractions.Fishing;
 using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
+using Nosum.Abstractions.Journal;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
@@ -60,6 +61,7 @@ using Nosum.Infrastructure.Fishing;
 using Nosum.Infrastructure.Friends;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
+using Nosum.Infrastructure.Journal;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Mail;
 using Nosum.Infrastructure.Maps;
@@ -281,6 +283,8 @@ internal static partial class Program
         // The hunting log (docs/adr/ADR-068): the defeat path counts each kill into it.
         BestiaryService bestiary = new(unitOfWork, clock);
         InstanceManager.Instance.Register<IBestiaryService>(bestiary);
+        // The collection journal (read here; the inventory service counts every grant into it, in the grant's own transaction).
+        InstanceManager.Instance.Register<IJournalService>(new JournalService(unitOfWork));
         CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>
@@ -291,7 +295,7 @@ internal static partial class Program
 
         InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress, combat), quests));
 
-        // Fishing (docs/adr/ADR-071): the casts are held in memory; the season, the weather and the hour come from the same calendar and clock as the farm.
+        // Fishing (docs/adr/ADR-078): the casts are held in memory; the season, the weather and the hour come from the same calendar and clock as the farm.
         InstanceManager.Instance.Register<IFishingService>(new FishingService(presence, maps, inventory, progress, calendar, clock));
 
         // The mine (docs/adr/ADR-026): floors are per-player instances built in memory, dropped when the player leaves; a tool use that ends at a ladder takes the player down,

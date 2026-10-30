@@ -2,7 +2,7 @@
 @inherits ObservingComponent<FishingViewModel>
 
 @* The fishing banner above the hotbar: what the line is doing, the bite window as a bar that empties once, and the press that reels in. It is shown
-   only while a cast is open or its result is (docs/adr/ADR-071 D9). The bar's length is the server's window; nothing here is timed per frame. *@
+   only while a cast is open or its result is (docs/adr/ADR-078 D9). The bar's length is the server's window; nothing here is timed per frame. *@
 @if (Vm.Phase != FishingPhase.Idle)
 {
     <div class="fishing-banner">

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.Localization;
 using Nosum.Wasm.ViewModels.Resources;
@@ -31,6 +32,9 @@ public sealed class MapLoadingViewModel : IObservableViewModel, IDisposable
     private int _tip;
     private int _percent;
     private bool _visible;
+
+    /// <summary>Gets the keys of the gameplay tips, in the order they rotate. Shared with the game's start-up overlay.</summary>
+    public static IReadOnlyList<string> TipKeys { get; } = s_tipKeys;
 
     /// <summary>Initializes the view model; nothing is shown until <see cref="Begin"/>.</summary>
     /// <param name="text">Localized UI text.</param>

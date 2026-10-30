@@ -7,7 +7,7 @@ using Nosum.Gameplay.Items;
 namespace Nosum.Gameplay.Fishing;
 
 /// <summary>
-/// The ten fish species (docs/adr/ADR-071 D3). Ids are the fish item ids of <see cref="ItemCatalog"/>; prices are the item's
+/// The ten fish species (docs/adr/ADR-078 D3). Ids are the fish item ids of <see cref="ItemCatalog"/>; prices are the item's
 /// <c>SellPrice</c>. Seasons combine as <see cref="SeasonSet"/> flags.
 /// </summary>
 public static class FishCatalog

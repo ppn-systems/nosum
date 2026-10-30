@@ -84,6 +84,9 @@ jobs:
           NOSUM_TAG: ${{ github.sha }}
           NOSUM_ORIGIN: ${{ vars.NOSUM_ORIGIN }}
           NOSUM_CALENDAR_EPOCH: ${{ vars.NOSUM_CALENDAR_EPOCH }}
+          NOSUM_GOOGLE_CLIENT_ID: ${{ vars.NOSUM_GOOGLE_CLIENT_ID }}
+          NOSUM_MICROSOFT_CLIENT_ID: ${{ vars.NOSUM_MICROSOFT_CLIENT_ID }}
+          NOSUM_MICROSOFT_TENANT: ${{ vars.NOSUM_MICROSOFT_TENANT || 'common' }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
           GHCR_USER: ${{ github.actor }}
@@ -92,7 +95,7 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_SSH_USER }}
           key: ${{ steps.prepare_key.outputs.key }}
-          envs: NOSUM_TAG,NOSUM_ORIGIN,NOSUM_CALENDAR_EPOCH,POSTGRES_PASSWORD,CLOUDFLARE_TUNNEL_TOKEN,GHCR_USER,GHCR_TOKEN
+          envs: NOSUM_TAG,NOSUM_ORIGIN,NOSUM_CALENDAR_EPOCH,NOSUM_GOOGLE_CLIENT_ID,NOSUM_MICROSOFT_CLIENT_ID,NOSUM_MICROSOFT_TENANT,POSTGRES_PASSWORD,CLOUDFLARE_TUNNEL_TOKEN,GHCR_USER,GHCR_TOKEN
           script: |
             set -eu
             cd /opt/nosum
@@ -107,6 +110,9 @@ jobs:
               printf 'NOSUM_TAG=%s\n' "$NOSUM_TAG"
               printf 'NOSUM_PREVIOUS_TAG=%s\n' "$previous"
               printf 'NOSUM_CALENDAR_EPOCH=%s\n' "${NOSUM_CALENDAR_EPOCH:-}"
+              printf 'NOSUM_GOOGLE_CLIENT_ID=%s\n' "${NOSUM_GOOGLE_CLIENT_ID:-}"
+              printf 'NOSUM_MICROSOFT_CLIENT_ID=%s\n' "${NOSUM_MICROSOFT_CLIENT_ID:-}"
+              printf 'NOSUM_MICROSOFT_TENANT=%s\n' "${NOSUM_MICROSOFT_TENANT:-common}"
             } > .env.new
             mv .env.new .env
 

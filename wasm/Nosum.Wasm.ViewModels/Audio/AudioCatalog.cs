@@ -95,6 +95,21 @@ public static class SoundIds
 
     /// <summary>A deep bass thump when a combat combo reaches its finisher (docs/adr/ADR-060).</summary>
     public const int ComboFinisher = 21;
+
+    /// <summary>A low rumble after a lightning flash in a storm (docs/adr/ADR-039 D3).</summary>
+    public const int Thunder = 22;
+
+    /// <summary>A craft or a furnace batch finished: two anvil clinks.</summary>
+    public const int Craft = 23;
+
+    /// <summary>Food eaten: a soft crunch.</summary>
+    public const int Eat = 24;
+
+    /// <summary>A visitor arrives at the farm: a two-note doorbell.</summary>
+    public const int Doorbell = 25;
+
+    /// <summary>New mail or a friend's answer: a soft chime.</summary>
+    public const int MailChime = 26;
 }
 
 /// <summary>The ambient loop ids.</summary>
@@ -189,6 +204,11 @@ public static class AudioCatalog
         new(AudioKind.Sound, SoundIds.PotionDrink, "potion_drink.wav", 0.1),
         new(AudioKind.Sound, SoundIds.LevelUp, "level_up.wav", 0.2),
         new(AudioKind.Sound, SoundIds.ComboFinisher, "combo_finisher.wav", 0.25),
+        new(AudioKind.Sound, SoundIds.Thunder, "thunder.wav", 1),
+        new(AudioKind.Sound, SoundIds.Craft, "craft.wav", 0.15),
+        new(AudioKind.Sound, SoundIds.Eat, "eat.wav", 0.2),
+        new(AudioKind.Sound, SoundIds.Doorbell, "doorbell.wav", 1.5),
+        new(AudioKind.Sound, SoundIds.MailChime, "mail_chime.wav", 1.5),
         new(AudioKind.Loop, LoopIds.Rain, "rain_loop.wav"),
         new(AudioKind.Track, MusicTrackIds.For(Season.Spring, false), "music_spring_day.wav"),
         new(AudioKind.Track, MusicTrackIds.For(Season.Spring, true), "music_spring_night.wav"),
