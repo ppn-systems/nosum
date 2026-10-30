@@ -1,0 +1,44 @@
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Maps
+@inherits ObservingComponent<WorldMapViewModel>
+
+@* The world map (Tab): every public map as a card, the one the farmer stands on highlighted, with its connections and shops. *@
+<MenuPage>
+    <div class="world-map-grid">
+        @foreach (WorldMapCard card in Vm.Cards())
+        {
+            <section class="world-map-card @(card.IsCurrent ? "current" : null)" aria-current="@(card.IsCurrent ? "location" : null)">
+                <header class="world-map-title">
+                    <span class="world-map-name">@card.Name</span>
+                    @if (card.IsCurrent)
+                    {
+                        <GameBadge Kind="ok" Text="@Vm.Text("WorldMap_Here")" />
+                    }
+                </header>
+                <p class="world-map-meta">
+                    <span>@Vm.Text("WorldMap_Shops", card.ShopCount)</span>
+                    <span>@Vm.Text("WorldMap_HoursUnknown")</span>
+                </p>
+                <div class="world-map-links">
+                    <span class="world-map-label">@Vm.Text("WorldMap_Connections")</span>
+                    @if (!card.ConnectionsKnown)
+                    {
+                        <span class="world-map-hint">@Vm.Text("WorldMap_Loading")</span>
+                    }
+                    else if (card.Connections.Count == 0)
+                    {
+                        <span class="world-map-hint">@Vm.Text("WorldMap_NoConnections")</span>
+                    }
+                    else
+                    {
+                        @foreach (string link in card.Connections)
+                        {
+                            <GameBadge Kind="info" Text="@link" />
+                        }
+                    }
+                </div>
+            </section>
+        }
+    </div>
+</MenuPage>

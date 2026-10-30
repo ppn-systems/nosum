@@ -46,4 +46,10 @@ public enum GameAction
 
     /// <summary>Take the furniture in front back into the inventory.</summary>
     PickUp,
+    /// <summary>Show or hide the minimap in the HUD corner.</summary>
+    Minimap,
+    /// <summary>Open or close the world map panel.</summary>
+    WorldMap,
+    /// <summary>Open or close the collection journal.</summary>
+    Journal,
 }

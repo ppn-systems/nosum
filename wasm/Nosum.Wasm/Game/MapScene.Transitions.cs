@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Nosum.Core;
 using Nosum.Core.Interpolation;
+using Nosum.Rendering;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Npcs;
@@ -204,6 +205,32 @@ internal sealed partial class MapScene
     }
 
     // Remembers where a nickname goes; the labels are recorded after everything else so no sprite or roof covers them.
+    // The energy a tool just spent floats above the tile it worked (docs/adr/ADR-074 D4): the combat numbers serve as the label, and reduced motion keeps it still.
+    private void AddEnergyFloats()
+    {
+        if (_actions is null || _combatLabels is null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < PlayerActions.FloatSlots; i++)
+        {
+            if (!_actions.TryGetEnergyFloat(i, _clockSeconds, out int worldX, out int worldY, out int amount, out float progress))
+            {
+                continue;
+            }
+
+            int labelId = _combatLabels.GetLabelId(amount, 0);
+            if (labelId == 0)
+            {
+                continue;
+            }
+
+            int rise = ViewOptions.ReduceMotion ? 0 : (int)(progress * 14f);
+            _world.AddOverlay(RenderCommandBuffer.LabelTexture, labelId, 0, 0, 0, worldX, worldY - 4 - rise, worldY + 16, worldX, 9850 + i);
+        }
+    }
+
     private void AddLabel(string? nickname, int feetX, int feetY)
     {
         if (!ViewOptions.ShowNames)

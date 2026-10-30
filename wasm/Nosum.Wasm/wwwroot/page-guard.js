@@ -28,6 +28,9 @@
 
     const hints = navigator.userAgentData;
 
+    // The vibration patterns, in milliseconds, for HapticKind 0..2 (Light, Success, Refusal).
+    const VIBRATIONS = [[12], [20, 40, 20], [40, 60, 40]];
+
     window.nosumPage = {
         // 1 = mobile, 0 = not mobile, -1 = this browser has no UA Client Hints.
         mobileHint: () => (hints && typeof hints.mobile === "boolean") ? (hints.mobile ? 1 : 0) : -1,
@@ -43,6 +46,9 @@
             const query = window.matchMedia("(min-width: " + minWidth + "px)");
             query.addEventListener("change", e => callback(e.matches));
         },
+
+        // A short vibration for a light tick (0), a purchase or sale (1) or a refusal (2). Browsers without vibration ignore it.
+        vibrate: kind => { if (navigator.vibrate) navigator.vibrate(VIBRATIONS[kind] ?? VIBRATIONS[0]); },
 
         // The player is in the game: closing or reloading the tab asks first.
         unloadGuard: false,

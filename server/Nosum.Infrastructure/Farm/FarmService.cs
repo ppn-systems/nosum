@@ -196,8 +196,8 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? heldItem);
 
-        // One swing per cooldown, whatever the tool does (docs/adr/ADR-021 D8).
-        if (!tail && heldItem is { Kind: ItemKind.Tool } && !_tools.TryBeginSwing(playerId))
+        // One action per interval, whatever is held: a tool swing, a seed, a harvest or bare hands (docs/adr/ADR-021 D8, docs/adr/ADR-074 D2).
+        if (!tail && !_tools.TryBeginSwing(playerId))
         {
             return Refused(FarmStatus.Cooldown);
         }

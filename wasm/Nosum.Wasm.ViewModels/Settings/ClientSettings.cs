@@ -52,6 +52,12 @@ public sealed record ClientSettings
     /// <summary>Gets whether the high contrast theme is used.</summary>
     public bool HighContrast { get; init; }
 
+    /// <summary>Gets whether touch devices show the on-screen stick and use button (docs/adr/ADR-033 D2). On by default; a player on a phone with a keyboard may turn it off.</summary>
+    public bool TouchControls { get; init; } = true;
+
+    /// <summary>Gets whether a short vibration marks a purchase, a sale or a refusal where the browser supports it. On by default; the player may turn it off.</summary>
+    public bool Haptics { get; init; } = true;
+
     /// <summary>Gets the key bindings.</summary>
     public KeyBindings Bindings { get; init; } = KeyBindings.Default;
 
@@ -80,6 +86,8 @@ public sealed record ClientSettings
         Line(text, "names", Flag(this.ShowNames));
         Line(text, "calm", this.ReduceMotion is { } calm ? Flag(calm) : "auto");
         Line(text, "contrast", Flag(this.HighContrast));
+        Line(text, "touch", Flag(this.TouchControls));
+        Line(text, "haptics", Flag(this.Haptics));
         Line(text, "keys", this.Bindings.Serialize());
         Line(text, "tutorial", Flag(this.TutorialEnabled));
         Line(text, "tutorialDone", this.TutorialDone.ToString(CultureInfo.InvariantCulture));
@@ -118,6 +126,8 @@ public sealed record ClientSettings
                 "names" => result with { ShowNames = value != "0" },
                 "calm" => result with { ReduceMotion = value switch { "1" => true, "0" => false, _ => null } },
                 "contrast" => result with { HighContrast = value == "1" },
+                "touch" => result with { TouchControls = value != "0" },
+                "haptics" => result with { Haptics = value != "0" },
                 "keys" => result with { Bindings = KeyBindings.Parse(value) },
                 "tutorial" => result with { TutorialEnabled = value != "0" },
                 "tutorialDone" when TryInt(value, out int done) => result with { TutorialDone = done & TutorialSteps.AllMask },

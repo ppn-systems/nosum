@@ -11,7 +11,7 @@ namespace Nosum.Gameplay.Items;
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
 /// put in an inventory. Ids are append-only. Ids below 100 are tools (the five basic ones, then the copper tier from 10 and the iron tier from 20, docs/adr/ADR-026), 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources and bars, 600-699 crafted placeables, 700-799 food (dishes, ADR-024), 800-899 forage (docs/adr/ADR-025); raw produce is edible through its <see cref="ItemDefinition.FoodEnergy"/>.
 /// </summary>
-public static class ItemCatalog
+public static partial class ItemCatalog
 {
     /// <summary>The hoe.</summary>
     public const int Hoe = 1;
@@ -263,27 +263,6 @@ public static class ItemCatalog
 
     /// <summary>A rainbow shell, picked up on the beach.</summary>
     public const int RainbowShell = 818;
-
-    /// <summary>An oak chair.</summary>
-    public const int OakChair = 300;
-
-    /// <summary>A blue armchair.</summary>
-    public const int BlueArmchair = 301;
-
-    /// <summary>A blue couch.</summary>
-    public const int BlueCouch = 302;
-
-    /// <summary>An oak table.</summary>
-    public const int OakTable = 303;
-
-    /// <summary>A bookcase.</summary>
-    public const int Bookcase = 304;
-
-    /// <summary>A floor lamp.</summary>
-    public const int FloorLamp = 305;
-
-    /// <summary>A house plant.</summary>
-    public const int HousePlant = 306;
 
     /// <summary>Wood, from trees, stumps and twigs.</summary>
     public const int Wood = 500;
@@ -642,6 +621,38 @@ public static class ItemCatalog
         new(Bookcase, "bookcase", ItemKind.Furniture, FurnitureStack),
         new(FloorLamp, "floor_lamp", ItemKind.Furniture, FurnitureStack),
         new(HousePlant, "house_plant", ItemKind.Furniture, FurnitureStack),
+        new(WoodenStool, "wooden_stool", ItemKind.Furniture, FurnitureStack),
+        new(CushionedChair, "cushioned_chair", ItemKind.Furniture, FurnitureStack),
+        new(WoodenBench, "wooden_bench", ItemKind.Furniture, FurnitureStack),
+        new(GreenArmchair, "green_armchair", ItemKind.Furniture, FurnitureStack),
+        new(RoundTable, "round_table", ItemKind.Furniture, FurnitureStack),
+        new(SideTable, "side_table", ItemKind.Furniture, FurnitureStack),
+        new(LongTable, "long_table", ItemKind.Furniture, FurnitureStack),
+        new(SingleBed, "single_bed", ItemKind.Furniture, FurnitureStack),
+        new(DoubleBed, "double_bed", ItemKind.Furniture, FurnitureStack),
+        new(Wardrobe, "wardrobe", ItemKind.Furniture, FurnitureStack),
+        new(ChestOfDrawers, "chest_of_drawers", ItemKind.Furniture, FurnitureStack),
+        new(KitchenCabinet, "kitchen_cabinet", ItemKind.Furniture, FurnitureStack),
+        new(WallShelf, "wall_shelf", ItemKind.Furniture, FurnitureStack),
+        new(Candelabra, "candelabra", ItemKind.Furniture, FurnitureStack),
+        new(TableLamp, "table_lamp", ItemKind.Furniture, FurnitureStack),
+        new(WallSconce, "wall_sconce", ItemKind.Furniture, FurnitureStack),
+        new(PaperLantern, "paper_lantern", ItemKind.Furniture, FurnitureStack),
+        new(PottedFern, "potted_fern", ItemKind.Furniture, FurnitureStack),
+        new(CactusPot, "cactus_pot", ItemKind.Furniture, FurnitureStack),
+        new(FlowerBox, "flower_box", ItemKind.Furniture, FurnitureStack),
+        new(Bonsai, "bonsai", ItemKind.Furniture, FurnitureStack),
+        new(LandscapePainting, "landscape_painting", ItemKind.Furniture, FurnitureStack),
+        new(PortraitPainting, "portrait_painting", ItemKind.Furniture, FurnitureStack),
+        new(Window, "window", ItemKind.Furniture, FurnitureStack),
+        new(WallClock, "wall_clock", ItemKind.Furniture, FurnitureStack),
+        new(Mirror, "mirror", ItemKind.Furniture, FurnitureStack),
+        new(RedRug, "red_rug", ItemKind.Furniture, FurnitureStack),
+        new(BlueRug, "blue_rug", ItemKind.Furniture, FurnitureStack),
+        new(RoundRug, "round_rug", ItemKind.Furniture, FurnitureStack),
+        new(Doormat, "doormat", ItemKind.Furniture, FurnitureStack),
+        new(PumpkinDecor, "pumpkin_decor", ItemKind.Furniture, FurnitureStack),
+        new(WinterWreath, "winter_wreath", ItemKind.Furniture, FurnitureStack),
         new(ShirtRed, "shirt_red", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
         new(ShirtGreen, "shirt_green", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
         new(ShirtBlue, "shirt_blue", ItemKind.Clothing, 1, wear: WearSlot.Shirt),

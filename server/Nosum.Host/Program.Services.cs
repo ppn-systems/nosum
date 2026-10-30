@@ -23,6 +23,7 @@ using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
+using Nosum.Abstractions.Journal;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
@@ -58,6 +59,7 @@ using Nosum.Infrastructure.Farm;
 using Nosum.Infrastructure.Friends;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
+using Nosum.Infrastructure.Journal;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Mail;
 using Nosum.Infrastructure.Maps;
@@ -279,6 +281,8 @@ internal static partial class Program
         // The hunting log (docs/adr/ADR-068): the defeat path counts each kill into it.
         BestiaryService bestiary = new(unitOfWork, clock);
         InstanceManager.Instance.Register<IBestiaryService>(bestiary);
+        // The collection journal (read here; the inventory service counts every grant into it, in the grant's own transaction).
+        InstanceManager.Instance.Register<IJournalService>(new JournalService(unitOfWork));
         CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>

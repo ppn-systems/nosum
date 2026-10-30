@@ -42,6 +42,9 @@ public sealed class KeyBindings
         [GameAction.Rotate] = "KeyR",
         [GameAction.Grab] = "KeyF",
         [GameAction.PickUp] = "KeyQ",
+        [GameAction.Minimap] = "KeyM",
+        [GameAction.WorldMap] = "Tab",
+        [GameAction.Journal] = "KeyJ",
     }.ToFrozenDictionary();
 
     private readonly Dictionary<GameAction, string> _codes;

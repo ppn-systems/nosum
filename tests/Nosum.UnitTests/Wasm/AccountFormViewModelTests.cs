@@ -67,13 +67,21 @@ public sealed class AccountFormViewModelTests
     }
 
     [Fact]
-    public void GoogleHint_NotConfigured_IsShownAndMicrosoftHintIsNot()
+    public void ProviderHint_OneProviderOff_PointsToGuestPlay()
     {
         using CultureScope scope = new("en");
         AccountFormViewModel vm = Create(new FakeClient(null), new FakeExternalSignIn(), new ExternalSignInOptions(string.Empty, "microsoft-client-id", "common"));
 
-        vm.GoogleHint.Should().Be("Sign-in with this provider is not set up on the server yet.");
-        vm.MicrosoftHint.Should().BeNull();
+        vm.ProviderHint.Should().Contain("Play as a guest");
+    }
+
+    [Fact]
+    public void ProviderHint_BothProvidersOn_IsNull()
+    {
+        using CultureScope scope = new("en");
+        AccountFormViewModel vm = Create(new FakeClient(null), new FakeExternalSignIn(), new ExternalSignInOptions("google-client-id", "microsoft-client-id", "common"));
+
+        vm.ProviderHint.Should().BeNull();
     }
 
     [Theory]

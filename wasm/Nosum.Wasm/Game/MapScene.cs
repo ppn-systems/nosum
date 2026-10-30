@@ -54,6 +54,7 @@ internal sealed partial class MapScene
     private readonly PlayerActions? _actions;
     private readonly LookChannel? _looks;
     private readonly NicknameLabels? _labels;
+    private readonly CombatLabels? _combatLabels;
     private readonly int[] _labelIds = new int[RemotePlayers.MaxPlayers + 1];
     private readonly int[] _labelX = new int[RemotePlayers.MaxPlayers + 1];
     private readonly int[] _labelY = new int[RemotePlayers.MaxPlayers + 1];
@@ -97,8 +98,9 @@ internal sealed partial class MapScene
     /// <param name="nodes">The mirror of the resource nodes of the player's place; the ones that block walk like the server's grid does.</param>
     /// <param name="calendar">The server calendar: it gives the time of day and the weather for the sky (docs/adr/ADR-027); <see langword="null"/> keeps plain daylight.</param>
     /// <param name="audio">The audio director: sounds queued by the hooks are written into the frame, and the footsteps, music and rain loop are decided here (docs/adr/ADR-039); <see langword="null"/> plays no sound.</param>
-    /// <param name="combat">The combat channel whose impacts shake the view (docs/adr/ADR-072); <see langword="null"/> never shakes.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatChannel? combat = null)
+    /// <param name="combatLabels">Pre-interned combat numbers, used as the energy labels that float above a tool's tile (docs/adr/ADR-071 D4); <see langword="null"/> shows none.</param>
+    /// <param name="combat">The combat channel whose impacts shake the view (docs/adr/ADR-076); <see langword="null"/> never shakes.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null)
     {
         _sky = new SkyLayer(calendar, placed);
         _calendar = calendar;
@@ -109,6 +111,7 @@ internal sealed partial class MapScene
         _compositeGrid = new CompositeWalkGrid(nodes, placed);
         _looks = looks;
         _labels = labels;
+        _combatLabels = combatLabels;
         ArgumentNullException.ThrowIfNull(loader);
         ArgumentNullException.ThrowIfNull(content);
 
@@ -193,11 +196,13 @@ internal sealed partial class MapScene
         else
         {
             _clock.Advance(frameSeconds);
+            bool swinging = _actions is not null && _actions.SwingLocked(_clockSeconds);
             double remaining = Math.Clamp(frameSeconds, 0, MaxFrameSeconds);
             do
             {
                 double dt = Math.Min(remaining, StepSeconds);
-                _farmer.Step(input, dt, grid, _actions?.MoveSpeedFactor ?? 1);
+                // A swing holds the farmer in place until it is over (docs/adr/ADR-071 D1).
+                _farmer.Step(swinging ? default : input, dt, grid, _actions?.MoveSpeedFactor ?? 1);
                 remaining -= dt;
             }
             while (remaining > 1e-9);
@@ -208,6 +213,12 @@ internal sealed partial class MapScene
 
         // Keys act on the map shown, and not while a map change freezes the farmer.
         InputEdges liveEdges = _phase == Phase.FadingOut ? InputEdges.None : edges;
+        if (_phase == Phase.FadingOut)
+        {
+            // A swing queued before the map changed must not land on the new map's tiles.
+            _actions?.CancelQueuedUse();
+        }
+
         int shopId = 0;
         if (content.Spec.Shops.Count > 0)
         {
@@ -253,7 +264,7 @@ internal sealed partial class MapScene
             map.Height * map.TileHeight,
             HudBottomInset(canvasWidth, canvasHeight) / scale);
 
-        // A crit or a finisher shakes the view for a moment (docs/adr/ADR-072); reduced motion keeps it still.
+        // A crit or a finisher shakes the view for a moment (docs/adr/ADR-076); reduced motion keeps it still.
         if (!ViewOptions.ReduceMotion && _combat is not null && _combat.TryGetActiveShake(out int shakeAmplitude, out int shakeElapsedMs, out int shakeDurationMs))
         {
             CameraShake.Offset(shakeElapsedMs, shakeDurationMs, shakeAmplitude, out int shakeX, out int shakeY);
@@ -330,7 +341,8 @@ internal sealed partial class MapScene
             }
         }
 
-        FarmerSprite.Draw(_world, _farmerTextures, hasOwn ? LookSprites.Resolve(ownLook) : this.Look, effectiveFacing, walkFrame, farmerPx, farmerPy, 0, heldItemId, swingProgress);
+        FarmerSprite.Draw(_world, _farmerTextures, hasOwn ? LookSprites.Resolve(ownLook) : this.Look, effectiveFacing, walkFrame, farmerPx, farmerPy, 0, heldItemId, swingProgress, _actions?.Exhausted ?? false);
+        this.AddEnergyFloats();
         if (hasSkillEffect)
         {
             FarmerSprite.DrawSkillEffect(_world, _farmerTextures, activeSkillId, skillProgress, farmerPx, farmerPy);
@@ -360,8 +372,13 @@ internal sealed partial class MapScene
         {
             _sky.DrawPrecipitation(_commands);
         }
+        _sky.DrawLightning(_commands, _audio, (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
+        EatFeedback.Draw(_commands, farmerPx - _camera.Left, farmerPy - (FarmerSprite.Height / 2) - _camera.Top, timeMs);
         _world.FlushLabels(_commands, _camera);
         this.DrawLabels();
+
+        // The minimap sits in the HUD corner, above the world and the labels, and below the fade.
+        this.DrawMinimap(content, edges, canvasWidth, canvasHeight, scale);
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
         backend.Submit(_commands.Encode());
     }

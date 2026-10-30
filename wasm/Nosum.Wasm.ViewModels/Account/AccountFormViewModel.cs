@@ -103,11 +103,8 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets whether the Microsoft button can be used on this client.</summary>
     public bool MicrosoftEnabled => _options.IsConfigured(ExternalProvider.Microsoft);
 
-    /// <summary>Gets the hint under the Google button when it is disabled, or null.</summary>
-    public string? GoogleHint => this.GoogleEnabled ? null : _text["Account_Provider_NotConfigured"].Value;
-
-    /// <summary>Gets the hint under the Microsoft button when it is disabled, or null.</summary>
-    public string? MicrosoftHint => this.MicrosoftEnabled ? null : _text["Account_Provider_NotConfigured"].Value;
+    /// <summary>Gets the one line that says what to do when a provider is off on this server (issue #207): play as a guest. Null when both providers are on.</summary>
+    public string? ProviderHint => this.GoogleEnabled && this.MicrosoftEnabled ? null : _text["Account_Provider_Guidance"].Value;
 
     /// <summary>Gets the name of the game, shown as the logo of the start screen.</summary>
     public string GameTitle => _text["Game_Title"];
