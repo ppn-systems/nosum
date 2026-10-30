@@ -84,4 +84,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-072](ADR-072-minimap-world-map-and-collection-journal.md) | HUD minimap drawn by the engine, world map panel, collection journal (server discoveries, protocol 17), input edges narrowed to four held bits | Accepted |
 | [ADR-073](ADR-073-furniture-catalogue-and-decorating.md) | Furniture catalogue: thirty-two more pieces, catalogue groups, seasonal stock and the decorating panel (no wire change) | Proposed |
 | [ADR-074](ADR-074-tool-action-pacing-and-feel.md) | Tool action pacing and feel: swing before the hit, server interval on every farm action, drag at the animation rate, exhaustion and impact feedback | Accepted |
+| [ADR-077](ADR-077-hud-minimap-frame-and-top-right-grid.md) | HUD minimap frame in the top-right grid, a fixed two-column system column, the minimap view model, and sampling for large maps (no wire change) | Accepted |
 
