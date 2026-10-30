@@ -9,11 +9,11 @@
   </ItemGroup>
 
   <!-- Early UI art served from the repository's assets/ folder (docs/adr/ADR-007, ADR-016): linked, never copied.
+       Link is the file name; NosumBase is the folder the package serves it from (NosumLinkedStaticWebAssets below).
        The rectangles taken from these sheets are listed in wwwroot/nosum-theme.js. -->
   <ItemGroup>
-    <Content Include="..\..\assets\ui\emotes.png;..\..\assets\ui\emote_bubble.png" Link="wwwroot\ui\%(Filename)%(Extension)" />
-    <Content Include="..\..\assets\sprites\pets\cat.png;..\..\assets\sprites\pets\dog.png" Link="wwwroot\sprites\pets\%(Filename)%(Extension)" />
-    <Content Include="..\..\assets\ui\menu.png;..\..\assets\ui\cursors.png;..\..\assets\ui\text_box.png;..\..\assets\ui\start_background.png" Link="wwwroot\ui\%(Filename)%(Extension)" />
+    <Content Include="..\..\assets\ui\emotes.png;..\..\assets\ui\emote_bubble.png;..\..\assets\ui\menu.png;..\..\assets\ui\cursors.png;..\..\assets\ui\text_box.png;..\..\assets\ui\start_background.png" Link="%(Filename)%(Extension)" NosumBase="_content/Nosum.Wasm.Controls/ui" />
+    <Content Include="..\..\assets\sprites\pets\cat.png;..\..\assets\sprites\pets\dog.png" Link="%(Filename)%(Extension)" NosumBase="_content/Nosum.Wasm.Controls/sprites/pets" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,5 +21,50 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
     <ProjectReference Include="..\Nosum.Wasm.ViewModels\Nosum.Wasm.ViewModels.csproj" />
   </ItemGroup>
+
+  <!-- Serves the linked Content above from their own folders. The SDK's discovery takes Content linked into wwwroot/ to live
+       in wwwroot/ itself, so a Development build served the missing file (menu.png 404, the theme fell back to plain
+       borders). These calls are the SDK's own DefineStaticWebAssets and DefineStaticWebAssetEndpoints, with each folder as
+       the content root. -->
+  <Target Name="NosumLinkedStaticWebAssets" AfterTargets="ResolveProjectStaticWebAssets">
+    <ItemGroup>
+      <_ControlsUi Include="@(Content)" Condition="'%(Content.NosumBase)' == '_content/Nosum.Wasm.Controls/ui'" />
+    </ItemGroup>
+    <DefineStaticWebAssets
+      CandidateAssets="@(_ControlsUi)"
+      FingerprintCandidates="$(StaticWebAssetsFingerprintContent)"
+      FingerprintPatterns="@(StaticWebAssetFingerprintPattern)"
+      RelativePathPattern="**"
+      SourceType="Discovered"
+      SourceId="$(PackageId)"
+      ContentRoot="$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '..', '..', 'assets', 'ui'))"
+      BasePath="_content/Nosum.Wasm.Controls/ui"
+      AssetMergeSource="$(StaticWebAssetMergeTarget)">
+      <Output TaskParameter="Assets" ItemName="StaticWebAsset" />
+      <Output TaskParameter="Assets" ItemName="_NosumLinkedAsset" />
+    </DefineStaticWebAssets>
+    <ItemGroup>
+      <_ControlsPets Include="@(Content)" Condition="'%(Content.NosumBase)' == '_content/Nosum.Wasm.Controls/sprites/pets'" />
+    </ItemGroup>
+    <DefineStaticWebAssets
+      CandidateAssets="@(_ControlsPets)"
+      FingerprintCandidates="$(StaticWebAssetsFingerprintContent)"
+      FingerprintPatterns="@(StaticWebAssetFingerprintPattern)"
+      RelativePathPattern="**"
+      SourceType="Discovered"
+      SourceId="$(PackageId)"
+      ContentRoot="$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '..', '..', 'assets', 'sprites', 'pets'))"
+      BasePath="_content/Nosum.Wasm.Controls/sprites/pets"
+      AssetMergeSource="$(StaticWebAssetMergeTarget)">
+      <Output TaskParameter="Assets" ItemName="StaticWebAsset" />
+      <Output TaskParameter="Assets" ItemName="_NosumLinkedAsset" />
+    </DefineStaticWebAssets>
+    <DefineStaticWebAssetEndpoints
+      CandidateAssets="@(_NosumLinkedAsset)"
+      ExistingEndpoints="@(StaticWebAssetEndpoint)"
+      ContentTypeMappings="@(StaticWebAssetContentTypeMapping)">
+      <Output TaskParameter="Endpoints" ItemName="StaticWebAssetEndpoint" />
+    </DefineStaticWebAssetEndpoints>
+  </Target>
 
 </Project>
