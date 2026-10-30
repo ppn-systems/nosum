@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.JSInterop;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Device;
 using Nosum.Wasm.Security;
 using Nosum.Wasm.Settings;
@@ -28,6 +29,7 @@ using Nosum.Wasm.Socket.Furnace;
 using Nosum.Wasm.Socket.Goals;
 using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Journal;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.Socket.Mail;
 using Nosum.Wasm.Socket.Market;
@@ -58,6 +60,7 @@ using Nosum.Wasm.ViewModels.Furnace;
 using Nosum.Wasm.ViewModels.Goals;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Looks;
+using Nosum.Wasm.ViewModels.Journal;
 using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Mail;
 using Nosum.Wasm.ViewModels.Market;
@@ -74,6 +77,7 @@ using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Shop;
 using Nosum.Wasm.ViewModels.Trade;
 using Nosum.Wasm.ViewModels.Visit;
+using Nosum.Wasm.ViewModels.Startup;
 using Nosum.Wasm.ViewModels.Wallet;
 
 namespace Nosum.Wasm.Game;
@@ -137,17 +141,30 @@ internal static class ClientWiring
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<QuestTrackerViewModel>();
         services.AddSingleton<PlacementViewModel>();
+        services.AddSingleton(sp => new FurnitureCatalogViewModel(
+            PlaceableCatalog.All,
+            sp.GetRequiredService<InventoryChannel>(),
+            sp.GetRequiredService<PlacementViewModel>(),
+            sp.GetRequiredService<ItemDescriber>(),
+            sp.GetRequiredService<IStringLocalizer<Catalogue>>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>()));
         services.AddSingleton<GameMessagesViewModel>();
         services.AddSingleton<LevelUpBannerViewModel>();
+        services.AddSingleton<SeasonBannerViewModel>();
         services.AddSingleton<ItemDescriber>();
         services.AddSingleton<ToolbarViewModel>();
+        services.AddSingleton<WorldMapViewModel>();
+        services.AddSingleton<JournalChannel>();
+        services.AddSingleton<JournalViewModel>();
         services.AddSingleton<NicknameFormatter>();
         services.AddSingleton<ProfileViewModel>();
+        services.AddSingleton<IHaptics, BrowserHaptics>();
         services.AddSingleton<ShopViewModel>();
         services.AddSingleton<NpcDialogViewModel>();
         services.AddSingleton<BlacksmithViewModel>();
         services.AddSingleton<ElevatorViewModel>();
         services.AddSingleton<MapLoadingViewModel>();
+        services.AddSingleton<GameStartViewModel>();
         services.AddSingleton<RequestsViewModel>();
         services.AddSingleton<GoalsViewModel>();
         services.AddSingleton<BestiaryChannel>();
@@ -223,6 +240,7 @@ internal static class ClientWiring
         CombatChannel combat = services.GetRequiredService<CombatChannel>();
         GameLoop.UseCombat(combat, services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(services.GetRequiredService<CalendarChannel>());
+        GameLoop.UseWorldMap(services.GetRequiredService<WorldMapViewModel>());
         GameLoop.UseMapLoading(services.GetRequiredService<MapLoadingViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
@@ -306,6 +324,7 @@ internal static class ClientWiring
         _ = services.GetRequiredService<ProgressViewModel>();
         _ = services.GetRequiredService<WalletViewModel>();
         _ = services.GetRequiredService<CalendarViewModel>();
+        _ = services.GetRequiredService<SeasonBannerViewModel>();
         _ = services.GetRequiredService<GoalChannel>();
         _ = services.GetRequiredService<TradeViewModel>();
         _ = services.GetRequiredService<CoopViewModel>();

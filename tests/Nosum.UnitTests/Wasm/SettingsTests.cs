@@ -152,10 +152,10 @@ public sealed class SettingsTests
         vm.Capture("Digit1").Should().Be(RebindResult.Reserved);
         vm.Capture("KeyX").Should().Be(RebindResult.Reserved);
         vm.Listening.Should().Be(GameAction.Rotate);
-        vm.Capture("KeyJ").Should().Be(RebindResult.Bound);
+        vm.Capture("KeyK").Should().Be(RebindResult.Bound);
 
         vm.Listening.Should().BeNull();
-        vm.CapOf(GameAction.Rotate).Should().Be("J");
+        vm.CapOf(GameAction.Rotate).Should().Be("K");
     }
 
     [Fact]
@@ -390,5 +390,18 @@ public sealed class SettingsTests
     {
         double la = Luminance(a), lb = Luminance(b);
         return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
+    }
+
+    [Fact]
+    public void TouchAndHaptics_DefaultOn_AndRoundTripWhenTurnedOff()
+    {
+        ClientSettings.Default.TouchControls.Should().BeTrue();
+        ClientSettings.Default.Haptics.Should().BeTrue();
+
+        ClientSettings off = ClientSettings.Default with { TouchControls = false, Haptics = false };
+        ClientSettings back = ClientSettings.Parse(off.Serialize());
+
+        back.TouchControls.Should().BeFalse();
+        back.Haptics.Should().BeFalse();
     }
 }

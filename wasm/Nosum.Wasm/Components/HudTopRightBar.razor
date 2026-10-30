@@ -14,7 +14,7 @@
     @* Mail and Settings are standalone windows of their own (docs/adr/ADR-043 D4, ADR-044). *@
     <GameIconButton Icon="tab-mail" Active="@(ActivePanel == PanelKind.Mail)" Tip="@Toolbar.MailTip(Mail.Unread)" Badge="Mail.Unread" OnClick="@(() => OnTogglePanel.InvokeAsync(PanelKind.Mail))" />
     <GameIconButton Icon="tab-settings" Active="@(ActivePanel == PanelKind.Settings)" Tip="@Toolbar.SettingsTip" OnClick="@(() => OnTogglePanel.InvokeAsync(PanelKind.Settings))" />
-    @* The emote wheel's button: the same as the B key, and the touch way to open the wheel (docs/adr/ADR-071 D1). *@
+    @* The emote wheel's button: the same as the B key, and the touch way to open the wheel (docs/adr/ADR-075 D1). *@
     <GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" />
 </div>
 <div class="hud-bar hud-player-bar" role="toolbar" aria-label="@Toolbar.Label">

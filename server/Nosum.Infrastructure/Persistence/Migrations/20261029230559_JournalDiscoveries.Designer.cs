@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nosum.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NosumDbContext))]
-    [Migration("20261029230520_PetCompanion")]
-    partial class PetCompanion
+    [Migration("20261029230559_JournalDiscoveries")]
+    partial class JournalDiscoveries
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1002,6 +1002,33 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                     b.ToTable("player_inventories", (string)null);
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Journal.PlayerDiscovery", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer")
+                        .HasColumnName("count");
+
+                    b.Property<DateTimeOffset>("FirstObtainedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_obtained_at");
+
+                    b.HasKey("PlayerId", "ItemId")
+                        .HasName("pk_player_discoveries");
+
+                    b.ToTable("player_discoveries", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_player_discoveries_count_positive", "count > 0");
+                        });
+                });
+
             modelBuilder.Entity("Nosum.Domain.Looks.PlayerAppearance", b =>
                 {
                     b.Property<Guid>("PlayerId")
@@ -1340,40 +1367,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_resource_nodes_map_id_owner_id_tile_x_tile_y");
 
                     b.ToTable("resource_nodes", (string)null);
-                });
-
-            modelBuilder.Entity("Nosum.Domain.Pets.PlayerPet", b =>
-                {
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("player_id");
-
-                    b.Property<DateTimeOffset>("AdoptedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("adopted_at");
-
-                    b.Property<byte>("Kind")
-                        .HasColumnType("smallint")
-                        .HasColumnName("kind");
-
-                    b.Property<long>("LastPettedDay")
-                        .HasColumnType("bigint")
-                        .HasColumnName("last_petted_day");
-
-                    b.Property<int>("Mood")
-                        .HasColumnType("integer")
-                        .HasColumnName("mood");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("name");
-
-                    b.HasKey("PlayerId")
-                        .HasName("pk_player_pets");
-
-                    b.ToTable("player_pets", (string)null);
                 });
 
             modelBuilder.Entity("Nosum.Domain.Placeables.ChestLogEntry", b =>
@@ -2031,6 +2024,16 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_inventory_slots_player_inventories_player_id");
                 });
 
+            modelBuilder.Entity("Nosum.Domain.Journal.PlayerDiscovery", b =>
+                {
+                    b.HasOne("Nosum.Domain.Accounts.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_player_discoveries_players_player_id");
+                });
+
             modelBuilder.Entity("Nosum.Domain.Looks.PlayerAppearance", b =>
                 {
                     b.HasOne("Nosum.Domain.Accounts.Player", null)
@@ -2079,16 +2082,6 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_player_mines_players_player_id");
-                });
-
-            modelBuilder.Entity("Nosum.Domain.Pets.PlayerPet", b =>
-                {
-                    b.HasOne("Nosum.Domain.Accounts.Player", null)
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_player_pets_players_player_id");
                 });
 
             modelBuilder.Entity("Nosum.Domain.Placeables.ChestLogEntry", b =>

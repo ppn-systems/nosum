@@ -6,7 +6,7 @@ using System.Threading;
 namespace Nosum.Gameplay.Emotes;
 
 /// <summary>
-/// The emote cooldown of one player (docs/adr/ADR-071 D2): one emote per <see cref="EmoteRules.MinIntervalMs"/>. The transport also throttles
+/// The emote cooldown of one player (docs/adr/ADR-075 D2): one emote per <see cref="EmoteRules.MinIntervalMs"/>. The transport also throttles
 /// the opcode with <c>[PacketRateLimit]</c>; this class holds the exact rule. Time is passed in so tests are deterministic. Thread safe.
 /// </summary>
 public sealed class EmoteCooldown

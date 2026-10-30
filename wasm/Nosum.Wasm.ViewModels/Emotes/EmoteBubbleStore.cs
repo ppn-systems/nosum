@@ -7,7 +7,7 @@ using Nosum.Gameplay.Emotes;
 namespace Nosum.Wasm.ViewModels.Emotes;
 
 /// <summary>
-/// The emote bubbles on screen (docs/adr/ADR-071 D1): the emote each farmer shows and until when, keyed by the player's map id. Socket callbacks
+/// The emote bubbles on screen (docs/adr/ADR-075 D1): the emote each farmer shows and until when, keyed by the player's map id. Socket callbacks
 /// write it on any thread; the frame reads it through <see cref="TryGet"/>, which never allocates. Fixed capacity: when it is full the bubble that
 /// expires first gives way.
 /// </summary>

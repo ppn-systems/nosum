@@ -3,7 +3,7 @@
 namespace Nosum.Gameplay.Emotes;
 
 /// <summary>
-/// The emote wheel (docs/adr/ADR-071 D1): twelve codes a player can show above their farmer for a few seconds. Only the code travels
+/// The emote wheel (docs/adr/ADR-075 D1): twelve codes a player can show above their farmer for a few seconds. Only the code travels
 /// the wire; the client draws the icon. Pure and shared by the server (which checks the code and the cooldown) and the client (which
 /// draws the wheel and the bubble).
 /// </summary>

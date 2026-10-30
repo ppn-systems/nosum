@@ -9,7 +9,7 @@ using Nosum.Contracts.Validation;
 
 namespace Nosum.Contracts.Pet.C2S;
 
-/// <summary>Adopts a cat or a dog. The name is player-authored: the server cleans it and masks profanity, as chat does (docs/adr/ADR-071 D3).</summary>
+/// <summary>Adopts a cat or a dog. The name is player-authored: the server cleans it and masks profanity, as chat does (docs/adr/ADR-075 D3).</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]

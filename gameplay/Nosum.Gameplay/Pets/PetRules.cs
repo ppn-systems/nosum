@@ -6,7 +6,7 @@ using Nosum.Gameplay.Chat;
 
 namespace Nosum.Gameplay.Pets;
 
-/// <summary>What a farmer may keep as a companion (docs/adr/ADR-071 D3). <see cref="None"/> is "no pet" on the wire.</summary>
+/// <summary>What a farmer may keep as a companion (docs/adr/ADR-075 D3). <see cref="None"/> is "no pet" on the wire.</summary>
 public enum PetKind : byte
 {
     /// <summary>No pet.</summary>
@@ -20,7 +20,7 @@ public enum PetKind : byte
 }
 
 /// <summary>
-/// The rules of the pet companion (docs/adr/ADR-071 D3-D4). The farmer adopts one cat or dog and names it; the name goes through the same
+/// The rules of the pet companion (docs/adr/ADR-075 D3-D4). The farmer adopts one cat or dog and names it; the name goes through the same
 /// cleaning and profanity mask as chat. A pet can be petted once per game day for a small mood and energy bonus. Pure: the server decides,
 /// the client reads the same numbers to draw the mood.
 /// </summary>

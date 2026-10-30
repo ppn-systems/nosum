@@ -21,7 +21,7 @@ namespace Nosum.Wasm.Socket.Look;
 /// <param name="PantsItemId">Worn trousers item id, or zero.</param>
 /// <param name="HatItemId">Worn hat item id, or zero.</param>
 /// <param name="Nickname">The player's nickname as the server sent it with the look (empty until known; a guest's neutral name is localized by the view layer).</param>
-/// <param name="PetKind">The kind of the player's pet: 0 none, 1 cat, 2 dog (docs/adr/ADR-071 D3).</param>
+/// <param name="PetKind">The kind of the player's pet: 0 none, 1 cat, 2 dog (docs/adr/ADR-075 D3).</param>
 /// <param name="PetName">The pet's cleaned name; empty without a pet.</param>
 public readonly record struct LookInfo(int SkinId, int HairStyleId, int HairDyeId, int ShirtItemId, int PantsItemId, int HatItemId, string Nickname = "", byte PetKind = 0, string PetName = "")
 {

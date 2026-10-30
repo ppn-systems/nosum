@@ -28,7 +28,7 @@ using Xunit;
 namespace Nosum.IntegrationTests.Server;
 
 /// <summary>
-/// The emote wheel over the wire (docs/adr/ADR-071 D1-D2): real Nalix WebSocket clients against the real host and PostgreSQL. The point is who
+/// The emote wheel over the wire (docs/adr/ADR-075 D1-D2): real Nalix WebSocket clients against the real host and PostgreSQL. The point is who
 /// sees the bubble: the players on the sender's map, and not the players of another map. The cooldown and the code are checked on the wire.
 /// </summary>
 [Collection(NalixHostSerial.Name)]

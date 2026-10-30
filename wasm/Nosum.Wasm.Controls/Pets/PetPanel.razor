@@ -4,7 +4,7 @@
 @using Nosum.Wasm.ViewModels.Pets
 @inherits ObservingComponent<PetViewModel>
 
-@* The pet panel (docs/adr/ADR-071 D3-D4): with a pet, its name, its mood and the petting button (once a game day); with none, the adoption form on the
+@* The pet panel (docs/adr/ADR-075 D3-D4): with a pet, its name, its mood and the petting button (once a game day); with none, the adoption form on the
    player's own farm (a cat or a dog, a name, Adopt). The status line under it shows the server's answer. *@
 <MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>

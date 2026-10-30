@@ -1,0 +1,31 @@
+.furniture {
+    max-width: calc(var(--u) * 130);
+}
+
+.furniture-tabs,
+.furniture-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--u) * 2);
+    align-items: center;
+}
+
+.furniture-search {
+    width: 100%;
+    margin: calc(var(--u) * 2) 0;
+}
+
+.furniture-grid {
+    max-height: calc(var(--u) * 80);
+    overflow-y: auto;
+    margin: calc(var(--u) * 2) 0;
+}
+
+.furniture-detail,
+.furniture-empty {
+    margin: calc(var(--u) * 2) 0;
+}
+
+.furniture-actions {
+    justify-content: flex-end;
+}

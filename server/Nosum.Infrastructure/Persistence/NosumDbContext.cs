@@ -10,6 +10,7 @@ using Nosum.Domain.Buildings;
 using Nosum.Domain.Community;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Economy;
+using Nosum.Domain.Journal;
 using Nosum.Domain.Farm;
 using Nosum.Domain.Inventory;
 using Nosum.Domain.Looks;
@@ -43,7 +44,7 @@ public sealed class NosumDbContext : DbContext
     /// <summary>Gets the saved player states.</summary>
     public DbSet<PlayerState> PlayerStates => this.Set<PlayerState>();
 
-    /// <summary>The pet companion of each farmer (docs/adr/ADR-071).</summary>
+    /// <summary>The pet companion of each farmer (docs/adr/ADR-075).</summary>
     public DbSet<PlayerPet> PlayerPets => this.Set<PlayerPet>();
 
     /// <summary>Gets the issued session tokens.</summary>
@@ -147,6 +148,9 @@ public sealed class NosumDbContext : DbContext
 
     /// <summary>The slayer title a player has equipped, if any (docs/adr/ADR-068).</summary>
     public DbSet<EquippedBestiaryTitle> EquippedBestiaryTitles => this.Set<EquippedBestiaryTitle>();
+
+    /// <summary>The collection journal: how many of each item a player has obtained, and when first.</summary>
+    public DbSet<PlayerDiscovery> PlayerDiscoveries => this.Set<PlayerDiscovery>();
 
     /// <summary>The farm guestbook: one row per visitor and game day (docs/adr/ADR-066).</summary>
     public DbSet<GuestbookEntry> GuestbookEntries => this.Set<GuestbookEntry>();

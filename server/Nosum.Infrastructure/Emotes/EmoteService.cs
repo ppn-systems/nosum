@@ -15,7 +15,7 @@ using Nosum.Gameplay.Emotes;
 namespace Nosum.Infrastructure.Emotes;
 
 /// <summary>
-/// <see cref="IEmoteService"/> (docs/adr/ADR-071 D1-D2). The code is checked, the sender pays the cooldown, and the emote goes to the
+/// <see cref="IEmoteService"/> (docs/adr/ADR-075 D1-D2). The code is checked, the sender pays the cooldown, and the emote goes to the
 /// players in the sender's chunk interest set (docs/adr/ADR-022): nearby players only, the same reach as local chat. The sender's own
 /// bubble is not pushed back; the client shows it from the <c>EmoteResult</c>.
 /// </summary>

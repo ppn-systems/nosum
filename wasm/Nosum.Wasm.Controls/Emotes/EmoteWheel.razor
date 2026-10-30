@@ -6,7 +6,7 @@
 @inherits ObservingComponent<EmoteWheelViewModel>
 @inject IJSRuntime Js
 
-@* The emote wheel (docs/adr/ADR-071 D1): twelve round icon buttons around a circle, opened by B or the HUD button. Choosing one sends it through the view model.
+@* The emote wheel (docs/adr/ADR-075 D1): twelve round icon buttons around a circle, opened by B or the HUD button. Choosing one sends it through the view model.
    A refusal message shows briefly under the wheel. The layer covers the overlay region and takes no pointer events itself. *@
 <div class="emote-layer">
     @if (Vm.IsOpen)

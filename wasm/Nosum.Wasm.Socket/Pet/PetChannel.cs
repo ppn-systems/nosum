@@ -28,7 +28,7 @@ public readonly record struct PetInfo(PetStatus Status, PetKind Kind, string Nam
 }
 
 /// <summary>
-/// The pet side of the connection (docs/adr/ADR-071 D3-D5): reads, adopts and pets the owner's companion. The server owns the state (kind, name,
+/// The pet side of the connection (docs/adr/ADR-075 D3-D5): reads, adopts and pets the owner's companion. The server owns the state (kind, name,
 /// mood, petting); every reply carries the pet as it now stands, and this channel keeps the last one for the panel.
 /// </summary>
 public sealed class PetChannel

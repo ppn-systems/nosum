@@ -17,7 +17,7 @@ using Nosum.Wasm.ViewModels.Pets;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// Draws the pet of every farmer on the map as a depth-sorted world sprite that follows its owner (docs/adr/ADR-071 D6). The owner's kind comes from the
+/// Draws the pet of every farmer on the map as a depth-sorted world sprite that follows its owner (docs/adr/ADR-075 D6). The owner's kind comes from the
 /// look the server sent (the local player's from the pet state); the trail, the sit and the sleep are <see cref="PetFollow"/>. Every visitor sees the same
 /// pet, because each client follows the same owner position stream. The pets' places are kept per owner; allocation-free once each owner was seen.
 /// </summary>

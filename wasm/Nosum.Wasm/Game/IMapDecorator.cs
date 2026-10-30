@@ -23,6 +23,13 @@ internal interface IMapDecorator
     {
     }
 
+    /// <summary>Tells the decorator where the farmer stands this frame, in world pixels, for what keeps its distance from the farmer (wildlife).</summary>
+    /// <param name="x">The farmer's x, world pixels.</param>
+    /// <param name="y">The farmer's y, world pixels.</param>
+    void SetFarmer(double x, double y)
+    {
+    }
+
     /// <summary>Draws over the ground layers and below the characters (soil, crops lying on the ground).</summary>
     /// <param name="commands">Where draws are recorded.</param>
     /// <param name="camera">The camera.</param>

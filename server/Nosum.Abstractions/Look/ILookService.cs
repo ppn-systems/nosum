@@ -16,7 +16,7 @@ namespace Nosum.Abstractions.Look;
 /// <param name="PlayerId">The id the player has on the map (not the account id).</param>
 /// <param name="Look">The look.</param>
 /// <param name="Nickname">The player's nickname, sent with the look so the client caches it by player id.</param>
-/// <param name="Pet">The player's pet (kind and name), or none (docs/adr/ADR-071 D3).</param>
+/// <param name="Pet">The player's pet (kind and name), or none (docs/adr/ADR-075 D3).</param>
 public readonly record struct PlayerLookView(uint PlayerId, PlayerLook Look, string Nickname, PetLook Pet = default)
 {
     /// <summary>Copies the look into a wire row (ids only, ADR-006 D6).</summary>

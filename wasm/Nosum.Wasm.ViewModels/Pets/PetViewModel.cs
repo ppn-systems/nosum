@@ -10,7 +10,7 @@ using Nosum.Wasm.ViewModels.Resources;
 namespace Nosum.Wasm.ViewModels.Pets;
 
 /// <summary>
-/// The pet panel (docs/adr/ADR-071 D3-D4): with no pet, the adoption form (a cat or a dog and a name) on the player's own farm; with a pet, its name, its
+/// The pet panel (docs/adr/ADR-075 D3-D4): with no pet, the adoption form (a cat or a dog and a name) on the player's own farm; with a pet, its name, its
 /// mood and the petting button, disabled once it was petted today. The server decides every outcome; the status line shows the answer.
 /// </summary>
 public sealed class PetViewModel : PanelViewModel, IDisposable

@@ -16,6 +16,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import ambient  # noqa: E402
 import animals  # noqa: E402
 import buildings  # noqa: E402
 import crops  # noqa: E402
@@ -61,6 +62,8 @@ def build_all(src, repo, only=None):
         return hearts.build()
     if only == 'pets':
         return pets_emotes.build()
+    if only == 'ambient':
+        return {'sprites/ambient.png': ambient.build(src)}
     out['sprites/crops.png'] = crops.build_crops(src, repo)
     out['sprites/soil.png'] = crops.build_soil(*size('sprites/soil.png'))
     out['sprites/tools.png'], out['sprites/weapons.png'] = tools.build(src, repo, size('sprites/tools.png'), size('sprites/weapons.png'))
@@ -80,7 +83,7 @@ def build_all(src, repo, only=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--sources')
-    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui', 'tools', 'hearts', 'pets'])
+    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui', 'tools', 'hearts', 'pets', 'ambient'])
     parser.add_argument('--repo', default=os.path.abspath(os.path.join(HERE, '..', '..')))
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--docs', action='store_true')

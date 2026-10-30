@@ -14,7 +14,7 @@ using Nosum.Handlers.Session;
 namespace Nosum.Handlers.Emotes;
 
 /// <summary>
-/// The emote wheel (docs/adr/ADR-071 D1-D2). The service checks the code and the cooldown and shows the emote to the players near the sender;
+/// The emote wheel (docs/adr/ADR-075 D1-D2). The service checks the code and the cooldown and shows the emote to the players near the sender;
 /// the transport throttles bursts of the opcode.
 /// </summary>
 [PacketHandler("Nosum.Emote")]

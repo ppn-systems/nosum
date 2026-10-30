@@ -5,7 +5,7 @@ using System;
 namespace Nosum.Wasm.ViewModels.Pets;
 
 /// <summary>
-/// Where a pet is and how it looks this frame (docs/adr/ADR-071 D6). The pet keeps its own position, facing and the time it has been idle or walking;
+/// Where a pet is and how it looks this frame (docs/adr/ADR-075 D6). The pet keeps its own position, facing and the time it has been idle or walking;
 /// everything is in world pixels and seconds, so the follow is pure and testable.
 /// </summary>
 /// <param name="X">Feet x, world pixels.</param>
@@ -39,7 +39,7 @@ public enum PetPose
 public readonly record struct PetFrame(int Column, int Row, bool FlipX);
 
 /// <summary>
-/// The pet's follow, sit, sleep and frame decisions (docs/adr/ADR-071 D6). A pet trails its owner by <see cref="TrailDistance"/> behind the owner's facing,
+/// The pet's follow, sit, sleep and frame decisions (docs/adr/ADR-075 D6). A pet trails its owner by <see cref="TrailDistance"/> behind the owner's facing,
 /// walks at <see cref="PetSpeed"/> (a little faster than the farmer's walk, so it catches up), stops on its place, sits when the owner has been still for
 /// <see cref="SitAfterIdleSeconds"/>, and sleeps while the owner is in the farmhouse at night. Pure: no Blazor, no time source.
 /// </summary>

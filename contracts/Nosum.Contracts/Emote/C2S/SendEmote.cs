@@ -8,7 +8,7 @@ using Nalix.Codec.DataFrames;
 
 namespace Nosum.Contracts.Emote.C2S;
 
-/// <summary>Shows an emote above the sender. Only the code travels: the client draws the icon (docs/adr/ADR-071 D1).</summary>
+/// <summary>Shows an emote above the sender. Only the code travels: the client draws the icon (docs/adr/ADR-075 D1).</summary>
 [Packet]
 [GenerateFormatter]
 [SerializePackable(SerializeLayout.Explicit)]

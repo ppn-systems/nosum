@@ -16,7 +16,7 @@ using Nosum.Infrastructure.Concurrency;
 namespace Nosum.Infrastructure.Pets;
 
 /// <summary>
-/// <see cref="IPetService"/> (docs/adr/ADR-071 D3-D5). Adoption and petting are server decisions: one pet at a time, the name cleaned and masked
+/// <see cref="IPetService"/> (docs/adr/ADR-075 D3-D5). Adoption and petting are server decisions: one pet at a time, the name cleaned and masked
 /// by <see cref="PetRules.CleanName"/>, one petting per game day (<see cref="GameCalendar.DayNumberAt"/>). Each change is one unit of work under the
 /// player's lock; the energy bonus is applied through <see cref="IPlayerProgress.RestoreEnergyAsync"/> after it, as its own change.
 /// </summary>

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Contracts;
 
-/// <summary>The wire values of the emote and pet domains are frozen (docs/adr/ADR-071 D5): a changed opcode breaks every client.</summary>
+/// <summary>The wire values of the emote and pet domains are frozen (docs/adr/ADR-075 D5): a changed opcode breaks every client.</summary>
 public sealed class EmotePetPacketTests
 {
     [Fact]
@@ -46,9 +46,9 @@ public sealed class EmotePetPacketTests
     }
 
     [Fact]
-    public void NosumProtocol_Version_IsThirteen_WithTheEmoteAndPetChange()
+    public void NosumProtocol_Version_IsEighteen_WithTheEmoteAndPetChange()
     {
-        NosumProtocol.Version.Should().Be(13);
+        NosumProtocol.Version.Should().Be(18);
     }
 
     [Fact]

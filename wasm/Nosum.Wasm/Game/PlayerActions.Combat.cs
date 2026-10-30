@@ -24,9 +24,9 @@ internal sealed partial class PlayerActions
     public bool TryGetActiveSwing(double nowSeconds, out float progress, out int itemId)
     {
         double elapsed = nowSeconds - _swingStartSeconds;
-        if (elapsed >= 0.0 && elapsed < SwingDurationSeconds)
+        if (elapsed >= 0.0 && elapsed < _swingSeconds)
         {
-            progress = (float)(elapsed / SwingDurationSeconds);
+            progress = (float)(elapsed / _swingSeconds);
             itemId = _swingItemId;
             return true;
         }
@@ -66,8 +66,7 @@ internal sealed partial class PlayerActions
 
         if ((edges & InputEdges.Skill1) != 0 && this.CanCastSkill(1))
         {
-            _swingStartSeconds = nowSeconds;
-            _swingItemId = this.HeldItemId;
+            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
             _combat.CastSkill(1);
         }
         else if ((edges & InputEdges.Skill2) != 0 && this.CanCastSkill(2))
@@ -78,21 +77,19 @@ internal sealed partial class PlayerActions
                 targetId = tm.MonsterId;
             }
 
-            _swingStartSeconds = nowSeconds;
-            _swingItemId = this.HeldItemId;
+            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
             _combat.CastSkill(2, targetId);
         }
         else if ((edges & InputEdges.Skill3) != 0 && this.CanCastSkill(3))
         {
-            _swingStartSeconds = nowSeconds;
-            _swingItemId = this.HeldItemId;
+            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
             _combat.CastSkill(3);
         }
     }
 
-    private void TryExecuteActionKey(int x, int y, double nowSeconds)
+    private void TryExecuteActionKey(int x, int y, double nowSeconds, int tileSize)
     {
-        _lastUseSeconds = nowSeconds;
+        _nextUseSeconds = nowSeconds + OpenCooldownSeconds;
         int selected = _inventory.SelectedSlot;
         SlotInfo held = _inventory.SlotAt(selected);
         if (PlaceableCatalog.TryGet(held.ItemId, out _))
@@ -108,12 +105,9 @@ internal sealed partial class PlayerActions
         }
         else if (CombatRules.WeaponDamage(held.ItemId) > 0)
         {
-            _swingStartSeconds = nowSeconds;
-            _swingItemId = held.ItemId;
-            if (ItemCatalog.TryGet(held.ItemId, out ItemDefinition? weaponDef))
-            {
-                this.PlaySwing(weaponDef.Tool);
-            }
+            ToolKind weapon = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? weaponDef) ? weaponDef.Tool : ToolKind.None;
+            this.BeginSwing(weapon, held.ItemId, nowSeconds);
+            this.PlaySwing(weapon);
 
             if (_combat is not null && _combat.TryFindTarget(x, y, CombatRules.AttackRange(held.ItemId), out MonsterClientRow targetMonster))
             {
@@ -139,18 +133,10 @@ internal sealed partial class PlayerActions
         }
         else
         {
-            if (ItemCatalog.TryGet(held.ItemId, out ItemDefinition? swung))
-            {
-                if (swung.Tool != ToolKind.None)
-                {
-                    _swingStartSeconds = nowSeconds;
-                    _swingItemId = held.ItemId;
-                }
-
-                this.PlaySwing(swung.Tool);
-            }
-
-            _farm.Use(selected, this.TargetX, this.TargetY);
+            // The swing is the action: the use reaches the server at its hit frame, and the farmer is busy until the swing and its recovery are over.
+            ToolKind tool = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? swung) ? swung.Tool : ToolKind.None;
+            this.BeginSwing(tool, held.ItemId, nowSeconds);
+            this.QueueUse(selected, this.TargetX, this.TargetY, 1, tool, tileSize);
         }
     }
 

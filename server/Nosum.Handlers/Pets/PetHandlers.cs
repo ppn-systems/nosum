@@ -16,7 +16,7 @@ using Nosum.Handlers.Session;
 namespace Nosum.Handlers.Pets;
 
 /// <summary>
-/// The pet companion (docs/adr/ADR-071 D3-D5). The identity comes from the connection; the service decides. An adoption re-announces the
+/// The pet companion (docs/adr/ADR-075 D3-D5). The identity comes from the connection; the service decides. An adoption re-announces the
 /// farmer's look, so the players who can see them see the new companion at once.
 /// </summary>
 [PacketHandler("Nosum.Pet")]

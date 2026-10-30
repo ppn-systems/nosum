@@ -45,6 +45,15 @@ public sealed class BuildingRulesTests
         BuildingRules.RemainingMs(completes, completes + 1).Should().Be(0);
     }
 
+    [Theory]
+    [InlineData(AnimalKind.Chicken, BuildingVerdict.Ok)]
+    [InlineData(AnimalKind.Duck, BuildingVerdict.Ok)]
+    [InlineData(AnimalKind.Goat, BuildingVerdict.WrongResident)]
+    public void CanHouse_ACoopTakesChickensAndDucksOnly(AnimalKind species, BuildingVerdict expected)
+    {
+        BuildingRules.CanHouse(Coop(), species, BuildingState.Finished, 0).Should().Be(expected);
+    }
+
     [Fact]
     public void CanHouse_FinishedBuildingWithRoom_IsOk()
     {

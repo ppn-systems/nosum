@@ -5,7 +5,7 @@ using System;
 namespace Nosum.Domain.Pets;
 
 /// <summary>
-/// The pet companion of one farmer (docs/adr/ADR-071 D3-D4): a cat or a dog with a name, a mood and the game day it was last petted.
+/// The pet companion of one farmer (docs/adr/ADR-075 D3-D4): a cat or a dog with a name, a mood and the game day it was last petted.
 /// One row at most per player; the row is removed only with the player.
 /// </summary>
 public sealed class PlayerPet

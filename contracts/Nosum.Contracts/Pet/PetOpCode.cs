@@ -3,7 +3,7 @@
 namespace Nosum.Contracts.Pet;
 
 /// <summary>
-/// Opcodes of the Pet domain (docs/adr/ADR-071 D3-D5). Sub-range <c>0x9500-0x95FF</c> of the Trade band (docs/adr/ADR-029 D6). C2S requests use
+/// Opcodes of the Pet domain (docs/adr/ADR-075 D3-D5). Sub-range <c>0x9500-0x95FF</c> of the Trade band (docs/adr/ADR-029 D6). C2S requests use
 /// <c>0x9500-0x953F</c>, the S2C reply <c>0x9540-0x957F</c>. Never reassign or reuse a value. A pet's kind and name reach the other players
 /// in <c>LookRow</c>; only the owner reads the mood here.
 /// </summary>

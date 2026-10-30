@@ -31,13 +31,6 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal sealed partial class PlayerActions
 {
-    // A cooldown just over the server's 300 ms swing keeps a mashed key from being refused (docs/adr/ADR-021 D8) and inside its rate limit.
-    private const double UseCooldownSeconds = 0.32;
-    private const double SwingDurationSeconds = 0.30;
-
-    // A drag sends one farm use per tile it reaches, at most this often, so a fast drag makes a steady line of tiles and not a flood.
-    private const double DragStepSeconds = 0.12;
-
     private readonly FarmChannel _farm;
     private readonly InventoryChannel _inventory;
     private readonly MarketChannel _market;
@@ -49,13 +42,9 @@ internal sealed partial class PlayerActions
     private readonly CombatChannel? _combat;
     private readonly CalendarChannel? _calendar;
     private GameCalendar? _rules;
-    private double _lastUseSeconds = double.NegativeInfinity;
-    private double _swingStartSeconds = double.NegativeInfinity;
-    private int _swingItemId;
     private int _dragTileX;
     private int _dragTileY;
     private bool _dragging;
-    private double _lastDragSeconds = double.NegativeInfinity;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
@@ -81,6 +70,7 @@ internal sealed partial class PlayerActions
         _audio = audio;
         _combat = combat;
         _calendar = calendar;
+        _farm.UseCompleted += this.OnFarmUseCompleted;
     }
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
@@ -142,6 +132,7 @@ internal sealed partial class PlayerActions
     public void Update(InputEdges edges, double feetX, double feetY, Facing facing, int tileSize, bool mapAllowsTools, double nowSeconds, int shopId = 0, PlacedSet? placed = null, bool elevatorNear = false, BuildingDefinition? interior = null, WalkGrid? walkGrid = null)
     {
         this.ActionConsumed = false;
+        _nowSeconds = nowSeconds;
         if (_counterId != 0 && shopId != _counterId)
         {
             this.CounterLeft?.Invoke(_counterId);
@@ -161,6 +152,8 @@ internal sealed partial class PlayerActions
 
         this.TargetDenied = IsFarmTool(this.HeldItemId) && !this.TargetWorks(mapAllowsTools);
 
+        // The swing's hit lands here, whatever keys are pressed: a use queued for its hit frame is sent as soon as the frame reaches it.
+        this.FireDueUse(nowSeconds);
         if (edges == InputEdges.None)
         {
             return;
@@ -199,9 +192,9 @@ internal sealed partial class PlayerActions
         {
             // Inside a building the action key tends the animals and never swings a tool; the server decides what happens.
             this.ActionConsumed = true;
-            if (_buildings is not null && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
+            if (_buildings is not null && nowSeconds >= _nextUseSeconds)
             {
-                _lastUseSeconds = nowSeconds;
+                _nextUseSeconds = nowSeconds + OpenCooldownSeconds;
                 this.TendAnimals(interior, feetX, feetY, tileSize);
             }
 
@@ -213,9 +206,9 @@ internal sealed partial class PlayerActions
         {
             // The piece in front is something to use, not a tile to work or a place to set something down.
             this.ActionConsumed = true;
-            if (nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
+            if (nowSeconds >= _nextUseSeconds)
             {
-                _lastUseSeconds = nowSeconds;
+                _nextUseSeconds = nowSeconds + OpenCooldownSeconds;
                 if (definition.Kind == PlaceableKind.Chest)
                 {
                     _chests?.Open(piece.Id);
@@ -230,23 +223,20 @@ internal sealed partial class PlayerActions
         }
 
         // The wide use: a hoe or a watering can of a higher tier works a line of tiles with one swing. The server checks the length against the tool in the slot.
-        if ((edges & InputEdges.Rotate) != 0 && mapAllowsTools && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
+        if ((edges & InputEdges.Rotate) != 0 && mapAllowsTools && nowSeconds >= _nextUseSeconds)
         {
             int wideSlot = _inventory.SelectedSlot;
             int wideItemId = _inventory.SlotAt(wideSlot).ItemId;
             if (ItemCatalog.TryGet(wideItemId, out ItemDefinition? tool) && tool.Tool is ToolKind.Hoe or ToolKind.WateringCan && ToolRules.AreaLength(tool.Tier) > 1)
             {
-                _lastUseSeconds = nowSeconds;
-                _swingStartSeconds = nowSeconds;
-                _swingItemId = wideItemId;
-                this.PlaySwing(tool.Tool);
-                _farm.UseArea(wideSlot, this.TargetX, this.TargetY, ToolRules.AreaLength(tool.Tier));
+                this.BeginSwing(tool.Tool, wideItemId, nowSeconds);
+                this.QueueUse(wideSlot, this.TargetX, this.TargetY, ToolRules.AreaLength(tool.Tier), tool.Tool, tileSize);
             }
         }
 
-        if ((edges & InputEdges.Action) != 0 && mapAllowsTools && nowSeconds - _lastUseSeconds >= UseCooldownSeconds)
+        if ((edges & InputEdges.Action) != 0 && mapAllowsTools && nowSeconds >= _nextUseSeconds)
         {
-            this.TryExecuteActionKey(x, y, nowSeconds);
+            this.TryExecuteActionKey(x, y, nowSeconds, tileSize);
         }
     }
 
@@ -277,7 +267,7 @@ internal sealed partial class PlayerActions
             }
         }
 
-        bool cow = animal.Kind == (byte)AnimalKind.Cow;
+        bool cow = AnimalCatalog.TryGet((AnimalKind)animal.Kind, out AnimalDefinition? species) && species.NeedsPail;
         bool pail = held.ItemId == ItemCatalog.MilkPail;
         if (animal.HasProduce && (!cow || pail || animal.Petted))
         {
@@ -291,8 +281,9 @@ internal sealed partial class PlayerActions
     }
 
     /// <summary>
-    /// Drag-to-sow: while the mouse button is held over the world, the held seed, hoe or watering can works each tile the drag reaches, one farm
-    /// use per tile. The server checks reach, seeds, energy and the tile of every use, so a refused tile changes nothing.
+    /// Drag-to-sow (docs/adr/ADR-071 D3): while the mouse button is held over the world, the held seed, hoe or watering can works each tile the drag
+    /// reaches. Each tile is one swing, so a drag repeats at the animation rate: the next tile is taken only when the farmer is free again. The server
+    /// checks reach, seeds, energy and the tile of every use, so a refused tile changes nothing.
     /// </summary>
     /// <param name="feetX">Farmer's feet x, world pixels.</param>
     /// <param name="feetY">Farmer's feet y, world pixels.</param>
@@ -304,6 +295,7 @@ internal sealed partial class PlayerActions
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     public void DragSow(double feetX, double feetY, int tileSize, int tileX, int tileY, bool pointerHeld, bool mapAllowsTools, double nowSeconds)
     {
+        _nowSeconds = nowSeconds;
         if (!pointerHeld || !mapAllowsTools || !IsFarmTool(this.HeldItemId))
         {
             _dragging = false;
@@ -315,7 +307,7 @@ internal sealed partial class PlayerActions
             return;
         }
 
-        if (_dragging && nowSeconds - _lastDragSeconds < DragStepSeconds)
+        if (nowSeconds < _nextUseSeconds)
         {
             return;
         }
@@ -323,8 +315,9 @@ internal sealed partial class PlayerActions
         _dragging = true;
         _dragTileX = tileX;
         _dragTileY = tileY;
-        _lastDragSeconds = nowSeconds;
-        _farm.Use(_inventory.SelectedSlot, tileX, tileY);
+        ToolKind tool = this.HeldTool();
+        this.BeginSwing(tool, this.HeldItemId, nowSeconds);
+        this.QueueUse(_inventory.SelectedSlot, tileX, tileY, 1, tool, tileSize);
     }
 
     // The items a drag works a tile with: seeds, a hoe and a watering can.
@@ -456,6 +449,16 @@ internal sealed partial class PlayerActions
         if ((edges & InputEdges.Profile) != 0)
         {
             this.PanelToggleRequested?.Invoke(PanelKind.Profile);
+        }
+
+        if ((edges & InputEdges.WorldMap) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.WorldMap);
+        }
+
+        if ((edges & InputEdges.Journal) != 0)
+        {
+            this.PanelToggleRequested?.Invoke(PanelKind.Journal);
         }
     }
 }

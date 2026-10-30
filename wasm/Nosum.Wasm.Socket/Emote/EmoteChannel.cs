@@ -11,7 +11,7 @@ using Nosum.Contracts.Emote.S2C;
 namespace Nosum.Wasm.Socket.Emote;
 
 /// <summary>
-/// The emote side of the connection (docs/adr/ADR-071 D1-D2): sends the emote the player chose and receives the emotes other farmers show near
+/// The emote side of the connection (docs/adr/ADR-075 D1-D2): sends the emote the player chose and receives the emotes other farmers show near
 /// them. The server checks the code and the cooldown and decides every outcome; a refused emote changes nothing.
 /// </summary>
 public sealed class EmoteChannel : IDisposable

@@ -11,7 +11,7 @@ using Nosum.Wasm.ViewModels.Emotes;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// Draws the emote bubble above each farmer on the map that has one showing (docs/adr/ADR-071 D1): the speech bubble, and the emote's icon centred in it.
+/// Draws the emote bubble above each farmer on the map that has one showing (docs/adr/ADR-075 D1): the speech bubble, and the emote's icon centred in it.
 /// It reads the farmers of the frame and the bubble store, both allocation-free; the bubble is depth-sorted with its farmer, so it never draws behind them.
 /// </summary>
 internal sealed class EmoteBubbleDecorator : IMapDecorator

@@ -15,6 +15,9 @@ using Nosum.Contracts.Coop.S2C;
 using Nosum.Contracts.Friends;
 using Nosum.Contracts.Friends.C2S;
 using Nosum.Contracts.Friends.S2C;
+using Nosum.Contracts.Journal;
+using Nosum.Contracts.Journal.C2S;
+using Nosum.Contracts.Journal.S2C;
 using Nosum.Contracts.Look;
 using Nosum.Contracts.Look.C2S;
 using Nosum.Contracts.Look.S2C;
@@ -68,6 +71,7 @@ public sealed partial class DbBudgetRun
         _ = await _rig.ProbeAsync<GuestbookSnapshot>(a, "Visit", VisitOpCode.GetGuestbook, "GetGuestbook", "read the guestbook", () => new GetGuestbook());
         _ = await _rig.ProbeAsync<BestiarySnapshot>(a, "Bestiary", CombatOpCode.GetBestiary, "GetBestiary", "read the hunting log", () => new GetBestiary());
         _ = await _rig.ProbeAsync<EquipBestiaryTitleResult>(a, "Bestiary", CombatOpCode.EquipBestiaryTitle, "EquipBestiaryTitle", "equip a title not earned yet", () => new EquipBestiaryTitle { Species = 4 });
+        _ = await _rig.ProbeAsync<JournalReply>(a, "Journal", JournalOpCode.GetJournal, "GetJournal", "read the journal", () => new GetJournal());
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.KickVisitor, "KickVisitor", "send the visitor away", () => new KickVisitor { PlayerId = b.AccountId });
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.AddVisitor, "AddVisitor", "allow-list by nickname", () => new AddVisitor { Nickname = b.Nickname });
         _ = await _rig.ProbeAsync<VisitResult>(a, "Visit", VisitOpCode.RemoveVisitor, "RemoveVisitor", "take off the allow-list", () => new RemoveVisitor { PlayerId = b.AccountId });

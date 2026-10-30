@@ -32,9 +32,10 @@ public static partial class DeviceGate
     /// <returns>The verdict.</returns>
     public static DeviceVerdict Evaluate(DeviceSignals signals, DevicePolicy policy)
     {
-        if (policy.BlockTouchDevices && IsTouchDevice(signals))
+        // A phone or tablet plays at its own width (the layout scales with the pixel unit, ADR-016), so the minimum width is for desktop windows only.
+        if (IsTouchDevice(signals))
         {
-            return DeviceVerdict.TouchBlocked;
+            return policy.BlockTouchDevices ? DeviceVerdict.TouchBlocked : DeviceVerdict.Allowed;
         }
 
         return signals.ViewportWidth < policy.MinimumWidth ? DeviceVerdict.TooNarrow : DeviceVerdict.Allowed;

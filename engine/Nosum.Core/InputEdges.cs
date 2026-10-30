@@ -86,13 +86,22 @@ public enum InputEdges
 
     /// <summary>Skill 3 key (V): Divine Heal (docs/adr/ADR-056).</summary>
     Skill3 = 1 << 23,
+
+    /// <summary>The minimap key (M): show or hide the minimap in the HUD corner.</summary>
+    Minimap = 1 << 24,
+
+    /// <summary>The world map key (Tab): show or hide the world map panel.</summary>
+    WorldMap = 1 << 25,
+
+    /// <summary>The collection journal key (J): show or hide the journal panel.</summary>
+    Journal = 1 << 26,
 }
 
 /// <summary>Helpers for the packed input integer the platform passes to the frame.</summary>
 public static class InputPacking
 {
-    /// <summary>Bits the held directions occupy; the edges start above them.</summary>
-    public const int HeldBits = 8;
+    /// <summary>Bits the held directions occupy (up, down, left, right); the edges start above them.</summary>
+    public const int HeldBits = 4;
 
     /// <summary>Packs held directions and pressed keys into one integer.</summary>
     /// <param name="held">Held directions.</param>

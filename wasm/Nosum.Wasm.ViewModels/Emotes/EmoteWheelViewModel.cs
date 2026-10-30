@@ -19,7 +19,7 @@ namespace Nosum.Wasm.ViewModels.Emotes;
 public sealed record EmoteOption(byte Code, string Label, string Icon);
 
 /// <summary>
-/// The emote wheel (docs/adr/ADR-071 D1-D2): opened from the hotkey or the HUD button, it sends the chosen emote and, on the server's OK, shows the
+/// The emote wheel (docs/adr/ADR-075 D1-D2): opened from the hotkey or the HUD button, it sends the chosen emote and, on the server's OK, shows the
 /// player's own bubble. A refusal (cooldown, no map) shows its message briefly. Other farmers' emotes go to the same bubble store.
 /// </summary>
 public sealed class EmoteWheelViewModel : IObservableViewModel, IDisposable

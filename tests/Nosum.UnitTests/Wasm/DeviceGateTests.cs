@@ -43,13 +43,23 @@ public sealed class DeviceGateTests
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void Evaluate_DefaultPolicy_FollowsTheSignals(string name, bool? hint, string userAgent, string platform, bool coarse, bool hover, int touchPoints, int width, DeviceVerdict expected)
+    public void Evaluate_BlockingPolicy_FollowsTheSignals(string name, bool? hint, string userAgent, string platform, bool coarse, bool hover, int touchPoints, int width, DeviceVerdict expected)
     {
         DeviceSignals signals = new(hint, userAgent, platform, coarse, hover, touchPoints, width);
 
-        DeviceVerdict verdict = DeviceGate.Evaluate(signals, DevicePolicy.Default);
+        DeviceVerdict verdict = DeviceGate.Evaluate(signals, new DevicePolicy(true, DevicePolicy.DefaultMinimumWidth));
 
         verdict.Should().Be(expected, name);
+    }
+
+    [Fact]
+    public void Evaluate_DefaultPolicy_LetsAPhoneThrough()
+    {
+        DeviceSignals phone = new(true, IPhone, "iPhone", true, false, 5, 1200);
+
+        DeviceVerdict verdict = DeviceGate.Evaluate(phone, DevicePolicy.Default);
+
+        verdict.Should().Be(DeviceVerdict.Allowed);
     }
 
     [Fact]
@@ -63,13 +73,23 @@ public sealed class DeviceGateTests
     }
 
     [Fact]
-    public void Evaluate_BlockSwitchedOff_StillRequiresTheMinimumWidth()
+    public void Evaluate_BlockSwitchedOff_StillRequiresTheMinimumWidthOnADesktop()
+    {
+        DeviceSignals desktop = new(false, Windows, "Win32", false, true, 0, 390);
+
+        DeviceVerdict verdict = DeviceGate.Evaluate(desktop, new DevicePolicy(false, 1024));
+
+        verdict.Should().Be(DeviceVerdict.TooNarrow);
+    }
+
+    [Fact]
+    public void Evaluate_BlockSwitchedOff_LetsANarrowPhonePlayAtItsOwnWidth()
     {
         DeviceSignals phone = new(true, IPhone, "iPhone", true, false, 5, 390);
 
         DeviceVerdict verdict = DeviceGate.Evaluate(phone, new DevicePolicy(false, 1024));
 
-        verdict.Should().Be(DeviceVerdict.TooNarrow);
+        verdict.Should().Be(DeviceVerdict.Allowed, "the layout scales with the pixel unit, so a phone is not sent to the widen-the-window overlay");
     }
 
     [Fact]
@@ -82,11 +102,11 @@ public sealed class DeviceGateTests
     }
 
     [Fact]
-    public void Default_Policy_BlocksTouchDevicesAt1024()
+    public void Default_Policy_AllowsTouchDevicesAt1024()
     {
         DevicePolicy policy = DevicePolicy.Default;
 
-        policy.BlockTouchDevices.Should().BeTrue();
+        policy.BlockTouchDevices.Should().BeFalse("phones and tablets play by default (issue #216)");
         policy.MinimumWidth.Should().Be(1024);
     }
 }

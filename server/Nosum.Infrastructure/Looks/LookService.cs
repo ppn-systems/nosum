@@ -50,7 +50,7 @@ public sealed class LookService : ILookService
     /// <param name="chunks">Who can see whom: the looks sent on a join are the ones in sight.</param>
     /// <param name="publisher">Delivers a look change to the players who can see the player (docs/adr/ADR-022).</param>
     /// <param name="time">The clock for the saved timestamp; tests pass a fake one.</param>
-    /// <param name="pets">The pets, so every look carries its player's pet kind and name (docs/adr/ADR-071 D3); <see langword="null"/> sends none.</param>
+    /// <param name="pets">The pets, so every look carries its player's pet kind and name (docs/adr/ADR-075 D3); <see langword="null"/> sends none.</param>
     public LookService(IUnitOfWorkFactory unitOfWork, IInventoryService inventory, IMapPresence presence, INicknameDirectory nicknames, IChunkMap chunks, IChunkPublisher publisher, TimeProvider time, IPetService? pets = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);

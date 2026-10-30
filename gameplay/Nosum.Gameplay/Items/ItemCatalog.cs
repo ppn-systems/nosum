@@ -11,7 +11,7 @@ namespace Nosum.Gameplay.Items;
 /// The generic item catalogue: every item any feature (farm, market, co-op warehouse, quests) may
 /// put in an inventory. Ids are append-only. Ids below 100 are tools (the five basic ones, then the copper tier from 10 and the iron tier from 20, docs/adr/ADR-026), 100-189 crop seeds, 190-199 tree seeds, 200-299 produce, 300-399 furniture (placeable, see Nosum.Gameplay.Placeables), 400-499 clothing, 500-599 resources and bars, 600-699 crafted placeables, 700-799 food (dishes, ADR-024), 800-899 forage (docs/adr/ADR-025); raw produce is edible through its <see cref="ItemDefinition.FoodEnergy"/>.
 /// </summary>
-public static class ItemCatalog
+public static partial class ItemCatalog
 {
     /// <summary>The hoe.</summary>
     public const int Hoe = 1;
@@ -264,27 +264,6 @@ public static class ItemCatalog
     /// <summary>A rainbow shell, picked up on the beach.</summary>
     public const int RainbowShell = 818;
 
-    /// <summary>An oak chair.</summary>
-    public const int OakChair = 300;
-
-    /// <summary>A blue armchair.</summary>
-    public const int BlueArmchair = 301;
-
-    /// <summary>A blue couch.</summary>
-    public const int BlueCouch = 302;
-
-    /// <summary>An oak table.</summary>
-    public const int OakTable = 303;
-
-    /// <summary>A bookcase.</summary>
-    public const int Bookcase = 304;
-
-    /// <summary>A floor lamp.</summary>
-    public const int FloorLamp = 305;
-
-    /// <summary>A house plant.</summary>
-    public const int HousePlant = 306;
-
     /// <summary>Wood, from trees, stumps and twigs.</summary>
     public const int Wood = 500;
 
@@ -377,6 +356,42 @@ public static class ItemCatalog
 
     /// <summary>A bottle of cream milk, the gold-quality produce of a cow loved by four hearts or more (docs/adr/ADR-028 D3).</summary>
     public const int CreamMilk = 905;
+
+    /// <summary>A duck egg, a duck's produce (docs/adr/ADR-028 amendment 2).</summary>
+    public const int DuckEgg = 906;
+
+    /// <summary>A large duck egg.</summary>
+    public const int LargeDuckEgg = 907;
+
+    /// <summary>A golden duck egg, the gold-quality produce of a duck loved by four hearts or more.</summary>
+    public const int GoldenDuckEgg = 908;
+
+    /// <summary>A bottle of goat milk, a goat's produce.</summary>
+    public const int GoatMilk = 909;
+
+    /// <summary>A bottle of large goat milk.</summary>
+    public const int LargeGoatMilk = 910;
+
+    /// <summary>A bottle of cream goat milk, the gold-quality produce of a goat loved by four hearts or more.</summary>
+    public const int CreamGoatMilk = 911;
+
+    /// <summary>Wool, a sheep's fleece. Spins into the scarecrow's stuffing and sells well.</summary>
+    public const int Wool = 912;
+
+    /// <summary>Fine wool, the long soft fleece of a sheep that is well loved.</summary>
+    public const int FineWool = 913;
+
+    /// <summary>A golden fleece, the gold-quality fleece of a sheep loved by four hearts or more.</summary>
+    public const int GoldenFleece = 914;
+
+    /// <summary>A truffle a pig digs up on a sunny day.</summary>
+    public const int Truffle = 915;
+
+    /// <summary>A large truffle, dug up more often by a pig that is well loved.</summary>
+    public const int LargeTruffle = 916;
+
+    /// <summary>A golden truffle, the gold-quality truffle of a pig loved by four hearts or more.</summary>
+    public const int GoldenTruffle = 917;
 
     /// <summary>Hay, the feed the carpenter sells for the feeding bench (fiber works too).</summary>
     public const int Hay = 508;
@@ -558,6 +573,18 @@ public static class ItemCatalog
         new(LargeMilk, "large_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 190, ObjectIcon = 60 },
         new(GoldenEgg, "golden_egg", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 75, ObjectIcon = 58 },
         new(CreamMilk, "cream_milk", ItemKind.Produce, DefaultStack, foodEnergy: 40) { SellPrice = 187, ObjectIcon = 60 },
+        new(DuckEgg, "duck_egg", ItemKind.Produce, DefaultStack, foodEnergy: 25) { SellPrice = 70, ObjectIcon = 120 },
+        new(LargeDuckEgg, "large_duck_egg", ItemKind.Produce, DefaultStack, foodEnergy: 35) { SellPrice = 130, ObjectIcon = 121 },
+        new(GoldenDuckEgg, "golden_duck_egg", ItemKind.Produce, DefaultStack, foodEnergy: 35) { SellPrice = 105, ObjectIcon = 122 },
+        new(GoatMilk, "goat_milk", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 150, ObjectIcon = 123 },
+        new(LargeGoatMilk, "large_goat_milk", ItemKind.Produce, DefaultStack, foodEnergy: 45) { SellPrice = 230, ObjectIcon = 124 },
+        new(CreamGoatMilk, "cream_goat_milk", ItemKind.Produce, DefaultStack, foodEnergy: 45) { SellPrice = 225, ObjectIcon = 125 },
+        new(Wool, "wool", ItemKind.Produce, DefaultStack) { SellPrice = 60, ObjectIcon = 126 },
+        new(FineWool, "fine_wool", ItemKind.Produce, DefaultStack) { SellPrice = 110, ObjectIcon = 127 },
+        new(GoldenFleece, "golden_fleece", ItemKind.Produce, DefaultStack) { SellPrice = 165, ObjectIcon = 128 },
+        new(Truffle, "truffle", ItemKind.Produce, DefaultStack, foodEnergy: 20) { SellPrice = 250, ObjectIcon = 129 },
+        new(LargeTruffle, "large_truffle", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 400, ObjectIcon = 130 },
+        new(GoldenTruffle, "golden_truffle", ItemKind.Produce, DefaultStack, foodEnergy: 30) { SellPrice = 375, ObjectIcon = 131 },
         new(Hay, "hay", ItemKind.Resource, DefaultStack) { ObjectIcon = 61 },
         new(SlimeGel, "slime_gel", ItemKind.Resource, DefaultStack) { ObjectIcon = 96 },
         new(BatWing, "bat_wing", ItemKind.Resource, DefaultStack) { ObjectIcon = 97 },
@@ -594,6 +621,38 @@ public static class ItemCatalog
         new(Bookcase, "bookcase", ItemKind.Furniture, FurnitureStack),
         new(FloorLamp, "floor_lamp", ItemKind.Furniture, FurnitureStack),
         new(HousePlant, "house_plant", ItemKind.Furniture, FurnitureStack),
+        new(WoodenStool, "wooden_stool", ItemKind.Furniture, FurnitureStack),
+        new(CushionedChair, "cushioned_chair", ItemKind.Furniture, FurnitureStack),
+        new(WoodenBench, "wooden_bench", ItemKind.Furniture, FurnitureStack),
+        new(GreenArmchair, "green_armchair", ItemKind.Furniture, FurnitureStack),
+        new(RoundTable, "round_table", ItemKind.Furniture, FurnitureStack),
+        new(SideTable, "side_table", ItemKind.Furniture, FurnitureStack),
+        new(LongTable, "long_table", ItemKind.Furniture, FurnitureStack),
+        new(SingleBed, "single_bed", ItemKind.Furniture, FurnitureStack),
+        new(DoubleBed, "double_bed", ItemKind.Furniture, FurnitureStack),
+        new(Wardrobe, "wardrobe", ItemKind.Furniture, FurnitureStack),
+        new(ChestOfDrawers, "chest_of_drawers", ItemKind.Furniture, FurnitureStack),
+        new(KitchenCabinet, "kitchen_cabinet", ItemKind.Furniture, FurnitureStack),
+        new(WallShelf, "wall_shelf", ItemKind.Furniture, FurnitureStack),
+        new(Candelabra, "candelabra", ItemKind.Furniture, FurnitureStack),
+        new(TableLamp, "table_lamp", ItemKind.Furniture, FurnitureStack),
+        new(WallSconce, "wall_sconce", ItemKind.Furniture, FurnitureStack),
+        new(PaperLantern, "paper_lantern", ItemKind.Furniture, FurnitureStack),
+        new(PottedFern, "potted_fern", ItemKind.Furniture, FurnitureStack),
+        new(CactusPot, "cactus_pot", ItemKind.Furniture, FurnitureStack),
+        new(FlowerBox, "flower_box", ItemKind.Furniture, FurnitureStack),
+        new(Bonsai, "bonsai", ItemKind.Furniture, FurnitureStack),
+        new(LandscapePainting, "landscape_painting", ItemKind.Furniture, FurnitureStack),
+        new(PortraitPainting, "portrait_painting", ItemKind.Furniture, FurnitureStack),
+        new(Window, "window", ItemKind.Furniture, FurnitureStack),
+        new(WallClock, "wall_clock", ItemKind.Furniture, FurnitureStack),
+        new(Mirror, "mirror", ItemKind.Furniture, FurnitureStack),
+        new(RedRug, "red_rug", ItemKind.Furniture, FurnitureStack),
+        new(BlueRug, "blue_rug", ItemKind.Furniture, FurnitureStack),
+        new(RoundRug, "round_rug", ItemKind.Furniture, FurnitureStack),
+        new(Doormat, "doormat", ItemKind.Furniture, FurnitureStack),
+        new(PumpkinDecor, "pumpkin_decor", ItemKind.Furniture, FurnitureStack),
+        new(WinterWreath, "winter_wreath", ItemKind.Furniture, FurnitureStack),
         new(ShirtRed, "shirt_red", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
         new(ShirtGreen, "shirt_green", ItemKind.Clothing, 1, wear: WearSlot.Shirt),
         new(ShirtBlue, "shirt_blue", ItemKind.Clothing, 1, wear: WearSlot.Shirt),

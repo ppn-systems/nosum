@@ -25,7 +25,7 @@ public readonly record struct PetLook(byte Kind, string Name)
 public readonly record struct PetView(PetStatus Status, byte Kind, string Name, int Mood, bool PettedToday);
 
 /// <summary>
-/// The pet companion (docs/adr/ADR-071 D3-D5): adoption (a cat or a dog, named with the chat profanity mask), one petting per game day for a
+/// The pet companion (docs/adr/ADR-075 D3-D5): adoption (a cat or a dog, named with the chat profanity mask), one petting per game day for a
 /// mood and energy bonus. Every change is one server transaction; the cached <see cref="PetLook"/> is what LookRow carries to the other players.
 /// </summary>
 public interface IPetService

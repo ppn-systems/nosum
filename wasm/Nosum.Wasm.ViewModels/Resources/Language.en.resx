@@ -299,6 +299,32 @@
   <data name="Account_Status_Banned" xml:space="preserve"><value>This account is banned. Contact an administrator if you think this is a mistake.</value></data>
   <data name="Account_Status_SessionKicked" xml:space="preserve"><value>An administrator removed you from the game. You can sign in again.</value></data>
   <data name="Toolbar_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Toolbar_WorldMap" xml:space="preserve"><value>World map</value></data>
+  <data name="Toolbar_Journal" xml:space="preserve"><value>Journal</value></data>
+  <data name="Action_Minimap" xml:space="preserve"><value>Minimap</value></data>
+  <data name="Action_WorldMap" xml:space="preserve"><value>World map</value></data>
+  <data name="Action_Journal" xml:space="preserve"><value>Journal</value></data>
+  <data name="Map_farm_Name" xml:space="preserve"><value>Farm</value></data>
+  <data name="Map_town_Name" xml:space="preserve"><value>Town</value></data>
+  <data name="Map_beach_Name" xml:space="preserve"><value>Beach</value></data>
+  <data name="Map_woods_Name" xml:space="preserve"><value>Woods</value></data>
+  <data name="Map_mountain_Name" xml:space="preserve"><value>Mountain</value></data>
+  <data name="Map_mine_Name" xml:space="preserve"><value>Mine entrance</value></data>
+  <data name="Map_busstop_Name" xml:space="preserve"><value>Bus stop</value></data>
+  <data name="Map_forest_Name" xml:space="preserve"><value>Forest</value></data>
+  <data name="Map_backwoods_Name" xml:space="preserve"><value>Backwoods</value></data>
+  <data name="Map_farmhouse_Name" xml:space="preserve"><value>Farmhouse</value></data>
+  <data name="Map_coopfarm_Name" xml:space="preserve"><value>Co-op land</value></data>
+  <data name="WorldMap_Here" xml:space="preserve"><value>You are here</value></data>
+  <data name="WorldMap_Shops" xml:space="preserve"><value>Shops: {0}</value></data>
+  <data name="WorldMap_HoursUnknown" xml:space="preserve"><value>Opening hours: not posted yet</value></data>
+  <data name="WorldMap_Connections" xml:space="preserve"><value>Connects to:</value></data>
+  <data name="WorldMap_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="WorldMap_NoConnections" xml:space="preserve"><value>No exits yet</value></data>
+  <data name="Journal_Summary" xml:space="preserve"><value>Discovered {0} of {1} items</value></data>
+  <data name="Journal_Unknown" xml:space="preserve"><value>???</value></data>
+  <data name="Journal_Undiscovered" xml:space="preserve"><value>Not obtained yet</value></data>
+  <data name="Journal_Tip" xml:space="preserve"><value>{0}&#10;Obtained: {1}&#10;First: {2}</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Current nickname: {0}</value></data>
   <data name="Profile_NewLabel" xml:space="preserve"><value>New nickname</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Change nickname</value></data>
@@ -463,6 +489,8 @@
   <data name="Season_Summer" xml:space="preserve"><value>Summer</value></data>
   <data name="Season_Fall" xml:space="preserve"><value>Fall</value></data>
   <data name="Season_Winter" xml:space="preserve"><value>Winter</value></data>
+  <data name="Season_Banner_Title" xml:space="preserve"><value>NEW SEASON</value></data>
+  <data name="Season_Banner_Message" xml:space="preserve"><value>{0} has arrived!</value></data>
   <data name="Calendar_Day" xml:space="preserve"><value>Day {0}</value></data>
   <data name="Calendar_Year" xml:space="preserve"><value>Year {0}</value></data>
   <data name="Calendar_Summary" xml:space="preserve"><value>{0}, {1}, {2} ({3})</value></data>
@@ -957,4 +985,40 @@
   <data name="Pet_Status_InvalidName" xml:space="preserve"><value>Give it a name (up to 12 characters).</value></data>
   <data name="Pet_Status_AlreadyPetted" xml:space="preserve"><value>You already petted them today.</value></data>
   <data name="Pet_Status_Unavailable" xml:space="preserve"><value>Not possible right now.</value></data>
+  <data name="Animal_duck_Name" xml:space="preserve"><value>Duck</value></data>
+  <data name="Animal_goat_Name" xml:space="preserve"><value>Goat</value></data>
+  <data name="Animal_sheep_Name" xml:space="preserve"><value>Sheep</value></data>
+  <data name="Animal_pig_Name" xml:space="preserve"><value>Pig</value></data>
+  <data name="Shop_Qty_Less" xml:space="preserve"><value>Less</value></data>
+  <data name="Shop_Qty_More" xml:space="preserve"><value>More</value></data>
+  <data name="Shop_Confirm_Text" xml:space="preserve"><value>Buy {0} × {1} for {2} coins? Balance after: {3} coins.</value></data>
+  <data name="Shop_Confirm_Yes" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Shop_Confirm_No" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Settings_TouchControls" xml:space="preserve"><value>On-screen touch controls</value></data>
+  <data name="Settings_Haptics" xml:space="preserve"><value>Vibrate on purchases and sales</value></data>
+  <data name="Account_Provider_Guidance" xml:space="preserve"><value>Google and Microsoft sign-in is off on this server. Play as a guest instead.</value></data>
+  <data name="Game_Start_Step_Connect" xml:space="preserve"><value>Connecting to the server…</value></data>
+  <data name="Game_Start_Step_Assets" xml:space="preserve"><value>Loading graphics and sound…</value></data>
+  <data name="Game_Start_Step_World" xml:space="preserve"><value>Entering the area…</value></data>
+  <data name="Game_Start_Slow" xml:space="preserve"><value>Still loading. If it takes too long, try again.</value></data>
+  <data name="Game_Start_Retry" xml:space="preserve"><value>Try again</value></data>
+  <data name="Furniture_Title" xml:space="preserve"><value>Furniture</value></data>
+  <data name="Furniture_Category_All" xml:space="preserve"><value>All</value></data>
+  <data name="Furniture_Category_Seating" xml:space="preserve"><value>Seating</value></data>
+  <data name="Furniture_Category_Tables" xml:space="preserve"><value>Tables</value></data>
+  <data name="Furniture_Category_Beds" xml:space="preserve"><value>Beds</value></data>
+  <data name="Furniture_Category_Storage" xml:space="preserve"><value>Storage</value></data>
+  <data name="Furniture_Category_Lighting" xml:space="preserve"><value>Lighting</value></data>
+  <data name="Furniture_Category_Plants" xml:space="preserve"><value>Plants</value></data>
+  <data name="Furniture_Category_Decor" xml:space="preserve"><value>Decor</value></data>
+  <data name="Furniture_Category_Rugs" xml:space="preserve"><value>Rugs</value></data>
+  <data name="Furniture_Search" xml:space="preserve"><value>Search furniture...</value></data>
+  <data name="Furniture_Place" xml:space="preserve"><value>Place</value></data>
+  <data name="Furniture_PickUp" xml:space="preserve"><value>Pick up</value></data>
+  <data name="Furniture_Empty" xml:space="preserve"><value>You have no furniture yet. The furnisher sells it.</value></data>
+  <data name="Furniture_NoMatch" xml:space="preserve"><value>No furniture matches.</value></data>
+  <data name="Furniture_Owned" xml:space="preserve"><value>Owned: {0}</value></data>
+  <data name="Furniture_BlocksWalking" xml:space="preserve"><value>Blocks walking</value></data>
+  <data name="Furniture_WalkOver" xml:space="preserve"><value>Walk over</value></data>
+  <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
 </root>

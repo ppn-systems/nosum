@@ -24,6 +24,7 @@ using Nosum.Abstractions.Farm;
 using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
+using Nosum.Abstractions.Journal;
 using Nosum.Abstractions.Look;
 using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
@@ -62,6 +63,7 @@ using Nosum.Infrastructure.Friends;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Pets;
+using Nosum.Infrastructure.Journal;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Mail;
 using Nosum.Infrastructure.Maps;
@@ -273,7 +275,7 @@ internal static partial class Program
         BuildingService buildings = new(presence, publisher, maps, inventory, transfers, buildingDirectory, animalWander, unitOfWork, coopMembership, calendar, clock);
         InstanceManager.Instance.Register<IBuildingService>(buildings);
         placeables.Attach(buildings);
-        // The pet companion (docs/adr/ADR-071 D3-D5): its kind and name travel in every look, so visitors see it.
+        // The pet companion (docs/adr/ADR-075 D3-D5): its kind and name travel in every look, so visitors see it.
         PetService pets = new(unitOfWork, progress, calendar, clock);
         InstanceManager.Instance.Register<IPetService>(pets);
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock, pets);
@@ -286,6 +288,8 @@ internal static partial class Program
         // The hunting log (docs/adr/ADR-068): the defeat path counts each kill into it.
         BestiaryService bestiary = new(unitOfWork, clock);
         InstanceManager.Instance.Register<IBestiaryService>(bestiary);
+        // The collection journal (read here; the inventory service counts every grant into it, in the grant's own transaction).
+        InstanceManager.Instance.Register<IJournalService>(new JournalService(unitOfWork));
         CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>
@@ -358,7 +362,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory, visitFacts, blocks));
         InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
 
-        // The emote wheel (docs/adr/ADR-071 D1-D2): a code to the players near the sender, rate limited by the service.
+        // The emote wheel (docs/adr/ADR-075 D1-D2): a code to the players near the sender, rate limited by the service.
         InstanceManager.Instance.Register<IEmoteService>(new EmoteService(presence, publisher, clock));
 
         // Armed last: every subscriber is in place before the first boundary.

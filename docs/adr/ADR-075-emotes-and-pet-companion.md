@@ -1,4 +1,4 @@
-# ADR-071: Emote wheel and pet companion
+# ADR-075: Emote wheel and pet companion
 
 **Status:** Accepted (agent-written, 2026-10-29). Builds on [ADR-029](ADR-029-chat-friends-mail.md) (chat fan-out, profanity mask, rate rules), [ADR-022](ADR-022-chunked-interest-management.md) (who sees whom), [ADR-006](ADR-006-layered-character-customization.md) (looks as ids on the wire) and [ADR-028](ADR-028-farm-buildings-and-animals.md) (animals walk the farm and are petted).
 

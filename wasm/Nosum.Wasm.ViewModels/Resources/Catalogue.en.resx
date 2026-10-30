@@ -38,6 +38,70 @@
   <data name="Item_floor_lamp_Description" xml:space="preserve"><value>A floor lamp. Place it in your farmhouse.</value></data>
   <data name="Item_house_plant_Name" xml:space="preserve"><value>House plant</value></data>
   <data name="Item_house_plant_Description" xml:space="preserve"><value>A potted plant. Place it in your farmhouse.</value></data>
+  <data name="Item_wooden_stool_Name" xml:space="preserve"><value>Wooden stool</value></data>
+  <data name="Item_wooden_stool_Description" xml:space="preserve"><value>A small wooden stool. Place it in your farmhouse.</value></data>
+  <data name="Item_cushioned_chair_Name" xml:space="preserve"><value>Cushioned chair</value></data>
+  <data name="Item_cushioned_chair_Description" xml:space="preserve"><value>A wooden chair with a soft cushion.</value></data>
+  <data name="Item_wooden_bench_Name" xml:space="preserve"><value>Wooden bench</value></data>
+  <data name="Item_wooden_bench_Description" xml:space="preserve"><value>A wooden bench, two tiles long.</value></data>
+  <data name="Item_green_armchair_Name" xml:space="preserve"><value>Green armchair</value></data>
+  <data name="Item_green_armchair_Description" xml:space="preserve"><value>A green armchair for resting.</value></data>
+  <data name="Item_round_table_Name" xml:space="preserve"><value>Round table</value></data>
+  <data name="Item_round_table_Description" xml:space="preserve"><value>A round table, two tiles across.</value></data>
+  <data name="Item_side_table_Name" xml:space="preserve"><value>Side table</value></data>
+  <data name="Item_side_table_Description" xml:space="preserve"><value>A small table for a corner.</value></data>
+  <data name="Item_long_table_Name" xml:space="preserve"><value>Long table</value></data>
+  <data name="Item_long_table_Description" xml:space="preserve"><value>A long table, three tiles wide.</value></data>
+  <data name="Item_single_bed_Name" xml:space="preserve"><value>Single bed</value></data>
+  <data name="Item_single_bed_Description" xml:space="preserve"><value>A single bed with a blanket.</value></data>
+  <data name="Item_double_bed_Name" xml:space="preserve"><value>Double bed</value></data>
+  <data name="Item_double_bed_Description" xml:space="preserve"><value>A double bed with two pillows.</value></data>
+  <data name="Item_wardrobe_Name" xml:space="preserve"><value>Wardrobe</value></data>
+  <data name="Item_wardrobe_Description" xml:space="preserve"><value>A wardrobe for clothes.</value></data>
+  <data name="Item_chest_of_drawers_Name" xml:space="preserve"><value>Chest of drawers</value></data>
+  <data name="Item_chest_of_drawers_Description" xml:space="preserve"><value>A chest of drawers with three drawers.</value></data>
+  <data name="Item_kitchen_cabinet_Name" xml:space="preserve"><value>Kitchen cabinet</value></data>
+  <data name="Item_kitchen_cabinet_Description" xml:space="preserve"><value>A cabinet for the kitchen.</value></data>
+  <data name="Item_wall_shelf_Name" xml:space="preserve"><value>Wall shelf</value></data>
+  <data name="Item_wall_shelf_Description" xml:space="preserve"><value>A shelf for the wall.</value></data>
+  <data name="Item_candelabra_Name" xml:space="preserve"><value>Candelabra</value></data>
+  <data name="Item_candelabra_Description" xml:space="preserve"><value>A candelabra. It gives light at night.</value></data>
+  <data name="Item_table_lamp_Name" xml:space="preserve"><value>Table lamp</value></data>
+  <data name="Item_table_lamp_Description" xml:space="preserve"><value>A table lamp. It gives light at night.</value></data>
+  <data name="Item_wall_sconce_Name" xml:space="preserve"><value>Wall sconce</value></data>
+  <data name="Item_wall_sconce_Description" xml:space="preserve"><value>A lamp for the wall. It gives light at night.</value></data>
+  <data name="Item_paper_lantern_Name" xml:space="preserve"><value>Paper lantern</value></data>
+  <data name="Item_paper_lantern_Description" xml:space="preserve"><value>A paper lantern, sold in fall. It gives light at night.</value></data>
+  <data name="Item_potted_fern_Name" xml:space="preserve"><value>Potted fern</value></data>
+  <data name="Item_potted_fern_Description" xml:space="preserve"><value>A fern in a pot.</value></data>
+  <data name="Item_cactus_pot_Name" xml:space="preserve"><value>Cactus pot</value></data>
+  <data name="Item_cactus_pot_Description" xml:space="preserve"><value>A small cactus in a pot.</value></data>
+  <data name="Item_flower_box_Name" xml:space="preserve"><value>Flower box</value></data>
+  <data name="Item_flower_box_Description" xml:space="preserve"><value>A box of flowers, sold in spring.</value></data>
+  <data name="Item_bonsai_Name" xml:space="preserve"><value>Bonsai</value></data>
+  <data name="Item_bonsai_Description" xml:space="preserve"><value>A bonsai tree in a pot.</value></data>
+  <data name="Item_landscape_painting_Name" xml:space="preserve"><value>Landscape painting</value></data>
+  <data name="Item_landscape_painting_Description" xml:space="preserve"><value>A painting of the countryside, for a wall.</value></data>
+  <data name="Item_portrait_painting_Name" xml:space="preserve"><value>Portrait painting</value></data>
+  <data name="Item_portrait_painting_Description" xml:space="preserve"><value>A portrait, for a wall.</value></data>
+  <data name="Item_window_Name" xml:space="preserve"><value>Window</value></data>
+  <data name="Item_window_Description" xml:space="preserve"><value>A window for a wall.</value></data>
+  <data name="Item_wall_clock_Name" xml:space="preserve"><value>Wall clock</value></data>
+  <data name="Item_wall_clock_Description" xml:space="preserve"><value>A clock for a wall.</value></data>
+  <data name="Item_mirror_Name" xml:space="preserve"><value>Mirror</value></data>
+  <data name="Item_mirror_Description" xml:space="preserve"><value>A mirror for a wall.</value></data>
+  <data name="Item_red_rug_Name" xml:space="preserve"><value>Red rug</value></data>
+  <data name="Item_red_rug_Description" xml:space="preserve"><value>A red rug. Walked over.</value></data>
+  <data name="Item_blue_rug_Name" xml:space="preserve"><value>Blue rug</value></data>
+  <data name="Item_blue_rug_Description" xml:space="preserve"><value>A blue rug, three tiles wide. Walked over.</value></data>
+  <data name="Item_round_rug_Name" xml:space="preserve"><value>Round rug</value></data>
+  <data name="Item_round_rug_Description" xml:space="preserve"><value>A round rug. Walked over.</value></data>
+  <data name="Item_doormat_Name" xml:space="preserve"><value>Doormat</value></data>
+  <data name="Item_doormat_Description" xml:space="preserve"><value>A doormat. Walked over.</value></data>
+  <data name="Item_pumpkin_decor_Name" xml:space="preserve"><value>Carved pumpkin</value></data>
+  <data name="Item_pumpkin_decor_Description" xml:space="preserve"><value>A carved pumpkin, sold in fall.</value></data>
+  <data name="Item_winter_wreath_Name" xml:space="preserve"><value>Winter wreath</value></data>
+  <data name="Item_winter_wreath_Description" xml:space="preserve"><value>A wreath for a wall, sold in winter.</value></data>
   <data name="Item_shirt_red_Name" xml:space="preserve"><value>Red shirt</value></data>
   <data name="Item_shirt_red_Description" xml:space="preserve"><value>A red shirt.</value></data>
   <data name="Item_shirt_green_Name" xml:space="preserve"><value>Green shirt</value></data>
@@ -385,4 +449,29 @@
   <data name="Monster_boss_goblin_chieftain_Title" xml:space="preserve"><value>Chieftain Bane</value></data>
   <data name="Monster_boss_magma_colossus_Title" xml:space="preserve"><value>Colossus Bane</value></data>
   <data name="Monster_boss_golem_king_Title" xml:space="preserve"><value>Kingbreaker</value></data>
+  <data name="Item_duck_egg_Name" xml:space="preserve"><value>Duck egg</value></data>
+  <data name="Item_duck_egg_Description" xml:space="preserve"><value>A fresh egg from a duck. Eat it to restore energy.</value></data>
+  <data name="Item_large_duck_egg_Name" xml:space="preserve"><value>Large duck egg</value></data>
+  <data name="Item_large_duck_egg_Description" xml:space="preserve"><value>A friendly duck gives this bigger egg more often. Sells for more.</value></data>
+  <data name="Item_golden_duck_egg_Name" xml:space="preserve"><value>Golden duck egg</value></data>
+  <data name="Item_golden_duck_egg_Description" xml:space="preserve"><value>A golden egg from a duck loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Item_goat_milk_Name" xml:space="preserve"><value>Goat milk</value></data>
+  <data name="Item_goat_milk_Description" xml:space="preserve"><value>A bottle of fresh milk from a goat.</value></data>
+  <data name="Item_large_goat_milk_Name" xml:space="preserve"><value>Large goat milk</value></data>
+  <data name="Item_large_goat_milk_Description" xml:space="preserve"><value>A friendly goat gives this rich milk more often. Sells for more.</value></data>
+  <data name="Item_cream_goat_milk_Name" xml:space="preserve"><value>Cream goat milk</value></data>
+  <data name="Item_cream_goat_milk_Description" xml:space="preserve"><value>Thick cream milk from a goat loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Item_wool_Name" xml:space="preserve"><value>Wool</value></data>
+  <data name="Item_wool_Description" xml:space="preserve"><value>A fleece shorn from a sheep. Stuffs a scarecrow.</value></data>
+  <data name="Item_fine_wool_Name" xml:space="preserve"><value>Fine wool</value></data>
+  <data name="Item_fine_wool_Description" xml:space="preserve"><value>The long soft fleece of a well-loved sheep. Sells for more.</value></data>
+  <data name="Item_golden_fleece_Name" xml:space="preserve"><value>Golden fleece</value></data>
+  <data name="Item_golden_fleece_Description" xml:space="preserve"><value>The golden fleece of a sheep loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Item_truffle_Name" xml:space="preserve"><value>Truffle</value></data>
+  <data name="Item_truffle_Description" xml:space="preserve"><value>A truffle a pig digs up on a sunny day. Eat it to restore energy.</value></data>
+  <data name="Item_large_truffle_Name" xml:space="preserve"><value>Large truffle</value></data>
+  <data name="Item_large_truffle_Description" xml:space="preserve"><value>A well-loved pig digs up larger truffles more often. Sells for more.</value></data>
+  <data name="Item_golden_truffle_Name" xml:space="preserve"><value>Golden truffle</value></data>
+  <data name="Item_golden_truffle_Description" xml:space="preserve"><value>A golden truffle from a pig loved by four hearts or more. Sells for much more.</value></data>
+  <data name="Recipe_scarecrow_wool_Name" xml:space="preserve"><value>Wool scarecrow</value></data>
 </root>

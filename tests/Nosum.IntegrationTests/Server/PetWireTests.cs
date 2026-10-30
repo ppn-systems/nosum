@@ -28,7 +28,7 @@ using Xunit;
 namespace Nosum.IntegrationTests.Server;
 
 /// <summary>
-/// The pet companion over the wire (docs/adr/ADR-071 D3-D5): adoption (one cat or dog, a name cleaned and masked as chat does), one petting
+/// The pet companion over the wire (docs/adr/ADR-075 D3-D5): adoption (one cat or dog, a name cleaned and masked as chat does), one petting
 /// per game day, and what the other players see of the pet (kind and name in the look, pushed when the pet is adopted).
 /// </summary>
 [Collection(NalixHostSerial.Name)]

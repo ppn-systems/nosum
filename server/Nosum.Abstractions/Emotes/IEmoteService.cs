@@ -8,7 +8,7 @@ using Nosum.Contracts.Emote;
 namespace Nosum.Abstractions.Emotes;
 
 /// <summary>
-/// The emote wheel (docs/adr/ADR-071 D1-D2): shows an emote above a farmer for the players near them. The server checks the code and the
+/// The emote wheel (docs/adr/ADR-075 D1-D2): shows an emote above a farmer for the players near them. The server checks the code and the
 /// per-player cooldown; the sender's own bubble is shown by the client from the result.
 /// </summary>
 public interface IEmoteService

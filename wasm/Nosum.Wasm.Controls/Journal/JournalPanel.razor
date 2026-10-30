@@ -1,0 +1,22 @@
+@using Nosum.Wasm.Controls.Inventory
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Journal
+@inherits ObservingComponent<JournalViewModel>
+
+@* The collection journal (J): every item of the catalogue. The ones the farmer has obtained show their picture, count and first date; the rest are silhouettes. *@
+<MenuPage>
+    <p class="journal-summary">@Vm.Text("Journal_Summary", Vm.Discovered, JournalViewModel.Total)</p>
+    <div class="journal-grid">
+        @foreach (JournalCell cell in Vm.Cells())
+        {
+            <div class="journal-cell @(cell.Discovered ? "found" : "undiscovered")">
+                <ItemSlotButton Slot="cell.Slot" />
+            </div>
+        }
+    </div>
+</MenuPage>
+
+@code {
+    /// <summary>Asks the server for the journal each time the panel opens.</summary>
+    protected override void OnInitialized() => Vm.Open();
+}
