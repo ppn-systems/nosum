@@ -98,6 +98,12 @@ internal sealed partial class PlayerActions
             return;
         }
 
+        if (IsFishingRod(held.ItemId))
+        {
+            // A rod is cast at water by a click, never used on a tile: the action key does nothing with it (docs/adr/ADR-078 D2).
+            return;
+        }
+
         if (IsShippingBin(this.TargetX, this.TargetY) && ShippingPrices.TryGet(held.ItemId, out _))
         {
             // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).

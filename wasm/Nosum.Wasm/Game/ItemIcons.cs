@@ -130,8 +130,8 @@ internal sealed class ItemIcons : IItemIconSource
         return false;
     }
 
-    // items.png is 384 x 80 (24 x 5 cells). Object ids are cell numbers in compact order from 1 (0 means no picture).
-    private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 80);
+    // items.png is 384 x 96 (24 x 6 cells). Object ids are cell numbers in compact order from 1 (0 means no picture).
+    private static ItemIcon Object(int column, int row) => new(ObjectsSheet, column * Cell, row * Cell, Cell, 384, 96);
 
     // Object ids are the cell number on items.png (compact order, 24 cells to a row).
     private static ItemIcon ObjectId(int id) => Object(id % 24, id / 24);

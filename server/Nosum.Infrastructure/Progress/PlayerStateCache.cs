@@ -47,7 +47,7 @@ public sealed class PlayerStateCache
     }
 
     private static string Describe(Snapshot s)
-        => $"exists={s.Exists};place={s.MapName}@{s.X},{s.Y},{s.Facing};energy={s.Energy}@{s.EnergyRefilledDay};xp={s.FarmingXp},{s.ForagingXp},{s.MiningXp}";
+        => $"exists={s.Exists};place={s.MapName}@{s.X},{s.Y},{s.Facing};energy={s.Energy}@{s.EnergyRefilledDay};xp={s.FarmingXp},{s.ForagingXp},{s.MiningXp},{s.FishingXp}";
 
     /// <summary>Lets go of a player's copy (left the game, signed out, or a save of unknown outcome); the next call reads the row.</summary>
     /// <param name="playerId">The player.</param>
@@ -116,7 +116,8 @@ public sealed class PlayerStateCache
                     row.UpdatedAt,
                     row.CombatXp,
                     row.Hp > 0 ? row.Hp : CombatRules.BaseMaxHp,
-                    row.Mp);
+                    row.Mp,
+                    row.FishingXp);
         }
     }
 
@@ -160,6 +161,7 @@ public sealed class PlayerStateCache
     /// <param name="CombatXp">Combat experience.</param>
     /// <param name="Hp">Current health points.</param>
     /// <param name="Mp">Current mana points.</param>
+    /// <param name="FishingXp">Fishing experience.</param>
     internal sealed record Snapshot(
         bool Exists,
         string MapName,
@@ -174,10 +176,11 @@ public sealed class PlayerStateCache
         DateTimeOffset UpdatedAt,
         int CombatXp = 0,
         int Hp = CombatRules.BaseMaxHp,
-        int Mp = CombatRules.BaseMaxMp)
+        int Mp = CombatRules.BaseMaxMp,
+        int FishingXp = 0)
     {
         /// <summary>Gets the snapshot of a player with no row, with the defaults a new row gets.</summary>
-        public static Snapshot Missing { get; } = new(false, string.Empty, 0, 0, default, 0, -1, 0, 0, 0, default, 0, CombatRules.BaseMaxHp, CombatRules.BaseMaxMp);
+        public static Snapshot Missing { get; } = new(false, string.Empty, 0, 0, default, 0, -1, 0, 0, 0, default, 0, CombatRules.BaseMaxHp, CombatRules.BaseMaxMp, 0);
     }
 
     private sealed class Entry

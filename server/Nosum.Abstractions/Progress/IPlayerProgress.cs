@@ -17,7 +17,8 @@ namespace Nosum.Abstractions.Progress;
 /// <param name="FarmingXp">Cumulative farming experience.</param>
 /// <param name="ForagingXp">Cumulative foraging experience.</param>
 /// <param name="MiningXp">Cumulative mining experience.</param>
-public readonly record struct PlayerProgressView(int Energy, int MaxEnergy, int FarmingXp, int ForagingXp, int MiningXp);
+/// <param name="FishingXp">Cumulative fishing experience (docs/adr/ADR-078 D6).</param>
+public readonly record struct PlayerProgressView(int Energy, int MaxEnergy, int FarmingXp, int ForagingXp, int MiningXp, int FishingXp = 0);
 
 /// <summary>Result of <see cref="IPlayerProgress.TryChargeAsync"/>.</summary>
 public enum ChargeStatus
@@ -67,6 +68,20 @@ public interface IPlayerProgress
     /// <returns>The charge; check <see cref="IProgressCharge.Allowed"/>.</returns>
     Task<IProgressCharge> ChargeAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, SkillKind skill, int xp, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Spends a fixed amount of energy and adds experience, in <paramref name="unit"/>, for an action that is not a tool use (a fishing cast costs
+    /// <see cref="Nosum.Gameplay.Fishing.FishingRules.CastEnergy"/>; a catch gives experience only, with <paramref name="energy"/> zero). Same rules as
+    /// <see cref="ChargeAsync(IUnitOfWork, Guid, ToolKind, SkillKind, int, CancellationToken)"/>: the caller saves the unit, then publishes and disposes the charge.
+    /// </summary>
+    /// <param name="unit">The unit of work that carries the action's effect.</param>
+    /// <param name="playerId">The player's account id.</param>
+    /// <param name="energy">Energy to spend; zero spends none and is always allowed.</param>
+    /// <param name="skill">The skill that earns the experience.</param>
+    /// <param name="xp">The experience to add.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>The charge; check <see cref="IProgressCharge.Allowed"/>.</returns>
+    Task<IProgressCharge> ChargeEnergyAsync(IUnitOfWork unit, Guid playerId, int energy, SkillKind skill, int xp, CancellationToken cancellationToken = default);
+
     /// <summary>Charges a tool use in a unit of work of its own, for effects that only change memory (a hit that does not break a node).</summary>
     /// <param name="playerId">The player's account id.</param>
     /// <param name="tool">The tool used.</param>
@@ -96,11 +111,11 @@ public interface IPlayerProgress
     ValueTask<bool> IsEnergyBelowMaxAsync(Guid playerId, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(false);
 
-    /// <summary>Restores energy when a potion with food energy is consumed.</summary>
+    /// <summary>Restores energy: a potion's food energy, or a pet's petting bonus (docs/adr/ADR-075 D4). Capped at the maximum.</summary>
     /// <param name="playerId">The player's account id.</param>
-    /// <param name="foodEnergy">Food energy to restore.</param>
+    /// <param name="foodEnergy">Energy to restore; zero or less does nothing.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when energy is restored and pushed.</returns>
-    ValueTask RestoreEnergyFromPotionAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
+    ValueTask RestoreEnergyAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
         => ValueTask.CompletedTask;
 }

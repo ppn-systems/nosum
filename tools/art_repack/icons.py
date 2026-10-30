@@ -10,6 +10,7 @@ import draw
 from draw import Canvas
 from trees import blob
 import crops
+import fishing
 from pngio import Image, recolor
 
 GREY = ((82, 96, 124), (140, 156, 181), (192, 203, 220))
@@ -745,6 +746,7 @@ OBJECTS = {
     130: drawn_note(lambda: truffle(big=True), 'Drawn here: large truffle (`icons.truffle`, big), dark brown lumpy ball'),
     131: drawn_note(lambda: truffle(gold=True), 'Drawn here: golden truffle (`icons.truffle`, gold glint)'),
 }
+OBJECTS.update(fishing.OBJECTS)    # 132-143: the fishing rod, the stew and the ten fish (fishing.py, ADR-078)
 
 
 COLUMNS = 24

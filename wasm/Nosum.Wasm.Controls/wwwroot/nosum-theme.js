@@ -16,6 +16,8 @@ const SHEETS = {
     menu: "ui/menu.png",     // fat: window frames, inset and slot bevels
     cursors: "ui/cursors.png",    // thin: tabs, buttons, icons, mouse cursors (a few fat pieces too, noted below)
     textbox: "ui/text_box.png",    // fat: the text field
+    emotes: "ui/emotes.png",    // thin: the twelve emote icons in one row, index = emote code
+    pet: "sprites/pets/cat.png",    // thin: the cat sheet; its first frame is the pet tab
 };
 
 // Own 1-bit pictures for the faint hints in the empty equipment slots (Nosum art, not early content). '#' is ink, anything else clear.
@@ -159,6 +161,20 @@ const SPRITES = [
     ["tab-settings", "cursors", 160, 368, 16, 16],
     ["tab-goals", "cursors", 176, 368, 16, 16],
     ["tab-shop", "cursors", 0, 384, 16, 16],
+    ["tab-pet", "pet", 0, 0, 16, 16],
+    // The emote wheel's icons (thin, 16 x 16 each, the emote code is the index in the sheet).
+    ["emote-0", "emotes", 0, 0, 16, 16],
+    ["emote-1", "emotes", 16, 0, 16, 16],
+    ["emote-2", "emotes", 32, 0, 16, 16],
+    ["emote-3", "emotes", 48, 0, 16, 16],
+    ["emote-4", "emotes", 64, 0, 16, 16],
+    ["emote-5", "emotes", 80, 0, 16, 16],
+    ["emote-6", "emotes", 96, 0, 16, 16],
+    ["emote-7", "emotes", 112, 0, 16, 16],
+    ["emote-8", "emotes", 128, 0, 16, 16],
+    ["emote-9", "emotes", 144, 0, 16, 16],
+    ["emote-10", "emotes", 160, 0, 16, 16],
+    ["emote-11", "emotes", 176, 0, 16, 16],
     // The faint picture in an empty equipment slot (glyph only, no sheet).
     ["glyph-hat", null, 0, 0, 11, 4, "hat"],
     ["glyph-shirt", null, 0, 0, 11, 8, "shirt"],

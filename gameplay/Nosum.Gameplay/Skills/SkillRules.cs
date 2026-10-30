@@ -63,6 +63,7 @@ public static class SkillRules
         ToolKind.Axe or ToolKind.Scythe => SkillKind.Foraging,
         ToolKind.Pickaxe => SkillKind.Mining,
         ToolKind.Sword or ToolKind.Staff => SkillKind.Combat,
+        ToolKind.FishingRod => SkillKind.Fishing,
         _ => SkillKind.None,
     };
 

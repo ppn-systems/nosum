@@ -11,6 +11,7 @@
 @using Nosum.Wasm.Controls.Chat
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.Controls.Feedback
+@using Nosum.Wasm.Controls.Fishing
 @using Nosum.Wasm.Controls.Hints
 @using Nosum.Wasm.Controls.Inventory
 @using Nosum.Wasm.Controls.Layout
@@ -21,7 +22,9 @@
 @using Nosum.Wasm.Controls.Quest
 @using Nosum.Wasm.Controls.Startup
 @using Nosum.Wasm.Controls.Touch
+@using Nosum.Wasm.Controls.Emotes
 @using Nosum.Wasm.Game
+@using Nosum.Wasm.ViewModels.Emotes
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
 @using Nosum.Wasm.ViewModels.Building
@@ -31,6 +34,7 @@
 @using Nosum.Wasm.ViewModels.Coop
 @using Nosum.Wasm.ViewModels.Crafting
 @using Nosum.Wasm.ViewModels.Feedback
+@using Nosum.Wasm.ViewModels.Fishing
 @using Nosum.Wasm.ViewModels.Furnace
 @using Nosum.Wasm.ViewModels.Inventory
 @using Nosum.Wasm.ViewModels.Mail
@@ -60,6 +64,7 @@
 @inject LevelUpBannerViewModel LevelUps
 @inject SeasonBannerViewModel Seasons
 @inject ToolbarViewModel Toolbar
+@inject EmoteWheelViewModel Emotes
 @inject WalletViewModel Wallet
 @inject MinimapViewModel Minimap
 @inject CalendarViewModel Calendar
@@ -79,6 +84,7 @@
 @inject CraftingViewModel Crafting
 @inject ChestViewModel Chest
 @inject FurnaceViewModel Furnace
+@inject FishingViewModel Fishing
 @inject CarpenterViewModel Carpenter
 @inject ProgressViewModel Progress
 @inject NpcDialogViewModel Npc
@@ -118,7 +124,7 @@ else
         <TopRight>
             @if (_started)
             {
-                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Minimap="Minimap" Toolbar="Toolbar" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
+                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Minimap="Minimap" Toolbar="Toolbar" Emotes="Emotes" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
             }
         </TopRight>
         <Center>
@@ -140,6 +146,7 @@ else
                 else
                 {
                     <OnboardingHint Vm="Onboarding" />
+                    <FishingBanner Vm="Fishing" />
                     <GameMessage Vm="Messages" />
                     <Hotbar Vm="Inventory" Progress="Progress" />
                 }
@@ -174,6 +181,11 @@ else
                 <AccountForm Vm="Form" />
             }
             <InviteOverlay Trade="Trade" Coop="Coop" ActivePanel="_panel" />
+            @if (_started && !Form.ShowsForm)
+            {
+                @* The emote wheel, over the world; B or the HUD button opens it (docs/adr/ADR-075 D1). *@
+                <EmoteWheel Vm="Emotes" />
+            }
         </Overlay>
     </GameHud>
     @if (_started && _panel == PanelKind.None && !Form.ShowsForm)

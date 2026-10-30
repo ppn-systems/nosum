@@ -15,6 +15,7 @@
 @using Nosum.Wasm.Controls.Mail
 @using Nosum.Wasm.Controls.Market
 @using Nosum.Wasm.Controls.Npc
+@using Nosum.Wasm.Controls.Pets
 @using Nosum.Wasm.Controls.Profile
 @using Nosum.Wasm.Controls.Progress
 @using Nosum.Wasm.Controls.Settings
@@ -36,6 +37,7 @@
 @using Nosum.Wasm.ViewModels.Mail
 @using Nosum.Wasm.ViewModels.Market
 @using Nosum.Wasm.ViewModels.Npc
+@using Nosum.Wasm.ViewModels.Pets
 @using Nosum.Wasm.ViewModels.Profile
 @using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.ViewModels.Settings
@@ -63,6 +65,7 @@
 @inject SettingsViewModel Settings
 @inject CraftingViewModel Crafting
 @inject NpcDialogViewModel Npc
+@inject PetViewModel Pet
 @inject WorldMapViewModel WorldMap
 @inject JournalViewModel Journal
 
@@ -121,6 +124,9 @@
             break;
         case PanelKind.Settings:
             <SettingsPanel Vm="Form" Settings="Settings" />
+            break;
+        case PanelKind.Pet:
+            <PetPanel Vm="Pet" />
             break;
         case PanelKind.Crafting:
             <CraftingPanel Vm="Crafting" />

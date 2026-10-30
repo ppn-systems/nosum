@@ -23,11 +23,14 @@ using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.Socket.GroundItem;
+using Nosum.Wasm.Socket.Pet;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
+using Nosum.Wasm.ViewModels.Emotes;
+using Nosum.Wasm.ViewModels.Fishing;
 using Nosum.Wasm.ViewModels.Maps;
 using Nosum.Wasm.ViewModels.Minimap;
 using Nosum.Wasm.ViewModels.Player;
@@ -69,9 +72,13 @@ internal static partial class GameLoop
     private static CombatChannel? s_combat;
     private static IStringLocalizer<Language>? s_text;
     private static LookChannel? s_looks;
+    private static PetChannel? s_pets;
+    private static EmoteBubbleStore? s_bubbles;
+    private static readonly FarmerFeed s_feed = new();
     private static NicknameFormatter? s_names;
     private static GameAudio? s_audio;
     private static MapLoadingViewModel? s_loading;
+    private static FishingViewModel? s_fishing;
     private static string? s_waitingMapId;
     private static double s_lastTime = -1;
     private static bool s_moved;
@@ -150,6 +157,14 @@ internal static partial class GameLoop
         s_names = names;
     }
 
+    /// <summary>Connects the local player's pet, drawn at their heels on every map. Call before <see cref="StartAsync"/>, after <see cref="UseLooks"/>.</summary>
+    /// <param name="pets">The pet state of the local player.</param>
+    public static void UsePets(PetChannel pets) => s_pets = pets;
+
+    /// <summary>Connects the emote bubbles shown above the farmers. Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="bubbles">The bubbles on screen, written by the emote wheel.</param>
+    public static void UseEmotes(EmoteBubbleStore bubbles) => s_bubbles = bubbles;
+
     /// <summary>Connects furniture placing to the game: the placed pieces and the arrange panel's state. Call before <see cref="StartAsync"/>, after <see cref="UseFarming"/>.</summary>
     /// <param name="placeable">The placed pieces mirror and action sender.</param>
     /// <param name="placement">The arrange panel's view model.</param>
@@ -188,10 +203,24 @@ internal static partial class GameLoop
     /// <param name="loading">The loading overlay's view model.</param>
     public static void UseMapLoading(MapLoadingViewModel loading) => s_loading = loading;
 
-    /// <summary>Tells the scene the player clicked or tapped the canvas; the next frame checks whether a merchant was hit (docs/adr/ADR-043 D3). Called from the page, not from the frame.</summary>
+    /// <summary>Connects fishing to the game: a click on water with a rod casts, and a press reels the line in (docs/adr/ADR-078). Call before <see cref="StartAsync"/>.</summary>
+    /// <param name="fishing">The fishing banner's view model.</param>
+    public static void UseFishing(FishingViewModel fishing) => s_fishing = fishing;
+
+    /// <summary>Tells the scene the player clicked or tapped the canvas; the next frame checks whether a merchant was hit (docs/adr/ADR-043 D3). Called from the page, not from the frame.
+    /// While a line is out a click is the press that reels it in, and the scene does not see it (docs/adr/ADR-078 D9).</summary>
     /// <param name="x">Click x, canvas CSS pixels.</param>
     /// <param name="y">Click y, canvas CSS pixels.</param>
-    public static void PointerClicked(int x, int y) => s_scene?.Pointer(x, y);
+    public static void PointerClicked(int x, int y)
+    {
+        if (s_fishing is { LineOut: true })
+        {
+            s_fishing.Press();
+            return;
+        }
+
+        s_scene?.Pointer(x, y);
+    }
 
     /// <summary>Raised from the frame when the player pressed a panel key: the panel to show or hide.</summary>
     public static event Action<PanelKind>? PanelToggleRequested;
@@ -236,6 +265,7 @@ internal static partial class GameLoop
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
         actions?.FurnaceRequested += objectId => FurnaceRequested?.Invoke(objectId);
+        actions?.CastRequested += (tileX, tileY) => s_fishing?.Cast(tileX, tileY);
         actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider(), new NpcDecoratorProvider()];
         if (actions is not null && s_farm is not null)
@@ -268,6 +298,16 @@ internal static partial class GameLoop
         if (s_buildings is not null)
         {
             providers.Add(new AnimalsDecoratorProvider(s_buildings, s_calendar));
+        }
+
+        if (s_bubbles is not null)
+        {
+            providers.Add(new EmoteBubbleDecoratorProvider(s_feed, s_bubbles));
+        }
+
+        if (s_pets is not null)
+        {
+            providers.Add(new PetDecoratorProvider(s_feed, s_pets, s_looks, s_calendar));
         }
 
         LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel, capacity: 2048);
@@ -323,7 +363,7 @@ internal static partial class GameLoop
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(labelRegistry, s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed);
         s_scene.WaitingChanged += mapId => OnMapWaitChanged(mapId, loader);
         loader.Progressed += mapId => OnMapProgressed(mapId, loader);
         if (s_audio is not null)
@@ -425,6 +465,12 @@ internal static partial class GameLoop
         {
             s_acted = true;
             FirstActed?.Invoke();
+        }
+
+        // The action key reels in a line that is out, as a click does; the scene still gets the key, which a rod never uses on a tile.
+        if ((edges & InputEdges.Action) != 0 && s_fishing is { LineOut: true })
+        {
+            s_fishing.Press();
         }
 
         // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.

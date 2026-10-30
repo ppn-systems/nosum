@@ -19,7 +19,9 @@ using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Crafting;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Emotes;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.Fishing;
 using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
@@ -32,6 +34,7 @@ using Nosum.Abstractions.Mines;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Player;
+using Nosum.Abstractions.Pets;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
 using Nosum.Abstractions.Quests;
@@ -50,15 +53,18 @@ using Nosum.Infrastructure.Caching;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Chat;
 using Nosum.Infrastructure.Combat;
+using Nosum.Infrastructure.Emotes;
 using Nosum.Infrastructure.Community;
 using Nosum.Infrastructure.Coops;
 using Nosum.Infrastructure.Crafting;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
+using Nosum.Infrastructure.Fishing;
 using Nosum.Infrastructure.Friends;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
+using Nosum.Infrastructure.Pets;
 using Nosum.Infrastructure.Journal;
 using Nosum.Infrastructure.Looks;
 using Nosum.Infrastructure.Mail;
@@ -271,7 +277,10 @@ internal static partial class Program
         BuildingService buildings = new(presence, publisher, maps, inventory, transfers, buildingDirectory, animalWander, unitOfWork, coopMembership, calendar, clock);
         InstanceManager.Instance.Register<IBuildingService>(buildings);
         placeables.Attach(buildings);
-        LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock);
+        // The pet companion (docs/adr/ADR-075 D3-D5): its kind and name travel in every look, so visitors see it.
+        PetService pets = new(unitOfWork, progress, calendar, clock);
+        InstanceManager.Instance.Register<IPetService>(pets);
+        LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock, pets);
         InstanceManager.Instance.Register<ILookService>(looks);
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
         PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks, inventory);
@@ -292,6 +301,9 @@ internal static partial class Program
         };
 
         InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress, combat), quests));
+
+        // Fishing (docs/adr/ADR-078): the casts are held in memory; the season, the weather and the hour come from the same calendar and clock as the farm.
+        InstanceManager.Instance.Register<IFishingService>(new FishingService(presence, maps, inventory, progress, calendar, clock));
 
         // The mine (docs/adr/ADR-026): floors are per-player instances built in memory, dropped when the player leaves; a tool use that ends at a ladder takes the player down,
         // so the farm service handlers see is the decorated one (the placeables and the co-ops keep the plain one they were built with).
@@ -354,6 +366,9 @@ internal static partial class Program
         InstanceManager.Instance.Register<IFriendService>(friends);
         InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory, visitFacts, blocks));
         InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
+
+        // The emote wheel (docs/adr/ADR-075 D1-D2): a code to the players near the sender, rate limited by the service.
+        InstanceManager.Instance.Register<IEmoteService>(new EmoteService(presence, publisher, clock));
 
         // Armed last: every subscriber is in place before the first boundary.
         dayClock.Start();

@@ -1,0 +1,24 @@
+@using Nosum.Wasm.ViewModels.Fishing
+@inherits ObservingComponent<FishingViewModel>
+
+@* The fishing banner above the hotbar: what the line is doing, the bite window as a bar that empties once, and the press that reels in. It is shown
+   only while a cast is open or its result is (docs/adr/ADR-078 D9). The bar's length is the server's window; nothing here is timed per frame. *@
+@if (Vm.Phase != FishingPhase.Idle)
+{
+    <div class="fishing-banner">
+        <GamePanel Class="hud" Role="status" Title="@Vm.Title">
+            <p class="fishing-message">@Vm.Message</p>
+            @if (Vm.Phase == FishingPhase.Biting)
+            {
+                <div class="fishing-window" style="--fishing-ms: @(Vm.BarMs)ms">
+                    <GameProgress Percent="100" Label="@Vm.Title" />
+                </div>
+                <p class="fishing-press">@Vm.PressPrompt</p>
+            }
+            @if (!string.IsNullOrEmpty(Vm.Note))
+            {
+                <p class="fishing-note">@Vm.Note</p>
+            }
+        </GamePanel>
+    </div>
+}

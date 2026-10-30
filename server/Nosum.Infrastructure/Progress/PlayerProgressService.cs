@@ -84,7 +84,15 @@ public sealed class PlayerProgressService : IPlayerProgress
     }
 
     /// <inheritdoc/>
-    public async Task<IProgressCharge> ChargeAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, SkillKind skill, int xp, CancellationToken cancellationToken = default)
+    public Task<IProgressCharge> ChargeAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, SkillKind skill, int xp, CancellationToken cancellationToken = default)
+        => this.ChargeCoreAsync(unit, playerId, tool, null, skill, xp, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<IProgressCharge> ChargeEnergyAsync(IUnitOfWork unit, Guid playerId, int energy, SkillKind skill, int xp, CancellationToken cancellationToken = default)
+        => this.ChargeCoreAsync(unit, playerId, ToolKind.None, Math.Max(0, energy), skill, xp, cancellationToken);
+
+    // One charge for both: a tool use costs what the tool costs at the skill's level, any other action a fixed amount (fixedCost).
+    private async Task<IProgressCharge> ChargeCoreAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, int? fixedCost, SkillKind skill, int xp, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(unit);
 
@@ -93,8 +101,7 @@ public sealed class PlayerProgressService : IPlayerProgress
         {
             PlayerStateCache.Snapshot row = await _cache.GetAsync(_unitOfWork, playerId, cancellationToken).ConfigureAwait(false);
             (int energy, long day) = EnergyRules.Refill(row.Energy, row.EnergyRefilledDay, _days.Today);
-            int level = SkillRules.LevelOf(XpOf(row, SkillRules.SkillOf(tool)));
-            int cost = EnergyRules.Cost(tool, level);
+            int cost = fixedCost ?? EnergyRules.Cost(tool, SkillRules.LevelOf(XpOf(row, SkillRules.SkillOf(tool))));
             if (!EnergyRules.TrySpend(energy, cost, out int left))
             {
                 return new Charge(this, gate, playerId, allowed: false, 0, 0, 0, 0, SkillKind.None, 0, 0, null);
@@ -231,7 +238,7 @@ public sealed class PlayerProgressService : IPlayerProgress
     }
 
     /// <inheritdoc/>
-    public async ValueTask RestoreEnergyFromPotionAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
+    public async ValueTask RestoreEnergyAsync(Guid playerId, int foodEnergy, CancellationToken cancellationToken = default)
     {
         if (foodEnergy <= 0)
         {
@@ -274,7 +281,7 @@ public sealed class PlayerProgressService : IPlayerProgress
     private static PlayerProgressView ViewOf(PlayerStateCache.Snapshot row, long today)
     {
         (int energy, _) = EnergyRules.Refill(row.Energy, row.EnergyRefilledDay, today);
-        return new PlayerProgressView(energy, EnergyRules.MaxEnergy, row.FarmingXp, row.ForagingXp, row.MiningXp);
+        return new PlayerProgressView(energy, EnergyRules.MaxEnergy, row.FarmingXp, row.ForagingXp, row.MiningXp, row.FishingXp);
     }
 
     private static int XpOf(PlayerStateCache.Snapshot row, SkillKind skill) => skill switch
@@ -282,6 +289,7 @@ public sealed class PlayerProgressService : IPlayerProgress
         SkillKind.Farming => row.FarmingXp,
         SkillKind.Foraging => row.ForagingXp,
         SkillKind.Mining => row.MiningXp,
+        SkillKind.Fishing => row.FishingXp,
         _ => 0,
     };
 
@@ -290,6 +298,7 @@ public sealed class PlayerProgressService : IPlayerProgress
         SkillKind.Farming => row with { FarmingXp = xp },
         SkillKind.Foraging => row with { ForagingXp = xp },
         SkillKind.Mining => row with { MiningXp = xp },
+        SkillKind.Fishing => row with { FishingXp = xp },
         _ => row,
     };
 
@@ -305,6 +314,7 @@ public sealed class PlayerProgressService : IPlayerProgress
             FarmingXp = next.FarmingXp,
             ForagingXp = next.ForagingXp,
             MiningXp = next.MiningXp,
+            FishingXp = next.FishingXp,
             UpdatedAt = next.UpdatedAt,
         };
         if (exists)
@@ -317,6 +327,7 @@ public sealed class PlayerProgressService : IPlayerProgress
                 nameof(PlayerState.FarmingXp),
                 nameof(PlayerState.ForagingXp),
                 nameof(PlayerState.MiningXp),
+                nameof(PlayerState.FishingXp),
                 nameof(PlayerState.UpdatedAt));
         }
         else
@@ -434,7 +445,7 @@ public sealed class PlayerProgressService : IPlayerProgress
             if (Interlocked.Exchange(ref _published, 1) == 0)
             {
                 PlayerStateCache.Snapshot next = _next!;
-                _owner._cache.Apply(_playerId, s => s with { Exists = true, Energy = next.Energy, EnergyRefilledDay = next.EnergyRefilledDay, FarmingXp = next.FarmingXp, ForagingXp = next.ForagingXp, MiningXp = next.MiningXp, UpdatedAt = next.UpdatedAt });
+                _owner._cache.Apply(_playerId, s => s with { Exists = true, Energy = next.Energy, EnergyRefilledDay = next.EnergyRefilledDay, FarmingXp = next.FarmingXp, ForagingXp = next.ForagingXp, MiningXp = next.MiningXp, FishingXp = next.FishingXp, UpdatedAt = next.UpdatedAt });
             }
 
             await _owner.PushEnergyAsync(_playerId, _energy, cancellationToken).ConfigureAwait(false);

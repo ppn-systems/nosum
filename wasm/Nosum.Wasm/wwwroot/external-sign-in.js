@@ -1,9 +1,10 @@
-// Google and Microsoft sign-in for the account form (docs/adr/ADR-069). Loaded by C# on the first click, through the JS import.
+// Google and Microsoft sign-in for the account form (docs/adr/ADR-069). Loaded by C# on the first use, through the JS import.
 //
-// signIn(provider, clientId, tenant) resolves with the provider's ID token. It rejects with an Error whose message is one of:
-//   "cancelled"       the player closed or dismissed the sign-in
+// renderGoogleButton(elementId, clientId, locale, callbacks) draws Google's own sign-in button into the element. A click opens Google's popup;
+//   the ID token comes back as callbacks.invokeMethodAsync("OnGoogleCredential", token), and a failure as ("OnGoogleFailure", code).
+// signIn("microsoft", clientId, tenant) resolves with the Microsoft ID token. It rejects with an Error whose message is one of:
+//   "cancelled"       the player closed or dismissed the Microsoft sign-in
 //   "popup_blocked"   the browser blocked the Microsoft sign-in window
-//   "not_displayed"   Google did not show its sign-in prompt
 //   "not_configured"  no client id was given
 //   "failed"          anything else (a script did not load, the provider returned an error)
 // The C# side maps these codes to localized text. Nothing secret lives here: the client ids are public.
@@ -18,14 +19,11 @@ const MSAL_SCOPES = ["openid", "profile", "email"];
 const scriptLoads = new Map();   // script URL -> Promise, so each script is requested once
 const msalApps = new Map();      // "clientId|tenant" -> Promise of an initialized PublicClientApplication
 let googleClientId = null;       // the client id Google Identity Services was initialized with
-let googlePending = null;        // the sign-in waiting for Google's credential callback
+let googleCallbacks = null;      // the .NET object that receives the Google credential or failure
 
 export function signIn(provider, clientId, tenant) {
     if (!clientId) {
         return Promise.reject(new Error("not_configured"));
-    }
-    if (provider === "google") {
-        return googleIdToken(clientId);
     }
     if (provider === "microsoft") {
         return microsoftIdToken(clientId, tenant || "common");
@@ -52,56 +50,65 @@ function loadScript(src) {
     return scriptLoads.get(src);
 }
 
-// Google Identity Services: the One Tap prompt returns an ID token ("credential") to the callback given to initialize().
-async function googleIdToken(clientId) {
-    await loadScript(GOOGLE_SCRIPT_URL);
-    const id = window.google && window.google.accounts && window.google.accounts.id;
-    if (!id) {
-        throw new Error("failed");
+// Google Identity Services: Google's rendered button opens its sign-in popup on click (ux_mode "popup"), so the player always gets a window.
+// The credential callback is set once per client id; the .NET callbacks object is replaced on each render.
+export function renderGoogleButton(elementId, clientId, locale, callbacks) {
+    const element = document.getElementById(elementId);
+    if (!element || !clientId) {
+        return reportGoogleFailure(callbacks, "not_configured");
     }
-    if (googleClientId !== clientId) {
-        id.initialize({
-            client_id: clientId,
-            callback: onGoogleCredential,
-            auto_select: false,
-            cancel_on_tap_outside: true,
-        });
-        googleClientId = clientId;
-    }
-
-    return new Promise((resolve, reject) => {
-        const pending = { resolve: resolve, reject: reject };
-        if (googlePending) {
-            googlePending.reject(new Error("cancelled"));
+    return loadScript(GOOGLE_SCRIPT_URL).then(() => {
+        const id = window.google && window.google.accounts && window.google.accounts.id;
+        if (!id) {
+            throw new Error("failed");
         }
-        googlePending = pending;
-        id.prompt((notification) => {
-            if (googlePending !== pending) {
-                return; // already settled by the credential callback
-            }
-            const dismissedByPlayer = notification.isDismissedMoment() && notification.getDismissedReason() !== "credential_returned";
-            if (notification.isNotDisplayed()) {
-                googlePending = null;
-                reject(new Error("not_displayed"));
-            } else if (notification.isSkippedMoment() || dismissedByPlayer) {
-                googlePending = null;
-                reject(new Error("cancelled"));
-            }
+        googleCallbacks = callbacks;
+        if (googleClientId !== clientId) {
+            id.initialize({
+                client_id: clientId,
+                callback: onGoogleCredential,
+                ux_mode: "popup",
+                auto_select: false,
+                cancel_on_tap_outside: true,
+            });
+            googleClientId = clientId;
+        }
+        element.replaceChildren();
+        id.renderButton(element, {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            text: "signin_with",
+            shape: "rectangular",
+            logo_alignment: "left",
+            width: googleButtonWidth(element),
+            locale: locale,
         });
-    });
+    }).catch(() => reportGoogleFailure(callbacks, "failed"));
+}
+
+// Google's button is a fixed pixel width (200 to 400) and cannot stretch, so it follows the width of the slot it is drawn in.
+function googleButtonWidth(element) {
+    return Math.min(400, Math.max(200, Math.round(element.clientWidth)));
 }
 
 function onGoogleCredential(response) {
-    const pending = googlePending;
-    googlePending = null;
-    if (!pending) {
+    const callbacks = googleCallbacks;
+    if (!callbacks) {
         return;
     }
     if (response && response.credential) {
-        pending.resolve(response.credential);
+        callbacks.invokeMethodAsync("OnGoogleCredential", response.credential);
     } else {
-        pending.reject(new Error("failed"));
+        reportGoogleFailure(callbacks, "failed");
     }
+}
+
+function reportGoogleFailure(callbacks, code) {
+    if (callbacks) {
+        callbacks.invokeMethodAsync("OnGoogleFailure", code);
+    }
+    return Promise.resolve();
 }
 
 // Microsoft: MSAL in a popup window, which lands on msal-redirect.html and returns the ID token to this page.

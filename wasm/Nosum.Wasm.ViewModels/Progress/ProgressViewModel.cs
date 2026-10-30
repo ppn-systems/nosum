@@ -311,7 +311,7 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     public void CastSkill(byte skillId) => _combat?.CastSkill(skillId);
 
     /// <summary>Gets the localized name of a skill by its wire number.</summary>
-    /// <param name="skill">1 farming, 2 foraging, 3 mining, 4 combat.</param>
+    /// <param name="skill">1 farming, 2 foraging, 3 mining, 4 combat, 5 fishing.</param>
     /// <returns>The name, or an empty string for an unknown skill.</returns>
     public string SkillName(byte skill) => (SkillKind)skill switch
     {
@@ -319,6 +319,7 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         SkillKind.Foraging => this.Text("Skill_Foraging"),
         SkillKind.Mining => this.Text("Skill_Mining"),
         SkillKind.Combat => this.Text("Skill_Combat"),
+        SkillKind.Fishing => this.Text("Skill_Fishing"),
         _ => string.Empty,
     };
 

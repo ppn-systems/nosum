@@ -86,6 +86,7 @@ XML doc and in `contracts/README.md`. Never reassign or reuse a value.
 | Coop | `0xA000-0xA0FF` |
 | Placeable / Crafting / Chest / Furnace | `0xB000-0xB1FF` |
 | Shop / Blacksmith | `0xC000-0xC0FF` |
+| Fishing | `0xC300-0xC3FF` |
 | Mine | `0xC100-0xC1FF` |
 | Combat | `0xC200-0xC2FF` (`0xE100-0xE1FF` reserved) |
 | Season (calendar) | `0xD000-0xD0FF` |

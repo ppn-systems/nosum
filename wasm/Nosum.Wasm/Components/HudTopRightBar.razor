@@ -4,6 +4,7 @@
 @using Nosum.Wasm.Controls.Wallet
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Calendar
+@using Nosum.Wasm.ViewModels.Emotes
 @using Nosum.Wasm.ViewModels.Mail
 @using Nosum.Wasm.ViewModels.Minimap
 @using Nosum.Wasm.ViewModels.Wallet
@@ -15,6 +16,8 @@
     @* Mail and Settings are standalone windows of their own (docs/adr/ADR-043 D4, ADR-044). *@
     <GameIconButton Icon="tab-mail" Active="@(ActivePanel == PanelKind.Mail)" Tip="@Toolbar.MailTip(Mail.Unread)" Badge="Mail.Unread" OnClick="@(() => OnTogglePanel.InvokeAsync(PanelKind.Mail))" />
     <GameIconButton Icon="tab-settings" Active="@(ActivePanel == PanelKind.Settings)" Tip="@Toolbar.SettingsTip" OnClick="@(() => OnTogglePanel.InvokeAsync(PanelKind.Settings))" />
+    @* The emote wheel's button: the same as the B key, and the touch way to open the wheel (docs/adr/ADR-075 D1). *@
+    <GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" />
 </div>
 <HudMinimap Vm="Minimap" OnOpen="@(() => OnTogglePanel.InvokeAsync(PanelKind.WorldMap))" />
 <div class="hud-bar hud-player-bar" role="toolbar" aria-label="@Toolbar.Label">
@@ -38,6 +41,8 @@
     /// <summary>The mail view model.</summary>
     [Parameter, EditorRequired] public MailViewModel Mail { get; set; } = default!;
 
+    /// <summary>The emote wheel's view model.</summary>
+    [Parameter, EditorRequired] public EmoteWheelViewModel Emotes { get; set; } = default!;
     /// <summary>The minimap frame view model.</summary>
     [Parameter, EditorRequired] public MinimapViewModel Minimap { get; set; } = default!;
 

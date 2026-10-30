@@ -121,6 +121,9 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets the nickname rules, shown under the field when linking.</summary>
     public string NicknameHint => string.Format(CultureInfo.CurrentCulture, _text["Account_NicknameHint"].Value, NicknameRules.MinLength, NicknameRules.MaxLength);
 
+    /// <summary>Gets the locale Google's button is drawn in now ("en" or "vi"); the button is drawn again when it changes.</summary>
+    public static string GoogleButtonLocale => UiCulture.Current == GameLanguage.English ? "en" : "vi";
+
     /// <summary>Gets the text of the Google button on the sign-in form.</summary>
     public string SignInGoogleText => _text["Account_SignIn_Google"];
 
@@ -217,20 +220,59 @@ public sealed class AccountFormViewModel : IObservableViewModel
             isUpgrade: false,
             cancellationToken);
 
-    /// <summary>Signs in with Google (the Google button).</summary>
-    /// <param name="cancellationToken">Cancels the operation.</param>
-    /// <returns>A task that completes when the attempt is over.</returns>
-    public Task SignInWithGoogleAsync(CancellationToken cancellationToken = default) => this.SignInWithAsync(ExternalProvider.Google, cancellationToken);
-
     /// <summary>Signs in with Microsoft (the Microsoft button).</summary>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when the attempt is over.</returns>
     public Task SignInWithMicrosoftAsync(CancellationToken cancellationToken = default) => this.SignInWithAsync(ExternalProvider.Microsoft, cancellationToken);
 
-    /// <summary>Links a Google identity to the guest (the Google button in upgrade mode).</summary>
-    /// <param name="cancellationToken">Cancels the operation.</param>
-    /// <returns>A task that completes when the attempt is over.</returns>
-    public Task LinkGoogleAsync(CancellationToken cancellationToken = default) => this.LinkIdentityAsync(ExternalProvider.Google, cancellationToken);
+    /// <summary>
+    /// Draws Google's own sign-in button into the element with the given id (docs/adr/ADR-069). A click opens Google's popup; the ID token it
+    /// returns comes to <see cref="CompleteGoogleAsync"/>, and a failure to <see cref="ReportGoogleFailure"/>.
+    /// </summary>
+    /// <param name="elementId">The id of the element the button is drawn into.</param>
+    /// <returns>A task that completes when the button is drawn.</returns>
+    public Task AttachGoogleButtonAsync(string elementId)
+        => _externalSignIn.RenderGoogleButtonAsync(elementId, UiCulture.Current, token => this.CompleteGoogleAsync(token), failure => this.ReportGoogleFailure(failure));
+
+    /// <summary>
+    /// Finishes the Google button's sign-in, or the link to the guest in upgrade mode, with the token Google issued. The nickname is checked
+    /// here, after the popup, for the link. Does nothing while a request is in flight.
+    /// </summary>
+    /// <param name="idToken">The Google ID token. The token is a bearer credential: never log it.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the reply has been handled.</returns>
+    public Task CompleteGoogleAsync(string idToken, CancellationToken cancellationToken = default)
+    {
+        if (this.IsBusy)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (!this.IsUpgradeMode)
+        {
+            return this.RunAsync(() => _client.SignInWithExternalAsync(ExternalProvider.Google, idToken, UiCulture.Current, cancellationToken), isUpgrade: false);
+        }
+
+        string nickname = NicknameRules.Normalize(this.Nickname);
+        if (NicknameVerdictStatus.From(NicknameRules.Validate(nickname)) is { } invalid)
+        {
+            this.ErrorText = StatusText(invalid);
+            this.Changed?.Invoke();
+            return Task.CompletedTask;
+        }
+
+        return this.RunAsync(() => _client.LinkExternalIdentityAsync(ExternalProvider.Google, idToken, nickname, cancellationToken), isUpgrade: true);
+    }
+
+    /// <summary>Shows why Google's button could not sign the player in (the script did not load, or the button was not configured).</summary>
+    /// <param name="failure">The failure the browser reported.</param>
+    /// <returns>A task that completes at once; the text is shown under the buttons.</returns>
+    public Task ReportGoogleFailure(ExternalSignInFailure failure)
+    {
+        this.ErrorText = ProviderFailureText(failure);
+        this.Changed?.Invoke();
+        return Task.CompletedTask;
+    }
 
     /// <summary>Links a Microsoft identity to the guest (the Microsoft button in upgrade mode).</summary>
     /// <param name="cancellationToken">Cancels the operation.</param>

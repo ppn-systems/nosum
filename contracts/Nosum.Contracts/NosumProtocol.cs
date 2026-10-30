@@ -24,6 +24,11 @@ public static class NosumProtocol
     /// <c>TradeStatus.TooSoon</c> (value 12); <c>LockHotbar</c> appended to <c>SortInventory</c>.
     /// 14: farm animals - <c>AnimalKind</c> values 3-6 (duck, goat, sheep, pig) appended; their produce items 906-917 appended to the item catalogue (docs/adr/ADR-028 amendment 2). No packet or field changed.
     /// 17: collection journal - new packets <c>GetJournal</c> and <c>JournalReply</c> (with <c>JournalEntry</c> rows), discoveries recorded on every item grant.
+    /// 18: emotes and pet companion (docs/adr/ADR-075) - new packets <c>SendEmote</c>, <c>EmoteResult</c>, <c>EmoteShown</c>, <c>GetPet</c>, <c>AdoptPet</c>,
+    /// <c>PetPet</c>, <c>PetState</c>; <c>PetKind</c> and <c>PetName</c> appended to <c>LookRow</c>.
+    /// 20: fishing (docs/adr/ADR-078) - new packets <c>CastRod</c>, <c>ReelIn</c> (C2S <c>0xC300-0xC301</c>), <c>CastResult</c>, <c>ReelResult</c>
+    /// (S2C <c>0xC340-0xC341</c>) and <c>FishingStatus</c>; <c>ToolKind.FishingRod</c>, <c>SkillKind.Fishing</c> and <c>CraftSkill.Fishing</c> are
+    /// appended values, and <c>FishingXp</c> is stored on the player state. No existing packet changed. Version 19 is left unused.
     /// </summary>
-    public const ushort Version = 17;
+    public const ushort Version = 20;
 }
