@@ -201,7 +201,11 @@ public sealed partial class InventoryService
     }
 
     /// <inheritdoc/>
-    public void Forget(Guid ownerId) => _ = _cache.TryRemove(ownerId, out _);
+    public void Forget(Guid ownerId)
+    {
+        _ = _cache.TryRemove(ownerId, out _);
+        _journal.Forget(ownerId);
+    }
 
     private void Forget(Guid[] ownerIds)
     {
