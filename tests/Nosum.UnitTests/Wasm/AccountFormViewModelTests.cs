@@ -98,6 +98,72 @@ public sealed class AccountFormViewModelTests
         vm.CurrentSession.Should().BeNull();
     }
 
+    [Fact]
+    public async Task AttachGoogleButtonAsync_DrawsGoogleButtonInTheSlotInTheUiLanguage()
+    {
+        using CultureScope scope = new("vi");
+        FakeExternalSignIn signIn = new();
+        AccountFormViewModel vm = Create(new FakeClient(null), signIn);
+
+        await vm.AttachGoogleButtonAsync("account-google-slot");
+
+        signIn.GoogleElementId.Should().Be("account-google-slot");
+        signIn.GoogleLanguage.Should().Be(GameLanguage.Vietnamese);
+        signIn.RenderedGoogleButtons.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CompleteGoogleAsync_CredentialFromTheButton_SignsInWithGoogleAndSendsTheToken()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
+        FakeExternalSignIn signIn = new();
+        AccountFormViewModel vm = Create(client, signIn);
+        AccountSession? signedIn = null;
+        vm.SignedIn += s => signedIn = s;
+        await vm.AttachGoogleButtonAsync("account-google-slot");
+
+        await signIn.ClickGoogleButton("google-token-1");
+
+        client.Calls.Should().Equal("external:Google:google-token-1:English");
+        signIn.Requested.Should().BeEmpty();
+        signedIn.Should().Be(s_session);
+        vm.ErrorText.Should().BeNull();
+        vm.IsBusy.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CompleteGoogleAsync_UpgradeMode_LinksGoogleWithTheNicknameTyped()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+        FakeExternalSignIn signIn = new();
+        AccountFormViewModel vm = await GuestAsync(client, signIn);
+        client.Calls.Clear();
+        vm.BeginUpgrade();
+        vm.Nickname = "Farmer02";
+        await vm.AttachGoogleButtonAsync("account-google-slot");
+
+        await signIn.ClickGoogleButton("google-token-2");
+
+        client.Calls.Should().Equal("link:Google:google-token-2:Farmer02");
+    }
+
+    [Fact]
+    public async Task ReportGoogleFailure_ButtonCouldNotBeDrawn_ShowsTheTextForThatFailure()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(null);
+        FakeExternalSignIn signIn = new();
+        AccountFormViewModel vm = Create(client, signIn);
+        await vm.AttachGoogleButtonAsync("account-google-slot");
+
+        await signIn.FailGoogleButton(ExternalSignInFailure.Failed);
+
+        vm.ErrorText.Should().Be(Text()["Account_Error_ProviderFailed"].Value);
+        client.Calls.Should().BeEmpty();
+    }
+
     [Theory]
     [InlineData(ExternalSignInFailure.Cancelled, "Sign-in was cancelled.")]
     [InlineData(ExternalSignInFailure.PopupBlocked, "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.")]

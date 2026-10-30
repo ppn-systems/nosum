@@ -7,3 +7,17 @@
 .account-form ::deep .game-stack {
     gap: calc(var(--u) * 2);
 }
+
+/* The slot Google's button is drawn into. Google draws the button in its own frame, so the pixel frame of the other buttons sits around the slot. */
+.account-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: calc(var(--u) * 16);
+    padding: calc(var(--u) * 2) calc(var(--u) * 3);
+    border-style: solid;
+    border-width: calc(var(--u) * 3);
+    border-image: var(--nosum-img-button) 3 3 5 3 fill / calc(var(--u) * 3) stretch;
+    image-rendering: pixelated;
+}
