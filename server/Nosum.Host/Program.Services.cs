@@ -20,6 +20,7 @@ using Nosum.Abstractions.Crafting;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Farm;
+using Nosum.Abstractions.Fishing;
 using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
@@ -56,6 +57,7 @@ using Nosum.Infrastructure.Crafting;
 using Nosum.Infrastructure.Dev;
 using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Farm;
+using Nosum.Infrastructure.Fishing;
 using Nosum.Infrastructure.Friends;
 using Nosum.Infrastructure.GroundItems;
 using Nosum.Infrastructure.Inventory;
@@ -292,6 +294,9 @@ internal static partial class Program
         };
 
         InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress, combat), quests));
+
+        // Fishing (docs/adr/ADR-078): the casts are held in memory; the season, the weather and the hour come from the same calendar and clock as the farm.
+        InstanceManager.Instance.Register<IFishingService>(new FishingService(presence, maps, inventory, progress, calendar, clock));
 
         // The mine (docs/adr/ADR-026): floors are per-player instances built in memory, dropped when the player leaves; a tool use that ends at a ladder takes the player down,
         // so the farm service handlers see is the decorated one (the placeables and the co-ops keep the plain one they were built with).

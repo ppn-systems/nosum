@@ -79,6 +79,8 @@ SHEETS = {
     'dawn_boot': ('dawnlike', 'Items/Boot.png', '2ebe6219da69b08178c9f9c245a7867d57796646c964f1634960405dda3d95bf', 16, 0),
     'dawn_hat': ('dawnlike', 'Items/Hat.png', '5a6711126aac733ca3886d46cb5581911a2b2185c3936b6dc03359edb46c2555', 16, 0),
     'dawn_effects': ('dawnlike', 'Objects/Effect0.png', '8fc48d4b8982c7c1356ab402da6d94da316424b6d15bfcf4b5547708ad2739a7', 16, 0),
+    'dawn_aquatic': ('dawnlike', 'Characters/Aquatic0.png', '52aa96c1d15b39d2f59cb0fe59215ef94263c57ede5b7411cad187f9888e6556', 16, 0),
+    'dawn_tool': ('dawnlike', 'Items/Tool.png', '746b189549dc311447a5413dcb09bff2023bb382c9df879b6760bb8bad5e6f94', 16, 0),
     'dawn_avian': ('dawnlike', 'Characters/Avian0.png', 'c658fa9ce88e5a20ed4cbd2d225670647df0af7156756698674173e5877b67e8', 16, 0),
     'dawn_rodent': ('dawnlike', 'Characters/Rodent0.png', 'c2b64c271a53f57ad4eadaf4329640a9bcc5be8fb6914d8e2808efdde4d9a061', 16, 0),
     'dawn_reptile': ('dawnlike', 'Characters/Reptile0.png', '02137008a7e0c1ad1b0fc32e9e10bfa03f17ec228a0633958202c4f5b1c79341', 16, 0),

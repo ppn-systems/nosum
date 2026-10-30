@@ -235,6 +235,7 @@ internal sealed partial class MapScene
             if (_phase != Phase.FadingOut)
             {
                 this.TalkToMerchantAt(content.Spec, map.TileWidth, ScaleFor(map, canvasWidth, canvasHeight));
+                this.CastAtPointer(content.Spec, map.TileWidth, ScaleFor(map, canvasWidth, canvasHeight));
             }
         }
 

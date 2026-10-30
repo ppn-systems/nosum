@@ -23,6 +23,7 @@ using Nosum.Handlers.Combat;
 using Nosum.Handlers.Coop;
 using Nosum.Handlers.Dev;
 using Nosum.Handlers.Farm;
+using Nosum.Handlers.Fishing;
 using Nosum.Handlers.Friends;
 using Nosum.Handlers.Goals;
 using Nosum.Handlers.GroundItem;
@@ -183,6 +184,7 @@ internal static partial class Program
             .MapHandlers(typeof(FurnaceHandlers))
             .MapHandlers(typeof(BuildingHandlers))
             .MapHandlers(typeof(NodeHandlers))
+            .MapHandlers(typeof(FishingHandlers))
             .MapHandlers(typeof(VisitHandlers))
             .MapHandlers(typeof(ShopHandlers))
             .MapHandlers(typeof(BlacksmithHandlers))

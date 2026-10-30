@@ -449,6 +449,30 @@
   <data name="Monster_boss_goblin_chieftain_Title" xml:space="preserve"><value>Khắc tinh thủ lĩnh goblin</value></data>
   <data name="Monster_boss_magma_colossus_Title" xml:space="preserve"><value>Khắc tinh cự nham</value></data>
   <data name="Monster_boss_golem_king_Title" xml:space="preserve"><value>Phá vương golem</value></data>
+  <data name="Item_fishing_rod_Name" xml:space="preserve"><value>Cần câu</value></data>
+  <data name="Item_fishing_rod_Description" xml:space="preserve"><value>Quăng xuống mặt nước để câu cá.</value></data>
+  <data name="Item_fish_stew_Name" xml:space="preserve"><value>Súp cá</value></data>
+  <data name="Item_fish_stew_Description" xml:space="preserve"><value>Bát súp cá nóng sánh với khoai tây. Ăn để hồi nhiều năng lượng.</value></data>
+  <data name="Item_anchovy_Name" xml:space="preserve"><value>Cá cơm</value></data>
+  <data name="Item_anchovy_Description" xml:space="preserve"><value>Loài cá nhỏ, bắt quanh năm ở biển.</value></data>
+  <data name="Item_sea_bass_Name" xml:space="preserve"><value>Cá vược</value></data>
+  <data name="Item_sea_bass_Description" xml:space="preserve"><value>Cá biển thân dài, bắt vào ban ngày từ xuân đến thu.</value></data>
+  <data name="Item_mackerel_Name" xml:space="preserve"><value>Cá thu</value></data>
+  <data name="Item_mackerel_Description" xml:space="preserve"><value>Cá biển, chỉ bắt được vào mùa thu và mùa đông.</value></data>
+  <data name="Item_pufferfish_Name" xml:space="preserve"><value>Cá nóc</value></data>
+  <data name="Item_pufferfish_Description" xml:space="preserve"><value>Cá biển hiếm, chỉ gặp vào mùa hè. Giá rất cao.</value></data>
+  <data name="Item_carp_Name" xml:space="preserve"><value>Cá chép</value></data>
+  <data name="Item_carp_Description" xml:space="preserve"><value>Cá ao, bắt quanh năm ở ao trên nông trại.</value></data>
+  <data name="Item_trout_Name" xml:space="preserve"><value>Cá hồi suối</value></data>
+  <data name="Item_trout_Description" xml:space="preserve"><value>Cá suối ở ao rừng, chỉ cắn câu khi trời mưa.</value></data>
+  <data name="Item_bass_Name" xml:space="preserve"><value>Cá rô</value></data>
+  <data name="Item_bass_Description" xml:space="preserve"><value>Cá nước ngọt khỏe, bắt ở ao nông trại và ao rừng vào hè và thu.</value></data>
+  <data name="Item_pike_Name" xml:space="preserve"><value>Cá chó</value></data>
+  <data name="Item_pike_Description" xml:space="preserve"><value>Cá săn mồi hung dữ ở ao rừng, bắt vào ban đêm mùa đông.</value></data>
+  <data name="Item_eel_Name" xml:space="preserve"><value>Lươn</value></data>
+  <data name="Item_eel_Description" xml:space="preserve"><value>Lươn trơn trượt, bắt ban đêm ở ao rừng vào mùa thu.</value></data>
+  <data name="Item_golden_koi_Name" xml:space="preserve"><value>Cá koi vàng</value></data>
+  <data name="Item_golden_koi_Description" xml:space="preserve"><value>Cá koi vàng quý hiếm. Chỉ gặp ở ao nông trại vào mùa xuân khi trời mưa.</value></data>
   <data name="Item_duck_egg_Name" xml:space="preserve"><value>Trứng vịt</value></data>
   <data name="Item_duck_egg_Description" xml:space="preserve"><value>Trứng tươi do vịt đẻ. Ăn để hồi năng lượng.</value></data>
   <data name="Item_large_duck_egg_Name" xml:space="preserve"><value>Trứng vịt lớn</value></data>

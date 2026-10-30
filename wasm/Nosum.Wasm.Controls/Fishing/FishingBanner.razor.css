@@ -1,0 +1,39 @@
+/* The fishing banner: layout only, in UI pixels. Colours and frames come from the shared controls and the theme. */
+.fishing-banner {
+    width: calc(var(--u) * 120);
+    max-width: 100%;
+}
+
+.fishing-banner p {
+    margin: 0;
+}
+
+.fishing-message,
+.fishing-note {
+    text-align: center;
+}
+
+.fishing-press {
+    margin-top: calc(var(--u) * 2);
+    text-align: center;
+}
+
+/* The bite window: the bar starts full when the window opens and empties over the server's window length, once. The length is set on the wrapper
+   by the banner; the animation is the only thing that runs. */
+.fishing-window {
+    margin-top: calc(var(--u) * 2);
+}
+
+.fishing-window ::deep .game-progress-fill {
+    animation: fishing-drain var(--fishing-ms) linear forwards;
+}
+
+@keyframes fishing-drain {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0;
+    }
+}

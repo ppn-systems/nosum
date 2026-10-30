@@ -232,6 +232,7 @@ public static class AudioCatalog
         ToolKind.Sword => SoundIds.SwordSlash,
         ToolKind.Staff => SoundIds.StaffCast,
         ToolKind.Scythe or ToolKind.MilkPail => SoundIds.ToolScythe,
+        ToolKind.FishingRod => SoundIds.ToolWater,
         _ => 0,
     };
 
