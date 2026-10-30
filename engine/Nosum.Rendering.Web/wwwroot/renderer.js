@@ -343,7 +343,7 @@ export function submitFrame(view) {
             }
             continue;
         }
-        const image = tint === -1 ? textures[id] : tintedTexture(id, tint);
+        const image = (flags & 2) !== 0 ? whitenedTexture(id, tint) : tint === -1 ? textures[id] : tintedTexture(id, tint);
         if (!image) {
             continue;
         }
@@ -391,6 +391,34 @@ function tintedTexture(id, tint) {
     c.globalAlpha = (u & 255) / 255;
     c.drawImage(source, 0, 0);
     c.globalAlpha = 1;
+    tinted.set(key, result);
+    return result;
+}
+
+// Washes a sheet toward white by the alpha byte of the tint, over the sprite's own silhouette (the monster hit flash, docs/adr/ADR-072).
+function whitenedTexture(id, tint) {
+    const alpha = tint & 255;
+    const key = `w${id}:${alpha}`;
+    let result = tinted.get(key);
+    if (result) {
+        return result;
+    }
+    const source = textures[id];
+    if (!source) {
+        return null;
+    }
+    if (tinted.size >= 256) {
+        tinted.delete(tinted.keys().next().value);
+    }
+    result = new OffscreenCanvas(source.width, source.height);
+    const c = result.getContext("2d");
+    c.drawImage(source, 0, 0);
+    c.globalCompositeOperation = "source-atop";
+    c.globalAlpha = alpha / 255;
+    c.fillStyle = "#fff";
+    c.fillRect(0, 0, source.width, source.height);
+    c.globalAlpha = 1;
+    c.globalCompositeOperation = "source-over";
     tinted.set(key, result);
     return result;
 }
