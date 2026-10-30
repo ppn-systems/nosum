@@ -159,7 +159,16 @@ public sealed class FarmRulesRainTests
     {
         PlaceableCatalog.TryGet(Nosum.Gameplay.Items.ItemCatalog.FloorLamp, out PlaceableDefinition? lamp).Should().BeTrue();
         lamp!.LightRadius.Should().Be(PlaceableCatalog.FloorLampLightRadius).And.BePositive();
-        PlaceableCatalog.All.Where(p => p.LightRadius > 0).Select(p => p.ItemId).Should().Equal(Nosum.Gameplay.Items.ItemCatalog.FloorLamp);
+        PlaceableCatalog.All.Where(p => p.LightRadius > 0).Select(p => p.ItemId).Should().BeEquivalentTo(
+            new[]
+            {
+                Nosum.Gameplay.Items.ItemCatalog.FloorLamp,
+                Nosum.Gameplay.Items.ItemCatalog.Candelabra,
+                Nosum.Gameplay.Items.ItemCatalog.TableLamp,
+                Nosum.Gameplay.Items.ItemCatalog.WallSconce,
+                Nosum.Gameplay.Items.ItemCatalog.PaperLantern,
+            },
+            "the lamps of the decorating update give night light (docs/adr/ADR-073 D4)");
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nosum.Gameplay.Calendar;
 
 namespace Nosum.Gameplay.Placeables;
 
@@ -105,6 +106,12 @@ public sealed class PlaceableDefinition
 
     /// <summary>Gets whether the footprint blocks walking; a path does not, everything else does.</summary>
     public bool BlocksWalking { get; init; } = true;
+
+    /// <summary>Gets the furniture catalogue group; <see langword="null"/> for a piece that is not furniture.</summary>
+    public FurnitureCategory? Category { get; init; }
+
+    /// <summary>Gets the only season the furnisher sells this piece in; <see langword="null"/> when it is sold all year.</summary>
+    public Season? SoldIn { get; init; }
 
     /// <summary>
     /// Gets the door tile of a building, relative to the left and top tile of its footprint, or <see langword="null"/> for a piece with no door. The door is inside the footprint but

@@ -965,4 +965,23 @@
   <data name="Game_Start_Step_World" xml:space="preserve"><value>Đang vào khu vực…</value></data>
   <data name="Game_Start_Slow" xml:space="preserve"><value>Vẫn đang tải. Nếu chờ quá lâu, hãy thử lại.</value></data>
   <data name="Game_Start_Retry" xml:space="preserve"><value>Thử lại</value></data>
+  <data name="Furniture_Title" xml:space="preserve"><value>Nội thất</value></data>
+  <data name="Furniture_Category_All" xml:space="preserve"><value>Tất cả</value></data>
+  <data name="Furniture_Category_Seating" xml:space="preserve"><value>Ghế</value></data>
+  <data name="Furniture_Category_Tables" xml:space="preserve"><value>Bàn</value></data>
+  <data name="Furniture_Category_Beds" xml:space="preserve"><value>Giường</value></data>
+  <data name="Furniture_Category_Storage" xml:space="preserve"><value>Tủ kệ</value></data>
+  <data name="Furniture_Category_Lighting" xml:space="preserve"><value>Đèn</value></data>
+  <data name="Furniture_Category_Plants" xml:space="preserve"><value>Cây cảnh</value></data>
+  <data name="Furniture_Category_Decor" xml:space="preserve"><value>Trang trí</value></data>
+  <data name="Furniture_Category_Rugs" xml:space="preserve"><value>Thảm</value></data>
+  <data name="Furniture_Search" xml:space="preserve"><value>Tìm nội thất...</value></data>
+  <data name="Furniture_Place" xml:space="preserve"><value>Cầm để đặt</value></data>
+  <data name="Furniture_PickUp" xml:space="preserve"><value>Cất vào túi</value></data>
+  <data name="Furniture_Empty" xml:space="preserve"><value>Bạn chưa có món nội thất nào. Tiệm nội thất có bán.</value></data>
+  <data name="Furniture_NoMatch" xml:space="preserve"><value>Không có món nào khớp.</value></data>
+  <data name="Furniture_Owned" xml:space="preserve"><value>Đang có: {0}</value></data>
+  <data name="Furniture_BlocksWalking" xml:space="preserve"><value>Chặn lối đi</value></data>
+  <data name="Furniture_WalkOver" xml:space="preserve"><value>Có thể đi qua</value></data>
+  <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
 </root>
