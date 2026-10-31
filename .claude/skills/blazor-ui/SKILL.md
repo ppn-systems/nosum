@@ -9,6 +9,8 @@ Frame loop and drawing: `render-interop`. Transport internals: `nalix-client-sdk
 
 ## Non-negotiables
 
+- **Every visible change follows [`docs/design/ui-standard.md`](../../../docs/design/ui-standard.md)**: HUD regions, the 8-button menu column, S/M/L panels, three font sizes, `--u` spacing, toasts/banners only in their slots, and the review checklist with screenshots at 1280×720, 1920×1080 and 390×844. A PR that fails one checklist item is not merged.
+
 - **Blazor renders UI, not the world.** The farm, crops and characters are drawn by the engine
   on one `<canvas>`. Inventory, shop, chat, quests, dialogs are Razor components overlaid on it.
 - **No `StateHasChanged` per frame.** The engine raises events when UI-visible state changes
