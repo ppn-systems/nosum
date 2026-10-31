@@ -80,7 +80,7 @@ Four more species join the chicken and the cow, bought at the same carpenter cou
 - **Persistence.** No migration: the `kind` column already holds bytes, and items are plain ids in the inventory.
 - **Not done.** Sheep shearing is automatic (no shears tool). Duck and pig sprites are procedural and read best at 1x; the duck's up-facing frame is the weakest.
 
-## Amendment 3 — economy balance (ADR-080)
+## Amendment 3 — economy balance (ADR-081)
 
-Animal produce prices are balance data. ADR-080 D4 sets the target: an everyday product collected over a 28-day season pays 40 to 60 %
+Animal produce prices are balance data. ADR-081 D4 sets the target: an everyday product collected over a 28-day season pays 40 to 60 %
 of the animal's purchase price. Gold stays 1.5× the everyday product. `docs/design/economy.md` gives each animal's values before and after.

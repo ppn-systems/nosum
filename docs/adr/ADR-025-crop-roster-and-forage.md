@@ -30,8 +30,8 @@ Three spring crops cannot carry a two-week season, let alone a year. The early s
 
 Balancing is data; changes need no ADR. Tests assert every crop has art indices inside the sheet and a season.
 
-## Amendment — economy balance (ADR-080)
+## Amendment — economy balance (ADR-081)
 
-Crop bin prices, seed prices and the yam's yield are balance data. ADR-080 sets the targets: a plot tended for a season earns 150 to 260
+Crop bin prices, seed prices and the yam's yield are balance data. ADR-081 sets the targets: a plot tended for a season earns 150 to 260
 coins, every first harvest repays its seed, and single-harvest seeds cost 20 to 50 % of one harvest's bin value. The table in
 `docs/design/economy.md` gives every crop's values before and after.

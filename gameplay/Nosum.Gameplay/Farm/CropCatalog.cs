@@ -9,7 +9,7 @@ namespace Nosum.Gameplay.Farm;
 
 /// <summary>
 /// Every crop the game knows. The durations are watered game days per stage (docs/adr/ADR-021 D7; a game day is 12 real hours,
-/// docs/adr/ADR-018): parsnip 1/1/1/1 = 4 days, radish 1/2/1/2 = 6, cauliflower 1/2/4/4/1 = 12. Balance targets: docs/adr/ADR-080 and docs/design/economy.md. Ids are append-only. Each crop lists the seasons it grows in (docs/adr/ADR-018): parsnip is the hardy
+/// docs/adr/ADR-018): parsnip 1/1/1/1 = 4 days, radish 1/2/1/2 = 6, cauliflower 1/2/4/4/1 = 12. Balance targets: docs/adr/ADR-081 and docs/design/economy.md. Ids are append-only. Each crop lists the seasons it grows in (docs/adr/ADR-018): parsnip is the hardy
 /// root (spring, fall and winter, so a new player in any season can plant the tutorial crop), radish grows in summer and fall,
 /// cauliflower in spring and summer. The season sets are game design, not balance.
 /// </summary>
