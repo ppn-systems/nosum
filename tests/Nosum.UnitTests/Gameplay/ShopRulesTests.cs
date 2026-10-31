@@ -359,4 +359,16 @@ public sealed class ShopRulesTests
         ShopRules.Price(ShopCatalog.ClothingShop, ItemCatalog.HatCap, 1, out long total).Should().Be(ShopVerdict.Ok);
         total.Should().Be(40);
     }
+
+    [Theory]
+    [InlineData(1000, 100, 99, 99, 10)]
+    [InlineData(1000, 100, 5, 99, 5)]
+    [InlineData(1000, 100, 99, 3, 3)]
+    [InlineData(99, 100, 99, 99, 0)]
+    [InlineData(0, 100, 99, 99, 0)]
+    [InlineData(1000, 0, 99, 99, 0)]
+    public void MaxAffordable_IsTheLowestOfTheCoinsStackAndOrderCap(long coins, int each, int stack, int order, int expected)
+    {
+        ShopRules.MaxAffordable(coins, each, stack, order).Should().Be(expected);
+    }
 }

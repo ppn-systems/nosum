@@ -51,15 +51,7 @@ public static class ItemTooltip
             lines.Add(Line(text, "Tooltip_WaterCapacity", ToolRules.WateringCanCapacity(item.Tier)));
         }
 
-        if (item.IsEdible)
-        {
-            lines.Add(Line(text, "Tooltip_Energy", item.FoodEnergy));
-        }
-
-        if (item.MoveSpeedPercent > 0)
-        {
-            lines.Add(Line(text, "Tooltip_MoveSpeed", item.MoveSpeedPercent));
-        }
+        lines.AddRange(Effects(item, text));
 
         if (item.SellPrice > 0)
         {
@@ -72,6 +64,37 @@ public static class ItemTooltip
         }
 
         return string.Join('\n', lines);
+    }
+
+    /// <summary>
+    /// The effect lines of an item: what it does to the player, one line each, in the order the tooltip shows them (food, walking speed,
+    /// running). The shop's detail strip shows the same lines, so a price is read next to what the item does.
+    /// </summary>
+    /// <param name="item">The item definition.</param>
+    /// <param name="text">UI text.</param>
+    /// <returns>The effect lines; empty for an item with no effect.</returns>
+    public static List<string> Effects(ItemDefinition item, IStringLocalizer<Language> text)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        ArgumentNullException.ThrowIfNull(text);
+
+        List<string> lines = [];
+        if (item.IsEdible)
+        {
+            lines.Add(Line(text, "Tooltip_Energy", item.FoodEnergy));
+        }
+
+        if (item.MoveSpeedPercent > 0)
+        {
+            lines.Add(Line(text, "Tooltip_MoveSpeed", item.MoveSpeedPercent));
+        }
+
+        if (item.RunEnergySavePercent > 0)
+        {
+            lines.Add(Line(text, "Tooltip_RunEnergySave", item.RunEnergySavePercent));
+        }
+
+        return lines;
     }
 
     private static string Line(IStringLocalizer<Language> text, string key, int value)
