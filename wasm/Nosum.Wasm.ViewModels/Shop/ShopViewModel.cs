@@ -92,7 +92,7 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     public const int PresetAll = 0;
 
     /// <summary>The offers on one page of the list (whole rows only, <see cref="OffersPerPage"/> to a page).</summary>
-    public const int OffersPerPage = 5;
+    public const int OffersPerPage = 4;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="channel">Sends purchases.</param>

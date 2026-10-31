@@ -28,7 +28,6 @@
                 <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
                 <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
             </GameRow>
-            <p>@Vm.Text("Shop_Hint")</p>
             @if (Vm.Pending is not null)
             {
                 @* A bulk order, or one that costs a quarter of the balance: the player confirms the total before any coins move (issue #215). *@
