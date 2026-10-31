@@ -17,9 +17,9 @@ public sealed class RunMovementTests
     [Theory]
     [InlineData(1, false, 1)]
     [InlineData(1, true, 1.5)]
-    [InlineData(1.25, true, 1.875)]
+    [InlineData(1.25, true, MovementSpeed.MaxFactor)] // 1.875 before the shared cap (docs/adr/ADR-084 D3)
     [InlineData(1.25, false, 1.25)]
-    public void SpeedMultiplier_RunsOnTopOfBuffs(double buff, bool running, double expected)
+    public void SpeedMultiplier_RunsOnTopOfBuffsUpToTheCap(double buff, bool running, double expected)
         => RunRules.SpeedMultiplier(buff, running).Should().BeApproximately(expected, 1e-9);
 
     [Fact]
