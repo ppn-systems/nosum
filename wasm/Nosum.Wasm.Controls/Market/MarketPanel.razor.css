@@ -5,6 +5,13 @@
 
 .market-empty {
     color: var(--nosum-ink-soft);
+    /* The 11 tp line is shorter than the VT323 glyph box, so the last line of this text ran 2 px past the body and scrolled it. One u holds it. */
+    padding-bottom: calc(var(--u) * 1);
+}
+
+/* Spans the panel body into its right padding, so the 9 slots (17 u clear on each side of the 170 u grid) sit centred on whole u. */
+.market-sell-grid {
+    margin-right: calc(var(--u) * -1);
 }
 
 .sell-form {

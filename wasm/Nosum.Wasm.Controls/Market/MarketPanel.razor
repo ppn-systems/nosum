@@ -50,7 +50,10 @@
         else if (Vm.Tab == MarketTab.Sell)
         {
             <GameSection>
-                <ItemGrid Slots="Vm.InventorySlots" Columns="9" Picked="@(Vm.SellItem?.Index ?? -1)" OnSlotClick="@(i => Vm.PickSellSlot(i))" />
+                @* The menu page keeps one u of padding on the right (its scrollbar gutter), which would centre the grid 1.5 px left of the panel body. *@
+                <div class="market-sell-grid">
+                    <ItemGrid Slots="Vm.InventorySlots" Columns="9" Picked="@(Vm.SellItem?.Index ?? -1)" OnSlotClick="@(i => Vm.PickSellSlot(i))" />
+                </div>
             </GameSection>
             @if (Vm.SellItem is { } item)
             {

@@ -172,15 +172,27 @@ internal sealed class FarmDecorator : IMapDecorator
                     continue;
                 }
 
-                // A crop that withered shows as a wilted brown stalk until cleared with a tool or replanted over (docs/adr/ADR-018). The server says
+                // A crop that withered shows the dry, brown picture until cleared with a tool or replanted over (docs/adr/ADR-018). The server says
                 // whether it has withered (the tile row's flag, sprinklers counted), so the client does not guess it.
                 bool withered = info.Withered;
-                int stage = withered ? 1 : FarmRules.StageAt(tile, _nowMs, rules, _outdoors, sinceMs);
 
                 // A crop one dry day from withering reads thirsty until it is watered (docs/adr/ADR-021 D7).
                 bool thirsty = !withered && FarmRules.IsAtRisk(tile, _nowMs, rules, _outdoors, sinceMs);
-                int cropTint = withered ? unchecked((int)0x8b6b4aff) : thirsty ? s_thirstyTint : RenderCommandBuffer.NoTint;
-                if (CropSprites.TryGetFrame(info.CropId, stage, out int sourceX, out int sourceY))
+                int cropTint = thirsty ? s_thirstyTint : RenderCommandBuffer.NoTint;
+                bool hasFrame;
+                int sourceX;
+                int sourceY;
+                if (withered)
+                {
+                    CropSprites.WitheredFrame(out sourceX, out sourceY);
+                    hasFrame = true;
+                }
+                else
+                {
+                    hasFrame = CropSprites.TryGetFrame(info.CropId, FarmRules.StageAt(tile, _nowMs, rules, _outdoors, sinceMs), out sourceX, out sourceY);
+                }
+
+                if (hasFrame)
                 {
                     // Anchored at the tile's centre so a farmer walking over it is ordered by which half they stand on.
                     world.Add(_cropsTexture, sourceX, sourceY, CropSprites.FrameWidth, CropSprites.FrameHeight, worldX, worldY, (info.Y * _tileSize) + (_tileSize / 2), worldX, tint: cropTint);
