@@ -7,6 +7,11 @@
     color: var(--nosum-ink-soft);
 }
 
+/* Spans the panel body into its right padding, so the 9 slots (17 u clear on each side of the 170 u grid) sit centred on whole u. */
+.market-sell-grid {
+    margin-right: calc(var(--u) * -1);
+}
+
 .sell-form {
     display: grid;
     grid-template-columns: 1fr auto auto;
