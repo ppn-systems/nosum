@@ -285,7 +285,9 @@ internal static partial class Program
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock, pets);
         InstanceManager.Instance.Register<ILookService>(looks);
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
-        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks, inventory);
+        // Running spends energy in the background (docs/adr/ADR-085 D2).
+        RunEnergyService runEnergy = new(inventory, progress);
+        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks, inventory, runEnergy);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2, ADR-049 D3).
@@ -323,7 +325,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar, mail, quests));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock, quests));
         InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock, quests));
-        // The tailor's backpack upgrades (docs/adr/ADR-081): the coins and the bag's new size move in one transaction.
+        // The tailor's backpack upgrades (docs/adr/ADR-085): the coins and the bag's new size move in one transaction.
         InstanceManager.Instance.Register<IBackpackService>(new BackpackService(transfers, inventory, presence, maps));
 
         // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.

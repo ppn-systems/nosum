@@ -50,10 +50,42 @@
     width: calc(var(--u) * 28);
 }
 
+/* The run toggle (docs/adr/ADR-085 D3) stands above the use button; it is lit while running is latched on. */
+.touch-controls ::deep .touch-run {
+    position: absolute;
+    right: calc(var(--u) * 8);
+    bottom: calc(var(--u) * 40);
+    box-sizing: border-box;
+    width: calc(var(--u) * 20);
+    height: calc(var(--u) * 20);
+    padding: 0;
+    border: calc(var(--u) * 2) solid var(--nosum-edge);
+    border-radius: 50%;
+    background: var(--nosum-touch-stick-bg);
+    color: var(--nosum-ink);
+    pointer-events: auto;
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
+}
+
+.touch-controls ::deep .touch-run .game-button-label {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: inherit;
+}
+
+.touch-controls ::deep .touch-run.on {
+    background: var(--nosum-wood-light);
+}
+
 /* Narrow screens: the hotbar takes two rows at the bottom, so the stick and the button stand above it. */
 @media (pointer: coarse) and (max-width: 640px) {
     .touch-stick,
     .touch-controls ::deep .touch-use {
         bottom: calc(var(--u) * 76);
+    }
+
+    .touch-controls ::deep .touch-run {
+        bottom: calc(var(--u) * 108);
     }
 }

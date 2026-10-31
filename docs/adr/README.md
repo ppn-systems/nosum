@@ -93,4 +93,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-082](ADR-082-remembered-sign-in-and-start-screen.md) | Remembered sign-in on this browser (session token in `localStorage`, continue card, rolled token, sign-out revokes) and the start screen: meadow backdrop, unframed Google and Microsoft buttons | Accepted |
 | [ADR-083](ADR-083-backpack-upgrades-and-merchant-doors.md) | Backpack upgrades (36, 45, 54 slots) bought at the tailor, server-authoritative; wardrobe, co-op and backpack opened from merchants' dialog boxes only | Proposed |
 | [ADR-084](ADR-084-footwear-boots-and-the-movement-speed-multiplier.md) | Footwear: boots on a new Feet slot (+5% to +20% walking speed), a speed tonic on the Swiftness buff, one combined and capped movement multiplier shared by server and client (protocol 26) | Accepted |
+| [ADR-085](ADR-085-running-with-energy.md) | Running: a held run speed (1.5x, on top of buffs) validated by the movement limit, energy spent by the second in the background, the run toggle on touch, the minimap hidden setting (protocol 27) | Accepted |
 

@@ -33,8 +33,11 @@ public sealed class GameCalendar
     /// <summary>Real length of one game day in the default calendar: 12 hours, so a season is 14 real days (owner: two weeks).</summary>
     public const long DefaultDayLengthMs = 12L * 60 * 60 * 1000;
 
-    /// <summary>Start of year 1 in the default calendar: Monday 2026-11-02 00:00 UTC. The host may override it.</summary>
-    public static readonly long DefaultEpochMs = new DateTimeOffset(2026, 11, 2, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+    /// <summary>
+    /// Start of year 1 in the default calendar: Monday 2026-10-26 00:00 UTC (docs/adr/ADR-018 amendment, 2026-10-31). It was 2026-11-02, a future
+    /// instant, and no instant before the epoch passes a game day, so the clock sat at 00:00 until then. The host may override it.
+    /// </summary>
+    public static readonly long DefaultEpochMs = new DateTimeOffset(2026, 10, 26, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
 
     /// <summary>Initializes a calendar.</summary>
     /// <param name="epochMs">Start of year 1, spring, day 1, 00:00, Unix milliseconds.</param>

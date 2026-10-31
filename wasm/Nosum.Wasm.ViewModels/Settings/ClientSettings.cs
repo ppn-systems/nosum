@@ -52,6 +52,12 @@ public sealed record ClientSettings
     /// <summary>Gets whether the high contrast theme is used.</summary>
     public bool HighContrast { get; init; }
 
+    /// <summary>
+    /// Gets whether the minimap card is hidden, or <see langword="null"/> to hide it only on a narrow screen (phones) until the player chooses
+    /// (Settings &gt; Display). Remembered per player on this browser.
+    /// </summary>
+    public bool? MinimapHidden { get; init; }
+
     /// <summary>Gets whether touch devices show the on-screen stick and use button (docs/adr/ADR-033 D2). On by default; a player on a phone with a keyboard may turn it off.</summary>
     public bool TouchControls { get; init; } = true;
 
@@ -72,6 +78,11 @@ public sealed record ClientSettings
     /// <returns>True when weather, hit shakes and particle bursts are left out.</returns>
     public bool ReducesMotion(bool systemPrefers) => this.ReduceMotion ?? systemPrefers;
 
+    /// <summary>Gets whether the minimap is hidden now: the player's choice, or on a narrow screen while the player has not chosen.</summary>
+    /// <param name="narrowScreen">Whether the screen is narrow (a phone).</param>
+    /// <returns>True when the minimap card and its map are left out.</returns>
+    public bool MinimapHiddenNow(bool narrowScreen) => this.MinimapHidden ?? narrowScreen;
+
     /// <summary>Writes the settings.</summary>
     /// <returns>The text to store.</returns>
     public string Serialize()
@@ -86,6 +97,7 @@ public sealed record ClientSettings
         Line(text, "names", Flag(this.ShowNames));
         Line(text, "calm", this.ReduceMotion is { } calm ? Flag(calm) : "auto");
         Line(text, "contrast", Flag(this.HighContrast));
+        Line(text, "minimap", this.MinimapHidden is { } hidden ? Flag(hidden) : "auto");
         Line(text, "touch", Flag(this.TouchControls));
         Line(text, "haptics", Flag(this.Haptics));
         Line(text, "keys", this.Bindings.Serialize());
@@ -126,6 +138,7 @@ public sealed record ClientSettings
                 "names" => result with { ShowNames = value != "0" },
                 "calm" => result with { ReduceMotion = value switch { "1" => true, "0" => false, _ => null } },
                 "contrast" => result with { HighContrast = value == "1" },
+                "minimap" => result with { MinimapHidden = value switch { "1" => true, "0" => false, _ => null } },
                 "touch" => result with { TouchControls = value != "0" },
                 "haptics" => result with { Haptics = value != "0" },
                 "keys" => result with { Bindings = KeyBindings.Parse(value) },

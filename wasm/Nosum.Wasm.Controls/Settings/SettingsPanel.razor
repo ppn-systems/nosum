@@ -33,6 +33,7 @@
                 <GameSection Title="@Settings.Text("Settings_Display")">
                     <div class="set-body">
                         <GameToggle Label="@Settings.Text("Settings_ShowNames")" Value="Settings.Current.ShowNames" ValueChanged="Settings.SetShowNames" />
+                        <GameToggle Label="@Settings.Text("Settings_HideMinimap")" Value="Settings.MinimapHiddenNow" ValueChanged="Settings.SetMinimapHidden" />
                         <GameToggle Label="@Settings.Text("Settings_ReduceMotion")" Value="Settings.ReducesMotion" ValueChanged="Settings.SetReduceMotion" />
                         @if (Settings.Current.ReduceMotion is not null)
                         {

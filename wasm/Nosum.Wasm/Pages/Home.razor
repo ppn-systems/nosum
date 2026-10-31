@@ -212,7 +212,7 @@ else
     </GameHud>
     @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
     {
-        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" Hidden="@(Npc.Stage != NpcStage.Closed)" />
+        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" RunText="@Toolbar.Text("Touch_Run")" RunLabel="@Toolbar.Text("Touch_RunLabel")" Hidden="@(Npc.Stage != NpcStage.Closed)" />
     }
 }
 

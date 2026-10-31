@@ -405,6 +405,7 @@
   <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
   <data name="Settings_ScaleHint" xml:space="preserve"><value>Số điểm ảnh màn hình cho mỗi điểm ảnh của thế giới. Tự động chọn theo cỡ cửa sổ.</value></data>
   <data name="Settings_ShowNames" xml:space="preserve"><value>Hiện tên trên đầu nhân vật</value></data>
+  <data name="Settings_HideMinimap" xml:space="preserve"><value>Ẩn bản đồ nhỏ (minimap) ở góc phải</value></data>
   <data name="Settings_ReduceMotion" xml:space="preserve"><value>Giảm chuyển động (không mưa, tuyết, rung lắc hay hiệu ứng đánh trúng)</value></data>
   <data name="Settings_MotionAuto" xml:space="preserve"><value>Theo cài đặt của hệ thống</value></data>
   <data name="Settings_HighContrast" xml:space="preserve"><value>Chữ tương phản cao</value></data>
@@ -436,6 +437,8 @@
   <data name="Touch_Stick" xml:space="preserve"><value>Cần điều khiển di chuyển</value></data>
   <data name="Touch_Use" xml:space="preserve"><value>Dùng</value></data>
   <data name="Touch_UseLabel" xml:space="preserve"><value>Dùng vật đang cầm</value></data>
+  <data name="Touch_Run" xml:space="preserve"><value>Chạy</value></data>
+  <data name="Touch_RunLabel" xml:space="preserve"><value>Bật/tắt chạy nhanh (tốn thể lực)</value></data>
   <data name="Action_MoveUp" xml:space="preserve"><value>Đi lên</value></data>
   <data name="Action_MoveDown" xml:space="preserve"><value>Đi xuống</value></data>
   <data name="Action_MoveLeft" xml:space="preserve"><value>Đi sang trái</value></data>

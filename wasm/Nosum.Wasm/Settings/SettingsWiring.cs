@@ -10,6 +10,7 @@ using Nosum.Wasm.Game;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.ViewModels.Minimap;
 using Nosum.Wasm.ViewModels.Settings;
 
 namespace Nosum.Wasm.Settings;
@@ -44,8 +45,14 @@ internal static class SettingsWiring
     {
         SettingsViewModel settings = services.GetRequiredService<SettingsViewModel>();
         SettingsApplier applier = services.GetRequiredService<SettingsApplier>();
-        settings.Applied += current => applier.Apply(current, settings.ReducesMotion);
+        MinimapViewModel minimap = services.GetRequiredService<MinimapViewModel>();
+        settings.Applied += current =>
+        {
+            applier.Apply(current, settings.ReducesMotion);
+            minimap.Hidden = settings.MinimapHiddenNow;
+        };
         settings.SetSystemReducesMotion(BrowserSettings.PrefersReducedMotion());
+        settings.SetNarrowScreen(BrowserSettings.IsNarrowScreen());
         settings.Apply();
 
         OnboardingViewModel hints = services.GetRequiredService<OnboardingViewModel>();

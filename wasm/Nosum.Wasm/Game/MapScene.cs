@@ -38,6 +38,9 @@ internal sealed partial class MapScene
     private const int MenuUnitsTall = 204;
     private const int NarrowCanvasWidth = 640;
 
+    // The walk animation plays this many times faster while running (docs/adr/ADR-085 D4).
+    private const double RunAnimationSpeed = 1.6;
+
     /// <summary>Seconds the screen takes to go black when the server changes the map.</summary>
     public const double FadeOutSeconds = 0.2;
 
@@ -66,6 +69,7 @@ internal sealed partial class MapScene
     private readonly PlacementActions? _placement;
     private readonly CompositeWalkGrid _compositeGrid;
     private readonly CalendarChannel? _calendar;
+    private readonly ProgressChannel? _progress;
     private readonly FarmerFeed? _feed;
     private readonly CombatChannel? _combat;
     private readonly MinimapViewModel? _minimapFrame;
@@ -104,15 +108,17 @@ internal sealed partial class MapScene
     /// <param name="audio">The audio director: sounds queued by the hooks are written into the frame, and the footsteps, music and rain loop are decided here (docs/adr/ADR-039); <see langword="null"/> plays no sound.</param>
     /// <param name="combatLabels">Pre-interned combat numbers, used as the energy labels that float above a tool's tile (docs/adr/ADR-071 D4); <see langword="null"/> shows none.</param>
     /// <param name="feed">The farmers of each frame, for the decorators that follow them (pets, emote bubbles); <see langword="null"/> keeps the feed empty.</param>
+    /// <param name="progress">The player's energy, which gates running (docs/adr/ADR-085 D3); <see langword="null"/> means no energy is known and the farmer does not run.</param>
     /// <param name="combat">The combat channel whose impacts shake the view (docs/adr/ADR-076); <see langword="null"/> never shakes.</param>
     /// <param name="minimap">The minimap frame in the HUD, told whenever the canvas shows or hides the map; <see langword="null"/> has no frame.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null)
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null, ProgressChannel? progress = null)
     {
         _sky = new SkyLayer(calendar, placed);
         _calendar = calendar;
         _combat = combat;
         _minimapFrame = minimap;
         _feed = feed;
+        _progress = progress;
 
         _audio = audio;
         _actions = actions;
@@ -206,20 +212,25 @@ internal sealed partial class MapScene
         {
             _clock.Advance(frameSeconds);
             bool swinging = _actions is not null && _actions.SwingLocked(_clockSeconds);
+            // Running (docs/adr/ADR-085 D3): run is held, the farmer is walking and there is energy to spend. The server grants the same speed and
+            // withdraws it when the energy runs out, and the walk animation plays faster meanwhile.
+            bool walking = !swinging && (input & (InputState.Up | InputState.Down | InputState.Left | InputState.Right)) != 0;
+            bool running = walking && (input & InputState.Run) != 0 && _progress is { Energy: > 0 };
+            // The same combined multiplier the server validates with: worn boots × speed buff × run, clamped (docs/adr/ADR-084 D3).
+            int ownFeet = _looks is not null && _looks.TryGetLocal(out LookInfo mine) ? mine.FeetItemId : 0;
+            double speed = RunRules.SpeedMultiplier(MovementSpeed.For(ownFeet, _actions?.SpeedBuff ?? StatusEffectKind.None), running);
             double remaining = Math.Clamp(frameSeconds, 0, MaxFrameSeconds);
             do
             {
                 double dt = Math.Min(remaining, StepSeconds);
                 // A swing holds the farmer in place until it is over (docs/adr/ADR-071 D1).
-                // The same combined multiplier the server validates with: worn boots × speed buff, clamped (docs/adr/ADR-084 D3).
-                int ownFeet = _looks is not null && _looks.TryGetLocal(out LookInfo mine) ? mine.FeetItemId : 0;
-                _farmer.Step(swinging ? default : input, dt, grid, MovementSpeed.For(ownFeet, _actions?.SpeedBuff ?? StatusEffectKind.None));
+                _farmer.Step(swinging ? default : input, dt, grid, speed);
                 remaining -= dt;
             }
             while (remaining > 1e-9);
 
-            _walkTime = _farmer.IsMoving ? _walkTime + frameSeconds : 0;
-            _channel?.Report((float)_farmer.X, (float)_farmer.Y, (byte)_farmer.Facing, _farmer.IsMoving);
+            _walkTime = _farmer.IsMoving ? _walkTime + (frameSeconds * (running ? RunAnimationSpeed : 1)) : 0;
+            _channel?.Report((float)_farmer.X, (float)_farmer.Y, (byte)_farmer.Facing, _farmer.IsMoving, running);
         }
 
         // Keys act on the map shown, and not while a map change freezes the farmer.

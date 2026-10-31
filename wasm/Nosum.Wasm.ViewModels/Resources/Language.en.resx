@@ -405,6 +405,7 @@
   <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
   <data name="Settings_ScaleHint" xml:space="preserve"><value>Screen pixels per world pixel. Auto picks it from the window size.</value></data>
   <data name="Settings_ShowNames" xml:space="preserve"><value>Show names over heads</value></data>
+  <data name="Settings_HideMinimap" xml:space="preserve"><value>Hide the minimap in the corner</value></data>
   <data name="Settings_ReduceMotion" xml:space="preserve"><value>Reduce motion (no rain, snow, shakes or hit effects)</value></data>
   <data name="Settings_MotionAuto" xml:space="preserve"><value>Follow the system setting</value></data>
   <data name="Settings_HighContrast" xml:space="preserve"><value>High-contrast text</value></data>
@@ -436,6 +437,8 @@
   <data name="Touch_Stick" xml:space="preserve"><value>Movement stick</value></data>
   <data name="Touch_Use" xml:space="preserve"><value>Use</value></data>
   <data name="Touch_UseLabel" xml:space="preserve"><value>Use the held item</value></data>
+  <data name="Touch_Run" xml:space="preserve"><value>Run</value></data>
+  <data name="Touch_RunLabel" xml:space="preserve"><value>Toggle running (costs energy)</value></data>
   <data name="Action_MoveUp" xml:space="preserve"><value>Walk up</value></data>
   <data name="Action_MoveDown" xml:space="preserve"><value>Walk down</value></data>
   <data name="Action_MoveLeft" xml:space="preserve"><value>Walk left</value></data>

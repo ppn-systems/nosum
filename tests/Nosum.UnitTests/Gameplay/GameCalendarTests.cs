@@ -82,6 +82,28 @@ public sealed class GameCalendarTests
         epoch.TimeOfDay.Should().Be(TimeSpan.Zero);
     }
 
+    // Regression (clock stuck at 00:00): the epoch was 2026-11-02, after the launch date, and every instant before the epoch counts as the epoch.
+    [Fact]
+    public void Default_Epoch_IsBeforeTheLaunchDate_SoTheClockRuns()
+    {
+        long launch = new DateTimeOffset(2026, 10, 31, 10, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+
+        GameCalendar.DefaultEpochMs.Should().BeLessThan(launch);
+        GameCalendar.Default.At(launch).MinuteOfDay.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void Default_Clock_ShowsANewGameMinuteEvery30RealSeconds()
+    {
+        GameCalendar calendar = GameCalendar.Default;
+        long instant = calendar.EpochMs + (600L * 30_000); // 600 game minutes: 10:00 (one game minute is 30 real seconds)
+
+        calendar.DayLengthMs.Should().Be(12L * 60 * 60 * 1000);
+        calendar.At(instant).MinuteOfDay.Should().Be(600);
+        calendar.At(instant + 30_000).MinuteOfDay.Should().Be(601);
+        calendar.At(instant + 29_999).MinuteOfDay.Should().Be(600);
+    }
+
     [Fact]
     public void Constructor_DayShorterThanOneMillisecondPerGameMinute_IsRefused()
     {

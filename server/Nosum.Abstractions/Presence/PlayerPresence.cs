@@ -85,6 +85,16 @@ public sealed class PlayerPresence
     private double _moveSpeedFactor = 1;
 
     /// <summary>
+    /// Gets or sets the run energy owed and not yet spent, energy units below one whole unit (docs/adr/ADR-085 D2). Use only while holding <see cref="Gate"/>.
+    /// </summary>
+    public double RunEnergyDebt { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the server grants the run speed. It turns off when the energy ran out and on again once the player lets go of run. Use only while holding <see cref="Gate"/>.
+    /// </summary>
+    public bool RunAllowed { get; set; } = true;
+
+    /// <summary>
     /// Gets the movement speed multiplier the move validator honors: footwear × speed buff, clamped (docs/adr/ADR-084 D3, issue #146).
     /// Set by <see cref="SetFootwear"/> and <see cref="SetSpeedBuff"/>; safe to read without <see cref="Gate"/>.
     /// </summary>
