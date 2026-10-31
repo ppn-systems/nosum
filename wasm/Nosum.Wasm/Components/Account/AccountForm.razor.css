@@ -8,33 +8,22 @@
     gap: calc(var(--u) * 2);
 }
 
-/* The two provider buttons share one width and sit centred, with no pixel frame: Google's and Microsoft's own looks. */
+/* The two provider buttons: the same width and height (41 px), stacked with an 8 px gap, no frame around them. A provider that is off has no
+   button here. */
 .account-providers {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: calc(var(--u) * 2);
+    gap: 8px;
     width: 100%;
 }
 
-/* The slot Google's button is drawn into: Google sizes its button to the slot's width (external-sign-in.js). */
+/* The slot Google's button is drawn into: Google sizes its button to the slot's width (external-sign-in.js), and centres it in the 41 px height. */
 .account-google {
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
     width: 100%;
-    min-height: calc(var(--u) * 14);
-}
-
-/* Google's button while Google is off on this server: the same size and edge as Microsoft's, greyed. */
-.account-google-off {
-    height: calc(var(--u) * 14);
-    border: 1px solid #cccccc;
-    background: #f2f2f2;
-    color: #a6a6a6;
-    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    font-size: var(--nosum-fs-body);
-    font-weight: 600;
-    line-height: 1;
+    height: 41px;
 }

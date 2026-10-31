@@ -34,9 +34,7 @@ async function routeRepoAssets(page) {
   });
 }
 
-// With preview set, also writes the same first visit with the Microsoft button's disabled flag removed, to show its enabled look. The dev build has no
-// client id, so the button is off; the preview is a picture only, the click is not wired up in it.
-async function shoot(browser, name, file, seed, errors, preview = false) {
+async function shoot(browser, name, file, seed, errors) {
   const size = VIEWPORTS[name];
   const phone = name === '390x844';
   const context = await browser.newContext({ viewport: size, locale: 'vi-VN', hasTouch: phone, isMobile: phone, serviceWorkers: 'block' });
@@ -48,15 +46,20 @@ async function shoot(browser, name, file, seed, errors, preview = false) {
   const page = await context.newPage();
   page.on('pageerror', (e) => errors.push(`page: ${e.message}`));
   if (process.env.NOSUM_QA_REPO_ASSETS === '1') await routeRepoAssets(page);
+  // NOSUM_QA_DUMMY_PROVIDERS=1: the served appsettings.json gets dummy client ids in memory (the repository keeps them empty), so the
+  // provider buttons are on. Google's script is real and shows its own button for the dummy id; nothing is signed in.
+  if (process.env.NOSUM_QA_DUMMY_PROVIDERS === '1') {
+    await page.route(/localhost:5080\/appsettings\.json/, async (route) => {
+      const response = await route.fetch();
+      const config = await response.json();
+      config.ExternalSignIn = { ...config.ExternalSignIn, GoogleClientId: '1234567890-qadummy.apps.googleusercontent.com', MicrosoftClientId: '00000000-0000-0000-0000-00000000qa01' };
+      return route.fulfill({ response, json: config });
+    });
+  }
   await page.goto(BASE, { waitUntil: 'load' });
   await page.waitForSelector('.start-screen', { timeout: 60000 });
   await page.waitForTimeout(1500);
   await page.screenshot({ path: file });
-  if (preview) {
-    await page.evaluate(() => document.querySelectorAll('.ms-signin').forEach((b) => { b.disabled = false; }));
-    await page.waitForTimeout(300);
-    await page.screenshot({ path: file.replace(/first-visit\.png$/, 'first-visit-enabled-preview.png') });
-  }
   await context.close();
 }
 
@@ -72,8 +75,15 @@ async function shoot(browser, name, file, seed, errors, preview = false) {
   for (const name of names) {
     const dir = path.join(outRoot, name);
     fs.mkdirSync(dir, { recursive: true });
-    await shoot(browser, name, path.join(dir, 'first-visit.png'), null, errors, phase === 'after');
-    await shoot(browser, name, path.join(dir, 'returning-visit.png'), seed, errors);
+    // NOSUM_QA_LABEL names a run with a different server config (for example dummy client ids, so the provider buttons are on): it writes
+    // first-visit-<label>.png only, and the returning visit is the default run's.
+    const label = process.env.NOSUM_QA_LABEL;
+    if (label) {
+      await shoot(browser, name, path.join(dir, `first-visit-${label}.png`), null, errors);
+    } else {
+      await shoot(browser, name, path.join(dir, 'first-visit.png'), null, errors);
+      await shoot(browser, name, path.join(dir, 'returning-visit.png'), seed, errors);
+    }
     console.log(`${phase} ${name}: captured`);
   }
   await browser.close();

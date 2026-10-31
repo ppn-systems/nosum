@@ -1,28 +1,28 @@
-/* Microsoft's button (brand guidelines): white with a grey edge, the mark and the label on one line. The colours are the brand's, not the theme's,
-   and the 1 px edge is the brand's too. The size is in u, like the rest of the window. */
+/* Microsoft's button, to its official spec: 41 px high, white, a 1 px #8C8C8C edge, at most 2 px corners, the 21 px mark 12 px from the left, the label
+   in Segoe UI 15 px weight 600 #5E5E5E. The brand sets these values, so they are not in u or the theme's tokens (docs/adr/ADR-082). */
 .ms-signin {
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: calc(var(--u) * 3);
+    gap: 12px;
     width: 100%;
-    height: calc(var(--u) * 14);
+    height: 41px;
     margin: 0;
-    padding: 0 calc(var(--u) * 3);
+    padding: 0 12px;
     background: #ffffff;
     border: 1px solid #8c8c8c;
-    border-radius: 0;
+    border-radius: 2px;
     color: #5e5e5e;
-    font-family: "Segoe UI", "Segoe UI Semibold", "Helvetica Neue", Arial, sans-serif;
-    font-size: var(--nosum-fs-body);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 15px;
     font-weight: 600;
     line-height: 1;
     cursor: pointer;
 }
 
 .ms-signin:hover {
-    background: #f2f2f2;
+    background: #f3f3f3;
 }
 
 .ms-signin:active {
@@ -43,8 +43,8 @@
 
 .ms-signin-mark {
     flex: none;
-    width: calc(var(--u) * 7);
-    height: calc(var(--u) * 7);
+    width: 21px;
+    height: 21px;
 }
 
 .ms-signin-label {

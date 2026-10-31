@@ -28,12 +28,14 @@ wooden button frame, while each provider asks for its own look.
    then a logout) and forgets the record either way. Signing out from the game does the same locally.
 6. **Storage that refuses is not an error.** A browser that blocks `localStorage` reads as "nothing remembered", and a write that fails is ignored;
    the sign-in still works for the visit.
-7. **Start screen.** The backdrop is `art/own/ui/start_meadow.png`, a daytime meadow composed from Kenney Tiny Town tiles (CC0) by
-   `tools/art_repack/start_meadow.py`; it replaces the sky-and-sea backdrop of docs/adr/ADR-017. The window keeps the shared `GamePanel`.
-8. **Provider buttons are not framed.** Google's button is drawn by Google (Google Identity Services) at the width of its slot. Microsoft's is
-   drawn to Microsoft's brand guidelines: white, a grey edge, the four-square mark and the label in Segoe UI. Neither sits in the game's wooden
-   frame. The brand colours and the 1 px edge are the one exception to the token rule of docs/design/ui-standard.md section 1, because the brand
-   sets them.
+7. **Start screen.** The backdrop is `art/own/ui/start_meadow.png`, a soft daytime farm scene (a sky band, a meadow with a farmhouse, a fence, a
+   tilled plot and a path) composed from CC0 tiles by `tools/art_repack/start_meadow.py`; it replaces the sky-and-sea backdrop of docs/adr/ADR-017.
+   The title and tagline sit on a dark plaque for contrast. The window keeps the shared `GamePanel`.
+8. **Provider buttons are not framed, and a provider that is off has no button.** Google's button is Google Identity Services' own (outline,
+   large, rectangular, left logo) at the width of its slot. Microsoft's is drawn to its official spec: 41 px high, white, a 1 px #8C8C8C edge, at most
+   2 px corners, the 21 px mark 12 px from the left, Segoe UI 15 px weight 600 #5E5E5E. Both are the same width, stacked with an 8 px gap, inside the
+   panel padding, with no wooden frame. The brand values are the one exception to the token rule of docs/design/ui-standard.md section 1.
+   When a provider is off on the server, its button is hidden and one notice says so.
 
 No wire change: `ResumeSession` and `Logout` already exist, and the protocol version does not move. The server is unchanged.
 
@@ -44,8 +46,9 @@ No wire change: `ResumeSession` and `Logout` already exist, and the protocol ver
 - The token sits in `localStorage`, as the server key does (docs/adr/ADR-032 D1). A script running on the game's origin could read it, so the
   game keeps third-party scripts to the two identity providers it already loads, and no others.
 - The continue card's text and the Microsoft label have Vietnamese and English strings (`Language.resx`, `Language.en.resx`).
-- The Google button can only be checked with a client id set and the provider reachable; the QA captures show it off (no client id in the
-  repository's `appsettings.json`).
+- The repository's `appsettings.json` has no client ids, so a default run shows no provider buttons, only one notice. The providers-enabled captures
+  set dummy ids in memory for that run (`NOSUM_QA_DUMMY_PROVIDERS`); Google's real script renders its own button for them. A live sign-in needs real
+  ids and a reachable provider.
 
 ## References
 

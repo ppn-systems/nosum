@@ -19,19 +19,17 @@
             }
 
             <div class="account-providers">
-                @* Google draws its own button here at the slot's width (a click opens its popup). Without a client id the slot shows the same button, switched off. *@
+                @* A provider that is off on this server has no button at all: one notice below says so (issue #207). Google draws its own button here
+                   at the slot's width (a click opens its popup). *@
                 @if (Vm.GoogleEnabled)
                 {
                     <div id="@_googleSlotId" class="account-google" role="group" aria-label="@Vm.SignInGoogleText"></div>
                 }
-                else
+                @if (Vm.MicrosoftEnabled)
                 {
-                    <div class="account-google account-google-off" role="img" aria-label="@(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)">
-                        @(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)
-                    </div>
+                    <MicrosoftSignInButton Text="@(Vm.IsUpgradeMode ? Vm.LinkMicrosoftText : Vm.SignInMicrosoftText)" Disabled="@Vm.IsBusy"
+                                           OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkMicrosoftAsync() : Vm.SignInWithMicrosoftAsync())" />
                 }
-                <MicrosoftSignInButton Text="@(Vm.IsUpgradeMode ? Vm.LinkMicrosoftText : Vm.SignInMicrosoftText)" Disabled="@(Vm.IsBusy || !Vm.MicrosoftEnabled)"
-                                       OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkMicrosoftAsync() : Vm.SignInWithMicrosoftAsync())" />
             </div>
 
             @* One line for a provider that is off on this server, instead of a notice under each button (issue #207). *@
