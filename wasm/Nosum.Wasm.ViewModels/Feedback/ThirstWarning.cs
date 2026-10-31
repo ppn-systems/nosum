@@ -109,7 +109,8 @@ public sealed class ThirstWarning : IDisposable
         int atRisk = _farm.CountAtRisk(rules, nowMs, _placeables.SprinklerWateredSinceMs);
         if (atRisk > 0)
         {
-            _messages.Notify(string.Format(CultureInfo.CurrentCulture, _text["Farm_Thirsty_Morning"].Value, atRisk));
+            string text = atRisk == 1 ? _text["Farm_Thirsty_Morning_One"].Value : string.Format(CultureInfo.CurrentCulture, _text["Farm_Thirsty_Morning"].Value, atRisk);
+            _messages.Notify(text);
         }
     }
 
