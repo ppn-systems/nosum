@@ -17,9 +17,13 @@ internal static class DbBudgetBaseline
         ["AddVisitor / allow-list by nickname"] = new(0, 1, 0, 1),
         // Amended 2026-10-31 (docs/adr/ADR-035, Amendment): adopting a pet now completes the adopt_pet tutorial step, so the quest copy is read,
         // the completed row is written and the 40-coin reward is paid in one transaction. The cost is the step, not a regression.
-        ["AdoptPet / adopt a cat"] = new(2, 2, 1, 2),
+        // Amended 2026-10-31 (docs/adr/ADR-035, Amendment; docs/adr/ADR-075 amendment): adopting is a purchase at the carpenter's counter, paid through the
+        // transfer service in the same transaction as the pet row, as a shop buy is (BuyFromShop 4/3/3/3). The increase is the price of paying, not a leak.
+        ["AdoptPet / adopt a cat"] = new(5, 4, 3, 4),
         ["PetPet / pet the cat"] = new(1, 1, 0, 1),
         ["PetPet / pet the cat, asked again"] = new(1, 0, 0, 0),
+        // Measured on the branch that adds it (docs/adr/ADR-075 amendment): the pet is given back for half its price in one transfer.
+        ["RehomePet / give the cat back"] = new(3, 1, 1, 1),
         ["GetPet / no pet"] = new(1, 0, 0, 0),
         ["GetPet / no pet, asked again"] = new(1, 0, 0, 0),
         // Amended 2026-10-31 (docs/adr/ADR-035, Amendment): the first emote completes the send_emote tutorial step, so the quest copy is read,
