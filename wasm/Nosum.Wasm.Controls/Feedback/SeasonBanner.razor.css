@@ -4,9 +4,9 @@
     align-items: center;
     gap: calc(var(--u) * 0.5);
     padding: calc(var(--u) * 2) calc(var(--u) * 4);
-    border: var(--u) solid #86efac;
+    border: var(--u) solid var(--nosum-leaf);
     background: rgba(6, 22, 12, 0.9);
-    color: #dcfce7;
+    color: var(--nosum-cream);
     box-shadow: 0 0 calc(var(--u) * 6) rgba(134, 239, 172, 0.45);
     animation: season-banner-rise 4.5s ease-out both;
     pointer-events: none;
@@ -15,7 +15,7 @@
 .season-banner-title {
     font-size: var(--nosum-fs-title);
     letter-spacing: calc(var(--u) * 0.5);
-    color: #86efac;
+    color: var(--nosum-leaf);
 }
 
 .season-banner-message {

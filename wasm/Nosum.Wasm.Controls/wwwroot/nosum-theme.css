@@ -44,6 +44,9 @@
     --nosum-wood-dark: #6d4b27;
     --nosum-gold: #feae34;
     --nosum-gold-light: #ffe078;
+    /* The notice banners (level up, season) and the start screen's sky: lit colours for dark plaques and the sky picture. */
+    --nosum-leaf: #86efac;
+    --nosum-sky: #00a2ff;
     --nosum-line: #aa8a62;
     --nosum-ink: #3f2631;
     --nosum-ink-soft: #5a4032;

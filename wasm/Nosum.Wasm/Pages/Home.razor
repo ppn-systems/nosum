@@ -106,8 +106,6 @@ else
             @if (_started && _panel == PanelKind.None)
             {
                 <QuestTracker Vm="Quest" />
-                <PlacementPanel Vm="Placement" />
-                <FurniturePanel Vm="Furniture" />
             }
         </TopLeft>
         <TopCenter>
@@ -129,6 +127,11 @@ else
             }
         </TopRight>
         <Center>
+            @* The arrange mode's furniture panel: a window in the centre, not a corner plaque (docs/design/ui-standard.md section 2). *@
+            @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
+            {
+                <FurniturePanel Vm="Furniture" Placement="Placement" />
+            }
             @* Every open panel is a standalone window of its own, never crammed into a shared multi-tab menu (docs/adr/ADR-044). *@
             @if (_started && _panel != PanelKind.None && !Form.ShowsForm)
             {

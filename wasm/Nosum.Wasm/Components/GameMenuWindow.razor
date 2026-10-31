@@ -165,8 +165,9 @@
     /// (docs/design/ui-standard.md section 3).</summary>
     private static PanelSize SizeOf(PanelKind panel) => panel switch
     {
-        PanelKind.Inventory or PanelKind.Shop or PanelKind.Market or PanelKind.Wardrobe or PanelKind.WorldMap or PanelKind.Journal => PanelSize.L,
-        PanelKind.Chest or PanelKind.Furnace or PanelKind.Pet or PanelKind.Visitors or PanelKind.Menu => PanelSize.S,
+        PanelKind.Inventory or PanelKind.Shop or PanelKind.Market or PanelKind.Wardrobe or PanelKind.WorldMap or PanelKind.Journal
+            or PanelKind.Crafting or PanelKind.Skills or PanelKind.Chest => PanelSize.L,
+        PanelKind.Furnace or PanelKind.Pet or PanelKind.Visitors or PanelKind.Menu => PanelSize.S,
         _ => PanelSize.M,
     };
 

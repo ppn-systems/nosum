@@ -30,7 +30,7 @@
                 </GameRow>
             }
             <div class="shop-list">
-                @foreach (ShopOfferDisplay offer in Vm.Offers)
+                @foreach (ShopOfferDisplay offer in Vm.PageOffers)
                 {
                     int itemId = offer.ItemId;
                     <GameRow Class="center shop-row">
@@ -41,6 +41,11 @@
                     </GameRow>
                 }
             </div>
+            @if (Vm.PageCount > 1)
+            {
+                <Pager Page="Vm.Page" PageCount="Vm.PageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
+                       PositionText="@Vm.Text("Pager_Position", Vm.Page + 1, Vm.PageCount)" OnPage="@(p => Vm.GoToPage(p))" />
+            }
         }
         @if (ShowExtras)
         {

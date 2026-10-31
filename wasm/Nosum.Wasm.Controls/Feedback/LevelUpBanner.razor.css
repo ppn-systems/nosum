@@ -4,9 +4,9 @@
     align-items: center;
     gap: calc(var(--u) * 0.5);
     padding: calc(var(--u) * 2) calc(var(--u) * 4);
-    border: var(--u) solid #facc15;
+    border: var(--u) solid var(--nosum-gold-light);
     background: rgba(24, 18, 4, 0.9);
-    color: #fef9c3;
+    color: var(--nosum-cream);
     box-shadow: 0 0 calc(var(--u) * 6) rgba(250, 204, 21, 0.55);
     animation: level-up-rise 3.8s ease-out both;
     pointer-events: none;
@@ -15,7 +15,7 @@
 .level-up-title {
     font-size: var(--nosum-fs-title);
     letter-spacing: calc(var(--u) * 0.5);
-    color: #facc15;
+    color: var(--nosum-gold-light);
 }
 
 .level-up-message {

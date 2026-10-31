@@ -1,7 +1,7 @@
 /* The catch card: an absolute card in the top-centre region, so it takes no room there. It pops in, holds, then fades in place; reduced motion
-   (data-motion="reduced", set by the settings) turns the animation off and the card stays put. The rarity colours are the game's own. */
+   (data-motion="reduced", set by the settings) turns the animation off and the card stays put. The rarity colours are theme tokens. */
 .fishing-card {
-    --rarity: #b8c0cc;
+    --rarity: var(--nosum-ink-soft);
     position: absolute;
     top: 0;
     left: 0;
@@ -25,15 +25,15 @@
 }
 
 .fishing-card.rarity-uncommon {
-    --rarity: #6ccf5a;
+    --rarity: var(--nosum-ok);
 }
 
 .fishing-card.rarity-rare {
-    --rarity: #5aa9ff;
+    --rarity: var(--nosum-leaf);
 }
 
 .fishing-card.rarity-legendary {
-    --rarity: #ffc64a;
+    --rarity: var(--nosum-gold);
 }
 
 .fishing-card p {
