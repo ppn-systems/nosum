@@ -199,15 +199,72 @@ public sealed class CombatBalanceTests
         CombatRules.ArmorDefense(ItemCatalog.IronHelmet).Should().BeLessThan(CombatRules.ArmorDefense(ItemCatalog.BossCrown));
     }
 
-    [Fact]
-    public void HealthPotion_RestoresBetween25And40PercentOfEveryBandsMaxHp()
+    /// <summary>Normal-fight damage the reference player takes on a full clear of a band (bosses excluded, as in the potion table).</summary>
+    private static int BandNormalDamage(Band band)
     {
+        int total = 0;
+        for (int floor = band.FirstFloor; floor <= band.LastFloor; floor++)
+        {
+            int count = Math.Clamp(3 + (floor / 8), 3, 8);
+            for (int slot = 0; slot < count; slot++)
+            {
+                MonsterKind kind = MonsterSpawnPlanner.SpeciesForMineFloor(floor, slot);
+                if (MonsterSpawnPlanner.IsBoss(kind))
+                {
+                    continue;
+                }
+
+                MonsterCatalog.TryGet(kind, out MonsterDefinition? def).Should().BeTrue();
+                total += DamageTakenToKill(def!, band);
+            }
+        }
+
+        return total;
+    }
+
+    [Fact]
+    public void BandClear_NeedsBetweenTwoAndSixHealthPotions()
+    {
+        // A potion restores 215 HP, enough for band 3 and 4 in about six potions (see docs/design/combat-balance.md, Potions).
         int heal = CombatRules.PotionRestore(ItemCatalog.HealthPotion).Hp;
         foreach (Band band in s_bands)
         {
-            int percent = heal * 100 / band.MaxHp;
-            percent.Should().BeInRange(25, 40, $"health potion against the max HP of band {band.Number}");
+            int potions = (BandNormalDamage(band) + heal - 1) / heal;
+            potions.Should().BeInRange(2, 6, $"a full clear of band {band.Number} takes {BandNormalDamage(band)} damage");
         }
+    }
+
+    [Fact]
+    public void HealthPotion_CostsSlimeGelThatTheBandsSlimesSupply()
+    {
+        // Two slime gel and a fiber make one potion. The band's slimes must supply the gel for the potions its clear needs.
+        int heal = CombatRules.PotionRestore(ItemCatalog.HealthPotion).Hp;
+        foreach (Band band in s_bands)
+        {
+            int potions = (BandNormalDamage(band) + heal - 1) / heal;
+            int gelNeeded = potions * 2;
+            int slimeKills = NormalKillsOfSpecies(band, MonsterKind.GreenSlime, MonsterKind.FrostSlime, MonsterKind.MagmaSlime);
+            slimeKills.Should().BeGreaterThanOrEqualTo(gelNeeded, $"band {band.Number} slimes must supply the gel for {potions} potions");
+        }
+    }
+
+    private static int NormalKillsOfSpecies(Band band, params MonsterKind[] kinds)
+    {
+        int count = 0;
+        for (int floor = band.FirstFloor; floor <= band.LastFloor; floor++)
+        {
+            int slots = Math.Clamp(3 + (floor / 8), 3, 8);
+            for (int slot = 0; slot < slots; slot++)
+            {
+                MonsterKind kind = MonsterSpawnPlanner.SpeciesForMineFloor(floor, slot);
+                if (!MonsterSpawnPlanner.IsBoss(kind) && kinds.Contains(kind))
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 
     [Fact]
@@ -220,19 +277,84 @@ public sealed class CombatBalanceTests
         }
     }
 
-    [Theory]
-    [InlineData(1, 4, 10)]
-    [InlineData(2, 4, 12)]
-    [InlineData(3, 6, 12)]
-    [InlineData(4, 10, 20)]
-    public void NormalMonsterDrops_MeanSellValueStaysInItsBandsRange(int band, int minCoins, int maxCoins)
+    /// <summary>
+    /// Expected sell value of one full clear of a band: each normal kill's primary drop, its rare drop (half the time, or always from an elite)
+    /// and an elite's treasure gem (35% of kills), plus the boss's primary drop and its rare drop half the time.
+    /// </summary>
+    private static double BandDropValue(Band band)
     {
-        Band reference = s_bands[band - 1];
-        List<int> values = NormalMonstersOf(reference)
-            .Select(def => ItemCatalog.TryGet(def.PrimaryDropItemId, out ItemDefinition? item) ? item.SellPrice : 0)
-            .ToList();
-        double mean = values.Average();
-        mean.Should().BeInRange(minCoins, maxCoins, $"band {band} primary drops sell for {string.Join(", ", values)}");
+        const double rareChanceNormal = 0.5;
+        const double elitePercent = MonsterSpawnPlanner.EliteChancePercent / 100.0;
+        double rareExpectedPerNormalKill = ((1 - elitePercent) * rareChanceNormal) + elitePercent;
+        int gemValue = SellPriceOf(ItemCatalog.TreasureGem);
+
+        double total = 0;
+        for (int floor = band.FirstFloor; floor <= band.LastFloor; floor++)
+        {
+            int count = Math.Clamp(3 + (floor / 8), 3, 8);
+            for (int slot = 0; slot < count; slot++)
+            {
+                MonsterKind kind = MonsterSpawnPlanner.SpeciesForMineFloor(floor, slot);
+                MonsterCatalog.TryGet(kind, out MonsterDefinition? def).Should().BeTrue();
+                if (MonsterSpawnPlanner.IsBoss(kind))
+                {
+                    total += SellPriceOf(def!.PrimaryDropItemId) + (0.5 * SellPriceOf(def.RareDropItemId));
+                    continue;
+                }
+
+                total += SellPriceOf(def!.PrimaryDropItemId) + (rareExpectedPerNormalKill * SellPriceOf(def.RareDropItemId)) + (elitePercent * gemValue);
+            }
+        }
+
+        return total;
+    }
+
+    private static int SellPriceOf(int itemId)
+    {
+        ItemCatalog.TryGet(itemId, out ItemDefinition? item).Should().BeTrue();
+        return item!.SellPrice;
+    }
+
+    [Theory]
+    [InlineData(1, 100, 135)]
+    [InlineData(2, 150, 200)]
+    [InlineData(3, 600, 800)]
+    public void BandClear_PaysAboutTheBandsDropValueTarget(int band, int minCoins, int maxCoins)
+    {
+        // Bands 1 and 2 pay a quarter to a third of the next band's gear: iron greaves (400) and iron chestplate (600).
+        // Band 3's value is locked on its own, since the gear it leads to is the boss crown and that is a drop too.
+        double value = BandDropValue(s_bands[band - 1]);
+        value.Should().BeInRange(minCoins, maxCoins, $"a full clear of band {band} pays {value:F0} coins");
+    }
+
+    [Fact]
+    public void BandClear_OfBandOne_PaysAQuarterToAThirdOfBandTwoGear()
+    {
+        int greaves = SellPriceOf(ItemCatalog.IronGreaves);
+        double value = BandDropValue(s_bands[0]);
+        (value * 4).Should().BeGreaterThanOrEqualTo(greaves, "a band one clear pays at most a third of band two gear");
+        (value * 3).Should().BeLessThanOrEqualTo(greaves, "a band one clear pays at least a quarter of band two gear");
+    }
+
+    [Fact]
+    public void BandClear_OfBandTwo_PaysAQuarterToAThirdOfBandThreeGear()
+    {
+        int chestplate = SellPriceOf(ItemCatalog.IronChestplate);
+        double value = BandDropValue(s_bands[1]);
+        (value * 4).Should().BeGreaterThanOrEqualTo(chestplate, "a band two clear pays at most a third of band three gear");
+        (value * 3).Should().BeLessThanOrEqualTo(chestplate, "a band two clear pays at least a quarter of band three gear");
+    }
+
+    [Fact]
+    public void BandClear_RisesWithEveryBand_AndTheLastBandStaysWithinTwiceTheOneBefore()
+    {
+        double[] values = s_bands.Select(BandDropValue).ToArray();
+        for (int i = 1; i < values.Length; i++)
+        {
+            values[i].Should().BeGreaterThan(values[i - 1], $"band {i + 1} pays more than band {i}");
+        }
+
+        values[3].Should().BeLessThanOrEqualTo(2 * values[2], "band 4 pays at most twice band 3");
     }
 
     [Fact]
