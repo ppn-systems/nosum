@@ -82,6 +82,27 @@ public static class ShopRules
             || crop.GrowsIn(calendar.SeasonAt(nowMs));
     }
 
+    /// <summary>
+    /// Tells whether a counter has an item in stock now: the counter's own season rotation (<see cref="ShopOffer.Sold"/>) first, then
+    /// <see cref="IsInSeason(int, GameCalendar, long)"/>. Purchases and the shop page both ask this, so the page never offers what the server refuses.
+    /// </summary>
+    /// <param name="shopId">The counter's shop.</param>
+    /// <param name="itemId">The item.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <returns><see langword="true"/> when the counter sells the item in this season and the item is in season.</returns>
+    public static bool IsInSeason(int shopId, int itemId, GameCalendar calendar, long nowMs)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        if (ShopCatalog.TryGet(shopId, out ShopDefinition? shop) && !shop.IsSoldIn(itemId, calendar.SeasonAt(nowMs)))
+        {
+            return false;
+        }
+
+        return IsInSeason(itemId, calendar, nowMs);
+    }
+
     /// <summary>Tells whether feet are close enough to a shop point.</summary>
     /// <param name="point">The shop point on its map.</param>
     /// <param name="feetX">Feet x, world pixels.</param>

@@ -71,7 +71,7 @@ public sealed class ShopService : IShopService
             }, 0);
         }
 
-        if (!ShopRules.IsInSeason(itemId, _calendar, _time.GetUtcNow().ToUnixTimeMilliseconds()))
+        if (!ShopRules.IsInSeason(shopId, itemId, _calendar, _time.GetUtcNow().ToUnixTimeMilliseconds()))
         {
             return new ShopOutcome(ShopStatus.OutOfSeason, 0);
         }
