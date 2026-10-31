@@ -11,13 +11,13 @@ namespace Nosum.Gameplay.Shops;
 /// <summary>One thing a shop sells: an item at a fixed price in coins per unit. Stock is unlimited.</summary>
 /// <param name="ItemId">The item, from <see cref="ItemCatalog"/>.</param>
 /// <param name="CoinsEach">Coins for one unit.</param>
-/// <param name="Sold">The seasons the counter has the item in stock; <see langword="null"/> for every season (docs/adr/ADR-080 D1).</param>
+/// <param name="Sold">The seasons the counter has the item in stock; <see langword="null"/> for every season (docs/adr/ADR-081 D1).</param>
 public readonly record struct ShopOffer(int ItemId, int CoinsEach, SeasonSet? Sold = null);
 
 /// <summary>
 /// A shop: a stable id (the only shop name that crosses the wire), a stable key (localization entry <c>shop.&lt;key&gt;.name</c>) and
 /// its price list. Where a shop stands is data of the map (<c>MapSpec.Shops</c>), so another shop is one more catalogue entry and
-/// one more map point. Prices are balance data, banded by docs/adr/ADR-080 and docs/design/economy.md.
+/// one more map point. Prices are balance data, banded by docs/adr/ADR-081 and docs/design/economy.md.
 /// </summary>
 public sealed class ShopDefinition
 {
@@ -64,7 +64,7 @@ public sealed class ShopDefinition
     /// <returns><see langword="true"/> when this shop sells the item.</returns>
     public bool TryGetPrice(int itemId, out int coinsEach) => _prices.TryGetValue(itemId, out coinsEach);
 
-    /// <summary>Tells whether this counter has an item in stock in a season: always, unless the offer names its seasons (docs/adr/ADR-080 D1).</summary>
+    /// <summary>Tells whether this counter has an item in stock in a season: always, unless the offer names its seasons (docs/adr/ADR-081 D1).</summary>
     /// <param name="itemId">The item.</param>
     /// <param name="season">The season of the server clock.</param>
     /// <returns><see langword="false"/> only for an offer that is not sold in that season.</returns>
@@ -128,7 +128,7 @@ public static class ShopCatalog
             new(ItemCatalog.ShirtBlue, 60),
             new(ItemCatalog.PantsBlue, 80),
             new(ItemCatalog.PantsKhaki, 80),
-            // The hats rotate with the seasons (docs/adr/ADR-080 D1): straw for the sunny half of the year, a cap for the cold half.
+            // The hats rotate with the seasons (docs/adr/ADR-081 D1): straw for the sunny half of the year, a cap for the cold half.
             new(ItemCatalog.HatStraw, 50, SeasonSet.Spring | SeasonSet.Summer),
             new(ItemCatalog.HatCap, 40, SeasonSet.Fall | SeasonSet.Winter),
         ]),

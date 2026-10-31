@@ -1,6 +1,6 @@
 # Economy balance
 
-**Status:** Accepted with [ADR-080](../adr/ADR-080-economy-balance-targets.md). The numbers below are generated from the catalogs
+**Status:** Accepted with [ADR-081](../adr/ADR-081-economy-balance-targets.md). The numbers below are generated from the catalogs
 and checked by `tests/Nosum.UnitTests/Gameplay/EconomyBalanceTests.cs`; a data change that breaks a band fails the build.
 
 ## The clock and the budget

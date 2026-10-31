@@ -406,7 +406,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
     }
 
     [Theory]
-    [InlineData(ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10)]
+    [InlineData(ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 12)]
     [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 60)]
     public async Task Shop_EachCounterOverTheWire_SellsItsOwnThing(int shopId, int itemId, int price)
     {
