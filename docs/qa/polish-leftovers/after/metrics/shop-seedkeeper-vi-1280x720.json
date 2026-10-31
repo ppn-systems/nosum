@@ -2,23 +2,17 @@
   "state": "shop-seedkeeper",
   "lang": "vi",
   "size": "1280x720",
+  "build": "1bfc39a",
   "u": "3px",
-  "present": {
-    "dialog": true,
-    "body": true,
-    "shopList": true,
-    "itemGrid": false,
-    "pager": true
-  },
   "dialog": {
     "x": 310,
     "y": 96,
     "w": 660,
-    "h": 598,
+    "h": 490,
     "left": 310,
     "right": 970,
     "top": 96,
-    "bottom": 694,
+    "bottom": 586,
     "className": "trade-dialog trade-dialog-l",
     "computedMaxHeight": "none"
   },
@@ -26,40 +20,41 @@
     "x": 334,
     "y": 174,
     "w": 612,
-    "h": 499,
+    "h": 391,
     "left": 334,
     "right": 946,
     "top": 174,
-    "bottom": 673,
-    "clientHeight": 499,
-    "scrollHeight": 499
+    "bottom": 565,
+    "clientHeight": 391,
+    "scrollHeight": 391,
+    "overflowY": "visible"
   },
   "shopList": {
     "x": 334,
-    "y": 289,
+    "y": 235,
     "w": 609,
     "h": 234,
     "left": 334,
     "right": 943,
-    "top": 289,
-    "bottom": 523,
-    "childCount": 4,
+    "top": 235,
+    "bottom": 469,
+    "clientHeight": 234,
+    "scrollHeight": 234,
+    "overflowY": "visible",
+    "rowCount": 8,
+    "visibleRowCount": 8,
     "rowHeights": [
       54,
       54,
       54,
+      54,
+      54,
+      54,
+      54,
       54
-    ]
+    ],
+    "columns": 2
   },
-  "pager": {
-    "x": 334,
-    "y": 535,
-    "w": 609,
-    "h": 42,
-    "left": 334,
-    "right": 943,
-    "top": 535,
-    "bottom": 577
-  },
-  "itemGrid": null
+  "pagerText": null,
+  "pager": null
 }
