@@ -63,3 +63,8 @@
 .input-name {
     min-width: calc(var(--u) * 48);
 }
+
+/* The Craft buttons keep the panel's padding below them, so they never sit on the frame. */
+.craft-actions {
+    margin-bottom: calc(var(--u) * 3);
+}
