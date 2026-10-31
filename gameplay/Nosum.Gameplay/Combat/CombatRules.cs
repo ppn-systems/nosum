@@ -160,12 +160,12 @@ public static class CombatRules
     /// <returns>Defense rating.</returns>
     public static int ArmorDefense(int itemId) => itemId switch
     {
-        ItemCatalog.BossCrown => 8,
-        ItemCatalog.IronChestplate => 7,
-        ItemCatalog.IronGreaves => 5,
-        ItemCatalog.IronHelmet => 4,
-        ItemCatalog.RangerTunic => 4,
-        ItemCatalog.LeatherArmor => 3,
+        ItemCatalog.BossCrown => 6,
+        ItemCatalog.IronChestplate => 5,
+        ItemCatalog.IronGreaves => 3,
+        ItemCatalog.IronHelmet => 2,
+        ItemCatalog.RangerTunic => 3,
+        ItemCatalog.LeatherArmor => 2,
         _ => 0,
     };
 
@@ -279,7 +279,7 @@ public static class CombatRules
     /// <returns>A tuple of <c>(HpRestore, MpRestore)</c>.</returns>
     public static (int Hp, int Mp) PotionRestore(int itemId) => itemId switch
     {
-        ItemCatalog.HealthPotion => (50, 0),
+        ItemCatalog.HealthPotion => (45, 0),
         ItemCatalog.ManaPotion => (0, 35),
         ItemCatalog.Elixir => (100, 50),
         ItemCatalog.ArcaneGrimoire => (20, 80),
