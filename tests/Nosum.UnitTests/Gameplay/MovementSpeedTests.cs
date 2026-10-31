@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>The one movement multiplier (docs/adr/ADR-081): footwear × buff × running, clamped; boots, the tonic and the running saving.</summary>
+/// <summary>The one movement multiplier (docs/adr/ADR-084): footwear × buff × running, clamped; boots, the tonic and the running saving.</summary>
 public sealed class MovementSpeedTests
 {
     // 20 x 10 tiles of 16 px, open ground.

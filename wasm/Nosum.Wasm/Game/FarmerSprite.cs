@@ -100,7 +100,7 @@ internal static partial class FarmerSprite
 
         if (look.Boots > 0)
         {
-            // boots.png: 96 x 384, four tier bands of 96 px (tier - 1), each 3 facing rows of 32 px and 6 walk columns of 16 px (docs/adr/ADR-082).
+            // boots.png: 96 x 384, four tier bands of 96 px (tier - 1), each 3 facing rows of 32 px and 6 walk columns of 16 px (docs/adr/ADR-084).
             batch.Add(textures.Boots, frameX, ((look.Boots - 1) * BootsBandHeight) + frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
         }
 
@@ -336,7 +336,7 @@ internal static partial class FarmerSprite
 /// <param name="Tools">tools.png for held tools.</param>
 /// <param name="Weapons">weapons.png for held weapons and scythe.</param>
 /// <param name="Items">items.png for held seeds, produce, and materials.</param>
-/// <param name="Boots">boots.png, the footwear layer (docs/adr/ADR-082).</param>
+/// <param name="Boots">boots.png, the footwear layer (docs/adr/ADR-084).</param>
 internal readonly record struct FarmerTextures(
     int Body,
     int Pants,

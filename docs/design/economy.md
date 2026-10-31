@@ -118,7 +118,7 @@ Energy per game day: 270, unchanged. A tool use costs 3 at the basic tier, 2 wit
 | Crafted food | fish stew sells 120; ingredients now cost about 96 at the bin | Fine: a small margin |
 | Dungeon crafts | arcane grimoire 650, heart crystal 750 | Not changed here. Their ingredients are monster drops with no bin price, so they cannot be compared yet; the combat balance pass owns them |
 | Harvest bonus | 20 % chance of a second yield | Not changed: it is a constant, and the seasons above assume a base yield |
-| Footwear and the speed tonic (ADR-082) | Tailor: leather boots 150 (sell 60), traveler boots 380 (sell 150). Crafted: swift boots 300, winged boots 900, speed tonic 40 (sell prices) | Set against the clothing shop and the armour, not the energy bands: boots and the tonic cost no energy to use, so a coin-per-energy band does not apply. The entry pairs cost about two shirts and about two and a half pairs of pants; the crafted pairs are a combat reward, like the armour, and the tonic is a cheap draught for a long walk |
+| Footwear and the speed tonic (ADR-084) | Tailor: leather boots 150 (sell 60), traveler boots 380 (sell 150). Crafted: swift boots 300, winged boots 900, speed tonic 40 (sell prices) | Set against the clothing shop and the armour, not the energy bands: boots and the tonic cost no energy to use, so a coin-per-energy band does not apply. The entry pairs cost about two shirts and about two and a half pairs of pants; the crafted pairs are a combat reward, like the armour, and the tonic is a cheap draught for a long walk |
 
 ## Open decisions for the owner
 

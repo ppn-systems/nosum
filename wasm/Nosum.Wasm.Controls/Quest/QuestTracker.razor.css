@@ -1,16 +1,6 @@
+/* The fold header is a secondary text button, full width; it keeps its face and states from the shared control. */
 .quest-wrap ::deep .quest-head {
-    display: flex;
-    align-items: center;
-    gap: calc(var(--u) * 2);
     width: 100%;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--nosum-heading);
-    font: inherit;
-    text-align: left;
-    cursor: var(--nosum-cursor-pointer, pointer);
 }
 
 .quest-wrap ::deep .quest-head .game-button-label {
@@ -18,10 +8,6 @@
     align-items: center;
     gap: calc(var(--u) * 2);
     width: 100%;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
 }
 
 .quest-wrap ::deep .quest-head .game-icon.quest-scroll {
@@ -40,10 +26,6 @@
 .quest-title {
     min-width: 0;
     color: var(--nosum-heading);
-}
-
-.quest-wrap ::deep .quest-head:hover .quest-title {
-    color: var(--nosum-wood-dark);
 }
 
 .objectives {

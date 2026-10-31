@@ -264,7 +264,7 @@ public sealed class LookService : ILookService
         return LookStatus.Ok;
     }
 
-    // The footwear a player's presence walks with (docs/adr/ADR-081 D3): the validator reads the combined multiplier from presence.
+    // The footwear a player's presence walks with (docs/adr/ADR-084 D3): the validator reads the combined multiplier from presence.
     private void SyncFootwear(Guid accountId, PlayerLook look)
     {
         if (_presence.TryGetPlayer(accountId, out PlayerPresence? presence))

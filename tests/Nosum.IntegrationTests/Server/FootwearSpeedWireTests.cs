@@ -27,7 +27,7 @@ using Xunit;
 namespace Nosum.IntegrationTests.Server;
 
 /// <summary>
-/// Walking speed over real Nalix WebSocket sessions (docs/adr/ADR-081): boots worn on the feet raise the pace the server accepts, and a claim
+/// Walking speed over real Nalix WebSocket sessions (docs/adr/ADR-084): boots worn on the feet raise the pace the server accepts, and a claim
 /// above that pace is refused with a correction. The validator reads the server's real clock, so the walk is paced in real time and each
 /// claim takes at least as long as it covers (the server then never refills less than the claim spends).
 /// </summary>

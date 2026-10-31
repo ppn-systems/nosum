@@ -375,7 +375,7 @@ public static partial class ItemCatalog
     /// <summary>A radiant crimson vitality crystal that restores HP, MP, and grants enhanced Regeneration (docs/adr/ADR-065).</summary>
     public const int HeartCrystal = 714;
 
-    /// <summary>The speed tonic: a Swiftness draught for three game hours (docs/adr/ADR-081 D4).</summary>
+    /// <summary>The speed tonic: a Swiftness draught for three game hours (docs/adr/ADR-084 D4).</summary>
     public const int SpeedTonic = 715;
 
     /// <summary>An egg, a chicken's produce (docs/adr/ADR-028 D3; animal produce is ids 900-949).</summary>
@@ -465,6 +465,9 @@ public static partial class ItemCatalog
     /// <summary>An ancient magical scroll dropped by the Cave Broodmother.</summary>
     public const int AncientScroll = 519;
 
+    /// <summary>The Rename Scroll: one nickname change uses one up (docs/adr/ADR-009 amendments). Sold by the tailor; no sell price.</summary>
+    public const int RenameScroll = 525;
+
     /// <summary>A golden skeleton key dropped by the Goblin Chieftain.</summary>
     public const int GoldenKey = 520;
 
@@ -519,16 +522,16 @@ public static partial class ItemCatalog
     /// <summary>A forged iron battle helmet.</summary>
     public const int IronHelmet = 442;
 
-    /// <summary>Leather boots, the tailor's entry-level pair: +5% walking speed (docs/adr/ADR-081 D1).</summary>
+    /// <summary>Leather boots, the tailor's entry-level pair: +5% walking speed (docs/adr/ADR-084 D1).</summary>
     public const int LeatherBoots = 408;
 
-    /// <summary>Traveler boots: +10% walking speed (docs/adr/ADR-081 D1).</summary>
+    /// <summary>Traveler boots: +10% walking speed (docs/adr/ADR-084 D1).</summary>
     public const int TravelerBoots = 409;
 
-    /// <summary>Swift boots: +15% walking speed and cheaper running energy (docs/adr/ADR-081 D1, D5).</summary>
+    /// <summary>Swift boots: +15% walking speed and cheaper running energy (docs/adr/ADR-084 D1, D5).</summary>
     public const int SwiftBoots = 410;
 
-    /// <summary>Winged boots, the late-game pair: +20% walking speed and the largest running saving (docs/adr/ADR-081 D1, D5).</summary>
+    /// <summary>Winged boots, the late-game pair: +20% walking speed and the largest running saving (docs/adr/ADR-084 D1, D5).</summary>
     public const int WingedBoots = 411;
 
     /// <summary>Largest stack of seeds and produce.</summary>
@@ -648,6 +651,8 @@ public static partial class ItemCatalog
         new(TreasureGem, "treasure_gem", ItemKind.Resource, DefaultStack) { SellPrice = 1, ObjectIcon = 103 },
         new(BossCrown, "boss_crown", ItemKind.Clothing, 1, wear: WearSlot.Hat) { SellPrice = 500, ObjectIcon = 113 },
         new(AncientScroll, "ancient_scroll", ItemKind.Resource, DefaultStack) { SellPrice = 35, ObjectIcon = 106 },
+        // The Rename Scroll reuses the ancient scroll's sprite: it is a paper, not a new picture (docs/adr/ADR-009 amendments).
+        new(RenameScroll, "rename_scroll", ItemKind.Resource, DefaultStack) { ObjectIcon = 106 },
         new(GoldenKey, "golden_key", ItemKind.Resource, DefaultStack) { SellPrice = 15, ObjectIcon = 114 },
         new(ColossusCore, "colossus_core", ItemKind.Resource, DefaultStack) { SellPrice = 320, ObjectIcon = 115 },
         new(NecromancerSkull, "necromancer_skull", ItemKind.Resource, DefaultStack) { SellPrice = 10, ObjectIcon = 105 },

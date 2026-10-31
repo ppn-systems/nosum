@@ -12,7 +12,7 @@ namespace Nosum.Wasm.Game;
 /// <param name="PantsTint">Pants colour, <c>0xRRGGBBAA</c>.</param>
 /// <param name="SkinTint">Body colour, <c>0xRRGGBBAA</c>.</param>
 /// <param name="Hat">Index into <c>hats.png</c> (12 hats per row), or -1 for no hat.</param>
-/// <param name="Boots">Boots tier 1 to 4 (boots.png band), or 0 for bare feet (docs/adr/ADR-082).</param>
+/// <param name="Boots">Boots tier 1 to 4 (boots.png band), or 0 for bare feet (docs/adr/ADR-084).</param>
 /// <param name="HatTint">Hat colour, <c>0xRRGGBBAA</c>.</param>
 /// <param name="ShirtTint">Shirt colour, <c>0xRRGGBBAA</c>.</param>
 internal readonly record struct FarmerLook(int Hairstyle, int HairTint, int Shirt, int Pants, int PantsTint, int SkinTint = unchecked((int)0xFFFFFFFF), int Hat = -1, int HatTint = unchecked((int)0xFFFFFFFF), int ShirtTint = unchecked((int)0xFFFFFFFF), int Boots = 0);

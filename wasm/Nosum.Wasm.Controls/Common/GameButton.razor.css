@@ -1,12 +1,14 @@
-/* The shared button: the Pixel UI pack's chunky block (cursors.png: a 3 u outline and bevel, a flat face, a 5 u foot that holds the shadow). Primary is
-   wood, plain and tab are stone, the active tab is gold, danger is red. Hover lightens the face and adds a thin highlight border; pressed swaps in the
-   frame without the shadow and sinks the label 2 u. A disabled button is greyed and darker, with its label still readable (issue #207). */
+/* The shared text button (docs/design/ui-standard.md section 8). Four kinds: primary is wood, secondary and tab are stone (tab is the active tab bar item),
+   danger is red. Every text button is --nosum-button-h tall with the same padding, whatever its kind. The active state (gold) is the same for every kind.
+   Hover lightens the face and adds a thin highlight border; pressed swaps in the frame without its shadow and sinks the label; disabled is greyed and darker
+   with the label still readable (issue #207); focus-visible draws the focus ring. The chunky block is the Pixel UI pack's (cursors.png: a 3 u outline and
+   bevel, a flat face, a 5 u foot that holds the shadow). */
 .game-button {
     --button-edge: calc(var(--u) * 3);
     --button-foot: calc(var(--u) * 5);
     --button-frame: var(--nosum-img-button);
     --button-frame-down: var(--nosum-img-button-down);
-    --button-state: brightness(1);
+    --button-state: none;
 
     position: relative;
     isolation: isolate;
@@ -14,13 +16,14 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    height: var(--nosum-button-h);
     margin: 0;
-    padding: calc(var(--button-edge) - var(--u)) calc(var(--button-edge) + var(--u) * 2) calc(var(--button-foot) - var(--u));
+    padding: var(--nosum-button-pad-top) var(--nosum-button-pad-x) var(--nosum-button-pad-bottom);
     border: 0;
     background: none;
     color: var(--nosum-ink-on-dark);
     font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
-    text-shadow: var(--tp) var(--tp) 0 rgba(30, 16, 10, 0.75);
+    text-shadow: var(--tp) var(--tp) 0 var(--nosum-button-shadow);
     white-space: nowrap;
     cursor: var(--nosum-cursor-pointer, pointer);
     user-select: none;
@@ -45,21 +48,22 @@
     gap: calc(var(--u) * 2);
 }
 
+/* Hover: the face lightens, and a thin highlight sits just inside the bevel. */
 .game-button:hover:not(:disabled) {
-    --button-state: brightness(1.12);
+    --button-state: var(--nosum-button-hover);
 }
 
-/* The thin highlight border of a hovered button, just inside the outline's bevel. */
 .game-button:hover:not(:disabled)::after {
     content: "";
     position: absolute;
-    inset: calc(var(--u) * 1);
-    border: var(--u) solid rgba(255, 250, 230, 0.75);
+    inset: var(--u);
+    border: var(--u) solid var(--nosum-button-highlight);
     pointer-events: none;
 }
 
+/* Pressed: the frame without its shadow, the face darker, the label sinks. */
 .game-button:active:not(:disabled) {
-    --button-state: brightness(0.94);
+    --button-state: var(--nosum-button-pressed);
 }
 
 .game-button:active:not(:disabled)::before {
@@ -71,14 +75,13 @@
 }
 
 .game-button:active:not(:disabled) .game-button-label {
-    transform: translateY(calc(var(--u) * 2));
+    transform: translateY(var(--nosum-button-sink));
 }
 
-/* Disabled keeps the label readable (issue #207): the face is greyed and darkened, not lightened, so the cream label keeps its shadow and contrast. */
+/* Disabled: greyed and darker, the label keeps its colour and shadow (issue #207). */
 .game-button:disabled {
-    --button-state: saturate(0.4) brightness(0.8);
+    --button-state: var(--nosum-button-disabled);
 
-    color: var(--nosum-ink-on-dark);
     cursor: default;
 }
 
@@ -87,23 +90,20 @@
     outline-offset: var(--u);
 }
 
+/* The kinds. Frames only: size, padding and states are the same for all of them. */
 .game-button.danger {
     --button-frame: var(--nosum-img-button-danger);
     --button-frame-down: var(--nosum-img-button-danger-down);
 }
 
-.game-button.plain,
+.game-button.secondary,
 .game-button.tab {
     --button-frame: var(--nosum-img-button-plain);
     --button-frame-down: var(--nosum-img-button-plain-down);
 }
 
-.game-button.tab {
-    padding-inline: calc(var(--button-edge) + var(--u));
-}
-
-.game-button.plain.active,
-.game-button.tab.active {
+/* Active (tab bar item, or a toggle): the gold face, darker ink. Declared after the kinds so it wins for every one of them. */
+.game-button.active {
     --button-frame: var(--nosum-img-button-hot);
     --button-frame-down: var(--nosum-img-button-hot-down);
 
@@ -111,55 +111,6 @@
     text-shadow: var(--tp) var(--tp) 0 rgba(255, 244, 214, 0.55);
 }
 
-.game-button.plain.active:disabled,
-.game-button.tab.active:disabled {
+.game-button.active:disabled {
     color: var(--nosum-ink);
-}
-
-.game-button.link {
-    padding: var(--u) calc(var(--u) * 2);
-    color: var(--nosum-ink);
-    text-decoration: underline;
-    text-underline-offset: calc(var(--u) * 1);
-    text-shadow: none;
-}
-
-.game-button.link::before,
-.game-button.link::after {
-    display: none;
-}
-
-.game-button.link:hover:not(:disabled) {
-    color: var(--nosum-danger);
-}
-
-.game-button.link:disabled {
-    color: var(--nosum-ink-faint);
-    opacity: 0.45;
-    filter: saturate(0.3);
-}
-
-.game-button.chip {
-    padding: 0 calc(var(--u) * 1);
-    color: var(--nosum-ink);
-    text-shadow: none;
-}
-
-.game-button.chip::before,
-.game-button.chip::after {
-    display: none;
-}
-
-.game-button.chip:hover:not(:disabled) {
-    color: var(--nosum-danger);
-}
-
-.game-button.chip:disabled {
-    color: var(--nosum-ink-faint);
-    opacity: 0.45;
-    filter: saturate(0.3);
-}
-
-.game-button.chip:disabled ::deep .game-key {
-    opacity: 0.45;
 }

@@ -14,7 +14,7 @@ Implemented: `Movement/WalkGrid` (`FromMap`: `Buildings` tiles block unless `Pas
 `Passable=F` ground on `Back` blocks; `BlockFootprints` adds building footprints) and
 `Movement/Walker` (fixed-step walking with a feet footprint, sliding along walls). `Movement/MovementSpeed` is the one
 combined speed multiplier (footwear × speed buff × running, clamped to 1.5) that the validator and the walker both use, and
-`Movement/FootwearRules` gives the running energy the boots save ([ADR-081](../docs/adr/ADR-081-footwear-boots-and-the-movement-speed-multiplier.md)).
+`Movement/FootwearRules` gives the running energy the boots save ([ADR-084](../docs/adr/ADR-084-footwear-boots-and-the-movement-speed-multiplier.md)).
 
 World maps (`Maps/`, [ADR-012](../docs/adr/ADR-012-maps-and-warps.md)): `GameMaps` is the catalogue of
 hosted maps (`MapSpec`: id, `.tmx` file name, spawn tile, building props, opened doorsteps, extra exits);

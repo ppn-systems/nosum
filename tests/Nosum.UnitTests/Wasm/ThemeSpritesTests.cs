@@ -90,19 +90,20 @@ public sealed partial class ThemeSpritesTests
     }
 
     [Fact]
-    public void KeyStrips_UseGameButtonChipVariant_AndHotbarSkillsAreCompactKeyCapsWithoutTextClutter()
+    public void KeyStrips_UseSecondaryButtons_AndHotbarSkillsAreCompactKeyCapsWithoutTextClutter()
     {
         string root = RepositoryRoot();
         string hotbar = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor"));
         string hotbarCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor.css"));
         string placement = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Placement", "PlacementPanel.razor"));
 
-        hotbar.Should().Contain("Variant=\"chip\"");
+        hotbar.Should().Contain("Variant=\"secondary\"");
+        hotbar.Should().NotContain("Variant=\"chip\"");
         hotbar.Should().NotContain("Variant=\"plain\"");
         hotbar.Should().Contain("class=\"hotbar-skills\"");
         hotbar.Should().NotContain("<span>@Progress.WhirlwindLabel</span>");
         hotbarCss.Should().Contain(".hotbar-skills");
-        placement.Should().Contain("Variant=\"chip\"");
+        placement.Should().Contain("<span class=\"chip\">");
         placement.Should().NotContain("<button");
     }
 

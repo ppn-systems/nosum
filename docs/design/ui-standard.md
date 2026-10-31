@@ -42,6 +42,32 @@ coordinates outside its region, and nothing floats over the world except the wor
   overlapping.
 - The minimap is one fixed-size card (same frame as the calendar bar). It never sits in the bottom row.
 
+### 2.1 Who opens what (decision table)
+
+Every panel has one door, chosen here. A panel that fits a merchant opens from that merchant's dialog box (`NpcActions`, ADR-081); the keyboard
+shortcut stays for everything. The column is for panels a player opens from anywhere.
+
+| Panel | Door | Why |
+| :-- | :-- | :-- |
+| Inventory | Column, `I` | Used all the time. |
+| Map | Column, minimap click, `Tab` | One click (owner decision). |
+| Journal | Column, `J` | One click (owner decision). |
+| Skills | Column | Progress is checked often. |
+| Crafting | Column | No merchant; made anywhere. |
+| Trade | Column | Starts from another player, not a counter. |
+| Friends | Column | Social, started from anywhere. |
+| Mail | Top row, unread badge | One click (ADR-043 D4). |
+| Settings | Top row, gear | One click (ADR-043 D4). |
+| Wardrobe | Tailor's dialog box, `C` | Clothes are bought and worn at the tailor. Not in the column or the menu. |
+| Backpack | Tailor's dialog box | Bought at the tailor's counter for coins. |
+| Co-op | Board keeper's dialog box, `G` | Co-ops are formed around the town's shared goals on the board (owner decision). Not in the column or the menu. |
+| Market | Trader's dialog box | A counter (ADR-034). |
+| Goals | Board keeper's dialog box | A counter (ADR-030). |
+| Pet | Game menu tile | A companion of the own farm, not a counter. |
+| Visitors, Profile, Help | Game menu tile | Rarely used. |
+
+The column holds seven buttons and the Menu button (eight in total, the most section 2 allows). Adding a panel means adding a row here first.
+
 ## 3. Windows (panels)
 
 Every panel is a `GamePanel` opened in the center region:
@@ -99,3 +125,44 @@ before and after. It is merged only if every answer is yes:
 8. Item icons are whole and centered.
 9. Spacing uses `--u` multiples and the gap tokens only.
 10. Vietnamese and English both fit (check the longer of the two).
+
+## 8. Buttons
+
+Every button is one of five kinds. A new button uses one of them; a new kind, or a per-screen override of a kind's size, face or state, needs this section changed first (and the checklist in section 7 run again).
+
+| Kind | Control | Face | Use it for |
+| :-- | :-- | :-- | :-- |
+| `primary` | `GameButton` (the default) | wood | The one main action of a panel, dialog or form: Save, Confirm, Buy, Collect, Place, Sell. |
+| `secondary` | `GameButton Variant="secondary"` | stone | Any other action: Cancel, Search, Sort, Decline, pager arrows, a toggle (it shows gold while on). |
+| `danger` | `GameButton Variant="danger"` | red | An action that removes, ends or gives up something: Remove, Block, Leave, Kick, Sign out, Cancel a trade. |
+| `tab` | `GameButton Variant="tab"` | stone, gold when active | One item of a tab bar or a choice of one value out of several (language, UI scale, pet kind). Exactly one is active. |
+| `icon` | `GameIconButton` | the theme sprite, square | A sprite-only button: the HUD panel buttons, the settings gear, mail, emote, minimap. Its `Tip` is the tooltip and the accessible name. |
+
+**Size and padding (tokens in `nosum-theme.css`).** Every text button (the four text kinds) is the same height and padding; the kind changes the face only.
+
+| Token | Value | Use |
+| :-- | :-- | :-- |
+| `--nosum-button-h` | `--u` × 14 | The height of every text button. It is also the touch minimum (section 6). |
+| `--nosum-button-pad-top` / `-bottom` | `--u` × 2 / × 4 | Vertical padding; the bottom is the 5 u foot of the frame, so the label sits over the face. |
+| `--nosum-button-pad-x` | `--u` × 5 | Horizontal padding. The width comes from the label. |
+| `--nosum-button-icon` | `--u` × 16 | The side of an `icon` button. |
+| `--nosum-button-sink` | `--u` × 2 | How far the label or sprite sinks while pressed. |
+
+A label is one line and never wraps (`white-space: nowrap`). A label that does not fit is shortened in its `.resx`, not wrapped.
+
+**States.** Every kind implements the same states, from the shared CSS only; a panel adds none of its own.
+
+| State | Look (every kind, unless the row says otherwise) | Token |
+| :-- | :-- | :-- |
+| Default | The kind's face and the cream label with its shadow. | the frame sprite |
+| Hover (enabled) | The face lightens and a thin highlight sits just inside the bevel. The icon lightens its art and gets the same highlight. | `--nosum-button-hover`, `--nosum-button-highlight` |
+| Pressed | The frame without its shadow; the face darkens and the label (the sprite, for `icon`) sinks 2 u. | `--nosum-button-pressed`, `--nosum-button-sink` |
+| Disabled | Greyed and darker. The label keeps its colour and shadow, so it stays readable (issue #207). No hover and no press. | `--nosum-button-disabled` |
+| Focus-visible | A focus ring of 1 u, 1 u outside the button. Reached with Tab; in the game the canvas keeps the keyboard (section 3). | `--nosum-focus` |
+| Active | Gold face and dark ink. Allowed on every text kind; used by `tab` and by toggles. `icon` shows a gold outline. | the gold frame sprite |
+
+**Icon buttons.** A button with no words that shows a theme sprite is a `GameIconButton`: one size (`--nosum-button-icon`), one sprite, the same states as the table above. A text button never draws its own sprite as its face. A small icon inside a text button (a pager arrow, a `GameIcon`) is fine.
+
+**Not buttons of this kind.** Some controls are clickable but are not one of the five kinds and keep their own look: the colour `GameSwatch`, the inventory `ItemSlotButton`, the window close control in `GamePanel`, the minimap, and the menu tiles of `GameMenuTiles`. A new clickable control of that sort is a new control and goes through this section first.
+
+**Text and keyboard.** Labels come from `.resx` (section 1). A button that is not reached by Tab in the game (`tabindex="-1"`) is a deliberate choice of the screen, not a style.

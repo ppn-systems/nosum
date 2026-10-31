@@ -109,6 +109,20 @@
     --nosum-menu-h: calc(var(--u) * 186);
     --nosum-menu-min-h: calc(var(--u) * 64);
     --nosum-hud-top-h: calc(var(--u) * 28 + clamp(0px, calc((var(--u) * 200 - 100vw) * 999), calc(var(--u) * 28)));
+
+    /* Buttons (docs/design/ui-standard.md section 8). Every text button is the same height and padding; a sprite button is one square.
+       The state values are the filters every kind uses, so hover, press and disabled look the same on every kind. */
+    --nosum-button-h: calc(var(--u) * 14);
+    --nosum-button-pad-top: calc(var(--u) * 2);
+    --nosum-button-pad-bottom: calc(var(--u) * 4);
+    --nosum-button-pad-x: calc(var(--u) * 5);
+    --nosum-button-icon: calc(var(--u) * 16);
+    --nosum-button-sink: calc(var(--u) * 2);
+    --nosum-button-hover: brightness(1.12);
+    --nosum-button-pressed: brightness(0.94);
+    --nosum-button-disabled: saturate(0.4) brightness(0.8);
+    --nosum-button-highlight: rgba(255, 250, 230, 0.75);
+    --nosum-button-shadow: rgba(30, 16, 10, 0.75);
 }
 
 /* The pager's arrows: 8 u wide, not the theme's 12 u sprite (Pager.razor). Global, because the pager's own scoped CSS does not reach the icon. */

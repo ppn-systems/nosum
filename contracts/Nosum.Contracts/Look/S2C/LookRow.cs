@@ -44,6 +44,6 @@ public sealed partial class LookRow
     [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(9)] public string PetName { get; set; } = string.Empty;
 
-    /// <summary>Worn boots item id; zero for bare feet (docs/adr/ADR-081). Appended in protocol version 24.</summary>
+    /// <summary>Worn boots item id; zero for bare feet (docs/adr/ADR-084). Appended in protocol version 24.</summary>
     [SerializeOrder(10)] public int FeetItemId { get; set; }
 }

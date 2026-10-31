@@ -173,6 +173,8 @@ internal static partial class Program
         // Coins, market, looks, trade, co-ops and ground-item pickups (docs/adr/ADR-013, ADR-014, ADR-021) all move items through the one transfer service; a quest's reward is one too.
         TransferService transfers = new(inventory, clock, notifier);
         InstanceManager.Instance.Register<ITransferService>(transfers);
+        // The nickname change takes a Rename Scroll through the transfer service (docs/adr/ADR-009 amendments); the account service is registered in HostServices.
+        (InstanceManager.Instance.GetExistingInstance<IAccountService>() as AccountService ?? throw new InvalidOperationException("The account service is not registered.")).AttachTransfers(transfers);
         QuestService quests = new(unitOfWork, clock, notifier, transfers);
         // The first finished quest invites a guest to register.
         InstanceManager.Instance.Register(new RegistrationPromptOnQuestCompleted(quests, prompts, notifier));
@@ -278,7 +280,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IBuildingService>(buildings);
         placeables.Attach(buildings);
         // The pet companion (docs/adr/ADR-075 D3-D5): its kind and name travel in every look, so visitors see it.
-        PetService pets = new(unitOfWork, progress, calendar, clock, quests);
+        PetService pets = new(unitOfWork, progress, calendar, clock, presence, maps, transfers, quests);
         InstanceManager.Instance.Register<IPetService>(pets);
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock, pets);
         InstanceManager.Instance.Register<ILookService>(looks);
@@ -321,6 +323,8 @@ internal static partial class Program
         InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar, mail, quests));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock, quests));
         InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock, quests));
+        // The tailor's backpack upgrades (docs/adr/ADR-081): the coins and the bag's new size move in one transaction.
+        InstanceManager.Instance.Register<IBackpackService>(new BackpackService(transfers, inventory, presence, maps));
 
         // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.
         InstanceManager.Instance.Register<ICommunityUnlocks>(communityUnlocks);

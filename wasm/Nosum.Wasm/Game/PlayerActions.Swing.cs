@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nosum.Core;
 using Nosum.Contracts.Farm;
 using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Items;
@@ -45,6 +46,8 @@ internal sealed partial class PlayerActions
     private int _firedFloatX;
     private int _firedFloatY;
     private int _nextFloat;
+    private Facing? _turnTo;
+    private bool _outdoors = true;
 
     /// <summary>Gets whether the farmer is exhausted: low energy makes every swing slower and shows a sweat bubble (docs/adr/ADR-074 D4).</summary>
     public bool Exhausted => _progress is { MaxEnergy: > 0 } progress && ToolPacing.IsExhausted(progress.Energy, progress.MaxEnergy);
@@ -52,6 +55,29 @@ internal sealed partial class PlayerActions
     /// <summary>Gets whether a swing holds the farmer in place at <paramref name="nowSeconds"/>: no walking until the swing is over.</summary>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     public bool SwingLocked(double nowSeconds) => nowSeconds < _swingStartSeconds + _swingSeconds;
+
+    /// <summary>Tells the actions whether the map is outdoors, where rain waters the soil and the crops (docs/adr/ADR-027 D2).</summary>
+    /// <param name="outdoors">Whether the map is outdoors.</param>
+    public void SetOutdoors(bool outdoors) => _outdoors = outdoors;
+
+    /// <summary>
+    /// Takes the turn a drag asked for (docs/adr/ADR-074 D7): the farmer turns to the tile it works before the swing shows, so the body faces the
+    /// side the swing reaches. The scene applies it once, in the same frame.
+    /// </summary>
+    /// <param name="facing">The facing to turn to.</param>
+    /// <returns><see langword="true"/> when a turn was waiting.</returns>
+    public bool TryTakeTurn(out Facing facing)
+    {
+        if (_turnTo is { } turn)
+        {
+            _turnTo = null;
+            facing = turn;
+            return true;
+        }
+
+        facing = Facing.Down;
+        return false;
+    }
 
     /// <summary>Drops a use that was queued for the hit frame, for example when the farmer leaves the map before it lands.</summary>
     public void CancelQueuedUse() => _useQueued = false;

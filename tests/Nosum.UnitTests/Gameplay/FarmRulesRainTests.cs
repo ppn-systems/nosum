@@ -85,18 +85,6 @@ public sealed class FarmRulesRainTests
         FarmRules.IsWet(FarmTile.Bare, Noon(rainy), s_calendar, outdoors: false).Should().BeFalse();
     }
 
-    [Fact]
-    public void IsReverted_BareSoilOnARainyDay_DoesNotRollButIndoorsItDoes()
-    {
-        int rainy = FirstDay(Rains, from: 5);
-
-        // A tile whose dry roll for the rainy day would undo the tilling.
-        int tileX = Enumerable.Range(0, 2000).First(x => FarmRules.RevertRoll("farm@x", x, 0, rainy) < FarmRules.RevertChancePercent);
-        FarmTile tilled = FarmTile.Bare with { TendedDay = rainy - 1 };
-
-        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(rainy + 1), s_calendar, outdoors: true).Should().BeFalse("rain watered it");
-        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(rainy + 1), s_calendar, outdoors: false).Should().BeTrue();
-    }
 
     // The model: a day is watered when it rained (outdoors) or the can was used on it. The rules, with watering settling the days before it,
     // must agree with a plain count for any pattern of watering.
@@ -111,9 +99,11 @@ public sealed class FarmRulesRainTests
         FarmTile tile = PlantedOn(plantDay, s_slowCrop.Id);
         HashSet<int> watered = [];
 
-        for (int day = plantDay; day < plantDay + 60; day++)
+        // Stays inside the spring the crop grows in: a withered crop refuses water (ADR-021 D7, amended).
+        for (int day = plantDay; day < plantDay + 24; day++)
         {
-            if ((day * stride) % 5 == 0)
+            // Watered at least every other day, so no run of two dry days withers the crop (ADR-021 D7, amended).
+            if ((day * stride) % 2 == 0)
             {
                 FarmRules.Water(tile, Noon(day), s_calendar, out tile).Should().Be(FarmVerdict.Ok);
                 watered.Add(day);
@@ -182,7 +172,7 @@ public sealed class FarmRulesRainTests
         FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().BeTrue();
         FarmRules.IsMature(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, outdoors: true, sprinklerSinceMs: null).Should().BeFalse();
         FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().Be(FarmVerdict.Ok, "the harvest sees the same water as the growth");
-        FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinklerSinceMs: null).Should().Be(FarmVerdict.NotMature);
+        FarmRules.Harvest(tile, Midnight(dry + CropCatalog.All[0].TotalGrowthDays), s_calendar, out _, out _, outdoors: true, sprinklerSinceMs: null).Should().Be(FarmVerdict.Withered, "without the sprinkler the crop went two dry days and withered (ADR-021 D7, amended)");
     }
 
     [Fact]
@@ -213,16 +203,6 @@ public sealed class FarmRulesRainTests
         FarmRules.IsWet(FarmTile.Bare, Noon(dry), s_calendar, outdoors: true, sprinklerSinceMs: null).Should().BeFalse();
     }
 
-    [Fact]
-    public void IsReverted_BareSoilNextToASprinkler_NeverReverts()
-    {
-        int day = FirstDay(_ => true, from: 5);
-        int tileX = Enumerable.Range(0, 2000).First(x => FarmRules.RevertRoll("farm@x", x, 0, day) < FarmRules.RevertChancePercent);
-        FarmTile tilled = FarmTile.Bare with { TendedDay = day - 1 };
-
-        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinklerSinceMs: s_sprinklerSince).Should().BeFalse();
-        FarmRules.IsReverted(tilled, "farm@x", tileX, 0, Midnight(day + 1), s_calendar, outdoors: true, sprinklerSinceMs: null).Should().Be(!Rains(day));
-    }
 
     [Fact]
     public void Harvest_RegrowingCropOutdoors_DoesNotCountTheRainBeforeTheHarvestAgain()

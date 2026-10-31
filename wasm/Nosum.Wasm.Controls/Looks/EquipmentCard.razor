@@ -36,7 +36,7 @@
 
     private static int WearSlotOf(int itemId) => itemId switch
     {
-        // Boots (docs/adr/ADR-082) come first: their ids sit inside the clothing range the shirts use.
+        // Boots (docs/adr/ADR-084) come first: their ids sit inside the clothing range the shirts use.
         >= 408 and <= 411 => 4,
         >= 400 and < 420 => 1,
         >= 420 and < 440 => 2,

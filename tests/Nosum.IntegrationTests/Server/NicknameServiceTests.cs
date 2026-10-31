@@ -10,11 +10,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Economy;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
 using Nosum.Domain.Accounts;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Players;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Inventory;
+using Nosum.Infrastructure.Economy;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Security;
 using Xunit;
@@ -31,6 +35,7 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     private readonly FakeTimeProvider _clock = new(s_start);
     private readonly AccountService _accounts;
     private readonly NicknameDirectory _directory;
+    private readonly TransferService _transfers;
 
     public NicknameServiceTests(PostgresFixture database)
     {
@@ -38,6 +43,17 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
         EfUnitOfWorkFactory units = new(database.Options);
         _directory = new NicknameDirectory(units);
         _accounts = new AccountService(units, FakeExternalTokenVerifier.All(), new SessionTokenService(), _clock, nicknames: _directory);
+        _transfers = new TransferService(new InventoryService(units, _clock), _clock);
+        _accounts.AttachTransfers(_transfers);
+    }
+
+    // A Rename Scroll is one unit of the item, given through the same transfer the tailor uses.
+    private async Task GrantScrollsAsync(Guid playerId, int count)
+    {
+        TransferStatus granted = await _transfers.ExecuteAsync(
+            [new TransferLeg(TransferParty.Player(playerId), ItemCatalog.RenameScroll, count)],
+            "test.grant");
+        granted.Should().Be(TransferStatus.Ok);
     }
 
     [Fact]
@@ -158,14 +174,16 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
 
         (await _directory.GetAsync(id)).Should().Be(legacy);
         NicknameRules.Validate(legacy).Should().Be(NicknameVerdict.Invalid, "it would not be accepted as a new name");
+        await GrantScrollsAsync(id, 1);
         (await _accounts.SetNicknameAsync(id, legacy, CancellationToken.None)).Status.Should().Be(AccountStatus.InvalidNickname, "re-saving the old name is a new name, which must pass");
         (await _accounts.SetNicknameAsync(id, "Minh Duc", CancellationToken.None)).Should().Match<NicknameOutcome>(o => o.Status == AccountStatus.Ok && o.Nickname == "Minh Duc");
     }
 
     [Fact]
-    public async Task SetNickname_FirstChangeIsFree_ThenTheSecondWaitsTwentyFourHours()
+    public async Task SetNickname_EachChangeUsesAScroll_AndTheSecondWaitsTwentyFourHours()
     {
         AccountOutcome player = await RegisterAsync(TestNicknames.Next());
+        await GrantScrollsAsync(player.PlayerId, 2);
         string first = TestNicknames.Next();
         string second = TestNicknames.Next();
 
@@ -184,12 +202,43 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
         _clock.Advance(TimeSpan.FromHours(1.01));
         (await _accounts.SetNicknameAsync(player.PlayerId, second, CancellationToken.None)).Status.Should().Be(AccountStatus.Ok);
         (await _accounts.ResumeAsync(player.SessionToken, CancellationToken.None)).Nickname.Should().Be(second);
+
+        // Both scrolls are used up: a third change, once the wait is over, is refused and nothing changes.
+        _clock.Advance(TimeSpan.FromHours(25));
+        NicknameOutcome third = await _accounts.SetNicknameAsync(player.PlayerId, TestNicknames.Next(), CancellationToken.None);
+        third.Status.Should().Be(AccountStatus.NicknameNeedsScroll);
+        third.Nickname.Should().Be(second);
+    }
+
+    [Fact]
+    public async Task SetNickname_WithoutAScroll_IsRefusedAndNothingChanges()
+    {
+        AccountOutcome player = await RegisterAsync(TestNicknames.Next());
+        string before = (await _directory.GetAsync(player.PlayerId))!;
+
+        NicknameOutcome refused = await _accounts.SetNicknameAsync(player.PlayerId, TestNicknames.Next(), CancellationToken.None);
+
+        refused.Status.Should().Be(AccountStatus.NicknameNeedsScroll);
+        refused.Nickname.Should().Be(before);
+        (await _directory.GetAsync(player.PlayerId)).Should().Be(before);
+    }
+
+    [Fact]
+    public async Task SetNickname_WhenNoTransferServiceIsAttached_IsRefused_SoAChangeCanNeverSkipTheScroll()
+    {
+        EfUnitOfWorkFactory units = new(_database.Options);
+        AccountService unattached = new(units, FakeExternalTokenVerifier.All(), new SessionTokenService(), _clock);
+        AccountOutcome registered = await RegisterAsync(TestNicknames.Next());
+        NicknameOutcome refused = await unattached.SetNicknameAsync(registered.PlayerId, TestNicknames.Next(), CancellationToken.None);
+
+        refused.Status.Should().Be(AccountStatus.NicknameNeedsScroll);
     }
 
     [Fact]
     public async Task SetNickname_TakenInvalidReservedOrUnchanged_DoesNotStartTheWait()
     {
         AccountOutcome a = await RegisterAsync(TestNicknames.Next());
+        await GrantScrollsAsync(a.PlayerId, 1);
         AccountOutcome b = await RegisterAsync(TestNicknames.Next());
 
         (await _accounts.SetNicknameAsync(a.PlayerId, b.Nickname.ToUpperInvariant(), CancellationToken.None)).Status.Should().Be(AccountStatus.NicknameTaken);
@@ -209,6 +258,8 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
         AccountOutcome a = await RegisterAsync(TestNicknames.Next());
         AccountOutcome b = await RegisterAsync(TestNicknames.Next());
         string wanted = "Want" + Guid.NewGuid().ToString("N")[..8];
+        await GrantScrollsAsync(a.PlayerId, 1);
+        await GrantScrollsAsync(b.PlayerId, 1);
 
         NicknameOutcome[] results = await Task.WhenAll(
             _accounts.SetNicknameAsync(a.PlayerId, wanted, CancellationToken.None),
@@ -222,6 +273,7 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
     public async Task SetNickname_TwoRenamesOfOnePlayerAtOnce_OnlyOneIsAllowedInTheWindow()
     {
         AccountOutcome player = await RegisterAsync(TestNicknames.Next());
+        await GrantScrollsAsync(player.PlayerId, 3);
 
         NicknameOutcome[] results = await Task.WhenAll(
             _accounts.SetNicknameAsync(player.PlayerId, TestNicknames.Next(), CancellationToken.None),

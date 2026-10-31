@@ -1,5 +1,7 @@
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Blacksmith
+@using Nosum.Wasm.Controls.Building
+@using Nosum.Wasm.ViewModels.Building
 @using Nosum.Wasm.ViewModels.Shop
 @inherits ObservingComponent<ShopViewModel>
 
@@ -8,15 +10,20 @@
    The blacksmith's counter (docs/adr/ADR-026 D2) also shows its tool upgrades under the list when the host gives it the blacksmith's view model. *@
 <MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
-        @if (ShowOffers)
+        @if (Tabbed)
+        {
+            @* The carpenter's counter is split into tabs, so each one fits a 1280×720 panel without a scrollbar (docs/design/ui-standard.md section 3). *@
+            <TabBar Tabs="CarpenterTabs()" Active="(int)Current" OnSelect="SelectTab" />
+        }
+        @if (ShowGoods)
         {
             <GameRow Class="spread">
                 <span>@Vm.CoinsText</span>
                 <GameRow Class="center">
                     <span>@Vm.Text("Shop_Quantity")</span>
-                    <GameButton Variant="plain" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
                     <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
-                    <GameButton Variant="plain" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
                 </GameRow>
             </GameRow>
             <p>@Vm.Text("Shop_Hint")</p>
@@ -26,7 +33,7 @@
                 <GameNotice Kind="info" Text="@Vm.PendingText" />
                 <GameRow Class="center">
                     <GameButton Text="@Vm.Text("Shop_Confirm_Yes")" OnClick="Vm.Confirm" />
-                    <GameButton Variant="plain" Text="@Vm.Text("Shop_Confirm_No")" OnClick="Vm.CancelPurchase" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Confirm_No")" OnClick="Vm.CancelPurchase" />
                 </GameRow>
             }
             <div class="shop-list">
@@ -53,7 +60,10 @@
             {
                 <BlacksmithSection Vm="Smith" />
             }
-            @Extra
+            @if (Tabbed)
+            {
+                <CarpenterSections Vm="Carpenter" Section="Current" ShowAnimals="ShowAnimals" />
+            }
         }
     </GameStack>
 </MenuPage>
@@ -67,8 +77,36 @@
     /// <summary>The blacksmith's upgrade view model; only used when <see cref="ShopId"/> is the blacksmith's counter.</summary>
     [Parameter] public BlacksmithViewModel? Smith { get; set; }
 
-    /// <summary>More sections under the list of what the shop sells: the carpenter's buildings and animals (docs/adr/ADR-028).</summary>
-    [Parameter] public RenderFragment? Extra { get; set; }
+    /// <summary>The carpenter's view model, when the shop is the carpenter's counter: its tabs (goods, buildings and animals, pets) replace the sections under the list (docs/adr/ADR-028).</summary>
+    [Parameter] public CarpenterViewModel? Carpenter { get; set; }
+
+    /// <summary>Whether the carpenter's Buildings tab lists the animals as well (the Build page). The Buy page shows the buildings only.</summary>
+    [Parameter] public bool ShowAnimals { get; set; } = true;
+
+    private CarpenterTab? _tab;
+
+    /// <summary>Whether the carpenter's counter is shown as tabs.</summary>
+    private bool Tabbed => Carpenter is not null && Vm.IsCarpenterShop && ShowExtras;
+
+    /// <summary>The tab on show: the chosen one, or the first one the page offers (the Build page has no goods).</summary>
+    private CarpenterTab Current => _tab is { } t && (t != CarpenterTab.Goods || ShowOffers) ? t : (ShowOffers ? CarpenterTab.Goods : CarpenterTab.Buildings);
+
+    private bool ShowGoods => ShowOffers && (!Tabbed || Current == CarpenterTab.Goods);
+
+    private IReadOnlyList<(int Id, string Label)> CarpenterTabs()
+    {
+        List<(int Id, string Label)> tabs = [];
+        if (ShowOffers)
+        {
+            tabs.Add(((int)CarpenterTab.Goods, Carpenter!.Text("Carpenter_Tab_Goods")));
+        }
+
+        tabs.Add(((int)CarpenterTab.Buildings, Carpenter!.Text("Carpenter_Tab_Buildings")));
+        tabs.Add(((int)CarpenterTab.Pets, Carpenter!.Text("Carpenter_Pets")));
+        return tabs;
+    }
+
+    private void SelectTab(int id) => _tab = (CarpenterTab)id;
 
     /// <summary>Whether the list of what the shop sells is shown. The merchant's Build and Upgrade buttons show only the sections (docs/adr/ADR-043 D3).</summary>
     [Parameter] public bool ShowOffers { get; set; } = true;

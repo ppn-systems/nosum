@@ -90,7 +90,7 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
                 new(Farmer + "pants.png", pants.SheetIndex % 10 * 192, pants.SheetIndex / 10 * 672, 16, 32, 1920, 1376, 0, 0, Tint(pants.Tint)),
                 new(Farmer + "shirts.png", shirt.SheetIndex % 16 * 8, shirt.SheetIndex / 16 * 32, 8, 8, 256, 608, 4, 15, Tint(shirt.Tint)),
                 new(Farmer + "body.png", 6 * 16, 0, 16, 32, 288, 672, 0, 0, null),
-                // Boots tier band of boots.png (96 x 384), standing frame facing down (docs/adr/ADR-082).
+                // Boots tier band of boots.png (96 x 384), standing frame facing down (docs/adr/ADR-084).
                 new(Farmer + "boots.png", 0, (LookPalette.BootsTier(look.FeetItemId) - 1) * 96, 16, 32, 96, 384, 0, 0, null),
                 new(Farmer + "hair.png", hair % 8 * 16, hair / 8 * 96, 16, 32, 128, 672, 0, 2, Tint(LookPalette.DyeTint(look.HairDyeId))),
             ];

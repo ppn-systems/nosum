@@ -7,7 +7,7 @@ using static Nosum.UnitTests.Wasm.WasmTestSupport;
 
 namespace Nosum.UnitTests.Wasm;
 
-/// <summary>Every string the footwear feature shows exists in Vietnamese and English (docs/adr/ADR-081, docs/adr/ADR-010).</summary>
+/// <summary>Every string the footwear feature shows exists in Vietnamese and English (docs/adr/ADR-084, docs/adr/ADR-010).</summary>
 public sealed class FootwearTextTests
 {
     private static readonly string[] s_files = ["Language.resx", "Language.en.resx"];

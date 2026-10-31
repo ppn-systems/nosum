@@ -1,0 +1,8 @@
+/* The backpack page: the size, the offer and the hint are sentences, so all three use the body size (docs/design/ui-standard.md section 1). */
+.backpack-size,
+.backpack-offer,
+.backpack-hint {
+    margin: 0;
+    font-size: var(--nosum-fs-body);
+    line-height: var(--nosum-lh);
+}

@@ -319,12 +319,33 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <returns>Seconds remaining until ready.</returns>
     public float GetSkillCooldown(byte skillId) => _combat?.GetSkillCooldownRemaining(skillId) ?? 0f;
 
+    /// <summary>Gets whether a combat skill is cooling down, so its button shows the cooldown overlay (docs/adr/ADR-056 D5).</summary>
+    /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
+    /// <returns><see langword="true"/> until the cooldown ends.</returns>
+    public bool IsSkillCoolingDown(byte skillId) => this.GetSkillCooldown(skillId) > 0f;
+
+    /// <summary>
+    /// Gets the inline style that starts a combat skill's cooldown sweep: the skill's full cooldown in milliseconds, so the overlay runs from full to empty
+    /// in the time the server enforces. Empty when the skill is ready.
+    /// </summary>
+    /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
+    /// <returns>A CSS custom property declaration, or an empty string.</returns>
+    public string CooldownStyle(byte skillId)
+    {
+        if (!this.IsSkillCoolingDown(skillId) || !SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition def))
+        {
+            return string.Empty;
+        }
+
+        return string.Create(CultureInfo.InvariantCulture, $"--cd-ms:{def.CooldownMs}ms");
+    }
+
     /// <summary>Gets whether a combat skill is ready to cast (off cooldown and sufficient MP).</summary>
     /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
     /// <returns><see langword="true"/> when the skill can be cast.</returns>
     public bool CanCastSkill(byte skillId)
     {
-        if (this.GetSkillCooldown(skillId) > 0f)
+        if (_combat?.IsSkillPending(skillId) == true || this.GetSkillCooldown(skillId) > 0f)
         {
             return false;
         }

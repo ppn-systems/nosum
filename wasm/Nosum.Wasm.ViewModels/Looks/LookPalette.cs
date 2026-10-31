@@ -86,7 +86,7 @@ public static class LookPalette
         _ => PlainPants,
     };
 
-    /// <summary>Returns the boots tier to draw: the band of boots.png (1 leather to 4 winged), or 0 for bare feet (docs/adr/ADR-082).</summary>
+    /// <summary>Returns the boots tier to draw: the band of boots.png (1 leather to 4 winged), or 0 for bare feet (docs/adr/ADR-084).</summary>
     /// <param name="itemId">The worn boots item id, or zero.</param>
     /// <returns>The tier, or 0.</returns>
     public static int BootsTier(int itemId) => itemId switch

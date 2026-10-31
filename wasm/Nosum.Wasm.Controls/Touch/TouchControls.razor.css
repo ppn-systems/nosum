@@ -44,24 +44,10 @@
     pointer-events: none;
 }
 
+/* The use button is the shared primary text button (14 u tall); only its place and width are its own. */
 .touch-controls ::deep .touch-use {
     right: calc(var(--u) * 8);
     width: calc(var(--u) * 28);
-    height: calc(var(--u) * 28);
-    padding: 0;
-    background: var(--nosum-wood-light);
-    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
-}
-
-.touch-controls ::deep .touch-use .game-button-label {
-    border: 0;
-    background: none;
-    padding: 0;
-    color: inherit;
-}
-
-.touch-controls ::deep .touch-use.down {
-    filter: brightness(0.8);
 }
 
 /* Narrow screens: the hotbar takes two rows at the bottom, so the stick and the button stand above it. */

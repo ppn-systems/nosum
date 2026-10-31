@@ -5,7 +5,7 @@ using Nosum.Gameplay.Items;
 
 namespace Nosum.Gameplay.Movement;
 
-/// <summary>Pure rules of footwear that are not walking speed (docs/adr/ADR-081 D5).</summary>
+/// <summary>Pure rules of footwear that are not walking speed (docs/adr/ADR-084 D5).</summary>
 public static class FootwearRules
 {
     /// <summary>

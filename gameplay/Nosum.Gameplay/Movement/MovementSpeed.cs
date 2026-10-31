@@ -7,7 +7,7 @@ using Nosum.Gameplay.Items;
 namespace Nosum.Gameplay.Movement;
 
 /// <summary>
-/// The one movement speed multiplier a player walks at (docs/adr/ADR-081 D3): footwear × speed buff × running, clamped to
+/// The one movement speed multiplier a player walks at (docs/adr/ADR-084 D3): footwear × speed buff × running, clamped to
 /// <see cref="MaxFactor"/>. The server computes it for the move validator and the client walker computes the same value from
 /// the same catalogue, so a boosted claim is accepted only as far as the cap allows. Pure: nothing is read from a clock.
 /// </summary>
@@ -32,7 +32,7 @@ public static class MovementSpeed
     /// </summary>
     /// <param name="footwearFactor">From <see cref="FootwearFactor"/>; 1 for none.</param>
     /// <param name="buffFactor">From <see cref="StatusEffectRules.MoveSpeedFactor"/>; 1 for none.</param>
-    /// <param name="runFactor">Running multiplier (docs/adr/ADR-081 D6); 1 until running is in effect.</param>
+    /// <param name="runFactor">Running multiplier (docs/adr/ADR-084 D6); 1 until running is in effect.</param>
     /// <returns>The combined multiplier, in [1, <see cref="MaxFactor"/>].</returns>
     public static double Combine(double footwearFactor, double buffFactor, double runFactor = 1)
         => Math.Clamp(footwearFactor * buffFactor * runFactor, 1, MaxFactor);

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using Nosum.Contracts.Combat;
 using Nosum.Core;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Economy;
@@ -13,7 +14,7 @@ namespace Nosum.Wasm.Game;
 
 internal sealed partial class PlayerActions
 {
-    /// <summary>Gets the speed buff in the buff slot, or <see cref="StatusEffectKind.None"/>; the walker combines it with the boots (docs/adr/ADR-082 D3).</summary>
+    /// <summary>Gets the speed buff in the buff slot, or <see cref="StatusEffectKind.None"/>; the walker combines it with the boots (docs/adr/ADR-084 D3).</summary>
     public StatusEffectKind SpeedBuff => _combat is null ? StatusEffectKind.None : (StatusEffectKind)_combat.Buff;
 
     /// <summary>Gets the active tool/weapon swing animation progress in <c>[0, 1)</c>, if a swing is playing.</summary>
@@ -64,12 +65,12 @@ internal sealed partial class PlayerActions
             return;
         }
 
-        if ((edges & InputEdges.Skill1) != 0 && this.CanCastSkill(1))
+        if ((edges & InputEdges.Skill1) != 0 && this.CanCastSkill(1, x, y))
         {
             this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
             _combat.CastSkill(1);
         }
-        else if ((edges & InputEdges.Skill2) != 0 && this.CanCastSkill(2))
+        else if ((edges & InputEdges.Skill2) != 0 && this.CanCastSkill(2, x, y))
         {
             int targetId = 0;
             if (_combat.TryFindTarget(x, y, 6, out MonsterClientRow tm))
@@ -80,7 +81,7 @@ internal sealed partial class PlayerActions
             this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
             _combat.CastSkill(2, targetId);
         }
-        else if ((edges & InputEdges.Skill3) != 0 && this.CanCastSkill(3))
+        else if ((edges & InputEdges.Skill3) != 0 && this.CanCastSkill(3, x, y))
         {
             this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
             _combat.CastSkill(3);
@@ -146,19 +147,37 @@ internal sealed partial class PlayerActions
         }
     }
 
-    private bool CanCastSkill(byte skillId)
+    // A press that the server would refuse starts no swing: the same rules as the server's, checked on the client first. The server still decides.
+    private bool CanCastSkill(byte skillId, int x, int y)
     {
         if (_combat is null || !SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition skill))
         {
             return false;
         }
 
-        if (_combat.GetSkillCooldownRemaining(skillId) > 0f || _combat.Mp < skill.MpCost)
+        if (_combat.IsSkillPending(skillId) || _combat.GetSkillCooldownRemaining(skillId) > 0f || _combat.Mp < skill.MpCost)
         {
             return false;
         }
 
-        return skillId != (byte)CombatSkillKind.DivineHeal || _combat.Hp < _combat.MaxHp;
+        return skill.Kind switch
+        {
+            CombatSkillKind.DivineHeal => _combat.Hp < _combat.MaxHp,
+            CombatSkillKind.Whirlwind or CombatSkillKind.Fireball => _combat.TryFindTarget(x, y, skill.Range, out _),
+            _ => false,
+        };
+    }
+
+    // The server refused a cast: a wind-up still in progress stops, so no skill animation plays for a cast that did nothing (docs/adr/ADR-056 D5).
+    private void OnSkillCompleted(SkillInfo info)
+    {
+        if (info.Status == CombatStatus.Ok || _nowSeconds >= _swingStartSeconds + _swingSeconds)
+        {
+            return;
+        }
+
+        _swingStartSeconds = double.NegativeInfinity;
+        _nextUseSeconds = _nowSeconds;
     }
 
     private bool CanUsePotion(int itemId)

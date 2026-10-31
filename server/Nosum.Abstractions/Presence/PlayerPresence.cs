@@ -78,14 +78,14 @@ public sealed class PlayerPresence
     public bool InTransit { get; set; }
 
     // The speed state has its own lock, held only for these few assignments: the look and the buff paths write it while they may hold
-    // other locks, so it must never wait for Gate (docs/adr/ADR-081 D3).
+    // other locks, so it must never wait for Gate (docs/adr/ADR-084 D3).
     private readonly object _speedGate = new();
     private int _footwearItemId;
     private StatusEffectKind _speedBuff;
     private double _moveSpeedFactor = 1;
 
     /// <summary>
-    /// Gets the movement speed multiplier the move validator honors: footwear × speed buff, clamped (docs/adr/ADR-081 D3, issue #146).
+    /// Gets the movement speed multiplier the move validator honors: footwear × speed buff, clamped (docs/adr/ADR-084 D3, issue #146).
     /// Set by <see cref="SetFootwear"/> and <see cref="SetSpeedBuff"/>; safe to read without <see cref="Gate"/>.
     /// </summary>
     public double MoveSpeedFactor
@@ -99,7 +99,7 @@ public sealed class PlayerPresence
         }
     }
 
-    /// <summary>Sets the boots worn, or zero for bare feet, and recomputes <see cref="MoveSpeedFactor"/> (docs/adr/ADR-081).</summary>
+    /// <summary>Sets the boots worn, or zero for bare feet, and recomputes <see cref="MoveSpeedFactor"/> (docs/adr/ADR-084).</summary>
     /// <param name="itemId">The worn boots item id, or zero.</param>
     public void SetFootwear(int itemId)
     {
@@ -110,7 +110,7 @@ public sealed class PlayerPresence
         }
     }
 
-    /// <summary>Sets the speed buff in the buff slot and recomputes <see cref="MoveSpeedFactor"/> (docs/adr/ADR-081 D3).</summary>
+    /// <summary>Sets the speed buff in the buff slot and recomputes <see cref="MoveSpeedFactor"/> (docs/adr/ADR-084 D3).</summary>
     /// <param name="buff">The buff, or <see cref="StatusEffectKind.None"/>.</param>
     public void SetSpeedBuff(StatusEffectKind buff)
     {

@@ -733,7 +733,7 @@ OBJECTS = {
     103: drawn_note(treasure_gem, 'Gold treasure icons `sheet.png` (1, 2), treasure gem'),
     104: library_tile('rpg_books', 3, 0, 'Assorted RPG Icons `books.png` (3, 0), spell tome'),
     105: drawn_note(necromancer_skull, '6 Color Dungeon (19, 2), dungeon skull'),
-    106: library_tile('roguelike_rpg', 44, 15, 'Kenney Roguelike/RPG Pack (44, 15), ancient scroll'),
+    106: library_tile('roguelike_rpg', 42, 15, 'Kenney Roguelike/RPG Pack (42, 15), letter with a pen (the rename scroll and the ancient scroll)'),
     107: library_tile('roguelike_indoors', 19, 0, 'Kenney Roguelike Indoors (19, 0), candelabra'),
     108: library_tile('animal_bee', 0, 0, 'Random animals `bee.png`, honey bee'),
     109: library_tile('pixel_animals', 0, 0, 'Pixel Animals 16x16 (0, 0), pocket cat'),

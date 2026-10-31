@@ -553,11 +553,13 @@
   <data name="Quest_decorate_Tip" xml:space="preserve"><value>Set down three pieces of furniture or placeables.</value></data>
   <data name="Quest_decorate_Objective_0" xml:space="preserve"><value>Set down 3 pieces</value></data>
   <data name="Quest_adopt_pet_Title" xml:space="preserve"><value>Adopt a pet</value></data>
-  <data name="Quest_adopt_pet_Hint" xml:space="preserve"><value>Open the pet page in the menu and adopt a cat or a dog.</value></data>
-  <data name="Quest_adopt_pet_Tip" xml:space="preserve"><value>Adopt a cat or a dog from the pet page.</value></data>
+  <data name="Quest_adopt_pet_Hint" xml:space="preserve"><value>Buy a cat or a dog at the carpenter's counter and give it a name.</value></data>
+  <data name="Quest_adopt_pet_Tip" xml:space="preserve"><value>Buy a cat or a dog at the carpenter's counter.</value></data>
   <data name="Quest_adopt_pet_Objective_0" xml:space="preserve"><value>Adopt a pet</value></data>
   <data name="Quest_send_emote_Title" xml:space="preserve"><value>Send an emote</value></data>
   <data name="Quest_send_emote_Hint" xml:space="preserve"><value>Pick an emote and send it, so the people around you can see how you feel.</value></data>
   <data name="Quest_send_emote_Tip" xml:space="preserve"><value>Send an emote to the people around you.</value></data>
   <data name="Quest_send_emote_Objective_0" xml:space="preserve"><value>Send an emote</value></data>
+  <data name="Item_rename_scroll_Name" xml:space="preserve"><value>Rename Scroll</value></data>
+  <data name="Item_rename_scroll_Description" xml:space="preserve"><value>Use it to change your nickname. It is used up.</value></data>
 </root>

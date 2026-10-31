@@ -100,13 +100,13 @@ public static class RecipeCatalog
     /// <summary>Fish stew (docs/adr/ADR-078).</summary>
     public const int FishStew = 30;
 
-    /// <summary>Swift boots (docs/adr/ADR-081 D1).</summary>
+    /// <summary>Swift boots (docs/adr/ADR-084 D1).</summary>
     public const int SwiftBoots = 31;
 
-    /// <summary>Winged boots, the late-game pair (docs/adr/ADR-081 D1).</summary>
+    /// <summary>Winged boots, the late-game pair (docs/adr/ADR-084 D1).</summary>
     public const int WingedBoots = 32;
 
-    /// <summary>The speed tonic (docs/adr/ADR-081 D4).</summary>
+    /// <summary>The speed tonic (docs/adr/ADR-084 D4).</summary>
     public const int SpeedTonic = 33;
 
     /// <summary>Most items one craft request may make in a batch (so a request cannot ask for an absurd amount).</summary>

@@ -18,7 +18,7 @@ public static class StatusEffectRules
     public const int ShrineBuffSeconds = 5;
 
     /// <summary>
-    /// Duration of the speed tonic (docs/adr/ADR-081 D4): three game hours, in real seconds at the default day length
+    /// Duration of the speed tonic (docs/adr/ADR-084 D4): three game hours, in real seconds at the default day length
     /// (a game hour is a twenty-fourth of a game day, so 30 real minutes).
     /// </summary>
     public const int SpeedTonicSeconds = 3 * (int)(GameCalendar.DefaultDayLengthMs / 24 / 1000);
