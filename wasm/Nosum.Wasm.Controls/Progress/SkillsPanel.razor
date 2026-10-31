@@ -20,12 +20,11 @@
                         <GameProgress Percent="@PercentInt(Vm.MpFraction)" Text="@Vm.MpLabel" Label="@Vm.MpLabel" Class="mp" />
                     </span>
                 </div>
-                <div class="skill-row">
+                <div class="skill-row skill-energy" data-tip="@Vm.Text("Energy_Hint")" aria-label="@Vm.Text("Energy_Hint")">
                     <span class="skill-meter">
                         <GameProgress Percent="@PercentInt(Vm.EnergyFraction)" Text="@Vm.EnergyLabel" Label="@Vm.EnergyLabel" Class="@(Vm.EnergyLow ? "low" : null)" />
                     </span>
                 </div>
-                <p class="skill-hint">@Vm.Text("Energy_Hint")</p>
             </GameSection>
             <GameSection Title="@Vm.Text("Skills_Heading")">
                 @foreach (SkillDisplay skill in Vm.Skills)
