@@ -70,7 +70,7 @@ public sealed class ShopRulesTests
     {
         (int Shop, int Item, int Coins)[] expected =
         [
-            (ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10), (ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 15), (ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 30),
+            (ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 12), (ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 20), (ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 30),
             (ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 100), (ShopCatalog.FurnitureShop, ItemCatalog.HousePlant, 80), (ShopCatalog.FurnitureShop, ItemCatalog.FloorLamp, 140),
             (ShopCatalog.FurnitureShop, ItemCatalog.OakTable, 220), (ShopCatalog.FurnitureShop, ItemCatalog.Bookcase, 260), (ShopCatalog.FurnitureShop, ItemCatalog.BlueArmchair, 300),
             (ShopCatalog.FurnitureShop, ItemCatalog.BlueCouch, 400),

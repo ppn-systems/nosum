@@ -74,6 +74,10 @@ never the result. The timing must not be a way to cheat, so the server judges th
 - The server rolls the size from the same cast seed as the catch (`FishingRules.SizeCm`, its own stream), so the size is fixed by the server and repeats for the same seed.
 - Ranges by rarity, inclusive, in centimetres: Common 10-30, Uncommon 20-45, Rare 40-70, Legendary 60-100. They are balance data in `FishingRules`.
 
+### 2026-10-31 - economy balance (ADR-080)
+
+A cast costs ten energy (was two), and fish bin prices fall to 60 %. Expected coins per cast now sit in the 2.0 to 3.2 coins-per-energy band
+(ADR-080 D1, D5). The figures are in `docs/design/economy.md`.
 ### 2026-10-31 - fishing skill row (protocol 23)
 
 - `SkillXpChanged` carries the fishing experience: `FishingXp`, appended as field 3 (`[SerializeOrder(3)]`). `NosumProtocol.Version` 23. The server already stores it (D6); the push sends it on join and after every change, the same as the other three skills.
