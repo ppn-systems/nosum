@@ -60,6 +60,13 @@ public sealed class LineOfSightTests
     }
 
     [Fact]
+    public void IsClear_SameTile_IsClear()
+    {
+        // A monster on the player's own tile is in reach of a skill: nothing lies between a tile and itself.
+        LineOfSight.IsClear(WallGrid(), 2, 4, 2, 4).Should().BeTrue();
+    }
+
+    [Fact]
     public void IsClear_ReversedDirection_MatchesForwardDirection()
     {
         WalkGrid grid = WallGrid();
