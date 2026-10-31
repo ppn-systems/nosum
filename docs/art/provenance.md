@@ -100,7 +100,6 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `ui/fish_bite.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | 24 x 24 bite bubble: the white speech bubble of ui/emote_bubble.png with a dark red exclamation mark at its centre (`fishing_ui.py`) |
 | `ui/fishing_bobber.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | 16 x 16 fishing float in cell (0, 0): red top half, white bottom half, thin grey stem, 1 px dark outline (`fishing_ui.py`) |
 | `ui/menu.png` | 9 UI | `kenney_ui-pack-pixel-adventure`, Nosum original (drawn in tools/art_repack, no outside source) | Window frame (16 x 16 at 0, 256, 5 px slice) and the small plaque frame (16 x 16 at 32, 256, 4 px slice): Pixel Adventure small tiles (15, 1) and (10, 0), three transparent edge pixels of the first filled in; the 3 x 3 slot bevel at (128, 128) is drawn here (`ui.py`) |
-| `ui/start_background.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`) |
 | `ui/text_box.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Sunk text field box (188 x 48 at x 4), drawn at art pixels and enlarged 4 x in the palette of the UI packs (`ui.py`) |
 
 ## Mapping: crops
@@ -242,7 +241,7 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 | 103 | `treasure_gem` | Gold treasure icons `sheet.png` (1, 2), treasure gem |
 | 104 | `arcane_grimoire` | Assorted RPG Icons `books.png` (3, 0), spell tome |
 | 105 | `necromancer_skull` | 6 Color Dungeon (19, 2), dungeon skull |
-| 106 | `ancient_scroll` | Kenney Roguelike/RPG Pack (44, 15), ancient scroll |
+| 106 | `ancient_scroll`, `rename_scroll` | Kenney Roguelike/RPG Pack (42, 15), letter with a pen (the rename scroll and the ancient scroll) |
 | 107 | `sanctuary_candelabra` | Kenney Roguelike Indoors (19, 0), candelabra |
 | 108 | resource node | Random animals `bee.png`, honey bee |
 | 109 | resource node | Pixel Animals 16x16 (0, 0), pocket cat |

@@ -57,3 +57,7 @@ Implemented 2026-10-25 (D1-D6):
   and experience once after a join. No day-rollover push exists yet: a client sees the refilled energy at its next action or join.
 - **Starter tools.** `IInventoryService.BackfillStarterToolsAsync` grants a missing starter tool once on join (audit reason `starter.backfill`); a full bag keeps the tool for the next join.
 
+## Amendment — economy balance (ADR-081)
+
+A hoe, watering can, axe or pickaxe use costs three energy (was two); the scythe stays free and the refill is unchanged. ADR-081 D3 gives
+the reason: at two, energy never limited a farm. The fishing cast cost moved from two to ten energy under ADR-081 D5.

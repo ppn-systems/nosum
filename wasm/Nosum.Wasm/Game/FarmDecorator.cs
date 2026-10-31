@@ -148,7 +148,7 @@ internal sealed class FarmDecorator : IMapDecorator
                 FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay);
 
                 // A crop that withered at the season change shows as a wilted brown stalk until cleared with a tool or replanted over (docs/adr/ADR-018).
-                bool withered = FarmRules.IsWithered(tile, _nowMs, rules);
+                bool withered = FarmRules.IsWithered(tile, _nowMs, rules, _outdoors, this.SprinklerSinceMs(info.X, info.Y));
                 int stage = withered ? 1 : FarmRules.StageAt(tile, _nowMs, rules, _outdoors, this.SprinklerSinceMs(info.X, info.Y));
                 int cropTint = withered ? unchecked((int)0x8b6b4aff) : RenderCommandBuffer.NoTint;
                 if (CropSprites.TryGetFrame(info.CropId, stage, out int sourceX, out int sourceY))

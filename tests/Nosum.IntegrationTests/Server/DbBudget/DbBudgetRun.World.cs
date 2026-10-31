@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System.Linq;
 using System;
 using System.Threading.Tasks;
 using Nosum.Contracts.Building;
@@ -32,7 +33,9 @@ using Nosum.Contracts.Emote.S2C;
 using Nosum.Contracts.Pet;
 using Nosum.Contracts.Pet.C2S;
 using Nosum.Contracts.Pet.S2C;
+using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Pets;
+using Nosum.Gameplay.Shops;
 using Nosum.Contracts.Look;
 using Nosum.Contracts.Look.C2S;
 using Nosum.Contracts.Look.S2C;
@@ -111,9 +114,14 @@ public sealed partial class DbBudgetRun
         _ = await _rig.ProbeAsync<LooksSnapshot>(p, "Look", LookOpCode.GetLooks, "GetLooks", "own and seen players, asked again", () => new GetLooks());
         _ = await _rig.ProbeAsync<PetState>(p, "Pet", PetOpCode.GetPet, "GetPet", "no pet", () => new GetPet());
         _ = await _rig.ProbeAsync<PetState>(p, "Pet", PetOpCode.GetPet, "GetPet", "no pet, asked again", () => new GetPet());
-        _ = await _rig.ProbeAsync<PetState>(p, "Pet", PetOpCode.AdoptPet, "AdoptPet", "adopt a cat", () => new AdoptPet { Kind = (byte)PetKind.Cat, Name = "Mochi" });
-        _ = await _rig.ProbeAsync<PetState>(p, "Pet", PetOpCode.PetPet, "PetPet", "pet the cat", () => new PetPet());
-        _ = await _rig.ProbeAsync<PetState>(p, "Pet", PetOpCode.PetPet, "PetPet", "pet the cat, asked again", () => new PetPet());
+        // Pets are bought and given back at the carpenter's counter in the Town (docs/adr/ADR-075 amendment): a farmer stands there with the coins.
+        ShopPoint carpenter = GameMaps.All.Single(m => m.Id == GameMaps.Town).Shops.Single(c => c.ShopId == ShopCatalog.CarpenterShop);
+        (double carpenterX, double carpenterY) = TileCentre(carpenter.TileX, carpenter.TileY);
+        await using BudgetPlayer petBuyer = await this.FreshAsync(GameMaps.Town, carpenterX, carpenterY, 2_000);
+        _ = await _rig.ProbeAsync<PetState>(petBuyer, "Pet", PetOpCode.AdoptPet, "AdoptPet", "adopt a cat", () => new AdoptPet { Kind = (byte)PetKind.Cat, Name = "Mochi" });
+        _ = await _rig.ProbeAsync<PetState>(petBuyer, "Pet", PetOpCode.PetPet, "PetPet", "pet the cat", () => new PetPet());
+        _ = await _rig.ProbeAsync<PetState>(petBuyer, "Pet", PetOpCode.PetPet, "PetPet", "pet the cat, asked again", () => new PetPet());
+        _ = await _rig.ProbeAsync<PetState>(petBuyer, "Pet", PetOpCode.RehomePet, "RehomePet", "give the cat back", () => new RehomePet());
         _ = await _rig.ProbeAsync<EmoteResult>(p, "Emote", EmoteOpCode.SendEmote, "SendEmote", "wave", () => new SendEmote { Emote = 2 });
         _ = await _rig.ProbeAsync<CoopSnapshot>(p, "Coop", CoopOpCode.GetCoop, "GetCoop", "no co-op", () => new GetCoop());
         _ = await _rig.ProbeAsync<CoopSnapshot>(p, "Coop", CoopOpCode.GetCoop, "GetCoop", "no co-op, asked again", () => new GetCoop());

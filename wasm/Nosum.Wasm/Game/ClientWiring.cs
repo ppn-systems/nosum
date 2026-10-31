@@ -46,6 +46,7 @@ using Nosum.Wasm.Socket.Shop;
 using Nosum.Wasm.Socket.Trade;
 using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.Account;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels.Backpack;
 using Nosum.Wasm.ViewModels.Blacksmith;
@@ -219,6 +220,12 @@ internal static class ClientWiring
             sp.GetRequiredService<CalendarChannel>().ServerNowMs));
         services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         services.AddSingleton<AccountSessionKeeper>();
+        services.AddSingleton<IRememberedSessionStore>(sp => new BrowserRememberedSessionStore(sp.GetRequiredService<IJSRuntime>()));
+        services.AddSingleton(sp => new RememberedSessionViewModel(
+            sp.GetRequiredService<IAccountClient>(),
+            sp.GetRequiredService<IRememberedSessionStore>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>(),
+            TimeProvider.System));
         services.AddTransient<AccountFormViewModel>();
         services.AddSingleton(sp =>
         {
@@ -286,10 +293,6 @@ internal static class ClientWiring
         keeper.Authenticated += combat.LoadVitals;
         keeper.Authenticated += pets.Load;
 
-        // The adoption form is offered on the player's own farm only: a visit to another farm, or any other map, hides it.
-        PetViewModel petPanel = services.GetRequiredService<PetViewModel>();
-        channel.Joined += mapId => petPanel.SetOnOwnFarm(mapId == GameMaps.Farm);
-        services.GetRequiredService<VisitChannel>().Visiting += () => petPanel.SetOnOwnFarm(false);
         channel.Joined += _ =>
         {
             farm.Load();

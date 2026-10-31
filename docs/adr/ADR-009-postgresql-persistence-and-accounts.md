@@ -157,3 +157,13 @@ This supersedes the character rule, the "Minh"/"Mình" question and the guest-re
 - **Open owner questions:** whether nicknames stored before this rule that contain profanity should be forced to change (not done: only a rename is checked); whether the blocklist
   should be reviewed by a Vietnamese-speaking moderator before launch (the list is a pragmatic first cut); whether a guest should be offered a "register" button inside the profile panel
   (today the session bar offers it once the first quest is finished).
+
+### 2026-10-31 - a rename uses a Rename Scroll (owner decision)
+
+- **The 24-hour wait stays; the scroll is added.** A nickname change now also takes one **Rename Scroll** (item `ItemCatalog.RenameScroll`, id 525, sold by the
+  tailor for 200 coins in `ShopCatalog.ClothingShop`). `SetNickname` checks the cooldown and the name first, then runs one transfer that takes the scroll and saves the nickname
+  in the same transaction (`AccountService.SetNicknameAsync`, enlisted work). No scroll means `AccountStatus.NicknameNeedsScroll` (22, appended) and nothing changes.
+- **Fails closed.** The account service refuses every rename until the host attaches the transfer service (`AccountService.AttachTransfers`), so a rename can never
+  skip the scroll.
+- **Guests are unchanged.** A guest still cannot rename; linking an identity with a nickname stays free.
+- **Wire.** Protocol 24 (`AccountStatus` value appended). No packet changed.

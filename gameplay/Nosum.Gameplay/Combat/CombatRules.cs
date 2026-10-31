@@ -279,11 +279,11 @@ public static class CombatRules
     /// <returns>A tuple of <c>(HpRestore, MpRestore)</c>.</returns>
     public static (int Hp, int Mp) PotionRestore(int itemId) => itemId switch
     {
-        ItemCatalog.HealthPotion => (45, 0),
+        ItemCatalog.HealthPotion => (215, 0),
         ItemCatalog.ManaPotion => (0, 35),
-        ItemCatalog.Elixir => (100, 50),
+        ItemCatalog.Elixir => (250, 50),
         ItemCatalog.ArcaneGrimoire => (20, 80),
-        ItemCatalog.HeartCrystal => (80, 25),
+        ItemCatalog.HeartCrystal => (215, 25),
         ItemCatalog.Salad => (20, 5),
         ItemCatalog.BakedPotato => (15, 0),
         ItemCatalog.PumpkinSoup => (35, 15),

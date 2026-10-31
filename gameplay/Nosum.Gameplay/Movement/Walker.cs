@@ -48,6 +48,39 @@ public struct Walker
     /// <summary>Gets the facing.</summary>
     public Facing Facing { get; private set; }
 
+    /// <summary>
+    /// Returns the facing that looks at a tile from a point: the axis on which the tile lies further away, horizontal on a tie. A tile the point is
+    /// standing on has no side, so the call returns <see langword="false"/> and the facing stays as it is (docs/adr/ADR-074 D7).
+    /// </summary>
+    /// <param name="feetX">Feet x, world pixels.</param>
+    /// <param name="feetY">Feet y, world pixels.</param>
+    /// <param name="tileSize">Tile size, pixels.</param>
+    /// <param name="tileX">Target tile x.</param>
+    /// <param name="tileY">Target tile y.</param>
+    /// <param name="facing">The facing toward the tile when there is one.</param>
+    /// <returns><see langword="true"/> when the tile is a different tile from the one the point stands on.</returns>
+    public static bool TryFacingToward(double feetX, double feetY, int tileSize, int tileX, int tileY, out Facing facing)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(tileSize, 1);
+
+        int dx = tileX - (int)Math.Floor(feetX / tileSize);
+        int dy = tileY - (int)Math.Floor(feetY / tileSize);
+        if (dx == 0 && dy == 0)
+        {
+            facing = Facing.Down;
+            return false;
+        }
+
+        facing = Math.Abs(dx) >= Math.Abs(dy)
+            ? (dx > 0 ? Facing.Right : Facing.Left)
+            : (dy > 0 ? Facing.Down : Facing.Up);
+        return true;
+    }
+
+    /// <summary>Turns the walker to face a direction without moving, so a swing toward another tile starts from the side it works (docs/adr/ADR-074 D7).</summary>
+    /// <param name="facing">The new facing.</param>
+    public void Face(Facing facing) => this.Facing = facing;
+
     /// <summary>Gets whether the walker moved during the last step.</summary>
     public bool IsMoving { get; private set; }
 

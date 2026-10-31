@@ -48,6 +48,7 @@
 @using Nosum.Wasm.ViewModels.Startup
 @using Nosum.Wasm.ViewModels.Placement
 @using Nosum.Wasm.ViewModels.Player
+@using Nosum.Wasm.ViewModels.Pets
 @using Nosum.Wasm.ViewModels.Profile
 @using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.ViewModels.Quest
@@ -92,6 +93,7 @@
 @inject NpcDialogViewModel Npc
 @inject BackpackViewModel Backpack
 @inject ConnectionStatusViewModel ConnectionStatus
+@inject PetViewModel Pet
 
 <PageTitle>Nosum</PageTitle>
 
@@ -199,6 +201,8 @@ else
                 <AccountForm Vm="Form" />
             }
             <InviteOverlay Trade="Trade" Coop="Coop" ActivePanel="_panel" />
+            <PetRehomeOverlay Vm="Pet" />
+            <PetPurchaseOverlay Vm="Carpenter" />
             @if (_started && !Form.ShowsForm)
             {
                 @* The emote wheel, over the world; B or the HUD button opens it (docs/adr/ADR-075 D1). *@
@@ -363,8 +367,9 @@ else
         if (want != PanelKind.None)
         {
             _shopId = Npc.ShopId;
-            if (Npc.Page == NpcPage.Build)
+            if (Npc.Page == NpcPage.Build || _shopId == Nosum.Gameplay.Shops.ShopCatalog.CarpenterShop)
             {
+                // A visit to the carpenter's counter starts with no pet purchase open and the tabs reset (docs/adr/ADR-075 amendment).
                 Carpenter.Open();
             }
             else if (Npc.Page is NpcPage.MarketBuy or NpcPage.MarketSell)
@@ -549,6 +554,8 @@ else
 
     private void ClosePanel()
     {
+        // A pet purchase still waiting for Confirm ends with the counter; nothing is sent (docs/adr/ADR-075 amendment).
+        Carpenter.CancelPet();
         if (_panel == PanelKind.Chest)
         {
             Chest.Close();

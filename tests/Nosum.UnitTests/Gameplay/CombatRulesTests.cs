@@ -62,13 +62,13 @@ public sealed class CombatRulesTests
     public void Potions_RestoreExpectedHpAndMp()
     {
         CombatRules.IsPotion(ItemCatalog.HealthPotion).Should().BeTrue();
-        CombatRules.PotionRestore(ItemCatalog.HealthPotion).Should().Be((45, 0));
+        CombatRules.PotionRestore(ItemCatalog.HealthPotion).Should().Be((215, 0));
 
         CombatRules.IsPotion(ItemCatalog.ManaPotion).Should().BeTrue();
         CombatRules.PotionRestore(ItemCatalog.ManaPotion).Should().Be((0, 35));
 
         CombatRules.IsPotion(ItemCatalog.Elixir).Should().BeTrue();
-        CombatRules.PotionRestore(ItemCatalog.Elixir).Should().Be((100, 50));
+        CombatRules.PotionRestore(ItemCatalog.Elixir).Should().Be((250, 50));
 
         CombatRules.IsPotion(ItemCatalog.Wood).Should().BeFalse();
     }
@@ -397,7 +397,7 @@ public sealed class CombatRulesTests
         CombatRules.PotionEffect(ItemCatalog.ArcaneGrimoire).Should().Be((StatusEffectKind.Swiftness, 30, 1));
 
         CombatRules.IsPotion(ItemCatalog.HeartCrystal).Should().BeTrue();
-        CombatRules.PotionRestore(ItemCatalog.HeartCrystal).Should().Be((80, 25));
+        CombatRules.PotionRestore(ItemCatalog.HeartCrystal).Should().Be((215, 25));
         CombatRules.PotionEffect(ItemCatalog.HeartCrystal).Should().Be((StatusEffectKind.Regeneration, 40, 8));
 
         ItemCatalog.TryGet(ItemCatalog.NecromancerSkull, out ItemDefinition? skull).Should().BeTrue();

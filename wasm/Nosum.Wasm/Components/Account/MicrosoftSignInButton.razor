@@ -1,0 +1,25 @@
+@* Microsoft's own "Sign in with Microsoft" button, drawn to Microsoft's brand guidelines: white, a grey edge, the four-square mark at the left and the
+   label in Segoe UI. It is not framed in the game's wooden button: the brand asks for its own look (docs/adr/ADR-082). *@
+<button type="button" class="ms-signin" disabled="@Disabled" aria-label="@Text" @onclick="OnClick">
+    <svg class="ms-signin-mark" viewBox="0 0 21 21" aria-hidden="true" focusable="false">
+        <rect x="0" y="0" width="10" height="10" fill="#F25022" />
+        <rect x="11" y="0" width="10" height="10" fill="#7FBA00" />
+        <rect x="0" y="11" width="10" height="10" fill="#00A4EF" />
+        <rect x="11" y="11" width="10" height="10" fill="#FFB900" />
+    </svg>
+    <span class="ms-signin-label">@Text</span>
+</button>
+
+@code {
+    /// <summary>Gets or sets the localized label, "Sign in with Microsoft" or its Vietnamese text.</summary>
+    [Parameter, EditorRequired]
+    public string Text { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets whether the button can be used.</summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>Gets or sets what a click does.</summary>
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

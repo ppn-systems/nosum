@@ -81,14 +81,8 @@
             <MarketPanel Vm="Market" />
             break;
         case PanelKind.Shop:
-            <ShopPanel Vm="Shop" ShopId="ShopId" Smith="Blacksmith" ShowOffers="@(Npc.Page != NpcPage.Build && Npc.Page != NpcPage.Upgrade)" ShowExtras="@(Npc.Page != NpcPage.Shop || Npc.Npc?.CounterId == Nosum.Gameplay.Shops.ShopCatalog.CarpenterShop)">
-                <Extra>
-                    @if (Shop.IsCarpenterShop)
-                    {
-                        <CarpenterSections Vm="Carpenter" ShowAnimals="@(Npc.Page == NpcPage.Build)" />
-                    }
-                </Extra>
-            </ShopPanel>
+            <ShopPanel Vm="Shop" ShopId="ShopId" Smith="Blacksmith" Carpenter="Carpenter" ShowAnimals="@(Npc.Page == NpcPage.Build)"
+                       ShowOffers="@(Npc.Page != NpcPage.Build && Npc.Page != NpcPage.Upgrade)" ShowExtras="@(Npc.Page != NpcPage.Shop || Npc.Npc?.CounterId == Nosum.Gameplay.Shops.ShopCatalog.CarpenterShop)" />
             break;
         case PanelKind.Goals:
             <GoalsPanel Vm="Goals" />

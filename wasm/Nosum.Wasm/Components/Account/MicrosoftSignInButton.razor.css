@@ -1,0 +1,59 @@
+/* Microsoft's button, to its official spec: 41 px high, white, a 1 px #8C8C8C edge, at most 2 px corners, the 21 px mark 12 px from the left, the label
+   in Segoe UI 15 px weight 600 #5E5E5E. The brand sets these values, so they are not in u or the theme's tokens (docs/adr/ADR-082). */
+.ms-signin {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    height: 41px;
+    margin: 0;
+    padding: 0 12px;
+    background: #ffffff;
+    border: 1px solid #8c8c8c;
+    border-radius: 2px;
+    color: #5e5e5e;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ms-signin:hover {
+    background: #f3f3f3;
+}
+
+/* On a phone the Microsoft label is 14 px, so it reads the same size as Google's button text beside it. */
+@media (max-width: 640px) {
+    .ms-signin {
+        font-size: 14px;
+    }
+}
+
+.ms-signin:active {
+    background: #e6e6e6;
+}
+
+.ms-signin:focus-visible {
+    outline: 2px solid #0067b8;
+    outline-offset: 2px;
+}
+
+.ms-signin:disabled {
+    background: #f2f2f2;
+    border-color: #cccccc;
+    color: #a6a6a6;
+    cursor: default;
+}
+
+.ms-signin-mark {
+    flex: none;
+    width: 21px;
+    height: 21px;
+}
+
+.ms-signin-label {
+    white-space: nowrap;
+}

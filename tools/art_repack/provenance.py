@@ -165,7 +165,7 @@ def object_names(repo):
     with open(os.path.join(repo, 'gameplay', 'Nosum.Gameplay', 'Items', 'ItemCatalog.cs'), encoding='utf-8') as f:
         for key, index in re.findall(r'new\(\w+, "(\w+)".*?ObjectIcon = (\d+)', f.read()):
             names.setdefault(int(index), []).append(key)
-    with open(os.path.join(repo, 'wasm', 'Nosum.Wasm', 'Game', 'ItemIcons.cs'), encoding='utf-8') as f:
+    with open(os.path.join(repo, 'wasm', 'Nosum.Wasm.ViewModels', 'Inventory', 'ItemIcons.cs'), encoding='utf-8') as f:
         for key, index in re.findall(r'\[ItemCatalog\.(\w+)\] = ObjectId\((\d+)\)', f.read()):
             names.setdefault(int(index), []).append(key)
     nodes = {290: 'iron ore node', 294: 'twig node', 295: 'twig node', 313: 'weed node', 314: 'weed node', 315: 'weed node', 343: 'stone node', 450: 'stone node', 751: 'copper ore node', 771: 'fiber / grass node'}

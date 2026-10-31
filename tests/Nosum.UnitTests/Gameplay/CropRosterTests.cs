@@ -68,7 +68,7 @@ public sealed class CropRosterTests
     }
 
     [Fact]
-    public void SeedPrices_SingleHarvestSeedsCostAboutHalfTheCropSells_RegrowingSeedsCostMore()
+    public void SeedPrices_EveryFirstHarvestPaysItsSeed_SingleHarvestSeedsAreAFifthToHalfOfIt()
     {
         ShopCatalog.TryGet(ShopCatalog.SeedShop, out ShopDefinition? shop);
 
@@ -77,13 +77,10 @@ public sealed class CropRosterTests
             int seed = shop!.Offers.Single(o => ItemCatalog.TryGet(o.ItemId, out ItemDefinition? i) && i.CropId == crop.Id).CoinsEach;
             ShippingPrices.TryGet(crop.HarvestItemId, out int sell);
             double value = sell * crop.HarvestQuantity;
-            if (crop.Regrows)
+            seed.Should().BeLessThan((int)value, crop.Key);
+            if (!crop.Regrows)
             {
-                seed.Should().BeGreaterThan((int)(value * 0.5), crop.Key);
-            }
-            else
-            {
-                seed.Should().BeInRange((int)(value * 0.3), (int)(value * 0.6), crop.Key);
+                seed.Should().BeInRange((int)(value * 0.2), (int)(value * 0.5), crop.Key);
             }
         }
     }
@@ -194,7 +191,8 @@ public sealed class CropRosterTests
     [Fact]
     public void Harvest_SingleHarvestCrop_LeavesBareSoilAsBefore()
     {
-        FarmTile ripe = new(CropCatalog.Parsnip, s_calendar.EpochMs, CropCatalog.All[0].TotalGrowthDays, 0, 0);
+        // Watered on day 9: not two dry days old when it is harvested on day 10 (ADR-021 D7, amended).
+        FarmTile ripe = new(CropCatalog.Parsnip, s_calendar.EpochMs, CropCatalog.All[0].TotalGrowthDays, 9, 0);
 
         FarmRules.Harvest(ripe, Noon(10), s_calendar, out FarmTile next, out _).Should().Be(FarmVerdict.Ok);
 
