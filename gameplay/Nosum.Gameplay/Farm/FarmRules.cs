@@ -429,8 +429,9 @@ public static class FarmRules
     /// <summary>
     /// Returns whether a tile's crop has withered (docs/adr/ADR-018, docs/adr/ADR-021 D7 amended 2026-10-31). Two causes, both fixed facts of the past
     /// so that no tick is needed and it never reverses: the first later season the crop does not grow in has begun, or <see cref="DryDaysToWither"/>
-    /// game days in a row ended after the planting or the last hand watering without rain or a sprinkler. A mature crop that was not harvested in
-    /// time withers too. Watering a withered crop is refused, so the dry run cannot be erased afterwards.
+    /// game days in a row ended after the planting or the last hand watering without rain or a sprinkler, before the crop ripened. A ripe crop
+    /// (<see cref="IsMature"/>) waiting for its harvest is not dried out by later dry days; a wither that came before the ripening stands. Watering a
+    /// withered crop is refused, so the dry run cannot be erased afterwards.
     /// </summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
@@ -452,8 +453,100 @@ public static class FarmRules
             return true;
         }
 
+        WalkCrop(tile, crop, calendar.DayNumberAt(nowMs), calendar, outdoors, sprinklerSinceMs, out bool withered, out _, out _);
+        return withered;
+    }
+
+    /// <summary>
+    /// Returns whether one more dry game day would wither a crop or revert bare soil, so the tile is thirsty: the soil is not wet today, and the dry
+    /// run that ends yesterday is one day short of the limit. A ripe crop is never at risk. The caller excludes a crop already withered by the season
+    /// (<see cref="IsWithered"/> covers the dry run itself, and the server's withered flag covers the season).
+    /// </summary>
+    /// <param name="tile">The tile.</param>
+    /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
+    /// <returns><see langword="true"/> when the tile needs water today or it will wither or revert at the day's end.</returns>
+    public static bool IsAtRisk(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        if (IsWet(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
+        {
+            return false;
+        }
+
+        int today = calendar.DayNumberAt(nowMs);
+        if (tile.HasCrop)
+        {
+            if (!CropCatalog.TryGet(tile.CropId, out CropDefinition? crop))
+            {
+                return false;
+            }
+
+            WalkCrop(tile, crop, today, calendar, outdoors, sprinklerSinceMs, out bool withered, out int dryDays, out bool ripe);
+            return !withered && !ripe && dryDays == DryDaysToWither - 1;
+        }
+
+        if (IsReverted(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
+        {
+            return false;
+        }
+
+        int afterDay = Math.Max(tile.TendedDay, tile.WateredDay);
+        return TrailingDryDays(tile, afterDay, today, DryDaysToRevert, calendar, outdoors, sprinklerSinceMs) == DryDaysToRevert - 1;
+    }
+
+    // Walks the game days a crop has been growing since its last hand watering (or its planting), counting growth the way GrowthDaysAt does, and reports
+    // whether a dry run has withered it before it ripened, the dry days in a row that end yesterday, and whether it has ripened. Stops at the first answer
+    // that cannot change: a wither, or the ripening (a later dry day cannot undo either).
+    private static void WalkCrop(in FarmTile tile, CropDefinition crop, int today, GameCalendar calendar, bool outdoors, long? sprinklerSinceMs, out bool withered, out int dryDays, out bool ripe)
+    {
         int planted = calendar.DayNumberAt(tile.PlantedAtMs);
-        return HasDryRun(tile, Math.Max(tile.WateredDay, planted), calendar.DayNumberAt(nowMs), DryDaysToWither, calendar, outdoors, sprinklerSinceMs);
+        int after = Math.Max(tile.WateredDay, planted);
+        int growth = tile.WateredDay > 0 ? tile.GrowthDays : 0;
+        int run = 0;
+        withered = false;
+        ripe = false;
+        for (int day = tile.WateredDay > 0 ? tile.WateredDay : planted; day < today; day++)
+        {
+            if (day == tile.WateredDay || IsWateredOn(tile, day, calendar, outdoors, sprinklerSinceMs))
+            {
+                growth = Math.Min(crop.TotalGrowthDays, growth + 1);
+                run = 0;
+            }
+            else if (day > after)
+            {
+                run++;
+            }
+
+            ripe = growth >= crop.TotalGrowthDays;
+            if (ripe || run >= DryDaysToWither)
+            {
+                withered = !ripe;
+                break;
+            }
+        }
+
+        dryDays = run;
+    }
+
+    // The dry game days in a row that end yesterday, counted back to the day after afterDay and stopping at limit.
+    private static int TrailingDryDays(in FarmTile tile, int afterDay, int today, int limit, GameCalendar calendar, bool outdoors, long? sprinklerSinceMs)
+    {
+        int run = 0;
+        for (int day = today - 1; day > Math.Max(afterDay, 0) && run < limit; day--)
+        {
+            if (IsWateredOn(tile, day, calendar, outdoors, sprinklerSinceMs))
+            {
+                break;
+            }
+
+            run++;
+        }
+
+        return run;
     }
 
     /// <summary>Returns whether the soil is wet at a moment: it was watered during the current game day, or it rains on it.</summary>

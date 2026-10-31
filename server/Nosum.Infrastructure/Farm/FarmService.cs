@@ -648,7 +648,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         packet.MapId = instance.MapId;
         packet.ServerNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
         packet.Tiles.Clear();
-        packet.Tiles.Add(ToRow(x, y, tile));
+        packet.Tiles.Add(ToRow(x, y, tile, this.IsWitheredAt(instance, x, y, tile, packet.ServerNowMs)));
         await _publisher.PublishAsync(instance, ChunkCoord.OfTile(x, y), packet, null, cancellationToken).ConfigureAwait(false);
     }
 

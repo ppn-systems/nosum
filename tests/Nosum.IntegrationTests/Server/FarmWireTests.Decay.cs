@@ -80,6 +80,7 @@ public sealed partial class FarmWireTests
             FarmSnapshot farm = await farmer.GetFarmAsync(timeout.Token);
             FarmTileRow row = farm.Tiles.Single(t => t.X == x && t.Y == y);
             FarmRules.IsWithered(ToTile(row), farm.ServerNowMs, calendar, outdoors: true).Should().BeTrue("two dry game days in a row withered it");
+            row.Withered.Should().BeTrue("the server sends its withered flag, so the client does not have to guess it");
 
             // The watering can is refused with its own status, and the dead crop keeps its state: nothing is watered.
             UseItemResult watering = await farmer.UseAsync(1, x, y, timeout.Token);

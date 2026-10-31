@@ -176,3 +176,21 @@ Supersedes the random revert of D7 above. Soil and crops now decay on a fixed co
   sprinklers beside a tile; a crop that only a sprinkler keeps alive may read as withered there, and the server still decides what the use does.
 - **Tests.** `FarmDryDayRulesTests` (unit: revert, wither, rain and sprinkler breaking the runs, watering refused, replant, cut); `FarmWireTests.Decay_*`
   (integration: the wither and its refusal over the wire, the revert after three dry days, a crop watered daily never withers).
+
+### 2026-10-31 (2) - ripe crops wait dry; thirsty warning; the server sends the withered flag (D7 amended)
+
+Amends the 2026-10-31 section above in three places; the rest stands.
+
+- **Ripe crops are exempt from the dry run.** A crop that has ripened (`IsMature`) is not dried out by later dry days, so it waits for its harvest. A wither
+  that came before the ripening stands, and rain that ripens a dead crop later does not revive it: `FarmRules.IsWithered` walks the days once (`WalkCrop`), the
+  same count as `GrowthDaysAt`, and stops at the first answer that cannot change. The season rule (ADR-018) still applies to ripe crops.
+- **The client takes the withered state from the server.** `FarmTileRow` appends `Withered` (order 11); the protocol moves to version 28. `PlayerActions.FacesCrop`
+  and the decorator read the flag and no longer recompute it, so a sprinkler-watered crop is never shown or refused as withered on a guess. The server sets the
+  flag wherever it sends a tile (the sweep, the chunk snapshot, the action push and `GetFarm`). The flag is as fresh as the last push of that tile: a withering
+  at a day's end is pushed by the sweep, and a sprinkler placed mid-day takes effect on the next push.
+- **Thirsty warning (new).** `FarmRules.IsAtRisk`: a planted crop one dry day from withering, or bare soil one dry day from reverting, on a tile not watered
+  today. The engine tints such tiles (`FarmDecorator`); when a game day begins `ThirstWarning` shows "N crops need water" on the message line once, counting the
+  planted crops that are at risk and not yet withered. Nothing is stored and the server decides nothing from it.
+- **Also fixed.** `GetFarm` now sends `TendedDay`, which it had left out, so a reloaded client decides bare soil's dry days as the sweep does.
+- **Tests.** `FarmDryDayRulesTests` (ripe exemption, sticky wither, thirsty crop and bare soil, sprinkler and watering); `FarmChannelTests` (the flag reaches
+  the mirror); `FarmWireTests.Decay_*` asserts the flag over the wire.
