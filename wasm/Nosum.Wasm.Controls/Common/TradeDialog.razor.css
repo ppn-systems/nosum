@@ -23,7 +23,8 @@
     width: 100%;
     height: auto;
     min-height: var(--nosum-menu-min-h);
-    max-height: min(var(--nosum-menu-h), calc(100vh - var(--nosum-gutter) * 2 - var(--nosum-hud-top-h)));
+    /* The height follows the content up to the screen below the HUD bar (docs/design/ui-standard.md section 3): no fixed cap. */
+    max-height: calc(100vh - var(--nosum-gutter) * 2 - var(--nosum-hud-top-h));
 }
 
 @media (max-height: 500px) {
