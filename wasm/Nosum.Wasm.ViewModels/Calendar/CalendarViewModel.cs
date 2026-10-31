@@ -13,12 +13,15 @@ namespace Nosum.Wasm.ViewModels.Calendar;
 
 /// <summary>
 /// View model of the clock and calendar widget: season, day of season and time of day, computed from the server calendar with the same
-/// <see cref="GameCalendar"/> the server uses (docs/adr/ADR-018). The time shows in ten game-minute steps (five real minutes in the default
-/// calendar), so a slow timer is enough and the widget re-renders only when the text changes.
+/// <see cref="GameCalendar"/> the server uses (docs/adr/ADR-018). The time shows every game minute (30 real seconds in the default calendar) and
+/// the widget is re-read every second, so the clock visibly advances; it re-renders only when the text changes.
 /// </summary>
 public sealed class CalendarViewModel : PanelViewModel, IDisposable
 {
-    private const int TimeStepMinutes = 10;
+    /// <summary>How often the widget reads the clock, real seconds: a game minute is 30 real seconds, so the change shows within a second.</summary>
+    public static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(1);
+
+    private const int TimeStepMinutes = 1;
 
     private readonly CalendarChannel _channel;
     private readonly Timer _tick;
@@ -27,8 +30,8 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
     private string _shown = string.Empty;
 
     /// <summary>
-    /// Raised when the season turns on the server calendar, with the new season. Found by the same five-second refresh as the widget, so it can be up
-    /// to five real seconds late. Not raised for the first season read.
+    /// Raised when the season turns on the server calendar, with the new season. Found by the same one-second refresh as the widget, so it can be up
+    /// to one real second late. Not raised for the first season read.
     /// </summary>
     public event Action<Season>? SeasonChanged;
 
@@ -42,7 +45,7 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
 
         _channel = channel;
         channel.Changed += this.OnLoaded;
-        _tick = new Timer(_ => this.Refresh(), null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+        _tick = new Timer(_ => this.Refresh(), null, RefreshInterval, RefreshInterval);
     }
 
     /// <summary>Gets a value indicating whether the calendar is known; the widget shows nothing before.</summary>
@@ -63,7 +66,7 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the localized year, for example <c>Year 1</c>.</summary>
     public string YearText => this.Text("Calendar_Year", this.Now().Year);
 
-    /// <summary>Gets the time of day in the current culture's short time format, rounded down to ten minutes.</summary>
+    /// <summary>Gets the time of day in the current culture's short time format, to the game minute.</summary>
     public string TimeText
     {
         get

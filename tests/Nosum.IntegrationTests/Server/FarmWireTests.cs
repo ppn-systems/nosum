@@ -56,7 +56,8 @@ namespace Nosum.IntegrationTests.Server;
 public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(20);
-    private static readonly DateTimeOffset s_start = new(2026, 11, 2, 3, 0, 0, TimeSpan.Zero);
+    // Day 1 at 03:00 of the default calendar (its epoch is 2026-10-26, docs/adr/ADR-018 amendment).
+    private static readonly DateTimeOffset s_start = new(2026, 10, 26, 3, 0, 0, TimeSpan.Zero);
 
     private static readonly TimeSpan s_gameDay = TimeSpan.FromMilliseconds(GameCalendar.DefaultDayLengthMs);
 
@@ -292,7 +293,9 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         {
             int dayOfSeason = ((day - 1) % GameCalendar.DaysPerSeason) + 1;
             Season season = (Season)(((day - 1) / GameCalendar.DaysPerSeason) % GameCalendar.SeasonsPerYear);
-            return WeatherRules.WatersOn(calendar, day) && season != Season.Summer && dayOfSeason + needed <= GameCalendar.DaysPerSeason;
+            // The days after it are hand-watered by the test, so they must be dry: no rain may wet the soil first.
+            return WeatherRules.WatersOn(calendar, day) && season != Season.Summer && dayOfSeason + needed <= GameCalendar.DaysPerSeason
+                && Enumerable.Range(day + 1, needed).All(later => !WeatherRules.WatersOn(calendar, later));
         });
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
@@ -331,7 +334,9 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
         {
             int dayOfSeason = ((day - 1) % GameCalendar.DaysPerSeason) + 1;
             Season season = (Season)(((day - 1) / GameCalendar.DaysPerSeason) % GameCalendar.SeasonsPerYear);
-            return WeatherRules.WatersOn(calendar, day) && season != Season.Summer && dayOfSeason + needed <= GameCalendar.DaysPerSeason;
+            // The days after it are hand-watered by the test, so they must be dry: no rain may wet the soil first.
+            return WeatherRules.WatersOn(calendar, day) && season != Season.Summer && dayOfSeason + needed <= GameCalendar.DaysPerSeason
+                && Enumerable.Range(day + 1, needed).All(later => !WeatherRules.WatersOn(calendar, later));
         });
         FakeTimeProvider clock = new(s_start);
         ushort port = GetFreePort();
