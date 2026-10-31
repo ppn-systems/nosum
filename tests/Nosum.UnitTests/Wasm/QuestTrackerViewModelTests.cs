@@ -87,7 +87,13 @@ public sealed class QuestTrackerViewModelTests
     public async System.Threading.Tasks.Task UnlockRegistrationPrompt_ForAGuest_ShowsTheUpgradeOffer()
     {
         AccountSession guest = new(Guid.NewGuid(), string.Empty, "t", DateTimeOffset.UnixEpoch, GameLanguage.English, true, false, "guest-0002");
-        AccountFormViewModel form = new(new NoAccountClient(guest), new FakeExternalSignIn(), ExternalSignInOptions.None, Localizer<Language>());
+        NoAccountClient client = new(guest);
+        AccountFormViewModel form = new(
+            client,
+            new FakeExternalSignIn(),
+            ExternalSignInOptions.None,
+            Localizer<Language>(),
+            new RememberedSessionViewModel(client, new MemoryRememberedSessionStore(), Localizer<Language>(), TimeProvider.System));
         await form.PlayAsGuestAsync(System.Threading.CancellationToken.None);
         int changes = 0;
         form.Changed += () => changes++;

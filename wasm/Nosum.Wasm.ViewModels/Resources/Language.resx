@@ -24,6 +24,9 @@
   <data name="Account_PlayAsGuest" xml:space="preserve"><value>Chơi ngay với tư cách khách</value></data>
   <data name="Account_Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Account_Guest" xml:space="preserve"><value>Khách</value></data>
+  <data name="Account_Continue_Title" xml:space="preserve"><value>Chào mừng trở lại</value></data>
+  <data name="Account_Continue_As" xml:space="preserve"><value>Tiếp tục với {0}</value></data>
+  <data name="Account_Continue_Forget" xml:space="preserve"><value>Đăng xuất / dùng tài khoản khác</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Đã đăng nhập: {0}</value></data>
   <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy liên kết tài khoản Google hoặc Microsoft.</value></data>
   <data name="Account_Upgrade_Action" xml:space="preserve"><value>Liên kết tài khoản</value></data>

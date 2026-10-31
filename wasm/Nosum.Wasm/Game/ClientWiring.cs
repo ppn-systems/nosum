@@ -46,6 +46,7 @@ using Nosum.Wasm.Socket.Shop;
 using Nosum.Wasm.Socket.Trade;
 using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.Account;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels.Blacksmith;
 using Nosum.Wasm.ViewModels.Building;
@@ -216,6 +217,12 @@ internal static class ClientWiring
             sp.GetRequiredService<CalendarChannel>().ServerNowMs));
         services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         services.AddSingleton<AccountSessionKeeper>();
+        services.AddSingleton<IRememberedSessionStore>(sp => new BrowserRememberedSessionStore(sp.GetRequiredService<IJSRuntime>()));
+        services.AddSingleton(sp => new RememberedSessionViewModel(
+            sp.GetRequiredService<IAccountClient>(),
+            sp.GetRequiredService<IRememberedSessionStore>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>(),
+            TimeProvider.System));
         services.AddTransient<AccountFormViewModel>();
         services.AddSingleton(sp =>
         {
