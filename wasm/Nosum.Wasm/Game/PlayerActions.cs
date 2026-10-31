@@ -346,23 +346,26 @@ internal sealed partial class PlayerActions
         long nowMs = _farm.ServerNowMs();
         using (_farm.Read())
         {
-            FarmTile? current = _farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo info)
-                ? new FarmTile(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay)
-                : null;
-            if (current is { HasCrop: true } && FarmRules.Harvest(current, nowMs, rules, out _, out _) == FarmVerdict.Ok)
+            bool found = _farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo info);
+            FarmTile? current = found ? FarmChannel.TileOf(info) : null;
+
+            // The server's withered flag decides the crop's state: a withered crop is neither harvested nor watered, and a seed replaces it.
+            bool withered = found && info.CropId != 0 && info.Withered;
+            if (current is { HasCrop: true } && !withered && FarmRules.Harvest(current, nowMs, rules, out _, out _) == FarmVerdict.Ok)
             {
                 return true;
             }
 
             if (held.Kind == ItemKind.Seed)
             {
-                return FarmRules.Plant(current, held.CropId, nowMs, rules, out _, _outdoors) == FarmVerdict.Ok;
+                FarmTile? planting = withered ? current!.Value with { CropId = 0, PlantedAtMs = 0, GrowthDays = 0 } : current;
+                return FarmRules.Plant(planting, held.CropId, nowMs, rules, out _, _outdoors) == FarmVerdict.Ok;
             }
 
             return held.Tool switch
             {
                 ToolKind.Hoe => FarmRules.Till(true, current, nowMs, rules, out _) == FarmVerdict.Ok,
-                ToolKind.WateringCan => !(current is { } wet && FarmRules.IsWet(wet, nowMs, rules)) && FarmRules.Water(current, nowMs, rules, out _) == FarmVerdict.Ok,
+                ToolKind.WateringCan => !withered && !(current is { } wet && FarmRules.IsWet(wet, nowMs, rules)) && FarmRules.Water(current, nowMs, rules, out _) == FarmVerdict.Ok,
                 _ => false,
             };
         }
@@ -371,25 +374,15 @@ internal sealed partial class PlayerActions
     // Whether the tile in front holds a live crop: the action key then works the crop, whatever is held.
     private bool FacesCrop()
     {
-        GameCalendar? rules = this.Rules();
-        long nowMs = _farm.ServerNowMs();
         using (_farm.Read())
         {
+            // The server's withered flag decides it: a crop a sprinkler keeps alive is not withered, whatever the tile looks like from here.
             if (!_farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo info) || info.CropId == 0)
             {
                 return false;
             }
 
-            if (rules is not null)
-            {
-                FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, 0);
-                if (FarmRules.IsWithered(tile, nowMs, rules, _outdoors))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return !info.Withered;
         }
     }
 

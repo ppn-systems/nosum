@@ -32,6 +32,9 @@ internal sealed class FarmDecorator : IMapDecorator
     // The reticle's multiply tint when the held item would do nothing on the tile in front (0xRRGGBBAA): red, the rest dimmed.
     private static readonly int s_deniedTint = unchecked((int)0xFF7070FF);
 
+    // The multiply tint of a thirsty tile, one dry day from withering or reverting (0xRRGGBBAA): parched yellow, the blue dimmed.
+    private static readonly int s_thirstyTint = unchecked((int)0xE6C070FF);
+
     private readonly string _mapId;
     private readonly FarmChannel _farm;
     private readonly PlayerActions _actions;
@@ -102,9 +105,15 @@ internal sealed class FarmDecorator : IMapDecorator
                     | (_farm.TryGetTile(tile.X, tile.Y + 1, out _) ? 4 : 0)
                     | (_farm.TryGetTile(tile.X - 1, tile.Y, out _) ? 8 : 0);
                 int cell = s_soilCell[mask];
-                int sourceX = ((cell & 3) * 16) + (rules is not null && FarmRules.IsWet(new FarmTile(tile.CropId, tile.PlantedAtMs, tile.GrowthDays, tile.WateredDay, tile.TendedDay), _nowMs, rules, _outdoors, this.SprinklerSinceMs(tile.X, tile.Y)) ? WetSheetOffset : 0);
+                long? sinceMs = this.SprinklerSinceMs(tile.X, tile.Y);
+                FarmTile soil = new(tile.CropId, tile.PlantedAtMs, tile.GrowthDays, tile.WateredDay, tile.TendedDay);
+                bool wet = rules is not null && FarmRules.IsWet(soil, _nowMs, rules, _outdoors, sinceMs);
+
+                // Bare soil one dry day from reverting reads thirsty (docs/adr/ADR-021 D7); a planted tile shows its thirst on the crop instead.
+                bool thirsty = tile.CropId == 0 && rules is not null && FarmRules.IsAtRisk(soil, _nowMs, rules, _outdoors, sinceMs);
+                int sourceX = ((cell & 3) * 16) + (wet ? WetSheetOffset : 0);
                 int sourceY = (cell >> 2) * 16;
-                commands.Draw(_soilTexture, sourceX, sourceY, 16, 16, worldX - camera.Left, worldY - camera.Top);
+                commands.Draw(_soilTexture, sourceX, sourceY, 16, 16, worldX - camera.Left, worldY - camera.Top, 0, thirsty ? s_thirstyTint : RenderCommandBuffer.NoTint);
             }
         }
 
@@ -146,11 +155,16 @@ internal sealed class FarmDecorator : IMapDecorator
                 }
 
                 FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay);
+                long? sinceMs = this.SprinklerSinceMs(info.X, info.Y);
 
-                // A crop that withered at the season change shows as a wilted brown stalk until cleared with a tool or replanted over (docs/adr/ADR-018).
-                bool withered = FarmRules.IsWithered(tile, _nowMs, rules, _outdoors, this.SprinklerSinceMs(info.X, info.Y));
-                int stage = withered ? 1 : FarmRules.StageAt(tile, _nowMs, rules, _outdoors, this.SprinklerSinceMs(info.X, info.Y));
-                int cropTint = withered ? unchecked((int)0x8b6b4aff) : RenderCommandBuffer.NoTint;
+                // A crop that withered shows as a wilted brown stalk until cleared with a tool or replanted over (docs/adr/ADR-018). The server says
+                // whether it has withered (the tile row's flag, sprinklers counted), so the client does not guess it.
+                bool withered = info.Withered;
+                int stage = withered ? 1 : FarmRules.StageAt(tile, _nowMs, rules, _outdoors, sinceMs);
+
+                // A crop one dry day from withering reads thirsty until it is watered (docs/adr/ADR-021 D7).
+                bool thirsty = !withered && FarmRules.IsAtRisk(tile, _nowMs, rules, _outdoors, sinceMs);
+                int cropTint = withered ? unchecked((int)0x8b6b4aff) : thirsty ? s_thirstyTint : RenderCommandBuffer.NoTint;
                 if (CropSprites.TryGetFrame(info.CropId, stage, out int sourceX, out int sourceY))
                 {
                     // Anchored at the tile's centre so a farmer walking over it is ordered by which half they stand on.
@@ -174,19 +188,9 @@ internal sealed class FarmDecorator : IMapDecorator
             {
                 return null;
             }
-
-            long? since = null;
-            for (int i = 0; i < _placed.Count; i++)
-            {
-                PlacedObjectInfo piece = _placed.At(i);
-                if (SprinklerRules.Waters(piece.TileX, piece.TileY, tileX, tileY) && PlaceableCatalog.TryGet(piece.ItemId, out PlaceableDefinition? definition) && definition.Kind == PlaceableKind.Sprinkler)
-                {
-                    since = since is { } earlier ? Math.Min(earlier, piece.PlacedAtMs) : piece.PlacedAtMs;
-                }
-            }
-
-            return since;
         }
+
+        return _placed.SprinklerWateredSinceMs(tileX, tileY);
     }
 
     // The calendar the server sent, rebuilt only when its numbers change (once, at sign-in); null until it is known.

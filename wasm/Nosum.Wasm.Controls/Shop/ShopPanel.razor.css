@@ -14,3 +14,13 @@
 .shop-qty ::deep .game-input {
     width: calc(var(--u) * 30);
 }
+
+.shop-list ::deep .shop-name,
+.shop-list ::deep .shop-price {
+    white-space: nowrap;
+}
+
+/* A row the balance cannot cover one unit of: the item and the price dim, the Buy button keeps its own disabled look (ui-standard section 8). */
+.shop-list ::deep .shop-row-dim > :not(.game-button) {
+    opacity: 0.5;
+}

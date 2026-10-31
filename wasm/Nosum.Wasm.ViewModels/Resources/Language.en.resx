@@ -510,7 +510,9 @@
   <data name="Weather_Snow" xml:space="preserve"><value>Snow</value></data>
   <data name="Calendar_Forecast" xml:space="preserve"><value>Today: {0}. Tomorrow: {1}.</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
-  <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered when its season ended. Plant a new seed over it.</value></data>
+  <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered from lack of water or the end of its season. Plant a new seed over it.</value></data>
+  <data name="Farm_Thirsty_Morning" xml:space="preserve"><value>{0} crops need water</value></data>
+  <data name="Farm_Thirsty_Morning_One" xml:space="preserve"><value>1 crop needs water</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>That seed is not sold in this season.</value></data>
   <data name="Toolbar_Friends" xml:space="preserve"><value>Friends</value></data>
   <data name="Toolbar_Mail" xml:space="preserve"><value>Mail</value></data>
@@ -667,6 +669,8 @@
   <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>You are full of energy already.</value></data>
   <data name="Eat_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Energy_Label" xml:space="preserve"><value>Energy {0} / {1}</value></data>
+  <data name="Energy_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="Run_OutOfEnergy" xml:space="preserve"><value>Out of energy: you stop running.</value></data>
   <data name="Energy_Heading" xml:space="preserve"><value>Energy</value></data>
   <data name="Energy_Hint" xml:space="preserve"><value>Every tool use costs energy (the scythe is free). It refills at the start of each game day; eat produce to restore some.</value></data>
   <data name="Skills_Heading" xml:space="preserve"><value>Skills</value></data>
@@ -979,6 +983,12 @@
   <data name="Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
   <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Not enough MP to cast!</value></data>
+  <data name="Combat_Refused_OnCooldown" xml:space="preserve"><value>That skill is still recharging!</value></data>
+  <data name="Combat_Refused_OutOfRange" xml:space="preserve"><value>The target is out of reach!</value></data>
+  <data name="Combat_Refused_AlreadyFull" xml:space="preserve"><value>Your health is already full!</value></data>
+  <data name="Combat_Refused_UnknownMonster" xml:space="preserve"><value>That target is no longer here!</value></data>
+  <data name="Combat_Refused_UnknownSkill" xml:space="preserve"><value>That skill does not exist!</value></data>
+  <data name="Combat_Refused_NotJoined" xml:space="preserve"><value>Join a map before casting a skill!</value></data>
   <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and carried back to the Farmhouse with low HP!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Combat skills</value></data>
   <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Whirlwind</value></data>
@@ -1180,4 +1190,12 @@
   <data name="Pet_BuyMessage" xml:space="preserve"><value>Buy a {0} named {1} for {2} coins?</value></data>
   <data name="Pet_BuyConfirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="Pet_BuyCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Shop_Preset_All" xml:space="preserve"><value>All</value></data>
+  <data name="Shop_Preset_Count" xml:space="preserve"><value>x{0}</value></data>
+  <data name="Shop_Block_NotEnoughCoins" xml:space="preserve"><value>Not enough coins: {0} more needed.</value></data>
+  <data name="Shop_Block_BagFull" xml:space="preserve"><value>Your bag is full.</value></data>
+  <data name="Shop_Detail_Total" xml:space="preserve"><value>Total: {0} coins for {1}</value></data>
+  <data name="Shop_Detail_After" xml:space="preserve"><value>Coins after: {0}</value></data>
+  <data name="Market_Confirm_Text" xml:space="preserve"><value>List {1} of {0} for {2} coins?</value></data>
+  <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Running uses {0}% less energy</value></data>
 </root>

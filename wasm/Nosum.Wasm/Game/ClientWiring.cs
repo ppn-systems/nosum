@@ -157,6 +157,7 @@ internal static class ClientWiring
             sp.GetRequiredService<IStringLocalizer<Catalogue>>(),
             sp.GetRequiredService<IStringLocalizer<Language>>()));
         services.AddSingleton<GameMessagesViewModel>();
+        services.AddSingleton<ThirstWarning>();
         services.AddSingleton<LevelUpBannerViewModel>();
         services.AddSingleton<SeasonBannerViewModel>();
         services.AddSingleton<ItemDescriber>();
@@ -332,6 +333,7 @@ internal static class ClientWiring
         _ = services.GetRequiredService<QuestTrackerViewModel>();
         _ = services.GetRequiredService<LevelUpBannerViewModel>();
         GameMessagesViewModel messages = services.GetRequiredService<GameMessagesViewModel>();
+        _ = services.GetRequiredService<ThirstWarning>();
         IStringLocalizer<Language> localizer = services.GetRequiredService<IStringLocalizer<Language>>();
         combat.KnockedOut += () => messages.Notify(localizer["Combat_KnockedOut"].Value);
         combat.AttackCompleted += attack =>
@@ -341,8 +343,25 @@ internal static class ClientWiring
                 messages.Notify(localizer["Combat_KnockedOut"].Value);
             }
         };
+        combat.SkillCompleted += skill =>
+        {
+            // A refused cast says why, so a press the server does not accept is never silent (docs/adr/ADR-056 D5).
+            string? refusal = SkillRefusalText.KeyFor(skill.Status);
+            if (refusal is not null)
+            {
+                messages.Notify(localizer[refusal].Value);
+            }
+        };
         _ = services.GetRequiredService<NearbyPlayers>();
-        _ = services.GetRequiredService<ProgressViewModel>();
+        ProgressViewModel progressVm = services.GetRequiredService<ProgressViewModel>();
+        GameLoop.UseRunState(state =>
+        {
+            progressVm.SetRun(state);
+            if (state == RunState.OutOfEnergy)
+            {
+                messages.Notify(localizer["Run_OutOfEnergy"].Value);
+            }
+        });
         _ = services.GetRequiredService<WalletViewModel>();
         _ = services.GetRequiredService<CalendarViewModel>();
         _ = services.GetRequiredService<SeasonBannerViewModel>();

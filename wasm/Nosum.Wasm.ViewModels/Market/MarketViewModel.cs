@@ -10,6 +10,7 @@ using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Player;
+using Nosum.Wasm.ViewModels.Shop;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Market;
@@ -35,12 +36,23 @@ public enum MarketTab
 /// <param name="SellerText">"Seller: nickname", already localized.</param>
 public sealed record ListingDisplay(Guid Id, SlotDisplay Item, string PriceText, bool IsMine, string SellerText);
 
+/// <summary>A listing the seller has been asked to confirm: a large stack (see <see cref="MarketViewModel.LargeListing"/>).</summary>
+/// <param name="Slot">The inventory slot the stack is in.</param>
+/// <param name="ItemId">The item.</param>
+/// <param name="ItemName">The item's name, localized.</param>
+/// <param name="Quantity">How many are listed.</param>
+/// <param name="Price">The total price asked, in coins.</param>
+public sealed record MarketListingRequest(int Slot, int ItemId, string ItemName, int Quantity, long Price);
+
 /// <summary>
 /// View model of the market panel: browse with a search box and pages, list a stack from the inventory with a price (showing the fee
 /// the server will take), and the player's own listings. Every outcome is the server's; this class only asks and shows.
 /// </summary>
 public sealed class MarketViewModel : PanelViewModel, IDisposable
 {
+    /// <summary>From this many units, a listing waits for the seller's confirm: a big sale is easy to make by mistake.</summary>
+    public const int LargeListing = 10;
+
     private readonly MarketChannel _market;
     private readonly InventoryViewModel _inventory;
     private readonly ItemDescriber _describer;
@@ -49,6 +61,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private IReadOnlyList<int> _searchIds = [];
     private string _search = string.Empty;
     private int _sellSlot = -1;
+    private MarketListingRequest? _pendingListing;
     private int _historyItemId;
 
     /// <summary>Initializes the view model.</summary>
@@ -295,11 +308,49 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     /// <param name="listingId">The listing.</param>
     public void Cancel(Guid listingId) => _market.Cancel(listingId);
 
+    /// <summary>Gets the listing waiting for the seller's confirm, or <see langword="null"/> when none does.</summary>
+    public MarketListingRequest? PendingListing => _pendingListing;
+
+    /// <summary>Gets the question the confirm box asks: what, how many and the price.</summary>
+    public string PendingListingText => _pendingListing is null
+        ? string.Empty
+        : this.Text("Market_Confirm_Text", _pendingListing.ItemName, _pendingListing.Quantity.ToString(CultureInfo.InvariantCulture), Number(_pendingListing.Price));
+
+    /// <summary>Gets the preset the typed quantity matches (one, five or all of the stack), or -1 for none.</summary>
+    public int ActiveSellPreset
+    {
+        get
+        {
+            int stack = this.SellItem?.Quantity ?? 0;
+            int typed = int.TryParse(this.SellQuantityText, NumberStyles.None, CultureInfo.InvariantCulture, out int value) ? value : -1;
+            return typed == ShopViewModel.PresetOne ? ShopViewModel.PresetOne
+                : typed == ShopViewModel.PresetFive ? ShopViewModel.PresetFive
+                : typed == stack && stack > 0 ? ShopViewModel.PresetAll
+                : -1;
+        }
+    }
+
+    /// <summary>The label of a quantity preset: "x5", or "All" for <see cref="ShopViewModel.PresetAll"/>.</summary>
+    /// <param name="preset">A preset.</param>
+    /// <returns>The button label, localized.</returns>
+    public string PresetLabel(int preset) => preset == ShopViewModel.PresetAll ? this.Text("Shop_Preset_All") : this.Text("Shop_Preset_Count", preset.ToString(CultureInfo.InvariantCulture));
+
+    /// <summary>Sets the quantity to list to a preset: one, five, or the whole stack. Never more than the stack holds.</summary>
+    /// <param name="preset">A preset (<see cref="ShopViewModel.PresetOne"/>, <see cref="ShopViewModel.PresetFive"/> or <see cref="ShopViewModel.PresetAll"/>).</param>
+    public void ChooseSellPreset(int preset)
+    {
+        int stack = this.SellItem?.Quantity ?? 0;
+        int quantity = preset == ShopViewModel.PresetAll ? stack : Math.Min(preset, stack);
+        this.SellQuantityText = Math.Max(1, quantity).ToString(CultureInfo.InvariantCulture);
+        this.Raise();
+    }
+
     /// <summary>Picks the inventory stack to sell.</summary>
     /// <param name="slot">The inventory slot.</param>
     public void PickSellSlot(int slot)
     {
         _sellSlot = slot;
+        _pendingListing = null;
         if (this.SellItem is { } item)
         {
             this.SellQuantityText = item.Quantity.ToString(CultureInfo.InvariantCulture);
@@ -330,7 +381,39 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
             return;
         }
 
+        if (quantity >= LargeListing)
+        {
+            _pendingListing = new MarketListingRequest(item.Index, item.ItemId, item.Name, quantity, price);
+            this.Raise();
+            return;
+        }
+
         _market.Create(item.Index, item.ItemId, quantity, price);
+    }
+
+    /// <summary>Lists the stack the seller confirmed.</summary>
+    public void ConfirmListing()
+    {
+        if (_pendingListing is not { } request)
+        {
+            return;
+        }
+
+        _pendingListing = null;
+        this.ClearStatus();
+        _market.Create(request.Slot, request.ItemId, request.Quantity, request.Price);
+    }
+
+    /// <summary>Drops the large listing waiting for confirmation; nothing is listed.</summary>
+    public void CancelListing()
+    {
+        if (_pendingListing is null)
+        {
+            return;
+        }
+
+        _pendingListing = null;
+        this.Raise();
     }
 
     /// <summary>Tells the panel the typed text changed so the fee line follows it.</summary>

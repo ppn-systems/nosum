@@ -31,6 +31,22 @@ already spends through `IPlayerProgress.ChargeEnergyAsync`.
 - **D5 — Minimap setting (Settings > Display).** The minimap card can be hidden, remembered per player (`ClientSettings.MinimapHidden`,
   stored as `minimap=auto|0|1`). `auto` (the default) hides it only on a screen narrower than 640 px, so a phone starts without it.
 
+## Amendments
+
+- **Amendment 1 (2026-10-31, footwear and the cap; ADR-084 amendment 2).** `MovementSpeed.MaxFactor` is 1.8, and the run speed is
+  `RunRules.SpeedMultiplier(MovementSpeed.Product(feet, buff), running)`: the footwear × buff product, times the run factor, clamped once. Boots
+  stay distinct while running (leather 1.575 up to winged 1.8).
+- **Amendment 2 (footwear saves energy, D2).** The energy is charged in thousandths (`RunRules.EnergyMilliPerSecond` = 250). Each call takes the
+  base cost of the time it covers (`RunRules.BaseCostMilli`), then `FootwearRules.RunEnergyCost` (ADR-084 D5) takes the boots' share, and
+  `RunRules.TakeEnergy` spends the whole units. Swift boots run for 80% of the energy and winged for 70%. The debt is `RunEnergyDebtMilli` on the
+  presence; the footwear worn is `FootwearItemId`.
+- **Amendment 3 (the HUD shows the run, D3).** The energy bar gets a `running` class while the farmer runs: the fill steps between a lit and a
+  plain shade every half second (reduced motion: a steady lit fill). The tooltip reads `Energy 268 / 270 · Running`. When run is held and walking
+  with no energy left, the toast line (`Run_OutOfEnergy`: "Out of energy: you stop running.") says why the farmer walks at the normal pace.
+  `MapScene` reports the state through `RunStateChanged` only on a change (`RunState.Stopped`, `Running`, `OutOfEnergy`), so the HUD does not
+  re-render per frame. The bar's visible drop is one energy unit per whole unit spent (every four seconds at bare feet), so the fill itself
+  moves in steps; the running state is what makes the drain visible.
+
 ## Consequences
 
 - The wire changes (`MoveIntent` gains a field): `NosumProtocol.Version` 24, one client and one server ship together.

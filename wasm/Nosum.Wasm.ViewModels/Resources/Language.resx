@@ -510,7 +510,9 @@
   <data name="Weather_Snow" xml:space="preserve"><value>Tuyết</value></data>
   <data name="Calendar_Forecast" xml:space="preserve"><value>Hôm nay: {0}. Ngày mai: {1}.</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>Cây này không trồng được vào mùa này.</value></data>
-  <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì hết mùa. Hãy gieo hạt mới lên trên.</value></data>
+  <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì thiếu nước hoặc hết mùa. Hãy gieo hạt mới lên trên.</value></data>
+  <data name="Farm_Thirsty_Morning" xml:space="preserve"><value>{0} cây cần tưới nước</value></data>
+  <data name="Farm_Thirsty_Morning_One" xml:space="preserve"><value>1 cây cần tưới nước</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>Hạt giống này không bán vào mùa này.</value></data>
   <data name="Toolbar_Friends" xml:space="preserve"><value>Bạn bè</value></data>
   <data name="Toolbar_Mail" xml:space="preserve"><value>Thư</value></data>
@@ -667,6 +669,8 @@
   <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>Bạn đang đầy sức rồi.</value></data>
   <data name="Eat_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Energy_Label" xml:space="preserve"><value>Sức lực {0} / {1}</value></data>
+  <data name="Energy_Running" xml:space="preserve"><value>Đang chạy</value></data>
+  <data name="Run_OutOfEnergy" xml:space="preserve"><value>Hết sức lực, bạn không chạy được nữa.</value></data>
   <data name="Energy_Heading" xml:space="preserve"><value>Sức lực</value></data>
   <data name="Energy_Hint" xml:space="preserve"><value>Mỗi lần dùng công cụ tốn sức (liềm thì không). Sức hồi đầy khi sang ngày mới; ăn nông sản để hồi thêm.</value></data>
   <data name="Skills_Heading" xml:space="preserve"><value>Kỹ năng</value></data>
@@ -979,6 +983,12 @@
   <data name="Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
   <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Không đủ MP để thi triển phép!</value></data>
+  <data name="Combat_Refused_OnCooldown" xml:space="preserve"><value>Kỹ năng này vẫn đang hồi, chưa thể thi triển!</value></data>
+  <data name="Combat_Refused_OutOfRange" xml:space="preserve"><value>Mục tiêu ở quá xa để thi triển!</value></data>
+  <data name="Combat_Refused_AlreadyFull" xml:space="preserve"><value>Máu đã đầy, không cần hồi phục!</value></data>
+  <data name="Combat_Refused_UnknownMonster" xml:space="preserve"><value>Mục tiêu không còn ở đây!</value></data>
+  <data name="Combat_Refused_UnknownSkill" xml:space="preserve"><value>Kỹ năng này không tồn tại!</value></data>
+  <data name="Combat_Refused_NotJoined" xml:space="preserve"><value>Hãy vào bản đồ trước khi thi triển kỹ năng!</value></data>
   <data name="Combat_KnockedOut" xml:space="preserve"><value>Bạn đã kiệt sức và được đưa về Nhà nông trại với lượng máu yếu!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Kỹ năng chiến đấu</value></data>
   <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Xoay kiếm</value></data>
@@ -1180,4 +1190,12 @@
   <data name="Pet_BuyMessage" xml:space="preserve"><value>Mua {0} tên {1} với giá {2} xu?</value></data>
   <data name="Pet_BuyConfirm" xml:space="preserve"><value>Xác nhận</value></data>
   <data name="Pet_BuyCancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Shop_Preset_All" xml:space="preserve"><value>Tất cả</value></data>
+  <data name="Shop_Preset_Count" xml:space="preserve"><value>x{0}</value></data>
+  <data name="Shop_Block_NotEnoughCoins" xml:space="preserve"><value>Thiếu {0} xu để mua.</value></data>
+  <data name="Shop_Block_BagFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
+  <data name="Shop_Detail_Total" xml:space="preserve"><value>Tổng: {0} xu cho {1} món</value></data>
+  <data name="Shop_Detail_After" xml:space="preserve"><value>Số dư sau khi mua: {0} xu</value></data>
+  <data name="Market_Confirm_Text" xml:space="preserve"><value>Đăng bán {1} {0} với giá {2} xu?</value></data>
+  <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Chạy tốn ít sức lực hơn: {0}%</value></data>
 </root>

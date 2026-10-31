@@ -17,6 +17,7 @@ using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels.Minimap;
+using Nosum.Wasm.ViewModels.Progress;
 
 namespace Nosum.Wasm.Game;
 
@@ -70,6 +71,7 @@ internal sealed partial class MapScene
     private readonly CompositeWalkGrid _compositeGrid;
     private readonly CalendarChannel? _calendar;
     private readonly ProgressChannel? _progress;
+    private RunState _runState;
     private readonly FarmerFeed? _feed;
     private readonly CombatChannel? _combat;
     private readonly MinimapViewModel? _minimapFrame;
@@ -159,6 +161,9 @@ internal sealed partial class MapScene
     /// </summary>
     public event Action<string?>? WaitingChanged;
 
+    /// <summary>Raised when the running state changes: running starts or stops, or run is held and the energy is gone (docs/adr/ADR-085 D3). Never per frame.</summary>
+    public event Action<RunState>? RunStateChanged;
+
     /// <summary>Remembers a click or tap on the canvas; the next <see cref="Frame"/> checks whether it hit a merchant. Allocation-free.</summary>
     /// <param name="x">Click x, canvas CSS pixels.</param>
     /// <param name="y">Click y, canvas CSS pixels.</param>
@@ -215,10 +220,17 @@ internal sealed partial class MapScene
             // Running (docs/adr/ADR-085 D3): run is held, the farmer is walking and there is energy to spend. The server grants the same speed and
             // withdraws it when the energy runs out, and the walk animation plays faster meanwhile.
             bool walking = !swinging && (input & (InputState.Up | InputState.Down | InputState.Left | InputState.Right)) != 0;
-            bool running = walking && (input & InputState.Run) != 0 && _progress is { Energy: > 0 };
-            // The same combined multiplier the server validates with: worn boots × speed buff × run, clamped (docs/adr/ADR-084 D3).
+            RunState run = RunStateRules.Resolve(walking, (input & InputState.Run) != 0, _progress is not null, _progress?.Energy ?? 0);
+            if (run != _runState)
+            {
+                _runState = run;
+                this.RunStateChanged?.Invoke(run);
+            }
+
+            bool running = run == RunState.Running;
+            // The same combined multiplier the server validates with: worn boots × speed buff, then × run, clamped once (docs/adr/ADR-084 D3).
             int ownFeet = _looks is not null && _looks.TryGetLocal(out LookInfo mine) ? mine.FeetItemId : 0;
-            double speed = RunRules.SpeedMultiplier(MovementSpeed.For(ownFeet, _actions?.SpeedBuff ?? StatusEffectKind.None), running);
+            double speed = RunRules.SpeedMultiplier(MovementSpeed.Product(ownFeet, _actions?.SpeedBuff ?? StatusEffectKind.None), running);
             double remaining = Math.Clamp(frameSeconds, 0, MaxFrameSeconds);
             do
             {

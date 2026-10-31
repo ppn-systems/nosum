@@ -57,9 +57,38 @@ public sealed class MovementSpeedTests
     }
 
     [Fact]
-    public void For_WingedBootsWithSwiftness_ReachesExactlyTheCap()
+    public void For_WingedBootsWithSwiftness_IsTheWalkingCeiling()
     {
-        MovementSpeed.For(ItemCatalog.WingedBoots, StatusEffectKind.Swiftness).Should().Be(MovementSpeed.MaxFactor);
+        // Walking has no run factor, so the highest walking stack (1.20 × 1.25) is 1.5, below the cap of 1.8 (docs/adr/ADR-084 amendment).
+        MovementSpeed.For(ItemCatalog.WingedBoots, StatusEffectKind.Swiftness).Should().BeApproximately(1.5, 1e-9);
+        MovementSpeed.MaxFactor.Should().Be(1.8);
+    }
+
+    [Fact]
+    public void Product_IsNotClamped_SoRunningCanStillApplyTheRunFactor()
+    {
+        MovementSpeed.Product(ItemCatalog.WingedBoots, StatusEffectKind.Swiftness).Should().BeApproximately(1.5, 1e-9);
+        MovementSpeed.Product(ItemCatalog.WingedBoots, StatusEffectKind.None).Should().BeApproximately(1.2, 1e-9);
+        MovementSpeed.Product(0, StatusEffectKind.None).Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData(ItemCatalog.LeatherBoots, StatusEffectKind.None, 1.575)]
+    [InlineData(ItemCatalog.TravelerBoots, StatusEffectKind.None, 1.65)]
+    [InlineData(ItemCatalog.SwiftBoots, StatusEffectKind.None, 1.725)]
+    [InlineData(ItemCatalog.WingedBoots, StatusEffectKind.None, 1.8)]
+    [InlineData(0, StatusEffectKind.Swiftness, 1.8)]
+    public void RunningMultiplier_EachBootsTierStillMatters(int feetItemId, StatusEffectKind buff, double expected)
+    {
+        // Each tier's boots raise the running pace: 1.05 / 1.10 / 1.15 / 1.20 times the 1.5 run factor, under the 1.8 cap; a tonic reaches the cap.
+        RunRules.SpeedMultiplier(MovementSpeed.Product(feetItemId, buff), running: true).Should().BeApproximately(expected, 1e-9);
+    }
+
+    [Fact]
+    public void RunningMultiplier_NeverAboveTheCap()
+    {
+        RunRules.SpeedMultiplier(MovementSpeed.Product(ItemCatalog.WingedBoots, StatusEffectKind.Swiftness), running: true)
+            .Should().Be(MovementSpeed.MaxFactor);
     }
 
     [Fact]
