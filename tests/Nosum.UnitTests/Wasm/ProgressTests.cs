@@ -41,9 +41,9 @@ public sealed class ProgressTests
         socket.Push(packet);
     }
 
-    private static void PushXp(FakeGameSocket socket, int farming, int foraging = 0, int mining = 0)
+    private static void PushXp(FakeGameSocket socket, int farming, int foraging = 0, int mining = 0, int fishing = 0)
     {
-        using SkillXpChanged packet = new() { FarmingXp = farming, ForagingXp = foraging, MiningXp = mining };
+        using SkillXpChanged packet = new() { FarmingXp = farming, ForagingXp = foraging, MiningXp = mining, FishingXp = fishing };
         socket.Push(packet);
     }
 
@@ -131,6 +131,20 @@ public sealed class ProgressTests
         vm.Skills[0].Should().BeEquivalentTo(new { Name = "Farming", Level = 0, Xp = 0, Fraction = 0.0, Caption = "0 / 100" });
         vm.Skills[1].Should().BeEquivalentTo(new { Name = "Foraging", Level = 1, Xp = 240, Fraction = 140.0 / 280.0, Caption = "140 / 280" });
         vm.Skills[2].Should().BeEquivalentTo(new { Name = "Mining", Level = 10, Fraction = 1.0, Caption = "Max level" });
+    }
+
+    [Fact]
+    public void ViewModel_FishingSkill_LevelsFromThePushedFishingXp_LikeTheOtherSkills()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        using ProgressChannel channel = new(socket);
+        using ProgressViewModel vm = new(channel, Localizer<Language>());
+
+        PushXp(socket, farming: 0, foraging: 0, mining: 0, fishing: 240);
+
+        channel.FishingXp.Should().Be(240);
+        vm.FishingSkill.Should().BeEquivalentTo(new { Name = "Fishing", Level = 1, Xp = 240, Fraction = 140.0 / 280.0, Caption = "140 / 280" });
     }
 
     [Theory]

@@ -47,7 +47,16 @@
                         <GameProgress Percent="@PercentInt(combat.Fraction)" Text="@combat.Caption" Label="@combat.Name" Class="@(combat.Level >= 10 ? "done" : "hp")" />
                     </span>
                 </div>
-                <p class="skill-hint">@Vm.Text("Skills_Hint")</p>
+                @{
+                    SkillDisplay fishing = Vm.FishingSkill;
+                }
+                <div class="skill-row" data-tip="@Vm.Text("Skills_Hint")" aria-label="@Vm.Text("Skills_Hint")">
+                    <span class="skill-name">@fishing.Name</span>
+                    <GameBadge Kind="@(fishing.Level >= 10 ? "warn" : "ok")" Text="@Vm.Text("Skill_Level", fishing.Level)" />
+                    <span class="skill-meter">
+                        <GameProgress Percent="@PercentInt(fishing.Fraction)" Text="@fishing.Caption" Label="@fishing.Name" Class="@(fishing.Level >= 10 ? "done" : null)" />
+                    </span>
+                </div>
             </GameSection>
         }
         else
