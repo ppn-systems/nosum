@@ -163,7 +163,7 @@ else
             @if (_started && !Form.ShowsForm)
             {
                 @* The emote wheel's button, bottom-right (docs/adr/ADR-075 D1): the same as the B key, and the touch way to open the wheel. *@
-                <GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" />
+                <div class="hud-cell"><GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" /></div>
             }
         </BottomRight>
         <Overlay>

@@ -108,7 +108,8 @@
 }
 
 .hud-top-right ::deep .hud-menu-item,
-.hud-top-right ::deep .hud-minimap-button {
+.hud-top-right ::deep .hud-minimap-button,
+.hud-bottom-right ::deep .hud-cell {
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -120,9 +121,16 @@
 }
 
 .hud-top-right ::deep .hud-menu-item .game-icon-button,
-.hud-top-right ::deep .hud-minimap-button .game-icon-button {
+.hud-top-right ::deep .hud-minimap-button .game-icon-button,
+.hud-bottom-right ::deep .hud-cell .game-icon-button {
     width: calc(var(--u) * 14);
     height: calc(var(--u) * 14);
+}
+
+/* The menu sprites of the pet and the Menu button have a pale cell of their own; multiplied onto the frame it takes the frame's colour, so every
+   column entry reads with the same frame. */
+.hud-top-right ::deep .hud-menu-item .game-icon-button-art {
+    mix-blend-mode: multiply;
 }
 
 /* The standalone window: centred below the top HUD row so it never overlaps the HUD buttons. */
@@ -208,9 +216,10 @@
     }
 }
 
+/* A touch screen lifts the emote cell above the action button, and on a phone above the gauges' column too (the hotbar takes two rows). */
 @media (pointer: coarse) {
     .hud-bottom-right {
-        bottom: calc(var(--u) * 40);
+        bottom: calc(var(--u) * 48);
     }
 }
 
@@ -225,9 +234,9 @@
         justify-content: flex-end;
     }
 
-    /* The top-right block is out of the flow now: the quest card starts under its row on a phone. */
+    /* The top-right block is out of the flow now: the quest card starts under its row (18 u) and one gap-group below it. */
     .hud-top-left {
         flex: 1 1 100%;
-        margin-top: calc(var(--u) * 20);
+        margin-top: calc(var(--u) * 22);
     }
 }
