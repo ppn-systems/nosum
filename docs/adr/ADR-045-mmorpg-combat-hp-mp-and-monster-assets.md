@@ -61,37 +61,45 @@ of the mine took a Combat level 10 player about 1.2 days of XP. No new mechanic,
 Each mine band has a reference player: the weapon, Combat level and armor it is expected to carry (band 1 bronze, level 2, leather; band 2
 iron, level 4, iron set; band 3 steel, level 5, iron set; band 4 gold, level 7, crown set). Against that player:
 
-- Normal monsters die in 1–2 hits, and one kill costs at most 8% of max HP.
-- A boss dies in 6–9 hits and costs 35–65% of max HP.
-- The armor adds at least 5 hits of survival against the band's strongest normal monster, which takes at least 15 hits to kill a wearer.
+- Normal monsters take 3–5 hits to kill (elites 5–8), and one kill costs 10–20% of max HP without dodging. Band 2's spore shroom is the
+  exception (1.4%): it is one species in bands 1 and 2, and no single HP and attack meets both.
+- A boss takes 20–40 s to kill and costs 40–70% of max HP when its slams are not dodged. The tables use 22 s and 53–59%.
+- The armor adds at least 5 hits of survival against the band's strongest normal monster, which takes at least 10 hits to kill a wearer.
+  The 6–10 hits-to-die target is not met: with 3-hit kills, 10–20% per kill implies 10–20 hits to die.
 - Each melee weapon tier is at least 40% stronger than the tier below.
-- Every monster's primary drop has a sell price. The mean primary-drop value of a band's normal monsters stays within 4–10 coins (band 1), 4–12 (band 2), 6–12 (band 3) and 10–20 (band 4).
+- Every monster's primary drop has a sell price. The mean primary-drop value per band stays within 4–10 (band 1), 4–12 (band 2),
+  6–12 (band 3) and 10–20 (band 4) coins.
 - One full clear of a band leaves the reference player at that band's Combat level. One full clear of the mine is 2 to 3.5 clears to Combat level 10.
-- A health potion restores 25–50% of each band's max HP.
+- A health potion restores 25–40% of each band's max HP.
+
+These are locked by `tests/Nosum.UnitTests/Gameplay/CombatBalanceTests.cs`. The 3-potions-per-trip and 3-to-5-trips-of-gear targets are not
+met; see `docs/design/combat-balance.md`, Known gaps.
 
 ### D5 — Catalog changes
 
-- **Species** (`MonsterSpawnPlanner.SpeciesForMineFloor`): the breaks follow the biome tiers. Band 3 is magma slime, skeleton warrior and goblin scout;
-  band 4 is stone golem, skeleton warrior and magma slime. Bands 1 and 2 are unchanged.
-- **Monster attack** (`MonsterCatalog`): frost slime 9→13, goblin scout 12→16, magma slime 14→18, skeleton warrior 16→20. Green slime (5), cave bat (7),
-  spore shroom (8) and stone golem (22→24) as listed. HP never changes.
-- **Boss attack:** Cave broodmother 15→10, Goblin chieftain 22→17, Magma colossus 30→19, Golem king 40→24.
-- **Monster and boss XP** halved (rounded): green slime 12→6, cave bat 15→8, spore shroom 20→10, frost slime 22→11, goblin scout 30→15,
-  magma slime 35→18, skeleton warrior 45→22, stone golem 70→35, bosses 150/250/400/600 → 75/125/200/300.
-- **Armor defense** (`CombatRules.ArmorDefense`): leather armor 3→2, ranger tunic 4→3, iron chestplate 7→5, iron greaves 5→3, iron helmet 4→2,
-  boss crown 8→6.
-- **Sell prices:** slime gel 4, bat wing 8, spore cap 8, goblin ear 12, monster bone 12, golem core 35, mana crystal 30, treasure gem 35, coal 4,
-  copper ore 2, iron ore 4, copper bar 10 and iron bar 20 (a furnace turns 5 ore into 1 bar, so a bar sells for five times its ore).
+- **Species** (`MonsterSpawnPlanner.SpeciesForMineFloor`): the breaks follow the biome tiers (ADR-070): 1–10, 11–20, 21–30, 31–40.
+  Band 3 is magma slime, skeleton warrior and goblin scout; band 4 is stone golem, skeleton warrior and magma slime.
+- **Monster HP and attack** (`MonsterCatalog`): green slime 24/5 → 60/8; cave bat 30/7 → 60/8; spore shroom 40/8 → 82/5;
+  frost slime 45/13 → 82/17; goblin scout 60/16 → 118/18; magma slime 75/18 → 166/23; skeleton warrior 90/20 → 166/23;
+  stone golem 140/24 → 166/23.
+- **Boss HP and attack:** cave broodmother 180/10 → 1200/2; goblin chieftain 280/17 → 2000/7; magma colossus 420/19 → 2900/7;
+  golem king 600/24 → 4100/11.
+- **Monster and boss XP** halved in the first retune and unchanged since: green slime 6, cave bat 8, spore shroom 10, frost slime 11,
+  goblin scout 15, magma slime 18, skeleton warrior 22, stone golem 35, bosses 75/125/200/300.
+- **Armor defense** (`CombatRules.ArmorDefense`): leather armor 2, ranger tunic 3, iron chestplate 5, iron greaves 3, iron helmet 2,
+  boss crown 6.
+- **Health potion** (`CombatRules.PotionRestore`): 50 HP → 45 HP.
+- **Sell prices:** slime gel 4, bat wing 8, spore cap 8, goblin ear 12, monster bone 12, golem core 35, mana crystal 30, treasure gem 35,
+  coal 4, copper ore 2, iron ore 4, copper bar 10 and iron bar 20 (a furnace turns 5 ore into 1 bar, so a bar sells for five times its ore).
 
-Unchanged: monster HP, weapon damage, potion restores, spawn counts, the XP curve (`SkillRules`), the armor formula, the sword pacing, the
-elite rules and the boss floors.
+Unchanged: weapon damage, mana and elixir potions, spawn counts, the XP curve (`SkillRules`), the armor formula, the sword pacing,
+the elite rules and the boss floors.
 
 ### Consequences
 
-- Positive: no floor is trivial for the reference player, no boss is lethal, bands follow the biome tiers, every drop has a use or a value,
-  and the XP curve matches the reference levels.
-- Known gap, not changed here: there is no natural HP regeneration. A full band clear of normal fights costs 110 to 454 HP against a reference
-  player with 120 to 170 max HP, and band 3 needs about nine health potions. Healing is potions, shrines and the 25% knockout revive. A
+- Positive: normal fights are no longer trivial (3 hits, 10–20% of HP per kill), no boss is lethal, bands follow the biome tiers, every drop has a use or a value, and the XP curve matches the reference levels.
+- Known gap, not changed here: there is no natural HP regeneration. A full band clear of normal fights costs 384 to 1286 HP against a reference
+  player with 120 to 170 max HP, and band 3 needs about 29 health potions. Healing is potions, shrines and the 25% knockout revive. A
   regeneration or rest rule is a new mechanic and needs its own ADR.
 - Negative: market listings for ore and gems now exist, which the economy must watch (the market fee and the listing caps stay as they are).
 

@@ -62,8 +62,9 @@ Chosen **Option B**:
 
 ## Amendment — boss balance (2026-10-31)
 
-- **Amends:** the boss contact damage in the Decision list. Cave broodmother 15→10, Goblin chieftain 22→17, Magma colossus 30→19,
-  Golem king 40→24. Boss XP is halved (75, 125, 200, 300). HP and enrage thresholds are unchanged.
+- **Amends:** the boss HP and contact damage in the Decision list. Cave broodmother 180 HP / 15 contact → 1200 HP / 2 contact; Goblin
+  chieftain 280 / 22 → 2000 / 7; Magma colossus 420 / 30 → 2900 / 7; Golem king 600 / 40 → 4100 / 11. A boss now takes 20–40 s to
+  kill and its slams carry the damage. Boss XP is 75, 125, 200 and 300. Enrage thresholds are unchanged.
 - **Reason:** with the reference player of each band, the broodmother took 90% of HP and the Golem king killed the player; the table and
   the targets are in [ADR-045, D4–D5](ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md) and `docs/design/combat-balance.md`.
 - **Drops:** the catalog is the source of truth. The floor-10 boss drops the Ancient Scroll and a Necromancer Skull, and the floor-40 boss
