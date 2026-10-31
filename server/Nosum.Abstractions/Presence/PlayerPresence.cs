@@ -81,4 +81,14 @@ public sealed class PlayerPresence
     /// honors (issue #146). Use only while holding <see cref="Gate"/>.
     /// </summary>
     public double MoveSpeedFactor { get; set; } = 1;
+
+    /// <summary>
+    /// Gets or sets the run energy owed and not yet spent, energy units below one whole unit (docs/adr/ADR-081 D2). Use only while holding <see cref="Gate"/>.
+    /// </summary>
+    public double RunEnergyDebt { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the server grants the run speed. It turns off when the energy ran out and on again once the player lets go of run. Use only while holding <see cref="Gate"/>.
+    /// </summary>
+    public bool RunAllowed { get; set; } = true;
 }

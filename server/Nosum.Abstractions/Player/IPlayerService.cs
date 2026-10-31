@@ -38,7 +38,8 @@ public interface IPlayerService
     /// <param name="moving">Claimed walking flag.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Whether it was accepted and, when not, why and where the player is kept.</returns>
-    ValueTask<MoveOutcome> MoveAsync(IConnection connection, float x, float y, byte facing, bool moving, CancellationToken cancellationToken = default);
+    /// <param name="running">Whether the player claims to run; the server grants the run speed only while the player has energy (docs/adr/ADR-081).</param>
+    ValueTask<MoveOutcome> MoveAsync(IConnection connection, float x, float y, byte facing, bool moving, bool running = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Moves a connected player to the spawn of another instance on the server's own initiative: a visit to somebody's farm, or being sent

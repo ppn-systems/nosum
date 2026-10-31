@@ -100,8 +100,8 @@ public enum InputEdges
 /// <summary>Helpers for the packed input integer the platform passes to the frame.</summary>
 public static class InputPacking
 {
-    /// <summary>Bits the held directions occupy (up, down, left, right); the edges start above them.</summary>
-    public const int HeldBits = 4;
+    /// <summary>Bits the held state occupies (up, down, left, right, run); the edges start above them.</summary>
+    public const int HeldBits = 5;
 
     /// <summary>Packs held directions and pressed keys into one integer.</summary>
     /// <param name="held">Held directions.</param>

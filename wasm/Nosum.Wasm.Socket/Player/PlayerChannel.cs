@@ -44,6 +44,7 @@ public sealed class PlayerChannel : IDisposable
     private float _y;
     private byte _facing;
     private bool _moving;
+    private bool _running;
     private byte _unlocks;
 
     /// <summary>Initializes the channel and starts its report timer.</summary>
@@ -101,7 +102,8 @@ public sealed class PlayerChannel : IDisposable
     /// <param name="y">Feet y, world pixels.</param>
     /// <param name="facing">Facing, 0 to 3.</param>
     /// <param name="moving">Whether the farmer is walking.</param>
-    public void Report(float x, float y, byte facing, bool moving)
+    /// <param name="running">Whether the farmer is running (docs/adr/ADR-081); the server grants the run speed only while it has energy.</param>
+    public void Report(float x, float y, byte facing, bool moving, bool running = false)
     {
         lock (_gate)
         {
@@ -110,12 +112,13 @@ public sealed class PlayerChannel : IDisposable
                 return;
             }
 
-            if (moving || _x != x || _y != y || _facing != facing || _moving != moving)
+            if (moving || _x != x || _y != y || _facing != facing || _moving != moving || _running != running)
             {
                 _x = x;
                 _y = y;
                 _facing = facing;
                 _moving = moving;
+                _running = running;
                 _dirty = true;
             }
         }
@@ -260,6 +263,7 @@ public sealed class PlayerChannel : IDisposable
                 float y;
                 byte facing;
                 bool moving;
+                bool running;
                 lock (_gate)
                 {
                     if (!_dirty)
@@ -268,7 +272,7 @@ public sealed class PlayerChannel : IDisposable
                     }
 
                     _dirty = false;
-                    (x, y, facing, moving) = (_x, _y, _facing, _moving);
+                    (x, y, facing, moving, running) = (_x, _y, _facing, _moving, _running);
                 }
 
                 try
@@ -280,6 +284,7 @@ public sealed class PlayerChannel : IDisposable
                     intent.Y = y;
                     intent.Facing = facing;
                     intent.Moving = moving;
+                    intent.Running = running;
                     await _socket.SendAsync(intent, ct).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)

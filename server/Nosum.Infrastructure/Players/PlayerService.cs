@@ -53,6 +53,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     private readonly IBuildingDirectory? _buildings;
     private readonly ICommunityUnlocks? _unlocks;
     private readonly IInventoryService? _inventory;
+    private readonly IRunEnergy? _runEnergy;
     private readonly ConcurrentDictionary<uint, (int X, int Y)> _disarmedTiles = new();
     private readonly RecentPlaces _recent;
 
@@ -71,7 +72,8 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     /// <param name="buildings">The farm buildings: walking onto a building's door enters its interior, and leaving the interior returns to the door (docs/adr/ADR-028 D2); <see langword="null"/> for none.</param>
     /// <param name="unlocks">The community unlocks; a map change tells the client those that change what it may walk on (docs/adr/ADR-037 D4); <see langword="null"/> tells it none.</param>
     /// <param name="inventory">Tells each snapshot the item every player holds in hand; <see langword="null"/> sends empty hands.</param>
-    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null, IBuildingDirectory? buildings = null, ICommunityUnlocks? unlocks = null, IInventoryService? inventory = null)
+    /// <param name="runEnergy">Spends the energy of running players (docs/adr/ADR-081 D2); <see langword="null"/> makes running free (tests only).</param>
+    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null, IBuildingDirectory? buildings = null, ICommunityUnlocks? unlocks = null, IInventoryService? inventory = null, IRunEnergy? runEnergy = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
@@ -98,6 +100,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         _buildings = buildings;
         _unlocks = unlocks;
         _inventory = inventory;
+        _runEnergy = runEnergy;
         _snapshotInterval = snapshotInterval;
         _presence.PlayerLeft += this.OnPlayerLeftAsync;
     }
@@ -131,9 +134,9 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     }
 
     /// <inheritdoc/>
-    public async ValueTask<MoveOutcome> MoveAsync(IConnection connection, float x, float y, byte facing, bool moving, CancellationToken cancellationToken = default)
+    public async ValueTask<MoveOutcome> MoveAsync(IConnection connection, float x, float y, byte facing, bool moving, bool running = false, CancellationToken cancellationToken = default)
     {
-        MoveOutcome outcome = await this.ValidateMoveAsync(connection, x, y, facing, moving).ConfigureAwait(false);
+        MoveOutcome outcome = await this.ValidateMoveAsync(connection, x, y, facing, moving, running).ConfigureAwait(false);
         if (outcome.Status == MoveStatus.Accepted && _groundItems is not null && _presence.TryGet(connection, out PlayerPresence? player))
         {
             // Items within reach are picked up off the movement path: the move is answered without waiting for the database.
@@ -143,7 +146,30 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         return outcome;
     }
 
-    private async ValueTask<MoveOutcome> ValidateMoveAsync(IConnection connection, float x, float y, byte facing, bool moving)
+    // Spends the energy a running player owed (docs/adr/ADR-081 D2). When the energy is gone the run speed is withdrawn until the player lets go of run.
+    private async Task SpendRunEnergyAsync(PlayerPresence player, int energy)
+    {
+        bool spent;
+        try
+        {
+            spent = await _runEnergy!.TrySpendAsync(player.AccountId, energy).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // A failed write costs this run's energy, not the player's run: the next run step owes energy again.
+            spent = true;
+        }
+
+        if (!spent)
+        {
+            lock (player.Gate)
+            {
+                player.RunAllowed = false;
+            }
+        }
+    }
+
+    private async ValueTask<MoveOutcome> ValidateMoveAsync(IConnection connection, float x, float y, byte facing, bool moving, bool runClaimed)
     {
         ArgumentNullException.ThrowIfNull(connection);
 
@@ -162,7 +188,25 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                 return new MoveOutcome(MoveStatus.NotJoined, 0, 0, 0);
             }
 
-            MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, _world.GridFor(player.Instance, map), player.MoveSpeedFactor);
+            // Running (docs/adr/ADR-081): the run speed counts only while the server grants it, and every second of it is owed energy.
+            bool running = runClaimed && player.RunAllowed;
+            double owedSince = player.Motion.LastSeconds;
+            MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, _world.GridFor(player.Instance, map), RunRules.SpeedMultiplier(player.MoveSpeedFactor, running));
+            if (!runClaimed)
+            {
+                player.RunAllowed = true;
+            }
+            else if (running && _runEnergy is not null)
+            {
+                double debt = player.RunEnergyDebt;
+                int energy = RunRules.TakeEnergy(ref debt, now - owedSince);
+                player.RunEnergyDebt = debt;
+                if (energy > 0)
+                {
+                    _ = this.SpendRunEnergyAsync(player, energy);
+                }
+            }
+
             if (verdict != MoveVerdict.Accepted)
             {
                 MoveRefusal reason = verdict switch

@@ -24,9 +24,9 @@ let lightSprite = null;       // white-to-transparent radial gradient, scaled pe
 let edges = 0;  // one-shot keys pressed since the last frame, packed above the held bits (Nosum.Core.InputEdges)
 let mouseX = 0, mouseY = 0, mouseHeld = 0;  // the mouse over the canvas, CSS pixels, and 1 while its button is down (drag-to-sow)
 
-// Keys that never change: the arrows, Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
+// Keys that never change: the arrows, Shift (run, docs/adr/ADR-081), Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
 // so the maps below are built from both. Bit values match Nosum.Core.InputState (held) and Nosum.Core.InputEdges (pressed once).
-const FIXED_HELD = { ArrowUp: 1, ArrowDown: 2, ArrowLeft: 4, ArrowRight: 8 };
+const FIXED_HELD = { ArrowUp: 1, ArrowDown: 2, ArrowLeft: 4, ArrowRight: 8, ShiftLeft: 16, ShiftRight: 16 };
 const FIXED_EDGES = {
     Space: 1,
     Digit1: 2, Digit2: 4, Digit3: 8, Digit4: 16, Digit5: 32, Digit6: 64, Digit7: 128, Digit8: 256, Digit9: 512,
@@ -91,10 +91,12 @@ function isActivating(e) {
 }
 
 // --- touch (docs/adr/ADR-033 D2) ---
+// The run toggle (docs/adr/ADR-081 D3) is a latched button: its state lives in touchRun, read with the held keys on the next frame.
 // The controls are plain elements drawn by the Razor TouchControls component: a stick ([data-touch=stick] with a [data-touch=knob] inside) and buttons
 // ([data-touch-edge=<InputEdges bit>]). The pointer events are handled here and only change `touchHeld` / `edges`, which join the input of the next
 // frame: there is no call into .NET per touch event.
 let touchHeld = 0;
+let touchRun = false;   // the touch run toggle (data-touch-run): latched on until tapped again, like a run key
 let stickPointer = -1;
 const STICK_DEAD = 0.3;
 const LONG_PRESS_MS = 500;
@@ -132,6 +134,14 @@ function installTouch() {
             stickPointer = e.pointerId;
             try { stick.setPointerCapture(e.pointerId); } catch { /* the pointer ended already */ }
             moveStick(stick, e);
+            return;
+        }
+        const run = t.closest("[data-touch-run]");
+        if (run) {
+            e.preventDefault();
+            touchRun = !touchRun;
+            run.classList.toggle("on", touchRun);
+            run.setAttribute("aria-pressed", String(touchRun));
             return;
         }
         const button = t.closest("[data-touch-edge]");
@@ -252,7 +262,7 @@ export async function start(canvasId, assemblyName, exportPath) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
         const pressed = edges;
         edges = 0;
-        frame(time, (keys | touchHeld) | (pressed << 4), w, h, mouseX, mouseY, mouseHeld);
+        frame(time, (keys | touchHeld | (touchRun ? 16 : 0)) | (pressed << 5), w, h, mouseX, mouseY, mouseHeld);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);

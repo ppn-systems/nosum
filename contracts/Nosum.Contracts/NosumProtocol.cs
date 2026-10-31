@@ -32,6 +32,7 @@ public static class NosumProtocol
     /// 21: fish size - <c>SizeCm</c> appended to <c>ReelResult</c> (docs/adr/ADR-078 amendment).
     /// 22: development QA hook (docs/adr/ADR-079) - new Development-only packets <c>DevTeleport</c>, <c>DevSeason</c>, <c>DevLevelUp</c>, <c>DevFishingBite</c> (C2S <c>0xF002-0xF005</c>) and their replies (S2C <c>0xF042-0xF045</c>). Production does not map them. No existing packet changed.
     /// 23: fishing skill row - <c>FishingXp</c> appended to <c>SkillXpChanged</c> (docs/adr/ADR-078 amendment). No packet, opcode or other field changed.
+    /// 24: running - <c>MoveIntent.Running</c> appended (docs/adr/ADR-081). Clients built for 23 do not send the run flag, so the client and server ship together; no other packet changed.
     /// </summary>
-    public const ushort Version = 23;
+    public const ushort Version = 24;
 }
