@@ -55,6 +55,15 @@ public enum NpcPage
 
     /// <summary>The Town board's goals and requests.</summary>
     Goals = 6,
+
+    /// <summary>The player's wardrobe: looks and clothes, from the tailor (docs/adr/ADR-081).</summary>
+    Wardrobe = 7,
+
+    /// <summary>The co-op page, from the board keeper (docs/adr/ADR-081).</summary>
+    Coop = 8,
+
+    /// <summary>The backpack page: the next size and its price, from the tailor (docs/adr/ADR-081).</summary>
+    Backpack = 9,
 }
 
 /// <summary>One button of the dialog box.</summary>
@@ -73,7 +82,18 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
     public static readonly TimeSpan RevealInterval = TimeSpan.FromMilliseconds(30);
 
     // The order of the buttons; Talk comes last before Leave.
-    private static readonly NpcActions[] s_order = [NpcActions.Buy, NpcActions.Sell, NpcActions.Build, NpcActions.Upgrade, NpcActions.Goals, NpcActions.Talk];
+    private static readonly NpcActions[] s_order =
+    [
+        NpcActions.Buy,
+        NpcActions.Sell,
+        NpcActions.Build,
+        NpcActions.Upgrade,
+        NpcActions.Goals,
+        NpcActions.Coop,
+        NpcActions.Wardrobe,
+        NpcActions.Backpack,
+        NpcActions.Talk,
+    ];
 
     private readonly IStringLocalizer<Language> _localizer;
     private readonly CalendarChannel _calendar;
@@ -135,6 +155,9 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
     /// <summary>Gets whether the standalone dialog is showing the Town board goals page.</summary>
     public bool IsGoalsPage => this.Page == NpcPage.Goals;
 
+    /// <summary>Gets whether the standalone dialog is showing the backpack page (the tailor's next size).</summary>
+    public bool IsBackpackPage => this.Page == NpcPage.Backpack;
+
     /// <summary>Gets the merchant's name, localized.</summary>
     public string Name => this.Npc is null ? string.Empty : this.Text(this.Npc.TextKey("Name"));
 
@@ -188,6 +211,9 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
         NpcPage.Shop or NpcPage.Build or NpcPage.Upgrade => PanelKind.Shop,
         NpcPage.MarketBuy or NpcPage.MarketSell => PanelKind.Market,
         NpcPage.Goals => PanelKind.Goals,
+        NpcPage.Wardrobe => PanelKind.Wardrobe,
+        NpcPage.Coop => PanelKind.Coop,
+        NpcPage.Backpack => PanelKind.Backpack,
         _ => PanelKind.None,
     };
 
@@ -197,6 +223,9 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
         NpcPage.Shop or NpcPage.Build or NpcPage.Upgrade => ShopCatalog.TryGet(this.ShopId, out ShopDefinition? shop) ? this.Text("Shop_Title_" + shop.Key) : string.Empty,
         NpcPage.MarketBuy or NpcPage.MarketSell => this.Text("Toolbar_Market"),
         NpcPage.Goals => this.Text("Toolbar_Goals"),
+        NpcPage.Wardrobe => this.Text("Toolbar_Wardrobe"),
+        NpcPage.Coop => this.Text("Toolbar_Coop"),
+        NpcPage.Backpack => this.Text("Toolbar_Backpack"),
         _ => string.Empty,
     };
 
@@ -250,6 +279,15 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
                 break;
             case NpcActions.Goals:
                 this.Show(NpcPage.Goals);
+                break;
+            case NpcActions.Coop:
+                this.Show(NpcPage.Coop);
+                break;
+            case NpcActions.Wardrobe:
+                this.Show(NpcPage.Wardrobe);
+                break;
+            case NpcActions.Backpack:
+                this.Show(NpcPage.Backpack);
                 break;
             default:
                 return;

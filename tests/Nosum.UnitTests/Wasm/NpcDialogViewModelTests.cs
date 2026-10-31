@@ -216,6 +216,9 @@ public sealed class NpcDialogViewModelTests
     [InlineData(MarketRules.MarketCounterId, NpcActions.Buy, NpcPage.MarketBuy, PanelKind.Market)]
     [InlineData(MarketRules.MarketCounterId, NpcActions.Sell, NpcPage.MarketSell, PanelKind.Market)]
     [InlineData(CommunityGoalCatalog.BoardCounterId, NpcActions.Goals, NpcPage.Goals, PanelKind.Goals)]
+    [InlineData(CommunityGoalCatalog.BoardCounterId, NpcActions.Coop, NpcPage.Coop, PanelKind.Coop)]
+    [InlineData(ShopCatalog.ClothingShop, NpcActions.Wardrobe, NpcPage.Wardrobe, PanelKind.Wardrobe)]
+    [InlineData(ShopCatalog.ClothingShop, NpcActions.Backpack, NpcPage.Backpack, PanelKind.Backpack)]
     public void Choose_EachButton_OpensItsPage(int counterId, NpcActions action, NpcPage page, PanelKind panel)
     {
         NpcDialogViewModel vm = Create();
@@ -248,7 +251,7 @@ public sealed class NpcDialogViewModelTests
     [InlineData(ShopCatalog.Blacksmith, "Buy,Upgrade,Talk")]
     [InlineData(ShopCatalog.CarpenterShop, "Buy,Build,Talk")]
     [InlineData(MarketRules.MarketCounterId, "Buy,Sell,Talk")]
-    [InlineData(CommunityGoalCatalog.BoardCounterId, "Goals,Talk")]
+    [InlineData(CommunityGoalCatalog.BoardCounterId, "Goals,Coop,Talk")]
     public void Choices_AreOnlyWhatTheCounterSupports_InAFixedOrder(int counterId, string expected)
     {
         using CultureScope scope = new("en");

@@ -1135,4 +1135,18 @@
   <data name="Furniture_BlocksWalking" xml:space="preserve"><value>Chặn lối đi</value></data>
   <data name="Furniture_WalkOver" xml:space="preserve"><value>Có thể đi qua</value></data>
   <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
+  <data name="Toolbar_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
+  <data name="Npc_Action_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
+  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Backpack_Size" xml:space="preserve"><value>Túi đồ hiện có {0} ô.</value></data>
+  <data name="Backpack_Next" xml:space="preserve"><value>Cỡ tiếp theo: {0} ô, giá {1} xu. Thêm một hàng ô.</value></data>
+  <data name="Backpack_Upgrade" xml:space="preserve"><value>Nâng cấp túi</value></data>
+  <data name="Backpack_Max" xml:space="preserve"><value>Túi đồ đã lớn nhất.</value></data>
+  <data name="Backpack_Hint" xml:space="preserve"><value>Ô mới hiện ngay trong túi đồ của bạn.</value></data>
+  <data name="Backpack_Status_Ok" xml:space="preserve"><value>Túi đồ đã được nâng cấp.</value></data>
+  <data name="Backpack_Status_NotAtCounter" xml:space="preserve"><value>Hãy đứng tại quầy của thợ may.</value></data>
+  <data name="Backpack_Status_MaxSize" xml:space="preserve"><value>Túi đồ đã lớn nhất.</value></data>
+  <data name="Backpack_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
+  <data name="Backpack_Status_Conflict" xml:space="preserve"><value>Có thay đổi cùng lúc. Hãy thử lại.</value></data>
 </root>

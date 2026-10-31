@@ -8,6 +8,7 @@
 @using System.Threading.Tasks
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
+@using Nosum.Wasm.Controls.Backpack
 @using Nosum.Wasm.Controls.Chat
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.Controls.Feedback
@@ -24,6 +25,7 @@
 @using Nosum.Wasm.Controls.Touch
 @using Nosum.Wasm.Controls.Emotes
 @using Nosum.Wasm.Game
+@using Nosum.Wasm.ViewModels.Backpack
 @using Nosum.Wasm.ViewModels.Emotes
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
@@ -88,6 +90,7 @@
 @inject CarpenterViewModel Carpenter
 @inject ProgressViewModel Progress
 @inject NpcDialogViewModel Npc
+@inject BackpackViewModel Backpack
 @inject ConnectionStatusViewModel ConnectionStatus
 
 <PageTitle>Nosum</PageTitle>
@@ -364,13 +367,17 @@ else
             {
                 Market.SetTab(Npc.Page == NpcPage.MarketSell ? MarketTab.Sell : MarketTab.Browse);
             }
+            else if (Npc.Page == NpcPage.Backpack)
+            {
+                Backpack.Open();
+            }
 
             if (_panel != want)
             {
                 Show(want);
             }
         }
-        else if (_panel is PanelKind.Shop or PanelKind.Market or PanelKind.Goals)
+        else if (_panel is PanelKind.Shop or PanelKind.Market or PanelKind.Goals or PanelKind.Wardrobe or PanelKind.Coop or PanelKind.Backpack)
         {
             ClosePanel();
         }
@@ -522,7 +529,7 @@ else
         }
 
         _panel = kind;
-        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals or PanelKind.Market))
+        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals or PanelKind.Market or PanelKind.Wardrobe or PanelKind.Coop or PanelKind.Backpack))
         {
             _lastTab = kind;
         }

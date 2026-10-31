@@ -47,6 +47,7 @@ using Nosum.Wasm.Socket.Trade;
 using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Account;
+using Nosum.Wasm.ViewModels.Backpack;
 using Nosum.Wasm.ViewModels.Blacksmith;
 using Nosum.Wasm.ViewModels.Building;
 using Nosum.Wasm.ViewModels.Calendar;
@@ -132,6 +133,7 @@ internal static class ClientWiring
         services.AddSingleton<ShopChannel>();
         services.AddSingleton<FishingChannel>();
         services.AddSingleton<BlacksmithChannel>();
+        services.AddSingleton<BackpackChannel>();
         services.AddSingleton<MineChannel>();
         services.AddSingleton<GoalChannel>();
         services.AddSingleton<RequestChannel>();
@@ -168,6 +170,7 @@ internal static class ClientWiring
         services.AddSingleton<ShopViewModel>();
         services.AddSingleton<NpcDialogViewModel>();
         services.AddSingleton<BlacksmithViewModel>();
+        services.AddSingleton<BackpackViewModel>();
         services.AddSingleton<ElevatorViewModel>();
         services.AddSingleton(sp => new FishingViewModel(
             sp.GetRequiredService<FishingChannel>(),

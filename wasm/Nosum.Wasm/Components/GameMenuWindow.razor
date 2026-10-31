@@ -1,3 +1,4 @@
+@using Nosum.Wasm.Controls.Backpack
 @using Nosum.Wasm.Controls.Building
 @using Nosum.Wasm.Controls.Chest
 @using Nosum.Wasm.Controls.Common
@@ -25,6 +26,7 @@
 @using Nosum.Wasm.Controls.Visit
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
+@using Nosum.Wasm.ViewModels.Backpack
 @using Nosum.Wasm.ViewModels.Blacksmith
 @using Nosum.Wasm.ViewModels.Building
 @using Nosum.Wasm.ViewModels.Chest
@@ -69,6 +71,7 @@
 @inject PetViewModel Pet
 @inject WorldMapViewModel WorldMap
 @inject JournalViewModel Journal
+@inject BackpackViewModel Backpack
 
 @* Standalone window hosting the currently active game panel (docs/adr/ADR-044). *@
 <TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" Size="@SizeOf(Panel)" OnClose="OnDialogClose">
@@ -101,6 +104,9 @@
             break;
         case PanelKind.Wardrobe:
             <WardrobePanel Vm="Wardrobe" />
+            break;
+        case PanelKind.Backpack:
+            <BackpackPanel Vm="Backpack" />
             break;
         case PanelKind.Trade:
             <TradePanel Vm="Trade" />
@@ -168,7 +174,7 @@
         PanelKind.Inventory or PanelKind.Shop or PanelKind.Market or PanelKind.Wardrobe or PanelKind.WorldMap or PanelKind.Journal
             or PanelKind.Crafting or PanelKind.Skills => PanelSize.L,
         PanelKind.Chest => PanelSize.XL,
-        PanelKind.Furnace or PanelKind.Pet or PanelKind.Visitors or PanelKind.Menu => PanelSize.S,
+        PanelKind.Furnace or PanelKind.Pet or PanelKind.Visitors or PanelKind.Menu or PanelKind.Backpack => PanelSize.S,
         _ => PanelSize.M,
     };
 
@@ -178,6 +184,7 @@
         PanelKind.Chest => Toolbar.Text("Chest_Title"),
         PanelKind.Furnace => Toolbar.Text("Furnace_Title"),
         PanelKind.Menu => Toolbar.MenuLabel,
+        PanelKind.Backpack => Toolbar.Text("Toolbar_Backpack"),
         _ => Toolbar.TitleOf(Panel),
     };
 }
