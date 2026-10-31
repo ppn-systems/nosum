@@ -56,6 +56,11 @@ public static class ItemTooltip
             lines.Add(Line(text, "Tooltip_Energy", item.FoodEnergy));
         }
 
+        if (item.MoveSpeedPercent > 0)
+        {
+            lines.Add(Line(text, "Tooltip_MoveSpeed", item.MoveSpeedPercent));
+        }
+
         if (item.SellPrice > 0)
         {
             lines.Add(Line(text, "Tooltip_Sell", item.SellPrice));

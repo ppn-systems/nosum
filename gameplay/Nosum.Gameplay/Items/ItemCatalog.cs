@@ -375,6 +375,9 @@ public static partial class ItemCatalog
     /// <summary>A radiant crimson vitality crystal that restores HP, MP, and grants enhanced Regeneration (docs/adr/ADR-065).</summary>
     public const int HeartCrystal = 714;
 
+    /// <summary>The speed tonic: a Swiftness draught for three game hours (docs/adr/ADR-084 D4).</summary>
+    public const int SpeedTonic = 715;
+
     /// <summary>An egg, a chicken's produce (docs/adr/ADR-028 D3; animal produce is ids 900-949).</summary>
     public const int Egg = 900;
 
@@ -519,6 +522,18 @@ public static partial class ItemCatalog
     /// <summary>A forged iron battle helmet.</summary>
     public const int IronHelmet = 442;
 
+    /// <summary>Leather boots, the tailor's entry-level pair: +5% walking speed (docs/adr/ADR-084 D1).</summary>
+    public const int LeatherBoots = 408;
+
+    /// <summary>Traveler boots: +10% walking speed (docs/adr/ADR-084 D1).</summary>
+    public const int TravelerBoots = 409;
+
+    /// <summary>Swift boots: +15% walking speed and cheaper running energy (docs/adr/ADR-084 D1, D5).</summary>
+    public const int SwiftBoots = 410;
+
+    /// <summary>Winged boots, the late-game pair: +20% walking speed and the largest running saving (docs/adr/ADR-084 D1, D5).</summary>
+    public const int WingedBoots = 411;
+
     /// <summary>Largest stack of seeds and produce.</summary>
     public const int DefaultStack = 99;
 
@@ -656,6 +671,7 @@ public static partial class ItemCatalog
         new(ManaPotion, "mana_potion", ItemKind.Food, DefaultStack, foodEnergy: 15) { ObjectIcon = 94 },
         new(Elixir, "elixir", ItemKind.Food, DefaultStack, foodEnergy: 60) { ObjectIcon = 95 },
         new(ArcaneGrimoire, "arcane_grimoire", ItemKind.Food, DefaultStack, foodEnergy: 40) { SellPrice = 650, ObjectIcon = 104 },
+        new(SpeedTonic, "speed_tonic", ItemKind.Food, DefaultStack) { SellPrice = 40, ObjectIcon = 148 },
         new(HeartCrystal, "heart_crystal", ItemKind.Food, DefaultStack, foodEnergy: 50) { SellPrice = 750, ObjectIcon = 112 },
         new(OakChair, "oak_chair", ItemKind.Furniture, FurnitureStack),
         new(BlueArmchair, "blue_armchair", ItemKind.Furniture, FurnitureStack),
@@ -703,6 +719,10 @@ public static partial class ItemCatalog
         new(PantsKhaki, "pants_khaki", ItemKind.Clothing, 1, wear: WearSlot.Pants),
         new(HatStraw, "hat_straw", ItemKind.Clothing, 1, wear: WearSlot.Hat),
         new(HatCap, "hat_cap", ItemKind.Clothing, 1, wear: WearSlot.Hat),
+        new(LeatherBoots, "leather_boots", ItemKind.Clothing, 1, wear: WearSlot.Feet) { SellPrice = 60, MoveSpeedPercent = 5, ObjectIcon = 144 },
+        new(TravelerBoots, "traveler_boots", ItemKind.Clothing, 1, wear: WearSlot.Feet) { SellPrice = 150, MoveSpeedPercent = 10, ObjectIcon = 145 },
+        new(SwiftBoots, "swift_boots", ItemKind.Clothing, 1, wear: WearSlot.Feet) { SellPrice = 300, MoveSpeedPercent = 15, RunEnergySavePercent = 20, ObjectIcon = 146 },
+        new(WingedBoots, "winged_boots", ItemKind.Clothing, 1, wear: WearSlot.Feet) { SellPrice = 900, MoveSpeedPercent = 20, RunEnergySavePercent = 30, ObjectIcon = 147 },
         new(SpringOnion, "spring_onion", ItemKind.Produce, DefaultStack, foodEnergy: 4) { SellPrice = 8, ObjectIcon = 65 },
         new(Leek, "leek", ItemKind.Produce, DefaultStack, foodEnergy: 5) { SellPrice = 20, ObjectIcon = 66 },
         new(Dandelion, "dandelion", ItemKind.Produce, DefaultStack, foodEnergy: 4) { SellPrice = 8, ObjectIcon = 67 },

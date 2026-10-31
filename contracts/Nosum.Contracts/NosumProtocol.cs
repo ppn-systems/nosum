@@ -36,6 +36,7 @@ public static class NosumProtocol
     /// <c>NotAtShop</c> and <c>NotEnoughCoins</c>, <c>AccountStatus</c> gains <c>NicknameNeedsScroll</c>. No existing packet or field changed.
     /// 25: backpack upgrades (docs/adr/ADR-083) - new packets <c>GetBackpack</c> and <c>UpgradeBackpack</c> (C2S <c>0x5004-0x5005</c>) and <c>BackpackState</c>
     /// (S2C <c>0x5043</c>), <c>BackpackStatus</c>. No existing packet, opcode or field changed.
+    /// 26: footwear and the movement speed multiplier (docs/adr/ADR-084) - <c>FeetItemId</c> appended to <c>LookRow</c>; <c>WearSlot.Feet</c> (value 4) is a new wardrobe slot. No packet or opcode changed.
     /// </summary>
-    public const ushort Version = 25;
+    public const ushort Version = 26;
 }

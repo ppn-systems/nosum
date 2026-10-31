@@ -80,6 +80,7 @@
   <data name="Tooltip_WaterCapacity" xml:space="preserve"><value>Water capacity: {0}</value></data>
   <data name="Tooltip_Energy" xml:space="preserve"><value>Restores energy: +{0}</value></data>
   <data name="Tooltip_Sell" xml:space="preserve"><value>Sells for {0} coins</value></data>
+  <data name="Tooltip_MoveSpeed" xml:space="preserve"><value>Walking speed: +{0}%</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Quest</value></data>
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Completed</value></data>
@@ -165,6 +166,7 @@
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Shirt</value></data>
   <data name="Wardrobe_Slot_Pants" xml:space="preserve"><value>Trousers</value></data>
   <data name="Wardrobe_Slot_Hat" xml:space="preserve"><value>Hat</value></data>
+  <data name="Wardrobe_Slot_Feet" xml:space="preserve"><value>Boots</value></data>
   <data name="Wardrobe_Worn" xml:space="preserve"><value>Worn</value></data>
   <data name="Wardrobe_Bag" xml:space="preserve"><value>In your bag</value></data>
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>You have no clothes in your bag.</value></data>

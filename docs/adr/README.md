@@ -92,4 +92,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-081](ADR-081-economy-balance-targets.md) | Economy balance targets: a coin band per energy point (crops, fishing), a payback band for animals, tool energy three, fish prices and cast cost; amends ADR-023, ADR-025, ADR-028, ADR-078 (data only) | Accepted |
 | [ADR-082](ADR-082-remembered-sign-in-and-start-screen.md) | Remembered sign-in on this browser (session token in `localStorage`, continue card, rolled token, sign-out revokes) and the start screen: meadow backdrop, unframed Google and Microsoft buttons | Accepted |
 | [ADR-083](ADR-083-backpack-upgrades-and-merchant-doors.md) | Backpack upgrades (36, 45, 54 slots) bought at the tailor, server-authoritative; wardrobe, co-op and backpack opened from merchants' dialog boxes only | Proposed |
+| [ADR-084](ADR-084-footwear-boots-and-the-movement-speed-multiplier.md) | Footwear: boots on a new Feet slot (+5% to +20% walking speed), a speed tonic on the Swiftness buff, one combined and capped movement multiplier shared by server and client (protocol 26) | Accepted |
 

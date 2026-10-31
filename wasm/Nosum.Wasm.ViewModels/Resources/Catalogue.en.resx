@@ -391,6 +391,16 @@
   <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Iron leg guards preventing monster bite wounds (+5 Defense).</value></data>
   <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Iron helmet</value></data>
   <data name="Item_iron_helmet_Description" xml:space="preserve"><value>A battle helmet protecting the head from critical blows (+4 Defense).</value></data>
+  <data name="Item_leather_boots_Name" xml:space="preserve"><value>Leather boots</value></data>
+  <data name="Item_leather_boots_Description" xml:space="preserve"><value>Plain leather boots.</value></data>
+  <data name="Item_traveler_boots_Name" xml:space="preserve"><value>Traveler boots</value></data>
+  <data name="Item_traveler_boots_Description" xml:space="preserve"><value>Tall boots for long roads.</value></data>
+  <data name="Item_swift_boots_Name" xml:space="preserve"><value>Swift boots</value></data>
+  <data name="Item_swift_boots_Description" xml:space="preserve"><value>Light, slim boots for long walks.</value></data>
+  <data name="Item_winged_boots_Name" xml:space="preserve"><value>Winged boots</value></data>
+  <data name="Item_winged_boots_Description" xml:space="preserve"><value>Boots with small wings at the ankle.</value></data>
+  <data name="Item_speed_tonic_Name" xml:space="preserve"><value>Speed tonic</value></data>
+  <data name="Item_speed_tonic_Description" xml:space="preserve"><value>A light draught that quickens your steps for three game hours, sharing the Swiftness buff slot.</value></data>
   <data name="Item_ranger_tunic_Name" xml:space="preserve"><value>Ranger tunic</value></data>
   <data name="Item_ranger_tunic_Description" xml:space="preserve"><value>Agile battle tunic reinforced with bat leather and fiber (+4 Defense).</value></data>
   <data name="Item_necromancer_skull_Name" xml:space="preserve"><value>Necromancer skull</value></data>

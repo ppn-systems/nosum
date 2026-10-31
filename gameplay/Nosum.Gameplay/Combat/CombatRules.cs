@@ -315,7 +315,7 @@ public static class CombatRules
 
         (int healHp, int restoreMp) = PotionRestore(itemId);
         (StatusEffectKind effect, _, _) = PotionEffect(itemId);
-        return itemId is ItemCatalog.ArcaneGrimoire or ItemCatalog.HeartCrystal
+        return itemId is ItemCatalog.ArcaneGrimoire or ItemCatalog.HeartCrystal or ItemCatalog.SpeedTonic
             || effect != StatusEffectKind.None
             || (healHp > 0 && hp < maxHp)
             || (restoreMp > 0 && mp < maxMp);
@@ -330,6 +330,7 @@ public static class CombatRules
         ItemCatalog.ArcaneGrimoire => (StatusEffectKind.Swiftness, 30, 1),
         ItemCatalog.HeartCrystal => (StatusEffectKind.Regeneration, 40, 8),
         ItemCatalog.PumpkinSoup => (StatusEffectKind.Swiftness, 20, 1),
+        ItemCatalog.SpeedTonic => (StatusEffectKind.Swiftness, StatusEffectRules.SpeedTonicSeconds, 1),
         _ => (StatusEffectKind.None, 0, 0),
     };
 

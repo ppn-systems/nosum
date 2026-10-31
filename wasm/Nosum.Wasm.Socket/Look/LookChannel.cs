@@ -20,10 +20,11 @@ namespace Nosum.Wasm.Socket.Look;
 /// <param name="ShirtItemId">Worn shirt item id, or zero.</param>
 /// <param name="PantsItemId">Worn trousers item id, or zero.</param>
 /// <param name="HatItemId">Worn hat item id, or zero.</param>
+/// <param name="FeetItemId">Worn boots item id, or zero (docs/adr/ADR-084).</param>
 /// <param name="Nickname">The player's nickname as the server sent it with the look (empty until known; a guest's neutral name is localized by the view layer).</param>
 /// <param name="PetKind">The kind of the player's pet: 0 none, 1 cat, 2 dog (docs/adr/ADR-075 D3).</param>
 /// <param name="PetName">The pet's cleaned name; empty without a pet.</param>
-public readonly record struct LookInfo(int SkinId, int HairStyleId, int HairDyeId, int ShirtItemId, int PantsItemId, int HatItemId, string Nickname = "", byte PetKind = 0, string PetName = "")
+public readonly record struct LookInfo(int SkinId, int HairStyleId, int HairDyeId, int ShirtItemId, int PantsItemId, int HatItemId, string Nickname = "", byte PetKind = 0, string PetName = "", int FeetItemId = 0)
 {
     /// <summary>Gets the look shown for a player whose look has not arrived yet (the server's default).</summary>
     public static LookInfo Default => new(1, 1, 1, 0, 0, 0, string.Empty);
@@ -161,7 +162,7 @@ public sealed class LookChannel : IDisposable
     {
         lock (_gate)
         {
-            _looks[row.PlayerId] = new LookInfo(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId, row.Nickname, row.PetKind, row.PetName);
+            _looks[row.PlayerId] = new LookInfo(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId, row.Nickname, row.PetKind, row.PetName, row.FeetItemId);
         }
 
         this.Changed?.Invoke();
@@ -191,7 +192,7 @@ public sealed class LookChannel : IDisposable
                 _looks.Clear();
                 foreach (LookRow row in snapshot.Looks)
                 {
-                    _looks[row.PlayerId] = new LookInfo(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId, row.Nickname, row.PetKind, row.PetName);
+                    _looks[row.PlayerId] = new LookInfo(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId, row.Nickname, row.PetKind, row.PetName, row.FeetItemId);
                 }
             }
 

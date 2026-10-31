@@ -14,8 +14,8 @@ namespace Nosum.Wasm.Game;
 
 internal sealed partial class PlayerActions
 {
-    /// <summary>Gets the walking speed multiplier of the player's active speed buff (1 for none); the server validates the same factor (issue #146).</summary>
-    public double MoveSpeedFactor => _combat is null ? 1 : StatusEffectRules.MoveSpeedFactor((StatusEffectKind)_combat.Buff);
+    /// <summary>Gets the speed buff in the buff slot, or <see cref="StatusEffectKind.None"/>; the walker combines it with the boots (docs/adr/ADR-084 D3).</summary>
+    public StatusEffectKind SpeedBuff => _combat is null ? StatusEffectKind.None : (StatusEffectKind)_combat.Buff;
 
     /// <summary>Gets the active tool/weapon swing animation progress in <c>[0, 1)</c>, if a swing is playing.</summary>
     /// <param name="nowSeconds">Current scene clock in seconds.</param>
