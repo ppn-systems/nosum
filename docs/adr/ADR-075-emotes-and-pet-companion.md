@@ -29,3 +29,18 @@ Players can talk to each other with chat, but they cannot show a feeling without
 - Visitors see a player's pet without a new fan-out: it rides the look path that already reaches every visible player.
 - Protocol 13 is a breaking wire change for older clients in the sense of `LookRow` fields, so the server and client ship together as before.
 - The energy restore was renamed from `RestoreEnergyFromPotionAsync` to `RestoreEnergyAsync`, because the petting bonus uses the same operation.
+
+### 2026-10-31 - pets are bought and sold at the carpenter (owner decision)
+
+- **Free adoption is gone.** A cat costs `PetRules.CatPrice` (600 coins) and a dog `PetRules.DogPrice` (900), the carpenter's counter (`ShopCatalog.CarpenterShop`,
+  NPC `carpenter`), next to the animals it already sells (800 to 2,000 coins). The price is a product default, not balance; animals and pets are priced
+  against each other here, because `docs/design/economy.md` does not exist in the repo.
+- **`AdoptPet` buys.** The same request now charges the price in one `ITransferService` transaction with the `player_pets` row (enlisted work: one pet at a time,
+  re-checked inside the transaction). The player must stand within reach of the carpenter counter (`ShopCounterReach`, shared with the shop counters). New
+  `PetStatus` values: `NotAtShop` (7), `NotEnoughCoins` (8), appended.
+- **Sell or rehome: `RehomePet` (`0x9503`).** The player gives the pet back to the carpenter for half its price (`PetRules.RehomeRefundPercent` = 50, rounded down),
+  after a confirm dialog on the client. Coins and the row removal are one transaction. The reply is `PetState`, and the look is re-announced so the pet
+  disappears for everyone who could see it.
+- **Wire.** Protocol 24. Only appended values and one new opcode; no existing field changed.
+- **Client.** The farm pet panel shows a hint with both prices and a "Give back" action; the carpenter counter lists Cat and Dog with a name box and Buy.
+- **Not changed.** Pet mood, petting and the follow are as before.

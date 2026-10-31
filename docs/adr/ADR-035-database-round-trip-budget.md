@@ -285,3 +285,13 @@ steps add no database work for players who have finished them. Their rows keep t
 - `DeliverRequest / fill one request, chain finished`: (4, 1, 1, 1)
 
 Every other limit is unchanged.
+
+### 2026-10-31 - paid pets: adopting pays through the transfer, and rehoming is measured (owner review, PR #258)
+
+- **`AdoptPet` now buys.** Adopting a cat or dog at the carpenter's counter charges the price and creates the pet row in one `ITransferService` transaction
+  (ADR-075 amendment). Measured: reads 5, writes 4, transactions 3, SaveChanges 4 (was 2, 2, 1, 2). A shop buy costs 4, 3, 3, 3 (`BuyFromShop`), so this is the
+  cost of paying through the transfer service, not an extra query on the side. The row limit is raised to these numbers in the same commit as the change; the
+  probe now runs for a farmer standing at the counter with the coins, so the row measures the purchase and not a refusal.
+- **`RehomePet` is measured.** Giving the pet back costs reads 3, writes 1, transactions 1, SaveChanges 1, the coins and the row removal in one transfer. New row
+  `RehomePet / give the cat back` in `DbBudgetBaseline`.
+- The `GetPet` rows are unchanged; the pet read stays on the cache path described above.

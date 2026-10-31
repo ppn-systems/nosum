@@ -462,6 +462,9 @@ public static partial class ItemCatalog
     /// <summary>An ancient magical scroll dropped by the Cave Broodmother.</summary>
     public const int AncientScroll = 519;
 
+    /// <summary>The Rename Scroll: one nickname change uses one up (docs/adr/ADR-009 amendments). Sold by the tailor; no sell price.</summary>
+    public const int RenameScroll = 525;
+
     /// <summary>A golden skeleton key dropped by the Goblin Chieftain.</summary>
     public const int GoldenKey = 520;
 
@@ -633,6 +636,8 @@ public static partial class ItemCatalog
         new(TreasureGem, "treasure_gem", ItemKind.Resource, DefaultStack) { SellPrice = 1, ObjectIcon = 103 },
         new(BossCrown, "boss_crown", ItemKind.Clothing, 1, wear: WearSlot.Hat) { SellPrice = 500, ObjectIcon = 113 },
         new(AncientScroll, "ancient_scroll", ItemKind.Resource, DefaultStack) { SellPrice = 35, ObjectIcon = 106 },
+        // The Rename Scroll reuses the ancient scroll's sprite: it is a paper, not a new picture (docs/adr/ADR-009 amendments).
+        new(RenameScroll, "rename_scroll", ItemKind.Resource, DefaultStack) { ObjectIcon = 106 },
         new(GoldenKey, "golden_key", ItemKind.Resource, DefaultStack) { SellPrice = 15, ObjectIcon = 114 },
         new(ColossusCore, "colossus_core", ItemKind.Resource, DefaultStack) { SellPrice = 320, ObjectIcon = 115 },
         new(NecromancerSkull, "necromancer_skull", ItemKind.Resource, DefaultStack) { SellPrice = 10, ObjectIcon = 105 },

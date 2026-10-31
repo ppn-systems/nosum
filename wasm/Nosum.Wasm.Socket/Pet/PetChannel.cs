@@ -49,7 +49,7 @@ public sealed class PetChannel
     /// <summary>Raised when the pet state changed. May run on any thread.</summary>
     public event Action? Changed;
 
-    /// <summary>Raised with the server's answer to an adoption or a petting. May run on any thread.</summary>
+    /// <summary>Raised with the server's answer to an adoption, a petting or a rehoming. May run on any thread.</summary>
     public event Action<PetStatus>? Completed;
 
     /// <summary>Gets the owner's pet as the server last answered.</summary>
@@ -94,6 +94,9 @@ public sealed class PetChannel
 
     /// <summary>Pets the owner's pet, once a game day.</summary>
     public void Pet() => _ = this.RequestAsync<PetPet>(static _ => { }, announce: true);
+
+    /// <summary>Gives the owner's pet back to the carpenter for half its price. The server removes the pet and refunds the coins.</summary>
+    public void Rehome() => _ = this.RequestAsync<RehomePet>(static _ => { }, announce: true);
 
     [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
     private async Task RequestAsync<TRequest>(Action<TRequest> fill, bool announce)

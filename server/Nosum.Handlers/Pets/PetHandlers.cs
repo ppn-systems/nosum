@@ -56,7 +56,7 @@ public static partial class PetHandlers
         IConnection connection = context.Connection;
         Guid playerId = connection.GetPlayer().PlayerId;
 
-        PetView view = await s_pets.AdoptAsync(playerId, context.Packet.Kind, context.Packet.Name, context.CancellationToken).ConfigureAwait(false);
+        PetView view = await s_pets.AdoptAsync(connection, playerId, context.Packet.Kind, context.Packet.Name, context.CancellationToken).ConfigureAwait(false);
         if (view.Status == PetStatus.Ok)
         {
             await s_looks.AnnounceAsync(connection, playerId, context.CancellationToken).ConfigureAwait(false);
@@ -80,6 +80,29 @@ public static partial class PetHandlers
 
         PetView view = await s_pets.PetAsync(playerId, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<PetPet, PetState>(context, sequence, state => Fill(state, view)).ConfigureAwait(false);
+    }
+
+    /// <summary>Gives the player's pet back to the carpenter for half its price (docs/adr/ADR-075 amendment); the other players stop seeing it.</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(PetOpCode.RehomePet)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketRateLimit(2, 5, PolicyId = "pet-rehome")]
+    public static async ValueTask HandleRehomePetAsync(IPacketContext<RehomePet> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        IConnection connection = context.Connection;
+        Guid playerId = connection.GetPlayer().PlayerId;
+
+        PetView view = await s_pets.RehomeAsync(connection, playerId, context.CancellationToken).ConfigureAwait(false);
+        if (view.Status == PetStatus.Ok)
+        {
+            await s_looks.AnnounceAsync(connection, playerId, context.CancellationToken).ConfigureAwait(false);
+        }
+
+        await Replies.ReplyAsync<RehomePet, PetState>(context, sequence, state => Fill(state, view)).ConfigureAwait(false);
     }
 
     private static void Fill(PetState state, PetView view)
