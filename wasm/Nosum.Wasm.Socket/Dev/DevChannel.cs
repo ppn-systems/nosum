@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Nalix.Codec.Pooling;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Contracts.Dev.C2S;
 using Nosum.Contracts.Dev.S2C;
 
@@ -16,13 +17,17 @@ namespace Nosum.Wasm.Socket.Dev;
 public sealed class DevChannel
 {
     private readonly IGameSocket _socket;
+    private readonly CalendarChannel _calendar;
 
     /// <summary>Initializes the channel.</summary>
     /// <param name="socket">The game connection.</param>
-    public DevChannel(IGameSocket socket)
+    /// <param name="calendar">The client's calendar, read again after every request that moves the server clock (docs/adr/ADR-079 D5).</param>
+    public DevChannel(IGameSocket socket, CalendarChannel calendar)
     {
         ArgumentNullException.ThrowIfNull(socket);
+        ArgumentNullException.ThrowIfNull(calendar);
         _socket = socket;
+        _calendar = calendar;
     }
 
     /// <summary>Asks the server for items and/or coins.</summary>
@@ -55,6 +60,7 @@ public sealed class DevChannel
         using PacketScope<DevSeason> request = PacketFactory<DevSeason>.Acquire();
         request.Value.Seasons = seasons;
         _ = await _socket.RequestAsync<DevSeasonResult>(request.Value).ConfigureAwait(false);
+        _calendar.Load();
     });
 
     /// <summary>Asks the server to push a level-up banner to the sender; the skill does not change (docs/adr/ADR-079).</summary>
@@ -85,6 +91,7 @@ public sealed class DevChannel
             using PacketScope<DevAdvanceClock> request = PacketFactory<DevAdvanceClock>.Acquire();
             request.Value.Days = days;
             _ = await _socket.RequestAsync<DevAdvanceClockResult>(request.Value).ConfigureAwait(false);
+            _calendar.Load();
         }
         catch (Exception)
         {
