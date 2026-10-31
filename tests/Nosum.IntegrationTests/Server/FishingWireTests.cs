@@ -59,6 +59,24 @@ public sealed class FishingWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task CastRod_AtTheFarmPondWithARod_OpensACast()
+    {
+        FakeTimeProvider clock = new(s_start);
+        await using NodeWireTests.TestHost host = await NodeWireTests.TestHost.StartAsync(_database, clock);
+        await using NodeWireTests.ToolClient player = await host.ConnectAsync();
+        (int waterX, int waterY, int standX, int standY) = NodeWireTests.ShoreOf(FarmOf());
+        _ = await player.JoinAsync(host.Timeout);
+        // A join puts the player at the farmhouse door; the tester teleport moves them to the shore of the pond on their own farm.
+        (await player.TeleportAsync(GameMaps.Farm, standX, standY, host.Timeout)).Should().BeTrue();
+        await GiveRodAsync(host, player);
+
+        CastResult cast = await player.CastRodAsync(waterX, waterY, host.Timeout);
+
+        cast.Status.Should().Be(FishingStatus.Ok, "the farm pond is fishing water, the same as the Beach sea");
+        cast.CastId.Should().NotBe(0u);
+    }
+
+    [Fact]
     public async Task CastRod_WithoutARod_IsNoRod()
     {
         await using NodeWireTests.TestHost host = await NodeWireTests.TestHost.StartAsync(_database, new FakeTimeProvider(s_start));
@@ -191,10 +209,14 @@ public sealed class FishingWireTests : IClassFixture<PostgresFixture>
         throw new InvalidOperationException("No far water on " + map.Id);
     }
 
-    private static MapDefinition BeachOf()
+    private static MapDefinition BeachOf() => MapOf(GameMaps.Beach);
+
+    private static MapDefinition FarmOf() => MapOf(GameMaps.Farm);
+
+    private static MapDefinition MapOf(string mapId)
     {
         IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
-        _ = maps.TryGet(GameMaps.Beach, out MapDefinition? beach);
-        return beach!;
+        _ = maps.TryGet(mapId, out MapDefinition? map);
+        return map!;
     }
 }
