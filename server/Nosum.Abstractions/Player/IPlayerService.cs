@@ -51,6 +51,18 @@ public interface IPlayerService
     /// <returns>Whether the player arrived, and when not why.</returns>
     ValueTask<TravelStatus> TravelAsync(IConnection connection, MapInstance destination, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Development-only tester tool (docs/adr/ADR-079): moves a connected player to a tile of a map through the same steps as a travel. The
+    /// host calls it only from the Development handlers; nothing in Production reaches it.
+    /// </summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="mapId">The map id, as the catalogue names it. A co-op land is refused.</param>
+    /// <param name="tileX">The tile column, inside the map.</param>
+    /// <param name="tileY">The tile row, inside the map.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns><see langword="true"/> when the player arrived; <see langword="false"/> for an unknown map, a tile off the map, a refused copy or a player not on a map.</returns>
+    ValueTask<bool> TeleportAsync(IConnection connection, string mapId, int tileX, int tileY, CancellationToken cancellationToken = default);
+
     /// <summary>Writes the current map and position of every connected player to storage.</summary>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>A task that completes when every player's position is saved.</returns>

@@ -152,6 +152,27 @@ public sealed class FishingService : IFishingService
     }
 
     /// <inheritdoc/>
+    public Task<bool> MakeBiteAsync(IConnection connection, uint castId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (castId == 0 || !_presence.TryGet(connection, out PlayerPresence? player) || !_casts.TryTake(player.AccountId, castId, out OpenCast? cast))
+        {
+            return Task.FromResult(false);
+        }
+
+        if (cast.InstanceKey != player.Key)
+        {
+            _casts.Restore(cast);
+            return Task.FromResult(false);
+        }
+
+        _casts.Open(cast with { BiteDelayMs = 0 });
+        return Task.FromResult(true);
+    }
+
+    /// <inheritdoc/>
     public async Task<ReelOutcome> ReelInAsync(IConnection connection, uint castId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);

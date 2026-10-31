@@ -116,7 +116,8 @@ Shops, nicknames and tester tools ([ADR-013 amendments](../docs/adr/ADR-013-econ
 the registration and upgrade form asks for a nickname (`GameField`). `NicknameFormatter` shows a nickname (a guest's `guest-1234` as "Khách 1234" / "Guest 1234"); `LookChannel` caches nicknames by map player id and
 `Game/NicknameLabels` uploads each name once as an engine label (`LabelRegistry`, `renderer.js registerLabel`) that `MapScene` draws above every farmer. Tester tools exist only in a build made with
 `-p:NosumDevTools=true`: from the browser console, `(await getDotnetRuntime(0).getAssemblyExports("Nosum.Wasm.dll")).Nosum.Wasm.Game.DevTools.Grant(300, 5, 0)` asks a Development server for 5 oak chairs
-(item id, quantity, coins).
+(item id, quantity, coins). A page opened with `?qa=1` in that build also gets `window.nosumQa` for the UI capture harness: `grant`, `advanceClock`,
+`teleport(mapId, tileX, tileY)`, `season(seasons)`, `levelUp(skill, level)` and `fishingBite()` (`QaEntry`, docs/adr/ADR-079). Production builds have none of it.
 
 ```bash
 dotnet build wasm/Nosum.Wasm.slnx

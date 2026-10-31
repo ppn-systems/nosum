@@ -466,6 +466,39 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         return TravelStatus.Arrived;
     }
 
+    /// <inheritdoc/>
+    public async ValueTask<bool> TeleportAsync(IConnection connection, string mapId, int tileX, int tileY, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        if (!_presence.TryGet(connection, out PlayerPresence? from) || !_maps.TryGet(mapId, out MapDefinition? target) || target.IsCoop
+            || tileX < 0 || tileY < 0 || tileX >= target.Grid.Width || tileY >= target.Grid.Height)
+        {
+            return false;
+        }
+
+        // The player's own copy of a private map, or the shared copy of a public one: the same place a join would put them.
+        MapInstance destination = InstanceOf(target, from.AccountId);
+        if (!await _access.CanEnterAsync(destination, from.AccountId, cancellationToken).ConfigureAwait(false))
+        {
+            return false;
+        }
+
+        lock (from.Gate)
+        {
+            if (from.InTransit)
+            {
+                return false;
+            }
+
+            from.InTransit = true;
+        }
+
+        (double x, double y, int facing) = WarpRule.Arrival(target.Grid, tileX, tileY);
+        await this.RelocateAsync(connection, from, target, destination, x, y, facing).ConfigureAwait(false);
+        return true;
+    }
+
     // The shared move between instances: used by walking onto an exit and by a visit. The caller has set InTransit and checked access.
     [SuppressMessage("Design", "CA1031", Justification = "Saving is best effort; the player is already on the new map.")]
     private async ValueTask RelocateAsync(IConnection connection, PlayerPresence from, MapDefinition target, MapInstance targetInstance, double x, double y, int facing)
