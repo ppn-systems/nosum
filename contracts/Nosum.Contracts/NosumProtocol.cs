@@ -32,6 +32,8 @@ public static class NosumProtocol
     /// 21: fish size - <c>SizeCm</c> appended to <c>ReelResult</c> (docs/adr/ADR-078 amendment).
     /// 22: development QA hook (docs/adr/ADR-079) - new Development-only packets <c>DevTeleport</c>, <c>DevSeason</c>, <c>DevLevelUp</c>, <c>DevFishingBite</c> (C2S <c>0xF002-0xF005</c>) and their replies (S2C <c>0xF042-0xF045</c>). Production does not map them. No existing packet changed.
     /// 23: fishing skill row - <c>FishingXp</c> appended to <c>SkillXpChanged</c> (docs/adr/ADR-078 amendment). No packet, opcode or other field changed.
+    /// 24: backpack upgrades (docs/adr/ADR-081) - new packets <c>GetBackpack</c> and <c>UpgradeBackpack</c> (C2S <c>0x5004-0x5005</c>) and <c>BackpackState</c>
+    /// (S2C <c>0x5043</c>), <c>BackpackStatus</c>. No existing packet, opcode or field changed.
     /// </summary>
-    public const ushort Version = 23;
+    public const ushort Version = 24;
 }
