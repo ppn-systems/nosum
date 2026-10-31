@@ -453,6 +453,7 @@
   <data name="Quest_Expand" xml:space="preserve"><value>Mở rộng</value></data>
   <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Nhấn để cởi ra</value></data>
   <data name="Toolbar_Shop" xml:space="preserve"><value>Cửa hàng</value></data>
+  <data name="Toolbar_Menu" xml:space="preserve"><value>Menu</value></data>
   <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Farm_Status_NotYourFarm" xml:space="preserve"><value>Ở vườn của người khác, bạn chỉ được tưới cây.</value></data>
   <data name="Place_Status_NotYourPlace" xml:space="preserve"><value>Chỉ chủ nhà mới sắp đặt đồ ở đây.</value></data>

@@ -13,13 +13,13 @@
 }
 
 .level-up-title {
-    font-size: calc(var(--u) * 4);
+    font-size: var(--nosum-fs-title);
     letter-spacing: calc(var(--u) * 0.5);
     color: #facc15;
 }
 
 .level-up-message {
-    font-size: calc(var(--u) * 2.5);
+    font-size: var(--nosum-fs-body);
 }
 
 @keyframes level-up-rise {

@@ -1,11 +1,9 @@
-/* The minimap frame: 60 u by 44 u, the panels' wood frame (5 u thick, GamePanel.razor.css) around the map the canvas draws. It sits in the top-right
-   corner, under the calendar bar and left of the system column; the numbers are GameHud's (see MapScene.Minimap for the same ones). */
+/* The minimap card: 60 u by 44 u, the panels' wood frame (5 u thick, GamePanel.razor.css) around the map the canvas draws. It sits in the HUD's
+   top-right column under the calendar bar and shares that bar's right edge (GameHud.razor.css); the map scene draws the same size (MapScene.Minimap). */
 .hud-minimap {
     --frame-edge: calc(var(--u) * 5);
 
-    position: absolute;
-    top: calc(var(--u) * 20);
-    right: calc(var(--u) * 36);
+    display: block;
     box-sizing: border-box;
     width: calc(var(--u) * 60);
     height: calc(var(--u) * 44);
@@ -17,4 +15,10 @@
     image-rendering: pixelated;
     cursor: var(--nosum-cursor-pointer, pointer);
     pointer-events: auto;
+}
+
+/* The collapsed card: one 16 u map button, the width of the column's buttons. */
+.hud-minimap-button {
+    display: flex;
+    justify-content: flex-end;
 }

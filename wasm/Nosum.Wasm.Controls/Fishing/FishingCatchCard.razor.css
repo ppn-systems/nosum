@@ -1,0 +1,88 @@
+/* The catch card: an absolute card in the top-centre region, so it takes no room there. It pops in, holds, then fades in place; reduced motion
+   (data-motion="reduced", set by the settings) turns the animation off and the card stays put. The rarity colours are the game's own. */
+.fishing-card {
+    --rarity: #b8c0cc;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 2);
+    width: calc(var(--u) * 96);
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: calc(var(--u) * 3);
+    border: calc(var(--u) * 1) solid var(--rarity);
+    background: var(--nosum-parchment);
+    color: var(--nosum-ink);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
+    image-rendering: pixelated;
+    animation: fishing-card-pop 280ms ease-out both, fishing-card-fade 600ms ease-in 3000ms forwards;
+    pointer-events: none;
+}
+
+.fishing-card.rarity-uncommon {
+    --rarity: #6ccf5a;
+}
+
+.fishing-card.rarity-rare {
+    --rarity: #5aa9ff;
+}
+
+.fishing-card.rarity-legendary {
+    --rarity: #ffc64a;
+}
+
+.fishing-card p {
+    margin: 0;
+}
+
+.fishing-card-title,
+.fishing-card-rarity {
+    text-align: center;
+}
+
+.fishing-card-rarity {
+    color: var(--rarity);
+}
+
+.fishing-card-body {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 3);
+}
+
+@keyframes fishing-card-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fishing-card-fade {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fishing-card {
+        animation: none;
+    }
+}
+
+:root[data-motion="reduced"] .fishing-card {
+    animation: none;
+}

@@ -1,15 +1,18 @@
-/* A standalone window over the game: as wide as a menu page, sized to its content up to the screen height below the HUD bar. */
+/* A standalone window over the game: one of the three panel widths (S 100 u, M 160 u, L 220 u), sized to its content up to the screen height below the HUD bar. */
 .trade-dialog {
     display: flex;
     flex-direction: column;
-    width: var(--nosum-menu-w);
+    width: calc(var(--u) * 160);
     max-width: 100%;
     pointer-events: none;
 }
 
-/* The wide window (the inventory): as wide as its side column and grid need; a phone keeps the page width and stacks its parts. */
-.trade-dialog-wide {
-    width: var(--nosum-wide-w);
+.trade-dialog-s {
+    width: calc(var(--u) * 100);
+}
+
+.trade-dialog-l {
+    width: calc(var(--u) * 220);
 }
 
 .trade-dialog ::deep .trade-window {
@@ -28,6 +31,12 @@
 
 /* A phone: the window runs from under the HUD bar to the bottom edge, so a page scrolls only when its content is longer than that. */
 @media (max-width: 640px) {
+    .trade-dialog,
+    .trade-dialog-s,
+    .trade-dialog-l {
+        width: 100%;
+    }
+
     .trade-dialog ::deep .trade-window {
         min-height: 0;
         max-height: calc(100vh - var(--nosum-gutter) * 2 - var(--nosum-hud-top-h));

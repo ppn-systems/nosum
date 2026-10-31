@@ -13,13 +13,13 @@
 }
 
 .season-banner-title {
-    font-size: calc(var(--u) * 3.5);
+    font-size: var(--nosum-fs-title);
     letter-spacing: calc(var(--u) * 0.5);
     color: #86efac;
 }
 
 .season-banner-message {
-    font-size: calc(var(--u) * 2.5);
+    font-size: var(--nosum-fs-body);
 }
 
 @media (prefers-reduced-motion: reduce) {

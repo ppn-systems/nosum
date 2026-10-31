@@ -1,38 +1,20 @@
 @using Nosum.Wasm.ViewModels.Fishing
-@using Nosum.Wasm.ViewModels.Inventory
 @inherits ObservingComponent<FishingViewModel>
-@inject ItemDescriber Items
 
-@* The fishing banner above the hotbar: what the line is doing and the press that reels in. The bite window is drawn by the scene, as a gauge
-   beside the farmer (FishingDecorator), so the banner keeps only the words. It is shown while a cast is open or its result is (docs/adr/ADR-078 D9).
-   The catch card stays after the cast and flies into the hotbar on its own; reduced motion holds it still. *@
-@if (Vm.Catch is { } fish)
-{
-    <div class="fishing-card rarity-@fish.Rarity.ToString().ToLowerInvariant()" role="status">
-        <p class="fishing-card-title">@Vm.CatchTitle</p>
-        <div class="fishing-card-body">
-            <ItemSlotButton Slot="@Items.Describe(0, fish.ItemId, 1)" />
-            <div class="fishing-card-text">
-                <p class="fishing-card-name">@fish.Name</p>
-                <p class="fishing-card-size">@Vm.SizeOf(fish)</p>
-                <p class="fishing-card-rarity">@Vm.RarityOf(fish)</p>
-            </div>
-        </div>
-    </div>
-}
+@* The fishing status line in the bottom toast stack (docs/design/ui-standard.md section 5): what the line is doing and the press that reels in. The bite
+   window is drawn by the scene, as a gauge beside the farmer (FishingDecorator), so the line keeps only the words. It is shown while a cast is open
+   (docs/adr/ADR-078 D9); the catch is in FishingCatchCard. *@
 @if (Vm.Phase != FishingPhase.Idle)
 {
-    <div class="fishing-banner">
-        <GamePanel Class="hud" Role="status" Title="@Vm.Title">
-            <p class="fishing-message">@Vm.Message</p>
-            @if (Vm.Phase == FishingPhase.Biting)
-            {
-                <p class="fishing-press">@Vm.PressPrompt</p>
-            }
-            @if (!string.IsNullOrEmpty(Vm.Note))
-            {
-                <p class="fishing-note">@Vm.Note</p>
-            }
-        </GamePanel>
-    </div>
+    <GamePanel Class="hud toast fishing-status" Role="status" Title="">
+        @Vm.Message
+        @if (Vm.Phase == FishingPhase.Biting)
+        {
+            <strong>@Vm.PressPrompt</strong>
+        }
+        @if (!string.IsNullOrEmpty(Vm.Note))
+        {
+            <span>@Vm.Note</span>
+        }
+    </GamePanel>
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Localization;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Settings;
@@ -73,6 +74,9 @@ public enum PanelKind
 
     /// <summary>The pet panel: the companion's name, mood and petting, or the adoption form on the own farm (docs/adr/ADR-075 D3-D4).</summary>
     Pet = 20,
+
+    /// <summary>The game menu: one tile per panel that has no button in the HUD's menu column (docs/design/ui-standard.md section 2).</summary>
+    Menu = 21,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -127,6 +131,19 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>The panels with a button in the HUD's menu column, top to bottom. The column holds at most 8 buttons, the last one is the Menu button
+    /// (docs/design/ui-standard.md section 2): a panel not listed here is a tile of the game menu instead.</summary>
+    public static readonly IReadOnlyList<PanelKind> ColumnKinds =
+    [
+        PanelKind.Inventory,
+        PanelKind.Wardrobe,
+        PanelKind.Crafting,
+        PanelKind.Trade,
+        PanelKind.Coop,
+        PanelKind.Friends,
+        PanelKind.Pet,
+    ];
+
     /// <summary>Gets the tabs of the game menu, left to right. A new tab is one more entry here (plus its page in <c>Home.razor</c> and its sprite in <c>nosum-theme.js</c>).</summary>
     public IReadOnlyList<ToolbarItem> Items =>
     [
@@ -145,6 +162,45 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         new ToolbarItem(PanelKind.Journal, this.Text("Toolbar_Journal"), Key(GameAction.Journal), "tab-goals"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), Key(GameAction.Help), "tab-settings"),
     ];
+
+    /// <summary>Gets the buttons of the HUD's menu column, top to bottom (the Menu button is added by the HUD, after them).</summary>
+    public IReadOnlyList<ToolbarItem> ColumnItems
+    {
+        get
+        {
+            List<ToolbarItem> column = [];
+            foreach (ToolbarItem item in this.Items)
+            {
+                if (ColumnKinds.Contains(item.Kind))
+                {
+                    column.Add(item);
+                }
+            }
+
+            return column;
+        }
+    }
+
+    /// <summary>Gets the tiles of the game menu: every panel of <see cref="Items"/> that is not in the menu column (Mail and Settings sit in the HUD's top row).</summary>
+    public IReadOnlyList<ToolbarItem> MenuItems
+    {
+        get
+        {
+            List<ToolbarItem> tiles = [];
+            foreach (ToolbarItem item in this.Items)
+            {
+                if (!ColumnKinds.Contains(item.Kind) && item.Kind is not (PanelKind.Mail or PanelKind.Settings))
+                {
+                    tiles.Add(item);
+                }
+            }
+
+            return tiles;
+        }
+    }
+
+    /// <summary>Gets the localized name of the Menu button and its window.</summary>
+    public string MenuLabel => this.Text("Toolbar_Menu");
 
     private string Key(GameAction action) => KeyBindings.CapOf((_settings?.Current.Bindings ?? KeyBindings.Default).CodeOf(action));
 

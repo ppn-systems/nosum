@@ -102,13 +102,9 @@
     --nosum-gap-group: calc(var(--u) * 4);
     --nosum-gutter: calc(var(--u) * 4);
 
-    /* The menu window is 200 u wide and as tall as its page (at least min-h, at most h; longer pages scroll inside). Its top edge is fixed
-       (the tabs never move), see hud-center. */
-    --nosum-menu-w: calc(var(--u) * 200);
+    /* A panel is as tall as its page (at least min-h, at most h; longer pages scroll inside). Its width is S, M or L (TradeDialog.razor.css). */
     --nosum-menu-h: calc(var(--u) * 186);
     --nosum-menu-min-h: calc(var(--u) * 64);
-    /* The wide window (the inventory): a paperdoll column beside nine 18 u slots, as wide as that needs. */
-    --nosum-wide-w: calc(var(--u) * 254);
     --nosum-hud-top-h: calc(var(--u) * 28 + clamp(0px, calc((var(--u) * 200 - 100vw) * 999), calc(var(--u) * 28)));
 }
 
