@@ -160,12 +160,12 @@ public static class CombatRules
     /// <returns>Defense rating.</returns>
     public static int ArmorDefense(int itemId) => itemId switch
     {
-        ItemCatalog.BossCrown => 8,
-        ItemCatalog.IronChestplate => 7,
-        ItemCatalog.IronGreaves => 5,
-        ItemCatalog.IronHelmet => 4,
-        ItemCatalog.RangerTunic => 4,
-        ItemCatalog.LeatherArmor => 3,
+        ItemCatalog.BossCrown => 6,
+        ItemCatalog.IronChestplate => 5,
+        ItemCatalog.IronGreaves => 3,
+        ItemCatalog.IronHelmet => 2,
+        ItemCatalog.RangerTunic => 3,
+        ItemCatalog.LeatherArmor => 2,
         _ => 0,
     };
 
