@@ -24,7 +24,7 @@ Screenshots of every merchant's dialogue box in Town, in Vietnamese and English,
 | Trader | Chào bạn! Tôi là Phát. Chợ này mở cửa cho tất cả mọi người. | Mua · Bán · Trò chuyện · Tạm biệt | Welcome! I'm Phat. This market is open to everybody. | Buy · Sell · Talk · Leave |
 | Board keeper | Cả làng góp sức thì mục tiêu nào cũng xong sớm hơn. | Mục tiêu · Trò chuyện · Tạm biệt | When the village pitches in, every goal gets done sooner. | Goals · Talk · Leave |
 
-- The carpenter's Buy page (`carpenter-shop-vi.png`, `carpenter-shop-en.png`) lists the supplies (hay, milk pail) and the coop and barn blueprints.
+- The carpenter's Buy page (`carpenter-shop-vi.png`, `carpenter-shop-en.png`) lists the supplies (hay, milk pail) and the coop and barn blueprints. It fits 1280×720 without a scrollbar. The animal section is on the Build action (`Xây dựng` / `Build`), which is not captured in this run.
 - Every box shows the merchant's name and role, a line, and one button per action the merchant offers, then Leave.
 - Console errors, page errors and failed requests during the run: none (`lines.json`).
 
@@ -35,8 +35,8 @@ Files: `<merchant>-vi.png`, `<merchant>-en.png` and `carpenter-shop-*.png` at 12
 
 - **390×844 (touch).** The game's device gate (`DeviceGuard`, `wasm/README.md`) replaces the page with a notice on a phone-sized screen, so no merchant can be
   opened there and no capture was taken. The phone check of ui-standard §7 does not apply to this screen until the gate changes.
-- **Animal rows on the carpenter's page.** They are listed only inside a building the player owns (ADR-028). The QA account owns none, so only the building
-  orders show.
+- **Animal rows.** They are listed only inside a building the player owns (ADR-028), and the Build page carries that section. The QA account owns no building, so
+  the animal rows never show here; the Build page itself is not captured in this run.
 - **"First visit".** The newcomer line is chosen while no quest is finished (ADR-080 D3). A true first visit would need a visit record, which does not exist.
 - **Later lines.** The run shows one line per merchant (the greeting). Talk cycles through the same pool; the order is covered by `NpcGreetingTests`, not by
   screenshot.
