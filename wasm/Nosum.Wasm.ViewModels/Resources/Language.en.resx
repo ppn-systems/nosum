@@ -24,6 +24,9 @@
   <data name="Account_PlayAsGuest" xml:space="preserve"><value>Play now as a guest</value></data>
   <data name="Account_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Account_Guest" xml:space="preserve"><value>Guest</value></data>
+  <data name="Account_Continue_Title" xml:space="preserve"><value>Welcome back</value></data>
+  <data name="Account_Continue_As" xml:space="preserve"><value>Continue as {0}</value></data>
+  <data name="Account_Continue_Forget" xml:space="preserve"><value>Sign out / use another account</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Signed in as {0}</value></data>
   <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Link a Google or Microsoft account.</value></data>
   <data name="Account_Upgrade_Action" xml:space="preserve"><value>Link account</value></data>
