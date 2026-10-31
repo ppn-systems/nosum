@@ -50,7 +50,7 @@ public sealed class ItemIcons : IItemIconSource
     /// <returns>The width and height in pixels; zero for a sheet the table does not use.</returns>
     public static (int Width, int Height) SizeOf(string sheetUrl) => sheetUrl switch
     {
-        ObjectsSheet => (384, 96),
+        ObjectsSheet => (384, 112),
         ToolsSheet => (336, 384),
         WeaponsSheet => (128, 144),
         FurnitureSheet => (512, 1664),

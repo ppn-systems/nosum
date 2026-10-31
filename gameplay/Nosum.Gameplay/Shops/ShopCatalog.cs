@@ -128,6 +128,9 @@ public static class ShopCatalog
             new(ItemCatalog.ShirtBlue, 60),
             new(ItemCatalog.PantsBlue, 80),
             new(ItemCatalog.PantsKhaki, 80),
+            // Footwear (docs/adr/ADR-081 D1): the tailor sells the two entry pairs; the faster pairs are crafted.
+            new(ItemCatalog.LeatherBoots, 150),
+            new(ItemCatalog.TravelerBoots, 380),
             // The hats rotate with the seasons (docs/adr/ADR-080 D1): straw for the sunny half of the year, a cap for the cold half.
             new(ItemCatalog.HatStraw, 50, SeasonSet.Spring | SeasonSet.Summer),
             new(ItemCatalog.HatCap, 40, SeasonSet.Fall | SeasonSet.Winter),

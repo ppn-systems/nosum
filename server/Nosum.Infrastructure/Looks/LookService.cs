@@ -82,6 +82,7 @@ public sealed class LookService : ILookService
         }
 
         PlayerLook mine = await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+        SyncFootwear(playerId, mine);
         await this.BroadcastAsync(me, mine, connection, cancellationToken).ConfigureAwait(false);
 
         List<PlayerPresence> players = [];
@@ -113,6 +114,7 @@ public sealed class LookService : ILookService
         if (_presence.TryGet(connection, out PlayerPresence? me))
         {
             PlayerLook mine = await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
+            SyncFootwear(playerId, mine);
             await this.BroadcastAsync(me, mine, null, cancellationToken).ConfigureAwait(false);
         }
     }
@@ -197,7 +199,7 @@ public sealed class LookService : ILookService
     public async Task<LookStatus> UnequipAsync(IConnection connection, Guid playerId, int wearSlot, CancellationToken cancellationToken = default)
     {
         WearSlot where = (WearSlot)wearSlot;
-        if (where is not (WearSlot.Shirt or WearSlot.Pants or WearSlot.Hat))
+        if (where is not (WearSlot.Shirt or WearSlot.Pants or WearSlot.Hat or WearSlot.Feet))
         {
             return LookStatus.InvalidSlot;
         }
@@ -223,6 +225,7 @@ public sealed class LookService : ILookService
         row.ShirtItemId = look.ShirtItemId;
         row.PantsItemId = look.PantsItemId;
         row.HatItemId = look.HatItemId;
+        row.FeetItemId = look.FeetItemId;
         row.UpdatedAt = now;
     }
 
@@ -256,8 +259,18 @@ public sealed class LookService : ILookService
         }
 
         _cache[playerId] = next;
+        SyncFootwear(playerId, next);
         await this.BroadcastAsync(connection, next, cancellationToken).ConfigureAwait(false);
         return LookStatus.Ok;
+    }
+
+    // The footwear a player's presence walks with (docs/adr/ADR-081 D3): the validator reads the combined multiplier from presence.
+    private void SyncFootwear(Guid accountId, PlayerLook look)
+    {
+        if (_presence.TryGetPlayer(accountId, out PlayerPresence? presence))
+        {
+            presence.SetFootwear(look.FeetItemId);
+        }
     }
 
     // Loads the look (creating the default one for a new player). Call while holding the player's look lock.
@@ -283,7 +296,7 @@ public sealed class LookService : ILookService
             }
             else
             {
-                look = new PlayerLook(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId);
+                look = new PlayerLook(row.SkinId, row.HairStyleId, row.HairDyeId, row.ShirtItemId, row.PantsItemId, row.HatItemId, row.FeetItemId);
             }
         }
 

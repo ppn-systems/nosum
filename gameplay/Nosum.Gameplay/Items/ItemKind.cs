@@ -47,6 +47,9 @@ public enum WearSlot : byte
 
     /// <summary>Worn on the head.</summary>
     Hat = 3,
+
+    /// <summary>Worn on the feet: boots, which may raise walking speed (docs/adr/ADR-081).</summary>
+    Feet = 4,
 }
 
 /// <summary>Which tool a <see cref="ItemKind.Tool"/> item is.</summary>

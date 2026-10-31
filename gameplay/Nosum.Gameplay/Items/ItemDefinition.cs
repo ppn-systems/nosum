@@ -77,6 +77,18 @@ public sealed class ItemDefinition
     /// <summary>Gets the energy eating one of the item restores (docs/adr/ADR-023 D2); zero for items that cannot be eaten.</summary>
     public int FoodEnergy { get; }
 
+    /// <summary>
+    /// Gets the walking speed bonus of footwear, in percent of the base walk speed (docs/adr/ADR-081 D2); zero for everything else. Balance data.
+    /// The server applies it through <see cref="Movement.MovementSpeed"/>, so a client cannot claim a bonus its boots do not give.
+    /// </summary>
+    public int MoveSpeedPercent { get; init; }
+
+    /// <summary>
+    /// Gets the share of running energy the footwear saves, in percent (docs/adr/ADR-081 D5); zero for everything else. The running rule reads it
+    /// through <see cref="Movement.FootwearRules.RunEnergyCost"/>.
+    /// </summary>
+    public int RunEnergySavePercent { get; init; }
+
     /// <summary>Gets whether the item can be eaten.</summary>
     public bool IsEdible => this.FoodEnergy > 0;
 

@@ -28,6 +28,9 @@ public sealed class PlayerAppearance
     /// <summary>Gets or sets the worn hat item id; zero for none.</summary>
     public int HatItemId { get; set; }
 
+    /// <summary>Gets or sets the worn boots item id; zero for bare feet (docs/adr/ADR-081).</summary>
+    public int FeetItemId { get; set; }
+
     /// <summary>Gets or sets when the look last changed.</summary>
     public DateTimeOffset UpdatedAt { get; set; }
 }

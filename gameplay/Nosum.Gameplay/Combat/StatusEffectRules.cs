@@ -1,5 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using Nosum.Gameplay.Calendar;
+
 namespace Nosum.Gameplay.Combat;
 
 /// <summary>
@@ -14,6 +16,12 @@ public static class StatusEffectRules
 
     /// <summary>Duration of the speed buff a sanctuary shrine grants (issue #146); the shrine's old three-tick Swiftness lasted about this long.</summary>
     public const int ShrineBuffSeconds = 5;
+
+    /// <summary>
+    /// Duration of the speed tonic (docs/adr/ADR-081 D4): three game hours, in real seconds at the default day length
+    /// (a game hour is a twenty-fourth of a game day, so 30 real minutes).
+    /// </summary>
+    public const int SpeedTonicSeconds = 3 * (int)(GameCalendar.DefaultDayLengthMs / 24 / 1000);
 
     /// <summary>Movement speed multiplier granted by <see cref="StatusEffectKind.Swiftness"/>.</summary>
     public const double SwiftnessSpeedFactor = 1.25;

@@ -29,6 +29,7 @@ internal static partial class FarmerSprite
     private const int ShirtSize = 8;
     private const int HatSize = 20;
     private const int HatOffsetY = 0;
+    private const int BootsBandHeight = 96;
 
     private static readonly int[] s_walkColumns = [4, 1, 1, 0, 5, 2, 2, 0];
 
@@ -96,6 +97,13 @@ internal static partial class FarmerSprite
         batch.Add(textures.Shirts, look.Shirt % 16 * ShirtSize, (look.Shirt / 16 * 32) + shirtRow, ShirtSize, ShirtSize, x + ShirtOffsetX, y + ShirtOffsetY + bob, sortY, feetX, id, flags, look.ShirtTint);
 
         batch.Add(textures.Body, frameX + (ArmsColumnOffset * Width), frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
+
+        if (look.Boots > 0)
+        {
+            // boots.png: 96 x 384, four tier bands of 96 px (tier - 1), each 3 facing rows of 32 px and 6 walk columns of 16 px (docs/adr/ADR-081).
+            batch.Add(textures.Boots, frameX, ((look.Boots - 1) * BootsBandHeight) + frameY, Width, Height, x, y, sortY, feetX, id, flags, RenderCommandBuffer.NoTint);
+        }
+
         batch.Add(textures.Hair, look.Hairstyle % 8 * Width, (look.Hairstyle / 8 * 96) + (row * Height), Width, Height, x, y + HairOffsetY + bob, sortY, feetX, id, flags, look.HairTint);
 
         if (look.Hat >= 0)
@@ -328,6 +336,7 @@ internal static partial class FarmerSprite
 /// <param name="Tools">tools.png for held tools.</param>
 /// <param name="Weapons">weapons.png for held weapons and scythe.</param>
 /// <param name="Items">items.png for held seeds, produce, and materials.</param>
+/// <param name="Boots">boots.png, the footwear layer (docs/adr/ADR-081).</param>
 internal readonly record struct FarmerTextures(
     int Body,
     int Pants,
@@ -336,4 +345,5 @@ internal readonly record struct FarmerTextures(
     int Hats,
     int Tools = 0,
     int Weapons = 0,
-    int Items = 0);
+    int Items = 0,
+    int Boots = 0);

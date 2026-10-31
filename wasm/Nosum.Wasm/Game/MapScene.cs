@@ -3,6 +3,7 @@
 using System;
 using Nosum.Core;
 using Nosum.Gameplay.Buildings;
+using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
@@ -210,7 +211,9 @@ internal sealed partial class MapScene
             {
                 double dt = Math.Min(remaining, StepSeconds);
                 // A swing holds the farmer in place until it is over (docs/adr/ADR-071 D1).
-                _farmer.Step(swinging ? default : input, dt, grid, _actions?.MoveSpeedFactor ?? 1);
+                // The same combined multiplier the server validates with: worn boots × speed buff, clamped (docs/adr/ADR-081 D3).
+                int ownFeet = _looks is not null && _looks.TryGetLocal(out LookInfo mine) ? mine.FeetItemId : 0;
+                _farmer.Step(swinging ? default : input, dt, grid, MovementSpeed.For(ownFeet, _actions?.SpeedBuff ?? StatusEffectKind.None));
                 remaining -= dt;
             }
             while (remaining > 1e-9);

@@ -357,7 +357,8 @@ internal static partial class GameLoop
             textures.LoadAsync(FarmerUrl + "hats.png"),
             textures.LoadAsync(ItemIcons.ToolsSheet),
             textures.LoadAsync(ItemIcons.WeaponsSheet),
-            textures.LoadAsync(ItemIcons.ObjectsSheet));
+            textures.LoadAsync(ItemIcons.ObjectsSheet),
+            textures.LoadAsync(FarmerUrl + "boots.png"));
 
         progress?.Invoke(GameStartStep.Connect);
         MapEntry? entry = await WaitForEntryAsync(cancellationToken).ConfigureAwait(false);
@@ -370,7 +371,7 @@ internal static partial class GameLoop
         MapContent content = await loader.LoadAsync(spec.Id, cancellationToken).ConfigureAwait(false);
         progress?.Invoke(GameStartStep.Sprites);
         int[] sheets = await farmerSheets.ConfigureAwait(false);
-        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7]);
+        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7], sheets[8]);
 
         // Until the server's look arrives (and without a server) the default look is drawn, never one made up from an id.
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);

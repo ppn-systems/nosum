@@ -77,6 +77,7 @@
   <data name="Tooltip_WaterCapacity" xml:space="preserve"><value>Sức chứa nước: {0}</value></data>
   <data name="Tooltip_Energy" xml:space="preserve"><value>Hồi sức lực: +{0}</value></data>
   <data name="Tooltip_Sell" xml:space="preserve"><value>Giá bán: {0} xu</value></data>
+  <data name="Tooltip_MoveSpeed" xml:space="preserve"><value>Tốc độ đi bộ: +{0}%</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Nhiệm vụ</value></data>
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
@@ -162,6 +163,7 @@
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Áo</value></data>
   <data name="Wardrobe_Slot_Pants" xml:space="preserve"><value>Quần</value></data>
   <data name="Wardrobe_Slot_Hat" xml:space="preserve"><value>Mũ</value></data>
+  <data name="Wardrobe_Slot_Feet" xml:space="preserve"><value>Giày</value></data>
   <data name="Wardrobe_Worn" xml:space="preserve"><value>Đang mặc</value></data>
   <data name="Wardrobe_Bag" xml:space="preserve"><value>Trong túi</value></data>
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>Trong túi không có đồ mặc nào.</value></data>

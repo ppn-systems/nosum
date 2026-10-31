@@ -391,6 +391,16 @@
   <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Giáp bảo vệ chân bằng sắt chống quái vật cắn (+5 Phòng thủ).</value></data>
   <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
   <data name="Item_iron_helmet_Description" xml:space="preserve"><value>Mũ sắt bảo vệ đầu khỏi các đòn chí mạng (+4 Phòng thủ).</value></data>
+  <data name="Item_leather_boots_Name" xml:space="preserve"><value>Giày da</value></data>
+  <data name="Item_leather_boots_Description" xml:space="preserve"><value>Đôi giày da đơn giản: tăng 5% tốc độ đi bộ.</value></data>
+  <data name="Item_traveler_boots_Name" xml:space="preserve"><value>Giày du hành</value></data>
+  <data name="Item_traveler_boots_Description" xml:space="preserve"><value>Giày cao cổ cho những chuyến đi xa: tăng 10% tốc độ đi bộ.</value></data>
+  <data name="Item_swift_boots_Name" xml:space="preserve"><value>Giày nhanh nhẹn</value></data>
+  <data name="Item_swift_boots_Description" xml:space="preserve"><value>Giày gọn nhẹ: tăng 15% tốc độ đi bộ.</value></data>
+  <data name="Item_winged_boots_Name" xml:space="preserve"><value>Giày cánh bay</value></data>
+  <data name="Item_winged_boots_Description" xml:space="preserve"><value>Giày có cánh nhỏ ở mắt cá: tăng 20% tốc độ đi bộ.</value></data>
+  <data name="Item_speed_tonic_Name" xml:space="preserve"><value>Thuốc tăng tốc</value></data>
+  <data name="Item_speed_tonic_Description" xml:space="preserve"><value>Một ngụm thuốc nhẹ giúp bước chân nhanh hơn trong 3 giờ game: tăng 25% tốc độ đi bộ, dùng chung ô buff Nhanh nhẹn.</value></data>
   <data name="Item_ranger_tunic_Name" xml:space="preserve"><value>Áo chiến binh tuần rừng</value></data>
   <data name="Item_ranger_tunic_Description" xml:space="preserve"><value>Áo giáp da dơi linh hoạt gia cố sợi bền (+4 Phòng thủ).</value></data>
   <data name="Item_necromancer_skull_Name" xml:space="preserve"><value>Hộp sọ Hắc pháp sư</value></data>
