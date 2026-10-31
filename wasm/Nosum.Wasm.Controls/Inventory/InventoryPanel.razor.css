@@ -25,8 +25,18 @@
     display: flex;
     flex-direction: column;
     gap: var(--nosum-gap-group);
-    width: calc(var(--u) * 60);
+    width: calc(var(--u) * 40);
     min-width: 0;
+}
+
+/* The bag's slots are 16 u, not 18 u: nine of them, the paperdoll column and the frame fit the L panel (220 u). */
+.inv-grids {
+    --item-grid-slot: calc(var(--u) * 16);
+}
+
+.inv-grids ::deep .slot {
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 16);
 }
 
 /* The item in hand: a full-width strip along the bottom, its picture, then the name and stats on one line and the description under them. */

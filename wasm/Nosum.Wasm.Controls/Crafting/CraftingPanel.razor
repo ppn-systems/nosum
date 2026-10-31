@@ -39,7 +39,7 @@
                     <span class="input-count @(input.Enough ? "enough" : "short")">@input.Have / @input.Need</span>
                 </GameRow>
             }
-            <GameRow>
+            <GameRow Class="craft-actions">
                 <GameButton Text="@Vm.CraftLabel" Disabled="@(!Vm.CanCraftOne)" OnClick="@Vm.CraftOne" />
                 @if (selected.Output.Tooltip.Length == 0 || selected.Output.Tooltip.IndexOf('\n') != selected.Output.Tooltip.LastIndexOf('\n'))
                 {

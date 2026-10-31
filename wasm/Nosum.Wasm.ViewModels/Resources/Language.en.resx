@@ -453,6 +453,7 @@
   <data name="Quest_Expand" xml:space="preserve"><value>Expand</value></data>
   <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Click to take off</value></data>
   <data name="Toolbar_Shop" xml:space="preserve"><value>Shop</value></data>
+  <data name="Toolbar_Menu" xml:space="preserve"><value>Menu</value></data>
   <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Farm_Status_NotYourFarm" xml:space="preserve"><value>On someone else's farm you can only water the crops.</value></data>
   <data name="Place_Status_NotYourPlace" xml:space="preserve"><value>Only the owner arranges things here.</value></data>

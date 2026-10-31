@@ -5,6 +5,7 @@
 @* The chest page, Minecraft layout: the chest's grid on top, the player's bag and hotbar under it. Click a stack, then a slot; shift-click sends a stack to the other side. *@
 <MenuPage Status="@Vm.Status">
     <GameStack>
+        <div class="chest-split">
         <GameSection Title="@Vm.ChestLabel">
             <div class="chest-tools">
                 <GameButton Variant="plain" Text="@Vm.SortChestLabel" OnClick="Vm.SortChest" />
@@ -22,6 +23,7 @@
                 <ItemGrid Slots="Vm.HotbarSlots" Columns="9" Picked="@Vm.PickedPlayerSlot" OnSlotClick="@(i => Vm.ClickPlayerAsync(i))" OnSlotShiftClick="@(i => Vm.QuickMovePlayerAsync(i))" />
             </div>
         </GameSection>
+        </div>
         <p class="chest-hint">@Vm.Hint</p>
     </GameStack>
 </MenuPage>

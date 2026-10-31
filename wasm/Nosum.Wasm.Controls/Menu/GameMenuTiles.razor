@@ -1,0 +1,28 @@
+@using Nosum.Wasm.ViewModels
+@* The game menu's page: one tile per panel that has no button in the HUD's menu column (docs/design/ui-standard.md section 2). Each tile is the panel's
+   sprite, its name and its key, and opens that panel in place of the menu. *@
+<div class="game-menu-tiles" role="group" aria-label="@Label">
+    @foreach (ToolbarItem item in Items)
+    {
+        PanelKind kind = item.Kind;
+        <button type="button" class="game-menu-tile" data-tip="@item.Label" aria-label="@item.Label" @onmousedown:preventDefault @onclick="@(() => OnOpen.InvokeAsync(kind))">
+            <span class="game-menu-tile-art" style="background-image:var(--nosum-img-@(item.Icon))"></span>
+            <span class="game-menu-tile-name">@item.Label</span>
+            @if (item.Hotkey.Length > 0)
+            {
+                <span class="game-menu-tile-key">@item.Hotkey</span>
+            }
+        </button>
+    }
+</div>
+
+@code {
+    /// <summary>The panels to offer as tiles, in order.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ToolbarItem> Items { get; set; } = [];
+
+    /// <summary>The localized accessible name of the tile group.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    /// <summary>Raised with the panel a tile opens.</summary>
+    [Parameter] public EventCallback<PanelKind> OnOpen { get; set; }
+}

@@ -106,8 +106,6 @@ else
             @if (_started && _panel == PanelKind.None)
             {
                 <QuestTracker Vm="Quest" />
-                <PlacementPanel Vm="Placement" />
-                <FurniturePanel Vm="Furniture" />
             }
         </TopLeft>
         <TopCenter>
@@ -119,19 +117,25 @@ else
             }
             <LevelUpBanner Vm="LevelUps" />
             <SeasonBanner Vm="Seasons" />
+            <FishingCatchCard Vm="Fishing" />
             <ConnectionBadge />
         </TopCenter>
         <TopRight>
             @if (_started)
             {
-                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Minimap="Minimap" Toolbar="Toolbar" Emotes="Emotes" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
+                <HudTopRightBar Calendar="Calendar" Wallet="Wallet" Mail="Mail" Minimap="Minimap" Toolbar="Toolbar" ActivePanel="_panel" OnTogglePanel="TogglePanel" />
             }
         </TopRight>
         <Center>
+            @* The arrange mode's furniture panel: a window in the centre, not a corner plaque (docs/design/ui-standard.md section 2). *@
+            @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
+            {
+                <FurniturePanel Vm="Furniture" Placement="Placement" />
+            }
             @* Every open panel is a standalone window of its own, never crammed into a shared multi-tab menu (docs/adr/ADR-044). *@
             @if (_started && _panel != PanelKind.None && !Form.ShowsForm)
             {
-                <GameMenuWindow Panel="_panel" ShopId="_shopId" OnDialogClose="OnDialogClose" OnClosePanel="ClosePanel" />
+                <GameMenuWindow Panel="_panel" ShopId="_shopId" OnDialogClose="OnDialogClose" OnClosePanel="ClosePanel" OnOpenPanel="TogglePanel" />
             }
         </Center>
         <BottomCenter>
@@ -158,6 +162,13 @@ else
                 <ChatLine Vm="Chat" Enabled="@(_panel == PanelKind.None && !Form.ShowsForm && !Elevator.IsOpen && Npc.Stage == NpcStage.Closed && !IsInviteOpen())" />
             }
         </BottomLeft>
+        <BottomRight>
+            @if (_started && !Form.ShowsForm)
+            {
+                @* The emote wheel's button, bottom-right (docs/adr/ADR-075 D1): the same as the B key, and the touch way to open the wheel. *@
+                <div class="hud-cell"><GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" /></div>
+            }
+        </BottomRight>
         <Overlay>
             @if (!Form.ShowsForm)
             {
@@ -450,6 +461,10 @@ else
         else if (Npc.Stage != NpcStage.Closed)
         {
             Npc.Leave();
+        }
+        else if (Furniture.IsVisible)
+        {
+            Furniture.Exit();
         }
         else if (_panel != PanelKind.None)
         {

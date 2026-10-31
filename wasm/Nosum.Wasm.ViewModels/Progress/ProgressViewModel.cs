@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Combat;
@@ -205,7 +206,40 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     public SkillDisplay CombatSkill => this.Describe("Skill_Combat", _combat?.CombatXp ?? 0);
 
     /// <summary>Gets the localized Monster Bestiary &amp; Hunting Log entries (docs/adr/ADR-059).</summary>
-    public IReadOnlyList<BestiaryEntryDisplay> BestiaryEntries
+    /// <summary>The monsters on one page of the bestiary: whole entries, two to a page, so the page fits the panel without a scroll.</summary>
+    public const int BestiaryPerPage = 2;
+
+    /// <summary>Gets the zero-based page of the bestiary.</summary>
+    public int BestiaryPage { get; private set; }
+
+    /// <summary>Gets the number of bestiary pages (at least one).</summary>
+    public int BestiaryPageCount => Math.Max(1, (this.BestiaryEntries.Count + BestiaryPerPage - 1) / BestiaryPerPage);
+
+    /// <summary>Gets the bestiary entries on the current page.</summary>
+    public List<BestiaryEntryDisplay> BestiaryPageEntries
+    {
+        get
+        {
+            IReadOnlyList<BestiaryEntryDisplay> all = this.BestiaryEntries;
+            int page = Math.Min(this.BestiaryPage, this.BestiaryPageCount - 1);
+            return all.Skip(page * BestiaryPerPage).Take(BestiaryPerPage).ToList();
+        }
+    }
+
+    /// <summary>Shows another page of the bestiary.</summary>
+    /// <param name="page">The zero-based page; clamped to the pages there are.</param>
+    public void GoToBestiaryPage(int page)
+    {
+        int next = Math.Clamp(page, 0, this.BestiaryPageCount - 1);
+        if (next != this.BestiaryPage)
+        {
+            this.BestiaryPage = next;
+            this.Raise();
+        }
+    }
+
+    /// <summary>Gets every monster of the bestiary, in its order.</summary>
+    public List<BestiaryEntryDisplay> BestiaryEntries
     {
         get
         {

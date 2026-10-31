@@ -11,7 +11,7 @@
     gap: calc(var(--u) * 2);
     padding: var(--nosum-gutter);
     overflow: auto;
-    background-color: #00a2ff;
+    background-color: var(--nosum-sky);
     background-image: url("_content/Nosum.Wasm.Controls/ui/start_background.png");
     background-repeat: no-repeat;
     background-size: calc(var(--u) * 1500) calc(var(--u) * 520);
@@ -44,7 +44,7 @@
 
 .start-tagline {
     margin: 0 0 var(--nosum-gap-group);
-    color: #fff;
+    color: var(--nosum-ink-on-dark);
     text-shadow: var(--tp) var(--tp) 0 var(--nosum-edge);
 }
 

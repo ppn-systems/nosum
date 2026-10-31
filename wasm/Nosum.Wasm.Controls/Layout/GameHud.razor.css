@@ -47,7 +47,7 @@
     min-height: 0;
 }
 
-/* Top: the quest tracker on the left, coins, system buttons and the player action bar on the right; the middle absorbs the space. */
+/* Top: the quest tracker on the left, the calendar row and the menu column on the right; the middle absorbs the space. */
 .hud-top {
     position: relative;
     z-index: 2;
@@ -61,18 +61,28 @@
 
 .hud-top-left:empty,
 .game-hud:has(.hud-center > *) .hud-top-left,
-.game-hud:has(.hud-center > *) .hud-top-right ::deep .hud-player-bar {
+.game-hud:has(.hud-center > *) .hud-top-right ::deep .hud-menu-column {
     display: none;
 }
 
+/* The top centre: one banner at a time (the level-up and season banners, the catch card), which the card places absolutely. The calendar row
+   (the top-right block, out of the flow) runs across the top to the right, so the centre starts under it. */
 .hud-top-center {
+    position: relative;
+    margin-top: calc(var(--u) * 22);
     flex: 1 1 0;
     align-items: center;
 }
 
+/* The top-right column: row one (the calendar bar of 18 u, with coins, Mail and Settings), then the minimap card and the menu column, all sharing
+   the right edge (MapScene.Minimap.cs places the minimap with these numbers). */
+/* Out of the flow, so a tall column never pushes the hotbar row down: the gutter from the top-right corner. */
 .hud-top-right {
-    position: relative;
-    flex: 0 1 auto;
+    position: absolute;
+    top: var(--nosum-gutter);
+    right: var(--nosum-gutter);
+    z-index: 2;
+    display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: calc(var(--u) * 2);
@@ -86,19 +96,43 @@
     gap: calc(var(--u) * 2);
 }
 
-/* The system column: two columns of 16 u buttons at every size, so its place is fixed in UI pixels (the minimap frame sits left of it, HudMinimap.razor.css). */
-.hud-top-right ::deep .hud-player-bar {
-    position: absolute;
-    top: calc(100% + var(--u) * 2);
-    right: 0;
-    display: grid;
-    grid-template-columns: repeat(2, calc(var(--u) * 16));
-    gap: calc(var(--u) * 2);
+.hud-top-right ::deep .hud-bar:first-child {
+    height: calc(var(--u) * 18);
 }
 
-.hud-top-right ::deep .hud-player-bar .game-icon-button {
+/* The menu column: one column of at most 8 cells, the Menu button last. Each cell is a framed 16 u square (the slot sprite) and holds a 14 u button,
+   so every entry has the same size and frame, the Menu button included. */
+.hud-top-right ::deep .hud-menu-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--u);
+}
+
+.hud-top-right ::deep .hud-menu-item,
+.hud-top-right ::deep .hud-minimap-button,
+.hud-bottom-right ::deep .hud-cell {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: calc(var(--u) * 16);
     height: calc(var(--u) * 16);
+    background: var(--nosum-img-slot) center / 100% 100% no-repeat;
+    image-rendering: pixelated;
+}
+
+.hud-top-right ::deep .hud-menu-item .game-icon-button,
+.hud-top-right ::deep .hud-minimap-button .game-icon-button,
+.hud-bottom-right ::deep .hud-cell .game-icon-button {
+    width: calc(var(--u) * 14);
+    height: calc(var(--u) * 14);
+}
+
+/* The menu sprites of the pet and the Menu button have a pale cell of their own; multiplied onto the frame it takes the frame's colour, so every
+   column entry reads with the same frame. */
+.hud-top-right ::deep .hud-menu-item .game-icon-button-art {
+    mix-blend-mode: multiply;
 }
 
 /* The standalone window: centred below the top HUD row so it never overlaps the HUD buttons. */
@@ -148,6 +182,20 @@
     pointer-events: none;
 }
 
+/* Bottom-right: the emote button beside the gauges, one edge margin (gap-group) above the bottom edge. A touch screen lifts it above the action button
+   (TouchControls.razor.css: the action button stands 8 u up and is 28 u tall). */
+.hud-bottom-right {
+    position: fixed;
+    right: var(--nosum-gutter);
+    bottom: calc(var(--nosum-gutter) + var(--nosum-gap-group));
+    z-index: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--nosum-gap);
+    pointer-events: none;
+}
+
 .hud-overlay {
     position: fixed;
     inset: 0;
@@ -162,15 +210,18 @@
     pointer-events: none;
 }
 
-/* Narrow and touch screens (a phone held upright, docs/adr/ADR-033 D2): the system column takes 14 u buttons so it fits a thumb's reach. */
+/* Narrow and touch screens (a phone held upright, docs/adr/ADR-033 D2): the menu column collapses into its Menu button, the minimap into one map
+   button (docs/design/ui-standard.md section 6). */
 @media (max-width: 640px), (pointer: coarse) {
-    .hud-top-right ::deep .hud-player-bar {
-        grid-template-columns: repeat(2, calc(var(--u) * 14));
+    .hud-top-right ::deep .hud-menu-item:not(.hud-menu-button) {
+        display: none;
     }
+}
 
-    .hud-top-right ::deep .hud-player-bar .game-icon-button {
-        width: calc(var(--u) * 14);
-        height: calc(var(--u) * 14);
+/* A touch screen lifts the emote cell above the action button, and on a phone above the gauges' column too (the hotbar takes two rows). */
+@media (pointer: coarse) {
+    .hud-bottom-right {
+        bottom: calc(var(--u) * 48);
     }
 }
 
@@ -185,7 +236,9 @@
         justify-content: flex-end;
     }
 
+    /* The top-right block is out of the flow now: the quest card starts under its row (18 u) and one gap-group below it. */
     .hud-top-left {
         flex: 1 1 100%;
+        margin-top: calc(var(--u) * 22);
     }
 }

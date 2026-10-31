@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -103,8 +104,40 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the balance line.</summary>
     public string CoinsText => this.Text("Shop_Coins", Number(_wallet.Coins));
 
+    /// <summary>The offers on one page of the list (whole rows only, <see cref="OffersPerPage"/> to a page).</summary>
+    public const int OffersPerPage = 5;
+
+    /// <summary>Gets the zero-based page the list shows.</summary>
+    public int Page { get; private set; }
+
+    /// <summary>Gets the number of pages of the opened shop's offers (at least one).</summary>
+    public int PageCount => Math.Max(1, (this.Offers.Count + OffersPerPage - 1) / OffersPerPage);
+
+    /// <summary>Gets the offers on the current page.</summary>
+    public List<ShopOfferDisplay> PageOffers
+    {
+        get
+        {
+            List<ShopOfferDisplay> all = this.Offers;
+            int page = Math.Min(this.Page, this.PageCount - 1);
+            return all.Skip(page * OffersPerPage).Take(OffersPerPage).ToList();
+        }
+    }
+
+    /// <summary>Shows another page of the offers.</summary>
+    /// <param name="page">The zero-based page; clamped to the pages there are.</param>
+    public void GoToPage(int page)
+    {
+        int next = Math.Clamp(page, 0, this.PageCount - 1);
+        if (next != this.Page)
+        {
+            this.Page = next;
+            this.Raise();
+        }
+    }
+
     /// <summary>Gets what the opened shop sells, in its display order.</summary>
-    public IReadOnlyList<ShopOfferDisplay> Offers
+    public List<ShopOfferDisplay> Offers
     {
         get
         {
@@ -142,6 +175,7 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// <param name="shopId">The shop id from <see cref="ShopCatalog"/>.</param>
     public void Open(int shopId)
     {
+        this.Page = 0;
         _shopId = shopId;
         _pending = null;
         this.QuantityText = "1";
