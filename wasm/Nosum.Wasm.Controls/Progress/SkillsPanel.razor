@@ -4,10 +4,7 @@
 
 @* The Skills page of the game menu: energy, and the three skills with their level and how far each is to the next one. *@
 <MenuPage>
-    <GameRow Class="center">
-        <GameButton Variant="chip" Active="@(!_bestiary)" Text="@Vm.Text("Skills_Heading")" OnClick="@(() => _bestiary = false)" />
-        <GameButton Variant="chip" Active="@_bestiary" Text="@Vm.Text("Bestiary_Heading")" OnClick="@(() => _bestiary = true)" />
-    </GameRow>
+    <TabBar Tabs="TabList()" Active="_bestiary ? 1 : 0" OnSelect="@(id => _bestiary = id == 1)" />
     <GameStack>
         @* One page at a time, so each page has the panel's full height: the energy and skills, or the bestiary (docs/design/ui-standard.md section 3). *@
         @if (!_bestiary)
@@ -99,6 +96,8 @@
 
 @code {
     private bool _bestiary;
+
+    private IReadOnlyList<(int Id, string Label)> TabList() => [(0, Vm.Text("Skills_Heading")), (1, Vm.Text("Bestiary_Heading"))];
 
     protected override void OnInitialized() => Vm.LoadBestiary();
 

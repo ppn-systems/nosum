@@ -10,29 +10,11 @@
     "dialogue",
     "skills",
     "bestiary",
-    "chat",
-    "hud-banner-level",
-    "shop",
-    "blacksmith",
-    "market",
-    "quests-board",
-    "animals",
-    "hud-banner-season",
-    "dialogue",
-    "skills",
-    "bestiary",
-    "chat",
-    "hud-banner-level",
-    "shop",
-    "blacksmith",
-    "market",
-    "quests-board",
-    "animals",
-    "hud-banner-season",
-    "dialogue",
-    "skills",
-    "bestiary",
     "chat"
   ],
-  "failed": []
+  "failed": [],
+  "banner": {
+    "level": 1,
+    "season": 0
+  }
 }

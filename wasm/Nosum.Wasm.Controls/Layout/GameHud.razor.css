@@ -65,9 +65,11 @@
     display: none;
 }
 
-/* The top centre: one banner at a time (the level-up and season banners, the catch card), which the card places absolutely. */
+/* The top centre: one banner at a time (the level-up and season banners, the catch card), which the card places absolutely. The calendar row
+   (the top-right block, out of the flow) runs across the top to the right, so the centre starts under it. */
 .hud-top-center {
     position: relative;
+    margin-top: calc(var(--u) * 22);
     flex: 1 1 0;
     align-items: center;
 }
