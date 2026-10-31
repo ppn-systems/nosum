@@ -139,6 +139,39 @@ public sealed class DayClockServiceTests
         dev.GetUtcNow().Should().Be(s_start);
     }
 
+    [Fact]
+    public void DevClock_AdvanceSeasons_MovesToTheStartOfEachLaterSeason()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+        long startMs = s_start.ToUnixTimeMilliseconds();
+        int startSeason = s_calendar.SeasonNumberAt(startMs);
+
+        long? now = service.AdvanceSeasons(2);
+
+        now.Should().Be(s_calendar.NextSeasonStartMs(s_calendar.NextSeasonStartMs(startMs)));
+        s_calendar.SeasonNumberAt(now!.Value).Should().Be(startSeason + 2);
+        dayClock.CurrentDay.Should().Be(s_calendar.DayNumberAt(now.Value));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(IDevClockService.MaxSeasons + 1)]
+    public void DevClock_AdvanceSeasons_OutOfRange_ChangesNothing(int seasons)
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+
+        service.AdvanceSeasons(seasons).Should().BeNull();
+        dev.GetUtcNow().Should().Be(s_start);
+    }
+
     // A clock whose timers fire when the test advances it, so the day boundary can be crossed without waiting.
     private sealed class ManualClock : TimeProvider
     {
