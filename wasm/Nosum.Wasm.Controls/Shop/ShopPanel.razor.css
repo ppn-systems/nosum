@@ -1,12 +1,26 @@
+/* The top row holds the balance, the presets and the stepper on one line on a desktop; a phone lets it wrap. */
+@media (min-width: 641px) {
+    .shop-head ::deep .shop-top {
+        flex-wrap: nowrap;
+    }
+}
+
+/* Two columns of compact rows (a 3 u gap between them, 2 u between rows); a phone shows one column. */
 .shop-list {
-    display: flex;
-    flex-direction: column;
-    gap: calc(var(--u) * 2);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(var(--u) * 2) calc(var(--u) * 3);
+}
+
+@media (max-width: 640px) {
+    .shop-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 .shop-list ::deep .shop-row {
     display: grid;
-    grid-template-columns: auto 1fr auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: calc(var(--u) * 3);
     align-items: center;
 }
@@ -15,8 +29,17 @@
     width: calc(var(--u) * 30);
 }
 
+.shop-list ::deep .shop-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .shop-list ::deep .shop-name,
 .shop-list ::deep .shop-price {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 

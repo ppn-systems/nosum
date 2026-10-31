@@ -5,7 +5,7 @@ const RESIZE_DEBOUNCE_MS = 150;
 const watchers = new Map();
 let nextId = 1;
 
-// [available, row, gap] in CSS pixels, or null when the list is not laid out. Available is the height the list may take: the window's
+// [available, row, gap, columns] in CSS pixels (columns is a count), or null when the list is not laid out. Available is the height the list may take: the window's
 // max-height (or the viewport, when the window has none) less everything else in the window (header, status line, and the page's other
 // content: the quantity row, the pager, the detail strip).
 export function measure(list) {
@@ -24,8 +24,10 @@ export function measure(list) {
     const cap = Number.isFinite(maxHeight) ? maxHeight : window.innerHeight;
     const chrome = panel.getBoundingClientRect().height - scroll.getBoundingClientRect().height;
     const rest = scroll.scrollHeight - list.getBoundingClientRect().height;
-    const gap = parseFloat(getComputedStyle(list).rowGap) || 0;
-    return [cap - chrome - rest, row.getBoundingClientRect().height, gap];
+    const style = getComputedStyle(list);
+    const gap = parseFloat(style.rowGap) || 0;
+    const columns = style.gridTemplateColumns.split(" ").filter((t) => t.length > 0).length || 1;
+    return [cap - chrome - rest, row.getBoundingClientRect().height, gap, columns];
 }
 
 // Calls the component's OnViewportChanged once the window has stopped resizing for a moment.

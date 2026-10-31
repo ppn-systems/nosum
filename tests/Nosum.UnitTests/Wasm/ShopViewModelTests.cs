@@ -341,7 +341,7 @@ public sealed class ShopViewModelTests
     }
 
     [Theory]
-    [InlineData(20, ShopViewModel.MaxRowsPerPage)]
+    [InlineData(20, 4)] // two columns (the default): at most four rows, so eight items
     [InlineData(1, ShopViewModel.MinRowsPerPage)]
     public void SetRowsPerPage_OutOfRange_ClampsToTheFloorAndTheMaximum(int rows, int expected)
     {
@@ -354,7 +354,7 @@ public sealed class ShopViewModelTests
     }
 
     [Fact]
-    public void SetRowsPerPage_MoreRows_ShowsEightRowsOfTheOpenedShop()
+    public void SetRowsPerPage_MoreRows_ShowsEightItemsOfTheOpenedShop()
     {
         (ShopViewModel vm, _) = Create();
         vm.Open(ShopCatalog.SeedShop);
@@ -362,8 +362,9 @@ public sealed class ShopViewModelTests
 
         vm.SetRowsPerPage(ShopViewModel.MaxRowsPerPage);
 
-        vm.PageOffers.Should().HaveCount(ShopViewModel.MaxRowsPerPage);
-        vm.PageOffers.Select(o => o.ItemId).Should().Equal(vm.Offers.Take(ShopViewModel.MaxRowsPerPage).Select(o => o.ItemId));
+        vm.ItemsPerPage.Should().Be(ShopViewModel.MaxItemsPerPage);
+        vm.PageOffers.Should().HaveCount(ShopViewModel.MaxItemsPerPage);
+        vm.PageOffers.Select(o => o.ItemId).Should().Equal(vm.Offers.Take(ShopViewModel.MaxItemsPerPage).Select(o => o.ItemId));
     }
 
     [Fact]
@@ -372,7 +373,7 @@ public sealed class ShopViewModelTests
         (ShopViewModel vm, _) = Create();
         vm.Open(ShopCatalog.SeedShop);
         vm.GoToPage(1);
-        int firstShown = vm.Offers[vm.Page * vm.RowsPerPage].ItemId;
+        int firstShown = vm.Offers[vm.Page * vm.ItemsPerPage].ItemId;
 
         vm.SetRowsPerPage(ShopViewModel.MaxRowsPerPage);
 
@@ -391,11 +392,37 @@ public sealed class ShopViewModelTests
 
         vm.Page.Should().BeInRange(0, vm.PageCount - 1);
         vm.PageOffers.Should().NotBeEmpty();
-        vm.PageOffers.Should().HaveCountLessThanOrEqualTo(ShopViewModel.MinRowsPerPage);
+        vm.PageOffers.Should().HaveCountLessThanOrEqualTo(vm.ItemsPerPage);
     }
 
     [Fact]
-    public void PageCount_WithSetRows_CountsWholeRowsOfThatSize()
+    public void SetLayout_OneColumn_ShowsRowsOfOneItemUpToEightRows()
+    {
+        (ShopViewModel vm, _) = Create();
+        vm.Open(ShopCatalog.SeedShop);
+
+        vm.SetLayout(1, ShopViewModel.MaxRowsPerPage);
+
+        vm.Columns.Should().Be(1);
+        vm.RowsPerPage.Should().Be(ShopViewModel.MaxRowsPerPage);
+        vm.ItemsPerPage.Should().Be(ShopViewModel.MaxRowsPerPage);
+    }
+
+    [Fact]
+    public void SetLayout_TwoColumns_CapsTheRowsSoThePageHoldsEightItems()
+    {
+        (ShopViewModel vm, _) = Create();
+        vm.Open(ShopCatalog.SeedShop);
+
+        vm.SetLayout(2, ShopViewModel.MaxRowsPerPage);
+
+        vm.Columns.Should().Be(2);
+        vm.RowsPerPage.Should().Be(ShopViewModel.RowLimit(2));
+        vm.ItemsPerPage.Should().Be(ShopViewModel.MaxItemsPerPage);
+    }
+
+    [Fact]
+    public void PageCount_WithSetRows_CountsWholeItemsOfThatSize()
     {
         (ShopViewModel vm, _) = Create();
         vm.Open(ShopCatalog.SeedShop);

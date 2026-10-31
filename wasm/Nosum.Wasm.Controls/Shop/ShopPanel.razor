@@ -20,17 +20,17 @@
         }
         @if (ShowGoods)
         {
-            @* The balance on the left; the quantity presets (one, five, all the balance allows) on the right, as one tab bar (ui-standard section 8). *@
-            <GameRow Class="spread">
-                <span>@Vm.CoinsText</span>
-                <TabBar Tabs="PresetTabs()" Active="Vm.ActivePreset" OnSelect="SelectPreset" />
-            </GameRow>
-            <GameRow Class="center">
-                <span>@Vm.Text("Shop_Quantity")</span>
-                <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
-                <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
-                <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
-            </GameRow>
+            @* One row at the top: the balance, the quantity presets (one, five, all) and the quantity stepper (ui-standard sections 1 and 8).
+               Spacing shrinks to fit the row; the font does not. The field keeps its accessible name, so the row needs no label. *@
+            <div class="shop-head">
+                <GameRow Class="spread shop-top">
+                    <span>@Vm.CoinsText</span>
+                    <TabBar Tabs="PresetTabs()" Active="Vm.ActivePreset" OnSelect="SelectPreset" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
+                    <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
+                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
+                </GameRow>
+            </div>
             @if (Vm.Pending is not null)
             {
                 @* A bulk order, or one that costs a quarter of the balance: the player confirms the total before any coins move (issue #215). *@
@@ -40,14 +40,17 @@
                     <GameButton Variant="secondary" Text="@Vm.Text("Shop_Confirm_No")" OnClick="Vm.CancelPurchase" />
                 </GameRow>
             }
+            @* Two columns of compact rows on a desktop, one on a phone (ShopPanel.razor.css). The page holds columns x rows items. *@
             <div class="shop-list" @ref="_listRef">
                 @foreach (ShopOfferDisplay offer in Vm.PageOffers)
                 {
                     int itemId = offer.ItemId;
                     <GameRow Class="@RowClass(offer)">
                         <ItemSlotButton Slot="offer.Item" Picked="@(Vm.Detail?.ItemId == itemId)" OnClick="@(() => Vm.Select(itemId))" Tip="@offer.Item.Name" />
-                        <span class="shop-name">@offer.Item.Name</span>
-                        <span class="shop-price">@offer.PriceText</span>
+                        <span class="shop-text">
+                            <span class="shop-name">@offer.Item.Name</span>
+                            <span class="shop-price">@offer.PriceText</span>
+                        </span>
                         <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanBuy" OnClick="@(() => Vm.Buy(itemId))" />
                     </GameRow>
                 }
@@ -184,9 +187,9 @@
         }
 
         double[]? room = await _module.InvokeAsync<double[]?>("measure", list);
-        if (room is { Length: 3 })
+        if (room is { Length: 4 })
         {
-            Vm.SetRowsPerPage(ShopViewModel.RowsThatFit(room[0], room[1], room[2]));
+            Vm.SetLayout((int)room[3], ShopViewModel.RowsThatFit(room[0], room[1], room[2]));
         }
     }
 

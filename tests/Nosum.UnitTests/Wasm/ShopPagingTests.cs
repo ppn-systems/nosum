@@ -60,6 +60,16 @@ public sealed class ShopPagingTests
     }
 
     [Theory]
+    [InlineData(1, 8)] // one column: up to eight rows of one item
+    [InlineData(2, 4)] // two columns: four rows hold the eight items of a page
+    [InlineData(3, 4)] // more columns than the list shows: the two-column limit
+    [InlineData(0, 8)] // no column: taken as one
+    public void RowLimit_Columns_KeepsAPageAtMostEightItems(int columns, int expected)
+    {
+        ShopViewModel.RowLimit(columns).Should().Be(expected);
+    }
+
+    [Theory]
     [InlineData(0, 4, 1)]
     [InlineData(4, 4, 1)]
     [InlineData(5, 4, 2)]

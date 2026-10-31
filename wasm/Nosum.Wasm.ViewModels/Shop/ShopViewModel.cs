@@ -94,9 +94,16 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// <summary>The fewest rows a page of the list shows: three, so the list never scrolls in a 1920x1080 window with the detail strip.</summary>
     public const int MinRowsPerPage = 3;
 
-    /// <summary>The most rows a page of the list shows (the design goal; a taller window shows no more than this).</summary>
+    /// <summary>The most rows a page of the list shows, in one column (a phone). Two columns show at most <see cref="MaxItemsPerPage"/> / 2 rows.</summary>
     public const int MaxRowsPerPage = 8;
 
+    /// <summary>The most items a page of the list shows (docs/design/ui-standard.md section 3): two columns of four rows fit a 1280 x 720 and a 1920 x 1080 window.</summary>
+    public const int MaxItemsPerPage = 8;
+
+    /// <summary>The most columns the list shows: two on a desktop, one on a phone (640 px and narrower).</summary>
+    public const int MaxColumns = 2;
+
+    private int _columns = MaxColumns;
     private int _rowsPerPage = MinRowsPerPage;
 
     /// <summary>Initializes the view model.</summary>
@@ -161,11 +168,17 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the zero-based page the list shows.</summary>
     public int Page { get; private set; }
 
-    /// <summary>Gets the rows a page shows: whole rows that fit the window, clamped to <see cref="MinRowsPerPage"/>..<see cref="MaxRowsPerPage"/>.</summary>
+    /// <summary>Gets the columns the list shows: 2 on a desktop, 1 on a phone.</summary>
+    public int Columns => _columns;
+
+    /// <summary>Gets the rows a page shows: whole rows that fit the window, clamped to <see cref="MinRowsPerPage"/> and <see cref="RowLimit"/>.</summary>
     public int RowsPerPage => _rowsPerPage;
 
+    /// <summary>Gets the items a page shows: the columns times the rows.</summary>
+    public int ItemsPerPage => _columns * _rowsPerPage;
+
     /// <summary>Gets the number of pages of the opened shop's offers (at least one).</summary>
-    public int PageCount => PagesFor(this.Offers.Count, _rowsPerPage);
+    public int PageCount => PagesFor(this.Offers.Count, this.ItemsPerPage);
 
     /// <summary>Gets the offers on the current page.</summary>
     public List<ShopOfferDisplay> PageOffers
@@ -174,7 +187,7 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
         {
             List<ShopOfferDisplay> all = this.Offers;
             int page = Math.Min(this.Page, this.PageCount - 1);
-            return all.Skip(page * _rowsPerPage).Take(_rowsPerPage).ToList();
+            return all.Skip(page * this.ItemsPerPage).Take(this.ItemsPerPage).ToList();
         }
     }
 
@@ -297,20 +310,35 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// Sets how many rows a page shows (the view measures the window and passes the whole rows that fit). The page changes so the row that was
     /// first on screen stays on screen, and the page is kept inside the pages there are.
     /// </summary>
-    /// <param name="rows">The rows; clamped to <see cref="MinRowsPerPage"/>..<see cref="MaxRowsPerPage"/>.</param>
-    public void SetRowsPerPage(int rows)
+    /// <param name="rows">The rows; clamped to <see cref="MinRowsPerPage"/>..<see cref="RowLimit"/> for the current columns.</param>
+    public void SetRowsPerPage(int rows) => this.SetLayout(_columns, rows);
+
+    /// <summary>
+    /// Sets the page's shape from the window: the columns the list shows and the whole rows that fit. The first offer on screen stays on
+    /// screen (its page is recomputed for the new size), and the page stays inside the pages there are.
+    /// </summary>
+    /// <param name="columns">The columns; clamped to 1..<see cref="MaxColumns"/>.</param>
+    /// <param name="rows">The rows; clamped to <see cref="MinRowsPerPage"/>..<see cref="RowLimit"/> for those columns.</param>
+    public void SetLayout(int columns, int rows)
     {
-        int next = Math.Clamp(rows, MinRowsPerPage, MaxRowsPerPage);
-        if (next == _rowsPerPage)
+        int nextColumns = Math.Clamp(columns, 1, MaxColumns);
+        int nextRows = Math.Clamp(rows, MinRowsPerPage, RowLimit(nextColumns));
+        if (nextColumns == _columns && nextRows == _rowsPerPage)
         {
             return;
         }
 
-        int firstOffer = this.Page * _rowsPerPage;
-        _rowsPerPage = next;
-        this.Page = Math.Min(PageOf(firstOffer, next), this.PageCount - 1);
+        int firstOffer = this.Page * this.ItemsPerPage;
+        _columns = nextColumns;
+        _rowsPerPage = nextRows;
+        this.Page = Math.Min(PageOf(firstOffer, this.ItemsPerPage), this.PageCount - 1);
         this.Raise();
     }
+
+    /// <summary>The most rows a page shows with <paramref name="columns"/> columns: a page never holds more than <see cref="MaxItemsPerPage"/> items.</summary>
+    /// <param name="columns">The columns; clamped to 1..<see cref="MaxColumns"/>.</param>
+    /// <returns>The rows limit.</returns>
+    public static int RowLimit(int columns) => Math.Max(MinRowsPerPage, Math.Min(MaxRowsPerPage, MaxItemsPerPage / Math.Clamp(columns, 1, MaxColumns)));
 
     /// <summary>The whole rows that fit a space: n rows take n × row + (n − 1) × gap. Clamped to <see cref="MinRowsPerPage"/>..<see cref="MaxRowsPerPage"/>.</summary>
     /// <param name="availablePx">The height the rows may take, in pixels (positive infinity when there is no limit).</param>
