@@ -36,6 +36,8 @@
   or Nalix code; only `Nosum.Rendering.Web` touches the browser. [`engine-core`]
 - **One interop round trip per frame.** Never call JS per sprite or per event; never use
   `IJSRuntime` inside the frame loop. [`render-interop`]
+- **One UI standard.** Every visible change follows `docs/design/ui-standard.md` (HUD regions, menu column, panel sizes, type,
+  spacing, popups) and attaches screenshots at three sizes. [`blazor-ui`]
 - **Blazor draws UI, not the world.** No `StateHasChanged` per frame; `.razor` files never
   touch the socket. [`blazor-ui`]
 - **The server decides.** Clients send intents; the server validates with `Nosum.Gameplay` and
