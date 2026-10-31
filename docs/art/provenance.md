@@ -100,7 +100,6 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `ui/fish_bite.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | 24 x 24 bite bubble: the white speech bubble of ui/emote_bubble.png with a dark red exclamation mark at its centre (`fishing_ui.py`) |
 | `ui/fishing_bobber.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | 16 x 16 fishing float in cell (0, 0): red top half, white bottom half, thin grey stem, 1 px dark outline (`fishing_ui.py`) |
 | `ui/menu.png` | 9 UI | `kenney_ui-pack-pixel-adventure`, Nosum original (drawn in tools/art_repack, no outside source) | Window frame (16 x 16 at 0, 256, 5 px slice) and the small plaque frame (16 x 16 at 32, 256, 4 px slice): Pixel Adventure small tiles (15, 1) and (10, 0), three transparent edge pixels of the first filled in; the 3 x 3 slot bevel at (128, 128) is drawn here (`ui.py`) |
-| `ui/start_background.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`) |
 | `ui/text_box.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Sunk text field box (188 x 48 at x 4), drawn at art pixels and enlarged 4 x in the palette of the UI packs (`ui.py`) |
 
 ## Mapping: crops

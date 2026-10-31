@@ -8,16 +8,33 @@
     gap: calc(var(--u) * 2);
 }
 
-/* The slot Google's button is drawn into. Google draws the button in its own frame, so the pixel frame of the other buttons sits around the slot. */
+/* The two provider buttons share one width and sit centred, with no pixel frame: Google's and Microsoft's own looks. */
+.account-providers {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: calc(var(--u) * 2);
+    width: 100%;
+}
+
+/* The slot Google's button is drawn into: Google sizes its button to the slot's width (external-sign-in.js). */
 .account-google {
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    min-height: calc(var(--u) * 16);
-    padding: calc(var(--u) * 2) calc(var(--u) * 3);
-    border-style: solid;
-    border-width: calc(var(--u) * 3);
-    border-image: var(--nosum-img-button) 3 3 5 3 fill / calc(var(--u) * 3) stretch;
-    image-rendering: pixelated;
+    width: 100%;
+    min-height: calc(var(--u) * 14);
+}
+
+/* Google's button while Google is off on this server: the same size and edge as Microsoft's, greyed. */
+.account-google-off {
+    height: calc(var(--u) * 14);
+    border: 1px solid #cccccc;
+    background: #f2f2f2;
+    color: #a6a6a6;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--nosum-fs-body);
+    font-weight: 600;
+    line-height: 1;
 }

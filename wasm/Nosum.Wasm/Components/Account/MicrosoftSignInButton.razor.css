@@ -1,0 +1,52 @@
+/* Microsoft's button (brand guidelines): white with a grey edge, the mark and the label on one line. The colours are the brand's, not the theme's,
+   and the 1 px edge is the brand's too. The size is in u, like the rest of the window. */
+.ms-signin {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 3);
+    width: 100%;
+    height: calc(var(--u) * 14);
+    margin: 0;
+    padding: 0 calc(var(--u) * 3);
+    background: #ffffff;
+    border: 1px solid #8c8c8c;
+    border-radius: 0;
+    color: #5e5e5e;
+    font-family: "Segoe UI", "Segoe UI Semibold", "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--nosum-fs-body);
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ms-signin:hover {
+    background: #f2f2f2;
+}
+
+.ms-signin:active {
+    background: #e6e6e6;
+}
+
+.ms-signin:focus-visible {
+    outline: 2px solid #0067b8;
+    outline-offset: 2px;
+}
+
+.ms-signin:disabled {
+    background: #f2f2f2;
+    border-color: #cccccc;
+    color: #a6a6a6;
+    cursor: default;
+}
+
+.ms-signin-mark {
+    flex: none;
+    width: calc(var(--u) * 7);
+    height: calc(var(--u) * 7);
+}
+
+.ms-signin-label {
+    white-space: nowrap;
+}

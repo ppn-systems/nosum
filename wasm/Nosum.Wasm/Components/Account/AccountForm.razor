@@ -6,7 +6,8 @@
 
 @* Reusable account form, built only from the shared controls: sign in with Google or Microsoft, or play as a guest; a guest links one of the two
    identities and chooses a nickname. All text and behaviour come from the view model; no network code here. The buttons are Focusable: this form
-   is shown while the game does not own the keyboard (before sign-in, or over the game on upgrade). *@
+   is shown while the game does not own the keyboard (before sign-in, or over the game on upgrade). The two provider buttons are not framed in the
+   game's wooden button: each draws its provider's own look (docs/adr/ADR-081). *@
 <GamePanel Title="@Vm.Title" Class="account" Role="form">
     <div class="account-form">
         <GameStack>
@@ -17,19 +18,21 @@
                 </GameField>
             }
 
-            <GameStack>
-                @* Google draws its own button here (a click opens its popup); the pixel frame around it is the slot's. Without a client id the button is off. *@
+            <div class="account-providers">
+                @* Google draws its own button here at the slot's width (a click opens its popup). Without a client id the slot shows the same button, switched off. *@
                 @if (Vm.GoogleEnabled)
                 {
                     <div id="@_googleSlotId" class="account-google" role="group" aria-label="@Vm.SignInGoogleText"></div>
                 }
                 else
                 {
-                    <GameButton Focusable="true" Disabled="true" Text="@(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)" />
+                    <div class="account-google account-google-off" role="img" aria-label="@(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)">
+                        @(Vm.IsUpgradeMode ? Vm.LinkGoogleText : Vm.SignInGoogleText)
+                    </div>
                 }
-                <GameButton Focusable="true" Disabled="@(Vm.IsBusy || !Vm.MicrosoftEnabled)" Text="@(Vm.IsUpgradeMode ? Vm.LinkMicrosoftText : Vm.SignInMicrosoftText)"
-                            OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkMicrosoftAsync() : Vm.SignInWithMicrosoftAsync())" />
-            </GameStack>
+                <MicrosoftSignInButton Text="@(Vm.IsUpgradeMode ? Vm.LinkMicrosoftText : Vm.SignInMicrosoftText)" Disabled="@(Vm.IsBusy || !Vm.MicrosoftEnabled)"
+                                       OnClick="@(() => Vm.IsUpgradeMode ? Vm.LinkMicrosoftAsync() : Vm.SignInWithMicrosoftAsync())" />
+            </div>
 
             @* One line for a provider that is off on this server, instead of a notice under each button (issue #207). *@
             @if (Vm.ProviderHint is { } providerHint)

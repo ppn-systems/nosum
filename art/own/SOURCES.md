@@ -2,6 +2,15 @@
 
 One entry per file or group of files, as [ADR-004](../../docs/adr/ADR-004-pixel-art-assets.md) D2 asks.
 
+## `ui/start_meadow.png`
+
+The start-screen backdrop: a daytime meadow of grass, a dirt path and a hedgerow of trees and bushes, 96 x 32 cells of 16 px (1536 x 512 px), drawn at 1 art pixel = 1 u. Composed by `tools/art_repack/start_meadow.py` from tiles cut out of the Kenney Tiny Town sheet (`source/kenney_tiny-town`); the grass pattern is seeded, so a run reproduces the file.
+
+| Field | Value |
+| :-- | :-- |
+| Made by | Nosum (`tools/art_repack/start_meadow.py`), from Kenney Tiny Town (kenney.nl, CC0 1.0), composed for ADR-081 |
+| License | The tiles are CC0 1.0 (`source/kenney_tiny-town/License.txt`); the composition is Nosum's own art. |
+
 ## `source/pixellab/*.png`, `*.json`
 
 Corner (Wang) tilesets of two terrains each: 16 tiles of 16 × 16 px in a 64 × 64 sheet, with the metadata that names the corners of every tile. No tool reads these files now: the own maps are compiled from `source/layouts/` on the own tilesheets below, and the pixellab sets are kept as the source of the corner tiles.
