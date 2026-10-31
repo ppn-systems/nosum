@@ -1,6 +1,7 @@
 // Phone UI pass capture (docs/qa/phone-ui). Captures the screens this pass touches at 1280x720, 1920x1080 and 390x844 (touch):
 // the sign-in screen, the HUD with the hotbar, a multi-line item tooltip (boots and the speed tonic), the inventory, the Town
-// merchant dialog (seed keeper) and the settings page. Each file is the full viewport at that size.
+// merchant dialog (seed keeper), the shop that Buy opens (07-shop-buy, with an overflow probe) and the settings page. Each file is the full
+// viewport at that size.
 //
 // Needs the Development server on PostgreSQL (DOTNET_ENVIRONMENT=Development, database nosum_dev) and a client built with
 // -p:NosumDevTools=true, served at NOSUM_QA_URL (default http://localhost:5080/). The client build on Linux may leave some
@@ -22,6 +23,8 @@ const VIEWPORTS = {
 };
 const MIME = { '.png': 'image/png', '.tmx': 'application/xml', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.json': 'application/json' };
 const GUEST = /Chơi ngay với tư cách khách|Play now as a guest/;
+// The merchant dialogue box's Buy action (Npc_Action_Buy, Vietnamese and English).
+const SHOP_BUY = /^(Mua|Buy)$/;
 // Winged boots (411), speed tonic (715, quantity 2): the two multi-line tooltips the phone pass must fit.
 const GRANTS = [[411, 1, 0], [715, 2, 0], [408, 1, 0]];
 // The seed keeper's counter in Town (npc-dialogue-capture.cjs).
@@ -35,6 +38,8 @@ async function routeRepoAssets(page) {
     let file;
     if (pathname.startsWith('/assets/Maps/')) file = path.join(REPO, 'art/own/Maps', pathname.slice('/assets/Maps/'.length));
     else if (pathname.startsWith('/assets/')) file = path.join(REPO, 'assets', pathname.slice('/assets/'.length));
+    // The sign-in backdrop is own art (art/own/ui, ADR-082), not an assets/ui file: without this route it 404s and the screen shows the flat base colour.
+    else if (pathname.endsWith('/signin_background.png')) file = path.join(REPO, 'art/own/ui/signin_background.png');
     else file = path.join(REPO, 'assets/ui', pathname.slice('/_content/Nosum.Wasm.Controls/ui/'.length));
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) return route.fallback();
     return route.fulfill({ status: 200, body: fs.readFileSync(file), contentType: MIME[path.extname(file)] || 'application/octet-stream' });
@@ -69,6 +74,30 @@ const MEASURE = () => {
     out.tip = { box: [r.left, r.top, r.right, r.bottom].map(Math.round), scrollH: tip.scrollHeight, clientH: tip.clientHeight, onScreen: r.left >= 0 && r.top >= 0 && r.right <= vw && r.bottom <= vh, fontPx: getComputedStyle(tip.querySelector('.tip-text') || tip).fontSize };
   }
   return out;
+};
+
+// The shop's text is clipped or overflowing when an element's content is wider or taller than its box, or the window leaves the screen.
+const OVERFLOW = () => {
+  const vw = innerWidth, vh = innerHeight;
+  const win = document.querySelector('.trade-window');
+  if (!win) return { window: null };
+  const r = win.getBoundingClientRect();
+  const clipped = [];
+  for (const e of win.querySelectorAll('*')) {
+    const cs = getComputedStyle(e);
+    if (cs.display === 'none' || e.clientWidth === 0) continue;
+    const textOwn = [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+    if (!textOwn && !e.classList.contains('game-button-label')) continue;
+    if (e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1) {
+      clipped.push(`${(e.className.baseVal ?? e.className).toString().slice(0, 30)}: ${e.textContent.trim().slice(0, 30)}`);
+    }
+  }
+  return {
+    window: [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)],
+    inside: r.left >= 0 && r.top >= 0 && r.right <= vw && r.bottom <= vh,
+    fontPx: getComputedStyle(win).fontSize,
+    clipped: clipped.slice(0, 6),
+  };
 };
 
 async function openGame(browser, name, errors) {
@@ -157,6 +186,21 @@ async function openGame(browser, name, errors) {
     await page.waitForTimeout(1200);
     await shot('06-merchant.png');
     await log('merchant');
+
+    // 6. The shop the dialogue box opens with Buy: the list and the detail strip (the phone text grew with the body size, so check the fit).
+    // A click on the line finishes it while it types out (NpcDialogBox), so the choices are there to click.
+    await page.locator('.npc-line').first().click({ timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(600);
+    const buy = page.getByRole('button', { name: SHOP_BUY }).first();
+    if (await buy.count()) {
+      await buy.click({ timeout: 10000 });
+      await page.waitForTimeout(900);
+      await shot('07-shop-buy.png');
+      await log('shop buy');
+      report.push(`${name} | shop overflow | ${JSON.stringify(await page.evaluate(OVERFLOW))}`);
+    } else {
+      report.push(`${name} | shop buy | no Buy action in the dialogue box`);
+    }
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
