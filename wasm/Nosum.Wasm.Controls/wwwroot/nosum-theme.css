@@ -194,10 +194,23 @@ h1[tabindex="-1"]:focus {
     color: var(--nosum-heading);
 }
 
+/* The description is a sentence: body size, not the small size (docs/design/ui-standard.md section 1). Long lines wrap inside the box. */
 #nosum-tip .tip-text {
     display: block;
     color: var(--nosum-ink-soft);
-    font-size: var(--nosum-fs-small);
+    font-size: var(--nosum-fs-body);
+    overflow-wrap: anywhere;
+}
+
+/* Phone (docs/design/ui-standard.md section 1, the phone exception): the UI pixel stays 2 px, so every measured layout keeps its fit, and body text
+   is 14 px, the owners' minimum. 14 px is not a whole number of font pixels (12.5 px is one), so the sizes are set in px here. The line height
+   follows the size: a line of 11 px under 14 px text drew the lines of a tooltip over each other. */
+@media (max-width: 640px) {
+    :root {
+        --nosum-fs-body: 14px;
+        --nosum-fs-small: 12.5px;
+        --nosum-lh: 17px;
+    }
 }
 
 /* High contrast (settings page, ADR-033 D4): the darkest ink for every text colour, a thicker focus ring. */

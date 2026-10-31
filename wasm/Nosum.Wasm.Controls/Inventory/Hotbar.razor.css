@@ -72,11 +72,33 @@
     pointer-events: none;
 }
 
-/* Narrow screens (a phone held upright): the slots make two rows of five instead of one row that does not fit (docs/adr/ADR-033 D2). */
+/* Narrow screens (a phone held upright, docs/adr/ADR-033 D2): all nine slots stay in one row, each 14 u (the touch minimum, docs/design/ui-standard.md
+   section 6) with a 1 u gap, so the hotbar and the gauge fit 390 px. The picture is scaled to three quarters, so it sits whole inside the slot's 12 u.
+   The skill keys (Z, X, V) stack under the slots, not beside them. */
 @media (max-width: 640px) {
     .hotbar-slots {
-        display: grid;
-        grid-template-columns: repeat(5, auto);
-        row-gap: calc(var(--u) * 6);
+        gap: var(--u);
+        padding: var(--u) var(--u) calc(var(--u) * 7);
+    }
+
+    .hotbar-slots ::deep .slot {
+        width: calc(var(--u) * 14);
+        height: calc(var(--u) * 14);
+    }
+
+    .hotbar-slots ::deep .icon {
+        zoom: 0.75;
+    }
+
+    .hotbar-row {
+        flex-direction: column;
+        align-items: center;
+        gap: calc(var(--u) * 2);
+    }
+
+    .hotbar-skills {
+        padding: calc(var(--u) * 2) 0 0;
+        border-left: 0;
+        border-top: var(--u) solid var(--nosum-line);
     }
 }
