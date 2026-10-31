@@ -122,7 +122,7 @@ public sealed class GoalWireTests : IClassFixture<PostgresFixture>, IAsyncLifeti
         clock.AdvanceDays(16).Should().NotBeNull();
 
         (await watcher.GoalPushes.WaitAsync(p => p.State == GoalState.Expired, ct)).Total.Should().Be(40);
-        (await deliverer.Wallet.WaitAsync(c => c == CoinRules.StartingCoins + 400, ct)).Should().Be(CoinRules.StartingCoins + 400);
+        (await deliverer.Wallet.WaitAsync(c => c == CoinRules.StartingCoins + 800, ct)).Should().Be(CoinRules.StartingCoins + 800);
         GoalsCopy after = await deliverer.GetGoalsAsync(ct);
         after.Rows.Should().ContainSingle().Which.Should().Match<GoalRow>(r => r.GoalId == CommunityGoalCatalog.SummerFestival && r.Total == 0 && r.State == GoalState.Active);
         (await deliverer.DeliverToGoalAsync(CommunityGoalCatalog.SpringBridge, 1, ct)).Status.Should().Be(GoalStatus.NotThisSeason);

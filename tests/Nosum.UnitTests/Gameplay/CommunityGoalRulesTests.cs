@@ -114,10 +114,10 @@ public sealed class CommunityGoalRulesTests
         => CommunityGoalRules.RewardShare(Goal(pool: 1_000, cap: 1_000_000), 2_000, 1_000).Should().Be(1_000);
 
     [Theory]
-    [InlineData(ItemCatalog.Parsnip, 100, 1_000)]
-    [InlineData(ItemCatalog.Radish, 100, 1_500)]
-    [InlineData(ItemCatalog.Cauliflower, 7, 210)]
-    [InlineData(ItemCatalog.Parsnip, 1, 10)]
+    [InlineData(ItemCatalog.Parsnip, 100, 2_000)]
+    [InlineData(ItemCatalog.Radish, 100, 3_000)]
+    [InlineData(ItemCatalog.Cauliflower, 7, 420)]
+    [InlineData(ItemCatalog.Parsnip, 1, 20)]
     [InlineData(ItemCatalog.Parsnip, 0, 0)]
     public void Consolation_IsHalfTheBinPricePerDeliveredItem(int itemId, long delivered, long expected)
         => CommunityGoalRules.Consolation(Goal(itemId: itemId), delivered).Should().Be(expected);
