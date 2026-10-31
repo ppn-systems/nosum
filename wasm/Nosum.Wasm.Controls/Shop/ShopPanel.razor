@@ -2,8 +2,11 @@
 @using Nosum.Wasm.ViewModels.Blacksmith
 @using Nosum.Wasm.Controls.Building
 @using Nosum.Wasm.ViewModels.Building
+@using Microsoft.JSInterop
 @using Nosum.Wasm.ViewModels.Shop
 @inherits ObservingComponent<ShopViewModel>
+@implements IAsyncDisposable
+@inject IJSRuntime Js
 
 @* One shop, chosen by ShopId (seed, clothing or furniture shop): pick what to buy for coins. The title and the list come from the shared shop catalogue,
    and the server prices and checks every purchase. Self-contained: it opens the shop on its view model by itself, so a host only sets ShopId and Vm.
@@ -37,7 +40,7 @@
                     <GameButton Variant="secondary" Text="@Vm.Text("Shop_Confirm_No")" OnClick="Vm.CancelPurchase" />
                 </GameRow>
             }
-            <div class="shop-list">
+            <div class="shop-list" @ref="_listRef">
                 @foreach (ShopOfferDisplay offer in Vm.PageOffers)
                 {
                     int itemId = offer.ItemId;
@@ -94,6 +97,10 @@
 
 @code {
     private int _openedShop = -1;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<ShopPanel>? _self;
+    private int _watch;
+    private ElementReference? _listRef;
 
     /// <summary>The shop to show, an id from <c>ShopCatalog</c>. Changing it opens the other shop.</summary>
     [Parameter, EditorRequired] public int ShopId { get; set; }
@@ -140,6 +147,69 @@
     ];
 
     private void SelectPreset(int preset) => Vm.ChoosePreset(preset);
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                _module = await Js.InvokeAsync<IJSObjectReference>("import", "./_content/Nosum.Wasm.Controls/shop-rows.js");
+                _self = DotNetObjectReference.Create(this);
+                _watch = await _module.InvokeAsync<int>("watch", _self);
+            }
+
+            await this.MeasureRowsAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is going away.
+        }
+    }
+
+    /// <summary>Called by shop-rows.js once the window has stopped resizing: the rows are measured again.</summary>
+    [JSInvokable]
+    public Task OnViewportChanged() => this.InvokeAsync(this.MeasureRowsAsync);
+
+    /// <summary>
+    /// Asks the window how much room the list has and gives the view model the whole rows that fit (docs/design/ui-standard.md section 3).
+    /// The view model re-renders only when the count changes, so the render that follows measures to the same answer and stops.
+    /// </summary>
+    private async Task MeasureRowsAsync()
+    {
+        if (_module is null || !ShowGoods || _listRef is not { } list || Vm.PageOffers.Count == 0)
+        {
+            return;
+        }
+
+        double[]? room = await _module.InvokeAsync<double[]?>("measure", list);
+        if (room is { Length: 3 })
+        {
+            Vm.SetRowsPerPage(ShopViewModel.RowsThatFit(room[0], room[1], room[2]));
+        }
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("unwatch", _watch);
+                await _module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is going away.
+        }
+
+        _self?.Dispose();
+        _self = null;
+        this.Dispose();
+    }
 
     /// <summary>A row is dimmed when the balance cannot cover one unit of it (the price still reads, the Buy button is off).</summary>
     private static string RowClass(ShopOfferDisplay offer) => offer.Dimmed ? "center shop-row shop-row-dim" : "center shop-row";

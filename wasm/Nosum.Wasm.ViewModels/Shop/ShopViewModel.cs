@@ -91,8 +91,13 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// <summary>The preset that buys as many units as the balance and the stack allow.</summary>
     public const int PresetAll = 0;
 
-    /// <summary>The offers on one page of the list (whole rows only, <see cref="OffersPerPage"/> to a page).</summary>
-    public const int OffersPerPage = 4;
+    /// <summary>The fewest rows a page of the list shows: the floor of the layout, so a page is never empty even on a short window.</summary>
+    public const int MinRowsPerPage = 4;
+
+    /// <summary>The most rows a page of the list shows (the design goal; a taller window shows no more than this).</summary>
+    public const int MaxRowsPerPage = 8;
+
+    private int _rowsPerPage = MinRowsPerPage;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="channel">Sends purchases.</param>
@@ -156,8 +161,11 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the zero-based page the list shows.</summary>
     public int Page { get; private set; }
 
+    /// <summary>Gets the rows a page shows: whole rows that fit the window, clamped to <see cref="MinRowsPerPage"/>..<see cref="MaxRowsPerPage"/>.</summary>
+    public int RowsPerPage => _rowsPerPage;
+
     /// <summary>Gets the number of pages of the opened shop's offers (at least one).</summary>
-    public int PageCount => Math.Max(1, (this.Offers.Count + OffersPerPage - 1) / OffersPerPage);
+    public int PageCount => PagesFor(this.Offers.Count, _rowsPerPage);
 
     /// <summary>Gets the offers on the current page.</summary>
     public List<ShopOfferDisplay> PageOffers
@@ -166,7 +174,7 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
         {
             List<ShopOfferDisplay> all = this.Offers;
             int page = Math.Min(this.Page, this.PageCount - 1);
-            return all.Skip(page * OffersPerPage).Take(OffersPerPage).ToList();
+            return all.Skip(page * _rowsPerPage).Take(_rowsPerPage).ToList();
         }
     }
 
@@ -284,6 +292,54 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
 
     /// <summary>Re-renders after the typed quantity changed (prices that can no longer be afforded dim).</summary>
     public void Touch() => this.Raise();
+
+    /// <summary>
+    /// Sets how many rows a page shows (the view measures the window and passes the whole rows that fit). The page changes so the row that was
+    /// first on screen stays on screen, and the page is kept inside the pages there are.
+    /// </summary>
+    /// <param name="rows">The rows; clamped to <see cref="MinRowsPerPage"/>..<see cref="MaxRowsPerPage"/>.</param>
+    public void SetRowsPerPage(int rows)
+    {
+        int next = Math.Clamp(rows, MinRowsPerPage, MaxRowsPerPage);
+        if (next == _rowsPerPage)
+        {
+            return;
+        }
+
+        int firstOffer = this.Page * _rowsPerPage;
+        _rowsPerPage = next;
+        this.Page = Math.Min(PageOf(firstOffer, next), this.PageCount - 1);
+        this.Raise();
+    }
+
+    /// <summary>The whole rows that fit a space: n rows take n × row + (n − 1) × gap. Clamped to <see cref="MinRowsPerPage"/>..<see cref="MaxRowsPerPage"/>.</summary>
+    /// <param name="availablePx">The height the rows may take, in pixels (positive infinity when there is no limit).</param>
+    /// <param name="rowPx">The height of one row, in pixels.</param>
+    /// <param name="gapPx">The gap between two rows, in pixels.</param>
+    /// <returns>The rows per page.</returns>
+    public static int RowsThatFit(double availablePx, double rowPx, double gapPx)
+    {
+        if (!(rowPx > 0) || double.IsNaN(availablePx) || double.IsNaN(gapPx))
+        {
+            return MinRowsPerPage;
+        }
+
+        // The small tolerance absorbs layout rounding, so a row that fits exactly is not lost to a fraction of a pixel.
+        double rows = Math.Floor(((availablePx + gapPx) / (rowPx + gapPx)) + 1e-6);
+        return (int)Math.Clamp(double.IsNaN(rows) ? MinRowsPerPage : rows, MinRowsPerPage, MaxRowsPerPage);
+    }
+
+    /// <summary>The number of pages that hold <paramref name="offers"/> offers, <paramref name="rowsPerPage"/> to a page (at least one).</summary>
+    /// <param name="offers">The offers.</param>
+    /// <param name="rowsPerPage">The rows per page; at least one.</param>
+    /// <returns>The page count.</returns>
+    public static int PagesFor(int offers, int rowsPerPage) => Math.Max(1, (offers + rowsPerPage - 1) / Math.Max(1, rowsPerPage));
+
+    /// <summary>The zero-based page that holds the offer at <paramref name="firstOffer"/> (zero-based) when a page shows <paramref name="rowsPerPage"/> rows.</summary>
+    /// <param name="firstOffer">The index of the offer.</param>
+    /// <param name="rowsPerPage">The rows per page; at least one.</param>
+    /// <returns>The page.</returns>
+    public static int PageOf(int firstOffer, int rowsPerPage) => firstOffer / Math.Max(1, rowsPerPage);
 
     /// <summary>Shows another page of the offers.</summary>
     /// <param name="page">The zero-based page; clamped to the pages there are.</param>
