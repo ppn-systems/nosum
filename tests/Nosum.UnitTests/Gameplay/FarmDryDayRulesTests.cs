@@ -169,4 +169,81 @@ public sealed class FarmDryDayRulesTests
         bare.HasCrop.Should().BeFalse();
         bare.TendedDay.Should().Be(5, "the cut counts as tending, so the dry days start again from there");
     }
+
+    [Fact]
+    public void IsWithered_RipeCropWaitingForHarvest_IsNotDriedOutByLaterDryDays()
+    {
+        FarmTile ripe = WateredDailyFrom(Planted(2), firstDay: 3, lastDay: 6);
+
+        FarmRules.IsMature(ripe, Midnight(7), s_calendar, outdoors: false).Should().BeTrue("four watered days ended by day 7");
+        FarmRules.IsWithered(ripe, Midnight(9), s_calendar, outdoors: false).Should().BeFalse("days 7 and 8 were dry, but the crop had ripened");
+        FarmRules.Harvest(ripe, Midnight(9), s_calendar, out _, out CropDefinition? harvested, outdoors: false).Should().Be(FarmVerdict.Ok);
+        harvested.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void IsWithered_CropThatWitheredBeforeRipening_StaysWithered()
+    {
+        FarmTile planted = Planted(2);
+
+        FarmRules.IsWithered(planted, Midnight(5), s_calendar, outdoors: true).Should().BeTrue("days 3 and 4 ended dry");
+        int wet = Enumerable.Range(5, 40).First(Rains);
+        FarmRules.IsWithered(planted, Midnight(wet + 10), s_calendar, outdoors: true).Should().BeTrue("rain that ripens it later does not revive it");
+    }
+
+    [Fact]
+    public void IsAtRisk_CropOneDryDayFromWithering_IsThirsty()
+    {
+        FarmTile planted = Planted(2);
+
+        FarmRules.IsAtRisk(planted, Noon(3), s_calendar, outdoors: false).Should().BeFalse("day 2 is the planting day: grace");
+        FarmRules.IsAtRisk(planted, Noon(4), s_calendar, outdoors: false).Should().BeTrue("day 3 ended dry; one more dry day withers it");
+    }
+
+    [Fact]
+    public void IsAtRisk_WateredToday_IsNotThirsty()
+    {
+        FarmTile watered = WateredOn(Planted(2), 4);
+
+        FarmRules.IsAtRisk(watered, Noon(4), s_calendar, outdoors: false).Should().BeFalse("the soil is wet today");
+        FarmRules.IsAtRisk(watered, Noon(5), s_calendar, outdoors: false).Should().BeFalse("day 4 was watered; day 5 is the only dry day so far");
+        FarmRules.IsAtRisk(watered, Noon(6), s_calendar, outdoors: false).Should().BeTrue("days 5 ended dry, and the next dry day withers it");
+    }
+
+    [Fact]
+    public void IsAtRisk_RipeCrop_IsNeverThirsty()
+    {
+        FarmTile ripe = WateredDailyFrom(Planted(2), firstDay: 3, lastDay: 6);
+
+        FarmRules.IsAtRisk(ripe, Noon(8), s_calendar, outdoors: false).Should().BeFalse("a ripe crop does not wither from dry days");
+    }
+
+    [Fact]
+    public void IsAtRisk_BareSoilOneDryDayFromReverting_IsThirsty()
+    {
+        FarmTile tilled = new(0, 0, 0, 0, 2);
+
+        FarmRules.IsAtRisk(tilled, Noon(4), s_calendar, outdoors: false).Should().BeFalse("only day 3 ended dry");
+        FarmRules.IsAtRisk(tilled, Noon(5), s_calendar, outdoors: false).Should().BeTrue("days 3 and 4 ended dry; one more reverts the soil");
+    }
+
+    [Fact]
+    public void IsAtRisk_SprinklerBesideTheCrop_IsNotThirsty()
+    {
+        FarmTile planted = Planted(2);
+
+        FarmRules.IsAtRisk(planted, Noon(4), s_calendar, outdoors: false, sprinklerSinceMs: SprinklerSince).Should().BeFalse("the sprinkler waters the tile every day");
+    }
+
+    // Waters the tile by hand on each day from firstDay to lastDay, as a player would.
+    private static FarmTile WateredDailyFrom(FarmTile tile, int firstDay, int lastDay)
+    {
+        FarmTile current = tile;
+        for (int day = firstDay; day <= lastDay; day++)
+        {
+            current = WateredOn(current, day);
+        }
+
+        return current;
+    }
 }

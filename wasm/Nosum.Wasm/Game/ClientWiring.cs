@@ -157,6 +157,7 @@ internal static class ClientWiring
             sp.GetRequiredService<IStringLocalizer<Catalogue>>(),
             sp.GetRequiredService<IStringLocalizer<Language>>()));
         services.AddSingleton<GameMessagesViewModel>();
+        services.AddSingleton<ThirstWarning>();
         services.AddSingleton<LevelUpBannerViewModel>();
         services.AddSingleton<SeasonBannerViewModel>();
         services.AddSingleton<ItemDescriber>();
@@ -332,6 +333,7 @@ internal static class ClientWiring
         _ = services.GetRequiredService<QuestTrackerViewModel>();
         _ = services.GetRequiredService<LevelUpBannerViewModel>();
         GameMessagesViewModel messages = services.GetRequiredService<GameMessagesViewModel>();
+        _ = services.GetRequiredService<ThirstWarning>();
         IStringLocalizer<Language> localizer = services.GetRequiredService<IStringLocalizer<Language>>();
         combat.KnockedOut += () => messages.Notify(localizer["Combat_KnockedOut"].Value);
         combat.AttackCompleted += attack =>

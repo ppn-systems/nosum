@@ -67,7 +67,8 @@ public readonly record struct FarmUseOutcome(FarmStatus Status, FarmAction Actio
 /// <param name="X">Tile x.</param>
 /// <param name="Y">Tile y.</param>
 /// <param name="State">The tile's stored state.</param>
-public readonly record struct FarmTileView(int X, int Y, FarmTile State);
+/// <param name="Withered">Whether the crop on the tile has withered now (the server decides it, sprinklers counted).</param>
+public readonly record struct FarmTileView(int X, int Y, FarmTile State, bool Withered);
 
 /// <summary>The worked tiles of one map.</summary>
 /// <param name="MapId">The map key.</param>

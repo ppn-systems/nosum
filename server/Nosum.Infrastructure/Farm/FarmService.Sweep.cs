@@ -57,7 +57,7 @@ public sealed partial class FarmService
                         continue;
                     }
 
-                    tiles.Add(new FarmTileView(tile.Key.X, tile.Key.Y, tile.Value));
+                    tiles.Add(new FarmTileView(tile.Key.X, tile.Key.Y, tile.Value, this.IsWitheredAt(player.Instance, tile.Key.X, tile.Key.Y, tile.Value, nowMs)));
                 }
             }
 
@@ -89,7 +89,7 @@ public sealed partial class FarmService
                         continue;
                     }
 
-                    state.FarmTiles.Add(ToRow(tile.Key.X, tile.Key.Y, tile.Value));
+                    state.FarmTiles.Add(ToRow(tile.Key.X, tile.Key.Y, tile.Value, this.IsWitheredAt(instance, tile.Key.X, tile.Key.Y, tile.Value, nowMs)));
                 }
             }
         }
@@ -127,7 +127,11 @@ public sealed partial class FarmService
         return found;
     }
 
-    private static FarmTileRow ToRow(int x, int y, FarmTile tile)
+    // Whether the crop on the tile has withered now: the flag every tile row carries, so the client never guesses it (docs/adr/ADR-021 D7).
+    private bool IsWitheredAt(MapInstance instance, int x, int y, FarmTile tile, long nowMs)
+        => tile.HasCrop && FarmRules.IsWithered(tile, nowMs, _calendar, instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(instance, x, y));
+
+    private static FarmTileRow ToRow(int x, int y, FarmTile tile, bool withered)
     {
         FarmTileRow row = FarmTileRow.Create();
         row.X = (ushort)x;
@@ -137,6 +141,7 @@ public sealed partial class FarmService
         row.GrowthDays = tile.GrowthDays;
         row.WateredDay = tile.WateredDay;
         row.TendedDay = tile.TendedDay;
+        row.Withered = withered;
         return row;
     }
 
@@ -307,6 +312,7 @@ public sealed partial class FarmService
         }
 
         // Every tile the sweep changed goes to the subscribers of its chunk, removed or watered alike, one batch per chunk (docs/adr/ADR-022 D4).
+        long batchNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
         List<(ChunkCoord Chunk, FarmTileRow Row)> changes = [];
         foreach ((int X, int Y) key in gone)
         {
@@ -315,14 +321,14 @@ public sealed partial class FarmService
 
         foreach (KeyValuePair<(int X, int Y), FarmTile> pair in settled)
         {
-            changes.Add((ChunkCoord.OfTile(pair.Key.X, pair.Key.Y), ToRow(pair.Key.X, pair.Key.Y, pair.Value)));
+            changes.Add((ChunkCoord.OfTile(pair.Key.X, pair.Key.Y), ToRow(pair.Key.X, pair.Key.Y, pair.Value, this.IsWitheredAt(instance, pair.Key.X, pair.Key.Y, pair.Value, batchNowMs))));
         }
 
         foreach ((int X, int Y) key in dried)
         {
             if (!settled.ContainsKey(key) && farm.TryGet(key.X, key.Y, out FarmTile dry))
             {
-                changes.Add((ChunkCoord.OfTile(key.X, key.Y), ToRow(key.X, key.Y, dry)));
+                changes.Add((ChunkCoord.OfTile(key.X, key.Y), ToRow(key.X, key.Y, dry, this.IsWitheredAt(instance, key.X, key.Y, dry, batchNowMs))));
             }
         }
 
