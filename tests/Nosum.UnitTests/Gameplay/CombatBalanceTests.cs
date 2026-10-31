@@ -73,61 +73,97 @@ public sealed class CombatBalanceTests
         return ((hits - 1) + contacts) * CombatRules.MitigateDamage(def.AttackDamage, band.Defense);
     }
 
+    /// <summary>
+    /// Damage the player takes killing a boss: the same counters and contacts as a normal fight, plus one telegraphed ground slam per
+    /// slam period for the whole fight, none dodged (<see cref="CombatRules.GroundSlamDamage"/>).
+    /// </summary>
+    private static int BossDamageTaken(MonsterDefinition def, Band band)
+    {
+        int hits = HitsToKill(def, band.Damage);
+        int timeToKillMs = hits * SwingMs;
+        int contacts = timeToKillMs / AiTickMs;
+        int slams = (timeToKillMs / (CombatRules.GroundSlamTelegraphMs + CombatRules.GroundSlamCooldownMs)) + 1;
+        int counter = CombatRules.MitigateDamage(def.AttackDamage, band.Defense);
+        int slam = CombatRules.MitigateDamage(CombatRules.GroundSlamDamage(def.Kind), band.Defense);
+        return ((hits - 1 + contacts) * counter) + (slams * slam);
+    }
+
     /// <summary>Monster hits that the player, wearing the band's armor, survives.</summary>
     private static int HitsToDie(MonsterDefinition def, int defense, int maxHp) => (maxHp + CombatRules.MitigateDamage(def.AttackDamage, defense) - 1) / CombatRules.MitigateDamage(def.AttackDamage, defense);
 
     [Fact]
-    public void NormalMonsters_OfEveryBand_DieInOneOrTwoHitsOfTheReferenceWeapon()
+    public void NormalMonsters_OfEveryBand_TakeThreeToFiveHitsOfTheReferenceWeapon()
     {
         foreach (Band band in s_bands)
         {
             foreach (MonsterDefinition def in NormalMonstersOf(band))
             {
-                HitsToKill(def, band.Damage).Should().BeInRange(1, 2, $"band {band.Number} {def.Key} with the reference weapon");
+                HitsToKill(def, band.Damage).Should().BeInRange(3, 5, $"band {band.Number} {def.Key} with the reference weapon");
             }
         }
     }
 
     [Fact]
-    public void BossOfEveryBand_DiesInSixToNineHitsOfTheReferenceWeapon()
+    public void BossOfEveryBand_TakesBetweenTwentyAndFortySecondsToKill()
     {
         foreach (Band band in s_bands)
         {
-            HitsToKill(BossOf(band), band.Damage).Should().BeInRange(6, 9, $"boss of band {band.Number}");
+            int timeToKillMs = HitsToKill(BossOf(band), band.Damage) * SwingMs;
+            timeToKillMs.Should().BeInRange(20_000, 40_000, $"boss of band {band.Number} with the reference weapon");
         }
     }
 
     [Fact]
-    public void BossOfEveryBand_CostsTheReferencePlayerBetween35And65PercentOfHp()
+    public void BossOfEveryBand_CostsTheReferencePlayerBetween40And70PercentOfHp_WhenTheSlamsAreNotDodged()
     {
         foreach (Band band in s_bands)
         {
-            int taken = DamageTakenToKill(BossOf(band), band);
+            int taken = BossDamageTaken(BossOf(band), band);
             int percent = taken * 100 / band.MaxHp;
-            percent.Should().BeInRange(35, 65, $"boss of band {band.Number} takes {taken} of {band.MaxHp} HP");
+            percent.Should().BeInRange(40, 70, $"boss of band {band.Number} takes {taken} of {band.MaxHp} HP");
         }
     }
 
     [Fact]
-    public void NormalMonsters_CostTheReferencePlayerAtMostEightPercentOfHpPerKill()
+    public void NormalMonsters_CostTheReferencePlayerAtMostTwentyPercentOfHpPerKill()
     {
         foreach (Band band in s_bands)
         {
             foreach (MonsterDefinition def in NormalMonstersOf(band))
             {
                 int percent = DamageTakenToKill(def, band) * 100 / band.MaxHp;
-                percent.Should().BeLessThanOrEqualTo(8, $"band {band.Number} {def.Key} with the reference armor");
+                percent.Should().BeLessThanOrEqualTo(20, $"band {band.Number} {def.Key} with the reference armor");
             }
         }
     }
 
     [Fact]
-    public void ReferenceArmor_LetsAPlayerSurviveFifteenHitsOfTheStrongestNormalMonster()
+    public void NormalMonsters_CostTheReferencePlayerAtLeastTenPercentOfHpPerKill_ExceptTheSharedSporeShroomOfBandTwo()
     {
+        // The spore shroom is one species in bands 1 and 2, and no single HP and attack meets both bands' 10% floor (see docs/design/combat-balance.md, known gaps).
+        foreach (Band band in s_bands)
+        {
+            foreach (MonsterDefinition def in NormalMonstersOf(band))
+            {
+                if (band.Number == 2 && def.Kind == MonsterKind.SporeShroom)
+                {
+                    continue;
+                }
+
+                int percent = DamageTakenToKill(def, band) * 100 / band.MaxHp;
+                percent.Should().BeGreaterThanOrEqualTo(10, $"band {band.Number} {def.Key} with the reference armor");
+            }
+        }
+    }
+
+    [Fact]
+    public void ReferenceArmor_LetsAPlayerSurviveTenHitsOfTheStrongestNormalMonster()
+    {
+        // The 6-to-10 hits-to-die target conflicts with the 10-to-20% per-kill target (see docs/design/combat-balance.md, known gaps); this locks the achieved floor.
         foreach (Band band in s_bands)
         {
             MonsterDefinition strongest = NormalMonstersOf(band).OrderByDescending(m => m.AttackDamage).First();
-            HitsToDie(strongest, band.Defense, band.MaxHp).Should().BeGreaterThanOrEqualTo(15, $"band {band.Number} {strongest.Key} against the reference armor");
+            HitsToDie(strongest, band.Defense, band.MaxHp).Should().BeGreaterThanOrEqualTo(10, $"band {band.Number} {strongest.Key} against the reference armor");
         }
     }
 
@@ -164,13 +200,13 @@ public sealed class CombatBalanceTests
     }
 
     [Fact]
-    public void HealthPotion_RestoresBetween25And50PercentOfEveryBandsMaxHp()
+    public void HealthPotion_RestoresBetween25And40PercentOfEveryBandsMaxHp()
     {
         int heal = CombatRules.PotionRestore(ItemCatalog.HealthPotion).Hp;
         foreach (Band band in s_bands)
         {
             int percent = heal * 100 / band.MaxHp;
-            percent.Should().BeInRange(25, 50, $"health potion against the max HP of band {band.Number}");
+            percent.Should().BeInRange(25, 40, $"health potion against the max HP of band {band.Number}");
         }
     }
 

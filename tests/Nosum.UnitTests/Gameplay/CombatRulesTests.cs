@@ -62,7 +62,7 @@ public sealed class CombatRulesTests
     public void Potions_RestoreExpectedHpAndMp()
     {
         CombatRules.IsPotion(ItemCatalog.HealthPotion).Should().BeTrue();
-        CombatRules.PotionRestore(ItemCatalog.HealthPotion).Should().Be((50, 0));
+        CombatRules.PotionRestore(ItemCatalog.HealthPotion).Should().Be((45, 0));
 
         CombatRules.IsPotion(ItemCatalog.ManaPotion).Should().BeTrue();
         CombatRules.PotionRestore(ItemCatalog.ManaPotion).Should().Be((0, 35));
