@@ -54,3 +54,14 @@ The rules that stay fixed: the server decides every outcome (docs/adr/ADR-003, `
 - docs/adr/ADR-003 (server authoritative), ADR-018 (seasons), ADR-021 D7 (game-day clock and the first tester tools), ADR-078 (fishing casts and the
   reel-in window), ADR-013 amendments (the tester grant).
 - `server/Nosum.Handlers/Dev/DevHandlers.cs`, `contracts/Nosum.Contracts/Dev/`, `wasm/Nosum.Wasm/Game/QaEntry.cs`, `wasm/Nosum.Wasm/Game/DevTools.cs`.
+
+## Amendments
+
+### 2026-10-31 - the client re-reads the calendar after a clock jump (issue #248)
+
+- **D5 — A server clock jump is read back.** The client estimates the server clock as its own clock plus an offset read once at sign-in
+  (`CalendarChannel`, docs/adr/ADR-018). `DevSeason` and `DevAdvanceClock` move the server clock, so the offset went stale: the calendar label stayed
+  on the old season and the season banner never came. `DevChannel` now asks for the calendar again after each of those replies, so the label, the
+  day and the banner follow within one reply. No wire change: `GetCalendar` already carries the server clock.
+- The season banner is raised by the same comparison as before (`CalendarViewModel.SeasonChanged`); only the stale offset was missing. A real season
+  boundary needs no jump, so the local calculation already crossed it.
