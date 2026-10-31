@@ -28,6 +28,8 @@ public sealed partial class CombatChannel : IDisposable
     private readonly List<FloatingTextClientRow> _floatingTexts = [];
     private readonly List<HazardClientRow> _hazards = [];
     private readonly Dictionary<byte, long> _skillReadyAt = new();
+    // The length of the cooldown each skill's sweep runs over: the full cooldown when it was cast, the time left when it was refused as cooling down.
+    private readonly Dictionary<byte, int> _skillSpanMs = new();
     // One bit per skill id (1 to 3) while its cast is on its way to the server and not answered yet (docs/adr/ADR-056 D5).
     private int _skillPending;
     private int _playerX;
@@ -305,6 +307,20 @@ public sealed partial class CombatChannel : IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets the length of the cooldown a skill's sweep runs over (docs/adr/ADR-056 D5). It is the full cooldown when the cast landed and the time left
+    /// when the server refused the cast as cooling down, so the sweep ends when the server's cooldown does.
+    /// </summary>
+    /// <param name="skillId">The skill kind.</param>
+    /// <returns>Milliseconds; zero when no cooldown was started.</returns>
+    public int GetSkillCooldownSpanMs(byte skillId)
+    {
+        lock (_gate)
+        {
+            return _skillSpanMs.TryGetValue(skillId, out int span) ? span : 0;
+        }
+    }
+
     /// <summary>Returns whether the given skill is off cooldown and the player has enough MP to cast it.</summary>
     /// <param name="skillId">Skill kind.</param>
     /// <returns><see langword="true"/> if the skill can be cast right now.</returns>
@@ -498,6 +514,7 @@ public sealed partial class CombatChannel : IDisposable
                 lock (_gate)
                 {
                     _skillReadyAt[reply.SkillId] = readyAt;
+                    _skillSpanMs[reply.SkillId] = reply.CooldownMs;
                 }
 
                 _ = this.ExpireSkillCooldownAsync(reply.SkillId, reply.CooldownMs, readyAt);

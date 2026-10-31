@@ -25,6 +25,12 @@ public static class LineOfSight
     {
         ArgumentNullException.ThrowIfNull(grid);
 
+        // Both on one tile: no tile lies between them. The walk below steps before it tests the end, so it would leave the line and never reach it.
+        if (x0 == x1 && y0 == y1)
+        {
+            return true;
+        }
+
         int dx = Math.Abs(x1 - x0);
         int dy = -Math.Abs(y1 - y0);
         int sx = x0 < x1 ? 1 : -1;

@@ -341,6 +341,15 @@ internal static class ClientWiring
                 messages.Notify(localizer["Combat_KnockedOut"].Value);
             }
         };
+        combat.SkillCompleted += skill =>
+        {
+            // A refused cast says why, so a press the server does not accept is never silent (docs/adr/ADR-056 D5).
+            string? refusal = SkillRefusalText.KeyFor(skill.Status);
+            if (refusal is not null)
+            {
+                messages.Notify(localizer[refusal].Value);
+            }
+        };
         _ = services.GetRequiredService<NearbyPlayers>();
         _ = services.GetRequiredService<ProgressViewModel>();
         _ = services.GetRequiredService<WalletViewModel>();
