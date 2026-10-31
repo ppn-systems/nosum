@@ -1,0 +1,274 @@
+{
+  "base_url": "http://localhost:5820",
+  "captured": [
+    {
+      "screen": "hud-idle",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "inventory",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/inventory.png",
+      "status": "captured"
+    },
+    {
+      "screen": "wardrobe",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/wardrobe.png",
+      "status": "captured"
+    },
+    {
+      "screen": "crafting",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/crafting.png",
+      "status": "captured"
+    },
+    {
+      "screen": "trade",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/trade.png",
+      "status": "captured"
+    },
+    {
+      "screen": "coop",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/coop.png",
+      "status": "captured"
+    },
+    {
+      "screen": "friends",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/friends.png",
+      "status": "captured"
+    },
+    {
+      "screen": "skills",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/skills.png",
+      "status": "captured"
+    },
+    {
+      "screen": "pet",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/pet.png",
+      "status": "captured"
+    },
+    {
+      "screen": "profile",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/profile.png",
+      "status": "captured"
+    },
+    {
+      "screen": "world-map",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/world-map.png",
+      "status": "captured"
+    },
+    {
+      "screen": "journal",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/journal.png",
+      "status": "captured"
+    },
+    {
+      "screen": "settings",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/settings.png",
+      "status": "captured"
+    },
+    {
+      "screen": "mail",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1280x720/mail.png",
+      "status": "captured"
+    },
+    {
+      "screen": "hud-idle",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "inventory",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/inventory.png",
+      "status": "captured"
+    },
+    {
+      "screen": "wardrobe",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/wardrobe.png",
+      "status": "captured"
+    },
+    {
+      "screen": "crafting",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/crafting.png",
+      "status": "captured"
+    },
+    {
+      "screen": "trade",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/trade.png",
+      "status": "captured"
+    },
+    {
+      "screen": "coop",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/coop.png",
+      "status": "captured"
+    },
+    {
+      "screen": "friends",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/friends.png",
+      "status": "captured"
+    },
+    {
+      "screen": "skills",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/skills.png",
+      "status": "captured"
+    },
+    {
+      "screen": "pet",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/pet.png",
+      "status": "captured"
+    },
+    {
+      "screen": "profile",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/profile.png",
+      "status": "captured"
+    },
+    {
+      "screen": "world-map",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/world-map.png",
+      "status": "captured"
+    },
+    {
+      "screen": "journal",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/journal.png",
+      "status": "captured"
+    },
+    {
+      "screen": "settings",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/settings.png",
+      "status": "captured"
+    },
+    {
+      "screen": "mail",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/1920x1080/mail.png",
+      "status": "captured"
+    },
+    {
+      "screen": "hud-idle",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "hud-toast",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/hud-toast.png",
+      "status": "captured"
+    },
+    {
+      "screen": "inventory",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/inventory.png",
+      "status": "captured"
+    },
+    {
+      "screen": "wardrobe",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/wardrobe.png",
+      "status": "captured"
+    },
+    {
+      "screen": "crafting",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/crafting.png",
+      "status": "captured"
+    },
+    {
+      "screen": "trade",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/trade.png",
+      "status": "captured"
+    },
+    {
+      "screen": "coop",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/coop.png",
+      "status": "captured"
+    },
+    {
+      "screen": "friends",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/friends.png",
+      "status": "captured"
+    },
+    {
+      "screen": "skills",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/skills.png",
+      "status": "captured"
+    },
+    {
+      "screen": "pet",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/pet.png",
+      "status": "captured"
+    },
+    {
+      "screen": "profile",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/profile.png",
+      "status": "captured"
+    },
+    {
+      "screen": "world-map",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/world-map.png",
+      "status": "captured"
+    },
+    {
+      "screen": "journal",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/journal.png",
+      "status": "captured"
+    },
+    {
+      "screen": "settings",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/settings.png",
+      "status": "captured"
+    },
+    {
+      "screen": "mail",
+      "file": "/tmp/claude-0/-home-user-nosum/3a2b350a-e819-59c6-b063-76d12d1c734a/scratchpad/after/390x844/mail.png",
+      "status": "captured"
+    }
+  ],
+  "not_captured": [
+    {
+      "screen": "hud-toast",
+      "reason": "the use-seed refusal line did not appear"
+    },
+    {
+      "screen": "hud-banner",
+      "reason": "no level-up or season banner in this pass (needs game progress; not forced)"
+    },
+    {
+      "screen": "visitors",
+      "reason": "Visitors toolbar button not found"
+    },
+    {
+      "screen": "chest",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "furnace",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "shop",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "blacksmith",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "market",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "dialogue",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "decorating",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "animals",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "bestiary",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    },
+    {
+      "screen": "fishing",
+      "reason": "needs standing next to an NPC or world object; not reached in this pass"
+    }
+  ]
+}
