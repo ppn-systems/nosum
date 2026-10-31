@@ -11,7 +11,7 @@ using Nosum.Wasm.ViewModels.Resources;
 namespace Nosum.Wasm.ViewModels.Account;
 
 /// <summary>
-/// The "continue as" card of the sign-in screen (docs/adr/ADR-081). Remembers the session a sign-in issued, offers to resume it without another
+/// The "continue as" card of the sign-in screen (docs/adr/ADR-082). Remembers the session a sign-in issued, offers to resume it without another
 /// sign-in, and forgets it on sign-out or when the server refuses it (expired, revoked or banned), which sends the player back to the normal sign-in.
 /// A connection failure keeps the remembered session: the server was not asked to refuse it.
 /// </summary>

@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Wasm;
 
-/// <summary>The "continue as" card: what the browser remembers, resuming it, forgetting it, and the form's use of it (docs/adr/ADR-081).</summary>
+/// <summary>The "continue as" card: what the browser remembers, resuming it, forgetting it, and the form's use of it (docs/adr/ADR-082).</summary>
 [Collection(SharedUiCulture.Name)]
 public sealed class RememberedSessionViewModelTests
 {

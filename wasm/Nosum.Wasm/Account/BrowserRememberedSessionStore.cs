@@ -12,7 +12,7 @@ using Nosum.Wasm.ViewModels.Account;
 namespace Nosum.Wasm.Account;
 
 /// <summary>
-/// Keeps the remembered session in the browser's <c>localStorage</c> (docs/adr/ADR-081): one JSON record under one key, with the session token
+/// Keeps the remembered session in the browser's <c>localStorage</c> (docs/adr/ADR-082): one JSON record under one key, with the session token
 /// and nothing else secret. A browser that refuses storage, or a record that cannot be read, reads as "nothing remembered"; a write that fails is
 /// ignored, so the sign-in screen still works.
 /// </summary>

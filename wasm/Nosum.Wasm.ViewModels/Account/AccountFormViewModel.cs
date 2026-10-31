@@ -41,7 +41,7 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <param name="externalSignIn">Runs the Google or Microsoft sign-in in the browser.</param>
     /// <param name="options">Which providers have a client id on this client.</param>
     /// <param name="text">The localizer for <c>Language.resx</c>.</param>
-    /// <param name="remembered">The remembered session this browser keeps for the continue card (docs/adr/ADR-081).</param>
+    /// <param name="remembered">The remembered session this browser keeps for the continue card (docs/adr/ADR-082).</param>
     public AccountFormViewModel(
         IAccountClient client,
         IExternalSignIn externalSignIn,
@@ -61,7 +61,7 @@ public sealed class AccountFormViewModel : IObservableViewModel
         _remembered = remembered;
     }
 
-    /// <summary>Gets the remembered session the continue card reads (docs/adr/ADR-081).</summary>
+    /// <summary>Gets the remembered session the continue card reads (docs/adr/ADR-082).</summary>
     public RememberedSessionViewModel Remembered => _remembered;
 
     /// <summary>Gets whether the continue card replaces the sign-in buttons: a session is remembered and nobody is signed in on this page.</summary>

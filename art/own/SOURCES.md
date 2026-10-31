@@ -8,7 +8,7 @@ The start-screen backdrop: a daytime meadow of grass, a dirt path and a hedgerow
 
 | Field | Value |
 | :-- | :-- |
-| Made by | Nosum (`tools/art_repack/start_meadow.py`), from Kenney Tiny Town (kenney.nl, CC0 1.0), composed for ADR-081 |
+| Made by | Nosum (`tools/art_repack/start_meadow.py`), from Kenney Tiny Town (kenney.nl, CC0 1.0), composed for ADR-082 |
 | License | The tiles are CC0 1.0 (`source/kenney_tiny-town/License.txt`); the composition is Nosum's own art. |
 
 ## `source/pixellab/*.png`, `*.json`

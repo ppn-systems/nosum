@@ -2,7 +2,7 @@
 @using Nosum.Wasm.ViewModels.Account
 @implements IDisposable
 
-@* The returning player's card (docs/adr/ADR-081): who this browser remembers, one button that resumes that session without another sign-in, and one
+@* The returning player's card (docs/adr/ADR-082): who this browser remembers, one button that resumes that session without another sign-in, and one
    that signs out or uses another account. A refused resume brings back the sign-in buttons with the reason; nothing here touches the socket. *@
 <GamePanel Title="@Vm.Remembered.Title" Class="account account-continue" Role="form">
     <div class="account-form">

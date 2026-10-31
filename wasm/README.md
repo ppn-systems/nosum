@@ -28,7 +28,7 @@ shows it first; the game starts after sign-in (the canvas listens to the whole w
 `GameSocketAccountClient` implements `IAccountClient` over `IGameSocket`; `AccountSessionKeeper`
 applies the account language on sign-in and signs the connection in again (resume token, kept in
 memory) after every reconnect. The session token of a sign-in is also kept in `localStorage`
-(`nosum.remembered-session`, docs/adr/ADR-081; `BrowserRememberedSessionStore`): the start screen's continue card
+(`nosum.remembered-session`, docs/adr/ADR-082; `BrowserRememberedSessionStore`): the start screen's continue card
 (`RememberedSessionCard`, `RememberedSessionViewModel`) resumes it without a provider window, and a refused
 resume falls back to the sign-in buttons. The ID token is never stored. The Microsoft button is
 `MicrosoftSignInButton` (Microsoft's own look); Google draws its button into an unframed slot.

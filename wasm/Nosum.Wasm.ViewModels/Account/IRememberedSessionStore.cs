@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Nosum.Wasm.ViewModels.Account;
 
 /// <summary>
-/// Keeps the remembered session in this browser (docs/adr/ADR-081). The browser implementation lives in <c>Nosum.Wasm</c>. An implementation
+/// Keeps the remembered session in this browser (docs/adr/ADR-082). The browser implementation lives in <c>Nosum.Wasm</c>. An implementation
 /// never throws: a browser that refuses storage reads as "nothing remembered" and ignores writes, so the game still starts.
 /// </summary>
 public interface IRememberedSessionStore

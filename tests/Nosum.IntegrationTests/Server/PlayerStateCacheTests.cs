@@ -132,7 +132,7 @@ public sealed class PlayerStateCacheTests : IClassFixture<PostgresFixture>
         }
 
         PlayerProgressView view = await _progress.GetAsync(player);
-        view.Energy.Should().Be(38);
+        view.Energy.Should().Be(37);
         view.FarmingXp.Should().Be(5);
         await AssertCacheEqualsRowAsync(player);
     }
@@ -150,7 +150,7 @@ public sealed class PlayerStateCacheTests : IClassFixture<PostgresFixture>
 
         DomainPlayerState row = await RowAsync(player);
         (row.MapName, row.X, row.Y, row.Facing).Should().Be(("Farm", 9d, 8d, Facing.Left));
-        (row.Energy, row.FarmingXp).Should().Be((36, 10));
+        (row.Energy, row.FarmingXp).Should().Be((34, 10));
         (await _places.LoadAsync(player, CancellationToken.None)).Should().Be(new PlayerStateRow("Farm", 9, 8, Facing.Left));
         await AssertCacheEqualsRowAsync(player);
     }

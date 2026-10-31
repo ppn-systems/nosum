@@ -18,7 +18,7 @@ public enum RememberedAccountKind
 }
 
 /// <summary>
-/// The sign-in this browser remembers (docs/adr/ADR-081): the session token the server issued, its expiry, and the name and provider to show.
+/// The sign-in this browser remembers (docs/adr/ADR-082): the session token the server issued, its expiry, and the name and provider to show.
 /// It never holds the provider's ID token. The token is a bearer credential: never log it.
 /// </summary>
 /// <param name="SessionToken">The token for <see cref="IAccountClient.ResumeAsync"/>.</param>

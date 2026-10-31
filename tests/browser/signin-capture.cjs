@@ -1,5 +1,5 @@
 // Sign-in screen capture (docs/qa/signin). Screenshots the start screen at 1280x720, 1920x1080 and 390x844 (touch), for a first visit
-// (nothing remembered) and a returning visit (a remembered session is stored in this browser, docs/adr/ADR-081).
+// (nothing remembered) and a returning visit (a remembered session is stored in this browser, docs/adr/ADR-082).
 //
 // Needs only the client (dotnet run --project wasm/Nosum.Wasm, http://localhost:5080). The start screen does not need the server.
 // NOSUM_QA_REPO_ASSETS=1 serves the images from the repository's assets/ folder, as ui-pass-capture.cjs does.
@@ -13,7 +13,7 @@ const path = require('path');
 
 const REPO = path.resolve(__dirname, '../..');
 const BASE = process.env.NOSUM_QA_URL || 'http://localhost:5080/';
-// The key ADR-081 uses for the remembered session. The value is a JSON record; the token in it is a QA placeholder, not a credential.
+// The key ADR-082 uses for the remembered session. The value is a JSON record; the token in it is a QA placeholder, not a credential.
 const STORAGE_KEY = 'nosum.remembered-session';
 const VIEWPORTS = {
   '1280x720': { width: 1280, height: 720 },
@@ -65,7 +65,7 @@ async function shoot(browser, name, file, seed, errors, preview = false) {
   if (phase !== 'before' && phase !== 'after') throw new Error('usage: signin-capture.cjs <before|after> [viewports]');
   const names = (process.argv[3] || Object.keys(VIEWPORTS).join(',')).split(',');
   const outRoot = path.join(REPO, 'docs/qa/signin', phase);
-  // A remembered session as ADR-081 stores it: a session token, its expiry, the nickname and the provider. Never an ID token.
+  // A remembered session as ADR-082 stores it: a session token, its expiry, the nickname and the provider. Never an ID token.
   const seed = JSON.stringify({ version: 1, token: 'qa-placeholder-token', expiresAt: '2099-01-01T00:00:00Z', nickname: 'Lan', kind: 'google' });
   const browser = await chromium.launch({ args: ['--no-sandbox'] });
   const errors = [];
