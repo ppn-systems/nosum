@@ -133,6 +133,23 @@ public sealed class QuestRewardTests : IClassFixture<PostgresFixture>
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.CropWatered));
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.SoilTilled));
         await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.CropHarvested, 1));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.ItemCrafted, ItemCatalog.FishingRod, 1));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.FishCaught, ItemCatalog.Carp));
+        for (int i = 0; i < 3; i++)
+        {
+            await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.NodeBroken, (int)NodeKind.CopperOre));
+            await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.MonsterDefeated, 1));
+            await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.PlaceablePlaced, ItemCatalog.Chest));
+        }
+
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.ToolUpgraded, ItemCatalog.CopperAxe));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.BuildingPlaced, ItemCatalog.CoopBlueprint));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.AnimalBought, 1));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.ItemCrafted, ItemCatalog.Salad, 1));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.FoodEaten, ItemCatalog.Salad));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.RequestFilled));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.PetAdopted, 1));
+        await _quests.ReportAsync(player, new QuestEvent(QuestEventKind.EmoteSent));
 
         (await _quests.GetAsync(player)).Should().OnlyContain(q => q.State == QuestState.Completed);
         (await _transfers.GetBalanceAsync(player)).Should().Be(before + QuestCatalog.All.Sum(q => q.RewardCoins));

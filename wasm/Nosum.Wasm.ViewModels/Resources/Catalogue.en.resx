@@ -498,4 +498,56 @@
   <data name="Item_golden_truffle_Name" xml:space="preserve"><value>Golden truffle</value></data>
   <data name="Item_golden_truffle_Description" xml:space="preserve"><value>A golden truffle from a pig loved by four hearts or more. Sells for much more.</value></data>
   <data name="Recipe_scarecrow_wool_Name" xml:space="preserve"><value>Wool scarecrow</value></data>
+  <data name="Quest_craft_rod_Title" xml:space="preserve"><value>Craft a fishing rod</value></data>
+  <data name="Quest_craft_rod_Hint" xml:space="preserve"><value>Make a fishing rod from 5 wood and 4 fiber on the crafting page in the menu. You will need it at a pond.</value></data>
+  <data name="Quest_craft_rod_Tip" xml:space="preserve"><value>Make a fishing rod from wood and fiber in the crafting page.</value></data>
+  <data name="Quest_craft_rod_Objective_0" xml:space="preserve"><value>Craft a fishing rod</value></data>
+  <data name="Quest_catch_fish_Title" xml:space="preserve"><value>Catch a fish</value></data>
+  <data name="Quest_catch_fish_Hint" xml:space="preserve"><value>Select the fishing rod, press the use key at a pond to cast, and reel in when the bite comes.</value></data>
+  <data name="Quest_catch_fish_Tip" xml:space="preserve"><value>Cast the fishing rod at a pond and reel in a fish.</value></data>
+  <data name="Quest_catch_fish_Objective_0" xml:space="preserve"><value>Reel in a fish</value></data>
+  <data name="Quest_mine_ore_Title" xml:space="preserve"><value>Mine copper ore</value></data>
+  <data name="Quest_mine_ore_Hint" xml:space="preserve"><value>Go down into the mine and break copper ore nodes with the pickaxe until they fall. Three is enough.</value></data>
+  <data name="Quest_mine_ore_Tip" xml:space="preserve"><value>Go down into the mine and break three copper ore with the pickaxe.</value></data>
+  <data name="Quest_mine_ore_Objective_0" xml:space="preserve"><value>Break 3 copper ore</value></data>
+  <data name="Quest_slay_slime_Title" xml:space="preserve"><value>Defeat three monsters</value></data>
+  <data name="Quest_slay_slime_Hint" xml:space="preserve"><value>Select a sword and attack the monsters that roam the mine and the wild. Defeat three of them.</value></data>
+  <data name="Quest_slay_slime_Tip" xml:space="preserve"><value>Attack monsters with a sword to defeat three.</value></data>
+  <data name="Quest_slay_slime_Objective_0" xml:space="preserve"><value>Defeat 3 monsters</value></data>
+  <data name="Quest_upgrade_tool_Title" xml:space="preserve"><value>Upgrade a tool</value></data>
+  <data name="Quest_upgrade_tool_Hint" xml:space="preserve"><value>Smelt copper bars in a furnace, then stand at the blacksmith counter and pay coins and bars to upgrade a tool. Collect it after a day.</value></data>
+  <data name="Quest_upgrade_tool_Tip" xml:space="preserve"><value>Upgrade a tool at the blacksmith and collect it after a day.</value></data>
+  <data name="Quest_upgrade_tool_Objective_0" xml:space="preserve"><value>Collect an upgraded tool</value></data>
+  <data name="Quest_build_coop_Title" xml:space="preserve"><value>Build a coop</value></data>
+  <data name="Quest_build_coop_Hint" xml:space="preserve"><value>Commission a coop from the carpenter, then place its blueprint on your farm. A coop holds chickens and ducks.</value></data>
+  <data name="Quest_build_coop_Tip" xml:space="preserve"><value>Commission a coop from the carpenter and place it on the farm.</value></data>
+  <data name="Quest_build_coop_Objective_0" xml:space="preserve"><value>Place a coop</value></data>
+  <data name="Quest_buy_animal_Title" xml:space="preserve"><value>Buy an animal</value></data>
+  <data name="Quest_buy_animal_Hint" xml:space="preserve"><value>Stand at the carpenter with a coop or a barn on your farm and buy an animal for it.</value></data>
+  <data name="Quest_buy_animal_Tip" xml:space="preserve"><value>Buy a chicken or a cow at the carpenter for your coop or barn.</value></data>
+  <data name="Quest_buy_animal_Objective_0" xml:space="preserve"><value>Buy an animal</value></data>
+  <data name="Quest_cook_meal_Title" xml:space="preserve"><value>Cook a salad</value></data>
+  <data name="Quest_cook_meal_Hint" xml:space="preserve"><value>Open the crafting page and make a salad from radish and cauliflower. Eat it later for energy.</value></data>
+  <data name="Quest_cook_meal_Tip" xml:space="preserve"><value>Make a salad in the crafting page.</value></data>
+  <data name="Quest_cook_meal_Objective_0" xml:space="preserve"><value>Cook a salad</value></data>
+  <data name="Quest_eat_food_Title" xml:space="preserve"><value>Eat something</value></data>
+  <data name="Quest_eat_food_Hint" xml:space="preserve"><value>Select a food in your bag or on the hotbar and use it to restore energy.</value></data>
+  <data name="Quest_eat_food_Tip" xml:space="preserve"><value>Eat a food to restore energy.</value></data>
+  <data name="Quest_eat_food_Objective_0" xml:space="preserve"><value>Eat a food</value></data>
+  <data name="Quest_fill_request_Title" xml:space="preserve"><value>Fill a Town request</value></data>
+  <data name="Quest_fill_request_Hint" xml:space="preserve"><value>Open the requests board in the menu and deliver the item a request asks for. You are paid when it is filled.</value></data>
+  <data name="Quest_fill_request_Tip" xml:space="preserve"><value>Fill one request on the Town board.</value></data>
+  <data name="Quest_fill_request_Objective_0" xml:space="preserve"><value>Fill a request</value></data>
+  <data name="Quest_decorate_Title" xml:space="preserve"><value>Decorate your farm</value></data>
+  <data name="Quest_decorate_Hint" xml:space="preserve"><value>Select a piece of furniture or a placeable from your bag and press E to set it down. Set down three.</value></data>
+  <data name="Quest_decorate_Tip" xml:space="preserve"><value>Set down three pieces of furniture or placeables.</value></data>
+  <data name="Quest_decorate_Objective_0" xml:space="preserve"><value>Set down 3 pieces</value></data>
+  <data name="Quest_adopt_pet_Title" xml:space="preserve"><value>Adopt a pet</value></data>
+  <data name="Quest_adopt_pet_Hint" xml:space="preserve"><value>Open the pet page in the menu and adopt a cat or a dog.</value></data>
+  <data name="Quest_adopt_pet_Tip" xml:space="preserve"><value>Adopt a cat or a dog from the pet page.</value></data>
+  <data name="Quest_adopt_pet_Objective_0" xml:space="preserve"><value>Adopt a pet</value></data>
+  <data name="Quest_send_emote_Title" xml:space="preserve"><value>Send an emote</value></data>
+  <data name="Quest_send_emote_Hint" xml:space="preserve"><value>Pick an emote and send it, so the people around you can see how you feel.</value></data>
+  <data name="Quest_send_emote_Tip" xml:space="preserve"><value>Send an emote to the people around you.</value></data>
+  <data name="Quest_send_emote_Objective_0" xml:space="preserve"><value>Send an emote</value></data>
 </root>

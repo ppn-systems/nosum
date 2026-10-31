@@ -12,13 +12,16 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Shop;
 using Nosum.Domain.Blacksmith;
 using Nosum.Gameplay.Blacksmith;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Blacksmith;
 
@@ -31,6 +34,7 @@ public sealed class BlacksmithService : IBlacksmithService
 {
     private readonly ITransferService _transfers;
     private readonly IInventoryService _inventory;
+    private readonly IQuestService? _quests;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
@@ -47,7 +51,8 @@ public sealed class BlacksmithService : IBlacksmithService
     /// <param name="tools">Fills a collected watering can to its new capacity.</param>
     /// <param name="calendar">The server calendar.</param>
     /// <param name="time">The server clock; tests pass a fake one.</param>
-    public BlacksmithService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IToolState tools, GameCalendar calendar, TimeProvider time)
+    /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
+    public BlacksmithService(ITransferService transfers, IInventoryService inventory, IUnitOfWorkFactory unitOfWork, IMapPresence presence, IMapCatalog maps, IToolState tools, GameCalendar calendar, TimeProvider time, IQuestService? quests = null)
     {
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -66,6 +71,7 @@ public sealed class BlacksmithService : IBlacksmithService
         _tools = tools;
         _calendar = calendar;
         _time = time;
+        _quests = quests;
     }
 
     /// <inheritdoc/>
@@ -192,6 +198,11 @@ public sealed class BlacksmithService : IBlacksmithService
         {
             // A new can comes full, to its new capacity.
             _ = await _tools.RefillAsync(playerId, ToolRules.WateringCanCapacity(tool.Tier), cancellationToken).ConfigureAwait(false);
+        }
+
+        if (status == TransferStatus.Ok)
+        {
+            await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.ToolUpgraded, toolItemId), cancellationToken).ConfigureAwait(false);
         }
 
         return await this.ViewAsync(playerId, status switch

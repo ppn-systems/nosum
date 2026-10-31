@@ -17,7 +17,9 @@ using Nosum.Contracts.Player.S2C;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Skills;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Combat;
 
@@ -296,6 +298,8 @@ public sealed partial class CombatService
         {
             await _bestiary.RecordKillAsync(killerId, defeatedMonster.Kind, cancellationToken).ConfigureAwait(false);
         }
+
+        await _quests.TryReportAsync(killerId, new QuestEvent(QuestEventKind.MonsterDefeated, (int)defeatedMonster.Kind), cancellationToken).ConfigureAwait(false);
 
         int dropPixelX = (defeatedMonster.X * tileSize) + (tileSize / 2);
         int dropPixelY = (defeatedMonster.Y * tileSize) + (tileSize / 2);
