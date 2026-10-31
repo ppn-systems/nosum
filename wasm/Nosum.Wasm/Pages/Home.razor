@@ -462,6 +462,10 @@ else
         {
             Npc.Leave();
         }
+        else if (Furniture.IsVisible)
+        {
+            Furniture.Exit();
+        }
         else if (_panel != PanelKind.None)
         {
             ClosePanel();

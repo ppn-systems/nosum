@@ -2,13 +2,13 @@
 @using Nosum.Wasm.ViewModels.Placement
 @inherits ObservingComponent<FurnitureCatalogViewModel>
 
-@* (The key strip is PlacementPanel; the panel has no close button: arrange mode has no exit action yet.) *@
+@* The key strip is PlacementPanel. The close button and Escape leave arrange mode (FurnitureCatalogViewModel.Exit). *@
 
 @* The furniture catalogue of the arrange mode: the owned pieces by category, with a search. Place carries the selected piece, so the ghost in
    the world previews it; Pick up takes the piece in front back into the bag. Shown only where furniture can be placed. All text comes from the view model. *@
 @if (Vm.IsVisible)
 {
-    <TradeDialog Title="@Vm.Title" CloseText="" Size="PanelSize.M">
+    <TradeDialog Title="@Vm.Title" CloseText="@Vm.CloseLabel" OnClose="@(() => Vm.Exit())" Size="PanelSize.M">
         <PlacementPanel Vm="Placement" />
         <div class="furniture-tabs">
             <TabBar Tabs="Vm.Tabs" Active="Vm.ActiveTab" OnSelect="@(id => Vm.SelectTab(id))" />

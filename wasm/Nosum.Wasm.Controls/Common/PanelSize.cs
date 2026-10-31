@@ -13,4 +13,7 @@ public enum PanelSize
 
     /// <summary>220 u: a wide window (the inventory with its side column, a shop or a market with a detail strip).</summary>
     L,
+
+    /// <summary>340 u: a window with two grids side by side (the chest and the bag). Only for those panels, and stacked on a phone.</summary>
+    XL,
 }

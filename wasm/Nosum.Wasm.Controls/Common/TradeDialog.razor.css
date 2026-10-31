@@ -15,6 +15,10 @@
     width: calc(var(--u) * 220);
 }
 
+.trade-dialog-xl {
+    width: calc(var(--u) * 340);
+}
+
 .trade-dialog ::deep .trade-window {
     width: 100%;
     height: auto;
@@ -33,7 +37,8 @@
 @media (max-width: 640px) {
     .trade-dialog,
     .trade-dialog-s,
-    .trade-dialog-l {
+    .trade-dialog-l,
+    .trade-dialog-xl {
         width: 100%;
     }
 

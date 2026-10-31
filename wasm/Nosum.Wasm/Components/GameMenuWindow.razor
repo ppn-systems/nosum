@@ -166,7 +166,8 @@
     private static PanelSize SizeOf(PanelKind panel) => panel switch
     {
         PanelKind.Inventory or PanelKind.Shop or PanelKind.Market or PanelKind.Wardrobe or PanelKind.WorldMap or PanelKind.Journal
-            or PanelKind.Crafting or PanelKind.Skills or PanelKind.Chest => PanelSize.L,
+            or PanelKind.Crafting or PanelKind.Skills => PanelSize.L,
+        PanelKind.Chest => PanelSize.XL,
         PanelKind.Furnace or PanelKind.Pet or PanelKind.Visitors or PanelKind.Menu => PanelSize.S,
         _ => PanelSize.M,
     };

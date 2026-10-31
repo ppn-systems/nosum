@@ -48,7 +48,7 @@ Every panel is a `GamePanel` opened in the center region:
 
 - One frame (`assets/ui/menu.png` 9-slice), one title bar with the title at `--nosum-fs-title` on the left and the close button on the
   right. No panel draws its own frame, title or close button.
-- Width is one of three sizes: **S** = 100 `--u`, **M** = 160 `--u`, **L** = 220 `--u` (clamped to the viewport minus the edge margin).
+- Width is one of four sizes: **S** = 100 `--u`, **M** = 160 `--u`, **L** = 220 `--u`, and **XL** = 340 `--u` (clamped to the viewport minus the edge margin). XL is only for a panel with two grids side by side (the chest with the bag); such a panel stacks its two grids on a phone (640 px wide and under).
   Height fits the content; the panel body scrolls only when the viewport is shorter than the content (phones), never on desktop sizes
   for the content the panel normally shows (a full bag, a recipe list of one page).
 - Inner layout uses `GameStack`/`GameRow`/`GameSection` with `--nosum-gap` / `--nosum-gap-group`. A detail strip (selected item, recipe
@@ -93,7 +93,7 @@ before and after. It is merged only if every answer is yes:
 2. Nothing overlaps: HUD regions, panels, toasts, hotbar, touch controls.
 3. The menu column has one column and at most 8 buttons; all buttons are the same size and frame.
 4. Edges line up: cards in one region share left/right edges; the top-right row and the minimap card share their right edge.
-5. Panels use `GamePanel` with one of the S/M/L widths and the shared title bar and close button.
+5. Panels use `GamePanel` with one of the S/M/L/XL widths and the shared title bar and close button.
 6. Only the three font sizes are used; no text wraps word by word; nothing is clipped or cut off.
 7. No inner scrollbar at 1280×720 and above for normal content.
 8. Item icons are whole and centered.
