@@ -16,7 +16,7 @@
                 </GameField>
                 <GameRow>
                     <GameButton Text="@Vm.Text("Pet_Pet")" Disabled="@(!Vm.CanPet)" OnClick="@(() => Vm.PetIt())" />
-                    <GameButton Variant="plain" Text="@Vm.Text("Pet_Rehome")" OnClick="@(() => Vm.AskRehome())" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Pet_Rehome")" OnClick="@(() => Vm.AskRehome())" />
                 </GameRow>
                 @if (Vm.Pet.PettedToday)
                 {

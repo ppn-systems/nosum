@@ -91,4 +91,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-080](ADR-080-npc-dialogue-lines-and-seasonal-stock.md) | NPC dialogue: sixteen moment-tagged lines per merchant chosen by day, season, weather, time and progress; seasonal stock at the counter; the carpenter sells buildings and animals on Buy | Proposed |
 | [ADR-081](ADR-081-economy-balance-targets.md) | Economy balance targets: a coin band per energy point (crops, fishing), a payback band for animals, tool energy three, fish prices and cast cost; amends ADR-023, ADR-025, ADR-028, ADR-078 (data only) | Accepted |
 | [ADR-082](ADR-082-remembered-sign-in-and-start-screen.md) | Remembered sign-in on this browser (session token in `localStorage`, continue card, rolled token, sign-out revokes) and the start screen: meadow backdrop, unframed Google and Microsoft buttons | Accepted |
+| [ADR-083](ADR-083-backpack-upgrades-and-merchant-doors.md) | Backpack upgrades (36, 45, 54 slots) bought at the tailor, server-authoritative; wardrobe, co-op and backpack opened from merchants' dialog boxes only | Proposed |
 

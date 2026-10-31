@@ -34,6 +34,8 @@ public static class NosumProtocol
     /// 23: fishing skill row - <c>FishingXp</c> appended to <c>SkillXpChanged</c> (docs/adr/ADR-078 amendment). No packet, opcode or other field changed.
     /// 24: paid pets and rename scrolls (docs/adr/ADR-075 amendment, docs/adr/ADR-009 amendments) - new packet <c>RehomePet</c> (C2S <c>0x9503</c>); <c>PetStatus</c> gains
     /// <c>NotAtShop</c> and <c>NotEnoughCoins</c>, <c>AccountStatus</c> gains <c>NicknameNeedsScroll</c>. No existing packet or field changed.
+    /// 25: backpack upgrades (docs/adr/ADR-083) - new packets <c>GetBackpack</c> and <c>UpgradeBackpack</c> (C2S <c>0x5004-0x5005</c>) and <c>BackpackState</c>
+    /// (S2C <c>0x5043</c>), <c>BackpackStatus</c>. No existing packet, opcode or field changed.
     /// </summary>
-    public const ushort Version = 24;
+    public const ushort Version = 25;
 }

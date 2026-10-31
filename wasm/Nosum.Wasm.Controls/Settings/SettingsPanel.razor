@@ -37,7 +37,7 @@
                         @if (Settings.Current.ReduceMotion is not null)
                         {
                             <GameRow>
-                                <GameButton Variant="plain" Text="@Settings.Text("Settings_MotionAuto")" OnClick="Settings.FollowSystemMotion" />
+                                <GameButton Variant="secondary" Text="@Settings.Text("Settings_MotionAuto")" OnClick="Settings.FollowSystemMotion" />
                             </GameRow>
                         }
                         <GameToggle Label="@Settings.Text("Settings_HighContrast")" Value="Settings.Current.HighContrast" ValueChanged="Settings.SetHighContrast" />
@@ -65,7 +65,7 @@
                                 GameAction row = action;
                                 bool listening = Settings.Listening == row;
                                 <span class="set-key-label">@Settings.LabelOf(row)</span>
-                                <GameButton Variant="@(listening ? "tab" : "plain")" Active="listening" Focusable="true"
+                                <GameButton Variant="secondary" Active="listening" Focusable="true"
                                             Text="@(listening ? Settings.Text("Settings_KeyListening") : Settings.CapOf(row))"
                                             Title="@Settings.Text("Settings_KeyRebind", Settings.LabelOf(row))"
                                             OnClick="@(() => Settings.BeginRebind(row))"
@@ -96,7 +96,7 @@
                     <div class="set-body">
                         <GameToggle Label="@Settings.Text("Settings_TutorialOn")" Value="Settings.Current.TutorialEnabled" ValueChanged="Settings.SetTutorialEnabled" />
                         <GameRow>
-                            <GameButton Variant="plain" Text="@Settings.Text("Settings_TutorialRestart")" OnClick="Settings.RestartTutorial" />
+                            <GameButton Variant="secondary" Text="@Settings.Text("Settings_TutorialRestart")" OnClick="Settings.RestartTutorial" />
                         </GameRow>
                     </div>
                 </GameSection>
@@ -108,7 +108,7 @@
 @code {
     private RenderFragment ResetFooter => __builder =>
     {
-        <GameButton Variant="plain" Text="@Settings.Text("Settings_KeyReset")" OnClick="Settings.ResetBindings" />
+        <GameButton Variant="secondary" Text="@Settings.Text("Settings_KeyReset")" OnClick="Settings.ResetBindings" />
     };
 
     private const int TabGeneral = 0;

@@ -90,6 +90,8 @@ public sealed partial class DbBudgetRun
         });
         _ = await _rig.ProbeAsync<InventoryResult>(p, "Inventory", InventoryOpCode.MoveSlot, "MoveSlot", "split a stack into a free slot", () => new MoveSlot { From = 2, To = 20, Quantity = 1 });
         _ = await _rig.ProbeAsync<InventoryResult>(p, "Inventory", InventoryOpCode.SortInventory, "SortInventory", "sort a bag", () => new SortInventory());
+        _ = await _rig.ProbeAsync<BackpackState>(p, "Inventory", InventoryOpCode.GetBackpack, "GetBackpack", "backpack away from the tailor", () => new GetBackpack());
+        _ = await _rig.ProbeAsync<BackpackState>(p, "Inventory", InventoryOpCode.UpgradeBackpack, "UpgradeBackpack", "buy a bigger bag away from the tailor", () => new UpgradeBackpack());
         _ = await _rig.ProbeAsync<FarmSnapshot>(p, "Farm", FarmOpCode.GetFarm, "GetFarm", "empty farm", () => new GetFarm());
         _ = await _rig.ProbeAsync<FarmSnapshot>(p, "Farm", FarmOpCode.GetFarm, "GetFarm", "empty farm, asked again", () => new GetFarm());
         _ = await _rig.ProbeAsync<NodeSnapshot>(p, "Node", NodeOpCode.GetNodes, "GetNodes", "farm", () => new GetNodes());

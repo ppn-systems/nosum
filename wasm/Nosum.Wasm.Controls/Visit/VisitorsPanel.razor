@@ -36,7 +36,7 @@
                             @if (visitor.Present)
                             {
                                 <GameBadge Kind="ok" Text="@Vm.Text("Visit_Here")" />
-                                <GameButton Variant="plain" Text="@Vm.Text("Visit_SendHome")" OnClick="@(() => Vm.Kick(playerId))" />
+                                <GameButton Variant="secondary" Text="@Vm.Text("Visit_SendHome")" OnClick="@(() => Vm.Kick(playerId))" />
                             }
                             @if (visitor.Listed)
                             {
@@ -50,7 +50,7 @@
                     }
                 </div>
                 <GameRow Class="center">
-                    <GameButton Variant="plain" Active="Vm.CoopMembersMayVisit" aria-pressed="@(Vm.CoopMembersMayVisit ? "true" : "false")" Text="@(Vm.CoopMembersMayVisit ? Vm.Text("Visit_Coop_On") : Vm.Text("Visit_Coop_Off"))" OnClick="@(() => Vm.ToggleCoopVisits())" />
+                    <GameButton Variant="secondary" Active="Vm.CoopMembersMayVisit" aria-pressed="@(Vm.CoopMembersMayVisit ? "true" : "false")" Text="@(Vm.CoopMembersMayVisit ? Vm.Text("Visit_Coop_On") : Vm.Text("Visit_Coop_Off"))" OnClick="@(() => Vm.ToggleCoopVisits())" />
                 </GameRow>
             }
             <p class="visit-hint">@Vm.Text("Visit_Rules_Hint")</p>

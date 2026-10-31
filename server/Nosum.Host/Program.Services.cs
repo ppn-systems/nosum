@@ -323,6 +323,8 @@ internal static partial class Program
         InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar, mail, quests));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock, quests));
         InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock, quests));
+        // The tailor's backpack upgrades (docs/adr/ADR-081): the coins and the bag's new size move in one transaction.
+        InstanceManager.Instance.Register<IBackpackService>(new BackpackService(transfers, inventory, presence, maps));
 
         // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.
         InstanceManager.Instance.Register<ICommunityUnlocks>(communityUnlocks);

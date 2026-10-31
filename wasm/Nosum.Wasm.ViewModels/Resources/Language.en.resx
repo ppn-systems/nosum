@@ -1135,6 +1135,20 @@
   <data name="Furniture_BlocksWalking" xml:space="preserve"><value>Blocks walking</value></data>
   <data name="Furniture_WalkOver" xml:space="preserve"><value>Walk over</value></data>
   <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
+  <data name="Toolbar_Backpack" xml:space="preserve"><value>Backpack</value></data>
+  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
+  <data name="Npc_Action_Coop" xml:space="preserve"><value>Co-op</value></data>
+  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Backpack</value></data>
+  <data name="Backpack_Size" xml:space="preserve"><value>Your backpack holds {0} slots.</value></data>
+  <data name="Backpack_Next" xml:space="preserve"><value>Next size: {0} slots for {1} coins. One more row.</value></data>
+  <data name="Backpack_Upgrade" xml:space="preserve"><value>Upgrade backpack</value></data>
+  <data name="Backpack_Max" xml:space="preserve"><value>Your backpack is already the largest.</value></data>
+  <data name="Backpack_Hint" xml:space="preserve"><value>The new slots appear in your bag at once.</value></data>
+  <data name="Backpack_Status_Ok" xml:space="preserve"><value>Your backpack is bigger now.</value></data>
+  <data name="Backpack_Status_NotAtCounter" xml:space="preserve"><value>Stand at the tailor's counter.</value></data>
+  <data name="Backpack_Status_MaxSize" xml:space="preserve"><value>Your backpack is already the largest.</value></data>
+  <data name="Backpack_Status_NotEnoughCoins" xml:space="preserve"><value>You do not have enough coins.</value></data>
+  <data name="Backpack_Status_Conflict" xml:space="preserve"><value>Something changed at the same time. Try again.</value></data>
   <data name="Account_Status_NicknameNeedsScroll" xml:space="preserve"><value>You need a Rename Scroll to change your nickname. Buy one at the tailor.</value></data>
   <data name="Profile_ScrollCount" xml:space="preserve"><value>Rename Scrolls in your bag: {0}</value></data>
   <data name="Profile_NeedsScroll" xml:space="preserve"><value>Changing your nickname needs a Rename Scroll. Buy one at the tailor.</value></data>

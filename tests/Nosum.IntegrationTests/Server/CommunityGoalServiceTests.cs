@@ -16,6 +16,7 @@ using Nalix.Abstractions.Networking;
 using Nalix.Abstractions.Networking.Packets;
 using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
@@ -488,6 +489,9 @@ public sealed class CommunityGoalServiceTests : IClassFixture<PostgresFixture>, 
             => this.FailPayouts && reason.StartsWith("community.", StringComparison.Ordinal) && reason != "community.deliver"
                 ? Task.FromResult(TransferStatus.Conflict)
                 : _inner.ExecuteAsync(legs, reason, enlist, cancellationToken);
+
+        public Task<TransferStatus> ExecuteWithOperationsAsync(Guid playerId, IReadOnlyList<InventoryOperation> operations, IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
+            => _inner.ExecuteWithOperationsAsync(playerId, operations, legs, reason, enlist, cancellationToken);
 
         public Task<long> GetBalanceAsync(Guid playerId, CancellationToken cancellationToken = default) => _inner.GetBalanceAsync(playerId, cancellationToken);
     }

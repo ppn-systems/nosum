@@ -12,7 +12,11 @@
             <div class="touch-knob" data-touch="knob"></div>
         </div>
         @* data-touch-edge is the bit of Nosum.Core.InputEdges.Action. *@
-        <GameButton Variant="chip" Class="touch-use" data-touch-edge="1" aria-label="@UseLabel" tabindex="-1" Text="@UseText" />
+        @* Hidden while a merchant's dialog box is open: its own buttons answer the player, and the box covers this corner (ui-standard checklist 2). *@
+        @if (!Hidden)
+        {
+            <GameButton Variant="primary" Class="touch-use" data-touch-edge="1" aria-label="@UseLabel" tabindex="-1" Text="@UseText" />
+        }
     </div>
 }
 
@@ -25,4 +29,7 @@
 
     /// <summary>The accessible name of the use button (already localized).</summary>
     [Parameter, EditorRequired] public string UseLabel { get; set; } = string.Empty;
+
+    /// <summary>Whether the use button is hidden (a merchant's dialog box is open and covers its corner).</summary>
+    [Parameter] public bool Hidden { get; set; }
 }
