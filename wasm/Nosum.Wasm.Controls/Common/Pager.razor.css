@@ -2,10 +2,3 @@
     min-width: calc(var(--u) * 14);
     text-align: center;
 }
-
-/* The arrows are small (8 u wide), like the other controls' marks, not the theme's 12 u arrow sprites. */
-.pager ::deep .game-icon.arrow-left,
-.pager ::deep .game-icon.arrow-right {
-    width: calc(var(--u) * 8);
-    height: calc(var(--u) * 7);
-}

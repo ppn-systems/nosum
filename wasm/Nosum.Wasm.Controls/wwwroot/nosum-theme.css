@@ -111,6 +111,13 @@
     --nosum-hud-top-h: calc(var(--u) * 28 + clamp(0px, calc((var(--u) * 200 - 100vw) * 999), calc(var(--u) * 28)));
 }
 
+/* The pager's arrows: 8 u wide, not the theme's 12 u sprite (Pager.razor). Global, because the pager's own scoped CSS does not reach the icon. */
+.game-row.pager .game-icon.arrow-left,
+.game-row.pager .game-icon.arrow-right {
+    width: calc(var(--u) * 8);
+    height: calc(var(--u) * 7);
+}
+
 html,
 body {
     margin: 0;
