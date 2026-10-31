@@ -41,6 +41,13 @@ internal sealed class FarmDecorator : IMapDecorator
     private readonly int _soilTexture;
     private readonly int _cropsTexture;
     private readonly int _cursorTexture;
+    private readonly int _markerTexture;
+
+    // The water drop marker is one 8 x 8 picture, in the top-right corner inside a tile that is thirsty (docs/adr/ADR-021 D7).
+    private const int MarkerSize = 8;
+
+    // The marker bobs one pixel up and down, every 600 ms of server time, so it reads as a hint rather than a fixed label.
+    private const long MarkerBobMs = 600;
     private readonly int _tileSize;
     private readonly CalendarChannel? _calendar;
     private readonly bool _outdoors;
@@ -56,12 +63,14 @@ internal sealed class FarmDecorator : IMapDecorator
     /// <param name="soilTexture">Texture id of <c>soil.png</c>.</param>
     /// <param name="cropsTexture">Texture id of <c>crops.png</c>.</param>
     /// <param name="cursorTexture">Texture id of the 16 x 16 target cursor.</param>
+    /// <param name="markerTexture">Texture id of <c>drop.png</c>, the 8 x 8 water drop that marks a thirsty tile.</param>
     /// <param name="tileSize">Map tile size, pixels.</param>
     /// <param name="calendar">The server calendar: it tells the game day, which decides growth, wet soil and withering (docs/adr/ADR-018, ADR-021 D7). Without it nothing grows on screen.</param>
     /// <param name="outdoors">Whether the map is outdoors, where rain waters the soil and the crops (docs/adr/ADR-027 D2).</param>
     /// <param name="placed">The placed pieces mirror: a sprinkler beside a tile waters it every day (docs/adr/ADR-024), so the soil and the crop show it.</param>
-    public FarmDecorator(string mapId, FarmChannel farm, PlayerActions actions, int soilTexture, int cropsTexture, int cursorTexture, int tileSize, CalendarChannel? calendar = null, bool outdoors = true, PlaceableChannel? placed = null)
+    public FarmDecorator(string mapId, FarmChannel farm, PlayerActions actions, int soilTexture, int cropsTexture, int cursorTexture, int markerTexture, int tileSize, CalendarChannel? calendar = null, bool outdoors = true, PlaceableChannel? placed = null)
     {
+        _markerTexture = markerTexture;
         _placed = placed;
         _outdoors = outdoors;
         _calendar = calendar;
@@ -142,11 +151,6 @@ internal sealed class FarmDecorator : IMapDecorator
             for (int i = 0; i < _farm.Count; i++)
             {
                 FarmTileInfo info = _farm.TileAt(i);
-                if (info.CropId == 0)
-                {
-                    continue;
-                }
-
                 int worldX = info.X * _tileSize;
                 int worldY = ((info.Y + 1) * _tileSize) - CropSprites.FrameHeight;
                 if (worldX + CropSprites.FrameWidth <= _camera.Left || worldY + CropSprites.FrameHeight <= _camera.Top || worldX >= _camera.Left + _camera.Width || worldY >= _camera.Top + _camera.Height)
@@ -156,6 +160,17 @@ internal sealed class FarmDecorator : IMapDecorator
 
                 FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay);
                 long? sinceMs = this.SprinklerSinceMs(info.X, info.Y);
+
+                // Bare soil one dry day from reverting gets the marker above the tile (docs/adr/ADR-021 D7).
+                if (info.CropId == 0)
+                {
+                    if (FarmRules.IsAtRisk(tile, _nowMs, rules, _outdoors, sinceMs))
+                    {
+                        this.AddMarker(world, worldX, info.Y);
+                    }
+
+                    continue;
+                }
 
                 // A crop that withered shows as a wilted brown stalk until cleared with a tool or replanted over (docs/adr/ADR-018). The server says
                 // whether it has withered (the tile row's flag, sprinklers counted), so the client does not guess it.
@@ -170,11 +185,24 @@ internal sealed class FarmDecorator : IMapDecorator
                     // Anchored at the tile's centre so a farmer walking over it is ordered by which half they stand on.
                     world.Add(_cropsTexture, sourceX, sourceY, CropSprites.FrameWidth, CropSprites.FrameHeight, worldX, worldY, (info.Y * _tileSize) + (_tileSize / 2), worldX, tint: cropTint);
                 }
+
+                if (thirsty)
+                {
+                    this.AddMarker(world, worldX, info.Y);
+                }
             }
         }
     }
 
     // When the first placed sprinkler that waters the tile was placed, or null (SprinklerRules.WateredSinceMs, read from the mirror without allocating).
+    // Draws the water drop in the top-right corner inside a thirsty tile. It sorts just after the tile's own centre, so it is drawn over the crop it marks
+    // and under anything standing lower on the screen (players and NPCs in the tiles below, or whose feet are lower), never over them.
+    private void AddMarker(WorldSpriteBatch world, int worldX, int tileY)
+    {
+        int worldY = (tileY * _tileSize) + (((_nowMs / MarkerBobMs) & 1) == 0 ? 0 : -1);
+        world.Add(_markerTexture, 0, 0, MarkerSize, MarkerSize, worldX + _tileSize - MarkerSize, worldY, (tileY * _tileSize) + (_tileSize / 2) + 1, worldX);
+    }
+
     private long? SprinklerSinceMs(int tileX, int tileY)
     {
         if (_placed is null)
@@ -248,8 +276,9 @@ internal sealed class FarmDecoratorProvider : IMapDecoratorProvider
         int[] ids = await Task.WhenAll(
             textures.LoadAsync(SpritesUrl + "soil.png"),
             textures.LoadAsync(SpritesUrl + "crops.png"),
-            textures.LoadAsync(TargetCursor.DataUrl)).ConfigureAwait(false);
+            textures.LoadAsync(TargetCursor.DataUrl),
+            textures.LoadAsync(SpritesUrl + "drop.png")).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        return new FarmDecorator(spec.Id, _farm, _actions, ids[0], ids[1], ids[2], map.TileWidth, _calendar, !spec.Indoors, _placed);
+        return new FarmDecorator(spec.Id, _farm, _actions, ids[0], ids[1], ids[2], ids[3], map.TileWidth, _calendar, !spec.Indoors, _placed);
     }
 }
