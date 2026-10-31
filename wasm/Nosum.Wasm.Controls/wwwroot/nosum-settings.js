@@ -47,3 +47,8 @@ export function prefersReducedMotion() {
         return false;
     }
 }
+
+// Whether the screen is phone-sized (the minimap starts hidden there, docs/adr/ADR-018 and the minimap note in docs/design/ui-standard.md). Read once at start-up.
+export function isNarrowScreen() {
+    return window.matchMedia("(max-width: 639.98px)").matches;
+}

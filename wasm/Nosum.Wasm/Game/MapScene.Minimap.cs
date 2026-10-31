@@ -35,18 +35,19 @@ internal sealed partial class MapScene
 
     private readonly MinimapLayer _minimap = new();
 
-    // The player's choice with M this session; null until the first press, when the screen's width decides.
+    // The player's choice with M this session; null until the first press, when the minimap is shown.
     private bool? _minimapChoice;
 
     private void DrawMinimap(MapContent content, InputEdges edges, int canvasWidth, int canvasHeight, int scale)
     {
-        bool narrow = canvasWidth < NarrowCanvasWidth;
-        if ((edges & InputEdges.Minimap) != 0)
+        // Settings > Display hides the card for good (MinimapViewModel.Hidden; hidden by default on a phone). Otherwise the M key shows or hides it for this visit.
+        bool hidden = _minimapFrame?.Hidden == true;
+        if ((edges & InputEdges.Minimap) != 0 && !hidden)
         {
-            _minimapChoice = !(_minimapChoice ?? !narrow);
+            _minimapChoice = !(_minimapChoice ?? true);
         }
 
-        bool shown = _minimapChoice ?? !narrow;
+        bool shown = !hidden && (_minimapChoice ?? true);
         if (_minimapFrame is not null)
         {
             _minimapFrame.Shown = shown;
