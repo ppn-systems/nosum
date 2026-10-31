@@ -2,6 +2,14 @@
 .fishing-banner {
     width: calc(var(--u) * 120);
     max-width: 100%;
+    /* The banner shows what the line is doing; it takes no clicks. It sits over the pond, so a click on the water under it must reach the
+       canvas: a cast while the banner is up, and the press that reels in (docs/adr/ADR-078 D9). The panel sets pointer-events itself, so it is
+       switched off for the panel too. */
+    pointer-events: none;
+}
+
+.fishing-banner ::deep .game-panel {
+    pointer-events: none;
 }
 
 .fishing-banner p {
