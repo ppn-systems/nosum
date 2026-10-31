@@ -195,7 +195,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task Seasons_OutOfSeasonSeedIsRefused_ACropWithersAtTheSeasonChange_AndTheSoilCanBeReplanted()
+    public async Task Seasons_OutOfSeasonSeedIsRefused_AnUnwateredCropWithersAndTheSoilCanBeReplanted()
     {
         await ResetFarmAsync();
         FakeTimeProvider clock = new(s_start);
@@ -225,13 +225,15 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             (await farmer.UseAsync(2, x, y, timeout.Token)).Status.Should().Be(FarmStatus.OutOfSeason);
             (await farmer.UseAsync(3, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
 
-            // Fall still suits radish; winter does not: the crop withered, cannot be harvested, and the soil takes a winter crop.
-            clock.Advance(TimeSpan.FromMilliseconds(calendar.SeasonLengthMs));
-            (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().NotBe(FarmStatus.Withered);
-            clock.Advance(TimeSpan.FromMilliseconds(calendar.SeasonLengthMs));
+            // Left unwatered, the radish is dead after two dry game days, well before its season ends (docs/adr/ADR-021 D7, amended).
+            // The season rule itself is pinned by the unit tests (FarmRulesTests, IsWithered_CropAtTheSeasonChange_*).
+            clock.Advance(TimeSpan.FromMilliseconds(3 * calendar.DayLengthMs));
             (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.Withered);
-            (await farmer.UseAsync(2, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
-            (await farmer.WaitForTileAsync(x, y, t => t.CropId == CropCatalog.Parsnip, timeout.Token)).PlantedAtMs.Should().Be(clock.GetUtcNow().ToUnixTimeMilliseconds());
+
+            // The dead crop's soil takes a new seed the season allows (docs/adr/ADR-018).
+            (await farmer.UseAsync(3, x, y, timeout.Token)).Action.Should().Be(FarmAction.Planted);
+            long replantedAtMs = clock.GetUtcNow().ToUnixTimeMilliseconds();
+            (await farmer.WaitForTileAsync(x, y, t => t.CropId == CropCatalog.Radish && t.PlantedAtMs == replantedAtMs, timeout.Token)).PlantedAtMs.Should().Be(replantedAtMs);
         }
         finally
         {
