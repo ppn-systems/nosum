@@ -58,6 +58,7 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         await this.GuardAsync("mine", this.MineAsync);
         await this.GuardAsync("area", this.AreaAsync);
         await this.GuardAsync("requests", this.RequestsAsync);
+        await this.GuardAsync("finished", this.FinishedChainAsync);
         await this.GuardAsync("coopupgrade", this.CoopUpgradeAsync);
         await this.GuardAsync("background", this.BackgroundAsync);
 

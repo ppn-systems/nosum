@@ -25,6 +25,7 @@ internal static class DbBudgetBaseline
         // Amended 2026-10-31 (docs/adr/ADR-035, Amendment): the first emote completes the send_emote tutorial step, so the quest copy is read,
         // the completed row is written and the reward is paid in one transaction. Later emotes cost what they did.
         ["SendEmote / wave"] = new(1, 1, 1, 1),
+        ["SendEmote / wave, chain finished"] = new(0, 0, 0, 0),
         ["BlockPlayer / block by nickname"] = new(4, 1, 0, 1),
         ["BrowseListings / empty market, page 0"] = new(2, 0, 0, 0),
         ["BrowseListings / empty market, page 0, asked again"] = new(2, 0, 0, 0),
@@ -43,6 +44,7 @@ internal static class DbBudgetBaseline
         // Amended 2026-10-31 (docs/adr/ADR-035, Amendment): the first request filled completes the fill_request tutorial step, so the quest copy is
         // read, the completed row is written and the reward is paid in one transaction on top of the request itself.
         ["DeliverRequest / fill one request"] = new(6, 3, 3, 3),
+        ["DeliverRequest / fill one request, chain finished"] = new(4, 1, 1, 1),
         ["DepositItem / into the warehouse"] = new(6, 1, 1, 1),
         ["Disconnect / joined player, socket closed"] = new(1, 1, 0, 1),
         ["Eat / a parsnip from the hotbar"] = new(0, 0, 0, 0),
@@ -109,6 +111,7 @@ internal static class DbBudgetBaseline
         // Amended 2026-10-31 (docs/adr/ADR-035, Amendment): every placement now counts toward the decorate tutorial step, which is one quest row
         // write (no read: the copy is held) on each placement until the third one completes the step.
         ["PlaceObject / a chest"] = new(0, 2, 1, 2),
+        ["PlaceObject / a chest, chain finished"] = new(0, 1, 1, 1),
         // Amended 2026-10-31 (docs/adr/ADR-035, Amendment): the first coop placed completes the build_coop tutorial step, so the quest copy is read,
         // the completed row is written and the reward is paid in one transaction on top of the placement.
         ["PlaceObject / a coop blueprint"] = new(5, 4, 3, 3),
