@@ -10,6 +10,7 @@
 @using Nosum.Wasm.Controls.Looks
 @using Nosum.Wasm.Controls.Journal
 @using Nosum.Wasm.Controls.Maps
+@using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Journal
 @using Nosum.Wasm.ViewModels.Maps
 @using Nosum.Wasm.Controls.Mail
@@ -70,18 +71,18 @@
 @inject JournalViewModel Journal
 
 @* Standalone window hosting the currently active game panel (docs/adr/ADR-044). *@
-<TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" Wide="@(Panel == PanelKind.Inventory)" OnClose="OnDialogClose">
+<TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" Size="@SizeOf(Panel)" OnClose="OnDialogClose">
     @switch (Panel)
     {
         case PanelKind.Market:
             <MarketPanel Vm="Market" />
             break;
         case PanelKind.Shop:
-            <ShopPanel Vm="Shop" ShopId="ShopId" Smith="Blacksmith" ShowOffers="@(Npc.Page != NpcPage.Build && Npc.Page != NpcPage.Upgrade)" ShowExtras="@(Npc.Page != NpcPage.Shop)">
+            <ShopPanel Vm="Shop" ShopId="ShopId" Smith="Blacksmith" ShowOffers="@(Npc.Page != NpcPage.Build && Npc.Page != NpcPage.Upgrade)" ShowExtras="@(Npc.Page != NpcPage.Shop || Npc.Npc?.CounterId == Nosum.Gameplay.Shops.ShopCatalog.CarpenterShop)">
                 <Extra>
                     @if (Shop.IsCarpenterShop)
                     {
-                        <CarpenterSections Vm="Carpenter" />
+                        <CarpenterSections Vm="Carpenter" ShowAnimals="@(Npc.Page == NpcPage.Build)" />
                     }
                 </Extra>
             </ShopPanel>
@@ -137,6 +138,9 @@
         case PanelKind.Journal:
             <JournalPanel Vm="Journal" />
             break;
+        case PanelKind.Menu:
+            <GameMenuTiles Items="Toolbar.MenuItems" Label="@Toolbar.MenuLabel" OnOpen="OnOpenPanel" />
+            break;
     }
 </TradeDialog>
 
@@ -153,11 +157,27 @@
     /// <summary>Raised when a child panel requests closing the panel directly.</summary>
     [Parameter] public EventCallback OnClosePanel { get; set; }
 
+    /// <summary>Raised when a tile of the game menu opens a panel.</summary>
+    [Parameter] public EventCallback<PanelKind> OnOpenPanel { get; set; }
+
+    /// <summary>The width of a panel: L for the wide pages (the inventory with its side column, the shops, the market, the wardrobe and the
+    /// world map), S for the small ones (a chest, a furnace, the pet, the visitors, the game menu), M for the rest
+    /// (docs/design/ui-standard.md section 3).</summary>
+    private static PanelSize SizeOf(PanelKind panel) => panel switch
+    {
+        PanelKind.Inventory or PanelKind.Shop or PanelKind.Market or PanelKind.Wardrobe or PanelKind.WorldMap or PanelKind.Journal
+            or PanelKind.Crafting or PanelKind.Skills => PanelSize.L,
+        PanelKind.Chest => PanelSize.XL,
+        PanelKind.Furnace or PanelKind.Pet or PanelKind.Visitors or PanelKind.Menu => PanelSize.S,
+        _ => PanelSize.M,
+    };
+
     private string DialogTitle() => Panel switch
     {
         PanelKind.Shop or PanelKind.Market or PanelKind.Goals => Npc.PageTitle.Length > 0 ? Npc.PageTitle : Toolbar.Text("Toolbar_Shop"),
         PanelKind.Chest => Toolbar.Text("Chest_Title"),
         PanelKind.Furnace => Toolbar.Text("Furnace_Title"),
+        PanelKind.Menu => Toolbar.MenuLabel,
         _ => Toolbar.TitleOf(Panel),
     };
 }

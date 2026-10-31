@@ -1,6 +1,7 @@
 @* A standalone dialog over the game (docs/adr/ADR-043 D2): the window of a shop, the market, the Town board, a chest or a furnace. It is not a tab of the game
-   menu: it has one title, one close button and the page. It sits in the HUD's centre region, where the menu does, and is as wide as a menu page. *@
-<div class="trade-dialog @(Wide ? "trade-dialog-wide" : null)">
+   menu: it has one title, one close button and the page. It sits in the HUD's centre region, where the menu does, in one of the three panel widths
+   (docs/design/ui-standard.md section 3). *@
+<div class="trade-dialog trade-dialog-@Size.ToString().ToLowerInvariant()">
     <GamePanel Class="trade-window" Title="@Title" CloseText="@CloseText" OnClose="OnClose" Role="dialog">@ChildContent</GamePanel>
 </div>
 
@@ -14,8 +15,8 @@
     /// <summary>Raised by the close button.</summary>
     [Parameter] public EventCallback OnClose { get; set; }
 
-    /// <summary>Whether the window is the wide one (the inventory: a side column beside the grid).</summary>
-    [Parameter] public bool Wide { get; set; }
+    /// <summary>The window's width: S, M or L.</summary>
+    [Parameter] public PanelSize Size { get; set; } = PanelSize.M;
 
     /// <summary>The page.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

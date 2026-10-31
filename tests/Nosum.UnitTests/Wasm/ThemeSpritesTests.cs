@@ -107,12 +107,15 @@ public sealed partial class ThemeSpritesTests
     }
 
     [Fact]
-    public void GameHud_PlayerBar_IsStackedVerticallyOnRightEdge_ToSaveScreenSpace()
+    public void GameHud_MenuColumn_IsOneColumnUnderTheMinimap_WithTheEmoteInTheBottomRight()
     {
-        string hudCss = File.ReadAllText(Path.Combine(RepositoryRoot(), "wasm", "Nosum.Wasm.Controls", "Layout", "GameHud.razor.css"));
+        string root = RepositoryRoot();
+        string hudCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Layout", "GameHud.razor.css"));
+        string topRight = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Components", "HudTopRightBar.razor"));
 
-        hudCss.Should().NotContain("grid-template-columns: repeat(3, max-content)");
-        hudCss.Should().Contain(".hud-top-right ::deep .hud-player-bar");
+        hudCss.Should().NotContain("repeat(2, calc");
+        hudCss.Should().Contain(".hud-top-right ::deep .hud-menu-column");
+        topRight.Should().NotContain("emote-0", "the emote button sits in the bottom-right region (docs/design/ui-standard.md section 2)");
     }
 
     [Fact]

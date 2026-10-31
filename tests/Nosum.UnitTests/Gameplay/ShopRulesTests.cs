@@ -294,4 +294,55 @@ public sealed class ShopRulesTests
         ShopRules.IsInSeason(ItemCatalog.HatCap, calendar, summer).Should().BeTrue();
         ShopRules.IsInSeason(999_999, calendar, spring).Should().BeTrue("unknown ids are the catalogue's business, not the season's");
     }
+    [Fact]
+    public void IsInSeason_ShopRotation_StrawHatsInTheSunnyHalfAndCapsInTheColdHalf()
+    {
+        GameCalendar calendar = GameCalendar.Default;
+        long spring = calendar.EpochMs;
+        long summer = spring + calendar.SeasonLengthMs;
+        long fall = spring + (2 * calendar.SeasonLengthMs);
+        long winter = spring + (3 * calendar.SeasonLengthMs);
+
+        ShopRules.IsInSeason(ShopCatalog.ClothingShop, ItemCatalog.HatStraw, calendar, spring).Should().BeTrue();
+        ShopRules.IsInSeason(ShopCatalog.ClothingShop, ItemCatalog.HatStraw, calendar, summer).Should().BeTrue();
+        ShopRules.IsInSeason(ShopCatalog.ClothingShop, ItemCatalog.HatStraw, calendar, fall).Should().BeFalse();
+        ShopRules.IsInSeason(ShopCatalog.ClothingShop, ItemCatalog.HatCap, calendar, spring).Should().BeFalse();
+        ShopRules.IsInSeason(ShopCatalog.ClothingShop, ItemCatalog.HatCap, calendar, fall).Should().BeTrue();
+        ShopRules.IsInSeason(ShopCatalog.ClothingShop, ItemCatalog.HatCap, calendar, winter).Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsInSeason_ShopRotation_OnlyNarrowsItsOwnCounter()
+    {
+        GameCalendar calendar = GameCalendar.Default;
+        long spring = calendar.EpochMs;
+        long fall = spring + (2 * calendar.SeasonLengthMs);
+
+        ShopRules.IsInSeason(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, calendar, fall).Should().BeTrue("a year-round piece stays on every counter");
+        ShopRules.IsInSeason(ShopCatalog.SeedShop, ItemCatalog.TomatoSeeds, calendar, spring).Should().BeFalse("the seed rule still applies at the seed counter");
+        ShopRules.IsInSeason(ShopCatalog.ClothingShop, ItemCatalog.HatCap, calendar, fall).Should().BeTrue();
+        ShopRules.IsInSeason(ShopCatalog.FurnitureShop, ItemCatalog.HatCap, calendar, spring).Should().BeTrue("a hat is only held back by the clothing counter");
+    }
+
+    [Fact]
+    public void EveryShop_HasSomethingInStockInEverySeason()
+    {
+        GameCalendar calendar = GameCalendar.Default;
+        for (int season = 0; season < GameCalendar.SeasonsPerYear; season++)
+        {
+            long now = calendar.EpochMs + (season * calendar.SeasonLengthMs);
+            foreach (ShopDefinition shop in ShopCatalog.All)
+            {
+                shop.Offers.Any(offer => ShopRules.IsInSeason(shop.Id, offer.ItemId, calendar, now))
+                    .Should().BeTrue($"{shop.Key} has no stock in season {season}");
+            }
+        }
+    }
+
+    [Fact]
+    public void Price_OfASeasonalHat_ReadsTheCatalogue_TheSeasonIsCheckedSeparately()
+    {
+        ShopRules.Price(ShopCatalog.ClothingShop, ItemCatalog.HatCap, 1, out long total).Should().Be(ShopVerdict.Ok);
+        total.Should().Be(40);
+    }
 }

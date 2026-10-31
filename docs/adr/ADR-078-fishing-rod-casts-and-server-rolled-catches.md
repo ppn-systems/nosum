@@ -78,3 +78,8 @@ never the result. The timing must not be a way to cheat, so the server judges th
 
 A cast costs ten energy (was two), and fish bin prices fall to 60 %. Expected coins per cast now sit in the 2.0 to 3.2 coins-per-energy band
 (ADR-080 D1, D5). The figures are in `docs/design/economy.md`.
+### 2026-10-31 - fishing skill row (protocol 23)
+
+- `SkillXpChanged` carries the fishing experience: `FishingXp`, appended as field 3 (`[SerializeOrder(3)]`). `NosumProtocol.Version` 23. The server already stores it (D6); the push sends it on join and after every change, the same as the other three skills.
+- The Skills page shows Fishing as the fifth skill row, after Combat, with the same level badge and progress bar as the others. Its level comes from the same XP table as the gathering skills.
+- No opcode or other field changed. Clients built before protocol 23 ignore the new field.

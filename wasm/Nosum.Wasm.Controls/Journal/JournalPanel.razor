@@ -7,13 +7,18 @@
 <MenuPage>
     <p class="journal-summary">@Vm.Text("Journal_Summary", Vm.Discovered, JournalViewModel.Total)</p>
     <div class="journal-grid">
-        @foreach (JournalCell cell in Vm.Cells())
+        @foreach (JournalCell cell in Vm.PageCells())
         {
             <div class="journal-cell @(cell.Discovered ? "found" : "undiscovered")">
                 <ItemSlotButton Slot="cell.Slot" />
             </div>
         }
     </div>
+    @if (JournalViewModel.PageCount > 1)
+    {
+        <Pager Page="Vm.Page" PageCount="JournalViewModel.PageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
+               PositionText="@Vm.Text("Pager_Position", Vm.Page + 1, JournalViewModel.PageCount)" OnPage="@(p => Vm.GoToPage(p))" />
+    }
 </MenuPage>
 
 @code {

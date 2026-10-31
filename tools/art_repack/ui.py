@@ -291,6 +291,29 @@ TAB_PICTURES = {
         '..DDDDDD..',
     ], {'C': P.PARCH_HI, 'H': P.GOLD_HI, 'L': P.BLUE_L, 'B': P.BLUE, 'D': P.BLUE_D, 'G': P.GOLD}),
 
+    # The Menu button: four 2 x 2 tiles of a grid, two rows of them.
+    'menu': ([
+        'HHHH..HHHH',
+        'HLLH..HLLH',
+        'HLLH..HLLH',
+        'HHHH..HHHH',
+        'HHHH..HHHH',
+        'HLLH..HLLH',
+        'HLLH..HLLH',
+        'HHHH..HHHH',
+    ], {'H': P.WOOD_HI, 'L': P.WOOD_L}),
+
+    # The pet tab: a cat's head with gold eyes (the pet itself is in sprites/pets/cat.png).
+    'pet': ([
+        'DD....DD',
+        'DHD..DHD',
+        'DHHHHHHD',
+        'DHGHHGHD',
+        'DHHHHHHD',
+        'DDHHHHDD',
+        '.DDDDDD.',
+    ], {'D': P.WOOD_D, 'H': P.WOOD_HI, 'G': P.GOLD_HI}),
+
     'coop': ([
         '...RRR....',
         '..WHHHW...',
@@ -637,6 +660,8 @@ def cursors(repo, size):
         (tab(repo, 'visitors'), 64, 368), (tab(repo, 'market'), 80, 368), (tab(repo, 'friends'), 96, 368), (tab(repo, 'mail'), 112, 368),
         (tab(repo, 'skills'), 128, 368), (tab(repo, 'profile'), 144, 368), (tab(repo, 'settings'), 160, 368), (tab(repo, 'goals'), 176, 368),
         (tab(repo, 'shop'), 0, 384),
+        (tab(repo, 'menu'), 256, 384),
+        (tab(repo, 'pet'), 272, 384),
         (season_icon('spring'), 16, 384),
         (season_icon('summer'), 32, 384),
         (season_icon('fall'), 48, 384),

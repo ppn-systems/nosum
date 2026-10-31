@@ -453,6 +453,7 @@
   <data name="Quest_Expand" xml:space="preserve"><value>Expand</value></data>
   <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Click to take off</value></data>
   <data name="Toolbar_Shop" xml:space="preserve"><value>Shop</value></data>
+  <data name="Toolbar_Menu" xml:space="preserve"><value>Menu</value></data>
   <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Farm_Status_NotYourFarm" xml:space="preserve"><value>On someone else's farm you can only water the crops.</value></data>
   <data name="Place_Status_NotYourPlace" xml:space="preserve"><value>Only the owner arranges things here.</value></data>
@@ -831,44 +832,130 @@
   <data name="Npc_Leave" xml:space="preserve"><value>Leave</value></data>
   <data name="Npc_seed_keeper_Name" xml:space="preserve"><value>Mai</value></data>
   <data name="Npc_seed_keeper_Role" xml:space="preserve"><value>Seed shopkeeper</value></data>
-  <data name="Npc_seed_keeper_Greeting" xml:space="preserve"><value>Hello there! This season's seeds are fresh. Have a look.</value></data>
-  <data name="Npc_seed_keeper_Greeting_Spring" xml:space="preserve"><value>Spring is here, and the new seeds have just come in. Sow early for a big harvest.</value></data>
-  <data name="Npc_seed_keeper_Greeting_Rain" xml:space="preserve"><value>Rain all day, so the soil is soft and easy to work. Best day to sow, come in and look.</value></data>
-  <data name="Npc_seed_keeper_Greeting_Snow" xml:space="preserve"><value>Snow everywhere, nothing will grow in the fields today. Come in and warm up, and have a look at next season's seeds.</value></data>
-  <data name="Npc_seed_keeper_Talk1" xml:space="preserve"><value>Sow in the right season and every seed comes up strong. Out of season, the plants just wither.</value></data>
-  <data name="Npc_seed_keeper_Talk2" xml:space="preserve"><value>I have sold seeds here since I was small. Damp soil is my favourite smell.</value></data>
+  <data name="Npc_seed_keeper_Line_01" xml:space="preserve"><value>Hello there! The new seeds just came in. Have a good look.</value></data>
+  <data name="Npc_seed_keeper_Line_02" xml:space="preserve"><value>Sow in the right season and the plants grow strong, with big fruit.</value></data>
+  <data name="Npc_seed_keeper_Line_03" xml:space="preserve"><value>Damp soil is my favourite smell.</value></data>
+  <data name="Npc_seed_keeper_Line_04" xml:space="preserve"><value>Stop by before you head to the fields. I'll have what you need.</value></data>
+  <data name="Npc_seed_keeper_Line_05" xml:space="preserve"><value>Spring is here, and the beans and radishes just came in.</value></data>
+  <data name="Npc_seed_keeper_Line_06" xml:space="preserve"><value>The summer sun is strong, and the tomatoes and melons are looking lovely.</value></data>
+  <data name="Npc_seed_keeper_Line_07" xml:space="preserve"><value>Autumn is here. Pumpkins and yams are best planted now.</value></data>
+  <data name="Npc_seed_keeper_Line_08" xml:space="preserve"><value>Winter is cold and the fields rest. Come in and have some tea to warm up.</value></data>
+  <data name="Npc_seed_keeper_Line_09" xml:space="preserve"><value>Rain all day and the soil is soft. Today is the best day to sow.</value></data>
+  <data name="Npc_seed_keeper_Line_10" xml:space="preserve"><value>Snow covers the fields. Come in and dream about next season's seeds.</value></data>
+  <data name="Npc_seed_keeper_Line_11" xml:space="preserve"><value>Early morning is the best time for the fields, with dew still on the leaves.</value></data>
+  <data name="Npc_seed_keeper_Line_12" xml:space="preserve"><value>Evening is coming. Water your plants before you rest.</value></data>
+  <data name="Npc_seed_keeper_Line_13" xml:space="preserve"><value>Welcome to the village! I'm Mai. Ask me anything you need.</value></data>
+  <data name="Npc_seed_keeper_Line_14" xml:space="preserve"><value>Your first harvest looked wonderful. Try a different crop next time.</value></data>
+  <data name="Npc_seed_keeper_Line_15" xml:space="preserve"><value>The spring morning is cool. Seeds sown now sprout quickly.</value></data>
+  <data name="Npc_seed_keeper_Line_16" xml:space="preserve"><value>Summer midday is hot. Take water with you to the fields.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Hanh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Tailor</value></data>
-  <data name="Npc_tailor_Greeting" xml:space="preserve"><value>Come in and look around! New shirts, new hats, all cut to fit.</value></data>
-  <data name="Npc_tailor_Greeting_Rain" xml:space="preserve"><value>Soaked through out there! My new raincoats just came in, come and try one on.</value></data>
-  <data name="Npc_tailor_Greeting_Snow" xml:space="preserve"><value>Bitter cold out there, put on something warmer. New wool jumpers just arrived, and they fit well.</value></data>
-  <data name="Npc_tailor_Talk1" xml:space="preserve"><value>Wear a straw hat out in the fields, it keeps the sun off.</value></data>
-  <data name="Npc_tailor_Talk2" xml:space="preserve"><value>I sew every stitch myself, so it lasts. You can plough in it and it will not wear through.</value></data>
+  <data name="Npc_tailor_Line_01" xml:space="preserve"><value>Come in and look around. The new shirts are cut to fit.</value></data>
+  <data name="Npc_tailor_Line_02" xml:space="preserve"><value>These trousers are hard-wearing for fieldwork. You can rely on them.</value></data>
+  <data name="Npc_tailor_Line_03" xml:space="preserve"><value>I sew every seam myself, so nothing comes undone.</value></data>
+  <data name="Npc_tailor_Line_04" xml:space="preserve"><value>Try things on before you buy. A good fit is what makes it comfortable.</value></data>
+  <data name="Npc_tailor_Line_05" xml:space="preserve"><value>Spring is here and the straw hats are back on the shelf, cool for sowing.</value></data>
+  <data name="Npc_tailor_Line_06" xml:space="preserve"><value>The summer sun is harsh. Wear a straw hat to keep it off your skin.</value></data>
+  <data name="Npc_tailor_Line_07" xml:space="preserve"><value>The air is turning cool. The new caps just arrived, try one on.</value></data>
+  <data name="Npc_tailor_Line_08" xml:space="preserve"><value>Winter is biting. Put on a wool jumper so you don't catch cold.</value></data>
+  <data name="Npc_tailor_Line_09" xml:space="preserve"><value>Soaked through out there? Come in out of the rain and look at the new shirts.</value></data>
+  <data name="Npc_tailor_Line_10" xml:space="preserve"><value>Snow and bitter cold. I've just finished a thick jumper for you.</value></data>
+  <data name="Npc_tailor_Line_11" xml:space="preserve"><value>The mornings are quiet, and that's when I like to sew.</value></data>
+  <data name="Npc_tailor_Line_12" xml:space="preserve"><value>It's evening. My lamps stay lit late, so drop by any time.</value></data>
+  <data name="Npc_tailor_Line_13" xml:space="preserve"><value>Hello! I'm Hanh. Try anything you like, nobody will push you to buy.</value></data>
+  <data name="Npc_tailor_Line_14" xml:space="preserve"><value>A good harvest deserves good clothes. Time to dress up a little.</value></data>
+  <data name="Npc_tailor_Line_15" xml:space="preserve"><value>Spring mornings are cool. A light shirt is just right for work.</value></data>
+  <data name="Npc_tailor_Line_16" xml:space="preserve"><value>Summer midday is hot. Pick something breathable to stay comfortable.</value></data>
   <data name="Npc_furnisher_Name" xml:space="preserve"><value>Tam</value></data>
   <data name="Npc_furnisher_Role" xml:space="preserve"><value>Furniture seller</value></data>
-  <data name="Npc_furnisher_Greeting" xml:space="preserve"><value>Hello! A nice home makes work a pleasure. Take a look at the chairs and tables.</value></data>
-  <data name="Npc_furnisher_Talk1" xml:space="preserve"><value>One lamp and one plant and a room looks completely different.</value></data>
-  <data name="Npc_furnisher_Talk2" xml:space="preserve"><value>My oak furniture has lasted decades without a crack.</value></data>
+  <data name="Npc_furnisher_Line_01" xml:space="preserve"><value>Hello! A nice home makes the work feel lighter.</value></data>
+  <data name="Npc_furnisher_Line_02" xml:space="preserve"><value>My oak furniture has lasted decades without a crack.</value></data>
+  <data name="Npc_furnisher_Line_03" xml:space="preserve"><value>One lamp and one plant, and the room looks completely different.</value></data>
+  <data name="Npc_furnisher_Line_04" xml:space="preserve"><value>Take your time. Buy what suits your home, and nothing more.</value></data>
+  <data name="Npc_furnisher_Line_05" xml:space="preserve"><value>Spring is here. Flower boxes are very popular right now.</value></data>
+  <data name="Npc_furnisher_Line_06" xml:space="preserve"><value>Summer is here, and every home needs a cool chair to rest in.</value></data>
+  <data name="Npc_furnisher_Line_07" xml:space="preserve"><value>Autumn is here. Pumpkin decorations by the door look so warm.</value></data>
+  <data name="Npc_furnisher_Line_08" xml:space="preserve"><value>In winter a rug and a long bench keep the whole house warm.</value></data>
+  <data name="Npc_furnisher_Line_09" xml:space="preserve"><value>On a rainy day, a bench and a warm lamp are the best company.</value></data>
+  <data name="Npc_furnisher_Line_10" xml:space="preserve"><value>Snow is falling. A winter wreath at the door says a cosy season has come.</value></data>
+  <data name="Npc_furnisher_Line_11" xml:space="preserve"><value>In the morning, a window that catches the sun looks its best.</value></data>
+  <data name="Npc_furnisher_Line_12" xml:space="preserve"><value>When evening comes, a table lamp warms up the whole house.</value></data>
+  <data name="Npc_furnisher_Line_13" xml:space="preserve"><value>Welcome! I'm Tam. A new home can start with just one chair.</value></data>
+  <data name="Npc_furnisher_Line_14" xml:space="preserve"><value>Business is good now. Treat your home to something lovely.</value></data>
+  <data name="Npc_furnisher_Line_15" xml:space="preserve"><value>A spring morning reading beside a flower box is a real treat.</value></data>
+  <data name="Npc_furnisher_Line_16" xml:space="preserve"><value>Back from the deep mine? You need a soft seat to rest in.</value></data>
   <data name="Npc_blacksmith_Name" xml:space="preserve"><value>Cuong</value></data>
   <data name="Npc_blacksmith_Role" xml:space="preserve"><value>Blacksmith</value></data>
-  <data name="Npc_blacksmith_Greeting" xml:space="preserve"><value>Hm, a customer. Coal, ore, or an upgrade for your tools?</value></data>
-  <data name="Npc_blacksmith_Talk1" xml:space="preserve"><value>Bring me ore and coal and I will forge you a proper hoe.</value></data>
-  <data name="Npc_blacksmith_Talk2" xml:space="preserve"><value>There is good stuff down in the mine, but take some food with you.</value></data>
+  <data name="Npc_blacksmith_Line_01" xml:space="preserve"><value>Hm, a customer. Coal, ore, or an upgrade for your tools?</value></data>
+  <data name="Npc_blacksmith_Line_02" xml:space="preserve"><value>A good tool is half the work. Keep the blade sharp.</value></data>
+  <data name="Npc_blacksmith_Line_03" xml:space="preserve"><value>The forge stays hot from dawn to dusk, and iron never waits.</value></data>
+  <data name="Npc_blacksmith_Line_04" xml:space="preserve"><value>Bring me ore and I'll forge you something that lasts.</value></data>
+  <data name="Npc_blacksmith_Line_05" xml:space="preserve"><value>Spring soil is soft and easy to dig. Bring your hoe in to sharpen it.</value></data>
+  <data name="Npc_blacksmith_Line_06" xml:space="preserve"><value>Summer is hot and my forge is hotter. Don't stand too close.</value></data>
+  <data name="Npc_blacksmith_Line_07" xml:space="preserve"><value>Autumn is a good time to upgrade your tools before winter.</value></data>
+  <data name="Npc_blacksmith_Line_08" xml:space="preserve"><value>Winter cold makes iron brittle, but my forge never goes out.</value></data>
+  <data name="Npc_blacksmith_Line_09" xml:space="preserve"><value>On a wet day the workshop is the best place to be. The hammering sounds cheerful.</value></data>
+  <data name="Npc_blacksmith_Line_10" xml:space="preserve"><value>Snow is falling. I stoked the forge up, so come warm your hands.</value></data>
+  <data name="Npc_blacksmith_Line_11" xml:space="preserve"><value>I start hammering at dawn, and the whole street hears it.</value></data>
+  <data name="Npc_blacksmith_Line_12" xml:space="preserve"><value>Evening. The coal glows red in the forge. A lovely sight.</value></data>
+  <data name="Npc_blacksmith_Line_13" xml:space="preserve"><value>Hello, I'm Cuong. Tell me straight what you need.</value></data>
+  <data name="Npc_blacksmith_Line_14" xml:space="preserve"><value>With a harvest in, now is the right time to upgrade your tools.</value></data>
+  <data name="Npc_blacksmith_Line_15" xml:space="preserve"><value>The deep mine has plenty of rock. Bring the iron ore up to me.</value></data>
+  <data name="Npc_blacksmith_Line_16" xml:space="preserve"><value>Midday is noisy in here. Don't let the hammering startle you.</value></data>
   <data name="Npc_carpenter_Name" xml:space="preserve"><value>Lam</value></data>
   <data name="Npc_carpenter_Role" xml:space="preserve"><value>Carpenter</value></data>
-  <data name="Npc_carpenter_Greeting" xml:space="preserve"><value>Ah, you are here. Coops, barns, I can build them all.</value></data>
-  <data name="Npc_carpenter_Talk1" xml:space="preserve"><value>Chickens need hay every evening, and so do cows. Do not let them go hungry.</value></data>
-  <data name="Npc_carpenter_Talk2" xml:space="preserve"><value>A building takes a few days, but built well it lasts a lifetime.</value></data>
+  <data name="Npc_carpenter_Line_01" xml:space="preserve"><value>Ah, you're here. Coops, barns, I can build them all.</value></data>
+  <data name="Npc_carpenter_Line_02" xml:space="preserve"><value>Chickens need hay every evening, and so do cows. Don't let them go hungry.</value></data>
+  <data name="Npc_carpenter_Line_03" xml:space="preserve"><value>A building takes a few days, but built well it lasts a lifetime.</value></data>
+  <data name="Npc_carpenter_Line_04" xml:space="preserve"><value>Good timber, solid stone. I'm glad of a chat with you too.</value></data>
+  <data name="Npc_carpenter_Line_05" xml:space="preserve"><value>Spring is the best time to build. The ground is soft for foundations.</value></data>
+  <data name="Npc_carpenter_Line_06" xml:space="preserve"><value>In summer the timber dries fast, so the work goes quicker.</value></data>
+  <data name="Npc_carpenter_Line_07" xml:space="preserve"><value>Autumn is here. Get enough hay ready for winter.</value></data>
+  <data name="Npc_carpenter_Line_08" xml:space="preserve"><value>In winter the coop must be draught-proof. I have a few tricks for that.</value></data>
+  <data name="Npc_carpenter_Line_09" xml:space="preserve"><value>It's raining, so the roof has to be sound. I'm checking every tile.</value></data>
+  <data name="Npc_carpenter_Line_10" xml:space="preserve"><value>Snow on the roofs. The barns need extra straw to keep the animals warm.</value></data>
+  <data name="Npc_carpenter_Line_11" xml:space="preserve"><value>I'm in the workshop at dawn, planing wood before the light is up.</value></data>
+  <data name="Npc_carpenter_Line_12" xml:space="preserve"><value>Evening already. Get the hens into the coop before dark.</value></data>
+  <data name="Npc_carpenter_Line_13" xml:space="preserve"><value>Welcome! I'm Lam. Want to keep hens or a cow? Just ask me.</value></data>
+  <data name="Npc_carpenter_Line_14" xml:space="preserve"><value>Your fields are looking good. Why not add a coop?</value></data>
+  <data name="Npc_carpenter_Line_15" xml:space="preserve"><value>The deep mine is hard work. When you want more animals, come and see me.</value></data>
+  <data name="Npc_carpenter_Line_16" xml:space="preserve"><value>Midday and I'm still sawing. Stop by for some water first.</value></data>
   <data name="Npc_trader_Name" xml:space="preserve"><value>Phat</value></data>
   <data name="Npc_trader_Role" xml:space="preserve"><value>Trader</value></data>
-  <data name="Npc_trader_Greeting" xml:space="preserve"><value>Hello! Something to sell, or looking to buy from other farmers?</value></data>
-  <data name="Npc_trader_Talk1" xml:space="preserve"><value>Prices at the market follow the sellers. Check the price history before you list.</value></data>
-  <data name="Npc_trader_Talk2" xml:space="preserve"><value>I only keep the stall for everyone. What you sell and for how much is up to you.</value></data>
+  <data name="Npc_trader_Line_01" xml:space="preserve"><value>Hello! Something to sell, or looking to buy from other farmers?</value></data>
+  <data name="Npc_trader_Line_02" xml:space="preserve"><value>Market prices follow the sellers. Check the price history before you list.</value></data>
+  <data name="Npc_trader_Line_03" xml:space="preserve"><value>I only keep the stall for everyone. What you sell, and at what price, is up to you.</value></data>
+  <data name="Npc_trader_Line_04" xml:space="preserve"><value>Fresh goods sell quickly, but don't sell them too cheap.</value></data>
+  <data name="Npc_trader_Line_05" xml:space="preserve"><value>Spring greens are going up in price. Have a look before you sell.</value></data>
+  <data name="Npc_trader_Line_06" xml:space="preserve"><value>Summer brings buyers looking for melons and tomatoes.</value></data>
+  <data name="Npc_trader_Line_07" xml:space="preserve"><value>Autumn brings plenty of goods, so prices may dip a little.</value></data>
+  <data name="Npc_trader_Line_08" xml:space="preserve"><value>Winter is lean. Whoever has stock in the store sells for a good price.</value></data>
+  <data name="Npc_trader_Line_09" xml:space="preserve"><value>Rain all day, but the buyers still come. Every kind of goods has a place.</value></data>
+  <data name="Npc_trader_Line_10" xml:space="preserve"><value>With snow this deep, everyone is stocking up on food.</value></data>
+  <data name="Npc_trader_Line_11" xml:space="preserve"><value>Early morning is the busiest time at my stall.</value></data>
+  <data name="Npc_trader_Line_12" xml:space="preserve"><value>In the evening I count my stock again. Check your bag too.</value></data>
+  <data name="Npc_trader_Line_13" xml:space="preserve"><value>Welcome! I'm Phat. This market is open to everybody.</value></data>
+  <data name="Npc_trader_Line_14" xml:space="preserve"><value>Sold your first harvest? This market is a good place to keep going.</value></data>
+  <data name="Npc_trader_Line_15" xml:space="preserve"><value>Ore from the deep mine is fetching good prices. Thinking of selling?</value></data>
+  <data name="Npc_trader_Line_16" xml:space="preserve"><value>Busy at midday. Look at the prices all you like, looking costs nothing.</value></data>
   <data name="Npc_board_keeper_Name" xml:space="preserve"><value>Thu</value></data>
   <data name="Npc_board_keeper_Role" xml:space="preserve"><value>Board keeper</value></data>
-  <data name="Npc_board_keeper_Greeting" xml:space="preserve"><value>Hello! There is work for the whole village on the board today.</value></data>
-  <data name="Npc_board_keeper_Talk1" xml:space="preserve"><value>When the village pitches in, every goal gets done. The reward is shared with everyone.</value></data>
-  <data name="Npc_board_keeper_Talk2" xml:space="preserve"><value>There are a few new delivery requests every day. First to finish is paid first.</value></data>
+  <data name="Npc_board_keeper_Line_01" xml:space="preserve"><value>Hello! There's work for the whole village on the board today.</value></data>
+  <data name="Npc_board_keeper_Line_02" xml:space="preserve"><value>When the village pitches in, every goal gets done sooner.</value></data>
+  <data name="Npc_board_keeper_Line_03" xml:space="preserve"><value>The reward is shared with everyone who helps, so nobody loses out.</value></data>
+  <data name="Npc_board_keeper_Line_04" xml:space="preserve"><value>A few new delivery requests come in every day. First to finish is paid first.</value></data>
+  <data name="Npc_board_keeper_Line_05" xml:space="preserve"><value>It's spring, and the board has new requests for seeds and greens.</value></data>
+  <data name="Npc_board_keeper_Line_06" xml:space="preserve"><value>In summer the village needs melons for the festival.</value></data>
+  <data name="Npc_board_keeper_Line_07" xml:space="preserve"><value>Autumn, and the board is full of harvest requests. Pick what suits you.</value></data>
+  <data name="Npc_board_keeper_Line_08" xml:space="preserve"><value>Winter is here, and the village pools wood and food to keep warm together.</value></data>
+  <data name="Npc_board_keeper_Line_09" xml:space="preserve"><value>On a rainy day there's plenty of indoor work. Have a look at the board.</value></data>
+  <data name="Npc_board_keeper_Line_10" xml:space="preserve"><value>Snow is falling, and the board has new requests for people who can travel far.</value></data>
+  <data name="Npc_board_keeper_Line_11" xml:space="preserve"><value>I pin up new requests at dawn. Come early for the best jobs.</value></data>
+  <data name="Npc_board_keeper_Line_12" xml:space="preserve"><value>Evening already. Hand in your work before I clear the board.</value></data>
+  <data name="Npc_board_keeper_Line_13" xml:space="preserve"><value>Welcome! I'm Thu. A few small jobs on the board and you'll soon be settled.</value></data>
+  <data name="Npc_board_keeper_Line_14" xml:space="preserve"><value>You have your first harvest now. Try taking on a village job.</value></data>
+  <data name="Npc_board_keeper_Line_15" xml:space="preserve"><value>You've reached the deep mine. Well done! There's an ore request waiting.</value></data>
+  <data name="Npc_board_keeper_Line_16" xml:space="preserve"><value>Midday. If you're free, look at the board. Many jobs are still unclaimed.</value></data>
   <data name="Device_BlockedText" xml:space="preserve"><value>Nosum is for computers for now. Please open this page on a PC!</value></data>
   <data name="Device_NarrowTitle" xml:space="preserve"><value>Window too narrow</value></data>
   <data name="Device_NarrowText" xml:space="preserve"><value>Please widen your browser window to at least {0} px to play.</value></data>

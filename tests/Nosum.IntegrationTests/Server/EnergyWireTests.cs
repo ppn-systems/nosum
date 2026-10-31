@@ -543,7 +543,7 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
             _subscriptions =
             [
                 session.On<EnergyChanged>(p => this.Energy.Add(new EnergyChanged { Energy = p.Energy, MaxEnergy = p.MaxEnergy })),
-                session.On<SkillXpChanged>(p => this.Xp.Add(new SkillXpChanged { FarmingXp = p.FarmingXp, ForagingXp = p.ForagingXp, MiningXp = p.MiningXp })),
+                session.On<SkillXpChanged>(p => this.Xp.Add(new SkillXpChanged { FarmingXp = p.FarmingXp, ForagingXp = p.ForagingXp, MiningXp = p.MiningXp, FishingXp = p.FishingXp })),
                 session.On<LevelUp>(p => this.Levels.Add(new LevelUp { Skill = p.Skill, Level = p.Level })),
             ];
         }

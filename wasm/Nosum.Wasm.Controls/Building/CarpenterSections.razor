@@ -16,6 +16,8 @@
             </GameRow>
         }
     </GameSection>
+    @if (ShowAnimals)
+    {
     <GameSection Title="@Vm.Text("Carpenter_Animals")">
         @{
             IReadOnlyList<AnimalOffer> offers = Vm.Offers;
@@ -39,8 +41,14 @@
             }
         }
     </GameSection>
+    }
     @if (Vm.Status.Length > 0)
     {
         <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />
     }
 </div>
+
+@code {
+    /// <summary>Whether the animal section shows. The carpenter's Buy page leaves it out: with the buildings it would not fit a 1280×720 panel, and the Build page has it (ADR-080 D5).</summary>
+    [Parameter] public bool ShowAnimals { get; set; } = true;
+}

@@ -5,7 +5,8 @@
                               | center (the game menu)  |
                               | bottom-center (key strip, message, hotbar) |
 
-   Overlay is above everything (dialogs) and dims the screen. The HUD itself never takes the mouse; only the controls in it do. *@
+   Overlay is above everything (dialogs) and dims the screen. The HUD itself never takes the mouse; only the controls in it do.
+   The regions and their contents are in docs/design/ui-standard.md section 2. *@
 <div class="game-hud">
     <div class="hud-backdrop"></div>
     <div class="hud-row hud-top">
@@ -20,6 +21,7 @@
         <div class="hud-region hud-bottom-center">@BottomCenter</div>
     </div>
     <div class="hud-bottom-left">@BottomLeft</div>
+    <div class="hud-bottom-right">@BottomRight</div>
     <div class="hud-overlay">@Overlay</div>
 </div>
 
@@ -41,6 +43,9 @@
 
     /// <summary>Bottom-left corner (the chat line).</summary>
     [Parameter] public RenderFragment? BottomLeft { get; set; }
+
+    /// <summary>Bottom-right corner (the emote button and, on a touch screen, the action button).</summary>
+    [Parameter] public RenderFragment? BottomRight { get; set; }
 
     /// <summary>Above everything: dialogs and forms that need an answer. Null when there is none.</summary>
     [Parameter] public RenderFragment? Overlay { get; set; }

@@ -8,7 +8,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Nosum.Contracts.Season.S2C;
 using Nosum.Gameplay.Calendar;
+using Nosum.Contracts.Dev.C2S;
+using Nosum.Contracts.Dev.S2C;
 using Nosum.Wasm.Socket.Calendar;
+using Nosum.Wasm.Socket.Dev;
 using Nosum.Wasm.ViewModels.Calendar;
 using Nosum.Wasm.ViewModels.Resources;
 using Xunit;
@@ -88,6 +91,36 @@ public sealed class SeasonBannerViewModelTests
         serverNow = summerNow;
         channel.Load();
 
+        turns.Should().Equal(Season.Summer);
+        banner.Message.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void DevSeason_MovesTheServerClock_AndTheSeasonTurnsWithoutAReload()
+    {
+        // Regression for issue #248: the client read the clock offset once at sign-in, so a server clock jump (DevSeason, ADR-079)
+        // left the calendar label and the banner on the old season.
+        GameCalendar calendar = GameCalendar.Default;
+        long serverNow = calendar.EpochMs + calendar.DayLengthMs;
+        long summerNow = calendar.EpochMs + calendar.SeasonLengthMs + calendar.DayLengthMs;
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new CalendarInfo { EpochMs = calendar.EpochMs, DayLengthMs = calendar.DayLengthMs, ServerNowMs = serverNow });
+        socket.ReplyWith<DevSeasonResult>(_ =>
+        {
+            serverNow = summerNow;
+            return new DevSeasonResult { Ok = true };
+        });
+        CalendarChannel channel = new(socket);
+        using CalendarViewModel widget = new(channel, Localizer<Language>());
+        using SeasonBannerViewModel banner = new(widget, Localizer<Language>());
+        List<Season> turns = [];
+        widget.SeasonChanged += turns.Add;
+        channel.Load();
+        widget.Season.Should().Be(Season.Spring);
+
+        new DevChannel(socket, channel).Season(1);
+
+        widget.Season.Should().Be(Season.Summer);
         turns.Should().Equal(Season.Summer);
         banner.Message.Should().NotBeNullOrEmpty();
     }

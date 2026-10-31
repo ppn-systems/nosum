@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Pets;
 using Nosum.Abstractions.Progress;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Pet;
 using Nosum.Domain.Pets;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Pets;
+using Nosum.Gameplay.Quests;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Pets;
 
@@ -28,14 +31,17 @@ public sealed class PetService : IPetService
     private readonly TimeProvider _time;
     private readonly StripedAsyncLock _locks = new();
     private readonly ConcurrentDictionary<Guid, PetLook> _looks = new();
+    private readonly IQuestService? _quests;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
     /// <param name="progress">Applies the petting's energy bonus.</param>
     /// <param name="calendar">The game calendar: the day a pet was last petted.</param>
     /// <param name="time">The clock; tests pass a fake one.</param>
-    public PetService(IUnitOfWorkFactory unitOfWork, IPlayerProgress progress, GameCalendar calendar, TimeProvider time)
+    /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
+    public PetService(IUnitOfWorkFactory unitOfWork, IPlayerProgress progress, GameCalendar calendar, TimeProvider time, IQuestService? quests = null)
     {
+        _quests = quests;
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(progress);
         ArgumentNullException.ThrowIfNull(calendar);
@@ -95,6 +101,7 @@ public sealed class PetService : IPetService
                 unit.Repository<PlayerPet>().Add(row);
                 _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 _looks[playerId] = new PetLook(kind, clean);
+                await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.PetAdopted, kind), cancellationToken).ConfigureAwait(false);
                 return View(PetStatus.Ok, row, this.Today());
             }
         }
