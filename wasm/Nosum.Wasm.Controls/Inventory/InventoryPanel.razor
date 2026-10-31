@@ -31,7 +31,7 @@
                     <div class="inv-hand-text">
                         <p class="hand-title"><span class="hand-name">@lines[0]</span>@if (lines.Length > 2)
                         {
-                            <span class="hand-stats">@string.Join(" · ", lines, 2, lines.Length - 2)</span>
+                            <span class="hand-stats"> · @string.Join(" · ", lines, 2, lines.Length - 2)</span>
                         }</p>
                         @if (lines.Length > 1)
                         {

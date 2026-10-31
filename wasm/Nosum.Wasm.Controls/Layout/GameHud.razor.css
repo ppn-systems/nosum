@@ -74,9 +74,13 @@
 
 /* The top-right column: row one (the calendar bar of 18 u, with coins, Mail and Settings), then the minimap card and the menu column, all sharing
    the right edge (MapScene.Minimap.cs places the minimap with these numbers). */
+/* Out of the flow, so a tall column never pushes the hotbar row down: the gutter from the top-right corner. */
 .hud-top-right {
-    position: relative;
-    flex: 0 1 auto;
+    position: absolute;
+    top: var(--nosum-gutter);
+    right: var(--nosum-gutter);
+    z-index: 2;
+    display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: calc(var(--u) * 2);
@@ -94,17 +98,31 @@
     height: calc(var(--u) * 18);
 }
 
-/* The menu column: one column of 16 u buttons, at most 8 (the Menu button is the last). */
+/* The menu column: one column of at most 8 cells, the Menu button last. Each cell is a framed 16 u square (the slot sprite) and holds a 14 u button,
+   so every entry has the same size and frame, the Menu button included. */
 .hud-top-right ::deep .hud-menu-column {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: calc(var(--u) * 2);
+    gap: var(--u);
 }
 
-.hud-top-right ::deep .hud-menu-column .game-icon-button {
+.hud-top-right ::deep .hud-menu-item,
+.hud-top-right ::deep .hud-minimap-button {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: calc(var(--u) * 16);
     height: calc(var(--u) * 16);
+    background: var(--nosum-img-slot) center / 100% 100% no-repeat;
+    image-rendering: pixelated;
+}
+
+.hud-top-right ::deep .hud-menu-item .game-icon-button,
+.hud-top-right ::deep .hud-minimap-button .game-icon-button {
+    width: calc(var(--u) * 14);
+    height: calc(var(--u) * 14);
 }
 
 /* The standalone window: centred below the top HUD row so it never overlaps the HUD buttons. */
@@ -154,11 +172,12 @@
     pointer-events: none;
 }
 
-/* Bottom-right: the emote button, above the screen edge and clear of the hotbar's end; a touch screen lifts it above the action button. */
+/* Bottom-right: the emote button beside the gauges, one edge margin (gap-group) above the bottom edge. A touch screen lifts it above the action button
+   (TouchControls.razor.css: the action button stands 8 u up and is 28 u tall). */
 .hud-bottom-right {
     position: fixed;
     right: var(--nosum-gutter);
-    bottom: calc(var(--nosum-gutter) + var(--u) * 40);
+    bottom: calc(var(--nosum-gutter) + var(--nosum-gap-group));
     z-index: 0;
     display: flex;
     flex-direction: column;
@@ -189,6 +208,12 @@
     }
 }
 
+@media (pointer: coarse) {
+    .hud-bottom-right {
+        bottom: calc(var(--u) * 40);
+    }
+}
+
 @media (max-width: 640px) {
     .hud-top {
         flex-wrap: wrap;
@@ -200,7 +225,9 @@
         justify-content: flex-end;
     }
 
+    /* The top-right block is out of the flow now: the quest card starts under its row on a phone. */
     .hud-top-left {
         flex: 1 1 100%;
+        margin-top: calc(var(--u) * 20);
     }
 }

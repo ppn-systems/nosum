@@ -17,7 +17,7 @@
     pointer-events: auto;
 }
 
-/* The collapsed card: one 16 u map button, the width of the column's buttons. */
+/* The collapsed card: one framed map button in the column's place (GameHud.razor.css frames it with the column). */
 .hud-minimap-button {
     display: flex;
     justify-content: flex-end;
