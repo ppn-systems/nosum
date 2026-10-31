@@ -4,6 +4,7 @@ using System;
 using FluentAssertions;
 using Nosum.Contracts.Dev.C2S;
 using Nosum.Contracts.Dev.S2C;
+using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Dev;
 using Xunit;
 
@@ -24,7 +25,7 @@ public sealed class DevChannelTests
             return new DevTeleportResult { Ok = true };
         });
 
-        new DevChannel(socket).Teleport("town", 4, 5);
+        new DevChannel(socket, new CalendarChannel(socket)).Teleport("town", 4, 5);
 
         map.Should().Be("town");
         (tileX, tileY).Should().Be((4, 5));
@@ -41,7 +42,7 @@ public sealed class DevChannelTests
             return new DevSeasonResult { Ok = true };
         });
 
-        new DevChannel(socket).Season(2);
+        new DevChannel(socket, new CalendarChannel(socket)).Season(2);
 
         seasons.Should().Be(2);
     }
@@ -58,7 +59,7 @@ public sealed class DevChannelTests
             return new DevLevelUpResult { Ok = true };
         });
 
-        new DevChannel(socket).LevelUp(4, 6);
+        new DevChannel(socket, new CalendarChannel(socket)).LevelUp(4, 6);
 
         (skill, level).Should().Be((4, 6));
     }
@@ -74,7 +75,7 @@ public sealed class DevChannelTests
             return new DevFishingBiteResult { Ok = true };
         });
 
-        new DevChannel(socket).FishingBite(9);
+        new DevChannel(socket, new CalendarChannel(socket)).FishingBite(9);
 
         cast.Should().Be(9u);
     }
@@ -85,7 +86,7 @@ public sealed class DevChannelTests
         // A Production server never answers: the channel swallows the missing reply, as the grant does.
         FakeGameSocket socket = new();
 
-        Action ask = () => new DevChannel(socket).Teleport("town", 1, 1);
+        Action ask = () => new DevChannel(socket, new CalendarChannel(socket)).Teleport("town", 1, 1);
 
         ask.Should().NotThrow();
     }

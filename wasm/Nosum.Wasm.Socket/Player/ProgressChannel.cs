@@ -25,6 +25,7 @@ public sealed class ProgressChannel : IDisposable
     private int _farmingXp;
     private int _foragingXp;
     private int _miningXp;
+    private int _fishingXp;
 
     /// <summary>Initializes the channel and starts listening for pushes.</summary>
     /// <param name="socket">The game connection.</param>
@@ -64,6 +65,9 @@ public sealed class ProgressChannel : IDisposable
 
     /// <summary>Gets the cumulative mining experience.</summary>
     public int MiningXp => Volatile.Read(ref _miningXp);
+
+    /// <summary>Gets the cumulative fishing experience (docs/adr/ADR-078 amendment).</summary>
+    public int FishingXp => Volatile.Read(ref _fishingXp);
 
     /// <summary>Asks the server to eat the food in a hotbar slot; the answer arrives as <see cref="EatCompleted"/>.</summary>
     /// <param name="slot">Hotbar slot, zero to eight.</param>
@@ -106,6 +110,7 @@ public sealed class ProgressChannel : IDisposable
         Volatile.Write(ref _farmingXp, packet.FarmingXp);
         Volatile.Write(ref _foragingXp, packet.ForagingXp);
         Volatile.Write(ref _miningXp, packet.MiningXp);
+        Volatile.Write(ref _fishingXp, packet.FishingXp);
         this.Changed?.Invoke();
     }
 

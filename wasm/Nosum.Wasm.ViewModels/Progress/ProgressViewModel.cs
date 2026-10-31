@@ -202,6 +202,9 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         this.Describe("Skill_Mining", _progress.MiningXp),
     ];
 
+    /// <summary>Gets the Fishing skill progression display (docs/adr/ADR-078 amendment): the fifth row of the Skills page.</summary>
+    public SkillDisplay FishingSkill => this.Describe("Skill_Fishing", _progress.FishingXp);
+
     /// <summary>Gets the Combat skill progression display.</summary>
     public SkillDisplay CombatSkill => this.Describe("Skill_Combat", _combat?.CombatXp ?? 0);
 
