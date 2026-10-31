@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 using Nosum.Core;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
-using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Placeable;
-using Nosum.Wasm.ViewModels.Inventory;
 
 namespace Nosum.Wasm.Game;
 
@@ -44,12 +42,12 @@ internal sealed class FarmDecorator : IMapDecorator
     private readonly int _cropsTexture;
     private readonly int _cursorTexture;
     private readonly int _markerTexture;
-    private readonly bool _hasMarker;
-    private readonly int _markerX;
-    private readonly int _markerY;
 
-    // The watering can marker is one 16 x 16 icon, drawn above a tile that is thirsty (docs/adr/ADR-021 D7).
-    private const int MarkerSize = 16;
+    // The water drop marker is one 8 x 8 picture, in the top-right corner inside a tile that is thirsty (docs/adr/ADR-021 D7).
+    private const int MarkerSize = 8;
+
+    // The marker bobs one pixel up and down, every 600 ms of server time, so it reads as a hint rather than a fixed label.
+    private const long MarkerBobMs = 600;
     private readonly int _tileSize;
     private readonly CalendarChannel? _calendar;
     private readonly bool _outdoors;
@@ -65,18 +63,14 @@ internal sealed class FarmDecorator : IMapDecorator
     /// <param name="soilTexture">Texture id of <c>soil.png</c>.</param>
     /// <param name="cropsTexture">Texture id of <c>crops.png</c>.</param>
     /// <param name="cursorTexture">Texture id of the 16 x 16 target cursor.</param>
-    /// <param name="markerTexture">Texture id of <c>tools.png</c>, which holds the watering can marker.</param>
+    /// <param name="markerTexture">Texture id of <c>drop.png</c>, the 8 x 8 water drop that marks a thirsty tile.</param>
     /// <param name="tileSize">Map tile size, pixels.</param>
     /// <param name="calendar">The server calendar: it tells the game day, which decides growth, wet soil and withering (docs/adr/ADR-018, ADR-021 D7). Without it nothing grows on screen.</param>
     /// <param name="outdoors">Whether the map is outdoors, where rain waters the soil and the crops (docs/adr/ADR-027 D2).</param>
     /// <param name="placed">The placed pieces mirror: a sprinkler beside a tile waters it every day (docs/adr/ADR-024), so the soil and the crop show it.</param>
     public FarmDecorator(string mapId, FarmChannel farm, PlayerActions actions, int soilTexture, int cropsTexture, int cursorTexture, int markerTexture, int tileSize, CalendarChannel? calendar = null, bool outdoors = true, PlaceableChannel? placed = null)
     {
-        // The thirsty marker is the watering can's own icon from tools.png, so it needs no art of its own (docs/adr/ADR-007).
         _markerTexture = markerTexture;
-        _hasMarker = ItemIcons.TryGetIcon(ItemCatalog.WateringCan, out ItemIcon icon);
-        _markerX = icon?.X ?? 0;
-        _markerY = icon?.Y ?? 0;
         _placed = placed;
         _outdoors = outdoors;
         _calendar = calendar;
@@ -172,7 +166,7 @@ internal sealed class FarmDecorator : IMapDecorator
                 {
                     if (FarmRules.IsAtRisk(tile, _nowMs, rules, _outdoors, sinceMs))
                     {
-                        this.AddMarker(world, worldX, (info.Y * _tileSize) - MarkerSize, info.Y);
+                        this.AddMarker(world, worldX, info.Y);
                     }
 
                     continue;
@@ -194,22 +188,19 @@ internal sealed class FarmDecorator : IMapDecorator
 
                 if (thirsty)
                 {
-                    this.AddMarker(world, worldX, worldY - MarkerSize, info.Y);
+                    this.AddMarker(world, worldX, info.Y);
                 }
             }
         }
     }
 
     // When the first placed sprinkler that waters the tile was placed, or null (SprinklerRules.WateredSinceMs, read from the mirror without allocating).
-    // Draws the watering can above a thirsty tile; it sorts with the tile it marks, so a farmer standing in front of it is drawn over it.
-    private void AddMarker(WorldSpriteBatch world, int worldX, int markerY, int tileY)
+    // Draws the water drop in the top-right corner inside a thirsty tile. It sorts just after the tile's own centre, so it is drawn over the crop it marks
+    // and under anything standing lower on the screen (players and NPCs in the tiles below, or whose feet are lower), never over them.
+    private void AddMarker(WorldSpriteBatch world, int worldX, int tileY)
     {
-        if (!_hasMarker)
-        {
-            return;
-        }
-
-        world.Add(_markerTexture, _markerX, _markerY, MarkerSize, MarkerSize, worldX, markerY, (tileY * _tileSize) + (_tileSize / 2) + 1, worldX);
+        int worldY = (tileY * _tileSize) + (((_nowMs / MarkerBobMs) & 1) == 0 ? 0 : -1);
+        world.Add(_markerTexture, 0, 0, MarkerSize, MarkerSize, worldX + _tileSize - MarkerSize, worldY, (tileY * _tileSize) + (_tileSize / 2) + 1, worldX);
     }
 
     private long? SprinklerSinceMs(int tileX, int tileY)
@@ -286,7 +277,7 @@ internal sealed class FarmDecoratorProvider : IMapDecoratorProvider
             textures.LoadAsync(SpritesUrl + "soil.png"),
             textures.LoadAsync(SpritesUrl + "crops.png"),
             textures.LoadAsync(TargetCursor.DataUrl),
-            textures.LoadAsync(SpritesUrl + "tools.png")).ConfigureAwait(false);
+            textures.LoadAsync(SpritesUrl + "drop.png")).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         return new FarmDecorator(spec.Id, _farm, _actions, ids[0], ids[1], ids[2], ids[3], map.TileWidth, _calendar, !spec.Indoors, _placed);
     }
