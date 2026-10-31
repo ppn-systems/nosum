@@ -1,5 +1,5 @@
-/* The start screen: one frame of the game itself (signin_background.png, a daytime capture of the farmhouse yard, docs/qa/signin/source), under a 15 %
-   cream veil so the window reads over it. The frame covers the screen; the pixels stay as the game drew them. */
+/* The start screen: the sign-in backdrop (signin_background.png, the original sky and sea re-graded brighter and softer, art/own/ui), under a
+   15 % cream veil and covering the screen. */
 .start-screen {
     position: fixed;
     inset: 0;

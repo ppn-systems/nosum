@@ -1,4 +1,4 @@
-"""Re-grades the original sky-and-sea start art into a brighter, softer backdrop: art/own/ui/signin_sky_soft.png (candidate B).
+"""Re-grades the original sky-and-sea start art into the sign-in backdrop, art/own/ui/signin_background.png (chosen by the owner over a game capture).
 
 Input: the original start_background.png (1500 x 520, Nosum's own art, drawn by tools/art_repack/ui.py; kept in git history at d2a3652). The
 re-grade lowers saturation, lifts the shadows and blends toward a pale sky, so the blues are lighter and the contrast is lower. The geometry is unchanged.
@@ -13,7 +13,7 @@ import sys
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-OUT = os.path.join(ROOT, "art", "own", "ui", "signin_sky_soft.png")
+OUT = os.path.join(ROOT, "art", "own", "ui", "signin_background.png")
 SATURATION = 0.55  # keep 55 % of the colour
 LIFT = 0.80  # gamma below 1 lifts the shadows
 BLEND = 0.30  # share of pale sky mixed in

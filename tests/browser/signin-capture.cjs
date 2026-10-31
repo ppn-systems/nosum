@@ -28,7 +28,6 @@ async function routeRepoAssets(page) {
     let file;
     const name = pathname.slice('/_content/Nosum.Wasm.Controls/ui/'.length);
     if (pathname.startsWith('/assets/')) file = path.join(REPO, 'assets', pathname.slice('/assets/'.length));
-    else if (name === 'signin_background.png' && process.env.NOSUM_QA_BACKGROUND === 'B') file = path.join(REPO, 'art/own/ui/signin_sky_soft.png');
     else file = path.join(REPO, name === 'signin_background.png' ? 'art/own/ui' : 'assets/ui', name);
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) return route.fallback();
     return route.fulfill({ status: 200, body: fs.readFileSync(file), contentType: MIME[path.extname(file)] || 'application/octet-stream' });

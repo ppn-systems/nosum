@@ -2,16 +2,7 @@
 
 One entry per file or group of files, as [ADR-004](../../docs/adr/ADR-004-pixel-art-assets.md) D2 asks.
 
-## `ui/signin_background.png` (candidate A, the sign-in backdrop)
-
-One frame of the game: the farmhouse door yard of the own farm map, daytime, with the HUD, the minimap, the tutorial and the player's name tag hidden (the player's `names` setting off). Captured by `tests/browser/signin-yard-capture.cjs` from a local server and client; the frame is Nosum's own render of its own art.
-
-| Field | Value |
-| :-- | :-- |
-| Made by | Nosum: a capture of the running game (`tests/browser/signin-yard-capture.cjs`) |
-| License | Nosum's own art (ADR-004). |
-
-## `ui/signin_sky_soft.png` (candidate B, not wired by default)
+## `ui/signin_background.png` (the sign-in backdrop)
 
 The original start-screen art (`start_background.png`, sky and sea, kept in git history at d2a3652) re-graded to lower saturation, lifted shadows and a pale blend (`tools/art_repack/signin_sky_regrade.py`). Geometry unchanged.
 

@@ -1,7 +1,8 @@
+/* 120 u, but never wider than 400 px: Google's button stops at 400 px, and both provider buttons share one width. */
 .account-form {
     display: block;
     width: calc(var(--u) * 120);
-    max-width: 100%;
+    max-width: min(100%, 400px);
 }
 
 .account-form ::deep .game-stack {
@@ -18,7 +19,12 @@
     width: 100%;
 }
 
-/* The slot Google's button is drawn into: Google sizes its button to the slot's width (external-sign-in.js), and centres it in the 41 px height. */
+/* The slot Google's button is drawn into: Google sizes its button to the slot's width (external-sign-in.js), and centres it in the 41 px height.
+   The page's pixel font sets a 11 px line height, which Google's label inherits and clips at its bottom; Google's button assumes the normal line height. */
+.account-google ::deep * {
+    line-height: normal !important;
+}
+
 .account-google {
     display: flex;
     align-items: center;

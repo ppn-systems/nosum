@@ -28,10 +28,10 @@ wooden button frame, while each provider asks for its own look.
    then a logout) and forgets the record either way. Signing out from the game does the same locally.
 6. **Storage that refuses is not an error.** A browser that blocks `localStorage` reads as "nothing remembered", and a write that fails is ignored;
    the sign-in still works for the visit.
-7. **Start screen.** The backdrop is one frame of the game itself (`art/own/ui/signin_background.png`): the farmhouse yard of the farm
-   map, daytime in spring, captured with the HUD, the minimap, the tutorial and the name tags hidden (`tests/browser/signin-yard-capture.cjs`). It
-   sits under a 15 % cream veil and covers the screen. A brighter re-grade of the original sky art is kept as `art/own/ui/signin_sky_soft.png`
-   (candidate B, not wired; `tools/art_repack/signin_sky_regrade.py`). The title and tagline sit on a dark plaque. The window keeps the shared `GamePanel`.
+7. **Start screen.** The backdrop is `art/own/ui/signin_background.png`: the original sky-and-sea art (docs/adr/ADR-017) re-graded by
+   `tools/art_repack/signin_sky_regrade.py` to lower saturation, lifted shadows and a pale blend, so the blues are lighter and the contrast lower.
+   It sits under a 15 % cream veil and covers the screen. The title and tagline sit on a dark plaque. The window keeps the shared `GamePanel`.
+   A game capture of the farm yard was tried and set aside by the owner (docs/qa/signin/bg-a-*.png).
 8. **Provider buttons are not framed, and a provider that is off has no button.** Google's button is Google Identity Services' own (outline,
    large, rectangular, left logo) at the width of its slot. Microsoft's is drawn to its official spec: 41 px high, white, a 1 px #8C8C8C edge, at most
    2 px corners, the 21 px mark 12 px from the left, Segoe UI 15 px weight 600 #5E5E5E. Both are the same width, stacked with an 8 px gap, inside the
