@@ -188,9 +188,9 @@ internal sealed partial class SocialClient : IAsyncDisposable
     }
 
     /// <summary>Sends a walk claim (docs/adr/ADR-008). A refused claim is answered with a correction in <see cref="Corrections"/>.</summary>
-    public async Task SendMoveAsync(uint sequence, float x, float y, CancellationToken ct)
+    public async Task SendMoveAsync(uint sequence, float x, float y, CancellationToken ct, bool running = false)
     {
-        using MoveIntent intent = new() { Sequence = sequence, X = x, Y = y, Facing = 1, Moving = true };
+        using MoveIntent intent = new() { Sequence = sequence, X = x, Y = y, Facing = 1, Moving = true, Running = running };
         await _session.SendAsync(intent, ct);
     }
 

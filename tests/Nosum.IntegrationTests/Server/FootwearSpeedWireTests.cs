@@ -91,33 +91,59 @@ public sealed class FootwearSpeedWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task WithWingedBootsAndTheSpeedTonic_TheServerAcceptsTheCapAndRefusesAboveIt()
+    public async Task WithWingedBootsAndTheSpeedTonic_WalkingTopsOutAt1Point5()
     {
         await using Server server = await Server.StartAsync(_database);
         await using SocialClient player = await SocialClient.ConnectAsync(server.Port, server.Token);
         JoinMapResult join = await player.JoinAsync(server.Token);
         await WearAsync(player, ItemCatalog.WingedBoots, server.Token);
 
-        // The tonic is a Swiftness draught (+25%): with winged boots (+20%) the combined multiplier reaches the hard cap, 1.5.
+        // The tonic is a Swiftness draught (+25%): with winged boots (+20%) walking reaches 1.5, the highest walking stack. Only running goes past it.
         (await player.GrantAsync(ItemCatalog.SpeedTonic, 1, 0, server.Token)).Should().BeTrue();
         (await player.DrinkPotionAsync(await player.SlotOfAsync(ItemCatalog.SpeedTonic, server.Token), server.Token)).Should().Be(CombatStatus.Ok);
 
-        await WalkAsync(server, player, join, MovementSpeed.MaxFactor);
-        (await CorrectionsAsync(player, server.Token)).Should().BeEmpty("the cap is the boosted pace the server allows");
+        await WalkAsync(server, player, join, 1.5);
+        (await CorrectionsAsync(player, server.Token)).Should().BeEmpty("walking at the boosted stack is accepted");
 
-        // Above the cap the server refuses, whatever the client claims.
-        await WalkAsync(server, player, join, 1.8);
+        // Walking at the running pace (1.8) is refused: the run factor is what the cap is raised for.
+        await WalkAsync(server, player, join, MovementSpeed.MaxFactor);
+        (await CorrectionsAsync(player, server.Token)).Should().Contain(c => c.Reason == MoveRefusal.TooFast);
+    }
+
+    [Fact]
+    public async Task WithWingedBoots_ARunAtTheCapIsAccepted()
+    {
+        await using Server server = await Server.StartAsync(_database);
+        await using SocialClient player = await SocialClient.ConnectAsync(server.Port, server.Token);
+        JoinMapResult join = await player.JoinAsync(server.Token);
+        await WearAsync(player, ItemCatalog.WingedBoots, server.Token);
+
+        // Winged boots (1.20) times the run factor (1.5) is 1.8, the cap: boots still matter while running, so the pace is accepted.
+        await WalkAsync(server, player, join, MovementSpeed.MaxFactor, running: true);
+        (await CorrectionsAsync(player, server.Token)).Should().BeEmpty("the boots and the run together give the cap");
+    }
+
+    [Fact]
+    public async Task WithWingedBoots_ARunAboveTheCapIsRefused()
+    {
+        await using Server server = await Server.StartAsync(_database);
+        await using SocialClient player = await SocialClient.ConnectAsync(server.Port, server.Token);
+        JoinMapResult join = await player.JoinAsync(server.Token);
+        await WearAsync(player, ItemCatalog.WingedBoots, server.Token);
+
+        // Above the cap the server refuses a run, whatever the client claims.
+        await WalkAsync(server, player, join, 2.0, running: true);
         (await CorrectionsAsync(player, server.Token)).Should().Contain(c => c.Reason == MoveRefusal.TooFast);
     }
 
     // Walks back and forth between two points, each claim covering pace × walking speed × step seconds, advancing the fake clock between claims.
-    private static async Task WalkAsync(Server server, SocialClient player, JoinMapResult join, double pace)
+    private static async Task WalkAsync(Server server, SocialClient player, JoinMapResult join, double pace, bool running = false)
     {
         double distance = pace * Walker.Speed * s_step.TotalSeconds;
         for (int step = 1; step <= Steps; step++)
         {
             float x = join.SpawnX + (step % 2 == 0 ? 0 : (float)distance);
-            await player.SendMoveAsync((uint)step, x, join.SpawnY, server.Token);
+            await player.SendMoveAsync((uint)step, x, join.SpawnY, server.Token, running);
 
             // Real time between claims: the validator refills the budget from the server's clock, and the server rate-limits bursts.
             await Task.Delay(s_step, server.Token);

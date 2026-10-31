@@ -41,9 +41,9 @@ shirt, pants and hat; the feet are the missing slot.
 `ItemDefinition.MoveSpeedPercent` carries the bonus. `MovementSpeed.FootwearFactor(itemId)` reads it (1 for no boots and for any item
 that is not worn on the feet). No code path names a boot to decide its speed.
 
-### D3. One combined multiplier, clamped
+### D3. One combined multiplier, clamped (cap raised in amendment 2)
 
-`MovementSpeed.Combine(footwear, buff, run)` returns `clamp(footwear × buff × run, 1, MaxFactor)` with `MaxFactor = 1.5`. The server and
+`MovementSpeed.Combine(footwear, buff, run)` returns `clamp(footwear × buff × run, 1, MaxFactor)` with `MaxFactor = 1.8` (amendment 2; was 1.5). The server and
 the client call the same function (`MovementSpeed.For(feetItemId, buff, run)`), so the factor the validator uses is the factor the walker
 walks at.
 
@@ -53,10 +53,10 @@ walks at.
 - `MoveValidator.Validate` keeps its `speedFactor` parameter: the budget earns `MaxBudgetSeconds × Speed × factor` and each claim spends its
   distance. A claim above the cap is refused as `TooFast` with a correction (docs/adr/ADR-008).
 - The client walker (`MapScene`) passes `MovementSpeed.For(worn boots of the local look, the buff in the client's vitals)`.
-- `run` is the running multiplier. It is `1` until running is in effect. The running feature (a separate branch) passes its factor into the
-  same function and the same cap; it does not add a second multiplier.
+- `run` is the running multiplier. It is `1` until running is in effect. Running (ADR-085) passes its factor into the same function and the
+  same cap; it does not add a second multiplier.
 
-The cap is the hard limit on any stack of sources. Winged boots with Swiftness reach it exactly (1.20 × 1.25 = 1.5).
+The cap is the hard limit on any stack of sources. Walking, the highest stack is winged boots with Swiftness (1.20 × 1.25 = 1.5).
 
 ### D4. The speed tonic uses the Swiftness buff
 
@@ -72,8 +72,7 @@ the request asked for no second speed buff. The tonic is recipe-crafted at Comba
 ### D5. Running energy saved by footwear
 
 `ItemDefinition.RunEnergySavePercent` (Swift 20%, Winged 30%) and `FootwearRules.RunEnergyCost(baseCost, feetItemId)` give the energy a run
-costs with the boots on. Nothing consumes it on master, since running is not on master. The running feature calls this function when it
-charges energy; until then the saving has no effect in the game and the tooltip does not claim one.
+costs with the boots on. `PlayerService` calls it for every run charge (ADR-085 D2, amendment 2 here).
 
 ### D6. Protocol and persistence
 
@@ -95,11 +94,33 @@ charges energy; until then the saving has no effect in the game and the tooltip 
   corrections are unchanged.
 - **ADR-049 (armour)**: a Feet slot joins Shirt, Pants and Hat in the wardrobe. Boots grant no defense.
 
+## Amendment 2: the cap, and running with boots (2026-10-31)
+
+Running (ADR-085) multiplies the walking speed by 1.5. With the cap at 1.5, the boots were clamped away the moment the farmer ran: the product
+`1.05 × 1.5` and `1.20 × 1.5` both came out at 1.5, so running made the boots and the tonic useless (the owner's report). Two changes:
+
+- **`MovementSpeed.MaxFactor` 1.5 → 1.8.** Winged boots while running (1.20 × 1.5) reach it exactly. Walking never reaches the new cap: the
+  highest walking stack is winged boots with Swiftness (1.20 × 1.25 = 1.5), so walking speed is unchanged for every combination.
+- **The footwear × buff product is not clamped before the run factor.** `MovementSpeed.Product(feetItemId, buff)` returns the unclamped product.
+  `RunRules.SpeedMultiplier(product, running)` multiplies by the run factor and clamps once. The presence stores the product
+  (`PlayerPresence.MoveSpeedProduct`) and the client walker (`MapScene`) passes `MovementSpeed.Product`, so both the server and the client go through
+  that one function. Clamping the product first would have capped the boots again, one step earlier.
+
+Running pace by boots, with no tonic: leather 1.575, traveler 1.65, swift 1.725, winged 1.80. Each tier is distinct while running.
+
+**Known limit.** A tonic (Swiftness, 1.25) reaches the cap with any boots while running (leather 1.05 × 1.25 × 1.5 = 1.97, clamped to 1.8). So
+while running with the tonic the boots no longer differ, and the tonic alone (1.25 × 1.5 = 1.875) already reaches the cap. The request asked for
+1.8; a cap of about 2.0 would keep the boots distinct under the tonic too. That is one constant to change if the owner wants it, and the tests
+read `MovementSpeed.MaxFactor`.
+
+No opcode or packet changed; the protocol version stays at 27 (ADR-085).
+
 ## Consequences
 
 - Speed has one source of truth on the server and on the client. A new source adds an item field or a buff entry and goes through
   `MovementSpeed.Combine`; it never edits the validator.
-- The cap bounds every stack of speed. Winged boots with Swiftness are the fastest a player can walk.
+- The cap bounds every stack of speed. Winged boots with Swiftness are the fastest a player can walk (1.5); running with winged boots is the
+  fastest a player can go (1.8).
 - The presence now holds the footwear mirror, which the join and the look change keep current. A player who logs in with boots walks with
   them from the first move.
 - The tonic lasts 90 real minutes at the default day length. This follows the request's "three game hours" literally; the owner may prefer a
@@ -115,5 +136,5 @@ charges energy; until then the saving has no effect in the game and the tooltip 
 
 ## Revisit when
 
-- Running (the sprint feature) lands: it passes its factor into `MovementSpeed.For` and charges energy through `FootwearRules.RunEnergyCost`.
+- Running changes the cap or the boots' values: the single constant is `MovementSpeed.MaxFactor`.
 - The tonic duration or the boots' prices need balancing against the economy: adjust the constants and the catalogue, not the rules.

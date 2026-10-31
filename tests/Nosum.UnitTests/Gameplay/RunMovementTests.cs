@@ -3,6 +3,7 @@
 using System;
 using FluentAssertions;
 using Nosum.Core;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Movement;
 using Xunit;
 
@@ -18,65 +19,88 @@ public sealed class RunMovementTests
     [InlineData(1, false, 1)]
     [InlineData(1, true, 1.5)]
     [InlineData(1.25, true, MovementSpeed.MaxFactor)] // 1.875 before the shared cap (docs/adr/ADR-084 D3)
-    [InlineData(1.25, false, 1.25)]
+    [InlineData(1.2, true, 1.8)] // winged boots while running reach the cap exactly (docs/adr/ADR-084 amendment)
+    [InlineData(1.2, false, 1.2)]
+    [InlineData(1.5, false, 1.5)]
     public void SpeedMultiplier_RunsOnTopOfBuffsUpToTheCap(double buff, bool running, double expected)
         => RunRules.SpeedMultiplier(buff, running).Should().BeApproximately(expected, 1e-9);
 
     [Fact]
     public void TakeEnergy_OneUnitEveryFourRunningSeconds()
     {
-        double debt = 0;
+        int debt = 0;
         int spent = 0;
 
         for (int i = 0; i < 7; i++)
         {
-            spent += RunRules.TakeEnergy(ref debt, 0.5);
+            spent += RunRules.TakeEnergy(ref debt, RunRules.BaseCostMilli(0.5));
         }
 
         spent.Should().Be(0, "3.5 seconds of running cost nothing yet");
-        RunRules.TakeEnergy(ref debt, 0.5).Should().Be(1, "four seconds of running cost one energy");
+        RunRules.TakeEnergy(ref debt, RunRules.BaseCostMilli(0.5)).Should().Be(1, "four seconds of running cost one energy");
     }
 
     [Fact]
     public void TakeEnergy_LongIdleGap_ChargesOnlyTheRunningWindow()
     {
         // A player who stood still for half a minute and then starts running owes for the window of the move, not for the idle time.
-        double debt = 0;
+        int debt = 0;
 
-        RunRules.TakeEnergy(ref debt, 30).Should().Be(0);
-        debt.Should().BeApproximately(RunRules.MaxChargedSeconds * RunRules.EnergyPerSecond, 1e-9);
+        RunRules.BaseCostMilli(30).Should().Be(RunRules.BaseCostMilli(RunRules.MaxChargedSeconds));
+        RunRules.TakeEnergy(ref debt, RunRules.BaseCostMilli(30)).Should().Be(0);
+        debt.Should().Be(RunRules.BaseCostMilli(RunRules.MaxChargedSeconds));
     }
 
     [Fact]
     public void TakeEnergy_SplitTimeSpendsTheSameAsOneLongRun()
     {
-        double whole = 0;
-        double split = 0;
+        int whole = 0;
+        int split = 0;
 
         int wholeSpent = 0;
         for (int i = 0; i < 80; i++)
         {
-            wholeSpent += RunRules.TakeEnergy(ref whole, 0.5);
+            wholeSpent += RunRules.TakeEnergy(ref whole, RunRules.BaseCostMilli(0.5));
         }
 
         int splitSpent = 0;
         for (int i = 0; i < 400; i++)
         {
-            splitSpent += RunRules.TakeEnergy(ref split, 0.1);
+            splitSpent += RunRules.TakeEnergy(ref split, RunRules.BaseCostMilli(0.1));
         }
 
         wholeSpent.Should().Be(10);
-        // Summed in 0.1 s steps the floating-point debt can land a hair under a whole unit, so the last one may wait for the next step.
-        splitSpent.Should().BeInRange(wholeSpent - 1, wholeSpent, "fractions carry over, so the cost does not depend on how the time is split");
+        splitSpent.Should().Be(wholeSpent, "milli-units carry over exactly, so the cost does not depend on how the time is split");
     }
 
     [Fact]
     public void TakeEnergy_NegativeTimeCostsNothing()
     {
-        double debt = 0;
+        int debt = 0;
 
-        RunRules.TakeEnergy(ref debt, -5).Should().Be(0);
+        RunRules.BaseCostMilli(-5).Should().Be(0);
+        RunRules.TakeEnergy(ref debt, RunRules.BaseCostMilli(-5)).Should().Be(0);
         debt.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(ItemCatalog.LeatherBoots, 5)]
+    [InlineData(ItemCatalog.SwiftBoots, 4)]
+    [InlineData(ItemCatalog.WingedBoots, 3)]
+    [InlineData(0, 5)]
+    public void RunEnergy_TwentySecondsOfRunningCostsLessInBetterBoots(int feetItemId, int expectedUnits)
+    {
+        // Forty 0.5 s calls: the base cost is 5 energy; the boots take their share off each call before the whole units are spent (docs/adr/ADR-084 D5).
+        int debt = 0;
+        int spent = 0;
+
+        for (int i = 0; i < 40; i++)
+        {
+            int costMilli = FootwearRules.RunEnergyCost(RunRules.BaseCostMilli(0.5), feetItemId);
+            spent += RunRules.TakeEnergy(ref debt, costMilli);
+        }
+
+        spent.Should().Be(expectedUnits);
     }
 
     [Fact]
