@@ -979,6 +979,12 @@
   <data name="Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
   <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Không đủ MP để thi triển phép!</value></data>
+  <data name="Combat_Refused_OnCooldown" xml:space="preserve"><value>Kỹ năng này vẫn đang hồi, chưa thể thi triển!</value></data>
+  <data name="Combat_Refused_OutOfRange" xml:space="preserve"><value>Mục tiêu ở quá xa để thi triển!</value></data>
+  <data name="Combat_Refused_AlreadyFull" xml:space="preserve"><value>Máu đã đầy, không cần hồi phục!</value></data>
+  <data name="Combat_Refused_UnknownMonster" xml:space="preserve"><value>Mục tiêu không còn ở đây!</value></data>
+  <data name="Combat_Refused_UnknownSkill" xml:space="preserve"><value>Kỹ năng này không tồn tại!</value></data>
+  <data name="Combat_Refused_NotJoined" xml:space="preserve"><value>Hãy vào bản đồ trước khi thi triển kỹ năng!</value></data>
   <data name="Combat_KnockedOut" xml:space="preserve"><value>Bạn đã kiệt sức và được đưa về Nhà nông trại với lượng máu yếu!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Kỹ năng chiến đấu</value></data>
   <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Xoay kiếm</value></data>

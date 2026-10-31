@@ -979,6 +979,12 @@
   <data name="Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
   <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Not enough MP to cast!</value></data>
+  <data name="Combat_Refused_OnCooldown" xml:space="preserve"><value>That skill is still recharging!</value></data>
+  <data name="Combat_Refused_OutOfRange" xml:space="preserve"><value>The target is out of reach!</value></data>
+  <data name="Combat_Refused_AlreadyFull" xml:space="preserve"><value>Your health is already full!</value></data>
+  <data name="Combat_Refused_UnknownMonster" xml:space="preserve"><value>That target is no longer here!</value></data>
+  <data name="Combat_Refused_UnknownSkill" xml:space="preserve"><value>That skill does not exist!</value></data>
+  <data name="Combat_Refused_NotJoined" xml:space="preserve"><value>Join a map before casting a skill!</value></data>
   <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and carried back to the Farmhouse with low HP!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Combat skills</value></data>
   <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Whirlwind</value></data>

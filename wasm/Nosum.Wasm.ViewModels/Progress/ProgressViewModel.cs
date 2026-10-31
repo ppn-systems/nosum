@@ -325,8 +325,9 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     public bool IsSkillCoolingDown(byte skillId) => this.GetSkillCooldown(skillId) > 0f;
 
     /// <summary>
-    /// Gets the inline style that starts a combat skill's cooldown sweep: the skill's full cooldown in milliseconds, so the overlay runs from full to empty
-    /// in the time the server enforces. Empty when the skill is ready.
+    /// Gets the inline style that starts a combat skill's cooldown sweep: the length of the cooldown the server started, in milliseconds, so the overlay
+    /// runs from full to empty exactly when the server's cooldown ends (the full cooldown after a cast, the time left after a refusal as cooling down).
+    /// Empty when the skill is ready.
     /// </summary>
     /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
     /// <returns>A CSS custom property declaration, or an empty string.</returns>
@@ -337,7 +338,13 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
             return string.Empty;
         }
 
-        return string.Create(CultureInfo.InvariantCulture, $"--cd-ms:{def.CooldownMs}ms");
+        int spanMs = _combat?.GetSkillCooldownSpanMs(skillId) ?? 0;
+        if (spanMs <= 0)
+        {
+            spanMs = def.CooldownMs;
+        }
+
+        return string.Create(CultureInfo.InvariantCulture, $"--cd-ms:{spanMs}ms");
     }
 
     /// <summary>Gets whether a combat skill is ready to cast (off cooldown and sufficient MP).</summary>
