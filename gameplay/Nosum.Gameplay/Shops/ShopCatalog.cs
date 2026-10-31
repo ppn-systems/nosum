@@ -17,7 +17,7 @@ public readonly record struct ShopOffer(int ItemId, int CoinsEach, SeasonSet? So
 /// <summary>
 /// A shop: a stable id (the only shop name that crosses the wire), a stable key (localization entry <c>shop.&lt;key&gt;.name</c>) and
 /// its price list. Where a shop stands is data of the map (<c>MapSpec.Shops</c>), so another shop is one more catalogue entry and
-/// one more map point. Prices are balance data, banded by docs/adr/ADR-080 and docs/design/economy.md.
+/// one more map point. Prices are balance data, banded by docs/adr/ADR-081 and docs/design/economy.md.
 /// </summary>
 public sealed class ShopDefinition
 {
