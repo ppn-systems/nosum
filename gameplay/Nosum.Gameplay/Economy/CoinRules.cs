@@ -6,8 +6,8 @@ using Nosum.Gameplay.Items;
 namespace Nosum.Gameplay.Economy;
 
 /// <summary>
-/// Coin amounts and the market's numbers. The values are product defaults chosen by the implementing agent, not balance
-/// (docs/adr/ADR-013); they are constants here so a decision changes one line.
+/// Coin amounts and the market's numbers. The bin prices they read are balance data (docs/adr/ADR-080); the other amounts are product defaults
+/// (docs/adr/ADR-013). They are constants here so a decision changes one line.
 /// </summary>
 public static class CoinRules
 {

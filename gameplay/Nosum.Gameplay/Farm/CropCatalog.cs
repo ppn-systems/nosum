@@ -9,9 +9,9 @@ namespace Nosum.Gameplay.Farm;
 
 /// <summary>
 /// Every crop the game knows. The durations are watered game days per stage (docs/adr/ADR-021 D7; a game day is 12 real hours,
-/// docs/adr/ADR-018): parsnip 1/1/1/1 = 4 days, radish 1/2/1/2 = 6, cauliflower 1/2/4/4/1 = 12. Balance is an open owner decision. Ids are append-only. Each crop lists the seasons it grows in (docs/adr/ADR-018): parsnip is the hardy
+/// docs/adr/ADR-018): parsnip 1/1/1/1 = 4 days, radish 1/2/1/2 = 6, cauliflower 1/2/4/4/1 = 12. Balance targets: docs/adr/ADR-080 and docs/design/economy.md. Ids are append-only. Each crop lists the seasons it grows in (docs/adr/ADR-018): parsnip is the hardy
 /// root (spring, fall and winter, so a new player in any season can plant the tutorial crop), radish grows in summer and fall,
-/// cauliflower in spring and summer. The sets are product defaults, not balance.
+/// cauliflower in spring and summer. The season sets are game design, not balance.
 /// </summary>
 public static class CropCatalog
 {
@@ -98,7 +98,7 @@ public static class CropCatalog
         new(Pumpkin, "pumpkin", SeasonSet.Fall, ItemCatalog.Pumpkin, 1, 1, 2, 3, 4, 3) { SpriteRow = 15, SpriteFrames = [0, 2, 3, 4, 5, 6] },
         new(Cranberries, "cranberries", SeasonSet.Fall, ItemCatalog.Cranberries, 2, 1, 2, 2, 4) { RegrowDays = 4, SpriteRow = 16, SpriteFrames = [0, 2, 4, 7, 6] },
         new(Eggplant, "eggplant", SeasonSet.Fall, ItemCatalog.Eggplant, 1, 1, 1, 1, 2) { RegrowDays = 2, SpriteRow = 17, SpriteFrames = [0, 2, 3, 7, 6] },
-        new(Yam, "yam", SeasonSet.Fall, ItemCatalog.Yam, 1, 1, 3, 3, 3) { SpriteRow = 18, SpriteFrames = [0, 2, 3, 4, 5] },
+        new(Yam, "yam", SeasonSet.Fall, ItemCatalog.Yam, 2, 1, 3, 3, 3) { SpriteRow = 18, SpriteFrames = [0, 2, 3, 4, 5] },
         new(BokChoy, "bok_choy", SeasonSet.Fall, ItemCatalog.BokChoy, 1, 1, 1, 1, 1) { SpriteRow = 19, SpriteFrames = [0, 2, 3, 4, 5] },
         new(Grape, "grape", SeasonSet.Fall, ItemCatalog.Grape, 1, 1, 2, 3, 4) { RegrowDays = 3, SpriteRow = 20, SpriteFrames = [0, 2, 4, 7, 6] },
     ];
