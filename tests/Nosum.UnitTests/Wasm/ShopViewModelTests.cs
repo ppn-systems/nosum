@@ -332,6 +332,80 @@ public sealed class ShopViewModelTests
         vm.Detail.BlockText.Should().StartWith("Not enough coins");
     }
 
+    [Fact]
+    public void RowsPerPage_BeforeAnyMeasure_IsTheThreeRowFloor()
+    {
+        (ShopViewModel vm, _) = Create();
+
+        vm.RowsPerPage.Should().Be(ShopViewModel.MinRowsPerPage);
+    }
+
+    [Theory]
+    [InlineData(20, ShopViewModel.MaxRowsPerPage)]
+    [InlineData(1, ShopViewModel.MinRowsPerPage)]
+    public void SetRowsPerPage_OutOfRange_ClampsToTheFloorAndTheMaximum(int rows, int expected)
+    {
+        (ShopViewModel vm, _) = Create();
+        vm.Open(ShopCatalog.SeedShop);
+
+        vm.SetRowsPerPage(rows);
+
+        vm.RowsPerPage.Should().Be(expected);
+    }
+
+    [Fact]
+    public void SetRowsPerPage_MoreRows_ShowsEightRowsOfTheOpenedShop()
+    {
+        (ShopViewModel vm, _) = Create();
+        vm.Open(ShopCatalog.SeedShop);
+        vm.Offers.Count.Should().BeGreaterThan(ShopViewModel.MaxRowsPerPage);
+
+        vm.SetRowsPerPage(ShopViewModel.MaxRowsPerPage);
+
+        vm.PageOffers.Should().HaveCount(ShopViewModel.MaxRowsPerPage);
+        vm.PageOffers.Select(o => o.ItemId).Should().Equal(vm.Offers.Take(ShopViewModel.MaxRowsPerPage).Select(o => o.ItemId));
+    }
+
+    [Fact]
+    public void SetRowsPerPage_Grows_KeepsTheRowThatWasFirstOnScreen()
+    {
+        (ShopViewModel vm, _) = Create();
+        vm.Open(ShopCatalog.SeedShop);
+        vm.GoToPage(1);
+        int firstShown = vm.Offers[vm.Page * vm.RowsPerPage].ItemId;
+
+        vm.SetRowsPerPage(ShopViewModel.MaxRowsPerPage);
+
+        vm.PageOffers.Select(o => o.ItemId).Should().Contain(firstShown);
+    }
+
+    [Fact]
+    public void SetRowsPerPage_ShrinksPastTheCurrentPage_KeepsThePageInRange()
+    {
+        (ShopViewModel vm, _) = Create();
+        vm.Open(ShopCatalog.SeedShop);
+        vm.SetRowsPerPage(ShopViewModel.MaxRowsPerPage);
+        vm.GoToPage(vm.PageCount - 1);
+
+        vm.SetRowsPerPage(ShopViewModel.MinRowsPerPage);
+
+        vm.Page.Should().BeInRange(0, vm.PageCount - 1);
+        vm.PageOffers.Should().NotBeEmpty();
+        vm.PageOffers.Should().HaveCountLessThanOrEqualTo(ShopViewModel.MinRowsPerPage);
+    }
+
+    [Fact]
+    public void PageCount_WithSetRows_CountsWholeRowsOfThatSize()
+    {
+        (ShopViewModel vm, _) = Create();
+        vm.Open(ShopCatalog.SeedShop);
+        int offers = vm.Offers.Count;
+
+        vm.SetRowsPerPage(ShopViewModel.MaxRowsPerPage);
+
+        vm.PageCount.Should().Be(ShopViewModel.PagesFor(offers, ShopViewModel.MaxRowsPerPage));
+    }
+
     private static (ShopViewModel Vm, List<(int Shop, int Item, int Quantity)> Sent) CreateWithBag(long coins, int firstSlotItem, int secondSlotItem)
     {
         FakeGameSocket socket = new();
