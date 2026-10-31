@@ -153,3 +153,26 @@ Resource nodes and the three tools (D1–D4, D8, the node part of D9) are implem
 - `FarmStatus` values of the node work were renumbered to 17–20 at merge (16 is `NotYourFarm`, already on master).
 - Follow-ups: give existing accounts the three new tools; a wire test for "visitor cannot chop"; co-op audit lines for
   node yields on co-op land.
+
+## Amendments
+
+### 2026-10-31 - dry days revert bare soil and wither crops (D7 amended, farm feel)
+
+Supersedes the random revert of D7 above. Soil and crops now decay on a fixed count of dry game days, decided on the server (issue: farm feel,
+`docs/qa/farm-feel-2/`).
+
+- **Revert (replaces the 30 % roll).** Tilled soil with no crop reverts to untilled after `FarmRules.DryDaysToRevert` (3) game days in a row ended without
+  water: no hand watering, no rain on an outdoor tile, no sprinkler beside it (`FarmRules.IsWateredOn`). The run starts after `max(TendedDay, WateredDay)`, so
+  the day of tilling or harvest is a day of grace. `FarmRules.RevertRoll` and `RevertChancePercent` are removed. The rule is pure, so reads
+  (`FarmService.LiveTile`) and the day sweep agree and a reverted tile never comes back.
+- **Wither (new, beside the season rule of ADR-018).** A planted crop withers after `FarmRules.DryDaysToWither` (2) game days in a row ended without water, counted
+  after `max(planting day, WateredDay)`. Rain outdoors and sprinklers count as water. A ripe crop that is not harvested is subject to the same run, as it is
+  to the season. Watering a withered crop is refused with `FarmStatus.Withered` (`FarmRules.Water`), so the dry run stays a fact of the past. A withered crop
+  is cleared with the scythe (`CutWithered`) or replanted over, as before.
+- **Day sweep.** `FarmService.SweepFarmAsync` still deletes reverted rows and publishes them as removed (ADR-022 D4). A crop that withered at the day's end
+  is published again in its chunk's batch, so every client redraws it withered at once.
+- **Limits.** The runs are computed from the stored days, the calendar, the weather and the sprinklers standing now. Removing a sprinkler later can make
+  past days dry and so decay a tile retroactively. The client's action-key check (`PlayerActions.FacesCrop`) knows whether the map is outdoors but not the
+  sprinklers beside a tile; a crop that only a sprinkler keeps alive may read as withered there, and the server still decides what the use does.
+- **Tests.** `FarmDryDayRulesTests` (unit: revert, wither, rain and sprinkler breaking the runs, watering refused, replant, cut); `FarmWireTests.Decay_*`
+  (integration: the wither and its refusal over the wire, the revert after three dry days, a crop watered daily never withers).

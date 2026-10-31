@@ -69,6 +69,10 @@ internal sealed partial class PlayerActions
         _buildings = buildings;
         _audio = audio;
         _combat = combat;
+        if (_combat is not null)
+        {
+            _combat.SkillCompleted += this.OnSkillCompleted;
+        }
         _calendar = calendar;
         _farm.UseCompleted += this.OnFarmUseCompleted;
     }
@@ -315,6 +319,12 @@ internal sealed partial class PlayerActions
         _dragging = true;
         _dragTileX = tileX;
         _dragTileY = tileY;
+        // The farmer turns to the tile the swing works before the swing shows (docs/adr/ADR-074 D7).
+        if (Walker.TryFacingToward(feetX, feetY, tileSize, tileX, tileY, out Facing turn))
+        {
+            _turnTo = turn;
+        }
+
         ToolKind tool = this.HeldTool();
         this.BeginSwing(tool, this.HeldItemId, nowSeconds);
         this.QueueUse(_inventory.SelectedSlot, tileX, tileY, 1, tool, tileSize);
@@ -346,7 +356,7 @@ internal sealed partial class PlayerActions
 
             if (held.Kind == ItemKind.Seed)
             {
-                return FarmRules.Plant(current, held.CropId, nowMs, rules, out _) == FarmVerdict.Ok;
+                return FarmRules.Plant(current, held.CropId, nowMs, rules, out _, _outdoors) == FarmVerdict.Ok;
             }
 
             return held.Tool switch
@@ -373,7 +383,7 @@ internal sealed partial class PlayerActions
             if (rules is not null)
             {
                 FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, 0);
-                if (FarmRules.IsWithered(tile, nowMs, rules))
+                if (FarmRules.IsWithered(tile, nowMs, rules, _outdoors))
                 {
                     return false;
                 }

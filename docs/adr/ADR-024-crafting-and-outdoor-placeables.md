@@ -81,3 +81,13 @@ Implemented 2026-10-25 on `feat/crafting`. Where the code says more than the tex
 - **Persistence.** One migration, `CraftingChestsFurnaces`: drops `fk_player_inventories_players_player_id`, adds `chest_log` and `furnace_jobs` (cascade from `placed_objects`).
 - **Known gaps.** Sprinklers are not yet read by crop growth (above). The client's placement ghost knows only the placed set and the map's own grid, so over a tree or tilled soil it can look valid; the server refuses with `Place_Status_NodeInTheWay` / `Place_Status_Tilled`.
 - **Co-op land.** A lone founder cannot dissolve a co-op while a chest on its land holds items or a furnace holds a job (`CoopStatus.CannotLeave`, like a non-empty warehouse); otherwise the land's placed objects and the empty chests' inventories are deleted with the co-op (furnace jobs cascade).
+
+## Amendments
+
+### 2026-10-31 - sprinklers count as watering for the dry-day rules
+
+- The sprinkler's "Known gaps" line above is out of date: crop growth reads sprinklers (`FarmRules.IsWateredOn`, `SprinklerRules`), and so do the
+  dry-day rules of docs/adr/ADR-021 (amended 2026-10-31). A sprinkler beside a tile waters it each game day after the one it was placed on, indoors
+  too, so the tile never accrues a run of dry days from the day after that. Bare soil beside it does not revert and a crop beside it does not wither
+  for want of water.
+- The sprinkler is read by the day sweep the same way (`FarmService.SweepFarmAsync`), so its effect on a tile is the same on read and on sweep.

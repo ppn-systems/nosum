@@ -253,6 +253,7 @@ internal sealed partial class MapScene
         bool placeableMap = content.Spec.Placeable;
         InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~(InputEdges.Rotate | InputEdges.Action) : liveEdges;
         BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
+        _actions?.SetOutdoors(!content.Spec.Indoors);
         _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _compositeGrid.PlacedSet : null, elevatorNear, interior, grid);
         if (_actions is not null)
         {
@@ -286,6 +287,10 @@ internal sealed partial class MapScene
             double dragWorldX = _camera.Left + ((double)_dragX / scale);
             double dragWorldY = _camera.Top + ((double)_dragY / scale);
             _actions.DragSow(_farmer.X, _farmer.Y, map.TileWidth, (int)Math.Floor(dragWorldX / map.TileWidth), (int)Math.Floor(dragWorldY / map.TileWidth), _dragHeld, content.Spec.Farmable || !placeableMap, _clockSeconds);
+            if (_actions.TryTakeTurn(out Facing turn))
+            {
+                _farmer.Face(turn);
+            }
         }
 
         if (_audio is not null)
