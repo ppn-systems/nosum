@@ -78,14 +78,15 @@
     background: var(--nosum-wood-light);
 }
 
-/* Narrow screens: the hotbar takes two rows at the bottom, so the stick and the button stand above it. */
+/* Narrow screens: the hotbar takes three rows at the bottom (slots, then the skill keys) and the message line stands above it, so the stick and
+   the buttons stand above all of it: the stick clears the message line, the run button stands above the use button. */
 @media (pointer: coarse) and (max-width: 640px) {
     .touch-stick,
     .touch-controls ::deep .touch-use {
-        bottom: calc(var(--u) * 76);
+        bottom: calc(var(--u) * 120);
     }
 
     .touch-controls ::deep .touch-run {
-        bottom: calc(var(--u) * 108);
+        bottom: calc(var(--u) * 144);
     }
 }

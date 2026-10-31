@@ -16,6 +16,10 @@ controls (`wasm/Nosum.Wasm.Controls`); nothing here needs a new control or a new
 | `--nosum-gap-group` | `--u` × 4 | Gap between groups, and the HUD edge margin. |
 
 - Three font sizes exist; a fourth is a bug. No inline `font-size`.
+- **Phone exception (390 px wide and narrower, `max-width: 640px`).** Body text is 14 px on a line of 17 px and small text is 12.5 px, set in
+  `nosum-theme.css`. The UI pixel stays 2 px, so the phone layouts keep the fit they were measured at. A UI pixel of 3 (body 25 px, which is
+  the 12.5 × tp rule) was tried and does not fit: the 8-column bag, the HUD regions and the touch controls on a 390 px screen all overflow.
+  Tooltip descriptions use the body size; the line height always follows the size (an 11 px line under 14 px text overprints).
 - Text never wraps word by word: a text block is at least 24 characters wide. If it does not fit, the layout is wrong, not the text.
 - Colours come from the theme tokens only.
 
