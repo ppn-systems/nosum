@@ -27,7 +27,7 @@
         }
         <div class="furniture-actions">
             <GameButton Variant="primary" Text="@Vm.PlaceLabel" Disabled="@(Vm.Selected is null)" OnClick="@(() => Vm.Carry(Vm.SelectedItemId))" />
-            <GameButton Variant="plain" Text="@Vm.PickUpLabel" OnClick="Vm.PickUp" />
+            <GameButton Variant="secondary" Text="@Vm.PickUpLabel" OnClick="Vm.PickUp" />
         </div>
     </TradeDialog>
 }

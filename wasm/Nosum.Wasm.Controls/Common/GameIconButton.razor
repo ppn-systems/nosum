@@ -2,6 +2,7 @@
 <button type="button"
         class="game-icon-button @(Active ? "active" : null)"
         aria-pressed="@(Active ? "true" : "false")"
+        disabled="@Disabled"
         data-tip="@Tip"
         aria-label="@Tip"
         @onmousedown:preventDefault
@@ -16,6 +17,9 @@
 
     /// <summary>The localized tooltip and accessible name.</summary>
     [Parameter, EditorRequired] public string Tip { get; set; } = string.Empty;
+
+    /// <summary>Whether the button can be used (the same state model as the text buttons, docs/design/ui-standard.md section 8).</summary>
+    [Parameter] public bool Disabled { get; set; }
 
     /// <summary>Whether the panel this button opens is currently active.</summary>
     [Parameter] public bool Active { get; set; }

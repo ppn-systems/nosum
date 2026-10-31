@@ -28,7 +28,7 @@
                             string nickname = line.Nickname;
                             if (open && line.Kind == ChatLineKind.Chat && nickname.Length > 0)
                             {
-                                <GameButton Variant="link" Text="@line.Sender" OnClick="@(() => Vm.StartWhisper(nickname))" />
+                                <GameButton Variant="secondary" Text="@line.Sender" OnClick="@(() => Vm.StartWhisper(nickname))" />
                             }
                             else
                             {

@@ -14,9 +14,9 @@
                 <span>@Vm.CoinsText</span>
                 <GameRow Class="center">
                     <span>@Vm.Text("Shop_Quantity")</span>
-                    <GameButton Variant="plain" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
                     <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
-                    <GameButton Variant="plain" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
                 </GameRow>
             </GameRow>
             <p>@Vm.Text("Shop_Hint")</p>
@@ -26,7 +26,7 @@
                 <GameNotice Kind="info" Text="@Vm.PendingText" />
                 <GameRow Class="center">
                     <GameButton Text="@Vm.Text("Shop_Confirm_Yes")" OnClick="Vm.Confirm" />
-                    <GameButton Variant="plain" Text="@Vm.Text("Shop_Confirm_No")" OnClick="Vm.CancelPurchase" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Confirm_No")" OnClick="Vm.CancelPurchase" />
                 </GameRow>
             }
             <div class="shop-list">

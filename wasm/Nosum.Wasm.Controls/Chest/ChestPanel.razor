@@ -8,7 +8,7 @@
         <div class="chest-split">
         <GameSection Title="@Vm.ChestLabel">
             <div class="chest-tools">
-                <GameButton Variant="plain" Text="@Vm.SortChestLabel" OnClick="Vm.SortChest" />
+                <GameButton Variant="secondary" Text="@Vm.SortChestLabel" OnClick="Vm.SortChest" />
             </div>
             <div class="chest-grid">
                 <ItemGrid Slots="Vm.ChestSlots" Columns="9" Picked="@Vm.PickedChestSlot" OnSlotClick="@(i => Vm.ClickChestAsync(i))" OnSlotShiftClick="@(i => Vm.QuickMoveChestAsync(i))" />
@@ -16,7 +16,7 @@
         </GameSection>
         <GameSection Title="@Vm.BagLabel">
             <div class="chest-tools">
-                <GameButton Variant="plain" Text="@Vm.SortBagLabel" OnClick="Vm.SortBag" />
+                <GameButton Variant="secondary" Text="@Vm.SortBagLabel" OnClick="Vm.SortBag" />
             </div>
             <div class="chest-grid">
                 <ItemGrid Slots="Vm.BagSlots" Columns="9" Picked="@Vm.PickedPlayerSlot" OnSlotClick="@(i => Vm.ClickPlayerAsync(i))" OnSlotShiftClick="@(i => Vm.QuickMovePlayerAsync(i))" />

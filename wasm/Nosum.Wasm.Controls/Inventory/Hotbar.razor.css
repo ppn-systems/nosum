@@ -19,14 +19,10 @@
 
 .hotbar-skills {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: var(--u);
     padding: 0 var(--u) 0 calc(var(--u) * 2);
     border-left: var(--u) solid var(--nosum-line);
-}
-
-.hotbar-skills ::deep .game-button.chip {
-    padding: 0;
 }
 
 .hotbar-skills ::deep .game-key {
@@ -37,19 +33,6 @@
     height: calc(var(--u) * 7);
     box-shadow: inset 0 var(--u) 0 var(--nosum-wood-light);
     color: var(--nosum-gold-light);
-}
-
-.hotbar-skills ::deep .game-button.chip:hover:not(:disabled) .game-key {
-    background: var(--nosum-wood-dark);
-    border-color: var(--nosum-gold-light);
-    color: var(--nosum-ink-on-dark);
-}
-
-.hotbar-skills ::deep .game-button.chip:disabled .game-key {
-    background: var(--nosum-slot-bg);
-    border-color: var(--nosum-line);
-    color: var(--nosum-ink-faint);
-    box-shadow: none;
 }
 
 .hotbar-badges {
