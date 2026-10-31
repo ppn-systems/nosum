@@ -1,46 +1,28 @@
 # QA captures: thirsty marker (8 px water drop, top-right of the tile)
 
-Change: commit `9562a08` on `claude/farm-decay-art`. A planted crop or bare tilled soil one dry game day from withering or
-reverting shows an 8 x 8 water drop (`assets/sprites/drop.png`) in the top-right corner inside its tile, bobbing one pixel
-every 600 ms. It replaces the full-size watering can of `6b318f6`. The morning toast ("N crops need water" /
+Change: `9562a08` (the drop) and `b454a3f` (publishes `drop.png`), branch `claude/farm-decay-art`. A planted crop or bare
+tilled soil one dry game day from withering or reverting shows an 8 x 8 water drop (`assets/sprites/drop.png`) in the
+top-right corner inside its tile, bobbing one pixel every 600 ms. The morning toast ("N crops need water" /
 "N cây cần tưới nước") is unchanged.
 
-## Status: blocked. The served build cannot start the farm
+## Status: captured from the real published client at `b454a3f`
 
-**The client built from `9562a08` does not start the farm.** `drop.png` is not in the wasm project's `Content` list, so it is
-not published to `wwwroot/assets/sprites/`. The decorator asks for it with the soil and crop textures, and the request returns
-HTTP 404. The map fails to load and the game shows, in the active language:
-
-- vi: "Không thể bắt đầu trò chơi: Error: texture assets/sprites/drop.png: HTTP 404"
-- en: "Could not start the game: Error: texture assets/sprites/drop.png: HTTP 404"
-
-Console: `Could not load map 'farm': Error: texture assets/sprites/drop.png: HTTP 404`. No tiles, crops or drops render, so
-the required frames cannot be captured from the shipped build.
-
-Cause: `wasm/Nosum.Wasm/Nosum.Wasm.csproj`, the `<Content Include=...>` list for `assets\sprites\...` (about line 20) names
-`items.png`, `ambient.png`, ... `soil.png` but not `drop.png`. `GameMapsTests` checks hosted maps, not sprites, so nothing
-caught it. Fix: add `..\..\assets\sprites\drop.png` to that list (the owner of `wasm/` makes this change; it was out of scope
-for this QA task). Until then the drop does not appear in any build of `9562a08`.
+The captures below come from a Release publish of `b454a3f` built with the QA hooks (`-p:NosumDevTools=true`), with no
+patched files. `drop.png` is in `wwwroot/assets/sprites/` and the farm starts in both languages with no console or page
+errors in the accepted runs. The drop is visible at native size and at 4x in vi and en, at both viewports.
 
 ## Files
 
 | File | Shows |
 |:--|:--|
-| `farm-drop-blocked-<lang>-<WxH>.png` (x4) | The served `9562a08` build as shipped: the "could not start the game" screen. Evidence for the blocker. |
-| `farm-drop-patched-<lang>-<WxH>.png` (x4) | Full frame from a **patched copy** (see below): thirsty crop and thirsty bare soil with the drop in the top-right corner. |
-| `farm-drop-patched-close-<lang>-<WxH>.png` (x4) | Native-pixel crop of the tile strip from the patched copy. |
-| `farm-drop-patched-close-<lang>-<WxH>-x4.png` (x4) | The same crop, nearest-neighbour x4. |
-| `farm-drop-patched-farmer-over-drop-vi-1280x720-x4.png` | 4x crop with the farmer standing on thirsty tile B (the draw-order check). |
-| `farm-drop-patched-toast-<lang>-1280x720.png` (x2) | The rollover frame with the morning toast, patched copy. |
-| `farm-toast-<lang>-<WxH>.png` (x4) | Predates the drop change. Captured at `6b318f6` and shows the watering can marker. |
-| `farm-withered-<lang>-<WxH>.png` (x4) | Predates the drop change. Captured at `6b318f6`. Tile A (withered) and B (thirsty soil), 4x. |
+| `farm-drop-<lang>-1280x720.png`, `farm-drop-<lang>-390x844.png` | Full frame at the 1280x720 and 390x844 viewports (4 files). Thirsty crop B and thirsty bare soil C/E with their drops. Farmer on tile 61 one row above the strip. |
+| `farm-drop-close-<lang>-<WxH>.png` | Native-pixel crop of the tile strip (row 28, tiles A to G) with the drops (4 files). |
+| `farm-drop-close-<lang>-<WxH>-x4.png` | The same crop, nearest-neighbour x4 (4 files). |
+| `farm-drop-below-close-<lang>-<WxH>-x4.png` | Extra. Same strip at 4x from a frame where the farmer stands one row **below** the strip (row 29, tile column 62). Draw-order check (4 files). |
+| `farm-drop-toast-<lang>-1280x720.png` | Morning toast on the rollover frame (2 files). |
 
-The superseded `farm-thirst-marker-*.png` files (watering can) were removed.
-
-**Patched copy.** The patched frames come from the `9562a08` publish with one extra file: `assets/sprites/drop.png` copied into
-`wwwroot/assets/sprites/` and served from a second static server. Nothing in the repo was changed. The served build therefore
-differs from `9562a08` as shipped in exactly that one file. The patched frames show the drop art and its placement; they are
-not evidence that the shipped build works.
+Both viewports use the same schedule and tiles. Tile positions in the 1280x720 full frame: strip at about x 568 to 904,
+y 410 to 460 (48 px tiles). In the 390x844 full frame: strip at about x 146 to 370, y 456 to 488 (32 px tiles).
 
 Tiles on the row (farm map row 28, left to right): A (x 60), B (x 61), C (x 62), E (x 63), H (x 64), K (x 65), G (x 66).
 All crops are radish (seed 101, hotbar slot 4).
@@ -56,60 +38,59 @@ All crops are radish (seed 101, hotbar slot 4).
 
 ## Steps used
 
-1. PostgreSQL was running; the role `nosum` and the database `nosum_dev` already existed.
-2. Server: `DOTNET_ENVIRONMENT=Development dotnet run --project server/Nosum.Host` (WebSocket on 57300, "accepting connections").
-3. Client: `dotnet publish wasm/Nosum.Wasm/Nosum.Wasm.csproj -c Release -p:NosumDevTools=true -o <scratchpad>/qa3/publish`
-   from a clean `9562a08` tree (publish succeeded, exit 0), then `python3 -m http.server 5820 --directory <...>/publish/wwwroot`.
-   Confirmed: `drop.png` absent from `publish/wwwroot/assets/sprites/` (`soil.png` present); `GET /assets/sprites/drop.png` = 404.
-4. As-shipped screens (`asis.cjs`): new context with `deviceScaleFactor: 1`, `locale` vi-VN or en-US, `isMobile` and `hasTouch`
-   for 390x844, and `localStorage['nosum.settings.v1'] = 'lang=1\n'` (vi) or `'lang=2\n'` (en). Open `/?qa=1`, click the guest
-   button, wait 12 s, screenshot, record console errors.
-5. Patched copy: the same publish with `drop.png` copied into `wwwroot/assets/sprites/`, served on 5821. The day schedule
-   (`thirst-withdrop.cjs`) is the earlier helper's, with `BASE` set to 5821: tilling and planting with the mouse on the tile east
-   of the farmer (`nosumQa.teleport`), tool keys 1 hoe, 2 can, 4 seeds, `nosumQa.advanceClock(1)` between days, each day gated on
-   the first HUD weather icon reading sun. Viewports: 1280x720 (farmer's tile centre (638, 384), tile 48 px) and 390x844
-   (centre (195, 438), tile 32 px).
-6. Accepted patched runs: vi 1280x720, en 1280x720, vi 390x844, en 390x844. Each read sun on D+1, D+2 and D+3. No console or
-   page errors were logged in these runs.
-7. Draw-order check (`thirst-depth.cjs`, patched vi 1280x720): mouse moved off the strip, farmer teleported onto B (61, 28).
-   Crop: `farm-drop-patched-farmer-over-drop-vi-1280x720-x4.png`.
-8. Scripts and run logs are in the session scratchpad under `qa2/` (earlier helper) and `qa3/`; they are not part of the repo.
+1. PostgreSQL was running; role `nosum` and database `nosum_dev` already existed.
+2. Client publish (QA hooks on, into the session scratchpad):
+   `dotnet publish wasm/Nosum.Wasm/Nosum.Wasm.csproj -c Release -p:NosumDevTools=true --no-restore -o <scratchpad>/pub-qa`
+   (`DOTNET_ROOT=/root/.dotnet`, `PATH=/root/.dotnet:$PATH`, `DOTNET_CLI_TELEMETRY_OPTOUT=1`, `DOTNET_NOLOGO=1`). Exit 0.
+   `wwwroot/assets/sprites/drop.png` present. The page's `<base href="/">` matches serving from `wwwroot` at the root.
+3. Static client: `python3 -m http.server 5820 --bind 127.0.0.1` in `<scratchpad>/pub-qa/wwwroot` (`BASE_URL` http://localhost:5820).
+4. Server: `DOTNET_ENVIRONMENT=Development dotnet run --project server/Nosum.Host --no-restore`, WebSocket on port 57300
+   ("The server is accepting connections", ws_port 57300). Two sign-in notices (Google and Microsoft client IDs not set) are
+   expected and harmless for guest play.
+5. Language: `localStorage['nosum.settings.v1']` = `lang=1\n` for vi, `lang=2\n` for en (`GameLanguage.Vietnamese = 1`,
+   `English = 2`; `ClientSettings` reads `lang`).
+6. Schedule, driven with `window.nosumQa` (`?qa=1`, `teleport`, `grant`, `advanceClock`), by the capture script
+   `thirst.cjs` in the scratchpad (`qa4/`): day D tills A, B, C, H and plants A, C, H, and waters C, H; `advanceClock(1)`
+   per day; D+1 waters C, H and tills and plants E; D+2 waters H; `advanceClock(1)` to D+3 and polls for the toast every
+   50 ms; then the controls K and G, a frame with the farmer on tile (61, 27), and a frame with the farmer on (62, 29).
+   Each day is gated on the first HUD weather icon reading sun (`gate.py`); a rain day aborts the run, so each config was
+   retried (up to six tries).
+7. Runs accepted (all sun on D+1 to D+3, `errors` empty in the run log):
 
-## Results (patched copy only)
+| Config | Accepted run | Toast read | Toast timing after rollover |
+|:--|:--|:--|:--|
+| vi 1280x720 | try 2 | "2 cây cần tưới nước" | 405 ms |
+| en 1280x720 | try 4 | "2 crops need water" | 857 ms |
+| vi 390x844 | try 2 | "2 cây cần tưới nước" | 1005 ms |
+| en 390x844 | try 1 | "2 crops need water" | 349 ms |
 
-**Visibility.** The drop is clear at native size and at 4x in both languages. The drop is a recognisable water drop, and the
-art is the same in vi and en (no text in it).
+Rain aborted earlier tries (D+1, D+2 or D+3); those runs are not used.
+
+## Results
+
+**Visibility.** The drop is clear at native size and at 4x in both languages and both viewports. It is a recognisable water
+drop with no text, so the art is identical in vi and en.
 - 1280x720: about 24 px on screen (8 px asset at the 3x world scale).
 - 390x844: about 16 px on screen (8 px asset at the 2x world scale).
 
-**Placement.** In both viewports and both languages the drop sits flush in the top-right corner of its tile, touching the
-tile's right and top edges, and is not drawn on tiles A (withered) or H (healthy). Seen on B (bare soil), C (grown crop)
-and E (seed).
+**Placement.** The drop sits flush in the top-right corner of its tile, touching the tile's right edge. It is drawn on B
+(bare soil), C (grown crop) and E (seed), and is absent on A (withered) and H (healthy). The same holds at both viewports
+and in both languages.
 
-**Draw order.** With the farmer standing on thirsty tile B, the farmer's shirt covers the left edge of B's drop, so the
-farmer is drawn over the drop. The farmer standing one row below the strip did not overlap any drop, so that case is not
-tested. Evidence for the rule "drawn under players lower on the screen" is therefore partial: one overlap, which passes.
+**Draw order.** With the farmer on row 29 (one row below the strip), the farmer's head covers the lower part of C's drop
+at 1280x720 vi (`farm-drop-below-close-vi-1280x720-x4.png`). The drop is therefore under a player drawn lower on the
+screen, which is the intended rule. At 390x844 vi the same overlap occurs: the head covers the lower part of C's drop
+(`farm-drop-below-close-vi-390x844-x4.png`).
 
-**Observation.** The target-tile highlight (the green-framed tile in front of the farmer, or under the hover point) is drawn
-over the drop. When the farmer faces a thirsty tile, its highlight hides most of that tile's drop. This is cosmetic, not a
-blocker, and the drop reappears when the farmer moves.
-
-**Toast.** Read correctly in both languages (unchanged by this commit):
-
-| Run | Toast |
-|:--|:--|
-| vi 1280x720 | "2 cây cần tưới nước" |
-| en 1280x720 | "2 crops need water" |
-| vi 390x844 | "2 cây cần tưới nước" |
-| en 390x844 | "2 crops need water" |
+**Toast.** Read in both languages and both viewports, appears 349 to 1005 ms after the rollover, and the drops stay visible
+in the same frame (`farm-drop-toast-*`).
 
 ## Defects and notes
 
-- **Blocker: `drop.png` not published.** See Status. Every build of `9562a08` shows the "could not start the game" screen
-  instead of the farm, in both languages and both viewports. Fix: add `drop.png` to the wasm project's sprite `Content` list.
-- **No gate for the sprite list.** `GameMapsTests` checks map hosting but nothing checks that every sprite the client loads is
-  published, which is how this slipped through.
-- **Singular toast not captured.** The one-crop text is in the resources, but no accepted patched run had exactly one thirsty
-  crop.
-- **Withered sprite hard to read.** Dark olive on the dark bed (from the earlier capture). Not changed by this commit.
-- **Target highlight covers the drop** when the farmer faces a thirsty tile (see Results). Cosmetic.
+- **Target highlight covers the drop.** When the farmer faces a thirsty tile, the green-framed target highlight is drawn
+  over that tile's drop (seen on B in `farm-drop-close-vi-1280x720-x4.png`). Cosmetic. The drop reappears when the farmer moves.
+- **Singular toast not captured.** The one-crop text is in the resources, but no accepted run had exactly one thirsty crop.
+- **Bobbing not captured.** The captures are single frames; the 600 ms bob is not shown in them.
+- **Draw order tested with one overlap case.** Only the row-29 overlap on C was checked (one player, one tile).
+- **Gate for the sprite list.** `GameMapsTests` checks map hosting, not sprites. Nothing guards that every sprite the client
+  loads is published, which is how `drop.png` was missed in `9562a08`. Consider a test that compares the sprite list with `Content`.
