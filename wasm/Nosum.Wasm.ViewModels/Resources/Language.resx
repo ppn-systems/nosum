@@ -1149,4 +1149,13 @@
   <data name="Carpenter_PetPrice" xml:space="preserve"><value>{0} xu</value></data>
   <data name="Carpenter_BuyPet" xml:space="preserve"><value>Mua</value></data>
   <data name="Carpenter_PetHave" xml:space="preserve"><value>Bạn đã có thú cưng. Hãy trả lại trước khi mua con khác.</value></data>
+  <data name="Carpenter_Tab_Goods" xml:space="preserve"><value>Hàng hóa</value></data>
+  <data name="Carpenter_Tab_Buildings" xml:space="preserve"><value>Chuồng trại</value></data>
+  <data name="Pet_Choose" xml:space="preserve"><value>Chọn</value></data>
+  <data name="Pet_NameStep" xml:space="preserve"><value>Đặt tên cho {0}</value></data>
+  <data name="Pet_NameNext" xml:space="preserve"><value>Tiếp</value></data>
+  <data name="Pet_BuyTitle" xml:space="preserve"><value>Mua thú cưng</value></data>
+  <data name="Pet_BuyMessage" xml:space="preserve"><value>Mua {0} tên {1} với giá {2} xu?</value></data>
+  <data name="Pet_BuyConfirm" xml:space="preserve"><value>Xác nhận</value></data>
+  <data name="Pet_BuyCancel" xml:space="preserve"><value>Hủy</value></data>
 </root>

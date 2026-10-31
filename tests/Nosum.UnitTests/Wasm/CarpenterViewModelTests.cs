@@ -256,52 +256,155 @@ public sealed class CarpenterViewModelTests
     }
 
     [Fact]
-    public void BuyPet_TypedName_SendsAdoptWithTheKindAndTheName()
+    public void ChoosePet_OpensTheNameStep_AndSendsNothing()
     {
         (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
-        byte kind = 0;
-        string name = string.Empty;
-        socket.ReplyWith<PetState>(request =>
-        {
-            kind = ((AdoptPet)request).Kind;
-            name = ((AdoptPet)request).Name;
-            return new PetState { Status = PetStatus.Ok, Kind = 2, Name = "Rex", Mood = 50 };
-        });
-        vm.PetName = "Rex";
 
-        vm.BuyPet(PetKind.Dog);
+        vm.ChoosePet(PetKind.Dog);
 
-        kind.Should().Be((byte)PetKind.Dog);
-        name.Should().Be("Rex");
+        vm.PetStep.Should().Be(PetPurchaseStep.Name);
+        vm.ChosenPetKind.Should().Be(PetKind.Dog);
+        vm.PetConfirmAsked.Should().BeFalse();
+        socket.Requests.OfType<AdoptPet>().Should().BeEmpty();
     }
 
     [Fact]
-    public void BuyPet_Accepted_ClearsThePetNameAndShowsSuccess()
+    public void ChoosePet_WhenThePlayerAlreadyHasAPet_DoesNothing()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, PetChannel pets) = CreateWithPets(5_000);
+        socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.Ok, Kind = 1, Name = "Miu", Mood = 50 });
+        pets.Load();
+
+        vm.ChoosePet(PetKind.Dog);
+
+        vm.PetStep.Should().Be(PetPurchaseStep.None);
+        socket.Requests.OfType<AdoptPet>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ContinuePet_BlankName_SendsNothingAndAsksForAName()
+    {
+        using CultureScope scope = new("en");
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
+        vm.ChoosePet(PetKind.Cat);
+        vm.PetName = "   ";
+
+        vm.ContinuePet();
+
+        vm.PetStep.Should().Be(PetPurchaseStep.Name);
+        vm.PetNameError.Should().Be("Give it a name (up to 12 characters).");
+        socket.Requests.OfType<AdoptPet>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ContinuePet_WithAName_OpensTheConfirmQuestion_WithKindNameAndPrice_AndSendsNothing()
+    {
+        using CultureScope scope = new("en");
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
+        vm.ChoosePet(PetKind.Dog);
+        vm.PetName = "Rex";
+
+        vm.ContinuePet();
+
+        vm.PetStep.Should().Be(PetPurchaseStep.Confirm);
+        vm.PetConfirmAsked.Should().BeTrue();
+        vm.PetConfirmMessage.Should().Be("Buy a Dog named Rex for 900 coins?");
+        vm.PetNameError.Should().BeEmpty();
+        socket.Requests.OfType<AdoptPet>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void CancelPet_AtTheNameStep_SendsNothingAndClosesThePurchase()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
+        vm.ChoosePet(PetKind.Cat);
+
+        vm.CancelPet();
+
+        vm.PetStep.Should().Be(PetPurchaseStep.None);
+        vm.ChosenPetKind.Should().Be(PetKind.None);
+        socket.Requests.OfType<AdoptPet>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void CancelPet_AtTheConfirmQuestion_SendsNothingAndClosesThePurchase()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
+        vm.ChoosePet(PetKind.Cat);
+        vm.PetName = "Miu";
+        vm.ContinuePet();
+
+        vm.CancelPet();
+
+        vm.PetConfirmAsked.Should().BeFalse();
+        vm.PetStep.Should().Be(PetPurchaseStep.None);
+        socket.Requests.OfType<AdoptPet>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ConfirmPet_WithoutTheConfirmQuestion_SendsNothing()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
+        vm.ChoosePet(PetKind.Dog);
+        vm.PetName = "Rex";
+
+        vm.ConfirmPet();
+
+        socket.Requests.OfType<AdoptPet>().Should().BeEmpty();
+        vm.PetStep.Should().Be(PetPurchaseStep.Name);
+    }
+
+    [Fact]
+    public void ConfirmPet_SendsTheKindAndTheCleanedName_Once()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
+        socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.Ok, Kind = 1, Name = "Abcdefghijkl", Mood = 50 });
+        vm.ChoosePet(PetKind.Cat);
+        vm.PetName = "  Abcdefghijklmnop ";
+        vm.ContinuePet();
+
+        vm.ConfirmPet();
+        vm.ConfirmPet();
+
+        AdoptPet request = socket.Requests.OfType<AdoptPet>().Should().ContainSingle().Subject;
+        request.Kind.Should().Be((byte)PetKind.Cat);
+        request.Name.Should().Be(PetRules.CleanName("  Abcdefghijklmnop "));
+        request.Name.Length.Should().Be(PetRules.MaxNameLength);
+        vm.PetStep.Should().Be(PetPurchaseStep.None);
+    }
+
+    [Fact]
+    public void ConfirmPet_Accepted_ClearsThePetNameAndShowsSuccess()
     {
         (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
         socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.Ok, Kind = 1, Name = "Miu", Mood = 50 });
+        vm.ChoosePet(PetKind.Cat);
         vm.PetName = "Miu";
+        vm.ContinuePet();
 
-        vm.BuyPet(PetKind.Cat);
+        vm.ConfirmPet();
 
         vm.PetName.Should().BeEmpty();
         vm.PetStatusIsGood.Should().BeTrue();
     }
 
     [Fact]
-    public void BuyPet_NotEnoughCoins_ShowsTheRefusalAndKeepsTheName()
+    public void ConfirmPet_NotEnoughCoins_ShowsTheRefusalAndKeepsTheName()
     {
         (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(100);
         socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.NotEnoughCoins });
+        vm.ChoosePet(PetKind.Dog);
         vm.PetName = "Rex";
+        vm.ContinuePet();
 
-        vm.BuyPet(PetKind.Dog);
+        vm.ConfirmPet();
 
         vm.PetStatusIsGood.Should().BeFalse();
         vm.PetStatusText.Should().Be(Text()["Pet_Status_NotEnoughCoins"].Value);
         vm.PetName.Should().Be("Rex");
     }
 }
+
 
 /// <summary>The one-line messages of tending animals.</summary>
 [SuppressMessage("Reliability", "CA2000", Justification = "Short-lived test fixtures: the fake socket owns nothing, pooled packets and channels die with the test.")]

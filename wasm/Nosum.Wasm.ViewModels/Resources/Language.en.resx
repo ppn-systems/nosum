@@ -1149,4 +1149,13 @@
   <data name="Carpenter_PetPrice" xml:space="preserve"><value>{0} coins</value></data>
   <data name="Carpenter_BuyPet" xml:space="preserve"><value>Buy</value></data>
   <data name="Carpenter_PetHave" xml:space="preserve"><value>You already have a pet. Give it back before you buy another.</value></data>
+  <data name="Carpenter_Tab_Goods" xml:space="preserve"><value>Goods</value></data>
+  <data name="Carpenter_Tab_Buildings" xml:space="preserve"><value>Buildings</value></data>
+  <data name="Pet_Choose" xml:space="preserve"><value>Choose</value></data>
+  <data name="Pet_NameStep" xml:space="preserve"><value>Name your {0}</value></data>
+  <data name="Pet_NameNext" xml:space="preserve"><value>Next</value></data>
+  <data name="Pet_BuyTitle" xml:space="preserve"><value>Buy a pet</value></data>
+  <data name="Pet_BuyMessage" xml:space="preserve"><value>Buy a {0} named {1} for {2} coins?</value></data>
+  <data name="Pet_BuyConfirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Pet_BuyCancel" xml:space="preserve"><value>Cancel</value></data>
 </root>

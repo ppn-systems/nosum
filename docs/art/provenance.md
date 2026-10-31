@@ -242,7 +242,7 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 | 103 | `treasure_gem` | Gold treasure icons `sheet.png` (1, 2), treasure gem |
 | 104 | `arcane_grimoire` | Assorted RPG Icons `books.png` (3, 0), spell tome |
 | 105 | `necromancer_skull` | 6 Color Dungeon (19, 2), dungeon skull |
-| 106 | `ancient_scroll` | Kenney Roguelike/RPG Pack (44, 15), ancient scroll |
+| 106 | `ancient_scroll`, `rename_scroll` | Kenney Roguelike/RPG Pack (42, 15), letter with a pen (the rename scroll and the ancient scroll) |
 | 107 | `sanctuary_candelabra` | Kenney Roguelike Indoors (19, 0), candelabra |
 | 108 | resource node | Random animals `bee.png`, honey bee |
 | 109 | resource node | Pixel Animals 16x16 (0, 0), pocket cat |
