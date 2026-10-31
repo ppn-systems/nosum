@@ -83,7 +83,7 @@ public sealed class PlayerPresence
     private int _footwearItemId;
     private StatusEffectKind _speedBuff;
     private double _moveSpeedFactor = 1;
-    /// </summary>
+
     /// <summary>
     /// Gets or sets the run energy owed and not yet spent, energy units below one whole unit (docs/adr/ADR-085 D2). Use only while holding <see cref="Gate"/>.
     /// </summary>
@@ -94,10 +94,10 @@ public sealed class PlayerPresence
     /// </summary>
     public bool RunAllowed { get; set; } = true;
 
-
     /// <summary>
     /// Gets the movement speed multiplier the move validator honors: footwear × speed buff, clamped (docs/adr/ADR-084 D3, issue #146).
     /// Set by <see cref="SetFootwear"/> and <see cref="SetSpeedBuff"/>; safe to read without <see cref="Gate"/>.
+    /// </summary>
     public double MoveSpeedFactor
     {
         get
