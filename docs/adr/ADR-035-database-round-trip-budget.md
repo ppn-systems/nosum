@@ -256,3 +256,13 @@ Ranked changes #4 (rows created with the account), #5 (the remaining N+1 loops) 
 
 A second server process is planned; the signed-in population makes the memory of D3-D5 matter; an owner decision adds a feature whose packets do not
 fit a class of D1; or write-behind (D7) is asked for state that D7 forbids.
+
+## Amendment (2026-10-31): the adopt-pet row
+
+The onboarding chain (ADR-036) gained an `adopt_pet` step that is completed by the pet adoption packet. The packet now reads the player's quest
+copy once, writes the completed quest row and pays its reward in one transaction. `DbBudgetBaseline` row `AdoptPet / adopt a cat` rises from
+(1, 1, 0, 1) to (2, 2, 1, 2) for that reason only. The same holds for the emote: the first `SendEmote / wave` completes the `send_emote` step and
+its row rises from (0, 0, 0, 0) to (1, 1, 1, 1). The first filled request completes the `fill_request` step the same way: row
+`DeliverRequest / fill one request` rises from (4, 1, 1, 1) to (6, 3, 3, 3). Each placement counts toward the `decorate` step, so row
+`PlaceObject / a chest` rises from (0, 1, 1, 1) to (0, 2, 1, 2): one extra quest row write, no transaction. The first placed coop completes the `build_coop` step, so
+`PlaceObject / a coop blueprint` rises from (3, 2, 1, 1) to (5, 4, 3, 3). Placing a fence also counts toward `decorate`, so `PlaceObject / a fence` rises from (0, 1, 1, 1) to (1, 2, 2, 2). The furnace row follows the same rule: (0, 1, 1, 1) to (0, 2, 1, 2). Every other limit is unchanged.

@@ -15,19 +15,22 @@ using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Inventory;
-using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Placeable.S2C;
-using Nosum.Domain.Coops;
+using Nosum.Contracts.Placeable;
 using Nosum.Contracts.World.S2C;
+using Nosum.Domain.Coops;
 using Nosum.Domain.Farm;
 using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Coops;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Movement;
 using Nosum.Gameplay.Placeables;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Visits;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Placeables;
 
@@ -46,6 +49,7 @@ public sealed partial class PlaceableService : IPlaceableService, IInstanceWorld
     private readonly IChunkPublisher _publisher;
     private readonly IMapCatalog _maps;
     private readonly IInventoryService _inventory;
+    private readonly IQuestService? _quests;
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly TimeProvider _time;
     private readonly IFarmTiles? _farm;
@@ -68,6 +72,7 @@ public sealed partial class PlaceableService : IPlaceableService, IInstanceWorld
     /// <param name="nodes">Which tiles hold a node: nothing is placed on a tree or a weed. <see langword="null"/> to skip the check.</param>
     /// <param name="coops">Co-op membership, asked for every change on co-op land. <see langword="null"/> when there is no co-op land.</param>
     /// <param name="tiles">Where the pieces of every loaded instance are published for the farm layer and the growth rule.</param>
+    /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
     public PlaceableService(
         IMapPresence presence,
         IChunkMap chunks,
@@ -79,8 +84,10 @@ public sealed partial class PlaceableService : IPlaceableService, IInstanceWorld
         IFarmTiles? farm = null,
         INodeTiles? nodes = null,
         ICoopMembership? coops = null,
-        PlacedTiles? tiles = null)
+        PlacedTiles? tiles = null,
+        IQuestService? quests = null)
     {
+        _quests = quests;
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
         ArgumentNullException.ThrowIfNull(publisher);
@@ -282,6 +289,8 @@ public sealed partial class PlaceableService : IPlaceableService, IInstanceWorld
         }
 
         await this.PushAsync(player.Instance, PlacedChunks.RangeOf(placed).Chunks(), [placed], [], cancellationToken).ConfigureAwait(false);
+        QuestEventKind placedKind = definition.Kind == PlaceableKind.Building ? QuestEventKind.BuildingPlaced : QuestEventKind.PlaceablePlaced;
+        await _quests.TryReportAsync(player.AccountId, new QuestEvent(placedKind, held.ItemId), cancellationToken).ConfigureAwait(false);
         return new PlaceOutcome(PlaceStatus.Ok, placed.Id);
     }
 

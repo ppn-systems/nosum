@@ -12,6 +12,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.S2C;
@@ -21,8 +22,10 @@ using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Skills;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Progress;
 
@@ -42,6 +45,7 @@ public sealed class PlayerProgressService : IPlayerProgress
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly IGameDayClock _days;
     private readonly IInventoryService _inventory;
+    private readonly IQuestService? _quests;
     private readonly TimeProvider _time;
     private readonly IPlayerNotifier? _notifier;
     private readonly PlayerStateCache _cache;
@@ -56,8 +60,11 @@ public sealed class PlayerProgressService : IPlayerProgress
     /// <param name="time">Clock for the row's timestamps.</param>
     /// <param name="notifier">Pushes to the player; <see langword="null"/> in tests that do not listen.</param>
     /// <param name="cache">The row copy shared with the place service; <see langword="null"/> for a private one.</param>
-    public PlayerProgressService(IUnitOfWorkFactory unitOfWork, IGameDayClock days, IInventoryService inventory, TimeProvider time, IPlayerNotifier? notifier = null, PlayerStateCache? cache = null)
+    /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
+    public PlayerProgressService(IUnitOfWorkFactory unitOfWork, IGameDayClock days, IInventoryService inventory, TimeProvider time, IPlayerNotifier? notifier = null, PlayerStateCache? cache = null,
+        IQuestService? quests = null)
     {
+        _quests = quests;
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(days);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -227,6 +234,7 @@ public sealed class PlayerProgressService : IPlayerProgress
         }
 
         await this.PushEnergyAsync(playerId, energyAfter, cancellationToken).ConfigureAwait(false);
+        await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.FoodEaten, held.ItemId), cancellationToken).ConfigureAwait(false);
         return new EatOutcome(EatStatus.Ok);
     }
 

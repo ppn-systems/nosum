@@ -239,7 +239,7 @@ internal static partial class Program
         CalendarGameDayClock nodeDayClock = new(calendar, clock);
         InstanceManager.Instance.Register<IGameDayClock>(nodeDayClock);
         // Energy and skills (docs/adr/ADR-023): every tool use is charged through this in the transaction of its effect.
-        PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier, playerStates);
+        PlayerProgressService progress = new(unitOfWork, nodeDayClock, inventory, clock, notifier, playerStates, quests);
         InstanceManager.Instance.Register<IPlayerProgress>(progress);
         ResourceNodeService nodes = new(presence, presence, publisher, maps, inventory, new GroundYieldSink(groundItems, unitOfWork, presence, maps), toolState, nodeDayClock, unitOfWork, clock, progress, placedTiles);
 
@@ -262,7 +262,7 @@ internal static partial class Program
         FarmService farm = new(presence, presence, publisher, maps, inventory, quests, coopMembership, nodes, toolState, unitOfWork, clock, calendar, groundItems, progress, dayClock, placedTiles, guestbook);
 
         // Placing objects, chests and furnaces (docs/adr/ADR-024): a chest and a furnace refuse to be picked up while they hold something, so they attach to the placeables.
-        PlaceableService placeables = new(presence, presence, publisher, maps, inventory, unitOfWork, clock, farm, nodes, coopMembership, placedTiles);
+        PlaceableService placeables = new(presence, presence, publisher, maps, inventory, unitOfWork, clock, farm, nodes, coopMembership, placedTiles, quests);
         InstanceManager.Instance.Register<IPlaceableService>(placeables);
         ChestService chests = new(presence, maps, placeables, inventory, coopMembership, clock);
         InstanceManager.Instance.Register<IChestService>(chests);
@@ -274,11 +274,11 @@ internal static partial class Program
         AnimalWanderService animalWander = new(presence, publisher, maps, buildingDirectory, unitOfWork, clock, (ulong)Random.Shared.NextInt64());
         InstanceManager.Instance.Register(animalWander);
         InstanceManager.Instance.Register<IAnimalWander>(animalWander);
-        BuildingService buildings = new(presence, publisher, maps, inventory, transfers, buildingDirectory, animalWander, unitOfWork, coopMembership, calendar, clock);
+        BuildingService buildings = new(presence, publisher, maps, inventory, transfers, buildingDirectory, animalWander, unitOfWork, coopMembership, calendar, clock, quests);
         InstanceManager.Instance.Register<IBuildingService>(buildings);
         placeables.Attach(buildings);
         // The pet companion (docs/adr/ADR-075 D3-D5): its kind and name travel in every look, so visitors see it.
-        PetService pets = new(unitOfWork, progress, calendar, clock);
+        PetService pets = new(unitOfWork, progress, calendar, clock, quests);
         InstanceManager.Instance.Register<IPetService>(pets);
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock, pets);
         InstanceManager.Instance.Register<ILookService>(looks);
@@ -292,7 +292,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IBestiaryService>(bestiary);
         // The collection journal (read here; the inventory service counts every grant into it, in the grant's own transaction).
         InstanceManager.Instance.Register<IJournalService>(new JournalService(unitOfWork));
-        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar);
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar, quests);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>
         {
@@ -303,7 +303,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<ICraftingService>(new CraftingService(presence, inventory, new ProgressSkillLevels(progress, combat), quests));
 
         // Fishing (docs/adr/ADR-078): the casts are held in memory; the season, the weather and the hour come from the same calendar and clock as the farm.
-        InstanceManager.Instance.Register<IFishingService>(new FishingService(presence, maps, inventory, progress, calendar, clock));
+        InstanceManager.Instance.Register<IFishingService>(new FishingService(presence, maps, inventory, progress, calendar, clock, quests));
 
         // The mine (docs/adr/ADR-026): floors are per-player instances built in memory, dropped when the player leaves; a tool use that ends at a ladder takes the player down,
         // so the farm service handlers see is the decorated one (the placeables and the co-ops keep the plain one they were built with).
@@ -320,7 +320,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IFeeSink>(new CoinSink());
         InstanceManager.Instance.Register<IMarketService>(new MarketService(transfers, inventory, unitOfWork, presence, maps, new CoinSink(), nicknames, clock, calendar, mail, quests));
         InstanceManager.Instance.Register<IShopService>(new ShopService(transfers, presence, maps, calendar, clock, quests));
-        InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock));
+        InstanceManager.Instance.Register<IBlacksmithService>(new BlacksmithService(transfers, inventory, unitOfWork, presence, maps, toolState, calendar, clock, quests));
 
         // Community goals (docs/adr/ADR-030): deliveries at the Town board, unlock flags, and expiry when a season ends on the one day clock.
         InstanceManager.Instance.Register<ICommunityUnlocks>(communityUnlocks);
@@ -341,7 +341,7 @@ internal static partial class Program
         };
 
         // The Town requests board (docs/adr/ADR-036): the next day's requests are written when a day ends; a read after a restart writes them lazily.
-        RequestService requests = new(transfers, unitOfWork, presence, maps, calendar, clock);
+        RequestService requests = new(transfers, unitOfWork, presence, maps, calendar, clock, quests);
         InstanceManager.Instance.Register<IRequestService>(requests);
         dayClock.DayEnded += ended =>
         {
@@ -368,7 +368,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
 
         // The emote wheel (docs/adr/ADR-075 D1-D2): a code to the players near the sender, rate limited by the service.
-        InstanceManager.Instance.Register<IEmoteService>(new EmoteService(presence, publisher, clock));
+        InstanceManager.Instance.Register<IEmoteService>(new EmoteService(presence, publisher, clock, quests));
 
         // Armed last: every subscriber is in place before the first boundary.
         dayClock.Start();
