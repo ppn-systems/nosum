@@ -22,6 +22,7 @@ using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
 using Nosum.Infrastructure.Quests;
+using Nosum.Infrastructure.Shops;
 
 namespace Nosum.Infrastructure.Blacksmith;
 
@@ -246,29 +247,5 @@ public sealed class BlacksmithService : IBlacksmithService
     }
 
     // The position is the server's own record, never a value from the packet.
-    private bool IsAtCounter(PlayerPresence player)
-    {
-        if (!GameMaps.TryGet(player.MapId, out MapSpec? spec) || !_maps.TryGet(player.MapId, out MapDefinition? map))
-        {
-            return false;
-        }
-
-        double feetX;
-        double feetY;
-        lock (player.Gate)
-        {
-            feetX = player.Motion.X;
-            feetY = player.Motion.Y;
-        }
-
-        foreach (ShopPoint point in spec.Shops)
-        {
-            if (point.ShopId == ShopCatalog.Blacksmith && ShopRules.InReach(point, feetX, feetY, map.Grid.TileSize))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    private bool IsAtCounter(PlayerPresence player) => CounterReach.IsAtCounter(_maps, player, ShopCatalog.Blacksmith);
 }

@@ -49,11 +49,11 @@
 
             @if (Vm.IsUpgradeMode)
             {
-                <GameButton Variant="plain" Focusable="true" OnClick="Vm.CancelUpgrade" Disabled="@Vm.IsBusy" Text="@Vm.CancelText" />
+                <GameButton Variant="secondary" Focusable="true" OnClick="Vm.CancelUpgrade" Disabled="@Vm.IsBusy" Text="@Vm.CancelText" />
             }
             else if (Vm.CanPlayAsGuest)
             {
-                <GameButton Variant="plain" Focusable="true" OnClick="PlayAsGuestAsync" Disabled="@Vm.IsBusy" Text="@Vm.PlayAsGuestText" />
+                <GameButton Variant="secondary" Focusable="true" OnClick="PlayAsGuestAsync" Disabled="@Vm.IsBusy" Text="@Vm.PlayAsGuestText" />
             }
         </GameStack>
     </div>
