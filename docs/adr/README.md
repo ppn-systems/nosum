@@ -87,4 +87,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-074](ADR-074-tool-action-pacing-and-feel.md) | Tool action pacing and feel: swing before the hit, server interval on every farm action, drag at the animation rate, exhaustion and impact feedback | Accepted |
 | [ADR-075](ADR-075-emotes-and-pet-companion.md) | Emote wheel (twelve codes, nearby fan-out, cooldown) and a pet companion (one cat or dog, named with the chat mask, petted once a day; kind and name in the look) | Accepted |
 | [ADR-077](ADR-077-hud-minimap-frame-and-top-right-grid.md) | HUD minimap frame in the top-right grid, a fixed two-column system column, the minimap view model, and sampling for large maps (no wire change) | Accepted |
+| [ADR-079](ADR-079-development-qa-hook.md) | Development QA hook for the UI capture harness: four more tester opcodes (teleport, season, level-up banner, fishing bite), a `?qa=1` client entry point, Production refuses all of them (protocol 22) | Accepted |
 
