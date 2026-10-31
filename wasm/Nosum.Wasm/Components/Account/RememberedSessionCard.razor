@@ -29,7 +29,7 @@
                 <span class="account-continue-name">@Vm.Remembered.DisplayName</span>
             </div>
             <GameButton Focusable="true" Disabled="@Vm.IsBusy" Text="@Vm.Remembered.ContinueText" OnClick="@(() => Vm.ContinueAsync())" />
-            <GameButton Variant="plain" Focusable="true" Disabled="@Vm.IsBusy" Text="@Vm.Remembered.ForgetText" OnClick="@(() => Vm.ForgetRememberedAsync())" />
+            <GameButton Variant="secondary" Focusable="true" Disabled="@Vm.IsBusy" Text="@Vm.Remembered.ForgetText" OnClick="@(() => Vm.ForgetRememberedAsync())" />
             @if (Vm.ErrorText is not null)
             {
                 <GameNotice Kind="error" Text="@Vm.ErrorText" />

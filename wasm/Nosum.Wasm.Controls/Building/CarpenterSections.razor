@@ -83,7 +83,7 @@
                 }
                 <GameRow Class="center">
                     <GameButton Variant="primary" Text="@Vm.PetNextText" OnClick="@(() => Vm.ContinuePet())" />
-                    <GameButton Variant="plain" Text="@Vm.PetCancelText" OnClick="@(() => Vm.CancelPet())" />
+                    <GameButton Variant="secondary" Text="@Vm.PetCancelText" OnClick="@(() => Vm.CancelPet())" />
                 </GameRow>
             }
             @if (Vm.PetStatusText.Length > 0)
