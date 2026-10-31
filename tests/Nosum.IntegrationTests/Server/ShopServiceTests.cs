@@ -215,7 +215,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
 
     [Theory]
     [InlineData(ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 30)]
-    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.HatCap, 40)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 60)]
     [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.HousePlant, 80)]
     public async Task Buy_AtEachShopsOwnCounter_SellsThatShopsItems(int shopId, int itemId, int price)
     {
@@ -252,7 +252,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     [Theory]
     [InlineData(ShopCatalog.SeedShop, ShopCatalog.FurnitureShop, ItemCatalog.OakChair)]
     [InlineData(ShopCatalog.ClothingShop, ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds)]
-    [InlineData(ShopCatalog.FurnitureShop, ShopCatalog.ClothingShop, ItemCatalog.HatCap)]
+    [InlineData(ShopCatalog.FurnitureShop, ShopCatalog.ClothingShop, ItemCatalog.ShirtRed)]
     public async Task Buy_FromAShopWhoseCounterTheFarmerIsNotAt_IsRefused(int standAt, int buyFrom, int itemId)
     {
         Guid player = await CreatePlayerAsync();

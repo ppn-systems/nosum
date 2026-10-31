@@ -119,7 +119,7 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
             int quantity = this.Quantity;
             foreach (ShopOffer offer in shop.Offers)
             {
-                if (calendar is not null && !ShopRules.IsInSeason(offer.ItemId, calendar, nowMs))
+                if (calendar is not null && !ShopRules.IsInSeason(_shopId, offer.ItemId, calendar, nowMs))
                 {
                     continue;
                 }

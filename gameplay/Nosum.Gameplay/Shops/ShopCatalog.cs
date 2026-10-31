@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Items;
 
 namespace Nosum.Gameplay.Shops;
@@ -10,7 +11,8 @@ namespace Nosum.Gameplay.Shops;
 /// <summary>One thing a shop sells: an item at a fixed price in coins per unit. Stock is unlimited.</summary>
 /// <param name="ItemId">The item, from <see cref="ItemCatalog"/>.</param>
 /// <param name="CoinsEach">Coins for one unit.</param>
-public readonly record struct ShopOffer(int ItemId, int CoinsEach);
+/// <param name="Sold">The seasons the counter has the item in stock; <see langword="null"/> for every season (docs/adr/ADR-080 D1).</param>
+public readonly record struct ShopOffer(int ItemId, int CoinsEach, SeasonSet? Sold = null);
 
 /// <summary>
 /// A shop: a stable id (the only shop name that crosses the wire), a stable key (localization entry <c>shop.&lt;key&gt;.name</c>) and
@@ -20,6 +22,7 @@ public readonly record struct ShopOffer(int ItemId, int CoinsEach);
 public sealed class ShopDefinition
 {
     private readonly Dictionary<int, int> _prices;
+    private readonly Dictionary<int, SeasonSet> _seasons = [];
 
     /// <summary>Initializes a shop.</summary>
     /// <param name="id">Stable numeric id, greater than zero.</param>
@@ -39,6 +42,10 @@ public sealed class ShopDefinition
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(offer.CoinsEach);
             _prices.Add(offer.ItemId, offer.CoinsEach);
+            if (offer.Sold is { } sold)
+            {
+                _seasons.Add(offer.ItemId, sold);
+            }
         }
     }
 
@@ -56,6 +63,12 @@ public sealed class ShopDefinition
     /// <param name="coinsEach">Coins for one unit when sold here.</param>
     /// <returns><see langword="true"/> when this shop sells the item.</returns>
     public bool TryGetPrice(int itemId, out int coinsEach) => _prices.TryGetValue(itemId, out coinsEach);
+
+    /// <summary>Tells whether this counter has an item in stock in a season: always, unless the offer names its seasons (docs/adr/ADR-080 D1).</summary>
+    /// <param name="itemId">The item.</param>
+    /// <param name="season">The season of the server clock.</param>
+    /// <returns><see langword="false"/> only for an offer that is not sold in that season.</returns>
+    public bool IsSoldIn(int itemId, Season season) => !_seasons.TryGetValue(itemId, out SeasonSet sold) || sold.Contains(season);
 }
 
 /// <summary>
@@ -115,8 +128,9 @@ public static class ShopCatalog
             new(ItemCatalog.ShirtBlue, 60),
             new(ItemCatalog.PantsBlue, 80),
             new(ItemCatalog.PantsKhaki, 80),
-            new(ItemCatalog.HatStraw, 50),
-            new(ItemCatalog.HatCap, 40),
+            // The hats rotate with the seasons (docs/adr/ADR-080 D1): straw for the sunny half of the year, a cap for the cold half.
+            new(ItemCatalog.HatStraw, 50, SeasonSet.Spring | SeasonSet.Summer),
+            new(ItemCatalog.HatCap, 40, SeasonSet.Fall | SeasonSet.Winter),
         ]),
         new(FurnitureShop, "furniture_shop",
         [
