@@ -78,3 +78,8 @@
         max-width: 100%;
     }
 }
+
+/* Every button of the start screen is a touch target of at least 14 u (docs/design/ui-standard.md section 6). */
+.start-screen ::deep .game-button {
+    min-height: calc(var(--u) * 14);
+}
