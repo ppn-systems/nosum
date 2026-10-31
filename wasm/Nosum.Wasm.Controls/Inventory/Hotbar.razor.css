@@ -27,6 +27,30 @@
 
 .hotbar-skills ::deep .game-button.chip {
     padding: 0;
+    position: relative;
+}
+
+/* The cooldown sweep: a dark veil that drains from the top over the skill's full cooldown (docs/adr/ADR-056 D5). The button is disabled meanwhile. */
+.hotbar-skills .skill-cooldown {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: rgba(24, 16, 8, 0.62);
+    transform-origin: top center;
+    animation: skill-cooldown-drain var(--cd-ms, 3000ms) linear forwards;
+    pointer-events: none;
+}
+
+@keyframes skill-cooldown-drain {
+    from { transform: scaleY(1); }
+    to { transform: scaleY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hotbar-skills .skill-cooldown {
+        animation: none;
+        transform: scaleY(1);
+    }
 }
 
 .hotbar-skills ::deep .game-key {
