@@ -77,7 +77,7 @@
             <MarketPanel Vm="Market" />
             break;
         case PanelKind.Shop:
-            <ShopPanel Vm="Shop" ShopId="ShopId" Smith="Blacksmith" ShowOffers="@(Npc.Page != NpcPage.Build && Npc.Page != NpcPage.Upgrade)" ShowExtras="@(Npc.Page != NpcPage.Shop)">
+            <ShopPanel Vm="Shop" ShopId="ShopId" Smith="Blacksmith" ShowOffers="@(Npc.Page != NpcPage.Build && Npc.Page != NpcPage.Upgrade)" ShowExtras="@(Npc.Page != NpcPage.Shop || Shop.IsCarpenterShop)">
                 <Extra>
                     @if (Shop.IsCarpenterShop)
                     {
