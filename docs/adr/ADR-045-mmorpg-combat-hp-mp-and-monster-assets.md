@@ -42,3 +42,60 @@
 - **Rendering & HUD:**
   - `MonstersDecorator` (`IMapDecorator`) renders live monsters with directional walk/idle frames and floating pixel HP bars above injured monsters with zero per-frame allocations.
   - `EnergyBar.razor` renders three side-by-side vertical pixel gauges (`HP` crimson, `MP` sapphire, `Energy` emerald) next to the hotbar, and `SkillsPanel.razor` displays Vitals (`HP`, `MP`, `Energy`) and the `Combat` skill progression.
+
+## Amendment — combat balance targets (2026-10-31)
+
+- **Status:** Proposed. Owner decision pending on acceptance.
+- **Amends:** D3 (the species breaks in the spawning paragraph are now floors 1–10, 11–20, 21–30 and 31–40, not 1–10, 11–25 and 26–40), and the catalog values of D2 and D3.
+- **Full tables:** [`docs/design/combat-balance.md`](../design/combat-balance.md). Locked by `tests/Nosum.UnitTests/Gameplay/CombatBalanceTests.cs`.
+
+### Context
+
+An audit of the mine and the combat loop against its own numbers found: full iron armor left every monster from floor 11 dealing one damage;
+the boss on floor 10 cost the reference player 90% of HP and the Golem King on floor 40 killed them; the species break at floor 25 did not
+match the biome tiers (ADR-070); the Goblin Ear had no recipe and no sell price; ore, gems, bones and gel could not be sold; and one full clear
+of the mine took a Combat level 10 player about 1.2 days of XP. No new mechanic, monster, item id or packet is needed to fix these.
+
+### D4 — Balance targets
+
+Each mine band has a reference player: the weapon, Combat level and armor it is expected to carry (band 1 bronze, level 2, leather; band 2
+iron, level 4, iron set; band 3 steel, level 5, iron set; band 4 gold, level 7, crown set). Against that player:
+
+- Normal monsters die in 1–2 hits, and one kill costs at most 8% of max HP.
+- A boss dies in 6–9 hits and costs 35–65% of max HP.
+- The armor adds at least 5 hits of survival against the band's strongest normal monster, which takes at least 15 hits to kill a wearer.
+- Each melee weapon tier is at least 40% stronger than the tier below.
+- Every monster's primary drop has a sell price. The mean primary-drop value of a band's normal monsters stays within 4–10 coins (band 1), 4–12 (band 2), 6–12 (band 3) and 10–20 (band 4).
+- One full clear of a band leaves the reference player at that band's Combat level. One full clear of the mine is 2 to 3.5 clears to Combat level 10.
+- A health potion restores 25–50% of each band's max HP.
+
+### D5 — Catalog changes
+
+- **Species** (`MonsterSpawnPlanner.SpeciesForMineFloor`): the breaks follow the biome tiers. Band 3 is magma slime, skeleton warrior and goblin scout;
+  band 4 is stone golem, skeleton warrior and magma slime. Bands 1 and 2 are unchanged.
+- **Monster attack** (`MonsterCatalog`): frost slime 9→13, goblin scout 12→16, magma slime 14→18, skeleton warrior 16→20. Green slime (5), cave bat (7),
+  spore shroom (8) and stone golem (22→24) as listed. HP never changes.
+- **Boss attack:** Cave broodmother 15→10, Goblin chieftain 22→17, Magma colossus 30→19, Golem king 40→24.
+- **Monster and boss XP** halved (rounded): green slime 12→6, cave bat 15→8, spore shroom 20→10, frost slime 22→11, goblin scout 30→15,
+  magma slime 35→18, skeleton warrior 45→22, stone golem 70→35, bosses 150/250/400/600 → 75/125/200/300.
+- **Armor defense** (`CombatRules.ArmorDefense`): leather armor 3→2, ranger tunic 4→3, iron chestplate 7→5, iron greaves 5→3, iron helmet 4→2,
+  boss crown 8→6.
+- **Sell prices:** slime gel 4, bat wing 8, spore cap 8, goblin ear 12, monster bone 12, golem core 35, mana crystal 30, treasure gem 35, coal 4,
+  copper ore 2, iron ore 4, copper bar 10 and iron bar 20 (a furnace turns 5 ore into 1 bar, so a bar sells for five times its ore).
+
+Unchanged: monster HP, weapon damage, potion restores, spawn counts, the XP curve (`SkillRules`), the armor formula, the sword pacing, the
+elite rules and the boss floors.
+
+### Consequences
+
+- Positive: no floor is trivial for the reference player, no boss is lethal, bands follow the biome tiers, every drop has a use or a value,
+  and the XP curve matches the reference levels.
+- Known gap, not changed here: there is no natural HP regeneration. A full band clear of normal fights costs 110 to 454 HP against a reference
+  player with 120 to 170 max HP, and band 3 needs about nine health potions. Healing is potions, shrines and the 25% knockout revive. A
+  regeneration or rest rule is a new mechanic and needs its own ADR.
+- Negative: market listings for ore and gems now exist, which the economy must watch (the market fee and the listing caps stay as they are).
+
+### Revisit when
+
+The reference player changes (a new weapon tier, a new armor set or an XP change), a regeneration rule is decided, or the playtest shows that
+band 3 healing is too tight.
