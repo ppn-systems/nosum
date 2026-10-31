@@ -13,6 +13,7 @@ using Nosum.Gameplay.Npcs;
 using Nosum.Gameplay.Shops;
 using Nosum.Rendering;
 using Nosum.UnitTests.Maps;
+using Nosum.Wasm.ViewModels.Npc;
 using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
@@ -20,7 +21,7 @@ namespace Nosum.UnitTests.Gameplay;
 /// <summary>The merchants (docs/adr/ADR-043 D1): one per counter, standing behind it, with art and text in both languages.</summary>
 public sealed class NpcCatalogTests
 {
-    private static readonly string[] s_parts = ["Name", "Role", "Greeting", "Talk1", "Talk2"];
+    private static readonly string[] s_parts = ["Name", "Role"];
 
     public static TheoryData<string> MerchantIds()
     {
@@ -129,9 +130,18 @@ public sealed class NpcCatalogTests
                 text.Should().ContainKey(npc!.TextKey(part), $"{file} needs {part} of {id}");
                 text[npc.TextKey(part)].Should().NotBeNullOrWhiteSpace();
             }
+
+            // The pool (docs/adr/ADR-080 D2): every line that NpcLineCatalog names has text in this language.
+            foreach (NpcLine line in NpcLineCatalog.PoolOf(id))
+            {
+                string key = npc!.TextKey("Line_" + line.Number.ToString("00", System.Globalization.CultureInfo.InvariantCulture));
+                text.Should().ContainKey(key, $"{file} needs {key}");
+                text[key].Should().NotBeNullOrWhiteSpace();
+            }
         }
 
-        Texts("Language.resx")[npc!.TextKey("Greeting")].Should().NotBe(Texts("Language.en.resx")[npc.TextKey("Greeting")], "the greeting is translated");
+        string firstLine = npc!.TextKey("Line_01");
+        Texts("Language.resx")[firstLine].Should().NotBe(Texts("Language.en.resx")[firstLine], "the lines are translated");
         Texts("Language.resx")[npc.TextKey("Role")].Should().NotBe(Texts("Language.en.resx")[npc.TextKey("Role")]);
     }
 

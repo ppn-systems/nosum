@@ -238,6 +238,7 @@ internal static class ClientWiring
         GameLoop.UseNodes(nodes);
         GroundItemChannel groundItems = services.GetRequiredService<GroundItemChannel>();
         QuestChannel quests = services.GetRequiredService<QuestChannel>();
+        MineChannel mine = services.GetRequiredService<MineChannel>();
         GameLoop.UseNetwork(channel);
         GameLoop.UseGroundItems(groundItems);
         MarketChannel market = services.GetRequiredService<MarketChannel>();
@@ -295,6 +296,8 @@ internal static class ClientWiring
             groundItems.Load();
             combat.LoadVitals();
             combat.LoadMonsters();
+            // The merchants' lines follow the deepest floor (docs/adr/ADR-080 D2), so the mine's progress is read on join too.
+            mine.Load();
         };
         channel.Joined += _ => looks.Load();
         channel.Joined += mapId =>
