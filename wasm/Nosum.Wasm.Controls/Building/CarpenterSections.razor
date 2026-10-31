@@ -1,8 +1,10 @@
 @using Nosum.Wasm.ViewModels.Building
+@using Nosum.Wasm.ViewModels.Pets
 @inherits ObservingComponent<CarpenterViewModel>
 
-@* The building and animal sections of the carpenter's page, under its supplies (docs/adr/ADR-028): order a blueprint for a coop or a barn, and buy an animal for a finished
-   building with a name. The server prices and checks everything; the buttons only follow the same rules so a player is not offered what they cannot afford. *@
+@* The building, animal and pet sections of the carpenter's page, under its supplies (docs/adr/ADR-028, docs/adr/ADR-075 amendment): order a blueprint for a coop or a
+   barn, buy an animal for a finished building with a name, and buy a cat or a dog with a name (one pet at a time). The server prices and checks everything; the buttons
+   only follow the same rules so a player is not offered what they cannot afford. *@
 <div class="carpenter-wrap">
     <GameSection Title="@Vm.Text("Carpenter_Buildings")">
         <p class="carpenter-line">@Vm.Text("Carpenter_Hint")</p>
@@ -42,6 +44,29 @@
         }
     </GameSection>
     }
+    <GameSection Title="@Vm.Text("Carpenter_Pets")">
+        <p class="carpenter-line">@Vm.Text("Carpenter_PetHint")</p>
+        @if (Vm.HasPet)
+        {
+            <GameNotice Kind="info" Text="@Vm.Text("Carpenter_PetHave")" />
+        }
+        <GameField Label="@Vm.Text("Pet_NameLabel")">
+            <GameInput Value="@Vm.PetName" ValueChanged="@(v => Vm.PetName = v)" Label="@Vm.Text("Pet_NameLabel")" MaxLength="@CarpenterViewModel.MaxPetNameLength" />
+        </GameField>
+        @foreach (PetOffer pet in Vm.PetOffers)
+        {
+            PetOffer p = pet;
+            <GameRow Class="center carpenter-row">
+                <span>@pet.Name</span>
+                <span class="carpenter-cost">@pet.PriceText</span>
+                <GameButton Text="@Vm.Text("Carpenter_BuyPet")" Disabled="@(!pet.CanBuy)" OnClick="@(() => Vm.BuyPetAsync(p))" />
+            </GameRow>
+        }
+        @if (Vm.PetStatusText.Length > 0)
+        {
+            <GameNotice Kind="@(Vm.PetStatusIsGood ? "ok" : "error")" Text="@Vm.PetStatusText" />
+        }
+    </GameSection>
     @if (Vm.Status.Length > 0)
     {
         <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />

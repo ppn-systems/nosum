@@ -283,10 +283,6 @@ internal static class ClientWiring
         keeper.Authenticated += combat.LoadVitals;
         keeper.Authenticated += pets.Load;
 
-        // The adoption form is offered on the player's own farm only: a visit to another farm, or any other map, hides it.
-        PetViewModel petPanel = services.GetRequiredService<PetViewModel>();
-        channel.Joined += mapId => petPanel.SetOnOwnFarm(mapId == GameMaps.Farm);
-        services.GetRequiredService<VisitChannel>().Visiting += () => petPanel.SetOnOwnFarm(false);
         channel.Joined += _ =>
         {
             farm.Load();

@@ -10,12 +10,18 @@ using Nosum.Contracts.Building.S2C;
 using Nosum.Contracts.Market.S2C;
 using Nosum.Gameplay.Animals;
 using Nosum.Gameplay.Buildings;
+using Nosum.Contracts.Pet;
+using Nosum.Contracts.Pet.C2S;
+using Nosum.Contracts.Pet.S2C;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Pets;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.Socket.Pet;
 using Nosum.Wasm.ViewModels.Building;
 using Nosum.Wasm.ViewModels.Feedback;
+using Nosum.Wasm.ViewModels.Pets;
 using Xunit;
 using static Nosum.UnitTests.Wasm.WasmTestSupport;
 
@@ -34,7 +40,19 @@ public sealed class CarpenterViewModelTests
         WalletChannel wallet = new(socket);
         socket.Push(new WalletUpdate { Coins = coins });
         BuildingChannel buildings = new(socket);
-        return (new CarpenterViewModel(buildings, wallet, inventory, Text()), socket, buildings);
+        PetViewModel pet = new(new PetChannel(socket), Text());
+        return (new CarpenterViewModel(buildings, wallet, inventory, pet, Text()), socket, buildings);
+    }
+
+    private static (CarpenterViewModel Vm, FakeGameSocket Socket, PetChannel Pets) CreateWithPets(long coins)
+    {
+        FakeGameSocket socket = new();
+        InventoryChannel inventory = LoadedInventory(socket);
+        WalletChannel wallet = new(socket);
+        socket.Push(new WalletUpdate { Coins = coins });
+        PetChannel pets = new(socket);
+        PetViewModel pet = new(pets, Text());
+        return (new CarpenterViewModel(new BuildingChannel(socket), wallet, inventory, pet, Text()), socket, pets);
     }
 
     private static void ListMine(FakeGameSocket socket, BuildingChannel buildings, params BuildingRow[] rows)
@@ -180,7 +198,7 @@ public sealed class CarpenterViewModelTests
         (CarpenterViewModel vm, FakeGameSocket socket, _) = Create(0);
         socket.ReplyWith(_ => new AnimalResult { Status = BuildingStatus.AlreadyPetted });
         BuildingChannel buildings = new(socket);
-        _ = new CarpenterViewModel(buildings, new WalletChannel(socket), LoadedInventory(socket), Text());
+        _ = new CarpenterViewModel(buildings, new WalletChannel(socket), LoadedInventory(socket), new PetViewModel(new PetChannel(socket), Text()), Text());
 
         buildings.Pet(Guid.NewGuid());
 
@@ -206,6 +224,82 @@ public sealed class CarpenterViewModelTests
 
         Keys("Language.resx").Should().Contain(needed);
         Keys("Language.en.resx").Should().Contain(needed);
+    }
+
+    [Fact]
+    public void PetOffers_EnoughCoinsAndNoPet_CanBuyCatAndDog()
+    {
+        (CarpenterViewModel vm, _, _) = CreateWithPets(1_000);
+
+        vm.PetOffers.Should().HaveCount(2);
+        vm.PetOffers.Should().OnlyContain(o => o.CanBuy);
+    }
+
+    [Fact]
+    public void PetOffers_NotEnoughCoinsForADog_OnlyTheCatCanBeBought()
+    {
+        (CarpenterViewModel vm, _, _) = CreateWithPets(700);
+
+        vm.PetOffers.Single(o => o.Kind == PetKind.Cat).CanBuy.Should().BeTrue();
+        vm.PetOffers.Single(o => o.Kind == PetKind.Dog).CanBuy.Should().BeFalse();
+    }
+
+    [Fact]
+    public void PetOffers_AlreadyHasAPet_NothingCanBeBought()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, PetChannel pets) = CreateWithPets(5_000);
+        socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.Ok, Kind = 1, Name = "Miu", Mood = 50 });
+        pets.Load();
+
+        vm.HasPet.Should().BeTrue();
+        vm.PetOffers.Should().OnlyContain(o => !o.CanBuy);
+    }
+
+    [Fact]
+    public void BuyPet_TypedName_SendsAdoptWithTheKindAndTheName()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
+        byte kind = 0;
+        string name = string.Empty;
+        socket.ReplyWith<PetState>(request =>
+        {
+            kind = ((AdoptPet)request).Kind;
+            name = ((AdoptPet)request).Name;
+            return new PetState { Status = PetStatus.Ok, Kind = 2, Name = "Rex", Mood = 50 };
+        });
+        vm.PetName = "Rex";
+
+        vm.BuyPet(PetKind.Dog);
+
+        kind.Should().Be((byte)PetKind.Dog);
+        name.Should().Be("Rex");
+    }
+
+    [Fact]
+    public void BuyPet_Accepted_ClearsThePetNameAndShowsSuccess()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(5_000);
+        socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.Ok, Kind = 1, Name = "Miu", Mood = 50 });
+        vm.PetName = "Miu";
+
+        vm.BuyPet(PetKind.Cat);
+
+        vm.PetName.Should().BeEmpty();
+        vm.PetStatusIsGood.Should().BeTrue();
+    }
+
+    [Fact]
+    public void BuyPet_NotEnoughCoins_ShowsTheRefusalAndKeepsTheName()
+    {
+        (CarpenterViewModel vm, FakeGameSocket socket, _) = CreateWithPets(100);
+        socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.NotEnoughCoins });
+        vm.PetName = "Rex";
+
+        vm.BuyPet(PetKind.Dog);
+
+        vm.PetStatusIsGood.Should().BeFalse();
+        vm.PetStatusText.Should().Be(Text()["Pet_Status_NotEnoughCoins"].Value);
+        vm.PetName.Should().Be("Rex");
     }
 }
 

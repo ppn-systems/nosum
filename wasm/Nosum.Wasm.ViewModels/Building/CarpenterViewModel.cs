@@ -7,10 +7,13 @@ using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Building;
 using Nosum.Gameplay.Animals;
 using Nosum.Gameplay.Buildings;
+using Nosum.Contracts.Pet;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Pets;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.ViewModels.Pets;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Building;
@@ -30,6 +33,13 @@ public sealed record BuildingOrder(BuildingKind Kind, string Name, string CostTe
 /// <param name="CanBuy">Whether the player has the coins.</param>
 public sealed record AnimalOffer(Guid BuildingId, string Title, AnimalKind Kind, string BuyLabel, bool CanBuy);
 
+/// <summary>One pet the carpenter sells (docs/adr/ADR-075 amendment): a cat or a dog, its price and whether the player can buy it now.</summary>
+/// <param name="Kind">The kind.</param>
+/// <param name="Name">Its name, localized.</param>
+/// <param name="PriceText">What it costs, as a line.</param>
+/// <param name="CanBuy">Whether the player has no pet yet and the coins for it.</param>
+public sealed record PetOffer(PetKind Kind, string Name, string PriceText, bool CanBuy);
+
 /// <summary>
 /// The carpenter's building and animal sections (docs/adr/ADR-028 D1, D3), shown under the supplies of the carpenter's shop page: the buildings to order a blueprint for, and
 /// the animals to buy for the player's finished buildings with the name the player types. The server decides and prices everything; this only offers what the player could afford
@@ -40,28 +50,73 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
     private readonly BuildingChannel _buildings;
     private readonly WalletChannel _wallet;
     private readonly InventoryChannel _inventory;
+    private readonly PetViewModel _pet;
     private string _animalName = string.Empty;
+    private string _petName = string.Empty;
 
     /// <summary>Initializes the view model and subscribes to its channels.</summary>
     /// <param name="buildings">The building requests and the player's list.</param>
     /// <param name="wallet">The player's coins.</param>
     /// <param name="inventory">The player's wood and stone.</param>
+    /// <param name="pet">The player's pet: the carpenter sells cats and dogs through it.</param>
     /// <param name="text">The page texts.</param>
-    public CarpenterViewModel(BuildingChannel buildings, WalletChannel wallet, InventoryChannel inventory, IStringLocalizer<Language> text)
+    public CarpenterViewModel(BuildingChannel buildings, WalletChannel wallet, InventoryChannel inventory, PetViewModel pet, IStringLocalizer<Language> text)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(buildings);
         ArgumentNullException.ThrowIfNull(wallet);
         ArgumentNullException.ThrowIfNull(inventory);
+        ArgumentNullException.ThrowIfNull(pet);
 
         _buildings = buildings;
         _wallet = wallet;
         _inventory = inventory;
+        _pet = pet;
         buildings.Changed += this.Raise;
         buildings.Completed += this.OnCompleted;
         wallet.Changed += this.Raise;
         inventory.Changed += this.Raise;
+        pet.Changed += this.Raise;
+        pet.Completed += this.OnPetCompleted;
     }
+
+    /// <summary>Gets or sets the name typed for the next pet (a cat or a dog from the pet section).</summary>
+    public string PetName
+    {
+        get => _petName;
+        set
+        {
+            _petName = value ?? string.Empty;
+            this.Raise();
+        }
+    }
+
+    /// <summary>Gets the maximum allowed length for a pet's name.</summary>
+    public static int MaxPetNameLength => PetViewModel.MaxNameLength;
+
+    /// <summary>Gets whether the player already has a pet: the carpenter sells a new one only to a player without one.</summary>
+    public bool HasPet => _pet.HasPet;
+
+    /// <summary>Gets the cats and dogs the carpenter sells, with their prices.</summary>
+    public IReadOnlyList<PetOffer> PetOffers
+    {
+        get
+        {
+            PetOffer Offer(PetKind kind)
+            {
+                long price = PetRules.PriceOf((byte)kind);
+                return new PetOffer(kind, _pet.KindNameOf(kind), this.Text("Carpenter_PetPrice", Number(price)), !_pet.HasPet && _wallet.Coins >= price);
+            }
+
+            return [Offer(PetKind.Cat), Offer(PetKind.Dog)];
+        }
+    }
+
+    /// <summary>Gets the status of the last pet purchase, localized, or an empty string.</summary>
+    public string PetStatusText => _pet.Status;
+
+    /// <summary>Gets whether the pet status reports a success.</summary>
+    public bool PetStatusIsGood => _pet.StatusIsGood;
 
     /// <summary>Gets or sets the name typed for the next animal.</summary>
     public string AnimalName
@@ -129,6 +184,8 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
     {
         this.ClearStatus();
         _animalName = string.Empty;
+        _petName = string.Empty;
+        _pet.ClearStatus();
         _buildings.LoadMine();
         this.Raise();
     }
@@ -190,6 +247,20 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <summary>Buys a cat or a dog under the typed name. The server charges the price and refuses a second pet.</summary>
+    /// <param name="kind">The kind.</param>
+    public void BuyPet(PetKind kind) => _pet.Adopt((byte)kind, _petName);
+
+    /// <summary>Buys a cat or a dog from its offer row, under the typed name.</summary>
+    /// <param name="offer">The pet offer row.</param>
+    /// <returns>A completed task.</returns>
+    public Task BuyPetAsync(PetOffer offer)
+    {
+        ArgumentNullException.ThrowIfNull(offer);
+        this.BuyPet(offer.Kind);
+        return Task.CompletedTask;
+    }
+
     /// <summary>Stops listening to the channels.</summary>
     public void Dispose()
     {
@@ -197,9 +268,20 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
         _buildings.Completed -= this.OnCompleted;
         _wallet.Changed -= this.Raise;
         _inventory.Changed -= this.Raise;
+        _pet.Changed -= this.Raise;
+        _pet.Completed -= this.OnPetCompleted;
     }
 
     private static string NicknameRulesNormalize(string typed) => Nosum.Gameplay.Players.NicknameRules.Normalize(typed);
+
+    private void OnPetCompleted(PetStatus status)
+    {
+        if (status == PetStatus.Ok)
+        {
+            _petName = string.Empty;
+            this.Raise();
+        }
+    }
 
     private void OnCompleted(BuildingResultInfo result)
     {

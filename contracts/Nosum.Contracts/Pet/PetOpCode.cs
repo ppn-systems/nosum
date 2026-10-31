@@ -20,6 +20,9 @@ public static class PetOpCode
     /// <summary>Pets the player's pet, once a game day. Reply: <see cref="S2C.PetState"/>.</summary>
     public const ushort PetPet = 0x9502;
 
+    /// <summary>Gives the pet back to the carpenter for half its price and removes it, after the owner confirms. Reply: <see cref="S2C.PetState"/>.</summary>
+    public const ushort RehomePet = 0x9503;
+
     // -- S2C --
 
     /// <summary>Reply to every pet request: the outcome and the pet as it stands.</summary>

@@ -46,6 +46,7 @@
 @using Nosum.Wasm.ViewModels.Startup
 @using Nosum.Wasm.ViewModels.Placement
 @using Nosum.Wasm.ViewModels.Player
+@using Nosum.Wasm.ViewModels.Pets
 @using Nosum.Wasm.ViewModels.Profile
 @using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.ViewModels.Quest
@@ -89,6 +90,7 @@
 @inject ProgressViewModel Progress
 @inject NpcDialogViewModel Npc
 @inject ConnectionStatusViewModel ConnectionStatus
+@inject PetViewModel Pet
 
 <PageTitle>Nosum</PageTitle>
 
@@ -192,6 +194,7 @@ else
                 <AccountForm Vm="Form" />
             }
             <InviteOverlay Trade="Trade" Coop="Coop" ActivePanel="_panel" />
+            <PetRehomeOverlay Vm="Pet" />
             @if (_started && !Form.ShowsForm)
             {
                 @* The emote wheel, over the world; B or the HUD button opens it (docs/adr/ADR-075 D1). *@

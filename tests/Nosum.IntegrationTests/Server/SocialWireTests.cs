@@ -473,7 +473,8 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         registered.Nickname.Should().Be(chosen);
         (await b.Looks.WaitAsync(l => l.PlayerId == a.MapPlayerId && l.Nickname == chosen, ct)).Nickname.Should().Be(chosen, "the map learns the chosen name when the guest registers");
 
-        // Now a is registered and may rename (the choice at registration did not start the wait).
+        // Now a is registered and may rename (the choice at registration did not start the wait). A rename uses a Rename Scroll.
+        _ = await server.Inventory.AddAsync(a.PlayerId, ItemCatalog.RenameScroll, 2, "test.setup");
         NicknameResult renamed = await a.SetNicknameAsync("Farmer_Joe", ct);
         renamed.Status.Should().Be(AccountStatus.Ok);
         renamed.Nickname.Should().Be("Farmer_Joe");
@@ -487,6 +488,7 @@ public sealed class SocialWireTests : IClassFixture<PostgresFixture>
         (await b.UpgradeAsync("farmer joe", ct)).Status.Should().Be(AccountStatus.NicknameTaken, "case-insensitive, underscore reads as a space");
         (await b.UpgradeAsync("Another_Name", ct)).Status.Should().Be(AccountStatus.Ok);
         (await b.SetNicknameAsync("vcl", ct)).Status.Should().Be(AccountStatus.NicknameProfane);
+        _ = await server.Inventory.AddAsync(b.PlayerId, ItemCatalog.RenameScroll, 1, "test.setup");
         (await b.SetNicknameAsync("Scunthorpe", ct)).Status.Should().Be(AccountStatus.Ok, "a word that merely contains a blocked word is fine");
     }
 
