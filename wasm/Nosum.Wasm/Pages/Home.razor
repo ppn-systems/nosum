@@ -8,6 +8,7 @@
 @using System.Threading.Tasks
 @using Nosum.Wasm.Components
 @using Nosum.Wasm.Components.Account
+@using Nosum.Wasm.Controls.Backpack
 @using Nosum.Wasm.Controls.Chat
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.Controls.Feedback
@@ -24,6 +25,7 @@
 @using Nosum.Wasm.Controls.Touch
 @using Nosum.Wasm.Controls.Emotes
 @using Nosum.Wasm.Game
+@using Nosum.Wasm.ViewModels.Backpack
 @using Nosum.Wasm.ViewModels.Emotes
 @using Nosum.Wasm.ViewModels
 @using Nosum.Wasm.ViewModels.Account
@@ -46,6 +48,7 @@
 @using Nosum.Wasm.ViewModels.Startup
 @using Nosum.Wasm.ViewModels.Placement
 @using Nosum.Wasm.ViewModels.Player
+@using Nosum.Wasm.ViewModels.Pets
 @using Nosum.Wasm.ViewModels.Profile
 @using Nosum.Wasm.ViewModels.Progress
 @using Nosum.Wasm.ViewModels.Quest
@@ -88,7 +91,9 @@
 @inject CarpenterViewModel Carpenter
 @inject ProgressViewModel Progress
 @inject NpcDialogViewModel Npc
+@inject BackpackViewModel Backpack
 @inject ConnectionStatusViewModel ConnectionStatus
+@inject PetViewModel Pet
 
 <PageTitle>Nosum</PageTitle>
 
@@ -166,7 +171,11 @@ else
             @if (_started && !Form.ShowsForm)
             {
                 @* The emote wheel's button, bottom-right (docs/adr/ADR-075 D1): the same as the B key, and the touch way to open the wheel. *@
-                <div class="hud-cell"><GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" /></div>
+                @* Hidden while a merchant's dialog box is open: the box covers the bottom-right corner (ui-standard checklist 2). *@
+                @if (Npc.Stage == NpcStage.Closed)
+                {
+                    <div class="hud-cell"><GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" /></div>
+                }
             }
         </BottomRight>
         <Overlay>
@@ -192,6 +201,8 @@ else
                 <AccountForm Vm="Form" />
             }
             <InviteOverlay Trade="Trade" Coop="Coop" ActivePanel="_panel" />
+            <PetRehomeOverlay Vm="Pet" />
+            <PetPurchaseOverlay Vm="Carpenter" />
             @if (_started && !Form.ShowsForm)
             {
                 @* The emote wheel, over the world; B or the HUD button opens it (docs/adr/ADR-075 D1). *@
@@ -201,7 +212,7 @@ else
     </GameHud>
     @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
     {
-        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" RunText="@Toolbar.Text("Touch_Run")" RunLabel="@Toolbar.Text("Touch_RunLabel")" />
+        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" RunText="@Toolbar.Text("Touch_Run")" RunLabel="@Toolbar.Text("Touch_RunLabel")" Hidden="@(Npc.Stage != NpcStage.Closed)" />
     }
 }
 
@@ -356,13 +367,18 @@ else
         if (want != PanelKind.None)
         {
             _shopId = Npc.ShopId;
-            if (Npc.Page == NpcPage.Build)
+            if (Npc.Page == NpcPage.Build || _shopId == Nosum.Gameplay.Shops.ShopCatalog.CarpenterShop)
             {
+                // A visit to the carpenter's counter starts with no pet purchase open and the tabs reset (docs/adr/ADR-075 amendment).
                 Carpenter.Open();
             }
             else if (Npc.Page is NpcPage.MarketBuy or NpcPage.MarketSell)
             {
                 Market.SetTab(Npc.Page == NpcPage.MarketSell ? MarketTab.Sell : MarketTab.Browse);
+            }
+            else if (Npc.Page == NpcPage.Backpack)
+            {
+                Backpack.Open();
             }
 
             if (_panel != want)
@@ -370,7 +386,7 @@ else
                 Show(want);
             }
         }
-        else if (_panel is PanelKind.Shop or PanelKind.Market or PanelKind.Goals)
+        else if (_panel is PanelKind.Shop or PanelKind.Market or PanelKind.Goals or PanelKind.Wardrobe or PanelKind.Coop or PanelKind.Backpack)
         {
             ClosePanel();
         }
@@ -522,7 +538,7 @@ else
         }
 
         _panel = kind;
-        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals or PanelKind.Market))
+        if (kind is not (PanelKind.Shop or PanelKind.Chest or PanelKind.Furnace or PanelKind.Goals or PanelKind.Market or PanelKind.Wardrobe or PanelKind.Coop or PanelKind.Backpack))
         {
             _lastTab = kind;
         }
@@ -538,6 +554,8 @@ else
 
     private void ClosePanel()
     {
+        // A pet purchase still waiting for Confirm ends with the counter; nothing is sent (docs/adr/ADR-075 amendment).
+        Carpenter.CancelPet();
         if (_panel == PanelKind.Chest)
         {
             Chest.Close();

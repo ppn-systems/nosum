@@ -17,7 +17,7 @@ public readonly record struct ShopOffer(int ItemId, int CoinsEach, SeasonSet? So
 /// <summary>
 /// A shop: a stable id (the only shop name that crosses the wire), a stable key (localization entry <c>shop.&lt;key&gt;.name</c>) and
 /// its price list. Where a shop stands is data of the map (<c>MapSpec.Shops</c>), so another shop is one more catalogue entry and
-/// one more map point. Prices are product defaults, not balance (docs/adr/ADR-013 amendments).
+/// one more map point. Prices are balance data, banded by docs/adr/ADR-081 and docs/design/economy.md.
 /// </summary>
 public sealed class ShopDefinition
 {
@@ -98,28 +98,28 @@ public static class ShopCatalog
         new(SeedShop, "seed_shop",
         [
             // The shop lists every seed; the server sells only the seeds of crops that grow in the current season (ShopRules.IsInSeason, docs/adr/ADR-018 and ADR-025 D5).
-            // A single-harvest seed costs about half of what its crop sells for at the bin; a regrowing crop's seed costs more.
-            new(ItemCatalog.ParsnipSeeds, 10),
-            new(ItemCatalog.RadishSeeds, 15),
+            // Every seed costs less than the first harvest it yields at the bin, so one harvest always pays for its seed (docs/adr/ADR-025 amendment).
+            new(ItemCatalog.ParsnipSeeds, 12),
+            new(ItemCatalog.RadishSeeds, 20),
             new(ItemCatalog.CauliflowerSeeds, 30),
             new(ItemCatalog.PotatoSeeds, 18),
-            new(ItemCatalog.GreenBeanSeeds, 30),
+            new(ItemCatalog.GreenBeanSeeds, 25),
             new(ItemCatalog.KaleSeeds, 22),
-            new(ItemCatalog.GarlicSeeds, 12),
-            new(ItemCatalog.StrawberrySeeds, 70),
+            new(ItemCatalog.GarlicSeeds, 16),
+            new(ItemCatalog.StrawberrySeeds, 40),
             new(ItemCatalog.TomatoSeeds, 40),
             new(ItemCatalog.BlueberrySeeds, 50),
-            new(ItemCatalog.MelonSeeds, 55),
-            new(ItemCatalog.HotPepperSeeds, 35),
-            new(ItemCatalog.CornSeeds, 60),
+            new(ItemCatalog.MelonSeeds, 50),
+            new(ItemCatalog.HotPepperSeeds, 25),
+            new(ItemCatalog.CornSeeds, 55),
             new(ItemCatalog.WheatSeeds, 10),
-            new(ItemCatalog.SunflowerSeeds, 20),
-            new(ItemCatalog.PumpkinSeeds, 75),
-            new(ItemCatalog.CranberriesSeeds, 90),
-            new(ItemCatalog.EggplantSeeds, 30),
+            new(ItemCatalog.SunflowerSeeds, 22),
+            new(ItemCatalog.PumpkinSeeds, 80),
+            new(ItemCatalog.CranberriesSeeds, 55),
+            new(ItemCatalog.EggplantSeeds, 20),
             new(ItemCatalog.YamSeeds, 30),
             new(ItemCatalog.BokChoySeeds, 20),
-            new(ItemCatalog.GrapeSeeds, 60),
+            new(ItemCatalog.GrapeSeeds, 35),
         ]),
         new(ClothingShop, "clothing_shop",
         [
@@ -128,6 +128,11 @@ public static class ShopCatalog
             new(ItemCatalog.ShirtBlue, 60),
             new(ItemCatalog.PantsBlue, 80),
             new(ItemCatalog.PantsKhaki, 80),
+            // Footwear (docs/adr/ADR-084 D1): the tailor sells the two entry pairs; the faster pairs are crafted.
+            new(ItemCatalog.LeatherBoots, 150),
+            new(ItemCatalog.TravelerBoots, 380),
+            // The tailor embroiders a new name on the farmer's tag: a Rename Scroll pays for one nickname change (docs/adr/ADR-009 amendments).
+            new(ItemCatalog.RenameScroll, 200),
             // The hats rotate with the seasons (docs/adr/ADR-080 D1): straw for the sunny half of the year, a cap for the cold half.
             new(ItemCatalog.HatStraw, 50, SeasonSet.Spring | SeasonSet.Summer),
             new(ItemCatalog.HatCap, 40, SeasonSet.Fall | SeasonSet.Winter),

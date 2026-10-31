@@ -102,7 +102,7 @@ public sealed class PlayerChannel : IDisposable
     /// <param name="y">Feet y, world pixels.</param>
     /// <param name="facing">Facing, 0 to 3.</param>
     /// <param name="moving">Whether the farmer is walking.</param>
-    /// <param name="running">Whether the farmer is running (docs/adr/ADR-081); the server grants the run speed only while it has energy.</param>
+    /// <param name="running">Whether the farmer is running (docs/adr/ADR-085); the server grants the run speed only while it has energy.</param>
     public void Report(float x, float y, byte facing, bool moving, bool running = false)
     {
         lock (_gate)

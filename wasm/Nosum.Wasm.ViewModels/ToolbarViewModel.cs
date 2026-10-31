@@ -77,6 +77,9 @@ public enum PanelKind
 
     /// <summary>The game menu: one tile per panel that has no button in the HUD's menu column (docs/design/ui-standard.md section 2).</summary>
     Menu = 21,
+
+    /// <summary>The backpack: the next size and its price, from the tailor's dialog box (docs/adr/ADR-081); not a menu tab.</summary>
+    Backpack = 22,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -132,16 +135,24 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
     }
 
     /// <summary>The panels with a button in the HUD's menu column, top to bottom. The column holds at most 8 buttons, the last one is the Menu button
-    /// (docs/design/ui-standard.md section 2): a panel not listed here is a tile of the game menu instead.</summary>
+    /// (docs/design/ui-standard.md section 2): a panel not listed here is a tile of the game menu instead, unless it is in <see cref="NpcKinds"/>.</summary>
     public static readonly IReadOnlyList<PanelKind> ColumnKinds =
     [
         PanelKind.Inventory,
-        PanelKind.Wardrobe,
         PanelKind.Crafting,
         PanelKind.Trade,
-        PanelKind.Coop,
         PanelKind.Friends,
-        PanelKind.Pet,
+        PanelKind.Skills,
+        PanelKind.WorldMap,
+        PanelKind.Journal,
+    ];
+
+    /// <summary>The panels a merchant opens (the wardrobe at the tailor, the co-op at the board keeper, docs/adr/ADR-081). They have no column button and no
+    /// menu tile: the merchant's dialog box is their one door (the keyboard shortcut still opens them).</summary>
+    public static readonly IReadOnlyList<PanelKind> NpcKinds =
+    [
+        PanelKind.Wardrobe,
+        PanelKind.Coop,
     ];
 
     /// <summary>Gets the tabs of the game menu, left to right. A new tab is one more entry here (plus its page in <c>Home.razor</c> and its sprite in <c>nosum-theme.js</c>).</summary>
@@ -181,7 +192,7 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         }
     }
 
-    /// <summary>Gets the tiles of the game menu: every panel of <see cref="Items"/> that is not in the menu column (Mail and Settings sit in the HUD's top row).</summary>
+    /// <summary>Gets the tiles of the game menu: every panel of <see cref="Items"/> that is not in the menu column, nor a merchant's (Mail and Settings sit in the HUD's top row).</summary>
     public IReadOnlyList<ToolbarItem> MenuItems
     {
         get
@@ -189,7 +200,7 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
             List<ToolbarItem> tiles = [];
             foreach (ToolbarItem item in this.Items)
             {
-                if (!ColumnKinds.Contains(item.Kind) && item.Kind is not (PanelKind.Mail or PanelKind.Settings))
+                if (!ColumnKinds.Contains(item.Kind) && !NpcKinds.Contains(item.Kind) && item.Kind is not (PanelKind.Mail or PanelKind.Settings))
                 {
                     tiles.Add(item);
                 }

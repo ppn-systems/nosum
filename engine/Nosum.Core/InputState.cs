@@ -25,6 +25,6 @@ public enum InputState
 
     /// <summary>Right (D / arrow right).</summary>
     Right = 8,
-    /// <summary>Run (Shift, or the touch run toggle): moves faster and spends energy (docs/adr/ADR-081).</summary>
+    /// <summary>Run (Shift, or the touch run toggle): moves faster and spends energy (docs/adr/ADR-085).</summary>
     Run = 16,
 }

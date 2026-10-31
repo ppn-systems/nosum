@@ -36,6 +36,6 @@ public sealed partial class MoveIntent : PacketBase<MoveIntent>, IPacketStaticOp
     /// <summary>Whether the player is walking.</summary>
     [SerializeOrder(4)] public bool Moving { get; set; }
 
-    /// <summary>Whether the player is running (the run key is held and there is energy). The server grants the run speed only while it has energy (docs/adr/ADR-081).</summary>
+    /// <summary>Whether the player is running (the run key is held and there is energy). The server grants the run speed only while it has energy (docs/adr/ADR-085).</summary>
     [SerializeOrder(5)] public bool Running { get; set; }
 }

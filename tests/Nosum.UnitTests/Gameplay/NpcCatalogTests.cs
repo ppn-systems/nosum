@@ -153,6 +153,8 @@ public sealed class NpcCatalogTests
         NpcCatalog.All.Where(n => (n.Actions & NpcActions.Build) != 0).Select(n => n.CounterId).Should().BeEquivalentTo([ShopCatalog.CarpenterShop]);
         NpcCatalog.All.Where(n => (n.Actions & NpcActions.Upgrade) != 0).Select(n => n.CounterId).Should().BeEquivalentTo([ShopCatalog.Blacksmith]);
         NpcCatalog.All.Where(n => (n.Actions & NpcActions.Goals) != 0).Select(n => n.CounterId).Should().BeEquivalentTo([CommunityGoalCatalog.BoardCounterId]);
+        NpcCatalog.All.Where(n => (n.Actions & NpcActions.Coop) != 0).Select(n => n.CounterId).Should().BeEquivalentTo([CommunityGoalCatalog.BoardCounterId]);
+        NpcCatalog.All.Where(n => (n.Actions & (NpcActions.Wardrobe | NpcActions.Backpack)) != 0).Select(n => n.CounterId).Should().BeEquivalentTo([ShopCatalog.ClothingShop]);
         NpcCatalog.All.Where(n => ShopCatalog.TryGet(n.CounterId, out _)).Should().OnlyContain(n => (n.Actions & NpcActions.Buy) != 0, "every shop is bought from");
     }
 

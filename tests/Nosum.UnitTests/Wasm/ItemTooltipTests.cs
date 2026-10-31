@@ -29,7 +29,7 @@ public sealed class ItemTooltipTests
         string tooltip = WasmTestSupport.Describer().Describe(0, ItemCatalog.Parsnip, 1).Tooltip;
 
         tooltip.Should().Contain("Restores energy: +10");
-        tooltip.Should().Contain("Sells for 20 coins");
+        tooltip.Should().Contain("Sells for 40 coins");
     }
 
     [Fact]

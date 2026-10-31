@@ -82,7 +82,7 @@
                                 <span class="skill-name">@entry.TitleName</span>
                                 @if (entry.TitleEarned)
                                 {
-                                    <GameButton Variant="chip" Active="entry.TitleEquipped" Text="@Vm.Text(entry.TitleEquipped ? "Bestiary_Title_Unequip" : "Bestiary_Title_Equip")" OnClick="@(() => Vm.ToggleTitle(entry))" />
+                                    <GameButton Variant="secondary" Active="entry.TitleEquipped" Text="@Vm.Text(entry.TitleEquipped ? "Bestiary_Title_Unequip" : "Bestiary_Title_Equip")" OnClick="@(() => Vm.ToggleTitle(entry))" />
                                 }
                                 else
                                 {

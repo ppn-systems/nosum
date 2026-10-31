@@ -43,8 +43,22 @@ public sealed class ShopRulesTests
         {
             offer.CoinsEach.Should().BePositive();
             ItemCatalog.TryGet(offer.ItemId, out ItemDefinition? item).Should().BeTrue($"item {offer.ItemId} must exist");
+
+            // The tailor also sells the Rename Scroll, a paper item, not clothing (docs/adr/ADR-009 amendments).
+            if (shopId == ShopCatalog.ClothingShop && offer.ItemId == ItemCatalog.RenameScroll)
+            {
+                continue;
+            }
+
             item!.Kind.Should().Be(kind, $"{item.Key} does not belong in {shop.Key}");
         }
+    }
+
+    [Fact]
+    public void TheTailor_SellsTheRenameScrollAt200Coins()
+    {
+        ShopRules.Price(ShopCatalog.ClothingShop, ItemCatalog.RenameScroll, 1, out long total).Should().Be(ShopVerdict.Ok);
+        total.Should().Be(200);
     }
 
     [Fact]
@@ -70,7 +84,7 @@ public sealed class ShopRulesTests
     {
         (int Shop, int Item, int Coins)[] expected =
         [
-            (ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10), (ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 15), (ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 30),
+            (ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 12), (ShopCatalog.SeedShop, ItemCatalog.RadishSeeds, 20), (ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 30),
             (ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 100), (ShopCatalog.FurnitureShop, ItemCatalog.HousePlant, 80), (ShopCatalog.FurnitureShop, ItemCatalog.FloorLamp, 140),
             (ShopCatalog.FurnitureShop, ItemCatalog.OakTable, 220), (ShopCatalog.FurnitureShop, ItemCatalog.Bookcase, 260), (ShopCatalog.FurnitureShop, ItemCatalog.BlueArmchair, 300),
             (ShopCatalog.FurnitureShop, ItemCatalog.BlueCouch, 400),

@@ -11,7 +11,7 @@ using Nosum.Gameplay.Skills;
 namespace Nosum.Infrastructure.Players;
 
 /// <summary>
-/// <see cref="IRunEnergy"/> on the player's energy row (docs/adr/ADR-023, docs/adr/ADR-081 D2): one unit of work spends the energy and the new
+/// <see cref="IRunEnergy"/> on the player's energy row (docs/adr/ADR-023, docs/adr/ADR-085 D2): one unit of work spends the energy and the new
 /// energy is pushed to the player when the unit is saved, as every other energy charge is.
 /// </summary>
 public sealed class RunEnergyService : IRunEnergy

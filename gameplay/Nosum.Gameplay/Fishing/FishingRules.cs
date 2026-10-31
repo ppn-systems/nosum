@@ -38,7 +38,7 @@ public readonly record struct FishingSpot(FishingWater Water, Season Season, Wea
 public static class FishingRules
 {
     /// <summary>Energy one cast costs.</summary>
-    public const int CastEnergy = 2;
+    public const int CastEnergy = 10;
 
     /// <summary>The first game hour of the day (inclusive).</summary>
     public const int DawnHour = 6;

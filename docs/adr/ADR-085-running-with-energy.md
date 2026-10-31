@@ -1,8 +1,8 @@
-# ADR-081: Running, a held run speed that costs energy
+# ADR-085: Running, a held run speed that costs energy
 
 ## Status
 
-Accepted (coordinator, 2026-10-31, owner request). Protocol 24 (`MoveIntent.Running`, appended at `SerializeOrder(5)`).
+Accepted (coordinator, 2026-10-31, owner request). protocol 27 (`MoveIntent.Running`, appended at `SerializeOrder(5)`).
 
 ## Context
 

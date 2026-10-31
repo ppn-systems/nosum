@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>Running (docs/adr/ADR-081): the run speed is validated by the same speed limit as a buff, and running costs energy by the second.</summary>
+/// <summary>Running (docs/adr/ADR-085): the run speed is validated by the same speed limit as a buff, and running costs energy by the second.</summary>
 public sealed class RunMovementTests
 {
     // 20 x 10 tiles of 16 px (320 x 160 px), open ground.

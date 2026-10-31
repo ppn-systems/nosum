@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Nosum.Abstractions.Player;
 
 /// <summary>
-/// Spends the energy a running player used (docs/adr/ADR-081 D2). The movement path accumulates the energy owed and calls this with whole units,
+/// Spends the energy a running player used (docs/adr/ADR-085 D2). The movement path accumulates the energy owed and calls this with whole units,
 /// in the background, so a move never waits for the database.
 /// </summary>
 public interface IRunEnergy

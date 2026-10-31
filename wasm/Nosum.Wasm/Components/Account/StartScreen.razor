@@ -1,20 +1,53 @@
+@using System.Threading.Tasks
 @using Microsoft.Extensions.Localization
 @using Nosum.Wasm.ViewModels.Resources
 @using Nosum.Wasm.ViewModels.Account
 @using Nosum.Wasm.Controls.Common
+@implements IDisposable
 
-@* The first thing a player sees: the title over a calm sky, the account card in the same window style as the game menu, and a connection note only when
-   there is a problem. Shown until the first sign-in (the game starts after it). *@
+@* The first thing a player sees: the title over a calm meadow, then either the continue card (a session this browser remembers, docs/adr/ADR-082)
+   or the account form, in the same window style as the game menu, and a connection note only when there is a problem. Shown until the first sign-in
+   (the game starts after it). Nothing is shown in the card's place until the remembered session has been read, so the buttons do not flash.
+   No connection chip here: a sign-in that cannot reach the server says so on its own line (the chip would show before any attempt). *@
 <main class="start-screen">
-    <h1 class="start-logo">@Vm.GameTitle</h1>
-    <p class="start-tagline">@Vm.Tagline</p>
-    <AccountForm Vm="Vm" />
-    <ConnectionBadge />
+    <div class="start-hero">
+        <h1 class="start-logo">@Vm.GameTitle</h1>
+        <p class="start-tagline">@Vm.Tagline</p>
+    </div>
+    @if (Vm.Remembered.IsLoaded)
+    {
+        @if (Vm.ShowsContinue)
+        {
+            <RememberedSessionCard Vm="Vm" />
+        }
+        else
+        {
+            <AccountForm Vm="Vm" />
+        }
+    }
 </main>
 
 @inject IStringLocalizer<Language> Text
 
 @code {
-    /// <summary>The account view model the form is bound to.</summary>
+    /// <summary>The account view model the card and the form are bound to.</summary>
     [Parameter, EditorRequired] public AccountFormViewModel Vm { get; set; } = default!;
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync()
+    {
+        Vm.Changed += OnChanged;
+        Vm.Remembered.Changed += OnChanged;
+        await Vm.LoadRememberedAsync();
+    }
+
+    // The view model can raise Changed from a socket callback; marshal back to the render context.
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Vm.Changed -= OnChanged;
+        Vm.Remembered.Changed -= OnChanged;
+    }
 }

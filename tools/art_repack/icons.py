@@ -9,6 +9,7 @@ import colorsys
 import draw
 from draw import Canvas
 from trees import blob
+from farmer import boot_icon
 import crops
 import fishing
 from pngio import Image, recolor
@@ -465,6 +466,20 @@ def drawn_note(fn, note):
     return f
 
 
+def speed_tonic():
+    """A small round-bottomed bottle: glass outline, green-blue liquid with a light highlight, a cork."""
+    c = cv()
+    glass = ((40, 110, 120), (60, 170, 170), (150, 240, 220))
+    c.rect(6, 1, 4, 2, draw.WOOD)                             # cork
+    c.rect(5, 3, 6, 2, GREY[1])                               # neck
+    c.rect(4, 5, 8, 9, glass[1])                              # body
+    c.rect(4, 5, 8, 2, glass[2])                              # liquid surface glint
+    c.rect(5, 8, 2, 4, glass[2])                              # highlight on the left
+    c.rect(9, 9, 2, 4, glass[0])                              # shade on the right
+    c.rect(4, 12, 8, 1, glass[0])
+    return done(c)
+
+
 def bat_wing():
     c = cv()
     # Leathery dark purple/charcoal wing membrane with bone struts radiating from joint (4, 4)
@@ -718,7 +733,7 @@ OBJECTS = {
     103: drawn_note(treasure_gem, 'Gold treasure icons `sheet.png` (1, 2), treasure gem'),
     104: library_tile('rpg_books', 3, 0, 'Assorted RPG Icons `books.png` (3, 0), spell tome'),
     105: drawn_note(necromancer_skull, '6 Color Dungeon (19, 2), dungeon skull'),
-    106: library_tile('roguelike_rpg', 44, 15, 'Kenney Roguelike/RPG Pack (44, 15), ancient scroll'),
+    106: library_tile('roguelike_rpg', 42, 15, 'Kenney Roguelike/RPG Pack (42, 15), letter with a pen (the rename scroll and the ancient scroll)'),
     107: library_tile('roguelike_indoors', 19, 0, 'Kenney Roguelike Indoors (19, 0), candelabra'),
     108: library_tile('animal_bee', 0, 0, 'Random animals `bee.png`, honey bee'),
     109: library_tile('pixel_animals', 0, 0, 'Pixel Animals 16x16 (0, 0), pocket cat'),
@@ -747,6 +762,14 @@ OBJECTS = {
     131: drawn_note(lambda: truffle(gold=True), 'Drawn here: golden truffle (`icons.truffle`, gold glint)'),
 }
 OBJECTS.update(fishing.OBJECTS)    # 132-143: the fishing rod, the stew and the ten fish (fishing.py, ADR-078)
+# 144-147: the four boot tiers, leather to winged (farmer.boot_icon); 148: the speed tonic (drawn here, speed_tonic)
+OBJECTS.update({
+    144: drawn_note(lambda: boot_icon(1), 'Drawn here: leather boots, tier 1 (`farmer.boot_icon`), plain brown with a cuff'),
+    145: drawn_note(lambda: boot_icon(2), 'Drawn here: traveler boots, tier 2 (`farmer.boot_icon`), darker tan with a strap'),
+    146: drawn_note(lambda: boot_icon(3), 'Drawn here: swift boots, tier 3 (`farmer.boot_icon`), blue-grey with a highlight'),
+    147: drawn_note(lambda: boot_icon(4), 'Drawn here: winged boots, tier 4 (`farmer.boot_icon`), gold trim and white wings'),
+    148: drawn_note(speed_tonic, 'Drawn here: speed tonic (`icons.speed_tonic`), a green-blue draught with a light glint'),
+})
 
 
 COLUMNS = 24

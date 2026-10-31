@@ -62,6 +62,18 @@ public sealed class ShopViewModelTests
     }
 
     [Fact]
+    public void Offers_TailorSellsTheRenameScrollWithItsName()
+    {
+        using CultureScope scope = new("en");
+        (ShopViewModel vm, _) = Create();
+
+        vm.Open(ShopCatalog.ClothingShop);
+
+        vm.Offers.Should().ContainSingle(o => o.ItemId == ItemCatalog.RenameScroll)
+            .Which.Item.Name.Should().Be("Rename Scroll");
+    }
+
+    [Fact]
     public void Open_AnotherShop_ReplacesTheListAndResetsQuantityAndStatus()
     {
         (ShopViewModel vm, _) = Create();

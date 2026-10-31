@@ -24,7 +24,7 @@ let lightSprite = null;       // white-to-transparent radial gradient, scaled pe
 let edges = 0;  // one-shot keys pressed since the last frame, packed above the held bits (Nosum.Core.InputEdges)
 let mouseX = 0, mouseY = 0, mouseHeld = 0;  // the mouse over the canvas, CSS pixels, and 1 while its button is down (drag-to-sow)
 
-// Keys that never change: the arrows, Shift (run, docs/adr/ADR-081), Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
+// Keys that never change: the arrows, Shift (run, docs/adr/ADR-085), Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
 // so the maps below are built from both. Bit values match Nosum.Core.InputState (held) and Nosum.Core.InputEdges (pressed once).
 const FIXED_HELD = { ArrowUp: 1, ArrowDown: 2, ArrowLeft: 4, ArrowRight: 8, ShiftLeft: 16, ShiftRight: 16 };
 const FIXED_EDGES = {
@@ -91,7 +91,7 @@ function isActivating(e) {
 }
 
 // --- touch (docs/adr/ADR-033 D2) ---
-// The run toggle (docs/adr/ADR-081 D3) is a latched button: its state lives in touchRun, read with the held keys on the next frame.
+// The run toggle (docs/adr/ADR-085 D3) is a latched button: its state lives in touchRun, read with the held keys on the next frame.
 // The controls are plain elements drawn by the Razor TouchControls component: a stick ([data-touch=stick] with a [data-touch=knob] inside) and buttons
 // ([data-touch-edge=<InputEdges bit>]). The pointer events are handled here and only change `touchHeld` / `edges`, which join the input of the next
 // frame: there is no call into .NET per touch event.

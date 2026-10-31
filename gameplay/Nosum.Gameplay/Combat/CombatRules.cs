@@ -279,11 +279,11 @@ public static class CombatRules
     /// <returns>A tuple of <c>(HpRestore, MpRestore)</c>.</returns>
     public static (int Hp, int Mp) PotionRestore(int itemId) => itemId switch
     {
-        ItemCatalog.HealthPotion => (45, 0),
+        ItemCatalog.HealthPotion => (215, 0),
         ItemCatalog.ManaPotion => (0, 35),
-        ItemCatalog.Elixir => (100, 50),
+        ItemCatalog.Elixir => (250, 50),
         ItemCatalog.ArcaneGrimoire => (20, 80),
-        ItemCatalog.HeartCrystal => (80, 25),
+        ItemCatalog.HeartCrystal => (215, 25),
         ItemCatalog.Salad => (20, 5),
         ItemCatalog.BakedPotato => (15, 0),
         ItemCatalog.PumpkinSoup => (35, 15),
@@ -315,7 +315,7 @@ public static class CombatRules
 
         (int healHp, int restoreMp) = PotionRestore(itemId);
         (StatusEffectKind effect, _, _) = PotionEffect(itemId);
-        return itemId is ItemCatalog.ArcaneGrimoire or ItemCatalog.HeartCrystal
+        return itemId is ItemCatalog.ArcaneGrimoire or ItemCatalog.HeartCrystal or ItemCatalog.SpeedTonic
             || effect != StatusEffectKind.None
             || (healHp > 0 && hp < maxHp)
             || (restoreMp > 0 && mp < maxMp);
@@ -330,6 +330,7 @@ public static class CombatRules
         ItemCatalog.ArcaneGrimoire => (StatusEffectKind.Swiftness, 30, 1),
         ItemCatalog.HeartCrystal => (StatusEffectKind.Regeneration, 40, 8),
         ItemCatalog.PumpkinSoup => (StatusEffectKind.Swiftness, 20, 1),
+        ItemCatalog.SpeedTonic => (StatusEffectKind.Swiftness, StatusEffectRules.SpeedTonicSeconds, 1),
         _ => (StatusEffectKind.None, 0, 0),
     };
 

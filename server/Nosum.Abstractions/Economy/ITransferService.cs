@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Inventory;
 
 namespace Nosum.Abstractions.Economy;
 
@@ -93,6 +94,26 @@ public interface ITransferService
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Ok, or why nothing moved.</returns>
     Task<TransferStatus> ExecuteAsync(IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes legs all-or-nothing and, in the same transaction, the inventory operations of one player (for example a backpack
+    /// growth). The operations run after the player's removes and adds from the legs. The player is part of the transfer even when
+    /// no leg names him, so the operations and the coins are saved together or not at all.
+    /// </summary>
+    /// <param name="playerId">The player whose inventory also changes by <paramref name="operations"/>.</param>
+    /// <param name="operations">The inventory steps, applied in order after the legs.</param>
+    /// <param name="legs">What moves.</param>
+    /// <param name="reason">Stable audit code, for example <c>backpack.upgrade</c>; never display text.</param>
+    /// <param name="enlist">Work for the same transaction, or <see langword="null"/>.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>Ok, or why nothing moved.</returns>
+    Task<TransferStatus> ExecuteWithOperationsAsync(
+        Guid playerId,
+        IReadOnlyList<InventoryOperation> operations,
+        IReadOnlyList<TransferLeg> legs,
+        string reason,
+        TransferEnlistment? enlist = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Reads a player's coin balance; a player with no wallet yet gets one with the starting coins.</summary>
     /// <param name="playerId">The player.</param>

@@ -391,6 +391,16 @@
   <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Giáp bảo vệ chân bằng sắt chống quái vật cắn (+5 Phòng thủ).</value></data>
   <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
   <data name="Item_iron_helmet_Description" xml:space="preserve"><value>Mũ sắt bảo vệ đầu khỏi các đòn chí mạng (+4 Phòng thủ).</value></data>
+  <data name="Item_leather_boots_Name" xml:space="preserve"><value>Giày da</value></data>
+  <data name="Item_leather_boots_Description" xml:space="preserve"><value>Đôi giày da đơn giản.</value></data>
+  <data name="Item_traveler_boots_Name" xml:space="preserve"><value>Giày du hành</value></data>
+  <data name="Item_traveler_boots_Description" xml:space="preserve"><value>Giày cao cổ cho những chuyến đi xa.</value></data>
+  <data name="Item_swift_boots_Name" xml:space="preserve"><value>Giày nhanh nhẹn</value></data>
+  <data name="Item_swift_boots_Description" xml:space="preserve"><value>Giày gọn nhẹ, đi nhanh hơn trên đường dài.</value></data>
+  <data name="Item_winged_boots_Name" xml:space="preserve"><value>Giày cánh bay</value></data>
+  <data name="Item_winged_boots_Description" xml:space="preserve"><value>Giày có cánh nhỏ ở mắt cá chân.</value></data>
+  <data name="Item_speed_tonic_Name" xml:space="preserve"><value>Thuốc tăng tốc</value></data>
+  <data name="Item_speed_tonic_Description" xml:space="preserve"><value>Một ngụm thuốc nhẹ giúp bước chân nhanh hơn trong 3 giờ game, dùng chung ô buff Nhanh nhẹn.</value></data>
   <data name="Item_ranger_tunic_Name" xml:space="preserve"><value>Áo chiến binh tuần rừng</value></data>
   <data name="Item_ranger_tunic_Description" xml:space="preserve"><value>Áo giáp da dơi linh hoạt gia cố sợi bền (+4 Phòng thủ).</value></data>
   <data name="Item_necromancer_skull_Name" xml:space="preserve"><value>Hộp sọ Hắc pháp sư</value></data>
@@ -543,11 +553,13 @@
   <data name="Quest_decorate_Tip" xml:space="preserve"><value>Đặt xuống ba món nội thất hoặc vật trang trí.</value></data>
   <data name="Quest_decorate_Objective_0" xml:space="preserve"><value>Đặt xuống 3 món</value></data>
   <data name="Quest_adopt_pet_Title" xml:space="preserve"><value>Nhận nuôi thú cưng</value></data>
-  <data name="Quest_adopt_pet_Hint" xml:space="preserve"><value>Mở trang thú cưng trong menu và nhận nuôi một con mèo hoặc chó.</value></data>
-  <data name="Quest_adopt_pet_Tip" xml:space="preserve"><value>Nhận nuôi mèo hoặc chó ở trang thú cưng.</value></data>
+  <data name="Quest_adopt_pet_Hint" xml:space="preserve"><value>Mua một con mèo hoặc chó ở quầy thợ mộc, rồi đặt tên cho bạn ấy.</value></data>
+  <data name="Quest_adopt_pet_Tip" xml:space="preserve"><value>Mua mèo hoặc chó ở quầy thợ mộc.</value></data>
   <data name="Quest_adopt_pet_Objective_0" xml:space="preserve"><value>Nhận nuôi một thú cưng</value></data>
   <data name="Quest_send_emote_Title" xml:space="preserve"><value>Gửi một biểu cảm</value></data>
   <data name="Quest_send_emote_Hint" xml:space="preserve"><value>Chọn một biểu cảm và gửi để những người xung quanh thấy cảm xúc của bạn.</value></data>
   <data name="Quest_send_emote_Tip" xml:space="preserve"><value>Gửi một biểu cảm cho những người xung quanh.</value></data>
   <data name="Quest_send_emote_Objective_0" xml:space="preserve"><value>Gửi một biểu cảm</value></data>
+  <data name="Item_rename_scroll_Name" xml:space="preserve"><value>Cuộn đổi tên</value></data>
+  <data name="Item_rename_scroll_Description" xml:space="preserve"><value>Dùng để đổi biệt danh của bạn. Dùng xong sẽ mất.</value></data>
 </root>

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Engine;
 
-/// <summary>The run key is a held bit above the directions (docs/adr/ADR-081 D3); the edges stay above all held bits.</summary>
+/// <summary>The run key is a held bit above the directions (docs/adr/ADR-085 D3); the edges stay above all held bits.</summary>
 public sealed class RunInputPackingTests
 {
     [Fact]

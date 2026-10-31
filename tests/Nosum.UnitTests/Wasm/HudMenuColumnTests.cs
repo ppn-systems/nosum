@@ -43,7 +43,24 @@ public sealed class HudMenuColumnTests
         using ToolbarViewModel vm = new(Localizer<Language>());
 
         vm.MenuItems.Select(i => i.Kind).Should().BeEquivalentTo(
-            vm.Items.Select(i => i.Kind).Where(k => !ToolbarViewModel.ColumnKinds.Contains(k) && k is not (PanelKind.Mail or PanelKind.Settings)));
+            vm.Items.Select(i => i.Kind).Where(k => !ToolbarViewModel.ColumnKinds.Contains(k) && !ToolbarViewModel.NpcKinds.Contains(k) && k is not (PanelKind.Mail or PanelKind.Settings)));
+    }
+
+    [Fact]
+    public void NpcKinds_AreNeitherInTheColumnNorInTheMenu_TheirMerchantIsTheOnlyDoor()
+    {
+        using ToolbarViewModel vm = new(Localizer<Language>());
+
+        ToolbarViewModel.NpcKinds.Should().Equal(PanelKind.Wardrobe, PanelKind.Coop);
+        vm.ColumnItems.Select(i => i.Kind).Should().NotIntersectWith(ToolbarViewModel.NpcKinds);
+        vm.MenuItems.Select(i => i.Kind).Should().NotIntersectWith(ToolbarViewModel.NpcKinds);
+    }
+
+    [Fact]
+    public void Column_HoldsTheOneClickPanels_InferredFromTheDecisionTable()
+    {
+        ToolbarViewModel.ColumnKinds.Should().Equal(
+            PanelKind.Inventory, PanelKind.Crafting, PanelKind.Trade, PanelKind.Friends, PanelKind.Skills, PanelKind.WorldMap, PanelKind.Journal);
     }
 
     [Fact]

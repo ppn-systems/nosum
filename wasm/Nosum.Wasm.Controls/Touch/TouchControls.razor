@@ -12,9 +12,13 @@
             <div class="touch-knob" data-touch="knob"></div>
         </div>
         @* data-touch-edge is the bit of Nosum.Core.InputEdges.Action. *@
-        <GameButton Variant="chip" Class="touch-use" data-touch-edge="1" aria-label="@UseLabel" tabindex="-1" Text="@UseText" />
-        @* The run toggle (docs/adr/ADR-081 D3): latched on and off by the page script (data-touch-run); it reads as pressed in aria-pressed. *@
-        <GameButton Variant="chip" Class="touch-run" data-touch-run="" aria-label="@RunLabel" aria-pressed="false" tabindex="-1" Text="@RunText" />
+        @* Hidden while a merchant's dialog box is open: its own buttons answer the player, and the box covers this corner (ui-standard checklist 2). *@
+        @if (!Hidden)
+        {
+            <GameButton Variant="primary" Class="touch-use" data-touch-edge="1" aria-label="@UseLabel" tabindex="-1" Text="@UseText" />
+            @* The run toggle (docs/adr/ADR-085 D3): latched on and off by the page script (data-touch-run); it reads as pressed in aria-pressed. *@
+            <GameButton Variant="secondary" Class="touch-run" data-touch-run="" aria-label="@RunLabel" aria-pressed="false" tabindex="-1" Text="@RunText" />
+        }
     </div>
 }
 
@@ -33,4 +37,7 @@
 
     /// <summary>The accessible name of the run toggle (already localized).</summary>
     [Parameter, EditorRequired] public string RunLabel { get; set; } = string.Empty;
+
+    /// <summary>Whether the use button is hidden (a merchant's dialog box is open and covers its corner).</summary>
+    [Parameter] public bool Hidden { get; set; }
 }

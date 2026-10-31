@@ -21,7 +21,7 @@
                     NpcChoice current = choice;
                     <GameButton Text="@current.Label" OnClick="@(() => Vm.Choose(current.Action))" />
                 }
-                <GameButton Variant="plain" Text="@Vm.LeaveLabel" OnClick="@(() => Vm.Leave())" />
+                <GameButton Variant="secondary" Text="@Vm.LeaveLabel" OnClick="@(() => Vm.Leave())" />
             </GameRow>
         </GamePanel>
     </div>

@@ -163,7 +163,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
         (await _shop.BuyAsync(_connection, player, ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10)).Status.Should().Be(ShopStatus.Ok);
 
         (await CountAsync(player, ItemCatalog.ParsnipSeeds)).Should().Be(18);
-        (await _transfers.GetBalanceAsync(player)).Should().Be(400);
+        (await _transfers.GetBalanceAsync(player)).Should().Be(380);
     }
 
     [Fact]

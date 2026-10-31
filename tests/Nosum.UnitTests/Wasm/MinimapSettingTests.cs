@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Wasm;
 
-/// <summary>The minimap card can be hidden in Settings &gt; Display, remembered per player; a phone starts with it hidden (docs/adr/ADR-081 D5).</summary>
+/// <summary>The minimap card can be hidden in Settings &gt; Display, remembered per player; a phone starts with it hidden (docs/adr/ADR-085 D5).</summary>
 [Collection(SharedUiCulture.Name)]
 public sealed class MinimapSettingTests
 {

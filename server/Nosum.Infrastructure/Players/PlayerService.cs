@@ -72,7 +72,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     /// <param name="buildings">The farm buildings: walking onto a building's door enters its interior, and leaving the interior returns to the door (docs/adr/ADR-028 D2); <see langword="null"/> for none.</param>
     /// <param name="unlocks">The community unlocks; a map change tells the client those that change what it may walk on (docs/adr/ADR-037 D4); <see langword="null"/> tells it none.</param>
     /// <param name="inventory">Tells each snapshot the item every player holds in hand; <see langword="null"/> sends empty hands.</param>
-    /// <param name="runEnergy">Spends the energy of running players (docs/adr/ADR-081 D2); <see langword="null"/> makes running free (tests only).</param>
+    /// <param name="runEnergy">Spends the energy of running players (docs/adr/ADR-085 D2); <see langword="null"/> makes running free (tests only).</param>
     public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null, IBuildingDirectory? buildings = null, ICommunityUnlocks? unlocks = null, IInventoryService? inventory = null, IRunEnergy? runEnergy = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
@@ -146,7 +146,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
         return outcome;
     }
 
-    // Spends the energy a running player owed (docs/adr/ADR-081 D2). When the energy is gone the run speed is withdrawn until the player lets go of run.
+    // Spends the energy a running player owed (docs/adr/ADR-085 D2). When the energy is gone the run speed is withdrawn until the player lets go of run.
     private async Task SpendRunEnergyAsync(PlayerPresence player, int energy)
     {
         bool spent;
@@ -188,7 +188,7 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
                 return new MoveOutcome(MoveStatus.NotJoined, 0, 0, 0);
             }
 
-            // Running (docs/adr/ADR-081): the run speed counts only while the server grants it, and every second of it is owed energy.
+            // Running (docs/adr/ADR-085): the run speed counts only while the server grants it, and every second of it is owed energy.
             bool running = runClaimed && player.RunAllowed;
             double owedSince = player.Motion.LastSeconds;
             MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, _world.GridFor(player.Instance, map), RunRules.SpeedMultiplier(player.MoveSpeedFactor, running));

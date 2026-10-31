@@ -67,10 +67,9 @@ iron, level 4, iron set; band 3 steel, level 5, iron set; band 4 gold, level 7, 
 - The armor adds at least 5 hits of survival against the band's strongest normal monster, which takes at least 10 hits to kill a wearer.
   The 6–10 hits-to-die target is not met: with 3-hit kills, 10–20% per kill implies 10–20 hits to die.
 - Each melee weapon tier is at least 40% stronger than the tier below.
-- Every monster's primary drop has a sell price. The mean primary-drop value per band stays within 4–10 (band 1), 4–12 (band 2),
-  6–12 (band 3) and 10–20 (band 4) coins.
+- Every monster's primary drop has a sell price. The per-band primary-drop ranges that stood here are superseded by D6 (band clear value).
 - One full clear of a band leaves the reference player at that band's Combat level. One full clear of the mine is 2 to 3.5 clears to Combat level 10.
-- A health potion restores 25–40% of each band's max HP.
+- A health potion restores 25–40% of each band's max HP. Superseded by D6 (the potion covers a band clear in 2 to 6).
 
 These are locked by `tests/Nosum.UnitTests/Gameplay/CombatBalanceTests.cs`. The 3-potions-per-trip and 3-to-5-trips-of-gear targets are not
 met; see `docs/design/combat-balance.md`, Known gaps.
@@ -94,6 +93,26 @@ met; see `docs/design/combat-balance.md`, Known gaps.
 
 Unchanged: weapon damage, mana and elixir potions, spawn counts, the XP curve (`SkillRules`), the armor formula, the sword pacing,
 the elite rules and the boss floors.
+
+### D6 — Potion heal and drop values (amendment)
+
+The retune left two gaps that data alone can close (docs/design/combat-balance.md, Known gaps): a band 3 clear needed about 29 health
+potions, and a band 1 clear's drops were worth about 4 times more than the band 2 gear it leads to, at under one trip. No new mechanic,
+monster, item id or packet is needed. The changes are values only:
+
+- **Health potion** (`CombatRules.PotionRestore`): 45 → 215 HP, a full heal in every band. The elixir (100 → 250 HP) and heart crystal
+  (80 → 215 HP) heal more than the health potion they consume. Recipes are unchanged.
+- **Monster drop sell prices** (`ItemCatalog`): primary and rare drops 1–15 (slime gel, bat wing, spore cap, goblin ear, monster bone,
+  mana crystal, treasure gem 1; golem core 4; necromancer skull 10; runestone tablet 15), boss primaries 15–500 (ancient scroll 35, golden
+  key 15, colossus core 320, boss crown 500). Ore, bars and coal are unchanged; the gear prices are unchanged.
+- **Targets** (locked by `CombatBalanceTests`): a full clear of band 1 pays 100–135 coins, a quarter to a third of iron greaves (400); band
+  2 pays 150–200, a quarter to a third of iron chestplate (600); band 3 pays 600–800; band 4 pays at most twice band 3. A band clear needs
+  2 to 6 health potions, and its slimes supply the gel for them.
+- **Replaces** D4's primary-drop ranges and the 25–40% potion share. The 3-to-5-trips gear target is now met for bands 1 and 2 (3 to 4
+  trips); band 3 has no gear anchor of its own.
+
+Consequence: one potion heals a full HP bar, so the health potion is cheap in coins and costs gathering time. The market is watched for
+slime gel and gem supply, since both are now worth 1 coin.
 
 ### Consequences
 

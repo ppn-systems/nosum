@@ -24,6 +24,9 @@
   <data name="Account_PlayAsGuest" xml:space="preserve"><value>Chơi ngay với tư cách khách</value></data>
   <data name="Account_Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Account_Guest" xml:space="preserve"><value>Khách</value></data>
+  <data name="Account_Continue_Title" xml:space="preserve"><value>Chào mừng trở lại</value></data>
+  <data name="Account_Continue_As" xml:space="preserve"><value>Tiếp tục với {0}</value></data>
+  <data name="Account_Continue_Forget" xml:space="preserve"><value>Đăng xuất / dùng tài khoản khác</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Đã đăng nhập: {0}</value></data>
   <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy liên kết tài khoản Google hoặc Microsoft.</value></data>
   <data name="Account_Upgrade_Action" xml:space="preserve"><value>Liên kết tài khoản</value></data>
@@ -77,6 +80,7 @@
   <data name="Tooltip_WaterCapacity" xml:space="preserve"><value>Sức chứa nước: {0}</value></data>
   <data name="Tooltip_Energy" xml:space="preserve"><value>Hồi sức lực: +{0}</value></data>
   <data name="Tooltip_Sell" xml:space="preserve"><value>Giá bán: {0} xu</value></data>
+  <data name="Tooltip_MoveSpeed" xml:space="preserve"><value>Tốc độ đi bộ: +{0}%</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Nhiệm vụ</value></data>
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
@@ -162,6 +166,7 @@
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Áo</value></data>
   <data name="Wardrobe_Slot_Pants" xml:space="preserve"><value>Quần</value></data>
   <data name="Wardrobe_Slot_Hat" xml:space="preserve"><value>Mũ</value></data>
+  <data name="Wardrobe_Slot_Feet" xml:space="preserve"><value>Giày</value></data>
   <data name="Wardrobe_Worn" xml:space="preserve"><value>Đang mặc</value></data>
   <data name="Wardrobe_Bag" xml:space="preserve"><value>Trong túi</value></data>
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>Trong túi không có đồ mặc nào.</value></data>
@@ -1087,14 +1092,11 @@
   <data name="Emote_Invalid" xml:space="preserve"><value>Biểu cảm này không có trên vòng.</value></data>
   <data name="Pet_Cat" xml:space="preserve"><value>Mèo</value></data>
   <data name="Pet_Dog" xml:space="preserve"><value>Chó</value></data>
-  <data name="Pet_AdoptTitle" xml:space="preserve"><value>Nhận thú cưng</value></data>
-  <data name="Pet_AdoptHint" xml:space="preserve"><value>Chọn một bạn đồng hành và đặt tên cho bạn ấy (tối đa 12 ký tự).</value></data>
   <data name="Pet_NameLabel" xml:space="preserve"><value>Tên</value></data>
   <data name="Pet_Adopt" xml:space="preserve"><value>Nhận nuôi</value></data>
   <data name="Pet_Mood" xml:space="preserve"><value>Tâm trạng</value></data>
   <data name="Pet_Pet" xml:space="preserve"><value>Vuốt ve</value></data>
   <data name="Pet_AlreadyPetted" xml:space="preserve"><value>Hôm nay bạn đã vuốt ve bạn ấy rồi.</value></data>
-  <data name="Pet_OnlyAtHome" xml:space="preserve"><value>Bạn chỉ có thể nhận thú cưng khi ở trang trại của mình.</value></data>
   <data name="Pet_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
   <data name="Pet_Status_NoPet" xml:space="preserve"><value>Bạn chưa có thú cưng.</value></data>
   <data name="Pet_Status_AlreadyHasPet" xml:space="preserve"><value>Bạn đã có một thú cưng rồi.</value></data>
@@ -1138,4 +1140,44 @@
   <data name="Furniture_BlocksWalking" xml:space="preserve"><value>Chặn lối đi</value></data>
   <data name="Furniture_WalkOver" xml:space="preserve"><value>Có thể đi qua</value></data>
   <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
+  <data name="Toolbar_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
+  <data name="Npc_Action_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
+  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Backpack_Size" xml:space="preserve"><value>Túi đồ hiện có {0} ô.</value></data>
+  <data name="Backpack_Next" xml:space="preserve"><value>Cỡ tiếp theo: {0} ô, giá {1} xu. Thêm một hàng ô.</value></data>
+  <data name="Backpack_Upgrade" xml:space="preserve"><value>Nâng cấp túi</value></data>
+  <data name="Backpack_Max" xml:space="preserve"><value>Túi đồ đã lớn nhất.</value></data>
+  <data name="Backpack_Hint" xml:space="preserve"><value>Ô mới hiện ngay trong túi đồ của bạn.</value></data>
+  <data name="Backpack_Status_Ok" xml:space="preserve"><value>Túi đồ đã được nâng cấp.</value></data>
+  <data name="Backpack_Status_NotAtCounter" xml:space="preserve"><value>Hãy đứng tại quầy của thợ may.</value></data>
+  <data name="Backpack_Status_MaxSize" xml:space="preserve"><value>Túi đồ đã lớn nhất.</value></data>
+  <data name="Backpack_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
+  <data name="Backpack_Status_Conflict" xml:space="preserve"><value>Có thay đổi cùng lúc. Hãy thử lại.</value></data>
+  <data name="Account_Status_NicknameNeedsScroll" xml:space="preserve"><value>Bạn cần một Cuộn đổi tên để đổi biệt danh. Mua ở cửa hàng quần áo.</value></data>
+  <data name="Profile_ScrollCount" xml:space="preserve"><value>Cuộn đổi tên trong túi: {0}</value></data>
+  <data name="Profile_NeedsScroll" xml:space="preserve"><value>Đổi biệt danh cần một Cuộn đổi tên. Mua ở cửa hàng quần áo.</value></data>
+  <data name="Pet_BuyHint" xml:space="preserve"><value>Mèo {0} xu, chó {1} xu. Mua ở quầy thợ mộc, rồi đặt tên cho bạn ấy.</value></data>
+  <data name="Pet_NoPetTitle" xml:space="preserve"><value>Chưa có thú cưng</value></data>
+  <data name="Pet_Rehome" xml:space="preserve"><value>Trả lại</value></data>
+  <data name="Pet_RehomeTitle" xml:space="preserve"><value>Trả lại thú cưng</value></data>
+  <data name="Pet_RehomeMessage" xml:space="preserve"><value>Trả {0} cho thợ mộc và nhận lại {1} xu? Thú cưng sẽ rời khỏi nông trại của bạn.</value></data>
+  <data name="Pet_RehomeConfirm" xml:space="preserve"><value>Trả lại</value></data>
+  <data name="Pet_RehomeCancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Pet_Status_NotAtShop" xml:space="preserve"><value>Hãy đứng gần quầy thợ mộc ở thị trấn.</value></data>
+  <data name="Pet_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
+  <data name="Carpenter_Pets" xml:space="preserve"><value>Thú cưng</value></data>
+  <data name="Carpenter_PetHint" xml:space="preserve"><value>Mèo và chó được bán ở đây. Mỗi người chỉ nuôi một thú cưng.</value></data>
+  <data name="Carpenter_PetPrice" xml:space="preserve"><value>{0} xu</value></data>
+  <data name="Carpenter_BuyPet" xml:space="preserve"><value>Mua</value></data>
+  <data name="Carpenter_PetHave" xml:space="preserve"><value>Bạn đã có thú cưng. Hãy trả lại trước khi mua con khác.</value></data>
+  <data name="Carpenter_Tab_Goods" xml:space="preserve"><value>Hàng hóa</value></data>
+  <data name="Carpenter_Tab_Buildings" xml:space="preserve"><value>Chuồng trại</value></data>
+  <data name="Pet_Choose" xml:space="preserve"><value>Chọn</value></data>
+  <data name="Pet_NameStep" xml:space="preserve"><value>Đặt tên cho {0}</value></data>
+  <data name="Pet_NameNext" xml:space="preserve"><value>Tiếp</value></data>
+  <data name="Pet_BuyTitle" xml:space="preserve"><value>Mua thú cưng</value></data>
+  <data name="Pet_BuyMessage" xml:space="preserve"><value>Mua {0} tên {1} với giá {2} xu?</value></data>
+  <data name="Pet_BuyConfirm" xml:space="preserve"><value>Xác nhận</value></data>
+  <data name="Pet_BuyCancel" xml:space="preserve"><value>Hủy</value></data>
 </root>

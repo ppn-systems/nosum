@@ -8,8 +8,8 @@
 {
     <div class="strip-row" role="toolbar">
             <span class="chip"><GameKey Text="E" /><span>@Vm.StripPlaceLabel</span></span>
-            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Rotate)"><GameKey Text="R" /><span>@Vm.StripRotateLabel</span></GameButton>
-            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Grab)"><GameKey Text="F" /><span>@Vm.StripMoveLabel</span></GameButton>
-            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.PickUp)"><GameKey Text="Q" /><span>@Vm.StripStowLabel</span></GameButton>
+            <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Rotate)"><GameKey Text="R" /><span>@Vm.StripRotateLabel</span></GameButton>
+            <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Grab)"><GameKey Text="F" /><span>@Vm.StripMoveLabel</span></GameButton>
+            <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.PickUp)"><GameKey Text="Q" /><span>@Vm.StripStowLabel</span></GameButton>
     </div>
 }
