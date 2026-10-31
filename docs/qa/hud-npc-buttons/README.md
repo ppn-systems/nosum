@@ -12,10 +12,13 @@ Viewports: 1280×720, 1920×1080 and 390×844 (touch).
 The "before" frames of the HUD are the earlier captures in `docs/qa/art-ui-before-*` (before the HUD standard pass). They were not regenerated:
 the protocol changed (23 → 24), so the old client cannot talk to the new host.
 
-## Known gaps seen in these captures
+## Fixed after review (PR #261)
 
-- At 390×844 the HUD still shows more than the single Menu button that ui-standard section 6 asks for. This predates this change.
-- At 390×844 the touch action button overlaps the right edge of the merchant dialog box.
-- At 390×844 a stray tab icon overlaps the Sort button in the inventory.
-- The chat sender names are now stone buttons (ui-standard section 8); the chat lines are taller as a result.
-- The three hotbar skill keys are laid out in one row; the hotbar is wider than before.
+- The touch use button and the emote button are hidden while a merchant's dialog box is open: they covered its right edge at 390×844.
+- The chat sender is plain underlined text again, so chat lines keep their height.
+- The stray orange tile over Sort in the 390×844 inventory was the hover tooltip of the pointer left resting on that corner by the capture, not a layout fault. The capture now parks the pointer first.
+- The phone HUD column already collapses to the Menu button (`GameHud.razor.css`, max-width 640px); the two icons seen at 390 px are the top row and the collapsed minimap button.
+
+## Known gaps
+
+- The three hotbar skill keys sit in one row, so the hotbar is wider than before.

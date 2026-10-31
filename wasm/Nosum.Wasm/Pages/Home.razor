@@ -169,7 +169,11 @@ else
             @if (_started && !Form.ShowsForm)
             {
                 @* The emote wheel's button, bottom-right (docs/adr/ADR-075 D1): the same as the B key, and the touch way to open the wheel. *@
-                <div class="hud-cell"><GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" /></div>
+                @* Hidden while a merchant's dialog box is open: the box covers the bottom-right corner (ui-standard checklist 2). *@
+                @if (Npc.Stage == NpcStage.Closed)
+                {
+                    <div class="hud-cell"><GameIconButton Icon="emote-0" Tip="@Emotes.OpenTip" OnClick="@(() => Emotes.Toggle())" /></div>
+                }
             }
         </BottomRight>
         <Overlay>
@@ -204,7 +208,7 @@ else
     </GameHud>
     @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
     {
-        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" />
+        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" Hidden="@(Npc.Stage != NpcStage.Closed)" />
     }
 }
 

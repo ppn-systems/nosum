@@ -17,6 +17,8 @@ const GUEST = /Chơi ngay với tư cách khách/;
 const TAILOR_TILE = [20, 89];
 
 const shot = async (page, name) => {
+  // The pointer rests in a corner of the page, so no hover tooltip from the last click appears in the frame.
+  await page.mouse.move(0, 0);
   await page.waitForTimeout(700);
   await page.screenshot({ path: `${outDir}/${name}-${tag}.png` });
 };
