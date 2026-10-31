@@ -1,6 +1,8 @@
 /* The fishing status line: one line of text in a toast plaque (GamePanel hud toast). */
 .fishing-status {
     max-width: calc(var(--u) * 180);
+    /* Takes no clicks, so a click on the water under it still casts or reels in (docs/adr/ADR-078 D9). */
+    pointer-events: none;
     text-align: center;
 }
 
