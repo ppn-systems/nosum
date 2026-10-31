@@ -1,6 +1,6 @@
 # Combat balance: mine bands, reference player and the numbers behind them
 
-Status: current balance, decided by [ADR-045 amendment D4–D5](../adr/ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md). The numbers
+Status: current balance, decided by [ADR-045 amendment D4–D6](../adr/ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md). The numbers
 here are the catalog values in `gameplay/Nosum.Gameplay`; the lock tests are `tests/Nosum.UnitTests/Gameplay/CombatBalanceTests.cs`.
 If a value here and the code disagree, the code wins and this table is stale.
 
@@ -89,14 +89,14 @@ them is the player's lever. Bosses enrage at 30% HP.
 
 Normal kills only. There is no natural HP regeneration: damage stays until a potion, a shrine or a knockout (revive at 25% HP) restores it.
 
-| Band | Normal-fight damage for a full clear | Health potions (45 HP) to cover it | Per floor |
-|:--|:--|:--|:--|
-| 1 | 384 | about 9 | about 1 |
-| 2 | 526 | about 12 | about 1 |
-| 3 | 1286 | about 29 | about 3 |
-| 4 | 1242 | about 28 | about 3 |
+| Band | Normal-fight damage for a full clear | Health potions (215 HP) to cover it | Slime gel for them (2 a potion) | Gel supplied by the band's slimes |
+|:--|:--|:--|:--|:--|
+| 1 | 384 | 2 | 4 | 12 kills |
+| 2 | 526 | 3 | 6 | 19 kills |
+| 3 | 1286 | 6 | 12 | 19 kills |
+| 4 | 1242 | 6 | 12 | 20 kills |
 
-This is the open problem. Band 3 needs about 29 potions, which is about 58 slime gel, and its slimes supply roughly 19. See Known gaps.
+Before this retune (45 HP potions) band 3 needed 29 potions. The potions now cover a band clear in 2 to 6 (see Known gaps).
 
 ## Weapons
 
@@ -138,12 +138,15 @@ A full iron set is 10 and a crown set is 14. Mitigation is attack minus defense,
 
 | Item | Restores | Share of max HP, bands 1–4 | Recipe |
 |:--|:--|:--|:--|
-| Health potion | 45 HP | 38%, 32%, 30%, 26% | 2 slime gel, 1 fiber |
-| Mana potion | 35 MP | — | spore cap, mana crystal |
-| Elixir | 100 HP, 50 MP, Regeneration (5 HP a tick, 15 ticks) | 100 HP plus 75 over the ticks | health + mana potion, treasure gem |
-| Heart crystal | 80 HP, 25 MP, Regeneration (8 HP a tick, 20 ticks) | 80 HP plus 160 over the ticks | health potion, golem core, 2 slime gel |
+| Health potion | 215 HP | full heal in every band (max HP 120–170; 45 HP before) | 2 slime gel, 1 fiber (unchanged) |
+| Mana potion | 35 MP | — | spore cap, mana crystal (unchanged) |
+| Elixir | 250 HP, 50 MP, Regeneration (5 HP a tick, 15 ticks) | 250 HP plus 75 over the ticks | health + mana potion, treasure gem (heal was 100) |
+| Heart crystal | 215 HP, 25 MP, Regeneration (8 HP a tick, 20 ticks) | 215 HP plus 160 over the ticks | health potion, golem core, 2 slime gel (heal was 80) |
 
-The health potion's share is 26–38%. The target was 25–40%, and the test locks it.
+The health potion now restores a full HP bar in every band, so one potion covers a fight's damage many times over and a clear needs
+only 2 to 6 of them. Its meaning comes from the cost (two slime gel and a fiber: the gel from the band's slimes, the fiber from forage)
+and the time to gather them, not from a partial heal. The elixir and heart crystal heal more than the potion they consume.
+The old 25–40% share lock is retired (ADR-045 amendment D6).
 
 ## Experience
 
@@ -161,8 +164,8 @@ Monsters now take 3 to 4 times as long to kill, so XP per hour falls. This is no
 
 ## Ore, gems and other drops
 
-Sell prices are unchanged by this retune. The shipping bin pays for produce only. Ore, bars and drops are sold on the market; the
-blacksmith sells ore to players, at 75 for copper ore and 150 for iron ore. Ore nodes are planned per floor
+Monster drops are retuned by this change (ADR-045 amendment D6). Ore and bars are unchanged. The shipping bin pays for produce only.
+Ore, bars and drops are sold on the market; the blacksmith sells ore to players, at 75 for copper ore and 150 for iron ore. Ore nodes are planned per floor
 (`MineFloorPlanner`: 3 + reachable ÷ 120 copper nodes and 2 + reachable ÷ 120 + (floor − 20) ÷ 5 iron nodes), each giving 1 to 3 ore.
 A furnace turns 5 ore into 1 bar.
 
@@ -173,14 +176,38 @@ A furnace turns 5 ore into 1 bar.
 | Coal | stones (about half of them) | 4 |
 | Copper bar | furnace, 5 copper ore | 10 |
 | Iron bar | furnace, 5 iron ore | 20 |
-| Slime gel | slimes (primary) | 4 |
-| Bat wing | cave bats (primary) | 8 |
-| Spore cap | spore shrooms (primary) | 8 |
-| Goblin ear | goblin scouts (primary) | 12 |
-| Monster bone | skeleton warriors (primary) | 12 |
-| Golem core | stone golems (primary) | 35 |
-| Mana crystal | frost slimes and spore shrooms (rare) | 30 |
-| Treasure gem | elites (always) and boss 30 (rare) | 35 |
+| Slime gel | slimes (primary) | 1 |
+| Bat wing | cave bats (primary) | 1 |
+| Spore cap | spore shrooms (primary) | 1 |
+| Goblin ear | goblin scouts (primary) | 1 |
+| Monster bone | skeleton warriors (primary) | 1 |
+| Golem core | stone golems (primary) | 4 |
+| Mana crystal | frost slimes and spore shrooms (rare) | 1 |
+| Treasure gem | elites (always) and boss 30 (rare) | 1 |
+| Ancient scroll | boss 10 (primary) | 35 |
+| Golden key | boss 20 (primary) | 15 |
+| Colossus core | boss 30 (primary) | 320 |
+| Boss crown | boss 40 (primary) | 500 |
+| Necromancer skull | skeleton warriors and boss 10 (rare) | 10 |
+| Runestone tablet | stone golems and boss 40 (rare) | 15 |
+
+Monster drops were 4–35 (primary and rare) and 450–2,500 for bosses before this retune.
+
+### Band clear value
+
+The sell value of one full clear of a band: each normal kill's primary drop, its rare drop (half the time, always from an elite), an
+elite's treasure gem (35% of kills), and the boss's primary and rare drops (rare half the time). Copper ore, copper bar and coal keep
+their prices, so the goblin scout's copper bar (10) and the bat's copper ore (2) remain in the totals.
+
+| Band | Full clear value before (coins) | After | Next band's gear | Share of the next gear after |
+|:--|:--|:--|:--|:--|
+| 1 | 1,841 | 104 | iron greaves 400 | 26% (a quarter to a third) |
+| 2 | 2,770 | 196 | iron chestplate 600 | 33% (a quarter to a third) |
+| 3 | 9,265 | 697 | boss crown (now 500, a drop) | not an anchor; locked on its own at 600–800 |
+| 4 | 20,790 | 1,164 | none | at most twice band 3 |
+
+The "before" column is the same model on master's values. The earlier version of this table put band 1 near 600 coins, which left out the
+boss drop and used a different rare chance; this table is the one the test locks.
 
 ## Before and after
 
@@ -192,10 +219,12 @@ A furnace turns 5 ore into 1 bar.
 | Normal monster time to kill | 0.44–0.88 s | 1.32 s (1.76 s for the shroom) |
 | Bosses, time to kill | 3.1–3.5 s | 22 s |
 | Bosses, taken (slams included) | 40–60% without slams | 53–59% with slams |
-| Health potion | 50 HP, 29–42% | 45 HP, 26–38% |
+| Health potion | 50 HP, 29–42% | 45 HP, 26–38% (this retune: 215 HP, full heal; see Potions) |
 | Species break | 25 (not a biome tier) | 20 and 30 (ADR-070 tiers) |
 | Full clear of the mine | about 5,700 XP (2.6 clears to level 10) | unchanged, but kills take longer |
-| Drops, sell prices | ore, gems and bones sell for 2 to 35 | unchanged |
+| Drops, sell prices | ore, gems and bones sell for 2 to 35; bosses 35 to 2,500 | monster drops 1 to 500 (colossus core 320); ore and bars unchanged |
+| Band clear value (coins) | 1,841 / 2,770 / 9,265 / 20,790 | 104 / 196 / 697 / 1,164 |
+| Health potions per band clear | 9 / 12 / 29 / 28 | 2 / 3 / 6 / 6 |
 
 ## Known gaps
 
@@ -205,11 +234,14 @@ The coordinator's targets are not all reachable at once. These are the conflicts
   At 6–10 hits to die, a kill costs 20% to 33%. At 10–20%, hits to die is 10 to 20. The tables lock 10–20% per kill, which gives 12–20 hits
   to die, and the test asserts at least 10.
 - **Spore shroom in bands 1 and 2.** One species, two armor and weapon sets. No HP and attack meets both bands' 10% floor. Band 2 takes 1.4%.
-- **Healing is too expensive at 10–20% per kill.** A band 3 clear costs about 29 health potions, about 58 slime gel; band 3's slimes supply about 19. Either
-  potions must get cheaper, or the regeneration policy must change. A regeneration or rest rule is a new mechanic and needs its own ADR.
-- **Drops do not pay for the next band's gear in 3 to 5 trips.** Not changed in this retune. A band 1 clear's drops (primary items, elite gems, ore)
-  are worth roughly 600 coins; band 2's gear costs about 400 at sell value. That is under one trip, not 3 to 5. Cutting the numbers to hit 3–5 trips
-  means gems near 3 coins and ore near 0, which the integer price model can't reach cleanly. This needs a design decision.
+- **Healing is resolved by a heal of 215 per potion, not by a share of max HP.** Band 1 needs 2 potions and bands 3 and 4 need 6, so the
+  3–6 target holds for bands 2–4 and band 1 is at its floor of 2. A potion now fully heals in every band, so healing is cheap in
+  potions and the drop value of the potion's ingredients is what keeps it meaningful. A regeneration or rest rule is still a new mechanic
+  and needs its own ADR.
+- **Drops pay for the next band's gear in 3 to 4 trips for bands 1 and 2.** Band 1's clear is 26% of iron greaves (400) and band 2's is 33%
+  of iron chestplate (600), so the trip count is 3 to 4. Band 3 has no gear anchor of its own in the catalog: its next gear is the boss
+  crown, which is a drop too, so band 3 is locked on its own at 600–800. Band 2 sits near the top of its 150–200 range because goblin
+  scouts drop copper bars (10), which stay at their ore price.
 - **Bosses are long fights, not dangerous hits.** The boss attack is low (2 to 11) because 22 s of counters and slams would otherwise be lethal.
   The slams carry the damage. Dodging the telegraph is not modelled here.
 - **Combo** is left out on purpose: the sustained combo of 10 hits multiplies damage by 1.45, so fights are about a third shorter.
