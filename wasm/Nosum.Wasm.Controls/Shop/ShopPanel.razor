@@ -17,14 +17,16 @@
         }
         @if (ShowGoods)
         {
+            @* The balance on the left; the quantity presets (one, five, all the balance allows) on the right, as one tab bar (ui-standard section 8). *@
             <GameRow Class="spread">
                 <span>@Vm.CoinsText</span>
-                <GameRow Class="center">
-                    <span>@Vm.Text("Shop_Quantity")</span>
-                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
-                    <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
-                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
-                </GameRow>
+                <TabBar Tabs="PresetTabs()" Active="Vm.ActivePreset" OnSelect="SelectPreset" />
+            </GameRow>
+            <GameRow Class="center">
+                <span>@Vm.Text("Shop_Quantity")</span>
+                <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
+                <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
+                <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
             </GameRow>
             <p>@Vm.Text("Shop_Hint")</p>
             @if (Vm.Pending is not null)
@@ -40,11 +42,11 @@
                 @foreach (ShopOfferDisplay offer in Vm.PageOffers)
                 {
                     int itemId = offer.ItemId;
-                    <GameRow Class="center shop-row">
-                        <ItemSlotButton Slot="offer.Item" />
-                        <span>@offer.Item.Name</span>
-                        <span>@offer.PriceText</span>
-                        <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanAfford" OnClick="@(() => Vm.Buy(itemId))" />
+                    <GameRow Class="@RowClass(offer)">
+                        <ItemSlotButton Slot="offer.Item" Picked="@(Vm.Detail?.ItemId == itemId)" OnClick="@(() => Vm.Select(itemId))" Tip="@offer.Item.Name" />
+                        <span class="shop-name">@offer.Item.Name</span>
+                        <span class="shop-price">@offer.PriceText</span>
+                        <GameButton Text="@Vm.Text("Shop_Buy")" Disabled="!offer.CanBuy" OnClick="@(() => Vm.Buy(itemId))" />
                     </GameRow>
                 }
             </div>
@@ -52,6 +54,29 @@
             {
                 <Pager Page="Vm.Page" PageCount="Vm.PageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
                        PositionText="@Vm.Text("Pager_Position", Vm.Page + 1, Vm.PageCount)" OnPage="@(p => Vm.GoToPage(p))" />
+            }
+            @if (Vm.Detail is { } detail)
+            {
+                @* The detail strip: what the selected item is and does, what the typed quantity costs, and why Buy is off when it is (ui-standard section 3). *@
+                <GameSection Title="@detail.Name">
+                    <p>@detail.Description</p>
+                    @foreach (string effect in detail.Effects)
+                    {
+                        <p>@effect</p>
+                    }
+                    <GameRow Class="spread">
+                        <span>@detail.PriceText</span>
+                        <span>@detail.TotalText</span>
+                    </GameRow>
+                    @if (detail.AfterText.Length > 0)
+                    {
+                        <p>@detail.AfterText</p>
+                    }
+                    @if (detail.BlockText.Length > 0)
+                    {
+                        <GameNotice Kind="info" Text="@detail.BlockText" />
+                    }
+                </GameSection>
             }
         }
         @if (ShowExtras)
@@ -107,6 +132,18 @@
     }
 
     private void SelectTab(int id) => _tab = (CarpenterTab)id;
+
+    private IReadOnlyList<(int Id, string Label)> PresetTabs() =>
+    [
+        (ShopViewModel.PresetOne, Vm.PresetLabel(ShopViewModel.PresetOne)),
+        (ShopViewModel.PresetFive, Vm.PresetLabel(ShopViewModel.PresetFive)),
+        (ShopViewModel.PresetAll, Vm.PresetLabel(ShopViewModel.PresetAll)),
+    ];
+
+    private void SelectPreset(int preset) => Vm.ChoosePreset(preset);
+
+    /// <summary>A row is dimmed when the balance cannot cover one unit of it (the price still reads, the Buy button is off).</summary>
+    private static string RowClass(ShopOfferDisplay offer) => offer.Dimmed ? "center shop-row shop-row-dim" : "center shop-row";
 
     /// <summary>Whether the list of what the shop sells is shown. The merchant's Build and Upgrade buttons show only the sections (docs/adr/ADR-043 D3).</summary>
     [Parameter] public bool ShowOffers { get; set; } = true;

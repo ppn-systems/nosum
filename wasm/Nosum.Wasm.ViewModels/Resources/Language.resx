@@ -1180,4 +1180,12 @@
   <data name="Pet_BuyMessage" xml:space="preserve"><value>Mua {0} tên {1} với giá {2} xu?</value></data>
   <data name="Pet_BuyConfirm" xml:space="preserve"><value>Xác nhận</value></data>
   <data name="Pet_BuyCancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Shop_Preset_All" xml:space="preserve"><value>Tất cả</value></data>
+  <data name="Shop_Preset_Count" xml:space="preserve"><value>x{0}</value></data>
+  <data name="Shop_Block_NotEnoughCoins" xml:space="preserve"><value>Thiếu {0} xu để mua.</value></data>
+  <data name="Shop_Block_BagFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
+  <data name="Shop_Detail_Total" xml:space="preserve"><value>Tổng: {0} xu cho {1} món</value></data>
+  <data name="Shop_Detail_After" xml:space="preserve"><value>Số dư sau khi mua: {0} xu</value></data>
+  <data name="Market_Confirm_Text" xml:space="preserve"><value>Đăng bán {1} {0} với giá {2} xu?</value></data>
+  <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Chạy tốn ít sức lực hơn: {0}%</value></data>
 </root>

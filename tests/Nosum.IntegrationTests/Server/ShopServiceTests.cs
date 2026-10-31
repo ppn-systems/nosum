@@ -188,6 +188,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 0, ShopStatus.InvalidQuantity)]
     [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, -5, ShopStatus.InvalidQuantity)]
     [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 2, ShopStatus.InvalidQuantity)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 100, ShopStatus.InvalidQuantity)]
     public async Task Buy_InvalidRequest_IsRefusedBeforeAnythingMoves(int shopId, int itemId, int quantity, ShopStatus expected)
     {
         Guid player = await CreatePlayerAsync();
