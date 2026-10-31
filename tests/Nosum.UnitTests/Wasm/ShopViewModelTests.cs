@@ -333,7 +333,7 @@ public sealed class ShopViewModelTests
     }
 
     [Fact]
-    public void RowsPerPage_BeforeAnyMeasure_IsTheFourRowFloor()
+    public void RowsPerPage_BeforeAnyMeasure_IsTheThreeRowFloor()
     {
         (ShopViewModel vm, _) = Create();
 

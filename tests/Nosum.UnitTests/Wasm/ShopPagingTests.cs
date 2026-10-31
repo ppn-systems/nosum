@@ -20,9 +20,9 @@ public sealed class ShopPagingTests
     [InlineData(293, 4)] // one pixel short of five rows
     [InlineData(474, 8)] // room for eight rows exactly: 8 x 54 + 7 x 6
     [InlineData(2000, 8)] // more room than eight rows: clamped to the design goal
-    [InlineData(50, 4)] // less room than four rows: clamped to the floor so a page is never empty
-    [InlineData(0, 4)]
-    [InlineData(-30, 4)]
+    [InlineData(50, 3)] // less room than three rows: clamped to the floor so a page is never empty
+    [InlineData(0, 3)]
+    [InlineData(-30, 3)]
     public void RowsThatFit_AtRowHeight54_CountsWholeRowsClampedToFourToEight(double available, int expected)
     {
         ShopViewModel.RowsThatFit(available, Row720, Gap720).Should().Be(expected);

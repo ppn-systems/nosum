@@ -91,8 +91,8 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     /// <summary>The preset that buys as many units as the balance and the stack allow.</summary>
     public const int PresetAll = 0;
 
-    /// <summary>The fewest rows a page of the list shows: the floor of the layout, so a page is never empty even on a short window.</summary>
-    public const int MinRowsPerPage = 4;
+    /// <summary>The fewest rows a page of the list shows: three, so the list never scrolls in a 1920x1080 window with the detail strip.</summary>
+    public const int MinRowsPerPage = 3;
 
     /// <summary>The most rows a page of the list shows (the design goal; a taller window shows no more than this).</summary>
     public const int MaxRowsPerPage = 8;
