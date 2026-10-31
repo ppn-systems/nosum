@@ -12,7 +12,7 @@
        Link is the file name; NosumBase is the folder the package serves it from (NosumLinkedStaticWebAssets below).
        The rectangles taken from these sheets are listed in wwwroot/nosum-theme.js. -->
   <ItemGroup>
-    <Content Include="..\..\assets\ui\emotes.png;..\..\assets\ui\emote_bubble.png;..\..\assets\ui\menu.png;..\..\assets\ui\cursors.png;..\..\assets\ui\text_box.png;..\..\art\own\ui\start_meadow.png;..\..\assets\ui\fishing_bobber.png;..\..\assets\ui\fish_bite.png" Link="%(Filename)%(Extension)" NosumBase="_content/Nosum.Wasm.Controls/ui" />
+    <Content Include="..\..\assets\ui\emotes.png;..\..\assets\ui\emote_bubble.png;..\..\assets\ui\menu.png;..\..\assets\ui\cursors.png;..\..\assets\ui\text_box.png;..\..\art\own\ui\signin_background.png;..\..\assets\ui\fishing_bobber.png;..\..\assets\ui\fish_bite.png" Link="%(Filename)%(Extension)" NosumBase="_content/Nosum.Wasm.Controls/ui" />
     <Content Include="..\..\assets\sprites\pets\cat.png;..\..\assets\sprites\pets\dog.png" Link="%(Filename)%(Extension)" NosumBase="_content/Nosum.Wasm.Controls/sprites/pets" />
   </ItemGroup>
 

@@ -27,3 +27,10 @@
     width: 100%;
     height: 41px;
 }
+
+/* On a phone the unit is small (u is about 2 px), so 120 u is too narrow for Google's label: the form fills its window instead. */
+@media (max-width: 640px) {
+    .account-form {
+        width: 100%;
+    }
+}

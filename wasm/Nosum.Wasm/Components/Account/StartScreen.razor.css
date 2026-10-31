@@ -1,5 +1,5 @@
-/* The start screen: a daytime meadow (start_meadow.png, Kenney Tiny Town tiles at the game's 16 px grid, art/source/kenney_tiny-town), drawn at the
-   UI pixel (1 image pixel is 1 u, the world's scale) and tiled, so the picture fills any screen. The meadow is light and even: no harsh edge. */
+/* The start screen: one frame of the game itself (signin_background.png, a daytime capture of the farmhouse yard, docs/qa/signin/source), under a 15 %
+   cream veil so the window reads over it. The frame covers the screen; the pixels stay as the game drew them. */
 .start-screen {
     position: fixed;
     inset: 0;
@@ -13,10 +13,12 @@
     padding: var(--nosum-gutter);
     overflow: auto;
     background-color: var(--nosum-leaf);
-    background-image: url("_content/Nosum.Wasm.Controls/ui/start_meadow.png");
-    background-repeat: repeat;
-    background-size: calc(var(--u) * 1536) calc(var(--u) * 512);
-    background-position: 50% 0;
+    background-image:
+        linear-gradient(rgba(255, 246, 226, 0.15), rgba(255, 246, 226, 0.15)),
+        url("_content/Nosum.Wasm.Controls/ui/signin_background.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
     image-rendering: pixelated;
 }
 
@@ -65,5 +67,14 @@
     .start-logo {
         --logo-px: calc(var(--tp) * 2);
         --logo-o: var(--tp);
+    }
+}
+
+/* On a phone the account window takes the full width inside the gutter, so the provider buttons have room for Google's label. */
+@media (max-width: 640px) {
+    .start-screen ::deep .game-panel.account {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
     }
 }

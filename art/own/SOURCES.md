@@ -2,14 +2,23 @@
 
 One entry per file or group of files, as [ADR-004](../../docs/adr/ADR-004-pixel-art-assets.md) D2 asks.
 
-## `ui/start_meadow.png`
+## `ui/signin_background.png` (candidate A, the sign-in backdrop)
 
-The start-screen backdrop: a soft daytime sky band over a meadow, with a tree line, a red-roofed farmhouse, a rail fence, a tilled plot with sprouts and a narrow path; 96 x 32 cells of 16 px (1536 x 512 px), drawn at 1 art pixel = 1 u and tiled from the top. Composed by `tools/art_repack/start_meadow.py` from tiles cut out of the Kenney Tiny Town sheet (`source/kenney_tiny-town`) and the sprouts of the josehzz crops sheet (`source/josehzz_farming-crops-16x16`); the random scatter is seeded, so a run reproduces the file.
+One frame of the game: the farmhouse door yard of the own farm map, daytime, with the HUD, the minimap, the tutorial and the player's name tag hidden (the player's `names` setting off). Captured by `tests/browser/signin-yard-capture.cjs` from a local server and client; the frame is Nosum's own render of its own art.
 
 | Field | Value |
 | :-- | :-- |
-| Made by | Nosum (`tools/art_repack/start_meadow.py`), from Kenney Tiny Town (kenney.nl, CC0 1.0) and the josehzz farming crops sheet (CC0 as stated on OpenGameArt), composed for ADR-082 |
-| License | The tiles are CC0 1.0 (`source/kenney_tiny-town/License.txt`, `source/josehzz_farming-crops-16x16/LICENSE.txt`); the composition is Nosum's own art. |
+| Made by | Nosum: a capture of the running game (`tests/browser/signin-yard-capture.cjs`) |
+| License | Nosum's own art (ADR-004). |
+
+## `ui/signin_sky_soft.png` (candidate B, not wired by default)
+
+The original start-screen art (`start_background.png`, sky and sea, kept in git history at d2a3652) re-graded to lower saturation, lifted shadows and a pale blend (`tools/art_repack/signin_sky_regrade.py`). Geometry unchanged.
+
+| Field | Value |
+| :-- | :-- |
+| Made by | Nosum (`tools/art_repack/signin_sky_regrade.py`), from Nosum's own `start_background.png` |
+| License | Nosum's own art (ADR-004). |
 
 ## `source/pixellab/*.png`, `*.json`
 

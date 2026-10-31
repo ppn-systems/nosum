@@ -25,6 +25,13 @@
     background: #f3f3f3;
 }
 
+/* On a phone the Microsoft label is 14 px, so it reads the same size as Google's button text beside it. */
+@media (max-width: 640px) {
+    .ms-signin {
+        font-size: 14px;
+    }
+}
+
 .ms-signin:active {
     background: #e6e6e6;
 }

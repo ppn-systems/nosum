@@ -28,7 +28,8 @@ async function routeRepoAssets(page) {
     let file;
     const name = pathname.slice('/_content/Nosum.Wasm.Controls/ui/'.length);
     if (pathname.startsWith('/assets/')) file = path.join(REPO, 'assets', pathname.slice('/assets/'.length));
-    else file = path.join(REPO, name === 'start_meadow.png' ? 'art/own/ui' : 'assets/ui', name);
+    else if (name === 'signin_background.png' && process.env.NOSUM_QA_BACKGROUND === 'B') file = path.join(REPO, 'art/own/ui/signin_sky_soft.png');
+    else file = path.join(REPO, name === 'signin_background.png' ? 'art/own/ui' : 'assets/ui', name);
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) return route.fallback();
     return route.fulfill({ status: 200, body: fs.readFileSync(file), contentType: MIME[path.extname(file)] || 'application/octet-stream' });
   });
@@ -68,6 +69,20 @@ async function shoot(browser, name, file, seed, errors) {
   if (phase !== 'before' && phase !== 'after') throw new Error('usage: signin-capture.cjs <before|after> [viewports]');
   const names = (process.argv[3] || Object.keys(VIEWPORTS).join(',')).split(',');
   const outRoot = path.join(REPO, 'docs/qa/signin', phase);
+  // NOSUM_QA_FILE_PREFIX=bg-a writes the first visit only, as docs/qa/signin/bg-a-<viewport>.png (the candidate comparison shots).
+  const filePrefix = process.env.NOSUM_QA_FILE_PREFIX;
+  if (filePrefix) {
+    const rootDir = path.join(REPO, 'docs/qa/signin');
+    fs.mkdirSync(rootDir, { recursive: true });
+    const errs = [];
+    const browser0 = await chromium.launch({ args: ['--no-sandbox'] });
+    for (const name of names) {
+      await shoot(browser0, name, path.join(rootDir, `${filePrefix}-${name}.png`), null, errs);
+      console.log(`${filePrefix} ${name}: captured`);
+    }
+    await browser0.close();
+    return;
+  }
   // A remembered session as ADR-082 stores it: a session token, its expiry, the nickname and the provider. Never an ID token.
   const seed = JSON.stringify({ version: 1, token: 'qa-placeholder-token', expiresAt: '2099-01-01T00:00:00Z', nickname: 'Lan', kind: 'google' });
   const browser = await chromium.launch({ args: ['--no-sandbox'] });

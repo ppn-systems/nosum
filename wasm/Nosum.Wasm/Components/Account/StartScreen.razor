@@ -7,7 +7,8 @@
 
 @* The first thing a player sees: the title over a calm meadow, then either the continue card (a session this browser remembers, docs/adr/ADR-082)
    or the account form, in the same window style as the game menu, and a connection note only when there is a problem. Shown until the first sign-in
-   (the game starts after it). Nothing is shown in the card's place until the remembered session has been read, so the buttons do not flash. *@
+   (the game starts after it). Nothing is shown in the card's place until the remembered session has been read, so the buttons do not flash.
+   No connection chip here: a sign-in that cannot reach the server says so on its own line (the chip would show before any attempt). *@
 <main class="start-screen">
     <div class="start-hero">
         <h1 class="start-logo">@Vm.GameTitle</h1>
@@ -24,7 +25,6 @@
             <AccountForm Vm="Vm" />
         }
     }
-    <ConnectionBadge />
 </main>
 
 @inject IStringLocalizer<Language> Text
