@@ -667,6 +667,8 @@
   <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>Bạn đang đầy sức rồi.</value></data>
   <data name="Eat_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Energy_Label" xml:space="preserve"><value>Sức lực {0} / {1}</value></data>
+  <data name="Energy_Running" xml:space="preserve"><value>Đang chạy</value></data>
+  <data name="Run_OutOfEnergy" xml:space="preserve"><value>Hết sức lực, bạn không chạy được nữa.</value></data>
   <data name="Energy_Heading" xml:space="preserve"><value>Sức lực</value></data>
   <data name="Energy_Hint" xml:space="preserve"><value>Mỗi lần dùng công cụ tốn sức (liềm thì không). Sức hồi đầy khi sang ngày mới; ăn nông sản để hồi thêm.</value></data>
   <data name="Skills_Heading" xml:space="preserve"><value>Kỹ năng</value></data>

@@ -194,6 +194,30 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the localized label of the bar, for the tooltip and the screen reader: <c>Energy 268 / 270</c>.</summary>
     public string EnergyLabel => this.Text("Energy_Label", Number(_progress.Energy), Number(_progress.MaxEnergy));
 
+    /// <summary>Gets the running state the bar shows (docs/adr/ADR-085 D3).</summary>
+    public RunState Run { get; private set; }
+
+    /// <summary>Gets whether the farmer is running, so the bar drains and glows (docs/adr/ADR-085 D3).</summary>
+    public bool Running => this.Run == RunState.Running;
+
+    /// <summary>Gets the tooltip text of the energy bar: the label, and <c>Running</c> while the farmer runs.</summary>
+    public string EnergyTip => this.Running ? this.EnergyLabel + " · " + this.Text("Energy_Running") : this.EnergyLabel;
+
+    /// <summary>
+    /// Sets the running state the map scene reports. It notifies only when the state changes, so the HUD re-renders on a transition and not per frame.
+    /// </summary>
+    /// <param name="run">The new running state.</param>
+    public void SetRun(RunState run)
+    {
+        if (run == this.Run)
+        {
+            return;
+        }
+
+        this.Run = run;
+        this.Raise();
+    }
+
     /// <summary>Gets the three gathering skills in the page's order: farming, foraging, mining.</summary>
     public IReadOnlyList<SkillDisplay> Skills =>
     [

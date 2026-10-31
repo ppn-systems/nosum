@@ -191,16 +191,18 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
             // Running (docs/adr/ADR-085): the run speed counts only while the server grants it, and every second of it is owed energy.
             bool running = runClaimed && player.RunAllowed;
             double owedSince = player.Motion.LastSeconds;
-            MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, _world.GridFor(player.Instance, map), RunRules.SpeedMultiplier(player.MoveSpeedFactor, running));
+            MoveVerdict verdict = MoveValidator.Validate(ref player.Motion, x, y, facing, moving, now, _world.GridFor(player.Instance, map), RunRules.SpeedMultiplier(player.MoveSpeedProduct, running));
             if (!runClaimed)
             {
                 player.RunAllowed = true;
             }
             else if (running && _runEnergy is not null)
             {
-                double debt = player.RunEnergyDebt;
-                int energy = RunRules.TakeEnergy(ref debt, now - owedSince);
-                player.RunEnergyDebt = debt;
+                // The boots the player wears cut the energy a run costs (docs/adr/ADR-085 D2, docs/adr/ADR-084 D5).
+                int costMilli = FootwearRules.RunEnergyCost(RunRules.BaseCostMilli(now - owedSince), player.FootwearItemId);
+                int debt = player.RunEnergyDebtMilli;
+                int energy = RunRules.TakeEnergy(ref debt, costMilli);
+                player.RunEnergyDebtMilli = debt;
                 if (energy > 0)
                 {
                     _ = this.SpendRunEnergyAsync(player, energy);

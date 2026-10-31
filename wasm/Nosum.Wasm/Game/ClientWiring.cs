@@ -351,7 +351,15 @@ internal static class ClientWiring
             }
         };
         _ = services.GetRequiredService<NearbyPlayers>();
-        _ = services.GetRequiredService<ProgressViewModel>();
+        ProgressViewModel progressVm = services.GetRequiredService<ProgressViewModel>();
+        GameLoop.UseRunState(state =>
+        {
+            progressVm.SetRun(state);
+            if (state == RunState.OutOfEnergy)
+            {
+                messages.Notify(localizer["Run_OutOfEnergy"].Value);
+            }
+        });
         _ = services.GetRequiredService<WalletViewModel>();
         _ = services.GetRequiredService<CalendarViewModel>();
         _ = services.GetRequiredService<SeasonBannerViewModel>();

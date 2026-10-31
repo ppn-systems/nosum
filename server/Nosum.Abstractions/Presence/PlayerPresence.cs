@@ -82,12 +82,13 @@ public sealed class PlayerPresence
     private readonly object _speedGate = new();
     private int _footwearItemId;
     private StatusEffectKind _speedBuff;
-    private double _moveSpeedFactor = 1;
+    private double _speedProduct = 1;
 
     /// <summary>
-    /// Gets or sets the run energy owed and not yet spent, energy units below one whole unit (docs/adr/ADR-085 D2). Use only while holding <see cref="Gate"/>.
+    /// Gets or sets the run energy owed and not yet spent, in thousandths of an energy, below one whole unit (docs/adr/ADR-085 D2).
+    /// Use only while holding <see cref="Gate"/>.
     /// </summary>
-    public double RunEnergyDebt { get; set; }
+    public int RunEnergyDebtMilli { get; set; }
 
     /// <summary>
     /// Gets or sets whether the server grants the run speed. It turns off when the energy ran out and on again once the player lets go of run. Use only while holding <see cref="Gate"/>.
@@ -95,39 +96,55 @@ public sealed class PlayerPresence
     public bool RunAllowed { get; set; } = true;
 
     /// <summary>
-    /// Gets the movement speed multiplier the move validator honors: footwear × speed buff, clamped (docs/adr/ADR-084 D3, issue #146).
-    /// Set by <see cref="SetFootwear"/> and <see cref="SetSpeedBuff"/>; safe to read without <see cref="Gate"/>.
+    /// Gets the footwear × speed buff product the move path passes to <see cref="Nosum.Gameplay.Movement.RunRules.SpeedMultiplier"/>. It is not
+    /// clamped: the run factor is applied first and the cap once (docs/adr/ADR-084 D3, docs/adr/ADR-085 D1). Set by <see cref="SetFootwear"/> and
+    /// <see cref="SetSpeedBuff"/>; safe to read without <see cref="Gate"/>.
     /// </summary>
-    public double MoveSpeedFactor
+    public double MoveSpeedProduct
     {
         get
         {
             lock (_speedGate)
             {
-                return _moveSpeedFactor;
+                return _speedProduct;
             }
         }
     }
 
-    /// <summary>Sets the boots worn, or zero for bare feet, and recomputes <see cref="MoveSpeedFactor"/> (docs/adr/ADR-084).</summary>
+    /// <summary>
+    /// Gets the worn boots item id, or zero for bare feet. It is the footwear the run energy cost is computed from (docs/adr/ADR-085 D2).
+    /// Safe to read without <see cref="Gate"/>.
+    /// </summary>
+    public int FootwearItemId
+    {
+        get
+        {
+            lock (_speedGate)
+            {
+                return _footwearItemId;
+            }
+        }
+    }
+
+    /// <summary>Sets the boots worn, or zero for bare feet, and recomputes <see cref="MoveSpeedProduct"/> (docs/adr/ADR-084).</summary>
     /// <param name="itemId">The worn boots item id, or zero.</param>
     public void SetFootwear(int itemId)
     {
         lock (_speedGate)
         {
             _footwearItemId = itemId;
-            _moveSpeedFactor = MovementSpeed.For(_footwearItemId, _speedBuff);
+            _speedProduct = MovementSpeed.Product(_footwearItemId, _speedBuff);
         }
     }
 
-    /// <summary>Sets the speed buff in the buff slot and recomputes <see cref="MoveSpeedFactor"/> (docs/adr/ADR-084 D3).</summary>
+    /// <summary>Sets the speed buff in the buff slot and recomputes <see cref="MoveSpeedProduct"/> (docs/adr/ADR-084 D3).</summary>
     /// <param name="buff">The buff, or <see cref="StatusEffectKind.None"/>.</param>
     public void SetSpeedBuff(StatusEffectKind buff)
     {
         lock (_speedGate)
         {
             _speedBuff = buff;
-            _moveSpeedFactor = MovementSpeed.For(_footwearItemId, _speedBuff);
+            _speedProduct = MovementSpeed.Product(_footwearItemId, _speedBuff);
         }
     }
 }
