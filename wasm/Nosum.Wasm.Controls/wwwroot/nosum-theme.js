@@ -161,8 +161,8 @@ const SPRITES = [
     ["tab-settings", "cursors", 160, 368, 16, 16],
     ["tab-goals", "cursors", 176, 368, 16, 16],
     ["tab-shop", "cursors", 0, 384, 16, 16],
-    ["tab-menu", "cursors", 16, 384, 16, 16],
-    ["tab-pet", "pet", 0, 0, 16, 16],
+    ["tab-menu", "cursors", 256, 384, 16, 16],
+    ["tab-pet", "cursors", 272, 384, 16, 16],
     // The emote wheel's icons (thin, 16 x 16 each, the emote code is the index in the sheet).
     ["emote-0", "emotes", 0, 0, 16, 16],
     ["emote-1", "emotes", 16, 0, 16, 16],
