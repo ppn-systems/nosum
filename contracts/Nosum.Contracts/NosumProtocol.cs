@@ -30,6 +30,7 @@ public static class NosumProtocol
     /// (S2C <c>0xC340-0xC341</c>) and <c>FishingStatus</c>; <c>ToolKind.FishingRod</c>, <c>SkillKind.Fishing</c> and <c>CraftSkill.Fishing</c> are
     /// appended values, and <c>FishingXp</c> is stored on the player state. No existing packet changed. Version 19 is left unused.
     /// 21: fish size - <c>SizeCm</c> appended to <c>ReelResult</c> (docs/adr/ADR-078 amendment).
+    /// 22: development QA hook (docs/adr/ADR-079) - new Development-only packets <c>DevTeleport</c>, <c>DevSeason</c>, <c>DevLevelUp</c>, <c>DevFishingBite</c> (C2S <c>0xF002-0xF005</c>) and their replies (S2C <c>0xF042-0xF045</c>). Production does not map them. No existing packet changed.
     /// </summary>
-    public const ushort Version = 21;
+    public const ushort Version = 22;
 }

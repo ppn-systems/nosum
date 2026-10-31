@@ -72,6 +72,38 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
     /// <summary>Raised when the banner must render again. May run on any thread.</summary>
     public event Action? Changed;
 
+    /// <summary>
+    /// The cast a line is waiting on for its bite, zero when none is. The tester hook (docs/adr/ADR-079) reads it to ask the server for a bite.
+    /// </summary>
+    public uint OpenCastId
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _phase == FishingPhase.Waiting ? _castId : 0;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tester hook (docs/adr/ADR-079): the server has made the waiting cast bite, so the bite cue shows now instead of after the delay the cast
+    /// reply named. Does nothing unless a line is waiting for its bite.
+    /// </summary>
+    public void BiteNow()
+    {
+        lock (_gate)
+        {
+            if (_phase != FishingPhase.Waiting)
+            {
+                return;
+            }
+
+            _biteAtMs = this.NowMs();
+            this.Arm(Step.Bite, 0);
+        }
+    }
+
     /// <summary>Gets where the banner is in the cast.</summary>
     public FishingPhase Phase
     {
