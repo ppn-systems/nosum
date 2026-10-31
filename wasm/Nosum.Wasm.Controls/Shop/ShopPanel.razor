@@ -57,7 +57,7 @@
             @if (Vm.Detail is { } detail)
             {
                 @* The detail strip: what the selected item is and does, what the typed quantity costs, and why Buy is off when it is (ui-standard section 3). *@
-                <GameSection Title="@detail.Name">
+                <GameSection>
                     <p>@detail.Description</p>
                     @foreach (string effect in detail.Effects)
                     {
