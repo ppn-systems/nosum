@@ -27,7 +27,11 @@ client ids are read from `ExternalSignIn` in `wwwroot/appsettings.json`. Its tex
 shows it first; the game starts after sign-in (the canvas listens to the whole window's keys).
 `GameSocketAccountClient` implements `IAccountClient` over `IGameSocket`; `AccountSessionKeeper`
 applies the account language on sign-in and signs the connection in again (resume token, kept in
-memory only) after every reconnect.
+memory) after every reconnect. The session token of a sign-in is also kept in `localStorage`
+(`nosum.remembered-session`, docs/adr/ADR-081; `BrowserRememberedSessionStore`): the start screen's continue card
+(`RememberedSessionCard`, `RememberedSessionViewModel`) resumes it without a provider window, and a refused
+resume falls back to the sign-in buttons. The ID token is never stored. The Microsoft button is
+`MicrosoftSignInButton` (Microsoft's own look); Google draws its button into an unframed slot.
 
 Multiplayer ([ADR-008](../docs/adr/ADR-008-snapshot-movement-sync.md)): the server address lives in
 `GameSocketOptions` (same host as the page, port 57300, `/ws/`; `ForPageHost`). `Program.cs` creates
