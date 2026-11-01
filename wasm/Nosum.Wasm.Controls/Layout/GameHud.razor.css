@@ -179,6 +179,12 @@
     animation: game-message-life 3s linear both;
 }
 
+/* The combo chip hangs over the hotbar's top-right corner (Hotbar.razor.css, .hotbar-badges), in the same strip as the toast line. While it
+   shows, the toast line lifts above the chip's height, so a long message (the knock-out line) is not cut off under it (ui-standard section 2). */
+.hud-bottom-center:has(.hotbar-badges) ::deep .game-message {
+    margin-bottom: calc(var(--u) * 12);
+}
+
 @keyframes game-message-life {
     0%, 80% {
         opacity: 1;
@@ -201,6 +207,14 @@
     width: min(calc(var(--u) * 120), calc(100vw - var(--nosum-gutter) * 2));
     max-height: calc(var(--u) * 100);
     pointer-events: none;
+}
+
+/* Phones: the hotbar is two rows and stands about 53 u high, so the chat line stands above it at 56 u (on a desktop 40 u clears the one-row hotbar).
+   The open chat log keeps its own height limit (ChatLine.razor.css). */
+@media (max-width: 640px) {
+    .hud-bottom-left {
+        bottom: calc(var(--nosum-gutter) + var(--u) * 56);
+    }
 }
 
 /* Bottom-right: the emote button beside the gauges, one edge margin (gap-group) above the bottom edge. A touch screen lifts it above the action button

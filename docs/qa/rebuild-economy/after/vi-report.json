@@ -1,0 +1,22 @@
+{
+  "lang": "vi",
+  "base": "http://localhost:5810",
+  "captured": [
+    "1280x720/vi-seller-sell-empty.png",
+    "1280x720/vi-seller-sell-picked.png",
+    "1280x720/vi-seller-listed.png",
+    "1280x720/vi-buyer-browse.png",
+    "1280x720/vi-buyer-browse-sorted.png",
+    "1280x720/vi-buyer-sell-picked.png",
+    "1280x720/vi-buyer-sell-priced.png",
+    "390x844/vi-seller-sell-empty.png",
+    "390x844/vi-seller-sell-picked.png",
+    "390x844/vi-seller-listed.png",
+    "390x844/vi-buyer-browse.png",
+    "390x844/vi-buyer-browse-sorted.png",
+    "390x844/vi-buyer-sell-picked.png",
+    "390x844/vi-buyer-sell-priced.png"
+  ],
+  "skipped": [],
+  "errors": []
+}

@@ -229,12 +229,13 @@ public sealed class TransferService : ITransferService
     private async Task<TransferStatus> JoinAsync(IUnitOfWork unit, Dictionary<Guid, Int128> coins, Dictionary<(Guid Coop, int Item), int> stock, Dictionary<Guid, long> balances, string reason, CancellationToken cancellationToken)
     {
         DateTimeOffset now = _time.GetUtcNow();
+        Dictionary<Guid, PlayerWallet> wallets = await this.WalletsAsync(unit, coins.Keys, cancellationToken).ConfigureAwait(false);
 
         foreach ((Guid player, Int128 delta) in coins)
         {
             // The wallet is created (and the starting coins logged) even by a transfer that moves no coins for this player:
             // the balance row must exist before anything reads it.
-            PlayerWallet wallet = await this.WalletAsync(unit, player, cancellationToken).ConfigureAwait(false);
+            PlayerWallet wallet = wallets[player];
             if (delta == 0)
             {
                 continue;
@@ -292,16 +293,42 @@ public sealed class TransferService : ITransferService
     // The player's wallet inside the unit; a new player's gets the starting coins and a log line.
     private async Task<PlayerWallet> WalletAsync(IUnitOfWork unit, Guid playerId, CancellationToken cancellationToken)
     {
-        IRepository<PlayerWallet> wallets = unit.Repository<PlayerWallet>();
-        PlayerWallet? wallet = await wallets.FindAsync(playerId, cancellationToken).ConfigureAwait(false);
-        if (wallet is not null)
+        PlayerWallet? wallet = await unit.Repository<PlayerWallet>().FindAsync(playerId, cancellationToken).ConfigureAwait(false);
+        return wallet ?? this.NewWallet(unit, playerId);
+    }
+
+    // Every party's wallet in one query (docs/adr/ADR-035 D1): a two-party sale reads both balances in one round trip. A party without a row gets a new one.
+    private async Task<Dictionary<Guid, PlayerWallet>> WalletsAsync(IUnitOfWork unit, IEnumerable<Guid> playerIds, CancellationToken cancellationToken)
+    {
+        Guid[] ids = [.. playerIds];
+        Dictionary<Guid, PlayerWallet> wallets = new(ids.Length);
+        if (ids.Length == 0)
         {
-            return wallet;
+            return wallets;
         }
 
+        List<PlayerWallet> found = await unit.Repository<PlayerWallet>().ListAsync(w => ids.Contains(w.PlayerId), cancellationToken).ConfigureAwait(false);
+        foreach (PlayerWallet wallet in found)
+        {
+            wallets[wallet.PlayerId] = wallet;
+        }
+
+        foreach (Guid id in ids)
+        {
+            if (!wallets.ContainsKey(id))
+            {
+                wallets[id] = this.NewWallet(unit, id);
+            }
+        }
+
+        return wallets;
+    }
+
+    private PlayerWallet NewWallet(IUnitOfWork unit, Guid playerId)
+    {
         DateTimeOffset now = _time.GetUtcNow();
-        wallet = new PlayerWallet { PlayerId = playerId, Coins = CoinRules.StartingCoins, CreatedAt = now };
-        wallets.Add(wallet);
+        PlayerWallet wallet = new() { PlayerId = playerId, Coins = CoinRules.StartingCoins, CreatedAt = now };
+        unit.Repository<PlayerWallet>().Add(wallet);
         unit.Repository<CoinLogEntry>().Add(new CoinLogEntry { PlayerId = playerId, Delta = CoinRules.StartingCoins, Reason = StarterReason, OccurredAt = now });
         return wallet;
     }

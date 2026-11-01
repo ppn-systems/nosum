@@ -1,5 +1,6 @@
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Friends
+@using Microsoft.AspNetCore.Components
 @inherits ObservingComponent<FriendsViewModel>
 
 @* The Friends page of the game menu: friends with their status, open requests, the "friends may visit" switch and the block list. A guest sees a hint to register
@@ -47,6 +48,7 @@
                         <GameRow Class="friends-row">
                             <span class="friends-name">@friend.Label</span>
                             <GameBadge Kind="@(friend.Online ? "ok" : "warn")" Text="@friend.Where" />
+                            <GameButton Variant="secondary" Text="@Vm.Text("Friends_VisitFarm")" OnClick="@(() => Vm.Visit(playerId))" />
                             <GameButton Variant="danger" Text="@Vm.Text("Friends_Remove")" OnClick="@(() => Vm.Remove(playerId))" />
                         </GameRow>
                     }
@@ -96,5 +98,24 @@
 </MenuPage>
 
 @code {
-    protected override void OnInitialized() => Vm.Open();
+    /// <summary>Raised when a visit to a friend's farm was accepted, so the menu closes and the map scene shows the farm.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Vm.Entered += OnEntered;
+        Vm.Open();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            Vm.Entered -= OnEntered;
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private void OnEntered() => _ = InvokeAsync(OnClose.InvokeAsync);
 }

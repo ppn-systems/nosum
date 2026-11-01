@@ -150,6 +150,33 @@ public sealed partial class CombatChannel
         _playerFacing = facing;
     }
 
+    /// <summary>
+    /// Shows a number for damage the farmer took, once per hit. A monster hit arrives twice: the attack reply carries the damage taken and the
+    /// vitals push that follows (or leads) it carries the new HP. Both name the same HP after the hit and the same amount, so the second report
+    /// of a hit is dropped. A heal resets the run, so a later hit to the same HP is shown (docs/adr/ADR-055 amendment).
+    /// </summary>
+    /// <param name="hpAfter">The farmer's HP after the hit.</param>
+    /// <param name="amount">The damage taken.</param>
+    /// <param name="style">The number style (2 red for a monster hit, 4 purple for poison).</param>
+    private void AnnouncePlayerDamage(int hpAfter, int amount, byte style)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        long now = Environment.TickCount64;
+        if (hpAfter == _lastHitHpAfter && amount == _lastHitAmount && now - _lastHitShownAt < DuplicateHitWindowMs)
+        {
+            return;
+        }
+
+        _lastHitHpAfter = hpAfter;
+        _lastHitAmount = amount;
+        _lastHitShownAt = now;
+        this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, amount, style);
+    }
+
     /// <summary>Spawns a floating combat number in world pixels (docs/adr/ADR-055).</summary>
     public void SpawnFloatingText(int worldX, int worldY, int amount, byte style = 0, float durationMs = 650f)
     {
@@ -460,12 +487,14 @@ public sealed partial class CombatChannel
         {
             if (diff > 0)
             {
+                // A heal starts a new run of hits, so the next hit to the same HP is a new number (see AnnouncePlayerDamage).
+                _lastHitHpAfter = -1;
                 this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, diff, 3);
             }
             else
             {
                 byte style = (byte)(packet.StatusEffect == 2 ? 4 : 2);
-                this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, -diff, style);
+                this.AnnouncePlayerDamage(packet.Hp, -diff, style);
             }
         }
         else if (hadInitialVitals && oldMp > 0 && mpDiff > 0)

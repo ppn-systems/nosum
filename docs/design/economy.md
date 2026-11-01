@@ -78,8 +78,8 @@ The large and gold tiers stay above their everyday product: a gold product is 1.
 `AnimalRulesTests.GoldProduce_SellsForHalfMoreThanTheEverydayKind`), and the large tier comes on top at up to 55 % of days. The
 figures use the everyday product, so they are a floor. Sheep were underpaid before and now sit in the band.
 
-Feeding is one ration a night (hay, or fiber from the scythe, which is free). Hay costs 30 coins at the carpenter, so a fed animal
-costs at most about 840 coins a season in hay; fiber makes it free. That is left as it is (see open decisions).
+Feeding is one ration a night (hay, or fiber from the scythe, which is free). Hay costs 10 coins at the carpenter (was 30; docs/adr/ADR-081
+amendment 2026-11-01): a fed animal costs at most 280 coins a season in hay, and every animal's season product covers it. Fiber makes feed free.
 
 ## Fishing: expected coins per cast
 
