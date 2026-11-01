@@ -7,6 +7,12 @@
     padding: 0 calc(var(--u) * 1) calc(var(--u) * 2);
 }
 
+/* The one-line hint under the toolbar: the clicks the page accepts now (body text, the theme's spacing). */
+.inv-hint {
+    margin: 0;
+    padding: 0 calc(var(--u) * 1) calc(var(--u) * 2);
+}
+
 .inv-lock {
     display: inline-flex;
     align-items: center;

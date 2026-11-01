@@ -29,6 +29,8 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     private readonly NodeChannel? _nodes;
     private IReadOnlyList<SlotDisplay> _slots = [];
     private int _movingFrom = -1;
+    private int _movingCount;
+    private int _movingItem;
 
     /// <summary>Initializes the view model and starts following the channel.</summary>
     /// <param name="channel">The inventory mirror.</param>
@@ -116,6 +118,17 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the slot a move started from (the player clicked it and has not chosen the target yet), or -1.</summary>
     public int MovingFrom => _movingFrom;
 
+    /// <summary>Gets how many of the picked stack the next target receives; zero means the whole stack (or nothing is picked).</summary>
+    public int MovingCount => _movingCount;
+
+    /// <summary>
+    /// Gets the one-line hint under the bag: how to pick up, split and quick-move while nothing is picked, and where the picked stack goes
+    /// while something is. The hint names the same clicks the page accepts, so a player does not have to guess them.
+    /// </summary>
+    public string Hint => _movingFrom < 0
+        ? _text["Inventory_Hint"]
+        : string.Format(CultureInfo.CurrentCulture, _text["Inventory_HintPicked"].Value, this.PickedQuantity);
+
     /// <summary>Gets the localized label of the hotbar.</summary>
     public string HotbarLabel => _text["Inventory_Hotbar"];
 
@@ -149,18 +162,94 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
         {
             if (_channel.SlotAt(slot).ItemId != 0)
             {
-                _movingFrom = slot;
-                this.Changed?.Invoke();
+                this.PickUp(slot, whole: true);
             }
 
             return;
         }
 
         int from = _movingFrom;
-        _movingFrom = -1;
-        if (from != slot)
+        int count = _movingCount;
+        int item = _movingItem;
+        this.PutDown();
+        // A part of a stack only fills an empty slot or merges with its own item; the server would refuse the rest, so no request is sent.
+        bool fits = count == 0 || _channel.SlotAt(slot).ItemId is 0 || _channel.SlotAt(slot).ItemId == item;
+        if (from != slot && fits)
         {
-            _channel.Move(from, slot);
+            _channel.Move(from, slot, count);
+        }
+
+        this.Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// A right click on a bag slot: the first one picks up half of its stack (the rest stays), the next click places that part, as
+    /// <see cref="Click"/> does for a whole stack. A right click while something is picked puts it down again.
+    /// </summary>
+    /// <param name="slot">The clicked slot.</param>
+    public void RightClick(int slot)
+    {
+        if (_movingFrom >= 0)
+        {
+            this.PutDown();
+            this.Changed?.Invoke();
+            return;
+        }
+
+        SlotInfo info = _channel.SlotAt(slot);
+        if (info.ItemId == 0)
+        {
+            return;
+        }
+
+        this.PickUp(slot, whole: info.Quantity <= 1);
+    }
+
+    /// <summary>
+    /// A shift click: the stack moves to the other section (the hotbar goes to the bag, the bag to the hotbar) at the first slot that takes it:
+    /// a slot of the same item with room first, then an empty one. When neither exists the bag is full for it and the page says so.
+    /// </summary>
+    /// <param name="slot">The clicked slot.</param>
+    public void QuickMove(int slot)
+    {
+        this.PutDown();
+        if ((uint)slot >= (uint)_channel.Capacity || _channel.SlotAt(slot).ItemId == 0)
+        {
+            this.Changed?.Invoke();
+            return;
+        }
+
+        SlotInfo info = _channel.SlotAt(slot);
+
+        bool fromHotbar = slot < InventoryLimits.HotbarSlots;
+        int first = fromHotbar ? InventoryLimits.HotbarSlots : 0;
+        int end = fromHotbar ? _channel.Capacity : InventoryLimits.HotbarSlots;
+        int target = -1;
+        int maxStack = ItemCatalog.TryGet(info.ItemId, out ItemDefinition? item) ? item.MaxStack : 1;
+        for (int i = first; i < end && target < 0; i++)
+        {
+            SlotInfo other = _channel.SlotAt(i);
+            if (other.ItemId == info.ItemId && other.Quantity < maxStack)
+            {
+                target = i;
+            }
+        }
+
+        for (int i = first; i < end && target < 0; i++)
+        {
+            if (_channel.SlotAt(i).ItemId == 0)
+            {
+                target = i;
+            }
+        }
+
+        if (target < 0)
+        {
+            this.Refused?.Invoke(_text["Inventory_Status_NoSpace"]);
+        }
+        else
+        {
+            _channel.Move(slot, target);
         }
 
         this.Changed?.Invoke();
@@ -183,9 +272,41 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     /// <summary>Asks the server to sort the bag, keeping the hotbar when it is locked. A stack picked up for a move is put down first.</summary>
     public void Sort()
     {
-        _movingFrom = -1;
+        this.PutDown();
         _channel.Sort(this.LockHotbar);
         this.Changed?.Invoke();
+    }
+
+    // Starts a move from a slot: the whole stack, or half of it (a right click on a stack of two or more).
+    private void PickUp(int slot, bool whole)
+    {
+        SlotInfo info = _channel.SlotAt(slot);
+        _movingFrom = slot;
+        _movingItem = info.ItemId;
+        _movingCount = whole ? 0 : (info.Quantity + 1) / 2;
+        this.Changed?.Invoke();
+    }
+
+    // Puts the picked stack down: nothing is sent to the server.
+    private void PutDown()
+    {
+        _movingFrom = -1;
+        _movingCount = 0;
+        _movingItem = 0;
+    }
+
+    // How many items the pick holds: the part taken, or the whole stack.
+    private int PickedQuantity
+    {
+        get
+        {
+            if (_movingFrom < 0)
+            {
+                return 0;
+            }
+
+            return _movingCount > 0 ? _movingCount : _channel.SlotAt(_movingFrom).Quantity;
+        }
     }
 
     /// <inheritdoc/>
