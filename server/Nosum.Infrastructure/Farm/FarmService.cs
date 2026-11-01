@@ -419,10 +419,11 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
-                    // Soil that is wet already (from the can today, a rainy day outdoors or a sprinkler) takes no more water: the can keeps its water and the player their energy.
-                    if (current is { } wet && FarmRules.IsWet(wet, nowMs, _calendar, outdoors, sprinklerSinceMs))
+                    // The one rule for a watering (docs/adr/ADR-089 D3): soil wet already takes no more water, so the can keeps its water and the player their energy.
+                    FarmVerdict check = FarmRules.WaterVerdict(current, nowMs, _calendar, outdoors, sprinklerSinceMs);
+                    if (check != FarmVerdict.Ok)
                     {
-                        return Plan.Refuse(FarmVerdict.AlreadyWet);
+                        return Plan.Refuse(check);
                     }
 
                     FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinklerSinceMs);

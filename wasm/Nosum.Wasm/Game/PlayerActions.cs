@@ -396,7 +396,7 @@ internal sealed partial class PlayerActions
             return held.Tool switch
             {
                 ToolKind.Hoe => FarmRules.Till(true, current, nowMs, rules, out _) == FarmVerdict.Ok,
-                ToolKind.WateringCan => !withered && !(current is { } wet && FarmRules.IsWet(wet, nowMs, rules)) && FarmRules.Water(current, nowMs, rules, out _) == FarmVerdict.Ok,
+                ToolKind.WateringCan => !withered && FarmRules.WaterVerdict(current, nowMs, rules, _outdoors) == FarmVerdict.Ok,
                 _ => false,
             };
         }

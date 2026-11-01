@@ -142,6 +142,35 @@ public static class FarmRules
         return FarmVerdict.Ok;
     }
 
+    /// <summary>
+    /// Decides whether a watering can may water a tile now, the one check the server and the client's reticle both call (docs/adr/ADR-089 D3).
+    /// Soil that is wet already (from the can today, a rainy day outdoors or a sprinkler) is refused as <see cref="FarmVerdict.AlreadyWet"/>, so the
+    /// player keeps their water and energy; a withered crop is refused as <see cref="FarmVerdict.Withered"/>. <see cref="Water"/> applies the watering
+    /// once this returns <see cref="FarmVerdict.Ok"/>.
+    /// </summary>
+    /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it too.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
+    /// <returns>The verdict: <see cref="FarmVerdict.Ok"/> when the can may water the tile.</returns>
+    public static FarmVerdict WaterVerdict(FarmTile? current, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        if (current is not { } tile)
+        {
+            return FarmVerdict.NotTilled;
+        }
+
+        if (IsWet(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
+        {
+            return FarmVerdict.AlreadyWet;
+        }
+
+        return tile.HasCrop && IsWithered(tile, nowMs, calendar, outdoors, sprinklerSinceMs) ? FarmVerdict.Withered : FarmVerdict.Ok;
+    }
+
     /// <summary>Returns the tile offsets watered by a sprinkler item (<c>ItemCatalog.Sprinkler</c> waters 4 orthogonal tiles).</summary>
     /// <param name="itemId">Placed item id.</param>
     /// <returns>The relative tile offsets watered by that sprinkler, or an empty span when the item is not a sprinkler.</returns>
