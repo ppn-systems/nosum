@@ -559,6 +559,13 @@ else
             Crafting.Open();
         }
 
+        // The petting is once a game day, so the pet is read again each time its panel opens: a petting on an earlier day must not keep the
+        // Pet button off (docs/adr/ADR-092 D2, docs/adr/ADR-075 D4). The reply pushes the new state through PetViewModel.
+        if (kind == PanelKind.Pet)
+        {
+            Pet.Load();
+        }
+
         Toolbar.Active = _panel;
         SyncModalState();
     }

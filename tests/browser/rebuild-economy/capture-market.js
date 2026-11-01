@@ -14,6 +14,7 @@ const OUT_DIR = path.resolve(process.env.OUT_DIR || path.join(__dirname, 'out'))
 const LANG_CODE = process.env.LANG_CODE === 'vi' ? 'vi' : 'en';
 const ALL = [
   { w: 1280, h: 720, mobile: false },
+  { w: 1920, h: 1080, mobile: false },
   { w: 390, h: 844, mobile: true },
 ];
 const wanted = (process.env.VIEWPORTS || '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -26,10 +27,16 @@ const COUNTER = { x: 45, y: 71 };
 // The parsnip is the ninth slot of a new farmer's inventory (after the starter tools and seeds).
 const PARSNIP_SLOT = 8;
 // Listings the seller makes: quantity, total price. Unit prices 30, 25 and 60: the sort order differs from the list order.
+// Round 3: eight listings (a full page of eight at 1280x720 and 1920x1080). The seller is granted 12 parsnips, so the stacks sum to 12.
 const LISTINGS = [
-  { qty: 4, price: 120 },
-  { qty: 3, price: 75 },
-  { qty: 5, price: 300 },
+  { qty: 1, price: 30 },
+  { qty: 1, price: 25 },
+  { qty: 1, price: 60 },
+  { qty: 1, price: 20 },
+  { qty: 2, price: 120 },
+  { qty: 2, price: 75 },
+  { qty: 2, price: 300 },
+  { qty: 2, price: 90 },
 ];
 
 // Labels per language (Language.resx). Sort labels exist only once the sort control is built; the script skips the step otherwise.
@@ -131,6 +138,19 @@ async function run() {
     await buyer.getByRole('button', { name: T.browse, exact: true }).first().click();
     await sleep(800);
     await shot(buyer, dir, 'buyer-browse', report);
+    // The no-inner-scroll check (ui-standard section 7, item 7): the menu page body must not scroll on a desktop size.
+    const body = await buyer.evaluate(() => {
+      const b = document.querySelector('.menu-page-body');
+      if (!b) return null;
+      const parts = [...b.children].map((c) => `${c.className || c.tagName}:${Math.round(c.getBoundingClientRect().height)}`);
+      const f = document.querySelector('.market-filter');
+      const filter = f ? { h: Math.round(f.getBoundingClientRect().height), w: Math.round(f.getBoundingClientRect().width), kids: [...f.children].map((c) => `${c.tagName}.${c.className}:${Math.round(c.getBoundingClientRect().width)}x${Math.round(c.getBoundingClientRect().height)}`) } : null;
+      const stack = b.querySelector('.game-stack');
+      const kids = stack ? [...stack.children].map((c) => `${c.tagName}.${(c.className || '').toString().split(' ')[0]}:${Math.round(c.getBoundingClientRect().height)}`) : [];
+      return { clientHeight: b.clientHeight, scrollHeight: b.scrollHeight, listings: document.querySelectorAll('.listing-row').length, kids, filter };
+    });
+    report.measures = report.measures || [];
+    report.measures.push({ viewport: label, ...body });
 
     // Sort (added by the rebuild): skipped where the control does not exist yet.
     const low = buyer.getByRole('button', { name: T.sortLow, exact: true });

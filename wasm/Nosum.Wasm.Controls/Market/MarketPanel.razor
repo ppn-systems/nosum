@@ -11,14 +11,12 @@
 
         @if (Vm.Tab == MarketTab.Browse)
         {
-            <GameRow>
-                <GameInput Value="@_search" ValueChanged="@(v => _search = v)" OnEnter="@(() => Vm.RunSearch(_search))" Placeholder="@Vm.Text("Market_SearchPlaceholder")" Label="@Vm.Text("Market_SearchPlaceholder")" />
+            @* One row: the search, then the order of the page (newest first, or by what one unit costs; stacks of different sizes compare on the unit price). *@
+            <div class="market-filter">
+                <GameInput Class="market-search" Value="@_search" ValueChanged="@(v => _search = v)" OnEnter="@(() => Vm.RunSearch(_search))" Placeholder="@Vm.Text("Market_SearchPlaceholder")" Label="@Vm.Text("Market_SearchPlaceholder")" />
                 <GameButton Text="@Vm.Text("Market_Search")" OnClick="@(() => Vm.RunSearch(_search))" />
-            </GameRow>
-            @* The order of the page: newest first, or by what one unit costs (stacks of different sizes compare on the unit price). *@
-            <GameRow>
                 <TabBar Active="(int)Vm.Sort" OnSelect="@(id => Vm.ChooseSort(id))" Tabs="Vm.SortTabs" />
-            </GameRow>
+            </div>
             @if (Vm.Browsed.Count == 0)
             {
                 <p class="market-empty">@Vm.Text("Market_Empty")</p>
@@ -29,11 +27,9 @@
                 Guid id = listing.Id;
                 int itemId = listing.Item.ItemId;
                 <GameRow Class="listing-row">
-                    <ItemSlotButton Slot="listing.Item" />
-                    <span class="listing-main">
-                        <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
-                        <span class="listing-seller">@listing.SellerText</span>
-                    </span>
+                    <ItemSlotButton Slot="listing.Item" Compact="true" />
+                    @* One line: "Name x3 · Seller: name". A long line ends in an ellipsis (ADR-101). *@
+                    <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span> <span class="listing-seller">@listing.SellerText</span></span>
                     <span class="listing-price">@listing.PriceText</span>
                     <GameButton Variant="secondary" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />
                     @if (listing.IsMine)
@@ -112,8 +108,9 @@
             {
                 Guid id = listing.Id;
                 <GameRow Class="listing-row">
-                    <ItemSlotButton Slot="listing.Item" />
-                    <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span></span>
+                    <ItemSlotButton Slot="listing.Item" Compact="true" />
+                    @* Your own listing: how long it stays up (48 hours), then the price. *@
+                    <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span> <span class="listing-seller">@listing.ExpiryText</span></span>
                     <span class="listing-price">@listing.PriceText</span>
                     <GameButton Variant="danger" Text="@Vm.Text("Market_Cancel")" OnClick="@(() => Vm.Cancel(id))" />
                 </GameRow>
