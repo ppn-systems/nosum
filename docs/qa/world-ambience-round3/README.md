@@ -40,7 +40,7 @@ buffers, and any page errors: none).
 
 ## Tests
 
-- `tests/browser/label-fit/label-fit.test.mjs` (`node --test tests/browser/label-fit/`): 17 cases on the pure rules in
+- `tests/browser/label-fit/label-fit.test.mjs` (`node --test tests/browser/label-fit/label-fit.test.mjs`): 17 cases on the pure rules in
   `engine/Nosum.Rendering.Web/wwwroot/label-fit.js`: free spot, beside/below/above/band fallbacks, the touch stick, screen edges, the
   gap, stacking above and below, the step cap.
 - `dotnet test tests/Nosum.UnitTests`: unchanged, passing (see the PR).

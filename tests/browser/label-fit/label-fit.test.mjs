@@ -2,7 +2,7 @@
 //
 // Unit tests of the world-label placement rules (engine/Nosum.Rendering.Web/wwwroot/label-fit.js, docs/adr/ADR-095). The module is pure, so
 // it runs in plain Node with the built-in test runner (no package to install):
-//   node --test tests/browser/label-fit/
+//   node --test tests/browser/label-fit/label-fit.test.mjs
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
