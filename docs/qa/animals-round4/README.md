@@ -97,3 +97,8 @@ The duck is now the slowest animal (4.9 seasons). It is inside the limit; whethe
   chicken's price, and no chicken is bought in these captures.
 - **Vietnamese pet and tab labels** are checked in the frames but not graded line by line; the 1920 x 1080 and 390 x 844 frames were checked by
   their buttons list, not by eye, except for the English 1920 x 1080 barn and the 390 x 844 English barn.
+
+## Build the frames came from
+
+The frames were taken before this branch merged `origin/master` at `fc98de0` and before the golden egg's price moved (30). Neither touched the
+carpenter's files or the animal rows (`git diff 6a2c64e origin/master` on those paths is empty), so the frames show the code that ships.
