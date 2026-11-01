@@ -227,7 +227,8 @@ internal static class ClientWiring
             sp.GetRequiredService<IRememberedSessionStore>(),
             sp.GetRequiredService<IStringLocalizer<Language>>(),
             TimeProvider.System));
-        services.AddTransient<AccountFormViewModel>();
+        // One instance for the whole client: the start screen signs the guest in, and the game menu (Profile, Settings) must see that session.
+        services.AddSingleton<AccountFormViewModel>();
         services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());

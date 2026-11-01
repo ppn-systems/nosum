@@ -24,6 +24,9 @@
     /// <summary>The tool in the held hotbar slot; <see cref="Nosum.Gameplay.Items.ToolKind.None"/> when none. Its uses-left estimate joins the tooltip.</summary>
     [Parameter] public Nosum.Gameplay.Items.ToolKind Tool { get; set; }
 
+    /// <summary>The tier of the tool in hand; an upgraded axe or pickaxe costs less energy per use (docs/adr/ADR-089).</summary>
+    [Parameter] public Nosum.Gameplay.Items.ToolTier Tier { get; set; }
+
     // The energy label, then the estimate for the held tool when there is one: "Energy 268 / 270 · About 89 tool uses left".
-    private string TipText => Vm.ToolUsesTip(Tool) is { Length: > 0 } uses ? Vm.EnergyTip + " · " + uses : Vm.EnergyTip;
+    private string TipText => Vm.ToolUsesTip(Tool, Tier) is { Length: > 0 } uses ? Vm.EnergyTip + " · " + uses : Vm.EnergyTip;
 }

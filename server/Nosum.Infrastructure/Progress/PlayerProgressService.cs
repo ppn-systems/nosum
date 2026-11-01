@@ -91,15 +91,15 @@ public sealed class PlayerProgressService : IPlayerProgress
     }
 
     /// <inheritdoc/>
-    public Task<IProgressCharge> ChargeAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, SkillKind skill, int xp, CancellationToken cancellationToken = default)
-        => this.ChargeCoreAsync(unit, playerId, tool, null, skill, xp, cancellationToken);
+    public Task<IProgressCharge> ChargeAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, SkillKind skill, int xp, ToolTier tier = ToolTier.Basic, CancellationToken cancellationToken = default)
+        => this.ChargeCoreAsync(unit, playerId, tool, tier, null, skill, xp, cancellationToken);
 
     /// <inheritdoc/>
     public Task<IProgressCharge> ChargeEnergyAsync(IUnitOfWork unit, Guid playerId, int energy, SkillKind skill, int xp, CancellationToken cancellationToken = default)
-        => this.ChargeCoreAsync(unit, playerId, ToolKind.None, Math.Max(0, energy), skill, xp, cancellationToken);
+        => this.ChargeCoreAsync(unit, playerId, ToolKind.None, ToolTier.Basic, Math.Max(0, energy), skill, xp, cancellationToken);
 
     // One charge for both: a tool use costs what the tool costs at the skill's level, any other action a fixed amount (fixedCost).
-    private async Task<IProgressCharge> ChargeCoreAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, int? fixedCost, SkillKind skill, int xp, CancellationToken cancellationToken)
+    private async Task<IProgressCharge> ChargeCoreAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, ToolTier tier, int? fixedCost, SkillKind skill, int xp, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(unit);
 
@@ -108,7 +108,7 @@ public sealed class PlayerProgressService : IPlayerProgress
         {
             PlayerStateCache.Snapshot row = await _cache.GetAsync(_unitOfWork, playerId, cancellationToken).ConfigureAwait(false);
             (int energy, long day) = EnergyRules.Refill(row.Energy, row.EnergyRefilledDay, _days.Today);
-            int cost = fixedCost ?? EnergyRules.Cost(tool, SkillRules.LevelOf(XpOf(row, SkillRules.SkillOf(tool))));
+            int cost = fixedCost ?? EnergyRules.Cost(tool, SkillRules.LevelOf(XpOf(row, SkillRules.SkillOf(tool))), tier);
             if (!EnergyRules.TrySpend(energy, cost, out int left))
             {
                 return new Charge(this, gate, playerId, allowed: false, 0, 0, 0, 0, 0, SkillKind.None, 0, 0, null);
@@ -129,12 +129,12 @@ public sealed class PlayerProgressService : IPlayerProgress
 
     /// <inheritdoc/>
     [SuppressMessage("Design", "CA1031", Justification = "A failed save is reported as a refused use; the caller asks again.")]
-    public async Task<ChargeStatus> TryChargeAsync(Guid playerId, ToolKind tool, SkillKind skill, int xp, CancellationToken cancellationToken = default)
+    public async Task<ChargeStatus> TryChargeAsync(Guid playerId, ToolKind tool, SkillKind skill, int xp, ToolTier tier = ToolTier.Basic, CancellationToken cancellationToken = default)
     {
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
         {
-            using IProgressCharge charge = await this.ChargeAsync(unit, playerId, tool, skill, xp, cancellationToken).ConfigureAwait(false);
+            using IProgressCharge charge = await this.ChargeAsync(unit, playerId, tool, skill, xp, tier, cancellationToken).ConfigureAwait(false);
             if (!charge.Allowed)
             {
                 return ChargeStatus.NoEnergy;

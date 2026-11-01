@@ -200,6 +200,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         Guid playerId = player.AccountId;
         InventorySlotView held = await _inventory.PeekSlotAsync(playerId, hotbarSlot, cancellationToken).ConfigureAwait(false);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? heldItem);
+        ToolTier heldTier = heldItem?.Tier ?? ToolTier.Basic;
 
         // One action per interval, whatever is held: a tool swing, a seed, a harvest or bare hands (docs/adr/ADR-021 D8, docs/adr/ADR-074 D2).
         if (!tail && !_tools.TryBeginSwing(playerId))
@@ -313,7 +314,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
                 drop = new GroundDrop(player.Instance, (int)dropX, (int)dropY, produce.ItemId, produce.Quantity, playerId);
             }
 
-            (FarmStatus status, pending) = await this.CommitAsync(playerId, member, player.Instance, tileX, tileY, plan, drop, cancellationToken).ConfigureAwait(false);
+            (FarmStatus status, pending) = await this.CommitAsync(playerId, member, player.Instance, tileX, tileY, plan, drop, heldTier, cancellationToken).ConfigureAwait(false);
             if (status != FarmStatus.Ok)
             {
                 return Refused(status);
@@ -486,7 +487,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
 
     // Writes the tile and the items in one transaction; a harvest's ground item rows join the tile's transaction, so a crash
     // cannot reset the plot without leaving the produce.
-    private async Task<(FarmStatus Status, PendingGroundDrop? Pending)> CommitAsync(Guid playerId, CoopMembershipInfo? member, MapInstance instance, int x, int y, Plan plan, GroundDrop? drop, CancellationToken cancellationToken)
+    private async Task<(FarmStatus Status, PendingGroundDrop? Pending)> CommitAsync(Guid playerId, CoopMembershipInfo? member, MapInstance instance, int x, int y, Plan plan, GroundDrop? drop, ToolTier heldTier, CancellationToken cancellationToken)
     {
         // Energy and experience are charged in the same transaction as the effect; a refused charge changes nothing (docs/adr/ADR-023 D1).
         (ToolKind Tool, SkillKind Skill, int Xp)? spend = ChargeOf(plan.Action);
@@ -507,7 +508,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
                     }
 
                     this.Audit(clearing, member, plan);
-                    charge = await this.ChargeAsync(clearing, playerId, spend, cancellationToken).ConfigureAwait(false);
+                    charge = await this.ChargeAsync(clearing, playerId, spend, heldTier, cancellationToken).ConfigureAwait(false);
                     if (charge is { Allowed: false })
                     {
                         return (FarmStatus.NoEnergy, null);
@@ -533,7 +534,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
                     {
                         await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, ct).ConfigureAwait(false);
                         this.Audit(unit, member, plan);
-                        charge = await this.ChargeAsync(unit, playerId, spend, ct).ConfigureAwait(false);
+                        charge = await this.ChargeAsync(unit, playerId, spend, heldTier, ct).ConfigureAwait(false);
                         noEnergy = charge is { Allowed: false };
                         return !noEnergy;
                     },
@@ -557,7 +558,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
                 await this.UpsertAsync(unit, playerId, instance, x, y, plan.Next, cancellationToken).ConfigureAwait(false);
                 this.Audit(unit, member, plan);
                 PendingGroundDrop? pending = drop is { } staged ? _groundItems.Stage(unit, staged) : null;
-                charge = await this.ChargeAsync(unit, playerId, spend, cancellationToken).ConfigureAwait(false);
+                charge = await this.ChargeAsync(unit, playerId, spend, heldTier, cancellationToken).ConfigureAwait(false);
                 if (charge is { Allowed: false })
                 {
                     return (FarmStatus.NoEnergy, null);
@@ -589,8 +590,8 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         _ => null,
     };
 
-    private async Task<IProgressCharge?> ChargeAsync(IUnitOfWork unit, Guid playerId, (ToolKind Tool, SkillKind Skill, int Xp)? spend, CancellationToken cancellationToken)
-        => spend is { } s ? await _progress.ChargeAsync(unit, playerId, s.Tool, s.Skill, s.Xp, cancellationToken).ConfigureAwait(false) : null;
+    private async Task<IProgressCharge?> ChargeAsync(IUnitOfWork unit, Guid playerId, (ToolKind Tool, SkillKind Skill, int Xp)? spend, ToolTier tier, CancellationToken cancellationToken)
+        => spend is { } s ? await _progress.ChargeAsync(unit, playerId, s.Tool, s.Skill, s.Xp, tier, cancellationToken).ConfigureAwait(false) : null;
 
     private static ValueTask PublishAsync(IProgressCharge? charge, CancellationToken cancellationToken)
         => charge is null ? ValueTask.CompletedTask : charge.PublishAsync(cancellationToken);

@@ -176,6 +176,7 @@
   <data name="Wardrobe_Worn" xml:space="preserve"><value>Đang mặc</value></data>
   <data name="Wardrobe_Bag" xml:space="preserve"><value>Trong túi</value></data>
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>Trong túi không có đồ mặc nào.</value></data>
+  <data name="Wardrobe_InstantNote" xml:space="preserve"><value>Đổi ngay, mọi người trên bản đồ đều thấy. Quần áo thay ở Túi đồ.</value></data>
   <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Cởi ra</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Màu da không hợp lệ.</value></data>
@@ -338,11 +339,14 @@
   <data name="Journal_Unknown" xml:space="preserve"><value>???</value></data>
   <data name="Journal_Undiscovered" xml:space="preserve"><value>Chưa nhận được món này</value></data>
   <data name="Journal_Tip" xml:space="preserve"><value>{0}&#10;Đã nhận: {1}&#10;Lần đầu: {2}</value></data>
+  <data name="Journal_Filter_All" xml:space="preserve"><value>Tất cả</value></data>
+  <data name="Journal_Filter_Found" xml:space="preserve"><value>Đã có</value></data>
+  <data name="Journal_Filter_Missing" xml:space="preserve"><value>Chưa có</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Biệt danh hiện tại: {0}</value></data>
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>Bạn chỉ đổi được biệt danh mỗi 24 giờ một lần.</value></data>
-  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách giữ tên được tạo sẵn. Hãy liên kết tài khoản Google hoặc Microsoft để chọn biệt danh của riêng bạn.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách dùng tên tạo sẵn. Sau khi hoàn thành nhiệm vụ đầu tiên, bạn có thể liên kết tài khoản Google hoặc Microsoft: tiến độ được giữ nguyên và bạn chọn biệt danh riêng.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Đã đổi biệt danh thành {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>Có thể đổi lại lúc {0}.</value></data>
   <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Cửa hàng hạt giống</value></data>
@@ -615,6 +619,8 @@
   <data name="Mail_Empty" xml:space="preserve"><value>Hộp thư trống.</value></data>
   <data name="Mail_Unread" xml:space="preserve"><value>Chưa đọc</value></data>
   <data name="Mail_Collect" xml:space="preserve"><value>Nhận quà</value></data>
+  <data name="Mail_CollectAll" xml:space="preserve"><value>Nhận tất cả ({0})</value></data>
+  <data name="Mail_HasGift" xml:space="preserve"><value>Có quà</value></data>
   <data name="Mail_Collected" xml:space="preserve"><value>Đã nhận quà.</value></data>
   <data name="Mail_CollectedTag" xml:space="preserve"><value>Đã nhận</value></data>
   <data name="Mail_Delete" xml:space="preserve"><value>Xóa thư</value></data>
@@ -697,6 +703,9 @@
   <data name="Skill_Level" xml:space="preserve"><value>Cấp {0}</value></data>
   <data name="Skill_MaxLevel" xml:space="preserve"><value>Tối đa</value></data>
   <data name="Skill_LevelUp" xml:space="preserve"><value>{0} lên cấp {1}!</value></data>
+  <data name="Skill_Perk" xml:space="preserve"><value>Công cụ {0}: tốn ít hơn {1} năng lượng mỗi lần dùng</value></data>
+  <data name="Tooltip_Area" xml:space="preserve"><value>Vùng tác động: {0} ô liền nhau</value></data>
+  <data name="Tooltip_ToolEnergy" xml:space="preserve"><value>Năng lượng mỗi lần dùng: {0} (trước thưởng kỹ năng)</value></data>
   <data name="Toolbar_Skills" xml:space="preserve"><value>Kỹ năng</value></data>
   <data name="Place_Status_Tilled" xml:space="preserve"><value>Không đặt được lên đất đã cuốc.</value></data>
   <data name="Place_Status_NodeInTheWay" xml:space="preserve"><value>Có cây, đá hoặc cỏ dại chắn chỗ này.</value></data>
@@ -1143,6 +1152,7 @@
   <data name="Shop_Confirm_No" xml:space="preserve"><value>Hủy</value></data>
   <data name="Settings_TouchControls" xml:space="preserve"><value>Nút cảm ứng trên màn hình</value></data>
   <data name="Settings_Haptics" xml:space="preserve"><value>Rung khi mua và bán</value></data>
+  <data name="Settings_Feedback" xml:space="preserve"><value>Phản hồi</value></data>
   <data name="Account_Provider_Guidance" xml:space="preserve"><value>Chưa bật Google và Microsoft trên máy chủ này. Hãy chơi với tư cách khách.</value></data>
   <data name="Game_Start_Step_Connect" xml:space="preserve"><value>Đang kết nối máy chủ…</value></data>
   <data name="Game_Start_Step_Assets" xml:space="preserve"><value>Đang tải hình ảnh và âm thanh…</value></data>

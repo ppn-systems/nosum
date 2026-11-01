@@ -289,7 +289,9 @@ internal sealed partial class PlayerActions
         int y = (int)(feetY / tileSize);
         if (AnimalRules.RationsOf(held.ItemId) > 0 && (interior.IsTrough(this.TargetX, this.TargetY) || interior.IsTrough(x, y - 1)))
         {
-            _buildings.Feed(selected, interior.Capacity);
+            // One press fills the bench with as much of the held stack as fits (the server takes the smaller of the stack and the room, docs/adr/ADR-028 D3).
+            // A press used to put in only the animal capacity (four), not what the bench holds (24).
+            _buildings.Feed(selected, AnimalRules.MaxFeedAtOnce);
             return;
         }
 

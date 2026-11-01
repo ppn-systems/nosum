@@ -22,6 +22,11 @@
     font-size: var(--nosum-fs-body);
 }
 
+.level-up-perk {
+    font-size: var(--nosum-fs-body);
+    color: var(--nosum-gold-light);
+}
+
 @keyframes level-up-rise {
     0% {
         opacity: 0;

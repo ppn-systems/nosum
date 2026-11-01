@@ -167,12 +167,12 @@
     [Parameter] public EventCallback<PanelKind> OnOpenPanel { get; set; }
 
     /// <summary>The width of a panel: L for the wide pages (the inventory with its side column, the shops, the market, the wardrobe and the
-    /// world map), S for the small ones (a chest, a furnace, the pet, the visitors, the game menu), M for the rest
+    /// world map, the settings with its key list), S for the small ones (a chest, a furnace, the pet, the visitors, the game menu), M for the rest
     /// (docs/design/ui-standard.md section 3).</summary>
     private static PanelSize SizeOf(PanelKind panel) => panel switch
     {
         PanelKind.Inventory or PanelKind.Shop or PanelKind.Market or PanelKind.Wardrobe or PanelKind.WorldMap or PanelKind.Journal
-            or PanelKind.Crafting or PanelKind.Skills => PanelSize.L,
+            or PanelKind.Crafting or PanelKind.Skills or PanelKind.Settings => PanelSize.L,
         PanelKind.Chest => PanelSize.XL,
         PanelKind.Furnace or PanelKind.Pet or PanelKind.Visitors or PanelKind.Menu => PanelSize.S,
         _ => PanelSize.M,
