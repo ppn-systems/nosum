@@ -720,6 +720,8 @@
   <data name="Skill_LevelUp" xml:space="preserve"><value>{0} reached level {1}!</value></data>
   <data name="Skill_Perk" xml:space="preserve"><value>{0} tools: {1} less energy per use</value></data>
   <data name="Tooltip_Area" xml:space="preserve"><value>Area: {0} tiles in a line</value></data>
+  <data name="Tooltip_Area_One" xml:space="preserve"><value>Area: 1 tile in a line</value></data>
+  <data name="Gather_Label_Xp" xml:space="preserve"><value>+{0} XP</value></data>
   <data name="Tooltip_ToolEnergy" xml:space="preserve"><value>Energy per use: {0} before the skill bonus</value></data>
   <data name="Toolbar_Skills" xml:space="preserve"><value>Skills</value></data>
   <data name="Place_Status_Tilled" xml:space="preserve"><value>You cannot place that on tilled soil.</value></data>

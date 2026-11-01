@@ -16,6 +16,7 @@ using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels;
@@ -60,7 +61,8 @@ internal sealed partial class PlayerActions
     /// <param name="audio">Plays the swing of the tool in hand (docs/adr/ADR-039); <see langword="null"/> for no sound.</param>
     /// <param name="combat">Sends monster attacks and potion drinking; <see langword="null"/> when combat is not wired.</param>
     /// <param name="calendar">The server calendar, so withered crops do not block eating or drinking potions.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null, CalendarChannel? calendar = null)
+    /// <param name="nodes">The map's resource nodes, so a gathering swing knows what it gave experience for (docs/adr/ADR-089 D5); <see langword="null"/> for none.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null, CalendarChannel? calendar = null, NodeChannel? nodes = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -78,6 +80,7 @@ internal sealed partial class PlayerActions
             _combat.SkillCompleted += this.OnSkillCompleted;
         }
         _calendar = calendar;
+        _nodes = nodes;
         _farm.UseCompleted += this.OnFarmUseCompleted;
         _market.Completed += this.OnMarketCompleted;
     }
