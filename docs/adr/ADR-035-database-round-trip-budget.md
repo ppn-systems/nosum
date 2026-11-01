@@ -337,3 +337,36 @@ row, and a run that loses the race will show one extra read again.
 
 **Why this is not a loosened baseline.** No limit was raised. The only limit that changed is `TradeConfirm / second side confirms: the swap`, which is lowered
 from 2 to 1 read because the swap is now measured for the first time. `PickUpObject / pick up a fence` measures 1 read against a limit of 2 and is not changed here.
+
+## Amendment (2026-11-01): the session end finishes before the next sign-in
+
+The follow-up named above is done. Two places let a session end run before the save of the same player was finished; the copies were never the problem.
+
+- **The second leave of a connection returned at once.** A socket's close event and the session's release both leave the same connection. The first claims the
+  leave and saves the place in its `PlayerLeft` handlers. The second found the claim taken and returned, so `SessionRegistry` ran its `SessionEnded` handlers
+  (which let the copies go) while the save was in flight. The save then found no copy and read the row again. This is the extra `SELECT` on `Disconnect`
+  (`reads 1/0, writes 1/1`): the failing `DbBudget` runs showed it, and the connection-level trace of one of them showed the release and the miss in the same
+  few milliseconds.
+- **`SessionRegistry` did not wait for a running end.** `Release` and `EndAsync` took a player off the active list under the gate, but registered the running end
+  after the gate was released. A sign-in in that window saw no end to wait for, and a second sign-in found the end already taken off the pending list by the
+  first one, so it proceeded at once. A late `PlayerStateCache.Forget` then dropped the copy the new session had just read.
+
+Decisions:
+
+- **D1 — A second leave waits for the claimed one.** `MapPresence.LeaveAsync` still runs the handlers once. A second caller for the same connection waits until the
+  claimed leave has saved and removed the record, then returns. This amends ADR-087 D1 (see its amendment of the same date).
+- **D2 — The end is registered in the same step that takes the player off the active list.** `Release` and `EndAsync` start the end (the leave, then the
+  `SessionEnded` handlers) while `_gate` is held, and record it as running for the player in that step.
+- **D3 — A sign-in waits for every end of that player that is still running, and does not take the pending entry away.** `ActivateAsync` re-checks under the
+  gate until nothing is running, then signs in. Two sign-ins during one end both wait for it; the second cannot slip past.
+- **D4 — A running entry is removed under the gate after its end has finished.** A later end is never overwritten, and a completed entry is treated as gone.
+
+Tests in `SessionEndOrderTests`, each written to fail first:
+
+- `SignIn_WhileAnEndIsStillRunning_WaitsForTheEndAndKeepsItsCopy`: a slow `SessionEnded` handler runs ahead of the copy's eviction; a second sign-in during the
+  end must not complete, and the copy the new session reads must survive. It failed before D2 and D3 (`thirdSignIn.IsCompleted` was true) and passes after.
+- `SessionEnd_WhileTheLeaveOfTheSameSocketIsSaving_WaitsForTheSave`: the real `MapPresence` holds the first leave inside its save; the release of the same socket
+  must not run the session end until the save has finished, and the row must hold the saved place. It failed before D1 and passes after.
+
+No limit changed. The `Disconnect` row stays at 0 reads. Measured: `SessionEndOrderTests` 10 of 10 runs green; the full `DbBudget` class 5 of 5 runs green after
+the change. Before the change the class failed in 4 of about 28 runs; the three whose output was kept all failed on that row (the fourth's output was not kept).
