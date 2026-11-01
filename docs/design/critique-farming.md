@@ -86,11 +86,13 @@ Clients built for 21 misread the reply and the status, so they ship with the ser
 
 ## Backlog, ranked by how much play it would change
 
-1. **Harvest along a line with the scythe.** A rule change (admit the scythe to `ValidateArea` with its own tier curve), needs an ADR.
-2. **Name the reason on an unripe crop** ("not ready, 2 days left"). The days left come from `FarmRules`, so the client does not compute them alone.
-3. **Make the action key's harvest say so** (a text line when E harvests a ripe crop with another item in hand). Client only.
-4. **Growth stage label** on hover of a crop. Client only; `CropDefinition.StageAt` already gives the stage.
-5. **Reticle for the whole line** when a wide tool is held. Client only; uses `ToolRules.LineTile`.
-6. **Move the wet-soil check into `FarmRules`** so the client and the server call one function.
-7. **Settle phones.** Either the device policy admits 390×844 and ui-standard section 6 is built, or section 6 is dropped. An owner decision.
-8. **Retire or update** the browser scripts that call `window.nosumQa`.
+Round two (branch `claude/farming-round2`, ADR-089, protocol 30):
+
+1. **Done.** Harvest along a line with the scythe: `ToolRules.ScytheAreaLength` (three at basic) and a trailing harvest for the scythe only (ADR-089 D1).
+2. **Done.** An unripe crop names the days left: `UseItemResult.DaysLeft`, the words in `Farm_Status_NotMatureDays` / `…OneDay` (ADR-089 D2).
+3. **Done.** The action key's harvest with another item in hand says so on the message line (`Farm_ActionKeyHarvested`).
+4. **Done.** Hovering a crop names its growth stage on the message line (`Farm_Hover_Stage`, `FarmRules.StageAt`). Sprinklers beside the tile are not counted in the hover, so a sprinkler-watered crop can show one stage behind.
+5. **Done.** The reticle draws the whole line of a wide hoe, can or scythe, engine-drawn (`FarmDecorator`).
+6. **Done.** The watering check is `FarmRules.WaterVerdict`, called by the server and the reticle (ADR-089 D3).
+7. **Open, an owner decision.** Phones: the device policy or ui-standard section 6 (see the finding above).
+8. **Browser scripts**: see the note under "The QA hook".
