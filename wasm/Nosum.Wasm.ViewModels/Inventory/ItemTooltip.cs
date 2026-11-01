@@ -54,7 +54,8 @@ public static class ItemTooltip
 
         if (item.Tool is ToolKind.Hoe or ToolKind.WateringCan)
         {
-            lines.Add(Line(text, "Tooltip_Area", ToolRules.AreaLength(item.Tier)));
+            int area = ToolRules.AreaLength(item.Tier);
+            lines.Add(Line(text, area == 1 ? "Tooltip_Area_One" : "Tooltip_Area", area));
         }
 
         if (EnergyRules.BaseCost(item.Tool) > 0)

@@ -72,4 +72,25 @@ public sealed class SkillRulesTests
 
         SkillRules.BreakXp(NodeKind.Tree).Should().BeGreaterThan(SkillRules.HitXp);
     }
+
+    [Fact]
+    public void GatherXp_HitThatLeavesNodeStanding_GivesHitXp()
+    {
+        SkillRules.GatherXp(NodeKind.Tree, broke: false).Should().Be(SkillRules.HitXp, "a damaging hit gives the hit experience, whatever the node");
+        SkillRules.GatherXp(NodeKind.CopperOre, broke: false).Should().Be(SkillRules.HitXp);
+    }
+
+    [Fact]
+    public void GatherXp_HitThatBreaksNode_GivesBreakXpOfThatKind()
+    {
+        SkillRules.GatherXp(NodeKind.Tree, broke: true).Should().Be(SkillRules.BreakXp(NodeKind.Tree), "the breaking hit gives the break experience");
+        SkillRules.GatherXp(NodeKind.IronOre, broke: true).Should().Be(15);
+        SkillRules.GatherXp(NodeKind.Stone, broke: true).Should().Be(4);
+    }
+
+    [Fact]
+    public void GatherXp_KindWithoutExperience_GivesNothingToFloat()
+    {
+        SkillRules.GatherXp(NodeKind.Ladder, broke: true).Should().Be(0, "a ladder is not broken and gives no experience");
+    }
 }
