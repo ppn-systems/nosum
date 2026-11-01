@@ -4,6 +4,7 @@
 #pragma warning disable CA2007
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -11,14 +12,19 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using Nalix.Framework.Injection;
+using Microsoft.EntityFrameworkCore;
 using Nalix.Hosting;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Inventory;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
 using Nosum.Core;
 using Nosum.Contracts.Pet;
+using Nosum.Domain.World;
+using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Pets;
 using Nosum.Gameplay.Shops;
@@ -119,6 +125,61 @@ public sealed class PetWireTests : IClassFixture<PostgresFixture>
         _ = await a.JoinAsync(host.Timeout);
 
         (await a.PetPetAsync(host.Timeout)).Status.Should().Be(PetStatus.NoPet);
+    }
+
+    [Fact]
+    public async Task PetPet_WithAFullBag_LeavesTheForageOnTheGrassBesideThePlayer()
+    {
+        FakeTimeProvider clock = new(new DateTimeOffset(2026, 11, 2, 1, 0, 0, TimeSpan.Zero));
+        await using TestHost host = await TestHost.StartAsync(_database, clock);
+        Account alice = await RegisterAsync();
+        await PutAtCarpenterAsync(alice, 2_000);
+        await using SocialLifeClient a = await host.ConnectAsync(alice);
+        _ = await a.JoinAsync(host.Timeout);
+        _ = await a.AdoptPetAsync((byte)PetKind.Cat, "Mochi", host.Timeout);
+        await FillBagAsync(alice.Id);
+
+        // The forage of a day is a pure function of the farmer and the day (PetRules.ForageOf), so the first day that brings one is found,
+        // and the clock is moved to it: one petting, not a wait for the roll.
+        int today = GameCalendar.Default.DayNumberAt(clock.GetUtcNow().ToUnixTimeMilliseconds());
+        int day = today + 1;
+        while (PetRules.ForageOf(alice.Id, day) == 0)
+        {
+            day++;
+        }
+
+        int item = PetRules.ForageOf(alice.Id, day);
+        clock.Advance(TimeSpan.FromMilliseconds(GameCalendar.Default.DayStartMs(day) - clock.GetUtcNow().ToUnixTimeMilliseconds()));
+
+        PetCopy pet = await a.PetPetAsync(host.Timeout);
+
+        pet.Status.Should().Be(PetStatus.Ok, "the petting counts even when the bag has no room for the forage");
+        GroundItem drop = (await ForageOnTheGroundAsync(alice.Id)).Should().ContainSingle("a full bag leaves the forage on the grass").Subject;
+        drop.ItemId.Should().Be(item);
+        drop.Quantity.Should().Be(1);
+        drop.MapId.Should().Be(GameMaps.Town, "the farmer stands at the carpenter's counter in Town");
+    }
+
+    // Fills the bag with hoes (one slot each) until the inventory refuses one more.
+    private static async Task FillBagAsync(Guid playerId)
+    {
+        IInventoryService inventory = InstanceManager.Instance.GetExistingInstance<IInventoryService>()!;
+        for (int i = 0; i < 200; i++)
+        {
+            InventoryChange change = await inventory.AddAsync(playerId, ItemCatalog.Hoe, 1, "test.fill", CancellationToken.None);
+            if (!change.IsOk)
+            {
+                return;
+            }
+        }
+
+        throw new InvalidOperationException("the bag never filled up");
+    }
+
+    private async Task<List<GroundItem>> ForageOnTheGroundAsync(Guid playerId)
+    {
+        await using NosumDbContext db = new(_database.Options);
+        return await db.GroundItems.Where(g => g.CausedBy == playerId && PetRules.ForageItems.Contains(g.ItemId)).ToListAsync();
     }
 
     private static async Task<Account> RegisterAsync()

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.GroundItems;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Pets;
@@ -44,6 +45,7 @@ public sealed class PetService : IPetService
     private readonly IMapCatalog _maps;
     private readonly ITransferService _transfers;
     private readonly IInventoryService? _inventory;
+    private readonly IGroundItems? _groundItems;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -55,6 +57,7 @@ public sealed class PetService : IPetService
     /// <param name="transfers">Moves the coins and the pet row in one transaction.</param>
     /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
     /// <param name="inventory">Adds the forage item the first petting of a day may bring back (docs/adr/ADR-092 D2); <see langword="null"/> brings none.</param>
+    /// <param name="groundItems">Drops the forage on the grass when the bag is full (docs/adr/ADR-092 D2); <see langword="null"/> drops nothing.</param>
     public PetService(
         IUnitOfWorkFactory unitOfWork,
         IPlayerProgress progress,
@@ -64,7 +67,8 @@ public sealed class PetService : IPetService
         IMapCatalog maps,
         ITransferService transfers,
         IQuestService? quests = null,
-        IInventoryService? inventory = null)
+        IInventoryService? inventory = null,
+        IGroundItems? groundItems = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(progress);
@@ -83,6 +87,7 @@ public sealed class PetService : IPetService
         _transfers = transfers;
         _quests = quests;
         _inventory = inventory;
+        _groundItems = groundItems;
     }
 
     /// <inheritdoc/>
@@ -249,12 +254,38 @@ public sealed class PetService : IPetService
         await _progress.RestoreEnergyAsync(playerId, PetRules.PettingEnergy, cancellationToken).ConfigureAwait(false);
         // The first petting of the day may bring back a forage item (docs/adr/ADR-092 D2). A full bag leaves it on the grass: the petting still counts.
         int forage = PetRules.ForageOf(playerId, today);
-        if (_inventory is not null && forage != 0)
+        if (forage != 0)
         {
-            _ = await _inventory.AddAsync(playerId, forage, 1, "pet_forage", cancellationToken).ConfigureAwait(false);
+            await this.GiveForageAsync(playerId, forage, cancellationToken).ConfigureAwait(false);
         }
 
         return view;
+    }
+
+    // The forage goes into the bag; when the bag refuses it (full), it drops on the grass at the farmer's feet, where the farmer can pick it up
+    // once the bag has room (docs/adr/ADR-092 D2). Nothing is lost, and nothing is dropped when the farmer is on no map.
+    private async Task GiveForageAsync(Guid playerId, int itemId, CancellationToken cancellationToken)
+    {
+        if (_inventory is null)
+        {
+            return;
+        }
+
+        InventoryChange change = await _inventory.AddAsync(playerId, itemId, 1, "pet_forage", cancellationToken).ConfigureAwait(false);
+        if (change.IsOk || _groundItems is null || !_presence.TryGetPlayer(playerId, out PlayerPresence? player))
+        {
+            return;
+        }
+
+        double feetX;
+        double feetY;
+        lock (player.Gate)
+        {
+            feetX = player.Motion.X;
+            feetY = player.Motion.Y;
+        }
+
+        _ = await _groundItems.DropAsync(new GroundDrop(player.Instance, (int)feetX, (int)feetY, itemId, 1, playerId), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
