@@ -119,7 +119,8 @@ internal sealed partial class MonstersDecorator : IMapDecorator
 
     /// <summary>
     /// Draws the strike cue: a dark-outlined amber "!" of three solid rectangles, above the monster's head (docs/adr/ADR-097 D4). Overlays are
-    /// drawn after the front layer, so the cue is never hidden by the farmer. Solid fills only: no texture, no text, nothing allocated.
+    /// drawn after the front layer, so the cue is never hidden by the farmer. Solid fills only: no texture, no text, nothing allocated. The fill
+    /// tint is 0xRRGGBBAA (renderer.js, command -6): alpha is the low byte.
     /// </summary>
     /// <param name="world">The world batch collecting this frame's overlays.</param>
     /// <param name="worldX">Left of the monster's sprite, world pixels.</param>
@@ -133,9 +134,9 @@ internal sealed partial class MonstersDecorator : IMapDecorator
         int left = worldX + ((FrameSize - StrikeCueWidthPx) / 2);
 
         // Outline first (same sort key, lower insertion index), then the mark, then the dot, so the amber sits on top of the outline.
-        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx + (2 * StrikeCueOutlinePx), StrikeCueHeightPx + (2 * StrikeCueOutlinePx), left - StrikeCueOutlinePx, top - StrikeCueOutlinePx, sortY, sortX, id, tint: unchecked((int)0xff1c1917));
-        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx, StrikeCueMarkPx, left, top, sortY, sortX, id + 1, tint: unchecked((int)0xfffacc15));
-        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx, StrikeCueWidthPx, left, top + StrikeCueMarkPx + 1, sortY, sortX, id + 2, tint: unchecked((int)0xfffacc15));
+        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx + (2 * StrikeCueOutlinePx), StrikeCueHeightPx + (2 * StrikeCueOutlinePx), left - StrikeCueOutlinePx, top - StrikeCueOutlinePx, sortY, sortX, id, tint: unchecked((int)0x1c1917ff));
+        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx, StrikeCueMarkPx, left, top, sortY, sortX, id + 1, tint: unchecked((int)0xfacc15ff));
+        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx, StrikeCueWidthPx, left, top + StrikeCueMarkPx + 1, sortY, sortX, id + 2, tint: unchecked((int)0xfacc15ff));
     }
 
     private void DrawMonsters(WorldSpriteBatch world, long now)
