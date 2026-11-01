@@ -11,6 +11,8 @@ using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Node.S2C;
 using Nosum.Contracts.World.S2C;
+using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Chunks;
 
@@ -24,7 +26,8 @@ namespace Nosum.Wasm.Socket.Farm;
 /// <param name="GrowthDays">Watered game days settled so far, not counting <paramref name="WateredDay"/>.</param>
 /// <param name="WateredDay">The last game day the soil was watered; zero when never.</param>
 /// <param name="TendedDay">The game day the bare soil was tilled or its crop harvested; zero with a crop.</param>
-public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, int GrowthDays, int WateredDay, int TendedDay);
+/// <param name="Withered">Whether the server says the crop has withered (sprinklers and rain counted by the server, never guessed here).</param>
+public readonly record struct FarmTileInfo(int X, int Y, int CropId, long PlantedAtMs, int GrowthDays, int WateredDay, int TendedDay, bool Withered);
 
 /// <summary>
 /// The client's mirror of the worked tiles of the player's map, plus an estimate of the server's clock. The server sends a chunk's tiles once, when the chunk joins the player's
@@ -44,6 +47,7 @@ public sealed class FarmChannel : IDisposable
     private readonly Dictionary<int, int> _index = [];
     private string _mapId = string.Empty;
     private long _clockOffsetMs;
+    private bool _loaded;
 
     /// <summary>Initializes the channel and starts listening for pushed tile changes.</summary>
     /// <param name="socket">The game connection.</param>
@@ -55,7 +59,7 @@ public sealed class FarmChannel : IDisposable
     }
 
     /// <summary>Raised when the server answered a use of an item. May run on any thread.</summary>
-    public event Action<FarmStatus, FarmAction>? UseCompleted;
+    public event Action<FarmStatus, FarmAction, int>? UseCompleted;
 
     /// <summary>Raised when tiles were loaded or changed. May run on any thread.</summary>
     public event Action? Changed;
@@ -150,6 +154,7 @@ public sealed class FarmChannel : IDisposable
 
             lock (_gate)
             {
+                _loaded = false;
                 _tiles.Clear();
                 _index.Clear();
                 _mapId = snapshot.MapId;
@@ -158,6 +163,8 @@ public sealed class FarmChannel : IDisposable
                 {
                     this.Store(row);
                 }
+
+                _loaded = true;
             }
 
             this.Changed?.Invoke();
@@ -182,11 +189,13 @@ public sealed class FarmChannel : IDisposable
             request.Value.TileX = tileX;
             request.Value.TileY = tileY;
             UseItemResult result = await _socket.RequestAsync<UseItemResult>(request.Value).ConfigureAwait(false);
-            this.UseCompleted?.Invoke(result.Status, result.Action);
+            this.UseCompleted?.Invoke(result.Status, result.Action, result.Worked);
         }
         catch (Exception)
         {
-            // Connection dropped; nothing was applied.
+            // The request was lost (connection dropped, or no reply): nothing is known to have been applied, so the player is told to try again
+            // instead of seeing a press that silently did nothing.
+            this.UseCompleted?.Invoke(FarmStatus.Conflict, FarmAction.None, 0);
         }
     }
 
@@ -201,11 +210,13 @@ public sealed class FarmChannel : IDisposable
             request.Value.TileY = tileY;
             request.Value.Tiles = (byte)tiles;
             UseItemResult result = await _socket.RequestAsync<UseItemResult>(request.Value).ConfigureAwait(false);
-            this.UseCompleted?.Invoke(result.Status, result.Action);
+            this.UseCompleted?.Invoke(result.Status, result.Action, result.Worked);
         }
         catch (Exception)
         {
-            // Connection dropped; nothing was applied.
+            // The request was lost (connection dropped, or no reply): nothing is known to have been applied, so the player is told to try again
+            // instead of seeing a press that silently did nothing.
+            this.UseCompleted?.Invoke(FarmStatus.Conflict, FarmAction.None, 0);
         }
     }
 
@@ -336,6 +347,52 @@ public sealed class FarmChannel : IDisposable
         _tiles.RemoveAt(last);
     }
 
+    /// <summary>Gets whether the worked tiles of the player's map have arrived. Read it from any thread.</summary>
+    public bool IsLoaded
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _loaded;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Counts the planted crops on the mirrored map that one more dry game day would wither (docs/adr/ADR-021 D7). A crop the server has already
+    /// withered is not counted. Outdoor maps count rain as water, as the server does. Changes nothing; the thirsty warning reads it.
+    /// </summary>
+    /// <param name="rules">The server calendar, rebuilt by the caller.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <param name="sprinklerSinceMs">When the first sprinkler beside a tile was placed, or null (<c>PlaceableChannel.SprinklerWateredSinceMs</c>).</param>
+    /// <returns>The number of crops at risk.</returns>
+    public int CountAtRisk(GameCalendar rules, long nowMs, Func<int, int, long?> sprinklerSinceMs)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(sprinklerSinceMs);
+
+        int count = 0;
+        lock (_gate)
+        {
+            bool outdoors = !(GameMaps.TryGet(_mapId, out MapSpec? spec) && spec.Indoors);
+            foreach (FarmTileInfo info in _tiles)
+            {
+                if (info.CropId != 0 && !info.Withered && FarmRules.IsAtRisk(TileOf(info), nowMs, rules, outdoors, sprinklerSinceMs(info.X, info.Y)))
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>Returns the stored numbers of a mirrored tile as the shared rules take them.</summary>
+    /// <param name="info">The mirrored tile.</param>
+    /// <returns>The tile.</returns>
+    public static FarmTile TileOf(in FarmTileInfo info) => new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay);
+
     // Call under the lock.
     private void Store(FarmTileRow row)
     {
@@ -346,7 +403,7 @@ public sealed class FarmChannel : IDisposable
             return;
         }
 
-        FarmTileInfo tile = new(row.X, row.Y, row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay, row.TendedDay);
+        FarmTileInfo tile = new(row.X, row.Y, row.CropId, row.PlantedAtMs, row.GrowthDays, row.WateredDay, row.TendedDay, row.Withered);
         if (_index.TryGetValue(key, out int at))
         {
             _tiles[at] = tile;

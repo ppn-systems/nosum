@@ -14,12 +14,14 @@ using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Data;
+using Nosum.Abstractions.Economy;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
 using Nosum.Core;
 using Nosum.Contracts.Pet;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Pets;
+using Nosum.Gameplay.Shops;
 using Nosum.Host;
 using Nosum.Abstractions.Player;
 using Nosum.Infrastructure.Persistence;
@@ -28,7 +30,7 @@ using Xunit;
 namespace Nosum.IntegrationTests.Server;
 
 /// <summary>
-/// The pet companion over the wire (docs/adr/ADR-075 D3-D5): adoption (one cat or dog, a name cleaned and masked as chat does), one petting
+/// The pet companion over the wire (docs/adr/ADR-075 D3-D5, amended for paid pets): adoption (one cat or dog, a name cleaned and masked as chat does), one petting
 /// per game day, and what the other players see of the pet (kind and name in the look, pushed when the pet is adopted).
 /// </summary>
 [Collection(NalixHostSerial.Name)]
@@ -45,7 +47,7 @@ public sealed class PetWireTests : IClassFixture<PostgresFixture>
     {
         await using TestHost host = await TestHost.StartAsync(_database);
         Account alice = await RegisterAsync();
-        await PutOnAsync(alice, GameMaps.Town);
+        await PutAtCarpenterAsync(alice, 2_000);
         await using SocialLifeClient a = await host.ConnectAsync(alice);
         _ = await a.JoinAsync(host.Timeout);
 
@@ -60,8 +62,8 @@ public sealed class PetWireTests : IClassFixture<PostgresFixture>
         await using TestHost host = await TestHost.StartAsync(_database);
         Account alice = await RegisterAsync();
         Account bob = await RegisterAsync();
-        await PutOnAsync(alice, GameMaps.Town);
-        await PutOnAsync(bob, GameMaps.Town);
+        await PutAtCarpenterAsync(alice, 2_000);
+        await PutAtCarpenterAsync(bob, 0);
         await using SocialLifeClient a = await host.ConnectAsync(alice);
         await using SocialLifeClient b = await host.ConnectAsync(bob);
         _ = await a.JoinAsync(host.Timeout);
@@ -79,7 +81,7 @@ public sealed class PetWireTests : IClassFixture<PostgresFixture>
     {
         await using TestHost host = await TestHost.StartAsync(_database);
         Account alice = await RegisterAsync();
-        await PutOnAsync(alice, GameMaps.Town);
+        await PutAtCarpenterAsync(alice, 2_000);
         await using SocialLifeClient a = await host.ConnectAsync(alice);
         _ = await a.JoinAsync(host.Timeout);
 
@@ -94,7 +96,7 @@ public sealed class PetWireTests : IClassFixture<PostgresFixture>
     {
         await using TestHost host = await TestHost.StartAsync(_database);
         Account alice = await RegisterAsync();
-        await PutOnAsync(alice, GameMaps.Town);
+        await PutAtCarpenterAsync(alice, 2_000);
         await using SocialLifeClient a = await host.ConnectAsync(alice);
         _ = await a.JoinAsync(host.Timeout);
         _ = await a.AdoptPetAsync((byte)PetKind.Cat, "Mochi", host.Timeout);
@@ -112,7 +114,7 @@ public sealed class PetWireTests : IClassFixture<PostgresFixture>
     {
         await using TestHost host = await TestHost.StartAsync(_database);
         Account alice = await RegisterAsync();
-        await PutOnAsync(alice, GameMaps.Town);
+        await PutAtCarpenterAsync(alice, 2_000);
         await using SocialLifeClient a = await host.ConnectAsync(alice);
         _ = await a.JoinAsync(host.Timeout);
 
@@ -127,10 +129,84 @@ public sealed class PetWireTests : IClassFixture<PostgresFixture>
         return new Account(outcome.PlayerId, outcome.SessionToken, outcome.Nickname);
     }
 
-    private static async Task PutOnAsync(Account account, string mapId)
+    [Fact]
+    public async Task AdoptPet_AwayFromTheCarpenter_IsRefusedAndNoCoinsMove()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        Account alice = await RegisterAsync();
+        await PutOnAsync(alice, GameMaps.Town);
+        await GiveCoinsAsync(alice, 2_000);
+        await using SocialLifeClient a = await host.ConnectAsync(alice);
+        _ = await a.JoinAsync(host.Timeout);
+        long before = await BalanceAsync(alice);
+
+        PetCopy refused = await a.AdoptPetAsync((byte)PetKind.Cat, "Mochi", host.Timeout);
+
+        refused.Status.Should().Be(PetStatus.NotAtShop);
+        (await BalanceAsync(alice)).Should().Be(before);
+        (await a.GetPetAsync(host.Timeout)).Kind.Should().Be((byte)PetKind.None);
+    }
+
+    [Fact]
+    public async Task AdoptPet_WithoutTheCoins_IsRefusedAndNoPetIsKept()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        Account alice = await RegisterAsync();
+        await PutAtCarpenterAsync(alice, 0);
+        await using SocialLifeClient a = await host.ConnectAsync(alice);
+        _ = await a.JoinAsync(host.Timeout);
+
+        // A new farmer starts with 500 coins: a cat costs 600.
+        PetCopy refused = await a.AdoptPetAsync((byte)PetKind.Cat, "Mochi", host.Timeout);
+
+        refused.Status.Should().Be(PetStatus.NotEnoughCoins);
+        (await a.GetPetAsync(host.Timeout)).Kind.Should().Be((byte)PetKind.None);
+    }
+
+    [Fact]
+    public async Task RehomePet_GivesBackHalfThePriceAndRemovesThePet()
+    {
+        await using TestHost host = await TestHost.StartAsync(_database);
+        Account alice = await RegisterAsync();
+        await PutAtCarpenterAsync(alice, 2_000);
+        await using SocialLifeClient a = await host.ConnectAsync(alice);
+        _ = await a.JoinAsync(host.Timeout);
+        (await a.AdoptPetAsync((byte)PetKind.Dog, "Rex", host.Timeout)).Status.Should().Be(PetStatus.Ok);
+        long beforeRehome = await BalanceAsync(alice);
+
+        PetCopy returned = await a.RehomePetAsync(host.Timeout);
+
+        returned.Should().Be(new PetCopy(PetStatus.Ok, (byte)PetKind.None, string.Empty, 0, false));
+        (await BalanceAsync(alice)).Should().Be(beforeRehome + PetRules.RehomeRefundOf((byte)PetKind.Dog));
+        (await a.GetPetAsync(host.Timeout)).Kind.Should().Be((byte)PetKind.None);
+        (await a.RehomePetAsync(host.Timeout)).Status.Should().Be(PetStatus.NoPet);
+    }
+
+    // Stands the player at the carpenter's counter in Town, with the coins a test needs on top of the starting purse.
+    private static async Task PutAtCarpenterAsync(Account account, long coins)
+    {
+        ShopPoint counter = GameMaps.All.Single(m => m.Id == GameMaps.Town).Shops.Single(p => p.ShopId == ShopCatalog.CarpenterShop);
+        await PutOnAsync(account, GameMaps.Town, (counter.TileX * 16) + 8, (counter.TileY * 16) + 8);
+        if (coins > 0)
+        {
+            await GiveCoinsAsync(account, coins);
+        }
+    }
+
+    private static async Task GiveCoinsAsync(Account account, long coins)
+    {
+        ITransferService transfers = InstanceManager.Instance.GetExistingInstance<ITransferService>()!;
+        TransferStatus granted = await transfers.ExecuteAsync([new TransferLeg(TransferParty.Player(account.Id), 0, 0, coins)], "test.grant", null, CancellationToken.None);
+        granted.Should().Be(TransferStatus.Ok);
+    }
+
+    private static async Task<long> BalanceAsync(Account account)
+        => await InstanceManager.Instance.GetExistingInstance<ITransferService>()!.GetBalanceAsync(account.Id, CancellationToken.None);
+
+    private static async Task PutOnAsync(Account account, string mapId, double x = -1, double y = -1)
     {
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
-        await states.SaveAsync(account.Id, new PlayerStateRow(mapId, -1, -1, Facing.Down), CancellationToken.None);
+        await states.SaveAsync(account.Id, new PlayerStateRow(mapId, x, y, Facing.Down), CancellationToken.None);
     }
 
     private sealed record Account(Guid Id, string Token, string Nickname);

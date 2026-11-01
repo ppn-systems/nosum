@@ -25,6 +25,16 @@ public interface IFishingService
     Task<CastOutcome> CastAsync(IConnection connection, int tileX, int tileY, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Development-only tester tool (docs/adr/ADR-079): makes the player's open cast bite at once, so a reel-in in the window is a catch.
+    /// Only the host's Development handlers call it.
+    /// </summary>
+    /// <param name="connection">The player's connection.</param>
+    /// <param name="castId">The open cast to make bite; it must be the player's own cast on this place.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns><see langword="true"/> when the cast was made to bite.</returns>
+    Task<bool> MakeBiteAsync(IConnection connection, uint castId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Reels the line in. Before the bite the cast stays open; in the window the fish is hooked and rolled; after it the fish has escaped.
     /// </summary>
     /// <param name="connection">The player's connection.</param>

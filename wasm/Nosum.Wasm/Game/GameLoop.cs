@@ -26,6 +26,7 @@ using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Pet;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
+using Nosum.Wasm.ViewModels.Progress;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
@@ -49,12 +50,22 @@ namespace Nosum.Wasm.Game;
 [SupportedOSPlatform("browser")]
 internal static partial class GameLoop
 {
+    /// <summary>The bit of the pointer word that means the mouse button is down over the canvas (drag-to-sow).</summary>
+    internal const int MouseHeldFlag = 1;
+
+    /// <summary>The bit of the pointer word that means the use button or the use key is held (hold-to-repeat, backlog item 5). renderer.js sends it as 2.</summary>
+    internal const int UseHeldFlag = 2;
+
     private const string FarmerUrl = "assets/farmer/";
+
+    // Chunk bitmaps the scene may hold at once: 16 × 16 tiles at 16 px each is 256 KB, so 64 is at most 16 MB (docs/adr/ADR-086).
+    private const int TileChunkPoolSize = 64;
 
     private static readonly TimeSpan s_entryTimeout = TimeSpan.FromSeconds(10);
 
     private static readonly WebRenderBackend s_backend = new();
     private static MapScene? s_scene;
+    private static Action<RunState>? s_runState;
     private static PlayerChannel? s_network;
     private static CalendarChannel? s_calendar;
     private static MinimapViewModel? s_minimap;
@@ -126,6 +137,13 @@ internal static partial class GameLoop
     /// <summary>Connects energy and skills to the game: with it the action key eats the food in hand while the player is not full of energy (docs/adr/ADR-023). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="progress">The energy mirror and eat sender.</param>
     public static void UseProgress(ProgressChannel progress) => s_progress = progress;
+
+    /// <summary>Receives the running state of the map scene, to drain the energy bar and say why a run stopped (docs/adr/ADR-085 D3).</summary>
+    /// <param name="onChanged">Called on each transition, on the frame loop's thread.</param>
+    public static void UseRunState(Action<RunState> onChanged) => s_runState = onChanged;
+
+    /// <summary>Raised with a resource key when a skill press is refused on the client, so the player is told why (docs/adr/ADR-056 D5).</summary>
+    public static event Action<string>? SkillPressRefused;
 
     /// <summary>Connects MMORPG combat and monsters to the game (docs/adr/ADR-045). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="combat">The combat channel.</param>
@@ -269,6 +287,7 @@ internal static partial class GameLoop
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
         PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat, s_calendar) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
+        actions?.SkillPressRefused += key => SkillPressRefused?.Invoke(key);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
@@ -357,7 +376,8 @@ internal static partial class GameLoop
             textures.LoadAsync(FarmerUrl + "hats.png"),
             textures.LoadAsync(ItemIcons.ToolsSheet),
             textures.LoadAsync(ItemIcons.WeaponsSheet),
-            textures.LoadAsync(ItemIcons.ObjectsSheet));
+            textures.LoadAsync(ItemIcons.ObjectsSheet),
+            textures.LoadAsync(FarmerUrl + "boots.png"));
 
         progress?.Invoke(GameStartStep.Connect);
         MapEntry? entry = await WaitForEntryAsync(cancellationToken).ConfigureAwait(false);
@@ -370,14 +390,23 @@ internal static partial class GameLoop
         MapContent content = await loader.LoadAsync(spec.Id, cancellationToken).ConfigureAwait(false);
         progress?.Invoke(GameStartStep.Sprites);
         int[] sheets = await farmerSheets.ConfigureAwait(false);
-        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7]);
+        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7], sheets[8]);
 
         // Until the server's look arrives (and without a server) the default look is drawn, never one made up from an id.
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(labelRegistry, s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed);
+        // The static tiles of the map are baked into chunk bitmaps the browser copies each frame (docs/adr/ADR-086): a pool of render targets, reserved once.
+        int[] chunkTargets = new int[TileChunkPoolSize];
+        for (int i = 0; i < chunkTargets.Length; i++)
+        {
+            chunkTargets[i] = textures.ReserveId();
+        }
+
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed, s_progress, new TileChunkCache(chunkTargets));
         s_scene.WaitingChanged += mapId => OnMapWaitChanged(mapId, loader);
+        s_scene.RunStateChanged += state => s_runState?.Invoke(state);
+        s_runState?.Invoke(RunState.Stopped);
         loader.Progressed += mapId => OnMapProgressed(mapId, loader);
         if (s_audio is not null)
         {
@@ -440,7 +469,8 @@ internal static partial class GameLoop
     /// <param name="height">Canvas height, CSS pixels.</param>
     /// <param name="pointerX">Mouse x over the canvas, CSS pixels (drag-to-sow).</param>
     /// <param name="pointerY">Mouse y over the canvas, CSS pixels (drag-to-sow).</param>
-    /// <param name="pointerHeld">1 while the mouse button is down over the canvas, otherwise 0.</param>
+    /// <param name="pointerHeld">Bit <see cref="MouseHeldFlag"/> while the mouse button is down over the canvas; bit <see cref="UseHeldFlag"/> while the use button (touch) or the
+    /// use key is held down (hold-to-repeat, backlog item 5). Other bits are zero.</param>
     [JSExport]
     internal static void Frame(double timeMs, int keys, int width, int height, int pointerX, int pointerY, int pointerHeld)
     {
@@ -468,7 +498,8 @@ internal static partial class GameLoop
             edges &= PanelKeysMask;
         }
 
-        if (!s_moved && held != InputState.None)
+        // Run alone is not a step: the first-move hint waits for a direction (docs/adr/ADR-085 D3).
+        if (!s_moved && (held & (InputState.Up | InputState.Down | InputState.Left | InputState.Right)) != 0)
         {
             s_moved = true;
             FirstMoved?.Invoke();
@@ -487,7 +518,9 @@ internal static partial class GameLoop
         }
 
         // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.
-        s_scene.SetPointer(pointerX, pointerY, pointerHeld != 0 && !s_connectionBlocked && !s_overlayOpen && !s_modalOpen);
+        bool worldOpen = !s_connectionBlocked && !s_overlayOpen && !s_modalOpen;
+        s_scene.SetPointer(pointerX, pointerY, (pointerHeld & MouseHeldFlag) != 0 && worldOpen);
+        s_scene.SetUseHeld((pointerHeld & UseHeldFlag) != 0 && worldOpen);
         if (s_worldMap is not null)
         {
             // Only a change raises the view model's event, so the world map is told about a new map once, not every frame.

@@ -1,0 +1,135 @@
+[
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "settings: language English",
+    "status": "pass",
+    "notes": "switched in Settings > General"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Mail",
+    "status": "pass",
+    "notes": "box [460,160,1000,320]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Settings",
+    "status": "pass",
+    "notes": "box [460,160,1000,590]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Inventory [I]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 696/686"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Wardrobe [C]",
+    "status": "pass",
+    "notes": "box [460,160,1000,617]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Crafting",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 770/739"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Trade [T]",
+    "status": "pass",
+    "notes": "box [460,160,1000,320]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Co-op [G]",
+    "status": "pass",
+    "notes": "box [460,160,1000,422]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Visitors",
+    "status": "pass",
+    "notes": "box [460,160,1000,627]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Friends",
+    "status": "pass",
+    "notes": "box [460,160,1000,508]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Skills",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 4152/755"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Pet",
+    "status": "pass",
+    "notes": "box [460,160,1000,533]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Profile [N]",
+    "status": "pass",
+    "notes": "box [460,160,1000,357]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: World map [Tab]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 1375/755"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Journal [J]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 2643/755"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "panel: Emotes [B]",
+    "status": "n/a",
+    "notes": "no window: a toggle or wheel, checked by screenshot only"
+  },
+  {
+    "locale": "en",
+    "viewport": "1920x1080",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]

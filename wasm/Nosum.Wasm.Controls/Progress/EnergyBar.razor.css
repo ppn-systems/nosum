@@ -83,9 +83,30 @@
     animation: energy-pulse 0.7s ease-out;
 }
 
+/* Running drains the bar: the fill steps between a lit and a plain shade every half second, so the drain reads at a glance
+   (ProgressViewModel.Running). Motion is off when the system asks for less; the tooltip still says Running. */
+.energy-bar.running .energy-fill {
+    animation: energy-run 0.5s steps(1, end) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .energy-bar.pulse {
         animation: none;
+    }
+
+    .energy-bar.running .energy-fill {
+        animation: none;
+        filter: brightness(1.15);
+    }
+}
+
+@keyframes energy-run {
+    0% {
+        filter: brightness(1.25);
+    }
+
+    50% {
+        filter: brightness(0.9);
     }
 }
 

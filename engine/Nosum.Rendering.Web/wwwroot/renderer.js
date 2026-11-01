@@ -12,6 +12,16 @@ export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 const textures = [];          // texture id -> ImageBitmap
 const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
 let placedCount = 0;
+// A world label stays on screen and off the HUD (docs/design/ui-standard.md sections 2 and 4). The HUD rectangles (x, y, right, bottom, canvas
+// pixels) are read from the DOM at most every 250 ms, never per label; fitLabel() leaves the result in labelX and labelY (no allocation).
+const hudRects = new Int32Array(4 * 16);
+let hudCount = 0;
+let hudStamp = -Infinity;
+let labelX = 0;
+let labelY = 0;
+const LABEL_EDGE = 4; // the smallest margin between a label and the canvas edge
+const LABEL_GAP = 2;  // the space kept between a label and a HUD rectangle
+const HUD_SELECTOR = ".game-hud .hud-top-left, .game-hud .hud-top-center, .game-hud .hud-top-right, .game-hud .hud-bottom-left, .game-hud .hud-bottom-center, .game-hud .hud-bottom-right";
 const labels = [];            // label id -> OffscreenCanvas with the pre-rendered text (glyph cache)
 const tinted = new Map();     // "id:rgba" -> canvas with the tint applied
 let canvas = null;
@@ -24,9 +34,9 @@ let lightSprite = null;       // white-to-transparent radial gradient, scaled pe
 let edges = 0;  // one-shot keys pressed since the last frame, packed above the held bits (Nosum.Core.InputEdges)
 let mouseX = 0, mouseY = 0, mouseHeld = 0;  // the mouse over the canvas, CSS pixels, and 1 while its button is down (drag-to-sow)
 
-// Keys that never change: the arrows, Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
+// Keys that never change: the arrows, Shift (run, docs/adr/ADR-085), Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
 // so the maps below are built from both. Bit values match Nosum.Core.InputState (held) and Nosum.Core.InputEdges (pressed once).
-const FIXED_HELD = { ArrowUp: 1, ArrowDown: 2, ArrowLeft: 4, ArrowRight: 8 };
+const FIXED_HELD = { ArrowUp: 1, ArrowDown: 2, ArrowLeft: 4, ArrowRight: 8, ShiftLeft: 16, ShiftRight: 16 };
 const FIXED_EDGES = {
     Space: 1,
     Digit1: 2, Digit2: 4, Digit3: 8, Digit4: 16, Digit5: 32, Digit6: 64, Digit7: 128, Digit8: 256, Digit9: 512,
@@ -91,10 +101,15 @@ function isActivating(e) {
 }
 
 // --- touch (docs/adr/ADR-033 D2) ---
+// The run toggle (docs/adr/ADR-085 D3) is a latched button: its state lives in touchRun, read with the held keys on the next frame.
 // The controls are plain elements drawn by the Razor TouchControls component: a stick ([data-touch=stick] with a [data-touch=knob] inside) and buttons
 // ([data-touch-edge=<InputEdges bit>]). The pointer events are handled here and only change `touchHeld` / `edges`, which join the input of the next
 // frame: there is no call into .NET per touch event.
 let touchHeld = 0;
+let touchRun = false;   // the touch run toggle (data-touch-run): latched on until tapped again, like a run key
+// Hold-to-repeat (backlog 5): the use button (touch) or the use key is down. Sent as the USE_HELD bit of the pointer word, not in the keys word.
+let touchUse = 0, usePointer = -1, useKeyHeld = 0;
+const USE_HELD = 2;   // Nosum.Wasm.Game.GameLoop.UseHeldFlag; bit 1 of the pointer word is the mouse button (drag-to-sow)
 let stickPointer = -1;
 const STICK_DEAD = 0.3;
 const LONG_PRESS_MS = 500;
@@ -134,10 +149,20 @@ function installTouch() {
             moveStick(stick, e);
             return;
         }
+        const run = t.closest("[data-touch-run]");
+        if (run) {
+            e.preventDefault();
+            touchRun = !touchRun;
+            run.classList.toggle("on", touchRun);
+            run.setAttribute("aria-pressed", String(touchRun));
+            return;
+        }
         const button = t.closest("[data-touch-edge]");
         if (button) {
             e.preventDefault();
-            edges |= Number(button.getAttribute("data-touch-edge")) || 0;
+            const bits = Number(button.getAttribute("data-touch-edge")) || 0;
+            edges |= bits;
+            if (bits & 1) { touchUse = 1; usePointer = e.pointerId; }
             button.classList.add("down");
         }
     });
@@ -154,6 +179,7 @@ function installTouch() {
     const end = e => {
         if (e.pointerId === stickPointer) { releaseStick(); }
         if (press && e.pointerId === press.id) { clearTimeout(press.timer); press = null; }
+        if (e.pointerId === usePointer) { usePointer = -1; touchUse = 0; }
         document.querySelectorAll("[data-touch-edge].down").forEach(b => b.classList.remove("down"));
     };
     document.addEventListener("pointerup", end);
@@ -237,10 +263,13 @@ export async function start(canvasId, assemblyName, exportPath) {
         const b = KEY_BITS[e.code];
         if (b) { keys |= b; e.preventDefault(); return; }
         const edge = EDGE_BITS[e.code];
-        if (edge) { if (!e.repeat) { edges |= edge; } e.preventDefault(); }
+        if (edge) { if (!e.repeat) { edges |= edge; } if (edge & 1) { useKeyHeld = 1; } e.preventDefault(); }
     });
-    window.addEventListener("keyup", e => { const b = KEY_BITS[e.code]; if (b) { keys &= ~b; } });
-    window.addEventListener("blur", () => { keys = 0; releaseStick(); });
+    window.addEventListener("keyup", e => {
+        const b = KEY_BITS[e.code]; if (b) { keys &= ~b; }
+        if ((EDGE_BITS[e.code] || 0) & 1) { useKeyHeld = 0; }
+    });
+    window.addEventListener("blur", () => { keys = 0; touchUse = 0; useKeyHeld = 0; releaseStick(); });
     installTouch();
 
     const runtime = await globalThis.getDotnetRuntime(0);
@@ -252,7 +281,8 @@ export async function start(canvasId, assemblyName, exportPath) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
         const pressed = edges;
         edges = 0;
-        frame(time, (keys | touchHeld) | (pressed << 4), w, h, mouseX, mouseY, mouseHeld);
+        const useHeld = (touchUse | useKeyHeld) ? USE_HELD : 0;
+        frame(time, (keys | touchHeld | (touchRun ? 16 : 0)) | (pressed << 5), w, h, mouseX, mouseY, mouseHeld | useHeld);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -263,7 +293,107 @@ export async function start(canvasId, assemblyName, exportPath) {
 let frameBytes = new Uint8Array(65536);
 let frameWords = new Int32Array(frameBytes.buffer);
 
+// The 2D context of a render target (docs/adr/ADR-086): its bitmap is created on first use and resized when its size changes, then cleared.
+// Targets draw unscaled, in their own pixels, so the bitmap is the same picture the screen would get from those draws.
+function targetContext(id, w, h) {
+    let target = textures[id];
+    if (!(target instanceof OffscreenCanvas)) {
+        target = new OffscreenCanvas(w, h);
+        textures[id] = target;
+    } else if (target.width !== w || target.height !== h) {
+        target.width = w;
+        target.height = h;
+    }
+    const t = target.getContext("2d");
+    t.setTransform(1, 0, 0, 1, 0, 0);
+    t.globalAlpha = 1;
+    t.globalCompositeOperation = "source-over";
+    t.imageSmoothingEnabled = false;
+    t.clearRect(0, 0, w, h);
+    return t;
+}
+
+// Reads the HUD rectangles that world labels avoid. A region with no size (an empty one) or one that covers the whole canvas is left out.
+function refreshHud(now) {
+    if (now - hudStamp < 250 || !canvas) {
+        return;
+    }
+
+    hudStamp = now;
+    hudCount = 0;
+    const base = canvas.getBoundingClientRect();
+    for (const el of document.querySelectorAll(HUD_SELECTOR)) {
+        const r = el.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0 || r.height >= base.height * 0.9 || hudCount >= 16) {
+            continue;
+        }
+
+        const o = hudCount * 4;
+        hudRects[o] = Math.round(r.left - base.left);
+        hudRects[o + 1] = Math.round(r.top - base.top);
+        hudRects[o + 2] = Math.round(r.right - base.left);
+        hudRects[o + 3] = Math.round(r.bottom - base.top);
+        hudCount++;
+    }
+}
+
+function clampTo(v, lo, hi) {
+    return v < lo ? lo : v > hi ? hi : v;
+}
+
+// The index of the first HUD rectangle that the box (x, y, w, h) overlaps, or -1.
+function hudHit(x, y, w, h) {
+    for (let k = 0; k < hudCount; k++) {
+        const o = k * 4;
+        if (x < hudRects[o + 2] && x + w > hudRects[o] && y < hudRects[o + 3] && y + h > hudRects[o + 1]) {
+            return k;
+        }
+    }
+    return -1;
+}
+
+// Moves a label box inside the canvas and off the HUD: beside the HUD rectangle it hit, then below it, then above it. Leaves the result in labelX/labelY.
+function fitLabel(x, y, w, h) {
+    const maxX = canvas.width - w - LABEL_EDGE;
+    const maxY = canvas.height - h - LABEL_EDGE;
+    x = clampTo(x, LABEL_EDGE, maxX);
+    y = clampTo(y, LABEL_EDGE, maxY);
+    const k = hudHit(x, y, w, h);
+    if (k < 0) {
+        labelX = x;
+        labelY = y;
+        return;
+    }
+
+    const o = k * 4;
+    const left = clampTo(hudRects[o] - w - LABEL_GAP, LABEL_EDGE, maxX);
+    if (hudHit(left, y, w, h) < 0) {
+        labelX = left;
+        labelY = y;
+        return;
+    }
+
+    const below = clampTo(hudRects[o + 3] + LABEL_GAP, LABEL_EDGE, maxY);
+    if (hudHit(x, below, w, h) < 0) {
+        labelX = x;
+        labelY = below;
+        return;
+    }
+
+    const above = clampTo(hudRects[o + 1] - h - LABEL_GAP, LABEL_EDGE, maxY);
+    if (hudHit(x, above, w, h) < 0) {
+        labelX = x;
+        labelY = above;
+        return;
+    }
+
+    // No free spot next to the HUD (a crowded corner): keep it at the left of the rectangle, which is still on screen.
+    labelX = left;
+    labelY = y;
+}
+
 export function submitFrame(view) {
+    refreshHud(performance.now());
     const size = view.byteLength;
     if (frameBytes.length < size) {
         frameBytes = new Uint8Array(Math.max(size, frameBytes.length * 2));
@@ -280,16 +410,27 @@ export function submitFrame(view) {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     placedCount = 0;
     lightCount = 0;
+    // The context the commands draw into: the screen, or a render target between a begin and an end command (docs/adr/ADR-086).
+    let draw = ctx;
 
     for (let i = 0, p = 2; i < count; i++, p += 9) {
         const id = data[p], sx = data[p + 1], sy = data[p + 2], w = data[p + 3], h = data[p + 4];
         const dx = data[p + 5], dy = data[p + 6], flags = data[p + 7], tint = data[p + 8];
+        if (id === -10) {
+            // Open a render target: sx is its texture id, w and h its size. Its bitmap is kept and resized, never recreated per frame.
+            draw = targetContext(sx, w, h);
+            continue;
+        }
+        if (id === -11) {
+            draw = ctx;
+            continue;
+        }
         if (id === -2) {
             // Black fill (scene fades): tint holds the opacity, 0..255.
-            ctx.globalAlpha = tint / 255;
-            ctx.fillStyle = "#000";
-            ctx.fillRect(dx, dy, w, h);
-            ctx.globalAlpha = 1;
+            draw.globalAlpha = tint / 255;
+            draw.fillStyle = "#000";
+            draw.fillRect(dx, dy, w, h);
+            draw.globalAlpha = 1;
             continue;
         }
         if (id <= -7 && id >= -9) {
@@ -314,8 +455,8 @@ export function submitFrame(view) {
         if (id === -6) {
             // Coloured rectangle (rain, snow): tint holds 0xRRGGBBAA.
             const u = tint >>> 0;
-            ctx.fillStyle = `rgba(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255}, ${(u & 255) / 255})`;
-            ctx.fillRect(dx, dy, w, h);
+            draw.fillStyle = `rgba(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255}, ${(u & 255) / 255})`;
+            draw.fillRect(dx, dy, w, h);
             continue;
         }
         if (id === -3) {
@@ -325,7 +466,7 @@ export function submitFrame(view) {
             const label = labels[sx];
             if (label) {
                 const lw = label.width, lh = label.height;
-                const x = Math.round(dx * scale - lw / 2);
+                let x = Math.round(dx * scale - lw / 2);
                 let y = Math.round(dy * scale - lh);
                 for (let k = 0; k < placedCount; k += 4) {
                     if (x < placed[k] + placed[k + 2] && x + lw > placed[k] && y < placed[k + 1] + placed[k + 3] && y + lh > placed[k + 1]) {
@@ -333,14 +474,17 @@ export function submitFrame(view) {
                         k = -4;
                     }
                 }
+                fitLabel(x, y, lw, lh);
+                x = labelX;
+                y = labelY;
                 if (placedCount + 4 <= placed.length) {
                     placed[placedCount] = x; placed[placedCount + 1] = y; placed[placedCount + 2] = lw; placed[placedCount + 3] = lh;
                     placedCount += 4;
                 }
-                ctx.save();
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.drawImage(label, x, y);
-                ctx.restore();
+                draw.save();
+                draw.setTransform(1, 0, 0, 1, 0, 0);
+                draw.drawImage(label, x, y);
+                draw.restore();
             }
             continue;
         }
@@ -351,18 +495,18 @@ export function submitFrame(view) {
         const flip = (flags & 1) !== 0;
         const deg = flags >> 8;
         if (flip || deg !== 0) {
-            ctx.save();
-            ctx.translate(dx + w / 2, dy + h / 2);
+            draw.save();
+            draw.translate(dx + w / 2, dy + h / 2);
             if (deg !== 0) {
-                ctx.rotate((deg * Math.PI) / 180);
+                draw.rotate((deg * Math.PI) / 180);
             }
             if (flip) {
-                ctx.scale(-1, 1);
+                draw.scale(-1, 1);
             }
-            ctx.drawImage(image, sx, sy, w, h, -w / 2, -h / 2, w, h);
-            ctx.restore();
+            draw.drawImage(image, sx, sy, w, h, -w / 2, -h / 2, w, h);
+            draw.restore();
         } else {
-            ctx.drawImage(image, sx, sy, w, h, dx, dy, w, h);
+            draw.drawImage(image, sx, sy, w, h, dx, dy, w, h);
         }
     }
 }

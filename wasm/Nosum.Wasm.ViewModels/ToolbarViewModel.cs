@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Localization;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Settings;
@@ -73,6 +74,15 @@ public enum PanelKind
 
     /// <summary>The pet panel: the companion's name, mood and petting, or the adoption form on the own farm (docs/adr/ADR-075 D3-D4).</summary>
     Pet = 20,
+
+    /// <summary>The game menu: one tile per panel that has no button in the HUD's menu column (docs/design/ui-standard.md section 2).</summary>
+    Menu = 21,
+
+    /// <summary>The backpack: the next size and its price, from the tailor's dialog box (docs/adr/ADR-081); not a menu tab.</summary>
+    Backpack = 22,
+
+    /// <summary>The Today card: the season and day, today's and tomorrow's weather, and the crops in season; opened from the calendar bar (backlog item 7); not a menu tab.</summary>
+    Today = 23,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -87,6 +97,7 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
 {
     private readonly SettingsViewModel? _settings;
     private PanelKind _active;
+    private bool _columnCollapsed;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="text">UI text.</param>
@@ -127,6 +138,27 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>The panels with a button in the HUD's menu column, top to bottom. The column holds at most 8 buttons, the last one is the Menu button
+    /// (docs/design/ui-standard.md section 2): a panel not listed here is a tile of the game menu instead, unless it is in <see cref="NpcKinds"/>.</summary>
+    public static readonly IReadOnlyList<PanelKind> ColumnKinds =
+    [
+        PanelKind.Inventory,
+        PanelKind.Crafting,
+        PanelKind.Trade,
+        PanelKind.Friends,
+        PanelKind.Skills,
+        PanelKind.WorldMap,
+        PanelKind.Journal,
+    ];
+
+    /// <summary>The panels a merchant opens (the wardrobe at the tailor, the co-op at the board keeper, docs/adr/ADR-081). They have no column button and no
+    /// menu tile: the merchant's dialog box is their one door (the keyboard shortcut still opens them).</summary>
+    public static readonly IReadOnlyList<PanelKind> NpcKinds =
+    [
+        PanelKind.Wardrobe,
+        PanelKind.Coop,
+    ];
+
     /// <summary>Gets the tabs of the game menu, left to right. A new tab is one more entry here (plus its page in <c>Home.razor</c> and its sprite in <c>nosum-theme.js</c>).</summary>
     public IReadOnlyList<ToolbarItem> Items =>
     [
@@ -145,6 +177,63 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         new ToolbarItem(PanelKind.Journal, this.Text("Toolbar_Journal"), Key(GameAction.Journal), "tab-goals"),
         new ToolbarItem(PanelKind.Settings, this.Text("Toolbar_Settings"), Key(GameAction.Help), "tab-settings"),
     ];
+
+    /// <summary>Gets the buttons of the HUD's menu column, top to bottom (the Menu button is added by the HUD, after them).</summary>
+    public IReadOnlyList<ToolbarItem> ColumnItems
+    {
+        get
+        {
+            List<ToolbarItem> column = [];
+            foreach (ToolbarItem item in this.Items)
+            {
+                if (ColumnKinds.Contains(item.Kind))
+                {
+                    column.Add(item);
+                }
+            }
+
+            return column;
+        }
+    }
+
+    /// <summary>Gets or sets whether the HUD's menu column is collapsed into its Menu button: a phone or a touch screen (docs/design/ui-standard.md
+    /// section 6). Then the game menu gives a tile for every column panel too, because nothing else opens them there. The browser decides it
+    /// (<c>page-guard.js</c>, the same query as <c>GameHud.razor.css</c>), and it changes when the window crosses the width.</summary>
+    public bool ColumnCollapsed
+    {
+        get => _columnCollapsed;
+        set
+        {
+            if (_columnCollapsed != value)
+            {
+                _columnCollapsed = value;
+                this.Raise();
+            }
+        }
+    }
+
+    /// <summary>Gets the tiles of the game menu, left to right. On a desktop: every panel of <see cref="Items"/> that is not in the menu column, nor a
+    /// merchant's (Mail and Settings sit in the HUD's top row). When <see cref="ColumnCollapsed"/> is set, the column panels are tiles too.</summary>
+    public IReadOnlyList<ToolbarItem> MenuItems
+    {
+        get
+        {
+            List<ToolbarItem> tiles = [];
+            foreach (ToolbarItem item in this.Items)
+            {
+                bool inColumn = !_columnCollapsed && ColumnKinds.Contains(item.Kind);
+                if (!inColumn && !NpcKinds.Contains(item.Kind) && item.Kind is not (PanelKind.Mail or PanelKind.Settings))
+                {
+                    tiles.Add(item);
+                }
+            }
+
+            return tiles;
+        }
+    }
+
+    /// <summary>Gets the localized name of the Menu button and its window.</summary>
+    public string MenuLabel => this.Text("Toolbar_Menu");
 
     private string Key(GameAction action) => KeyBindings.CapOf((_settings?.Current.Bindings ?? KeyBindings.Default).CodeOf(action));
 

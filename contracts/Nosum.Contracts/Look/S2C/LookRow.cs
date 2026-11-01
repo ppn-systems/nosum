@@ -43,4 +43,7 @@ public sealed partial class LookRow
     /// <summary>The pet's name, cleaned and masked by the server; empty without a pet. Appended in protocol version 13.</summary>
     [WireMaxLength(WireLimits.ShortText)]
     [SerializeOrder(9)] public string PetName { get; set; } = string.Empty;
+
+    /// <summary>Worn boots item id; zero for bare feet (docs/adr/ADR-084). Appended in protocol version 24.</summary>
+    [SerializeOrder(10)] public int FeetItemId { get; set; }
 }

@@ -49,4 +49,10 @@ public sealed partial class FarmTileRow
 
     /// <summary>The game day the bare soil was tilled or its crop harvested or cut; with <see cref="WateredDay"/> it decides when bare soil reverts (docs/adr/ADR-021 D7).</summary>
     [SerializeOrder(10)] public int TendedDay { get; set; }
+
+    /// <summary>
+    /// True when the planted crop has withered as the server decides it now (a dry run, the season, a sprinkler beside the tile counted). The client
+    /// draws it withered and refuses the actions a withered crop refuses, without guessing the sprinklers (docs/adr/ADR-021 D7 amendment, 2026-10-31).
+    /// </summary>
+    [SerializeOrder(11)] public bool Withered { get; set; }
 }

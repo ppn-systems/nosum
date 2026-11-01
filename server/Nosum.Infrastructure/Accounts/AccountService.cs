@@ -14,7 +14,9 @@ using Nosum.Abstractions.Security;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
 using Nosum.Contracts.Validation;
+using Nosum.Abstractions.Economy;
 using Nosum.Domain.Accounts;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Players;
 using Nosum.Infrastructure.Concurrency;
 
@@ -47,6 +49,7 @@ public sealed class AccountService : IAccountService
     private readonly TimeProvider _time;
     private readonly TimeSpan _sessionLifetime;
     private readonly INicknameDirectory? _nicknames;
+    private ITransferService? _transfers;
     private readonly StripedAsyncLock _renameLocks = new(64);
 
     /// <summary>Initializes the service.</summary>
@@ -264,6 +267,17 @@ public sealed class AccountService : IAccountService
         }
     }
 
+    /// <summary>
+    /// Attaches the transfer service that takes a Rename Scroll for each nickname change (docs/adr/ADR-009 amendments). The host attaches it once the economy is
+    /// built; until then a rename is refused, so a change can never skip the scroll.
+    /// </summary>
+    /// <param name="transfers">The transfer service the rename runs its scroll and the nickname save through.</param>
+    public void AttachTransfers(ITransferService transfers)
+    {
+        ArgumentNullException.ThrowIfNull(transfers);
+        _transfers = transfers;
+    }
+
     /// <inheritdoc/>
     public async Task<NicknameOutcome> SetNicknameAsync(Guid playerId, string nickname, CancellationToken cancellationToken)
     {
@@ -309,21 +323,54 @@ public sealed class AccountService : IAccountService
                     return new NicknameOutcome(AccountStatus.NicknameTaken, player.Nickname, NextChange(player));
                 }
 
+                // A Rename Scroll is used up and the nickname saved in one transaction (docs/adr/ADR-009 amendments): no scroll, no change.
+                ITransferService? transfers = _transfers;
+                if (transfers is null)
+                {
+                    return new NicknameOutcome(AccountStatus.NicknameNeedsScroll, player.Nickname, NextChange(player));
+                }
+
                 string previous = player.Nickname;
-                player.Nickname = chosen;
-                player.NormalizedNickname = key;
-                player.NicknameChangedAt = now;
+                TransferStatus status;
                 try
                 {
-                    _ = await unit.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    status = await transfers.ExecuteAsync(
+                        [new TransferLeg(TransferParty.Player(playerId), ItemCatalog.RenameScroll, -1)],
+                        "account.rename",
+                        async (scrollUnit, token) =>
+                        {
+                            Player? row = await scrollUnit.Repository<Player>().FindAsync(playerId, token).ConfigureAwait(false);
+                            if (row is null)
+                            {
+                                return TransferStatus.Refused;
+                            }
+
+                            row.Nickname = chosen;
+                            row.NormalizedNickname = key;
+                            row.NicknameChangedAt = now;
+                            return TransferStatus.Ok;
+                        },
+                        cancellationToken).ConfigureAwait(false);
                 }
                 catch (DbUpdateException ex) when (unit.IsUniqueViolation(ex))
                 {
                     return new NicknameOutcome(AccountStatus.NicknameTaken, previous, null);
                 }
 
+                switch (status)
+                {
+                    case TransferStatus.Ok:
+                        break;
+                    case TransferStatus.NotEnoughItems:
+                        return new NicknameOutcome(AccountStatus.NicknameNeedsScroll, previous, null);
+                    case TransferStatus.Conflict:
+                        return new NicknameOutcome(AccountStatus.NicknameTaken, previous, null);
+                    default:
+                        return new NicknameOutcome(AccountStatus.InvalidToken, previous, null);
+                }
+
                 _nicknames?.Remember(playerId, chosen);
-                return new NicknameOutcome(AccountStatus.Ok, chosen, NextChange(player));
+                return new NicknameOutcome(AccountStatus.Ok, chosen, now.AddHours(NicknameRules.RenameCooldownHours));
             }
         }
     }

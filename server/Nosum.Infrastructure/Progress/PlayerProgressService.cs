@@ -12,6 +12,7 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.S2C;
@@ -21,8 +22,10 @@ using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Skills;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Progress;
 
@@ -42,6 +45,7 @@ public sealed class PlayerProgressService : IPlayerProgress
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly IGameDayClock _days;
     private readonly IInventoryService _inventory;
+    private readonly IQuestService? _quests;
     private readonly TimeProvider _time;
     private readonly IPlayerNotifier? _notifier;
     private readonly PlayerStateCache _cache;
@@ -56,8 +60,11 @@ public sealed class PlayerProgressService : IPlayerProgress
     /// <param name="time">Clock for the row's timestamps.</param>
     /// <param name="notifier">Pushes to the player; <see langword="null"/> in tests that do not listen.</param>
     /// <param name="cache">The row copy shared with the place service; <see langword="null"/> for a private one.</param>
-    public PlayerProgressService(IUnitOfWorkFactory unitOfWork, IGameDayClock days, IInventoryService inventory, TimeProvider time, IPlayerNotifier? notifier = null, PlayerStateCache? cache = null)
+    /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
+    public PlayerProgressService(IUnitOfWorkFactory unitOfWork, IGameDayClock days, IInventoryService inventory, TimeProvider time, IPlayerNotifier? notifier = null, PlayerStateCache? cache = null,
+        IQuestService? quests = null)
     {
+        _quests = quests;
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(days);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -104,14 +111,14 @@ public sealed class PlayerProgressService : IPlayerProgress
             int cost = fixedCost ?? EnergyRules.Cost(tool, SkillRules.LevelOf(XpOf(row, SkillRules.SkillOf(tool))));
             if (!EnergyRules.TrySpend(energy, cost, out int left))
             {
-                return new Charge(this, gate, playerId, allowed: false, 0, 0, 0, 0, SkillKind.None, 0, 0, null);
+                return new Charge(this, gate, playerId, allowed: false, 0, 0, 0, 0, 0, SkillKind.None, 0, 0, null);
             }
 
             int before = XpOf(row, skill);
             int after = skill == SkillKind.None ? before : Math.Min(SkillRules.XpCap, before + Math.Max(0, xp));
             PlayerStateCache.Snapshot next = SetXp(row with { Exists = true, Energy = left, EnergyRefilledDay = day, UpdatedAt = _time.GetUtcNow() }, skill, after);
             this.Stage(unit, playerId, row.Exists, next);
-            return new Charge(this, gate, playerId, allowed: true, left, next.FarmingXp, next.ForagingXp, next.MiningXp, skill, SkillRules.LevelOf(before), SkillRules.LevelOf(after), next);
+            return new Charge(this, gate, playerId, allowed: true, left, next.FarmingXp, next.ForagingXp, next.MiningXp, next.FishingXp, skill, SkillRules.LevelOf(before), SkillRules.LevelOf(after), next);
         }
         catch
         {
@@ -227,6 +234,7 @@ public sealed class PlayerProgressService : IPlayerProgress
         }
 
         await this.PushEnergyAsync(playerId, energyAfter, cancellationToken).ConfigureAwait(false);
+        await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.FoodEaten, held.ItemId), cancellationToken).ConfigureAwait(false);
         return new EatOutcome(EatStatus.Ok);
     }
 
@@ -275,7 +283,7 @@ public sealed class PlayerProgressService : IPlayerProgress
     {
         PlayerProgressView view = await this.GetAsync(playerId, cancellationToken).ConfigureAwait(false);
         await this.PushEnergyAsync(playerId, view.Energy, cancellationToken).ConfigureAwait(false);
-        await this.PushXpAsync(playerId, view.FarmingXp, view.ForagingXp, view.MiningXp, cancellationToken).ConfigureAwait(false);
+        await this.PushXpAsync(playerId, view.FarmingXp, view.ForagingXp, view.MiningXp, view.FishingXp, cancellationToken).ConfigureAwait(false);
     }
 
     private static PlayerProgressView ViewOf(PlayerStateCache.Snapshot row, long today)
@@ -358,7 +366,7 @@ public sealed class PlayerProgressService : IPlayerProgress
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "The change is saved; a failed push only delays the display until the next one.")]
-    private async ValueTask PushXpAsync(Guid playerId, int farming, int foraging, int mining, CancellationToken cancellationToken)
+    private async ValueTask PushXpAsync(Guid playerId, int farming, int foraging, int mining, int fishing, CancellationToken cancellationToken)
     {
         if (_notifier is null)
         {
@@ -371,6 +379,7 @@ public sealed class PlayerProgressService : IPlayerProgress
             lease.Value.FarmingXp = farming;
             lease.Value.ForagingXp = foraging;
             lease.Value.MiningXp = mining;
+            lease.Value.FishingXp = fishing;
             _ = await _notifier.TrySendAsync(playerId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -409,6 +418,7 @@ public sealed class PlayerProgressService : IPlayerProgress
         private readonly int _farming;
         private readonly int _foraging;
         private readonly int _mining;
+        private readonly int _fishing;
         private readonly SkillKind _skill;
         private readonly int _levelBefore;
         private readonly int _levelAfter;
@@ -416,7 +426,7 @@ public sealed class PlayerProgressService : IPlayerProgress
         private int _released;
         private int _published;
 
-        public Charge(PlayerProgressService owner, StripedAsyncLock.Releaser gate, Guid playerId, bool allowed, int energy, int farming, int foraging, int mining, SkillKind skill, int levelBefore, int levelAfter, PlayerStateCache.Snapshot? next)
+        public Charge(PlayerProgressService owner, StripedAsyncLock.Releaser gate, Guid playerId, bool allowed, int energy, int farming, int foraging, int mining, int fishing, SkillKind skill, int levelBefore, int levelAfter, PlayerStateCache.Snapshot? next)
         {
             _owner = owner;
             _gate = gate;
@@ -426,6 +436,7 @@ public sealed class PlayerProgressService : IPlayerProgress
             _farming = farming;
             _foraging = foraging;
             _mining = mining;
+            _fishing = fishing;
             _skill = skill;
             _levelBefore = levelBefore;
             _levelAfter = levelAfter;
@@ -451,7 +462,7 @@ public sealed class PlayerProgressService : IPlayerProgress
             await _owner.PushEnergyAsync(_playerId, _energy, cancellationToken).ConfigureAwait(false);
             if (_skill != SkillKind.None)
             {
-                await _owner.PushXpAsync(_playerId, _farming, _foraging, _mining, cancellationToken).ConfigureAwait(false);
+                await _owner.PushXpAsync(_playerId, _farming, _foraging, _mining, _fishing, cancellationToken).ConfigureAwait(false);
                 for (int level = _levelBefore + 1; level <= _levelAfter; level++)
                 {
                     await _owner.PushLevelUpAsync(_playerId, _skill, level, cancellationToken).ConfigureAwait(false);

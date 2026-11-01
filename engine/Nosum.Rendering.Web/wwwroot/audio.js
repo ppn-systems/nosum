@@ -31,18 +31,51 @@ function makeLayer(bank, fadeSeconds) {
 const music = makeLayer(tracks, MUSIC_FADE_SECONDS);
 const ambient = makeLayer(loops, LOOP_FADE_SECONDS);
 
+// Music tracks are large (about 0.7 MB each, uncompressed) and a player hears one or two of the eight, so a track is fetched and decoded
+// the first time the game asks for it (audioCommand), not at start. Until it is decoded the layer is silent; syncLayer starts it on arrival.
+const trackUrls = [];       // music track id -> URL, kept until the track is fetched
+const trackFetching = [];   // music track id -> true while the fetch is in flight
+
 // Fetches and decodes one file. Failures (offline, missing file, undecodable) leave the id silent.
 export async function loadAudio(kind, id, url) {
+    if (kind === TRACK) {
+        // Only remembered here; requestTrack fetches it when the game first asks for it.
+        trackUrls[id] = url;
+        return true;
+    }
     try {
         const response = await fetch(url);
         if (!response.ok) { return false; }
         decoder = decoder || new OfflineAudioContext(1, 1, 44100);
         const buffer = await decoder.decodeAudioData(await response.arrayBuffer());
-        (kind === LOOP ? loops : kind === TRACK ? tracks : sounds)[id] = buffer;
-        if (kind !== SOUND) { syncLayer(kind === LOOP ? ambient : music); }
+        (kind === LOOP ? loops : sounds)[id] = buffer;
+        if (kind !== SOUND) { syncLayer(ambient); }
         return true;
     } catch {
         return false;
+    }
+}
+
+// Fetches a remembered track once; a failed track is forgotten, so it is not fetched again every frame.
+function requestTrack(id) {
+    const url = trackUrls[id];
+    if (!url || tracks[id] || trackFetching[id]) { return; }
+    trackFetching[id] = true;
+    fetchTrack(id, url);
+}
+
+async function fetchTrack(id, url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) { trackUrls[id] = null; return; }
+        decoder = decoder || new OfflineAudioContext(1, 1, 44100);
+        tracks[id] = await decoder.decodeAudioData(await response.arrayBuffer());
+        trackUrls[id] = null;
+        syncLayer(music);
+    } catch {
+        trackUrls[id] = null;
+    } finally {
+        trackFetching[id] = false;
     }
 }
 
@@ -118,6 +151,7 @@ export function audioCommand(id, a, b, c) {
     } else if (id === -8) {
         music.want = a;
         music.volume = 100;
+        if (a > 0) { requestTrack(a); }
         syncLayer(music);
     } else {
         ambient.want = a;

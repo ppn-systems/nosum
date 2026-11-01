@@ -139,6 +139,76 @@ public sealed class DayClockServiceTests
         dev.GetUtcNow().Should().Be(s_start);
     }
 
+    [Fact]
+    public void DevClock_AdvanceSeasons_MovesToTheStartOfEachLaterSeason()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+        long startMs = s_start.ToUnixTimeMilliseconds();
+        int startSeason = s_calendar.SeasonNumberAt(startMs);
+
+        long? now = service.AdvanceSeasons(2);
+
+        now.Should().Be(s_calendar.NextSeasonStartMs(s_calendar.NextSeasonStartMs(startMs)));
+        s_calendar.SeasonNumberAt(now!.Value).Should().Be(startSeason + 2);
+        dayClock.CurrentDay.Should().Be(s_calendar.DayNumberAt(now.Value));
+    }
+
+    [Fact]
+    public void DevClock_AdvanceSeasons_Zero_MovesToTheNextSpring()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+
+        long? now = service.AdvanceSeasons(0);
+
+        // Whatever season the run starts in, zero lands on Spring and never passes a season it is already in.
+        now.Should().NotBeNull();
+        s_calendar.SeasonAt(now!.Value).Should().Be(Season.Spring);
+        dev.GetUtcNow().ToUnixTimeMilliseconds().Should().Be(now.Value);
+        if (s_calendar.SeasonAt(s_start.ToUnixTimeMilliseconds()) == Season.Spring)
+        {
+            now.Value.Should().Be(s_start.ToUnixTimeMilliseconds());
+        }
+    }
+
+    [Fact]
+    public void DevClock_AdvanceSeasons_ZeroInSpring_ChangesNothing()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+        long spring = service.AdvanceSeasons(0)!.Value;
+
+        long? again = service.AdvanceSeasons(0);
+
+        again.Should().Be(spring);
+        s_calendar.SeasonAt(spring).Should().Be(Season.Spring);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(IDevClockService.MaxSeasons + 1)]
+    public void DevClock_AdvanceSeasons_OutOfRange_ChangesNothing(int seasons)
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+
+        service.AdvanceSeasons(seasons).Should().BeNull();
+        dev.GetUtcNow().Should().Be(s_start);
+    }
+
     // A clock whose timers fire when the test advances it, so the day boundary can be crossed without waiting.
     private sealed class ManualClock : TimeProvider
     {

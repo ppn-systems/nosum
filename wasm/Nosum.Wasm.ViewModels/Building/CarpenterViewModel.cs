@@ -7,10 +7,13 @@ using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Building;
 using Nosum.Gameplay.Animals;
 using Nosum.Gameplay.Buildings;
+using Nosum.Contracts.Pet;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Pets;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Market;
+using Nosum.Wasm.ViewModels.Pets;
 using Nosum.Wasm.ViewModels.Resources;
 
 namespace Nosum.Wasm.ViewModels.Building;
@@ -30,6 +33,39 @@ public sealed record BuildingOrder(BuildingKind Kind, string Name, string CostTe
 /// <param name="CanBuy">Whether the player has the coins.</param>
 public sealed record AnimalOffer(Guid BuildingId, string Title, AnimalKind Kind, string BuyLabel, bool CanBuy);
 
+/// <summary>One pet the carpenter sells (docs/adr/ADR-075 amendment): a cat or a dog, its price and whether the player can buy it now.</summary>
+/// <param name="Kind">The kind.</param>
+/// <param name="Name">Its name, localized.</param>
+/// <param name="PriceText">What it costs, as a line.</param>
+/// <param name="CanBuy">Whether the player has no pet yet and the coins for it.</param>
+public sealed record PetOffer(PetKind Kind, string Name, string PriceText, bool CanBuy);
+
+/// <summary>The tabs of the carpenter's counter (docs/design/ui-standard.md section 3): the goods of the shop, the buildings and animals, and the pets.</summary>
+public enum CarpenterTab : byte
+{
+    /// <summary>The goods the shop sells (hay, milk pail).</summary>
+    Goods = 0,
+
+    /// <summary>The blueprints and the animals for a finished building.</summary>
+    Buildings = 1,
+
+    /// <summary>The cat or the dog to buy.</summary>
+    Pets = 2,
+}
+
+/// <summary>Where the pet purchase is: nothing open, the name being typed, or the question to confirm. Nothing is sent before the confirm step.</summary>
+public enum PetPurchaseStep : byte
+{
+    /// <summary>No purchase is open.</summary>
+    None = 0,
+
+    /// <summary>A cat or a dog is chosen; the name is being typed.</summary>
+    Name = 1,
+
+    /// <summary>The kind, the name and the price are shown; Confirm sends the purchase, Cancel sends nothing.</summary>
+    Confirm = 2,
+}
+
 /// <summary>
 /// The carpenter's building and animal sections (docs/adr/ADR-028 D1, D3), shown under the supplies of the carpenter's shop page: the buildings to order a blueprint for, and
 /// the animals to buy for the player's finished buildings with the name the player types. The server decides and prices everything; this only offers what the player could afford
@@ -40,28 +76,76 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
     private readonly BuildingChannel _buildings;
     private readonly WalletChannel _wallet;
     private readonly InventoryChannel _inventory;
+    private readonly PetViewModel _pet;
     private string _animalName = string.Empty;
+    private string _petName = string.Empty;
+    private PetKind _chosenKind = PetKind.None;
+    private PetPurchaseStep _petStep = PetPurchaseStep.None;
+    private string _petError = string.Empty;
 
     /// <summary>Initializes the view model and subscribes to its channels.</summary>
     /// <param name="buildings">The building requests and the player's list.</param>
     /// <param name="wallet">The player's coins.</param>
     /// <param name="inventory">The player's wood and stone.</param>
+    /// <param name="pet">The player's pet: the carpenter sells cats and dogs through it.</param>
     /// <param name="text">The page texts.</param>
-    public CarpenterViewModel(BuildingChannel buildings, WalletChannel wallet, InventoryChannel inventory, IStringLocalizer<Language> text)
+    public CarpenterViewModel(BuildingChannel buildings, WalletChannel wallet, InventoryChannel inventory, PetViewModel pet, IStringLocalizer<Language> text)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(buildings);
         ArgumentNullException.ThrowIfNull(wallet);
         ArgumentNullException.ThrowIfNull(inventory);
+        ArgumentNullException.ThrowIfNull(pet);
 
         _buildings = buildings;
         _wallet = wallet;
         _inventory = inventory;
+        _pet = pet;
         buildings.Changed += this.Raise;
         buildings.Completed += this.OnCompleted;
         wallet.Changed += this.Raise;
         inventory.Changed += this.Raise;
+        pet.Changed += this.Raise;
+        pet.Completed += this.OnPetCompleted;
     }
+
+    /// <summary>Gets or sets the name typed for the next pet (a cat or a dog from the pet section).</summary>
+    public string PetName
+    {
+        get => _petName;
+        set
+        {
+            _petName = value ?? string.Empty;
+            this.Raise();
+        }
+    }
+
+    /// <summary>Gets the maximum allowed length for a pet's name.</summary>
+    public static int MaxPetNameLength => PetViewModel.MaxNameLength;
+
+    /// <summary>Gets whether the player already has a pet: the carpenter sells a new one only to a player without one.</summary>
+    public bool HasPet => _pet.HasPet;
+
+    /// <summary>Gets the cats and dogs the carpenter sells, with their prices.</summary>
+    public IReadOnlyList<PetOffer> PetOffers
+    {
+        get
+        {
+            PetOffer Offer(PetKind kind)
+            {
+                long price = PetRules.PriceOf((byte)kind);
+                return new PetOffer(kind, _pet.KindNameOf(kind), this.Text("Carpenter_PetPrice", Number(price)), !_pet.HasPet && _wallet.Coins >= price);
+            }
+
+            return [Offer(PetKind.Cat), Offer(PetKind.Dog)];
+        }
+    }
+
+    /// <summary>Gets the status of the last pet purchase, localized, or an empty string.</summary>
+    public string PetStatusText => _pet.Status;
+
+    /// <summary>Gets whether the pet status reports a success.</summary>
+    public bool PetStatusIsGood => _pet.StatusIsGood;
 
     /// <summary>Gets or sets the name typed for the next animal.</summary>
     public string AnimalName
@@ -129,6 +213,11 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
     {
         this.ClearStatus();
         _animalName = string.Empty;
+        _petName = string.Empty;
+        _chosenKind = PetKind.None;
+        _petStep = PetPurchaseStep.None;
+        _petError = string.Empty;
+        _pet.ClearStatus();
         _buildings.LoadMine();
         this.Raise();
     }
@@ -190,6 +279,116 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <summary>Gets where the pet purchase is: nothing open, the name being typed, or the question to confirm.</summary>
+    public PetPurchaseStep PetStep => _petStep;
+
+    /// <summary>Gets the kind chosen for the purchase, or <see cref="PetKind.None"/>.</summary>
+    public PetKind ChosenPetKind => _chosenKind;
+
+    /// <summary>Gets the message of the name step when the name is refused, or an empty string.</summary>
+    public string PetNameError => _petError;
+
+    /// <summary>Gets the heading of the name step: "Name your cat" or "Name your dog".</summary>
+    public string PetNameStepTitle => this.Text("Pet_NameStep", _pet.KindNameOf(_chosenKind));
+
+    /// <summary>Gets the text of the button that chooses a pet from its row.</summary>
+    public string PetChooseText => this.Text("Pet_Choose");
+
+    /// <summary>Gets the text of the button that goes on from the name step to the confirm question.</summary>
+    public string PetNextText => this.Text("Pet_NameNext");
+
+    /// <summary>Gets whether the confirm question is open.</summary>
+    public bool PetConfirmAsked => _petStep == PetPurchaseStep.Confirm;
+
+    /// <summary>Gets the title of the confirm box.</summary>
+    public string PetConfirmTitle => this.Text("Pet_BuyTitle");
+
+    /// <summary>Gets the question of the confirm box: the kind, the cleaned name and the price.</summary>
+    public string PetConfirmMessage => this.Text("Pet_BuyMessage", _pet.KindNameOf(_chosenKind), PetRules.CleanName(_petName), Number(PetRules.PriceOf((byte)_chosenKind)));
+
+    /// <summary>Gets the text of the confirm button.</summary>
+    public string PetConfirmText => this.Text("Pet_BuyConfirm");
+
+    /// <summary>Gets the text of the cancel button of the pet purchase.</summary>
+    public string PetCancelText => this.Text("Pet_BuyCancel");
+
+    /// <summary>Starts buying a cat or a dog: opens the name step. Nothing is sent.</summary>
+    /// <param name="kind">The kind: cat or dog.</param>
+    public void ChoosePet(PetKind kind)
+    {
+        if (this.HasPet || !PetRules.IsAdoptable((byte)kind))
+        {
+            return;
+        }
+
+        _chosenKind = kind;
+        _petStep = PetPurchaseStep.Name;
+        _petError = string.Empty;
+        _pet.ClearStatus();
+        this.Raise();
+    }
+
+    /// <summary>Starts buying a cat or a dog from its offer row. Nothing is sent.</summary>
+    /// <param name="offer">The pet offer row.</param>
+    /// <returns>A completed task.</returns>
+    public Task ChoosePetAsync(PetOffer offer)
+    {
+        ArgumentNullException.ThrowIfNull(offer);
+        this.ChoosePet(offer.Kind);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Goes on from the name step to the confirm question, when the name cleans to something. Nothing is sent.</summary>
+    public void ContinuePet()
+    {
+        if (_petStep != PetPurchaseStep.Name)
+        {
+            return;
+        }
+
+        if (PetRules.CleanName(_petName).Length == 0)
+        {
+            _petError = this.Text("Pet_Status_InvalidName");
+            this.Raise();
+            return;
+        }
+
+        _petError = string.Empty;
+        _petStep = PetPurchaseStep.Confirm;
+        this.Raise();
+    }
+
+    /// <summary>Closes the purchase without sending anything.</summary>
+    public void CancelPet()
+    {
+        if (_petStep == PetPurchaseStep.None)
+        {
+            return;
+        }
+
+        _petStep = PetPurchaseStep.None;
+        _chosenKind = PetKind.None;
+        _petError = string.Empty;
+        this.Raise();
+    }
+
+    /// <summary>Confirms the purchase: the only call that sends the adoption, with the cleaned name. The server charges the price and refuses a second pet.</summary>
+    public void ConfirmPet()
+    {
+        if (_petStep != PetPurchaseStep.Confirm || _chosenKind == PetKind.None)
+        {
+            return;
+        }
+
+        PetKind kind = _chosenKind;
+        string name = PetRules.CleanName(_petName);
+        _petStep = PetPurchaseStep.None;
+        _chosenKind = PetKind.None;
+        _petError = string.Empty;
+        this.Raise();
+        _pet.Adopt((byte)kind, name);
+    }
+
     /// <summary>Stops listening to the channels.</summary>
     public void Dispose()
     {
@@ -197,9 +396,20 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
         _buildings.Completed -= this.OnCompleted;
         _wallet.Changed -= this.Raise;
         _inventory.Changed -= this.Raise;
+        _pet.Changed -= this.Raise;
+        _pet.Completed -= this.OnPetCompleted;
     }
 
     private static string NicknameRulesNormalize(string typed) => Nosum.Gameplay.Players.NicknameRules.Normalize(typed);
+
+    private void OnPetCompleted(PetStatus status)
+    {
+        if (status == PetStatus.Ok)
+        {
+            _petName = string.Empty;
+            this.Raise();
+        }
+    }
 
     private void OnCompleted(BuildingResultInfo result)
     {

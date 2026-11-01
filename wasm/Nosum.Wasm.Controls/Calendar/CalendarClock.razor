@@ -1,10 +1,11 @@
 @inherits ObservingComponent<Nosum.Wasm.ViewModels.Calendar.CalendarViewModel>
 
-@* The season, the day of the season and the time of day, in the shared panel frame. Shows nothing until the server calendar is known. *@
+@* The season, the day of the season and the time of day, in the shared panel frame. Shows nothing until the server calendar is known.
+   A click or tap on the bar opens the Today card (docs/design/research-hud-and-loops.md, backlog item 7). *@
 @if (Vm.IsReady)
 {
     <GamePanel Class="hud calendar" Title="">
-        <p class="calendar-line" role="status" aria-label="@Vm.Summary">
+        <p class="calendar-line" role="button" aria-haspopup="dialog" aria-label="@Vm.Summary" data-tip="@Vm.TodayTip" @onclick="OnOpen">
             <span class="season-icon @Vm.SeasonKey" aria-hidden="true"></span>
             <span class="calendar-season">@Vm.SeasonName</span>
             <span class="calendar-day">@Vm.DayText</span>
@@ -15,4 +16,9 @@
             </span>
         </p>
     </GamePanel>
+}
+
+@code {
+    /// <summary>Opens the Today card; the host shows it in the centre window.</summary>
+    [Parameter] public EventCallback OnOpen { get; set; }
 }

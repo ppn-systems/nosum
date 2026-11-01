@@ -494,7 +494,7 @@ public sealed class AccountFormViewModelTests
     }
 
     private static AccountFormViewModel Create(IAccountClient client, FakeExternalSignIn signIn, ExternalSignInOptions? options = null)
-        => new(client, signIn, options ?? s_configured, Text());
+        => new(client, signIn, options ?? s_configured, Text(), new RememberedSessionViewModel(client, new MemoryRememberedSessionStore(), Text(), TimeProvider.System));
 
     // Signs in as the guest in the form (the session the upgrade starts from).
     private static async Task<AccountFormViewModel> GuestAsync(FakeClient client, FakeExternalSignIn signIn, ExternalSignInOptions? options = null)

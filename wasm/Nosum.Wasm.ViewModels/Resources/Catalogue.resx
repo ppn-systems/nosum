@@ -391,6 +391,16 @@
   <data name="Item_iron_greaves_Description" xml:space="preserve"><value>Giáp bảo vệ chân bằng sắt chống quái vật cắn (+5 Phòng thủ).</value></data>
   <data name="Item_iron_helmet_Name" xml:space="preserve"><value>Mũ chiến binh sắt</value></data>
   <data name="Item_iron_helmet_Description" xml:space="preserve"><value>Mũ sắt bảo vệ đầu khỏi các đòn chí mạng (+4 Phòng thủ).</value></data>
+  <data name="Item_leather_boots_Name" xml:space="preserve"><value>Giày da</value></data>
+  <data name="Item_leather_boots_Description" xml:space="preserve"><value>Đôi giày da đơn giản.</value></data>
+  <data name="Item_traveler_boots_Name" xml:space="preserve"><value>Giày du hành</value></data>
+  <data name="Item_traveler_boots_Description" xml:space="preserve"><value>Giày cao cổ cho những chuyến đi xa.</value></data>
+  <data name="Item_swift_boots_Name" xml:space="preserve"><value>Giày nhanh nhẹn</value></data>
+  <data name="Item_swift_boots_Description" xml:space="preserve"><value>Giày gọn nhẹ, đi nhanh hơn trên đường dài.</value></data>
+  <data name="Item_winged_boots_Name" xml:space="preserve"><value>Giày cánh bay</value></data>
+  <data name="Item_winged_boots_Description" xml:space="preserve"><value>Giày có cánh nhỏ ở mắt cá chân.</value></data>
+  <data name="Item_speed_tonic_Name" xml:space="preserve"><value>Thuốc tăng tốc</value></data>
+  <data name="Item_speed_tonic_Description" xml:space="preserve"><value>Một ngụm thuốc nhẹ giúp bước chân nhanh hơn trong 3 giờ game, dùng chung ô buff Nhanh nhẹn.</value></data>
   <data name="Item_ranger_tunic_Name" xml:space="preserve"><value>Áo chiến binh tuần rừng</value></data>
   <data name="Item_ranger_tunic_Description" xml:space="preserve"><value>Áo giáp da dơi linh hoạt gia cố sợi bền (+4 Phòng thủ).</value></data>
   <data name="Item_necromancer_skull_Name" xml:space="preserve"><value>Hộp sọ Hắc pháp sư</value></data>
@@ -498,4 +508,58 @@
   <data name="Item_golden_truffle_Name" xml:space="preserve"><value>Nấm truffle vàng</value></data>
   <data name="Item_golden_truffle_Description" xml:space="preserve"><value>Nấm truffle vàng từ heo được quý chủ chiều đến bốn trái tim. Bán được giá cao hơn nhiều.</value></data>
   <data name="Recipe_scarecrow_wool_Name" xml:space="preserve"><value>Bù nhìn nhồi len</value></data>
+  <data name="Quest_craft_rod_Title" xml:space="preserve"><value>Làm cần câu</value></data>
+  <data name="Quest_craft_rod_Hint" xml:space="preserve"><value>Làm một cần câu từ 5 gỗ và 4 sợi ở trang chế tạo trong menu. Bạn sẽ cần nó ở ao.</value></data>
+  <data name="Quest_craft_rod_Tip" xml:space="preserve"><value>Làm cần câu từ gỗ và sợi ở trang chế tạo.</value></data>
+  <data name="Quest_craft_rod_Objective_0" xml:space="preserve"><value>Chế tạo một cần câu</value></data>
+  <data name="Quest_catch_fish_Title" xml:space="preserve"><value>Câu một con cá</value></data>
+  <data name="Quest_catch_fish_Hint" xml:space="preserve"><value>Chọn cần câu, nhấn phím dùng ở ao để thả câu, và kéo lên khi cá cắn câu.</value></data>
+  <data name="Quest_catch_fish_Tip" xml:space="preserve"><value>Thả cần câu xuống ao và kéo một con cá lên.</value></data>
+  <data name="Quest_catch_fish_Objective_0" xml:space="preserve"><value>Kéo một con cá lên</value></data>
+  <data name="Quest_mine_ore_Title" xml:space="preserve"><value>Đào quặng đồng</value></data>
+  <data name="Quest_mine_ore_Hint" xml:space="preserve"><value>Xuống hầm mỏ và đập các mỏ quặng đồng bằng cuốc chim cho đến khi vỡ. Ba cái là đủ.</value></data>
+  <data name="Quest_mine_ore_Tip" xml:space="preserve"><value>Xuống hầm mỏ và đập vỡ ba quặng đồng bằng cuốc chim.</value></data>
+  <data name="Quest_mine_ore_Objective_0" xml:space="preserve"><value>Đập vỡ 3 quặng đồng</value></data>
+  <data name="Quest_slay_slime_Title" xml:space="preserve"><value>Hạ ba quái vật</value></data>
+  <data name="Quest_slay_slime_Hint" xml:space="preserve"><value>Chọn một thanh kiếm và tấn công những quái vật lang thang trong hầm mỏ và ngoài hoang dã. Hạ ba con.</value></data>
+  <data name="Quest_slay_slime_Tip" xml:space="preserve"><value>Dùng kiếm tấn công quái vật để hạ ba con.</value></data>
+  <data name="Quest_slay_slime_Objective_0" xml:space="preserve"><value>Hạ 3 quái vật</value></data>
+  <data name="Quest_upgrade_tool_Title" xml:space="preserve"><value>Nâng cấp dụng cụ</value></data>
+  <data name="Quest_upgrade_tool_Hint" xml:space="preserve"><value>Nung thanh đồng trong lò, rồi đứng ở quầy thợ rèn, trả xu và thanh đồng để nâng cấp một dụng cụ. Nhận nó sau một ngày.</value></data>
+  <data name="Quest_upgrade_tool_Tip" xml:space="preserve"><value>Nâng cấp dụng cụ ở thợ rèn và nhận lại sau một ngày.</value></data>
+  <data name="Quest_upgrade_tool_Objective_0" xml:space="preserve"><value>Nhận một dụng cụ đã nâng cấp</value></data>
+  <data name="Quest_build_coop_Title" xml:space="preserve"><value>Xây chuồng gà</value></data>
+  <data name="Quest_build_coop_Hint" xml:space="preserve"><value>Đặt hàng chuồng gà ở thợ mộc, rồi đặt bản vẽ lên nông trại. Chuồng gà nuôi gà và vịt.</value></data>
+  <data name="Quest_build_coop_Tip" xml:space="preserve"><value>Đặt hàng chuồng gà ở thợ mộc và đặt lên nông trại.</value></data>
+  <data name="Quest_build_coop_Objective_0" xml:space="preserve"><value>Đặt một chuồng gà</value></data>
+  <data name="Quest_buy_animal_Title" xml:space="preserve"><value>Mua một con vật</value></data>
+  <data name="Quest_buy_animal_Hint" xml:space="preserve"><value>Đứng ở thợ mộc khi đã có chuồng trên nông trại và mua một con vật cho chuồng.</value></data>
+  <data name="Quest_buy_animal_Tip" xml:space="preserve"><value>Mua gà hoặc bò ở thợ mộc cho chuồng của bạn.</value></data>
+  <data name="Quest_buy_animal_Objective_0" xml:space="preserve"><value>Mua một con vật</value></data>
+  <data name="Quest_cook_meal_Title" xml:space="preserve"><value>Nấu một đĩa salad</value></data>
+  <data name="Quest_cook_meal_Hint" xml:space="preserve"><value>Mở trang chế tạo và làm salad từ củ cải và súp lơ. Ăn sau để hồi năng lượng.</value></data>
+  <data name="Quest_cook_meal_Tip" xml:space="preserve"><value>Làm salad ở trang chế tạo.</value></data>
+  <data name="Quest_cook_meal_Objective_0" xml:space="preserve"><value>Nấu một đĩa salad</value></data>
+  <data name="Quest_eat_food_Title" xml:space="preserve"><value>Ăn một món</value></data>
+  <data name="Quest_eat_food_Hint" xml:space="preserve"><value>Chọn một món ăn trong túi hoặc thanh nhanh và dùng để hồi năng lượng.</value></data>
+  <data name="Quest_eat_food_Tip" xml:space="preserve"><value>Ăn một món để hồi năng lượng.</value></data>
+  <data name="Quest_eat_food_Objective_0" xml:space="preserve"><value>Ăn một món</value></data>
+  <data name="Quest_fill_request_Title" xml:space="preserve"><value>Hoàn thành một yêu cầu</value></data>
+  <data name="Quest_fill_request_Hint" xml:space="preserve"><value>Mở bảng yêu cầu trong menu và giao món đồ mà yêu cầu cần. Bạn được trả khi hoàn thành.</value></data>
+  <data name="Quest_fill_request_Tip" xml:space="preserve"><value>Hoàn thành một yêu cầu trên bảng thị trấn.</value></data>
+  <data name="Quest_fill_request_Objective_0" xml:space="preserve"><value>Hoàn thành một yêu cầu</value></data>
+  <data name="Quest_decorate_Title" xml:space="preserve"><value>Trang trí nông trại</value></data>
+  <data name="Quest_decorate_Hint" xml:space="preserve"><value>Chọn một món nội thất hoặc vật đặt từ túi và nhấn E để đặt xuống. Đặt ba món.</value></data>
+  <data name="Quest_decorate_Tip" xml:space="preserve"><value>Đặt xuống ba món nội thất hoặc vật trang trí.</value></data>
+  <data name="Quest_decorate_Objective_0" xml:space="preserve"><value>Đặt xuống 3 món</value></data>
+  <data name="Quest_adopt_pet_Title" xml:space="preserve"><value>Nhận nuôi thú cưng</value></data>
+  <data name="Quest_adopt_pet_Hint" xml:space="preserve"><value>Mua một con mèo hoặc chó ở quầy thợ mộc, rồi đặt tên cho bạn ấy.</value></data>
+  <data name="Quest_adopt_pet_Tip" xml:space="preserve"><value>Mua mèo hoặc chó ở quầy thợ mộc.</value></data>
+  <data name="Quest_adopt_pet_Objective_0" xml:space="preserve"><value>Nhận nuôi một thú cưng</value></data>
+  <data name="Quest_send_emote_Title" xml:space="preserve"><value>Gửi một biểu cảm</value></data>
+  <data name="Quest_send_emote_Hint" xml:space="preserve"><value>Chọn một biểu cảm và gửi để những người xung quanh thấy cảm xúc của bạn.</value></data>
+  <data name="Quest_send_emote_Tip" xml:space="preserve"><value>Gửi một biểu cảm cho những người xung quanh.</value></data>
+  <data name="Quest_send_emote_Objective_0" xml:space="preserve"><value>Gửi một biểu cảm</value></data>
+  <data name="Item_rename_scroll_Name" xml:space="preserve"><value>Cuộn đổi tên</value></data>
+  <data name="Item_rename_scroll_Description" xml:space="preserve"><value>Dùng để đổi biệt danh của bạn. Dùng xong sẽ mất.</value></data>
 </root>

@@ -2,6 +2,15 @@
 
 One entry per file or group of files, as [ADR-004](../../docs/adr/ADR-004-pixel-art-assets.md) D2 asks.
 
+## `ui/signin_background.png` (the sign-in backdrop)
+
+The original start-screen art (`start_background.png`, sky and sea, kept in git history at d2a3652) re-graded to lower saturation, lifted shadows and a pale blend (`tools/art_repack/signin_sky_regrade.py`). Geometry unchanged.
+
+| Field | Value |
+| :-- | :-- |
+| Made by | Nosum (`tools/art_repack/signin_sky_regrade.py`), from Nosum's own `start_background.png` |
+| License | Nosum's own art (ADR-004). |
+
 ## `source/pixellab/*.png`, `*.json`
 
 Corner (Wang) tilesets of two terrains each: 16 tiles of 16 × 16 px in a 64 × 64 sheet, with the metadata that names the corners of every tile. No tool reads these files now: the own maps are compiled from `source/layouts/` on the own tilesheets below, and the pixellab sets are kept as the source of the corner tiles.

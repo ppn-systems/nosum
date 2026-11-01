@@ -1,0 +1,27 @@
+1280x720 | signin | body font 25px
+1280x720 | hud | {"viewport":[1280,720],"hotbar":[250,600,922,708],"offscreen":[],"skillsOverlapSlots":false,"scrollers":[]}
+1280x720 | inventory | {"viewport":[1280,720],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"]}
+1280x720 | tooltip Speed tonic | {"viewport":[1280,720],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[366,25,636,231],"scrollH":182,"clientH":182,"onScreen":true,"fontPx":"25px"}}
+1280x720 | tooltip Leather boots | {"viewport":[1280,720],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[434,113,670,231],"scrollH":94,"clientH":94,"onScreen":true,"fontPx":"25px"}}
+1280x720 | tooltip Hoe | {"viewport":[1280,720],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[366,272,636,390],"scrollH":94,"clientH":94,"onScreen":true,"fontPx":"25px"}}
+1280x720 | settings | {"viewport":[1280,720],"hotbar":null,"offscreen":[],"scrollers":[]}
+1280x720 | merchant | {"viewport":[1280,720],"hotbar":null,"offscreen":[],"scrollers":[]}
+1280x720 | errors: none
+1920x1080 | signin | body font 37.5px
+1920x1080 | hud | {"viewport":[1920,1080],"hotbar":[310,880,1430,1060],"offscreen":[],"skillsOverlapSlots":false,"scrollers":[]}
+1920x1080 | inventory | {"viewport":[1920,1080],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"]}
+1920x1080 | tooltip Speed tonic | {"viewport":[1920,1080],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[503,137,953,385],"scrollH":208,"clientH":208,"onScreen":true,"fontPx":"25px"}}
+1920x1080 | tooltip Leather boots | {"viewport":[1920,1080],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[683,203,943,385],"scrollH":142,"clientH":142,"onScreen":true,"fontPx":"25px"}}
+1920x1080 | tooltip Hoe | {"viewport":[1920,1080],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[543,501,913,650],"scrollH":109,"clientH":109,"onScreen":true,"fontPx":"25px"}}
+1920x1080 | settings | {"viewport":[1920,1080],"hotbar":null,"offscreen":[],"scrollers":[]}
+1920x1080 | merchant | {"viewport":[1920,1080],"hotbar":null,"offscreen":[],"scrollers":[]}
+1920x1080 | errors: none
+390x844 | signin | body font 12.5px
+390x844 | hud | {"viewport":[390,844],"hotbar":[15,716,303,836],"offscreen":[],"skillsOverlapSlots":false,"scrollers":[]}
+390x844 | inventory | {"viewport":[390,844],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[104,387,284,484],"scrollH":86,"clientH":81,"onScreen":true,"fontPx":"25px"}}
+390x844 | tooltip Speed tonic | {"viewport":[390,844],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[2,235,182,376],"scrollH":130,"clientH":125,"onScreen":true,"fontPx":"25px"}}
+390x844 | tooltip Leather boots | {"viewport":[390,844],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[2,279,182,376],"scrollH":86,"clientH":81,"onScreen":true,"fontPx":"25px"}}
+390x844 | tooltip Hoe | {"viewport":[390,844],"hotbar":null,"offscreen":[],"scrollers":["menu-page-body"],"tip":{"box":[2,407,182,482],"scrollH":64,"clientH":59,"onScreen":true,"fontPx":"25px"}}
+390x844 | settings | {"viewport":[390,844],"hotbar":null,"offscreen":[],"scrollers":[]}
+390x844 | merchant | {"viewport":[390,844],"hotbar":null,"offscreen":[],"scrollers":[]}
+390x844 | errors: none

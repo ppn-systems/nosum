@@ -158,6 +158,7 @@ internal sealed partial class MapScene
     {
         this.SetWaiting(null);
         _content = next;
+        _layerEpoch++;
         _farmer = new Walker(_pending.X, _pending.Y, (Facing)(_pending.Facing & 3));
         _walkTime = 0;
         _phase = Phase.FadingIn;

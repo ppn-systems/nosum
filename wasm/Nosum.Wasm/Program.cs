@@ -49,6 +49,9 @@ internal static class Program
         await WebRenderBackend.ImportModuleAsync().ConfigureAwait(false);
         WebAssemblyHost host = builder.Build();
         ClientWiring.Connect(host.Services, devicePolicy);
+#if NOSUM_DEV_TOOLS
+        QaEntry.Install();
+#endif
 
         await host.RunAsync().ConfigureAwait(false);
     }

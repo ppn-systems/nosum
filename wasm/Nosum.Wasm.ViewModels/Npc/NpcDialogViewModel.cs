@@ -4,12 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.Localization;
+using Nosum.Contracts.Quest;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Npcs;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
 using Nosum.Gameplay.Weather;
 using Nosum.Wasm.Socket.Calendar;
+using Nosum.Wasm.Socket.Mine;
+using Nosum.Wasm.Socket.Quest;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Settings;
 
@@ -51,6 +55,15 @@ public enum NpcPage
 
     /// <summary>The Town board's goals and requests.</summary>
     Goals = 6,
+
+    /// <summary>The player's wardrobe: looks and clothes, from the tailor (docs/adr/ADR-081).</summary>
+    Wardrobe = 7,
+
+    /// <summary>The co-op page, from the board keeper (docs/adr/ADR-081).</summary>
+    Coop = 8,
+
+    /// <summary>The backpack page: the next size and its price, from the tailor (docs/adr/ADR-081).</summary>
+    Backpack = 9,
 }
 
 /// <summary>One button of the dialog box.</summary>
@@ -69,28 +82,48 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
     public static readonly TimeSpan RevealInterval = TimeSpan.FromMilliseconds(30);
 
     // The order of the buttons; Talk comes last before Leave.
-    private static readonly NpcActions[] s_order = [NpcActions.Buy, NpcActions.Sell, NpcActions.Build, NpcActions.Upgrade, NpcActions.Goals, NpcActions.Talk];
+    private static readonly NpcActions[] s_order =
+    [
+        NpcActions.Buy,
+        NpcActions.Sell,
+        NpcActions.Build,
+        NpcActions.Upgrade,
+        NpcActions.Goals,
+        NpcActions.Coop,
+        NpcActions.Wardrobe,
+        NpcActions.Backpack,
+        NpcActions.Talk,
+    ];
 
     private readonly IStringLocalizer<Language> _localizer;
     private readonly CalendarChannel _calendar;
+    private readonly QuestChannel _quests;
+    private readonly MineChannel _mine;
     private readonly SettingsViewModel? _settings;
     private readonly Timer _reveal;
-    private int _talkIndex;
-    private bool _talking;
+
+    // How many lines the conversation has had: zero for the greeting, one more for each Talk (docs/adr/ADR-080 D2).
+    private int _slot;
     private string _lineText = string.Empty;
     private int _revealed;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="text">UI text.</param>
-    /// <param name="calendar">The server calendar, for the season and weather a greeting may mention.</param>
+    /// <param name="calendar">The server calendar: the day, season, weather and hour a line may mention.</param>
+    /// <param name="quests">The player's quests: whether this is a new farmer, and whether the first harvest is in.</param>
+    /// <param name="mine">The player's mine progress: the deepest floor reached.</param>
     /// <param name="settings">The player's settings: with reduced motion on, a line appears at once instead of typing out. None means the full typewriter.</param>
-    public NpcDialogViewModel(IStringLocalizer<Language> text, CalendarChannel calendar, SettingsViewModel? settings = null)
+    public NpcDialogViewModel(IStringLocalizer<Language> text, CalendarChannel calendar, QuestChannel quests, MineChannel mine, SettingsViewModel? settings = null)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(calendar);
+        ArgumentNullException.ThrowIfNull(quests);
+        ArgumentNullException.ThrowIfNull(mine);
 
         _localizer = text;
         _calendar = calendar;
+        _quests = quests;
+        _mine = mine;
         _settings = settings;
         _reveal = new Timer(_ => this.RevealNext(), null, Timeout.Infinite, Timeout.Infinite);
     }
@@ -121,6 +154,9 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets whether the standalone dialog is showing the Town board goals page.</summary>
     public bool IsGoalsPage => this.Page == NpcPage.Goals;
+
+    /// <summary>Gets whether the standalone dialog is showing the backpack page (the tailor's next size).</summary>
+    public bool IsBackpackPage => this.Page == NpcPage.Backpack;
 
     /// <summary>Gets the merchant's name, localized.</summary>
     public string Name => this.Npc is null ? string.Empty : this.Text(this.Npc.TextKey("Name"));
@@ -175,6 +211,9 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
         NpcPage.Shop or NpcPage.Build or NpcPage.Upgrade => PanelKind.Shop,
         NpcPage.MarketBuy or NpcPage.MarketSell => PanelKind.Market,
         NpcPage.Goals => PanelKind.Goals,
+        NpcPage.Wardrobe => PanelKind.Wardrobe,
+        NpcPage.Coop => PanelKind.Coop,
+        NpcPage.Backpack => PanelKind.Backpack,
         _ => PanelKind.None,
     };
 
@@ -184,6 +223,9 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
         NpcPage.Shop or NpcPage.Build or NpcPage.Upgrade => ShopCatalog.TryGet(this.ShopId, out ShopDefinition? shop) ? this.Text("Shop_Title_" + shop.Key) : string.Empty,
         NpcPage.MarketBuy or NpcPage.MarketSell => this.Text("Toolbar_Market"),
         NpcPage.Goals => this.Text("Toolbar_Goals"),
+        NpcPage.Wardrobe => this.Text("Toolbar_Wardrobe"),
+        NpcPage.Coop => this.Text("Toolbar_Coop"),
+        NpcPage.Backpack => this.Text("Toolbar_Backpack"),
         _ => string.Empty,
     };
 
@@ -200,8 +242,7 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
         this.Npc = npc;
         this.Stage = NpcStage.Speaking;
         this.Page = NpcPage.None;
-        _talking = false;
-        _talkIndex = 0;
+        _slot = 0;
         this.SpeakCurrentLine();
         this.Raise();
         return true;
@@ -221,8 +262,7 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
             case NpcActions.Talk:
                 this.Stage = NpcStage.Speaking;
                 this.Page = NpcPage.None;
-                _talkIndex = _talking ? 1 - _talkIndex : 0;
-                _talking = true;
+                _slot++;
                 this.SpeakCurrentLine();
                 break;
             case NpcActions.Buy:
@@ -239,6 +279,15 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
                 break;
             case NpcActions.Goals:
                 this.Show(NpcPage.Goals);
+                break;
+            case NpcActions.Coop:
+                this.Show(NpcPage.Coop);
+                break;
+            case NpcActions.Wardrobe:
+                this.Show(NpcPage.Wardrobe);
+                break;
+            case NpcActions.Backpack:
+                this.Show(NpcPage.Backpack);
                 break;
             default:
                 return;
@@ -257,7 +306,7 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
 
         this.Stage = NpcStage.Speaking;
         this.Page = NpcPage.None;
-        _talking = false;
+        _slot = 0;
         this.SpeakCurrentLine();
         this.Raise();
     }
@@ -289,7 +338,7 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
         this.Npc = null;
         this.Stage = NpcStage.Closed;
         this.Page = NpcPage.None;
-        _talking = false;
+        _slot = 0;
         this.Raise();
     }
 
@@ -338,7 +387,7 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
 
     private string CurrentLine() => this.Npc is null
         ? string.Empty
-        : this.Text(_talking ? this.Npc.TextKey(_talkIndex == 0 ? "Talk1" : "Talk2") : this.GreetingKey(this.Npc));
+        : this.Text(NpcGreeting.KeyFor(this.Npc, this.Moment(), _slot, this.HasText));
 
     private void Show(NpcPage page)
     {
@@ -346,17 +395,36 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
         this.Page = page;
     }
 
-    // The greeting for today's weather and season. Until the calendar is read the plain greeting is shown.
-    private string GreetingKey(NpcDefinition npc)
+    // The moment now: the day, season, weather and hour while the calendar is known, and the farmer's progress either way.
+    private NpcLineContext Moment()
     {
+        bool newcomer = true;
+        bool harvested = false;
+        foreach (QuestInfo quest in _quests.Quests())
+        {
+            if (quest.State == QuestState.Completed)
+            {
+                newcomer = false;
+                harvested |= quest.QuestId == QuestCatalog.FirstHarvest;
+            }
+        }
+
+        bool deepMiner = _mine.DeepestFloor >= NpcLineContext.DeepMinerFloor;
         if (!_calendar.IsLoaded)
         {
-            return NpcGreeting.KeyFor(npc, null, null, this.HasText);
+            return NpcLineContext.Of(0, null, null, null, newcomer, harvested, deepMiner);
         }
 
         GameCalendar calendar = new(_calendar.EpochMs, _calendar.DayLengthMs);
         long now = _calendar.ServerNowMs();
-        return NpcGreeting.KeyFor(npc, WeatherRules.At(calendar, now), calendar.SeasonAt(now), this.HasText);
+        return NpcLineContext.Of(
+            calendar.DayNumberAt(now),
+            calendar.SeasonAt(now),
+            WeatherRules.At(calendar, now),
+            calendar.At(now).Hour,
+            newcomer,
+            harvested,
+            deepMiner);
     }
 
     private bool HasText(string key) => !_localizer[key].ResourceNotFound;

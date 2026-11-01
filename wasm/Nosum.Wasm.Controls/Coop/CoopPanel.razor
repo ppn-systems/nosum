@@ -24,7 +24,7 @@
                     <GameRow Class="center">
                         <span>@(inviter.Length > 0 ? Vm.Text("Coop_InviteMessageFrom", name, inviter) : name)</span>
                         <GameButton Text="@Vm.Text("Coop_Accept")" OnClick="@(() => Vm.Respond(inviteId, true))" />
-                        <GameButton Variant="plain" Text="@Vm.Text("Coop_Decline")" OnClick="@(() => Vm.Respond(inviteId, false))" />
+                        <GameButton Variant="secondary" Text="@Vm.Text("Coop_Decline")" OnClick="@(() => Vm.Respond(inviteId, false))" />
                     </GameRow>
                 }
             </GameSection>

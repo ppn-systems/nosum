@@ -1,5 +1,6 @@
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Market
+@using Nosum.Wasm.ViewModels.Shop
 @inherits ObservingComponent<MarketViewModel>
 
 @* The consignment market: browse and buy, list a stack, and the player's own listings. Every price and fee is the server's rule; this panel only asks and shows. *@
@@ -30,7 +31,7 @@
                         <span class="listing-seller">@listing.SellerText</span>
                     </span>
                     <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
-                    <GameButton Variant="plain" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />
+                    <GameButton Variant="secondary" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />
                     @if (listing.IsMine)
                     {
                         <span>@Vm.Text("Market_YourListing")</span>
@@ -49,11 +50,17 @@
         else if (Vm.Tab == MarketTab.Sell)
         {
             <GameSection>
-                <ItemGrid Slots="Vm.InventorySlots" Columns="9" Picked="@(Vm.SellItem?.Index ?? -1)" OnSlotClick="@(i => Vm.PickSellSlot(i))" />
+                @* The menu page keeps one u of padding on the right (its scrollbar gutter), which would centre the grid 1.5 px left of the panel body. *@
+                <div class="market-sell-grid">
+                    <ItemGrid Slots="Vm.InventorySlots" Columns="9" Picked="@(Vm.SellItem?.Index ?? -1)" OnSlotClick="@(i => Vm.PickSellSlot(i))" />
+                </div>
             </GameSection>
             @if (Vm.SellItem is { } item)
             {
-                @* Two lines: what and how many; then the price, what the player gets, and the button. *@
+                @* Two lines: what and how many; then the price, what the player gets, and the button. The presets set the quantity (one, five, the stack). *@
+                <GameRow Class="center">
+                    <TabBar Tabs="SellPresetTabs()" Active="Vm.ActiveSellPreset" OnSelect="SelectSellPreset" />
+                </GameRow>
                 <div class="sell-form">
                     <span class="sell-name">@item.Name</span>
                     <span>@Vm.Text("Market_Quantity")</span>
@@ -69,6 +76,15 @@
                         <span class="market-fee sell-fee">@Vm.FeeSummary</span>
                     }
                 </div>
+                @if (Vm.PendingListing is not null)
+                {
+                    @* A large stack waits for the seller's confirm before it is listed (issue #215, the same rule as a bulk purchase). *@
+                    <GameNotice Kind="info" Text="@Vm.PendingListingText" />
+                    <GameRow Class="center">
+                        <GameButton Text="@Vm.Text("Shop_Confirm_Yes")" OnClick="Vm.ConfirmListing" />
+                        <GameButton Variant="secondary" Text="@Vm.Text("Shop_Confirm_No")" OnClick="Vm.CancelListing" />
+                    </GameRow>
+                }
                 <PriceHistoryCard Vm="Vm" Compact="true" />
             }
             else
@@ -102,4 +118,13 @@
     private string _search = string.Empty;
 
     protected override void OnInitialized() => Vm.Open();
+
+    private IReadOnlyList<(int Id, string Label)> SellPresetTabs() =>
+    [
+        (ShopViewModel.PresetOne, Vm.PresetLabel(ShopViewModel.PresetOne)),
+        (ShopViewModel.PresetFive, Vm.PresetLabel(ShopViewModel.PresetFive)),
+        (ShopViewModel.PresetAll, Vm.PresetLabel(ShopViewModel.PresetAll)),
+    ];
+
+    private void SelectSellPreset(int preset) => Vm.ChooseSellPreset(preset);
 }

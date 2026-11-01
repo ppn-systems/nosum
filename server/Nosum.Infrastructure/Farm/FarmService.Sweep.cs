@@ -57,7 +57,7 @@ public sealed partial class FarmService
                         continue;
                     }
 
-                    tiles.Add(new FarmTileView(tile.Key.X, tile.Key.Y, tile.Value));
+                    tiles.Add(new FarmTileView(tile.Key.X, tile.Key.Y, tile.Value, this.IsWitheredAt(player.Instance, tile.Key.X, tile.Key.Y, tile.Value, nowMs)));
                 }
             }
 
@@ -89,7 +89,7 @@ public sealed partial class FarmService
                         continue;
                     }
 
-                    state.FarmTiles.Add(ToRow(tile.Key.X, tile.Key.Y, tile.Value));
+                    state.FarmTiles.Add(ToRow(tile.Key.X, tile.Key.Y, tile.Value, this.IsWitheredAt(instance, tile.Key.X, tile.Key.Y, tile.Value, nowMs)));
                 }
             }
         }
@@ -127,7 +127,11 @@ public sealed partial class FarmService
         return found;
     }
 
-    private static FarmTileRow ToRow(int x, int y, FarmTile tile)
+    // Whether the crop on the tile has withered now: the flag every tile row carries, so the client never guesses it (docs/adr/ADR-021 D7).
+    private bool IsWitheredAt(MapInstance instance, int x, int y, FarmTile tile, long nowMs)
+        => tile.HasCrop && FarmRules.IsWithered(tile, nowMs, _calendar, instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(instance, x, y));
+
+    private static FarmTileRow ToRow(int x, int y, FarmTile tile, bool withered)
     {
         FarmTileRow row = FarmTileRow.Create();
         row.X = (ushort)x;
@@ -137,6 +141,7 @@ public sealed partial class FarmService
         row.GrowthDays = tile.GrowthDays;
         row.WateredDay = tile.WateredDay;
         row.TendedDay = tile.TendedDay;
+        row.Withered = withered;
         return row;
     }
 
@@ -193,7 +198,7 @@ public sealed partial class FarmService
     // A tile as the player sees it: null when it was never tilled or its bare soil has reverted. A reverted tile may still sit in memory and in
     // PostgreSQL until the next day sweep; whoever tills it again overwrites it.
     private FarmTile? LiveTile(MapFarm farm, MapInstance instance, int x, int y, long nowMs)
-        => farm.TryGet(x, y, out FarmTile found) && !FarmRules.IsReverted(found, instance.Key, x, y, nowMs, _calendar, instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(instance, x, y)) ? found : null;
+        => farm.TryGet(x, y, out FarmTile found) && !FarmRules.IsReverted(found, nowMs, _calendar, instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(instance, x, y)) ? found : null;
 
     private void OnDayEnded(GameDayEnded ended)
     {
@@ -226,6 +231,7 @@ public sealed partial class FarmService
         MapInstance instance = farm.Instance;
         List<(int X, int Y)> gone = [];
         Dictionary<(int X, int Y), FarmTile> settled = [];
+        List<(int X, int Y)> dried = [];
         using (await _mapLocks.EnterAsync(instance.Key, CancellationToken.None).ConfigureAwait(false))
         {
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
@@ -235,10 +241,18 @@ public sealed partial class FarmService
                 foreach (KeyValuePair<(int X, int Y), FarmTile> tile in chunk.Value)
                 {
                     long? sinceMs = _placed?.SprinklerWateredSinceMs(instance, tile.Key.X, tile.Key.Y);
-                    if (FarmRules.IsReverted(tile.Value, instance.Key, tile.Key.X, tile.Key.Y, nowMs, _calendar, instance.IsOutdoors, sinceMs))
+                    if (FarmRules.IsReverted(tile.Value, nowMs, _calendar, instance.IsOutdoors, sinceMs))
                     {
                         gone.Add(tile.Key);
                         continue;
+                    }
+
+                    // A crop that went dry (or past its season) at this day's end is sent again, so every client draws it withered now.
+                    if (tile.Value.HasCrop
+                        && FarmRules.IsWithered(tile.Value, nowMs, _calendar, instance.IsOutdoors, sinceMs)
+                        && !FarmRules.IsWithered(tile.Value, nowMs - _calendar.DayLengthMs, _calendar, instance.IsOutdoors, sinceMs))
+                    {
+                        dried.Add(tile.Key);
                     }
 
                     // A sprinkler that stood through the day that ended waters the tile; that is settled into the growth now, so it is saved and sent with the rest.
@@ -260,7 +274,7 @@ public sealed partial class FarmService
                 }
             }
 
-            if (gone.Count == 0 && settled.Count == 0)
+            if (gone.Count == 0 && settled.Count == 0 && dried.Count == 0)
             {
                 return;
             }
@@ -298,6 +312,7 @@ public sealed partial class FarmService
         }
 
         // Every tile the sweep changed goes to the subscribers of its chunk, removed or watered alike, one batch per chunk (docs/adr/ADR-022 D4).
+        long batchNowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
         List<(ChunkCoord Chunk, FarmTileRow Row)> changes = [];
         foreach ((int X, int Y) key in gone)
         {
@@ -306,7 +321,15 @@ public sealed partial class FarmService
 
         foreach (KeyValuePair<(int X, int Y), FarmTile> pair in settled)
         {
-            changes.Add((ChunkCoord.OfTile(pair.Key.X, pair.Key.Y), ToRow(pair.Key.X, pair.Key.Y, pair.Value)));
+            changes.Add((ChunkCoord.OfTile(pair.Key.X, pair.Key.Y), ToRow(pair.Key.X, pair.Key.Y, pair.Value, this.IsWitheredAt(instance, pair.Key.X, pair.Key.Y, pair.Value, batchNowMs))));
+        }
+
+        foreach ((int X, int Y) key in dried)
+        {
+            if (!settled.ContainsKey(key) && farm.TryGet(key.X, key.Y, out FarmTile dry))
+            {
+                changes.Add((ChunkCoord.OfTile(key.X, key.Y), ToRow(key.X, key.Y, dry, this.IsWitheredAt(instance, key.X, key.Y, dry, batchNowMs))));
+            }
         }
 
         const int BatchSize = 64;

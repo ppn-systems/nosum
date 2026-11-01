@@ -1,0 +1,50 @@
+/* The game menu's tiles: a grid of square buttons, the sprite over the name and the key. Each tile is 40 u wide, the touch target is 14 u or more. */
+.game-menu-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 40), 1fr));
+    gap: var(--nosum-gap);
+}
+
+.game-menu-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--u);
+    min-height: calc(var(--u) * 40);
+    padding: calc(var(--u) * 2);
+    border: 0;
+    background: var(--nosum-parchment-deep, var(--nosum-parchment));
+    color: var(--nosum-ink);
+    font: 400 var(--nosum-fs-body) / var(--nosum-lh) var(--nosum-font);
+    image-rendering: pixelated;
+    cursor: var(--nosum-cursor-pointer, pointer);
+}
+
+.game-menu-tile:hover {
+    filter: brightness(1.08);
+}
+
+.game-menu-tile:focus-visible {
+    outline: calc(var(--u) * 1) solid var(--nosum-ink);
+    outline-offset: calc(var(--u) * -1);
+}
+
+.game-menu-tile-art {
+    display: block;
+    flex: none;
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 16);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+}
+
+.game-menu-tile-name {
+    text-align: center;
+}
+
+.game-menu-tile-key {
+    font-size: var(--nosum-fs-small);
+    color: var(--nosum-ink-soft);
+}

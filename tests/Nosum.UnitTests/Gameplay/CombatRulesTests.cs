@@ -62,13 +62,13 @@ public sealed class CombatRulesTests
     public void Potions_RestoreExpectedHpAndMp()
     {
         CombatRules.IsPotion(ItemCatalog.HealthPotion).Should().BeTrue();
-        CombatRules.PotionRestore(ItemCatalog.HealthPotion).Should().Be((50, 0));
+        CombatRules.PotionRestore(ItemCatalog.HealthPotion).Should().Be((215, 0));
 
         CombatRules.IsPotion(ItemCatalog.ManaPotion).Should().BeTrue();
         CombatRules.PotionRestore(ItemCatalog.ManaPotion).Should().Be((0, 35));
 
         CombatRules.IsPotion(ItemCatalog.Elixir).Should().BeTrue();
-        CombatRules.PotionRestore(ItemCatalog.Elixir).Should().Be((100, 50));
+        CombatRules.PotionRestore(ItemCatalog.Elixir).Should().Be((250, 50));
 
         CombatRules.IsPotion(ItemCatalog.Wood).Should().BeFalse();
     }
@@ -211,18 +211,18 @@ public sealed class CombatRulesTests
     [Fact]
     public void DefenseAndArmorSystem_CalculatesDefenseAndMitigatesDamage()
     {
-        CombatRules.ArmorDefense(ItemCatalog.BossCrown).Should().Be(8);
-        CombatRules.ArmorDefense(ItemCatalog.IronChestplate).Should().Be(7);
-        CombatRules.ArmorDefense(ItemCatalog.IronGreaves).Should().Be(5);
-        CombatRules.ArmorDefense(ItemCatalog.IronHelmet).Should().Be(4);
-        CombatRules.ArmorDefense(ItemCatalog.LeatherArmor).Should().Be(3);
+        CombatRules.ArmorDefense(ItemCatalog.BossCrown).Should().Be(6);
+        CombatRules.ArmorDefense(ItemCatalog.IronChestplate).Should().Be(5);
+        CombatRules.ArmorDefense(ItemCatalog.IronGreaves).Should().Be(3);
+        CombatRules.ArmorDefense(ItemCatalog.IronHelmet).Should().Be(2);
+        CombatRules.ArmorDefense(ItemCatalog.LeatherArmor).Should().Be(2);
         CombatRules.ArmorDefense(ItemCatalog.Wood).Should().Be(0);
 
         int totalDefense = CombatRules.CalculateDefense(ItemCatalog.IronHelmet, ItemCatalog.IronChestplate, ItemCatalog.IronGreaves);
-        totalDefense.Should().Be(4 + 7 + 5);
+        totalDefense.Should().Be(2 + 5 + 3);
 
-        // Raw damage 20 mitigated by 16 defense -> 4 damage
-        CombatRules.MitigateDamage(20, totalDefense).Should().Be(4);
+        // Raw damage 20 mitigated by 10 defense -> 10 damage
+        CombatRules.MitigateDamage(20, totalDefense).Should().Be(10);
 
         // High defense still allows minimum 1 damage
         CombatRules.MitigateDamage(10, 50).Should().Be(1);
@@ -389,15 +389,15 @@ public sealed class CombatRulesTests
     [Fact]
     public void AncientRelics_AndRangerTunic_HaveExpectedDefenseRestoreEffectAndSprites()
     {
-        CombatRules.ArmorDefense(ItemCatalog.RangerTunic).Should().Be(4);
-        CombatRules.CalculateDefense(ItemCatalog.IronHelmet, ItemCatalog.RangerTunic, ItemCatalog.IronGreaves).Should().Be(4 + 4 + 5);
+        CombatRules.ArmorDefense(ItemCatalog.RangerTunic).Should().Be(3);
+        CombatRules.CalculateDefense(ItemCatalog.IronHelmet, ItemCatalog.RangerTunic, ItemCatalog.IronGreaves).Should().Be(2 + 3 + 3);
 
         CombatRules.IsPotion(ItemCatalog.ArcaneGrimoire).Should().BeTrue();
         CombatRules.PotionRestore(ItemCatalog.ArcaneGrimoire).Should().Be((20, 80));
         CombatRules.PotionEffect(ItemCatalog.ArcaneGrimoire).Should().Be((StatusEffectKind.Swiftness, 30, 1));
 
         CombatRules.IsPotion(ItemCatalog.HeartCrystal).Should().BeTrue();
-        CombatRules.PotionRestore(ItemCatalog.HeartCrystal).Should().Be((80, 25));
+        CombatRules.PotionRestore(ItemCatalog.HeartCrystal).Should().Be((215, 25));
         CombatRules.PotionEffect(ItemCatalog.HeartCrystal).Should().Be((StatusEffectKind.Regeneration, 40, 8));
 
         ItemCatalog.TryGet(ItemCatalog.NecromancerSkull, out ItemDefinition? skull).Should().BeTrue();

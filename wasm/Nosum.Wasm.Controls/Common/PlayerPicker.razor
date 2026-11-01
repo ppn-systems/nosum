@@ -10,7 +10,7 @@ else
         @foreach (PlayerChoice player in Players)
         {
             uint id = player.Id;
-            <GameButton Variant="plain" Text="@(player.Label + " - " + ActionText)" OnClick="() => OnPick.InvokeAsync(id)" />
+            <GameButton Variant="secondary" Text="@(player.Label + " - " + ActionText)" OnClick="() => OnPick.InvokeAsync(id)" />
         }
     </GameRow>
 }

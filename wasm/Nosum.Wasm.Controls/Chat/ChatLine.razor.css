@@ -97,3 +97,16 @@
     flex: 1 1 auto;
     width: auto;
 }
+
+/* A name you can whisper to: the same text as a sender, underlined, with no button face, so a chat line keeps its height (docs/design/ui-standard.md section 8). */
+.chat-sender-whisper {
+    text-decoration: underline;
+    text-underline-offset: calc(var(--u) * 1);
+    cursor: var(--nosum-cursor-pointer, pointer);
+    pointer-events: auto;
+}
+
+.chat-sender-whisper:focus-visible {
+    outline: var(--u) solid var(--nosum-focus);
+    outline-offset: var(--u);
+}

@@ -1,0 +1,12 @@
+1280x720 | bag column button found: true
+1280x720 | bag | {"box":[259,96,762,555],"inner":40}
+1280x720 | craft column button found: true
+1280x720 | errors: none
+1920x1080 | bag column button found: true
+1920x1080 | bag | {"box":[325,160,1270,900],"inner":40}
+1920x1080 | craft column button found: true
+1920x1080 | errors: none
+390x844 | bag column button found: true
+390x844 | bag | {"box":[8,120,374,487],"inner":40}
+390x844 | craft column button found: true
+390x844 | errors: none

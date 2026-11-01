@@ -20,11 +20,11 @@ Severity: **H** a player is blocked or loses something; **M** a player is confus
 | 5 | M | **Picking a piece up gives no confirmation.** Stow (Q) moves the piece into the bag silently; the only sign is the bag count. | `before/desktop-en/06-after-stow.png` (no message, count changes) | **Fixed:** "Stowed in your bag. You can place it again any time." on success (`after/phone-en/08-stow-confirmation.png`, `after/desktop-en/08-stow-confirmation.png`). |
 | 6 | M | **Q with no piece in front does nothing, and says nothing.** | `before/desktop-en/06-after-stow.png` | **Open.** Suggest a message "Không có gì phía trước" / "Nothing in front of you". |
 | 7 | H | **Building placement cannot be undone.** A finished farm building cannot be moved or stowed (server: `Fixed`), and one E press places it. | server `PlaceableService` refuses `Fixed`; no confirmation on the client | **Fixed:** the first press on a valid building arms a confirmation shown on the strip line ("…cannot be moved or stowed. Press E again to build here."); a second press on the same tile within 6 s builds. Unit-tested (`BuildConfirmationTests`); **not browser-played** (no carpenter in this session). |
-| 8 | M | **The furniture panel hides the room.** Left third of the room at 1280×720; most of it on the phone. The room is what the player is arranging. | `before/desktop-en/02-ghost-open-floor.png`, `before/phone-en/02-ghost-open-floor.png` | **Open** (UI standard §2, §3: the panel is in the centre region, but it covers the world it edits). A follow-up should make it collapsible or move the list to a sheet at phone width. |
-| 9 | L | **"Furniture" title overlaps the category chips** (the title's lower half sits under the chips). | `before/desktop-en/02-ghost-open-floor.png` | **Open** (UI standard §3, check 6). |
-| 10 | L | **"Stow" is clipped at the strip's right edge** ("Sto" + cut). | `before/desktop-en/02-ghost-open-floor.png`, `after/desktop-en/02-ghost-open-floor.png` | **Open** (UI standard check 6). |
-| 11 | M | **The message line is clipped by the hotbar** at 1280×720: the second line of a toast sits behind the hotbar frame. Pre-existing; the new stow line shows it too. | `after/desktop-vi/08-stow-confirmation.png` (the Vietnamese line sits behind the hotbar frame) | **Open** (UI standard §2 "toast line above the hotbar"). |
-| 12 | M | **On the phone, the menu column overlaps the furniture panel** (the right-hand icons cover the end of the category row, "Plants"/"Pets"). | `before/phone-en/02-ghost-open-floor.png` | **Open** (UI standard §6: the menu collapses to one "Menu" button at 390×844; it does not here, in this window). |
+| 8 | M | **The furniture panel hides the room.** Left third of the room at 1280×720; most of it on the phone. The room is what the player is arranging. | `before/desktop-en/02-ghost-open-floor.png`, `before/phone-en/02-ghost-open-floor.png` | **Open** (UI standard §2, §3). On the merged master the panel is a centred modal that covers the whole room at 1280×720 (`after/desktop-en/05-ghost-over-bed-or-table.png`), so the arranging still happens blind. A follow-up should make it collapsible or move the list to a side sheet. |
+| 9 | L | **"Furniture" title overlaps the category chips** (the title's lower half sits under the chips). | `before/desktop-en/02-ghost-open-floor.png` | **Resolved on master** (its panel layout; re-checked: `after/desktop-en/05-…`, the title is clear). |
+| 10 | L | **"Stow" is clipped at the strip's right edge** ("Sto" + cut). | `before/desktop-en/02-ghost-open-floor.png`, `after/desktop-en/02-ghost-open-floor.png` | **Resolved on master** (re-checked: `after/desktop-en/05-…`, "Stow" is whole). |
+| 11 | M | **The message line is clipped by the hotbar** at 1280×720: the second line of a toast sits behind the hotbar frame. Pre-existing; the new stow line shows it too. | `after/desktop-vi/08-stow-confirmation.png` (the Vietnamese line sits behind the hotbar frame) | **Resolved on master** (re-checked: `after/desktop-vi/08-stow-confirmation.png`, the line sits above the hotbar). |
+| 12 | M | **On the phone, the menu column overlaps the furniture panel** (the right-hand icons cover the end of the category row, "Plants"/"Pets"). | `before/phone-en/02-ghost-open-floor.png` | **Resolved on master** (re-checked: `after/phone-en/02-ghost-open-floor.png`, the menu is collapsed at 390×844). |
 | 13 | L | **A farm hint shows in the farmhouse** ("Select the hoe and press the use key…") while the player is arranging furniture. | `before/desktop-en/02-ghost-open-floor.png` | **Open** (onboarding hint should follow the map). |
 
 ## Preview clarity (valid / invalid)
@@ -78,3 +78,12 @@ Severity: **H** a player is blocked or loses something; **M** a player is confus
 3. Layout pass for the strip, the furniture title, the message line and the phone menu column (findings 9–12).
 4. Q with nothing in front says why (finding 6).
 5. Play the carpenter, chest and sprinkler flows through the same script (not done).
+
+## Re-check on the merged master
+
+This branch was merged with `origin/master` at `6f3784a` (#286). Master changed the placement panel layout (a centred modal with the strip inside it, and a collapsed phone menu), so the "after" frames were captured again on the merged build. Findings 9 to 12 are resolved by that layout change, not by this PR. Finding 8 remains: the modal covers the room. Finding 13 remains.
+
+The "before" frames were captured on the earlier base (`035d354`), before master's layout change, so comparing them with the merged "after" frames shows master's changes as well as this PR's. They are kept as the record of the pre-change state.
+
+Master's `ThemeSpritesTests` asserted that E stayed a plain chip span. This PR makes E a button (finding 4), so that one assertion now checks for the Place request instead.
+

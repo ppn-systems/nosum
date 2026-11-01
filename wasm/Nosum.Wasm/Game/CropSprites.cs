@@ -42,4 +42,17 @@ internal static class CropSprites
         sourceY = 0;
         return false;
     }
+
+    /// <summary>
+    /// Finds the withered picture: a dry, brown plant drawn in the same 16 x 32 cell as the crops (the bottom half is the picture). It is one
+    /// shared frame for every crop, so a withered crop reads as dead rather than as a tinted growth stage (tools/art_repack/crops.py).
+    /// </summary>
+    /// <param name="sourceX">Left edge of the frame in the sheet.</param>
+    /// <param name="sourceY">Top edge of the frame in the sheet.</param>
+    public static void WitheredFrame(out int sourceX, out int sourceY)
+    {
+        // Row 0 (even: x 0 to 127), frame 1, which no crop's growth stage uses.
+        sourceX = 1 * FrameWidth;
+        sourceY = 0;
+    }
 }

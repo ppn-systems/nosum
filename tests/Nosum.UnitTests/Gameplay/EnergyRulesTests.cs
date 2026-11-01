@@ -11,18 +11,19 @@ namespace Nosum.UnitTests.Gameplay;
 public sealed class EnergyRulesTests
 {
     [Theory]
-    [InlineData(ToolKind.Hoe, 2)]
-    [InlineData(ToolKind.WateringCan, 2)]
-    [InlineData(ToolKind.Axe, 2)]
-    [InlineData(ToolKind.Pickaxe, 2)]
+    [InlineData(ToolKind.Hoe, 3)]
+    [InlineData(ToolKind.WateringCan, 3)]
+    [InlineData(ToolKind.Axe, 3)]
+    [InlineData(ToolKind.Pickaxe, 3)]
     [InlineData(ToolKind.Scythe, 0)]
     [InlineData(ToolKind.None, 0)]
     public void BaseCost_PerTool_MatchesTheAdr(ToolKind tool, int expected) => EnergyRules.BaseCost(tool).Should().Be(expected);
 
     [Theory]
-    [InlineData(0, 2)]
-    [InlineData(3, 2)]
-    [InlineData(4, 1)]
+    [InlineData(0, 3)]
+    [InlineData(3, 3)]
+    [InlineData(4, 2)]
+    [InlineData(7, 2)]
     [InlineData(8, 1)]
     [InlineData(10, 1)]
     public void Cost_EveryFourLevelsTakesOffOne_ButNeverBelowOne(int level, int expected) => EnergyRules.Cost(ToolKind.Hoe, level).Should().Be(expected);
