@@ -52,8 +52,8 @@ public static class AudioMix
     /// <summary>Stingers and rare cues (level up, combo finisher, doorbell, mail, craft, thunder): heard over the music when they play.</summary>
     public const double Stinger = -16.0;
 
-    /// <summary>Footsteps: felt under the tools, and about five decibels under the music at full volume.</summary>
-    public const double Footstep = -18.0;
+    /// <summary>Footsteps: felt under the tools, and about 3.6 decibels under the music at the hook's volume (70; docs/adr/ADR-090 amendment).</summary>
+    public const double Footstep = -16.5;
 
     /// <summary>Interface clicks, panel open and close: short and quiet.</summary>
     public const double Interface = -18.0;
