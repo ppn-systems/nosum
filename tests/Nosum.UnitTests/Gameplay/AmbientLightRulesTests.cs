@@ -91,6 +91,22 @@ public sealed class AmbientLightRulesTests
     public void At_InRainAtNight_IsDarkerThanClearNight()
         => AmbientLightRules.At(Minute(22), WeatherKind.Rain, indoors: false).A.Should().BeGreaterThan(AmbientLightRules.At(Minute(22), WeatherKind.Sun, indoors: false).A);
 
+    [Theory]
+    [InlineData(WeatherKind.Rain)]
+    [InlineData(WeatherKind.Storm)]
+    public void At_InWeatherAtNight_AddsLessOpacityThanAtNoon(WeatherKind weather)
+    {
+        int atNoon = AmbientLightRules.At(Minute(12), weather, indoors: false).A - AmbientLightRules.At(Minute(12), WeatherKind.Sun, indoors: false).A;
+        int atNight = AmbientLightRules.At(Minute(22), weather, indoors: false).A - AmbientLightRules.At(Minute(22), WeatherKind.Sun, indoors: false).A;
+
+        atNight.Should().BeGreaterThan(0, "the weather is still felt at night");
+        atNight.Should().BeLessThan(atNoon, "the night tint is already dark, so the weather adds only a share of the light that is left");
+    }
+
+    [Fact]
+    public void At_InStormAtNight_KeepsTheSpritesReadable()
+        => AmbientLightRules.At(Minute(22), WeatherKind.Storm, indoors: false).A.Should().BeLessThanOrEqualTo(200, "a rainy night must not crush the farm to a dark blue");
+
     [Fact]
     public void At_IndoorsByDay_HasNoTintEvenInRain()
         => AmbientLightRules.At(Minute(12), WeatherKind.Storm, indoors: true).IsVisible.Should().BeFalse();

@@ -44,3 +44,11 @@ The keys for the new panels need input bits. The frame's `int` packs four held d
   so a change to the HUD's system column needs this constant changed with it.
 - A new key needs a bit in `InputEdges`, and the packing has room for four more edges (bits 27 to 30) before this ADR's layout is widened again.
 - Discovery is written in the grant transaction, so every grant pays one extra row write, and the database budget tests count it.
+
+## Amendments
+
+### 2026-11-01 — merchants on the minimap (rebuild-world-ambience)
+
+- An NPC that buys or sells (`NpcActions.Buy`) is drawn as a **white** minimap dot; an NPC who only talks stays orange. The rule is
+  `MinimapMarkerRules.NpcColour` (pure, tested). Exits keep their purple dot. The markers are built once per map, so no per-frame cost.
+- Evidence: `docs/design/critique-world-ambience.md` (section 3.2) and `docs/qa/rebuild-world-ambience/minimap-town-before-after-4x.png`.

@@ -1,0 +1,120 @@
+[
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "farm",
+    "calendar": "Winter Day 5 12:51 PM 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/rebuild-world-ambience/after/en/1280x720/snow-winter-snow-farm.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "town",
+    "calendar": "Winter Day 5 12:51 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/after/en/1280x720/snow-winter-snow-town.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "beach",
+    "calendar": "Winter Day 5 12:51 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/after/en/1280x720/snow-winter-snow-beach.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "forest",
+    "calendar": "Winter Day 5 12:52 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/after/en/1280x720/snow-winter-snow-forest.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "mine1",
+    "calendar": "Winter Day 5 12:52 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/after/en/1280x720/snow-winter-snow-mine1.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "farm",
+    "calendar": "Winter Day 5 12:52 PM 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/rebuild-world-ambience/after/en/390x844/snow-winter-snow-farm.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "town",
+    "calendar": "Winter Day 5 12:52 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/after/en/390x844/snow-winter-snow-town.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "beach",
+    "calendar": "Winter Day 5 12:53 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/after/en/390x844/snow-winter-snow-beach.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "forest",
+    "calendar": "Winter Day 5 12:53 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/after/en/390x844/snow-winter-snow-forest.png"
+  },
+  {
+    "scenario": "snow-winter-snow",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "mine1",
+    "calendar": "Winter Day 5 12:53 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/after/en/390x844/snow-winter-snow-mine1.png"
+  }
+]

@@ -9,7 +9,7 @@ using Nosum.Rendering;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// The active quest's waypoint on the playable map (docs/adr/ADR-089 D2): an arrow at the edge of the view while the place is off screen, and a dot on the
+/// The active quest's waypoint on the playable map (docs/adr/ADR-090 D2): an arrow at the edge of the view while the place is off screen, and a dot on the
 /// minimap. Both are drawn by the engine, with the frame's other records; the waypoint is only shown on the map it is on.
 /// </summary>
 internal sealed partial class MapScene

@@ -167,7 +167,7 @@ internal static partial class GameLoop
     /// <summary>Sets the minimap frame the canvas keeps in step with (the M key, and hidden on a narrow screen).</summary>
     public static void UseMinimap(MinimapViewModel minimap) => s_minimap = minimap;
 
-    /// <summary>Uses the active quest's waypoint for the map scenes (docs/adr/ADR-089 D2).</summary>
+    /// <summary>Uses the active quest's waypoint for the map scenes (docs/adr/ADR-090 D2).</summary>
     /// <param name="waypoint">The waypoint view model.</param>
     public static void UseQuestWaypoint(QuestWaypointViewModel waypoint) => s_waypoint = waypoint;
 

@@ -8,6 +8,7 @@ using Nosum.Core;
 using Nosum.Gameplay.Animals;
 using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Building;
@@ -29,25 +30,37 @@ internal sealed class AnimalsDecorator : IMapDecorator
     private const int HeartCount = 5;
     private const long HeartsShownMs = 1_500;
 
+    // The index of the exclamation mark in the emote sheet (docs/adr/ADR-075 D1: heart, laugh, wave, question, exclamation, ...).
+    private const int ExclamationEmote = 4;
+
     private readonly BuildingChannel _buildings;
     private readonly Dictionary<byte, (int Texture, AnimalDefinition Definition)> _sheets;
     private readonly int _objectsTexture;
     private readonly int _heartsTexture;
+    private readonly int _emotesTexture;
+    private readonly BuildingDefinition? _building;
+    private readonly int _tileSize;
     private readonly CalendarChannel? _calendar;
     private GameCalendar? _rules;
 
     /// <summary>Initializes the decorator.</summary>
     /// <param name="buildings">The animals of the room.</param>
     /// <param name="sheets">Texture and data of every species.</param>
-    /// <param name="objectsTexture">Texture of the objects sheet, where produce is pictured.</param>
+    /// <param name="objectsTexture">Texture of the objects sheet, where produce and the hay are pictured.</param>
     /// <param name="heartsTexture">Texture of the hearts sheet: a filled heart at column 0, an empty one at column 8.</param>
+    /// <param name="emotesTexture">Texture of the emote sheet: the exclamation mark that says the feeding bench is empty.</param>
+    /// <param name="building">The building the room is, for the place of its feeding bench; null draws no bench state.</param>
+    /// <param name="tileSize">Tile size of the room's map, pixels.</param>
     /// <param name="calendar">The server's calendar, for the game day the produce is rolled on; null uses the everyday produce until it is known.</param>
-    public AnimalsDecorator(BuildingChannel buildings, Dictionary<byte, (int Texture, AnimalDefinition Definition)> sheets, int objectsTexture, int heartsTexture, CalendarChannel? calendar = null)
+    public AnimalsDecorator(BuildingChannel buildings, Dictionary<byte, (int Texture, AnimalDefinition Definition)> sheets, int objectsTexture, int heartsTexture, int emotesTexture, BuildingDefinition? building, int tileSize, CalendarChannel? calendar = null)
     {
         _buildings = buildings;
         _sheets = sheets;
         _objectsTexture = objectsTexture;
         _heartsTexture = heartsTexture;
+        _emotesTexture = emotesTexture;
+        _building = building;
+        _tileSize = tileSize;
         _calendar = calendar;
     }
 
@@ -104,6 +117,31 @@ internal sealed class AnimalsDecorator : IMapDecorator
                     }
                 }
             }
+
+            this.AddBench(world, _buildings.Rations, _buildings.AnimalCount);
+        }
+    }
+
+    // The feeding bench over the trough (docs/adr/ADR-028 D3, docs/design/critique-animals-pets.md): a hay sheaf while the bench holds feed, an exclamation mark when it is empty
+    // and the animals will not eat tonight. Only the bench is shown, not its count: the trough is where the player stands to feed.
+    private void AddBench(WorldSpriteBatch world, int rations, int animals)
+    {
+        if (_building is null || animals == 0)
+        {
+            return;
+        }
+
+        // The middle of the bench: a coop's and a barn's bench are four tiles wide, so the middle is the boundary between the two middle tiles.
+        int troughX = (_building.TroughLeft + (_building.TroughWidth / 2)) * _tileSize;
+        int troughY = _building.TroughTop * _tileSize;
+        int sortY = troughY + 64;
+        if (AnimalRules.BenchNeedsHay(rations, animals))
+        {
+            world.Add(_emotesTexture, ExclamationEmote * ProduceIcon, 0, ProduceIcon, ProduceIcon, troughX - (ProduceIcon / 2), troughY - ProduceIcon - 2, sortY, troughX);
+        }
+        else if (ItemIcons.TryGetGroundCell(ItemCatalog.Hay, out int srcX, out int srcY))
+        {
+            world.Add(_objectsTexture, srcX, srcY, ProduceIcon, ProduceIcon, troughX - (ProduceIcon / 2), troughY - ProduceIcon - 2, sortY, troughX);
         }
     }
 
@@ -129,6 +167,9 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
 {
     private const string AnimalsUrl = "assets/sprites/animals/";
     private const string HeartsUrl = "assets/sprites/hearts.png";
+
+    // The emote art is linked once, in Nosum.Wasm.Controls.csproj, and served under its _content path (as EmoteBubbleDecorator does).
+    private const string EmotesUrl = "_content/Nosum.Wasm.Controls/ui/emotes.png";
 
     private readonly BuildingChannel _buildings;
     private readonly CalendarChannel? _calendar;
@@ -165,6 +206,9 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
         cancellationToken.ThrowIfCancellationRequested();
         int hearts = await textures.LoadAsync(HeartsUrl).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        return new AnimalsDecorator(_buildings, sheets, objects, hearts, _calendar);
+        int emotes = await textures.LoadAsync(EmotesUrl).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        BuildingCatalog.TryGet(spec.InteriorOf, out BuildingDefinition? building);
+        return new AnimalsDecorator(_buildings, sheets, objects, hearts, emotes, building, map.TileWidth, _calendar);
     }
 }

@@ -1,4 +1,4 @@
-# ADR-089: Quest waypoints, the merchant's quest greeting, and hints that wait for an idle moment
+# ADR-090: Quest waypoints, the merchant's quest greeting, and hints that wait for an idle moment
 
 ## Status
 

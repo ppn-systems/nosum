@@ -15,7 +15,7 @@ namespace Nosum.Gameplay.Quests;
 public readonly record struct QuestWaypoint(string MapId, int TileX, int TileY);
 
 /// <summary>
-/// Where the quests send the player (docs/adr/ADR-089 D1). Data only, by key: each quest names a place by its key, and a place is a merchant (its tile is read from
+/// Where the quests send the player (docs/adr/ADR-090 D1). Data only, by key: each quest names a place by its key, and a place is a merchant (its tile is read from
 /// <see cref="NpcCatalog"/>, so moving a counter moves its waypoint) or a map (its spawn tile, for the places a quest sends the player into). The client draws the
 /// waypoint as an arrow at the screen edge and a dot on the minimap; the server does not read this table.
 /// </summary>
