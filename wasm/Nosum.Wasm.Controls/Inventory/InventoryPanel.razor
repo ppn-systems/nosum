@@ -11,13 +11,14 @@
         <GameButton Variant="secondary" Text="@Vm.SortLabel" OnClick="Vm.Sort" />
         <label class="inv-lock"><input type="checkbox" checked="@Vm.LockHotbar" @onchange="e => Vm.SetLockHotbar((bool)(e.Value ?? false))" />@Vm.LockHotbarLabel</label>
     </div>
+    <p class="inv-hint">@Vm.Hint</p>
     <div class="inv-body">
         <div class="inv-side">
             <EquipmentCard Vm="Wardrobe" Inventory="Vm" />
         </div>
         <div class="inv-grids">
-            <ItemGrid Slots="Storage" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" />
-            <ItemGrid Slots="Hotbar" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" />
+            <ItemGrid Slots="Storage" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" OnSlotShiftClick="@(i => Vm.QuickMove(i))" OnSlotRightClick="@(i => Vm.RightClick(i))" />
+            <ItemGrid Slots="Hotbar" Columns="9" Picked="@(Vm.MovingFrom)" OnSlotClick="@(i => Vm.Click(i))" OnSlotShiftClick="@(i => Vm.QuickMove(i))" OnSlotRightClick="@(i => Vm.RightClick(i))" />
         </div>
     </div>
     <div class="inv-hand-strip">

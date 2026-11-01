@@ -69,6 +69,8 @@
   <data name="Inventory_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Inventory_Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
+  <data name="Inventory_Hint" xml:space="preserve"><value>Click to pick up · right-click to split half · Shift+click to quick-move</value></data>
+  <data name="Inventory_HintPicked" xml:space="preserve"><value>Holding {0}: click a target slot to place, click again to put down</value></data>
   <data name="Inventory_LockHotbar" xml:space="preserve"><value>Keep hotbar when sorting</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
   <data name="Tooltip_Tier" xml:space="preserve"><value>Tier: {0}</value></data>
@@ -292,6 +294,7 @@
   <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>That upgrade is already at its highest level.</value></data>
   <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>That upgrade was already bought.</value></data>
   <data name="Farm_Status_LockedLand" xml:space="preserve"><value>This part of the co-op land is not unlocked yet.</value></data>
+  <data name="Farm_Status_AlreadyWet" xml:space="preserve"><value>The soil is already wet today.</value></data>
   <data name="Place_Status_LockedLand" xml:space="preserve"><value>This part of the co-op land is not unlocked yet.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Guest {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Nickname</value></data>
@@ -731,6 +734,7 @@
   <data name="Craft_Materials" xml:space="preserve"><value>Materials</value></data>
   <data name="Craft_Makes" xml:space="preserve"><value>Makes: {0} x{1}</value></data>
   <data name="Craft_Button" xml:space="preserve"><value>Craft</value></data>
+  <data name="Craft_ButtonMax" xml:space="preserve"><value>Craft max x{0}</value></data>
   <data name="Craft_ButtonMany" xml:space="preserve"><value>Craft x{0}</value></data>
   <data name="Craft_Unlock" xml:space="preserve"><value>Requires {0} level {1}</value></data>
   <data name="Craft_Locked" xml:space="preserve"><value>Locked</value></data>

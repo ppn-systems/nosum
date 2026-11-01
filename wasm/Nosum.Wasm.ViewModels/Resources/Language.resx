@@ -69,6 +69,8 @@
   <data name="Inventory_Close" xml:space="preserve"><value>Đóng</value></data>
   <data name="Inventory_Sort" xml:space="preserve"><value>Sắp xếp</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Thanh vật phẩm</value></data>
+  <data name="Inventory_Hint" xml:space="preserve"><value>Nhấn để nhấc · chuột phải để tách nửa · Shift+nhấn để chuyển nhanh</value></data>
+  <data name="Inventory_HintPicked" xml:space="preserve"><value>Đang nhấc {0}: nhấn ô đích để đặt, nhấn lại để bỏ xuống</value></data>
   <data name="Inventory_LockHotbar" xml:space="preserve"><value>Giữ thanh vật phẩm khi sắp xếp</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Số lượng: {0}</value></data>
   <data name="Tooltip_Tier" xml:space="preserve"><value>Bậc: {0}</value></data>
@@ -292,6 +294,7 @@
   <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>Nâng cấp này đã ở cấp cao nhất.</value></data>
   <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>Nâng cấp này đã được mua rồi.</value></data>
   <data name="Farm_Status_LockedLand" xml:space="preserve"><value>Khu đất này của hợp tác xã chưa được mở.</value></data>
+  <data name="Farm_Status_AlreadyWet" xml:space="preserve"><value>Đất đã đủ nước hôm nay.</value></data>
   <data name="Place_Status_LockedLand" xml:space="preserve"><value>Khu đất này của hợp tác xã chưa được mở.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Khách {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Biệt danh</value></data>
@@ -731,6 +734,7 @@
   <data name="Craft_Materials" xml:space="preserve"><value>Nguyên liệu</value></data>
   <data name="Craft_Makes" xml:space="preserve"><value>Tạo ra: {0} x{1}</value></data>
   <data name="Craft_Button" xml:space="preserve"><value>Chế tạo</value></data>
+  <data name="Craft_ButtonMax" xml:space="preserve"><value>Tối đa x{0}</value></data>
   <data name="Craft_ButtonMany" xml:space="preserve"><value>Chế tạo x{0}</value></data>
   <data name="Craft_Unlock" xml:space="preserve"><value>Cần kỹ năng {0} cấp {1}</value></data>
   <data name="Craft_Locked" xml:space="preserve"><value>Chưa mở khóa</value></data>
