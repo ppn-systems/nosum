@@ -49,7 +49,7 @@ Frames: `after/touchskill-390x844-*/ts-*.png`. The X key and the button tap both
 
 ### (3) Wind-up resolver: integration tests
 
-Run on the local PostgreSQL (`CombatWireTests`, the two `StrikeWindup_*` tests). See the test-run line in the PR description for the full suite.
+Full suite on the merged tree (`dotnet test tests/Nosum.Tests.slnx`, local PostgreSQL): unit 3640 passed, integration 830 passed, 0 failed; build 0 errors.
 The stays-adjacent test passed on every run. The step-out test passed on 16 of 17 runs after the AI-loop fix. One run failed with the player losing 5 HP (100 to 95)
 in the step-out test. I did not reproduce it after that, and I did not establish its cause (a monster that was not in the isolation check, or the
 timing of the accepted move against the strike; I did not instrument either). Treat the step-out test as **not fully stable yet**: it is the first
