@@ -806,7 +806,7 @@
   <data name="Animal_chicken_Name" xml:space="preserve"><value>Chicken</value></data>
   <data name="Animal_cow_Name" xml:space="preserve"><value>Cow</value></data>
   <data name="Building_Done_Commission" xml:space="preserve"><value>The blueprint is in your bag. Set it down on the ground.</value></data>
-  <data name="Building_Done_BuyAnimal" xml:space="preserve"><value>Bought, and on its way to the barn.</value></data>
+  <data name="Building_Done_BuyAnimal" xml:space="preserve"><value>Bought, and on its way to its new home.</value></data>
   <data name="Building_Done_Feed" xml:space="preserve"><value>You filled the feeding bench.</value></data>
   <data name="Building_Done_Pet" xml:space="preserve"><value>You pet {0}. Friendship: {1}.</value></data>
   <data name="Building_Done_Collect" xml:space="preserve"><value>You got {0}.</value></data>
