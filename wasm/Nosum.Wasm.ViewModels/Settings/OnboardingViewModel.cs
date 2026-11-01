@@ -37,6 +37,7 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
     private ITimer? _timer;
     private ITimer? _idle;
     private bool _pending;
+    private long _activeAt;
     private bool _started;
     private bool _visible;
     private int _seen;
@@ -178,7 +179,8 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
     {
         if (_pending)
         {
-            this.ArmIdle();
+            // Only the time is kept: the frame calls this every frame the player is giving input, so it must not start a timer (ADR-096 D3).
+            _activeAt = _time.GetTimestamp();
         }
     }
 
@@ -269,15 +271,23 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
 
     private void ArmIdle()
     {
+        _activeAt = _time.GetTimestamp();
         _idle?.Dispose();
         _idle = _time.CreateTimer(_ => this.OnIdle(), null, TimeSpan.FromSeconds(IdleSeconds), Timeout.InfiniteTimeSpan);
     }
 
-    // The player has been idle long enough: the hint comes up and fades after HintSeconds.
+    // The timer fires IdleSeconds after the last wait started. If the player gave input since, it waits out the rest of the quiet time instead.
     private void OnIdle()
     {
         _idle?.Dispose();
         _idle = null;
+        TimeSpan quiet = _time.GetElapsedTime(_activeAt);
+        if (quiet < TimeSpan.FromSeconds(IdleSeconds))
+        {
+            _idle = _time.CreateTimer(_ => this.OnIdle(), null, TimeSpan.FromSeconds(IdleSeconds) - quiet, Timeout.InfiniteTimeSpan);
+            return;
+        }
+
         _pending = false;
         _visible = _shownKey is not null;
         if (_visible)

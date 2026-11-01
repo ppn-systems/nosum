@@ -74,6 +74,13 @@ public sealed class RenderCommandBuffer
     /// <summary>Texture id of a command that closes the render target opened by <see cref="BeginTargetTexture"/>.</summary>
     public const int EndTargetTexture = -11;
 
+    /// <summary>
+    /// Texture id of a command that draws one piece of a quest waypoint's edge arrow (docs/adr/ADR-096 D2): <c>srcX</c> is the direction (see
+    /// <c>EdgeArrowDirection</c>), <c>srcY</c> 1 for the shadow and 0 for the arrow, <c>width</c> the box side in view pixels, (<c>dstX</c>, <c>dstY</c>) its top
+    /// left, and the tint the colour. The renderer moves the arrow off the HUD, so the place is decided there.
+    /// </summary>
+    public const int EdgeArrowTexture = -12;
+
     /// <summary>Most light sources one frame may carry; further ones are dropped (docs/adr/ADR-027 D5).</summary>
     public const int MaxLights = 64;
 
