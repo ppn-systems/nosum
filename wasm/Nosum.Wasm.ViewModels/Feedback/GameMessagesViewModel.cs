@@ -22,12 +22,15 @@ namespace Nosum.Wasm.ViewModels.Feedback;
 /// <summary>One toast on the message line: an id so the view can key it, and its localized text.</summary>
 /// <param name="Id">A number unique for this view model, in the order the toasts were shown.</param>
 /// <param name="Text">The localized text.</param>
-public sealed record GameToast(long Id, string Text);
+/// <param name="Count">How many times the same text was shown while it was on the line (at least 1); shown as "×N" when above 1.</param>
+/// <param name="Life">Changes each time the toast is shown again, so the timer of an earlier showing leaves the toast alone.</param>
+public sealed record GameToast(long Id, string Text, int Count = 1, long Life = 0);
 
 /// <summary>
 /// The toast line above the hotbar: why the server refused an action ("Till the soil first", "Something is in the way"), shown for a moment.
 /// The server sends status codes; the text comes from <c>Language.resx</c>. Up to <see cref="MaxToasts"/> toasts are stacked, the newest last;
 /// a new one pushes out the oldest, and each goes away after <see cref="MessageDuration"/> (docs/design/ui-standard.md section 5).
+/// A toast whose text is already on the line is not added again: its count goes up and its timer starts over.
 /// </summary>
 public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
 {
@@ -46,6 +49,7 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
     private readonly CombatChannel? _combat;
     private readonly List<GameToast> _toasts = new(MaxToasts);
     private long _nextId;
+    private long _nextLife;
 
     /// <summary>Initializes the view model and starts following the channels.</summary>
     /// <param name="farm">The farm channel (answers to item use).</param>
@@ -214,7 +218,18 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
 
     private void Show(string text)
     {
-        GameToast toast = new(++_nextId, text);
+        // The same text already on the line: count it again in place (same spot, same id) and start its timer over.
+        int existing = _toasts.FindIndex(t => t.Text == text);
+        if (existing >= 0)
+        {
+            GameToast again = _toasts[existing] with { Count = _toasts[existing].Count + 1, Life = ++_nextLife };
+            _toasts[existing] = again;
+            this.Changed?.Invoke();
+            _ = this.RemoveLaterAsync(again.Id, again.Life);
+            return;
+        }
+
+        GameToast toast = new(++_nextId, text, 1, ++_nextLife);
         _toasts.Add(toast);
         if (_toasts.Count > MaxToasts)
         {
@@ -222,16 +237,16 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         }
 
         this.Changed?.Invoke();
-        _ = this.RemoveLaterAsync(toast.Id);
+        _ = this.RemoveLaterAsync(toast.Id, toast.Life);
     }
 
-    private async Task RemoveLaterAsync(long id)
+    private async Task RemoveLaterAsync(long id, long life)
     {
         await Task.Delay(MessageDuration).ConfigureAwait(false);
 
-        // A toast pushed out by a newer one has already gone; a toast still on the line is removed by its own id.
+        // A toast pushed out by a newer one has already gone. A toast that was shown again has a newer life and stays until its own timer ends.
         int index = _toasts.FindIndex(t => t.Id == id);
-        if (index >= 0)
+        if (index >= 0 && _toasts[index].Life == life)
         {
             _toasts.RemoveAt(index);
             this.Changed?.Invoke();

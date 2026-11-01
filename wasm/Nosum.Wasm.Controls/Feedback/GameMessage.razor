@@ -1,8 +1,13 @@
+@using System.Globalization
+@using Microsoft.Extensions.Localization
+@using Nosum.Wasm.ViewModels.Resources
 @inherits ObservingComponent<GameMessagesViewModel>
+@inject IStringLocalizer<Language> Loc
 
 @* The toast line above the hotbar: up to two toasts, the newest last. Each goes away by itself after three seconds, fading out over the last part
-   (docs/design/ui-standard.md section 5). The line sits in the bottom-centre region, so it never covers the hotbar or the touch controls. *@
+   (docs/design/ui-standard.md section 5). The line sits in the bottom-centre region, so it never covers the hotbar or the touch controls.
+   The same text shown again is not a second line: it reads "text ×N" and its timer starts over. *@
 @foreach (GameToast toast in Vm.Toasts)
 {
-    <GamePanel @key="toast.Id" Class="hud toast game-message" Role="status" Title="">@toast.Text</GamePanel>
+    <GamePanel @key="toast.Id" Class="hud toast game-message" Role="status" Title="">@(toast.Count > 1 ? string.Format(CultureInfo.CurrentCulture, Loc["Toast_Repeat"].Value, toast.Text, toast.Count) : toast.Text)</GamePanel>
 }
