@@ -6,7 +6,7 @@
 // decode and draw synchronously, never keep the view.
 
 import { audioCommand } from "./audio.js";
-import { fitLabel, hudRect, stackLabel } from "./label-fit.js";
+import { fitLabel, hudRect, stackLabel, LABEL_EDGE } from "./label-fit.js";
 // The sound commands (-7 sound, -8 music, -9 ambient loop; docs/adr/ADR-039) go to audio.js; these are the module's exports .NET calls.
 export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 
@@ -401,46 +401,6 @@ function drawArrowGlyph(draw, x, y, s, dir, scale, colour) {
         }
     }
     draw.restore();
-}
-
-// Moves a label box inside the canvas and off the HUD: beside the HUD rectangle it hit, then below it, then above it. Leaves the result in labelX/labelY.
-function fitLabel(x, y, w, h) {
-    const maxX = canvas.width - w - LABEL_EDGE;
-    const maxY = canvas.height - h - LABEL_EDGE;
-    x = clampTo(x, LABEL_EDGE, maxX);
-    y = clampTo(y, LABEL_EDGE, maxY);
-    const k = hudHit(x, y, w, h);
-    if (k < 0) {
-        labelX = x;
-        labelY = y;
-        return;
-    }
-
-    const o = k * 4;
-    const left = clampTo(hudRects[o] - w - LABEL_GAP, LABEL_EDGE, maxX);
-    if (hudHit(left, y, w, h) < 0) {
-        labelX = left;
-        labelY = y;
-        return;
-    }
-
-    const below = clampTo(hudRects[o + 3] + LABEL_GAP, LABEL_EDGE, maxY);
-    if (hudHit(x, below, w, h) < 0) {
-        labelX = x;
-        labelY = below;
-        return;
-    }
-
-    const above = clampTo(hudRects[o + 1] - h - LABEL_GAP, LABEL_EDGE, maxY);
-    if (hudHit(x, above, w, h) < 0) {
-        labelX = x;
-        labelY = above;
-        return;
-    }
-
-    // No free spot next to the HUD (a crowded corner): keep it at the left of the rectangle, which is still on screen.
-    labelX = left;
-    labelY = y;
 }
 
 export function submitFrame(view) {
