@@ -9,6 +9,31 @@ on a 4-core machine shared with the bots). The one database change lowers one ho
 code measures. The load-test numbers do not improve, because this branch does not change the snapshot or send path; the run-to-run spread is about as large as
 any difference in the table.
 
+## Server robustness (branch `claude/server-robustness`)
+
+Three server risks found during the perf work, each fixed in code and each with a test that fails without the fix and passes with it. The decisions are
+in [ADR-087](../adr/ADR-087-server-leave-send-and-pool-limits.md). No wire change.
+
+| Risk | Before | Fix | Test (fails before, passes after) |
+|:--|:--|:--|:--|
+| Leave race: the presence record went before the place was saved | `MapPresence.LeaveAsync` removed the record, then the `PlayerLeft` handler saved the place. A reader that saw zero players could read the place before the save landed. | The leave handlers run while the record is still registered; the record is removed in a `finally` after them (ADR-087 D1). | `MapChangeTests.Disconnect_WithASlowSave_TheRecordLeavesPresenceOnlyAfterThePlaceIsSaved`: the save is delayed 300 ms; when the count reaches zero, the saved place must already be there. Failed with "saved not to be null"; passes now. |
+| Snapshot send with no deadline: one stalled viewer froze every map's tick | Each viewer's send awaited the server's stop token only. | Each viewer's despawns, spawns and snapshot share one 250 ms deadline; a viewer that misses it is disconnected (ADR-087 D2). | `SnapshotSendDeadlineTests.StalledViewer_DoesNotStopTheSnapshotsOfTheOthers_AndIsDropped`: one viewer's snapshot send never completes. Failed with the test timeout (no snapshot reached the healthy viewer for 20 s); passes now, and the stalled viewer is dropped. |
+| Pool growth toward PostgreSQL's `max_connections` = 100 | No pool limit: Npgsql's default of 100 applied. A burst of concurrent work left its connections open. | `Maximum Pool Size = 20` and `Connection Idle Lifetime = 60 s` in `NosumDatabase.CreateOptions`, unless the string sets them (ADR-087 D3). | `ConnectionPoolTests.ConcurrentBurst_LeavesNoMoreOpenConnectionsThanThePoolCap` (60 concurrent queries; counted in `pg_stat_activity`): found 60 open before; at most 20 now. `ConnectDisconnectCycles_DoNotGrowTheOpenConnections`: 100 connect and query cycles add no connections after a burst. |
+
+**The connection leak was not an undisposed context.** Every unit of work created in `Nosum.Infrastructure` is disposed (`await using`); `EfUnitOfWorkFactory.Create()` makes
+one context per unit and the callers dispose it. The growth was the pool's size: connections the pool keeps for reuse, with no cap. The cap makes the pool
+bounded, and the idle lifetime lets it give connections back.
+
+**What was not measured.** The 20-connection cap is not measured against the 500-client tick: a database call that now queues behind the pool could move the tick,
+and the load test is where that shows. The 250 ms deadline is a judgment (2.5 snapshot ticks), not a measured value; a client on a slow network that takes
+longer than that to take one snapshot is dropped. The earlier stall of the lanes candidate (above) was not explained: the deadline removes the indefinite
+freeze that the code allowed, but it does not show that this was the cause of that stall.
+
+**Caveat on the cancelled send.** A send cancelled at the deadline may still hold the pooled snapshot packet inside the transport. The viewer is disconnected, so the
+packet is not reused for that connection; whether the transport releases the packet on cancellation was not checked against Nalix's source.
+
+**Test run.** `dotnet test tests/Nosum.Tests.slnx`: `Nosum.UnitTests` 3417 passed; `Nosum.IntegrationTests` 824 passed, 0 failed (one run earlier failed `MineWireTests` until the membership rule was added, see ADR-087 D1). Server build with `--no-incremental`: 0 warnings, 0 errors.
+
 ## Snapshot send at 500 clients (branch `claude/perf-server-send`)
 
 **Result: the 500-client tick p99 is still over the 20 ms budget, and this branch changes no snapshot code.** Three things were measured:
@@ -72,7 +97,7 @@ is not the only trigger. Whether the exhaustion is what stalls the snapshot tick
 candidate cause for the stall above, and the first step is to cap the pool (`Maximum Pool Size`) below the server's connection limit and watch the
 connection count across runs.
 
-### Flaky test: `MapChangeTests.Disconnect_RightAfterTheMoveOntoAnExit`
+### Flaky test: `MapChangeTests.Disconnect_RightAfterTheMoveOntoAnExit` (the test wait; superseded by the server fix in ADR-087 D1)
 
 The test waited until `PlayerCount` was zero and then read the saved place. `MapPresence.LeaveAsync` removes the player from presence **before** the
 `PlayerLeft` handler saves the place (`PlayerService.OnPlayerLeftAsync`). So the count reached zero while the save was still in flight, and for an account

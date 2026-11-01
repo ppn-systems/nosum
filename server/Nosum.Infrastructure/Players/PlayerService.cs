@@ -73,8 +73,11 @@ public sealed partial class PlayerService : IPlayerService, ICoopLandEviction, I
     /// <param name="unlocks">The community unlocks; a map change tells the client those that change what it may walk on (docs/adr/ADR-037 D4); <see langword="null"/> tells it none.</param>
     /// <param name="inventory">Tells each snapshot the item every player holds in hand; <see langword="null"/> sends empty hands.</param>
     /// <param name="runEnergy">Spends the energy of running players (docs/adr/ADR-085 D2); <see langword="null"/> makes running free (tests only).</param>
-    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null, IBuildingDirectory? buildings = null, ICommunityUnlocks? unlocks = null, IInventoryService? inventory = null, IRunEnergy? runEnergy = null)
+    /// <param name="viewerSendDeadline">How long one viewer may take to receive its snapshot tick before its connection is dropped; <see langword="null"/> for 250 ms.</param>
+    public PlayerService(IMapPresence presence, IChunkMap chunks, ChunkStreamer streamer, IMapCatalog maps, IPlayerStateService states, IInstanceWorld world, IInstanceAccessPolicy access, ICoopMembership coops, TimeProvider time, TimeSpan snapshotInterval, IGroundItems? groundItems = null, IBuildingDirectory? buildings = null, ICommunityUnlocks? unlocks = null, IInventoryService? inventory = null, IRunEnergy? runEnergy = null, TimeSpan? viewerSendDeadline = null)
     {
+        _viewerSendDeadline = viewerSendDeadline ?? DefaultViewerSendDeadline;
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(_viewerSendDeadline, TimeSpan.Zero);
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(chunks);
         ArgumentNullException.ThrowIfNull(streamer);

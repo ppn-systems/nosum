@@ -95,4 +95,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-084](ADR-084-footwear-boots-and-the-movement-speed-multiplier.md) | Footwear: boots on a new Feet slot (+5% to +20% walking speed), a speed tonic on the Swiftness buff, one combined and capped movement multiplier shared by server and client (protocol 26) | Accepted |
 | [ADR-085](ADR-085-running-with-energy.md) | Running: a held run speed (1.5x, on top of buffs) validated by the movement limit, energy spent by the second in the background, the run toggle on touch, the minimap hidden setting (protocol 27) | Accepted |
 | [ADR-086](ADR-086-static-tile-chunks-and-lazy-music.md) | Static tile chunks baked into browser render targets (two render commands, four bakes a frame), and music tracks fetched on first request | Accepted |
+| [ADR-087](ADR-087-server-leave-send-and-pool-limits.md) | The leave saves the place before the presence record goes; a viewer's snapshot send has a 250 ms deadline and a stalled viewer is dropped; the database pool is capped at 20 with a 60 s idle lifetime (no wire change) | Accepted |
 
