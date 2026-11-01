@@ -13,7 +13,7 @@ const path = require('path');
 
 const REPO = path.resolve(__dirname, '../..');
 const BASE = process.env.NOSUM_QA_URL || 'http://localhost:5080/';
-const VIEWPORTS = { desktop: { width: 1280, height: 720 }, phone: { width: 390, height: 844 } };
+const VIEWPORTS = { desktop: { width: 1280, height: 720 }, wide: { width: 1920, height: 1080 }, phone: { width: 390, height: 844 } };
 
 async function grant(page, items) {
   await page.evaluate(async (list) => {
@@ -32,7 +32,7 @@ async function hold(page, key, ms) {
 async function run(browser, phase, vp, lang) {
   const size = VIEWPORTS[vp];
   const phone = vp === 'phone';
-  const dir = path.join(REPO, 'docs/qa/rebuild-placement', phase, `${vp}-${lang}`);
+  const dir = path.join(REPO, process.env.PLACEMENT_QA_ROOT || 'docs/qa/rebuild-placement', phase, `${vp}-${lang}`);
   fs.mkdirSync(dir, { recursive: true });
   const context = await browser.newContext({ viewport: size, locale: lang === 'en' ? 'en-US' : 'vi-VN', hasTouch: phone, isMobile: phone, serviceWorkers: 'block' });
   // The language is read from the client settings at start-up: lang=1 Vietnamese, lang=2 English (ClientSettings.Parse).

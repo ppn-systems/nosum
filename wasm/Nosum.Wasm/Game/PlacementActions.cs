@@ -27,6 +27,9 @@ internal sealed class PlacementActions
 {
     private const double ActionCooldownSeconds = 0.2;
 
+    // How long "Nothing in front of you to stow." stays on the strip after a stow press with no piece in front.
+    private const double StowMissedSeconds = 2.5;
+
     private readonly PlaceableChannel _placed;
     private readonly InventoryChannel _inventory;
     private readonly PlacementViewModel _view;
@@ -35,6 +38,8 @@ internal sealed class PlacementActions
     private readonly HashSet<(int X, int Y)> _noReserved = [];
     private double _lastActionSeconds = double.NegativeInfinity;
     private BuildConfirmation _buildConfirm;
+    private SettledGhost _settled;
+    private double _stowMissedUntil = double.NegativeInfinity;
     private int _rotation;
     private int _lastHeldItemId;
 
@@ -110,6 +115,7 @@ internal sealed class PlacementActions
             _view.SetCarrying(0);
             this.GhostVisible = false;
             _view.SetGhost(false, PlaceStatus.Ok, false);
+            _view.SetStowMissed(false);
             _ = _view.TakeRequests();
             return;
         }
@@ -172,6 +178,13 @@ internal sealed class PlacementActions
                 _view.SetCarrying(0);
             }
         }
+        else if (pickUp && !placedSet.TryFindAt(targetX, targetY, out _))
+        {
+            // Nothing in front to stow: say so on the strip for a moment (docs/design/critique-placement.md, finding 6).
+            _stowMissedUntil = nowSeconds + StowMissedSeconds;
+        }
+
+        _view.SetStowMissed(nowSeconds < _stowMissedUntil);
 
         if (itemId == 0 || !PlaceableCatalog.TryGet(itemId, out PlaceableDefinition? definition))
         {
@@ -198,17 +211,18 @@ internal sealed class PlacementActions
         this.GhostRotation = _rotation;
         this.GhostStatus = this.StatusOf(definition, _rotation, tileX, tileY, view, placedSet, mapGrid, feetX, feetY, content);
         this.GhostValid = this.GhostStatus == PlaceStatus.Ok;
-        this.GhostVisible = true;
 
         // A finished building cannot be moved or stowed (docs/adr/ADR-028), so a building that looks valid needs a second press.
         bool building = definition.Kind == PlaceableKind.Building && this.CarryingId == 0;
         if (place && Throttle(nowSeconds, ref _lastActionSeconds))
         {
+            bool sent = false;
             if (this.CarryingId != 0)
             {
                 _placed.Move(this.CarryingId, tileX, tileY, _rotation);
                 this.CarryingId = 0;
                 _view.SetCarrying(0);
+                sent = true;
             }
             else if (building && this.GhostValid && !_buildConfirm.Press(tileX, tileY, nowSeconds))
             {
@@ -217,10 +231,19 @@ internal sealed class PlacementActions
             else
             {
                 _placed.Place(slot, tileX, tileY, _rotation);
+                sent = true;
+            }
+
+            if (sent)
+            {
+                // The piece now stands on this tile; its ghost must not stay on top of it (finding 3).
+                _settled.Settle(tileX, tileY);
             }
         }
 
-        _view.SetGhost(true, this.GhostStatus, building && _buildConfirm.IsArmed(nowSeconds));
+        bool hidden = _settled.Hide(tileX, tileY);
+        this.GhostVisible = !hidden;
+        _view.SetGhost(!hidden, this.GhostStatus, !hidden && building && _buildConfirm.IsArmed(nowSeconds));
     }
 
     // Why the ghost cannot go where it is, with the server's own codes so the panel can show the same sentence the server would refuse with.
