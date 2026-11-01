@@ -39,16 +39,19 @@ async function shot(page, name) {
   await page.screenshot({ path: path.join(outDir, name + '.png') });
 }
 
-async function boot(page) {
+// Opens the game as a new guest. The mine setup grants the sword (item 30) into slot 9; the fishing run skips it so the rod can take slot 9.
+async function boot(page, mineSetup = true) {
   await page.goto('http://localhost:5080/?qa=1', { waitUntil: 'load' });
   await page.waitForSelector('button', { timeout: 120000 });
   await sleep(1000);
   await page.getByRole('button', { name: /khách|guest/i }).click();
   await page.waitForSelector('canvas', { timeout: 120000 });
   await sleep(4000);
-  await page.evaluate(() => window.nosumQa.grant(30, 1, 0));
-  await page.evaluate(() => window.nosumQa.teleport('mine1', 12, 12));
-  await sleep(4000);
+  if (mineSetup) {
+    await page.evaluate(() => window.nosumQa.grant(30, 1, 0));
+    await page.evaluate(() => window.nosumQa.teleport('mine1', 12, 12));
+    await sleep(4000);
+  }
 }
 
 // Stands the farmer beside the nearest living monster and selects the sword (slot 9).
@@ -168,7 +171,10 @@ async function stepawayOne(page, key, a) {
   await shot(page, `sa-a${a}-${tag}-2-after-step-in-windup`);
   await until(page, L2.t + 2300);
   const series = await hpSeries(page);
-  const later = dropsAfter(series, L2.t + 1300);
+  // Conservative window: any drop from 1000 ms after landing 2 counts, including a second monster's strike that could land while the farmer
+  // is still in reach.
+  const later = dropsAfter(series, L2.t + 1000);
+  const every = dropsAfter(series, L1.t - 1);
   return {
     attempt: a,
     key,
@@ -177,10 +183,10 @@ async function stepawayOne(page, key, a) {
       landing2: { hpBefore: L2.from, hpAfter: L2.to, gapMsFromLanding1: Math.round(L2.t - L1.t) },
     },
     pressOffsetMsFromLanding2: Math.round(pressAt - L2.t),
-    hpBeforeThirdStrike: L2.to,
+    hpBeforeStep: L2.to,
     hpEnd: series[series.length - 1][1],
-    hitsAfterStep: later.length,
-    hitsAfterStepDetail: later.map(d => ({ atRelMsFromLanding2: Math.round(d.at - L2.t), from: d.from, to: d.to })),
+    allDropsRelToLanding2: every.map(d => ({ atRelMs: Math.round(d.at - L2.t), from: d.from, to: d.to })),
+    hitsFromPlus1000: later.length,
     success: later.length === 0,
   };
 }
@@ -339,7 +345,7 @@ async function touchskill(page) {
     await stepaway(browser);
   } else {
     const { page } = await newGuestPage(browser);
-    await boot(page);
+    await boot(page, mode !== 'fishing');
     if (mode === 'telegraph') await telegraph(page);
     else if (mode === 'toast') await toast(page);
     else if (mode === 'fishing') await fishing(page);
