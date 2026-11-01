@@ -35,19 +35,33 @@ const ambient = makeLayer(loops, LOOP_FADE_SECONDS);
 // the first time the game asks for it (audioCommand), not at start. Until it is decoded the layer is silent; syncLayer starts it on arrival.
 const trackUrls = [];       // music track id -> URL, kept until the track is fetched
 const trackFetching = [];   // music track id -> true while the fetch is in flight
+const trackGains = [];      // music track id -> the load gain in dB, applied when the track is decoded
 
-// Fetches and decodes one file. Failures (offline, missing file, undecodable) leave the id silent.
-export async function loadAudio(kind, id, url) {
+// Scales a decoded buffer in place by a gain in decibels (the mix table, docs/adr/ADR-090). Runs once per file at load, never in a frame.
+function applyGain(buffer, gainDb) {
+    if (!gainDb) { return buffer; }
+    const scale = Math.pow(10, gainDb / 20);
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const data = buffer.getChannelData(c);
+        for (let i = 0; i < data.length; i++) { data[i] *= scale; }
+    }
+    return buffer;
+}
+
+// Fetches and decodes one file, and applies its mix gain (gainDb, from AudioCatalog: docs/adr/ADR-090). Failures (offline, missing file,
+// undecodable) leave the id silent.
+export async function loadAudio(kind, id, url, gainDb = 0) {
     if (kind === TRACK) {
         // Only remembered here; requestTrack fetches it when the game first asks for it.
         trackUrls[id] = url;
+        trackGains[id] = gainDb;
         return true;
     }
     try {
         const response = await fetch(url);
         if (!response.ok) { return false; }
         decoder = decoder || new OfflineAudioContext(1, 1, 44100);
-        const buffer = await decoder.decodeAudioData(await response.arrayBuffer());
+        const buffer = applyGain(await decoder.decodeAudioData(await response.arrayBuffer()), gainDb);
         (kind === LOOP ? loops : sounds)[id] = buffer;
         if (kind !== SOUND) { syncLayer(ambient); }
         return true;
@@ -69,7 +83,7 @@ async function fetchTrack(id, url) {
         const response = await fetch(url);
         if (!response.ok) { trackUrls[id] = null; return; }
         decoder = decoder || new OfflineAudioContext(1, 1, 44100);
-        tracks[id] = await decoder.decodeAudioData(await response.arrayBuffer());
+        tracks[id] = applyGain(await decoder.decodeAudioData(await response.arrayBuffer()), trackGains[id]);
         trackUrls[id] = null;
         syncLayer(music);
     } catch {
