@@ -203,6 +203,14 @@
     pointer-events: none;
 }
 
+/* Phones: the hotbar is two rows and stands about 53 u high, so the chat line stands above it at 56 u (on a desktop 40 u clears the one-row hotbar).
+   The open chat log keeps its own height limit (ChatLine.razor.css). */
+@media (max-width: 640px) {
+    .hud-bottom-left {
+        bottom: calc(var(--nosum-gutter) + var(--u) * 56);
+    }
+}
+
 /* Bottom-right: the emote button beside the gauges, one edge margin (gap-group) above the bottom edge. A touch screen lifts it above the action button
    (TouchControls.razor.css: the action button stands 8 u up and is 28 u tall). */
 .hud-bottom-right {

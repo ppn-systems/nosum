@@ -65,6 +65,19 @@
     min-width: calc(var(--u) * 20);
 }
 
+/* The chat button (phones have no Enter key) stands above the run toggle, 18 u up: the same right edge and width rule as the others. */
+.touch-controls ::deep .touch-chat {
+    position: absolute;
+    right: calc(var(--u) * 8);
+    bottom: calc(var(--u) * 44);
+    min-width: calc(var(--u) * 20);
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
 /* The latched run toggle (renderer.js adds the "on" class) wears the gold active face, the same face every toggle uses (GameButton.razor.css). */
 .touch-controls ::deep .touch-run.on {
     --button-frame: var(--nosum-img-button-hot);
@@ -82,5 +95,9 @@
 
     .touch-controls ::deep .touch-run {
         bottom: calc(var(--u) * 138);
+    }
+
+    .touch-controls ::deep .touch-chat {
+        bottom: calc(var(--u) * 156);
     }
 }

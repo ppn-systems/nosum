@@ -263,6 +263,8 @@
   <data name="Coop_Deposit" xml:space="preserve"><value>Gửi vào</value></data>
   <data name="Coop_DepositHint" xml:space="preserve"><value>Chọn một món trong kho để lấy, hoặc một ô trong túi đồ để gửi.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Nhật ký kho</value></data>
+  <data name="Coop_Contrib_Row" xml:space="preserve"><value>Đã góp {0} món</value></data>
+  <data name="Coop_Contrib_Window" xml:space="preserve"><value>Số liệu tính trên {0} mục nhật ký gần đây.</value></data>
   <data name="Coop_Log_Deposit" xml:space="preserve"><value>{0} - {1} đã gửi {2} {3}</value></data>
   <data name="Coop_Log_Withdraw" xml:space="preserve"><value>{0} - {1} đã lấy {2} {3}</value></data>
   <data name="Coop_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
@@ -455,6 +457,8 @@
   <data name="Touch_UseLabel" xml:space="preserve"><value>Dùng vật đang cầm</value></data>
   <data name="Touch_Run" xml:space="preserve"><value>Chạy</value></data>
   <data name="Touch_RunLabel" xml:space="preserve"><value>Bật/tắt chạy nhanh (tốn thể lực)</value></data>
+  <data name="Touch_Chat" xml:space="preserve"><value>Trò chuyện</value></data>
+  <data name="Touch_ChatLabel" xml:space="preserve"><value>Mở khung trò chuyện</value></data>
   <data name="Action_MoveUp" xml:space="preserve"><value>Đi lên</value></data>
   <data name="Action_MoveDown" xml:space="preserve"><value>Đi xuống</value></data>
   <data name="Action_MoveLeft" xml:space="preserve"><value>Đi sang trái</value></data>
@@ -594,6 +598,7 @@
   <data name="Friends_Map_coop" xml:space="preserve"><value>chuồng gà</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>chuồng gia súc</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Xóa bạn</value></data>
+  <data name="Friends_VisitFarm" xml:space="preserve"><value>Thăm nông trại</value></data>
   <data name="Friends_Incoming_Heading" xml:space="preserve"><value>Lời mời kết bạn</value></data>
   <data name="Friends_Accept" xml:space="preserve"><value>Đồng ý</value></data>
   <data name="Friends_Decline" xml:space="preserve"><value>Từ chối</value></data>
