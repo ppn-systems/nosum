@@ -73,21 +73,21 @@ internal sealed class WayfindingDecorator : IMapDecorator
                 int tileTop = screenY - 8;
 
                 // Glowing way-up / return-home pad
-                commands.FillRect(tileLeft + 1, tileTop + 1, 14, 14, unchecked((int)0x38bdf85f));
-                commands.FillRect(tileLeft + 2, tileTop + 2, 12, 12, unchecked((int)0x0e7490af));
+                commands.FillRect(tileLeft + 1, tileTop + 1, 14, 14, Rgba.From(0x38, 0xbd, 0xf8, 0x5f));
+                commands.FillRect(tileLeft + 2, tileTop + 2, 12, 12, Rgba.From(0x0e, 0x74, 0x90, 0xaf));
 
                 // Wooden ladder rails & rungs leading up
-                commands.FillRect(tileLeft + 4, tileTop + 2, 2, 12, unchecked((int)0xd97706f0));
-                commands.FillRect(tileLeft + 10, tileTop + 2, 2, 12, unchecked((int)0xd97706f0));
-                commands.FillRect(tileLeft + 4, tileTop + 4, 8, 2, unchecked((int)0xfbbf24f5));
-                commands.FillRect(tileLeft + 4, tileTop + 8, 8, 2, unchecked((int)0xfbbf24f5));
-                commands.FillRect(tileLeft + 4, tileTop + 12, 8, 2, unchecked((int)0xfbbf24f5));
+                commands.FillRect(tileLeft + 4, tileTop + 2, 2, 12, Rgba.From(0xd9, 0x77, 0x06, 0xf0));
+                commands.FillRect(tileLeft + 10, tileTop + 2, 2, 12, Rgba.From(0xd9, 0x77, 0x06, 0xf0));
+                commands.FillRect(tileLeft + 4, tileTop + 4, 8, 2, Rgba.From(0xfb, 0xbf, 0x24, 0xf5));
+                commands.FillRect(tileLeft + 4, tileTop + 8, 8, 2, Rgba.From(0xfb, 0xbf, 0x24, 0xf5));
+                commands.FillRect(tileLeft + 4, tileTop + 12, 8, 2, Rgba.From(0xfb, 0xbf, 0x24, 0xf5));
             }
             else
             {
                 // Subtle golden exit beacon chevron on map warp tiles
-                commands.FillRect(screenX - 5, screenY - 5 + bob, 10, 10, unchecked((int)0xfacc154b));
-                commands.FillRect(screenX - 3, screenY - 3 + bob, 6, 6, unchecked((int)0xfef08a9b));
+                commands.FillRect(screenX - 5, screenY - 5 + bob, 10, 10, Rgba.From(0xfa, 0xcc, 0x15, 0x4b));
+                commands.FillRect(screenX - 3, screenY - 3 + bob, 6, 6, Rgba.From(0xfe, 0xf0, 0x8a, 0x9b));
             }
         }
     }

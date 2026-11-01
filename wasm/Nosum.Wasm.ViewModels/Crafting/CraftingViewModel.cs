@@ -8,6 +8,7 @@ using Nosum.Gameplay.Crafting;
 using Nosum.Gameplay.Inventory;
 using Nosum.Wasm.Socket.Crafting;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.ViewModels.Feedback;
 using Nosum.Wasm.ViewModels.Inventory;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -39,6 +40,7 @@ public sealed record RecipeRow(int RecipeId, SlotDisplay Output, bool Unlocked, 
 public sealed class CraftingViewModel : PanelViewModel, IDisposable
 {
     private readonly CraftingChannel _crafting;
+    private readonly GameMessagesViewModel? _messages;
     private readonly InventoryChannel _inventory;
     private readonly ItemDescriber _describer;
     private int _selected = RecipeCatalog.All[0].Id;
@@ -48,7 +50,8 @@ public sealed class CraftingViewModel : PanelViewModel, IDisposable
     /// <param name="inventory">The inventory mirror: what the player has.</param>
     /// <param name="describer">Describes items.</param>
     /// <param name="text">UI text.</param>
-    public CraftingViewModel(CraftingChannel crafting, InventoryChannel inventory, ItemDescriber describer, IStringLocalizer<Language> text)
+    /// <param name="messages">Shows the crafted line on the game's message line; <see langword="null"/> for none.</param>
+    public CraftingViewModel(CraftingChannel crafting, InventoryChannel inventory, ItemDescriber describer, IStringLocalizer<Language> text, GameMessagesViewModel? messages = null)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(crafting);
@@ -58,8 +61,10 @@ public sealed class CraftingViewModel : PanelViewModel, IDisposable
         _crafting = crafting;
         _inventory = inventory;
         _describer = describer;
+        _messages = messages;
         crafting.Changed += this.Raise;
         crafting.Completed += this.OnCompleted;
+        crafting.Crafted += this.OnCrafted;
         inventory.Changed += this.Raise;
     }
 
@@ -237,6 +242,21 @@ public sealed class CraftingViewModel : PanelViewModel, IDisposable
 
     private bool CanCraftTimes(RecipeDefinition recipe, int times)
         => _crafting.IsUnlocked(recipe.Id) && RecipeRules.CanCraft(recipe, times, this.GridOfInventory()) == InventoryVerdict.Ok;
+
+    // A confirmation names what was made and how many (docs/design/critique-placement.md, finding 17). It shows on the page's own status line,
+    // because the message line is hidden while a panel is open; it also goes to the message line, for the case the page is closed at once.
+    private void OnCrafted(int recipeId, int times)
+    {
+        if (!RecipeCatalog.TryGet(recipeId, out RecipeDefinition? recipe))
+        {
+            return;
+        }
+
+        SlotDisplay output = this.RowOf(recipe, this.GridOfInventory()).Output;
+        string text = this.Text("Craft_Crafted", output.Name, output.Quantity * times);
+        this.SetStatus(text, good: true);
+        _messages?.Notify(text);
+    }
 
     private void OnCompleted(CraftStatus status)
     {

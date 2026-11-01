@@ -2,6 +2,7 @@
 
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.ViewModels.Looks;
+using Nosum.Rendering;
 
 namespace Nosum.Wasm.Game;
 
@@ -19,7 +20,7 @@ internal static class LookSprites
         ClothingSprite shirt = LookPalette.Shirt(look.ShirtItemId);
         ClothingSprite pants = LookPalette.Pants(look.PantsItemId);
         int hat = -1;
-        int hatTint = unchecked((int)0xFFFFFFFF);
+        int hatTint = Rgba.From(0xFF, 0xFF, 0xFF, 0xFF);
         if (LookPalette.TryHat(look.HatItemId, out ClothingSprite hatSprite))
         {
             hat = hatSprite.SheetIndex;

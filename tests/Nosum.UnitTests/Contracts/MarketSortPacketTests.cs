@@ -68,8 +68,20 @@ public sealed class MarketSortPacketTests
     }
 
     [Fact]
-    public void NosumProtocol_Version_IsThirtyThree_WithTheMarketPageSize()
+    public void NosumProtocol_Version_IsThirtyFour_WithTheMarketPageSize()
     {
-        NosumProtocol.Version.Should().Be(33);
+        NosumProtocol.Version.Should().Be(34);
+    }
+
+    [Fact]
+    public void NosumProtocol_Version_IsAtLeastThirtyOne_WithTheDaysLeftOnAnUnripeCrop()
+    {
+        NosumProtocol.Version.Should().BeGreaterThanOrEqualTo(31);
+    }
+
+    [Fact]
+    public void NosumProtocol_Version_IsAtLeastThirtyTwo_WithTheStrikeTelegraph()
+    {
+        NosumProtocol.Version.Should().BeGreaterThanOrEqualTo(32);
     }
 }

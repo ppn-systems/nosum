@@ -4,6 +4,7 @@
 #pragma warning disable CA2007
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -14,6 +15,7 @@ using Nalix.Framework.Injection;
 using Nalix.Hosting;
 using Nosum.Abstractions.Combat;
 using Nosum.Abstractions.Maps;
+using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Combat;
 using Nosum.Contracts.Combat.S2C;
 using Nosum.Contracts.Player.S2C;
@@ -171,6 +173,7 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
         (int monsterId, int delayMs) = await actor.Telegraphs.WaitAsync(t => t.MonsterId == monster.MonsterId, server.Token);
 
         delayMs.Should().Be(CombatRules.MonsterStrikeWindupMs, "the wind-up is the server's, not the client's");
+        server.EndWindup(delayMs);
         VitalsState after = await WaitForHpBelowAsync(actor, before.Hp, server.Token);
         after.Hp.Should().BeLessThan(before.Hp, "a player still in reach when the wind-up ends takes the contact damage");
         monsterId.Should().Be(monster.MonsterId);
@@ -191,11 +194,16 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
         VitalsState before = await actor.GetVitalsAsync(server.Token);
 
         (int _, int delayMs) = await actor.Telegraphs.WaitAsync(t => t.MonsterId == monster.MonsterId, server.Token);
-        await actor.SendMoveAsync(1, (float)(((monster.X + (2 * dx)) * TileSize) + (TileSize / 2)), (float)(((monster.Y + (2 * dy)) * TileSize) + (TileSize / 2)), server.Token);
+        double stepX = ((monster.X + (2 * dx)) * TileSize) + (TileSize / 2);
+        double stepY = ((monster.Y + (2 * dy)) * TileSize) + (TileSize / 2);
+        await actor.SendMoveAsync(1, (float)stepX, (float)stepY, server.Token);
 
-        // Watch the whole wind-up and a little past it; the next AI tick is 1.5 s away, so no second wind-up can resolve in this window.
-        await Task.Delay(TimeSpan.FromMilliseconds(delayMs + 300), server.Token);
+        // The wind-up clock stands still until the server has applied the move (no packet acknowledges an accepted move, so the server's
+        // presence record is read). Then the wind-up ends: the player is two tiles away, so the strike finds no one in reach.
+        await WaitUntilAtAsync(stepX, stepY, server.Token);
         actor.Corrections.TryTake(out _).Should().BeFalse("the step out of reach is a legal move, so the server accepts it");
+        server.EndWindup(delayMs);
+        await Server.SettleAsync(server.Token);
         VitalsState after = await actor.GetVitalsAsync(server.Token);
         after.Hp.Should().Be(before.Hp, "a player who stepped out of reach before the wind-up ended takes no contact damage");
     }
@@ -249,6 +257,33 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
         }
     }
 
+    // Reads the server's presence records for the woods until the actor's record stands at the given pixel position (an accepted move has no reply).
+    private static async Task WaitUntilAtAsync(double x, double y, CancellationToken ct)
+    {
+        IMapPresence presence = InstanceManager.Instance.GetExistingInstance<IMapPresence>()
+            ?? throw new InvalidOperationException("The map presence is not registered.");
+        string key = MapInstance.Shared(GameMaps.Woods).Key;
+        List<PlayerPresence> players = new(8);
+        while (true)
+        {
+            players.Clear();
+            presence.CopyPlayers(key, players);
+            for (int i = 0; i < players.Count; i++)
+            {
+                PlayerPresence p = players[i];
+                lock (p.Gate)
+                {
+                    if (Math.Abs(p.Motion.X - x) < 0.01 && Math.Abs(p.Motion.Y - y) < 0.01)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            await Task.Delay(10, ct);
+        }
+    }
+
     // The woods monsters are planned per map and game day; a probe joins and reads them, then the actor is placed on the most durable one.
     private static async Task<(string Map, double X, double Y)> NearMonsterAsync(Server server)
     {
@@ -290,19 +325,33 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
     private sealed class Server : IAsyncDisposable
     {
         private readonly NetworkApplication _app;
+        private readonly FakeTimeProvider _clock;
         private readonly CancellationTokenSource _timeout = new(s_timeout);
         private readonly CancellationTokenSource _ai = new();
         private Task? _aiLoop;
 
-        private Server(NetworkApplication app, ushort port)
+        private Server(NetworkApplication app, FakeTimeProvider clock, ushort port)
         {
             _app = app;
+            _clock = clock;
             this.Port = port;
         }
 
         public ushort Port { get; }
 
         public CancellationToken Token => _timeout.Token;
+
+        /// <summary>
+        /// Ends a monster's strike wind-up. The server times the wind-up on the test clock, so it ends only when the test moves that clock on, and
+        /// never by the real time a test happens to take (docs/adr/ADR-097 D1: the wind-up lasts <paramref name="delayMs"/> on the server).
+        /// </summary>
+        public void EndWindup(int delayMs) => _clock.Advance(TimeSpan.FromMilliseconds(delayMs));
+
+        /// <summary>
+        /// Lets the wind-up's continuation run after <see cref="EndWindup"/>. The continuation does no I/O when the player is out of reach, so a
+        /// short settle is enough for the negative check; the positive check waits on the hit itself.
+        /// </summary>
+        public static async Task SettleAsync(CancellationToken ct) => await Task.Delay(TimeSpan.FromMilliseconds(250), ct);
 
         /// <summary>
         /// Starts the server. The monster AI is not part of the application (the host's loops start it), so a test that needs monsters to strike runs
@@ -315,7 +364,7 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
             TestAccounts.UseFakeVerifiers(database.Options);
             FakeTimeProvider clock = new(s_start);
             NetworkApplication app = Program.BuildApplication(port, clock, development: true);
-            Server server = new(app, port);
+            Server server = new(app, clock, port);
             await app.ActivateAsync(server.Token);
             if (monsterAi)
             {

@@ -31,6 +31,14 @@
   <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy liên kết tài khoản Google hoặc Microsoft.</value></data>
   <data name="Account_Upgrade_Action" xml:space="preserve"><value>Liên kết tài khoản</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="Account_SaveProgress_Heading" xml:space="preserve"><value>Lưu tiến trình</value></data>
+  <data name="Account_SaveProgress_Body" xml:space="preserve"><value>Bạn đang chơi với tư cách khách. Liên kết tài khoản Google hoặc Microsoft để giữ nông trại, tiền xu và đồ đạc: đây vẫn là cùng một người chơi, chỉ thêm cách đăng nhập. Sau đó bạn chọn biệt danh.</value></data>
+  <data name="Account_SaveProgress_Action" xml:space="preserve"><value>Lưu tiến trình bằng tài khoản</value></data>
+  <data name="Account_SignOutGuest_Title" xml:space="preserve"><value>Đăng xuất?</value></data>
+  <data name="Account_SignOutGuest_Message" xml:space="preserve"><value>Đăng xuất sẽ mất hẳn nông trại, tiền xu và đồ đạc của khách này: không có cách nào quay lại tiến trình này sau khi đăng xuất. Hãy liên kết tài khoản Google hoặc Microsoft trước để giữ lại.</value></data>
+  <data name="Account_SignOutGuest_Link" xml:space="preserve"><value>Liên kết tài khoản trước</value></data>
+  <data name="Account_SignOutGuest_Confirm" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="Account_SignOutGuest_Stay" xml:space="preserve"><value>Ở lại chơi</value></data>
   <data name="Account_SignIn_Google" xml:space="preserve"><value>Đăng nhập bằng Google</value></data>
   <data name="Account_SignIn_Microsoft" xml:space="preserve"><value>Đăng nhập bằng Microsoft</value></data>
   <data name="Account_Link_Google" xml:space="preserve"><value>Liên kết tài khoản Google</value></data>
@@ -183,7 +191,15 @@
   <data name="Wardrobe_Skin_Heading" xml:space="preserve"><value>Màu da</value></data>
   <data name="Wardrobe_Skin" xml:space="preserve"><value>Màu da {0}</value></data>
   <data name="Wardrobe_HairStyle_Heading" xml:space="preserve"><value>Kiểu tóc</value></data>
-  <data name="Wardrobe_HairStyle" xml:space="preserve"><value>Kiểu tóc {0}</value></data>
+  <data name="Wardrobe_HairStyle_Current" xml:space="preserve"><value>Đang đeo: {0}</value></data>
+  <data name="Wardrobe_HairStyle_Name_1" xml:space="preserve"><value>Tóc ngắn gọn</value></data>
+  <data name="Wardrobe_HairStyle_Name_2" xml:space="preserve"><value>Tóc ngang trán</value></data>
+  <data name="Wardrobe_HairStyle_Name_3" xml:space="preserve"><value>Tóc bồng</value></data>
+  <data name="Wardrobe_HairStyle_Name_4" xml:space="preserve"><value>Tóc dài</value></data>
+  <data name="Wardrobe_HairStyle_Name_5" xml:space="preserve"><value>Tóc gợn sóng</value></data>
+  <data name="Wardrobe_HairStyle_Name_6" xml:space="preserve"><value>Tóc vuốt ngược</value></data>
+  <data name="Wardrobe_HairStyle_Name_7" xml:space="preserve"><value>Tóc nhọn</value></data>
+  <data name="Wardrobe_HairStyle_Name_8" xml:space="preserve"><value>Tóc xoăn</value></data>
   <data name="Wardrobe_HairDye_Heading" xml:space="preserve"><value>Màu tóc</value></data>
   <data name="Wardrobe_HairDye" xml:space="preserve"><value>Màu tóc {0}</value></data>
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Áo</value></data>
@@ -770,6 +786,7 @@
   <data name="Craft_Heading" xml:space="preserve"><value>Công thức</value></data>
   <data name="Craft_Materials" xml:space="preserve"><value>Nguyên liệu</value></data>
   <data name="Craft_Makes" xml:space="preserve"><value>Tạo ra: {0} x{1}</value></data>
+  <data name="Craft_Crafted" xml:space="preserve"><value>Đã chế tạo {0} x{1}. Đã vào túi của bạn.</value></data>
   <data name="Craft_Button" xml:space="preserve"><value>Chế tạo</value></data>
   <data name="Craft_ButtonMax" xml:space="preserve"><value>Tối đa x{0}</value></data>
   <data name="Craft_ButtonMany" xml:space="preserve"><value>Chế tạo x{0}</value></data>
@@ -1130,7 +1147,7 @@
   <data name="Fishing_PressTouch" xml:space="preserve"><value>Chạm để kéo cần!</value></data>
   <data name="Fishing_Reeling" xml:space="preserve"><value>Đang kéo cần...</value></data>
   <data name="Fishing_NotYet" xml:space="preserve"><value>Chưa phải lúc. Chờ cá cắn câu đã.</value></data>
-  <data name="Fishing_Caught" xml:space="preserve"><value>Bạn câu được {0}!</value></data>
+  <data name="Fishing_CastAgain" xml:space="preserve"><value>Sẵn sàng thì thả câu lại.</value></data>
   <data name="Fishing_Status_Nothing" xml:space="preserve"><value>Lưỡi câu chỉ kéo lên được rong rêu.</value></data>
   <data name="Fishing_Status_TooEarly" xml:space="preserve"><value>Cá chưa cắn câu, chờ thêm chút nữa.</value></data>
   <data name="Fishing_Status_Escaped" xml:space="preserve"><value>Cá đã thoát mất!</value></data>

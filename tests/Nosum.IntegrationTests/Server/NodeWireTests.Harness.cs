@@ -416,6 +416,13 @@ public sealed partial class NodeWireTests
             return (await _session.RequestAsync<DevLevelUpResult>(request, ct: ct)).Ok;
         }
 
+        public async Task<(bool Ok, string Nickname, string SessionToken)> BefriendAsync(CancellationToken ct)
+        {
+            using DevBefriend request = new();
+            DevBefriendResult reply = await _session.RequestAsync<DevBefriendResult>(request, ct: ct);
+            return (reply.Ok, reply.Nickname, reply.SessionToken);
+        }
+
         public async Task<bool> BiteAsync(uint castId, CancellationToken ct)
         {
             using DevFishingBite request = new() { CastId = castId };
@@ -439,6 +446,12 @@ public sealed partial class NodeWireTests
         {
             using DevLevelUp request = new() { Skill = 1, Level = 2 };
             return AnsweredAsync(() => _session.RequestAsync<DevLevelUpResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
+        }
+
+        public Task<bool> ProbeBefriendAsync(CancellationToken ct)
+        {
+            using DevBefriend request = new();
+            return AnsweredAsync(() => _session.RequestAsync<DevBefriendResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
         }
 
         public Task<bool> ProbeBiteAsync(CancellationToken ct)

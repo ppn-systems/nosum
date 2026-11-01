@@ -130,7 +130,7 @@ public sealed class PrecipitationLayer
                 // A near flake is two pixels square: a one-pixel flake was lost on the grass and the path (ADR-027 amendment, round 2). A far one stays one pixel.
                 bool near = _depth[i] > 0.5f;
                 int size = near ? 2 : 1;
-                commands.FillRect(x, y, size, size, near ? unchecked((int)0xFFFFFFE0) : unchecked((int)0xDCE8FFB0));
+                commands.FillRect(x, y, size, size, near ? Rgba.From(0xFF, 0xFF, 0xFF, 0xE0) : Rgba.From(0xDC, 0xE8, 0xFF, 0xB0));
             }
             else if (kind == Precipitation.Leaves)
             {
@@ -157,7 +157,7 @@ public sealed class PrecipitationLayer
                 // A drop that reaches the bottom of the view leaves a short splash.
                 if (_y[i] >= _height - 6)
                 {
-                    commands.FillRect(Math.Max(0, x - 1), _height - 1, 3, 1, unchecked((int)0x90C8E8D0));
+                    commands.FillRect(Math.Max(0, x - 1), _height - 1, 3, 1, Rgba.From(0x90, 0xC8, 0xE8, 0xD0));
                 }
             }
         }

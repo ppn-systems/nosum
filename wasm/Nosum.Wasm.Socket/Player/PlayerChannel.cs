@@ -40,6 +40,11 @@ public sealed class PlayerChannel : IDisposable
     private MoveCorrectionInfo _correction;
 
     private bool _dirty;
+    // Released when the state turns dirty, so the report loop sleeps while the farmer stands still (docs/adr/ADR-104 D2).
+    // Not disposed: a report can release it after Dispose (the frame thread keeps reporting until the map goes), and a SemaphoreSlim holds no
+    // unmanaged handle unless its AvailableWaitHandle is used.
+    [SuppressMessage("Usage", "CA2213", Justification = "A SemaphoreSlim without AvailableWaitHandle holds no unmanaged resource; a release after Dispose must not throw.")]
+    private readonly SemaphoreSlim _wake = new(0);
     private float _x;
     private float _y;
     private byte _facing;
@@ -105,6 +110,7 @@ public sealed class PlayerChannel : IDisposable
     /// <param name="running">Whether the farmer is running (docs/adr/ADR-085); the server grants the run speed only while it has energy.</param>
     public void Report(float x, float y, byte facing, bool moving, bool running = false)
     {
+        bool wake = false;
         lock (_gate)
         {
             if (_entryPending)
@@ -119,8 +125,14 @@ public sealed class PlayerChannel : IDisposable
                 _facing = facing;
                 _moving = moving;
                 _running = running;
+                wake = !_dirty;
                 _dirty = true;
             }
+        }
+
+        if (wake)
+        {
+            _ = _wake.Release();
         }
     }
 
@@ -249,13 +261,25 @@ public sealed class PlayerChannel : IDisposable
     [SuppressMessage("Design", "CA1031", Justification = "A failed send is dropped; the next report carries fresh state.")]
     private async Task ReportLoopAsync(CancellationToken ct)
     {
-        using PeriodicTimer timer = new(ReportInterval);
         try
         {
-            while (await timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
+            // Sleeps until a report makes the state dirty, then waits one report interval so a walk sends at most 10 times a second. A standing
+            // farmer wakes nothing (docs/adr/ADR-104 D2: the 10 Hz timer allocated on every tick while idle).
+            while (true)
             {
+                await _wake.WaitAsync(ct).ConfigureAwait(false);
+                await Task.Delay(ReportInterval, ct).ConfigureAwait(false);
                 if (this.LocalPlayerId == 0 || _socket.State != GameSocketState.Ready)
                 {
+                    // Not ready yet: keep the pending state and try again next interval (the wake is not re-raised by a report, since the state is still dirty).
+                    lock (_gate)
+                    {
+                        if (_dirty)
+                        {
+                            _ = _wake.Release();
+                        }
+                    }
+
                     continue;
                 }
 
@@ -291,6 +315,11 @@ public sealed class PlayerChannel : IDisposable
                 {
                     lock (_gate)
                     {
+                        if (!_dirty)
+                        {
+                            _ = _wake.Release();
+                        }
+
                         _dirty = true;
                     }
                 }

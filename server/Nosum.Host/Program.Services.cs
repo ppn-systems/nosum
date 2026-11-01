@@ -280,7 +280,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IBuildingService>(buildings);
         placeables.Attach(buildings);
         // The pet companion (docs/adr/ADR-075 D3-D5): its kind and name travel in every look, so visitors see it.
-        PetService pets = new(unitOfWork, progress, calendar, clock, presence, maps, transfers, quests, inventory);
+        PetService pets = new(unitOfWork, progress, calendar, clock, presence, maps, transfers, quests, inventory, groundItems);
         InstanceManager.Instance.Register<IPetService>(pets);
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock, pets);
         InstanceManager.Instance.Register<ILookService>(looks);
@@ -296,7 +296,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IBestiaryService>(bestiary);
         // The collection journal (read here; the inventory service counts every grant into it, in the grant's own transaction).
         InstanceManager.Instance.Register<IJournalService>(new JournalService(unitOfWork));
-        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar, quests);
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar, quests, clock: clock);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>
         {
@@ -370,6 +370,11 @@ internal static partial class Program
         // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
         FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock, friendFacts, visitFacts);
         InstanceManager.Instance.Register<IFriendService>(friends);
+        if (development)
+        {
+            IAccountService accounts = InstanceManager.Instance.GetExistingInstance<IAccountService>() ?? throw new InvalidOperationException("The account service is not registered.");
+            InstanceManager.Instance.Register<IDevSocialService>(new DevSocialService(unitOfWork, accounts, friends, nicknames));
+        }
         InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory, visitFacts, blocks));
         InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
 
