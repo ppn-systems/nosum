@@ -131,6 +131,38 @@ internal static class NodeSprites
         {
             AddHitParticles(world, node, left, baseY, sortX, tileSize, hitElapsed / 320f);
         }
+
+        AddHealthBar(world, node, left, baseY, sortX, tileSize);
+    }
+
+    // Bar colours, RRGGBBAA, the sprite batch's tint format.
+    private const int HealthBarWidth = 12;
+    private const int HealthBarHeight = 2;
+    private const int HealthBarEmpty = 0x101010E0;
+
+    private static int HealthTint(NodeHealthLevel level) => level switch
+    {
+        NodeHealthLevel.Healthy => unchecked((int)0x6BBF59FF),
+        NodeHealthLevel.Hurt => unchecked((int)0xE0A030FF),
+        _ => unchecked((int)0xD04040FF),
+    };
+
+    // A worked node shows how many hits it has left (docs/design/critique-gathering.md G1): a bar above the node, hidden at full health.
+    private static void AddHealthBar(WorldSpriteBatch world, in NodeInfo node, int left, int baseY, int sortX, int tileSize)
+    {
+        int maxHits = NodeCatalog.HitsFor((NodeKind)node.Kind, node.Stage);
+        if (!NodeHealthRules.Shows(node.Hits, maxHits))
+        {
+            return;
+        }
+
+        bool tall = (NodeKind)node.Kind == NodeKind.Tree;
+        int x = left + (tileSize / 2) - (HealthBarWidth / 2);
+        int y = baseY - (tall ? TreeHeight + 4 : tileSize + 4);
+        int sortY = baseY + tileSize + 2;
+        int fill = NodeHealthRules.FillPixels(node.Hits, maxHits, HealthBarWidth);
+        world.Add(RenderCommandBuffer.FillTexture, 0, 0, HealthBarWidth, HealthBarHeight, x, y, sortY, sortX, node.Id + 6000, tint: HealthBarEmpty);
+        world.Add(RenderCommandBuffer.FillTexture, 0, 0, fill, HealthBarHeight, x, y, sortY, sortX, node.Id + 6001, tint: HealthTint(NodeHealthRules.LevelOf(node.Hits, maxHits)));
     }
 
     private static void AddHitParticles(WorldSpriteBatch world, in NodeInfo node, int left, int baseY, int sortX, int tileSize, float progress)

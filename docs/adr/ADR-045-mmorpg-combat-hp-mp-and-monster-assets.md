@@ -126,3 +126,14 @@ slime gel and gem supply, since both are now worth 1 coin.
 
 The reference player changes (a new weapon tier, a new armor set or an XP change), a regeneration rule is decided, or the playtest shows that
 band 3 healing is too tight.
+
+## Amendments
+
+### 2026-11-01 - the HP number shows at low HP (combat critique, touch)
+
+- The HP and MP numbers were only in the gauge's tooltip (`data-tip`), which a touch player cannot see. At 25 % HP or less (`ProgressViewModel.HpLow`,
+  the threshold that already turned the gauge red), the current HP is written as a small parchment tag over the top of the HP tube
+  (`EnergyBar.razor`, `.vitals-hp-note`). It is only the number, so it needs no new text and no translation. Above the threshold the tube has no tag,
+  and the tooltip and accessible name carry the full `HP 20 / 100`. MP is unchanged. No wire change.
+- A first version put the full label above the whole vitals column. On a 390 px screen that tag ran off the right edge and covered the heart button, so
+  the tag now sits over its own tube, where there is room for it.

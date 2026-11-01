@@ -53,6 +53,12 @@ public static class AnimalRules
     /// <returns>One for hay and fiber, zero for anything else.</returns>
     public static int RationsOf(int itemId) => itemId is ItemCatalog.Hay or ItemCatalog.Fiber ? 1 : 0;
 
+    /// <summary>Tells whether a building's feeding bench is empty while it has animals, so the animals will not eat tonight and the player should fill the bench (docs/design/critique-animals-pets.md).</summary>
+    /// <param name="rations">Rations in the feeding bench.</param>
+    /// <param name="animals">Animals living in the building.</param>
+    /// <returns><see langword="true"/> when there are animals and no ration in the bench.</returns>
+    public static bool BenchNeedsHay(int rations, int animals) => animals > 0 && rations <= 0;
+
     /// <summary>Checks a name for an animal: the nickname rules of docs/adr/ADR-009, including the profanity filter.</summary>
     /// <param name="typed">What the player typed.</param>
     /// <returns><see langword="true"/> when the name may be used.</returns>

@@ -15,6 +15,10 @@
                 <GameInput Value="@_search" ValueChanged="@(v => _search = v)" OnEnter="@(() => Vm.RunSearch(_search))" Placeholder="@Vm.Text("Market_SearchPlaceholder")" Label="@Vm.Text("Market_SearchPlaceholder")" />
                 <GameButton Text="@Vm.Text("Market_Search")" OnClick="@(() => Vm.RunSearch(_search))" />
             </GameRow>
+            @* The order of the page: newest first, or by what one unit costs (stacks of different sizes compare on the unit price). *@
+            <GameRow>
+                <TabBar Active="(int)Vm.Sort" OnSelect="@(id => Vm.ChooseSort(id))" Tabs="Vm.SortTabs" />
+            </GameRow>
             @if (Vm.Browsed.Count == 0)
             {
                 <p class="market-empty">@Vm.Text("Market_Empty")</p>
@@ -30,7 +34,7 @@
                         <span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span>
                         <span class="listing-seller">@listing.SellerText</span>
                     </span>
-                    <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
+                    <span class="listing-price">@listing.PriceText</span>
                     <GameButton Variant="secondary" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />
                     @if (listing.IsMine)
                     {
@@ -71,9 +75,14 @@
                                     Label="@Vm.Text("Market_TotalPrice")" Unit="@Vm.Text("Market_PriceLabel")" />
                     </span>
                     <GameButton Text="@Vm.Text("Market_List")" OnClick="@(() => Vm.Sell())" />
+                    @* One line under the form: the bin's price while no price is typed, the fee and what the seller receives once one is. *@
                     @if (Vm.FeeSummary.Length > 0)
                     {
                         <span class="market-fee sell-fee">@Vm.FeeSummary</span>
+                    }
+                    else if (Vm.BinHint.Length > 0)
+                    {
+                        <span class="market-fee sell-bin">@Vm.BinHint</span>
                     }
                 </div>
                 @if (Vm.PendingListing is not null)
@@ -105,7 +114,7 @@
                 <GameRow Class="listing-row">
                     <ItemSlotButton Slot="listing.Item" />
                     <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span></span>
-                    <span class="listing-price">@Vm.Text("Market_Price", listing.PriceText)</span>
+                    <span class="listing-price">@listing.PriceText</span>
                     <GameButton Variant="danger" Text="@Vm.Text("Market_Cancel")" OnClick="@(() => Vm.Cancel(id))" />
                 </GameRow>
             }

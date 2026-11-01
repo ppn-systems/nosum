@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
+using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Player;
@@ -51,6 +52,12 @@ public sealed class LevelUpBannerViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the banner line naming the skill and the level, or <see langword="null"/> when no banner is shown.</summary>
     public string? Message { get; private set; }
 
+    /// <summary>
+    /// Gets the perk line for a gathering level that unlocks one (docs/adr/ADR-089 D3): the energy the skill's tools now save per use. It is
+    /// <see langword="null"/> for every other level and skill, and when no banner is shown.
+    /// </summary>
+    public string? Perk { get; private set; }
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -74,10 +81,27 @@ public sealed class LevelUpBannerViewModel : IObservableViewModel, IDisposable
     private void Show(byte skill, int level)
     {
         int version = ++_version;
+        string skillName = _text["Skill_" + (SkillKind)skill].Value;
         this.Title = _text["Combat_Label_LevelUp"].Value;
-        this.Message = string.Format(CultureInfo.CurrentCulture, _text["Skill_LevelUp"].Value, _text["Skill_" + (SkillKind)skill].Value, level);
+        this.Message = string.Format(CultureInfo.CurrentCulture, _text["Skill_LevelUp"].Value, skillName, level);
+        this.Perk = PerkAt((SkillKind)skill, level) is { } discount
+            ? string.Format(CultureInfo.CurrentCulture, _text["Skill_Perk"].Value, skillName, discount)
+            : null;
         this.Changed?.Invoke();
         _ = this.ClearLaterAsync(version);
+    }
+
+    /// <summary>
+    /// Returns the energy discount a level unlocks for a gathering skill's tools, or <see langword="null"/> when the level unlocks none
+    /// (docs/adr/ADR-089 D3). Combat and fishing tools cost no gathering energy, so they have no perk.
+    /// </summary>
+    /// <param name="skill">The skill.</param>
+    /// <param name="level">The level reached.</param>
+    /// <returns>The discount the level now gives, or <see langword="null"/>.</returns>
+    public static int? PerkAt(SkillKind skill, int level)
+    {
+        bool gathering = skill is SkillKind.Farming or SkillKind.Foraging or SkillKind.Mining;
+        return gathering && level > 0 && level % EnergyRules.LevelsPerDiscount == 0 ? level / EnergyRules.LevelsPerDiscount : null;
     }
 
     private async Task ClearLaterAsync(int version)
@@ -87,6 +111,7 @@ public sealed class LevelUpBannerViewModel : IObservableViewModel, IDisposable
         {
             this.Title = null;
             this.Message = null;
+            this.Perk = null;
             this.Changed?.Invoke();
         }
     }

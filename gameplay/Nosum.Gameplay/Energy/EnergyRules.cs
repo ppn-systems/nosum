@@ -51,9 +51,18 @@ public static class EnergyRules
             return 0;
         }
 
-        int tierDiscount = tier >= ToolTier.Copper ? 1 : 0;
+        int tierDiscount = TierDiscount(tool, tier);
         return System.Math.Max(1, baseCost - tierDiscount - (System.Math.Max(0, skillLevel) / LevelsPerDiscount));
     }
+
+    /// <summary>
+    /// Gets the energy an upgraded tool saves per use (docs/adr/ADR-089 D1): one for a copper axe or pickaxe, two for iron. The hoe and the watering
+    /// can keep their base cost (their tier buys a longer line, not less energy), and the scythe costs nothing.
+    /// </summary>
+    /// <param name="tool">The tool.</param>
+    /// <param name="tier">The tool's tier.</param>
+    /// <returns>Energy saved per use, zero or more.</returns>
+    public static int TierDiscount(ToolKind tool, ToolTier tier) => tool is ToolKind.Axe or ToolKind.Pickaxe ? (int)tier : 0;
 
     /// <summary>Applies the daily refill: energy is full again once a game day has passed since the last refill.</summary>
     /// <param name="energy">The stored energy.</param>

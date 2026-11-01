@@ -1,0 +1,28 @@
+{
+  "size": "1280x720",
+  "shots": [
+    "hud-farm-vi-1280x720.png",
+    "journal-all-vi-1280x720.png",
+    "npc-greeting-vi-1280x720.png",
+    "npc-talk1-vi-1280x720.png",
+    "npc-talk2-vi-1280x720.png",
+    "hud-farm-en-1280x720.png",
+    "journal-all-en-1280x720.png",
+    "npc-greeting-en-1280x720.png",
+    "npc-talk1-en-1280x720.png",
+    "npc-talk2-en-1280x720.png"
+  ],
+  "texts": {
+    "tabs-vi": 0,
+    "journal-vi": "Đã khám phá 8 / 212 món",
+    "greeting-vi": "Chủ tiệm hạt giống\n\nMùi đất ẩm là mùi tôi thích nhất đấy.",
+    "talk1-vi": "Chủ tiệm hạt giống\n\nGhé quầy tôi trước khi ra ruộng nhé, cần gì cũng có.",
+    "talk2-vi": "Chủ tiệm hạt giống\n\nXuân về rồi, hạt đậu và củ cải vừa nhập về đấy.",
+    "tabs-en": 0,
+    "journal-en": "Discovered 8 of 212 items",
+    "greeting-en": "Seed shopkeeper\n\nDamp soil is my favourite smell.",
+    "talk1-en": "Seed shopkeeper\n\nStop by before you head to the fields. I'll have what you need.",
+    "talk2-en": "Seed shopkeeper\n\nSpring is here, and the beans and radishes just came in."
+  },
+  "errors": []
+}
