@@ -1,0 +1,65 @@
+{
+  "state": "shop-seedkeeper",
+  "lang": "vi",
+  "size": "390x844",
+  "u": "2px",
+  "present": {
+    "dialog": true,
+    "body": true,
+    "shopList": true,
+    "itemGrid": false,
+    "pager": true
+  },
+  "dialog": {
+    "x": 8,
+    "y": 120,
+    "w": 374,
+    "h": 406,
+    "left": 8,
+    "right": 382,
+    "top": 120,
+    "bottom": 526,
+    "className": "trade-dialog trade-dialog-l",
+    "computedMaxHeight": "none"
+  },
+  "body": {
+    "x": 24,
+    "y": 172,
+    "w": 342,
+    "h": 340,
+    "left": 24,
+    "right": 366,
+    "top": 172,
+    "bottom": 512,
+    "clientHeight": 340,
+    "scrollHeight": 340
+  },
+  "shopList": {
+    "x": 24,
+    "y": 249,
+    "w": 340,
+    "h": 156,
+    "left": 24,
+    "right": 364,
+    "top": 249,
+    "bottom": 405,
+    "childCount": 4,
+    "rowHeights": [
+      36,
+      36,
+      36,
+      36
+    ]
+  },
+  "pager": {
+    "x": 24,
+    "y": 413,
+    "w": 340,
+    "h": 28,
+    "left": 24,
+    "right": 364,
+    "top": 413,
+    "bottom": 441
+  },
+  "itemGrid": null
+}

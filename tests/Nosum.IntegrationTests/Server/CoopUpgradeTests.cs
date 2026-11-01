@@ -51,7 +51,8 @@ namespace Nosum.IntegrationTests.Server;
 /// </summary>
 public sealed class CoopUpgradeTests : IClassFixture<PostgresFixture>, IDisposable
 {
-    private static readonly DateTimeOffset s_start = new(2026, 11, 2, 3, 0, 0, TimeSpan.Zero);
+    // Day 1 at 03:00 of the default calendar (its epoch is 2026-10-26, docs/adr/ADR-018 amendment).
+    private static readonly DateTimeOffset s_start = new(2026, 10, 26, 3, 0, 0, TimeSpan.Zero);
     private static readonly TmxMapCatalog s_maps = new(GameMaps.All, Path.Combine(AppContext.BaseDirectory, "maps"));
 
     private readonly PostgresFixture _database;

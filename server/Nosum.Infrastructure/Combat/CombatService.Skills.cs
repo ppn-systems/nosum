@@ -17,7 +17,9 @@ using Nosum.Contracts.Player.S2C;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Skills;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Combat;
 
@@ -82,6 +84,13 @@ public sealed partial class CombatService
         {
             lock (vitals.Gate)
             {
+                // The cooldown is checked and taken under the same lock as the effect, so two casts that race cannot both land (docs/adr/ADR-056 D5).
+                long admittedAt = Environment.TickCount64;
+                if (_skillCooldowns.TryGetValue((player.AccountId, skillId), out long readyAtLocked) && !SkillCooldownRules.IsReady(readyAtLocked, admittedAt))
+                {
+                    return new CastSkillOutcome(CombatStatus.OnCooldown, skillId, 0, 0, 0, vitals.ToView(), SkillCooldownRules.RemainingMs(readyAtLocked, admittedAt));
+                }
+
                 if (vitals.Mp < skill.MpCost)
                 {
                     return new CastSkillOutcome(CombatStatus.NotEnoughMp, skillId, 0, 0, 0, vitals.ToView(), 0);
@@ -234,11 +243,12 @@ public sealed partial class CombatService
                     vitals.Mp = Math.Min(nextMaxMp, vitals.Mp + mpBonus);
                 }
 
+                // Taken only by a cast that landed: every refusal above returns before this line and leaves the cooldown as it was.
+                _skillCooldowns[(player.AccountId, skillId)] = SkillCooldownRules.ReadyAfterCast(admittedAt, skill);
                 resultVitals = vitals.ToView();
             }
         }
 
-        _skillCooldowns[(player.AccountId, skillId)] = now + skill.CooldownMs;
         await this.SaveVitalsAsync(player.AccountId, resultVitals, cancellationToken).ConfigureAwait(false);
 
         foreach (MonsterSpawn m in broadcastChanges)
@@ -296,6 +306,8 @@ public sealed partial class CombatService
         {
             await _bestiary.RecordKillAsync(killerId, defeatedMonster.Kind, cancellationToken).ConfigureAwait(false);
         }
+
+        await _quests.TryReportAsync(killerId, new QuestEvent(QuestEventKind.MonsterDefeated, (int)defeatedMonster.Kind), cancellationToken).ConfigureAwait(false);
 
         int dropPixelX = (defeatedMonster.X * tileSize) + (tileSize / 2);
         int dropPixelY = (defeatedMonster.Y * tileSize) + (tileSize / 2);

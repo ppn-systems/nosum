@@ -1,0 +1,82 @@
+{
+  "state": "market-sell",
+  "lang": "vi",
+  "size": "1280x720",
+  "u": "3px",
+  "present": {
+    "dialog": true,
+    "body": true,
+    "shopList": false,
+    "itemGrid": true,
+    "pager": false
+  },
+  "dialog": {
+    "x": 310,
+    "y": 96,
+    "w": 660,
+    "h": 421,
+    "left": 310,
+    "right": 970,
+    "top": 96,
+    "bottom": 517,
+    "className": "trade-dialog trade-dialog-l",
+    "computedMaxHeight": "none"
+  },
+  "body": {
+    "x": 334,
+    "y": 174,
+    "w": 612,
+    "h": 322,
+    "left": 334,
+    "right": 946,
+    "top": 174,
+    "bottom": 496,
+    "clientHeight": 322,
+    "scrollHeight": 322
+  },
+  "shopList": null,
+  "pager": null,
+  "itemGrid": {
+    "x": 334,
+    "y": 231,
+    "w": 612,
+    "h": 225,
+    "left": 334,
+    "right": 946,
+    "top": 231,
+    "bottom": 456,
+    "childCount": 36,
+    "parentSection": {
+      "x": 334,
+      "y": 228,
+      "w": 609,
+      "h": 231,
+      "left": 334,
+      "right": 943,
+      "top": 228,
+      "bottom": 459
+    },
+    "firstSlot": {
+      "x": 385,
+      "y": 231,
+      "w": 54,
+      "h": 54,
+      "left": 385,
+      "right": 439,
+      "top": 231,
+      "bottom": 285
+    },
+    "lastSlot": {
+      "x": 841,
+      "y": 402,
+      "w": 54,
+      "h": 54,
+      "left": 841,
+      "right": 895,
+      "top": 402,
+      "bottom": 456
+    },
+    "gapLeftToBody": 0,
+    "gapRightToBody": 0
+  }
+}

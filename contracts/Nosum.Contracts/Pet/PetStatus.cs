@@ -25,4 +25,10 @@ public enum PetStatus : byte
 
     /// <summary>The player is on no map, or the request could not be served right now.</summary>
     Unavailable = 6,
+
+    /// <summary>The player is not at the carpenter's counter: a pet is bought and sold there (docs/adr/ADR-075 amendment).</summary>
+    NotAtShop = 7,
+
+    /// <summary>The player cannot pay the pet's price (docs/adr/ADR-075 amendment).</summary>
+    NotEnoughCoins = 8,
 }

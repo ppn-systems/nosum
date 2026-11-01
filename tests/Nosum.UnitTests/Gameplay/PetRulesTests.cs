@@ -8,6 +8,26 @@ namespace Nosum.UnitTests.Gameplay;
 
 public sealed class PetRulesTests
 {
+    [Theory]
+    [InlineData((byte)PetKind.Cat, 600)]
+    [InlineData((byte)PetKind.Dog, 900)]
+    [InlineData((byte)PetKind.None, 0)]
+    [InlineData((byte)3, 0)]
+    public void PriceOf_IsTheCarpentersPriceForTheKind_AndZeroForNothingElse(byte kind, long price)
+    {
+        PetRules.PriceOf(kind).Should().Be(price);
+    }
+
+    [Theory]
+    [InlineData((byte)PetKind.Cat, 300)]
+    [InlineData((byte)PetKind.Dog, 450)]
+    [InlineData((byte)PetKind.None, 0)]
+    public void RehomeRefundOf_IsHalfThePriceRoundedDown(byte kind, long refund)
+    {
+        PetRules.RehomeRefundOf(kind).Should().Be(refund);
+        PetRules.RehomeRefundOf(kind).Should().BeLessThanOrEqualTo(PetRules.PriceOf(kind) / 2);
+    }
+
     [Fact]
     public void CleanName_MasksProfanityAndCollapsesSpaces_AsChatDoes()
     {

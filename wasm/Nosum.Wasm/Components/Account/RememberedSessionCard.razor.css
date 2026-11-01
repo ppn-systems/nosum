@@ -1,0 +1,18 @@
+/* The card's who-line: the provider's mark and the name, centred on one line. */
+.account-continue-who {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 2);
+}
+
+.account-continue-mark {
+    flex: none;
+    width: calc(var(--u) * 7);
+    height: calc(var(--u) * 7);
+}
+
+.account-continue-name {
+    font-size: var(--nosum-fs-body);
+    overflow-wrap: anywhere;
+}

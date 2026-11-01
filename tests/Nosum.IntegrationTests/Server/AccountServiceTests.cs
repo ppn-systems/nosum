@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Economy;
+using Nosum.Gameplay.Items;
 using Nosum.Abstractions.Identity;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
@@ -15,6 +17,8 @@ using Nosum.Core;
 using Nosum.Domain.Accounts;
 using Nosum.Gameplay.Players;
 using Nosum.Infrastructure.Accounts;
+using Nosum.Infrastructure.Economy;
+using Nosum.Infrastructure.Inventory;
 using Nosum.Infrastructure.Persistence;
 using Nosum.Infrastructure.Security;
 using Xunit;
@@ -28,16 +32,20 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
 
     private readonly PostgresFixture _database;
     private readonly FakeTimeProvider _clock = new(s_start);
+    private readonly TransferService _transfers;
     private readonly AccountService _accounts;
 
     public AccountServiceTests(PostgresFixture database)
     {
         _database = database;
+        EfUnitOfWorkFactory units = new(database.Options);
         _accounts = new AccountService(
-            new EfUnitOfWorkFactory(database.Options),
+            units,
             FakeExternalTokenVerifier.All(),
             new SessionTokenService(),
             _clock);
+        _transfers = new TransferService(new InventoryService(units, _clock), _clock);
+        _accounts.AttachTransfers(_transfers);
     }
 
     [Fact]
@@ -360,6 +368,7 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     {
         AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());
         string nickname = TestNicknames.Next();
+        (await _transfers.ExecuteAsync([new TransferLeg(TransferParty.Player(signedIn.PlayerId), ItemCatalog.RenameScroll, 1)], "test.grant")).Should().Be(TransferStatus.Ok);
 
         NicknameOutcome outcome = await _accounts.SetNicknameAsync(signedIn.PlayerId, nickname, CancellationToken.None);
 

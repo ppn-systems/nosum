@@ -153,3 +153,44 @@ Resource nodes and the three tools (D1–D4, D8, the node part of D9) are implem
 - `FarmStatus` values of the node work were renumbered to 17–20 at merge (16 is `NotYourFarm`, already on master).
 - Follow-ups: give existing accounts the three new tools; a wire test for "visitor cannot chop"; co-op audit lines for
   node yields on co-op land.
+
+## Amendments
+
+### 2026-10-31 - dry days revert bare soil and wither crops (D7 amended, farm feel)
+
+Supersedes the random revert of D7 above. Soil and crops now decay on a fixed count of dry game days, decided on the server (issue: farm feel,
+`docs/qa/farm-feel-2/`).
+
+- **Revert (replaces the 30 % roll).** Tilled soil with no crop reverts to untilled after `FarmRules.DryDaysToRevert` (3) game days in a row ended without
+  water: no hand watering, no rain on an outdoor tile, no sprinkler beside it (`FarmRules.IsWateredOn`). The run starts after `max(TendedDay, WateredDay)`, so
+  the day of tilling or harvest is a day of grace. `FarmRules.RevertRoll` and `RevertChancePercent` are removed. The rule is pure, so reads
+  (`FarmService.LiveTile`) and the day sweep agree and a reverted tile never comes back.
+- **Wither (new, beside the season rule of ADR-018).** A planted crop withers after `FarmRules.DryDaysToWither` (2) game days in a row ended without water, counted
+  after `max(planting day, WateredDay)`. Rain outdoors and sprinklers count as water. A ripe crop that is not harvested is subject to the same run, as it is
+  to the season. Watering a withered crop is refused with `FarmStatus.Withered` (`FarmRules.Water`), so the dry run stays a fact of the past. A withered crop
+  is cleared with the scythe (`CutWithered`) or replanted over, as before.
+- **Day sweep.** `FarmService.SweepFarmAsync` still deletes reverted rows and publishes them as removed (ADR-022 D4). A crop that withered at the day's end
+  is published again in its chunk's batch, so every client redraws it withered at once.
+- **Limits.** The runs are computed from the stored days, the calendar, the weather and the sprinklers standing now. Removing a sprinkler later can make
+  past days dry and so decay a tile retroactively. The client's action-key check (`PlayerActions.FacesCrop`) knows whether the map is outdoors but not the
+  sprinklers beside a tile; a crop that only a sprinkler keeps alive may read as withered there, and the server still decides what the use does.
+- **Tests.** `FarmDryDayRulesTests` (unit: revert, wither, rain and sprinkler breaking the runs, watering refused, replant, cut); `FarmWireTests.Decay_*`
+  (integration: the wither and its refusal over the wire, the revert after three dry days, a crop watered daily never withers).
+
+### 2026-10-31 (2) - ripe crops wait dry; thirsty warning; the server sends the withered flag (D7 amended)
+
+Amends the 2026-10-31 section above in three places; the rest stands.
+
+- **Ripe crops are exempt from the dry run.** A crop that has ripened (`IsMature`) is not dried out by later dry days, so it waits for its harvest. A wither
+  that came before the ripening stands, and rain that ripens a dead crop later does not revive it: `FarmRules.IsWithered` walks the days once (`WalkCrop`), the
+  same count as `GrowthDaysAt`, and stops at the first answer that cannot change. The season change does not wither a ripe crop either (decided 2026-11-01, see ADR-018 D4 amendment): it waits for its harvest.
+- **The client takes the withered state from the server.** `FarmTileRow` appends `Withered` (order 11); the protocol moves to version 28. `PlayerActions.FacesCrop`
+  and the decorator read the flag and no longer recompute it, so a sprinkler-watered crop is never shown or refused as withered on a guess. The server sets the
+  flag wherever it sends a tile (the sweep, the chunk snapshot, the action push and `GetFarm`). The flag is as fresh as the last push of that tile: a withering
+  at a day's end is pushed by the sweep, and a sprinkler placed mid-day takes effect on the next push.
+- **Thirsty warning (new).** `FarmRules.IsAtRisk`: a planted crop one dry day from withering, or bare soil one dry day from reverting, on a tile not watered
+  today. The engine tints such tiles (`FarmDecorator`); when a game day begins `ThirstWarning` shows "N crops need water" on the message line once, counting the
+  planted crops that are at risk and not yet withered. Nothing is stored and the server decides nothing from it.
+- **Also fixed.** `GetFarm` now sends `TendedDay`, which it had left out, so a reloaded client decides bare soil's dry days as the sweep does.
+- **Tests.** `FarmDryDayRulesTests` (ripe exemption, sticky wither, thirsty crop and bare soil, sprinkler and watering); `FarmChannelTests` (the flag reaches
+  the mirror); `FarmWireTests.Decay_*` asserts the flag over the wire.

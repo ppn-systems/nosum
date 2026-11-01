@@ -1036,6 +1036,10 @@ namespace Nosum.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("player_id");
 
+                    b.Property<int>("FeetItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("feet_item_id");
+
                     b.Property<int>("HairDyeId")
                         .HasColumnType("integer")
                         .HasColumnName("hair_dye_id");

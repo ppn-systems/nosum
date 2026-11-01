@@ -1,0 +1,22 @@
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Backpack
+@inherits ObservingComponent<BackpackViewModel>
+
+@* The tailor's backpack page (docs/adr/ADR-081): how many slots the bag holds, the next size with its price, and one button that buys it. The new row of
+   slots shows in the inventory at once. *@
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
+    <GameStack>
+        <p class="backpack-size">@Vm.SizeText</p>
+        <p class="backpack-offer">@Vm.OfferText</p>
+        <p class="backpack-hint">@Vm.HintText</p>
+        @* The button is always here, so the page reads the same at every size; when it is off, the reason is on the line under it. *@
+        <GameRow>
+            <GameButton Text="@Vm.UpgradeLabel" Disabled="@(!Vm.CanUpgrade)" OnClick="Vm.Upgrade" />
+        </GameRow>
+        @if (!Vm.CanUpgrade && Vm.UpgradeBlockText.Length > 0)
+        {
+            <GameNotice Kind="info" Text="@Vm.UpgradeBlockText" />
+        }
+    </GameStack>
+</MenuPage>

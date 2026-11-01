@@ -1,0 +1,162 @@
+[
+  {
+    "loc": "vi",
+    "vp": "1280x720",
+    "file": "/home/user/nosum/docs/qa/phone-inventory/before-vi-1280x720.png",
+    "boxes": {
+      "window": [
+        310,
+        96,
+        970,
+        586
+      ],
+      "sort": [
+        337,
+        174,
+        437,
+        216
+      ],
+      "lock": [
+        446,
+        184,
+        769,
+        206
+      ],
+      "side": [
+        334,
+        228,
+        454,
+        459
+      ],
+      "body": [
+        334,
+        228,
+        943,
+        459
+      ]
+    },
+    "overlaps": [],
+    "scrolls": [],
+    "errors": []
+  },
+  {
+    "loc": "vi",
+    "vp": "390x844",
+    "file": "/home/user/nosum/docs/qa/phone-inventory/before-vi-390x844.png",
+    "boxes": {
+      "window": [
+        8,
+        120,
+        382,
+        597
+      ],
+      "sort": [
+        26,
+        172,
+        85,
+        200
+      ],
+      "lock": [
+        91,
+        177,
+        281,
+        196
+      ],
+      "side": [
+        24,
+        208,
+        364,
+        362
+      ],
+      "body": [
+        24,
+        208,
+        364,
+        510
+      ]
+    },
+    "overlaps": [],
+    "scrolls": [],
+    "errors": []
+  },
+  {
+    "loc": "en",
+    "vp": "1280x720",
+    "file": "/home/user/nosum/docs/qa/phone-inventory/before-en-1280x720.png",
+    "boxes": {
+      "window": [
+        310,
+        96,
+        970,
+        586
+      ],
+      "sort": [
+        337,
+        174,
+        407,
+        216
+      ],
+      "lock": [
+        416,
+        184,
+        679,
+        206
+      ],
+      "side": [
+        334,
+        228,
+        454,
+        459
+      ],
+      "body": [
+        334,
+        228,
+        943,
+        459
+      ]
+    },
+    "overlaps": [],
+    "scrolls": [],
+    "errors": []
+  },
+  {
+    "loc": "en",
+    "vp": "390x844",
+    "file": "/home/user/nosum/docs/qa/phone-inventory/before-en-390x844.png",
+    "boxes": {
+      "window": [
+        8,
+        120,
+        382,
+        597
+      ],
+      "sort": [
+        26,
+        172,
+        68,
+        200
+      ],
+      "lock": [
+        74,
+        177,
+        231,
+        196
+      ],
+      "side": [
+        24,
+        208,
+        364,
+        362
+      ],
+      "body": [
+        24,
+        208,
+        364,
+        510
+      ]
+    },
+    "overlaps": [],
+    "scrolls": [],
+    "errors": []
+  }
+]

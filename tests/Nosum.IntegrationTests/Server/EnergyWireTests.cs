@@ -150,7 +150,7 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task Tilling_SpendsTwoEnergyAndEarnsFarmingExperience_InTheSameCommitAsTheTile()
+    public async Task Tilling_SpendsThreeEnergyAndEarnsFarmingExperience_InTheSameCommitAsTheTile()
     {
         await using TestHost host = await TestHost.StartAsync(_database);
         await using Client player = await host.ConnectAsync();
@@ -159,11 +159,11 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
 
         (await player.UseAsync(s_hoe, x, y, host.Timeout)).Should().BeEquivalentTo(new { Status = FarmStatus.Ok, Action = FarmAction.Tilled });
 
-        (await player.Energy.WaitAsync(e => e.Energy == EnergyRules.MaxEnergy - 2, host.Timeout)).MaxEnergy.Should().Be(EnergyRules.MaxEnergy);
+        (await player.Energy.WaitAsync(e => e.Energy == EnergyRules.MaxEnergy - 3, host.Timeout)).MaxEnergy.Should().Be(EnergyRules.MaxEnergy);
         (await player.Xp.WaitAsync(p => p.FarmingXp == SkillRules.TillXp, host.Timeout)).MiningXp.Should().Be(0);
         await using NosumDbContext db = new(_database.Options);
         PlayerState row = await db.PlayerStates.SingleAsync(s => s.PlayerId == player.AccountId);
-        (row.Energy, row.FarmingXp).Should().Be((EnergyRules.MaxEnergy - 2, SkillRules.TillXp));
+        (row.Energy, row.FarmingXp).Should().Be((EnergyRules.MaxEnergy - 3, SkillRules.TillXp));
         row.MapName.Should().BeEmpty("a state row made by the progress service has no saved place yet");
         (await db.FarmPlots.AnyAsync(p => p.OwnerId == player.AccountId && p.X == x && p.Y == y)).Should().BeTrue();
     }
@@ -190,14 +190,14 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
         // The scythe harvests for nothing: grow a parsnip is too slow here, so check that a free tool is not refused at zero (it reaches the farm rules: nothing to do).
         (await player.UseAsync(s_scythe, x2, y2, host.Timeout)).Status.Should().Be(FarmStatus.NothingToDo);
 
-        // Eat a parsnip: ten energy back, one item less, and the hoe works again for two of it.
+        // Eat a parsnip: ten energy back, one item less, and the hoe works again at three energy a use.
         (await player.GrantAsync(ItemCatalog.Parsnip, 3, host.Timeout)).Should().BeTrue();
         (await player.EatAsync(s_granted, host.Timeout)).Status.Should().Be(EatStatus.Ok);
         (await player.Energy.WaitAsync(e => e.Energy == 10, host.Timeout)).MaxEnergy.Should().Be(EnergyRules.MaxEnergy);
         IInventoryService inventory = InstanceManager.Instance.GetExistingInstance<IInventoryService>()!;
         (await inventory.PeekSlotAsync(player.AccountId, s_granted)).Should().Be(new InventorySlotView(s_granted, ItemCatalog.Parsnip, 2));
         (await player.UseAsync(s_hoe, x2, y2, host.Timeout)).Action.Should().Be(FarmAction.Tilled);
-        (await player.Energy.WaitAsync(e => e.Energy == 8, host.Timeout)).Energy.Should().Be(8);
+        (await player.Energy.WaitAsync(e => e.Energy == 7, host.Timeout)).Energy.Should().Be(7);
     }
 
     [Fact]
@@ -242,11 +242,11 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
         (level.Skill, level.Level).Should().Be(((byte)SkillKind.Farming, (byte)1));
         (await player.Xp.WaitAsync(p => p.FarmingXp == SkillRules.XpForLevel(1), host.Timeout)).FarmingXp.Should().Be(100);
 
-        // At level four the hoe costs one.
+        // At level four the hoe costs two (three less one per four levels).
         await SetAsync(player.AccountId, s => s.SetProperty(p => p.FarmingXp, SkillRules.XpForLevel(4)).SetProperty(p => p.Energy, 100));
         (int x3, int y3) = host.TillableTileInReach(2);
         (await player.UseAsync(s_hoe, x3, y3, host.Timeout)).Action.Should().Be(FarmAction.Tilled);
-        (await player.Energy.WaitAsync(e => e.Energy == 99, host.Timeout)).Energy.Should().Be(99);
+        (await player.Energy.WaitAsync(e => e.Energy == 98, host.Timeout)).Energy.Should().Be(98);
     }
 
     [Fact]
@@ -273,10 +273,10 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
 
         (int x2, int y2) = host.TillableTileInReach(1);
         (await player.UseAsync(s_hoe, x2, y2, host.Timeout)).Action.Should().Be(FarmAction.Tilled);
-        (await player.Energy.WaitAsync(e => e.Energy == EnergyRules.MaxEnergy - 2, host.Timeout)).Energy.Should().Be(EnergyRules.MaxEnergy - 2);
+        (await player.Energy.WaitAsync(e => e.Energy == EnergyRules.MaxEnergy - 3, host.Timeout)).Energy.Should().Be(EnergyRules.MaxEnergy - 3);
         await using (NosumDbContext db = new(_database.Options))
         {
-            (await db.PlayerStates.SingleAsync(s => s.PlayerId == player.AccountId)).Should().BeEquivalentTo(new { Energy = EnergyRules.MaxEnergy - 2, EnergyRefilledDay = 1L });
+            (await db.PlayerStates.SingleAsync(s => s.PlayerId == player.AccountId)).Should().BeEquivalentTo(new { Energy = EnergyRules.MaxEnergy - 3, EnergyRefilledDay = 1L });
         }
     }
 
@@ -291,7 +291,7 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
 
         // A swing that only damages the tree costs energy and earns one foraging experience.
         (await player.UseAsync(s_axe, free[1].X, free[1].Y, host.Timeout)).Action.Should().Be(FarmAction.Hit);
-        (await player.Energy.WaitAsync(e => e.Energy == EnergyRules.MaxEnergy - 2, host.Timeout)).Energy.Should().Be(EnergyRules.MaxEnergy - 2);
+        (await player.Energy.WaitAsync(e => e.Energy == EnergyRules.MaxEnergy - 3, host.Timeout)).Energy.Should().Be(EnergyRules.MaxEnergy - 3);
         (await player.Xp.WaitAsync(p => p.ForagingXp == SkillRules.HitXp, host.Timeout)).MiningXp.Should().Be(0);
 
         // At zero the stone cannot be broken: still there, no yield, nothing earned.
@@ -307,14 +307,14 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
         IInventoryService inventory = InstanceManager.Instance.GetExistingInstance<IInventoryService>()!;
         (await inventory.GetAsync(player.AccountId)).Slots.Should().NotContain(s => s.ItemId == ItemCatalog.Stone);
 
-        // With energy the stone breaks: two energy and mining experience, in the same commit as the yield.
+        // With energy the stone breaks: three energy and mining experience, in the same commit as the yield.
         await SetAsync(player.AccountId, s => s.SetProperty(p => p.Energy, 50));
         (await player.UseAsync(s_pickaxe, free[0].X, free[0].Y, host.Timeout)).Action.Should().Be(FarmAction.Broke);
-        (await player.Energy.WaitAsync(e => e.Energy == 48, host.Timeout)).Energy.Should().Be(48);
+        (await player.Energy.WaitAsync(e => e.Energy == 47, host.Timeout)).Energy.Should().Be(47);
         (await player.Xp.WaitAsync(p => p.MiningXp == SkillRules.BreakXp(NodeKind.Stone), host.Timeout)).ForagingXp.Should().Be(SkillRules.HitXp);
         await using (NosumDbContext db = new(_database.Options))
         {
-            (await db.PlayerStates.SingleAsync(s => s.PlayerId == player.AccountId)).Should().BeEquivalentTo(new { Energy = 48, MiningXp = SkillRules.BreakXp(NodeKind.Stone) });
+            (await db.PlayerStates.SingleAsync(s => s.PlayerId == player.AccountId)).Should().BeEquivalentTo(new { Energy = 47, MiningXp = SkillRules.BreakXp(NodeKind.Stone) });
             (await db.WorldNodes.AnyAsync(n => n.OwnerId == player.AccountId && n.Kind == (short)NodeKind.Stone)).Should().BeFalse();
         }
     }
@@ -543,7 +543,7 @@ public sealed class EnergyWireTests : IClassFixture<PostgresFixture>
             _subscriptions =
             [
                 session.On<EnergyChanged>(p => this.Energy.Add(new EnergyChanged { Energy = p.Energy, MaxEnergy = p.MaxEnergy })),
-                session.On<SkillXpChanged>(p => this.Xp.Add(new SkillXpChanged { FarmingXp = p.FarmingXp, ForagingXp = p.ForagingXp, MiningXp = p.MiningXp })),
+                session.On<SkillXpChanged>(p => this.Xp.Add(new SkillXpChanged { FarmingXp = p.FarmingXp, ForagingXp = p.ForagingXp, MiningXp = p.MiningXp, FishingXp = p.FishingXp })),
                 session.On<LevelUp>(p => this.Levels.Add(new LevelUp { Skill = p.Skill, Level = p.Level })),
             ];
         }

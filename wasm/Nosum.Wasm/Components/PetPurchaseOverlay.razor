@@ -1,0 +1,13 @@
+@using Nosum.Wasm.Controls
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Building
+@inherits ObservingComponent<CarpenterViewModel>
+
+@* The confirm question of a pet purchase (docs/design/ui-standard.md section 5): a centre confirm box in the HUD overlay, with the kind, the name and the price.
+   Only Confirm sends the adoption; Cancel sends nothing. *@
+@if (Vm.PetConfirmAsked)
+{
+    <ConfirmDialog Title="@Vm.PetConfirmTitle" Message="@Vm.PetConfirmMessage"
+                   ConfirmText="@Vm.PetConfirmText" CancelText="@Vm.PetCancelText"
+                   OnConfirm="@(() => Vm.ConfirmPet())" OnCancel="@(() => Vm.CancelPet())" />
+}

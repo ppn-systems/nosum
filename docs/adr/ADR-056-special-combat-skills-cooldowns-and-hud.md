@@ -54,3 +54,29 @@ In addition to basic weapon swings and staff projectiles, classic MMORPG gamepla
 - Visual clarity reinforced by floating combat text and animated trajectories.
 - 100% test coverage maintained across 2,379 tests.
 - Visual evidence captured in `docs/qa/mmorpg-round12-*.png`.
+
+## Amendments
+
+### 2026-10-31 - cooldowns are taken with the cast; refused casts show nothing (D5)
+
+Reported as skills that could be pressed over and over and "looked fired but did nothing".
+
+- **D5, server.** `CombatService.CastSkillAsync` checks the cooldown again inside the vitals lock that applies the effect, and takes it there
+  (`SkillCooldownRules.IsReady` and `ReadyAfterCast`, `Nosum.Gameplay.Combat`). Two casts that race therefore cannot both land; before this the check and the
+  write were on different sides of the awaits. Every refusal (`OnCooldown`, `NotEnoughMp`, `OutOfRange`, `AlreadyFull`, `UnknownMonster`) returns before the
+  cooldown is written, so it spends nothing and starts no cooldown. `OnCooldown` carries the remaining milliseconds. No wire change.
+- **D5, client (`CombatChannel`, `PlayerActions.Combat`).** A press the client's own rules already see as refused starts no swing: the cooldown, the MP, a
+  reply still pending, a Fireball or Whirlwind with no monster in range, Divine Heal at full health. A cast is pending from the send until its reply, and a
+  second press meanwhile does nothing. The skill effect (`TriggerSkillEffect`) plays on `CombatStatus.Ok` only. A refused cast stops its wind-up swing
+  (`OnSkillCompleted`), so no skill animation shows for a cast the server did not accept.
+- **D5, overlay.** The hotbar's skill button shows a cooldown sweep (`.skill-cooldown`, `--cd-ms` from `ProgressViewModel.CooldownStyle`) and stays
+  disabled until the cooldown ends. The sweep runs over the cooldown the server started: the full cooldown after a cast, the time left after a refusal
+  as `OnCooldown` (`CombatChannel.GetSkillCooldownSpanMs`). Before this a refusal swept the full cooldown, so the overlay outlasted the server's.
+  Reduced motion keeps the veil without the animation.
+- **D5, messages.** Every refusal a cast can get has a message (`SkillRefusalText.KeyFor`, `Combat_Refused_*` and `Combat_NotEnoughMp` in `.resx`, Vietnamese
+  and English), shown through the game messages when the reply arrives. Before this only `NotEnoughMp` had a key and nothing showed it.
+- **D5, line of sight.** `LineOfSight.IsClear` returned false for a target on the attacker's own tile, so a skill could not hit a monster standing on the
+  player's tile (reported as `OutOfRange`). A tile has nothing strictly between it and itself, so it is clear.
+- **Tests.** `SkillCooldownRulesTests` (unit: readiness at the instant, the length of a cooldown, remaining time), `SkillRefusalTests` (unit: every refusal has
+  a message in both languages, the sweep span after a refusal and after a cast), and `CombatWireTests` (`tests/Nosum.IntegrationTests/Server`, over the real
+  WebSocket: `OutOfRange`, `AlreadyFull`, `NotEnoughMp`, `OnCooldown` with the time left, and two casts sent together of which only one lands).

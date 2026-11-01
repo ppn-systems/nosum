@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,30 +86,35 @@ internal sealed class MetricsScrape
     /// <returns>The window's histogram; null when nothing was observed in it.</returns>
     public HistogramWindow? Window(string name, MetricsScrape before)
     {
-        double count = this.Get(name + "_count") - before.Get(name + "_count");
+        double count = this.SumOf(name + "_count") - before.SumOf(name + "_count");
         if (count <= 0)
         {
             return null;
         }
 
-        List<(double Le, double Cumulative)> buckets = [];
-        string prefix = name + "_bucket{le=\"";
+        // Buckets are summed across every label set (a histogram per opcode is one window), so a quantile is over all of them.
+        Dictionary<double, double> cumulative = [];
+        string prefix = name + "_bucket{";
         foreach ((string key, double value) in _samples)
         {
-            if (key.StartsWith(prefix, StringComparison.Ordinal))
+            if (!key.StartsWith(prefix, StringComparison.Ordinal))
             {
-                string le = key[prefix.Length..^2];
-                double bound = le == "+Inf" ? double.PositiveInfinity : double.Parse(le, CultureInfo.InvariantCulture);
-                buckets.Add((bound, value - before.Get(key)));
+                continue;
             }
+
+            int at = key.IndexOf("le=\"", StringComparison.Ordinal);
+            string le = key[(at + 4)..^2];
+            double bound = le == "+Inf" ? double.PositiveInfinity : double.Parse(le, CultureInfo.InvariantCulture);
+            cumulative[bound] = cumulative.GetValueOrDefault(bound) + value - before.Get(key);
         }
 
+        List<(double Le, double Cumulative)> buckets = [.. cumulative.Select(static pair => (pair.Key, pair.Value))];
         buckets.Sort(static (a, b) => a.Le.CompareTo(b.Le));
         double Quantile(double q)
         {
-            foreach ((double le, double cumulative) in buckets)
+            foreach ((double le, double sofar) in buckets)
             {
-                if (cumulative >= q * count)
+                if (sofar >= q * count)
                 {
                     return le;
                 }
@@ -117,8 +123,8 @@ internal sealed class MetricsScrape
             return double.PositiveInfinity;
         }
 
-        double sum = this.Get(name + "_sum") - before.Get(name + "_sum");
-        return new HistogramWindow((long)count, sum / count, Quantile(0.50), Quantile(0.99));
+        double sum = this.SumOf(name + "_sum") - before.SumOf(name + "_sum");
+        return new HistogramWindow((long)count, sum / count, Quantile(0.50), Quantile(0.95), Quantile(0.99));
     }
 }
 
@@ -126,5 +132,6 @@ internal sealed class MetricsScrape
 /// <param name="Count">Observations.</param>
 /// <param name="Mean">Mean value.</param>
 /// <param name="P50">Upper bound of the median bucket.</param>
+/// <param name="P95">Upper bound of the 95th-percentile bucket.</param>
 /// <param name="P99">Upper bound of the 99th-percentile bucket (infinity when it falls past the last bucket).</param>
-internal readonly record struct HistogramWindow(long Count, double Mean, double P50, double P99);
+internal readonly record struct HistogramWindow(long Count, double Mean, double P50, double P95, double P99);

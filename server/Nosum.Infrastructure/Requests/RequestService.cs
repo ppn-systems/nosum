@@ -9,15 +9,18 @@ using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
+using Nosum.Abstractions.Quests;
 using Nosum.Abstractions.Requests;
 using Nosum.Contracts.Requests;
 using Nosum.Domain.Requests;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Requests;
 using Nosum.Gameplay.Shops;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Requests;
 
@@ -35,6 +38,7 @@ public sealed class RequestService : IRequestService
     private const string DeliverReason = "request.deliver";
 
     private readonly ITransferService _transfers;
+    private readonly IQuestService? _quests;
     private readonly IUnitOfWorkFactory _units;
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
@@ -51,8 +55,10 @@ public sealed class RequestService : IRequestService
     /// <param name="maps">The hosted maps (tile size).</param>
     /// <param name="calendar">The server calendar: the game day and the season a day falls in.</param>
     /// <param name="time">The server clock; tests pass a fake one.</param>
-    public RequestService(ITransferService transfers, IUnitOfWorkFactory units, IMapPresence presence, IMapCatalog maps, GameCalendar calendar, TimeProvider time)
+    /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
+    public RequestService(ITransferService transfers, IUnitOfWorkFactory units, IMapPresence presence, IMapCatalog maps, GameCalendar calendar, TimeProvider time, IQuestService? quests = null)
     {
+        _quests = quests;
         ArgumentNullException.ThrowIfNull(transfers);
         ArgumentNullException.ThrowIfNull(units);
         ArgumentNullException.ThrowIfNull(presence);
@@ -154,6 +160,11 @@ public sealed class RequestService : IRequestService
                     return TransferStatus.Ok;
                 },
                 cancellationToken).ConfigureAwait(false);
+
+            if (status == TransferStatus.Ok)
+            {
+                await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.RequestFilled), cancellationToken).ConfigureAwait(false);
+            }
 
             return status switch
             {

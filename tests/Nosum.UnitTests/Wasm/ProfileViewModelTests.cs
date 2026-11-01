@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Common;
+using Nosum.Gameplay.Items;
+using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Look;
 using Nosum.Wasm.ViewModels.Account;
 using Nosum.Wasm.ViewModels.Player;
@@ -87,6 +89,46 @@ public sealed class ProfileViewModelTests
         vm.NewNickname.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task Registered_NoRenameScroll_SendsNothingAndSaysItNeedsAScroll()
+    {
+        using CultureScope scope = new("en");
+        (ProfileViewModel vm, FakeClient client) = Create(scrolls: 0);
+        vm.Begin("Farmer_Joe", isGuest: false);
+        vm.NewNickname = "Nguyen_Van";
+
+        await vm.SaveAsync(CancellationToken.None);
+
+        client.Sent.Should().BeEmpty();
+        vm.Status.Should().Be("You need a Rename Scroll to change your nickname. Buy one at the tailor.");
+        vm.Status.Should().Be(Text()["Account_Status_NicknameNeedsScroll"].Value);
+    }
+
+    [Fact]
+    public void CanSubmit_NoRenameScroll_IsFalse()
+    {
+        (ProfileViewModel vm, _) = Create(scrolls: 0);
+
+        vm.Begin("Farmer_Joe", isGuest: false);
+
+        vm.RenameScrolls.Should().Be(0);
+        vm.HasRenameScroll.Should().BeFalse();
+        vm.CanSubmit.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CanSubmit_WithOneRenameScroll_IsTrueAndShowsTheCount()
+    {
+        using CultureScope scope = new("en");
+        (ProfileViewModel vm, _) = Create(scrolls: 1);
+
+        vm.Begin("Farmer_Joe", isGuest: false);
+
+        vm.RenameScrolls.Should().Be(1);
+        vm.CanSubmit.Should().BeTrue();
+        vm.ScrollCountText.Should().Be("Rename Scrolls in your bag: 1");
+    }
+
     [Theory]
     [InlineData("en")]
     [InlineData("vi")]
@@ -107,12 +149,16 @@ public sealed class ProfileViewModelTests
         return new StringLocalizer<Language>(factory);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The look channel lives as long as the test.")]
-    private static (ProfileViewModel Vm, FakeClient Client) Create()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The look and inventory channels live as long as the test.")]
+    private static (ProfileViewModel Vm, FakeClient Client) Create(int scrolls = 1)
     {
         FakeClient client = new();
         NicknameFormatter names = new(Text(), new LookChannel(new FakeGameSocket(), () => 0));
-        return (new ProfileViewModel(client, names, Text()), client);
+        FakeGameSocket socket = new();
+        InventoryChannel inventory = scrolls > 0
+            ? WasmTestSupport.LoadedInventory(socket, (0, ItemCatalog.RenameScroll, scrolls))
+            : WasmTestSupport.LoadedInventory(socket);
+        return (new ProfileViewModel(client, names, inventory, Text()), client);
     }
 
     private sealed class FakeClient : IAccountClient

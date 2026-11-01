@@ -16,6 +16,7 @@ using Nalix.Abstractions.Networking;
 using Nalix.Abstractions.Networking.Packets;
 using Nosum.Abstractions.Community;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Mail;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
@@ -367,10 +368,10 @@ public sealed class CommunityGoalServiceTests : IClassFixture<PostgresFixture>, 
         (await _goals.CloseEndedSeasonsAsync()).Should().Be(0);
         _ = await _goals.SettlePendingAsync();
 
-        // Parsnips are 20 coins at the bin: 10 per delivered item.
-        (await _transfers.GetBalanceAsync(a)).Should().Be(balanceA + 3_000);
-        (await CoinLogOfAsync(a, "community.consolation")).Should().ContainSingle().Which.Delta.Should().Be(3_000);
-        (await CoinLogOfAsync(b, "community.consolation")).Should().ContainSingle().Which.Delta.Should().Be(400);
+        // Parsnips are 40 coins at the bin: 20 per delivered item.
+        (await _transfers.GetBalanceAsync(a)).Should().Be(balanceA + 6_000);
+        (await CoinLogOfAsync(a, "community.consolation")).Should().ContainSingle().Which.Delta.Should().Be(6_000);
+        (await CoinLogOfAsync(b, "community.consolation")).Should().ContainSingle().Which.Delta.Should().Be(800);
         (await CoinLogOfAsync(a, "community.reward")).Should().BeEmpty();
         _unlocks.IsUnlocked(CommunityUnlockKeys.TownLanterns).Should().BeFalse("an expired goal unlocks nothing");
         _presence.Pushes.Last().State.Should().Be(GoalState.Expired);
@@ -408,7 +409,7 @@ public sealed class CommunityGoalServiceTests : IClassFixture<PostgresFixture>, 
 
         _ = await Task.WhenAll(Enumerable.Range(0, 6).Select(_ => _goals.CloseEndedSeasonsAsync()));
 
-        (await _transfers.GetBalanceAsync(a)).Should().Be(balance + 1_000, "one consolation of 100 items x 10 coins");
+        (await _transfers.GetBalanceAsync(a)).Should().Be(balance + 2_000, "one consolation of 100 items x 20 coins");
         (await CoinLogOfAsync(a, "community.consolation")).Should().HaveCount(1);
     }
 
@@ -488,6 +489,9 @@ public sealed class CommunityGoalServiceTests : IClassFixture<PostgresFixture>, 
             => this.FailPayouts && reason.StartsWith("community.", StringComparison.Ordinal) && reason != "community.deliver"
                 ? Task.FromResult(TransferStatus.Conflict)
                 : _inner.ExecuteAsync(legs, reason, enlist, cancellationToken);
+
+        public Task<TransferStatus> ExecuteWithOperationsAsync(Guid playerId, IReadOnlyList<InventoryOperation> operations, IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
+            => _inner.ExecuteWithOperationsAsync(playerId, operations, legs, reason, enlist, cancellationToken);
 
         public Task<long> GetBalanceAsync(Guid playerId, CancellationToken cancellationToken = default) => _inner.GetBalanceAsync(playerId, cancellationToken);
     }

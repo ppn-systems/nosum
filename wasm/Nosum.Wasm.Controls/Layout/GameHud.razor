@@ -1,11 +1,18 @@
 @* The one layout system of the in-game UI: dock regions on a full-screen grid, so nothing can overlap. A control never positions itself;
-   it is put in a region:
+   it is put in a region. The nine regions of docs/design/ui-standard.md section 2, and what each slot holds:
 
-     top-left (quest tracker, arrange key strip) | top-center (a notice) | top-right (coins, settings button)
-                              | center (the game menu)  |
-                              | bottom-center (key strip, message, hotbar) |
+     1. Top left: the quest tracker (TopLeft).
+     2. Top centre: banners, notices and the connection badge (TopCenter).
+     3. Top right, row one: the calendar bar, coins, Mail and Settings (TopRight).
+     4. Top right, below: the minimap card, then the menu column (TopRight).
+     5. The menu column: square buttons, at most 8, the last one "Menu" (TopRight).
+     6. Centre: modal windows only, one open at a time (Center).
+     7. Bottom left: the chat line (BottomLeft).
+     8. Bottom centre: the toast line above the hotbar, the hotbar and its gauges (BottomCenter).
+     9. Bottom right: the emote button and the touch action buttons (BottomRight).
 
-   Overlay is above everything (dialogs) and dims the screen. The HUD itself never takes the mouse; only the controls in it do. *@
+   Overlay is a layer above all nine (dialogs, the connection overlay) and dims the screen. The HUD itself never takes the mouse; only the controls in it do.
+   Touch controls are mounted by the page, outside this grid. The regions and their rules are in docs/design/ui-standard.md section 2. *@
 <div class="game-hud">
     <div class="hud-backdrop"></div>
     <div class="hud-row hud-top">
@@ -20,6 +27,7 @@
         <div class="hud-region hud-bottom-center">@BottomCenter</div>
     </div>
     <div class="hud-bottom-left">@BottomLeft</div>
+    <div class="hud-bottom-right">@BottomRight</div>
     <div class="hud-overlay">@Overlay</div>
 </div>
 
@@ -41,6 +49,9 @@
 
     /// <summary>Bottom-left corner (the chat line).</summary>
     [Parameter] public RenderFragment? BottomLeft { get; set; }
+
+    /// <summary>Bottom-right corner (the emote button and, on a touch screen, the action button).</summary>
+    [Parameter] public RenderFragment? BottomRight { get; set; }
 
     /// <summary>Above everything: dialogs and forms that need an answer. Null when there is none.</summary>
     [Parameter] public RenderFragment? Overlay { get; set; }

@@ -73,4 +73,7 @@ public enum AccountStatus : byte
 
     /// <summary>The Google or Microsoft account is already linked to another player (link).</summary>
     IdentityTaken = 21,
+
+    /// <summary>The player has no Rename Scroll: a nickname change uses one up (set nickname, docs/adr/ADR-009 amendments). Nothing changed.</summary>
+    NicknameNeedsScroll = 22,
 }

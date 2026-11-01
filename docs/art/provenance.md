@@ -50,6 +50,7 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | File (under `assets/`) | Package | Sources | What it is |
 | :-- | :-- | :-- | :-- |
 | `farmer/body.png` | 1 Player farmer layers | Nosum original (drawn in tools/art_repack, no outside source) | Body (head, neck, torso, legs; skin tint) in columns 0-5 (idle, walk steps and swing stances) and arms with boots (no tint) in columns 6-11; rows down, right, up (`farmer.body`, `farmer.arms`) |
+| `farmer/boots.png` | 1 Player farmer layers | Nosum original (drawn in tools/art_repack, no outside source) | Four boot tiers in 96 px bands, leather, traveler, swift and winged, untinted; rows down, right, up, six walk columns on the body's feet; each tier covers every default boot pixel of body.png (`farmer.boot_layer`) |
 | `farmer/hair.png` | 1 Player farmer layers | Nosum original (drawn in tools/art_repack, no outside source) | Eight hair styles in grey-scale for the hair dye, rows down, right, up (`farmer.hair`) |
 | `farmer/hats.png` | 1 Player farmer layers | Nosum original (drawn in tools/art_repack, no outside source) | 20 x 20 hats 3 (straw) and 5 (cap), rows down, right, left, up; the down frame is the inventory icon (`farmer.hat`) |
 | `farmer/pants.png` | 1 Player farmer layers | Nosum original (drawn in tools/art_repack, no outside source) | Trousers style 0, grey-scale for the pants tint, same walk and swing columns as the body (`farmer.pants`) |
@@ -67,10 +68,11 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `sprites/buildings/greenhouse.png` | 7 Buildings and props | `kenney_tiny-town`, Nosum original (drawn in tools/art_repack, no outside source) | Greenhouse, 7 x 10 tiles at (0, 160): slate roof and door from Tiny Town, glass wall drawn here |
 | `sprites/buildings/shipping_bin.png` | 7 Buildings and props | Nosum original (drawn in tools/art_repack, no outside source) | Shipping bin, 2 x 2 tiles (`buildings.shipping_bin`) |
 | `sprites/craftables.png` | 3 Items | `kenney_tiny-dungeon`, Nosum original (drawn in tools/art_repack, no outside source) | Scarecrow and furnace drawn here (`furniture.py`); the chest is Tiny Dungeon's closed chest (tile 5, 7), standing at the foot of its 16 x 32 cell |
-| `sprites/crops.png` | 4 Crops and soil | `kenney_tiny-farm`, `josehzz_farming-crops-16x16` | 21 crops, 5-6 growth frames each: Tiny Farm's stages for the 8 crops it covers, the crops pack's six pictures (seed, three stages, ripe) for the rest, placed in the catalogue's frames at the bottom of each 16 x 32 cell; recolours in the crop table |
+| `sprites/crops.png` | 4 Crops and soil | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, Nosum original (drawn in tools/art_repack, no outside source) | 21 crops, 5-6 growth frames each: Tiny Farm's stages for the 8 crops it covers, the crops pack's six pictures (seed, three stages, ripe) for the rest, placed in the catalogue's frames at the bottom of each 16 x 32 cell; recolours in the crop table. Frame 1 of row 0 is the withered picture, a dry brown plant drawn here (`crops.withered_picture`, shown for every withered crop) |
+| `sprites/drop.png` | 4 Crops and soil | Nosum original (drawn in tools/art_repack, no outside source) | Water drop, 8 x 8: the thirsty marker above a tile that needs water, drawn in the UI blues (`drop.py`) |
 | `sprites/furniture.png` | 3 Items | `kenney_roguelike-indoors`, Nosum original (drawn in tools/art_repack, no outside source) | Chair, armchair, couch, table, bookcase, floor lamp and house plant at the rectangles of `PlaceableCatalog`; the inventory icon is a window of the same picture (`furniture.py`). Below y 1488, the farmhouse band of 32 pieces (`NEW_PIECES`): the chest of drawers, kitchen cabinet, wall shelf, candelabra, landscape and portrait paintings and mirror are stitched from Roguelike Indoors cells (the candelabra and mirror are cut as shipped); the other pieces are drawn here (the green armchair is the blue armchair's drawing in green fabric) |
 | `sprites/hearts.png` | 8 Animals | Nosum original (drawn in tools/art_repack, no outside source) | Affection hearts, 8 x 8 each: filled (cell 0, 0) and empty (cell 8, 0), drawn in the Kenney palette (`hearts.py`) |
-| `sprites/items.png` | 3 Items, 6 Resource nodes | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, `kenney_tiny-town`, `dawnlike`, `oga_assorted-rpg-icons`, `oga_animated-slimes`, `tiny16`, `oga_trash-mobs`, `oga_16x16-rpg-items`, `kenney_roguelike-caves-dungeons`, `oga_16x16-dungeon-tiles`, `oga_puny-dungeon`, `oga_gold-treasure-icons`, `oga_6-color-dungeon`, `kenney_roguelike-rpg-pack`, `kenney_roguelike-indoors`, `oga_random-animals`, `oga_pixel-animals-16x16`, `kenney_roguelike-modern-city`, `kenney_rpg-urban-pack`, `kenney_1-bit-pack`, `oga_tiny-creatures`, Nosum original (drawn in tools/art_repack, no outside source) | The 144 object cells the game draws (120 to 131 are the duck and goat milk, duck eggs, wool and truffles, drawn here; 132 to 143 are the fishing rod, the fish stew and the ten fish cut from DawnLike Tool, Food and Aquatic and Tiny Creatures, ADR-078): seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), potions and spell tome from Assorted RPG Icons, monster drops and RPG relics from Animated Slimes, Tiny 16 (CC-BY), Trash Mobs, 16x16 RPG Items, Roguelike Caves & Dungeons, 16x16 Dungeon Tiles, Puny Dungeon, Gold Treasure Icons, 6 Color Dungeon, Roguelike/RPG Pack, Roguelike Indoors, Random Animals, Pixel Animals 16x16, Roguelike Modern City, RPG Urban Pack and 1-Bit Pack, everything else drawn here (table below); unused cells are transparent |
+| `sprites/items.png` | 3 Items, 6 Resource nodes | `kenney_tiny-farm`, `josehzz_farming-crops-16x16`, `kenney_tiny-town`, `dawnlike`, `oga_assorted-rpg-icons`, `oga_animated-slimes`, `tiny16`, `oga_trash-mobs`, `oga_16x16-rpg-items`, `kenney_roguelike-caves-dungeons`, `oga_16x16-dungeon-tiles`, `oga_puny-dungeon`, `oga_gold-treasure-icons`, `oga_6-color-dungeon`, `kenney_roguelike-rpg-pack`, `kenney_roguelike-indoors`, `oga_random-animals`, `oga_pixel-animals-16x16`, `kenney_roguelike-modern-city`, `kenney_rpg-urban-pack`, `kenney_1-bit-pack`, `oga_tiny-creatures`, Nosum original (drawn in tools/art_repack, no outside source) | The 149 object cells the game draws (120 to 131 are the duck and goat milk, duck eggs, wool and truffles, drawn here; 132 to 143 are the fishing rod, the fish stew and the ten fish cut from DawnLike Tool, Food and Aquatic and Tiny Creatures, ADR-078; 144 to 147 are the four boot tiers and 148 the speed tonic, drawn here): seed bags, produce, hay, milk, eggs and stone from Tiny Farm or the CC0 crops, the fence from Tiny Town, mushroom, hazelnut, berries, leek, soup, copper and steel ore and the copper boulder from DawnLike (CC-BY), potions and spell tome from Assorted RPG Icons, monster drops and RPG relics from Animated Slimes, Tiny 16 (CC-BY), Trash Mobs, 16x16 RPG Items, Roguelike Caves & Dungeons, 16x16 Dungeon Tiles, Puny Dungeon, Gold Treasure Icons, 6 Color Dungeon, Roguelike/RPG Pack, Roguelike Indoors, Random Animals, Pixel Animals 16x16, Roguelike Modern City, RPG Urban Pack and 1-Bit Pack, everything else drawn here (table below); unused cells are transparent |
 | `sprites/monsters.png` | 11 Monsters | `oga_animated-slimes`, `oga_trash-mobs`, `oga_tiny-creatures` | Twelve 4-column x 3-row (Down, Right, Up) monster and boss animation blocks (64 x 576): GreenSlime, FrostSlime, MagmaSlime from 16x16 Animated Slimes; CaveBat and SporeShroom from Fantasy RPG Trash Mobs; GoblinScout, SkeletonWarrior, StoneGolem from Tiny Creatures; BossBroodmother, BossGoblinChieftain, BossMagmaColossus, BossGolemKing (`monsters.py`, ADR-047) |
 | `sprites/npcs/blacksmith.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Blacksmith (bald, beard, bare arms, leather apron, hammer); 16 x 32 idle frames side by side, frame 1 breathes one pixel lower (`npcs.sprite`) |
 | `sprites/npcs/blacksmith_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
@@ -88,19 +90,19 @@ DawnLike (CC-BY 4.0) is used for some item icons: "DawnLike tileset by DragonDeP
 | `sprites/npcs/trader_portrait.png` | 10 Merchants | Nosum original (drawn in tools/art_repack, no outside source) | Portrait of the same merchant, 32 x 32, head and shoulders (`npcs.portrait`) |
 | `sprites/pets/cat.png` | 8 Animals | Nosum original (drawn in tools/art_repack, no outside source) | Cat companion, 16 x 16 frames in a 4 x 4 sheet: rows down, right, up (four walk frames, the moving legs shift 1 px), row 3 sitting and sleeping (`pets_emotes.py`) |
 | `sprites/pets/dog.png` | 8 Animals | Nosum original (drawn in tools/art_repack, no outside source) | Dog companion, 16 x 16 frames in a 4 x 4 sheet: rows down, right, up (four walk frames, the moving legs shift 1 px), row 3 sitting and sleeping (`pets_emotes.py`) |
+| `sprites/ready.png` | 4 Crops and soil | Nosum original (drawn in tools/art_repack, no outside source) | Gold sparkle, 8 x 8: the ready marker above a ripe crop, drawn in the UI golds (`ready.py`) |
 | `sprites/soil.png` | 4 Crops and soil | Nosum original (drawn in tools/art_repack, no outside source) | Tilled soil, dry and wet, 16 neighbour variants each in the cell order of FarmDecorator: lit ridges, furrows, clods and a dark lip (`crops.soil_tile`) |
 | `sprites/tools.png` | 5 Tools and weapons | `oga_weapon-rpg-icons`, `kenney_tiny-farm`, Nosum original (drawn in tools/art_repack, no outside source) | Hoe, axe and pickaxe in three material tiers (iron, bronze/copper, steel) from Weapon RPG Icons (row 10, cells 12, 0 and 13, flipped so the blade faces right); watering can and blueprints drawn here (`tools.py`); the milk pail is Tiny Farm tile 124 |
 | `sprites/trees/maple.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Maple, same layout in autumn orange (`trees.py`) |
 | `sprites/trees/oak.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Oak: 48 x 96 tree, bush, sapling, seed mound and stump at the cells `NodeSprites` reads (`trees.py`) |
 | `sprites/trees/pine.png` | 6 Resource nodes | Nosum original (drawn in tools/art_repack, no outside source) | Pine, same layout (`trees.py`) |
 | `sprites/weapons.png` | 5 Tools and weapons | `kenney_tiny-dungeon`, `oga_weapon-rpg-icons`, `kenney_roguelike-characters`, `kenney_tiny-battle`, Nosum original (drawn in tools/art_repack, no outside source) | The scythe from Weapon RPG Icons (cell 15, 10, flipped), cell (7, 5); wooden sword and arcane staff from Tiny Dungeon (8, 8 and 9, 10); bronze, iron, steel and gold swords from Weapon RPG Icons (flipped); round shield from Kenney Roguelike Characters (35, 1); battle emblem from Kenney Tiny Battle (15, 10) |
-| `ui/cursors.png` | 9 UI | `kenney_pixel-ui-pack`, Nosum original (drawn in tools/art_repack, no outside source) | From the Pixel UI pack: the eight block-button frames (9 x 11, normal and pressed; Ancient brown, grey, Colored yellow and red 9-slice buttons assembled to a 3 / 3 / 5 / 3 slice, the wood, stone and red faces darkened for text contrast, at y 432 and 444), the twelve tab plates (Ancient tan), the close button (cell 21, 6) and the arrow and hand cursors (cells 3, 32 and 0, 25). Drawn here: the gold selection frame with glow (80 x 80 at 448, 128), title strip, gauge frame, tab pictograms, pager arrows and coin (`ui.py`) |
+| `ui/cursors.png` | 9 UI | `kenney_pixel-ui-pack`, Nosum original (drawn in tools/art_repack, no outside source) | From the Pixel UI pack: the eight block-button frames (9 x 11, normal and pressed; Ancient brown, grey, Colored yellow and red 9-slice buttons assembled to a 3 / 3 / 5 / 3 slice, the wood, stone and red faces darkened for text contrast, at y 432 and 444), the twelve tab plates (Ancient tan), the close button (cell 21, 6) and the arrow and hand cursors (cells 3, 32 and 0, 25). Drawn here: the gold selection frame with glow (80 x 80 at 448, 128), title strip, gauge frame, tab pictograms (the Menu grid at 256, 384 and the cat head of the pet tab at 272, 384 included), pager arrows and coin (`ui.py`) |
 | `ui/emote_bubble.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | 24 x 24 speech bubble: white, 1 px outline, tail at the bottom centre; a 16 x 16 icon sits at (4, 4) (`pets_emotes.py`) |
 | `ui/emotes.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Twelve 16 x 16 emote icons in one row, index = emote id: heart, laugh, wave, question mark, exclamation mark, zzz, music note, angry, sad, thumbs up, coin, flower (`pets_emotes.py`) |
 | `ui/fish_bite.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | 24 x 24 bite bubble: the white speech bubble of ui/emote_bubble.png with a dark red exclamation mark at its centre (`fishing_ui.py`) |
 | `ui/fishing_bobber.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | 16 x 16 fishing float in cell (0, 0): red top half, white bottom half, thin grey stem, 1 px dark outline (`fishing_ui.py`) |
 | `ui/menu.png` | 9 UI | `kenney_ui-pack-pixel-adventure`, Nosum original (drawn in tools/art_repack, no outside source) | Window frame (16 x 16 at 0, 256, 5 px slice) and the small plaque frame (16 x 16 at 32, 256, 4 px slice): Pixel Adventure small tiles (15, 1) and (10, 0), three transparent edge pixels of the first filled in; the 3 x 3 slot bevel at (128, 128) is drawn here (`ui.py`) |
-| `ui/start_background.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Start screen: dithered sky, shaded clouds, sea with wave glints, horizon at y 345 (`ui.py`) |
 | `ui/text_box.png` | 9 UI | Nosum original (drawn in tools/art_repack, no outside source) | Sunk text field box (188 x 48 at x 4), drawn at art pixels and enlarged 4 x in the palette of the UI packs (`ui.py`) |
 
 ## Mapping: crops
@@ -242,7 +244,7 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 | 103 | `treasure_gem` | Gold treasure icons `sheet.png` (1, 2), treasure gem |
 | 104 | `arcane_grimoire` | Assorted RPG Icons `books.png` (3, 0), spell tome |
 | 105 | `necromancer_skull` | 6 Color Dungeon (19, 2), dungeon skull |
-| 106 | `ancient_scroll` | Kenney Roguelike/RPG Pack (44, 15), ancient scroll |
+| 106 | `ancient_scroll`, `rename_scroll` | Kenney Roguelike/RPG Pack (42, 15), letter with a pen (the rename scroll and the ancient scroll) |
 | 107 | `sanctuary_candelabra` | Kenney Roguelike Indoors (19, 0), candelabra |
 | 108 | resource node | Random animals `bee.png`, honey bee |
 | 109 | resource node | Pixel Animals 16x16 (0, 0), pocket cat |
@@ -256,30 +258,35 @@ A game crop uses the CC0 crop named (a Tiny Farm crop, or the crops pack with it
 | 117 | `iron_chestplate` | DawnLike Armor (2, 6), iron chestplate |
 | 118 | `iron_greaves` | DawnLike Boot (1, 0), iron greaves |
 | 119 | `iron_helmet` | DawnLike Hat (1, 0), iron helmet |
-| 120 | `fishing_rod`, `duck_egg` | Drawn here: duck egg (`icons.duck_egg`), pale blue-green shell |
-| 121 | `large_duck_egg`, `fish_stew` | Drawn here: large duck egg (`icons.duck_egg`, big), pale blue-green shell |
-| 122 | `golden_duck_egg`, `anchovy` | Drawn here: golden duck egg (`icons.golden_duck_egg`), gold shell with a glint |
-| 123 | `goat_milk`, `sea_bass` | Tiny Farm milk pot (tile 123, the object sheet cell 59) with the white fill swapped to goat milk ivory |
-| 124 | `large_goat_milk`, `mackerel` | Tiny Farm large milk pot (tile 124, the object sheet cell 60) with the white fill swapped to goat milk ivory |
-| 125 | `cream_goat_milk`, `pufferfish` | Tiny Farm large milk pot (tile 124, the object sheet cell 60) with the white fill swapped to cream yellow |
-| 126 | `wool`, `carp` | Drawn here: wool (`icons.wool`), a fluffy white fleece |
-| 127 | `fine_wool`, `trout` | Drawn here: fine wool (`icons.wool`, silver tones with a blue tie) |
-| 128 | `golden_fleece`, `bass` | Drawn here: golden fleece (`icons.wool`, gold tones with a glint) |
-| 129 | `truffle`, `pike` | Drawn here: truffle (`icons.truffle`), dark brown lumpy ball |
-| 130 | `large_truffle`, `eel` | Drawn here: large truffle (`icons.truffle`, big), dark brown lumpy ball |
-| 131 | `golden_truffle`, `golden_koi` | Drawn here: golden truffle (`icons.truffle`, gold glint) |
-| 132 | resource node | DawnLike Tool (7, 1), the fishing rod |
-| 133 | resource node | DawnLike Food (1, 4), the bowl of stew |
-| 134 | resource node | Tiny Creatures (2, 6), the silver anchovy |
-| 135 | resource node | Tiny Creatures (0, 6), the green sea bass |
-| 136 | resource node | DawnLike Aquatic (4, 1), the blue-grey mackerel, turned to face right |
-| 137 | resource node | DawnLike Aquatic (5, 1), the plump orange fish (pufferfish), turned to face right |
-| 138 | resource node | Tiny Creatures (3, 6), the brown carp |
-| 139 | resource node | DawnLike Aquatic (3, 1), the cyan trout, turned to face right |
-| 140 | resource node | Tiny Creatures (1, 6), the green and pink bass |
-| 141 | resource node | DawnLike Aquatic (1, 1), the long grey-cyan pike, turned to face right |
-| 142 | resource node | DawnLike Aquatic (0, 2), the orange eel |
-| 143 | resource node | DawnLike Aquatic (2, 1), the orange and blue golden koi, turned to face right |
+| 120 | `duck_egg` | Drawn here: duck egg (`icons.duck_egg`), pale blue-green shell |
+| 121 | `large_duck_egg` | Drawn here: large duck egg (`icons.duck_egg`, big), pale blue-green shell |
+| 122 | `golden_duck_egg` | Drawn here: golden duck egg (`icons.golden_duck_egg`), gold shell with a glint |
+| 123 | `goat_milk` | Tiny Farm milk pot (tile 123, the object sheet cell 59) with the white fill swapped to goat milk ivory |
+| 124 | `large_goat_milk` | Tiny Farm large milk pot (tile 124, the object sheet cell 60) with the white fill swapped to goat milk ivory |
+| 125 | `cream_goat_milk` | Tiny Farm large milk pot (tile 124, the object sheet cell 60) with the white fill swapped to cream yellow |
+| 126 | `wool` | Drawn here: wool (`icons.wool`), a fluffy white fleece |
+| 127 | `fine_wool` | Drawn here: fine wool (`icons.wool`, silver tones with a blue tie) |
+| 128 | `golden_fleece` | Drawn here: golden fleece (`icons.wool`, gold tones with a glint) |
+| 129 | `truffle` | Drawn here: truffle (`icons.truffle`), dark brown lumpy ball |
+| 130 | `large_truffle` | Drawn here: large truffle (`icons.truffle`, big), dark brown lumpy ball |
+| 131 | `golden_truffle` | Drawn here: golden truffle (`icons.truffle`, gold glint) |
+| 132 | `fishing_rod` | DawnLike Tool (7, 1), the fishing rod |
+| 133 | `fish_stew` | DawnLike Food (1, 4), the bowl of stew |
+| 134 | `anchovy` | Tiny Creatures (2, 6), the silver anchovy |
+| 135 | `sea_bass` | Tiny Creatures (0, 6), the green sea bass |
+| 136 | `mackerel` | DawnLike Aquatic (4, 1), the blue-grey mackerel, turned to face right |
+| 137 | `pufferfish` | DawnLike Aquatic (5, 1), the plump orange fish (pufferfish), turned to face right |
+| 138 | `carp` | Tiny Creatures (3, 6), the brown carp |
+| 139 | `trout` | DawnLike Aquatic (3, 1), the cyan trout, turned to face right |
+| 140 | `bass` | Tiny Creatures (1, 6), the green and pink bass |
+| 141 | `pike` | DawnLike Aquatic (1, 1), the long grey-cyan pike, turned to face right |
+| 142 | `eel` | DawnLike Aquatic (0, 2), the orange eel |
+| 143 | `golden_koi` | DawnLike Aquatic (2, 1), the orange and blue golden koi, turned to face right |
+| 144 | `leather_boots` | Drawn here: leather boots, tier 1 (`farmer.boot_icon`), plain brown with a cuff |
+| 145 | `traveler_boots` | Drawn here: traveler boots, tier 2 (`farmer.boot_icon`), darker tan with a strap |
+| 146 | `swift_boots` | Drawn here: swift boots, tier 3 (`farmer.boot_icon`), blue-grey with a highlight |
+| 147 | `winged_boots` | Drawn here: winged boots, tier 4 (`farmer.boot_icon`), gold trim and white wings |
+| 148 | `speed_tonic` | Drawn here: speed tonic (`icons.speed_tonic`), a green-blue draught with a light glint |
 
 ## Map tilesheets (art/own/Maps)
 

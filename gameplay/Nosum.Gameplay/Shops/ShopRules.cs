@@ -60,6 +60,26 @@ public static class ShopRules
     }
 
     /// <summary>
+    /// The most units a balance buys at one price, never more than one stack or the largest order a counter takes. The shop's "All" quantity: the
+    /// client predicts it, and the server checks the purchase again (a stack, the order cap and the coins).
+    /// </summary>
+    /// <param name="coins">The player's coins.</param>
+    /// <param name="coinsEach">The price of one unit.</param>
+    /// <param name="maxStack">The item's stack size.</param>
+    /// <param name="maxOrder">The largest order one purchase takes.</param>
+    /// <returns>The units affordable, zero when the balance does not cover one.</returns>
+    public static int MaxAffordable(long coins, int coinsEach, int maxStack, int maxOrder)
+    {
+        if (coinsEach <= 0 || coins <= 0)
+        {
+            return 0;
+        }
+
+        long byCoins = coins / coinsEach;
+        return (int)Math.Min(Math.Min(byCoins, maxStack), maxOrder);
+    }
+
+    /// <summary>
     /// Tells whether an item can be sold now: a seed only while its crop grows in the current season, a seasonal piece of furniture only in its
     /// season (<see cref="PlaceableDefinition.SoldIn"/>), anything else always.
     /// </summary>
@@ -80,6 +100,27 @@ public static class ShopRules
             || item.Kind != ItemKind.Seed
             || !CropCatalog.TryGet(item.CropId, out CropDefinition? crop)
             || crop.GrowsIn(calendar.SeasonAt(nowMs));
+    }
+
+    /// <summary>
+    /// Tells whether a counter has an item in stock now: the counter's own season rotation (<see cref="ShopOffer.Sold"/>) first, then
+    /// <see cref="IsInSeason(int, GameCalendar, long)"/>. Purchases and the shop page both ask this, so the page never offers what the server refuses.
+    /// </summary>
+    /// <param name="shopId">The counter's shop.</param>
+    /// <param name="itemId">The item.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="nowMs">Server time, Unix milliseconds.</param>
+    /// <returns><see langword="true"/> when the counter sells the item in this season and the item is in season.</returns>
+    public static bool IsInSeason(int shopId, int itemId, GameCalendar calendar, long nowMs)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        if (ShopCatalog.TryGet(shopId, out ShopDefinition? shop) && !shop.IsSoldIn(itemId, calendar.SeasonAt(nowMs)))
+        {
+            return false;
+        }
+
+        return IsInSeason(itemId, calendar, nowMs);
     }
 
     /// <summary>Tells whether feet are close enough to a shop point.</summary>

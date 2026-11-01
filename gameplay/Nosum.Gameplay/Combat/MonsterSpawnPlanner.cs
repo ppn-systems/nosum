@@ -68,7 +68,8 @@ public static class MonsterSpawnPlanner
             };
         }
 
-        if (floor <= 25)
+        // The species breaks follow the biome tiers (docs/adr/ADR-070): 1 to 10, 11 to 20, 21 to 30, 31 to 40.
+        if (floor <= 20)
         {
             return (index % 3) switch
             {
@@ -78,11 +79,21 @@ public static class MonsterSpawnPlanner
             };
         }
 
+        if (floor <= 30)
+        {
+            return (index % 3) switch
+            {
+                0 => MonsterKind.MagmaSlime,
+                1 => MonsterKind.SkeletonWarrior,
+                _ => MonsterKind.GoblinScout,
+            };
+        }
+
         return (index % 3) switch
         {
-            0 => MonsterKind.MagmaSlime,
+            0 => MonsterKind.StoneGolem,
             1 => MonsterKind.SkeletonWarrior,
-            _ => MonsterKind.StoneGolem,
+            _ => MonsterKind.MagmaSlime,
         };
     }
 

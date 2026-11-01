@@ -15,3 +15,24 @@
     margin: 0;
     color: var(--nosum-ink-soft);
 }
+
+/* The chest and the bag side by side, each with its sort button on top; the slots are 16 u so two nine-column grids fit the XL panel (340 u).
+   A phone stacks them (GameMenuWindow sizes the panel). */
+.chest-split {
+    --item-grid-slot: calc(var(--u) * 16);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--nosum-gap-group);
+    align-items: start;
+}
+
+.chest-split ::deep .slot {
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 16);
+}
+
+@media (max-width: 640px) {
+    .chest-split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

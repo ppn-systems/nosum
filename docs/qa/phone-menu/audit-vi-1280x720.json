@@ -1,0 +1,100 @@
+[
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Thư",
+    "status": "pass",
+    "notes": "box [400,96,480,192]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Cài đặt",
+    "status": "pass",
+    "notes": "box [400,96,480,419]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Túi đồ [I]",
+    "status": "pass",
+    "notes": "box [310,96,660,490]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Chế tạo",
+    "status": "pass",
+    "notes": "box [310,96,660,541]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Giao dịch [T]",
+    "status": "pass",
+    "notes": "box [400,96,480,192]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Bạn bè",
+    "status": "pass",
+    "notes": "box [400,96,480,362]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Kỹ năng",
+    "status": "pass",
+    "notes": "box [310,96,660,545]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Kỹ năng (bestiary tab)",
+    "status": "pass",
+    "notes": "box [310,96,660,425]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Bản đồ thế giới [Tab]",
+    "status": "pass",
+    "notes": "box [310,96,660,506]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Sổ sưu tập [J]",
+    "status": "pass",
+    "notes": "box [310,96,660,481]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Menu",
+    "status": "pass",
+    "notes": "box [490,96,300,345]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]

@@ -63,7 +63,8 @@ community goals; nothing there gives a player a reason to visit it every day.
 
 ## Consequences
 
-- Coins enter the economy at a fixed rate: seven small rewards once per account and at most three requests a day per player at +30 % of the
+- Coins enter the economy at a fixed rate: twenty small rewards once per account (the chain grew from seven to twenty steps when the onboarding
+  chain was extended to the fishing, mining, crafting, animals, food, Town board, decorating, pet and emote systems; `QuestCatalog.Chain` is the list) and at most three requests a day per player at +30 % of the
   bin price. The premium is a balance value in `RequestRules` and may change; stored rows keep their reward.
 - Quest-reward coin legs have audit reason `quest.reward`, requests `request.deliver`.
 - The early bonus adds at most 20 % of a request's base reward, and only for deliveries in the first four in-game hours of the day.

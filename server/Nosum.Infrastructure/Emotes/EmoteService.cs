@@ -8,9 +8,12 @@ using Nalix.Abstractions.Networking;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Emotes;
 using Nosum.Abstractions.Presence;
-using Nosum.Contracts.Emote;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Emote.S2C;
+using Nosum.Contracts.Emote;
 using Nosum.Gameplay.Emotes;
+using Nosum.Gameplay.Quests;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Emotes;
 
@@ -25,13 +28,16 @@ public sealed class EmoteService : IEmoteService
     private readonly IChunkPublisher _publisher;
     private readonly TimeProvider _time;
     private readonly ConcurrentDictionary<Guid, EmoteCooldown> _cooldowns = new();
+    private readonly IQuestService? _quests;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="presence">Who is on which map and where.</param>
     /// <param name="publisher">Delivers the emote to the players who can see the sender.</param>
     /// <param name="time">The clock for the cooldown; tests pass a fake one.</param>
-    public EmoteService(IMapPresence presence, IChunkPublisher publisher, TimeProvider time)
+    /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
+    public EmoteService(IMapPresence presence, IChunkPublisher publisher, TimeProvider time, IQuestService? quests = null)
     {
+        _quests = quests;
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(time);
@@ -75,6 +81,7 @@ public sealed class EmoteService : IEmoteService
             await _publisher.PublishInstanceAsync(me.Instance, lease.Value, connection, cancellationToken).ConfigureAwait(false);
         }
 
+        await _quests.TryReportAsync(me.AccountId, new QuestEvent(QuestEventKind.EmoteSent, emote), cancellationToken).ConfigureAwait(false);
         return EmoteStatus.Ok;
     }
 }

@@ -2,16 +2,14 @@
 @using Nosum.Wasm.ViewModels.Placement
 @inherits ObservingComponent<PlacementViewModel>
 
-@* Arrange-your-home mode: one strip of key caps with a word each (the long explanation is in the settings page). The caps are clickable and do what the keys
-   R, F and Q do; E only has its key. All text comes from the view model. *@
+@* Arrange-your-home mode: one row of key caps with a word each (the long explanation is in the settings page), inside the furniture panel. The caps are
+   clickable and do what the keys R, F and Q do; E only has its key. All text comes from the view model. *@
 @if (Vm.IsVisible)
 {
-    <GamePanel Class="hud strip" Role="toolbar" Title="">
-        <div class="strip-row">
+    <div class="strip-row" role="toolbar">
             <span class="chip"><GameKey Text="E" /><span>@Vm.StripPlaceLabel</span></span>
-            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Rotate)"><GameKey Text="R" /><span>@Vm.StripRotateLabel</span></GameButton>
-            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Grab)"><GameKey Text="F" /><span>@Vm.StripMoveLabel</span></GameButton>
-            <GameButton Variant="chip" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.PickUp)"><GameKey Text="Q" /><span>@Vm.StripStowLabel</span></GameButton>
-        </div>
-    </GamePanel>
+            <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Rotate)"><GameKey Text="R" /><span>@Vm.StripRotateLabel</span></GameButton>
+            <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Grab)"><GameKey Text="F" /><span>@Vm.StripMoveLabel</span></GameButton>
+            <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.PickUp)"><GameKey Text="Q" /><span>@Vm.StripStowLabel</span></GameButton>
+    </div>
 }

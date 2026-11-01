@@ -2,7 +2,9 @@
 
 The client stacks the layers as wasm/Nosum.Wasm/Game/FarmerSprite.cs does, on one 16 x 32 frame whose bottom edge is the feet:
 
-    body (skin tint) -> pants (pants tint) -> shirt piece (no tint) -> arms and boots (no tint) -> hair (hair tint) -> hat (hat tint)
+    body (skin tint) -> pants (pants tint) -> shirt piece (no tint) -> arms and boots (no tint) -> boot tier (no tint) -> hair (hair tint) -> hat (hat tint)
+
+boots.png holds four footwear tiers (leather, traveler, swift, winged) in 96 px bands; each tier covers every default boot pixel of body.png.
 
 Frame positions: rows 0 down, 1 right, 2 up (left is the right row mirrored by the game); walk columns 0 stand, 1 and 2 the two steps
 (the game plays 0, 1, 0, 2). Where a layer draws the 1 px walk bob in code (shirt, hair, hat drop one pixel on the step columns) the pictures
@@ -22,6 +24,8 @@ from draw import Canvas
 from pngio import Image
 
 OUT = draw.OUT
+GOLD = draw.GOLD
+GOLD_L = draw.GOLD_L
 
 # Skin as drawn (a skin tint of white leaves it unchanged); the other tones are tints of it.
 SKIN = (246, 206, 168)
@@ -225,18 +229,140 @@ def arms(direction, column):
     return c.outline(OUT)
 
 
-def boots(c, direction, column):
-    """Brown boots with a cuff over the end of the pants, drawn on the arms layer so they ignore the pants tint."""
+def _boot_rects(direction, column):
+    """[(left, top, right, bottom, shade)] of the default boot on each leg: the pixels every boot tier must cover (boot_layer)."""
+    rects = []
     for x0, x1, bottom, shade in _legs(direction, column):
-        top = bottom - 3
         right = x1 + (1 if direction == 'right' else 0)
         left = x0 - (0 if direction == 'right' else 1)
+        rects.append((left, bottom - 3, right, bottom, shade))
+    return rects
+
+
+def boots(c, direction, column):
+    """Brown boots with a cuff over the end of the pants, drawn on the arms layer so they ignore the pants tint."""
+    two_legs = len(_legs(direction, column)) == 2
+    for left, top, right, bottom, shade in _boot_rects(direction, column):
         body_col = BOOT_D if shade else BOOT
         c.rect(left, top, right - left + 1, 4, body_col)
         c.rect(left, top, right - left + 1, 1, BOOT_L if not shade else BOOT)               # cuff
         c.rect(left, bottom, right - left + 1, 1, BOOT_D)                                    # sole
-        if direction != 'right' and len(_legs(direction, column)) == 2 and x0 == 8:
-            c.rect(left, top + 1, 1, 3, BOOT_D)                                              # crease between the boots
+        if direction != 'right' and two_legs and left == 7:
+            c.rect(left, top + 1, 1, 3, BOOT_D)                                              # crease between the boots (the second leg starts at x 8)
+
+
+# ---- boot tiers (boots.png, untinted, drawn over the arms layer) ----------------------------------------------------------------------------
+
+BOOT_TIERS = 4
+BOOT_BAND = 96                           # height of one tier band in boots.png: three facing rows of 32 px
+
+# Per tier: near-leg and far-leg body, the cuff row, the sole row, and the tier's own trim colours.
+BOOT_PALETTE = {
+    1: {'near': BOOT, 'far': BOOT_D, 'cuff_near': BOOT_L, 'cuff_far': BOOT, 'sole': BOOT_D},                      # leather
+    2: {'near': (186, 138, 88), 'far': (146, 102, 62), 'cuff_near': (98, 60, 42), 'cuff_far': (98, 60, 42),
+        'sole': (84, 50, 38)},                                                                                    # traveler, tan
+    3: {'near': (150, 170, 190), 'far': (110, 130, 152), 'cuff_near': (214, 228, 240), 'cuff_far': (176, 196, 214),
+        'sole': (60, 74, 96)},                                                                                    # swift, blue-grey
+    4: {'near': (90, 64, 50), 'far': (70, 48, 40), 'cuff_near': GOLD, 'cuff_far': GOLD, 'sole': (150, 96, 40)},  # winged, gold trim
+}
+BOOT_STRAP = (84, 50, 38)
+BOOT_BUCKLE = GOLD
+BOOT_STREAK = (206, 220, 234)            # swift boots' highlight
+BOOT_TAN_LIGHT = (206, 160, 110)
+WING = (255, 255, 255)
+WING_SHADE = (196, 200, 214)
+# (dx, dy) of the wing pixels from the boot's outer edge (dx) and cuff row (dy), for the left side; the right side mirrors dx.
+WING_PIXELS = [(-2, -1, WING), (-3, 0, WING), (-2, 0, WING), (-3, 1, WING_SHADE), (-2, 1, WING)]
+
+
+def _boot_leg(c, tier, rect, wing_side):
+    """Draws one tier's boot on one leg. wing_side: 'left', 'right' or None (tier 4 wings only)."""
+    left, top, right, bottom, shade = rect
+    pal = BOOT_PALETTE[tier]
+    near = not shade
+    if tier == 2:
+        top -= 2                         # traveler boots come up over the calf
+    width = right - left + 1
+    c.rect(left, top, width, bottom - top + 1, pal['near' if near else 'far'])
+    c.rect(left, top, width, 1, pal['cuff_near' if near else 'cuff_far'])
+    c.rect(left, bottom, width, 1, pal['sole'])
+    if tier == 2:
+        c.rect(left, bottom - 2, width, 1, BOOT_STRAP)                                       # strap across the shaft
+        if near:
+            c.dot(right, bottom - 2, BOOT_BUCKLE)                                            # buckle
+            c.rect(left + 1, top + 1, 1, bottom - top - 3, BOOT_TAN_LIGHT)                   # lit tan
+    if tier == 3 and near:
+        c.rect(left + 1, top + 1, 1, bottom - top - 1, BOOT_STREAK)                          # highlight down the shaft
+    if tier == 4 and near:
+        c.dot(left + 1, top, GOLD_L)                                                         # gold glint on the cuff
+    if tier == 4 and wing_side is not None:
+        for dx, dy, col in WING_PIXELS:
+            x = left + dx if wing_side == 'left' else right - dx
+            c.dot(x, top + dy, col)
+
+
+def boot_layer(tier, direction, column):
+    """One frame of boot tier 1..4: covers every default boot pixel of body.png (_boot_rects) and adds the tier's own parts."""
+    c = Canvas(FRAME_W, FRAME_H)
+    rects = _boot_rects(direction, column)
+    for index, rect in enumerate(rects):
+        if direction == 'right':
+            side = 'left'                # the heel is at the back, on the left of the right-facing picture
+        else:
+            side = 'left' if index == 0 else 'right'
+        _boot_leg(c, tier, rect, side)
+    if direction != 'right' and len(rects) == 2 and rects[1][0] == 7:
+        left, top, _, bottom, _ = rects[1]
+        if tier == 1:
+            c.rect(left, top + 1, 1, 3, BOOT_D)                                              # the default's crease
+    for left, top, right, bottom, _ in rects:
+        for x in range(left, right + 1):
+            for y in range(top, bottom + 1):
+                if c.px[y][x][3] == 0:
+                    raise ValueError(f'boot tier {tier} misses default boot pixel {(x, y)} ({direction}, column {column})')
+    return c.outline(OUT)
+
+
+BOOT_ICON_ROWS = [
+    '................',
+    '....CCCC........',
+    '....CCCC........',
+    '....MMMM........',
+    '....MMMM........',
+    '....MMMM........',
+    '....MMMM........',
+    '....MMMMMMMM....',
+    '....MMMMMMMMMMM.',
+    '....MMMMMMMMMMM.',
+    '....DDDDDDDDDDD.',
+    '...SSSSSSSSSSSS.',
+    '................',
+]
+BOOT_ICON_PALETTE = {
+    1: {'C': BOOT_L, 'M': BOOT, 'D': BOOT_D, 'S': (84, 44, 40)},
+    2: {'C': (98, 60, 42), 'M': (186, 138, 88), 'D': (146, 102, 62), 'S': (84, 50, 38)},
+    3: {'C': (214, 228, 240), 'M': (150, 170, 190), 'D': (110, 130, 152), 'S': (60, 74, 96)},
+    4: {'C': GOLD, 'M': (90, 64, 50), 'D': (70, 48, 40), 'S': (150, 96, 40)},
+}
+
+
+def boot_icon(tier):
+    """The 16 x 16 inventory icon of boot tier 1..4: a side-on boot, with the tier's trim drawn over the shared silhouette."""
+    c = Canvas(16, 16)
+    c.art(BOOT_ICON_ROWS, BOOT_ICON_PALETTE[tier])
+    if tier == 2:
+        c.rect(4, 6, 4, 1, BOOT_STRAP)                                                       # strap
+        c.dot(7, 6, BOOT_BUCKLE)
+        c.dot(5, 3, BOOT_TAN_LIGHT)
+        c.dot(5, 4, BOOT_TAN_LIGHT)
+    if tier == 3:
+        for y in (2, 3, 4, 5):
+            c.dot(5, y, BOOT_STREAK)                                                         # highlight
+    if tier == 4:
+        c.dot(5, 2, GOLD_L)
+        for x, y, col in ((3, 3, WING), (2, 4, WING), (3, 4, WING), (1, 5, WING), (2, 5, WING), (3, 5, WING_SHADE), (2, 6, WING_SHADE)):
+            c.dot(x, y, col)
+    return c.outline(OUT)
 
 
 # ---- shirt pieces (8 x 8, untinted) ------------------------------------------------------------------------------------------------------
@@ -507,8 +633,9 @@ def build(size):
         'farmer/hair.png': Image(*size('farmer/hair.png')),
         'farmer/shirts.png': Image(*size('farmer/shirts.png')),
         'farmer/hats.png': Image(*size('farmer/hats.png')),
+        'farmer/boots.png': Image(FRAME_W * 6, BOOT_BAND * BOOT_TIERS),
     }
-    base, pant, hairs, shirts, hats = (files['farmer/' + n] for n in ('body.png', 'pants.png', 'hair.png', 'shirts.png', 'hats.png'))
+    base, pant, hairs, shirts, hats, boot_tiers = (files['farmer/' + n] for n in ('body.png', 'pants.png', 'hair.png', 'shirts.png', 'hats.png', 'boots.png'))
     for row, direction in enumerate(DIRECTIONS):
         for column in WALK_COLUMNS:
             base.paste(body(direction, column), column * FRAME_W, row * FRAME_H)
@@ -516,6 +643,10 @@ def build(size):
             pant.paste(pants(direction, column), column * FRAME_W, row * FRAME_H)
         for style in range(HAIR_STYLES):
             hairs.paste(hair(style, direction), style % 8 * FRAME_W, style // 8 * 96 + row * FRAME_H)
+    for tier in range(1, BOOT_TIERS + 1):
+        for row, direction in enumerate(DIRECTIONS):
+            for column in WALK_COLUMNS:
+                boot_tiers.paste(boot_layer(tier, direction, column), column * FRAME_W, (tier - 1) * BOOT_BAND + row * FRAME_H)
     for index, color in SHIRTS.items():
         for direction, piece in SHIRT_PIECES.items():
             shirts.paste(shirt(color, direction), index % 16 * 8, index // 16 * 32 + piece)

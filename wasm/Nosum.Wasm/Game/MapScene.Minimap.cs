@@ -11,7 +11,7 @@ using Nosum.Rendering;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// The minimap of the playable world (the M key): the map downscaled into the frame in the top-right corner of the HUD, with dots for the farmer,
+/// The minimap of the playable world (the M key): the map downscaled into the card under the top-right row of the HUD, with dots for the farmer,
 /// the other players, the NPCs and the exits. The frame is HUD markup (HudMinimap.razor); this draws the map inside it. Hidden by default on a narrow
 /// screen, where the world map button stands in for it; the M key shows or hides it.
 /// </summary>
@@ -24,30 +24,30 @@ internal sealed partial class MapScene
     private const int NpcDotColour = unchecked((int)0xFF9F43FFu);
     private const int ExitDotColour = unchecked((int)0xC084FCFFu);
 
-    // The HUD frame of the minimap, in UI pixels (one u is one world pixel, the scale of the map). It sits in the top-right corner: the screen
-    // gutter, then the calendar bar, then a gap; the frame runs left of the system column, which is two 16 u buttons and a gap wide, with the same
-    // gap between them. HudMinimap.razor.css places the frame with these numbers; change both together.
+    // The HUD frame of the minimap, in UI pixels (one u is one world pixel, the scale of the map). It is the card under the top-right row, sharing
+    // that row's right edge: the screen gutter, then the row (18 u tall), then a gap. HudMinimap.razor.css and GameHud.razor.css place the frame with
+    // these numbers; change them together.
     private const int HudEdge = 4;
     private const int HudBarHeight = 18;
     private const int HudGap = 2;
-    private const int HudColumnWidth = 34;
     private const int HudFrameWidth = 60;
     private const int HudFrameEdge = 5;
 
     private readonly MinimapLayer _minimap = new();
 
-    // The player's choice with M this session; null until the first press, when the screen's width decides.
+    // The player's choice with M this session; null until the first press, when the minimap is shown.
     private bool? _minimapChoice;
 
     private void DrawMinimap(MapContent content, InputEdges edges, int canvasWidth, int canvasHeight, int scale)
     {
-        bool narrow = canvasWidth < NarrowCanvasWidth;
-        if ((edges & InputEdges.Minimap) != 0)
+        // Settings > Display hides the card for good (MinimapViewModel.Hidden; hidden by default on a phone). Otherwise the M key shows or hides it for this visit.
+        bool hidden = _minimapFrame?.Hidden == true;
+        if ((edges & InputEdges.Minimap) != 0 && !hidden)
         {
-            _minimapChoice = !(_minimapChoice ?? !narrow);
+            _minimapChoice = !(_minimapChoice ?? true);
         }
 
-        bool shown = _minimapChoice ?? !narrow;
+        bool shown = !hidden && (_minimapChoice ?? true);
         if (_minimapFrame is not null)
         {
             _minimapFrame.Shown = shown;
@@ -93,7 +93,7 @@ internal sealed partial class MapScene
 
         // The frame's inside (MinimapLayer.MaxWidth by MaxHeight) is the dark backing; the map is centred on it.
         int worldWidth = (canvasWidth + scale - 1) / scale;
-        int frameRight = worldWidth - HudEdge - HudColumnWidth - HudGap;
+        int frameRight = worldWidth - HudEdge;
         int contentLeft = frameRight - HudFrameWidth + HudFrameEdge;
         int contentTop = HudEdge + HudBarHeight + HudGap + HudFrameEdge;
         _commands.FillRect(contentLeft, contentTop, MinimapLayer.MaxWidth, MinimapLayer.MaxHeight, MinimapFrameColour);

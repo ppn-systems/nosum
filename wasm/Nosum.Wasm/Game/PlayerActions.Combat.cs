@@ -1,5 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
+using Nosum.Contracts.Combat;
 using Nosum.Core;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Economy;
@@ -8,13 +10,14 @@ using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.ViewModels.Audio;
+using Nosum.Wasm.ViewModels.Progress;
 
 namespace Nosum.Wasm.Game;
 
 internal sealed partial class PlayerActions
 {
-    /// <summary>Gets the walking speed multiplier of the player's active speed buff (1 for none); the server validates the same factor (issue #146).</summary>
-    public double MoveSpeedFactor => _combat is null ? 1 : StatusEffectRules.MoveSpeedFactor((StatusEffectKind)_combat.Buff);
+    /// <summary>Gets the speed buff in the buff slot, or <see cref="StatusEffectKind.None"/>; the walker combines it with the boots (docs/adr/ADR-084 D3).</summary>
+    public StatusEffectKind SpeedBuff => _combat is null ? StatusEffectKind.None : (StatusEffectKind)_combat.Buff;
 
     /// <summary>Gets the active tool/weapon swing animation progress in <c>[0, 1)</c>, if a swing is playing.</summary>
     /// <param name="nowSeconds">Current scene clock in seconds.</param>
@@ -57,6 +60,10 @@ internal sealed partial class PlayerActions
         return false;
     }
 
+    /// <summary>Raised with a resource key when a skill press is refused on the client before it is sent (no monster in reach, a cooldown, too little
+    /// MP, full health for the heal), so the press is never silent (docs/adr/ADR-056 D5).</summary>
+    public event Action<string>? SkillPressRefused;
+
     private void TryCastSkillFromEdges(InputEdges edges, int x, int y, double nowSeconds)
     {
         if (_combat is null)
@@ -64,12 +71,25 @@ internal sealed partial class PlayerActions
             return;
         }
 
-        if ((edges & InputEdges.Skill1) != 0 && this.CanCastSkill(1))
+        byte skillId = (edges & InputEdges.Skill1) != 0 ? (byte)1
+            : (edges & InputEdges.Skill2) != 0 ? (byte)2
+            : (edges & InputEdges.Skill3) != 0 ? (byte)3
+            : (byte)0;
+        if (skillId == 0 || _combat.IsSkillPending(skillId))
         {
-            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
-            _combat.CastSkill(1);
+            // No skill key, or a cast still in flight: nothing to start; the reply shows the result.
+            return;
         }
-        else if ((edges & InputEdges.Skill2) != 0 && this.CanCastSkill(2))
+
+        string? refusal = this.SkillRefusalKey(skillId, x, y);
+        if (refusal is not null)
+        {
+            this.SkillPressRefused?.Invoke(refusal);
+            return;
+        }
+
+        this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
+        if (skillId == 2)
         {
             int targetId = 0;
             if (_combat.TryFindTarget(x, y, 6, out MonsterClientRow tm))
@@ -77,13 +97,11 @@ internal sealed partial class PlayerActions
                 targetId = tm.MonsterId;
             }
 
-            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
             _combat.CastSkill(2, targetId);
         }
-        else if ((edges & InputEdges.Skill3) != 0 && this.CanCastSkill(3))
+        else
         {
-            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
-            _combat.CastSkill(3);
+            _combat.CastSkill(skillId);
         }
     }
 
@@ -106,7 +124,9 @@ internal sealed partial class PlayerActions
 
         if (IsShippingBin(this.TargetX, this.TargetY) && ShippingPrices.TryGet(held.ItemId, out _))
         {
-            // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
+            // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it). The coins pop over this tile when it pays.
+            _shipTileX = this.TargetX;
+            _shipTileY = this.TargetY;
             _market.Ship(selected, held.ItemId, 0);
         }
         else if (CombatRules.WeaponDamage(held.ItemId) > 0)
@@ -146,19 +166,30 @@ internal sealed partial class PlayerActions
         }
     }
 
-    private bool CanCastSkill(byte skillId)
+    // A press that the server would refuse starts no swing: the same rules as the server's, checked on the client first, and the reason is named
+    // (SkillPressRefused). The server still decides.
+    private string? SkillRefusalKey(byte skillId, int x, int y)
     {
         if (_combat is null || !SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition skill))
         {
-            return false;
+            return null;
         }
 
-        if (_combat.GetSkillCooldownRemaining(skillId) > 0f || _combat.Mp < skill.MpCost)
+        bool targetInReach = skill.Kind is not (CombatSkillKind.Whirlwind or CombatSkillKind.Fireball)
+            || _combat.TryFindTarget(x, y, skill.Range, out _);
+        return SkillPressRefusal.KeyFor(skill.Kind, _combat.GetSkillCooldownRemaining(skillId) > 0f, _combat.Mp, skill.MpCost, targetInReach, _combat.Hp >= _combat.MaxHp);
+    }
+
+    // The server refused a cast: a wind-up still in progress stops, so no skill animation plays for a cast that did nothing (docs/adr/ADR-056 D5).
+    private void OnSkillCompleted(SkillInfo info)
+    {
+        if (info.Status == CombatStatus.Ok || _nowSeconds >= _swingStartSeconds + _swingSeconds)
         {
-            return false;
+            return;
         }
 
-        return skillId != (byte)CombatSkillKind.DivineHeal || _combat.Hp < _combat.MaxHp;
+        _swingStartSeconds = double.NegativeInfinity;
+        _nextUseSeconds = _nowSeconds;
     }
 
     private bool CanUsePotion(int itemId)

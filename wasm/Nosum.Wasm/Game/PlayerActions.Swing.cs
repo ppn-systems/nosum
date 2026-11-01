@@ -1,9 +1,14 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nosum.Core;
 using Nosum.Contracts.Farm;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Energy;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
+using Nosum.Contracts.Market;
+using Nosum.Wasm.Socket.Market;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.ViewModels.Audio;
@@ -45,6 +50,8 @@ internal sealed partial class PlayerActions
     private int _firedFloatX;
     private int _firedFloatY;
     private int _nextFloat;
+    private Facing? _turnTo;
+    private bool _outdoors = true;
 
     /// <summary>Gets whether the farmer is exhausted: low energy makes every swing slower and shows a sweat bubble (docs/adr/ADR-074 D4).</summary>
     public bool Exhausted => _progress is { MaxEnergy: > 0 } progress && ToolPacing.IsExhausted(progress.Energy, progress.MaxEnergy);
@@ -52,6 +59,29 @@ internal sealed partial class PlayerActions
     /// <summary>Gets whether a swing holds the farmer in place at <paramref name="nowSeconds"/>: no walking until the swing is over.</summary>
     /// <param name="nowSeconds">Scene clock, seconds.</param>
     public bool SwingLocked(double nowSeconds) => nowSeconds < _swingStartSeconds + _swingSeconds;
+
+    /// <summary>Tells the actions whether the map is outdoors, where rain waters the soil and the crops (docs/adr/ADR-027 D2).</summary>
+    /// <param name="outdoors">Whether the map is outdoors.</param>
+    public void SetOutdoors(bool outdoors) => _outdoors = outdoors;
+
+    /// <summary>
+    /// Takes the turn a drag asked for (docs/adr/ADR-074 D7): the farmer turns to the tile it works before the swing shows, so the body faces the
+    /// side the swing reaches. The scene applies it once, in the same frame.
+    /// </summary>
+    /// <param name="facing">The facing to turn to.</param>
+    /// <returns><see langword="true"/> when a turn was waiting.</returns>
+    public bool TryTakeTurn(out Facing facing)
+    {
+        if (_turnTo is { } turn)
+        {
+            _turnTo = null;
+            facing = turn;
+            return true;
+        }
+
+        facing = Facing.Down;
+        return false;
+    }
 
     /// <summary>Drops a use that was queued for the hit frame, for example when the farmer leaves the map before it lands.</summary>
     public void CancelQueuedUse() => _useQueued = false;
@@ -109,6 +139,60 @@ internal sealed partial class PlayerActions
         _queuedCost = EnergyCostOf(tool);
         _queuedFloatX = (tileX * tileSize) + (tileSize / 2);
         _queuedFloatY = (tileY * tileSize) + (tileSize / 2);
+        this.PressJuice(slot, tileX, tileY, tool, tileSize);
+    }
+
+    // The flecks of the action start when it is pressed, so they show within a frame; they are predicted from the held item and the tile (a harvest
+    // only when the crop there is ripe). The server's answer still decides the outcome.
+    private void PressJuice(int slot, int tileX, int tileY, ToolKind tool, int tileSize)
+    {
+        long nowMs = (long)(_swingStartSeconds * 1000);
+        if (tool == ToolKind.Hoe)
+        {
+            this.Juice.Press(FarmJuiceKind.Till, tileX, tileY, tileSize, nowMs);
+        }
+        else if (tool == ToolKind.WateringCan)
+        {
+            this.Juice.Press(FarmJuiceKind.Water, tileX, tileY, tileSize, nowMs);
+        }
+        else if (tool == ToolKind.Scythe && this.RipeAt(tileX, tileY))
+        {
+            this.Juice.Press(FarmJuiceKind.Harvest, tileX, tileY, tileSize, nowMs);
+        }
+        else if (ItemCatalog.TryGet(_inventory.SlotAt(slot).ItemId, out ItemDefinition? held) && held.Kind == ItemKind.Seed)
+        {
+            this.Juice.Press(FarmJuiceKind.Plant, tileX, tileY, tileSize, nowMs);
+        }
+    }
+
+    // Whether the tile holds a crop that is ripe now, by the same rule as the farm draws it (FarmRules.IsMature). Sprinklers are not counted here,
+    // which can only hide a pop, never show one that is not due.
+    private bool RipeAt(int tileX, int tileY)
+    {
+        GameCalendar? rules = this.Rules();
+        if (rules is null)
+        {
+            return false;
+        }
+
+        using (_farm.Read())
+        {
+            if (!_farm.TryGetTile(tileX, tileY, out FarmTileInfo info) || info.CropId == 0 || info.Withered)
+            {
+                return false;
+            }
+
+            return FarmRules.IsMature(new FarmTile(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay), _farm.ServerNowMs(), rules, _outdoors);
+        }
+    }
+
+    // The bin's answer: a sale that paid makes the coins pop over the bin the farmer shipped to (the server decides the price and the payment).
+    private void OnMarketCompleted(MarketAction action, MarketStatus status, long earned)
+    {
+        if (action == MarketAction.Ship && status == MarketStatus.Ok && earned > 0)
+        {
+            this.Juice.Press(FarmJuiceKind.Coins, _shipTileX, _shipTileY, _tileSizePx, (long)(_nowSeconds * 1000));
+        }
     }
 
     // At the hit frame the use goes to the server and the hit sounds; the energy label waits for the server's answer.

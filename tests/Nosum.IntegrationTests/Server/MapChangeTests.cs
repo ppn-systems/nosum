@@ -190,8 +190,9 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
             await Task.Delay(25, host.Timeout);
         }
 
+        // The record goes first (MapPresence.LeaveAsync); the leave handler then saves the place. Wait for that save, not for the record.
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
-        PlayerStateRow? saved = await states.LoadAsync(accountId, host.Timeout);
+        PlayerStateRow? saved = await WaitForSavedPlaceAsync(states, accountId, host.Timeout);
         saved.Should().NotBeNull();
         saved!.Value.MapName.Should().BeOneOf(GameMaps.Farm, GameMaps.FarmHouse);
 
@@ -201,6 +202,34 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
         again.MapId.Should().BeOneOf(GameMaps.Farm, GameMaps.FarmHouse);
         (await second.WaitForSnapshotAsync(s => s.Contains(again.PlayerId), host.Timeout)).Players.Should().ContainSingle("the player is the only one on their map: no ghost of the first connection");
         presence.PlayerCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Disconnect_WithASlowSave_TheRecordLeavesPresenceOnlyAfterThePlaceIsSaved()
+    {
+        // The save of the leaving player lands 300 ms late. The record may leave presence only once the place is saved: a reader that sees
+        // the player gone must find the saved place (docs/perf/server-perf.md, the leave race).
+        ServerSeams seams = new(WrapStates: real => SlowLeaveStates.Wrap(real, TimeSpan.FromMilliseconds(300)));
+        await using Host host = await Host.StartAsync(_database, seams);
+        IMapPresence presence = InstanceManager.Instance.GetExistingInstance<IMapPresence>()!;
+        IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
+        Guid accountId;
+        await using (WorldClient first = await host.ConnectAsync())
+        {
+            accountId = first.AccountId;
+            JoinMapResult join = await first.JoinAsync(host.Timeout);
+            await first.SendMoveAsync(1, join.SpawnX, DoorFeetY, Up, host.Timeout);
+        }
+
+        while (presence.PlayerCount != 0)
+        {
+            await Task.Delay(25, host.Timeout);
+        }
+
+        // No wait for the save here: once the record is gone, the place must already be saved.
+        PlayerStateRow? saved = await states.LoadAsync(accountId, host.Timeout);
+        saved.Should().NotBeNull("the record leaves presence only after the leave handler saved the place");
+        saved!.Value.MapName.Should().BeOneOf(GameMaps.Farm, GameMaps.FarmHouse);
     }
 
     [Fact]
@@ -338,6 +367,21 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
     // Feet y on the farmhouse door tile (64, 15), straight above the spawn tile (64, 16).
     private const float DoorFeetY = (15 * 16) + 15;
 
+    // Polls the saved place until the leave handler's write has landed: the state cache is updated only after that write commits.
+    private static async Task<PlayerStateRow?> WaitForSavedPlaceAsync(IPlayerStateService states, Guid accountId, CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            PlayerStateRow? saved = await states.LoadAsync(accountId, cancellationToken);
+            if (saved is not null)
+            {
+                return saved;
+            }
+
+            await Task.Delay(25, cancellationToken);
+        }
+    }
+
     private static ushort GetFreePort()
     {
         using TcpListener probe = new(IPAddress.Loopback, 0);
@@ -346,7 +390,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
     }
 
     /// <summary>A running host with a timeout that covers the whole test.</summary>
-    private sealed class Host : IAsyncDisposable
+    internal sealed class Host : IAsyncDisposable
     {
         private readonly NetworkApplication _app;
         private readonly CancellationTokenSource _timeout = new(s_timeout);
@@ -360,12 +404,12 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
 
         public CancellationToken Timeout => _timeout.Token;
 
-        public static async Task<Host> StartAsync(PostgresFixture database)
+        public static async Task<Host> StartAsync(PostgresFixture database, ServerSeams? seams = null)
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
             TestAccounts.UseFakeVerifiers(database.Options);
-            NetworkApplication app = Program.BuildApplication(port);
+            NetworkApplication app = Program.BuildApplication(port, seams: seams);
             Host host = new(app, port);
             await app.ActivateAsync(host.Timeout);
             return host;
@@ -388,7 +432,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
         }
     }
 
-    private sealed class Inbox<T>
+    internal sealed class Inbox<T>
         where T : class
     {
         private readonly BlockingCollection<T> _items = [];
@@ -422,7 +466,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
     }
 
     /// <summary>A signed-in client that remembers the pushes it needs.</summary>
-    private sealed class WorldClient : IAsyncDisposable
+    internal sealed class WorldClient : IAsyncDisposable
     {
         private readonly WebSocketSession _session;
         private readonly IDisposable[] _subscriptions;
@@ -531,7 +575,7 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
     }
 
     /// <summary>The players of one snapshot and how many map changes the client had been told of when it arrived.</summary>
-    private sealed record Snapshot(List<uint> Players, int MapChangesSeen)
+    internal sealed record Snapshot(List<uint> Players, int MapChangesSeen)
     {
         public bool Contains(uint playerId) => this.Players.Contains(playerId);
     }

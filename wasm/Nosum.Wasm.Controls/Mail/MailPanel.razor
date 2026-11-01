@@ -17,7 +17,7 @@
                 bool open = Vm.Selected == mailId;
                 <GameSection>
                     <GameRow Class="mail-head">
-                        <GameButton Variant="@(open ? "tab" : "plain")" Active="open" Text="@mail.Title" OnClick="@(() => Vm.Toggle(mailId))" />
+                        <GameButton Variant="secondary" Active="open" Text="@mail.Title" OnClick="@(() => Vm.Toggle(mailId))" />
                         @if (!mail.Read)
                         {
                             <GameBadge Kind="warn" Text="@Vm.Text("Mail_Unread")" />

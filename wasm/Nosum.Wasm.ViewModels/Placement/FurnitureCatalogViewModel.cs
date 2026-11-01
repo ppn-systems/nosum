@@ -230,6 +230,7 @@ public sealed class FurnitureCatalogViewModel : IObservableViewModel, IDisposabl
         }
 
         _selectedItemId = itemId;
+        _placement.ClearDismissed();
         int hotbar = Math.Min(InventoryLimits.HotbarSlots, _inventory.Capacity);
         int held = FindSlot(0, hotbar, itemId);
         if (held < 0)
@@ -256,6 +257,12 @@ public sealed class FurnitureCatalogViewModel : IObservableViewModel, IDisposabl
 
     /// <summary>Asks the game to take the piece in front of the farmer back into the inventory.</summary>
     public void PickUp() => _placement.Request(PlacementRequests.PickUp);
+
+    /// <summary>Closes arrange mode from the panel's close button or Escape: a carried piece goes back where it was.</summary>
+    public void Exit() => _placement.Dismiss();
+
+    /// <summary>The localized text of the close button.</summary>
+    public string CloseLabel => _text["Panel_Close"];
 
     /// <inheritdoc/>
     public void Dispose()

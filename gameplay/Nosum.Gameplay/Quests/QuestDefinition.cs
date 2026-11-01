@@ -30,6 +30,36 @@ public enum QuestEventKind
 
     /// <summary>Something was crafted; the subject is the item id of the result, the amount how many.</summary>
     ItemCrafted = 8,
+
+    /// <summary>A fish was reeled in from the water; the subject is the fish's item id.</summary>
+    FishCaught = 9,
+
+    /// <summary>A monster was defeated by the player; the subject is the monster kind.</summary>
+    MonsterDefeated = 10,
+
+    /// <summary>A tool was upgraded at the blacksmith and collected; the subject is the upgraded tool's item id.</summary>
+    ToolUpgraded = 11,
+
+    /// <summary>A building was placed on the farm; the subject is the blueprint item id it was built from.</summary>
+    BuildingPlaced = 12,
+
+    /// <summary>An animal was bought for a building; the subject is the animal kind.</summary>
+    AnimalBought = 13,
+
+    /// <summary>Food was eaten; the subject is the food item id.</summary>
+    FoodEaten = 14,
+
+    /// <summary>A request on the Town board was filled; the subject is the requested item id.</summary>
+    RequestFilled = 15,
+
+    /// <summary>A placeable (furniture or a crafted placeable) was set down; the subject is the item id.</summary>
+    PlaceablePlaced = 16,
+
+    /// <summary>A pet was adopted; the subject is the pet kind.</summary>
+    PetAdopted = 17,
+
+    /// <summary>An emote was sent in the world; the subject is the emote id.</summary>
+    EmoteSent = 18,
 }
 
 /// <summary>One thing a player did, reported by a feature to the quest service.</summary>

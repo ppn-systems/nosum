@@ -256,3 +256,42 @@ Ranked changes #4 (rows created with the account), #5 (the remaining N+1 loops) 
 
 A second server process is planned; the signed-in population makes the memory of D3-D5 matter; an owner decision adds a feature whose packets do not
 fit a class of D1; or write-behind (D7) is asked for state that D7 forbids.
+
+## Amendment (2026-10-31): the onboarding steps
+
+The onboarding chain (ADR-036) gained thirteen steps. Each step is completed by a hot-path packet: pet adoption, emotes, Town requests,
+placements, coop placement. A step that counts toward a quest costs one quest read when the copy is cold, one quest row write per counting
+event while the step is active, and a reward transaction on completion. The quest copy is held in memory per player, so a player whose chain
+is finished pays none of this (`DbBudgetRun.Finished`, rows marked "chain finished").
+
+The raised rows below measure a fresh player with that step still **active** (not a finished chain). They are the limits now:
+
+- `AdoptPet / adopt a cat` (player with adopt_pet active): (1, 1, 0, 1) → (2, 2, 1, 2). The packet completes the step: one quest read,
+  the completed row written, the reward paid in one transaction.
+- `SendEmote / wave` (player with send_emote active): (0, 0, 0, 0) → (1, 1, 1, 1). The first emote completes the step, same cost shape.
+- `DeliverRequest / fill one request` (player with fill_request active): (4, 1, 1, 1) → (6, 3, 3, 3). The first filled request completes
+  the step, same cost shape.
+- `PlaceObject / a chest` (player with decorate active): (0, 1, 1, 1) → (0, 2, 1, 2). Every placement counts toward decorate: one quest row
+  write, no read (the copy is held), no transaction.
+- `PlaceObject / a fence` (player with decorate active): (0, 1, 1, 1) → (1, 2, 2, 2).
+- `PlaceObject / a furnace` (player with decorate active): (0, 1, 1, 1) → (0, 2, 1, 2).
+- `PlaceObject / a coop blueprint` (player with build_coop active): (3, 2, 1, 1) → (5, 4, 3, 3). The first coop completes the step.
+
+Measured for a player whose chain is finished, these packets stay within their original limits (the test checks an upper bound), so the
+steps add no database work for players who have finished them. Their rows keep the original limits:
+
+- `PlaceObject / a chest, chain finished`: (0, 1, 1, 1)
+- `SendEmote / wave, chain finished`: (0, 0, 0, 0)
+- `DeliverRequest / fill one request, chain finished`: (4, 1, 1, 1)
+
+Every other limit is unchanged.
+
+### 2026-10-31 - paid pets: adopting pays through the transfer, and rehoming is measured (owner review, PR #258)
+
+- **`AdoptPet` now buys.** Adopting a cat or dog at the carpenter's counter charges the price and creates the pet row in one `ITransferService` transaction
+  (ADR-075 amendment). Measured: reads 5, writes 4, transactions 3, SaveChanges 4 (was 2, 2, 1, 2). A shop buy costs 4, 3, 3, 3 (`BuyFromShop`), so this is the
+  cost of paying through the transfer service, not an extra query on the side. The row limit is raised to these numbers in the same commit as the change; the
+  probe now runs for a farmer standing at the counter with the coins, so the row measures the purchase and not a refusal.
+- **`RehomePet` is measured.** Giving the pet back costs reads 3, writes 1, transactions 1, SaveChanges 1, the coins and the row removal in one transfer. New row
+  `RehomePet / give the cat back` in `DbBudgetBaseline`.
+- The `GetPet` rows are unchanged; the pet read stays on the cache path described above.

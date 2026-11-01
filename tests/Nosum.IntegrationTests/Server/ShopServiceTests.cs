@@ -163,7 +163,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
         (await _shop.BuyAsync(_connection, player, ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds, 10)).Status.Should().Be(ShopStatus.Ok);
 
         (await CountAsync(player, ItemCatalog.ParsnipSeeds)).Should().Be(18);
-        (await _transfers.GetBalanceAsync(player)).Should().Be(400);
+        (await _transfers.GetBalanceAsync(player)).Should().Be(380);
     }
 
     [Fact]
@@ -188,6 +188,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, 0, ShopStatus.InvalidQuantity)]
     [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.OakChair, -5, ShopStatus.InvalidQuantity)]
     [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 2, ShopStatus.InvalidQuantity)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 100, ShopStatus.InvalidQuantity)]
     public async Task Buy_InvalidRequest_IsRefusedBeforeAnythingMoves(int shopId, int itemId, int quantity, ShopStatus expected)
     {
         Guid player = await CreatePlayerAsync();
@@ -215,7 +216,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
 
     [Theory]
     [InlineData(ShopCatalog.SeedShop, ItemCatalog.CauliflowerSeeds, 30)]
-    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.HatCap, 40)]
+    [InlineData(ShopCatalog.ClothingShop, ItemCatalog.ShirtRed, 60)]
     [InlineData(ShopCatalog.FurnitureShop, ItemCatalog.HousePlant, 80)]
     public async Task Buy_AtEachShopsOwnCounter_SellsThatShopsItems(int shopId, int itemId, int price)
     {
@@ -252,7 +253,7 @@ public sealed class ShopServiceTests : IClassFixture<PostgresFixture>
     [Theory]
     [InlineData(ShopCatalog.SeedShop, ShopCatalog.FurnitureShop, ItemCatalog.OakChair)]
     [InlineData(ShopCatalog.ClothingShop, ShopCatalog.SeedShop, ItemCatalog.ParsnipSeeds)]
-    [InlineData(ShopCatalog.FurnitureShop, ShopCatalog.ClothingShop, ItemCatalog.HatCap)]
+    [InlineData(ShopCatalog.FurnitureShop, ShopCatalog.ClothingShop, ItemCatalog.ShirtRed)]
     public async Task Buy_FromAShopWhoseCounterTheFarmerIsNotAt_IsRefused(int standAt, int buyFrom, int itemId)
     {
         Guid player = await CreatePlayerAsync();

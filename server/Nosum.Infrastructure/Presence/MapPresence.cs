@@ -23,6 +23,7 @@ public sealed class MapPresence : IMapPresence, IChunkMap
 {
     private readonly IConnectionGroupRegistry _groups;
     private readonly ConcurrentDictionary<ulong, PlayerPresence> _byConnection = new();
+    private readonly ConcurrentDictionary<ulong, byte> _leaving = new();
     private readonly ConcurrentDictionary<Guid, PlayerPresence> _byAccount = new();
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<uint, PlayerPresence>> _byMap = new(StringComparer.Ordinal);
     private readonly ChunkIndex _chunks = new();
@@ -86,32 +87,43 @@ public sealed class MapPresence : IMapPresence, IChunkMap
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        if (!_byConnection.TryRemove(connection.ConnectionId, out PlayerPresence? player))
+        // The leave is claimed once: a second close of the same connection finds the claim taken and returns, as the removal used to.
+        if (!_byConnection.TryGetValue(connection.ConnectionId, out PlayerPresence? player) || !_leaving.TryAdd(connection.ConnectionId, 0))
         {
             return;
         }
 
-        _ = _byAccount.TryRemove(new KeyValuePair<Guid, PlayerPresence>(player.AccountId, player));
-        connection.ConnectionClosed -= _onClosed;
-        _chunks.Remove(player);
-        if (_byMap.TryGetValue(player.Key, out ConcurrentDictionary<uint, PlayerPresence>? members))
+        try
         {
-            _ = members.TryRemove(player.PlayerId, out _);
-            if (members.IsEmpty)
+            // The leave handlers (the saved place) run while the record is still registered, so they read a valid record and a
+            // reader that sees the player gone also sees the place saved (docs/adr/ADR-087 D1).
+            if (this.PlayerLeft is { } handlers)
             {
-                _ = _byMap.TryRemove(new KeyValuePair<string, ConcurrentDictionary<uint, PlayerPresence>>(player.Key, members));
+                foreach (Func<PlayerPresence, ValueTask> handler in handlers.GetInvocationList())
+                {
+                    await handler(player).ConfigureAwait(false);
+                }
             }
+        }
+        finally
+        {
+            _ = _byConnection.TryRemove(connection.ConnectionId, out _);
+            _ = _byAccount.TryRemove(new KeyValuePair<Guid, PlayerPresence>(player.AccountId, player));
+            connection.ConnectionClosed -= _onClosed;
+            _chunks.Remove(player);
+            if (_byMap.TryGetValue(player.Key, out ConcurrentDictionary<uint, PlayerPresence>? members))
+            {
+                _ = members.TryRemove(player.PlayerId, out _);
+                if (members.IsEmpty)
+                {
+                    _ = _byMap.TryRemove(new KeyValuePair<string, ConcurrentDictionary<uint, PlayerPresence>>(player.Key, members));
+                }
+            }
+
+            _ = _leaving.TryRemove(connection.ConnectionId, out _);
         }
 
         await _groups.RemoveFromGroupAsync(MapGroup.Name(player.Key), connection, cancellationToken).ConfigureAwait(false);
-
-        if (this.PlayerLeft is { } handlers)
-        {
-            foreach (Func<PlayerPresence, ValueTask> handler in handlers.GetInvocationList())
-            {
-                await handler(player).ConfigureAwait(false);
-            }
-        }
     }
 
     /// <inheritdoc/>
@@ -123,7 +135,15 @@ public sealed class MapPresence : IMapPresence, IChunkMap
 
     /// <inheritdoc/>
     public bool TryGetPlayer(Guid playerId, [NotNullWhen(true)] out PlayerPresence? presence)
-        => _byAccount.TryGetValue(playerId, out presence);
+    {
+        if (_byAccount.TryGetValue(playerId, out presence) && !this.IsLeaving(presence))
+        {
+            return true;
+        }
+
+        presence = null;
+        return false;
+    }
 
     /// <inheritdoc/>
     public void CopyActiveMapIds(List<string> into)
@@ -132,9 +152,13 @@ public sealed class MapPresence : IMapPresence, IChunkMap
 
         foreach (KeyValuePair<string, ConcurrentDictionary<uint, PlayerPresence>> map in _byMap)
         {
-            if (!map.Value.IsEmpty)
+            foreach (PlayerPresence member in map.Value.Values)
             {
-                into.Add(map.Key);
+                if (!this.IsLeaving(member))
+                {
+                    into.Add(map.Key);
+                    break;
+                }
             }
         }
     }
@@ -149,10 +173,17 @@ public sealed class MapPresence : IMapPresence, IChunkMap
         {
             foreach (KeyValuePair<uint, PlayerPresence> member in members)
             {
-                into.Add(member.Value);
+                // A player whose leave is in progress is no longer a member; the leave handlers still reach them through TryGet.
+                if (!this.IsLeaving(member.Value))
+                {
+                    into.Add(member.Value);
+                }
             }
         }
     }
+
+    // A player is leaving from the moment the leave starts until its record is removed. Membership queries leave them out; the leave handlers and PlayerCount do not.
+    private bool IsLeaving(PlayerPresence player) => _leaving.ContainsKey(player.Connection.ConnectionId);
 
     /// <inheritdoc/>
     public async ValueTask SendAsync(IConnection connection, IPacket packet, CancellationToken cancellationToken = default)
