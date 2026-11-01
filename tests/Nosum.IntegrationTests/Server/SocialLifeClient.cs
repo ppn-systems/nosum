@@ -182,6 +182,12 @@ internal sealed class SocialLifeClient : IAsyncDisposable
         return PetCopy.Of(await this.RequestAsync<PetState>(request, ct));
     }
 
+    public async Task<PetCopy> RehomePetAsync(CancellationToken ct)
+    {
+        using RehomePet request = new();
+        return PetCopy.Of(await this.RequestAsync<PetState>(request, ct));
+    }
+
     public async Task<ChatStatus> BlockAsync(string nickname, CancellationToken ct)
     {
         using BlockPlayer request = new() { Nickname = nickname };

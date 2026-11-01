@@ -100,7 +100,7 @@ public static partial class PlayerHandlers
         MoveIntent intent = context.Packet;
         uint sequence = intent.Sequence;
 
-        MoveOutcome outcome = await s_players.MoveAsync(context.Connection, intent.X, intent.Y, intent.Facing, intent.Moving, context.CancellationToken).ConfigureAwait(false);
+        MoveOutcome outcome = await s_players.MoveAsync(context.Connection, intent.X, intent.Y, intent.Facing, intent.Moving, intent.Running, context.CancellationToken).ConfigureAwait(false);
         if (outcome.Status == MoveStatus.Accepted)
         {
             await s_combat.OnPlayerMovedAsync(context.Connection, context.CancellationToken).ConfigureAwait(false);

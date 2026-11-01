@@ -2,6 +2,7 @@
 import re
 
 import pngio
+from draw import Canvas
 from pngio import Image, recolor
 
 # game crop name -> (CC0 crop index 0..19 in the order of the pack's README, recolour or None, note)
@@ -111,11 +112,41 @@ def produce_icon(src, crop_name):
     return stages(src, crop_name)['produce']
 
 
+# The withered picture (a dry, brown plant that replaces the growth stage of a crop that withered, CropSprites.WitheredFrame): one shared
+# frame in row 0, frame 1; build_crops refuses a catalogue that puts a growth stage in that frame, so the picture never covers one.
+WITHERED_ROW = 0
+WITHERED_FRAME = 1
+_WITHERED_OUTLINE = (70, 44, 28)
+
+
+def withered_picture():
+    """The 16 x 16 dry plant: a bare brown stalk with two curled tan leaves and a few cracks of soil at its foot (Nosum's own drawing)."""
+    stalk, stalk_dark = (150, 104, 60), (112, 76, 44)
+    leaf, leaf_dark, leaf_light = (206, 168, 104), (150, 108, 62), (226, 196, 130)
+    soil = (104, 68, 42)
+    c = Canvas(16, 16)
+    c.line(8, 15, 8, 4, stalk_dark)
+    c.line(7, 15, 7, 5, stalk)
+    c.ellipse(4.5, 9.5, 2.6, 1.3, leaf_dark)
+    c.ellipse(4.5, 8.5, 2.2, 1.0, leaf)
+    c.ellipse(11.5, 7.5, 2.6, 1.2, leaf_dark)
+    c.ellipse(11.5, 6.5, 2.0, 0.9, leaf)
+    c.ellipse(10, 12.5, 1.8, 0.9, leaf_dark)
+    for x, y, col in [(5, 8, leaf_light), (11, 6, leaf_light), (7, 5, leaf_light)]:
+        c.dot(x, y, col)
+    for x, y in [(3, 15), (4, 15), (11, 15), (12, 15), (13, 14), (2, 14), (6, 15), (9, 15)]:
+        c.dot(x, y, soil)
+    c.outline(_WITHERED_OUTLINE)
+    return c
+
+
 def build_crops(src, repo):
     catalogue = read_catalogue(repo)
     bands = (max(row for _, row, _ in catalogue) // 2) + 1
     out = Image(256, bands * 32)
     for name, row, frames in catalogue:
+        if WITHERED_FRAME in frames and row == WITHERED_ROW:
+            raise SystemExit(f'{name} uses frame {WITHERED_FRAME}, the withered picture: move the picture in crops.py')
         st = stages(src, name)
         ladder = [st['seed'], st['s1'], st['s2'], st['s3'], st['ripe']]
         n = len(frames)
@@ -128,6 +159,7 @@ def build_crops(src, repo):
             else:
                 pic = ladder[round(k * 4 / (n - 1))]
             out.paste(pic, (row % 2 * 128) + frame * 16, (row // 2) * 32 + 16)
+    out.paste(withered_picture(), (WITHERED_ROW % 2 * 128) + WITHERED_FRAME * 16, (WITHERED_ROW // 2) * 32 + 16)
     return out
 
 

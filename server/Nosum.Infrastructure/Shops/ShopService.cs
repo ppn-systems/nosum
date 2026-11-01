@@ -71,7 +71,7 @@ public sealed class ShopService : IShopService
             }, 0);
         }
 
-        if (!ShopRules.IsInSeason(itemId, _calendar, _time.GetUtcNow().ToUnixTimeMilliseconds()))
+        if (!ShopRules.IsInSeason(shopId, itemId, _calendar, _time.GetUtcNow().ToUnixTimeMilliseconds()))
         {
             return new ShopOutcome(ShopStatus.OutOfSeason, 0);
         }
@@ -101,31 +101,5 @@ public sealed class ShopService : IShopService
     }
 
     // The position is the server's own record, never a value from the packet.
-    private bool IsAtShop(IConnection connection, int shopId)
-    {
-        if (!_presence.TryGet(connection, out PlayerPresence? player)
-            || !GameMaps.TryGet(player.MapId, out MapSpec? spec)
-            || !_maps.TryGet(player.MapId, out MapDefinition? map))
-        {
-            return false;
-        }
-
-        double feetX;
-        double feetY;
-        lock (player.Gate)
-        {
-            feetX = player.Motion.X;
-            feetY = player.Motion.Y;
-        }
-
-        foreach (ShopPoint point in spec.Shops)
-        {
-            if (point.ShopId == shopId && ShopRules.InReach(point, feetX, feetY, map.Grid.TileSize))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    private bool IsAtShop(IConnection connection, int shopId) => ShopCounterReach.IsAt(_presence, _maps, connection, shopId);
 }

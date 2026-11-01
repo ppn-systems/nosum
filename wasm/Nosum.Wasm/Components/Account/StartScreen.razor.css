@@ -1,4 +1,5 @@
-/* The start screen: start_background.png (early art, ADR-007) at the UI pixel, the horizon about 62% down, sky and sea colours for what is beyond the image. */
+/* The start screen: the sign-in backdrop (signin_background.png, the original sky and sea re-graded brighter and softer, art/own/ui), under a
+   15 % cream veil and covering the screen. */
 .start-screen {
     position: fixed;
     inset: 0;
@@ -11,11 +12,13 @@
     gap: calc(var(--u) * 2);
     padding: var(--nosum-gutter);
     overflow: auto;
-    background-color: #00a2ff;
-    background-image: url("_content/Nosum.Wasm.Controls/ui/start_background.png");
+    background-color: var(--nosum-leaf);
+    background-image:
+        linear-gradient(rgba(255, 246, 226, 0.15), rgba(255, 246, 226, 0.15)),
+        url("_content/Nosum.Wasm.Controls/ui/signin_background.png");
     background-repeat: no-repeat;
-    background-size: calc(var(--u) * 1500) calc(var(--u) * 520);
-    background-position: 50% calc(62vh - var(--u) * 345);
+    background-size: cover;
+    background-position: center;
     image-rendering: pixelated;
 }
 
@@ -42,9 +45,20 @@
         0 calc(var(--logo-o) * 3) 0 var(--nosum-edge), var(--logo-o) calc(var(--logo-o) * 3) 0 var(--nosum-edge), calc(var(--logo-o) * -1) calc(var(--logo-o) * 3) 0 var(--nosum-edge);
 }
 
+/* The title and tagline sit on a dark plaque, so the cream title and the tagline read clearly over the sky and the meadow. */
+.start-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    padding: calc(var(--u) * 3) calc(var(--u) * 6) calc(var(--u) * 2);
+    background: color-mix(in srgb, var(--nosum-wood-dark) 88%, transparent);
+    border: var(--u) solid var(--nosum-edge);
+}
+
 .start-tagline {
-    margin: 0 0 var(--nosum-gap-group);
-    color: #fff;
+    margin: 0;
+    color: var(--nosum-ink-on-dark);
     text-shadow: var(--tp) var(--tp) 0 var(--nosum-edge);
 }
 
@@ -54,4 +68,18 @@
         --logo-px: calc(var(--tp) * 2);
         --logo-o: var(--tp);
     }
+}
+
+/* On a phone the account window takes the full width inside the gutter, so the provider buttons have room for Google's label. */
+@media (max-width: 640px) {
+    .start-screen ::deep .game-panel.account {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Every button of the start screen is a touch target of at least 14 u (docs/design/ui-standard.md section 6). */
+.start-screen ::deep .game-button {
+    min-height: calc(var(--u) * 14);
 }

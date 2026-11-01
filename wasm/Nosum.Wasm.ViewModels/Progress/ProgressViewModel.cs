@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Combat;
+using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Bestiary;
@@ -193,6 +195,72 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the localized label of the bar, for the tooltip and the screen reader: <c>Energy 268 / 270</c>.</summary>
     public string EnergyLabel => this.Text("Energy_Label", Number(_progress.Energy), Number(_progress.MaxEnergy));
 
+    /// <summary>Gets the running state the bar shows (docs/adr/ADR-085 D3).</summary>
+    public RunState Run { get; private set; }
+
+    /// <summary>Gets whether the farmer is running, so the bar drains and glows (docs/adr/ADR-085 D3).</summary>
+    public bool Running => this.Run == RunState.Running;
+
+    /// <summary>Gets the tooltip text of the energy bar: the label, and <c>Running</c> while the farmer runs.</summary>
+    public string EnergyTip => this.Running ? this.EnergyLabel + " · " + this.Text("Energy_Running") : this.EnergyLabel;
+
+    /// <summary>
+    /// Gets the client's estimate of how many more successful uses of <paramref name="tool"/> the energy left pays for: the energy divided by the
+    /// cost <see cref="EnergyRules.Cost(ToolKind, int)"/> the server charges at the skill's level. The server still decides every use; this is only
+    /// for the tooltip (docs/design/research-hud-and-loops.md, backlog item 3).
+    /// </summary>
+    /// <param name="tool">The tool in hand; <see cref="ToolKind.None"/> for none.</param>
+    /// <returns>The number of uses, or <c>-1</c> when the tool costs no energy (the scythe) or no tool is in hand.</returns>
+    public int ToolUsesLeft(ToolKind tool)
+    {
+        if (tool == ToolKind.None)
+        {
+            return -1;
+        }
+
+        int cost = EnergyRules.Cost(tool, SkillRules.LevelOf(this.XpOfSkill(SkillRules.SkillOf(tool))));
+        return cost > 0 ? _progress.Energy / cost : -1;
+    }
+
+    /// <summary>Gets the tooltip line for the tool in hand: <c>About 12 tool uses left</c>, or a line that the energy is too low for one more use.</summary>
+    /// <param name="tool">The tool in hand; <see cref="ToolKind.None"/> for none.</param>
+    /// <returns>The localized line, or an empty string when the tool costs no energy or no tool is in hand.</returns>
+    public string ToolUsesTip(ToolKind tool)
+    {
+        int uses = this.ToolUsesLeft(tool);
+        if (uses < 0 || !this.HasEnergy)
+        {
+            return string.Empty;
+        }
+
+        return uses > 0 ? this.Text("Energy_ToolUses", Number(uses)) : this.Text("Energy_ToolUses_None");
+    }
+
+    private int XpOfSkill(SkillKind skill) => skill switch
+    {
+        SkillKind.Farming => _progress.FarmingXp,
+        SkillKind.Foraging => _progress.ForagingXp,
+        SkillKind.Mining => _progress.MiningXp,
+        SkillKind.Fishing => _progress.FishingXp,
+        SkillKind.Combat => _combat?.CombatXp ?? 0,
+        _ => 0,
+    };
+
+    /// <summary>
+    /// Sets the running state the map scene reports. It notifies only when the state changes, so the HUD re-renders on a transition and not per frame.
+    /// </summary>
+    /// <param name="run">The new running state.</param>
+    public void SetRun(RunState run)
+    {
+        if (run == this.Run)
+        {
+            return;
+        }
+
+        this.Run = run;
+        this.Raise();
+    }
+
     /// <summary>Gets the three gathering skills in the page's order: farming, foraging, mining.</summary>
     public IReadOnlyList<SkillDisplay> Skills =>
     [
@@ -201,11 +269,47 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
         this.Describe("Skill_Mining", _progress.MiningXp),
     ];
 
+    /// <summary>Gets the Fishing skill progression display (docs/adr/ADR-078 amendment): the fifth row of the Skills page.</summary>
+    public SkillDisplay FishingSkill => this.Describe("Skill_Fishing", _progress.FishingXp);
+
     /// <summary>Gets the Combat skill progression display.</summary>
     public SkillDisplay CombatSkill => this.Describe("Skill_Combat", _combat?.CombatXp ?? 0);
 
     /// <summary>Gets the localized Monster Bestiary &amp; Hunting Log entries (docs/adr/ADR-059).</summary>
-    public IReadOnlyList<BestiaryEntryDisplay> BestiaryEntries
+    /// <summary>The monsters on one page of the bestiary: one whole entry (its stats, drops, progress and title) to a page, so the page fits the panel at 1280×720 and up.</summary>
+    public const int BestiaryPerPage = 1;
+
+    /// <summary>Gets the zero-based page of the bestiary.</summary>
+    public int BestiaryPage { get; private set; }
+
+    /// <summary>Gets the number of bestiary pages (at least one).</summary>
+    public int BestiaryPageCount => Math.Max(1, (this.BestiaryEntries.Count + BestiaryPerPage - 1) / BestiaryPerPage);
+
+    /// <summary>Gets the bestiary entries on the current page.</summary>
+    public List<BestiaryEntryDisplay> BestiaryPageEntries
+    {
+        get
+        {
+            IReadOnlyList<BestiaryEntryDisplay> all = this.BestiaryEntries;
+            int page = Math.Min(this.BestiaryPage, this.BestiaryPageCount - 1);
+            return all.Skip(page * BestiaryPerPage).Take(BestiaryPerPage).ToList();
+        }
+    }
+
+    /// <summary>Shows another page of the bestiary.</summary>
+    /// <param name="page">The zero-based page; clamped to the pages there are.</param>
+    public void GoToBestiaryPage(int page)
+    {
+        int next = Math.Clamp(page, 0, this.BestiaryPageCount - 1);
+        if (next != this.BestiaryPage)
+        {
+            this.BestiaryPage = next;
+            this.Raise();
+        }
+    }
+
+    /// <summary>Gets every monster of the bestiary, in its order.</summary>
+    public List<BestiaryEntryDisplay> BestiaryEntries
     {
         get
         {
@@ -282,12 +386,40 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <returns>Seconds remaining until ready.</returns>
     public float GetSkillCooldown(byte skillId) => _combat?.GetSkillCooldownRemaining(skillId) ?? 0f;
 
+    /// <summary>Gets whether a combat skill is cooling down, so its button shows the cooldown overlay (docs/adr/ADR-056 D5).</summary>
+    /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
+    /// <returns><see langword="true"/> until the cooldown ends.</returns>
+    public bool IsSkillCoolingDown(byte skillId) => this.GetSkillCooldown(skillId) > 0f;
+
+    /// <summary>
+    /// Gets the inline style that starts a combat skill's cooldown sweep: the length of the cooldown the server started, in milliseconds, so the overlay
+    /// runs from full to empty exactly when the server's cooldown ends (the full cooldown after a cast, the time left after a refusal as cooling down).
+    /// Empty when the skill is ready.
+    /// </summary>
+    /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
+    /// <returns>A CSS custom property declaration, or an empty string.</returns>
+    public string CooldownStyle(byte skillId)
+    {
+        if (!this.IsSkillCoolingDown(skillId) || !SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition def))
+        {
+            return string.Empty;
+        }
+
+        int spanMs = _combat?.GetSkillCooldownSpanMs(skillId) ?? 0;
+        if (spanMs <= 0)
+        {
+            spanMs = def.CooldownMs;
+        }
+
+        return string.Create(CultureInfo.InvariantCulture, $"--cd-ms:{spanMs}ms");
+    }
+
     /// <summary>Gets whether a combat skill is ready to cast (off cooldown and sufficient MP).</summary>
     /// <param name="skillId">1 Whirlwind, 2 Fireball, 3 DivineHeal.</param>
     /// <returns><see langword="true"/> when the skill can be cast.</returns>
     public bool CanCastSkill(byte skillId)
     {
-        if (this.GetSkillCooldown(skillId) > 0f)
+        if (_combat?.IsSkillPending(skillId) == true || this.GetSkillCooldown(skillId) > 0f)
         {
             return false;
         }

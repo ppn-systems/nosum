@@ -4,84 +4,109 @@
 
 @* The Skills page of the game menu: energy, and the three skills with their level and how far each is to the next one. *@
 <MenuPage>
+    <TabBar Tabs="TabList()" Active="_bestiary ? 1 : 0" OnSelect="@(id => _bestiary = id == 1)" />
     <GameStack>
-        <GameSection Title="@Vm.Text("Energy_Heading")">
-            <div class="skill-row">
-                <span class="skill-meter">
-                    <GameProgress Percent="@PercentInt(Vm.HpFraction)" Text="@Vm.HpLabel" Label="@Vm.HpLabel" Class="hp" />
-                </span>
-            </div>
-            <div class="skill-row">
-                <span class="skill-meter">
-                    <GameProgress Percent="@PercentInt(Vm.MpFraction)" Text="@Vm.MpLabel" Label="@Vm.MpLabel" Class="mp" />
-                </span>
-            </div>
-            <div class="skill-row">
-                <span class="skill-meter">
-                    <GameProgress Percent="@PercentInt(Vm.EnergyFraction)" Text="@Vm.EnergyLabel" Label="@Vm.EnergyLabel" Class="@(Vm.EnergyLow ? "low" : null)" />
-                </span>
-            </div>
-            <p class="skill-hint">@Vm.Text("Energy_Hint")</p>
-        </GameSection>
-        <GameSection Title="@Vm.Text("Skills_Heading")">
-            @foreach (SkillDisplay skill in Vm.Skills)
-            {
+        @* One page at a time, so each page has the panel's full height: the energy and skills, or the bestiary (docs/design/ui-standard.md section 3). *@
+        @if (!_bestiary)
+        {
+            <GameSection Title="@Vm.Text("Energy_Heading")">
                 <div class="skill-row">
-                    <span class="skill-name">@skill.Name</span>
-                    <GameBadge Kind="@(skill.Level >= 10 ? "warn" : "ok")" Text="@Vm.Text("Skill_Level", skill.Level)" />
                     <span class="skill-meter">
-                        <GameProgress Percent="@PercentInt(skill.Fraction)" Text="@skill.Caption" Label="@skill.Name" Class="@(skill.Level >= 10 ? "done" : null)" />
+                        <GameProgress Percent="@PercentInt(Vm.HpFraction)" Text="@Vm.HpLabel" Label="@Vm.HpLabel" Class="hp" />
                     </span>
                 </div>
-            }
-            @{
-                SkillDisplay combat = Vm.CombatSkill;
-            }
-            <div class="skill-row">
-                <span class="skill-name">@combat.Name</span>
-                <GameBadge Kind="@(combat.Level >= 10 ? "warn" : "ok")" Text="@Vm.Text("Skill_Level", combat.Level)" />
-                <span class="skill-meter">
-                    <GameProgress Percent="@PercentInt(combat.Fraction)" Text="@combat.Caption" Label="@combat.Name" Class="@(combat.Level >= 10 ? "done" : "hp")" />
-                </span>
-            </div>
-            <p class="skill-hint">@Vm.Text("Skills_Hint")</p>
-        </GameSection>
-        <GameSection Title="@Vm.Text("Bestiary_Heading")">
-            <GameStack>
-                @foreach (BestiaryEntryDisplay entry in Vm.BestiaryEntries)
+                <div class="skill-row">
+                    <span class="skill-meter">
+                        <GameProgress Percent="@PercentInt(Vm.MpFraction)" Text="@Vm.MpLabel" Label="@Vm.MpLabel" Class="mp" />
+                    </span>
+                </div>
+                <div class="skill-row skill-energy" data-tip="@Vm.Text("Energy_Hint")" aria-label="@Vm.Text("Energy_Hint")">
+                    <span class="skill-meter">
+                        <GameProgress Percent="@PercentInt(Vm.EnergyFraction)" Text="@Vm.EnergyLabel" Label="@Vm.EnergyLabel" Class="@(Vm.EnergyLow ? "low" : null)" />
+                    </span>
+                </div>
+            </GameSection>
+            <GameSection Title="@Vm.Text("Skills_Heading")">
+                @foreach (SkillDisplay skill in Vm.Skills)
                 {
-                    <div class="bestiary-row">
-                        <div class="skill-row">
-                            <span class="skill-name">@entry.Name</span>
-                            <GameBadge Kind="@(entry.IsBoss ? "warn" : "ok")" Text="@entry.Category" />
-                            <GameBadge Kind="info" Text="@entry.Location" />
-                            <span class="skill-caption">@Vm.Text("Bestiary_Stats", entry.Hp, entry.Attack, entry.Xp)</span>
-                        </div>
-                        <span class="skill-hint">@Vm.Text("Bestiary_Drops", entry.PrimaryDrop, entry.RareDrop)</span>
-                        <div class="skill-row">
-                            <span class="skill-meter">
-                                <GameProgress Percent="@PercentInt(entry.Fraction)" Text="@entry.Progress" Label="@entry.Name" Class="@(entry.TitleEarned ? "done" : null)" />
-                            </span>
-                        </div>
-                        <div class="skill-row">
-                            <span class="skill-name">@entry.TitleName</span>
-                            @if (entry.TitleEarned)
-                            {
-                                <GameButton Variant="chip" Active="entry.TitleEquipped" Text="@Vm.Text(entry.TitleEquipped ? "Bestiary_Title_Unequip" : "Bestiary_Title_Equip")" OnClick="@(() => Vm.ToggleTitle(entry))" />
-                            }
-                            else
-                            {
-                                <span class="skill-hint">@Vm.Text("Bestiary_Title_Locked", ProgressViewModel.TitleGoal)</span>
-                            }
-                        </div>
+                    <div class="skill-row">
+                        <span class="skill-name">@skill.Name</span>
+                        <span class="skill-level @(skill.Level >= 10 ? "done" : null)">@Vm.Text("Skill_Level", skill.Level)</span>
+                        <span class="skill-meter">
+                            <GameProgress Percent="@PercentInt(skill.Fraction)" Text="@skill.Caption" Label="@skill.Name" Class="@(skill.Level >= 10 ? "done" : null)" />
+                        </span>
                     </div>
                 }
-            </GameStack>
-        </GameSection>
+                @{
+                    SkillDisplay combat = Vm.CombatSkill;
+                }
+                <div class="skill-row">
+                    <span class="skill-name">@combat.Name</span>
+                    <span class="skill-level @(combat.Level >= 10 ? "done" : null)">@Vm.Text("Skill_Level", combat.Level)</span>
+                    <span class="skill-meter">
+                        <GameProgress Percent="@PercentInt(combat.Fraction)" Text="@combat.Caption" Label="@combat.Name" Class="@(combat.Level >= 10 ? "done" : "hp")" />
+                    </span>
+                </div>
+                @{
+                    SkillDisplay fishing = Vm.FishingSkill;
+                }
+                <div class="skill-row" data-tip="@Vm.Text("Skills_Hint")" aria-label="@Vm.Text("Skills_Hint")">
+                    <span class="skill-name">@fishing.Name</span>
+                    <span class="skill-level @(fishing.Level >= 10 ? "done" : null)">@Vm.Text("Skill_Level", fishing.Level)</span>
+                    <span class="skill-meter">
+                        <GameProgress Percent="@PercentInt(fishing.Fraction)" Text="@fishing.Caption" Label="@fishing.Name" Class="@(fishing.Level >= 10 ? "done" : null)" />
+                    </span>
+                </div>
+            </GameSection>
+        }
+        else
+        {
+            <GameSection Title="@Vm.Text("Bestiary_Heading")">
+                <GameStack>
+                    @foreach (BestiaryEntryDisplay entry in Vm.BestiaryPageEntries)
+                    {
+                        <div class="bestiary-row">
+                            <div class="skill-row">
+                                <span class="skill-name">@entry.Name</span>
+                                <GameBadge Kind="@(entry.IsBoss ? "warn" : "ok")" Text="@entry.Category" />
+                                <GameBadge Kind="info" Text="@entry.Location" />
+                                <span class="skill-caption">@Vm.Text("Bestiary_Stats", entry.Hp, entry.Attack, entry.Xp)</span>
+                            </div>
+                            <span class="skill-hint">@Vm.Text("Bestiary_Drops", entry.PrimaryDrop, entry.RareDrop)</span>
+                            <div class="skill-row">
+                                <span class="skill-meter">
+                                    <GameProgress Percent="@PercentInt(entry.Fraction)" Text="@entry.Progress" Label="@entry.Name" Class="@(entry.TitleEarned ? "done" : null)" />
+                                </span>
+                            </div>
+                            <div class="skill-row">
+                                <span class="skill-name">@entry.TitleName</span>
+                                @if (entry.TitleEarned)
+                                {
+                                    <GameButton Variant="secondary" Active="entry.TitleEquipped" Text="@Vm.Text(entry.TitleEquipped ? "Bestiary_Title_Unequip" : "Bestiary_Title_Equip")" OnClick="@(() => Vm.ToggleTitle(entry))" />
+                                }
+                                else
+                                {
+                                    <span class="skill-hint">@Vm.Text("Bestiary_Title_Locked", ProgressViewModel.TitleGoal)</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </GameStack>
+            </GameSection>
+            @if (Vm.BestiaryPageCount > 1)
+            {
+                <Pager Page="Vm.BestiaryPage" PageCount="Vm.BestiaryPageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
+                       PositionText="@Vm.Text("Pager_Position", Vm.BestiaryPage + 1, Vm.BestiaryPageCount)" OnPage="@(p => Vm.GoToBestiaryPage(p))" />
+            }
+        }
     </GameStack>
 </MenuPage>
 
 @code {
+    private bool _bestiary;
+
+    private IReadOnlyList<(int Id, string Label)> TabList() => [(0, Vm.Text("Skills_Heading")), (1, Vm.Text("Bestiary_Heading"))];
+
     protected override void OnInitialized() => Vm.LoadBestiary();
 
     private static int PercentInt(double fraction) => (int)Math.Round(Math.Clamp(fraction, 0, 1) * 100);

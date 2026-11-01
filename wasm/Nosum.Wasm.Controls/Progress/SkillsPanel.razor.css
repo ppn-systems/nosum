@@ -15,6 +15,17 @@
     min-width: calc(var(--u) * 48);
 }
 
+/* The level is a word, not a badge: the badge's frame made every row 63 px tall at 1920×1080, the bar's height is the row's. */
+.skill-level {
+    min-width: calc(var(--u) * 24);
+    color: var(--nosum-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.skill-level.done {
+    color: var(--nosum-ok);
+}
+
 .skill-caption {
     min-width: calc(var(--u) * 24);
     font-variant-numeric: tabular-nums;

@@ -11,9 +11,11 @@ public sealed class EmoteAndPetTextTests
     private static readonly string[] s_keys =
     [
         "Toolbar_Pet", "Emote_Open", "Emote_Wheel", "Emote_0", "Emote_11", "Emote_Cooldown", "Emote_NotOnMap", "Emote_Invalid",
-        "Pet_Cat", "Pet_Dog", "Pet_AdoptTitle", "Pet_AdoptHint", "Pet_NameLabel", "Pet_Adopt", "Pet_Mood", "Pet_Pet", "Pet_AlreadyPetted",
-        "Pet_OnlyAtHome", "Pet_Status_Ok", "Pet_Status_NoPet", "Pet_Status_AlreadyHasPet", "Pet_Status_InvalidKind", "Pet_Status_InvalidName",
-        "Pet_Status_AlreadyPetted", "Pet_Status_Unavailable",
+        "Pet_Cat", "Pet_Dog", "Pet_NoPetTitle", "Pet_BuyHint", "Pet_NameLabel", "Pet_Mood", "Pet_Pet", "Pet_AlreadyPetted", "Pet_Rehome",
+        "Pet_RehomeTitle", "Pet_RehomeMessage", "Pet_RehomeConfirm", "Pet_RehomeCancel", "Pet_Status_Ok", "Pet_Status_NoPet",
+        "Pet_Status_AlreadyHasPet", "Pet_Status_InvalidKind", "Pet_Status_InvalidName", "Pet_Status_AlreadyPetted", "Pet_Status_Unavailable",
+        "Pet_Status_NotAtShop", "Pet_Status_NotEnoughCoins", "Carpenter_Pets", "Carpenter_PetHint", "Carpenter_PetPrice", "Carpenter_BuyPet",
+        "Carpenter_PetHave",
     ];
 
     [Fact]

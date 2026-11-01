@@ -5,7 +5,7 @@ This is the measured state of the server on `claude/perf-server`, before and aft
 [ADR-022](../adr/ADR-022-chunked-interest-management.md). No ADR was needed: nothing here changes an architecture or the wire format.
 
 **Headline:** the 50- and 200-client runs pass the M5 tick budget (p99 under 20 ms). **The 500-client run still misses it** (p99 bucket 30 ms before, 50 ms after,
-on a 4-core machine shared with the bots). The one database change lowers one hot action's reads (`Disconnect` 1 to 0) and tightens 15 budget limits to what the
+on a 4-core machine shared with the bots). The one database change lowers one hot action's reads (`Disconnect` 1 to 0) and tightens 14 budget limits to what the
 code measures. The load-test numbers do not improve, because this branch does not change the snapshot or send path; the run-to-run spread is about as large as
 any difference in the table.
 
@@ -85,7 +85,7 @@ Measured with the DbBudget suite (same host, same PostgreSQL, same scenarios):
 | `Disconnect` / joined player, socket closed | 1 / 1 / 0 / 1 | **0** / 1 / 0 / 1 | 1 / 1 / 0 / 1 | 0 / 1 / 0 / 1 |
 | `BuyListing` / buy one listing | 6 / 2 / 1 / 2 | 6 / 2 / 1 / 2 | 7 / 2 / 1 / 2 | 6 / 2 / 1 / 2 |
 
-The other 14 limits lowered in this branch were already at their measured values on master, so the code did not change them. The full list is in
+The other 13 limits lowered in this branch were already at their measured values on master, so the code did not change them. The full list is in
 [db-round-trips.md](db-round-trips.md#phase-3-coin-only-parties-and-tighter-limits-claudeperf-server).
 
 What changed in the code: `TransferService` no longer puts a party with coins and no item operation into the inventory batch, so its inventory is not read.

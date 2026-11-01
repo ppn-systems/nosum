@@ -4,7 +4,7 @@
     justify-content: flex-start;
     align-items: center;
     gap: calc(var(--u) * 3);
-    padding: 0 calc(var(--u) * 1) calc(var(--u) * 2);
+    padding: 0 calc(var(--u) * 1);
 }
 
 .inv-lock {
@@ -25,14 +25,24 @@
     display: flex;
     flex-direction: column;
     gap: var(--nosum-gap-group);
-    width: calc(var(--u) * 60);
+    width: calc(var(--u) * 40);
     min-width: 0;
 }
 
-/* The item in hand: a full-width strip along the bottom, its picture, then the name and stats on one line and the description under them. */
+/* The bag's slots are 16 u, not 18 u: nine of them, the paperdoll column and the frame fit the L panel (220 u). */
+.inv-grids {
+    --item-grid-slot: calc(var(--u) * 16);
+}
+
+.inv-grids ::deep .slot {
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 16);
+}
+
+/* The item in hand: a full-width strip along the bottom, its picture, then the name and stats on one line and the description under them.
+   The page's own group gap separates it from the bag (no extra margin: that scrolled the page by 2 u at every size). */
 .inv-hand-strip {
     min-width: 0;
-    margin-top: var(--nosum-gap-group);
 }
 
 .inv-hand {
@@ -76,12 +86,31 @@
     flex-direction: column;
     gap: calc(var(--u) * 4);
     min-width: 0;
-    /* The count badges of the slots hang under them; the room keeps them inside the page instead of a needless scroll. */
-    padding-bottom: calc(var(--u) * 2);
 }
 
-/* A phone: the side column takes a row above the grids; the slots keep their size (they are the touch targets). */
+/* The held item's selection frame stands 5 u outside its slot; in the strip it stands 3 u, which is the room the strip leaves below the slot, so the
+   frame does not scroll the page (its outer edge is 2 u smaller). */
+.inv-hand ::deep .slot.selected::after {
+    inset: calc(var(--u) * -3);
+}
+
+/* The paperdoll sets the height of the body: its 1 u top and bottom padding is the 2 u that made every size scroll; the slots keep the side column's
+   own gap, so the page fits the window at 1280×720 and up. */
+.inv-side ::deep .equip {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* A phone: the header stacks (sort, then the hotbar lock) one above the other with the gap inside a group; the side column takes a row above
+   the grids; the slots keep their size (they are the touch targets). The worn-item column is taller than the paperdoll, so it starts at the top
+   of its row: centred, it spilled up over the header. */
 @media (max-width: 640px) {
+    .inv-tools {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--nosum-gap);
+    }
+
     .inv-body {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -90,5 +119,9 @@
         flex-direction: row;
         flex-wrap: wrap;
         width: auto;
+    }
+
+    .inv-side ::deep .equip {
+        align-items: flex-start;
     }
 }

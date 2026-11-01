@@ -90,29 +90,33 @@ public sealed partial class ThemeSpritesTests
     }
 
     [Fact]
-    public void KeyStrips_UseGameButtonChipVariant_AndHotbarSkillsAreCompactKeyCapsWithoutTextClutter()
+    public void KeyStrips_UseSecondaryButtons_AndHotbarSkillsAreCompactKeyCapsWithoutTextClutter()
     {
         string root = RepositoryRoot();
         string hotbar = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor"));
         string hotbarCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Inventory", "Hotbar.razor.css"));
         string placement = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Placement", "PlacementPanel.razor"));
 
-        hotbar.Should().Contain("Variant=\"chip\"");
+        hotbar.Should().Contain("Variant=\"secondary\"");
+        hotbar.Should().NotContain("Variant=\"chip\"");
         hotbar.Should().NotContain("Variant=\"plain\"");
         hotbar.Should().Contain("class=\"hotbar-skills\"");
         hotbar.Should().NotContain("<span>@Progress.WhirlwindLabel</span>");
         hotbarCss.Should().Contain(".hotbar-skills");
-        placement.Should().Contain("Variant=\"chip\"");
+        placement.Should().Contain("<span class=\"chip\">");
         placement.Should().NotContain("<button");
     }
 
     [Fact]
-    public void GameHud_PlayerBar_IsStackedVerticallyOnRightEdge_ToSaveScreenSpace()
+    public void GameHud_MenuColumn_IsOneColumnUnderTheMinimap_WithTheEmoteInTheBottomRight()
     {
-        string hudCss = File.ReadAllText(Path.Combine(RepositoryRoot(), "wasm", "Nosum.Wasm.Controls", "Layout", "GameHud.razor.css"));
+        string root = RepositoryRoot();
+        string hudCss = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm.Controls", "Layout", "GameHud.razor.css"));
+        string topRight = File.ReadAllText(Path.Combine(root, "wasm", "Nosum.Wasm", "Components", "HudTopRightBar.razor"));
 
-        hudCss.Should().NotContain("grid-template-columns: repeat(3, max-content)");
-        hudCss.Should().Contain(".hud-top-right ::deep .hud-player-bar");
+        hudCss.Should().NotContain("repeat(2, calc");
+        hudCss.Should().Contain(".hud-top-right ::deep .hud-menu-column");
+        topRight.Should().NotContain("emote-0", "the emote button sits in the bottom-right region (docs/design/ui-standard.md section 2)");
     }
 
     [Fact]

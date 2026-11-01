@@ -50,12 +50,41 @@ public sealed class TransferService : ITransferService
 
     /// <inheritdoc/>
     public Task<TransferStatus> ExecuteAsync(IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
-        => this.ExecuteFromSlotAsync(-1, legs, reason, enlist, cancellationToken);
+        => this.ExecuteCoreAsync(-1, legs, Guid.Empty, [], reason, enlist, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<TransferStatus> ExecuteWithOperationsAsync(
+        Guid playerId,
+        IReadOnlyList<InventoryOperation> operations,
+        IReadOnlyList<TransferLeg> legs,
+        string reason,
+        TransferEnlistment? enlist = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(operations);
+        if (playerId == Guid.Empty)
+        {
+            return Task.FromResult(TransferStatus.Invalid);
+        }
+
+        return this.ExecuteCoreAsync(-1, legs, playerId, operations, reason, enlist, cancellationToken);
+    }
 
     /// <summary>
     /// Runs a transfer whose negative player item leg is taken from a specific inventory slot when <paramref name="sourceSlot"/> is non-negative.
     /// </summary>
-    internal async Task<TransferStatus> ExecuteFromSlotAsync(int sourceSlot, IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
+    internal Task<TransferStatus> ExecuteFromSlotAsync(int sourceSlot, IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
+        => this.ExecuteCoreAsync(sourceSlot, legs, Guid.Empty, [], reason, enlist, cancellationToken);
+
+    // extraPlayer (Guid.Empty for none) joins the transfer even without a leg, and extraOperations run after his removes and adds.
+    private async Task<TransferStatus> ExecuteCoreAsync(
+        int sourceSlot,
+        IReadOnlyList<TransferLeg> legs,
+        Guid extraPlayer,
+        IReadOnlyList<InventoryOperation> extraOperations,
+        string reason,
+        TransferEnlistment? enlist,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(legs);
         ArgumentException.ThrowIfNullOrEmpty(reason);
@@ -103,23 +132,36 @@ public sealed class TransferService : ITransferService
             }
         }
 
+        if (extraPlayer != Guid.Empty && !players.Contains(extraPlayer))
+        {
+            players.Add(extraPlayer);
+            adds[extraPlayer] = [];
+            removes[extraPlayer] = [];
+        }
+
         if (players.Count == 0)
         {
             return TransferStatus.Invalid;
         }
 
-        // Removes first, so room freed by giving counts for receiving. A party whose legs are coins only has no item operation, so its inventory
-        // is not loaded at all (a seller of a listing: docs/adr/ADR-035 D1). If every party is coins only, one empty change is kept: the unit of
-        // work that carries the coin legs runs only when there is a change to apply.
+        // Removes first, so room freed by giving counts for receiving; the extra operations (a backpack growth) come last. A party whose legs are
+        // coins only has no item operation and no extra operation, so its inventory is not loaded at all (a seller of a listing: docs/adr/ADR-035 D1).
+        // If every party is coins only, one empty change is kept: the unit of work that carries the coin legs runs only when there is a change to apply.
         List<PlayerInventoryChange> changes = [];
         foreach (Guid player in players)
         {
-            if (removes[player].Count == 0 && adds[player].Count == 0)
+            bool hasExtra = player == extraPlayer && extraOperations.Count > 0;
+            if (removes[player].Count == 0 && adds[player].Count == 0 && !hasExtra)
             {
                 continue;
             }
 
             List<InventoryOperation> operations = [.. removes[player], .. adds[player]];
+            if (player == extraPlayer)
+            {
+                operations.AddRange(extraOperations);
+            }
+
             changes.Add(new PlayerInventoryChange(player, operations));
         }
 

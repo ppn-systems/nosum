@@ -3,6 +3,7 @@
     align-items: center;
     gap: calc(var(--u) * 2);
     white-space: nowrap;
+    cursor: pointer;
 }
 
 .calendar-season {

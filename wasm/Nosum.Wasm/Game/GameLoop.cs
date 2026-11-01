@@ -26,6 +26,7 @@ using Nosum.Wasm.Socket.GroundItem;
 using Nosum.Wasm.Socket.Pet;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
+using Nosum.Wasm.ViewModels.Progress;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
@@ -55,6 +56,7 @@ internal static partial class GameLoop
 
     private static readonly WebRenderBackend s_backend = new();
     private static MapScene? s_scene;
+    private static Action<RunState>? s_runState;
     private static PlayerChannel? s_network;
     private static CalendarChannel? s_calendar;
     private static MinimapViewModel? s_minimap;
@@ -126,6 +128,10 @@ internal static partial class GameLoop
     /// <summary>Connects energy and skills to the game: with it the action key eats the food in hand while the player is not full of energy (docs/adr/ADR-023). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="progress">The energy mirror and eat sender.</param>
     public static void UseProgress(ProgressChannel progress) => s_progress = progress;
+
+    /// <summary>Receives the running state of the map scene, to drain the energy bar and say why a run stopped (docs/adr/ADR-085 D3).</summary>
+    /// <param name="onChanged">Called on each transition, on the frame loop's thread.</param>
+    public static void UseRunState(Action<RunState> onChanged) => s_runState = onChanged;
 
     /// <summary>Connects MMORPG combat and monsters to the game (docs/adr/ADR-045). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="combat">The combat channel.</param>
@@ -357,7 +363,8 @@ internal static partial class GameLoop
             textures.LoadAsync(FarmerUrl + "hats.png"),
             textures.LoadAsync(ItemIcons.ToolsSheet),
             textures.LoadAsync(ItemIcons.WeaponsSheet),
-            textures.LoadAsync(ItemIcons.ObjectsSheet));
+            textures.LoadAsync(ItemIcons.ObjectsSheet),
+            textures.LoadAsync(FarmerUrl + "boots.png"));
 
         progress?.Invoke(GameStartStep.Connect);
         MapEntry? entry = await WaitForEntryAsync(cancellationToken).ConfigureAwait(false);
@@ -370,14 +377,16 @@ internal static partial class GameLoop
         MapContent content = await loader.LoadAsync(spec.Id, cancellationToken).ConfigureAwait(false);
         progress?.Invoke(GameStartStep.Sprites);
         int[] sheets = await farmerSheets.ConfigureAwait(false);
-        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7]);
+        FarmerTextures farmer = new(sheets[0], sheets[1], sheets[2], sheets[3], sheets[4], sheets[5], sheets[6], sheets[7], sheets[8]);
 
         // Until the server's look arrives (and without a server) the default look is drawn, never one made up from an id.
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(labelRegistry, s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed);
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed, s_progress);
         s_scene.WaitingChanged += mapId => OnMapWaitChanged(mapId, loader);
+        s_scene.RunStateChanged += state => s_runState?.Invoke(state);
+        s_runState?.Invoke(RunState.Stopped);
         loader.Progressed += mapId => OnMapProgressed(mapId, loader);
         if (s_audio is not null)
         {
@@ -468,7 +477,8 @@ internal static partial class GameLoop
             edges &= PanelKeysMask;
         }
 
-        if (!s_moved && held != InputState.None)
+        // Run alone is not a step: the first-move hint waits for a direction (docs/adr/ADR-085 D3).
+        if (!s_moved && (held & (InputState.Up | InputState.Down | InputState.Left | InputState.Right)) != 0)
         {
             s_moved = true;
             FirstMoved?.Invoke();

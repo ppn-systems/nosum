@@ -93,12 +93,12 @@ public static class NpcCatalog
         // Each merchant stands on the doormat row, beside the counter's tile, on a tile that is walkable ground with no awning over it: the door tile behind the counter has
         // the shop's awning on a front layer, which would draw over the merchant's chest. The farmer stands on the counter tile, so the two never overlap.
         Place("seed_keeper", ShopCatalog.SeedShop, 2, "seed_keeper", NpcActions.Buy | NpcActions.Talk),
-        Place("tailor", ShopCatalog.ClothingShop, 1, "tailor", NpcActions.Buy | NpcActions.Talk),
+        Place("tailor", ShopCatalog.ClothingShop, 1, "tailor", NpcActions.Buy | NpcActions.Wardrobe | NpcActions.Backpack | NpcActions.Talk),
         Place("furnisher", ShopCatalog.FurnitureShop, -1, "furnisher", NpcActions.Buy | NpcActions.Talk),
         Place("blacksmith", ShopCatalog.Blacksmith, 1, "blacksmith", NpcActions.Buy | NpcActions.Upgrade | NpcActions.Talk),
         Place("carpenter", ShopCatalog.CarpenterShop, -1, "carpenter", NpcActions.Buy | NpcActions.Build | NpcActions.Talk),
         Place("trader", MarketRules.MarketCounterId, 1, "trader", NpcActions.Buy | NpcActions.Sell | NpcActions.Talk),
-        Place("board_keeper", CommunityGoalCatalog.BoardCounterId, -1, "board_keeper", NpcActions.Goals | NpcActions.Talk),
+        Place("board_keeper", CommunityGoalCatalog.BoardCounterId, -1, "board_keeper", NpcActions.Goals | NpcActions.Coop | NpcActions.Talk),
     ];
 
     private static NpcDefinition Place(string id, int counterId, int dx, string art, NpcActions actions)

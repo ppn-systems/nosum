@@ -35,6 +35,7 @@ internal static class LookSprites
             SkinTint: LookPalette.SkinTint(look.SkinId),
             Hat: hat,
             HatTint: hatTint,
-            ShirtTint: shirt.Tint);
+            ShirtTint: shirt.Tint,
+            Boots: LookPalette.BootsTier(look.FeetItemId));
     }
 }

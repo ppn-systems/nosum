@@ -21,6 +21,7 @@ public sealed class SettingsViewModel : PanelViewModel, IDisposable
     private ClientSettings _current;
     private GameAction? _listening;
     private bool _systemReducesMotion;
+    private bool _narrowScreen;
 
     /// <summary>Initializes the view model and reads the stored settings.</summary>
     /// <param name="text">UI text.</param>
@@ -42,6 +43,9 @@ public sealed class SettingsViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets whether motion is reduced now: the player's choice, or the system's preference while the player has not chosen.</summary>
     public bool ReducesMotion => _current.ReducesMotion(_systemReducesMotion);
+
+    /// <summary>Gets whether the minimap is hidden now: the player's choice, or on a narrow screen while the player has not chosen.</summary>
+    public bool MinimapHiddenNow => _current.MinimapHiddenNow(_narrowScreen);
 
     /// <summary>Gets the action whose key is being chosen (the next key pressed is bound to it), or <see langword="null"/>.</summary>
     public GameAction? Listening => _listening;
@@ -65,6 +69,24 @@ public sealed class SettingsViewModel : PanelViewModel, IDisposable
         this.Applied?.Invoke(_current);
         this.Raise();
     }
+
+    /// <summary>Tells the view model whether the screen is narrow (a phone); the minimap is hidden there until the player chooses.</summary>
+    /// <param name="narrow">Whether the screen is narrow.</param>
+    public void SetNarrowScreen(bool narrow)
+    {
+        if (_narrowScreen == narrow)
+        {
+            return;
+        }
+
+        _narrowScreen = narrow;
+        this.Applied?.Invoke(_current);
+        this.Raise();
+    }
+
+    /// <summary>Shows or hides the minimap card (Settings &gt; Display); the player's choice is kept per browser.</summary>
+    /// <param name="hidden">Whether the minimap is hidden.</param>
+    public void SetMinimapHidden(bool hidden) => this.Update(c => c with { MinimapHidden = hidden });
 
     /// <summary>Sets the music volume.</summary>
     /// <param name="percent">0 to 100.</param>

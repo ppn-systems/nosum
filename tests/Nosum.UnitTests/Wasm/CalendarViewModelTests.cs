@@ -96,6 +96,33 @@ public sealed class CalendarViewModelTests
         }
     }
 
+    // Regression (clock looked frozen): the time moved in ten-minute steps, five real minutes apart. It now shows the game minute.
+    [Fact]
+    public void Widget_TimeShowsTheGameMinute_NotATenMinuteStep()
+    {
+        CultureInfo previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = new CultureInfo("en");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        try
+        {
+            GameCalendar calendar = GameCalendar.Default;
+            // Game minute 13 is 390 real seconds after the epoch (one game minute is 30 real seconds); 400 s is 10 s into it.
+            long serverNow = calendar.EpochMs + 400_000;
+            FakeGameSocket socket = new();
+            socket.ReplyWith(_ => new CalendarInfo { EpochMs = calendar.EpochMs, DayLengthMs = calendar.DayLengthMs, ServerNowMs = serverNow });
+            CalendarChannel channel = new(socket);
+            using CalendarViewModel vm = new(channel, Localizer<Language>());
+
+            channel.Load();
+
+            vm.TimeText.Should().Be(new DateTime(2000, 1, 1, 0, 13, 0).ToString("t", CultureInfo.CurrentCulture));
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
     [Fact]
     public void Forecast_ShowsTodayAndTomorrowFromTheSharedWeatherFunction()
     {

@@ -12,6 +12,16 @@ export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 const textures = [];          // texture id -> ImageBitmap
 const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
 let placedCount = 0;
+// A world label stays on screen and off the HUD (docs/design/ui-standard.md sections 2 and 4). The HUD rectangles (x, y, right, bottom, canvas
+// pixels) are read from the DOM at most every 250 ms, never per label; fitLabel() leaves the result in labelX and labelY (no allocation).
+const hudRects = new Int32Array(4 * 16);
+let hudCount = 0;
+let hudStamp = -Infinity;
+let labelX = 0;
+let labelY = 0;
+const LABEL_EDGE = 4; // the smallest margin between a label and the canvas edge
+const LABEL_GAP = 2;  // the space kept between a label and a HUD rectangle
+const HUD_SELECTOR = ".game-hud .hud-top-left, .game-hud .hud-top-center, .game-hud .hud-top-right, .game-hud .hud-bottom-left, .game-hud .hud-bottom-center, .game-hud .hud-bottom-right";
 const labels = [];            // label id -> OffscreenCanvas with the pre-rendered text (glyph cache)
 const tinted = new Map();     // "id:rgba" -> canvas with the tint applied
 let canvas = null;
@@ -24,9 +34,9 @@ let lightSprite = null;       // white-to-transparent radial gradient, scaled pe
 let edges = 0;  // one-shot keys pressed since the last frame, packed above the held bits (Nosum.Core.InputEdges)
 let mouseX = 0, mouseY = 0, mouseHeld = 0;  // the mouse over the canvas, CSS pixels, and 1 while its button is down (drag-to-sow)
 
-// Keys that never change: the arrows, Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
+// Keys that never change: the arrows, Shift (run, docs/adr/ADR-085), Space and the number keys (the hotbar), Escape. The other keys are the player's bindings (setKeyBindings),
 // so the maps below are built from both. Bit values match Nosum.Core.InputState (held) and Nosum.Core.InputEdges (pressed once).
-const FIXED_HELD = { ArrowUp: 1, ArrowDown: 2, ArrowLeft: 4, ArrowRight: 8 };
+const FIXED_HELD = { ArrowUp: 1, ArrowDown: 2, ArrowLeft: 4, ArrowRight: 8, ShiftLeft: 16, ShiftRight: 16 };
 const FIXED_EDGES = {
     Space: 1,
     Digit1: 2, Digit2: 4, Digit3: 8, Digit4: 16, Digit5: 32, Digit6: 64, Digit7: 128, Digit8: 256, Digit9: 512,
@@ -91,10 +101,12 @@ function isActivating(e) {
 }
 
 // --- touch (docs/adr/ADR-033 D2) ---
+// The run toggle (docs/adr/ADR-085 D3) is a latched button: its state lives in touchRun, read with the held keys on the next frame.
 // The controls are plain elements drawn by the Razor TouchControls component: a stick ([data-touch=stick] with a [data-touch=knob] inside) and buttons
 // ([data-touch-edge=<InputEdges bit>]). The pointer events are handled here and only change `touchHeld` / `edges`, which join the input of the next
 // frame: there is no call into .NET per touch event.
 let touchHeld = 0;
+let touchRun = false;   // the touch run toggle (data-touch-run): latched on until tapped again, like a run key
 let stickPointer = -1;
 const STICK_DEAD = 0.3;
 const LONG_PRESS_MS = 500;
@@ -132,6 +144,14 @@ function installTouch() {
             stickPointer = e.pointerId;
             try { stick.setPointerCapture(e.pointerId); } catch { /* the pointer ended already */ }
             moveStick(stick, e);
+            return;
+        }
+        const run = t.closest("[data-touch-run]");
+        if (run) {
+            e.preventDefault();
+            touchRun = !touchRun;
+            run.classList.toggle("on", touchRun);
+            run.setAttribute("aria-pressed", String(touchRun));
             return;
         }
         const button = t.closest("[data-touch-edge]");
@@ -252,7 +272,7 @@ export async function start(canvasId, assemblyName, exportPath) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
         const pressed = edges;
         edges = 0;
-        frame(time, (keys | touchHeld) | (pressed << 4), w, h, mouseX, mouseY, mouseHeld);
+        frame(time, (keys | touchHeld | (touchRun ? 16 : 0)) | (pressed << 5), w, h, mouseX, mouseY, mouseHeld);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -263,7 +283,87 @@ export async function start(canvasId, assemblyName, exportPath) {
 let frameBytes = new Uint8Array(65536);
 let frameWords = new Int32Array(frameBytes.buffer);
 
+// Reads the HUD rectangles that world labels avoid. A region with no size (an empty one) or one that covers the whole canvas is left out.
+function refreshHud(now) {
+    if (now - hudStamp < 250 || !canvas) {
+        return;
+    }
+
+    hudStamp = now;
+    hudCount = 0;
+    const base = canvas.getBoundingClientRect();
+    for (const el of document.querySelectorAll(HUD_SELECTOR)) {
+        const r = el.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0 || r.height >= base.height * 0.9 || hudCount >= 16) {
+            continue;
+        }
+
+        const o = hudCount * 4;
+        hudRects[o] = Math.round(r.left - base.left);
+        hudRects[o + 1] = Math.round(r.top - base.top);
+        hudRects[o + 2] = Math.round(r.right - base.left);
+        hudRects[o + 3] = Math.round(r.bottom - base.top);
+        hudCount++;
+    }
+}
+
+function clampTo(v, lo, hi) {
+    return v < lo ? lo : v > hi ? hi : v;
+}
+
+// The index of the first HUD rectangle that the box (x, y, w, h) overlaps, or -1.
+function hudHit(x, y, w, h) {
+    for (let k = 0; k < hudCount; k++) {
+        const o = k * 4;
+        if (x < hudRects[o + 2] && x + w > hudRects[o] && y < hudRects[o + 3] && y + h > hudRects[o + 1]) {
+            return k;
+        }
+    }
+    return -1;
+}
+
+// Moves a label box inside the canvas and off the HUD: beside the HUD rectangle it hit, then below it, then above it. Leaves the result in labelX/labelY.
+function fitLabel(x, y, w, h) {
+    const maxX = canvas.width - w - LABEL_EDGE;
+    const maxY = canvas.height - h - LABEL_EDGE;
+    x = clampTo(x, LABEL_EDGE, maxX);
+    y = clampTo(y, LABEL_EDGE, maxY);
+    const k = hudHit(x, y, w, h);
+    if (k < 0) {
+        labelX = x;
+        labelY = y;
+        return;
+    }
+
+    const o = k * 4;
+    const left = clampTo(hudRects[o] - w - LABEL_GAP, LABEL_EDGE, maxX);
+    if (hudHit(left, y, w, h) < 0) {
+        labelX = left;
+        labelY = y;
+        return;
+    }
+
+    const below = clampTo(hudRects[o + 3] + LABEL_GAP, LABEL_EDGE, maxY);
+    if (hudHit(x, below, w, h) < 0) {
+        labelX = x;
+        labelY = below;
+        return;
+    }
+
+    const above = clampTo(hudRects[o + 1] - h - LABEL_GAP, LABEL_EDGE, maxY);
+    if (hudHit(x, above, w, h) < 0) {
+        labelX = x;
+        labelY = above;
+        return;
+    }
+
+    // No free spot next to the HUD (a crowded corner): keep it at the left of the rectangle, which is still on screen.
+    labelX = left;
+    labelY = y;
+}
+
 export function submitFrame(view) {
+    refreshHud(performance.now());
     const size = view.byteLength;
     if (frameBytes.length < size) {
         frameBytes = new Uint8Array(Math.max(size, frameBytes.length * 2));
@@ -325,7 +425,7 @@ export function submitFrame(view) {
             const label = labels[sx];
             if (label) {
                 const lw = label.width, lh = label.height;
-                const x = Math.round(dx * scale - lw / 2);
+                let x = Math.round(dx * scale - lw / 2);
                 let y = Math.round(dy * scale - lh);
                 for (let k = 0; k < placedCount; k += 4) {
                     if (x < placed[k] + placed[k + 2] && x + lw > placed[k] && y < placed[k + 1] + placed[k + 3] && y + lh > placed[k + 1]) {
@@ -333,6 +433,9 @@ export function submitFrame(view) {
                         k = -4;
                     }
                 }
+                fitLabel(x, y, lw, lh);
+                x = labelX;
+                y = labelY;
                 if (placedCount + 4 <= placed.length) {
                     placed[placedCount] = x; placed[placedCount + 1] = y; placed[placedCount + 2] = lw; placed[placedCount + 3] = lh;
                     placedCount += 4;

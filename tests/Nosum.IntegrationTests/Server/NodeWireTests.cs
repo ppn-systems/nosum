@@ -61,7 +61,7 @@ namespace Nosum.IntegrationTests.Server;
 public sealed partial class NodeWireTests : IClassFixture<PostgresFixture>
 {
     internal static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(60);
-    internal static readonly DateTimeOffset s_start = new(2026, 11, 2, 3, 0, 0, TimeSpan.Zero); // after the calendar epoch, so game days pass
+    internal static readonly DateTimeOffset s_start = new(2026, 10, 26, 3, 0, 0, TimeSpan.Zero); // day 1 at 03:00 of the default calendar (epoch 2026-10-26, ADR-018 amendment)
     internal static readonly int s_axe = SlotOf(ItemCatalog.Axe);
     internal static readonly int s_pickaxe = SlotOf(ItemCatalog.Pickaxe);
     internal static readonly int s_scythe = SlotOf(ItemCatalog.Scythe);

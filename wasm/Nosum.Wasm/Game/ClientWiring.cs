@@ -46,7 +46,9 @@ using Nosum.Wasm.Socket.Shop;
 using Nosum.Wasm.Socket.Trade;
 using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.ViewModels;
+using Nosum.Wasm.Account;
 using Nosum.Wasm.ViewModels.Account;
+using Nosum.Wasm.ViewModels.Backpack;
 using Nosum.Wasm.ViewModels.Blacksmith;
 using Nosum.Wasm.ViewModels.Building;
 using Nosum.Wasm.ViewModels.Calendar;
@@ -132,6 +134,7 @@ internal static class ClientWiring
         services.AddSingleton<ShopChannel>();
         services.AddSingleton<FishingChannel>();
         services.AddSingleton<BlacksmithChannel>();
+        services.AddSingleton<BackpackChannel>();
         services.AddSingleton<MineChannel>();
         services.AddSingleton<GoalChannel>();
         services.AddSingleton<RequestChannel>();
@@ -154,6 +157,7 @@ internal static class ClientWiring
             sp.GetRequiredService<IStringLocalizer<Catalogue>>(),
             sp.GetRequiredService<IStringLocalizer<Language>>()));
         services.AddSingleton<GameMessagesViewModel>();
+        services.AddSingleton<ThirstWarning>();
         services.AddSingleton<LevelUpBannerViewModel>();
         services.AddSingleton<SeasonBannerViewModel>();
         services.AddSingleton<ItemDescriber>();
@@ -168,6 +172,7 @@ internal static class ClientWiring
         services.AddSingleton<ShopViewModel>();
         services.AddSingleton<NpcDialogViewModel>();
         services.AddSingleton<BlacksmithViewModel>();
+        services.AddSingleton<BackpackViewModel>();
         services.AddSingleton<ElevatorViewModel>();
         services.AddSingleton(sp => new FishingViewModel(
             sp.GetRequiredService<FishingChannel>(),
@@ -216,6 +221,12 @@ internal static class ClientWiring
             sp.GetRequiredService<CalendarChannel>().ServerNowMs));
         services.AddSingleton<IAccountClient, GameSocketAccountClient>();
         services.AddSingleton<AccountSessionKeeper>();
+        services.AddSingleton<IRememberedSessionStore>(sp => new BrowserRememberedSessionStore(sp.GetRequiredService<IJSRuntime>()));
+        services.AddSingleton(sp => new RememberedSessionViewModel(
+            sp.GetRequiredService<IAccountClient>(),
+            sp.GetRequiredService<IRememberedSessionStore>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>(),
+            TimeProvider.System));
         services.AddTransient<AccountFormViewModel>();
         services.AddSingleton(sp =>
         {
@@ -238,6 +249,7 @@ internal static class ClientWiring
         GameLoop.UseNodes(nodes);
         GroundItemChannel groundItems = services.GetRequiredService<GroundItemChannel>();
         QuestChannel quests = services.GetRequiredService<QuestChannel>();
+        MineChannel mine = services.GetRequiredService<MineChannel>();
         GameLoop.UseNetwork(channel);
         GameLoop.UseGroundItems(groundItems);
         MarketChannel market = services.GetRequiredService<MarketChannel>();
@@ -256,7 +268,7 @@ internal static class ClientWiring
         GameLoop.UseFishing(services.GetRequiredService<FishingViewModel>(), services.GetRequiredService<SettingsViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
-        DevTools.Use(services.GetRequiredService<DevChannel>());
+        DevTools.Use(services.GetRequiredService<DevChannel>(), services.GetRequiredService<FishingViewModel>());
 #endif
         FurnaceChannel furnaces = services.GetRequiredService<FurnaceChannel>();
         GameLoop.UseContainers(services.GetRequiredService<ChestChannel>(), furnaces);
@@ -282,10 +294,6 @@ internal static class ClientWiring
         keeper.Authenticated += combat.LoadVitals;
         keeper.Authenticated += pets.Load;
 
-        // The adoption form is offered on the player's own farm only: a visit to another farm, or any other map, hides it.
-        PetViewModel petPanel = services.GetRequiredService<PetViewModel>();
-        channel.Joined += mapId => petPanel.SetOnOwnFarm(mapId == GameMaps.Farm);
-        services.GetRequiredService<VisitChannel>().Visiting += () => petPanel.SetOnOwnFarm(false);
         channel.Joined += _ =>
         {
             farm.Load();
@@ -295,6 +303,8 @@ internal static class ClientWiring
             groundItems.Load();
             combat.LoadVitals();
             combat.LoadMonsters();
+            // The merchants' lines follow the deepest floor (docs/adr/ADR-080 D2), so the mine's progress is read on join too.
+            mine.Load();
         };
         channel.Joined += _ => looks.Load();
         channel.Joined += mapId =>
@@ -323,6 +333,7 @@ internal static class ClientWiring
         _ = services.GetRequiredService<QuestTrackerViewModel>();
         _ = services.GetRequiredService<LevelUpBannerViewModel>();
         GameMessagesViewModel messages = services.GetRequiredService<GameMessagesViewModel>();
+        _ = services.GetRequiredService<ThirstWarning>();
         IStringLocalizer<Language> localizer = services.GetRequiredService<IStringLocalizer<Language>>();
         combat.KnockedOut += () => messages.Notify(localizer["Combat_KnockedOut"].Value);
         combat.AttackCompleted += attack =>
@@ -332,8 +343,25 @@ internal static class ClientWiring
                 messages.Notify(localizer["Combat_KnockedOut"].Value);
             }
         };
+        combat.SkillCompleted += skill =>
+        {
+            // A refused cast says why, so a press the server does not accept is never silent (docs/adr/ADR-056 D5).
+            string? refusal = SkillRefusalText.KeyFor(skill.Status);
+            if (refusal is not null)
+            {
+                messages.Notify(localizer[refusal].Value);
+            }
+        };
         _ = services.GetRequiredService<NearbyPlayers>();
-        _ = services.GetRequiredService<ProgressViewModel>();
+        ProgressViewModel progressVm = services.GetRequiredService<ProgressViewModel>();
+        GameLoop.UseRunState(state =>
+        {
+            progressVm.SetRun(state);
+            if (state == RunState.OutOfEnergy)
+            {
+                messages.Notify(localizer["Run_OutOfEnergy"].Value);
+            }
+        });
         _ = services.GetRequiredService<WalletViewModel>();
         _ = services.GetRequiredService<CalendarViewModel>();
         _ = services.GetRequiredService<SeasonBannerViewModel>();
@@ -355,6 +383,11 @@ internal static class ClientWiring
 
         DeviceGuardViewModel device = services.GetRequiredService<DeviceGuardViewModel>();
         BrowserDevice.WatchWidth(devicePolicy.MinimumWidth, _ => device.UpdateWidth(BrowserDevice.ViewportWidth()));
+
+        // A phone or touch screen collapses the HUD menu column; the game menu then lists the column panels as tiles (docs/design/ui-standard.md section 6).
+        ToolbarViewModel toolbar = services.GetRequiredService<ToolbarViewModel>();
+        toolbar.ColumnCollapsed = BrowserDevice.MenuColumnCollapsed();
+        BrowserDevice.WatchMenuColumn(collapsed => toolbar.ColumnCollapsed = collapsed);
 
         // Closing or reloading the tab asks first while the player is in the game (page-guard.js).
         keeper.Authenticated += () => BrowserDevice.SetUnloadGuard(true);

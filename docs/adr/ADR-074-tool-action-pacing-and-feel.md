@@ -64,3 +64,16 @@ The engine stays platform-free, the frame keeps one interop crossing (docs/adr/A
 - `ToolStateServiceTests` (unit): the existing cooldown tests use the same rule.
 - `FarmWireTests.Farming_UseSentSoonerThanTheInterval_IsRefusedWithCooldownAndChangesNothing` (integration): a use sent inside the interval is refused with
   `FarmStatus.Cooldown`, and the tile is untouched, which the next use after the interval proves.
+
+## Amendments
+
+### 2026-10-31 - the farmer turns to the tile it works before the swing (D7)
+
+- **D7 — Turn first.** A drag-to-sow use (`PlayerActions.DragSow`, the mouse path) turns the farmer to the side of the tile it works before the swing
+  shows: `Walker.TryFacingToward` picks the axis on which the target lies further from the farmer's own tile (horizontal on a tie), and a tile the farmer
+  stands on keeps the facing. The turn is applied in the same frame (`PlayerActions.TryTakeTurn`, `Walker.Face`), so the body faces the side the swing
+  reaches. The client turns instantly and the server records the facing in the next movement report (10 Hz). The action key already works the tile in front
+  and needs no turn; a wide use (`Rotate`) works the tile in front as before.
+- **D6, skills.** A refused combat skill starts no animation and its wind-up stops (docs/adr/ADR-056 D5, amended 2026-10-31).
+- **Tests.** `WalkerFacingTests` (unit) pins the side for every neighbour and the tie. Screenshots of the facing and of the skill cooldown overlay at
+  1280x720 are under `docs/qa/farm-feel-2/`.

@@ -62,3 +62,16 @@ same for every player, and there is no per-player clock. Crop growth is already 
 - The owner settles the day length, the epoch and the withering rule (open questions in `docs/design/pillars.md`).
 - Season goals, seasonal prices or events are designed.
 - A second server (shard) needs its own epoch.
+
+## Amendment (2026-10-31): the epoch and the clock's resolution
+
+**Status:** Accepted (coordinator, 2026-10-31, owner report: the HUD clock always read 00:00).
+
+- **Cause.** The default epoch was Monday 2026-11-02. D1 counts every instant before the epoch as the epoch, so until then the clock sat at 00:00
+  on spring day 1 and no game day passed. The clock also showed ten game-minute steps, so after the epoch it still looked frozen for five real minutes at a time.
+- **Epoch.** The default epoch is now Monday 2026-10-26 00:00 UTC (`GameCalendar.DefaultEpochMs`). The day length (12 real hours), the season
+  (28 days, 14 real days) and the `NOSUM_CALENDAR_EPOCH` override are unchanged. The owner's 2026-11-02 date moves two weeks earlier; no player data
+  exists yet at the old epoch, so nothing is migrated. Integration tests that start after 2026-11-02 remain after the epoch.
+- **Pace.** One game minute is 30 real seconds. That is slow enough to read and fast enough to see: the clock now shows every game minute, and
+  `CalendarViewModel` re-reads the clock once a second. The 12-hour day stays; a shorter day would have shortened seasons, which D2 fixes at two weeks.
+- The server still decides every outcome from the epoch and the day length (D1); the client's clock estimate is unchanged.

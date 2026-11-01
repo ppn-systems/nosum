@@ -41,4 +41,23 @@ public sealed class DevClockService : IDevClockService
         _dayClock.Reconcile();
         return _time.GetUtcNow().ToUnixTimeMilliseconds();
     }
+
+    /// <inheritdoc/>
+    public long? AdvanceSeasons(int seasons)
+    {
+        if (seasons < 1 || seasons > IDevClockService.MaxSeasons)
+        {
+            return null;
+        }
+
+        // Season starts fall on day boundaries (the epoch is one), so each jump is a whole number of game days.
+        for (int i = 0; i < seasons; i++)
+        {
+            long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+            _time.Advance(TimeSpan.FromMilliseconds(_calendar.NextSeasonStartMs(nowMs) - nowMs));
+            _dayClock.Reconcile();
+        }
+
+        return _time.GetUtcNow().ToUnixTimeMilliseconds();
+    }
 }

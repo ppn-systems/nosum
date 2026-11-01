@@ -14,8 +14,9 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Placeables;
 using Nosum.Abstractions.Presence;
-using Nosum.Contracts.Building;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Building.S2C;
+using Nosum.Contracts.Building;
 using Nosum.Contracts.Placeable;
 using Nosum.Domain.Buildings;
 using Nosum.Domain.Coops;
@@ -28,8 +29,10 @@ using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Players;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
 using Nosum.Infrastructure.Concurrency;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Buildings;
 
@@ -51,6 +54,7 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
     private readonly IMapCatalog _maps;
     private readonly IInventoryService _inventory;
     private readonly ITransferService _transfers;
+    private readonly IQuestService? _quests;
     private readonly IBuildingDirectory _buildings;
     private readonly IAnimalWander _wander;
     private readonly IUnitOfWorkFactory _unitOfWork;
@@ -71,6 +75,7 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
     /// <param name="coops">Co-op membership, asked for buildings on co-op land. <see langword="null"/> when there is no co-op land.</param>
     /// <param name="calendar">The server calendar: how long two game days are, and which day it is.</param>
     /// <param name="time">The server clock; tests pass a fake one.</param>
+    /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
     public BuildingService(
         IMapPresence presence,
         IChunkPublisher publisher,
@@ -82,8 +87,10 @@ public sealed partial class BuildingService : IBuildingService, IPlacedBehaviour
         IUnitOfWorkFactory unitOfWork,
         ICoopMembership? coops,
         GameCalendar calendar,
-        TimeProvider time)
+        TimeProvider time,
+        IQuestService? quests = null)
     {
+        _quests = quests;
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(maps);

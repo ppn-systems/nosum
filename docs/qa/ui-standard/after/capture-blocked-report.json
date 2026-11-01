@@ -1,0 +1,20 @@
+{
+  "captured": [
+    "hud-banner-level",
+    "shop",
+    "blacksmith",
+    "market",
+    "quests-board",
+    "animals",
+    "hud-banner-season",
+    "dialogue",
+    "skills",
+    "bestiary",
+    "chat"
+  ],
+  "failed": [],
+  "banner": {
+    "level": 1,
+    "season": 0
+  }
+}

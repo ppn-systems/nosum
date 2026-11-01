@@ -352,10 +352,7 @@ public sealed partial class CombatService
             return;
         }
 
-        lock (presence.Gate)
-        {
-            presence.MoveSpeedFactor = StatusEffectRules.MoveSpeedFactor(buff);
-        }
+        presence.SetSpeedBuff(buff);
     }
 
     /// <summary>Grants Brotherhood in Arms (docs/adr/ADR-052, issue #132) and tells the player at once; the buff is not persisted.</summary>

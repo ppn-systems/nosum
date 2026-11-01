@@ -50,6 +50,34 @@ public sealed class FishingViewModelTests
     }
 
     [Fact]
+    public void BiteNow_WhileALineWaits_OpensTheWindowAtOnce()
+    {
+        using CultureScope scope = new("en");
+        Rig rig = Create(CastOk(castId: 7));
+        rig.Vm.Cast(3, 4);
+        rig.Vm.OpenCastId.Should().Be(7u, "the cast the tester hook asks the server about");
+
+        rig.Vm.BiteNow();
+        rig.Time.Advance(TimeSpan.FromMilliseconds(1));
+
+        rig.Vm.Phase.Should().Be(FishingPhase.Biting, "the bite cue shows without waiting for the delay");
+        rig.Vm.OpenCastId.Should().Be(0u, "a line that bites is no longer waiting");
+    }
+
+    [Fact]
+    public void BiteNow_WithNoLineWaiting_DoesNothing()
+    {
+        using CultureScope scope = new("en");
+        Rig rig = Create(CastOk(castId: 7));
+
+        rig.Vm.OpenCastId.Should().Be(0u);
+        rig.Vm.BiteNow();
+        rig.Time.Advance(TimeSpan.FromMilliseconds(1));
+
+        rig.Vm.Phase.Should().Be(FishingPhase.Idle);
+    }
+
+    [Fact]
     public void Press_DuringTheBite_SendsReelInForTheCast()
     {
         using CultureScope scope = new("en");

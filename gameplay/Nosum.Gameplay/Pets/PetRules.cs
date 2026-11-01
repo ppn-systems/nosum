@@ -77,6 +77,28 @@ public static class PetRules
     /// <param name="mood">The mood before.</param>
     public static int Petted(int mood) => Math.Min(MaxMood, Math.Max(0, mood) + PettingMood);
 
+    /// <summary>What a cat costs at the carpenter's counter, in coins (docs/adr/ADR-075 amendment). Animals there cost 800 to 2,000.</summary>
+    public const long CatPrice = 600;
+
+    /// <summary>What a dog costs at the carpenter's counter, in coins.</summary>
+    public const long DogPrice = 900;
+
+    /// <summary>The share of the price the carpenter gives back when the farmer rehomes a pet: half, rounded down.</summary>
+    public const int RehomeRefundPercent = 50;
+
+    /// <summary>The price of a pet kind in coins; zero for no pet and any other code.</summary>
+    /// <param name="kind">The kind code.</param>
+    public static long PriceOf(byte kind) => kind switch
+    {
+        (byte)PetKind.Cat => CatPrice,
+        (byte)PetKind.Dog => DogPrice,
+        _ => 0,
+    };
+
+    /// <summary>The coins a farmer gets back for a pet of this kind when rehoming it.</summary>
+    /// <param name="kind">The kind code.</param>
+    public static long RehomeRefundOf(byte kind) => PriceOf(kind) * RehomeRefundPercent / 100;
+
     /// <summary>Whether the code names a pet the farmer can adopt.</summary>
     /// <param name="kind">The code the client sent.</param>
     public static bool IsAdoptable(byte kind) => kind is (byte)PetKind.Cat or (byte)PetKind.Dog;

@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Codec.DataFrames;
@@ -25,6 +26,7 @@ public readonly record struct MineInfo(MineStatus Status, int Floor, int Deepest
 public sealed class MineChannel
 {
     private readonly IGameSocket _socket;
+    private int _deepestFloor;
 
     /// <summary>Initializes the channel.</summary>
     /// <param name="socket">The game connection.</param>
@@ -36,6 +38,9 @@ public sealed class MineChannel
 
     /// <summary>Raised with the server's answer to a request and the state after it. May run on any thread.</summary>
     public event Action<MineInfo>? Updated;
+
+    /// <summary>Gets the deepest mine floor the player has reached, from the last answer; zero until the first answer.</summary>
+    public int DeepestFloor => Volatile.Read(ref _deepestFloor);
 
     /// <summary>Reads the player's mine progress.</summary>
     public void Load() => _ = this.SendAsync<GetMine>(static _ => { });
@@ -53,6 +58,7 @@ public sealed class MineChannel
             using PacketScope<TRequest> request = PacketFactory<TRequest>.Acquire();
             fill(request.Value);
             MineState reply = await _socket.RequestAsync<MineState>(request.Value).ConfigureAwait(false);
+            Volatile.Write(ref _deepestFloor, reply.Deepest);
             this.Updated?.Invoke(new MineInfo(reply.Status, reply.Floor, reply.Deepest));
         }
         catch (Exception)

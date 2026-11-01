@@ -8,7 +8,7 @@
    Click a stack to pick it up, click another slot to move it there (empty slot: move, same item: merge, other item: swap). *@
 <MenuPage Status="@Wardrobe.Status" Good="Wardrobe.StatusIsGood">
     <div class="inv-tools">
-        <GameButton Variant="plain" Text="@Vm.SortLabel" OnClick="Vm.Sort" />
+        <GameButton Variant="secondary" Text="@Vm.SortLabel" OnClick="Vm.Sort" />
         <label class="inv-lock"><input type="checkbox" checked="@Vm.LockHotbar" @onchange="e => Vm.SetLockHotbar((bool)(e.Value ?? false))" />@Vm.LockHotbarLabel</label>
     </div>
     <div class="inv-body">
@@ -31,7 +31,7 @@
                     <div class="inv-hand-text">
                         <p class="hand-title"><span class="hand-name">@lines[0]</span>@if (lines.Length > 2)
                         {
-                            <span class="hand-stats">@string.Join(" · ", lines, 2, lines.Length - 2)</span>
+                            <span class="hand-stats"> · @string.Join(" · ", lines, 2, lines.Length - 2)</span>
                         }</p>
                         @if (lines.Length > 1)
                         {

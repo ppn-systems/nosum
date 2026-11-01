@@ -82,7 +82,7 @@ public sealed partial class InventoryService : IInventoryService
 
         Outcome outcome = await this.ExecuteAsync(
             playerId,
-            (loaded, deltas) => ApplyOperations(loaded.Grid, operations, deltas),
+            (loaded, deltas) => ApplyOperations(loaded, operations, deltas),
             reason,
             enlist,
             push: true,
@@ -131,10 +131,23 @@ public sealed partial class InventoryService : IInventoryService
         return (outcome.Status, outcome.View.SelectedSlot);
     }
 
-    private static InventoryStatus ApplyOperations(InventoryGrid grid, IReadOnlyList<InventoryOperation> operations, List<(int ItemId, int Delta)> deltas)
+    private static InventoryStatus ApplyOperations(Loaded loaded, IReadOnlyList<InventoryOperation> operations, List<(int ItemId, int Delta)> deltas)
     {
         foreach (InventoryOperation operation in operations)
         {
+            if (operation.Kind == InventoryOperationKind.Grow)
+            {
+                // A growth moves no items, so it adds no deltas and no audit lines; a refused growth refuses the whole change.
+                InventoryStatus grown = loaded.Grow(operation.Quantity);
+                if (grown != InventoryStatus.Ok)
+                {
+                    return grown;
+                }
+
+                continue;
+            }
+
+            InventoryGrid grid = loaded.Grid;
             InventoryVerdict verdict = operation.Kind switch
             {
                 InventoryOperationKind.Add => grid.Add(operation.ItemId, operation.Quantity),
@@ -214,7 +227,7 @@ public sealed partial class InventoryService : IInventoryService
             {
                 for (int i = 0; i < loaded.Length; i++)
                 {
-                    InventoryStatus status = ApplyOperations(loaded[i].Grid, changes[i].Operations, deltas[i]);
+                    InventoryStatus status = ApplyOperations(loaded[i], changes[i].Operations, deltas[i]);
                     if (status != InventoryStatus.Ok)
                     {
                         return status;
@@ -309,8 +322,7 @@ public sealed partial class InventoryService : IInventoryService
         bool wrote = false;
         for (int i = 0; i < playerIds.Length; i++)
         {
-            List<int> changedSlots = [];
-            loaded[i].Grid.TakeChanged(changedSlots);
+            List<int> changedSlots = loaded[i].TakeChangedSlots();
             changed[i] = this.WriteRows(unit, loaded[i], changedSlots, deltas[i], reason, ref wrote);
         }
 
@@ -459,7 +471,8 @@ public sealed partial class InventoryService : IInventoryService
             if (loaded.Before is { } before)
             {
                 // From memory: no entity was loaded, so the rows are written by key. A row exists exactly when the slot held something.
-                bool existed = !before[slot].IsEmpty;
+                // A slot past the size the copy had (the bag grew in this change) has no row yet.
+                bool existed = slot < before.Length && !before[slot].IsEmpty;
                 if (stack.IsEmpty)
                 {
                     if (existed)
@@ -505,12 +518,14 @@ public sealed partial class InventoryService : IInventoryService
             changed.Add(new InventorySlotView(slot, stack.ItemId, stack.Quantity));
         }
 
+        // The header holds the size and the held slot; a growth is saved with the header in the same transaction as the slots it adds.
         if (loaded.Header is { } header)
         {
+            header.Capacity = loaded.Capacity;
             header.SelectedSlot = loaded.SelectedSlot;
-            wrote |= loaded.IsNew || loaded.SelectedSlot != loaded.OriginalSelectedSlot;
+            wrote |= loaded.IsNew || loaded.SelectedSlot != loaded.OriginalSelectedSlot || loaded.Capacity != loaded.OriginalCapacity;
         }
-        else if (loaded.SelectedSlot != loaded.OriginalSelectedSlot)
+        else if (loaded.SelectedSlot != loaded.OriginalSelectedSlot || loaded.Capacity != loaded.OriginalCapacity)
         {
             unit.Repository<PlayerInventory>().Update(new PlayerInventory { PlayerId = loaded.PlayerId, Capacity = loaded.Capacity, SelectedSlot = loaded.SelectedSlot, CreatedAt = loaded.CreatedAt });
             wrote = true;
@@ -631,10 +646,14 @@ public sealed partial class InventoryService : IInventoryService
     // The working copy of one inventory for one change: a fresh grid, so a refusal half way through leaves the cached entry as it was.
     private sealed class Loaded
     {
+        // Slots changed earlier in this change, before a growth replaced the grid; they are written with the rest.
+        private readonly List<int> _carriedChanges = [];
+
         public Loaded(Guid playerId, int capacity, int selectedSlot, DateTimeOffset createdAt, InventoryGrid grid, PlayerInventory? header, Dictionary<int, InventorySlot>? rows, bool isNew, ItemSlot[]? before)
         {
             this.PlayerId = playerId;
             this.Capacity = capacity;
+            this.OriginalCapacity = capacity;
             this.SelectedSlot = selectedSlot;
             this.OriginalSelectedSlot = selectedSlot;
             this.CreatedAt = createdAt;
@@ -647,7 +666,9 @@ public sealed partial class InventoryService : IInventoryService
 
         public Guid PlayerId { get; }
 
-        public int Capacity { get; }
+        public int Capacity { get; private set; }
+
+        public int OriginalCapacity { get; }
 
         public int SelectedSlot { get; set; }
 
@@ -655,7 +676,7 @@ public sealed partial class InventoryService : IInventoryService
 
         public DateTimeOffset CreatedAt { get; }
 
-        public InventoryGrid Grid { get; }
+        public InventoryGrid Grid { get; private set; }
 
         // Set when the rows were loaded (tracked) or are new; null when the working copy came from memory.
         public PlayerInventory? Header { get; }
@@ -666,6 +687,40 @@ public sealed partial class InventoryService : IInventoryService
 
         // The slots as the cache held them, when the working copy came from memory.
         public ItemSlot[]? Before { get; }
+
+        // Grows the working copy to a larger bag (docs/adr/ADR-081): the stacks stay in their slots, nothing is logged, and a refusal changes nothing.
+        public InventoryStatus Grow(int capacity)
+        {
+            if (ContainerIds.IsContainer(this.PlayerId) || !BackpackRules.MayGrow(this.Capacity, capacity))
+            {
+                return InventoryStatus.Conflict;
+            }
+
+            // A new grid starts with no changed slots: the ones changed so far are kept for the write.
+            this.Grid.TakeChanged(_carriedChanges);
+            InventoryGrid grown = new(capacity);
+            for (int i = 0; i < this.Grid.Capacity; i++)
+            {
+                ItemSlot stack = this.Grid[i];
+                if (!stack.IsEmpty)
+                {
+                    grown.Load(i, stack);
+                }
+            }
+
+            this.Grid = grown;
+            this.Capacity = capacity;
+            return InventoryStatus.Ok;
+        }
+
+        // The slots to write, ascending and without repeats: those changed before a growth and those changed since.
+        public List<int> TakeChangedSlots()
+        {
+            List<int> slots = [.. _carriedChanges];
+            _carriedChanges.Clear();
+            this.Grid.TakeChanged(slots);
+            return slots.Distinct().Order().ToList();
+        }
 
         public static Loaded FromEntry(Guid playerId, Entry entry)
         {

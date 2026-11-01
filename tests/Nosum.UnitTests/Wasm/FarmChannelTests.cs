@@ -36,11 +36,34 @@ public sealed class FarmChannelTests
         using (channel.Read())
         {
             channel.TryGetTile(61, 17, out FarmTileInfo tile).Should().BeTrue();
-            tile.Should().Be(new FarmTileInfo(61, 17, 1, 10, 2, 3, 0));
+            tile.Should().Be(new FarmTileInfo(61, 17, 1, 10, 2, 3, 0, Withered: false));
             channel.TryGetTile(63, 17, out _).Should().BeFalse();
         }
 
         channel.ServerNowMs().Should().BeCloseTo(serverNow, 2000, "the estimate follows the server clock, not the local one");
+    }
+
+    [Fact]
+    public void Load_CarriesTheServersWitheredFlag_SoTheClientDoesNotGuessIt()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            FarmSnapshot snapshot = new() { MapId = "farm", ServerNowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
+            FarmTileRow row = Row(61, 17, 1);
+            row.Withered = true;
+            snapshot.Tiles.Add(row);
+            return snapshot;
+        });
+        using FarmChannel channel = new(socket);
+
+        channel.Load();
+
+        using (channel.Read())
+        {
+            channel.TryGetTile(61, 17, out FarmTileInfo tile).Should().BeTrue();
+            tile.Withered.Should().BeTrue();
+        }
     }
 
     [Fact]

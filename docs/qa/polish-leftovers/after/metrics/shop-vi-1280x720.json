@@ -1,0 +1,49 @@
+{
+  "state": "shop",
+  "lang": "vi",
+  "size": "1280x720",
+  "u": "3px",
+  "present": {
+    "dialog": true,
+    "body": true,
+    "shopList": false,
+    "itemGrid": false,
+    "pager": true
+  },
+  "dialog": {
+    "x": 310,
+    "y": 96,
+    "w": 660,
+    "h": 305,
+    "left": 310,
+    "right": 970,
+    "top": 96,
+    "bottom": 401,
+    "className": "trade-dialog trade-dialog-l",
+    "computedMaxHeight": "none"
+  },
+  "body": {
+    "x": 334,
+    "y": 174,
+    "w": 612,
+    "h": 206,
+    "left": 334,
+    "right": 946,
+    "top": 174,
+    "bottom": 380,
+    "clientHeight": 206,
+    "scrollHeight": 206
+  },
+  "shopList": null,
+  "pager": {
+    "x": 334,
+    "y": 338,
+    "w": 609,
+    "h": 42,
+    "left": 334,
+    "right": 943,
+    "top": 338,
+    "bottom": 380
+  },
+  "itemGrid": null
+}

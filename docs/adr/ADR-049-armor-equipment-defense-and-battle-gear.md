@@ -51,3 +51,11 @@ Currently, the wardrobe system supports `WearSlot.Shirt`, `WearSlot.Pants`, and 
 - Rewarding gear progression loop: defeat monsters -> gather drops -> forge armor -> conquer deeper dungeon floors.
 - Full backwards compatibility with existing cosmetic shirts and hats.
 - Sourced from CC-BY `dawnlike/Items/Armor.png` and CC0 packs.
+
+## Amendment — defense values (2026-10-31)
+
+- **Amends:** the defense values in the Decision list. Leather armor 3→2, Ranger tunic 4→3, Iron chestplate 7→5, Iron greaves 5→3, Iron helmet
+  4→2, Boss crown 8→6. The formulas (`CalculateDefense`, `MitigateDamage`) and the recipes are unchanged.
+- **Reason:** full iron armor made every monster from floor 11 deal one damage. The new values keep armor worth crafting; the targets
+  (armor adds at least 5 survival hits against the band's strongest normal monster) are in
+  [ADR-045, D4–D5](ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md).

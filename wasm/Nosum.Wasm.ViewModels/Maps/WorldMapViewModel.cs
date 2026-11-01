@@ -54,6 +54,36 @@ public sealed class WorldMapViewModel : PanelViewModel
     /// </summary>
     public Func<string, IReadOnlyList<string>?> ConnectionsOf { get; set; } = static _ => null;
 
+    /// <summary>The cards on one page: two to a page, one column, so a page fits the panel at 1280×720 and up (docs/design/ui-standard.md section 7).</summary>
+    public const int CardsPerPage = 2;
+
+    /// <summary>Gets the zero-based page shown.</summary>
+    public int Page { get; private set; }
+
+    /// <summary>Gets the number of pages (at least one).</summary>
+    public static int PageCount => Math.Max(1, (PublicMapIds.Count + CardsPerPage - 1) / CardsPerPage);
+
+    /// <summary>Shows another page of the map cards.</summary>
+    /// <param name="page">The zero-based page; clamped to the pages there are.</param>
+    public void GoToPage(int page)
+    {
+        int next = Math.Clamp(page, 0, PageCount - 1);
+        if (next != this.Page)
+        {
+            this.Page = next;
+            this.Raise();
+        }
+    }
+
+    /// <summary>Builds the cards of the page shown.</summary>
+    /// <returns>At most <see cref="CardsPerPage"/> cards.</returns>
+    public List<WorldMapCard> PageCards()
+    {
+        int page = Math.Min(this.Page, PageCount - 1);
+        List<WorldMapCard> all = this.Cards();
+        return all.GetRange(page * CardsPerPage, Math.Min(CardsPerPage, all.Count - (page * CardsPerPage)));
+    }
+
     /// <summary>Builds the cards from the map catalogue, one per public map.</summary>
     /// <returns>One card per public map.</returns>
     public List<WorldMapCard> Cards()

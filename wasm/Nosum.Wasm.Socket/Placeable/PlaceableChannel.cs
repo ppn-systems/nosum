@@ -11,6 +11,7 @@ using Nosum.Contracts.Placeable.C2S;
 using Nosum.Contracts.Placeable.S2C;
 using Nosum.Contracts.World.S2C;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Socket.Chunks;
 
 namespace Nosum.Wasm.Socket.Placeable;
@@ -83,6 +84,31 @@ public sealed class PlaceableChannel : IDisposable
     /// <param name="index">Zero-based position, below <see cref="Count"/>.</param>
     /// <returns>The object.</returns>
     public PlacedObjectInfo At(int index) => _items[index];
+
+    /// <summary>
+    /// Returns when the first placed sprinkler that waters a tile was placed, or <see langword="null"/> when none does (docs/adr/ADR-024 D4).
+    /// Takes the lock itself, so the farm can ask without holding a read of its own.
+    /// </summary>
+    /// <param name="tileX">Tile x.</param>
+    /// <param name="tileY">Tile y.</param>
+    /// <returns>Unix milliseconds of the placement, or <see langword="null"/>.</returns>
+    public long? SprinklerWateredSinceMs(int tileX, int tileY)
+    {
+        using (_gate.EnterScope())
+        {
+            long? since = null;
+            for (int i = 0; i < _items.Count; i++)
+            {
+                PlacedObjectInfo piece = _items[i];
+                if (SprinklerRules.Waters(piece.TileX, piece.TileY, tileX, tileY) && PlaceableCatalog.TryGet(piece.ItemId, out PlaceableDefinition? definition) && definition.Kind == PlaceableKind.Sprinkler)
+                {
+                    since = since is { } earlier ? Math.Min(earlier, piece.PlacedAtMs) : piece.PlacedAtMs;
+                }
+            }
+
+            return since;
+        }
+    }
 
     /// <summary>Reads the objects of the chunks the player can see and replaces the mirror with them. Call after joining a map: it also names the map the mirror belongs to. Later chunks arrive as pushes.</summary>
     public void Load() => _ = this.LoadAsync();

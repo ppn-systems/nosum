@@ -4,20 +4,26 @@
 @using Nosum.Wasm.ViewModels.Profile
 @inherits ObservingComponent<ProfileViewModel>
 
-@* The player's profile and account: the nickname everyone sees above the head, changing it (24-hour server cooldown), and the signed-in account (guest upgrade or sign out). *@
+@* The player's profile and account: the nickname everyone sees above the head, changing it (24-hour server cooldown, one Rename Scroll each time), and the signed-in
+   account (guest upgrade or sign out). *@
 <MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
         <GameSection Title="@Vm.Text("Toolbar_Profile")">
             <p>@Vm.CurrentText</p>
             @if (Vm.CanRename)
             {
+                <p>@Vm.ScrollCountText</p>
                 <GameField Label="@Vm.Text("Profile_NewLabel")" Hint="@Vm.RuleText">
                     <GameInput Value="@Vm.NewNickname" ValueChanged="@(v => Vm.NewNickname = v)" OnEnter="@(() => Vm.SaveAsync(default))"
                                Placeholder="@Vm.Text("Profile_NewLabel")" Label="@Vm.Text("Profile_NewLabel")" MaxLength="24" />
                 </GameField>
                 <GameRow>
-                    <GameButton Text="@Vm.Text("Profile_Save")" Disabled="Vm.IsBusy" OnClick="@(() => Vm.SaveAsync(default))" />
+                    <GameButton Text="@Vm.Text("Profile_Save")" Disabled="@(!Vm.CanSubmit)" OnClick="@(() => Vm.SaveAsync(default))" />
                 </GameRow>
+                @if (!Vm.HasRenameScroll)
+                {
+                    <GameNotice Kind="info" Text="@Vm.NeedsScrollText" />
+                }
             }
             else
             {

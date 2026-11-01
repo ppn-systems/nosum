@@ -28,6 +28,10 @@ public sealed partial class CombatChannel : IDisposable
     private readonly List<FloatingTextClientRow> _floatingTexts = [];
     private readonly List<HazardClientRow> _hazards = [];
     private readonly Dictionary<byte, long> _skillReadyAt = new();
+    // The length of the cooldown each skill's sweep runs over: the full cooldown when it was cast, the time left when it was refused as cooling down.
+    private readonly Dictionary<byte, int> _skillSpanMs = new();
+    // One bit per skill id (1 to 3) while its cast is on its way to the server and not answered yet (docs/adr/ADR-056 D5).
+    private int _skillPending;
     private int _playerX;
     private int _playerY;
     private byte _playerFacing;
@@ -303,12 +307,26 @@ public sealed partial class CombatChannel : IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets the length of the cooldown a skill's sweep runs over (docs/adr/ADR-056 D5). It is the full cooldown when the cast landed and the time left
+    /// when the server refused the cast as cooling down, so the sweep ends when the server's cooldown does.
+    /// </summary>
+    /// <param name="skillId">The skill kind.</param>
+    /// <returns>Milliseconds; zero when no cooldown was started.</returns>
+    public int GetSkillCooldownSpanMs(byte skillId)
+    {
+        lock (_gate)
+        {
+            return _skillSpanMs.TryGetValue(skillId, out int span) ? span : 0;
+        }
+    }
+
     /// <summary>Returns whether the given skill is off cooldown and the player has enough MP to cast it.</summary>
     /// <param name="skillId">Skill kind.</param>
     /// <returns><see langword="true"/> if the skill can be cast right now.</returns>
     public bool CanCastSkill(byte skillId)
     {
-        if (this.GetSkillCooldownRemaining(skillId) > 0f)
+        if (this.IsSkillPending(skillId) || this.GetSkillCooldownRemaining(skillId) > 0f)
         {
             return false;
         }
@@ -326,6 +344,12 @@ public sealed partial class CombatChannel : IDisposable
             return;
         }
 
+        // The effect and the cooldown wait for the server's answer: a refused cast shows nothing (docs/adr/ADR-056 D5).
+        lock (_gate)
+        {
+            _skillPending |= 1 << skillId;
+        }
+
         if (skillId == 2 && targetMonsterId == 0)
         {
             if (this.TryFindTarget(_playerX, _playerY, 6, out MonsterClientRow m))
@@ -334,8 +358,18 @@ public sealed partial class CombatChannel : IDisposable
             }
         }
 
-        this.TriggerSkillEffect(skillId, targetMonsterId);
         _ = this.CastSkillAsync(skillId, targetMonsterId);
+    }
+
+    /// <summary>Gets whether a cast of the skill has been sent and not answered yet; a press meanwhile does nothing (docs/adr/ADR-056 D5).</summary>
+    /// <param name="skillId">Skill kind.</param>
+    /// <returns><see langword="true"/> while the reply is on its way.</returns>
+    public bool IsSkillPending(byte skillId)
+    {
+        lock (_gate)
+        {
+            return (_skillPending & (1 << skillId)) != 0;
+        }
     }
 
     /// <inheritdoc/>
@@ -472,6 +506,7 @@ public sealed partial class CombatChannel : IDisposable
             req.Value.SkillId = skillId;
             req.Value.TargetMonsterId = targetMonsterId;
             CastSkillResult reply = await _socket.RequestAsync<CastSkillResult>(req.Value).ConfigureAwait(false);
+            this.ClearSkillPending(skillId);
 
             if (reply.CooldownMs > 0)
             {
@@ -479,6 +514,7 @@ public sealed partial class CombatChannel : IDisposable
                 lock (_gate)
                 {
                     _skillReadyAt[reply.SkillId] = readyAt;
+                    _skillSpanMs[reply.SkillId] = reply.CooldownMs;
                 }
 
                 _ = this.ExpireSkillCooldownAsync(reply.SkillId, reply.CooldownMs, readyAt);
@@ -486,6 +522,7 @@ public sealed partial class CombatChannel : IDisposable
 
             if (reply.Status == CombatStatus.Ok)
             {
+                this.TriggerSkillEffect(reply.SkillId, targetMonsterId);
                 if (reply.SkillId == 3 && reply.HealAmount > 0)
                 {
                     this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, reply.HealAmount, 3);
@@ -530,6 +567,16 @@ public sealed partial class CombatChannel : IDisposable
         }
         catch (Exception)
         {
+            this.ClearSkillPending(skillId);
+        }
+    }
+
+    // Cleared before the reply's Changed, so the buttons re-enable on a refusal too.
+    private void ClearSkillPending(byte skillId)
+    {
+        lock (_gate)
+        {
+            _skillPending &= ~(1 << skillId);
         }
     }
 

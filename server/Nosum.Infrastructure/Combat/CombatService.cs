@@ -18,6 +18,7 @@ using Nosum.Abstractions.Nodes;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Combat;
 using Nosum.Contracts.Combat.S2C;
 using Nosum.Contracts.Player.S2C;
@@ -25,10 +26,12 @@ using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Looks;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Skills;
 using Nosum.Infrastructure.Progress;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Combat;
 
@@ -50,6 +53,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
     private readonly ICoopMembership? _coops;
     private readonly IPlayerProgress? _progress;
     private readonly IBestiaryService? _bestiary;
+    private readonly IQuestService? _quests;
     private readonly GameCalendar? _calendar;
 
     private readonly ConcurrentDictionary<Guid, PlayerVitalsState> _vitals = new();
@@ -83,7 +87,8 @@ public sealed partial class CombatService : ICombatService, IDisposable
         ICoopMembership? coops = null,
         IPlayerProgress? progress = null,
         IBestiaryService? bestiary = null,
-        GameCalendar? calendar = null)
+        GameCalendar? calendar = null,
+        IQuestService? quests = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -104,6 +109,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
         _coops = coops;
         _progress = progress;
         _bestiary = bestiary;
+        _quests = quests;
         _calendar = calendar;
         if (_progress is not null)
         {

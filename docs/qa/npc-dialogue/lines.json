@@ -1,0 +1,173 @@
+{
+  "report": {
+    "seed_keeper-vi": {
+      "name": "Cô Mai",
+      "role": "Chủ tiệm hạt giống",
+      "line": "Mùi đất ẩm là mùi tôi thích nhất đấy.",
+      "buttons": [
+        "Mua",
+        "Trò chuyện",
+        "Tạm biệt"
+      ],
+      "revealing": false
+    },
+    "tailor-vi": {
+      "name": "Chị Hạnh",
+      "role": "Thợ may",
+      "line": "Thử đồ rồi hãy mua nhé, vừa người thì mặc mới thoải mái.",
+      "buttons": [
+        "Mua",
+        "Trò chuyện",
+        "Tạm biệt"
+      ],
+      "revealing": false
+    },
+    "furnisher-vi": {
+      "name": "Chú Tâm",
+      "role": "Chủ tiệm nội thất",
+      "line": "Một chiếc đèn và một chậu cây là căn phòng khác hẳn ngay.",
+      "buttons": [
+        "Mua",
+        "Trò chuyện",
+        "Tạm biệt"
+      ],
+      "revealing": false
+    },
+    "blacksmith-vi": {
+      "name": "Ông Cường",
+      "role": "Thợ rèn",
+      "line": "Sáng sớm tôi bắt đầu đập sắt, tiếng búa vang cả xóm.",
+      "buttons": [
+        "Mua",
+        "Nâng cấp",
+        "Trò chuyện",
+        "Tạm biệt"
+      ],
+      "revealing": false
+    },
+    "carpenter-vi": {
+      "name": "Bác Lâm",
+      "role": "Thợ mộc",
+      "line": "Chào bạn! Bác là Lâm. Muốn nuôi gà hay nuôi bò thì cứ hỏi bác.",
+      "buttons": [
+        "Mua",
+        "Xây dựng",
+        "Trò chuyện",
+        "Tạm biệt"
+      ],
+      "revealing": false
+    },
+    "carpenter-shop-vi": [
+      "Cỏ khô",
+      "Xô vắt sữa"
+    ],
+    "trader-vi": {
+      "name": "Anh Phát",
+      "role": "Thương nhân",
+      "line": "Chào bạn! Tôi là Phát. Chợ này mở cửa cho tất cả mọi người.",
+      "buttons": [
+        "Mua",
+        "Bán",
+        "Trò chuyện",
+        "Tạm biệt"
+      ],
+      "revealing": false
+    },
+    "board_keeper-vi": {
+      "name": "Bà Thư",
+      "role": "Người giữ bảng tin",
+      "line": "Cả làng góp sức thì mục tiêu nào cũng xong sớm hơn.",
+      "buttons": [
+        "Mục tiêu",
+        "Trò chuyện",
+        "Tạm biệt"
+      ],
+      "revealing": false
+    },
+    "seed_keeper-en": {
+      "name": "Mai",
+      "role": "Seed shopkeeper",
+      "line": "Damp soil is my favourite smell.",
+      "buttons": [
+        "Buy",
+        "Talk",
+        "Leave"
+      ],
+      "revealing": false
+    },
+    "tailor-en": {
+      "name": "Hanh",
+      "role": "Tailor",
+      "line": "Try things on before you buy. A good fit is what makes it comfortable.",
+      "buttons": [
+        "Buy",
+        "Talk",
+        "Leave"
+      ],
+      "revealing": false
+    },
+    "furnisher-en": {
+      "name": "Tam",
+      "role": "Furniture seller",
+      "line": "One lamp and one plant, and the room looks completely different.",
+      "buttons": [
+        "Buy",
+        "Talk",
+        "Leave"
+      ],
+      "revealing": false
+    },
+    "blacksmith-en": {
+      "name": "Cuong",
+      "role": "Blacksmith",
+      "line": "I start hammering at dawn, and the whole street hears it.",
+      "buttons": [
+        "Buy",
+        "Upgrade",
+        "Talk",
+        "Leave"
+      ],
+      "revealing": false
+    },
+    "carpenter-en": {
+      "name": "Lam",
+      "role": "Carpenter",
+      "line": "Welcome! I'm Lam. Want to keep hens or a cow? Just ask me.",
+      "buttons": [
+        "Buy",
+        "Build",
+        "Talk",
+        "Leave"
+      ],
+      "revealing": false
+    },
+    "carpenter-shop-en": [
+      "Hay",
+      "Milk pail"
+    ],
+    "trader-en": {
+      "name": "Phat",
+      "role": "Trader",
+      "line": "Welcome! I'm Phat. This market is open to everybody.",
+      "buttons": [
+        "Buy",
+        "Sell",
+        "Talk",
+        "Leave"
+      ],
+      "revealing": false
+    },
+    "board_keeper-en": {
+      "name": "Thu",
+      "role": "Board keeper",
+      "line": "When the village pitches in, every goal gets done sooner.",
+      "buttons": [
+        "Goals",
+        "Talk",
+        "Leave"
+      ],
+      "revealing": false
+    }
+  },
+  "errors": []
+}

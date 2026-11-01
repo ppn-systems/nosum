@@ -58,12 +58,17 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         await this.GuardAsync("mine", this.MineAsync);
         await this.GuardAsync("area", this.AreaAsync);
         await this.GuardAsync("requests", this.RequestsAsync);
+        await this.GuardAsync("finished", this.FinishedChainAsync);
         await this.GuardAsync("coopupgrade", this.CoopUpgradeAsync);
         await this.GuardAsync("background", this.BackgroundAsync);
 
         // The tester tools exist only in Development builds and are never mapped in Production.
         _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevGrant, "DevGrant", "tester tool, Development only; its cost is test set-up");
         _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevAdvanceClock, "DevAdvanceClock", "tester tool, Development only; the day rollover it triggers is the DayClock row");
+        _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevTeleport, "DevTeleport", "tester tool, Development only; the arrival is the travel steps, measured by the warp rows");
+        _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevSeason, "DevSeason", "tester tool, Development only; the day rollovers it triggers are the DayClock row");
+        _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevLevelUp, "DevLevelUp", "tester tool, Development only; it pushes one banner and writes no row");
+        _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevFishingBite, "DevFishingBite", "tester tool, Development only; it changes the open cast in memory, no row");
 
         // Combat opcodes operate on in-memory instance monsters and cached player vitals (docs/adr/ADR-045 D3, ADR-056).
         _rig.Skip("Combat", Nosum.Contracts.Combat.CombatOpCode.GetVitals, "GetVitals", "reads in-memory vitals seeded from the shared player_states cache");
