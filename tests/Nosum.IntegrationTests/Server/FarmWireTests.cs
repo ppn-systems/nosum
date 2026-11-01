@@ -152,7 +152,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
                 clock.Advance(s_gameDay);
                 (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
 
-                // The unripe refusal names the watered days still needed (docs/adr/ADR-089 D2).
+                // The unripe refusal names the watered days still needed (docs/adr/ADR-094 D2).
                 (await farmer.UseAsync(8, x, y, timeout.Token)).Should().BeEquivalentTo(new { Status = FarmStatus.NotMature, DaysLeft = (byte)(CropCatalog.All[0].TotalGrowthDays - day) });
             }
 

@@ -48,7 +48,7 @@ using Xunit;
 
 namespace Nosum.IntegrationTests.Server;
 
-// The wide uses over the wire: a hoe on a line (docs/adr/ADR-026 D1, ADR-088) and a scythe on a line (docs/adr/ADR-089 D1). Split from
+// The wide uses over the wire: a hoe on a line (docs/adr/ADR-026 D1, ADR-088) and a scythe on a line (docs/adr/ADR-094 D1). Split from
 // FarmWireTests.cs to keep it under the source-size ceiling.
 public sealed partial class FarmWireTests
 {
@@ -108,7 +108,7 @@ public sealed partial class FarmWireTests
             (int x, int y) = TileInReachOf(join);
             InventorySlotRow scythe = (await farmer.GetInventoryAsync(timeout.Token)).Slots.Single(s => s.ItemId == ItemCatalog.Scythe);
 
-            // The basic scythe admits a line of three (docs/adr/ADR-089 D1). Nothing is tilled here, so nothing is worked, but the line is not refused.
+            // The basic scythe admits a line of three (docs/adr/ADR-094 D1). Nothing is tilled here, so nothing is worked, but the line is not refused.
             UseItemResult line = await farmer.UseAreaAsync(scythe.Slot, x, y, 3, timeout.Token);
             line.Status.Should().Be(FarmStatus.NothingToDo);
             line.Worked.Should().Be(0);

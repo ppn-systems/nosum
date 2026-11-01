@@ -26,6 +26,24 @@ public sealed class AnimalRulesTests
         AnimalRules.RationsOf(itemId).Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData(0, 2, true)]
+    [InlineData(0, 1, true)]
+    [InlineData(1, 2, false)]
+    [InlineData(0, 0, false)]
+    public void BenchNeedsHay_EmptyBenchOnlyWhileAnimalsLive(int rations, int animals, bool expected)
+    {
+        AnimalRules.BenchNeedsHay(rations, animals).Should().Be(expected);
+    }
+
+    [Fact]
+    public void MaxFeedAtOnce_CoversTheWholeBench()
+    {
+        // The trough feeds up to the bench's size in one press (PlayerActions.TendAnimals); a smaller number would need several presses for an empty bench.
+        AnimalRules.MaxFeedAtOnce.Should().Be(AnimalRules.MaxRations);
+        AnimalRules.MaxRations.Should().BeGreaterThan(4, "the bench holds more than one animal's capacity (four)");
+    }
+
     [Fact]
     public void Settle_SameDay_ChangesNothing()
     {
@@ -338,4 +356,26 @@ public sealed class AnimalRulesTests
         recipe!.Inputs.Should().Contain(i => i.ItemId == ItemCatalog.Wool && i.Quantity == 5);
         recipe.OutputItemId.Should().Be(ItemCatalog.Scarecrow);
     }
+
+    [Theory]
+    [InlineData(true, true, true, false, false, false, AnimalTend.Feed)]
+    [InlineData(true, false, false, false, false, false, AnimalTend.Feed)]
+    [InlineData(false, false, false, false, false, false, AnimalTend.None)]
+    [InlineData(false, true, true, false, false, false, AnimalTend.Collect)]
+    [InlineData(false, true, false, false, false, false, AnimalTend.Pet)]
+    [InlineData(false, true, true, true, false, false, AnimalTend.Pet)]
+    [InlineData(false, true, true, true, true, false, AnimalTend.Collect)]
+    [InlineData(false, true, true, true, false, true, AnimalTend.Collect)]
+    [InlineData(false, true, false, true, true, true, AnimalTend.Pet)]
+    public void TendOf_SaysWhatTheActionKeyDoes(bool feedAtTrough, bool inReach, bool produce, bool needsPail, bool pail, bool petted, AnimalTend expected)
+    {
+        AnimalRules.TendOf(feedAtTrough, inReach, produce, needsPail, pail, petted).Should().Be(expected);
+    }
+
+    [Fact]
+    public void TendOf_FeedWinsOverAnAnimalInReach()
+    {
+        AnimalRules.TendOf(feedAtTrough: true, animalInReach: true, hasProduce: true, needsPail: false, pailInHand: false, petted: false).Should().Be(AnimalTend.Feed);
+    }
 }
+

@@ -38,7 +38,7 @@ public sealed class ProfileViewModelTests
 
         vm.IsGuest.Should().BeTrue();
         vm.CanRename.Should().BeFalse();
-        vm.GuestNoticeText.Should().Be("Guests keep their generated name. Link a Google or Microsoft account to choose your own nickname.");
+        vm.GuestNoticeText.Should().Be("Guests keep a generated name. After your first quest you can link a Google or Microsoft account: your progress is kept and you choose your own nickname.");
         vm.CurrentText.Should().Be("Current nickname: Guest 0042");
         vm.Status.Should().Be("Link a Google or Microsoft account to choose a nickname.");
         client.Sent.Should().BeEmpty();

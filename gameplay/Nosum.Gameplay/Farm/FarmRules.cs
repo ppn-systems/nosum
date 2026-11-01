@@ -143,7 +143,7 @@ public static class FarmRules
     }
 
     /// <summary>
-    /// Decides whether a watering can may water a tile now, the one check the server and the client's reticle both call (docs/adr/ADR-089 D3).
+    /// Decides whether a watering can may water a tile now, the one check the server and the client's reticle both call (docs/adr/ADR-094 D3).
     /// Soil that is wet already (from the can today, a rainy day outdoors or a sprinkler) is refused as <see cref="FarmVerdict.AlreadyWet"/>, so the
     /// player keeps their water and energy; a withered crop is refused as <see cref="FarmVerdict.Withered"/>. <see cref="Water"/> applies the watering
     /// once this returns <see cref="FarmVerdict.Ok"/>.
@@ -354,7 +354,7 @@ public static class FarmRules
 
     /// <summary>
     /// Returns the watered game days a planted crop still needs before it is ripe: its total growth days less the days it has reached, never below
-    /// zero. Zero when no crop stands there or it is ripe already (docs/adr/ADR-089 D2).
+    /// zero. Zero when no crop stands there or it is ripe already (docs/adr/ADR-094 D2).
     /// </summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>

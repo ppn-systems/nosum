@@ -7,6 +7,7 @@ using Nosum.Core.Interpolation;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Npcs;
 using Nosum.Rendering;
+using Nosum.Wasm.ViewModels.Minimap;
 
 namespace Nosum.Wasm.Game;
 
@@ -21,7 +22,6 @@ internal sealed partial class MapScene
     private const int MinimapFrameColour = unchecked((int)0x14171CCCu);
     private const int FarmerDotColour = unchecked((int)0xFFF27DFFu);
     private const int RemoteDotColour = unchecked((int)0x7FD7FFFFu);
-    private const int NpcDotColour = unchecked((int)0xFF9F43FFu);
     private const int ExitDotColour = unchecked((int)0xC084FCFFu);
 
     // The HUD frame of the minimap, in UI pixels (one u is one world pixel, the scale of the map). It is the card under the top-right row, sharing
@@ -63,11 +63,11 @@ internal sealed partial class MapScene
         string id = content.Spec.Id;
         if (_minimap.Key != id && _minimap.Build(content.Map, id, MinimapPalette.Default))
         {
-            // The NPCs and the exits do not move: they are kept with the ground and drawn with it.
+            // The NPCs and the exits do not move: they are kept with the ground and drawn with it. Merchants get their own colour (MinimapMarkerRules).
             IReadOnlyList<NpcDefinition> npcs = NpcCatalog.OnMap(id);
             for (int i = 0; i < npcs.Count; i++)
             {
-                _minimap.AddMarker(npcs[i].TileX + 0.5, npcs[i].TileY + 0.5, NpcDotColour);
+                _minimap.AddMarker(npcs[i].TileX + 0.5, npcs[i].TileY + 0.5, MinimapMarkerRules.NpcColour(npcs[i].Actions));
             }
 
             for (int i = 0; i < content.Warps.Count; i++)
@@ -90,6 +90,8 @@ internal sealed partial class MapScene
                 }
             }
         }
+
+        this.AddQuestDot(content.Spec.Id);
 
         // The frame's inside (MinimapLayer.MaxWidth by MaxHeight) is the dark backing; the map is centred on it.
         int worldWidth = (canvasWidth + scale - 1) / scale;

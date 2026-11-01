@@ -3,6 +3,7 @@
 using System;
 using System.Text;
 using Nosum.Gameplay.Chat;
+using Nosum.Gameplay.Items;
 
 namespace Nosum.Gameplay.Pets;
 
@@ -102,4 +103,38 @@ public static class PetRules
     /// <summary>Whether the code names a pet the farmer can adopt.</summary>
     /// <param name="kind">The code the client sent.</param>
     public static bool IsAdoptable(byte kind) => kind is (byte)PetKind.Cat or (byte)PetKind.Dog;
+
+    /// <summary>The chance, in percent, that the first petting of a game day brings back a forage item (docs/adr/ADR-092 D2).</summary>
+    public const int ForageChancePercent = 30;
+
+    /// <summary>The forage items a pet can bring back: wild food from the meadow, each one as likely as the others.</summary>
+    public static readonly int[] ForageItems = [ItemCatalog.SpiceBerry, ItemCatalog.WildPlum, ItemCatalog.Mushroom];
+
+    /// <summary>
+    /// The forage item a pet brings back on the first petting of a game day, or zero for none (docs/adr/ADR-092 D2). A pure function of the
+    /// player and the day, so the same petting gives the same answer on any server and a test can check it.
+    /// </summary>
+    /// <param name="playerId">The farmer who petted the pet.</param>
+    /// <param name="today">The game day of the petting.</param>
+    /// <returns>An item id from <see cref="ForageItems"/>, or zero.</returns>
+    public static int ForageOf(Guid playerId, int today)
+    {
+        ulong seed = (ulong)BitConverter.ToInt64(playerId.ToByteArray(), 0) ^ ((ulong)(uint)today * 0x9E37_79B9_7F4A_7C15UL);
+        ulong roll = Mix(seed);
+        if (roll % 100 >= (ulong)ForageChancePercent)
+        {
+            return 0;
+        }
+
+        return ForageItems[(int)(Mix(roll) % (ulong)ForageItems.Length)];
+    }
+
+    // SplitMix64 finaliser: spreads a seed over all 64 bits so that neighbouring days and players do not share rolls.
+    private static ulong Mix(ulong value)
+    {
+        ulong z = value + 0x9E37_79B9_7F4A_7C15UL;
+        z = (z ^ (z >> 30)) * 0xBF58_476D_1CE4_E5B9UL;
+        z = (z ^ (z >> 27)) * 0x94D0_49BB_1331_11EBUL;
+        return z ^ (z >> 31);
+    }
 }

@@ -292,6 +292,72 @@ public sealed class MailTests
     }
 
     [Fact]
+    public void CollectAll_CollectsEveryMailWithAGiftThatIsNotExpired_AndNoOthers()
+    {
+        Guid second = Guid.Parse("aaaaaaaa-0000-0000-0000-000000000004");
+        Guid expired = Guid.Parse("aaaaaaaa-0000-0000-0000-000000000005");
+        FakeGameSocket socket = new();
+        MailList box = Box(0);
+        box.Mails.Add(Row(second, "market.sold", 20 * Day, false, 40, ItemCatalog.Parsnip.ToString(System.Globalization.CultureInfo.InvariantCulture), "1", "40"));
+        box.Mails.Add(Row(expired, "market.sold", -Day, false, 10, ItemCatalog.Parsnip.ToString(System.Globalization.CultureInfo.InvariantCulture), "1", "10"));
+        socket.ReplyWith(_ => box);
+        List<Guid> collected = [];
+        socket.ReplyWith(request =>
+        {
+            collected.Add(((CollectMail)request).MailId);
+            return new MailResult { Status = MailStatus.Ok };
+        });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.CollectableCount.Should().Be(2);
+        vm.CollectAll();
+
+        collected.Should().Equal(s_sold, second);
+        vm.StatusIsGood.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CollectAll_StopsAtTheFirstRefusal_AndShowsItsReason()
+    {
+        Guid second = Guid.Parse("aaaaaaaa-0000-0000-0000-000000000006");
+        FakeGameSocket socket = new();
+        MailList box = Box(0);
+        box.Mails.Add(Row(second, "market.sold", 20 * Day, false, 40, ItemCatalog.Parsnip.ToString(System.Globalization.CultureInfo.InvariantCulture), "1", "40"));
+        socket.ReplyWith(_ => box);
+        List<Guid> collected = [];
+        socket.ReplyWith(request =>
+        {
+            collected.Add(((CollectMail)request).MailId);
+            return new MailResult { Status = MailStatus.NoSpace };
+        });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.CollectAll();
+
+        collected.Should().Equal(s_sold);
+        vm.StatusIsGood.Should().BeFalse();
+        vm.Status.Should().Be(vm.StatusText(MailStatus.NoSpace));
+    }
+
+    [Fact]
+    public void CollectableCount_NoGifts_IsZeroSoTheButtonIsHidden()
+    {
+        FakeGameSocket socket = new();
+        MailList box = new() { Unread = 0 };
+        box.Mails.Add(Row(s_odd, "something.new", 1000, true));
+        socket.ReplyWith(_ => box);
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.CollectableCount.Should().Be(0);
+    }
+
+    [Fact]
     public void Language_EveryMailStatusAndCodeHasATextInBothLanguages()
     {
         List<string> needed = [];

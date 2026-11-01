@@ -54,7 +54,7 @@ internal sealed class GameAudio
         List<Task<bool>> loading = [];
         foreach (AudioFile file in AudioCatalog.Files)
         {
-            loading.Add(WebRenderBackend.LoadAudioAsync((int)file.Kind, file.Id, AudioCatalog.Folder + file.File));
+            loading.Add(WebRenderBackend.LoadAudioAsync((int)file.Kind, file.Id, AudioCatalog.Folder + file.File, file.GainDb));
         }
 
         try

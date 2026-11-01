@@ -78,7 +78,8 @@
     font-weight: 400;
 }
 
-.quest-reward {
+.quest-reward,
+.quest-tip {
     margin: calc(var(--u) * 1) 0 0;
     color: var(--nosum-ink-soft);
 }

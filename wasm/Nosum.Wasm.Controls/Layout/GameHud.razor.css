@@ -59,6 +59,11 @@
     align-items: flex-start;
 }
 
+/* The quest card keeps to a fixed width, so a long tip wraps inside it rather than widening the card over the menu column (ui-standard section 2). */
+.hud-top-left ::deep .game-panel.quest {
+    max-width: calc(var(--u) * 120);
+}
+
 .hud-top-left:empty,
 .game-hud:has(.hud-center > *) .hud-top-left,
 .game-hud:has(.hud-center > *) .hud-top-right ::deep .hud-menu-column {
@@ -174,6 +179,12 @@
     animation: game-message-life 3s linear both;
 }
 
+/* The combo chip hangs over the hotbar's top-right corner (Hotbar.razor.css, .hotbar-badges), in the same strip as the toast line. While it
+   shows, the toast line lifts above the chip's height, so a long message (the knock-out line) is not cut off under it (ui-standard section 2). */
+.hud-bottom-center:has(.hotbar-badges) ::deep .game-message {
+    margin-bottom: calc(var(--u) * 12);
+}
+
 @keyframes game-message-life {
     0%, 80% {
         opacity: 1;
@@ -196,6 +207,14 @@
     width: min(calc(var(--u) * 120), calc(100vw - var(--nosum-gutter) * 2));
     max-height: calc(var(--u) * 100);
     pointer-events: none;
+}
+
+/* Phones: the hotbar is two rows and stands about 53 u high, so the chat line stands above it at 56 u (on a desktop 40 u clears the one-row hotbar).
+   The open chat log keeps its own height limit (ChatLine.razor.css). */
+@media (max-width: 640px) {
+    .hud-bottom-left {
+        bottom: calc(var(--nosum-gutter) + var(--u) * 56);
+    }
 }
 
 /* Bottom-right: the emote button beside the gauges, one edge margin (gap-group) above the bottom edge. A touch screen lifts it above the action button
@@ -256,5 +275,28 @@
     .hud-top-left {
         flex: 1 1 100%;
         margin-top: calc(var(--u) * 22);
+    }
+}
+
+/* Arranging furniture: the furniture panel takes the top-left corner (FurniturePanel). The corner is out of the flow, as the top-right column is, so
+   a tall panel never squeezes the toast line and the hotbar below it (docs/design/ui-standard.md section 2, checklist items 1 and 2). The menu column
+   and the minimap button are hidden while it is shown, so nothing overlaps it. */
+.game-hud:has(.hud-top-left .furniture-dock) .hud-top-left {
+    position: absolute;
+    top: var(--nosum-gutter);
+    left: var(--nosum-gutter);
+    z-index: 2;
+}
+
+.game-hud:has(.hud-top-left .furniture-dock) .hud-top-right ::deep .hud-menu-column,
+.game-hud:has(.hud-top-left .furniture-dock) .hud-top-right ::deep .hud-minimap-button {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    /* A phone: the panel starts under the HUD bar and spans the screen width, as the banners do (section 6). */
+    .game-hud:has(.hud-top-left .furniture-dock) .hud-top-left {
+        top: calc(var(--nosum-gutter) + var(--u) * 22);
+        right: var(--nosum-gutter);
     }
 }

@@ -36,7 +36,7 @@ internal sealed class FarmDecorator : IMapDecorator
     // The multiply tint of a thirsty tile, one dry day from withering or reverting (0xRRGGBBAA): parched yellow, the blue dimmed.
     private static readonly int s_thirstyTint = unchecked((int)0xE6C070FF);
 
-    // The tiles of a wide tool's line beyond the first are dimmed, so the first tile (the one the use starts on) reads as the target (docs/adr/ADR-089 D1).
+    // The tiles of a wide tool's line beyond the first are dimmed, so the first tile (the one the use starts on) reads as the target (docs/adr/ADR-094 D1).
     private static readonly int s_lineTint = unchecked((int)0xFFFFFF8C);
 
     private readonly string _mapId;
@@ -135,7 +135,7 @@ internal sealed class FarmDecorator : IMapDecorator
         }
 
         // The reticle turns red when the held seed, hoe or watering can would do nothing on the tile in front (PlayerActions.TargetDenied).
-        // A wide tool shows the whole line it works, engine-drawn (backlog item 5, docs/adr/ADR-089 D1): drawn from the far end, so the target tile is on top.
+        // A wide tool shows the whole line it works, engine-drawn (backlog item 5, docs/adr/ADR-094 D1): drawn from the far end, so the target tile is on top.
         int reticleTint = _actions.TargetDenied ? s_deniedTint : RenderCommandBuffer.NoTint;
         int lineLength = _actions.HeldLineLength;
         for (int i = lineLength - 1; i >= 0; i--)

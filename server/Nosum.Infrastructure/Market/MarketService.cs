@@ -246,7 +246,6 @@ public sealed class MarketService : IMarketService
             long price = listing.Price;
             long fee = CoinRules.MarketFee(price);
             long proceeds = price - fee;
-            MarketStatus refusal = MarketStatus.Ok;
 
             // The fee is whatever the buyer pays and the seller does not get; the sink says whether anybody receives it.
             List<TransferLeg> legs =
@@ -255,34 +254,32 @@ public sealed class MarketService : IMarketService
                 new TransferLeg(TransferParty.Player(listing.SellerId), 0, 0, proceeds),
                 .. _feeSink.Collect(fee, "market.buy"),
             ];
+
+            // The row is read once, above, under the listing lock. The save writes it with its Active status as the concurrency token, so a row another
+            // process closed in the meantime fails the save (Conflict) and nothing moves; no second read (docs/adr/ADR-035 D1, ADR-013 D5 races).
+            MarketListing row = listing;
             TransferStatus status = await _transfers.ExecuteAsync(
                 legs,
                 "market.buy",
-                async (unit, token) =>
+                (unit, token) =>
                 {
-                    MarketListing? tracked = await unit.Repository<MarketListing>().FindAsync(listingId, token).ConfigureAwait(false);
-                    if (tracked is null || tracked.Status != ListingStatus.Active)
-                    {
-                        refusal = MarketStatus.ListingGone;
-                        return TransferStatus.Refused;
-                    }
-
+                    unit.Repository<MarketListing>().Update(row, nameof(MarketListing.Status), nameof(MarketListing.BuyerId), nameof(MarketListing.ClosedAt));
                     DateTimeOffset soldAt = _time.GetUtcNow();
-                    tracked.Status = ListingStatus.Sold;
-                    tracked.BuyerId = buyerId;
-                    tracked.ClosedAt = soldAt;
+                    row.Status = ListingStatus.Sold;
+                    row.BuyerId = buyerId;
+                    row.ClosedAt = soldAt;
 
                     // The sale joins the price history of its item in the same transaction (docs/adr/ADR-030 D4).
                     unit.Repository<MarketSale>().Add(new MarketSale
                     {
-                        ItemId = tracked.ItemId,
-                        Quantity = tracked.Quantity,
-                        Price = tracked.Price,
-                        UnitPrice = PriceHistoryRules.UnitPrice(tracked.Price, tracked.Quantity),
+                        ItemId = row.ItemId,
+                        Quantity = row.Quantity,
+                        Price = row.Price,
+                        UnitPrice = PriceHistoryRules.UnitPrice(row.Price, row.Quantity),
                         Day = _calendar.DayNumberAt(soldAt.ToUnixTimeMilliseconds()),
                         SoldAt = soldAt,
                     });
-                    return TransferStatus.Ok;
+                    return Task.FromResult(TransferStatus.Ok);
                 },
                 cancellationToken).ConfigureAwait(false);
             if (status == TransferStatus.Ok)
@@ -290,7 +287,7 @@ public sealed class MarketService : IMarketService
                 await this.NotifySoldAsync(listing, proceeds).ConfigureAwait(false);
             }
 
-            return status == TransferStatus.Refused ? refusal : ToStatus(status);
+            return ToStatus(status);
         }
     }
 
@@ -344,7 +341,7 @@ public sealed class MarketService : IMarketService
     }
 
     /// <inheritdoc/>
-    public async Task<ListingsPageView> BrowseAsync(int page, IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken = default)
+    public async Task<ListingsPageView> BrowseAsync(int page, IReadOnlyCollection<int> itemIds, MarketSort sort = MarketSort.Newest, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(itemIds);
 
@@ -357,12 +354,30 @@ public sealed class MarketService : IMarketService
         {
             IRepository<MarketListing> listings = unit.Repository<MarketListing>();
             int total = await listings.CountAsync(l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)), cancellationToken).ConfigureAwait(false);
-            List<MarketListing> rows = await listings.PageAsync(
-                l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
-                l => l.CreatedAt,
-                index * CoinRules.ListingsPerPage,
-                CoinRules.ListingsPerPage,
-                cancellationToken).ConfigureAwait(false);
+
+            // The repository pages newest-key first. A unit price lowest-first page sorts on the negated unit price, so the same descending page gives the ascending order.
+            int skip = index * CoinRules.ListingsPerPage;
+            List<MarketListing> rows = sort switch
+            {
+                MarketSort.UnitPriceLowest => await listings.PageAsync(
+                    l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
+                    l => -((double)l.Price / l.Quantity),
+                    skip,
+                    CoinRules.ListingsPerPage,
+                    cancellationToken).ConfigureAwait(false),
+                MarketSort.UnitPriceHighest => await listings.PageAsync(
+                    l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
+                    l => (double)l.Price / l.Quantity,
+                    skip,
+                    CoinRules.ListingsPerPage,
+                    cancellationToken).ConfigureAwait(false),
+                _ => await listings.PageAsync(
+                    l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
+                    l => l.CreatedAt,
+                    skip,
+                    CoinRules.ListingsPerPage,
+                    cancellationToken).ConfigureAwait(false),
+            };
             return new ListingsPageView(now, index, total, await this.ViewsAsync(rows, cancellationToken).ConfigureAwait(false));
         }
     }

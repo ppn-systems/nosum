@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Nosum.Contracts.Placeable;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.ViewModels.Resources;
@@ -70,5 +71,108 @@ public sealed class PlacementViewModelTests
         {
             CultureInfo.CurrentUICulture = previous;
         }
+    }
+    [Fact]
+    public void PlaceRequest_IsCollectedLikeTheOtherRequests()
+    {
+        PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());
+
+        vm.Request(PlacementRequests.Place);
+
+        vm.TakeRequests().Should().Be(PlacementRequests.Place);
+        vm.TakeRequests().Should().Be(PlacementRequests.None);
+    }
+
+    [Fact]
+    public void NoticeText_ShowsTheReasonAnInvalidGhostCannotBePlaced_AndNothingWhenValidOrHidden()
+    {
+        CultureInfo previous = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("en");
+            PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());
+
+            vm.SetGhost(shown: true, PlaceStatus.Blocked, confirmingBuild: false);
+            vm.NoticeText.Should().Be("Something is in the way.");
+            vm.NoticeIsError.Should().BeTrue();
+
+            vm.SetGhost(shown: true, PlaceStatus.Ok, confirmingBuild: false);
+            vm.NoticeText.Should().BeNull();
+            vm.NoticeIsError.Should().BeFalse();
+
+            vm.SetGhost(shown: false, PlaceStatus.Blocked, confirmingBuild: true);
+            vm.NoticeText.Should().BeNull();
+            vm.GhostStatus.Should().Be(PlaceStatus.Ok);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
+    [Fact]
+    public void NoticeText_AsksForASecondPressWhileABuildingIsConfirmed()
+    {
+        CultureInfo previous = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("en");
+            PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());
+            int changed = 0;
+            vm.Changed += () => changed++;
+
+            vm.SetGhost(shown: true, PlaceStatus.Ok, confirmingBuild: true);
+
+            vm.ConfirmingBuild.Should().BeTrue();
+            vm.NoticeIsError.Should().BeFalse();
+            vm.NoticeText.Should().Contain("Press E again");
+            vm.SetGhost(shown: true, PlaceStatus.Ok, confirmingBuild: true);
+            changed.Should().Be(1, "an unchanged ghost raises nothing");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
+    [Theory]
+    [InlineData("en", "Nothing in front of you to stow.")]
+    [InlineData("vi", "Không có gì phía trước để cất.")]
+    public void NoticeText_SaysNothingToStowWhileTheNoteIsShown_InEachLanguage(string culture, string expected)
+    {
+        CultureInfo previous = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo(culture);
+            PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());
+
+            vm.SetStowMissed(true);
+
+            vm.StowMissed.Should().BeTrue();
+            vm.NoticeText.Should().Be(expected);
+            vm.NoticeIsError.Should().BeFalse("a stow with nothing to take is a note, not a warning");
+
+            vm.SetStowMissed(false);
+            vm.NoticeText.Should().BeNull();
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
+    [Fact]
+    public void SetStowMissed_RaisesChangedOnlyWhenTheNoteChanges()
+    {
+        PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());
+        int changed = 0;
+        vm.Changed += () => changed++;
+
+        vm.SetStowMissed(false);
+        vm.SetStowMissed(true);
+        vm.SetStowMissed(true);
+        vm.SetStowMissed(false);
+
+        changed.Should().Be(2);
     }
 }

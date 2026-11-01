@@ -86,13 +86,13 @@ Clients built for 21 misread the reply and the status, so they ship with the ser
 
 ## Backlog, ranked by how much play it would change
 
-Round two (branch `claude/farming-round2`, ADR-089, protocol 30):
+Round two (branch `claude/farming-round2`, ADR-094, protocol 31):
 
-1. **Done.** Harvest along a line with the scythe: `ToolRules.ScytheAreaLength` (three at basic) and a trailing harvest for the scythe only (ADR-089 D1).
-2. **Done.** An unripe crop names the days left: `UseItemResult.DaysLeft`, the words in `Farm_Status_NotMatureDays` / `…OneDay` (ADR-089 D2).
+1. **Done.** Harvest along a line with the scythe: `ToolRules.ScytheAreaLength` (three at basic) and a trailing harvest for the scythe only (ADR-094 D1).
+2. **Done.** An unripe crop names the days left: `UseItemResult.DaysLeft`, the words in `Farm_Status_NotMatureDays` / `…OneDay` (ADR-094 D2).
 3. **Done.** The action key's harvest with another item in hand says so on the message line (`Farm_ActionKeyHarvested`).
 4. **Done.** Hovering a crop names its growth stage on the message line (`Farm_Hover_Stage`, `FarmRules.StageAt`). Sprinklers beside the tile are not counted in the hover, so a sprinkler-watered crop can show one stage behind.
 5. **Done.** The reticle draws the whole line of a wide hoe, can or scythe, engine-drawn (`FarmDecorator`).
-6. **Done.** The watering check is `FarmRules.WaterVerdict`, called by the server and the reticle (ADR-089 D3).
+6. **Done.** The watering check is `FarmRules.WaterVerdict`, called by the server and the reticle (ADR-094 D3).
 7. **Open, an owner decision.** Phones: the device policy or ui-standard section 6 (see the finding above).
 8. **Browser scripts**: see the note under "The QA hook".

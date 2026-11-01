@@ -38,6 +38,7 @@
                     <div class="member-row">
                         <span class="member-name">@member.Label</span>
                         <span class="member-role">@member.RoleText</span>
+                        <span class="member-gave">@(member.Deposited > 0 ? Vm.Text("Coop_Contrib_Row", member.Deposited) : string.Empty)</span>
                         <span class="member-online @(member.Online ? "on" : null)">@(member.Online ? Vm.Text("Coop_Online") : Vm.Text("Coop_Offline"))</span>
                         <span class="member-action">
                             @if (member.CanKick)
@@ -47,6 +48,7 @@
                         </span>
                     </div>
                 }
+                <p class="coop-empty">@Vm.Text("Coop_Contrib_Window", Vm.LogWindow)</p>
                 <GameRow Class="spread">
                     @if (Vm.IsFounder)
                     {

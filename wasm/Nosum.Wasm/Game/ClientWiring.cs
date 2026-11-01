@@ -119,6 +119,7 @@ internal static class ClientWiring
         services.AddSingleton(sp => new ProgressChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton(sp => new CombatChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton<QuestChannel>();
+        services.AddSingleton<QuestWaypointViewModel>();
         services.AddSingleton<WalletChannel>();
         services.AddSingleton<CalendarChannel>();
         services.AddSingleton(sp => new EmoteChannel(sp.GetRequiredService<IGameSocket>()));
@@ -227,7 +228,8 @@ internal static class ClientWiring
             sp.GetRequiredService<IRememberedSessionStore>(),
             sp.GetRequiredService<IStringLocalizer<Language>>(),
             TimeProvider.System));
-        services.AddTransient<AccountFormViewModel>();
+        // One instance for the whole client: the start screen signs the guest in, and the game menu (Profile, Settings) must see that session.
+        services.AddSingleton<AccountFormViewModel>();
         services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());
@@ -259,6 +261,7 @@ internal static class ClientWiring
         GameLoop.UseFarming(farm, inventory, market);
         GameLoop.UseCoop(coop);
         GameLoop.UseProgress(services.GetRequiredService<ProgressChannel>());
+        GameLoop.UseQuestWaypoint(services.GetRequiredService<QuestWaypointViewModel>());
         CombatChannel combat = services.GetRequiredService<CombatChannel>();
         GameLoop.UseCombat(combat, services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(services.GetRequiredService<CalendarChannel>());
@@ -293,6 +296,10 @@ internal static class ClientWiring
         keeper.Authenticated += services.GetRequiredService<MailChannel>().Load;
         keeper.Authenticated += combat.LoadVitals;
         keeper.Authenticated += pets.Load;
+
+        // A map change (a ride, a warp, a knock-out carried home) ends the elevator picker: it never covers the map the player is now on.
+        ElevatorViewModel elevator = services.GetRequiredService<ElevatorViewModel>();
+        channel.Joined += _ => elevator.Close();
 
         channel.Joined += _ =>
         {

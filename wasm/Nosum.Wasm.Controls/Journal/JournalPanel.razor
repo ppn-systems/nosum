@@ -6,6 +6,11 @@
 @* The collection journal (J): every item of the catalogue. The ones the farmer has obtained show their picture, count and first date; the rest are silhouettes. *@
 <MenuPage>
     <p class="journal-summary">@Vm.Text("Journal_Summary", Vm.Discovered, JournalViewModel.Total)</p>
+    <div class="journal-filters">
+        <GameButton Variant="tab" Active="@(Vm.Filter == JournalFilter.All)" Text="@Vm.Text("Journal_Filter_All")" OnClick="@(() => Vm.SetFilter(JournalFilter.All))" />
+        <GameButton Variant="tab" Active="@(Vm.Filter == JournalFilter.Found)" Text="@Vm.Text("Journal_Filter_Found")" OnClick="@(() => Vm.SetFilter(JournalFilter.Found))" />
+        <GameButton Variant="tab" Active="@(Vm.Filter == JournalFilter.Missing)" Text="@Vm.Text("Journal_Filter_Missing")" OnClick="@(() => Vm.SetFilter(JournalFilter.Missing))" />
+    </div>
     <div class="journal-grid">
         @foreach (JournalCell cell in Vm.PageCells())
         {
@@ -14,10 +19,10 @@
             </div>
         }
     </div>
-    @if (JournalViewModel.PageCount > 1)
+    @if (Vm.PageCount > 1)
     {
-        <Pager Page="Vm.Page" PageCount="JournalViewModel.PageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
-               PositionText="@Vm.Text("Pager_Position", Vm.Page + 1, JournalViewModel.PageCount)" OnPage="@(p => Vm.GoToPage(p))" />
+        <Pager Page="Vm.Page" PageCount="Vm.PageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
+               PositionText="@Vm.Text("Pager_Position", Vm.Page + 1, Vm.PageCount)" OnPage="@(p => Vm.GoToPage(p))" />
     }
 </MenuPage>
 

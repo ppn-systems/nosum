@@ -140,3 +140,21 @@ Amends A2: the Town's one general store is now three shops, each one catalogue e
   sets only `Vm` and `ShopId`. The action key next to any counter opens the matching shop.
 - **Open owner questions:** the big-box store stand-in for furniture (its name is early art, not Nosum branding); shop names for the final art; whether
   the clothing shop should move closer to the farm entrance.
+
+### 2026-11-01 - browse order, unit prices, the sale's reads (economy rebuild)
+
+- **A6 - Browse order.** The market page is ordered by **newest** (the default), **lowest price per unit** or **highest price per unit**. A stack of five at 300 coins is
+  60 each, and it is compared with a stack of three at 75 (25 each), so the order is by what one unit costs, not by the total. `BrowseListings` gains `SortBy`
+  (`MarketSort` value, appended; `NosumProtocol.Version` 29); an unknown value reads as newest, and the handler clamps it. Paging and the item filter are unchanged.
+  The server pages by the same repository call with a negated key for the ascending order, so no query shape is new.
+- **A7 - Prices per unit.** Each listing of more than one unit shows its total and the price per unit (`Market_Price_Each`). The sell form shows what the shipping bin
+  pays for the picked stack (`Market_BinHint`, from the bin's own table, `ShippingPrices`); the bin is a reference, not a cap, and the server still sets nothing but the rules.
+- **A8 - The listing's confirmation.** A listing that was saved says what was listed, the price, and what the seller receives after the market fee (`Market_Done_CreateDetail`).
+  Before this change it said only "Listed for sale." The fee and the proceeds are `CoinRules`' numbers, shown, not decided by the client.
+- **A9 - The sale reads each row once.** A purchase reads the listing once, under the listing lock (as before), and saves it with its `Active` status as the
+  concurrency token: the save is a compare-and-set, so a row another process closed fails the save with `Conflict` (nothing moves; the client asks again) instead of selling
+  twice. The enlisted transfer no longer reads the listing a second time. The two wallets of a transfer are read in one query (`TransferService.WalletsAsync`, for every
+  transfer). `BuyListing` drops from 6 reads to 4 (docs/adr/ADR-035 amendment 2026-11-01). Its behaviour is unchanged: exactly one of two buyers succeeds, and the
+  other gets `ListingGone`, because the in-process lock orders them before the save.
+- **Not changed:** the fee (5 %, destroyed), the 48-hour listing time, the 20-listing limit, the confirm for a stack of ten or more (the sell side only). The buy side has no
+  confirm for a big purchase; that is an owner question, not a data change.

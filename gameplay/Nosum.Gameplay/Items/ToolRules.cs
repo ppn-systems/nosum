@@ -41,7 +41,7 @@ public static class ToolRules
     public static int AreaLength(ToolTier tier) => (2 * (int)tier) + 1;
 
     /// <summary>
-    /// Returns the longest line the scythe works in one swing: three tiles at basic, five at copper and iron (docs/adr/ADR-089 D1). The scythe has
+    /// Returns the longest line the scythe works in one swing: three tiles at basic, five at copper and iron (docs/adr/ADR-094 D1). The scythe has
     /// no blacksmith upgrade today, so basic is the only tier in play; the higher rows are there for a later upgrade, which needs no rule change.
     /// </summary>
     /// <param name="tier">The scythe's tier.</param>
@@ -63,7 +63,7 @@ public static class ToolRules
     };
 
     /// <summary>
-    /// Whether a swing along a line also harvests a ripe crop on its trailing tiles (docs/adr/ADR-089 D1). Only the scythe does: a hoe or a
+    /// Whether a swing along a line also harvests a ripe crop on its trailing tiles (docs/adr/ADR-094 D1). Only the scythe does: a hoe or a
     /// watering can passing a ripe crop leaves it alone, so tilling a row never harvests by accident.
     /// </summary>
     /// <param name="tool">The tool kind.</param>
