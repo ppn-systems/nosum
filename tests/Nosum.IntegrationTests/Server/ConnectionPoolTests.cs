@@ -39,7 +39,7 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
     public async Task ConnectDisconnectCycles_DoNotGrowTheOpenConnections()
     {
         await RunBurstAsync(this._database);
-        int baseline = await this.OpenConnectionsAsync();
+        int baseline = await this.SettledOpenConnectionsAsync();
 
         for (int i = 0; i < Cycles; i++)
         {
@@ -47,7 +47,7 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
             _ = await context.Database.ExecuteSqlRawAsync("SELECT 1");
         }
 
-        int after = await this.OpenConnectionsAsync();
+        int after = await this.SettledOpenConnectionsAsync();
         after.Should().BeLessThanOrEqualTo(baseline, "a connect and disconnect cycle reuses a pooled connection and opens no new one");
         after.Should().BeLessThanOrEqualTo(NosumDatabase.MaxPoolSize, "the pool never goes past its cap");
     }
@@ -59,6 +59,21 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
     {
         await using NosumDbContext context = new(database.Options);
         _ = await context.Database.ExecuteSqlRawAsync("SELECT pg_sleep(0.2)");
+    }
+
+    // Reads the open count until it stops moving: a pooled connection can still be finishing its reset when the first read happens.
+    private async Task<int> SettledOpenConnectionsAsync()
+    {
+        int previous = -1;
+        int current = await this.OpenConnectionsAsync();
+        for (int i = 0; i < 20 && current != previous; i++)
+        {
+            await Task.Delay(100);
+            previous = current;
+            current = await this.OpenConnectionsAsync();
+        }
+
+        return current;
     }
 
     // Client backends opened by this fixture's connections (its application name), not counting the connection that asks. Other test classes

@@ -378,8 +378,9 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
         switch (reply.Status)
         {
             case FishingStatus.Ok when reply.ItemId > 0:
+                // The catch card names the fish, so the banner asks for the next cast instead of repeating the catch (docs/qa/combat-round5).
                 _catch = this.CatchOf(reply);
-                this.Finish(string.Format(CultureInfo.CurrentCulture, this.Text("Fishing_Caught"), _items.NameOf(reply.ItemId)));
+                this.Finish(this.Text("Fishing_CastAgain"));
                 break;
             case FishingStatus.Ok:
             case FishingStatus.Nothing:

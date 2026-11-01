@@ -36,7 +36,7 @@ internal static partial class QaEntry
               frameBodyBytes: () => dev.FrameBodyBytes(),
               frameBodyFrames: () => dev.FrameBodyFrames(),
               springReset: () => dev.ToSpring(),
-              teleportToMonster: mapId => dev.TeleportToMonster(mapId),
+              teleportToMonster: (mapId, dx = 0, dy = 0) => dev.TeleportToMonster(mapId, dx, dy),
             });
           } catch (error) {
             // The hook is a tester aid: a failure here must not take the game down with it.
