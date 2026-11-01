@@ -1,4 +1,4 @@
-// The round 3 check of the quest waypoint, the merchant's quest greeting, the name plate lift and the hint's idle wait (docs/adr/ADR-095,
+// The round 3 check of the quest waypoint, the merchant's quest greeting, the name plate lift and the hint's idle wait (docs/adr/ADR-096,
 // amending ADR-093; docs/design/critique-npc-hud.md). Vietnamese and English, at 1280x720, 1920x1080 and 390x844 (an iPhone 14 profile).
 // Needs the Development host on PostgreSQL (role nosum, database nosum_dev) and a client published with -p:NosumDevTools=true, served at the base URL.
 // The quest stage is set in the database (the tester's shortcut, as the browser acceptance runs do): the server reads quests at sign-in, so each stage
@@ -148,7 +148,7 @@ async function hintIdleWait(page) {
   return { hintOnScreenDuringHold: duringHold > 0, msFromReleaseToHint: appeared };
 }
 
-// Measures the zero-allocation frame: bytes allocated by the page over a few seconds of held input (ADR-095 D4).
+// Measures the zero-allocation frame: bytes allocated by the page over a few seconds of held input (ADR-096 D4).
 async function allocationPerSecond(page) {
   const sample = async (hold) => {
     const before = await page.evaluate(() => globalThis.nosumQa.allocatedBytes());

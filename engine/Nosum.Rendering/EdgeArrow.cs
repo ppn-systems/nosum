@@ -92,7 +92,7 @@ public static class EdgeArrow
     /// <param name="colour">Colour as <c>0xRRGGBBAA</c>.</param>
     /// <param name="shadow">Shadow colour as <c>0xRRGGBBAA</c>.</param>
     /// <remarks>
-    /// The renderer places the arrow off the HUD (docs/adr/ADR-095 D2): it slides the arrow along its edge until no HUD region covers it, and draws it
+    /// The renderer places the arrow off the HUD (docs/adr/ADR-096 D2): it slides the arrow along its edge until no HUD region covers it, and draws it
     /// there. The shadow command comes first, since the renderer places the arrow from it. The arrow is not drawn when no place on its edge is clear.
     /// </remarks>
     public static void Draw(RenderCommandBuffer commands, in EdgeArrowPlacement placement, int colour, int shadow)

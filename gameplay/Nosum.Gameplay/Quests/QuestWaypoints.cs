@@ -94,7 +94,7 @@ public static class QuestWaypoints
         }
 
         // The Forest's place is the tree nearest its arrival (Forest.tmx, Paths layer, tile 11), and the Mine's is the cave shaft down to the ore
-        // (MineWorld.CaveShaft): the spawn tile is not where a player chops or mines (ADR-095 D1). Ore lies on the floors below, which are generated per player.
+        // (MineWorld.CaveShaft): the spawn tile is not where a player chops or mines (ADR-096 D1). Ore lies on the floors below, which are generated per player.
         foreach ((string placeKey, string mapId, (int X, int Y) node) in new[]
                  {
                      (GameMaps.Forest, GameMaps.Forest, (65, 9)),

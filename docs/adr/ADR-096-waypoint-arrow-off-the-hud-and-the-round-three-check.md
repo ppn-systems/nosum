@@ -1,4 +1,4 @@
-# ADR-095: The quest waypoint arrow stays off the HUD, the waypoints point at the nodes, and the hint's idle count costs nothing per frame
+# ADR-096: The quest waypoint arrow stays off the HUD, the waypoints point at the nodes, and the hint's idle count costs nothing per frame
 
 ## Status
 

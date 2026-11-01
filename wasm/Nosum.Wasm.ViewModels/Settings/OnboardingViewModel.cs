@@ -179,7 +179,7 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
     {
         if (_pending)
         {
-            // Only the time is kept: the frame calls this every frame the player is giving input, so it must not start a timer (ADR-095 D3).
+            // Only the time is kept: the frame calls this every frame the player is giving input, so it must not start a timer (ADR-096 D3).
             _activeAt = _time.GetTimestamp();
         }
     }
