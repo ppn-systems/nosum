@@ -23,7 +23,8 @@ function wantsEnter(target) {
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A" || target.isContentEditable) {
         return false;
     }
-    if (typeof document !== "undefined" && document.querySelector("[role='dialog'], .hud-center > *, .hud-overlay > *")) {
+    // The emote layer sits in the overlay region all the time (it draws nothing until the wheel opens), so it does not count as a dialog.
+    if (typeof document !== "undefined" && document.querySelector("[role='dialog'], .hud-center > *, .hud-overlay > :not(.emote-layer)")) {
         return false;
     }
     return true;

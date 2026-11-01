@@ -18,6 +18,12 @@
             <GameButton Variant="primary" Class="touch-use" data-touch-edge="1" aria-label="@UseLabel" tabindex="-1" Text="@UseText" />
             @* The run toggle (docs/adr/ADR-085 D3): latched on and off by the page script (data-touch-run); it reads as pressed in aria-pressed. *@
             <GameButton Variant="secondary" Class="touch-run" data-touch-run="" aria-label="@RunLabel" aria-pressed="false" tabindex="-1" Text="@RunText" />
+            @* Phones have no Enter key, so the chat line opens from this button (docs/adr/ADR-029 D7). A tap is one call into .NET; it is not a touch
+               held down, so the page script leaves it alone. Shown only where the keyboard Enter would open the box. *@
+            @if (ChatEnabled)
+            {
+                <GameButton Variant="secondary" Class="touch-chat" aria-label="@ChatLabel" tabindex="-1" Text="@ChatText" OnClick="OnChat" />
+            }
         }
     </div>
 }
@@ -40,4 +46,16 @@
 
     /// <summary>Whether the use button is hidden (a merchant's dialog box is open and covers its corner).</summary>
     [Parameter] public bool Hidden { get; set; }
+
+    /// <summary>The text on the chat button (already localized).</summary>
+    [Parameter] public string ChatText { get; set; } = string.Empty;
+
+    /// <summary>The accessible name of the chat button (already localized).</summary>
+    [Parameter] public string ChatLabel { get; set; } = string.Empty;
+
+    /// <summary>Whether the chat button is shown: true where the keyboard Enter would open the chat box.</summary>
+    [Parameter] public bool ChatEnabled { get; set; }
+
+    /// <summary>Called on a tap of the chat button: opens the chat box.</summary>
+    [Parameter] public EventCallback OnChat { get; set; }
 }

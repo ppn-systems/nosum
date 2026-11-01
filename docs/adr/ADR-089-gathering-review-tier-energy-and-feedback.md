@@ -66,3 +66,23 @@ A review of woodcutting, mining and foraging, the blacksmith and the skill level
 - **A hit bar drawn as text or a crack sprite.** Text is a second font on the map, and a crack needs new art. The bar uses an existing primitive.
 - **A tier discount for the hoe and the can as well.** Their tier is a longer line, and the line is already the benefit; a second benefit would be a
   retune with no data behind it. Left for a later ADR.
+
+## Amendments
+
+### 2026-11-01 — round 2: XP floaters, the singular tooltip, and no number change (critique-gathering.md G3, G5, G6, G9)
+
+- **D5 — An XP floater shows the experience a gathering swing gave.** A swing that the server answers as a hit on a standing node (`Hit`) or as the
+  breaking hit (`Broke`) shows a green "+N XP" label above the tile for 0.9 s, above the energy "-N" label, and rises 14 px (none with reduced
+  motion). The amount is predicted by `SkillRules.GatherXp(kind, broke)`: the hit experience (`HitXp`, 1) or the break experience of the node kind
+  (`BreakXp`). It is the same rule as the server charge, so the label cannot show a number the server did not give. The client reads the node kind
+  from the node list at the press (one tile, no wide use); a use that the server refuses shows nothing. The labels are interned once in
+  `CombatLabels` (`Gather_Label_Xp`, "+{0} XP" in both languages), so the frame allocates nothing. No wire change. This closes G3's XP part; the
+  level-up banner part stays as D3 says.
+- **D4 amended — the plural.** A one-tile line reads "Area: 1 tile in a line" (`Tooltip_Area_One`, Vietnamese "1 ô liền nhau", which has no plural
+  form). Lines of two or more keep `Tooltip_Area`. The choice is made in `ItemTooltip` on the count, the same `_One` key pattern as
+  `Farm_Thirsty_Morning_One`.
+- **D6 — No base number changes in round 2.** The critique recommends no retune. G5 (a tree seed takes about three real days to grow) and G6 (the
+  hoe and can get no energy discount) both wait for a playtest on the new build, as D5 of this ADR already said. G9 (the tooltip says "about ten
+  swings" for a tree that takes 12 accepted swings with the stump, measured) is close enough to leave. The flag in critique section 4 (at level 8
+  the iron and basic axes both cost one energy) is recorded for a later balance ADR, not changed here. Tier energy values stay as D1 set them.
+

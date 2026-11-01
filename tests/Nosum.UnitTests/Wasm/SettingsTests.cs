@@ -6,6 +6,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -158,13 +160,126 @@ public sealed class SettingsTests
         vm.CapOf(GameAction.Rotate).Should().Be("K");
     }
 
+    // A clock whose timers fire when the test moves it on, so the hint timing is exact and needs no real wait.
+    private sealed class ScheduledTime : TimeProvider
+    {
+        private readonly List<ScheduledTimer> _timers = [];
+        private TimeSpan _now;
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            ScheduledTimer timer = new(this, callback, state, _now + dueTime);
+            _timers.Add(timer);
+            return timer;
+        }
+
+        public void Advance(TimeSpan by)
+        {
+            _now += by;
+            foreach (ScheduledTimer timer in _timers.ToArray())
+            {
+                if (timer.Due is { } due && due <= _now)
+                {
+                    timer.Due = null;
+                    timer.Fire();
+                }
+            }
+        }
+
+        public void Forget(ScheduledTimer timer) => _timers.Remove(timer);
+
+        public sealed class ScheduledTimer : ITimer
+        {
+            private readonly ScheduledTime _owner;
+            private readonly TimerCallback _callback;
+            private readonly object? _state;
+
+            public ScheduledTimer(ScheduledTime owner, TimerCallback callback, object? state, TimeSpan due)
+            {
+                _owner = owner;
+                _callback = callback;
+                _state = state;
+                this.Due = due;
+            }
+
+            public TimeSpan? Due { get; set; }
+
+            public void Fire() => _callback(_state);
+
+            public bool Change(TimeSpan dueTime, TimeSpan period)
+            {
+                this.Due = dueTime == Timeout.InfiniteTimeSpan ? null : _owner.Now + dueTime;
+                return true;
+            }
+
+            public void Dispose() => _owner.Forget(this);
+
+            public ValueTask DisposeAsync()
+            {
+                this.Dispose();
+                return ValueTask.CompletedTask;
+            }
+        }
+
+        private TimeSpan Now => _now;
+    }
+
+    [Fact]
+    public void Hints_WaitForAnIdleMoment_AndFadeAfterTheirTime()
+    {
+        ScheduledTime clock = new();
+        using SettingsViewModel settings = new(Text(), new MemoryStore());
+        using OnboardingViewModel hints = new(settings, Text(), clock);
+        hints.Start();
+
+        hints.IsVisible.Should().BeFalse("the first hint waits for the player to be idle");
+        clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.IdleSeconds - 1));
+        hints.IsVisible.Should().BeFalse();
+
+        hints.NoteActivity();
+        clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.IdleSeconds - 1));
+        hints.IsVisible.Should().BeFalse("input during the wait starts the idle count again");
+
+        clock.Advance(TimeSpan.FromSeconds(1));
+        hints.IsVisible.Should().BeTrue();
+        hints.Hint.Should().Contain("W");
+
+        clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.HintSeconds));
+        hints.IsVisible.Should().BeFalse("the hint fades after its time");
+    }
+
+    [Fact]
+    public void Hints_NextHintComesAfterTheStepIsDoneAndTheIdleMoment()
+    {
+        ScheduledTime clock = new();
+        using SettingsViewModel settings = new(Text(), new MemoryStore());
+        using OnboardingViewModel hints = new(settings, Text(), clock);
+        hints.Start();
+        clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.IdleSeconds));
+        hints.IsVisible.Should().BeTrue();
+
+        // The player is walking: the step is not done yet, so nothing new comes up.
+        hints.Signal(TutorialStep.Use);
+        hints.IsVisible.Should().BeTrue("the walk hint is still the current one");
+
+        // The walk is done: the next hint waits for the player to stop giving input.
+        hints.Signal(TutorialStep.Move);
+        hints.IsVisible.Should().BeFalse("the next hint is not shown while the player is still acting");
+        hints.NoteActivity();
+        clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.IdleSeconds));
+        hints.IsVisible.Should().BeTrue();
+        hints.Current.Should().Be(TutorialStep.Town);
+    }
+
     [Fact]
     public void Hints_FollowTheStepsInOrderAndAreShownOnce()
     {
         MemoryStore store = new();
+        ScheduledTime clock = new();
         using SettingsViewModel settings = new(Text(), store);
-        using OnboardingViewModel hints = new(settings, Text());
+        using OnboardingViewModel hints = new(settings, Text(), clock);
         hints.Start();
+        clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.IdleSeconds));
 
         hints.Current.Should().Be(TutorialStep.Move);
         hints.IsVisible.Should().BeTrue();
@@ -179,7 +294,7 @@ public sealed class SettingsTests
         hints.IsVisible.Should().BeFalse();
 
         using SettingsViewModel again = new(Text(), store);
-        using OnboardingViewModel next = new(again, Text());
+        using OnboardingViewModel next = new(again, Text(), clock);
         next.Start();
         next.Current.Should().Be(TutorialStep.Town, "the finished steps are remembered on this browser");
     }
@@ -187,14 +302,16 @@ public sealed class SettingsTests
     [Fact]
     public void Hints_TurnedOffOrFinished_ShowNothing()
     {
+        ScheduledTime clock = new();
         using SettingsViewModel settings = new(Text(), new MemoryStore());
-        using OnboardingViewModel hints = new(settings, Text());
+        using OnboardingViewModel hints = new(settings, Text(), clock);
         hints.Start();
 
         settings.SetTutorialEnabled(false);
         hints.IsVisible.Should().BeFalse();
 
         settings.RestartTutorial();
+        clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.IdleSeconds));
         hints.IsVisible.Should().BeTrue();
         foreach (TutorialStep step in Enum.GetValues<TutorialStep>())
         {

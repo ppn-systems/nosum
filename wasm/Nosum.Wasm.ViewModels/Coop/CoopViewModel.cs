@@ -25,7 +25,8 @@ namespace Nosum.Wasm.ViewModels.Coop;
 /// <param name="IsMe">Whether this is the player.</param>
 /// <param name="Online">Whether the member is connected.</param>
 /// <param name="CanKick">Whether the player may remove this member.</param>
-public sealed record MemberDisplay(Guid MemberId, string Label, string RoleText, bool IsMe, bool Online, bool CanKick);
+/// <param name="Deposited">The items the member deposited in the recent log (0 when none).</param>
+public sealed record MemberDisplay(Guid MemberId, string Label, string RoleText, bool IsMe, bool Online, bool CanKick, int Deposited);
 
 /// <summary>One warehouse row of the co-op panel.</summary>
 /// <param name="Item">The stack for the slot control (index is the item id).</param>
@@ -143,13 +144,20 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         get
         {
             List<MemberDisplay> members = [];
+            Dictionary<Guid, int> deposited = [];
+            foreach (CoopContributionTotal total in CoopContributions.Summarize(_coop.Current.Log))
+            {
+                deposited[total.MemberId] = total.Items;
+            }
+
             int number = 0;
             foreach (CoopMemberInfo member in _coop.Current.Members)
             {
                 number++;
                 string nickname = _names.Display(member.Nickname);
                 string label = member.IsMe ? this.Text("Coop_You") : nickname.Length > 0 ? nickname : this.Text("Coop_MemberNumber", number);
-                members.Add(new MemberDisplay(member.MemberId, label, this.Text("Coop_Role_" + member.Role), member.IsMe, member.Online, this.IsFounder && !member.IsMe));
+                int items = deposited.TryGetValue(member.MemberId, out int known) ? known : 0;
+                members.Add(new MemberDisplay(member.MemberId, label, this.Text("Coop_Role_" + member.Role), member.IsMe, member.Online, this.IsFounder && !member.IsMe, items));
             }
 
             return members;
@@ -229,20 +237,16 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets how many warehouse log entries the server sent, which is the window the contribution totals cover.</summary>
+    public int LogWindow => _coop.Current.Log.Count;
+
     /// <summary>Gets the warehouse log lines as localized text, newest first.</summary>
     public IReadOnlyList<string> Log
     {
         get
         {
             List<string> lines = [];
-            Dictionary<Guid, string> names = [];
-            int n = 0;
-            foreach (CoopMemberInfo member in _coop.Current.Members)
-            {
-                n++;
-                string nickname = _names.Display(member.Nickname);
-                names[member.MemberId] = nickname.Length > 0 ? nickname : this.Text("Coop_MemberNumber", n);
-            }
+            Dictionary<Guid, string> names = this.MemberNames();
 
             foreach (CoopLogInfo entry in _coop.Current.Log)
             {
@@ -253,6 +257,21 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
 
             return lines;
         }
+    }
+
+    // The name of each member as the lines show it (a member without a nickname is numbered by the order of the list).
+    private Dictionary<Guid, string> MemberNames()
+    {
+        Dictionary<Guid, string> names = [];
+        int n = 0;
+        foreach (CoopMemberInfo member in _coop.Current.Members)
+        {
+            n++;
+            string nickname = _names.Display(member.Nickname);
+            names[member.MemberId] = nickname.Length > 0 ? nickname : this.Text("Coop_MemberNumber", n);
+        }
+
+        return names;
     }
 
     /// <summary>Gets the inventory with the stack picked for deposit marked.</summary>

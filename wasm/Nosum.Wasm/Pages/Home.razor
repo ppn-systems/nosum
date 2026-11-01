@@ -108,9 +108,15 @@ else
 {
     <GameHud>
         <TopLeft>
-            @if (_started && _panel == PanelKind.None)
+            @if (_started && _panel == PanelKind.None && !Furniture.IsVisible)
             {
                 <QuestTracker Vm="Quest" />
+            }
+            @* The arrange mode's furniture panel docks in the top-left corner, where the quest card is (docs/design/ui-standard.md section 2): the room
+               stays open in the centre. It replaces the quest card while it is shown. *@
+            @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
+            {
+                <FurniturePanel Vm="Furniture" Placement="Placement" />
             }
         </TopLeft>
         <TopCenter>
@@ -132,11 +138,6 @@ else
             }
         </TopRight>
         <Center>
-            @* The arrange mode's furniture panel: a window in the centre, not a corner plaque (docs/design/ui-standard.md section 2). *@
-            @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
-            {
-                <FurniturePanel Vm="Furniture" Placement="Placement" />
-            }
             @* Every open panel is a standalone window of its own, never crammed into a shared multi-tab menu (docs/adr/ADR-044). *@
             @if (_started && _panel != PanelKind.None && !Form.ShowsForm)
             {
@@ -154,7 +155,11 @@ else
                 }
                 else
                 {
-                    <OnboardingHint Vm="Onboarding" />
+                    @* The first-run hint is a wide line over the bottom centre; while the furniture panel is open it would run into the panel's edge. *@
+                    @if (!Furniture.IsVisible)
+                    {
+                        <OnboardingHint Vm="Onboarding" />
+                    }
                     <FishingBanner Vm="Fishing" />
                     <GameMessage Vm="Messages" />
                     <Hotbar Vm="Inventory" Progress="Progress" />
@@ -202,6 +207,7 @@ else
             }
             <InviteOverlay Trade="Trade" Coop="Coop" ActivePanel="_panel" />
             <PetRehomeOverlay Vm="Pet" />
+            <MailDeleteOverlay Vm="Mail" />
             <PetPurchaseOverlay Vm="Carpenter" />
             <MarketBuyOverlay Vm="Market" />
             @if (_started && !Form.ShowsForm)
@@ -213,7 +219,8 @@ else
     </GameHud>
     @if (_started && _panel == PanelKind.None && !Form.ShowsForm)
     {
-        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" RunText="@Toolbar.Text("Touch_Run")" RunLabel="@Toolbar.Text("Touch_RunLabel")" Hidden="@(Npc.Stage != NpcStage.Closed)" />
+        <TouchControls Vm="AppSettings" StickLabel="@Toolbar.Text("Touch_Stick")" UseText="@Toolbar.Text("Touch_Use")" UseLabel="@Toolbar.Text("Touch_UseLabel")" RunText="@Toolbar.Text("Touch_Run")" RunLabel="@Toolbar.Text("Touch_RunLabel")" Hidden="@(Npc.Stage != NpcStage.Closed)"
+                       ChatText="@Toolbar.Text("Touch_Chat")" ChatLabel="@Toolbar.Text("Touch_ChatLabel")" ChatEnabled="@(!Form.ShowsForm && !Elevator.IsOpen && !IsInviteOpen())" OnChat="@(() => Chat.OpenInput())" />
     }
 }
 
@@ -258,6 +265,7 @@ else
         Trade.Changed += OnViewModelChanged;
         Coop.Changed += OnViewModelChanged;
         Mail.Changed += OnViewModelChanged;
+        Furniture.Changed += OnViewModelChanged;
         Chat.Changed += OnChatChanged;
     }
 
@@ -285,6 +293,7 @@ else
         Trade.Changed -= OnViewModelChanged;
         Coop.Changed -= OnViewModelChanged;
         Mail.Changed -= OnViewModelChanged;
+        Furniture.Changed -= OnViewModelChanged;
         Chat.Changed -= OnChatChanged;
     }
 

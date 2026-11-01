@@ -9,13 +9,14 @@
 
 .member-row {
     display: grid;
-    grid-template-columns: 1fr auto auto calc(var(--u) * 28);
+    grid-template-columns: 1fr auto auto auto calc(var(--u) * 28);
     gap: calc(var(--u) * 3);
     align-items: center;
     min-height: calc(var(--u) * 14);
 }
 
 .member-role,
+.member-gave,
 .member-online {
     color: var(--nosum-ink-soft);
 }
