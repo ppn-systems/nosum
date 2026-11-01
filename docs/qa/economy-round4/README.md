@@ -64,11 +64,14 @@ Section 6 (touch, 390×844): the list fits without scrolling. The row buttons ar
 
 ## Tests
 
-- Unit: `MarketSortPacketTests` (the field round-trips, the default is zero, protocol 33), `MarketSortViewModelTests` (`SetPageSize` asks for the rows
+- Unit: `MarketSortPacketTests` (the field round-trips, the default is zero, protocol 34), `MarketSortViewModelTests` (`SetPageSize` asks for the rows
   and clamps them; the same size asks nothing; `RowsThatFit` counts whole rows and gaps; `PageCount` counts in the size asked),
   `MarketBrowseOrderTests` (out-of-order replies).
 - Integration: `SocialServiceTests.Browse_PageSize_AsksForThatManyRowsAndClampsToTheLimit` (four rows asked, zero is ten, 500 is clamped to 20).
-- Builds: every `.slnx` in the repo, 0 warnings, 0 errors. `dotnet test tests/Nosum.Tests.slnx`: see the PR description for the counts.
+- Builds: every `.slnx` in the repo (`bench`, `contracts`, `engine`, `gameplay`, `server`, `tests`, `tools`, `wasm`), 0 warnings, 0 errors.
+- `dotnet test tests/Nosum.Tests.slnx` on the merged tree (this branch with `origin/master` 1b2df17, QA round 7): unit **3721 passed, 0 failed**;
+  integration **835 passed, 0 failed**.
+- The captures were taken from the merged build (the host and the client published from it), in the same run as the grading above.
 
 ## Open
 

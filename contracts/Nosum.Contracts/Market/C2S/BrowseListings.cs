@@ -31,7 +31,7 @@ public sealed partial class BrowseListings : PacketBase<BrowseListings>, IPacket
 
     /// <summary>
     /// Listings on the page: the rows the client's panel has room for (docs/adr/ADR-101 amendment 2026-11-01). Zero asks for the server's default (10);
-    /// a larger value is clamped to <see cref="WireLimits.MaxListingsPageSize"/>. Appended in protocol 33.
+    /// a larger value is clamped to <see cref="WireLimits.MaxListingsPageSize"/>. Appended in protocol 34.
     /// </summary>
     [WireRange(0, WireLimits.MaxListingsPageSize)]
     [SerializeOrder(3)] public int PageSize { get; set; }

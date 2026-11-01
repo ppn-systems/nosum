@@ -48,7 +48,7 @@ Section 6 item 7 of the critique: a seller cannot see when a listing ends (48 ho
 ## Amendment 2026-11-01 (round 4): the page size follows the window
 
 Resolves the open item "Not met: no inner scroll for a page of eight" above. The owner's decision (coordinator, round 4): keep the 14 u row buttons, and let the
-page size follow the room the panel has. Amends the wire (protocol 33) and the browse page of [ADR-013](ADR-013-economy-coins-escrow-market-trade.md). No button
+page size follow the room the panel has. Amends the wire (protocol 34) and the browse page of [ADR-013](ADR-013-economy-coins-escrow-market-trade.md). No button
 size and no panel size change; [`ui-standard.md`](../design/ui-standard.md) section 7, item 7 is met as written.
 
 - **D6 — The page is the rows that fit.** The Browse page asks for as many listings as the listing list has room for. The room is measured with the shop's
@@ -57,7 +57,7 @@ size and no panel size change; [`ui-standard.md`](../design/ui-standard.md) sect
   Browse tab (a new reply, a tab change, the open) and on a debounced window resize, never per frame. A new size reloads the first page; the same size asks
   nothing, so the render that follows measures to the same answer and stops.
 - **D7 — Wire: one field appended.** `BrowseListings.PageSize` (serialize order 3, `WireRange(0, 20)`; `WireLimits.MaxListingsPageSize` = 20). Zero is the
-  server's default, 10 (`CoinRules.ListingsPerPage`). The server clamps a larger value to 20 (`MarketService.BrowseAsync`). Protocol 33; no opcode changed.
+  server's default, 10 (`CoinRules.ListingsPerPage`). The server clamps a larger value to 20 (`MarketService.BrowseAsync`). Protocol 34 (33 is the QA friend, ADR-105); no opcode changed.
   Server and client ship together.
 - **D8 — Only the newest browse is shown.** `MarketChannel` drops a reply to an older browse. Before this round a late reply could put back a page of the
   old size after the panel had asked for a new one, and the panel then stayed on the old size. The panel now shows the page it asked for last.
@@ -69,5 +69,5 @@ seven rows and the body is `clientHeight == scrollHeight` (499 px); at 1920×108
 Consequences:
 - A short window shows fewer rows per page, so there are more pages. The count is the server's own, in the size asked; the pager reads "Page 1 of 3" at 1280×720.
 - A resize reloads page 1 when the count of rows changes (a drag of the window asks once, after it stops).
-- A client built for protocol 32 cannot browse on 33 (the field is appended to an existing packet, so they ship together).
+- A client built for protocol 33 cannot browse on 34 (the field is appended to an existing packet, so they ship together).
 - Not done: the price of current asks (critique section 6, item 8) still needs a server query for open asks.
