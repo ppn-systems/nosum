@@ -106,4 +106,4 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-095](ADR-095-world-labels-clear-the-hud-and-touch-controls.md) | World labels clear the HUD, the bottom band and the touch controls; stacked labels keep a gap; amends ADR-063, ADR-091 (no wire change) | Proposed |
 | [ADR-096](ADR-096-waypoint-arrow-off-the-hud-and-the-round-three-check.md) | Quest waypoint arrow slides off the HUD, Forest and Mine waypoints at their nodes, the hint's idle count costs nothing per frame, browser check of ADR-093 (no wire change); amends ADR-093 | Accepted |
 | [ADR-097](ADR-097-monster-strike-telegraph-and-touch-prompts.md) | Monster strike telegraph (a 400 ms server wind-up, the strike lands only in reach) and touch fishing prompts; protocol 32 | Accepted |
-
+| [ADR-098](ADR-098-label-scope-and-the-round-five-check.md) | Label placement has one scope in `renderer.js` (the quest arrow's constants are imported; the dead copy of the fit rules is removed), a static guard, and the round-five live check of the stray letter (not reproduced in three frames); amends ADR-095 D6, ADR-096 D2 (no wire change) | Accepted |

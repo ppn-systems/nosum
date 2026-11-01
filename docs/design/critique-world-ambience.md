@@ -176,3 +176,21 @@ Captures and numbers: [`docs/qa/world-ambience-round4/`](../qa/world-ambience-ro
 
 Still open, for the owner: the listening pass itself (the proxy is a measurement, not a hearing), the minimap's unpainted cells (a palette call),
 and the exit beacon's strength (a design call). Not changed in round 4: both are decisions about what the game should look like, not faults.
+
+## 9. Round 5
+
+Captures and checks: [`docs/qa/world-ambience-round5/`](../qa/world-ambience-round5/README.md). Rule: [ADR-098](../adr/ADR-098-label-scope-and-the-round-five-check.md).
+
+- **The stray letter, in a live frame.** Round 4 left it unconfirmed. Round 5 captured mine floor 35 on the build with #309 (English and Vietnamese, 1280 × 720,
+  a x4 crop of the view's centre). **No stray letter appeared in the frames taken.** That is absence in a few frames, not proof: the letter depends on which
+  labels overlap at that moment, and no before build was captured, so the fix is neither confirmed nor refuted. Still open.
+- **A fault found while reading the placement code.** `renderer.js` used `LABEL_EDGE` (the quest arrow, ADR-096 D2) without importing it, after #309 narrowed
+  the import. The first off-screen quest waypoint on its map would throw in the frame. Fixed: the import is restored, the dead copy of the fit rules is
+  removed, and a static test guards the names (`tests/browser/label-fit/renderer-scope.test.mjs`). Found by reading, not by a live frame.
+- **Vietnamese, same tile.** Two monsters of the same name stack a label each ("HUYẾT THỆ" twice, one above the other). Two monsters, two labels; not a fault in
+  placement, and not changed.
+- **Not done this round:** the next critique item is one of the owner calls in section 5 and section 8 (minimap void colour, exit beacon strength, the
+  listening pass). Changing any of them is a design decision, so none was made here.
+
+Still open for the owner: the stray letter's live confirmation (needs a before build at the same clock and tile), the listening pass, the minimap's
+unpainted cells and the exit beacon's strength.
