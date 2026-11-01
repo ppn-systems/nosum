@@ -332,6 +332,9 @@
   <data name="Journal_Unknown" xml:space="preserve"><value>???</value></data>
   <data name="Journal_Undiscovered" xml:space="preserve"><value>Chưa nhận được món này</value></data>
   <data name="Journal_Tip" xml:space="preserve"><value>{0}&#10;Đã nhận: {1}&#10;Lần đầu: {2}</value></data>
+  <data name="Journal_Filter_All" xml:space="preserve"><value>Tất cả</value></data>
+  <data name="Journal_Filter_Found" xml:space="preserve"><value>Đã có</value></data>
+  <data name="Journal_Filter_Missing" xml:space="preserve"><value>Chưa có</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Biệt danh hiện tại: {0}</value></data>
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>

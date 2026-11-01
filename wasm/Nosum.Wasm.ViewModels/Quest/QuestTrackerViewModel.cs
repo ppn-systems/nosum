@@ -73,6 +73,9 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the localized hint for the shown quest, or an empty string.</summary>
     public string Hint { get; private set; } = string.Empty;
 
+    /// <summary>Gets the localized tip for the shown quest while it is unfinished: one line on what to do and where, for example "Leave the farm for Town, ...". Empty when finished.</summary>
+    public string Tip { get; private set; } = string.Empty;
+
     /// <summary>Gets the localized reward line ("Reward: 40 coins") while the shown quest is unfinished and pays, otherwise an empty string.</summary>
     public string RewardText { get; private set; } = string.Empty;
 
@@ -162,6 +165,8 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
 
         this.Title = _catalogue[prefix + "Title"];
         this.Hint = this.IsCompleted ? string.Empty : _catalogue[prefix + "Hint"].Value;
+        LocalizedString tip = _catalogue[prefix + "Tip"];
+        this.Tip = this.IsCompleted || tip.ResourceNotFound ? string.Empty : tip.Value;
         this.RewardText = this.IsCompleted || definition.RewardCoins <= 0 ? string.Empty : string.Format(CultureInfo.CurrentCulture, _text["Quest_Reward"].Value, definition.RewardCoins.ToString("N0", CultureInfo.CurrentCulture));
         this.CompletedText = this.IsCompleted ? string.Format(CultureInfo.CurrentCulture, _text["Quest_Banner"].Value, this.Title) : string.Empty;
         this.Objectives = lines;
