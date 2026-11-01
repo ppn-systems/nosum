@@ -325,7 +325,7 @@ function refreshHud(now) {
     for (const el of document.querySelectorAll(HUD_SELECTOR)) {
         const r = el.getBoundingClientRect();
         // A region that covers the whole canvas (a backdrop) is left out. A tall column in the corner (the top right: calendar, minimap, menu) is not:
-        // it is the thing the labels and the edge arrow must keep off (docs/adr/ADR-094 D2).
+        // it is the thing the labels and the edge arrow must keep off (docs/adr/ADR-095 D2).
         if (r.width <= 0 || r.height <= 0 || (r.height >= base.height * 0.9 && r.width >= base.width * 0.9) || hudCount >= 16) {
             continue;
         }
@@ -366,7 +366,7 @@ function fitArrow(x, y, s, dir, scale) {
     const hi = (alongX ? canvas.width : canvas.height) - s - LABEL_EDGE;
     const base = alongX ? x : y;
     const span = Math.max(canvas.width, canvas.height);
-    // No array per step: the frame path allocates nothing (docs/adr/ADR-094 D2).
+    // No array per step: the frame path allocates nothing (docs/adr/ADR-095 D2).
     for (let k = 0; k <= span; k++) {
         const sides = k === 0 ? 1 : 2;
         for (let side = 0; side < sides; side++) {
@@ -515,7 +515,7 @@ export function submitFrame(view) {
             continue;
         }
         if (id === -12) {
-            // Edge arrow of a quest waypoint (docs/adr/ADR-094 D2): sx is the direction, sy 1 for the shadow and 0 for the arrow, (dx, dy) its
+            // Edge arrow of a quest waypoint (docs/adr/ADR-095 D2): sx is the direction, sy 1 for the shadow and 0 for the arrow, (dx, dy) its
             // top left in view pixels, w its box side, tint its colour. It slides along its edge until it is off every HUD rectangle, and is not drawn
             // when no place on that edge is clear. The shadow comes first, so it places the arrow; the arrow then draws in that place.
             if (sy === 1) {

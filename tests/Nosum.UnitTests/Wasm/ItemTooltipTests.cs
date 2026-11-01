@@ -84,4 +84,45 @@ public sealed class ItemTooltipTests
 
         tooltip.Should().EndWith("Quantity: 8");
     }
+
+    [Fact]
+    public void Describe_BasicHoe_SaysOneTileInTheSingular()
+    {
+        using CultureScope scope = new("en");
+
+        string tooltip = WasmTestSupport.Describer().Describe(0, ItemCatalog.Hoe, 1).Tooltip;
+
+        tooltip.Should().Contain("Area: 1 tile in a line", "a line of one tile is singular, not \"1 tiles\"");
+        tooltip.Should().NotContain("1 tiles");
+    }
+
+    [Fact]
+    public void Describe_CopperWateringCan_SaysTheLineInThePlural()
+    {
+        using CultureScope scope = new("en");
+
+        string tooltip = WasmTestSupport.Describer().Describe(0, ItemCatalog.CopperWateringCan, 1).Tooltip;
+
+        tooltip.Should().Contain("Area: 3 tiles in a line");
+    }
+
+    [Fact]
+    public void Describe_BasicHoe_ShowsTheOneTileLineInVietnamese()
+    {
+        using CultureScope scope = new("vi");
+
+        string tooltip = WasmTestSupport.Describer().Describe(0, ItemCatalog.Hoe, 1).Tooltip;
+
+        tooltip.Should().Contain("Vùng tác động: 1 ô liền nhau");
+    }
+
+    [Fact]
+    public void Describe_CopperAxe_ShowsItsEnergyPerUse()
+    {
+        using CultureScope scope = new("en");
+
+        string tooltip = WasmTestSupport.Describer().Describe(0, ItemCatalog.CopperAxe, 1).Tooltip;
+
+        tooltip.Should().Contain("Energy per use: 2");
+    }
 }

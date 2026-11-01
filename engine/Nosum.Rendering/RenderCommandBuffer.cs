@@ -75,7 +75,7 @@ public sealed class RenderCommandBuffer
     public const int EndTargetTexture = -11;
 
     /// <summary>
-    /// Texture id of a command that draws one piece of a quest waypoint's edge arrow (docs/adr/ADR-094 D2): <c>srcX</c> is the direction (see
+    /// Texture id of a command that draws one piece of a quest waypoint's edge arrow (docs/adr/ADR-095 D2): <c>srcX</c> is the direction (see
     /// <c>EdgeArrowDirection</c>), <c>srcY</c> 1 for the shadow and 0 for the arrow, <c>width</c> the box side in view pixels, (<c>dstX</c>, <c>dstY</c>) its top
     /// left, and the tint the colour. The renderer moves the arrow off the HUD, so the place is decided there.
     /// </summary>

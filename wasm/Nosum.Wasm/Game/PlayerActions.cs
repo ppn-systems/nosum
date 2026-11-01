@@ -16,6 +16,7 @@ using Nosum.Wasm.Socket.Chest;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels;
@@ -60,7 +61,8 @@ internal sealed partial class PlayerActions
     /// <param name="audio">Plays the swing of the tool in hand (docs/adr/ADR-039); <see langword="null"/> for no sound.</param>
     /// <param name="combat">Sends monster attacks and potion drinking; <see langword="null"/> when combat is not wired.</param>
     /// <param name="calendar">The server calendar, so withered crops do not block eating or drinking potions.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null, CalendarChannel? calendar = null)
+    /// <param name="nodes">The map's resource nodes, so a gathering swing knows what it gave experience for (docs/adr/ADR-089 D5); <see langword="null"/> for none.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null, CalendarChannel? calendar = null, NodeChannel? nodes = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -78,6 +80,7 @@ internal sealed partial class PlayerActions
             _combat.SkillCompleted += this.OnSkillCompleted;
         }
         _calendar = calendar;
+        _nodes = nodes;
         _farm.UseCompleted += this.OnFarmUseCompleted;
         _market.Completed += this.OnMarketCompleted;
     }
@@ -113,6 +116,12 @@ internal sealed partial class PlayerActions
 
     /// <summary>Gets the tile x in front of the farmer.</summary>
     public int TargetX { get; private set; }
+
+    /// <summary>Gets the facing the reticle's line runs in (the way the farmer faces).</summary>
+    public Facing TargetFacing { get; private set; }
+
+    /// <summary>Gets how many tiles the held tool's line covers: a wide hoe, can or scythe its line, one tile for anything else (docs/adr/ADR-094 D1).</summary>
+    public int HeldLineLength => ItemCatalog.TryGet(this.HeldItemId, out ItemDefinition? held) ? ToolRules.LineLength(held.Tool, held.Tier) : 1;
 
     /// <summary>Gets the tile y in front of the farmer.</summary>
     public int TargetY { get; private set; }
@@ -167,6 +176,7 @@ internal sealed partial class PlayerActions
             Facing.Right => (x + 1, y),
             _ => (x, y + 1),
         };
+        this.TargetFacing = facing;
 
         this.TargetDenied = IsFarmTool(this.HeldItemId) && !this.TargetWorks(mapAllowsTools);
 
@@ -242,15 +252,15 @@ internal sealed partial class PlayerActions
             return;
         }
 
-        // The wide use: a hoe or a watering can of a higher tier works a line of tiles with one swing. The server checks the length against the tool in the slot.
+        // The wide use: a hoe, a watering can or a scythe works a line of tiles with one swing (docs/adr/ADR-094 D1). The server checks the length against the tool in the slot.
         if ((edges & InputEdges.Rotate) != 0 && mapAllowsTools && nowSeconds >= _nextUseSeconds)
         {
             int wideSlot = _inventory.SelectedSlot;
             int wideItemId = _inventory.SlotAt(wideSlot).ItemId;
-            if (ItemCatalog.TryGet(wideItemId, out ItemDefinition? tool) && tool.Tool is ToolKind.Hoe or ToolKind.WateringCan && ToolRules.AreaLength(tool.Tier) > 1)
+            if (ItemCatalog.TryGet(wideItemId, out ItemDefinition? tool) && ToolRules.LineLength(tool.Tool, tool.Tier) > 1)
             {
                 this.BeginSwing(tool.Tool, wideItemId, nowSeconds);
-                this.QueueUse(wideSlot, this.TargetX, this.TargetY, ToolRules.AreaLength(tool.Tier), tool.Tool, tileSize);
+                this.QueueUse(wideSlot, this.TargetX, this.TargetY, ToolRules.LineLength(tool.Tool, tool.Tier), tool.Tool, tileSize);
             }
         }
 
@@ -400,6 +410,67 @@ internal sealed partial class PlayerActions
     private static bool IsFarmTool(int itemId)
         => ItemCatalog.TryGet(itemId, out ItemDefinition? item) && (item.Kind == ItemKind.Seed || (item.Kind == ItemKind.Tool && item.Tool is ToolKind.Hoe or ToolKind.WateringCan));
 
+    // The crop under the mouse: its growth stage, reported only when the tile or the stage changes (backlog item 4). A live crop only; a withered one has
+    // no stage to name. Sprinklers beside the tile are not counted here, so a crop a sprinkler waters may show the stage one day behind.
+    private bool TryGetCropStage(int tileX, int tileY, out int stage, out int stageCount)
+    {
+        stage = -1;
+        stageCount = 0;
+        GameCalendar? rules = this.Rules();
+        if (rules is null)
+        {
+            return false;
+        }
+
+        long nowMs = _farm.ServerNowMs();
+        using (_farm.Read())
+        {
+            if (!_farm.TryGetTile(tileX, tileY, out FarmTileInfo info) || info.CropId == 0 || info.Withered)
+            {
+                return false;
+            }
+
+            FarmTile tile = FarmChannel.TileOf(info);
+            if (!CropCatalog.TryGet(tile.CropId, out CropDefinition? crop))
+            {
+                return false;
+            }
+
+            stage = FarmRules.StageAt(tile, nowMs, rules, _outdoors);
+            stageCount = crop.StageCount;
+            return stage >= 0;
+        }
+    }
+
+    /// <summary>Tells the game which crop the mouse is over: the zero-based stage and the stage count, or (-1, 0) for none. Raised on a change only.</summary>
+    public event Action<int, int>? CropHovered;
+
+    /// <summary>Reports the tile under the mouse (-1, -1 when the mouse is off the world). Allocation-free; <see cref="CropHovered"/> fires on a change.</summary>
+    /// <param name="tileX">The tile x, or -1.</param>
+    /// <param name="tileY">The tile y, or -1.</param>
+    public void HoverTile(int tileX, int tileY)
+    {
+        int stage = -1;
+        int count = 0;
+        if (tileX >= 0 && tileY >= 0 && this.TryGetCropStage(tileX, tileY, out int found, out int total))
+        {
+            stage = found;
+            count = total;
+        }
+
+        if (stage == _hoverStage && count == _hoverCount)
+        {
+            return;
+        }
+
+        _hoverStage = stage;
+        _hoverCount = count;
+        this.CropHovered?.Invoke(stage, count);
+    }
+
+    private int _hoverStage = -1;
+    private int _hoverCount;
+
     // Whether the held item, or bare hands, would do something on the tile in front by the rules the server runs; the reticle is drawn from it.
     private bool TargetWorks(bool mapAllowsTools)
     {
@@ -431,7 +502,7 @@ internal sealed partial class PlayerActions
             return held.Tool switch
             {
                 ToolKind.Hoe => FarmRules.Till(true, current, nowMs, rules, out _) == FarmVerdict.Ok,
-                ToolKind.WateringCan => !withered && !(current is { } wet && FarmRules.IsWet(wet, nowMs, rules)) && FarmRules.Water(current, nowMs, rules, out _) == FarmVerdict.Ok,
+                ToolKind.WateringCan => !withered && FarmRules.WaterVerdict(current, nowMs, rules, _outdoors) == FarmVerdict.Ok,
                 _ => false,
             };
         }
