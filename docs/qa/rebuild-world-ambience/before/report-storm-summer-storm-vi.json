@@ -1,0 +1,122 @@
+[
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "calendar": "Hè Ngày 24 16:03 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/storm-summer-storm-farm.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "town",
+    "calendar": "Hè Ngày 24 16:03 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/storm-summer-storm-town.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "beach",
+    "calendar": "Hè Ngày 24 16:03 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "once 1.6s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/storm-summer-storm-beach.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "forest",
+    "calendar": "Hè Ngày 24 16:03 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/storm-summer-storm-forest.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine1",
+    "calendar": "Hè Ngày 24 16:04 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/storm-summer-storm-mine1.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "farm",
+    "calendar": "Hè Ngày 24 16:04 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/storm-summer-storm-farm.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "town",
+    "calendar": "Hè Ngày 24 16:04 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "once 1.6s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/storm-summer-storm-town.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "beach",
+    "calendar": "Hè Ngày 24 16:04 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/storm-summer-storm-beach.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "forest",
+    "calendar": "Hè Ngày 24 16:05 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/storm-summer-storm-forest.png"
+  },
+  {
+    "scenario": "storm-summer-storm",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "mine1",
+    "calendar": "Hè Ngày 24 16:05 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/storm-summer-storm-mine1.png"
+  }
+]
