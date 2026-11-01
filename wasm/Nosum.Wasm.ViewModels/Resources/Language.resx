@@ -1025,6 +1025,9 @@
   <data name="Bestiary_Stats" xml:space="preserve"><value>HP {0} · Công {1} · +{2} XP</value></data>
   <data name="Bestiary_Drops" xml:space="preserve"><value>Rơi: {0}, {1}</value></data>
   <data name="Combat_Label_Portal" xml:space="preserve"><value>HẦM NGỤC CỔ ĐẠI (TẦNG 10)</value></data>
+  <data name="Animal_Tend_Feed" xml:space="preserve"><value>Cho ăn</value></data>
+  <data name="Animal_Tend_Collect" xml:space="preserve"><value>Thu hoạch</value></data>
+  <data name="Animal_Tend_Pet" xml:space="preserve"><value>Vuốt ve</value></data>
   <data name="Combat_Label_Elite_Flame" xml:space="preserve"><value>CUỒNG HỎA</value></data>
   <data name="Combat_Label_Elite_Swift" xml:space="preserve"><value>TỐC BIẾN</value></data>
   <data name="Combat_Label_Elite_Shielded" xml:space="preserve"><value>HỘ GIÁP</value></data>

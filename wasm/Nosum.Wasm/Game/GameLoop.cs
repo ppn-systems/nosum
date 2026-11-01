@@ -322,9 +322,11 @@ internal static partial class GameLoop
             providers.Add(new GroundItemsDecoratorProvider(s_groundItems));
         }
 
+        // The labels of the action key's hints are interned before the providers are built (docs/adr/ADR-089 D3).
+        LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel, capacity: 2048);
         if (s_buildings is not null)
         {
-            providers.Add(new AnimalsDecoratorProvider(s_buildings, s_calendar));
+            providers.Add(new AnimalsDecoratorProvider(s_buildings, s_calendar, new AnimalTendLabels(labelRegistry, s_text), actions));
         }
 
         if (s_bubbles is not null)
@@ -342,7 +344,6 @@ internal static partial class GameLoop
             providers.Add(new PetDecoratorProvider(s_feed, s_pets, s_looks, s_calendar));
         }
 
-        LabelRegistry labelRegistry = new(WebRenderBackend.UploadLabel, capacity: 2048);
         providers.Add(new CritterDecoratorProvider(s_calendar));
         providers.Add(new WayfindingDecoratorProvider(labelRegistry, s_text));
         CombatLabels? combatLabels = s_combat is not null ? new CombatLabels(labelRegistry, s_text) : null;

@@ -97,4 +97,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-086](ADR-086-static-tile-chunks-and-lazy-music.md) | Static tile chunks baked into browser render targets (two render commands, four bakes a frame), and music tracks fetched on first request | Accepted |
 | [ADR-087](ADR-087-server-leave-send-and-pool-limits.md) | The leave saves the place before the presence record goes; a viewer's snapshot send has a 250 ms deadline and a stalled viewer is dropped; the database pool is capped at 20 with a 60 s idle lifetime (no wire change) | Accepted |
 | [ADR-088](ADR-088-wide-use-count-and-the-wet-soil-refusal.md) | A wide use reports how many tiles it worked (each charged its energy, the label shows the total); watering wet soil is refused as `AlreadyWet` instead of `NothingToDo`. Protocol 29, append-only. | Accepted |
+| [ADR-089](ADR-089-animal-produce-cue-action-preview-and-pet-forage.md) | Animal produce cue after the day rolls over (ready sparkle, room re-read), the action key's preview over the animal or bench, a daily pet forage roll, and the carpenter's notice above the sections (no wire change, protocol 29) | Accepted |
 

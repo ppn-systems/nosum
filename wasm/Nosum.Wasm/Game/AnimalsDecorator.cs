@@ -10,7 +10,9 @@ using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Microsoft.Extensions.Localization;
 using Nosum.Rendering;
+using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.Socket.Building;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.ViewModels.Inventory;
@@ -26,6 +28,13 @@ internal sealed class AnimalsDecorator : IMapDecorator
 {
     private const int FrameMs = 160;
     private const int ProduceIcon = 16;
+
+    // The gold ready sparkle of a ripe crop (docs/adr/ADR-021), 8 x 8, drawn over an animal that has produce today (docs/adr/ADR-089 D1).
+    private const int ReadySize = 8;
+
+    // Where a hint sits over its animal or the bench: its left edge is this far left of the anchor, and its top this far above the sprite's top.
+    private const int HintInset = 24;
+    private const int HintLift = 14;
     private const int HeartSize = 8;
     private const int HeartCount = 5;
     private const long HeartsShownMs = 1_500;
@@ -38,6 +47,10 @@ internal sealed class AnimalsDecorator : IMapDecorator
     private readonly int _objectsTexture;
     private readonly int _heartsTexture;
     private readonly int _emotesTexture;
+    private readonly int _readyTexture;
+    private readonly AnimalTendLabels? _tendLabels;
+    private readonly PlayerActions? _actions;
+    private int _seenDay;
     private readonly BuildingDefinition? _building;
     private readonly int _tileSize;
     private readonly CalendarChannel? _calendar;
@@ -49,16 +62,22 @@ internal sealed class AnimalsDecorator : IMapDecorator
     /// <param name="objectsTexture">Texture of the objects sheet, where produce and the hay are pictured.</param>
     /// <param name="heartsTexture">Texture of the hearts sheet: a filled heart at column 0, an empty one at column 8.</param>
     /// <param name="emotesTexture">Texture of the emote sheet: the exclamation mark that says the feeding bench is empty.</param>
+    /// <param name="readyTexture">Texture of <c>ready.png</c>, the gold sparkle over an animal that has produce today.</param>
+    /// <param name="tendLabels">The interned hints of the action key (docs/adr/ADR-089 D3); null draws none.</param>
+    /// <param name="actions">The player's action preview; null draws none.</param>
     /// <param name="building">The building the room is, for the place of its feeding bench; null draws no bench state.</param>
     /// <param name="tileSize">Tile size of the room's map, pixels.</param>
     /// <param name="calendar">The server's calendar, for the game day the produce is rolled on; null uses the everyday produce until it is known.</param>
-    public AnimalsDecorator(BuildingChannel buildings, Dictionary<byte, (int Texture, AnimalDefinition Definition)> sheets, int objectsTexture, int heartsTexture, int emotesTexture, BuildingDefinition? building, int tileSize, CalendarChannel? calendar = null)
+    public AnimalsDecorator(BuildingChannel buildings, Dictionary<byte, (int Texture, AnimalDefinition Definition)> sheets, int objectsTexture, int heartsTexture, int emotesTexture, int readyTexture, BuildingDefinition? building, int tileSize, CalendarChannel? calendar = null, AnimalTendLabels? tendLabels = null, PlayerActions? actions = null)
     {
         _buildings = buildings;
         _sheets = sheets;
         _objectsTexture = objectsTexture;
         _heartsTexture = heartsTexture;
         _emotesTexture = emotesTexture;
+        _readyTexture = readyTexture;
+        _tendLabels = tendLabels;
+        _actions = actions;
         _building = building;
         _tileSize = tileSize;
         _calendar = calendar;
@@ -71,6 +90,17 @@ internal sealed class AnimalsDecorator : IMapDecorator
         long clock = Environment.TickCount64;
         GameCalendar? rules = this.Rules();
         int today = rules?.DayNumberAt(now) ?? 0;
+        if (today != 0)
+        {
+            // The room was read on an earlier game day: the night's feeding settles on the server only when someone asks, so ask again (docs/adr/ADR-089 D1).
+            if (_seenDay != 0 && today != _seenDay)
+            {
+                _buildings.LoadRoom();
+            }
+
+            _seenDay = today;
+        }
+
         using (_buildings.Read())
         {
             AnimalPetting petting = _buildings.LastPetting;
@@ -103,6 +133,19 @@ internal sealed class AnimalsDecorator : IMapDecorator
                     // The egg or the milk bobs above the animal, in front of everything in the room.
                     int bob = (int)(2 * Math.Sin((clock + (i * 311)) * 0.005));
                     world.Add(_objectsTexture, srcX, srcY, ProduceIcon, ProduceIcon, x - (ProduceIcon / 2), top - ProduceIcon + bob, y + 64, x);
+
+                    // The ready sparkle marks the animal in the corner, the same mark a ripe crop wears (docs/adr/ADR-089 D1).
+                    world.Add(_readyTexture, 0, 0, ReadySize, ReadySize, left + animal.FrameWidth - ReadySize, top, y + 64, x);
+                }
+
+                // The hint over the animal the action key would collect from or pet (docs/adr/ADR-089 D3).
+                if (_actions is not null && _tendLabels is not null && pose.Id == _actions.TendTarget)
+                {
+                    int hint = _tendLabels.IdOf(_actions.TendPreview);
+                    if (hint != 0)
+                    {
+                        world.AddOverlay(RenderCommandBuffer.LabelTexture, hint, 0, 0, 0, x - HintInset, top - HintLift, y + 65, x);
+                    }
                 }
 
                 if (showHearts && pose.Id == petting.AnimalId)
@@ -143,6 +186,13 @@ internal sealed class AnimalsDecorator : IMapDecorator
         {
             world.Add(_objectsTexture, srcX, srcY, ProduceIcon, ProduceIcon, troughX - (ProduceIcon / 2), troughY - ProduceIcon - 2, sortY, troughX);
         }
+
+        // Feed in hand at the trough: the hint says the press fills the bench (docs/adr/ADR-089 D3).
+        int feedHint = _tendLabels is not null && _actions is not null && _actions.TendPreview == AnimalTend.Feed ? _tendLabels.IdOf(AnimalTend.Feed) : 0;
+        if (feedHint != 0)
+        {
+            world.AddOverlay(RenderCommandBuffer.LabelTexture, feedHint, 0, 0, 0, troughX - HintInset, troughY - ProduceIcon - HintLift, sortY, troughX);
+        }
     }
 
     // The calendar the server sent, rebuilt only when its numbers change (once, at sign-in); null until it is known.
@@ -170,17 +220,22 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
 
     // The emote art is linked once, in Nosum.Wasm.Controls.csproj, and served under its _content path (as EmoteBubbleDecorator does).
     private const string EmotesUrl = "_content/Nosum.Wasm.Controls/ui/emotes.png";
+    private const string ReadyUrl = "assets/sprites/ready.png";
 
     private readonly BuildingChannel _buildings;
     private readonly CalendarChannel? _calendar;
+    private readonly AnimalTendLabels? _tendLabels;
+    private readonly PlayerActions? _actions;
 
     /// <summary>Initializes the provider.</summary>
     /// <param name="buildings">The animals of the room.</param>
     /// <param name="calendar">The server's calendar, for the day's produce.</param>
-    public AnimalsDecoratorProvider(BuildingChannel buildings, CalendarChannel? calendar = null)
+    public AnimalsDecoratorProvider(BuildingChannel buildings, CalendarChannel? calendar = null, AnimalTendLabels? tendLabels = null, PlayerActions? actions = null)
     {
         _buildings = buildings;
         _calendar = calendar;
+        _tendLabels = tendLabels;
+        _actions = actions;
     }
 
     /// <inheritdoc/>
@@ -208,7 +263,48 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
         cancellationToken.ThrowIfCancellationRequested();
         int emotes = await textures.LoadAsync(EmotesUrl).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
+        int ready = await textures.LoadAsync(ReadyUrl).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         BuildingCatalog.TryGet(spec.InteriorOf, out BuildingDefinition? building);
-        return new AnimalsDecorator(_buildings, sheets, objects, hearts, emotes, building, map.TileWidth, _calendar);
+        return new AnimalsDecorator(_buildings, sheets, objects, hearts, emotes, ready, building, map.TileWidth, _calendar, _tendLabels, _actions);
     }
+}
+
+/// <summary>
+/// The three short hints of the action key inside a building (docs/adr/ADR-089 D3): what E will do, interned once from the localized strings so a frame
+/// allocates nothing. The ids are those of <see cref="LabelRegistry"/>; zero means no label.
+/// </summary>
+internal sealed class AnimalTendLabels
+{
+    /// <summary>Creates the three hints.</summary>
+    /// <param name="registry">The label registry the world draws from.</param>
+    /// <param name="text">The localizer; null shows the keys.</param>
+    public AnimalTendLabels(LabelRegistry registry, IStringLocalizer<Language>? text)
+    {
+        ArgumentNullException.ThrowIfNull(registry);
+        this.FeedId = registry.Intern(Lookup(text, "Animal_Tend_Feed"), 0);
+        this.CollectId = registry.Intern(Lookup(text, "Animal_Tend_Collect"), 0);
+        this.PetId = registry.Intern(Lookup(text, "Animal_Tend_Pet"), 0);
+    }
+
+    /// <summary>Gets the label id of "Feed" (the bench).</summary>
+    public int FeedId { get; }
+
+    /// <summary>Gets the label id of "Collect" (produce in reach).</summary>
+    public int CollectId { get; }
+
+    /// <summary>Gets the label id of "Pet" (an animal in reach with no produce).</summary>
+    public int PetId { get; }
+
+    /// <summary>Returns the label id of an outcome, or zero when the action key does nothing.</summary>
+    /// <param name="tend">The outcome.</param>
+    public int IdOf(AnimalTend tend) => tend switch
+    {
+        AnimalTend.Feed => this.FeedId,
+        AnimalTend.Collect => this.CollectId,
+        AnimalTend.Pet => this.PetId,
+        _ => 0,
+    };
+
+    private static string Lookup(IStringLocalizer<Language>? text, string key) => text is not null ? text[key].Value : key;
 }
