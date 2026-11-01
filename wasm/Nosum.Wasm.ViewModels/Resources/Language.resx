@@ -1123,7 +1123,7 @@
   <data name="Fishing_PressTouch" xml:space="preserve"><value>Chạm để kéo cần!</value></data>
   <data name="Fishing_Reeling" xml:space="preserve"><value>Đang kéo cần...</value></data>
   <data name="Fishing_NotYet" xml:space="preserve"><value>Chưa phải lúc. Chờ cá cắn câu đã.</value></data>
-  <data name="Fishing_Caught" xml:space="preserve"><value>Bạn câu được {0}!</value></data>
+  <data name="Fishing_CastAgain" xml:space="preserve"><value>Sẵn sàng thì thả câu lại.</value></data>
   <data name="Fishing_Status_Nothing" xml:space="preserve"><value>Lưỡi câu chỉ kéo lên được rong rêu.</value></data>
   <data name="Fishing_Status_TooEarly" xml:space="preserve"><value>Cá chưa cắn câu, chờ thêm chút nữa.</value></data>
   <data name="Fishing_Status_Escaped" xml:space="preserve"><value>Cá đã thoát mất!</value></data>

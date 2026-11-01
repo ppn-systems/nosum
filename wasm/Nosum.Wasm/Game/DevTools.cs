@@ -77,12 +77,14 @@ internal static partial class DevTools
     /// <summary>Moves the player onto the tile of a living monster of the current map; the server places the player next to it. Call it after the
     /// map has loaded its monsters (the Woods, the Forest, the Mountain or the Backwoods), for the combat keys.</summary>
     /// <param name="mapId">The map id the player is on, for example <c>woods</c>.</param>
+    /// <param name="dx">Tiles from the monster's tile, to the right (negative to the left). Round 5 uses a tile beside it to see the telegraph.</param>
+    /// <param name="dy">Tiles from the monster's tile, down (negative up). A farmer one tile below a monster is drawn over it (docs/adr/ADR-097 D4).</param>
     [JSExport]
-    internal static void TeleportToMonster(string mapId)
+    internal static void TeleportToMonster(string mapId, int dx = 0, int dy = 0)
     {
         if (s_channel is not null && s_combat is not null && s_combat.TryGetLivingMonsterTile(out int x, out int y))
         {
-            s_channel.Teleport(mapId, x, y);
+            s_channel.Teleport(mapId, x + dx, y + dy);
         }
     }
 

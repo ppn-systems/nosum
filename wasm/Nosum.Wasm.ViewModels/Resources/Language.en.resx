@@ -1123,7 +1123,7 @@
   <data name="Fishing_PressTouch" xml:space="preserve"><value>Tap to reel in!</value></data>
   <data name="Fishing_Reeling" xml:space="preserve"><value>Reeling in...</value></data>
   <data name="Fishing_NotYet" xml:space="preserve"><value>Not yet. Wait for the bite.</value></data>
-  <data name="Fishing_Caught" xml:space="preserve"><value>You caught {0}!</value></data>
+  <data name="Fishing_CastAgain" xml:space="preserve"><value>Cast again when you are ready.</value></data>
   <data name="Fishing_Status_Nothing" xml:space="preserve"><value>The line came up with nothing but weeds.</value></data>
   <data name="Fishing_Status_TooEarly" xml:space="preserve"><value>The fish has not bitten yet. Wait a moment.</value></data>
   <data name="Fishing_Status_Escaped" xml:space="preserve"><value>The fish got away!</value></data>
