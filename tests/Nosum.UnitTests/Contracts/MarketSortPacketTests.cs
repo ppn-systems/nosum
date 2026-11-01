@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Contracts;
 
-/// <summary>The browse order on the wire (docs/adr/ADR-013 amendment 2026-11-01, protocol 29): the field is appended and its values are append-only.</summary>
+/// <summary>The browse order on the wire (docs/adr/ADR-013 amendment 2026-11-01, protocol 30): the field is appended and its values are append-only.</summary>
 public sealed class MarketSortPacketTests
 {
     [Theory]
@@ -45,8 +45,8 @@ public sealed class MarketSortPacketTests
     }
 
     [Fact]
-    public void NosumProtocol_Version_IsTwentyNine_WithTheMarketSort()
+    public void NosumProtocol_Version_IsThirty_WithTheMarketSort()
     {
-        NosumProtocol.Version.Should().Be(29);
+        NosumProtocol.Version.Should().Be(30);
     }
 }

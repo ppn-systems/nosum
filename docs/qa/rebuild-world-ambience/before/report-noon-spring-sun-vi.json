@@ -1,0 +1,118 @@
+[
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "calendar": "Xuân Ngày 1 12:51 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/noon-spring-sun-farm.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "town",
+    "calendar": "Xuân Ngày 1 12:51 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/noon-spring-sun-town.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "beach",
+    "calendar": "Xuân Ngày 1 12:51 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/noon-spring-sun-beach.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "forest",
+    "calendar": "Xuân Ngày 1 12:51 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/noon-spring-sun-forest.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine1",
+    "calendar": "Xuân Ngày 1 12:51 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/noon-spring-sun-mine1.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "farm",
+    "calendar": "Xuân Ngày 1 12:52 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/noon-spring-sun-farm.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "town",
+    "calendar": "Xuân Ngày 1 12:52 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/noon-spring-sun-town.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "beach",
+    "calendar": "Xuân Ngày 1 12:52 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/noon-spring-sun-beach.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "forest",
+    "calendar": "Xuân Ngày 1 12:53 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/noon-spring-sun-forest.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "mine1",
+    "calendar": "Xuân Ngày 1 12:53 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/noon-spring-sun-mine1.png"
+  }
+]

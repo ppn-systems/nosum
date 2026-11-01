@@ -261,6 +261,127 @@ public sealed class InventoryViewModelTests
         messages.Message.Should().Be("This tool does not work on that.");
     }
 
+    [Fact]
+    public void RightClick_OnAStack_PicksUpHalfAndPlacingItSendsOnlyThatPart()
+    {
+        (InventoryViewModel vm, _, FakeGameSocket socket) = Create();
+
+        vm.RightClick(2);
+        vm.MovingCount.Should().Be(4, "eight parsnip seeds: half of them is four");
+        vm.Click(20);
+
+        MoveSlot sent = socket.Requests.OfType<MoveSlot>().Should().ContainSingle().Subject;
+        (sent.From, sent.To, sent.Quantity).Should().Be(((byte)2, (byte)20, 4));
+    }
+
+    [Fact]
+    public void RightClick_OnASingleItem_PicksTheWholeStack()
+    {
+        (InventoryViewModel vm, _, FakeGameSocket socket) = Create();
+
+        vm.RightClick(0);
+        vm.Click(20);
+
+        MoveSlot sent = socket.Requests.OfType<MoveSlot>().Should().ContainSingle().Subject;
+        (sent.From, sent.To, sent.Quantity).Should().Be(((byte)0, (byte)20, 0));
+    }
+
+    [Fact]
+    public void RightClick_WhileSomethingIsPicked_PutsItDownWithoutAnyRequest()
+    {
+        (InventoryViewModel vm, _, FakeGameSocket socket) = Create();
+        vm.Click(2);
+
+        vm.RightClick(15);
+        vm.Click(20);
+
+        vm.MovingFrom.Should().Be(-1);
+        socket.Requests.OfType<MoveSlot>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Split_ToAnOccupiedSlotOfAnotherItem_SendsNothing()
+    {
+        // The server refuses a part of a stack onto another item; the page does not ask, it puts the part back.
+        (InventoryViewModel vm, _, FakeGameSocket socket) = Create();
+
+        vm.RightClick(2);
+        vm.Click(0);
+
+        socket.Requests.OfType<MoveSlot>().Should().BeEmpty();
+        vm.MovingFrom.Should().Be(-1);
+    }
+
+    [Fact]
+    public void QuickMove_FromTheHotbar_GoesToTheFirstEmptySlotOfTheBag()
+    {
+        (InventoryViewModel vm, _, FakeGameSocket socket) = Create();
+
+        vm.QuickMove(0);
+
+        MoveSlot sent = socket.Requests.OfType<MoveSlot>().Should().ContainSingle().Subject;
+        (sent.From, sent.To, sent.Quantity).Should().Be(((byte)0, (byte)9, 0));
+    }
+
+    [Fact]
+    public void QuickMove_FromTheBag_MergesIntoTheSameItemWithRoomBeforeAnEmptyHotbarSlot()
+    {
+        (InventoryViewModel vm, _, FakeGameSocket socket) = CreateWith((0, ItemCatalog.Hoe, 1), (3, ItemCatalog.ParsnipSeeds, 5), (20, ItemCatalog.ParsnipSeeds, 8));
+
+        vm.QuickMove(20);
+
+        MoveSlot sent = socket.Requests.OfType<MoveSlot>().Should().ContainSingle().Subject;
+        (sent.From, sent.To).Should().Be(((byte)20, (byte)3), "the hotbar's parsnip seeds stack has room; an empty slot at 1 comes after the merge");
+    }
+
+    [Fact]
+    public void QuickMove_WhenTheOtherSectionHasNoRoom_SendsNothingAndSaysSo()
+    {
+        using CultureScope scope = new("en");
+        (InventoryViewModel vm, _, FakeGameSocket socket) = CreateWith(
+            (0, ItemCatalog.Hoe, 1), (1, ItemCatalog.WateringCan, 1), (2, ItemCatalog.ParsnipSeeds, 1), (3, ItemCatalog.Hoe, 1), (4, ItemCatalog.Hoe, 1),
+            (5, ItemCatalog.Hoe, 1), (6, ItemCatalog.Hoe, 1), (7, ItemCatalog.Hoe, 1), (8, ItemCatalog.Hoe, 1), (20, ItemCatalog.Stone, 1));
+        string? reason = null;
+        vm.Refused += text => reason = text;
+
+        vm.QuickMove(20);
+
+        socket.Requests.OfType<MoveSlot>().Should().BeEmpty();
+        reason.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void Hint_ShowsTheClicksWhileNothingIsPickedAndTheCountWhileSomethingIs()
+    {
+        using CultureScope scope = new("en");
+        (InventoryViewModel vm, _, _) = Create();
+        string idle = vm.Hint;
+
+        vm.RightClick(2);
+
+        idle.Should().Contain("right-click");
+        vm.Hint.Should().Contain("Holding 4");
+    }
+
+    private static (InventoryViewModel Vm, InventoryChannel Channel, FakeGameSocket Socket) CreateWith(params (int Slot, int ItemId, int Quantity)[] stacks)
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            InventorySnapshot snapshot = new() { Capacity = 36, SelectedSlot = 1 };
+            foreach ((int slot, int itemId, int quantity) in stacks)
+            {
+                snapshot.Slots.Add(new InventorySlotRow { Slot = (byte)slot, ItemId = itemId, Quantity = quantity });
+            }
+
+            return snapshot;
+        });
+        InventoryChannel channel = new(socket);
+        InventoryViewModel vm = new(channel, new FixedIcons(), Localizer<Catalogue>(), Localizer<Language>());
+        channel.Load();
+        return (vm, channel, socket);
+    }
+
     private static (InventoryViewModel Vm, InventoryChannel Channel, FakeGameSocket Socket) Create()
     {
         FakeGameSocket socket = new();

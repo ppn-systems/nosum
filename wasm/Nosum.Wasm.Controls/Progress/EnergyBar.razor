@@ -1,7 +1,7 @@
 @inherits ObservingComponent<Nosum.Wasm.ViewModels.Progress.ProgressViewModel>
 
 @* The energy bar: a thin vertical gauge beside the hotbar that fills from the bottom. The number is in the tooltip and the accessible name, not on the screen,
-   so the HUD stays tidy. The tooltip also estimates how many uses of the tool in hand the energy left pays for (an estimate; the server decides).
+   so the HUD stays tidy; at low HP the current HP is written over the tube (a touch player cannot hover). The tooltip also estimates how many uses of the tool in hand the energy left pays for (an estimate; the server decides).
    It is hidden until the server has said how much energy the player has. *@
 @if (Vm.HasEnergy)
 {
@@ -9,6 +9,11 @@
         <div class="vitals-bars @Vm.StatusEffectBadge">
             <div class="energy-bar hp-bar @(Vm.HpLow ? "low" : null)" role="meter" aria-label="@Vm.HpLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxHp" aria-valuenow="@Vm.Hp" data-tip="@Vm.HpLabel">
                 <span class="energy-fill hp-fill" style="height: @(Math.Round(Vm.HpFraction * 100).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span>
+                @if (Vm.HpLow)
+                {
+                    @* At low HP the current number is written over the tube: a touch player cannot hover the tooltip. *@
+                    <span class="vitals-hp-note">@Vm.Hp</span>
+                }
             </div>
             <div class="energy-bar mp-bar @(Vm.MpLow ? "low" : null)" role="meter" aria-label="@Vm.MpLabel" aria-valuemin="0" aria-valuemax="@Vm.MaxMp" aria-valuenow="@Vm.Mp" data-tip="@Vm.MpLabel">
                 <span class="energy-fill mp-fill" style="height: @(Math.Round(Vm.MpFraction * 100).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span>
@@ -24,6 +29,9 @@
     /// <summary>The tool in the held hotbar slot; <see cref="Nosum.Gameplay.Items.ToolKind.None"/> when none. Its uses-left estimate joins the tooltip.</summary>
     [Parameter] public Nosum.Gameplay.Items.ToolKind Tool { get; set; }
 
+    /// <summary>The tier of the tool in hand; an upgraded axe or pickaxe costs less energy per use (docs/adr/ADR-089).</summary>
+    [Parameter] public Nosum.Gameplay.Items.ToolTier Tier { get; set; }
+
     // The energy label, then the estimate for the held tool when there is one: "Energy 268 / 270 · About 89 tool uses left".
-    private string TipText => Vm.ToolUsesTip(Tool) is { Length: > 0 } uses ? Vm.EnergyTip + " · " + uses : Vm.EnergyTip;
+    private string TipText => Vm.ToolUsesTip(Tool, Tier) is { Length: > 0 } uses ? Vm.EnergyTip + " · " + uses : Vm.EnergyTip;
 }

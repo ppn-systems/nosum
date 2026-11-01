@@ -4,6 +4,14 @@
     font-weight: 700;
 }
 
+/* The filter tabs: All, Found, Missing. One gap between the tabs; each is a tab button of ui-standard section 8. */
+.journal-filters {
+    display: flex;
+    gap: calc(var(--u) * 2);
+    justify-content: center;
+    margin: 0 0 calc(var(--u) * 3);
+}
+
 /* Eight 18 u slots to a row, five rows to a page (JournalViewModel.CellsPerPage): the page fits the L panel without a scroll. */
 .journal-grid {
     display: grid;

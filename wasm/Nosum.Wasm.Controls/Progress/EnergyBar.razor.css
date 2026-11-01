@@ -7,6 +7,23 @@
     gap: var(--nosum-gap);
 }
 
+/* The current HP at low HP, a parchment tag over the top of the HP tube, so it reads on a phone without a hover. */
+.vitals-hp-note {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    padding: 0 calc(var(--u) * 2);
+    border: calc(var(--u) * 1) solid var(--nosum-ink);
+    background: var(--nosum-parchment-light);
+    color: var(--nosum-ink);
+    font-family: var(--nosum-font);
+    font-size: var(--nosum-fs-small);
+    line-height: calc(var(--u) * 5);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
 .energy-bar {
     position: relative;
     box-sizing: border-box;

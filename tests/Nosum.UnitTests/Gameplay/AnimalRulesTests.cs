@@ -26,6 +26,24 @@ public sealed class AnimalRulesTests
         AnimalRules.RationsOf(itemId).Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData(0, 2, true)]
+    [InlineData(0, 1, true)]
+    [InlineData(1, 2, false)]
+    [InlineData(0, 0, false)]
+    public void BenchNeedsHay_EmptyBenchOnlyWhileAnimalsLive(int rations, int animals, bool expected)
+    {
+        AnimalRules.BenchNeedsHay(rations, animals).Should().Be(expected);
+    }
+
+    [Fact]
+    public void MaxFeedAtOnce_CoversTheWholeBench()
+    {
+        // The trough feeds up to the bench's size in one press (PlayerActions.TendAnimals); a smaller number would need several presses for an empty bench.
+        AnimalRules.MaxFeedAtOnce.Should().Be(AnimalRules.MaxRations);
+        AnimalRules.MaxRations.Should().BeGreaterThan(4, "the bench holds more than one animal's capacity (four)");
+    }
+
     [Fact]
     public void Settle_SameDay_ChangesNothing()
     {

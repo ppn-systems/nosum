@@ -145,7 +145,7 @@ Amends A2: the Town's one general store is now three shops, each one catalogue e
 
 - **A6 - Browse order.** The market page is ordered by **newest** (the default), **lowest price per unit** or **highest price per unit**. A stack of five at 300 coins is
   60 each, and it is compared with a stack of three at 75 (25 each), so the order is by what one unit costs, not by the total. `BrowseListings` gains `SortBy`
-  (`MarketSort` value, appended; `NosumProtocol.Version` 29); an unknown value reads as newest, and the handler clamps it. Paging and the item filter are unchanged.
+  (`MarketSort` value, appended; `NosumProtocol.Version` 30); an unknown value reads as newest, and the handler clamps it. Paging and the item filter are unchanged.
   The server pages by the same repository call with a negated key for the ascending order, so no query shape is new.
 - **A7 - Prices per unit.** Each listing of more than one unit shows its total and the price per unit (`Market_Price_Each`). The sell form shows what the shipping bin
   pays for the picked stack (`Market_BinHint`, from the bin's own table, `ShippingPrices`); the bin is a reference, not a cap, and the server still sets nothing but the rules.

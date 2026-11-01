@@ -25,7 +25,7 @@ public sealed partial class BrowseListings : PacketBase<BrowseListings>, IPacket
     [WireMaxLength(WireLimits.MaxFilterEntries)]
     [SerializeOrder(1)] public List<int> ItemIds { get; set; } = [];
 
-    /// <summary>The order of the page: a <see cref="Market.MarketSort"/> value. Appended in protocol 29 (docs/adr/ADR-013 amendment); an older client that sends no sort is not supported: server and client ship together.</summary>
+    /// <summary>The order of the page: a <see cref="Market.MarketSort"/> value. Appended in protocol 30 (docs/adr/ADR-013 amendment); an older client that sends no sort is not supported: server and client ship together.</summary>
     [WireRange(0, 2)]
     [SerializeOrder(2)] public int SortBy { get; set; }
 }

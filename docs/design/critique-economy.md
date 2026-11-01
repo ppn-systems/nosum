@@ -77,7 +77,7 @@ Economy and market (data and rules, each with a test):
 - **Hay 30 → 10** (ADR-081 amendment). A fed season is now positive for every animal: chicken +140, duck +280, cow +476, goat +616, sheep +440, pig +700.
   Tests: `EconomyBalanceTests.HayRation_*`.
 - **Market browse order** (ADR-013 amendment A6). Newest (the default), lowest and highest unit price. A stack of five at 300 is 60 each and is compared with a
-  stack of one at 30. Wire: `BrowseListings.SortBy`, protocol 29. Tests: `MarketSortPacketTests`, `SocialServiceTests.Browse_SortsByUnitPrice_*`,
+  stack of one at 30. Wire: `BrowseListings.SortBy`, protocol 30. Tests: `MarketSortPacketTests`, `SocialServiceTests.Browse_SortsByUnitPrice_*`,
   `MarketSortViewModelTests`.
 - **Unit prices and the bin's price at the listing** (A7). Listings of more than one unit show the price per unit. The sell form shows what the shipping bin pays
   for the picked stack, so a seller has a reference before typing a price.
@@ -144,7 +144,7 @@ Captured before and after in English and Vietnamese at 1280×720 and 390×844 (`
 | Sell form, a stack picked | nothing | what the shipping bin pays for it, until a price is typed |
 | Listing result | "Listed for sale." | what was listed, the price, what the seller receives after the fee |
 | Hay ration | 30 coins (a fed chicken loses 420 a season) | 10 coins (every fed animal is ahead over a season) |
-| Protocol | 28 | 29 (`BrowseListings.SortBy`, appended) |
+| Protocol | 29 | 30 (`BrowseListings.SortBy`, appended) |
 
 Tests: `EconomyBalanceTests` (two hay rules), `EconomyReportTests` (the simulation harness, writes `NOSUM_ECONOMY_REPORT`),
 `MarketSortPacketTests` (wire), `MarketSortViewModelTests` (order, unit price, bin hint, listing result), `SocialServiceTests.Browse_SortsByUnitPrice_*`

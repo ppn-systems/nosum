@@ -126,6 +126,31 @@ public sealed class SkyRenderingTests
         buffer.Count.Should().Be(0);
     }
 
+    [Fact]
+    public void Precipitation_Storm_DrawsEachDropAsTwoSegments_SoItLeansInsteadOfFallingUpright()
+    {
+        PrecipitationLayer storm = new();
+        RenderCommandBuffer stormDraws = new(PrecipitationLayer.Capacity * 3);
+        stormDraws.Begin(2);
+        storm.Update(Precipitation.Storm, 0.016, 416, 234);
+        storm.Draw(Precipitation.Storm, stormDraws);
+
+        // A rain drop is one rectangle (plus a splash on the bottom edge); a storm drop is two, stepped a pixel sideways, except the few at the bottom edge.
+        stormDraws.Count.Should().BeGreaterThan(storm.ActiveCount + (storm.ActiveCount / 2));
+    }
+
+    [Fact]
+    public void Precipitation_Rain_DrawsOneRectanglePerDrop()
+    {
+        PrecipitationLayer rain = new();
+        RenderCommandBuffer rainDraws = new(PrecipitationLayer.Capacity);
+        rainDraws.Begin(2);
+        rain.Update(Precipitation.Rain, 0.016, 416, 234);
+        rain.Draw(Precipitation.Rain, rainDraws);
+
+        rainDraws.Count.Should().BeLessThan(2 * rain.ActiveCount);
+    }
+
     [Theory]
     [InlineData(Precipitation.Rain)]
     [InlineData(Precipitation.Storm)]
@@ -135,13 +160,15 @@ public sealed class SkyRenderingTests
         PrecipitationLayer layer = new();
 
         // A drop that reaches the bottom also draws a splash (docs/adr/ADR-071 D5), so a frame holds the particles and at most as many splashes.
-        RenderCommandBuffer buffer = new(PrecipitationLayer.Capacity * 2);
+        // A storm drop is two segments (docs/adr/ADR-027 D6), so a storm frame holds at most three draws per drop.
+        int perDrop = kind == Precipitation.Storm ? 3 : 2;
+        RenderCommandBuffer buffer = new(PrecipitationLayer.Capacity * perDrop);
         for (int frame = 0; frame < 600; frame++)
         {
             layer.Update(kind, 1.0 / 60, 416, 234);
-            buffer.Begin(2);
+            buffer.Begin(perDrop);
             layer.Draw(kind, buffer);
-            buffer.Count.Should().BeGreaterThanOrEqualTo(layer.ActiveCount).And.BeLessThanOrEqualTo(2 * layer.ActiveCount);
+            buffer.Count.Should().BeGreaterThanOrEqualTo(layer.ActiveCount).And.BeLessThanOrEqualTo(perDrop * layer.ActiveCount);
         }
 
         int[] ints = Ints(buffer);
