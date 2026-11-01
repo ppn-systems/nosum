@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Nosum.Abstractions.Calendar;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Weather;
 using Nosum.Infrastructure.Calendar;
 using Nosum.Infrastructure.Dev;
 using Xunit;
@@ -207,6 +208,104 @@ public sealed class DayClockServiceTests
 
         service.AdvanceSeasons(seasons).Should().BeNull();
         dev.GetUtcNow().Should().Be(s_start);
+    }
+
+    [Fact]
+    public void DevClock_FreezeClock_HoldsTheClockUntilItIsResumed()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+
+        service.FreezeClock(true).Should().Be(s_start.ToUnixTimeMilliseconds());
+        inner.Advance(TimeSpan.FromHours(1));
+
+        dev.GetUtcNow().Should().Be(s_start, "a pinned clock does not move while the server runs");
+
+        // Resuming continues from the pinned instant: the held hour does not count as elapsed.
+        service.FreezeClock(false);
+        dev.GetUtcNow().Should().Be(s_start);
+        inner.Advance(TimeSpan.FromMinutes(1));
+        dev.GetUtcNow().Should().Be(s_start + TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public void DevClock_FreezeClock_StillMovesWhenTheTesterAdvancesIt()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+        service.FreezeClock(true);
+
+        long? now = service.AdvanceDays(1);
+
+        now.Should().Be(s_start.ToUnixTimeMilliseconds() + s_calendar.DayLengthMs);
+        dayClock.CurrentDay.Should().Be(s_calendar.DayNumberAt(now!.Value));
+    }
+
+    [Fact]
+    public void DevClock_SkipToSunnyDay_LandsAtNoonOfASunnyDay()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+        long startMs = s_start.ToUnixTimeMilliseconds();
+
+        long now = service.SkipToSunnyDay();
+
+        WeatherRules.At(s_calendar, now).Should().Be(WeatherKind.Sun, "the tester asked for a day without rain");
+        now.Should().BeGreaterThanOrEqualTo(s_calendar.DayStartMs(s_calendar.DayNumberAt(now)) + (s_calendar.DayLengthMs / 2), "the run is in daylight");
+        if (WeatherRules.At(s_calendar, startMs) == WeatherKind.Sun)
+        {
+            s_calendar.DayNumberAt(now).Should().Be(s_calendar.DayNumberAt(startMs), "a sunny day is kept as it is");
+        }
+        else
+        {
+            s_calendar.DayNumberAt(now).Should().BeGreaterThan(s_calendar.DayNumberAt(startMs));
+        }
+    }
+
+    [Fact]
+    public void DevClock_SkipToSunnyDay_AfterNoon_KeepsItsTime()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+        long startMs = s_start.ToUnixTimeMilliseconds();
+        inner.Advance(TimeSpan.FromHours(3));
+        if (WeatherRules.At(s_calendar, startMs) != WeatherKind.Sun)
+        {
+            return;
+        }
+
+        long now = service.SkipToSunnyDay();
+
+        now.Should().Be(startMs + (long)TimeSpan.FromHours(3).TotalMilliseconds);
+    }
+
+    [Fact]
+    public void DevClock_SkipToSunnyDay_WhileFrozen_KeepsTheDayItLandedOn()
+    {
+        ManualClock inner = new(s_start);
+        DevTimeProvider dev = new(inner);
+        using DayClockService dayClock = new(s_calendar, dev);
+        dayClock.Start();
+        DevClockService service = new(dev, s_calendar, dayClock);
+        long now = service.SkipToSunnyDay();
+        service.FreezeClock(true);
+
+        inner.Advance(TimeSpan.FromDays(3));
+
+        dev.GetUtcNow().ToUnixTimeMilliseconds().Should().Be(now, "the run stays on the sunny day while the clock is pinned");
+        WeatherRules.At(s_calendar, dev.GetUtcNow().ToUnixTimeMilliseconds()).Should().Be(WeatherKind.Sun);
     }
 
     // A clock whose timers fire when the test advances it, so the day boundary can be crossed without waiting.

@@ -61,6 +61,15 @@ internal static partial class DevTools
     [JSExport]
     internal static void ToSpring() => s_channel?.Season(0);
 
+    /// <summary>Pins the server's game clock (true) or lets it run again (false): the season and the day of a QA run stay put (docs/adr/ADR-079 amendment).</summary>
+    /// <param name="frozen">True to pin the clock.</param>
+    [JSExport]
+    internal static void FreezeClock(bool frozen) => s_channel?.FreezeClock(frozen);
+
+    /// <summary>Skips the server's game clock to the next day with sun: the no-rain weather of a QA run (docs/adr/ADR-079 amendment).</summary>
+    [JSExport]
+    internal static void SunnyDay() => s_channel?.SunnyDay();
+
     /// <summary>Moves the player onto the tile of a living monster of the current map; the server places the player next to it. Call it after the
     /// map has loaded its monsters (the Woods, the Forest, the Mountain or the Backwoods), for the combat keys.</summary>
     /// <param name="mapId">The map id the player is on, for example <c>woods</c>.</param>

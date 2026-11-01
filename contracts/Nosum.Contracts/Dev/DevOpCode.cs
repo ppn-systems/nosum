@@ -26,6 +26,12 @@ public static class DevOpCode
     /// <summary>Makes the sender's open fishing cast bite at once (development only, docs/adr/ADR-079). Reply: <see cref="S2C.DevFishingBiteResult"/>.</summary>
     public const ushort DevFishingBite = 0xF005;
 
+    /// <summary>Pins the server's game clock, or releases it, so a QA run cannot see the season or day turn under it (development only, docs/adr/ADR-079 amendment 2026-11-01). Reply: <see cref="S2C.DevFreezeClockResult"/>.</summary>
+    public const ushort DevFreezeClock = 0xF006;
+
+    /// <summary>Skips the server's game clock to the next sunny day, the no-rain weather of a QA run (development only, docs/adr/ADR-079 amendment 2026-11-01). Reply: <see cref="S2C.DevSunnyDayResult"/>.</summary>
+    public const ushort DevSunnyDay = 0xF007;
+
     /// <summary>Reply to <see cref="DevGrant"/>.</summary>
     public const ushort DevGrantResult = 0xF040;
 
@@ -43,4 +49,10 @@ public static class DevOpCode
 
     /// <summary>Reply to <see cref="DevFishingBite"/>.</summary>
     public const ushort DevFishingBiteResult = 0xF045;
+
+    /// <summary>Reply to <see cref="DevFreezeClock"/>.</summary>
+    public const ushort DevFreezeClockResult = 0xF046;
+
+    /// <summary>Reply to <see cref="DevSunnyDay"/>.</summary>
+    public const ushort DevSunnyDayResult = 0xF047;
 }

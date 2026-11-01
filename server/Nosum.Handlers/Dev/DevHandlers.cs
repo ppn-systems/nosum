@@ -140,4 +140,44 @@ public static partial class DevHandlers
         bool ok = await s_fishing.MakeBiteAsync(context.Connection, context.Packet.CastId, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<DevFishingBite, DevFishingBiteResult>(context, sequence, r => r.Ok = ok).ConfigureAwait(false);
     }
+
+    /// <summary>Pins the server's game clock, or releases it, for a QA run (docs/adr/ADR-079 amendment 2026-11-01).</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(DevOpCode.DevFreezeClock)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketEncryption(true)]
+    [PacketRateLimit(8, 4, PolicyId = "dev-freeze-clock")]
+    public static async ValueTask HandleDevFreezeClockAsync(IPacketContext<DevFreezeClock> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        long now = s_clock.FreezeClock(context.Packet.Frozen);
+        await Replies.ReplyAsync<DevFreezeClock, DevFreezeClockResult>(context, sequence, r =>
+        {
+            r.Ok = true;
+            r.ServerNowMs = now;
+        }).ConfigureAwait(false);
+    }
+
+    /// <summary>Skips the server's game clock to the next sunny day, the no-rain weather of a QA run (docs/adr/ADR-079 amendment 2026-11-01).</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(DevOpCode.DevSunnyDay)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketEncryption(true)]
+    [PacketRateLimit(8, 4, PolicyId = "dev-sunny-day")]
+    public static async ValueTask HandleDevSunnyDayAsync(IPacketContext<DevSunnyDay> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        long now = s_clock.SkipToSunnyDay();
+        await Replies.ReplyAsync<DevSunnyDay, DevSunnyDayResult>(context, sequence, r =>
+        {
+            r.Ok = true;
+            r.ServerNowMs = now;
+        }).ConfigureAwait(false);
+    }
 }

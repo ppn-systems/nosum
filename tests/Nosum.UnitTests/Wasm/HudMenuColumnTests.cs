@@ -93,6 +93,19 @@ public sealed class HudMenuColumnTests
     }
 
     [Fact]
+    public void PhoneMenu_TilesShowNoKeyboardKey_AndTheDesktopMenuKeepsIt()
+    {
+        using ToolbarViewModel vm = new(Localizer<Language>());
+        ToolbarItem profile = vm.MenuItems.Single(i => i.Kind == PanelKind.Profile);
+        profile.Hotkey.Should().NotBeEmpty("a desktop tile names its key");
+
+        vm.ColumnCollapsed = true;
+
+        vm.MenuItems.Should().OnlyContain(i => i.Hotkey.Length == 0, "a touch screen has no key to press");
+        vm.MenuItems.Select(i => i.Kind).Should().Contain(PanelKind.Profile);
+    }
+
+    [Fact]
     public void PhoneMenu_KeepsTheExtrasAndStillLeavesOutMerchantsMailAndSettings()
     {
         using ToolbarViewModel vm = new(Localizer<Language>());

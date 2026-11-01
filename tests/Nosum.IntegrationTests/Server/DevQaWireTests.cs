@@ -108,6 +108,25 @@ public sealed class DevQaWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task DevFishingBite_AfterALongWait_BitesNowAndTheReelIsNotEscaped()
+    {
+        // Regression: the bite used to keep the cast's time, so a bite armed after the window had passed read as "escaped" (ADR-079 amendment).
+        FakeTimeProvider clock = new(s_start);
+        await using NodeWireTests.TestHost host = await NodeWireTests.TestHost.StartAsync(_database, clock);
+        await using NodeWireTests.ToolClient player = await host.ConnectAsync();
+        (int waterX, int waterY, _, _) = await StandOnShoreAsync(host, player);
+        await GiveRodAsync(host, player);
+        CastResult cast = await player.CastRodAsync(waterX, waterY, host.Timeout);
+        clock.Advance(TimeSpan.FromSeconds(5));
+
+        (await player.BiteAsync(cast.CastId, host.Timeout)).Should().BeTrue();
+        ReelResult reel = await player.ReelInAsync(cast.CastId, host.Timeout);
+
+        reel.Status.Should().NotBe(FishingStatus.Escaped, "the bite is now, so a press at once is inside the window");
+        reel.Status.Should().NotBe(FishingStatus.TooEarly);
+    }
+
+    [Fact]
     public async Task DevQaOpcodes_InProduction_AreNotMappedAndNothingAnswers()
     {
         FakeTimeProvider clock = new(s_start);
@@ -119,6 +138,8 @@ public sealed class DevQaWireTests : IClassFixture<PostgresFixture>
         (await player.ProbeSeasonAsync(production.Timeout)).Should().BeFalse("Production never maps DevSeason");
         (await player.ProbeLevelUpAsync(production.Timeout)).Should().BeFalse("Production never maps DevLevelUp");
         (await player.ProbeBiteAsync(production.Timeout)).Should().BeFalse("Production never maps DevFishingBite");
+        (await player.ProbeFreezeClockAsync(production.Timeout)).Should().BeFalse("Production never maps DevFreezeClock");
+        (await player.ProbeSunnyDayAsync(production.Timeout)).Should().BeFalse("Production never maps DevSunnyDay");
     }
 
     private static async Task<(int WaterX, int WaterY, int StandX, int StandY)> StandOnShoreAsync(NodeWireTests.TestHost host, NodeWireTests.ToolClient player)

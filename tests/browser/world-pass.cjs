@@ -1,5 +1,6 @@
-// World QA pass 3 (docs/qa/world-pass3; pass 2 is docs/qa/world-pass). Plays the world features with Playwright on a local Development server and client
-// (ADR-079: the page opened with ?qa=1 exposes window.nosumQa: grant, advanceClock, teleport, season, levelUp, fishingBite).
+// World QA pass 4 (docs/qa/world-pass4; pass 3 is docs/qa/world-pass3, pass 2 docs/qa/world-pass). Plays the world features with Playwright on a local
+// Development server and client (ADR-079: the page opened with ?qa=1 exposes window.nosumQa: grant, advanceClock, teleport, season, levelUp,
+// fishingBite, springReset, teleportToMonster, freezeClock, sunnyDay).
 // For each locale (vi-VN, en-US) and viewport (1280x720, 1920x1080, 390x844 touch) it runs the scenario below in one session and:
 //   - takes a screenshot per step (docs/qa/world-pass/<locale>/<viewport>/NN-<step>.png),
 //   - records a status per step: pass (a DOM outcome was seen), FAIL (the step threw or the outcome is missing), or
@@ -16,7 +17,7 @@ const path = require('path');
 
 const REPO = path.resolve(__dirname, '../..');
 const BASE = process.env.NOSUM_QA_URL || 'http://localhost:5080/?qa=1';
-const OUT = path.join(REPO, 'docs/qa/world-pass3');
+const OUT = path.join(REPO, 'docs/qa/world-pass4');
 const VIEWPORTS = {
   '1280x720': { width: 1280, height: 720 },
   '1920x1080': { width: 1920, height: 1080 },
@@ -240,6 +241,12 @@ async function runOne(browser, locale, vpName, report) {
   // QA run start (ADR-079 D3): the server passes season starts to the next Spring, whatever season the last run left.
   await page.evaluate(() => window.nosumQa.springReset());
   await wait(2000);
+  // Pass 4 (ADR-079 amendment 2026-11-01): the server clock is pinned for the run, so the season and the day cannot turn under it, and the run is
+  // on a sunny day (no rain). The tester calls are idempotent; a pinned clock still moves for advanceClock and springReset.
+  await page.evaluate(() => window.nosumQa.sunnyDay());
+  await wait(1000);
+  await page.evaluate(() => window.nosumQa.freezeClock(true));
+  await wait(1000);
   await page.evaluate(() => window.nosumQa.teleport('farm', 46, 18));
   await wait(2500);
   await page.evaluate(() => {
@@ -368,16 +375,16 @@ async function runOne(browser, locale, vpName, report) {
     const notes = await page.evaluate(NOTICES);
     return { status: line ? 'pass' : 'FAIL', notes: line ? 'cast open: the fishing status line shows' : `no fishing line; notices: ${notes.join(' | ') || 'none'}` };
   });
-  await step('fishing: bite (QA)', async () => {
+  // Pass 3 bit at the QA bite and reeled 1.2 s later: the window had closed (the server counted it from the cast, not the bite). The bite now
+  // starts the window (FishingService.MakeBiteAsync), and the harness reels in at the bite, 250 ms after it: the server has the bite by then.
+  await step('fishing: bite, reel in at once, catch card', async () => {
     await page.evaluate(() => window.nosumQa.fishingBite());
-    await wait(600);
-    return { status: 'captured', notes: 'bite banner visible' };
-  });
-  await step('fishing: reel in and catch card', async () => {
+    await wait(250);
     await page.keyboard.press('KeyE');
-    await wait(1200);
+    await wait(1500);
     const card = await page.$('.fishing-card');
-    return { status: card ? 'pass' : 'captured', notes: card ? 'catch card shown' : 'no catch card (a miss or the window was lost)' };
+    const notes = await page.evaluate(NOTICES);
+    return { status: card ? 'pass' : 'FAIL', notes: card ? 'catch card shown' : `no catch card; notices: ${notes.join(' | ') || 'none'}` };
   });
 
   // Combat (docs/adr/ADR-056): Z is Whirlwind (a monster within 2 tiles), X Fireball (6), V the heal (refused at full health).
@@ -425,7 +432,10 @@ async function runOne(browser, locale, vpName, report) {
       const tiles = await page.$$eval('.game-menu-tile', (els) => els.map((e) => e.getAttribute('aria-label') || ''));
       const want = [/crafting|chế tạo/i, /friends|bạn bè/i, /skills|kỹ năng/i];
       const missing = want.filter((re) => !tiles.some((t) => re.test(t))).length;
-      return { status: missing === 0 ? 'pass' : 'FAIL', notes: `menu tiles: ${tiles.join(', ') || 'none'}; missing ${missing}` };
+      // Pass 4 (issue 6): a touch screen has no key, so no tile shows one.
+      const keys = await page.$$eval('.game-menu-tile-key', (els) => els.map((e) => e.textContent.trim()));
+      const ok = missing === 0 && tiles.length >= 9 && keys.length === 0;
+      return { status: ok ? 'pass' : 'FAIL', notes: `menu tiles (${tiles.length}): ${tiles.join(', ') || 'none'}; missing ${missing}; key hints shown: ${keys.length}` };
     });
     await page.keyboard.press('Escape');
     await wait(400);
@@ -484,8 +494,79 @@ async function runOne(browser, locale, vpName, report) {
     return { status: b ? 'pass' : 'FAIL', notes: b ? 'banner shown' : 'no banner' };
   });
 
-  // Not exercised in this pass (no hook or a building not reached yet): recorded so the gaps are visible in the table.
-  for (const f of ['animals (barn, feed, harvest)', 'pets: buy at carpenter, rehome', 'crafting at stations (chest, furnace)', 'market: list and buy', 'mail: send', 'co-op warehouse deposit', 'backpack upgrade', 'rename scroll', 'shipping bin sale', 'dungeon/mine combat']) {
+
+  // Mine: the farmer is put beside a monster on the mine floor, then a combat key (X, fireball) is pressed. Graded from the screenshot.
+  await step('mine: teleport next to a monster (mine floor)', async () => {
+    await page.evaluate(() => window.nosumQa.teleport('mine', 18, 11));
+    await wait(3000);
+    await page.evaluate(() => window.nosumQa.teleportToMonster('mine'));
+    await wait(2500);
+    const notes = await page.evaluate(NOTICES);
+    return { status: 'captured', notes: `the farmer stands beside a monster on the mine floor: check the screenshot; notices: ${notes.join(' | ') || 'none'}` };
+  });
+  await step('mine: X fireball (monster in reach)', async () => {
+    await page.keyboard.press('KeyX');
+    await wait(600);
+    const notes = await page.evaluate(NOTICES);
+    return { status: 'captured', notes: `X in the mine: ${notes.join(' | ') || 'no notice'}; the fireball and the monster are in the screenshot` };
+  });
+
+  // Backpack upgrade at the tailor's counter (ADR-083): the Backpack action opens the window, its Upgrade button spends coins.
+  await step('backpack upgrade (tailor counter)', async () => {
+    await page.evaluate(() => window.nosumQa.grant(0, 0, 2000));
+    await wait(800);
+    await counterBox(TILE.clothing, 'backpack');
+    await clickText(/^(backpack|balo|ba lô)$/i, '.npc-actions');
+    const upgrade = page.locator('button').filter({ hasText: /upgrade|nâng cấp/i }).first();
+    if ((await upgrade.count()) === 0) throw new Error('no Upgrade button in the backpack window');
+    await upgrade.click({ timeout: 5000 });
+    await wait(900);
+    const notes = await page.evaluate(NOTICES);
+    // Pass only when the upgrade happened (or the max was reached); "530 more needed" is a refusal, not a pass.
+    const ok = notes.some((t) => /bigger now|lớn hơn|already the largest|lớn nhất/i.test(t));
+    return { status: ok ? 'pass' : 'FAIL', notes: `backpack: ${notes.join(' | ') || 'no notice'}` };
+  }, { keep: false });
+
+  // Pets (ADR-075, paid pets in ADR-075 amendment): the carpenter's counter adopts a cat, the pet is petted, then given back.
+  await step('pets: adopt at the carpenter counter', async () => {
+    await page.evaluate(() => window.nosumQa.grant(0, 0, 2000));
+    await wait(800);
+    await counterBox(TILE.carpenter, 'carpenter');
+    const labels = await page.$$eval('.npc-actions button', (els) => els.map((e) => e.textContent.trim()));
+    // The carpenter offers Buy, Build, Talk, Leave; the pet choice (cat or dog) is behind Buy.
+    await clickText(/^(buy|mua)$/i, '.npc-actions').catch(() => {});
+    await wait(500);
+    const shopLabels = await page.$$eval('button', (els) => els.map((e) => e.textContent.trim()).filter(Boolean).slice(0, 40));
+    const cat = page.locator('button').filter({ hasText: /^(cat|mèo)$/i }).first();
+    if ((await cat.count()) > 0) await cat.click({ timeout: 3000 }).catch(() => {});
+    const name = page.locator('input[type="text"], input:not([type])').first();
+    if ((await name.count()) > 0) await name.fill('Mochi').catch(() => {});
+    const next = page.locator('button').filter({ hasText: /^(next|tiếp|adopt|nhận nuôi)$/i }).first();
+    if ((await next.count()) > 0) await next.click({ timeout: 3000 }).catch(() => {});
+    await wait(900);
+    const notes = await page.evaluate(NOTICES);
+    return { status: 'captured', notes: `carpenter buttons: ${labels.join(', ') || 'none'}; after Buy, buttons: ${shopLabels.join(', ')}; notices: ${notes.join(' | ') || 'no notice'}` };
+  }, { keep: true });
+  await step('pets: pet and give back (pet panel)', async () => {
+    const pet = page.locator('button').filter({ hasText: /^(pet|vuốt ve)$/i }).first();
+    if ((await pet.count()) > 0) await pet.click({ timeout: 3000 }).catch(() => {});
+    await wait(700);
+    const notes = await page.evaluate(NOTICES);
+    return { status: 'captured', notes: `pet: ${notes.join(' | ') || 'no notice'}; the pet panel is in the screenshot` };
+  });
+
+  // Market, Sell tab (list): the window opens on Browse; the Sell tab is opened. Buying needs a second account (not in this pass).
+  await step('market: sell tab (list)', async () => {
+    await counterBox(TILE.market, 'market');
+    await clickText(/^(buy|mua)$/i, '.npc-actions');
+    const sell = page.locator('button').filter({ hasText: /^(sell|bán)$/i }).first();
+    if ((await sell.count()) > 0) await sell.click({ timeout: 3000 }).catch(() => {});
+    await wait(500);
+    return { status: 'captured', notes: 'market Sell tab opened: check the screenshot' };
+  });
+
+  // Not exercised in this pass: no scripted path yet (see the README for why each is open).
+  for (const f of ['animals (barn, feed, collect)', 'crafting at stations (chest, furnace)', 'market: buy (second account)', 'mail: send and receive (second account)', 'co-op warehouse deposit and withdraw', 'rename scroll', 'shipping bin sale']) {
     rec(f, 'not exercised', 'no scripted path in this pass (see README)', '');
   }
 

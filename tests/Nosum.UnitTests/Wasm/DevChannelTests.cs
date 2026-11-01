@@ -48,6 +48,38 @@ public sealed class DevChannelTests
     }
 
     [Fact]
+    public void FreezeClock_AsksWithTheFlag()
+    {
+        FakeGameSocket socket = new();
+        bool? frozen = null;
+        socket.ReplyWith<DevFreezeClockResult>(request =>
+        {
+            frozen = ((DevFreezeClock)request).Frozen;
+            return new DevFreezeClockResult { Ok = true };
+        });
+
+        new DevChannel(socket, new CalendarChannel(socket)).FreezeClock(true);
+
+        frozen.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SunnyDay_AsksForTheSunnyDay()
+    {
+        FakeGameSocket socket = new();
+        bool asked = false;
+        socket.ReplyWith<DevSunnyDayResult>(_ =>
+        {
+            asked = true;
+            return new DevSunnyDayResult { Ok = true };
+        });
+
+        new DevChannel(socket, new CalendarChannel(socket)).SunnyDay();
+
+        asked.Should().BeTrue();
+    }
+
+    [Fact]
     public void LevelUp_AsksWithTheSkillAndTheLevel()
     {
         FakeGameSocket socket = new();

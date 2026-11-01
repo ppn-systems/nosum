@@ -174,7 +174,9 @@ public sealed class FishingService : IFishingService
             return Task.FromResult(false);
         }
 
-        _casts.Open(cast with { BiteDelayMs = 0 });
+        // The bite comes now: the window counts from this instant, not from the cast (the press that follows is judged against it).
+        long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+        _casts.Open(cast with { CastAtMs = nowMs, BiteDelayMs = 0 });
         return Task.FromResult(true);
     }
 

@@ -213,7 +213,8 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
     }
 
     /// <summary>Gets the tiles of the game menu, left to right. On a desktop: every panel of <see cref="Items"/> that is not in the menu column, nor a
-    /// merchant's (Mail and Settings sit in the HUD's top row). When <see cref="ColumnCollapsed"/> is set, the column panels are tiles too.</summary>
+    /// merchant's (Mail and Settings sit in the HUD's top row). When <see cref="ColumnCollapsed"/> is set, the column panels are tiles too, and no tile
+    /// shows a keyboard key (a touch screen has none).</summary>
     public IReadOnlyList<ToolbarItem> MenuItems
     {
         get
@@ -224,7 +225,8 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
                 bool inColumn = !_columnCollapsed && ColumnKinds.Contains(item.Kind);
                 if (!inColumn && !NpcKinds.Contains(item.Kind) && item.Kind is not (PanelKind.Mail or PanelKind.Settings))
                 {
-                    tiles.Add(item);
+                    // A touch screen or a phone has no keyboard to press the key with, so its tile shows no key (docs/design/ui-standard.md section 6).
+                    tiles.Add(_columnCollapsed ? item with { Hotkey = string.Empty } : item);
                 }
             }
 

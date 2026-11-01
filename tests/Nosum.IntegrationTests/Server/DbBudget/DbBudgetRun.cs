@@ -69,6 +69,8 @@ public sealed partial class DbBudgetRun : IAsyncLifetime
         _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevSeason, "DevSeason", "tester tool, Development only; the day rollovers it triggers are the DayClock row");
         _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevLevelUp, "DevLevelUp", "tester tool, Development only; it pushes one banner and writes no row");
         _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevFishingBite, "DevFishingBite", "tester tool, Development only; it changes the open cast in memory, no row");
+        _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevFreezeClock, "DevFreezeClock", "tester tool, Development only; it pins the clock in memory, no row");
+        _rig.Skip("Dev", Nosum.Contracts.Dev.DevOpCode.DevSunnyDay, "DevSunnyDay", "tester tool, Development only; the day rollovers it triggers are the DayClock row");
 
         // Combat opcodes operate on in-memory instance monsters and cached player vitals (docs/adr/ADR-045 D3, ADR-056).
         _rig.Skip("Combat", Nosum.Contracts.Combat.CombatOpCode.GetVitals, "GetVitals", "reads in-memory vitals seeded from the shared player_states cache");

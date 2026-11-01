@@ -39,6 +39,8 @@ public static class NosumProtocol
     /// 26: footwear and the movement speed multiplier (docs/adr/ADR-084) - <c>FeetItemId</c> appended to <c>LookRow</c>; <c>WearSlot.Feet</c> (value 4) is a new wardrobe slot. No packet or opcode changed.
     /// 27: running - <c>MoveIntent.Running</c> appended (docs/adr/ADR-085). Clients built for 26 do not send the run flag, so the client and server ship together; no other packet changed.
     /// 28: thirsty crops - <c>Withered</c> appended to <c>FarmTileRow</c> (the server's withered flag, so the client no longer guesses it; docs/adr/ADR-021 D7 amendment 2026-10-31). Clients built for 27 misread the tile rows, so they ship together.
+    /// 29: development QA clock controls (docs/adr/ADR-079 amendment 2026-11-01) - new Development-only packets <c>DevFreezeClock</c> and <c>DevSunnyDay</c> (C2S <c>0xF006-0xF007</c>) and their
+    /// replies <c>DevFreezeClockResult</c> and <c>DevSunnyDayResult</c> (S2C <c>0xF046-0xF047</c>). Production does not map them. No existing packet changed.
     /// </summary>
-    public const ushort Version = 28;
+    public const ushort Version = 29;
 }

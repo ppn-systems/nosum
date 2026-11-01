@@ -24,4 +24,16 @@ public interface IDevClockService
     /// <param name="seasons">How many season starts to pass, 1 to <see cref="MaxSeasons"/>; zero for the next Spring.</param>
     /// <returns>The server clock after the move, Unix milliseconds; <see langword="null"/> when <paramref name="seasons"/> is out of range.</returns>
     long? AdvanceSeasons(int seasons);
+
+    /// <summary>Pins the game clock so it stops moving, or lets it run again from the instant it was pinned at (docs/adr/ADR-079 amendment 2026-11-01).
+    /// A pinned clock keeps the season and the day of the run; <see cref="AdvanceDays"/> and <see cref="AdvanceSeasons"/> still move it.</summary>
+    /// <param name="frozen"><see langword="true"/> to pin the clock; <see langword="false"/> to let it run.</param>
+    /// <returns>The server clock after the change, Unix milliseconds.</returns>
+    long FreezeClock(bool frozen);
+
+    /// <summary>Moves the game clock to the start of the next day with sun, when today is not sunny (docs/adr/ADR-079 amendment 2026-11-01). Weather is a
+    /// pure function of the calendar and the day (docs/adr/ADR-027 D1), so the tester moves the day to reach sun; it does not override the weather.
+    /// Delivers the day-ended events it crossed, like <see cref="AdvanceDays"/>.</summary>
+    /// <returns>The server clock after the move, Unix milliseconds.</returns>
+    long SkipToSunnyDay();
 }

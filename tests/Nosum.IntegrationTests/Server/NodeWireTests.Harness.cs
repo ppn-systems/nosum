@@ -435,6 +435,18 @@ public sealed partial class NodeWireTests
             return AnsweredAsync(() => _session.RequestAsync<DevSeasonResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
         }
 
+        public Task<bool> ProbeFreezeClockAsync(CancellationToken ct)
+        {
+            using DevFreezeClock request = new() { Frozen = true };
+            return AnsweredAsync(() => _session.RequestAsync<DevFreezeClockResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
+        }
+
+        public Task<bool> ProbeSunnyDayAsync(CancellationToken ct)
+        {
+            using DevSunnyDay request = new();
+            return AnsweredAsync(() => _session.RequestAsync<DevSunnyDayResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
+        }
+
         public Task<bool> ProbeLevelUpAsync(CancellationToken ct)
         {
             using DevLevelUp request = new() { Skill = 1, Level = 2 };

@@ -3,6 +3,7 @@
 using System;
 using Nosum.Abstractions.Calendar;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Weather;
 using Nosum.Infrastructure.Calendar;
 
 namespace Nosum.Infrastructure.Dev;
@@ -62,6 +63,50 @@ public sealed class DevClockService : IDevClockService
         {
             long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
             _time.Advance(TimeSpan.FromMilliseconds(_calendar.NextSeasonStartMs(nowMs) - nowMs));
+            _dayClock.Reconcile();
+        }
+
+        return _time.GetUtcNow().ToUnixTimeMilliseconds();
+    }
+
+    /// <inheritdoc/>
+    public long FreezeClock(bool frozen)
+    {
+        if (frozen)
+        {
+            _time.Freeze();
+        }
+        else
+        {
+            _time.Resume();
+        }
+
+        return _time.GetUtcNow().ToUnixTimeMilliseconds();
+    }
+
+    /// <inheritdoc/>
+    public long SkipToSunnyDay()
+    {
+        long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+        int today = _calendar.DayNumberAt(nowMs);
+        int day = today;
+        if (WeatherRules.ForDay(_calendar, today) != WeatherKind.Sun)
+        {
+            // The first days of every season are sunny (WeatherRules.SunnyDaysAtSeasonStart), so a sunny day is always within a season's length.
+            day = today + 1;
+            while (day - today <= IDevClockService.MaxDays && WeatherRules.ForDay(_calendar, day) != WeatherKind.Sun)
+            {
+                day++;
+            }
+        }
+
+        // The middle of the sunny day, so a QA run is in daylight (a frozen midnight reads as night in every frame). A run already past noon on
+        // a sunny day keeps its time.
+        long noonMs = _calendar.DayStartMs(day) + (_calendar.DayLengthMs / 2);
+        long targetMs = day == today ? Math.Max(nowMs, noonMs) : noonMs;
+        if (targetMs > nowMs)
+        {
+            _time.Advance(TimeSpan.FromMilliseconds(targetMs - nowMs));
             _dayClock.Reconcile();
         }
 

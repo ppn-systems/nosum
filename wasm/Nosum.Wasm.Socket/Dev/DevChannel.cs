@@ -83,6 +83,25 @@ public sealed class DevChannel
         _ = await _socket.RequestAsync<DevFishingBiteResult>(request.Value).ConfigureAwait(false);
     });
 
+    /// <summary>Asks the server to pin its game clock (<paramref name="frozen"/>) or let it run again (docs/adr/ADR-079 amendment 2026-11-01). A pinned
+    /// clock keeps the season and the day of the run.</summary>
+    /// <param name="frozen">True to pin the clock, false to release it.</param>
+    public void FreezeClock(bool frozen) => _ = this.AskAsync(async () =>
+    {
+        using PacketScope<DevFreezeClock> request = PacketFactory<DevFreezeClock>.Acquire();
+        request.Value.Frozen = frozen;
+        _ = await _socket.RequestAsync<DevFreezeClockResult>(request.Value).ConfigureAwait(false);
+        _calendar.Load();
+    });
+
+    /// <summary>Asks the server to skip its game clock to the next sunny day, the no-rain weather of a QA run (docs/adr/ADR-079 amendment 2026-11-01).</summary>
+    public void SunnyDay() => _ = this.AskAsync(async () =>
+    {
+        using PacketScope<DevSunnyDay> request = PacketFactory<DevSunnyDay>.Acquire();
+        _ = await _socket.RequestAsync<DevSunnyDayResult>(request.Value).ConfigureAwait(false);
+        _calendar.Load();
+    });
+
     [SuppressMessage("Design", "CA1031", Justification = "A tester tool: a missing answer (Production) is not an error.")]
     private async Task AdvanceClockAsync(int days)
     {
