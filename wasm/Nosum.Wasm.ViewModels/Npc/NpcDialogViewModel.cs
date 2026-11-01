@@ -400,7 +400,8 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
     {
         bool newcomer = true;
         bool harvested = false;
-        foreach (QuestInfo quest in _quests.Quests())
+        IReadOnlyList<QuestInfo> quests = _quests.Quests();
+        foreach (QuestInfo quest in quests)
         {
             if (quest.State == QuestState.Completed)
             {
@@ -409,10 +410,11 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
             }
         }
 
+        string? activeQuest = Nosum.Wasm.ViewModels.Quest.ActiveQuest.Of(quests)?.Key;
         bool deepMiner = _mine.DeepestFloor >= NpcLineContext.DeepMinerFloor;
         if (!_calendar.IsLoaded)
         {
-            return NpcLineContext.Of(0, null, null, null, newcomer, harvested, deepMiner);
+            return NpcLineContext.Of(0, null, null, null, newcomer, harvested, deepMiner, activeQuest);
         }
 
         GameCalendar calendar = new(_calendar.EpochMs, _calendar.DayLengthMs);
@@ -424,7 +426,8 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
             calendar.At(now).Hour,
             newcomer,
             harvested,
-            deepMiner);
+            deepMiner,
+            activeQuest);
     }
 
     private bool HasText(string key) => !_localizer[key].ResourceNotFound;

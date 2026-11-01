@@ -119,6 +119,7 @@ internal static class ClientWiring
         services.AddSingleton(sp => new ProgressChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton(sp => new CombatChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton<QuestChannel>();
+        services.AddSingleton<QuestWaypointViewModel>();
         services.AddSingleton<WalletChannel>();
         services.AddSingleton<CalendarChannel>();
         services.AddSingleton(sp => new EmoteChannel(sp.GetRequiredService<IGameSocket>()));
@@ -260,6 +261,7 @@ internal static class ClientWiring
         GameLoop.UseFarming(farm, inventory, market);
         GameLoop.UseCoop(coop);
         GameLoop.UseProgress(services.GetRequiredService<ProgressChannel>());
+        GameLoop.UseQuestWaypoint(services.GetRequiredService<QuestWaypointViewModel>());
         CombatChannel combat = services.GetRequiredService<CombatChannel>();
         GameLoop.UseCombat(combat, services.GetRequiredService<IStringLocalizer<Language>>());
         GameLoop.UseCalendar(services.GetRequiredService<CalendarChannel>());

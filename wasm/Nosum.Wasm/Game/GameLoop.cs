@@ -27,6 +27,7 @@ using Nosum.Wasm.Socket.Pet;
 using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.ViewModels.Placement;
 using Nosum.Wasm.ViewModels.Progress;
+using Nosum.Wasm.ViewModels.Quest;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Rendering;
 using Nosum.Rendering.Web;
@@ -69,6 +70,7 @@ internal static partial class GameLoop
     private static PlayerChannel? s_network;
     private static CalendarChannel? s_calendar;
     private static MinimapViewModel? s_minimap;
+    private static QuestWaypointViewModel? s_waypoint;
     private static FarmChannel? s_farm;
     private static InventoryChannel? s_inventory;
     private static PlaceableChannel? s_placeable;
@@ -164,6 +166,10 @@ internal static partial class GameLoop
 
     /// <summary>Sets the minimap frame the canvas keeps in step with (the M key, and hidden on a narrow screen).</summary>
     public static void UseMinimap(MinimapViewModel minimap) => s_minimap = minimap;
+
+    /// <summary>Uses the active quest's waypoint for the map scenes (docs/adr/ADR-093 D2).</summary>
+    /// <param name="waypoint">The waypoint view model.</param>
+    public static void UseQuestWaypoint(QuestWaypointViewModel waypoint) => s_waypoint = waypoint;
 
     /// <summary>Gives the world map the maps' connections and the farmer's current map; the loader is made in <see cref="StartAsync"/>.</summary>
     /// <param name="worldMap">The world map panel's view model.</param>
@@ -267,6 +273,9 @@ internal static partial class GameLoop
 
     /// <summary>Raised once from the frame, the first time the player presses the action key.</summary>
     public static event Action? FirstActed;
+
+    /// <summary>Raised from the frame whenever the player gives the game input (a key or a touch control). The first-run hints wait for this to stop (docs/adr/ADR-033 D3).</summary>
+    public static event Action? PlayerActivity;
 
     /// <summary>Raised from the frame when the player pressed the close key (Escape).</summary>
     public static event Action? PanelCloseRequested;
@@ -404,7 +413,7 @@ internal static partial class GameLoop
             chunkTargets[i] = textures.ReserveId();
         }
 
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed, s_progress, new TileChunkCache(chunkTargets));
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed, s_progress, new TileChunkCache(chunkTargets), s_waypoint);
         s_scene.WaitingChanged += mapId => OnMapWaitChanged(mapId, loader);
         s_scene.RunStateChanged += state => s_runState?.Invoke(state);
         s_runState?.Invoke(RunState.Stopped);
@@ -510,6 +519,11 @@ internal static partial class GameLoop
         {
             s_acted = true;
             FirstActed?.Invoke();
+        }
+
+        if (keys != 0)
+        {
+            PlayerActivity?.Invoke();
         }
 
         // The action key reels in a line that is out, as a click does; the scene still gets the key, which a rod never uses on a tile.

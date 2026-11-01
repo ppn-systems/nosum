@@ -896,6 +896,12 @@
   <data name="Npc_seed_keeper_Line_14" xml:space="preserve"><value>Vụ mùa đầu tiên của bạn đẹp quá. Lần sau thử trồng loại khác xem.</value></data>
   <data name="Npc_seed_keeper_Line_15" xml:space="preserve"><value>Sáng xuân mát lắm, gieo hạt lúc này cây sẽ mọc nhanh.</value></data>
   <data name="Npc_seed_keeper_Line_16" xml:space="preserve"><value>Trưa hè nóng, nhớ mang theo nước khi ra đồng.</value></data>
+  <data name="Npc_seed_keeper_Quest_buy_seeds" xml:space="preserve"><value>Đang định trồng gì? Hạt giống mua ngay trên quầy này.</value></data>
+  <data name="Npc_blacksmith_Quest_upgrade_tool" xml:space="preserve"><value>Cuốc hay rìu của bạn cần nâng cấp à? Đưa tôi, tôi lo phần còn lại.</value></data>
+  <data name="Npc_carpenter_Quest_build_coop" xml:space="preserve"><value>Muốn xây chuồng? Chọn mẫu ở đây, rồi đặt xuống nông trại.</value></data>
+  <data name="Npc_carpenter_Quest_buy_animal" xml:space="preserve"><value>Có chuồng rồi thì cần con vật đầu tiên. Chọn ở đây nhé.</value></data>
+  <data name="Npc_furnisher_Quest_decorate" xml:space="preserve"><value>Trang trí nhà cửa à? Mua một món nội thất ở đây rồi đặt xuống.</value></data>
+  <data name="Npc_board_keeper_Quest_fill_request" xml:space="preserve"><value>Có yêu cầu trên bảng đấy. Mang đúng món họ cần đến là xong.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Chị Hạnh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Thợ may</value></data>
   <data name="Npc_tailor_Line_01" xml:space="preserve"><value>Vào xem thử đi, áo mới cắt vừa vặn lắm.</value></data>
@@ -1192,9 +1198,9 @@
   <data name="Furniture_WalkOver" xml:space="preserve"><value>Có thể đi qua</value></data>
   <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
   <data name="Toolbar_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
-  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
+  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Thay đồ</value></data>
   <data name="Npc_Action_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
-  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Mở rộng túi</value></data>
   <data name="Backpack_Size" xml:space="preserve"><value>Túi đồ hiện có {0} ô.</value></data>
   <data name="Backpack_Next" xml:space="preserve"><value>Cỡ tiếp theo: {0} ô, giá {1} xu. Thêm một hàng ô.</value></data>
   <data name="Backpack_Upgrade" xml:space="preserve"><value>Nâng cấp túi</value></data>
