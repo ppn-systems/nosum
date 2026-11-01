@@ -39,7 +39,7 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
     public async Task ConnectDisconnectCycles_DoNotGrowTheOpenConnections()
     {
         await RunBurstAsync(this._database);
-        int baseline = await this.OpenConnectionsAsync();
+        int baseline = await this.SettledOpenConnectionsAsync();
 
         for (int i = 0; i < Cycles; i++)
         {
@@ -47,7 +47,7 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
             _ = await context.Database.ExecuteSqlRawAsync("SELECT 1");
         }
 
-        int after = await this.OpenConnectionsAsync();
+        int after = await this.SettledOpenConnectionsAsync();
         after.Should().BeLessThanOrEqualTo(baseline, "a connect and disconnect cycle reuses a pooled connection and opens no new one");
     }
 
@@ -61,6 +61,22 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
     }
 
     // Client backends of this database, not counting the connection that asks. That connection is unpooled, so it is not a pool connection.
+    // The count is read until it stops moving: a pooled connection can still be finishing its reset when the first read happens, and a read
+    // taken in that moment reports one connection more or less than the pool holds. A real leak keeps the count rising, so it still shows.
+    private async Task<int> SettledOpenConnectionsAsync()
+    {
+        int previous = -1;
+        int current = await this.OpenConnectionsAsync();
+        for (int i = 0; i < 20 && current != previous; i++)
+        {
+            await Task.Delay(100);
+            previous = current;
+            current = await this.OpenConnectionsAsync();
+        }
+
+        return current;
+    }
+
     private async Task<int> OpenConnectionsAsync()
     {
         NpgsqlConnectionStringBuilder builder = new(this._database.ConnectionString) { Pooling = false };
