@@ -53,16 +53,31 @@ async function labels(page) {
   return page.$$eval('.game-hud .hud-top-right .game-icon-button', (els) => els.map((e) => e.getAttribute('aria-label')));
 }
 
+// Opens a panel from the HUD: its column button when the column shows it (desktop), otherwise through the Menu button's window
+// (a phone, where the column is only the Menu button and the window gives every panel as a tile, docs/design/ui-standard.md section 6).
 async function clickColumn(page, pattern) {
   const all = await page.$$('.game-hud .hud-top-right .game-icon-button');
   for (const b of all) {
     const label = await b.getAttribute('aria-label');
-    if (label && pattern.test(label)) {
+    if (label && pattern.test(label) && (await b.isVisible())) {
       await b.click({ force: true });
       return label;
     }
   }
-  throw new Error(`no column button matches ${pattern}`);
+  for (const b of all) {
+    if ((await b.getAttribute('aria-label')) === 'Menu' && (await b.isVisible())) {
+      await b.click({ force: true });
+      await page.waitForTimeout(500);
+      for (const t of await page.$$('.game-menu-tile')) {
+        const label = await t.getAttribute('aria-label');
+        if (label && pattern.test(label)) {
+          await t.click({ force: true });
+          return label;
+        }
+      }
+    }
+  }
+  throw new Error(`no column button or menu tile matches ${pattern}`);
 }
 
 async function closePanel(page) {
@@ -122,6 +137,18 @@ async function openChest(page) {
       await page.waitForTimeout(900);
       await page.screenshot({ path: path.join(dir, '02-crafting.png') });
       await closePanel(page);
+      if (phase === 'after') {
+        // The Menu window: the tiles of the panels that are not on the column (every panel on a phone).
+        for (const b of await page.$$('.game-hud .hud-top-right .game-icon-button')) {
+          if ((await b.getAttribute('aria-label')) === 'Menu' && (await b.isVisible())) {
+            await b.click({ force: true });
+            break;
+          }
+        }
+        await page.waitForTimeout(900);
+        await page.screenshot({ path: path.join(dir, '04-menu.png') });
+        await closePanel(page);
+      }
       const opened = await openChest(page);
       if (opened) {
         await page.screenshot({ path: path.join(dir, '03-chest.png') });
