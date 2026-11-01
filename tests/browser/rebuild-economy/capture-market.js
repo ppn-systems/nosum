@@ -3,6 +3,8 @@
 // Usage (from the repo root):
 //   NODE_PATH=$(npm root -g) BASE_URL=http://localhost:5810 OUT_DIR=docs/qa/rebuild-economy/after LANG_CODE=en VIEWPORTS=1280x720,390x844 \
 //     node tests/browser/rebuild-economy/capture-market.js
+// FIT=1 lists sixteen stacks (round 4: the page must size itself to the window, docs/adr/ADR-101 amendment 2026-11-01); clear the market between sizes
+// (TRUNCATE market_listings, market_sales), or the pager counts the earlier sizes' listings too.
 // Needs a build made with -p:NosumDevTools=true (window.nosumQa on a ?qa=1 page) and a Development server (the grant is refused elsewhere).
 // Writes OUT_DIR/<WxH>/<lang>-<screen>.png and OUT_DIR/<lang>-report.json (what was captured, what was skipped and why, page errors).
 const fs = require('fs');
@@ -38,6 +40,12 @@ const LISTINGS = [
   { qty: 2, price: 300 },
   { qty: 2, price: 90 },
 ];
+
+// Round 4 (docs/adr/ADR-101 amendment 2026-11-01): FIT=1 lists sixteen stacks of one parsnip each, more rows than any of the three windows shows, so the
+// page has to size itself to the room. Unit prices vary, so the sort order differs from the list order.
+const FIT_LISTINGS = Array.from({ length: 16 }, (_, i) => ({ qty: 1, price: 20 + ((i * 7) % 40) }));
+const LISTING_SET = process.env.FIT === '1' ? FIT_LISTINGS : LISTINGS;
+const PARSNIPS_TO_GRANT = LISTING_SET.reduce((sum, l) => sum + l.qty, 0);
 
 // Labels per language (Language.resx). Sort labels exist only once the sort control is built; the script skips the step otherwise.
 const T = LANG_CODE === 'en'
@@ -113,7 +121,7 @@ async function run() {
     fs.mkdirSync(dir, { recursive: true });
     const seller = await newGuest(browser, vp, report, 'seller');
     const buyer = await newGuest(browser, vp, report, 'buyer');
-    await seller.evaluate((item) => window.nosumQa.grant(item, 12, 0), PARSNIP);
+    await seller.evaluate(([item, n]) => window.nosumQa.grant(item, n, 0), [PARSNIP, PARSNIPS_TO_GRANT]);
     await buyer.evaluate(() => window.nosumQa.grant(0, 0, 3000));
     await buyer.evaluate((item) => window.nosumQa.grant(item, 6, 0), PARSNIP);
     await sleep(800);
@@ -128,7 +136,7 @@ async function run() {
     await seller.locator('.sell-form input').nth(1).fill('120');
     await sleep(300);
     await shot(seller, dir, 'seller-sell-picked', report);
-    for (const l of LISTINGS) {
+    for (const l of LISTING_SET) {
       await listStack(seller, l.qty, l.price);
     }
     await shot(seller, dir, 'seller-listed', report);
@@ -147,7 +155,20 @@ async function run() {
       const filter = f ? { h: Math.round(f.getBoundingClientRect().height), w: Math.round(f.getBoundingClientRect().width), kids: [...f.children].map((c) => `${c.tagName}.${c.className}:${Math.round(c.getBoundingClientRect().width)}x${Math.round(c.getBoundingClientRect().height)}`) } : null;
       const stack = b.querySelector('.game-stack');
       const kids = stack ? [...stack.children].map((c) => `${c.tagName}.${(c.className || '').toString().split(' ')[0]}:${Math.round(c.getBoundingClientRect().height)}`) : [];
-      return { clientHeight: b.clientHeight, scrollHeight: b.scrollHeight, listings: document.querySelectorAll('.listing-row').length, kids, filter };
+      const list = document.querySelector('.listing-list');
+      const row = document.querySelector('.listing-row');
+      const rowRect = row ? row.getBoundingClientRect() : null;
+      return {
+        clientHeight: b.clientHeight,
+        scrollHeight: b.scrollHeight,
+        fits: b.clientHeight >= b.scrollHeight,
+        listings: document.querySelectorAll('.listing-row').length,
+        rowHeight: rowRect ? Math.round(rowRect.height * 10) / 10 : null,
+        listHeight: list ? Math.round(list.getBoundingClientRect().height * 10) / 10 : null,
+        pager: (document.querySelector('.pager, .menu-page-body .pager')?.textContent || '').trim(),
+        kids,
+        filter,
+      };
     });
     report.measures = report.measures || [];
     report.measures.push({ viewport: label, ...body });

@@ -1,0 +1,180 @@
+{
+  "viewport": "desktop",
+  "lang": "vi",
+  "bought": "Đã có bản vẽ trong túi. Hãy đặt nó xuống đất.",
+  "blueprintGhost": null,
+  "confirm": "Công trình xây xong không dời hay cất được. Nhấn E lần nữa để xây ở đây.",
+  "afterBuild": null,
+  "recipes": [
+    {
+      "name": "Rương",
+      "makes": "Tạo ra: Rương x1",
+      "locked": null
+    },
+    {
+      "name": "Hàng rào gỗ",
+      "makes": "Tạo ra: Hàng rào gỗ x1",
+      "locked": null
+    },
+    {
+      "name": "Đường đá",
+      "makes": "Tạo ra: Đường đá x1",
+      "locked": null
+    },
+    {
+      "name": "Bù nhìn",
+      "makes": "Tạo ra: Bù nhìn x1",
+      "locked": "Cần kỹ năng Làm ruộng cấp 1"
+    },
+    {
+      "name": "Bù nhìn",
+      "makes": "Tạo ra: Bù nhìn x1",
+      "locked": "Cần kỹ năng Làm ruộng cấp 1"
+    },
+    {
+      "name": "Vòi tưới",
+      "makes": "Tạo ra: Vòi tưới x1",
+      "locked": "Cần kỹ năng Làm ruộng cấp 2"
+    },
+    {
+      "name": "Sổ lưu bút nông trại",
+      "makes": "Tạo ra: Sổ lưu bút nông trại x1",
+      "locked": "Cần kỹ năng Làm ruộng cấp 1"
+    },
+    {
+      "name": "Lò nung",
+      "makes": "Tạo ra: Lò nung x1",
+      "locked": "Cần kỹ năng Khai khoáng cấp 1"
+    },
+    {
+      "name": "Salad",
+      "makes": "Tạo ra: Salad x1",
+      "locked": null
+    },
+    {
+      "name": "Khoai tây nướng",
+      "makes": "Tạo ra: Khoai tây nướng x1",
+      "locked": "Cần kỹ năng Làm ruộng cấp 1"
+    },
+    {
+      "name": "Súp bí ngô",
+      "makes": "Tạo ra: Súp bí ngô x1",
+      "locked": "Cần kỹ năng Làm ruộng cấp 3"
+    },
+    {
+      "name": "Cần câu",
+      "makes": "Tạo ra: Cần câu x1",
+      "locked": null
+    },
+    {
+      "name": "Súp cá",
+      "makes": "Tạo ra: Súp cá x1",
+      "locked": "Cần kỹ năng Câu cá cấp 2"
+    },
+    {
+      "name": "Thuốc hồi máu (HP)",
+      "makes": "Tạo ra: Thuốc hồi máu (HP) x1",
+      "locked": null
+    },
+    {
+      "name": "Thuốc hồi năng lượng (MP)",
+      "makes": "Tạo ra: Thuốc hồi năng lượng (MP) x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 1"
+    },
+    {
+      "name": "Linh dược Hoàng kim",
+      "makes": "Tạo ra: Linh dược Hoàng kim x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 4"
+    },
+    {
+      "name": "Kiếm đồng",
+      "makes": "Tạo ra: Kiếm đồng x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 1"
+    },
+    {
+      "name": "Kiếm sắt",
+      "makes": "Tạo ra: Kiếm sắt x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 2"
+    },
+    {
+      "name": "Kiếm thép",
+      "makes": "Tạo ra: Kiếm thép x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 4"
+    },
+    {
+      "name": "Kiếm hoàng kim",
+      "makes": "Tạo ra: Kiếm hoàng kim x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 6"
+    },
+    {
+      "name": "Trượng ma thuật",
+      "makes": "Tạo ra: Trượng ma thuật x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 3"
+    },
+    {
+      "name": "Giáp da thú",
+      "makes": "Tạo ra: Giáp da thú x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 1"
+    },
+    {
+      "name": "Giày nhanh nhẹn",
+      "makes": "Tạo ra: Giày nhanh nhẹn x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 3"
+    },
+    {
+      "name": "Giày cánh bay",
+      "makes": "Tạo ra: Giày cánh bay x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 6"
+    },
+    {
+      "name": "Thuốc tăng tốc",
+      "makes": "Tạo ra: Thuốc tăng tốc x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 2"
+    },
+    {
+      "name": "Mũ chiến binh sắt",
+      "makes": "Tạo ra: Mũ chiến binh sắt x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 2"
+    },
+    {
+      "name": "Giáp ngực sắt",
+      "makes": "Tạo ra: Giáp ngực sắt x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 3"
+    },
+    {
+      "name": "Xà cạp sắt",
+      "makes": "Tạo ra: Xà cạp sắt x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 2"
+    },
+    {
+      "name": "Áo chiến binh tuần rừng",
+      "makes": "Tạo ra: Áo chiến binh tuần rừng x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 2"
+    },
+    {
+      "name": "Ma đạo thư Hồng ngọc",
+      "makes": "Tạo ra: Ma đạo thư Hồng ngọc x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 3"
+    },
+    {
+      "name": "Pha lê Trái tim",
+      "makes": "Tạo ra: Pha lê Trái tim x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 3"
+    },
+    {
+      "name": "Chân nến Thánh đường",
+      "makes": "Tạo ra: Chân nến Thánh đường x1",
+      "locked": "Cần kỹ năng Chiến đấu cấp 4"
+    }
+  ],
+  "chestCrafted": null,
+  "chestGhost": null,
+  "chestPlaced": null,
+  "chestOpen": null,
+  "furnaceGhost": null,
+  "furnaceGhostFeetClear": null,
+  "furnacePlaced": null,
+  "sprinklerGhost": null,
+  "sprinklerGhostFeetClear": null,
+  "sprinklerPlaced": null
+}

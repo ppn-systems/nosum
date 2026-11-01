@@ -31,13 +31,13 @@ internal sealed class FarmDecorator : IMapDecorator
     private const int WetSheetOffset = 64;
 
     // The reticle's multiply tint when the held item would do nothing on the tile in front (0xRRGGBBAA): red, the rest dimmed.
-    private static readonly int s_deniedTint = unchecked((int)0xFF7070FF);
+    private static readonly int s_deniedTint = Rgba.From(0xFF, 0x70, 0x70, 0xFF);
 
     // The multiply tint of a thirsty tile, one dry day from withering or reverting (0xRRGGBBAA): parched yellow, the blue dimmed.
-    private static readonly int s_thirstyTint = unchecked((int)0xE6C070FF);
+    private static readonly int s_thirstyTint = Rgba.From(0xE6, 0xC0, 0x70, 0xFF);
 
     // The tiles of a wide tool's line beyond the first are dimmed, so the first tile (the one the use starts on) reads as the target (docs/adr/ADR-094 D1).
-    private static readonly int s_lineTint = unchecked((int)0xFFFFFF8C);
+    private static readonly int s_lineTint = Rgba.From(0xFF, 0xFF, 0xFF, 0x8C);
 
     private readonly string _mapId;
     private readonly FarmChannel _farm;

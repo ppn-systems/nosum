@@ -1,0 +1,8 @@
+ok   befriend QaFriend7126
+ok   en-1920x1080-friends-online (listed)
+ok   en-1920x1080-chat
+ok   en-1920x1080-trade
+ok   en-1920x1080-visit-farm
+ok   en-1920x1080-coop-deposit
+ok   en-1920x1080-coop-invite
+ok   en-1920x1080 play

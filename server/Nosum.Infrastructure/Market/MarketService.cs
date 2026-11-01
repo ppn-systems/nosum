@@ -17,6 +17,7 @@ using Nosum.Abstractions.Market;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Market;
+using Nosum.Contracts.Validation;
 using Nosum.Domain.Market;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Economy;
@@ -341,13 +342,16 @@ public sealed class MarketService : IMarketService
     }
 
     /// <inheritdoc/>
-    public async Task<ListingsPageView> BrowseAsync(int page, IReadOnlyCollection<int> itemIds, MarketSort sort = MarketSort.Newest, CancellationToken cancellationToken = default)
+    public async Task<ListingsPageView> BrowseAsync(int page, IReadOnlyCollection<int> itemIds, MarketSort sort = MarketSort.Newest, int pageSize = 0, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(itemIds);
 
         int[] ids = [.. itemIds.Take(32)];
         bool any = ids.Length == 0;
         int index = Math.Max(0, page);
+
+        // The client asks for the rows its panel has room for (docs/adr/ADR-101 amendment 2026-11-01); zero is the default, a larger size is clamped.
+        int size = pageSize <= 0 ? CoinRules.ListingsPerPage : Math.Min(pageSize, WireLimits.MaxListingsPageSize);
         DateTimeOffset now = _time.GetUtcNow();
         IUnitOfWork unit = _unitOfWork.Create();
         await using (unit.ConfigureAwait(false))
@@ -356,26 +360,26 @@ public sealed class MarketService : IMarketService
             int total = await listings.CountAsync(l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)), cancellationToken).ConfigureAwait(false);
 
             // The repository pages newest-key first. A unit price lowest-first page sorts on the negated unit price, so the same descending page gives the ascending order.
-            int skip = index * CoinRules.ListingsPerPage;
+            int skip = index * size;
             List<MarketListing> rows = sort switch
             {
                 MarketSort.UnitPriceLowest => await listings.PageAsync(
                     l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
                     l => -((double)l.Price / l.Quantity),
                     skip,
-                    CoinRules.ListingsPerPage,
+                    size,
                     cancellationToken).ConfigureAwait(false),
                 MarketSort.UnitPriceHighest => await listings.PageAsync(
                     l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
                     l => (double)l.Price / l.Quantity,
                     skip,
-                    CoinRules.ListingsPerPage,
+                    size,
                     cancellationToken).ConfigureAwait(false),
                 _ => await listings.PageAsync(
                     l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
                     l => l.CreatedAt,
                     skip,
-                    CoinRules.ListingsPerPage,
+                    size,
                     cancellationToken).ConfigureAwait(false),
             };
             return new ListingsPageView(now, index, total, await this.ViewsAsync(rows, cancellationToken).ConfigureAwait(false));

@@ -34,16 +34,16 @@
         {
             <GameSection Title="@Vm.Text("Settings_Account")">
                 <p>@Account.SignedInText</p>
-                @if (Account.CanUpgrade)
+                @if (Account.CanSaveProgress)
                 {
-                    <p>@Account.UpgradePromptText</p>
+                    <p><strong>@Account.SaveProgressHeading</strong></p>
+                    <p>@Account.SaveProgressBody</p>
+                    <GameRow>
+                        <GameButton OnClick="Account.BeginUpgrade" Disabled="@Account.IsBusy" Text="@Account.SaveProgressText" />
+                    </GameRow>
                 }
                 <GameRow>
-                    @if (Account.CanUpgrade)
-                    {
-                        <GameButton OnClick="Account.BeginUpgrade" Disabled="@Account.IsBusy" Text="@Account.UpgradeText" />
-                    }
-                    <GameButton Variant="danger" OnClick="@(() => Account.LogoutAsync(CancellationToken.None))" Disabled="@Account.IsBusy" Text="@Account.SignOutText" />
+                    <GameButton Variant="danger" OnClick="@(() => Account.RequestSignOutAsync(CancellationToken.None))" Disabled="@Account.IsBusy" Text="@Account.SignOutText" />
                 </GameRow>
             </GameSection>
         }

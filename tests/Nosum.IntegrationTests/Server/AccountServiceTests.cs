@@ -317,6 +317,34 @@ public sealed class AccountServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task LinkExternalIdentityAsync_GuestLinksMicrosoft_KeepsTheFarmAndSignsInAgainWithIt()
+    {
+        string subject = Unique();
+        AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
+        PlayerStateService states = new(new EfUnitOfWorkFactory(_database.Options), _clock);
+        await states.SaveAsync(guest.PlayerId, new PlayerStateRow("Farm", 9, 4, Facing.Left), CancellationToken.None);
+
+        AccountOutcome linked = await _accounts.LinkExternalIdentityAsync(guest.PlayerId, guest.SessionId, ExternalProvider.Microsoft, FakeExternalTokenVerifier.Token(ExternalProvider.Microsoft, subject), TestNicknames.Next(), CancellationToken.None);
+        AccountOutcome again = await _accounts.SignInWithExternalAsync(ExternalProvider.Microsoft, FakeExternalTokenVerifier.Token(ExternalProvider.Microsoft, subject), GameLanguage.English, CancellationToken.None);
+
+        linked.Status.Should().Be(AccountStatus.Ok);
+        linked.PlayerId.Should().Be(guest.PlayerId);
+        again.PlayerId.Should().Be(guest.PlayerId, "the Microsoft identity now belongs to the same player, so the farm comes back on sign-in");
+        (await states.LoadAsync(guest.PlayerId, CancellationToken.None)).Should().Be(new PlayerStateRow("Farm", 9, 4, Facing.Left));
+    }
+
+    [Fact]
+    public async Task LogoutAsync_UnlinkedGuest_CannotResumeTheProgressAfterSignOut()
+    {
+        AccountOutcome guest = await _accounts.StartGuestAsync(GameLanguage.Unspecified, CancellationToken.None);
+
+        await _accounts.LogoutAsync(guest.SessionId, CancellationToken.None);
+        AccountOutcome resumed = await _accounts.ResumeAsync(guest.SessionToken, CancellationToken.None);
+
+        resumed.Status.Should().Be(AccountStatus.InvalidToken, "a signed-out guest has no way back to this player (the sign-out warning says so)");
+    }
+
+    [Fact]
     public async Task LinkExternalIdentityAsync_RegisteredPlayer_IsRefusedAsNotGuest()
     {
         AccountOutcome signedIn = await TestAccounts.SignInAsync(_accounts, Unique());

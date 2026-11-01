@@ -24,6 +24,7 @@ using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Coop;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Market;
+using Nosum.Contracts.Validation;
 using Nosum.Domain.Accounts;
 using Nosum.Domain.Coops;
 using Nosum.Domain.Economy;
@@ -389,6 +390,35 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
         second.Listings.Should().NotBeEmpty();
         first.Listings.Should().OnlyContain(l => l.ItemId == ItemCatalog.Radish);
         none.Listings.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Browse_PageSize_AsksForThatManyRowsAndClampsToTheLimit()
+    {
+        // Radish listings: 22 of them from two sellers (a seller holds at most 20 active listings), so a page of 20 (the limit) is full.
+        // Docs/adr/ADR-101 amendment 2026-11-01.
+        Guid seller = Guid.Empty;
+        for (int i = 0; i < 22; i++)
+        {
+            if (i % 11 == 0)
+            {
+                seller = await CreatePlayerAsync();
+                _ = await _inventory.AddAsync(seller, ItemCatalog.Radish, 11, "test.setup");
+            }
+
+            _clock.Advance(TimeSpan.FromSeconds(1));
+            int slot = await SlotOfAsync(seller, ItemCatalog.Radish);
+            (await _market.CreateListingAsync(seller, slot, ItemCatalog.Radish, 1, 40 + i)).Should().Be(MarketStatus.Ok, "listing %d", i);
+        }
+
+        ListingsPageView four = await _market.BrowseAsync(0, [ItemCatalog.Radish], MarketSort.Newest, 4);
+        ListingsPageView none = await _market.BrowseAsync(0, [ItemCatalog.Radish], MarketSort.Newest, 0);
+        ListingsPageView clamped = await _market.BrowseAsync(0, [ItemCatalog.Radish], MarketSort.Newest, 500);
+
+        four.Listings.Should().HaveCount(4, "the panel has room for four rows");
+        none.Listings.Should().HaveCount(CoinRules.ListingsPerPage, "zero is the server's default");
+        clamped.Listings.Should().HaveCount(WireLimits.MaxListingsPageSize, "a larger size is clamped to the limit");
+        clamped.Total.Should().BeGreaterThanOrEqualTo(22);
     }
 
     [Fact]

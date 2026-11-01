@@ -97,6 +97,17 @@ public sealed class WalkGrid
         }
     }
 
+    /// <summary>Makes this grid block exactly what <paramref name="source"/> blocks, in place (no allocation); the gates are shared as <see cref="Clone"/> shares them.</summary>
+    /// <param name="source">A grid of the same width and height.</param>
+    public void CopyBlockedFrom(WalkGrid source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentOutOfRangeException.ThrowIfNotEqual(source._blocked.Length, _blocked.Length);
+
+        Array.Copy(source._blocked, _blocked, _blocked.Length);
+        _gates = source._gates;
+    }
+
     /// <summary>Blocks every tile another grid of the same size blocks, so two layers built on the same map (nodes, placed objects) can be joined.</summary>
     /// <param name="other">A grid of the same width and height.</param>
     public void BlockWhereBlocked(WalkGrid other)

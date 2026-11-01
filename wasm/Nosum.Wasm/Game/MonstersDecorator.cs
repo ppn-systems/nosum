@@ -34,6 +34,15 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     private const int WindupMaxRisePx = 3;
     private const int WindupFlashAlpha = 160;
 
+    // The strike cue (docs/adr/ADR-097 D4): a 3 px wide "!" above the sprite's head, with a 1 px dark outline. Ids sit in the overlay range
+    // (8900 and up) below the health-bar ids of the same monster, so the sort stays stable.
+    private const int StrikeCueWidthPx = 3;
+    private const int StrikeCueMarkPx = 8;
+    private const int StrikeCueHeightPx = StrikeCueMarkPx + 1 + StrikeCueWidthPx;
+    private const int StrikeCueOutlinePx = 1;
+    private const int StrikeCueOffsetPx = 22;
+    private const int StrikeCueIdBase = 9400;
+
     private readonly string _mapId;
     private readonly CombatChannel _combat;
     private readonly CombatLabels? _labels;
@@ -108,6 +117,28 @@ internal sealed partial class MonstersDecorator : IMapDecorator
             && worldY - CullMargin < _camera.Top + _camera.Height;
     }
 
+    /// <summary>
+    /// Draws the strike cue: a dark-outlined amber "!" of three solid rectangles, above the monster's head (docs/adr/ADR-097 D4). Overlays are
+    /// drawn after the front layer, so the cue is never hidden by the farmer. Solid fills only: no texture, no text, nothing allocated. The fill
+    /// tint is 0xRRGGBBAA (renderer.js, command -6): alpha is the low byte.
+    /// </summary>
+    /// <param name="world">The world batch collecting this frame's overlays.</param>
+    /// <param name="worldX">Left of the monster's sprite, world pixels.</param>
+    /// <param name="top">Top of the cue, world pixels.</param>
+    /// <param name="monsterId">Stable monster id, for the overlay sort tie-break.</param>
+    private static void AddStrikeCue(WorldSpriteBatch world, int worldX, int top, int monsterId)
+    {
+        int sortY = top + StrikeCueHeightPx + StrikeCueOutlinePx;
+        int sortX = worldX + (FrameSize / 2);
+        int id = StrikeCueIdBase + (monsterId * 4);
+        int left = worldX + ((FrameSize - StrikeCueWidthPx) / 2);
+
+        // Outline first (same sort key, lower insertion index), then the mark, then the dot, so the amber sits on top of the outline.
+        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx + (2 * StrikeCueOutlinePx), StrikeCueHeightPx + (2 * StrikeCueOutlinePx), left - StrikeCueOutlinePx, top - StrikeCueOutlinePx, sortY, sortX, id, tint: Rgba.From(0x1c, 0x19, 0x17, 0xff));
+        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx, StrikeCueMarkPx, left, top, sortY, sortX, id + 1, tint: Rgba.From(0xfa, 0xcc, 0x15, 0xff));
+        world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, StrikeCueWidthPx, StrikeCueWidthPx, left, top + StrikeCueMarkPx + 1, sortY, sortX, id + 2, tint: Rgba.From(0xfa, 0xcc, 0x15, 0xff));
+    }
+
     private void DrawMonsters(WorldSpriteBatch world, long now)
     {
         _combat.CopyMonsters(_scratch);
@@ -159,6 +190,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
 
             // A monster in its strike wind-up rises and flashes until the strike lands (docs/adr/ADR-097).
             int windupRise = 0;
+            bool telegraphing = false;
             for (int w = 0; w < _windupScratch.Count; w++)
             {
                 StrikeWindupClientRow windup = _windupScratch[w];
@@ -168,6 +200,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                     continue;
                 }
 
+                telegraphing = true;
                 if (!reduceMotion)
                 {
                     windupRise = 1 + (int)((windupElapsed * WindupMaxRisePx) / windup.DelayMs);
@@ -235,7 +268,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                     worldY + FrameSize - 1,
                     worldX,
                     8700 + m.MonsterId,
-                    tint: unchecked((int)0xdc262699));
+                    tint: Rgba.From(0xdc, 0x26, 0x26, 0x99));
             }
 
             world.Add(
@@ -250,7 +283,14 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                 worldX + (FrameSize / 2),
                 m.MonsterId,
                 flags: flashAlpha > 0 ? monsterFlags | RenderCommandBuffer.Whiten : monsterFlags,
-                tint: flashAlpha > 0 ? unchecked((int)0xffffff00) | flashAlpha : RenderCommandBuffer.NoTint);
+                tint: flashAlpha > 0 ? Rgba.From(0xff, 0xff, 0xff, 0x00) | flashAlpha : RenderCommandBuffer.NoTint);
+
+            // The strike cue (docs/adr/ADR-097 D4): a "!" over the head while the wind-up runs. It is an overlay, so it draws above the farmer
+            // even when the farmer stands in front of or on top of the monster, where the sprite's rise and flash are hidden.
+            if (telegraphing)
+            {
+                AddStrikeCue(world, worldX, worldY - StrikeCueOffsetPx - windupRise, m.MonsterId);
+            }
 
             // Elite title badge (docs/adr/ADR-058)
             if (m.Modifier > 0 && _labels is not null)
@@ -301,7 +341,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                     worldY + FrameSize,
                     worldX,
                     8900 + (m.MonsterId * 2),
-                    tint: unchecked((int)0x111111ee));
+                    tint: Rgba.From(0x11, 0x11, 0x11, 0xee));
 
                 // Health fill:
                 int fillW = Math.Clamp((m.Hp * (barW - 2)) / m.MaxHp, 1, barW - 2);

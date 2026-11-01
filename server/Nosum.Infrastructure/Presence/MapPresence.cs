@@ -23,7 +23,8 @@ public sealed class MapPresence : IMapPresence, IChunkMap
 {
     private readonly IConnectionGroupRegistry _groups;
     private readonly ConcurrentDictionary<ulong, PlayerPresence> _byConnection = new();
-    private readonly ConcurrentDictionary<ulong, byte> _leaving = new();
+    // The claimed leave of each connection that is leaving, and the task that completes once its handlers and record are done.
+    private readonly ConcurrentDictionary<ulong, Task> _leaving = new();
     private readonly ConcurrentDictionary<Guid, PlayerPresence> _byAccount = new();
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<uint, PlayerPresence>> _byMap = new(StringComparer.Ordinal);
     private readonly ChunkIndex _chunks = new();
@@ -87,9 +88,19 @@ public sealed class MapPresence : IMapPresence, IChunkMap
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        // The leave is claimed once: a second close of the same connection finds the claim taken and returns, as the removal used to.
-        if (!_byConnection.TryGetValue(connection.ConnectionId, out PlayerPresence? player) || !_leaving.TryAdd(connection.ConnectionId, 0))
+        // The leave is claimed once and its handlers run once. A second leave of the same connection (the socket's close event and the session's release both
+        // leave it) does not run them again, but it waits until the claimed leave has saved and removed the record: whatever the caller does next (the session
+        // end, which lets the player's copies go) runs after the save (docs/adr/ADR-087 D1, docs/adr/ADR-035 amendment 2026-11-01).
+        if (!_byConnection.TryGetValue(connection.ConnectionId, out PlayerPresence? player))
         {
+            await this.AwaitClaimedLeaveAsync(connection.ConnectionId).ConfigureAwait(false);
+            return;
+        }
+
+        TaskCompletionSource finished = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (!_leaving.TryAdd(connection.ConnectionId, finished.Task))
+        {
+            await this.AwaitClaimedLeaveAsync(connection.ConnectionId).ConfigureAwait(false);
             return;
         }
 
@@ -121,9 +132,19 @@ public sealed class MapPresence : IMapPresence, IChunkMap
             }
 
             _ = _leaving.TryRemove(connection.ConnectionId, out _);
+            _ = finished.TrySetResult();
         }
 
         await _groups.RemoveFromGroupAsync(MapGroup.Name(player.Key), connection, cancellationToken).ConfigureAwait(false);
+    }
+
+    // Waits for the leave that claimed this connection, if one is still running. A leave that finished, or never started, returns at once.
+    private async ValueTask AwaitClaimedLeaveAsync(ulong connectionId)
+    {
+        if (_leaving.TryGetValue(connectionId, out Task? claimed))
+        {
+            await claimed.ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc/>

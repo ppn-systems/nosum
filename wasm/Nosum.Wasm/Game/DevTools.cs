@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Dev;
 using Nosum.Wasm.ViewModels.Fishing;
@@ -53,6 +54,20 @@ internal static partial class DevTools
     [JSExport]
     internal static void Teleport(string mapId, int tileX, int tileY) => s_channel?.Teleport(mapId, tileX, tileY);
 
+    /// <summary>Asks a Development server for a new registered test friend of the player (docs/adr/ADR-105). Resolves to the nickname and the
+    /// session token separated by a tab, or to an empty string when the server made none.</summary>
+    [JSExport]
+    internal static async Task<string> Befriend()
+    {
+        if (s_channel is null)
+        {
+            return string.Empty;
+        }
+
+        TestFriend? friend = await s_channel.BefriendAsync().ConfigureAwait(false);
+        return friend is null ? string.Empty : friend.Nickname + "\t" + friend.SessionToken;
+    }
+
     /// <summary>Bytes the frame thread has allocated so far. The frame benchmark (bench/wasm-perf/frame.cjs) reads the difference across a run.</summary>
     [JSExport]
     internal static double AllocatedBytes() => GC.GetAllocatedBytesForCurrentThread();
@@ -77,12 +92,14 @@ internal static partial class DevTools
     /// <summary>Moves the player onto the tile of a living monster of the current map; the server places the player next to it. Call it after the
     /// map has loaded its monsters (the Woods, the Forest, the Mountain or the Backwoods), for the combat keys.</summary>
     /// <param name="mapId">The map id the player is on, for example <c>woods</c>.</param>
+    /// <param name="dx">Tiles from the monster's tile, to the right (negative to the left). Round 5 uses a tile beside it to see the telegraph.</param>
+    /// <param name="dy">Tiles from the monster's tile, down (negative up). A farmer one tile below a monster is drawn over it (docs/adr/ADR-097 D4).</param>
     [JSExport]
-    internal static void TeleportToMonster(string mapId)
+    internal static void TeleportToMonster(string mapId, int dx = 0, int dy = 0)
     {
         if (s_channel is not null && s_combat is not null && s_combat.TryGetLivingMonsterTile(out int x, out int y))
         {
-            s_channel.Teleport(mapId, x, y);
+            s_channel.Teleport(mapId, x + dx, y + dy);
         }
     }
 

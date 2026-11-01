@@ -118,6 +118,14 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the localized caption under the hair style buttons: the name of the style the player wears.</summary>
+    public string CurrentHairStyleText => this.Text("Wardrobe_HairStyle_Current", HairStyleName(this.Look.HairStyleId));
+
+    /// <summary>Gets the localized name of a hair style, read from <c>Language.resx</c> by its id (<c>Wardrobe_HairStyle_Name_{id}</c>).</summary>
+    /// <param name="styleId">Hair style id, from 1.</param>
+    /// <returns>The readable name, or the number when the id has no name.</returns>
+    public string HairStyleName(int styleId) => this.Text("Wardrobe_HairStyle_Name_" + styleId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
     /// <summary>Gets the hair styles.</summary>
     public IReadOnlyList<PartChoice> HairStyles
     {
@@ -126,7 +134,7 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
             List<PartChoice> choices = [];
             for (int id = 1; id <= LookCatalog.HairStyleCount; id++)
             {
-                choices.Add(new PartChoice(id, string.Empty, this.Text("Wardrobe_HairStyle", id), id == this.Look.HairStyleId));
+                choices.Add(new PartChoice(id, string.Empty, HairStyleName(id), id == this.Look.HairStyleId));
             }
 
             return choices;
@@ -253,7 +261,7 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     }
 
     // White multiplies to nothing: no layer needed.
-    private static string? Tint(int tint) => tint == unchecked((int)0xFFFFFFFF) ? null : LookPalette.Css(tint);
+    private static string? Tint(int tint) => tint == -1 ? null : LookPalette.Css(tint);
 
     private void OnCompleted(LookStatus status) => this.SetStatus(status == LookStatus.Ok ? string.Empty : this.Text("Wardrobe_Status_" + status));
 }

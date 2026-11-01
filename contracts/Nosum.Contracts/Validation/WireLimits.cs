@@ -47,4 +47,7 @@ public static class WireLimits
 
     /// <summary>Most lines in a trade offer.</summary>
     public const int MaxOfferLines = 16;
+
+    /// <summary>Most listings on one browse page (docs/adr/ADR-101 amendment 2026-11-01). The client asks for the rows its panel has room for; the server clamps to this.</summary>
+    public const int MaxListingsPageSize = 20;
 }

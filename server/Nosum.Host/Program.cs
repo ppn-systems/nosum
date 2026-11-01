@@ -215,6 +215,12 @@ internal static partial class Program
         return builder
             .ConfigureDispatchOptions(o =>
             {
+                // A test seam goes first, so it wraps the whole chain (ServerSeams.Dispatch; production passes none).
+                if (seams?.Dispatch is { } dispatch)
+                {
+                    _ = o.WithMiddleware(dispatch);
+                }
+
                 // Handler timing first (it includes the checks below), then declared input bounds (docs/adr/ADR-032 D3), then fail-closed [PacketPermission] gating and [PacketRateLimit] enforcement.
                 _ = o.WithMiddleware(new MetricsMiddleware(static () => InstanceManager.Instance.GetExistingInstance<IMapPresence>()));
                 _ = o.WithMiddleware(new InputBoundsMiddleware());

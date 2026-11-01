@@ -1,6 +1,8 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using Nalix.Abstractions.Middleware;
+using Nalix.Abstractions.Networking.Packets;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Presence;
 
@@ -12,4 +14,8 @@ namespace Nosum.Host;
 /// </summary>
 /// <param name="WrapPresence">Wraps the presence the player service sends snapshots through.</param>
 /// <param name="WrapStates">Wraps the saved-place service the player service writes through.</param>
-internal sealed record ServerSeams(Func<IMapPresence, IMapPresence>? WrapPresence = null, Func<IPlayerStateService, IPlayerStateService>? WrapStates = null);
+/// <param name="Dispatch">An extra packet middleware, registered before the production ones so it wraps every handler (the budget test scopes the database work of one handler by it, docs/adr/ADR-035).</param>
+internal sealed record ServerSeams(
+    Func<IMapPresence, IMapPresence>? WrapPresence = null,
+    Func<IPlayerStateService, IPlayerStateService>? WrapStates = null,
+    IPacketMiddleware<IPacket>? Dispatch = null);
