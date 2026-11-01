@@ -1,4 +1,4 @@
-# ADR-105: A scythe tap reaches the server and names the days left; the hover stage counts a sprinkler; a placed piece says so
+# ADR-106: A scythe tap reaches the server and names the days left; the hover stage counts a sprinkler; a placed piece says so
 
 ## Status
 

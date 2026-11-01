@@ -42,7 +42,7 @@ internal sealed partial class MonstersDecorator
             pWorldY + FrameSize,
             pWorldX,
             8800,
-            tint: unchecked((int)0x6b21a8cc));
+            tint: Rgba.From(0x6b, 0x21, 0xa8, 0xcc));
 
         // Inner swirling core (10x10)
         float corePhase = now * 0.006f;
@@ -59,7 +59,7 @@ internal sealed partial class MonstersDecorator
             pWorldY + FrameSize,
             pWorldX,
             8801,
-            tint: unchecked((int)0x06b6d4ee));
+            tint: Rgba.From(0x06, 0xb6, 0xd4, 0xee));
 
         // Swirling orbiting particles
         float r = 9f + (MathF.Sin(corePhase * 1.5f) * 3f);
@@ -115,7 +115,7 @@ internal sealed partial class MonstersDecorator
                     hWorldY + 1,
                     hWorldX + 1,
                     8400,
-                    tint: unchecked((int)0x14532dcc));
+                    tint: Rgba.From(0x14, 0x53, 0x2d, 0xcc));
 
                 // Pulsing toxic spore vapor (0xRRGGBBAA)
                 float pulse = MathF.Sin((now * 0.005f) + (h.HazardId * 1.5f));
@@ -148,7 +148,7 @@ internal sealed partial class MonstersDecorator
                     hWorldY + FrameSize,
                     hWorldX,
                     8701,
-                    tint: unchecked((int)0x86efacee));
+                    tint: Rgba.From(0x86, 0xef, 0xac, 0xee));
             }
             else if (h.Kind == 2) // SpikeTrap (floor spikes)
             {
@@ -164,7 +164,7 @@ internal sealed partial class MonstersDecorator
                     hWorldY + 1,
                     hWorldX + 1,
                     8400,
-                    tint: unchecked((int)0x475569cc));
+                    tint: Rgba.From(0x47, 0x55, 0x69, 0xcc));
 
                 // Periodic spike thrust cycle (2.4s period)
                 float spikeCycle = ((now + (h.HazardId * 700)) % 2400) / 2400f;
@@ -181,7 +181,7 @@ internal sealed partial class MonstersDecorator
                         hWorldY + FrameSize,
                         hWorldX,
                         8750,
-                        tint: unchecked((int)0xf1f5f9ee));
+                        tint: Rgba.From(0xf1, 0xf5, 0xf9, 0xee));
                 }
             }
             else if (h.Kind == 3) // MagmaFissure (molten crack)
@@ -198,7 +198,7 @@ internal sealed partial class MonstersDecorator
                     hWorldY + 1,
                     hWorldX + 1,
                     8400,
-                    tint: unchecked((int)0x991b1bee));
+                    tint: Rgba.From(0x99, 0x1b, 0x1b, 0xee));
 
                 // Boiling eruptive flame core
                 float magmaPulse = MathF.Sin((now * 0.008f) + (h.HazardId * 2f));
@@ -215,7 +215,7 @@ internal sealed partial class MonstersDecorator
                     hWorldY + FrameSize,
                     hWorldX,
                     8700,
-                    tint: unchecked((int)0xf59e0bff));
+                    tint: Rgba.From(0xf5, 0x9e, 0x0b, 0xff));
             }
             else if (h.Kind is >= 4 and <= 9) // Dungeon Blessing Shrines & Elemental Resonance Pylons (docs/adr/ADR-063, ADR-064)
             {
