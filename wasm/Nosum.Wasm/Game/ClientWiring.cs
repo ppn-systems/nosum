@@ -314,9 +314,12 @@ internal static class ClientWiring
             mine.Load();
         };
         channel.Joined += _ => looks.Load();
+        // The first-run farm tips show only on the farm (OnboardingViewModel.OnFarm, docs/design/critique-placement.md finding 13).
+        OnboardingViewModel onboarding = services.GetRequiredService<OnboardingViewModel>();
         channel.Joined += mapId =>
         {
             bool known = GameMaps.TryGet(mapId, out MapSpec? spec);
+            onboarding.OnFarm = known && spec!.Farmable;
             if (known && spec!.IsInterior)
             {
                 buildings.ClearHere();
@@ -360,6 +363,8 @@ internal static class ClientWiring
             }
         };
         GameLoop.SkillPressRefused += key => messages.Notify(localizer[key].Value);
+        GameLoop.FarmUseSucceeded += key => messages.Notify(localizer[key].Value);
+        GameLoop.CropHovered += (stage, count) => messages.SetHoverHint(stage < 0 ? null : string.Format(System.Globalization.CultureInfo.CurrentCulture, localizer["Farm_Hover_Stage"].Value, stage + 1, count));
         _ = services.GetRequiredService<NearbyPlayers>();
         ProgressViewModel progressVm = services.GetRequiredService<ProgressViewModel>();
         GameLoop.UseRunState(state =>
@@ -391,6 +396,9 @@ internal static class ClientWiring
 
         DeviceGuardViewModel device = services.GetRequiredService<DeviceGuardViewModel>();
         BrowserDevice.WatchWidth(devicePolicy.MinimumWidth, _ => device.UpdateWidth(BrowserDevice.ViewportWidth()));
+
+        // A finger gets the tap prompts (docs/adr/ADR-097); the keyboard and mouse prompts stay the default.
+        services.GetRequiredService<FishingViewModel>().TouchInput = device.IsTouchInput;
 
         // A phone or touch screen collapses the HUD menu column; the game menu then lists the column panels as tiles (docs/design/ui-standard.md section 6).
         ToolbarViewModel toolbar = services.GetRequiredService<ToolbarViewModel>();

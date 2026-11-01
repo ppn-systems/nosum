@@ -37,6 +37,8 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
     private ITimer? _timer;
     private ITimer? _idle;
     private bool _pending;
+    private bool _onFarm = true;
+    private long _activeAt;
     private bool _started;
     private bool _visible;
     private int _seen;
@@ -82,7 +84,7 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
             int done = _settings.Current.TutorialDone | _seen;
             foreach (TutorialStep step in Enum.GetValues<TutorialStep>())
             {
-                if (step is TutorialStep.Sell or TutorialStep.Shop)
+                if (step is TutorialStep.Sell or TutorialStep.Shop || (step == TutorialStep.Use && !_onFarm))
                 {
                     continue;
                 }
@@ -112,7 +114,8 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
             {
                 foreach (QuestInfo quest in mirror)
                 {
-                    if (quest.QuestId == questId && quest.State == QuestState.Active && QuestCatalog.TryGet(questId, out QuestDefinition? definition))
+                    if (quest.QuestId == questId && quest.State == QuestState.Active && QuestCatalog.TryGet(questId, out QuestDefinition? definition)
+                        && (_onFarm || !IsFarmTip(definition.Key)))
                     {
                         return definition;
                     }
@@ -120,6 +123,27 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
             }
 
             return null;
+        }
+    }
+
+    /// <summary>Gets or sets whether the farmer stands on a farmable map (the farm). The farm tips (the hoe, the crops, the shipping bin) do not show
+    /// elsewhere, for example in the farmhouse while the player arranges furniture (docs/design/critique-placement.md, finding 13); the next tip that
+    /// applies there shows instead. A change asks for the hint that now applies.</summary>
+    public bool OnFarm
+    {
+        get => _onFarm;
+        set
+        {
+            if (_onFarm == value)
+            {
+                return;
+            }
+
+            _onFarm = value;
+            if (_started && !string.Equals(this.HintKey, _shownKey, StringComparison.Ordinal))
+            {
+                this.Request();
+            }
         }
     }
 
@@ -178,7 +202,8 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
     {
         if (_pending)
         {
-            this.ArmIdle();
+            // Only the time is kept: the frame calls this every frame the player is giving input, so it must not start a timer (ADR-096 D3).
+            _activeAt = _time.GetTimestamp();
         }
     }
 
@@ -219,6 +244,9 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
         _timer?.Dispose();
         _idle?.Dispose();
     }
+
+    // The quests whose tip names a place on the farm (the hoe, the watering can, the crops, the shipping bin by the house).
+    private static bool IsFarmTip(string questKey) => questKey is "till_soil" or "water_crop" or "first_harvest" or "ship_produce";
 
     private string KeyFor(TutorialStep step) => step switch
     {
@@ -269,15 +297,23 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
 
     private void ArmIdle()
     {
+        _activeAt = _time.GetTimestamp();
         _idle?.Dispose();
         _idle = _time.CreateTimer(_ => this.OnIdle(), null, TimeSpan.FromSeconds(IdleSeconds), Timeout.InfiniteTimeSpan);
     }
 
-    // The player has been idle long enough: the hint comes up and fades after HintSeconds.
+    // The timer fires IdleSeconds after the last wait started. If the player gave input since, it waits out the rest of the quiet time instead.
     private void OnIdle()
     {
         _idle?.Dispose();
         _idle = null;
+        TimeSpan quiet = _time.GetElapsedTime(_activeAt);
+        if (quiet < TimeSpan.FromSeconds(IdleSeconds))
+        {
+            _idle = _time.CreateTimer(_ => this.OnIdle(), null, TimeSpan.FromSeconds(IdleSeconds) - quiet, Timeout.InfiniteTimeSpan);
+            return;
+        }
+
         _pending = false;
         _visible = _shownKey is not null;
         if (_visible)

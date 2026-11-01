@@ -71,8 +71,13 @@ water part to one swing per line, but the harvest still needs one press per tile
 
 ## The QA hook
 
-- `tests/browser/farm-feel-capture.cjs` calls `window.nosumQa.teleport`, which does not exist in master's source. The tester build exposes only
-  `DevTools.Grant` and `DevTools.AdvanceClock` (`wasm/Nosum.Wasm/Game/DevTools.cs`), so that script fails before its first capture. Update or retire it.
+- Round two (backlog item 8): `window.nosumQa` (`wasm/Nosum.Wasm/Game/QaEntry.cs`) exposes `grant`, `advanceClock`, `teleport`, `season`, `levelUp`,
+  `fishingBite`, `allocatedBytes`, `springReset` and `teleportToMonster`. Every member the browser scripts call exists; the earlier note that
+  `teleport` was missing was out of date. `tests/browser/farm-feel-capture.cjs` runs on master (12 frames). `season-fix-capture.cjs` was fixed to click
+  only a visible button at 390 px. The non-farming scripts were not run. No script was retired.
+- Round two captures: `docs/qa/farming-round2/before` (master) and `docs/qa/farming-round2/after` (this branch), vi and en at 1280x720, from
+  `tests/browser/farm-round2-capture.cjs`. In the after frames the unripe line reads "Not ready, 1 day left" in en; the vi unripe frame has no line, and
+  no frame shows the harvest-with-item-in-hand line (the toast had likely faded). Re-check those two before trusting them.
 
 ## Changes in this pass (ADR-088, protocol 29)
 
@@ -86,11 +91,67 @@ Clients built for 21 misread the reply and the status, so they ship with the ser
 
 ## Backlog, ranked by how much play it would change
 
-1. **Harvest along a line with the scythe.** A rule change (admit the scythe to `ValidateArea` with its own tier curve), needs an ADR.
-2. **Name the reason on an unripe crop** ("not ready, 2 days left"). The days left come from `FarmRules`, so the client does not compute them alone.
-3. **Make the action key's harvest say so** (a text line when E harvests a ripe crop with another item in hand). Client only.
-4. **Growth stage label** on hover of a crop. Client only; `CropDefinition.StageAt` already gives the stage.
-5. **Reticle for the whole line** when a wide tool is held. Client only; uses `ToolRules.LineTile`.
-6. **Move the wet-soil check into `FarmRules`** so the client and the server call one function.
-7. **Settle phones.** Either the device policy admits 390×844 and ui-standard section 6 is built, or section 6 is dropped. An owner decision.
-8. **Retire or update** the browser scripts that call `window.nosumQa`.
+Round two (branch `claude/farming-round2`, ADR-094, protocol 31):
+
+1. **Done.** Harvest along a line with the scythe: `ToolRules.ScytheAreaLength` (three at basic) and a trailing harvest for the scythe only (ADR-094 D1).
+2. **Done.** An unripe crop names the days left: `UseItemResult.DaysLeft`, the words in `Farm_Status_NotMatureDays` / `…OneDay` (ADR-094 D2).
+3. **Done.** The action key's harvest with another item in hand says so on the message line (`Farm_ActionKeyHarvested`).
+4. **Done.** Hovering a crop names its growth stage on the message line (`Farm_Hover_Stage`, `FarmRules.StageAt`). Sprinklers beside the tile are not counted in the hover, so a sprinkler-watered crop can show one stage behind.
+5. **Done.** The reticle draws the whole line of a wide hoe, can or scythe, engine-drawn (`FarmDecorator`).
+6. **Done.** The watering check is `FarmRules.WaterVerdict`, called by the server and the reticle (ADR-094 D3).
+7. **Open, an owner decision.** Phones: the device policy or ui-standard section 6 (see the finding above).
+8. **Browser scripts**: see the note under "The QA hook".
+
+## Round three addendum (ADR-100)
+
+Replayed on `claude/farming-round3` (from master 7800a2e), 1280x720 and 390x844 (a width-override test copy, the product still gates phones at 1024 px),
+vi and en. Captures and grades: `docs/qa/farming-round3/` (README there). Script: `tests/browser/farm-round3-capture.cjs`.
+
+**Played:** the copper hoe's wide swing over the row, parsnip seeds on two tiles, four days of watering with the wet-soil refusal, growth to stage 5 of 5,
+E with the scythe on an unripe tile, E with seeds on a ripe tile, and a tap with the can on a ripe tile. **Not played this round:** the sprinkler and the
+shipping bin. The quest card reached "Sell your produce", but no crop was carried to the bin, so the sale and the coin pop were not seen. Those two
+steps are not graded here.
+
+**Round-two capture gaps, closed:** the vi unripe line ("Chưa chín, còn 2 ngày") and the harvest-with-item line now appear in the frames. The cause was the
+script, not the game: a fixed wait of 600 to 700 ms missed a message that is shown for 3 s only when the line had not yet appeared. The script now polls the
+line and captures the first frame that shows it (about 300 ms after the press).
+
+### What still feels slow, confusing or silent (after this round)
+
+1. **A scythe tap on an unripe crop is silent.** The E key says "Not ready, N days left"; a tap with the scythe on the same tile shows no line in any run
+   (vi and en, 1280x720, the poll ran 2.5 s). Not fixed: the cause is not yet found. Candidates to check: the scythe's three-tile line on a tap (the
+   area path in `FarmService.Area.cs` keeps the first tile's refusal, so the reply should carry it), and whether the client sends the tap's use at all
+   (`PlayerActions.TargetWorks` marks the reticle red and nothing else reads it). Next step: log the reply of one scythe tap on an unripe crop.
+2. **The message line is crowded.** At one moment it can hold the onboarding hint, the hover stage ("Growth stage 1 of 5") and two success toasts
+   (`en-03-sown-row-1280x720.png` in `docs/qa/farming-round3/after/`). The toast stack is capped at two; the hover line is a separate spot above it,
+   and the hint shares the toast line without counting toward that cap. Owner decision: move the hover stage to the reticle, or drop the hint once the
+   first step is done.
+3. **The onboarding hint sits over the work area.** At 1280x720 the hint card covers the row being worked (`docs/qa/farming-round3/before/vi-07-harvest-with-item-in-hand-1280x720.png`,
+   y 460 to 525). Not changed: the hint is ADR-093 D5's design; moving it is a layout decision for the owner.
+4. **The growth stage is text only, on hover.** Still open from round one (finding 4): the sprite gives no stage, and the stage appears only while the farmer
+   faces the tile.
+5. **Planting is one press per tile.** Seeds are placed tile by tile: a digit once, then a press and a walk per tile. The round-two wide tools cover till and
+   water, and drag-to-sow covers seeds (ADR-071 D3), but this replay did not use drag. Open: check the drag path on a line of three.
+6. **A tap with the can harvests a ripe crop.** Now named (below), but the mapping is surprising: a watering tap takes the crop. Owner decision: should a
+   can or a hoe harvest a ripe crop by a tap, or only the action key and the scythe?
+7. **Phones: the frame loop stopped.** A fractional pointer position reached an `int` parameter of the frame export and stopped the loop (seen in one
+   phone run). Fixed (ADR-100 D1). The device gate for phones is still open (round one, finding 8).
+8. **Phone layout (observed, not measured).** The quest card covers about a fifth of the height at the top left; the hotbar shows nine slots with no
+   Z X V keys; the slot counts are small. Owner decision with finding 7.
+
+### Changed in this round (ADR-100)
+
+| Finding | Change | Where |
+|:--|:--|:--|
+| 7 phone loop stops | The pointer is rounded to a whole pixel before the frame export (`PointerPixel.Of`); the frame takes `double` | `GameLoop.Frame`, `wasm/Nosum.Wasm.ViewModels/Input/PointerPixel.cs` |
+| 6 tap harvest is silent | A single-tile harvest with another item in hand is named, from E or a tap; text no longer names the key | `FarmHarvestNotice`, `Farm_HarvestedWithOtherItem` |
+| round one 2 success is silent | A successful till, sow, water or harvest gives one short line | `FarmDoneNotice`, `Farm_Done_*` |
+
+No wire change: protocol 32 stays. The tests: `PointerPixelTests`, `FarmHarvestNoticeTests`, `FarmDoneNoticeTests` (the key sets are checked in both languages).
+
+### Backlog after round three, ranked by how much play it would change
+
+1. Finding 1: the scythe tap on an unripe crop (the silent refusal), once its cause is found.
+2. Finding 2 and 3: the message line and the hint over the work area (layout, owner).
+3. Finding 5: check that drag-to-sow covers a line of three, and make it the taught way to plant.
+4. Finding 4: the growth stage readable without hover (a sprite or a label on the tile).

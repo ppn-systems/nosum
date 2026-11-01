@@ -13,6 +13,10 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Nosum.Contracts.Common;
+using Nosum.Contracts.Quest;
+using Nosum.Contracts.Quest.S2C;
+using Nosum.Gameplay.Quests;
+using Nosum.Wasm.Socket.Quest;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Settings;
 using Xunit;
@@ -166,6 +170,11 @@ public sealed class SettingsTests
         private readonly List<ScheduledTimer> _timers = [];
         private TimeSpan _now;
 
+        // The clock's timestamps move with the test's time too, so the view model's idle count (TimeProvider.GetElapsedTime) reads the same moment.
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        public override long GetTimestamp() => _now.Ticks;
+
         public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
             ScheduledTimer timer = new(this, callback, state, _now + dueTime);
@@ -246,6 +255,52 @@ public sealed class SettingsTests
 
         clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.HintSeconds));
         hints.IsVisible.Should().BeFalse("the hint fades after its time");
+    }
+
+    [Fact]
+    public void Hints_FarmTipsDoNotShowOffTheFarm_AndTheNextTipTakesTheirPlace()
+    {
+        ScheduledTime clock = new();
+        using SettingsViewModel settings = new(Text(), new MemoryStore());
+        using OnboardingViewModel hints = new(settings, Text(), clock);
+        hints.Start();
+        clock.Advance(TimeSpan.FromSeconds(OnboardingViewModel.IdleSeconds));
+        hints.HintKey.Should().Be(nameof(TutorialStep.Move), "walking is a tip for every map, and it comes first");
+
+        // The player walks into the farmhouse while the hoe tip is next: the hoe tip does not follow them indoors (docs/design/critique-placement.md, finding 13).
+        hints.Signal(TutorialStep.Move);
+        hints.OnFarm = false;
+        hints.HintKey.Should().Be(nameof(TutorialStep.Town), "the hoe tip is for the farm; the next tip that applies shows instead");
+        hints.IsVisible.Should().BeFalse("the hint that was on screen is not left up in the farmhouse");
+
+        hints.OnFarm = true;
+        hints.HintKey.Should().Be(nameof(TutorialStep.Use), "back on the farm the hoe tip is the next one again");
+    }
+
+    [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The fake socket owns nothing and the quest channel is disposed with the test.")]
+    public void Hints_TheFarmQuestTip_IsNotShownInTheFarmhouse()
+    {
+        ScheduledTime clock = new();
+        FakeGameSocket socket = new();
+        QuestLog log = new();
+        log.Quests.Add(new QuestRow { QuestId = QuestCatalog.TillSoil, State = QuestState.Active, Progress = [0] });
+        socket.ReplyWith(_ => log);
+        using QuestChannel quests = new(socket);
+        quests.Load();
+        using SettingsViewModel settings = new(Text(), new MemoryStore());
+        using OnboardingViewModel hints = new(settings, Text(), clock, WasmTestSupport.Localizer<Catalogue>(), quests);
+        hints.Start();
+        hints.Signal(TutorialStep.Move);
+        hints.Signal(TutorialStep.Use);
+
+        // "Select the hoe and press the use key to till a patch of soil" belongs to the farm: indoors the next tip that applies shows instead.
+        hints.OnFarm = false;
+        hints.HintKey.Should().Be(nameof(TutorialStep.Town));
+        hints.Hint.Should().NotContain("hoe");
+
+        hints.OnFarm = true;
+        hints.HintKey.Should().Be("quest:" + QuestCatalog.TillSoil.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     [Fact]

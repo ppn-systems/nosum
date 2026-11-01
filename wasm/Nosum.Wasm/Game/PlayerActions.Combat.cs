@@ -64,6 +64,9 @@ internal sealed partial class PlayerActions
     /// MP, full health for the heal), so the press is never silent (docs/adr/ADR-056 D5).</summary>
     public event Action<string>? SkillPressRefused;
 
+    /// <summary>Raised with the resource key of the line when a farm use worked and the line says so (docs/adr/ADR-100 D2 and D4).</summary>
+    public event Action<string>? FarmUseSucceeded;
+
     private void TryCastSkillFromEdges(InputEdges edges, int x, int y, double nowSeconds)
     {
         if (_combat is null)

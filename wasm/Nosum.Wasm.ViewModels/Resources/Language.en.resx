@@ -61,7 +61,15 @@
   <data name="Farm_Status_NotTilled" xml:space="preserve"><value>Till the soil first.</value></data>
   <data name="Farm_Status_HasCrop" xml:space="preserve"><value>A crop already grows here.</value></data>
   <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>That does nothing here.</value></data>
+  <data name="Farm_HarvestedWithOtherItem" xml:space="preserve"><value>Harvested, even with another item in hand.</value></data>
+  <data name="Farm_Done_Tilled" xml:space="preserve"><value>Soil tilled.</value></data>
+  <data name="Farm_Done_Planted" xml:space="preserve"><value>Seeds planted.</value></data>
+  <data name="Farm_Done_Watered" xml:space="preserve"><value>Watered.</value></data>
+  <data name="Farm_Done_Harvested" xml:space="preserve"><value>Harvested.</value></data>
+  <data name="Farm_Hover_Stage" xml:space="preserve"><value>Growth stage {0} of {1}</value></data>
   <data name="Farm_Status_NotMature" xml:space="preserve"><value>The crop is not ready yet.</value></data>
+  <data name="Farm_Status_NotMatureDays" xml:space="preserve"><value>Not ready, {0} days left</value></data>
+  <data name="Farm_Status_NotMatureOneDay" xml:space="preserve"><value>Not ready, 1 day left</value></data>
   <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
   <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>You no longer have that item.</value></data>
   <data name="Farm_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
@@ -103,7 +111,7 @@
   <data name="Place_Status_Reserved" xml:space="preserve"><value>Keep the doorway clear.</value></data>
   <data name="Place_Status_Overlaps" xml:space="preserve"><value>There is furniture there already.</value></data>
   <data name="Place_Status_OutOfReach" xml:space="preserve"><value>Too far away, step closer.</value></data>
-  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>You are standing there.</value></data>
+  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>You are standing there. Step aside to place it.</value></data>
   <data name="Place_Status_UnknownObject" xml:space="preserve"><value>That piece is gone.</value></data>
   <data name="Place_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
   <data name="Place_Status_LimitReached" xml:space="preserve"><value>The house cannot hold more furniture.</value></data>
@@ -566,7 +574,7 @@
   <data name="Chat_Channel_Coop" xml:space="preserve"><value>Co-op</value></data>
   <data name="Chat_Channel_Whisper" xml:space="preserve"><value>Whisper</value></data>
   <data name="Chat_InputHint" xml:space="preserve"><value>Type to talk. Tab changes channel, /w name whispers</value></data>
-  <data name="Chat_GuestHint" xml:space="preserve"><value>Guests can only use local chat. Register for more channels</value></data>
+  <data name="Chat_GuestHint" xml:space="preserve"><value>Local chat only</value></data>
   <data name="Chat_InputLabel" xml:space="preserve"><value>Chat message</value></data>
   <data name="Chat_WhisperFromTo" xml:space="preserve"><value>{0} → {1}</value></data>
   <data name="Chat_Sys_Usage" xml:space="preserve"><value>Usage: /w name text, /block name, /unblock name, /report name.</value></data>
@@ -736,6 +744,8 @@
   <data name="Skill_LevelUp" xml:space="preserve"><value>{0} reached level {1}!</value></data>
   <data name="Skill_Perk" xml:space="preserve"><value>{0} tools: {1} less energy per use</value></data>
   <data name="Tooltip_Area" xml:space="preserve"><value>Area: {0} tiles in a line</value></data>
+  <data name="Tooltip_Area_One" xml:space="preserve"><value>Area: 1 tile in a line</value></data>
+  <data name="Gather_Label_Xp" xml:space="preserve"><value>+{0} XP</value></data>
   <data name="Tooltip_ToolEnergy" xml:space="preserve"><value>Energy per use: {0} before the skill bonus</value></data>
   <data name="Toolbar_Skills" xml:space="preserve"><value>Skills</value></data>
   <data name="Place_Status_Tilled" xml:space="preserve"><value>You cannot place that on tilled soil.</value></data>
@@ -1130,6 +1140,7 @@
   <data name="Fishing_Waiting" xml:space="preserve"><value>Waiting for a bite...</value></data>
   <data name="Fishing_Bite" xml:space="preserve"><value>Something is biting!</value></data>
   <data name="Fishing_Press" xml:space="preserve"><value>Press Space or click to reel in!</value></data>
+  <data name="Fishing_PressTouch" xml:space="preserve"><value>Tap to reel in!</value></data>
   <data name="Fishing_Reeling" xml:space="preserve"><value>Reeling in...</value></data>
   <data name="Fishing_NotYet" xml:space="preserve"><value>Not yet. Wait for the bite.</value></data>
   <data name="Fishing_Caught" xml:space="preserve"><value>You caught {0}!</value></data>
@@ -1209,6 +1220,7 @@
   <data name="Furniture_Category_Plants" xml:space="preserve"><value>Plants</value></data>
   <data name="Furniture_Category_Decor" xml:space="preserve"><value>Decor</value></data>
   <data name="Furniture_Category_Rugs" xml:space="preserve"><value>Rugs</value></data>
+  <data name="Furniture_Category_Equipment" xml:space="preserve"><value>Equipment</value></data>
   <data name="Furniture_Search" xml:space="preserve"><value>Search furniture...</value></data>
   <data name="Furniture_Place" xml:space="preserve"><value>Place</value></data>
   <data name="Furniture_PickUp" xml:space="preserve"><value>Pick up</value></data>
@@ -1268,5 +1280,7 @@
   <data name="Shop_Detail_Total" xml:space="preserve"><value>Total: {0} coins for {1}</value></data>
   <data name="Shop_Detail_After" xml:space="preserve"><value>Coins after: {0}</value></data>
   <data name="Market_Confirm_Text" xml:space="preserve"><value>List {1} of {0} for {2} coins?</value></data>
+  <data name="Market_BuyConfirm_Title" xml:space="preserve"><value>Confirm purchase</value></data>
+  <data name="Market_BuyConfirm_Text" xml:space="preserve"><value>Buy {1} of {0} for {2} coins?</value></data>
   <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Running uses {0}% less energy</value></data>
 </root>

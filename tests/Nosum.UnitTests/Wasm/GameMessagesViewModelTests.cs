@@ -75,6 +75,23 @@ public sealed class GameMessagesViewModelTests
     }
 
     [Fact]
+    public void SetHoverHint_RaisesChangedOnlyWhenTheTextChanges_AndClears()
+    {
+        GameMessagesViewModel vm = Create();
+        int raised = 0;
+        vm.Changed += () => raised++;
+
+        vm.SetHoverHint("Growth stage 2 of 4");
+        vm.SetHoverHint("Growth stage 2 of 4");
+        vm.HoverHint.Should().Be("Growth stage 2 of 4");
+        raised.Should().Be(1, "the same hint is not a change");
+
+        vm.SetHoverHint(null);
+        vm.HoverHint.Should().BeNull();
+        raised.Should().Be(2);
+    }
+
+    [Fact]
     public void Notify_RaisesChanged()
     {
         GameMessagesViewModel vm = Create();

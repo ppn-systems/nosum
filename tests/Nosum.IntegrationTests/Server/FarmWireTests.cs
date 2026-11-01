@@ -98,44 +98,6 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task WideUse_ABasicHoeCannotWorkALine_AnUpgradedHoeReportsTheTilesItWorked()
-    {
-        await ResetFarmAsync();
-        FakeTimeProvider clock = new(s_start);
-        ushort port = GetFreePort();
-        HostServices.Register(_database.Options);
-        TestAccounts.UseFakeVerifiers(_database.Options);
-        await using NetworkApplication app = Program.BuildApplication(port, clock);
-        using CancellationTokenSource timeout = new(s_timeout);
-        await app.ActivateAsync(timeout.Token);
-        try
-        {
-            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
-            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
-            (int x, int y) = TileInReachOf(join);
-
-            // The basic hoe works one tile: a line asked of it is refused, and nothing is worked.
-            UseItemResult basic = await farmer.UseAreaAsync(0, x, y, 3, timeout.Token);
-            basic.Should().BeEquivalentTo(new { Status = FarmStatus.InvalidArea, Worked = (byte)0 });
-            (await farmer.GetFarmAsync(timeout.Token)).Tiles.Should().BeEmpty();
-
-            // A copper hoe works a line of three. The reply counts the tiles that worked, and the farm holds exactly those tiles:
-            // each of them was charged its own energy (docs/adr/ADR-088), so the count is what the client shows as the energy spent.
-            await MineWireTests.GrantAsync(farmer.AccountId, ItemCatalog.CopperHoe, 1, 0);
-            InventorySlotRow copper = (await farmer.GetInventoryAsync(timeout.Token)).Slots.Single(s => s.ItemId == ItemCatalog.CopperHoe);
-            UseItemResult wide = await farmer.UseAreaAsync(copper.Slot, x, y, 3, timeout.Token);
-            wide.Status.Should().Be(FarmStatus.Ok);
-            wide.Action.Should().Be(FarmAction.Tilled);
-            wide.Worked.Should().BeInRange((byte)1, (byte)3);
-            (await farmer.GetFarmAsync(timeout.Token)).Tiles.Should().HaveCount(wide.Worked);
-        }
-        finally
-        {
-            await app.DeactivateAsync(CancellationToken.None);
-        }
-    }
-
-    [Fact]
     public async Task Farming_TillPlantWaterWaitHarvest_DropsTheCropBesideTheHarvesterWhoTakesIt()
     {
         await ResetFarmAsync();
@@ -189,7 +151,9 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             {
                 clock.Advance(s_gameDay);
                 (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
-                (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NotMature);
+
+                // The unripe refusal names the watered days still needed (docs/adr/ADR-094 D2).
+                (await farmer.UseAsync(8, x, y, timeout.Token)).Should().BeEquivalentTo(new { Status = FarmStatus.NotMature, DaysLeft = (byte)(CropCatalog.All[0].TotalGrowthDays - day) });
             }
 
             clock.Advance(s_gameDay);

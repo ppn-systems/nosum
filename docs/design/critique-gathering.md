@@ -85,10 +85,10 @@ gap is in the feel, not the sums: nothing on the screen shows XP arriving (findi
 | :-- | :-- | :-- | :-- |
 | G1 | A damaged node looks the same as a fresh one; only a 200 ms shake shows a hit. | `NodeSprites.Add`, `NodeInfo.Hits` on the wire, unused for drawing. | **Fixed**: HP bar over damaged standing nodes (ADR-089 D2). |
 | G2 | The tier energy discount was written (`EnergyRules.Cost(tool, level, tier)`) but never charged; ADR-081 D3 says tier discounts apply. | No production caller of the three-argument overload before this change. | **Fixed**: axe and pickaxe save 1 (copper) or 2 (iron) per use, server and client (ADR-089 D1). |
-| G3 | XP is invisible when it arrives; a level-up names the level and not its effect. | `LevelUpBannerViewModel` message had no perk; no XP floater on gathering. | **Partly fixed**: the level-up banner names the energy perk at levels 4 and 8 (ADR-089 D3). XP floaters: not done. |
+| G3 | XP is invisible when it arrives; a level-up names the level and not its effect. | `LevelUpBannerViewModel` message had no perk; no XP floater on gathering. | **Fixed**: the level-up banner names the energy perk at levels 4 and 8 (ADR-089 D3); a green "+N XP" floats over the node after each gathering swing (ADR-089 D5, round 2). |
 | G4 | The tool tooltip hides the line length and the energy per use. | `ItemTooltip` tool branch. | **Fixed**: area for hoe and can, energy per use for tools that cost energy (ADR-089 D4). |
-| G5 | Respawn is slow to the player: a tree seed takes about three real days to grow. | `DaysPerTreeStage`, `DefaultDayLengthMs`. | Not changed. Needs a playtest of the farm rhythm before any number moves. |
-| G6 | The hoe and can have a tier value only in the line length; the energy discount is not applied to them. | `EnergyRules.TierDiscount` (axe and pickaxe only). | Not changed; recorded as a choice in ADR-089. |
+| G5 | Respawn is slow to the player: a tree seed takes about three real days to grow. | `DaysPerTreeStage`, `DefaultDayLengthMs`. | Not changed (ADR-089 D6). Needs a playtest of the farm rhythm before any number moves. |
+| G6 | The hoe and can have a tier value only in the line length; the energy discount is not applied to them. | `EnergyRules.TierDiscount` (axe and pickaxe only). | Not changed; recorded as a choice in ADR-089 (D1, D6). |
 | G7 | The wide swing (line of tiles) uses the R key, not a hold. | ADR-026 deviation. | Not changed (input path owned elsewhere). |
 
 ## 7. Measured in play
@@ -140,6 +140,17 @@ Findings from the playtest that the table adds to section 6:
 | Respawn, Town, one game day | twigs +2, stones +2, weeds +8, forage +6, trees 0; total 12 = cap | +2 / +4 / +6 | the mix moved; the cap held |
 
 Not re-verified after the change: zero-energy refusal, the blacksmith hand-in, copper ore and forage.
+
+### 7c. Round 2 (branch `claude/gathering-round2`)
+
+Scope: the open items of section 7b and ADR-089's round-2 amendment.
+
+- **Numbers.** The critique recommends no base-number change. Section 7b's tier values are the only retune, as already shipped in ADR-089 D1. G5 and
+  G6 wait for a playtest; the level-8 floor (section 4) is a flag for a later balance ADR. Decision recorded as ADR-089 D6.
+- **Plural.** "Area: 1 tile in a line" in English; Vietnamese has no plural form. Fixed by `Tooltip_Area_One` (ADR-089 D4 amended).
+- **XP floaters (G3).** Green "+N XP" over the node after each gathering swing, 0.9 s, above the energy label (ADR-089 D5).
+- **Stump bar.** The open item of section 7b, see the round-2 captures in [docs/qa/gathering-round2/](../qa/gathering-round2/README.md).
+
 
 ## 8. Captures
 

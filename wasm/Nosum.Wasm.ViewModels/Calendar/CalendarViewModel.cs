@@ -32,6 +32,10 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
     private GameCalendar? _calendar;
     private Season? _season;
     private string _shown = string.Empty;
+    private GameDate _shownDate;
+    private WeatherKind _shownToday;
+    private WeatherKind _shownTomorrow;
+    private CultureInfo? _shownCulture;
 
     /// <summary>
     /// Raised when the season turns on the server calendar, with the new season. Found by the same one-second refresh as the widget, so it can be up
@@ -180,6 +184,21 @@ public sealed class CalendarViewModel : PanelViewModel, IDisposable
         }
 
         _season = season;
+        // The text changes only when the minute, the weather or the language does. The tick runs once a second, so the check is made on
+        // those values first: the strings are built, and allocated, only when one of them moved.
+        GameDate date = this.Now();
+        WeatherKind today = this.Today;
+        WeatherKind tomorrow = this.Tomorrow;
+        CultureInfo culture = CultureInfo.CurrentUICulture;
+        if (_shownDate == date && _shownToday == today && _shownTomorrow == tomorrow && ReferenceEquals(_shownCulture, culture))
+        {
+            return;
+        }
+
+        _shownDate = date;
+        _shownToday = today;
+        _shownTomorrow = tomorrow;
+        _shownCulture = culture;
         string now = this.Summary + "|" + this.ForecastText;
         if (string.Equals(now, _shown, StringComparison.Ordinal))
         {
