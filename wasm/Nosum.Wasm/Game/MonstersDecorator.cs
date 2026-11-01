@@ -28,7 +28,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     private const int HitStopMs = 60;
     private const int KnockSlideMs = 100;
 
-    // Strike wind-up (docs/adr/ADR-092): the monster rises a few pixels over the wind-up and flashes white every 80 ms, so the player
+    // Strike wind-up (docs/adr/ADR-094): the monster rises a few pixels over the wind-up and flashes white every 80 ms, so the player
     // sees the strike coming and can step out of reach. Reduced motion keeps the flash and drops the rise.
     private const int WindupFlashPeriodMs = 80;
     private const int WindupMaxRisePx = 3;
@@ -157,7 +157,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                 }
             }
 
-            // A monster in its strike wind-up rises and flashes until the strike lands (docs/adr/ADR-092).
+            // A monster in its strike wind-up rises and flashes until the strike lands (docs/adr/ADR-094).
             int windupRise = 0;
             for (int w = 0; w < _windupScratch.Count; w++)
             {

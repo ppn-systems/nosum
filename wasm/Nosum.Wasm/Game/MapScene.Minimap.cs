@@ -91,6 +91,8 @@ internal sealed partial class MapScene
             }
         }
 
+        this.AddQuestDot(content.Spec.Id);
+
         // The frame's inside (MinimapLayer.MaxWidth by MaxHeight) is the dark backing; the map is centred on it.
         int worldWidth = (canvasWidth + scale - 1) / scale;
         int frameRight = worldWidth - HudEdge;

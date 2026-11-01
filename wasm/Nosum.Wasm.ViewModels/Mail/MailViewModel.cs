@@ -196,6 +196,55 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
         this.CollectNextQueued();
     }
 
+    /// <summary>Gets the mail whose delete waits for the player's yes (the confirm box); null when none.</summary>
+    public Guid? PendingDelete { get; private set; }
+
+    /// <summary>Gets the question of the delete confirm box: the mail's subject, so the player sees which mail goes.</summary>
+    public string PendingDeleteMessage
+    {
+        get
+        {
+            string subject = string.Empty;
+            foreach (MailInfo mail in _mail.Mails)
+            {
+                if (mail.Id == this.PendingDelete)
+                {
+                    subject = this.Render(mail, _nowMs()).Title;
+                    break;
+                }
+            }
+
+            return this.Text("Mail_DeleteMessage", subject);
+        }
+    }
+
+    /// <summary>Asks before deleting a mail; nothing is sent until <see cref="ConfirmDelete"/>.</summary>
+    /// <param name="mailId">The mail.</param>
+    public void AskDelete(Guid mailId)
+    {
+        this.PendingDelete = mailId;
+        this.Raise();
+    }
+
+    /// <summary>Keeps the mail the player was asked about.</summary>
+    public void CancelDelete()
+    {
+        this.PendingDelete = null;
+        this.Raise();
+    }
+
+    /// <summary>Deletes the mail the player confirmed; does nothing when no delete is waiting.</summary>
+    public void ConfirmDelete()
+    {
+        if (this.PendingDelete is not Guid mailId)
+        {
+            return;
+        }
+
+        this.PendingDelete = null;
+        this.Delete(mailId);
+    }
+
     /// <summary>Deletes a mail.</summary>
     /// <param name="mailId">The mail.</param>
     public void Delete(Guid mailId)

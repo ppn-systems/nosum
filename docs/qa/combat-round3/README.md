@@ -1,12 +1,12 @@
 # Combat round 3: browser QA and captures
 
-Captures for branch `claude/combat-round3` (commit `cac556c`, ADR-092), against `origin/master` `1a2119f` (before) and `b95fba5` (the toast before PR #298).
+Captures for branch `claude/combat-round3` (commit `cac556c`, ADR-094), against `origin/master` `1a2119f` (before) and `b95fba5` (the toast before PR #298).
 Script: `docs/qa/combat-round3/capture.cjs` (modes `telegraph`, `stepaway`, `toast`, `fishing`, `touchskill`). Build logs: `build-*.log`. Server logs: `server-after.log`, `server-before.log`.
 
 ## What changed
 
-1. **Monster strike telegraph** (ADR-092 D1 to D4). An ordinary monster adjacent to a player winds up for 400 ms; it rises up to 3 px and flashes white every 80 ms. The strike lands only if the player is still in reach.
-2. **Touch fishing prompt** (ADR-092 D6). On touch the bite prompt reads "Chạm để kéo cần!" / "Tap to reel in!"; keyboard and mouse keep the old text.
+1. **Monster strike telegraph** (ADR-094 D1 to D4). An ordinary monster adjacent to a player winds up for 400 ms; it rises up to 3 px and flashes white every 80 ms. The strike lands only if the player is still in reach.
+2. **Touch fishing prompt** (ADR-094 D6). On touch the bite prompt reads "Chạm để kéo cần!" / "Tap to reel in!"; keyboard and mouse keep the old text.
 3. **Toast lift** (PR #298, in `1a2119f`). The toast line is lifted clear of the combo chip. Compared against `b95fba5`.
 4. **Touch Fireball** (existing code, checked). X or the hotbar Fireball button casts at the nearest monster within 6 tiles.
 

@@ -1,5 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
+using System.Linq;
 using FluentAssertions;
 using Nosum.Gameplay.Pets;
 using Xunit;
@@ -73,4 +75,65 @@ public sealed class PetRulesTests
     {
         PetRules.IsAdoptable(kind).Should().Be(expected);
     }
+
+    [Fact]
+    public void ForageOf_IsTheSameAnswerForTheSamePlayerAndDay()
+    {
+        Guid player = Guid.Parse("6f1d2c3a-4b5e-4f70-8a9b-0c1d2e3f4a5b");
+
+        for (int day = 1; day < 50; day++)
+        {
+            PetRules.ForageOf(player, day).Should().Be(PetRules.ForageOf(player, day));
+        }
+    }
+
+    [Fact]
+    public void ForageOf_OnlyEverGivesAForageItemOrNothing()
+    {
+        for (int i = 0; i < 2000; i++)
+        {
+            int item = PetRules.ForageOf(Guid.NewGuid(), 1 + (i % 200));
+            (item == 0 || PetRules.ForageItems.Contains(item)).Should().BeTrue();
+        }
+    }
+
+    [Fact]
+    public void ForageOf_GivesAboutTheChancePercentOfDays()
+    {
+        const int samples = 20000;
+        int found = 0;
+        for (int i = 0; i < samples; i++)
+        {
+            if (PetRules.ForageOf(Guid.NewGuid(), 1 + (i % 365)) != 0)
+            {
+                found++;
+            }
+        }
+
+        double percent = 100.0 * found / samples;
+        percent.Should().BeInRange(PetRules.ForageChancePercent - 2.0, PetRules.ForageChancePercent + 2.0);
+    }
+
+    [Fact]
+    public void ForageOf_ChangesFromOneDayToTheNext()
+    {
+        Guid player = Guid.Parse("00000000-0000-0000-0000-00000000002a");
+        int differing = 0;
+        for (int day = 1; day < 200; day++)
+        {
+            if (PetRules.ForageOf(player, day) != PetRules.ForageOf(player, day + 1))
+            {
+                differing++;
+            }
+        }
+
+        differing.Should().BeGreaterThan(50, "neighbouring days must not share the same roll");
+    }
+
+    [Fact]
+    public void ForageItems_AreTheThreeMeadowFoods()
+    {
+        PetRules.ForageItems.Should().BeEquivalentTo(new[] { Nosum.Gameplay.Items.ItemCatalog.SpiceBerry, Nosum.Gameplay.Items.ItemCatalog.WildPlum, Nosum.Gameplay.Items.ItemCatalog.Mushroom });
+    }
 }
+

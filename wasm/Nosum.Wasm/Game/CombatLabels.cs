@@ -17,9 +17,13 @@ internal sealed class CombatLabels
 {
     private const int MaxPreInternedValue = 250;
 
+    // The "+N XP" labels of a gathering swing (docs/adr/ADR-089 D5): a node gives at most 15 experience in one swing.
+    private const int MaxXpLabel = 32;
+
     private readonly IStringLocalizer<Language>? _text;
     private readonly Dictionary<(int Value, byte Style), int> _cache = new(MaxPreInternedValue * 5);
     private readonly int[] _comboLabelIds = new int[CombatRules.MaxComboCount + 1];
+    private readonly int[] _xpLabelIds = new int[MaxXpLabel + 1];
 
     /// <summary>Gets the pre-interned label id for the 5x combo finisher banner (docs/adr/ADR-060).</summary>
     public int FinisherLabelId { get; }
@@ -101,6 +105,11 @@ internal sealed class CombatLabels
             _cache[(i, 4)] = registry.Intern("-" + num, 4);
         }
 
+        for (int x = 1; x <= MaxXpLabel; x++)
+        {
+            _xpLabelIds[x] = registry.Intern(this.FormatXp(x.ToString(CultureInfo.InvariantCulture)), 3);
+        }
+
         // Pre-intern the floating combo counter ("3x COMBO!") for every streak length that shows it (docs/adr/ADR-060).
         for (int c = 2; c <= CombatRules.MaxComboCount; c++)
         {
@@ -116,6 +125,9 @@ internal sealed class CombatLabels
         return _cache.TryGetValue((clamped, clampedStyle), out int id) ? id : 0;
     }
 
+    /// <summary>Returns the pre-rendered "+N XP" label of a gathering swing, or 0 when the amount has no label.</summary>
+    public int GetXpLabelId(int xp) => xp is >= 1 and <= MaxXpLabel ? _xpLabelIds[xp] : 0;
+
     /// <summary>Returns the pre-interned floating combo counter for a streak length, or 0 when the streak is too short to show it.</summary>
     public int GetComboLabelId(int comboCount)
     {
@@ -127,6 +139,10 @@ internal sealed class CombatLabels
     private string FormatCombo(string num) => _text is not null
         ? string.Format(CultureInfo.CurrentCulture, _text["Combat_Label_Combo"].Value, num)
         : num + "x COMBO!";
+
+    private string FormatXp(string num) => _text is not null
+        ? string.Format(CultureInfo.CurrentCulture, _text["Gather_Label_Xp"].Value, num)
+        : "+" + num + " XP";
 
     private string FormatCrit(string num) => _text is not null
         ? string.Format(CultureInfo.CurrentCulture, _text["Combat_Label_Crit"].Value, num)

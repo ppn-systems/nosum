@@ -12,6 +12,22 @@ namespace Nosum.Gameplay.Animals;
 /// <param name="FedToday">How many animals ate at the start of today and so have produce today.</param>
 public readonly record struct FeedingSettlement(int Rations, int FedToday);
 
+/// <summary>The outcome of the action key inside a building (docs/adr/ADR-092 D3).</summary>
+public enum AnimalTend : byte
+{
+    /// <summary>Nothing to do: no feed at the trough and no animal in reach.</summary>
+    None = 0,
+
+    /// <summary>Feed in hand at the trough: the press fills the bench.</summary>
+    Feed = 1,
+
+    /// <summary>Collect the produce of the animal in reach.</summary>
+    Collect = 2,
+
+    /// <summary>Pet the animal in reach.</summary>
+    Pet = 3,
+}
+
 /// <summary>
 /// Rules of farm animals (docs/adr/ADR-028 D3): feeding, produce, petting and friendship. Pure functions of stored numbers and the game day: nothing ticks, and an animal the
 /// player never visits costs the server nothing. A game day is the number from <c>GameCalendar.DayNumberAt</c>.
@@ -58,6 +74,30 @@ public static class AnimalRules
     /// <param name="animals">Animals living in the building.</param>
     /// <returns><see langword="true"/> when there are animals and no ration in the bench.</returns>
     public static bool BenchNeedsHay(int rations, int animals) => animals > 0 && rations <= 0;
+
+    /// <summary>What the action key does inside a building (docs/adr/ADR-092 D3): fills the bench, collects produce, or pets the animal in reach.</summary>
+    /// <param name="feedAtTrough">Feed in hand and the farmer faces the trough.</param>
+    /// <param name="animalInReach">An animal is within reach of the farmer's feet.</param>
+    /// <param name="hasProduce">That animal has produce today.</param>
+    /// <param name="needsPail">That animal gives milk, which needs a pail in hand.</param>
+    /// <param name="pailInHand">The farmer holds a milk pail.</param>
+    /// <param name="petted">That animal was petted today.</param>
+    /// <returns>The outcome the server will be asked for, or <see cref="AnimalTend.None"/>.</returns>
+    public static AnimalTend TendOf(bool feedAtTrough, bool animalInReach, bool hasProduce, bool needsPail, bool pailInHand, bool petted)
+    {
+        if (feedAtTrough)
+        {
+            return AnimalTend.Feed;
+        }
+
+        if (!animalInReach)
+        {
+            return AnimalTend.None;
+        }
+
+        // A cow that was petted already and still has milk: asking again tells the player a pail is needed.
+        return hasProduce && (!needsPail || pailInHand || petted) ? AnimalTend.Collect : AnimalTend.Pet;
+    }
 
     /// <summary>Checks a name for an animal: the nickname rules of docs/adr/ADR-009, including the profanity filter.</summary>
     /// <param name="typed">What the player typed.</param>

@@ -13,8 +13,9 @@ using Nosum.Wasm.ViewModels.Resources;
 namespace Nosum.Wasm.ViewModels.Settings;
 
 /// <summary>
-/// The first-run hints (docs/adr/ADR-033 D3): one short line at a time, never a panel that blocks. A hint appears when the step before it is done, stays
-/// <see cref="HintSeconds"/> seconds (the control fades it out), and is replaced by the next one when the player does what it says. Which steps are done is stored
+/// The first-run hints (docs/adr/ADR-033 D3): one short line at a time, never a panel that blocks. A hint appears when the step before it is done and the player
+/// has been idle for <see cref="IdleSeconds"/> seconds (so it never lands on top of an action in progress), stays <see cref="HintSeconds"/> seconds (the control
+/// fades it out), and is replaced by the next one when the player does what it says. Which steps are done is stored
 /// with the settings, so the hints are shown once; they can be turned off or restarted in the settings.
 /// Once the player has walked and used a tool, the hints are the steps of the tutorial quest chain the server keeps (docs/adr/ADR-036 D4): the line shown is the
 /// current step's tip and its reward. The Sell and Shop hints of the first-run list are superseded by chain steps and never show.
@@ -24,6 +25,9 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
     /// <summary>How long a hint stays before it fades.</summary>
     public const int HintSeconds = 12;
 
+    /// <summary>How long the player must give the game no input (keys or touch) before a new hint comes up (docs/adr/ADR-033 D3).</summary>
+    public const int IdleSeconds = 2;
+
     private readonly SettingsViewModel _settings;
     private readonly IStringLocalizer<Language> _text;
     private readonly TimeProvider _time;
@@ -31,6 +35,8 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
     private readonly QuestChannel? _quests;
     private string? _shownKey;
     private ITimer? _timer;
+    private ITimer? _idle;
+    private bool _pending;
     private bool _started;
     private bool _visible;
     private int _seen;
@@ -160,11 +166,20 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the localized accessible name of the hint.</summary>
     public string Label => _text["Hint_Label"].Value;
 
-    /// <summary>Starts showing hints; call once the game is running.</summary>
+    /// <summary>Starts showing hints; call once the game is running. The first hint comes up once the player has been idle for <see cref="IdleSeconds"/>.</summary>
     public void Start()
     {
         _started = true;
-        this.Show();
+        this.Request();
+    }
+
+    /// <summary>Tells the hints the player is giving the game input. A hint waiting for the player to be idle waits a further <see cref="IdleSeconds"/>.</summary>
+    public void NoteActivity()
+    {
+        if (_pending)
+        {
+            this.ArmIdle();
+        }
     }
 
     /// <summary>Tells the hints the player did something.</summary>
@@ -202,6 +217,7 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
         }
 
         _timer?.Dispose();
+        _idle?.Dispose();
     }
 
     private string KeyFor(TutorialStep step) => step switch
@@ -211,30 +227,58 @@ public sealed class OnboardingViewModel : IObservableViewModel, IDisposable
         _ => string.Empty,
     };
 
-    // A settings change (hints turned on again, restarted) shows the first hint that is left.
+    // A settings change (hints turned on again, restarted) asks for the first hint that is left, unless that hint is already on its way or on screen.
     private void OnSettings(ClientSettings settings)
     {
         _seen &= settings.TutorialDone == 0 ? 0 : -1;
-        if (_started)
+        if (_started && !((_visible || _pending) && string.Equals(this.HintKey, _shownKey, StringComparison.Ordinal)))
         {
-            this.Show();
+            this.Request();
         }
     }
 
-    // A new current step shows its hint; progress inside the same step does not bring it back.
+    // A new current step asks for its hint; progress inside the same step does not ask again.
     private void OnQuests()
     {
         if (_started && !string.Equals(this.HintKey, _shownKey, StringComparison.Ordinal))
         {
-            this.Show();
+            this.Request();
         }
     }
 
-    private void Show()
+    // Hides the hint on screen and waits for the player to be idle before showing the current one.
+    private void Request()
     {
         _timer?.Dispose();
         _timer = null;
+        _visible = false;
         _shownKey = this.HintKey;
+        _pending = _shownKey is not null;
+        if (_pending)
+        {
+            this.ArmIdle();
+        }
+        else
+        {
+            _idle?.Dispose();
+            _idle = null;
+        }
+
+        this.Changed?.Invoke();
+    }
+
+    private void ArmIdle()
+    {
+        _idle?.Dispose();
+        _idle = _time.CreateTimer(_ => this.OnIdle(), null, TimeSpan.FromSeconds(IdleSeconds), Timeout.InfiniteTimeSpan);
+    }
+
+    // The player has been idle long enough: the hint comes up and fades after HintSeconds.
+    private void OnIdle()
+    {
+        _idle?.Dispose();
+        _idle = null;
+        _pending = false;
         _visible = _shownKey is not null;
         if (_visible)
         {

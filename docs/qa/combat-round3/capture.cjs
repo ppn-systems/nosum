@@ -1,4 +1,4 @@
-// Round-3 QA captures (docs/adr/ADR-092): the monster strike telegraph, the step-away check, the toast lift with the combo chip,
+// Round-3 QA captures (docs/adr/ADR-094): the monster strike telegraph, the step-away check, the toast lift with the combo chip,
 // the fishing bite prompt, and the touch Fireball. Tester build (-p:NosumDevTools=true) on a Development server, page ?qa=1.
 // usage: node capture.cjs <mode> <outDir> <w> <h> <locale: vi-VN|en-US> [key=cycle] [attempts=3]
 // modes:

@@ -1,4 +1,4 @@
-# ADR-092: Monster strike telegraph and touch prompts
+# ADR-094: Monster strike telegraph and touch prompts
 
 ## Status
 
