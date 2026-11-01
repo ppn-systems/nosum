@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Pets;
 using Nosum.Abstractions.Presence;
@@ -42,6 +43,7 @@ public sealed class PetService : IPetService
     private readonly IMapPresence _presence;
     private readonly IMapCatalog _maps;
     private readonly ITransferService _transfers;
+    private readonly IInventoryService? _inventory;
 
     /// <summary>Initializes the service.</summary>
     /// <param name="unitOfWork">Creates units of work.</param>
@@ -52,6 +54,7 @@ public sealed class PetService : IPetService
     /// <param name="maps">The hosted maps (tile size) for the counter's reach.</param>
     /// <param name="transfers">Moves the coins and the pet row in one transaction.</param>
     /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
+    /// <param name="inventory">Adds the forage item the first petting of a day may bring back (docs/adr/ADR-092 D2); <see langword="null"/> brings none.</param>
     public PetService(
         IUnitOfWorkFactory unitOfWork,
         IPlayerProgress progress,
@@ -60,7 +63,8 @@ public sealed class PetService : IPetService
         IMapPresence presence,
         IMapCatalog maps,
         ITransferService transfers,
-        IQuestService? quests = null)
+        IQuestService? quests = null,
+        IInventoryService? inventory = null)
     {
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(progress);
@@ -78,6 +82,7 @@ public sealed class PetService : IPetService
         _maps = maps;
         _transfers = transfers;
         _quests = quests;
+        _inventory = inventory;
     }
 
     /// <inheritdoc/>
@@ -242,6 +247,13 @@ public sealed class PetService : IPetService
         }
 
         await _progress.RestoreEnergyAsync(playerId, PetRules.PettingEnergy, cancellationToken).ConfigureAwait(false);
+        // The first petting of the day may bring back a forage item (docs/adr/ADR-092 D2). A full bag leaves it on the grass: the petting still counts.
+        int forage = PetRules.ForageOf(playerId, today);
+        if (_inventory is not null && forage != 0)
+        {
+            _ = await _inventory.AddAsync(playerId, forage, 1, "pet_forage", cancellationToken).ConfigureAwait(false);
+        }
+
         return view;
     }
 

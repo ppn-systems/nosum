@@ -22,6 +22,12 @@
         </GameSection>
         @if (ShowAnimals)
         {
+            @* The result of the last purchase sits above the animal section, not under the offers: at 1280 x 720 the bottom of this tab is out of view (docs/design/critique-animals-pets.md, finding 6). *@
+            @if (Vm.Status.Length > 0)
+            {
+                <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />
+            }
+
             <GameSection Title="@Vm.Text("Carpenter_Animals")">
                 @{
                     IReadOnlyList<AnimalOffer> offers = Vm.Offers;
@@ -46,13 +52,14 @@
                 }
             </GameSection>
         }
-        @if (Vm.Status.Length > 0)
-        {
-            <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />
-        }
     }
     else if (Section == CarpenterTab.Pets)
     {
+        @if (Vm.PetStatusText.Length > 0)
+        {
+            <GameNotice Kind="@(Vm.PetStatusIsGood ? "ok" : "error")" Text="@Vm.PetStatusText" />
+        }
+
         <GameSection Title="@Vm.Text("Carpenter_Pets")">
             <p class="carpenter-line">@Vm.Text("Carpenter_PetHint")</p>
             @if (Vm.HasPet)
@@ -85,10 +92,6 @@
                     <GameButton Variant="primary" Text="@Vm.PetNextText" OnClick="@(() => Vm.ContinuePet())" />
                     <GameButton Variant="secondary" Text="@Vm.PetCancelText" OnClick="@(() => Vm.CancelPet())" />
                 </GameRow>
-            }
-            @if (Vm.PetStatusText.Length > 0)
-            {
-                <GameNotice Kind="@(Vm.PetStatusIsGood ? "ok" : "error")" Text="@Vm.PetStatusText" />
             }
         </GameSection>
     }

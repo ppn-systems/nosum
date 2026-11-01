@@ -207,6 +207,7 @@ internal sealed partial class PlayerActions
             return;
         }
 
+        this.UpdateTendPreview(interior, feetX, feetY, tileSize);
         if ((edges & InputEdges.Action) != 0 && interior is not null)
         {
             // Inside a building the action key tends the animals and never swings a tool; the server decides what happens.
@@ -275,7 +276,14 @@ internal sealed partial class PlayerActions
         this.TryExecuteActionKey(x, y, nowSeconds, tileSize);
     }
 
+    /// <summary>What the action key does inside the building the farmer stands in (docs/adr/ADR-092 D3): the preview the world label shows.</summary>
+    public AnimalTend TendPreview { get; private set; }
+
+    /// <summary>The animal the action key would collect from or pet, or <see cref="Guid.Empty"/> when it is not an animal.</summary>
+    public Guid TendTarget { get; private set; }
+
     // Feed in hand facing the bench fills it; otherwise the animal within reach is collected from (an egg, or milk with the pail in hand) when it has produce, and petted when it has none.
+    // The same decision feeds the preview (docs/adr/ADR-092 D3), so the label and the press always agree.
     private void TendAnimals(BuildingDefinition interior, double feetX, double feetY, int tileSize)
     {
         if (_buildings is null)
@@ -284,37 +292,62 @@ internal sealed partial class PlayerActions
         }
 
         int selected = _inventory.SelectedSlot;
+        (AnimalTend tend, AnimalPose animal) = this.ResolveTend(interior, feetX, feetY, tileSize);
+        switch (tend)
+        {
+            case AnimalTend.Feed:
+                // One press fills the bench with as much of the held stack as fits (the server takes the smaller of the stack and the room, docs/adr/ADR-028 D3).
+                // A press used to put in only the animal capacity (four), not what the bench holds (24).
+                _buildings.Feed(selected, AnimalRules.MaxFeedAtOnce);
+                break;
+            case AnimalTend.Collect:
+                _buildings.Collect(animal.Id, selected);
+                break;
+            case AnimalTend.Pet:
+                _buildings.Pet(animal.Id);
+                break;
+        }
+    }
+
+    // Decides the action key's outcome for the farmer's feet and facing (AnimalRules.TendOf), and the animal it would touch.
+    private (AnimalTend Tend, AnimalPose Animal) ResolveTend(BuildingDefinition interior, double feetX, double feetY, int tileSize)
+    {
+        if (_buildings is null)
+        {
+            return (AnimalTend.None, default);
+        }
+
+        int selected = _inventory.SelectedSlot;
         SlotInfo held = _inventory.SlotAt(selected);
         int x = (int)(feetX / tileSize);
         int y = (int)(feetY / tileSize);
-        if (AnimalRules.RationsOf(held.ItemId) > 0 && (interior.IsTrough(this.TargetX, this.TargetY) || interior.IsTrough(x, y - 1)))
+        bool feedAtTrough = AnimalRules.RationsOf(held.ItemId) > 0 && (interior.IsTrough(this.TargetX, this.TargetY) || interior.IsTrough(x, y - 1));
+
+        AnimalPose animal = default;
+        bool inReach;
+        using (_buildings.Read())
         {
-            // One press fills the bench with as much of the held stack as fits (the server takes the smaller of the stack and the room, docs/adr/ADR-028 D3).
-            // A press used to put in only the animal capacity (four), not what the bench holds (24).
-            _buildings.Feed(selected, AnimalRules.MaxFeedAtOnce);
+            inReach = _buildings.TryFindNear(feetX, feetY, AnimalRules.ReachPixels - 4, _buildings.NowMs, out animal);
+        }
+
+        bool cow = inReach && AnimalCatalog.TryGet((AnimalKind)animal.Kind, out AnimalDefinition? species) && species.NeedsPail;
+        AnimalTend tend = AnimalRules.TendOf(feedAtTrough, inReach, inReach && animal.HasProduce, cow, held.ItemId == ItemCatalog.MilkPail, inReach && animal.Petted);
+        return (tend, animal);
+    }
+
+    // The preview is read every frame inside a building, so the label names what the press will do before the farmer presses (docs/adr/ADR-092 D3).
+    private void UpdateTendPreview(BuildingDefinition? interior, double feetX, double feetY, int tileSize)
+    {
+        if (interior is null || _buildings is null)
+        {
+            this.TendPreview = AnimalTend.None;
+            this.TendTarget = Guid.Empty;
             return;
         }
 
-        AnimalPose animal;
-        using (_buildings.Read())
-        {
-            if (!_buildings.TryFindNear(feetX, feetY, AnimalRules.ReachPixels - 4, _buildings.NowMs, out animal))
-            {
-                return;
-            }
-        }
-
-        bool cow = AnimalCatalog.TryGet((AnimalKind)animal.Kind, out AnimalDefinition? species) && species.NeedsPail;
-        bool pail = held.ItemId == ItemCatalog.MilkPail;
-        if (animal.HasProduce && (!cow || pail || animal.Petted))
-        {
-            // A cow that was petted already and still has milk: asking again tells the player a pail is needed.
-            _buildings.Collect(animal.Id, selected);
-        }
-        else
-        {
-            _buildings.Pet(animal.Id);
-        }
+        (AnimalTend tend, AnimalPose animal) = this.ResolveTend(interior, feetX, feetY, tileSize);
+        this.TendPreview = tend;
+        this.TendTarget = tend is AnimalTend.Collect or AnimalTend.Pet ? animal.Id : Guid.Empty;
     }
 
     /// <summary>

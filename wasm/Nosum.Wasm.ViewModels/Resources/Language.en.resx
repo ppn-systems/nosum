@@ -1042,6 +1042,9 @@
   <data name="Bestiary_Stats" xml:space="preserve"><value>HP {0} · Atk {1} · +{2} XP</value></data>
   <data name="Bestiary_Drops" xml:space="preserve"><value>Drops: {0}, {1}</value></data>
   <data name="Combat_Label_Portal" xml:space="preserve"><value>ANCIENT DUNGEON (FLOOR 10)</value></data>
+  <data name="Animal_Tend_Feed" xml:space="preserve"><value>Feed</value></data>
+  <data name="Animal_Tend_Collect" xml:space="preserve"><value>Collect</value></data>
+  <data name="Animal_Tend_Pet" xml:space="preserve"><value>Pet</value></data>
   <data name="Combat_Label_Elite_Flame" xml:space="preserve"><value>FLAME AURA</value></data>
   <data name="Combat_Label_Elite_Swift" xml:space="preserve"><value>SWIFT</value></data>
   <data name="Combat_Label_Elite_Shielded" xml:space="preserve"><value>SHIELDED</value></data>
