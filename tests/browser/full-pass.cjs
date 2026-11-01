@@ -131,21 +131,29 @@ async function runOne(browser, locale, vpName, report) {
     rec(feature, m.none ? 'n/a' : bad ? 'FAIL' : 'pass', m.none ? 'no window: a toggle or wheel, checked by screenshot only' : bad || `box ${JSON.stringify(m.box)}`);
     return m;
   };
-  // On a phone the column is collapsed: the panels are tiles inside the Menu window (docs/design/ui-standard.md section 6).
+  // Phone: the menu column is collapsed into its Menu button, and the Menu window has a tile for every column panel
+  // (docs/design/ui-standard.md section 6). Every panel opens by tap; a missing tile is a FAIL, never n/a.
+  // Hotbar by tap first: a tap selects its slot, and the inventory opens from the Menu window (no key, no column).
+  if (phone) {
+    try {
+      const slots = page.locator('.hotbar .hotbar-slots button.slot');
+      await slots.nth(2).click({ timeout: 5000 });
+      await page.waitForTimeout(300);
+      const selected = await slots.nth(2).evaluate((el) => el.classList.contains('selected'));
+      rec('hotbar: tap selects slot 3', selected ? 'pass' : 'FAIL', selected ? 'slot 3 has the selected frame' : 'slot 3 did not get the selected frame');
+    } catch (e) {
+      rec('hotbar: tap selects slot 3', 'FAIL', String(e.message).split('\n')[0].slice(0, 160));
+    }
+  }
   for (let i = 0; i < labels.length; i++) {
     const file = `${String(i + 2).padStart(2, '0')}-${slug(labels[i])}.png`;
     try {
       if (phone && !(await buttons.nth(i).isVisible())) {
-        // The column is collapsed on a phone; the Menu window offers only the panels outside the column, so a column panel has no
-        // door here. That is recorded as n/a (a product gap for the report), not as a layout fault.
         await page.locator('.game-hud .hud-top-right .hud-menu-button .game-icon-button').first().click({ force: true, timeout: 5000 });
         await page.waitForTimeout(400);
-        const tile = page.locator(`.game-menu-tile[aria-label="${labels[i]}"]`);
-        if (!(await tile.count())) {
-          rec(`panel: ${labels[i]}`, 'n/a', 'phone: column panel, collapsed into no door (not in the Menu window); not measured');
-          throw new Error('skip');
-        }
-        await tile.first().click({ force: true, timeout: 5000 });
+        // The column button is labelled with its hotkey ("Inventory [I]"); the tile carries the bare name.
+        const name = labels[i].replace(/ \[[^\]]*\]$/, '');
+        await page.locator(`.game-menu-tile[aria-label="${name}"]`).first().click({ force: true, timeout: 5000 });
       } else {
         await buttons.nth(i).click({ force: true, timeout: 5000 });
       }
@@ -157,7 +165,7 @@ async function runOne(browser, locale, vpName, report) {
         await page.locator('.trade-window .game-row button').nth(0).click({ force: true, timeout: 5000 });
       }
     } catch (e) {
-      if (e.message !== 'skip') rec(`panel: ${labels[i]}`, 'FAIL', String(e.message).split('\n')[0].slice(0, 160));
+      rec(`panel: ${labels[i]}`, 'FAIL', String(e.message).split('\n')[0].slice(0, 160));
     }
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);

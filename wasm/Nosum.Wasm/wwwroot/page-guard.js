@@ -31,6 +31,9 @@
     // The vibration patterns, in milliseconds, for HapticKind 0..2 (Light, Success, Refusal).
     const VIBRATIONS = [[12], [20, 40, 20], [40, 60, 40]];
 
+    // The narrow or touch screen where the HUD menu column collapses (GameHud.razor.css, docs/design/ui-standard.md section 6).
+    const COLUMN_COLLAPSED_QUERY = "(max-width: 640px), (pointer: coarse)";
+
     window.nosumPage = {
         // 1 = mobile, 0 = not mobile, -1 = this browser has no UA Client Hints.
         mobileHint: () => (hints && typeof hints.mobile === "boolean") ? (hints.mobile ? 1 : 0) : -1,
@@ -45,6 +48,14 @@
         watchWidth: function (minWidth, callback) {
             const query = window.matchMedia("(min-width: " + minWidth + "px)");
             query.addEventListener("change", e => callback(e.matches));
+        },
+
+        // Whether the HUD's menu column is collapsed into its Menu button. The same query as GameHud.razor.css: keep the two in step.
+        menuColumnCollapsed: () => window.matchMedia(COLUMN_COLLAPSED_QUERY).matches,
+
+        // Calls back with true/false when the column collapses or opens again. Fires on the crossing only.
+        watchMenuColumn: function (callback) {
+            window.matchMedia(COLUMN_COLLAPSED_QUERY).addEventListener("change", e => callback(e.matches));
         },
 
         // A short vibration for a light tick (0), a purchase or sale (1) or a refusal (2). Browsers without vibration ignore it.

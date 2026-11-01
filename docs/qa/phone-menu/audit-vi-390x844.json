@@ -1,0 +1,114 @@
+[
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "hotbar: tap selects slot 3",
+    "status": "pass",
+    "notes": "slot 3 has the selected frame"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Thư",
+    "status": "pass",
+    "notes": "box [8,120,374,133]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Cài đặt",
+    "status": "pass",
+    "notes": "box [8,120,374,252]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Bản đồ nhỏ: bấm để mở bản đồ thế giới",
+    "status": "pass",
+    "notes": "box [8,120,374,356]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Túi đồ [I]",
+    "status": "pass",
+    "notes": "box [8,120,374,477]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Chế tạo",
+    "status": "pass",
+    "notes": "box [8,120,374,370]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Giao dịch [T]",
+    "status": "pass",
+    "notes": "box [8,120,374,112]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Bạn bè",
+    "status": "pass",
+    "notes": "box [8,120,374,224]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Kỹ năng",
+    "status": "pass",
+    "notes": "box [8,120,374,368]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Kỹ năng (bestiary tab)",
+    "status": "pass",
+    "notes": "box [8,120,374,295]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Bản đồ thế giới [Tab]",
+    "status": "pass",
+    "notes": "box [8,120,374,356]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Sổ sưu tập [J]",
+    "status": "pass",
+    "notes": "box [8,120,374,323]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Menu",
+    "status": "pass",
+    "notes": "box [8,120,374,329]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]
