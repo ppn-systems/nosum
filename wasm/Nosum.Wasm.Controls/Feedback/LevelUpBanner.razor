@@ -7,5 +7,9 @@
     <div class="level-up-banner" role="status">
         <strong class="level-up-title">@Vm.Title</strong>
         <span class="level-up-message">@message</span>
+        @if (Vm.Perk is { } perk)
+        {
+            <span class="level-up-perk">@perk</span>
+        }
     </div>
 }

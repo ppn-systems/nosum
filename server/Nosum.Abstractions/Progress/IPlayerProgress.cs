@@ -64,14 +64,15 @@ public interface IPlayerProgress
     /// <param name="tool">The tool used; sets the cost (and the discount of the tool's skill level).</param>
     /// <param name="skill">The skill that earns the experience.</param>
     /// <param name="xp">The experience to add.</param>
+    /// <param name="tier">The tool's tier; an upgraded axe or pickaxe costs less energy (docs/adr/ADR-026 D1, amended by ADR-089).</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The charge; check <see cref="IProgressCharge.Allowed"/>.</returns>
-    Task<IProgressCharge> ChargeAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, SkillKind skill, int xp, CancellationToken cancellationToken = default);
+    Task<IProgressCharge> ChargeAsync(IUnitOfWork unit, Guid playerId, ToolKind tool, SkillKind skill, int xp, ToolTier tier = ToolTier.Basic, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Spends a fixed amount of energy and adds experience, in <paramref name="unit"/>, for an action that is not a tool use (a fishing cast costs
     /// <see cref="Nosum.Gameplay.Fishing.FishingRules.CastEnergy"/>; a catch gives experience only, with <paramref name="energy"/> zero). Same rules as
-    /// <see cref="ChargeAsync(IUnitOfWork, Guid, ToolKind, SkillKind, int, CancellationToken)"/>: the caller saves the unit, then publishes and disposes the charge.
+    /// <see cref="ChargeAsync(IUnitOfWork, Guid, ToolKind, SkillKind, int, ToolTier, CancellationToken)"/>: the caller saves the unit, then publishes and disposes the charge.
     /// </summary>
     /// <param name="unit">The unit of work that carries the action's effect.</param>
     /// <param name="playerId">The player's account id.</param>
@@ -87,9 +88,10 @@ public interface IPlayerProgress
     /// <param name="tool">The tool used.</param>
     /// <param name="skill">The skill that earns the experience.</param>
     /// <param name="xp">The experience to add.</param>
+    /// <param name="tier">The tool's tier (see <c>ChargeAsync</c>).</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>Whether the tool use was charged.</returns>
-    Task<ChargeStatus> TryChargeAsync(Guid playerId, ToolKind tool, SkillKind skill, int xp, CancellationToken cancellationToken = default);
+    Task<ChargeStatus> TryChargeAsync(Guid playerId, ToolKind tool, SkillKind skill, int xp, ToolTier tier = ToolTier.Basic, CancellationToken cancellationToken = default);
 
     /// <summary>Eats one food item from a hotbar slot: removes it and restores its energy in one transaction.</summary>
     /// <param name="playerId">The player's account id.</param>
