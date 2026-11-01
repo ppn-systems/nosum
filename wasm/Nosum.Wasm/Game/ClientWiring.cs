@@ -390,6 +390,9 @@ internal static class ClientWiring
         DeviceGuardViewModel device = services.GetRequiredService<DeviceGuardViewModel>();
         BrowserDevice.WatchWidth(devicePolicy.MinimumWidth, _ => device.UpdateWidth(BrowserDevice.ViewportWidth()));
 
+        // A finger gets the tap prompts (docs/adr/ADR-092); the keyboard and mouse prompts stay the default.
+        services.GetRequiredService<FishingViewModel>().TouchInput = device.IsTouchInput;
+
         // A phone or touch screen collapses the HUD menu column; the game menu then lists the column panels as tiles (docs/design/ui-standard.md section 6).
         ToolbarViewModel toolbar = services.GetRequiredService<ToolbarViewModel>();
         toolbar.ColumnCollapsed = BrowserDevice.MenuColumnCollapsed();

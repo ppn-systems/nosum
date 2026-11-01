@@ -165,8 +165,12 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the banner heading, <c>Fishing</c>.</summary>
     public string Title => this.Text("Fishing_Title");
 
-    /// <summary>Gets the prompt shown while the bite window is open.</summary>
-    public string PressPrompt => this.Text("Fishing_Press");
+    /// <summary>Gets or sets whether the player's primary input is a finger. A finger gets the tap prompt, a keyboard or mouse the Space-or-click
+    /// prompt (docs/adr/ADR-092). The shell sets it once, from the device, before the first frame.</summary>
+    public bool TouchInput { get; set; }
+
+    /// <summary>Gets the prompt shown while the bite window is open: <c>Tap</c> on touch, <c>Space or click</c> otherwise.</summary>
+    public string PressPrompt => this.Text(this.TouchInput ? "Fishing_PressTouch" : "Fishing_Press");
 
     /// <summary>Gets the heading of the catch card, <c>You caught a fish!</c>.</summary>
     public string CatchTitle => this.Text("Fishing_CatchTitle");
