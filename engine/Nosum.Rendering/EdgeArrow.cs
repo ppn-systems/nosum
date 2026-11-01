@@ -91,47 +91,15 @@ public static class EdgeArrow
     /// <param name="placement">Where the arrow is and which way it points.</param>
     /// <param name="colour">Colour as <c>0xRRGGBBAA</c>.</param>
     /// <param name="shadow">Shadow colour as <c>0xRRGGBBAA</c>.</param>
+    /// <remarks>
+    /// The renderer places the arrow off the HUD (docs/adr/ADR-094 D2): it slides the arrow along its edge until no HUD region covers it, and draws it
+    /// there. The shadow command comes first, since the renderer places the arrow from it. The arrow is not drawn when no place on its edge is clear.
+    /// </remarks>
     public static void Draw(RenderCommandBuffer commands, in EdgeArrowPlacement placement, int colour, int shadow)
     {
         ArgumentNullException.ThrowIfNull(commands);
-        Glyph(commands, placement.X + 1, placement.Y + 1, placement.Direction, shadow);
-        Glyph(commands, placement.X, placement.Y, placement.Direction, colour);
-    }
-
-    // The arrow pointing up, as rows of the box: a head of rows 0 to 4 that widens by two pixels a row, then a shaft of three pixels in rows 5 to 8.
-    // The other directions turn the same rows: a row becomes a column for left and right, and the box is mirrored for down and left.
-    private static void Glyph(RenderCommandBuffer commands, int x, int y, EdgeArrowDirection direction, int colour)
-    {
-        for (int row = 0; row < Size; row++)
-        {
-            int start;
-            int length;
-            if (row <= 4)
-            {
-                start = 4 - row;
-                length = (2 * row) + 1;
-            }
-            else
-            {
-                start = 3;
-                length = 3;
-            }
-
-            switch (direction)
-            {
-                case EdgeArrowDirection.Up:
-                    commands.FillRect(x + start, y + row, length, 1, colour);
-                    break;
-                case EdgeArrowDirection.Down:
-                    commands.FillRect(x + start, y + (Size - 1 - row), length, 1, colour);
-                    break;
-                case EdgeArrowDirection.Left:
-                    commands.FillRect(x + row, y + start, 1, length, colour);
-                    break;
-                default:
-                    commands.FillRect(x + (Size - 1 - row), y + start, 1, length, colour);
-                    break;
-            }
-        }
+        int direction = (int)placement.Direction;
+        commands.Draw(RenderCommandBuffer.EdgeArrowTexture, direction, 1, Size, Size, placement.X, placement.Y, 0, shadow);
+        commands.Draw(RenderCommandBuffer.EdgeArrowTexture, direction, 0, Size, Size, placement.X, placement.Y, 0, colour);
     }
 }
