@@ -300,7 +300,7 @@ internal static partial class GameLoop
         ArgumentNullException.ThrowIfNull(http);
 
         TextureCache textures = new(WebRenderBackend.LoadTextureAsync);
-        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat, s_calendar, s_nodes) : null;
+        PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat, s_calendar, s_nodes, s_placeable) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.SkillPressRefused += key => SkillPressRefused?.Invoke(key);
         actions?.FarmUseSucceeded += key => FarmUseSucceeded?.Invoke(key);

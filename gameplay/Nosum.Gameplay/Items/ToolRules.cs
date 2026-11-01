@@ -70,6 +70,16 @@ public static class ToolRules
     /// <returns><see langword="true"/> for the scythe.</returns>
     public static bool HarvestsAlongALine(ToolKind tool) => tool == ToolKind.Scythe;
 
+    /// <summary>
+    /// Whether a held item works the tile under a pointer press (a tap, or a drag over tiles): seeds, a hoe, a watering can and a scythe
+    /// (docs/adr/ADR-106 D1). A tap is one use of the held item on that tile, so the scythe's tap harvests or names why it cannot.
+    /// </summary>
+    /// <param name="kind">The item's kind.</param>
+    /// <param name="tool">The item's tool kind, <see cref="ToolKind.None"/> for a non-tool.</param>
+    /// <returns><see langword="true"/> when the press is a use.</returns>
+    public static bool PointerWorksTile(ItemKind kind, ToolKind tool)
+        => kind == ItemKind.Seed || (kind == ItemKind.Tool && tool is ToolKind.Hoe or ToolKind.WateringCan or ToolKind.Scythe);
+
     /// <summary>Returns how much water a watering can of a tier holds: 40, 55 or 70.</summary>
     /// <param name="tier">The can's tier.</param>
     /// <returns>The capacity.</returns>
