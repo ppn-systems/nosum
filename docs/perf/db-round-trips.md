@@ -341,3 +341,19 @@ The statements file shows the cause of each repeat; the common ones:
 
 Not measured here: concurrency (these are single-player requests), tables with many rows (queries are indexed lookups; `BrowseListings` runs a
 `count(*)` plus one page), the cost of the client's own pushes, and the Development-only tester tools.
+
+## Phase 3: coin-only parties and tighter limits (`claude/perf-server`)
+
+Measured with the same harness, before and after the change (`NOSUM_DB_BUDGET_DUMP`, `NOSUM_DB_BUDGET_TABLE`), on the same machine.
+
+- **A coin-only party no longer loads its inventory.** `TransferService` used to pass every party of a transfer to `ApplyManyAsync`, so the seller of a
+  listing (who receives coins only) had their inventory read for nothing. Only parties with an item operation are passed now; when no party has one, one
+  empty change is kept, because `ApplyManyAsync` returns before the enlistment that carries the coin legs when it has no change. Measured: `Disconnect` of a
+  joined player 1 read to 0. Other rows are unchanged, which is what the before/after diff of all 197 rows shows.
+- **Baseline limits that were looser than the same code measures are tightened** (15 rows: `BuyFromShop` buy seeds, `BuyListing` 7 to 6 reads,
+  `CancelListing`, `ChestMove` one back out, `Craft` a chest and five fences, `JoinMap` first join, `KickVisitor`, `LinkExternalIdentity`,
+  `PickUpObject`, `UseItem` break and harvest, `VisitPlayer` friend visits, `WithdrawItem`, `Disconnect`). Only the `Disconnect` row moved because of
+  the code; the others were already measured on master. Each is set to the measured value, so a regression fails the test.
+- **Not checked by the budget, found while doing this:** `Trade / TradeConfirm` rows measure `TooSoon` on master and on this branch, so the swap is never
+  executed by the scenario and its limit (2 reads, 1 write, 1 transaction) is not tested. The scenario needs a wait between the two confirmations. Left for a
+  follow-up: it changes the scenario, not the server.
