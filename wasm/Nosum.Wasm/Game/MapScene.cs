@@ -77,6 +77,9 @@ internal sealed partial class MapScene
     private readonly MinimapViewModel? _minimapFrame;
     private FixedTimestep _clock = new(StepSeconds, 0.25);
     private MapContent _content;
+    // Changes with every map content swap: a chunk bitmap baked for one map is never drawn for another (docs/adr/ADR-086).
+    private int _layerEpoch;
+    private readonly TileChunkCache? _tileChunks;
     private Walker _farmer;
     private Camera2D _camera;
     private Phase _phase;
@@ -113,9 +116,11 @@ internal sealed partial class MapScene
     /// <param name="progress">The player's energy, which gates running (docs/adr/ADR-085 D3); <see langword="null"/> means no energy is known and the farmer does not run.</param>
     /// <param name="combat">The combat channel whose impacts shake the view (docs/adr/ADR-076); <see langword="null"/> never shakes.</param>
     /// <param name="minimap">The minimap frame in the HUD, told whenever the canvas shows or hides the map; <see langword="null"/> has no frame.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null, ProgressChannel? progress = null)
+    /// <param name="tileChunks">The baked tile chunk cache for the static ground layers (docs/adr/ADR-086); <see langword="null"/> draws every tile each frame.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null, ProgressChannel? progress = null, TileChunkCache? tileChunks = null)
     {
         _sky = new SkyLayer(calendar, placed);
+        _tileChunks = tileChunks;
         _calendar = calendar;
         _combat = combat;
         _minimapFrame = minimap;
@@ -329,10 +334,8 @@ internal sealed partial class MapScene
         int biomeTint = MineBiomeLook.TintForFloor(content.Spec.MineFloor);
         _commands.Begin(scale);
         _audio?.Flush(_commands);
-        foreach (TileLayer layer in content.Layers.Ground)
-        {
-            TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave, biomeTint);
-        }
+        _tileChunks?.BeginFrame();
+        this.DrawTileLayers(map, content, content.Layers.Ground, 0, timeMs, biomeTint);
 
         IMapDecorator[] decorators = content.Decorators;
         for (int i = 0; i < decorators.Length; i++)
@@ -401,10 +404,7 @@ internal sealed partial class MapScene
             decorators[i].DrawInFront(_commands, _camera);
         }
 
-        foreach (TileLayer layer in content.Layers.Front)
-        {
-            TileLayerRenderer.Draw(map, layer, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave, biomeTint);
-        }
+        this.DrawTileLayers(map, content, content.Layers.Front, 128, timeMs, biomeTint);
 
         // The sky: the night tint with the lamps cut out of it over the whole world, then the rain or snow, then the names and the fade.
         _sky.DrawAmbient(_commands, content.Spec, _camera, map.TileWidth);
@@ -422,6 +422,22 @@ internal sealed partial class MapScene
         this.DrawMinimap(content, edges, canvasWidth, canvasHeight, scale);
         _commands.FillBlack((int)(_fade * 255), (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
         backend.Submit(_commands.Encode());
+    }
+
+    // Records the visible tiles of one group of layers: through the chunk cache when the scene has one, tile by tile otherwise (docs/adr/ADR-086).
+    private void DrawTileLayers(TileMap map, MapContent content, ReadOnlySpan<TileLayer> layers, int keyBase, long timeMs, int biomeTint)
+    {
+        for (int i = 0; i < layers.Length; i++)
+        {
+            if (_tileChunks is not null)
+            {
+                _tileChunks.DrawLayer(map, layers[i], keyBase + i, _layerEpoch, content.TileSetTextures, _camera, _commands, timeMs, s_waterWave, biomeTint);
+            }
+            else
+            {
+                TileLayerRenderer.Draw(map, layers[i], content.TileSetTextures, _camera, _commands, timeMs, s_waterWave, biomeTint);
+            }
+        }
     }
 
     /// <summary>

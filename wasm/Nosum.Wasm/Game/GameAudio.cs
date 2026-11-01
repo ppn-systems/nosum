@@ -41,7 +41,10 @@ internal sealed class GameAudio
         }
     }
 
-    /// <summary>Loads every file of <see cref="AudioCatalog.Files"/> and tells the browser which sound a button click plays. Never throws: a file that does not load is silence.</summary>
+    /// <summary>
+    /// Loads the sound effects and ambient loops of <see cref="AudioCatalog.Files"/> and tells the browser which sound a button click plays. Music tracks are
+    /// only remembered here: the browser fetches each one when the game first asks for it (docs/adr/ADR-086 D4). Never throws: a file that does not load is silence.
+    /// </summary>
     /// <returns>A task that completes when every file was tried.</returns>
     [SupportedOSPlatform("browser")]
     [SuppressMessage("Design", "CA1031", Justification = "Audio is a nicety: a failed load leaves the game silent, never broken.")]

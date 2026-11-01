@@ -32,6 +32,7 @@ internal static partial class QaEntry
               season: seasons => dev.Season(seasons),
               levelUp: (skill, level) => dev.LevelUp(skill, level),
               fishingBite: () => dev.FishingBite(),
+              allocatedBytes: () => dev.AllocatedBytes(),
               springReset: () => dev.ToSpring(),
               teleportToMonster: mapId => dev.TeleportToMonster(mapId),
             });

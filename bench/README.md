@@ -6,6 +6,7 @@ Benchmarks that back performance decisions with numbers.
 | :--- | :--- |
 | `Nosum.Bench.Interop` | Per-frame JS interop cost: `IJSRuntime` per sprite vs one batched `[JSImport]` call per frame. Its result decides [ADR-002](../docs/adr/ADR-002-batched-render-interop.md). Browser project: same WASM build settings as `wasm/` (`Directory.Build.props`). |
 | `Nosum.Bench.Load` | Headless load test of a running server ([ADR-031](../docs/adr/ADR-031-deployment-and-operations.md) D8): N guests over real WebSockets that walk through the exits to public maps, farm and chat; the report puts what the clients saw next to the server's own snapshot tick time and bandwidth from its `/metrics`. A console program (it ignores the WASM settings). |
+| `wasm-perf/` | Browser measurements of the WASM client through Playwright: first-load bytes and time to playable, frame time and draw calls on the farm, the CPU profile, and the canvas draw-cost micro-benchmark (ADR-086, `docs/perf/wasm-perf.md`). Node scripts, not a .NET project. |
 
 ## Nosum.Bench.Interop
 
