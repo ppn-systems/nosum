@@ -84,6 +84,100 @@ public sealed class AudioCatalogTests
         }
     }
 
+    [Fact]
+    public void Files_MeasuredLevelsMatchTheFilesOnDisk()
+    {
+        // MeasuredDbfs is what tools/measure_audio.py prints for each file (docs/adr/ADR-090). Re-measuring here makes a changed file fail the test.
+        foreach (AudioFile file in AudioCatalog.Files)
+        {
+            MeasureActiveRmsDbfs(ReadMono(file.File)).Should().BeApproximately(file.MeasuredDbfs, 0.15, file.File);
+        }
+    }
+
+    [Fact]
+    public void Files_GainLeavesHeadroomBelowFullScale()
+    {
+        // After the load gain, no file may reach 0 dBFS: a decoded buffer is not clamped, so a peak above full scale would distort.
+        foreach (AudioFile file in AudioCatalog.Files)
+        {
+            (MeasurePeakDbfs(ReadMono(file.File)) + file.GainDb).Should().BeLessThan(-0.5, file.File);
+        }
+    }
+
+    [Fact]
+    public void Mix_ClassesKeepTheirOrder()
+    {
+        AudioMix.Footstep.Should().BeLessThan(AudioMix.Action, "footsteps are felt under the tools");
+        AudioMix.Interface.Should().BeLessThan(AudioMix.Action, "clicks are quieter than the cues the player acts on");
+        AudioMix.Action.Should().Be(AudioMix.Music, "the cues and the bed share a level");
+        AudioMix.Ambience.Should().Be(AudioMix.Music, "the rain bed sits at the music's level before its per-cue volume");
+    }
+
+    [Fact]
+    public void Mix_EveryMusicTrackIsNormalizedToTheMusicTarget()
+    {
+        AudioCatalog.Files.Where(f => f.Kind == AudioKind.Track).Should().OnlyContain(f => f.TargetDbfs == AudioMix.Music);
+    }
+
+    [Fact]
+    public void Mix_GainsStayWithinTwelveDecibels()
+    {
+        // A gain beyond this would mean the file was recorded far from its class, and the measurement or the class is wrong.
+        AudioCatalog.Files.Should().OnlyContain(f => Math.Abs(f.GainDb) <= 12, "no file is more than 12 dB from its class");
+    }
+
+    private static double[] ReadMono(string name)
+    {
+        byte[] bytes = File.ReadAllBytes(RepoFiles.Path("wasm", "Nosum.Wasm", "wwwroot", "audio", name));
+        int at = 12;
+        while (System.Text.Encoding.ASCII.GetString(bytes, at, 4) != "fmt ")
+        {
+            at += 8 + (int)BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(at + 4));
+        }
+
+        ushort channels = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(at + 10));
+        ushort bits = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(at + 22));
+        while (System.Text.Encoding.ASCII.GetString(bytes, at, 4) != "data")
+        {
+            at += 8 + (int)BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(at + 4));
+        }
+
+        int dataStart = at + 8;
+        int width = bits / 8;
+        int frames = (int)BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(at + 4)) / (width * channels);
+        double[] mono = new double[frames];
+        for (int f = 0; f < frames; f++)
+        {
+            double sum = 0;
+            for (int c = 0; c < channels; c++)
+            {
+                int sample = dataStart + (((f * channels) + c) * width);
+                sum += width == 1
+                    ? (bytes[sample] - 128) / 128.0
+                    : BinaryPrimitives.ReadInt16LittleEndian(bytes.AsSpan(sample)) / 32768.0;
+            }
+
+            mono[f] = sum / channels;
+        }
+
+        return mono;
+    }
+
+    private static double MeasurePeakDbfs(double[] samples)
+    {
+        double peak = samples.Max(s => Math.Abs(s));
+        return 20 * Math.Log10(peak);
+    }
+
+    /// <summary>The RMS over the samples above a -50 dBFS gate, as tools/measure_audio.py computes it.</summary>
+    private static double MeasureActiveRmsDbfs(double[] samples)
+    {
+        const double gate = 0.0031622776601683794; // 10^(-50/20)
+        double[] active = [.. samples.Where(s => Math.Abs(s) >= gate)];
+        double meanSquare = active.Sum(s => s * s) / active.Length;
+        return 10 * Math.Log10(meanSquare);
+    }
+
     [Theory]
     [InlineData(ToolKind.Hoe, SoundIds.ToolHoe)]
     [InlineData(ToolKind.WateringCan, SoundIds.ToolWater)]
