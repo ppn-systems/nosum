@@ -70,6 +70,28 @@ public sealed class FurnitureCatalogViewModelTests
     }
 
     [Fact]
+    public void Entries_ListTheCraftedPiecesThePanelPlaces_ChestFurnaceAndSprinkler()
+    {
+        using WasmTestSupport.CultureScope scope = new("en");
+
+        // The panel opens for a chest, a furnace or a sprinkler in hand; it must list the piece, not say there is no furniture (finding 14).
+        FurnitureCatalogViewModel vm = Create(new FakeGameSocket(), Owned(ItemCatalog.Chest, ItemCatalog.Furnace, ItemCatalog.Sprinkler), out _, out _);
+
+        vm.Entries.Select(e => e.ItemId).Should().BeEquivalentTo(new[] { ItemCatalog.Chest, ItemCatalog.Furnace, ItemCatalog.Sprinkler });
+    }
+
+    [Fact]
+    public void SelectTab_Equipment_ListsTheFurnaceAndTheSprinklerOnly()
+    {
+        using WasmTestSupport.CultureScope scope = new("en");
+        FurnitureCatalogViewModel vm = Create(new FakeGameSocket(), Owned(ItemCatalog.Chest, ItemCatalog.Furnace, ItemCatalog.Sprinkler), out _, out _);
+
+        vm.SelectTab((int)FurnitureCategory.Equipment + 1);
+
+        vm.Entries.Select(e => e.ItemId).Should().BeEquivalentTo(new[] { ItemCatalog.Furnace, ItemCatalog.Sprinkler });
+    }
+
+    [Fact]
     public void Entries_AreSortedByCategoryThenName()
     {
         using WasmTestSupport.CultureScope scope = new("en");
@@ -166,7 +188,7 @@ public sealed class FurnitureCatalogViewModelTests
         FurnitureCatalogViewModel vm = Create(new FakeGameSocket(), Owned(ItemCatalog.OakChair), out _, out _);
 
         vm.Tabs[0].Should().Be((AllTab, "All"));
-        vm.Tabs.Should().HaveCount(9);
+        vm.Tabs.Should().HaveCount(10, "All, then every category, the equipment group included");
         vm.Tabs[SeatingTab].Label.Should().Be("Seating");
     }
 
@@ -194,9 +216,12 @@ public sealed class FurnitureCatalogViewModelTests
             Piece(ItemCatalog.BlueCouch, FurnitureCategory.Seating),
             Piece(ItemCatalog.OakTable, FurnitureCategory.Tables),
             Piece(ItemCatalog.HousePlant, FurnitureCategory.Plants),
+            Piece(ItemCatalog.Chest, FurnitureCategory.Storage, PlaceableKind.Chest),
+            Piece(ItemCatalog.Furnace, FurnitureCategory.Equipment, PlaceableKind.Furnace),
+            Piece(ItemCatalog.Sprinkler, FurnitureCategory.Equipment, PlaceableKind.Sprinkler),
         ];
     }
 
-    private static PlaceableDefinition Piece(int itemId, FurnitureCategory category)
-        => new(itemId, "furniture", new PlaceableView(0, 0, 16, 16, 1, 1)) { Category = category };
+    private static PlaceableDefinition Piece(int itemId, FurnitureCategory category, PlaceableKind kind = PlaceableKind.Decoration)
+        => new(itemId, "furniture", new PlaceableView(0, 0, 16, 16, 1, 1)) { Category = category, Kind = kind };
 }

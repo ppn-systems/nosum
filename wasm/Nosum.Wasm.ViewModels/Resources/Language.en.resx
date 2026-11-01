@@ -95,7 +95,7 @@
   <data name="Place_Status_Reserved" xml:space="preserve"><value>Keep the doorway clear.</value></data>
   <data name="Place_Status_Overlaps" xml:space="preserve"><value>There is furniture there already.</value></data>
   <data name="Place_Status_OutOfReach" xml:space="preserve"><value>Too far away, step closer.</value></data>
-  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>You are standing there.</value></data>
+  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>You are standing there. Step aside to place it.</value></data>
   <data name="Place_Status_UnknownObject" xml:space="preserve"><value>That piece is gone.</value></data>
   <data name="Place_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
   <data name="Place_Status_LimitReached" xml:space="preserve"><value>The house cannot hold more furniture.</value></data>
@@ -1189,6 +1189,7 @@
   <data name="Furniture_Category_Plants" xml:space="preserve"><value>Plants</value></data>
   <data name="Furniture_Category_Decor" xml:space="preserve"><value>Decor</value></data>
   <data name="Furniture_Category_Rugs" xml:space="preserve"><value>Rugs</value></data>
+  <data name="Furniture_Category_Equipment" xml:space="preserve"><value>Equipment</value></data>
   <data name="Furniture_Search" xml:space="preserve"><value>Search furniture...</value></data>
   <data name="Furniture_Place" xml:space="preserve"><value>Place</value></data>
   <data name="Furniture_PickUp" xml:space="preserve"><value>Pick up</value></data>

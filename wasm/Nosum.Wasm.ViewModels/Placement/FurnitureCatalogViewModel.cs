@@ -183,7 +183,7 @@ public sealed class FurnitureCatalogViewModel : IObservableViewModel, IDisposabl
         {
             next = null;
         }
-        else if (tab - 1 is >= 0 and <= (int)FurnitureCategory.Rugs)
+        else if (tab - 1 is >= 0 and <= (int)FurnitureCategory.Equipment)
         {
             next = (FurnitureCategory)(tab - 1);
         }
@@ -277,9 +277,10 @@ public sealed class FurnitureCatalogViewModel : IObservableViewModel, IDisposabl
         List<Piece> pieces = new(placeables.Count);
         foreach (PlaceableDefinition definition in placeables)
         {
+            // The furniture, and the crafted pieces the arrange panel also places (a chest, a furnace, a sprinkler): the panel opens for them, so it lists them.
             if (definition.Category is { } category
                 && ItemCatalog.TryGet(definition.ItemId, out ItemDefinition? item)
-                && item.Kind == ItemKind.Furniture)
+                && (item.Kind == ItemKind.Furniture || definition.Kind is PlaceableKind.Chest or PlaceableKind.Furnace or PlaceableKind.Sprinkler))
             {
                 pieces.Add(new Piece(definition.ItemId, item.Key, category, definition.BlocksWalking));
             }
@@ -311,6 +312,7 @@ public sealed class FurnitureCatalogViewModel : IObservableViewModel, IDisposabl
         FurnitureCategory.Lighting => "Furniture_Category_Lighting",
         FurnitureCategory.Plants => "Furniture_Category_Plants",
         FurnitureCategory.Decor => "Furniture_Category_Decor",
+        FurnitureCategory.Equipment => "Furniture_Category_Equipment",
         _ => "Furniture_Category_Rugs",
     };
 
