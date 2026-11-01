@@ -7,7 +7,9 @@ using Nosum.Contracts.Chat;
 using Nosum.Contracts.Friends;
 using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Chat;
+using Nosum.Contracts.Visit;
 using Nosum.Wasm.Socket.Friends;
+using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.ViewModels.Player;
 using Nosum.Wasm.ViewModels.Resources;
 using Nosum.Wasm.ViewModels.Visit;
@@ -35,28 +37,37 @@ public sealed class FriendsViewModel : PanelViewModel, IDisposable
 {
     private readonly FriendsChannel _friends;
     private readonly ChatMessenger _chat;
+    private readonly VisitChannel _visits;
     private readonly NicknameFormatter _names;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="friends">The friends channel.</param>
     /// <param name="chat">The chat channel, which holds the block list.</param>
+    /// <param name="visits">The visit channel: a friend's farm is visited with the same packet as a nickname typed on the visitors page.</param>
     /// <param name="names">Formats nicknames for display.</param>
     /// <param name="text">UI text.</param>
-    public FriendsViewModel(FriendsChannel friends, ChatMessenger chat, NicknameFormatter names, IStringLocalizer<Language> text)
+    public FriendsViewModel(FriendsChannel friends, ChatMessenger chat, VisitChannel visits, NicknameFormatter names, IStringLocalizer<Language> text)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(friends);
         ArgumentNullException.ThrowIfNull(chat);
+        ArgumentNullException.ThrowIfNull(visits);
         ArgumentNullException.ThrowIfNull(names);
 
         _friends = friends;
         _chat = chat;
+        _visits = visits;
         _names = names;
         friends.Changed += this.Raise;
         friends.Completed += this.OnCompleted;
         chat.BlockedChanged += this.Raise;
         chat.Completed += this.OnChatCompleted;
+        visits.Completed += this.OnVisitCompleted;
+        visits.Visiting += this.OnVisiting;
     }
+
+    /// <summary>Raised when a visit to a friend's farm was accepted, so the menu closes and the map scene shows the farm.</summary>
+    public event Action? Entered;
 
     /// <summary>Gets or sets the nickname typed to ask somebody to be friends.</summary>
     public string AddText { get; set; } = string.Empty;
@@ -148,6 +159,20 @@ public sealed class FriendsViewModel : PanelViewModel, IDisposable
     /// <param name="playerId">The account id of the player who asked.</param>
     public void Decline(Guid playerId) => _friends.Respond(playerId, false);
 
+    /// <summary>Visits a friend's farm. The server decides: an owner who has not let friends in, or a farm that is not reachable now, answers with a reason.</summary>
+    /// <param name="playerId">The friend's account id.</param>
+    public void Visit(Guid playerId)
+    {
+        foreach (FriendInfo friend in _friends.Current.Friends)
+        {
+            if (friend.PlayerId == playerId)
+            {
+                _visits.Visit(friend.Nickname);
+                return;
+            }
+        }
+    }
+
     /// <summary>Removes a friend, or withdraws a request the player sent.</summary>
     /// <param name="playerId">The other player's account id.</param>
     public void Remove(Guid playerId) => _friends.Remove(playerId);
@@ -184,6 +209,8 @@ public sealed class FriendsViewModel : PanelViewModel, IDisposable
         _friends.Completed -= this.OnCompleted;
         _chat.BlockedChanged -= this.Raise;
         _chat.Completed -= this.OnChatCompleted;
+        _visits.Completed -= this.OnVisitCompleted;
+        _visits.Visiting -= this.OnVisiting;
     }
 
     private string Label(string nickname)
@@ -218,6 +245,10 @@ public sealed class FriendsViewModel : PanelViewModel, IDisposable
 
         return GameMaps.TryGet(friend.MapId, out _) ? this.Text("Friends_OnMap", this.Text("Friends_Map_" + friend.MapId)) : this.Text("Friends_Online");
     }
+
+    private void OnVisitCompleted(VisitStatus status) => this.SetStatus(status == VisitStatus.Ok ? string.Empty : this.Text("Visit_Status_" + status));
+
+    private void OnVisiting() => this.Entered?.Invoke();
 
     private void OnCompleted(FriendStatus status) => this.SetStatus(status == FriendStatus.Ok ? string.Empty : this.StatusText(status));
 

@@ -1,0 +1,336 @@
+[
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Fall Day 5 2:12 PM 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-farm-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Fall Day 5 2:12 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-town.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-town-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "beach",
+    "tag": "beach",
+    "calendar": "Fall Day 5 2:12 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-beach.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-beach-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "forest",
+    "tag": "forest",
+    "calendar": "Fall Day 5 2:12 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-forest.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-forest-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "mine1",
+    "tag": "mine1",
+    "calendar": "Fall Day 5 2:12 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine1.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine1-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "mine6",
+    "tag": "mine6",
+    "calendar": "Fall Day 5 2:13 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine6.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine6-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "mine15",
+    "tag": "mine15",
+    "calendar": "Fall Day 5 2:13 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 34.29s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine15.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine15-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "mine25",
+    "tag": "mine25",
+    "calendar": "Fall Day 5 2:13 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 30s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine25.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine25-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "mine35",
+    "tag": "mine35",
+    "calendar": "Fall Day 5 2:13 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 37.89s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine35.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-mine35-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "exit-east",
+    "calendar": "Fall Day 5 2:13 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "loop 30s",
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-exit-east.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-exit-east-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "exit-south",
+    "calendar": "Fall Day 5 2:14 PM 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-exit-south.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-exit-south-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "exit-north",
+    "calendar": "Fall Day 5 2:14 PM 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-exit-north.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/fall-noon-sun-exit-north-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Thu Ngày 5 14:14 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-farm-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Thu Ngày 5 14:15 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-town.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-town-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "beach",
+    "tag": "beach",
+    "calendar": "Thu Ngày 5 14:15 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-beach.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-beach-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "forest",
+    "tag": "forest",
+    "calendar": "Thu Ngày 5 14:15 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-forest.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-forest-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine1",
+    "tag": "mine1",
+    "calendar": "Thu Ngày 5 14:15 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine1.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine1-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine6",
+    "tag": "mine6",
+    "calendar": "Thu Ngày 5 14:15 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine6.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine6-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine15",
+    "tag": "mine15",
+    "calendar": "Thu Ngày 5 14:16 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 34.29s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine15.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine15-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine25",
+    "tag": "mine25",
+    "calendar": "Thu Ngày 5 14:16 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 30s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine25.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine25-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine35",
+    "tag": "mine35",
+    "calendar": "Thu Ngày 5 14:16 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 37.89s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine35.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-mine35-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "exit-east",
+    "calendar": "Thu Ngày 5 14:16 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "loop 30s",
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-exit-east.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-exit-east-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "exit-south",
+    "calendar": "Thu Ngày 5 14:16 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-exit-south.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-exit-south-fade.png"
+  },
+  {
+    "scenario": "fall-noon-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "exit-north",
+    "calendar": "Thu Ngày 5 14:17 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-exit-north.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/fall-noon-sun-exit-north-fade.png"
+  }
+]

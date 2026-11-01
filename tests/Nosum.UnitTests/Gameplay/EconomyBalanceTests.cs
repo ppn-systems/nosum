@@ -107,6 +107,39 @@ public sealed class EconomyBalanceTests
         }
     }
 
+    [Fact]
+    public void HayRation_EveryAnimal_SeasonProductPaysForAFedSeason()
+    {
+        // Feeding is a choice to buy hay at the carpenter (fiber from the scythe is free). A fed animal must come out ahead over a season,
+        // or hay is a dead option that nobody buys (docs/adr/ADR-081 amendment: hay 30 -> 10).
+        ShopCatalog.TryGet(ShopCatalog.CarpenterShop, out ShopDefinition? carpenter);
+        carpenter!.TryGetPrice(ItemCatalog.Hay, out int hay).Should().BeTrue();
+
+        foreach (AnimalDefinition animal in AnimalCatalog.All)
+        {
+            long productDays = animal.Schedule switch
+            {
+                ProduceSchedule.EveryThirdDay => GameCalendar.DaysPerSeason / 3,
+                ProduceSchedule.SunnyDays => GameCalendar.DaysPerSeason / 2,
+                _ => GameCalendar.DaysPerSeason,
+            };
+            long seasonValue = productDays * ItemSellPrice(animal.Product);
+            long feedBill = (long)hay * GameCalendar.DaysPerSeason;
+
+            (seasonValue - feedBill).Should().BeGreaterThan(0, animal.Key);
+        }
+    }
+
+    [Fact]
+    public void HayRation_CostsLessThanTheDailyEgg()
+    {
+        // The cheapest daily product (the chicken's egg) must cover at least one ration with coins to spare.
+        ShopCatalog.TryGet(ShopCatalog.CarpenterShop, out ShopDefinition? carpenter);
+        carpenter!.TryGetPrice(ItemCatalog.Hay, out int hay).Should().BeTrue();
+
+        ItemSellPrice(ItemCatalog.Egg).Should().BeGreaterThan(hay);
+    }
+
     /// <summary>Profit of one plot over one season and the watered days it takes, replanting single-harvest crops and regrowing harvested ones.</summary>
     private static (long Profit, int WaterDays) Season(CropDefinition crop)
     {

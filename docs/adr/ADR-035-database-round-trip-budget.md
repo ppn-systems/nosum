@@ -295,3 +295,16 @@ Every other limit is unchanged.
 - **`RehomePet` is measured.** Giving the pet back costs reads 3, writes 1, transactions 1, SaveChanges 1, the coins and the row removal in one transfer. New row
   `RehomePet / give the cat back` in `DbBudgetBaseline`.
 - The `GetPet` rows are unchanged; the pet read stays on the cache path described above.
+
+## Amendment (2026-11-01): BuyListing to four reads, two wallets in one query (economy rebuild)
+
+- **`BuyListing` is measured at 4 reads** (was 6): reads 4, writes 2, transactions 1, SaveChanges 2. The statements were: the listing twice (the read under the
+  listing lock, then the transfer's own read), the two wallets once each, and the seller's mail room count and unread count. The listing is now read once: the save
+  writes the row with its `Active` status as the concurrency token, so the save is a compare-and-set and a row another process closed fails it (`Conflict`; nothing
+  moves). The row limit is lowered from 6 to 4 in the same change (`DbBudgetBaseline`). The two mail reads are the sale notice and stay (ADR-029 D5).
+- **Every transfer reads its parties' wallets in one query.** `TransferService.JoinAsync` loads the wallets of all parties with a single `ListAsync` (a new
+  player's row is created as before, with the starting coins logged). Two-party transfers read two rows in one round trip instead of two. Measured on the same run:
+  `LinkExternalIdentity` 5 to 4 reads and `CommissionBuilding` 4 to 3 (both limits already allowed the new number, so they are not changed).
+- **Not changed:** the write counts, the transaction count, the SaveChanges count, every other row. `GetRequests / today's board, chain finished` reads one more row
+  (the friend list) on this run than on the previous one; the statement is the same and the row has no limit, so it is recorded, not blocked. `Disconnect` reads 0 (its
+  limit is 0; the previous run recorded 1 and failed it).

@@ -10,6 +10,12 @@
         {
             <p class="mail-hint">@Vm.Text("Mail_Empty")</p>
         }
+        @if (Vm.CollectableCount > 0)
+        {
+            <GameRow>
+                <GameButton Text="@Vm.Text("Mail_CollectAll", Vm.CollectableCount)" OnClick="@(() => Vm.CollectAll())" />
+            </GameRow>
+        }
         <div class="mail-list">
             @foreach (MailDisplay mail in Vm.Mails)
             {
@@ -21,6 +27,10 @@
                         @if (!mail.Read)
                         {
                             <GameBadge Kind="warn" Text="@Vm.Text("Mail_Unread")" />
+                        }
+                        @if (mail.CanCollect)
+                        {
+                            <GameBadge Kind="ok" Text="@Vm.Text("Mail_HasGift")" />
                         }
                         <span class="mail-expiry">@mail.Expiry</span>
                     </GameRow>

@@ -40,3 +40,23 @@ reward, and the calendar already gives every player the same day.
 One new render command (append-only in the command-buffer contract, both sides updated together). No new wire
 packets: weather derives from `CalendarInfo`. The rain bonus adds no packets and no stored state; the server rule is
 authoritative and the client never computes it.
+
+## Amendments
+
+### 2026-11-01 — weather at dusk and night; storm streaks (rebuild-world-ambience)
+
+- **D4 (amended).** Rain and storm opacity is added to the tint **in proportion to the light left**: `extra × (255 − A) / 255`, where `A` is the
+  day's tint opacity. At noon the weather adds its full amount, as before; at night it adds about a third of it, so a rainy night is a little
+  darker than a clear one without stacking onto the night tint (196 of 255 before, 177 now). Indoors and the daytime tint are unchanged.
+- **D6 (amended).** A storm's drops are drawn as two segments, the lower one a pixel to the left, so they lean with the wind. Rain is unchanged
+  (one segment). No new draw kind; a storm frame holds at most three draws per drop (two segments and a splash).
+- Evidence and frames: `docs/design/critique-world-ambience.md`, `docs/qa/rebuild-world-ambience/`.
+
+### 2026-11-01 — snow flakes and fall leaves (world-ambience round 2)
+
+- **D6 (amended again).** A **near** snowflake (depth above one half) is drawn two pixels square; a far one stays one pixel. On the round-one
+  winter frame the one-pixel flakes were lost against the grass and the path (`docs/qa/rebuild-world-ambience/before/en/1280x720/snow-winter-snow-farm.png`).
+  The snow still draws one rectangle per flake, so the draw count is unchanged. Test: `SkyRenderingTests.Precipitation_Snow_NearFlakesAreTwoPixelsSquareAndFarOnesOne`.
+- **Autumn leaves** (sun in fall, D6) were graded in round 2 and not changed: small orange, red and gold squares read as leaves on the grass.
+- Evidence: [docs/qa/world-ambience-round2/](../qa/world-ambience-round2/README.md).
+

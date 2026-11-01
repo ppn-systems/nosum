@@ -89,12 +89,13 @@ public interface IMarketService
     /// <returns>The status.</returns>
     Task<MarketStatus> CancelAsync(IConnection connection, Guid playerId, Guid listingId, CancellationToken cancellationToken = default);
 
-    /// <summary>Reads one page of active listings, newest first.</summary>
+    /// <summary>Reads one page of active listings, in the order asked for (newest first by default; docs/adr/ADR-013 amendment 2026-11-01).</summary>
     /// <param name="page">Page number, zero based.</param>
     /// <param name="itemIds">Only these items; empty for all.</param>
+    /// <param name="sort">The order of the page.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The page.</returns>
-    Task<ListingsPageView> BrowseAsync(int page, IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken = default);
+    Task<ListingsPageView> BrowseAsync(int page, IReadOnlyCollection<int> itemIds, MarketSort sort = MarketSort.Newest, CancellationToken cancellationToken = default);
 
     /// <summary>Reads the player's own active listings.</summary>
     /// <param name="playerId">The seller.</param>

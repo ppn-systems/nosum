@@ -139,6 +139,12 @@
   <data name="Market_Shipped" xml:space="preserve"><value>Sold for {0} coins.</value></data>
   <data name="Toast_Repeat" xml:space="preserve"><value>{0} ×{1}</value></data>
   <data name="Market_Done_Create" xml:space="preserve"><value>Listed for sale.</value></data>
+  <data name="Market_Sort_Newest" xml:space="preserve"><value>Newest</value></data>
+  <data name="Market_Sort_UnitLowest" xml:space="preserve"><value>Cheapest each</value></data>
+  <data name="Market_Sort_UnitHighest" xml:space="preserve"><value>Priciest each</value></data>
+  <data name="Market_Price_Each" xml:space="preserve"><value>{0} coins ({1} each)</value></data>
+  <data name="Market_BinHint" xml:space="preserve"><value>The shipping bin pays {0} coins each, {1} for this stack.</value></data>
+  <data name="Market_Done_CreateDetail" xml:space="preserve"><value>Listed {0} × {1} for {2} coins. You receive {3} coins when it sells, after the {4}% fee.</value></data>
   <data name="Market_Done_Buy" xml:space="preserve"><value>Bought.</value></data>
   <data name="Market_Done_Cancel" xml:space="preserve"><value>Withdrawn to your inventory.</value></data>
   <data name="Market_Done_Ship" xml:space="preserve"><value>Sold.</value></data>
@@ -175,6 +181,7 @@
   <data name="Wardrobe_Worn" xml:space="preserve"><value>Worn</value></data>
   <data name="Wardrobe_Bag" xml:space="preserve"><value>In your bag</value></data>
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>You have no clothes in your bag.</value></data>
+  <data name="Wardrobe_InstantNote" xml:space="preserve"><value>Changes apply at once and everyone on the map sees them. Change clothes in your bag.</value></data>
   <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Take off</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Done.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Invalid skin tone.</value></data>
@@ -256,6 +263,8 @@
   <data name="Coop_Deposit" xml:space="preserve"><value>Deposit</value></data>
   <data name="Coop_DepositHint" xml:space="preserve"><value>Pick an item in the warehouse to take, or a slot of your inventory to deposit.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Warehouse log</value></data>
+  <data name="Coop_Contrib_Row" xml:space="preserve"><value>{0} deposited</value></data>
+  <data name="Coop_Contrib_Window" xml:space="preserve"><value>Counts cover the recent log ({0} entries).</value></data>
   <data name="Coop_Log_Deposit" xml:space="preserve"><value>{0} - {1} deposited {2} {3}</value></data>
   <data name="Coop_Log_Withdraw" xml:space="preserve"><value>{0} - {1} withdrew {2} {3}</value></data>
   <data name="Coop_Status_Ok" xml:space="preserve"><value>Done.</value></data>
@@ -344,7 +353,7 @@
   <data name="Profile_NewLabel" xml:space="preserve"><value>New nickname</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Change nickname</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>You can change your nickname once every 24 hours.</value></data>
-  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep their generated name. Link a Google or Microsoft account to choose your own nickname.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep a generated name. After your first quest you can link a Google or Microsoft account: your progress is kept and you choose your own nickname.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Your nickname is now {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>You can change it again at {0}.</value></data>
   <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Seed shop</value></data>
@@ -448,6 +457,8 @@
   <data name="Touch_UseLabel" xml:space="preserve"><value>Use the held item</value></data>
   <data name="Touch_Run" xml:space="preserve"><value>Run</value></data>
   <data name="Touch_RunLabel" xml:space="preserve"><value>Toggle running (costs energy)</value></data>
+  <data name="Touch_Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Touch_ChatLabel" xml:space="preserve"><value>Open the chat line</value></data>
   <data name="Action_MoveUp" xml:space="preserve"><value>Walk up</value></data>
   <data name="Action_MoveDown" xml:space="preserve"><value>Walk down</value></data>
   <data name="Action_MoveLeft" xml:space="preserve"><value>Walk left</value></data>
@@ -587,6 +598,7 @@
   <data name="Friends_Map_coop" xml:space="preserve"><value>the coop</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>the barn</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Friends_VisitFarm" xml:space="preserve"><value>Visit farm</value></data>
   <data name="Friends_Incoming_Heading" xml:space="preserve"><value>Friend requests</value></data>
   <data name="Friends_Accept" xml:space="preserve"><value>Accept</value></data>
   <data name="Friends_Decline" xml:space="preserve"><value>Decline</value></data>
@@ -617,6 +629,8 @@
   <data name="Mail_Empty" xml:space="preserve"><value>Your mailbox is empty.</value></data>
   <data name="Mail_Unread" xml:space="preserve"><value>Unread</value></data>
   <data name="Mail_Collect" xml:space="preserve"><value>Collect</value></data>
+  <data name="Mail_CollectAll" xml:space="preserve"><value>Collect all ({0})</value></data>
+  <data name="Mail_HasGift" xml:space="preserve"><value>Gift</value></data>
   <data name="Mail_Collected" xml:space="preserve"><value>Collected.</value></data>
   <data name="Mail_CollectedTag" xml:space="preserve"><value>Collected</value></data>
   <data name="Mail_Delete" xml:space="preserve"><value>Delete</value></data>
@@ -1150,6 +1164,7 @@
   <data name="Shop_Confirm_No" xml:space="preserve"><value>Cancel</value></data>
   <data name="Settings_TouchControls" xml:space="preserve"><value>On-screen touch controls</value></data>
   <data name="Settings_Haptics" xml:space="preserve"><value>Vibrate on purchases and sales</value></data>
+  <data name="Settings_Feedback" xml:space="preserve"><value>Feedback</value></data>
   <data name="Account_Provider_Guidance" xml:space="preserve"><value>Google and Microsoft sign-in is off on this server. Play as a guest instead.</value></data>
   <data name="Game_Start_Step_Connect" xml:space="preserve"><value>Connecting to the server…</value></data>
   <data name="Game_Start_Step_Assets" xml:space="preserve"><value>Loading graphics and sound…</value></data>

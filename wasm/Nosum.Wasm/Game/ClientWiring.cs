@@ -227,7 +227,8 @@ internal static class ClientWiring
             sp.GetRequiredService<IRememberedSessionStore>(),
             sp.GetRequiredService<IStringLocalizer<Language>>(),
             TimeProvider.System));
-        services.AddTransient<AccountFormViewModel>();
+        // One instance for the whole client: the start screen signs the guest in, and the game menu (Profile, Settings) must see that session.
+        services.AddSingleton<AccountFormViewModel>();
         services.AddSingleton(sp =>
         {
             ConnectionStatusViewModel status = new(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<IStringLocalizer<Language>>());
@@ -293,6 +294,10 @@ internal static class ClientWiring
         keeper.Authenticated += services.GetRequiredService<MailChannel>().Load;
         keeper.Authenticated += combat.LoadVitals;
         keeper.Authenticated += pets.Load;
+
+        // A map change (a ride, a warp, a knock-out carried home) ends the elevator picker: it never covers the map the player is now on.
+        ElevatorViewModel elevator = services.GetRequiredService<ElevatorViewModel>();
+        channel.Joined += _ => elevator.Close();
 
         channel.Joined += _ =>
         {

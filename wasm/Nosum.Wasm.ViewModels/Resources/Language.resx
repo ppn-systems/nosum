@@ -139,6 +139,12 @@
   <data name="Market_Shipped" xml:space="preserve"><value>Đã bán được {0} xu.</value></data>
   <data name="Toast_Repeat" xml:space="preserve"><value>{0} ×{1}</value></data>
   <data name="Market_Done_Create" xml:space="preserve"><value>Đã đăng bán.</value></data>
+  <data name="Market_Sort_Newest" xml:space="preserve"><value>Mới nhất</value></data>
+  <data name="Market_Sort_UnitLowest" xml:space="preserve"><value>Rẻ nhất/món</value></data>
+  <data name="Market_Sort_UnitHighest" xml:space="preserve"><value>Đắt nhất/món</value></data>
+  <data name="Market_Price_Each" xml:space="preserve"><value>{0} xu ({1} mỗi món)</value></data>
+  <data name="Market_BinHint" xml:space="preserve"><value>Thùng hàng trả {0} xu mỗi món, {1} xu cho cả chồng này.</value></data>
+  <data name="Market_Done_CreateDetail" xml:space="preserve"><value>Đã đăng bán {0} × {1} với giá {2} xu. Khi bán được bạn nhận {3} xu, sau phí {4}%.</value></data>
   <data name="Market_Done_Buy" xml:space="preserve"><value>Đã mua.</value></data>
   <data name="Market_Done_Cancel" xml:space="preserve"><value>Đã rút hàng về túi đồ.</value></data>
   <data name="Market_Done_Ship" xml:space="preserve"><value>Đã bán.</value></data>
@@ -175,6 +181,7 @@
   <data name="Wardrobe_Worn" xml:space="preserve"><value>Đang mặc</value></data>
   <data name="Wardrobe_Bag" xml:space="preserve"><value>Trong túi</value></data>
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>Trong túi không có đồ mặc nào.</value></data>
+  <data name="Wardrobe_InstantNote" xml:space="preserve"><value>Đổi ngay, mọi người trên bản đồ đều thấy. Quần áo thay ở Túi đồ.</value></data>
   <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Cởi ra</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Màu da không hợp lệ.</value></data>
@@ -256,6 +263,8 @@
   <data name="Coop_Deposit" xml:space="preserve"><value>Gửi vào</value></data>
   <data name="Coop_DepositHint" xml:space="preserve"><value>Chọn một món trong kho để lấy, hoặc một ô trong túi đồ để gửi.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Nhật ký kho</value></data>
+  <data name="Coop_Contrib_Row" xml:space="preserve"><value>Đã góp {0} món</value></data>
+  <data name="Coop_Contrib_Window" xml:space="preserve"><value>Số liệu tính trên {0} mục nhật ký gần đây.</value></data>
   <data name="Coop_Log_Deposit" xml:space="preserve"><value>{0} - {1} đã gửi {2} {3}</value></data>
   <data name="Coop_Log_Withdraw" xml:space="preserve"><value>{0} - {1} đã lấy {2} {3}</value></data>
   <data name="Coop_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
@@ -344,7 +353,7 @@
   <data name="Profile_NewLabel" xml:space="preserve"><value>Biệt danh mới</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Đổi biệt danh</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>Bạn chỉ đổi được biệt danh mỗi 24 giờ một lần.</value></data>
-  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách giữ tên được tạo sẵn. Hãy liên kết tài khoản Google hoặc Microsoft để chọn biệt danh của riêng bạn.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Khách dùng tên tạo sẵn. Sau khi hoàn thành nhiệm vụ đầu tiên, bạn có thể liên kết tài khoản Google hoặc Microsoft: tiến độ được giữ nguyên và bạn chọn biệt danh riêng.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Đã đổi biệt danh thành {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>Có thể đổi lại lúc {0}.</value></data>
   <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Cửa hàng hạt giống</value></data>
@@ -448,6 +457,8 @@
   <data name="Touch_UseLabel" xml:space="preserve"><value>Dùng vật đang cầm</value></data>
   <data name="Touch_Run" xml:space="preserve"><value>Chạy</value></data>
   <data name="Touch_RunLabel" xml:space="preserve"><value>Bật/tắt chạy nhanh (tốn thể lực)</value></data>
+  <data name="Touch_Chat" xml:space="preserve"><value>Trò chuyện</value></data>
+  <data name="Touch_ChatLabel" xml:space="preserve"><value>Mở khung trò chuyện</value></data>
   <data name="Action_MoveUp" xml:space="preserve"><value>Đi lên</value></data>
   <data name="Action_MoveDown" xml:space="preserve"><value>Đi xuống</value></data>
   <data name="Action_MoveLeft" xml:space="preserve"><value>Đi sang trái</value></data>
@@ -587,6 +598,7 @@
   <data name="Friends_Map_coop" xml:space="preserve"><value>chuồng gà</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>chuồng gia súc</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Xóa bạn</value></data>
+  <data name="Friends_VisitFarm" xml:space="preserve"><value>Thăm nông trại</value></data>
   <data name="Friends_Incoming_Heading" xml:space="preserve"><value>Lời mời kết bạn</value></data>
   <data name="Friends_Accept" xml:space="preserve"><value>Đồng ý</value></data>
   <data name="Friends_Decline" xml:space="preserve"><value>Từ chối</value></data>
@@ -617,6 +629,8 @@
   <data name="Mail_Empty" xml:space="preserve"><value>Hộp thư trống.</value></data>
   <data name="Mail_Unread" xml:space="preserve"><value>Chưa đọc</value></data>
   <data name="Mail_Collect" xml:space="preserve"><value>Nhận quà</value></data>
+  <data name="Mail_CollectAll" xml:space="preserve"><value>Nhận tất cả ({0})</value></data>
+  <data name="Mail_HasGift" xml:space="preserve"><value>Có quà</value></data>
   <data name="Mail_Collected" xml:space="preserve"><value>Đã nhận quà.</value></data>
   <data name="Mail_CollectedTag" xml:space="preserve"><value>Đã nhận</value></data>
   <data name="Mail_Delete" xml:space="preserve"><value>Xóa thư</value></data>
@@ -1150,6 +1164,7 @@
   <data name="Shop_Confirm_No" xml:space="preserve"><value>Hủy</value></data>
   <data name="Settings_TouchControls" xml:space="preserve"><value>Nút cảm ứng trên màn hình</value></data>
   <data name="Settings_Haptics" xml:space="preserve"><value>Rung khi mua và bán</value></data>
+  <data name="Settings_Feedback" xml:space="preserve"><value>Phản hồi</value></data>
   <data name="Account_Provider_Guidance" xml:space="preserve"><value>Chưa bật Google và Microsoft trên máy chủ này. Hãy chơi với tư cách khách.</value></data>
   <data name="Game_Start_Step_Connect" xml:space="preserve"><value>Đang kết nối máy chủ…</value></data>
   <data name="Game_Start_Step_Assets" xml:space="preserve"><value>Đang tải hình ảnh và âm thanh…</value></data>

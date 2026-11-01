@@ -1,0 +1,4 @@
+ok   vi-1280x720-friends-frame
+ok   vi-1280x720-coop-contributions
+ok   en-1280x720-friends-frame
+ok   en-1280x720-coop-contributions

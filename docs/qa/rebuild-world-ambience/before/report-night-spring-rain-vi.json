@@ -1,0 +1,120 @@
+[
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "calendar": "Xuân Ngày 6 23:00 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/night-spring-rain-farm.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "town",
+    "calendar": "Xuân Ngày 6 23:00 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/night-spring-rain-town.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "beach",
+    "calendar": "Xuân Ngày 6 23:00 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/night-spring-rain-beach.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "forest",
+    "calendar": "Xuân Ngày 6 23:00 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/night-spring-rain-forest.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine1",
+    "calendar": "Xuân Ngày 6 23:01 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/1280x720/night-spring-rain-mine1.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "farm",
+    "calendar": "Xuân Ngày 6 23:01 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/night-spring-rain-farm.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "town",
+    "calendar": "Xuân Ngày 6 23:01 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/night-spring-rain-town.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "beach",
+    "calendar": "Xuân Ngày 6 23:01 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/night-spring-rain-beach.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "forest",
+    "calendar": "Xuân Ngày 6 23:02 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/night-spring-rain-forest.png"
+  },
+  {
+    "scenario": "night-spring-rain",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "mine1",
+    "calendar": "Xuân Ngày 6 23:02 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/rebuild-world-ambience/before/vi/390x844/night-spring-rain-mine1.png"
+  }
+]
