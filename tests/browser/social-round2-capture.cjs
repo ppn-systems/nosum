@@ -11,8 +11,8 @@ const OUT = process.env.OUT_DIR || path.join(__dirname, '..', '..', 'docs', 'qa'
 fs.mkdirSync(OUT, { recursive: true });
 const log = [];
 const L = {
-  vi: { trade: /Giao dịch/, invite: /Mời/, accept: /Đồng ý/, menu: /^Menu$/, chat: /Trò chuyện/ },
-  en: { trade: /^Trade/, invite: /Invite/, accept: /^Accept$/, menu: /^Menu$/, chat: /^Chat$/ },
+  vi: { trade: /Giao dịch/, invite: /Mời/, accept: /Đồng ý/, menu: /^Menu$/, chat: /chat|Trò chuyện/i },
+  en: { trade: /^Trade/, invite: /Invite/, accept: /^Accept$/, menu: /^Menu$/, chat: /chat/i },
 };
 async function guest(browser, opts, code) {
   const ctx = await browser.newContext({ ...opts, locale: code === 'vi' ? 'vi-VN' : 'en-US' });
@@ -38,6 +38,7 @@ const sizes = {
       const a = await guest(browser, opts, code);
       const b = await guest(browser, { viewport: { width: 1280, height: 720 } }, code);
       await a.evaluate(() => window.nosumQa.teleport('town', 20, 20)); await b.evaluate(() => window.nosumQa.teleport('town', 22, 21)); await sleep(4000);
+      await a.bringToFront();
       await step(p + 'chat-open', async () => {
         if (phone) { await a.getByRole('button', { name: t.chat }).first().tap({ timeout: 3000 }); }
         else { await a.keyboard.press('Enter'); }
