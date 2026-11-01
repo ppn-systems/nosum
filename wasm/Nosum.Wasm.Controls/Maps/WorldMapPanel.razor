@@ -3,10 +3,10 @@
 @using Nosum.Wasm.ViewModels.Maps
 @inherits ObservingComponent<WorldMapViewModel>
 
-@* The world map (Tab): every public map as a card, the one the farmer stands on highlighted, with its connections and shops. *@
+@* The world map (Tab): the public maps as cards, two to a page; the one the farmer stands on is highlighted, with its connections and shops. *@
 <MenuPage>
     <div class="world-map-grid">
-        @foreach (WorldMapCard card in Vm.Cards())
+        @foreach (WorldMapCard card in Vm.PageCards())
         {
             <section class="world-map-card @(card.IsCurrent ? "current" : null)" aria-current="@(card.IsCurrent ? "location" : null)">
                 <header class="world-map-title">
@@ -41,4 +41,9 @@
             </section>
         }
     </div>
+    @if (WorldMapViewModel.PageCount > 1)
+    {
+        <Pager Page="Vm.Page" PageCount="WorldMapViewModel.PageCount" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
+               PositionText="@Vm.Text("Pager_Position", Vm.Page + 1, WorldMapViewModel.PageCount)" OnPage="@(p => Vm.GoToPage(p))" />
+    }
 </MenuPage>

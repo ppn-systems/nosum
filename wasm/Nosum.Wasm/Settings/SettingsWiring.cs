@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Globalization;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,12 +20,23 @@ namespace Nosum.Wasm.Settings;
 [SupportedOSPlatform("browser")]
 internal static class SettingsWiring
 {
-    /// <summary>Loads the settings script and reads the language the browser used last, so the sign-in screen starts in it.</summary>
+    /// <summary>
+    /// Loads the settings script and picks the start-up language: the one the player saved on this browser, or, on a first visit, the browser's
+    /// own language (<c>navigator.language</c>, which the runtime exposes as the UI culture), so an English browser starts in English.
+    /// Anything else, or no browser language, starts in Vietnamese (the default, docs/adr/ADR-010).
+    /// </summary>
     /// <returns>The language.</returns>
     public static async Task<GameLanguage> LoadLanguageAsync()
     {
         await BrowserSettings.ImportAsync().ConfigureAwait(false);
-        return ClientSettings.Parse(BrowserSettings.Read()).Language;
+        GameLanguage? saved = ClientSettings.StoredLanguage(BrowserSettings.Read());
+        if (saved is { } language)
+        {
+            return language;
+        }
+
+        GameLanguage browser = GameLanguages.FromTag(CultureInfo.CurrentUICulture.Name);
+        return browser == GameLanguage.Unspecified ? GameLanguage.Vietnamese : browser;
     }
 
     /// <summary>Registers the settings and hint view models.</summary>

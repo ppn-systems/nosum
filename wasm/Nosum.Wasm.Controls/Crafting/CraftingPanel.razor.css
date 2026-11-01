@@ -1,8 +1,16 @@
+/* Nine recipes to a row in 16 u slots (the bag's size). The rows touch vertically: the slot frames carry the spacing, and the page fits the L panel
+   at 1920×1080 without a scroll. */
 .recipe-grid {
     display: grid;
-    grid-template-columns: repeat(9, calc(var(--u) * 18));
-    gap: var(--u);
+    grid-template-columns: repeat(9, calc(var(--u) * 16));
+    column-gap: var(--u);
+    row-gap: 0;
     justify-content: center;
+}
+
+.recipe-grid ::deep .slot {
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 16);
 }
 
 /* A locked recipe keeps its real picture, greyed, with a padlock on its corner (the tooltip says what unlocks it). */
@@ -64,7 +72,7 @@
     min-width: calc(var(--u) * 48);
 }
 
-/* The Craft buttons keep the panel's padding below them, so they never sit on the frame. */
+/* The Craft buttons keep a gap below them, so they never sit on the frame; two units, so the page fits the panel at 1920×1080. */
 .craft-actions {
-    margin-bottom: calc(var(--u) * 3);
+    margin-bottom: calc(var(--u) * 2);
 }

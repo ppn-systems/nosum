@@ -1,0 +1,107 @@
+[
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "settings: language English",
+    "status": "pass",
+    "notes": "switched in Settings > General"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Mail",
+    "status": "pass",
+    "notes": "box [8,120,374,133]"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Settings",
+    "status": "pass",
+    "notes": "box [8,120,374,252]"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Minimap: click to open the world map",
+    "status": "pass",
+    "notes": "box [8,120,374,356]"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Inventory [I]",
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Crafting",
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Trade [T]",
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Friends",
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Skills",
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: World map [Tab]",
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Journal [J]",
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Menu",
+    "status": "pass",
+    "notes": "box [8,120,374,146]"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]

@@ -1,0 +1,12 @@
+1280x720 Kỹ năng {"client":446,"scroll":446,"kids":["div.game-row =42","div.game-stack =392"]}
+1280x720 Kỹ năng/bestiary {"client":326,"scroll":326,"kids":["div.game-row =42","div.game-stack =272"]}
+1280x720 Chế tạo {"client":442,"scroll":442,"kids":["div.game-stack =442"]}
+1280x720 Túi đồ {"client":391,"scroll":391,"kids":["div.inv-tools=42","div.inv-body=231","div.inv-hand-strip=94"]}
+1280x720 Bản đồ {"client":407,"scroll":407,"kids":["div.world-map-grid=353","div.game-row center pager=42"]}
+1280x720 Bản đồ page2 {"client":303,"scroll":303,"kids":["div.world-map-grid=249","div.game-row center pager=42"]}
+1920x1080 Kỹ năng {"client":735,"scroll":736,"kids":["div.game-row =70","div.game-stack =646"]}
+1920x1080 Kỹ năng/bestiary {"client":495,"scroll":495,"kids":["div.game-row =70","div.game-stack =405"]}
+1920x1080 Chế tạo {"client":722,"scroll":722,"kids":["div.game-stack =722"]}
+1920x1080 Túi đồ {"client":648,"scroll":648,"kids":["div.inv-tools=70","div.inv-body=385","div.inv-hand-strip=153"]}
+1920x1080 Bản đồ {"client":649,"scroll":649,"kids":["div.world-map-grid=559","div.game-row center pager=70"]}
+1920x1080 Bản đồ page2 {"client":483,"scroll":483,"kids":["div.world-map-grid=393","div.game-row center pager=70"]}

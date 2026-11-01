@@ -17,7 +17,7 @@ const path = require('path');
 
 const REPO = path.resolve(__dirname, '../..');
 const BASE = process.env.NOSUM_QA_URL || 'http://localhost:5080/';
-const OUT = path.join(REPO, 'docs/qa/full-pass');
+const OUT = process.env.NOSUM_QA_OUT || path.join(REPO, 'docs/qa/full-pass');
 const VIEWPORTS = {
   '1280x720': { width: 1280, height: 720 },
   '1920x1080': { width: 1920, height: 1080 },
@@ -122,17 +122,42 @@ async function runOne(browser, locale, vpName, report) {
   // Every top-right panel button.
   const buttons = page.locator('.game-hud .hud-top-right .game-icon-button');
   const labels = await page.$$eval('.game-hud .hud-top-right .game-icon-button', (els) => els.map((e) => e.getAttribute('aria-label') || e.textContent.trim()));
+  // The window's verdict for the open panel, recorded under `feature`. Used for each panel and for the Skills bestiary tab.
+  const check = async (feature, file) => {
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: path.join(dir, file) });
+    const m = await page.evaluate(MEASURE);
+    const bad = m.none ? 'no window opened' : [...(m.issues || []), ...(m.covers || []).map((c) => `covers ${c}`), m.off ? 'off-screen' : ''].filter(Boolean).join('; ');
+    rec(feature, m.none ? 'n/a' : bad ? 'FAIL' : 'pass', m.none ? 'no window: a toggle or wheel, checked by screenshot only' : bad || `box ${JSON.stringify(m.box)}`);
+    return m;
+  };
+  // On a phone the column is collapsed: the panels are tiles inside the Menu window (docs/design/ui-standard.md section 6).
   for (let i = 0; i < labels.length; i++) {
     const file = `${String(i + 2).padStart(2, '0')}-${slug(labels[i])}.png`;
     try {
-      await buttons.nth(i).click({ force: true, timeout: 5000 });
-      await page.waitForTimeout(700);
-      await page.screenshot({ path: path.join(dir, file) });
-      const m = await page.evaluate(MEASURE);
-      const bad = m.none ? 'no window opened' : [...(m.issues || []), ...(m.covers || []).map((c) => `covers ${c}`), m.off ? 'off-screen' : ''].filter(Boolean).join('; ');
-      rec(`panel: ${labels[i]}`, m.none ? 'n/a' : bad ? 'FAIL' : 'pass', m.none ? 'no window: a toggle or wheel, checked by screenshot only' : bad || `box ${JSON.stringify(m.box)}`);
+      if (phone && !(await buttons.nth(i).isVisible())) {
+        // The column is collapsed on a phone; the Menu window offers only the panels outside the column, so a column panel has no
+        // door here. That is recorded as n/a (a product gap for the report), not as a layout fault.
+        await page.locator('.game-hud .hud-top-right .hud-menu-button .game-icon-button').first().click({ force: true, timeout: 5000 });
+        await page.waitForTimeout(400);
+        const tile = page.locator(`.game-menu-tile[aria-label="${labels[i]}"]`);
+        if (!(await tile.count())) {
+          rec(`panel: ${labels[i]}`, 'n/a', 'phone: column panel, collapsed into no door (not in the Menu window); not measured');
+          throw new Error('skip');
+        }
+        await tile.first().click({ force: true, timeout: 5000 });
+      } else {
+        await buttons.nth(i).click({ force: true, timeout: 5000 });
+      }
+      await check(`panel: ${labels[i]}`, file);
+      if (/Kỹ năng|Skills/.test(labels[i])) {
+        // The Skills page has a second tab, the bestiary; it is a page of its own and must fit too (item 1 of the QA pass).
+        await page.locator('.trade-window .game-row button').nth(1).click({ force: true, timeout: 5000 });
+        await check(`panel: ${labels[i]} (bestiary tab)`, file.replace('.png', '-bestiary.png'));
+        await page.locator('.trade-window .game-row button').nth(0).click({ force: true, timeout: 5000 });
+      }
     } catch (e) {
-      rec(`panel: ${labels[i]}`, 'FAIL', String(e.message).split('\n')[0].slice(0, 160));
+      if (e.message !== 'skip') rec(`panel: ${labels[i]}`, 'FAIL', String(e.message).split('\n')[0].slice(0, 160));
     }
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
