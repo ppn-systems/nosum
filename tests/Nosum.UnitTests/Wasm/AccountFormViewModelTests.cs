@@ -487,6 +487,106 @@ public sealed class AccountFormViewModelTests
         client.Calls.Should().NotContain(c => c.StartsWith("language:", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task RequestSignOutAsync_Guest_AsksFirstAndSendsNothing()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+        AccountFormViewModel vm = await GuestAsync(client, new FakeExternalSignIn());
+
+        await vm.RequestSignOutAsync(CancellationToken.None);
+
+        vm.IsSignOutQuestionOpen.Should().BeTrue();
+        vm.CurrentSession.Should().NotBeNull();
+        client.Calls.Should().NotContain("logout");
+    }
+
+    [Fact]
+    public async Task RequestSignOutAsync_Registered_SignsOutAtOnce()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_session));
+        AccountFormViewModel vm = await GuestAsync(client, new FakeExternalSignIn());
+
+        await vm.RequestSignOutAsync(CancellationToken.None);
+
+        vm.IsSignOutQuestionOpen.Should().BeFalse();
+        vm.CurrentSession.Should().BeNull();
+        client.Calls.Should().Contain("logout");
+    }
+
+    [Fact]
+    public async Task CancelSignOutQuestion_Guest_KeepsTheSessionAndSendsNothing()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+        AccountFormViewModel vm = await GuestAsync(client, new FakeExternalSignIn());
+        await vm.RequestSignOutAsync(CancellationToken.None);
+
+        vm.CancelSignOutQuestion();
+
+        vm.IsSignOutQuestionOpen.Should().BeFalse();
+        vm.CurrentSession.Should().NotBeNull();
+        client.Calls.Should().NotContain("logout");
+    }
+
+    [Fact]
+    public async Task LinkBeforeSignOut_Guest_OpensTheUpgradeFormInsteadOfSigningOut()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+        AccountFormViewModel vm = await GuestAsync(client, new FakeExternalSignIn());
+        await vm.RequestSignOutAsync(CancellationToken.None);
+
+        vm.LinkBeforeSignOut();
+
+        vm.IsSignOutQuestionOpen.Should().BeFalse();
+        vm.Mode.Should().Be(AccountFormMode.Upgrade);
+        vm.CurrentSession.Should().NotBeNull();
+        client.Calls.Should().NotContain("logout");
+    }
+
+    [Fact]
+    public async Task ConfirmSignOutAsync_Guest_SendsTheLogoutAndSignsOut()
+    {
+        using CultureScope scope = new("en");
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, s_guest));
+        AccountFormViewModel vm = await GuestAsync(client, new FakeExternalSignIn());
+        await vm.RequestSignOutAsync(CancellationToken.None);
+
+        await vm.ConfirmSignOutAsync(CancellationToken.None);
+
+        vm.IsSignOutQuestionOpen.Should().BeFalse();
+        vm.CurrentSession.Should().BeNull();
+        client.Calls.Should().Contain("logout");
+    }
+
+    [Fact]
+    public async Task CanSaveProgress_GuestBeforeTheFirstQuest_IsTrueAndRegisteredIsFalse()
+    {
+        using CultureScope scope = new("en");
+        AccountSession earlyGuest = s_guest with { RegistrationPromptUnlocked = false };
+        FakeClient client = new(new AccountReply(AccountStatus.Ok, earlyGuest));
+        AccountFormViewModel guestVm = await GuestAsync(client, new FakeExternalSignIn());
+
+        FakeClient registeredClient = new(new AccountReply(AccountStatus.Ok, s_session));
+        AccountFormViewModel registeredVm = await GuestAsync(registeredClient, new FakeExternalSignIn());
+
+        guestVm.CanSaveProgress.Should().BeTrue();
+        guestVm.CanUpgrade.Should().BeFalse("the session bar's invitation still waits for the first quest");
+        registeredVm.CanSaveProgress.Should().BeFalse();
+    }
+
+    [Fact]
+    public void SignOutQuestion_Text_NamesWhatAGuestLoses()
+    {
+        using CultureScope scope = new("en");
+        AccountFormViewModel vm = Create(new FakeClient(null), new FakeExternalSignIn());
+
+        vm.SignOutQuestionMessage.Should().Contain("farm").And.Contain("coins");
+        vm.SignOutQuestionLinkText.Should().Be("Link an account first");
+    }
+
     private static StringLocalizer<Language> Text()
     {
         ResourceManagerStringLocalizerFactory factory = new(Options.Create(new LocalizationOptions()), NullLoggerFactory.Instance);

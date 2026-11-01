@@ -1,0 +1,126 @@
+[
+  {
+    "tag": "1280x720-vi",
+    "step": "profile-opened",
+    "found": true
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "save-progress-button-visible",
+    "found": true
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "wardrobe-opened",
+    "found": true
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "signout-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "stay-keeps-session",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "profile-opened",
+    "found": true
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "save-progress-button-visible",
+    "found": true
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "wardrobe-opened",
+    "found": true
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "signout-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "stay-keeps-session",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "profile-opened",
+    "found": true
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "save-progress-button-visible",
+    "found": true
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "wardrobe-opened",
+    "found": true
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "signout-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "stay-keeps-session",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "390x844-en",
+    "step": "profile-opened",
+    "found": true
+  },
+  {
+    "tag": "390x844-en",
+    "step": "save-progress-button-visible",
+    "found": true
+  },
+  {
+    "tag": "390x844-en",
+    "step": "wardrobe-opened",
+    "found": true
+  },
+  {
+    "tag": "390x844-en",
+    "step": "signout-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "stay-keeps-session",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  }
+]

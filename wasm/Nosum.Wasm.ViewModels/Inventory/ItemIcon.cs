@@ -25,7 +25,12 @@ public sealed record ItemIcon(string SheetUrl, int X, int Y, int Width, int Heig
     /// Gets the scale that fits the sprite in the picture: 1 for a sprite that already fits (no enlargement, so pixel art stays crisp), otherwise the
     /// largest scale at which both sides fit. A 32 px piece is drawn at one half; a 48 by 32 couch at one third.
     /// </summary>
-    public double FitScale => Math.Min(1.0, Math.Min((double)PictureSize / this.Width, (double)PictureSize / this.Height));
+    public double FitScale => this.FitScaleFor(PictureSize);
+
+    /// <summary>Gets the scale that fits the sprite in a picture of <paramref name="pictureSize"/> UI pixels (the compact listing slot uses 8).</summary>
+    /// <param name="pictureSize">The picture's side in UI pixels.</param>
+    /// <returns>The scale, at most 1.</returns>
+    public double FitScaleFor(int pictureSize) => Math.Min(1.0, Math.Min((double)pictureSize / this.Width, (double)pictureSize / this.Height));
 }
 
 /// <summary>Finds the picture of an item. The app provides it, so art can be replaced without touching view models.</summary>

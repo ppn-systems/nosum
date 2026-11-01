@@ -1,0 +1,14 @@
+@using Nosum.Wasm.Controls
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Account
+@inherits ObservingComponent<AccountFormViewModel>
+
+@* The guest's sign-out question (docs/adr/ADR-102): a centre confirm box in the HUD overlay, so it sits over the Profile panel. The guest says yes, link first, or stay. *@
+@if (Vm.IsSignOutQuestionOpen)
+{
+    <ConfirmDialog Title="@Vm.SignOutQuestionTitle" Message="@Vm.SignOutQuestionMessage"
+                   ConfirmText="@Vm.SignOutQuestionConfirmText" CancelText="@Vm.SignOutQuestionStayText" ThirdText="@Vm.SignOutQuestionLinkText"
+                   OnThird="@(() => Vm.LinkBeforeSignOut())"
+                   OnConfirm="@(() => Vm.ConfirmSignOutAsync(System.Threading.CancellationToken.None))"
+                   OnCancel="@(() => Vm.CancelSignOutQuestion())" />
+}

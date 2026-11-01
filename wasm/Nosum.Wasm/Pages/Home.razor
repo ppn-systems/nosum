@@ -208,6 +208,7 @@ else
             <InviteOverlay Trade="Trade" Coop="Coop" ActivePanel="_panel" />
             <PetRehomeOverlay Vm="Pet" />
             <MailDeleteOverlay Vm="Mail" />
+            <GuestSignOutOverlay Vm="Form" />
             <PetPurchaseOverlay Vm="Carpenter" />
             <MarketBuyOverlay Vm="Market" />
             @if (_started && !Form.ShowsForm)
@@ -556,6 +557,13 @@ else
         if (kind == PanelKind.Crafting)
         {
             Crafting.Open();
+        }
+
+        // The petting is once a game day, so the pet is read again each time its panel opens: a petting on an earlier day must not keep the
+        // Pet button off (docs/adr/ADR-092 D2, docs/adr/ADR-075 D4). The reply pushes the new state through PetViewModel.
+        if (kind == PanelKind.Pet)
+        {
+            Pet.Load();
         }
 
         Toolbar.Active = _panel;

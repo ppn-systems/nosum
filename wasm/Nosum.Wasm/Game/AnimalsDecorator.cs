@@ -89,7 +89,9 @@ internal sealed class AnimalsDecorator : IMapDecorator
         long now = _buildings.NowMs;
         long clock = Environment.TickCount64;
         GameCalendar? rules = this.Rules();
-        int today = rules?.DayNumberAt(now) ?? 0;
+        // The day is read on the server's clock (the calendar's estimate), not the local one: the server decides the night's feeding, so a clock it
+        // moved on (a QA jump, docs/adr/ADR-079) must change the day here too, or the room is never read again (docs/adr/ADR-092 D1).
+        int today = rules?.DayNumberAt(this.ServerNowMs(now)) ?? 0;
         if (today != 0)
         {
             // The room was read on an earlier game day: the night's feeding settles on the server only when someone asks, so ask again (docs/adr/ADR-092 D1).
@@ -196,6 +198,9 @@ internal sealed class AnimalsDecorator : IMapDecorator
     }
 
     // The calendar the server sent, rebuilt only when its numbers change (once, at sign-in); null until it is known.
+    // The server's wall clock estimated by the calendar; the local clock until the calendar has loaded.
+    private long ServerNowMs(long localNowMs) => _calendar is { IsLoaded: true } calendar ? calendar.ServerNowMs() : localNowMs;
+
     private GameCalendar? Rules()
     {
         if (_calendar is not { IsLoaded: true })
