@@ -46,6 +46,9 @@ internal sealed partial class PlayerActions
     private int _dragTileY;
     private bool _dragging;
     private bool _useHeld;
+    private int _tileSizePx;
+    private int _shipTileX;
+    private int _shipTileY;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
@@ -76,7 +79,11 @@ internal sealed partial class PlayerActions
         }
         _calendar = calendar;
         _farm.UseCompleted += this.OnFarmUseCompleted;
+        _market.Completed += this.OnMarketCompleted;
     }
+
+    /// <summary>Gets the farming juice of the actions: the flecks and pops over the tiles they work (backlog item 9). The scene draws it each frame.</summary>
+    public FarmJuice Juice { get; } = new();
 
     /// <summary>Tells the actions whether the use button or the use key is held (backlog item 5). A held tool that repeats (<see cref="ToolPacing.RepeatsWhileHeld"/>)
     /// swings again when its previous swing is over, at the swing rate; the server still checks every use.</summary>
@@ -143,6 +150,7 @@ internal sealed partial class PlayerActions
     {
         this.ActionConsumed = false;
         _nowSeconds = nowSeconds;
+        _tileSizePx = tileSize;
         if (_counterId != 0 && shopId != _counterId)
         {
             this.CounterLeft?.Invoke(_counterId);

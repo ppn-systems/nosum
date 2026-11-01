@@ -404,6 +404,7 @@ internal sealed partial class MapScene
             this.AddRemoteFarmers();
         }
 
+        _actions?.Juice.AddTo(_world, timeMs);
         _world.Flush(_commands, _camera, deferLabels: true);
         for (int i = 0; i < decorators.Length; i++)
         {
