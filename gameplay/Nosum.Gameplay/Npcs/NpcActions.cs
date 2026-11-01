@@ -28,4 +28,13 @@ public enum NpcActions
 
     /// <summary>Goals: the Town board's community goals and requests.</summary>
     Goals = 32,
+
+    /// <summary>Wardrobe: the player's looks and clothes (the tailor's counter, docs/adr/ADR-081).</summary>
+    Wardrobe = 64,
+
+    /// <summary>Coop: the co-op, its members and its warehouse (the board keeper's counter, docs/adr/ADR-081).</summary>
+    Coop = 128,
+
+    /// <summary>Backpack: the next backpack size, bought for coins (the tailor's counter, docs/adr/ADR-081).</summary>
+    Backpack = 256,
 }

@@ -36,6 +36,30 @@ public static class NosumMetrics
     {
         _ = s_meter.CreateObservableGauge("nosum_players_online", static () => s_playersOnline?.Invoke() ?? 0, description: "Players on any map.");
         _ = s_meter.CreateObservableGauge("nosum_instance_players", static () => s_playersPerInstance?.Invoke() ?? [], description: "Players per map instance (the key is a map id or an owner-scoped private copy, never a nickname).");
+
+        // Runtime numbers for the load test (bench/Nosum.Bench.Load) and for operators. Read only when scraped, so they cost nothing on the hot path.
+        _ = s_meter.CreateObservableCounter("nosum_process_cpu_seconds_total", ReadProcessCpuSeconds, "s", "Processor time of this process (user and kernel).");
+        _ = s_meter.CreateObservableCounter("nosum_gc_allocated_bytes_total", static () => GC.GetTotalAllocatedBytes(), "By", "Bytes allocated on the managed heap since the process started.");
+        _ = s_meter.CreateObservableCounter("nosum_gc_collections_total", ReadGcCollections, description: "Garbage collections by generation.");
+        _ = s_meter.CreateObservableCounter("nosum_gc_pause_seconds_total", static () => GC.GetTotalPauseDuration().TotalSeconds, "s", "Time the runtime spent paused for garbage collection.");
+        _ = s_meter.CreateObservableGauge("nosum_process_working_set_bytes", static () => Environment.WorkingSet, "By", "Resident memory of this process.");
+    }
+
+    private static double ReadProcessCpuSeconds()
+    {
+        using Process process = Process.GetCurrentProcess();
+        return process.TotalProcessorTime.TotalSeconds;
+    }
+
+    private static IEnumerable<Measurement<long>> ReadGcCollections()
+    {
+        Measurement<long>[] byGeneration = new Measurement<long>[3];
+        for (int generation = 0; generation < byGeneration.Length; generation++)
+        {
+            byGeneration[generation] = new Measurement<long>(GC.CollectionCount(generation), new KeyValuePair<string, object?>("generation", generation.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        return byGeneration;
     }
 
     /// <summary>Tells the gauges where to read the live numbers; the host calls this once.</summary>

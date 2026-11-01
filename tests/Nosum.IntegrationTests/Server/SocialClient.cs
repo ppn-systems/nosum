@@ -26,6 +26,9 @@ using Nosum.Contracts.Shop.C2S;
 using Nosum.Contracts.Shop.S2C;
 using Nosum.Contracts.Coop.C2S;
 using Nosum.Contracts.Coop.S2C;
+using Nosum.Contracts.Combat;
+using Nosum.Contracts.Combat.C2S;
+using Nosum.Contracts.Combat.S2C;
 using Nosum.Contracts.Inventory;
 using Nosum.Contracts.Inventory.C2S;
 using Nosum.Contracts.Inventory.S2C;
@@ -79,6 +82,7 @@ internal sealed partial class SocialClient : IAsyncDisposable
                 }
             }),
             session.On<LookChanged>(p => this.Looks.Add(Copy(p.Look))),
+            session.On<MoveCorrection>(p => this.Corrections.Add(new MoveCorrection { Sequence = p.Sequence, Reason = p.Reason, X = p.X, Y = p.Y })),
             session.On<TradeInvite>(p => this.Invites.Add(p.FromPlayerId)),
             session.On<TradeState>(p => this.TradeStates.Add(new TradeCopy(
                 p.OtherPlayerId,
@@ -117,6 +121,8 @@ internal sealed partial class SocialClient : IAsyncDisposable
     public Inbox<(int Slot, int ItemId, int Quantity)> Slots { get; } = new();
 
     public Inbox<LookRow> Looks { get; } = new();
+
+    public Inbox<MoveCorrection> Corrections { get; } = new();
 
     public Inbox<uint> Invites { get; } = new();
 
@@ -171,13 +177,21 @@ internal sealed partial class SocialClient : IAsyncDisposable
         return client;
     }
 
-    public async Task JoinAsync(CancellationToken ct)
+    public async Task<JoinMapResult> JoinAsync(CancellationToken ct)
     {
         await WirePace.JoinAsync(ct);
         using JoinMap request = new() { MapId = Program.FarmMapId };
         JoinMapResult result = await this.RequestAsync<JoinMapResult>(request, ct);
         result.Status.Should().Be(JoinStatus.Ok);
         this.MapPlayerId = result.PlayerId;
+        return result;
+    }
+
+    /// <summary>Sends a walk claim (docs/adr/ADR-008). A refused claim is answered with a correction in <see cref="Corrections"/>.</summary>
+    public async Task SendMoveAsync(uint sequence, float x, float y, CancellationToken ct, bool running = false)
+    {
+        using MoveIntent intent = new() { Sequence = sequence, X = x, Y = y, Facing = 1, Moving = true, Running = running };
+        await _session.SendAsync(intent, ct);
     }
 
     public async Task<InventorySnapshot> GetInventoryAsync(CancellationToken ct)
@@ -305,6 +319,12 @@ internal sealed partial class SocialClient : IAsyncDisposable
     {
         using EquipItem request = new() { Slot = (byte)slot, ItemId = itemId };
         return (await this.RequestAsync<LookResult>(request, ct)).Status;
+    }
+
+    public async Task<CombatStatus> DrinkPotionAsync(int slot, CancellationToken ct)
+    {
+        using DrinkPotion request = new() { Slot = (byte)slot };
+        return (await this.RequestAsync<DrinkPotionResult>(request, ct)).Status;
     }
 
     public async Task<LookStatus> UnequipAsync(int wearSlot, CancellationToken ct)

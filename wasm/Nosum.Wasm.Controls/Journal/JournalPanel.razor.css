@@ -4,9 +4,11 @@
     font-weight: 700;
 }
 
+/* Eight 18 u slots to a row, five rows to a page (JournalViewModel.CellsPerPage): the page fits the L panel without a scroll. */
 .journal-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 20), 1fr));
+    grid-template-columns: repeat(8, calc(var(--u) * 18));
+    justify-content: center;
     gap: calc(var(--u) * 2);
 }
 

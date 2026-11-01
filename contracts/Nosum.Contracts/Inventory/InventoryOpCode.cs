@@ -23,6 +23,12 @@ public static class InventoryOpCode
     /// <summary>Sorts the player's inventory: merges partial stacks and lays the stacks out by item kind and id. Reply: <see cref="S2C.InventoryResult"/>; the changed slots follow as <see cref="S2C.InventoryUpdate"/>.</summary>
     public const ushort SortInventory = 0x5003;
 
+    /// <summary>Asks for the player's backpack at the tailor: its size and the next upgrade. Reply: <see cref="S2C.BackpackState"/>.</summary>
+    public const ushort GetBackpack = 0x5004;
+
+    /// <summary>Buys the next backpack size at the tailor's counter, for coins (docs/adr/ADR-081). Reply: <see cref="S2C.BackpackState"/>; the new slots are sent by <see cref="S2C.InventorySnapshot"/> on the next read.</summary>
+    public const ushort UpgradeBackpack = 0x5005;
+
     // -- S2C (0x5040-0x507F) --------------------------------------------------
 
     /// <summary>Reply to <see cref="GetInventory"/>.</summary>
@@ -33,4 +39,7 @@ public static class InventoryOpCode
 
     /// <summary>Push to one player: some slots changed (any feature may cause it: farming, market, quests).</summary>
     public const ushort InventoryUpdate = 0x5042;
+
+    /// <summary>Reply to <see cref="GetBackpack"/> and <see cref="UpgradeBackpack"/>: the outcome, the size now and the next upgrade.</summary>
+    public const ushort BackpackState = 0x5043;
 }

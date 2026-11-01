@@ -24,7 +24,7 @@ public static class EnergyRules
     /// <returns>Energy; zero for the scythe and for non-tools.</returns>
     public static int BaseCost(ToolKind tool) => tool switch
     {
-        ToolKind.Hoe or ToolKind.WateringCan or ToolKind.Axe or ToolKind.Pickaxe => 2,
+        ToolKind.Hoe or ToolKind.WateringCan or ToolKind.Axe or ToolKind.Pickaxe => 3,
         _ => 0,
     };
 

@@ -25,8 +25,11 @@ public enum PlacementRequests
     /// <summary>Take the piece in front back into the inventory.</summary>
     PickUp = 4,
 
+    /// <summary>Puts a carried piece back where it was (the panel's close button and Escape); nothing when no piece is carried.</summary>
+    Cancel = 8,
+
     /// <summary>Place the held piece (or set down the carried one) on the ghost, as the action key does; the touch "Place" button asks for it.</summary>
-    Place = 8,
+    Place = 16,
 }
 
 /// <summary>
@@ -132,10 +135,30 @@ public sealed class PlacementViewModel : IObservableViewModel
     /// <returns>The requests, or <see cref="PlacementRequests.None"/>.</returns>
     public PlacementRequests TakeRequests() => (PlacementRequests)Interlocked.Exchange(ref _requests, 0);
 
+    /// <summary>Whether the player closed the arrange panel with its close button or Escape (<see cref="Dismiss"/>); cleared by <see cref="ClearDismissed"/>.</summary>
+    public bool Dismissed { get; private set; }
+
+    /// <summary>Closes arrange mode from the panel: the carried piece goes back where it was, and the panel stays closed until the player picks a
+    /// piece again or holds another item (<see cref="ClearDismissed"/>).</summary>
+    public void Dismiss()
+    {
+        this.Dismissed = true;
+        this.Request(PlacementRequests.Cancel);
+        if (_active)
+        {
+            _active = false;
+            this.Changed?.Invoke();
+        }
+    }
+
+    /// <summary>Lets the arrange panel show again: the player picked a piece or held another item.</summary>
+    public void ClearDismissed() => this.Dismissed = false;
+
     /// <summary>Shows or hides the panel; the game loop calls it when the map changes.</summary>
     /// <param name="active">Whether the player is in a place where furniture can be placed.</param>
     public void SetActive(bool active)
     {
+        active &= !this.Dismissed;
         if (_active != active)
         {
             _active = active;

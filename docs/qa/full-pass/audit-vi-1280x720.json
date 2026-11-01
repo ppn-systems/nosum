@@ -1,0 +1,128 @@
+[
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Thư",
+    "status": "pass",
+    "notes": "box [340,96,600,192]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Cài đặt",
+    "status": "pass",
+    "notes": "box [340,96,600,365]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Túi đồ [I]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 422/416"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Tủ đồ [C]",
+    "status": "pass",
+    "notes": "box [340,96,600,379]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Chế tạo",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 473/460"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Giao dịch [T]",
+    "status": "pass",
+    "notes": "box [340,96,600,192]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Hợp tác xã [G]",
+    "status": "pass",
+    "notes": "box [340,96,600,262]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Khách",
+    "status": "pass",
+    "notes": "box [340,96,600,396]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Bạn bè",
+    "status": "pass",
+    "notes": "box [340,96,600,362]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Kỹ năng",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 2769/471"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Thú cưng",
+    "status": "pass",
+    "notes": "box [340,96,600,355]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Hồ sơ [N]",
+    "status": "pass",
+    "notes": "box [340,96,600,245]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Bản đồ thế giới [Tab]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 869/471"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Sổ sưu tập [J]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 1588/471"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "panel: Biểu cảm [B]",
+    "status": "n/a",
+    "notes": "no window: a toggle or wheel, checked by screenshot only"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1280x720",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]

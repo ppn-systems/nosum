@@ -45,6 +45,10 @@ internal sealed partial class PlayerActions
     private int _dragTileX;
     private int _dragTileY;
     private bool _dragging;
+    private bool _useHeld;
+    private int _tileSizePx;
+    private int _shipTileX;
+    private int _shipTileY;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
@@ -69,9 +73,22 @@ internal sealed partial class PlayerActions
         _buildings = buildings;
         _audio = audio;
         _combat = combat;
+        if (_combat is not null)
+        {
+            _combat.SkillCompleted += this.OnSkillCompleted;
+        }
         _calendar = calendar;
         _farm.UseCompleted += this.OnFarmUseCompleted;
+        _market.Completed += this.OnMarketCompleted;
     }
+
+    /// <summary>Gets the farming juice of the actions: the flecks and pops over the tiles they work (backlog item 9). The scene draws it each frame.</summary>
+    public FarmJuice Juice { get; } = new();
+
+    /// <summary>Tells the actions whether the use button or the use key is held (backlog item 5). A held tool that repeats (<see cref="ToolPacing.RepeatsWhileHeld"/>)
+    /// swings again when its previous swing is over, at the swing rate; the server still checks every use.</summary>
+    /// <param name="held">Whether the use button or key is down.</param>
+    public void SetUseHeld(bool held) => _useHeld = held;
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
     public event Action<PanelKind>? PanelToggleRequested;
@@ -133,6 +150,7 @@ internal sealed partial class PlayerActions
     {
         this.ActionConsumed = false;
         _nowSeconds = nowSeconds;
+        _tileSizePx = tileSize;
         if (_counterId != 0 && shopId != _counterId)
         {
             this.CounterLeft?.Invoke(_counterId);
@@ -156,6 +174,7 @@ internal sealed partial class PlayerActions
         this.FireDueUse(nowSeconds);
         if (edges == InputEdges.None)
         {
+            this.RepeatHeldUse(x, y, tileSize, nowSeconds, mapAllowsTools);
             return;
         }
 
@@ -238,6 +257,22 @@ internal sealed partial class PlayerActions
         {
             this.TryExecuteActionKey(x, y, nowSeconds, tileSize);
         }
+        else
+        {
+            this.RepeatHeldUse(x, y, tileSize, nowSeconds, mapAllowsTools);
+        }
+    }
+
+    // A held use button swings the tool in hand again as soon as the previous swing and its recovery are over (backlog item 5). Only the tools repeat,
+    // so a held key never eats, places or opens again; the cooldown is the same one a press waits for, so the server never sees a faster use.
+    private void RepeatHeldUse(int x, int y, int tileSize, double nowSeconds, bool mapAllowsTools)
+    {
+        if (!_useHeld || !mapAllowsTools || nowSeconds < _nextUseSeconds || !ToolPacing.RepeatsWhileHeld(this.HeldTool()))
+        {
+            return;
+        }
+
+        this.TryExecuteActionKey(x, y, nowSeconds, tileSize);
     }
 
     // Feed in hand facing the bench fills it; otherwise the animal within reach is collected from (an egg, or milk with the pail in hand) when it has produce, and petted when it has none.
@@ -315,6 +350,12 @@ internal sealed partial class PlayerActions
         _dragging = true;
         _dragTileX = tileX;
         _dragTileY = tileY;
+        // The farmer turns to the tile the swing works before the swing shows (docs/adr/ADR-074 D7).
+        if (Walker.TryFacingToward(feetX, feetY, tileSize, tileX, tileY, out Facing turn))
+        {
+            _turnTo = turn;
+        }
+
         ToolKind tool = this.HeldTool();
         this.BeginSwing(tool, this.HeldItemId, nowSeconds);
         this.QueueUse(_inventory.SelectedSlot, tileX, tileY, 1, tool, tileSize);
@@ -336,23 +377,26 @@ internal sealed partial class PlayerActions
         long nowMs = _farm.ServerNowMs();
         using (_farm.Read())
         {
-            FarmTile? current = _farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo info)
-                ? new FarmTile(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay)
-                : null;
-            if (current is { HasCrop: true } && FarmRules.Harvest(current, nowMs, rules, out _, out _) == FarmVerdict.Ok)
+            bool found = _farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo info);
+            FarmTile? current = found ? FarmChannel.TileOf(info) : null;
+
+            // The server's withered flag decides the crop's state: a withered crop is neither harvested nor watered, and a seed replaces it.
+            bool withered = found && info.CropId != 0 && info.Withered;
+            if (current is { HasCrop: true } && !withered && FarmRules.Harvest(current, nowMs, rules, out _, out _) == FarmVerdict.Ok)
             {
                 return true;
             }
 
             if (held.Kind == ItemKind.Seed)
             {
-                return FarmRules.Plant(current, held.CropId, nowMs, rules, out _) == FarmVerdict.Ok;
+                FarmTile? planting = withered ? current!.Value with { CropId = 0, PlantedAtMs = 0, GrowthDays = 0 } : current;
+                return FarmRules.Plant(planting, held.CropId, nowMs, rules, out _, _outdoors) == FarmVerdict.Ok;
             }
 
             return held.Tool switch
             {
                 ToolKind.Hoe => FarmRules.Till(true, current, nowMs, rules, out _) == FarmVerdict.Ok,
-                ToolKind.WateringCan => !(current is { } wet && FarmRules.IsWet(wet, nowMs, rules)) && FarmRules.Water(current, nowMs, rules, out _) == FarmVerdict.Ok,
+                ToolKind.WateringCan => !withered && !(current is { } wet && FarmRules.IsWet(wet, nowMs, rules)) && FarmRules.Water(current, nowMs, rules, out _) == FarmVerdict.Ok,
                 _ => false,
             };
         }
@@ -361,25 +405,15 @@ internal sealed partial class PlayerActions
     // Whether the tile in front holds a live crop: the action key then works the crop, whatever is held.
     private bool FacesCrop()
     {
-        GameCalendar? rules = this.Rules();
-        long nowMs = _farm.ServerNowMs();
         using (_farm.Read())
         {
+            // The server's withered flag decides it: a crop a sprinkler keeps alive is not withered, whatever the tile looks like from here.
             if (!_farm.TryGetTile(this.TargetX, this.TargetY, out FarmTileInfo info) || info.CropId == 0)
             {
                 return false;
             }
 
-            if (rules is not null)
-            {
-                FarmTile tile = new(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, 0);
-                if (FarmRules.IsWithered(tile, nowMs, rules))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return !info.Withered;
         }
     }
 

@@ -1,0 +1,54 @@
+{
+  "viewport": "1280x720",
+  "admittedCast": true,
+  "frames": [
+    {
+      "file": "facing-1-before-faces-left.png",
+      "note": "The farmer after walking left: facing left, the hoe in hand."
+    },
+    {
+      "file": "facing-2-swing-1..4-crop.png",
+      "note": "Crops across the swing after the mouse goes down: the farmer faces the tile it works."
+    },
+    {
+      "file": "facing-2-drag-turns-right-mid-swing.png",
+      "note": "The mouse held on the tile to the right: the body turned right and the hoe swings to the right."
+    },
+    {
+      "file": "facing-3-after-till.png",
+      "note": "The tile to the right is tilled and the farmer still faces it."
+    },
+    {
+      "file": "facing-2-drag-turns-right-crop.png",
+      "note": "Crop of the frame above around the farmer."
+    },
+    {
+      "file": "cooldown-1-overlay-just-cast.png",
+      "note": "A skill was admitted: its hotbar button shows the cooldown sweep and is disabled until it ends."
+    },
+    {
+      "file": "cooldown-1-skill-buttons-crop.png",
+      "note": "The Z, X and V buttons at native pixels right after the cast: the cast one shows the sweep."
+    },
+    {
+      "file": "cooldown-1-overlay-1920x1080.png",
+      "note": "The same cast at 1920x1080."
+    },
+    {
+      "file": "cooldown-1-overlay-1024x768.png",
+      "note": "The same cast at 1024x768, the narrowest supported width."
+    },
+    {
+      "file": "cooldown-2-overlay-draining.png",
+      "note": "The sweep drains from the top over the skill's cooldown."
+    },
+    {
+      "file": "cooldown-2-skill-buttons-crop-draining.png",
+      "note": "The same buttons 1.5 s later: the sweep has drained part of the way."
+    },
+    {
+      "file": "cooldown-3-press-while-cooling-is-refused.png",
+      "note": "A press while the skill cools down starts no swing and no skill animation."
+    }
+  ]
+}

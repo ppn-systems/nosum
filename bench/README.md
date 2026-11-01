@@ -6,6 +6,7 @@ Benchmarks that back performance decisions with numbers.
 | :--- | :--- |
 | `Nosum.Bench.Interop` | Per-frame JS interop cost: `IJSRuntime` per sprite vs one batched `[JSImport]` call per frame. Its result decides [ADR-002](../docs/adr/ADR-002-batched-render-interop.md). Browser project: same WASM build settings as `wasm/` (`Directory.Build.props`). |
 | `Nosum.Bench.Load` | Headless load test of a running server ([ADR-031](../docs/adr/ADR-031-deployment-and-operations.md) D8): N guests over real WebSockets that walk through the exits to public maps, farm and chat; the report puts what the clients saw next to the server's own snapshot tick time and bandwidth from its `/metrics`. A console program (it ignores the WASM settings). |
+| `wasm-perf/` | Browser measurements of the WASM client through Playwright: first-load bytes and time to playable, frame time and draw calls on the farm, the CPU profile, and the canvas draw-cost micro-benchmark (ADR-086, `docs/perf/wasm-perf.md`). Node scripts, not a .NET project. |
 
 ## Nosum.Bench.Interop
 
@@ -34,7 +35,7 @@ How the bots work: each is a guest (`StartGuest`), joins like the browser client
 same walk grids the server builds from the same maps. Travellers plan a route over the maps' exits and a path over the tiles (`WorldMaps`, `TilePath`, `Navigator`), push onto the exit tile
 and are moved by the server; a move refused as blocked closes that tile on the bot's own copy of the grid (a tree or a placed object the map file does not show) and it goes around. Farmers
 walk to soil and till, plant and water it with the starter kit. All chat now and then. The thinking is network-free and tested against the real maps and the server's movement rules
-(`tests/Nosum.UnitTests/Bench/NavigatorTests.cs`). The report's tick numbers are bucket upper bounds read from the metrics before and after the steady phase, so they never understate.
+(`tests/Nosum.UnitTests/Bench/NavigatorTests.cs`). The report's tick numbers are bucket upper bounds read from the metrics before and after the steady phase, so they never understate. The report also prints the handler latency across every opcode (p50, p95, p99), and a `resources` and a `gc` line: the server's CPU, bytes allocated per second and per snapshot tick, GC collections by generation and pause time, from the `nosum_process_*` and `nosum_gc_*` metrics. Those counters are read only when scraped. Results of the 50/200/500 runs are in [docs/perf/server-perf.md](../docs/perf/server-perf.md).
 
 The bots create guest accounts in the server's database (idle guests are deleted after 30 days): never aim the load test at a server with real players. Running the bots on the same
 machine as the server shares its cores, so a single-machine number is pessimistic for the server and optimistic for the network.

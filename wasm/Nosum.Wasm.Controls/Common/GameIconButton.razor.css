@@ -1,9 +1,13 @@
+/* The icon button (docs/design/ui-standard.md section 8): a square sprite, one size (--nosum-button-icon). It has the text buttons' state model: hover
+   lightens the art and adds the highlight border, pressed sinks the art 2 u, disabled is greyed, focus-visible draws the focus ring. Active is the gold outline. */
 .game-icon-button {
     position: relative;
+    isolation: isolate;
     display: block;
     flex: none;
-    width: calc(var(--u) * 16);
-    height: calc(var(--u) * 16);
+    box-sizing: border-box;
+    width: var(--nosum-button-icon);
+    height: var(--nosum-button-icon);
     padding: 0;
     border: 0;
     background: none;
@@ -20,8 +24,29 @@
     image-rendering: pixelated;
 }
 
-.game-icon-button:hover .game-icon-button-art {
-    filter: brightness(1.15);
+.game-icon-button:hover:not(:disabled) .game-icon-button-art {
+    filter: var(--nosum-button-hover);
+}
+
+.game-icon-button:hover:not(:disabled)::after {
+    content: "";
+    position: absolute;
+    inset: var(--u);
+    border: var(--u) solid var(--nosum-button-highlight);
+    pointer-events: none;
+}
+
+.game-icon-button:active:not(:disabled) .game-icon-button-art {
+    filter: var(--nosum-button-pressed);
+    transform: translateY(var(--nosum-button-sink));
+}
+
+.game-icon-button:disabled {
+    cursor: default;
+}
+
+.game-icon-button:disabled .game-icon-button-art {
+    filter: var(--nosum-button-disabled);
 }
 
 .game-icon-button.active {
@@ -30,14 +55,12 @@
 }
 
 .game-icon-button.active .game-icon-button-art {
-    outline: var(--u) solid var(--nosum-gold-light);
-    outline-offset: calc(var(--u) * -1);
-    filter: brightness(1.12);
+    filter: var(--nosum-button-hover);
 }
 
-.game-icon-button:active .game-icon-button-art {
-    filter: brightness(0.85);
-    transform: translateY(calc(var(--u) * 2));
+.game-icon-button:focus-visible {
+    outline: var(--u) solid var(--nosum-focus);
+    outline-offset: var(--u);
 }
 
 /* The count on the corner: a red pill with a number. */

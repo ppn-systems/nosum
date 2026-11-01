@@ -190,6 +190,9 @@ public enum InventoryOperationKind
 
     /// <summary>Adds items to one named slot, which must be empty or hold the same item with room for them.</summary>
     AddToSlot = 4,
+
+    /// <summary>Grows the bag to a larger size (the quantity is the new capacity); the stacks stay where they are. Refused for a container, for a size that is not larger, and above the largest backpack.</summary>
+    Grow = 5,
 }
 
 /// <summary>One step of an atomic inventory change.</summary>
@@ -224,4 +227,9 @@ public readonly record struct InventoryOperation(InventoryOperationKind Kind, in
     /// <param name="quantity">How many.</param>
     /// <returns>The step.</returns>
     public static InventoryOperation AddToSlot(int slot, int itemId, int quantity) => new(InventoryOperationKind.AddToSlot, itemId, quantity, slot);
+
+    /// <summary>Creates a step that grows the inventory to <paramref name="capacity"/> slots (docs/adr/ADR-081).</summary>
+    /// <param name="capacity">The new number of slots; it must be larger than the current one and no larger than <c>BackpackRules.MaxCapacity</c>.</param>
+    /// <returns>The step.</returns>
+    public static InventoryOperation Grow(int capacity) => new(InventoryOperationKind.Grow, 0, capacity);
 }

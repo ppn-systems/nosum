@@ -23,7 +23,7 @@ public sealed class InputPackingTests
     public void Unpack_CloseAndHelpKeys_MatchWhatRendererJsPacks()
     {
         // renderer.js: Escape = 262144 and KeyH = 524288, both shifted left by 4 with the held directions.
-        int fromJs = 1 | ((262144 | 524288) << 4);
+        int fromJs = 1 | ((262144 | 524288) << 5);
 
         InputPacking.Unpack(fromJs, out InputState held, out InputEdges edges);
 
@@ -34,8 +34,8 @@ public sealed class InputPackingTests
     [Fact]
     public void Unpack_WhatJavaScriptPacks_MatchesTheEdgeBits()
     {
-        // renderer.js: keys | (edges << 4) with Digit3 = 8 and KeyE = 1.
-        int fromJs = 2 | ((8 | 1) << 4);
+        // renderer.js: keys | (edges << 5) with Digit3 = 8 and KeyE = 1.
+        int fromJs = 2 | ((8 | 1) << 5);
 
         InputPacking.Unpack(fromJs, out InputState held, out InputEdges edges);
 
@@ -46,8 +46,8 @@ public sealed class InputPackingTests
     [Fact]
     public void Unpack_MinimapWorldMapAndJournalKeys_MatchWhatRendererJsPacks()
     {
-        // renderer.js: KeyM = 16777216, Tab = 33554432 and KeyJ = 67108864, shifted left by 4 with the held directions.
-        int fromJs = 4 | ((16777216 | 33554432 | 67108864) << 4);
+        // renderer.js: KeyM = 16777216, Tab = 33554432 and KeyJ = 67108864, shifted left by 5 with the held directions (and run).
+        int fromJs = 4 | ((16777216 | 33554432 | 67108864) << 5);
         InputPacking.Unpack(fromJs, out InputState held, out InputEdges edges);
         held.Should().Be(InputState.Left);
         edges.Should().Be(InputEdges.Minimap | InputEdges.WorldMap | InputEdges.Journal);

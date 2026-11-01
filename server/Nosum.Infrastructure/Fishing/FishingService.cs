@@ -11,14 +11,17 @@ using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Progress;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Fishing;
 using Nosum.Contracts.Inventory;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Fishing;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Inventory;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Skills;
 using Nosum.Gameplay.Weather;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Fishing;
 
@@ -35,6 +38,7 @@ public sealed class FishingService : IFishingService
     private readonly IPlayerProgress _progress;
     private readonly GameCalendar _calendar;
     private readonly TimeProvider _time;
+    private readonly IQuestService? _quests;
     private readonly FishingCasts _casts = new();
 
     /// <summary>Initializes the service.</summary>
@@ -44,7 +48,8 @@ public sealed class FishingService : IFishingService
     /// <param name="progress">Charges the energy and the fishing experience.</param>
     /// <param name="calendar">The season, the hour and the weather of a roll.</param>
     /// <param name="time">The clock that times the cast and the press; <see langword="null"/> for the system clock.</param>
-    public FishingService(IMapPresence presence, IMapCatalog maps, IInventoryService inventory, IPlayerProgress progress, GameCalendar calendar, TimeProvider? time = null)
+    /// <param name="quests">Hears about a fish caught for the tutorial chain; <see langword="null"/> to hear nothing.</param>
+    public FishingService(IMapPresence presence, IMapCatalog maps, IInventoryService inventory, IPlayerProgress progress, GameCalendar calendar, TimeProvider? time = null, IQuestService? quests = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -58,6 +63,7 @@ public sealed class FishingService : IFishingService
         _progress = progress;
         _calendar = calendar;
         _time = time ?? TimeProvider.System;
+        _quests = quests;
     }
 
     /// <inheritdoc/>
@@ -152,6 +158,27 @@ public sealed class FishingService : IFishingService
     }
 
     /// <inheritdoc/>
+    public Task<bool> MakeBiteAsync(IConnection connection, uint castId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (castId == 0 || !_presence.TryGet(connection, out PlayerPresence? player) || !_casts.TryTake(player.AccountId, castId, out OpenCast? cast))
+        {
+            return Task.FromResult(false);
+        }
+
+        if (cast.InstanceKey != player.Key)
+        {
+            _casts.Restore(cast);
+            return Task.FromResult(false);
+        }
+
+        _casts.Open(cast with { BiteDelayMs = 0 });
+        return Task.FromResult(true);
+    }
+
+    /// <inheritdoc/>
     public async Task<ReelOutcome> ReelInAsync(IConnection connection, uint castId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
@@ -219,9 +246,13 @@ public sealed class FishingService : IFishingService
             }
 
             await charge!.PublishAsync(cancellationToken).ConfigureAwait(false);
-            return species is null
-                ? new ReelOutcome(FishingStatus.Nothing, 0, 0, xp, 0)
-                : new ReelOutcome(FishingStatus.Ok, species.ItemId, 1, xp, sizeCm);
+            if (species is null)
+            {
+                return new ReelOutcome(FishingStatus.Nothing, 0, 0, xp, 0);
+            }
+
+            await _quests.TryReportAsync(playerId, new QuestEvent(QuestEventKind.FishCaught, species.ItemId), cancellationToken).ConfigureAwait(false);
+            return new ReelOutcome(FishingStatus.Ok, species.ItemId, 1, xp, sizeCm);
         }
         finally
         {

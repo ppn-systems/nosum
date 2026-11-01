@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System.Linq;
 using FluentAssertions;
 using Nosum.Contracts.Look.S2C;
 using Nosum.Contracts.Pet;
@@ -50,6 +51,37 @@ public sealed class PetChannelTests
         kind.Should().Be(2);
         name.Should().Be("Rex");
         pets.Current.HasPet.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Rehome_SendsRehomePetAndStoresTheAnswer()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.Ok, Kind = 1, Name = "Miu", Mood = 50 });
+        PetChannel pets = new(socket);
+        pets.Load();
+        socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.Ok, Kind = 0 });
+
+        pets.Rehome();
+
+        socket.Requests.OfType<RehomePet>().Should().ContainSingle();
+        pets.Current.HasPet.Should().BeFalse();
+        pets.Current.Status.Should().Be(PetStatus.Ok);
+    }
+
+    [Fact]
+    public void Rehome_Completed_RaisesTheServerAnswer()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith<PetState>(_ => new PetState { Status = PetStatus.NotAtShop, Kind = 2, Name = "Rex", Mood = 50 });
+        PetChannel pets = new(socket);
+        PetStatus? answered = null;
+        pets.Completed += status => answered = status;
+
+        pets.Rehome();
+
+        answered.Should().Be(PetStatus.NotAtShop);
+        pets.Current.HasPet.Should().BeTrue("the server refused, so the pet stays");
     }
 
     [Fact]

@@ -1,23 +1,42 @@
+/* 120 u, but never wider than 400 px: Google's button stops at 400 px, and both provider buttons share one width. */
 .account-form {
     display: block;
     width: calc(var(--u) * 120);
-    max-width: 100%;
+    max-width: min(100%, 400px);
 }
 
 .account-form ::deep .game-stack {
     gap: calc(var(--u) * 2);
 }
 
-/* The slot Google's button is drawn into. Google draws the button in its own frame, so the pixel frame of the other buttons sits around the slot. */
+/* The two provider buttons: the same width and height (41 px), stacked with an 8 px gap, no frame around them. A provider that is off has no
+   button here. */
+.account-providers {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+}
+
+/* The slot Google's button is drawn into: Google sizes its button to the slot's width (external-sign-in.js), and centres it in the 41 px height.
+   The page's pixel font sets a 11 px line height, which Google's label inherits and clips at its bottom; Google's button assumes the normal line height. */
+.account-google ::deep * {
+    line-height: normal !important;
+}
+
 .account-google {
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    min-height: calc(var(--u) * 16);
-    padding: calc(var(--u) * 2) calc(var(--u) * 3);
-    border-style: solid;
-    border-width: calc(var(--u) * 3);
-    border-image: var(--nosum-img-button) 3 3 5 3 fill / calc(var(--u) * 3) stretch;
-    image-rendering: pixelated;
+    width: 100%;
+    height: 41px;
+}
+
+/* On a phone the unit is small (u is about 2 px), so 120 u is too narrow for Google's label: the form fills its window instead. */
+@media (max-width: 640px) {
+    .account-form {
+        width: 100%;
+    }
 }

@@ -1,0 +1,107 @@
+[
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "settings: language English",
+    "status": "pass",
+    "notes": "switched in Settings > General"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Mail",
+    "status": "pass",
+    "notes": "box [8,120,374,133]"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Settings",
+    "status": "pass",
+    "notes": "box [8,120,374,252]"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Minimap: click to open the world map",
+    "status": "pass",
+    "notes": "box [8,120,374,692]"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Inventory [I]",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Crafting",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Trade [T]",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Friends",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Skills",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: World map [Tab]",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Journal [J]",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "panel: Menu",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible"
+  },
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]

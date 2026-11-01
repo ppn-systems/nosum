@@ -1,11 +1,10 @@
-"""Package 9: the UI sheets (ui/menu.png, ui/cursors.png, ui/text_box.png, ui/start_background.png).
+"""Package 9: the UI sheets (ui/menu.png, ui/cursors.png, ui/text_box.png).
 
 The window frames, the plaque, the block buttons (normal and pressed), the tab plates, the close button and the two mouse cursors are Kenney's CC0
 UI packs (art/source/ui: UI Pack - Pixel Adventure and Pixel UI pack, pinned by SHA-256 in sources.py), cut, repaired where a tile has a stray
 transparent pixel, darkened where the text on them needs the contrast, and assembled into 9-slice sprites at the rectangles nosum-theme.js reads
 (CSS border-image slices them). What the packs have no piece for is drawn here in the pack's flat, outlined style from palette.py: the slot
 bevel, the selection frame with its glow, the title strip, the energy gauge, the text field, the tab pictograms, the pager arrows and the coin.
-The start-screen picture is a sky and a sea drawn from dithered bands and shaded cloud blobs.
 """
 import os
 
@@ -290,6 +289,29 @@ TAB_PICTURES = {
         '..DDDDDD..',
         '..DDDDDD..',
     ], {'C': P.PARCH_HI, 'H': P.GOLD_HI, 'L': P.BLUE_L, 'B': P.BLUE, 'D': P.BLUE_D, 'G': P.GOLD}),
+
+    # The Menu button: four 2 x 2 tiles of a grid, two rows of them.
+    'menu': ([
+        'HHHH..HHHH',
+        'HLLH..HLLH',
+        'HLLH..HLLH',
+        'HHHH..HHHH',
+        'HHHH..HHHH',
+        'HLLH..HLLH',
+        'HLLH..HLLH',
+        'HHHH..HHHH',
+    ], {'H': P.WOOD_HI, 'L': P.WOOD_L}),
+
+    # The pet tab: a cat's head with gold eyes (the pet itself is in sprites/pets/cat.png).
+    'pet': ([
+        'DD....DD',
+        'DHD..DHD',
+        'DHHHHHHD',
+        'DHGHHGHD',
+        'DHHHHHHD',
+        'DDHHHHDD',
+        '.DDDDDD.',
+    ], {'D': P.WOOD_D, 'H': P.WOOD_HI, 'G': P.GOLD_HI}),
 
     'coop': ([
         '...RRR....',
@@ -637,6 +659,8 @@ def cursors(repo, size):
         (tab(repo, 'visitors'), 64, 368), (tab(repo, 'market'), 80, 368), (tab(repo, 'friends'), 96, 368), (tab(repo, 'mail'), 112, 368),
         (tab(repo, 'skills'), 128, 368), (tab(repo, 'profile'), 144, 368), (tab(repo, 'settings'), 160, 368), (tab(repo, 'goals'), 176, 368),
         (tab(repo, 'shop'), 0, 384),
+        (tab(repo, 'menu'), 256, 384),
+        (tab(repo, 'pet'), 272, 384),
         (season_icon('spring'), 16, 384),
         (season_icon('summer'), 32, 384),
         (season_icon('fall'), 48, 384),
@@ -664,67 +688,11 @@ def text_box(size):
     return sheet
 
 
-# --- the start screen picture -------------------------------------------------------------------------------------------
-
-BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
-
-
-def lerp(a, b, t):
-    return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
-
-
-def dithered(y, x, top, bottom, y0, y1, steps=14):
-    """Banded gradient: the colour steps are mixed across the band edge by a 4 x 4 Bayer matrix."""
-    t = (y - y0) / max(1, y1 - y0) * steps
-    band = int(t)
-    frac = t - band
-    if BAYER[y % 4][x % 4] / 16 < frac:
-        band += 1
-    return lerp(top, bottom, min(1.0, band / steps))
-
-
-def sky(size):
-    w, h = size('ui/start_background.png')
-    img = Image(w, h)
-    horizon = 345
-    for y in range(h):
-        for x in range(w):
-            if y < horizon:
-                img.px[y][x] = dithered(y, x, (0, 162, 255), (160, 224, 255), 0, horizon) + (255,)
-            else:
-                img.px[y][x] = dithered(y, x, (24, 138, 226), (0, 96, 188), horizon, h) + (255,)
-    cloud = Canvas(w, h)
-    seed = 7
-    tones = ((176, 204, 232), (238, 246, 255), (255, 255, 255))
-    for i in range(26):
-        seed = (seed * 1103515245 + 12345) % 2 ** 31
-        cx = seed % (w + 200) - 100
-        seed = (seed * 1103515245 + 12345) % 2 ** 31
-        cy = 30 + seed % 270
-        scale = 0.6 + (cy / 300) * 0.9
-        for dx, dy, rx, ry in ((0, 0, 46, 17), (-34, 6, 28, 12), (36, 7, 30, 12), (8, -10, 26, 14), (-12, -6, 22, 12)):
-            blob(cloud, cx + dx * scale, cy + dy * scale, rx * scale, ry * scale, tones, texture=False)
-    img.paste(cloud, 0, 0)
-    for k in range(260):                      # wave glints on the sea, denser and wider toward the viewer
-        seed = (seed * 1103515245 + 12345) % 2 ** 31
-        x = seed % w
-        seed = (seed * 1103515245 + 12345) % 2 ** 31
-        y = horizon + 6 + seed % (h - horizon - 8)
-        length = 4 + (y - horizon) // 14
-        for i in range(length):
-            if 0 <= x + i < w:
-                img.px[y][x + i] = (150, 214, 255, 255) if i % 3 else (255, 255, 255, 255)
-    for x in range(w):                        # a bright line where the sea meets the sky
-        img.px[horizon][x] = (200, 236, 255, 255)
-    return img
-
-
 def build(repo, size):
     return {
         'ui/menu.png': menu_tiles(repo, size),
         'ui/cursors.png': cursors(repo, size),
         'ui/text_box.png': text_box(size),
-        'ui/start_background.png': sky(size),
     }
 
 

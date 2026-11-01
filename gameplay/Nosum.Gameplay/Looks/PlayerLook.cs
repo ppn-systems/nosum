@@ -15,7 +15,8 @@ namespace Nosum.Gameplay.Looks;
 /// <param name="ShirtItemId">Worn shirt item id, or zero for the plain shirt.</param>
 /// <param name="PantsItemId">Worn trousers item id, or zero for the plain trousers.</param>
 /// <param name="HatItemId">Worn hat item id, or zero for no hat.</param>
-public readonly record struct PlayerLook(int SkinId, int HairStyleId, int HairDyeId, int ShirtItemId, int PantsItemId, int HatItemId)
+/// <param name="FeetItemId">Worn boots item id, or zero for bare feet (docs/adr/ADR-084). Appended; existing constructor calls keep meaning no boots.</param>
+public readonly record struct PlayerLook(int SkinId, int HairStyleId, int HairDyeId, int ShirtItemId, int PantsItemId, int HatItemId, int FeetItemId = 0)
 {
     /// <summary>Gets the look every new player and every guest starts with.</summary>
     public static PlayerLook Default => new(1, 1, 1, 0, 0, 0);
@@ -28,6 +29,7 @@ public readonly record struct PlayerLook(int SkinId, int HairStyleId, int HairDy
         WearSlot.Shirt => this.ShirtItemId,
         WearSlot.Pants => this.PantsItemId,
         WearSlot.Hat => this.HatItemId,
+        WearSlot.Feet => this.FeetItemId,
         _ => 0,
     };
 
@@ -40,6 +42,7 @@ public readonly record struct PlayerLook(int SkinId, int HairStyleId, int HairDy
         WearSlot.Shirt => this with { ShirtItemId = itemId },
         WearSlot.Pants => this with { PantsItemId = itemId },
         WearSlot.Hat => this with { HatItemId = itemId },
+        WearSlot.Feet => this with { FeetItemId = itemId },
         _ => this,
     };
 }

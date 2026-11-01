@@ -17,9 +17,9 @@
                 @if (Progress is not null)
                 {
                     <div class="hotbar-skills" role="toolbar" aria-label="@Progress.CombatSkillsAriaLabel">
-                        <GameButton Variant="chip" Disabled="@Progress.WhirlwindDisabled" Title="@($"{Progress.WhirlwindLabel}\n{Progress.WhirlwindTip}")" aria-label="@Progress.WhirlwindLabel" OnClick="@(() => Progress.CastSkill(1))"><GameKey Text="Z" /></GameButton>
-                        <GameButton Variant="chip" Disabled="@Progress.FireballDisabled" Title="@($"{Progress.FireballLabel}\n{Progress.FireballTip}")" aria-label="@Progress.FireballLabel" OnClick="@(() => Progress.CastSkill(2))"><GameKey Text="X" /></GameButton>
-                        <GameButton Variant="chip" Disabled="@Progress.DivineHealDisabled" Title="@($"{Progress.DivineHealLabel}\n{Progress.DivineHealTip}")" aria-label="@Progress.DivineHealLabel" OnClick="@(() => Progress.CastSkill(3))"><GameKey Text="V" /></GameButton>
+                        <GameButton Variant="secondary" Disabled="@Progress.WhirlwindDisabled" Title="@($"{Progress.WhirlwindLabel}\n{Progress.WhirlwindTip}")" aria-label="@Progress.WhirlwindLabel" OnClick="@(() => Progress.CastSkill(1))">@if (Progress.IsSkillCoolingDown(1)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(1)" aria-hidden="true"></span> }<GameKey Text="Z" /></GameButton>
+                        <GameButton Variant="secondary" Disabled="@Progress.FireballDisabled" Title="@($"{Progress.FireballLabel}\n{Progress.FireballTip}")" aria-label="@Progress.FireballLabel" OnClick="@(() => Progress.CastSkill(2))">@if (Progress.IsSkillCoolingDown(2)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(2)" aria-hidden="true"></span> }<GameKey Text="X" /></GameButton>
+                        <GameButton Variant="secondary" Disabled="@Progress.DivineHealDisabled" Title="@($"{Progress.DivineHealLabel}\n{Progress.DivineHealTip}")" aria-label="@Progress.DivineHealLabel" OnClick="@(() => Progress.CastSkill(3))">@if (Progress.IsSkillCoolingDown(3)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(3)" aria-hidden="true"></span> }<GameKey Text="V" /></GameButton>
                     </div>
                 }
             </div>
@@ -40,7 +40,7 @@
                 </div>
             }
             @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@
-            <EnergyBar Vm="Progress" />
+            <EnergyBar Vm="Progress" Tool="Vm.HeldTool" />
         }
     </div>
 }

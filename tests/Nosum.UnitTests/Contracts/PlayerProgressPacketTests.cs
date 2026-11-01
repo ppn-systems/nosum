@@ -25,7 +25,7 @@ public sealed class PlayerProgressPacketTests
     public void EnergyChanged_SkillXpChanged_LevelUp_RoundTrip()
     {
         using EnergyChanged energy = new() { Energy = 268, MaxEnergy = 270 };
-        using SkillXpChanged xp = new() { FarmingXp = 15000, ForagingXp = 7, MiningXp = 123_456 };
+        using SkillXpChanged xp = new() { FarmingXp = 15000, ForagingXp = 7, MiningXp = 123_456, FishingXp = 789 };
         using LevelUp level = new() { Skill = 3, Level = 10 };
 
         EnergyChanged energyCopy = EnergyChanged.Deserialize(energy.Serialize());
@@ -33,7 +33,7 @@ public sealed class PlayerProgressPacketTests
         LevelUp levelCopy = LevelUp.Deserialize(level.Serialize());
 
         (energyCopy.Energy, energyCopy.MaxEnergy).Should().Be(((ushort)268, (ushort)270));
-        (xpCopy.FarmingXp, xpCopy.ForagingXp, xpCopy.MiningXp).Should().Be((15000, 7, 123_456));
+        (xpCopy.FarmingXp, xpCopy.ForagingXp, xpCopy.MiningXp, xpCopy.FishingXp).Should().Be((15000, 7, 123_456, 789));
         (levelCopy.Skill, levelCopy.Level).Should().Be(((byte)3, (byte)10));
     }
 

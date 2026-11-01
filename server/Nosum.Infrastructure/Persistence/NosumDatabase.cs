@@ -47,12 +47,45 @@ public static class NosumDatabase
         return DevelopmentConnectionString;
     }
 
-    /// <summary>Builds the EF options: PostgreSQL with snake_case names.</summary>
+    /// <summary>
+    /// Most connections one process keeps open to a database (docs/adr/ADR-087). The Npgsql default is 100, which is the whole of PostgreSQL's
+    /// <c>max_connections</c> on the deployment; the cap leaves room for migrations, operators and a second host.
+    /// </summary>
+    public const int MaxPoolSize = 20;
+
+    /// <summary>Seconds an idle pooled connection stays open before it is closed, so the count returns to its baseline after a burst (docs/adr/ADR-087).</summary>
+    public const int ConnectionIdleLifetimeSeconds = 60;
+
+    /// <summary>
+    /// Adds the pool limits to a connection string, unless the string sets them itself (an operator's setting wins).
+    /// </summary>
+    /// <param name="connectionString">The PostgreSQL connection string.</param>
+    /// <returns>The connection string with the pool limits.</returns>
+    public static string WithPoolLimits(string connectionString)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+
+        // The keyword is looked for in the string itself: the builder reports default values as present, so ContainsKey cannot tell an operator's setting apart.
+        NpgsqlConnectionStringBuilder builder = new(connectionString);
+        if (!connectionString.Contains("Pool Size", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.MaxPoolSize = MaxPoolSize;
+        }
+
+        if (!connectionString.Contains("Idle Lifetime", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.ConnectionIdleLifetime = ConnectionIdleLifetimeSeconds;
+        }
+
+        return builder.ConnectionString;
+    }
+
+    /// <summary>Builds the EF options: PostgreSQL with snake_case names and the pool limits of <see cref="WithPoolLimits"/>.</summary>
     /// <param name="connectionString">The PostgreSQL connection string.</param>
     /// <returns>Options for <see cref="NosumDbContext"/>.</returns>
     public static DbContextOptions<NosumDbContext> CreateOptions(string connectionString)
         => new DbContextOptionsBuilder<NosumDbContext>()
-            .UseNpgsql(connectionString)
+            .UseNpgsql(WithPoolLimits(connectionString))
             .UseSnakeCaseNamingConvention()
             .Options;
 

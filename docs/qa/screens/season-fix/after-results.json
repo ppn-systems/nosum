@@ -1,0 +1,53 @@
+[
+  {
+    "viewport": "1280x720",
+    "before": "Xuân",
+    "after": "Hè",
+    "labelAfterMs": 279,
+    "bannerAfterMs": 279,
+    "banner": "MÙA MỚI Mùa Hè đã đến!",
+    "skillNames": [
+      "Trồng trọt",
+      "Hái lượm",
+      "Khai khoáng",
+      "Chiến đấu",
+      "Câu cá"
+    ],
+    "fishingRow": true,
+    "errors": []
+  },
+  {
+    "viewport": "1920x1080",
+    "before": "Hè",
+    "after": "Thu",
+    "labelAfterMs": 347,
+    "bannerAfterMs": 347,
+    "banner": "MÙA MỚI Mùa Thu đã đến!",
+    "skillNames": [
+      "Trồng trọt",
+      "Hái lượm",
+      "Khai khoáng",
+      "Chiến đấu",
+      "Câu cá"
+    ],
+    "fishingRow": true,
+    "errors": []
+  },
+  {
+    "viewport": "390x844",
+    "before": "Thu",
+    "after": "Đông",
+    "labelAfterMs": 277,
+    "bannerAfterMs": 277,
+    "banner": "MÙA MỚI Mùa Đông đã đến!",
+    "skillNames": [
+      "Trồng trọt",
+      "Hái lượm",
+      "Khai khoáng",
+      "Chiến đấu",
+      "Câu cá"
+    ],
+    "fishingRow": true,
+    "errors": []
+  }
+]

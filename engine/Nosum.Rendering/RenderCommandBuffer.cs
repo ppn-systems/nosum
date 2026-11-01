@@ -64,6 +64,16 @@ public sealed class RenderCommandBuffer
     /// <summary>Texture id of a command that sets the ambient loop (docs/adr/ADR-039): <c>srcX</c> holds the loop id, 0 for none, and <c>srcY</c> the volume.</summary>
     public const int AmbientLoopTexture = -9;
 
+    /// <summary>
+    /// Texture id of a command that opens a render target (docs/adr/ADR-086): <c>srcX</c> holds the target's texture id, <c>srcW</c> and <c>srcH</c>
+    /// its size in pixels. The draws that follow go into that bitmap, unscaled and in its own pixels, until <see cref="EndTargetTexture"/>. A target
+    /// is then drawn like any texture by its id.
+    /// </summary>
+    public const int BeginTargetTexture = -10;
+
+    /// <summary>Texture id of a command that closes the render target opened by <see cref="BeginTargetTexture"/>.</summary>
+    public const int EndTargetTexture = -11;
+
     /// <summary>Most light sources one frame may carry; further ones are dropped (docs/adr/ADR-027 D5).</summary>
     public const int MaxLights = 64;
 
@@ -223,6 +233,15 @@ public sealed class RenderCommandBuffer
     /// <summary>Records the music track to play; the backend keeps it playing until the next such command.</summary>
     /// <param name="trackId">Track id, or 0 for silence.</param>
     public void SetMusic(int trackId) => this.Draw(MusicTexture, Math.Max(trackId, 0), 0, 0, 0, 0, 0);
+
+    /// <summary>Opens a render target: the draws that follow go into its bitmap until <see cref="EndTarget"/> (docs/adr/ADR-086).</summary>
+    /// <param name="targetId">The target's texture id; the backend creates or resizes its bitmap to <paramref name="width"/> by <paramref name="height"/>.</param>
+    /// <param name="width">Width, pixels.</param>
+    /// <param name="height">Height, pixels.</param>
+    public void BeginTarget(int targetId, int width, int height) => this.Draw(BeginTargetTexture, targetId, 0, width, height, 0, 0);
+
+    /// <summary>Closes the render target opened by <see cref="BeginTarget"/>.</summary>
+    public void EndTarget() => this.Draw(EndTargetTexture, 0, 0, 0, 0, 0, 0);
 
     /// <summary>Records the ambient loop to play (rain); the backend keeps it playing until the next such command.</summary>
     /// <param name="loopId">Loop id, or 0 for none.</param>

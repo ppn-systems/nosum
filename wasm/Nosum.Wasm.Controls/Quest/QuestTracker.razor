@@ -14,7 +14,7 @@
     {
         <GamePanel Class="hud quest" Title="">
             <div class="quest-wrap">
-                <GameButton Variant="chip" Class="quest-head" tabindex="-1" aria-expanded="@(_open ? "true" : "false")" Title="@(Vm.Heading + ": " + Vm.Title + (Vm.Hint.Length > 0 ? "\n" + Vm.Hint : string.Empty))"
+                <GameButton Variant="secondary" Class="quest-head" tabindex="-1" aria-expanded="@(_open ? "true" : "false")" Title="@(Vm.Heading + ": " + Vm.Title + (Vm.Hint.Length > 0 ? "\n" + Vm.Hint : string.Empty))"
                             OnClick="() => _open = !_open">
                     <GameIcon Name="quest-scroll" /><span class="quest-title">@Vm.Title</span><span class="quest-fold">@(_open ? "-" : "+")</span>
                 </GameButton>

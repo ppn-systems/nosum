@@ -1,0 +1,30 @@
+{
+  "base_url": "http://localhost:5830",
+  "lang": "vi",
+  "captured": [
+    {
+      "viewport": "1280x720",
+      "file": "/home/user/nosum/docs/qa/toast-dedupe/toast-repeat-vi-1280x720.png",
+      "toasts": [
+        "Hãy xới đất trước. ×2"
+      ],
+      "one_line_with_count": true
+    },
+    {
+      "viewport": "1920x1080",
+      "file": "/home/user/nosum/docs/qa/toast-dedupe/toast-repeat-vi-1920x1080.png",
+      "toasts": [
+        "Hãy xới đất trước. ×2"
+      ],
+      "one_line_with_count": true
+    },
+    {
+      "viewport": "390x844",
+      "file": "/home/user/nosum/docs/qa/toast-dedupe/toast-repeat-vi-390x844.png",
+      "toasts": [
+        "Hãy xới đất trước. ×2"
+      ],
+      "one_line_with_count": true
+    }
+  ]
+}

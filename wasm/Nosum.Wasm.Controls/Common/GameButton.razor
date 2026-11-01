@@ -1,4 +1,4 @@
-@* The one button of the game UI. Looks come only from the shared "game-button" class and its variants (primary, danger, plain, tab, link);
+@* The one button of the game UI. Looks come only from the shared "game-button" class and its kinds (primary, secondary, danger, tab; docs/design/ui-standard.md section 8);
    text comes from the caller (already localized). Keyboard users reach it with Tab (docs/adr/ADR-033 D4); a click in the game does not take focus (the canvas keeps the keyboard), on a form (Focusable) it does. *@
 <button type="@(Submit ? "submit" : "button")"
         class="game-button @Variant @(Active ? "active" : null) @Class"
@@ -30,7 +30,7 @@
     [Parameter]
     public string? Title { get; set; }
 
-    /// <summary>Gets or sets the look: <c>primary</c>, <c>danger</c>, <c>plain</c>, <c>tab</c>, <c>link</c> or <c>chip</c>.</summary>
+    /// <summary>Gets or sets the kind: <c>primary</c> (default), <c>secondary</c>, <c>danger</c> or <c>tab</c>. Use the kinds only; a new kind needs ui-standard section 8 changed first.</summary>
     [Parameter]
     public string Variant { get; set; } = "primary";
 
