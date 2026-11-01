@@ -71,8 +71,13 @@ water part to one swing per line, but the harvest still needs one press per tile
 
 ## The QA hook
 
-- `tests/browser/farm-feel-capture.cjs` calls `window.nosumQa.teleport`, which does not exist in master's source. The tester build exposes only
-  `DevTools.Grant` and `DevTools.AdvanceClock` (`wasm/Nosum.Wasm/Game/DevTools.cs`), so that script fails before its first capture. Update or retire it.
+- Round two (backlog item 8): `window.nosumQa` (`wasm/Nosum.Wasm/Game/QaEntry.cs`) exposes `grant`, `advanceClock`, `teleport`, `season`, `levelUp`,
+  `fishingBite`, `allocatedBytes`, `springReset` and `teleportToMonster`. Every member the browser scripts call exists; the earlier note that
+  `teleport` was missing was out of date. `tests/browser/farm-feel-capture.cjs` runs on master (12 frames). `season-fix-capture.cjs` was fixed to click
+  only a visible button at 390 px. The non-farming scripts were not run. No script was retired.
+- Round two captures: `docs/qa/farming-round2/before` (master) and `docs/qa/farming-round2/after` (this branch), vi and en at 1280x720, from
+  `tests/browser/farm-round2-capture.cjs`. In the after frames the unripe line reads "Not ready, 1 day left" in en; the vi unripe frame has no line, and
+  no frame shows the harvest-with-item-in-hand line (the toast had likely faded). Re-check those two before trusting them.
 
 ## Changes in this pass (ADR-088, protocol 29)
 
@@ -86,11 +91,13 @@ Clients built for 21 misread the reply and the status, so they ship with the ser
 
 ## Backlog, ranked by how much play it would change
 
-1. **Harvest along a line with the scythe.** A rule change (admit the scythe to `ValidateArea` with its own tier curve), needs an ADR.
-2. **Name the reason on an unripe crop** ("not ready, 2 days left"). The days left come from `FarmRules`, so the client does not compute them alone.
-3. **Make the action key's harvest say so** (a text line when E harvests a ripe crop with another item in hand). Client only.
-4. **Growth stage label** on hover of a crop. Client only; `CropDefinition.StageAt` already gives the stage.
-5. **Reticle for the whole line** when a wide tool is held. Client only; uses `ToolRules.LineTile`.
-6. **Move the wet-soil check into `FarmRules`** so the client and the server call one function.
-7. **Settle phones.** Either the device policy admits 390×844 and ui-standard section 6 is built, or section 6 is dropped. An owner decision.
-8. **Retire or update** the browser scripts that call `window.nosumQa`.
+Round two (branch `claude/farming-round2`, ADR-094, protocol 31):
+
+1. **Done.** Harvest along a line with the scythe: `ToolRules.ScytheAreaLength` (three at basic) and a trailing harvest for the scythe only (ADR-094 D1).
+2. **Done.** An unripe crop names the days left: `UseItemResult.DaysLeft`, the words in `Farm_Status_NotMatureDays` / `…OneDay` (ADR-094 D2).
+3. **Done.** The action key's harvest with another item in hand says so on the message line (`Farm_ActionKeyHarvested`).
+4. **Done.** Hovering a crop names its growth stage on the message line (`Farm_Hover_Stage`, `FarmRules.StageAt`). Sprinklers beside the tile are not counted in the hover, so a sprinkler-watered crop can show one stage behind.
+5. **Done.** The reticle draws the whole line of a wide hoe, can or scythe, engine-drawn (`FarmDecorator`).
+6. **Done.** The watering check is `FarmRules.WaterVerdict`, called by the server and the reticle (ADR-094 D3).
+7. **Open, an owner decision.** Phones: the device policy or ui-standard section 6 (see the finding above).
+8. **Browser scripts**: see the note under "The QA hook".

@@ -360,6 +360,8 @@ internal static class ClientWiring
             }
         };
         GameLoop.SkillPressRefused += key => messages.Notify(localizer[key].Value);
+        GameLoop.ActionKeyHarvested += () => messages.Notify(localizer["Farm_ActionKeyHarvested"].Value);
+        GameLoop.CropHovered += (stage, count) => messages.SetHoverHint(stage < 0 ? null : string.Format(System.Globalization.CultureInfo.CurrentCulture, localizer["Farm_Hover_Stage"].Value, stage + 1, count));
         _ = services.GetRequiredService<NearbyPlayers>();
         ProgressViewModel progressVm = services.GetRequiredService<ProgressViewModel>();
         GameLoop.UseRunState(state =>
@@ -392,7 +394,7 @@ internal static class ClientWiring
         DeviceGuardViewModel device = services.GetRequiredService<DeviceGuardViewModel>();
         BrowserDevice.WatchWidth(devicePolicy.MinimumWidth, _ => device.UpdateWidth(BrowserDevice.ViewportWidth()));
 
-        // A finger gets the tap prompts (docs/adr/ADR-094); the keyboard and mouse prompts stay the default.
+        // A finger gets the tap prompts (docs/adr/ADR-097); the keyboard and mouse prompts stay the default.
         services.GetRequiredService<FishingViewModel>().TouchInput = device.IsTouchInput;
 
         // A phone or touch screen collapses the HUD menu column; the game menu then lists the column panels as tiles (docs/design/ui-standard.md section 6).

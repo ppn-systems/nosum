@@ -62,7 +62,8 @@ public interface IFarmService
 /// <param name="Subject">What the action was done to when that matters to others: for <see cref="FarmAction.Broke"/> the <c>NodeKind</c> of the node that broke (docs/adr/ADR-036 D3); for a harvest on co-op land the item id of the crop (docs/adr/ADR-067); otherwise zero.</param>
 /// <param name="Quantity">How many were harvested on co-op land (docs/adr/ADR-067); otherwise zero.</param>
 /// <param name="Worked">How many tiles the use worked (docs/adr/ADR-088): one for a single-tile use that worked, the worked tiles of a wide use; zero on a refusal.</param>
-public readonly record struct FarmUseOutcome(FarmStatus Status, FarmAction Action, int Subject = 0, int Quantity = 0, int Worked = 0);
+/// <param name="DaysLeft">For <see cref="FarmStatus.NotMature"/>, the watered game days the crop still needs (docs/adr/ADR-094 D2); otherwise zero.</param>
+public readonly record struct FarmUseOutcome(FarmStatus Status, FarmAction Action, int Subject = 0, int Quantity = 0, int Worked = 0, int DaysLeft = 0);
 
 /// <summary>One worked tile with its position.</summary>
 /// <param name="X">Tile x.</param>

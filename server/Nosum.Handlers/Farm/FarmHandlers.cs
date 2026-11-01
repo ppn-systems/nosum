@@ -47,6 +47,7 @@ public static partial class FarmHandlers
             r.Status = outcome.Status;
             r.Action = outcome.Action;
             r.Worked = (byte)Math.Min(outcome.Worked, byte.MaxValue);
+            r.DaysLeft = (byte)Math.Min(outcome.DaysLeft, byte.MaxValue);
         }).ConfigureAwait(false);
 
         // Only a harvest on co-op land carries a count (FarmService); anywhere else there is nothing to credit and no lookup is made.
@@ -93,6 +94,7 @@ public static partial class FarmHandlers
             r.Status = outcome.Status;
             r.Action = outcome.Action;
             r.Worked = (byte)Math.Min(outcome.Worked, byte.MaxValue);
+            r.DaysLeft = (byte)Math.Min(outcome.DaysLeft, byte.MaxValue);
         }).ConfigureAwait(false);
     }
 

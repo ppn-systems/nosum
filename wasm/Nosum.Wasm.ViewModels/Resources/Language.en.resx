@@ -53,7 +53,11 @@
   <data name="Farm_Status_NotTilled" xml:space="preserve"><value>Till the soil first.</value></data>
   <data name="Farm_Status_HasCrop" xml:space="preserve"><value>A crop already grows here.</value></data>
   <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>That does nothing here.</value></data>
+  <data name="Farm_ActionKeyHarvested" xml:space="preserve"><value>Harvested with E, even with another item in hand.</value></data>
+  <data name="Farm_Hover_Stage" xml:space="preserve"><value>Growth stage {0} of {1}</value></data>
   <data name="Farm_Status_NotMature" xml:space="preserve"><value>The crop is not ready yet.</value></data>
+  <data name="Farm_Status_NotMatureDays" xml:space="preserve"><value>Not ready, {0} days left</value></data>
+  <data name="Farm_Status_NotMatureOneDay" xml:space="preserve"><value>Not ready, 1 day left</value></data>
   <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
   <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>You no longer have that item.</value></data>
   <data name="Farm_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
@@ -550,7 +554,7 @@
   <data name="Chat_Channel_Coop" xml:space="preserve"><value>Co-op</value></data>
   <data name="Chat_Channel_Whisper" xml:space="preserve"><value>Whisper</value></data>
   <data name="Chat_InputHint" xml:space="preserve"><value>Type to talk. Tab changes channel, /w name whispers</value></data>
-  <data name="Chat_GuestHint" xml:space="preserve"><value>Guests can only use local chat. Register for more channels</value></data>
+  <data name="Chat_GuestHint" xml:space="preserve"><value>Local chat only</value></data>
   <data name="Chat_InputLabel" xml:space="preserve"><value>Chat message</value></data>
   <data name="Chat_WhisperFromTo" xml:space="preserve"><value>{0} → {1}</value></data>
   <data name="Chat_Sys_Usage" xml:space="preserve"><value>Usage: /w name text, /block name, /unblock name, /report name.</value></data>
@@ -1255,5 +1259,7 @@
   <data name="Shop_Detail_Total" xml:space="preserve"><value>Total: {0} coins for {1}</value></data>
   <data name="Shop_Detail_After" xml:space="preserve"><value>Coins after: {0}</value></data>
   <data name="Market_Confirm_Text" xml:space="preserve"><value>List {1} of {0} for {2} coins?</value></data>
+  <data name="Market_BuyConfirm_Title" xml:space="preserve"><value>Confirm purchase</value></data>
+  <data name="Market_BuyConfirm_Text" xml:space="preserve"><value>Buy {1} of {0} for {2} coins?</value></data>
   <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Running uses {0}% less energy</value></data>
 </root>

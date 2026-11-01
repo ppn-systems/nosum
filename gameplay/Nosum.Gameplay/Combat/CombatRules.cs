@@ -79,7 +79,7 @@ public static class CombatRules
     public const int GroundSlamCooldownMs = 6000;
 
     /// <summary>
-    /// Wind-up in milliseconds between an ordinary monster's strike telegraph and its landing (docs/adr/ADR-094). The player may step away
+    /// Wind-up in milliseconds between an ordinary monster's strike telegraph and its landing (docs/adr/ADR-097). The player may step away
     /// during it; the strike lands only if the player is still in reach when it does.
     /// </summary>
     public const int MonsterStrikeWindupMs = 400;
@@ -150,7 +150,7 @@ public static class CombatRules
 
     /// <summary>
     /// Whether a monster can land a melee strike on a player standing <paramref name="dx"/>, <paramref name="dy"/> tiles away (Chebyshev reach
-    /// of one tile, docs/adr/ADR-094). Used when a windup ends, so a player who stepped away takes no damage.
+    /// of one tile, docs/adr/ADR-097). Used when a windup ends, so a player who stepped away takes no damage.
     /// </summary>
     /// <param name="dx">Tile distance on X between the monster and the player.</param>
     /// <param name="dy">Tile distance on Y between the monster and the player.</param>

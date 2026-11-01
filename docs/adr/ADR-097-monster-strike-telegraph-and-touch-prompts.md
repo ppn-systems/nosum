@@ -1,8 +1,8 @@
-# ADR-094: Monster strike telegraph and touch prompts
+# ADR-097: Monster strike telegraph and touch prompts
 
 ## Status
 
-Accepted (2026-11-01). Amends ADR-046 (monster contact attacks) and ADR-047 (the boss telegraph, which is unchanged here). Protocol 31: one new
+Accepted (2026-11-01). Amends ADR-046 (monster contact attacks) and ADR-047 (the boss telegraph, which is unchanged here). protocol 32: one new
 push (`StrikeTelegraph`, S2C `0xC249`), no existing packet or field changed. No `DbBudget` row changes: the strike writes nothing to the database
 beyond the damage that already applied. Evidence: [docs/qa/combat-round3/](../qa/combat-round3/README.md).
 
@@ -41,7 +41,7 @@ device (`DeviceGate.IsTouchDevice`), through `DeviceGuardViewModel.IsTouchInput`
 
 - Monster fights take one more second of lead time per strike. Players who stood still lose the same hit points over time; players who watch
   the flash can avoid the hit. Balance is unchanged (ADR-081 targets are untouched).
-- Protocol 31. Clients built for 30 ignore the unknown push and see no flash, so the server and client ship together.
+- protocol 32. Clients built for 30 ignore the unknown push and see no flash, so the server and client ship together.
 - Only the wind-up is new. The strike's damage, defence and reply path (`ApplyMonsterContactAttackAsync`) are the existing ones.
 - Tests: `CombatRulesTests` (400 ms, reach table), `CombatPacketTests` (round trip, opcode 0xC249), `MarketSortPacketTests` (version 31),
   `FishingViewModelTests` (touch prompt).

@@ -131,7 +131,7 @@ public sealed partial class CombatService
 
                                 if (bestDist <= 1 && !CombatRules.IsBoss(m.Kind))
                                 {
-                                    // An ordinary monster winds up its strike first (docs/adr/ADR-094): the player can step out of reach in the meantime.
+                                    // An ordinary monster winds up its strike first (docs/adr/ADR-097): the player can step out of reach in the meantime.
                                     // One wind-up at a time per monster; the next one starts after the strike lands.
                                     if (instance.StrikeWindingUp.Add(m.MonsterId))
                                     {
@@ -426,7 +426,7 @@ public sealed partial class CombatService
     }
 
     /// <summary>
-    /// Waits out an ordinary monster's wind-up, then strikes the player if that player is still in reach of the monster (docs/adr/ADR-094).
+    /// Waits out an ordinary monster's wind-up, then strikes the player if that player is still in reach of the monster (docs/adr/ADR-097).
     /// The wind-up flag is cleared whatever happens, so a cancelled or failed wind-up never blocks the monster's next strike.
     /// </summary>
     [SuppressMessage("Design", "CA1031", Justification = "A detached strike must report every failure to the AI error callback instead of leaking it unobserved.")]

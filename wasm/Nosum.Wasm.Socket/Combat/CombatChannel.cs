@@ -203,7 +203,7 @@ public sealed partial class CombatChannel : IDisposable
         }
     }
 
-    /// <summary>Copies the monsters in a melee wind-up into <paramref name="destination"/> without allocating (docs/adr/ADR-094).</summary>
+    /// <summary>Copies the monsters in a melee wind-up into <paramref name="destination"/> without allocating (docs/adr/ADR-097).</summary>
     /// <param name="destination">Destination list to populate.</param>
     public void CopyStrikeWindups(List<StrikeWindupClientRow> destination)
     {

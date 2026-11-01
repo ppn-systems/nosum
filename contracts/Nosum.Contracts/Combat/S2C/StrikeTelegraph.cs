@@ -8,7 +8,7 @@ namespace Nosum.Contracts.Combat.S2C;
 
 /// <summary>
 /// Push when an ordinary monster winds up a melee strike: the monster is shown raising and flashing until the strike lands after
-/// <see cref="DelayMs"/>. The strike hits only if the player is still in reach then (docs/adr/ADR-094).
+/// <see cref="DelayMs"/>. The strike hits only if the player is still in reach then (docs/adr/ADR-097).
 /// </summary>
 [Packet]
 [GenerateFormatter]
