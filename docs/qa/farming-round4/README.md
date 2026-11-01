@@ -10,6 +10,8 @@ text, or after the step's wait: `<lang>-NN-<step>-<W>x<H>.png`.
 - **after** = this branch (`after/`), same script and copy.
 - The server is the same for both, the merged server of this branch (no server change in this round; protocol 32).
 - An earlier pass on master `b60835ed` (before master moved) gave the same results; it is superseded by this set and not kept.
+- Master moved twice more before the PR (to `1b2df17c`). The later commits touch the farm's visuals (`FarmDecorator`, the farmer's sprite) and
+  not the rules, the placement or the message line this round changes; the captures were not retaken for them.
 
 The steps, in order: `farm-start`, `sown-row` (hoe and seeds by tap on A and B), `sprinkler-placed` (E facing the tile west of A, sprinkler in hand),
 `sprinkler-watered-a` (day 1, a can tap on A), `scythe-tap-unripe` (day 2, the scythe TAP on A; the before set adds a `-retry` step, one more tap,
