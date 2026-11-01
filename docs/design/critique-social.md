@@ -60,3 +60,16 @@ the smallest change that closes it; the layout of the rest of the phone's social
 3. Item grid width in trade and co-op (finding 9); this is a visible rule break.
 4. Phone door for Trade and Friends (finding 3), and visible labels or a text line for the column (finding 10).
 5. Escape after a chat line (finding 14).
+
+## Round 3 (2026-11-01)
+
+Status of the findings above after the round-3 pass (docs/qa/social-round3/README.md):
+
+- **Finding 7 (invite still offered after joining): fixed.** The invite picker leaves out current members (`CoopInvitePicks`, unit-tested).
+  The after frame reads "No other players here to invite."
+- **Finding 8 (visit farm): browser-played.** A test friend (ADR-097) makes the two-player check possible; the visit button is clicked and the farm
+  is shown. A database record of the visit is not checked yet.
+- **Finding 9 and the friends row:** a nickname wrapped mid-word in the desktop friends row; the name now takes its own line.
+- **Blocker found on master, not in the critique:** the renderer module declared `fitLabel` twice, so the page did not start on master. Fixed.
+- **Still in the backlog:** finding 4 (co-op entry point), 3 (phone door for Trade and Friends), 5 (invite by nickname), 10 (labels on the column),
+  14 (Escape after a chat line).

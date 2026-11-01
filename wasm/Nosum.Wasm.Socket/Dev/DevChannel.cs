@@ -10,6 +10,11 @@ using Nosum.Contracts.Dev.S2C;
 
 namespace Nosum.Wasm.Socket.Dev;
 
+/// <summary>A registered test player the Development server befriended with the sender (docs/adr/ADR-097).</summary>
+/// <param name="Nickname">The test player's nickname.</param>
+/// <param name="SessionToken">The test player's session token; a second client resumes as that player with it.</param>
+public sealed record TestFriend(string Nickname, string SessionToken);
+
 /// <summary>
 /// Tester tool: asks a Development server to grant items or coins. A server running in Production does not know the opcode and never answers; the
 /// request is only sent from a client built with <c>-p:NosumDevTools=true</c> (<c>NOSUM_DEV_TOOLS</c>), so a normal build contains no way to ask.
@@ -82,6 +87,24 @@ public sealed class DevChannel
         request.Value.CastId = castId;
         _ = await _socket.RequestAsync<DevFishingBiteResult>(request.Value).ConfigureAwait(false);
     });
+
+    /// <summary>Asks the server for a new registered test friend of the sender (docs/adr/ADR-097). Null when the server made none (or does not answer).</summary>
+    /// <returns>The test player's nickname and session token, or null.</returns>
+    [SuppressMessage("Design", "CA1031", Justification = "A tester tool: a missing answer (Production) is not an error.")]
+    public async Task<TestFriend?> BefriendAsync()
+    {
+        try
+        {
+            using PacketScope<DevBefriend> request = PacketFactory<DevBefriend>.Acquire();
+            DevBefriendResult reply = await _socket.RequestAsync<DevBefriendResult>(request.Value).ConfigureAwait(false);
+            return reply.Ok ? new TestFriend(reply.Nickname, reply.SessionToken) : null;
+        }
+        catch (Exception)
+        {
+            // No answer: not a Development server.
+            return null;
+        }
+    }
 
     [SuppressMessage("Design", "CA1031", Justification = "A tester tool: a missing answer (Production) is not an error.")]
     private async Task AdvanceClockAsync(int days)

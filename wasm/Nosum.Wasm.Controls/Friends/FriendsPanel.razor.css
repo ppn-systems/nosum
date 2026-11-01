@@ -11,12 +11,13 @@
 }
 
 .friends-list ::deep .friends-row {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
 }
 
+/* The name takes a line of its own when the row is narrow: a nickname never breaks mid-word (round 3). */
 .friends-name {
-    flex: 1 1 auto;
+    flex: 1 0 100%;
     min-width: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
 }

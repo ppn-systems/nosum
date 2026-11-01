@@ -74,6 +74,29 @@ public sealed class DevQaWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task DevBefriend_InDevelopment_MakesTheSenderRegisteredAndFriendsWithANewRegisteredPlayer()
+    {
+        FakeTimeProvider clock = new(s_start);
+        await using NodeWireTests.TestHost host = await NodeWireTests.TestHost.StartAsync(_database, clock);
+        await using NodeWireTests.ToolClient player = await host.ConnectAsync();
+        _ = await player.JoinAsync(host.Timeout);
+
+        (bool ok, string nickname, string token) = await player.BefriendAsync(host.Timeout);
+
+        ok.Should().BeTrue("a Development host makes the test friend");
+        nickname.Should().StartWith("QaFriend", "the test player has a registered name of its own");
+        token.Should().NotBeNullOrEmpty("a second client signs in as the test player with this token");
+
+        await using NosumDbContext db = new(_database.Options);
+        Player sender = await db.Players.SingleAsync(p => p.Id == player.AccountId);
+        sender.IsGuest.Should().BeFalse("a friends list needs a registered account on both sides");
+        Player friend = await db.Players.SingleAsync(p => p.Nickname == nickname);
+        friend.IsGuest.Should().BeFalse("the test player is registered");
+        (await db.Friendships.AnyAsync(f => f.PlayerId == sender.Id && f.FriendId == friend.Id)).Should().BeTrue("the friendship is kept on the sender's side");
+        (await db.Friendships.AnyAsync(f => f.PlayerId == friend.Id && f.FriendId == sender.Id)).Should().BeTrue("and on the test player's side");
+    }
+
+    [Fact]
     public async Task DevLevelUp_InDevelopment_PushesTheBannerToTheSender()
     {
         FakeTimeProvider clock = new(s_start);
@@ -119,6 +142,7 @@ public sealed class DevQaWireTests : IClassFixture<PostgresFixture>
         (await player.ProbeSeasonAsync(production.Timeout)).Should().BeFalse("Production never maps DevSeason");
         (await player.ProbeLevelUpAsync(production.Timeout)).Should().BeFalse("Production never maps DevLevelUp");
         (await player.ProbeBiteAsync(production.Timeout)).Should().BeFalse("Production never maps DevFishingBite");
+        (await player.ProbeBefriendAsync(production.Timeout)).Should().BeFalse("Production never maps DevBefriend");
     }
 
     private static async Task<(int WaterX, int WaterY, int StandX, int StandY)> StandOnShoreAsync(NodeWireTests.TestHost host, NodeWireTests.ToolClient player)

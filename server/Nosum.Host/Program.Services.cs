@@ -370,6 +370,11 @@ internal static partial class Program
         // Friends (a visiting allow-list source) and chat (docs/adr/ADR-029).
         FriendService friends = new(unitOfWork, presence, sessions, notifier, nicknames, blocks, clock, friendFacts, visitFacts);
         InstanceManager.Instance.Register<IFriendService>(friends);
+        if (development)
+        {
+            IAccountService accounts = InstanceManager.Instance.GetExistingInstance<IAccountService>() ?? throw new InvalidOperationException("The account service is not registered.");
+            InstanceManager.Instance.Register<IDevSocialService>(new DevSocialService(unitOfWork, accounts, friends, nicknames));
+        }
         InstanceManager.Instance.Register<IVisitService>(new VisitService(unitOfWork, presence, players, access, nicknames, coops, clock, friends, buildingDirectory, visitFacts, blocks));
         InstanceManager.Instance.Register<IChatService>(new ChatService(presence, sessions, notifier, nicknames, blocks, unitOfWork, clock, presence, InstanceManager.Instance.GetExistingInstance<IMuteList>(), coopDirectory));
 

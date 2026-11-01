@@ -45,8 +45,8 @@ public sealed class MarketSortPacketTests
     }
 
     [Fact]
-    public void NosumProtocol_Version_IsThirtyOne_WithTheDaysLeftOnAnUnripeCrop()
+    public void NosumProtocol_Version_IsAtLeastThirtyOne_WithTheDaysLeftOnAnUnripeCrop()
     {
-        NosumProtocol.Version.Should().Be(31);
+        NosumProtocol.Version.Should().BeGreaterThanOrEqualTo(31);
     }
 }

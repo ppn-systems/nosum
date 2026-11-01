@@ -43,6 +43,8 @@ public static class NosumProtocol
     /// 30: market browse order and unit prices - <c>SortBy</c> appended to <c>BrowseListings</c> (a <c>MarketSort</c> value; docs/adr/ADR-013 amendment 2026-11-01). Server and client ship together (a field appended to an existing packet).
     /// 31: days left on an unripe crop - <c>DaysLeft</c> appended to <c>UseItemResult</c>, set on <c>FarmStatus.NotMature</c> (docs/adr/ADR-094 D2).
     /// No opcode, existing field or enum value changed. Clients built for 30 misread the reply, so they ship together.
+    /// 32: QA friend (docs/adr/ADR-097) - new Development-only packets <c>DevBefriend</c> (C2S <c>0xF006</c>) and <c>DevBefriendResult</c> (S2C <c>0xF046</c>),
+    /// with the new test player's nickname and session token. Production does not map them. No existing packet or field changed.
     /// </summary>
-    public const ushort Version = 31;
+    public const ushort Version = 32;
 }
