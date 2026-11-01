@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using FluentAssertions;
@@ -83,6 +84,71 @@ public sealed class GameMessagesViewModelTests
         vm.Notify("Something is in the way.");
 
         raised.Should().Be(1);
+    }
+
+    [Fact]
+    public void Notify_SameTextTwice_ShowsOneToastCountedTwice()
+    {
+        GameMessagesViewModel vm = Create();
+
+        vm.Notify("Hãy xới đất trước.");
+        vm.Notify("Hãy xới đất trước.");
+
+        vm.Toasts.Should().HaveCount(1);
+        vm.Toasts[0].Text.Should().Be("Hãy xới đất trước.");
+        vm.Toasts[0].Count.Should().Be(2);
+    }
+
+    [Fact]
+    public void Notify_SameTextAgain_KeepsTheToastIdAndItsPlace()
+    {
+        GameMessagesViewModel vm = Create();
+
+        vm.Notify("one");
+        vm.Notify("two");
+        long idOfOne = vm.Toasts[0].Id;
+        vm.Notify("one");
+
+        vm.Toasts.Select(t => t.Text).Should().Equal("one", "two");
+        vm.Toasts[0].Id.Should().Be(idOfOne);
+        vm.Toasts[0].Count.Should().Be(2);
+        vm.Toasts[1].Count.Should().Be(1);
+    }
+
+    [Fact]
+    public void Notify_SameTextAgain_RaisesChangedAgain()
+    {
+        GameMessagesViewModel vm = Create();
+        int raised = 0;
+        vm.Changed += () => raised++;
+
+        vm.Notify("Hãy xới đất trước.");
+        vm.Notify("Hãy xới đất trước.");
+
+        raised.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Notify_SameTextAgainLater_RestartsTheThreeSecondTimer()
+    {
+        GameMessagesViewModel vm = Create();
+
+        vm.Notify("Hãy xới đất trước.");
+        await Task.Delay(TimeSpan.FromSeconds(2)).ConfigureAwait(true);
+        vm.Notify("Hãy xới đất trước.");
+
+        // The first showing's timer ends at about three seconds; the toast must still be there because its timer was restarted.
+        await Task.Delay(TimeSpan.FromSeconds(1.5)).ConfigureAwait(true);
+        vm.Toasts.Should().ContainSingle(t => t.Text == "Hãy xới đất trước.");
+
+        // Once the restarted timer ends, the toast is gone.
+        DateTime deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+        while (vm.Toasts.Count > 0 && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(true);
+        }
+
+        vm.Toasts.Should().BeEmpty();
     }
 
     private static GameMessagesViewModel Create()
