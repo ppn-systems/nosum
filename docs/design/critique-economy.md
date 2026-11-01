@@ -173,3 +173,16 @@ price history (section 6).
 
 Tests: `EconomyBalanceTests.HayRation_*`, `BackpackRulesTests`, `BlacksmithRulesTests`, `MineViewModelTests` (iron offers), `BackpackServiceTests`
 (the second step is 1 000 on the wire and in the balance), `MarketSortViewModelTests.Buy_*` (the confirm), `MarketSortPacketTests` (protocol 30, the test renamed to match).
+
+## 11. Round 3: what changed, what did not
+
+Branch `claude/economy-round3`, ADR-101. Captures and grading: [`docs/qa/economy-round3/`](../qa/economy-round3/README.md).
+
+| Section | Item | Result |
+|:--|:--|:--|
+| 6 | Expiry on "My listings" (item 7) | **Done.** Each of the seller's listings shows the hours left (or "Expired"), from the expiry the server already sends. No wire change. |
+| 6, round-2 open | Six or eight rows without an inner scroll | **Not met.** Search and sort now share one row and listing rows are one line with a 12 u picture, but the 14 u row buttons set the row height. A page of eight scrolls by 31 px at 1280x720 and 157 px at 1920x1080 (measured, [QA README](../qa/economy-round3/README.md)). **Open for the owner:** a smaller row button (a shared control), a page size per viewport, or a shorter header. |
+| 6 | Price of current asks (item 8) | **Not done.** Needs a server query for open asks; a wire change, so it is for a later round. |
+| 2 | Recurring late-game sink | **Open for the owner** (unchanged from round 2). |
+
+Not changed: the NPC route to the market (item 5), the confirm asymmetry (item 6, owner decision), the sales-only price history.

@@ -35,7 +35,8 @@ public enum MarketTab
 /// <param name="PriceText">The price, formatted.</param>
 /// <param name="IsMine">Whether the viewer is the seller.</param>
 /// <param name="SellerText">"Seller: nickname", already localized.</param>
-public sealed record ListingDisplay(Guid Id, SlotDisplay Item, string PriceText, bool IsMine, string SellerText);
+/// <param name="ExpiryText">How long a listing stays up (its seller's "My listings" only), or empty.</param>
+public sealed record ListingDisplay(Guid Id, SlotDisplay Item, string PriceText, bool IsMine, string SellerText, string ExpiryText = "");
 
 /// <summary>A listing the seller has been asked to confirm: a large stack (see <see cref="MarketViewModel.LargeListing"/>).</summary>
 /// <param name="Slot">The inventory slot the stack is in.</param>
@@ -529,15 +530,31 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private List<ListingDisplay> Describe(ListingsInfo page)
     {
         List<ListingDisplay> rows = new(page.Listings.Count);
+        long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         foreach (ListingInfo listing in page.Listings)
         {
             string price = listing.Quantity > 1
                 ? this.Text("Market_Price_Each", Number(listing.Price), Number(listing.Price / listing.Quantity))
                 : this.Text("Market_Price", Number(listing.Price));
-            rows.Add(new ListingDisplay(listing.Id, _describer.Describe(0, listing.ItemId, listing.Quantity), price, listing.IsMine, this.Text("Market_Seller", _names.Display(listing.SellerNickname))));
+            string expiry = listing.IsMine ? this.ExpiryText(listing.ExpiresAtMs, now) : string.Empty;
+            rows.Add(new ListingDisplay(listing.Id, _describer.Describe(0, listing.ItemId, listing.Quantity), price, listing.IsMine, this.Text("Market_Seller", _names.Display(listing.SellerNickname)), expiry));
         }
 
         return rows;
+    }
+
+    /// <summary>The time a listing has left, in whole hours (rounded up), or "expired". The local clock: a listing lasts 48 hours, so a few minutes of skew do not show.</summary>
+    private string ExpiryText(long expiresAtMs, long now)
+    {
+        const long HourMs = 60L * 60 * 1000;
+        long left = expiresAtMs - now;
+        if (left <= 0)
+        {
+            return this.Text("Market_Expired");
+        }
+
+        long hours = (left + HourMs - 1) / HourMs;
+        return hours == 1 ? this.Text("Market_Expires_One") : this.Text("Market_Expires", hours);
     }
 
     private void OnCompleted(MarketAction action, MarketStatus status, long earned)
