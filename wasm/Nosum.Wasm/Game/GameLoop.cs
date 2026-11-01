@@ -485,15 +485,15 @@ internal static partial class GameLoop
     /// <param name="keys">Held directions (<see cref="InputState"/> bits) and the keys pressed since the last frame, packed by <see cref="InputPacking"/>.</param>
     /// <param name="width">Canvas width, CSS pixels.</param>
     /// <param name="height">Canvas height, CSS pixels.</param>
-    /// <param name="pointerX">Mouse x over the canvas, CSS pixels, possibly fractional on a scaled screen (drag-to-sow; rounded, docs/adr/ADR-099 D1).</param>
-    /// <param name="pointerY">Mouse y over the canvas, CSS pixels, possibly fractional (drag-to-sow; rounded, docs/adr/ADR-099 D1).</param>
+    /// <param name="pointerX">Mouse x over the canvas, CSS pixels, possibly fractional on a scaled screen (drag-to-sow; rounded, docs/adr/ADR-100 D1).</param>
+    /// <param name="pointerY">Mouse y over the canvas, CSS pixels, possibly fractional (drag-to-sow; rounded, docs/adr/ADR-100 D1).</param>
     /// <param name="pointerHeld">Bit <see cref="MouseHeldFlag"/> while the mouse button is down over the canvas; bit <see cref="UseHeldFlag"/> while the use button (touch) or the
     /// use key is held down (hold-to-repeat, backlog item 5). Other bits are zero.</param>
     [JSExport]
     internal static void Frame(double timeMs, int keys, int width, int height, double pointerX, double pointerY, int pointerHeld)
     {
         long allocationStart = FrameAllocations.Start();
-        FrameWork(timeMs, keys, width, height, pointerX, pointerY, pointerHeld);
+        FrameWork(timeMs, keys, width, height, Nosum.Wasm.ViewModels.Input.PointerPixel.Of(pointerX), Nosum.Wasm.ViewModels.Input.PointerPixel.Of(pointerY), pointerHeld);
         FrameAllocations.End(allocationStart);
     }
 
@@ -550,7 +550,7 @@ internal static partial class GameLoop
 
         // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.
         bool worldOpen = !s_connectionBlocked && !s_overlayOpen && !s_modalOpen;
-        s_scene.SetPointer(Nosum.Wasm.ViewModels.Input.PointerPixel.Of(pointerX), Nosum.Wasm.ViewModels.Input.PointerPixel.Of(pointerY), (pointerHeld & MouseHeldFlag) != 0 && worldOpen);
+        s_scene.SetPointer(pointerX, pointerY, (pointerHeld & MouseHeldFlag) != 0 && worldOpen);
         s_scene.SetUseHeld((pointerHeld & UseHeldFlag) != 0 && worldOpen);
         if (s_worldMap is not null)
         {
