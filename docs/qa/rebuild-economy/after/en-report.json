@@ -1,0 +1,22 @@
+{
+  "lang": "en",
+  "base": "http://localhost:5810",
+  "captured": [
+    "1280x720/en-seller-sell-empty.png",
+    "1280x720/en-seller-sell-picked.png",
+    "1280x720/en-seller-listed.png",
+    "1280x720/en-buyer-browse.png",
+    "1280x720/en-buyer-browse-sorted.png",
+    "1280x720/en-buyer-sell-picked.png",
+    "1280x720/en-buyer-sell-priced.png",
+    "390x844/en-seller-sell-empty.png",
+    "390x844/en-seller-sell-picked.png",
+    "390x844/en-seller-listed.png",
+    "390x844/en-buyer-browse.png",
+    "390x844/en-buyer-browse-sorted.png",
+    "390x844/en-buyer-sell-picked.png",
+    "390x844/en-buyer-sell-priced.png"
+  ],
+  "skipped": [],
+  "errors": []
+}

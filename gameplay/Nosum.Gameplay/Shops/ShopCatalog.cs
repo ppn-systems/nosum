@@ -187,7 +187,8 @@ public static class ShopCatalog
         ]),
         new(CarpenterShop, "carpenter_shop",
         [
-            new(ItemCatalog.Hay, 30),
+            // A ration is one night of feed for one animal; it costs less than the daily product it keeps coming, so buying feed pays (docs/adr/ADR-081 amendment).
+            new(ItemCatalog.Hay, 10),
             new(ItemCatalog.MilkPail, 300),
         ]),
         new(Blacksmith, "blacksmith",

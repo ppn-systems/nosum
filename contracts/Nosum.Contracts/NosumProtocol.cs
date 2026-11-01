@@ -40,6 +40,7 @@ public static class NosumProtocol
     /// 27: running - <c>MoveIntent.Running</c> appended (docs/adr/ADR-085). Clients built for 26 do not send the run flag, so the client and server ship together; no other packet changed.
     /// 28: thirsty crops - <c>Withered</c> appended to <c>FarmTileRow</c> (the server's withered flag, so the client no longer guesses it; docs/adr/ADR-021 D7 amendment 2026-10-31). Clients built for 27 misread the tile rows, so they ship together.
     /// 29: wide-use count - <c>Worked</c> appended to <c>UseItemResult</c>: the tiles a hoe or watering can line worked, each charged its own energy; and <c>FarmStatus.AlreadyWet</c> (24) appended, the refusal for soil that is wet already, which was <c>NothingToDo</c> (docs/adr/ADR-088). Clients built for 28 misread the reply, so they ship together.
+    /// 30: market browse order and unit prices - <c>SortBy</c> appended to <c>BrowseListings</c> (a <c>MarketSort</c> value; docs/adr/ADR-013 amendment 2026-11-01). Server and client ship together (a field appended to an existing packet).
     /// </summary>
-    public const ushort Version = 29;
+    public const ushort Version = 30;
 }
