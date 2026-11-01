@@ -261,7 +261,7 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     }
 
     // White multiplies to nothing: no layer needed.
-    private static string? Tint(int tint) => tint == unchecked((int)0xFFFFFFFF) ? null : LookPalette.Css(tint);
+    private static string? Tint(int tint) => tint == -1 ? null : LookPalette.Css(tint);
 
     private void OnCompleted(LookStatus status) => this.SetStatus(status == LookStatus.Ok ? string.Empty : this.Text("Wardrobe_Status_" + status));
 }

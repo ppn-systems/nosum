@@ -73,7 +73,7 @@ internal sealed partial class MonstersDecorator
                 world.AddOverlay(_itemsTexture, shrapnelSrcX, 64, 8, 8, twX + off, twY - off, twY + FrameSize, twX, 9004);
                 if (p.Kind == 2)
                 {
-                    int burstTint = unchecked((int)0xff7043e0);
+                    int burstTint = Rgba.From(0xff, 0x70, 0x43, 0xe0);
                     world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 6, 6, twX + off + 4, twY + 4, twY + FrameSize + 1, twX, 9005, tint: burstTint);
                     world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 6, 6, twX - off + 4, twY + 4, twY + FrameSize + 1, twX, 9006, tint: burstTint);
                     world.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 6, 6, twX + 4, twY + off + 4, twY + FrameSize + 1, twX, 9007, tint: burstTint);
@@ -101,7 +101,7 @@ internal sealed partial class MonstersDecorator
             int srcX = frameCol * FrameSize;
             int srcY = (12 * BlockHeight) + (d.Kind * FrameSize);
             int alpha = Math.Clamp(255 - (int)(elapsed * 200f / Math.Max(1f, d.DurationMs)), 40, 255);
-            int deathTint = unchecked((int)0xffffff00) | alpha;
+            int deathTint = Rgba.From(0xff, 0xff, 0xff, 0x00) | alpha;
 
             world.AddOverlay(
                 _sheetTexture,
