@@ -25,6 +25,15 @@
     align-items: center;
 }
 
+/* The stepper: less, the field and more, kept on one line (a phone wraps the row between its parts, never inside the stepper). */
+.shop-stepper {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--nosum-gap);
+    flex: none;
+}
+
 .shop-qty ::deep .game-input {
     width: calc(var(--u) * 30);
 }

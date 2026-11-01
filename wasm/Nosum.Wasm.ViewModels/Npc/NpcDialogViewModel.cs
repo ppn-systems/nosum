@@ -179,6 +179,9 @@ public sealed class NpcDialogViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the text of the Leave button.</summary>
     public string LeaveLabel => this.Text("Npc_Leave");
 
+    /// <summary>Gets the accessible name and tooltip of the close cross in the dialog box's title bar: the same as Leave.</summary>
+    public string CloseLabel => this.Text("Panel_Close");
+
     /// <summary>Gets the buttons the merchant offers, besides Leave. None while the line is still typing out.</summary>
     public IReadOnlyList<NpcChoice> Choices
     {
