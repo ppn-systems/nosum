@@ -9,6 +9,81 @@ on a 4-core machine shared with the bots). The one database change lowers one ho
 code measures. The load-test numbers do not improve, because this branch does not change the snapshot or send path; the run-to-run spread is about as large as
 any difference in the table.
 
+## Snapshot send at 500 clients (branch `claude/perf-server-send`)
+
+**Result: the 500-client tick p99 is still over the 20 ms budget, and this branch changes no snapshot code.** Three things were measured:
+where the 500-client tick goes, the same runs repeated three times at 50, 200 and 500 clients (mean and spread), and one parallel-send candidate
+(lanes) that was measured, showed a gain, and was **not** merged because two of its three long series froze the snapshot tick and the cause is not known.
+The one shipped change is the fix for a flaky integration test (below).
+
+### Where the 500-client tick goes
+
+A temporary probe (timers around the tick's phases and around each viewer's send, not committed) ran one 500-client steady phase on the same
+machine. Mean tick 13.3 ms, about 420 sends per tick:
+
+| Part of the tick | Time per tick | Share |
+|:--|--:|--:|
+| Each viewer's `_presence.SendAsync` (Nalix: frame, encrypt, socket write) | about 8.3 ms (about 20 µs per send) | about 63 % |
+| Per-viewer bookkeeping (interest set, `Shown` table, spawn and despawn lists) | about 2.7 ms | about 20 % |
+| Preparation (read every position, chunk moves, sort by chunk) | about 2.2 ms | about 17 % |
+
+The payload is small: 131 KiB per tick over 500 viewers, about 260 bytes each. So the cost is per send, not per byte. Each frame is encrypted with
+its connection's key and written to that connection's socket, so the send cannot be shared between viewers. This is why the brief's "serialize
+each chunk once and share the bytes" is not the lever: the encoding of about 14 rows per viewer is part of the 20 µs, not most of it. The
+public Nalix API offers no way to send bytes that are already framed and encrypted (`IPacket.Serialize()` returns a new array per call).
+The per-viewer packet is already one per tick, not one per viewer (`PacketFactory` rents once per tick).
+
+### Repeated runs: before (master, this branch's base), three runs each
+
+Same machine as the table above. Mean tick is the server's own measurement; the spread is max minus min over the three runs.
+
+| Clients | Tick mean (3 runs) | Mean ± spread | Tick p99 buckets (3 runs) | Server CPU (3 runs) | Allocated per tick (3 runs) | GC pause (3 runs) | Verdict |
+|--:|:--|:--|:--|:--|:--|:--|:--|
+| 50 | 1.19, 1.56, 1.42 ms | 1.39 ± 0.37 ms | ≤2.5, ≤10, ≤5 ms | 14, 14, 13 % | 94, 98, 92 KiB | 0, 0, 19 ms | PASS (3/3) |
+| 200 | 4.42, 5.06, 5.23 ms | 4.90 ± 0.81 ms | ≤10, ≤10, ≤10 ms | 24, 37, 38 % | 350, 348, 358 KiB | 8, 16, 19 ms | PASS (3/3) |
+| 500 | 13.55, 15.92, 13.29 ms | 14.25 ± 2.63 ms | ≤50, ≤50, ≤30 ms | 69, 78, 70 % | 962, 956, 959 KiB | 92, 94, 257 ms | **FAIL (0/3)** |
+
+### Lanes: a parallel-send candidate, measured but not merged
+
+The candidate split one tick's viewers into up to four lanes (one lane per 32 viewers, never more than the cores), each lane on its own task with its
+own snapshot packet, and the lanes sent in parallel. The sends of different viewers are independent (each has its own connection and send lock), and
+the per-viewer order (despawns, spawns, snapshot) was unchanged. Its results:
+
+- Nine 500-client runs on the candidate without a stall (two of them were warm-up runs) gave tick means of 11.8 to 13.96 ms, about 12.7 ms on
+  average, against 14.25 ms for the base. The p99 bucket was ≤ 20 ms in 2 of the 9 runs and ≤ 30 ms in the rest. **The 20 ms p99 target was not
+  reached reliably.**
+- The 50-client path is unchanged (below 64 viewers the tick sends inline).
+- **A stall.** Two of the three long candidate series (each on one server process, runs in a row) stopped sending snapshots: the snapshot tick
+  stopped advancing after the third run in one series and after the seventh in the other, and stayed stopped for the rest of that process's life.
+  No snapshots went out at any size while the handlers still answered. The baseline's long series (nine runs on one process) did not stall, which
+  is one sample, not a rate. The cause was not found. What the code shows is that a snapshot tick awaits each send with no deadline, so one send
+  that never completes freezes every map's snapshots. That hazard is in master too; the candidate may make it more likely, but this was not shown.
+
+The lanes change is therefore **not in this branch**. Before it is retried it needs: a per-send deadline (and a disconnect for a viewer whose send
+misses it), a tick watchdog that logs the stuck viewer, and a reproduction of the stall.
+
+### Database connections (a separate finding, not caused by the lanes)
+
+A leak check started one server per binary and ran 50-client runs back to back. Both binaries leave connections in the server's Npgsql pool after a
+run: 27 `nosum` connections after the first run on master, 35 after the first run with the candidate. PostgreSQL's `max_connections` is 100 here, and
+on master the second run's connection count query was refused with "too many clients already". The server does not cap its pool below that limit.
+In one stalled series the PostgreSQL log shows the same refusal at the time of the stall; in the other stalled series it does not, so the exhaustion
+is not the only trigger. Whether the exhaustion is what stalls the snapshot tick was not shown; it is a
+candidate cause for the stall above, and the first step is to cap the pool (`Maximum Pool Size`) below the server's connection limit and watch the
+connection count across runs.
+
+### Flaky test: `MapChangeTests.Disconnect_RightAfterTheMoveOntoAnExit`
+
+The test waited until `PlayerCount` was zero and then read the saved place. `MapPresence.LeaveAsync` removes the player from presence **before** the
+`PlayerLeft` handler saves the place (`PlayerService.OnPlayerLeftAsync`). So the count reached zero while the save was still in flight, and for an account
+with no saved row the read returned null: "Expected saved not to be null".
+
+- **Reproduced on demand.** With a temporary 300 ms delay before the save (not committed), the original test failed in all four cases
+  (`closeAfterMs` 0, 10, 40, 120) with that message. With the same delay, the fixed test passed in all four.
+- **Fix (test wait, not a skip).** The test now polls the saved place until the save has landed (`WaitForSavedPlaceAsync`). The cache is updated after
+  the commit (`PlayerStateService.WriteAsync`), so the poll sees the row once the save is done. The server is unchanged.
+- **Proof of stability.** The fixed test passed in 20 consecutive repeated runs (80 cases), see the PR.
+
 ## Method
 
 **Environment.** One container: 4 vCPU, 16 GB RAM, PostgreSQL 16 on the same machine, .NET 10.0.403, Release builds. The server and the bots share the four cores, so
