@@ -11,9 +11,13 @@ using Nosum.Contracts.Chat.S2C;
 using Nosum.Contracts.Friends;
 using Nosum.Contracts.Friends.C2S;
 using Nosum.Contracts.Friends.S2C;
+using Nosum.Contracts.Visit;
+using Nosum.Contracts.Visit.C2S;
+using Nosum.Contracts.Visit.S2C;
 using Nosum.Gameplay.Maps;
 using Nosum.Wasm.Socket.Chat;
 using Nosum.Wasm.Socket.Friends;
+using Nosum.Wasm.Socket.Visit;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Friends;
 using Nosum.Wasm.ViewModels.Resources;
@@ -259,6 +263,82 @@ public sealed class FriendsTests
         toolbar.Items.Where(i => i.Kind is PanelKind.Friends or PanelKind.Mail).Should().OnlyContain(i => !i.Label.StartsWith("Toolbar_", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void Visit_AFriend_SendsTheVisitWithTheFriendsStoredNickname()
+    {
+        FakeGameSocket socket = new();
+        List<string> asked = [];
+        // Pooled packets are cleared after the call, so the nickname is read while the request is still answered.
+        socket.ReplyWith(request =>
+        {
+            asked.Add(((VisitPlayer)request).Nickname);
+            return new VisitResult { Status = VisitStatus.Ok };
+        });
+        using FriendsChannel channel = new(socket);
+        socket.Push(Snapshot());
+        using FriendsViewModel vm = Create(socket, channel);
+
+        vm.Visit(s_lan);
+
+        asked.Should().Equal("Lan Anh");
+    }
+
+    [Fact]
+    public void Visit_AnUnknownPlayer_SendsNothing()
+    {
+        FakeGameSocket socket = new();
+        using FriendsChannel channel = new(socket);
+        socket.Push(Snapshot());
+        using FriendsViewModel vm = Create(socket, channel);
+
+        vm.Visit(s_ask);
+
+        socket.Requests.OfType<VisitPlayer>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Visit_Accepted_RaisesEnteredSoTheMenuCloses()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new VisitResult { Status = VisitStatus.Ok });
+        using FriendsChannel channel = new(socket);
+        socket.Push(Snapshot());
+        using FriendsViewModel vm = Create(socket, channel);
+        int entered = 0;
+        vm.Entered += () => entered++;
+
+        vm.Visit(s_minh);
+
+        entered.Should().Be(1);
+        vm.Status.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Visit_Refused_ShowsTheReasonAndDoesNotLeaveThePage()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new VisitResult { Status = VisitStatus.NotAllowed });
+        using FriendsChannel channel = new(socket);
+        socket.Push(Snapshot());
+        using FriendsViewModel vm = Create(socket, channel);
+        int entered = 0;
+        vm.Entered += () => entered++;
+
+        vm.Visit(s_minh);
+
+        entered.Should().Be(0);
+        vm.Status.Should().NotBeNullOrEmpty().And.NotStartWith("Visit_Status_");
+    }
+
+    [Fact]
+    public void Language_VisitButtonAndTouchChatHaveTextInBothLanguages()
+    {
+        string[] needed = ["Friends_VisitFarm", "Touch_Chat", "Touch_ChatLabel"];
+
+        SocialClientFixtures.Keys("Language.resx").Should().Contain(needed);
+        SocialClientFixtures.Keys("Language.en.resx").Should().Contain(needed);
+    }
+
     private static FriendsViewModel Create(FakeGameSocket socket, FriendsChannel channel)
-        => new(channel, new ChatMessenger(socket), SocialClientFixtures.Names(socket), SocialClientFixtures.Localizer<Language>());
+        => new(channel, new ChatMessenger(socket), new VisitChannel(socket), SocialClientFixtures.Names(socket), SocialClientFixtures.Localizer<Language>());
 }

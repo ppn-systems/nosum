@@ -276,14 +276,14 @@ internal sealed partial class PlayerActions
         this.TryExecuteActionKey(x, y, nowSeconds, tileSize);
     }
 
-    /// <summary>What the action key does inside the building the farmer stands in (docs/adr/ADR-090 D3): the preview the world label shows.</summary>
+    /// <summary>What the action key does inside the building the farmer stands in (docs/adr/ADR-092 D3): the preview the world label shows.</summary>
     public AnimalTend TendPreview { get; private set; }
 
     /// <summary>The animal the action key would collect from or pet, or <see cref="Guid.Empty"/> when it is not an animal.</summary>
     public Guid TendTarget { get; private set; }
 
     // Feed in hand facing the bench fills it; otherwise the animal within reach is collected from (an egg, or milk with the pail in hand) when it has produce, and petted when it has none.
-    // The same decision feeds the preview (docs/adr/ADR-090 D3), so the label and the press always agree.
+    // The same decision feeds the preview (docs/adr/ADR-092 D3), so the label and the press always agree.
     private void TendAnimals(BuildingDefinition interior, double feetX, double feetY, int tileSize)
     {
         if (_buildings is null)
@@ -335,7 +335,7 @@ internal sealed partial class PlayerActions
         return (tend, animal);
     }
 
-    // The preview is read every frame inside a building, so the label names what the press will do before the farmer presses (docs/adr/ADR-090 D3).
+    // The preview is read every frame inside a building, so the label names what the press will do before the farmer presses (docs/adr/ADR-092 D3).
     private void UpdateTendPreview(BuildingDefinition? interior, double feetX, double feetY, int tileSize)
     {
         if (interior is null || _buildings is null)

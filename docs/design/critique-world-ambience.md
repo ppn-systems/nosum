@@ -1,8 +1,9 @@
 # World ambience critique (rebuild-world-ambience)
 
 **Status:** Reviewed on the `before` build (master at 384cb1d), then three changes made. Captures and the
-numbers behind this review are in [`docs/qa/rebuild-world-ambience/`](../qa/rebuild-world-ambience/). Owner
-decision still open: the mix levels need a listening pass (section 5).
+numbers behind this review are in [`docs/qa/rebuild-world-ambience/`](../qa/rebuild-world-ambience/). Round 2 (section 6)
+closed the fall, deep-mine, transition and snow gaps and set the mix from measurements. Owner decision still open: a
+listening pass on the mix levels (section 5).
 
 ## 1. What was walked, and what was not
 
@@ -119,7 +120,26 @@ palette call for the design owner); the exit beacons (already labelled).
 
 ## 5. Open for the owner
 
-- **Listening pass** for the footstep and UI click levels against the music (section 2).
-- **Fall** and the remaining maps need a second capture run (section 1).
+- **Listening pass** on the class levels in [ADR-090](../adr/ADR-090-audio-mix-loudness-targets.md). The footstep is now
+  about five decibels under the music (from about nine). This is the one item that needs ears.
 - **Minimap void colour** (section 2): decide whether unpainted cells should read as "nothing" or as the map frame.
-- **Snow and leaves** frames need grading.
+- **Exit beacons** are faint by design (30 % gold, 10 px). The label is the cue; whether the beacon should be stronger is a
+  design call.
+
+Closed in round 2 (section 6): fall, the deeper mine floors, the map-change fade, the exit signposts, snow and leaves.
+
+## 6. Round 2
+
+Captures and numbers: [`docs/qa/world-ambience-round2/`](../qa/world-ambience-round2/README.md). Changes:
+
+- **Audio mix (ADR-090).** Every file measured (`tools/measure_audio.py`); one target level per class of sound; each file
+  gets its gain once at load. Music −16 dBFS, actions and stingers −16, footsteps −18, UI −18, rain bed −16. Footsteps move
+  from about nine decibels under the music to about five. Numbers: `docs/qa/world-ambience-round2/audio-levels.md`.
+- **Hazard labels (ADR-091).** A magma field stacked "Magma fissure" on itself (`mine35`). One label of the same text now
+  sits per 96 × 16 px. Frames: `before` and `after` `fall-noon-sun-mine35.png`.
+- **Snow (ADR-027 amendment).** Near flakes are two pixels square; the one-pixel flakes were lost on grass and path.
+- **Graded, not changed:** the fall farm (leaves read as leaves), the map-change fade (a dim frame of the old map at
+  120 ms, then the new map), the farm exits (the label is the cue; the beacon is faint).
+- **Coverage now:** fall (`fall-noon-sun`, Fall Day 5), mine floors 1, 6, 15, 25 and 35 (the four biomes), and the exits
+  east, south and north of the farm. Still not covered: the other buildings, a full game day, touch play.
+- **Listening** is still not possible here; the levels come from measurement.

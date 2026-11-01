@@ -192,7 +192,7 @@ Phase 2 (all of ADR-035 D3-D7 built). The table of phase 1 is in the history of 
 | 0x4002 | BrowseListings | one listing on the page |  | 2 | 0 | 0 | 0 | 0 |
 | 0x4003 | CreateListing | first listing | Ok | 3 | 1 | 1 | 1 | 0 |
 | 0x4003 | CreateListing | second listing | Ok | 3 | 1 | 1 | 1 | 0 |
-| 0x4004 | BuyListing | buy one listing | Ok | 6 | 2 | 1 | 2 | 2 |
+| 0x4004 | BuyListing | buy one listing | Ok | 4 | 2 | 1 | 2 | 0 |
 | 0x4005 | CancelListing | cancel own listing | Ok | 3 | 1 | 1 | 1 | 1 |
 | 0x4006 | GetMyListings | none |  | 1 | 0 | 0 | 0 | 0 |
 | 0x4006 | GetMyListings | none, asked again |  | 1 | 0 | 0 | 0 | 0 |
@@ -357,3 +357,6 @@ Measured with the same harness, before and after the change (`NOSUM_DB_BUDGET_DU
 - **Not checked by the budget, found while doing this:** `Trade / TradeConfirm` rows measure `TooSoon` on master and on this branch, so the swap is never
   executed by the scenario and its limit (2 reads, 1 write, 1 transaction) is not tested. The scenario needs a wait between the two confirmations. Left for a
   follow-up: it changes the scenario, not the server.
+
+- **2026-11-01, economy rebuild (ADR-035 amendment 2026-11-01):** `BuyListing` is at 4 reads (listing read once, the save is a compare-and-set on its
+  status; both wallets in one query for every transfer). The row above is the measurement; the limit in `DbBudgetBaseline` is 4.

@@ -127,7 +127,10 @@ public sealed class PrecipitationLayer
             int y = (int)_y[i];
             if (kind == Precipitation.Snow)
             {
-                commands.FillRect(x, y, 1, 1, _depth[i] > 0.5f ? unchecked((int)0xFFFFFFE0) : unchecked((int)0xDCE8FFB0));
+                // A near flake is two pixels square: a one-pixel flake was lost on the grass and the path (ADR-027 amendment, round 2). A far one stays one pixel.
+                bool near = _depth[i] > 0.5f;
+                int size = near ? 2 : 1;
+                commands.FillRect(x, y, size, size, near ? unchecked((int)0xFFFFFFE0) : unchecked((int)0xDCE8FFB0));
             }
             else if (kind == Precipitation.Leaves)
             {

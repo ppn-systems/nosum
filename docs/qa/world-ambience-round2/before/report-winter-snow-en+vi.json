@@ -1,0 +1,54 @@
+[
+  {
+    "scenario": "winter-snow",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Winter Day 5 2:32 PM 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/winter-snow-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/winter-snow-farm-fade.png"
+  },
+  {
+    "scenario": "winter-snow",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Winter Day 5 2:32 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/en/1280x720/winter-snow-town.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/en/1280x720/winter-snow-town-fade.png"
+  },
+  {
+    "scenario": "winter-snow",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Đông Ngày 5 14:33 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/winter-snow-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/winter-snow-farm-fade.png"
+  },
+  {
+    "scenario": "winter-snow",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Đông Ngày 5 14:33 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round2/before/vi/1280x720/winter-snow-town.png",
+    "fadeFile": "docs/qa/world-ambience-round2/before/vi/1280x720/winter-snow-town-fade.png"
+  }
+]
