@@ -29,12 +29,18 @@ public sealed class PostgresFixture : IAsyncLifetime
     /// <summary>Gets the connection string of the migrated test database.</summary>
     public string ConnectionString { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Gets the application name every connection of this fixture carries. The server counts this fixture's own backends by it, so no other
+    /// test class's connections (on this database or any other) are counted.
+    /// </summary>
+    public string ApplicationName { get; } = "nosum_test_" + Guid.NewGuid().ToString("N");
+
     public async Task InitializeAsync()
     {
         _adminConnection = Environment.GetEnvironmentVariable("NOSUM_TEST_POSTGRES") ?? DefaultAdminConnection;
         await ExecuteAdminAsync("CREATE DATABASE \"" + _databaseName + "\"");
 
-        NpgsqlConnectionStringBuilder builder = new(_adminConnection) { Database = _databaseName };
+        NpgsqlConnectionStringBuilder builder = new(_adminConnection) { Database = _databaseName, ApplicationName = this.ApplicationName };
         this.ConnectionString = builder.ConnectionString;
         this.Options = NosumDatabase.CreateOptions(this.ConnectionString);
         await NosumDatabase.MigrateAsync(this.Options, CancellationToken.None);
@@ -42,7 +48,10 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        NpgsqlConnection.ClearAllPools();
+        // Only this fixture's pool. ClearAllPools would also close the idle connections of every other test class that is still running, and
+        // their backends close while another test counts open connections (ConnectionPoolTests).
+        using NpgsqlConnection poolKey = new(NosumDatabase.WithPoolLimits(this.ConnectionString));
+        NpgsqlConnection.ClearPool(poolKey);
 
         // An autovacuum worker is a superuser backend: while it works in a fresh database, WITH (FORCE) is refused with 42501 (insufficient privilege)
         // and the drop succeeds once the worker has finished. Only that refusal is retried; any other error fails the teardown at once.

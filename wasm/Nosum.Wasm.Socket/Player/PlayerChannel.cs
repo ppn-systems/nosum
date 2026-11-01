@@ -40,7 +40,7 @@ public sealed class PlayerChannel : IDisposable
     private MoveCorrectionInfo _correction;
 
     private bool _dirty;
-    // Released when the state turns dirty, so the report loop sleeps while the farmer stands still (docs/adr/ADR-100 D2).
+    // Released when the state turns dirty, so the report loop sleeps while the farmer stands still (docs/adr/ADR-102 D2).
     // Not disposed: a report can release it after Dispose (the frame thread keeps reporting until the map goes), and a SemaphoreSlim holds no
     // unmanaged handle unless its AvailableWaitHandle is used.
     [SuppressMessage("Usage", "CA2213", Justification = "A SemaphoreSlim without AvailableWaitHandle holds no unmanaged resource; a release after Dispose must not throw.")]
@@ -264,7 +264,7 @@ public sealed class PlayerChannel : IDisposable
         try
         {
             // Sleeps until a report makes the state dirty, then waits one report interval so a walk sends at most 10 times a second. A standing
-            // farmer wakes nothing (docs/adr/ADR-100 D2: the 10 Hz timer allocated on every tick while idle).
+            // farmer wakes nothing (docs/adr/ADR-102 D2: the 10 Hz timer allocated on every tick while idle).
             while (true)
             {
                 await _wake.WaitAsync(ct).ConfigureAwait(false);

@@ -1,0 +1,42 @@
+{
+  "lang": "en",
+  "base": "http://localhost:5810",
+  "captured": [
+    "390x844/en-seller-sell-empty.png",
+    "390x844/en-seller-sell-picked.png",
+    "390x844/en-seller-listed.png",
+    "390x844/en-buyer-browse.png",
+    "390x844/en-buyer-sell-picked.png",
+    "390x844/en-buyer-sell-priced.png"
+  ],
+  "skipped": [
+    {
+      "screen": "buyer-browse-sorted",
+      "reason": "no sort control in this build"
+    }
+  ],
+  "errors": [],
+  "measures": [
+    {
+      "viewport": "390x844",
+      "clientHeight": 397,
+      "scrollHeight": 397,
+      "listings": 8,
+      "kids": [
+        "DIV.game-row:28",
+        "DIV.market-filter:65",
+        "DIV.listing-list:252",
+        "DIV.game-row:28"
+      ],
+      "filter": {
+        "h": 65,
+        "w": 340,
+        "kids": [
+          "INPUT.game-input market-search:340x33",
+          "BUTTON.game-button primary  :54x28",
+          "DIV.game-row :191x28"
+        ]
+      }
+    }
+  ]
+}

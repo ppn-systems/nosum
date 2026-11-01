@@ -314,9 +314,12 @@ internal static class ClientWiring
             mine.Load();
         };
         channel.Joined += _ => looks.Load();
+        // The first-run farm tips show only on the farm (OnboardingViewModel.OnFarm, docs/design/critique-placement.md finding 13).
+        OnboardingViewModel onboarding = services.GetRequiredService<OnboardingViewModel>();
         channel.Joined += mapId =>
         {
             bool known = GameMaps.TryGet(mapId, out MapSpec? spec);
+            onboarding.OnFarm = known && spec!.Farmable;
             if (known && spec!.IsInterior)
             {
                 buildings.ClearHere();
@@ -360,7 +363,7 @@ internal static class ClientWiring
             }
         };
         GameLoop.SkillPressRefused += key => messages.Notify(localizer[key].Value);
-        GameLoop.ActionKeyHarvested += () => messages.Notify(localizer["Farm_ActionKeyHarvested"].Value);
+        GameLoop.FarmUseSucceeded += key => messages.Notify(localizer[key].Value);
         GameLoop.CropHovered += (stage, count) => messages.SetHoverHint(stage < 0 ? null : string.Format(System.Globalization.CultureInfo.CurrentCulture, localizer["Farm_Hover_Stage"].Value, stage + 1, count));
         _ = services.GetRequiredService<NearbyPlayers>();
         ProgressViewModel progressVm = services.GetRequiredService<ProgressViewModel>();

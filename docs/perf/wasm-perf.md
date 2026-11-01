@@ -192,11 +192,11 @@ of the same harness on master (with the `renderer.js` fix only) and on this bran
 **Outside the frame body** the thread still allocates about 116 bytes a frame when idle. The calendar part was the one attributed and fixed (about 23).
 The rest is on the same thread between two frames (timers, the socket, Blazor), and needs per-source probes (open, item 4 above).
 
-## Round 5: walk grids rebuilt in place, and a position report that sleeps while idle (ADR-100)
+## Round 5: walk grids rebuilt in place, and a position report that sleeps while idle (ADR-102)
 
-Decision record: [ADR-100](../adr/ADR-100-browser-load-guard-and-in-place-walk-grids.md). Same harness and method as round 4 (`bench/wasm-perf/frame.cjs`, tester
+Decision record: [ADR-102](../adr/ADR-102-browser-load-guard-and-in-place-walk-grids.md). Same harness and method as round 4 (`bench/wasm-perf/frame.cjs`, tester
 build, 1280 × 720, `vi-VN`, the farm, 8 s idle then 8 s walking). Three runs of `master` and three of this branch, run one after the other on the shared container
-with the same server; the medians are below, the spread in brackets.
+with the same server; the medians are below, the spread in brackets. Measured on `6fc3a41` (this branch's base, before the merge of `master` at `c15f063`).
 
 | Measure (bytes a frame) | `master` | This branch | Change |
 |:--|--:|--:|--:|

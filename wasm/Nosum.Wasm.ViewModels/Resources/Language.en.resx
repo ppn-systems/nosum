@@ -53,7 +53,11 @@
   <data name="Farm_Status_NotTilled" xml:space="preserve"><value>Till the soil first.</value></data>
   <data name="Farm_Status_HasCrop" xml:space="preserve"><value>A crop already grows here.</value></data>
   <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>That does nothing here.</value></data>
-  <data name="Farm_ActionKeyHarvested" xml:space="preserve"><value>Harvested with E, even with another item in hand.</value></data>
+  <data name="Farm_HarvestedWithOtherItem" xml:space="preserve"><value>Harvested, even with another item in hand.</value></data>
+  <data name="Farm_Done_Tilled" xml:space="preserve"><value>Soil tilled.</value></data>
+  <data name="Farm_Done_Planted" xml:space="preserve"><value>Seeds planted.</value></data>
+  <data name="Farm_Done_Watered" xml:space="preserve"><value>Watered.</value></data>
+  <data name="Farm_Done_Harvested" xml:space="preserve"><value>Harvested.</value></data>
   <data name="Farm_Hover_Stage" xml:space="preserve"><value>Growth stage {0} of {1}</value></data>
   <data name="Farm_Status_NotMature" xml:space="preserve"><value>The crop is not ready yet.</value></data>
   <data name="Farm_Status_NotMatureDays" xml:space="preserve"><value>Not ready, {0} days left</value></data>
@@ -99,7 +103,7 @@
   <data name="Place_Status_Reserved" xml:space="preserve"><value>Keep the doorway clear.</value></data>
   <data name="Place_Status_Overlaps" xml:space="preserve"><value>There is furniture there already.</value></data>
   <data name="Place_Status_OutOfReach" xml:space="preserve"><value>Too far away, step closer.</value></data>
-  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>You are standing there.</value></data>
+  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>You are standing there. Step aside to place it.</value></data>
   <data name="Place_Status_UnknownObject" xml:space="preserve"><value>That piece is gone.</value></data>
   <data name="Place_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
   <data name="Place_Status_LimitReached" xml:space="preserve"><value>The house cannot hold more furniture.</value></data>
@@ -127,7 +131,7 @@
   <data name="Market_Tab_Browse" xml:space="preserve"><value>Browse</value></data>
   <data name="Market_Tab_Sell" xml:space="preserve"><value>Sell</value></data>
   <data name="Market_Tab_Mine" xml:space="preserve"><value>My listings</value></data>
-  <data name="Market_SearchPlaceholder" xml:space="preserve"><value>Search by item name</value></data>
+  <data name="Market_SearchPlaceholder" xml:space="preserve"><value>Search items</value></data>
   <data name="Market_Search" xml:space="preserve"><value>Search</value></data>
   <data name="Market_Empty" xml:space="preserve"><value>No listings found.</value></data>
   <data name="Market_Price" xml:space="preserve"><value>{0} coins</value></data>
@@ -135,6 +139,9 @@
   <data name="Market_TotalPrice" xml:space="preserve"><value>Total price</value></data>
   <data name="Market_Buy" xml:space="preserve"><value>Buy</value></data>
   <data name="Market_Cancel" xml:space="preserve"><value>Withdraw</value></data>
+  <data name="Market_Expires" xml:space="preserve"><value>{0} hours left</value></data>
+  <data name="Market_Expires_One" xml:space="preserve"><value>1 hour left</value></data>
+  <data name="Market_Expired" xml:space="preserve"><value>Expired</value></data>
   <data name="Market_YourListing" xml:space="preserve"><value>Your listing</value></data>
   <data name="Market_SellHint" xml:space="preserve"><value>Pick a slot of your inventory to list it.</value></data>
   <data name="Market_Quantity" xml:space="preserve"><value>Quantity</value></data>
@@ -145,8 +152,8 @@
   <data name="Toast_Repeat" xml:space="preserve"><value>{0} ×{1}</value></data>
   <data name="Market_Done_Create" xml:space="preserve"><value>Listed for sale.</value></data>
   <data name="Market_Sort_Newest" xml:space="preserve"><value>Newest</value></data>
-  <data name="Market_Sort_UnitLowest" xml:space="preserve"><value>Cheapest each</value></data>
-  <data name="Market_Sort_UnitHighest" xml:space="preserve"><value>Priciest each</value></data>
+  <data name="Market_Sort_UnitLowest" xml:space="preserve"><value>Cheapest</value></data>
+  <data name="Market_Sort_UnitHighest" xml:space="preserve"><value>Priciest</value></data>
   <data name="Market_Price_Each" xml:space="preserve"><value>{0} coins ({1} each)</value></data>
   <data name="Market_BinHint" xml:space="preserve"><value>The shipping bin pays {0} coins each, {1} for this stack.</value></data>
   <data name="Market_Done_CreateDetail" xml:space="preserve"><value>Listed {0} × {1} for {2} coins. You receive {3} coins when it sells, after the {4}% fee.</value></data>
@@ -1200,6 +1207,7 @@
   <data name="Furniture_Category_Plants" xml:space="preserve"><value>Plants</value></data>
   <data name="Furniture_Category_Decor" xml:space="preserve"><value>Decor</value></data>
   <data name="Furniture_Category_Rugs" xml:space="preserve"><value>Rugs</value></data>
+  <data name="Furniture_Category_Equipment" xml:space="preserve"><value>Equipment</value></data>
   <data name="Furniture_Search" xml:space="preserve"><value>Search furniture...</value></data>
   <data name="Furniture_Place" xml:space="preserve"><value>Place</value></data>
   <data name="Furniture_PickUp" xml:space="preserve"><value>Pick up</value></data>

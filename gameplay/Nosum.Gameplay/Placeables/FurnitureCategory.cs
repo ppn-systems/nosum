@@ -28,4 +28,8 @@ public enum FurnitureCategory : byte
 
     /// <summary>Rugs and mats: walked over, never blocking.</summary>
     Rugs = 7,
+
+    /// <summary>Crafted machines a player places on the farm: the furnace and the sprinkler (docs/adr/ADR-024). Listed with the furniture so the
+    /// arrange panel shows the piece in hand (docs/design/critique-placement.md, finding 14).</summary>
+    Equipment = 8,
 }

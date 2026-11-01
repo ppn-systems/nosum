@@ -1,4 +1,4 @@
-// Browser smoke test of the published client (docs/adr/ADR-100): boots it against the Development server, waits for the first game frame and
+// Browser smoke test of the published client (docs/adr/ADR-102): boots it against the Development server, waits for the first game frame and
 // fails on any page error. Headless Chromium from Playwright (preinstalled in the cloud container; no `playwright install`).
 //
 //   node tests/browser/smoke/boot-smoke.cjs <baseUrl> [--timeout-ms 120000] [--shot out.png]

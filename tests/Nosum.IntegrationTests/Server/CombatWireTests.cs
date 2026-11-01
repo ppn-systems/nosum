@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Nalix.Framework.Injection;
 using Nalix.Hosting;
+using Nosum.Abstractions.Combat;
+using Nosum.Abstractions.Maps;
 using Nosum.Contracts.Combat;
 using Nosum.Contracts.Combat.S2C;
 using Nosum.Contracts.Player.S2C;
@@ -19,6 +21,7 @@ using Nosum.Gameplay.Combat;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Skills;
 using Nosum.Host;
+using Nosum.Infrastructure.Combat;
 using Xunit;
 
 namespace Nosum.IntegrationTests.Server;
@@ -151,6 +154,101 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
         landed.Should().Be(CombatRules.BaseMaxMp - SkillCatalog.Fireball.MpCost, "the MP of one cast only is spent");
     }
 
+    /// <summary>
+    /// The strike wind-up resolves at its end (docs/adr/ADR-097 D3): a player who stays beside an ordinary monster through the wind-up takes the hit.
+    /// The monster is one with no other monster near it, so the hit can only come from this one.
+    /// </summary>
+    [Fact]
+    public async Task StrikeWindup_PlayerStaysAdjacent_TakesTheHitWhenTheWindupEnds()
+    {
+        await using Server server = await Server.StartAsync(_database, monsterAi: true);
+        MonsterRow monster = await IsolatedMonsterAsync(server);
+        (int dx, int dy) = await OpenDirectionAsync(monster, reachTwo: false);
+        await using SocialClient actor = await SocialClient.ConnectAsync(server.Port, server.Token, TileCentreAt(monster.X + dx, monster.Y + dy));
+        await actor.JoinAsync(server.Token);
+        VitalsState before = await actor.GetVitalsAsync(server.Token);
+
+        (int monsterId, int delayMs) = await actor.Telegraphs.WaitAsync(t => t.MonsterId == monster.MonsterId, server.Token);
+
+        delayMs.Should().Be(CombatRules.MonsterStrikeWindupMs, "the wind-up is the server's, not the client's");
+        VitalsState after = await WaitForHpBelowAsync(actor, before.Hp, server.Token);
+        after.Hp.Should().BeLessThan(before.Hp, "a player still in reach when the wind-up ends takes the contact damage");
+        monsterId.Should().Be(monster.MonsterId);
+    }
+
+    /// <summary>
+    /// A player who steps out of reach during the wind-up takes no hit (docs/adr/ADR-097 D3). The move is accepted by the server, so the player really
+    /// is two tiles from the monster when the wind-up ends; the strike is refused, not dodged by the client.
+    /// </summary>
+    [Fact]
+    public async Task StrikeWindup_PlayerStepsOutOfReachBeforeItEnds_TakesNoHit()
+    {
+        await using Server server = await Server.StartAsync(_database, monsterAi: true);
+        MonsterRow monster = await IsolatedMonsterAsync(server);
+        (int dx, int dy) = await OpenDirectionAsync(monster, reachTwo: true);
+        await using SocialClient actor = await SocialClient.ConnectAsync(server.Port, server.Token, TileCentreAt(monster.X + dx, monster.Y + dy));
+        await actor.JoinAsync(server.Token);
+        VitalsState before = await actor.GetVitalsAsync(server.Token);
+
+        (int _, int delayMs) = await actor.Telegraphs.WaitAsync(t => t.MonsterId == monster.MonsterId, server.Token);
+        await actor.SendMoveAsync(1, (float)(((monster.X + (2 * dx)) * TileSize) + (TileSize / 2)), (float)(((monster.Y + (2 * dy)) * TileSize) + (TileSize / 2)), server.Token);
+
+        // Watch the whole wind-up and a little past it; the next AI tick is 1.5 s away, so no second wind-up can resolve in this window.
+        await Task.Delay(TimeSpan.FromMilliseconds(delayMs + 300), server.Token);
+        actor.Corrections.TryTake(out _).Should().BeFalse("the step out of reach is a legal move, so the server accepts it");
+        VitalsState after = await actor.GetVitalsAsync(server.Token);
+        after.Hp.Should().Be(before.Hp, "a player who stepped out of reach before the wind-up ended takes no contact damage");
+    }
+
+    // The monster with the most room around it: no other monster within the aggro radius, so a hit on the actor can only be this monster's.
+    private static async Task<MonsterRow> IsolatedMonsterAsync(Server server)
+    {
+        MonstersSnapshot monsters = await ProbeMonstersAsync(server);
+        return monsters.Monsters
+            .OrderByDescending(m => monsters.Monsters
+                .Where(o => o.MonsterId != m.MonsterId)
+                .Select(o => ChebyshevTiles(o, m))
+                .DefaultIfEmpty(int.MaxValue)
+                .Min())
+            .First();
+    }
+
+    // A side of the monster whose tile (and, for the step-out, the tile two beyond it) is open ground on the woods map.
+    private static async Task<(int Dx, int Dy)> OpenDirectionAsync(MonsterRow monster, bool reachTwo)
+    {
+        IMapCatalog maps = InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
+        _ = maps.TryGet(GameMaps.Woods, out MapDefinition? woods);
+        foreach ((int dx, int dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+        {
+            bool near = !woods!.Grid.IsBlocked(monster.X + dx, monster.Y + dy);
+            bool far = !woods.Grid.IsBlocked(monster.X + (2 * dx), monster.Y + (2 * dy));
+            if (near && (!reachTwo || far))
+            {
+                return (dx, dy);
+            }
+        }
+
+        throw new InvalidOperationException("the monster stands in a pocket with no open side on the woods map");
+    }
+
+    private static (string Map, double X, double Y) TileCentreAt(int x, int y)
+        => (GameMaps.Woods, (x * TileSize) + (TileSize / 2), (y * TileSize) + (TileSize / 2));
+
+    // The monster's strike lands at the end of the wind-up; the actor polls its vitals until the hit shows (the wait is bounded by the test timeout).
+    private static async Task<VitalsState> WaitForHpBelowAsync(SocialClient actor, int hp, CancellationToken ct)
+    {
+        while (true)
+        {
+            VitalsState vitals = await actor.GetVitalsAsync(ct);
+            if (vitals.Hp < hp)
+            {
+                return vitals;
+            }
+
+            await Task.Delay(50, ct);
+        }
+    }
+
     // The woods monsters are planned per map and game day; a probe joins and reads them, then the actor is placed on the most durable one.
     private static async Task<(string Map, double X, double Y)> NearMonsterAsync(Server server)
     {
@@ -193,6 +291,8 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
     {
         private readonly NetworkApplication _app;
         private readonly CancellationTokenSource _timeout = new(s_timeout);
+        private readonly CancellationTokenSource _ai = new();
+        private Task? _aiLoop;
 
         private Server(NetworkApplication app, ushort port)
         {
@@ -204,7 +304,11 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
 
         public CancellationToken Token => _timeout.Token;
 
-        public static async Task<Server> StartAsync(PostgresFixture database)
+        /// <summary>
+        /// Starts the server. The monster AI is not part of the application (the host's loops start it), so a test that needs monsters to strike runs
+        /// the same AI tick here at the server's own interval (<paramref name="monsterAi"/>, docs/adr/ADR-097).
+        /// </summary>
+        public static async Task<Server> StartAsync(PostgresFixture database, bool monsterAi = false)
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
@@ -213,11 +317,31 @@ public sealed class CombatWireTests : IClassFixture<PostgresFixture>
             NetworkApplication app = Program.BuildApplication(port, clock, development: true);
             Server server = new(app, port);
             await app.ActivateAsync(server.Token);
+            if (monsterAi)
+            {
+                ICombatService combat = InstanceManager.Instance.GetExistingInstance<ICombatService>()
+                    ?? throw new InvalidOperationException("The combat service is not registered.");
+                server._aiLoop = combat.RunAiAsync(CombatService.DefaultAiInterval, _ => { }, server._ai.Token);
+            }
+
             return server;
         }
 
         public async ValueTask DisposeAsync()
         {
+            await _ai.CancelAsync();
+            if (_aiLoop is not null)
+            {
+                try
+                {
+                    await _aiLoop;
+                }
+                catch (OperationCanceledException)
+                {
+                }
+            }
+
+            _ai.Dispose();
             await _app.DeactivateAsync(CancellationToken.None);
             await _app.DisposeAsync();
             _timeout.Dispose();
