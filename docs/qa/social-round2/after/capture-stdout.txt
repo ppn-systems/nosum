@@ -1,0 +1,19 @@
+     chat input open = true
+ok   vi-1280x720-chat-open
+ok   vi-1280x720-trade
+     chat input open = true
+ok   vi-1920x1080-chat-open
+ok   vi-1920x1080-trade
+     chat input open = true
+ok   vi-390x844-chat-open
+ok   vi-390x844-trade
+     chat input open = true
+ok   en-1280x720-chat-open
+ok   en-1280x720-trade
+     chat input open = true
+ok   en-1920x1080-chat-open
+ok   en-1920x1080-trade
+     chat input open = true
+ok   en-390x844-chat-open
+ok   en-390x844-trade
+DONE

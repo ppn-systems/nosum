@@ -1,16 +1,18 @@
-     chat input open = false
+     chat input open = true
 ok   vi-1280x720-chat-open
-FAIL vi-1280x720-trade: locator.click: Timeout 5000ms exceeded.
-     chat input open = false
+ok   vi-1280x720-trade
+     chat input open = true
 ok   vi-1920x1080-chat-open
-FAIL vi-1920x1080-trade: locator.click: Timeout 5000ms exceeded.
-FAIL vi-390x844-chat-open: locator.tap: Timeout 3000ms exceeded.
-FAIL vi-390x844-trade: locator.click: Timeout 5000ms exceeded.
-     chat input open = false
+ok   vi-1920x1080-trade
+     chat input open = true
+ok   vi-390x844-chat-open
+ok   vi-390x844-trade
+     chat input open = true
 ok   en-1280x720-chat-open
-FAIL en-1280x720-trade: locator.click: Timeout 5000ms exceeded.
-     chat input open = false
+ok   en-1280x720-trade
+     chat input open = true
 ok   en-1920x1080-chat-open
-FAIL en-1920x1080-trade: locator.click: Timeout 5000ms exceeded.
-FAIL en-390x844-chat-open: locator.tap: Timeout 3000ms exceeded.
-FAIL en-390x844-trade: locator.click: Timeout 5000ms exceeded.
+ok   en-1920x1080-trade
+     chat input open = true
+ok   en-390x844-chat-open
+ok   en-390x844-trade
