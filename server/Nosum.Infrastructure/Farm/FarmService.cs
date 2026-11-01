@@ -289,9 +289,17 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             bool ground = tillable.IsTillable(tileX, tileY);
             bool locked = ground && member is not null && !CoopUpgrades.IsLandUnlocked(member.LandLevel, tileX, tileY);
             int harvestBonus = FarmRules.IsBonusHarvest(player.Instance.Key, tileX, tileY, nowMs, _calendar, player.Instance.IsOutdoors) ? 1 : 0;
-            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(player.Instance, tileX, tileY), harvestBonus, tail);
+            long? sprinklerSince = _placed?.SprinklerWateredSinceMs(player.Instance, tileX, tileY);
+            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, sprinklerSince, harvestBonus, tail);
             if (plan.Verdict != FarmVerdict.Ok)
             {
+                // An unripe crop says how many watered days it has left (docs/adr/ADR-094 D2); the client writes the words in its language.
+                if (plan.Verdict == FarmVerdict.NotMature && current is { } growing)
+                {
+                    int daysLeft = FarmRules.DaysUntilMature(growing, nowMs, _calendar, player.Instance.IsOutdoors, sprinklerSince);
+                    return new FarmUseOutcome(FarmStatus.NotMature, FarmAction.None, DaysLeft: daysLeft);
+                }
+
                 return Refused(locked && plan.Verdict == FarmVerdict.NotTillable ? FarmStatus.LockedLand : ToStatus(plan.Verdict));
             }
 
@@ -390,9 +398,11 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         bool hasItem = held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out _);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item);
 
-        // A mature crop is harvested whatever is held (bare hands included), except on the trailing tiles of a wide tool swing.
+        // A mature crop is harvested whatever is held (bare hands included), except on the trailing tiles of a wide tool swing (see below).
         bool withered = current is { HasCrop: true } standing && FarmRules.IsWithered(standing, nowMs, _calendar, outdoors, sprinklerSinceMs);
-        if (!tail && current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinklerSinceMs))
+        // A trailing tile of a line is not harvested, except by the scythe, which harvests along its line (docs/adr/ADR-094 D1).
+        bool harvestsHere = !tail || (item is { Kind: ItemKind.Tool } && ToolRules.HarvestsAlongALine(item.Tool));
+        if (harvestsHere && current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinklerSinceMs))
         {
             FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested, outdoors, sprinklerSinceMs);
             if (harvest != FarmVerdict.Ok)
@@ -420,10 +430,11 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
 
             case ItemKind.Tool when item.Tool == ToolKind.WateringCan:
                 {
-                    // Soil that is wet already (from the can today, a rainy day outdoors or a sprinkler) takes no more water: the can keeps its water and the player their energy.
-                    if (current is { } wet && FarmRules.IsWet(wet, nowMs, _calendar, outdoors, sprinklerSinceMs))
+                    // The one rule for a watering (docs/adr/ADR-094 D3): soil wet already takes no more water, so the can keeps its water and the player their energy.
+                    FarmVerdict check = FarmRules.WaterVerdict(current, nowMs, _calendar, outdoors, sprinklerSinceMs);
+                    if (check != FarmVerdict.Ok)
                     {
-                        return Plan.Refuse(FarmVerdict.AlreadyWet);
+                        return Plan.Refuse(check);
                     }
 
                     FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinklerSinceMs);
