@@ -9,6 +9,7 @@ using Nalix.Codec.Pooling;
 using Nosum.Contracts.Market;
 using Nosum.Contracts.Market.C2S;
 using Nosum.Contracts.Market.S2C;
+using Nosum.Contracts.Validation;
 
 namespace Nosum.Wasm.Socket.Market;
 
@@ -27,10 +28,11 @@ public readonly record struct ListingInfo(Guid Id, int ItemId, int Quantity, lon
 /// <param name="Page">Page number, zero based.</param>
 /// <param name="Total">Number of matching listings, all pages.</param>
 /// <param name="Listings">The page.</param>
-public sealed record ListingsInfo(long ServerNowMs, int Page, int Total, IReadOnlyList<ListingInfo> Listings)
+/// <param name="PageSize">Listings per page the browse asked for; zero when the page was not a browse.</param>
+public sealed record ListingsInfo(long ServerNowMs, int Page, int Total, IReadOnlyList<ListingInfo> Listings, int PageSize = 0)
 {
     /// <summary>Gets an empty page.</summary>
-    public static readonly ListingsInfo Empty = new(0, 0, 0, []);
+    public static readonly ListingsInfo Empty = new(0, 0, 0, [], 0);
 }
 
 /// <summary>The sales of one item on one game day.</summary>
@@ -75,6 +77,7 @@ public enum MarketAction
 public sealed class MarketChannel
 {
     private readonly IGameSocket _socket;
+    private int _browseSerial;
 
     /// <summary>Initializes the channel.</summary>
     /// <param name="socket">The game connection.</param>
@@ -109,10 +112,11 @@ public sealed class MarketChannel
     /// <param name="page">Page number, zero based.</param>
     /// <param name="itemIds">Only these items; empty for all.</param>
     /// <param name="sort">The order of the page (a <see cref="MarketSort"/> value); newest first by default.</param>
-    public void Browse(int page, IReadOnlyList<int> itemIds, MarketSort sort = MarketSort.Newest)
+    /// <param name="pageSize">Listings on the page (the rows the panel has room for); zero is the server's default. docs/adr/ADR-101 amendment 2026-11-01.</param>
+    public void Browse(int page, IReadOnlyList<int> itemIds, MarketSort sort = MarketSort.Newest, int pageSize = 0)
     {
         ArgumentNullException.ThrowIfNull(itemIds);
-        _ = this.BrowseAsync(page, itemIds, (int)sort);
+        _ = this.BrowseAsync(page, itemIds, (int)sort, pageSize, ++_browseSerial);
     }
 
     /// <summary>Reads the daily price history of one item.</summary>
@@ -143,7 +147,7 @@ public sealed class MarketChannel
     /// <param name="quantity">How many; zero ships the whole stack.</param>
     public void Ship(int slot, int itemId, int quantity) => _ = this.ShipAsync(slot, itemId, quantity);
 
-    private static ListingsInfo Map(ListingsPage page)
+    private static ListingsInfo Map(ListingsPage page, int pageSize = 0)
     {
         List<ListingInfo> rows = new(page.Rows.Count);
         foreach (ListingRow row in page.Rows)
@@ -151,21 +155,29 @@ public sealed class MarketChannel
             rows.Add(new ListingInfo(row.ListingId, row.ItemId, row.Quantity, row.Price, row.ExpiresAtMs, row.IsMine, row.SellerNickname));
         }
 
-        return new ListingsInfo(page.ServerNowMs, page.Page, page.Total, rows);
+        return new ListingsInfo(page.ServerNowMs, page.Page, page.Total, rows, pageSize);
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "A lost read changes nothing; the player asks again.")]
-    private async Task BrowseAsync(int page, IReadOnlyList<int> itemIds, int sortBy)
+    private async Task BrowseAsync(int page, IReadOnlyList<int> itemIds, int sortBy, int pageSize, int serial)
     {
         try
         {
             using PacketScope<BrowseListings> request = PacketFactory<BrowseListings>.Acquire();
             request.Value.Page = page;
             request.Value.SortBy = sortBy;
+            request.Value.PageSize = pageSize;
             request.Value.ItemIds.Clear();
             request.Value.ItemIds.AddRange(itemIds);
             ListingsPage reply = await _socket.RequestAsync<ListingsPage>(request.Value).ConfigureAwait(false);
-            this.Browsed = Map(reply);
+
+            // Only the newest browse is shown: a reply to an older one that arrives late (the panel asked again, say for another page size) must not put back a page the panel has left.
+            if (serial != _browseSerial)
+            {
+                return;
+            }
+
+            this.Browsed = Map(reply, pageSize <= 0 ? 0 : Math.Min(pageSize, WireLimits.MaxListingsPageSize));
             this.BrowseChanged?.Invoke();
         }
         catch (Exception)

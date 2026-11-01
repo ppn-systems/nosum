@@ -79,7 +79,7 @@ public static partial class MarketHandlers
         // An unknown sort value reads as the newest first (docs/adr/ADR-013 amendment 2026-11-01).
         int sortBy = context.Packet.SortBy;
         MarketSort sort = sortBy is >= 0 and <= (int)MarketSort.UnitPriceHighest ? (MarketSort)sortBy : MarketSort.Newest;
-        ListingsPageView view = await s_market.BrowseAsync(page, context.Packet.ItemIds, sort, context.CancellationToken).ConfigureAwait(false);
+        ListingsPageView view = await s_market.BrowseAsync(page, context.Packet.ItemIds, sort, context.Packet.PageSize, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<BrowseListings, ListingsPage>(context, sequence, r => FillPage(r, view, player.PlayerId)).ConfigureAwait(false);
     }
 

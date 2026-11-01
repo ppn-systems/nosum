@@ -123,7 +123,7 @@ internal sealed class BudgetRig : IAsyncDisposable
 
         HostServices.Register(options);
         TestAccounts.UseFakeVerifiers(options);
-        NetworkApplication app = Program.BuildApplication(port, clock, development: true);
+        NetworkApplication app = Program.BuildApplication(port, clock, development: true, seams: new ServerSeams(Dispatch: new AttributionMiddleware(counter)));
         BudgetRig rig = new(app, port, counter, clock, options, timeout);
         await app.ActivateAsync(rig.Timeout);
         return rig;
@@ -173,6 +173,12 @@ internal sealed class BudgetRig : IAsyncDisposable
     /// Runs <paramref name="act"/> and records what it cost the database: the counter is let go quiet first, so earlier work does not leak in,
     /// and again afterwards, so work a request leaves running after its reply (a push, a save) is counted for it.
     /// </summary>
+    /// <remarks>
+    /// A packet row counts only the commands run under the row's scope: the handler of the packet it sends (the dispatch middleware enters the
+    /// scope) and the row's own work on this flow. Background work that runs meanwhile (the day sweep, the snapshot and write-behind loops, the
+    /// session-end handler of an earlier socket) is not on those flows and is not counted for the row. The Connection and Background rows are not
+    /// packets and their work runs off this flow (a socket close, a background pass), so they count everything the server did in the window.
+    /// </remarks>
     /// <typeparam name="T">What <paramref name="act"/> returns.</typeparam>
     /// <param name="group">The area (Account, Farm, Market, ...) the row is filed under.</param>
     /// <param name="opcode">The client packet's opcode, or <see langword="null"/> for a cost that is not a packet.</param>
@@ -183,17 +189,35 @@ internal sealed class BudgetRig : IAsyncDisposable
     /// <returns>What <paramref name="act"/> returned.</returns>
     public async Task<T> MeasureAsync<T>(string group, ushort? opcode, string name, string variant, Func<Task<T>> act, Func<T, bool>? keep = null)
     {
+        bool attributed = group is not ("Connection" or "Background");
         await this.Counter.SettleAsync(TimeSpan.FromMilliseconds(120), this.Timeout);
         int mark = this.Counter.Mark;
-        T value = await act();
-        await this.Counter.SettleAsync(TimeSpan.FromMilliseconds(220), this.Timeout);
+        T value;
+        object? previous = this.Counter.Scope;
+        object? window = attributed ? this.Counter.OpenWindow() : null;
+        try
+        {
+            // The row's own work runs on this flow under the window's scope; a packet's handler enters the same scope on the server.
+            this.Counter.Scope = window;
+            value = await act();
+            await this.Counter.SettleAsync(TimeSpan.FromMilliseconds(220), this.Timeout);
+        }
+        finally
+        {
+            this.Counter.Scope = previous;
+            if (attributed)
+            {
+                this.Counter.CloseWindow();
+            }
+        }
+
         if (keep is not null && !keep(value))
         {
             return value;
         }
 
         string? outcome = value?.GetType().GetProperty("Status")?.GetValue(value)?.ToString();
-        this.Results.Add(new Measurement(group, opcode, name, variant, this.Counter.Since(mark)) { Outcome = outcome });
+        this.Results.Add(new Measurement(group, opcode, name, variant, this.Counter.Since(mark, attributed)) { Outcome = outcome });
 
         // A write-behind row (docs/adr/ADR-035 D7) would otherwise land inside a later row's window when its timer fires; it is flushed here, after this row's count was taken,
         // and its own cost is measured in the WriteBehindFlush row.

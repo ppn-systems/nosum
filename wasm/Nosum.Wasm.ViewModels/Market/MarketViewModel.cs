@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Market;
+using Nosum.Contracts.Validation;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Market;
@@ -63,6 +64,12 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     /// <summary>From this many coins, a purchase waits for the buyer's confirm (docs/adr/ADR-013 amendment A10, the buy side of <see cref="LargeListing"/>).</summary>
     public const long LargePurchase = 1_000;
 
+    /// <summary>The fewest listings a browse page shows: one row, however small the panel.</summary>
+    public const int MinPageSize = 1;
+
+    /// <summary>The most listings a browse page asks for (the wire limit; docs/adr/ADR-101 amendment 2026-11-01).</summary>
+    public const int MaxPageSize = WireLimits.MaxListingsPageSize;
+
     private readonly MarketChannel _market;
     private readonly InventoryViewModel _inventory;
     private readonly ItemDescriber _describer;
@@ -76,6 +83,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private MarketPurchaseRequest? _pendingPurchase;
     private int _historyItemId;
     private MarketSort _sort = MarketSort.Newest;
+    private int _pageSize = CoinRules.ListingsPerPage;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="market">The market channel.</param>
@@ -123,8 +131,18 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the zero-based browse page.</summary>
     public int Page => _market.Browsed.Page;
 
-    /// <summary>Gets the number of browse pages (at least one).</summary>
-    public int PageCount => Math.Max(1, (_market.Browsed.Total + CoinRules.ListingsPerPage - 1) / CoinRules.ListingsPerPage);
+    /// <summary>Gets the listings on a browse page: the rows the panel has room for (docs/adr/ADR-101 amendment 2026-11-01).</summary>
+    public int PageSize => _pageSize;
+
+    /// <summary>Gets the number of browse pages (at least one), counted in the page size the last browse asked for.</summary>
+    public int PageCount
+    {
+        get
+        {
+            int size = _market.Browsed.PageSize > 0 ? _market.Browsed.PageSize : _pageSize;
+            return Math.Max(1, (_market.Browsed.Total + size - 1) / size);
+        }
+    }
 
     /// <summary>Gets the listings of the browse page.</summary>
     public IReadOnlyList<ListingDisplay> Browsed => this.Describe(_market.Browsed);
@@ -314,7 +332,45 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
 
     /// <summary>Loads a browse page.</summary>
     /// <param name="page">Zero-based page.</param>
-    public void GoToPage(int page) => _market.Browse(Math.Max(0, page), _searchIds, _sort);
+    public void GoToPage(int page) => _market.Browse(Math.Max(0, page), _searchIds, _sort, _pageSize);
+
+    /// <summary>
+    /// Gives the browse page the rows its panel has room for (see <see cref="RowsThatFit"/>). A new size shows the first page in that size; the same size
+    /// does nothing, so a render that measures again stops here.
+    /// </summary>
+    /// <param name="rows">The rows; clamped to <see cref="MinPageSize"/>..<see cref="MaxPageSize"/>.</param>
+    public void SetPageSize(int rows)
+    {
+        int next = Math.Clamp(rows, MinPageSize, MaxPageSize);
+        if (next == _pageSize)
+        {
+            return;
+        }
+
+        _pageSize = next;
+        if (this.Tab == MarketTab.Browse)
+        {
+            this.GoToPage(0);
+        }
+    }
+
+    /// <summary>
+    /// The whole listing rows that fit a space: n rows take n × row + (n − 1) × gap, so n is at most (space + gap) / (row + gap). Clamped to
+    /// <see cref="MinPageSize"/>..<see cref="MaxPageSize"/>; a space too small for one row still asks for one.
+    /// </summary>
+    /// <param name="availablePx">The height the rows may take, in CSS pixels.</param>
+    /// <param name="rowPx">The height of one row.</param>
+    /// <param name="gapPx">The gap between two rows.</param>
+    public static int RowsThatFit(double availablePx, double rowPx, double gapPx)
+    {
+        if (rowPx <= 0 || double.IsNaN(availablePx) || double.IsNaN(rowPx) || double.IsNaN(gapPx))
+        {
+            return MinPageSize;
+        }
+
+        double rows = Math.Floor((availablePx + gapPx) / (rowPx + gapPx));
+        return (int)Math.Clamp(double.IsNaN(rows) ? MinPageSize : rows, MinPageSize, MaxPageSize);
+    }
 
     /// <summary>Gets the tabs that choose the order of the browse page: newest, lowest or highest unit price (docs/adr/ADR-013 amendment 2026-11-01).</summary>
     public IReadOnlyList<(int Id, string Label)> SortTabs =>
@@ -581,12 +637,12 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
             }
 
             _market.LoadMine();
-            _market.Browse(_market.Browsed.Page, _searchIds, _sort);
+            _market.Browse(_market.Browsed.Page, _searchIds, _sort, _pageSize);
         }
         else
         {
             this.SetStatus(this.Text("Market_Status_" + status));
-            _market.Browse(_market.Browsed.Page, _searchIds, _sort);
+            _market.Browse(_market.Browsed.Page, _searchIds, _sort, _pageSize);
         }
     }
 }

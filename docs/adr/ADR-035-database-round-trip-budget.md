@@ -370,3 +370,21 @@ Tests in `SessionEndOrderTests`, each written to fail first:
 
 No limit changed. The `Disconnect` row stays at 0 reads. Measured: `SessionEndOrderTests` 10 of 10 runs green; the full `DbBudget` class 5 of 5 runs green after
 the change. Before the change the class failed in 4 of about 28 runs; the three whose output was kept all failed on that row (the fourth's output was not kept).
+## Amendment (2026-11-01): a packet row counts the database work of its own handler
+
+The 2026-11-01 amendment above fixed the scenarios, but the hot-path rows still failed about 1 run in 5 (`LinkExternalIdentity` 5 reads against 4,
+`Disconnect` 1 write against 0 reads, `PetPet` 2 writes against 1). The counter took every command the host ran inside the window, so background reads
+(the day sweep, the snapshot and write-behind loops, a session-end handler of an earlier socket) landed in a row that did not cause them.
+
+- **Attribution.** A packet row now counts only the commands run under its scope. `ServerSeams.Dispatch` (test seam; production passes none) puts a
+  middleware first in the chain, and it enters the measured window's scope around every handler. The counter tags each command by whether the flow that
+  runs it is in that scope (`AsyncLocal`); background work runs on other flows and is not tagged. The row's own work on the test flow is in the scope too.
+- **Not attributed.** The `Connection` and `Background` rows are not packets: their work runs off the packet flow (a socket close, a background pass), so they
+  keep counting everything the host did in their window. `Disconnect` therefore still counts the leave save it causes.
+- **PetPet.** The scenario steps to a forage-free game day (PR #313), so the first petting is the petting alone: the limit is tightened from 1/2/1/2 to
+  **1/1/0/1**, measured on every run. The forage write of docs/adr/ADR-092 D2 is not in that row; a forage run would show it, and it is not a scenario in the budget.
+- **Not changed.** No other limit moved. `UseItem / break a one-hit node` measures 4/3/3/3 or 2/2/2/2 from run to run: the node's yield roll is seeded per
+  run, and a roll with no item writes no ground drop. Both are within the limit, so the row cannot fail; the scenario is not pinned to one roll.
+
+**What this does not fix.** The server still has the race the 2026-11-01 amendment names: a session-end handler runs off the closing path. Attribution keeps
+that work out of the rows that did not cause it; it does not make the server's close path finish before the next request.

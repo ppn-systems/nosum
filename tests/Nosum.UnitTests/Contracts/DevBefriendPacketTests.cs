@@ -13,9 +13,9 @@ namespace Nosum.UnitTests.Contracts;
 public sealed class DevBefriendPacketTests
 {
     [Fact]
-    public void NosumProtocol_Version_IsThirtyThree_WithTheDevelopmentQaFriend()
+    public void NosumProtocol_Version_IsAtLeastThirtyThree_WithTheDevelopmentQaFriend()
     {
-        NosumProtocol.Version.Should().Be(33);
+        NosumProtocol.Version.Should().BeGreaterThanOrEqualTo(33);
     }
 
     [Fact]

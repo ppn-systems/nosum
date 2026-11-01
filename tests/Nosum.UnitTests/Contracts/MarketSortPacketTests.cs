@@ -4,6 +4,7 @@ using FluentAssertions;
 using Nosum.Contracts;
 using Nosum.Contracts.Market;
 using Nosum.Contracts.Market.C2S;
+using Nosum.Contracts.Validation;
 using Xunit;
 
 namespace Nosum.UnitTests.Contracts;
@@ -42,6 +43,34 @@ public sealed class MarketSortPacketTests
         ((byte)MarketSort.Newest).Should().Be(0);
         ((byte)MarketSort.UnitPriceLowest).Should().Be(1);
         ((byte)MarketSort.UnitPriceHighest).Should().Be(2);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(WireLimits.MaxListingsPageSize)]
+    public void BrowseListings_PageSize_RoundTrips(int rows)
+    {
+        using BrowseListings request = new() { Page = 3, PageSize = rows };
+
+        BrowseListings copy = BrowseListings.Deserialize(request.Serialize());
+
+        copy.Page.Should().Be(3);
+        copy.PageSize.Should().Be(rows);
+    }
+
+    [Fact]
+    public void BrowseListings_WithoutASize_AsksForTheServerDefault()
+    {
+        using BrowseListings request = new() { Page = 0 };
+
+        BrowseListings.Deserialize(request.Serialize()).PageSize.Should().Be(0, "zero is the server's default page of ten");
+    }
+
+    [Fact]
+    public void NosumProtocol_Version_IsThirtyFour_WithTheMarketPageSize()
+    {
+        NosumProtocol.Version.Should().Be(34);
     }
 
     [Fact]
