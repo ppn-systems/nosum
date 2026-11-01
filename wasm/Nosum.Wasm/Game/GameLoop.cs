@@ -148,6 +148,9 @@ internal static partial class GameLoop
     /// <summary>Raised when the action key harvests a ripe crop with another item in hand (docs/adr/ADR-089 backlog item 3); the message line says so.</summary>
     public static event Action? ActionKeyHarvested;
 
+    /// <summary>Raised when the crop under the mouse changes: the zero-based growth stage and the stage count, or (-1, 0) for none (backlog item 4).</summary>
+    public static event Action<int, int>? CropHovered;
+
     /// <summary>Connects MMORPG combat and monsters to the game (docs/adr/ADR-045). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="combat">The combat channel.</param>
     /// <param name="text">Localized UI strings for world combat labels.</param>
@@ -292,6 +295,7 @@ internal static partial class GameLoop
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.SkillPressRefused += key => SkillPressRefused?.Invoke(key);
         actions?.ActionKeyHarvested += () => ActionKeyHarvested?.Invoke();
+        actions?.CropHovered += (stage, count) => CropHovered?.Invoke(stage, count);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();

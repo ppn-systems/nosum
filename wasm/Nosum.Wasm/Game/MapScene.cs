@@ -303,6 +303,11 @@ internal sealed partial class MapScene
         }
 
         int scale = ScaleFor(map, canvasWidth, canvasHeight);
+        if (content.Spec.Farmable)
+        {
+            this.HoverAtPointer(map.TileWidth, scale, canvasWidth, canvasHeight);
+        }
+
         int farmerPx = (int)Math.Round(_farmer.X);
         int farmerPy = (int)Math.Round(_farmer.Y);
         _camera.Follow(

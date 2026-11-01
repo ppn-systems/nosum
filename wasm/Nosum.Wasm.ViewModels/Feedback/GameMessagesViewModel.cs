@@ -127,6 +127,22 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the newest message, or <see langword="null"/> when the line is empty.</summary>
     public string? Message => _toasts.Count > 0 ? _toasts[^1].Text : null;
 
+    /// <summary>Gets the hover hint (the crop under the mouse and its growth stage), or <see langword="null"/> when there is none.</summary>
+    public string? HoverHint { get; private set; }
+
+    /// <summary>Sets or clears the hover hint; the view is told only when the text changes.</summary>
+    /// <param name="text">The text, or <see langword="null"/> to clear it.</param>
+    public void SetHoverHint(string? text)
+    {
+        if (text == this.HoverHint)
+        {
+            return;
+        }
+
+        this.HoverHint = text;
+        this.Changed?.Invoke();
+    }
+
     /// <summary>Maps a status code to its localized text.</summary>
     /// <param name="status">The server's outcome code.</param>
     /// <returns>The text, or <see langword="null"/> for <see cref="FarmStatus.Ok"/>.</returns>

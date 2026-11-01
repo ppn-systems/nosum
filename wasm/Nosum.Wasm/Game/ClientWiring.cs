@@ -354,6 +354,7 @@ internal static class ClientWiring
         };
         GameLoop.SkillPressRefused += key => messages.Notify(localizer[key].Value);
         GameLoop.ActionKeyHarvested += () => messages.Notify(localizer["Farm_ActionKeyHarvested"].Value);
+        GameLoop.CropHovered += (stage, count) => messages.SetHoverHint(stage < 0 ? null : string.Format(System.Globalization.CultureInfo.CurrentCulture, localizer["Farm_Hover_Stage"].Value, stage + 1, count));
         _ = services.GetRequiredService<NearbyPlayers>();
         ProgressViewModel progressVm = services.GetRequiredService<ProgressViewModel>();
         GameLoop.UseRunState(state =>

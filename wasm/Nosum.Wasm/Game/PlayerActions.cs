@@ -372,6 +372,67 @@ internal sealed partial class PlayerActions
     private static bool IsFarmTool(int itemId)
         => ItemCatalog.TryGet(itemId, out ItemDefinition? item) && (item.Kind == ItemKind.Seed || (item.Kind == ItemKind.Tool && item.Tool is ToolKind.Hoe or ToolKind.WateringCan));
 
+    // The crop under the mouse: its growth stage, reported only when the tile or the stage changes (backlog item 4). A live crop only; a withered one has
+    // no stage to name. Sprinklers beside the tile are not counted here, so a crop a sprinkler waters may show the stage one day behind.
+    private bool TryGetCropStage(int tileX, int tileY, out int stage, out int stageCount)
+    {
+        stage = -1;
+        stageCount = 0;
+        GameCalendar? rules = this.Rules();
+        if (rules is null)
+        {
+            return false;
+        }
+
+        long nowMs = _farm.ServerNowMs();
+        using (_farm.Read())
+        {
+            if (!_farm.TryGetTile(tileX, tileY, out FarmTileInfo info) || info.CropId == 0 || info.Withered)
+            {
+                return false;
+            }
+
+            FarmTile tile = FarmChannel.TileOf(info);
+            if (!CropCatalog.TryGet(tile.CropId, out CropDefinition? crop))
+            {
+                return false;
+            }
+
+            stage = FarmRules.StageAt(tile, nowMs, rules, _outdoors);
+            stageCount = crop.StageCount;
+            return stage >= 0;
+        }
+    }
+
+    /// <summary>Tells the game which crop the mouse is over: the zero-based stage and the stage count, or (-1, 0) for none. Raised on a change only.</summary>
+    public event Action<int, int>? CropHovered;
+
+    /// <summary>Reports the tile under the mouse (-1, -1 when the mouse is off the world). Allocation-free; <see cref="CropHovered"/> fires on a change.</summary>
+    /// <param name="tileX">The tile x, or -1.</param>
+    /// <param name="tileY">The tile y, or -1.</param>
+    public void HoverTile(int tileX, int tileY)
+    {
+        int stage = -1;
+        int count = 0;
+        if (tileX >= 0 && tileY >= 0 && this.TryGetCropStage(tileX, tileY, out int found, out int total))
+        {
+            stage = found;
+            count = total;
+        }
+
+        if (stage == _hoverStage && count == _hoverCount)
+        {
+            return;
+        }
+
+        _hoverStage = stage;
+        _hoverCount = count;
+        this.CropHovered?.Invoke(stage, count);
+    }
+
+    private int _hoverStage = -1;
+    private int _hoverCount;
+
     // Whether the held item, or bare hands, would do something on the tile in front by the rules the server runs; the reticle is drawn from it.
     private bool TargetWorks(bool mapAllowsTools)
     {
