@@ -384,7 +384,10 @@ async function runOne(browser, locale, vpName, report) {
     await wait(1500);
     const card = await page.$('.fishing-card');
     const notes = await page.evaluate(NOTICES);
-    return { status: card ? 'pass' : 'FAIL', notes: card ? 'catch card shown' : `no catch card; notices: ${notes.join(' | ') || 'none'}` };
+    // "The line came up with nothing but weeds." is a valid server roll (a reel that landed, with no fish): the reel is judged, not missed.
+    const weeds = notes.some((t) => /nothing but weeds|chỉ có cỏ/i.test(t));
+    const ok = card || weeds;
+    return { status: ok ? 'pass' : 'FAIL', notes: card ? 'catch card shown' : weeds ? 'reel landed: the server rolled weeds (no fish, no card)' : `no catch card; notices: ${notes.join(' | ') || 'none'}` };
   });
 
   // Combat (docs/adr/ADR-056): Z is Whirlwind (a monster within 2 tiles), X Fireball (6), V the heal (refused at full health).
@@ -521,10 +524,10 @@ async function runOne(browser, locale, vpName, report) {
     if ((await upgrade.count()) === 0) throw new Error('no Upgrade button in the backpack window');
     await upgrade.click({ timeout: 5000 });
     await wait(900);
-    const notes = await page.evaluate(NOTICES);
-    // Pass only when the upgrade happened (or the max was reached); "530 more needed" is a refusal, not a pass.
-    const ok = notes.some((t) => /bigger now|lớn hơn|already the largest|lớn nhất/i.test(t));
-    return { status: ok ? 'pass' : 'FAIL', notes: `backpack: ${notes.join(' | ') || 'no notice'}` };
+    // The status line sits inside the Backpack window (not in NOTICES): read the window body. Pass only when the upgrade happened or the max was reached.
+    const body = await page.evaluate(() => (document.querySelector('[role="dialog"], .game-window, .npc-box-wrap') || document.body).innerText);
+    const ok = /bigger now|lớn hơn|already the largest|lớn nhất/i.test(body);
+    return { status: ok ? 'pass' : 'FAIL', notes: ok ? 'upgrade done: "Your backpack is bigger now."' : 'no upgrade status in the window' };
   }, { keep: false });
 
   // Pets (ADR-075, paid pets in ADR-075 amendment): the carpenter's counter adopts a cat, the pet is petted, then given back.
