@@ -1,0 +1,8 @@
+ok   befriend QaFriend2728
+ok   en-390x844-friends-online (listed)
+ok   en-390x844-chat
+ok   en-390x844-trade
+ok   en-390x844-visit-farm
+ok   en-390x844-coop-deposit
+ok   en-390x844-coop-invite
+ok   en-390x844 play

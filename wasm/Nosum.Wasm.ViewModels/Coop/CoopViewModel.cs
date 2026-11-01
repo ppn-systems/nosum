@@ -169,10 +169,26 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
     {
         get
         {
-            List<PlayerChoice> players = [];
+            List<(uint Id, string Label)> nearby = [];
             foreach (uint id in _nearby.Ids())
             {
-                players.Add(new PlayerChoice(id, _names.PlayerLabel(id)));
+                nearby.Add((id, _names.PlayerLabel(id)));
+            }
+
+            // A player already in the co-op is not offered again (critique-social finding 7).
+            List<string> memberLabels = [];
+            foreach (CoopMemberInfo member in _coop.Current.Members)
+            {
+                if (!member.IsMe)
+                {
+                    memberLabels.Add(_names.Display(member.Nickname));
+                }
+            }
+
+            List<PlayerChoice> players = [];
+            foreach ((uint id, string label) in CoopInvitePicks.Candidates(nearby, memberLabels))
+            {
+                players.Add(new PlayerChoice(id, label));
             }
 
             return players;

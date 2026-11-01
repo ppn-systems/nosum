@@ -1,0 +1,8 @@
+ok   befriend QaFriend8155
+ok   en-1280x720-friends-online (listed)
+ok   en-1280x720-chat
+ok   en-1280x720-trade
+ok   en-1280x720-visit-farm
+ok   en-1280x720-coop-deposit
+ok   en-1280x720-coop-invite
+ok   en-1280x720 play
