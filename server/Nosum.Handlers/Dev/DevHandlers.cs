@@ -8,6 +8,7 @@ using Nalix.Abstractions.Security;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Fishing;
+using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.Player;
 using Nosum.Abstractions.Presence;
 using Nosum.Abstractions.Shops;
@@ -31,6 +32,7 @@ public static partial class DevHandlers
     [Inject] private static IPlayerService s_players = null!;
     [Inject] private static IFishingService s_fishing = null!;
     [Inject] private static IPlayerNotifier s_notifier = null!;
+    [Inject] private static IDevSocialService s_social = null!;
 
     /// <summary>Gives the sender items and/or coins.</summary>
     /// <param name="context">The request.</param>
@@ -139,5 +141,28 @@ public static partial class DevHandlers
         ushort sequence = context.Packet.SequenceId;
         bool ok = await s_fishing.MakeBiteAsync(context.Connection, context.Packet.CastId, context.CancellationToken).ConfigureAwait(false);
         await Replies.ReplyAsync<DevFishingBite, DevFishingBiteResult>(context, sequence, r => r.Ok = ok).ConfigureAwait(false);
+    }
+
+    /// <summary>Makes the sender a registered test account and befriends a new registered test player, whose nickname and session token come back
+    /// (docs/adr/ADR-105).</summary>
+    /// <param name="context">The request.</param>
+    /// <returns>A task that completes when the reply was sent.</returns>
+    [PacketOpcode(DevOpCode.DevBefriend)]
+    [PacketPermission(PermissionLevel.USER)]
+    [PacketEncryption(true)]
+    [PacketRateLimit(8, 4, PolicyId = "dev-befriend")]
+    public static async ValueTask HandleDevBefriendAsync(IPacketContext<DevBefriend> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        ushort sequence = context.Packet.SequenceId;
+        PlayerIdentity player = context.Connection.GetPlayer();
+        DevFriend? made = await s_social.BefriendNewTestPlayerAsync(player.PlayerId, context.CancellationToken).ConfigureAwait(false);
+        await Replies.ReplyAsync<DevBefriend, DevBefriendResult>(context, sequence, r =>
+        {
+            r.Ok = made is not null;
+            r.Nickname = made?.Nickname ?? string.Empty;
+            r.SessionToken = made?.SessionToken ?? string.Empty;
+        }).ConfigureAwait(false);
     }
 }

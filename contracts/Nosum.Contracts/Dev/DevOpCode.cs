@@ -26,6 +26,9 @@ public static class DevOpCode
     /// <summary>Makes the sender's open fishing cast bite at once (development only, docs/adr/ADR-079). Reply: <see cref="S2C.DevFishingBiteResult"/>.</summary>
     public const ushort DevFishingBite = 0xF005;
 
+    /// <summary>Makes the sender a registered test account and befriends a new registered test player (development only, docs/adr/ADR-105). Reply: <see cref="S2C.DevBefriendResult"/>.</summary>
+    public const ushort DevBefriend = 0xF006;
+
     /// <summary>Reply to <see cref="DevGrant"/>.</summary>
     public const ushort DevGrantResult = 0xF040;
 
@@ -43,4 +46,7 @@ public static class DevOpCode
 
     /// <summary>Reply to <see cref="DevFishingBite"/>.</summary>
     public const ushort DevFishingBiteResult = 0xF045;
+
+    /// <summary>Reply to <see cref="DevBefriend"/>.</summary>
+    public const ushort DevBefriendResult = 0xF046;
 }

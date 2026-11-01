@@ -33,7 +33,7 @@ internal sealed partial class MonstersDecorator
 
             // The warning turns more opaque as the impact approaches (0xRRGGBBAA).
             int alpha = 60 + (int)((elapsed * 120L) / t.DelayMs);
-            int warningTint = unchecked((int)0xdc262600) | alpha;
+            int warningTint = Rgba.From(0xdc, 0x26, 0x26, 0x00) | alpha;
             world.Add(
                 RenderCommandBuffer.FillTexture,
                 0,

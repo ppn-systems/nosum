@@ -1,0 +1,1 @@
+FAIL en-1280x720 play: page.evaluate: TypeError: window.nosumQa.befriend is not a function

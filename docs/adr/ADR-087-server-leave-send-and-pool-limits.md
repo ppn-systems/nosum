@@ -63,3 +63,10 @@ The rules that stay fixed: no wire format change (`nalix-packets`, append-only);
 - **A per-viewer outbound queue with drop on overflow.** Described under D2. Deferred.
 - **Leave the pool at the default and reduce the number of concurrent operations.** The number is set by the handlers and the snapshot path, not by one
   place, so a cap is the one place that bounds it.
+
+## Amendment (2026-11-01): a second leave waits for the first
+
+D1 said a second close of the same connection "returns at once". That let the session end run while the first leave was still saving: a socket's close
+event and the session's release both leave the same connection, and the release's session-end handlers (ADR-035 amendment 2026-11-01) ran while the
+close event's save was in flight. The second leave now waits until the claimed leave has saved and removed the record, then returns. The handlers still run
+once. `MapPresence.LeaveAsync` is the only place this changes; no wire, packet or schema change.

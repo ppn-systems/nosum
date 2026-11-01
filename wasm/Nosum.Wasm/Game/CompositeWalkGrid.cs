@@ -21,16 +21,21 @@ internal sealed class CompositeWalkGrid
     private readonly PlacedSet _placedSet = new();
 
     private WalkGrid? _nodeGrid;
+    private WalkGrid? _nodeScratch;      // the buffer the node grid is rebuilt into: a chunk change rebuilds it without allocating (docs/perf/wasm-perf.md)
     private MapContent? _nodeGridContent;
     private int _nodeGridVersion = -1;
+    private int _nodeGridStamp;          // counts the node grid rebuilds; the joined grid keys on it, because the node grid object is reused
 
     private WalkGrid? _placedGrid;
+    private WalkGrid? _placedScratch;    // the buffer the placed grid is rebuilt into (docs/perf/wasm-perf.md, round 5)
+    private int _placedGridStamp;        // counts the placed grid rebuilds, like _nodeGridStamp
     private MapContent? _placedGridContent;
     private int _placedGridVersion = -1;
 
     private WalkGrid? _joinedGrid;
-    private WalkGrid? _joinedNodes;
-    private WalkGrid? _joinedPlaced;
+    private WalkGrid? _joinedScratch;
+    private int _joinedNodesStamp = -1;
+    private int _joinedPlacedStamp = -1;
 
     /// <summary>Initializes the composite walk grid cache.</summary>
     /// <param name="nodes">Resource node channel, or <see langword="null"/> when nodes are not wired.</param>
@@ -71,7 +76,9 @@ internal sealed class CompositeWalkGrid
                 }
             }
 
-            _placedGrid = _placedSet.BuildGrid(content.Grid);
+            _placedScratch = EnsureScratch(_placedScratch, content.Grid);
+            _placedGrid = _placedSet.BuildGridInto(content.Grid, _placedScratch);
+            _placedGridStamp++;
             _placedGridContent = content;
             _placedGridVersion = version;
         }
@@ -81,13 +88,14 @@ internal sealed class CompositeWalkGrid
             return _placedGrid;
         }
 
-        if (_joinedGrid is null || !ReferenceEquals(_joinedNodes, nodes) || !ReferenceEquals(_joinedPlaced, _placedGrid))
+        if (_joinedGrid is null || _joinedNodesStamp != _nodeGridStamp || _joinedPlacedStamp != _placedGridStamp)
         {
-            WalkGrid joined = nodes.Clone();
-            joined.BlockWhereBlocked(_placedGrid);
-            _joinedGrid = joined;
-            _joinedNodes = nodes;
-            _joinedPlaced = _placedGrid;
+            _joinedScratch = EnsureScratch(_joinedScratch, content.Grid);
+            _joinedScratch.CopyBlockedFrom(nodes);
+            _joinedScratch.BlockWhereBlocked(_placedGrid);
+            _joinedGrid = _joinedScratch;
+            _joinedNodesStamp = _nodeGridStamp;
+            _joinedPlacedStamp = _placedGridStamp;
         }
 
         return _joinedGrid;
@@ -116,11 +124,17 @@ internal sealed class CompositeWalkGrid
                 }
             }
 
-            _nodeGrid = _nodeField.BuildGrid(content.Grid);
+            _nodeScratch = EnsureScratch(_nodeScratch, content.Grid);
+            _nodeGrid = _nodeField.BuildGridInto(content.Grid, _nodeScratch);
+            _nodeGridStamp++;
             _nodeGridContent = content;
             _nodeGridVersion = version;
         }
 
         return _nodeGrid;
     }
+
+    // A buffer of the map's size that the caller owns; allocated once per map, then reused by every rebuild.
+    private static WalkGrid EnsureScratch(WalkGrid? buffer, WalkGrid like) =>
+        buffer is not null && buffer.Width == like.Width && buffer.Height == like.Height ? buffer : like.Clone();
 }

@@ -24,6 +24,9 @@ public sealed class SessionRegistry : ISessionRegistry
     private readonly Lock _gate = new();
     private readonly Dictionary<Guid, IConnection> _active = [];
     private readonly Dictionary<ulong, Guid> _playerOf = [];
+
+    // The ends still running, per player. An entry is added under _gate in the same step that takes the player off the active list, and it is removed
+    // under _gate once the end has finished, so a sign-in never sees a player as gone while that player's end is still to run.
     private readonly ConcurrentDictionary<Guid, Task> _closing = new();
     private readonly EventHandler<IConnectionEventArgs> _onClosed;
 
@@ -48,59 +51,57 @@ public sealed class SessionRegistry : ISessionRegistry
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        if (_closing.TryRemove(playerId, out Task? pendingClose))
+        IConnection? previous = null;
+        Task? leaving = null;
+        while (true)
         {
-            try
+            Task? pending = null;
+            lock (_gate)
             {
-                await pendingClose.ConfigureAwait(false);
+                // Every end of this player that is still running finishes first (its save, then its drop of the copy), so the sign-in reads after it.
+                if (_closing.TryGetValue(playerId, out Task? running) && !running.IsCompleted)
+                {
+                    pending = running;
+                }
+                else
+                {
+                    _ = _active.TryGetValue(playerId, out previous);
+                    if (previous is not null && previous.ConnectionId == connection.ConnectionId)
+                    {
+                        return;
+                    }
+
+                    // A connection that signs in as another player first leaves its earlier player.
+                    if (_playerOf.TryGetValue(connection.ConnectionId, out Guid earlier) && earlier != playerId)
+                    {
+                        _ = _active.Remove(earlier);
+                        leaving = this.BeginEnd(earlier, () => this.LeaveThenEndAsync(connection, earlier, cancellationToken));
+                    }
+                    else if (!_playerOf.ContainsKey(connection.ConnectionId))
+                    {
+                        connection.ConnectionClosed += _onClosed;
+                    }
+
+                    _active[playerId] = connection;
+                    _playerOf[connection.ConnectionId] = playerId;
+                    if (previous is not null)
+                    {
+                        _ = _playerOf.Remove(previous.ConnectionId);
+                    }
+                }
             }
-            catch (Exception)
+
+            if (pending is null)
             {
-                // Best effort completion of prior session teardown.
+                break;
             }
+
+            await WaitQuietlyAsync(pending).ConfigureAwait(false);
         }
 
-        IConnection? previous;
-        Guid? ended = null;
-        lock (_gate)
+        if (leaving is not null)
         {
-            _ = _active.TryGetValue(playerId, out previous);
-            if (previous is not null && previous.ConnectionId == connection.ConnectionId)
-            {
-                return;
-            }
-
-            // A connection that signs in as another player first leaves its earlier player.
-            if (_playerOf.TryGetValue(connection.ConnectionId, out Guid earlier) && earlier != playerId)
-            {
-                _ = _active.Remove(earlier);
-                ended = earlier;
-            }
-            else if (!_playerOf.ContainsKey(connection.ConnectionId))
-            {
-                connection.ConnectionClosed += _onClosed;
-            }
-
-            _active[playerId] = connection;
-            _playerOf[connection.ConnectionId] = playerId;
-            if (previous is not null)
-            {
-                _ = _playerOf.Remove(previous.ConnectionId);
-            }
-        }
-
-        if (ended is { } left)
-        {
-            try
-            {
-                await _presence.LeaveAsync(connection, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                // Best effort leave when switching accounts on the same connection.
-            }
-
-            await this.InvokeEndedHandlersAsync(left).ConfigureAwait(false);
+            await WaitQuietlyAsync(leaving).ConfigureAwait(false);
         }
 
         if (previous is null)
@@ -114,20 +115,20 @@ public sealed class SessionRegistry : ISessionRegistry
     /// <inheritdoc/>
     public async ValueTask<bool> EndAsync(Guid playerId, AccountStatus reason, CancellationToken cancellationToken = default)
     {
-        IConnection? connection;
+        Task end;
         lock (_gate)
         {
-            if (!_active.TryGetValue(playerId, out connection))
+            if (!_active.TryGetValue(playerId, out IConnection? connection))
             {
                 return false;
             }
 
             _ = _active.Remove(playerId);
             _ = _playerOf.Remove(connection.ConnectionId);
+            end = this.BeginEnd(playerId, () => this.CloseThenEndAsync(connection, reason, playerId, cancellationToken));
         }
 
-        await this.CloseAsync(connection, reason, "session ended by the server", cancellationToken).ConfigureAwait(false);
-        await this.InvokeEndedHandlersAsync(playerId).ConfigureAwait(false);
+        await end.ConfigureAwait(false);
         return true;
     }
 
@@ -164,7 +165,6 @@ public sealed class SessionRegistry : ISessionRegistry
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        Guid? ended = null;
         lock (_gate)
         {
             if (_playerOf.Remove(connection.ConnectionId, out Guid playerId)
@@ -172,31 +172,11 @@ public sealed class SessionRegistry : ISessionRegistry
                 && current.ConnectionId == connection.ConnectionId)
             {
                 _ = _active.Remove(playerId);
-                ended = playerId;
+                _ = this.BeginEnd(playerId, () => this.LeaveThenEndAsync(connection, playerId, CancellationToken.None));
             }
         }
 
         connection.ConnectionClosed -= _onClosed;
-        if (ended is { } left)
-        {
-            Task closeTask = Task.Run(async () =>
-            {
-                try
-                {
-                    await _presence.LeaveAsync(connection).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                    // Best effort leave before SessionEnded handlers.
-                }
-
-                await this.InvokeEndedHandlersAsync(left).ConfigureAwait(false);
-            });
-            _closing[left] = closeTask;
-            _ = closeTask.ContinueWith(
-                t => _closing.TryRemove(new KeyValuePair<Guid, Task>(left, t)),
-                TaskScheduler.Default);
-        }
     }
 
     /// <inheritdoc/>
@@ -205,6 +185,58 @@ public sealed class SessionRegistry : ISessionRegistry
         lock (_gate)
         {
             return _active.GetValueOrDefault(playerId);
+        }
+    }
+
+    // Starts one player's end and records it as running. Called with _gate held, in the same step that took the player off the active list.
+    private Task BeginEnd(Guid playerId, Func<Task> end)
+    {
+        Task running = Task.Run(end);
+        _closing[playerId] = running;
+        _ = running.ContinueWith(
+            t =>
+            {
+                lock (_gate)
+                {
+                    _ = _closing.TryRemove(new KeyValuePair<Guid, Task>(playerId, t));
+                }
+            },
+            TaskScheduler.Default);
+        return running;
+    }
+
+    // The leave saves the place while the record is still registered; the ended handlers (which let the player's copies go) run only after the save.
+    [SuppressMessage("Design", "CA1031", Justification = "Best effort leave before SessionEnded handlers; the handlers must still run.")]
+    private async Task LeaveThenEndAsync(IConnection connection, Guid playerId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _presence.LeaveAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Best effort leave before SessionEnded handlers.
+        }
+
+        await this.InvokeEndedHandlersAsync(playerId).ConfigureAwait(false);
+    }
+
+    private async Task CloseThenEndAsync(IConnection connection, AccountStatus reason, Guid playerId, CancellationToken cancellationToken)
+    {
+        await this.CloseAsync(connection, reason, "session ended by the server", cancellationToken).ConfigureAwait(false);
+        await this.InvokeEndedHandlersAsync(playerId).ConfigureAwait(false);
+    }
+
+    [SuppressMessage("Design", "CA1031", Justification = "A pending end's own failures are swallowed where it runs; waiting for it must not fail the sign-in.")]
+    private static async Task WaitQuietlyAsync(Task task)
+    {
+        try
+        {
+            await task.ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Best effort completion of prior session teardown.
         }
     }
 
