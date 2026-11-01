@@ -135,7 +135,21 @@ public sealed class PrecipitationLayer
             }
             else
             {
-                commands.FillRect(x, y, 1, kind == Precipitation.Storm ? 5 : 4, _depth[i] > 0.5f ? unchecked((int)0xB4CCFFC0) : unchecked((int)0x8CAAE090));
+                int colour = _depth[i] > 0.5f ? unchecked((int)0xB4CCFFC0) : unchecked((int)0x8CAAE090);
+                if (kind == Precipitation.Storm)
+                {
+                    // A storm's rain leans with the wind (its drift), so each drop is two segments that step a pixel sideways. Upright streaks read as a light shower.
+                    commands.FillRect(x, y, 1, 3, colour);
+                    if (y + 3 < _height)
+                    {
+                        commands.FillRect(Math.Max(0, x - 1), y + 3, 1, 3, colour);
+                    }
+                }
+                else
+                {
+                    commands.FillRect(x, y, 1, 4, colour);
+                }
+
 
                 // A drop that reaches the bottom of the view leaves a short splash.
                 if (_y[i] >= _height - 6)
