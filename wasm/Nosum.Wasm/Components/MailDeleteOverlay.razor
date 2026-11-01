@@ -1,0 +1,12 @@
+@using Nosum.Wasm.Controls
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Mail
+@inherits ObservingComponent<MailViewModel>
+
+@* The delete question of a mail (docs/design/ui-standard.md section 5, Confirm): a centre confirm box in the HUD overlay. The mail stays until the player says yes. *@
+@if (Vm.PendingDelete is not null)
+{
+    <ConfirmDialog Title="@Vm.Text("Mail_DeleteTitle")" Message="@Vm.PendingDeleteMessage"
+                   ConfirmText="@Vm.Text("Mail_DeleteConfirm")" CancelText="@Vm.Text("Mail_DeleteCancel")"
+                   OnConfirm="@(() => Vm.ConfirmDelete())" OnCancel="@(() => Vm.CancelDelete())" />
+}

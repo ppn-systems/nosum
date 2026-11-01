@@ -358,11 +358,92 @@ public sealed class MailTests
     }
 
     [Fact]
+    public void AskDelete_ThenCancel_SendsNothingAndKeepsTheMail()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Box(0));
+        List<Guid> deleted = [];
+        socket.ReplyWith(request =>
+        {
+            deleted.Add(((DeleteMail)request).MailId);
+            return new MailResult { Status = MailStatus.Ok };
+        });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.AskDelete(s_invite);
+        vm.PendingDelete.Should().Be(s_invite);
+        vm.CancelDelete();
+
+        vm.PendingDelete.Should().BeNull();
+        deleted.Should().BeEmpty();
+        vm.Mails.Should().Contain(m => m.Id == s_invite);
+    }
+
+    [Fact]
+    public void AskDelete_ThenConfirm_DeletesTheAskedMailOnly()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Box(0));
+        List<Guid> deleted = [];
+        socket.ReplyWith(request =>
+        {
+            deleted.Add(((DeleteMail)request).MailId);
+            return new MailResult { Status = MailStatus.Ok };
+        });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.AskDelete(s_odd);
+        vm.ConfirmDelete();
+
+        vm.PendingDelete.Should().BeNull();
+        deleted.Should().Equal(s_odd);
+    }
+
+    [Fact]
+    public void ConfirmDelete_WithoutAnAsk_SendsNothing()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Box(0));
+        List<Guid> deleted = [];
+        socket.ReplyWith(request =>
+        {
+            deleted.Add(((DeleteMail)request).MailId);
+            return new MailResult { Status = MailStatus.Ok };
+        });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.ConfirmDelete();
+
+        deleted.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void PendingDeleteMessage_NamesTheMailSubject()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Box(0));
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+        string title = vm.Mails.Single(m => m.Id == s_odd).Title;
+
+        vm.AskDelete(s_odd);
+
+        vm.PendingDeleteMessage.Should().Contain(title);
+    }
+
+    [Fact]
     public void Language_EveryMailStatusAndCodeHasATextInBothLanguages()
     {
         List<string> needed = [];
         needed.AddRange(Enum.GetValues<MailStatus>().Select(s => "Mail_Status_" + s));
-        needed.AddRange(["Mail_Title_MarketSold", "Mail_Body_MarketSold", "Mail_Title_CoopInvite", "Mail_Body_CoopInvite", "Mail_Body_CoopInviteFrom", "Mail_Title_GoalReward", "Mail_Body_GoalReward", "Mail_Title_Unknown", "Mail_Body_Unknown", "Mail_Expiry", "Mail_Expiry_One", "Mail_Expired", "Toolbar_Mail", "Toolbar_Friends"]);
+        needed.AddRange(["Mail_Title_MarketSold", "Mail_Body_MarketSold", "Mail_Title_CoopInvite", "Mail_Body_CoopInvite", "Mail_Body_CoopInviteFrom", "Mail_Title_GoalReward", "Mail_Body_GoalReward", "Mail_Title_Unknown", "Mail_Body_Unknown", "Mail_Expiry", "Mail_Expiry_One", "Mail_Expired", "Mail_DeleteTitle", "Mail_DeleteMessage", "Mail_DeleteConfirm", "Mail_DeleteCancel", "Toolbar_Mail", "Toolbar_Friends"]);
 
         SocialClientFixtures.Keys("Language.resx").Should().Contain(needed);
         SocialClientFixtures.Keys("Language.en.resx").Should().Contain(needed);

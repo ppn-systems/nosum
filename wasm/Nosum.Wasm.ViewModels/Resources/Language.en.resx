@@ -635,6 +635,10 @@
   <data name="Mail_Collected" xml:space="preserve"><value>Collected.</value></data>
   <data name="Mail_CollectedTag" xml:space="preserve"><value>Collected</value></data>
   <data name="Mail_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Mail_DeleteTitle" xml:space="preserve"><value>Delete mail</value></data>
+  <data name="Mail_DeleteMessage" xml:space="preserve"><value>Delete "{0}"? A deleted mail cannot be recovered.</value></data>
+  <data name="Mail_DeleteConfirm" xml:space="preserve"><value>Delete</value></data>
+  <data name="Mail_DeleteCancel" xml:space="preserve"><value>Keep</value></data>
   <data name="Mail_Attachments" xml:space="preserve"><value>Attached</value></data>
   <data name="Mail_Coins" xml:space="preserve"><value>{0} coins</value></data>
   <data name="Mail_Expiry" xml:space="preserve"><value>{0} days left</value></data>
