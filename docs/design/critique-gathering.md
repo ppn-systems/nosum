@@ -125,7 +125,21 @@ Findings from the playtest that the table adds to section 6:
 - **G10, stale energy.** After the day changes, the HUD energy reads 0 until the first charge refills it; the refill is server-side at the first use.
   Cosmetic, but it reads as "out of energy" at the start of a day.
 
-Measured after this wave: see the AFTER table, added when the branch playthrough is reported (section 7b).
+### 7b. Measured after (branch commit `c0dfdd6`)
+
+| Item | After | Before | Note |
+| :-- | :-- | :-- | :-- |
+| Grown tree, copper axe | 6 swings (5 + 1 stump), −12 energy (2 per swing), +20 XP | −18 (3 per swing) | the stump's extra swing is in the count |
+| Grown tree, iron axe | 5 swings, −5 energy (1 per swing), +19 XP | not available | |
+| Twig, stone, weed, basic tree | unchanged | same | the tier change does not touch basic tools |
+| Health bar | 12 × 2 px; 11 of 12 px after one hit on a 10-hit tree, 6 of 12 at about five hits, 3 of 12 at about eight | none | colours match the tiers |
+| Stump, first hit | bar red, 3 of 12 px | predicted amber, 6 of 12 | **open**, see the QA README |
+| Tooltip, basic / copper / iron axe | energy per use 3 / 2 / 1 | — | "before the skill bonus" |
+| Hoe and can tooltip | "Area: 1 tiles in a line" plus "Energy per use: 3" | — | the plural reads "1 tiles"; fix in the text pass |
+| Level-4 banner | "Foraging tools: 1 less energy per use" | none | Vietnamese: "Công cụ Hái lượm: tốn ít hơn 1 năng lượng mỗi lần dùng" |
+| Respawn, Town, one game day | twigs +2, stones +2, weeds +8, forage +6, trees 0; total 12 = cap | +2 / +4 / +6 | the mix moved; the cap held |
+
+Not re-verified after the change: zero-energy refusal, the blacksmith hand-in, copper ore and forage.
 
 ## 8. Captures
 
