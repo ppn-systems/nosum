@@ -85,6 +85,10 @@ internal sealed class PlacementActions
     /// <summary>Gets the id of the piece being carried to a new spot, or zero.</summary>
     public int CarryingId { get; private set; }
 
+    /// <summary>Gets whether the item in the selected hotbar slot is a piece that can be placed (a chest, a furnace, a sprinkler, furniture, a blueprint).
+    /// The action key then places it: it never opens the chest or the furnace in front (docs/design/critique-placement.md, finding 15).</summary>
+    public bool HoldsPlaceable => PlaceableCatalog.TryGet(_inventory.SlotAt(_inventory.SelectedSlot).ItemId, out _);
+
     /// <summary>Handles the keys and panel requests of this frame.</summary>
     /// <param name="active">Whether the map shown is one where pieces can be placed and the farmer can act.</param>
     /// <param name="edges">Keys pressed since the previous frame.</param>
