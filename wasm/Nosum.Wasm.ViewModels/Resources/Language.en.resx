@@ -54,6 +54,8 @@
   <data name="Farm_Status_HasCrop" xml:space="preserve"><value>A crop already grows here.</value></data>
   <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>That does nothing here.</value></data>
   <data name="Farm_Status_NotMature" xml:space="preserve"><value>The crop is not ready yet.</value></data>
+  <data name="Farm_Status_NotMatureDays" xml:space="preserve"><value>Not ready, {0} days left</value></data>
+  <data name="Farm_Status_NotMatureOneDay" xml:space="preserve"><value>Not ready, 1 day left</value></data>
   <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Your inventory is full.</value></data>
   <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>You no longer have that item.</value></data>
   <data name="Farm_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>

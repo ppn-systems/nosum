@@ -219,8 +219,9 @@ internal sealed partial class PlayerActions
     }
 
     // The server's answer: energy is spent only on an outcome that worked the tile, so the label floats only then.
-    private void OnFarmUseCompleted(FarmStatus status, FarmAction action, int worked)
+    private void OnFarmUseCompleted(FarmStatus status, FarmAction action, int worked, int daysLeft)
     {
+        _ = daysLeft;
         // The server charged the cost of each tile that worked, so the label is the cost of one tile times the count (docs/adr/ADR-088).
         int cost = _firedCost * worked;
         _firedCost = 0;

@@ -54,6 +54,8 @@
   <data name="Farm_Status_HasCrop" xml:space="preserve"><value>Chỗ này đã có cây trồng.</value></data>
   <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>Dùng vật phẩm này ở đây không có tác dụng.</value></data>
   <data name="Farm_Status_NotMature" xml:space="preserve"><value>Cây chưa chín.</value></data>
+  <data name="Farm_Status_NotMatureDays" xml:space="preserve"><value>Chưa chín, còn {0} ngày</value></data>
+  <data name="Farm_Status_NotMatureOneDay" xml:space="preserve"><value>Chưa chín, còn 1 ngày</value></data>
   <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
   <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>Bạn không còn vật phẩm này.</value></data>
   <data name="Farm_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>

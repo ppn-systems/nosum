@@ -288,9 +288,17 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             bool ground = tillable.IsTillable(tileX, tileY);
             bool locked = ground && member is not null && !CoopUpgrades.IsLandUnlocked(member.LandLevel, tileX, tileY);
             int harvestBonus = FarmRules.IsBonusHarvest(player.Instance.Key, tileX, tileY, nowMs, _calendar, player.Instance.IsOutdoors) ? 1 : 0;
-            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, _placed?.SprinklerWateredSinceMs(player.Instance, tileX, tileY), harvestBonus, tail);
+            long? sprinklerSince = _placed?.SprinklerWateredSinceMs(player.Instance, tileX, tileY);
+            Plan plan = this.PlanAction(held, current, ground && !locked, nowMs, player.Instance.IsOutdoors, sprinklerSince, harvestBonus, tail);
             if (plan.Verdict != FarmVerdict.Ok)
             {
+                // An unripe crop says how many watered days it has left (docs/adr/ADR-089 D2); the client writes the words in its language.
+                if (plan.Verdict == FarmVerdict.NotMature && current is { } growing)
+                {
+                    int daysLeft = FarmRules.DaysUntilMature(growing, nowMs, _calendar, player.Instance.IsOutdoors, sprinklerSince);
+                    return new FarmUseOutcome(FarmStatus.NotMature, FarmAction.None, DaysLeft: daysLeft);
+                }
+
                 return Refused(locked && plan.Verdict == FarmVerdict.NotTillable ? FarmStatus.LockedLand : ToStatus(plan.Verdict));
             }
 

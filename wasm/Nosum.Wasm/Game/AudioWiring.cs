@@ -39,7 +39,7 @@ internal static class AudioWiring
         GameLoop.UseAudio(audio);
 
         // What the server answered to a use of an item: the harvest, the planting, the refill.
-        services.GetRequiredService<FarmChannel>().UseCompleted += (_, action, _) => audio.Play(AudioCatalog.OutcomeSound(action));
+        services.GetRequiredService<FarmChannel>().UseCompleted += (_, action, _, _) => audio.Play(AudioCatalog.OutcomeSound(action));
 
         services.GetRequiredService<GroundItemChannel>().PickedUp += audio.PlayPickup;
 

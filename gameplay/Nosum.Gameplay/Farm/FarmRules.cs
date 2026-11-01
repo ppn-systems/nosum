@@ -352,6 +352,26 @@ public static class FarmRules
     public static int StageAt(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
         => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) ? crop.StageAt(GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinklerSinceMs)) : -1;
 
+    /// <summary>
+    /// Returns the watered game days a planted crop still needs before it is ripe: its total growth days less the days it has reached, never below
+    /// zero. Zero when no crop stands there or it is ripe already (docs/adr/ADR-089 D2).
+    /// </summary>
+    /// <param name="tile">The tile.</param>
+    /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
+    /// <returns>The days left.</returns>
+    public static int DaysUntilMature(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
+    {
+        if (!tile.HasCrop || !CropCatalog.TryGet(tile.CropId, out CropDefinition? crop))
+        {
+            return 0;
+        }
+
+        return Math.Max(0, crop.TotalGrowthDays - GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinklerSinceMs));
+    }
+
     /// <summary>Returns whether a tile's crop can be harvested.</summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
