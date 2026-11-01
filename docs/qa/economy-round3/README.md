@@ -77,9 +77,8 @@ below. Touch targets are the same `GameButton`s as before.
 
 ## Tests
 
-- `dotnet build tests/Nosum.Tests.slnx --no-incremental`: **0 warnings, 0 errors**; `wasm/Nosum.Wasm`: 0 warnings, 0 errors.
-- Unit tests (`tests/Nosum.UnitTests`): **3630 passed, 0 failed** (includes `Browsed_OwnListing_SaysHowManyHoursItHasLeft` and
-  `Browsed_OthersListing_HasNoExpiryLine`).
-- Integration tests (`tests/Nosum.IntegrationTests`): **827 passed, 1 failed** on the first full run. The failure was
-  `VisitWireTests.Visitor_InTheOwnersFarmhouse_CanLookButNotPlaceMovePickUpOrShip` (a visitor's map instance). The same class then passed
-  **11/11** on rerun, so it looks like a timing flake; it does not touch the market, the wire or the UI. Not investigated further.
+- Final run on the merged tree (`origin/master` b60835e merged in), `dotnet test tests/Nosum.Tests.slnx`: **unit 3676 passed, 0 failed;
+  integration 830 passed, 0 failed**. Build: `dotnet build tests/Nosum.Tests.slnx --no-incremental` and `wasm/Nosum.Wasm`, **0 warnings, 0 errors**.
+- Added this round: `Browsed_OwnListing_SaysHowManyHoursItHasLeft`, `Browsed_OthersListing_HasNoExpiryLine` (`MarketSortViewModelTests`).
+- An earlier integration run (before the merge) had one failure, `VisitWireTests.Visitor_InTheOwnersFarmhouse_CanLookButNotPlaceMovePickUpOrShip`,
+  which passed 11/11 on rerun. Not related to the market or the wire; the final run passed it.
