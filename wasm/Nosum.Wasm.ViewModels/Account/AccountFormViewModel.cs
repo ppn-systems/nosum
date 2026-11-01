@@ -197,6 +197,87 @@ public sealed class AccountFormViewModel : IObservableViewModel
         }
     }
 
+    /// <summary>
+    /// Gets whether Profile offers "save progress with an account": a signed-in guest, at any time (not only after the first quest, which
+    /// gates the session bar's invitation). The link keeps the same player, so the farm, coins and belongings stay (docs/adr/ADR-101).
+    /// </summary>
+    public bool CanSaveProgress => this.CurrentSession is { IsGuest: true } && this.Mode != AccountFormMode.Upgrade;
+
+    /// <summary>Gets the heading of the save-progress block in Profile.</summary>
+    public string SaveProgressHeading => _text["Account_SaveProgress_Heading"];
+
+    /// <summary>Gets the explanation of what linking keeps, shown in Profile.</summary>
+    public string SaveProgressBody => _text["Account_SaveProgress_Body"];
+
+    /// <summary>Gets the text of the save-progress button in Profile.</summary>
+    public string SaveProgressText => _text["Account_SaveProgress_Action"];
+
+    /// <summary>Gets whether the sign-out question for a guest is open (docs/adr/ADR-101).</summary>
+    public bool IsSignOutQuestionOpen { get; private set; }
+
+    /// <summary>Gets the title of the guest sign-out question.</summary>
+    public string SignOutQuestionTitle => _text["Account_SignOutGuest_Title"];
+
+    /// <summary>Gets the warning of the guest sign-out question: what a guest loses.</summary>
+    public string SignOutQuestionMessage => _text["Account_SignOutGuest_Message"];
+
+    /// <summary>Gets the text of the guest sign-out question's link-first answer.</summary>
+    public string SignOutQuestionLinkText => _text["Account_SignOutGuest_Link"];
+
+    /// <summary>Gets the text of the guest sign-out question's sign-out answer.</summary>
+    public string SignOutQuestionConfirmText => _text["Account_SignOutGuest_Confirm"];
+
+    /// <summary>Gets the text of the guest sign-out question's stay answer.</summary>
+    public string SignOutQuestionStayText => _text["Account_SignOutGuest_Stay"];
+
+    /// <summary>
+    /// Sign-out from Profile. A guest is asked first, because signing out loses the guest's progress for good; a registered player signs out at once.
+    /// </summary>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the sign-out is done, or the question is open.</returns>
+    public Task RequestSignOutAsync(CancellationToken cancellationToken = default)
+    {
+        if (this.CurrentSession is null || this.IsBusy)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (this.CurrentSession.IsGuest)
+        {
+            this.IsSignOutQuestionOpen = true;
+            this.Changed?.Invoke();
+            return Task.CompletedTask;
+        }
+
+        return this.LogoutAsync(cancellationToken);
+    }
+
+    /// <summary>The guest answered "stay": the question closes and nothing is signed out.</summary>
+    public void CancelSignOutQuestion()
+    {
+        if (this.IsSignOutQuestionOpen)
+        {
+            this.IsSignOutQuestionOpen = false;
+            this.Changed?.Invoke();
+        }
+    }
+
+    /// <summary>The guest answered "link an account first": the question closes and the upgrade form opens.</summary>
+    public void LinkBeforeSignOut()
+    {
+        this.IsSignOutQuestionOpen = false;
+        this.BeginUpgrade();
+    }
+
+    /// <summary>The guest answered "sign out" in the question: the sign-out runs.</summary>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the player is signed out.</returns>
+    public Task ConfirmSignOutAsync(CancellationToken cancellationToken = default)
+    {
+        this.IsSignOutQuestionOpen = false;
+        return this.LogoutAsync(cancellationToken);
+    }
+
     /// <summary>Shows the upgrade form to the signed-in guest. Does nothing for a registered player.</summary>
     public void BeginUpgrade()
     {

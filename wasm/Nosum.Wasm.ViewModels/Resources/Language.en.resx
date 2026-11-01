@@ -31,6 +31,14 @@
   <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Link a Google or Microsoft account.</value></data>
   <data name="Account_Upgrade_Action" xml:space="preserve"><value>Link account</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Account_SaveProgress_Heading" xml:space="preserve"><value>Keep your progress</value></data>
+  <data name="Account_SaveProgress_Body" xml:space="preserve"><value>You are playing as a guest. Link a Google or Microsoft account to keep your farm, coins and belongings: it is the same player, with one more way to sign in. Then choose a nickname.</value></data>
+  <data name="Account_SaveProgress_Action" xml:space="preserve"><value>Save progress with an account</value></data>
+  <data name="Account_SignOutGuest_Title" xml:space="preserve"><value>Sign out?</value></data>
+  <data name="Account_SignOutGuest_Message" xml:space="preserve"><value>Signing out permanently loses this guest's farm, coins and belongings: there is no way back to this progress after you sign out. Link a Google or Microsoft account first to keep it.</value></data>
+  <data name="Account_SignOutGuest_Link" xml:space="preserve"><value>Link an account first</value></data>
+  <data name="Account_SignOutGuest_Confirm" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Account_SignOutGuest_Stay" xml:space="preserve"><value>Keep playing</value></data>
   <data name="Account_SignIn_Google" xml:space="preserve"><value>Sign in with Google</value></data>
   <data name="Account_SignIn_Microsoft" xml:space="preserve"><value>Sign in with Microsoft</value></data>
   <data name="Account_Link_Google" xml:space="preserve"><value>Link Google account</value></data>
@@ -172,7 +180,15 @@
   <data name="Wardrobe_Skin_Heading" xml:space="preserve"><value>Skin tone</value></data>
   <data name="Wardrobe_Skin" xml:space="preserve"><value>Skin tone {0}</value></data>
   <data name="Wardrobe_HairStyle_Heading" xml:space="preserve"><value>Hair style</value></data>
-  <data name="Wardrobe_HairStyle" xml:space="preserve"><value>Hair style {0}</value></data>
+  <data name="Wardrobe_HairStyle_Current" xml:space="preserve"><value>Wearing: {0}</value></data>
+  <data name="Wardrobe_HairStyle_Name_1" xml:space="preserve"><value>Short and neat</value></data>
+  <data name="Wardrobe_HairStyle_Name_2" xml:space="preserve"><value>Straight fringe</value></data>
+  <data name="Wardrobe_HairStyle_Name_3" xml:space="preserve"><value>Bowl cut</value></data>
+  <data name="Wardrobe_HairStyle_Name_4" xml:space="preserve"><value>Long hair</value></data>
+  <data name="Wardrobe_HairStyle_Name_5" xml:space="preserve"><value>Wavy</value></data>
+  <data name="Wardrobe_HairStyle_Name_6" xml:space="preserve"><value>Swept back</value></data>
+  <data name="Wardrobe_HairStyle_Name_7" xml:space="preserve"><value>Spiky</value></data>
+  <data name="Wardrobe_HairStyle_Name_8" xml:space="preserve"><value>Curly</value></data>
   <data name="Wardrobe_HairDye_Heading" xml:space="preserve"><value>Hair colour</value></data>
   <data name="Wardrobe_HairDye" xml:space="preserve"><value>Hair colour {0}</value></data>
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Shirt</value></data>

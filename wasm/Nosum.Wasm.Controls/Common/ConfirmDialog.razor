@@ -3,7 +3,11 @@
     <GameStack>
         <p class="confirm-message">@Message</p>
         <GameRow Class="end">
-            <GameButton Variant="primary" Text="@ConfirmText" OnClick="OnConfirm" />
+            @if (ThirdText is not null)
+            {
+                <GameButton Variant="primary" Text="@ThirdText" OnClick="OnThird" />
+            }
+            <GameButton Variant="@(ThirdText is null ? "primary" : "secondary")" Text="@ConfirmText" OnClick="OnConfirm" />
             <GameButton Variant="secondary" Text="@CancelText" OnClick="OnCancel" />
         </GameRow>
     </GameStack>
@@ -27,4 +31,10 @@
 
     /// <summary>Raised on no.</summary>
     [Parameter] public EventCallback OnCancel { get; set; }
+
+    /// <summary>An optional first answer, shown as the primary button before yes (for example "link an account first"). Null hides it.</summary>
+    [Parameter] public string? ThirdText { get; set; }
+
+    /// <summary>Raised on the optional first answer.</summary>
+    [Parameter] public EventCallback OnThird { get; set; }
 }

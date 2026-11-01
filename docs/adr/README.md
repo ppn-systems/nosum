@@ -102,4 +102,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-091](ADR-091-hazard-label-clustering.md) | Hazard overhead labels of the same text are placed once per cluster (96 × 16 px), so a magma field does not stack its label; amends ADR-061, ADR-063 (no wire change) | Accepted |
 | [ADR-092](ADR-092-animal-produce-cue-action-preview-and-pet-forage.md) | Animal produce cue after the day rolls over (ready sparkle, room re-read), the action key's preview over the animal or bench, a daily pet forage roll, and the carpenter's notice above the sections (no wire change, protocol 29) | Accepted |
 | [ADR-093](ADR-093-quest-waypoints-quest-lines-and-hint-idle.md) | Quest waypoints (an engine-drawn arrow at the screen edge and a minimap dot, from quest places by key), the merchant's greeting names the active quest, a name plate lifts above an exit's label, and first-run hints wait for an idle moment (no wire change) | Accepted |
+| [ADR-101](ADR-101-guest-progress-and-sign-out-question.md) | Guest progress from Profile, a sign-out question for guests, and hair-style names (no wire change) | Accepted |
 
