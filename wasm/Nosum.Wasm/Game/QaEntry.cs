@@ -31,6 +31,7 @@ internal static partial class QaEntry
               season: seasons => dev.Season(seasons),
               levelUp: (skill, level) => dev.LevelUp(skill, level),
               fishingBite: () => dev.FishingBite(),
+              allocatedBytes: () => dev.AllocatedBytes(),
             });
           } catch (error) {
             // The hook is a tester aid: a failure here must not take the game down with it.

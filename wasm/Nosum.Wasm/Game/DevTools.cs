@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 #if NOSUM_DEV_TOOLS
+using System;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
 using Nosum.Wasm.Socket.Dev;
@@ -47,6 +48,10 @@ internal static partial class DevTools
     /// <param name="tileY">The tile row.</param>
     [JSExport]
     internal static void Teleport(string mapId, int tileX, int tileY) => s_channel?.Teleport(mapId, tileX, tileY);
+
+    /// <summary>Bytes the frame thread has allocated so far. The frame benchmark (bench/wasm-perf/frame.cjs) reads the difference across a run.</summary>
+    [JSExport]
+    internal static double AllocatedBytes() => GC.GetAllocatedBytesForCurrentThread();
 
     /// <summary>Passes season starts on the server clock.</summary>
     /// <param name="seasons">Season starts to pass, 1 to 4.</param>
