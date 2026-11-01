@@ -323,7 +323,9 @@ function refreshHud(now) {
     const base = canvas.getBoundingClientRect();
     for (const el of document.querySelectorAll(HUD_SELECTOR)) {
         const r = el.getBoundingClientRect();
-        if (r.width <= 0 || r.height <= 0 || r.height >= base.height * 0.9 || hudCount >= 16) {
+        // A region that covers the whole canvas (a backdrop) is left out. A tall column in the corner (the top right: calendar, minimap, menu) is not:
+        // it is the thing the labels and the edge arrow must keep off (docs/adr/ADR-096 D2).
+        if (r.width <= 0 || r.height <= 0 || (r.height >= base.height * 0.9 && r.width >= base.width * 0.9) || hudCount >= 16) {
             continue;
         }
 
@@ -331,6 +333,114 @@ function refreshHud(now) {
             Math.round(r.bottom - base.top), Math.round(base.height));
         hudCount++;
     }
+}
+
+function clampTo(v, lo, hi) {
+    return v < lo ? lo : v > hi ? hi : v;
+}
+
+// The index of the first HUD rectangle that the box (x, y, w, h) overlaps, or -1.
+function hudHit(x, y, w, h) {
+    for (let k = 0; k < hudCount; k++) {
+        const o = k * 4;
+        if (x < hudRects[o + 2] && x + w > hudRects[o] && y < hudRects[o + 3] && y + h > hudRects[o + 1]) {
+            return k;
+        }
+    }
+    return -1;
+}
+
+// The edge arrow's placement (canvas pixels), set by fitArrow for the frame's arrow command.
+let arrowOn = false;
+let arrowX = 0, arrowY = 0, arrowDir = -1;
+
+// Places an edge arrow (box side s, canvas pixels) at (x, y) and, when it hits a HUD rectangle, slides it along its edge one view pixel at a time,
+// nearest first, until it is clear. Up and down arrows slide along x, left and right arrows along y. Returns false when no clear place exists on the edge.
+function fitArrow(x, y, s, dir, scale) {
+    const alongX = dir === 0 || dir === 2;
+    const lo = LABEL_EDGE;
+    const hi = (alongX ? canvas.width : canvas.height) - s - LABEL_EDGE;
+    const base = alongX ? x : y;
+    const span = Math.max(canvas.width, canvas.height);
+    // No array per step: the frame path allocates nothing (docs/adr/ADR-096 D2).
+    for (let k = 0; k <= span; k++) {
+        const sides = k === 0 ? 1 : 2;
+        for (let side = 0; side < sides; side++) {
+            const p = side === 0 ? base - k * scale : base + k * scale;
+            if (p < lo || p > hi) {
+                continue;
+            }
+            const cx = alongX ? p : x, cy = alongX ? y : p;
+            if (hudHit(cx, cy, s, s) < 0) {
+                arrowX = cx; arrowY = cy;
+                return true;
+            }
+        }
+        if (base - k * scale < lo && base + k * scale > hi) {
+            break;
+        }
+    }
+    return false;
+}
+
+// Draws the 9 by 9 arrow glyph, one rectangle per row: the head widens by two cells a row, then a three-cell shaft. Mirrors EdgeArrow.Glyph (engine).
+function drawArrowGlyph(draw, x, y, s, dir, scale, colour) {
+    const cell = scale;
+    const u = colour >>> 0;
+    draw.save();
+    draw.setTransform(1, 0, 0, 1, 0, 0);
+    draw.fillStyle = `rgba(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255}, ${(u & 255) / 255})`;
+    for (let row = 0; row < 9; row++) {
+        const start = row <= 4 ? 4 - row : 3;
+        const len = row <= 4 ? 2 * row + 1 : 3;
+        const r = dir === 1 || dir === 2 ? 8 - row : row;
+        if (dir === 0 || dir === 2) {
+            draw.fillRect(x + start * cell, y + r * cell, len * cell, cell);
+        } else {
+            draw.fillRect(x + r * cell, y + start * cell, cell, len * cell);
+        }
+    }
+    draw.restore();
+}
+
+// Moves a label box inside the canvas and off the HUD: beside the HUD rectangle it hit, then below it, then above it. Leaves the result in labelX/labelY.
+function fitLabel(x, y, w, h) {
+    const maxX = canvas.width - w - LABEL_EDGE;
+    const maxY = canvas.height - h - LABEL_EDGE;
+    x = clampTo(x, LABEL_EDGE, maxX);
+    y = clampTo(y, LABEL_EDGE, maxY);
+    const k = hudHit(x, y, w, h);
+    if (k < 0) {
+        labelX = x;
+        labelY = y;
+        return;
+    }
+
+    const o = k * 4;
+    const left = clampTo(hudRects[o] - w - LABEL_GAP, LABEL_EDGE, maxX);
+    if (hudHit(left, y, w, h) < 0) {
+        labelX = left;
+        labelY = y;
+        return;
+    }
+
+    const below = clampTo(hudRects[o + 3] + LABEL_GAP, LABEL_EDGE, maxY);
+    if (hudHit(x, below, w, h) < 0) {
+        labelX = x;
+        labelY = below;
+        return;
+    }
+
+    const above = clampTo(hudRects[o + 1] - h - LABEL_GAP, LABEL_EDGE, maxY);
+    if (hudHit(x, above, w, h) < 0) {
+        labelX = x;
+        labelY = above;
+        return;
+    }
+
+    // No free spot next to the HUD (a crowded corner): keep it at the left of the rectangle, which is still on screen.
+    labelX = left;
+    labelY = y;
 }
 
 export function submitFrame(view) {
@@ -398,6 +508,22 @@ export function submitFrame(view) {
             const u = tint >>> 0;
             draw.fillStyle = `rgba(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255}, ${(u & 255) / 255})`;
             draw.fillRect(dx, dy, w, h);
+            continue;
+        }
+        if (id === -12) {
+            // Edge arrow of a quest waypoint (docs/adr/ADR-096 D2): sx is the direction, sy 1 for the shadow and 0 for the arrow, (dx, dy) its
+            // top left in view pixels, w its box side, tint its colour. It slides along its edge until it is off every HUD rectangle, and is not drawn
+            // when no place on that edge is clear. The shadow comes first, so it places the arrow; the arrow then draws in that place.
+            if (sy === 1) {
+                arrowOn = fitArrow(dx * scale, dy * scale, w * scale, sx, scale);
+                arrowDir = sx;
+                if (arrowOn) {
+                    drawArrowGlyph(draw, arrowX + scale, arrowY + scale, w * scale, sx, scale, tint);
+                }
+            } else if (arrowOn && sx === arrowDir) {
+                drawArrowGlyph(draw, arrowX, arrowY, w * scale, sx, scale, tint);
+                arrowOn = false;
+            }
             continue;
         }
         if (id === -3) {

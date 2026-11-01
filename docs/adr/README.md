@@ -104,4 +104,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-093](ADR-093-quest-waypoints-quest-lines-and-hint-idle.md) | Quest waypoints (an engine-drawn arrow at the screen edge and a minimap dot, from quest places by key), the merchant's greeting names the active quest, a name plate lifts above an exit's label, and first-run hints wait for an idle moment (no wire change) | Accepted |
 | [ADR-094](ADR-094-scythe-line-days-left-and-one-watering-rule.md) | The scythe works a line of three (five at copper and iron), an unripe crop names the days left (protocol 31), and one rule decides a watering (`FarmRules.WaterVerdict`) | Accepted |
 | [ADR-095](ADR-095-world-labels-clear-the-hud-and-touch-controls.md) | World labels clear the HUD, the bottom band and the touch controls; stacked labels keep a gap; amends ADR-063, ADR-091 (no wire change) | Proposed |
+| [ADR-096](ADR-096-waypoint-arrow-off-the-hud-and-the-round-three-check.md) | Quest waypoint arrow slides off the HUD, Forest and Mine waypoints at their nodes, the hint's idle count costs nothing per frame, browser check of ADR-093 (no wire change); amends ADR-093 | Accepted |
 

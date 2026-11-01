@@ -15,11 +15,11 @@ public sealed class BlacksmithRulesTests
     [InlineData(ItemCatalog.WateringCan, ItemCatalog.CopperWateringCan, 2_000, ItemCatalog.CopperBar)]
     [InlineData(ItemCatalog.Axe, ItemCatalog.CopperAxe, 2_000, ItemCatalog.CopperBar)]
     [InlineData(ItemCatalog.Pickaxe, ItemCatalog.CopperPickaxe, 2_000, ItemCatalog.CopperBar)]
-    [InlineData(ItemCatalog.CopperHoe, ItemCatalog.IronHoe, 5_000, ItemCatalog.IronBar)]
-    [InlineData(ItemCatalog.CopperWateringCan, ItemCatalog.IronWateringCan, 5_000, ItemCatalog.IronBar)]
-    [InlineData(ItemCatalog.CopperAxe, ItemCatalog.IronAxe, 5_000, ItemCatalog.IronBar)]
-    [InlineData(ItemCatalog.CopperPickaxe, ItemCatalog.IronPickaxe, 5_000, ItemCatalog.IronBar)]
-    public void TryQuote_CopperCostsTwoThousandAndFiveCopperBars_IronFiveThousandAndFiveIronBars(int from, int to, long coins, int bar)
+    [InlineData(ItemCatalog.CopperHoe, ItemCatalog.IronHoe, 8_000, ItemCatalog.IronBar)]
+    [InlineData(ItemCatalog.CopperWateringCan, ItemCatalog.IronWateringCan, 8_000, ItemCatalog.IronBar)]
+    [InlineData(ItemCatalog.CopperAxe, ItemCatalog.IronAxe, 8_000, ItemCatalog.IronBar)]
+    [InlineData(ItemCatalog.CopperPickaxe, ItemCatalog.IronPickaxe, 8_000, ItemCatalog.IronBar)]
+    public void TryQuote_CopperCostsTwoThousandAndFiveCopperBars_IronEightThousandAndFiveIronBars(int from, int to, long coins, int bar)
     {
         BlacksmithRules.TryQuote(from, out UpgradeQuote? found).Should().BeTrue();
 

@@ -33,7 +33,7 @@ public static class BlacksmithRules
     public const long CopperCoins = 2_000;
 
     /// <summary>Price of the iron upgrade, coins.</summary>
-    public const long IronCoins = 5_000;
+    public const long IronCoins = 8_000;
 
     /// <summary>Quotes the upgrade of a tool to the next tier.</summary>
     /// <param name="toolItemId">The tool item the player hands over; any tier but the top one of an upgradable tool.</param>

@@ -166,6 +166,11 @@ public sealed class SettingsTests
         private readonly List<ScheduledTimer> _timers = [];
         private TimeSpan _now;
 
+        // The clock's timestamps move with the test's time too, so the view model's idle count (TimeProvider.GetElapsedTime) reads the same moment.
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        public override long GetTimestamp() => _now.Ticks;
+
         public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
             ScheduledTimer timer = new(this, callback, state, _now + dueTime);

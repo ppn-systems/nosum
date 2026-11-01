@@ -67,3 +67,11 @@
 .listing-seller {
     color: var(--nosum-ink-soft);
 }
+
+/* One line each: a long name or seller ends in an ellipsis instead of wrapping, so a listing row is one item slot tall (docs/design/critique-economy.md, round 2). */
+.listing-name,
+.listing-seller {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
