@@ -54,7 +54,7 @@ Before is `master` (4221f3b); after is this branch. "Partly" means something is 
 
 ## Tests
 
-- `dotnet test tests/Nosum.UnitTests` (Nosum.UnitTests.csproj): 3445 passed, 0 failed. New: `SettledGhostTests` (4), two `PlacementViewModelTests` (the stow note in vi and en; the note's change notifications).
+- `dotnet test tests/Nosum.UnitTests` (Nosum.UnitTests.csproj), after merging master be97af9: 3509 passed, 0 failed. New: `SettledGhostTests` (4), two `PlacementViewModelTests` (the stow note in vi and en; the note's change notifications).
 - `dotnet build wasm/Nosum.Wasm.slnx`: 0 warnings, 0 errors. `dotnet build engine/Nosum.Engine.slnx`: 0 warnings.
 - The browser scripts ran against the dev client (`-p:NosumDevTools=true`) and the dev host (`DOTNET_ENVIRONMENT=Development`, PostgreSQL on localhost).
 
