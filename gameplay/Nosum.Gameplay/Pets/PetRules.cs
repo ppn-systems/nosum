@@ -104,14 +104,14 @@ public static class PetRules
     /// <param name="kind">The code the client sent.</param>
     public static bool IsAdoptable(byte kind) => kind is (byte)PetKind.Cat or (byte)PetKind.Dog;
 
-    /// <summary>The chance, in percent, that the first petting of a game day brings back a forage item (docs/adr/ADR-089 D2).</summary>
+    /// <summary>The chance, in percent, that the first petting of a game day brings back a forage item (docs/adr/ADR-090 D2).</summary>
     public const int ForageChancePercent = 30;
 
     /// <summary>The forage items a pet can bring back: wild food from the meadow, each one as likely as the others.</summary>
     public static readonly int[] ForageItems = [ItemCatalog.SpiceBerry, ItemCatalog.WildPlum, ItemCatalog.Mushroom];
 
     /// <summary>
-    /// The forage item a pet brings back on the first petting of a game day, or zero for none (docs/adr/ADR-089 D2). A pure function of the
+    /// The forage item a pet brings back on the first petting of a game day, or zero for none (docs/adr/ADR-090 D2). A pure function of the
     /// player and the day, so the same petting gives the same answer on any server and a test can check it.
     /// </summary>
     /// <param name="playerId">The farmer who petted the pet.</param>

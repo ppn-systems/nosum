@@ -46,7 +46,7 @@ rolls over, the hens show no produce (`05-new-day-no-produce-cue.png`). The egg 
 (`06-action-key-swings-hoe-at-bench.png`, the egg above the hen). Nothing tells the player that eggs are waiting, so a player who
 does not open the coop sees a quiet room and a full bench. ADR-028 chose lazy settlement to keep idle buildings free.
 
-**Status: fixed in round two (docs/adr/ADR-089 D1).** The room is read again on a day change, and the ready sparkle marks the animals with produce. The original options were: either settle the day's feeding when a player first comes near the coop, or
+**Status: fixed in round two (docs/adr/ADR-090 D1).** The room is read again on a day change, and the ready sparkle marks the animals with produce. The original options were: either settle the day's feeding when a player first comes near the coop, or
 push the produce on the day rollover. Both need a decision on cost (ADR-028 says the day hook is not used).
 
 ### 4. One action key, three outcomes, no preview (medium)
@@ -55,7 +55,7 @@ The action key feeds at the trough, collects produce, or pets the nearest animal
 hand and how far the animal is. With hay in hand one tile from a hen, the same press pets the hen (toast: "You pet Hen. Friendship:
 40."). With the hoe in hand the press swings at the bench (`06`). The outcome is only a line of text that may have passed by.
 
-**Status: fixed in round two (docs/adr/ADR-089 D3).** The engine draws "Feed", "Collect" or "Pet" over the target, decided by the same rule as the press.
+**Status: fixed in round two (docs/adr/ADR-090 D3).** The engine draws "Feed", "Collect" or "Pet" over the target, decided by the same rule as the press.
 
 ### 5. Wrong feedback after a purchase (medium, fixed)
 
@@ -68,7 +68,7 @@ Buying a chicken in a coop says "Bought, and on its way to the barn." (`Building
 
 - The "Animal name" field sits above the species rows, so the player types a name before choosing a species. The hint "3 to 16
   letters or digits" is below the field, and the field keeps a red underline after a successful purchase (`02`).
-- The purchase notice was at the bottom of the panel and clipped at 1280×720 (`02`); it now sits above the section (docs/adr/ADR-089 D4). `ui-standard.md` section 7 item 6 forbids
+- The purchase notice was at the bottom of the panel and clipped at 1280×720 (`02`); it now sits above the section (docs/adr/ADR-090 D4). `ui-standard.md` section 7 item 6 forbids
   clipping.
 - "Coop (2/4)" repeats for each species row and does not say which animals live there. In Vietnamese both rows read
   "Chuồng gà (1/4)", the duck's row included (`after/1280x720-vi/carpenter-bought.png`): the building is named after its chickens.
@@ -90,7 +90,7 @@ is the first animal a new player buys, and it is the one that pays back slowest.
   after that as before. The energy from petting (+5, ADR-075 D4) is not reported.
 - Mood has no effect on anything. The only gameplay is the energy once a day. A pet with no effect is a chore to keep up with.
 
-**Status: round two adds option 3's forage (docs/adr/ADR-089 D2): a daily chance of a forage item on the first petting.** The brief asks for a small helpful behaviour, but a pet that does something useful is a new rule (what it
+**Status: round two adds option 3's forage (docs/adr/ADR-090 D2): a daily chance of a forage item on the first petting.** The brief asks for a small helpful behaviour, but a pet that does something useful is a new rule (what it
 does, how often, what it costs the player) and needs an ADR. Options for that decision:
 
 1. The pet's mood sets the energy the farmer gets from petting (a higher mood gives more). No wire change; a rule change in

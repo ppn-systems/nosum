@@ -29,7 +29,7 @@ internal sealed class AnimalsDecorator : IMapDecorator
     private const int FrameMs = 160;
     private const int ProduceIcon = 16;
 
-    // The gold ready sparkle of a ripe crop (docs/adr/ADR-021), 8 x 8, drawn over an animal that has produce today (docs/adr/ADR-089 D1).
+    // The gold ready sparkle of a ripe crop (docs/adr/ADR-021), 8 x 8, drawn over an animal that has produce today (docs/adr/ADR-090 D1).
     private const int ReadySize = 8;
 
     // Where a hint sits over its animal or the bench: its left edge is this far left of the anchor, and its top this far above the sprite's top.
@@ -63,7 +63,7 @@ internal sealed class AnimalsDecorator : IMapDecorator
     /// <param name="heartsTexture">Texture of the hearts sheet: a filled heart at column 0, an empty one at column 8.</param>
     /// <param name="emotesTexture">Texture of the emote sheet: the exclamation mark that says the feeding bench is empty.</param>
     /// <param name="readyTexture">Texture of <c>ready.png</c>, the gold sparkle over an animal that has produce today.</param>
-    /// <param name="tendLabels">The interned hints of the action key (docs/adr/ADR-089 D3); null draws none.</param>
+    /// <param name="tendLabels">The interned hints of the action key (docs/adr/ADR-090 D3); null draws none.</param>
     /// <param name="actions">The player's action preview; null draws none.</param>
     /// <param name="building">The building the room is, for the place of its feeding bench; null draws no bench state.</param>
     /// <param name="tileSize">Tile size of the room's map, pixels.</param>
@@ -92,7 +92,7 @@ internal sealed class AnimalsDecorator : IMapDecorator
         int today = rules?.DayNumberAt(now) ?? 0;
         if (today != 0)
         {
-            // The room was read on an earlier game day: the night's feeding settles on the server only when someone asks, so ask again (docs/adr/ADR-089 D1).
+            // The room was read on an earlier game day: the night's feeding settles on the server only when someone asks, so ask again (docs/adr/ADR-090 D1).
             if (_seenDay != 0 && today != _seenDay)
             {
                 _buildings.LoadRoom();
@@ -134,11 +134,11 @@ internal sealed class AnimalsDecorator : IMapDecorator
                     int bob = (int)(2 * Math.Sin((clock + (i * 311)) * 0.005));
                     world.Add(_objectsTexture, srcX, srcY, ProduceIcon, ProduceIcon, x - (ProduceIcon / 2), top - ProduceIcon + bob, y + 64, x);
 
-                    // The ready sparkle marks the animal in the corner, the same mark a ripe crop wears (docs/adr/ADR-089 D1).
+                    // The ready sparkle marks the animal in the corner, the same mark a ripe crop wears (docs/adr/ADR-090 D1).
                     world.Add(_readyTexture, 0, 0, ReadySize, ReadySize, left + animal.FrameWidth - ReadySize, top, y + 64, x);
                 }
 
-                // The hint over the animal the action key would collect from or pet (docs/adr/ADR-089 D3).
+                // The hint over the animal the action key would collect from or pet (docs/adr/ADR-090 D3).
                 if (_actions is not null && _tendLabels is not null && pose.Id == _actions.TendTarget)
                 {
                     int hint = _tendLabels.IdOf(_actions.TendPreview);
@@ -187,7 +187,7 @@ internal sealed class AnimalsDecorator : IMapDecorator
             world.Add(_objectsTexture, srcX, srcY, ProduceIcon, ProduceIcon, troughX - (ProduceIcon / 2), troughY - ProduceIcon - 2, sortY, troughX);
         }
 
-        // Feed in hand at the trough: the hint says the press fills the bench (docs/adr/ADR-089 D3).
+        // Feed in hand at the trough: the hint says the press fills the bench (docs/adr/ADR-090 D3).
         int feedHint = _tendLabels is not null && _actions is not null && _actions.TendPreview == AnimalTend.Feed ? _tendLabels.IdOf(AnimalTend.Feed) : 0;
         if (feedHint != 0)
         {
@@ -271,7 +271,7 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
 }
 
 /// <summary>
-/// The three short hints of the action key inside a building (docs/adr/ADR-089 D3): what E will do, interned once from the localized strings so a frame
+/// The three short hints of the action key inside a building (docs/adr/ADR-090 D3): what E will do, interned once from the localized strings so a frame
 /// allocates nothing. The ids are those of <see cref="LabelRegistry"/>; zero means no label.
 /// </summary>
 internal sealed class AnimalTendLabels

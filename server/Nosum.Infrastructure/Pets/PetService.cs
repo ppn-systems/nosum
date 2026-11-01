@@ -54,7 +54,7 @@ public sealed class PetService : IPetService
     /// <param name="maps">The hosted maps (tile size) for the counter's reach.</param>
     /// <param name="transfers">Moves the coins and the pet row in one transaction.</param>
     /// <param name="quests">Hears about the player actions the tutorial chain counts; <see langword="null"/> to hear nothing.</param>
-    /// <param name="inventory">Adds the forage item the first petting of a day may bring back (docs/adr/ADR-089 D2); <see langword="null"/> brings none.</param>
+    /// <param name="inventory">Adds the forage item the first petting of a day may bring back (docs/adr/ADR-090 D2); <see langword="null"/> brings none.</param>
     public PetService(
         IUnitOfWorkFactory unitOfWork,
         IPlayerProgress progress,
@@ -247,7 +247,7 @@ public sealed class PetService : IPetService
         }
 
         await _progress.RestoreEnergyAsync(playerId, PetRules.PettingEnergy, cancellationToken).ConfigureAwait(false);
-        // The first petting of the day may bring back a forage item (docs/adr/ADR-089 D2). A full bag leaves it on the grass: the petting still counts.
+        // The first petting of the day may bring back a forage item (docs/adr/ADR-090 D2). A full bag leaves it on the grass: the petting still counts.
         int forage = PetRules.ForageOf(playerId, today);
         if (_inventory is not null && forage != 0)
         {

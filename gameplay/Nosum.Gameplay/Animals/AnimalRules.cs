@@ -12,7 +12,7 @@ namespace Nosum.Gameplay.Animals;
 /// <param name="FedToday">How many animals ate at the start of today and so have produce today.</param>
 public readonly record struct FeedingSettlement(int Rations, int FedToday);
 
-/// <summary>The outcome of the action key inside a building (docs/adr/ADR-089 D3).</summary>
+/// <summary>The outcome of the action key inside a building (docs/adr/ADR-090 D3).</summary>
 public enum AnimalTend : byte
 {
     /// <summary>Nothing to do: no feed at the trough and no animal in reach.</summary>
@@ -75,7 +75,7 @@ public static class AnimalRules
     /// <returns><see langword="true"/> when there are animals and no ration in the bench.</returns>
     public static bool BenchNeedsHay(int rations, int animals) => animals > 0 && rations <= 0;
 
-    /// <summary>What the action key does inside a building (docs/adr/ADR-089 D3): fills the bench, collects produce, or pets the animal in reach.</summary>
+    /// <summary>What the action key does inside a building (docs/adr/ADR-090 D3): fills the bench, collects produce, or pets the animal in reach.</summary>
     /// <param name="feedAtTrough">Feed in hand and the farmer faces the trough.</param>
     /// <param name="animalInReach">An animal is within reach of the farmer's feet.</param>
     /// <param name="hasProduce">That animal has produce today.</param>

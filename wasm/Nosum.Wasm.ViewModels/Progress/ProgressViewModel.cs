@@ -210,24 +210,26 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// for the tooltip (docs/design/research-hud-and-loops.md, backlog item 3).
     /// </summary>
     /// <param name="tool">The tool in hand; <see cref="ToolKind.None"/> for none.</param>
+    /// <param name="tier">The tool's tier, which can lower the energy per use (docs/adr/ADR-089).</param>
     /// <returns>The number of uses, or <c>-1</c> when the tool costs no energy (the scythe) or no tool is in hand.</returns>
-    public int ToolUsesLeft(ToolKind tool)
+    public int ToolUsesLeft(ToolKind tool, ToolTier tier = ToolTier.Basic)
     {
         if (tool == ToolKind.None)
         {
             return -1;
         }
 
-        int cost = EnergyRules.Cost(tool, SkillRules.LevelOf(this.XpOfSkill(SkillRules.SkillOf(tool))));
+        int cost = EnergyRules.Cost(tool, SkillRules.LevelOf(this.XpOfSkill(SkillRules.SkillOf(tool))), tier);
         return cost > 0 ? _progress.Energy / cost : -1;
     }
 
     /// <summary>Gets the tooltip line for the tool in hand: <c>About 12 tool uses left</c>, or a line that the energy is too low for one more use.</summary>
     /// <param name="tool">The tool in hand; <see cref="ToolKind.None"/> for none.</param>
+    /// <param name="tier">The tool's tier (docs/adr/ADR-089 D1).</param>
     /// <returns>The localized line, or an empty string when the tool costs no energy or no tool is in hand.</returns>
-    public string ToolUsesTip(ToolKind tool)
+    public string ToolUsesTip(ToolKind tool, ToolTier tier = ToolTier.Basic)
     {
-        int uses = this.ToolUsesLeft(tool);
+        int uses = this.ToolUsesLeft(tool, tier);
         if (uses < 0 || !this.HasEnergy)
         {
             return string.Empty;
