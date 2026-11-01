@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Nosum.Core;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
+using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
 using Nosum.Rendering;
@@ -34,6 +35,9 @@ internal sealed class FarmDecorator : IMapDecorator
 
     // The multiply tint of a thirsty tile, one dry day from withering or reverting (0xRRGGBBAA): parched yellow, the blue dimmed.
     private static readonly int s_thirstyTint = unchecked((int)0xE6C070FF);
+
+    // The tiles of a wide tool's line beyond the first are dimmed, so the first tile (the one the use starts on) reads as the target (docs/adr/ADR-089 D1).
+    private static readonly int s_lineTint = unchecked((int)0xFFFFFF8C);
 
     private readonly string _mapId;
     private readonly FarmChannel _farm;
@@ -131,8 +135,15 @@ internal sealed class FarmDecorator : IMapDecorator
         }
 
         // The reticle turns red when the held seed, hoe or watering can would do nothing on the tile in front (PlayerActions.TargetDenied).
+        // A wide tool shows the whole line it works, engine-drawn (backlog item 5, docs/adr/ADR-089 D1): drawn from the far end, so the target tile is on top.
         int reticleTint = _actions.TargetDenied ? s_deniedTint : RenderCommandBuffer.NoTint;
-        commands.Draw(_cursorTexture, 0, 0, 16, 16, (_actions.TargetX * _tileSize) - camera.Left, (_actions.TargetY * _tileSize) - camera.Top, 0, reticleTint);
+        int lineLength = _actions.HeldLineLength;
+        for (int i = lineLength - 1; i >= 0; i--)
+        {
+            (int tileX, int tileY) = ToolRules.LineTile(_actions.TargetX, _actions.TargetY, _actions.TargetFacing, lineLength, i);
+            int tint = i == 0 ? reticleTint : s_lineTint;
+            commands.Draw(_cursorTexture, 0, 0, 16, 16, (tileX * _tileSize) - camera.Left, (tileY * _tileSize) - camera.Top, 0, tint);
+        }
     }
 
     /// <inheritdoc/>

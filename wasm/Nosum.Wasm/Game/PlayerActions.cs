@@ -114,6 +114,12 @@ internal sealed partial class PlayerActions
     /// <summary>Gets the tile x in front of the farmer.</summary>
     public int TargetX { get; private set; }
 
+    /// <summary>Gets the facing the reticle's line runs in (the way the farmer faces).</summary>
+    public Facing TargetFacing { get; private set; }
+
+    /// <summary>Gets how many tiles the held tool's line covers: a wide hoe, can or scythe its line, one tile for anything else (docs/adr/ADR-089 D1).</summary>
+    public int HeldLineLength => ItemCatalog.TryGet(this.HeldItemId, out ItemDefinition? held) ? ToolRules.LineLength(held.Tool, held.Tier) : 1;
+
     /// <summary>Gets the tile y in front of the farmer.</summary>
     public int TargetY { get; private set; }
 
@@ -167,6 +173,7 @@ internal sealed partial class PlayerActions
             Facing.Right => (x + 1, y),
             _ => (x, y + 1),
         };
+        this.TargetFacing = facing;
 
         this.TargetDenied = IsFarmTool(this.HeldItemId) && !this.TargetWorks(mapAllowsTools);
 
