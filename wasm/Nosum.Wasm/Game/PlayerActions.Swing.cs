@@ -135,7 +135,8 @@ internal sealed partial class PlayerActions
         _queuedTileY = tileY;
         _queuedTiles = tiles;
         _queuedTool = tool;
-        _queuedCost = tiles == 1 ? EnergyCostOf(tool) : 0;
+        // Every tile of a wide use is charged its own energy when it works (docs/adr/ADR-088); the label shows the total once the server says how many worked.
+        _queuedCost = EnergyCostOf(tool);
         _queuedFloatX = (tileX * tileSize) + (tileSize / 2);
         _queuedFloatY = (tileY * tileSize) + (tileSize / 2);
         this.PressJuice(slot, tileX, tileY, tool, tileSize);
@@ -218,9 +219,10 @@ internal sealed partial class PlayerActions
     }
 
     // The server's answer: energy is spent only on an outcome that worked the tile, so the label floats only then.
-    private void OnFarmUseCompleted(FarmStatus status, FarmAction action)
+    private void OnFarmUseCompleted(FarmStatus status, FarmAction action, int worked)
     {
-        int cost = _firedCost;
+        // The server charged the cost of each tile that worked, so the label is the cost of one tile times the count (docs/adr/ADR-088).
+        int cost = _firedCost * worked;
         _firedCost = 0;
         if (status != FarmStatus.Ok || cost <= 0 || !ChargesEnergy(action))
         {

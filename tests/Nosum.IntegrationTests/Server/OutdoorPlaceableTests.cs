@@ -307,7 +307,7 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         _ = await world.Placeables.PickUpAsync(world.Presence.ConnectionOf(player), fence);
 
         // Once the soil is tilled, nothing may be placed on it.
-        (await Till(x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled));
+        (await Till(x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled, Worked: 1));
         int slot = await world.GiveAsync(player, ItemCatalog.WoodFence, 1);
         (await world.Placeables.PlaceAsync(world.Presence.ConnectionOf(player), slot, x, y, 0)).Status.Should().Be(PlaceStatus.Tilled);
         (await world.CountAsync(player, ItemCatalog.WoodFence)).Should().Be(2, "the refused piece stays in the bag next to the one picked up");
@@ -330,8 +330,8 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         int hoe = (await world.Inventory.GetAsync(player)).Slots.First(s => s.ItemId == ItemCatalog.Hoe).Slot;
         int can = (await world.Inventory.GetAsync(player)).Slots.First(s => s.ItemId == ItemCatalog.WateringCan).Slot;
         int seeds = await world.GiveAsync(player, ItemCatalog.ParsnipSeeds, 1);
-        (await farm!.UseAsync(connection, hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled));
-        (await farm.UseAsync(connection, seeds, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Planted));
+        (await farm!.UseAsync(connection, hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled, Worked: 1));
+        (await farm.UseAsync(connection, seeds, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Planted, Worked: 1));
 
         // A piece ends up over the planted tile: the crop is neither watered nor harvested, nor hoed, from under it.
         world.Tiles.Publish(instance, [new PlacedItem(900, ItemCatalog.Chest, x, y, 0)]);
@@ -340,7 +340,7 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
 
         // Once the piece is gone the crop can be tended again.
         world.Tiles.Publish(instance, []);
-        (await farm.UseAsync(connection, can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Watered));
+        (await farm.UseAsync(connection, can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Watered, Worked: 1));
     }
 
     [Fact]
@@ -361,7 +361,7 @@ public sealed class OutdoorPlaceableTests : IClassFixture<PostgresFixture>
         world.StandOnFarm(player, x + 1, y);
         IConnection connection = world.Presence.ConnectionOf(player);
         int hoe = (await world.Inventory.GetAsync(player)).Slots.First(s => s.ItemId == ItemCatalog.Hoe).Slot;
-        (await farm!.UseAsync(connection, hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled));
+        (await farm!.UseAsync(connection, hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled, Worked: 1));
 
         // A sprinkler placed on day three waters the tile from day four on, so day three ending does not water it.
         world.StandOnFarm(player, x, y + 1);

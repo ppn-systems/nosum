@@ -5,6 +5,8 @@
         data-tip="@(Tip ?? Slot.Tooltip)"
         aria-label="@(Slot.IsEmpty ? null : Slot.Name)"
         @onmousedown:preventDefault
+        @oncontextmenu:preventDefault
+        @oncontextmenu="RightClicked"
         @onclick="Clicked">
     @if (Hotkey is not null)
     {
@@ -54,8 +56,14 @@
     /// <summary>Raised instead of <see cref="OnClick"/> when the slot is clicked with Shift held (a quick move); ignored when nobody listens.</summary>
     [Parameter] public EventCallback OnShiftClick { get; set; }
 
+    /// <summary>Raised when the slot is right-clicked (a long press on touch); the browser's menu is suppressed. Nothing happens when nobody listens.</summary>
+    [Parameter] public EventCallback OnRightClick { get; set; }
+
     private Task Clicked(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
         => e.ShiftKey && OnShiftClick.HasDelegate ? OnShiftClick.InvokeAsync() : OnClick.InvokeAsync();
+
+    private Task RightClicked(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+        => OnRightClick.HasDelegate ? OnRightClick.InvokeAsync() : Task.CompletedTask;
 
     // The picture is the sprite itself, scaled to fit the slot's picture and centred by the slot. The box is exactly the scaled sprite, so no
     // neighbouring art shows through. Lengths are UI pixels (--u), set here so each slot carries its own geometry.
