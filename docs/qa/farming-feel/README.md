@@ -1,5 +1,99 @@
 # QA captures: farming feel (ready sparkle, farming juice, hold-to-repeat)
 
+Branch `claude/farming-feel`, HEAD `618efed` (merge of origin/master). Second run: the ready sparkle, the unripe control, the
+till juice and the 390x844 captures. No source file changed; no code bug was found in this run.
+
+## Status (second run)
+
+| Item | Result |
+|:--|:--|
+| Ripe sparkle (day 6), 1280x720 vi and en | **Captured.** Gold sparkle at the tile's top-right corner. |
+| Unripe control (day 5 on the same tile), 1280x720 vi and en | **Captured.** No sparkle. |
+| Ripe sparkle and control, 390x844 vi and en | **Captured** from the width-override copy (see below). |
+| Till juice first frame, 390x844 vi and en | **Captured** (flecks at the target). |
+| Harvest pop (scythe on the ripe radish) | **Not captured.** No harvest happened in any attempt (see Harvest). |
+| Coin pop (sale at the shipping bin) | **Not captured.** No radish was harvested, so nothing was sold. |
+| Reduced motion | **Inconclusive.** Both modes changed the tile between the two frames (see below). |
+
+## Why the sparkle was never drawn in the earlier attempt
+
+Found in this run: **the planting was refused by the season, not by a code bug.** The planting refusal toast reads
+"Cây này không trồng được vào mùa này." (This crop cannot be planted in this season). The HUD showed Đông (winter).
+Each capture run advances the dev clock by 7 to 9 game days (`advanceClock`), and the clock is in memory, so the earlier
+runs had moved the season on until radish could no longer be planted. The seed count then stays at 6 and the crop never
+exists, so it never ripens and no sparkle is drawn. The seed count in the earlier note (stayed at 6) matches this refusal.
+
+Restarting the server (same environment) resets the dev clock to the epoch: the HUD read Xuân (spring) day 13 after a
+restart. Each capture below was made after a restart or early in a season.
+
+The ripening rule was confirmed: the radish was watered on days 0 to 5 (six watered days). The sparkle first showed on day 6.
+
+## Steps used (second run)
+
+1. Published `618efed` with `-p:NosumDevTools=true` (Release) to `scratchpad/qa2/pub`. `ready.png` and `drop.png` present, and
+   `ready.png` returned HTTP 200 from the static server.
+2. Servers: `python3 -m http.server 5820` on `pub/wwwroot`; game server `DOTNET_ENVIRONMENT=Development`
+   `NOSUM_CALENDAR_EPOCH=2026-10-26T05:16:21Z`, WebSocket 57300. Restarted before the runs that needed spring.
+3. Ripening (per capture run): till tile 62 with the hoe (slot 1), plant radish seed (slot 4), water with the can (slot 2) on
+   day 0; `advanceClock(1)` then water on days 1 to 5; control frame on day 5; `advanceClock(1)` to day 6 for the sparkle frame.
+   Each capture first teleports the farmer onto its own tile (62, 27): the sparkle is drawn from the client's copy of the tile,
+   and the copy refreshed after a teleport.
+4. Planting was confirmed by the seed count (6 to 5 after one planting in the smoke test) and by the sprout on the tile.
+5. Captures are tile crops (80 x 120 px around tile 62, the farmer above it) and full frames. The `-x4` files are
+   nearest-neighbour x4 of the tile crops. Full frames have no x4 file (a 4x full frame would be 5120 x 2880).
+6. **390x844 copy:** `scratchpad/qa2/pub390/wwwroot/appsettings.json` was edited there only, `Device.MinimumWidth` 1024 to 320,
+   and served on port 5821 with a second static server. The repo's `wasm/Nosum.Wasm/wwwroot/appsettings.json` and the published
+   copy at `pub/` are unchanged (still 1024). **The 390x844 frames were taken with the width override.** The game then
+   renders; the layout was not checked against the product gate at 390 px.
+7. Reduced motion: `reducedMotion: 'reduce'` and `'no-preference'` in English, 1280x720, till press on tile 62, two tile
+   crops 100 ms apart (`scratchpad/qa2/reduced.cjs`).
+
+## Harvest (not captured)
+
+- The reticle is white before a scythe press on the ripe tile (allowed), and the press shows colourful flecks at the target.
+- The radish stays on the tile after the press (frames 1.2 s later), no radish appears in the hotbar, and no gold harvest
+  pop shows. Three presses at 1.5 s apart also left it in place.
+- The server's harvest verdict is not visible from the client. The database check for this session was inconclusive: the
+  rows written in this session were not found in the window I queried, so the server outcome is not confirmed either way.
+- A separate observation: in one run the radish was gone on day 7 after ripening on day 6 without any press. In another run
+  the tile was bare soil at day 6 after a day-6 watering. Cause not established. `docs/adr/ADR-021` says an unharvested ripe
+  crop follows the same dry-day wither rule and the day sweep clears withered crops, which may explain it; this is not verified.
+
+## Coin pop (not captured)
+
+No radish was harvested in this run, so the bin sale was not attempted with a radish. The bin is at farm tile (71, 14)
+(`FarmProps.ShippingBin`, a 2 x 1 footprint). No coin pop was observed.
+
+## Reduced motion (inconclusive)
+
+The two frames 100 ms apart differ in the tile area in both modes (about 3000 changed pixels in both, lower-tile bounding box
+identical). The till itself changes the tile between the frames, so the flecks cannot be separated from the tile change. **No
+reduced-motion result is claimed.**
+
+## Files (second run)
+
+All files are 1280x720 or 390x844 full frames, plus tile crops (80 x 120) and their x4 versions. `<lang>` is `vi` or `en`.
+
+| File | Shows |
+|:--|:--|
+| `sparkle-ripe-<lang>-1280x720.png`, `sparkle-ripe-tile-<lang>-1280x720.png` (+ `-x4`) | Day 6, radish ripe, gold sparkle at the tile's top-right corner. |
+| `sparkle-control-<lang>-1280x720.png`, `sparkle-control-tile-<lang>-1280x720.png` (+ `-x4`) | Day 5, same tile, unripe: no sparkle. |
+| `sparkle-ripe-<lang>-390x844.png`, `sparkle-ripe-tile-<lang>-390x844.png` (+ `-x4`) | As above at 390x844, with the width override (see step 6). |
+| `sparkle-control-<lang>-390x844.png`, `sparkle-control-tile-<lang>-390x844.png` (+ `-x4`) | Control at 390x844, with the override. |
+| `juice-till-<lang>-390x844.png`, `juice-till-tile-<lang>-390x844.png` (+ `-x4`) | First frame after the hoe press at 390x844: flecks at the target. The en 1280 run did not take a juice frame. |
+| `juice-till-vi-1280x720.png` (first run, unchanged) | Till juice at 1280x720 vi from the first run. Not re-captured here. |
+| `harvest-attempt-vi-1280x720.png`, `harvest-attempt-{before,after}-tile-vi-1280x720.png` (+ `-x4`) | Scythe press on the ripe radish, day 6: the crop is still there after the press (negative). |
+| `reduced-motion-{reduce,no-preference}-{a,b}-tile.png` (+ `-x4`) | Tile frames 100 ms apart after a till press, English. Inconclusive. |
+
+Files from the first run that this run supersedes: `sparkle-attempt-*` (the radish there was not ripe, so it did not test the
+sparkle). They are kept as the record of the earlier miss. The sparkle files above replace them as the evidence.
+
+## Earlier run (superseded where stated)
+
+Superseded by the second run: the "Blocked and not captured" section below. The ready-sparkle cause is now found (planting refused
+by the season, see above), and the 390x844 captures exist (with the width override). The rest of the earlier text stands.
+
+
 Branch `claude/farming-feel`, HEAD `86430ee`. Commits under test (from `git log --oneline -4`):
 
 - `86430ee` feat(game): farming juice for till, plant, water, harvest and the bin payment (backlog 9)
