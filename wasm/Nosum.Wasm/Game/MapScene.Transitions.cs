@@ -278,7 +278,7 @@ internal sealed partial class MapScene
     }
 
     // A name plate is lifted above the direction label of an exit the farmer stands by: the exit's label sits over its tile (WayfindingDecorator),
-    // so a plate drawn at the head would cover it. Lifted by the label's band; the plate keeps its place everywhere else (docs/adr/ADR-090 D4).
+    // so a plate drawn at the head would cover it. Lifted by the label's band; the plate keeps its place everywhere else (docs/adr/ADR-093 D4).
     private int NameLift(int feetX, int feetY)
     {
         TileMap map = _content.Map;

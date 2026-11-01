@@ -7,7 +7,7 @@ using Nosum.Wasm.Socket.Quest;
 namespace Nosum.Wasm.ViewModels.Quest;
 
 /// <summary>
-/// Where the active quest sends the farmer (docs/adr/ADR-090 D1): the waypoint the scene draws as an arrow at the screen edge and a dot on the minimap. It
+/// Where the active quest sends the farmer (docs/adr/ADR-093 D1): the waypoint the scene draws as an arrow at the screen edge and a dot on the minimap. It
 /// follows the quest mirror, so the waypoint moves on as the quests do, and is empty when no active quest has a place.
 /// </summary>
 public sealed class QuestWaypointViewModel : IDisposable

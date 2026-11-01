@@ -13,7 +13,7 @@ namespace Nosum.Wasm.ViewModels.Npc;
 /// <summary>The moment a merchant speaks in: the day, and the tags that are true now (docs/adr/ADR-080 D2).</summary>
 /// <param name="DayNumber">The game day (<see cref="GameCalendar.DayNumberAt"/>), or zero while the calendar is not known.</param>
 /// <param name="Tags">The season, weather, time of day and progress that hold now. Unknown parts are left out, so only untagged lines fit them.</param>
-/// <param name="ActiveQuestKey">The key of the quest the farmer is working on, or <see langword="null"/> when none is (docs/adr/ADR-090 D3).</param>
+/// <param name="ActiveQuestKey">The key of the quest the farmer is working on, or <see langword="null"/> when none is (docs/adr/ADR-093 D3).</param>
 public readonly record struct NpcLineContext(long DayNumber, NpcLineTags Tags, string? ActiveQuestKey = null)
 {
     /// <summary>The mine floor a farmer must reach for the <see cref="NpcLineTags.DeepMiner"/> progress.</summary>
@@ -116,7 +116,7 @@ public static class NpcGreeting
         ArgumentNullException.ThrowIfNull(exists);
         ArgumentOutOfRangeException.ThrowIfNegative(slot);
 
-        // The greeting names the farmer's quest when this merchant is where the quest sends them (docs/adr/ADR-090 D3); the Talk lines go on as before.
+        // The greeting names the farmer's quest when this merchant is where the quest sends them (docs/adr/ADR-093 D3); the Talk lines go on as before.
         if (slot == 0 && context.ActiveQuestKey is { } questKey && QuestWaypoints.PlaceOf(questKey) == npc.Id)
         {
             string questLine = npc.TextKey("Quest_" + questKey);

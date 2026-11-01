@@ -28,7 +28,7 @@ public enum EdgeArrowDirection : byte
 public readonly record struct EdgeArrowPlacement(int X, int Y, EdgeArrowDirection Direction);
 
 /// <summary>
-/// A waypoint arrow at the edge of the view that points to something off screen (docs/adr/ADR-090 D2). <see cref="TryPlace"/> is pure: it puts the arrow where the
+/// A waypoint arrow at the edge of the view that points to something off screen (docs/adr/ADR-093 D2). <see cref="TryPlace"/> is pure: it puts the arrow where the
 /// ray from the view's centre to the target leaves the view, inset from the edges. <see cref="Draw"/> records the arrow with rectangles only, so it costs no
 /// allocation and no interop beyond the frame's one submit.
 /// </summary>

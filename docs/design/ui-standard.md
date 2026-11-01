@@ -91,9 +91,9 @@ Every panel is a `GamePanel` opened in the center region:
 Only these may float over the world canvas, and all are drawn by the engine, not by Blazor:
 
 - Name plates, health bars, damage numbers, emote and speech bubbles, the interaction reticle, the fishing line, bobber and bite "!".
-- The quest waypoint: an arrow at the edge of the view while the place is off screen, kept 24 px in from the edge (docs/adr/ADR-090 D2). It is drawn by the
+- The quest waypoint: an arrow at the edge of the view while the place is off screen, kept 24 px in from the edge (docs/adr/ADR-093 D2). It is drawn by the
   engine; the minimap shows the same place as a dot.
-- A name plate lifts above an exit's direction label when the farmer stands by the exit (docs/adr/ADR-090 D4).
+- A name plate lifts above an exit's direction label when the farmer stands by the exit (docs/adr/ADR-093 D4).
 - They are anchored to an entity or tile, follow the camera, and never cover the hotbar or a HUD region.
 
 Blazor text cards (toasts, hints, catch results) never appear in the middle of the map. They go to the toast line (bottom center) or a
@@ -104,7 +104,7 @@ banner (top center).
 | Kind | Where | Lifetime | Example |
 | :-- | :-- | :-- | :-- |
 | Toast | Bottom center, above the hotbar, max 2 stacked | 3 s, then fades | "Hãy xới đất trước.", "+1 Cá chép" |
-| Hint | Same toast line, styled as a hint, one at a time; a new one waits until the player is idle for 2 s | until done | onboarding steps (ADR-090 D5) |
+| Hint | Same toast line, styled as a hint, one at a time; a new one waits until the player is idle for 2 s | until done | onboarding steps (ADR-093 D5) |
 | Banner | Top center, one at a time, queued | 3–4 s | level up, season change |
 | Confirm | `ConfirmDialog`, center, modal | until answered | selling 50 items |
 | Context card | Inside the open panel only | while the panel is open | item tooltip |

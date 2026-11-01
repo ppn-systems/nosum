@@ -120,7 +120,7 @@ internal sealed partial class MapScene
     /// <param name="combat">The combat channel whose impacts shake the view (docs/adr/ADR-076); <see langword="null"/> never shakes.</param>
     /// <param name="minimap">The minimap frame in the HUD, told whenever the canvas shows or hides the map; <see langword="null"/> has no frame.</param>
     /// <param name="tileChunks">The baked tile chunk cache for the static ground layers (docs/adr/ADR-086); <see langword="null"/> draws every tile each frame.</param>
-    /// <param name="waypoint">Where the active quest sends the farmer: an arrow at the screen edge and a minimap dot (docs/adr/ADR-090 D2); <see langword="null"/> shows none.</param>
+    /// <param name="waypoint">Where the active quest sends the farmer: an arrow at the screen edge and a minimap dot (docs/adr/ADR-093 D2); <see langword="null"/> shows none.</param>
     public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null, ProgressChannel? progress = null, TileChunkCache? tileChunks = null, QuestWaypointViewModel? waypoint = null)
     {
         _sky = new SkyLayer(calendar, placed);

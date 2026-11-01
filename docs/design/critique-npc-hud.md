@@ -28,7 +28,7 @@ and a status: fixed on this branch, or open with the recommended next step.
   tracker put only the longer `Hint` in its tooltip, so a mouse player had to hover and a touch player could not see it at all.
 - **Fixed:** the tip now shows under the title while the card is open ([`after/hud-farm-vi-1280x720.png`](../qa/rebuild-npc-hud/after/hud-farm-vi-1280x720.png),
   "Chọn cuốc và nhấn phím dùng để xới một ô đất."). The tip is one sentence, so the card grows by two lines. The tooltip keeps the long hint.
-- **Fixed in round 2 (ADR-090 D1–D2):** the waypoint. Eight quests have a place (`QuestWaypoints`, by key): an arrow at the screen edge
+- **Fixed in round 2 (ADR-093 D1–D2):** the waypoint. Eight quests have a place (`QuestWaypoints`, by key): an arrow at the screen edge
   while the place is off screen, and a dot on the minimap. Tilling, watering, cooking and fishing have no fixed tile and show none.
 
 ### 2. Dialogue is atmosphere, not guidance (med, partly fixed in round 2)
@@ -42,7 +42,7 @@ and a status: fixed on this branch, or open with the recommended next step.
 - **Repetition (reasoned, not observed):** the line is `FNV-1a(merchant, game day) mod count` among the fitting lines, so a
   merchant says one line all day. Talk moves to the next fitting line. With sixteen lines and four tag groups, a newcomer on
   an untagged moment sees the untagged lines most often. Repetition over a week is the open question; it needs play.
-- **Fixed in round 2 (ADR-090 D3):** the greeting of the merchant where the active quest sends the farmer names the quest
+- **Fixed in round 2 (ADR-093 D3):** the greeting of the merchant where the active quest sends the farmer names the quest
   (`Npc_{Id}_Quest_{key}`, six lines in each language). Talk keeps the rotating pool. The progress tag `NpcLineTags` for the
   quest is not added; the greeting is the one place it is needed.
 
@@ -50,7 +50,7 @@ and a status: fixed on this branch, or open with the recommended next step.
 
 - The tailor offers "Wardrobe" / "Tủ đồ" and "Backpack" / "Túi đồ" ([`before/npc-greeting-en-1280x720.png`](../qa/rebuild-npc-hud/before/npc-greeting-en-1280x720.png)).
   A newcomer does not know that the backpack means more bag space. **Recommended:** a Tip-style hint in the button's tooltip, or
-  clearer labels in the `.resx` (the "Npc_Action_*" keys). Fixed in round 2 (ADR-090 D6): "Change clothes" and "More bag space".
+  clearer labels in the `.resx` (the "Npc_Action_*" keys). Fixed in round 2 (ADR-093 D6): "Change clothes" and "More bag space".
 
 ### 4. Journal: no way to see what is missing (med, fixed)
 
@@ -67,7 +67,7 @@ and a status: fixed on this branch, or open with the recommended next step.
 
 - The name plate "Khách 2708" sits directly over the direction label "↑ Nhà nông trại" on the farm, and "Trạm xe buýt" sits
   beside the player's head ([`before/hud-farm-vi-1280x720.png`](../qa/rebuild-npc-hud/before/hud-farm-vi-1280x720.png)). Both are
-  world-anchored (`ui-standard.md` section 4). Fixed in round 2 (ADR-090 D4): a farmer within 40 px of an exit has the name plate
+  world-anchored (`ui-standard.md` section 4). Fixed in round 2 (ADR-093 D4): a farmer within 40 px of an exit has the name plate
   lifted 16 px above the exit's label. The client does not know the label's size, so this is a fixed band, not a measured stack.
 
 ### 6. The HUD on a normal day: density and gaps (low)
@@ -90,7 +90,7 @@ and a status: fixed on this branch, or open with the recommended next step.
 
 - Toasts merge repeats with a count ("×N", `docs/qa/toast-dedupe`), at most two lines, three seconds each. The onboarding hint
   stays twelve seconds (ADR-033 D3), and the quest completion banner five seconds. In one morning the only lines on the screen
-  were the onboarding hint and the tracker. A new hint now waits for the player to be idle for 2 s (ADR-090 D5), so it never comes
+  were the onboarding hint and the tracker. A new hint now waits for the player to be idle for 2 s (ADR-093 D5), so it never comes
   up over the action in progress. The rule to keep a hint until its step is done (`research-hud-and-loops.md` section 7) holds: a
   hint stays on screen until its step changes or it times out.
 
