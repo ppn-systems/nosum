@@ -193,7 +193,9 @@ public sealed class FarmChannel : IDisposable
         }
         catch (Exception)
         {
-            // Connection dropped; nothing was applied.
+            // The request was lost (connection dropped, or no reply): nothing is known to have been applied, so the player is told to try again
+            // instead of seeing a press that silently did nothing.
+            this.UseCompleted?.Invoke(FarmStatus.Conflict, FarmAction.None);
         }
     }
 
@@ -212,7 +214,9 @@ public sealed class FarmChannel : IDisposable
         }
         catch (Exception)
         {
-            // Connection dropped; nothing was applied.
+            // The request was lost (connection dropped, or no reply): nothing is known to have been applied, so the player is told to try again
+            // instead of seeing a press that silently did nothing.
+            this.UseCompleted?.Invoke(FarmStatus.Conflict, FarmAction.None);
         }
     }
 

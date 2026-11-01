@@ -428,10 +428,12 @@ public static class FarmRules
 
     /// <summary>
     /// Returns whether a tile's crop has withered (docs/adr/ADR-018, docs/adr/ADR-021 D7 amended 2026-10-31). Two causes, both fixed facts of the past
-    /// so that no tick is needed and it never reverses: the first later season the crop does not grow in has begun, or <see cref="DryDaysToWither"/>
-    /// game days in a row ended after the planting or the last hand watering without rain or a sprinkler, before the crop ripened. A ripe crop
-    /// (<see cref="IsMature"/>) waiting for its harvest is not dried out by later dry days; a wither that came before the ripening stands. Watering a
-    /// withered crop is refused, so the dry run cannot be erased afterwards.
+    /// so that no tick is needed and it never reverses: the first later season the crop does not grow in has begun while the crop was not ripe, or
+    /// <see cref="DryDaysToWither"/> game days in a row ended after the planting or the last hand watering without rain or a sprinkler, before the crop
+    /// ripened. A ripe crop (<see cref="IsMature"/>) waiting for its harvest is kept through both: later dry days do not dry it out, and the season change
+    /// does not wither it (docs/adr/ADR-018 D4, amended: a ripe crop waits for the player). Ripeness is judged at the instant of the season change, so a
+    /// crop that was not ripe then stays withered even if rain ripens it later. Watering a withered crop is refused, so the dry run cannot be erased
+    /// afterwards.
     /// </summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
@@ -448,7 +450,10 @@ public static class FarmRules
             return false;
         }
 
-        if (nowMs >= calendar.WitherAtMs(tile.PlantedAtMs, crop.Seasons))
+        // The season change withers a crop that is not ripe when it comes (ADR-018 D4). Ripeness is read at that instant: a ripe crop never withers
+        // from the season, and a crop unripe then stays withered for good, whatever the rain does afterwards.
+        long witherAtMs = calendar.WitherAtMs(tile.PlantedAtMs, crop.Seasons);
+        if (nowMs >= witherAtMs && !IsMature(tile, witherAtMs, calendar, outdoors, sprinklerSinceMs))
         {
             return true;
         }

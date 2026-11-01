@@ -210,6 +210,34 @@ public sealed class FarmChannelTests
     }
 
     [Fact]
+    public void Use_WhenTheReplyIsLost_ReportsConflictSoThePressIsNotSilent()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith<UseItemResult>(_ => throw new System.TimeoutException("no reply"));
+        using FarmChannel channel = new(socket);
+        FarmStatus? status = null;
+        channel.UseCompleted += (s, _) => status = s;
+
+        channel.Use(7, 61, 17);
+
+        status.Should().Be(FarmStatus.Conflict, "a lost use is told to be tried again (Farm_Status_Conflict), not dropped without a word");
+    }
+
+    [Fact]
+    public void UseArea_WhenTheReplyIsLost_ReportsConflictSoThePressIsNotSilent()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith<UseItemResult>(_ => throw new System.TimeoutException("no reply"));
+        using FarmChannel channel = new(socket);
+        FarmStatus? status = null;
+        channel.UseCompleted += (s, _) => status = s;
+
+        channel.UseArea(7, 61, 17, 3);
+
+        status.Should().Be(FarmStatus.Conflict);
+    }
+
+    [Fact]
     public void UseArea_SendsTheWideUseAsItsOwnPacket_AndReportsTheAnswer()
     {
         FakeGameSocket socket = new();

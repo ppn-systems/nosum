@@ -281,14 +281,30 @@ public sealed class FarmRulesTests
     }
 
     [Fact]
-    public void Harvest_MatureCropAfterItsSeasonEnded_IsRefusedAsWithered()
+    public void Harvest_MatureCropAfterItsSeasonEnded_StillHarvests()
     {
-        // Watered the day before the last moment of summer: not dry, so only the season decides (ADR-021 D7, amended).
+        // Ripe before the season ends: the season change does not wither a ripe crop, it waits for its harvest (ADR-018 D4, amended).
         int lastSummerDay = s_calendar.DayNumberAt(s_fall - 1);
         FarmTile ready = new(CropCatalog.Cauliflower, s_calendar.EpochMs + 1000, CropCatalog.All[2].TotalGrowthDays, lastSummerDay - 1, 0);
 
         FarmRules.Harvest(ready, s_fall - 1, s_calendar, out _, out _).Should().Be(FarmVerdict.Ok, "still summer");
-        FarmRules.Harvest(ready, s_fall, s_calendar, out _, out _).Should().Be(FarmVerdict.Withered);
+        FarmRules.IsWithered(ready, s_fall, s_calendar).Should().BeFalse("a ripe crop waits for its harvest through the season change");
+        FarmRules.Harvest(ready, s_fall, s_calendar, out _, out _).Should().Be(FarmVerdict.Ok);
+    }
+
+    [Fact]
+    public void IsWithered_RipeRadishAtTheWinterChange_StaysStanding()
+    {
+        // Radish is ripe (six watered days, the last one the day before winter) when winter begins: it waits for its harvest.
+        long winter = s_calendar.EpochMs + (3 * s_calendar.SeasonLengthMs);
+        int lastDay = s_calendar.DayNumberAt(winter - 1);
+        FarmTile radish = new(CropCatalog.Radish, s_summer + 1000, 5, lastDay, 0);
+
+        FarmRules.IsWithered(radish, winter - 1, s_calendar).Should().BeFalse();
+        FarmRules.IsWithered(radish, winter, s_calendar).Should().BeFalse("a ripe crop is not withered by the season change");
+        FarmRules.IsWithered(radish, winter + (5 * s_calendar.SeasonLengthMs), s_calendar).Should().BeFalse();
+        FarmRules.Harvest(radish, winter, s_calendar, out _, out CropDefinition? harvested).Should().Be(FarmVerdict.Ok);
+        harvested!.Id.Should().Be(CropCatalog.Radish);
     }
 
     [Fact]

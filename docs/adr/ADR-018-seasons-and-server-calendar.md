@@ -28,8 +28,8 @@ same for every player, and there is no per-player clock. Crop growth is already 
   (`GameCalendar.WitherAtMs(plantedAt, seasons)`), mature or not — the genre's rule, and the reason market prices of out-of-season produce should
   rise. Withering is computed from `PlantedAtMs` alone (`FarmRules.IsWithered`): no tick, no migration, nothing stored, and it never reverses when its
   season comes round again. A withered crop cannot be harvested (`FarmStatus.Withered`); planting a new seed on that soil replaces it. The client
-  stops drawing withered crops (there is no withered sprite yet). Growth stays timestamp-based and unchanged. **Owner question:** wither mature
-  crops, or let a mature crop wait for the player?
+  stops drawing withered crops (there is no withered sprite yet). Growth stays timestamp-based and unchanged. **Decided 2026-11-01 (owner brief, fix-harvest):** a mature crop waits for the player; the season change withers only a crop that is not mature when it
+  comes (`FarmRules.IsWithered`, judged at the instant of the change, so the answer never reverses). Dry days do the same (ADR-021 D7, amended).
 - **D5 — The seed shop sells in season.** `ShopRules.IsInSeason(itemId, calendar, now)`: a seed is sold only while its crop can be planted that
   season; every other item always. `ShopService.BuyAsync` refuses with `ShopStatus.OutOfSeason` before any coin moves. The shop UI may later show
   such seeds disabled; the server check is the rule.

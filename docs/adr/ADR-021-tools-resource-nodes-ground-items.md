@@ -183,7 +183,7 @@ Amends the 2026-10-31 section above in three places; the rest stands.
 
 - **Ripe crops are exempt from the dry run.** A crop that has ripened (`IsMature`) is not dried out by later dry days, so it waits for its harvest. A wither
   that came before the ripening stands, and rain that ripens a dead crop later does not revive it: `FarmRules.IsWithered` walks the days once (`WalkCrop`), the
-  same count as `GrowthDaysAt`, and stops at the first answer that cannot change. The season rule (ADR-018) still applies to ripe crops.
+  same count as `GrowthDaysAt`, and stops at the first answer that cannot change. The season change does not wither a ripe crop either (decided 2026-11-01, see ADR-018 D4 amendment): it waits for its harvest.
 - **The client takes the withered state from the server.** `FarmTileRow` appends `Withered` (order 11); the protocol moves to version 28. `PlayerActions.FacesCrop`
   and the decorator read the flag and no longer recompute it, so a sprinkler-watered crop is never shown or refused as withered on a guess. The server sets the
   flag wherever it sends a tile (the sweep, the chunk snapshot, the action push and `GetFarm`). The flag is as fresh as the last push of that tile: a withering
