@@ -252,6 +252,50 @@ public sealed class PlacedSet
             && top + Walker.FootHeight - edge > tileY * tileSize;
     }
 
+    /// <summary>
+    /// The tiles tried, in order, when a piece aimed at a tile would stand on the placer's feet: the neighbours of the aimed anchor
+    /// (docs/adr/ADR-100). The first one that passes <see cref="Check"/> and leaves the feet clear is the ghost's new place.
+    /// </summary>
+    public static readonly (int X, int Y)[] StepAsideOffsets = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)];
+
+    /// <summary>
+    /// Finds the nearest anchor beside an aimed one where the piece fits and does not stand on a character's feet (docs/adr/ADR-100).
+    /// The server still validates the anchor it is sent; this only chooses where the ghost goes.
+    /// </summary>
+    /// <param name="definition">The piece.</param>
+    /// <param name="rotation">Its rotation.</param>
+    /// <param name="tileX">The aimed anchor's x.</param>
+    /// <param name="tileY">The aimed anchor's y.</param>
+    /// <param name="mapGrid">The map's walk grid.</param>
+    /// <param name="reserved">Tiles the map reserves.</param>
+    /// <param name="ignoreId">A piece to ignore (the one being moved), or 0.</param>
+    /// <param name="feetX">The placer's feet x, world pixels.</param>
+    /// <param name="feetY">The placer's feet y, world pixels.</param>
+    /// <param name="clearX">The anchor found, when true.</param>
+    /// <param name="clearY">The anchor found, when true.</param>
+    /// <returns><see langword="true"/> when an anchor beside the aimed one fits clear of the feet.</returns>
+    public bool TryFindClearAnchor(PlaceableDefinition definition, int rotation, int tileX, int tileY, WalkGrid mapGrid, IReadOnlySet<(int X, int Y)> reserved, double feetX, double feetY, int ignoreId, out int clearX, out int clearY)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(mapGrid);
+        PlaceableView view = definition.View(rotation);
+        for (int i = 0; i < StepAsideOffsets.Length; i++)
+        {
+            int x = tileX + StepAsideOffsets[i].X;
+            int y = tileY + StepAsideOffsets[i].Y;
+            if (this.Check(definition, rotation, x, y, mapGrid, reserved, ignoreId) == PlacementVerdict.Ok && !CoversFeet(view, x, y, feetX, feetY, mapGrid.TileSize))
+            {
+                clearX = x;
+                clearY = y;
+                return true;
+            }
+        }
+
+        clearX = tileX;
+        clearY = tileY;
+        return false;
+    }
+
     /// <summary>Returns a copy of the map's grid with every walking-blocking piece's footprint blocked: the grid players walk on in this instance.</summary>
     /// <param name="mapGrid">The map's own grid; it is not changed.</param>
     /// <returns>The copy.</returns>

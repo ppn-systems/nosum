@@ -11,6 +11,11 @@ using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Crafting;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.ViewModels.Crafting;
+using Nosum.Wasm.ViewModels.Feedback;
+using Nosum.Wasm.ViewModels.Inventory;
+using Nosum.Wasm.ViewModels.Resources;
+using Nosum.Wasm.Socket.Farm;
+using Nosum.Wasm.Socket.Placeable;
 using Xunit;
 using static Nosum.UnitTests.Wasm.WasmTestSupport;
 
@@ -135,6 +140,49 @@ public sealed class CraftingViewModelTests
         vm.Select(RecipeCatalog.StonePath);
 
         vm.CanCraft(1).Should().BeTrue("the stone leaves its slot, the path takes it");
+    }
+
+    [Fact]
+    public void Craft_Ok_ShowsTheCraftedItemAndCountOnTheMessageLine()
+    {
+        // Finding 17: the bag count alone does not say what was made; the message line names it and the total made.
+        FakeGameSocket socket = new();
+        InventoryChannel inventoryChannel = LoadedInventory(socket, (0, ItemCatalog.Wood, 20));
+        InventoryViewModel inventory = new(inventoryChannel, new FixedIcons(), Localizer<Catalogue>(), Text());
+        CraftingChannel crafting = new(socket);
+        GameMessagesViewModel messages = new(new FarmChannel(socket), new PlaceableChannel(socket), inventory, Text());
+        socket.ReplyWith(_ => new RecipeBook { Unlocked = [RecipeCatalog.WoodFence] });
+        CraftingViewModel vm = new(crafting, inventoryChannel, Describer(), Text(), messages);
+        vm.Open();
+        socket.ReplyWith(_ => new CraftResult { Status = CraftStatus.Ok, Times = 5 });
+        vm.Select(RecipeCatalog.WoodFence);
+
+        vm.Craft(5);
+
+        string fence = vm.Rows.Single(r => r.RecipeId == RecipeCatalog.WoodFence).Output.Name;
+        int made = vm.Rows.Single(r => r.RecipeId == RecipeCatalog.WoodFence).Output.Quantity * 5;
+        messages.Message.Should().Contain(fence).And.Contain("x" + made);
+        vm.Status.Should().Be(messages.Message);
+        vm.StatusIsGood.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Craft_Refused_ShowsNothingOnTheMessageLine()
+    {
+        FakeGameSocket socket = new();
+        InventoryChannel inventoryChannel = LoadedInventory(socket, (0, ItemCatalog.Wood, 20));
+        InventoryViewModel inventory = new(inventoryChannel, new FixedIcons(), Localizer<Catalogue>(), Text());
+        CraftingChannel crafting = new(socket);
+        GameMessagesViewModel messages = new(new FarmChannel(socket), new PlaceableChannel(socket), inventory, Text());
+        socket.ReplyWith(_ => new RecipeBook { Unlocked = [RecipeCatalog.WoodFence] });
+        CraftingViewModel vm = new(crafting, inventoryChannel, Describer(), Text(), messages);
+        vm.Open();
+        socket.ReplyWith(_ => new CraftResult { Status = CraftStatus.NoSpace });
+        vm.Select(RecipeCatalog.WoodFence);
+
+        vm.Craft(1);
+
+        messages.Message.Should().BeNull();
     }
 
     [Fact]

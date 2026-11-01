@@ -763,6 +763,7 @@
   <data name="Craft_Heading" xml:space="preserve"><value>Recipes</value></data>
   <data name="Craft_Materials" xml:space="preserve"><value>Materials</value></data>
   <data name="Craft_Makes" xml:space="preserve"><value>Makes: {0} x{1}</value></data>
+  <data name="Craft_Crafted" xml:space="preserve"><value>Crafted {0} x{1}. It is in your bag.</value></data>
   <data name="Craft_Button" xml:space="preserve"><value>Craft</value></data>
   <data name="Craft_ButtonMax" xml:space="preserve"><value>Craft max x{0}</value></data>
   <data name="Craft_ButtonMany" xml:space="preserve"><value>Craft x{0}</value></data>

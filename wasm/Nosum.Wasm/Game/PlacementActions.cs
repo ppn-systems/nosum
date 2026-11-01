@@ -209,11 +209,24 @@ internal sealed class PlacementActions
 
         PlaceableView view = definition.View(_rotation);
         (int tileX, int tileY) = Anchor(targetX, targetY, facing, view);
+        PlaceStatus status = this.StatusOf(definition, _rotation, tileX, tileY, view, placedSet, mapGrid, feetX, feetY, content);
+
+        // Standing where the piece would go: the ghost steps to the nearest tile beside it that fits clear of the feet (docs/adr/ADR-100).
+        // The server validates the anchor it receives, so this only moves the place the player is shown and the one E sends.
+        if (status == PlaceStatus.PlayerInTheWay
+            && placedSet.TryFindClearAnchor(definition, _rotation, tileX, tileY, mapGrid, _noReserved, feetX, feetY, this.CarryingId, out int clearX, out int clearY)
+            && this.StatusOf(definition, _rotation, clearX, clearY, view, placedSet, mapGrid, feetX, feetY, content) == PlaceStatus.Ok)
+        {
+            tileX = clearX;
+            tileY = clearY;
+            status = PlaceStatus.Ok;
+        }
+
         this.GhostItemId = itemId;
         this.GhostTileX = tileX;
         this.GhostTileY = tileY;
         this.GhostRotation = _rotation;
-        this.GhostStatus = this.StatusOf(definition, _rotation, tileX, tileY, view, placedSet, mapGrid, feetX, feetY, content);
+        this.GhostStatus = status;
         this.GhostValid = this.GhostStatus == PlaceStatus.Ok;
 
         // A finished building cannot be moved or stowed (docs/adr/ADR-028), so a building that looks valid needs a second press.

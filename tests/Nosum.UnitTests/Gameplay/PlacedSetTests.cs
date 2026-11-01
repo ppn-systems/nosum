@@ -271,6 +271,38 @@ public sealed class PlacedSetTests
     }
 
     [Fact]
+    public void TryFindClearAnchor_AimedTileUnderTheFeet_StepsToTheNearestClearNeighbour()
+    {
+        // Finding 16 (ADR-100): the feet stand on the aimed tile (2, 3); the chair steps one tile right, to (3, 3).
+        PlacedSet set = new();
+
+        set.TryFindClearAnchor(Definition(ItemCatalog.OakChair), 0, 2, 3, Room(), new HashSet<(int X, int Y)>(), 40, 63, 0, out int x, out int y).Should().BeTrue();
+
+        (x, y).Should().Be((3, 3));
+    }
+
+    [Fact]
+    public void TryFindClearAnchor_NeighbourReserved_StepsToTheNextOne()
+    {
+        PlacedSet set = new();
+
+        set.TryFindClearAnchor(Definition(ItemCatalog.OakChair), 0, 2, 3, Room(), new HashSet<(int X, int Y)> { (3, 3) }, 40, 63, 0, out int x, out int y).Should().BeTrue();
+
+        (x, y).Should().Be((1, 3));
+    }
+
+    [Fact]
+    public void TryFindClearAnchor_AimedTileClear_ReturnsTheAimedTile()
+    {
+        // The feet are far away: the aimed tile is the first candidate and it fits.
+        PlacedSet set = new();
+
+        set.TryFindClearAnchor(Definition(ItemCatalog.OakChair), 0, 2, 3, Room(), new HashSet<(int X, int Y)>(), 120, 20, 0, out int x, out int y).Should().BeTrue();
+
+        (x, y).Should().Be((3, 3));
+    }
+
+    [Fact]
     public void Check_NodeOnTheTileInFrontOfTheDoor_IsRefused()
     {
         PlaceableDefinition coop = Definition(ItemCatalog.CoopBlueprint);
