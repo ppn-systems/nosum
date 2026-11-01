@@ -24,6 +24,34 @@ internal sealed class DbCommandCounter : DbCommandInterceptor, IDbTransactionInt
     private readonly object _gate = new();
     private readonly List<Entry> _entries = [];
 
+    // The measured window (null outside a measured row). Only the flow that entered this window's scope is attributed to it.
+    private object? _window;
+
+    // The attribution scope of the code running now: the window a measured packet's handler runs under, or null.
+    private readonly AsyncLocal<object?> _scope = new();
+
+    /// <summary>Gets or sets the attribution scope of the running flow. The dispatch middleware sets it around a handler; a row sets it around its own work.</summary>
+    public object? Scope
+    {
+        get => _scope.Value;
+        set => _scope.Value = value;
+    }
+
+    /// <summary>Gets the open window, or null when no row is measured.</summary>
+    public object? Window => Volatile.Read(ref _window);
+
+    /// <summary>Opens an attributed window: from now on the commands run under its scope are counted for it.</summary>
+    /// <returns>The window token, to be set as <see cref="Scope"/> by the work the row measures.</returns>
+    public object OpenWindow()
+    {
+        object token = new();
+        Volatile.Write(ref _window, token);
+        return token;
+    }
+
+    /// <summary>Closes the open window; its recorded commands stay for <see cref="Since"/>.</summary>
+    public void CloseWindow() => Volatile.Write(ref _window, null);
+
     /// <summary>Gets how many events were recorded so far; a mark for <see cref="Since"/>.</summary>
     public int Mark
     {
@@ -38,8 +66,9 @@ internal sealed class DbCommandCounter : DbCommandInterceptor, IDbTransactionInt
 
     /// <summary>Summarizes everything recorded after <paramref name="mark"/>.</summary>
     /// <param name="mark">A value read from <see cref="Mark"/>.</param>
+    /// <param name="attributedOnly">Counts only the commands run under the measured window's scope (a packet's handler), not the background work that happened to run meanwhile.</param>
     /// <returns>The counts of that window.</returns>
-    public DbCounts Since(int mark)
+    public DbCounts Since(int mark, bool attributedOnly = false)
     {
         Entry[] window;
         lock (_gate)
@@ -54,6 +83,11 @@ internal sealed class DbCommandCounter : DbCommandInterceptor, IDbTransactionInt
         Dictionary<string, int> perStatement = [];
         foreach (Entry entry in window)
         {
+            if (attributedOnly && !entry.Attributed)
+            {
+                continue;
+            }
+
             switch (entry.Kind)
             {
                 case EntryKind.Read:
@@ -192,9 +226,12 @@ internal sealed class DbCommandCounter : DbCommandInterceptor, IDbTransactionInt
 
     private void Add(EntryKind kind, string text)
     {
+        // Read on the flow that runs the command: a command is attributed when that flow entered the open window's scope.
+        object? window = this.Window;
+        bool attributed = window is not null && ReferenceEquals(_scope.Value, window);
         lock (_gate)
         {
-            _entries.Add(new Entry(kind, text));
+            _entries.Add(new Entry(kind, text, attributed));
         }
     }
 
@@ -206,7 +243,7 @@ internal sealed class DbCommandCounter : DbCommandInterceptor, IDbTransactionInt
         Save,
     }
 
-    private readonly record struct Entry(EntryKind Kind, string Text);
+    private readonly record struct Entry(EntryKind Kind, string Text, bool Attributed);
 }
 
 /// <summary>What one measured window cost the database.</summary>
