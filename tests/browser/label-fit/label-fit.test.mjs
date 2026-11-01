@@ -6,7 +6,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitLabel, hudRect, stackLabel, boxHits, LABEL_EDGE, LABEL_GAP, STACK_GAP, BOTTOM_BAND } from "../../../engine/Nosum.Rendering.Web/wwwroot/label-fit.js";
+import { fitLabel, hudRect, labelAvoidCount, stackLabel, boxHits, LABEL_EDGE, LABEL_GAP, STACK_GAP, BOTTOM_BAND } from "../../../engine/Nosum.Rendering.Web/wwwroot/label-fit.js";
 
 const W = 1280;
 const H = 720;
@@ -167,3 +167,39 @@ test("stackLabel_ChainOfLabels_EachClearsTheOthers", () => {
     assert.equal(overlaps(box, { x: 100, y: 100, w: 50, h: 12 }), false);
     assert.equal(overlaps(box, { x: 100, y: 88, w: 50, h: 12 }), false);
 });
+
+// The local player's sprite box, as the renderer stores it: 16 x 32 canvas pixels, feet at (300, 332), in the slot after the HUD rectangles.
+const SPRITE = [292, 300, 308, 332];
+
+test("labelAvoidCount_OtherLabelWithAPlayer_CountsTheSpriteBox", () => {
+    assert.equal(labelAvoidCount(2, true, 100, 50, 300, 332), 3);
+});
+
+test("labelAvoidCount_OwnNamePlate_DoesNotCountTheSpriteBox", () => {
+    // The own name plate is anchored at the feet, so it is drawn over the sprite and keeps its place.
+    assert.equal(labelAvoidCount(2, true, 300, 332, 300, 332), 2);
+});
+
+test("labelAvoidCount_NoPlayerInTheFrame_CountsOnlyTheHud", () => {
+    assert.equal(labelAvoidCount(2, false, 100, 50, 300, 332), 2);
+});
+
+test("fitLabel_LabelOverTheSprite_MovesOffTheSprite", () => {
+    // A direction label on the sprite's body (the bus stop's label, in critique finding 5) moves off the box, not over it.
+    const hud = rects(HOTBAR, SPRITE);
+    const out = new Int32Array(2);
+    fitLabel(out, hud, labelAvoidCount(1, true, 0, 0, 300, 332), W, H, 290, 310, 40, 12);
+    const p = { x: out[0], y: out[1] };
+    assert.equal(boxHits(hud, 2, p.x, p.y, 40, 12, LABEL_GAP), -1);
+    assert.equal(overlaps(p, { x: 292, y: 300, w: 16, h: 32 }), false);
+});
+
+test("fitLabel_OwnNamePlate_StaysOnItsSprite", () => {
+    // The own name plate is anchored at the feet (300, 332): it is not moved off the sprite it is drawn over.
+    const hud = rects(HOTBAR, SPRITE);
+    const out = new Int32Array(2);
+    const x = 300 - 20, y = 332 - 12;
+    fitLabel(out, hud, labelAvoidCount(1, true, 300, 332, 300, 332), W, H, x, y, 40, 12);
+    assert.deepEqual([out[0], out[1]], [x, y]);
+});
+

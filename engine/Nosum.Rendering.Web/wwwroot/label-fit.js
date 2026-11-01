@@ -23,6 +23,13 @@ export function hudRect(out, o, left, top, right, bottom, canvasHeight) {
     out[o + 3] = canvasHeight - bottom <= BOTTOM_BAND ? canvasHeight : bottom;
 }
 
+// The number of rectangles of `hud` that a world label must keep off. The local player's sprite box, when the frame has one, is stored right
+// after the HUD rectangles (at index hudCount), so it counts as one more rectangle. The player's own name plate is anchored at the player's feet
+// and is drawn over the sprite by design, so it does not count that box (docs/adr/ADR-097). Pure: the renderer passes its own state.
+export function labelAvoidCount(hudCount, hasPlayer, labelX, labelY, feetX, feetY) {
+    return hasPlayer && !(labelX === feetX && labelY === feetY) ? hudCount + 1 : hudCount;
+}
+
 // The index of the first rectangle that the box (x, y, w, h), grown by `margin` on every side, overlaps; -1 when none does.
 export function boxHits(rects, count, x, y, w, h, margin) {
     for (let k = 0; k < count; k++) {

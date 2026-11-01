@@ -26,6 +26,17 @@ public sealed class RenderingTests
         ints.Should().Equal(2, 3, 7, 1, 2, 16, 32, 100, 200, 1, 0x11223344, 8, 0, 0, 16, 16, -5, 6, 0, RenderCommandBuffer.NoTint);
     }
 
+    [Fact]
+    public void PlayerBox_RecordsOneCommandWithTheBoxAndTheFeet_AndDrawsNothing()
+    {
+        // docs/adr/ADR-097: the renderer reads the box and the feet of the local sprite; the command itself is not drawn.
+        RenderCommandBuffer buffer = new(4);
+        buffer.Begin(scale: 3);
+        buffer.PlayerBox(x: 92, y: 70, width: 16, height: 32, feetX: 100, feetY: 102);
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        ints.Should().Equal(1, 3, RenderCommandBuffer.PlayerBoxTexture, 92, 70, 16, 32, 100, 102, 0, RenderCommandBuffer.NoTint);
+    }
+
     [Theory]
     [InlineData(-75, false)]
     [InlineData(-75, true)]
