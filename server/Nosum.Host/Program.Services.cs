@@ -296,7 +296,7 @@ internal static partial class Program
         InstanceManager.Instance.Register<IBestiaryService>(bestiary);
         // The collection journal (read here; the inventory service counts every grant into it, in the grant's own transaction).
         InstanceManager.Instance.Register<IJournalService>(new JournalService(unitOfWork));
-        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar, quests);
+        CombatService combat = new(presence, maps, inventory, groundItems, nodeDayClock, notifier, looks, players, unitOfWork, playerStates, coopMembership, progress, bestiary, calendar, quests, clock: clock);
         InstanceManager.Instance.Register<ICombatService>(combat);
         sessions.SessionEnded += id =>
         {

@@ -245,9 +245,10 @@ public sealed partial class CombatService
                     for (int wIdx = 0; wIdx < windups.Count; wIdx++)
                     {
                         int windupMonsterId = windups[wIdx];
-                        await this.BroadcastStrikeTelegraphAsync(instanceKey, windupMonsterId, cancellationToken).ConfigureAwait(false);
-                        // Detached like a slam: the wind-up outlives the tick, and its failures are reported, never dropped.
+                        // Detached like a slam: the wind-up outlives the tick, and its failures are reported, never dropped. It is started first:
+                        // its delay is armed on the server clock before the telegraph leaves, so the warning the client sees is the whole wind-up.
                         _ = this.ResolveMonsterStrikeAsync(instanceKey, instance, windupMonsterId, onError, cancellationToken);
+                        await this.BroadcastStrikeTelegraphAsync(instanceKey, windupMonsterId, cancellationToken).ConfigureAwait(false);
                     }
 
                     for (int sIdx = 0; sIdx < slams.Count; sIdx++)
@@ -463,7 +464,8 @@ public sealed partial class CombatService
         int monsterId,
         CancellationToken cancellationToken)
     {
-        await Task.Delay(CombatRules.MonsterStrikeWindupMs, cancellationToken).ConfigureAwait(false);
+        // The delay is armed synchronously when the wind-up starts, on the server clock (a test clock in the integration tests).
+        await Task.Delay(TimeSpan.FromMilliseconds(CombatRules.MonsterStrikeWindupMs), _clock, cancellationToken).ConfigureAwait(false);
 
         // The monster may have been struck down or moved during the wind-up; it strikes from where it stands now.
         MonsterSpawn? monster = null;
