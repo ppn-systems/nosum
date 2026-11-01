@@ -52,6 +52,9 @@ internal static partial class GameLoop
 {
     private const string FarmerUrl = "assets/farmer/";
 
+    // Chunk bitmaps the scene may hold at once: 16 × 16 tiles at 16 px each is 256 KB, so 64 is at most 16 MB (docs/adr/ADR-086).
+    private const int TileChunkPoolSize = 64;
+
     private static readonly TimeSpan s_entryTimeout = TimeSpan.FromSeconds(10);
 
     private static readonly WebRenderBackend s_backend = new();
@@ -383,7 +386,14 @@ internal static partial class GameLoop
         FarmerLook look = LookSprites.Resolve(LookInfo.Default);
         // Nicknames are drawn above the heads as labels uploaded once per name (never inside the frame).
         NicknameLabels? labels = s_looks is not null && s_names is not null ? new NicknameLabels(labelRegistry, s_looks, s_names) : null;
-        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed, s_progress);
+        // The static tiles of the map are baked into chunk bitmaps the browser copies each frame (docs/adr/ADR-086): a pool of render targets, reserved once.
+        int[] chunkTargets = new int[TileChunkPoolSize];
+        for (int i = 0; i < chunkTargets.Length; i++)
+        {
+            chunkTargets[i] = textures.ReserveId();
+        }
+
+        s_scene = new MapScene(loader, content, farmer, look, start, s_network, actions, s_placeable, placement, s_looks, labels, s_nodes, s_calendar, s_audio, combatLabels, s_combat, s_minimap, s_feed, s_progress, new TileChunkCache(chunkTargets));
         s_scene.WaitingChanged += mapId => OnMapWaitChanged(mapId, loader);
         s_scene.RunStateChanged += state => s_runState?.Invoke(state);
         s_runState?.Invoke(RunState.Stopped);

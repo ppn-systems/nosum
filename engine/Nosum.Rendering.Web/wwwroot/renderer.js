@@ -273,6 +273,26 @@ export async function start(canvasId, assemblyName, exportPath) {
 let frameBytes = new Uint8Array(65536);
 let frameWords = new Int32Array(frameBytes.buffer);
 
+// The 2D context of a render target (docs/adr/ADR-086): its bitmap is created on first use and resized when its size changes, then cleared.
+// Targets draw unscaled, in their own pixels, so the bitmap is the same picture the screen would get from those draws.
+function targetContext(id, w, h) {
+    let target = textures[id];
+    if (!(target instanceof OffscreenCanvas)) {
+        target = new OffscreenCanvas(w, h);
+        textures[id] = target;
+    } else if (target.width !== w || target.height !== h) {
+        target.width = w;
+        target.height = h;
+    }
+    const t = target.getContext("2d");
+    t.setTransform(1, 0, 0, 1, 0, 0);
+    t.globalAlpha = 1;
+    t.globalCompositeOperation = "source-over";
+    t.imageSmoothingEnabled = false;
+    t.clearRect(0, 0, w, h);
+    return t;
+}
+
 export function submitFrame(view) {
     const size = view.byteLength;
     if (frameBytes.length < size) {
@@ -290,16 +310,27 @@ export function submitFrame(view) {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     placedCount = 0;
     lightCount = 0;
+    // The context the commands draw into: the screen, or a render target between a begin and an end command (docs/adr/ADR-086).
+    let draw = ctx;
 
     for (let i = 0, p = 2; i < count; i++, p += 9) {
         const id = data[p], sx = data[p + 1], sy = data[p + 2], w = data[p + 3], h = data[p + 4];
         const dx = data[p + 5], dy = data[p + 6], flags = data[p + 7], tint = data[p + 8];
+        if (id === -10) {
+            // Open a render target: sx is its texture id, w and h its size. Its bitmap is kept and resized, never recreated per frame.
+            draw = targetContext(sx, w, h);
+            continue;
+        }
+        if (id === -11) {
+            draw = ctx;
+            continue;
+        }
         if (id === -2) {
             // Black fill (scene fades): tint holds the opacity, 0..255.
-            ctx.globalAlpha = tint / 255;
-            ctx.fillStyle = "#000";
-            ctx.fillRect(dx, dy, w, h);
-            ctx.globalAlpha = 1;
+            draw.globalAlpha = tint / 255;
+            draw.fillStyle = "#000";
+            draw.fillRect(dx, dy, w, h);
+            draw.globalAlpha = 1;
             continue;
         }
         if (id <= -7 && id >= -9) {
@@ -324,8 +355,8 @@ export function submitFrame(view) {
         if (id === -6) {
             // Coloured rectangle (rain, snow): tint holds 0xRRGGBBAA.
             const u = tint >>> 0;
-            ctx.fillStyle = `rgba(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255}, ${(u & 255) / 255})`;
-            ctx.fillRect(dx, dy, w, h);
+            draw.fillStyle = `rgba(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255}, ${(u & 255) / 255})`;
+            draw.fillRect(dx, dy, w, h);
             continue;
         }
         if (id === -3) {
@@ -347,10 +378,10 @@ export function submitFrame(view) {
                     placed[placedCount] = x; placed[placedCount + 1] = y; placed[placedCount + 2] = lw; placed[placedCount + 3] = lh;
                     placedCount += 4;
                 }
-                ctx.save();
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.drawImage(label, x, y);
-                ctx.restore();
+                draw.save();
+                draw.setTransform(1, 0, 0, 1, 0, 0);
+                draw.drawImage(label, x, y);
+                draw.restore();
             }
             continue;
         }
@@ -361,18 +392,18 @@ export function submitFrame(view) {
         const flip = (flags & 1) !== 0;
         const deg = flags >> 8;
         if (flip || deg !== 0) {
-            ctx.save();
-            ctx.translate(dx + w / 2, dy + h / 2);
+            draw.save();
+            draw.translate(dx + w / 2, dy + h / 2);
             if (deg !== 0) {
-                ctx.rotate((deg * Math.PI) / 180);
+                draw.rotate((deg * Math.PI) / 180);
             }
             if (flip) {
-                ctx.scale(-1, 1);
+                draw.scale(-1, 1);
             }
-            ctx.drawImage(image, sx, sy, w, h, -w / 2, -h / 2, w, h);
-            ctx.restore();
+            draw.drawImage(image, sx, sy, w, h, -w / 2, -h / 2, w, h);
+            draw.restore();
         } else {
-            ctx.drawImage(image, sx, sy, w, h, dx, dy, w, h);
+            draw.drawImage(image, sx, sy, w, h, dx, dy, w, h);
         }
     }
 }
