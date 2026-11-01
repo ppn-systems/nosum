@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-11-01). Amends ADR-039 (D3 and D6: the files and the hooks are unchanged; the buses and the per-cue volumes are unchanged; the
+Accepted (2026-11-01); amended in round 4 (2026-11-01): the footstep target (D2). Amends ADR-039 (D3 and D6: the files and the hooks are unchanged; the buses and the per-cue volumes are unchanged; the
 load now applies one gain per file). No wire change, no render command change: `NosumProtocol.Version` stays as it is. Evidence:
 [docs/design/critique-world-ambience.md](../design/critique-world-ambience.md) (section 2, the open listening item) and the measured table in
 [docs/qa/world-ambience-round2/audio-levels.md](../qa/world-ambience-round2/audio-levels.md).
@@ -28,7 +28,7 @@ levels, and a person still has to listen to the result.
   | Music | −16.0 | the eight tracks |
   | Action | −16.0 | tools, harvest, planting, pick-ups, coin, door, sword, staff, monsters, potion, food |
   | Stinger | −16.0 | level up, combo finisher, doorbell, mail chime, craft, thunder |
-  | Footstep | −18.0 | footstep (about five decibels under the music at full volume) |
+  | Footstep | −16.5 | footstep (about 3.6 decibels under the music at the hook's volume, 70; amended in round 4, was −18.0) |
   | Interface | −18.0 | UI click, panel open and close |
   | Ambience | −16.0 | rain loop (played at 55 for rain, about 5 dB under the music, or 85 for a storm, about 1.4 dB under; the same relation the critique measured before) |
 
@@ -58,10 +58,43 @@ The resulting numbers, the measured and the normalised levels per file, are in `
   and `Files_GainLeavesHeadroomBelowFullScale` decide whether it fits.
 - The levels are a starting point from measurement, not a judgement by ear. The owner's listening pass is still open; a change to a class
   target is one line in `AudioMix`.
-- Footsteps sit at about −21 dBFS effective (target −18 at volume 70), about five decibels under the music. Before, they sat about nine
-  decibels under (measured −24.9 against −15.5). The listening pass should check this first.
+- Footsteps sit at about −25.8 dBFS effective (target −16.5 at volume 70), about 3.6 decibels under the music (round 4; was −27.3 and 5.1
+  decibels under at −18). Before the mix they sat about nine decibels under. The listening pass should check this first.
 
 ## Revisit when
 
 A listening pass says a class is too loud or too quiet against the others; or real recordings replace the synthesised ones (M6), in which case
 measure them, update `MeasuredDbfs`, and keep the class targets.
+
+## Amendment (round 4): the footstep target
+
+**Why.** The round-2 numbers put the footstep about five decibels under the music at its hook volume (70). A footstep is about 70 ms long,
+and loudness is judged over a window of roughly 200 ms, so a short click reads quieter than its active RMS says. The first listening
+proxy (below) confirmed the footstep was the one cue that sat clearly under the bed; the interface click and the tool swing did not.
+
+**What changed.** `AudioMix.Footstep` goes from −18.0 to −16.5 (`AudioCatalog.cs`). Nothing else moves: the interface stays at −18.0, the
+action and music classes at −16.0. Footsteps stay under the actions (`Mix_ClassesKeepTheirOrder` holds). The footstep's gain rises from +3.8 to
++5.3 dB; its peak after gain is −3.8 dBFS (the headroom test needs −0.5 or lower), and the gain is well inside the 12 dB bound.
+
+**How it was measured (no ears).** `tools/measure_audio.py` levels from round 2, the in-game hook volumes (footstep 70, tools and clicks 100)
+and the bus gain of 0.49 (−6.2 dB) on both buses. The effective level is what reaches the output. Music's effective RMS is −22.2 dBFS.
+
+| Cue (hook volume) | Before: effective RMS (under music) | After: effective RMS (under music) |
+|:--|:--|:--|
+| Footstep (70) | −27.3 (+5.1 dB) | **−25.8 (+3.6 dB)** |
+| Pickaxe swing (100) | −22.2 (0.0 dB) | −22.2 (0.0 dB), unchanged |
+| UI click (100) | −24.2 (+2.0 dB) | −24.2 (+2.0 dB), unchanged |
+| UI panel open (100) | −24.2 (+2.0 dB) | −24.2 (+2.0 dB), unchanged |
+| Rain bed (55) | −27.4 (+5.2 dB) | −27.4 (+5.2 dB), unchanged |
+
+Listening proxy (ffmpeg `ebur128`, the files rendered at their gains, 48 kHz). The momentary (400 ms) maximum of each cue on its own, against
+the music's integrated level, is a fair comparison only for the longer cues; for the footstep it reads low, because a 400 ms window holds a 70 ms
+click mostly in silence. Figures: footstep −12.7 LU before and about −11.2 after; pickaxe −2.3; UI click −12.8; harvest −0.8; rain +0.8. A
+composite of 12 s (music, a footstep every 0.5 s, one pickaxe swing at 4 s, one click at 8 s): integrated −23.1 LUFS before, −23.0 after, music
+alone −23.3. So footsteps change the mix's loudness by a tenth of a LU; their effect is in how they sit under the bed, not in the total.
+
+**What it does not settle.** A headless browser cannot hear the mix. The footstep is still about 3.6 dB under the music; if the listening pass
+says it is still quiet, the next step is −15.0 (about 2 dB under), and the order test then moves to `Footstep <= Action`.
+Numbers and scripts: [`docs/qa/world-ambience-round4/audio-proxy.md`](../qa/world-ambience-round4/audio-proxy.md).
+
+**Consequences.** `NosumProtocol.Version` is unchanged; no wire, no render command, no new file. The rule is one line in `AudioMix`.
