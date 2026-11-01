@@ -53,7 +53,11 @@
   <data name="Farm_Status_NotTilled" xml:space="preserve"><value>Hãy xới đất trước.</value></data>
   <data name="Farm_Status_HasCrop" xml:space="preserve"><value>Chỗ này đã có cây trồng.</value></data>
   <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>Dùng vật phẩm này ở đây không có tác dụng.</value></data>
-  <data name="Farm_ActionKeyHarvested" xml:space="preserve"><value>Đã thu hoạch bằng phím E, dù đang cầm đồ khác.</value></data>
+  <data name="Farm_HarvestedWithOtherItem" xml:space="preserve"><value>Đã thu hoạch, dù đang cầm đồ khác.</value></data>
+  <data name="Farm_Done_Tilled" xml:space="preserve"><value>Đã xới đất.</value></data>
+  <data name="Farm_Done_Planted" xml:space="preserve"><value>Đã gieo hạt.</value></data>
+  <data name="Farm_Done_Watered" xml:space="preserve"><value>Đã tưới nước.</value></data>
+  <data name="Farm_Done_Harvested" xml:space="preserve"><value>Đã thu hoạch.</value></data>
   <data name="Farm_Hover_Stage" xml:space="preserve"><value>Giai đoạn {0}/{1}</value></data>
   <data name="Farm_Status_NotMature" xml:space="preserve"><value>Cây chưa chín.</value></data>
   <data name="Farm_Status_NotMatureDays" xml:space="preserve"><value>Chưa chín, còn {0} ngày</value></data>
