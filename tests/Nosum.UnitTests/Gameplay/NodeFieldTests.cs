@@ -114,6 +114,70 @@ public sealed class NodeFieldTests
         field.BuildGrid(map).Should().BeSameAs(map);
     }
 
+    [Fact]
+    public void BuildGridInto_BlocksWhatBuildGridBlocks_AndWritesTheScratch()
+    {
+        WalkGrid map = OpenGrid();
+        NodeField field = new();
+        field.Add(new ResourceNode(1, 3, 4, NodeKind.Tree, TreeVariant.Oak, TreeStage.Grown, NodeCatalog.HitsFor(NodeKind.Tree, TreeStage.Grown)));
+        field.Add(Node(2, 5, 4, NodeKind.Stone));
+        WalkGrid scratch = OpenGrid();
+        scratch.Block(0, 0, 1, 1); // a stale tile from an earlier build: a rebuild must clear it
+
+        WalkGrid grid = field.BuildGridInto(map, scratch);
+
+        grid.Should().BeSameAs(scratch);
+        for (int y = 0; y < map.Height; y++)
+        {
+            for (int x = 0; x < map.Width; x++)
+            {
+                grid.IsBlocked(x, y).Should().Be(field.BuildGrid(map).IsBlocked(x, y), $"tile {x},{y} matches the copying build");
+            }
+        }
+        map.IsBlocked(3, 4).Should().BeFalse("the shared map grid is never changed");
+    }
+
+    [Fact]
+    public void BuildGridInto_WithNothingSolid_ReturnsTheMapGridAndLeavesTheScratchAlone()
+    {
+        WalkGrid map = OpenGrid();
+        NodeField field = new();
+        field.Add(Node(1, 7, 4, NodeKind.Weed));
+        WalkGrid scratch = OpenGrid();
+
+        field.BuildGridInto(map, scratch).Should().BeSameAs(map);
+    }
+
+    [Fact]
+    public void BuildGridInto_Rebuild_AllocatesNothing()
+    {
+        WalkGrid map = new(128, 128, 16, new bool[128 * 128]);
+        NodeField field = new();
+        for (int i = 0; i < 40; i++)
+        {
+            field.Add(Node(i + 1, 8 + (i % 8) * 3, 8 + (i / 8) * 3, NodeKind.Stone));
+        }
+
+        WalkGrid scratch = map.Clone();
+        field.BuildGridInto(map, scratch);
+
+        // A chunk change rebuilds the node grid; the walk must not allocate for it (docs/perf/wasm-perf.md, round 5). The smallest of several
+        // windows is taken, so a one-off runtime allocation cannot fail the test.
+        long smallest = long.MaxValue;
+        for (int window = 0; window < 5 && smallest != 0; window++)
+        {
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 20; i++)
+            {
+                field.BuildGridInto(map, scratch);
+            }
+
+            smallest = Math.Min(smallest, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
+
+        smallest.Should().Be(0);
+    }
+
     // Regression for #154: a planted tree stands in the walk grid as nothing until it is grown, and then it blocks.
     [Fact]
     public void BuildGrid_APlantedTree_IsWalkableUntilItIsGrown()

@@ -140,6 +140,40 @@ public sealed class NodeField
         }
     }
 
+    /// <summary>
+    /// Returns the grid players walk on, written into <paramref name="scratch"/> (a grid the caller owns, of the map's size) so a rebuild
+    /// allocates nothing; the client rebuilds this on every chunk change while the farmer walks (docs/perf/wasm-perf.md, round 5).
+    /// </summary>
+    /// <param name="mapGrid">The map's own grid; never changed.</param>
+    /// <param name="scratch">The buffer to write into; same width and height as <paramref name="mapGrid"/>.</param>
+    /// <returns><paramref name="mapGrid"/> itself when no node blocks, otherwise <paramref name="scratch"/>.</returns>
+    public WalkGrid BuildGridInto(WalkGrid mapGrid, WalkGrid scratch)
+    {
+        ArgumentNullException.ThrowIfNull(mapGrid);
+        ArgumentNullException.ThrowIfNull(scratch);
+        bool anySolid = false;
+        foreach (ResourceNode node in _byId.Values)
+        {
+            anySolid |= node.Blocks;
+        }
+
+        if (!anySolid)
+        {
+            return mapGrid;
+        }
+
+        scratch.CopyBlockedFrom(mapGrid);
+        foreach (ResourceNode node in _byId.Values)
+        {
+            if (node.Blocks)
+            {
+                scratch.Block(node.X, node.Y, 1, 1);
+            }
+        }
+
+        return scratch;
+    }
+
     /// <summary>Returns the grid players walk on: the map's grid with every blocking node's tile blocked.</summary>
     /// <param name="mapGrid">The map's own grid; never changed.</param>
     /// <returns><paramref name="mapGrid"/> itself when no node blocks, otherwise a copy.</returns>

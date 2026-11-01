@@ -13,7 +13,8 @@ description: Use before committing, opening a PR, or declaring a change done —
 | `engine/` | `dotnet build engine/Nosum.Engine.slnx` + `dotnet test tests/Nosum.UnitTests` |
 | `gameplay/` or `contracts/` | `dotnet build gameplay/Nosum.Gameplay.slnx` / `contracts/Nosum.Contracts.slnx` + `dotnet build server/Nosum.slnx` + `dotnet build wasm/Nosum.Wasm.slnx` + `dotnet test tests/Nosum.Tests.slnx` |
 | `server/` | `dotnet build server/Nosum.slnx` + `dotnet test tests/Nosum.Tests.slnx` |
-| `wasm/` | `dotnet build wasm/Nosum.Wasm.slnx` |
+| `wasm/` | `dotnet build wasm/Nosum.Wasm.slnx` + `node --test tests/browser/label-fit/*.mjs tests/browser/modules/*.mjs` |
+| `engine/Nosum.Rendering.Web/wwwroot/`, `wasm/Nosum.Wasm/wwwroot/`, the boot path | the node line above + the browser smoke in `testing-style` (published client, Development server) |
 | `bench/` | `dotnet build bench/Nosum.Bench.slnx` |
 | `tools/` | `dotnet build tools/Nosum.Tools.slnx` + `dotnet test tests/Nosum.Tests.slnx` |
 | Root `Directory.*.props`, `global.json` | every solution above + all tests |
