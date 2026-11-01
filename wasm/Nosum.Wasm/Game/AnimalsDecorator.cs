@@ -230,6 +230,8 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
     /// <summary>Initializes the provider.</summary>
     /// <param name="buildings">The animals of the room.</param>
     /// <param name="calendar">The server's calendar, for the day's produce.</param>
+    /// <param name="tendLabels">The interned hints of the action key (docs/adr/ADR-092 D3); null draws none.</param>
+    /// <param name="actions">The player actions that decide what the action key does; null draws no hint.</param>
     public AnimalsDecoratorProvider(BuildingChannel buildings, CalendarChannel? calendar = null, AnimalTendLabels? tendLabels = null, PlayerActions? actions = null)
     {
         _buildings = buildings;
