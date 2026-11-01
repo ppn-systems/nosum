@@ -43,7 +43,7 @@ Console and page errors: none in any cell.
 
 ## Open items (not fixed here)
 
-- **Phone: column panels have no door.** On a phone the column collapses to the Menu button, and the Menu window lists only the panels outside the column (`ToolbarViewModel.MenuItems`). Inventory, Crafting, Trade, Friends, Skills, World map, Journal and Mail-like column panels cannot be opened on a 390 px screen. This is a product gap, not a layout fault; it needs a design decision (put the column panels in the Menu window on narrow screens). The script records these rows as n/a.
+- **Phone: column panels have no door.** On a phone the column collapses to the Menu button, and the Menu window lists only the panels outside the column (`ToolbarViewModel.MenuItems`). Inventory, Crafting, Trade, Friends, Skills, World map and Journal (every column panel) cannot be opened on a 390 px screen. This is a product gap, not a layout fault; it needs a design decision (put the column panels in the Menu window on narrow screens). The script records these rows as n/a.
 - **Skills at 1920×1080: 1 px over.** The page is 736 px of content in a 735 px body; the audit (tolerance 2 px) passes. A 1 px trim is possible but was not chased.
 - **Test gap**: movement is still screenshot-only (no position read-back), and the world-play features in the pass-1 "not covered" list are unchanged.
 
