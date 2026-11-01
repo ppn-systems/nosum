@@ -103,7 +103,7 @@
   <data name="Place_Status_Reserved" xml:space="preserve"><value>Hãy chừa lối đi ở cửa.</value></data>
   <data name="Place_Status_Overlaps" xml:space="preserve"><value>Đã có đồ đạc ở chỗ này.</value></data>
   <data name="Place_Status_OutOfReach" xml:space="preserve"><value>Xa quá, hãy đứng gần hơn.</value></data>
-  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>Bạn đang đứng ở chỗ này.</value></data>
+  <data name="Place_Status_PlayerInTheWay" xml:space="preserve"><value>Bạn đang đứng ở chỗ này. Hãy bước sang một bên để đặt.</value></data>
   <data name="Place_Status_UnknownObject" xml:space="preserve"><value>Không tìm thấy món đồ này.</value></data>
   <data name="Place_Status_InventoryFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
   <data name="Place_Status_LimitReached" xml:space="preserve"><value>Nhà đã chứa tối đa số đồ đạc.</value></data>
@@ -1204,6 +1204,7 @@
   <data name="Furniture_Category_Plants" xml:space="preserve"><value>Cây cảnh</value></data>
   <data name="Furniture_Category_Decor" xml:space="preserve"><value>Trang trí</value></data>
   <data name="Furniture_Category_Rugs" xml:space="preserve"><value>Thảm</value></data>
+  <data name="Furniture_Category_Equipment" xml:space="preserve"><value>Thiết bị</value></data>
   <data name="Furniture_Search" xml:space="preserve"><value>Tìm nội thất...</value></data>
   <data name="Furniture_Place" xml:space="preserve"><value>Cầm để đặt</value></data>
   <data name="Furniture_PickUp" xml:space="preserve"><value>Cất vào túi</value></data>

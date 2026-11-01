@@ -314,9 +314,12 @@ internal static class ClientWiring
             mine.Load();
         };
         channel.Joined += _ => looks.Load();
+        // The first-run farm tips show only on the farm (OnboardingViewModel.OnFarm, docs/design/critique-placement.md finding 13).
+        OnboardingViewModel onboarding = services.GetRequiredService<OnboardingViewModel>();
         channel.Joined += mapId =>
         {
             bool known = GameMaps.TryGet(mapId, out MapSpec? spec);
+            onboarding.OnFarm = known && spec!.Farmable;
             if (known && spec!.IsInterior)
             {
                 buildings.ClearHere();

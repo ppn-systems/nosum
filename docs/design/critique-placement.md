@@ -25,7 +25,11 @@ Severity: **H** a player is blocked or loses something; **M** a player is confus
 | 10 | L | **"Stow" is clipped at the strip's right edge** ("Sto" + cut). | `before/desktop-en/02-ghost-open-floor.png`, `after/desktop-en/02-ghost-open-floor.png` | **Fixed (round 2):** the key caps wrap onto a second row inside the dock; "Stow" is whole at every size and language. |
 | 11 | M | **The message line is clipped by the hotbar** at 1280×720: the second line of a toast sits behind the hotbar frame. Pre-existing; the new stow line shows it too. | `after/desktop-vi/08-stow-confirmation.png` (the Vietnamese line sits behind the hotbar frame) | **Fixed (round 2):** the panel no longer squeezes the top row, so the toast line keeps its height above the hotbar. The Vietnamese stow line is whole (`after/desktop-vi/08-stow-confirmation.png`). |
 | 12 | M | **On the phone, the menu column overlaps the furniture panel** (the right-hand icons cover the end of the category row, "Plants"/"Pets"). | `before/phone-en/02-ghost-open-floor.png` | **Fixed on the phone (round 2):** while the panel is open the menu column and the minimap button are hidden, so nothing overlaps it. The general phone collapse into one "Menu" button (§6) is still open, outside this flow. |
-| 13 | L | **A farm hint shows in the farmhouse** ("Select the hoe and press the use key…") while the player is arranging furniture. | `before/desktop-en/02-ghost-open-floor.png` | **Open** (onboarding hint should follow the map). |
+| 13 | L | **A farm hint shows in the farmhouse** ("Select the hoe and press the use key…") while the player is arranging furniture. | `before/desktop-en/02-ghost-open-floor.png`; round 3 reproduced it indoors: `docs/qa/placement-round3/before/hint-desktop-en/02-farmhouse-hint.png` | **Fixed (round 3):** the farm tips are skipped off the farm (`OnboardingViewModel.OnFarm`); the next tip that applies shows. `docs/qa/placement-round3/after/hint-desktop-en/02-farmhouse-hint.png` |
+| 14 | M | **The arrange panel said "You have no furniture yet" for a chest, a furnace or a sprinkler in hand.** It opens for them but lists only furniture. | `docs/qa/placement-round3/before/desktop-en/330-furnace-held.png` | **Fixed (round 3):** the three are listed (chest in Storage, furnace and sprinkler in Equipment). `docs/qa/placement-round3/after/desktop-en/340-sprinkler-held.png` |
+| 15 | M | **E opened a chest or a furnace in front instead of placing the piece in hand.** | Seen in an intermediate pass, not kept as a frame. | **Fixed (round 3):** the action key goes to placement while a placeable is in the selected slot (`PlacementActions.HoldsPlaceable`). |
+| 16 | M (phone) | **"You are standing there." on a tile that looks free.** The feet box (10 px) reaches into the target tile when the farmer stops in its right 5 px. | `docs/qa/placement-round3/before/phone-vi/` (furnace strip) | **Copy fixed (round 3):** "Step aside to place it." The rule (`PlacedSet.CoversFeet`, shared with the server) is **open**. |
+| 17 | L | **Crafting gives no confirmation.** The chest goes to the bag with only the wood count changing. | `docs/qa/placement-round3/after/desktop-en/22-chest-crafted.png` | **Open** (crafting page). |
 
 ## Preview clarity (valid / invalid)
 
@@ -76,6 +80,8 @@ Severity: **H** a player is blocked or loses something; **M** a player is confus
 Round 2 (`claude/placement-round2`) closed findings 3, 6, 8–12 and played the carpenter build flow in the browser (finding 7, see
 [`docs/qa/placement-round2/`](../qa/placement-round2/)). Still open:
 
-1. The general phone menu collapse (ui-standard §6: one "Menu" button for the whole column). Round 2 hides the column only while the furniture panel is open.
-2. The farm hint ("Select the hoe…") shows while arranging furniture in the farmhouse (finding 13).
-3. Chests, furnaces and sprinklers have not been played through the browser flow; the carpenter's counter purchase was bypassed with the QA grant of the blueprint.
+Round 3 (`claude/placement-round3`, [`docs/qa/placement-round3/`](../qa/placement-round3/)):
+
+1. The general phone menu collapse (ui-standard §6) was already in `master`; the round-3 frames confirm it at 390×844 with no panel open.
+2. Finding 13 is fixed.
+3. Chests (crafted and placed), furnaces and sprinklers (granted, as their recipes are skill-locked) are played in the browser; the coop blueprint is bought at the carpenter's counter. Findings 14 to 17 are recorded above; 16 and 17 are open.

@@ -1,0 +1,49 @@
+{
+  "mode": "touchskill",
+  "size": "390x844",
+  "locale": "vi-VN",
+  "fireballButtonBox": [
+    138,
+    784,
+    42,
+    42
+  ],
+  "skillBoxes": [
+    {
+      "label": "Xoay kiếm",
+      "box": [
+        94,
+        784,
+        42,
+        42
+      ]
+    },
+    {
+      "label": "Cầu lửa",
+      "box": [
+        138,
+        784,
+        42,
+        42
+      ]
+    },
+    {
+      "label": "Hồi phục",
+      "box": [
+        182,
+        784,
+        42,
+        42
+      ]
+    }
+  ],
+  "xKey": {
+    "cooldownOverlays": 1,
+    "toasts": []
+  },
+  "buttonTap": {
+    "cooldownOverlays": 1,
+    "toasts": []
+  },
+  "errors": []
+}

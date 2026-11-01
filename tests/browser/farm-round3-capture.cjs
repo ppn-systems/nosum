@@ -1,4 +1,4 @@
-// Farming round three captures (docs/design/critique-farming.md, round-3 addendum; ADR-099).
+// Farming round three captures (docs/design/critique-farming.md, round-3 addendum; ADR-100).
 // The round-two script with two gaps closed: the message line is polled and captured the moment the line shows (a toast lasts 3 s,
 // MessageDuration), and the unripe refusal and the harvest-with-item line are read from the E press alone, after a timeline of the line.
 // Needs a Development server (DOTNET_ENVIRONMENT=Development) and a client built with -p:NosumDevTools=true, opened at ?qa=1.

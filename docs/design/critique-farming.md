@@ -102,7 +102,7 @@ Round two (branch `claude/farming-round2`, ADR-094, protocol 31):
 7. **Open, an owner decision.** Phones: the device policy or ui-standard section 6 (see the finding above).
 8. **Browser scripts**: see the note under "The QA hook".
 
-## Round three addendum (ADR-099)
+## Round three addendum (ADR-100)
 
 Replayed on `claude/farming-round3` (from master 7800a2e), 1280x720 and 390x844 (a width-override test copy, the product still gates phones at 1024 px),
 vi and en. Captures and grades: `docs/qa/farming-round3/` (README there). Script: `tests/browser/farm-round3-capture.cjs`.
@@ -135,11 +135,11 @@ line and captures the first frame that shows it (about 300 ms after the press).
 6. **A tap with the can harvests a ripe crop.** Now named (below), but the mapping is surprising: a watering tap takes the crop. Owner decision: should a
    can or a hoe harvest a ripe crop by a tap, or only the action key and the scythe?
 7. **Phones: the frame loop stopped.** A fractional pointer position reached an `int` parameter of the frame export and stopped the loop (seen in one
-   phone run). Fixed (ADR-099 D1). The device gate for phones is still open (round one, finding 8).
+   phone run). Fixed (ADR-100 D1). The device gate for phones is still open (round one, finding 8).
 8. **Phone layout (observed, not measured).** The quest card covers about a fifth of the height at the top left; the hotbar shows nine slots with no
    Z X V keys; the slot counts are small. Owner decision with finding 7.
 
-### Changed in this round (ADR-099)
+### Changed in this round (ADR-100)
 
 | Finding | Change | Where |
 |:--|:--|:--|

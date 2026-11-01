@@ -5,7 +5,7 @@ using Nosum.Contracts.Farm;
 namespace Nosum.Wasm.ViewModels.Feedback;
 
 /// <summary>
-/// Chooses the message line for a farm use that worked (docs/adr/ADR-099 D2 and D4). Until now a successful till, sow, water or harvest was
+/// Chooses the message line for a farm use that worked (docs/adr/ADR-100 D2 and D4). Until now a successful till, sow, water or harvest was
 /// silent: the player learned it worked from the tile and the quest card. The line is one short sentence per use; a harvest made with another
 /// item in hand keeps its own line (<see cref="FarmHarvestNotice"/>).
 /// </summary>

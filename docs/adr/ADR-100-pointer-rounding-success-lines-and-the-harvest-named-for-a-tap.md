@@ -1,4 +1,4 @@
-# ADR-099: A fractional pointer no longer stops the frame loop; a farm use that worked says so; a tap's harvest is named like the action key's
+# ADR-100: A fractional pointer no longer stops the frame loop; a farm use that worked says so; a tap's harvest is named like the action key's
 
 ## Status
 
