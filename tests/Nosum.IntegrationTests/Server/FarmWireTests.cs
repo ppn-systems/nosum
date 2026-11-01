@@ -444,8 +444,10 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
                 (await farmer.AdvanceClockAsync(1, timeout.Token)).Ok.Should().BeTrue();
             }
 
+            long secondNowMs = (await farmer.GetFarmAsync(timeout.Token)).ServerNowMs;
             (await farmer.UseAsync(seeds, x, y, timeout.Token)).Action.Should().Be(FarmAction.Harvested);
-            (await farmer.WaitForGroundItemAsync(i => i.ItemId == ItemCatalog.Strawberry, timeout.Token)).Quantity.Should().Be(berry.HarvestQuantity);
+            int secondBonus = await BonusHarvestAsync(x, y, secondNowMs, timeout.Token);
+            (await farmer.WaitForGroundItemAsync(i => i.ItemId == ItemCatalog.Strawberry, timeout.Token)).Quantity.Should().Be(berry.HarvestQuantity + secondBonus);
             (await farmer.GetFarmAsync(timeout.Token)).Tiles.Single(t => t.X == x && t.Y == y).CropId.Should().Be(CropCatalog.Strawberry, "and it can bear a third time");
         }
         finally
