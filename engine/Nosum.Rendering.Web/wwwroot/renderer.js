@@ -6,7 +6,7 @@
 // decode and draw synchronously, never keep the view.
 
 import { audioCommand } from "./audio.js";
-import { hudRect, placeLabel } from "./label-fit.js";
+import { LABEL_EDGE, hudRect, labelAvoidCount, placeLabel } from "./label-fit.js";
 // The sound commands (-7 sound, -8 music, -9 ambient loop; docs/adr/ADR-039) go to audio.js; these are the module's exports .NET calls.
 export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 
@@ -16,7 +16,7 @@ let placedCount = 0;
 // A world label stays on screen and off the HUD and the touch controls (docs/design/ui-standard.md sections 2 and 4; label-fit.js, docs/adr/ADR-095).
 // The HUD rectangles (left, top, right, bottom, canvas pixels) are read from the DOM at most every 250 ms, never per label; placeLabel() leaves the
 // result in labelPlace (no allocation).
-const hudRects = new Int32Array(4 * 16);
+const hudRects = new Int32Array(4 * 17); // the HUD rectangles, then the local player's sprite box (docs/adr/ADR-099)
 let hudCount = 0;
 let hudStamp = -Infinity;
 const labelPlace = new Int32Array(2);
@@ -335,10 +335,6 @@ function refreshHud(now) {
     }
 }
 
-function clampTo(v, lo, hi) {
-    return v < lo ? lo : v > hi ? hi : v;
-}
-
 // The index of the first HUD rectangle that the box (x, y, w, h) overlaps, or -1.
 function hudHit(x, y, w, h) {
     for (let k = 0; k < hudCount; k++) {
@@ -403,46 +399,6 @@ function drawArrowGlyph(draw, x, y, s, dir, scale, colour) {
     draw.restore();
 }
 
-// Moves a label box inside the canvas and off the HUD: beside the HUD rectangle it hit, then below it, then above it. Leaves the result in labelX/labelY.
-function fitLabel(x, y, w, h) {
-    const maxX = canvas.width - w - LABEL_EDGE;
-    const maxY = canvas.height - h - LABEL_EDGE;
-    x = clampTo(x, LABEL_EDGE, maxX);
-    y = clampTo(y, LABEL_EDGE, maxY);
-    const k = hudHit(x, y, w, h);
-    if (k < 0) {
-        labelX = x;
-        labelY = y;
-        return;
-    }
-
-    const o = k * 4;
-    const left = clampTo(hudRects[o] - w - LABEL_GAP, LABEL_EDGE, maxX);
-    if (hudHit(left, y, w, h) < 0) {
-        labelX = left;
-        labelY = y;
-        return;
-    }
-
-    const below = clampTo(hudRects[o + 3] + LABEL_GAP, LABEL_EDGE, maxY);
-    if (hudHit(x, below, w, h) < 0) {
-        labelX = x;
-        labelY = below;
-        return;
-    }
-
-    const above = clampTo(hudRects[o + 1] - h - LABEL_GAP, LABEL_EDGE, maxY);
-    if (hudHit(x, above, w, h) < 0) {
-        labelX = x;
-        labelY = above;
-        return;
-    }
-
-    // No free spot next to the HUD (a crowded corner): keep it at the left of the rectangle, which is still on screen.
-    labelX = left;
-    labelY = y;
-}
-
 export function submitFrame(view) {
     refreshHud(performance.now());
     const size = view.byteLength;
@@ -461,6 +417,22 @@ export function submitFrame(view) {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     placedCount = 0;
     lightCount = 0;
+    // The local player's sprite box (command -13, docs/adr/ADR-099) goes in the slot after the HUD rectangles, for the labels only. Its feet are kept for
+    // the own name plate, which is anchored there.
+    let playerOn = false, playerFeetX = 0, playerFeetY = 0;
+    for (let i = 0, p = 2; i < count; i++, p += 9) {
+        if (data[p] === -13) {
+            playerOn = true;
+            playerFeetX = data[p + 5];
+            playerFeetY = data[p + 6];
+            const o = hudCount * 4;
+            hudRects[o] = data[p + 1] * scale;
+            hudRects[o + 1] = data[p + 2] * scale;
+            hudRects[o + 2] = (data[p + 1] + data[p + 3]) * scale;
+            hudRects[o + 3] = (data[p + 2] + data[p + 4]) * scale;
+            break;
+        }
+    }
     // The context the commands draw into: the screen, or a render target between a begin and an end command (docs/adr/ADR-086).
     let draw = ctx;
 
@@ -526,6 +498,10 @@ export function submitFrame(view) {
             }
             continue;
         }
+        if (id === -13) {
+            // The player's sprite box is read before the loop; nothing is drawn for it.
+            continue;
+        }
         if (id === -3) {
             // Pre-rendered label: sx is the label id; (dx, dy) is its bottom centre.
             // Drawn in screen space at 1x at every zoom (a name stays small and its pixels stay hard). Two names that would overlap are
@@ -535,7 +511,8 @@ export function submitFrame(view) {
                 const lw = label.width, lh = label.height;
                 const x0 = Math.round(dx * scale - lw / 2);
                 const y0 = Math.round(dy * scale - lh);
-                placeLabel(labelPlace, hudRects, hudCount, placed, placedCount, canvas.width, canvas.height, x0, y0, lw, lh);
+                const avoid = labelAvoidCount(hudCount, playerOn, dx, dy, playerFeetX, playerFeetY);
+                placeLabel(labelPlace, hudRects, avoid, placed, placedCount, canvas.width, canvas.height, x0, y0, lw, lh);
                 const x = labelPlace[0];
                 const y = labelPlace[1];
                 if (placedCount + 4 <= placed.length) {

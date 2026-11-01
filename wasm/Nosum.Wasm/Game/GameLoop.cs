@@ -492,6 +492,14 @@ internal static partial class GameLoop
     [JSExport]
     internal static void Frame(double timeMs, int keys, int width, int height, int pointerX, int pointerY, int pointerHeld)
     {
+        long allocationStart = FrameAllocations.Start();
+        FrameWork(timeMs, keys, width, height, pointerX, pointerY, pointerHeld);
+        FrameAllocations.End(allocationStart);
+    }
+
+    // The frame's work, one call a frame: it allocates nothing when idle (docs/adr/ADR-099 D1).
+    private static void FrameWork(double timeMs, int keys, int width, int height, int pointerX, int pointerY, int pointerHeld)
+    {
         if (s_scene is null || width <= 0 || height <= 0)
         {
             return;

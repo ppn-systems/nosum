@@ -119,6 +119,9 @@ public sealed partial class DbBudgetRun
         (double carpenterX, double carpenterY) = TileCentre(carpenter.TileX, carpenter.TileY);
         await using BudgetPlayer petBuyer = await this.FreshAsync(GameMaps.Town, carpenterX, carpenterY, 2_000);
         _ = await _rig.ProbeAsync<PetState>(petBuyer, "Pet", PetOpCode.AdoptPet, "AdoptPet", "adopt a cat", () => new AdoptPet { Kind = (byte)PetKind.Cat, Name = "Mochi" });
+        // The measured petting is the first of its game day, which may bring back a forage item (docs/adr/ADR-092 D2). The farmer's id is new on every run,
+        // so the day is moved on until this farmer's first petting of it brings nothing back: the row then costs the same on every run.
+        StepToDayWithoutForage(petBuyer.AccountId);
         _ = await _rig.ProbeAsync<PetState>(petBuyer, "Pet", PetOpCode.PetPet, "PetPet", "pet the cat", () => new PetPet());
         _ = await _rig.ProbeAsync<PetState>(petBuyer, "Pet", PetOpCode.PetPet, "PetPet", "pet the cat, asked again", () => new PetPet());
         _ = await _rig.ProbeAsync<PetState>(petBuyer, "Pet", PetOpCode.RehomePet, "RehomePet", "give the cat back", () => new RehomePet());
