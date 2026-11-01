@@ -60,6 +60,7 @@ Before is `master` (4221f3b); after is this branch. "Partly" means something is 
 
 ## Open
 
+- At 1280×720 in Vietnamese with the three-line build confirmation and an empty list, the panel's body scrolls and the Place and Pick up buttons sit below the visible part (`build-desktop-vi/02-first-press-confirm.png`). The layout needs a decision (one scrollable tab row, or a larger width); the scroll is the fallback.
 - The general phone menu collapse (§6) and the panel width (§3) need a decision of their own.
 - The farm hint shows in the farmhouse while arranging (finding 13).
 - Chests, furnaces and sprinklers are not played through the browser flow.

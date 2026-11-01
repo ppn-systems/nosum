@@ -16,7 +16,7 @@
 }
 
 .furniture-grid {
-    max-height: calc(var(--u) * 60);
+    max-height: calc(var(--u) * 36);
     overflow-y: auto;
     margin: calc(var(--u) * 2) 0;
 }
@@ -34,6 +34,11 @@
    stays open in the centre. The window's height follows its content up to the screen below the HUD bar. */
 .furniture-dock ::deep .trade-dialog {
     width: calc(var(--u) * 124);
+}
+
+/* The page scrolls inside the frame rather than spilling its buttons past the bottom edge (a long notice or an empty list). */
+.furniture-dock ::deep .trade-dialog .trade-window > .game-panel-body {
+    overflow-y: auto;
 }
 
 .furniture-dock ::deep .trade-dialog .trade-window {

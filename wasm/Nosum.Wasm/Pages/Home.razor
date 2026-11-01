@@ -155,7 +155,11 @@ else
                 }
                 else
                 {
-                    <OnboardingHint Vm="Onboarding" />
+                    @* The first-run hint is a wide line over the bottom centre; while the furniture panel is open it would run into the panel's edge. *@
+                    @if (!Furniture.IsVisible)
+                    {
+                        <OnboardingHint Vm="Onboarding" />
+                    }
                     <FishingBanner Vm="Fishing" />
                     <GameMessage Vm="Messages" />
                     <Hotbar Vm="Inventory" Progress="Progress" />
