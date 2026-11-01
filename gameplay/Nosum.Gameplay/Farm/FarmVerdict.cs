@@ -40,4 +40,7 @@ public enum FarmVerdict
 
     /// <summary>The crop withered when its season ended; plant over it to clear it.</summary>
     Withered = 11,
+
+    /// <summary>The soil is wet already: watered today, or by rain or a sprinkler; more water changes nothing (docs/adr/ADR-080).</summary>
+    AlreadyWet = 12,
 }

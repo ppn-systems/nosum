@@ -177,7 +177,7 @@ public sealed class FarmChannelTests
         socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.NotTilled, Action = FarmAction.None });
         using FarmChannel channel = new(socket);
         (FarmStatus Status, FarmAction Action)? answer = null;
-        channel.UseCompleted += (status, action) => answer = (status, action);
+        channel.UseCompleted += (status, action, _) => answer = (status, action);
 
         channel.Use(2, 61, 17);
 
@@ -187,13 +187,28 @@ public sealed class FarmChannelTests
     }
 
     [Fact]
+    public void UseArea_ReportsHowManyTilesOfTheLineWorked()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.Ok, Action = FarmAction.Watered, Worked = 2 });
+        using FarmChannel channel = new(socket);
+        int? worked = null;
+        channel.UseCompleted += (_, _, count) => worked = count;
+
+        channel.UseArea(2, 61, 17, 3);
+
+        // The client charges the energy of each tile that worked (docs/adr/ADR-080), so the count must reach the subscribers.
+        worked.Should().Be(2);
+    }
+
+    [Fact]
     public void UseArea_SendsTheWideUseAsItsOwnPacket_AndReportsTheAnswer()
     {
         FakeGameSocket socket = new();
         socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.InvalidArea, Action = FarmAction.None });
         using FarmChannel channel = new(socket);
         FarmStatus? status = null;
-        channel.UseCompleted += (s, _) => status = s;
+        channel.UseCompleted += (s, _, _) => status = s;
 
         channel.UseArea(2, 61, 17, 3);
 

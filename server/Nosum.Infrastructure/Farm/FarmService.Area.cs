@@ -59,6 +59,8 @@ public sealed partial class FarmService
             return result;
         }
 
+        // Every tile that worked is charged its own energy (docs/adr/ADR-026 D1), so the count is what the client shows as the energy spent (docs/adr/ADR-080).
+        int worked = result.Status == FarmStatus.Ok && result.Action != FarmAction.Descended ? 1 : 0;
         FarmUseOutcome best = result;
         for (int i = 1; i < length; i++)
         {
@@ -68,6 +70,11 @@ public sealed partial class FarmService
             {
                 // A ladder at the end of a line is not used by a hoe passing by.
                 continue;
+            }
+
+            if (next.Status == FarmStatus.Ok)
+            {
+                worked++;
             }
 
             if (best.Status != FarmStatus.Ok && next.Status == FarmStatus.Ok)
@@ -81,6 +88,6 @@ public sealed partial class FarmService
             }
         }
 
-        return best;
+        return best with { Worked = worked };
     }
 }

@@ -286,6 +286,7 @@
   <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>Nâng cấp này đã ở cấp cao nhất.</value></data>
   <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>Nâng cấp này đã được mua rồi.</value></data>
   <data name="Farm_Status_LockedLand" xml:space="preserve"><value>Khu đất này của hợp tác xã chưa được mở.</value></data>
+  <data name="Farm_Status_AlreadyWet" xml:space="preserve"><value>Đất đã đủ nước hôm nay.</value></data>
   <data name="Place_Status_LockedLand" xml:space="preserve"><value>Khu đất này của hợp tác xã chưa được mở.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Khách {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Biệt danh</value></data>

@@ -76,4 +76,7 @@ public enum FarmStatus : byte
 
     /// <summary>The tile is on co-op land that the co-op has not unlocked yet (docs/adr/ADR-038).</summary>
     LockedLand = 23,
+
+    /// <summary>The soil is wet already (watered today by the can, or by rain or a sprinkler), so more water changes nothing (docs/adr/ADR-080).</summary>
+    AlreadyWet = 24,
 }

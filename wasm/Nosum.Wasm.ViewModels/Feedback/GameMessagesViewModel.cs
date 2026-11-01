@@ -175,9 +175,10 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
             : _text["Market_Status_" + status].Value);
     }
 
-    private void OnUseCompleted(FarmStatus status, FarmAction action)
+    private void OnUseCompleted(FarmStatus status, FarmAction action, int worked)
     {
         _ = action;
+        _ = worked;
 
         // A swing that came too soon is dropped without a word: the key was just held (docs/adr/ADR-021 D8).
         if (status != FarmStatus.Cooldown && this.TextOf(status) is { } text)

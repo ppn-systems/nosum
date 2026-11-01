@@ -121,6 +121,9 @@ public sealed partial class FarmWireTests
 
         public string SessionToken { get; private set; } = string.Empty;
 
+        // The player's account, so a test can grant an item straight to it (the server's dev grant answers only in Development).
+        public Guid AccountId { get; private set; }
+
         public static async Task<FarmClient> ConnectAsync(ushort port, CancellationToken ct)
         {
             FarmClient client = await OpenAsync(port, ct);
@@ -129,6 +132,7 @@ public sealed partial class FarmWireTests
             AccountResult result = await client._session.RequestAsync<AccountResult>(request, ct: ct);
             result.Status.Should().Be(AccountStatus.Ok);
             client.SessionToken = result.SessionToken;
+            client.AccountId = result.PlayerId;
             return client;
         }
 
@@ -202,6 +206,14 @@ public sealed partial class FarmWireTests
         {
             await Task.Delay(s_useCooldown, ct);
             using UseItem request = new() { Slot = (byte)slot, TileX = x, TileY = y };
+            return await _session.RequestAsync<UseItemResult>(request, ct: ct);
+        }
+
+        // A wide use of a hoe or watering can on a line of tiles (docs/adr/ADR-026 D1); the reply counts the tiles that worked (docs/adr/ADR-080).
+        public async Task<UseItemResult> UseAreaAsync(int slot, int x, int y, int tiles, CancellationToken ct)
+        {
+            await Task.Delay(s_useCooldown, ct);
+            using UseItemArea request = new() { Slot = (byte)slot, TileX = x, TileY = y, Tiles = (byte)tiles };
             return await _session.RequestAsync<UseItemResult>(request, ct: ct);
         }
 

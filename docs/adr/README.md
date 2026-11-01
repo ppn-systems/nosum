@@ -81,6 +81,7 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-069](ADR-069-google-and-microsoft-sign-in-only.md) | Google and Microsoft sign-in only (passwords removed) | Accepted |
 | [ADR-070](ADR-070-mine-biome-tiers-and-music-themes.md) | Mine biome tiers: tinted cave palettes and music themes per ten floors (uses ADR-039 track ids, amends ADR-026 for the look) | Accepted |
 | [ADR-078](ADR-078-fishing-rod-casts-and-server-rolled-catches.md) | Fishing with a rod: a timed reel-in judged on the server clock, catches rolled on the server from a seed it made, ten fish species, protocol 13 | Accepted |
+| [ADR-080](ADR-080-wide-use-count-and-the-wet-soil-refusal.md) | A wide use reports how many tiles it worked (each charged its energy, the label shows the total); watering wet soil is refused as `AlreadyWet` instead of `NothingToDo`. Protocol 22, append-only. |
 | [ADR-071](ADR-071-ambient-wildlife-and-weather-polish.md) | Ambient wildlife (birds, butterflies, fireflies, frogs, squirrels) seeded per chunk and day, and autumn leaves and rain splashes; client only | Accepted |
 | [ADR-072](ADR-072-minimap-world-map-and-collection-journal.md) | HUD minimap drawn by the engine, world map panel, collection journal (server discoveries, protocol 17), input edges narrowed to four held bits | Accepted |
 | [ADR-073](ADR-073-furniture-catalogue-and-decorating.md) | Furniture catalogue: thirty-two more pieces, catalogue groups, seasonal stock and the decorating panel (no wire change) | Proposed |

@@ -30,6 +30,7 @@ public static class NosumProtocol
     /// (S2C <c>0xC340-0xC341</c>) and <c>FishingStatus</c>; <c>ToolKind.FishingRod</c>, <c>SkillKind.Fishing</c> and <c>CraftSkill.Fishing</c> are
     /// appended values, and <c>FishingXp</c> is stored on the player state. No existing packet changed. Version 19 is left unused.
     /// 21: fish size - <c>SizeCm</c> appended to <c>ReelResult</c> (docs/adr/ADR-078 amendment).
+    /// 22: wide-use count - <c>Worked</c> appended to <c>UseItemResult</c>: the tiles a hoe or watering can line worked, each charged its own energy; and <c>FarmStatus.AlreadyWet</c> (24) appended, the refusal for soil that is wet already, which was <c>NothingToDo</c> (docs/adr/ADR-080). Clients built for 21 misread the reply, so they ship together.
     /// </summary>
-    public const ushort Version = 21;
+    public const ushort Version = 22;
 }
