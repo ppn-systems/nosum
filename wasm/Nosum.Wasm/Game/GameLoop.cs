@@ -145,6 +145,9 @@ internal static partial class GameLoop
     /// <summary>Raised with a resource key when a skill press is refused on the client, so the player is told why (docs/adr/ADR-056 D5).</summary>
     public static event Action<string>? SkillPressRefused;
 
+    /// <summary>Raised when the action key harvests a ripe crop with another item in hand (docs/adr/ADR-089 backlog item 3); the message line says so.</summary>
+    public static event Action? ActionKeyHarvested;
+
     /// <summary>Connects MMORPG combat and monsters to the game (docs/adr/ADR-045). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="combat">The combat channel.</param>
     /// <param name="text">Localized UI strings for world combat labels.</param>
@@ -288,6 +291,7 @@ internal static partial class GameLoop
         PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat, s_calendar) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.SkillPressRefused += key => SkillPressRefused?.Invoke(key);
+        actions?.ActionKeyHarvested += () => ActionKeyHarvested?.Invoke();
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
