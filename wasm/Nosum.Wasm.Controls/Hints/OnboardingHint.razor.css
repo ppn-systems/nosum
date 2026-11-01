@@ -4,6 +4,11 @@
     pointer-events: none;
 }
 
+/* While the chat box is open the walk hint steps aside: on a phone the open chat line covers the hint's corner (ui-standard section 2, shrink by hiding). */
+:root:has(#nosum-chat-input) .hint-dock {
+    display: none;
+}
+
 /* The fade runs as long as OnboardingViewModel.HintSeconds (12 s); the view model removes the line when it is over. */
 .hint-line {
     margin: 0 0 calc(var(--u) * 2);

@@ -549,7 +549,7 @@
   <data name="Chat_Channel_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
   <data name="Chat_Channel_Whisper" xml:space="preserve"><value>Thì thầm</value></data>
   <data name="Chat_InputHint" xml:space="preserve"><value>Gõ để nói. Tab đổi kênh, /w tên để thì thầm</value></data>
-  <data name="Chat_GuestHint" xml:space="preserve"><value>Khách chỉ chat được ở kênh Gần. Hãy đăng ký để dùng thêm kênh</value></data>
+  <data name="Chat_GuestHint" xml:space="preserve"><value>Chỉ kênh Gần</value></data>
   <data name="Chat_InputLabel" xml:space="preserve"><value>Nhập tin nhắn</value></data>
   <data name="Chat_WhisperFromTo" xml:space="preserve"><value>{0} → {1}</value></data>
   <data name="Chat_Sys_Usage" xml:space="preserve"><value>Cách dùng: /w tên nội dung, /block tên, /unblock tên, /report tên.</value></data>

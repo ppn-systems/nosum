@@ -549,7 +549,7 @@
   <data name="Chat_Channel_Coop" xml:space="preserve"><value>Co-op</value></data>
   <data name="Chat_Channel_Whisper" xml:space="preserve"><value>Whisper</value></data>
   <data name="Chat_InputHint" xml:space="preserve"><value>Type to talk. Tab changes channel, /w name whispers</value></data>
-  <data name="Chat_GuestHint" xml:space="preserve"><value>Guests can only use local chat. Register for more channels</value></data>
+  <data name="Chat_GuestHint" xml:space="preserve"><value>Local chat only</value></data>
   <data name="Chat_InputLabel" xml:space="preserve"><value>Chat message</value></data>
   <data name="Chat_WhisperFromTo" xml:space="preserve"><value>{0} → {1}</value></data>
   <data name="Chat_Sys_Usage" xml:space="preserve"><value>Usage: /w name text, /block name, /unblock name, /report name.</value></data>
