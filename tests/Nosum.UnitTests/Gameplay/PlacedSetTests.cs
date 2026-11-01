@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -138,6 +139,44 @@ public sealed class PlacedSetTests
         walkable.IsBlocked(3, 3).Should().BeTrue();
         walkable.IsBlocked(4, 2).Should().BeFalse();
         map.IsBlocked(2, 2).Should().BeFalse("the shared grid of the map is never changed");
+    }
+
+    [Fact]
+    public void BuildGridInto_MatchesBuildGrid_AndAllocatesNothingOnARebuild()
+    {
+        WalkGrid map = Room();
+        PlacedSet set = new();
+        set.Add(new PlacedItem(1, ItemCatalog.OakTable, 2, 2, 0));
+        set.Add(new PlacedItem(2, ItemCatalog.OakTable, 6, 4, 0));
+        WalkGrid copy = set.BuildGrid(map);
+        WalkGrid scratch = map.Clone();
+        scratch.Block(0, 0, 1, 1); // a stale tile: the rebuild clears it
+
+        WalkGrid written = set.BuildGridInto(map, scratch);
+
+        written.Should().BeSameAs(scratch);
+        for (int y = 0; y < map.Height; y++)
+        {
+            for (int x = 0; x < map.Width; x++)
+            {
+                written.IsBlocked(x, y).Should().Be(copy.IsBlocked(x, y), $"tile {x},{y} matches the copying build");
+            }
+        }
+
+        // A placed-object change on a chunk change rebuilds into the same buffer; the walk must not allocate for it (docs/perf/wasm-perf.md, round 5).
+        long smallest = long.MaxValue;
+        for (int window = 0; window < 5 && smallest != 0; window++)
+        {
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 20; i++)
+            {
+                set.BuildGridInto(map, scratch);
+            }
+
+            smallest = Math.Min(smallest, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
+
+        smallest.Should().Be(0);
     }
 
     [Fact]

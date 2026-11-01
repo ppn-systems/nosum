@@ -259,7 +259,27 @@ public sealed class PlacedSet
     {
         ArgumentNullException.ThrowIfNull(mapGrid);
 
-        WalkGrid grid = mapGrid.Clone();
+        return this.BlockPieces(mapGrid.Clone());
+    }
+
+    /// <summary>
+    /// Writes the grid players walk on (the map's grid with every walking-blocking piece's footprint blocked) into <paramref name="scratch"/>, a grid
+    /// the caller owns, so a rebuild on a chunk change allocates nothing (docs/perf/wasm-perf.md, round 5).
+    /// </summary>
+    /// <param name="mapGrid">The map's own grid; it is not changed.</param>
+    /// <param name="scratch">The buffer to write into; same width and height as <paramref name="mapGrid"/>.</param>
+    /// <returns><paramref name="scratch"/>.</returns>
+    public WalkGrid BuildGridInto(WalkGrid mapGrid, WalkGrid scratch)
+    {
+        ArgumentNullException.ThrowIfNull(mapGrid);
+        ArgumentNullException.ThrowIfNull(scratch);
+
+        scratch.CopyBlockedFrom(mapGrid);
+        return this.BlockPieces(scratch);
+    }
+
+    private WalkGrid BlockPieces(WalkGrid grid)
+    {
         foreach (PlacedItem item in _items)
         {
             if (PlaceableCatalog.TryGet(item.ItemId, out PlaceableDefinition? definition))
