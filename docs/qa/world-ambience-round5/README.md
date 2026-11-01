@@ -1,13 +1,13 @@
 # World ambience, round 5
 
-Evidence for round 5 of [`docs/design/critique-world-ambience.md`](../../design/critique-world-ambience.md) (section 9). Rule: [ADR-097](../../adr/ADR-097-label-scope-and-the-round-five-check.md).
+Evidence for round 5 of [`docs/design/critique-world-ambience.md`](../../design/critique-world-ambience.md) (section 9). Rule: [ADR-098](../../adr/ADR-098-label-scope-and-the-round-five-check.md).
 
 ## Frames
 
 | Folder | Build | What it shows |
 |:--|:--|:--|
 | `master-309/` | master at `d6642a4` (PR #309 merged) | Mine floor 35 (`mine35`, tile 5,5) and a farm frame, English and Vietnamese. Full view and a x4 crop of its centre. |
-| `round5/` | this branch (#309 plus the ADR-097 renderer fix) | The same mine floor 35 frame, English and Vietnamese. |
+| `round5/` | this branch (#309 plus the ADR-098 renderer fix) | The same mine floor 35 frame, English and Vietnamese. |
 
 Each frame has `<tag>.png` (the whole view, 1280 × 720) and `<tag>-centre-4x.png` (the middle 320 × 180 px scaled 4× with nearest-neighbour, so pixels stay hard).
 Script: `tests/browser/world-ambience-label-zoom.cjs`. The calendar text the HUD showed is printed by the script (`Fall Day 5`, 5:26–5:32 PM).

@@ -1,0 +1,11 @@
+{
+  "mode": "fishing",
+  "size": "390x844",
+  "locale": "vi-VN",
+  "bite": {
+    "statusAtBite": "Cá đang cắn câu! Nhấn Space hoặc bấm chuột để kéo cần!",
+    "inputMode": "touch"
+  },
+  "afterPress": "Bạn câu được Cá vược!",
+  "errors": []
+}

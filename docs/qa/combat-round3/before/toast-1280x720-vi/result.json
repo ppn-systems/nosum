@@ -1,0 +1,66 @@
+{
+  "mode": "toast",
+  "size": "1280x720",
+  "locale": "vi-VN",
+  "tries": [
+    {
+      "try": 1,
+      "toasts": [
+        {
+          "text": "Không có quái vật trong tầm để thi triển! ×2",
+          "box": [
+            402,
+            506,
+            476,
+            52
+          ]
+        }
+      ],
+      "chip": {
+        "text": "Chuỗi đòn 3x (+10%)",
+        "box": [
+          801,
+          554,
+          229,
+          40
+        ]
+      },
+      "overlapToastAndChip": {
+        "px": [
+          77,
+          4
+        ]
+      }
+    }
+  ],
+  "final": {
+    "try": 1,
+    "toasts": [
+      {
+        "text": "Không có quái vật trong tầm để thi triển! ×2",
+        "box": [
+          402,
+          506,
+          476,
+          52
+        ]
+      }
+    ],
+    "chip": {
+      "text": "Chuỗi đòn 3x (+10%)",
+      "box": [
+        801,
+        554,
+        229,
+        40
+      ]
+    },
+    "overlapToastAndChip": {
+      "px": [
+        77,
+        4
+      ]
+    }
+  },
+  "errors": []
+}

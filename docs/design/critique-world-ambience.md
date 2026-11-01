@@ -179,7 +179,7 @@ and the exit beacon's strength (a design call). Not changed in round 4: both are
 
 ## 9. Round 5
 
-Captures and checks: [`docs/qa/world-ambience-round5/`](../qa/world-ambience-round5/README.md). Rule: [ADR-097](../adr/ADR-097-label-scope-and-the-round-five-check.md).
+Captures and checks: [`docs/qa/world-ambience-round5/`](../qa/world-ambience-round5/README.md). Rule: [ADR-098](../adr/ADR-098-label-scope-and-the-round-five-check.md).
 
 - **The stray letter, in a live frame.** Round 4 left it unconfirmed. Round 5 captured mine floor 35 on the build with #309 (English and Vietnamese, 1280 × 720,
   a x4 crop of the view's centre). **No stray letter appeared in the frames taken.** That is absence in a few frames, not proof: the letter depends on which

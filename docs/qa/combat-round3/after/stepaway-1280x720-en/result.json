@@ -1,0 +1,228 @@
+{
+  "mode": "stepaway",
+  "size": "1280x720",
+  "locale": "en-US",
+  "attempts": [
+    {
+      "attempt": 1,
+      "key": "ArrowUp",
+      "control": {
+        "landing1": {
+          "hpBefore": 76,
+          "hpAfter": 68
+        },
+        "landing2": {
+          "hpBefore": 68,
+          "hpAfter": 60,
+          "gapMsFromLanding1": 1489
+        }
+      },
+      "pressOffsetMsFromLanding2": 1161,
+      "hpBeforeStep": 60,
+      "hpEnd": 52,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -1489,
+          "from": 76,
+          "to": 68
+        },
+        {
+          "atRelMs": 0,
+          "from": 68,
+          "to": 60
+        },
+        {
+          "atRelMs": 1501,
+          "from": 60,
+          "to": 52
+        }
+      ],
+      "hitsFromPlus1000": 1,
+      "success": false
+    },
+    {
+      "attempt": 2,
+      "key": "ArrowLeft",
+      "control": {
+        "landing1": {
+          "hpBefore": 92,
+          "hpAfter": 84
+        },
+        "landing2": {
+          "hpBefore": 84,
+          "hpAfter": 76,
+          "gapMsFromLanding1": 1509
+        }
+      },
+      "pressOffsetMsFromLanding2": 1157,
+      "hpBeforeStep": 76,
+      "hpEnd": 68,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -1509,
+          "from": 92,
+          "to": 84
+        },
+        {
+          "atRelMs": 0,
+          "from": 84,
+          "to": 76
+        },
+        {
+          "atRelMs": 1488,
+          "from": 76,
+          "to": 68
+        }
+      ],
+      "hitsFromPlus1000": 1,
+      "success": false
+    },
+    {
+      "attempt": 3,
+      "key": "ArrowDown",
+      "control": {
+        "landing1": {
+          "hpBefore": 92,
+          "hpAfter": 84
+        },
+        "landing2": {
+          "hpBefore": 84,
+          "hpAfter": 76,
+          "gapMsFromLanding1": 1497
+        }
+      },
+      "pressOffsetMsFromLanding2": 1163,
+      "hpBeforeStep": 76,
+      "hpEnd": 68,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -1497,
+          "from": 92,
+          "to": 84
+        },
+        {
+          "atRelMs": 0,
+          "from": 84,
+          "to": 76
+        },
+        {
+          "atRelMs": 1515,
+          "from": 76,
+          "to": 68
+        }
+      ],
+      "hitsFromPlus1000": 1,
+      "success": false
+    },
+    {
+      "attempt": 4,
+      "key": "ArrowRight",
+      "control": {
+        "landing1": {
+          "hpBefore": 92,
+          "hpAfter": 84
+        },
+        "landing2": {
+          "hpBefore": 84,
+          "hpAfter": 76,
+          "gapMsFromLanding1": 1491
+        }
+      },
+      "pressOffsetMsFromLanding2": 1153,
+      "hpBeforeStep": 76,
+      "hpEnd": 68,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -1491,
+          "from": 92,
+          "to": 84
+        },
+        {
+          "atRelMs": 0,
+          "from": 84,
+          "to": 76
+        },
+        {
+          "atRelMs": 1501,
+          "from": 76,
+          "to": 68
+        }
+      ],
+      "hitsFromPlus1000": 1,
+      "success": false
+    },
+    {
+      "attempt": 5,
+      "key": "ArrowUp",
+      "control": {
+        "landing1": {
+          "hpBefore": 72,
+          "hpAfter": 70
+        },
+        "landing2": {
+          "hpBefore": 70,
+          "hpAfter": 62,
+          "gapMsFromLanding1": 400
+        }
+      },
+      "pressOffsetMsFromLanding2": 1152,
+      "hpBeforeStep": 62,
+      "hpEnd": 60,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -399,
+          "from": 72,
+          "to": 70
+        },
+        {
+          "atRelMs": 0,
+          "from": 70,
+          "to": 62
+        },
+        {
+          "atRelMs": 1091,
+          "from": 62,
+          "to": 60
+        }
+      ],
+      "hitsFromPlus1000": 1,
+      "success": false
+    },
+    {
+      "attempt": 6,
+      "key": "ArrowLeft",
+      "control": {
+        "landing1": {
+          "hpBefore": 92,
+          "hpAfter": 84
+        },
+        "landing2": {
+          "hpBefore": 84,
+          "hpAfter": 76,
+          "gapMsFromLanding1": 1504
+        }
+      },
+      "pressOffsetMsFromLanding2": 1162,
+      "hpBeforeStep": 76,
+      "hpEnd": 76,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -1504,
+          "from": 92,
+          "to": 84
+        },
+        {
+          "atRelMs": 0,
+          "from": 84,
+          "to": 76
+        }
+      ],
+      "hitsFromPlus1000": 0,
+      "success": true
+    }
+  ],
+  "voidAttempts": 0,
+  "successfulAttempts": 1,
+  "attemptsUsed": 6,
+  "errors": []
+}

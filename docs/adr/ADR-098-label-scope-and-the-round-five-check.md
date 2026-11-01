@@ -1,4 +1,4 @@
-# ADR-097: Label placement has one scope in `renderer.js`, and the round-five live check of the stray letter
+# ADR-098: Label placement has one scope in `renderer.js`, and the round-five live check of the stray letter
 
 ## Status
 

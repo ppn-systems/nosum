@@ -163,4 +163,15 @@ public sealed class CombatPacketTests
         (telegraphCopy.X, telegraphCopy.Y, telegraphCopy.RadiusTiles, telegraphCopy.DelayMs).Should().Be(((ushort)12, (ushort)30, (byte)1, (ushort)1000));
         GroundTelegraph.StaticOpCode.Should().Be(CombatOpCode.GroundTelegraph);
     }
+
+    [Fact]
+    public void StrikeTelegraph_RoundTrip_PreservesFieldsAndOpCode()
+    {
+        using StrikeTelegraph strike = new() { MonsterId = 77, DelayMs = 400 };
+
+        StrikeTelegraph strikeCopy = StrikeTelegraph.Deserialize(strike.Serialize());
+        (strikeCopy.MonsterId, strikeCopy.DelayMs).Should().Be((77, (ushort)400));
+        StrikeTelegraph.StaticOpCode.Should().Be(0xC249);
+        StrikeTelegraph.StaticOpCode.Should().Be(CombatOpCode.StrikeTelegraph);
+    }
 }
