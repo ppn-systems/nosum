@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Dev;
 using Nosum.Wasm.ViewModels.Fishing;
@@ -52,6 +53,20 @@ internal static partial class DevTools
     /// <param name="tileY">The tile row.</param>
     [JSExport]
     internal static void Teleport(string mapId, int tileX, int tileY) => s_channel?.Teleport(mapId, tileX, tileY);
+
+    /// <summary>Asks a Development server for a new registered test friend of the player (docs/adr/ADR-105). Resolves to the nickname and the
+    /// session token separated by a tab, or to an empty string when the server made none.</summary>
+    [JSExport]
+    internal static async Task<string> Befriend()
+    {
+        if (s_channel is null)
+        {
+            return string.Empty;
+        }
+
+        TestFriend? friend = await s_channel.BefriendAsync().ConfigureAwait(false);
+        return friend is null ? string.Empty : friend.Nickname + "\t" + friend.SessionToken;
+    }
 
     /// <summary>Bytes the frame thread has allocated so far. The frame benchmark (bench/wasm-perf/frame.cjs) reads the difference across a run.</summary>
     [JSExport]
