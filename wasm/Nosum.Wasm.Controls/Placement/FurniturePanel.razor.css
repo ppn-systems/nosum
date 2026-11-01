@@ -16,7 +16,7 @@
 }
 
 .furniture-grid {
-    max-height: calc(var(--u) * 80);
+    max-height: calc(var(--u) * 60);
     overflow-y: auto;
     margin: calc(var(--u) * 2) 0;
 }
@@ -28,4 +28,28 @@
 
 .furniture-actions {
     justify-content: flex-end;
+}
+
+/* The arrange panel docks in the HUD's top-left region (GameHud TopLeft, docs/design/ui-standard.md section 2): one column of 124 u, so the room
+   stays open in the centre. The window's height follows its content up to the screen below the HUD bar. */
+.furniture-dock ::deep .trade-dialog {
+    width: calc(var(--u) * 124);
+}
+
+.furniture-dock ::deep .trade-dialog .trade-window {
+    /* Ends above the toast line and the hotbar (46 u at the bottom of the screen), so the panel never covers them. */
+    max-height: calc(100vh - var(--nosum-gutter) * 2 - var(--u) * 46);
+}
+
+/* A phone: the panel runs the width of the screen under the HUD bar and holds at most the top half, so the room below stays visible
+   (docs/design/ui-standard.md section 6). Its grid and list scroll inside the window on such a screen. */
+@media (max-width: 640px) {
+    .furniture-dock ::deep .trade-dialog {
+        width: 100%;
+    }
+
+    .furniture-dock ::deep .trade-dialog .trade-window {
+        /* Starts under the HUD bar (22 u) and ends above the middle of the screen: the room's centre stays open. */
+        max-height: calc(50vh - var(--u) * 26);
+    }
 }

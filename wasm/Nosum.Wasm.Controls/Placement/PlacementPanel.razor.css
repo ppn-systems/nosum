@@ -1,5 +1,7 @@
+/* The key caps wrap onto a second row rather than running past the panel's edge (docs/design/ui-standard.md section 7, checklist item 6). */
 .strip-row {
     display: flex;
+    flex-wrap: wrap;
     gap: calc(var(--u) * 4);
     align-items: center;
 }

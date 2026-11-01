@@ -106,6 +106,7 @@
   <data name="Placement_Cancel" xml:space="preserve"><value>Hủy dời (F)</value></data>
   <data name="Placement_Carrying" xml:space="preserve"><value>Đang cầm: {0}</value></data>
   <data name="Placement_ConfirmBuild" xml:space="preserve"><value>Công trình xây xong không dời hay cất được. Nhấn E lần nữa để xây ở đây.</value></data>
+  <data name="Placement_NothingToStow" xml:space="preserve"><value>Không có gì phía trước để cất.</value></data>
   <data name="Place_Stowed" xml:space="preserve"><value>Đã cất vào túi. Đặt lại lúc nào cũng được.</value></data>
   <data name="Panel_Close" xml:space="preserve"><value>Đóng</value></data>
   <data name="Toolbar_Label" xml:space="preserve"><value>Mở bảng</value></data>
